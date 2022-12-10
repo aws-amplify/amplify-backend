@@ -1,0 +1,96 @@
+import { Construct } from "constructs";
+import {
+  AmplifyCdkType,
+  AmplifyCdkWrap,
+  AmplifyConstruct,
+  AmplifyResourceTransform,
+  AmplifyResourceTransformFactory,
+  LambdaEventHandler,
+} from "./types";
+import { AssetReference } from "./manifest-types";
+import { Type } from "class-transformer";
+import { Max } from "class-validator";
+
+export const getAmplifyResourceTransform: AmplifyResourceTransformFactory = (
+  awsCdkLib: AmplifyCdkType
+) => {
+  return new AmplifyServerlessFunctionTransform(awsCdkLib);
+};
+
+class AmplifyServerlessFunctionTransform implements AmplifyResourceTransform {
+  constructor(private readonly awsCdkLib: AmplifyCdkType) {}
+
+  getConstruct(scope: Construct, name: string): AmplifyConstruct {
+    return new AmplifyServerlessFunctionConstruct(scope, name, this.awsCdkLib);
+  }
+}
+
+class AmplifyServerlessFunctionConstruct
+  extends AmplifyConstruct
+  implements LambdaEventHandler
+{
+  private func: AmplifyCdkWrap.aws_lambda.Function;
+  private readonly lambda: AmplifyCdkType["aws_lambda"];
+  constructor(
+    scope: Construct,
+    private readonly name: string,
+    private readonly awsCdkLib: AmplifyCdkType
+  ) {
+    super(scope, name);
+    this.lambda = awsCdkLib.aws_lambda;
+  }
+
+  getAnnotatedConfigClass(): typeof AmplifyServerlessFunctionConfiguration {
+    return AmplifyServerlessFunctionConfiguration;
+  }
+
+  init(configuration: AmplifyServerlessFunctionConfiguration) {
+    this.func = new this.lambda.Function(this, this.name, {
+      runtime: new this.lambda.Runtime(configuration.runtime),
+      handler: configuration.handler,
+      timeout:
+        typeof configuration.timeoutSeconds === "number"
+          ? this.awsCdkLib.Duration.seconds(configuration.timeoutSeconds)
+          : undefined,
+      code: this.lambda.Code.fromAsset(configuration.buildAsset.relativePath),
+    });
+  }
+
+  finalize(): void {
+    // intentional noop
+  }
+
+  getLambdaRef(): AmplifyCdkWrap.aws_lambda.IFunction {
+    return this.func;
+  }
+}
+
+type BuildConfig = {
+  buildCommand: string;
+  sourceDirectory: AssetReference;
+};
+
+class AmplifyServerlessFunctionConfiguration
+  implements IAmplifyServerlessFunctionConfiguration
+{
+  runtime: string;
+  handler: string;
+  buildAsset: AssetReference;
+
+  @Type(() => Number)
+  @Max(100)
+  timeoutSeconds?: number;
+
+  @Type(() => Number)
+  memoryMB?: number;
+  buildConfig?: BuildConfig;
+}
+
+type IAmplifyServerlessFunctionConfiguration = {
+  runtime: string;
+  handler: string;
+  buildAsset: AssetReference;
+  timeoutSeconds?: number;
+  memoryMB?: number;
+  buildConfig?: BuildConfig;
+};

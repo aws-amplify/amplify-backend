@@ -1,0 +1,26 @@
+{
+  "resources": {
+    "testFileStorage": {
+      "transformer": "storageTransformer",
+      "definition": {},
+      "triggers": {
+        "stream": "myTestFunction"
+      }
+    },
+    "myTestFunction": {
+      "transformer": "functionTransformer",
+      "definition": {
+        "runtime": "nodejs14.x",
+        "timeoutSeconds": "200",
+        "handler": "index.handler",
+        "buildAsset": {
+          "relativePath": "./testLambda"
+        }
+      }
+    }
+  },
+  "transformers": {
+    "storageTransformer": "@aws-amplify/s3-transform@1.2.3",
+    "functionTransformer": "@aws-amplify/lambda-transform@2.3.4"
+  }
+}
