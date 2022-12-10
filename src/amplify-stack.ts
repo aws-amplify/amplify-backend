@@ -7,11 +7,9 @@ import { Construct } from "constructs";
 export const crossStackTest = (app: App): App => {
   const stackA = new Stack(app, "stackA");
   const bucket = new Bucket(stackA, "cross-stack-bucket");
-  const bucketRef = new AmplifyReference<string>(
-    stackA,
-    "bucket-ref",
-    bucket.bucketArn
-  );
+  const bucketRef = new AmplifyReference<[string]>(stackA, "bucket-ref", [
+    bucket.bucketArn,
+  ]);
 
   const stackB = new Stack(app, "stackB");
   const lambda = new Function(stackB, "cross-stack-lambda", {
@@ -22,7 +20,7 @@ export const crossStackTest = (app: App): App => {
   lambda.addToRolePolicy(
     new PolicyStatement({
       actions: ["s3:GetBucket*", "s3:GetObject*", "s3:List*"],
-      resources: [bucketRef.getValue(lambda)],
+      resources: [bucketRef.getValue(lambda)[0]],
     })
   );
   return app;
@@ -36,30 +34,25 @@ export const crossStackTest = (app: App): App => {
  *
  * If no serializer or deserializer is passed in, JSON.strignify and JSON.parse are used by default
  */
-export class AmplifyReference<T> extends Construct {
+export class AmplifyReference extends Construct {
   private readonly parameterName: string;
-  constructor(
-    scope: Construct,
-    name: string,
-    value: unknown,
-    serializer = JSON.stringify,
-    private readonly deserializer = JSON.parse
-  ) {
+  constructor(scope: Construct, name: string, value: string) {
     super(scope, name);
 
     this.parameterName = `/cdk/${name}-${this.node.addr}`;
 
     new aws_ssm.StringParameter(this, name, {
       parameterName: this.parameterName,
-      stringValue: serializer(value),
+      stringValue: value,
     });
   }
 
-  getValue(scope: Construct): T {
+  getValue(scope: Construct): string {
     scope.node.addDependency(this);
-    return this.deserializer(
-      aws_ssm.StringParameter.valueForStringParameter(scope, this.parameterName)
-    ) as T;
+    return aws_ssm.StringParameter.valueForStringParameter(
+      scope,
+      this.parameterName
+    );
   }
 }
 

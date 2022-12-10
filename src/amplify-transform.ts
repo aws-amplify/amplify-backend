@@ -103,25 +103,20 @@ export class AmplifyTransform extends Construct {
         const handlerLambda = handlerConstruct.getLambdaRef();
 
         // create SSM parameters in the handler stack for the lambda arn and name
-        type LambdaRef = {
-          name: string;
-          arn: string;
-          role: string;
-        };
-
-        const lambdaRef = {
-          name: handlerLambda.functionName,
-          arn: handlerLambda.functionArn,
-          role: handlerLambda.role?.roleArn,
-        };
-        const lambdaAmplifyRef = new AmplifyReference<LambdaRef>(
+        const arnRef = new AmplifyReference(
           handlerConstruct,
-          `${handlerResourceName}-name`,
-          lambdaRef
+          `${handlerResourceName}-arn`,
+          handlerLambda.functionArn
+        );
+        const roleRef = new AmplifyReference(
+          handlerConstruct,
+          `${handlerResourceName}-role`,
+          handlerLambda.role!.roleArn
         );
 
         // link those parameters to the source stack
-        const destNameRef = lambdaAmplifyRef.getValue(sourceConstruct);
+        const destArnRef = arnRef.getValue(sourceConstruct);
+        const destRoleRef = roleRef.getValue(sourceConstruct);
 
         // pass the linked lambda refs to the source stack so they can be attached to the source defined by eventSourceName
         sourceConstruct.attachLambdaEventHandler!(
@@ -130,11 +125,11 @@ export class AmplifyTransform extends Construct {
             sourceConstruct,
             "handler-lambda",
             {
-              functionArn: destNameRef.arn,
+              functionArn: destArnRef,
               role: aws_iam.Role.fromRoleArn(
                 sourceConstruct,
                 "handler-role",
-                destNameRef.role
+                destRoleRef
               ),
             }
           )
