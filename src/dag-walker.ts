@@ -5,7 +5,7 @@ export const getDagWalker = (dag: AdjList) => (visitor: NodeVisitor) =>
   recursiveDriver(dag, visitor);
 
 /**
- * Executes visitor on each node in the DAG in dependency order using an async recursive function
+ * Executes visitor on each node in the DAG in dependency order using a recursive function
  */
 const recursiveDriver = (dag: AdjList, visitor: NodeVisitor) => {
   const invertedDag = invertDag(dag);
@@ -13,15 +13,13 @@ const recursiveDriver = (dag: AdjList, visitor: NodeVisitor) => {
   const visit = (node: string) => {
     visitor(node);
     const dependents = invertedDag[node];
-    Promise.all(
-      dependents.map((dep) => {
-        inDegMap[dep]--;
-        if (inDegMap[dep] === 0) {
-          // all of the dependencies for dep have been visited so we can visit it
-          visit(dep);
-        }
-      })
-    );
+    dependents.map((dep) => {
+      inDegMap[dep]--;
+      if (inDegMap[dep] === 0) {
+        // all of the dependencies for dep have been visited so we can now visit it
+        visit(dep);
+      }
+    });
   };
   roots.map((root) => visit(root));
 };

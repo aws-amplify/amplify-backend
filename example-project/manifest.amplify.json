@@ -10,11 +10,25 @@
     "myTestFunction": {
       "transformer": "functionTransformer",
       "definition": {
-        "runtime": "nodejs14.x",
+        "runtime": "$param:functionRuntime",
         "timeoutSeconds": "200",
-        "handler": "index.handler",
-        "buildAsset": {
-          "relativePath": "./testLambda"
+        "handler": "$param:functionHandler",
+        "relativeBuildAssetPath": "./testLambda",
+        "environmentVariables": {
+          "SERVER_TIMEOUT": "$param:serverTimeout"
+        }
+      },
+      "preSynth": "cd fnSrc && npx tsc",
+      "secrets": {
+        "DB_PASSWORD": "$secret:databasePassword"
+      },
+      "runtimeAccess": {
+        "lambdaRuntime": {
+          "testFileStorage": [
+            {
+              "actions": ["read"]
+            }
+          ]
         }
       }
     }
@@ -22,5 +36,15 @@
   "transformers": {
     "storageTransformer": "@aws-amplify/s3-transform@1.2.3",
     "functionTransformer": "@aws-amplify/lambda-transform@2.3.4"
+  },
+  "secrets": {
+    "databasePassword": "$ssm:/path/to/secret",
+    "fbOAuthClientId": "$ssm:/another/path/to/secret",
+    "fbOAuthClientSecret": "$ssm:/yet/another/one"
+  },
+  "parameters": {
+    "serverTimeout": "$ssm:/path/to/ssm/value",
+    "functionRuntime": "$env:FUNCTION_RUNTIME",
+    "functionHandler": "index.handler"
   }
 }

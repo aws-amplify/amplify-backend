@@ -22,7 +22,8 @@
     "emitDecoratorMetadata": true,
     "strictPropertyInitialization": false,
     "skipLibCheck": true,
-    "typeRoots": ["./node_modules/@types"]
+    "typeRoots": ["./node_modules/@types"],
+    "esModuleInterop": true
   },
   "include": ["./src/**/*"],
   "exclude": ["node_modules", "cdk.out", "./lib/**/*"]

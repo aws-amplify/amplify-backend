@@ -7,9 +7,11 @@ import { Construct } from "constructs";
 export const crossStackTest = (app: App): App => {
   const stackA = new Stack(app, "stackA");
   const bucket = new Bucket(stackA, "cross-stack-bucket");
-  const bucketRef = new AmplifyReference<[string]>(stackA, "bucket-ref", [
-    bucket.bucketArn,
-  ]);
+  const bucketRef = new AmplifyReference(
+    stackA,
+    "bucket-ref",
+    bucket.bucketArn
+  );
 
   const stackB = new Stack(app, "stackB");
   const lambda = new Function(stackB, "cross-stack-lambda", {

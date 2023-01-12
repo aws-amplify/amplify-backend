@@ -1,6 +1,6 @@
 import { Construct } from "constructs";
 import {
-  ResourceDefinitionRecord,
+  ResourceRecord,
   ExternalToken,
   ResourceName,
   TransformKey,
@@ -22,7 +22,7 @@ export class AmplifyTransform extends Construct {
   constructor(
     scope: Construct,
     private readonly envPrefix: string,
-    private readonly resourceDefinition: ResourceDefinitionRecord,
+    private readonly resourceDefinition: ResourceRecord,
     private readonly transformers: Record<
       TransformKey,
       AmplifyResourceTransform
@@ -140,7 +140,7 @@ export class AmplifyTransform extends Construct {
 }
 
 const generateResourceDAG = (
-  resourceDefiniton: ResourceDefinitionRecord
+  resourceDefiniton: ResourceRecord
 ): ResourceDAG => {
   const resourceSet = new Set<ResourceName>(Object.keys(resourceDefiniton));
   const resourceDag: Record<ResourceName, ResourceName[]> = {};

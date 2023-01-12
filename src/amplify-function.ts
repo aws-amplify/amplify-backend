@@ -7,7 +7,6 @@ import {
   AmplifyResourceTransformFactory,
   LambdaEventHandler,
 } from "./types";
-import { AssetReference } from "./manifest-types";
 import { Type } from "class-transformer";
 import { Max } from "class-validator";
 
@@ -52,7 +51,7 @@ class AmplifyServerlessFunctionConstruct
         typeof configuration.timeoutSeconds === "number"
           ? this.awsCdkLib.Duration.seconds(configuration.timeoutSeconds)
           : undefined,
-      code: this.lambda.Code.fromAsset(configuration.buildAsset.relativePath),
+      code: this.lambda.Code.fromAsset(configuration.relativeBuildAssetPath),
     });
   }
 
@@ -67,7 +66,7 @@ class AmplifyServerlessFunctionConstruct
 
 type BuildConfig = {
   buildCommand: string;
-  sourceDirectory: AssetReference;
+  sourceDirectory: string;
 };
 
 class AmplifyServerlessFunctionConfiguration
@@ -75,7 +74,7 @@ class AmplifyServerlessFunctionConfiguration
 {
   runtime: string;
   handler: string;
-  buildAsset: AssetReference;
+  relativeBuildAssetPath: string;
 
   @Type(() => Number)
   @Max(100)
@@ -89,7 +88,7 @@ class AmplifyServerlessFunctionConfiguration
 type IAmplifyServerlessFunctionConfiguration = {
   runtime: string;
   handler: string;
-  buildAsset: AssetReference;
+  relativeBuildAssetPath: string;
   timeoutSeconds?: number;
   memoryMB?: number;
   buildConfig?: BuildConfig;

@@ -1,0 +1,6 @@
+#!/usr/bin/env node
+// if (process.pkg) {
+//   require('../lib/utils/copy-override').copyOverride();
+// }
+const { main } = require("../lib/amplify-toolbox");
+main().catch(console.error);
