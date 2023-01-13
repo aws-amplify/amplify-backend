@@ -1,28 +1,5 @@
-import { App, aws_ssm, CfnElement, Stack } from "aws-cdk-lib";
-import { PolicyStatement } from "aws-cdk-lib/aws-iam";
-import { Function, InlineCode, Runtime } from "aws-cdk-lib/aws-lambda";
-import { Bucket } from "aws-cdk-lib/aws-s3";
+import { aws_ssm, CfnElement, Stack } from "aws-cdk-lib";
 import { Construct } from "constructs";
-
-export const crossStackTest = (app: App): App => {
-  const stackA = new Stack(app, "stackA");
-  const bucket = new Bucket(stackA, "cross-stack-bucket");
-  const bucketRef = new AmplifyReference(stackA, "bucket-ref", bucket.bucketArn);
-
-  const stackB = new Stack(app, "stackB");
-  const lambda = new Function(stackB, "cross-stack-lambda", {
-    runtime: Runtime.NODEJS_16_X,
-    handler: "index.handle",
-    code: new InlineCode("garbage"),
-  });
-  lambda.addToRolePolicy(
-    new PolicyStatement({
-      actions: ["s3:GetBucket*", "s3:GetObject*", "s3:List*"],
-      resources: [bucketRef.getValue(lambda)[0]],
-    })
-  );
-  return app;
-};
 
 /**
  * Creates a reference between two stacks using a value in ParameterStore

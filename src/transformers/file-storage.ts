@@ -7,7 +7,7 @@ import {
   AmplifyCdkType,
   LambdaEventSource,
   AmplifyResourceTransformFactory,
-} from "./types";
+} from "../types";
 
 export const getAmplifyResourceTransform: AmplifyResourceTransformFactory = (awsCdkLib: AmplifyCdkType) => {
   return new AmplifyFileStorageTransform(awsCdkLib);

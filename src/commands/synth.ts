@@ -1,7 +1,7 @@
 import { App } from "aws-cdk-lib";
 import { Command, createCommand } from "commander";
 import * as fs from "fs-extra";
-import { getTransformForManifest } from "../amplify-transform-initializer";
+import { createTransformerOrchestrator } from "../orchestrator/amplify-transformer-orchestrator-factory";
 
 export const getCommand = (): Command => {
   return createCommand("synth")
@@ -21,7 +21,7 @@ const synthHandler = async (env: string, options: any) => {
 
   // Note the CDK app is constructed outside of the AmplifyTransform. The AmplifyTransform is a CDK construct that is portabe to any CDK App
   const app = new App({ outdir: "cdk.out" });
-  const amplifyTransform = await getTransformForManifest(app, env, tokenizedManifest);
+  const amplifyTransform = await createTransformerOrchestrator(app, env, tokenizedManifest);
   amplifyTransform.transform();
   app.synth();
 };

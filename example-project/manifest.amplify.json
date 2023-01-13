@@ -7,6 +7,11 @@
         "stream": "myTestFunction"
       }
     },
+    "testDdbStorage": {
+      "transformer": "nonRelationalDatabaseTransformer",
+      "definition": {},
+      "managedProperties": ["primaryIndex", "secondaryIndexes"]
+    },
     "myTestFunction": {
       "transformer": "functionTransformer",
       "definition": {
@@ -31,6 +36,13 @@
           ]
         }
       }
+    },
+    "fancyGqlApi": {
+      "transformer": "gqlTransformer",
+      "definition": {
+        "schema": "./schema.graphql"
+      },
+      "managedTables": ["testDdbStorage"]
     }
   },
   "transformers": {

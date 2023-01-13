@@ -1,14 +1,14 @@
 import { App } from "aws-cdk-lib";
 import { Construct } from "constructs";
-import { consoleLogger } from "./amplify-logger";
+import { consoleLogger } from "../observability-tooling/amplify-logger";
 import { amplifyMetrics } from "./amplify-metrics";
-import { AmplifyTransform } from "./amplify-transform";
+import { AmplifyTransformerOrchestrator } from "./amplify-transformer-orchestrator";
 import { hydrateTokens } from "./hydrate-tokens";
-import { AmplifyManifest, TokenizedManifest, TransformKey } from "./manifest-types";
-import { AmplifyResourceTransformFactory, AmplifyResourceTransform } from "./types";
+import { AmplifyManifest, TokenizedManifest, TransformKey } from "../manifest/manifest-types";
+import { AmplifyResourceTransformFactory, AmplifyResourceTransform } from "../types";
 
-import { getAmplifyResourceTransform as getStorageTransform } from "./amplify-storage";
-import { getAmplifyResourceTransform as getFunctionTransform } from "./amplify-function";
+import { getAmplifyResourceTransform as getStorageTransform } from "../transformers/file-storage";
+import { getAmplifyResourceTransform as getFunctionTransform } from "../transformers/serverless-function";
 import * as cdk from "aws-cdk-lib";
 /**
  * This should be a first class entry point into Amplify for customers who want to integrate an Amplify manifest into an existing CDK application
@@ -19,11 +19,11 @@ import * as cdk from "aws-cdk-lib";
  * @param tokenizedManifest The raw manifest object that should be transformed
  * @returns Initialized AmplifyTransform instance
  */
-export const getTransformForManifest = async (
+export const createTransformerOrchestrator = async (
   construct: Construct,
   envName: string,
   tokenizedManifest: TokenizedManifest
-): Promise<AmplifyTransform> => {
+): Promise<AmplifyTransformerOrchestrator> => {
   // TODO parse / validate manifest into DAO. This will remove the need for type assertions
   // manifest parameters will be loaded from our metadata service for the specified account/region/envName tuple
   const params: Record<string, string> = tokenizedManifest.parameters || {};
@@ -46,5 +46,5 @@ export const getTransformForManifest = async (
     transformers[transformerKey] = remoteFetchPlaceholder[transformerName](cdk, consoleLogger, amplifyMetrics);
   });
 
-  return new AmplifyTransform(construct, envName, hydratedManifest.resources, transformers);
+  return new AmplifyTransformerOrchestrator(construct, envName, hydratedManifest.resources, transformers);
 };

@@ -1,4 +1,4 @@
-import { IAmplifyLogger } from "./types";
+import { IAmplifyLogger } from "../types";
 
 export class ConsoleLogger implements IAmplifyLogger {
   error(message: string): void {

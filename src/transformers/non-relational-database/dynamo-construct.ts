@@ -1,14 +1,8 @@
-import {
-  AttributeDefinitions,
-  BillingMode,
-  GlobalSecondaryIndexList,
-  KeySchema,
-  StreamSpecification,
-} from "aws-sdk/clients/dynamodb";
+import { AttributeDefinitions, BillingMode, GlobalSecondaryIndexList, KeySchema, StreamSpecification } from "aws-sdk/clients/dynamodb";
 import { instanceToPlain } from "class-transformer";
 import { Construct } from "constructs";
-import type { DDBConfig } from "../dynamo/ddb-custom-config-type";
-import { AmplifyCdkType, AmplifyCdkWrap, AmplifyConstruct, LambdaEventSource, ResourceNameArnTuple } from "../types";
+import type { DDBConfig } from "./ddb-custom-config-type";
+import { AmplifyCdkType, AmplifyCdkWrap, AmplifyConstruct, LambdaEventSource, ResourceNameArnTuple } from "../../types";
 
 // TODO make construct here pulling from stuff below
 

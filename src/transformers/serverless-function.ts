@@ -6,7 +6,7 @@ import {
   AmplifyResourceTransform,
   AmplifyResourceTransformFactory,
   LambdaEventHandler,
-} from "./types";
+} from "../types";
 import { Type } from "class-transformer";
 import { Max } from "class-validator";
 
@@ -38,10 +38,7 @@ class AmplifyServerlessFunctionConstruct extends AmplifyConstruct implements Lam
     this.func = new this.lambda.Function(this, this.name, {
       runtime: new this.lambda.Runtime(configuration.runtime),
       handler: configuration.handler,
-      timeout:
-        typeof configuration.timeoutSeconds === "number"
-          ? this.awsCdkLib.Duration.seconds(configuration.timeoutSeconds)
-          : undefined,
+      timeout: typeof configuration.timeoutSeconds === "number" ? this.awsCdkLib.Duration.seconds(configuration.timeoutSeconds) : undefined,
       code: this.lambda.Code.fromAsset(configuration.relativeBuildAssetPath),
     });
   }

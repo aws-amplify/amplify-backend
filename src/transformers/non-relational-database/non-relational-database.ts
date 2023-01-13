@@ -1,5 +1,5 @@
 import { Construct } from "constructs";
-import { AmplifyCdkType, AmplifyConstruct, AmplifyResourceTransform, AmplifyResourceTransformFactory } from "../types";
+import { AmplifyCdkType, AmplifyConstruct, AmplifyResourceTransform, AmplifyResourceTransformFactory } from "../../types";
 import { DynamoConstruct } from "./dynamo-construct";
 
 export const getAmplifyResourceTransform: AmplifyResourceTransformFactory = (awsCdkLib, logger, metrics) => {

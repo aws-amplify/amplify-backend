@@ -1,13 +1,13 @@
 import { Construct } from "constructs";
-import { ResourceRecord, ExternalToken, ResourceName, TransformKey } from "./manifest-types";
+import { ResourceRecord, ExternalToken, ResourceName, TransformKey } from "./manifest/manifest-types";
 import { getDagWalker, NodeVisitor } from "./dag-walker";
 import { AmplifyResourceTransform, AmplifyConstruct } from "./types";
-import { AmplifyReference, AmplifyStack } from "./amplify-stack";
+import { AmplifyReference, AmplifyStack } from "./amplify-reference";
 import { plainToInstance } from "class-transformer";
 import { validateSync } from "class-validator";
 import { aws_lambda, aws_iam } from "aws-cdk-lib";
 
-export class AmplifyTransform extends Construct {
+export class AmplifyTransformerOrchestrator extends Construct {
   private readonly resourceConstructMap: Record<ResourceName, AmplifyConstruct> = {};
   private readonly dagWalker: (visitor: NodeVisitor) => void;
 
@@ -39,10 +39,7 @@ export class AmplifyTransform extends Construct {
       if (!transformer) {
         throw new Error(`No transformer for ${resourceDefinition.transformer} is defined`);
       }
-      this.resourceConstructMap[resourceName] = transformer.getConstruct(
-        new AmplifyStack(this, resourceName, this.envPrefix),
-        resourceName
-      );
+      this.resourceConstructMap[resourceName] = transformer.getConstruct(new AmplifyStack(this, resourceName, this.envPrefix), resourceName);
     });
   }
 
@@ -83,11 +80,7 @@ export class AmplifyTransform extends Construct {
 
       // create SSM parameters in the handler stack for the lambda arn and name
       const arnRef = new AmplifyReference(handlerConstruct, `${handlerResourceName}-arn`, handlerLambda.functionArn);
-      const roleRef = new AmplifyReference(
-        handlerConstruct,
-        `${handlerResourceName}-role`,
-        handlerLambda.role!.roleArn
-      );
+      const roleRef = new AmplifyReference(handlerConstruct, `${handlerResourceName}-role`, handlerLambda.role!.roleArn);
 
       // link those parameters to the source stack
       const destArnRef = arnRef.getValue(sourceConstruct);
@@ -118,9 +111,7 @@ const generateResourceDAG = (resourceDefiniton: ResourceRecord): ResourceDAG => 
             return;
           }
           if (!resourceSet.has(resourceToken)) {
-            throw new Error(
-              `${resourceName} declares a dependency on ${resourceToken} but ${resourceToken} is not defined in the project config`
-            );
+            throw new Error(`${resourceName} declares a dependency on ${resourceToken} but ${resourceToken} is not defined in the project config`);
           }
           resourceDag[resourceName]!.push(resourceToken);
         });
