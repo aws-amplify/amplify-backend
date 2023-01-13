@@ -53,8 +53,7 @@ it("computes deletion correctly", () => {
         },
         IndexSizeBytes: 0,
         ItemCount: 0,
-        IndexArn:
-          "arn:aws:dynamodb:us-west-1:580394976433:table/test-table/index/gsi1",
+        IndexArn: "arn:aws:dynamodb:us-west-1:580394976433:table/test-table/index/gsi1",
       },
     ],
   };
@@ -293,8 +292,7 @@ it("computes next addition correctly", () => {
         },
         IndexSizeBytes: 0,
         ItemCount: 0,
-        IndexArn:
-          "arn:aws:dynamodb:us-west-1:580394976433:table/test-table/index/gsi1",
+        IndexArn: "arn:aws:dynamodb:us-west-1:580394976433:table/test-table/index/gsi1",
       },
     ],
   };
@@ -432,8 +430,7 @@ it("computes end state correctly", () => {
         },
         IndexSizeBytes: 0,
         ItemCount: 0,
-        IndexArn:
-          "arn:aws:dynamodb:us-west-1:580394976433:table/test-table/index/gsi1",
+        IndexArn: "arn:aws:dynamodb:us-west-1:580394976433:table/test-table/index/gsi1",
       },
       {
         IndexName: "gsi3",
@@ -454,8 +451,7 @@ it("computes end state correctly", () => {
         },
         IndexSizeBytes: 0,
         ItemCount: 0,
-        IndexArn:
-          "arn:aws:dynamodb:us-west-1:580394976433:table/test-table/index/gsi1",
+        IndexArn: "arn:aws:dynamodb:us-west-1:580394976433:table/test-table/index/gsi1",
       },
     ],
   };

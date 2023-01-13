@@ -1,7 +1,4 @@
-export const hydrateTokens = <T extends Record<string, unknown>>(
-  obj: T,
-  tokens: Record<string, string>
-): T => {
+export const hydrateTokens = <T extends Record<string, unknown>>(obj: T, tokens: Record<string, string>): T => {
   const stack: Record<string, unknown>[] = [];
   stack.push(obj);
   while (stack.length > 0) {
@@ -22,11 +19,7 @@ export const hydrateTokens = <T extends Record<string, unknown>>(
   return obj;
 };
 
-const maybeStringSub = (
-  element: string,
-  tokens: Record<string, string>,
-  substitutionCallback: (newValue: string) => void
-) => {
+const maybeStringSub = (element: string, tokens: Record<string, string>, substitutionCallback: (newValue: string) => void) => {
   if (element.startsWith("$param:")) {
     const [, tokenKey] = element.split(":");
     if (!tokens[tokenKey]) {

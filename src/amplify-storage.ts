@@ -9,9 +9,7 @@ import {
   AmplifyResourceTransformFactory,
 } from "./types";
 
-export const getAmplifyResourceTransform: AmplifyResourceTransformFactory = (
-  awsCdkLib: AmplifyCdkType
-) => {
+export const getAmplifyResourceTransform: AmplifyResourceTransformFactory = (awsCdkLib: AmplifyCdkType) => {
   return new AmplifyFileStorageTransform(awsCdkLib);
 };
 
@@ -23,16 +21,9 @@ class AmplifyFileStorageTransform implements AmplifyResourceTransform {
   }
 }
 
-class AmplifyFileStorageConstruct
-  extends AmplifyConstruct
-  implements LambdaEventSource
-{
+class AmplifyFileStorageConstruct extends AmplifyConstruct implements LambdaEventSource {
   private bucket: AmplifyCdkWrap.aws_s3.Bucket;
-  constructor(
-    scope: Construct,
-    private readonly name: string,
-    private readonly awsCdkLib: AmplifyCdkType
-  ) {
+  constructor(scope: Construct, private readonly name: string, private readonly awsCdkLib: AmplifyCdkType) {
     super(scope, name);
   }
 
@@ -55,24 +46,17 @@ class AmplifyFileStorageConstruct
     // intentional noop
   }
 
-  attachLambdaEventHandler(
-    eventSourceName: string,
-    handler: AmplifyCdkWrap.aws_lambda.IFunction
-  ): void {
+  attachLambdaEventHandler(eventSourceName: string, handler: AmplifyCdkWrap.aws_lambda.IFunction): void {
     if (eventSourceName !== "stream") {
       throw new Error(`Unknown event source name ${eventSourceName}`);
     }
-    new this.awsCdkLib.aws_lambda.CfnPermission(
-      this,
-      `${this.name}shadowFuncPerm`,
-      {
-        functionName: handler.functionName,
-        action: "lambda:InvokeFunction",
-        principal: "s3.amazonaws.com",
-        sourceAccount: this.awsCdkLib.Stack.of(this).account,
-        sourceArn: this.bucket.bucketArn,
-      }
-    );
+    new this.awsCdkLib.aws_lambda.CfnPermission(this, `${this.name}shadowFuncPerm`, {
+      functionName: handler.functionName,
+      action: "lambda:InvokeFunction",
+      principal: "s3.amazonaws.com",
+      sourceAccount: this.awsCdkLib.Stack.of(this).account,
+      sourceArn: this.bucket.bucketArn,
+    });
     this.bucket.addEventNotification(
       this.awsCdkLib.aws_s3.EventType.OBJECT_CREATED,
       new this.awsCdkLib.aws_s3_notifications.LambdaDestination(handler)

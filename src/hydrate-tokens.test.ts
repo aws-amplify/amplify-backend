@@ -57,9 +57,7 @@ it("errors on unknown params", () => {
     param2: "$param:key2",
     param3: "$param:key3",
   };
-  expect(() =>
-    hydrateTokens(initialMap, {})
-  ).toThrowErrorMatchingInlineSnapshot(
+  expect(() => hydrateTokens(initialMap, {})).toThrowErrorMatchingInlineSnapshot(
     `"Provided tokens did not include key1"`
   );
 });

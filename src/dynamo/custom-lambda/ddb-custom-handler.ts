@@ -1,11 +1,6 @@
 import { DynamoDB } from "aws-sdk";
 import type { CloudFormationCustomResourceEvent } from "aws-lambda";
-import type {
-  KeySchema,
-  Projection,
-  TableDescription,
-  UpdateTableInput,
-} from "aws-sdk/clients/dynamodb";
+import type { KeySchema, Projection, TableDescription, UpdateTableInput } from "aws-sdk/clients/dynamodb";
 import type { DDBConfig } from "../ddb-custom-config-type";
 
 const ddbClient = new DynamoDB();
@@ -13,9 +8,7 @@ const ddbClient = new DynamoDB();
 const log = (msg: string, ...other: any[]) => {
   console.log(
     msg,
-    other.map((o) =>
-      typeof o === "object" ? JSON.stringify(o, undefined, 2) : o
-    )
+    other.map((o) => (typeof o === "object" ? JSON.stringify(o, undefined, 2) : o))
   );
 };
 
@@ -36,16 +29,11 @@ export const onEvent = async (
       return result;
     case "Update":
       log("fetching current table state");
-      const describeTableResult = await ddbClient
-        .describeTable({ TableName: event.PhysicalResourceId })
-        .promise();
+      const describeTableResult = await ddbClient.describeTable({ TableName: event.PhysicalResourceId }).promise();
       if (!describeTableResult.Table) {
         throw new Error(`Could not find ${event.PhysicalResourceId} to update`);
       }
-      const nextUpdate = getNextUpdate(
-        describeTableResult.Table,
-        internalEventProps
-      );
+      const nextUpdate = getNextUpdate(describeTableResult.Table, internalEventProps);
       log("computed next update", nextUpdate);
       if (!nextUpdate) return; // nothin to update
       log("initiating table update");
@@ -53,9 +41,7 @@ export const onEvent = async (
     case "Delete":
       log("initiating table deletion");
       try {
-        await ddbClient
-          .deleteTable({ TableName: event.PhysicalResourceId })
-          .promise();
+        await ddbClient.deleteTable({ TableName: event.PhysicalResourceId }).promise();
       } catch (err) {
         // TODO only swallow NotExist errors
       }
@@ -77,10 +63,7 @@ export const isComplete = async (
   }
   log("fetching current table state");
   const describeTableResult = await retry(
-    async () =>
-      await ddbClient
-        .describeTable({ TableName: event.PhysicalResourceId! })
-        .promise(),
+    async () => await ddbClient.describeTable({ TableName: event.PhysicalResourceId! }).promise(),
     (result) => !!result?.Table
   );
   if (describeTableResult.Table?.TableStatus !== "ACTIVE") {
@@ -89,9 +72,7 @@ export const isComplete = async (
   }
   // table is active, need to check GSI status
   if (
-    describeTableResult.Table.GlobalSecondaryIndexes?.some(
-      (gsi) => gsi.IndexStatus !== "ACTIVE" || gsi.Backfilling
-    )
+    describeTableResult.Table.GlobalSecondaryIndexes?.some((gsi) => gsi.IndexStatus !== "ACTIVE" || gsi.Backfilling)
   ) {
     log("some GSI is not active yet");
     return notFinished;
@@ -104,10 +85,7 @@ export const isComplete = async (
   }
 
   // need to check if any more GSI updates are necessary
-  const nextUpdate = getNextUpdate(
-    describeTableResult.Table,
-    event.ResourceProperties as unknown as DDBConfig
-  );
+  const nextUpdate = getNextUpdate(describeTableResult.Table, event.ResourceProperties as unknown as DDBConfig);
   log("computed next update", nextUpdate);
   if (!nextUpdate) {
     // current state equals end state so we're done
@@ -127,10 +105,7 @@ const notFinished: AWSCDKAsyncCustomResource.IsCompleteResponse = {
 };
 
 // compares the currentState with the endState to determine a next update step that will get the table closer to the end state
-export const getNextUpdate = (
-  currentState: TableDescription,
-  endState: DDBConfig
-): UpdateTableInput | undefined => {
+export const getNextUpdate = (currentState: TableDescription, endState: DDBConfig): UpdateTableInput | undefined => {
   const endStateGSIs = endState.GlobalSecondaryIndexes || [];
   const endStateGSINames = endStateGSIs.map((gsi) => gsi.IndexName);
 
@@ -138,31 +113,15 @@ export const getNextUpdate = (
   const currentStateGSINames = currentStateGSIs.map((gsi) => gsi.IndexName);
 
   // function to identify any GSIs that need to be removed
-  const gsiRequiresReplacementPredicate = (
-    currentGSI: DynamoDB.GlobalSecondaryIndexDescription
-  ): boolean => {
+  const gsiRequiresReplacementPredicate = (currentGSI: DynamoDB.GlobalSecondaryIndexDescription): boolean => {
     // check if the index has been removed entirely
     if (!endStateGSINames.includes(currentGSI.IndexName!)) return true;
     // get the end state of this GSI
-    const respectiveEndStateGSI = endStateGSIs.find(
-      (endStateGSI) => endStateGSI.IndexName === currentGSI.IndexName
-    )!;
+    const respectiveEndStateGSI = endStateGSIs.find((endStateGSI) => endStateGSI.IndexName === currentGSI.IndexName)!;
     // detect if projection has changed
-    if (
-      isProjectionModified(
-        currentGSI.Projection!,
-        respectiveEndStateGSI.Projection!
-      )
-    )
-      return true;
+    if (isProjectionModified(currentGSI.Projection!, respectiveEndStateGSI.Projection!)) return true;
     // detect if key schema has changed
-    if (
-      isKeySchemaModified(
-        currentGSI.KeySchema!,
-        respectiveEndStateGSI.KeySchema!
-      )
-    )
-      return true;
+    if (isKeySchemaModified(currentGSI.KeySchema!, respectiveEndStateGSI.KeySchema!)) return true;
     // if we got here, then the GSI does not need to be removed
     return false;
   };
@@ -181,15 +140,12 @@ export const getNextUpdate = (
   }
 
   // if we get here, then find a GSI that needs to be created and construct an update request
-  const gsiRequiresCreationPredicate = (
-    endStateGSI: DynamoDB.GlobalSecondaryIndex
-  ): boolean => !currentStateGSINames.includes(endStateGSI.IndexName);
+  const gsiRequiresCreationPredicate = (endStateGSI: DynamoDB.GlobalSecondaryIndex): boolean =>
+    !currentStateGSINames.includes(endStateGSI.IndexName);
 
   const gsiToAdd = endStateGSIs.find(gsiRequiresCreationPredicate);
   if (gsiToAdd) {
-    const attributeNamesToInclude = gsiToAdd.KeySchema.map(
-      (schema) => schema.AttributeName
-    );
+    const attributeNamesToInclude = gsiToAdd.KeySchema.map((schema) => schema.AttributeName);
     return {
       TableName: currentState.TableName!,
       AttributeDefinitions: endState.AttributeDefinitions.filter((def) =>
@@ -211,13 +167,9 @@ export const getNextUpdate = (
   return undefined;
 };
 
-const isProjectionModified = (
-  currentProjection: Projection,
-  endProjection: Projection
-): boolean => {
+const isProjectionModified = (currentProjection: Projection, endProjection: Projection): boolean => {
   // first see if the projection type is changed
-  if (currentProjection.ProjectionType !== endProjection.ProjectionType)
-    return true;
+  if (currentProjection.ProjectionType !== endProjection.ProjectionType) return true;
 
   // if projection type is all for both then no need to check projection attributes
   if (currentProjection.ProjectionType === "ALL") return false;
@@ -225,36 +177,23 @@ const isProjectionModified = (
   const currentNonKeyAttributes = currentProjection.NonKeyAttributes || [];
   const endNonKeyAttributes = currentProjection.NonKeyAttributes || [];
   // if an attribute has been added or removed
-  if (currentNonKeyAttributes.length !== endNonKeyAttributes.length)
-    return true;
+  if (currentNonKeyAttributes.length !== endNonKeyAttributes.length) return true;
 
   // if an attribute has been swapped
-  if (
-    currentNonKeyAttributes.some(
-      (currentNonKeyAttribute) =>
-        !endNonKeyAttributes.includes(currentNonKeyAttribute)
-    )
-  )
+  if (currentNonKeyAttributes.some((currentNonKeyAttribute) => !endNonKeyAttributes.includes(currentNonKeyAttribute)))
     return true;
 
   // nothing is different
   return false;
 };
 
-const isKeySchemaModified = (
-  currentSchema: KeySchema,
-  endSchema: KeySchema
-): boolean => {
-  const currentHashKey = currentSchema.find(
-    (schema) => schema.KeyType === "HASH"
-  );
+const isKeySchemaModified = (currentSchema: KeySchema, endSchema: KeySchema): boolean => {
+  const currentHashKey = currentSchema.find((schema) => schema.KeyType === "HASH");
   const endHashKey = endSchema.find((schema) => schema.KeyType === "HASH");
   // check if hash key attribute name is modified
   if (currentHashKey?.AttributeName !== endHashKey?.AttributeName) return true;
 
-  const currentSortKey = currentSchema.find(
-    (schema) => schema.KeyType === "RANGE"
-  );
+  const currentSortKey = currentSchema.find((schema) => schema.KeyType === "RANGE");
   const endSortKey = endSchema.find((schema) => schema.KeyType === "RANGE");
 
   // if a sort key doesn't exist in current or end state, then we're done, the schemas are the same
@@ -321,9 +260,7 @@ const retry = async <T>(
         return result;
       }
       if (typeof failurePredicate === "function" && failurePredicate(result)) {
-        throw new Error(
-          "Retry-able function execution result matched failure predicate. Stopping retries."
-        );
+        throw new Error("Retry-able function execution result matched failure predicate. Stopping retries.");
       }
       console.warn(
         `Retry-able function execution did not match success predicate. Result was [${JSON.stringify(
@@ -331,11 +268,7 @@ const retry = async <T>(
         )}]. Retrying...`
       );
     } catch (err) {
-      console.warn(
-        `Retry-able function execution failed with [${
-          (err as any).message || err
-        }]`
-      );
+      console.warn(`Retry-able function execution failed with [${(err as any).message || err}]`);
       if (stopOnError) {
         console.log("Stopping retries on error.");
       } else {
@@ -347,9 +280,7 @@ const retry = async <T>(
     await sleep(delayMS);
   } while (!terminate && count <= times && Date.now() - startTime < timeoutMS);
 
-  throw new Error(
-    "Retry-able function did not match predicate within the given retry constraints"
-  );
+  throw new Error("Retry-able function did not match predicate within the given retry constraints");
 };
 
 const sleep = async (milliseconds: number): Promise<void> =>

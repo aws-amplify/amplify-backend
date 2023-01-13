@@ -2,13 +2,8 @@ import { Command, createCommand } from "commander";
 
 export const getCommand = (): Command => {
   return createCommand("status")
-    .description(
-      "Display differences between local project config and deployed project state"
-    )
-    .option(
-      "-f, --file <relative path>",
-      "The relative location of the Amplify manifest file"
-    )
+    .description("Display differences between local project config and deployed project state")
+    .option("-f, --file <relative path>", "The relative location of the Amplify manifest file")
     .action(statusHandler);
 };
 

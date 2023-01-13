@@ -1,17 +1,5 @@
-import {
-  aws_codestar,
-  aws_codestarconnections,
-  Stack,
-  StackProps,
-  Stage,
-  StageProps,
-} from "aws-cdk-lib";
-import {
-  CodeBuildStep,
-  CodePipeline,
-  CodePipelineSource,
-  Wave,
-} from "aws-cdk-lib/pipelines";
+import { aws_codestar, aws_codestarconnections, Stack, StackProps, Stage, StageProps } from "aws-cdk-lib";
+import { CodeBuildStep, CodePipeline, CodePipelineSource, Wave } from "aws-cdk-lib/pipelines";
 import { Construct } from "constructs";
 import { AmplifyTransform } from "./amplify-transform";
 
@@ -41,11 +29,7 @@ class PipelineStack extends Stack {
       synth: new CodeBuildStep("SynthStep", {
         // instructions on setting up CodeStar connection would need to be specified in docs
         // placed to specify repo, branch and connection arn would need to be exposed in manifest
-        input: CodePipelineSource.connection(
-          "edwardfoyle/testproject",
-          "main",
-          { connectionArn: "someConnectionArn" }
-        ),
+        input: CodePipelineSource.connection("edwardfoyle/testproject", "main", { connectionArn: "someConnectionArn" }),
         // these parts would need to be exposed in manifest
         // perhaps customer could specify script files and we could parse into these inputs?
         installCommands: ["npm install -g aws-cdk"],

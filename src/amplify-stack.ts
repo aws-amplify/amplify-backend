@@ -7,11 +7,7 @@ import { Construct } from "constructs";
 export const crossStackTest = (app: App): App => {
   const stackA = new Stack(app, "stackA");
   const bucket = new Bucket(stackA, "cross-stack-bucket");
-  const bucketRef = new AmplifyReference(
-    stackA,
-    "bucket-ref",
-    bucket.bucketArn
-  );
+  const bucketRef = new AmplifyReference(stackA, "bucket-ref", bucket.bucketArn);
 
   const stackB = new Stack(app, "stackB");
   const lambda = new Function(stackB, "cross-stack-lambda", {
@@ -51,19 +47,12 @@ export class AmplifyReference extends Construct {
 
   getValue(scope: Construct): string {
     scope.node.addDependency(this);
-    return aws_ssm.StringParameter.valueForStringParameter(
-      scope,
-      this.parameterName
-    );
+    return aws_ssm.StringParameter.valueForStringParameter(scope, this.parameterName);
   }
 }
 
 export class AmplifyStack extends Stack {
-  constructor(
-    scope: Construct,
-    private readonly name: string,
-    private readonly envPrefix: string
-  ) {
+  constructor(scope: Construct, private readonly name: string, private readonly envPrefix: string) {
     super(scope, `amp${envPrefix}${name}`);
   }
   public allocateLogicalId(element: CfnElement) {

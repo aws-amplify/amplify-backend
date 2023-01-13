@@ -1,6 +1,15 @@
 import { SecretKey } from "aws-sdk/clients/appflow";
 import { ParameterKey } from "aws-sdk/clients/cloudformation";
 
+export type TokenizedManifest = {
+  resources: Record<string, unknown>;
+  transformers: Record<string, string>;
+  secrets?: Record<string, string>;
+  parameters?: Record<string, string>;
+};
+
+export type HydratedManifest = TokenizedManifest;
+
 /**
  * The base manifest type
  *
@@ -55,10 +64,7 @@ export type ParameterLookup = string;
  * Union type of all supported secret references.
  */
 export type SecretReference = SSMSecureStringName;
-export type ParameterReference =
-  | SSMStringName
-  | EnvironmentVariableName
-  | string;
+export type ParameterReference = SSMStringName | EnvironmentVariableName | string;
 
 export type SSMSecureStringName = string;
 export type SSMStringName = string;
@@ -75,7 +81,7 @@ type ResourceToken = typeof ExternalToken | ResourceName;
 /**
  * Definition for all Amplify resources
  */
-type ResourceDefinition = {
+export type ResourceDefinition = {
   /**
    * The transformer that knows how to parse / synthesize this resource
    */
@@ -105,10 +111,7 @@ type ResourceDefinition = {
 /**
  * Defines resource access for specified runtime roles. These role names are known to the resource on which the config is attached
  */
-export type RuntimeAccessConfig = Record<
-  RuntimeExecutionRole,
-  RuntimeResourceAccess
->;
+export type RuntimeAccessConfig = Record<RuntimeExecutionRole, RuntimeResourceAccess>;
 
 /**
  * Alias for a string that references a role that is known to a resource
@@ -143,60 +146,73 @@ type EventSource = string;
  */
 type ManagedTables = ResourceName[];
 
-const test: AmplifyManifest = {
-  resources: {
-    myStorage: {
-      transformer: "AmplifyFileStorage",
-      definition: {
-        bucketKeyEnabled: true,
-        versioningEnabled: true,
-      },
-      internallyManagedProperties: ["bucketKeyEnabled"],
-      triggers: {
-        onUpload: "myFunction",
-        onDownload: "anotherFunction",
-      },
-    },
-    myAuth: {
-      transformer: "AmplifyUserPool",
-      definition: {
-        userGroups: ["group1", "group2"],
-        passwordPolicy: {
-          requireUppercase: true,
-          requireLowercase: true,
-          minLength: 10,
-        },
-        requiredSignUpAttributes: ["email", "firstName"],
-      },
-      runtimeAccess: {
-        authenticatedUsers: {
-          myFunction: [{ actions: ["invoke"] }],
-          myStorage: [
-            { actions: ["read"] }, // grants read permission on everything in the bucket
-            {
-              actions: ["create", "update", "delete"],
-              scopes: ["/something", "/private/*"],
-            }, // grants CUD permissions on specific paths in the bucket
-          ],
-          $external: [
-            {
-              actions: ["APICall1", "APICall2"],
-              scopes: ["ARN1", "ARN2"],
-            },
-          ],
-        },
-        unauthenticatedUsers: {
-          myStorage: [{ actions: ["read"] }],
-        },
-        group1: {
-          $external: [{ actions: ["AdminApi"], scopes: ["adminResource"] }],
-        },
-      },
-      triggers: {},
-    },
-  },
-  transformers: {
-    AmplifyUserPool: "AmplifyUserPoolTransformPackageName",
-    AmplifyFileStorage: "@aws-amplify/storage-transform@1.2.3",
-  },
-};
+// const test: AmplifyManifest = {
+//   resources: new Map(
+//     Object.entries({
+//       myStorage: {
+//         transformer: "AmplifyFileStorage",
+//         definition: {
+//           bucketKeyEnabled: true,
+//           versioningEnabled: true,
+//         },
+//         internallyManagedProperties: ["bucketKeyEnabled"],
+//         triggers: new Map(
+//           Object.entries({
+//             onUpload: "myFunction",
+//             onDownload: "anotherFunction",
+//           })
+//         ),
+//       },
+//       myAuth: {
+//         transformer: "AmplifyUserPool",
+//         definition: {
+//           userGroups: ["group1", "group2"],
+//           passwordPolicy: {
+//             requireUppercase: true,
+//             requireLowercase: true,
+//             minLength: 10,
+//           },
+//           requiredSignUpAttributes: ["email", "firstName"],
+//         },
+//         runtimeAccess: new Map(
+//           Object.entries({
+//             authenticatedUsers: new Map(
+//               Object.entries({
+//                 myFunction: [{ actions: ["invoke"] }],
+//                 myStorage: [
+//                   { actions: ["read"] }, // grants read permission on everything in the bucket
+//                   {
+//                     actions: ["create", "update", "delete"],
+//                     scopes: ["/something", "/private/*"],
+//                   }, // grants CUD permissions on specific paths in the bucket
+//                 ],
+//                 $external: [
+//                   {
+//                     actions: ["APICall1", "APICall2"],
+//                     scopes: ["ARN1", "ARN2"],
+//                   },
+//                 ],
+//               })
+//             ),
+//             unauthenticatedUsers: new Map(
+//               Object.entries({
+//                 myStorage: [{ actions: ["read"] }],
+//               })
+//             ),
+//             group1: new Map(
+//               Object.entries({
+//                 $external: [{ actions: ["AdminApi"], scopes: ["adminResource"] }],
+//               })
+//             ),
+//           })
+//         ),
+//       },
+//     })
+//   ),
+//   transformers: new Map(
+//     Object.entries({
+//       AmplifyUserPool: "AmplifyUserPoolTransformPackageName",
+//       AmplifyFileStorage: "@aws-amplify/storage-transform@1.2.3",
+//     })
+//   ),
+// };

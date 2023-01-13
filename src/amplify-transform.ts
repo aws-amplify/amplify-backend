@@ -1,10 +1,5 @@
 import { Construct } from "constructs";
-import {
-  ResourceRecord,
-  ExternalToken,
-  ResourceName,
-  TransformKey,
-} from "./manifest-types";
+import { ResourceRecord, ExternalToken, ResourceName, TransformKey } from "./manifest-types";
 import { getDagWalker, NodeVisitor } from "./dag-walker";
 import { AmplifyResourceTransform, AmplifyConstruct } from "./types";
 import { AmplifyReference, AmplifyStack } from "./amplify-stack";
@@ -13,20 +8,14 @@ import { validateSync } from "class-validator";
 import { aws_lambda, aws_iam } from "aws-cdk-lib";
 
 export class AmplifyTransform extends Construct {
-  private readonly resourceConstructMap: Record<
-    ResourceName,
-    AmplifyConstruct
-  > = {};
+  private readonly resourceConstructMap: Record<ResourceName, AmplifyConstruct> = {};
   private readonly dagWalker: (visitor: NodeVisitor) => void;
 
   constructor(
     scope: Construct,
     private readonly envPrefix: string,
     private readonly resourceDefinition: ResourceRecord,
-    private readonly transformers: Record<
-      TransformKey,
-      AmplifyResourceTransform
-    >
+    private readonly transformers: Record<TransformKey, AmplifyResourceTransform>
   ) {
     super(scope, envPrefix);
 
@@ -40,27 +29,21 @@ export class AmplifyTransform extends Construct {
    * Executes a set of visitors on the resource graph in dependency order
    */
   transform() {
-    [this.initVisitor, this.triggerVisitor].forEach((visitor) =>
-      this.dagWalker(visitor)
-    );
+    [this.initVisitor, this.triggerVisitor].forEach((visitor) => this.dagWalker(visitor));
   }
 
   private generateResourceConstructMap(): void {
     const result: Record<ResourceName, AmplifyConstruct> = {};
-    Object.entries(this.resourceDefinition).forEach(
-      ([resourceName, resourceDefinition]) => {
-        const transformer = this.transformers[resourceDefinition.transformer];
-        if (!transformer) {
-          throw new Error(
-            `No transformer for ${resourceDefinition.transformer} is defined`
-          );
-        }
-        this.resourceConstructMap[resourceName] = transformer.getConstruct(
-          new AmplifyStack(this, resourceName, this.envPrefix),
-          resourceName
-        );
+    Object.entries(this.resourceDefinition).forEach(([resourceName, resourceDefinition]) => {
+      const transformer = this.transformers[resourceDefinition.transformer];
+      if (!transformer) {
+        throw new Error(`No transformer for ${resourceDefinition.transformer} is defined`);
       }
-    );
+      this.resourceConstructMap[resourceName] = transformer.getConstruct(
+        new AmplifyStack(this, resourceName, this.envPrefix),
+        resourceName
+      );
+    });
   }
 
   private initVisitor: NodeVisitor = (node: string): void => {
@@ -68,10 +51,7 @@ export class AmplifyTransform extends Construct {
     const nodeConstruct = this.resourceConstructMap[node];
     const configClass = nodeConstruct.getAnnotatedConfigClass();
 
-    const configInstance = plainToInstance(
-      configClass,
-      this.resourceDefinition[node].definition
-    );
+    const configInstance = plainToInstance(configClass, this.resourceDefinition[node].definition);
     validateSync(configInstance);
 
     nodeConstruct.init(configInstance);
@@ -91,82 +71,62 @@ export class AmplifyTransform extends Construct {
       );
     }
     const triggerDefinition = this.resourceDefinition[node].triggers!;
-    Object.entries(triggerDefinition).forEach(
-      ([eventSourceName, handlerResourceName]) => {
-        const handlerConstruct = this.resourceConstructMap[handlerResourceName];
-        // make source the destination construct exposes a lambda reference
-        if (!handlerConstruct.getLambdaRef) {
-          throw new Error(
-            `${node} triggers ${handlerResourceName} but its handler ${this.resourceDefinition[handlerResourceName].transformer} does not implement LambdaEventHandler`
-          );
-        }
-        const handlerLambda = handlerConstruct.getLambdaRef();
-
-        // create SSM parameters in the handler stack for the lambda arn and name
-        const arnRef = new AmplifyReference(
-          handlerConstruct,
-          `${handlerResourceName}-arn`,
-          handlerLambda.functionArn
-        );
-        const roleRef = new AmplifyReference(
-          handlerConstruct,
-          `${handlerResourceName}-role`,
-          handlerLambda.role!.roleArn
-        );
-
-        // link those parameters to the source stack
-        const destArnRef = arnRef.getValue(sourceConstruct);
-        const destRoleRef = roleRef.getValue(sourceConstruct);
-
-        // pass the linked lambda refs to the source stack so they can be attached to the source defined by eventSourceName
-        sourceConstruct.attachLambdaEventHandler!(
-          eventSourceName,
-          aws_lambda.Function.fromFunctionAttributes(
-            sourceConstruct,
-            "handler-lambda",
-            {
-              functionArn: destArnRef,
-              role: aws_iam.Role.fromRoleArn(
-                sourceConstruct,
-                "handler-role",
-                destRoleRef
-              ),
-            }
-          )
+    Object.entries(triggerDefinition).forEach(([eventSourceName, handlerResourceName]) => {
+      const handlerConstruct = this.resourceConstructMap[handlerResourceName];
+      // make source the destination construct exposes a lambda reference
+      if (!handlerConstruct.getLambdaRef) {
+        throw new Error(
+          `${node} triggers ${handlerResourceName} but its handler ${this.resourceDefinition[handlerResourceName].transformer} does not implement LambdaEventHandler`
         );
       }
-    );
+      const handlerLambda = handlerConstruct.getLambdaRef();
+
+      // create SSM parameters in the handler stack for the lambda arn and name
+      const arnRef = new AmplifyReference(handlerConstruct, `${handlerResourceName}-arn`, handlerLambda.functionArn);
+      const roleRef = new AmplifyReference(
+        handlerConstruct,
+        `${handlerResourceName}-role`,
+        handlerLambda.role!.roleArn
+      );
+
+      // link those parameters to the source stack
+      const destArnRef = arnRef.getValue(sourceConstruct);
+      const destRoleRef = roleRef.getValue(sourceConstruct);
+
+      // pass the linked lambda refs to the source stack so they can be attached to the source defined by eventSourceName
+      sourceConstruct.attachLambdaEventHandler!(
+        eventSourceName,
+        aws_lambda.Function.fromFunctionAttributes(sourceConstruct, "handler-lambda", {
+          functionArn: destArnRef,
+          role: aws_iam.Role.fromRoleArn(sourceConstruct, "handler-role", destRoleRef),
+        })
+      );
+    });
   };
 }
 
-const generateResourceDAG = (
-  resourceDefiniton: ResourceRecord
-): ResourceDAG => {
+const generateResourceDAG = (resourceDefiniton: ResourceRecord): ResourceDAG => {
   const resourceSet = new Set<ResourceName>(Object.keys(resourceDefiniton));
   const resourceDag: Record<ResourceName, ResourceName[]> = {};
   resourceSet.forEach((resourceName) => (resourceDag[resourceName] = []));
 
-  Object.entries(resourceDefiniton).forEach(
-    ([resourceName, resourceDefiniton]) => {
-      if (resourceDefiniton.runtimeAccess) {
-        Object.values(resourceDefiniton.runtimeAccess).forEach(
-          (runtimeResourceAccess) => {
-            Object.keys(runtimeResourceAccess).forEach((resourceToken) => {
-              if (resourceToken === ExternalToken) {
-                return;
-              }
-              if (!resourceSet.has(resourceToken)) {
-                throw new Error(
-                  `${resourceName} declares a dependency on ${resourceToken} but ${resourceToken} is not defined in the project config`
-                );
-              }
-              resourceDag[resourceName]!.push(resourceToken);
-            });
+  Object.entries(resourceDefiniton).forEach(([resourceName, resourceDefiniton]) => {
+    if (resourceDefiniton.runtimeAccess) {
+      Object.values(resourceDefiniton.runtimeAccess).forEach((runtimeResourceAccess) => {
+        Object.keys(runtimeResourceAccess).forEach((resourceToken) => {
+          if (resourceToken === ExternalToken) {
+            return;
           }
-        );
-      }
+          if (!resourceSet.has(resourceToken)) {
+            throw new Error(
+              `${resourceName} declares a dependency on ${resourceToken} but ${resourceToken} is not defined in the project config`
+            );
+          }
+          resourceDag[resourceName]!.push(resourceToken);
+        });
+      });
     }
-  );
+  });
   return resourceDag;
 };
 

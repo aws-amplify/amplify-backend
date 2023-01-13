@@ -1,8 +1,7 @@
 type AdjList = Record<string, Array<string>>;
 export type NodeVisitor = (node: string) => void;
 
-export const getDagWalker = (dag: AdjList) => (visitor: NodeVisitor) =>
-  recursiveDriver(dag, visitor);
+export const getDagWalker = (dag: AdjList) => (visitor: NodeVisitor) => recursiveDriver(dag, visitor);
 
 /**
  * Executes visitor on each node in the DAG in dependency order using a recursive function
@@ -27,9 +26,7 @@ const recursiveDriver = (dag: AdjList, visitor: NodeVisitor) => {
 /**
  * Processes a DAG represented as an adjacency list into the roots and the in-degrees of all nodes
  */
-const preProcessDag = (
-  dag: AdjList
-): { roots: string[]; inDegMap: Record<string, number> } => {
+const preProcessDag = (dag: AdjList): { roots: string[]; inDegMap: Record<string, number> } => {
   const rootCandidates = new Set(Object.keys(dag));
   const inDegMap: Record<string, number> = {};
   Object.keys(dag).forEach((key) => (inDegMap[key] = 0));

@@ -10,9 +10,7 @@ import {
 import { Type } from "class-transformer";
 import { Max } from "class-validator";
 
-export const getAmplifyResourceTransform: AmplifyResourceTransformFactory = (
-  awsCdkLib: AmplifyCdkType
-) => {
+export const getAmplifyResourceTransform: AmplifyResourceTransformFactory = (awsCdkLib: AmplifyCdkType) => {
   return new AmplifyServerlessFunctionTransform(awsCdkLib);
 };
 
@@ -24,17 +22,10 @@ class AmplifyServerlessFunctionTransform implements AmplifyResourceTransform {
   }
 }
 
-class AmplifyServerlessFunctionConstruct
-  extends AmplifyConstruct
-  implements LambdaEventHandler
-{
+class AmplifyServerlessFunctionConstruct extends AmplifyConstruct implements LambdaEventHandler {
   private func: AmplifyCdkWrap.aws_lambda.Function;
   private readonly lambda: AmplifyCdkType["aws_lambda"];
-  constructor(
-    scope: Construct,
-    private readonly name: string,
-    private readonly awsCdkLib: AmplifyCdkType
-  ) {
+  constructor(scope: Construct, private readonly name: string, private readonly awsCdkLib: AmplifyCdkType) {
     super(scope, name);
     this.lambda = awsCdkLib.aws_lambda;
   }
@@ -69,9 +60,7 @@ type BuildConfig = {
   sourceDirectory: string;
 };
 
-class AmplifyServerlessFunctionConfiguration
-  implements IAmplifyServerlessFunctionConfiguration
-{
+class AmplifyServerlessFunctionConfiguration implements IAmplifyServerlessFunctionConfiguration {
   runtime: string;
   handler: string;
   relativeBuildAssetPath: string;

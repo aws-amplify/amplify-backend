@@ -33,10 +33,7 @@ export type RuntimeAccessGranter = {
  * A Construct that has an event source that can be attached to a handler
  */
 export type LambdaEventSource = {
-  attachLambdaEventHandler(
-    eventSourceName: string,
-    handler: cdk.aws_lambda.IFunction
-  ): void;
+  attachLambdaEventHandler(eventSourceName: string, handler: cdk.aws_lambda.IFunction): void;
 };
 
 /**
@@ -100,10 +97,7 @@ export abstract class AmplifyConstruct<T = object>
    * @param eventSourceName The name of the event source within the construct
    * @param handler The name and arn of the lambda handler
    */
-  attachLambdaEventHandler?(
-    eventSourceName: string,
-    handler: cdk.aws_lambda.IFunction
-  ): void;
+  attachLambdaEventHandler?(eventSourceName: string, handler: cdk.aws_lambda.IFunction): void;
   /**
    * This method must be implemented to allow other constructs in the project to access this construct
    * @param permissions
