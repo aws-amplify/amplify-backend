@@ -1,5 +1,5 @@
 import execa from "execa";
 
-export const executeCDKCommand = async (command: string) => {
-  await execa.command(`npx cdk ${command}`, { stdio: "inherit" });
+export const executeCDKCommand = async (...args: string[]) => {
+  await execa("npx", ["cdk", ...args], { stdio: "inherit" });
 };

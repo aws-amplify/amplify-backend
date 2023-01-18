@@ -1,9 +1,10 @@
 import { Command, createCommand } from "commander";
+import { executeCDKCommand } from "../execute-cdk-command";
 
 export const getCommand = (): Command => {
   return createCommand("status")
     .description("Display differences between local project config and deployed project state")
-    .option("-f, --file <relative path>", "The relative location of the Amplify manifest file")
+    .argument("env", "The cloud environment to which the project will be deployed")
     .action(statusHandler);
 };
 
@@ -12,8 +13,6 @@ export const getCommand = (): Command => {
  * @param env
  * @param options
  */
-const statusHandler = (env: string, options: any) => {
-  console.log(`got env: ${env}`);
-  console.log(`got options ${JSON.stringify(options)}`);
-  // pull frontend config
+const statusHandler = async (env: string, options: any) => {
+  await executeCDKCommand("diff", "--app", `nxt synth ${env}`);
 };

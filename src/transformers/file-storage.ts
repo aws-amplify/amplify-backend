@@ -27,10 +27,6 @@ class AmplifyFileStorageConstruct extends AmplifyConstruct implements LambdaEven
     super(scope, name);
   }
 
-  getConfigurationSchema(): object {
-    return {};
-  }
-
   getAnnotatedConfigClass(): typeof AmplifyStorageConfiguration {
     return AmplifyStorageConfiguration;
   }

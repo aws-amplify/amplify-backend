@@ -14,8 +14,6 @@ export const getCommand = (): Command => {
  * @param options
  */
 const pushHandler = async (env: string, options: any) => {
-  await executeCDKCommand("deploy");
-  console.log(`got env: ${env}`);
-  console.log(`got options ${JSON.stringify(options)}`);
+  await executeCDKCommand("deploy", "--app", `nxt synth ${env}`, "--all", "--require-approval", "never", "--concurrency", "5");
   // pull frontend config
 };

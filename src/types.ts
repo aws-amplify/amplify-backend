@@ -1,6 +1,5 @@
 import { Construct } from "constructs";
 import type * as cdk from "aws-cdk-lib";
-import { info } from "console";
 
 export type AmplifyCdkType = typeof cdk;
 export { cdk as AmplifyCdkWrap };
@@ -15,11 +14,7 @@ export type RuntimeAccessAttacher = {
    * policy is a policy document that should be attached to the role referenced by runtimeEntityName
    * resource is the name and arn of the resource that the policy grants access to
    */
-  attachRuntimePolicy(
-    runtimeEntityName: string,
-    policy: cdk.aws_iam.PolicyDocument,
-    resource: ResourceNameArnTuple
-  ): void;
+  attachRuntimePolicy(runtimeEntityName: string, policy: cdk.aws_iam.PolicyDocument, resource: ResourceNameArnTuple): void;
 };
 
 /**
@@ -47,6 +42,10 @@ export type DynamoIndexManagerProvider = {
   getDynamoIndexManager(): DynamoIndexManager;
 };
 
+export type DynamoIndexManipulator = {
+  manipulateDynamoIndexes(name: string, manager: DynamoIndexManager): void;
+};
+
 export type DynamoAttributeDefinition = {
   name: string;
   type: string;
@@ -66,15 +65,13 @@ export type AmplifyTransformFunctionalInterfaceUnion = LambdaEventHandler &
   LambdaEventSource &
   RuntimeAccessAttacher &
   RuntimeAccessGranter &
-  DynamoIndexManagerProvider;
+  DynamoIndexManagerProvider &
+  DynamoIndexManipulator;
 
 /**
  * Base class that all Amplify resource classes extend from
  */
-export abstract class AmplifyConstruct<T = object>
-  extends Construct
-  implements Partial<AmplifyTransformFunctionalInterfaceUnion>
-{
+export abstract class AmplifyConstruct<T = object> extends Construct implements Partial<AmplifyTransformFunctionalInterfaceUnion> {
   /**
    * Returns a construtable Class that can be used
    */
@@ -109,13 +106,11 @@ export abstract class AmplifyConstruct<T = object>
    * @param policy
    * @param resource
    */
-  attachRuntimePolicy?(
-    runtimeEntityName: string,
-    policy: cdk.aws_iam.PolicyDocument,
-    resource: ResourceNameArnTuple
-  ): void;
+  attachRuntimePolicy?(runtimeEntityName: string, policy: cdk.aws_iam.PolicyDocument, resource: ResourceNameArnTuple): void;
 
   getDynamoIndexManager?(): DynamoIndexManager;
+
+  manipulateDynamoIndexes?(name: string, manager: DynamoIndexManager): void;
 }
 
 export type AmplifyResourceTransform = {

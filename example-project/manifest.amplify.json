@@ -7,11 +7,6 @@
         "stream": "myTestFunction"
       }
     },
-    "testDdbStorage": {
-      "transformer": "nonRelationalDatabaseTransformer",
-      "definition": {},
-      "managedProperties": ["primaryIndex", "secondaryIndexes"]
-    },
     "myTestFunction": {
       "transformer": "functionTransformer",
       "definition": {
@@ -47,7 +42,8 @@
   },
   "transformers": {
     "storageTransformer": "@aws-amplify/s3-transform@1.2.3",
-    "functionTransformer": "@aws-amplify/lambda-transform@2.3.4"
+    "functionTransformer": "@aws-amplify/lambda-transform@2.3.4",
+    "gqlTransformer": "@aws-amplify/gql-transformer@10.2.3"
   },
   "secrets": {
     "databasePassword": "$ssm:/path/to/secret",
@@ -56,7 +52,7 @@
   },
   "parameters": {
     "serverTimeout": "$ssm:/path/to/ssm/value",
-    "functionRuntime": "$env:FUNCTION_RUNTIME",
+    "functionRuntime": "nodejs18.x",
     "functionHandler": "index.handler"
   }
 }

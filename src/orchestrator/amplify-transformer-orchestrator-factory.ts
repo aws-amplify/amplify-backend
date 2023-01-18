@@ -1,7 +1,6 @@
-import { App } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { consoleLogger } from "../observability-tooling/amplify-logger";
-import { amplifyMetrics } from "./amplify-metrics";
+import { amplifyMetrics } from "../observability-tooling/amplify-metrics";
 import { AmplifyTransformerOrchestrator } from "./amplify-transformer-orchestrator";
 import { hydrateTokens } from "./hydrate-tokens";
 import { AmplifyManifest, TokenizedManifest, TransformKey } from "../manifest/manifest-types";
@@ -9,6 +8,7 @@ import { AmplifyResourceTransformFactory, AmplifyResourceTransform } from "../ty
 
 import { getAmplifyResourceTransform as getStorageTransform } from "../transformers/file-storage";
 import { getAmplifyResourceTransform as getFunctionTransform } from "../transformers/serverless-function";
+import { getAmplifyResourceTransform as getGqlTransform } from "../transformers/graphql-api";
 import * as cdk from "aws-cdk-lib";
 /**
  * This should be a first class entry point into Amplify for customers who want to integrate an Amplify manifest into an existing CDK application
@@ -38,6 +38,7 @@ export const createTransformerOrchestrator = async (
   const remoteFetchPlaceholder: Record<string, AmplifyResourceTransformFactory> = {
     "@aws-amplify/s3-transform@1.2.3": getStorageTransform,
     "@aws-amplify/lambda-transform@2.3.4": getFunctionTransform,
+    "@aws-amplify/gql-transformer@10.2.3": getGqlTransform,
   };
 
   const transformers: Record<TransformKey, AmplifyResourceTransform> = {};

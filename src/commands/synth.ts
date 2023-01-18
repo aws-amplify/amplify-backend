@@ -7,7 +7,6 @@ export const getCommand = (): Command => {
   return createCommand("synth")
     .description("Synthesize the deployment artifacts for an Amplify project but don't deploy them")
     .argument("env", "The cloud environment to which the project will be deployed")
-    .option("-f, -file", "The relative location of the Amplify manifest file")
     .action(synthHandler);
 };
 

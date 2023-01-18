@@ -1,8 +1,8 @@
 import { Construct } from "constructs";
-import { ResourceRecord, ExternalToken, ResourceName, TransformKey } from "./manifest/manifest-types";
+import { ResourceRecord, ExternalToken, ResourceName, TransformKey } from "../manifest/manifest-types";
 import { getDagWalker, NodeVisitor } from "./dag-walker";
-import { AmplifyResourceTransform, AmplifyConstruct } from "./types";
-import { AmplifyReference, AmplifyStack } from "./amplify-reference";
+import { AmplifyResourceTransform, AmplifyConstruct } from "../types";
+import { AmplifyReference, AmplifyStack } from "../amplify-reference";
 import { plainToInstance } from "class-transformer";
 import { validateSync } from "class-validator";
 import { aws_lambda, aws_iam } from "aws-cdk-lib";

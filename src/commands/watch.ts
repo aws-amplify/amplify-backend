@@ -1,4 +1,8 @@
 import { Command, createCommand } from "commander";
+import { executeCDKCommand } from "../execute-cdk-command";
+import { CdkToolkit } from "aws-cdk/lib/cdk-toolkit";
+import * as fs from "fs-extra";
+import execa from "execa";
 
 export const getCommand = (): Command => {
   return createCommand("watch")
@@ -13,7 +17,9 @@ export const getCommand = (): Command => {
  * @param options
  */
 const watchHandler = async (env: string, options: any) => {
-  console.log(`got env: ${env}`);
-  console.log(`got options ${JSON.stringify(options)}`);
-  // pull frontend config
+  fs.writeFileSync("cdk.json", JSON.stringify({ watch: {} }));
+  process.on("exit", () => fs.unlinkSync("cdk.json"));
+  process.on("SIGINT", () => fs.unlinkSync("cdk.json"));
+
+  await executeCDKCommand("watch", "--all", "--app", `nxt synth ${env}`, "--require-approval", "never", "--concurrency", "5");
 };
