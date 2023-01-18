@@ -9,6 +9,7 @@ import {
 } from "../types";
 import { Type } from "class-transformer";
 import { Max } from "class-validator";
+import { SecretRef } from "../amplify-reference";
 
 export const getAmplifyResourceTransform: AmplifyResourceTransformFactory = (awsCdkLib: AmplifyCdkType) => {
   return new AmplifyServerlessFunctionTransform(awsCdkLib);
@@ -35,11 +36,16 @@ class AmplifyServerlessFunctionConstruct extends AmplifyConstruct implements Lam
   }
 
   init(configuration: AmplifyServerlessFunctionConfiguration) {
+    const secretRef = new SecretRef(this, "test-secret");
+
     this.func = new this.lambda.Function(this, this.name, {
       runtime: new this.lambda.Runtime(configuration.runtime),
       handler: configuration.handler,
       timeout: typeof configuration.timeoutSeconds === "number" ? this.awsCdkLib.Duration.seconds(configuration.timeoutSeconds) : undefined,
       code: this.lambda.Code.fromAsset(configuration.relativeBuildAssetPath),
+      environment: {
+        SOME_SECRET: secretRef.getValueRef(),
+      },
     });
   }
 

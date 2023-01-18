@@ -14,7 +14,7 @@ import { getCommand as watchCommand } from "./commands/watch";
 export const main = async () => {
   program.name("nxt").description("CLI utility for working with Amplify projects").version("0.1.0");
 
-  // TOOD should this be resolved / discovered at runtime
+  // TOOD should this be resolved / discovered at runtime?
   // this would allow different commands to be released / versioned independently of the platform
   const commandRegistry = [linkCommand(), pushCommand(), watchCommand(), statusCommand(), synthCommand()];
 

@@ -1,6 +1,7 @@
 type demo {
   id: String!
   version: String!
+  somethingElse: String!
 }
 type Query {
   getDemos: [demo!]

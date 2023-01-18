@@ -1,13 +1,10 @@
-import { aws_ssm, CfnElement, Stack } from "aws-cdk-lib";
+import { aws_ssm, CfnElement, custom_resources, Stack } from "aws-cdk-lib";
+import { AwsCustomResource } from "aws-cdk-lib/custom-resources";
 import { Construct } from "constructs";
 
 /**
  * Creates a reference between two stacks using a value in ParameterStore
  * This can be used to eliminate the issue where stack exports / imports require multiple deployments to remove when removing resources
- *
- * deserializer(serializer(value)) should yield an object identical to value
- *
- * If no serializer or deserializer is passed in, JSON.strignify and JSON.parse are used by default
  */
 export class AmplifyReference extends Construct {
   private readonly parameterName: string;
@@ -25,6 +22,27 @@ export class AmplifyReference extends Construct {
   getValue(scope: Construct): string {
     scope.node.addDependency(this);
     return aws_ssm.StringParameter.valueForStringParameter(scope, this.parameterName);
+  }
+}
+
+export class SecretRef extends custom_resources.AwsCustomResource {
+  constructor(scope: Construct, parameterName: string) {
+    super(scope, "secret-fetcher", {
+      onUpdate: {
+        service: "SSM",
+        action: "getParameter",
+        parameters: {
+          Name: parameterName,
+          WithDecryption: true,
+        },
+        physicalResourceId: custom_resources.PhysicalResourceId.of(Date.now().toString()),
+      },
+      policy: custom_resources.AwsCustomResourcePolicy.fromSdkCalls({ resources: ["*"] }),
+    });
+  }
+
+  getValueRef(): string {
+    return this.getResponseField("Parameter.Value");
   }
 }
 

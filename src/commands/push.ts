@@ -1,4 +1,4 @@
-import { Command, createArgument, createCommand, createOption } from "commander";
+import { Command, createCommand } from "commander";
 import { executeCDKCommand } from "../execute-cdk-command";
 
 export const getCommand = (): Command => {
