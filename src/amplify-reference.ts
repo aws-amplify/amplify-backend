@@ -1,4 +1,4 @@
-import { aws_ssm, CfnElement, custom_resources, Stack } from "aws-cdk-lib";
+import { aws_ssm, CfnElement, ContextProvider, custom_resources, Stack } from "aws-cdk-lib";
 import { AwsCustomResource } from "aws-cdk-lib/custom-resources";
 import { Construct } from "constructs";
 
@@ -37,6 +37,7 @@ export class SecretRef extends custom_resources.AwsCustomResource {
         },
         physicalResourceId: custom_resources.PhysicalResourceId.of(Date.now().toString()),
       },
+      installLatestAwsSdk: false,
       policy: custom_resources.AwsCustomResourcePolicy.fromSdkCalls({ resources: ["*"] }),
     });
   }

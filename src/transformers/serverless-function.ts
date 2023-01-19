@@ -45,6 +45,7 @@ class AmplifyServerlessFunctionConstruct extends AmplifyConstruct implements Lam
       code: this.lambda.Code.fromAsset(configuration.relativeBuildAssetPath),
       environment: {
         SOME_SECRET: secretRef.getValueRef(),
+        FORCE_UPDATE: "yes",
       },
     });
   }
