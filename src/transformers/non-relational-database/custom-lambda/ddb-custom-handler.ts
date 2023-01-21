@@ -1,7 +1,8 @@
 import { DynamoDB } from "aws-sdk";
 import type { CloudFormationCustomResourceEvent } from "aws-lambda";
-import type { KeySchema, Projection, TableDescription, UpdateTableInput } from "aws-sdk/clients/dynamodb";
-import type { DDBConfig } from "../ddb-custom-config-type";
+import type { AttributeDefinitions, KeySchema, Projection, TableDescription, UpdateTableInput } from "aws-sdk/clients/dynamodb";
+import { GlobalSecondaryIndexProps } from "aws-cdk-lib/aws-dynamodb";
+import { CustomGsiHandlerParameters } from "../ddb-gsi-wrapper";
 
 const ddbClient = new DynamoDB();
 
@@ -14,35 +15,25 @@ const log = (msg: string, ...other: any[]) => {
 
 export const onEvent = async (event: CloudFormationCustomResourceEvent): Promise<AWSCDKAsyncCustomResource.OnEventResponse | void> => {
   log("got event", event);
-  const internalEventProps = {
+  const customEvent = {
     ...event.ResourceProperties,
-  } as unknown as DDBConfig & { ServiceToken?: string };
-  delete internalEventProps.ServiceToken;
+  } as unknown as CustomGsiHandlerParameters & { ServiceToken?: string };
+  delete customEvent.ServiceToken;
   switch (event.RequestType) {
     case "Create":
-      log("initiating create");
-      await ddbClient.createTable(internalEventProps).promise();
-      const result = { PhysicalResourceId: event.ResourceProperties.TableName };
-      log("returning result", result);
-      return result;
     case "Update":
       log("fetching current table state");
-      const describeTableResult = await ddbClient.describeTable({ TableName: event.PhysicalResourceId }).promise();
+      const describeTableResult = await ddbClient.describeTable({ TableName: customEvent.tableName }).promise();
       if (!describeTableResult.Table) {
-        throw new Error(`Could not find ${event.PhysicalResourceId} to update`);
+        throw new Error(`Could not find ${customEvent.tableName} to update`);
       }
-      const nextUpdate = getNextUpdate(describeTableResult.Table, internalEventProps);
+      const nextUpdate = getNextUpdate(describeTableResult.Table, customEvent.gsiDefinitions);
       log("computed next update", nextUpdate);
-      if (!nextUpdate) return; // nothin to update
+      if (!nextUpdate) return; // nothing to update
       log("initiating table update");
       await ddbClient.updateTable(nextUpdate).promise();
     case "Delete":
-      log("initiating table deletion");
-      try {
-        await ddbClient.deleteTable({ TableName: event.PhysicalResourceId }).promise();
-      } catch (err) {
-        // TODO only swallow NotExist errors
-      }
+      log("noop on delete. It's up to the caller to ensure that this resource is only deleted when the underlying DynamoDB table is being deleted");
   }
   // after this function exits, the state machine will invoke isComplete in a loop until it returns finished or the state machine times out
 };
@@ -54,12 +45,13 @@ export const isComplete = async (event: AWSCDKAsyncCustomResource.IsCompleteRequ
     log("delete is finished");
     return finished;
   }
+  const customEvent = event.ResourceProperties as unknown as CustomGsiHandlerParameters;
   if (!event.PhysicalResourceId) {
     throw new Error("PhysicalResourceId not set in call to isComplete");
   }
   log("fetching current table state");
   const describeTableResult = await retry(
-    async () => await ddbClient.describeTable({ TableName: event.PhysicalResourceId! }).promise(),
+    async () => await ddbClient.describeTable({ TableName: customEvent.tableName }).promise(),
     (result) => !!result?.Table
   );
   if (describeTableResult.Table?.TableStatus !== "ACTIVE") {
@@ -72,14 +64,8 @@ export const isComplete = async (event: AWSCDKAsyncCustomResource.IsCompleteRequ
     return notFinished;
   }
 
-  if (event.RequestType === "Create") {
-    // no additional updates required on create
-    log("create is finished");
-    return finished;
-  }
-
   // need to check if any more GSI updates are necessary
-  const nextUpdate = getNextUpdate(describeTableResult.Table, event.ResourceProperties as unknown as DDBConfig);
+  const nextUpdate = getNextUpdate(describeTableResult.Table, customEvent.gsiDefinitions);
   log("computed next update", nextUpdate);
   if (!nextUpdate) {
     // current state equals end state so we're done
@@ -99,9 +85,8 @@ const notFinished: AWSCDKAsyncCustomResource.IsCompleteResponse = {
 };
 
 // compares the currentState with the endState to determine a next update step that will get the table closer to the end state
-const getNextUpdate = (currentState: TableDescription, endState: DDBConfig): UpdateTableInput | undefined => {
-  const endStateGSIs = endState.GlobalSecondaryIndexes || [];
-  const endStateGSINames = endStateGSIs.map((gsi) => gsi.IndexName);
+export const getNextUpdate = (currentState: TableDescription, endStateGSIs: GlobalSecondaryIndexProps[]): UpdateTableInput | undefined => {
+  const endStateGSINames = endStateGSIs.map((gsi) => gsi.indexName);
 
   const currentStateGSIs = currentState.GlobalSecondaryIndexes || [];
   const currentStateGSINames = currentStateGSIs.map((gsi) => gsi.IndexName);
@@ -110,12 +95,16 @@ const getNextUpdate = (currentState: TableDescription, endState: DDBConfig): Upd
   const gsiRequiresReplacementPredicate = (currentGSI: DynamoDB.GlobalSecondaryIndexDescription): boolean => {
     // check if the index has been removed entirely
     if (!endStateGSINames.includes(currentGSI.IndexName!)) return true;
+
     // get the end state of this GSI
-    const respectiveEndStateGSI = endStateGSIs.find((endStateGSI) => endStateGSI.IndexName === currentGSI.IndexName)!;
+    const respectiveEndStateGSI = endStateGSIs.find((endStateGSI) => endStateGSI.indexName === currentGSI.IndexName)!;
+
     // detect if projection has changed
-    if (isProjectionModified(currentGSI.Projection!, respectiveEndStateGSI.Projection!)) return true;
+    if (isProjectionModified(currentGSI.Projection!, toProjection(respectiveEndStateGSI))) return true;
+
     // detect if key schema has changed
-    if (isKeySchemaModified(currentGSI.KeySchema!, respectiveEndStateGSI.KeySchema!)) return true;
+    if (isKeySchemaModified(currentGSI.KeySchema!, toKeySchema(respectiveEndStateGSI))) return true;
+
     // if we got here, then the GSI does not need to be removed
     return false;
   };
@@ -134,20 +123,19 @@ const getNextUpdate = (currentState: TableDescription, endState: DDBConfig): Upd
   }
 
   // if we get here, then find a GSI that needs to be created and construct an update request
-  const gsiRequiresCreationPredicate = (endStateGSI: DynamoDB.GlobalSecondaryIndex): boolean => !currentStateGSINames.includes(endStateGSI.IndexName);
+  const gsiRequiresCreationPredicate = (endStateGSI: GlobalSecondaryIndexProps): boolean => !currentStateGSINames.includes(endStateGSI.indexName);
 
   const gsiToAdd = endStateGSIs.find(gsiRequiresCreationPredicate);
   if (gsiToAdd) {
-    const attributeNamesToInclude = gsiToAdd.KeySchema.map((schema) => schema.AttributeName);
     return {
       TableName: currentState.TableName!,
-      AttributeDefinitions: endState.AttributeDefinitions.filter((def) => attributeNamesToInclude.includes(def.AttributeName)),
+      AttributeDefinitions: toAttributeDefinitions(gsiToAdd),
       GlobalSecondaryIndexUpdates: [
         {
           Create: {
-            IndexName: gsiToAdd.IndexName,
-            KeySchema: gsiToAdd.KeySchema,
-            Projection: gsiToAdd.Projection,
+            IndexName: gsiToAdd.indexName,
+            KeySchema: toKeySchema(gsiToAdd),
+            Projection: toProjection(gsiToAdd),
           },
         },
       ],
@@ -197,6 +185,46 @@ const isKeySchemaModified = (currentSchema: KeySchema, endSchema: KeySchema): bo
 
   // if we got here then the hash and range key are not modified
   return false;
+};
+
+const toKeySchema = (gsiProps: GlobalSecondaryIndexProps): KeySchema => {
+  const keySchema: KeySchema = [
+    {
+      AttributeName: gsiProps.partitionKey.name,
+      KeyType: "HASH",
+    },
+  ];
+
+  if (gsiProps.sortKey) {
+    keySchema.push({
+      AttributeName: gsiProps.sortKey.name,
+      KeyType: "RANGE",
+    });
+  }
+  return keySchema;
+};
+
+const toAttributeDefinitions = (gsiProps: GlobalSecondaryIndexProps): AttributeDefinitions => {
+  const attributeDefinitions: AttributeDefinitions = [
+    {
+      AttributeName: gsiProps.partitionKey.name,
+      AttributeType: gsiProps.partitionKey.type,
+    },
+  ];
+  if (gsiProps.sortKey) {
+    attributeDefinitions.push({
+      AttributeName: gsiProps.sortKey.name,
+      AttributeType: gsiProps.sortKey.type,
+    });
+  }
+  return attributeDefinitions;
+};
+
+const toProjection = (gsiProps: GlobalSecondaryIndexProps): Projection => {
+  return {
+    ProjectionType: gsiProps.projectionType || "ALL",
+    NonKeyAttributes: gsiProps.nonKeyAttributes,
+  };
 };
 
 /**

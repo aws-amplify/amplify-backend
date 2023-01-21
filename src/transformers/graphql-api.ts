@@ -1,6 +1,8 @@
 import { Construct } from "constructs";
 import { AmplifyCdkType, AmplifyConstruct, AmplifyResourceTransform, AmplifyResourceTransformFactory, DynamoIndexManager } from "../types";
 import * as path from "path";
+import { MultiGsiTable } from "./non-relational-database/ddb-gsi-wrapper";
+import { AttributeType } from "aws-cdk-lib/aws-dynamodb";
 
 export const getAmplifyResourceTransform: AmplifyResourceTransformFactory = (awsCdkLib: AmplifyCdkType) => {
   return new AmplifyGraphQLTransform(awsCdkLib);
@@ -64,6 +66,23 @@ class AmplifyGraphQLConstruct extends AmplifyConstruct {
       requestMappingTemplate: appsync.MappingTemplate.dynamoDbPutItem(appsync.PrimaryKey.partition("id").auto(), appsync.Values.projecting("input")),
       responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultItem(),
     });
+
+    const multiGsiTable = new MultiGsiTable(this, "table-test");
+    multiGsiTable.setTableOptions({
+      partitionKey: { name: "pk", type: AttributeType.STRING },
+    });
+    multiGsiTable.addGlobalSecondaryIndex({
+      indexName: "newIndex",
+      partitionKey: {
+        name: "gsiKey1",
+        type: AttributeType.STRING,
+      },
+      sortKey: {
+        name: "gsiSk1",
+        type: AttributeType.STRING,
+      },
+    });
+    multiGsiTable.buildTable();
   }
 
   manipulateDynamoIndexes(name: string, manager: DynamoIndexManager): void {}
