@@ -12,9 +12,7 @@ const log = (msg: string, ...other: any[]) => {
   );
 };
 
-export const onEvent = async (
-  event: CloudFormationCustomResourceEvent
-): Promise<AWSCDKAsyncCustomResource.OnEventResponse | void> => {
+export const onEvent = async (event: CloudFormationCustomResourceEvent): Promise<AWSCDKAsyncCustomResource.OnEventResponse | void> => {
   log("got event", event);
   const internalEventProps = {
     ...event.ResourceProperties,
@@ -49,9 +47,7 @@ export const onEvent = async (
   // after this function exits, the state machine will invoke isComplete in a loop until it returns finished or the state machine times out
 };
 
-export const isComplete = async (
-  event: AWSCDKAsyncCustomResource.IsCompleteRequest
-): Promise<AWSCDKAsyncCustomResource.IsCompleteResponse> => {
+export const isComplete = async (event: AWSCDKAsyncCustomResource.IsCompleteRequest): Promise<AWSCDKAsyncCustomResource.IsCompleteResponse> => {
   log("got event", event);
   if (event.RequestType === "Delete") {
     // nothing else to do on delete
@@ -71,9 +67,7 @@ export const isComplete = async (
     return notFinished;
   }
   // table is active, need to check GSI status
-  if (
-    describeTableResult.Table.GlobalSecondaryIndexes?.some((gsi) => gsi.IndexStatus !== "ACTIVE" || gsi.Backfilling)
-  ) {
+  if (describeTableResult.Table.GlobalSecondaryIndexes?.some((gsi) => gsi.IndexStatus !== "ACTIVE" || gsi.Backfilling)) {
     log("some GSI is not active yet");
     return notFinished;
   }
@@ -105,7 +99,7 @@ const notFinished: AWSCDKAsyncCustomResource.IsCompleteResponse = {
 };
 
 // compares the currentState with the endState to determine a next update step that will get the table closer to the end state
-export const getNextUpdate = (currentState: TableDescription, endState: DDBConfig): UpdateTableInput | undefined => {
+const getNextUpdate = (currentState: TableDescription, endState: DDBConfig): UpdateTableInput | undefined => {
   const endStateGSIs = endState.GlobalSecondaryIndexes || [];
   const endStateGSINames = endStateGSIs.map((gsi) => gsi.IndexName);
 
@@ -140,17 +134,14 @@ export const getNextUpdate = (currentState: TableDescription, endState: DDBConfi
   }
 
   // if we get here, then find a GSI that needs to be created and construct an update request
-  const gsiRequiresCreationPredicate = (endStateGSI: DynamoDB.GlobalSecondaryIndex): boolean =>
-    !currentStateGSINames.includes(endStateGSI.IndexName);
+  const gsiRequiresCreationPredicate = (endStateGSI: DynamoDB.GlobalSecondaryIndex): boolean => !currentStateGSINames.includes(endStateGSI.IndexName);
 
   const gsiToAdd = endStateGSIs.find(gsiRequiresCreationPredicate);
   if (gsiToAdd) {
     const attributeNamesToInclude = gsiToAdd.KeySchema.map((schema) => schema.AttributeName);
     return {
       TableName: currentState.TableName!,
-      AttributeDefinitions: endState.AttributeDefinitions.filter((def) =>
-        attributeNamesToInclude.includes(def.AttributeName)
-      ),
+      AttributeDefinitions: endState.AttributeDefinitions.filter((def) => attributeNamesToInclude.includes(def.AttributeName)),
       GlobalSecondaryIndexUpdates: [
         {
           Create: {
@@ -180,8 +171,7 @@ const isProjectionModified = (currentProjection: Projection, endProjection: Proj
   if (currentNonKeyAttributes.length !== endNonKeyAttributes.length) return true;
 
   // if an attribute has been swapped
-  if (currentNonKeyAttributes.some((currentNonKeyAttribute) => !endNonKeyAttributes.includes(currentNonKeyAttribute)))
-    return true;
+  if (currentNonKeyAttributes.some((currentNonKeyAttribute) => !endNonKeyAttributes.includes(currentNonKeyAttribute))) return true;
 
   // nothing is different
   return false;
@@ -200,11 +190,7 @@ const isKeySchemaModified = (currentSchema: KeySchema, endSchema: KeySchema): bo
   if (currentSortKey === undefined && endSortKey === undefined) return false;
 
   // check if sort key removed or added
-  if (
-    (currentSortKey === undefined && endSortKey !== undefined) ||
-    (currentSortKey !== undefined && endSortKey === undefined)
-  )
-    return true;
+  if ((currentSortKey === undefined && endSortKey !== undefined) || (currentSortKey !== undefined && endSortKey === undefined)) return true;
 
   // check if sort key attribute name is modified
   if (currentSortKey?.AttributeName !== endSortKey?.AttributeName) return true;
@@ -262,11 +248,7 @@ const retry = async <T>(
       if (typeof failurePredicate === "function" && failurePredicate(result)) {
         throw new Error("Retry-able function execution result matched failure predicate. Stopping retries.");
       }
-      console.warn(
-        `Retry-able function execution did not match success predicate. Result was [${JSON.stringify(
-          result
-        )}]. Retrying...`
-      );
+      console.warn(`Retry-able function execution did not match success predicate. Result was [${JSON.stringify(result)}]. Retrying...`);
     } catch (err) {
       console.warn(`Retry-able function execution failed with [${(err as any).message || err}]`);
       if (stopOnError) {
@@ -283,5 +265,4 @@ const retry = async <T>(
   throw new Error("Retry-able function did not match predicate within the given retry constraints");
 };
 
-const sleep = async (milliseconds: number): Promise<void> =>
-  new Promise((resolve) => setTimeout(resolve, milliseconds));
+const sleep = async (milliseconds: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, milliseconds));
