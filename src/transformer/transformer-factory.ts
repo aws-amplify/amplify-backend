@@ -1,7 +1,7 @@
 import { Construct } from 'constructs';
 import { consoleLogger } from '../observability-tooling/amplify-logger';
 import { amplifyMetrics } from '../observability-tooling/amplify-metrics';
-import { AmplifyTransformerOrchestrator } from './amplify-transformer-orchestrator';
+import { AmplifyTransformerOrchestrator } from './transformer';
 import { hydrateTokens } from './hydrate-tokens';
 import { AmplifyManifest, TokenizedManifest, ProviderKey } from '../manifest/manifest-types';
 import { AmplifyInitializer, AmplifyServiceProviderFactory } from '../types';

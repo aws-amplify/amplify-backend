@@ -11,7 +11,6 @@ import {
   AmplifyServiceProvider,
   AmplifyServiceProviderFactory,
   DynamoTableBuilder,
-  DynamoTableBuilderSupplier,
   LambdaEventSource,
 } from '../../types';
 

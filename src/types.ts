@@ -41,10 +41,6 @@ export type LambdaEventHandler = {
   getLambdaRef(): cdk.aws_lambda.IFunction;
 };
 
-export type DynamoTableBuilderSupplier = {
-  getDynamoTableBuilder(): DynamoTableBuilder;
-};
-
 export type DynamoTableBuilderConsumer = {
   setDynamoTableBuilder(tableKey: string, tableBuilder: DynamoTableBuilder): void;
 };
@@ -58,7 +54,7 @@ export type AmplifyTransformFunctionalInterfaceUnion = LambdaEventHandler &
   LambdaEventSource &
   RuntimeAccessAttacher &
   RuntimeAccessGranter &
-  DynamoTableBuilderSupplier &
+  DynamoTableBuilder &
   DynamoTableBuilderConsumer;
 
 /**
