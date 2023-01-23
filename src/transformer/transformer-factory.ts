@@ -1,16 +1,16 @@
-import { Construct } from "constructs";
-import { consoleLogger } from "../observability-tooling/amplify-logger";
-import { amplifyMetrics } from "../observability-tooling/amplify-metrics";
-import { AmplifyTransformerOrchestrator } from "./amplify-transformer-orchestrator";
-import { hydrateTokens } from "./hydrate-tokens";
-import { AmplifyManifest, TokenizedManifest, ProviderKey } from "../manifest/manifest-types";
-import { AmplifyInitializer, AmplifyServiceProviderFactory } from "../types";
+import { Construct } from 'constructs';
+import { consoleLogger } from '../observability-tooling/amplify-logger';
+import { amplifyMetrics } from '../observability-tooling/amplify-metrics';
+import { AmplifyTransformerOrchestrator } from './amplify-transformer-orchestrator';
+import { hydrateTokens } from './hydrate-tokens';
+import { AmplifyManifest, TokenizedManifest, ProviderKey } from '../manifest/manifest-types';
+import { AmplifyInitializer, AmplifyServiceProviderFactory } from '../types';
 
-import { init as initS3 } from "../providers/s3-provider/s3-provider";
-import { init as initLambda } from "../providers/lambda/lambda-provider";
-import { init as initAppSync } from "../providers/appsync/appsync-provider";
-import { init as initDynamo } from "../providers/dynamodb/dynamodb-provider";
-import * as cdk from "aws-cdk-lib";
+import { init as initS3 } from '../providers/s3-provider/s3-provider';
+import { init as initLambda } from '../providers/lambda/lambda-provider';
+import { init as initAppSync } from '../providers/appsync/appsync-provider';
+import { init as initDynamo } from '../providers/dynamodb/dynamodb-provider';
+import * as cdk from 'aws-cdk-lib';
 /**
  * This should be a first class entry point into Amplify for customers who want to integrate an Amplify manifest into an existing CDK application
  *
@@ -37,10 +37,10 @@ export const createTransformerOrchestrator = async (
   // this is a placeholder for what would be a fetch to npm / check local cache for the transformer defined in the manifest
   // each transformer package would export a factory function named "getAmplifyResourceTransform" which returns an instance of an AmplifyResourceTransform
   const remoteFetchPlaceholder: Record<string, AmplifyInitializer> = {
-    "@aws-amplify/s3-provider@1.2.3": initS3,
-    "@aws-amplify/lambda-provider@2.3.4": initLambda,
-    "@aws-amplify/app-sync-provider@10.2.3": initAppSync,
-    "@aws-amplify/dynamo-db-provider@1.2.3": initDynamo,
+    '@aws-amplify/s3-provider@1.2.3': initS3,
+    '@aws-amplify/lambda-provider@2.3.4': initLambda,
+    '@aws-amplify/app-sync-provider@10.2.3': initAppSync,
+    '@aws-amplify/dynamo-db-provider@1.2.3': initDynamo,
   };
 
   const transformers: Record<ProviderKey, AmplifyServiceProviderFactory> = {};

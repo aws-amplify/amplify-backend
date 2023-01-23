@@ -1,11 +1,11 @@
-import "reflect-metadata";
-import { plainToClass, Transform, Type } from "class-transformer";
+import 'reflect-metadata';
+import { plainToClass, Transform, Type } from 'class-transformer';
 
-test("class-transformer", () => {
+test('class-transformer', () => {
   const raw: MyType = {
     someProp: {
       aKey: {
-        nestedProp: "something",
+        nestedProp: 'something',
       },
     },
   };

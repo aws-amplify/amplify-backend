@@ -1,5 +1,5 @@
-import { SecretKey } from "aws-sdk/clients/appflow";
-import { ParameterKey } from "aws-sdk/clients/cloudformation";
+import { SecretKey } from 'aws-sdk/clients/appflow';
+import { ParameterKey } from 'aws-sdk/clients/cloudformation';
 
 export type TokenizedManifest = {
   resources: Record<string, unknown>;
@@ -70,7 +70,7 @@ export type SSMSecureStringName = string;
 export type SSMStringName = string;
 export type EnvironmentVariableName = string;
 
-export const ExternalToken = "$external";
+export const ExternalToken = '$external';
 
 export type ResourceName = string;
 export type ProviderKey = string;

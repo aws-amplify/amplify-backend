@@ -1,4 +1,4 @@
-import { Construct } from "constructs";
+import { Construct } from 'constructs';
 import {
   AmplifyCdkType,
   AmplifyCdkWrap,
@@ -6,10 +6,10 @@ import {
   AmplifyServiceProviderFactory,
   AmplifyInitializer,
   LambdaEventHandler,
-} from "../../types";
-import { Type } from "class-transformer";
-import { Max } from "class-validator";
-import { SecretRef } from "../../amplify-reference";
+} from '../../types';
+import { Type } from 'class-transformer';
+import { Max } from 'class-validator';
+import { SecretRef } from '../../amplify-reference';
 
 export const init: AmplifyInitializer = (awsCdkLib: AmplifyCdkType) => {
   return new AmplifyLambdaProviderFactory(awsCdkLib);
@@ -25,7 +25,7 @@ class AmplifyLambdaProviderFactory implements AmplifyServiceProviderFactory {
 
 class AmplifyLambdaProvider extends AmplifyServiceProvider implements LambdaEventHandler {
   private func: AmplifyCdkWrap.aws_lambda.Function;
-  private readonly lambda: AmplifyCdkType["aws_lambda"];
+  private readonly lambda: AmplifyCdkType['aws_lambda'];
   constructor(scope: Construct, private readonly name: string, private readonly awsCdkLib: AmplifyCdkType) {
     super(scope, name);
     this.lambda = awsCdkLib.aws_lambda;
@@ -36,16 +36,16 @@ class AmplifyLambdaProvider extends AmplifyServiceProvider implements LambdaEven
   }
 
   init(configuration: AmplifyServerlessFunctionConfiguration) {
-    const secretRef = new SecretRef(this, "test-secret");
+    const secretRef = new SecretRef(this, 'test-secret');
 
     this.func = new this.lambda.Function(this, this.name, {
       runtime: new this.lambda.Runtime(configuration.runtime),
       handler: configuration.handler,
-      timeout: typeof configuration.timeoutSeconds === "number" ? this.awsCdkLib.Duration.seconds(configuration.timeoutSeconds) : undefined,
+      timeout: typeof configuration.timeoutSeconds === 'number' ? this.awsCdkLib.Duration.seconds(configuration.timeoutSeconds) : undefined,
       code: this.lambda.Code.fromAsset(configuration.relativeBuildAssetPath),
       environment: {
         SOME_SECRET: secretRef.getValueRef(),
-        FORCE_UPDATE: "yes",
+        FORCE_UPDATE: 'yes',
       },
     });
   }

@@ -1,12 +1,12 @@
-import { App } from "aws-cdk-lib";
-import { Command, createCommand } from "commander";
-import * as fs from "fs-extra";
-import { createTransformerOrchestrator } from "../orchestrator/amplify-transformer-orchestrator-factory";
+import { App } from 'aws-cdk-lib';
+import { Command, createCommand } from 'commander';
+import * as fs from 'fs-extra';
+import { createTransformerOrchestrator } from '../orchestrator/amplify-transformer-orchestrator-factory';
 
 export const getCommand = (): Command => {
-  return createCommand("synth")
+  return createCommand('synth')
     .description("Synthesize the deployment artifacts for an Amplify project but don't deploy them")
-    .argument("env", "The cloud environment to which the project will be deployed")
+    .argument('env', 'The cloud environment to which the project will be deployed')
     .action(synthHandler);
 };
 
@@ -16,10 +16,10 @@ export const getCommand = (): Command => {
  * @param options
  */
 const synthHandler = async (env: string, options: any) => {
-  const tokenizedManifest = JSON.parse(await fs.readFile("manifest.amplify.json", "utf8"));
+  const tokenizedManifest = JSON.parse(await fs.readFile('manifest.amplify.json', 'utf8'));
 
   // Note the CDK app is constructed outside of the AmplifyTransform. The AmplifyTransform is a CDK construct that is portabe to any CDK App
-  const app = new App({ outdir: "cdk.out" });
+  const app = new App({ outdir: 'cdk.out' });
   const amplifyTransform = await createTransformerOrchestrator(app, env, tokenizedManifest);
   amplifyTransform.transform();
   app.synth();

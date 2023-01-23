@@ -1,18 +1,18 @@
-import { DynamoDB } from "aws-sdk";
-import type { CloudFormationCustomResourceEvent } from "aws-lambda";
-import type { CreateTableInput, KeySchema, Projection, TableDescription, UpdateTableInput } from "aws-sdk/clients/dynamodb";
+import { DynamoDB } from 'aws-sdk';
+import type { CloudFormationCustomResourceEvent } from 'aws-lambda';
+import type { CreateTableInput, KeySchema, Projection, TableDescription, UpdateTableInput } from 'aws-sdk/clients/dynamodb';
 
 const ddbClient = new DynamoDB();
 
 const log = (msg: string, ...other: any[]) => {
   console.log(
     msg,
-    other.map((o) => (typeof o === "object" ? JSON.stringify(o, undefined, 2) : o))
+    other.map((o) => (typeof o === 'object' ? JSON.stringify(o, undefined, 2) : o))
   );
 };
 
 export const onEvent = async (event: CloudFormationCustomResourceEvent): Promise<AWSCDKAsyncCustomResource.OnEventResponse | void> => {
-  log("got event", event);
+  log('got event', event);
 
   // isolate the resource properties from the event and remove the service token
   const resourceProperties = { ...event.ResourceProperties } as CustomDDB.Input & { ServiceToken?: string };
@@ -22,14 +22,14 @@ export const onEvent = async (event: CloudFormationCustomResourceEvent): Promise
   const tableDef = resourceProperties as CustomDDB.Input;
 
   switch (event.RequestType) {
-    case "Create":
-      log("initiating create");
+    case 'Create':
+      log('initiating create');
       const tableName = await createNewTable(tableDef, event.LogicalResourceId);
       const result = { PhysicalResourceId: tableName };
-      log("returning result", result);
+      log('returning result', result);
       return result;
-    case "Update":
-      log("fetching current table state");
+    case 'Update':
+      log('fetching current table state');
       const describeTableResult = await ddbClient.describeTable({ TableName: event.PhysicalResourceId }).promise();
       if (!describeTableResult.Table) {
         throw new Error(`Could not find ${event.PhysicalResourceId} to update`);
@@ -37,28 +37,28 @@ export const onEvent = async (event: CloudFormationCustomResourceEvent): Promise
       // determine if table needs replacement
       if (isKeySchemaModified(describeTableResult.Table.KeySchema!, tableDef.KeySchema)) {
         // TODO there are a few other updates (such as LSIs) that would also need to be handled here
-        log("update requires replacement");
+        log('update requires replacement');
         const tableName = await createNewTable(tableDef, event.LogicalResourceId);
         const result = { PhysicalResourceId: tableName };
-        log("returning result", result);
+        log('returning result', result);
         return result;
       }
 
       const nextGsiUpdate = getNextGSIUpdate(describeTableResult.Table, tableDef);
-      log("computed next update", nextGsiUpdate);
+      log('computed next update', nextGsiUpdate);
       if (!nextGsiUpdate) return; // nothing to update
 
       // merge gsi update with other table updates
-      const inputWithoutAttributeDefinitions: Partial<CustomDDB.Input> & Omit<CustomDDB.Input, "AttributeDefinitions"> = { ...tableDef };
+      const inputWithoutAttributeDefinitions: Partial<CustomDDB.Input> & Omit<CustomDDB.Input, 'AttributeDefinitions'> = { ...tableDef };
       delete inputWithoutAttributeDefinitions.AttributeDefinitions;
 
       const updateTableInput: UpdateTableInput = { ...inputWithoutAttributeDefinitions, ...nextGsiUpdate };
-      log("merged gsi update with other table updates", updateTableInput);
+      log('merged gsi update with other table updates', updateTableInput);
 
-      log("initiating table update");
+      log('initiating table update');
       await ddbClient.updateTable(updateTableInput).promise();
-    case "Delete":
-      log("initiating table deletion");
+    case 'Delete':
+      log('initiating table deletion');
       try {
         await ddbClient.deleteTable({ TableName: event.PhysicalResourceId }).promise();
       } catch (err) {
@@ -69,45 +69,45 @@ export const onEvent = async (event: CloudFormationCustomResourceEvent): Promise
 };
 
 export const isComplete = async (event: AWSCDKAsyncCustomResource.IsCompleteRequest): Promise<AWSCDKAsyncCustomResource.IsCompleteResponse> => {
-  log("got event", event);
-  if (event.RequestType === "Delete") {
+  log('got event', event);
+  if (event.RequestType === 'Delete') {
     // nothing else to do on delete
-    log("delete is finished");
+    log('delete is finished');
     return finished;
   }
   if (!event.PhysicalResourceId) {
-    throw new Error("PhysicalResourceId not set in call to isComplete");
+    throw new Error('PhysicalResourceId not set in call to isComplete');
   }
-  log("fetching current table state");
+  log('fetching current table state');
   const describeTableResult = await retry(
     async () => await ddbClient.describeTable({ TableName: event.PhysicalResourceId! }).promise(),
     (result) => !!result?.Table
   );
-  if (describeTableResult.Table?.TableStatus !== "ACTIVE") {
-    log("table not active yet");
+  if (describeTableResult.Table?.TableStatus !== 'ACTIVE') {
+    log('table not active yet');
     return notFinished;
   }
   // table is active, need to check GSI status
-  if (describeTableResult.Table.GlobalSecondaryIndexes?.some((gsi) => gsi.IndexStatus !== "ACTIVE" || gsi.Backfilling)) {
-    log("some GSI is not active yet");
+  if (describeTableResult.Table.GlobalSecondaryIndexes?.some((gsi) => gsi.IndexStatus !== 'ACTIVE' || gsi.Backfilling)) {
+    log('some GSI is not active yet');
     return notFinished;
   }
 
-  if (event.RequestType === "Create") {
+  if (event.RequestType === 'Create') {
     // no additional updates required on create
-    log("create is finished");
+    log('create is finished');
     return finished;
   }
 
   // need to check if any more GSI updates are necessary
   const nextUpdate = getNextGSIUpdate(describeTableResult.Table, event.ResourceProperties as unknown as CustomDDB.Input);
-  log("computed next update", nextUpdate);
+  log('computed next update', nextUpdate);
   if (!nextUpdate) {
     // current state equals end state so we're done
     return finished;
   }
   // don't need to merge gsi updates with other table updates here because those have already been applied in the first update
-  log("initiating table update");
+  log('initiating table update');
   await ddbClient.updateTable(nextUpdate).promise();
   return notFinished;
   // a response of notFinished in this function will cause the function to be invoked again by the state machine after some time
@@ -197,7 +197,7 @@ const isProjectionModified = (currentProjection: Projection, endProjection: Proj
   if (currentProjection.ProjectionType !== endProjection.ProjectionType) return true;
 
   // if projection type is all for both then no need to check projection attributes
-  if (currentProjection.ProjectionType === "ALL") return false;
+  if (currentProjection.ProjectionType === 'ALL') return false;
 
   const currentNonKeyAttributes = currentProjection.NonKeyAttributes || [];
   const endNonKeyAttributes = currentProjection.NonKeyAttributes || [];
@@ -212,13 +212,13 @@ const isProjectionModified = (currentProjection: Projection, endProjection: Proj
 };
 
 const isKeySchemaModified = (currentSchema: KeySchema, endSchema: KeySchema): boolean => {
-  const currentHashKey = currentSchema.find((schema) => schema.KeyType === "HASH");
-  const endHashKey = endSchema.find((schema) => schema.KeyType === "HASH");
+  const currentHashKey = currentSchema.find((schema) => schema.KeyType === 'HASH');
+  const endHashKey = endSchema.find((schema) => schema.KeyType === 'HASH');
   // check if hash key attribute name is modified
   if (currentHashKey?.AttributeName !== endHashKey?.AttributeName) return true;
 
-  const currentSortKey = currentSchema.find((schema) => schema.KeyType === "RANGE");
-  const endSortKey = endSchema.find((schema) => schema.KeyType === "RANGE");
+  const currentSortKey = currentSchema.find((schema) => schema.KeyType === 'RANGE');
+  const endSortKey = endSchema.find((schema) => schema.KeyType === 'RANGE');
 
   // if a sort key doesn't exist in current or end state, then we're done, the schemas are the same
   if (currentSortKey === undefined && endSortKey === undefined) return false;
@@ -279,16 +279,16 @@ const retry = async <T>(
       if (successPredicate(result)) {
         return result;
       }
-      if (typeof failurePredicate === "function" && failurePredicate(result)) {
-        throw new Error("Retry-able function execution result matched failure predicate. Stopping retries.");
+      if (typeof failurePredicate === 'function' && failurePredicate(result)) {
+        throw new Error('Retry-able function execution result matched failure predicate. Stopping retries.');
       }
       console.warn(`Retry-able function execution did not match success predicate. Result was [${JSON.stringify(result)}]. Retrying...`);
     } catch (err) {
       console.warn(`Retry-able function execution failed with [${(err as any).message || err}]`);
       if (stopOnError) {
-        console.log("Stopping retries on error.");
+        console.log('Stopping retries on error.');
       } else {
-        console.log("Retrying...");
+        console.log('Retrying...');
       }
       terminate = stopOnError;
     }
@@ -296,7 +296,7 @@ const retry = async <T>(
     await sleep(delayMS);
   } while (!terminate && count <= times && Date.now() - startTime < timeoutMS);
 
-  throw new Error("Retry-able function did not match predicate within the given retry constraints");
+  throw new Error('Retry-able function did not match predicate within the given retry constraints');
 };
 
 const sleep = async (milliseconds: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, milliseconds));

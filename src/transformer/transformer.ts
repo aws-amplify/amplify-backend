@@ -1,11 +1,11 @@
-import { Construct } from "constructs";
-import { ResourceRecord, ExternalToken, ResourceName, ProviderKey } from "../manifest/manifest-types";
-import { getDagWalker, NodeVisitor } from "./dag-walker";
-import { AmplifyServiceProviderFactory, AmplifyServiceProvider } from "../types";
-import { AmplifyReference, AmplifyStack } from "../amplify-reference";
-import { plainToInstance } from "class-transformer";
-import { validateSync } from "class-validator";
-import { aws_lambda, aws_iam } from "aws-cdk-lib";
+import { Construct } from 'constructs';
+import { ResourceRecord, ExternalToken, ResourceName, ProviderKey } from '../manifest/manifest-types';
+import { getDagWalker, NodeVisitor } from './dag-walker';
+import { AmplifyServiceProviderFactory, AmplifyServiceProvider } from '../types';
+import { AmplifyReference, AmplifyStack } from '../amplify-reference';
+import { plainToInstance } from 'class-transformer';
+import { validateSync } from 'class-validator';
+import { aws_lambda, aws_iam } from 'aws-cdk-lib';
 
 export class AmplifyTransformerOrchestrator extends Construct {
   private readonly resourceProviderMap: Record<ResourceName, AmplifyServiceProvider> = {};
@@ -88,9 +88,9 @@ export class AmplifyTransformerOrchestrator extends Construct {
       // pass the linked lambda refs to the source stack so they can be attached to the source defined by eventSourceName
       triggerSourceProvider.attachLambdaEventHandler!(
         eventSourceName,
-        aws_lambda.Function.fromFunctionAttributes(triggerSourceProvider, "handler-lambda", {
+        aws_lambda.Function.fromFunctionAttributes(triggerSourceProvider, 'handler-lambda', {
           functionArn: destArnRef,
-          role: aws_iam.Role.fromRoleArn(triggerSourceProvider, "handler-role", destRoleRef),
+          role: aws_iam.Role.fromRoleArn(triggerSourceProvider, 'handler-role', destRoleRef),
         })
       );
     });

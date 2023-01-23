@@ -1,9 +1,9 @@
-import { aws_iam, aws_lambda, aws_logs, CustomResource, custom_resources, Duration } from "aws-cdk-lib";
-import { Attribute, GlobalSecondaryIndexProps, Table, TableProps } from "aws-cdk-lib/aws-dynamodb";
-import * as path from "path";
+import { aws_iam, aws_lambda, aws_logs, CustomResource, custom_resources, Duration } from 'aws-cdk-lib';
+import { Attribute, GlobalSecondaryIndexProps, Table, TableProps } from 'aws-cdk-lib/aws-dynamodb';
+import * as path from 'path';
 
-import { Construct } from "constructs";
-import type { AttributeDefinition, AttributeDefinitions, CreateTableInput, GlobalSecondaryIndex, KeySchema } from "aws-sdk/clients/dynamodb";
+import { Construct } from 'constructs';
+import type { AttributeDefinition, AttributeDefinitions, CreateTableInput, GlobalSecondaryIndex, KeySchema } from 'aws-sdk/clients/dynamodb';
 import {
   AmplifyCdkType,
   AmplifyCdkWrap,
@@ -13,7 +13,7 @@ import {
   DynamoTableBuilder,
   DynamoTableBuilderSupplier,
   LambdaEventSource,
-} from "../../types";
+} from '../../types';
 
 export const init: AmplifyInitializer = (cdk: AmplifyCdkType) => {
   return new AmplifyDynamoDBProviderFactory(cdk);
@@ -53,8 +53,8 @@ export class AmplifyDynamoDBProvider extends AmplifyServiceProvider implements L
     this.gsis.push(props);
   }
 
-  attachLambdaEventHandler(eventSourceName: "stream", handler: aws_lambda.IFunction): void {
-    if (eventSourceName !== "stream") {
+  attachLambdaEventHandler(eventSourceName: 'stream', handler: aws_lambda.IFunction): void {
+    if (eventSourceName !== 'stream') {
       throw new Error(`Unknown event source ${eventSourceName}`);
     }
     this.streamHandler = handler;
@@ -62,39 +62,39 @@ export class AmplifyDynamoDBProvider extends AmplifyServiceProvider implements L
 
   finalize(): void {
     if (!this.tableProps) {
-      throw new Error("setTableOptions must be called before buildTable");
+      throw new Error('setTableOptions must be called before buildTable');
     }
     // Policy that grants access to Create/Update/Delete DynamoDB tables
-    const ddbManagerPolicy = new aws_iam.Policy(this, "createUpdateDeleteTablesPolicy");
+    const ddbManagerPolicy = new aws_iam.Policy(this, 'createUpdateDeleteTablesPolicy');
     ddbManagerPolicy.addStatements(
       new aws_iam.PolicyStatement({
-        actions: ["dynamodb:CreateTable", "dynamodb:UpdateTable", "dynamodb:DeleteTable", "dynamodb:DescribeTable"],
-        resources: ["*"], // TODO scope this down
+        actions: ['dynamodb:CreateTable', 'dynamodb:UpdateTable', 'dynamodb:DeleteTable', 'dynamodb:DescribeTable'],
+        resources: ['*'], // TODO scope this down
       })
     );
 
-    const lambdaCode = aws_lambda.Code.fromAsset(path.join(__dirname, "./custom-lambda"));
+    const lambdaCode = aws_lambda.Code.fromAsset(path.join(__dirname, './custom-lambda'));
 
     // lambda that will handle DDB CFN events
-    const gsiOnEventHandler = new aws_lambda.Function(this, "tableOnEventHandler", {
+    const gsiOnEventHandler = new aws_lambda.Function(this, 'tableOnEventHandler', {
       runtime: aws_lambda.Runtime.NODEJS_16_X,
       code: lambdaCode,
-      handler: "ddb-custom-handler.onEvent",
+      handler: 'ddb-custom-handler.onEvent',
       timeout: Duration.minutes(1),
     });
 
     // lambda that will poll for provisioning to complete
-    const gsiIsCompleteHandler = new aws_lambda.Function(this, "tableIsCompleteHandler", {
+    const gsiIsCompleteHandler = new aws_lambda.Function(this, 'tableIsCompleteHandler', {
       runtime: aws_lambda.Runtime.NODEJS_16_X,
       code: lambdaCode,
-      handler: "ddb-custom-handler.isComplete",
+      handler: 'ddb-custom-handler.isComplete',
       timeout: Duration.minutes(1),
     });
 
     ddbManagerPolicy.attachToRole(gsiOnEventHandler.role!);
     ddbManagerPolicy.attachToRole(gsiIsCompleteHandler.role!);
 
-    const gsiCustomProvider = new custom_resources.Provider(this, "tableCustomProvider", {
+    const gsiCustomProvider = new custom_resources.Provider(this, 'tableCustomProvider', {
       onEventHandler: gsiOnEventHandler,
       isCompleteHandler: gsiIsCompleteHandler,
       logRetention: aws_logs.RetentionDays.ONE_MONTH,
@@ -103,16 +103,16 @@ export class AmplifyDynamoDBProvider extends AmplifyServiceProvider implements L
     });
 
     // this is the custom resource that manages GSI updates
-    const gsiCustom = new CustomResource(this, "custom-dynamo-table", {
+    const gsiCustom = new CustomResource(this, 'custom-dynamo-table', {
       serviceToken: gsiCustomProvider.serviceToken,
       properties: this.toCreateTableInput(),
     });
 
     // construct a wrapper around the custom table to allow normal CDK operations on top of it
-    const customTable = Table.fromTableAttributes(this, "custom-table", {
-      tableArn: gsiCustom.getAttString("TableArn"),
+    const customTable = Table.fromTableAttributes(this, 'custom-table', {
+      tableArn: gsiCustom.getAttString('TableArn'),
       tableName: gsiCustom.ref,
-      tableStreamArn: this.tableProps.stream ? gsiCustom.getAttString("TableStreamArn") : undefined,
+      tableStreamArn: this.tableProps.stream ? gsiCustom.getAttString('TableStreamArn') : undefined,
       globalIndexes: this.gsis.map((gsi) => gsi.indexName),
     });
 
@@ -123,7 +123,7 @@ export class AmplifyDynamoDBProvider extends AmplifyServiceProvider implements L
     }
   }
 
-  private toCreateTableInput(): Omit<CreateTableInput, "TableName"> {
+  private toCreateTableInput(): Omit<CreateTableInput, 'TableName'> {
     const attributeDefinitionsRecord: Record<string, AttributeDefinition> = {};
     this.toAttributeDefinitions(this.tableProps).forEach((def) => (attributeDefinitionsRecord[def.AttributeName] = def));
 
@@ -133,12 +133,12 @@ export class AmplifyDynamoDBProvider extends AmplifyServiceProvider implements L
         IndexName: gsi.indexName,
         KeySchema: this.toKeySchema(gsi),
         Projection: {
-          ProjectionType: "ALL",
+          ProjectionType: 'ALL',
         },
       };
     });
 
-    const createTableInput: Omit<CreateTableInput, "TableName"> = {
+    const createTableInput: Omit<CreateTableInput, 'TableName'> = {
       AttributeDefinitions: Object.values(attributeDefinitionsRecord),
       KeySchema: this.toKeySchema(this.tableProps),
       GlobalSecondaryIndexes: gsis,
@@ -157,13 +157,13 @@ export class AmplifyDynamoDBProvider extends AmplifyServiceProvider implements L
     const keySchema: KeySchema = [
       {
         AttributeName: partitionKey.name,
-        KeyType: "HASH",
+        KeyType: 'HASH',
       },
     ];
     if (sortKey) {
       keySchema.push({
         AttributeName: sortKey.name,
-        KeyType: "RANGE",
+        KeyType: 'RANGE',
       });
     }
     return keySchema;

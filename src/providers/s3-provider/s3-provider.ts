@@ -1,4 +1,4 @@
-import { Construct } from "constructs";
+import { Construct } from 'constructs';
 import {
   AmplifyServiceProvider,
   AmplifyServiceProviderFactory,
@@ -6,7 +6,7 @@ import {
   AmplifyCdkType,
   LambdaEventSource,
   AmplifyInitializer,
-} from "../../types";
+} from '../../types';
 
 export const init: AmplifyInitializer = (cdk: AmplifyCdkType) => {
   return new AmplifyS3ProviderFactory(cdk);
@@ -42,7 +42,7 @@ class AmplifyS3Provider extends AmplifyServiceProvider implements LambdaEventSou
   }
 
   attachLambdaEventHandler(eventSourceName: string, handler: AmplifyCdkWrap.aws_lambda.IFunction): void {
-    if (eventSourceName !== "stream") {
+    if (eventSourceName !== 'stream') {
       throw new Error(`Unknown event source name ${eventSourceName}`);
     }
 

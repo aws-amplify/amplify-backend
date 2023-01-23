@@ -1,5 +1,5 @@
-import { Construct } from "constructs";
-import type * as cdk from "aws-cdk-lib";
+import { Construct } from 'constructs';
+import type * as cdk from 'aws-cdk-lib';
 
 export type AmplifyCdkType = typeof cdk;
 export { cdk as AmplifyCdkWrap };

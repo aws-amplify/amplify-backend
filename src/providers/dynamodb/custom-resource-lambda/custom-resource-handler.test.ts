@@ -1,26 +1,26 @@
-import { DynamoDB } from "aws-sdk";
-import { getNextGSIUpdate } from "./custom-resource-handler";
+import { DynamoDB } from 'aws-sdk';
+import { getNextGSIUpdate } from './custom-resource-handler';
 
-it("computes deletion correctly", () => {
+it('computes deletion correctly', () => {
   const currentState: DynamoDB.TableDescription = {
     AttributeDefinitions: [
       {
-        AttributeName: "pk",
-        AttributeType: "S",
+        AttributeName: 'pk',
+        AttributeType: 'S',
       },
       {
-        AttributeName: "sk",
-        AttributeType: "S",
+        AttributeName: 'sk',
+        AttributeType: 'S',
       },
     ],
-    TableName: "test-table",
+    TableName: 'test-table',
     KeySchema: [
       {
-        AttributeName: "pk",
-        KeyType: "HASH",
+        AttributeName: 'pk',
+        KeyType: 'HASH',
       },
     ],
-    TableStatus: "ACTIVE",
+    TableStatus: 'ACTIVE',
     ProvisionedThroughput: {
       NumberOfDecreasesToday: 0,
       ReadCapacityUnits: 0,
@@ -28,24 +28,24 @@ it("computes deletion correctly", () => {
     },
     TableSizeBytes: 0,
     ItemCount: 0,
-    TableArn: "arn:aws:dynamodb:us-west-1:580394976433:table/test-table",
-    TableId: "179dc0cb-3a30-4100-8432-d2095532f6c7",
+    TableArn: 'arn:aws:dynamodb:us-west-1:580394976433:table/test-table',
+    TableId: '179dc0cb-3a30-4100-8432-d2095532f6c7',
     BillingModeSummary: {
-      BillingMode: "PAY_PER_REQUEST",
+      BillingMode: 'PAY_PER_REQUEST',
     },
     GlobalSecondaryIndexes: [
       {
-        IndexName: "gsi1",
+        IndexName: 'gsi1',
         KeySchema: [
           {
-            AttributeName: "sk",
-            KeyType: "HASH",
+            AttributeName: 'sk',
+            KeyType: 'HASH',
           },
         ],
         Projection: {
-          ProjectionType: "ALL",
+          ProjectionType: 'ALL',
         },
-        IndexStatus: "ACTIVE",
+        IndexStatus: 'ACTIVE',
         ProvisionedThroughput: {
           NumberOfDecreasesToday: 0,
           ReadCapacityUnits: 0,
@@ -53,58 +53,58 @@ it("computes deletion correctly", () => {
         },
         IndexSizeBytes: 0,
         ItemCount: 0,
-        IndexArn: "arn:aws:dynamodb:us-west-1:580394976433:table/test-table/index/gsi1",
+        IndexArn: 'arn:aws:dynamodb:us-west-1:580394976433:table/test-table/index/gsi1',
       },
     ],
   };
 
   const endState: DynamoDB.CreateTableInput = {
     // todo how to generate a good name here?
-    TableName: "test-table",
+    TableName: 'test-table',
     AttributeDefinitions: [
       {
-        AttributeName: "pk",
-        AttributeType: "S",
+        AttributeName: 'pk',
+        AttributeType: 'S',
       },
       {
-        AttributeName: "sk",
-        AttributeType: "S",
+        AttributeName: 'sk',
+        AttributeType: 'S',
       },
       {
-        AttributeName: "newKey",
-        AttributeType: "S",
+        AttributeName: 'newKey',
+        AttributeType: 'S',
       },
     ],
     KeySchema: [
       {
-        AttributeName: "pk",
-        KeyType: "HASH",
+        AttributeName: 'pk',
+        KeyType: 'HASH',
       },
     ],
-    BillingMode: "PAY_PER_REQUEST",
+    BillingMode: 'PAY_PER_REQUEST',
     GlobalSecondaryIndexes: [
       {
-        IndexName: "gsi2",
+        IndexName: 'gsi2',
         KeySchema: [
           {
-            AttributeName: "sk",
-            KeyType: "HASH",
+            AttributeName: 'sk',
+            KeyType: 'HASH',
           },
         ],
         Projection: {
-          ProjectionType: "ALL",
+          ProjectionType: 'ALL',
         },
       },
       {
-        IndexName: "gsi3",
+        IndexName: 'gsi3',
         KeySchema: [
           {
-            AttributeName: "newKey",
-            KeyType: "HASH",
+            AttributeName: 'newKey',
+            KeyType: 'HASH',
           },
         ],
         Projection: {
-          ProjectionType: "ALL",
+          ProjectionType: 'ALL',
         },
       },
     ],
@@ -124,26 +124,26 @@ it("computes deletion correctly", () => {
   `);
 });
 
-it("computes addition correctly", () => {
+it('computes addition correctly', () => {
   const currentState: DynamoDB.TableDescription = {
     AttributeDefinitions: [
       {
-        AttributeName: "pk",
-        AttributeType: "S",
+        AttributeName: 'pk',
+        AttributeType: 'S',
       },
       {
-        AttributeName: "sk",
-        AttributeType: "S",
+        AttributeName: 'sk',
+        AttributeType: 'S',
       },
     ],
-    TableName: "test-table",
+    TableName: 'test-table',
     KeySchema: [
       {
-        AttributeName: "pk",
-        KeyType: "HASH",
+        AttributeName: 'pk',
+        KeyType: 'HASH',
       },
     ],
-    TableStatus: "ACTIVE",
+    TableStatus: 'ACTIVE',
     ProvisionedThroughput: {
       NumberOfDecreasesToday: 0,
       ReadCapacityUnits: 0,
@@ -151,61 +151,61 @@ it("computes addition correctly", () => {
     },
     TableSizeBytes: 0,
     ItemCount: 0,
-    TableArn: "arn:aws:dynamodb:us-west-1:580394976433:table/test-table",
-    TableId: "179dc0cb-3a30-4100-8432-d2095532f6c7",
+    TableArn: 'arn:aws:dynamodb:us-west-1:580394976433:table/test-table',
+    TableId: '179dc0cb-3a30-4100-8432-d2095532f6c7',
     BillingModeSummary: {
-      BillingMode: "PAY_PER_REQUEST",
+      BillingMode: 'PAY_PER_REQUEST',
     },
     GlobalSecondaryIndexes: [],
   };
 
   const endState: DynamoDB.CreateTableInput = {
     // todo how to generate a good name here?
-    TableName: "test-table",
+    TableName: 'test-table',
     AttributeDefinitions: [
       {
-        AttributeName: "pk",
-        AttributeType: "S",
+        AttributeName: 'pk',
+        AttributeType: 'S',
       },
       {
-        AttributeName: "sk",
-        AttributeType: "S",
+        AttributeName: 'sk',
+        AttributeType: 'S',
       },
       {
-        AttributeName: "newKey",
-        AttributeType: "S",
+        AttributeName: 'newKey',
+        AttributeType: 'S',
       },
     ],
     KeySchema: [
       {
-        AttributeName: "pk",
-        KeyType: "HASH",
+        AttributeName: 'pk',
+        KeyType: 'HASH',
       },
     ],
-    BillingMode: "PAY_PER_REQUEST",
+    BillingMode: 'PAY_PER_REQUEST',
     GlobalSecondaryIndexes: [
       {
-        IndexName: "gsi2",
+        IndexName: 'gsi2',
         KeySchema: [
           {
-            AttributeName: "sk",
-            KeyType: "HASH",
+            AttributeName: 'sk',
+            KeyType: 'HASH',
           },
         ],
         Projection: {
-          ProjectionType: "ALL",
+          ProjectionType: 'ALL',
         },
       },
       {
-        IndexName: "gsi3",
+        IndexName: 'gsi3',
         KeySchema: [
           {
-            AttributeName: "newKey",
-            KeyType: "HASH",
+            AttributeName: 'newKey',
+            KeyType: 'HASH',
           },
         ],
         Projection: {
-          ProjectionType: "ALL",
+          ProjectionType: 'ALL',
         },
       },
     ],
@@ -240,26 +240,26 @@ it("computes addition correctly", () => {
   `);
 });
 
-it("computes next addition correctly", () => {
+it('computes next addition correctly', () => {
   const currentState: DynamoDB.TableDescription = {
     AttributeDefinitions: [
       {
-        AttributeName: "pk",
-        AttributeType: "S",
+        AttributeName: 'pk',
+        AttributeType: 'S',
       },
       {
-        AttributeName: "sk",
-        AttributeType: "S",
+        AttributeName: 'sk',
+        AttributeType: 'S',
       },
     ],
-    TableName: "test-table",
+    TableName: 'test-table',
     KeySchema: [
       {
-        AttributeName: "pk",
-        KeyType: "HASH",
+        AttributeName: 'pk',
+        KeyType: 'HASH',
       },
     ],
-    TableStatus: "ACTIVE",
+    TableStatus: 'ACTIVE',
     ProvisionedThroughput: {
       NumberOfDecreasesToday: 0,
       ReadCapacityUnits: 0,
@@ -267,24 +267,24 @@ it("computes next addition correctly", () => {
     },
     TableSizeBytes: 0,
     ItemCount: 0,
-    TableArn: "arn:aws:dynamodb:us-west-1:580394976433:table/test-table",
-    TableId: "179dc0cb-3a30-4100-8432-d2095532f6c7",
+    TableArn: 'arn:aws:dynamodb:us-west-1:580394976433:table/test-table',
+    TableId: '179dc0cb-3a30-4100-8432-d2095532f6c7',
     BillingModeSummary: {
-      BillingMode: "PAY_PER_REQUEST",
+      BillingMode: 'PAY_PER_REQUEST',
     },
     GlobalSecondaryIndexes: [
       {
-        IndexName: "gsi2",
+        IndexName: 'gsi2',
         KeySchema: [
           {
-            AttributeName: "sk",
-            KeyType: "HASH",
+            AttributeName: 'sk',
+            KeyType: 'HASH',
           },
         ],
         Projection: {
-          ProjectionType: "ALL",
+          ProjectionType: 'ALL',
         },
-        IndexStatus: "ACTIVE",
+        IndexStatus: 'ACTIVE',
         ProvisionedThroughput: {
           NumberOfDecreasesToday: 0,
           ReadCapacityUnits: 0,
@@ -292,58 +292,58 @@ it("computes next addition correctly", () => {
         },
         IndexSizeBytes: 0,
         ItemCount: 0,
-        IndexArn: "arn:aws:dynamodb:us-west-1:580394976433:table/test-table/index/gsi1",
+        IndexArn: 'arn:aws:dynamodb:us-west-1:580394976433:table/test-table/index/gsi1',
       },
     ],
   };
 
   const endState: DynamoDB.CreateTableInput = {
     // todo how to generate a good name here?
-    TableName: "test-table",
+    TableName: 'test-table',
     AttributeDefinitions: [
       {
-        AttributeName: "pk",
-        AttributeType: "S",
+        AttributeName: 'pk',
+        AttributeType: 'S',
       },
       {
-        AttributeName: "sk",
-        AttributeType: "S",
+        AttributeName: 'sk',
+        AttributeType: 'S',
       },
       {
-        AttributeName: "newKey",
-        AttributeType: "S",
+        AttributeName: 'newKey',
+        AttributeType: 'S',
       },
     ],
     KeySchema: [
       {
-        AttributeName: "pk",
-        KeyType: "HASH",
+        AttributeName: 'pk',
+        KeyType: 'HASH',
       },
     ],
-    BillingMode: "PAY_PER_REQUEST",
+    BillingMode: 'PAY_PER_REQUEST',
     GlobalSecondaryIndexes: [
       {
-        IndexName: "gsi2",
+        IndexName: 'gsi2',
         KeySchema: [
           {
-            AttributeName: "sk",
-            KeyType: "HASH",
+            AttributeName: 'sk',
+            KeyType: 'HASH',
           },
         ],
         Projection: {
-          ProjectionType: "ALL",
+          ProjectionType: 'ALL',
         },
       },
       {
-        IndexName: "gsi3",
+        IndexName: 'gsi3',
         KeySchema: [
           {
-            AttributeName: "newKey",
-            KeyType: "HASH",
+            AttributeName: 'newKey',
+            KeyType: 'HASH',
           },
         ],
         Projection: {
-          ProjectionType: "ALL",
+          ProjectionType: 'ALL',
         },
       },
     ],
@@ -378,26 +378,26 @@ it("computes next addition correctly", () => {
   `);
 });
 
-it("computes end state correctly", () => {
+it('computes end state correctly', () => {
   const currentState: DynamoDB.TableDescription = {
     AttributeDefinitions: [
       {
-        AttributeName: "pk",
-        AttributeType: "S",
+        AttributeName: 'pk',
+        AttributeType: 'S',
       },
       {
-        AttributeName: "sk",
-        AttributeType: "S",
+        AttributeName: 'sk',
+        AttributeType: 'S',
       },
     ],
-    TableName: "test-table",
+    TableName: 'test-table',
     KeySchema: [
       {
-        AttributeName: "pk",
-        KeyType: "HASH",
+        AttributeName: 'pk',
+        KeyType: 'HASH',
       },
     ],
-    TableStatus: "ACTIVE",
+    TableStatus: 'ACTIVE',
     ProvisionedThroughput: {
       NumberOfDecreasesToday: 0,
       ReadCapacityUnits: 0,
@@ -405,24 +405,24 @@ it("computes end state correctly", () => {
     },
     TableSizeBytes: 0,
     ItemCount: 0,
-    TableArn: "arn:aws:dynamodb:us-west-1:580394976433:table/test-table",
-    TableId: "179dc0cb-3a30-4100-8432-d2095532f6c7",
+    TableArn: 'arn:aws:dynamodb:us-west-1:580394976433:table/test-table',
+    TableId: '179dc0cb-3a30-4100-8432-d2095532f6c7',
     BillingModeSummary: {
-      BillingMode: "PAY_PER_REQUEST",
+      BillingMode: 'PAY_PER_REQUEST',
     },
     GlobalSecondaryIndexes: [
       {
-        IndexName: "gsi2",
+        IndexName: 'gsi2',
         KeySchema: [
           {
-            AttributeName: "sk",
-            KeyType: "HASH",
+            AttributeName: 'sk',
+            KeyType: 'HASH',
           },
         ],
         Projection: {
-          ProjectionType: "ALL",
+          ProjectionType: 'ALL',
         },
-        IndexStatus: "ACTIVE",
+        IndexStatus: 'ACTIVE',
         ProvisionedThroughput: {
           NumberOfDecreasesToday: 0,
           ReadCapacityUnits: 0,
@@ -430,20 +430,20 @@ it("computes end state correctly", () => {
         },
         IndexSizeBytes: 0,
         ItemCount: 0,
-        IndexArn: "arn:aws:dynamodb:us-west-1:580394976433:table/test-table/index/gsi1",
+        IndexArn: 'arn:aws:dynamodb:us-west-1:580394976433:table/test-table/index/gsi1',
       },
       {
-        IndexName: "gsi3",
+        IndexName: 'gsi3',
         KeySchema: [
           {
-            AttributeName: "newKey",
-            KeyType: "HASH",
+            AttributeName: 'newKey',
+            KeyType: 'HASH',
           },
         ],
         Projection: {
-          ProjectionType: "ALL",
+          ProjectionType: 'ALL',
         },
-        IndexStatus: "ACTIVE",
+        IndexStatus: 'ACTIVE',
         ProvisionedThroughput: {
           NumberOfDecreasesToday: 0,
           ReadCapacityUnits: 0,
@@ -451,58 +451,58 @@ it("computes end state correctly", () => {
         },
         IndexSizeBytes: 0,
         ItemCount: 0,
-        IndexArn: "arn:aws:dynamodb:us-west-1:580394976433:table/test-table/index/gsi1",
+        IndexArn: 'arn:aws:dynamodb:us-west-1:580394976433:table/test-table/index/gsi1',
       },
     ],
   };
 
   const endState: DynamoDB.CreateTableInput = {
     // todo how to generate a good name here?
-    TableName: "test-table",
+    TableName: 'test-table',
     AttributeDefinitions: [
       {
-        AttributeName: "pk",
-        AttributeType: "S",
+        AttributeName: 'pk',
+        AttributeType: 'S',
       },
       {
-        AttributeName: "sk",
-        AttributeType: "S",
+        AttributeName: 'sk',
+        AttributeType: 'S',
       },
       {
-        AttributeName: "newKey",
-        AttributeType: "S",
+        AttributeName: 'newKey',
+        AttributeType: 'S',
       },
     ],
     KeySchema: [
       {
-        AttributeName: "pk",
-        KeyType: "HASH",
+        AttributeName: 'pk',
+        KeyType: 'HASH',
       },
     ],
-    BillingMode: "PAY_PER_REQUEST",
+    BillingMode: 'PAY_PER_REQUEST',
     GlobalSecondaryIndexes: [
       {
-        IndexName: "gsi2",
+        IndexName: 'gsi2',
         KeySchema: [
           {
-            AttributeName: "sk",
-            KeyType: "HASH",
+            AttributeName: 'sk',
+            KeyType: 'HASH',
           },
         ],
         Projection: {
-          ProjectionType: "ALL",
+          ProjectionType: 'ALL',
         },
       },
       {
-        IndexName: "gsi3",
+        IndexName: 'gsi3',
         KeySchema: [
           {
-            AttributeName: "newKey",
-            KeyType: "HASH",
+            AttributeName: 'newKey',
+            KeyType: 'HASH',
           },
         ],
         Projection: {
-          ProjectionType: "ALL",
+          ProjectionType: 'ALL',
         },
       },
     ],

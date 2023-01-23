@@ -1,6 +1,6 @@
-import { aws_ssm, CfnElement, ContextProvider, custom_resources, Stack } from "aws-cdk-lib";
-import { AwsCustomResource } from "aws-cdk-lib/custom-resources";
-import { Construct } from "constructs";
+import { aws_ssm, CfnElement, ContextProvider, custom_resources, Stack } from 'aws-cdk-lib';
+import { AwsCustomResource } from 'aws-cdk-lib/custom-resources';
+import { Construct } from 'constructs';
 
 /**
  * Creates a reference between two stacks using a value in ParameterStore
@@ -27,10 +27,10 @@ export class AmplifyReference extends Construct {
 
 export class SecretRef extends custom_resources.AwsCustomResource {
   constructor(scope: Construct, parameterName: string) {
-    super(scope, "secret-fetcher", {
+    super(scope, 'secret-fetcher', {
       onUpdate: {
-        service: "SSM",
-        action: "getParameter",
+        service: 'SSM',
+        action: 'getParameter',
         parameters: {
           Name: parameterName,
           WithDecryption: true,
@@ -38,12 +38,12 @@ export class SecretRef extends custom_resources.AwsCustomResource {
         physicalResourceId: custom_resources.PhysicalResourceId.of(Date.now().toString()),
       },
       installLatestAwsSdk: false,
-      policy: custom_resources.AwsCustomResourcePolicy.fromSdkCalls({ resources: ["*"] }),
+      policy: custom_resources.AwsCustomResourcePolicy.fromSdkCalls({ resources: ['*'] }),
     });
   }
 
   getValueRef(): string {
-    return this.getResponseField("Parameter.Value");
+    return this.getResponseField('Parameter.Value');
   }
 }
 
