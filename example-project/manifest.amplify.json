@@ -41,9 +41,9 @@
     }
   },
   "transformers": {
-    "storageTransformer": "@aws-amplify/s3-transform@1.2.3",
-    "functionTransformer": "@aws-amplify/lambda-transform@2.3.4",
-    "gqlTransformer": "@aws-amplify/gql-transformer@10.2.3"
+    "storageTransformer": "@aws-amplify/s3-provider@1.2.3",
+    "functionTransformer": "@aws-amplify/lambda-provider@2.3.4",
+    "gqlTransformer": "@aws-amplify/app-sync-provider@10.2.3"
   },
   "secrets": {
     "databasePassword": "$ssm:/path/to/secret",

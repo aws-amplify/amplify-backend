@@ -2,28 +2,28 @@ import { Construct } from "constructs";
 import {
   AmplifyCdkType,
   AmplifyCdkWrap,
-  AmplifyConstruct,
-  AmplifyResourceTransform,
-  AmplifyResourceTransformFactory,
+  AmplifyServiceProvider,
+  AmplifyServiceProviderFactory,
+  AmplifyInitializer,
   LambdaEventHandler,
-} from "../types";
+} from "../../types";
 import { Type } from "class-transformer";
 import { Max } from "class-validator";
-import { SecretRef } from "../amplify-reference";
+import { SecretRef } from "../../amplify-reference";
 
-export const getAmplifyResourceTransform: AmplifyResourceTransformFactory = (awsCdkLib: AmplifyCdkType) => {
-  return new AmplifyServerlessFunctionTransform(awsCdkLib);
+export const init: AmplifyInitializer = (awsCdkLib: AmplifyCdkType) => {
+  return new AmplifyLambdaProviderFactory(awsCdkLib);
 };
 
-class AmplifyServerlessFunctionTransform implements AmplifyResourceTransform {
+class AmplifyLambdaProviderFactory implements AmplifyServiceProviderFactory {
   constructor(private readonly awsCdkLib: AmplifyCdkType) {}
 
-  getConstruct(scope: Construct, name: string): AmplifyConstruct {
-    return new AmplifyServerlessFunctionConstruct(scope, name, this.awsCdkLib);
+  getServiceProvider(scope: Construct, name: string): AmplifyServiceProvider {
+    return new AmplifyLambdaProvider(scope, name, this.awsCdkLib);
   }
 }
 
-class AmplifyServerlessFunctionConstruct extends AmplifyConstruct implements LambdaEventHandler {
+class AmplifyLambdaProvider extends AmplifyServiceProvider implements LambdaEventHandler {
   private func: AmplifyCdkWrap.aws_lambda.Function;
   private readonly lambda: AmplifyCdkType["aws_lambda"];
   constructor(scope: Construct, private readonly name: string, private readonly awsCdkLib: AmplifyCdkType) {

@@ -49,7 +49,7 @@ export class SecretRef extends custom_resources.AwsCustomResource {
 
 export class AmplifyStack extends Stack {
   constructor(scope: Construct, private readonly name: string, private readonly envPrefix: string) {
-    super(scope, `amp${envPrefix}${name}`);
+    super(scope, `amp${envPrefix}${name}`, { stackName: `amp${envPrefix}${name}` });
   }
   public allocateLogicalId(element: CfnElement) {
     const orig = super.allocateLogicalId(element);

@@ -1,31 +1,28 @@
 import { Construct } from "constructs";
-import { AmplifyCdkType, AmplifyConstruct, AmplifyResourceTransform, AmplifyResourceTransformFactory, DynamoIndexManager } from "../types";
-import * as path from "path";
-import { MultiGsiTable } from "./non-relational-database/ddb-gsi-wrapper";
-import { AttributeType } from "aws-cdk-lib/aws-dynamodb";
+import { AmplifyCdkType, AmplifyServiceProvider, AmplifyServiceProviderFactory, AmplifyInitializer, DynamoTableBuilder } from "../../types";
 
-export const getAmplifyResourceTransform: AmplifyResourceTransformFactory = (awsCdkLib: AmplifyCdkType) => {
-  return new AmplifyGraphQLTransform(awsCdkLib);
+export const init: AmplifyInitializer = (awsCdkLib: AmplifyCdkType) => {
+  return new AmplifyAppSyncProviderFactory(awsCdkLib);
 };
 
-class AmplifyGraphQLTransform implements AmplifyResourceTransform {
+class AmplifyAppSyncProviderFactory implements AmplifyServiceProviderFactory {
   constructor(private readonly awsCdkLib: AmplifyCdkType) {}
 
-  getConstruct(scope: Construct, name: string): AmplifyConstruct {
-    return new AmplifyGraphQLConstruct(scope, name, this.awsCdkLib);
+  getServiceProvider(scope: Construct, name: string): AmplifyServiceProvider {
+    return new AmplifyAppSyncProvider(scope, name, this.awsCdkLib);
   }
 }
 
-class AmplifyGraphQLConstruct extends AmplifyConstruct {
+class AmplifyAppSyncProvider extends AmplifyServiceProvider {
   constructor(scope: Construct, private readonly name: string, private readonly cdk: AmplifyCdkType) {
     super(scope, name);
   }
 
-  getAnnotatedConfigClass(): typeof AmplifyGraphQLConfiguration {
-    return AmplifyGraphQLConfiguration;
+  getAnnotatedConfigClass(): typeof AmplifyAppSyncConfiguration {
+    return AmplifyAppSyncConfiguration;
   }
 
-  init(config: AmplifyGraphQLConfiguration) {
+  init(config: AmplifyAppSyncConfiguration) {
     const appsync = this.cdk.aws_appsync;
     const dynamodb = this.cdk.aws_dynamodb;
 
@@ -66,36 +63,17 @@ class AmplifyGraphQLConstruct extends AmplifyConstruct {
       requestMappingTemplate: appsync.MappingTemplate.dynamoDbPutItem(appsync.PrimaryKey.partition("id").auto(), appsync.Values.projecting("input")),
       responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultItem(),
     });
-
-    const multiGsiTable = new MultiGsiTable(this, "table-test");
-    multiGsiTable.setTableOptions({
-      partitionKey: { name: "pk", type: AttributeType.STRING },
-    });
-    multiGsiTable.addGlobalSecondaryIndex({
-      indexName: "newIndex",
-      partitionKey: {
-        name: "gsiKey1",
-        type: AttributeType.STRING,
-      },
-      sortKey: {
-        name: "gsiSk1",
-        type: AttributeType.STRING,
-      },
-    });
-    multiGsiTable.buildTable();
   }
-
-  manipulateDynamoIndexes(name: string, manager: DynamoIndexManager): void {}
 
   finalize(): void {
     // noop for now. But eventually there will be logic here
   }
 }
-type IAmplifyGraphQLConfiguration = {
+type IAmplifyAppSyncConfiguration = {
   schema: string;
 };
 
-class AmplifyGraphQLConfiguration implements IAmplifyGraphQLConfiguration {
+class AmplifyAppSyncConfiguration implements IAmplifyAppSyncConfiguration {
   schema: string;
   authenticationTypes: string[]; // right now just API_KEY
 }

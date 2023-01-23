@@ -45,7 +45,7 @@ export type ResourceRecord = Record<ResourceName, ResourceDefinition>;
 /**
  * Key / Value record of all transformers required by the project
  */
-export type TransformerRecord = Record<TransformKey, TransformName>;
+export type TransformerRecord = Record<ProviderKey, TransformName>;
 
 /**
  * Key / Value record of all secrets referenced by the project resources
@@ -73,7 +73,7 @@ export type EnvironmentVariableName = string;
 export const ExternalToken = "$external";
 
 export type ResourceName = string;
-export type TransformKey = string;
+export type ProviderKey = string;
 export type TransformName = string;
 
 type ResourceToken = typeof ExternalToken | ResourceName;
@@ -85,7 +85,7 @@ export type ResourceDefinition = {
   /**
    * The transformer that knows how to parse / synthesize this resource
    */
-  transformer: TransformKey;
+  provider: ProviderKey;
   /**
    * Configuration that is unique to this resource type. It is a passthrough object to the platform. Only the transformer knows how to process this information
    */

@@ -26,6 +26,9 @@ export type RuntimeAccessGranter = {
 
 /**
  * A Construct that has an event source that can be attached to a handler
+ *
+ * Works in tandem with the LambdaEventHandler below.
+ * The platform first calls getLambdaRef on the LambdaEventHandler, then passes the lambda ref to attachLambdaEventHandler on the LambdaEventSource
  */
 export type LambdaEventSource = {
   attachLambdaEventHandler(eventSourceName: string, handler: cdk.aws_lambda.IFunction): void;
@@ -38,40 +41,30 @@ export type LambdaEventHandler = {
   getLambdaRef(): cdk.aws_lambda.IFunction;
 };
 
-export type DynamoIndexManagerProvider = {
-  getDynamoIndexManager(): DynamoIndexManager;
+export type DynamoTableBuilderSupplier = {
+  getDynamoTableBuilder(): DynamoTableBuilder;
 };
 
-export type DynamoIndexManipulator = {
-  manipulateDynamoIndexes(name: string, manager: DynamoIndexManager): void;
+export type DynamoTableBuilderConsumer = {
+  setDynamoTableBuilder(tableKey: string, tableBuilder: DynamoTableBuilder): void;
 };
 
-export type DynamoAttributeDefinition = {
-  name: string;
-  type: string;
-};
-
-export type DynamoIndexDefinition = {
-  partitionKey: DynamoAttributeDefinition;
-  sortKey?: DynamoAttributeDefinition;
-};
-
-export type DynamoIndexManager = {
-  setPrimaryIndex(def: DynamoIndexDefinition): void;
-  addGlobalSecondaryIndex(indexName: string, def: DynamoIndexDefinition): void;
+export type DynamoTableBuilder = {
+  setTableProps(props: cdk.aws_dynamodb.TableProps): void;
+  addGlobalSecondaryIndex(props: cdk.aws_dynamodb.GlobalSecondaryIndexProps): void;
 };
 
 export type AmplifyTransformFunctionalInterfaceUnion = LambdaEventHandler &
   LambdaEventSource &
   RuntimeAccessAttacher &
   RuntimeAccessGranter &
-  DynamoIndexManagerProvider &
-  DynamoIndexManipulator;
+  DynamoTableBuilderSupplier &
+  DynamoTableBuilderConsumer;
 
 /**
  * Base class that all Amplify resource classes extend from
  */
-export abstract class AmplifyConstruct<T = object> extends Construct implements Partial<AmplifyTransformFunctionalInterfaceUnion> {
+export abstract class AmplifyServiceProvider<T = object> extends Construct implements Partial<AmplifyTransformFunctionalInterfaceUnion> {
   /**
    * Returns a construtable Class that can be used
    */
@@ -101,20 +94,20 @@ export abstract class AmplifyConstruct<T = object> extends Construct implements 
    */
   getPolicyGranting?(permissions: unknown): cdk.aws_iam.PolicyDocument;
   /**
-   * This method must be implemented if this construct defines (a) resource(s) that can access other resources at runtime
+   * This method must be implemented if this construct defines resources that can access other resources at runtime
    * @param runtimeEntityName
    * @param policy
    * @param resource
    */
   attachRuntimePolicy?(runtimeEntityName: string, policy: cdk.aws_iam.PolicyDocument, resource: ResourceNameArnTuple): void;
 
-  getDynamoIndexManager?(): DynamoIndexManager;
+  getDynamoTableBuilder?(): DynamoTableBuilder;
 
-  manipulateDynamoIndexes?(name: string, manager: DynamoIndexManager): void;
+  setDynamoTableBuilder?(name: string, manager: DynamoTableBuilder): void;
 }
 
-export type AmplifyResourceTransform = {
-  getConstruct(scope: Construct, name: string): AmplifyConstruct;
+export type AmplifyServiceProviderFactory = {
+  getServiceProvider(scope: Construct, name: string): AmplifyServiceProvider;
 };
 
 export type ResourceNameArnTuple = {
@@ -144,8 +137,10 @@ export type IAmplifyMetrics = {
   tbd(info: string): void;
 };
 
-export type AmplifyResourceTransformFactory = (
-  awsCdkLib: AmplifyCdkType,
-  logger: IAmplifyLogger,
-  metrics: IAmplifyMetrics
-) => AmplifyResourceTransform;
+/**
+ * All Amplify transformer plugins must implement a function called 'init' that implements this type
+ * This is the entry point into the plugin that the transformer uses to initialize every plugin
+ *
+ * It is guaranteed to only be called once by the platform
+ */
+export type AmplifyInitializer = (awsCdkLib: AmplifyCdkType, logger: IAmplifyLogger, metrics: IAmplifyMetrics) => AmplifyServiceProviderFactory;
