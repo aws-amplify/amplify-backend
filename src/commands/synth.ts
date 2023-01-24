@@ -20,7 +20,7 @@ const synthHandler = async (env: string) => {
 
   const amplifyTransform = await createTransformerOrchestrator(env, tokenizedManifest);
 
-  const app = new App({ outdir: 'cdk.out' });
+  const app = new App();
   // the AmplifyTransform operates on a CDK app created externally
   // this means it can seamlessly be plugged into an existing CDK app
   amplifyTransform.transform(app);

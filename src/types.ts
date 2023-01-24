@@ -1,5 +1,6 @@
 import { Construct } from 'constructs';
 import type * as cdk from 'aws-cdk-lib';
+import { ResourceAccessConfig, RuntimeRoleToken } from './manifest/manifest-types';
 
 export type AmplifyCdkType = typeof cdk;
 export { cdk as AmplifyCdkWrap };
@@ -14,14 +15,14 @@ export type RuntimeAccessAttacher = {
    * policy is a policy document that should be attached to the role referenced by runtimeEntityName
    * resource is the name and arn of the resource that the policy grants access to
    */
-  attachRuntimePolicy(runtimeEntityName: string, policy: cdk.aws_iam.PolicyDocument, resource: ResourceNameArnTuple): void;
+  attachRuntimePolicy(runtimeEntityName: string, policy: cdk.aws_iam.PolicyStatement, resource: ResourceNameArnTuple): void;
 };
 
 /**
  * A Construct that can grant a role access to certain actions on itself
  */
 export type RuntimeAccessGranter = {
-  getPolicyGranting(permissions: unknown): cdk.aws_iam.PolicyDocument;
+  getPolicyContent(permissions: unknown): AmplifyPolicyContent;
 };
 
 /**
@@ -88,14 +89,14 @@ export abstract class AmplifyServiceProvider<T = object> extends Construct imple
    * This method must be implemented to allow other constructs in the project to access this construct
    * @param permissions
    */
-  getPolicyGranting?(permissions: unknown): cdk.aws_iam.PolicyDocument;
+  getPolicyContent?(permissions: ResourceAccessConfig): AmplifyPolicyContent;
   /**
    * This method must be implemented if this construct defines resources that can access other resources at runtime
-   * @param runtimeEntityName
+   * @param runtimeRoleToken
    * @param policy
    * @param resource
    */
-  attachRuntimePolicy?(runtimeEntityName: string, policy: cdk.aws_iam.PolicyDocument, resource: ResourceNameArnTuple): void;
+  attachRuntimePolicy?(runtimeRoleToken: RuntimeRoleToken, policy: cdk.aws_iam.PolicyStatement, resource: ResourceNameArnTuple): void;
 
   getDynamoTableBuilder?(): DynamoTableBuilder;
 
@@ -131,6 +132,12 @@ export type IAmplifyLogger = {
 
 export type IAmplifyMetrics = {
   tbd(info: string): void;
+};
+
+export type AmplifyPolicyContent = {
+  resourceArn: string;
+  resourceSuffixes: string[];
+  actions: string[];
 };
 
 /**

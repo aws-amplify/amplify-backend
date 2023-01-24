@@ -1,0 +1,155 @@
+{
+  "$ref": "#/definitions/AmplifyManifest",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "AmplifyManifest": {
+      "additionalProperties": false,
+      "description": "The base manifest type\n\nThe contents of this object fully define an Amplify project",
+      "properties": {
+        "parameters": {
+          "description": "Defines non-secret references that are used to parameterize resource config",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "providers": {
+          "$ref": "#/definitions/ProviderRecord",
+          "description": "Defines the transformers required to parse the resource definition"
+        },
+        "resources": {
+          "$ref": "#/definitions/ResourceRecord",
+          "description": "Defines the backend resources in the project"
+        },
+        "secrets": {
+          "description": "Defines secret references that are used to parameterize resource config",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "version": {
+          "description": "Defines a semver range of the Amplify shared interface package (something like @aws-amplify/transformer-interface@~4.7.2) This is used by the platform when loading the manifest to know if it is a compatible version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "version",
+        "resources",
+        "providers"
+      ],
+      "type": "object"
+    },
+    "ProviderInstanceToken": {
+      "type": "string"
+    },
+    "ProviderKey": {
+      "type": "string"
+    },
+    "ProviderRecord": {
+      "additionalProperties": {
+        "$ref": "#/definitions/ProviderInstanceToken"
+      },
+      "description": "Key / Value record of all transformers required by the project",
+      "type": "object"
+    },
+    "ResourceAccessConfig": {
+      "additionalProperties": false,
+      "description": "Defines actions and optionally scoped down permissions for a specific resource",
+      "properties": {
+        "actions": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "scopes": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "actions"
+      ],
+      "type": "object"
+    },
+    "ResourceDefinition": {
+      "additionalProperties": false,
+      "description": "Definition for all Amplify resources",
+      "properties": {
+        "definition": {
+          "additionalProperties": {},
+          "description": "Configuration that is unique to this resource type. It is a passthrough object to the platform. Only the transformer knows how to process this information",
+          "type": "object"
+        },
+        "managedTables": {
+          "description": "Specifies tables in the projct on which this resource is managing the indexes",
+          "items": {
+            "$ref": "#/definitions/ResourceName"
+          },
+          "type": "array"
+        },
+        "preSynthCommand": {
+          "description": "Defines a command that should be run before synthesizing the resource",
+          "type": "string"
+        },
+        "provider": {
+          "$ref": "#/definitions/ProviderKey",
+          "description": "The transformer that knows how to parse / synthesize this resource"
+        },
+        "runtimeAccess": {
+          "$ref": "#/definitions/RuntimeAccessConfig",
+          "description": "Defines other resources that this resource can access at application runtime"
+        },
+        "secrets": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Defines the secrets (if any) that this resource needs access to",
+          "type": "object"
+        },
+        "triggers": {
+          "additionalProperties": {
+            "$ref": "#/definitions/ResourceName"
+          },
+          "description": "Defines lambda functions that this resource can trigger on certain events",
+          "propertyNames": {
+            "description": "Alias for a string that represents a runtime event"
+          },
+          "type": "object"
+        }
+      },
+      "required": [
+        "provider",
+        "definition"
+      ],
+      "type": "object"
+    },
+    "ResourceName": {
+      "type": "string"
+    },
+    "ResourceRecord": {
+      "additionalProperties": {
+        "$ref": "#/definitions/ResourceDefinition"
+      },
+      "description": "Key / Value record of all resources in the project",
+      "type": "object"
+    },
+    "RuntimeAccessConfig": {
+      "additionalProperties": {
+        "additionalProperties": {
+          "items": {
+            "$ref": "#/definitions/ResourceAccessConfig"
+          },
+          "type": "array"
+        },
+        "description": "Defines a runtime access document. More or less 1:1 with an IAM Policy Document",
+        "type": "object"
+      },
+      "description": "Defines resource access for specified runtime roles. These role names are known to the resource on which the config is attached",
+      "type": "object"
+    }
+  }
+}

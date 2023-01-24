@@ -1,9 +1,8 @@
-import { Construct } from 'constructs';
 import { consoleLogger } from '../observability-tooling/amplify-logger';
 import { amplifyMetrics } from '../observability-tooling/amplify-metrics';
 import { AmplifyTransformerOrchestrator } from './transformer';
 import { hydrateTokens } from './hydrate-tokens';
-import { AmplifyManifest, ResourceDefinition, ResourceRecord, TokenizedManifest } from '../manifest/manifest-types';
+import { AmplifyManifest, ResourceRecord } from '../manifest/manifest-types';
 import * as cdk from 'aws-cdk-lib';
 import { AmplifyMetadataService } from '../stubs/amplify-metadata-service';
 import { ServiceProviderResolver } from '../stubs/service-provider-resolver';
@@ -16,16 +15,15 @@ import { ServiceProviderResolver } from '../stubs/service-provider-resolver';
  * @param tokenizedManifest The raw manifest object that should be transformed
  * @returns Initialized AmplifyTransform instance
  */
-export const createTransformerOrchestrator = async (
-  envName: string,
-  tokenizedManifest: TokenizedManifest
-): Promise<AmplifyTransformerOrchestrator> => {
+export const createTransformerOrchestrator = async (envName: string, tokenizedManifest: AmplifyManifest): Promise<AmplifyTransformerOrchestrator> => {
   const amplifyMetadataService = new AmplifyMetadataService();
 
   // TODO will need more validation here to assert that manifest is correctly formed
   const hydratedResourceDefinition = hydrateTokens(tokenizedManifest.resources, await amplifyMetadataService.getParams(envName)) as ResourceRecord;
 
   const serviceProviderResolver = new ServiceProviderResolver(cdk, consoleLogger, amplifyMetrics);
+
+  // TODO execute preSynthCommand(s) here
 
   return new AmplifyTransformerOrchestrator(
     envName,

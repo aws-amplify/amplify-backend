@@ -1,74 +1,42 @@
-# Defines a semver range of our shared interface package (eg @aws-amplify/transformer-interface@~4.7.2)
-# This is used by the platform when loading the manifest to know if it is a compatible version
 version: '~4.7.2'
-# The resources block defines all of the Amplify resources in the project
 resources:
-  # each resource can be named whatever the developer wants
-
   testFileStorage:
-    # the resource defines which AmplifyServiceProvider will handle it. This effectively defines the resource "type"
     provider: s3Provider
-
-    # the definition block is a K/V object of any configuration that is specific to this resource. It is just a blob to the platform
     definition:
       enableSSL: true
-    # this block defines any lambda functions that this resource's events may trigger
     triggers:
-      # in this case, this is defining that the "stream" event in the storageProvider will trigger the "s3StreamHandler" lambda function
       stream: s3StreamHandler
-
   s3StreamHandler:
     provider: lambdaProvider
     definition:
-      # parameters can be referenced anywhere in the resources block of the manifest. They must be declared in the "parameters" block
       runtime: $param:functionRuntime
       timeoutSeconds: 200
       handler: index.handler
       relativeBuildAssetPath: ./testLambda
       env:
         SERVER_TIMEOUT: $param:serverTimeout
-
-    # defines a command that should be run before synthesizing this resource. Could be used for function building or anything else developers want
-    preSynth: cd ./testLambda && npx tsc
-
-    # secrets must be handled separately because it's up to the provider to determine how to handle the secret value (resolve at deploy time, passthrough reference)
+    preSynthCommand: cd ./testLambda && npx tsc
     secrets:
       DB_PASSWORD: $secret:databasePassword
-
-    # this block defines project resources that this resource can access at app runtime
     runtimeAccess:
-      # this key is recognized by the AmplifyServiceProvider and corresponds to an IAM role that the provider manages. In this case "lambdaRuntime" corresponds to the lambda execution IAM role
       lambdaRuntime:
-        # these keys can be any resource name in the project or the special key $external for accessing resources outside of the project
         blogTable:
-          # each action is recognized by the handler for the resource and translated into a set of IAM policy actions
           - actions: [create, read, update, delete]
   testGqlApi:
     provider: appSyncProvider
     definition:
       relativeSchemaPath: ./schema.graphql
-
-    # managed tables indicate that this resource not only depends on these tables but also configured indexes on them
     managedTables:
       - blogTable
-
-  # this table will be managed by the appSyncProvider because the config above declares it as a managedTable
-  # however it is still a normal table in the project and can be referenced by other resources
   blogTable:
     provider: dynamoDbProvider
     definition:
       streamEnabled: true
-
-# defines all parameters that are used in the resources block of the template
 parameters:
   - functionRuntime
   - serverTimeout
-
-# defines all secret values used in the template
 secrets:
   - databasePassword
-
-# defines all AmplifyServiceProviders that are used in the template. These are all independently
 providers:
   dynamoDbProvider: '@aws-amplify/dynamo-db-provider@2.3.4'
   s3Provider: '@aws-amplify/s3-provider@1.2.3'

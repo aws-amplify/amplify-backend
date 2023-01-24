@@ -1,5 +1,4 @@
-import { aws_ssm, CfnElement, ContextProvider, custom_resources, Stack } from 'aws-cdk-lib';
-import { AwsCustomResource } from 'aws-cdk-lib/custom-resources';
+import { aws_ssm, CfnElement, custom_resources, Stack } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 
 /**
