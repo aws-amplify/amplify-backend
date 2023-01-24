@@ -3,7 +3,7 @@ export const hydrateTokens = <T extends Record<string, unknown>>(obj: T, tokens:
   stack.push(obj);
   while (stack.length > 0) {
     const curr = stack.pop()!;
-    if (typeof curr === 'object') {
+    if (typeof curr === 'object' && curr !== null) {
       // array or record
       Object.entries(curr).forEach(([key, value]) => {
         if (typeof value === 'object') {

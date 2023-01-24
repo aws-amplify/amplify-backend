@@ -11,7 +11,7 @@ resources:
 
     # the definition block is a K/V object of any configuration that is specific to this resource. It is just a blob to the platform
     definition:
-
+      enableSSL: true
     # this block defines any lambda functions that this resource's events may trigger
     triggers:
       # in this case, this is defining that the "stream" event in the storageProvider will trigger the "s3StreamHandler" lambda function
@@ -71,6 +71,6 @@ secrets:
 # defines all AmplifyServiceProviders that are used in the template. These are all independently
 providers:
   dynamoDbProvider: '@aws-amplify/dynamo-db-provider@2.3.4'
-  s3Provider: '@aws-amplify/storage-provider@1.2.3'
+  s3Provider: '@aws-amplify/s3-provider@1.2.3'
   lambdaProvider: '@aws-amplify/lambda-provider@4.5.6'
   appSyncProvider: '@aws-amplify/app-sync-provider@10.2.3'

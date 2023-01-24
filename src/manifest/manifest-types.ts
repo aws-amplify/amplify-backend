@@ -1,11 +1,8 @@
-import { SecretKey } from 'aws-sdk/clients/appflow';
-import { ParameterKey } from 'aws-sdk/clients/cloudformation';
-
 export type TokenizedManifest = {
   resources: Record<string, unknown>;
-  transformers: Record<string, string>;
-  secrets?: Record<string, string>;
-  parameters?: Record<string, string>;
+  providers: ProviderRecord;
+  secrets?: string[];
+  parameters?: string[];
 };
 
 export type HydratedManifest = TokenizedManifest;
@@ -24,17 +21,17 @@ export type AmplifyManifest = {
   /**
    * Defines the transformers required to parse the resource definition
    */
-  transformers: TransformerRecord;
+  providers: ProviderRecord;
 
   /**
    * Defines secret references that are used to parameterize resource config
    */
-  secrets?: SecretReferenceRecord;
+  secrets?: string[];
 
   /**
    * Defines non-secret references that are used to parameterize resource config
    */
-  parameters?: ParameterReferenceRecord;
+  parameters?: string[];
 };
 
 /**
@@ -45,36 +42,13 @@ export type ResourceRecord = Record<ResourceName, ResourceDefinition>;
 /**
  * Key / Value record of all transformers required by the project
  */
-export type TransformerRecord = Record<ProviderKey, TransformName>;
-
-/**
- * Key / Value record of all secrets referenced by the project resources
- */
-export type SecretReferenceRecord = Record<SecretKey, SecretReference>;
-
-/**
- * Key / Value record of all non-secret parameters referenced by the project resources
- */
-export type ParameterReferenceRecord = Record<ParameterKey, ParameterReference>;
-
-export type SecretLookup = string;
-export type ParameterLookup = string;
-
-/**
- * Union type of all supported secret references.
- */
-export type SecretReference = SSMSecureStringName;
-export type ParameterReference = SSMStringName | EnvironmentVariableName | string;
-
-export type SSMSecureStringName = string;
-export type SSMStringName = string;
-export type EnvironmentVariableName = string;
+export type ProviderRecord = Record<ProviderKey, ProviderInstanceToken>;
 
 export const ExternalToken = '$external';
 
 export type ResourceName = string;
 export type ProviderKey = string;
-export type TransformName = string;
+export type ProviderInstanceToken = string;
 
 type ResourceToken = typeof ExternalToken | ResourceName;
 

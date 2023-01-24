@@ -28,7 +28,7 @@ class AmplifyAppSyncProvider extends AmplifyServiceProvider {
 
     const api = new appsync.GraphqlApi(this, 'Api', {
       name: 'demo',
-      schema: appsync.SchemaFile.fromAsset(config.schema),
+      schema: appsync.SchemaFile.fromAsset(config.relativeSchemaPath),
       authorizationConfig: {
         defaultAuthorization: {
           authorizationType: appsync.AuthorizationType.IAM,
@@ -70,10 +70,10 @@ class AmplifyAppSyncProvider extends AmplifyServiceProvider {
   }
 }
 type IAmplifyAppSyncConfiguration = {
-  schema: string;
+  relativeSchemaPath: string;
 };
 
 class AmplifyAppSyncConfiguration implements IAmplifyAppSyncConfiguration {
-  schema: string;
+  relativeSchemaPath: string;
   authenticationTypes: string[]; // right now just API_KEY
 }

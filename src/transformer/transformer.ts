@@ -7,20 +7,15 @@ import { plainToInstance } from 'class-transformer';
 import { validateSync } from 'class-validator';
 import { aws_lambda, aws_iam } from 'aws-cdk-lib';
 
-export class AmplifyTransformerOrchestrator extends Construct {
+export class AmplifyTransformerOrchestrator {
   private readonly resourceProviderMap: Record<ResourceName, AmplifyServiceProvider> = {};
   private readonly dagWalker: (visitor: NodeVisitor) => void;
 
   constructor(
-    scope: Construct,
     private readonly envPrefix: string,
     private readonly resourceDefinition: ResourceRecord,
     private readonly providerFactories: Record<ProviderKey, AmplifyServiceProviderFactory>
   ) {
-    super(scope, envPrefix);
-
-    this.constructResourceProviderMap();
-
     // constructs a function that can take in a visitor function and execute that visitor on all nodes in the DAG in depenency order
     this.dagWalker = getDagWalker(generateResourceDAG(this.resourceDefinition));
   }
@@ -28,17 +23,18 @@ export class AmplifyTransformerOrchestrator extends Construct {
   /**
    * Executes a set of visitors on the resource graph in dependency order
    */
-  transform() {
+  transform(scope: Construct) {
+    this.constructResourceProviderMap(scope);
     [this.initVisitor, this.triggerVisitor].forEach((visitor) => this.dagWalker(visitor));
   }
 
-  private constructResourceProviderMap(): void {
+  private constructResourceProviderMap(scope: Construct): void {
     Object.entries(this.resourceDefinition).forEach(([resourceName, resourceDefinition]) => {
       const transformer = this.providerFactories[resourceDefinition.provider];
       if (!transformer) {
         throw new Error(`No transformer for ${resourceDefinition.provider} is defined`);
       }
-      this.resourceProviderMap[resourceName] = transformer.getServiceProvider(new AmplifyStack(this, resourceName, this.envPrefix), resourceName);
+      this.resourceProviderMap[resourceName] = transformer.getServiceProvider(new AmplifyStack(scope, resourceName, this.envPrefix), resourceName);
     });
   }
 
@@ -48,7 +44,9 @@ export class AmplifyTransformerOrchestrator extends Construct {
     const configClass = resourceProvider.getAnnotatedConfigClass();
 
     const configInstance = plainToInstance(configClass, this.resourceDefinition[node].definition);
-    validateSync(configInstance);
+
+    // TODO validate resource definition before passing to the plugin
+    // validateSync(configInstance);
 
     resourceProvider.init(configInstance);
   };
