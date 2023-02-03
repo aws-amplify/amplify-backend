@@ -65,7 +65,7 @@ class AmplifyAppSyncProvider extends AmplifyServiceProvider {
     });
   }
 
-  finalize(): void {
+  finalizeResources(): void {
     // noop for now. But eventually there will be logic here
   }
 }

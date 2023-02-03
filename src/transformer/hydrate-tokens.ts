@@ -20,7 +20,7 @@ export const hydrateTokens = <T extends Record<string, unknown>>(obj: T, tokens:
 };
 
 const maybeStringSub = (element: string, tokens: Record<string, string>, substitutionCallback: (newValue: string) => void) => {
-  if (element.startsWith('$param:')) {
+  if (element.startsWith('$param:') || element.startsWith('$secret:')) {
     const [, tokenKey] = element.split(':');
     if (!tokens[tokenKey]) {
       throw new Error(`Provided tokens did not include ${tokenKey}`);

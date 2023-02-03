@@ -25,6 +25,6 @@
     "typeRoots": ["./node_modules/@types"],
     "esModuleInterop": true
   },
-  "include": ["./src/**/*"],
+  "include": ["./src/**/*", "custom-dynamo-standalone/custom-dynamo-standalone.ts"],
   "exclude": ["node_modules", "cdk.out", "./lib/**/*"]
 }

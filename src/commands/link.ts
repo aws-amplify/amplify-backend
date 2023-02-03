@@ -1,20 +1,25 @@
-import { Command, createArgument, createCommand, createOption } from 'commander';
+import { Command } from '@commander-js/extra-typings';
+import { envNamePositional, strictCommand } from './command-components';
 
-export const getCommand = (): Command => {
-  return createCommand('link')
-    .description('Generate local files to connect a frontend to an Amplify backend')
-    .argument('<env>', 'The cloud environment to which the frontend will be linked')
-    .requiredOption('-l, --language <languages...>', 'Target languages for which to generate frontend config')
-    .option('-o, --output', 'Location where output artifacts will be written')
-    .action(linkHandler);
+type Args = [string];
+type Opts = {
+  language: string[];
+  output?: string;
 };
+
+export const getCommand = (): Command<Args, Opts> =>
+  strictCommand('link')
+    .description('Generate local files to connect a frontend to an Amplify backend')
+    .addArgument(envNamePositional)
+    .requiredOption('-l, --language <languages...>', 'Target languages for which to generate frontend config')
+    .option('-o, --output <path>', 'Location where output artifacts will be written')
+    .action(linkHandler);
 
 /**
  * Pull frontend config, perform or pull codegen artifacts
  * @param env
  * @param options
  */
-const linkHandler = (env: string, options: any) => {
-  console.log(`got env: ${env}`);
-  console.log(`got options ${JSON.stringify(options)}`);
+const linkHandler = (...[env, { language, output = 'default/path' }]: [...Args, Opts]) => {
+  console.log(`Generating frontend config and codegen for env ${env}, languages ${JSON.stringify(language)} and location ${output}`);
 };

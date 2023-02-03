@@ -18,20 +18,20 @@ resources:
     preSynthCommand: cd ./testLambda && npx tsc
     secrets:
       DB_PASSWORD: $secret:databasePassword
-    runtimeAccess:
-      lambdaRuntime:
-        blogTable:
-          - actions: [create, read, update, delete]
+    # runtimeAccess:
+    #   lambdaRuntime:
+    #     blogTable:
+    #       - actions: [create, read, update, delete]
   testGqlApi:
     provider: appSyncProvider
     definition:
       relativeSchemaPath: ./schema.graphql
-    managedTables:
-      - blogTable
-  blogTable:
-    provider: dynamoDbProvider
-    definition:
-      streamEnabled: true
+    # managedTables:
+    #   - blogTable
+  # blogTable:
+  #   provider: dynamoDbProvider
+  #   definition:
+  #     streamEnabled: true
 parameters:
   - functionRuntime
   - serverTimeout

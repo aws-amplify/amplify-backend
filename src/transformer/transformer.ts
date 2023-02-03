@@ -1,21 +1,21 @@
 import { Construct } from 'constructs';
-import { ResourceRecord, ExternalToken, ResourceName, ProviderKey } from '../manifest/manifest-types';
+import { ResourceRecord, ResourceToken, ProviderToken } from '../manifest/manifest-zod';
 import { getDagWalker, NodeVisitor } from './dag-walker';
 import { AmplifyServiceProviderFactory, AmplifyServiceProvider } from '../types';
 import { AmplifyReference, AmplifyStack } from '../amplify-reference';
 import { plainToInstance } from 'class-transformer';
-import { validateSync } from 'class-validator';
 import { aws_lambda, aws_iam } from 'aws-cdk-lib';
-import execa from 'execa';
 
-export class AmplifyTransformerOrchestrator {
-  private readonly serviceProviderRecord: Record<ResourceName, AmplifyServiceProvider> = {};
+const EXTERNAL_TOKEN = '$external';
+
+export class AmplifyTransformer {
+  private readonly serviceProviderRecord: Record<ResourceToken, AmplifyServiceProvider> = {};
   private readonly dagWalker: (visitor: NodeVisitor) => void;
 
   constructor(
     private readonly envPrefix: string,
     private readonly resourceDefinition: ResourceRecord,
-    private readonly providerFactories: Record<ProviderKey, AmplifyServiceProviderFactory>
+    private readonly providerFactories: Record<ProviderToken, AmplifyServiceProviderFactory>
   ) {
     // constructs a function that can take in a visitor function and execute that visitor on all nodes in the DAG in depenency order
     this.dagWalker = getDagWalker(generateResourceDAG(this.resourceDefinition));
@@ -28,7 +28,7 @@ export class AmplifyTransformerOrchestrator {
    */
   transform(scope: Construct) {
     this.constructServiceProviderRecord(scope);
-    [this.initVisitor, this.triggerVisitor, this.permissionsVisitor, this.finalizeVisitor].forEach((visitor) => this.dagWalker(visitor));
+    [this.initVisitor, this.triggerVisitor, this.finalizeVisitor, this.permissionsVisitor].forEach((visitor) => this.dagWalker(visitor));
   }
 
   /**
@@ -54,7 +54,7 @@ export class AmplifyTransformerOrchestrator {
    * Executes the 'init' lifecycle hook on all AmplifyServiceProviders in dependency order
    * @param node
    */
-  private initVisitor: NodeVisitor = (node: ResourceName): void => {
+  private initVisitor: NodeVisitor = (node: ResourceToken): void => {
     // get the config class object from the construct corresponding to this node
     const resourceProvider = this.serviceProviderRecord[node];
     const configClass = resourceProvider.getAnnotatedConfigClass();
@@ -72,7 +72,7 @@ export class AmplifyTransformerOrchestrator {
    * @param node
    * @returns
    */
-  private triggerVisitor: NodeVisitor = (node: ResourceName): void => {
+  private triggerVisitor: NodeVisitor = (node: ResourceToken): void => {
     // if this node does not define any trigger config, early return
     if (!this.resourceDefinition[node].triggers) {
       return;
@@ -119,7 +119,7 @@ export class AmplifyTransformerOrchestrator {
    * Orchestrates wiring together 'getPolicyGranting' and 'attachRuntimePolicy'
    * @param node
    */
-  private permissionsVisitor: NodeVisitor = (node: ResourceName): void => {
+  private permissionsVisitor: NodeVisitor = (node: ResourceToken): void => {
     const permissionDefinition = this.resourceDefinition[node].runtimeAccess;
     if (!permissionDefinition) {
       return;
@@ -132,7 +132,7 @@ export class AmplifyTransformerOrchestrator {
     }
 
     /**
-     * This chunk of code is pretty dense and would definite be broken up
+     * This chunk of code is pretty dense and should be broken up
      *
      * It iterates over all the runtime access config and for each config found, it calls the granter to get the IAM actions / resource strings corresponding to the config
      * Then it creates loose references between granting and accepting stacks
@@ -150,35 +150,38 @@ export class AmplifyTransformerOrchestrator {
 
         const policyContents = resourceAccessConfigs.map((resourceAccessConfig) => permissionGranter.getPolicyContent!(resourceAccessConfig));
         policyContents.forEach((policyContent) => {
-          const arnRef = new AmplifyReference(permissionGranter, `${resourceToken}-arn`, policyContent.resourceArn);
+          const arnRef = new AmplifyReference(permissionGranter, `${resourceToken}-arn`, policyContent.resourceArnToken);
+          const nameRef = new AmplifyReference(permissionGranter, `${resourceToken}-name`, policyContent.resourceNameToken);
 
           const destArnRef = arnRef.getValue(permissionAcceptor);
+          const destNameRef = nameRef.getValue(permissionAcceptor);
+
           const policyDocument = new aws_iam.PolicyStatement({
             actions: policyContent.actions,
             resources: policyContent.resourceSuffixes.map((suffix) => `${destArnRef}${suffix}`),
           });
-          permissionAcceptor.attachRuntimePolicy!(runtimeRoleToken, policyDocument, { name: resourceToken, arn: destArnRef });
+          permissionAcceptor.attachRuntimePolicy!(runtimeRoleToken, policyDocument, { name: destNameRef, arn: destArnRef });
         });
       });
     });
   };
 
-  private finalizeVisitor: NodeVisitor = (node: ResourceName): void => {
+  private finalizeVisitor: NodeVisitor = (node: ResourceToken): void => {
     const provider = this.serviceProviderRecord[node];
-    provider.finalize();
+    provider.finalizeResources();
   };
 }
 
 const generateResourceDAG = (resourceDefiniton: ResourceRecord): ResourceDAG => {
-  const resourceSet = new Set<ResourceName>(Object.keys(resourceDefiniton));
-  const resourceDag: Record<ResourceName, ResourceName[]> = {};
+  const resourceSet = new Set<ResourceToken>(Object.keys(resourceDefiniton));
+  const resourceDag: Record<ResourceToken, ResourceToken[]> = {};
   resourceSet.forEach((resourceName) => (resourceDag[resourceName] = []));
 
   Object.entries(resourceDefiniton).forEach(([resourceName, resourceDefiniton]) => {
     if (resourceDefiniton.runtimeAccess) {
       Object.values(resourceDefiniton.runtimeAccess).forEach((runtimeResourceAccess) => {
         Object.keys(runtimeResourceAccess).forEach((resourceToken) => {
-          if (resourceToken === ExternalToken) {
+          if (resourceToken === '$external') {
             return;
           }
           if (!resourceSet.has(resourceToken)) {
@@ -192,4 +195,4 @@ const generateResourceDAG = (resourceDefiniton: ResourceRecord): ResourceDAG => 
   return resourceDag;
 };
 
-type ResourceDAG = Record<ResourceName, ResourceName[]>;
+type ResourceDAG = Record<ResourceToken, ResourceToken[]>;

@@ -1,19 +1,27 @@
-import { Command, createCommand } from 'commander';
+import { Command } from '@commander-js/extra-typings';
 import { executeCDKCommand } from '../execute-cdk-command';
+import { envNamePositional, profileNameOption, strictCommand } from './command-components';
 
-export const getCommand = (): Command => {
-  return createCommand('push')
-    .description('Deploy an Amplify project to a specific environment')
-    .argument('env', 'The cloud environment to which the project will be deployed')
-    .action(pushHandler);
+type Args = [string];
+type Opts = {
+  profile?: string;
 };
+export const getCommand = (): Command<Args, Opts> =>
+  strictCommand('push')
+    .description('Push the specified environment to the cloud')
+    .addArgument(envNamePositional)
+    .addOption(profileNameOption)
+    .action(pushHandler);
 
 /**
  * Performs a synth, then executes cdk deploy on the resulting CloudAssembly
  * @param env
  * @param options
  */
-const pushHandler = async (env: string, options: any) => {
-  await executeCDKCommand('deploy', '--app', `nxt synth ${env}`, '--all', '--require-approval', 'never', '--concurrency', '5');
-  // pull frontend config
+const pushHandler = async (...[env, { profile }]: [...Args, Opts]) => {
+  const cdkArgs = ['deploy', '--app', `nxt synth ${env}`, '--all', '--require-approval', 'never', '--concurrency', '5'];
+  if (profile) {
+    cdkArgs.push('--profile', profile);
+  }
+  await executeCDKCommand(...cdkArgs);
 };

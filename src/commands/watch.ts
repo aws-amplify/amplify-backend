@@ -1,25 +1,29 @@
-import { Command, createCommand } from 'commander';
 import { executeCDKCommand } from '../execute-cdk-command';
-import { CdkToolkit } from 'aws-cdk/lib/cdk-toolkit';
 import * as fs from 'fs-extra';
-import execa from 'execa';
+import { envNamePositional, profileNameOption, strictCommand } from './command-components';
 
-export const getCommand = (): Command => {
-  return createCommand('watch')
-    .description('Immediately push local project changes when detected. ')
-    .argument('env', 'The cloud environment to which changes will be deployed')
+export const getCommand = () =>
+  strictCommand('watch')
+    .description('Watch and immediately push local project changes')
+    .addArgument(envNamePositional)
+    .addOption(profileNameOption)
     .action(watchHandler);
-};
 
-/**
- * Wrapper around cdk synth
- * @param env
- * @param options
- */
-const watchHandler = async (env: string, options: any) => {
+type Args = [string];
+type Opts = {
+  profile?: string;
+};
+// wrapper around CDK watch
+const watchHandler = async (...[envName, { profile }]: [...Args, Opts]) => {
   fs.writeFileSync('cdk.json', JSON.stringify({ watch: {} }));
   process.on('exit', () => fs.unlinkSync('cdk.json'));
   process.on('SIGINT', () => fs.unlinkSync('cdk.json'));
 
-  await executeCDKCommand('watch', '--all', '--app', `nxt synth ${env}`, '--require-approval', 'never', '--concurrency', '5');
+  const cdkArgs = ['watch', '--all', '--app', `nxt synth ${envName}`, '--require-approval', 'never', '--concurrency', '5'];
+
+  if (profile) {
+    cdkArgs.push('--profile', profile);
+  }
+
+  await executeCDKCommand(...cdkArgs);
 };

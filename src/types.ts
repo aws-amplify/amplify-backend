@@ -15,7 +15,7 @@ export type RuntimeAccessAttacher = {
    * policy is a policy document that should be attached to the role referenced by runtimeEntityName
    * resource is the name and arn of the resource that the policy grants access to
    */
-  attachRuntimePolicy(runtimeEntityName: string, policy: cdk.aws_iam.PolicyStatement, resource: ResourceNameArnTuple): void;
+  attachRuntimePolicy: (runtimeEntityName: string, policy: cdk.aws_iam.PolicyStatement, resource: ResourceNameArnTuple) => void;
 };
 
 /**
@@ -51,12 +51,22 @@ export type DynamoTableBuilder = {
   addGlobalSecondaryIndex(props: cdk.aws_dynamodb.GlobalSecondaryIndexProps): void;
 };
 
+export type AmplifySecret = {
+  getValueToken(): string;
+  grantRuntimeAccess(runtimeAccessAttacher: RuntimeAccessAttacher): void;
+};
+
+export type SecretHandler = {
+  acceptSecret(name: string, secret: AmplifySecret): void;
+};
+
 export type AmplifyTransformFunctionalInterfaceUnion = LambdaEventHandler &
   LambdaEventSource &
   RuntimeAccessAttacher &
   RuntimeAccessGranter &
   DynamoTableBuilder &
-  DynamoTableBuilderConsumer;
+  DynamoTableBuilderConsumer &
+  SecretHandler;
 
 /**
  * Base class that all Amplify resource classes extend from
@@ -74,7 +84,7 @@ export abstract class AmplifyServiceProvider<T = object> extends Construct imple
   /**
    * Called at the end of the transformation process to indicate to the construct that it can finalize any pending configuration
    */
-  abstract finalize(): void;
+  abstract finalizeResources(): void;
   /**
    * This method must be implemented if this construct has a lambda that can be attached to other resources
    */
@@ -101,6 +111,8 @@ export abstract class AmplifyServiceProvider<T = object> extends Construct imple
   getDynamoTableBuilder?(): DynamoTableBuilder;
 
   setDynamoTableBuilder?(name: string, manager: DynamoTableBuilder): void;
+
+  acceptSecret?(name: string, secret: AmplifySecret): void;
 }
 
 export type AmplifyServiceProviderFactory = {
@@ -135,7 +147,8 @@ export type IAmplifyMetrics = {
 };
 
 export type AmplifyPolicyContent = {
-  resourceArn: string;
+  resourceArnToken: string;
+  resourceNameToken: string;
   resourceSuffixes: string[];
   actions: string[];
 };

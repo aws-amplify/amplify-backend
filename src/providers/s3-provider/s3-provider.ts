@@ -37,7 +37,8 @@ class AmplifyS3Provider extends AmplifyServiceProvider implements LambdaEventSou
     });
   }
 
-  finalize(): void {
+  finalizeResources(): void {
+    this.cdk.Stack.of(this).addMetadata('bucketArn', this.bucket.bucketArn);
     // intentional noop
   }
 

@@ -1,5 +1,5 @@
 import { aws_iam, aws_lambda, aws_logs, CustomResource, custom_resources, Duration } from 'aws-cdk-lib';
-import { Attribute, GlobalSecondaryIndexProps, Table, TableProps } from 'aws-cdk-lib/aws-dynamodb';
+import { Attribute, GlobalSecondaryIndexProps, ITable, Table, TableProps } from 'aws-cdk-lib/aws-dynamodb';
 import * as path from 'path';
 
 import { Construct } from 'constructs';
@@ -8,11 +8,13 @@ import {
   AmplifyCdkType,
   AmplifyCdkWrap,
   AmplifyInitializer,
+  AmplifyPolicyContent,
   AmplifyServiceProvider,
   AmplifyServiceProviderFactory,
   DynamoTableBuilder,
   LambdaEventSource,
 } from '../../types';
+import { ResourceAccessConfig } from '../../manifest/manifest-types';
 
 export const init: AmplifyInitializer = (cdk: AmplifyCdkType) => {
   return new AmplifyDynamoDBProviderFactory(cdk);
@@ -29,6 +31,7 @@ class AmplifyDynamoDBProviderFactory implements AmplifyServiceProviderFactory {
 export class AmplifyDynamoDBProvider extends AmplifyServiceProvider implements LambdaEventSource, DynamoTableBuilder {
   private gsis: GlobalSecondaryIndexProps[] = [];
   private tableProps: TableProps;
+  private customTable: ITable;
   private streamHandler: AmplifyCdkWrap.aws_lambda.IFunction;
   constructor(scope: Construct, private readonly name: string, private readonly cdk: AmplifyCdkType) {
     super(scope, name);
@@ -59,7 +62,16 @@ export class AmplifyDynamoDBProvider extends AmplifyServiceProvider implements L
     this.streamHandler = handler;
   }
 
-  finalize(): void {
+  getPolicyContent(permissions: ResourceAccessConfig): AmplifyPolicyContent {
+    return {
+      resourceArnToken: this.customTable.tableArn,
+      resourceNameToken: this.customTable.tableName,
+      resourceSuffixes: [],
+      actions: ['DynamoDB:GetItem'],
+    };
+  }
+
+  finalizeResources(): void {
     if (!this.tableProps) {
       throw new Error('setTableOptions must be called before buildTable');
     }
@@ -72,13 +84,13 @@ export class AmplifyDynamoDBProvider extends AmplifyServiceProvider implements L
       })
     );
 
-    const lambdaCode = aws_lambda.Code.fromAsset(path.join(__dirname, './custom-lambda'));
+    const lambdaCode = aws_lambda.Code.fromAsset(path.join(__dirname, './custom-resource-lambda'));
 
     // lambda that will handle DDB CFN events
     const gsiOnEventHandler = new aws_lambda.Function(this, 'tableOnEventHandler', {
       runtime: aws_lambda.Runtime.NODEJS_16_X,
       code: lambdaCode,
-      handler: 'ddb-custom-handler.onEvent',
+      handler: 'custom-resource-handler.onEvent',
       timeout: Duration.minutes(1),
     });
 
@@ -86,7 +98,7 @@ export class AmplifyDynamoDBProvider extends AmplifyServiceProvider implements L
     const gsiIsCompleteHandler = new aws_lambda.Function(this, 'tableIsCompleteHandler', {
       runtime: aws_lambda.Runtime.NODEJS_16_X,
       code: lambdaCode,
-      handler: 'ddb-custom-handler.isComplete',
+      handler: 'custom-resource-handler.isComplete',
       timeout: Duration.minutes(1),
     });
 
@@ -108,16 +120,15 @@ export class AmplifyDynamoDBProvider extends AmplifyServiceProvider implements L
     });
 
     // construct a wrapper around the custom table to allow normal CDK operations on top of it
-    const customTable = Table.fromTableAttributes(this, 'custom-table', {
+    this.customTable = Table.fromTableAttributes(this, 'custom-table', {
       tableArn: gsiCustom.getAttString('TableArn'),
-      tableName: gsiCustom.ref,
       tableStreamArn: this.tableProps.stream ? gsiCustom.getAttString('TableStreamArn') : undefined,
       globalIndexes: this.gsis.map((gsi) => gsi.indexName),
     });
 
     if (this.streamHandler) {
       this.streamHandler.addEventSource(
-        new this.cdk.aws_lambda_event_sources.DynamoEventSource(customTable, { startingPosition: this.cdk.aws_lambda.StartingPosition.LATEST })
+        new this.cdk.aws_lambda_event_sources.DynamoEventSource(this.customTable, { startingPosition: this.cdk.aws_lambda.StartingPosition.LATEST })
       );
     }
   }
