@@ -1,6 +1,6 @@
 import { Construct } from 'constructs';
 import type * as cdk from 'aws-cdk-lib';
-import { ResourceAccessConfig, RuntimeRoleToken } from './manifest/manifest-types';
+import { ResourceAccessPolicy, RuntimeRoleToken } from './manifest/manifest-zod';
 
 export type AmplifyCdkType = typeof cdk;
 export { cdk as AmplifyCdkWrap };
@@ -22,7 +22,7 @@ export type RuntimeAccessAttacher = {
  * A Construct that can grant a role access to certain actions on itself
  */
 export type RuntimeAccessGranter = {
-  getPolicyContent(permissions: unknown): AmplifyPolicyContent;
+  getPolicyContent(permissions: ResourceAccessPolicy): AmplifyPolicyContent;
 };
 
 /**
@@ -99,7 +99,7 @@ export abstract class AmplifyServiceProvider<T = object> extends Construct imple
    * This method must be implemented to allow other constructs in the project to access this construct
    * @param permissions
    */
-  getPolicyContent?(permissions: ResourceAccessConfig): AmplifyPolicyContent;
+  getPolicyContent?(permissions: ResourceAccessPolicy): AmplifyPolicyContent;
   /**
    * This method must be implemented if this construct defines resources that can access other resources at runtime
    * @param runtimeRoleToken

@@ -1,10 +1,10 @@
-import { ProviderKey, ProviderRecord } from '../manifest/manifest-types';
 import { AmplifyCdkType, AmplifyInitializer, AmplifyServiceProviderFactory, IAmplifyLogger, IAmplifyMetrics } from '../types';
 
 import { init as initS3 } from '../providers/s3-provider/s3-provider';
 import { init as initLambda } from '../providers/lambda/lambda-provider';
 import { init as initAppSync } from '../providers/appsync/appsync-provider';
 import { init as initDynamo } from '../providers/dynamodb/dynamodb-provider';
+import { ProviderRecord, ProviderToken } from '../manifest/manifest-zod';
 
 /**
  * This class is a stub of whatever logic we will have to fetch / install / load AmplifyServiceProviders dynamically based on the definition in the manifest file
@@ -17,8 +17,8 @@ export class ServiceProviderResolver {
     '@aws-amplify/app-sync-provider@10.2.3': initAppSync,
     '@aws-amplify/dynamo-db-provider@2.3.4': initDynamo,
   };
-  async loadProviders(requiredProviders: ProviderRecord): Promise<Record<ProviderKey, AmplifyServiceProviderFactory>> {
-    const result: Record<ProviderKey, AmplifyServiceProviderFactory> = {};
+  async loadProviders(requiredProviders: ProviderRecord): Promise<Record<ProviderToken, AmplifyServiceProviderFactory>> {
+    const result: Record<ProviderToken, AmplifyServiceProviderFactory> = {};
 
     Object.entries(requiredProviders).forEach(([providerKey, providerToken]) => {
       // this simulates a provider not being found on npm

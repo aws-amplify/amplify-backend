@@ -14,7 +14,7 @@ import {
   DynamoTableBuilder,
   LambdaEventSource,
 } from '../../types';
-import { ResourceAccessConfig } from '../../manifest/manifest-types';
+import { ResourceAccessPolicy, ResourceAccessPolicyList } from '../../manifest/manifest-zod';
 
 export const init: AmplifyInitializer = (cdk: AmplifyCdkType) => {
   return new AmplifyDynamoDBProviderFactory(cdk);
@@ -62,7 +62,7 @@ export class AmplifyDynamoDBProvider extends AmplifyServiceProvider implements L
     this.streamHandler = handler;
   }
 
-  getPolicyContent(permissions: ResourceAccessConfig): AmplifyPolicyContent {
+  getPolicyContent(permissions: ResourceAccessPolicy): AmplifyPolicyContent {
     return {
       resourceArnToken: this.customTable.tableArn,
       resourceNameToken: this.customTable.tableName,
