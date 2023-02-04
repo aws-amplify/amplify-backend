@@ -1,9 +1,8 @@
 import { Construct } from 'constructs';
-import { ResourceRecord, ResourceToken, ProviderToken } from '../manifest/manifest-zod';
+import { ResourceRecord, ResourceToken, ProviderToken } from '../manifest/manifest-schema';
 import { getDagWalker, NodeVisitor } from './dag-walker';
 import { AmplifyServiceProviderFactory, AmplifyServiceProvider } from '../types';
 import { AmplifyReference, AmplifyStack } from '../amplify-reference';
-import { plainToInstance } from 'class-transformer';
 import { aws_lambda, aws_iam } from 'aws-cdk-lib';
 
 const EXTERNAL_TOKEN = '$external';
@@ -57,14 +56,17 @@ export class AmplifyTransformer {
   private initVisitor: NodeVisitor = (node: ResourceToken): void => {
     // get the config class object from the construct corresponding to this node
     const resourceProvider = this.serviceProviderRecord[node];
-    const configClass = resourceProvider.getAnnotatedConfigClass();
 
-    const configInstance = plainToInstance(configClass, this.resourceDefinition[node].definition);
+    const schema = resourceProvider.getDefinitionSchema();
 
-    // TODO validate resource definition before passing to the plugin
-    // validateSync(configInstance);
-
-    resourceProvider.init(configInstance);
+    const definition = this.resourceDefinition[node].definition;
+    const parseResult = schema.safeParse(definition);
+    if (!parseResult.success) {
+      console.error(parseResult.error);
+      throw new Error(`Error parsing input definition for ${node}`);
+    }
+    // pass the resource definition to the init method
+    resourceProvider.init(parseResult.data);
   };
 
   /**

@@ -1,5 +1,5 @@
 import { Construct } from 'constructs';
-import { AmplifyCdkType, AmplifyServiceProvider, AmplifyServiceProviderFactory, AmplifyInitializer, DynamoTableBuilder } from '../../types';
+import { AmplifyCdkType, AmplifyServiceProvider, AmplifyServiceProviderFactory, AmplifyInitializer, DynamoTableBuilder, aZod } from '../../types';
 
 export const init: AmplifyInitializer = (awsCdkLib: AmplifyCdkType) => {
   return new AmplifyAppSyncProviderFactory(awsCdkLib);
@@ -18,11 +18,11 @@ class AmplifyAppSyncProvider extends AmplifyServiceProvider {
     super(scope, name);
   }
 
-  getAnnotatedConfigClass(): typeof AmplifyAppSyncConfiguration {
-    return AmplifyAppSyncConfiguration;
+  getDefinitionSchema() {
+    return inputSchema;
   }
 
-  init(config: AmplifyAppSyncConfiguration) {
+  init(config: InputSchema) {
     const appsync = this.cdk.aws_appsync;
     const dynamodb = this.cdk.aws_dynamodb;
 
@@ -69,11 +69,9 @@ class AmplifyAppSyncProvider extends AmplifyServiceProvider {
     // noop for now. But eventually there will be logic here
   }
 }
-type IAmplifyAppSyncConfiguration = {
-  relativeSchemaPath: string;
-};
 
-class AmplifyAppSyncConfiguration implements IAmplifyAppSyncConfiguration {
-  relativeSchemaPath: string;
-  authenticationTypes: string[]; // right now just API_KEY
-}
+const inputSchema = aZod.object({
+  relativeSchemaPath: aZod.string(),
+});
+
+type InputSchema = aZod.infer<typeof inputSchema>;

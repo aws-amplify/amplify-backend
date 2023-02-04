@@ -2,7 +2,7 @@ import { App } from 'aws-cdk-lib';
 import { parse } from 'yaml';
 import * as fs from 'fs-extra';
 import { createTransformer } from '../transformer/transformer-factory';
-import { amplifyManifest } from '../manifest/manifest-zod';
+import { amplifyManifest } from '../manifest/manifest-schema';
 import { envNamePositional, strictCommand } from './command-components';
 
 export const getCommand = () =>

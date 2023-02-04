@@ -3,20 +3,22 @@ import { Attribute, GlobalSecondaryIndexProps, ITable, Table, TableProps } from 
 import * as path from 'path';
 
 import { Construct } from 'constructs';
-import type { AttributeDefinition, AttributeDefinitions, CreateTableInput, GlobalSecondaryIndex, KeySchema } from 'aws-sdk/clients/dynamodb';
+import { AttributeDefinition, AttributeDefinitions, CreateTableInput, GlobalSecondaryIndex, KeySchema } from 'aws-sdk/clients/dynamodb';
 import {
   AmplifyCdkType,
-  AmplifyCdkWrap,
+  aCDK,
   AmplifyInitializer,
   AmplifyPolicyContent,
   AmplifyServiceProvider,
   AmplifyServiceProviderFactory,
   DynamoTableBuilder,
   LambdaEventSource,
+  AmplifyZodType,
+  aZod as z,
 } from '../../types';
-import { ResourceAccessPolicy, ResourceAccessPolicyList } from '../../manifest/manifest-zod';
+import { ResourceAccessPolicy } from '../../manifest/manifest-schema';
 
-export const init: AmplifyInitializer = (cdk: AmplifyCdkType) => {
+export const init: AmplifyInitializer = (cdk: AmplifyCdkType, _, __, az: AmplifyZodType) => {
   return new AmplifyDynamoDBProviderFactory(cdk);
 };
 
@@ -32,18 +34,21 @@ export class AmplifyDynamoDBProvider extends AmplifyServiceProvider implements L
   private gsis: GlobalSecondaryIndexProps[] = [];
   private tableProps: TableProps;
   private customTable: ITable;
-  private streamHandler: AmplifyCdkWrap.aws_lambda.IFunction;
+  private streamHandler: aCDK.aws_lambda.IFunction;
   constructor(scope: Construct, private readonly name: string, private readonly cdk: AmplifyCdkType) {
     super(scope, name);
   }
 
-  getAnnotatedConfigClass(): typeof TablePropsImpl {
-    return TablePropsImpl;
+  getDefinitionSchema(): z.AnyZodObject {
+    return inputSchema;
   }
 
-  init(config: TableProps) {
-    if (config) {
-      this.tableProps = config;
+  init(config: InputSchema) {
+    this.tableProps = config;
+    if (config.gsis) {
+      config.gsis.forEach((gsi) => {
+        this.addGlobalSecondaryIndex(gsi);
+      });
     }
   }
 
@@ -62,12 +67,38 @@ export class AmplifyDynamoDBProvider extends AmplifyServiceProvider implements L
     this.streamHandler = handler;
   }
 
-  getPolicyContent(permissions: ResourceAccessPolicy): AmplifyPolicyContent {
+  getPolicyContent({ actions, scopes }: ResourceAccessPolicy): AmplifyPolicyContent {
+    const actionSet = new Set<string>();
+    actions.forEach((action) => {
+      switch (action) {
+        case 'create':
+          actionSet.add('dynamodb:PutItem').add('dynamodb:BatchWriteItem');
+          break;
+        case 'read':
+          actionSet.add('dynamodb:GetItem').add('dynamodb:BatchGetItem');
+          break;
+        case 'update':
+          actionSet.add('dynamodb:UpdateItem');
+          break;
+        case 'delete':
+          actionSet.add('dynamodb:DeleteItem').add('dynamodb:BatchWriteItem');
+          break;
+        case 'list':
+          actionSet.add('dynamodb:Scan').add('dynamodb:Query');
+          break;
+        default:
+          throw new Error(`Unknown action ${action} specified for ${this.name}`);
+      }
+    });
+
+    if (scopes?.[0] !== undefined) {
+      throw new Error(`${this.name} does not support policy scopes. Found scopes ${JSON.stringify(scopes)}`);
+    }
     return {
       resourceArnToken: this.customTable.tableArn,
       resourceNameToken: this.customTable.tableName,
       resourceSuffixes: [],
-      actions: ['DynamoDB:GetItem'],
+      actions: Array.from(actionSet),
     };
   }
 
@@ -196,6 +227,34 @@ export class AmplifyDynamoDBProvider extends AmplifyServiceProvider implements L
   }
 }
 
-class TablePropsImpl implements AmplifyCdkWrap.aws_dynamodb.TableProps {
-  partitionKey: Attribute;
-}
+const indexSchema = z.object({
+  partitionKey: z.object({
+    name: z.string(),
+    type: z.nativeEnum(aCDK.aws_dynamodb.AttributeType),
+  }),
+  sortKey: z
+    .object({
+      name: z.string(),
+      type: z.nativeEnum(aCDK.aws_dynamodb.AttributeType),
+    })
+    .optional(),
+});
+
+const inputSchema = z
+  .object({
+    billingMode: z.nativeEnum(aCDK.aws_dynamodb.BillingMode).optional(),
+    pointInTimeRecovery: z.boolean().optional(),
+    stream: z.nativeEnum(aCDK.aws_dynamodb.StreamViewType).optional(),
+    gsis: z
+      .array(
+        indexSchema.merge(
+          z.object({
+            indexName: z.string(),
+          })
+        )
+      )
+      .optional(),
+  })
+  .merge(indexSchema);
+
+type InputSchema = z.infer<typeof inputSchema>;

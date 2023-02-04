@@ -1,7 +1,7 @@
 import { Construct } from 'constructs';
 import {
   AmplifyCdkType,
-  AmplifyCdkWrap,
+  aCDK,
   AmplifyServiceProvider,
   AmplifyServiceProviderFactory,
   AmplifyInitializer,
@@ -10,10 +10,10 @@ import {
   ResourceNameArnTuple,
   SecretHandler,
   AmplifySecret,
+  aZod,
 } from '../../types';
-import { Type } from 'class-transformer';
-import { Max } from 'class-validator';
 import { SecretRef } from '../../amplify-reference';
+import { z } from 'zod';
 
 export const init: AmplifyInitializer = (awsCdkLib: AmplifyCdkType) => {
   return new AmplifyLambdaProviderFactory(awsCdkLib);
@@ -28,18 +28,18 @@ class AmplifyLambdaProviderFactory implements AmplifyServiceProviderFactory {
 }
 
 class AmplifyLambdaProvider extends AmplifyServiceProvider implements LambdaEventHandler, RuntimeAccessAttacher, SecretHandler {
-  private func: AmplifyCdkWrap.aws_lambda.Function;
+  private func: aCDK.aws_lambda.Function;
   private readonly lambda: AmplifyCdkType['aws_lambda'];
   constructor(scope: Construct, private readonly name: string, private readonly cdk: AmplifyCdkType) {
     super(scope, name);
     this.lambda = cdk.aws_lambda;
   }
 
-  getAnnotatedConfigClass(): typeof AmplifyLambdaConfiguration {
-    return AmplifyLambdaConfiguration;
+  getDefinitionSchema() {
+    return inputSchema;
   }
 
-  init(configuration: AmplifyLambdaConfiguration) {
+  init(configuration: InputSchema) {
     const secretRef = new SecretRef(this, 'test-secret');
 
     this.func = new this.lambda.Function(this, this.name, {
@@ -58,11 +58,11 @@ class AmplifyLambdaProvider extends AmplifyServiceProvider implements LambdaEven
     // intentional noop
   }
 
-  getLambdaRef(): AmplifyCdkWrap.aws_lambda.IFunction {
+  getLambdaRef(): aCDK.aws_lambda.IFunction {
     return this.func;
   }
 
-  attachRuntimePolicy(runtimeRoleToken: string, policy: AmplifyCdkWrap.aws_iam.PolicyStatement, resource: ResourceNameArnTuple): void {
+  attachRuntimePolicy(runtimeRoleToken: string, policy: aCDK.aws_iam.PolicyStatement, resource: ResourceNameArnTuple): void {
     if (runtimeRoleToken !== 'lambdaRuntime') {
       throw new Error(`Unknown runtimeRoleToken ${runtimeRoleToken} found when generating access policy`);
     }
@@ -75,30 +75,18 @@ class AmplifyLambdaProvider extends AmplifyServiceProvider implements LambdaEven
   }
 }
 
-type BuildConfig = {
-  buildCommand: string;
-  sourceDirectory: string;
-};
+const inputSchema = aZod.object({
+  runtime: z.string(),
+  handler: z.string(),
+  relativeBuildAssetPath: z.string(),
+  timeoutSeconds: z
+    .string()
+    .transform((str) => Number.parseInt(str))
+    .optional(),
+  memoryMB: z
+    .string()
+    .transform((str) => Number.parseInt(str))
+    .optional(),
+});
 
-class AmplifyLambdaConfiguration implements IAmplifyServerlessFunctionConfiguration {
-  runtime: string;
-  handler: string;
-  relativeBuildAssetPath: string;
-
-  @Type(() => Number)
-  @Max(100)
-  timeoutSeconds?: number;
-
-  @Type(() => Number)
-  memoryMB?: number;
-  buildConfig?: BuildConfig;
-}
-
-type IAmplifyServerlessFunctionConfiguration = {
-  runtime: string;
-  handler: string;
-  relativeBuildAssetPath: string;
-  timeoutSeconds?: number;
-  memoryMB?: number;
-  buildConfig?: BuildConfig;
-};
+type InputSchema = aZod.infer<typeof inputSchema>;

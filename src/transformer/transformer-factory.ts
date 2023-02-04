@@ -2,10 +2,11 @@ import { consoleLogger } from '../observability-tooling/amplify-logger';
 import { amplifyMetrics } from '../observability-tooling/amplify-metrics';
 import { AmplifyTransformer } from './transformer';
 import { hydrateTokens } from './hydrate-tokens';
-import { AmplifyManifest, ResourceRecord } from '../manifest/manifest-zod';
+import { AmplifyManifest, ResourceRecord } from '../manifest/manifest-schema';
 import * as cdk from 'aws-cdk-lib';
 import { AmplifyMetadataService } from '../stubs/amplify-metadata-service';
 import { ServiceProviderResolver } from '../stubs/service-provider-resolver';
+import { z } from 'zod';
 /**
  * This should be a first class entry point into Amplify for customers who want to integrate an Amplify manifest into an existing CDK application
  *
@@ -21,7 +22,7 @@ export const createTransformer = async (envName: string, tokenizedManifest: Ampl
   // TODO will need more validation here to assert that manifest is correctly formed
   const hydratedResourceDefinition = hydrateTokens(tokenizedManifest.resources, await amplifyMetadataService.getParams(envName)) as ResourceRecord;
 
-  const serviceProviderResolver = new ServiceProviderResolver(cdk, consoleLogger, amplifyMetrics);
+  const serviceProviderResolver = new ServiceProviderResolver(cdk, consoleLogger, amplifyMetrics, z);
 
   // TODO execute preSynthCommand(s) here
 

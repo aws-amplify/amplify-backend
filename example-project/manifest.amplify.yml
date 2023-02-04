@@ -3,14 +3,14 @@ resources:
   testFileStorage:
     provider: s3Provider
     definition:
-      enableSSL: true
+      enforceSSL: 'true'
     triggers:
       stream: s3StreamHandler
   s3StreamHandler:
     provider: lambdaProvider
     definition:
       runtime: $param:functionRuntime
-      timeoutSeconds: 200
+      timeoutSeconds: '200'
       handler: index.handler
       relativeBuildAssetPath: ./testLambda
       env:
@@ -18,20 +18,23 @@ resources:
     preSynthCommand: cd ./testLambda && npx tsc
     secrets:
       DB_PASSWORD: $secret:databasePassword
-    # runtimeAccess:
-    #   lambdaRuntime:
-    #     blogTable:
-    #       - actions: [create, read, update, delete]
+    runtimeAccess:
+      lambdaRuntime:
+        blogTable:
+          - actions: [create, read, update, delete]
   testGqlApi:
     provider: appSyncProvider
     definition:
       relativeSchemaPath: ./schema.graphql
     # managedTables:
     #   - blogTable
-  # blogTable:
-  #   provider: dynamoDbProvider
-  #   definition:
-  #     streamEnabled: true
+  blogTable:
+    provider: dynamoDbProvider
+    definition:
+      streamEnabled: true
+      partitionKey:
+        name: testPk
+        type: S
 parameters:
   - functionRuntime
   - serverTimeout

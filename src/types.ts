@@ -1,9 +1,13 @@
 import { Construct } from 'constructs';
-import type * as cdk from 'aws-cdk-lib';
-import { ResourceAccessPolicy, RuntimeRoleToken } from './manifest/manifest-zod';
+import * as cdk from 'aws-cdk-lib';
+import { ResourceAccessPolicy, RuntimeRoleToken } from './manifest/manifest-schema';
+import { z } from 'zod';
 
 export type AmplifyCdkType = typeof cdk;
-export { cdk as AmplifyCdkWrap };
+export { cdk as aCDK };
+
+export type AmplifyZodType = typeof z;
+export { z as aZod };
 
 /**
  * A Construct that can attach runtime access for the runtimeEntityName to access resource
@@ -71,16 +75,16 @@ export type AmplifyTransformFunctionalInterfaceUnion = LambdaEventHandler &
 /**
  * Base class that all Amplify resource classes extend from
  */
-export abstract class AmplifyServiceProvider<T = object> extends Construct implements Partial<AmplifyTransformFunctionalInterfaceUnion> {
+export abstract class AmplifyServiceProvider extends Construct implements Partial<AmplifyTransformFunctionalInterfaceUnion> {
   /**
-   * Returns a construtable Class that can be used
+   * The contentsof resources.<resourceName>.definition is passed to the parse method of the returned zod object. The result of parse is then passed to init()
+   * Returning zod object instead of a validator so that error handling can be done centrally in the platform
    */
-  abstract getAnnotatedConfigClass(): new () => T;
+  abstract getDefinitionSchema(): z.AnyZodObject;
   /**
-   * The output of parseConfiguration is then passed to this method
-   * @param configuration
+   * @param def
    */
-  abstract init(configuration: T): void;
+  abstract init(def: unknown): void;
   /**
    * Called at the end of the transformation process to indicate to the construct that it can finalize any pending configuration
    */
@@ -159,4 +163,9 @@ export type AmplifyPolicyContent = {
  *
  * It is guaranteed to only be called once by the platform
  */
-export type AmplifyInitializer = (awsCdkLib: AmplifyCdkType, logger: IAmplifyLogger, metrics: IAmplifyMetrics) => AmplifyServiceProviderFactory;
+export type AmplifyInitializer = (
+  awsCdkLib: AmplifyCdkType,
+  logger: IAmplifyLogger,
+  metrics: IAmplifyMetrics,
+  az: AmplifyZodType
+) => AmplifyServiceProviderFactory;

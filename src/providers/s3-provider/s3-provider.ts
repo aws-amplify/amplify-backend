@@ -1,11 +1,13 @@
 import { Construct } from 'constructs';
+import { z } from 'zod';
 import {
   AmplifyServiceProvider,
   AmplifyServiceProviderFactory,
-  AmplifyCdkWrap,
+  aCDK,
   AmplifyCdkType,
   LambdaEventSource,
   AmplifyInitializer,
+  aZod,
 } from '../../types';
 
 export const init: AmplifyInitializer = (cdk: AmplifyCdkType) => {
@@ -21,16 +23,16 @@ class AmplifyS3ProviderFactory implements AmplifyServiceProviderFactory {
 }
 
 class AmplifyS3Provider extends AmplifyServiceProvider implements LambdaEventSource {
-  private bucket: AmplifyCdkWrap.aws_s3.Bucket;
+  private bucket: aCDK.aws_s3.Bucket;
   constructor(scope: Construct, private readonly name: string, private readonly cdk: AmplifyCdkType) {
     super(scope, name);
   }
 
-  getAnnotatedConfigClass(): typeof AmplifyStorageConfiguration {
-    return AmplifyStorageConfiguration;
+  getDefinitionSchema() {
+    return inputSchema;
   }
 
-  init(configuration: AmplifyStorageConfiguration) {
+  init(configuration: InputSchema) {
     this.cdk.aws_s3.BucketEncryption.KMS_MANAGED;
     this.bucket = new this.cdk.aws_s3.Bucket(this, this.name, {
       enforceSSL: configuration.enforceSSL,
@@ -42,7 +44,7 @@ class AmplifyS3Provider extends AmplifyServiceProvider implements LambdaEventSou
     // intentional noop
   }
 
-  attachLambdaEventHandler(eventSourceName: string, handler: AmplifyCdkWrap.aws_lambda.IFunction): void {
+  attachLambdaEventHandler(eventSourceName: string, handler: aCDK.aws_lambda.IFunction): void {
     if (eventSourceName !== 'stream') {
       throw new Error(`Unknown event source name ${eventSourceName}`);
     }
@@ -51,10 +53,11 @@ class AmplifyS3Provider extends AmplifyServiceProvider implements LambdaEventSou
   }
 }
 
-type IAmplifyStorageConfiguration = {
-  enforceSSL: boolean;
-};
+const inputSchema = aZod.object({
+  enforceSSL: z
+    .string()
+    .refine((str) => str === 'true' || str === 'false', 'enforceSSL must either be "true" or "false"')
+    .transform((str) => str === 'true'),
+});
 
-class AmplifyStorageConfiguration implements IAmplifyStorageConfiguration {
-  enforceSSL: boolean;
-}
+type InputSchema = aZod.infer<typeof inputSchema>;
