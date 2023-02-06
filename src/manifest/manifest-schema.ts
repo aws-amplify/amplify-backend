@@ -1,6 +1,12 @@
 import { z } from 'zod';
 
 /**
+ * Nomenclature:
+ * <*>Name: a human-readable identifier for an object of type <*>
+ * <*>Token: A CDK token string that identifies <*>. String operations cannot be relaibly performed on this value
+ */
+
+/**
  * Defines a single access policy
  */
 const resourceAccessPolicy = z.object({
@@ -16,44 +22,44 @@ const resourceAccessPolicyList = z.array(resourceAccessPolicy);
 export type ResourceAccessPolicyList = z.infer<typeof resourceAccessPolicyList>;
 
 /**
- * Alias type for a string that contains a token for another resource
+ * Alias type for a string that names a resource
  */
-const resourceToken = z.string();
-export type ResourceToken = z.infer<typeof resourceToken>;
+const resourceName = z.string();
+export type ResourceName = z.infer<typeof resourceName>;
 
 /**
- * Defines the access policies for several resources identified by their token
+ * Defines the access policies for several resources identified by their resourceName
  */
-const runtimeResourceAccess = z.record(resourceToken, resourceAccessPolicyList);
+const runtimeResourceAccess = z.record(resourceName, resourceAccessPolicyList);
 
 /**
- * Alias type for a string that contains a token representing a runtime IAM Role
+ * Alias type for a string that names a runtime IAM Role
  */
-const runtimeRoleToken = z.string();
-export type RuntimeRoleToken = z.infer<typeof runtimeRoleToken>;
+const runtimeRoleName = z.string();
+export type RuntimeRoleName = z.infer<typeof runtimeRoleName>;
 
 /**
  * Defines the resource access that will be granted to runtime roles
  */
-const runtimeAccessConfig = z.record(runtimeRoleToken, runtimeResourceAccess);
+const runtimeAccessConfig = z.record(runtimeRoleName, runtimeResourceAccess);
 export type RuntimeAccessConfig = z.infer<typeof runtimeAccessConfig>;
 
 /**
  * Alias type for a string that represents a resource event source
  */
-const eventSourceToken = z.string();
-export type eventSourceToken = z.infer<typeof eventSourceToken>;
+const eventSourceName = z.string();
+export type EventSourceName = z.infer<typeof eventSourceName>;
 
 /**
  * Defines lambda event triggers
  */
-const functionInvocationConfig = z.record(eventSourceToken, resourceToken);
+const functionInvocationConfig = z.record(eventSourceName, resourceName);
 export type FunctionInvocationConfig = z.infer<typeof functionInvocationConfig>;
 
 /**
  *
  */
-const managedTables = z.array(resourceToken);
+const managedTables = z.array(resourceName);
 export type ManagedTables = z.infer<typeof managedTables>;
 
 const resourceDefinition = z.object({
@@ -70,10 +76,10 @@ export type ResourceDefinition = z.infer<typeof resourceDefinition>;
 const resourceRecord = z.record(resourceDefinition);
 export type ResourceRecord = z.infer<typeof resourceRecord>;
 
-const providerToken = z.string();
-export type ProviderToken = z.infer<typeof providerToken>;
+const providerName = z.string();
+export type ProviderName = z.infer<typeof providerName>;
 
-const providerRecord = z.record(providerToken, z.string());
+const providerRecord = z.record(providerName, z.string());
 export type ProviderRecord = z.infer<typeof providerRecord>;
 
 const secretsList = z.array(z.string());

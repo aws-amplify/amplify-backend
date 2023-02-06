@@ -95,8 +95,8 @@ export class AmplifyDynamoDBProvider extends AmplifyServiceProvider implements L
       throw new Error(`${this.name} does not support policy scopes. Found scopes ${JSON.stringify(scopes)}`);
     }
     return {
-      resourceArnToken: this.customTable.tableArn,
-      resourceNameToken: this.customTable.tableName,
+      arnToken: this.customTable.tableArn,
+      physicalNameToken: this.customTable.tableName,
       resourceSuffixes: [],
       actions: Array.from(actionSet),
     };

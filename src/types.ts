@@ -1,6 +1,6 @@
 import { Construct } from 'constructs';
 import * as cdk from 'aws-cdk-lib';
-import { ResourceAccessPolicy, RuntimeRoleToken } from './manifest/manifest-schema';
+import { ResourceAccessPolicy, RuntimeRoleName } from './manifest/manifest-schema';
 import { z } from 'zod';
 
 export type AmplifyCdkType = typeof cdk;
@@ -110,7 +110,7 @@ export abstract class AmplifyServiceProvider extends Construct implements Partia
    * @param policy
    * @param resource
    */
-  attachRuntimePolicy?(runtimeRoleToken: RuntimeRoleToken, policy: cdk.aws_iam.PolicyStatement, resource: ResourceNameArnTuple): void;
+  attachRuntimePolicy?(runtimeRoleToken: RuntimeRoleName, policy: cdk.aws_iam.PolicyStatement, resource: ResourceNameArnTuple): void;
 
   getDynamoTableBuilder?(): DynamoTableBuilder;
 
@@ -151,8 +151,9 @@ export type IAmplifyMetrics = {
 };
 
 export type AmplifyPolicyContent = {
-  resourceArnToken: string;
-  resourceNameToken: string;
+  arnToken: string;
+  physicalNameToken: string;
+
   resourceSuffixes: string[];
   actions: string[];
 };

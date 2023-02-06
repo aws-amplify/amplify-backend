@@ -1,20 +1,20 @@
 import { Construct } from 'constructs';
-import { ResourceRecord, ResourceToken, ProviderToken } from '../manifest/manifest-schema';
+import { ResourceRecord, ResourceName, ProviderName } from '../manifest/manifest-schema';
 import { getDagWalker, NodeVisitor } from './dag-walker';
-import { AmplifyServiceProviderFactory, AmplifyServiceProvider } from '../types';
+import { AmplifyServiceProviderFactory, AmplifyServiceProvider, aCDK } from '../types';
 import { AmplifyReference, AmplifyStack } from '../amplify-reference';
 import { aws_lambda, aws_iam } from 'aws-cdk-lib';
 
 const EXTERNAL_TOKEN = '$external';
 
 export class AmplifyTransformer {
-  private readonly serviceProviderRecord: Record<ResourceToken, AmplifyServiceProvider> = {};
+  private readonly serviceProviderRecord: Record<ResourceName, AmplifyServiceProvider> = {};
   private readonly dagWalker: (visitor: NodeVisitor) => void;
 
   constructor(
     private readonly envPrefix: string,
     private readonly resourceDefinition: ResourceRecord,
-    private readonly providerFactories: Record<ProviderToken, AmplifyServiceProviderFactory>
+    private readonly providerFactories: Record<ProviderName, AmplifyServiceProviderFactory>
   ) {
     // constructs a function that can take in a visitor function and execute that visitor on all nodes in the DAG in depenency order
     this.dagWalker = getDagWalker(generateResourceDAG(this.resourceDefinition));
@@ -53,7 +53,7 @@ export class AmplifyTransformer {
    * Executes the 'init' lifecycle hook on all AmplifyServiceProviders in dependency order
    * @param node
    */
-  private initVisitor: NodeVisitor = (node: ResourceToken): void => {
+  private initVisitor: NodeVisitor = (node: ResourceName): void => {
     // get the config class object from the construct corresponding to this node
     const resourceProvider = this.serviceProviderRecord[node];
 
@@ -74,7 +74,7 @@ export class AmplifyTransformer {
    * @param node
    * @returns
    */
-  private triggerVisitor: NodeVisitor = (node: ResourceToken): void => {
+  private triggerVisitor: NodeVisitor = (node: ResourceName): void => {
     // if this node does not define any trigger config, early return
     if (!this.resourceDefinition[node].triggers) {
       return;
@@ -121,7 +121,7 @@ export class AmplifyTransformer {
    * Orchestrates wiring together 'getPolicyGranting' and 'attachRuntimePolicy'
    * @param node
    */
-  private permissionsVisitor: NodeVisitor = (node: ResourceToken): void => {
+  private permissionsVisitor: NodeVisitor = (node: ResourceName): void => {
     const permissionDefinition = this.resourceDefinition[node].runtimeAccess;
     if (!permissionDefinition) {
       return;
@@ -152,15 +152,15 @@ export class AmplifyTransformer {
 
         const policyContents = resourceAccessConfigs.map((resourceAccessConfig) => permissionGranter.getPolicyContent!(resourceAccessConfig));
         policyContents.forEach((policyContent) => {
-          const arnRef = new AmplifyReference(permissionGranter, `${resourceToken}-arn`, policyContent.resourceArnToken);
-          const nameRef = new AmplifyReference(permissionGranter, `${resourceToken}-name`, policyContent.resourceNameToken);
+          const arnRef = new AmplifyReference(permissionGranter, `${resourceToken}-arn`, policyContent.arnToken);
+          const nameRef = new AmplifyReference(permissionGranter, `${resourceToken}-name`, policyContent.physicalNameToken);
 
           const destArnRef = arnRef.getValue(permissionAcceptor);
           const destNameRef = nameRef.getValue(permissionAcceptor);
 
           const policyDocument = new aws_iam.PolicyStatement({
             actions: policyContent.actions,
-            resources: policyContent.resourceSuffixes.map((suffix) => `${destArnRef}${suffix}`),
+            resources: policyContent.resourceSuffixes.map((suffix) => aCDK.Fn.join('', [destArnRef, suffix])),
           });
           permissionAcceptor.attachRuntimePolicy!(runtimeRoleToken, policyDocument, { name: destNameRef, arn: destArnRef });
         });
@@ -168,15 +168,15 @@ export class AmplifyTransformer {
     });
   };
 
-  private finalizeVisitor: NodeVisitor = (node: ResourceToken): void => {
+  private finalizeVisitor: NodeVisitor = (node: ResourceName): void => {
     const provider = this.serviceProviderRecord[node];
     provider.finalizeResources();
   };
 }
 
 const generateResourceDAG = (resourceDefiniton: ResourceRecord): ResourceDAG => {
-  const resourceSet = new Set<ResourceToken>(Object.keys(resourceDefiniton));
-  const resourceDag: Record<ResourceToken, ResourceToken[]> = {};
+  const resourceSet = new Set<ResourceName>(Object.keys(resourceDefiniton));
+  const resourceDag: Record<ResourceName, ResourceName[]> = {};
   resourceSet.forEach((resourceName) => (resourceDag[resourceName] = []));
 
   Object.entries(resourceDefiniton).forEach(([resourceName, resourceDefiniton]) => {
@@ -197,4 +197,4 @@ const generateResourceDAG = (resourceDefiniton: ResourceRecord): ResourceDAG => 
   return resourceDag;
 };
 
-type ResourceDAG = Record<ResourceToken, ResourceToken[]>;
+type ResourceDAG = Record<ResourceName, ResourceName[]>;
