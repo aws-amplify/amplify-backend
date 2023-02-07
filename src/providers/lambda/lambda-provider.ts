@@ -7,7 +7,7 @@ import {
   AmplifyInitializer,
   LambdaEventHandler,
   RuntimeAccessAttacher,
-  ResourceNameArnTuple,
+  RuntimeResourceInfo,
   SecretHandler,
   AmplifySecret,
   aZod,
@@ -62,12 +62,20 @@ class AmplifyLambdaProvider extends AmplifyServiceProvider implements LambdaEven
     return this.func;
   }
 
-  attachRuntimePolicy(runtimeRoleToken: string, policy: aCDK.aws_iam.PolicyStatement, resource: ResourceNameArnTuple): void {
+  attachRuntimePolicy(
+    runtimeRoleToken: string,
+    policy: aCDK.aws_iam.PolicyStatement,
+    { resourceName, physicalNameToken, arnToken }: RuntimeResourceInfo
+  ): void {
     if (runtimeRoleToken !== 'lambdaRuntime') {
       throw new Error(`Unknown runtimeRoleToken ${runtimeRoleToken} found when generating access policy`);
     }
     this.func.addToRolePolicy(policy);
-    this.func.addEnvironment(resource.name, resource.arn);
+    /*
+    NOTE: Changing the keys here would be a breaking change for existing lambdas
+    */
+    this.func.addEnvironment(`${resourceName}_Name`, physicalNameToken);
+    this.func.addEnvironment(`${resourceName}_Arn`, arnToken);
   }
 
   acceptSecret(name: string, secret: AmplifySecret): void {

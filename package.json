@@ -4,6 +4,7 @@
   "version": "0.1.0",
   "scripts": {
     "build": "tsc",
+    "clean": "rm -rf node_modules lib tsconfig.tsbuildinfo",
     "generate-manifest-schema": "ts-json-schema-generator --path src/manifest/manifest-types.ts --type 'AmplifyManifest' --out amplify-manifest-schema.json --tsconfig tsconfig.json",
     "test": "jest",
     "watch": "tsc -w"

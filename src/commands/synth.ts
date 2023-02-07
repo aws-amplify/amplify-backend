@@ -3,10 +3,10 @@ import { parse } from 'yaml';
 import * as fs from 'fs-extra';
 import { createTransformer } from '../transformer/transformer-factory';
 import { amplifyManifest } from '../manifest/manifest-schema';
-import { envNamePositional, strictCommand } from './command-components';
+import { AmplifyCommand, envNamePositional } from './command-components';
 
 export const getCommand = () =>
-  strictCommand('synth')
+  AmplifyCommand.create('synth')
     .description("Synthesize the deployment artifacts for an Amplify project but don't deploy them")
     .addArgument(envNamePositional)
     .action(synthHandler);

@@ -1,9 +1,9 @@
 import { executeCDKCommand } from '../execute-cdk-command';
 import * as fs from 'fs-extra';
-import { envNamePositional, profileNameOption, strictCommand } from './command-components';
+import { AmplifyCommand, envNamePositional, profileNameOption } from './command-components';
 
 export const getCommand = () =>
-  strictCommand('watch')
+  AmplifyCommand.create('watch')
     .description('Watch and immediately push local project changes')
     .addArgument(envNamePositional)
     .addOption(profileNameOption)

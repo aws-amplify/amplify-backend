@@ -1,8 +1,8 @@
 import { executeCDKCommand } from '../execute-cdk-command';
-import { envNamePositional, strictCommand } from './command-components';
+import { AmplifyCommand, envNamePositional } from './command-components';
 
 export const getCommand = () =>
-  strictCommand('status')
+  AmplifyCommand.create('status')
     .description('Display differences between local project config and deployed project state')
     .addArgument(envNamePositional)
     .action(statusHandler);

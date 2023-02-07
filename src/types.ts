@@ -19,7 +19,7 @@ export type RuntimeAccessAttacher = {
    * policy is a policy document that should be attached to the role referenced by runtimeEntityName
    * resource is the name and arn of the resource that the policy grants access to
    */
-  attachRuntimePolicy: (runtimeEntityName: string, policy: cdk.aws_iam.PolicyStatement, resource: ResourceNameArnTuple) => void;
+  attachRuntimePolicy: (runtimeEntityName: string, policy: cdk.aws_iam.PolicyStatement, resource: RuntimeResourceInfo) => void;
 };
 
 /**
@@ -106,11 +106,11 @@ export abstract class AmplifyServiceProvider extends Construct implements Partia
   getPolicyContent?(permissions: ResourceAccessPolicy): AmplifyPolicyContent;
   /**
    * This method must be implemented if this construct defines resources that can access other resources at runtime
-   * @param runtimeRoleToken
+   * @param runtimeRoleName
    * @param policy
    * @param resource
    */
-  attachRuntimePolicy?(runtimeRoleToken: RuntimeRoleName, policy: cdk.aws_iam.PolicyStatement, resource: ResourceNameArnTuple): void;
+  attachRuntimePolicy?(runtimeRoleName: RuntimeRoleName, policy: cdk.aws_iam.PolicyStatement, resource: RuntimeResourceInfo): void;
 
   getDynamoTableBuilder?(): DynamoTableBuilder;
 
@@ -123,9 +123,10 @@ export type AmplifyServiceProviderFactory = {
   getServiceProvider(scope: Construct, name: string): AmplifyServiceProvider;
 };
 
-export type ResourceNameArnTuple = {
-  name: string;
-  arn: string;
+export type RuntimeResourceInfo = {
+  resourceName: string;
+  arnToken: string;
+  physicalNameToken: string;
 };
 
 export type AmplifyPolicy = {
@@ -153,7 +154,6 @@ export type IAmplifyMetrics = {
 export type AmplifyPolicyContent = {
   arnToken: string;
   physicalNameToken: string;
-
   resourceSuffixes: string[];
   actions: string[];
 };

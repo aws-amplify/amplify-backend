@@ -1,13 +1,13 @@
 import { Command } from '@commander-js/extra-typings';
 import { executeCDKCommand } from '../execute-cdk-command';
-import { envNamePositional, profileNameOption, strictCommand } from './command-components';
+import { AmplifyCommand, envNamePositional, profileNameOption } from './command-components';
 
 type Args = [string];
 type Opts = {
   profile?: string;
 };
 export const getCommand = (): Command<Args, Opts> =>
-  strictCommand('push')
+  AmplifyCommand.create('push')
     .description('Push the specified environment to the cloud')
     .addArgument(envNamePositional)
     .addOption(profileNameOption)

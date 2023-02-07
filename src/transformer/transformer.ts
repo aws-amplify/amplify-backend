@@ -122,10 +122,13 @@ export class AmplifyTransformer {
    * @param node
    */
   private permissionsVisitor: NodeVisitor = (node: ResourceName): void => {
+    // check if the current resource declares any runtime access
     const permissionDefinition = this.resourceDefinition[node].runtimeAccess;
     if (!permissionDefinition) {
       return;
     }
+
+    // check that the current resource implements RuntimeAccessAttacher
     const permissionAcceptor = this.serviceProviderRecord[node];
     if (typeof permissionAcceptor.attachRuntimePolicy !== 'function') {
       throw new Error(
@@ -142,27 +145,46 @@ export class AmplifyTransformer {
      * It then passes that statemen to the accepting resource which is responsible for wiring the the policy to an IAM role and any other plumbing within that construct
      */
     Object.entries(permissionDefinition).forEach(([runtimeRoleToken, resourceAccess]) => {
-      Object.entries(resourceAccess).forEach(([resourceToken, resourceAccessConfigs]) => {
-        const permissionGranter = this.serviceProviderRecord[resourceToken];
+      // for each IAM role that this resource provisions
+      Object.entries(resourceAccess).forEach(([resourceName, resourceAccessConfigs]) => {
+        // for each resource that this role has access to
+        // check that the target resource implements RuntimeAccessGranter
+        const permissionGranter = this.serviceProviderRecord[resourceName];
         if (typeof permissionGranter.getPolicyContent !== 'function') {
           throw new Error(
-            `${node} delcares runtime access to ${resourceToken} but ${this.resourceDefinition[resourceToken].provider} does not implement RuntimeAccessGranter`
+            `${node} delcares runtime access to ${resourceName} but ${this.resourceDefinition[resourceName].provider} does not implement RuntimeAccessGranter`
           );
         }
 
+        // ask the target resource for the policy that grants the configured permissions
         const policyContents = resourceAccessConfigs.map((resourceAccessConfig) => permissionGranter.getPolicyContent!(resourceAccessConfig));
         policyContents.forEach((policyContent) => {
-          const arnRef = new AmplifyReference(permissionGranter, `${resourceToken}-arn`, policyContent.arnToken);
-          const nameRef = new AmplifyReference(permissionGranter, `${resourceToken}-name`, policyContent.physicalNameToken);
+          // for each policy
+          // construct weak references using AmplifyReference
+          const arnRef = new AmplifyReference(permissionGranter, `${resourceName}-arn`, policyContent.arnToken);
+          const nameRef = new AmplifyReference(permissionGranter, `${resourceName}-name`, policyContent.physicalNameToken);
 
-          const destArnRef = arnRef.getValue(permissionAcceptor);
-          const destNameRef = nameRef.getValue(permissionAcceptor);
+          const destArnToken = arnRef.getValue(permissionAcceptor);
+          const destNameToken = nameRef.getValue(permissionAcceptor);
 
+          // append suffix scopes (if any) to the resource arn
+          const resources =
+            policyContent.resourceSuffixes.length > 0
+              ? policyContent.resourceSuffixes.map((suffix) => aCDK.Fn.join('', [destArnToken, suffix]))
+              : [destArnToken];
+
+          // construct the policy document
           const policyDocument = new aws_iam.PolicyStatement({
             actions: policyContent.actions,
-            resources: policyContent.resourceSuffixes.map((suffix) => aCDK.Fn.join('', [destArnRef, suffix])),
+            resources,
           });
-          permissionAcceptor.attachRuntimePolicy!(runtimeRoleToken, policyDocument, { name: destNameRef, arn: destArnRef });
+
+          // pass the policy document to the permissionAcceptor along with additional info about the resource
+          permissionAcceptor.attachRuntimePolicy!(runtimeRoleToken, policyDocument, {
+            resourceName,
+            physicalNameToken: destNameToken,
+            arnToken: destArnToken,
+          });
         });
       });
     });
