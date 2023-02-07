@@ -4,9 +4,10 @@ import { AmplifyTransformer } from './transformer';
 import { hydrateTokens } from './hydrate-tokens';
 import { AmplifyManifest, ResourceRecord } from '../manifest/manifest-schema';
 import * as cdk from 'aws-cdk-lib';
-import { AmplifyMetadataService } from '../stubs/amplify-metadata-service';
+import { AmplifyParameters } from '../stubs/amplify-parameters';
 import { ServiceProviderResolver } from '../stubs/service-provider-resolver';
 import { z } from 'zod';
+import { SSM } from 'aws-sdk';
 /**
  * This should be a first class entry point into Amplify for customers who want to integrate an Amplify manifest into an existing CDK application
  *
@@ -17,10 +18,16 @@ import { z } from 'zod';
  * @returns Initialized AmplifyTransform instance
  */
 export const createTransformer = async (envName: string, tokenizedManifest: AmplifyManifest): Promise<AmplifyTransformer> => {
-  const amplifyMetadataService = new AmplifyMetadataService();
+  // TODO new SSM() should be injected into createTransformer rather than initialized here
+  const amplifyParameters = new AmplifyParameters(new SSM(), envName);
+
+  const params = (await amplifyParameters.listParameters()).reduce((collect, param) => {
+    collect[param.name] = param.isSecret ? param.ref : param.value;
+    return collect;
+  }, {} as Record<string, string>);
 
   // TODO will need more validation here to assert that manifest is correctly formed
-  const hydratedResourceDefinition = hydrateTokens(tokenizedManifest.resources, await amplifyMetadataService.getParams(envName)) as ResourceRecord;
+  const hydratedResourceDefinition = hydrateTokens(tokenizedManifest.resources, params) as ResourceRecord;
 
   const serviceProviderResolver = new ServiceProviderResolver(cdk, consoleLogger, amplifyMetrics, z);
 

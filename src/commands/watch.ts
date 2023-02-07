@@ -5,6 +5,7 @@ import { AmplifyCommand, envNamePositional, profileNameOption } from './command-
 export const getCommand = () =>
   AmplifyCommand.create('watch')
     .description('Watch and immediately push local project changes')
+    .withCredentialHandler()
     .addArgument(envNamePositional)
     .addOption(profileNameOption)
     .action(watchHandler);

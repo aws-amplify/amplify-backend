@@ -8,6 +8,7 @@ import { AmplifyCommand, envNamePositional } from './command-components';
 export const getCommand = () =>
   AmplifyCommand.create('synth')
     .description("Synthesize the deployment artifacts for an Amplify project but don't deploy them")
+    .withCredentialHandler()
     .addArgument(envNamePositional)
     .action(synthHandler);
 

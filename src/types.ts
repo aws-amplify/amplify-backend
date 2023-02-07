@@ -56,8 +56,10 @@ export type DynamoTableBuilder = {
 };
 
 export type AmplifySecret = {
+  // acceptSecret can call either getValueToken or grantRuntimeAccess on the secret
+  // if grantRuntimeAccess is called, this indicates that the platform should invoke attachRuntimePolicy for the specified runtimeEntityName and secret config
   getValueToken(): string;
-  grantRuntimeAccess(runtimeAccessAttacher: RuntimeAccessAttacher): void;
+  grantRuntimeAccess(runtimeEntityName: string): void;
 };
 
 export type SecretHandler = {

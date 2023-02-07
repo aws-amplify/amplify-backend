@@ -9,6 +9,7 @@ type Opts = {
 export const getCommand = (): Command<Args, Opts> =>
   AmplifyCommand.create('push')
     .description('Push the specified environment to the cloud')
+    .withCredentialHandler()
     .addArgument(envNamePositional)
     .addOption(profileNameOption)
     .action(pushHandler);

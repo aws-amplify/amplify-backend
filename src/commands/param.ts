@@ -1,10 +1,10 @@
-import { Command, createOption } from '@commander-js/extra-typings';
-import { AmplifyCommand, envNamePositional, profileNameOption } from './command-components';
-import aws, { SSM } from 'aws-sdk';
-import { configureProfile } from '../configure-profile';
+import { createOption } from '@commander-js/extra-typings';
+import { AmplifyCommand, envNamePositional } from './command-components';
+import { SSM } from 'aws-sdk';
+import { AmplifyParameters } from '../stubs/amplify-parameters';
 
 export const getCommand = () => {
-  const nameOption = createOption('-n, --name <paramName>', 'The name of the parameter to modify').makeOptionMandatory(true);
+  const nameOption = createOption('-n, --name <paramName...>', 'The name of the parameter to modify').makeOptionMandatory(true);
   const secretOption = createOption(
     '-s, --is-secret',
     'This value is a secret. Indicates that it should never be fetched on the client or printed'
@@ -14,7 +14,7 @@ export const getCommand = () => {
     .withCredentialHandler()
     .addArgument(envNamePositional)
     .addOption(nameOption)
-    .requiredOption('-v, --value <value>', 'The parameter value to set. Any existing value will be overwritten')
+    .requiredOption('-v, --value <value...>', 'The parameter value to set. Any existing value will be overwritten')
     .addOption(secretOption)
     .action(setCommandHandler);
 
@@ -40,53 +40,36 @@ export const getCommand = () => {
 
 type Args = [string];
 type Opts = {
-  name: string;
-  value: string;
+  name: string[];
+  value: string[];
   isSecret: boolean;
 };
 
-const setCommandHandler = async (...[envName, { name, value, isSecret }]: [...Args, Opts]) => {
-  const ssmClient = new SSM();
-  await ssmClient
-    .putParameter({
-      Name: paramName(envName, name),
-      Value: value,
-      Type: isSecret ? 'SecureString' : 'String',
-    })
-    .promise();
-
-  console.log(`Set param ${name} to ${value} in ${envName}`);
+const setCommandHandler = async (...[envName, { name: names, value: values, isSecret }]: [...Args, Opts]) => {
+  if (names.length !== values.length) {
+    throw new Error('Must specify the same number of names and values');
+  }
+  const amplifyParameters = new AmplifyParameters(new SSM(), envName);
+  for (const [idx, name] of names.entries()) {
+    await amplifyParameters.putParameter(name, values[idx], isSecret);
+    console.log(`Set param ${name} to ${isSecret ? '****' : values[idx]} in ${envName}`);
+  }
 };
 
-const removeCommandHandler = async (...[envName, { name }]: [...Args, Pick<Opts, 'name'>]) => {
-  const ssmClient = new SSM();
-  await ssmClient
-    .deleteParameter({
-      Name: paramName(envName, name),
-    })
-    .promise();
-  console.log(`Removed param ${name} in ${envName}`);
+const removeCommandHandler = async (...[envName, { name: names }]: [...Args, Pick<Opts, 'name'>]) => {
+  const amplifyParameters = new AmplifyParameters(new SSM(), envName);
+  for (const name of names) {
+    await amplifyParameters.removeParameter(name);
+    console.log(`Removed param ${name} in ${envName}`);
+  }
 };
 
 const listCommandHandler = async (envName: string) => {
-  const ssmClient = new SSM();
-  // TODO would need to paginate here
-  const params = await ssmClient
-    .getParametersByPath({
-      Path: envPath(envName),
-      WithDecryption: false,
-      MaxResults: 10,
-    })
-    .promise();
-  params.Parameters?.forEach((param) => {
-    const paramName = param.Name?.slice(param.Name.lastIndexOf('/') + 1);
-    if (param.Type === 'String') {
-      console.log(`${paramName}: ${param.Value}`);
-    } else if (param.Type === 'SecureString') {
-      console.log(`${paramName}: <secret>`);
+  (await new AmplifyParameters(new SSM(), envName).listParameters()).forEach((param) => {
+    if (param.isSecret) {
+      console.log(`${param.name}: <secret>`);
+    } else {
+      console.log(`${param.name}: ${param.value}`);
     }
   });
 };
-
-const paramName = (envName: string, paramName: string) => `${envPath(envName)}/${paramName}`;
-const envPath = (envName: string) => `/amp/${envName}`;
