@@ -28,6 +28,8 @@ class AmplifyLambdaProviderFactory implements AmplifyServiceProviderFactory {
 }
 
 class AmplifyLambdaProvider extends AmplifyServiceProvider implements LambdaEventHandler, RuntimeAccessAttacher, SecretHandler {
+  private static readonly runtimeRoleToken = 'lambdaRuntime';
+
   private func: aCDK.aws_lambda.Function;
   private readonly lambda: AmplifyCdkType['aws_lambda'];
   constructor(scope: Construct, private readonly name: string, private readonly cdk: AmplifyCdkType) {
@@ -78,8 +80,8 @@ class AmplifyLambdaProvider extends AmplifyServiceProvider implements LambdaEven
     this.func.addEnvironment(`${resourceName}_Arn`, arnToken);
   }
 
-  acceptSecret(name: string, secret: AmplifySecret): void {
-    secret.grantRuntimeAccess(this);
+  acceptSecret(_name: string, secret: AmplifySecret): void {
+    secret.grantRuntimeAccess(AmplifyLambdaProvider.runtimeRoleToken);
   }
 }
 

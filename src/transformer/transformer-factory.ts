@@ -3,11 +3,9 @@ import { amplifyMetrics } from '../observability-tooling/amplify-metrics';
 import { AmplifyTransformer } from './transformer';
 import { hydrateTokens } from './hydrate-tokens';
 import { AmplifyManifest, ResourceRecord } from '../manifest/manifest-schema';
-import * as cdk from 'aws-cdk-lib';
 import { AmplifyParameters } from '../stubs/amplify-parameters';
 import { ServiceProviderResolver } from '../stubs/service-provider-resolver';
-import { z } from 'zod';
-import { SSM } from 'aws-sdk';
+import { aCDK, aZod } from '../types';
 /**
  * This should be a first class entry point into Amplify for customers who want to integrate an Amplify manifest into an existing CDK application
  *
@@ -17,10 +15,11 @@ import { SSM } from 'aws-sdk';
  * @param tokenizedManifest The raw manifest object that should be transformed
  * @returns Initialized AmplifyTransform instance
  */
-export const createTransformer = async (envName: string, tokenizedManifest: AmplifyManifest): Promise<AmplifyTransformer> => {
-  // TODO new SSM() should be injected into createTransformer rather than initialized here
-  const amplifyParameters = new AmplifyParameters(new SSM(), envName);
-
+export const createTransformer = async (
+  envName: string,
+  amplifyParameters: AmplifyParameters,
+  tokenizedManifest: AmplifyManifest
+): Promise<AmplifyTransformer> => {
   const params = (await amplifyParameters.listParameters()).reduce((collect, param) => {
     collect[param.name] = param.isSecret ? param.ref : param.value;
     return collect;
@@ -29,7 +28,7 @@ export const createTransformer = async (envName: string, tokenizedManifest: Ampl
   // TODO will need more validation here to assert that manifest is correctly formed
   const hydratedResourceDefinition = hydrateTokens(tokenizedManifest.resources, params) as ResourceRecord;
 
-  const serviceProviderResolver = new ServiceProviderResolver(cdk, consoleLogger, amplifyMetrics, z);
+  const serviceProviderResolver = new ServiceProviderResolver(aCDK, consoleLogger, amplifyMetrics, aZod);
 
   // TODO execute preSynthCommand(s) here
 

@@ -1,6 +1,7 @@
 import { IAmplifyLogger } from '../types';
 
 export class ConsoleLogger implements IAmplifyLogger {
+  constructor(private readonly level: string) {}
   error(message: string): void {
     console.error(message);
   }
@@ -22,4 +23,4 @@ export class ConsoleLogger implements IAmplifyLogger {
   }
 }
 
-export const consoleLogger = new ConsoleLogger();
+export const consoleLogger = new ConsoleLogger('info');
