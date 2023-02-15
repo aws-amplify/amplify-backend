@@ -33,8 +33,8 @@ type AccessGranter<Actions extends string, Scopes extends string = never> = {
  * Base class for resource configuration
  */
 export abstract class AmplifyConfigBase<Params, Actions extends string, Scopes extends string = never> implements AccessGranter<Actions, Scopes> {
-  readonly params: Params;
-  readonly id: string;
+  public readonly props: Params;
+  public readonly id: string;
   private permissionTuple: PermissionTuple<Actions, Scopes>;
 
   constructor() {
@@ -85,8 +85,8 @@ type NoSQLTablePropsBase = {
 type CRUDLActions = 'create' | 'read' | 'update' | 'delete' | 'list';
 type NoSQLTableProps = EventSource<NoSQLTablePropsBase, 'stream'>;
 type NoSQLActions = CRUDLActions;
-class AmplifyNoSQLTable extends AmplifyConfigBase<NoSQLTableProps, NoSQLActions> {
-  constructor(readonly props: NoSQLTableProps) {
+export class AmplifyNoSQLTable extends AmplifyConfigBase<NoSQLTableProps, NoSQLActions> {
+  constructor(public readonly props: NoSQLTableProps) {
     super();
   }
 }
@@ -102,8 +102,8 @@ type LambdaPropsBase = {
 };
 type LambdaProps = RuntimeAccess<LambdaPropsBase, 'lambdaRuntime'>;
 type LambdaActions = 'invoke';
-class AmplifyLambda extends AmplifyConfigBase<LambdaProps, LambdaActions> implements EventHandler {
-  constructor(readonly props: LambdaProps) {
+export class AmplifyLambda extends AmplifyConfigBase<LambdaProps, LambdaActions> implements EventHandler {
+  constructor(public readonly props: LambdaProps) {
     super();
   }
 
@@ -126,8 +126,8 @@ type FileStorageBase = {
 type FileStorageProps = EventSource<FileStorageBase, 'stream'>;
 type FileStorageActions = CRUDLActions;
 type FileStorageScopes = string;
-class AmplifyFileStorage extends AmplifyConfigBase<FileStorageProps, FileStorageActions, FileStorageScopes> {
-  constructor(readonly props: FileStorageProps) {
+export class AmplifyFileStorage extends AmplifyConfigBase<FileStorageProps, FileStorageActions, FileStorageScopes> {
+  constructor(public readonly props: FileStorageProps) {
     super();
   }
 }
