@@ -10,3 +10,6 @@ cdk.out
 
 lib
 tsconfig.tsbuildinfo
+
+# example lambda
+!**/testLambda/*

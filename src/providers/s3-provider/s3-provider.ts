@@ -49,7 +49,7 @@ class AmplifyS3Provider extends AmplifyServiceProvider implements LambdaEventSou
       throw new Error(`Unknown event source name ${eventSourceName}`);
     }
 
-    handler.addEventSource(new this.cdk.aws_lambda_event_sources.S3EventSource(this.bucket, { events: [this.cdk.aws_s3.EventType.OBJECT_CREATED] }));
+    // handler.addEventSource(new this.cdk.aws_lambda_event_sources.S3EventSource(this.bucket, { events: [this.cdk.aws_s3.EventType.OBJECT_CREATED] }));
   }
 }
 

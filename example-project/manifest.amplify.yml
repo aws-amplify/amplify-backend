@@ -32,6 +32,7 @@ resources:
     provider: dynamoDbProvider
     definition:
       streamEnabled: true
+      billingMode: PAY_PER_REQUEST
       partitionKey:
         name: testPk
         type: S

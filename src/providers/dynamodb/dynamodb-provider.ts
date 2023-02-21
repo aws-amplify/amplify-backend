@@ -153,7 +153,7 @@ export class AmplifyDynamoDBProvider extends AmplifyServiceProvider implements L
     // construct a wrapper around the custom table to allow normal CDK operations on top of it
     this.customTable = Table.fromTableAttributes(this, 'custom-table', {
       tableArn: gsiCustom.getAttString('TableArn'),
-      tableStreamArn: this.tableProps.stream ? gsiCustom.getAttString('TableStreamArn') : undefined,
+      // tableStreamArn: this.tableProps.stream ? gsiCustom.getAttString('TableStreamArn') : undefined,
       globalIndexes: this.gsis.map((gsi) => gsi.indexName),
     });
 
@@ -168,16 +168,19 @@ export class AmplifyDynamoDBProvider extends AmplifyServiceProvider implements L
     const attributeDefinitionsRecord: Record<string, AttributeDefinition> = {};
     this.toAttributeDefinitions(this.tableProps).forEach((def) => (attributeDefinitionsRecord[def.AttributeName] = def));
 
-    const gsis = this.gsis.map((gsi): GlobalSecondaryIndex => {
-      this.toAttributeDefinitions(gsi).forEach((def) => (attributeDefinitionsRecord[def.AttributeName] = def));
-      return {
-        IndexName: gsi.indexName,
-        KeySchema: this.toKeySchema(gsi),
-        Projection: {
-          ProjectionType: 'ALL',
-        },
-      };
-    });
+    const gsis =
+      this.gsis.length > 0
+        ? this.gsis.map((gsi): GlobalSecondaryIndex => {
+            this.toAttributeDefinitions(gsi).forEach((def) => (attributeDefinitionsRecord[def.AttributeName] = def));
+            return {
+              IndexName: gsi.indexName,
+              KeySchema: this.toKeySchema(gsi),
+              Projection: {
+                ProjectionType: 'ALL',
+              },
+            };
+          })
+        : undefined;
 
     const createTableInput: Omit<CreateTableInput, 'TableName'> = {
       AttributeDefinitions: Object.values(attributeDefinitionsRecord),

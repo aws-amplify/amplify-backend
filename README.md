@@ -26,3 +26,10 @@ node ../lib/local-transform-shim.js
 
 The Amplify transformer will read in the manifest file from the example directory and create CDK CloudAssembly in cdk.out
 To deploy, run `npx cdk deploy --app cdk.out --all --require-approval never` (you will also need to specify an AWS profile)
+
+## AmplifyServiceProvider contract
+
+package must export two things:
+
+1. init function that returns an AmplifyServiceProviderFactory
+2. builder function that can be used by customers to configure the resource in the `amplify.ts` file

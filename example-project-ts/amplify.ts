@@ -1,32 +1,70 @@
-import { NoSQLTable, FileStorage, Function } from './types-experiment';
+import { Auth } from '../src/providers/cognito/auth-def';
+import { NoSQLTable } from '../src/providers/dynamodb/table-def';
+import { Function } from '../src/providers/lambda/function-def';
+import { FileStorage } from '../src/providers/s3-provider/file-storage-def';
 
 const myTable = NoSQLTable({
-  primaryKey: {
-    name: 'pk',
-    type: 'S',
+  props: {
+    primaryKey: {
+      name: 'pk',
+      type: 'S',
+    },
+    sortKey: {
+      name: 'sk',
+      type: 'S',
+    },
+    readCapacity: 6,
+    writeCapacity: 10,
+    secondaryIndexes: [
+      {
+        indexName: 'anotherIndex',
+        primaryKey: {
+          name: 'otherName',
+        },
+      },
+    ],
   },
-  sortKey: {
-    name: 'sk',
-    type: 'S',
-  },
-  readCapacity: 6,
-  writeCapacity: 10,
 });
 
 const myLambda = Function({
-  handler: 'index.handler',
-  runtime: 'nodejs14.x',
-  codePath: './source/code',
+  props: {
+    handler: 'index.handler',
+    runtime: 'nodejs14.x',
+    codePath: './source/code',
+  },
   runtimeAccess: {
-    lambdaRuntime: [myTable.actions('create', 'update').grant()],
+    lambdaRuntime: [myTable.actions('create').grant()],
   },
 });
 
 const myFileStoreage = FileStorage({
-  enforceSSL: true,
-  bpa: true,
+  props: {
+    enforceSSL: true,
+    bpa: true,
+  },
   triggers: {
-    stream: myLambda.eventHandler(),
+    stream: myLambda,
+  },
+});
+
+const myAuth = Auth({
+  props: {
+    authorization: {
+      allowGuestUsers: true,
+    },
+    authentication: {
+      passwordPolicy: {
+        requireLowercase: true,
+      },
+      signInMethod: ['username'],
+      identityProviders: ['facebook'],
+    },
+  },
+  triggers: {
+    preAuthentication: myLambda,
+  },
+  runtimeAccess: {
+    authenticatedUsers: [myFileStoreage.actions('read').grant()],
   },
 });
 
@@ -34,4 +72,5 @@ export const resources = {
   myTable,
   myLambda,
   myFileStoreage,
+  myAuth,
 };

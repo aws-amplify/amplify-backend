@@ -24,8 +24,13 @@ export const onEvent = async (event: CloudFormationCustomResourceEvent): Promise
   switch (event.RequestType) {
     case 'Create':
       log('initiating create');
-      const tableName = await createNewTable(tableDef, event.LogicalResourceId);
-      const result = { PhysicalResourceId: tableName };
+      const response = await createNewTable(tableDef, event.LogicalResourceId);
+      const result = {
+        PhysicalResourceId: response.tableName,
+        Data: {
+          TableArn: response.tableArn,
+        },
+      };
       log('returning result', result);
       return result;
     case 'Update':
@@ -38,8 +43,8 @@ export const onEvent = async (event: CloudFormationCustomResourceEvent): Promise
       if (isKeySchemaModified(describeTableResult.Table.KeySchema!, tableDef.KeySchema)) {
         // TODO there are a few other updates (such as LSIs) that would also need to be handled here
         log('update requires replacement');
-        const tableName = await createNewTable(tableDef, event.LogicalResourceId);
-        const result = { PhysicalResourceId: tableName };
+        const response = await createNewTable(tableDef, event.LogicalResourceId);
+        const result = { PhysicalResourceId: response.tableName, Data: { TableArn: response.tableArn } };
         log('returning result', result);
         return result;
       }
@@ -181,15 +186,22 @@ export const getNextGSIUpdate = (currentState: TableDescription, endState: Custo
 };
 
 type TableName = string;
-const createNewTable = async (input: CustomDDB.Input, logicalId: string): Promise<TableName> => {
+
+type CreateTableResponse = {
+  tableName: string;
+  tableArn: string;
+  streamArn?: string;
+};
+const createNewTable = async (input: CustomDDB.Input, logicalId: string): Promise<CreateTableResponse> => {
   const now = Date.now().toString();
   const tableName = `${logicalId}${now.substring(now.length - 4)}`;
   const createTableInput: CreateTableInput = {
     TableName: tableName,
     ...input,
   };
-  await ddbClient.createTable(createTableInput).promise();
-  return tableName;
+  const result = await ddbClient.createTable(createTableInput).promise();
+  result.TableDescription?.TableArn;
+  return { tableName, tableArn: result.TableDescription?.TableArn!, streamArn: result.TableDescription?.LatestStreamArn };
 };
 
 const isProjectionModified = (currentProjection: Projection, endProjection: Projection): boolean => {
