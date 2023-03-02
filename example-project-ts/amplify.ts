@@ -26,6 +26,13 @@ const myTable = NoSQLTable({
   },
 });
 
+const myFileStoreage = FileStorage({
+  props: {
+    enforceSSL: true,
+    bpa: true,
+  },
+});
+
 const myLambda = Function({
   props: {
     handler: 'index.handler',
@@ -33,17 +40,7 @@ const myLambda = Function({
     codePath: './source/code',
   },
   runtimeAccess: {
-    lambdaRuntime: [myTable.actions('create').grant()],
-  },
-});
-
-const myFileStoreage = FileStorage({
-  props: {
-    enforceSSL: true,
-    bpa: true,
-  },
-  triggers: {
-    stream: myLambda,
+    lambdaRuntime: [myFileStoreage.actions('list', 'read').grant()],
   },
 });
 
@@ -57,11 +54,11 @@ const myAuth = Auth({
         requireLowercase: true,
       },
       signInMethod: ['username'],
-      identityProviders: ['facebook'],
+      identityProviders: ['login_with_amazon', 'facebook'],
     },
   },
   triggers: {
-    preAuthentication: myLambda,
+    preAuthentication: myLambda.triggerHandler(),
   },
   runtimeAccess: {
     authenticatedUsers: [myFileStoreage.actions('read').grant()],

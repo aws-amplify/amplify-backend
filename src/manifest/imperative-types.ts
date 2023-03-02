@@ -1,9 +1,12 @@
 import { randomUUID } from 'crypto';
 
-export type EventHandler = {
-  _eventHandler: true;
+export type TriggerHandler = {
+  triggerHandler: () => TriggerHandlerRef;
+};
+
+export type TriggerHandlerRef = {
+  _refType: 'trigger';
   id: string;
-  // eventHandler: () => EventHandlerTuple;
 };
 
 export type PermissionTuple<Actions extends string, Scopes extends string> = {
@@ -20,7 +23,7 @@ export type AccessGranter<Actions extends string, Scopes extends string = never>
 
 export type ResourceDefinition<Props, EventSources extends string | undefined = undefined, RuntimeRoles extends string | undefined = undefined> = {
   props: Props;
-  triggers?: EventSources extends string ? Record<EventSources, EventHandler> | undefined : undefined;
+  triggers?: EventSources extends string ? Record<EventSources, TriggerHandlerRef> | undefined : undefined;
   runtimeAccess?: RuntimeRoles extends string ? Record<RuntimeRoles, PermissionTuple<string, string>[]> | undefined : undefined;
 };
 
