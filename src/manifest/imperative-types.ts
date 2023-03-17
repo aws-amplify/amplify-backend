@@ -68,3 +68,5 @@ export abstract class AmplifyConfigBase<ResourceDef, Actions extends string, Sco
     };
   }
 }
+
+export type AmplifyFunction = Function | 
