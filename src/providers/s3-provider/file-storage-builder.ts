@@ -5,7 +5,7 @@ type FileStorageActions = 'create' | 'read' | 'update' | 'delete' | 'list';
 
 class AmplifyFileStorage extends AmplifyBuilderBase<FileStorageConfig, 'stream', never, FileStorageActions, string> {
   constructor(public readonly props: FileStorageConfig) {
-    super('@aws-amplify/file-storage-provider', props);
+    super('@aws-amplify/file-storage-adaptor', props);
   }
 }
 export const FileStorage = (props: FileStorageConfig) => new AmplifyFileStorage(props);

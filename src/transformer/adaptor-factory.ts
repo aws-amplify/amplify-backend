@@ -21,8 +21,8 @@ export const getConstructAdaptorFactory = async (constructMap: ConstructMap): Pr
 // this is necesary now because I haven't set up a monorepo with npm links to other packages
 const getTempPath = (name: string): string => {
   const pathMap: Record<string, string> = {
-    '@aws-amplify/file-storage-adaptor': path.resolve(__dirname, '../providers/s3-provider/s3-provider'),
-    '@aws_amplify/function-adaptor': path.resolve(__dirname, '../providers/lambda/lambda-provider'),
+    '@aws-amplify/file-storage-adaptor': path.resolve(__dirname, '../providers/s3-provider/s3-provider.js'),
+    '@aws-amplify/function-adaptor': path.resolve(__dirname, '../providers/lambda/lambda-provider.js'),
   };
 
   return pathMap[name] ?? name;

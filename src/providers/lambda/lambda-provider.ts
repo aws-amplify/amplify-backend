@@ -1,5 +1,6 @@
 import { Duration, aws_lambda as lambda, aws_iam as iam } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
+import path from 'path';
 import { z } from 'zod';
 import {
   ConstructAdaptor,
@@ -29,7 +30,7 @@ class AmplifyLambdaProviderFactory implements ConstructAdaptorFactory {
 }
 
 class AmplifyLambdaProvider extends ConstructAdaptor implements LambdaEventHandler, RuntimeAccessAttacher, SecretHandler {
-  private static readonly runtimeRoleToken = 'lambdaRuntime';
+  private static readonly runtimeRoleToken = 'runtime';
   private func: lambda.Function | undefined;
   constructor(scope: Construct, private readonly name: string) {
     super(scope, name);
@@ -44,7 +45,7 @@ class AmplifyLambdaProvider extends ConstructAdaptor implements LambdaEventHandl
       runtime: new lambda.Runtime(configuration.runtime),
       handler: configuration.handler,
       timeout: typeof configuration.timeoutSeconds === 'number' ? Duration.seconds(configuration.timeoutSeconds) : undefined,
-      code: lambda.Code.fromAsset(configuration.codePath),
+      code: lambda.Code.fromAsset(path.resolve(process.cwd(), configuration.codePath)),
     });
   }
 
@@ -61,7 +62,7 @@ class AmplifyLambdaProvider extends ConstructAdaptor implements LambdaEventHandl
     policy: iam.PolicyStatement,
     { resourceName, physicalNameToken, arnToken }: RuntimeResourceInfo
   ): void {
-    if (runtimeRoleToken !== 'lambdaRuntime') {
+    if (runtimeRoleToken !== 'runtime') {
       throw new Error(`Unknown runtimeRoleToken ${runtimeRoleToken} found when generating access policy`);
     }
     this.func!.addToRolePolicy(policy);

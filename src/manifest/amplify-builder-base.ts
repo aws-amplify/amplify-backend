@@ -6,7 +6,7 @@ import path from 'path';
 import { serializeFunction } from '@pulumi/pulumi/runtime';
 import * as fs from 'fs-extra';
 import { build } from 'esbuild';
-import { BuildConfig, constructConfig, constructMap, ConstructMap, RuntimeAccessConfig, SecretConfig, TriggerConfig } from './ir-definition';
+import { BuildConfig, ConstructConfig, constructConfig, RuntimeAccessConfig, SecretConfig, TriggerConfig } from './ir-definition';
 
 export type TriggerHandler = {
   triggerHandler: () => TriggerHandlerRef;
@@ -49,7 +49,7 @@ export abstract class AmplifyBuilderBase<
 
   protected readonly triggers: TriggerConfig = {};
   protected readonly runtimeAccess: RuntimeAccessConfig = {};
-  protected readonly inlineConstructs: ConstructMap = {};
+  protected readonly inlineConstructs: Record<string, { config: ConstructConfig; id: string }> = {};
   protected readonly secrets: SecretConfig = {};
   protected buildConfig?: BuildConfig;
 
@@ -78,7 +78,8 @@ export abstract class AmplifyBuilderBase<
     if (typeof callback === 'function') {
       const amplifyFunction = await InlineFunction(callback);
       callbackName = callbackName ?? `${eventName}Trigger`;
-      this.inlineConstructs[callbackName] = amplifyFunction._build().config;
+      const buildResult = amplifyFunction._build();
+      this.inlineConstructs[callbackName] = { config: buildResult.config, id: buildResult.id };
       this.triggers[eventName] = amplifyFunction.id;
     } else {
       this.triggers[eventName] = callback.id;
@@ -104,6 +105,7 @@ export abstract class AmplifyBuilderBase<
 
   _build(): BuildResult {
     return {
+      id: this.id,
       config: {
         adaptor: this.adaptor,
         properties: this.config,
@@ -118,8 +120,14 @@ export abstract class AmplifyBuilderBase<
 }
 
 export const buildResult = z.object({
+  id: z.string(),
   config: constructConfig,
-  inlineConstructs: constructMap,
+  inlineConstructs: z.record(
+    z.object({
+      config: constructConfig,
+      id: z.string(),
+    })
+  ),
 });
 
 export type BuildResult = z.infer<typeof buildResult>;
@@ -158,7 +166,7 @@ export class AmplifyFunction extends AmplifyBuilderBase<FunctionConfig, never, '
   static fromAsync = async (func: Function): Promise<AmplifyFunction> => {
     // serialize the function closure
     const serialized = await serializeFunction(func);
-    const funcHash = createHash('md5').update(serialized.text).digest('base64');
+    const funcHash = createHash('md5').update(serialized.text).digest('hex');
     const tempFile = path.resolve(process.cwd(), 'temp-build.js');
     const bundlePath = path.join(process.cwd(), '.build', funcHash);
     const bundleNameBase = 'lambda-bundle';

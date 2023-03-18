@@ -21,6 +21,8 @@ class SynthCommand extends AmplifyCommandBase {
   private handler = async (envName: string, { fromDeclarative }: { fromDeclarative?: boolean }) => {
     const config = fromDeclarative ? await declarativeConfigLoader() : await imperativeConfigLoader();
 
+    console.log(JSON.stringify(config, undefined, 2));
+
     const amplifyTransform = await createTransformer(envName, config.constructMap);
 
     const app = new App({ outdir: 'cdk.out' });
@@ -36,18 +38,26 @@ const declarativeConfigLoader = async (): Promise<ProjectConfig> => {
 };
 
 const imperativeConfigLoader = async (): Promise<ProjectConfig> => {
-  let constructMap: ConstructMap = {};
-  const def = (await import(path.resolve(process.cwd(), 'amplify.js'))) as Record<string, unknown>;
+  const constructMap: ConstructMap = {};
+  const idToNameMap: Record<string, string> = {};
+  const def = (await import(path.resolve(process.cwd(), 'lib', 'example-project-ts', 'amplify.mjs'))) as Record<string, unknown>;
   Object.entries(def).forEach(([constructName, constructBuilder]) => {
     const builder = getConstructBuilderFunction(constructName, constructBuilder);
     const result = buildResult.parse(builder());
     constructMap[constructName] = result.config;
+    idToNameMap[result.id] = constructName;
     Object.entries(result.inlineConstructs).forEach(([name, config]) => {
-      constructMap[name] = config;
+      constructMap[name] = config.config;
+      idToNameMap[config.id] = name;
     });
   });
+  // quick and dirty hack to replace all ids with their corresponding name in the constructMap object
+  let constructMapString = JSON.stringify(constructMap);
+  Object.entries(idToNameMap).forEach(([id, name]) => {
+    constructMapString = constructMapString.replace(new RegExp(id, 'g'), name);
+  });
   return {
-    constructMap,
+    constructMap: JSON.parse(constructMapString),
   };
 };
 
@@ -64,7 +74,7 @@ const getConstructBuilderFunction = (constructName: string, constructBuilder: un
   if (typeof constructBuilder._build !== 'function') {
     throw new Error(`${constructName} _build member is not a function`);
   }
-  return constructBuilder._build;
+  return constructBuilder._build.bind(constructBuilder);
 };
 
 export const getCommand = () => new SynthCommand();

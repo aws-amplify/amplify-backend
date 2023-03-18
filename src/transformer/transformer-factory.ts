@@ -23,7 +23,7 @@ const executeBuildCommands = async (componentMap: ConstructMap) => {
     .map((componentConfig) => componentConfig.build)
     .map((buildConfig) => {
       const workingDir = buildConfig!.relativeWorkingDir ? path.resolve(process.cwd(), buildConfig!.relativeWorkingDir) : process.cwd();
-      return execa.command(buildConfig!.command, { cwd: workingDir, stdio: 'inherit' });
+      return execa.command(buildConfig!.command, { cwd: workingDir, stdio: 'inherit', shell: 'bash' });
     });
   try {
     await Promise.all(buildPromises);

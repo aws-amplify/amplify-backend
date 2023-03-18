@@ -3,6 +3,7 @@
 *.d.ts
 !custom-resource-types.d.ts
 node_modules
+.build
 
 # CDK asset staging directory
 .cdk.staging

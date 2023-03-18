@@ -6,14 +6,16 @@ constructMap:
     triggers:
       stream: resizeImage
   resizeImage:
-    adaptor: '@aws_amplify/function-adaptor'
+    adaptor: '@aws-amplify/function-adaptor'
     properties:
       runtime: nodejs18.x
       handler: index.handler
       codePath: ./testLambda
-    buildCommand: cd ./testLambda && npx tsc
+    build:
+      command: echo build command executing in $(pwd)
+      relativeWorkingDir: ./testLambda
     runtimeAccess:
-      lambdaRuntime:
+      runtime:
         myFileStorage:
           - actions: [create, read]
             scopes: [only/this/path]

@@ -90,7 +90,7 @@ export class AmplifyTransformer {
    */
   private triggerVisitor: ConstructVisitor = (constructName, constructAdaptor, constructConfig): void => {
     // if this node does not define any trigger config, early return
-    if (!constructConfig.triggers) {
+    if (!constructConfig.triggers || Object.keys(constructConfig.triggers).length === 0) {
       return;
     }
 
@@ -141,7 +141,7 @@ export class AmplifyTransformer {
   private permissionsVisitor: ConstructVisitor = (constructName, constructAdaptor, constructConfig): void => {
     // check if the current resource declares any runtime access
     const permissionDefinition = constructConfig.runtimeAccess;
-    if (!permissionDefinition) {
+    if (!permissionDefinition || Object.keys(permissionDefinition).length === 0) {
       return;
     }
 
