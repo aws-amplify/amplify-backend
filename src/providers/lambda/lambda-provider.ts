@@ -39,7 +39,7 @@ class AmplifyLambdaProvider extends ConstructAdaptor implements LambdaEventHandl
     return inputSchema;
   }
 
-  init(configuration: InputSchema) {
+  init(configuration: FunctionConfig) {
     this.func = new lambda.Function(this, this.name, {
       runtime: new lambda.Runtime(configuration.runtime),
       handler: configuration.handler,
@@ -91,4 +91,4 @@ const inputSchema = z.object({
     .optional(),
 });
 
-export type InputSchema = z.infer<typeof inputSchema>;
+export type FunctionConfig = z.infer<typeof inputSchema>;

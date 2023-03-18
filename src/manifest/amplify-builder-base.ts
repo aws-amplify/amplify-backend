@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto';
-import { InputSchema } from '../providers/lambda/lambda-provider';
-import { ConstructConfig, RuntimeAccessConfig, TriggerConfig } from './ir-definition';
+import { IAmplifyFunction, InlineFunction } from './function-builder';
+import { BuildConfig, ConstructConfig, ConstructMap, RuntimeAccessConfig, SecretConfig, TriggerConfig } from './ir-definition';
 
 export type TriggerHandler = {
   triggerHandler: () => TriggerHandlerRef;
@@ -36,29 +36,48 @@ export abstract class AmplifyBuilderBase<
   Config,
   Event extends string = string,
   RuntimeRoleName extends string = string,
-  Actions extends string,
-  Scopes extends string = never
+  Action extends string = string,
+  Scope extends string = never
 > {
-  protected readonly props: Config;
   protected readonly id: string;
-  protected readonly providerName: string;
+
   protected readonly triggers: TriggerConfig = {};
   protected readonly runtimeAccess: RuntimeAccessConfig = {};
+  protected readonly inlineConstructs: ConstructMap = {};
+  protected readonly secrets: SecretConfig = {};
+  protected buildConfig?: BuildConfig;
 
-  protected permissionTuple: PermissionTuple<Actions, Scopes>;
-
-  constructor(providerName: string) {
-    this.providerName = providerName;
+  constructor(protected readonly adaptor: string, protected readonly config: Config) {
     this.id = randomUUID();
-    this.resetPermissions();
   }
 
-  on(eventName: Event, callback: AmplifyFunction | Function): this {
-    if (callback instanceof AmplifyFunction) {
-      this.triggers[eventName] = callback.id;
+  /**
+   * Configure a function to run when this construct produces an event
+   * @param eventName The event to attach a function to
+   * @param callback The function to execute on the event
+   */
+  eventHandler(eventName: Event, callback: IAmplifyFunction): this {
+    this.triggers[eventName] = callback.id;
+    return this;
+  }
+
+  /**
+   * Alias to eventHandler that takes in a native callback function and wraps it in an AmplifyFunction
+   * @param eventName
+   * @param callback
+   * @param callbackName
+   * @returns
+   */
+  async on(eventName: Event, callback: IAmplifyFunction | Function, callbackName?: string): Promise<this> {
+    if (typeof callback === 'function') {
+      const amplifyFunction = await InlineFunction(callback);
+      callbackName = callbackName ?? `${eventName}Trigger`;
+      this.inlineConstructs[callbackName] = amplifyFunction._build().config;
+      this.triggers[eventName] = amplifyFunction.id;
     } else {
-      // serialize function
+      this.triggers[eventName] = callback.id;
     }
+    return this;
   }
 
   grant(roleName: RuntimeRoleName, policyBuilder: PolicyGrantBuilder): this {
@@ -73,17 +92,23 @@ export abstract class AmplifyBuilderBase<
     return this;
   }
 
-  actions(...actions: Actions[]) {}
-
-  private resetPermissions() {
-    this.permissionTuple = {
-      resourceId: this.id,
-      actions: [],
-      scopes: [],
-    };
+  actions(...actions: [Action, ...Action[]]): PolicyGrantBuilder<Action, Scope> {
+    return new PolicyGrantBuilder(this.id, actions);
   }
 
-  async _build(): Promise<ConstructConfig>;
+  _build(): { config: ConstructConfig; inlineConstructs: ConstructMap } {
+    return {
+      config: {
+        adaptor: this.adaptor,
+        properties: this.config,
+        triggers: this.triggers,
+        runtimeAccess: this.runtimeAccess,
+        secrets: this.secrets,
+        build: this.buildConfig,
+      },
+      inlineConstructs: this.inlineConstructs,
+    };
+  }
 }
 
 export class PolicyGrantBuilder<Action extends string = string, Scope extends string = string> {
@@ -109,10 +134,3 @@ type PolicyGrant<Action extends string = string, Scope extends string = string> 
   actions: [Action, ...Action[]];
   scopes?: Scope[];
 };
-
-export class AmplifyFunction extends AmplifyBuilderBase<InputSchema, never, 'executionRole', 'invoke'> {
-  protected name?: string;
-  constructor(public readonly props: InputSchema) {
-    super('@aws-amplify/function-adaptor');
-  }
-}

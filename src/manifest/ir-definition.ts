@@ -18,11 +18,13 @@ export type RuntimeAccessConfig = z.infer<typeof runtimeAccessConfig>;
 
 // Record<secretName, SSM reference>
 export const secretConfig = z.record(z.string());
+export type SecretConfig = z.infer<typeof secretConfig>;
 
 export const buildConfig = z.object({
   command: z.string(),
   relativeWorkingDir: z.string().optional(),
 });
+export type BuildConfig = z.infer<typeof buildConfig>;
 
 export const constructConfig = z.object({
   adaptor: z.string(),

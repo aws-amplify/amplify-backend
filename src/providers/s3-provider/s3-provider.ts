@@ -34,7 +34,7 @@ class AmplifyS3Provider extends ConstructAdaptor implements LambdaEventSource {
     return inputSchema;
   }
 
-  init(configuration: InputSchema) {
+  init(configuration: FileStorageConfig) {
     s3.BucketEncryption.KMS_MANAGED;
     this.bucket = new s3.Bucket(this, this.name, {
       enforceSSL: configuration.enforceSSL,
@@ -90,7 +90,7 @@ class AmplifyS3Provider extends ConstructAdaptor implements LambdaEventSource {
 }
 
 const inputSchema = z.object({
-  enforceSSL: z.boolean().default(true),
+  enforceSSL: z.boolean().default(true).optional(),
 });
 
-type InputSchema = z.infer<typeof inputSchema>;
+export type FileStorageConfig = z.infer<typeof inputSchema>;
