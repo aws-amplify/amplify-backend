@@ -176,12 +176,19 @@ export class AmplifyTransformer {
         const policyContents = accessConfigList.map((resourceAccessConfig) => permissionGranter.getPolicyContent!(resourceAccessConfig));
         policyContents.forEach((policyContent) => {
           // for each policy
-          // construct weak references using AmplifyReference
-          const arnRef = new AmplifyReference(permissionGranter, `${targetConstructName}-arn`, policyContent.arnToken);
-          const nameRef = new AmplifyReference(permissionGranter, `${targetConstructName}-name`, policyContent.physicalNameToken);
 
-          const destArnToken = arnRef.getValue(constructAdaptor);
-          const destNameToken = nameRef.getValue(constructAdaptor);
+          let destArnToken = policyContent.arnToken;
+          let destNameToken = policyContent.physicalNameToken;
+
+          // check if we need to make weak references
+          if (Stack.of(permissionGranter) !== Stack.of(constructAdaptor)) {
+            // construct weak references using AmplifyReference
+            const arnRef = new AmplifyReference(permissionGranter, `${targetConstructName}-arn`, policyContent.arnToken);
+            const nameRef = new AmplifyReference(permissionGranter, `${targetConstructName}-name`, policyContent.physicalNameToken);
+
+            destArnToken = arnRef.getValue(constructAdaptor);
+            destNameToken = nameRef.getValue(constructAdaptor);
+          }
 
           // append suffix scopes (if any) to the resource arn
           const resources =
