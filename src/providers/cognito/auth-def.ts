@@ -1,6 +1,6 @@
 import { AmplifyBuilderBase, ResourceDefinition } from '../../manifest/amplify-builder-base';
 
-type CognitoPropsBase = {
+type AuthConfig = {
   authorization: {
     allowGuestUsers: boolean;
   };
@@ -19,7 +19,7 @@ type CognitoPropsBase = {
   };
 };
 
-type Events =
+type Event =
   | 'createAuthChallenge'
   | 'defineAuthChallenge'
   | 'postAuthentication'
@@ -33,12 +33,12 @@ type RuntimeRoles = 'unauthenticatedUsers' | 'authenticatedUsers';
 
 type Actions = 'create' | 'read' | 'update' | 'delete' | 'list';
 
-type Props = ResourceDefinition<CognitoPropsBase, Events, RuntimeRoles>;
+type Props = ResourceDefinition<AuthConfig, Event, RuntimeRoles>;
 
-export class AmplifyAuth extends AmplifyBuilderBase<Props, Actions> {
-  constructor(public readonly props: Props) {
-    super('@aws-amplify/auth');
+export class AmplifyAuth extends AmplifyBuilderBase<AuthConfig, Event, RuntimeRoles, Actions> {
+  constructor(config: AuthConfig) {
+    super('@aws-amplify/auth–adaptor', config);
   }
 }
 
-export const Auth = (props: Props) => new AmplifyAuth(props);
+export const Auth = (props: AuthConfig) => new AmplifyAuth(props);

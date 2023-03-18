@@ -25,7 +25,7 @@ class AmplifyS3ProviderFactory implements ConstructAdaptorFactory {
 }
 
 class AmplifyS3Provider extends ConstructAdaptor implements LambdaEventSource {
-  private bucket: s3.Bucket;
+  private bucket: s3.Bucket | undefined;
   constructor(scope: Construct, private readonly name: string) {
     super(scope, name);
   }
@@ -42,7 +42,7 @@ class AmplifyS3Provider extends ConstructAdaptor implements LambdaEventSource {
   }
 
   finalizeResources(): void {
-    Stack.of(this).addMetadata('bucketArn', this.bucket.bucketArn);
+    Stack.of(this).addMetadata('bucketArn', this.bucket!.bucketArn);
   }
 
   attachLambdaEventHandler(eventSourceName: string, handler: lambda.IFunction): void {
@@ -51,7 +51,7 @@ class AmplifyS3Provider extends ConstructAdaptor implements LambdaEventSource {
     }
 
     const s3StreamQueue = new sqs.Queue(this, 's3-stream-queue');
-    this.bucket.addEventNotification(EventType.OBJECT_CREATED, new aws_s3_notifications.SqsDestination(s3StreamQueue));
+    this.bucket!.addEventNotification(EventType.OBJECT_CREATED, new aws_s3_notifications.SqsDestination(s3StreamQueue));
 
     handler.addEventSource(new eventSource.SqsEventSource(s3StreamQueue));
   }
@@ -81,8 +81,8 @@ class AmplifyS3Provider extends ConstructAdaptor implements LambdaEventSource {
       }
     });
     return {
-      arnToken: this.bucket.bucketArn,
-      physicalNameToken: this.bucket.bucketName,
+      arnToken: this.bucket!.bucketArn,
+      physicalNameToken: this.bucket!.bucketName,
       actions: Array.from(actionSet),
       resourceSuffixes: [],
     };

@@ -30,7 +30,7 @@ class AmplifyLambdaProviderFactory implements ConstructAdaptorFactory {
 
 class AmplifyLambdaProvider extends ConstructAdaptor implements LambdaEventHandler, RuntimeAccessAttacher, SecretHandler {
   private static readonly runtimeRoleToken = 'lambdaRuntime';
-  private func: lambda.Function;
+  private func: lambda.Function | undefined;
   constructor(scope: Construct, private readonly name: string) {
     super(scope, name);
   }
@@ -53,7 +53,7 @@ class AmplifyLambdaProvider extends ConstructAdaptor implements LambdaEventHandl
   }
 
   getLambdaRef(): lambda.IFunction {
-    return this.func;
+    return this.func!;
   }
 
   attachRuntimePolicy(
@@ -64,12 +64,12 @@ class AmplifyLambdaProvider extends ConstructAdaptor implements LambdaEventHandl
     if (runtimeRoleToken !== 'lambdaRuntime') {
       throw new Error(`Unknown runtimeRoleToken ${runtimeRoleToken} found when generating access policy`);
     }
-    this.func.addToRolePolicy(policy);
+    this.func!.addToRolePolicy(policy);
     /*
     NOTE: Changing the keys here would be a breaking change for existing lambdas
     */
-    this.func.addEnvironment(`${resourceName}_Name`, physicalNameToken);
-    this.func.addEnvironment(`${resourceName}_Arn`, arnToken);
+    this.func!.addEnvironment(`${resourceName}_Name`, physicalNameToken);
+    this.func!.addEnvironment(`${resourceName}_Arn`, arnToken);
   }
 
   acceptSecret(_name: string, secret: AmplifySecret): void {

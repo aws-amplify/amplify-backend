@@ -1,6 +1,12 @@
 import { randomUUID } from 'crypto';
-import { IAmplifyFunction, InlineFunction } from './function-builder';
-import { BuildConfig, ConstructConfig, ConstructMap, RuntimeAccessConfig, SecretConfig, TriggerConfig } from './ir-definition';
+import { z } from 'zod';
+import { FunctionConfig } from '../providers/lambda/lambda-provider';
+import { createHash } from 'crypto';
+import path from 'path';
+import { serializeFunction } from '@pulumi/pulumi/runtime';
+import * as fs from 'fs-extra';
+import { build } from 'esbuild';
+import { BuildConfig, constructConfig, constructMap, ConstructMap, RuntimeAccessConfig, SecretConfig, TriggerConfig } from './ir-definition';
 
 export type TriggerHandler = {
   triggerHandler: () => TriggerHandlerRef;
@@ -34,10 +40,10 @@ export type ResourceDefinition<Props, EventSources extends string | undefined = 
  */
 export abstract class AmplifyBuilderBase<
   Config,
-  Event extends string = string,
-  RuntimeRoleName extends string = string,
-  Action extends string = string,
-  Scope extends string = never
+  Events extends string = string,
+  RuntimeRoles extends string = string,
+  Actions extends string = string,
+  Scopes extends string = never
 > {
   protected readonly id: string;
 
@@ -56,7 +62,7 @@ export abstract class AmplifyBuilderBase<
    * @param eventName The event to attach a function to
    * @param callback The function to execute on the event
    */
-  eventHandler(eventName: Event, callback: IAmplifyFunction): this {
+  eventHandler(eventName: Events, callback: IAmplifyFunction): this {
     this.triggers[eventName] = callback.id;
     return this;
   }
@@ -68,7 +74,7 @@ export abstract class AmplifyBuilderBase<
    * @param callbackName
    * @returns
    */
-  async on(eventName: Event, callback: IAmplifyFunction | Function, callbackName?: string): Promise<this> {
+  async on(eventName: Events, callback: IAmplifyFunction | Function, callbackName?: string): Promise<this> {
     if (typeof callback === 'function') {
       const amplifyFunction = await InlineFunction(callback);
       callbackName = callbackName ?? `${eventName}Trigger`;
@@ -80,7 +86,7 @@ export abstract class AmplifyBuilderBase<
     return this;
   }
 
-  grant(roleName: RuntimeRoleName, policyBuilder: PolicyGrantBuilder): this {
+  grant(roleName: RuntimeRoles, policyBuilder: PolicyGrantBuilder): this {
     const policy = policyBuilder._build();
     if (!this.runtimeAccess[roleName]) {
       this.runtimeAccess[roleName] = {};
@@ -92,11 +98,11 @@ export abstract class AmplifyBuilderBase<
     return this;
   }
 
-  actions(...actions: [Action, ...Action[]]): PolicyGrantBuilder<Action, Scope> {
+  actions(...actions: [Actions, ...Actions[]]): PolicyGrantBuilder<Actions, Scopes> {
     return new PolicyGrantBuilder(this.id, actions);
   }
 
-  _build(): { config: ConstructConfig; inlineConstructs: ConstructMap } {
+  _build(): BuildResult {
     return {
       config: {
         adaptor: this.adaptor,
@@ -110,6 +116,13 @@ export abstract class AmplifyBuilderBase<
     };
   }
 }
+
+export const buildResult = z.object({
+  config: constructConfig,
+  inlineConstructs: constructMap,
+});
+
+export type BuildResult = z.infer<typeof buildResult>;
 
 export class PolicyGrantBuilder<Action extends string = string, Scope extends string = string> {
   private _scopes: Scope[] = [];
@@ -134,3 +147,47 @@ type PolicyGrant<Action extends string = string, Scope extends string = string> 
   actions: [Action, ...Action[]];
   scopes?: Scope[];
 };
+
+export type IAmplifyFunction = AmplifyBuilderBase<FunctionConfig, never, 'runtime', 'invoke'>;
+
+export class AmplifyFunction extends AmplifyBuilderBase<FunctionConfig, never, 'runtime', 'invoke'> {
+  constructor(config: FunctionConfig) {
+    super('@aws-amplify/function-adaptor', config);
+  }
+
+  static fromAsync = async (func: Function): Promise<AmplifyFunction> => {
+    // serialize the function closure
+    const serialized = await serializeFunction(func);
+    const funcHash = createHash('md5').update(serialized.text).digest('base64');
+    const tempFile = path.resolve(process.cwd(), 'temp-build.js');
+    const bundlePath = path.join(process.cwd(), '.build', funcHash);
+    const bundleNameBase = 'lambda-bundle';
+    const bundleFile = path.join(bundlePath, `${bundleNameBase}.js`);
+    await fs.writeFile(tempFile, serialized.text);
+    await build({
+      entryPoints: [tempFile],
+      outfile: bundleFile,
+      bundle: true,
+      format: 'cjs',
+      platform: 'node',
+      external: ['aws-sdk'],
+    });
+    // esbuild places 'use strict' on the first line of the file which is incompatible with the serialized function
+    const bundleContent = await fs.readFile(bundleFile, 'utf-8');
+    const lines = bundleContent.split('\n');
+    lines.shift();
+    await fs.writeFile(bundleFile, lines.join('\n'), 'utf-8');
+
+    // remove the temp file
+    await fs.unlink(tempFile);
+    return new AmplifyFunction({
+      handler: `${bundleNameBase}.${serialized.exportName}`,
+      runtime: 'nodejs18.x',
+      codePath: bundlePath,
+    });
+  };
+}
+
+export const AFunction = (config: FunctionConfig) => new AmplifyFunction(config);
+
+export const InlineFunction = (callback: Function) => AmplifyFunction.fromAsync(callback);
