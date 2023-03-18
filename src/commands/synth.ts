@@ -40,7 +40,8 @@ const declarativeConfigLoader = async (): Promise<ProjectConfig> => {
 const imperativeConfigLoader = async (): Promise<ProjectConfig> => {
   const constructMap: ConstructMap = {};
   const idToNameMap: Record<string, string> = {};
-  const def = (await import(path.resolve(process.cwd(), 'lib', 'example-project-ts', 'amplify.mjs'))) as Record<string, unknown>;
+  // TODO hardcoding this path for now but we should have a standard place we expect to find it
+  const def = (await import(path.resolve(process.cwd(), 'lib', 'example-project', 'amplify.mjs'))) as Record<string, unknown>;
   Object.entries(def).forEach(([constructName, constructBuilder]) => {
     const builder = getConstructBuilderFunction(constructName, constructBuilder);
     const result = buildResult.parse(builder());

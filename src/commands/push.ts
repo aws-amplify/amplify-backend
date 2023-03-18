@@ -17,7 +17,7 @@ class PushCommand extends AmplifyCommandBase {
   }
 
   private handler = async (...[env, { profile }]: [...Args, Opts]) => {
-    const cdkArgs = ['deploy', '--app', `nxt synth ${env}`, '--all', '--require-approval', 'never', '--concurrency', '5'];
+    const cdkArgs = ['deploy', '--app', `"nxt synth ${env}"`, '--all', '--require-approval', 'never', '--concurrency', '5'];
     if (profile) {
       cdkArgs.push('--profile', profile);
     }
