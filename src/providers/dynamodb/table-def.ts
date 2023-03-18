@@ -1,4 +1,4 @@
-import { AmplifyConfigBase, ResourceDefinition } from '../../manifest/imperative-types';
+import { AmplifyBuilderBase, ResourceDefinition } from '../../manifest/amplify-builder-base';
 
 type Key = {
   name: string;
@@ -20,7 +20,7 @@ type TableProps = Index & {
 };
 type NoSQLTableProps = ResourceDefinition<TableProps, 'stream', never>;
 type NoSQLActions = 'create' | 'read' | 'update' | 'delete' | 'list';
-export class AmplifyNoSQLTable extends AmplifyConfigBase<NoSQLTableProps, NoSQLActions> {
+export class AmplifyNoSQLTable extends AmplifyBuilderBase<NoSQLTableProps, NoSQLActions> {
   constructor(public readonly props: NoSQLTableProps) {
     super('@aws-amplify/file-storage-provider');
   }

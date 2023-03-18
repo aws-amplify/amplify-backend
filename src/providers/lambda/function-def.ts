@@ -1,4 +1,4 @@
-import { AmplifyConfigBase, TriggerHandler, ResourceDefinition } from '../../manifest/imperative-types';
+import { AmplifyBuilderBase, TriggerHandler, ResourceDefinition } from '../../manifest/amplify-builder-base';
 
 /**
  * Types and class for Lambda
@@ -10,7 +10,7 @@ type LambdaPropsBase = {
 };
 type LambdaProps = ResourceDefinition<LambdaPropsBase, undefined, 'lambdaRuntime'>;
 type LambdaActions = 'invoke';
-export class AmplifyLambda extends AmplifyConfigBase<LambdaProps, LambdaActions> implements TriggerHandler {
+export class AmplifyLambda extends AmplifyBuilderBase<LambdaProps, LambdaActions> implements TriggerHandler {
   _eventHandler: true;
   constructor(public readonly props: LambdaProps) {
     super('@aws-amplify/function-provider');

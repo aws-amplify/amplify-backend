@@ -1,42 +1,38 @@
+import { Duration, aws_lambda as lambda, aws_iam as iam } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
+import { z } from 'zod';
 import {
-  AmplifyCdkType,
-  aCDK,
-  AmplifyServiceProvider,
-  AmplifyServiceProviderFactory,
+  ConstructAdaptor,
+  ConstructAdaptorFactory,
   AmplifyInitializer,
   LambdaEventHandler,
   RuntimeAccessAttacher,
   RuntimeResourceInfo,
   SecretHandler,
   AmplifySecret,
-  aZod,
 } from '../../types';
 
-export const init: AmplifyInitializer = (awsCdkLib: AmplifyCdkType) => {
-  return new AmplifyLambdaProviderFactory(awsCdkLib);
+export const init: AmplifyInitializer = () => {
+  return new AmplifyLambdaProviderFactory();
 };
 
-class AmplifyLambdaProviderFactory implements AmplifyServiceProviderFactory {
-  constructor(private readonly awsCdkLib: AmplifyCdkType) {}
+class AmplifyLambdaProviderFactory implements ConstructAdaptorFactory {
+  constructor() {}
 
-  getServiceProvider(scope: Construct, name: string): AmplifyServiceProvider {
-    return new AmplifyLambdaProvider(scope, name, this.awsCdkLib);
+  getConstructAdaptor(scope: Construct, name: string): ConstructAdaptor {
+    return new AmplifyLambdaProvider(scope, name);
   }
 
-  getDefinitionSchema(): aZod.AnyZodObject {
-    return aZod.object({});
+  getDefinitionSchema(): z.AnyZodObject {
+    return z.object({});
   }
 }
 
-class AmplifyLambdaProvider extends AmplifyServiceProvider implements LambdaEventHandler, RuntimeAccessAttacher, SecretHandler {
+class AmplifyLambdaProvider extends ConstructAdaptor implements LambdaEventHandler, RuntimeAccessAttacher, SecretHandler {
   private static readonly runtimeRoleToken = 'lambdaRuntime';
-
-  private func: aCDK.aws_lambda.Function;
-  private readonly lambda: AmplifyCdkType['aws_lambda'];
-  constructor(scope: Construct, private readonly name: string, private readonly cdk: AmplifyCdkType) {
+  private func: lambda.Function;
+  constructor(scope: Construct, private readonly name: string) {
     super(scope, name);
-    this.lambda = cdk.aws_lambda;
   }
 
   getDefinitionSchema() {
@@ -44,14 +40,11 @@ class AmplifyLambdaProvider extends AmplifyServiceProvider implements LambdaEven
   }
 
   init(configuration: InputSchema) {
-    this.func = new this.lambda.Function(this, this.name, {
-      runtime: new this.lambda.Runtime(configuration.runtime),
+    this.func = new lambda.Function(this, this.name, {
+      runtime: new lambda.Runtime(configuration.runtime),
       handler: configuration.handler,
-      timeout: typeof configuration.timeoutSeconds === 'number' ? this.cdk.Duration.seconds(configuration.timeoutSeconds) : undefined,
-      code: this.lambda.Code.fromAsset(configuration.relativeBuildAssetPath),
-      environment: {
-        FORCE_UPDATE: 'yes',
-      },
+      timeout: typeof configuration.timeoutSeconds === 'number' ? Duration.seconds(configuration.timeoutSeconds) : undefined,
+      code: lambda.Code.fromAsset(configuration.codePath),
     });
   }
 
@@ -59,13 +52,13 @@ class AmplifyLambdaProvider extends AmplifyServiceProvider implements LambdaEven
     // intentional noop
   }
 
-  getLambdaRef(): aCDK.aws_lambda.IFunction {
+  getLambdaRef(): lambda.IFunction {
     return this.func;
   }
 
   attachRuntimePolicy(
     runtimeRoleToken: string,
-    policy: aCDK.aws_iam.PolicyStatement,
+    policy: iam.PolicyStatement,
     { resourceName, physicalNameToken, arnToken }: RuntimeResourceInfo
   ): void {
     if (runtimeRoleToken !== 'lambdaRuntime') {
@@ -84,18 +77,18 @@ class AmplifyLambdaProvider extends AmplifyServiceProvider implements LambdaEven
   }
 }
 
-const inputSchema = aZod.object({
-  runtime: aZod.string(),
-  handler: aZod.string(),
-  relativeBuildAssetPath: aZod.string(),
-  timeoutSeconds: aZod
+const inputSchema = z.object({
+  runtime: z.string(),
+  handler: z.string(),
+  codePath: z.string(),
+  timeoutSeconds: z
     .string()
     .transform((str) => Number.parseInt(str))
     .optional(),
-  memoryMB: aZod
+  memoryMB: z
     .string()
     .transform((str) => Number.parseInt(str))
     .optional(),
 });
 
-type InputSchema = aZod.infer<typeof inputSchema>;
+export type InputSchema = z.infer<typeof inputSchema>;

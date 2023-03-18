@@ -1,4 +1,4 @@
-import { AmplifyConfigBase, ResourceDefinition } from '../../manifest/imperative-types';
+import { AmplifyBuilderBase, ResourceDefinition } from '../../manifest/amplify-builder-base';
 
 type CognitoPropsBase = {
   authorization: {
@@ -35,7 +35,7 @@ type Actions = 'create' | 'read' | 'update' | 'delete' | 'list';
 
 type Props = ResourceDefinition<CognitoPropsBase, Events, RuntimeRoles>;
 
-export class AmplifyAuth extends AmplifyConfigBase<Props, Actions> {
+export class AmplifyAuth extends AmplifyBuilderBase<Props, Actions> {
   constructor(public readonly props: Props) {
     super('@aws-amplify/auth');
   }

@@ -77,7 +77,7 @@ export type AmplifyTransformFunctionalInterfaceUnion = LambdaEventHandler &
 /**
  * Base class that all Amplify resource classes extend from
  */
-export abstract class AmplifyServiceProvider extends Construct implements Partial<AmplifyTransformFunctionalInterfaceUnion> {
+export abstract class ConstructAdaptor extends Construct implements Partial<AmplifyTransformFunctionalInterfaceUnion> {
   /**
    * The contentsof resources.<resourceName>.definition is passed to the parse method of the returned zod object. The result of parse is then passed to init()
    * Returning zod object instead of a validator so that error handling can be done centrally in the platform
@@ -121,8 +121,8 @@ export abstract class AmplifyServiceProvider extends Construct implements Partia
   acceptSecret?(name: string, secret: AmplifySecret): void;
 }
 
-export type AmplifyServiceProviderFactory = {
-  getServiceProvider(scope: Construct, name: string): AmplifyServiceProvider;
+export type ConstructAdaptorFactory = {
+  getConstructAdaptor(scope: Construct, name: string): ConstructAdaptor;
 };
 
 export type RuntimeResourceInfo = {
@@ -171,4 +171,4 @@ export type AmplifyInitializer = (
   logger: IAmplifyLogger,
   metrics: IAmplifyMetrics,
   az: AmplifyZodType
-) => AmplifyServiceProviderFactory;
+) => ConstructAdaptorFactory;

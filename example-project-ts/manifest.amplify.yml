@@ -1,0 +1,19 @@
+constructMap:
+  myFileStorage:
+    adaptor: '@aws-amplify/file-storage-adaptor'
+    properties:
+      enforceSSL: true
+    triggers:
+      stream: resizeImage
+  resizeImage:
+    adaptor: '@aws_amplify/function-adaptor'
+    properties:
+      runtime: nodejs18.x
+      handler: index.handler
+      codePath: ./testLambda
+    buildCommand: cd ./testLambda && npx tsc
+    runtimeAccess:
+      lambdaRuntime:
+        myFileStorage:
+          - actions: [create, read]
+            scopes: [only/this/path]

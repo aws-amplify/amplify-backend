@@ -1,11 +1,8 @@
-import { consoleLogger } from '../observability-tooling/amplify-logger';
-import { amplifyMetrics } from '../observability-tooling/amplify-metrics';
 import { AmplifyTransformer } from './transformer';
-import { hydrateTokens } from './hydrate-tokens';
-import { AmplifyManifest, ResourceRecord } from '../manifest/manifest-schema';
-import { AmplifyParameters } from '../stubs/amplify-parameters';
-import { ServiceProviderResolver } from '../stubs/service-provider-resolver';
-import { aCDK, aZod } from '../types';
+import { ConstructMap } from '../manifest/ir-definition';
+import execa from 'execa';
+import path from 'path';
+import { getConstructAdaptorFactory } from './adaptor-factory';
 /**
  * This should be a first class entry point into Amplify for customers who want to integrate an Amplify manifest into an existing CDK application
  *
@@ -15,22 +12,22 @@ import { aCDK, aZod } from '../types';
  * @param tokenizedManifest The raw manifest object that should be transformed
  * @returns Initialized AmplifyTransform instance
  */
-export const createTransformer = async (
-  envName: string,
-  amplifyParameters: AmplifyParameters,
-  tokenizedManifest: AmplifyManifest
-): Promise<AmplifyTransformer> => {
-  const params = (await amplifyParameters.listParameters()).reduce((collect, param) => {
-    collect[param.name] = param.isSecret ? param.ref : param.value;
-    return collect;
-  }, {} as Record<string, string>);
+export const createTransformer = async (envName: string, constructMap: ConstructMap): Promise<AmplifyTransformer> => {
+  await executeBuildCommands(constructMap);
+  return new AmplifyTransformer(envName, constructMap, await getConstructAdaptorFactory(constructMap));
+};
 
-  // TODO will need more validation here to assert that manifest is correctly formed
-  const hydratedResourceDefinition = hydrateTokens(tokenizedManifest.resources, params) as ResourceRecord;
-
-  const serviceProviderResolver = new ServiceProviderResolver(aCDK, consoleLogger, amplifyMetrics, aZod);
-
-  // TODO execute preSynthCommand(s) here
-
-  return new AmplifyTransformer(envName, hydratedResourceDefinition, await serviceProviderResolver.loadProviders(tokenizedManifest.providers));
+const executeBuildCommands = async (componentMap: ConstructMap) => {
+  const buildPromises = Object.values(componentMap)
+    .filter((componentConfig) => componentConfig.build)
+    .map((componentConfig) => componentConfig.build)
+    .map((buildConfig) => {
+      const workingDir = buildConfig!.relativeWorkingDir ? path.resolve(process.cwd(), buildConfig!.relativeWorkingDir) : process.cwd();
+      return execa.command(buildConfig!.command, { cwd: workingDir, stdio: 'inherit' });
+    });
+  try {
+    await Promise.all(buildPromises);
+  } catch (err) {
+    throw new Error('Executing build commands failed. See logs above for details.');
+  }
 };

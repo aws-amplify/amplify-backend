@@ -1,4 +1,4 @@
-import { AmplifyCdkType, AmplifyInitializer, AmplifyServiceProviderFactory, AmplifyZodType, IAmplifyLogger, IAmplifyMetrics } from '../types';
+import { AmplifyCdkType, AmplifyInitializer, ConstructAdaptorFactory, AmplifyZodType, IAmplifyLogger, IAmplifyMetrics } from '../types';
 
 import { init as initS3 } from '../providers/s3-provider/s3-provider';
 import { init as initLambda } from '../providers/lambda/lambda-provider';
@@ -22,8 +22,8 @@ export class ServiceProviderResolver {
     '@aws-amplify/app-sync-provider@10.2.3': initAppSync,
     '@aws-amplify/dynamo-db-provider@2.3.4': initDynamo,
   };
-  async loadProviders(requiredProviders: ProviderRecord): Promise<Record<ProviderName, AmplifyServiceProviderFactory>> {
-    const result: Record<ProviderName, AmplifyServiceProviderFactory> = {};
+  async loadProviders(requiredProviders: ProviderRecord): Promise<Record<ProviderName, ConstructAdaptorFactory>> {
+    const result: Record<ProviderName, ConstructAdaptorFactory> = {};
 
     Object.entries(requiredProviders).forEach(([providerKey, providerToken]) => {
       // this simulates a provider not being found on npm

@@ -66,3 +66,30 @@ const invertDag = (dag: AdjList): AdjList => {
   }
   return inverted;
 };
+// copying this for posterity but not needed anymore
+
+// constructs a function that can take in a visitor function and execute that visitor on all nodes in the DAG in depenency order
+// this.dagWalker = getDagWalker(generateResourceDAG(this.componentMap));
+
+// const generateResourceDAG = (resourceDefiniton: ResourceRecord): ResourceDAG => {
+//   const resourceSet = new Set<string>(Object.keys(resourceDefiniton));
+//   const resourceDag: Record<string, string[]> = {};
+//   resourceSet.forEach((resourceName) => (resourceDag[resourceName] = []));
+
+//   Object.entries(resourceDefiniton).forEach(([resourceName, resourceDefiniton]) => {
+//     if (resourceDefiniton.runtimeAccess) {
+//       Object.values(resourceDefiniton.runtimeAccess).forEach((runtimeResourceAccess) => {
+//         Object.keys(runtimeResourceAccess).forEach((resourceToken) => {
+//           if (resourceToken === '$external') {
+//             return;
+//           }
+//           if (!resourceSet.has(resourceToken)) {
+//             throw new Error(`${resourceName} declares a dependency on ${resourceToken} but ${resourceToken} is not defined in the project config`);
+//           }
+//           resourceDag[resourceName]!.push(resourceToken);
+//         });
+//       });
+//     }
+//   });
+//   return resourceDag;
+// };

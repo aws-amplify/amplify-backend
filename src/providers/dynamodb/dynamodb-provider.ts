@@ -9,8 +9,8 @@ import {
   aCDK,
   AmplifyInitializer,
   AmplifyPolicyContent,
-  AmplifyServiceProvider,
-  AmplifyServiceProviderFactory,
+  ConstructAdaptor,
+  ConstructAdaptorFactory,
   DynamoTableBuilder,
   LambdaEventSource,
   AmplifyZodType,
@@ -22,15 +22,15 @@ export const init: AmplifyInitializer = (cdk: AmplifyCdkType, _, __, az: Amplify
   return new AmplifyDynamoDBProviderFactory(cdk);
 };
 
-class AmplifyDynamoDBProviderFactory implements AmplifyServiceProviderFactory {
+class AmplifyDynamoDBProviderFactory implements ConstructAdaptorFactory {
   constructor(private readonly cdk: AmplifyCdkType) {}
 
-  getServiceProvider(scope: Construct, name: string): AmplifyServiceProvider {
+  getConstructAdaptor(scope: Construct, name: string): ConstructAdaptor {
     return new AmplifyDynamoDBProvider(scope, name, this.cdk);
   }
 }
 
-export class AmplifyDynamoDBProvider extends AmplifyServiceProvider implements LambdaEventSource, DynamoTableBuilder {
+export class AmplifyDynamoDBProvider extends ConstructAdaptor implements LambdaEventSource, DynamoTableBuilder {
   private gsis: GlobalSecondaryIndexProps[] = [];
   private tableProps: TableProps;
   private customTable: ITable;

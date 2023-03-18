@@ -1,19 +1,19 @@
 import { Construct } from 'constructs';
-import { AmplifyCdkType, AmplifyServiceProvider, AmplifyServiceProviderFactory, AmplifyInitializer, DynamoTableBuilder, aZod } from '../../types';
+import { AmplifyCdkType, ConstructAdaptor, ConstructAdaptorFactory, AmplifyInitializer, DynamoTableBuilder, aZod } from '../../types';
 
 export const init: AmplifyInitializer = (awsCdkLib: AmplifyCdkType) => {
   return new AmplifyAppSyncProviderFactory(awsCdkLib);
 };
 
-class AmplifyAppSyncProviderFactory implements AmplifyServiceProviderFactory {
+class AmplifyAppSyncProviderFactory implements ConstructAdaptorFactory {
   constructor(private readonly awsCdkLib: AmplifyCdkType) {}
 
-  getServiceProvider(scope: Construct, name: string): AmplifyServiceProvider {
+  getConstructAdaptor(scope: Construct, name: string): ConstructAdaptor {
     return new AmplifyAppSyncProvider(scope, name, this.awsCdkLib);
   }
 }
 
-class AmplifyAppSyncProvider extends AmplifyServiceProvider {
+class AmplifyAppSyncProvider extends ConstructAdaptor {
   constructor(scope: Construct, private readonly name: string, private readonly cdk: AmplifyCdkType) {
     super(scope, name);
   }
