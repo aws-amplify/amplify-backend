@@ -6,7 +6,7 @@ import path from 'path';
 import { serializeFunction } from '@pulumi/pulumi/runtime';
 import * as fs from 'fs-extra';
 import { build } from 'esbuild';
-import { BuildConfig, ConstructConfig, constructConfig, RuntimeAccessConfig, SecretConfig, TriggerConfig } from './ir-definition';
+import { BuildConfig, constructConfig, RuntimeAccessConfig, SecretConfig, TriggerConfig } from './ir-definition';
 
 export type TriggerHandler = {
   triggerHandler: () => TriggerHandlerRef;
@@ -49,7 +49,7 @@ export abstract class AmplifyBuilderBase<
 
   protected readonly triggers: TriggerConfig = {};
   protected readonly runtimeAccess: RuntimeAccessConfig = {};
-  protected readonly inlineConstructs: Record<string, { config: ConstructConfig; id: string }> = {};
+  protected readonly inlineConstructs: Record<string, Promise<BuildResult>> = {};
   protected readonly secrets: SecretConfig = {};
   protected buildConfig?: BuildConfig;
 
@@ -74,12 +74,12 @@ export abstract class AmplifyBuilderBase<
    * @param callbackName
    * @returns
    */
-  async on(eventName: Events, callback: IAmplifyFunction | Function, callbackName?: string): Promise<this> {
+  on(eventName: Events, callback: IAmplifyFunction | Function, callbackName?: string): this {
     if (typeof callback === 'function') {
-      const amplifyFunction = await InlineFunction(callback);
+      const amplifyFunction = InlineFunction(callback);
       callbackName = callbackName ?? `${eventName}Trigger`;
       const buildResult = amplifyFunction._build();
-      this.inlineConstructs[callbackName] = { config: buildResult.config, id: buildResult.id };
+      this.inlineConstructs[callbackName] = buildResult;
       this.triggers[eventName] = amplifyFunction.id;
     } else {
       this.triggers[eventName] = callback.id;
@@ -103,7 +103,15 @@ export abstract class AmplifyBuilderBase<
     return new PolicyGrantBuilder(this.id, actions);
   }
 
-  _build(): BuildResult {
+  async _build(): Promise<BuildResult> {
+    // await the promises for all of the inline constructs (aka callback functions)
+    const resolvedInlineConstructEntries = await Promise.all(
+      Object.entries(this.inlineConstructs).map(async ([name, configPromise]) => [name, await configPromise] as const)
+    );
+    const resolvedInlineConstructs = resolvedInlineConstructEntries.reduce(
+      (accumulator, [name, config]) => ({ ...accumulator, [name]: config }),
+      {} as Record<string, BuildResult>
+    );
     return {
       id: this.id,
       config: {
@@ -114,7 +122,7 @@ export abstract class AmplifyBuilderBase<
         secrets: this.secrets,
         build: this.buildConfig,
       },
-      inlineConstructs: this.inlineConstructs,
+      inlineConstructs: resolvedInlineConstructs,
     };
   }
 }
@@ -162,10 +170,16 @@ export class AmplifyFunction extends AmplifyBuilderBase<FunctionConfig, never, '
   constructor(config: FunctionConfig) {
     super('@aws-amplify/function-adaptor', config);
   }
+}
 
-  static fromAsync = async (func: Function): Promise<AmplifyFunction> => {
+export class CallbackFunction extends AmplifyBuilderBase<Function, never, 'runtime', 'invoke'> {
+  constructor(config: Function) {
+    super('@aws-amplify/function-adaptor', config);
+  }
+
+  async _build(): Promise<BuildResult> {
     // serialize the function closure
-    const serialized = await serializeFunction(func);
+    const serialized = await serializeFunction(this.config);
     const funcHash = createHash('md5').update(serialized.text).digest('hex');
     const tempFile = path.resolve(process.cwd(), 'temp-build.js');
     const bundlePath = path.join(process.cwd(), '.build', funcHash);
@@ -188,14 +202,15 @@ export class AmplifyFunction extends AmplifyBuilderBase<FunctionConfig, never, '
 
     // remove the temp file
     await fs.unlink(tempFile);
-    return new AmplifyFunction({
+    const configFunc = new AmplifyFunction({
       handler: `${bundleNameBase}.${serialized.exportName}`,
       runtime: 'nodejs18.x',
       codePath: bundlePath,
     });
-  };
+    return await configFunc._build();
+  }
 }
 
 export const AFunction = (config: FunctionConfig) => new AmplifyFunction(config);
 
-export const InlineFunction = (callback: Function) => AmplifyFunction.fromAsync(callback);
+export const InlineFunction = (callback: Function) => new CallbackFunction(callback);
