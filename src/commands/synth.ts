@@ -6,7 +6,7 @@ import { envNamePositional, AmplifyCommandBase } from './command-components';
 import { ConstructMap, ProjectConfig, projectConfig } from '../manifest/ir-definition';
 import { createOption } from '@commander-js/extra-typings';
 import path from 'path';
-import { buildResult } from '../manifest/amplify-builder-base';
+import { BuildResult, buildResult } from '../manifest/amplify-builder-base';
 
 class SynthCommand extends AmplifyCommandBase {
   constructor() {
@@ -41,17 +41,17 @@ const imperativeConfigLoader = async (): Promise<ProjectConfig> => {
   const constructMap: ConstructMap = {};
   const idToNameMap: Record<string, string> = {};
   // TODO hardcoding this path for now but we should have a standard place we expect to find it
-  const def = (await import(path.resolve(process.cwd(), 'lib', 'example-project', 'amplify.mjs'))) as Record<string, unknown>;
-  Object.entries(def).forEach(([constructName, constructBuilder]) => {
+  const def = (await import(path.resolve(process.cwd(), 'lib', 'example-project', 'amplify.js'))) as Record<'default', unknown>;
+  for (const [constructName, constructBuilder] of Object.entries(def.default || {})) {
     const builder = getConstructBuilderFunction(constructName, constructBuilder);
-    const result = buildResult.parse(builder());
+    const result = buildResult.parse(await builder());
     constructMap[constructName] = result.config;
     idToNameMap[result.id] = constructName;
     Object.entries(result.inlineConstructs).forEach(([name, config]) => {
       constructMap[name] = config.config;
       idToNameMap[config.id] = name;
     });
-  });
+  }
   // quick and dirty hack to replace all ids with their corresponding name in the constructMap object
   let constructMapString = JSON.stringify(constructMap);
   Object.entries(idToNameMap).forEach(([id, name]) => {
@@ -62,7 +62,7 @@ const imperativeConfigLoader = async (): Promise<ProjectConfig> => {
   };
 };
 
-const getConstructBuilderFunction = (constructName: string, constructBuilder: unknown): Function => {
+const getConstructBuilderFunction = (constructName: string, constructBuilder: unknown): (() => Promise<BuildResult>) => {
   if (typeof constructBuilder !== 'object') {
     throw new Error(`${constructName} is not an object`);
   }

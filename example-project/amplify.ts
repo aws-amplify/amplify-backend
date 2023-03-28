@@ -1,9 +1,11 @@
 import { InlineFunction } from '../src/manifest/amplify-builder-base.js';
 import { FileStorage } from '../src/providers/s3-provider/file-storage-builder.js';
-import { inlineLambda } from './inline-lambda.js';
+import { lambdaCallback } from './inline-lambda.js';
 
-export const resizeImage = await InlineFunction(inlineLambda);
+export const resizeImage = InlineFunction(lambdaCallback);
 
-export const appStorage = await FileStorage({}).on('stream', resizeImage);
+export const appStorage = FileStorage({}).on('stream', () => {
+  console.log('do stuff');
+});
 
 resizeImage.grant('runtime', appStorage.actions('create', 'read', 'update'));

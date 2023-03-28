@@ -164,7 +164,7 @@ type PolicyGrant<Action extends string = string, Scope extends string = string> 
   scopes?: Scope[];
 };
 
-export type IAmplifyFunction = AmplifyBuilderBase<FunctionConfig, never, 'runtime', 'invoke'>;
+export type IAmplifyFunction = AmplifyBuilderBase<FunctionConfig | Function, never, 'runtime', 'invoke'>;
 
 export class AmplifyFunction extends AmplifyBuilderBase<FunctionConfig, never, 'runtime', 'invoke'> {
   constructor(config: FunctionConfig) {
@@ -207,7 +207,9 @@ export class CallbackFunction extends AmplifyBuilderBase<Function, never, 'runti
       runtime: 'nodejs18.x',
       codePath: bundlePath,
     });
-    return await configFunc._build();
+    const buildResult = await configFunc._build();
+    buildResult.id = this.id;
+    return buildResult;
   }
 }
 
