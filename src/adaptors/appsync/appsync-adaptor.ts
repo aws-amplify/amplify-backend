@@ -9,18 +9,18 @@ import { z } from 'zod';
  * @returns
  */
 export const init: AmplifyInitializer = () => {
-  return new AmplifyAppSyncProviderFactory();
+  return new AmplifyAppSyncAdaptorFactory();
 };
 
-class AmplifyAppSyncProviderFactory implements ConstructAdaptorFactory {
+class AmplifyAppSyncAdaptorFactory implements ConstructAdaptorFactory {
   constructor() {}
 
   getConstructAdaptor(scope: Construct, name: string): ConstructAdaptor {
-    return new AmplifyAppSyncProvider(scope, name);
+    return new AmplifyAppSyncAdaptor(scope, name);
   }
 }
 
-class AmplifyAppSyncProvider extends ConstructAdaptor {
+class AmplifyAppSyncAdaptor extends ConstructAdaptor {
   constructor(scope: Construct, private readonly name: string) {
     super(scope, name);
   }

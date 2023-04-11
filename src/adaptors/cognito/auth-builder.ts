@@ -1,4 +1,4 @@
-import { AmplifyBuilderBase, ResourceDefinition } from '../../input-definitions/amplify-builder-base';
+import { AmplifyBuilderBase } from '../../input-definitions/amplify-builder-base';
 
 type AuthConfig = {
   authorization: {
@@ -32,8 +32,6 @@ type Event =
 type RuntimeRoles = 'unauthenticatedUsers' | 'authenticatedUsers';
 
 type Actions = 'create' | 'read' | 'update' | 'delete' | 'list';
-
-type Props = ResourceDefinition<AuthConfig, Event, RuntimeRoles>;
 
 export class AmplifyAuth extends AmplifyBuilderBase<AuthConfig, Event, RuntimeRoles, Actions> {
   constructor(config: AuthConfig) {

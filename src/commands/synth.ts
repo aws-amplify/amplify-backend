@@ -2,7 +2,7 @@ import { App } from 'aws-cdk-lib';
 import { parse } from 'yaml';
 import * as fs from 'fs-extra';
 import { createTransformer } from '../transformer/transformer-factory';
-import { envNamePositional, AmplifyCommandBase } from './command-components';
+import { envNamePositional, AmplifyCommandBase } from './shared-components';
 import { ConstructMap, ProjectConfig, projectConfig } from '../input-definitions/ir-definition';
 import { createOption } from '@commander-js/extra-typings';
 import path from 'path';

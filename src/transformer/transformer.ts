@@ -4,12 +4,28 @@ import { AmplifyReference, AmplifyStack } from '../amplify-reference';
 import { aws_lambda, aws_iam, Fn, Stack } from 'aws-cdk-lib';
 import { ConstructConfig, ConstructMap } from '../input-definitions/ir-definition';
 
+/**
+ * This is the "engine" that takes in a project definition IR (the ConstructMap in the ctor)
+ * and orchestrates various construct plugins based on that definition to add CDK constructs
+ * to the CDK scope specified on the transform method
+ *
+ * transformer-factory.ts provides a factory function for initializing this class
+ */
 export class AmplifyTransformer {
   private readonly constructAdaptorMap: Record<string, ConstructAdaptor> = {};
 
   constructor(
+    /**
+     * The environment name. This will be used to prefix resource names
+     */
     private readonly envPrefix: string,
+    /**
+     * The project definition
+     */
     private readonly constructMap: ConstructMap,
+    /**
+     * A record of all the plugins that are necessary to transform the constructMap
+     */
     private readonly constructAdaptorFactories: Record<string, ConstructAdaptorFactory>
   ) {}
 

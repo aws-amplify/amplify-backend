@@ -27,18 +27,18 @@ import { z } from 'zod';
 import { DynamoEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
 
 export const init: AmplifyInitializer = () => {
-  return new AmplifyDynamoDBProviderFactory();
+  return new AmplifyDynamoDBAdaptorFactory();
 };
 
-class AmplifyDynamoDBProviderFactory implements ConstructAdaptorFactory {
+class AmplifyDynamoDBAdaptorFactory implements ConstructAdaptorFactory {
   constructor() {}
 
   getConstructAdaptor(scope: Construct, name: string): ConstructAdaptor {
-    return new AmplifyDynamoDBProvider(scope, name);
+    return new AmplifyDynamoDBAdaptor(scope, name);
   }
 }
 
-export class AmplifyDynamoDBProvider extends ConstructAdaptor implements LambdaEventSource, DynamoTableBuilder {
+export class AmplifyDynamoDBAdaptor extends ConstructAdaptor implements LambdaEventSource, DynamoTableBuilder {
   private gsis: GlobalSecondaryIndexProps[] = [];
   private tableProps: TableProps;
   private customTable: ITable;

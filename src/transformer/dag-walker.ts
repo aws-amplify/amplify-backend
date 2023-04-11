@@ -1,3 +1,15 @@
+/**
+ * This module is dead code. It was used to execute the transform operations in a topological order, but this is actually not necessary
+ * becuase each stage of the transformation process is independent and CDK will handle catching circular dependencies for us.
+ *
+ * Catching circular dependencies at this level is actually incorrect because there can be a "circular dependency" at the level of amplfiy project config
+ * that does not actually translate to a circular dependency in the underlying resources.
+ *
+ * For example, a storage resource that triggers a function on updates and that function writes back to the storage resource.
+ * At the "amplify" level, this looks like a circular dependency, but actually we can set up an SQS queue under the hood for change events that the lambda can poll
+ * This "breaks" the circular dependency at the resource level
+ */
+
 type AdjList = Record<string, Array<string>>;
 export type NodeVisitor = (node: string) => void;
 

@@ -14,14 +14,14 @@ import {
 } from '../../types';
 
 export const init: AmplifyInitializer = () => {
-  return new AmplifyLambdaProviderFactory();
+  return new AmplifyLambdaAdaptorFactory();
 };
 
-class AmplifyLambdaProviderFactory implements ConstructAdaptorFactory {
+class AmplifyLambdaAdaptorFactory implements ConstructAdaptorFactory {
   constructor() {}
 
   getConstructAdaptor(scope: Construct, name: string): ConstructAdaptor {
-    return new AmplifyLambdaProvider(scope, name);
+    return new AmplifyLambdaAdaptor(scope, name);
   }
 
   getDefinitionSchema(): z.AnyZodObject {
@@ -29,7 +29,7 @@ class AmplifyLambdaProviderFactory implements ConstructAdaptorFactory {
   }
 }
 
-class AmplifyLambdaProvider extends ConstructAdaptor implements LambdaEventHandler, RuntimeAccessAttacher, SecretHandler {
+class AmplifyLambdaAdaptor extends ConstructAdaptor implements LambdaEventHandler, RuntimeAccessAttacher, SecretHandler {
   private static readonly runtimeRoleToken = 'runtime';
   private func: lambda.Function | undefined;
   constructor(scope: Construct, private readonly name: string) {
@@ -74,7 +74,7 @@ class AmplifyLambdaProvider extends ConstructAdaptor implements LambdaEventHandl
   }
 
   acceptSecret(_name: string, secret: AmplifySecret): void {
-    secret.grantRuntimeAccess(AmplifyLambdaProvider.runtimeRoleToken);
+    secret.grantRuntimeAccess(AmplifyLambdaAdaptor.runtimeRoleToken);
   }
 }
 

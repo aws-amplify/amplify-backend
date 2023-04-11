@@ -1,4 +1,4 @@
-import { StrictCommand, envNamePositional, CredentialedCommandBase, nameOption, secretOption } from './command-components';
+import { StrictCommand, envNamePositional, CredentialedCommandBase, nameOption, secretOption } from './shared-components';
 import { AmplifyParameters } from '../stubs/amplify-parameters';
 
 type Args = [string];

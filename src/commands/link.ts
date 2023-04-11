@@ -1,5 +1,5 @@
 import { Command } from '@commander-js/extra-typings';
-import { envNamePositional, CredentialedCommandBase } from './command-components';
+import { envNamePositional, CredentialedCommandBase } from './shared-components';
 
 type Args = [string];
 type Opts = {

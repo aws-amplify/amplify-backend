@@ -13,18 +13,18 @@ import { ConstructAdaptor, ConstructAdaptorFactory, LambdaEventSource, AmplifyIn
 import { ResourceAccessPolicy } from '../../input-definitions/ir-definition';
 
 export const init: AmplifyInitializer = () => {
-  return new AmplifyS3ProviderFactory();
+  return new AmplifyS3AdaptorFactory();
 };
 
-class AmplifyS3ProviderFactory implements ConstructAdaptorFactory {
+class AmplifyS3AdaptorFactory implements ConstructAdaptorFactory {
   constructor() {}
 
   getConstructAdaptor(scope: Construct, name: string): ConstructAdaptor {
-    return new AmplifyS3Provider(scope, name);
+    return new AmplifyS3Adaptor(scope, name);
   }
 }
 
-class AmplifyS3Provider extends ConstructAdaptor implements LambdaEventSource {
+class AmplifyS3Adaptor extends ConstructAdaptor implements LambdaEventSource {
   private bucket: s3.Bucket | undefined;
   constructor(scope: Construct, private readonly name: string) {
     super(scope, name);

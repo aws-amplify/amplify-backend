@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto';
 import { z } from 'zod';
-import { FunctionConfig } from '../providers/lambda/lambda-provider';
+import { FunctionConfig } from '../adaptors/lambda/lambda-adaptor';
 import { createHash } from 'crypto';
 import path from 'path';
 import { serializeFunction } from '@pulumi/pulumi/runtime';

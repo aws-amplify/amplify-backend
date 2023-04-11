@@ -1,5 +1,5 @@
 import { AmplifyBuilderBase } from '../../input-definitions/amplify-builder-base';
-import { FileStorageConfig } from './s3-provider';
+import { FileStorageConfig } from './s3-adaptor';
 
 type FileStorageActions = 'create' | 'read' | 'update' | 'delete' | 'list';
 

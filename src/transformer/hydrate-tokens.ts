@@ -1,3 +1,8 @@
+/**
+ * This module is dead code. It was used in a previous iteration of the POC to do some tokenization of the manifest
+ * but with the `amplify.ts` file being a builder to the "manifest", tokenization is no longer necessary
+ */
+
 export const hydrateTokens = <T extends Record<string, unknown>>(obj: T, tokens: Record<string, string>): T => {
   const stack: Record<string, unknown>[] = [];
   stack.push(obj);

@@ -2,10 +2,67 @@ import { Construct } from 'constructs';
 import * as cdk from 'aws-cdk-lib';
 import { z } from 'zod';
 import { ResourceAccessPolicy } from './input-definitions/ir-definition';
+
 /**
- * The ConstructAdaptor below is the "plugin interface".
- * The other types in this module are inputs/outputs of this interface and collectively define the surface area of the plugin framework
+ * All Amplify transformer plugins must implement a function called 'init' that implements this type
+ * This is the entry point into the plugin that the transformer uses to initialize every plugin
+ *
+ * It is guaranteed to only be called once by the platform
  */
+export type AmplifyInitializer = (logger: IAmplifyLogger, metrics: IAmplifyMetrics) => ConstructAdaptorFactory;
+
+export type ConstructAdaptorFactory = {
+  getConstructAdaptor(scope: Construct, name: string): ConstructAdaptor;
+};
+
+/**
+ * This is _the_ Plugin Interface
+ *
+ * Base class that all Amplify resource classes extend from.
+ */
+export abstract class ConstructAdaptor extends Construct implements Partial<AmplifyTransformFunctionalInterfaceUnion> {
+  /**
+   * The contentsof resources.<resourceName>.definition is passed to the parse method of the returned zod object. The result of parse is then passed to init()
+   * Returning zod object instead of a validator so that error handling can be done centrally in the platform
+   */
+  abstract getDefinitionSchema(): z.AnyZodObject;
+  /**
+   * @param def
+   */
+  abstract init(def: unknown): void;
+  /**
+   * Called at the end of the transformation process to indicate to the construct that it can finalize any pending configuration
+   */
+  abstract finalizeResources(): void;
+  /**
+   * This method must be implemented if this construct has a lambda that can be attached to other resources
+   */
+  getLambdaRef?(): cdk.aws_lambda.IFunction;
+  /**
+   * This method must be implemented if this construct has event sources that lambdas can be attached to
+   * @param eventSourceName The name of the event source within the construct
+   * @param handler The name and arn of the lambda handler
+   */
+  attachLambdaEventHandler?(eventSourceName: string, handler: cdk.aws_lambda.IFunction): void;
+  /**
+   * This method must be implemented to allow other constructs in the project to access this construct
+   * @param permissions
+   */
+  getPolicyContent?(permissions: ResourceAccessPolicy): AmplifyPolicyContent;
+  /**
+   * This method must be implemented if this construct defines resources that can access other resources at runtime
+   * @param runtimeRoleName
+   * @param policy
+   * @param resource
+   */
+  attachRuntimePolicy?(runtimeRoleName: string, policy: cdk.aws_iam.PolicyStatement, resource: RuntimeResourceInfo): void;
+
+  getDynamoTableBuilder?(): DynamoTableBuilder;
+
+  setDynamoTableBuilder?(name: string, manager: DynamoTableBuilder): void;
+
+  acceptSecret?(name: string, secret: AmplifySecret): void;
+}
 
 /**
  * A Construct that can attach runtime access for the runtimeEntityName to access resource
@@ -72,57 +129,6 @@ export type AmplifyTransformFunctionalInterfaceUnion = LambdaEventHandler &
   DynamoTableBuilderConsumer &
   SecretHandler;
 
-/**
- * Base class that all Amplify resource classes extend from. This is the "plugin interface"
- */
-export abstract class ConstructAdaptor extends Construct implements Partial<AmplifyTransformFunctionalInterfaceUnion> {
-  /**
-   * The contentsof resources.<resourceName>.definition is passed to the parse method of the returned zod object. The result of parse is then passed to init()
-   * Returning zod object instead of a validator so that error handling can be done centrally in the platform
-   */
-  abstract getDefinitionSchema(): z.AnyZodObject;
-  /**
-   * @param def
-   */
-  abstract init(def: unknown): void;
-  /**
-   * Called at the end of the transformation process to indicate to the construct that it can finalize any pending configuration
-   */
-  abstract finalizeResources(): void;
-  /**
-   * This method must be implemented if this construct has a lambda that can be attached to other resources
-   */
-  getLambdaRef?(): cdk.aws_lambda.IFunction;
-  /**
-   * This method must be implemented if this construct has event sources that lambdas can be attached to
-   * @param eventSourceName The name of the event source within the construct
-   * @param handler The name and arn of the lambda handler
-   */
-  attachLambdaEventHandler?(eventSourceName: string, handler: cdk.aws_lambda.IFunction): void;
-  /**
-   * This method must be implemented to allow other constructs in the project to access this construct
-   * @param permissions
-   */
-  getPolicyContent?(permissions: ResourceAccessPolicy): AmplifyPolicyContent;
-  /**
-   * This method must be implemented if this construct defines resources that can access other resources at runtime
-   * @param runtimeRoleName
-   * @param policy
-   * @param resource
-   */
-  attachRuntimePolicy?(runtimeRoleName: string, policy: cdk.aws_iam.PolicyStatement, resource: RuntimeResourceInfo): void;
-
-  getDynamoTableBuilder?(): DynamoTableBuilder;
-
-  setDynamoTableBuilder?(name: string, manager: DynamoTableBuilder): void;
-
-  acceptSecret?(name: string, secret: AmplifySecret): void;
-}
-
-export type ConstructAdaptorFactory = {
-  getConstructAdaptor(scope: Construct, name: string): ConstructAdaptor;
-};
-
 export type RuntimeResourceInfo = {
   resourceName: string;
   arnToken: string;
@@ -157,11 +163,3 @@ export type AmplifyPolicyContent = {
   resourceSuffixes: string[];
   actions: string[];
 };
-
-/**
- * All Amplify transformer plugins must implement a function called 'init' that implements this type
- * This is the entry point into the plugin that the transformer uses to initialize every plugin
- *
- * It is guaranteed to only be called once by the platform
- */
-export type AmplifyInitializer = (logger: IAmplifyLogger, metrics: IAmplifyMetrics) => ConstructAdaptorFactory;

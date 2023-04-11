@@ -1,5 +1,5 @@
 import { executeCDKCommand } from '../execute-cdk-command';
-import { envNamePositional, AmplifyCommandBase, profileNameOption } from './command-components';
+import { envNamePositional, AmplifyCommandBase, profileNameOption } from './shared-components';
 
 type Opts = {
   profile?: string;

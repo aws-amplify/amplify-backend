@@ -1,6 +1,6 @@
 import { executeCDKCommand } from '../execute-cdk-command';
 import * as fs from 'fs-extra';
-import { envNamePositional, profileNameOption, AmplifyCommandBase } from './command-components';
+import { envNamePositional, profileNameOption, AmplifyCommandBase } from './shared-components';
 
 type Args = [string];
 type Opts = {
