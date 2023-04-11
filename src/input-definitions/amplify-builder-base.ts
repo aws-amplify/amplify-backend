@@ -8,6 +8,10 @@ import * as fs from 'fs-extra';
 import { build } from 'esbuild';
 import { BuildConfig, constructConfig, RuntimeAccessConfig, SecretConfig, TriggerConfig } from './ir-definition';
 
+/**
+ * This module defines the base class of the various builders that are exposed to customers in the `amplify.ts` file
+ */
+
 export type TriggerHandler = {
   triggerHandler: () => TriggerHandlerRef;
 };

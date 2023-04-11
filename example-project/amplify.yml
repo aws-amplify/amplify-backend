@@ -1,3 +1,4 @@
+# this is an example of what a project that is directly using the declarative IR might look like
 constructMap:
   myFileStorage:
     adaptor: '@aws-amplify/file-storage-adaptor'

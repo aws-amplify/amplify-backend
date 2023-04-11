@@ -9,8 +9,8 @@ import {
 import { EventType } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import { z } from 'zod';
-import { ResourceAccessPolicy } from '../../manifest/manifest-schema';
 import { ConstructAdaptor, ConstructAdaptorFactory, LambdaEventSource, AmplifyInitializer, AmplifyPolicyContent } from '../../types';
+import { ResourceAccessPolicy } from '../../input-definitions/ir-definition';
 
 export const init: AmplifyInitializer = () => {
   return new AmplifyS3ProviderFactory();

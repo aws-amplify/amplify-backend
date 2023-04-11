@@ -1,6 +1,11 @@
 import { Construct } from 'constructs';
 import { AmplifyCdkType, ConstructAdaptor, ConstructAdaptorFactory, AmplifyInitializer, DynamoTableBuilder, aZod } from '../../types';
 
+/**
+ * A basic stub of creating a GQL API
+ * @param awsCdkLib
+ * @returns
+ */
 export const init: AmplifyInitializer = (awsCdkLib: AmplifyCdkType) => {
   return new AmplifyAppSyncProviderFactory(awsCdkLib);
 };

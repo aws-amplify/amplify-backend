@@ -1,7 +1,7 @@
 import { Construct } from 'constructs';
 import * as cdk from 'aws-cdk-lib';
-import { ResourceAccessPolicy, RuntimeRoleName } from './manifest/manifest-schema';
 import { z } from 'zod';
+import { ResourceAccessPolicy } from './input-definitions/ir-definition';
 
 export type AmplifyCdkType = typeof cdk;
 export { cdk as aCDK };
@@ -112,7 +112,7 @@ export abstract class ConstructAdaptor extends Construct implements Partial<Ampl
    * @param policy
    * @param resource
    */
-  attachRuntimePolicy?(runtimeRoleName: RuntimeRoleName, policy: cdk.aws_iam.PolicyStatement, resource: RuntimeResourceInfo): void;
+  attachRuntimePolicy?(runtimeRoleName: string, policy: cdk.aws_iam.PolicyStatement, resource: RuntimeResourceInfo): void;
 
   getDynamoTableBuilder?(): DynamoTableBuilder;
 

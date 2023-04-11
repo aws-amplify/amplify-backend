@@ -1,5 +1,5 @@
 import path from 'path';
-import { ConstructMap } from '../manifest/ir-definition';
+import { ConstructMap } from '../input-definitions/ir-definition';
 import { ConstructAdaptorFactory } from '../types';
 
 type ConstructAdaptorFactoryMap = Record<string, ConstructAdaptorFactory>;

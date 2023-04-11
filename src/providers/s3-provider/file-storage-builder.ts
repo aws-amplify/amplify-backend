@@ -1,4 +1,4 @@
-import { AmplifyBuilderBase } from '../../manifest/amplify-builder-base';
+import { AmplifyBuilderBase } from '../../input-definitions/amplify-builder-base';
 import { FileStorageConfig } from './s3-provider';
 
 type FileStorageActions = 'create' | 'read' | 'update' | 'delete' | 'list';

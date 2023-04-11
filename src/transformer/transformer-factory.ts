@@ -1,5 +1,5 @@
 import { AmplifyTransformer } from './transformer';
-import { ConstructMap } from '../manifest/ir-definition';
+import { ConstructMap } from '../input-definitions/ir-definition';
 import execa from 'execa';
 import path from 'path';
 import { getConstructAdaptorFactory } from './adaptor-factory';

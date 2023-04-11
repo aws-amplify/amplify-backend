@@ -22,7 +22,7 @@ class WatchCommand extends AmplifyCommandBase {
     process.on('exit', () => fs.unlinkSync('cdk.json'));
     process.on('SIGINT', () => fs.unlinkSync('cdk.json'));
 
-    const cdkArgs = ['watch', '--all', '--app', `nxt synth ${envName}`, '--require-approval', 'never', '--concurrency', '5'];
+    const cdkArgs = ['watch', '--all', '--app', `vnext synth ${envName}`, '--require-approval', 'never', '--concurrency', '5'];
 
     if (profile) {
       cdkArgs.push('--profile', profile);

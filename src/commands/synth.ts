@@ -3,10 +3,10 @@ import { parse } from 'yaml';
 import * as fs from 'fs-extra';
 import { createTransformer } from '../transformer/transformer-factory';
 import { envNamePositional, AmplifyCommandBase } from './command-components';
-import { ConstructMap, ProjectConfig, projectConfig } from '../manifest/ir-definition';
+import { ConstructMap, ProjectConfig, projectConfig } from '../input-definitions/ir-definition';
 import { createOption } from '@commander-js/extra-typings';
 import path from 'path';
-import { BuildResult, buildResult } from '../manifest/amplify-builder-base';
+import { BuildResult, buildResult } from '../input-definitions/amplify-builder-base';
 
 class SynthCommand extends AmplifyCommandBase {
   constructor() {
@@ -14,7 +14,7 @@ class SynthCommand extends AmplifyCommandBase {
     this.name('synth')
       .description("Synthesize the deployment artifacts for an Amplify project but don't deploy them")
       .addArgument(envNamePositional)
-      .addOption(createOption('--from-declarative', 'If true, project definition will be read from manifest.amplify.yml instead of amplify.ts'))
+      .addOption(createOption('--from-declarative', 'If true, project definition will be read from amplify.yml instead of amplify.ts'))
       .action(this.handler);
   }
 
@@ -34,7 +34,7 @@ class SynthCommand extends AmplifyCommandBase {
 }
 
 const declarativeConfigLoader = async (): Promise<ProjectConfig> => {
-  return projectConfig.parse(parse(await fs.readFile('manifest.amplify.yml', 'utf8')));
+  return projectConfig.parse(parse(await fs.readFile('amplify.yml', 'utf8')));
 };
 
 const imperativeConfigLoader = async (): Promise<ProjectConfig> => {

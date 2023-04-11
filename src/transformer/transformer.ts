@@ -2,7 +2,7 @@ import { Construct } from 'constructs';
 import { ConstructAdaptorFactory, ConstructAdaptor } from '../types';
 import { AmplifyReference, AmplifyStack } from '../amplify-reference';
 import { aws_lambda, aws_iam, Fn, Stack } from 'aws-cdk-lib';
-import { ConstructConfig, ConstructMap } from '../manifest/ir-definition';
+import { ConstructConfig, ConstructMap } from '../input-definitions/ir-definition';
 
 export class AmplifyTransformer {
   private readonly constructAdaptorMap: Record<string, ConstructAdaptor> = {};

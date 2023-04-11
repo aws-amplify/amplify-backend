@@ -1,16 +1,23 @@
 import { z } from 'zod';
 
+/**
+ * This module exports several zod objects and inferred types that define the shape of the IR definition
+ * This IR is the output of the `amplify.ts` "builder" and the input to the amplify CDK app transform
+ */
+
 // Record<eventName, functionUUID>
 export const triggerConfig = z.record(z.string());
 export type TriggerConfig = z.infer<typeof triggerConfig>;
 
-export const accessConfig = z.object({
+export const resourceAccessPolicy = z.object({
   actions: z.array(z.string()).nonempty(),
   scopes: z.array(z.string()).optional(),
 });
 
+export type ResourceAccessPolicy = z.infer<typeof resourceAccessPolicy>;
+
 // Record<resourceName, accessConfigList>
-export const resourcePolicies = z.record(z.array(accessConfig));
+export const resourcePolicies = z.record(z.array(resourceAccessPolicy));
 
 // Record<runtimeRoleName, resourcePolicies
 export const runtimeAccessConfig = z.record(resourcePolicies);

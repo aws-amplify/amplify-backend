@@ -5,7 +5,7 @@
   "scripts": {
     "build": "tsc",
     "clean": "rm -rf node_modules lib tsconfig.tsbuildinfo",
-    "generate-manifest-schema": "ts-json-schema-generator --path src/manifest/manifest-types.ts --type 'AmplifyManifest' --out amplify-manifest-schema.json --tsconfig tsconfig.json",
+    "set-path": "ln -s \"$(pwd)/bin/vnext\" \"$(npm get prefix)/bin/vnext\"",
     "test": "jest",
     "watch": "tsc -w"
   },

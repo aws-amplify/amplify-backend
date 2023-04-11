@@ -1,4 +1,4 @@
-import { AmplifyBuilderBase, ResourceDefinition } from '../../manifest/amplify-builder-base';
+import { AmplifyBuilderBase, ResourceDefinition } from '../../input-definitions/amplify-builder-base';
 
 type AuthConfig = {
   authorization: {

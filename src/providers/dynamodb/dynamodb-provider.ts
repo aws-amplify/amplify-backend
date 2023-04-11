@@ -16,7 +16,7 @@ import {
   AmplifyZodType,
   aZod as z,
 } from '../../types';
-import { ResourceAccessPolicy } from '../../manifest/manifest-schema';
+import { ResourceAccessPolicy } from '../../input-definitions/ir-definition';
 
 export const init: AmplifyInitializer = (cdk: AmplifyCdkType, _, __, az: AmplifyZodType) => {
   return new AmplifyDynamoDBProviderFactory(cdk);

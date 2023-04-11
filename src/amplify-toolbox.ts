@@ -14,7 +14,7 @@ import { StrictCommand } from './commands/command-components';
  * It has a registry of different commands and delegates to the appropriate one based on the command line args
  */
 export const main = async () => {
-  const rootCommand = new StrictCommand('nxt').description('CLI utility for working with Amplify projects').version('0.1.0');
+  const rootCommand = new StrictCommand('vnext').description('CLI utility for working with Amplify projects').version('0.1.0');
 
   // TOOD should this be resolved / discovered at runtime?
   // this would allow different commands to be released / versioned independently of the platform

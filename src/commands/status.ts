@@ -16,7 +16,7 @@ class StatusCommand extends AmplifyCommandBase {
   }
 
   private handler = async (env: string, { profile }: Opts) => {
-    await executeCDKCommand('diff', '--app', `nxt synth ${env}`);
+    await executeCDKCommand('diff', '--app', `vnext synth ${env}`);
   };
 }
 export const getCommand = () => new StatusCommand();
