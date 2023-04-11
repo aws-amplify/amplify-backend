@@ -1,25 +1,27 @@
 import { Construct } from 'constructs';
-import { AmplifyCdkType, ConstructAdaptor, ConstructAdaptorFactory, AmplifyInitializer, DynamoTableBuilder, aZod } from '../../types';
+import { ConstructAdaptor, ConstructAdaptorFactory, AmplifyInitializer } from '../../types';
+import { aws_appsync as appsync, aws_dynamodb as dynamodb } from 'aws-cdk-lib';
+import { z } from 'zod';
 
 /**
  * A basic stub of creating a GQL API
  * @param awsCdkLib
  * @returns
  */
-export const init: AmplifyInitializer = (awsCdkLib: AmplifyCdkType) => {
-  return new AmplifyAppSyncProviderFactory(awsCdkLib);
+export const init: AmplifyInitializer = () => {
+  return new AmplifyAppSyncProviderFactory();
 };
 
 class AmplifyAppSyncProviderFactory implements ConstructAdaptorFactory {
-  constructor(private readonly awsCdkLib: AmplifyCdkType) {}
+  constructor() {}
 
   getConstructAdaptor(scope: Construct, name: string): ConstructAdaptor {
-    return new AmplifyAppSyncProvider(scope, name, this.awsCdkLib);
+    return new AmplifyAppSyncProvider(scope, name);
   }
 }
 
 class AmplifyAppSyncProvider extends ConstructAdaptor {
-  constructor(scope: Construct, private readonly name: string, private readonly cdk: AmplifyCdkType) {
+  constructor(scope: Construct, private readonly name: string) {
     super(scope, name);
   }
 
@@ -28,9 +30,6 @@ class AmplifyAppSyncProvider extends ConstructAdaptor {
   }
 
   init(config: InputSchema) {
-    const appsync = this.cdk.aws_appsync;
-    const dynamodb = this.cdk.aws_dynamodb;
-
     const api = new appsync.GraphqlApi(this, 'Api', {
       name: 'demo',
       schema: appsync.SchemaFile.fromAsset(config.relativeSchemaPath),
@@ -75,8 +74,8 @@ class AmplifyAppSyncProvider extends ConstructAdaptor {
   }
 }
 
-const inputSchema = aZod.object({
-  relativeSchemaPath: aZod.string(),
+const inputSchema = z.object({
+  relativeSchemaPath: z.string(),
 });
 
-type InputSchema = aZod.infer<typeof inputSchema>;
+type InputSchema = z.infer<typeof inputSchema>;

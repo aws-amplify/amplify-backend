@@ -2,12 +2,10 @@ import { Construct } from 'constructs';
 import * as cdk from 'aws-cdk-lib';
 import { z } from 'zod';
 import { ResourceAccessPolicy } from './input-definitions/ir-definition';
-
-export type AmplifyCdkType = typeof cdk;
-export { cdk as aCDK };
-
-export type AmplifyZodType = typeof z;
-export { z as aZod };
+/**
+ * The ConstructAdaptor below is the "plugin interface".
+ * The other types in this module are inputs/outputs of this interface and collectively define the surface area of the plugin framework
+ */
 
 /**
  * A Construct that can attach runtime access for the runtimeEntityName to access resource
@@ -75,7 +73,7 @@ export type AmplifyTransformFunctionalInterfaceUnion = LambdaEventHandler &
   SecretHandler;
 
 /**
- * Base class that all Amplify resource classes extend from
+ * Base class that all Amplify resource classes extend from. This is the "plugin interface"
  */
 export abstract class ConstructAdaptor extends Construct implements Partial<AmplifyTransformFunctionalInterfaceUnion> {
   /**
@@ -166,9 +164,4 @@ export type AmplifyPolicyContent = {
  *
  * It is guaranteed to only be called once by the platform
  */
-export type AmplifyInitializer = (
-  awsCdkLib: AmplifyCdkType,
-  logger: IAmplifyLogger,
-  metrics: IAmplifyMetrics,
-  az: AmplifyZodType
-) => ConstructAdaptorFactory;
+export type AmplifyInitializer = (logger: IAmplifyLogger, metrics: IAmplifyMetrics) => ConstructAdaptorFactory;

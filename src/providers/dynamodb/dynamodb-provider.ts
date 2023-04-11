@@ -1,32 +1,40 @@
 import { aws_iam, aws_lambda, aws_logs, CustomResource, custom_resources, Duration } from 'aws-cdk-lib';
-import { Attribute, GlobalSecondaryIndexProps, ITable, Table, TableProps } from 'aws-cdk-lib/aws-dynamodb';
+import {
+  Attribute,
+  AttributeType,
+  BillingMode,
+  GlobalSecondaryIndexProps,
+  ITable,
+  StreamViewType,
+  Table,
+  TableProps,
+} from 'aws-cdk-lib/aws-dynamodb';
 import * as path from 'path';
 
 import { Construct } from 'constructs';
 import { AttributeDefinition, AttributeDefinitions, CreateTableInput, GlobalSecondaryIndex, KeySchema } from 'aws-sdk/clients/dynamodb';
 import {
-  AmplifyCdkType,
-  aCDK,
   AmplifyInitializer,
   AmplifyPolicyContent,
   ConstructAdaptor,
   ConstructAdaptorFactory,
   DynamoTableBuilder,
   LambdaEventSource,
-  AmplifyZodType,
-  aZod as z,
 } from '../../types';
 import { ResourceAccessPolicy } from '../../input-definitions/ir-definition';
+import { IFunction, StartingPosition } from 'aws-cdk-lib/aws-lambda';
+import { z } from 'zod';
+import { DynamoEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
 
-export const init: AmplifyInitializer = (cdk: AmplifyCdkType, _, __, az: AmplifyZodType) => {
-  return new AmplifyDynamoDBProviderFactory(cdk);
+export const init: AmplifyInitializer = () => {
+  return new AmplifyDynamoDBProviderFactory();
 };
 
 class AmplifyDynamoDBProviderFactory implements ConstructAdaptorFactory {
-  constructor(private readonly cdk: AmplifyCdkType) {}
+  constructor() {}
 
   getConstructAdaptor(scope: Construct, name: string): ConstructAdaptor {
-    return new AmplifyDynamoDBProvider(scope, name, this.cdk);
+    return new AmplifyDynamoDBProvider(scope, name);
   }
 }
 
@@ -34,8 +42,8 @@ export class AmplifyDynamoDBProvider extends ConstructAdaptor implements LambdaE
   private gsis: GlobalSecondaryIndexProps[] = [];
   private tableProps: TableProps;
   private customTable: ITable;
-  private streamHandler: aCDK.aws_lambda.IFunction;
-  constructor(scope: Construct, private readonly name: string, private readonly cdk: AmplifyCdkType) {
+  private streamHandler: IFunction;
+  constructor(scope: Construct, private readonly name: string) {
     super(scope, name);
   }
 
@@ -158,9 +166,7 @@ export class AmplifyDynamoDBProvider extends ConstructAdaptor implements LambdaE
     });
 
     if (this.streamHandler) {
-      this.streamHandler.addEventSource(
-        new this.cdk.aws_lambda_event_sources.DynamoEventSource(this.customTable, { startingPosition: this.cdk.aws_lambda.StartingPosition.LATEST })
-      );
+      this.streamHandler.addEventSource(new DynamoEventSource(this.customTable, { startingPosition: StartingPosition.LATEST }));
     }
   }
 
@@ -233,21 +239,21 @@ export class AmplifyDynamoDBProvider extends ConstructAdaptor implements LambdaE
 const indexSchema = z.object({
   partitionKey: z.object({
     name: z.string(),
-    type: z.nativeEnum(aCDK.aws_dynamodb.AttributeType),
+    type: z.nativeEnum(AttributeType),
   }),
   sortKey: z
     .object({
       name: z.string(),
-      type: z.nativeEnum(aCDK.aws_dynamodb.AttributeType),
+      type: z.nativeEnum(AttributeType),
     })
     .optional(),
 });
 
 const inputSchema = z
   .object({
-    billingMode: z.nativeEnum(aCDK.aws_dynamodb.BillingMode).optional(),
+    billingMode: z.nativeEnum(BillingMode).optional(),
     pointInTimeRecovery: z.boolean().optional(),
-    stream: z.nativeEnum(aCDK.aws_dynamodb.StreamViewType).optional(),
+    stream: z.nativeEnum(StreamViewType).optional(),
     gsis: z
       .array(
         indexSchema.merge(
