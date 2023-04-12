@@ -1,3 +1,0 @@
-#!/usr/bin/env node
-const { main } = require("../lib/amplify-toolbox");
-main().catch(console.error);
