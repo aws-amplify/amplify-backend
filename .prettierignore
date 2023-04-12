@@ -2,3 +2,10 @@
 build
 coverage
 bin
+
+# CDK asset staging directory
+.cdk.staging
+cdk.out
+
+lib
+tsconfig.tsbuildinfo
