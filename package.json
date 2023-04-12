@@ -15,6 +15,9 @@
     "type": "git",
     "url": "git+https://github.com/aws-amplify/cli.git"
   },
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "author": "AWS Amplify",
   "license": "Apache-2.0",
   "bugs": {
