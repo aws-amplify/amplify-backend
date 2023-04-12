@@ -7,8 +7,6 @@ import { lambdaCallback } from './inline-lambda.js';
 
 export const resizeImage = InlineFunction(lambdaCallback);
 
-export const appStorage = FileStorage({}).on('stream', () => {
-  console.log('do stuff');
-});
+export const appStorage = FileStorage({}).on('stream', resizeImage);
 
 resizeImage.grant('runtime', appStorage.actions('create', 'read', 'update'));

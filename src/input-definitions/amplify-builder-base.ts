@@ -82,8 +82,8 @@ export abstract class AmplifyBuilderBase<
     if (typeof callback === 'function') {
       const amplifyFunction = InlineFunction(callback);
       callbackName = callbackName ?? `${eventName}Trigger`;
-      const buildResult = amplifyFunction._build();
-      this.inlineConstructs[callbackName] = buildResult;
+      const buildPromise = amplifyFunction._build();
+      this.inlineConstructs[callbackName] = buildPromise;
       this.triggers[eventName] = amplifyFunction.id;
     } else {
       this.triggers[eventName] = callback.id;
