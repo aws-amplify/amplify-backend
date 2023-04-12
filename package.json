@@ -2,8 +2,13 @@
   "name": "amplify-vnext",
   "version": "0.0.1",
   "description": "",
-  "main": "index.js",
+  "bin": {
+    "vnext": "bin/index.js"
+  },
   "scripts": {
+    "build": "tsc",
+    "install:local": "npm run build && npm link",
+    "lint": "eslint src/**",
     "test": "jest"
   },
   "repository": {
