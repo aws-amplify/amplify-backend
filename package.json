@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "",
   "bin": {
-    "vnext": "bin/index.js"
+    "vnext": "lib/index.js"
   },
   "scripts": {
     "build": "tsc",
