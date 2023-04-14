@@ -2,6 +2,7 @@
   "compilerOptions": {
     "target": "es2022",
     "module": "ES6",
+    "moduleResolution": "node",
     "lib": ["es2021"],
     "composite": true,
     "rootDir": "./src",
