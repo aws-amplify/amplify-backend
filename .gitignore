@@ -1,16 +1,5 @@
-*.js
-!jest.config.js
-*.d.ts
-!custom-resource-types.d.ts
-node_modules
-.build
-
-# CDK asset staging directory
-.cdk.staging
-cdk.out
-
 lib
+node_modules
 tsconfig.tsbuildinfo
 
-# example lambda
-!**/testLambda/*
+.idea
