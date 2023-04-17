@@ -1,0 +1,25 @@
+{
+  "name": "@aws-amplify/lib-synth",
+  "version": "0.0.1",
+  "description": "Amplify library that synthesizes an Amplify project using CDK",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rimraf lib node_modules tsconfig.tsbuildinfo"
+  },
+  "types": "lib/index.d.ts",
+  "main": "lib/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aws-amplify/cli.git"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "author": "AWS Amplify",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/aws-amplify/cli/issues"
+  },
+  "homepage": "https://github.com/aws-amplify/cli#readme"
+}

@@ -5,9 +5,8 @@
     "moduleResolution": "node",
     "lib": ["es2021"],
     "composite": true,
-    "rootDir": "./src",
-    "outDir": "./lib",
     "declaration": true,
+    "declarationMap": true,
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
@@ -23,9 +22,7 @@
     "emitDecoratorMetadata": true,
     "strictPropertyInitialization": false,
     "skipLibCheck": true,
-    "typeRoots": ["./node_modules/@types"],
     "esModuleInterop": true
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "cdk.out", "lib"]
+  "exclude": ["**/node_modules", "**/lib", "**/*.test.ts"]
 }

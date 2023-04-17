@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { helloWorld } from './hello_world.js';
+import { helloWorld } from '@aws-amplify/lib-synth';
 
 const main = () => {
   helloWorld(console.log);

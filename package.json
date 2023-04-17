@@ -5,15 +5,14 @@
   "bin": {
     "vnext": "lib/cli.js"
   },
-  "type": "module",
   "scripts": {
-    "build": "tsc",
-    "clean": "rimraf lib node_modules tsconfig.tsbuildinfo",
-    "install:local": "npm run build && chmod +x ./lib/cli.js && npm link",
-    "lint": "eslint src/**",
-    "test": "NODE_OPTIONS=--experimental-vm-modules node --loader tsx --test **/*.test.ts",
+    "build": "npm run build -ws",
+    "clean": "npm run clean -ws && rimraf node_modules",
+    "install:local": "npm run build && npm link --force",
+    "lint": "eslint packages/**",
+    "test": "node --loader tsx scripts/run_unit_tests.ts",
     "test:coverage:generate": "NODE_V8_COVERAGE=coverage/ npm run test",
-    "test:coverage:threshold": "c8 --check-coverage --lines 95 --functions 95 --branches 95 npm run test"
+    "test:coverage:threshold": "c8 --check-coverage --lines 95 --functions 95 --branches 95 --exclude scripts/** npm run test"
   },
   "repository": {
     "type": "git",
@@ -37,8 +36,14 @@
     "eslint-config-prettier": "^8.8.0",
     "eslint-config-xo-typescript": "^0.57.0",
     "eslint-plugin-unicorn": "^46.0.0",
+    "execa": "^7.1.1",
+    "glob": "^10.1.0",
     "rimraf": "^5.0.0",
     "tsx": "^3.12.6",
     "typescript": "^5.0.4"
-  }
+  },
+  "workspaces": [
+    "packages/lib-synth",
+    "packages/cli"
+  ]
 }
