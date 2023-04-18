@@ -2,6 +2,7 @@ lib
 node_modules
 tsconfig.tsbuildinfo
 coverage
+docs
 
 .idea
 .nvmrc

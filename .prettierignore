@@ -3,5 +3,6 @@ build
 coverage
 bin
 lib
+docs
 tsconfig.tsbuildinfo
 

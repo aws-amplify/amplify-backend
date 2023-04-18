@@ -8,8 +8,10 @@
   "scripts": {
     "build": "npm run build -ws",
     "clean": "npm run clean -ws && rimraf node_modules coverage .eslintcache",
+    "docs": "typedoc",
     "install:local": "npm run build && npm link --force",
     "lint": "eslint --max-warnings 0 **/*.ts && prettier --check .",
+    "lint:fix": "eslint --cache --fix **/*.ts && prettier --write .",
     "prepare": "husky install",
     "test": "node --loader tsx scripts/run_unit_tests.ts",
     "test:coverage:generate": "NODE_V8_COVERAGE=coverage/ npm run test",
@@ -44,6 +46,7 @@
     "prettier": "^2.8.7",
     "rimraf": "^5.0.0",
     "tsx": "^3.12.6",
+    "typedoc": "^0.24.4",
     "typescript": "^5.0.4"
   },
   "workspaces": [
