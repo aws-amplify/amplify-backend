@@ -34,7 +34,7 @@ describe('Mocking functions', () => {
   });
   describe('validate errors', () => {
     test('Throws a TypeError if the greeter is null', () => {
-      const exercise = () => helloWorld(null as any);
+      const exercise = () => helloWorld(null as never);
       assert.throws(exercise, TypeError);
     });
   });

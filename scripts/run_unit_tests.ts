@@ -10,11 +10,13 @@ import { execa } from 'execa';
  */
 const main = async () => {
   const dir = process.argv[2];
-  const pattern = dir ? `packages/${dir}/**/*.test.ts` : `packages/**/*.test.ts`
+  const pattern = dir
+    ? `packages/${dir}/**/*.test.ts`
+    : `packages/**/*.test.ts`;
   const files = await glob(pattern);
   const args = ['--loader', 'tsx', '--test'];
   args.push(...files);
-  await execa('node', args, {stdio: 'inherit'})
-}
+  await execa('node', args, { stdio: 'inherit' });
+};
 
 main().catch(console.error);
