@@ -6,6 +6,7 @@
   "extends": [
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
+    "plugin:jsdoc/recommended-typescript-error",
     "prettier"
   ],
   "overrides": [],
@@ -14,13 +15,26 @@
     "ecmaVersion": "latest",
     "sourceType": "module"
   },
-  "plugins": ["@typescript-eslint", "unicorn"],
+  "plugins": ["@typescript-eslint", "unicorn", "jsdoc"],
   "rules": {
     "unicorn/filename-case": [
       "error",
       {
         "cases": {
           "snakeCase": true
+        }
+      }
+    ],
+    "jsdoc/require-description": "error",
+    "jsdoc/require-jsdoc": [
+      "error",
+      {
+        "publicOnly": true,
+        "require": {
+          "FunctionDeclaration": true,
+          "MethodDefinition": true,
+          "ClassDeclaration": true,
+          "ArrowFunctionExpression": true
         }
       }
     ]
