@@ -19,4 +19,7 @@ const main = async () => {
   await execa('node', args, { stdio: 'inherit' });
 };
 
-main().catch(console.error);
+main().catch((err) => {
+  console.error(err);
+  process.exitCode = 1;
+});
