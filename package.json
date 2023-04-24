@@ -16,7 +16,7 @@
     "prepare": "husky install",
     "test": "node --loader tsx scripts/run_unit_tests.ts",
     "test:coverage:generate": "NODE_V8_COVERAGE=coverage/ npm run test",
-    "test:coverage:threshold": "c8 --check-coverage --lines 95 --functions 95 --branches 95 --exclude scripts npm run test"
+    "test:coverage:threshold": "c8 npm run test"
   },
   "repository": {
     "type": "git",

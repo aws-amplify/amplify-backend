@@ -1,0 +1,8 @@
+{
+  "lines": 95,
+  "functions": 95,
+  "branches": 95,
+  "exclude": ["docs", "scripts", "**/*.test.ts"],
+  "all": true,
+  "check-coverage": true
+}

@@ -2,7 +2,10 @@
 
 import { helloWorld } from '@aws-amplify/lib-synth';
 
-const main = () => {
+/**
+ * CLI entry point
+ */
+export const main = () => {
   helloWorld(console.log);
 };
 
