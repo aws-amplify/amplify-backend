@@ -20,7 +20,7 @@ const main = async () => {
     baseRef = 'main';
   }
 
-  // first collect the names of files that have been changed so we can filter out excluded files
+  // first collect the names of files that have been changed, so we can filter out excluded files
   const { stdout: filenameDiffOutput } = await execa('git', [
     '--no-pager',
     'diff',
@@ -43,9 +43,13 @@ const main = async () => {
   let linesAdded = 0;
   let linesRemoved = 0;
   if (shortStatOutputString.includes('insertion')) {
-    linesAdded = parseInt(shortStatOutputString.match(/(\d+)\s+insertion/)[1]);
+    linesAdded = parseInt(
+      shortStatOutputString.match(/(\d+)\s+insertion/)?.[1]
+    );
   } else if (shortStatOutputString.includes('deletion')) {
-    linesRemoved = parseInt(shortStatOutputString.match(/(\d+)\s+deletion/)[1]);
+    linesRemoved = parseInt(
+      shortStatOutputString.match(/(\d+)\s+deletion/)?.[1]
+    );
   }
   console.log(`Lines Added: ${linesAdded}`);
   console.log(`Lines Removed: ${linesRemoved}`);
