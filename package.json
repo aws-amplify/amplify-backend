@@ -2,9 +2,6 @@
   "name": "amplify-vnext",
   "version": "0.0.1",
   "description": "",
-  "bin": {
-    "vnext": "lib/cli.js"
-  },
   "scripts": {
     "build": "npm run build -ws",
     "clean": "npm run clean -ws && rimraf node_modules coverage .eslintcache",
