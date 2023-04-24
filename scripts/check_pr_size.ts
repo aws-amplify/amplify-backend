@@ -46,7 +46,8 @@ const main = async () => {
     linesAdded = parseInt(
       shortStatOutputString.match(/(\d+)\s+insertion/)?.[1]
     );
-  } else if (shortStatOutputString.includes('deletion')) {
+  }
+  if (shortStatOutputString.includes('deletion')) {
     linesRemoved = parseInt(
       shortStatOutputString.match(/(\d+)\s+deletion/)?.[1]
     );
