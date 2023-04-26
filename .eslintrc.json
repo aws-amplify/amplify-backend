@@ -37,6 +37,7 @@
           "ArrowFunctionExpression": true
         }
       }
-    ]
+    ],
+    "jsdoc/require-param": "off"
   }
 }

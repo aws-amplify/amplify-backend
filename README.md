@@ -89,6 +89,9 @@ Run `npm run test` to execute the test suite
 
 ## Adding a package
 
+Most package types that you might want to add to this repo should have templates in the `templates` directory.
+These templates can be copied to a new package directory using `npm run new:*` where \* is the type of package you are creating (see `package.json` for available scripts)
+
 This repo uses a monorepo structure using npm workspaces. To add a new package to the monorepo, you'll need to
 
 1. Create a new folder under `packages`

@@ -7,6 +7,7 @@
     "clean": "npm run clean -ws && rimraf node_modules coverage .eslintcache",
     "diff:check": "node --loader tsx scripts/check_pr_size.ts",
     "docs": "typedoc",
+    "new:construct": "node --loader tsx scripts/copy_construct_template.ts",
     "install:local": "npm run build && npm link --force",
     "lint": "eslint --max-warnings 0 . && prettier --check .",
     "lint:fix": "eslint --cache --fix . && prettier --write .",
@@ -29,6 +30,7 @@
   },
   "homepage": "https://github.com/aws-amplify/cli#readme",
   "devDependencies": {
+    "@types/fs-extra": "^11.0.1",
     "@types/node": "^18.15.11",
     "@typescript-eslint/eslint-plugin": "^5.58.0",
     "@typescript-eslint/parser": "^5.58.0",
@@ -39,6 +41,7 @@
     "eslint-plugin-jsdoc": "^43.0.6",
     "eslint-plugin-unicorn": "^46.0.0",
     "execa": "^7.1.1",
+    "fs-extra": "^11.1.1",
     "glob": "^10.1.0",
     "husky": "^8.0.3",
     "lint-staged": "^13.2.1",
@@ -49,6 +52,7 @@
     "typescript": "^5.0.4"
   },
   "workspaces": [
+    "packages/construct-auth",
     "packages/lib-synth",
     "packages/cli"
   ],
