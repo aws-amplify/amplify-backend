@@ -4,6 +4,7 @@
   "description": "Amplify library that synthesizes an Amplify project using CDK",
   "type": "module",
   "scripts": {
+    "api:update": "api-extractor run --local",
     "build": "tsc",
     "clean": "rimraf lib node_modules tsconfig.tsbuildinfo"
   },

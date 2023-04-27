@@ -1,9 +1,10 @@
-lib
-node_modules
-tsconfig.tsbuildinfo
 coverage
 docs
+lib
+node_modules
+temp
+tsconfig.tsbuildinfo
 
 .idea
-.nvmrc
 .eslintcache
+.nvmrc

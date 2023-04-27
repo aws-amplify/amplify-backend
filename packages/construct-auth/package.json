@@ -4,6 +4,7 @@
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
+    "api:update": "api-extractor run --local",
     "build": "tsc",
     "clean": "rimraf lib node_modules tsconfig.tsbuildinfo",
     "watch": "tsc -w"

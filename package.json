@@ -3,6 +3,8 @@
   "version": "0.0.1",
   "description": "",
   "scripts": {
+    "api:update": "npm run api:update -ws",
+    "api:check": "npm run api:update && node --loader tsx scripts/check_api_extract.ts",
     "build": "npm run build -ws",
     "clean": "npm run clean -ws && rimraf node_modules coverage .eslintcache",
     "diff:check": "node --loader tsx scripts/check_pr_size.ts",
@@ -30,6 +32,7 @@
   },
   "homepage": "https://github.com/aws-amplify/cli#readme",
   "devDependencies": {
+    "@microsoft/api-extractor": "^7.34.4",
     "@types/fs-extra": "^11.0.1",
     "@types/node": "^18.15.11",
     "@typescript-eslint/eslint-plugin": "^5.58.0",

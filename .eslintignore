@@ -4,4 +4,6 @@ coverage
 bin
 lib
 docs
+temp
+API.md
 

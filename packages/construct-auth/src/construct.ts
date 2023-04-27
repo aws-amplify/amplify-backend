@@ -9,6 +9,9 @@ export type GoogleLogin = {
 
 export type LoginMechanism = 'email' | 'username' | 'phone' | GoogleLogin;
 
+/**
+ * Auth props
+ */
 export type AuthProps = {
   loginMechanisms: LoginMechanism[];
 };
