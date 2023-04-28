@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
+  "type": "module",
   "scripts": {
     "api:update": "api-extractor run --local",
     "build": "tsc",

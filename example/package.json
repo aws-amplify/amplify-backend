@@ -1,0 +1,15 @@
+{
+  "name": "samsara-example",
+  "version": "0.0.1",
+  "description": "An example app for samsara",
+  "type": "module",
+  "scripts": {},
+  "author": "AWS Amplify",
+  "license": "Apache-2.0",
+  "dependencies": {},
+  "devDependencies": {
+    "aws-cdk-lib": "^2.77.0",
+    "constructs": "^10.0.0",
+    "ts-node": "^10.9.1"
+  }
+}
