@@ -22,6 +22,10 @@ export type AmplifyConstruct<
   // we can do something like this for other methods that only exist on some implementations
 } & (HasHandler extends true ? { handle(): IFunction } : Record<string, never>);
 
+export type WithOverride<Resources> = {
+  override?(resources: Resources): void;
+};
+
 export type FeatureBuilder<
   Props extends string = string,
   Event extends string | undefined = string,

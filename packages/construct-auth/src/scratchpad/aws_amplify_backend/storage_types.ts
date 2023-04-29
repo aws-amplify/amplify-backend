@@ -1,4 +1,8 @@
-import { AmplifyConstruct, FeatureBuilder } from './base_types.js';
+import {
+  AmplifyConstruct,
+  FeatureBuilder,
+  WithOverride,
+} from './base_types.js';
 import { Bucket, IBucket } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
@@ -6,7 +10,7 @@ import { IPolicy, Policy } from 'aws-cdk-lib/aws-iam';
 
 type FileStorageProps = {
   enforceSSL?: boolean;
-};
+} & WithOverride<FileStorageResources>;
 
 type FileStorageEvent = 'update' | 'delete';
 type FileStorageRole = undefined;
@@ -59,5 +63,7 @@ export const FileStorage: FeatureBuilder<
   FileStorageScope,
   FileStorageResources
 > = (props: FileStorageProps) => (ctx, name) => {
-  return new FileStorageConstruct(ctx.getScope(), name, props);
+  const construct = new FileStorageConstruct(ctx.getScope(), name, props);
+  if (props.override) props.override(construct.resources);
+  return construct;
 };

@@ -2,14 +2,18 @@ import { CfnIdentityPool, UserPool } from 'aws-cdk-lib/aws-cognito';
 import { IPolicy, IRole, Policy } from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
-import { AmplifyConstruct, FeatureBuilder } from './base_types.js';
+import {
+  AmplifyConstruct,
+  FeatureBuilder,
+  WithOverride,
+} from './base_types.js';
 
 type AuthProps = {
   /**
    * How users will sign in to your app
    */
   loginMechanisms: ('username' | 'email' | 'phone')[];
-};
+} & WithOverride<AuthResources>;
 
 /**
  * Events that Auth emits in the cloud
@@ -71,5 +75,7 @@ export const Auth: FeatureBuilder<
   AuthScope,
   AuthResources
 > = (props: AuthProps) => (ctx, name) => {
-  return new AuthConstruct(ctx.getScope(), name, props);
+  const construct = new AuthConstruct(ctx.getScope(), name, props);
+  if (props.override) props.override(construct.resources);
+  return construct;
 };

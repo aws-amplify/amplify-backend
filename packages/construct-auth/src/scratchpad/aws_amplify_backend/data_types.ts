@@ -1,4 +1,8 @@
-import { AmplifyConstruct, FeatureBuilder } from './base_types.js';
+import {
+  AmplifyConstruct,
+  FeatureBuilder,
+  WithOverride,
+} from './base_types.js';
 import { Construct } from 'constructs';
 import {
   GraphqlApi,
@@ -11,7 +15,7 @@ import { IFunction } from 'aws-cdk-lib/aws-lambda';
 
 type DataProps = {
   schema: object;
-};
+} & WithOverride<DataResources>;
 
 type DataEvent = undefined;
 type DataRole = undefined;
@@ -61,7 +65,9 @@ export const Data: FeatureBuilder<
   DataScope,
   DataResources
 > = (props: DataProps) => (ctx, name) => {
-  return new DataConstruct(ctx.getScope(), name, props);
+  const construct = new DataConstruct(ctx.getScope(), name, props);
+  if (props.override) props.override(construct.resources);
+  return construct;
 };
 
 export const a = {} as any;
