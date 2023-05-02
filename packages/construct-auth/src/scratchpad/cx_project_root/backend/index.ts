@@ -10,13 +10,17 @@ import { fileStorage } from './storage.js';
 export const config = {
   auth,
   data,
+  preSignUpHandler,
 };
 
 // uncomment to compose resources together
 
-// export const compose: AmplifyCompose<typeof config> = (features) => {
-//   // compose resources together here
-// };
+/**
+ *
+ */
+export const compose: AmplifyCompose<typeof config> = (features) => {
+  features.auth.onCloudEvent('preSignUp', features.preSignUpHandler);
+};
 
 // uncomment to add custom resources
 

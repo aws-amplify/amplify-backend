@@ -20,7 +20,7 @@ export type AmplifyConstruct<
   actions(actions: Action[], scopes?: Scope[]): IPolicy;
   resources: Resources;
   // we can do something like this for other methods that only exist on some implementations
-} & (HasHandler extends true ? { handle(): IFunction } : Record<string, never>);
+} & (HasHandler extends true ? IFunction : Record<string, never>);
 
 export type WithOverride<Resources> = {
   override?(resources: Resources): void;

@@ -22,7 +22,7 @@ type FnResources = {
 type IsHandler = true;
 
 class FnConstruct
-  extends Construct
+  extends Function
   implements
     AmplifyConstruct<
       FnEvent,
@@ -36,8 +36,9 @@ class FnConstruct
   resources: FnResources;
 
   constructor(scope: Construct, name: string, props: FunctionProps) {
-    super(scope, name);
-    this.resources.lambda = new Function(this, name, props);
+    super(scope, name, props);
+    this.resources.lambda = this;
+    this.resources.executionRole = this.role;
   }
 
   grant(role: FnRole, policy: IPolicy) {
@@ -46,10 +47,6 @@ class FnConstruct
 
   actions(actions: FnAction[], scopes?: FnScope[]) {
     return new Policy(this, 'policy');
-  }
-
-  handle() {
-    return this.resources.lambda;
   }
 
   onCloudEvent(event: FnEvent, handler: IFunction): this {
