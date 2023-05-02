@@ -5,6 +5,7 @@ import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import {
   AmplifyConstruct,
   FeatureBuilder,
+  WithEvents,
   WithOverride,
 } from './base_types.js';
 
@@ -13,7 +14,8 @@ type AuthProps = {
    * How users will sign in to your app
    */
   loginMechanisms: ('username' | 'email' | 'phone')[];
-} & WithOverride<AuthResources>;
+} & WithOverride<AuthResources> &
+  WithEvents<AuthEvent>;
 
 /**
  * Events that Auth emits in the cloud

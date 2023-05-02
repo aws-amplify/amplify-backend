@@ -7,31 +7,60 @@ export type AmplifyContext = {
   getScope(): Construct;
 };
 
+type MaybeEventEmitter<Event> = Event extends infer E extends string
+  ? {
+      onCloudEvent(event: E, handler: IFunction): this;
+    }
+  : Record<string, never>;
+
+type MaybeFunction<IsFunction> = IsFunction extends true
+  ? IFunction
+  : Record<string, never>;
+
 export type AmplifyConstruct<
-  Event extends string | undefined = string,
-  Role extends string | undefined = string,
-  Action extends string = string,
-  Scope extends string = string,
+  Event extends string | never,
+  Role extends string | never,
+  Action extends string,
+  Scope extends string,
   Resources extends Record<string, IResource> = Record<string, IResource>,
-  HasHandler extends boolean = false
+  IsHandler extends boolean
 > = {
-  onCloudEvent(event: Event, handler: IFunction): this;
   grant(role: Role, policy: IPolicy): this;
   actions(actions: Action[], scopes?: Scope[]): IPolicy;
   resources: Resources;
   // we can do something like this for other methods that only exist on some implementations
-} & (HasHandler extends true ? IFunction : Record<string, never>);
+} & MaybeFunction<IsHandler> &
+  MaybeEventEmitter<Event>;
 
 export type WithOverride<Resources> = {
   override?(resources: Resources): void;
 };
 
+export type WithEvents<Event extends string> = {
+  events?: Partial<
+    Record<
+      Event,
+      ReturnType<
+        FeatureBuilder<
+          unknown,
+          unknown,
+          unknown,
+          unknown,
+          unknown,
+          unknown,
+          true
+        >
+      >
+    >
+  >;
+};
+
 export type FeatureBuilder<
-  Props extends string = string,
-  Event extends string | undefined = string,
-  Role extends string | undefined = string,
-  Action extends string = string,
-  Scope extends string = string,
+  Props extends object = object,
+  Event extends string | never = never,
+  Role extends string | never = never,
+  Action extends string | never = never,
+  Scope extends string | never = never,
   Resources extends Record<string, IResource> = Record<string, IResource>,
   HasHandler extends boolean = false
 > = (
