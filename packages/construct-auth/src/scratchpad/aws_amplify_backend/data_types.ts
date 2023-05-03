@@ -1,6 +1,6 @@
 import {
   AmplifyConstruct,
-  FeatureBuilder,
+  ConstructBuilder,
   WithOverride,
 } from './base_types.js';
 import { Construct } from 'constructs';
@@ -57,7 +57,7 @@ class DataConstruct
 /**
  * Create a cloud Data API
  */
-export const Data: FeatureBuilder<
+export const Data: ConstructBuilder<
   DataProps,
   DataEvent,
   DataRole,

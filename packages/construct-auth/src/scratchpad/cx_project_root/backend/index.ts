@@ -24,9 +24,12 @@ export const compose: AmplifyCompose<typeof config> = (features) => {
 
 // uncomment to add custom resources
 
-// export const custom: AmplifyCustom<typeof config> = (
-//   featureResources,
-//   scope
-// ) => {
-//   // create custom resources here and integrate with amplify resources
-// };
+/**
+ *
+ */
+export const custom: AmplifyCustom<typeof config> = (
+  featureResources,
+  scope
+) => {
+  // create custom resources here and integrate with amplify resources
+};

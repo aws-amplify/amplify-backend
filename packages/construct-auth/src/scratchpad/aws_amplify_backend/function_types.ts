@@ -7,70 +7,88 @@ import {
   Code,
   FunctionProps,
 } from 'aws-cdk-lib/aws-lambda';
-import { AmplifyConstruct, FeatureBuilder } from './base_types.js';
+import {
+  AmplifyConstruct,
+  AmplifyContext,
+  ConstructBuilder,
+  RuntimeEntity,
+  WithOverride,
+} from './base_types.js';
 
-type FnProps = (...args: any[]) => Promise<any> | any;
+type AnyFunction = (...args: any[]) => Promise<any> | any;
+type FnBuilderProps =
+  | AnyFunction
+  | ({
+      cloudFunction: AnyFunction;
+    } & WithOverride<FnResources>);
 
-type FnEvent = undefined;
-type FnRole = 'runtime';
-type FnAction = 'invoke';
-type FnScope = undefined;
+type FnRuntimeEntityName = 'runtime';
+type FnEvent = never;
+type FnAction = never;
+type FnScope = never;
 type FnResources = {
   lambda: IFunction;
   executionRole: IRole;
 };
-type IsHandler = true;
+type FnIsHandler = true;
+type FnHasDefaultEntityName = true;
 
 class FnConstruct
   extends Function
   implements
     AmplifyConstruct<
+      FnRuntimeEntityName,
       FnEvent,
-      FnRole,
       FnAction,
       FnScope,
       FnResources,
-      IsHandler
+      FnIsHandler,
+      FnHasDefaultEntityName
     >
 {
-  resources: FnResources;
+  lambda: IFunction;
+  executionRole: IRole;
 
   constructor(scope: Construct, name: string, props: FunctionProps) {
     super(scope, name, props);
-    this.resources.lambda = this;
-    this.resources.executionRole = this.role;
+    this.lambda = this;
+    this.executionRole = this.role;
   }
 
-  grant(role: FnRole, policy: IPolicy) {
-    return this;
+  supplyRuntimeEntity(runtimeEntityName?: FnRuntimeEntityName): RuntimeEntity {
+    return {
+      role: this.executionRole,
+    };
   }
 
-  actions(actions: FnAction[], scopes?: FnScope[]) {
-    return new Policy(this, 'policy');
-  }
-
-  onCloudEvent(event: FnEvent, handler: IFunction): this {
-    return this;
+  setTrigger(eventName: FnEvent, handler: IFunction): void {
+    // for some reason TS is making me implement this but not sure why
+    return undefined;
   }
 }
-/**
- * Create a cloud function
- */
-export const Fn: FeatureBuilder<
-  FnProps,
-  FnEvent,
-  FnRole,
-  FnAction,
-  FnScope,
-  FnResources,
-  IsHandler
-> = (props: FnProps) => (ctx, name) => {
-  // introspect and build function
-  // construct props from build artifact location
-  const functionProps: FunctionProps = {
-    runtime: Runtime.NODEJS_18_X,
-    code: Code.fromAsset('.build/hash'),
-    handler: 'index.handler',
-  };
-  return new FnConstruct(ctx.getScope(), name, functionProps);
-};
+
+export const Fn = FnBuilder;
+
+class FnBuilder
+  implements
+    ConstructBuilder<
+      FnRuntimeEntityName,
+      FnEvent,
+      FnAction,
+      FnScope,
+      FnResources,
+      FnIsHandler,
+      FnHasDefaultEntityName
+    >
+{
+  constructor(private readonly props: FnBuilderProps) {}
+
+  build(ctx: AmplifyContext, name: string) {
+    const functionProps: FunctionProps = {
+      runtime: Runtime.NODEJS_18_X,
+      code: Code.fromAsset('.build/hash'),
+      handler: 'index.handler',
+    };
+    return new FnConstruct(ctx.getScope(), name, functionProps);
+  }
+}

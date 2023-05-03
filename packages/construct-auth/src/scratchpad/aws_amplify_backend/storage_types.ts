@@ -1,6 +1,6 @@
 import {
   AmplifyConstruct,
-  FeatureBuilder,
+  ConstructBuilder,
   WithOverride,
 } from './base_types.js';
 import { Bucket, IBucket } from 'aws-cdk-lib/aws-s3';
@@ -55,7 +55,7 @@ class FileStorageConstruct
 /**
  * Create cloud storage
  */
-export const FileStorage: FeatureBuilder<
+export const FileStorage: ConstructBuilder<
   FileStorageProps,
   FileStorageEvent,
   FileStorageRole,
