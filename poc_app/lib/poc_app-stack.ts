@@ -1,5 +1,6 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
+import { config } from 'dotenv';
 // import * as sqs from 'aws-cdk-lib/aws-sqs';
 import {
   aws_cognito as auth,
@@ -9,6 +10,7 @@ import {
   aws_iam as iam,
   aws_appsync as appsync,
 } from 'aws-cdk-lib';
+import { OAuthScope } from 'aws-cdk-lib/aws-cognito';
 
 export class PocAppStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -20,6 +22,7 @@ export class PocAppStack extends cdk.Stack {
 export class AmplifyApp extends Construct {
   constructor(scope: Construct, id: string, props?: Record<never, string>) {
     super(scope, id);
+    config();
 
     const myAuth = new auth.UserPool(this, 'my-auth', {
       signInCaseSensitive: true,
@@ -31,8 +34,14 @@ export class AmplifyApp extends Construct {
 
     new auth.UserPoolClient(this, 'my-app-client', {
       userPool: myAuth,
+      oAuth: {
+        flows: { authorizationCodeGrant: true },
+        scopes: [OAuthScope.OPENID],
+        callbackUrls: ['http://localhost:3000/callback'],
+      },
       authFlows: {
         userPassword: true,
+        userSrp: true,
       },
       generateSecret: false,
     });
@@ -42,11 +51,16 @@ export class AmplifyApp extends Construct {
     });
 
     new ses.EmailIdentity(this, 'verified-to-identity', {
-      identity: ses.Identity.email('junk+junk@stolworthy.co'),
+      identity: ses.Identity.email(
+        process.env.YOUR_TO_EMAIL ?? 'to@example.com'
+      ),
     });
 
+    const fromIdentity = ses.Identity.email(
+      process.env.YOUR_FROM_EMAIL ?? 'from@example.com'
+    );
     new ses.EmailIdentity(this, 'verified-from-identity', {
-      identity: ses.Identity.email('junk+junkie@stolworthy.co'),
+      identity: fromIdentity,
     });
 
     const myFunc = new lambda.Function(this, 'my-function', {
@@ -81,7 +95,7 @@ const sendTheEmail = async (to, body) => {
         Data: "Cognito Identity Provider registration completed",
       },
     },
-    Source: "junk+junkie@stolworthy.co",
+    Source: "${fromIdentity.value}",
   };
   try {
     await ses.send(new SendEmailCommand(eParams));
