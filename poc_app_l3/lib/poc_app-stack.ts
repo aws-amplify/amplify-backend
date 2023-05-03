@@ -42,11 +42,11 @@ export class AmplifyApp extends Construct {
     });
 
     new ses.EmailIdentity(this, 'verified-to-identity', {
-      identity: ses.Identity.email('sobkamil+pocl3+to@amazon.com'),
+      identity: ses.Identity.email('goldbez+samsara-poc@amazon.com'),
     });
 
     new ses.EmailIdentity(this, 'verified-from-identity', {
-      identity: ses.Identity.email('sobkamil+pocl3+from@amazon.com'),
+      identity: ses.Identity.email('goldbez+samsara-poc@amazon.com'),
     });
 
     const myFunc = new lambda.Function(this, 'my-function', {
@@ -81,7 +81,7 @@ const sendTheEmail = async (to, body) => {
         Data: "Cognito Identity Provider registration completed",
       },
     },
-    Source: "junk+junkie@stolworthy.co",
+    Source: "goldbez+samsara-poc@amazon.com",
   };
   try {
     await ses.send(new SendEmailCommand(eParams));
