@@ -37,16 +37,26 @@ export class AmplifyApp extends Construct {
       generateSecret: false,
     });
 
+<<<<<<< HEAD
     new s3.Bucket(this, 'my-bucket', {
       bucketName: 'super-cool-bucket-2',
+=======
+    const email1 = 'goldbez+10samsara-poc@amazon.com';
+    const email_resource_1 = ses.Identity.email(email1);
+    const email2 = 'goldbez+11samsara-poc@amazon.com';
+    const email_resource_2 = ses.Identity.email(email2);
+
+    new s3.Bucket(this, 'my-bucket-10', {
+      bucketName: 'zach-super-cool-bucket-10',
+>>>>>>> 36bebfb (chrore: save work)
     });
 
-    new ses.EmailIdentity(this, 'verified-to-identity', {
-      identity: ses.Identity.email('goldbez+samsara-poc@amazon.com'),
+    new ses.EmailIdentity(this, 'verified-to-identity-2', {
+      identity: email_resource_1,
     });
 
-    new ses.EmailIdentity(this, 'verified-from-identity', {
-      identity: ses.Identity.email('goldbez+samsara-poc@amazon.com'),
+    new ses.EmailIdentity(this, 'verified-from-identity-2', {
+      identity: email_resource_2,
     });
 
     const myFunc = new lambda.Function(this, 'my-function', {
@@ -81,7 +91,7 @@ const sendTheEmail = async (to, body) => {
         Data: "Cognito Identity Provider registration completed",
       },
     },
-    Source: "goldbez+samsara-poc@amazon.com",
+    Source: "goldbez+2samsara-poc@amazon.com",
   };
   try {
     await ses.send(new SendEmailCommand(eParams));
