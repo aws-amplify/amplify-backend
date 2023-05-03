@@ -109,7 +109,7 @@ module.exports = { handler }
     myFunc.addToRolePolicy(
       new iam.PolicyStatement({
         actions: ['ses:SendEmail', 'ses:SendRawEmail'],
-        resources: [myFunc.functionArn],
+        resources: ['*'],
         effect: iam.Effect.ALLOW,
       })
     );

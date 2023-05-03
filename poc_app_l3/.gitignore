@@ -3,6 +3,7 @@
 *.d.ts
 node_modules
 !lib/
+!logger_func/*.js
 
 # CDK asset staging directory
 .cdk.staging
