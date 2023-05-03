@@ -8,7 +8,7 @@ import {
 import { Bucket, EventType, IBucket } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
-import { IPolicy, Policy } from 'aws-cdk-lib/aws-iam';
+import { IPolicy, Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { BucketNotifications } from 'aws-cdk-lib/aws-s3/lib/notifications-resource/index.js';
 import { LambdaDestination } from 'aws-cdk-lib/aws-s3-notifications';
 
@@ -61,16 +61,74 @@ class FileStorageConstruct
     actions: FileStorageAction[],
     scope: FileStorageScope
   ): void {
+
+    let path = '';
     switch (scope) {
       case 'private':
+        path = `private/${entity.discriminant}/*`
         break;
       case 'protected':
+        path = 'protected/*'
         break;
       case 'public':
+        path = 'public/*'
         break;
-
-      default:
     }
+    const readActions = [
+      "s3:Get*",
+      "s3:List*",
+      "s3-object-lambda:Get*",
+      "s3-object-lambda:List*"
+    ];
+    const createActions = [
+      ...readActions,
+      's3: PutObject'
+    ];
+    const updateActions = [
+      ...readActions,
+      's3: PutObject'
+    ];
+    const deleteActions = [
+      ...readActions,
+      's3:DeleteObject',
+      's3:DeleteObjectVersion'
+    ];
+    const listActions = [
+      "s3:List*",
+      "s3-object-lambda:List*"
+    ];
+
+    let allowedActions: string[] = [];
+    actions.forEach(action => {
+      switch (action) {
+        case 'create':
+          allowedActions.push(...createActions);
+          break;
+        case 'read':
+          allowedActions.push(...readActions);
+          break;
+        case 'update':
+          allowedActions.push(...updateActions);
+          break;
+        case 'delete':
+          allowedActions.push(...deleteActions);
+          break;
+        case 'list':
+          allowedActions.push(...listActions);
+          break;
+      }
+    });
+    allowedActions = [...new Set(allowedActions)];
+
+    const newPolicy = new Policy(this, 'grant-policy', {
+      statements: [
+        new PolicyStatement({
+          resources: [`${this.bucket.bucketArn}/${path}`],
+          actions: allowedActions
+        })
+      ]
+    });
+    entity.role.attachInlinePolicy(newPolicy);
   }
 
   setTrigger(eventName: FileStorageEvent, handler: IFunction): void {
