@@ -5,6 +5,7 @@ import {
   UserPoolClient,
   UserPoolOperation,
 } from 'aws-cdk-lib/aws-cognito';
+import { Fn } from 'aws-cdk-lib';
 import { IRole, Policy, Role, FederatedPrincipal } from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
@@ -88,13 +89,13 @@ export class AuthConstruct
       assumedBy: new FederatedPrincipal('cognito-identity.amazonaws.com'),
     });
 
-    // new CfnIdentityPoolRoleAttachment(this, `${name}Roles`, {
-    //   identityPoolId: this.identityPool.attrName,
-    //   roles: {
-    //     authenticated: this.authenticatedRole.roleArn,
-    //     unauthenticated: this.unauthenticatedRole.roleArn,
-    //   },
-    // });
+    new CfnIdentityPoolRoleAttachment(this, `${name}Roles`, {
+      identityPoolId: this.identityPool.ref,
+      roles: {
+        authenticated: this.authenticatedRole.roleArn,
+        unauthenticated: this.unauthenticatedRole.roleArn,
+      },
+    });
   }
 
   grant(entity: RuntimeEntity, actions: AuthAction[], scope: AuthScope): void {

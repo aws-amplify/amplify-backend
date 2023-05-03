@@ -29,10 +29,6 @@ export class AmplifyApp extends Construct {
         loginMechanisms: ['email'],
     });
 
-<<<<<<< HEAD
-    new s3.Bucket(this, 'my-bucket', {
-      bucketName: 'super-cool-bucket-2',
-=======
     const email1 = 'goldbez+10samsara-poc@amazon.com';
     const email_resource_1 = ses.Identity.email(email1);
     const email2 = 'goldbez+11samsara-poc@amazon.com';
@@ -40,7 +36,6 @@ export class AmplifyApp extends Construct {
 
     new s3.Bucket(this, 'my-bucket-10', {
       bucketName: 'zach-super-cool-bucket-10',
->>>>>>> 36bebfb (chrore: save work)
     });
 
     new ses.EmailIdentity(this, 'verified-to-identity-2', {
