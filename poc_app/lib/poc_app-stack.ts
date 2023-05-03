@@ -46,7 +46,7 @@ export class AmplifyApp extends Construct {
       generateSecret: false,
     });
 
-    new s3.Bucket(this, 'my-bucket', {
+    const myBucket = new s3.Bucket(this, 'my-bucket', {
       bucketName: 'super-cool-bucket',
     });
 
@@ -117,6 +117,9 @@ module.exports = { handler }
         handler: 'index.handler',
         code: lambda.Code.fromAsset('./logger_func'),
         runtime: lambda.Runtime.NODEJS_18_X,
+        environment: {
+          bucketName: myBucket.bucketName,
+        },
       }
     );
 
@@ -127,6 +130,15 @@ module.exports = { handler }
         effect: iam.Effect.ALLOW,
       })
     );
+
+    myLogWritingFunc.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ['s3:PutObject', 's3:PutObjectAcl', 's3:GetObject'],
+        resources: [myBucket.bucketArn, `${myBucket.bucketArn}/*`],
+        effect: iam.Effect.ALLOW,
+      })
+    );
+
     myAuth.addTrigger(auth.UserPoolOperation.POST_CONFIRMATION, myFunc);
     myAuth.addTrigger(
       auth.UserPoolOperation.POST_AUTHENTICATION,
