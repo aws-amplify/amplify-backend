@@ -10,6 +10,10 @@ import {
   aws_appsync as appsync,
 } from 'aws-cdk-lib';
 
+import {
+    AuthConstruct
+} from './auth_types';
+
 export class PocAppStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
@@ -21,20 +25,8 @@ export class AmplifyApp extends Construct {
   constructor(scope: Construct, id: string, props?: Record<never, string>) {
     super(scope, id);
 
-    const myAuth = new auth.UserPool(this, 'my-auth', {
-      signInCaseSensitive: true,
-      signInAliases: {
-        email: true,
-      },
-      selfSignUpEnabled: true,
-    });
-
-    new auth.UserPoolClient(this, 'my-app-client', {
-      userPool: myAuth,
-      authFlows: {
-        userPassword: true,
-      },
-      generateSecret: false,
+    const myAuth = new AuthConstruct(this, 'my-auth', {
+        loginMechanisms: ['email'],
     });
 
 <<<<<<< HEAD

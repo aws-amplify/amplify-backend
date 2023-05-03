@@ -77,7 +77,7 @@ export type ConstructBuilder<
     IsHandler,
     HasDefaultRuntimeEntity
   >;
-} & MaybeRuntimeEntityResolver<RuntimeEntityName, HasDefaultRuntimeEntity>;
+}; // & MaybeRuntimeEntityResolver<RuntimeEntityName, HasDefaultRuntimeEntity>;
 
 export type GeneratedConfig<Config extends Record<string, ConstructBuilder>> = {
   [K in keyof Config as string]: ReturnType<Config[K]>;
