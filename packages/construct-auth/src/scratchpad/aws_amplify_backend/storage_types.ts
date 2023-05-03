@@ -1,69 +1,136 @@
 import {
   AmplifyConstruct,
+  AmplifyContext,
   ConstructBuilder,
+  RuntimeEntity,
   WithOverride,
 } from './base_types.js';
-import { Bucket, IBucket } from 'aws-cdk-lib/aws-s3';
+import { Bucket, EventType, IBucket } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { IPolicy, Policy } from 'aws-cdk-lib/aws-iam';
+import { BucketNotifications } from 'aws-cdk-lib/aws-s3/lib/notifications-resource/index.js';
+import { LambdaDestination } from 'aws-cdk-lib/aws-s3-notifications';
 
-type FileStorageProps = {
+type FileStorageConstructProps = {
   enforceSSL?: boolean;
-} & WithOverride<FileStorageResources>;
+};
 
+type FileStorageBuilderProps = FileStorageConstructProps &
+  WithOverride<FileStorageResources>;
+
+type FileStorageRuntimeEntityName = never;
 type FileStorageEvent = 'update' | 'delete';
-type FileStorageRole = undefined;
 type FileStorageAction = 'create' | 'read' | 'update' | 'delete' | 'list';
 type FileStorageScope = string;
 type FileStorageResources = {
   bucket: IBucket;
 };
+type FileStorageIsHandler = false;
+type FileStorageHasDefaultRuntimeEntity = false;
 
 class FileStorageConstruct
   extends Construct
   implements
     AmplifyConstruct<
+      FileStorageRuntimeEntityName,
       FileStorageEvent,
-      FileStorageRole,
       FileStorageAction,
       FileStorageScope,
-      FileStorageResources
+      FileStorageResources,
+      FileStorageIsHandler,
+      FileStorageHasDefaultRuntimeEntity
     >
 {
-  resources: FileStorageResources;
+  bucket: IBucket;
 
-  constructor(scope: Construct, name: string, props: FileStorageProps) {
+  constructor(
+    scope: Construct,
+    name: string,
+    props: FileStorageConstructProps
+  ) {
     super(scope, name);
 
-    this.resources.bucket = new Bucket(this, 'bucket', props);
+    this.bucket = new Bucket(this, 'bucket', {
+      enforceSSL: !!props.enforceSSL,
+    });
   }
 
-  onCloudEvent(event: FileStorageEvent, handler: IFunction) {
-    return this;
+  grant(
+    entity: RuntimeEntity,
+    actions: FileStorageAction[],
+    scope: FileStorageScope
+  ): void {
+    switch (scope) {
+      case 'private':
+        break;
+      case 'protected':
+        break;
+      case 'public':
+        break;
+
+      default:
+    }
   }
 
-  actions(actions: FileStorageAction[], scopes?: FileStorageScope[]) {
-    return new Policy(this, 'policy');
+  setTrigger(eventName: FileStorageEvent, handler: IFunction): void {
+    switch (eventName) {
+      case 'update':
+        this.bucket.addEventNotification(
+          EventType.OBJECT_CREATED,
+          new LambdaDestination(handler)
+        );
+        break;
+      case 'delete':
+        this.bucket.addEventNotification(
+          EventType.OBJECT_REMOVED,
+          new LambdaDestination(handler)
+        );
+        break;
+    }
   }
 
-  grant(role: FileStorageRole, policy: IPolicy): this {
-    return this;
+  supplyRuntimeEntity(
+    runtimeEntityName: FileStorageRuntimeEntityName
+  ): RuntimeEntity {
+    throw new Error('No file storage runtime entity');
   }
 }
+
+export const FileStorage = FileStorageBuilder;
 
 /**
  * Create cloud storage
  */
-export const FileStorage: ConstructBuilder<
-  FileStorageProps,
-  FileStorageEvent,
-  FileStorageRole,
-  FileStorageAction,
-  FileStorageScope,
-  FileStorageResources
-> = (props: FileStorageProps) => (ctx, name) => {
-  const construct = new FileStorageConstruct(ctx.getScope(), name, props);
-  if (props.override) props.override(construct.resources);
-  return construct;
-};
+class FileStorageBuilder
+  implements
+    ConstructBuilder<
+      FileStorageRuntimeEntityName,
+      FileStorageEvent,
+      FileStorageAction,
+      FileStorageScope,
+      FileStorageResources,
+      FileStorageIsHandler,
+      FileStorageHasDefaultRuntimeEntity
+    >
+{
+  constructor(private readonly props: FileStorageBuilderProps) {}
+
+  /**
+   *
+   */
+  build(
+    ctx: AmplifyContext,
+    name: string
+  ): AmplifyConstruct<
+    FileStorageRuntimeEntityName,
+    FileStorageEvent,
+    FileStorageAction,
+    FileStorageScope,
+    FileStorageResources,
+    FileStorageIsHandler,
+    FileStorageHasDefaultRuntimeEntity
+  > {
+    return new FileStorageConstruct(ctx.getScope(), name, this.props);
+  }
+}

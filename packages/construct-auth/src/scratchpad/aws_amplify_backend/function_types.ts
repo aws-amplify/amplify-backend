@@ -20,7 +20,8 @@ type FnBuilderProps =
   | AnyFunction
   | ({
       cloudFunction: AnyFunction;
-    } & WithOverride<FnResources>);
+    } & WithOverride<FnResources>)
+  | (FunctionProps & { buildCommand?: string });
 
 type FnRuntimeEntityName = 'runtime';
 type FnEvent = never;
@@ -81,14 +82,23 @@ class FnBuilder
       FnHasDefaultEntityName
     >
 {
-  constructor(private readonly props: FnBuilderProps) {}
+  private construct: FnConstruct;
+  private readonly fnProps: FunctionProps;
+  constructor(private readonly props: FnBuilderProps) {
+    if (typeof props === 'function') {
+      throw new Error('cb serialization not implemented');
+    } else if ('cloudFunction' in props) {
+      throw new Error('cb serialization not implemented');
+    } else {
+      this.fnProps = props;
+    }
+  }
 
   build(ctx: AmplifyContext, name: string) {
-    const functionProps: FunctionProps = {
-      runtime: Runtime.NODEJS_18_X,
-      code: Code.fromAsset('.build/hash'),
-      handler: 'index.handler',
-    };
-    return new FnConstruct(ctx.getScope(), name, functionProps);
+    if (this.construct) {
+      return this.construct;
+    }
+    this.construct = new FnConstruct(ctx.getScope(), name, this.fnProps);
+    return this.construct;
   }
 }
