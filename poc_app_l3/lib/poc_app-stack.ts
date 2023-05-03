@@ -38,15 +38,15 @@ export class AmplifyApp extends Construct {
     });
 
     new s3.Bucket(this, 'my-bucket', {
-      bucketName: 'super-cool-bucket',
+      bucketName: 'super-cool-bucket-2',
     });
 
     new ses.EmailIdentity(this, 'verified-to-identity', {
-      identity: ses.Identity.email('junk+junk@stolworthy.co'),
+      identity: ses.Identity.email('sobkamil+pocl3+to@amazon.com'),
     });
 
     new ses.EmailIdentity(this, 'verified-from-identity', {
-      identity: ses.Identity.email('junk+junkie@stolworthy.co'),
+      identity: ses.Identity.email('sobkamil+pocl3+from@amazon.com'),
     });
 
     const myFunc = new lambda.Function(this, 'my-function', {
