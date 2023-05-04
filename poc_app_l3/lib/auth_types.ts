@@ -18,7 +18,7 @@ import {
   WithEvents,
   WithOverride,
 } from './base_types.js';
-import {aws_ses as ses} from "aws-cdk-lib";
+import { aws_ses as ses } from 'aws-cdk-lib';
 
 type AuthConstructProps = {
   loginMechanisms: ('username' | 'email' | 'phone')[];
@@ -41,9 +41,7 @@ export type AuthResources = {
 type AuthIsHandler = false;
 type AuthHasDefaultRuntimeEntity = false;
 
-export class AuthConstruct
-  extends Construct
-{
+export class AuthConstruct extends Construct {
   userPool: UserPool;
   identityPool: CfnIdentityPool;
   webClient: UserPoolClient;
@@ -59,27 +57,31 @@ export class AuthConstruct
     this.userPool = new UserPool(this, `${name}UserPool`, {
       signInCaseSensitive: true,
       signInAliases: {
-        email: props.loginMechanisms.includes('email')
+        email: props.loginMechanisms.includes('email'),
       },
       selfSignUpEnabled: true,
     });
-    this.webClient = this.userPool.addClient(
-        `${name}webClient`, {
-          authFlows: {
-            userPassword: true,
-          },
-          generateSecret: false,
-        });
-
-    this.identityPool = new CfnIdentityPool(this, `${name.replace('-', '')}IdP`, {
-      allowUnauthenticatedIdentities: true,
-      cognitoIdentityProviders: [
-        {
-          clientId: this.webClient.userPoolClientId,
-          providerName: this.userPool.userPoolProviderName,
-        },
-      ],
+    this.webClient = this.userPool.addClient(`${name}webClient`, {
+      authFlows: {
+        userPassword: true,
+        userSrp: true,
+      },
+      generateSecret: false,
     });
+
+    this.identityPool = new CfnIdentityPool(
+      this,
+      `${name.replace('-', '')}IdP`,
+      {
+        allowUnauthenticatedIdentities: true,
+        cognitoIdentityProviders: [
+          {
+            clientId: this.webClient.userPoolClientId,
+            providerName: this.userPool.userPoolProviderName,
+          },
+        ],
+      }
+    );
 
     this.authenticatedRole = new Role(this, `${name}AuthRole`, {
       assumedBy: new FederatedPrincipal('cognito-identity.amazonaws.com'),
