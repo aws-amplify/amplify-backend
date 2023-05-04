@@ -10,7 +10,16 @@ import {
   aws_iam as iam,
   aws_appsync as appsync,
 } from 'aws-cdk-lib';
-import { OAuthScope } from 'aws-cdk-lib/aws-cognito';
+import {
+  CfnIdentityPool,
+  CfnIdentityPoolRoleAttachment,
+  OAuthScope,
+} from 'aws-cdk-lib/aws-cognito';
+import {
+  FederatedPrincipal,
+  Role,
+  ServicePrincipal,
+} from 'aws-cdk-lib/aws-iam';
 
 export class PocAppStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -31,8 +40,9 @@ export class AmplifyApp extends Construct {
       },
       selfSignUpEnabled: true,
     });
+    const name = 'myApp';
 
-    new auth.UserPoolClient(this, 'my-app-client', {
+    const webClient = new auth.UserPoolClient(this, 'my-app-client', {
       userPool: myAuth,
       oAuth: {
         flows: { authorizationCodeGrant: true },
@@ -46,9 +56,44 @@ export class AmplifyApp extends Construct {
       generateSecret: false,
     });
 
+    const identityPool = new CfnIdentityPool(this, `${name}IdP`, {
+      allowUnauthenticatedIdentities: true,
+      cognitoIdentityProviders: [
+        {
+          clientId: webClient.userPoolClientId,
+          providerName: myAuth.userPoolProviderName,
+        },
+      ],
+    });
+
+    const principal = new FederatedPrincipal('cognito-identity.amazonaws.com');
+
+    const authenticatedRole = new Role(this, `${name}AuthRole`, {
+      assumedBy: principal,
+    });
+
+    const unauthenticatedRole = new Role(this, `${name}UnauthRole`, {
+      assumedBy: principal,
+    });
+
+    new CfnIdentityPoolRoleAttachment(this, `${name}Roles`, {
+      identityPoolId: identityPool.ref,
+      roles: {
+        authenticated: authenticatedRole.roleArn,
+        unauthenticated: unauthenticatedRole.roleArn,
+      },
+    });
+
+    new auth.CfnIdentityPool(this, 'my-identity-pool', {
+      identityPoolName: 'aCoolIdPool',
+      allowUnauthenticatedIdentities: true,
+    });
+
     const myBucket = new s3.Bucket(this, 'my-bucket', {
       bucketName: 'super-cool-bucket',
     });
+
+    myBucket.grantRead(authenticatedRole, '*');
 
     new ses.EmailIdentity(this, 'verified-to-identity', {
       identity: ses.Identity.email(
@@ -59,6 +104,7 @@ export class AmplifyApp extends Construct {
     const fromIdentity = ses.Identity.email(
       process.env.YOUR_FROM_EMAIL ?? 'from@example.com'
     );
+
     new ses.EmailIdentity(this, 'verified-from-identity', {
       identity: fromIdentity,
     });
@@ -140,6 +186,7 @@ module.exports = { handler }
     );
 
     myAuth.addTrigger(auth.UserPoolOperation.POST_CONFIRMATION, myFunc);
+
     myAuth.addTrigger(
       auth.UserPoolOperation.POST_AUTHENTICATION,
       myLogWritingFunc

@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import './App.css';
 import awsExports from './aws-exports';
-import { Amplify } from 'aws-amplify';
+import { Amplify, Storage } from 'aws-amplify';
 import { Authenticator } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
 
@@ -17,13 +17,32 @@ function App() {
   }, []);
   return (
     <Authenticator>
-      {({ signOut, user }) => (
-        <div>
-          <p>Welcome {user?.username}</p>
-          <button onClick={signOut}>Sign out</button>
-        </div>
-      )}
+      {({ signOut, user }) => <HomePage signOut={signOut} user={user} />}
     </Authenticator>
+  );
+}
+
+function HomePage({ signOut, user }: { signOut: any; user: any }) {
+  const [files, setFiles] = useState<(string | undefined)[]>([]);
+  useEffect(() => {
+    Storage.list('photos/', { level: 'protected' })
+      .then(({ results }) => setFiles(results.map((r) => r.key)))
+      .catch((err) => console.log(err));
+  }, []);
+  return (
+    <div>
+      <p>Welcome {user?.username}</p>
+      <button onClick={signOut}>Sign out</button>
+      <table>
+        {files.map((f) => {
+          return (
+            <tr>
+              <td>{f}</td>
+            </tr>
+          );
+        })}
+      </table>
+    </div>
   );
 }
 
