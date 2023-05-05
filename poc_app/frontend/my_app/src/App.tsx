@@ -12,6 +12,12 @@ function App() {
         region: awsExports.REGION,
         userPoolId: awsExports.USER_POOL_ID,
         userPoolWebClientId: awsExports.USER_POOL_APP_CLIENT_ID,
+        mandatorySignIn: false,
+        identityPoolId: awsExports.IDENTITY_POOL_ID,
+      },
+      Storage: {
+        bucket: 'super-cool-bucket',
+        region: 'us-east-1',
       },
     });
   }, []);
@@ -25,7 +31,13 @@ function App() {
 function HomePage({ signOut, user }: { signOut: any; user: any }) {
   const [files, setFiles] = useState<(string | undefined)[]>([]);
   useEffect(() => {
-    Storage.list('photos/', { level: 'protected' })
+    Storage.list('accessLogs/', {
+      bucket: 'super-cool-bucket',
+      customPrefix: {
+        public: '',
+      },
+      pageSize: 1000,
+    })
       .then(({ results }) => setFiles(results.map((r) => r.key)))
       .catch((err) => console.log(err));
   }, []);
@@ -34,13 +46,15 @@ function HomePage({ signOut, user }: { signOut: any; user: any }) {
       <p>Welcome {user?.username}</p>
       <button onClick={signOut}>Sign out</button>
       <table>
-        {files.map((f) => {
-          return (
-            <tr>
-              <td>{f}</td>
-            </tr>
-          );
-        })}
+        <tbody>
+          {files.map((f) => {
+            return (
+              <tr key={f}>
+                <td>{f}</td>
+              </tr>
+            );
+          })}
+        </tbody>
       </table>
     </div>
   );

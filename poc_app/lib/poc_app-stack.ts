@@ -17,6 +17,8 @@ import {
 } from 'aws-cdk-lib/aws-cognito';
 import {
   FederatedPrincipal,
+  PolicyDocument,
+  PolicyStatement,
   Role,
   ServicePrincipal,
 } from 'aws-cdk-lib/aws-iam';
@@ -33,7 +35,7 @@ export class AmplifyApp extends Construct {
     super(scope, id);
     config();
 
-    const myAuth = new auth.UserPool(this, 'my-auth', {
+    const myAuth = new auth.UserPool(this, 'my-auth-2', {
       signInCaseSensitive: true,
       signInAliases: {
         email: true,
@@ -55,25 +57,46 @@ export class AmplifyApp extends Construct {
       },
       generateSecret: false,
     });
+    const identityPool = new CfnIdentityPool(
+      this,
+      `${name.replace('-', '')}IdP`,
+      {
+        allowUnauthenticatedIdentities: true,
+        cognitoIdentityProviders: [
+          {
+            clientId: webClient.userPoolClientId,
+            providerName: myAuth.userPoolProviderName,
+          },
+        ],
+      }
+    );
 
-    const identityPool = new CfnIdentityPool(this, `${name}IdP`, {
-      allowUnauthenticatedIdentities: true,
-      cognitoIdentityProviders: [
-        {
-          clientId: webClient.userPoolClientId,
-          providerName: myAuth.userPoolProviderName,
-        },
-      ],
-    });
-
-    const principal = new FederatedPrincipal('cognito-identity.amazonaws.com');
+    const principal = new FederatedPrincipal(
+      'cognito-identity.amazonaws.com',
+      {},
+      'sts:AssumeRoleWithWebIdentity'
+    );
 
     const authenticatedRole = new Role(this, `${name}AuthRole`, {
-      assumedBy: principal,
+      assumedBy: principal.withConditions({
+        'ForAnyValue:StringLike': {
+          'cognito-identity.amazonaws.com:amr': 'authenticated',
+        },
+        StringEquals: {
+          'cognito-identity.amazonaws.com:aud': identityPool.ref,
+        },
+      }),
     });
 
     const unauthenticatedRole = new Role(this, `${name}UnauthRole`, {
-      assumedBy: principal,
+      assumedBy: principal.withConditions({
+        'ForAnyValue:StringLike': {
+          'cognito-identity.amazonaws.com:amr': 'unauthenticated',
+        },
+        StringEquals: {
+          'cognito-identity.amazonaws.com:aud': identityPool.ref,
+        },
+      }),
     });
 
     new CfnIdentityPoolRoleAttachment(this, `${name}Roles`, {
@@ -84,16 +107,24 @@ export class AmplifyApp extends Construct {
       },
     });
 
-    new auth.CfnIdentityPool(this, 'my-identity-pool', {
-      identityPoolName: 'aCoolIdPool',
-      allowUnauthenticatedIdentities: true,
-    });
-
     const myBucket = new s3.Bucket(this, 'my-bucket', {
       bucketName: 'super-cool-bucket',
+      cors: [
+        {
+          allowedMethods: [
+            s3.HttpMethods.GET,
+            s3.HttpMethods.HEAD,
+            s3.HttpMethods.DELETE,
+            s3.HttpMethods.PUT,
+            s3.HttpMethods.POST,
+          ],
+          allowedOrigins: ['*'],
+          allowedHeaders: ['*'],
+        },
+      ],
     });
 
-    myBucket.grantRead(authenticatedRole, '*');
+    myBucket.grantRead(authenticatedRole);
 
     new ses.EmailIdentity(this, 'verified-to-identity', {
       identity: ses.Identity.email(
