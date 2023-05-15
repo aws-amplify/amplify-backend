@@ -79,6 +79,7 @@ package must export two things:
 
 1. init function that returns an AmplifyServiceProviderFactory
 2. builder function that can be used by customers to configure the resource in the `amplify.ts` file
+
 ## Getting Started
 
 1. Run `npm install && npm run install:local`
