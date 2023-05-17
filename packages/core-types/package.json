@@ -9,7 +9,6 @@
     "clean": "rimraf lib node_modules tsconfig.tsbuildinfo"
   },
   "types": "lib/index.d.ts",
-  "main": "lib/index.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/aws-amplify/cli.git"

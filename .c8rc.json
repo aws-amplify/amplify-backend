@@ -2,7 +2,13 @@
   "lines": 85,
   "functions": 85,
   "branches": 85,
-  "exclude": ["docs", "scripts", "templates", "**/*.test.ts"],
+  "exclude": [
+    "docs",
+    "scripts",
+    "templates",
+    "**/*.test.ts",
+    "packages/core-types"
+  ],
   "all": true,
   "check-coverage": true
 }
