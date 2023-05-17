@@ -1,9 +1,8 @@
 import { auth } from './auth';
 import { data } from './data';
-import { storage } from './storage';
+import { Backend } from '@aws-amplify/backend';
 
-export const backend = {
-  ...auth,
-  ...storage,
-  ...data,
-};
+export const backend = new Backend({
+  auth,
+  data,
+});

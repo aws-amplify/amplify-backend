@@ -2,10 +2,8 @@
   "name": "samsara-infrastructure-example",
   "version": "1.0.0",
   "description": "",
-  "keywords": [],
   "author": "",
-  "license": "ISC",
-  "dependencies": {
+  "devDependencies": {
     "@aws-amplify/construct-auth": "^0.1.0"
   }
 }
