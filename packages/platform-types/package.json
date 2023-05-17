@@ -1,0 +1,20 @@
+{
+  "name": "@aws-amplify/platform-types",
+  "version": "0.1.0",
+  "types": "lib/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "api:update": "api-extractor run --local",
+    "build": "tsc",
+    "clean": "rimraf lib node_modules tsconfig.tsbuildinfo",
+    "watch": "tsc -w"
+  },
+  "devDependencies": {
+    "aws-cdk-lib": "^2.72.0",
+    "constructs": "^10.0.0"
+  },
+  "peerDependencies": {
+    "aws-cdk-lib": "^2.72.0",
+    "constructs": "^10.0.0"
+  }
+}

@@ -56,7 +56,9 @@
     "typescript": "^5.0.4"
   },
   "workspaces": [
+    "packages/backend",
     "packages/auth-construct",
+    "packages/auth-factory",
     "packages/lib-synth",
     "packages/cli"
   ],
