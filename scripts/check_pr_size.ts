@@ -29,7 +29,9 @@ const main = async () => {
     'HEAD',
   ]);
   const diffFileList = filenameDiffOutput.toString().split('\n');
-  const filteredList = diffFileList.filter((file) => !EXCLUDE.includes(file));
+  const filteredList = diffFileList.filter(
+    (file) => !EXCLUDE.find((e) => e.includes(file))
+  );
 
   // now run diff --shortstat on the filtered list of files
   const shortStatArgs = ['diff', '--shortstat', baseRef, 'HEAD', '--'];
