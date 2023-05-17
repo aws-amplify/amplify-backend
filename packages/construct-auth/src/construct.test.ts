@@ -3,6 +3,8 @@ import { Auth } from './construct.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
+import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
+import { UserPoolOperation } from 'aws-cdk-lib/aws-cognito';
 
 describe('Auth construct', () => {
   it('creates case sensitive username login', () => {
@@ -85,6 +87,31 @@ describe('Auth construct', () => {
         client_id: 'testId',
         client_secret: 'testSecret',
         authorize_scopes: 'profile',
+      },
+    });
+  });
+  it('attaches user pool trigger', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const auth = new Auth(stack, 'test', {
+      loginMechanisms: ['username'],
+    });
+    const func = new Function(stack, 'testFunc', {
+      code: Code.fromInline('test code'),
+      handler: 'test.handler',
+      runtime: Runtime.NODEJS_18_X,
+    });
+    auth.setEventHandler(UserPoolOperation.PRE_AUTHENTICATION, func);
+    const template = Template.fromStack(stack);
+    template.resourceCountIs('AWS::Lambda::Function', 1);
+    const handlerLogicalId = Object.keys(
+      template.findResources('AWS::Lambda::Function')
+    )[0];
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      LambdaConfig: {
+        PreAuthentication: {
+          'Fn::GetAtt': [handlerLogicalId, 'Arn'],
+        },
       },
     });
   });

@@ -1,5 +1,8 @@
 import { Construct } from 'constructs';
 import { aws_cognito as cognito, SecretValue } from 'aws-cdk-lib';
+import { UserPool, UserPoolOperation } from 'aws-cdk-lib/aws-cognito';
+import { EventHandlerSetter } from '@aws-amplify/core-types';
+import { IFunction } from 'aws-cdk-lib/aws-lambda';
 
 export type GoogleLogin = {
   provider: 'google';
@@ -19,7 +22,11 @@ export type AuthProps = {
 /**
  * Amplify Auth CDK Construct
  */
-export class Auth extends Construct {
+export class Auth
+  extends Construct
+  implements EventHandlerSetter<UserPoolOperation>
+{
+  private readonly userPool: UserPool;
   /**
    * Create a new Auth construct with AuthProps
    */
@@ -28,7 +35,7 @@ export class Auth extends Construct {
 
     this.verifyLoginMechanisms(props.loginMechanisms);
 
-    const userPool = new cognito.UserPool(this, 'UserPool', {
+    this.userPool = new cognito.UserPool(this, 'UserPool', {
       signInCaseSensitive: true,
       signInAliases: {
         username: props.loginMechanisms.includes('username'),
@@ -42,7 +49,7 @@ export class Auth extends Construct {
         switch (loginMechanism.provider) {
           case 'google':
             new cognito.UserPoolIdentityProviderGoogle(this, 'GoogleIdP', {
-              userPool,
+              userPool: this.userPool,
               clientSecretValue: SecretValue.unsafePlainText(
                 loginMechanism.webClientSecret
               ),
@@ -52,6 +59,13 @@ export class Auth extends Construct {
         }
       }
     }
+  }
+
+  /**
+   * Configure the specified function to handle a Cognito UserPool event
+   */
+  setEventHandler(eventName: UserPoolOperation, handler: IFunction): void {
+    this.userPool.addTrigger(eventName, handler);
   }
 
   /**

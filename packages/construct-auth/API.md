@@ -5,11 +5,18 @@
 ```ts
 
 import { Construct } from 'constructs';
+import { EventHandlerSetter } from '@aws-amplify/core-types';
+import { IFunction } from 'aws-cdk-lib/aws-lambda';
+import { UserPoolOperation } from 'aws-cdk-lib/aws-cognito';
 
 // @public
-export class Auth extends Construct {
+export class Auth extends Construct implements EventHandlerSetter<AuthEvent> {
     constructor(scope: Construct, id: string, props: AuthProps);
+    setEventHandler(eventName: AuthEvent, handler: IFunction): void;
 }
+
+// @public (undocumented)
+export type AuthEvent = UserPoolOperation['operationName'];
 
 // @public
 export type AuthProps = {
