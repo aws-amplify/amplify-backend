@@ -10,13 +10,10 @@ import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { UserPoolOperation } from 'aws-cdk-lib/aws-cognito';
 
 // @public
-export class Auth extends Construct implements EventHandlerSetter<AuthEvent> {
+export class Auth extends Construct implements EventHandlerSetter<UserPoolOperation> {
     constructor(scope: Construct, id: string, props: AuthProps);
-    setEventHandler(eventName: AuthEvent, handler: IFunction): void;
+    setEventHandler(eventName: UserPoolOperation, handler: IFunction): void;
 }
-
-// @public (undocumented)
-export type AuthEvent = UserPoolOperation['operationName'];
 
 // @public
 export type AuthProps = {
