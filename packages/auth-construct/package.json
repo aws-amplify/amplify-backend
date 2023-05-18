@@ -1,5 +1,5 @@
 {
-  "name": "@aws-amplify/construct-auth",
+  "name": "@aws-amplify/auth-construct",
   "version": "0.1.0",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
