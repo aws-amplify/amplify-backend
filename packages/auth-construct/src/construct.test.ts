@@ -1,5 +1,5 @@
 import { describe, it } from 'node:test';
-import { Auth } from './construct.js';
+import { AmplifyAuth } from './construct.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
@@ -8,7 +8,7 @@ describe('Auth construct', () => {
   it('creates case sensitive username login', () => {
     const app = new App();
     const stack = new Stack(app);
-    new Auth(stack, 'test', {
+    new AmplifyAuth(stack, 'test', {
       loginMechanisms: ['username'],
     });
     const template = Template.fromStack(stack);
@@ -22,7 +22,7 @@ describe('Auth construct', () => {
   it('creates phone number login mechanism', () => {
     const app = new App();
     const stack = new Stack(app);
-    new Auth(stack, 'test', {
+    new AmplifyAuth(stack, 'test', {
       loginMechanisms: ['phone'],
     });
     const template = Template.fromStack(stack);
@@ -35,7 +35,7 @@ describe('Auth construct', () => {
   it('creates email login mechanism', () => {
     const app = new App();
     const stack = new Stack(app);
-    new Auth(stack, 'test', {
+    new AmplifyAuth(stack, 'test', {
       loginMechanisms: ['email'],
     });
     const template = Template.fromStack(stack);
@@ -50,7 +50,7 @@ describe('Auth construct', () => {
     const stack = new Stack(app);
     assert.throws(
       () =>
-        new Auth(stack, 'test', {
+        new AmplifyAuth(stack, 'test', {
           loginMechanisms: ['username', 'email'],
         }),
       /Username login mechanism cannot be used with phone or email login mechanisms/
@@ -58,7 +58,7 @@ describe('Auth construct', () => {
 
     assert.throws(
       () =>
-        new Auth(stack, 'test2', {
+        new AmplifyAuth(stack, 'test2', {
           loginMechanisms: ['username', 'phone'],
         }),
       /Username login mechanism cannot be used with phone or email login mechanisms/
@@ -68,7 +68,7 @@ describe('Auth construct', () => {
   it('creates google login mechanism', () => {
     const app = new App();
     const stack = new Stack(app);
-    new Auth(stack, 'test', {
+    new AmplifyAuth(stack, 'test', {
       loginMechanisms: [
         {
           provider: 'google',
