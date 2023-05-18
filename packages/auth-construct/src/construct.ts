@@ -19,7 +19,7 @@ export type AuthProps = {
 /**
  * Amplify Auth CDK Construct
  */
-export class Auth extends Construct {
+export class AmplifyAuth extends Construct {
   /**
    * Create a new Auth construct with AuthProps
    */
