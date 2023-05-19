@@ -20,5 +20,5 @@ export type ConstructCacheEntryGenerator = {
  * Vends Constructs based on an initializer function
  */
 export type ConstructCache = {
-  getOrCompute(initializer: ConstructCacheEntryGenerator): Construct;
+  getOrCompute(generator: ConstructCacheEntryGenerator): Construct;
 };

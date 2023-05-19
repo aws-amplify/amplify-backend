@@ -8,7 +8,7 @@ import { Construct } from 'constructs';
 
 // @public
 export type ConstructCache = {
-    getOrCompute(initializer: ConstructCacheEntryGenerator): Construct;
+    getOrCompute(generator: ConstructCacheEntryGenerator): Construct;
 };
 
 // @public
