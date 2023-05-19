@@ -8,8 +8,8 @@
   "type": "module",
   "scripts": {
     "api:update": "api-extractor run --local",
-    "build": "tsc && npm link",
-    "clean": "rimraf lib node_modules tsconfig.tsbuildinfo"
+    "clean": "rimraf lib node_modules tsconfig.tsbuildinfo",
+    "install:local": "npm link"
   },
   "repository": {
     "type": "git",

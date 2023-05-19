@@ -3,20 +3,21 @@
   "version": "0.0.1",
   "description": "",
   "scripts": {
-    "api:update": "npm run api:update -ws",
+    "api:update": "npm run api:update --workspaces",
     "api:check": "npm run api:update && tsx scripts/check_api_extract.ts",
-    "build": "npm run build -ws",
-    "clean": "npm run clean -ws && rimraf node_modules coverage .eslintcache",
+    "build": "tsc --build packages/*",
+    "clean": "npm run clean --workspaces --if-present && rimraf node_modules coverage .eslintcache",
     "diff:check": "tsx scripts/check_pr_size.ts",
     "docs": "typedoc",
     "new:construct": "tsx scripts/copy_construct_template.ts",
-    "install:local": "npm run build && npm link --force",
+    "install:local": "npm run build && npm run install:local --workspaces --if-present",
     "lint": "eslint --max-warnings 0 . && prettier --check .",
     "lint:fix": "eslint --cache --fix . && prettier --write .",
     "prepare": "husky install",
     "test": "tsx scripts/run_unit_tests.ts",
     "test:coverage:generate": "NODE_V8_COVERAGE=coverage/ npm run test",
-    "test:coverage:threshold": "c8 npm run test"
+    "test:coverage:threshold": "c8 npm run test",
+    "watch": "npm run build -- --watch"
   },
   "repository": {
     "type": "git",
