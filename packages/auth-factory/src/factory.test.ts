@@ -1,6 +1,9 @@
 import { describe, it } from 'node:test';
 import { AmplifyAuthFactory } from './factory.js';
-import { BackendBuildState } from '@aws-amplify/backend-engine';
+import {
+  NestedStackResolver,
+  SingletonConstructResolver,
+} from '@aws-amplify/backend-engine';
 import { App, Stack } from 'aws-cdk-lib';
 import assert from 'node:assert';
 import { Template } from 'aws-cdk-lib/assertions';
@@ -14,7 +17,9 @@ describe('AmplifyAuthFactory', () => {
     const app = new App();
     const stack = new Stack(app);
 
-    const backendBuildState = new BackendBuildState(stack);
+    const backendBuildState = new SingletonConstructResolver(
+      new NestedStackResolver(stack)
+    );
 
     const instance1 = authFactory.getInstance(backendBuildState);
     const instance2 = authFactory.getInstance(backendBuildState);
@@ -30,7 +35,9 @@ describe('AmplifyAuthFactory', () => {
     const app = new App();
     const stack = new Stack(app);
 
-    const backendBuildState = new BackendBuildState(stack);
+    const backendBuildState = new SingletonConstructResolver(
+      new NestedStackResolver(stack)
+    );
 
     const authConstruct = authFactory.getInstance(backendBuildState);
 

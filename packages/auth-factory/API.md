@@ -6,13 +6,19 @@
 
 import { AmplifyAuth } from '@aws-amplify/auth-construct';
 import { AuthProps } from '@aws-amplify/auth-construct';
+import { Construct } from 'constructs';
 import { ConstructFactory } from '@aws-amplify/backend-engine';
+import { ConstructInitializer } from '@aws-amplify/backend-engine';
 import { ConstructResolver } from '@aws-amplify/backend-engine';
 
 // @public
-export class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth> {
+export class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth>, ConstructInitializer<AmplifyAuth> {
     constructor(props: AuthProps);
     getInstance(resolver: ConstructResolver): AmplifyAuth;
+    // (undocumented)
+    initializeInScope(scope: Construct): AmplifyAuth;
+    // (undocumented)
+    readonly resourceGroupName = "auth";
 }
 
 // @public

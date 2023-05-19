@@ -1,16 +1,19 @@
 import {
   ConstructFactory,
+  ConstructInitializer,
   ConstructResolver,
-  StackResolver,
 } from '@aws-amplify/backend-engine';
 import { AmplifyAuth, AuthProps } from '@aws-amplify/auth-construct';
+import { Construct } from 'constructs';
 
 /**
  * Singleton factory for AmplifyAuth that can be used in `auth.ts` files
  */
-export class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth> {
-  private static resourceGroupName = 'auth';
-  private static defaultName = 'amplifyAuth';
+export class AmplifyAuthFactory
+  implements ConstructFactory<AmplifyAuth>, ConstructInitializer<AmplifyAuth>
+{
+  readonly resourceGroupName = 'auth';
+  private readonly defaultName = 'amplifyAuth';
 
   /**
    * Set the properties that will be used to initialize AmplifyAuth
@@ -21,19 +24,15 @@ export class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth> {
    * Get a singleton instance of AmplifyAuth
    */
   getInstance(resolver: ConstructResolver): AmplifyAuth {
-    return resolver.resolve(
-      AmplifyAuthFactory.defaultName,
-      this.generatorFunction
-    ) as AmplifyAuth;
+    return resolver.resolve(this) as AmplifyAuth;
   }
 
-  private generatorFunction = (stackResolver: StackResolver): AmplifyAuth => {
-    return new AmplifyAuth(
-      stackResolver.getStackFor(AmplifyAuthFactory.resourceGroupName),
-      AmplifyAuthFactory.defaultName,
-      this.props
-    );
-  };
+  /**
+   * Constructs a new AmplifyAuth in the given scope
+   */
+  initializeInScope(scope: Construct): AmplifyAuth {
+    return new AmplifyAuth(scope, this.defaultName, this.props);
+  }
 }
 
 /**
