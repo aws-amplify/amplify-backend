@@ -4,6 +4,7 @@
   "description": "",
   "author": "",
   "devDependencies": {
-    "@aws-amplify/construct-auth": "^0.1.0"
+    "@aws-amplify/backend": "^0.1.0",
+    "@aws-amplify/cli": "^0.1.0"
   }
 }
