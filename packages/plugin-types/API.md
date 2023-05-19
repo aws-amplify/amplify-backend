@@ -16,7 +16,7 @@ export type ConstructFactory<Instance extends Construct> = {
     getInstance(resolver: ConstructCache): Instance;
 };
 
-// @public (undocumented)
+// @public
 export type ConstructInitializer<Instance extends Construct> = {
     resourceGroupName: string;
     initialize(scope: Construct): Instance;
