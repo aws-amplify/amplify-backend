@@ -6,9 +6,7 @@
   "type": "module",
   "scripts": {
     "api:update": "api-extractor run --local",
-    "build": "tsc",
-    "clean": "rimraf lib node_modules tsconfig.tsbuildinfo",
-    "watch": "tsc -w"
+    "clean": "rimraf lib node_modules tsconfig.tsbuildinfo"
   },
   "devDependencies": {
     "@aws-amplify/plugin-types": "^0.1.0",

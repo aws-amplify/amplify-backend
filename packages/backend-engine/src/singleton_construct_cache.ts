@@ -21,8 +21,8 @@ export class SingletonConstructCache implements ConstructCache {
   constructor(private readonly stackResolver: StackResolver) {}
 
   /**
-   * If a construct for token has already been generated, returns the cached instance.
-   * Otherwise, calls the generator to initialize a construct for token, caches it and returns it.
+   * If initializer has been seen before, the cached Construct instance is returned
+   * Otherwise, the initializer is called and the value is cached and returned
    */
   getOrCompute(initializer: ConstructInitializer<Construct>): Construct {
     if (!this.constructCache.has(initializer)) {
