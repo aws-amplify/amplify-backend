@@ -12,9 +12,6 @@ const MAX_LINES_REMOVED = 200;
  */
 const main = async () => {
   let baseRef = process.argv[2];
-  console.log(baseRef);
-  const headRef = process.argv[3];
-  console.log(headRef);
   if (baseRef === undefined) {
     console.log('No base ref specified. Defaulting to "main"');
     console.log(
@@ -29,13 +26,13 @@ const main = async () => {
     'diff',
     '--name-only',
     baseRef,
-    headRef,
+    'HEAD',
   ]);
   const diffFileList = filenameDiffOutput.toString().split('\n');
   const filteredList = diffFileList.filter((file) => !EXCLUDE.includes(file));
 
   // now run diff --shortstat on the filtered list of files
-  const shortStatArgs = ['diff', '--shortstat', baseRef, headRef, '--'];
+  const shortStatArgs = ['diff', '--shortstat', baseRef, 'HEAD', '--'];
   shortStatArgs.push(...filteredList);
 
   // shortStatOutput is a string like "3 files changed, 1 insertion(+), 3 deletions(-)"
