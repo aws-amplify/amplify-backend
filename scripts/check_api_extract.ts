@@ -10,7 +10,7 @@ const main = async () => {
 
   if (updatedAPIFiles.length > 0) {
     throw new Error(
-      `Expected no API.md file updates but found ${updatedAPIFiles}`
+      `Expected no API.md file updates but found ${updatedAPIFiles}\nRun 'npm run api:update and commit the updates to fix.`
     );
   }
 };
