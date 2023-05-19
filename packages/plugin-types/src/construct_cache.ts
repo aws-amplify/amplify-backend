@@ -5,7 +5,7 @@ import { Construct } from 'constructs';
  */
 export type ConstructCacheEntryGenerator = {
   /**
-   * A group name for this ConstructInitializer.
+   * A group name for this generator.
    * This is used by the cache to determine which stack to place the generated construct in
    */
   resourceGroupName: string;
