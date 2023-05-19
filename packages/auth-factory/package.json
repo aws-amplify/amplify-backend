@@ -1,5 +1,5 @@
 {
-  "name": "@aws-amplify/builder-auth",
+  "name": "@aws-amplify/auth-factory",
   "version": "0.1.0",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -11,7 +11,7 @@
     "watch": "tsc -w"
   },
   "devDependencies": {
-    "@aws-amplify/platform-types": "^0.1.0",
+    "@aws-amplify/backend-engine": "^0.1.0",
     "aws-cdk-lib": "^2.72.0",
     "constructs": "^10.0.0"
   },
