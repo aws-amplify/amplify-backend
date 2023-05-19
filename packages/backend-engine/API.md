@@ -5,40 +5,16 @@
 ```ts
 
 import { Construct } from 'constructs';
+import { ConstructCache } from '@aws-amplify/plugin-types';
+import { ConstructInitializer } from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
 
 // @public
-export type ConstructCache = {
-    getOrCompute(initializer: ConstructInitializer<Construct>): Construct;
-};
-
-// @public
-export type ConstructFactory<Instance extends Construct> = {
-    getInstance(resolver: ConstructCache): Instance;
-};
-
-// @public (undocumented)
-export type ConstructInitializer<Instance extends Construct> = {
-    resourceGroupName: string;
-    initializeInScope(scope: Construct): Instance;
-};
-
-// @public
-export class NestedStackResolver implements StackResolver {
-    constructor(rootStack: Stack);
-    getStackFor(resourceGroupName: string): Stack;
-}
-
-// @public
-export class SingletonConstructResolver implements ConstructCache {
+export class SingletonConstructCache implements ConstructCache {
+    // Warning: (ae-forgotten-export) The symbol "StackResolver" needs to be exported by the entry point index.d.ts
     constructor(stackResolver: StackResolver);
     getOrCompute(initializer: ConstructInitializer<Construct>): Construct;
 }
-
-// @public
-export type StackResolver = {
-    getStackFor(resourceGroupName: string): Stack;
-};
 
 // (No @packageDocumentation comment for this package)
 

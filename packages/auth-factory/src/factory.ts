@@ -1,10 +1,10 @@
+import { AmplifyAuth, AuthProps } from '@aws-amplify/auth-construct';
+import { Construct } from 'constructs';
 import {
   ConstructCache,
   ConstructFactory,
   ConstructInitializer,
-} from '@aws-amplify/backend-engine';
-import { AmplifyAuth, AuthProps } from '@aws-amplify/auth-construct';
-import { Construct } from 'constructs';
+} from '@aws-amplify/plugin-types';
 
 /**
  * Singleton factory for AmplifyAuth that can be used in `auth.ts` files
@@ -30,7 +30,7 @@ export class AmplifyAuthFactory
   /**
    * Constructs a new AmplifyAuth in the given scope
    */
-  initializeInScope(scope: Construct): AmplifyAuth {
+  initialize(scope: Construct): AmplifyAuth {
     return new AmplifyAuth(scope, this.defaultName, this.props);
   }
 }

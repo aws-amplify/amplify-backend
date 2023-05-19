@@ -7,15 +7,15 @@
 import { AmplifyAuth } from '@aws-amplify/auth-construct';
 import { AuthProps } from '@aws-amplify/auth-construct';
 import { Construct } from 'constructs';
-import { ConstructCache } from '@aws-amplify/backend-engine';
-import { ConstructFactory } from '@aws-amplify/backend-engine';
-import { ConstructInitializer } from '@aws-amplify/backend-engine';
+import { ConstructCache } from '@aws-amplify/plugin-types';
+import { ConstructFactory } from '@aws-amplify/plugin-types';
+import { ConstructInitializer } from '@aws-amplify/plugin-types';
 
 // @public
 export class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth>, ConstructInitializer<AmplifyAuth> {
     constructor(props: AuthProps);
     getInstance(cache: ConstructCache): AmplifyAuth;
-    initializeInScope(scope: Construct): AmplifyAuth;
+    initialize(scope: Construct): AmplifyAuth;
     // (undocumented)
     readonly resourceGroupName = "auth";
 }

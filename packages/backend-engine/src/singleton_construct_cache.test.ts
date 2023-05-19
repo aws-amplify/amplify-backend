@@ -1,15 +1,14 @@
 import { describe, it } from 'node:test';
-import {
-  NestedStackResolver,
-  SingletonConstructCache,
-} from './backend_build_state.js';
-import { App, NestedStack, Stack } from 'aws-cdk-lib';
+import { SingletonConstructCache } from './singleton_construct_cache.js';
+import { App, Stack } from 'aws-cdk-lib';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import assert from 'node:assert';
 import { Construct } from 'constructs';
 import { Queue } from 'aws-cdk-lib/aws-sqs';
+import { ConstructInitializer } from './construct_factory.js';
+import { NestedStackResolver } from './nested_stack_resolver.js';
 
-describe('BackendBuildState', () => {
+describe('SingletonConstructCache', () => {
   describe('resolve', () => {
     it('calls initializer to create construct instance', () => {
       const app = new App();
@@ -19,7 +18,7 @@ describe('BackendBuildState', () => {
       );
       const instance = constructCache.getOrCompute({
         resourceGroupName: 'testGroup',
-        initializeInScope(scope: Construct): Construct {
+        initialize(scope: Construct): Construct {
           return new Bucket(scope, 'testBucket');
         },
       });
@@ -32,9 +31,9 @@ describe('BackendBuildState', () => {
       const constructCache = new SingletonConstructCache(
         new NestedStackResolver(stack)
       );
-      const initializer = {
+      const initializer: ConstructInitializer<Bucket> = {
         resourceGroupName: 'testGroup',
-        initializeInScope(scope: Construct): Construct {
+        initialize(scope: Construct): Bucket {
           return new Bucket(scope, 'testBucket');
         },
       };
@@ -50,15 +49,15 @@ describe('BackendBuildState', () => {
       const constructCache = new SingletonConstructCache(
         new NestedStackResolver(stack)
       );
-      const bucketInitializer = {
+      const bucketInitializer: ConstructInitializer<Bucket> = {
         resourceGroupName: 'testGroup',
-        initializeInScope(scope: Construct): Construct {
+        initialize(scope: Construct): Bucket {
           return new Bucket(scope, 'testBucket');
         },
       };
-      const queueInitializer = {
+      const queueInitializer: ConstructInitializer<Queue> = {
         resourceGroupName: 'testGroup',
-        initializeInScope(scope: Construct): Construct {
+        initialize(scope: Construct): Queue {
           return new Queue(scope, 'testQueue');
         },
       };
@@ -73,32 +72,6 @@ describe('BackendBuildState', () => {
 
       assert.strictEqual(bucket, cachedBucket);
       assert.strictEqual(queue, cachedQueue);
-    });
-  });
-});
-
-describe('NestedStackResolver', () => {
-  describe('getStackFor', () => {
-    it('creates a new nested stack for new resource groups', () => {
-      const app = new App();
-      const stack = new Stack(app);
-      const stackResolver = new NestedStackResolver(stack);
-      const testStack = stackResolver.getStackFor('test');
-      const otherStack = stackResolver.getStackFor('other');
-
-      assert.equal(testStack instanceof NestedStack, true);
-      assert.equal(otherStack instanceof NestedStack, true);
-      assert.notStrictEqual(testStack, otherStack);
-    });
-
-    it('returns cached nested stack for existing resource groups', () => {
-      const app = new App();
-      const stack = new Stack(app);
-      const stackResolver = new NestedStackResolver(stack);
-      const testStack1 = stackResolver.getStackFor('test');
-      const testStack2 = stackResolver.getStackFor('test');
-
-      assert.strictEqual(testStack1, testStack2);
     });
   });
 });
