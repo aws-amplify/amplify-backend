@@ -2,16 +2,16 @@ import { Construct } from 'constructs';
 import { StackResolver } from './nested_stack_resolver.js';
 import {
   ConstructCache,
-  ConstructInitializer,
+  ConstructCacheEntryGenerator,
 } from '@aws-amplify/plugin-types';
 
 /**
  * Serves as a DI container and shared state store for initializing Amplify constructs
  */
 export class SingletonConstructCache implements ConstructCache {
-  // uses the initializer as the map key. The value is what the initializer returned the first time it was seen
+  // uses the CacheEntryGenerator as the map key. The value is what the generator returned the first time it was seen
   private readonly constructCache: Map<
-    ConstructInitializer<Construct>,
+    ConstructCacheEntryGenerator,
     Construct
   > = new Map();
 
@@ -21,16 +21,14 @@ export class SingletonConstructCache implements ConstructCache {
   constructor(private readonly stackResolver: StackResolver) {}
 
   /**
-   * If initializer has been seen before, the cached Construct instance is returned
-   * Otherwise, the initializer is called and the value is cached and returned
+   * If generator has been seen before, the cached Construct instance is returned
+   * Otherwise, the generator is called and the value is cached and returned
    */
-  getOrCompute(initializer: ConstructInitializer<Construct>): Construct {
-    if (!this.constructCache.has(initializer)) {
-      const scope = this.stackResolver.getStackFor(
-        initializer.resourceGroupName
-      );
-      this.constructCache.set(initializer, initializer.initialize(scope));
+  getOrCompute(generator: ConstructCacheEntryGenerator): Construct {
+    if (!this.constructCache.has(generator)) {
+      const scope = this.stackResolver.getStackFor(generator.resourceGroupName);
+      this.constructCache.set(generator, generator.generateCacheEntry(scope));
     }
-    return this.constructCache.get(initializer) as Construct;
+    return this.constructCache.get(generator) as Construct;
   }
 }

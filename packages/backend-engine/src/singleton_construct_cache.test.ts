@@ -5,8 +5,8 @@ import { Bucket } from 'aws-cdk-lib/aws-s3';
 import assert from 'node:assert';
 import { Construct } from 'constructs';
 import { Queue } from 'aws-cdk-lib/aws-sqs';
-import { ConstructInitializer } from './construct_factory.js';
 import { NestedStackResolver } from './nested_stack_resolver.js';
+import { ConstructCacheEntryGenerator } from '@aws-amplify/plugin-types';
 
 describe('SingletonConstructCache', () => {
   describe('resolve', () => {
@@ -18,7 +18,7 @@ describe('SingletonConstructCache', () => {
       );
       const instance = constructCache.getOrCompute({
         resourceGroupName: 'testGroup',
-        initialize(scope: Construct): Construct {
+        generateCacheEntry(scope: Construct): Construct {
           return new Bucket(scope, 'testBucket');
         },
       });
@@ -31,9 +31,9 @@ describe('SingletonConstructCache', () => {
       const constructCache = new SingletonConstructCache(
         new NestedStackResolver(stack)
       );
-      const initializer: ConstructInitializer<Bucket> = {
+      const initializer: ConstructCacheEntryGenerator = {
         resourceGroupName: 'testGroup',
-        initialize(scope: Construct): Bucket {
+        generateCacheEntry(scope: Construct): Bucket {
           return new Bucket(scope, 'testBucket');
         },
       };
@@ -49,15 +49,15 @@ describe('SingletonConstructCache', () => {
       const constructCache = new SingletonConstructCache(
         new NestedStackResolver(stack)
       );
-      const bucketInitializer: ConstructInitializer<Bucket> = {
+      const bucketInitializer: ConstructCacheEntryGenerator = {
         resourceGroupName: 'testGroup',
-        initialize(scope: Construct): Bucket {
+        generateCacheEntry(scope: Construct): Bucket {
           return new Bucket(scope, 'testBucket');
         },
       };
-      const queueInitializer: ConstructInitializer<Queue> = {
+      const queueInitializer: ConstructCacheEntryGenerator = {
         resourceGroupName: 'testGroup',
-        initialize(scope: Construct): Queue {
+        generateCacheEntry(scope: Construct): Queue {
           return new Queue(scope, 'testQueue');
         },
       };

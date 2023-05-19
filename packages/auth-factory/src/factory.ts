@@ -2,35 +2,38 @@ import { AmplifyAuth, AuthProps } from '@aws-amplify/auth-construct';
 import { Construct } from 'constructs';
 import {
   ConstructCache,
+  ConstructCacheEntryGenerator,
   ConstructFactory,
-  ConstructInitializer,
 } from '@aws-amplify/plugin-types';
 
 /**
  * Singleton factory for AmplifyAuth that can be used in `auth.ts` files
  */
-export class AmplifyAuthFactory
-  implements ConstructFactory<AmplifyAuth>, ConstructInitializer<AmplifyAuth>
-{
-  readonly resourceGroupName = 'auth';
-  private readonly defaultName = 'amplifyAuth';
+export class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth> {
+  private readonly generator: ConstructCacheEntryGenerator;
 
   /**
    * Set the properties that will be used to initialize AmplifyAuth
    */
-  constructor(private readonly props: AuthProps) {}
+  constructor(private readonly props: AuthProps) {
+    this.generator = new AmplifyAuthGenerator(props);
+  }
 
   /**
    * Get a singleton instance of AmplifyAuth
    */
   getInstance(cache: ConstructCache): AmplifyAuth {
-    return cache.getOrCompute(this) as AmplifyAuth;
+    return cache.getOrCompute(this.generator) as AmplifyAuth;
   }
+}
 
-  /**
-   * Constructs a new AmplifyAuth in the given scope
-   */
-  initialize(scope: Construct): AmplifyAuth {
+class AmplifyAuthGenerator implements ConstructCacheEntryGenerator {
+  readonly resourceGroupName = 'auth';
+  private readonly defaultName = 'amplifyAuth';
+
+  constructor(private readonly props: AuthProps) {}
+
+  generateCacheEntry(scope: Construct) {
     return new AmplifyAuth(scope, this.defaultName, this.props);
   }
 }

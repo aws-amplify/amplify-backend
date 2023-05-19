@@ -8,18 +8,18 @@ import { Construct } from 'constructs';
 
 // @public
 export type ConstructCache = {
-    getOrCompute(initializer: ConstructInitializer<Construct>): Construct;
+    getOrCompute(initializer: ConstructCacheEntryGenerator): Construct;
+};
+
+// @public
+export type ConstructCacheEntryGenerator = {
+    resourceGroupName: string;
+    generateCacheEntry(scope: Construct): Construct;
 };
 
 // @public
 export type ConstructFactory<Instance extends Construct> = {
     getInstance(resolver: ConstructCache): Instance;
-};
-
-// @public
-export type ConstructInitializer<Instance extends Construct> = {
-    resourceGroupName: string;
-    initialize(scope: Construct): Instance;
 };
 
 // (No @packageDocumentation comment for this package)
