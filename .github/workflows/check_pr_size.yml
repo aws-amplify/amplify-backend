@@ -15,4 +15,6 @@ jobs:
           cache: 'npm'
       - run: npm ci
       - run: git fetch origin
+      - run: git status
+      - run: git --no-pager log --decorate=short -n20
       - run: npm run diff:check ${{ github.event.pull_request.head.sha }}
