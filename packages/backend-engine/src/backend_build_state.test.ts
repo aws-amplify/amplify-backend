@@ -16,7 +16,7 @@ describe('BackendBuildState', () => {
       const constructResolver = new SingletonConstructResolver(
         new NestedStackResolver(stack)
       );
-      const instance = constructResolver.resolve({
+      const instance = constructResolver.getOrCompute({
         resourceGroupName: 'testGroup',
         initializeInScope(scope: Construct): Construct {
           return new Bucket(scope, 'testBucket');
@@ -37,8 +37,8 @@ describe('BackendBuildState', () => {
           return new Bucket(scope, 'testBucket');
         },
       };
-      const instance1 = buildState.resolve(initializer);
-      const instance2 = buildState.resolve(initializer);
+      const instance1 = buildState.getOrCompute(initializer);
+      const instance2 = buildState.getOrCompute(initializer);
 
       assert.strictEqual(instance1, instance2);
     });

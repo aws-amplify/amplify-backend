@@ -5,8 +5,8 @@ import { ConstructInitializer } from './construct_factory.js';
 /**
  * Vends Constructs based on a token and a generator function
  */
-export type ConstructResolver = {
-  resolve(initializer: ConstructInitializer<Construct>): Construct;
+export type ConstructCache = {
+  getOrCompute(initializer: ConstructInitializer<Construct>): Construct;
 };
 
 /**
@@ -19,7 +19,7 @@ export type StackResolver = {
 /**
  * Serves as a DI container and shared state store for initializing Amplify constructs
  */
-export class SingletonConstructResolver implements ConstructResolver {
+export class SingletonConstructResolver implements ConstructCache {
   private readonly constructInstances: Map<
     ConstructInitializer<Construct>,
     Construct
@@ -34,7 +34,7 @@ export class SingletonConstructResolver implements ConstructResolver {
    * If a construct for token has already been generated, returns the cached instance.
    * Otherwise, calls the generator to initialize a construct for token, caches it and returns it.
    */
-  resolve(initializer: ConstructInitializer<Construct>): Construct {
+  getOrCompute(initializer: ConstructInitializer<Construct>): Construct {
     if (!this.constructInstances.has(initializer)) {
       const scope = this.stackResolver.getStackFor(
         initializer.resourceGroupName

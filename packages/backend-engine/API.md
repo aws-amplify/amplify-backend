@@ -8,8 +8,13 @@ import { Construct } from 'constructs';
 import { Stack } from 'aws-cdk-lib';
 
 // @public
+export type ConstructCache = {
+    getOrCompute(initializer: ConstructInitializer<Construct>): Construct;
+};
+
+// @public
 export type ConstructFactory<Instance extends Construct> = {
-    getInstance(resolver: ConstructResolver): Instance;
+    getInstance(resolver: ConstructCache): Instance;
 };
 
 // @public (undocumented)
@@ -19,21 +24,15 @@ export type ConstructInitializer<Instance extends Construct> = {
 };
 
 // @public
-export type ConstructResolver = {
-    resolve(initializer: ConstructInitializer<Construct>): Construct;
-};
-
-// @public (undocumented)
 export class NestedStackResolver implements StackResolver {
     constructor(rootStack: Stack);
-    // (undocumented)
     getStackFor(resourceGroupName: string): Stack;
 }
 
 // @public
-export class SingletonConstructResolver implements ConstructResolver {
+export class SingletonConstructResolver implements ConstructCache {
     constructor(stackResolver: StackResolver);
-    resolve(initializer: ConstructInitializer<Construct>): Construct;
+    getOrCompute(initializer: ConstructInitializer<Construct>): Construct;
 }
 
 // @public

@@ -1,7 +1,7 @@
 import {
+  ConstructCache,
   ConstructFactory,
   ConstructInitializer,
-  ConstructResolver,
 } from '@aws-amplify/backend-engine';
 import { AmplifyAuth, AuthProps } from '@aws-amplify/auth-construct';
 import { Construct } from 'constructs';
@@ -23,8 +23,8 @@ export class AmplifyAuthFactory
   /**
    * Get a singleton instance of AmplifyAuth
    */
-  getInstance(resolver: ConstructResolver): AmplifyAuth {
-    return resolver.resolve(this) as AmplifyAuth;
+  getInstance(cache: ConstructCache): AmplifyAuth {
+    return cache.getOrCompute(this) as AmplifyAuth;
   }
 
   /**
