@@ -2,7 +2,7 @@ import { execa } from 'execa';
 import { glob } from 'glob';
 import * as fs from 'fs-extra';
 
-const ERROR_TOKENS = ['Warning: (ae-forgotten-export)'];
+const ERROR_TOKENS = ['ae-forgotten-export'];
 
 const main = async () => {
   // first collect the names of files that have been changed, so we can filter out excluded files
