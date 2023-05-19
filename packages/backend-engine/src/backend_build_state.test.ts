@@ -7,6 +7,7 @@ import { App, NestedStack, Stack } from 'aws-cdk-lib';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import assert from 'node:assert';
 import { Construct } from 'constructs';
+import { Queue } from 'aws-cdk-lib/aws-sqs';
 
 describe('BackendBuildState', () => {
   describe('resolve', () => {
@@ -41,6 +42,37 @@ describe('BackendBuildState', () => {
       const instance2 = constructCache.getOrCompute(initializer);
 
       assert.strictEqual(instance1, instance2);
+    });
+
+    it('returns correct cached value for each initializer', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      const constructCache = new SingletonConstructCache(
+        new NestedStackResolver(stack)
+      );
+      const bucketInitializer = {
+        resourceGroupName: 'testGroup',
+        initializeInScope(scope: Construct): Construct {
+          return new Bucket(scope, 'testBucket');
+        },
+      };
+      const queueInitializer = {
+        resourceGroupName: 'testGroup',
+        initializeInScope(scope: Construct): Construct {
+          return new Queue(scope, 'testQueue');
+        },
+      };
+      const bucket = constructCache.getOrCompute(bucketInitializer);
+      const queue = constructCache.getOrCompute(queueInitializer);
+
+      const cachedBucket = constructCache.getOrCompute(bucketInitializer);
+      const cachedQueue = constructCache.getOrCompute(queueInitializer);
+
+      assert.equal(bucket instanceof Bucket, true);
+      assert.equal(queue instanceof Queue, true);
+
+      assert.strictEqual(bucket, cachedBucket);
+      assert.strictEqual(queue, cachedQueue);
     });
   });
 });
