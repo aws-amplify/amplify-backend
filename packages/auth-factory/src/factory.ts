@@ -9,8 +9,8 @@ import { AmplifyAuth, AuthProps } from '@aws-amplify/auth-construct';
  * Singleton factory for AmplifyAuth that can be used in `auth.ts` files
  */
 export class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth> {
-  private static resourceGroupName: 'auth';
-  private static defaultName: 'amplifyAuth';
+  private static resourceGroupName = 'auth';
+  private static defaultName = 'amplifyAuth';
 
   /**
    * Set the properties that will be used to initialize AmplifyAuth

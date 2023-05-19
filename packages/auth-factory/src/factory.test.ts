@@ -32,9 +32,9 @@ describe('AmplifyAuthFactory', () => {
 
     const backendBuildState = new BackendBuildState(stack);
 
-    authFactory.getInstance(backendBuildState);
+    const authConstruct = authFactory.getInstance(backendBuildState);
 
-    const template = Template.fromStack(stack);
+    const template = Template.fromStack(Stack.of(authConstruct));
 
     template.resourceCountIs('AWS::Cognito::UserPool', 1);
   });
