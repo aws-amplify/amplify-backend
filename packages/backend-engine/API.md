@@ -9,9 +9,16 @@ import { ConstructCache } from '@aws-amplify/plugin-types';
 import { ConstructInitializer } from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
 
+// Warning: (ae-forgotten-export) The symbol "StackResolver" needs to be exported by the entry point index.d.ts
+//
+// @public
+export class NestedStackResolver implements StackResolver {
+    constructor(rootStack: Stack);
+    getStackFor(resourceGroupName: string): Stack;
+}
+
 // @public
 export class SingletonConstructCache implements ConstructCache {
-    // Warning: (ae-forgotten-export) The symbol "StackResolver" needs to be exported by the entry point index.d.ts
     constructor(stackResolver: StackResolver);
     getOrCompute(initializer: ConstructInitializer<Construct>): Construct;
 }
