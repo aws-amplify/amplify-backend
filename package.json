@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "",
   "scripts": {
-    "api:update": "npm run api:update --workspaces",
+    "api:update": "rimraf packages/**/temp packages/**/API.md && npm run api:update --workspaces",
     "api:check": "npm run api:update && tsx scripts/check_api_extract.ts",
     "build": "tsc --build packages/*",
     "clean": "npm run clean --workspaces --if-present && rimraf node_modules coverage .eslintcache",
