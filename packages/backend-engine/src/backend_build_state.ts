@@ -19,8 +19,9 @@ export type StackResolver = {
 /**
  * Serves as a DI container and shared state store for initializing Amplify constructs
  */
-export class SingletonConstructResolver implements ConstructCache {
-  private readonly constructInstances: Map<
+export class SingletonConstructCache implements ConstructCache {
+  // uses the initializer as the map key. The value is what the initializer returned the first time it was seen
+  private readonly constructCache: Map<
     ConstructInitializer<Construct>,
     Construct
   > = new Map();
@@ -35,16 +36,16 @@ export class SingletonConstructResolver implements ConstructCache {
    * Otherwise, calls the generator to initialize a construct for token, caches it and returns it.
    */
   getOrCompute(initializer: ConstructInitializer<Construct>): Construct {
-    if (!this.constructInstances.has(initializer)) {
+    if (!this.constructCache.has(initializer)) {
       const scope = this.stackResolver.getStackFor(
         initializer.resourceGroupName
       );
-      this.constructInstances.set(
+      this.constructCache.set(
         initializer,
         initializer.initializeInScope(scope)
       );
     }
-    return this.constructInstances.get(initializer) as Construct;
+    return this.constructCache.get(initializer) as Construct;
   }
 }
 

@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import {
   NestedStackResolver,
-  SingletonConstructResolver,
+  SingletonConstructCache,
 } from './backend_build_state.js';
 import { App, NestedStack, Stack } from 'aws-cdk-lib';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
@@ -13,10 +13,10 @@ describe('BackendBuildState', () => {
     it('calls initializer to create construct instance', () => {
       const app = new App();
       const stack = new Stack(app);
-      const constructResolver = new SingletonConstructResolver(
+      const constructCache = new SingletonConstructCache(
         new NestedStackResolver(stack)
       );
-      const instance = constructResolver.getOrCompute({
+      const instance = constructCache.getOrCompute({
         resourceGroupName: 'testGroup',
         initializeInScope(scope: Construct): Construct {
           return new Bucket(scope, 'testBucket');
@@ -28,7 +28,7 @@ describe('BackendBuildState', () => {
     it('returns cached instance if initializer has been seen before', () => {
       const app = new App();
       const stack = new Stack(app);
-      const buildState = new SingletonConstructResolver(
+      const constructCache = new SingletonConstructCache(
         new NestedStackResolver(stack)
       );
       const initializer = {
@@ -37,8 +37,8 @@ describe('BackendBuildState', () => {
           return new Bucket(scope, 'testBucket');
         },
       };
-      const instance1 = buildState.getOrCompute(initializer);
-      const instance2 = buildState.getOrCompute(initializer);
+      const instance1 = constructCache.getOrCompute(initializer);
+      const instance2 = constructCache.getOrCompute(initializer);
 
       assert.strictEqual(instance1, instance2);
     });
