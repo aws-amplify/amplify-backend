@@ -1,5 +1,5 @@
-import { Auth } from '@aws-amplify/construct-auth';
+import { Auth } from '@aws-amplify/backend';
 
-export const auth = new Auth(null, 'my-auth', {
+export const auth = new Auth({
   loginMechanisms: ['email'],
 });
