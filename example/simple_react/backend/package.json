@@ -1,0 +1,10 @@
+{
+  "name": "samsara-infrastructure-example",
+  "version": "1.0.0",
+  "description": "",
+  "author": "",
+  "devDependencies": {
+    "@aws-amplify/backend": "^0.1.0",
+    "@aws-amplify/cli": "^0.1.0"
+  }
+}

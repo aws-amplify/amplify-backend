@@ -29,11 +29,19 @@ const main = async () => {
     'HEAD',
   ]);
   const diffFileList = filenameDiffOutput.toString().split('\n');
-  const filteredList = diffFileList.filter((file) => !EXCLUDE.includes(file));
+  const filteredList = diffFileList.filter(
+    (file) => !EXCLUDE.find((e) => file.includes(e))
+  );
 
   // now run diff --shortstat on the filtered list of files
-  const shortStatArgs = ['diff', '--shortstat', baseRef, 'HEAD', '--'];
-  shortStatArgs.push(...filteredList);
+  const shortStatArgs = [
+    'diff',
+    '--shortstat',
+    baseRef,
+    'HEAD',
+    '--',
+    ...filteredList,
+  ];
 
   // shortStatOutput is a string like "3 files changed, 1 insertion(+), 3 deletions(-)"
   const { stdout: shortStatOutput } = await execa('git', shortStatArgs);

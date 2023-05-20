@@ -10,5 +10,6 @@
     "packages/plugin-types"
   ],
   "all": true,
-  "check-coverage": true
+  "check-coverage": true,
+  "src": "packages/"
 }
