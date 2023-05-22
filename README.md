@@ -6,7 +6,7 @@ See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more inform
 
 This project is licensed under the Apache-2.0 License.
 
-## Setup your local development environment
+## Set up your local development environment
 
 ```sh
 # clone project repo
@@ -16,6 +16,7 @@ npm run test
 ```
 
 `npm run install:local` will run `npm install`, then build all packages in the project and run `npm link`
+
 `npm run test` will run all the unit tests in the project
 
 You should now be able to run the `vnext` CLI.
@@ -23,6 +24,7 @@ You should now be able to run the `vnext` CLI.
 #### Other helpful scripts
 
 `npm run watch` will start the tsc server and watch for changes in all packages
+
 `npm run test:coverage:threshold` will let you know if your changes are passing test coverage limits
 
 ## Adding a package
@@ -34,6 +36,7 @@ These templates can be copied to a new package directory using `npm run new:*` w
 
 If you are adding a new package that does not have a template, consider adding a template for that package type.
 You'll probably want to use an existing template as a starting point for the new package.
+
 At a minimum, each package needs:
 
 1. A `package.json` file
