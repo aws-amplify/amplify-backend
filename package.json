@@ -6,11 +6,11 @@
     "api:update": "npm run api:update --workspaces",
     "api:check": "npm run api:update && tsx scripts/check_api_extract.ts",
     "build": "tsc --build packages/*",
-    "clean": "npm run clean --workspaces --if-present && rimraf node_modules coverage .eslintcache",
+    "clean": "rimraf --glob node_modules coverage .eslintcache packages/*/lib packages/*/temp packages/*/tsconfig.tsbuildinfo",
     "diff:check": "tsx scripts/check_pr_size.ts",
     "docs": "typedoc",
     "new:construct": "tsx scripts/copy_construct_template.ts",
-    "install:local": "npm run build && npm run install:local --workspaces --if-present",
+    "install:local": "npm install && npm run build && npm run install:local --workspaces --if-present",
     "lint": "eslint --max-warnings 0 . && prettier --check .",
     "lint:fix": "eslint --cache --fix . && prettier --write .",
     "prepare": "husky install",
@@ -56,12 +56,7 @@
     "typescript": "^5.0.4"
   },
   "workspaces": [
-    "packages/plugin-types",
-    "packages/backend-engine",
-    "packages/auth-construct",
-    "packages/auth-factory",
-    "packages/lib-synth",
-    "packages/cli"
+    "packages/*"
   ],
   "lint-staged": {
     "*.ts": [

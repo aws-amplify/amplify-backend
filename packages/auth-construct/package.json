@@ -5,9 +5,7 @@
   "types": "lib/index.d.ts",
   "type": "module",
   "scripts": {
-    "api:update": "api-extractor run --local",
-    "clean": "rimraf lib node_modules tsconfig.tsbuildinfo",
-    "watch": "tsc -w"
+    "api:update": "api-extractor run --local"
   },
   "devDependencies": {
     "aws-cdk-lib": "^2.72.0",
