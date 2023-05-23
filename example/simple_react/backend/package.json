@@ -5,6 +5,7 @@
   "author": "",
   "devDependencies": {
     "@aws-amplify/backend": "^0.1.0",
-    "@aws-amplify/cli": "^0.1.0"
+    "@aws-amplify/cli": "^0.1.0",
+    "@aws-amplify/type-beast": "^0.1.0"
   }
 }
