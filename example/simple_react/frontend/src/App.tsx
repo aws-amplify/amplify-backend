@@ -82,4 +82,72 @@ function App() {
   );
 }
 
+function TodosList({
+  todos,
+  onUpdate,
+  onDelete,
+}: {
+  todos: Todo[] | null;
+  onUpdate?: (todo: Todo) => void | Promise<void>;
+  onDelete?: (identifier: string) => void | Promise<void>;
+}): ReactElement {
+  return (
+    <table border={1}>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Owner</th>
+          <th>Done</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {todos?.map((todo) => {
+          const { name, owner, done, id } = todo;
+          return (
+            <tr key={id}>
+              <td>{name}</td>
+              <td>{owner}</td>
+              <td>{done ? '✅' : '❌'}</td>
+              <td>
+                <input
+                  type="button"
+                  value="Update"
+                  onClick={() =>
+                    onUpdate?.({
+                      ...todo,
+                      done: !done,
+                    })
+                  }
+                />
+                <input
+                  type="button"
+                  value="Delete"
+                  onClick={() => onDelete?.(id!)}
+                />
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  );
+}
+
+const CodeOutput = ({ name, code }: { name: string; code: any }) => {
+  return (
+    <details open>
+      <summary>{name}</summary>
+      <code
+        style={{
+          whiteSpace: 'break-spaces',
+          verticalAlign: 'bottom',
+        }}
+      >
+        {JSON.stringify(code, null, 2)}
+      </code>
+    </details>
+  );
+};
+
 export default App;
