@@ -1,5 +1,5 @@
 import React from 'react';
-import { ReactElement, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import './App.css';
 import { schema } from '../../backend/schema';
 import { inferModelType } from 'type-beast';
