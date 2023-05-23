@@ -1,4 +1,4 @@
-import * as a from 'type-beast';
+import * as a from '@aws-amplify/type-beast';
 
 export const schema = a.schema({
   Todo: a.model({
