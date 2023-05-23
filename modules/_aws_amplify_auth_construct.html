@@ -18,40 +18,25 @@
 <section class="tsd-panel-group">
 <section class="tsd-panel tsd-typography"><a id="md:security" class="tsd-anchor"></a><h2><a href="#$security" style="color:inherit;text-decoration:none">Security</a></h2><p>See <a href="CONTRIBUTING.md#security-issue-notifications">CONTRIBUTING</a> for more information.</p>
 <a id="md:license" class="tsd-anchor"></a><h2><a href="#$license" style="color:inherit;text-decoration:none">License</a></h2><p>This project is licensed under the Apache-2.0 License.</p>
-<a id="md:to-start-developing" class="tsd-anchor"></a><h2><a href="#$to-start-developing" style="color:inherit;text-decoration:none">To start developing</a></h2><pre><code><span class="hl-0"># </span><span class="hl-1">clone</span><span class="hl-0"> </span><span class="hl-1">project</span><span class="hl-0"> </span><span class="hl-1">repo</span><br/><span class="hl-1">cd</span><span class="hl-0"> &lt;</span><span class="hl-1">project</span><span class="hl-0"> </span><span class="hl-1">directory</span><span class="hl-0">&gt;</span><br/><span class="hl-1">npm</span><span class="hl-0"> </span><span class="hl-1">install</span><br/><span class="hl-1">npm</span><span class="hl-0"> </span><span class="hl-1">run</span><span class="hl-0"> </span><span class="hl-1">build</span><br/><span class="hl-0"># </span><span class="hl-2">this</span><span class="hl-0"> </span><span class="hl-1">script</span><span class="hl-0"> </span><span class="hl-1">assumes</span><span class="hl-0"> </span><span class="hl-1">that</span><span class="hl-0"> </span><span class="hl-1">your</span><span class="hl-0"> </span><span class="hl-1">global</span><span class="hl-0"> </span><span class="hl-1">node</span><span class="hl-0"> </span><span class="hl-1">bin</span><span class="hl-0"> </span><span class="hl-1">dir</span><span class="hl-0"> </span><span class="hl-1">is</span><span class="hl-0"> </span><span class="hl-1">on</span><span class="hl-0"> </span><span class="hl-1">your</span><span class="hl-0"> </span><span class="hl-3">PATH</span><br/><span class="hl-1">npm</span><span class="hl-0"> </span><span class="hl-1">run</span><span class="hl-0"> </span><span class="hl-1">set</span><span class="hl-0">-</span><span class="hl-1">path</span><br/><span class="hl-1">npm</span><span class="hl-0"> </span><span class="hl-1">run</span><span class="hl-0"> </span><span class="hl-1">test</span>
+<a id="md:set-up-your-local-development-environment" class="tsd-anchor"></a><h2><a href="#$set-up-your-local-development-environment" style="color:inherit;text-decoration:none">Set up your local development environment</a></h2><pre><code class="language-sh"><span class="hl-0"># clone project repo</span><br/><span class="hl-1">cd</span><span class="hl-2"> &lt;</span><span class="hl-3">project</span><span class="hl-2"> </span><span class="hl-3">director</span><span class="hl-2">y&gt;</span><br/><span class="hl-2">npm </span><span class="hl-3">run</span><span class="hl-2"> </span><span class="hl-3">install:local</span><br/><span class="hl-2">npm </span><span class="hl-3">run</span><span class="hl-2"> </span><span class="hl-3">test</span>
 </code></pre>
-<p>You should now be able to run <code>vnext</code> and get some help output of available subcommands</p>
-<a id="md:to-run-a-sample-project" class="tsd-anchor"></a><h2><a href="#$to-run-a-sample-project" style="color:inherit;text-decoration:none">To run a sample project</a></h2><p>See the readme in the <code>example-project</code> directory</p>
-<a id="md:10000-ft-overview" class="tsd-anchor"></a><h2><a href="#$10000-ft-overview" style="color:inherit;text-decoration:none">10000 ft overview</a></h2><a id="md:adaptors" class="tsd-anchor"></a><h3><a href="#$adaptors" style="color:inherit;text-decoration:none"><code>adaptors</code></a></h3><p>This directory contains the adaptors and (some) builders for various feature verticals.</p>
-<p>An adaptor is a layer between CDK constructs (either L1, 2, or 3) and our platform layer. The adaptors extend the ConstructAdaptor base class defined in <code>types.ts</code>
-A builder is a class that customers interact with directly in their <code>amplify.ts</code> file. This builder class provides a nice abstraction for customers to configure resources and wire them together. It exposes a <code>_build()</code> method that is used internall to serialize the config to a declarative IR format</p>
-<a id="md:commands" class="tsd-anchor"></a><h3><a href="#$commands" style="color:inherit;text-decoration:none"><code>commands</code></a></h3><p>This directory contains all of the CLI command entry points. It also contains <code>shared-components.ts</code> which are... wait for it... bits of code that are shared across commands and use the mixin pattern to compose command parts together.</p>
-<a id="md:input-definition" class="tsd-anchor"></a><h3><a href="#$input-definition" style="color:inherit;text-decoration:none"><code>input-definition</code></a></h3><p>This directory has the base class of the builder classes described above. This base class contains most of the logic and the implementaions only need to provide some basic customizations. The <code>ir-definition.ts</code> contains zod objects and inferred types for the shape of the declarative IR definition</p>
-<a id="md:observability-tooling" class="tsd-anchor"></a><h3><a href="#$observability-tooling" style="color:inherit;text-decoration:none"><code>observability-tooling</code></a></h3><p>The stuff here is largely unused in the POC but it contains some stubs of classes that we can inject into the platform for logging and metrics</p>
-<a id="md:stubs" class="tsd-anchor"></a><h3><a href="#$stubs" style="color:inherit;text-decoration:none"><code>stubs</code></a></h3><p>This is also pretty much empty but it has a small wrapper around ParameterStore that the <code>vnext params</code> command uses for CRUD operations on params. This probably won&#39;t exist in the final product. Instead we will just have CRUD management for secrets and rely on normal CI/CD env vars for other parameterization</p>
-<a id="md:transformer" class="tsd-anchor"></a><h3><a href="#$transformer" style="color:inherit;text-decoration:none"><code>transformer</code></a></h3><p>The <code>transformer-factory</code> and <code>transformer</code> are the important files here. This is where the &quot;Amplify CDK transform&quot; gets initialized and executed.</p>
-<a id="md:other-files-in-src" class="tsd-anchor"></a><h3><a href="#$other-files-in-src" style="color:inherit;text-decoration:none">other files in <code>src</code></a></h3><a id="md:amplify-reference" class="tsd-anchor"></a><h4><a href="#$amplify-reference" style="color:inherit;text-decoration:none"><code>amplify-reference</code></a></h4><p>This is a CDK construct for creating &quot;weak references&quot; between stacks. Ie it uses ParameterStore to pass a value between two stacks rather than CFN imports/exports. imports/exports are problematic because they require two deployments whenever an export needs to be removed (which could happen whenever a resource is removed from the project)</p>
-<a id="md:amplify-toolbox" class="tsd-anchor"></a><h4><a href="#$amplify-toolbox" style="color:inherit;text-decoration:none"><code>amplify-toolbox</code></a></h4><p>This is the entry point to the &quot;vnext&quot; CLI. It imports all the commands from the <code>commands</code> directory and places them as subcommands under the root &quot;vnext&quot; command</p>
-<a id="md:configure-profile" class="tsd-anchor"></a><h4><a href="#$configure-profile" style="color:inherit;text-decoration:none"><code>configure-profile</code></a></h4><p>Utility function for configuring the AWS SDK</p>
-<a id="md:execute-cdk-command" class="tsd-anchor"></a><h4><a href="#$execute-cdk-command" style="color:inherit;text-decoration:none"><code>execute-cdk-command</code></a></h4><p>Utility function for shelling out to the CDK CLI</p>
-<a id="md:types" class="tsd-anchor"></a><h4><a href="#$types" style="color:inherit;text-decoration:none"><code>types</code></a></h4><p>Contains the &quot;Plugin Interface&quot;. This is the abstract class that all feature vertical adaptor plugins must extend.</p>
-<p>package must export two things:</p>
-<ol>
-<li>init function that returns an AmplifyServiceProviderFactory</li>
-<li>builder function that can be used by customers to configure the resource in the <code>amplify.ts</code> file</li>
-</ol>
-<a id="md:getting-started" class="tsd-anchor"></a><h2><a href="#$getting-started" style="color:inherit;text-decoration:none">Getting Started</a></h2><ol>
-<li>Run <code>npm install &amp;&amp; npm run install:local</code></li>
-</ol>
-<p>This will build the project and link the vnext CLI so it is available at <code>vnext</code></p>
-<p>Run <code>npm run test</code> to execute the test suite</p>
-<a id="md:adding-a-package" class="tsd-anchor"></a><h2><a href="#$adding-a-package" style="color:inherit;text-decoration:none">Adding a package</a></h2><p>Most package types that you might want to add to this repo should have templates in the <code>templates</code> directory.
+<p><code>npm run install:local</code> will run <code>npm install</code>, then build all packages in the project and run <code>npm link</code></p>
+<p><code>npm run test</code> will run all the unit tests in the project</p>
+<p>You should now be able to run the <code>vnext</code> CLI.</p>
+<a id="md:other-helpful-scripts" class="tsd-anchor"></a><h4><a href="#$other-helpful-scripts" style="color:inherit;text-decoration:none">Other helpful scripts</a></h4><p><code>npm run watch</code> will start the tsc server and watch for changes in all packages</p>
+<p><code>npm run test:coverage:threshold</code> will let you know if your changes are passing test coverage limits</p>
+<a id="md:adding-a-package" class="tsd-anchor"></a><h2><a href="#$adding-a-package" style="color:inherit;text-decoration:none">Adding a package</a></h2><p>This repo uses a monorepo structure managed by npm workspaces. All the packages in the workspace are under <code>packages/*</code></p>
+<p>Most package types that you might want to add to this repo should have templates in the <code>templates</code> directory.
 These templates can be copied to a new package directory using <code>npm run new:*</code> where * is the type of package you are creating (see <code>package.json</code> for available scripts)</p>
-<p>This repo uses a monorepo structure using npm workspaces. To add a new package to the monorepo, you&#39;ll need to</p>
+<p>If you are adding a new package that does not have a template, consider adding a template for that package type.
+You&#39;ll probably want to use an existing template as a starting point for the new package.</p>
+<p>At a minimum, each package needs:</p>
 <ol>
-<li>Create a new folder under <code>packages</code></li>
-<li>Create a <code>package.json</code> and <code>tsconfig.json</code> file within the new folder. The <code>tsconfig.json</code> should probably be the same as other packages in the repo. The package.json should be similar to existing packages as well.</li>
-<li>Add the workspace folder to the <code>workspaces</code> list in the root <code>package.json</code> in topological build order</li>
+<li>A <code>package.json</code> file</li>
+<li>A <code>tsconfig.json</code> file. This file should extend <code>tsconfig.base.json</code></li>
+<li>An <code>api-extractor.json</code> file. This file should extend <code>api-extractor.base.json</code></li>
+<li>An <code>api:update</code> script in the <code>package.json</code> file</li>
+<li>A <code>typedoc.json</code> file</li>
 </ol>
 </section></section>
 <section class="tsd-panel-group tsd-index-group">
@@ -92,26 +77,10 @@ These templates can be copied to a new package directory using <code>npm run new
 <li>
 <ul>
 <li><a href="#md:license"><span>License</span></a></li>
-<li><a href="#md:to-start-developing"><span>To start developing</span></a></li>
-<li><a href="#md:to-run-a-sample-project"><span>To run a sample project</span></a></li>
-<li><a href="#md:10000-ft-overview"><span>10000 ft overview</span></a></li>
+<li><a href="#md:set-up-your-local-development-environment"><span>Set up your local development environment</span></a></li>
 <li>
 <ul>
-<li><a href="#md:adaptors"><span>adaptors</span></a></li>
-<li><a href="#md:commands"><span>commands</span></a></li>
-<li><a href="#md:input-definition"><span>input-<wbr/>definition</span></a></li>
-<li><a href="#md:observability-tooling"><span>observability-<wbr/>tooling</span></a></li>
-<li><a href="#md:stubs"><span>stubs</span></a></li>
-<li><a href="#md:transformer"><span>transformer</span></a></li>
-<li><a href="#md:other-files-in-src"><span>other files in src</span></a></li>
-<li>
-<ul>
-<li><a href="#md:amplify-reference"><span>amplify-<wbr/>reference</span></a></li>
-<li><a href="#md:amplify-toolbox"><span>amplify-<wbr/>toolbox</span></a></li>
-<li><a href="#md:configure-profile"><span>configure-<wbr/>profile</span></a></li>
-<li><a href="#md:execute-cdk-command"><span>execute-<wbr/>cdk-<wbr/>command</span></a></li>
-<li><a href="#md:types"><span>types</span></a></li></ul></li></ul></li>
-<li><a href="#md:getting-started"><span>Getting <wbr/>Started</span></a></li>
+<li><a href="#md:other-helpful-scripts"><span>Other helpful scripts</span></a></li></ul></li>
 <li><a href="#md:adding-a-package"><span>Adding a package</span></a></li></ul></li></ul></li></ul></div></details></div>
 <div class="site-menu">
 <nav class="tsd-navigation"><a href="../index.html"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-namespace)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6" id="icon-4-path"></rect><path d="M9.33 16V7.24H10.77L13.446 14.74C13.43 14.54 13.41 14.296 13.386 14.008C13.37 13.712 13.354 13.404 13.338 13.084C13.33 12.756 13.326 12.448 13.326 12.16V7.24H14.37V16H12.93L10.266 8.5C10.282 8.692 10.298 8.936 10.314 9.232C10.33 9.52 10.342 9.828 10.35 10.156C10.366 10.476 10.374 10.784 10.374 11.08V16H9.33Z" fill="var(--color-text)" id="icon-4-text"></path></svg><span>Amplify <wbr/>Toolbox</span></a>
