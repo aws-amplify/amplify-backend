@@ -2,7 +2,10 @@ import React from 'react';
 import { useEffect, useState } from 'react';
 import './App.css';
 import { schema } from '../../backend/schema';
+import amplifyConfiguration from '../../backend/amplifyconfiguration';
 import { inferModelType } from '@aws-amplify/type-beast';
+
+schema.client.configure(amplifyConfiguration);
 
 type Todo = inferModelType<typeof schema.client.models.Todo>;
 
