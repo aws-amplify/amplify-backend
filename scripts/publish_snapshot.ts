@@ -10,6 +10,7 @@ const main = async () => {
   await execa('changeset', ['version', '--snapshot', tagName], {
     stdio: 'inherit',
   });
+  // To change the registry that changeset publishes to, set the `npm_config_registry` environment variable
   await execa(
     'changeset',
     ['publish', '--snapshot', '--no-git-tag', '--tag', tagName],
