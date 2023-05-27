@@ -17,7 +17,7 @@ const main = async () => {
     await fs.unlink(LOG_FILE);
   }
   // start the server in a detached process
-  await execaCommand(`npx verdaccio -c verdaccio.config.yaml &>${LOG_FILE} &`, {
+  await execaCommand(`verdaccio -c verdaccio.config.yaml &>${LOG_FILE} &`, {
     shell: 'bash',
   });
 
