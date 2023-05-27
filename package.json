@@ -13,6 +13,7 @@
     "lint": "eslint --max-warnings 0 . && prettier --check .",
     "lint:fix": "eslint --cache --fix . && prettier --write .",
     "new:construct": "tsx scripts/copy_construct_template.ts",
+    "npm-proxy:clear": "rimraf verdaccio-cache",
     "npm-proxy:start": "tsx scripts/start_npm_proxy.ts",
     "npm-proxy:stop": "tsx scripts/stop_npm_proxy.ts",
     "prepare": "husky install",

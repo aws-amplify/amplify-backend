@@ -29,6 +29,31 @@ You should now be able to run the `vnext` CLI.
 
 `npm run vend` will start a local npm proxy and publish the local packages to this proxy so they can be installed / used as if they were published on npm
 
+## Creating changesets
+
+This repo uses [changesets](https://github.com/changesets/changesets) for versioning and releasing changes.
+
+All changes that affect release artifacts must have a corresponding changeset. To create a changeset run `changeset`.
+This will start a walkthrough to author the changeset file. This file should be committed to the repo.
+
+## Publishing packages locally
+
+Publishing packages locally allows you to install local package changes as if they were published to NPM. This is useful for testing or demo scenarios.
+
+To set up a local npm proxy and publish the current local state to the proxy, run `npm run vend`.
+This will start a local npm proxy using [Verdaccio](https://verdaccio.org/) and run `changeset version` and `changeset publish`.
+Note that you will need to create a changeset for any local changes for them to be included in the published artifacts.
+
+This will also point your local npm config to the local npm proxy. At this point you can npm install any packages in the repo and it will pull from the local proxy instead of directly from npm.
+
+To stop the local server and reset your npm registry run `npm run npm-proxy:stop`.
+
+To clear the proxy package cache run `npm run npm-proxy:clear`. This will remove all packages you have published to the local proxy.
+
+To start the npm proxy without immediately publishing, run `npm run npm-proxy:start`.
+
+To publish a snapshot to an already running npm proxy run `npm run publish:snapshot:local latest`
+
 ## Adding a package
 
 This repo uses a monorepo structure managed by npm workspaces. All the packages in the workspace are under `packages/*`
