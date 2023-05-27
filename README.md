@@ -27,6 +27,8 @@ You should now be able to run the `vnext` CLI.
 
 `npm run test:coverage:threshold` will let you know if your changes are passing test coverage limits
 
+`npm run vend` will start a local npm proxy and publish the local packages to this proxy so they can be installed / used as if they were published on npm
+
 ## Adding a package
 
 This repo uses a monorepo structure managed by npm workspaces. All the packages in the workspace are under `packages/*`
