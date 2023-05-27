@@ -8,3 +8,5 @@ tsconfig.tsbuildinfo
 .idea
 .eslintcache
 .nvmrc
+verdaccio-cache
+verdaccio-logs.txt
