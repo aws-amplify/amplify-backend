@@ -6,17 +6,22 @@
     "api:update": "npm run api:update --workspaces",
     "api:check": "npm run api:update && tsx scripts/check_api_extract.ts",
     "build": "tsc --build packages/*",
-    "clean": "rimraf --glob node_modules coverage .eslintcache packages/*/lib packages/*/temp packages/*/tsconfig.tsbuildinfo",
+    "clean": "rimraf --glob node_modules coverage .eslintcache verdaccio-cache verdaccio-logs.txt packages/*/lib packages/*/temp packages/*/tsconfig.tsbuildinfo",
     "diff:check": "tsx scripts/check_pr_size.ts",
     "docs": "typedoc",
-    "new:construct": "tsx scripts/copy_construct_template.ts",
     "install:local": "npm install && npm run build && npm run install:local --workspaces --if-present",
     "lint": "eslint --max-warnings 0 . && prettier --check .",
     "lint:fix": "eslint --cache --fix . && prettier --write .",
+    "new:construct": "tsx scripts/copy_construct_template.ts",
+    "npm-proxy:clear": "rimraf verdaccio-cache",
+    "npm-proxy:start": "tsx scripts/start_npm_proxy.ts",
+    "npm-proxy:stop": "tsx scripts/stop_npm_proxy.ts",
     "prepare": "husky install",
+    "publish:snapshot:local": "npm_config_registry=http://localhost:4873/ tsx scripts/publish_snapshot.ts",
     "test": "tsx scripts/run_unit_tests.ts",
     "test:coverage:generate": "NODE_V8_COVERAGE=coverage/ npm run test",
     "test:coverage:threshold": "c8 npm run test",
+    "vend": "npm run npm-proxy:start && npm run publish:snapshot:local latest",
     "watch": "npm run build -- --watch"
   },
   "repository": {
@@ -33,6 +38,7 @@
   },
   "homepage": "https://github.com/aws-amplify/cli#readme",
   "devDependencies": {
+    "@changesets/cli": "^2.26.1",
     "@microsoft/api-extractor": "^7.34.4",
     "@types/fs-extra": "^11.0.1",
     "@types/node": "^18.15.11",
@@ -53,7 +59,8 @@
     "rimraf": "^5.0.0",
     "tsx": "^3.12.6",
     "typedoc": "^0.24.4",
-    "typescript": "^5.0.4"
+    "typescript": "^5.0.4",
+    "verdaccio": "^5.24.1"
   },
   "workspaces": [
     "packages/*"
