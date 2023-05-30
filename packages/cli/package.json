@@ -26,7 +26,6 @@
   "dependencies": {
     "@aws-amplify/lib-synth": "0.0.1"
   },
-  "bundleDependencies": true,
   "files": [
     "lib"
   ]
