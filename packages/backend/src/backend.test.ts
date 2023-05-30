@@ -20,7 +20,7 @@ describe('Backend', () => {
     };
 
     const app = new App();
-    const backend = new Backend(
+    new Backend(
       {
         testConstructFactory,
       },
