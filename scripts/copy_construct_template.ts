@@ -25,12 +25,6 @@ const main = async () => {
     libName
   );
   await fs.writeFile(packageJsonPath, newPackageJson);
-
-  // add an entry to the root package.json workspaces
-  const rootPackageJsonPath = path.resolve(__dirname, '..', 'package.json');
-  const rootPackageJson = await fs.readJSON(rootPackageJsonPath);
-  rootPackageJson.workspaces.unshift(`packages/${libName}`);
-  await fs.writeJSON(rootPackageJsonPath, rootPackageJson, { spaces: 2 });
 };
 
 main().catch((err) => {
