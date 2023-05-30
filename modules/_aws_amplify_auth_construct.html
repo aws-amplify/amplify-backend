@@ -25,6 +25,19 @@
 <p>You should now be able to run the <code>vnext</code> CLI.</p>
 <a id="md:other-helpful-scripts" class="tsd-anchor"></a><h4><a href="#$other-helpful-scripts" style="color:inherit;text-decoration:none">Other helpful scripts</a></h4><p><code>npm run watch</code> will start the tsc server and watch for changes in all packages</p>
 <p><code>npm run test:coverage:threshold</code> will let you know if your changes are passing test coverage limits</p>
+<p><code>npm run vend</code> will start a local npm proxy and publish the local packages to this proxy so they can be installed / used as if they were published on npm</p>
+<a id="md:creating-changesets" class="tsd-anchor"></a><h2><a href="#$creating-changesets" style="color:inherit;text-decoration:none">Creating changesets</a></h2><p>This repo uses <a href="https://github.com/changesets/changesets">changesets</a> for versioning and releasing changes.</p>
+<p>All changes that affect release artifacts must have a corresponding changeset. To create a changeset run <code>changeset</code>.
+This will start a walkthrough to author the changeset file. This file should be committed to the repo.</p>
+<a id="md:publishing-packages-locally" class="tsd-anchor"></a><h2><a href="#$publishing-packages-locally" style="color:inherit;text-decoration:none">Publishing packages locally</a></h2><p>Publishing packages locally allows you to install local package changes as if they were published to NPM. This is useful for testing or demo scenarios.</p>
+<p>To set up a local npm proxy and publish the current local state to the proxy, run <code>npm run vend</code>.
+This will start a local npm proxy using <a href="https://verdaccio.org/">Verdaccio</a> and run <code>changeset version</code> and <code>changeset publish</code>.
+Note that you will need to create a changeset for any local changes for them to be included in the published artifacts.</p>
+<p>This will also point your local npm config to the local npm proxy. At this point you can npm install any packages in the repo and it will pull from the local proxy instead of directly from npm.</p>
+<p>To stop the local server and reset your npm registry run <code>npm run npm-proxy:stop</code>.</p>
+<p>To clear the proxy package cache run <code>npm run npm-proxy:clear</code>. This will remove all packages you have published to the local proxy.</p>
+<p>To start the npm proxy without immediately publishing, run <code>npm run npm-proxy:start</code>.</p>
+<p>To publish a snapshot to an already running npm proxy run <code>npm run publish:snapshot:local latest</code></p>
 <a id="md:adding-a-package" class="tsd-anchor"></a><h2><a href="#$adding-a-package" style="color:inherit;text-decoration:none">Adding a package</a></h2><p>This repo uses a monorepo structure managed by npm workspaces. All the packages in the workspace are under <code>packages/*</code></p>
 <p>Most package types that you might want to add to this repo should have templates in the <code>templates</code> directory.
 These templates can be copied to a new package directory using <code>npm run new:*</code> where * is the type of package you are creating (see <code>package.json</code> for available scripts)</p>
@@ -81,6 +94,8 @@ You&#39;ll probably want to use an existing template as a starting point for the
 <li>
 <ul>
 <li><a href="#md:other-helpful-scripts"><span>Other helpful scripts</span></a></li></ul></li>
+<li><a href="#md:creating-changesets"><span>Creating changesets</span></a></li>
+<li><a href="#md:publishing-packages-locally"><span>Publishing packages locally</span></a></li>
 <li><a href="#md:adding-a-package"><span>Adding a package</span></a></li></ul></li></ul></li></ul></div></details></div>
 <div class="site-menu">
 <nav class="tsd-navigation"><a href="../index.html"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-namespace)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6" id="icon-4-path"></rect><path d="M9.33 16V7.24H10.77L13.446 14.74C13.43 14.54 13.41 14.296 13.386 14.008C13.37 13.712 13.354 13.404 13.338 13.084C13.33 12.756 13.326 12.448 13.326 12.16V7.24H14.37V16H12.93L10.266 8.5C10.282 8.692 10.298 8.936 10.314 9.232C10.33 9.52 10.342 9.828 10.35 10.156C10.366 10.476 10.374 10.784 10.374 11.08V16H9.33Z" fill="var(--color-text)" id="icon-4-text"></path></svg><span>Amplify <wbr/>Toolbox</span></a>
