@@ -8,6 +8,6 @@
   "devDependencies": {
     "@aws-amplify/cli": "file:./aws-amplify-cli.d.ts",
     "@aws-amplify/type-beast": "file:./aws-amplify-type-beast.d.ts",
-    "@aws-amplify-backend": "file:./aws-amplify-backend.d.ts"
+    "aws-amplify-backend": "file:./aws-amplify-backend.d.ts"
   }
 }
