@@ -1,0 +1,4 @@
+{
+  "extends": ["./tsconfig.amplify.json"],
+  "include": ["**/*.ts"]
+}

@@ -1,0 +1,13 @@
+{
+  "name": "example-only-backend",
+  "version": "0.1.0",
+  "scripts": {
+    "deploy": "amplify deploy",
+    "dev": "amplify dev"
+  },
+  "devDependencies": {
+    "@aws-amplify/cli": "file:./aws-amplify-cli.d.ts",
+    "@aws-amplify/type-beast": "file:./aws-amplify-type-beast.d.ts",
+    "@aws-amplify-backend": "file:./aws-amplify-backend.d.ts"
+  }
+}
