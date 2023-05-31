@@ -1,16 +1,21 @@
 {
-  "name": "@aws-amplify/plugin-types",
+  "name": "@aws-amplify/backend",
   "version": "0.1.0",
+  "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "type": "module",
   "scripts": {
     "api:update": "api-extractor run --local"
+  },
+  "dependencies": {
+    "@aws-amplify/backend-engine": "^0.1.0"
   },
   "devDependencies": {
     "aws-cdk-lib": "^2.72.0",
     "constructs": "^10.0.0"
   },
   "peerDependencies": {
+    "@aws-amplify/plugin-types": "^0.1.0",
     "aws-cdk-lib": "^2.72.0",
     "constructs": "^10.0.0"
   },

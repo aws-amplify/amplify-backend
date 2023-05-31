@@ -20,5 +20,8 @@
   "bugs": {
     "url": "https://github.com/aws-amplify/cli/issues"
   },
-  "homepage": "https://github.com/aws-amplify/cli#readme"
+  "homepage": "https://github.com/aws-amplify/cli#readme",
+  "files": [
+    "lib"
+  ]
 }
