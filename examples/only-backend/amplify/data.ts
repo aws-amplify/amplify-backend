@@ -1,5 +1,5 @@
 import { defineData } from 'aws-amplify-backend';
-import { a } from '@aws-amplify/type-beast';
+import { a } from 'aws-amplify-backend/data';
 
 const schema = a.schema({
   Todo: a.model({

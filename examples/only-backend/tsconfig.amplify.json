@@ -1,3 +1,0 @@
-{
-  "include": ["amplify.config.ts", "amplify/**/*"]
-}

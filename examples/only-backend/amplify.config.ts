@@ -2,6 +2,7 @@ import { defineConfig } from 'aws-amplify-backend';
 import type { OnSuccessEvent, OnFailureEvent } from 'aws-amplify-backend';
 
 export default defineConfig({
+  backendDir: './amplify',
   // draw inspiration from https://vitejs.dev/config/shared-options.html#envdir
   envDir: './',
   // draw inspiration from https://nuxt.com/docs/api/configuration/nuxt-config#hooks

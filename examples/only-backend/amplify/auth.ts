@@ -13,17 +13,6 @@ export default defineAuth({
       },
     },
   },
-  // triggers: {
-  //   // preSignUp: {}
-  //   // postConfirmation: {}
-  //   // preAuthentication: {}
-  //   // postAuthentication: {}
-  //   // preTokenGeneration: {}
-  //   // customMessage: {}
-  //   // defineAuthChallenge: {}
-  //   // createAuthChallenge: {}
-  //   // verifyAuthChallengeResponse: {}
-  // },
   /**
    * Override the default Amplify auth configuration
    */
