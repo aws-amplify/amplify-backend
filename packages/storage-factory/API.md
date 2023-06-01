@@ -5,13 +5,13 @@
 ```ts
 
 import { AmplifyStorage } from '@aws-amplify/storage-construct';
+import { AmplifyStorageProps } from '@aws-amplify/storage-construct';
 import { ConstructCache } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
-import { StorageProps } from '@aws-amplify/storage-construct';
 
 // @public
 export class AmplifyStorageFactory implements ConstructFactory<AmplifyStorage> {
-    constructor(props: StorageProps);
+    constructor(props: AmplifyStorageProps);
     getInstance(cache: ConstructCache): AmplifyStorage;
 }
 

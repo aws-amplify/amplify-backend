@@ -4,7 +4,10 @@ import {
   ConstructCacheEntryGenerator,
   ConstructFactory,
 } from '@aws-amplify/plugin-types';
-import { AmplifyStorage, StorageProps } from '@aws-amplify/storage-construct';
+import {
+  AmplifyStorage,
+  AmplifyStorageProps,
+} from '@aws-amplify/storage-construct';
 
 /**
  * Singleton factory for a Storage bucket that can be used in `storage.ts` files
@@ -15,7 +18,7 @@ export class AmplifyStorageFactory implements ConstructFactory<AmplifyStorage> {
   /**
    * Set the properties that will be used to initialize the bucket
    */
-  constructor(private readonly props: StorageProps) {
+  constructor(private readonly props: AmplifyStorageProps) {
     this.generator = new AmplifyStorageGenerator(props);
   }
 
@@ -31,7 +34,7 @@ class AmplifyStorageGenerator implements ConstructCacheEntryGenerator {
   readonly resourceGroupName = 'storage';
   private readonly defaultName = 'amplifyStorage';
 
-  constructor(private readonly props: StorageProps) {}
+  constructor(private readonly props: AmplifyStorageProps) {}
 
   generateCacheEntry(scope: Construct) {
     return new AmplifyStorage(scope, this.defaultName, this.props);

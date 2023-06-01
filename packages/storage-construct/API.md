@@ -8,11 +8,13 @@ import { Construct } from 'constructs';
 
 // @public
 export class AmplifyStorage extends Construct {
-    constructor(scope: Construct, id: string, props?: StorageProps);
+    constructor(scope: Construct, id: string, props: AmplifyStorageProps);
 }
 
 // @public (undocumented)
-export type StorageProps = Record<string, never>;
+export type AmplifyStorageProps = {
+    versioned?: boolean;
+};
 
 // (No @packageDocumentation comment for this package)
 
