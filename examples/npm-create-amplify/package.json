@@ -1,0 +1,14 @@
+{
+  "name": "example-npm-create-amplify",
+  "version": "0.1.0",
+  "scripts": {
+    "build": "amplify build",
+    "deploy": "amplify deploy",
+    "dev": "amplify dev"
+  },
+  "devDependencies": {
+    "@aws-amplify/cli": "file:../@types/@aws-amplify/cli",
+    "aws-amplify-backend": "file:../@types/aws-amplify-backend",
+    "typescript": "^5.0.4"
+  }
+}
