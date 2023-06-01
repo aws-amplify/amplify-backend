@@ -11,4 +11,15 @@ describe('AmplifyStorage', () => {
     const template = Template.fromStack(stack);
     template.resourceCountIs('AWS::S3::Bucket', 1);
   });
+
+  it('turns versioning on if specified', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    new AmplifyStorage(stack, 'test', { versioned: true });
+    const template = Template.fromStack(stack);
+    template.resourceCountIs('AWS::S3::Bucket', 1);
+    template.hasResourceProperties('AWS::S3::Bucket', {
+      VersioningConfiguration: { Status: 'Enabled' },
+    });
+  });
 });

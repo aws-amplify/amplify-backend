@@ -1,7 +1,9 @@
 import { Construct } from 'constructs';
-import { Bucket } from 'aws-cdk-lib/aws-s3';
+import { Bucket, BucketProps } from 'aws-cdk-lib/aws-s3';
 
-export type StorageProps = Record<string, never>;
+export type StorageProps = {
+  versioned?: boolean;
+};
 
 /**
  * Amplify Storage CDK Construct
@@ -12,9 +14,13 @@ export class AmplifyStorage extends Construct {
   /**
    * Create a new AmplifyStorage instance
    */
-  constructor(scope: Construct, id: string, props: StorageProps = {}) {
+  constructor(scope: Construct, id: string, props: StorageProps) {
     super(scope, id);
 
-    new Bucket(scope, `${id}Bucket`);
+    const bucketProps: BucketProps = {
+      versioned: props.versioned || false,
+    };
+
+    new Bucket(scope, `${id}Bucket`, bucketProps);
   }
 }
