@@ -1,0 +1,29 @@
+{
+  "name": "aws-amplify-backend",
+  "types": "./aws-amplify-backend.d.ts",
+  "exports": {
+    ".": {
+      "types": "./aws-amplify-backend.d.ts"
+    },
+    "./auth": {
+      "types": "./auth.d.ts"
+    },
+    "./data": {
+      "types": "./data.d.ts"
+    },
+    "./client": {
+      "types": "./client.d.ts"
+    }
+  },
+  "devDependencies": {
+    "@aws-amplify/type-beast": "file:../@aws-amplify/type-beast"
+  },
+  "peerDependencies": {
+    "@aws-amplify/type-beast": "file:../@aws-amplify/type-beast"
+  },
+  "peerDependenciesMeta": {
+    "@aws-amplify/type-beast": {
+      "optional": true
+    }
+  }
+}
