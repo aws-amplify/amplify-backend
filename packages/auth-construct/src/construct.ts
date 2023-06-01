@@ -12,7 +12,7 @@ export type LoginMechanism = 'email' | 'username' | 'phone' | GoogleLogin;
 /**
  * Auth props
  */
-export type AuthProps = {
+export type AmplifyAuthProps = {
   loginMechanisms: LoginMechanism[];
 };
 
@@ -23,7 +23,7 @@ export class AmplifyAuth extends Construct {
   /**
    * Create a new Auth construct with AuthProps
    */
-  constructor(scope: Construct, id: string, props: AuthProps) {
+  constructor(scope: Construct, id: string, props: AmplifyAuthProps) {
     super(scope, id);
 
     this.verifyLoginMechanisms(props.loginMechanisms);

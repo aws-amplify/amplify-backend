@@ -8,11 +8,11 @@ import { Construct } from 'constructs';
 
 // @public
 export class AmplifyAuth extends Construct {
-    constructor(scope: Construct, id: string, props: AuthProps);
+    constructor(scope: Construct, id: string, props: AmplifyAuthProps);
 }
 
 // @public
-export type AuthProps = {
+export type AmplifyAuthProps = {
     loginMechanisms: LoginMechanism[];
 };
 

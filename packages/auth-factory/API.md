@@ -5,13 +5,13 @@
 ```ts
 
 import { AmplifyAuth } from '@aws-amplify/auth-construct';
-import { AuthProps } from '@aws-amplify/auth-construct';
+import { AmplifyAuthProps } from '@aws-amplify/auth-construct';
 import { ConstructCache } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 
 // @public
 export class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth> {
-    constructor(props: AuthProps);
+    constructor(props: AmplifyAuthProps);
     getInstance(cache: ConstructCache): AmplifyAuth;
 }
 
