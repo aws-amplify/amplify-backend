@@ -6,10 +6,11 @@
 
 import { Construct } from 'constructs';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
+import { Stack } from 'aws-cdk-lib';
 
 // @public
 export class Backend {
-    constructor(constructFactories: Record<string, ConstructFactory<Construct>>, scope?: Construct);
+    constructor(constructFactories: Record<string, ConstructFactory<Construct>>, stack?: Stack);
 }
 
 // (No @packageDocumentation comment for this package)
