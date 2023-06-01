@@ -1,0 +1,9 @@
+{
+  "name": "@aws-amplify/type-beast",
+  "types": "./aws-amplify-type-beast.d.ts",
+  "exports": {
+    ".": {
+      "types": "./aws-amplify-type-beast.d.ts"
+    }
+  }
+}

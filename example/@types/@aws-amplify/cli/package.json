@@ -1,0 +1,8 @@
+{
+  "name": "@aws-amplify/cli",
+  "exports": {
+    ".": {
+      "types": "./aws-amplify-cli.d.ts"
+    }
+  }
+}
