@@ -1,7 +1,7 @@
 import { Construct } from 'constructs';
 import { Bucket, BucketProps } from 'aws-cdk-lib/aws-s3';
 
-export type StorageProps = {
+export type AmplifyStorageProps = {
   versioned?: boolean;
 };
 
@@ -14,7 +14,7 @@ export class AmplifyStorage extends Construct {
   /**
    * Create a new AmplifyStorage instance
    */
-  constructor(scope: Construct, id: string, props: StorageProps) {
+  constructor(scope: Construct, id: string, props: AmplifyStorageProps) {
     super(scope, id);
 
     const bucketProps: BucketProps = {
