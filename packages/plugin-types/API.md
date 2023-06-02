@@ -7,6 +7,11 @@
 import { Construct } from 'constructs';
 
 // @public
+export type AmplifyBackendPlatform = {
+    outputStorageStrategy: Readonly<OutputStorageStrategy>;
+};
+
+// @public
 export type ConstructCache = {
     getOrCompute(generator: ConstructCacheEntryGenerator): Construct;
 };
@@ -19,7 +24,7 @@ export type ConstructCacheEntryGenerator = {
 
 // @public
 export type ConstructFactory<Instance extends Construct> = {
-    getInstance(resolver: ConstructCache, outputStorageStrategy: OutputStorageStrategy): Instance;
+    getInstance(resolver: ConstructCache, backendPlatform: AmplifyBackendPlatform): Instance;
 };
 
 // @public
