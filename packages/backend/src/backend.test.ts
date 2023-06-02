@@ -1,5 +1,10 @@
 import { describe, it } from 'node:test';
-import { ConstructCache, ConstructFactory } from '@aws-amplify/plugin-types';
+import {
+  ConstructCache,
+  ConstructFactory,
+  FrontendConfigRegistry,
+  FrontendConfigValuesProvider,
+} from '@aws-amplify/plugin-types';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import { Backend } from './backend.js';
@@ -10,12 +15,12 @@ describe('Backend', () => {
   it('initializes constructs in given app', () => {
     const testConstructFactory: ConstructFactory<Bucket> = {
       getInstance(resolver: ConstructCache): Bucket {
-        resolver.getOrCompute({
+        return resolver.getOrCompute({
           resourceGroupName: 'test',
           generateCacheEntry(scope: Construct): Bucket {
             return new Bucket(scope, 'test-bucket');
           },
-        });
+        }) as Bucket;
       },
     };
 
@@ -35,5 +40,49 @@ describe('Backend', () => {
 
     const bucketStackTemplate = Template.fromStack(bucketStack);
     bucketStackTemplate.resourceCountIs('AWS::S3::Bucket', 1);
+  });
+
+  it('registers construct outputs in root stack', () => {
+    // stub implementation of a construct that is also a FrontendConfigValuesProvider
+    class TestConstruct
+      extends Construct
+      implements FrontendConfigValuesProvider
+    {
+      private bucket: Bucket;
+      constructor(scope: Construct, id: string) {
+        super(scope, id);
+
+        this.bucket = new Bucket(scope, `${id}Bucket`);
+      }
+
+      provideFrontendConfigValues(registry: FrontendConfigRegistry): void {
+        registry.registerFrontendConfigData('test-frontend-plugin', '2.0.0', {
+          bucketName: this.bucket.bucketName,
+        });
+      }
+    }
+    // stub implementation of a construct factory that returns the TestConstruct
+    const testConstructFactory: ConstructFactory<TestConstruct> = {
+      getInstance(resolver: ConstructCache): TestConstruct {
+        return resolver.getOrCompute({
+          resourceGroupName: 'test',
+          generateCacheEntry(scope: Construct): TestConstruct {
+            return new TestConstruct(scope, 'test-construct');
+          },
+        }) as TestConstruct;
+      },
+    };
+
+    const app = new App();
+    new Backend(
+      {
+        testConstructFactory,
+      },
+      app
+    );
+
+    const rootStack = Stack.of(app.node.defaultChild);
+    const rootStackTemplate = Template.fromStack(rootStack);
+    rootStackTemplate.hasOutput('bucketName', {});
   });
 });
