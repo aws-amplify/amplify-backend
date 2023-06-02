@@ -19,7 +19,15 @@ export type ConstructCacheEntryGenerator = {
 
 // @public
 export type ConstructFactory<Instance extends Construct> = {
-    getInstance(resolver: ConstructCache): Instance;
+    getInstance(resolver: ConstructCache, outputStorageStrategy: OutputStorageStrategy): Instance;
+};
+
+// @public
+export type OutputStorageStrategy = {
+    storeOutputs(
+    constructPackage: string,
+    constructVersion: string,
+    data: Record<string, string>): void;
 };
 
 // (No @packageDocumentation comment for this package)

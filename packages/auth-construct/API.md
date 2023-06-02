@@ -5,10 +5,11 @@
 ```ts
 
 import { Construct } from 'constructs';
+import { OutputStorageStrategy } from '@aws-amplify/plugin-types';
 
 // @public
 export class AmplifyAuth extends Construct {
-    constructor(scope: Construct, id: string, props: AuthProps);
+    constructor(scope: Construct, id: string, props: AuthProps, outputStrategy?: OutputStorageStrategy);
 }
 
 // @public

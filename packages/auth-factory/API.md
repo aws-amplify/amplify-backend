@@ -8,11 +8,12 @@ import { AmplifyAuth } from '@aws-amplify/auth-construct';
 import { AuthProps } from '@aws-amplify/auth-construct';
 import { ConstructCache } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
+import { OutputStorageStrategy } from '@aws-amplify/plugin-types';
 
 // @public
 export class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth> {
     constructor(props: AuthProps);
-    getInstance(cache: ConstructCache): AmplifyAuth;
+    getInstance(cache: ConstructCache, outputStorageStrategy: OutputStorageStrategy): AmplifyAuth;
 }
 
 // @public
