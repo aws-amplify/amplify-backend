@@ -54,14 +54,14 @@ describe('Backend', () => {
     };
 
     const app = new App();
+    const rootStack = new Stack(app);
     new Backend(
       {
         testConstructFactory,
       },
-      app
+      rootStack
     );
 
-    const rootStack = Stack.of(app.node.defaultChild);
     const rootStackTemplate = Template.fromStack(rootStack);
     rootStackTemplate.hasOutput('bucketName', {});
   });
