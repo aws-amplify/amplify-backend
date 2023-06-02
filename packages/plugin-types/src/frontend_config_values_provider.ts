@@ -1,4 +1,4 @@
-import { FrontendConfigRegistry } from './stack_output_registry.js';
+import { FrontendConfigRegistry } from './frontend_config_registry.js';
 
 /**
  * Type for an object that can set entries in a FrontendConfigRegistry
