@@ -1,6 +1,6 @@
 import { Construct } from 'constructs';
 import { aws_cognito as cognito, SecretValue } from 'aws-cdk-lib';
-import { OutputStorageStrategy } from '@aws-amplify/plugin-types';
+import { AmplifyBackendPlatform } from '@aws-amplify/plugin-types';
 import packageJson from '#package.json';
 
 export type GoogleLogin = {
@@ -29,7 +29,7 @@ export class AmplifyAuth extends Construct {
     scope: Construct,
     id: string,
     props: AmplifyAuthProps,
-    outputStrategy?: OutputStorageStrategy
+    platform?: AmplifyBackendPlatform
   ) {
     super(scope, id);
 
@@ -60,9 +60,13 @@ export class AmplifyAuth extends Construct {
       }
     }
 
-    outputStrategy?.storeOutputs(packageJson.name, packageJson.version, {
-      userPoolId: userPool.userPoolId,
-    });
+    platform?.outputStorageStrategy.storeOutputs(
+      packageJson.name,
+      packageJson.version,
+      {
+        userPoolId: userPool.userPoolId,
+      }
+    );
   }
 
   /**

@@ -12,7 +12,7 @@ export class StackMetadataOutputStorageStrategy
    */
   constructor(private readonly stack: Stack) {}
   /**
-   * Store frontend config data as stack metadata and outputs
+   * Store construct output as stack metadata and output
    */
   storeOutputs(
     constructPackage: string,
