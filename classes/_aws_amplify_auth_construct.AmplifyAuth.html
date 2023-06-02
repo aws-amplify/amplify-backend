@@ -26,7 +26,7 @@
 <ul class="tsd-hierarchy">
 <li><span class="target">AmplifyAuth</span></li></ul></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/dc0f701/packages/auth-construct/src/construct.ts#L22">packages/auth-construct/src/construct.ts:22</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/c0c4354/packages/auth-construct/src/construct.ts#L24">packages/auth-construct/src/construct.ts:24</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -51,7 +51,7 @@
 <section class="tsd-panel tsd-member"><a id="constructor" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>constructor</span><a href="#constructor" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" id="icon-anchor-a"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" id="icon-anchor-b"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" id="icon-anchor-c"></path></svg></a></h3>
 <ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="constructor.new_AmplifyAuth"><span class="tsd-kind-constructor-signature">new <wbr/>Amplify<wbr/>Auth</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">scope</span>, <span class="tsd-kind-parameter">id</span>, <span class="tsd-kind-parameter">props</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_aws_amplify_auth_construct.AmplifyAuth.html" class="tsd-signature-type tsd-kind-class">AmplifyAuth</a><a href="#constructor.new_AmplifyAuth" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="constructor.new_AmplifyAuth"><span class="tsd-kind-constructor-signature">new <wbr/>Amplify<wbr/>Auth</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">scope</span>, <span class="tsd-kind-parameter">id</span>, <span class="tsd-kind-parameter">props</span>, <span class="tsd-kind-parameter">platform</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_aws_amplify_auth_construct.AmplifyAuth.html" class="tsd-signature-type tsd-kind-class">AmplifyAuth</a><a href="#constructor.new_AmplifyAuth" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Create a new Auth construct with AuthProps</p>
 </div>
@@ -63,11 +63,13 @@
 <li>
 <h5><span class="tsd-kind-parameter">id</span>: <span class="tsd-signature-type">string</span></h5></li>
 <li>
-<h5><span class="tsd-kind-parameter">props</span>: <a href="../types/_aws_amplify_auth_construct.AmplifyAuthProps.html" class="tsd-signature-type tsd-kind-type-alias">AmplifyAuthProps</a></h5></li></ul></div>
+<h5><span class="tsd-kind-parameter">props</span>: <a href="../types/_aws_amplify_auth_construct.AmplifyAuthProps.html" class="tsd-signature-type tsd-kind-type-alias">AmplifyAuthProps</a></h5></li>
+<li>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">platform</span>: <a href="../types/_aws_amplify_plugin_types.AmplifyBackendPlatform.html" class="tsd-signature-type tsd-kind-type-alias">AmplifyBackendPlatform</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="_aws_amplify_auth_construct.AmplifyAuth.html" class="tsd-signature-type tsd-kind-class">AmplifyAuth</a></h4><aside class="tsd-sources">
 <p>Overrides Construct.constructor</p>
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/dc0f701/packages/auth-construct/src/construct.ts#L26">packages/auth-construct/src/construct.ts:26</a></li></ul></aside></li></ul></section></section>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/c0c4354/packages/auth-construct/src/construct.ts#L28">packages/auth-construct/src/construct.ts:28</a></li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Properties</h2>
 <section class="tsd-panel tsd-member tsd-is-inherited tsd-is-external"><a id="node" class="tsd-anchor"></a>
@@ -105,7 +107,7 @@
 <h5><span class="tsd-kind-parameter">loginMechanisms</span>: <a href="../types/_aws_amplify_auth_construct.LoginMechanism.html" class="tsd-signature-type tsd-kind-type-alias">LoginMechanism</a><span class="tsd-signature-symbol">[]</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/dc0f701/packages/auth-construct/src/construct.ts#L60">packages/auth-construct/src/construct.ts:60</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/c0c4354/packages/auth-construct/src/construct.ts#L75">packages/auth-construct/src/construct.ts:75</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited tsd-is-external"><a id="isConstruct" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>is<wbr/>Construct</span><a href="#isConstruct" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited tsd-is-external">
@@ -188,8 +190,10 @@ this type-testing method instead.</p>
 <details class="tsd-index-accordion" data-key="@aws-amplify/backend-engine"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4.93896 8.531L12 15.591L19.061 8.531L16.939 6.409L12 11.349L7.06098 6.409L4.93896 8.531Z" fill="var(--color-text)"></path></svg><a href="../modules/_aws_amplify_backend_engine.html"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4-path"></use><use href="#icon-4-text"></use></svg><span>@aws-<wbr/>amplify/backend-<wbr/>engine</span></a></summary>
 <div class="tsd-accordion-details">
 <ul class="tsd-nested-navigation">
+<li><a href="_aws_amplify_backend_engine.AmplifyBackendCDKPlatform.html"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-128-path"></use><use href="#icon-128-text"></use></svg><span>Amplify<wbr/>BackendCDKPlatform</span></a></li>
 <li><a href="_aws_amplify_backend_engine.NestedStackResolver.html"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-128-path"></use><use href="#icon-128-text"></use></svg><span>Nested<wbr/>Stack<wbr/>Resolver</span></a></li>
 <li><a href="_aws_amplify_backend_engine.SingletonConstructCache.html"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-128-path"></use><use href="#icon-128-text"></use></svg><span>Singleton<wbr/>Construct<wbr/>Cache</span></a></li>
+<li><a href="_aws_amplify_backend_engine.StackMetadataOutputStorageStrategy.html"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-128-path"></use><use href="#icon-128-text"></use></svg><span>Stack<wbr/>Metadata<wbr/>Output<wbr/>Storage<wbr/>Strategy</span></a></li>
 <li><a href="../types/_aws_amplify_backend_engine.StackResolver.html"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg><span>Stack<wbr/>Resolver</span></a></li></ul></div></details></li>
 <li>
 <details class="tsd-index-accordion" data-key="@aws-amplify/cli"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4.93896 8.531L12 15.591L19.061 8.531L16.939 6.409L12 11.349L7.06098 6.409L4.93896 8.531Z" fill="var(--color-text)"></path></svg><a href="../modules/_aws_amplify_cli.html"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4-path"></use><use href="#icon-4-text"></use></svg><span>@aws-<wbr/>amplify/cli</span></a></summary>
@@ -206,9 +210,11 @@ this type-testing method instead.</p>
 <details class="tsd-index-accordion" data-key="@aws-amplify/plugin-types"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4.93896 8.531L12 15.591L19.061 8.531L16.939 6.409L12 11.349L7.06098 6.409L4.93896 8.531Z" fill="var(--color-text)"></path></svg><a href="../modules/_aws_amplify_plugin_types.html"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4-path"></use><use href="#icon-4-text"></use></svg><span>@aws-<wbr/>amplify/plugin-<wbr/>types</span></a></summary>
 <div class="tsd-accordion-details">
 <ul class="tsd-nested-navigation">
+<li><a href="../types/_aws_amplify_plugin_types.AmplifyBackendPlatform.html"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg><span>Amplify<wbr/>Backend<wbr/>Platform</span></a></li>
 <li><a href="../types/_aws_amplify_plugin_types.ConstructCache.html"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg><span>Construct<wbr/>Cache</span></a></li>
 <li><a href="../types/_aws_amplify_plugin_types.ConstructCacheEntryGenerator.html"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg><span>Construct<wbr/>Cache<wbr/>Entry<wbr/>Generator</span></a></li>
-<li><a href="../types/_aws_amplify_plugin_types.ConstructFactory.html"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg><span>Construct<wbr/>Factory</span></a></li></ul></div></details></li>
+<li><a href="../types/_aws_amplify_plugin_types.ConstructFactory.html"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg><span>Construct<wbr/>Factory</span></a></li>
+<li><a href="../types/_aws_amplify_plugin_types.OutputStorageStrategy.html"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg><span>Output<wbr/>Storage<wbr/>Strategy</span></a></li></ul></div></details></li>
 <li>
 <details class="tsd-index-accordion" data-key="@aws-amplify/storage-construct"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4.93896 8.531L12 15.591L19.061 8.531L16.939 6.409L12 11.349L7.06098 6.409L4.93896 8.531Z" fill="var(--color-text)"></path></svg><a href="../modules/_aws_amplify_storage_construct.html"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4-path"></use><use href="#icon-4-text"></use></svg><span>@aws-<wbr/>amplify/storage-<wbr/>construct</span></a></summary>
 <div class="tsd-accordion-details">
