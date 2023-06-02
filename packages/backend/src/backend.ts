@@ -2,8 +2,10 @@ import { Construct } from 'constructs';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { App, Stack } from 'aws-cdk-lib';
 import {
+  AmplifyBackendCDKPlatform,
   NestedStackResolver,
   SingletonConstructCache,
+  StackMetadataOutputStorageStrategy,
 } from '@aws-amplify/backend-engine';
 
 /**
@@ -21,8 +23,13 @@ export class Backend {
     const constructCache = new SingletonConstructCache(
       new NestedStackResolver(stack)
     );
+
+    const backendPlatform = new AmplifyBackendCDKPlatform(
+      new StackMetadataOutputStorageStrategy(stack)
+    );
+
     Object.values(constructFactories).forEach((constructFactory) => {
-      constructFactory.getInstance(constructCache);
+      constructFactory.getInstance(constructCache, backendPlatform);
     });
   }
 }

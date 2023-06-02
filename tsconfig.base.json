@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "es2022",
     "module": "ES2022",
-    "moduleResolution": "node",
+    "moduleResolution": "NodeNext",
     "lib": ["es2021"],
     "composite": true,
     "declaration": true,
@@ -22,7 +22,8 @@
     "emitDecoratorMetadata": true,
     "strictPropertyInitialization": false,
     "skipLibCheck": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "resolveJsonModule": true
   },
   "exclude": ["**/node_modules", "**/lib", "**/*.test.ts"]
 }

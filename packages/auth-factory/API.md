@@ -6,13 +6,14 @@
 
 import { AmplifyAuth } from '@aws-amplify/auth-construct';
 import { AmplifyAuthProps } from '@aws-amplify/auth-construct';
+import { AmplifyBackendPlatform } from '@aws-amplify/plugin-types';
 import { ConstructCache } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 
 // @public
 export class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth> {
     constructor(props: AmplifyAuthProps);
-    getInstance(cache: ConstructCache): AmplifyAuth;
+    getInstance(cache: ConstructCache, backendPlatform: AmplifyBackendPlatform): AmplifyAuth;
 }
 
 // @public

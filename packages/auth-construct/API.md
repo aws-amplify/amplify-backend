@@ -4,11 +4,12 @@
 
 ```ts
 
+import { AmplifyBackendPlatform } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
 
 // @public
 export class AmplifyAuth extends Construct {
-    constructor(scope: Construct, id: string, props: AmplifyAuthProps);
+    constructor(scope: Construct, id: string, props: AmplifyAuthProps, platform?: AmplifyBackendPlatform);
 }
 
 // @public

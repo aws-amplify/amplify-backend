@@ -1,5 +1,7 @@
 import { Construct } from 'constructs';
 import { aws_cognito as cognito, SecretValue } from 'aws-cdk-lib';
+import { AmplifyBackendPlatform } from '@aws-amplify/plugin-types';
+import packageJson from '#package.json';
 
 export type GoogleLogin = {
   provider: 'google';
@@ -23,7 +25,12 @@ export class AmplifyAuth extends Construct {
   /**
    * Create a new Auth construct with AuthProps
    */
-  constructor(scope: Construct, id: string, props: AmplifyAuthProps) {
+  constructor(
+    scope: Construct,
+    id: string,
+    props: AmplifyAuthProps,
+    platform?: AmplifyBackendPlatform
+  ) {
     super(scope, id);
 
     this.verifyLoginMechanisms(props.loginMechanisms);
@@ -52,6 +59,14 @@ export class AmplifyAuth extends Construct {
         }
       }
     }
+
+    platform?.outputStorageStrategy.storeOutputs(
+      packageJson.name,
+      packageJson.version,
+      {
+        userPoolId: userPool.userPoolId,
+      }
+    );
   }
 
   /**

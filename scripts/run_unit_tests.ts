@@ -14,7 +14,7 @@ const main = async () => {
     ? `packages/${dir}/**/*.test.ts`
     : `packages/**/*.test.ts`;
   const files = await glob(pattern);
-  const args = ['--test'];
+  const args = ['--test', '--test-reporter', 'spec'];
   args.push(...files);
   await execa('tsx', args, { stdio: 'inherit' });
 };
