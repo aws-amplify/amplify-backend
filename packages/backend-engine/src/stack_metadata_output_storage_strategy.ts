@@ -1,10 +1,12 @@
-import { FrontendConfigRegistry } from '@aws-amplify/plugin-types';
+import { OutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { CfnOutput, Stack } from 'aws-cdk-lib';
 
 /**
- * Implementation of FrontendConfigRegistry that stores config data in stack metadata and outputs
+ * Implementation of OutputStorageStrategy that stores config data in stack metadata and outputs
  */
-export class StackMetadataRegistry implements FrontendConfigRegistry {
+export class StackMetadataOutputStorageStrategy
+  implements OutputStorageStrategy
+{
   /**
    * Initialize the instance with a stack
    */
@@ -12,7 +14,7 @@ export class StackMetadataRegistry implements FrontendConfigRegistry {
   /**
    * Store frontend config data as stack metadata and outputs
    */
-  registerFrontendConfigData(
+  storeOutputs(
     frontendConfigPlugin: string,
     expectedSemver: string,
     data: Record<string, string>

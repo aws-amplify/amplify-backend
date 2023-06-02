@@ -2,8 +2,8 @@ import { describe, it } from 'node:test';
 import {
   ConstructCache,
   ConstructFactory,
-  FrontendConfigRegistry,
   FrontendConfigValuesProvider,
+  OutputStorageStrategy,
 } from '@aws-amplify/plugin-types';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
@@ -55,8 +55,8 @@ describe('Backend', () => {
         this.bucket = new Bucket(scope, `${id}Bucket`);
       }
 
-      provideFrontendConfigValues(registry: FrontendConfigRegistry): void {
-        registry.registerFrontendConfigData('test-frontend-plugin', '2.0.0', {
+      provideFrontendConfigValues(registry: OutputStorageStrategy): void {
+        registry.storeOutputs('test-frontend-plugin', '2.0.0', {
           bucketName: this.bucket.bucketName,
         });
       }

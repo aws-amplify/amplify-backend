@@ -1,5 +1,4 @@
 import { Construct } from 'constructs';
-import { AmplifyConstruct } from './amplify_construct.js';
 
 /**
  * Initializes a CDK Construct in a given scope
@@ -21,5 +20,5 @@ export type ConstructCacheEntryGenerator = {
  * Vends Constructs based on an initializer function
  */
 export type ConstructCache = {
-  getOrCompute(generator: ConstructCacheEntryGenerator): AmplifyConstruct;
+  getOrCompute(generator: ConstructCacheEntryGenerator): Construct;
 };

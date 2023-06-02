@@ -1,10 +1,9 @@
 import { Construct } from 'constructs';
 import { aws_cognito as cognito, SecretValue } from 'aws-cdk-lib';
-import { UserPool } from 'aws-cdk-lib/aws-cognito';
-import {
-  FrontendConfigRegistry,
-  FrontendConfigValuesProvider,
-} from '@aws-amplify/plugin-types';
+import { OutputStorageStrategy } from '@aws-amplify/plugin-types';
+// see https://nodejs.org/api/packages.html#subpath-imports
+// tldr, this seems to be the accepted way to import the package.json file using ES modules
+import packageJson from '#package.json';
 
 export type GoogleLogin = {
   provider: 'google';
@@ -24,20 +23,21 @@ export type AuthProps = {
 /**
  * Amplify Auth CDK Construct
  */
-export class AmplifyAuth
-  extends Construct
-  implements FrontendConfigValuesProvider
-{
-  private readonly userPool: UserPool;
+export class AmplifyAuth extends Construct {
   /**
    * Create a new Auth construct with AuthProps
    */
-  constructor(scope: Construct, id: string, props: AuthProps) {
+  constructor(
+    scope: Construct,
+    id: string,
+    props: AuthProps,
+    outputStrategy?: OutputStorageStrategy
+  ) {
     super(scope, id);
 
     this.verifyLoginMechanisms(props.loginMechanisms);
 
-    this.userPool = new cognito.UserPool(this, 'UserPool', {
+    const userPool = new cognito.UserPool(this, 'UserPool', {
       signInCaseSensitive: true,
       signInAliases: {
         username: props.loginMechanisms.includes('username'),
@@ -51,7 +51,7 @@ export class AmplifyAuth
         switch (loginMechanism.provider) {
           case 'google':
             new cognito.UserPoolIdentityProviderGoogle(this, 'GoogleIdP', {
-              userPool: this.userPool,
+              userPool,
               clientSecretValue: SecretValue.unsafePlainText(
                 loginMechanism.webClientSecret
               ),
@@ -61,15 +61,12 @@ export class AmplifyAuth
         }
       }
     }
-  }
 
-  /**
-   * Registers auth frontend config with the provided registry
-   */
-  provideFrontendConfigValues(registry: FrontendConfigRegistry) {
-    registry.registerFrontendConfigData('@aws-amplify/auth-config', '^1.0.0', {
-      userPoolId: this.userPool.userPoolId,
-    });
+    if (outputStrategy) {
+      outputStrategy.storeOutputs(packageJson.name, packageJson.version, {
+        userPoolId: userPool.userPoolId,
+      });
+    }
   }
 
   /**
