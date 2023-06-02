@@ -15,8 +15,8 @@ export class StackMetadataOutputStorageStrategy
    * Store frontend config data as stack metadata and outputs
    */
   storeOutputs(
-    frontendConfigPlugin: string,
-    expectedSemver: string,
+    constructPackage: string,
+    constructVersion: string,
     data: Record<string, string>
   ): void {
     // add all the data values as stack outputs
@@ -24,8 +24,8 @@ export class StackMetadataOutputStorageStrategy
       new CfnOutput(this.stack, key, { value });
     });
 
-    this.stack.addMetadata(frontendConfigPlugin, {
-      expectedSemver,
+    this.stack.addMetadata(constructPackage, {
+      constructVersion,
       stackOutputs: Object.keys(data),
     });
   }
