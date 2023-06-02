@@ -1,10 +1,5 @@
 import { describe, it } from 'node:test';
-import {
-  ConstructCache,
-  ConstructFactory,
-  FrontendConfigValuesProvider,
-  OutputStorageStrategy,
-} from '@aws-amplify/plugin-types';
+import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import { Backend } from './backend.js';
@@ -14,7 +9,7 @@ import { Template } from 'aws-cdk-lib/assertions';
 describe('Backend', () => {
   it('initializes constructs in given app', () => {
     const testConstructFactory: ConstructFactory<Bucket> = {
-      getInstance(resolver: ConstructCache): Bucket {
+      getInstance(resolver): Bucket {
         return resolver.getOrCompute({
           resourceGroupName: 'test',
           generateCacheEntry(scope: Construct): Bucket {
@@ -43,33 +38,18 @@ describe('Backend', () => {
   });
 
   it('registers construct outputs in root stack', () => {
-    // stub implementation of a construct that is also a FrontendConfigValuesProvider
-    class TestConstruct
-      extends Construct
-      implements FrontendConfigValuesProvider
-    {
-      private bucket: Bucket;
-      constructor(scope: Construct, id: string) {
-        super(scope, id);
-
-        this.bucket = new Bucket(scope, `${id}Bucket`);
-      }
-
-      provideFrontendConfigValues(registry: OutputStorageStrategy): void {
-        registry.storeOutputs('test-frontend-plugin', '2.0.0', {
-          bucketName: this.bucket.bucketName,
-        });
-      }
-    }
-    // stub implementation of a construct factory that returns the TestConstruct
-    const testConstructFactory: ConstructFactory<TestConstruct> = {
-      getInstance(resolver: ConstructCache): TestConstruct {
+    const testConstructFactory: ConstructFactory<Bucket> = {
+      getInstance(resolver, outputStorageStrategy): Bucket {
         return resolver.getOrCompute({
           resourceGroupName: 'test',
-          generateCacheEntry(scope: Construct): TestConstruct {
-            return new TestConstruct(scope, 'test-construct');
+          generateCacheEntry(scope: Construct): Bucket {
+            const bucket = new Bucket(scope, 'test-bucket');
+            outputStorageStrategy.storeOutputs('test-plugin', '1.0.0', {
+              bucketName: bucket.bucketName,
+            });
+            return bucket;
           },
-        }) as TestConstruct;
+        }) as Bucket;
       },
     };
 
