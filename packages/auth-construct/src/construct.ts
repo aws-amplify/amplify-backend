@@ -1,8 +1,6 @@
 import { Construct } from 'constructs';
 import { aws_cognito as cognito, SecretValue } from 'aws-cdk-lib';
 import { OutputStorageStrategy } from '@aws-amplify/plugin-types';
-// see https://nodejs.org/api/packages.html#subpath-imports
-// tldr, this seems to be the accepted way to import the package.json file using ES modules
 import packageJson from '#package.json';
 
 export type GoogleLogin = {
@@ -62,11 +60,9 @@ export class AmplifyAuth extends Construct {
       }
     }
 
-    if (outputStrategy) {
-      outputStrategy.storeOutputs(packageJson.name, packageJson.version, {
-        userPoolId: userPool.userPoolId,
-      });
-    }
+    outputStrategy?.storeOutputs(packageJson.name, packageJson.version, {
+      userPoolId: userPool.userPoolId,
+    });
   }
 
   /**
