@@ -1,4 +1,4 @@
-import { AmplifyAuth, AuthProps } from '@aws-amplify/auth-construct';
+import { AmplifyAuth, AmplifyAuthProps } from '@aws-amplify/auth-construct';
 import { Construct } from 'constructs';
 import {
   ConstructCache,
@@ -16,7 +16,7 @@ export class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth> {
   /**
    * Set the properties that will be used to initialize AmplifyAuth
    */
-  constructor(private readonly props: AuthProps) {}
+  constructor(private readonly props: AmplifyAuthProps) {}
 
   /**
    * Get a singleton instance of AmplifyAuth
@@ -40,7 +40,7 @@ class AmplifyAuthGenerator implements ConstructCacheEntryGenerator {
   private readonly defaultName = 'amplifyAuth';
 
   constructor(
-    private readonly props: AuthProps,
+    private readonly props: AmplifyAuthProps,
     private readonly outputStorageStrategy: OutputStorageStrategy
   ) {}
 

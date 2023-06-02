@@ -17,9 +17,8 @@ export class Backend {
    */
   constructor(
     constructFactories: Record<string, ConstructFactory<Construct>>,
-    scope: Construct = new App()
+    stack: Stack = createDefaultRootStack()
   ) {
-    const stack = new Stack(scope);
     const constructCache = new SingletonConstructCache(
       new NestedStackResolver(stack)
     );
@@ -31,3 +30,11 @@ export class Backend {
     });
   }
 }
+
+/**
+ * Creates a default CDK scope for the Amplify backend to use if no scope is provided to the constructor
+ */
+const createDefaultRootStack = (): Stack => {
+  const app = new App();
+  return new Stack(app, 'AmplifyRootStack');
+};

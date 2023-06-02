@@ -20,14 +20,14 @@ describe('Backend', () => {
     };
 
     const app = new App();
+    const rootStack = new Stack(app);
     new Backend(
       {
         testConstructFactory,
       },
-      app
+      rootStack
     );
 
-    const rootStack = Stack.of(app.node.defaultChild);
     const bucketStack = Stack.of(rootStack.node.findChild('testStack'));
 
     const rootStackTemplate = Template.fromStack(rootStack);

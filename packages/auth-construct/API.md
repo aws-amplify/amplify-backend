@@ -9,11 +9,11 @@ import { OutputStorageStrategy } from '@aws-amplify/plugin-types';
 
 // @public
 export class AmplifyAuth extends Construct {
-    constructor(scope: Construct, id: string, props: AuthProps, outputStrategy?: OutputStorageStrategy);
+    constructor(scope: Construct, id: string, props: AmplifyAuthProps, outputStrategy?: OutputStorageStrategy);
 }
 
 // @public
-export type AuthProps = {
+export type AmplifyAuthProps = {
     loginMechanisms: LoginMechanism[];
 };
 

@@ -16,7 +16,7 @@ export type LoginMechanism = 'email' | 'username' | 'phone' | GoogleLogin;
 /**
  * Auth props
  */
-export type AuthProps = {
+export type AmplifyAuthProps = {
   loginMechanisms: LoginMechanism[];
 };
 
@@ -30,7 +30,7 @@ export class AmplifyAuth extends Construct {
   constructor(
     scope: Construct,
     id: string,
-    props: AuthProps,
+    props: AmplifyAuthProps,
     outputStrategy?: OutputStorageStrategy
   ) {
     super(scope, id);
