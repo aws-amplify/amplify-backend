@@ -1,6 +1,7 @@
 import { Construct } from 'constructs';
 import { StackResolver } from './nested_stack_resolver.js';
 import {
+  AmplifyConstruct,
   ConstructCache,
   ConstructCacheEntryGenerator,
 } from '@aws-amplify/plugin-types';
@@ -24,11 +25,11 @@ export class SingletonConstructCache implements ConstructCache {
    * If generator has been seen before, the cached Construct instance is returned
    * Otherwise, the generator is called and the value is cached and returned
    */
-  getOrCompute(generator: ConstructCacheEntryGenerator): Construct {
+  getOrCompute(generator: ConstructCacheEntryGenerator): AmplifyConstruct {
     if (!this.constructCache.has(generator)) {
       const scope = this.stackResolver.getStackFor(generator.resourceGroupName);
       this.constructCache.set(generator, generator.generateCacheEntry(scope));
     }
-    return this.constructCache.get(generator) as Construct;
+    return this.constructCache.get(generator) as AmplifyConstruct;
   }
 }

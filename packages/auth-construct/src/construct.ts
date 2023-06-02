@@ -1,5 +1,10 @@
 import { Construct } from 'constructs';
 import { aws_cognito as cognito, SecretValue } from 'aws-cdk-lib';
+import { UserPool } from 'aws-cdk-lib/aws-cognito';
+import {
+  FrontendConfigRegistry,
+  FrontendConfigValuesProvider,
+} from '@aws-amplify/plugin-types';
 
 export type GoogleLogin = {
   provider: 'google';
@@ -19,7 +24,11 @@ export type AuthProps = {
 /**
  * Amplify Auth CDK Construct
  */
-export class AmplifyAuth extends Construct {
+export class AmplifyAuth
+  extends Construct
+  implements FrontendConfigValuesProvider
+{
+  private readonly userPool: UserPool;
   /**
    * Create a new Auth construct with AuthProps
    */
@@ -28,7 +37,7 @@ export class AmplifyAuth extends Construct {
 
     this.verifyLoginMechanisms(props.loginMechanisms);
 
-    const userPool = new cognito.UserPool(this, 'UserPool', {
+    this.userPool = new cognito.UserPool(this, 'UserPool', {
       signInCaseSensitive: true,
       signInAliases: {
         username: props.loginMechanisms.includes('username'),
@@ -42,7 +51,7 @@ export class AmplifyAuth extends Construct {
         switch (loginMechanism.provider) {
           case 'google':
             new cognito.UserPoolIdentityProviderGoogle(this, 'GoogleIdP', {
-              userPool,
+              userPool: this.userPool,
               clientSecretValue: SecretValue.unsafePlainText(
                 loginMechanism.webClientSecret
               ),
@@ -52,6 +61,15 @@ export class AmplifyAuth extends Construct {
         }
       }
     }
+  }
+
+  /**
+   * Registers auth frontend config with the provided registry
+   */
+  provideFrontendConfigValues(registry: FrontendConfigRegistry) {
+    registry.registerFrontendConfigData('@aws-amplify/auth-config', '^1.0.0', {
+      userPoolId: this.userPool.userPoolId,
+    });
   }
 
   /**
