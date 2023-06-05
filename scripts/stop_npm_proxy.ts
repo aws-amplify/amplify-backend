@@ -15,7 +15,7 @@ const main = async () => {
   const pid = Number.parseInt(lsofResult.stdout.toString());
   process.kill(pid);
 
-  await execa('npm', ['config', 'set', 'registry', NPM_REGISTRY, '--global']);
+  await execa('npm', ['config', 'set', 'registry', NPM_REGISTRY]);
 };
 
 main().catch((err) => {

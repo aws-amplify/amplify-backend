@@ -41,7 +41,7 @@ const main = async () => {
 
   console.log(`Local npm proxy running at ${EXPECTED_URL}.`);
 
-  execa('npm', ['config', 'set', 'registry', EXPECTED_URL, '--global']);
+  execa('npm', ['config', 'set', 'registry', EXPECTED_URL]);
   console.log(`Set npm registry to ${EXPECTED_URL}`);
 };
 
