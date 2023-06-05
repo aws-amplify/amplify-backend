@@ -7,6 +7,7 @@ import {
   SingletonConstructCache,
   StackMetadataOutputStorageStrategy,
 } from '@aws-amplify/backend-engine';
+import { AmplifyStack } from '@aws-amplify/backend-engine/lib/amplify_stack.js';
 
 /**
  * Class that collects and instantiates all the Amplify backend constructs
@@ -39,5 +40,5 @@ export class Backend {
  */
 const createDefaultRootStack = (): Stack => {
   const app = new App();
-  return new Stack(app, 'AmplifyRootStack');
+  return new AmplifyStack(app, 'AmplifyRootStack');
 };
