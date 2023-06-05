@@ -28,7 +28,7 @@ describe('Backend', () => {
       rootStack
     );
 
-    const bucketStack = Stack.of(rootStack.node.findChild('testStack'));
+    const bucketStack = Stack.of(rootStack.node.findChild('test'));
 
     const rootStackTemplate = Template.fromStack(rootStack);
     rootStackTemplate.resourceCountIs('AWS::CloudFormation::Stack', 1);
