@@ -5,12 +5,12 @@ import { CfnElement, Stack } from 'aws-cdk-lib';
  */
 export class AmplifyStack extends Stack {
   /**
-   * Override of logical ID resolution that removes redundant naming from nested stacks
+   * Overrides Stack.allocateLogicalId to prevent redundant nested stack logical IDs
    */
-  getLogicalId(element: CfnElement): string {
+  allocateLogicalId(element: CfnElement): string {
     // Nested stack logical IDs have a redundant structure of <name>NestedStack<name>NestedStackResource<hash>
     // This rewrites the nested stack logical ID to <name><hash>
-    const defaultId = super.getLogicalId(element);
+    const defaultId = super.allocateLogicalId(element);
     const match = /(?<name>.*)NestedStack.+NestedStackResource(?<hash>.*)/.exec(
       defaultId
     );
