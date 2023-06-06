@@ -39,18 +39,14 @@ describe('Backend', () => {
 
   it('registers construct outputs in root stack', () => {
     const testConstructFactory: ConstructFactory<Bucket> = {
-      getInstance(resolver, platform): Bucket {
+      getInstance(resolver, storageStrategy): Bucket {
         return resolver.getOrCompute({
           resourceGroupName: 'test',
           generateCacheEntry(scope: Construct): Bucket {
             const bucket = new Bucket(scope, 'test-bucket');
-            platform.outputStorageStrategy.storeOutputs(
-              'test-plugin',
-              '1.0.0',
-              {
-                bucketName: bucket.bucketName,
-              }
-            );
+            storageStrategy.storeOutputs('test-plugin', '1.0.0', {
+              bucketName: bucket.bucketName,
+            });
             return bucket;
           },
         }) as Bucket;

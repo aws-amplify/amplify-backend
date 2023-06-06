@@ -3,7 +3,6 @@ import { AmplifyAuth } from './construct.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
-import { AmplifyBackendPlatform } from '@aws-amplify/plugin-types';
 import packageJson from '#package.json';
 
 describe('Auth construct', () => {
@@ -91,29 +90,27 @@ describe('Auth construct', () => {
     });
   });
 
-  it('stores outputs in platform', () => {
-    const app = new App();
-    const stack = new Stack(app);
+  describe('setAmplifyOutput', () => {
+    it('stores outputs in platform', () => {
+      const app = new App();
+      const stack = new Stack(app);
 
-    const storeOutputsMock = mock.fn();
-    const platform: AmplifyBackendPlatform = {
-      outputStorageStrategy: {
+      const storeOutputsMock = mock.fn();
+      const stubOutputStorageStrategy = {
         storeOutputs: storeOutputsMock,
-      },
-    };
-    new AmplifyAuth(
-      stack,
-      'test',
-      {
+      };
+      const authConstruct = new AmplifyAuth(stack, 'test', {
         loginMechanisms: ['username'],
-      },
-      platform
-    );
-    const storeOutputsArgs = storeOutputsMock.mock.calls[0].arguments;
-    assert.equal(storeOutputsArgs.length, 3);
-    assert.equal(storeOutputsArgs[0], packageJson.name);
-    assert.equal(storeOutputsArgs[1], packageJson.version);
-    assert.equal(Object.keys(storeOutputsArgs[2]).length, 1);
-    assert.equal(Object.keys(storeOutputsArgs[2])[0], 'userPoolId');
+      });
+
+      authConstruct.setAmplifyOutput(stubOutputStorageStrategy);
+
+      const storeOutputsArgs = storeOutputsMock.mock.calls[0].arguments;
+      assert.equal(storeOutputsArgs.length, 3);
+      assert.equal(storeOutputsArgs[0], packageJson.name);
+      assert.equal(storeOutputsArgs[1], packageJson.version);
+      assert.equal(Object.keys(storeOutputsArgs[2]).length, 1);
+      assert.equal(Object.keys(storeOutputsArgs[2])[0], 'userPoolId');
+    });
   });
 });

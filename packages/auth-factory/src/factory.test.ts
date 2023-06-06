@@ -1,7 +1,6 @@
 import { describe, it } from 'node:test';
 import { AmplifyAuthFactory } from './factory.js';
 import {
-  AmplifyBackendCDKPlatform,
   NestedStackResolver,
   SingletonConstructCache,
   StackMetadataOutputStorageStrategy,
@@ -21,12 +20,10 @@ describe('AmplifyAuthFactory', () => {
 
     const cache = new SingletonConstructCache(new NestedStackResolver(stack));
 
-    const platform = new AmplifyBackendCDKPlatform(
-      new StackMetadataOutputStorageStrategy(stack)
-    );
+    const outputStorageStrategy = new StackMetadataOutputStorageStrategy(stack);
 
-    const instance1 = authFactory.getInstance(cache, platform);
-    const instance2 = authFactory.getInstance(cache, platform);
+    const instance1 = authFactory.getInstance(cache, outputStorageStrategy);
+    const instance2 = authFactory.getInstance(cache, outputStorageStrategy);
 
     assert.strictEqual(instance1, instance2);
   });
@@ -41,11 +38,9 @@ describe('AmplifyAuthFactory', () => {
 
     const cache = new SingletonConstructCache(new NestedStackResolver(stack));
 
-    const platform = new AmplifyBackendCDKPlatform(
-      new StackMetadataOutputStorageStrategy(stack)
-    );
+    const outputStorageStrategy = new StackMetadataOutputStorageStrategy(stack);
 
-    const authConstruct = authFactory.getInstance(cache, platform);
+    const authConstruct = authFactory.getInstance(cache, outputStorageStrategy);
 
     const template = Template.fromStack(Stack.of(authConstruct));
 
