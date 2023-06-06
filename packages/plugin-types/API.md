@@ -7,11 +7,6 @@
 import { Construct } from 'constructs';
 
 // @public
-export type AmplifyBackendPlatform = {
-    outputStorageStrategy: Readonly<OutputStorageStrategy>;
-};
-
-// @public (undocumented)
 export type AmplifyOutputSetter = {
     setAmplifyOutput(outputStorageStrategy: OutputStorageStrategy): void;
 };
