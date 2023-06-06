@@ -11,6 +11,11 @@ export type AmplifyBackendPlatform = {
     outputStorageStrategy: Readonly<OutputStorageStrategy>;
 };
 
+// @public (undocumented)
+export type AmplifyOutputSetter = {
+    setAmplifyOutput(outputStorageStrategy: OutputStorageStrategy): void;
+};
+
 // @public
 export type ConstructCache = {
     getOrCompute(generator: ConstructCacheEntryGenerator): Construct;
@@ -24,7 +29,7 @@ export type ConstructCacheEntryGenerator = {
 
 // @public
 export type ConstructFactory<Instance extends Construct> = {
-    getInstance(resolver: ConstructCache, backendPlatform: AmplifyBackendPlatform): Instance;
+    getInstance(resolver: ConstructCache, outputStorageStrategy: OutputStorageStrategy): Instance;
 };
 
 // @public
