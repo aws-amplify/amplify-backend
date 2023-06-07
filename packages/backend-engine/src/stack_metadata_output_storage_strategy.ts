@@ -1,5 +1,6 @@
 import { OutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { aws_ssm, CfnOutput, Stack } from 'aws-cdk-lib';
+import { AmplifyStack } from './amplify_stack.js';
 
 /**
  * Implementation of OutputStorageStrategy that stores config data in stack metadata and outputs
@@ -8,17 +9,17 @@ export class StackMetadataOutputStorageStrategy
   implements OutputStorageStrategy
 {
   /**
-   * Initialize the instance with a stack
+   * Initialize the instance with a stack.
+   *
+   * If the stack is an AmplifyStack, set a parameter in SSM so the stack can be identified later by the project environment
    */
-  constructor(
-    private readonly stack: Stack,
-    projectName: string,
-    environmentName: string
-  ) {
-    new aws_ssm.StringParameter(stack, 'amplifyStackIdentifier', {
-      parameterName: `/amplify/${projectName}/${environmentName}/mainStackName`,
-      stringValue: stack.stackName,
-    });
+  constructor(private readonly stack: Stack) {
+    if (stack instanceof AmplifyStack) {
+      new aws_ssm.StringParameter(stack, 'amplifyStackIdentifier', {
+        parameterName: `/amplify/${stack.projectEnvironmentTuple.projectName}/${stack.projectEnvironmentTuple.environmentName}/mainStackName`,
+        stringValue: stack.stackName,
+      });
+    }
   }
   /**
    * Store construct output as stack metadata and output

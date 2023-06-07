@@ -1,9 +1,26 @@
 import { CfnElement, Stack } from 'aws-cdk-lib';
+import { Construct } from 'constructs';
+import { ProjectEnvironmentTuple } from './project_environment_tuple.js';
+
+type AmplifyStackProps = {
+  projectEnvironmentTuple: ProjectEnvironmentTuple;
+};
 
 /**
  * Amplify-specific Stack implementation to handle cross-cutting concerns for all Amplify stacks
  */
 export class AmplifyStack extends Stack {
+  projectEnvironmentTuple: ProjectEnvironmentTuple;
+
+  /**
+   * Initializes the stack with a name that is unique to the provided Amplify environment
+   */
+  constructor(scope: Construct, id: string, props: AmplifyStackProps) {
+    super(scope, id, {
+      stackName: `${props.projectEnvironmentTuple.projectName}-${props.projectEnvironmentTuple.environmentName}`,
+    });
+    this.projectEnvironmentTuple = props.projectEnvironmentTuple;
+  }
   /**
    * Overrides Stack.allocateLogicalId to prevent redundant nested stack logical IDs
    */

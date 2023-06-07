@@ -7,7 +7,12 @@ import assert from 'node:assert';
 describe('AmplifyStack', () => {
   it('renames nested stack logical IDs to non-redundant value', () => {
     const app = new App();
-    const rootStack = new AmplifyStack(app);
+    const rootStack = new AmplifyStack(app, 'test-id', {
+      projectEnvironmentTuple: {
+        projectName: 'test',
+        environmentName: 'staging',
+      },
+    });
     new NestedStack(rootStack, 'testName');
 
     const rootStackTemplate = Template.fromStack(rootStack);

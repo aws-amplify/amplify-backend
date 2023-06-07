@@ -4,6 +4,7 @@ import { App, Stack } from 'aws-cdk-lib';
 import {
   AmplifyStack,
   NestedStackResolver,
+  ProjectEnvironmentTuple,
   SingletonConstructCache,
   StackMetadataOutputStorageStrategy,
 } from '@aws-amplify/backend-engine';
@@ -40,15 +41,28 @@ export class Backend {
  */
 const createDefaultRootStack = (): Stack => {
   const app = new App();
-  const projectName = app.node.tryGetContext(projectNameCDKContextKey);
-  const environmentName = app.node.tryGetContext(environmentNameCDKContextKey);
+  return new AmplifyStack(app, 'amplifyMainStack', {
+    projectEnvironmentTuple: getProjectEnvironmentTuple(app),
+  });
+};
+
+const getProjectEnvironmentTuple = (
+  scope: Construct
+): ProjectEnvironmentTuple => {
+  const projectName = scope.node.getContext(projectNameCDKContextKey);
+  const environmentName = scope.node.getContext(environmentNameCDKContextKey);
   if (typeof projectName !== 'string') {
-    throw new Error(`${projectNameCDKContextKey} not specified in CDK context`);
+    throw new Error(
+      `${projectNameCDKContextKey} CDK context value is not a string`
+    );
   }
   if (typeof environmentName !== 'string') {
     throw new Error(
-      `${environmentNameCDKContextKey} not specified in CDK context`
+      `${environmentNameCDKContextKey} CDK context value is not a string`
     );
   }
-  return new AmplifyStack(app, `${projectName}-${environmentName}`);
+  return {
+    projectName,
+    environmentName,
+  };
 };
