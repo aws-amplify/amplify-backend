@@ -24,4 +24,15 @@ describe('AmplifyStack', () => {
     assert.ok(actualStackLogicalId.startsWith('testName'));
     assert.ok(!actualStackLogicalId.includes('NestedStack'));
   });
+
+  it('names the stack based on the project and environment name', () => {
+    const app = new App();
+    const stack = new AmplifyStack(app, 'test-id', {
+      projectEnvironmentTuple: {
+        projectName: 'test',
+        environmentName: 'staging',
+      },
+    });
+    assert.equal(stack.stackName, 'test-staging');
+  });
 });
