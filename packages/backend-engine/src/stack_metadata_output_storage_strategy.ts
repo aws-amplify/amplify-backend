@@ -23,7 +23,7 @@ export class StackMetadataOutputStorageStrategy
   /**
    * Store construct output as stack metadata and output
    */
-  storeOutputs(
+  storeOutput(
     constructPackage: string,
     constructVersion: string,
     data: Record<string, string>

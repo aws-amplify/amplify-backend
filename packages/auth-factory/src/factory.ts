@@ -1,10 +1,10 @@
 import { AmplifyAuth, AmplifyAuthProps } from '@aws-amplify/auth-construct';
 import { Construct } from 'constructs';
 import {
-  AmplifyBackendPlatform,
   ConstructCache,
   ConstructCacheEntryGenerator,
   ConstructFactory,
+  OutputStorageStrategy,
 } from '@aws-amplify/plugin-types';
 
 /**
@@ -23,10 +23,13 @@ export class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth> {
    */
   getInstance(
     cache: ConstructCache,
-    backendPlatform: AmplifyBackendPlatform
+    outputStorageStrategy: OutputStorageStrategy
   ): AmplifyAuth {
     if (!this.generator) {
-      this.generator = new AmplifyAuthGenerator(this.props, backendPlatform);
+      this.generator = new AmplifyAuthGenerator(
+        this.props,
+        outputStorageStrategy
+      );
     }
     return cache.getOrCompute(this.generator) as AmplifyAuth;
   }
@@ -38,16 +41,13 @@ class AmplifyAuthGenerator implements ConstructCacheEntryGenerator {
 
   constructor(
     private readonly props: AmplifyAuthProps,
-    private readonly backendPlatform: AmplifyBackendPlatform
+    private readonly outputStorageStrategy: OutputStorageStrategy
   ) {}
 
   generateCacheEntry(scope: Construct) {
-    return new AmplifyAuth(
-      scope,
-      this.defaultName,
-      this.props,
-      this.backendPlatform
-    );
+    const authConstruct = new AmplifyAuth(scope, this.defaultName, this.props);
+    authConstruct.storeOutput(this.outputStorageStrategy);
+    return authConstruct;
   }
 }
 

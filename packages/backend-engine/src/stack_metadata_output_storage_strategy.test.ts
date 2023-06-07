@@ -4,12 +4,12 @@ import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 
 describe('StackMetadataOutputStorageStrategy', () => {
-  describe('storeOutputs', () => {
+  describe('storeOutput', () => {
     it('adds stack output and metadata for entry', () => {
       const app = new App();
       const stack = new Stack(app);
       const outputStorage = new StackMetadataOutputStorageStrategy(stack);
-      outputStorage.storeOutputs('test-package', '2.0.0', {
+      outputStorage.storeOutput('test-package', '2.0.0', {
         something: 'special',
       });
 

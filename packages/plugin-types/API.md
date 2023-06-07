@@ -7,8 +7,8 @@
 import { Construct } from 'constructs';
 
 // @public
-export type AmplifyBackendPlatform = {
-    outputStorageStrategy: Readonly<OutputStorageStrategy>;
+export type AmplifyOutputWriter = {
+    storeOutput(outputStorageStrategy: OutputStorageStrategy): void;
 };
 
 // @public
@@ -24,12 +24,12 @@ export type ConstructCacheEntryGenerator = {
 
 // @public
 export type ConstructFactory<Instance extends Construct> = {
-    getInstance(resolver: ConstructCache, backendPlatform: AmplifyBackendPlatform): Instance;
+    getInstance(resolver: ConstructCache, outputStorageStrategy: OutputStorageStrategy): Instance;
 };
 
 // @public
 export type OutputStorageStrategy = {
-    storeOutputs(
+    storeOutput(
     constructPackage: string,
     constructVersion: string,
     data: Record<string, string>): void;

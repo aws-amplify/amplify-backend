@@ -1,7 +1,11 @@
 import { Construct } from 'constructs';
 import { aws_cognito as cognito, SecretValue } from 'aws-cdk-lib';
-import { AmplifyBackendPlatform } from '@aws-amplify/plugin-types';
+import {
+  AmplifyOutputWriter,
+  OutputStorageStrategy,
+} from '@aws-amplify/plugin-types';
 import packageJson from '#package.json';
+import { UserPool } from 'aws-cdk-lib/aws-cognito';
 
 export type GoogleLogin = {
   provider: 'google';
@@ -21,21 +25,17 @@ export type AmplifyAuthProps = {
 /**
  * Amplify Auth CDK Construct
  */
-export class AmplifyAuth extends Construct {
+export class AmplifyAuth extends Construct implements AmplifyOutputWriter {
+  private readonly userPool: UserPool;
   /**
    * Create a new Auth construct with AuthProps
    */
-  constructor(
-    scope: Construct,
-    id: string,
-    props: AmplifyAuthProps,
-    platform?: AmplifyBackendPlatform
-  ) {
+  constructor(scope: Construct, id: string, props: AmplifyAuthProps) {
     super(scope, id);
 
     this.verifyLoginMechanisms(props.loginMechanisms);
 
-    const userPool = new cognito.UserPool(this, 'UserPool', {
+    this.userPool = new cognito.UserPool(this, 'UserPool', {
       signInCaseSensitive: true,
       signInAliases: {
         username: props.loginMechanisms.includes('username'),
@@ -49,7 +49,7 @@ export class AmplifyAuth extends Construct {
         switch (loginMechanism.provider) {
           case 'google':
             new cognito.UserPoolIdentityProviderGoogle(this, 'GoogleIdP', {
-              userPool,
+              userPool: this.userPool,
               clientSecretValue: SecretValue.unsafePlainText(
                 loginMechanism.webClientSecret
               ),
@@ -59,14 +59,15 @@ export class AmplifyAuth extends Construct {
         }
       }
     }
+  }
 
-    platform?.outputStorageStrategy.storeOutputs(
-      packageJson.name,
-      packageJson.version,
-      {
-        userPoolId: userPool.userPoolId,
-      }
-    );
+  /**
+   * Stores auth output using the provided strategy
+   */
+  storeOutput(outputStorageStrategy: OutputStorageStrategy): void {
+    outputStorageStrategy.storeOutput(packageJson.name, packageJson.version, {
+      userPoolId: this.userPool.userPoolId,
+    });
   }
 
   /**
