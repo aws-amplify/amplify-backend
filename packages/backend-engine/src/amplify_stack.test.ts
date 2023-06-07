@@ -3,15 +3,16 @@ import { App, NestedStack } from 'aws-cdk-lib';
 import { AmplifyStack } from './amplify_stack.js';
 import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
+import { ProjectEnvironmentIdentifier } from './project_environment_identifier.js';
 
 describe('AmplifyStack', () => {
   it('renames nested stack logical IDs to non-redundant value', () => {
     const app = new App();
     const rootStack = new AmplifyStack(app, 'test-id', {
-      projectEnvironmentTuple: {
-        projectName: 'test',
-        environmentName: 'staging',
-      },
+      projectEnvironmentIdentifier: new ProjectEnvironmentIdentifier(
+        'testProjName',
+        'testEnvName'
+      ),
     });
     new NestedStack(rootStack, 'testName');
 
@@ -28,11 +29,11 @@ describe('AmplifyStack', () => {
   it('names the stack based on the project and environment name', () => {
     const app = new App();
     const stack = new AmplifyStack(app, 'test-id', {
-      projectEnvironmentTuple: {
-        projectName: 'test',
-        environmentName: 'staging',
-      },
+      projectEnvironmentIdentifier: new ProjectEnvironmentIdentifier(
+        'testProjName',
+        'testEnvName'
+      ),
     });
-    assert.equal(stack.stackName, 'test-staging');
+    assert.equal(stack.stackName, 'testProjName-testEnvName');
   });
 });

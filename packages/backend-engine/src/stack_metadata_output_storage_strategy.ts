@@ -16,7 +16,8 @@ export class StackMetadataOutputStorageStrategy
   constructor(private readonly stack: Stack) {
     if (stack instanceof AmplifyStack) {
       new aws_ssm.StringParameter(stack, 'amplifyStackIdentifier', {
-        parameterName: `/amplify/${stack.projectEnvironmentTuple.projectName}/${stack.projectEnvironmentTuple.environmentName}/outputStackName`,
+        parameterName:
+          stack.projectEnvironmentIdentifier.toOutputStackSSMParameterName(),
         stringValue: stack.stackName,
       });
     }

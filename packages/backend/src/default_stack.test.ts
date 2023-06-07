@@ -12,13 +12,5 @@ describe('createDefaultRootStack', () => {
     const stack = createDefaultRootStack(app);
     assert.ok(stack instanceof AmplifyStack);
     assert.strictEqual(stack.stackName, 'testProjName-testEnvName');
-    assert.strictEqual(
-      (stack as AmplifyStack).projectEnvironmentTuple.projectName,
-      'testProjName'
-    );
-    assert.strictEqual(
-      (stack as AmplifyStack).projectEnvironmentTuple.environmentName,
-      'testEnvName'
-    );
   });
 });

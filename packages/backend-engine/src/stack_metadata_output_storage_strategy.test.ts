@@ -3,6 +3,7 @@ import { StackMetadataOutputStorageStrategy } from './stack_metadata_output_stor
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import { AmplifyStack } from './amplify_stack.js';
+import { ProjectEnvironmentIdentifier } from './project_environment_identifier.js';
 
 describe('StackMetadataOutputStorageStrategy', () => {
   describe('storeOutput', () => {
@@ -29,16 +30,16 @@ describe('StackMetadataOutputStorageStrategy', () => {
     it('sets SSM parameter of stack name if initialized with an AmplifyStack', () => {
       const app = new App();
       const stack = new AmplifyStack(app, 'test-stack', {
-        projectEnvironmentTuple: {
-          projectName: 'test-proj',
-          environmentName: 'test-env',
-        },
+        projectEnvironmentIdentifier: new ProjectEnvironmentIdentifier(
+          'testProjName',
+          'testEnvName'
+        ),
       });
       new StackMetadataOutputStorageStrategy(stack);
       const template = Template.fromStack(stack);
       template.hasResourceProperties('AWS::SSM::Parameter', {
-        Name: '/amplify/test-proj/test-env/outputStackName',
-        Value: 'test-proj-test-env',
+        Name: '/amplify/testProjName/testEnvName/outputStackName',
+        Value: 'testProjName-testEnvName',
       });
     });
   });

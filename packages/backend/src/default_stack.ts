@@ -1,7 +1,7 @@
 import { App, Stack } from 'aws-cdk-lib';
 import {
   AmplifyStack,
-  ProjectEnvironmentTuple,
+  ProjectEnvironmentIdentifier,
 } from '@aws-amplify/backend-engine';
 import { Construct } from 'constructs';
 
@@ -13,13 +13,13 @@ const environmentNameCDKContextKey = 'environment-name';
  */
 export const createDefaultRootStack = (app = new App()): Stack => {
   return new AmplifyStack(app, 'amplifyMainStack', {
-    projectEnvironmentTuple: getProjectEnvironmentTuple(app),
+    projectEnvironmentIdentifier: getProjectEnvironmentIdentifier(app),
   });
 };
 
-const getProjectEnvironmentTuple = (
+const getProjectEnvironmentIdentifier = (
   scope: Construct
-): ProjectEnvironmentTuple => {
+): ProjectEnvironmentIdentifier => {
   const projectName = scope.node.getContext(projectNameCDKContextKey);
   const environmentName = scope.node.getContext(environmentNameCDKContextKey);
   if (typeof projectName !== 'string') {
@@ -32,8 +32,5 @@ const getProjectEnvironmentTuple = (
       `${environmentNameCDKContextKey} CDK context value is not a string`
     );
   }
-  return {
-    projectName,
-    environmentName,
-  };
+  return new ProjectEnvironmentIdentifier(projectName, environmentName);
 };
