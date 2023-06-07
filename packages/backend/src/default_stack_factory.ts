@@ -11,7 +11,7 @@ const environmentNameCDKContextKey = 'environment-name';
 /**
  * Creates a default CDK scope for the Amplify backend to use if no scope is provided to the constructor
  */
-export const createDefaultRootStack = (app = new App()): Stack => {
+export const createDefaultStack = (app = new App()): Stack => {
   return new AmplifyStack(app, 'amplifyMainStack', {
     projectEnvironmentIdentifier: getProjectEnvironmentIdentifier(app),
   });

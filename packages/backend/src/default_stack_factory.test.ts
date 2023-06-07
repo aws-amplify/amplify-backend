@@ -1,5 +1,5 @@
 import { describe, it } from 'node:test';
-import { createDefaultRootStack } from './default_stack.js';
+import { createDefaultStack } from './default_stack_factory.js';
 import { App } from 'aws-cdk-lib';
 import assert from 'node:assert';
 import { AmplifyStack } from '@aws-amplify/backend-engine';
@@ -9,7 +9,7 @@ describe('createDefaultRootStack', () => {
     const app = new App();
     app.node.setContext('project-name', 'testProjName');
     app.node.setContext('environment-name', 'testEnvName');
-    const stack = createDefaultRootStack(app);
+    const stack = createDefaultStack(app);
     assert.ok(stack instanceof AmplifyStack);
     assert.strictEqual(stack.stackName, 'testProjName-testEnvName');
   });

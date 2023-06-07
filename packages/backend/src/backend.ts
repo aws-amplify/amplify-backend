@@ -6,7 +6,7 @@ import {
   SingletonConstructCache,
   StackMetadataOutputStorageStrategy,
 } from '@aws-amplify/backend-engine';
-import { createDefaultRootStack } from './default_stack.js';
+import { createDefaultStack } from './default_stack_factory.js';
 
 /**
  * Class that collects and instantiates all the Amplify backend constructs
@@ -18,7 +18,7 @@ export class Backend {
    */
   constructor(
     constructFactories: Record<string, ConstructFactory<Construct>>,
-    stack: Stack = createDefaultRootStack()
+    stack: Stack = createDefaultStack()
   ) {
     const constructCache = new SingletonConstructCache(
       new NestedStackResolver(stack)
