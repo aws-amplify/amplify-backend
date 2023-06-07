@@ -2,7 +2,10 @@ import { CfnElement, Stack } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { ProjectEnvironmentIdentifier } from './project_environment_identifier.js';
 
-type AmplifyStackProps = {
+/**
+ * Properties to initialize an AmplifyStack
+ */
+export type AmplifyStackProps = {
   projectEnvironmentIdentifier: ProjectEnvironmentIdentifier;
 };
 
@@ -10,6 +13,9 @@ type AmplifyStackProps = {
  * Amplify-specific Stack implementation to handle cross-cutting concerns for all Amplify stacks
  */
 export class AmplifyStack extends Stack {
+  /**
+   * Identifier for the project environment this stack exists in
+   */
   projectEnvironmentIdentifier: ProjectEnvironmentIdentifier;
 
   /**

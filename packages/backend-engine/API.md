@@ -4,6 +4,7 @@
 
 ```ts
 
+import { CfnElement } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { ConstructCache } from '@aws-amplify/plugin-types';
 import { ConstructCacheEntryGenerator } from '@aws-amplify/plugin-types';
@@ -11,9 +12,28 @@ import { OutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
 
 // @public
+export class AmplifyStack extends Stack {
+    constructor(scope: Construct, id: string, props: AmplifyStackProps);
+    allocateLogicalId(element: CfnElement): string;
+    projectEnvironmentIdentifier: ProjectEnvironmentIdentifier;
+}
+
+// @public
+export type AmplifyStackProps = {
+    projectEnvironmentIdentifier: ProjectEnvironmentIdentifier;
+};
+
+// @public
 export class NestedStackResolver implements StackResolver {
     constructor(rootStack: Stack);
     getStackFor(resourceGroupName: string): Stack;
+}
+
+// @public
+export class ProjectEnvironmentIdentifier {
+    constructor(projectName: string, environmentName: string);
+    toOutputStackSSMParameterName(): string;
+    toStackName(): string;
 }
 
 // @public
