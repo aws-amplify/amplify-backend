@@ -3,11 +3,14 @@ import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { App, Stack } from 'aws-cdk-lib';
 import {
   AmplifyBackendCDKPlatform,
+  AmplifyStack,
   NestedStackResolver,
   SingletonConstructCache,
   StackMetadataOutputStorageStrategy,
 } from '@aws-amplify/backend-engine';
-import { AmplifyStack } from '@aws-amplify/backend-engine/lib/amplify_stack.js';
+
+const projectNameCDKContextKey = 'project-name';
+const environmentNameCDKContextKey = 'environment-name';
 
 /**
  * Class that collects and instantiates all the Amplify backend constructs
@@ -40,5 +43,15 @@ export class Backend {
  */
 const createDefaultRootStack = (): Stack => {
   const app = new App();
-  return new AmplifyStack(app, 'AmplifyRootStack');
+  const projectName = app.node.tryGetContext(projectNameCDKContextKey);
+  const environmentName = app.node.tryGetContext(environmentNameCDKContextKey);
+  if (typeof projectName !== 'string') {
+    throw new Error(`${projectNameCDKContextKey} not specified in CDK context`);
+  }
+  if (typeof environmentName !== 'string') {
+    throw new Error(
+      `${environmentNameCDKContextKey} not specified in CDK context`
+    );
+  }
+  return new AmplifyStack(app, `${projectName}-${environmentName}`);
 };
