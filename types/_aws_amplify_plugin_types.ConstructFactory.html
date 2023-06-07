@@ -16,7 +16,7 @@
 <li><a href="../modules/_aws_amplify_plugin_types.html">@aws-amplify/plugin-types</a></li>
 <li><a href="_aws_amplify_plugin_types.ConstructFactory.html">ConstructFactory</a></li></ul>
 <h1>Type alias ConstructFactory&lt;Instance&gt;</h1></div>
-<div class="tsd-signature"><span class="tsd-kind-type-alias">Construct<wbr/>Factory</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">Instance</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-call-signature">getInstance</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">resolver</span>, <span class="tsd-kind-parameter">backendPlatform</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type tsd-kind-type-parameter">Instance</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></div>
+<div class="tsd-signature"><span class="tsd-kind-type-alias">Construct<wbr/>Factory</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">Instance</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-call-signature">getInstance</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">resolver</span>, <span class="tsd-kind-parameter">outputStorageStrategy</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type tsd-kind-type-parameter">Instance</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></div>
 <div class="tsd-comment tsd-typography"><p>Functional interface for construct factories. All objects in the backend-engine definition must implement this interface.</p>
 </div>
 <section class="tsd-panel tsd-type-parameters">
@@ -30,7 +30,7 @@
 <li class="tsd-parameter">
 <h5><span class="tsd-kind-method">get<wbr/>Instance</span><span class="tsd-signature-symbol">:</span>function</h5>
 <ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="__type.getInstance.getInstance-1"><span class="tsd-kind-call-signature">get<wbr/>Instance</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">resolver</span>, <span class="tsd-kind-parameter">backendPlatform</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">Instance</span><a href="#__type.getInstance.getInstance-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" id="icon-anchor-a"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" id="icon-anchor-b"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" id="icon-anchor-c"></path></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="__type.getInstance.getInstance-1"><span class="tsd-kind-call-signature">get<wbr/>Instance</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">resolver</span>, <span class="tsd-kind-parameter">outputStorageStrategy</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">Instance</span><a href="#__type.getInstance.getInstance-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" id="icon-anchor-a"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" id="icon-anchor-b"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" id="icon-anchor-c"></path></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -38,12 +38,12 @@
 <li>
 <h5><span class="tsd-kind-parameter">resolver</span>: <a href="_aws_amplify_plugin_types.ConstructCache.html" class="tsd-signature-type tsd-kind-type-alias">ConstructCache</a></h5></li>
 <li>
-<h5><span class="tsd-kind-parameter">backendPlatform</span>: <a href="_aws_amplify_plugin_types.AmplifyBackendPlatform.html" class="tsd-signature-type tsd-kind-type-alias">AmplifyBackendPlatform</a></h5></li></ul></div>
+<h5><span class="tsd-kind-parameter">outputStorageStrategy</span>: <a href="_aws_amplify_plugin_types.OutputStorageStrategy.html" class="tsd-signature-type tsd-kind-type-alias">OutputStorageStrategy</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type tsd-kind-type-parameter">Instance</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/408cee6/packages/plugin-types/src/construct_factory.ts#L9">construct_factory.ts:9</a></li></ul></aside></li></ul></li></ul></div><aside class="tsd-sources">
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/0782b29/packages/plugin-types/src/construct_factory.ts#L9">construct_factory.ts:9</a></li></ul></aside></li></ul></li></ul></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/408cee6/packages/plugin-types/src/construct_factory.ts#L8">construct_factory.ts:8</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/0782b29/packages/plugin-types/src/construct_factory.ts#L8">construct_factory.ts:8</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -85,7 +85,6 @@
 <details class="tsd-index-accordion" data-key="@aws-amplify/backend-engine"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4.93896 8.531L12 15.591L19.061 8.531L16.939 6.409L12 11.349L7.06098 6.409L4.93896 8.531Z" fill="var(--color-text)"></path></svg><a href="../modules/_aws_amplify_backend_engine.html"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4-path"></use><use href="#icon-4-text"></use></svg><span>@aws-<wbr/>amplify/backend-<wbr/>engine</span></a></summary>
 <div class="tsd-accordion-details">
 <ul class="tsd-nested-navigation">
-<li><a href="../classes/_aws_amplify_backend_engine.AmplifyBackendCDKPlatform.html"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-128-path"></use><use href="#icon-128-text"></use></svg><span>Amplify<wbr/>BackendCDKPlatform</span></a></li>
 <li><a href="../classes/_aws_amplify_backend_engine.NestedStackResolver.html"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-128-path"></use><use href="#icon-128-text"></use></svg><span>Nested<wbr/>Stack<wbr/>Resolver</span></a></li>
 <li><a href="../classes/_aws_amplify_backend_engine.SingletonConstructCache.html"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-128-path"></use><use href="#icon-128-text"></use></svg><span>Singleton<wbr/>Construct<wbr/>Cache</span></a></li>
 <li><a href="../classes/_aws_amplify_backend_engine.StackMetadataOutputStorageStrategy.html"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-128-path"></use><use href="#icon-128-text"></use></svg><span>Stack<wbr/>Metadata<wbr/>Output<wbr/>Storage<wbr/>Strategy</span></a></li>
@@ -105,7 +104,7 @@
 <details class="tsd-index-accordion" open data-key="@aws-amplify/plugin-types"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4.93896 8.531L12 15.591L19.061 8.531L16.939 6.409L12 11.349L7.06098 6.409L4.93896 8.531Z" fill="var(--color-text)"></path></svg><a href="../modules/_aws_amplify_plugin_types.html"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4-path"></use><use href="#icon-4-text"></use></svg><span>@aws-<wbr/>amplify/plugin-<wbr/>types</span></a></summary>
 <div class="tsd-accordion-details">
 <ul class="tsd-nested-navigation">
-<li><a href="_aws_amplify_plugin_types.AmplifyBackendPlatform.html"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg><span>Amplify<wbr/>Backend<wbr/>Platform</span></a></li>
+<li><a href="_aws_amplify_plugin_types.AmplifyOutputWriter.html"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg><span>Amplify<wbr/>Output<wbr/>Writer</span></a></li>
 <li><a href="_aws_amplify_plugin_types.ConstructCache.html"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg><span>Construct<wbr/>Cache</span></a></li>
 <li><a href="_aws_amplify_plugin_types.ConstructCacheEntryGenerator.html"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg><span>Construct<wbr/>Cache<wbr/>Entry<wbr/>Generator</span></a></li>
 <li><a href="_aws_amplify_plugin_types.ConstructFactory.html" class="current"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg><span>Construct<wbr/>Factory</span></a></li>
