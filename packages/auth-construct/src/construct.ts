@@ -65,7 +65,7 @@ export class AmplifyAuth extends Construct implements AmplifyOutputWriter {
    * Stores auth output using the provided strategy
    */
   storeOutput(outputStorageStrategy: OutputStorageStrategy): void {
-    outputStorageStrategy.storeOutputs(packageJson.name, packageJson.version, {
+    outputStorageStrategy.storeOutput(packageJson.name, packageJson.version, {
       userPoolId: this.userPool.userPoolId,
     });
   }

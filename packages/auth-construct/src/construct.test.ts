@@ -95,9 +95,9 @@ describe('Auth construct', () => {
       const app = new App();
       const stack = new Stack(app);
 
-      const storeOutputsMock = mock.fn();
+      const storeOutputMock = mock.fn();
       const stubOutputStorageStrategy = {
-        storeOutputs: storeOutputsMock,
+        storeOutput: storeOutputMock,
       };
       const authConstruct = new AmplifyAuth(stack, 'test', {
         loginMechanisms: ['username'],
@@ -105,12 +105,12 @@ describe('Auth construct', () => {
 
       authConstruct.storeOutput(stubOutputStorageStrategy);
 
-      const storeOutputsArgs = storeOutputsMock.mock.calls[0].arguments;
-      assert.equal(storeOutputsArgs.length, 3);
-      assert.equal(storeOutputsArgs[0], packageJson.name);
-      assert.equal(storeOutputsArgs[1], packageJson.version);
-      assert.equal(Object.keys(storeOutputsArgs[2]).length, 1);
-      assert.equal(Object.keys(storeOutputsArgs[2])[0], 'userPoolId');
+      const storeOutputArgs = storeOutputMock.mock.calls[0].arguments;
+      assert.equal(storeOutputArgs.length, 3);
+      assert.equal(storeOutputArgs[0], packageJson.name);
+      assert.equal(storeOutputArgs[1], packageJson.version);
+      assert.equal(Object.keys(storeOutputArgs[2]).length, 1);
+      assert.equal(Object.keys(storeOutputArgs[2])[0], 'userPoolId');
     });
   });
 });

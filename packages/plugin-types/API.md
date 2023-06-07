@@ -29,7 +29,7 @@ export type ConstructFactory<Instance extends Construct> = {
 
 // @public
 export type OutputStorageStrategy = {
-    storeOutputs(
+    storeOutput(
     constructPackage: string,
     constructVersion: string,
     data: Record<string, string>): void;

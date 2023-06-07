@@ -2,7 +2,7 @@
  * Type for an object that collects output data from constructs
  */
 export type OutputStorageStrategy = {
-  storeOutputs(
+  storeOutput(
     /**
      * The package that generated this output
      */

@@ -25,7 +25,7 @@ export class SingletonConstructCache implements ConstructCache {
 // @public
 export class StackMetadataOutputStorageStrategy implements OutputStorageStrategy {
     constructor(stack: Stack);
-    storeOutputs(constructPackage: string, constructVersion: string, data: Record<string, string>): void;
+    storeOutput(constructPackage: string, constructVersion: string, data: Record<string, string>): void;
 }
 
 // @public
