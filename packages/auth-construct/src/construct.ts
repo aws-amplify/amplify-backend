@@ -1,7 +1,7 @@
 import { Construct } from 'constructs';
 import { aws_cognito as cognito, SecretValue } from 'aws-cdk-lib';
 import {
-  AmplifyOutputSetter,
+  AmplifyOutputWriter,
   OutputStorageStrategy,
 } from '@aws-amplify/plugin-types';
 import packageJson from '#package.json';
@@ -25,7 +25,7 @@ export type AmplifyAuthProps = {
 /**
  * Amplify Auth CDK Construct
  */
-export class AmplifyAuth extends Construct implements AmplifyOutputSetter {
+export class AmplifyAuth extends Construct implements AmplifyOutputWriter {
   private readonly userPool: UserPool;
   /**
    * Create a new Auth construct with AuthProps
@@ -64,7 +64,7 @@ export class AmplifyAuth extends Construct implements AmplifyOutputSetter {
   /**
    * Stores auth output using the provided strategy
    */
-  setAmplifyOutput(outputStorageStrategy: OutputStorageStrategy): void {
+  storeOutput(outputStorageStrategy: OutputStorageStrategy): void {
     outputStorageStrategy.storeOutputs(packageJson.name, packageJson.version, {
       userPoolId: this.userPool.userPoolId,
     });

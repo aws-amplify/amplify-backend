@@ -46,7 +46,7 @@ class AmplifyAuthGenerator implements ConstructCacheEntryGenerator {
 
   generateCacheEntry(scope: Construct) {
     const authConstruct = new AmplifyAuth(scope, this.defaultName, this.props);
-    authConstruct.setAmplifyOutput(this.outputStorageStrategy);
+    authConstruct.storeOutput(this.outputStorageStrategy);
     return authConstruct;
   }
 }

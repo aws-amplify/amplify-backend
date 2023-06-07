@@ -7,8 +7,8 @@
 import { Construct } from 'constructs';
 
 // @public
-export type AmplifyOutputSetter = {
-    setAmplifyOutput(outputStorageStrategy: OutputStorageStrategy): void;
+export type AmplifyOutputWriter = {
+    storeOutput(outputStorageStrategy: OutputStorageStrategy): void;
 };
 
 // @public

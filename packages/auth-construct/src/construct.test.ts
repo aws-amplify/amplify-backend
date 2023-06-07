@@ -90,7 +90,7 @@ describe('Auth construct', () => {
     });
   });
 
-  describe('setAmplifyOutput', () => {
+  describe('storeOutput', () => {
     it('stores outputs in platform', () => {
       const app = new App();
       const stack = new Stack(app);
@@ -103,7 +103,7 @@ describe('Auth construct', () => {
         loginMechanisms: ['username'],
       });
 
-      authConstruct.setAmplifyOutput(stubOutputStorageStrategy);
+      authConstruct.storeOutput(stubOutputStorageStrategy);
 
       const storeOutputsArgs = storeOutputsMock.mock.calls[0].arguments;
       assert.equal(storeOutputsArgs.length, 3);

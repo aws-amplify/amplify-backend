@@ -4,14 +4,14 @@
 
 ```ts
 
-import { AmplifyOutputSetter } from '@aws-amplify/plugin-types';
+import { AmplifyOutputWriter } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
 import { OutputStorageStrategy } from '@aws-amplify/plugin-types';
 
 // @public
-export class AmplifyAuth extends Construct implements AmplifyOutputSetter {
+export class AmplifyAuth extends Construct implements AmplifyOutputWriter {
     constructor(scope: Construct, id: string, props: AmplifyAuthProps);
-    setAmplifyOutput(outputStorageStrategy: OutputStorageStrategy): void;
+    storeOutput(outputStorageStrategy: OutputStorageStrategy): void;
 }
 
 // @public
