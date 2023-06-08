@@ -15,12 +15,12 @@ import { Stack } from 'aws-cdk-lib';
 export class AmplifyStack extends Stack {
     constructor(scope: Construct, id: string, props: AmplifyStackProps);
     allocateLogicalId(element: CfnElement): string;
-    projectEnvironmentIdentifier: ProjectEnvironmentIdentifier;
+    readonly projectEnvironmentIdentifier: ProjectEnvironmentIdentifier;
 }
 
 // @public
 export type AmplifyStackProps = {
-    projectEnvironmentIdentifier: ProjectEnvironmentIdentifier;
+    readonly projectEnvironmentIdentifier: ProjectEnvironmentIdentifier;
 };
 
 // @public

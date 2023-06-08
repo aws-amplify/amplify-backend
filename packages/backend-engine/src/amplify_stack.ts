@@ -6,7 +6,7 @@ import { ProjectEnvironmentIdentifier } from './project_environment_identifier.j
  * Properties to initialize an AmplifyStack
  */
 export type AmplifyStackProps = {
-  projectEnvironmentIdentifier: ProjectEnvironmentIdentifier;
+  readonly projectEnvironmentIdentifier: ProjectEnvironmentIdentifier;
 };
 
 /**
@@ -16,7 +16,7 @@ export class AmplifyStack extends Stack {
   /**
    * Identifier for the project environment this stack exists in
    */
-  projectEnvironmentIdentifier: ProjectEnvironmentIdentifier;
+  readonly projectEnvironmentIdentifier: ProjectEnvironmentIdentifier;
 
   /**
    * Initializes the stack with a name that is unique to the provided Amplify environment
