@@ -39,10 +39,12 @@ describe('AmplifyStorage', () => {
 
       const storeOutputArgs = storeOutputMock.mock.calls[0].arguments;
       assert.equal(storeOutputArgs.length, 3);
-      assert.equal(storeOutputArgs[0], packageJson.name);
-      assert.equal(storeOutputArgs[1], packageJson.version);
-      assert.equal(Object.keys(storeOutputArgs[2]).length, 1);
-      assert.equal(Object.keys(storeOutputArgs[2])[0], 'bucketName');
+
+      const [actualPackageName, actualVersionName, data] = storeOutputArgs;
+      assert.equal(actualPackageName, packageJson.name);
+      assert.equal(actualVersionName, packageJson.version);
+      assert.equal(Object.keys(data).length, 1);
+      assert.equal(Object.keys(data)[0], 'bucketName');
     });
   });
 });
