@@ -1,9 +1,7 @@
 import { App, Stack } from 'aws-cdk-lib';
-import {
-  AmplifyStack,
-  ProjectEnvironmentIdentifier,
-} from '@aws-amplify/backend-engine';
+import { AmplifyStack } from '@aws-amplify/backend-engine';
 import { Construct } from 'constructs';
+import { ProjectEnvironmentIdentifier } from '@aws-amplify/primitives';
 
 const projectNameCDKContextKey = 'project-name';
 const environmentNameCDKContextKey = 'environment-name';

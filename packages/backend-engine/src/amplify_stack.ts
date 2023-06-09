@@ -1,6 +1,6 @@
 import { CfnElement, Stack } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { ProjectEnvironmentIdentifier } from './project_environment_identifier.js';
+import { ProjectEnvironmentIdentifier } from '@aws-amplify/primitives';
 
 /**
  * Properties to initialize an AmplifyStack
@@ -23,7 +23,7 @@ export class AmplifyStack extends Stack {
    */
   constructor(scope: Construct, id: string, props: AmplifyStackProps) {
     super(scope, id, {
-      stackName: props.projectEnvironmentIdentifier.toStackName(),
+      stackName: props.projectEnvironmentIdentifier.toDefaultStackName(),
     });
     this.projectEnvironmentIdentifier = props.projectEnvironmentIdentifier;
   }

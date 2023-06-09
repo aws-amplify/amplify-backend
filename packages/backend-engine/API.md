@@ -9,6 +9,7 @@ import { Construct } from 'constructs';
 import { ConstructCache } from '@aws-amplify/plugin-types';
 import { ConstructCacheEntryGenerator } from '@aws-amplify/plugin-types';
 import { OutputStorageStrategy } from '@aws-amplify/plugin-types';
+import { ProjectEnvironmentIdentifier } from '@aws-amplify/primitives';
 import { Stack } from 'aws-cdk-lib';
 
 // @public
@@ -27,13 +28,6 @@ export type AmplifyStackProps = {
 export class NestedStackResolver implements StackResolver {
     constructor(rootStack: Stack);
     getStackFor(resourceGroupName: string): Stack;
-}
-
-// @public
-export class ProjectEnvironmentIdentifier {
-    constructor(projectName: string, environmentName: string);
-    toOutputStackSSMParameterName(): string;
-    toStackName(): string;
 }
 
 // @public

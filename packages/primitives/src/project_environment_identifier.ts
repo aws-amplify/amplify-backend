@@ -15,10 +15,13 @@ export class ProjectEnvironmentIdentifier {
   toOutputStackSSMParameterName(): string {
     return `/amplify/${this.projectName}/${this.environmentName}/outputStackName`;
   }
+
   /**
-   * Convert to a stack name that is unique to this environment
+   * Returns a string that can be used as a stack name for this environment
+   *
+   * This should NOT be assumed to be the actual stack name for the environment, simply a default that can be used
    */
-  toStackName(): string {
+  toDefaultStackName(): string {
     return `${this.projectName}-${this.environmentName}`;
   }
 }

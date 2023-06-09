@@ -8,7 +8,8 @@
     "api:update": "api-extractor run --local"
   },
   "dependencies": {
-    "@aws-amplify/backend-engine": "^0.1.0"
+    "@aws-amplify/backend-engine": "^0.1.0",
+    "@aws-amplify/primitives": "^0.1.0"
   },
   "devDependencies": {
     "aws-cdk-lib": "^2.72.0",
