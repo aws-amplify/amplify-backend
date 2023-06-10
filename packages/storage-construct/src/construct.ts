@@ -1,5 +1,10 @@
 import { Construct } from 'constructs';
 import { Bucket, BucketProps } from 'aws-cdk-lib/aws-s3';
+import {
+  AmplifyOutputWriter,
+  OutputStorageStrategy,
+} from '@aws-amplify/plugin-types';
+import packageJson from '#package.json';
 
 export type AmplifyStorageProps = {
   versioned?: boolean;
@@ -10,7 +15,8 @@ export type AmplifyStorageProps = {
  *
  * Currently just a thin wrapper around an S3 bucket
  */
-export class AmplifyStorage extends Construct {
+export class AmplifyStorage extends Construct implements AmplifyOutputWriter {
+  private readonly bucket: Bucket;
   /**
    * Create a new AmplifyStorage instance
    */
@@ -21,6 +27,15 @@ export class AmplifyStorage extends Construct {
       versioned: props.versioned || false,
     };
 
-    new Bucket(scope, `${id}Bucket`, bucketProps);
+    this.bucket = new Bucket(scope, `${id}Bucket`, bucketProps);
+  }
+
+  /**
+   * Store storage outputs using provided strategy
+   */
+  storeOutput(outputStorageStrategy: OutputStorageStrategy): void {
+    outputStorageStrategy.storeOutput(packageJson.name, packageJson.version, {
+      bucketName: this.bucket.bucketName,
+    });
   }
 }
