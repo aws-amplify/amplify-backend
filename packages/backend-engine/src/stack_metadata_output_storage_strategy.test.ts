@@ -5,7 +5,7 @@ import { Template } from 'aws-cdk-lib/assertions';
 import { AmplifyStack } from './amplify_stack.js';
 import {
   ProjectEnvironmentIdentifier,
-  stackMetadata,
+  stackMetadataSchema,
 } from '@aws-amplify/primitives';
 
 describe('StackMetadataOutputStorageStrategy', () => {
@@ -40,7 +40,7 @@ describe('StackMetadataOutputStorageStrategy', () => {
 
       const template = Template.fromStack(stack);
       // successfully parsing the metadata means it validated against the schema
-      stackMetadata.parse(template.toJSON().Metadata);
+      stackMetadataSchema.parse(template.toJSON().Metadata);
     });
 
     it('sets SSM parameter of stack name if initialized with an AmplifyStack', () => {

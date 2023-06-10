@@ -3,7 +3,7 @@ import { App, NestedStack } from 'aws-cdk-lib';
 import { AmplifyStack } from './amplify_stack.js';
 import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
-import { ProjectEnvironmentIdentifier } from './project_environment_identifier.js';
+import { ProjectEnvironmentIdentifier } from '@aws-amplify/primitives';
 
 describe('AmplifyStack', () => {
   it('renames nested stack logical IDs to non-redundant value', () => {
