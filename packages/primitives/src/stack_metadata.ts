@@ -1,12 +1,12 @@
 import { z } from 'zod';
 
-export const metadataEntry = z.object({
+export const metadataEntrySchema = z.object({
   constructVersion: z.string(),
   stackOutputs: z.array(z.string()),
 });
 
-export type MetadataEntry = z.infer<typeof metadataEntry>;
+export type MetadataEntry = z.infer<typeof metadataEntrySchema>;
 
-export const stackMetadata = z.record(metadataEntry);
+export const stackMetadataSchema = z.record(metadataEntrySchema);
 
-export type StackMetadata = z.infer<typeof stackMetadata>;
+export type StackMetadata = z.infer<typeof stackMetadataSchema>;

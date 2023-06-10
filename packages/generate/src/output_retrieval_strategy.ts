@@ -3,7 +3,7 @@ import {
   DescribeStacksCommand,
   GetTemplateSummaryCommand,
 } from '@aws-sdk/client-cloudformation';
-import { stackMetadata } from '@aws-amplify/primitives';
+import { stackMetadataSchema } from '@aws-amplify/primitives';
 import { StackNameResolver } from './stack_name_resolver.js';
 import { AmplifyBackendOutput } from './amplify_backend_output.js';
 
@@ -49,7 +49,9 @@ export class StackMetadataOutputRetrievalStrategy
     }
 
     // parse and validate the stack metadata
-    const metadata = stackMetadata.parse(JSON.parse(templateSummary.Metadata));
+    const metadata = stackMetadataSchema.parse(
+      JSON.parse(templateSummary.Metadata)
+    );
 
     // DescribeStacks includes the template output
     const stackDescription = await this.cfnClient.send(
