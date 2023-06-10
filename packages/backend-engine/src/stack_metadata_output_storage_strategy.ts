@@ -1,6 +1,7 @@
 import { OutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { aws_ssm, CfnOutput, Stack } from 'aws-cdk-lib';
 import { AmplifyStack } from './amplify_stack.js';
+import { MetadataEntry } from '@aws-amplify/primitives';
 
 /**
  * Implementation of OutputStorageStrategy that stores config data in stack metadata and outputs
@@ -43,9 +44,11 @@ export class StackMetadataOutputStorageStrategy
       new CfnOutput(this.stack, key, { value });
     });
 
-    this.stack.addMetadata(constructPackage, {
+    const metadataEntry: MetadataEntry = {
       constructVersion,
       stackOutputs: Object.keys(data),
-    });
+    };
+
+    this.stack.addMetadata(constructPackage, metadataEntry);
   }
 }

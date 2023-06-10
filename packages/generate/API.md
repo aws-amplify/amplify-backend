@@ -4,12 +4,16 @@
 
 ```ts
 
-import { AwsCredentialIdentity } from '@aws-sdk/types';
+import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
+import { ProjectEnvironmentIdentifier } from '@aws-amplify/primitives';
 
-// Warning: (ae-forgotten-export) The symbol "StackIdentifier" needs to be exported by the entry point index.d.ts
-//
+// @public
+export const generateClientConfig: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: StackIdentifier | ProjectEnvironmentIdentifier) => Promise<void>;
+
 // @public (undocumented)
-export const generateClientConfig: (awsCredentialIdentity: AwsCredentialIdentity, stackIdentifier: StackIdentifier) => Promise<void>;
+export type StackIdentifier = {
+    readonly stackName: string;
+};
 
 // (No @packageDocumentation comment for this package)
 

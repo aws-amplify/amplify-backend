@@ -4,12 +4,44 @@
 
 ```ts
 
+import { z } from 'zod';
+
+// @public (undocumented)
+export type MetadataEntry = z.infer<typeof metadataEntry>;
+
+// @public (undocumented)
+export const metadataEntry: z.ZodObject<{
+    constructVersion: z.ZodString;
+    stackOutputs: z.ZodArray<z.ZodString, "many">;
+}, "strip", z.ZodTypeAny, {
+    constructVersion: string;
+    stackOutputs: string[];
+}, {
+    constructVersion: string;
+    stackOutputs: string[];
+}>;
+
 // @public
 export class ProjectEnvironmentIdentifier {
     constructor(projectName: string, environmentName: string);
     toDefaultStackName(): string;
     toOutputStackSSMParameterName(): string;
 }
+
+// @public (undocumented)
+export type StackMetadata = z.infer<typeof stackMetadata>;
+
+// @public (undocumented)
+export const stackMetadata: z.ZodRecord<z.ZodString, z.ZodObject<{
+    constructVersion: z.ZodString;
+    stackOutputs: z.ZodArray<z.ZodString, "many">;
+}, "strip", z.ZodTypeAny, {
+    constructVersion: string;
+    stackOutputs: string[];
+}, {
+    constructVersion: string;
+    stackOutputs: string[];
+}>>;
 
 // (No @packageDocumentation comment for this package)
 

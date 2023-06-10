@@ -3,7 +3,10 @@ import { StackMetadataOutputStorageStrategy } from './stack_metadata_output_stor
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import { AmplifyStack } from './amplify_stack.js';
-import { ProjectEnvironmentIdentifier } from './project_environment_identifier.js';
+import {
+  ProjectEnvironmentIdentifier,
+  stackMetadata,
+} from '@aws-amplify/primitives';
 
 describe('StackMetadataOutputStorageStrategy', () => {
   describe('storeOutput', () => {
@@ -25,6 +28,19 @@ describe('StackMetadataOutputStorageStrategy', () => {
           },
         },
       });
+    });
+
+    it('conforms stack metadata to primitive type', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      const outputStorage = new StackMetadataOutputStorageStrategy(stack);
+      outputStorage.storeOutput('test-package', '2.0.0', {
+        something: 'special',
+      });
+
+      const template = Template.fromStack(stack);
+      // successfully parsing the metadata means it validated against the schema
+      stackMetadata.parse(template.toJSON().Metadata);
     });
 
     it('sets SSM parameter of stack name if initialized with an AmplifyStack', () => {
