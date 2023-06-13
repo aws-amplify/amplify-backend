@@ -4,9 +4,9 @@
 
 ```ts
 
-import { AmplifyOutputWriter } from '../plugin-types';
+import { AmplifyOutputWriter } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
-import { OutputStorageStrategy } from '../plugin-types';
+import { OutputStorageStrategy } from '@aws-amplify/plugin-types';
 
 // @public
 export class AmplifyStorage extends Construct implements AmplifyOutputWriter {

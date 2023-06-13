@@ -5,7 +5,7 @@
 ```ts
 
 import { Construct } from 'constructs';
-import { ConstructFactory } from '../plugin-types';
+import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
 
 // @public
