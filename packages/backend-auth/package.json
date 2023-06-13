@@ -1,5 +1,5 @@
 {
-  "name": "@aws-amplify/auth-factory",
+  "name": "@aws-amplify/backend-auth",
   "version": "0.1.0",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
