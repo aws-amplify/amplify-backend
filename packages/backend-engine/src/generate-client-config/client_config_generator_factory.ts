@@ -4,19 +4,21 @@ import {
 } from './client_config_generator.js';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
-import { ProjectEnvironmentIdentifier } from '@aws-amplify/primitives';
-import {
-  PassThroughStackNameResolver,
-  ProjectEnvironmentStackNameResolver,
-} from './stack_name_resolver.js';
 import { SSMClient } from '@aws-sdk/client-ssm';
 import { StackMetadataOutputRetrievalStrategy } from './output_retrieval_strategy.js';
+import {
+  ProjectEnvironmentIdentifier,
+  StackIdentifier,
+} from '@aws-amplify/backend-types';
+import { StackNameBackendIdentificationStrategy } from '../backend-metadata/stack_name_backend_identification_strategy.js';
+import { ProjectEnvironmentBackendIdentificationStrategy } from '../backend-metadata/project_environment_backend_identification_strategy.js';
 
 /**
  * Creates ClientConfigGenerators given different backend identifiers
  */
 export class ClientConfigGeneratorFactory {
   private readonly cfnClient: CloudFormationClient;
+  private readonly ssmClient: SSMClient;
   /**
    * Provide the factory with AWS credentials. These credentials will be used to configure underlying SDK clients for resolving backend output.
    */
@@ -26,15 +28,17 @@ export class ClientConfigGeneratorFactory {
     this.cfnClient = new CloudFormationClient({
       credentials: credentialProvider,
     });
+    this.ssmClient = new SSMClient({ credentials: credentialProvider });
   }
   /**
    * Initialize a ClientConfigGenerator given a stack name
    */
-  fromStackName(stackName: string): ClientConfigGenerator {
+  fromStackIdentifier(stackIdentifier: StackIdentifier): ClientConfigGenerator {
     return new DefaultClientConfigGenerator(
       new StackMetadataOutputRetrievalStrategy(
         this.cfnClient,
-        new PassThroughStackNameResolver(stackName)
+        this.ssmClient,
+        new StackNameBackendIdentificationStrategy(stackIdentifier.stackName)
       )
     );
   }
@@ -42,14 +46,14 @@ export class ClientConfigGeneratorFactory {
   /**
    * Initialize a ClientConfigGenerator given a ProjectEnvironmentIdentifier
    */
-  fromProjectEnvironment(
+  fromProjectEnvironmentIdentifier(
     projectEnvironmentIdentifier: ProjectEnvironmentIdentifier
   ): ClientConfigGenerator {
     return new DefaultClientConfigGenerator(
       new StackMetadataOutputRetrievalStrategy(
         this.cfnClient,
-        new ProjectEnvironmentStackNameResolver(
-          new SSMClient({ credentials: this.credentialProvider }),
+        this.ssmClient,
+        new ProjectEnvironmentBackendIdentificationStrategy(
           projectEnvironmentIdentifier
         )
       )

@@ -13,7 +13,10 @@ export type ProjectEnvironmentIdentifier = {
 
 export type BackendIdentifier = StackIdentifier | ProjectEnvironmentIdentifier;
 
-export type BackendIdentificationStrategy = {
+export type BackendStackCreator = {
   createStack(scope: Construct): Stack;
-  fetchStackName(ssmClient: SSMClient): Promise<string>;
+};
+
+export type BackendStackResolver = {
+  resolveStackName(ssmClient: SSMClient): Promise<string>;
 };
