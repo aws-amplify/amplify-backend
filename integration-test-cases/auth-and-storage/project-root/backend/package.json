@@ -1,0 +1,11 @@
+{
+  "name": "auth-and-storage",
+  "version": "1.0.0",
+  "devDependencies": {
+    "@aws-amplify/auth-factory": "^0.1.0",
+    "@aws-amplify/backend": "^0.1.0",
+    "@aws-amplify/storage-factory": "^0.1.0",
+    "aws-cdk": "^2.81.0",
+    "tsx": "^3.12.7"
+  }
+}
