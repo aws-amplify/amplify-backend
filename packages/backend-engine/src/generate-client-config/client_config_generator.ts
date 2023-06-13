@@ -1,5 +1,5 @@
-import { OutputRetrievalStrategy } from './output_retrieval_strategy.js';
 import { AmplifyBackendOutput } from '@aws-amplify/backend-types/lib/amplify_backend_output.js';
+import { OutputRetrievalStrategy } from '@aws-amplify/backend-types';
 
 export type ClientConfigGenerator = {
   generateClientConfig(): Promise<ClientConfig>;

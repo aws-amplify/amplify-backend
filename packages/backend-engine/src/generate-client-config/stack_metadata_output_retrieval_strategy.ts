@@ -2,22 +2,14 @@ import {
   CloudFormationClient,
   DescribeStacksCommand,
   GetTemplateSummaryCommand,
-  Output,
 } from '@aws-sdk/client-cloudformation';
-import { AmplifyBackendOutput } from '@aws-amplify/backend-types/lib/amplify_backend_output.js';
-import { BackendStackResolver } from '@aws-amplify/backend-types';
+import {
+  AmplifyBackendOutput,
+  BackendStackResolver,
+  OutputRetrievalStrategy,
+} from '@aws-amplify/backend-types';
 import { SSMClient } from '@aws-sdk/client-ssm';
-import { stackMetadataSchema } from '../backend-metadata/stack_metadata.js';
-
-/**
- * Interface for classes that can fetch outputs for an Amplify backend
- */
-export type OutputRetrievalStrategy = {
-  /**
-   * Get all the output associated with the backend
-   */
-  fetchAllOutputs(): Promise<AmplifyBackendOutput>;
-};
+import { stackMetadataSchema } from '../backend-metadata/backend_output.js';
 
 /**
  * Gets Amplify backend outputs from stack metadata and outputs
@@ -71,9 +63,11 @@ export class StackMetadataOutputRetrievalStrategy
     const outputRecord = outputs
       .filter((output) => !!output.OutputValue && !!output.OutputKey)
       .reduce(
-        (accumulator, outputEntry: Required<Output>) => ({
+        (accumulator, outputEntry) => ({
           ...accumulator,
-          [outputEntry.OutputKey]: outputEntry.OutputValue,
+          // it's safe to disable this rule because we've already filtered out potentially undefined outputs
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          [outputEntry.OutputKey!]: outputEntry.OutputValue!,
         }),
         {} as Record<string, string>
       );

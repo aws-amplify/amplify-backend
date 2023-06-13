@@ -6,6 +6,7 @@
     "api:update": "npm run api:update --workspaces",
     "api:check": "npm run api:update && tsx scripts/check_api_extract.ts",
     "build": "tsc --build packages/*",
+    "build:tests": "tsc --build packages/* --config tsconfig.tests.json --noEmit",
     "clean": "rimraf --glob node_modules coverage .eslintcache verdaccio-cache verdaccio-logs.txt packages/*/lib packages/*/temp packages/*/tsconfig.tsbuildinfo",
     "diff:check": "tsx scripts/check_pr_size.ts",
     "docs": "typedoc",

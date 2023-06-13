@@ -7,6 +7,9 @@
   "scripts": {
     "api:update": "api-extractor run --local"
   },
+  "dependencies": {
+    "zod": "^3.21.4"
+  },
   "devDependencies": {
     "@aws-amplify/backend-types": "^0.1.0",
     "@aws-amplify/primitives": "^0.1.0",

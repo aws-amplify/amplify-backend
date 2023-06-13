@@ -4,7 +4,7 @@ import {
   ProjectEnvironmentIdentifier,
 } from '@aws-amplify/backend-types';
 import { Construct } from 'constructs';
-import { Stack } from 'aws-cdk-lib';
+import { aws_ssm, Stack } from 'aws-cdk-lib';
 import { GetParameterCommand, SSMClient } from '@aws-sdk/client-ssm';
 import { AmplifyStack } from '../amplify_stack.js';
 
@@ -25,7 +25,12 @@ export class ProjectEnvironmentBackendIdentificationStrategy
    * Get a stack for this environment in the provided CDK scope
    */
   createStack(scope: Construct): Stack {
-    return new AmplifyStack(scope, this.toStackName());
+    const stack = new AmplifyStack(scope, this.toStackName());
+    new aws_ssm.StringParameter(stack, 'amplifyStackIdentifier', {
+      parameterName: this.toSSMParamName(),
+      stringValue: stack.stackName,
+    });
+    return stack;
   }
 
   /**

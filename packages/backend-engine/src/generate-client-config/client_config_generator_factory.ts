@@ -5,7 +5,7 @@ import {
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { SSMClient } from '@aws-sdk/client-ssm';
-import { StackMetadataOutputRetrievalStrategy } from './output_retrieval_strategy.js';
+import { StackMetadataOutputRetrievalStrategy } from './stack_metadata_output_retrieval_strategy.js';
 import {
   ProjectEnvironmentIdentifier,
   StackIdentifier,
