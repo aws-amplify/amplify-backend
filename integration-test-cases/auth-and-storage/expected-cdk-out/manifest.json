@@ -17,7 +17,7 @@
         "validateOnSynth": false,
         "assumeRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-deploy-role-${AWS::AccountId}-${AWS::Region}",
         "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-cfn-exec-role-${AWS::AccountId}-${AWS::Region}",
-        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/8f7729d95c42cffec2915ad7e242f06c39f8b8a26b746ffae165c49c7d447b5b.json",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/dc3d538074b86841d78fc165edfd252b3e05728fac594a45fd6e023341e123b0.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
         "additionalDependencies": [
@@ -94,10 +94,22 @@
             "data": "CDKMetadataAvailable"
           }
         ],
+        "/amplifyMainStack/storage/amplifyMainStackstorageamplifyStorageBucketE42B9D7DRef": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "amplifyMainStackstorageamplifyStorageBucketE42B9D7DRef"
+          }
+        ],
         "/amplifyMainStack/storage.NestedStack/storage.NestedStackResource": [
           {
             "type": "aws:cdk:logicalId",
             "data": "storage0EC3F24A"
+          }
+        ],
+        "/amplifyMainStack/bucketName": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "bucketName"
           }
         ],
         "/amplifyMainStack/CDKMetadata/Default": [

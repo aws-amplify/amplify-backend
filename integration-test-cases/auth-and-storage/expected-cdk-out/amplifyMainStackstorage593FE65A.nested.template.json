@@ -228,5 +228,12 @@
     }
    ]
   }
+ },
+ "Outputs": {
+  "amplifyMainStackstorageamplifyStorageBucketE42B9D7DRef": {
+   "Value": {
+    "Ref": "amplifyStorageBucketEAC21FF6"
+   }
+  }
  }
 }
