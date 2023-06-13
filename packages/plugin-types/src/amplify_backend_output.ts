@@ -6,4 +6,7 @@ export type AmplifyBackendOutput = Record<
   { constructVersion: string; data: Record<string, string> }
 >;
 
-type ConstructPackageName = string;
+/**
+ * Alias for a string that represents a construct package name
+ */
+export type ConstructPackageName = string;

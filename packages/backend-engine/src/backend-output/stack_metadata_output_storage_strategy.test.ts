@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import { StackMetadataOutputStorageStrategy } from './stack_metadata_output_storage_strategy.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
-import { stackMetadataSchema } from './backend_output.js';
+import { backendOutputSchema } from './backend_output_schemas.js';
 
 describe('StackMetadataOutputStorageStrategy', () => {
   describe('storeOutput', () => {
@@ -36,7 +36,7 @@ describe('StackMetadataOutputStorageStrategy', () => {
 
       const template = Template.fromStack(stack);
       // successfully parsing the metadata means it validated against the schema
-      stackMetadataSchema.parse(template.toJSON().Metadata);
+      backendOutputSchema.parse(template.toJSON().Metadata);
     });
   });
 });

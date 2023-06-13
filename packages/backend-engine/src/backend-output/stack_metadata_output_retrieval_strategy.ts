@@ -8,7 +8,7 @@ import {
   BackendStackResolver,
   OutputRetrievalStrategy,
 } from '@aws-amplify/plugin-types';
-import { stackMetadataSchema } from './backend_output.js';
+import { backendOutputSchema } from './backend_output_schemas.js';
 
 /**
  * Gets Amplify backend outputs from stack metadata and outputs
@@ -42,7 +42,7 @@ export class StackMetadataOutputRetrievalStrategy
     }
 
     // parse and validate the stack metadata
-    const metadata = stackMetadataSchema.parse(
+    const metadata = backendOutputSchema.parse(
       JSON.parse(templateSummary.Metadata)
     );
 
