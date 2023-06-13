@@ -1,6 +1,5 @@
 import { Construct } from 'constructs';
 import { Stack } from 'aws-cdk-lib';
-import { SSMClient } from '@aws-sdk/client-ssm';
 
 export type StackIdentifier = {
   stackName: string;
@@ -18,5 +17,5 @@ export type BackendStackCreator = {
 };
 
 export type BackendStackResolver = {
-  resolveStackName(ssmClient: SSMClient): Promise<string>;
+  resolveStackName(): Promise<string>;
 };

@@ -1,6 +1,5 @@
 ## Intent
 
-This directory is intended to be extractable into its own package if the need arises in the future.
-The contents of `backend-identifier` would also need to be pulled into a separate package as that directory contains the shared code between `backend-engine` and `generate-client-config`.
+This directory is intended to be extractable into its own package if we want to vend a separate package for client config generation in the future.
 
-This is all left in `backend-engine` currently to prevent premature package explosion.
+Also see the README in [backend-output](../backend-output)

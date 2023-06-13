@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import { StackMetadataOutputStorageStrategy } from './stack_metadata_output_storage_strategy.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
-import { AmplifyStack } from './amplify_stack.js';
+import { AmplifyStack } from '../amplify_stack.js';
 import {
   ProjectEnvironmentIdentifier,
   stackMetadataSchema,

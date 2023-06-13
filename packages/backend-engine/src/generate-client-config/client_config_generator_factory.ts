@@ -5,13 +5,13 @@ import {
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { SSMClient } from '@aws-sdk/client-ssm';
-import { StackMetadataOutputRetrievalStrategy } from './stack_metadata_output_retrieval_strategy.js';
+import { StackMetadataOutputRetrievalStrategy } from '../backend-output/stack_metadata_output_retrieval_strategy.js';
 import {
   ProjectEnvironmentIdentifier,
   StackIdentifier,
 } from '@aws-amplify/backend-types';
-import { StackNameBackendIdentificationStrategy } from '../backend-metadata/stack_name_backend_identification_strategy.js';
-import { ProjectEnvironmentBackendIdentificationStrategy } from '../backend-metadata/project_environment_backend_identification_strategy.js';
+import { StackNameBackendIdentificationStrategy } from './stack_name_backend_stack_resolver.js';
+import { ProjectEnvironmentBackendStackResolver } from './project_environment_backend_stack_resolver.js';
 
 /**
  * Creates ClientConfigGenerators given different backend identifiers
@@ -28,7 +28,6 @@ export class ClientConfigGeneratorFactory {
     this.cfnClient = new CloudFormationClient({
       credentials: credentialProvider,
     });
-    this.ssmClient = new SSMClient({ credentials: credentialProvider });
   }
   /**
    * Initialize a ClientConfigGenerator given a stack name
@@ -37,7 +36,6 @@ export class ClientConfigGeneratorFactory {
     return new DefaultClientConfigGenerator(
       new StackMetadataOutputRetrievalStrategy(
         this.cfnClient,
-        this.ssmClient,
         new StackNameBackendIdentificationStrategy(stackIdentifier.stackName)
       )
     );
@@ -52,8 +50,8 @@ export class ClientConfigGeneratorFactory {
     return new DefaultClientConfigGenerator(
       new StackMetadataOutputRetrievalStrategy(
         this.cfnClient,
-        this.ssmClient,
-        new ProjectEnvironmentBackendIdentificationStrategy(
+        new ProjectEnvironmentBackendStackResolver(
+          new SSMClient({ credentials: this.credentialProvider }),
           projectEnvironmentIdentifier
         )
       )

@@ -8,8 +8,7 @@ import {
   BackendStackResolver,
   OutputRetrievalStrategy,
 } from '@aws-amplify/backend-types';
-import { SSMClient } from '@aws-sdk/client-ssm';
-import { stackMetadataSchema } from '../backend-metadata/backend_output.js';
+import { stackMetadataSchema } from './backend_output.js';
 
 /**
  * Gets Amplify backend outputs from stack metadata and outputs
@@ -22,7 +21,6 @@ export class StackMetadataOutputRetrievalStrategy
    */
   constructor(
     private readonly cfnClient: CloudFormationClient,
-    private readonly ssmClient: SSMClient,
     private readonly stackNameResolver: BackendStackResolver
   ) {}
 
@@ -33,9 +31,7 @@ export class StackMetadataOutputRetrievalStrategy
    * Except now the data contains the resolved values of the deployed resources rather than CFN references
    */
   async fetchAllOutputs(): Promise<AmplifyBackendOutput> {
-    const stackName = await this.stackNameResolver.resolveStackName(
-      this.ssmClient
-    );
+    const stackName = await this.stackNameResolver.resolveStackName();
 
     // GetTemplateSummary includes the template metadata as a string
     const templateSummary = await this.cfnClient.send(
