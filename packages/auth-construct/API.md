@@ -4,9 +4,9 @@
 
 ```ts
 
-import { AmplifyOutputWriter } from '@aws-amplify/plugin-types';
+import { AmplifyOutputWriter } from '../backend-types';
 import { Construct } from 'constructs';
-import { OutputStorageStrategy } from '@aws-amplify/plugin-types';
+import { OutputStorageStrategy } from '../backend-types';
 
 // @public
 export class AmplifyAuth extends Construct implements AmplifyOutputWriter {

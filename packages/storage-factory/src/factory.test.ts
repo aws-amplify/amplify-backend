@@ -8,7 +8,7 @@ import {
   StackMetadataOutputStorageStrategy,
 } from '@aws-amplify/backend-engine';
 import assert from 'node:assert';
-import { OutputStorageStrategy } from '@aws-amplify/plugin-types';
+import { OutputStorageStrategy } from '@aws-amplify/backend-types';
 
 describe('AmplifyStorageFactory', () => {
   it('returns singleton instance', () => {

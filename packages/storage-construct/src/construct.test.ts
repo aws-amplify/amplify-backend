@@ -2,7 +2,7 @@ import { describe, it, mock } from 'node:test';
 import { AmplifyStorage } from './construct.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
-import { OutputStorageStrategy } from '@aws-amplify/plugin-types';
+import { OutputStorageStrategy } from '@aws-amplify/backend-types';
 import assert from 'node:assert';
 import packageJson from '#package.json';
 

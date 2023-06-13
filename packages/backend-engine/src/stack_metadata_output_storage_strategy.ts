@@ -1,4 +1,4 @@
-import { OutputStorageStrategy } from '@aws-amplify/plugin-types';
+import { OutputStorageStrategy } from '@aws-amplify/backend-types';
 import { aws_ssm, CfnOutput, Stack } from 'aws-cdk-lib';
 import { AmplifyStack } from './amplify_stack.js';
 import { MetadataEntry } from '@aws-amplify/primitives';

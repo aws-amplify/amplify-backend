@@ -6,9 +6,9 @@
 
 import { CfnElement } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { ConstructCache } from '@aws-amplify/plugin-types';
-import { ConstructCacheEntryGenerator } from '@aws-amplify/plugin-types';
-import { OutputStorageStrategy } from '@aws-amplify/plugin-types';
+import { ConstructCache } from '../backend-types';
+import { ConstructCacheEntryGenerator } from '../backend-types';
+import { OutputStorageStrategy } from '../backend-types';
 import { ProjectEnvironmentIdentifier } from '@aws-amplify/primitives';
 import { Stack } from 'aws-cdk-lib';
 

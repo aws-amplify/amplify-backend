@@ -5,7 +5,7 @@ import {
 } from '@aws-sdk/client-cloudformation';
 import { stackMetadataSchema } from '@aws-amplify/primitives';
 import { StackNameResolver } from './stack_name_resolver.js';
-import { AmplifyBackendOutput } from './amplify_backend_output.js';
+import { AmplifyBackendOutput } from '@aws-amplify/backend-types/src/amplify_backend_output.js';
 
 /**
  * Interface for classes that can fetch outputs for an Amplify backend

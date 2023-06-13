@@ -3,7 +3,7 @@ import { Bucket, BucketProps } from 'aws-cdk-lib/aws-s3';
 import {
   AmplifyOutputWriter,
   OutputStorageStrategy,
-} from '@aws-amplify/plugin-types';
+} from '@aws-amplify/backend-types';
 import packageJson from '#package.json';
 
 export type AmplifyStorageProps = {

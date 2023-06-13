@@ -4,5 +4,5 @@
     "rootDir": "src",
     "outDir": "lib"
   },
-  "references": [{ "path": "../plugin-types" }]
+  "references": [{ "path": "../backend-types" }]
 }

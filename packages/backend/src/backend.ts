@@ -1,5 +1,5 @@
 import { Construct } from 'constructs';
-import { ConstructFactory } from '@aws-amplify/plugin-types';
+import { ConstructFactory } from '@aws-amplify/backend-types';
 import { Stack } from 'aws-cdk-lib';
 import {
   NestedStackResolver,

@@ -1,5 +1,5 @@
 {
-  "name": "@aws-amplify/plugin-types",
+  "name": "@aws-amplify/backend-types",
   "version": "0.1.0",
   "types": "lib/index.d.ts",
   "type": "module",
@@ -7,6 +7,7 @@
     "api:update": "api-extractor run --local"
   },
   "devDependencies": {
+    "@aws-sdk/client-ssm": "^3.350.0",
     "aws-cdk-lib": "^2.72.0",
     "constructs": "^10.0.0"
   },
