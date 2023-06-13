@@ -1,6 +1,6 @@
 import * as fs from 'fs-extra';
 import { z } from 'zod';
-import { execa, execaSync } from 'execa';
+import { execa, execaSync, Options } from 'execa';
 import * as path from 'path';
 import * as dirCompare from 'dir-compare';
 
@@ -25,8 +25,11 @@ import * as dirCompare from 'dir-compare';
  *     ]
  * }
  *
- * The runner will run npm install and cdk synth within the backend directory of the testRoot
- * Then it will check that cdk.out matches expectedCdkOut
+ * The runner executes the following steps in the test root:
+ * 1. npm install in the backend directory
+ * 2. tsc on the backend/index.ts file
+ * 3. cdk synth on the backend/index.ts file
+ * 4. Check that cdk.out matches expectedCdkOut
  */
 
 const main = async () => {
@@ -66,14 +69,21 @@ const main = async () => {
 
   const validateTestCase = async (basePath: string, testCase: TestCase) => {
     const testCaseRoot = path.resolve(basePath, testCase.testRoot);
+
     console.log(`Running tests in ${testCaseRoot}`);
     const backendRoot = path.resolve(testCaseRoot, 'backend');
-    console.log(`Installing dependencies`);
-    await execa('npm', ['install'], {
+
+    const execaOpts: Options = {
       cwd: backendRoot,
       shell: 'bash',
       stdio: 'inherit',
-    });
+    };
+    console.log(`Installing dependencies`);
+    await execa('npm', ['install'], execaOpts);
+
+    console.log(`Validating TypeScript compilation`);
+    await execa('npx', ['tsc', 'index.ts'], execaOpts);
+
     console.log(`Running cdk synth`);
     await execa(
       'npx',
@@ -82,16 +92,13 @@ const main = async () => {
         'synth',
         '--app',
         "'tsx index.ts'",
+        '--quiet', // don't print the CFN template to stdout
         '--context',
         'project-name=testProject',
         '--context',
         'environment-name=testEnvironment',
       ],
-      {
-        cwd: backendRoot,
-        shell: 'bash',
-        stdio: 'inherit',
-      }
+      execaOpts
     );
 
     const actualSynthDir = path.resolve(backendRoot, 'cdk.out');
@@ -106,33 +113,43 @@ const main = async () => {
         compareContent: true,
       }
     );
-    if (!compareResult.same) {
-      compareResult.diffSet
-        .filter((diff) => diff.state !== 'equal')
-        .forEach((diff) => {
-          switch (diff.state) {
-            case 'left':
-              console.log(
-                `${diff.name1} exists in actual CDK out but is not expected`
-              );
-              break;
-            case 'right':
-              console.log(`${diff.name2} not found in CDK out but is expected`);
-              break;
-            case 'distinct':
-              console.log(
-                `Contents of ${diff.name1} are different in actual CDK out vs expected file`
-              );
-              // print the file diff using the diff utility
-              execaSync('diff', [diff.path1, diff.path2], { stdio: 'inherit' });
-              break;
-            default:
-              throw new Error(`Unexpected diff state ${diff.state}`);
-          }
-        });
-      throw new Error('CDK output did not match expected shape');
+
+    // files in the cdk.out directory that should be ignored when comparing for equality against the expected directory
+    const ignoreFiles = ['tree.json'];
+    let hasDiffs = false;
+    compareResult.diffSet
+      .filter((diff) => diff.state !== 'equal')
+      .filter(
+        (diff) =>
+          !ignoreFiles.some((ignoreFile) => diff.name1.endsWith(ignoreFile))
+      )
+      .forEach((diff) => {
+        hasDiffs = true;
+        switch (diff.state) {
+          case 'left':
+            console.log(
+              `${diff.name1} exists in actual CDK out but is not expected`
+            );
+            break;
+          case 'right':
+            console.log(`${diff.name2} not found in CDK out but is expected`);
+            break;
+          case 'distinct':
+            console.log(
+              `Contents of ${diff.name1} are different in actual CDK out vs expected file`
+            );
+            // print the file diff using the diff utility
+            execaSync('diff', [diff.path1, diff.path2], { stdio: 'inherit' });
+            break;
+          default:
+            throw new Error(`Unexpected diff state ${diff.state}`);
+        }
+      });
+    if (hasDiffs) {
+      throw new Error(`CDK output did not match expected content`);
+    } else {
+      console.log('CDK output validation passed');
     }
-    console.log('CDK output validation passed');
   };
 
   const validationPromises = config.cases.map((testCase) =>
