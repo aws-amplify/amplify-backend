@@ -67,11 +67,15 @@
                             "adminCreateUserConfig": {
                               "allowAdminCreateUserOnly": true
                             },
-                            "autoVerifiedAttributes": ["email"],
+                            "autoVerifiedAttributes": [
+                              "email"
+                            ],
                             "emailVerificationMessage": "The verification code to your new account is {####}",
                             "emailVerificationSubject": "Verify your new account",
                             "smsVerificationMessage": "The verification code to your new account is {####}",
-                            "usernameAttributes": ["email"],
+                            "usernameAttributes": [
+                              "email"
+                            ],
                             "usernameConfiguration": {
                               "caseSensitive": true
                             },
