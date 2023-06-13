@@ -1,7 +1,7 @@
 import {
   BackendStackCreator,
   ProjectEnvironmentIdentifier,
-} from '@aws-amplify/backend-types';
+} from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
 import { aws_ssm, Stack } from 'aws-cdk-lib';
 import {

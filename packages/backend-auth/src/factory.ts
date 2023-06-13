@@ -5,7 +5,7 @@ import {
   ConstructCacheEntryGenerator,
   ConstructFactory,
   OutputStorageStrategy,
-} from '@aws-amplify/backend-types';
+} from '@aws-amplify/plugin-types';
 
 /**
  * Singleton factory for AmplifyAuth that can be used in `auth.ts` files

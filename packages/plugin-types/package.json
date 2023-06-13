@@ -1,5 +1,5 @@
 {
-  "name": "@aws-amplify/backend-types",
+  "name": "@aws-amplify/plugin-types",
   "version": "0.1.0",
   "types": "lib/index.d.ts",
   "type": "module",

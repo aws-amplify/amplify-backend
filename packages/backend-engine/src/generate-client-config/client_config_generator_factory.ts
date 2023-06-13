@@ -9,7 +9,7 @@ import { StackMetadataOutputRetrievalStrategy } from '../backend-output/stack_me
 import {
   ProjectEnvironmentIdentifier,
   StackIdentifier,
-} from '@aws-amplify/backend-types';
+} from '@aws-amplify/plugin-types';
 import { StackNameBackendIdentificationStrategy } from './stack_name_backend_stack_resolver.js';
 import { ProjectEnvironmentBackendStackResolver } from './project_environment_backend_stack_resolver.js';
 

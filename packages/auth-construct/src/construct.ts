@@ -3,7 +3,7 @@ import { aws_cognito as cognito, SecretValue } from 'aws-cdk-lib';
 import {
   AmplifyOutputWriter,
   OutputStorageStrategy,
-} from '@aws-amplify/backend-types';
+} from '@aws-amplify/plugin-types';
 import packageJson from '#package.json';
 import { UserPool } from 'aws-cdk-lib/aws-cognito';
 

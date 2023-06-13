@@ -1,4 +1,4 @@
-import { ProjectEnvironmentIdentifier } from '@aws-amplify/backend-types';
+import { ProjectEnvironmentIdentifier } from '@aws-amplify/plugin-types';
 
 /**
  * Generates an SSM parameter key to identify the main stack associated with the given project environment.

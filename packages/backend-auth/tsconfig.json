@@ -7,6 +7,6 @@
   "references": [
     { "path": "../backend-engine" },
     { "path": "../auth-construct" },
-    { "path": "../backend-types" }
+    { "path": "../plugin-types" }
   ]
 }

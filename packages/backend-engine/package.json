@@ -11,7 +11,7 @@
     "zod": "^3.21.4"
   },
   "devDependencies": {
-    "@aws-amplify/backend-types": "^0.1.0",
+    "@aws-amplify/plugin-types": "^0.1.0",
     "@aws-sdk/credential-providers": "^3.352.0",
     "aws-cdk-lib": "^2.72.0",
     "constructs": "^10.0.0"

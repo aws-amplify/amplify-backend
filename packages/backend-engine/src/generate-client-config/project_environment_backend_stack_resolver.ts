@@ -1,7 +1,7 @@
 import {
   BackendStackResolver,
   ProjectEnvironmentIdentifier,
-} from '@aws-amplify/backend-types';
+} from '@aws-amplify/plugin-types';
 import { GetParameterCommand, SSMClient } from '@aws-sdk/client-ssm';
 import { getProjectEnvironmentMainStackSSMParameterKey } from '../backend-output/get_project_environment_main_stack_ssm_parameter_key.js';
 

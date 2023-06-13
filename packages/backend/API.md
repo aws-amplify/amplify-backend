@@ -5,7 +5,7 @@
 ```ts
 
 import { Construct } from 'constructs';
-import { ConstructFactory } from '../backend-types';
+import { ConstructFactory } from '../plugin-types';
 import { Stack } from 'aws-cdk-lib';
 
 // @public

@@ -1,4 +1,4 @@
-import { BackendStackResolver } from '@aws-amplify/backend-types';
+import { BackendStackResolver } from '@aws-amplify/plugin-types';
 
 /**
  * Essentially a no-op implementation of BackendStackResolver for when the stack name of a backend is already known

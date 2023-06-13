@@ -1,6 +1,6 @@
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { ClientConfigGeneratorFactory } from './client_config_generator_factory.js';
-import { BackendIdentifier } from '@aws-amplify/backend-types';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
 
 /**
  * Main entry point for generating client config

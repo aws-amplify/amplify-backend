@@ -1,4 +1,4 @@
-import { OutputStorageStrategy } from '@aws-amplify/backend-types';
+import { OutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { CfnOutput, Stack } from 'aws-cdk-lib';
 import { MetadataEntry } from './backend_output.js';
 

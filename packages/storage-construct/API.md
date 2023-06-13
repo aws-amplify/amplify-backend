@@ -4,9 +4,9 @@
 
 ```ts
 
-import { AmplifyOutputWriter } from '../backend-types';
+import { AmplifyOutputWriter } from '../plugin-types';
 import { Construct } from 'constructs';
-import { OutputStorageStrategy } from '../backend-types';
+import { OutputStorageStrategy } from '../plugin-types';
 
 // @public
 export class AmplifyStorage extends Construct implements AmplifyOutputWriter {

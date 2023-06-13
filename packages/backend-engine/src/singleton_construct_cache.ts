@@ -3,7 +3,7 @@ import { StackResolver } from './nested_stack_resolver.js';
 import {
   ConstructCache,
   ConstructCacheEntryGenerator,
-} from '@aws-amplify/backend-types';
+} from '@aws-amplify/plugin-types';
 
 /**
  * Serves as a DI container and shared state store for initializing Amplify constructs

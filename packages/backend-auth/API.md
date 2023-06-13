@@ -6,9 +6,9 @@
 
 import { AmplifyAuth } from '@aws-amplify/auth-construct';
 import { AmplifyAuthProps } from '@aws-amplify/auth-construct';
-import { ConstructCache } from '../backend-types';
-import { ConstructFactory } from '../backend-types';
-import { OutputStorageStrategy } from '../backend-types';
+import { ConstructCache } from '../plugin-types';
+import { ConstructFactory } from '../plugin-types';
+import { OutputStorageStrategy } from '../plugin-types';
 
 // @public
 export class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth> {

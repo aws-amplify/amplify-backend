@@ -4,7 +4,7 @@ import {
   ConstructCacheEntryGenerator,
   ConstructFactory,
   OutputStorageStrategy,
-} from '@aws-amplify/backend-types';
+} from '@aws-amplify/plugin-types';
 import {
   AmplifyStorage,
   AmplifyStorageProps,

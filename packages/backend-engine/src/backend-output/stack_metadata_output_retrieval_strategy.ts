@@ -7,7 +7,7 @@ import {
   AmplifyBackendOutput,
   BackendStackResolver,
   OutputRetrievalStrategy,
-} from '@aws-amplify/backend-types';
+} from '@aws-amplify/plugin-types';
 import { stackMetadataSchema } from './backend_output.js';
 
 /**

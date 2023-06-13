@@ -6,9 +6,9 @@
 
 import { AmplifyStorage } from '@aws-amplify/storage-construct';
 import { AmplifyStorageProps } from '@aws-amplify/storage-construct';
-import { ConstructCache } from '../backend-types';
-import { ConstructFactory } from '../backend-types';
-import { OutputStorageStrategy } from '../backend-types';
+import { ConstructCache } from '../plugin-types';
+import { ConstructFactory } from '../plugin-types';
+import { OutputStorageStrategy } from '../plugin-types';
 
 // @public
 export class AmplifyStorageFactory implements ConstructFactory<AmplifyStorage> {
