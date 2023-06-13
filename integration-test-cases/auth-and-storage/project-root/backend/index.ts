@@ -1,6 +1,6 @@
 import { Backend } from '@aws-amplify/backend';
 import { Storage } from '@aws-amplify/storage-factory';
-import { Auth } from '@aws-amplify/auth-factory';
+import { Auth } from '@aws-amplify/backend-auth';
 
 export const auth = new Auth({
   loginMechanisms: ['email'],

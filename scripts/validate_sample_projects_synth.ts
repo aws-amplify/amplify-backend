@@ -82,7 +82,7 @@ const main = async () => {
     await execa('npm', ['install'], execaOpts);
 
     console.log(`Validating TypeScript compilation`);
-    await execa('npx', ['tsc', 'index.ts'], execaOpts);
+    await execa('npx', ['tsc', 'index.ts', '--noEmit'], execaOpts);
 
     console.log(`Running cdk synth`);
     await execa(
