@@ -1,7 +1,7 @@
 import { App, Stack } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { ProjectEnvironmentIdentifier } from '@aws-amplify/plugin-types';
-import { ProjectEnvironmentBackendStackCreator } from './project_environment_backend_stack_creator.js';
+import { ProjectEnvironmentMainStackCreator } from './project_environment_main_stack_creator.js';
 
 const projectNameCDKContextKey = 'project-name';
 const environmentNameCDKContextKey = 'environment-name';
@@ -10,10 +10,11 @@ const environmentNameCDKContextKey = 'environment-name';
  * Creates a default CDK scope for the Amplify backend to use if no scope is provided to the constructor
  */
 export const createDefaultStack = (app = new App()): Stack => {
-  const backendStackCreator = new ProjectEnvironmentBackendStackCreator(
+  const mainStackCreator = new ProjectEnvironmentMainStackCreator(
+    app,
     getProjectEnvironmentIdentifier(app)
   );
-  return backendStackCreator.createStack(app);
+  return mainStackCreator.getOrCreateMainStack();
 };
 
 const getProjectEnvironmentIdentifier = (

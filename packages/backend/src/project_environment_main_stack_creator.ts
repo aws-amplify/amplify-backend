@@ -1,5 +1,5 @@
 import {
-  BackendStackCreator,
+  MainStackCreator,
   ProjectEnvironmentIdentifier,
 } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
@@ -12,28 +12,30 @@ import {
 /**
  * Creates stacks that are tied to a given project environment via an SSM parameter
  */
-export class ProjectEnvironmentBackendStackCreator
-  implements BackendStackCreator
-{
+export class ProjectEnvironmentMainStackCreator implements MainStackCreator {
+  private mainStack: Stack | undefined = undefined;
   /**
    * Initialize with a project environment
    */
   constructor(
+    private readonly scope: Construct,
     private readonly projectEnvironmentIdentifier: ProjectEnvironmentIdentifier
   ) {}
 
   /**
    * Get a stack for this environment in the provided CDK scope
    */
-  createStack(scope: Construct): Stack {
-    const stack = new AmplifyStack(scope, this.toStackName());
-    new aws_ssm.StringParameter(stack, 'amplifyStackIdentifier', {
-      parameterName: getProjectEnvironmentMainStackSSMParameterKey(
-        this.projectEnvironmentIdentifier
-      ),
-      stringValue: stack.stackName,
-    });
-    return stack;
+  getOrCreateMainStack(): Stack {
+    if (this.mainStack === undefined) {
+      this.mainStack = new AmplifyStack(this.scope, this.toStackName());
+      new aws_ssm.StringParameter(this.mainStack, 'amplifyStackIdentifier', {
+        parameterName: getProjectEnvironmentMainStackSSMParameterKey(
+          this.projectEnvironmentIdentifier
+        ),
+        stringValue: this.mainStack.stackName,
+      });
+    }
+    return this.mainStack;
   }
 
   /**

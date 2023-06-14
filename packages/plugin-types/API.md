@@ -22,7 +22,7 @@ export type AmplifyOutputWriter = {
 export type BackendIdentifier = StackIdentifier | ProjectEnvironmentIdentifier;
 
 // @public
-export type BackendStackCreator = {
+export type MainStackCreator = {
     createStack(scope: Construct): Stack;
 };
 
