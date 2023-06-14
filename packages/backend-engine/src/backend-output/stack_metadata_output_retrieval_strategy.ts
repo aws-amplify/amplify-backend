@@ -5,7 +5,7 @@ import {
 } from '@aws-sdk/client-cloudformation';
 import {
   AmplifyBackendOutput,
-  BackendStackResolver,
+  MainStackNameResolver,
   OutputRetrievalStrategy,
 } from '@aws-amplify/plugin-types';
 import { backendOutputSchema } from './backend_output_schemas.js';
@@ -22,7 +22,7 @@ export class StackMetadataOutputRetrievalStrategy
    */
   constructor(
     private readonly cfnClient: CloudFormationClient,
-    private readonly stackNameResolver: BackendStackResolver
+    private readonly stackNameResolver: MainStackNameResolver
   ) {}
 
   /**
@@ -31,8 +31,8 @@ export class StackMetadataOutputRetrievalStrategy
    * It combines the metadata and outputs to reconstruct the data object that was provided by the Amplify constructs when writing the output.
    * Except now the data contains the resolved values of the deployed resources rather than CFN references
    */
-  async fetchAllOutputs(): Promise<AmplifyBackendOutput> {
-    const stackName = await this.stackNameResolver.resolveStackName();
+  async fetchAllOutput(): Promise<AmplifyBackendOutput> {
+    const stackName = await this.stackNameResolver.resolveMainStackName();
 
     // GetTemplateSummary includes the template metadata as a string
     const templateSummary = await this.cfnClient.send(

@@ -10,8 +10,8 @@ import {
   ProjectEnvironmentIdentifier,
   StackIdentifier,
 } from '@aws-amplify/plugin-types';
-import { StackNameBackendStackResolver } from './stack_name_backend_stack_resolver.js';
-import { ProjectEnvironmentBackendStackResolver } from './project_environment_backend_stack_resolver.js';
+import { StackNameMainStackNameResolver } from './stack_name_main_stack_name_resolver.js';
+import { ProjectEnvironmentMainStackNameResolver } from './project_environment_main_stack_name_resolver.js';
 
 /**
  * Creates ClientConfigGenerators given different backend identifiers
@@ -36,7 +36,7 @@ export class ClientConfigGeneratorFactory {
     return new DefaultClientConfigGenerator(
       new StackMetadataOutputRetrievalStrategy(
         this.cfnClient,
-        new StackNameBackendStackResolver(stackIdentifier.stackName)
+        new StackNameMainStackNameResolver(stackIdentifier.stackName)
       )
     );
   }
@@ -50,7 +50,7 @@ export class ClientConfigGeneratorFactory {
     return new DefaultClientConfigGenerator(
       new StackMetadataOutputRetrievalStrategy(
         this.cfnClient,
-        new ProjectEnvironmentBackendStackResolver(
+        new ProjectEnvironmentMainStackNameResolver(
           new SSMClient({ credentials: this.credentialProvider }),
           projectEnvironmentIdentifier
         )

@@ -5,7 +5,7 @@ import {
   GetTemplateSummaryCommand,
 } from '@aws-sdk/client-cloudformation';
 import { StackMetadataOutputRetrievalStrategy } from './stack_metadata_output_retrieval_strategy.js';
-import { BackendStackResolver } from '@aws-amplify/plugin-types';
+import { MainStackNameResolver } from '@aws-amplify/plugin-types';
 import assert from 'node:assert';
 import { amplifyStackMetadataKey } from './amplify_stack_metadata_key.js';
 import { ZodError } from 'zod';
@@ -23,8 +23,8 @@ describe('StackMetadataOutputRetrievalStrategy', () => {
         }),
       } as CloudFormationClient;
 
-      const stackNameResolverMock: BackendStackResolver = {
-        resolveStackName: mock.fn(async () => 'testMainStack'),
+      const stackNameResolverMock: MainStackNameResolver = {
+        resolveMainStackName: mock.fn(async () => 'testMainStack'),
       };
 
       const retrievalStrategy = new StackMetadataOutputRetrievalStrategy(
@@ -32,7 +32,7 @@ describe('StackMetadataOutputRetrievalStrategy', () => {
         stackNameResolverMock
       );
 
-      await assert.rejects(retrievalStrategy.fetchAllOutputs(), {
+      await assert.rejects(retrievalStrategy.fetchAllOutput(), {
         message: 'Stack template metadata is not a string',
       });
     });
@@ -63,8 +63,8 @@ describe('StackMetadataOutputRetrievalStrategy', () => {
         }),
       } as CloudFormationClient;
 
-      const stackNameResolverMock: BackendStackResolver = {
-        resolveStackName: mock.fn(async () => 'testMainStack'),
+      const stackNameResolverMock: MainStackNameResolver = {
+        resolveMainStackName: mock.fn(async () => 'testMainStack'),
       };
 
       const retrievalStrategy = new StackMetadataOutputRetrievalStrategy(
@@ -72,7 +72,7 @@ describe('StackMetadataOutputRetrievalStrategy', () => {
         stackNameResolverMock
       );
 
-      await assert.rejects(retrievalStrategy.fetchAllOutputs(), {
+      await assert.rejects(retrievalStrategy.fetchAllOutput(), {
         message: 'Stack outputs are undefined',
       });
     });
@@ -95,8 +95,8 @@ describe('StackMetadataOutputRetrievalStrategy', () => {
         }),
       } as CloudFormationClient;
 
-      const stackNameResolverMock: BackendStackResolver = {
-        resolveStackName: mock.fn(async () => 'testMainStack'),
+      const stackNameResolverMock: MainStackNameResolver = {
+        resolveMainStackName: mock.fn(async () => 'testMainStack'),
       };
 
       const retrievalStrategy = new StackMetadataOutputRetrievalStrategy(
@@ -105,7 +105,7 @@ describe('StackMetadataOutputRetrievalStrategy', () => {
       );
 
       await assert.rejects(
-        retrievalStrategy.fetchAllOutputs(),
+        retrievalStrategy.fetchAllOutput(),
         (err) => err instanceof ZodError
       );
     });
@@ -141,8 +141,8 @@ describe('StackMetadataOutputRetrievalStrategy', () => {
         }),
       } as CloudFormationClient;
 
-      const stackNameResolverMock: BackendStackResolver = {
-        resolveStackName: mock.fn(async () => 'testMainStack'),
+      const stackNameResolverMock: MainStackNameResolver = {
+        resolveMainStackName: mock.fn(async () => 'testMainStack'),
       };
 
       const retrievalStrategy = new StackMetadataOutputRetrievalStrategy(
@@ -150,7 +150,7 @@ describe('StackMetadataOutputRetrievalStrategy', () => {
         stackNameResolverMock
       );
 
-      await assert.rejects(retrievalStrategy.fetchAllOutputs(), {
+      await assert.rejects(retrievalStrategy.fetchAllOutput(), {
         message: 'Output testName2 not found in stack',
       });
     });
@@ -202,8 +202,8 @@ describe('StackMetadataOutputRetrievalStrategy', () => {
         }),
       } as CloudFormationClient;
 
-      const stackNameResolverMock: BackendStackResolver = {
-        resolveStackName: mock.fn(async () => 'testMainStack'),
+      const stackNameResolverMock: MainStackNameResolver = {
+        resolveMainStackName: mock.fn(async () => 'testMainStack'),
       };
 
       const retrievalStrategy = new StackMetadataOutputRetrievalStrategy(
@@ -211,7 +211,7 @@ describe('StackMetadataOutputRetrievalStrategy', () => {
         stackNameResolverMock
       );
 
-      const output = await retrievalStrategy.fetchAllOutputs();
+      const output = await retrievalStrategy.fetchAllOutput();
       assert.deepStrictEqual(output, {
         testPackage: {
           constructVersion: '1.0.0',

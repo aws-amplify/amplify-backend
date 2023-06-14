@@ -27,6 +27,6 @@ export class DefaultClientConfigGenerator implements ClientConfigGenerator {
    * TODO right now this is just a pass through. But there will be translation logic here
    */
   async generateClientConfig(): Promise<ClientConfig> {
-    return await this.outputRetrievalStrategy.fetchAllOutputs();
+    return await this.outputRetrievalStrategy.fetchAllOutput();
   }
 }

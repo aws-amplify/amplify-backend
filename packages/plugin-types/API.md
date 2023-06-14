@@ -27,7 +27,7 @@ export type BackendStackCreator = {
 };
 
 // @public
-export type BackendStackResolver = {
+export type MainStackNameResolver = {
     resolveStackName(): Promise<string>;
 };
 

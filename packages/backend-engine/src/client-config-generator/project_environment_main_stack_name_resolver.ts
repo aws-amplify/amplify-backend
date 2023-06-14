@@ -1,5 +1,5 @@
 import {
-  BackendStackResolver,
+  MainStackNameResolver,
   ProjectEnvironmentIdentifier,
 } from '@aws-amplify/plugin-types';
 import { GetParameterCommand, SSMClient } from '@aws-sdk/client-ssm';
@@ -8,8 +8,8 @@ import { getProjectEnvironmentMainStackSSMParameterKey } from '../backend-output
 /**
  * Resolves the main stack name for a given project environment
  */
-export class ProjectEnvironmentBackendStackResolver
-  implements BackendStackResolver
+export class ProjectEnvironmentMainStackNameResolver
+  implements MainStackNameResolver
 {
   /**
    * Initialize with the project environment identifier and an SSMClient
@@ -22,7 +22,7 @@ export class ProjectEnvironmentBackendStackResolver
   /**
    * Resolve the stack name for this project environment
    */
-  async resolveStackName(): Promise<string> {
+  async resolveMainStackName(): Promise<string> {
     const paramName = getProjectEnvironmentMainStackSSMParameterKey(
       this.projectEnvironmentIdentifier
     );
