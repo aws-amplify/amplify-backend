@@ -22,16 +22,6 @@ export type AmplifyOutputWriter = {
 export type BackendIdentifier = StackIdentifier | ProjectEnvironmentIdentifier;
 
 // @public
-export type MainStackCreator = {
-    createStack(scope: Construct): Stack;
-};
-
-// @public
-export type MainStackNameResolver = {
-    resolveStackName(): Promise<string>;
-};
-
-// @public
 export type ConstructCache = {
     getOrCompute(generator: ConstructCacheEntryGenerator): Construct;
 };
@@ -51,8 +41,18 @@ export type ConstructFactory<Instance extends Construct> = {
 export type ConstructPackageName = string;
 
 // @public
+export type MainStackCreator = {
+    getOrCreateMainStack(): Stack;
+};
+
+// @public
+export type MainStackNameResolver = {
+    resolveMainStackName(): Promise<string>;
+};
+
+// @public
 export type OutputRetrievalStrategy = {
-    fetchAllOutputs(): Promise<AmplifyBackendOutput>;
+    fetchAllOutput(): Promise<AmplifyBackendOutput>;
 };
 
 // @public
@@ -61,6 +61,7 @@ export type OutputStorageStrategy = {
     constructPackage: string,
     constructVersion: string,
     data: Record<string, string>): void;
+    flush(): void;
 };
 
 // @public

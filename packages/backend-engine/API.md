@@ -11,7 +11,6 @@ import { Construct } from 'constructs';
 import { ConstructCache } from '@aws-amplify/plugin-types';
 import { ConstructCacheEntryGenerator } from '@aws-amplify/plugin-types';
 import { OutputStorageStrategy } from '@aws-amplify/plugin-types';
-import { ProjectEnvironmentIdentifier } from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
 
 // @public
@@ -21,9 +20,6 @@ export class AmplifyStack extends Stack {
 
 // @public
 export const generateClientConfig: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier) => Promise<void>;
-
-// @public
-export const getProjectEnvironmentMainStackSSMParameterKey: (projectEnvironmentIdentifier: ProjectEnvironmentIdentifier) => string;
 
 // @public
 export class NestedStackResolver implements StackResolver {
@@ -40,6 +36,7 @@ export class SingletonConstructCache implements ConstructCache {
 // @public
 export class StackMetadataOutputStorageStrategy implements OutputStorageStrategy {
     constructor(stack: Stack);
+    flush(): void;
     storeOutput(constructPackage: string, constructVersion: string, data: Record<string, string>): void;
 }
 
