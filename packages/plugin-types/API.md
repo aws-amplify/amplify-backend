@@ -7,8 +7,6 @@
 import { Construct } from 'constructs';
 import { Stack } from 'aws-cdk-lib';
 
-// Warning: (ae-forgotten-export) The symbol "ConstructPackageName" needs to be exported by the entry point index.d.ts
-//
 // @public
 export type AmplifyBackendOutput = Record<ConstructPackageName, {
     constructVersion: string;
@@ -20,15 +18,15 @@ export type AmplifyOutputWriter = {
     storeOutput(outputStorageStrategy: OutputStorageStrategy): void;
 };
 
-// @public (undocumented)
+// @public
 export type BackendIdentifier = StackIdentifier | ProjectEnvironmentIdentifier;
 
-// @public (undocumented)
+// @public
 export type BackendStackCreator = {
     createStack(scope: Construct): Stack;
 };
 
-// @public (undocumented)
+// @public
 export type BackendStackResolver = {
     resolveStackName(): Promise<string>;
 };
@@ -50,6 +48,9 @@ export type ConstructFactory<Instance extends Construct> = {
 };
 
 // @public
+export type ConstructPackageName = string;
+
+// @public
 export type OutputRetrievalStrategy = {
     fetchAllOutputs(): Promise<AmplifyBackendOutput>;
 };
@@ -62,13 +63,13 @@ export type OutputStorageStrategy = {
     data: Record<string, string>): void;
 };
 
-// @public (undocumented)
+// @public
 export type ProjectEnvironmentIdentifier = {
     projectName: string;
     environmentName: string;
 };
 
-// @public (undocumented)
+// @public
 export type StackIdentifier = {
     stackName: string;
 };
