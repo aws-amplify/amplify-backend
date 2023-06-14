@@ -7,5 +7,5 @@ export type OutputRetrievalStrategy = {
   /**
    * Get all the output associated with the backend
    */
-  fetchAllOutputs(): Promise<AmplifyBackendOutput>;
+  fetchAllOutput(): Promise<AmplifyBackendOutput>;
 };
