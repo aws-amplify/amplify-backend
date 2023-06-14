@@ -1,5 +1,5 @@
 import { describe, it } from 'node:test';
-import { ConstructFactory } from '../../plugin-types';
+import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import { Backend } from './backend.js';
