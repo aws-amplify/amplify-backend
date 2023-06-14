@@ -16,9 +16,11 @@
     "sourceType": "module",
     "project": ["tsconfig.eslint.json"]
   },
-  "plugins": ["@typescript-eslint", "unicorn", "jsdoc"],
+  "plugins": ["@typescript-eslint", "unicorn", "jsdoc", "import"],
   "rules": {
     "@typescript-eslint/switch-exhaustiveness-check": "error",
+    "no-duplicate-imports": "error",
+    "import/no-extraneous-dependencies": "error",
     "unicorn/filename-case": [
       "error",
       {

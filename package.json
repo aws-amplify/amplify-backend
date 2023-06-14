@@ -48,6 +48,7 @@
     "eslint": "^8.38.0",
     "eslint-config-prettier": "^8.8.0",
     "eslint-config-xo-typescript": "^0.57.0",
+    "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-jsdoc": "^43.0.6",
     "eslint-plugin-unicorn": "^46.0.0",
     "execa": "^7.1.1",
