@@ -6,7 +6,7 @@ import assert from 'node:assert';
 import { Construct } from 'constructs';
 import { Queue } from 'aws-cdk-lib/aws-sqs';
 import { NestedStackResolver } from './nested_stack_resolver.js';
-import { ConstructCacheEntryGenerator } from '../../plugin-types';
+import { ConstructCacheEntryGenerator } from '@aws-amplify/plugin-types';
 
 describe('SingletonConstructCache', () => {
   describe('resolve', () => {
