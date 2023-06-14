@@ -9,6 +9,7 @@ import {
   OutputRetrievalStrategy,
 } from '@aws-amplify/plugin-types';
 import { backendOutputSchema } from './backend_output_schemas.js';
+import { amplifyStackMetadataKey } from './amplify_stack_metadata_key.js';
 
 /**
  * Gets Amplify backend outputs from stack metadata and outputs
@@ -41,10 +42,12 @@ export class StackMetadataOutputRetrievalStrategy
       throw new Error('Stack template metadata is not a string');
     }
 
-    // parse and validate the stack metadata
-    const metadata = backendOutputSchema.parse(
-      JSON.parse(templateSummary.Metadata)
-    );
+    const metadataObject = JSON.parse(templateSummary.Metadata);
+
+    const unvalidatedBackendOutput = metadataObject[amplifyStackMetadataKey];
+
+    // parse and validate the metadata object
+    const backendOutput = backendOutputSchema.parse(unvalidatedBackendOutput);
 
     // DescribeStacks includes the template output
     const stackDescription = await this.cfnClient.send(
@@ -70,7 +73,7 @@ export class StackMetadataOutputRetrievalStrategy
 
     // now we iterate over the metadata entries and reconstruct the data object based on the stackOutputs that each construct package set
     const result: AmplifyBackendOutput = {};
-    Object.entries(metadata).forEach(([constructPackageName, entry]) => {
+    Object.entries(backendOutput).forEach(([constructPackageName, entry]) => {
       const constructData = entry.stackOutputs.reduce(
         (accumulator, outputName) => ({
           ...accumulator,

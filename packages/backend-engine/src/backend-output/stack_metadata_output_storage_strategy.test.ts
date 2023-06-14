@@ -3,6 +3,7 @@ import { StackMetadataOutputStorageStrategy } from './stack_metadata_output_stor
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import { backendOutputSchema } from './backend_output_schemas.js';
+import { amplifyStackMetadataKey } from './amplify_stack_metadata_key.js';
 
 describe('StackMetadataOutputStorageStrategy', () => {
   describe('storeOutput', () => {
@@ -13,14 +14,17 @@ describe('StackMetadataOutputStorageStrategy', () => {
       outputStorage.storeOutput('test-package', '2.0.0', {
         something: 'special',
       });
+      outputStorage.flush();
 
       const template = Template.fromStack(stack);
       template.hasOutput('something', { Value: 'special' });
       template.templateMatches({
         Metadata: {
-          'test-package': {
-            constructVersion: '2.0.0',
-            stackOutputs: ['something'],
+          [amplifyStackMetadataKey]: {
+            'test-package': {
+              constructVersion: '2.0.0',
+              stackOutputs: ['something'],
+            },
           },
         },
       });
@@ -33,10 +37,13 @@ describe('StackMetadataOutputStorageStrategy', () => {
       outputStorage.storeOutput('test-package', '2.0.0', {
         something: 'special',
       });
+      outputStorage.flush();
 
       const template = Template.fromStack(stack);
       // successfully parsing the metadata means it validated against the schema
-      backendOutputSchema.parse(template.toJSON().Metadata);
+      backendOutputSchema.parse(
+        template.toJSON().Metadata[amplifyStackMetadataKey]
+      );
     });
   });
 });

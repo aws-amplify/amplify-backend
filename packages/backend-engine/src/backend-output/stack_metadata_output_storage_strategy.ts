@@ -1,6 +1,7 @@
 import { OutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { CfnOutput, Stack } from 'aws-cdk-lib';
-import { OutputEntry } from './backend_output_schemas.js';
+import { BackendOutput } from './backend_output_schemas.js';
+import { amplifyStackMetadataKey } from './amplify_stack_metadata_key.js';
 
 /**
  * Implementation of OutputStorageStrategy that stores config data in stack metadata and outputs
@@ -8,6 +9,7 @@ import { OutputEntry } from './backend_output_schemas.js';
 export class StackMetadataOutputStorageStrategy
   implements OutputStorageStrategy
 {
+  private readonly metadata: BackendOutput = {};
   /**
    * Initialize the instance with a stack.
    *
@@ -16,7 +18,9 @@ export class StackMetadataOutputStorageStrategy
   constructor(private readonly stack: Stack) {}
 
   /**
-   * Store construct output as stack metadata and output
+   * Store construct output as stack output and add pending metadata to the metadata object.
+   *
+   * Metadata is not written to the stack until flush() is called
    */
   storeOutput(
     constructPackage: string,
@@ -28,11 +32,16 @@ export class StackMetadataOutputStorageStrategy
       new CfnOutput(this.stack, key, { value });
     });
 
-    const outputEntry: OutputEntry = {
+    this.metadata[constructPackage] = {
       constructVersion,
       stackOutputs: Object.keys(data),
     };
+  }
 
-    this.stack.addMetadata(constructPackage, outputEntry);
+  /**
+   * Persists the metadata object to the stack metadata
+   */
+  flush(): void {
+    this.stack.addMetadata(amplifyStackMetadataKey, this.metadata);
   }
 }
