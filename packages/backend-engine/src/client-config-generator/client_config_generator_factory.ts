@@ -18,7 +18,6 @@ import { ProjectEnvironmentMainStackNameResolver } from './project_environment_m
  */
 export class ClientConfigGeneratorFactory {
   private readonly cfnClient: CloudFormationClient;
-  private readonly ssmClient: SSMClient;
   /**
    * Provide the factory with AWS credentials. These credentials will be used to configure underlying SDK clients for resolving backend output.
    */
