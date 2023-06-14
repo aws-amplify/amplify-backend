@@ -75,10 +75,15 @@ export class StackMetadataOutputRetrievalStrategy
     const result: AmplifyBackendOutput = {};
     Object.entries(backendOutput).forEach(([constructPackageName, entry]) => {
       const constructData = entry.stackOutputs.reduce(
-        (accumulator, outputName) => ({
-          ...accumulator,
-          [outputName]: outputRecord[outputName],
-        }),
+        (accumulator, outputName) => {
+          if (outputRecord[outputName] === undefined) {
+            throw new Error(`Output ${outputName} not found in stack`);
+          }
+          return {
+            ...accumulator,
+            [outputName]: outputRecord[outputName],
+          };
+        },
         {} as Record<string, string>
       );
       result[constructPackageName] = {
