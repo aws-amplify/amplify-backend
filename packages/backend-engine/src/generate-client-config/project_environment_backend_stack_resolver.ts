@@ -6,13 +6,13 @@ import { GetParameterCommand, SSMClient } from '@aws-sdk/client-ssm';
 import { getProjectEnvironmentMainStackSSMParameterKey } from '../backend-output/get_project_environment_main_stack_ssm_parameter_key.js';
 
 /**
- * Can create stacks and resolve stack names for a given project environment
+ * Resolves the main stack name for a given project environment
  */
 export class ProjectEnvironmentBackendStackResolver
   implements BackendStackResolver
 {
   /**
-   * Initialize with the project environment identifier
+   * Initialize with the project environment identifier and an SSMClient
    */
   constructor(
     private readonly ssmClient: SSMClient,

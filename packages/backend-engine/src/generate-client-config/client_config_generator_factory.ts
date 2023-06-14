@@ -10,7 +10,7 @@ import {
   ProjectEnvironmentIdentifier,
   StackIdentifier,
 } from '@aws-amplify/plugin-types';
-import { StackNameBackendIdentificationStrategy } from './stack_name_backend_stack_resolver.js';
+import { StackNameBackendStackResolver } from './stack_name_backend_stack_resolver.js';
 import { ProjectEnvironmentBackendStackResolver } from './project_environment_backend_stack_resolver.js';
 
 /**
@@ -36,7 +36,7 @@ export class ClientConfigGeneratorFactory {
     return new DefaultClientConfigGenerator(
       new StackMetadataOutputRetrievalStrategy(
         this.cfnClient,
-        new StackNameBackendIdentificationStrategy(stackIdentifier.stackName)
+        new StackNameBackendStackResolver(stackIdentifier.stackName)
       )
     );
   }
