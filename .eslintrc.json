@@ -7,8 +7,7 @@
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
     "plugin:jsdoc/recommended-typescript-error",
-    "prettier",
-    "plugin:import/recommended"
+    "prettier"
   ],
   "overrides": [],
   "parser": "@typescript-eslint/parser",
