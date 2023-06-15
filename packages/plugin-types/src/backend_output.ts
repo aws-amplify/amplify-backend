@@ -1,10 +1,12 @@
 /**
  * The shape of the config values that defines an Amplify backend
  */
-export type BackendOutput = Record<
-  ConstructPackageName,
-  { constructVersion: string; data: Record<string, string> }
->;
+export type BackendOutput = Record<ConstructPackageName, BackendOutputValue>;
+
+export type BackendOutputValue = {
+  constructVersion: string;
+  data: Record<string, string>;
+};
 
 /**
  * Alias for a string that represents a construct package name

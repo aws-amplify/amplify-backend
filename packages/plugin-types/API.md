@@ -8,18 +8,34 @@ import { Construct } from 'constructs';
 import { Stack } from 'aws-cdk-lib';
 
 // @public
-export type BackendOutput = Record<ConstructPackageName, {
-    constructVersion: string;
-    data: Record<string, string>;
-}>;
+export type BackendIdentifier = StackIdentifier | ProjectEnvironmentIdentifier;
 
 // @public
-export type AmplifyOutputWriter = {
-    storeOutput(outputStorageStrategy: OutputStorageStrategy): void;
+export type BackendOutput = Record<ConstructPackageName, BackendOutputValue>;
+
+// @public
+export type BackendOutputRetrievalStrategy = {
+    fetchBackendOutput(): Promise<BackendOutput>;
 };
 
 // @public
-export type BackendIdentifier = StackIdentifier | ProjectEnvironmentIdentifier;
+export type BackendOutputStorageStrategy = {
+    addBackendOutputEntry(
+    constructPackage: ConstructPackageName,
+    backendOutputValue: BackendOutputValue): void;
+    flush(): void;
+};
+
+// @public (undocumented)
+export type BackendOutputValue = {
+    constructVersion: string;
+    data: Record<string, string>;
+};
+
+// @public
+export type BackendOutputWriter = {
+    storeOutput(outputStorageStrategy: BackendOutputStorageStrategy): void;
+};
 
 // @public
 export type ConstructCache = {
@@ -34,7 +50,7 @@ export type ConstructCacheEntryGenerator = {
 
 // @public
 export type ConstructFactory<Instance extends Construct> = {
-    getInstance(resolver: ConstructCache, outputStorageStrategy: OutputStorageStrategy): Instance;
+    getInstance(resolver: ConstructCache, outputStorageStrategy: BackendOutputStorageStrategy): Instance;
 };
 
 // @public
@@ -48,20 +64,6 @@ export type MainStackCreator = {
 // @public
 export type MainStackNameResolver = {
     resolveMainStackName(): Promise<string>;
-};
-
-// @public
-export type OutputRetrievalStrategy = {
-    fetchBackendOutput(): Promise<BackendOutput>;
-};
-
-// @public
-export type OutputStorageStrategy = {
-    storeOutput(
-    constructPackage: string,
-    constructVersion: string,
-    data: Record<string, string>): void;
-    flush(): void;
 };
 
 // @public

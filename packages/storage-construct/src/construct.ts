@@ -1,8 +1,8 @@
 import { Construct } from 'constructs';
 import { Bucket, BucketProps } from 'aws-cdk-lib/aws-s3';
 import {
-  AmplifyOutputWriter,
-  OutputStorageStrategy,
+  BackendOutputStorageStrategy,
+  BackendOutputWriter,
 } from '@aws-amplify/plugin-types';
 import packageJson from '#package.json';
 
@@ -15,7 +15,7 @@ export type AmplifyStorageProps = {
  *
  * Currently just a thin wrapper around an S3 bucket
  */
-export class AmplifyStorage extends Construct implements AmplifyOutputWriter {
+export class AmplifyStorage extends Construct implements BackendOutputWriter {
   private readonly bucket: Bucket;
   /**
    * Create a new AmplifyStorage instance
@@ -27,15 +27,18 @@ export class AmplifyStorage extends Construct implements AmplifyOutputWriter {
       versioned: props.versioned || false,
     };
 
-    this.bucket = new Bucket(scope, `${id}Bucket`, bucketProps);
+    this.bucket = new Bucket(this, `${id}Bucket`, bucketProps);
   }
 
   /**
    * Store storage outputs using provided strategy
    */
-  storeOutput(outputStorageStrategy: OutputStorageStrategy): void {
-    outputStorageStrategy.storeOutput(packageJson.name, packageJson.version, {
-      bucketName: this.bucket.bucketName,
+  storeOutput(outputStorageStrategy: BackendOutputStorageStrategy): void {
+    outputStorageStrategy.addBackendOutputEntry(packageJson.name, {
+      constructVersion: packageJson.version,
+      data: {
+        bucketName: this.bucket.bucketName,
+      },
     });
   }
 }

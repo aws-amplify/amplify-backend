@@ -4,13 +4,13 @@ import {
   DescribeStacksCommand,
   GetTemplateSummaryCommand,
 } from '@aws-sdk/client-cloudformation';
-import { StackMetadataOutputRetrievalStrategy } from './stack_metadata_output_retrieval_strategy.js';
+import { StackMetadataBackendOutputRetrievalStrategy } from './stack_metadata_output_retrieval_strategy.js';
 import { MainStackNameResolver } from '@aws-amplify/plugin-types';
 import assert from 'node:assert';
 import { amplifyStackMetadataKey } from './amplify_stack_metadata_key.js';
 import { ZodError } from 'zod';
 
-describe('StackMetadataOutputRetrievalStrategy', () => {
+describe('StackMetadataBackendOutputRetrievalStrategy', () => {
   describe('fetchBackendOutput', () => {
     it('throws if stack does not have metadata', async () => {
       const cfnClientMock = {
@@ -27,7 +27,7 @@ describe('StackMetadataOutputRetrievalStrategy', () => {
         resolveMainStackName: mock.fn(async () => 'testMainStack'),
       };
 
-      const retrievalStrategy = new StackMetadataOutputRetrievalStrategy(
+      const retrievalStrategy = new StackMetadataBackendOutputRetrievalStrategy(
         cfnClientMock,
         stackNameResolverMock
       );
@@ -67,7 +67,7 @@ describe('StackMetadataOutputRetrievalStrategy', () => {
         resolveMainStackName: mock.fn(async () => 'testMainStack'),
       };
 
-      const retrievalStrategy = new StackMetadataOutputRetrievalStrategy(
+      const retrievalStrategy = new StackMetadataBackendOutputRetrievalStrategy(
         cfnClientMock,
         stackNameResolverMock
       );
@@ -99,7 +99,7 @@ describe('StackMetadataOutputRetrievalStrategy', () => {
         resolveMainStackName: mock.fn(async () => 'testMainStack'),
       };
 
-      const retrievalStrategy = new StackMetadataOutputRetrievalStrategy(
+      const retrievalStrategy = new StackMetadataBackendOutputRetrievalStrategy(
         cfnClientMock,
         stackNameResolverMock
       );
@@ -145,7 +145,7 @@ describe('StackMetadataOutputRetrievalStrategy', () => {
         resolveMainStackName: mock.fn(async () => 'testMainStack'),
       };
 
-      const retrievalStrategy = new StackMetadataOutputRetrievalStrategy(
+      const retrievalStrategy = new StackMetadataBackendOutputRetrievalStrategy(
         cfnClientMock,
         stackNameResolverMock
       );
@@ -206,7 +206,7 @@ describe('StackMetadataOutputRetrievalStrategy', () => {
         resolveMainStackName: mock.fn(async () => 'testMainStack'),
       };
 
-      const retrievalStrategy = new StackMetadataOutputRetrievalStrategy(
+      const retrievalStrategy = new StackMetadataBackendOutputRetrievalStrategy(
         cfnClientMock,
         stackNameResolverMock
       );

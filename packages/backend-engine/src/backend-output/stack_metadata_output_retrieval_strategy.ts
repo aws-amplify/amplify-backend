@@ -5,17 +5,17 @@ import {
 } from '@aws-sdk/client-cloudformation';
 import {
   BackendOutput,
+  BackendOutputRetrievalStrategy,
   MainStackNameResolver,
-  OutputRetrievalStrategy,
 } from '@aws-amplify/plugin-types';
-import { backendOutputSchema } from './backend_output_schemas.js';
+import { backendOutputStackMetadataSchema } from './backend_output_schemas.js';
 import { amplifyStackMetadataKey } from './amplify_stack_metadata_key.js';
 
 /**
  * Gets Amplify backend outputs from stack metadata and outputs
  */
-export class StackMetadataOutputRetrievalStrategy
-  implements OutputRetrievalStrategy
+export class StackMetadataBackendOutputRetrievalStrategy
+  implements BackendOutputRetrievalStrategy
 {
   /**
    * Instantiate with a CloudFormationClient and a StackNameResolver
@@ -47,7 +47,9 @@ export class StackMetadataOutputRetrievalStrategy
     const unvalidatedBackendOutput = metadataObject[amplifyStackMetadataKey];
 
     // parse and validate the metadata object
-    const backendOutput = backendOutputSchema.parse(unvalidatedBackendOutput);
+    const backendOutput = backendOutputStackMetadataSchema.parse(
+      unvalidatedBackendOutput
+    );
 
     // DescribeStacks includes the template output
     const stackDescription = await this.cfnClient.send(

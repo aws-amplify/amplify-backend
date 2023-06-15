@@ -1,6 +1,6 @@
 import {
   BackendOutput,
-  OutputRetrievalStrategy,
+  BackendOutputRetrievalStrategy,
 } from '@aws-amplify/plugin-types';
 
 export type ClientConfigGenerator = {
@@ -21,7 +21,7 @@ export class DefaultClientConfigGenerator implements ClientConfigGenerator {
    * Provide a reference to how this config generator should retrieve backend output
    */
   constructor(
-    private readonly outputRetrievalStrategy: OutputRetrievalStrategy
+    private readonly outputRetrievalStrategy: BackendOutputRetrievalStrategy
   ) {}
 
   /**

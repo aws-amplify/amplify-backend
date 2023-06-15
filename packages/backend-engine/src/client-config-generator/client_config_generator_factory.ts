@@ -5,7 +5,7 @@ import {
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { SSMClient } from '@aws-sdk/client-ssm';
-import { StackMetadataOutputRetrievalStrategy } from '../backend-output/stack_metadata_output_retrieval_strategy.js';
+import { StackMetadataBackendOutputRetrievalStrategy } from '../backend-output/stack_metadata_output_retrieval_strategy.js';
 import {
   ProjectEnvironmentIdentifier,
   StackIdentifier,
@@ -33,7 +33,7 @@ export class ClientConfigGeneratorFactory {
    */
   fromStackIdentifier(stackIdentifier: StackIdentifier): ClientConfigGenerator {
     return new DefaultClientConfigGenerator(
-      new StackMetadataOutputRetrievalStrategy(
+      new StackMetadataBackendOutputRetrievalStrategy(
         this.cfnClient,
         new StackNameMainStackNameResolver(stackIdentifier.stackName)
       )
@@ -47,7 +47,7 @@ export class ClientConfigGeneratorFactory {
     projectEnvironmentIdentifier: ProjectEnvironmentIdentifier
   ): ClientConfigGenerator {
     return new DefaultClientConfigGenerator(
-      new StackMetadataOutputRetrievalStrategy(
+      new StackMetadataBackendOutputRetrievalStrategy(
         this.cfnClient,
         new ProjectEnvironmentMainStackNameResolver(
           new SSMClient({ credentials: this.credentialProvider }),
