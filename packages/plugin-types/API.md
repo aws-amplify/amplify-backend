@@ -8,7 +8,7 @@ import { Construct } from 'constructs';
 import { Stack } from 'aws-cdk-lib';
 
 // @public
-export type AmplifyBackendOutput = Record<ConstructPackageName, {
+export type BackendOutput = Record<ConstructPackageName, {
     constructVersion: string;
     data: Record<string, string>;
 }>;
@@ -52,7 +52,7 @@ export type MainStackNameResolver = {
 
 // @public
 export type OutputRetrievalStrategy = {
-    fetchBackendOutput(): Promise<AmplifyBackendOutput>;
+    fetchBackendOutput(): Promise<BackendOutput>;
 };
 
 // @public

@@ -155,7 +155,7 @@ describe('StackMetadataOutputRetrievalStrategy', () => {
       });
     });
 
-    it('returns expected AmplifyBackendOutput', async () => {
+    it('returns expected BackendOutput', async () => {
       const cfnClientMock = {
         send: mock.fn((command) => {
           if (command instanceof GetTemplateSummaryCommand) {

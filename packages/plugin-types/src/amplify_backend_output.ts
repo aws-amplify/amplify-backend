@@ -1,7 +1,7 @@
 /**
  * The shape of the config values that defines an Amplify backend
  */
-export type AmplifyBackendOutput = Record<
+export type BackendOutput = Record<
   ConstructPackageName,
   { constructVersion: string; data: Record<string, string> }
 >;
