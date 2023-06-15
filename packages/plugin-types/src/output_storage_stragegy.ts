@@ -16,4 +16,9 @@ export type OutputStorageStrategy = {
      */
     data: Record<string, string>
   ): void;
+
+  /**
+   * Write all pending data to the destination
+   */
+  flush(): void;
 };

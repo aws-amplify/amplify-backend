@@ -4,6 +4,8 @@
 
 ```ts
 
+import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { CfnElement } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { ConstructCache } from '@aws-amplify/plugin-types';
@@ -13,27 +15,16 @@ import { Stack } from 'aws-cdk-lib';
 
 // @public
 export class AmplifyStack extends Stack {
-    constructor(scope: Construct, id: string, props: AmplifyStackProps);
     allocateLogicalId(element: CfnElement): string;
-    readonly projectEnvironmentIdentifier: ProjectEnvironmentIdentifier;
 }
 
 // @public
-export type AmplifyStackProps = {
-    readonly projectEnvironmentIdentifier: ProjectEnvironmentIdentifier;
-};
+export const generateClientConfig: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier) => Promise<void>;
 
 // @public
 export class NestedStackResolver implements StackResolver {
     constructor(rootStack: Stack);
     getStackFor(resourceGroupName: string): Stack;
-}
-
-// @public
-export class ProjectEnvironmentIdentifier {
-    constructor(projectName: string, environmentName: string);
-    toOutputStackSSMParameterName(): string;
-    toStackName(): string;
 }
 
 // @public
@@ -45,6 +36,7 @@ export class SingletonConstructCache implements ConstructCache {
 // @public
 export class StackMetadataOutputStorageStrategy implements OutputStorageStrategy {
     constructor(stack: Stack);
+    flush(): void;
     storeOutput(constructPackage: string, constructVersion: string, data: Record<string, string>): void;
 }
 

@@ -5,11 +5,21 @@
 ```ts
 
 import { Construct } from 'constructs';
+import { Stack } from 'aws-cdk-lib';
+
+// @public
+export type AmplifyBackendOutput = Record<ConstructPackageName, {
+    constructVersion: string;
+    data: Record<string, string>;
+}>;
 
 // @public
 export type AmplifyOutputWriter = {
     storeOutput(outputStorageStrategy: OutputStorageStrategy): void;
 };
+
+// @public
+export type BackendIdentifier = StackIdentifier | ProjectEnvironmentIdentifier;
 
 // @public
 export type ConstructCache = {
@@ -28,11 +38,41 @@ export type ConstructFactory<Instance extends Construct> = {
 };
 
 // @public
+export type ConstructPackageName = string;
+
+// @public
+export type MainStackCreator = {
+    getOrCreateMainStack(): Stack;
+};
+
+// @public
+export type MainStackNameResolver = {
+    resolveMainStackName(): Promise<string>;
+};
+
+// @public
+export type OutputRetrievalStrategy = {
+    fetchBackendOutput(): Promise<AmplifyBackendOutput>;
+};
+
+// @public
 export type OutputStorageStrategy = {
     storeOutput(
     constructPackage: string,
     constructVersion: string,
     data: Record<string, string>): void;
+    flush(): void;
+};
+
+// @public
+export type ProjectEnvironmentIdentifier = {
+    projectName: string;
+    environmentName: string;
+};
+
+// @public
+export type StackIdentifier = {
+    stackName: string;
 };
 
 // (No @packageDocumentation comment for this package)
