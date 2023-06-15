@@ -13,7 +13,7 @@ import { ConstructFactory } from '@aws-amplify/plugin-types';
 // @public
 export class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth> {
     constructor(props: AmplifyAuthProps);
-    getInstance(cache: ConstructCache, outputStorageStrategy: BackendOutputStorageStrategy): AmplifyAuth;
+    getInstance(cache: ConstructCache, backendOutputStorageStrategy: BackendOutputStorageStrategy): AmplifyAuth;
 }
 
 // @public
