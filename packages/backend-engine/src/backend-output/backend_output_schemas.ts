@@ -1,6 +1,11 @@
 import { z } from 'zod';
 
 /**
+ * The types here are meant to be used internally when reading / writing backend output to stack metadata
+ * They should not be exposed in public APIs
+ */
+
+/**
  * Data schema for storing a backend output entry using stack metadata
  */
 export const backendOutputEntryStackMetadataSchema = z.object({
