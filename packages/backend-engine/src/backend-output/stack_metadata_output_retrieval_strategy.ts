@@ -1,0 +1,96 @@
+import {
+  CloudFormationClient,
+  DescribeStacksCommand,
+  GetTemplateSummaryCommand,
+} from '@aws-sdk/client-cloudformation';
+import {
+  AmplifyBackendOutput,
+  MainStackNameResolver,
+  OutputRetrievalStrategy,
+} from '@aws-amplify/plugin-types';
+import { backendOutputSchema } from './backend_output_schemas.js';
+import { amplifyStackMetadataKey } from './amplify_stack_metadata_key.js';
+
+/**
+ * Gets Amplify backend outputs from stack metadata and outputs
+ */
+export class StackMetadataOutputRetrievalStrategy
+  implements OutputRetrievalStrategy
+{
+  /**
+   * Instantiate with a CloudFormationClient and a StackNameResolver
+   */
+  constructor(
+    private readonly cfnClient: CloudFormationClient,
+    private readonly stackNameResolver: MainStackNameResolver
+  ) {}
+
+  /**
+   * Resolves the stackName, then queries CFN for the stack metadata and outputs
+   *
+   * It combines the metadata and outputs to reconstruct the data object that was provided by the Amplify constructs when writing the output.
+   * Except now the data contains the resolved values of the deployed resources rather than CFN references
+   */
+  async fetchBackendOutput(): Promise<AmplifyBackendOutput> {
+    const stackName = await this.stackNameResolver.resolveMainStackName();
+
+    // GetTemplateSummary includes the template metadata as a string
+    const templateSummary = await this.cfnClient.send(
+      new GetTemplateSummaryCommand({ StackName: stackName })
+    );
+    if (typeof templateSummary.Metadata !== 'string') {
+      throw new Error('Stack template metadata is not a string');
+    }
+
+    const metadataObject = JSON.parse(templateSummary.Metadata);
+
+    const unvalidatedBackendOutput = metadataObject[amplifyStackMetadataKey];
+
+    // parse and validate the metadata object
+    const backendOutput = backendOutputSchema.parse(unvalidatedBackendOutput);
+
+    // DescribeStacks includes the template output
+    const stackDescription = await this.cfnClient.send(
+      new DescribeStacksCommand({ StackName: stackName })
+    );
+    const outputs = stackDescription?.Stacks?.[0]?.Outputs;
+    if (outputs === undefined) {
+      throw new Error('Stack outputs are undefined');
+    }
+
+    // outputs is a list of output entries. here we turn that into a Record<name, value> object
+    const outputRecord = outputs
+      .filter((output) => !!output.OutputValue && !!output.OutputKey)
+      .reduce(
+        (accumulator, outputEntry) => ({
+          ...accumulator,
+          // it's safe to disable this rule because we've already filtered out potentially undefined outputs
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          [outputEntry.OutputKey!]: outputEntry.OutputValue!,
+        }),
+        {} as Record<string, string>
+      );
+
+    // now we iterate over the metadata entries and reconstruct the data object based on the stackOutputs that each construct package set
+    const result: AmplifyBackendOutput = {};
+    Object.entries(backendOutput).forEach(([constructPackageName, entry]) => {
+      const constructData = entry.stackOutputs.reduce(
+        (accumulator, outputName) => {
+          if (outputRecord[outputName] === undefined) {
+            throw new Error(`Output ${outputName} not found in stack`);
+          }
+          return {
+            ...accumulator,
+            [outputName]: outputRecord[outputName],
+          };
+        },
+        {} as Record<string, string>
+      );
+      result[constructPackageName] = {
+        constructVersion: entry.constructVersion,
+        data: constructData,
+      };
+    });
+    return result;
+  }
+}

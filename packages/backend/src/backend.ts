@@ -29,5 +29,7 @@ export class Backend {
     Object.values(constructFactories).forEach((constructFactory) => {
       constructFactory.getInstance(constructCache, outputStorageStrategy);
     });
+
+    outputStorageStrategy.flush();
   }
 }

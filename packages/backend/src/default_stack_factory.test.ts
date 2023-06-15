@@ -13,4 +13,20 @@ describe('createDefaultRootStack', () => {
     assert.ok(stack instanceof AmplifyStack);
     assert.strictEqual(stack.stackName, 'testProjName-testEnvName');
   });
+
+  it('throws if project name is missing', () => {
+    const app = new App();
+    app.node.setContext('environment-name', 'testEnvName');
+    assert.throws(() => createDefaultStack(app), {
+      message: 'No context value present for project-name key',
+    });
+  });
+
+  it('throws if environment name is missing', () => {
+    const app = new App();
+    app.node.setContext('project-name', 'testProjName');
+    assert.throws(() => createDefaultStack(app), {
+      message: 'No context value present for environment-name key',
+    });
+  });
 });
