@@ -52,7 +52,7 @@ export type MainStackNameResolver = {
 
 // @public
 export type OutputRetrievalStrategy = {
-    fetchAllOutput(): Promise<AmplifyBackendOutput>;
+    fetchBackendOutput(): Promise<AmplifyBackendOutput>;
 };
 
 // @public
