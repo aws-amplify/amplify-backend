@@ -11,7 +11,7 @@ import { amplifyStackMetadataKey } from './amplify_stack_metadata_key.js';
 import { ZodError } from 'zod';
 
 describe('StackMetadataOutputRetrievalStrategy', () => {
-  describe('fetchAllOutputs', () => {
+  describe('fetchBackendOutput', () => {
     it('throws if stack does not have metadata', async () => {
       const cfnClientMock = {
         send: mock.fn((command) => {
@@ -32,7 +32,7 @@ describe('StackMetadataOutputRetrievalStrategy', () => {
         stackNameResolverMock
       );
 
-      await assert.rejects(retrievalStrategy.fetchAllOutput(), {
+      await assert.rejects(retrievalStrategy.fetchBackendOutput(), {
         message: 'Stack template metadata is not a string',
       });
     });
@@ -72,7 +72,7 @@ describe('StackMetadataOutputRetrievalStrategy', () => {
         stackNameResolverMock
       );
 
-      await assert.rejects(retrievalStrategy.fetchAllOutput(), {
+      await assert.rejects(retrievalStrategy.fetchBackendOutput(), {
         message: 'Stack outputs are undefined',
       });
     });
@@ -105,7 +105,7 @@ describe('StackMetadataOutputRetrievalStrategy', () => {
       );
 
       await assert.rejects(
-        retrievalStrategy.fetchAllOutput(),
+        retrievalStrategy.fetchBackendOutput(),
         (err) => err instanceof ZodError
       );
     });
@@ -150,7 +150,7 @@ describe('StackMetadataOutputRetrievalStrategy', () => {
         stackNameResolverMock
       );
 
-      await assert.rejects(retrievalStrategy.fetchAllOutput(), {
+      await assert.rejects(retrievalStrategy.fetchBackendOutput(), {
         message: 'Output testName2 not found in stack',
       });
     });
@@ -211,7 +211,7 @@ describe('StackMetadataOutputRetrievalStrategy', () => {
         stackNameResolverMock
       );
 
-      const output = await retrievalStrategy.fetchAllOutput();
+      const output = await retrievalStrategy.fetchBackendOutput();
       assert.deepStrictEqual(output, {
         testPackage: {
           constructVersion: '1.0.0',

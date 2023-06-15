@@ -18,7 +18,7 @@ describe('ClientConfigGenerator', () => {
         },
       };
       const outputRetrieval: OutputRetrievalStrategy = {
-        fetchAllOutput: mock.fn(async () => stubOutput),
+        fetchBackendOutput: mock.fn(async () => stubOutput),
       };
 
       const clientConfigGenerator = new DefaultClientConfigGenerator(

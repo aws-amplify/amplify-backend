@@ -31,7 +31,7 @@ export class StackMetadataOutputRetrievalStrategy
    * It combines the metadata and outputs to reconstruct the data object that was provided by the Amplify constructs when writing the output.
    * Except now the data contains the resolved values of the deployed resources rather than CFN references
    */
-  async fetchAllOutput(): Promise<AmplifyBackendOutput> {
+  async fetchBackendOutput(): Promise<AmplifyBackendOutput> {
     const stackName = await this.stackNameResolver.resolveMainStackName();
 
     // GetTemplateSummary includes the template metadata as a string

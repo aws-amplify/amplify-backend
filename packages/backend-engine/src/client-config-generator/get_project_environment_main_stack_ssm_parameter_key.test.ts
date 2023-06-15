@@ -1,6 +1,7 @@
 import { describe, it } from 'node:test';
 import { getProjectEnvironmentMainStackSSMParameterKey } from './get_project_environment_main_stack_ssm_parameter_key.js';
 import assert from 'node:assert';
+import { readFileSync } from 'fs';
 
 /**
  * !!!CAUTION!!!
@@ -15,6 +16,14 @@ describe('getProjectEnvironmentMainStackSSMParameterKey', () => {
       environmentName: 'testEnvironment',
     });
 
-    assert.equal(result, '/amplify/testProject/testEnvironment/mainStackName');
+    const expectedKey = readFileSync(
+      new URL(
+        '../../../../shared-test-assets/expected_main_stack_ssm_parameter_key.txt',
+        import.meta.url
+      ),
+      'utf-8'
+    ).trim();
+
+    assert.equal(result, expectedKey);
   });
 });

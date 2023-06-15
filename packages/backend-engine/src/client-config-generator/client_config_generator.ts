@@ -8,6 +8,7 @@ export type ClientConfigGenerator = {
 };
 
 // TODO ClientConfig will be a translation of AmplifyBackendOutput into a frontend-specific format
+// https://github.com/aws-amplify/samsara-cli/issues/48
 export type ClientConfig = AmplifyBackendOutput;
 
 /**
@@ -25,8 +26,9 @@ export class DefaultClientConfigGenerator implements ClientConfigGenerator {
 
   /**
    * TODO right now this is just a pass through. But there will be translation logic here
+   * https://github.com/aws-amplify/samsara-cli/issues/48
    */
   async generateClientConfig(): Promise<ClientConfig> {
-    return await this.outputRetrievalStrategy.fetchAllOutput();
+    return await this.outputRetrievalStrategy.fetchBackendOutput();
   }
 }
