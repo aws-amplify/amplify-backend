@@ -7,7 +7,6 @@
     "@aws-amplify/backend": "0.1.0",
     "@aws-amplify/storage-factory": "0.1.0",
     "@aws-amplify/backend-auth": "0.1.0",
-    "execa": "^7.1.1",
-    "dir-compare": "^4.0.0"
+    "glob": "^10.2.7"
   }
 }
