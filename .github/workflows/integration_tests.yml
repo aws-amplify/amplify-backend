@@ -17,5 +17,4 @@ jobs:
           cache: 'npm'
       - run: npm ci
       - run: npm run build
-      - run: npm run vend
       - run: npm run test:integration
