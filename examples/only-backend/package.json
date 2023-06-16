@@ -1,0 +1,6 @@
+{
+  "name": "only-backend",
+  "devDependencies": {
+    "aws-amplify-backend": "*"
+  }
+}
