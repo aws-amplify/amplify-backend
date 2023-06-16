@@ -1,0 +1,122 @@
+name: pr_checks
+
+on:
+  push:
+    branches: ['main']
+  pull_request:
+    branches: ['main']
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
+      - uses: actions/cache@v3
+        id: npm-cache
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - if: steps.npm-cache.outputs.cache-hit != 'true'
+        run: npm ci
+  build:
+    runs-on: ubuntu-latest
+    needs: [install]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
+      - uses: actions/cache@v3
+        id: build-cache
+        with:
+          path: '**/lib'
+          key: ${{ runner.os }}-${{ vars.GITHUB_SHA }}
+      - if: steps.build-cache.outputs.cache-hit != 'true'
+        run: npm run build
+  check_test_coverage:
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
+      - uses: actions/cache@v3
+        id: npm-cache
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          fail-on-cache-miss: true
+      - uses: actions/cache@v3
+        id: build-cache
+        with:
+          path: '**/lib'
+          key: ${{ runner.os }}-${{ vars.GITHUB_SHA }}
+          fail-on-cache-miss: true
+      - run: npm run test:coverage:threshold
+  lint:
+    runs-on: ubuntu-latest
+    needs: [install]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
+      - uses: actions/cache@v3
+        id: npm-cache
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          fail-on-cache-miss: true
+      - run: npm run lint
+  check_api_extract:
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
+      - uses: actions/cache@v3
+        id: npm-cache
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          fail-on-cache-miss: true
+      - uses: actions/cache@v3
+        id: build-cache
+        with:
+          path: '**/lib'
+          key: ${{ runner.os }}-${{ vars.GITHUB_SHA }}
+          fail-on-cache-miss: true
+      - run: npm run api:check
+  check_docs_build:
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
+      - uses: actions/cache@v3
+        id: npm-cache
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          fail-on-cache-miss: true
+      - uses: actions/cache@v3
+        id: build-cache
+        with:
+          path: '**/lib'
+          key: ${{ runner.os }}-${{ vars.GITHUB_SHA }}
+          fail-on-cache-miss: true
+      - run: npm run docs
