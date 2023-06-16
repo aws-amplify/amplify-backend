@@ -1,8 +1,0 @@
-{
-  "cases": [
-    {
-      "testRoot": "./auth-and-storage/project-root",
-      "expectedCdkOut": "./auth-and-storage/expected-cdk-out"
-    }
-  ]
-}

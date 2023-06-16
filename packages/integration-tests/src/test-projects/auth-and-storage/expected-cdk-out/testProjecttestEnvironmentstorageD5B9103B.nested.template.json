@@ -1,0 +1,16 @@
+{
+  "Resources": {
+    "amplifyStorageBucketEAC21FF6": {
+      "Type": "AWS::S3::Bucket",
+      "UpdateReplacePolicy": "Retain",
+      "DeletionPolicy": "Retain"
+    }
+  },
+  "Outputs": {
+    "testProjecttestEnvironmentstorageamplifyStorageBucket5F9F3918Ref": {
+      "Value": {
+        "Ref": "amplifyStorageBucketEAC21FF6"
+      }
+    }
+  }
+}

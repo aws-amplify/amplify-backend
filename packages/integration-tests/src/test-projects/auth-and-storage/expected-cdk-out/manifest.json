@@ -1,0 +1,108 @@
+{
+  "version": "31.0.0",
+  "artifacts": {
+    "testProject-testEnvironment.assets": {
+      "type": "cdk:asset-manifest",
+      "properties": {
+        "file": "testProject-testEnvironment.assets.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
+      }
+    },
+    "testProject-testEnvironment": {
+      "type": "aws:cloudformation:stack",
+      "environment": "aws://unknown-account/unknown-region",
+      "properties": {
+        "templateFile": "testProject-testEnvironment.template.json",
+        "validateOnSynth": false,
+        "assumeRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-deploy-role-${AWS::AccountId}-${AWS::Region}",
+        "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-cfn-exec-role-${AWS::AccountId}-${AWS::Region}",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/4a7062ad0b291f46e372d9e263e8539217c944a7a4977a54d910a9369ca7190d.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
+        "additionalDependencies": ["testProject-testEnvironment.assets"],
+        "lookupRole": {
+          "arn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-lookup-role-${AWS::AccountId}-${AWS::Region}",
+          "requiresBootstrapStackVersion": 8,
+          "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
+        }
+      },
+      "dependencies": ["testProject-testEnvironment.assets"],
+      "metadata": {
+        "/testProject-testEnvironment/amplifyStackIdentifier/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "amplifyStackIdentifier221D5C55"
+          }
+        ],
+        "/testProject-testEnvironment/auth/amplifyAuth/UserPool/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "amplifyAuthUserPool4BA7F805"
+          }
+        ],
+        "/testProject-testEnvironment/auth/testProjecttestEnvironmentauthamplifyAuthUserPoolFF81EE45Ref": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "testProjecttestEnvironmentauthamplifyAuthUserPoolFF81EE45Ref"
+          }
+        ],
+        "/testProject-testEnvironment/auth.NestedStack/auth.NestedStackResource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "auth179371D7"
+          }
+        ],
+        "/testProject-testEnvironment/userPoolId": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "userPoolId"
+          }
+        ],
+        "/testProject-testEnvironment/storage/amplifyStorageBucket/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "amplifyStorageBucketEAC21FF6"
+          }
+        ],
+        "/testProject-testEnvironment/storage/testProjecttestEnvironmentstorageamplifyStorageBucket5F9F3918Ref": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "testProjecttestEnvironmentstorageamplifyStorageBucket5F9F3918Ref"
+          }
+        ],
+        "/testProject-testEnvironment/storage.NestedStack/storage.NestedStackResource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "storage0EC3F24A"
+          }
+        ],
+        "/testProject-testEnvironment/bucketName": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "bucketName"
+          }
+        ],
+        "/testProject-testEnvironment/BootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BootstrapVersion"
+          }
+        ],
+        "/testProject-testEnvironment/CheckBootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CheckBootstrapVersion"
+          }
+        ]
+      },
+      "displayName": "testProject-testEnvironment"
+    },
+    "Tree": {
+      "type": "cdk:tree",
+      "properties": {
+        "file": "tree.json"
+      }
+    }
+  }
+}
