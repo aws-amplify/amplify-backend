@@ -32,12 +32,17 @@ jobs:
           node-version: 18
           cache: 'npm'
       - uses: actions/cache@v3
+        id: npm-cache
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          fail-on-cache-miss: true
+      - run: npm run build
+      - uses: actions/cache@v3
         id: build-cache
         with:
           path: '**/lib'
           key: ${{ runner.os }}-${{ vars.GITHUB_SHA }}
-      - if: steps.build-cache.outputs.cache-hit != 'true'
-        run: npm run build
   check_test_coverage:
     runs-on: ubuntu-latest
     needs: [build]
