@@ -3,7 +3,7 @@ import path from 'path';
 import assert from 'node:assert';
 import * as os from 'os';
 import * as fs from 'fs';
-import { validateCdkOutDir } from './validate_cdk_out_dir.js';
+import { validateCdkOutDir } from './cdk_out_dir_validator.js';
 
 export type IntegrationTestCase = {
   name: string;
