@@ -1,4 +1,4 @@
-name: pr_checks
+name: health_checks
 
 on:
   push:
@@ -15,11 +15,13 @@ jobs:
         with:
           node-version: 18
           cache: 'npm'
+      # cache node_modules based on package-lock.json hash
       - uses: actions/cache@v3
         id: npm-cache
         with:
           path: node_modules
           key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      # only install if cache miss
       - if: steps.npm-cache.outputs.cache-hit != 'true'
         run: npm ci
   build:
@@ -31,18 +33,22 @@ jobs:
         with:
           node-version: 18
           cache: 'npm'
+      # restore node_modules cache
       - uses: actions/cache@v3
         id: npm-cache
         with:
           path: node_modules
           key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}
           fail-on-cache-miss: true
-      - run: npm run build
+      # cache build output based on commit sha
       - uses: actions/cache@v3
         id: build-cache
         with:
           path: '**/lib'
           key: ${{ runner.os }}-${{ vars.GITHUB_SHA }}
+      # only build if cache miss
+      - if: steps.build-cache.outputs.cache-hit != 'true'
+        run: npm run build
   check_test_coverage:
     runs-on: ubuntu-latest
     needs: [build]
@@ -52,12 +58,14 @@ jobs:
         with:
           node-version: 18
           cache: 'npm'
+      # restore node_modules from cache
       - uses: actions/cache@v3
         id: npm-cache
         with:
           path: node_modules
           key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}
           fail-on-cache-miss: true
+      # restore build output from cache
       - uses: actions/cache@v3
         id: build-cache
         with:
@@ -74,6 +82,7 @@ jobs:
         with:
           node-version: 18
           cache: 'npm'
+      # restore node_modules from cache
       - uses: actions/cache@v3
         id: npm-cache
         with:
@@ -90,12 +99,14 @@ jobs:
         with:
           node-version: 18
           cache: 'npm'
+      # restore node_modules from cache
       - uses: actions/cache@v3
         id: npm-cache
         with:
           path: node_modules
           key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}
           fail-on-cache-miss: true
+      # restore build output from cache
       - uses: actions/cache@v3
         id: build-cache
         with:
@@ -112,12 +123,14 @@ jobs:
         with:
           node-version: 18
           cache: 'npm'
+      # restore node_modules from cache
       - uses: actions/cache@v3
         id: npm-cache
         with:
           path: node_modules
           key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}
           fail-on-cache-miss: true
+      # restore build output from cache
       - uses: actions/cache@v3
         id: build-cache
         with:
