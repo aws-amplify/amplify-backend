@@ -138,3 +138,4 @@ jobs:
           key: ${{ runner.os }}-${{ github.sha }}
           fail-on-cache-miss: true
       - run: npm run docs
+      # is this a new build?
