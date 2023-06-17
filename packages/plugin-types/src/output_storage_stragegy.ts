@@ -1,4 +1,4 @@
-import { BackendOutputValue, ConstructPackageName } from './backend_output.js';
+import { BackendOutputValue } from './backend_output.js';
 
 /**
  * Type for an object that collects output data from constructs
@@ -8,7 +8,7 @@ export type BackendOutputStorageStrategy = {
     /**
      * The package that generated this output
      */
-    constructPackage: ConstructPackageName,
+    constructPackageName: string,
     /**
      * The output of the construct
      */

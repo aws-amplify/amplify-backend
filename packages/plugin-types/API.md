@@ -11,7 +11,7 @@ import { Stack } from 'aws-cdk-lib';
 export type BackendIdentifier = StackIdentifier | ProjectEnvironmentIdentifier;
 
 // @public
-export type BackendOutput = Record<ConstructPackageName, BackendOutputValue>;
+export type BackendOutput = Record<string, BackendOutputValue>;
 
 // @public
 export type BackendOutputRetrievalStrategy = {
@@ -21,7 +21,7 @@ export type BackendOutputRetrievalStrategy = {
 // @public
 export type BackendOutputStorageStrategy = {
     addBackendOutputEntry(
-    constructPackage: ConstructPackageName,
+    constructPackageName: string,
     backendOutputValue: BackendOutputValue): void;
     flush(): void;
 };
@@ -52,9 +52,6 @@ export type ConstructCacheEntryGenerator = {
 export type ConstructFactory<Instance extends Construct> = {
     getInstance(resolver: ConstructCache, outputStorageStrategy: BackendOutputStorageStrategy): Instance;
 };
-
-// @public
-export type ConstructPackageName = string;
 
 // @public
 export type MainStackCreator = {

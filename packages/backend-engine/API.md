@@ -12,7 +12,6 @@ import { CfnElement } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { ConstructCache } from '@aws-amplify/plugin-types';
 import { ConstructCacheEntryGenerator } from '@aws-amplify/plugin-types';
-import { ConstructPackageName } from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
 
 // @public
@@ -38,7 +37,7 @@ export class SingletonConstructCache implements ConstructCache {
 // @public
 export class StackMetadataBackendOutputStorageStrategy implements BackendOutputStorageStrategy {
     constructor(stack: Stack);
-    addBackendOutputEntry(constructPackage: ConstructPackageName, backendOutputValue: BackendOutputValue): void;
+    addBackendOutputEntry(constructPackageName: string, backendOutputValue: BackendOutputValue): void;
     flush(): void;
 }
 

@@ -1,14 +1,11 @@
 /**
- * The shape of the config values that defines an Amplify backend
+ * The shape of the config values that defines an Amplify backend.
+ *
+ * Keys are the construct package name that wrote the output
  */
-export type BackendOutput = Record<ConstructPackageName, BackendOutputValue>;
+export type BackendOutput = Record<string, BackendOutputValue>;
 
 export type BackendOutputValue = {
   constructVersion: string;
   data: Record<string, string>;
 };
-
-/**
- * Alias for a string that represents a construct package name
- */
-export type ConstructPackageName = string;
