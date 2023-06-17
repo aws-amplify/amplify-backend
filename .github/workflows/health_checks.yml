@@ -45,7 +45,7 @@ jobs:
         id: build-cache
         with:
           path: '**/lib'
-          key: ${{ runner.os }}-${{ vars.GITHUB_SHA }}
+          key: ${{ runner.os }}-${{ github.sha }}
       # only build if cache miss
       - if: steps.build-cache.outputs.cache-hit != 'true'
         run: npm run build
@@ -70,7 +70,7 @@ jobs:
         id: build-cache
         with:
           path: '**/lib'
-          key: ${{ runner.os }}-${{ vars.GITHUB_SHA }}
+          key: ${{ runner.os }}-${{ github.sha }}
           fail-on-cache-miss: true
       - run: npm run test:coverage:threshold
   lint:
@@ -111,7 +111,7 @@ jobs:
         id: build-cache
         with:
           path: '**/lib'
-          key: ${{ runner.os }}-${{ vars.GITHUB_SHA }}
+          key: ${{ runner.os }}-${{ github.sha }}
           fail-on-cache-miss: true
       - run: npm run api:check
   check_docs_build:
@@ -135,6 +135,6 @@ jobs:
         id: build-cache
         with:
           path: '**/lib'
-          key: ${{ runner.os }}-${{ vars.GITHUB_SHA }}
+          key: ${{ runner.os }}-${{ github.sha }}
           fail-on-cache-miss: true
       - run: npm run docs
