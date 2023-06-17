@@ -138,3 +138,21 @@ jobs:
           key: ${{ runner.os }}-${{ github.sha }}
           fail-on-cache-miss: true
       - run: npm run docs
+  check_pr_size:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
+      # restore node_modules from cache
+      - uses: actions/cache@v3
+        id: npm-cache
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          fail-on-cache-miss: true
+      - run: git fetch origin
+      - run: npm run diff:check ${{ github.event.pull_request.base.sha }}
