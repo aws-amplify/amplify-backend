@@ -1,0 +1,184 @@
+name: health_checks
+
+on:
+  push:
+    branches: ['main']
+  pull_request:
+    branches: ['main']
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
+      # cache node_modules based on package-lock.json hash
+      - uses: actions/cache@v3
+        id: npm-cache
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      # only install if cache miss
+      - if: steps.npm-cache.outputs.cache-hit != 'true'
+        run: npm ci
+  build:
+    runs-on: ubuntu-latest
+    needs: [install]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
+      # restore node_modules cache
+      - uses: actions/cache@v3
+        id: npm-cache
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          fail-on-cache-miss: true
+      # cache build output based on commit sha
+      - uses: actions/cache@v3
+        id: build-cache
+        with:
+          path: '**/lib'
+          key: ${{ runner.os }}-${{ github.sha }}
+      # only build if cache miss
+      - if: steps.build-cache.outputs.cache-hit != 'true'
+        run: npm run build
+  check_test_coverage:
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
+      # restore node_modules from cache
+      - uses: actions/cache@v3
+        id: npm-cache
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          fail-on-cache-miss: true
+      # restore build output from cache
+      - uses: actions/cache@v3
+        id: build-cache
+        with:
+          path: '**/lib'
+          key: ${{ runner.os }}-${{ github.sha }}
+          fail-on-cache-miss: true
+      - run: npm run test:coverage:threshold
+  lint:
+    runs-on: ubuntu-latest
+    needs: [install]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
+      # restore node_modules from cache
+      - uses: actions/cache@v3
+        id: npm-cache
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          fail-on-cache-miss: true
+      - run: npm run lint
+  check_api_extract:
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
+      # restore node_modules from cache
+      - uses: actions/cache@v3
+        id: npm-cache
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          fail-on-cache-miss: true
+      # restore build output from cache
+      - uses: actions/cache@v3
+        id: build-cache
+        with:
+          path: '**/lib'
+          key: ${{ runner.os }}-${{ github.sha }}
+          fail-on-cache-miss: true
+      - run: npm run api:check
+  check_docs_build:
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
+      # restore node_modules from cache
+      - uses: actions/cache@v3
+        id: npm-cache
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          fail-on-cache-miss: true
+      # restore build output from cache
+      - uses: actions/cache@v3
+        id: build-cache
+        with:
+          path: '**/lib'
+          key: ${{ runner.os }}-${{ github.sha }}
+          fail-on-cache-miss: true
+      - run: npm run docs
+  check_pr_size:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    needs: [install]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
+      # restore node_modules from cache
+      - uses: actions/cache@v3
+        id: npm-cache
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          fail-on-cache-miss: true
+      - run: git fetch origin
+      - run: npm run diff:check ${{ github.event.pull_request.base.sha }}
+  codeql:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ['javascript']
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          # Minimal depth 2 so we can checkout the commit before possible merge commit.
+          fetch-depth: 2
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: ${{ matrix.language }}
+          queries: +security-and-quality
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+        with:
+          category: '/language:${{matrix.language}}'

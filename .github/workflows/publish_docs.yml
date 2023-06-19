@@ -13,7 +13,15 @@ jobs:
         with:
           node-version: 18
           cache: 'npm'
-      - run: npm ci
+      # cache node_modules based on package-lock.json hash
+      - uses: actions/cache@v3
+        id: npm-cache
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      # only install if cache miss
+      - if: steps.npm-cache.outputs.cache-hit != 'true'
+        run: npm ci
       - run: npm run build
       - run: npm run docs
       - uses: peaceiris/actions-gh-pages@v3
