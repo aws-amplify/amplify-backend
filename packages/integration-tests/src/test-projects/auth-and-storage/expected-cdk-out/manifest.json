@@ -17,7 +17,7 @@
         "validateOnSynth": false,
         "assumeRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-deploy-role-${AWS::AccountId}-${AWS::Region}",
         "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-cfn-exec-role-${AWS::AccountId}-${AWS::Region}",
-        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/4a7062ad0b291f46e372d9e263e8539217c944a7a4977a54d910a9369ca7190d.json",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/83d59a7fc9e86bae1d2d777fbf33bfd013e3a08d770593a600e3f035dcb81d7a.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
         "additionalDependencies": ["testProject-testEnvironment.assets"],
@@ -59,16 +59,16 @@
             "data": "userPoolId"
           }
         ],
-        "/testProject-testEnvironment/storage/amplifyStorageBucket/Resource": [
+        "/testProject-testEnvironment/storage/amplifyStorage/amplifyStorageBucket/Resource": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "amplifyStorageBucketEAC21FF6"
+            "data": "amplifyStorageamplifyStorageBucketC2F702CD"
           }
         ],
-        "/testProject-testEnvironment/storage/testProjecttestEnvironmentstorageamplifyStorageBucket5F9F3918Ref": [
+        "/testProject-testEnvironment/storage/testProjecttestEnvironmentstorageamplifyStorageamplifyStorageBucket05AB04A9Ref": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "testProjecttestEnvironmentstorageamplifyStorageBucket5F9F3918Ref"
+            "data": "testProjecttestEnvironmentstorageamplifyStorageamplifyStorageBucket05AB04A9Ref"
           }
         ],
         "/testProject-testEnvironment/storage.NestedStack/storage.NestedStackResource": [

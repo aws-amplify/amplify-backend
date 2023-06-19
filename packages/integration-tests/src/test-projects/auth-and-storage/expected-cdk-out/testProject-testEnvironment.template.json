@@ -66,7 +66,7 @@
               {
                 "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
               },
-              "/2206e75272026d98f2d90884240978fda246b429812e00fa76f1dd29e9c705cd.json"
+              "/44578e2a49b2f94a9fa3341cc0d90ee4b476112b88fbe686a0727e551e684591.json"
             ]
           ]
         }
@@ -88,7 +88,7 @@
       "Value": {
         "Fn::GetAtt": [
           "storage0EC3F24A",
-          "Outputs.testProjecttestEnvironmentstorageamplifyStorageBucket5F9F3918Ref"
+          "Outputs.testProjecttestEnvironmentstorageamplifyStorageamplifyStorageBucket05AB04A9Ref"
         ]
       }
     }
