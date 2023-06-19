@@ -6,11 +6,12 @@
 
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
+import { BackendOutputValue } from '@aws-amplify/plugin-types';
 import { CfnElement } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { ConstructCache } from '@aws-amplify/plugin-types';
 import { ConstructCacheEntryGenerator } from '@aws-amplify/plugin-types';
-import { OutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
 
 // @public
@@ -34,10 +35,10 @@ export class SingletonConstructCache implements ConstructCache {
 }
 
 // @public
-export class StackMetadataOutputStorageStrategy implements OutputStorageStrategy {
+export class StackMetadataBackendOutputStorageStrategy implements BackendOutputStorageStrategy {
     constructor(stack: Stack);
+    addBackendOutputEntry(constructPackageName: string, backendOutputValue: BackendOutputValue): void;
     flush(): void;
-    storeOutput(constructPackage: string, constructVersion: string, data: Record<string, string>): void;
 }
 
 // @public
