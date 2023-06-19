@@ -16,5 +16,8 @@
   },
   "files": [
     "lib"
-  ]
+  ],
+  "imports": {
+    "#package.json": "./package.json"
+  }
 }

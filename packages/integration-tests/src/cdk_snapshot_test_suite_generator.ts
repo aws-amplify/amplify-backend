@@ -34,7 +34,7 @@ export const fromConventionalDir = (
     absoluteBackendFilePath: path.resolve(
       rootDir.pathname,
       testDirectory.name,
-      'index.ts'
+      'index.js'
     ),
     absoluteExpectedCdkOutDir: path.resolve(
       rootDir.pathname,

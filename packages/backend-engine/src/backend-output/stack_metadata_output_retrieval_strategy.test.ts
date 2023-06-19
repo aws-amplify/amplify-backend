@@ -20,8 +20,9 @@ describe('StackMetadataBackendOutputRetrievalStrategy', () => {
               NoMetadataHere: 'this will fail',
             };
           }
+          assert.fail(`Unknown command ${typeof command}`);
         }),
-      } as CloudFormationClient;
+      } as unknown as CloudFormationClient;
 
       const stackNameResolverMock: MainStackNameResolver = {
         resolveMainStackName: mock.fn(async () => 'testMainStack'),
@@ -59,9 +60,11 @@ describe('StackMetadataBackendOutputRetrievalStrategy', () => {
                 },
               ],
             };
+          } else {
+            assert.fail(`Unknown command ${typeof command}`);
           }
         }),
-      } as CloudFormationClient;
+      } as unknown as CloudFormationClient;
 
       const stackNameResolverMock: MainStackNameResolver = {
         resolveMainStackName: mock.fn(async () => 'testMainStack'),
@@ -91,9 +94,11 @@ describe('StackMetadataBackendOutputRetrievalStrategy', () => {
                 },
               }),
             };
+          } else {
+            assert.fail(`Unknown command ${typeof command}`);
           }
         }),
-      } as CloudFormationClient;
+      } as unknown as CloudFormationClient;
 
       const stackNameResolverMock: MainStackNameResolver = {
         resolveMainStackName: mock.fn(async () => 'testMainStack'),
@@ -137,9 +142,11 @@ describe('StackMetadataBackendOutputRetrievalStrategy', () => {
                 },
               ],
             };
+          } else {
+            assert.fail(`Unknown command ${typeof command}`);
           }
         }),
-      } as CloudFormationClient;
+      } as unknown as CloudFormationClient;
 
       const stackNameResolverMock: MainStackNameResolver = {
         resolveMainStackName: mock.fn(async () => 'testMainStack'),
@@ -198,9 +205,11 @@ describe('StackMetadataBackendOutputRetrievalStrategy', () => {
                 },
               ],
             };
+          } else {
+            assert.fail(`Unknown command ${typeof command}`);
           }
         }),
-      } as CloudFormationClient;
+      } as unknown as CloudFormationClient;
 
       const stackNameResolverMock: MainStackNameResolver = {
         resolveMainStackName: mock.fn(async () => 'testMainStack'),
