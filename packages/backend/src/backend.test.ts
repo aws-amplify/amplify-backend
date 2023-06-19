@@ -44,8 +44,11 @@ describe('Backend', () => {
           resourceGroupName: 'test',
           generateCacheEntry(scope: Construct): Bucket {
             const bucket = new Bucket(scope, 'test-bucket');
-            storageStrategy.storeOutput('test-plugin', '1.0.0', {
-              bucketName: bucket.bucketName,
+            storageStrategy.addBackendOutputEntry('test-plugin', {
+              constructVersion: '1.0.0',
+              data: {
+                bucketName: bucket.bucketName,
+              },
             });
             return bucket;
           },

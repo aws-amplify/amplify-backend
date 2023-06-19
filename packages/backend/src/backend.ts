@@ -4,7 +4,7 @@ import { Stack } from 'aws-cdk-lib';
 import {
   NestedStackResolver,
   SingletonConstructCache,
-  StackMetadataOutputStorageStrategy,
+  StackMetadataBackendOutputStorageStrategy,
 } from '@aws-amplify/backend-engine';
 import { createDefaultStack } from './default_stack_factory.js';
 
@@ -24,7 +24,9 @@ export class Backend {
       new NestedStackResolver(stack)
     );
 
-    const outputStorageStrategy = new StackMetadataOutputStorageStrategy(stack);
+    const outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
+      stack
+    );
 
     Object.values(constructFactories).forEach((constructFactory) => {
       constructFactory.getInstance(constructCache, outputStorageStrategy);

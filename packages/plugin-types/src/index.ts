@@ -1,4 +1,4 @@
-export * from './amplify_backend_output.js';
+export * from './backend_output.js';
 export * from './amplify_output_writer.js';
 export * from './backend_identifier.js';
 export * from './backend_stack_creator.js';

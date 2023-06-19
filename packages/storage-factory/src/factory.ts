@@ -3,7 +3,7 @@ import {
   ConstructCache,
   ConstructCacheEntryGenerator,
   ConstructFactory,
-  OutputStorageStrategy,
+  BackendOutputStorageStrategy,
 } from '@aws-amplify/plugin-types';
 import {
   AmplifyStorage,
@@ -26,7 +26,7 @@ export class AmplifyStorageFactory implements ConstructFactory<AmplifyStorage> {
    */
   getInstance(
     cache: ConstructCache,
-    outputStorageStrategy: OutputStorageStrategy
+    outputStorageStrategy: BackendOutputStorageStrategy
   ): AmplifyStorage {
     if (!this.generator) {
       this.generator = new AmplifyStorageGenerator(
@@ -44,7 +44,7 @@ class AmplifyStorageGenerator implements ConstructCacheEntryGenerator {
 
   constructor(
     private readonly props: AmplifyStorageProps,
-    private readonly outputStorageStrategy: OutputStorageStrategy
+    private readonly outputStorageStrategy: BackendOutputStorageStrategy
   ) {}
 
   generateCacheEntry(scope: Construct) {

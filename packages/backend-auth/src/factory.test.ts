@@ -3,7 +3,7 @@ import { AmplifyAuthFactory } from './factory.js';
 import {
   NestedStackResolver,
   SingletonConstructCache,
-  StackMetadataOutputStorageStrategy,
+  StackMetadataBackendOutputStorageStrategy,
 } from '@aws-amplify/backend-engine';
 import { App, Stack } from 'aws-cdk-lib';
 import assert from 'node:assert';
@@ -20,7 +20,9 @@ describe('AmplifyAuthFactory', () => {
 
     const cache = new SingletonConstructCache(new NestedStackResolver(stack));
 
-    const outputStorageStrategy = new StackMetadataOutputStorageStrategy(stack);
+    const outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
+      stack
+    );
 
     const instance1 = authFactory.getInstance(cache, outputStorageStrategy);
     const instance2 = authFactory.getInstance(cache, outputStorageStrategy);
@@ -38,7 +40,9 @@ describe('AmplifyAuthFactory', () => {
 
     const cache = new SingletonConstructCache(new NestedStackResolver(stack));
 
-    const outputStorageStrategy = new StackMetadataOutputStorageStrategy(stack);
+    const outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
+      stack
+    );
 
     const authConstruct = authFactory.getInstance(cache, outputStorageStrategy);
 

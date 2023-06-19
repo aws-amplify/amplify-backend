@@ -5,10 +5,10 @@ import { Template } from 'aws-cdk-lib/assertions';
 import {
   NestedStackResolver,
   SingletonConstructCache,
-  StackMetadataOutputStorageStrategy,
+  StackMetadataBackendOutputStorageStrategy,
 } from '@aws-amplify/backend-engine';
 import assert from 'node:assert';
-import { OutputStorageStrategy } from '@aws-amplify/plugin-types';
+import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 
 describe('AmplifyStorageFactory', () => {
   it('returns singleton instance', () => {
@@ -21,7 +21,9 @@ describe('AmplifyStorageFactory', () => {
       new NestedStackResolver(stack)
     );
 
-    const outputStorageStrategy = new StackMetadataOutputStorageStrategy(stack);
+    const outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
+      stack
+    );
 
     const instance1 = storageFactory.getInstance(
       constructCache,
@@ -45,7 +47,9 @@ describe('AmplifyStorageFactory', () => {
       new NestedStackResolver(stack)
     );
 
-    const outputStorageStrategy = new StackMetadataOutputStorageStrategy(stack);
+    const outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
+      stack
+    );
 
     const storageConstruct = storageFactory.getInstance(
       backendBuildState,
@@ -69,8 +73,9 @@ describe('AmplifyStorageFactory', () => {
 
     const storeOutputMock = mock.fn();
 
-    const outputStorageStrategy: OutputStorageStrategy = {
-      storeOutput: storeOutputMock,
+    const outputStorageStrategy: BackendOutputStorageStrategy = {
+      addBackendOutputEntry: storeOutputMock,
+      flush: mock.fn(),
     };
 
     storageFactory.getInstance(backendBuildState, outputStorageStrategy);

@@ -1,25 +1,35 @@
 import { z } from 'zod';
 
 /**
- * Schema for a single block of output written by a construct
+ * The types here are meant to be used internally when reading / writing backend output to stack metadata
+ * They should not be exposed in public APIs
  */
-export const backendOutputEntrySchema = z.object({
+
+/**
+ * Data schema for storing a backend output entry using stack metadata
+ */
+export const backendOutputEntryStackMetadataSchema = z.object({
   constructVersion: z.string(),
   stackOutputs: z.array(z.string()),
 });
 
 /**
- * Inferred type from outputEntrySchema
+ * Inferred type from backendOutputEntryStackMetadataSchema
  */
-export type BackendOutputEntry = z.infer<typeof backendOutputEntrySchema>;
+export type BackendOutputEntryStackMetadata = z.infer<
+  typeof backendOutputEntryStackMetadataSchema
+>;
 
 /**
- * Schema for the record of all output written by all constructs
- * The keys of the record are the package names of the constructs
+ * Data schema for storing backend output using stack metadata
  */
-export const backendOutputSchema = z.record(backendOutputEntrySchema);
+export const backendOutputStackMetadataSchema = z.record(
+  backendOutputEntryStackMetadataSchema
+);
 
 /**
- * Inferred type from backendOutputSchema
+ * Inferred type from backendOutputStackMetadataSchema
  */
-export type BackendOutput = z.infer<typeof backendOutputSchema>;
+export type BackendOutputStackMetadata = z.infer<
+  typeof backendOutputStackMetadataSchema
+>;

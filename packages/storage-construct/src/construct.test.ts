@@ -2,9 +2,10 @@ import { describe, it, mock } from 'node:test';
 import { AmplifyStorage } from './construct.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
-import { OutputStorageStrategy } from '@aws-amplify/plugin-types';
+import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import assert from 'node:assert';
 import packageJson from '#package.json';
+import { Bucket } from 'aws-cdk-lib/aws-s3';
 
 describe('AmplifyStorage', () => {
   it('creates a bucket', () => {
@@ -32,19 +33,27 @@ describe('AmplifyStorage', () => {
       const storageConstruct = new AmplifyStorage(stack, 'test', {});
 
       const storeOutputMock = mock.fn();
-      const storageStrategy: OutputStorageStrategy = {
-        storeOutput: storeOutputMock,
+      const storageStrategy: BackendOutputStorageStrategy = {
+        addBackendOutputEntry: storeOutputMock,
+        flush: mock.fn(),
       };
       storageConstruct.storeOutput(storageStrategy);
 
-      const storeOutputArgs = storeOutputMock.mock.calls[0].arguments;
-      assert.equal(storeOutputArgs.length, 3);
+      const expectedBucketName = (
+        storageConstruct.node.findChild('testBucket') as Bucket
+      ).bucketName;
 
-      const [actualPackageName, actualVersionName, data] = storeOutputArgs;
-      assert.equal(actualPackageName, packageJson.name);
-      assert.equal(actualVersionName, packageJson.version);
-      assert.equal(Object.keys(data).length, 1);
-      assert.equal(Object.keys(data)[0], 'bucketName');
+      const storeOutputArgs = storeOutputMock.mock.calls[0].arguments;
+      assert.strictEqual(storeOutputArgs.length, 2);
+
+      const [actualPackageName, actualOutputEntry] = storeOutputArgs;
+      assert.strictEqual(actualPackageName, packageJson.name);
+      assert.deepStrictEqual(actualOutputEntry, {
+        constructVersion: packageJson.version,
+        data: {
+          bucketName: expectedBucketName,
+        },
+      });
     });
   });
 });

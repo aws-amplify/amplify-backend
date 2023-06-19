@@ -1,20 +1,18 @@
+import { BackendOutputValue } from './backend_output.js';
+
 /**
  * Type for an object that collects output data from constructs
  */
-export type OutputStorageStrategy = {
-  storeOutput(
+export type BackendOutputStorageStrategy = {
+  addBackendOutputEntry(
     /**
      * The package that generated this output
      */
-    constructPackage: string,
+    constructPackageName: string,
     /**
-     * The package version that generated this output
+     * The output of the construct
      */
-    constructVersion: string,
-    /**
-     * The output data
-     */
-    data: Record<string, string>
+    backendOutputValue: BackendOutputValue
   ): void;
 
   /**
