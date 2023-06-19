@@ -1,4 +1,4 @@
-import { IntegrationTestCase } from './test_runner.js';
+import { CDKSnapshotTestCase } from './test_runner.js';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -20,7 +20,7 @@ import * as path from 'path';
  *       index.ts
  *       expected-cdk-out
  */
-export const fromConventionalDir = (dirPath: string): IntegrationTestCase[] => {
+export const fromConventionalDir = (dirPath: string): CDKSnapshotTestCase[] => {
   const rootDir = path.isAbsolute(dirPath)
     ? new URL(dirPath)
     : new URL(dirPath, import.meta.url);

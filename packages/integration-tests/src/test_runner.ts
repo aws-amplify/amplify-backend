@@ -5,7 +5,7 @@ import * as os from 'os';
 import * as fs from 'fs';
 import { validateCdkOutDir } from './cdk_out_dir_validator.js';
 
-export type IntegrationTestCase = {
+export type CDKSnapshotTestCase = {
   name: string;
   absoluteBackendFilePath: string;
   absoluteExpectedCdkOutDir: string;
@@ -14,28 +14,29 @@ export type IntegrationTestCase = {
 /**
  * Run a set of integration test cases
  */
-export const runTestSuite = (
+export const runCDKSnapshotTestSuite = (
   suiteName: string,
-  testCases: IntegrationTestCase[]
+  testCases: CDKSnapshotTestCase[]
 ) => {
+  // concurrency of 1 is needed because the tests set environment variables that would create a race condition if multiple tests ran in parallel
   describe(suiteName, { concurrency: 1 }, () => {
-    testCases.forEach(runTestCase);
+    testCases.forEach(runCDKSnapshotTest);
   });
 };
 
 /**
- * Executes a single integration test case
+ * Executes a single CDK snapshot test
  *
  * It creates a temp dir for test synth output
  * It sets environment variables that are picked up by CDK synth to determine CDK context and synth output location
  * Then it synthesizes the provided CDK app under test and asserts that the synth output matches the expected output
  * Lastly it deletes the test synth dir
  */
-const runTestCase = ({
+const runCDKSnapshotTest = ({
   name,
   absoluteBackendFilePath,
   absoluteExpectedCdkOutDir,
-}: IntegrationTestCase) => {
+}: CDKSnapshotTestCase) => {
   beforeEach(async () => {
     // see https://github.com/aws/aws-cdk/blob/30596fe96bfba240a70e53ab64a9acbf39e92f77/packages/aws-cdk-lib/cx-api/lib/cxapi.ts#L4-L5
     process.env.CDK_OUTDIR = await createTempCdkOutDirForTest(name);

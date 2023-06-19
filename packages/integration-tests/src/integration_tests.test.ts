@@ -1,4 +1,7 @@
-import { runTestSuite } from './test_runner.js';
+import { runCDKSnapshotTestSuite } from './test_runner.js';
 import { fromConventionalDir } from './test_case_config_generator.js';
 
-runTestSuite('integration tests', fromConventionalDir('./test-projects'));
+runCDKSnapshotTestSuite(
+  'CDK snapshot tests',
+  fromConventionalDir('./test-projects')
+);
