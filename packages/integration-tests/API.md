@@ -5,17 +5,17 @@
 ```ts
 
 // @public (undocumented)
-export type CDKSnapshotTestCase = {
+export type CDKSynthSnapshotTestCase = {
     name: string;
     absoluteBackendFilePath: string;
     absoluteExpectedCdkOutDir: string;
 };
 
 // @public
-export const fromConventionalDir: (dirPath: string) => CDKSnapshotTestCase[];
+export const fromConventionalDir: (dirPath: string) => CDKSynthSnapshotTestCase[];
 
 // @public
-export const runCDKSnapshotTestSuite: (suiteName: string, testCases: CDKSnapshotTestCase[]) => void;
+export const runCDKSnapshotTestSuite: (suiteName: string, testCases: CDKSynthSnapshotTestCase[]) => void;
 
 // (No @packageDocumentation comment for this package)
 

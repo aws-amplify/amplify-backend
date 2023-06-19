@@ -1,4 +1,4 @@
-import { CDKSnapshotTestCase } from './cdk_snapshot_test_runner.js';
+import { CDKSynthSnapshotTestCase } from './cdk_snapshot_test_runner.js';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -20,7 +20,9 @@ import * as path from 'path';
  *       index.ts
  *       expected-cdk-out
  */
-export const fromConventionalDir = (dirPath: string): CDKSnapshotTestCase[] => {
+export const fromConventionalDir = (
+  dirPath: string
+): CDKSynthSnapshotTestCase[] => {
   const rootDir = path.isAbsolute(dirPath)
     ? new URL(dirPath)
     : new URL(dirPath, import.meta.url);

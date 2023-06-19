@@ -5,7 +5,7 @@ import * as os from 'os';
 import * as fs from 'fs';
 import { validateCdkOutDir } from './cdk_out_dir_validator.js';
 
-export type CDKSnapshotTestCase = {
+export type CDKSynthSnapshotTestCase = {
   name: string;
   absoluteBackendFilePath: string;
   absoluteExpectedCdkOutDir: string;
@@ -16,7 +16,7 @@ export type CDKSnapshotTestCase = {
  */
 export const runCDKSnapshotTestSuite = (
   suiteName: string,
-  testCases: CDKSnapshotTestCase[]
+  testCases: CDKSynthSnapshotTestCase[]
 ) => {
   // concurrency of 1 is needed because the tests set environment variables that would create a race condition if multiple tests ran in parallel
   describe(suiteName, { concurrency: 1 }, () => {
@@ -36,7 +36,7 @@ const runCDKSnapshotTest = ({
   name,
   absoluteBackendFilePath,
   absoluteExpectedCdkOutDir,
-}: CDKSnapshotTestCase) => {
+}: CDKSynthSnapshotTestCase) => {
   beforeEach(async () => {
     // see https://github.com/aws/aws-cdk/blob/30596fe96bfba240a70e53ab64a9acbf39e92f77/packages/aws-cdk-lib/cx-api/lib/cxapi.ts#L4-L5
     process.env.CDK_OUTDIR = await createTempCdkOutDirForTest(name);
