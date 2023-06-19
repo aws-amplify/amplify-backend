@@ -1,4 +1,4 @@
-import { CDKSnapshotTestCase } from './test_runner.js';
+import { CDKSnapshotTestCase } from './cdk_snapshot_test_runner.js';
 import * as fs from 'fs';
 import * as path from 'path';
 

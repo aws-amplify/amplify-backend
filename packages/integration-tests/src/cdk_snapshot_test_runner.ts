@@ -55,6 +55,7 @@ const runCDKSnapshotTest = ({
     await import(absoluteBackendFilePath);
 
     // now we find and execute the synth beforeExit listener that the CDK App attaches to the process
+    // see https://github.com/aws/aws-cdk/blob/9af05d85acf95138a149c03b1e4dfbc48284921a/packages/aws-cdk-lib/core/lib/app.ts#L192-L196
     const synth = process
       .listeners('beforeExit')
       .find((listener) => listener.toString().includes('this.synth()'));
