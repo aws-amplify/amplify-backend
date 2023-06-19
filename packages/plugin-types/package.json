@@ -15,7 +15,10 @@
     "constructs": "^10.0.0"
   },
   "files": [
-    "lib"
+    "lib/*/*.js",
+    "lib/*/*.d.ts",
+    "lib/**/*.js",
+    "lib/**/*.d.ts"
   ],
   "imports": {
     "#package.json": "./package.json"

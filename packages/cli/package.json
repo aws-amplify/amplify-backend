@@ -27,6 +27,9 @@
     "@aws-amplify/lib-synth": "0.0.1"
   },
   "files": [
-    "lib"
+    "lib/*/*.js",
+    "lib/*/*.d.ts",
+    "lib/**/*.js",
+    "lib/**/*.d.ts"
   ]
 }

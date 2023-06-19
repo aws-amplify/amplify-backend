@@ -22,6 +22,9 @@
   },
   "homepage": "https://github.com/aws-amplify/cli#readme",
   "files": [
-    "lib"
+    "lib/*/*.js",
+    "lib/*/*.d.ts",
+    "lib/**/*.js",
+    "lib/**/*.d.ts"
   ]
 }
