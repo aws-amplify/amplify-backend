@@ -3,7 +3,7 @@
 # First ignore everything
 **/*
 
-# Then add back in transpiled js and ts files
+# Then add back in transpiled js and ts declaration files
 !lib/**/*.js
 !lib/**/*.d.ts
 

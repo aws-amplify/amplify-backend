@@ -1,8 +1,7 @@
 # Be very careful editing this file. It is crafted to work around [this issue](https://github.com/npm/npm/issues/4479)
 
-# This leaves us with including only js and ts declaration files of functional code
-*
-**
+# First ignore everything
+**/*
 
 # Then add back in transpiled js and ts declaration files
 !lib/**/*.js
