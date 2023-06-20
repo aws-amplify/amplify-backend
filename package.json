@@ -18,7 +18,7 @@
     "npm-proxy:stop": "tsx scripts/stop_npm_proxy.ts",
     "prepare": "husky install",
     "publish:snapshot:local": "npm_config_registry=http://localhost:4873/ tsx scripts/publish_snapshot.ts",
-    "test": "tsx scripts/run_tests.ts",
+    "test": "tsx --test --test-reporter spec",
     "test:coverage:generate": "NODE_V8_COVERAGE=coverage/ npm run test",
     "test:coverage:threshold": "c8 npm run test",
     "vend": "npm run npm-proxy:start && npm run publish:snapshot:local latest",

@@ -22,8 +22,5 @@
     "@aws-sdk/types": "^3.347.0",
     "aws-cdk-lib": "^2.72.0",
     "constructs": "^10.0.0"
-  },
-  "files": [
-    "lib"
-  ]
+  }
 }
