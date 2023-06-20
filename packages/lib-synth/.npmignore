@@ -14,4 +14,4 @@
 *.test.js
 *.test.d.ts
 
-# This leaves us with ignoring everything except js and ts declaration files of non-test code
+# This leaves us with including only js and ts declaration files of functional code
