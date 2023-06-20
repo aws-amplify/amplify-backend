@@ -19,11 +19,5 @@
   "peerDependencies": {
     "aws-cdk-lib": "^2.72.0",
     "constructs": "^10.0.0"
-  },
-  "files": [
-    "lib/*/*.js",
-    "lib/*/*.d.ts",
-    "lib/**/*.js",
-    "lib/**/*.d.ts"
-  ]
+  }
 }
