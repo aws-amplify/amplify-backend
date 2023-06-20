@@ -1,12 +1,10 @@
 # Be very careful editing this file. It is crafted to work around [this issue](https://github.com/npm/npm/issues/4479)
 
-# First ignore everything
+# This leaves us with including only js and ts declaration files of functional code
 *
 **
 
 # Then add back in transpiled js and ts declaration files
-!lib/*.js
-!lib/*.d.ts
 !lib/**/*.js
 !lib/**/*.d.ts
 
