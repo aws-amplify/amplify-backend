@@ -1,6 +1,7 @@
 import { AmplifyAuth, AmplifyAuthProps } from '@aws-amplify/auth-construct';
 import { Construct } from 'constructs';
 import {
+  AuthResourceReferencesContainer,
   BackendOutputStorageStrategy,
   ConstructCache,
   ConstructCacheEntryGenerator,
@@ -23,7 +24,8 @@ export class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth> {
    */
   getInstance(
     cache: ConstructCache,
-    backendOutputStorageStrategy: BackendOutputStorageStrategy
+    backendOutputStorageStrategy: BackendOutputStorageStrategy,
+    authResourceReferencesContainer: AuthResourceReferencesContainer
   ): AmplifyAuth {
     if (!this.generator) {
       this.generator = new AmplifyAuthGenerator(
@@ -31,6 +33,7 @@ export class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth> {
         backendOutputStorageStrategy
       );
     }
+    // TODO set auth resources in container
     return cache.getOrCompute(this.generator) as AmplifyAuth;
   }
 }
