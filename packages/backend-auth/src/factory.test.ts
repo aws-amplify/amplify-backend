@@ -2,6 +2,7 @@ import { describe, it } from 'node:test';
 import { AmplifyAuthFactory } from './factory.js';
 import {
   NestedStackResolver,
+  SetOnceAuthResourceReferencesContainer,
   SingletonConstructCache,
   StackMetadataBackendOutputStorageStrategy,
 } from '@aws-amplify/backend-engine';
@@ -24,8 +25,18 @@ describe('AmplifyAuthFactory', () => {
       stack
     );
 
-    const instance1 = authFactory.getInstance(cache, outputStorageStrategy);
-    const instance2 = authFactory.getInstance(cache, outputStorageStrategy);
+    const authRefContainer = new SetOnceAuthResourceReferencesContainer();
+
+    const instance1 = authFactory.getInstance(
+      cache,
+      outputStorageStrategy,
+      authRefContainer
+    );
+    const instance2 = authFactory.getInstance(
+      cache,
+      outputStorageStrategy,
+      authRefContainer
+    );
 
     assert.strictEqual(instance1, instance2);
   });
@@ -44,7 +55,13 @@ describe('AmplifyAuthFactory', () => {
       stack
     );
 
-    const authConstruct = authFactory.getInstance(cache, outputStorageStrategy);
+    const authRefContainer = new SetOnceAuthResourceReferencesContainer();
+
+    const authConstruct = authFactory.getInstance(
+      cache,
+      outputStorageStrategy,
+      authRefContainer
+    );
 
     const template = Template.fromStack(Stack.of(authConstruct));
 
