@@ -8,7 +8,7 @@ describe('ProjectEnvironmentMainStackNameResolver', () => {
     it('throws if corresponding SSM parameter not found', async () => {
       const ssmClientMock = {
         send: mock.fn(() => ({ Parameter: { Other: 'thing' } })),
-      } as SSMClient;
+      } as unknown as SSMClient;
       const projEnvId = {
         projectName: 'testProjName',
         environmentName: 'testEnvName',
@@ -18,15 +18,19 @@ describe('ProjectEnvironmentMainStackNameResolver', () => {
         projEnvId
       );
 
-      await assert.rejects(stackNameResolver.resolveMainStackName(), (err) =>
-        err.message.startsWith('Could not resolve string parameter value from')
+      await assert.rejects(
+        stackNameResolver.resolveMainStackName(),
+        (err: Error) =>
+          err.message.startsWith(
+            'Could not resolve string parameter value from'
+          )
       );
     });
 
     it('returns found SSM parameter value', async () => {
       const ssmClientMock = {
         send: mock.fn(() => ({ Parameter: { Value: 'testStackName' } })),
-      } as SSMClient;
+      } as unknown as SSMClient;
       const projEnvId = {
         projectName: 'testProjName',
         environmentName: 'testEnvName',
