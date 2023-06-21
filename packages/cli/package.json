@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "Command line interface for various Amplify tools",
   "bin": {
-    "vnext": "lib/cli.js"
+    "amplify": "lib/cli.js"
   },
   "type": "module",
   "scripts": {
@@ -22,8 +22,5 @@
   "bugs": {
     "url": "https://github.com/aws-amplify/cli/issues"
   },
-  "homepage": "https://github.com/aws-amplify/cli#readme",
-  "dependencies": {
-    "@aws-amplify/lib-synth": "0.0.1"
-  }
+  "homepage": "https://github.com/aws-amplify/cli#readme"
 }
