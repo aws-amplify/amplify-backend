@@ -8,7 +8,7 @@ import {
 } from '@aws-amplify/plugin-types';
 
 /**
- * Singleton factory for AmplifyAuth that can be used in `auth.ts` files
+ * Singleton factory for AmplifyAuth that can be used in Amplify project files
  */
 export class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth> {
   private generator: ConstructCacheEntryGenerator;

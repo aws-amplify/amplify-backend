@@ -3,10 +3,12 @@ import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
 import {
   NestedStackResolver,
+  SetOnceAuthResourceReferencesContainer,
   SingletonConstructCache,
   StackMetadataBackendOutputStorageStrategy,
 } from '@aws-amplify/backend-engine';
 import { createDefaultStack } from './default_stack_factory.js';
+import { RecordEntryPartialKeyOrdering } from './record_entry_partial_key_ordering.js';
 
 /**
  * Class that collects and instantiates all the Amplify backend constructs
@@ -28,9 +30,24 @@ export class Backend {
       stack
     );
 
-    Object.values(constructFactories).forEach((constructFactory) => {
-      constructFactory.getInstance(constructCache, outputStorageStrategy);
-    });
+    const authResourceReferencesContainer =
+      new SetOnceAuthResourceReferencesContainer();
+
+    const constructFactoryOrdering = new RecordEntryPartialKeyOrdering(
+      constructFactories,
+      ['auth'],
+      ['data']
+    );
+
+    constructFactoryOrdering
+      .getOrderedEntries()
+      .forEach(([, constructFactory]) => {
+        constructFactory.getInstance(
+          constructCache,
+          outputStorageStrategy,
+          authResourceReferencesContainer
+        );
+      });
 
     outputStorageStrategy.flush();
   }

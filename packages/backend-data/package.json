@@ -17,5 +17,8 @@
   },
   "files": [
     "lib"
-  ]
+  ],
+  "dependencies": {
+    "agqlac": "^0.1.0-agqlac.5"
+  }
 }
