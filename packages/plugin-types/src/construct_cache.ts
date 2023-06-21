@@ -1,4 +1,5 @@
 import { Construct } from 'constructs';
+import { Provider } from './provider.js';
 
 /**
  * Initializes a CDK Construct in a given scope
@@ -18,7 +19,10 @@ export type ConstructCacheEntryGenerator = {
 
 /**
  * Vends Constructs based on an initializer function
+ * TODO I'm not going to rename this type yet. Once we land on the approach here, I'll do the rename in a separate PR to avoid blowing up the diff
  */
 export type ConstructCache = {
   getOrCompute(generator: ConstructCacheEntryGenerator): Construct;
+  registerProvider(token: string, provider: Provider): void;
+  getProvider(token: string): Provider;
 };

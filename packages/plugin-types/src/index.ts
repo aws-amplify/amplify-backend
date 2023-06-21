@@ -7,4 +7,4 @@ export * from './construct_cache.js';
 export * from './construct_factory.js';
 export * from './output_retrieval_strategy.js';
 export * from './output_storage_stragegy.js';
-export * from './auth_resource_references_container.js';
+export * from './auth_resources.js';

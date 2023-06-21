@@ -87,3 +87,5 @@ class DataGenerator implements ConstructCacheEntryGenerator {
     return dataConstruct;
   }
 }
+
+export const Data = DataFactory;
