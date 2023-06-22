@@ -10,6 +10,6 @@
     "glob": "^10.2.7"
   },
   "scripts": {
-    "api:update": "api-extractor run --local"
+    "update:api": "api-extractor run --local"
   }
 }

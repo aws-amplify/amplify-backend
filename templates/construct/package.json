@@ -5,7 +5,7 @@
   "types": "lib/index.d.ts",
   "type": "module",
   "scripts": {
-    "api:update": "api-extractor run --local"
+    "update:api": "api-extractor run --local"
   },
   "devDependencies": {
     "aws-cdk-lib": "^2.72.0",
