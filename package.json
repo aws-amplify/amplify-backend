@@ -5,7 +5,7 @@
   "scripts": {
     "build": "tsc --build packages/*",
     "check:api": "npm run update:api && tsx scripts/check_api_extract.ts",
-    "check:tsconfig-refs": "npm run update:tsconfig-refs && tsx scripts/check_no_git_diff.ts",
+    "check:tsconfig-refs": "npm run update:tsconfig-refs && tsx scripts/check_no_git_diff.mts",
     "clean": "npm run clean:build && npm run clean:npm-proxy && rimraf --glob node_modules coverage .eslintcache packages/*/temp",
     "clean:build": "rimraf --glob packages/*/lib packages/*/tsconfig.tsbuildinfo",
     "clean:npm-proxy": "rimraf verdaccio-cache verdaccio-logs.txt",
@@ -23,7 +23,7 @@
     "test:coverage:generate": "NODE_V8_COVERAGE=coverage/ npm run test",
     "test:coverage:threshold": "c8 npm run test",
     "update:api": "npm run update:api --workspaces",
-    "update:tsconfig-refs": "tsx scripts/update_tsconfig_refs.ts",
+    "update:tsconfig-refs": "tsx scripts/update_tsconfig_refs.mts",
     "vend": "npm run start:npm-proxy && npm run publish:snapshot:local latest",
     "watch": "npm run build -- --watch"
   },
