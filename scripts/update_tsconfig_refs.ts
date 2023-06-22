@@ -8,9 +8,9 @@ import * as path from 'path';
 
 type PackageInfo = {
   packageJsonPath: string;
-  packageJson: Record<string, any>;
+  packageJson: Record<string, unknown>;
   tsconfigPath: string;
-  tsconfig: Record<string, any>;
+  tsconfig: Record<string, unknown>;
   relativeReferencePath: string;
 };
 
