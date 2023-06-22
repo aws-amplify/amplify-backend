@@ -21,6 +21,7 @@
 <p>You should now be able to run the <code>vnext</code> CLI.</p>
 <a id="md:other-helpful-scripts" class="tsd-anchor"></a><h4><a href="#$other-helpful-scripts" style="color:inherit;text-decoration:none">Other helpful scripts</a></h4><p><code>npm run watch</code> will start the tsc server and watch for changes in all packages</p>
 <p><code>npm run test:coverage:threshold</code> will let you know if your changes are passing test coverage limits</p>
+<p><code>npm run test packages/&lt;package directory&gt;</code> will run only the tests in that directory</p>
 <p><code>npm run vend</code> will start a local npm proxy and publish the local packages to this proxy so they can be installed / used as if they were published on npm</p>
 <a id="md:creating-changesets" class="tsd-anchor"></a><h2><a href="#$creating-changesets" style="color:inherit;text-decoration:none">Creating changesets</a></h2><p>This repo uses <a href="https://github.com/changesets/changesets">changesets</a> for versioning and releasing changes.</p>
 <p>All changes that affect release artifacts must have a corresponding changeset. To create a changeset run <code>changeset</code>.
@@ -30,9 +31,9 @@ This will start a walkthrough to author the changeset file. This file should be 
 This will start a local npm proxy using <a href="https://verdaccio.org/">Verdaccio</a> and run <code>changeset version</code> and <code>changeset publish</code>.
 Note that you will need to create a changeset for any local changes for them to be included in the published artifacts.</p>
 <p>This will also point your local npm config to the local npm proxy. At this point you can npm install any packages in the repo and it will pull from the local proxy instead of directly from npm.</p>
-<p>To stop the local server and reset your npm registry run <code>npm run npm-proxy:stop</code>.</p>
-<p>To clear the proxy package cache run <code>npm run npm-proxy:clear</code>. This will remove all packages you have published to the local proxy.</p>
-<p>To start the npm proxy without immediately publishing, run <code>npm run npm-proxy:start</code>.</p>
+<p>To stop the local server and reset your npm registry run <code>npm run stop:npm-proxy</code>.</p>
+<p>To clear the proxy package cache run <code>npm run clean:npm-proxy</code>. This will remove all packages you have published to the local proxy.</p>
+<p>To start the npm proxy without immediately publishing, run <code>npm run start:npm-proxy</code>.</p>
 <p>To publish a snapshot to an already running npm proxy run <code>npm run publish:snapshot:local latest</code></p>
 <a id="md:adding-a-package" class="tsd-anchor"></a><h2><a href="#$adding-a-package" style="color:inherit;text-decoration:none">Adding a package</a></h2><p>This repo uses a monorepo structure managed by npm workspaces. All the packages in the workspace are under <code>packages/*</code></p>
 <p>Most package types that you might want to add to this repo should have templates in the <code>templates</code> directory.
@@ -44,7 +45,7 @@ You&#39;ll probably want to use an existing template as a starting point for the
 <li>A <code>package.json</code> file</li>
 <li>A <code>tsconfig.json</code> file. This file should extend <code>tsconfig.base.json</code></li>
 <li>An <code>api-extractor.json</code> file. This file should extend <code>api-extractor.base.json</code></li>
-<li>An <code>api:update</code> script in the <code>package.json</code> file</li>
+<li>An <code>update:api</code> script in the <code>package.json</code> file</li>
 <li>A <code>typedoc.json</code> file</li>
 </ol>
 </div></div>
