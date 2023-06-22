@@ -5,7 +5,10 @@ import { execa } from 'execa';
  */
 const main = async () => {
   const { stdout: gitDiffFiles } = await execa('git', ['diff', '--name-only']);
-  const changedFiles = gitDiffFiles.toString().split('\n');
+  const changedFiles = gitDiffFiles
+    .toString()
+    .split('\n')
+    .filter((file) => file.length > 0);
 
   if (changedFiles.length > 0) {
     throw new Error(`Expected no git diff but found found ${changedFiles}`);
