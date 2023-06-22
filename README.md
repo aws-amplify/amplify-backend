@@ -27,6 +27,8 @@ You should now be able to run the `vnext` CLI.
 
 `npm run test:coverage:threshold` will let you know if your changes are passing test coverage limits
 
+`npm run test packages/<package directory>` will run only the tests in that directory
+
 `npm run vend` will start a local npm proxy and publish the local packages to this proxy so they can be installed / used as if they were published on npm
 
 ## Creating changesets
@@ -46,11 +48,11 @@ Note that you will need to create a changeset for any local changes for them to 
 
 This will also point your local npm config to the local npm proxy. At this point you can npm install any packages in the repo and it will pull from the local proxy instead of directly from npm.
 
-To stop the local server and reset your npm registry run `npm run npm-proxy:stop`.
+To stop the local server and reset your npm registry run `npm run stop:npm-proxy`.
 
-To clear the proxy package cache run `npm run npm-proxy:clear`. This will remove all packages you have published to the local proxy.
+To clear the proxy package cache run `npm run clean:npm-proxy`. This will remove all packages you have published to the local proxy.
 
-To start the npm proxy without immediately publishing, run `npm run npm-proxy:start`.
+To start the npm proxy without immediately publishing, run `npm run start:npm-proxy`.
 
 To publish a snapshot to an already running npm proxy run `npm run publish:snapshot:local latest`
 

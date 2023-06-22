@@ -4,5 +4,15 @@
     "rootDir": "src",
     "outDir": "lib"
   },
-  "references": [{ "path": "../storage-construct" }]
+  "references": [
+    {
+      "path": "../storage-construct"
+    },
+    {
+      "path": "../backend-engine"
+    },
+    {
+      "path": "../plugin-types"
+    }
+  ]
 }

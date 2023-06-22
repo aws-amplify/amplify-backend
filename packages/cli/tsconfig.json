@@ -4,5 +4,9 @@
     "rootDir": "src",
     "outDir": "lib"
   },
-  "references": [{ "path": "../lib-synth" }]
+  "references": [
+    {
+      "path": "../lib-synth"
+    }
+  ]
 }

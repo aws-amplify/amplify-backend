@@ -5,8 +5,14 @@
     "outDir": "lib"
   },
   "references": [
-    { "path": "../backend-engine" },
-    { "path": "../auth-construct" },
-    { "path": "../plugin-types" }
+    {
+      "path": "../auth-construct"
+    },
+    {
+      "path": "../backend-engine"
+    },
+    {
+      "path": "../plugin-types"
+    }
   ]
 }
