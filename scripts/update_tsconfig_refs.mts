@@ -4,8 +4,11 @@ import * as path from 'path';
 import prettier from 'prettier';
 
 /*
- * Scans the package.json files of packages in the repo and configures the references field in the tsconfig.json files accordingly
- * Keeping the tsconfig.json references in sync with package.json changes ensures that TS incremental builds work properly when changes touch multiple packages
+ * In a monorepo where packages depend on each other, TS needs to know what order to build those packages.
+ * It does this via the "references" field in the tsconfig.json file.
+ * As dependencies between packages in the repo are added / removed, corresponding changes must be made to tsconfig.json "references".
+ *
+ * This script automates those updates.
  *
  * See https://www.typescriptlang.org/docs/handbook/project-references.html#build-mode-for-typescript
  */
