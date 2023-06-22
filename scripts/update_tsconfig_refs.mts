@@ -1,13 +1,14 @@
-/**
+import { globSync } from 'glob';
+import * as fs from 'fs';
+import * as path from 'path';
+import prettier from 'prettier';
+
+/*
  * Scans the package.json files of packages in the repo and configures the references field in the tsconfig.json files accordingly
  * Keeping the tsconfig.json references in sync with package.json changes ensures that TS incremental builds work properly when changes touch multiple packages
  *
  * See https://www.typescriptlang.org/docs/handbook/project-references.html#build-mode-for-typescript
  */
-import { globSync } from 'glob';
-import * as fs from 'fs';
-import * as path from 'path';
-import prettier from 'prettier';
 
 type PackageInfo = {
   packageJsonPath: string;
