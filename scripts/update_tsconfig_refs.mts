@@ -4,7 +4,7 @@
  *
  * See https://www.typescriptlang.org/docs/handbook/project-references.html#build-mode-for-typescript
  */
-import {globSync} from 'glob';
+import { globSync } from 'glob';
 import * as fs from 'fs';
 import * as path from 'path';
 import prettier from 'prettier';
