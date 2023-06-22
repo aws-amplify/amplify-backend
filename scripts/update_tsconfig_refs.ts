@@ -54,7 +54,7 @@ const main = async () => {
             }),
           []
         );
-      fs.writeFileSync(tsconfigPath, JSON.stringify(tsconfig, null, 2));
+      fs.writeFileSync(tsconfigPath, `${JSON.stringify(tsconfig, null, 2)}\n`);
     }
   );
 };
