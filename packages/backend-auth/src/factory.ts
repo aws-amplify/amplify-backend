@@ -13,6 +13,8 @@ import {
 export class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth> {
   private generator: ConstructCacheEntryGenerator;
 
+  // forcing update
+
   /**
    * Set the properties that will be used to initialize AmplifyAuth
    */
