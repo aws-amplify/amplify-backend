@@ -3,6 +3,5 @@
   "compilerOptions": {
     "rootDir": "src",
     "outDir": "lib"
-  },
-  "references": [{ "path": "../backend-templates" }]
+  }
 }

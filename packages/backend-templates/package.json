@@ -1,0 +1,16 @@
+{
+  "name": "@aws-amplify/backend-templates",
+  "version": "0.1.0",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "api:update": "api-extractor run --local"
+  },
+  "files": [
+    "lib/*/*.js",
+    "lib/*/*.d.ts",
+    "lib/**/*.js",
+    "lib/**/*.d.ts"
+  ]
+}
