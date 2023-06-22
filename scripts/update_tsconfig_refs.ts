@@ -5,6 +5,7 @@
 import { globSync } from 'glob';
 import * as fs from 'fs';
 import * as path from 'path';
+import prettier from 'prettier';
 
 type PackageInfo = {
   packageJsonPath: string;
@@ -35,8 +36,8 @@ const main = async () => {
     };
   });
 
-  Object.values(repoPackagesInfoRecord).forEach(
-    ({ packageJson, tsconfig, tsconfigPath }) => {
+  const updatePromises = Object.values(repoPackagesInfoRecord).map(
+    async ({ packageJson, tsconfig, tsconfigPath }) => {
       const allDeps = Array.from(
         new Set([
           ...Object.keys(packageJson.dependencies || {}),
@@ -54,9 +55,17 @@ const main = async () => {
             }),
           []
         );
-      fs.writeFileSync(tsconfigPath, `${JSON.stringify(tsconfig, null, 2)}\n`);
+      const prettierConfig = await prettier.resolveConfig(tsconfigPath);
+      prettierConfig.parser = 'json';
+      const formattedTsconfig = prettier.format(
+        JSON.stringify(tsconfig),
+        prettierConfig
+      );
+      fs.writeFileSync(tsconfigPath, formattedTsconfig);
     }
   );
+
+  await Promise.all(updatePromises);
 };
 
 main().catch((err) => {

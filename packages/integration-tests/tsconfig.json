@@ -1,19 +1,10 @@
 {
   "extends": "../../tsconfig.base.json",
-  "compilerOptions": {
-    "rootDir": "src",
-    "outDir": "lib"
-  },
+  "compilerOptions": { "rootDir": "src", "outDir": "lib" },
   "references": [
-    {
-      "path": "../backend"
-    },
-    {
-      "path": "../storage-factory"
-    },
-    {
-      "path": "../backend-auth"
-    }
+    { "path": "../backend" },
+    { "path": "../storage-factory" },
+    { "path": "../backend-auth" }
   ],
   "exclude": ["**/node_modules", "**/lib", "test-projects"]
 }

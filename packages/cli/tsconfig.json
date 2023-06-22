@@ -1,12 +1,5 @@
 {
   "extends": "../../tsconfig.base.json",
-  "compilerOptions": {
-    "rootDir": "src",
-    "outDir": "lib"
-  },
-  "references": [
-    {
-      "path": "../lib-synth"
-    }
-  ]
+  "compilerOptions": { "rootDir": "src", "outDir": "lib" },
+  "references": [{ "path": "../lib-synth" }]
 }

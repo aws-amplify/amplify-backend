@@ -1,18 +1,9 @@
 {
   "extends": "../../tsconfig.base.json",
-  "compilerOptions": {
-    "rootDir": "src",
-    "outDir": "lib"
-  },
+  "compilerOptions": { "rootDir": "src", "outDir": "lib" },
   "references": [
-    {
-      "path": "../auth-construct"
-    },
-    {
-      "path": "../backend-engine"
-    },
-    {
-      "path": "../plugin-types"
-    }
+    { "path": "../auth-construct" },
+    { "path": "../backend-engine" },
+    { "path": "../plugin-types" }
   ]
 }
