@@ -7,10 +7,17 @@
   "scripts": {
     "api:update": "api-extractor run --local"
   },
+  "dependencies": {
+    "fs-extra": "^11.1.1"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.1"
+  },
   "files": [
     "lib/*/*.js",
     "lib/*/*.d.ts",
     "lib/**/*.js",
-    "lib/**/*.d.ts"
+    "lib/**/*.d.ts",
+    "templates/**/*"
   ]
 }

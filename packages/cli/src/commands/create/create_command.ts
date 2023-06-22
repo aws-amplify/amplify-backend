@@ -1,5 +1,9 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
-import { listBackendTemplates } from '@aws-amplify/backend-templates';
+import {
+  createBackendProjectFromTemplate,
+  listBackendTemplates,
+} from '@aws-amplify/backend-templates';
+import * as process from 'process';
 
 interface CreateCommandOptions {
   template: string;
@@ -24,16 +28,16 @@ class CreateCommand implements CommandModule<object, CreateCommandOptions> {
     args: ArgumentsCamelCase<CreateCommandOptions>
   ): Promise<void> => {
     const selectedTemplateName = args.template;
-    const backendTemplates = listBackendTemplates();
-    const selectedTemplate = backendTemplates.find(
-      (template) => template.name === selectedTemplateName
+    const destinationDirectory = process.cwd();
+    await createBackendProjectFromTemplate(
+      selectedTemplateName,
+      destinationDirectory
     );
-    console.log(selectedTemplate);
     return;
   };
 
-  builder = (yargs: Argv): Argv<CreateCommandOptions> => {
-    const backendTemplates = listBackendTemplates();
+  builder = async (yargs: Argv): Promise<Argv<CreateCommandOptions>> => {
+    const backendTemplates = await listBackendTemplates();
     if (backendTemplates.length == 0) {
       throw new Error('No backend template is available');
     }
@@ -41,12 +45,14 @@ class CreateCommand implements CommandModule<object, CreateCommandOptions> {
       (backendTemplate) => backendTemplate.name
     );
     const defaultTemplateName = backendTemplates[0].name;
-    return yargs.option('template', {
-      type: 'string',
-      description: 'An application template',
-      choices: availableTemplateNames,
-      default: defaultTemplateName,
-    });
+    return yargs
+      .option('template', {
+        type: 'string',
+        description: 'An application template',
+        choices: availableTemplateNames,
+        default: defaultTemplateName,
+      })
+      .showHelpOnFail(false);
   };
 }
 

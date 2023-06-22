@@ -12,3 +12,6 @@
 *.test.d.ts
 
 # This leaves us with including only js and ts declaration files of functional code
+
+# Include template assets
+!templates/**/*
