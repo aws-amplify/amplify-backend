@@ -5,7 +5,7 @@
   "types": "lib/index.d.ts",
   "type": "module",
   "scripts": {
-    "api:update": "api-extractor run --local"
+    "update:api": "api-extractor run --local"
   },
   "dependencies": {
     "@aws-amplify/auth-construct": "^0.1.0"

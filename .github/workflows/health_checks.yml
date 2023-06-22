@@ -113,7 +113,7 @@ jobs:
           path: '**/lib'
           key: ${{ runner.os }}-${{ github.sha }}
           fail-on-cache-miss: true
-      - run: npm run api:check
+      - run: npm run check:api
   check_docs_build:
     runs-on: ubuntu-latest
     needs: [build]

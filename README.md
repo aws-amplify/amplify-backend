@@ -71,5 +71,5 @@ At a minimum, each package needs:
 1. A `package.json` file
 2. A `tsconfig.json` file. This file should extend `tsconfig.base.json`
 3. An `api-extractor.json` file. This file should extend `api-extractor.base.json`
-4. An `api:update` script in the `package.json` file
+4. An `update:api` script in the `package.json` file
 5. A `typedoc.json` file
