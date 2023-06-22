@@ -36,7 +36,6 @@ export class AmplifyAuthFactory
         backendOutputStorageStrategy
       );
     }
-    // TODO set auth resources in container
     return cache.getOrCompute(this.generator) as AmplifyAuth;
   }
 }
