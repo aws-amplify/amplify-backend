@@ -18,6 +18,7 @@ type PackageInfo = {
 const main = async () => {
   const packagePaths = globSync('./packages/*');
 
+  // First collect information about all of the packages in the repo
   const repoPackagesInfoRecord: Record<string, PackageInfo> = {};
 
   packagePaths.forEach((packagePath) => {
@@ -36,8 +37,10 @@ const main = async () => {
     };
   });
 
+  // Iterate over all the packages
   const updatePromises = Object.values(repoPackagesInfoRecord).map(
     async ({ packageJson, tsconfig, tsconfigPath }) => {
+      // collect all the dependencies for the package
       const allDeps = Array.from(
         new Set([
           ...Object.keys(packageJson.dependencies || {}),
@@ -46,6 +49,7 @@ const main = async () => {
         ])
       );
 
+      // construct the references array in tsconfig for inter-repo dependencies
       tsconfig.references = allDeps
         .filter((dep) => dep in repoPackagesInfoRecord)
         .reduce(
@@ -55,6 +59,8 @@ const main = async () => {
             }),
           []
         );
+
+      // write out the tsconfig file using prettier formatting
       const prettierConfig = await prettier.resolveConfig(tsconfigPath);
       prettierConfig.parser = 'json';
       const formattedTsconfig = prettier.format(
