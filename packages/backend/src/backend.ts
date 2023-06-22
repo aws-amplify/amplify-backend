@@ -1,14 +1,12 @@
 import { Construct } from 'constructs';
-import { ConstructFactory } from '@aws-amplify/plugin-types';
+import { ConstructFactory, ProviderFactory } from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
 import {
   NestedStackResolver,
-  SetOnceAuthResourceReferencesContainer,
   SingletonConstructCache,
   StackMetadataBackendOutputStorageStrategy,
 } from '@aws-amplify/backend-engine';
 import { createDefaultStack } from './default_stack_factory.js';
-import { RecordEntryPartialKeyOrdering } from './record_entry_partial_key_ordering.js';
 
 /**
  * Class that collects and instantiates all the Amplify backend constructs
@@ -30,24 +28,20 @@ export class Backend {
       stack
     );
 
-    const authResourceReferencesContainer =
-      new SetOnceAuthResourceReferencesContainer();
-
-    const constructFactoryOrdering = new RecordEntryPartialKeyOrdering(
-      constructFactories,
-      ['auth'],
-      ['data']
-    );
-
-    constructFactoryOrdering
-      .getOrderedEntries()
-      .forEach(([, constructFactory]) => {
-        constructFactory.getInstance(
-          constructCache,
-          outputStorageStrategy,
-          authResourceReferencesContainer
+    // register providers but don't actually execute anything yet
+    Object.values(constructFactories).forEach((factory) => {
+      if ('provides' in factory) {
+        constructCache.registerProviderFactory(
+          factory.provides,
+          factory as ProviderFactory
         );
-      });
+      }
+    });
+
+    // now invoke all the factories
+    Object.values(constructFactories).forEach((constructFactory) => {
+      constructFactory.getInstance(constructCache, outputStorageStrategy);
+    });
 
     outputStorageStrategy.flush();
   }

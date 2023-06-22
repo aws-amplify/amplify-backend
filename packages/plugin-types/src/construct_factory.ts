@@ -6,6 +6,7 @@ import { BackendOutputStorageStrategy } from './output_storage_stragegy.js';
  * Functional interface for construct factories. All objects in the backend-engine definition must implement this interface.
  */
 export type ConstructFactory<Instance extends Construct> = {
+  provides?: string;
   getInstance(
     cache: ConstructCache,
     outputStorageStrategy: BackendOutputStorageStrategy

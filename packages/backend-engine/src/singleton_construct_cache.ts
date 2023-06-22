@@ -3,6 +3,7 @@ import { StackResolver } from './nested_stack_resolver.js';
 import {
   ConstructCache,
   ConstructCacheEntryGenerator,
+  ProviderFactory,
 } from '@aws-amplify/plugin-types';
 
 /**
@@ -14,6 +15,9 @@ export class SingletonConstructCache implements ConstructCache {
     ConstructCacheEntryGenerator,
     Construct
   > = new Map();
+
+  private readonly providerFactoryTokenMap: Record<string, ProviderFactory> =
+    {};
 
   /**
    * Initialize the BackendBuildState with a root stack
@@ -30,5 +34,37 @@ export class SingletonConstructCache implements ConstructCache {
       this.constructCache.set(generator, generator.generateCacheEntry(scope));
     }
     return this.constructCache.get(generator) as Construct;
+  }
+
+  /**
+   * Gets a ProviderFactory that has previously been registered to a given token.
+   * Throws if no provider has been registered for the token.
+   *
+   * NOTE: The return type of this function cannot be guaranteed at compile time because factories are dynamically registered at runtime
+   * The return type of the factory is a contract that must be negotiated by the entity that registers a token and the entity that retrieves a token.
+   *
+   * By convention, tokens should be the name of type T
+   */
+  getProviderFactory<T>(token: string): ProviderFactory<T> {
+    if (token in this.providerFactoryTokenMap) {
+      return this.providerFactoryTokenMap[token] as ProviderFactory<T>;
+    }
+    throw new Error(`No provider factory registered for token ${token}`);
+  }
+
+  /**
+   * Register a ProviderFactory to a specified token. This ProviderFactory can be retrieved later using getProviderFactory
+   * Throws if the token is already registered to a different provider
+   */
+  registerProviderFactory(token: string, provider: ProviderFactory): void {
+    if (
+      token in this.providerFactoryTokenMap &&
+      this.providerFactoryTokenMap[token] !== provider
+    ) {
+      throw new Error(
+        `Token ${token} is already registered to a ProviderFactory`
+      );
+    }
+    this.providerFactoryTokenMap[token] = provider;
   }
 }

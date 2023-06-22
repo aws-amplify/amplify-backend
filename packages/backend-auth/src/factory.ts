@@ -1,17 +1,21 @@
 import { AmplifyAuth, AmplifyAuthProps } from '@aws-amplify/auth-construct';
 import { Construct } from 'constructs';
 import {
-  AuthResourceReferencesContainer,
+  AuthResources,
   BackendOutputStorageStrategy,
   ConstructCache,
   ConstructCacheEntryGenerator,
   ConstructFactory,
+  ProviderFactory,
 } from '@aws-amplify/plugin-types';
 
 /**
  * Singleton factory for AmplifyAuth that can be used in Amplify project files
  */
-export class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth> {
+export class AmplifyAuthFactory
+  implements ConstructFactory<AmplifyAuth>, ProviderFactory<AuthResources>
+{
+  readonly provides = 'AuthResources';
   private generator: ConstructCacheEntryGenerator;
 
   /**
@@ -24,8 +28,7 @@ export class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth> {
    */
   getInstance(
     cache: ConstructCache,
-    backendOutputStorageStrategy: BackendOutputStorageStrategy,
-    authResourceReferencesContainer: AuthResourceReferencesContainer
+    backendOutputStorageStrategy: BackendOutputStorageStrategy
   ): AmplifyAuth {
     if (!this.generator) {
       this.generator = new AmplifyAuthGenerator(

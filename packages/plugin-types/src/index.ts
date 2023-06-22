@@ -8,3 +8,4 @@ export * from './construct_factory.js';
 export * from './output_retrieval_strategy.js';
 export * from './output_storage_stragegy.js';
 export * from './auth_resources.js';
+export * from './provider_factory.js';

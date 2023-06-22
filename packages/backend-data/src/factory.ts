@@ -1,6 +1,6 @@
 import { Construct } from 'constructs';
 import {
-  AuthResourceReferencesContainer,
+  AuthResources,
   BackendOutputStorageStrategy,
   ConstructCache,
   ConstructCacheEntryGenerator,
@@ -30,14 +30,14 @@ export class DataFactory implements ConstructFactory<Construct> {
    */
   getInstance(
     cache: ConstructCache,
-    outputStorageStrategy: BackendOutputStorageStrategy,
-    authResourceReferencesContainer: AuthResourceReferencesContainer
+    outputStorageStrategy: BackendOutputStorageStrategy
   ): Construct {
     if (!this.generator) {
       this.generator = new DataGenerator(
         this.props,
-        outputStorageStrategy,
-        authResourceReferencesContainer
+        cache
+          .getProviderFactory<AuthResources>('AuthResources')
+          .getInstance(cache, outputStorageStrategy)
       );
     }
     return cache.getOrCompute(this.generator);
@@ -50,25 +50,21 @@ class DataGenerator implements ConstructCacheEntryGenerator {
 
   constructor(
     private readonly props: DataProps,
-    private readonly backendOutputStorageStrategy: BackendOutputStorageStrategy,
-    private readonly authResourceReferencesContainer: AuthResourceReferencesContainer
+    private readonly authResources: AuthResources
   ) {}
 
   generateCacheEntry(scope: Construct) {
-    const authReferences =
-      this.authResourceReferencesContainer.getAuthResourceReferences();
-
     const authConfig: AuthorizationConfig = {
       iamConfig: {
-        authRole: authReferences.authenticatedUserIamRole,
-        unauthRole: authReferences.unauthenticatedUserIamRole,
-        identityPoolId: authReferences.identityPoolId,
+        authRole: this.authResources.authenticatedUserIamRole,
+        unauthRole: this.authResources.unauthenticatedUserIamRole,
+        identityPoolId: this.authResources.identityPoolId,
       },
     };
 
-    if (authReferences.userPool) {
+    if (this.authResources.userPool) {
       authConfig.userPoolConfig = {
-        userPool: authReferences.userPool,
+        userPool: this.authResources.userPool,
       };
     }
 
