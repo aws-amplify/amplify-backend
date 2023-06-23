@@ -1,9 +1,6 @@
 {
   "extends": "../../tsconfig.base.json",
-  "compilerOptions": {
-    "rootDir": "src",
-    "outDir": "lib"
-  },
+  "compilerOptions": { "rootDir": "src", "outDir": "lib" },
   "references": [
     { "path": "../storage-construct" },
     { "path": "../backend-engine" },

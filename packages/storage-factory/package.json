@@ -5,7 +5,7 @@
   "types": "lib/index.d.ts",
   "type": "module",
   "scripts": {
-    "api:update": "api-extractor run --local"
+    "update:api": "api-extractor run --local"
   },
   "dependencies": {
     "@aws-amplify/storage-construct": "^0.1.0"
@@ -13,11 +13,11 @@
   "devDependencies": {
     "@aws-amplify/backend-engine": "^0.1.0",
     "@aws-amplify/plugin-types": "^0.1.0",
-    "aws-cdk-lib": "^2.72.0",
+    "aws-cdk-lib": "^2.80.0",
     "constructs": "^10.0.0"
   },
   "peerDependencies": {
-    "aws-cdk-lib": "^2.72.0",
+    "aws-cdk-lib": "^2.80.0",
     "constructs": "^10.0.0"
   }
 }

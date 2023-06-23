@@ -14,7 +14,7 @@ const main = async () => {
 
   if (updatedAPIFiles.length > 0) {
     throw new Error(
-      `Expected no API.md file updates but found ${updatedAPIFiles}\nRun 'npm run api:update' and commit the updates to fix.`
+      `Expected no API.md file updates but found ${updatedAPIFiles}\nRun 'npm run update:api' and commit the updates to fix.`
     );
   }
 
@@ -30,7 +30,7 @@ const main = async () => {
   });
   await Promise.all(scanPromises);
   if (errors.length > 0) {
-    const errorMessagePrefix = `Problems found in API.md files.\nFix these issues and regenerate the API.md files using 'npm run api:update'`;
+    const errorMessagePrefix = `Problems found in API.md files.\nFix these issues and regenerate the API.md files using 'npm run update:api'`;
     throw new Error(`${errorMessagePrefix}\n${errors.join('\n')}`);
   }
 };

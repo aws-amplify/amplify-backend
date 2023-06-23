@@ -30,7 +30,7 @@ export class Backend {
 
     // register providers but don't actually execute anything yet
     Object.values(constructFactories).forEach((factory) => {
-      if ('provides' in factory) {
+      if (typeof factory.provides === 'string') {
         constructCache.registerProviderFactory(
           factory.provides,
           factory as ProviderFactory
