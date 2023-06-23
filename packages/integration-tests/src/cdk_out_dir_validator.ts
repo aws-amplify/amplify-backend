@@ -4,7 +4,6 @@ import assert from 'node:assert';
 import fs from 'fs';
 
 const UPDATE_SNAPSHOTS = process.env.UPDATE_INTEGRATION_SNAPSHOTS === 'true';
-console.log(`found env var ${process.env.UPDATE_INTEGRATION_SNAPSHOTS}`);
 
 /**
  * Essentially a snapshot validator.
@@ -21,7 +20,7 @@ export const validateCdkOutDir = async (
 ) => {
   // These are CDK internal bookkeeping files that change across minor versions of CDK.
   // We only care about validating the CFN templates
-  const ignoreFiles = ['tree.json', 'cdk.out'];
+  const ignoreFiles = ['tree.json', 'cdk.out', 'manifest.json'];
 
   const actualFiles = await glob(path.join(actualDir, '*'));
   const expectedFiles = await glob(path.join(expectedDir, '*'));

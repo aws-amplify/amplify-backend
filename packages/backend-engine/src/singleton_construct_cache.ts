@@ -37,8 +37,8 @@ export class SingletonConstructCache implements ConstructCache {
   }
 
   /**
-   * Gets a ProviderFactory that has previously been registered to a given token.
-   * Throws if no provider has been registered for the token.
+   * Gets a ConstructFactory that has previously been registered to a given token.
+   * Throws if no factory has been registered for the token.
    *
    * NOTE: The return type of this function cannot be guaranteed at compile time because factories are dynamically registered at runtime
    * The return type of the factory is a contract that must be negotiated by the entity that registers a token and the entity that retrieves a token.
@@ -53,8 +53,8 @@ export class SingletonConstructCache implements ConstructCache {
   }
 
   /**
-   * Register a ProviderFactory to a specified token. This ProviderFactory can be retrieved later using getConstructFactory
-   * Throws if the token is already registered to a different provider
+   * Register a ConstructFactory to a specified token. This ConstructFactory can be retrieved later using getConstructFactory
+   * Throws if the token is already registered to a different factory
    */
   registerConstructFactory(token: string, provider: ConstructFactory): void {
     if (
