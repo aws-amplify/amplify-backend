@@ -12,7 +12,7 @@ export type ConstructFactory<Instance extends Construct> = {
    *
    * See ProviderFactory
    */
-  provides?: string;
+  readonly provides?: string;
   getInstance(
     cache: ConstructCache,
     outputStorageStrategy: BackendOutputStorageStrategy

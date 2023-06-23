@@ -7,5 +7,5 @@ import { Construct } from 'constructs';
  * This key becomes the token by which consumers can find this provider
  */
 export type ProviderFactory<T = unknown> = {
-  provides: string;
+  readonly provides: string;
 } & ConstructFactory<T & Construct>;
