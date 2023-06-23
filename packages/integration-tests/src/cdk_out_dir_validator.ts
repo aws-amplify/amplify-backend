@@ -3,6 +3,9 @@ import path from 'path';
 import assert from 'node:assert';
 import fs from 'fs';
 
+const UPDATE_SNAPSHOTS = process.env.UPDATE_INTEGRATION_SNAPSHOTS === 'true';
+console.log(`found env var ${process.env.UPDATE_INTEGRATION_SNAPSHOTS}`);
+
 /**
  * Essentially a snapshot validator.
  *
@@ -33,6 +36,14 @@ export const validateCdkOutDir = async (
 
   const normalizedActualFiles = normalize(actualFiles);
   const normalizedExpectedFiles = normalize(expectedFiles);
+
+  if (UPDATE_SNAPSHOTS) {
+    normalizedActualFiles.forEach((actualFile) => {
+      const destination = path.resolve(expectedDir, path.basename(actualFile));
+      fs.copyFileSync(actualFile, destination);
+    });
+    return;
+  }
 
   assert.deepStrictEqual(
     normalizedActualFiles.map((fileName) => path.basename(fileName)),

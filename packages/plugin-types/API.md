@@ -62,7 +62,7 @@ export type ConstructCacheEntryGenerator = {
 
 // @public
 export type ConstructFactory<Instance extends Construct> = {
-    provides?: string;
+    readonly provides?: string;
     getInstance(cache: ConstructCache, outputStorageStrategy: BackendOutputStorageStrategy): Instance;
 };
 
@@ -84,7 +84,7 @@ export type ProjectEnvironmentIdentifier = {
 
 // @public
 export type ProviderFactory<T = unknown> = {
-    provides: string;
+    readonly provides: string;
 } & ConstructFactory<T & Construct>;
 
 // @public
