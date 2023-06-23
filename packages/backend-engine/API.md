@@ -12,6 +12,7 @@ import { CfnElement } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { ConstructCache } from '@aws-amplify/plugin-types';
 import { ConstructCacheEntryGenerator } from '@aws-amplify/plugin-types';
+import { ProviderFactory } from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
 
 // @public
@@ -32,6 +33,8 @@ export class NestedStackResolver implements StackResolver {
 export class SingletonConstructCache implements ConstructCache {
     constructor(stackResolver: StackResolver);
     getOrCompute(generator: ConstructCacheEntryGenerator): Construct;
+    getProviderFactory<T>(token: string): ProviderFactory<T>;
+    registerProviderFactory(token: string, provider: ProviderFactory): void;
 }
 
 // @public
