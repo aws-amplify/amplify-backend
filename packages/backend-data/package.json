@@ -20,6 +20,6 @@
     "lib"
   ],
   "dependencies": {
-    "agqlac": "^0.1.0-agqlac.5"
+    "agqlac": "0.3.0-agqlac.3"
   }
 }

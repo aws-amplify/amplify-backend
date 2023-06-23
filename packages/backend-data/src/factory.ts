@@ -56,8 +56,8 @@ class DataGenerator implements ConstructCacheEntryGenerator {
   generateCacheEntry(scope: Construct) {
     const authConfig: AuthorizationConfig = {
       iamConfig: {
-        authRole: this.authResources.authenticatedUserIamRole,
-        unauthRole: this.authResources.unauthenticatedUserIamRole,
+        authenticatedUserRole: this.authResources.authenticatedUserIamRole,
+        unauthenticatedUserRole: this.authResources.unauthenticatedUserIamRole,
         identityPoolId: this.authResources.identityPoolId,
       },
     };
@@ -66,9 +66,10 @@ class DataGenerator implements ConstructCacheEntryGenerator {
       authConfig.userPoolConfig = {
         userPool: this.authResources.userPool,
       };
+      authConfig.defaultAuthMode = 'AMAZON_COGNITO_USER_POOLS';
     }
 
-    // TODO will also need to inject the construct with some sort of function mapper but the construct doesn't accept this yet
+    // TODO inject the construct with the functionNameMap
     const dataConstructProps: AmplifyGraphqlApiProps = {
       schema: this.props.schema,
       authorizationConfig: authConfig,
