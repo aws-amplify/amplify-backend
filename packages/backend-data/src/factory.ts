@@ -37,7 +37,8 @@ export class DataFactory implements ConstructFactory<Construct> {
         this.props,
         cache
           .getProviderFactory<AuthResources>('AuthResources')
-          .getInstance(cache, outputStorageStrategy)
+          .getInstance(cache, outputStorageStrategy),
+        outputStorageStrategy
       );
     }
     return cache.getOrCompute(this.generator);
@@ -50,7 +51,8 @@ class DataGenerator implements ConstructCacheEntryGenerator {
 
   constructor(
     private readonly props: DataProps,
-    private readonly authResources: AuthResources
+    private readonly authResources: AuthResources,
+    private readonly outputStorageStrategy: BackendOutputStorageStrategy
   ) {}
 
   generateCacheEntry(scope: Construct) {
@@ -79,8 +81,22 @@ class DataGenerator implements ConstructCacheEntryGenerator {
       this.defaultName,
       dataConstructProps
     );
-    // TODO outputs will need to be wired here
-    // this could either be done by the factory if the construct exposes all of the outputs, or the construct could expose a method to pass in the storage strategy
+
+    const outputData: Record<string, string> = {
+      appSyncApiId: dataConstruct.resources.cfnGraphqlApi.attrApiId,
+    };
+
+    if (dataConstruct.resources.cfnApiKey) {
+      outputData.appSyncApiKey = dataConstruct.resources.cfnApiKey?.attrApiKey;
+    }
+
+    this.outputStorageStrategy.addBackendOutputEntry(
+      'placeholder-type-package',
+      {
+        constructVersion: 'placeholder-version',
+        data: outputData,
+      }
+    );
     return dataConstruct;
   }
 }
