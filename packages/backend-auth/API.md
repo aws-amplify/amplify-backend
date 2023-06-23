@@ -10,10 +10,9 @@ import { AuthResources } from '@aws-amplify/plugin-types';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { ConstructCache } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
-import { ProviderFactory } from '@aws-amplify/plugin-types';
 
 // @public
-export class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth>, ProviderFactory<AuthResources> {
+export class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth & AuthResources> {
     constructor(props: AmplifyAuthProps);
     getInstance(cache: ConstructCache, backendOutputStorageStrategy: BackendOutputStorageStrategy): AmplifyAuth;
     // (undocumented)

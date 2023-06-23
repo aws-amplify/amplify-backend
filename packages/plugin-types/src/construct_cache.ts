@@ -1,5 +1,5 @@
 import { Construct } from 'constructs';
-import { ProviderFactory } from './provider_factory.js';
+import { ConstructFactory } from './construct_factory.js';
 
 /**
  * Initializes a CDK Construct in a given scope
@@ -23,6 +23,6 @@ export type ConstructCacheEntryGenerator = {
  */
 export type ConstructCache = {
   getOrCompute(generator: ConstructCacheEntryGenerator): Construct;
-  registerProviderFactory(token: string, provider: ProviderFactory): void;
-  getProviderFactory<T>(token: string): ProviderFactory<T>;
+  registerConstructFactory(token: string, provider: ConstructFactory): void;
+  getConstructFactory<T>(token: string): ConstructFactory<T>;
 };

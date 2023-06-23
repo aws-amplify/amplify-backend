@@ -8,6 +8,7 @@
     "update:api": "api-extractor run --local"
   },
   "devDependencies": {
+    "@aws-amplify/backend-engine": "^0.1.0",
     "@aws-amplify/plugin-types": "^0.1.0"
   },
   "peerDependencies": {

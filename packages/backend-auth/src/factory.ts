@@ -6,14 +6,13 @@ import {
   ConstructCache,
   ConstructCacheEntryGenerator,
   ConstructFactory,
-  ProviderFactory,
 } from '@aws-amplify/plugin-types';
 
 /**
  * Singleton factory for AmplifyAuth that can be used in Amplify project files
  */
 export class AmplifyAuthFactory
-  implements ConstructFactory<AmplifyAuth>, ProviderFactory<AuthResources>
+  implements ConstructFactory<AmplifyAuth & AuthResources>
 {
   readonly provides = 'AuthResources';
   private generator: ConstructCacheEntryGenerator;

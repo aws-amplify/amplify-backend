@@ -36,7 +36,7 @@ export class DataFactory implements ConstructFactory<Construct> {
       this.generator = new DataGenerator(
         this.props,
         cache
-          .getProviderFactory<AuthResources>('AuthResources')
+          .getConstructFactory<AuthResources>('AuthResources')
           .getInstance(cache, outputStorageStrategy),
         outputStorageStrategy
       );
@@ -46,7 +46,7 @@ export class DataFactory implements ConstructFactory<Construct> {
 }
 
 class DataGenerator implements ConstructCacheEntryGenerator {
-  readonly resourceGroupName: 'data';
+  readonly resourceGroupName = 'data';
   private readonly defaultName = 'amplifyData';
 
   constructor(

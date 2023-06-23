@@ -50,8 +50,8 @@ export type BackendOutputWriter = {
 // @public
 export type ConstructCache = {
     getOrCompute(generator: ConstructCacheEntryGenerator): Construct;
-    registerProviderFactory(token: string, provider: ProviderFactory): void;
-    getProviderFactory<T>(token: string): ProviderFactory<T>;
+    registerConstructFactory(token: string, provider: ConstructFactory): void;
+    getConstructFactory<T>(token: string): ConstructFactory<T>;
 };
 
 // @public
@@ -61,9 +61,9 @@ export type ConstructCacheEntryGenerator = {
 };
 
 // @public
-export type ConstructFactory<Instance extends Construct> = {
+export type ConstructFactory<T = unknown> = {
     readonly provides?: string;
-    getInstance(cache: ConstructCache, outputStorageStrategy: BackendOutputStorageStrategy): Instance;
+    getInstance(cache: ConstructCache, outputStorageStrategy: BackendOutputStorageStrategy): T;
 };
 
 // @public
@@ -81,11 +81,6 @@ export type ProjectEnvironmentIdentifier = {
     projectName: string;
     environmentName: string;
 };
-
-// @public
-export type ProviderFactory<T = unknown> = {
-    readonly provides: string;
-} & ConstructFactory<T & Construct>;
 
 // @public
 export type StackIdentifier = {

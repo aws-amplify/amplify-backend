@@ -1,5 +1,5 @@
 import { Construct } from 'constructs';
-import { ConstructFactory, ProviderFactory } from '@aws-amplify/plugin-types';
+import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
 import {
   NestedStackResolver,
@@ -31,10 +31,7 @@ export class Backend {
     // register providers but don't actually execute anything yet
     Object.values(constructFactories).forEach((factory) => {
       if (typeof factory.provides === 'string') {
-        constructCache.registerProviderFactory(
-          factory.provides,
-          factory as ProviderFactory
-        );
+        constructCache.registerConstructFactory(factory.provides, factory);
       }
     });
 

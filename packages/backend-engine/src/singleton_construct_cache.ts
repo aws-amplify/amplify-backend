@@ -3,7 +3,7 @@ import { StackResolver } from './nested_stack_resolver.js';
 import {
   ConstructCache,
   ConstructCacheEntryGenerator,
-  ProviderFactory,
+  ConstructFactory,
 } from '@aws-amplify/plugin-types';
 
 /**
@@ -16,7 +16,7 @@ export class SingletonConstructCache implements ConstructCache {
     Construct
   > = new Map();
 
-  private readonly providerFactoryTokenMap: Record<string, ProviderFactory> =
+  private readonly providerFactoryTokenMap: Record<string, ConstructFactory> =
     {};
 
   /**
@@ -45,18 +45,18 @@ export class SingletonConstructCache implements ConstructCache {
    *
    * By convention, tokens should be the name of type T
    */
-  getProviderFactory<T>(token: string): ProviderFactory<T> {
+  getConstructFactory<T>(token: string): ConstructFactory<T> {
     if (token in this.providerFactoryTokenMap) {
-      return this.providerFactoryTokenMap[token] as ProviderFactory<T>;
+      return this.providerFactoryTokenMap[token] as ConstructFactory<T>;
     }
     throw new Error(`No provider factory registered for token ${token}`);
   }
 
   /**
-   * Register a ProviderFactory to a specified token. This ProviderFactory can be retrieved later using getProviderFactory
+   * Register a ProviderFactory to a specified token. This ProviderFactory can be retrieved later using getConstructFactory
    * Throws if the token is already registered to a different provider
    */
-  registerProviderFactory(token: string, provider: ProviderFactory): void {
+  registerConstructFactory(token: string, provider: ConstructFactory): void {
     if (
       token in this.providerFactoryTokenMap &&
       this.providerFactoryTokenMap[token] !== provider
