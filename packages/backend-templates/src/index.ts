@@ -16,43 +16,48 @@ export type BackendTemplate = {
   readonly name: string;
 };
 
-/**
- * Lists available backend templates.
- */
-export const listBackendTemplates = async (): Promise<
-  Array<BackendTemplate>
-> => {
-  const templates = (
-    await fs.readdir(templatesDirectory, {
-      withFileTypes: true,
-    })
-  )
-    .filter((dirEntry) => dirEntry.isDirectory())
-    .map((dirEntry) => ({
-      name: dirEntry.name,
-    }));
-  return templates;
+export interface BackendTemplateGallery {
+  listBackendTemplates: () => Promise<Array<BackendTemplate>>;
+}
+
+export const backendTemplateGallery: BackendTemplateGallery = {
+  listBackendTemplates: async (): Promise<Array<BackendTemplate>> => {
+    const templates = (
+      await fs.readdir(templatesDirectory, {
+        withFileTypes: true,
+      })
+    )
+      .filter((dirEntry) => dirEntry.isDirectory())
+      .map((dirEntry) => ({
+        name: dirEntry.name,
+      }));
+    return templates;
+  },
 };
 
-/**
- * Creates backend project from a template.
- */
-export const createBackendProjectFromTemplate = async (
-  templateName: string,
-  destinationDirectory: string
-): Promise<void> => {
-  if (!(await fsExtra.exists(destinationDirectory))) {
-    throw new Error('target directory does not exists');
-  }
-  if (!(await fs.stat(destinationDirectory)).isDirectory()) {
-    throw new Error('target directory is not a directory');
-  }
-  if ((await fs.readdir(destinationDirectory)).length !== 0) {
-    throw new Error('target directory is not empty');
-  }
-  const templateDirectory = path.join(templatesDirectory, templateName);
+export interface BackendProjectCreator {
+  createFromTemplate: (
+    templateName: string,
+    destinationDirectory: string
+  ) => Promise<void>;
+}
 
-  await fsExtra.copy(templateDirectory, destinationDirectory);
+export const backendProjectCreator: BackendProjectCreator = {
+  createFromTemplate: async (
+    templateName: string,
+    destinationDirectory: string
+  ): Promise<void> => {
+    if (!(await fsExtra.exists(destinationDirectory))) {
+      throw new Error('target directory does not exists');
+    }
+    if (!(await fs.stat(destinationDirectory)).isDirectory()) {
+      throw new Error('target directory is not a directory');
+    }
+    if ((await fs.readdir(destinationDirectory)).length !== 0) {
+      throw new Error('target directory is not empty');
+    }
+    const templateDirectory = path.join(templatesDirectory, templateName);
 
-  console.log(templateName, destinationDirectory);
+    await fsExtra.copy(templateDirectory, destinationDirectory);
+  },
 };

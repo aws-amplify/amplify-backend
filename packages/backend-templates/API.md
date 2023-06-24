@@ -5,12 +5,27 @@
 ```ts
 
 // @public (undocumented)
+export interface BackendProjectCreator {
+    // (undocumented)
+    createFromTemplate: (templateName: string, destinationDirectory: string) => Promise<void>;
+}
+
+// @public (undocumented)
+export const backendProjectCreator: BackendProjectCreator;
+
+// @public
 export type BackendTemplate = {
     readonly name: string;
 };
 
-// @public
-export const listBackendTemplates: () => Array<BackendTemplate>;
+// @public (undocumented)
+export interface BackendTemplateGallery {
+    // (undocumented)
+    listBackendTemplates: () => Promise<Array<BackendTemplate>>;
+}
+
+// @public (undocumented)
+export const backendTemplateGallery: BackendTemplateGallery;
 
 // (No @packageDocumentation comment for this package)
 

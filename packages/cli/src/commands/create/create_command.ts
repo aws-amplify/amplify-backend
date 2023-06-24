@@ -1,7 +1,9 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import {
-  createBackendProjectFromTemplate,
-  listBackendTemplates,
+  backendProjectCreator,
+  BackendProjectCreator,
+  backendTemplateGallery,
+  BackendTemplateGallery,
 } from '@aws-amplify/backend-templates';
 import * as process from 'process';
 
@@ -12,14 +14,19 @@ interface CreateCommandOptions {
 /**
  * A command that scaffolds amplify project.
  */
-class CreateCommand implements CommandModule<object, CreateCommandOptions> {
+export class CreateCommand
+  implements CommandModule<object, CreateCommandOptions>
+{
   readonly command: string;
   readonly describe: string;
 
   /**
    * Creates CreateCommand.
    */
-  constructor() {
+  constructor(
+    private readonly templateGallery: BackendTemplateGallery,
+    private readonly projectCreator: BackendProjectCreator
+  ) {
     this.command = 'create';
     this.describe = 'Creates a new Amplify backend';
   }
@@ -29,7 +36,7 @@ class CreateCommand implements CommandModule<object, CreateCommandOptions> {
   ): Promise<void> => {
     const selectedTemplateName = args.template;
     const destinationDirectory = process.cwd();
-    await createBackendProjectFromTemplate(
+    await backendProjectCreator.createFromTemplate(
       selectedTemplateName,
       destinationDirectory
     );
@@ -37,7 +44,8 @@ class CreateCommand implements CommandModule<object, CreateCommandOptions> {
   };
 
   builder = async (yargs: Argv): Promise<Argv<CreateCommandOptions>> => {
-    const backendTemplates = await listBackendTemplates();
+    const backendTemplates =
+      await backendTemplateGallery.listBackendTemplates();
     if (backendTemplates.length == 0) {
       throw new Error('No backend template is available');
     }
@@ -55,6 +63,3 @@ class CreateCommand implements CommandModule<object, CreateCommandOptions> {
       .showHelpOnFail(false);
   };
 }
-
-export const createCommand: CommandModule =
-  new CreateCommand() as unknown as CommandModule;
