@@ -1,8 +1,6 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import {
-  backendProjectCreator,
   BackendProjectCreator,
-  backendTemplateGallery,
   BackendTemplateGallery,
 } from '@aws-amplify/backend-templates';
 import * as process from 'process';
@@ -36,7 +34,7 @@ export class CreateCommand
   ): Promise<void> => {
     const selectedTemplateName = args.template;
     const destinationDirectory = process.cwd();
-    await backendProjectCreator.createFromTemplate(
+    await this.projectCreator.createFromTemplate(
       selectedTemplateName,
       destinationDirectory
     );
@@ -44,8 +42,7 @@ export class CreateCommand
   };
 
   builder = async (yargs: Argv): Promise<Argv<CreateCommandOptions>> => {
-    const backendTemplates =
-      await backendTemplateGallery.listBackendTemplates();
+    const backendTemplates = await this.templateGallery.listBackendTemplates();
     if (backendTemplates.length == 0) {
       throw new Error('No backend template is available');
     }
