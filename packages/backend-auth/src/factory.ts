@@ -26,7 +26,7 @@ export class AmplifyAuthFactory
    * Get a singleton instance of AmplifyAuth
    */
   getInstance(
-    cache: ConstructContainer,
+    container: ConstructContainer,
     backendOutputStorageStrategy: BackendOutputStorageStrategy
   ): AmplifyAuth {
     if (!this.generator) {
@@ -35,7 +35,7 @@ export class AmplifyAuthFactory
         backendOutputStorageStrategy
       );
     }
-    return cache.getOrCompute(this.generator) as AmplifyAuth;
+    return container.getOrCompute(this.generator) as AmplifyAuth;
   }
 }
 

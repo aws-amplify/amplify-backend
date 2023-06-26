@@ -11,7 +11,7 @@ export type ConstructFactory<T = unknown> = {
    */
   readonly provides?: string;
   getInstance(
-    cache: ConstructContainer,
+    constructContainer: ConstructContainer,
     outputStorageStrategy: BackendOutputStorageStrategy
   ): T;
 };

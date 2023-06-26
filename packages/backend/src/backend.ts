@@ -20,7 +20,7 @@ export class Backend {
     constructFactories: Record<string, ConstructFactory<Construct>>,
     stack: Stack = createDefaultStack()
   ) {
-    const constructCache = new SingletonConstructContainer(
+    const constructContainer = new SingletonConstructContainer(
       new NestedStackResolver(stack)
     );
 
@@ -31,13 +31,13 @@ export class Backend {
     // register providers but don't actually execute anything yet
     Object.values(constructFactories).forEach((factory) => {
       if (typeof factory.provides === 'string') {
-        constructCache.registerConstructFactory(factory.provides, factory);
+        constructContainer.registerConstructFactory(factory.provides, factory);
       }
     });
 
     // now invoke all the factories
     Object.values(constructFactories).forEach((constructFactory) => {
-      constructFactory.getInstance(constructCache, outputStorageStrategy);
+      constructFactory.getInstance(constructContainer, outputStorageStrategy);
     });
 
     outputStorageStrategy.flush();

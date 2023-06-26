@@ -1,9 +1,9 @@
 import { Construct } from 'constructs';
 import {
+  BackendOutputStorageStrategy,
   ConstructContainer,
   ConstructContainerEntryGenerator,
   ConstructFactory,
-  BackendOutputStorageStrategy,
 } from '@aws-amplify/plugin-types';
 import {
   AmplifyStorage,
@@ -25,7 +25,7 @@ export class AmplifyStorageFactory implements ConstructFactory<AmplifyStorage> {
    * Get a singleton instance of the Bucket
    */
   getInstance(
-    cache: ConstructContainer,
+    container: ConstructContainer,
     outputStorageStrategy: BackendOutputStorageStrategy
   ): AmplifyStorage {
     if (!this.generator) {
@@ -34,7 +34,7 @@ export class AmplifyStorageFactory implements ConstructFactory<AmplifyStorage> {
         outputStorageStrategy
       );
     }
-    return cache.getOrCompute(this.generator) as AmplifyStorage;
+    return container.getOrCompute(this.generator) as AmplifyStorage;
   }
 }
 

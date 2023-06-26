@@ -18,7 +18,7 @@ describe('AmplifyAuthFactory', () => {
     const app = new App();
     const stack = new Stack(app);
 
-    const cache = new SingletonConstructContainer(
+    const container = new SingletonConstructContainer(
       new NestedStackResolver(stack)
     );
 
@@ -26,8 +26,8 @@ describe('AmplifyAuthFactory', () => {
       stack
     );
 
-    const instance1 = authFactory.getInstance(cache, outputStorageStrategy);
-    const instance2 = authFactory.getInstance(cache, outputStorageStrategy);
+    const instance1 = authFactory.getInstance(container, outputStorageStrategy);
+    const instance2 = authFactory.getInstance(container, outputStorageStrategy);
 
     assert.strictEqual(instance1, instance2);
   });
@@ -40,7 +40,7 @@ describe('AmplifyAuthFactory', () => {
     const app = new App();
     const stack = new Stack(app);
 
-    const cache = new SingletonConstructContainer(
+    const container = new SingletonConstructContainer(
       new NestedStackResolver(stack)
     );
 
@@ -48,7 +48,10 @@ describe('AmplifyAuthFactory', () => {
       stack
     );
 
-    const authConstruct = authFactory.getInstance(cache, outputStorageStrategy);
+    const authConstruct = authFactory.getInstance(
+      container,
+      outputStorageStrategy
+    );
 
     const template = Template.fromStack(Stack.of(authConstruct));
 

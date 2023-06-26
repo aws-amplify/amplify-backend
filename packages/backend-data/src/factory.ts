@@ -29,19 +29,19 @@ export class DataFactory implements ConstructFactory<Construct> {
    * Gets an instance of the Data construct
    */
   getInstance(
-    cache: ConstructContainer,
+    container: ConstructContainer,
     outputStorageStrategy: BackendOutputStorageStrategy
   ): Construct {
     if (!this.generator) {
       this.generator = new DataGenerator(
         this.props,
-        cache
+        container
           .getConstructFactory<AuthResources>('AuthResources')
-          .getInstance(cache, outputStorageStrategy),
+          .getInstance(container, outputStorageStrategy),
         outputStorageStrategy
       );
     }
-    return cache.getOrCompute(this.generator);
+    return container.getOrCompute(this.generator);
   }
 }
 

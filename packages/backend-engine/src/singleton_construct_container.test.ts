@@ -13,10 +13,10 @@ describe('SingletonConstructContainer', () => {
     it('calls initializer to create construct instance', () => {
       const app = new App();
       const stack = new Stack(app);
-      const constructCache = new SingletonConstructContainer(
+      const container = new SingletonConstructContainer(
         new NestedStackResolver(stack)
       );
-      const instance = constructCache.getOrCompute({
+      const instance = container.getOrCompute({
         resourceGroupName: 'testGroup',
         generateContainerEntry(scope: Construct): Construct {
           return new Bucket(scope, 'testBucket');
@@ -28,7 +28,7 @@ describe('SingletonConstructContainer', () => {
     it('returns cached instance if initializer has been seen before', () => {
       const app = new App();
       const stack = new Stack(app);
-      const constructCache = new SingletonConstructContainer(
+      const container = new SingletonConstructContainer(
         new NestedStackResolver(stack)
       );
       const initializer: ConstructContainerEntryGenerator = {
@@ -37,8 +37,8 @@ describe('SingletonConstructContainer', () => {
           return new Bucket(scope, 'testBucket');
         },
       };
-      const instance1 = constructCache.getOrCompute(initializer);
-      const instance2 = constructCache.getOrCompute(initializer);
+      const instance1 = container.getOrCompute(initializer);
+      const instance2 = container.getOrCompute(initializer);
 
       assert.strictEqual(instance1, instance2);
     });
@@ -46,7 +46,7 @@ describe('SingletonConstructContainer', () => {
     it('returns correct cached value for each initializer', () => {
       const app = new App();
       const stack = new Stack(app);
-      const constructCache = new SingletonConstructContainer(
+      const container = new SingletonConstructContainer(
         new NestedStackResolver(stack)
       );
       const bucketInitializer: ConstructContainerEntryGenerator = {
@@ -61,11 +61,11 @@ describe('SingletonConstructContainer', () => {
           return new Queue(scope, 'testQueue');
         },
       };
-      const bucket = constructCache.getOrCompute(bucketInitializer);
-      const queue = constructCache.getOrCompute(queueInitializer);
+      const bucket = container.getOrCompute(bucketInitializer);
+      const queue = container.getOrCompute(queueInitializer);
 
-      const cachedBucket = constructCache.getOrCompute(bucketInitializer);
-      const cachedQueue = constructCache.getOrCompute(queueInitializer);
+      const cachedBucket = container.getOrCompute(bucketInitializer);
+      const cachedQueue = container.getOrCompute(queueInitializer);
 
       assert.equal(bucket instanceof Bucket, true);
       assert.equal(queue instanceof Queue, true);
