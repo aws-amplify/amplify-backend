@@ -63,7 +63,7 @@ export type ConstructContainerEntryGenerator = {
 // @public
 export type ConstructFactory<T = unknown> = {
     readonly provides?: string;
-    getInstance(cache: ConstructContainer, outputStorageStrategy: BackendOutputStorageStrategy): T;
+    getInstance(constructContainer: ConstructContainer, outputStorageStrategy: BackendOutputStorageStrategy): T;
 };
 
 // @public

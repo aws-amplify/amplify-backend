@@ -16,7 +16,7 @@ export const Data: typeof DataFactory;
 // @public
 export class DataFactory implements ConstructFactory<Construct> {
     constructor(props: DataProps);
-    getInstance(cache: ConstructContainer, outputStorageStrategy: BackendOutputStorageStrategy): Construct;
+    getInstance(container: ConstructContainer, outputStorageStrategy: BackendOutputStorageStrategy): Construct;
 }
 
 // @public (undocumented)

@@ -13,7 +13,7 @@ import { ConstructFactory } from '@aws-amplify/plugin-types';
 // @public
 export class AmplifyStorageFactory implements ConstructFactory<AmplifyStorage> {
     constructor(props: AmplifyStorageProps);
-    getInstance(cache: ConstructContainer, outputStorageStrategy: BackendOutputStorageStrategy): AmplifyStorage;
+    getInstance(container: ConstructContainer, outputStorageStrategy: BackendOutputStorageStrategy): AmplifyStorage;
 }
 
 // @public
