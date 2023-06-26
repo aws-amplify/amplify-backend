@@ -1,7 +1,9 @@
-import * as fs from 'fs/promises';
-import * as fsExtra from 'fs-extra';
 import * as path from 'path';
 import * as url from 'url';
+
+import { BackendProjectCreator, BackendTemplateGallery } from './types.js';
+import { LocalDirectoryBackendTemplateGallery } from './backend_template_gallery.js';
+import { LocalDirectoryBackendProjectCreator } from './backend_project_creator.js';
 
 const templatesDirectory = path.resolve(
   url.fileURLToPath(new URL('.', import.meta.url)),
@@ -9,55 +11,10 @@ const templatesDirectory = path.resolve(
   'templates'
 );
 
-/**
- * A backend template.
- */
-export type BackendTemplate = {
-  readonly name: string;
-};
+export const backendTemplateGallery: BackendTemplateGallery =
+  new LocalDirectoryBackendTemplateGallery(templatesDirectory);
 
-export interface BackendTemplateGallery {
-  listBackendTemplates: () => Promise<Array<BackendTemplate>>;
-}
+export const backendProjectCreator: BackendProjectCreator =
+  new LocalDirectoryBackendProjectCreator(templatesDirectory);
 
-export const backendTemplateGallery: BackendTemplateGallery = {
-  listBackendTemplates: async (): Promise<Array<BackendTemplate>> => {
-    const templates = (
-      await fs.readdir(templatesDirectory, {
-        withFileTypes: true,
-      })
-    )
-      .filter((dirEntry) => dirEntry.isDirectory())
-      .map((dirEntry) => ({
-        name: dirEntry.name,
-      }));
-    return templates;
-  },
-};
-
-export interface BackendProjectCreator {
-  createFromTemplate: (
-    templateName: string,
-    destinationDirectory: string
-  ) => Promise<void>;
-}
-
-export const backendProjectCreator: BackendProjectCreator = {
-  createFromTemplate: async (
-    templateName: string,
-    destinationDirectory: string
-  ): Promise<void> => {
-    if (!(await fsExtra.exists(destinationDirectory))) {
-      throw new Error('target directory does not exists');
-    }
-    if (!(await fs.stat(destinationDirectory)).isDirectory()) {
-      throw new Error('target directory is not a directory');
-    }
-    if ((await fs.readdir(destinationDirectory)).length !== 0) {
-      throw new Error('target directory is not empty');
-    }
-    const templateDirectory = path.join(templatesDirectory, templateName);
-
-    await fsExtra.copy(templateDirectory, destinationDirectory);
-  },
-};
+export { BackendProjectCreator, BackendTemplateGallery };

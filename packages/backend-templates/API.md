@@ -4,9 +4,8 @@
 
 ```ts
 
-// @public (undocumented)
+// @public
 export interface BackendProjectCreator {
-    // (undocumented)
     createFromTemplate: (templateName: string, destinationDirectory: string) => Promise<void>;
 }
 
@@ -14,13 +13,8 @@ export interface BackendProjectCreator {
 export const backendProjectCreator: BackendProjectCreator;
 
 // @public
-export type BackendTemplate = {
-    readonly name: string;
-};
-
-// @public (undocumented)
 export interface BackendTemplateGallery {
-    // (undocumented)
+    // Warning: (ae-forgotten-export) The symbol "BackendTemplate" needs to be exported by the entry point index.d.ts
     listBackendTemplates: () => Promise<Array<BackendTemplate>>;
 }
 
