@@ -92,7 +92,7 @@ describe('create command', () => {
     );
   });
 
-  it('renders help', async () => {
+  it('prints template choices in help', async () => {
     const output = await runCommand(createCommand, 'create --help');
     assert.match(output, /--template {2}An application template/);
     assert.match(
