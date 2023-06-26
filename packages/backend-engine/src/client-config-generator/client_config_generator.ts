@@ -1,5 +1,5 @@
 import {
-  BackendOutput,
+  BackendOutputEntry,
   BackendOutputRetrievalStrategy,
 } from '@aws-amplify/plugin-types';
 
@@ -9,7 +9,7 @@ export type ClientConfigGenerator = {
 
 // TODO ClientConfig will be a translation of BackendOutput into a frontend-specific format
 // https://github.com/aws-amplify/samsara-cli/issues/48
-export type ClientConfig = BackendOutput;
+export type ClientConfig = BackendOutputEntry[];
 
 /**
  * Right now this is mostly a stub. This will become a translation layer between backend output and frontend config

@@ -44,9 +44,12 @@ describe('Backend', () => {
           resourceGroupName: 'test',
           generateContainerEntry(scope: Construct): Bucket {
             const bucket = new Bucket(scope, 'test-bucket');
-            storageStrategy.addBackendOutputEntry('test-plugin', {
-              constructVersion: '1.0.0',
-              data: {
+            storageStrategy.addBackendOutputEntry({
+              schemaIdentifier: {
+                schemaName: 'TestSchema',
+                schemaVersion: 1,
+              },
+              payload: {
                 bucketName: bucket.bucketName,
               },
             });
@@ -69,12 +72,13 @@ describe('Backend', () => {
     rootStackTemplate.hasOutput('bucketName', {});
     rootStackTemplate.templateMatches({
       Metadata: {
-        'AWS::Amplify::Output': {
-          'test-plugin': {
-            constructVersion: '1.0.0',
+        'AWS::Amplify::Output': [
+          {
+            schemaName: 'TestSchema',
+            schemaVersion: '1',
             stackOutputs: ['bucketName'],
           },
-        },
+        ],
       },
     });
   });

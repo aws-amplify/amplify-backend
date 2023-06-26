@@ -1,0 +1,16 @@
+{
+  "name": "@aws-amplify/backend-output-schemas",
+  "version": "0.1.0",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "update:api": "api-extractor run --local"
+  },
+  "devDependencies": {
+    "@aws-amplify/plugin-types": "0.1.0"
+  },
+  "peerDependencies": {
+    "zod": "^3.21.4"
+  }
+}

@@ -13,9 +13,12 @@ describe('StackMetadataBackendOutputStorageStrategy', () => {
       const outputStorage = new StackMetadataBackendOutputStorageStrategy(
         stack
       );
-      outputStorage.addBackendOutputEntry('test-package', {
-        constructVersion: '2.0.0',
-        data: {
+      outputStorage.addBackendOutputEntry({
+        schemaIdentifier: {
+          schemaName: 'TestSchema',
+          schemaVersion: 1,
+        },
+        payload: {
           something: 'special',
         },
       });
@@ -25,12 +28,13 @@ describe('StackMetadataBackendOutputStorageStrategy', () => {
       template.hasOutput('something', { Value: 'special' });
       template.templateMatches({
         Metadata: {
-          [amplifyStackMetadataKey]: {
-            'test-package': {
-              constructVersion: '2.0.0',
+          [amplifyStackMetadataKey]: [
+            {
+              schemaName: 'TestSchema',
+              schemaVersion: 1,
               stackOutputs: ['something'],
             },
-          },
+          ],
         },
       });
     });
@@ -41,9 +45,12 @@ describe('StackMetadataBackendOutputStorageStrategy', () => {
       const outputStorage = new StackMetadataBackendOutputStorageStrategy(
         stack
       );
-      outputStorage.addBackendOutputEntry('test-package', {
-        constructVersion: '2.0.0',
-        data: {
+      outputStorage.addBackendOutputEntry({
+        schemaIdentifier: {
+          schemaName: 'TestSchema',
+          schemaVersion: 1,
+        },
+        payload: {
           something: 'special',
         },
       });

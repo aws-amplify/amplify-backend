@@ -19,6 +19,7 @@
     "lib"
   ],
   "dependencies": {
+    "@aws-amplify/backend-output-schemas": "^0.1.0",
     "agqlac": "0.3.0-agqlac.3"
   }
 }
