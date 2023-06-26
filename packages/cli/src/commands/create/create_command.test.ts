@@ -7,7 +7,10 @@ import {
   BackendTemplateGallery,
 } from '@aws-amplify/backend-templates';
 import * as process from 'process';
-import { TestCommandRunner } from '../../test_utils/command_runner.js';
+import {
+  TestCommandError,
+  TestCommandRunner,
+} from '../../test_utils/command_runner.js';
 
 describe('create command', () => {
   const templateGallery: BackendTemplateGallery = {
@@ -70,9 +73,13 @@ describe('create command', () => {
   it('fails on unrecognized template', async () => {
     await assert.rejects(
       () => commandRunner.runCommand('create --template non_existent_template'),
-      (err: Error) => {
-        assert.equal(err.name, 'YError');
-        assert.match(err.message, /Invalid values:/);
+      (err: TestCommandError) => {
+        assert.equal(err.error.name, 'YError');
+        assert.match(err.error.message, /Invalid values:/);
+        assert.match(
+          err.output,
+          /Argument: template, Given: "non_existent_template", Choices: "template1", "template2", "template3"/
+        );
         return true;
       }
     );
