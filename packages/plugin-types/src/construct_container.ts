@@ -4,7 +4,7 @@ import { ConstructFactory } from './construct_factory.js';
 /**
  * Initializes a CDK Construct in a given scope
  */
-export type ConstructCacheEntryGenerator = {
+export type ConstructContainerEntryGenerator = {
   /**
    * A group name for this generator.
    * This is used by the cache to determine which stack to place the generated construct in
@@ -14,15 +14,15 @@ export type ConstructCacheEntryGenerator = {
   /**
    * Create a new instance of a CDK construct in the provided scope.
    */
-  generateCacheEntry(scope: Construct): Construct;
+  generateContainerEntry(scope: Construct): Construct;
 };
 
 /**
  * Vends Constructs based on an initializer function
  * TODO I'm not going to rename this type yet. Once we land on the approach here, I'll do the rename in a separate PR to avoid blowing up the diff
  */
-export type ConstructCache = {
-  getOrCompute(generator: ConstructCacheEntryGenerator): Construct;
+export type ConstructContainer = {
+  getOrCompute(generator: ConstructContainerEntryGenerator): Construct;
   registerConstructFactory(token: string, provider: ConstructFactory): void;
   getConstructFactory<T>(token: string): ConstructFactory<T>;
 };

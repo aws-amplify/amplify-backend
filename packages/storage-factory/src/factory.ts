@@ -1,7 +1,7 @@
 import { Construct } from 'constructs';
 import {
-  ConstructCache,
-  ConstructCacheEntryGenerator,
+  ConstructContainer,
+  ConstructContainerEntryGenerator,
   ConstructFactory,
   BackendOutputStorageStrategy,
 } from '@aws-amplify/plugin-types';
@@ -14,7 +14,7 @@ import {
  * Singleton factory for a Storage bucket that can be used in `storage.ts` files
  */
 export class AmplifyStorageFactory implements ConstructFactory<AmplifyStorage> {
-  private generator: ConstructCacheEntryGenerator;
+  private generator: ConstructContainerEntryGenerator;
 
   /**
    * Set the properties that will be used to initialize the bucket
@@ -25,7 +25,7 @@ export class AmplifyStorageFactory implements ConstructFactory<AmplifyStorage> {
    * Get a singleton instance of the Bucket
    */
   getInstance(
-    cache: ConstructCache,
+    cache: ConstructContainer,
     outputStorageStrategy: BackendOutputStorageStrategy
   ): AmplifyStorage {
     if (!this.generator) {
@@ -38,7 +38,7 @@ export class AmplifyStorageFactory implements ConstructFactory<AmplifyStorage> {
   }
 }
 
-class AmplifyStorageGenerator implements ConstructCacheEntryGenerator {
+class AmplifyStorageGenerator implements ConstructContainerEntryGenerator {
   readonly resourceGroupName = 'storage';
   private readonly defaultName = 'amplifyStorage';
 
@@ -47,7 +47,7 @@ class AmplifyStorageGenerator implements ConstructCacheEntryGenerator {
     private readonly outputStorageStrategy: BackendOutputStorageStrategy
   ) {}
 
-  generateCacheEntry(scope: Construct) {
+  generateContainerEntry(scope: Construct) {
     const storageConstruct = new AmplifyStorage(
       scope,
       this.defaultName,

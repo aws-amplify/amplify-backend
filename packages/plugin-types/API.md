@@ -48,22 +48,22 @@ export type BackendOutputWriter = {
 };
 
 // @public
-export type ConstructCache = {
-    getOrCompute(generator: ConstructCacheEntryGenerator): Construct;
+export type ConstructContainer = {
+    getOrCompute(generator: ConstructContainerEntryGenerator): Construct;
     registerConstructFactory(token: string, provider: ConstructFactory): void;
     getConstructFactory<T>(token: string): ConstructFactory<T>;
 };
 
 // @public
-export type ConstructCacheEntryGenerator = {
+export type ConstructContainerEntryGenerator = {
     resourceGroupName: string;
-    generateCacheEntry(scope: Construct): Construct;
+    generateContainerEntry(scope: Construct): Construct;
 };
 
 // @public
 export type ConstructFactory<T = unknown> = {
     readonly provides?: string;
-    getInstance(cache: ConstructCache, outputStorageStrategy: BackendOutputStorageStrategy): T;
+    getInstance(cache: ConstructContainer, outputStorageStrategy: BackendOutputStorageStrategy): T;
 };
 
 // @public

@@ -10,8 +10,8 @@ import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { BackendOutputValue } from '@aws-amplify/plugin-types';
 import { CfnElement } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { ConstructCache } from '@aws-amplify/plugin-types';
-import { ConstructCacheEntryGenerator } from '@aws-amplify/plugin-types';
+import { ConstructContainer } from '@aws-amplify/plugin-types';
+import { ConstructContainerEntryGenerator } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
 
@@ -30,10 +30,10 @@ export class NestedStackResolver implements StackResolver {
 }
 
 // @public
-export class SingletonConstructCache implements ConstructCache {
+export class SingletonConstructContainer implements ConstructContainer {
     constructor(stackResolver: StackResolver);
     getConstructFactory<T>(token: string): ConstructFactory<T>;
-    getOrCompute(generator: ConstructCacheEntryGenerator): Construct;
+    getOrCompute(generator: ConstructContainerEntryGenerator): Construct;
     registerConstructFactory(token: string, provider: ConstructFactory): void;
 }
 

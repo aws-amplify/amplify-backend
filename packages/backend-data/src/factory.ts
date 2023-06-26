@@ -2,8 +2,8 @@ import { Construct } from 'constructs';
 import {
   AuthResources,
   BackendOutputStorageStrategy,
-  ConstructCache,
-  ConstructCacheEntryGenerator,
+  ConstructContainer,
+  ConstructContainerEntryGenerator,
   ConstructFactory,
 } from '@aws-amplify/plugin-types';
 import {
@@ -18,7 +18,7 @@ export type DataProps = Pick<AmplifyGraphqlApiProps, 'schema'>;
  * Singleton factory for AmplifyGraphqlApi constructs that can be used in Amplify project files
  */
 export class DataFactory implements ConstructFactory<Construct> {
-  private generator: ConstructCacheEntryGenerator;
+  private generator: ConstructContainerEntryGenerator;
 
   /**
    * Create a new AmplifyConstruct
@@ -29,7 +29,7 @@ export class DataFactory implements ConstructFactory<Construct> {
    * Gets an instance of the Data construct
    */
   getInstance(
-    cache: ConstructCache,
+    cache: ConstructContainer,
     outputStorageStrategy: BackendOutputStorageStrategy
   ): Construct {
     if (!this.generator) {
@@ -45,7 +45,7 @@ export class DataFactory implements ConstructFactory<Construct> {
   }
 }
 
-class DataGenerator implements ConstructCacheEntryGenerator {
+class DataGenerator implements ConstructContainerEntryGenerator {
   readonly resourceGroupName = 'data';
   private readonly defaultName = 'amplifyData';
 
@@ -55,7 +55,7 @@ class DataGenerator implements ConstructCacheEntryGenerator {
     private readonly outputStorageStrategy: BackendOutputStorageStrategy
   ) {}
 
-  generateCacheEntry(scope: Construct) {
+  generateContainerEntry(scope: Construct) {
     const authConfig: AuthorizationConfig = {
       iamConfig: {
         authenticatedUserRole: this.authResources.authenticatedUserIamRole,

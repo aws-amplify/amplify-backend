@@ -7,7 +7,7 @@
 import { AmplifyGraphqlApiProps } from 'agqlac';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
-import { ConstructCache } from '@aws-amplify/plugin-types';
+import { ConstructContainer } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 
 // @public (undocumented)
@@ -16,7 +16,7 @@ export const Data: typeof DataFactory;
 // @public
 export class DataFactory implements ConstructFactory<Construct> {
     constructor(props: DataProps);
-    getInstance(cache: ConstructCache, outputStorageStrategy: BackendOutputStorageStrategy): Construct;
+    getInstance(cache: ConstructContainer, outputStorageStrategy: BackendOutputStorageStrategy): Construct;
 }
 
 // @public (undocumented)

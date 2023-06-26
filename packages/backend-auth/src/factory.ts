@@ -3,8 +3,8 @@ import { Construct } from 'constructs';
 import {
   AuthResources,
   BackendOutputStorageStrategy,
-  ConstructCache,
-  ConstructCacheEntryGenerator,
+  ConstructContainer,
+  ConstructContainerEntryGenerator,
   ConstructFactory,
 } from '@aws-amplify/plugin-types';
 
@@ -15,7 +15,7 @@ export class AmplifyAuthFactory
   implements ConstructFactory<AmplifyAuth & AuthResources>
 {
   readonly provides = 'AuthResources';
-  private generator: ConstructCacheEntryGenerator;
+  private generator: ConstructContainerEntryGenerator;
 
   /**
    * Set the properties that will be used to initialize AmplifyAuth
@@ -26,7 +26,7 @@ export class AmplifyAuthFactory
    * Get a singleton instance of AmplifyAuth
    */
   getInstance(
-    cache: ConstructCache,
+    cache: ConstructContainer,
     backendOutputStorageStrategy: BackendOutputStorageStrategy
   ): AmplifyAuth {
     if (!this.generator) {
@@ -39,7 +39,7 @@ export class AmplifyAuthFactory
   }
 }
 
-class AmplifyAuthGenerator implements ConstructCacheEntryGenerator {
+class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
   readonly resourceGroupName = 'auth';
   private readonly defaultName = 'amplifyAuth';
 
@@ -48,7 +48,7 @@ class AmplifyAuthGenerator implements ConstructCacheEntryGenerator {
     private readonly backendOutputStorageStrategy: BackendOutputStorageStrategy
   ) {}
 
-  generateCacheEntry(scope: Construct) {
+  generateContainerEntry(scope: Construct) {
     const authConstruct = new AmplifyAuth(scope, this.defaultName, this.props);
     authConstruct.storeOutput(this.backendOutputStorageStrategy);
     return authConstruct;

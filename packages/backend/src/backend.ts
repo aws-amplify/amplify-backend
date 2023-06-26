@@ -3,7 +3,7 @@ import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
 import {
   NestedStackResolver,
-  SingletonConstructCache,
+  SingletonConstructContainer,
   StackMetadataBackendOutputStorageStrategy,
 } from '@aws-amplify/backend-engine';
 import { createDefaultStack } from './default_stack_factory.js';
@@ -20,7 +20,7 @@ export class Backend {
     constructFactories: Record<string, ConstructFactory<Construct>>,
     stack: Stack = createDefaultStack()
   ) {
-    const constructCache = new SingletonConstructCache(
+    const constructCache = new SingletonConstructContainer(
       new NestedStackResolver(stack)
     );
 

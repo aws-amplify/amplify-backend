@@ -4,14 +4,14 @@ import { DataFactory } from './factory.js';
 import { App, Stack } from 'aws-cdk-lib';
 import {
   NestedStackResolver,
-  SingletonConstructCache,
+  SingletonConstructContainer,
   StackMetadataBackendOutputStorageStrategy,
 } from '@aws-amplify/backend-engine';
 import { Template } from 'aws-cdk-lib/assertions';
 import {
   AuthResources,
   BackendOutputStorageStrategy,
-  ConstructCache,
+  ConstructContainer,
 } from '@aws-amplify/plugin-types';
 import { Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 
@@ -27,13 +27,13 @@ const testSchema = `
 
 describe('DataFactory', () => {
   let stack: Stack;
-  let cache: ConstructCache;
+  let cache: ConstructContainer;
   let outputStorageStrategy: BackendOutputStorageStrategy;
   beforeEach(() => {
     const app = new App();
     stack = new Stack(app);
 
-    cache = new SingletonConstructCache(new NestedStackResolver(stack));
+    cache = new SingletonConstructContainer(new NestedStackResolver(stack));
     cache.registerConstructFactory('AuthResources', {
       provides: 'AuthResources',
       getInstance: (): AuthResources => ({
