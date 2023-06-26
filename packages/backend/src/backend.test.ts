@@ -12,7 +12,7 @@ describe('Backend', () => {
       getInstance(resolver): Bucket {
         return resolver.getOrCompute({
           resourceGroupName: 'test',
-          generateCacheEntry(scope: Construct): Bucket {
+          generateContainerEntry(scope: Construct): Bucket {
             return new Bucket(scope, 'test-bucket');
           },
         }) as Bucket;
@@ -42,7 +42,7 @@ describe('Backend', () => {
       getInstance(resolver, storageStrategy): Bucket {
         return resolver.getOrCompute({
           resourceGroupName: 'test',
-          generateCacheEntry(scope: Construct): Bucket {
+          generateContainerEntry(scope: Construct): Bucket {
             const bucket = new Bucket(scope, 'test-bucket');
             storageStrategy.addBackendOutputEntry('test-plugin', {
               constructVersion: '1.0.0',

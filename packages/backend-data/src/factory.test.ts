@@ -4,14 +4,14 @@ import { DataFactory } from './factory.js';
 import { App, Stack } from 'aws-cdk-lib';
 import {
   NestedStackResolver,
-  SingletonConstructCache,
+  SingletonConstructContainer,
   StackMetadataBackendOutputStorageStrategy,
 } from '@aws-amplify/backend-engine';
 import { Template } from 'aws-cdk-lib/assertions';
 import {
   AuthResources,
   BackendOutputStorageStrategy,
-  ConstructCache,
+  ConstructContainer,
 } from '@aws-amplify/plugin-types';
 import { Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 
@@ -27,14 +27,14 @@ const testSchema = `
 
 describe('DataFactory', () => {
   let stack: Stack;
-  let cache: ConstructCache;
+  let container: ConstructContainer;
   let outputStorageStrategy: BackendOutputStorageStrategy;
   beforeEach(() => {
     const app = new App();
     stack = new Stack(app);
 
-    cache = new SingletonConstructCache(new NestedStackResolver(stack));
-    cache.registerConstructFactory('AuthResources', {
+    container = new SingletonConstructContainer(new NestedStackResolver(stack));
+    container.registerConstructFactory('AuthResources', {
       provides: 'AuthResources',
       getInstance: (): AuthResources => ({
         unauthenticatedUserIamRole: new Role(stack, 'testUnauthRole', {
@@ -52,8 +52,8 @@ describe('DataFactory', () => {
   it('returns singleton instance', () => {
     const dataFactory = new DataFactory({ schema: testSchema });
 
-    const instance1 = dataFactory.getInstance(cache, outputStorageStrategy);
-    const instance2 = dataFactory.getInstance(cache, outputStorageStrategy);
+    const instance1 = dataFactory.getInstance(container, outputStorageStrategy);
+    const instance2 = dataFactory.getInstance(container, outputStorageStrategy);
 
     assert.strictEqual(instance1, instance2);
   });
@@ -63,7 +63,10 @@ describe('DataFactory', () => {
       schema: testSchema,
     });
 
-    const dataConstruct = dataFactory.getInstance(cache, outputStorageStrategy);
+    const dataConstruct = dataFactory.getInstance(
+      container,
+      outputStorageStrategy
+    );
     const template = Template.fromStack(Stack.of(dataConstruct));
     template.resourceCountIs('AWS::AppSync::GraphQLApi', 1);
   });
@@ -73,7 +76,7 @@ describe('DataFactory', () => {
       schema: testSchema,
     });
 
-    dataFactory.getInstance(cache, outputStorageStrategy);
+    dataFactory.getInstance(container, outputStorageStrategy);
 
     const template = Template.fromStack(stack);
     template.hasOutput('appSyncApiId', {});

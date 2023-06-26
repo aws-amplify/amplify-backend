@@ -1,4 +1,4 @@
-import { ConstructCache } from './construct_cache.js';
+import { ConstructContainer } from './construct_container.js';
 import { BackendOutputStorageStrategy } from './output_storage_stragegy.js';
 
 /**
@@ -11,7 +11,7 @@ export type ConstructFactory<T = unknown> = {
    */
   readonly provides?: string;
   getInstance(
-    cache: ConstructCache,
+    constructContainer: ConstructContainer,
     outputStorageStrategy: BackendOutputStorageStrategy
   ): T;
 };

@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import { AmplifyAuthFactory } from './factory.js';
 import {
   NestedStackResolver,
-  SingletonConstructCache,
+  SingletonConstructContainer,
   StackMetadataBackendOutputStorageStrategy,
 } from '@aws-amplify/backend-engine';
 import { App, Stack } from 'aws-cdk-lib';
@@ -18,14 +18,16 @@ describe('AmplifyAuthFactory', () => {
     const app = new App();
     const stack = new Stack(app);
 
-    const cache = new SingletonConstructCache(new NestedStackResolver(stack));
+    const container = new SingletonConstructContainer(
+      new NestedStackResolver(stack)
+    );
 
     const outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
       stack
     );
 
-    const instance1 = authFactory.getInstance(cache, outputStorageStrategy);
-    const instance2 = authFactory.getInstance(cache, outputStorageStrategy);
+    const instance1 = authFactory.getInstance(container, outputStorageStrategy);
+    const instance2 = authFactory.getInstance(container, outputStorageStrategy);
 
     assert.strictEqual(instance1, instance2);
   });
@@ -38,13 +40,18 @@ describe('AmplifyAuthFactory', () => {
     const app = new App();
     const stack = new Stack(app);
 
-    const cache = new SingletonConstructCache(new NestedStackResolver(stack));
+    const container = new SingletonConstructContainer(
+      new NestedStackResolver(stack)
+    );
 
     const outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
       stack
     );
 
-    const authConstruct = authFactory.getInstance(cache, outputStorageStrategy);
+    const authConstruct = authFactory.getInstance(
+      container,
+      outputStorageStrategy
+    );
 
     const template = Template.fromStack(Stack.of(authConstruct));
 
