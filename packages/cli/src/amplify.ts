@@ -1,5 +1,9 @@
 #!/usr/bin/env node
 
-import { main } from './cli.js';
+import { hideBin } from 'yargs/helpers';
+import * as process from 'process';
+import { createMainParser } from './main_parser_factory.js';
 
-await main();
+const parser = createMainParser();
+
+await parser.parseAsync(hideBin(process.argv));

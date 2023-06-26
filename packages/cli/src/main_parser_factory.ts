@@ -1,6 +1,4 @@
-import { hideBin } from 'yargs/helpers';
-import * as process from 'process';
-import yargs, { CommandModule } from 'yargs';
+import yargs, { Argv, CommandModule } from 'yargs';
 import { CreateCommand } from './commands/create/create_command.js';
 import {
   backendProjectCreator,
@@ -8,22 +6,18 @@ import {
 } from '@aws-amplify/backend-templates';
 
 /**
- * CLI Entry Point
- * @param args arguments list. Defaults to process arguments without binary name.
+ * Creates main parser.
  */
-export const main = async (
-  args: string[] = hideBin(process.argv)
-): Promise<void> => {
+export const createMainParser = (): Argv => {
   const createCommand = new CreateCommand(
     backendTemplateGallery,
     backendProjectCreator
   ) as unknown as CommandModule;
 
-  await yargs(args)
+  return yargs()
     .command(createCommand)
     .help()
     .demandCommand()
     .strictCommands()
-    .recommendCommands()
-    .parseAsync();
+    .recommendCommands();
 };

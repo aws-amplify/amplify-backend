@@ -7,24 +7,7 @@ import {
   BackendTemplateGallery,
 } from '@aws-amplify/backend-templates';
 import * as process from 'process';
-
-const runCommand = async (
-  command: CommandModule,
-  args: string | Array<string>
-): Promise<string> => {
-  const parser = yargs().command(command).help();
-  return await new Promise((resolve, reject) => {
-    // both parser.parse and parser.parseAsync require callback to prevent process from exiting on error.
-    // yargs.exitProcess(false) is not recommended if asynchronous handlers are used in commands.
-    parser.parse(args, {}, (err, argv, output) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(output);
-      }
-    });
-  });
-};
+import { TestCommandRunner } from '../../test_utils/command_runner.js';
 
 describe('create command', () => {
   const templateGallery: BackendTemplateGallery = {
@@ -56,12 +39,16 @@ describe('create command', () => {
     projectCreator
   ) as unknown as CommandModule;
 
+  const commandRunner = new TestCommandRunner(
+    yargs().command(createCommand).help()
+  );
+
   beforeEach(() => {
     createFromTemplateMock.mock.resetCalls();
   });
 
   it('creates project from selected template', async () => {
-    await runCommand(createCommand, 'create --template template2');
+    await commandRunner.runCommand('create --template template2');
     const calls = createFromTemplateMock.mock.calls;
     assert.equal(calls.length, 1);
     const templateName = calls[0].arguments[0];
@@ -71,7 +58,7 @@ describe('create command', () => {
   });
 
   it('creates project from first template by default', async () => {
-    await runCommand(createCommand, 'create');
+    await commandRunner.runCommand('create');
     const calls = createFromTemplateMock.mock.calls;
     assert.equal(calls.length, 1);
     const templateName = calls[0].arguments[0];
@@ -82,8 +69,7 @@ describe('create command', () => {
 
   it('fails on unrecognized template', async () => {
     await assert.rejects(
-      () =>
-        runCommand(createCommand, 'create --template non_existent_template'),
+      () => commandRunner.runCommand('create --template non_existent_template'),
       (err: Error) => {
         assert.equal(err.name, 'YError');
         assert.match(err.message, /Invalid values:/);
@@ -93,7 +79,7 @@ describe('create command', () => {
   });
 
   it('prints template choices in help', async () => {
-    const output = await runCommand(createCommand, 'create --help');
+    const output = await commandRunner.runCommand('create --help');
     assert.match(output, /--template {2}An application template/);
     assert.match(
       output,
