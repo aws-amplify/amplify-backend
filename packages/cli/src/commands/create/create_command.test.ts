@@ -84,7 +84,7 @@ describe('create command', () => {
     await assert.rejects(
       () =>
         runCommand(createCommand, 'create --template non_existent_template'),
-      (err) => {
+      (err: Error) => {
         assert.equal(err.name, 'YError');
         assert.match(err.message, /Invalid values:/);
         return true;
