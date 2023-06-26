@@ -1,6 +1,7 @@
 import { AmplifyAuth, AmplifyAuthProps } from '@aws-amplify/auth-construct';
 import { Construct } from 'constructs';
 import {
+  AuthResources,
   BackendOutputStorageStrategy,
   ConstructCache,
   ConstructCacheEntryGenerator,
@@ -8,9 +9,12 @@ import {
 } from '@aws-amplify/plugin-types';
 
 /**
- * Singleton factory for AmplifyAuth that can be used in `auth.ts` files
+ * Singleton factory for AmplifyAuth that can be used in Amplify project files
  */
-export class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth> {
+export class AmplifyAuthFactory
+  implements ConstructFactory<AmplifyAuth & AuthResources>
+{
+  readonly provides = 'AuthResources';
   private generator: ConstructCacheEntryGenerator;
 
   /**

@@ -1,11 +1,13 @@
 import { Construct } from 'constructs';
 import { aws_cognito as cognito, SecretValue } from 'aws-cdk-lib';
 import {
+  AuthResources,
   BackendOutputStorageStrategy,
   BackendOutputWriter,
 } from '@aws-amplify/plugin-types';
 import packageJson from '#package.json';
 import { UserPool } from 'aws-cdk-lib/aws-cognito';
+import { FederatedPrincipal, IRole, Role } from 'aws-cdk-lib/aws-iam';
 
 export type GoogleLogin = {
   provider: 'google';
@@ -25,8 +27,13 @@ export type AmplifyAuthProps = {
 /**
  * Amplify Auth CDK Construct
  */
-export class AmplifyAuth extends Construct implements BackendOutputWriter {
-  private readonly userPool: UserPool;
+export class AmplifyAuth
+  extends Construct
+  implements BackendOutputWriter, AuthResources
+{
+  readonly userPool: UserPool;
+  readonly authenticatedUserIamRole: IRole;
+  readonly unauthenticatedUserIamRole: IRole;
   /**
    * Create a new Auth construct with AuthProps
    */
@@ -43,6 +50,18 @@ export class AmplifyAuth extends Construct implements BackendOutputWriter {
         email: props.loginMechanisms.includes('email'),
       },
     });
+
+    this.authenticatedUserIamRole = new Role(this, 'authenticatedUserRole', {
+      assumedBy: new FederatedPrincipal('cognito-identity.amazonaws.com'),
+    });
+
+    this.unauthenticatedUserIamRole = new Role(
+      this,
+      'unauthenticatedUserRole',
+      {
+        assumedBy: new FederatedPrincipal('cognito-identity.amazonaws.com'),
+      }
+    );
 
     for (const loginMechanism of props.loginMechanisms) {
       if (typeof loginMechanism === 'object') {

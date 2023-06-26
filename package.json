@@ -23,6 +23,7 @@
     "test:coverage:generate": "NODE_V8_COVERAGE=coverage/ npm run test",
     "test:coverage:threshold": "c8 npm run test",
     "update:api": "npm run update:api --workspaces",
+    "update:integration-snapshots": "UPDATE_INTEGRATION_SNAPSHOTS=true npm run test packages/integration-tests",
     "update:tsconfig-refs": "tsx scripts/update_tsconfig_refs.mts",
     "vend": "npm run start:npm-proxy && npm run publish:snapshot:local latest",
     "watch": "npm run build -- --watch"

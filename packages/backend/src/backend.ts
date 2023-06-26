@@ -28,6 +28,14 @@ export class Backend {
       stack
     );
 
+    // register providers but don't actually execute anything yet
+    Object.values(constructFactories).forEach((factory) => {
+      if (typeof factory.provides === 'string') {
+        constructCache.registerConstructFactory(factory.provides, factory);
+      }
+    });
+
+    // now invoke all the factories
     Object.values(constructFactories).forEach((constructFactory) => {
       constructFactory.getInstance(constructCache, outputStorageStrategy);
     });

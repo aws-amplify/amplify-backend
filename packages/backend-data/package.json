@@ -1,14 +1,11 @@
 {
-  "name": "@aws-amplify/backend-auth",
+  "name": "@aws-amplify/backend-data",
   "version": "0.1.0",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "type": "module",
   "scripts": {
     "update:api": "api-extractor run --local"
-  },
-  "dependencies": {
-    "@aws-amplify/auth-construct": "^0.1.0"
   },
   "devDependencies": {
     "@aws-amplify/backend-engine": "^0.1.0",
@@ -17,5 +14,11 @@
   "peerDependencies": {
     "aws-cdk-lib": "~2.68.0",
     "constructs": "^10.0.0"
+  },
+  "files": [
+    "lib"
+  ],
+  "dependencies": {
+    "agqlac": "0.3.0-agqlac.3"
   }
 }

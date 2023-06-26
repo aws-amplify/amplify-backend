@@ -11,12 +11,10 @@
     "@aws-amplify/backend-engine": "^0.1.0"
   },
   "devDependencies": {
-    "aws-cdk-lib": "^2.80.0",
-    "constructs": "^10.0.0"
+    "@aws-amplify/plugin-types": "^0.1.0"
   },
   "peerDependencies": {
-    "@aws-amplify/plugin-types": "^0.1.0",
-    "aws-cdk-lib": "^2.80.0",
+    "aws-cdk-lib": "~2.68.0",
     "constructs": "^10.0.0"
   }
 }
