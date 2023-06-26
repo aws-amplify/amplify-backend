@@ -16,7 +16,7 @@
 <li><a href="../modules/_aws_amplify_plugin_types.html">@aws-amplify/plugin-types</a></li>
 <li><a href="_aws_amplify_plugin_types.ConstructFactory.html">ConstructFactory</a></li></ul>
 <h1>Type alias ConstructFactory&lt;T&gt;</h1></div>
-<div class="tsd-signature"><span class="tsd-kind-type-alias">Construct<wbr/>Factory</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">provides</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-call-signature">getInstance</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">cache</span>, <span class="tsd-kind-parameter">outputStorageStrategy</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></div>
+<div class="tsd-signature"><span class="tsd-kind-type-alias">Construct<wbr/>Factory</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">provides</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-call-signature">getInstance</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">constructContainer</span>, <span class="tsd-kind-parameter">outputStorageStrategy</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></div>
 <div class="tsd-comment tsd-typography"><p>Functional interface for construct factories. All objects in the backend-engine definition must implement this interface.</p>
 </div>
 <section class="tsd-panel">
@@ -36,21 +36,21 @@ Registering as a provider allows other construct factories to fetch this one bas
 <li class="tsd-parameter">
 <h5><span class="tsd-kind-method">get<wbr/>Instance</span><span class="tsd-signature-symbol">:</span>function</h5>
 <ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="__type.getInstance.getInstance-1"><span class="tsd-kind-call-signature">get<wbr/>Instance</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">cache</span>, <span class="tsd-kind-parameter">outputStorageStrategy</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><a href="#__type.getInstance.getInstance-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><g stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" id="icon-anchor"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5"></path></g></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="__type.getInstance.getInstance-1"><span class="tsd-kind-call-signature">get<wbr/>Instance</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">constructContainer</span>, <span class="tsd-kind-parameter">outputStorageStrategy</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><a href="#__type.getInstance.getInstance-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><g stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" id="icon-anchor"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5"></path></g></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5><span class="tsd-kind-parameter">cache</span>: <a href="_aws_amplify_plugin_types.ConstructCache.html" class="tsd-signature-type tsd-kind-type-alias">ConstructCache</a></h5></li>
+<h5><span class="tsd-kind-parameter">constructContainer</span>: <a href="_aws_amplify_plugin_types.ConstructContainer.html" class="tsd-signature-type tsd-kind-type-alias">ConstructContainer</a></h5></li>
 <li>
 <h5><span class="tsd-kind-parameter">outputStorageStrategy</span>: <a href="_aws_amplify_plugin_types.BackendOutputStorageStrategy.html" class="tsd-signature-type tsd-kind-type-alias">BackendOutputStorageStrategy</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type tsd-kind-type-parameter">T</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/242a966/packages/plugin-types/src/construct_factory.ts#L13">construct_factory.ts:13</a></li></ul></aside></li></ul></li></ul></div>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/ded2a71/packages/plugin-types/src/construct_factory.ts#L13">construct_factory.ts:13</a></li></ul></aside></li></ul></li></ul></div>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/242a966/packages/plugin-types/src/construct_factory.ts#L7">construct_factory.ts:7</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/ded2a71/packages/plugin-types/src/construct_factory.ts#L7">construct_factory.ts:7</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -88,8 +88,8 @@ Registering as a provider allows other construct factories to fetch this one bas
 <li><a href="_aws_amplify_plugin_types.BackendOutputStorageStrategy.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Backend<wbr/>Output<wbr/>Storage<wbr/>Strategy</span></a></li>
 <li><a href="_aws_amplify_plugin_types.BackendOutputValue.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Backend<wbr/>Output<wbr/>Value</span></a></li>
 <li><a href="_aws_amplify_plugin_types.BackendOutputWriter.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Backend<wbr/>Output<wbr/>Writer</span></a></li>
-<li><a href="_aws_amplify_plugin_types.ConstructCache.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Construct<wbr/>Cache</span></a></li>
-<li><a href="_aws_amplify_plugin_types.ConstructCacheEntryGenerator.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Construct<wbr/>Cache<wbr/>Entry<wbr/>Generator</span></a></li>
+<li><a href="_aws_amplify_plugin_types.ConstructContainer.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Construct<wbr/>Container</span></a></li>
+<li><a href="_aws_amplify_plugin_types.ConstructContainerEntryGenerator.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Construct<wbr/>Container<wbr/>Entry<wbr/>Generator</span></a></li>
 <li><a href="_aws_amplify_plugin_types.ConstructFactory.html" class="current"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Construct<wbr/>Factory</span></a></li>
 <li><a href="_aws_amplify_plugin_types.MainStackCreator.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Main<wbr/>Stack<wbr/>Creator</span></a></li>
 <li><a href="_aws_amplify_plugin_types.MainStackNameResolver.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Main<wbr/>Stack<wbr/>Name<wbr/>Resolver</span></a></li>
