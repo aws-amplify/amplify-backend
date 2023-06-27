@@ -20,26 +20,24 @@ export type AuthResources = {
 // @public
 export type BackendIdentifier = StackIdentifier | ProjectEnvironmentIdentifier;
 
-// @public
-export type BackendOutput = Record<string, BackendOutputValue>;
+// @public (undocumented)
+export type BackendOutput = Record<string, BackendOutputEntry>;
 
-// @public
+// @public (undocumented)
+export type BackendOutputEntry<T extends Record<string, string> = Record<string, string>> = {
+    readonly version: number;
+    readonly payload: T;
+};
+
+// @public (undocumented)
 export type BackendOutputRetrievalStrategy = {
     fetchBackendOutput(): Promise<BackendOutput>;
 };
 
 // @public
 export type BackendOutputStorageStrategy = {
-    addBackendOutputEntry(
-    constructPackageName: string,
-    backendOutputValue: BackendOutputValue): void;
+    addBackendOutputEntry(keyName: string, backendOutputEntry: BackendOutputEntry): void;
     flush(): void;
-};
-
-// @public (undocumented)
-export type BackendOutputValue = {
-    constructVersion: string;
-    data: Record<string, string>;
 };
 
 // @public

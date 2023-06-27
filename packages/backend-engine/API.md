@@ -6,8 +6,8 @@
 
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { BackendOutputEntry } from '@aws-amplify/plugin-types';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
-import { BackendOutputValue } from '@aws-amplify/plugin-types';
 import { CfnElement } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { ConstructContainer } from '@aws-amplify/plugin-types';
@@ -40,7 +40,7 @@ export class SingletonConstructContainer implements ConstructContainer {
 // @public
 export class StackMetadataBackendOutputStorageStrategy implements BackendOutputStorageStrategy {
     constructor(stack: Stack);
-    addBackendOutputEntry(constructPackageName: string, backendOutputValue: BackendOutputValue): void;
+    addBackendOutputEntry(keyName: string, backendOutputEntry: BackendOutputEntry): void;
     flush(): void;
 }
 
