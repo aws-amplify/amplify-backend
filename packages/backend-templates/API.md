@@ -13,8 +13,12 @@ export interface BackendProjectCreator {
 export const backendProjectCreator: BackendProjectCreator;
 
 // @public
+export type BackendTemplate = {
+    readonly name: string;
+};
+
+// @public
 export interface BackendTemplateGallery {
-    // Warning: (ae-forgotten-export) The symbol "BackendTemplate" needs to be exported by the entry point index.d.ts
     listBackendTemplates: () => Promise<Array<BackendTemplate>>;
 }
 

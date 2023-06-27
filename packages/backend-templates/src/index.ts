@@ -1,7 +1,11 @@
 import * as path from 'path';
 import * as url from 'url';
 
-import { BackendProjectCreator, BackendTemplateGallery } from './types.js';
+import {
+  BackendProjectCreator,
+  BackendTemplate,
+  BackendTemplateGallery,
+} from './types.js';
 import { LocalDirectoryBackendTemplateGallery } from './backend_template_gallery.js';
 import { LocalDirectoryBackendProjectCreator } from './backend_project_creator.js';
 
@@ -17,4 +21,4 @@ export const backendTemplateGallery: BackendTemplateGallery =
 export const backendProjectCreator: BackendProjectCreator =
   new LocalDirectoryBackendProjectCreator(templatesDirectory);
 
-export { BackendProjectCreator, BackendTemplateGallery };
+export { BackendProjectCreator, BackendTemplate, BackendTemplateGallery };
