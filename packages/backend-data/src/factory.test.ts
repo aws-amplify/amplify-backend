@@ -79,6 +79,6 @@ describe('DataFactory', () => {
     dataFactory.getInstance(container, outputStorageStrategy);
 
     const template = Template.fromStack(stack);
-    template.hasOutput('appSyncApiId', {});
+    template.hasOutput('appSyncApiEndpoint', {});
   });
 });

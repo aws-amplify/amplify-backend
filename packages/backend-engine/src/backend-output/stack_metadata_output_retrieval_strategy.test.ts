@@ -44,12 +44,13 @@ describe('StackMetadataBackendOutputRetrievalStrategy', () => {
           if (command instanceof GetTemplateSummaryCommand) {
             return {
               Metadata: JSON.stringify({
-                [amplifyStackMetadataKey]: {
-                  testPackage: {
-                    constructVersion: '1.0.0',
+                [amplifyStackMetadataKey]: [
+                  {
+                    schemaName: 'TestSchema',
+                    schemaVersion: 1,
                     stackOutputs: ['testName1', 'testName2'],
                   },
-                },
+                ],
               }),
             };
           } else if (command instanceof DescribeStacksCommand) {
@@ -86,12 +87,13 @@ describe('StackMetadataBackendOutputRetrievalStrategy', () => {
           if (command instanceof GetTemplateSummaryCommand) {
             return {
               Metadata: JSON.stringify({
-                [amplifyStackMetadataKey]: {
-                  testPackage: {
-                    incorrectKey: '1.0.0',
-                    stackOutputs: { wrong: 'stuff here' },
+                [amplifyStackMetadataKey]: [
+                  {
+                    schemaName: 'TestSchema',
+                    schemaVersion: 1,
+                    stackOutputs: [{ wrong: 'stuff' }, 'testName2'],
                   },
-                },
+                ],
               }),
             };
           } else {
@@ -121,12 +123,13 @@ describe('StackMetadataBackendOutputRetrievalStrategy', () => {
           if (command instanceof GetTemplateSummaryCommand) {
             return {
               Metadata: JSON.stringify({
-                [amplifyStackMetadataKey]: {
-                  testPackage: {
-                    constructVersion: '1.0.0',
+                [amplifyStackMetadataKey]: [
+                  {
+                    schemaName: 'TestSchema',
+                    schemaVersion: 1,
                     stackOutputs: ['testName1', 'testName2'],
                   },
-                },
+                ],
               }),
             };
           } else if (command instanceof DescribeStacksCommand) {
@@ -168,16 +171,18 @@ describe('StackMetadataBackendOutputRetrievalStrategy', () => {
           if (command instanceof GetTemplateSummaryCommand) {
             return {
               Metadata: JSON.stringify({
-                [amplifyStackMetadataKey]: {
-                  testPackage: {
-                    constructVersion: '1.0.0',
+                [amplifyStackMetadataKey]: [
+                  {
+                    schemaName: 'TestSchema',
+                    schemaVersion: 1,
                     stackOutputs: ['testName1', 'testName2'],
                   },
-                  otherPackage: {
-                    constructVersion: '2.1.0',
+                  {
+                    schemaName: 'OtherSchema',
+                    schemaVersion: 2,
                     stackOutputs: ['thing1', 'thing2'],
                   },
-                },
+                ],
               }),
             };
           } else if (command instanceof DescribeStacksCommand) {
@@ -221,22 +226,28 @@ describe('StackMetadataBackendOutputRetrievalStrategy', () => {
       );
 
       const output = await retrievalStrategy.fetchBackendOutput();
-      assert.deepStrictEqual(output, {
-        testPackage: {
-          constructVersion: '1.0.0',
-          data: {
+      assert.deepStrictEqual(output, [
+        {
+          schemaIdentifier: {
+            schemaName: 'TestSchema',
+            schemaVersion: 1,
+          },
+          payload: {
             testName1: 'testValue1',
             testName2: 'testValue2',
           },
         },
-        otherPackage: {
-          constructVersion: '2.1.0',
-          data: {
+        {
+          schemaIdentifier: {
+            schemaName: 'OtherSchema',
+            schemaVersion: 2,
+          },
+          payload: {
             thing1: 'The cat',
             thing2: 'in the hat',
           },
         },
-      });
+      ]);
     });
   });
 });

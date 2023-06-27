@@ -75,7 +75,7 @@ describe('Backend', () => {
         'AWS::Amplify::Output': [
           {
             schemaName: 'TestSchema',
-            schemaVersion: '1',
+            schemaVersion: 1,
             stackOutputs: ['bucketName'],
           },
         ],

@@ -1,15 +1,17 @@
 {
   "Metadata": {
-    "AWS::Amplify::Output": {
-      "@aws-amplify/auth-construct": {
-        "constructVersion": "0.1.0",
+    "AWS::Amplify::Output": [
+      {
+        "schemaName": "AuthOutput",
+        "schemaVersion": 1,
         "stackOutputs": ["userPoolId"]
       },
-      "@aws-amplify/storage-construct": {
-        "constructVersion": "0.1.0",
+      {
+        "schemaName": "StorageOutput",
+        "schemaVersion": 1,
         "stackOutputs": ["bucketName"]
       }
-    }
+    ]
   },
   "Resources": {
     "amplifyStackIdentifier221D5C55": {
