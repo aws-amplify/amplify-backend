@@ -4,5 +4,10 @@
     "rootDir": "src",
     "outDir": "lib"
   },
-  "exclude": ["**/node_modules", "**/lib", "templates"]
+  "exclude": [
+    "**/node_modules",
+    "**/lib",
+    "templates",
+    "src/test_utils/test_templates"
+  ]
 }
