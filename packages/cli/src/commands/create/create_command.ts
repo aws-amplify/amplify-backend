@@ -5,12 +5,13 @@ import {
 } from '@aws-amplify/backend-templates';
 import * as process from 'process';
 
-interface CreateCommandOptions {
+export interface CreateCommandOptions {
   template: string;
 }
 
 /**
  * A command that scaffolds amplify project.
+ * Sample usage: amplify create --template template_name
  */
 export class CreateCommand
   implements CommandModule<object, CreateCommandOptions>
@@ -19,7 +20,9 @@ export class CreateCommand
   readonly describe: string;
 
   /**
-   * Creates CreateCommand.
+   * Creates a create command instance.
+   * @param templateGallery A template gallery. Source of available backend project templates used for building command options choices and validation.
+   * @param projectCreator A project creator. Used by command to render a backend project from selected template.
    */
   constructor(
     private readonly templateGallery: BackendTemplateGallery,
@@ -29,6 +32,9 @@ export class CreateCommand
     this.describe = 'Creates a new Amplify backend';
   }
 
+  /**
+   * Creates a backend project from selected template in a working directory of current process.
+   */
   handler = async (
     args: ArgumentsCamelCase<CreateCommandOptions>
   ): Promise<void> => {
@@ -41,6 +47,9 @@ export class CreateCommand
     return;
   };
 
+  /**
+   * Builds create command definition, i.e. available options and their choices.
+   */
   builder = async (yargs: Argv): Promise<Argv<CreateCommandOptions>> => {
     const backendTemplates = await this.templateGallery.listBackendTemplates();
     if (backendTemplates.length == 0) {

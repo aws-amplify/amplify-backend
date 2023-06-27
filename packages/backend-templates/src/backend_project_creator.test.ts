@@ -60,7 +60,7 @@ describe('backend project creator', () => {
           targetDirectory
         ),
       (err: Error) => {
-        assert.equal(err.message, 'target directory is not empty');
+        assert.equal(err.message, 'Target directory is not empty');
         return true;
       }
     );
@@ -74,7 +74,7 @@ describe('backend project creator', () => {
           path.join(targetDirectory, 'does_not_exists')
         ),
       (err: Error) => {
-        assert.equal(err.message, 'target directory does not exists');
+        assert.equal(err.message, 'Target directory does not exists');
         return true;
       }
     );
@@ -88,7 +88,24 @@ describe('backend project creator', () => {
       () =>
         backendProjectCreator.createFromTemplate('test_template1', filePath),
       (err: Error) => {
-        assert.equal(err.message, 'target directory is not a directory');
+        assert.equal(err.message, 'Target directory is not a directory');
+        return true;
+      }
+    );
+  });
+
+  it('fails if template does not exist', async () => {
+    await assert.rejects(
+      () =>
+        backendProjectCreator.createFromTemplate(
+          'non_existing_template',
+          targetDirectory
+        ),
+      (err: Error) => {
+        assert.equal(
+          err.message,
+          'Template non_existing_template does not exist'
+        );
         return true;
       }
     );

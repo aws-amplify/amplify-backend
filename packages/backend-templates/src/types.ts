@@ -20,7 +20,7 @@ export interface BackendTemplateGallery {
  */
 export interface BackendProjectCreator {
   /**
-   * Creates backend project from template.
+   * Creates backend project from a template.
    */
   createFromTemplate: (
     templateName: string,

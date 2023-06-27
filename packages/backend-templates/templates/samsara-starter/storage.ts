@@ -1,3 +1,3 @@
-import { Storage } from '@aws-amplify/storage-factory';
+import { Storage } from '@aws-amplify/backend-storage';
 
 export const storage = new Storage({});

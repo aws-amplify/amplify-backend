@@ -2,18 +2,19 @@ import { BackendTemplate, BackendTemplateGallery } from './types.js';
 import fs from 'fs/promises';
 
 /**
- * A backend gallery that uses templates from local directory.
+ * A backend gallery that uses templates available in a local directory.
  */
 export class LocalDirectoryBackendTemplateGallery
   implements BackendTemplateGallery
 {
   /**
    * Creates backend template gallery.
+   * @param templatesDirectory A local directory that contains available templates.
    */
   constructor(private readonly templatesDirectory: string) {}
 
   /**
-   * Lists available local templates.
+   * @inheritDoc
    */
   async listBackendTemplates(): Promise<Array<BackendTemplate>> {
     const templates = (

@@ -7,6 +7,6 @@
   "dependencies": {
     "@aws-amplify/backend": "0.1.0",
     "@aws-amplify/backend-auth": "0.1.0",
-    "@aws-amplify/storage-factory": "0.1.0"
+    "@aws-amplify/backend-storage": "0.1.0"
   }
 }
