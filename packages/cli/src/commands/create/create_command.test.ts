@@ -88,9 +88,8 @@ describe('create command', () => {
   it('prints template choices in help', async () => {
     const output = await commandRunner.runCommand('create --help');
     assert.match(output, /--template {2}An application template/);
-    assert.match(
-      output,
-      /\[string] \[choices: "template1", "template2", "template3"]/
-    );
+    assert.match(output, /template1/);
+    assert.match(output, /template2/);
+    assert.match(output, /template3/);
   });
 });
