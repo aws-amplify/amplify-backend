@@ -25,13 +25,12 @@ describe('StackMetadataBackendOutputStorageStrategy', () => {
       template.hasOutput('something', { Value: 'special' });
       template.templateMatches({
         Metadata: {
-          [amplifyStackMetadataKey]: [
-            {
-              schemaName: 'TestSchema',
-              schemaVersion: 1,
+          [amplifyStackMetadataKey]: {
+            TestStorageOutput: {
+              version: 1,
               stackOutputs: ['something'],
             },
-          ],
+          },
         },
       });
     });

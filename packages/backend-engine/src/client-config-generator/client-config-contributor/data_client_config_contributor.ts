@@ -18,11 +18,14 @@ export class DataClientConfigContributor implements ClientConfigContributor {
     if (dataOutput === undefined) {
       return {};
     }
-    return {
-      aws_appsync_apiKey: dataOutput.payload.appSyncApiKey,
+    const result: Pick<ClientConfig, 'API' | 'aws_appsync_apiKey'> = {
       API: {
         graphql_endpoint: dataOutput.payload.appSyncApiEndpoint,
       },
     };
+    if (dataOutput.payload.appSyncApiKey) {
+      result.aws_appsync_apiKey = dataOutput.payload.appSyncApiKey;
+    }
+    return result;
   }
 }

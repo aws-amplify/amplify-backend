@@ -69,13 +69,12 @@ describe('Backend', () => {
     rootStackTemplate.hasOutput('bucketName', {});
     rootStackTemplate.templateMatches({
       Metadata: {
-        'AWS::Amplify::Output': [
-          {
-            schemaName: 'TestSchema',
-            schemaVersion: 1,
+        'AWS::Amplify::Output': {
+          TestStorageOutput: {
+            version: 1,
             stackOutputs: ['bucketName'],
           },
-        ],
+        },
       },
     });
   });
