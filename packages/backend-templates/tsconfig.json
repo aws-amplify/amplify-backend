@@ -1,13 +1,11 @@
 {
   "extends": "../../tsconfig.base.json",
-  "compilerOptions": {
-    "rootDir": "src",
-    "outDir": "lib"
-  },
+  "compilerOptions": { "rootDir": "src", "outDir": "lib" },
   "exclude": [
     "**/node_modules",
     "**/lib",
     "templates",
     "src/test_utils/test_templates"
-  ]
+  ],
+  "references": []
 }
