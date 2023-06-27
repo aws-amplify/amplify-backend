@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import { ClientConfigGeneratorFactory } from './client_config_generator_factory.js';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import assert from 'node:assert';
-import { DefaultClientConfigGenerator } from './client_config_generator.js';
+import { UnifiedClientConfigGenerator } from './client_config_generator.js';
 
 describe('ClientConfigGeneratorFactory', () => {
   describe('fromStackIdentifier', () => {
@@ -14,7 +14,7 @@ describe('ClientConfigGeneratorFactory', () => {
       const clientConfigGenerator = generatorFactory.fromStackIdentifier({
         stackName: 'testStackName',
       });
-      assert.ok(clientConfigGenerator instanceof DefaultClientConfigGenerator);
+      assert.ok(clientConfigGenerator instanceof UnifiedClientConfigGenerator);
     });
 
     it('Creates client config generator for project environment', () => {
@@ -27,7 +27,7 @@ describe('ClientConfigGeneratorFactory', () => {
           projectName: 'testProjName',
           environmentName: 'testEnvName',
         });
-      assert.ok(clientConfigGenerator instanceof DefaultClientConfigGenerator);
+      assert.ok(clientConfigGenerator instanceof UnifiedClientConfigGenerator);
     });
   });
 });

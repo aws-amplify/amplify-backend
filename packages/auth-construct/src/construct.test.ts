@@ -5,7 +5,7 @@ import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { UserPool } from 'aws-cdk-lib/aws-cognito';
-import { AuthOutput } from '@aws-amplify/backend-output-schemas';
+import { authOutputKey } from '@aws-amplify/backend-output-schemas';
 
 describe('Auth construct', () => {
   it('creates case sensitive username login', () => {
@@ -113,16 +113,17 @@ describe('Auth construct', () => {
       authConstruct.storeOutput(stubBackendOutputStorageStrategy);
 
       const storeOutputArgs = storeOutputMock.mock.calls[0].arguments;
-      assert.equal(storeOutputArgs.length, 1);
+      assert.equal(storeOutputArgs.length, 2);
 
-      const storeOutputArg = storeOutputArgs[0];
-
-      assert.deepStrictEqual(
-        storeOutputArg,
-        AuthOutput.fromAuthOutput({
-          userPoolId: expectedUserPoolId,
-        })
-      );
+      assert.deepStrictEqual(storeOutputArgs, [
+        authOutputKey,
+        {
+          version: 1,
+          payload: {
+            userPoolId: expectedUserPoolId,
+          },
+        },
+      ]);
     });
   });
 });

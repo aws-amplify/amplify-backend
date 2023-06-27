@@ -12,7 +12,7 @@ import { BackendOutputStackMetadata } from './backend_output_schemas.js';
 export class StackMetadataBackendOutputStorageStrategy
   implements BackendOutputStorageStrategy
 {
-  private readonly metadata: BackendOutputStackMetadata = [];
+  private readonly metadata: BackendOutputStackMetadata = {};
   /**
    * Initialize the instance with a stack.
    *
@@ -25,17 +25,19 @@ export class StackMetadataBackendOutputStorageStrategy
    *
    * Metadata is not written to the stack until flush() is called
    */
-  addBackendOutputEntry(backendOutputEntry: BackendOutputEntry): void {
+  addBackendOutputEntry(
+    keyName: string,
+    backendOutputEntry: BackendOutputEntry
+  ): void {
     // add all the data values as stack outputs
     Object.entries(backendOutputEntry.payload).forEach(([key, value]) => {
       new CfnOutput(this.stack, key, { value });
     });
 
-    this.metadata.push({
-      schemaName: backendOutputEntry.schemaIdentifier.schemaName,
-      schemaVersion: backendOutputEntry.schemaIdentifier.schemaVersion,
+    this.metadata[keyName] = {
+      version: backendOutputEntry.version,
       stackOutputs: Object.keys(backendOutputEntry.payload),
-    });
+    };
   }
 
   /**

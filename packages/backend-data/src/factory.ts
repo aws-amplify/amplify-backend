@@ -12,8 +12,8 @@ import {
   AuthorizationConfig,
 } from 'agqlac';
 import {
-  DataOutput,
-  DataOutputType,
+  dataOutputKey,
+  DataOutputV1,
 } from '@aws-amplify/backend-output-schemas';
 
 export type DataProps = Pick<AmplifyGraphqlApiProps, 'schema'>;
@@ -86,17 +86,20 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       dataConstructProps
     );
 
-    const outputData: DataOutputType = {
-      appSyncApiEndpoint: dataConstruct.resources.cfnGraphqlApi.attrGraphQlUrl,
+    const outputData: DataOutputV1 = {
+      version: 1,
+      payload: {
+        appSyncApiEndpoint:
+          dataConstruct.resources.cfnGraphqlApi.attrGraphQlUrl,
+      },
     };
 
     if (dataConstruct.resources.cfnApiKey) {
-      outputData.appSyncApiKey = dataConstruct.resources.cfnApiKey?.attrApiKey;
+      outputData.payload.appSyncApiKey =
+        dataConstruct.resources.cfnApiKey?.attrApiKey;
     }
 
-    this.outputStorageStrategy.addBackendOutputEntry(
-      DataOutput.fromDataOutput(outputData)
-    );
+    this.outputStorageStrategy.addBackendOutputEntry(dataOutputKey, outputData);
     return dataConstruct;
   }
 }

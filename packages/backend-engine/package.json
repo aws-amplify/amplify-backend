@@ -8,6 +8,7 @@
     "update:api": "api-extractor run --local"
   },
   "dependencies": {
+    "@aws-amplify/backend-output-schemas": "^0.1.0",
     "zod": "^3.21.4"
   },
   "devDependencies": {

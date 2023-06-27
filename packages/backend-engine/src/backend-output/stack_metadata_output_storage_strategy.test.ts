@@ -13,11 +13,8 @@ describe('StackMetadataBackendOutputStorageStrategy', () => {
       const outputStorage = new StackMetadataBackendOutputStorageStrategy(
         stack
       );
-      outputStorage.addBackendOutputEntry({
-        schemaIdentifier: {
-          schemaName: 'TestSchema',
-          schemaVersion: 1,
-        },
+      outputStorage.addBackendOutputEntry('TestStorageOutput', {
+        version: 1,
         payload: {
           something: 'special',
         },
@@ -45,11 +42,8 @@ describe('StackMetadataBackendOutputStorageStrategy', () => {
       const outputStorage = new StackMetadataBackendOutputStorageStrategy(
         stack
       );
-      outputStorage.addBackendOutputEntry({
-        schemaIdentifier: {
-          schemaName: 'TestSchema',
-          schemaVersion: 1,
-        },
+      outputStorage.addBackendOutputEntry('TestStorageOutput', {
+        version: 44,
         payload: {
           something: 'special',
         },

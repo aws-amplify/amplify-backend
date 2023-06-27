@@ -9,8 +9,7 @@ import { z } from 'zod';
  * Data schema for storing a backend output entry using stack metadata
  */
 export const backendOutputEntryStackMetadataSchema = z.object({
-  schemaName: z.string(),
-  schemaVersion: z.number(),
+  version: z.number(),
   stackOutputs: z.array(z.string()),
 });
 
@@ -24,7 +23,7 @@ export type BackendOutputEntryStackMetadata = z.infer<
 /**
  * Data schema for storing backend output using stack metadata
  */
-export const backendOutputStackMetadataSchema = z.array(
+export const backendOutputStackMetadataSchema = z.record(
   backendOutputEntryStackMetadataSchema
 );
 

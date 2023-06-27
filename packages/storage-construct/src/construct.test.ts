@@ -5,7 +5,7 @@ import { Template } from 'aws-cdk-lib/assertions';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import assert from 'node:assert';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
-import { StorageOutput } from '@aws-amplify/backend-output-schemas';
+import { storageOutputKey } from '@aws-amplify/backend-output-schemas';
 
 describe('AmplifyStorage', () => {
   it('creates a bucket', () => {
@@ -44,16 +44,17 @@ describe('AmplifyStorage', () => {
       ).bucketName;
 
       const storeOutputArgs = storeOutputMock.mock.calls[0].arguments;
-      assert.strictEqual(storeOutputArgs.length, 1);
+      assert.strictEqual(storeOutputArgs.length, 2);
 
-      const storeOutputArg = storeOutputArgs[0];
-
-      assert.deepStrictEqual(
-        storeOutputArg,
-        StorageOutput.fromStorageOutput({
-          bucketName: expectedBucketName,
-        })
-      );
+      assert.deepStrictEqual(storeOutputArgs, [
+        storageOutputKey,
+        {
+          version: 1,
+          payload: {
+            bucketName: expectedBucketName,
+          },
+        },
+      ]);
     });
   });
 });

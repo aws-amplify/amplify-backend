@@ -7,7 +7,7 @@ import {
 } from '@aws-amplify/plugin-types';
 import { UserPool } from 'aws-cdk-lib/aws-cognito';
 import { FederatedPrincipal, IRole, Role } from 'aws-cdk-lib/aws-iam';
-import { AuthOutput } from '@aws-amplify/backend-output-schemas';
+import { authOutputKey } from '@aws-amplify/backend-output-schemas';
 
 export type GoogleLogin = {
   provider: 'google';
@@ -84,9 +84,10 @@ export class AmplifyAuth
    * Stores auth output using the provided strategy
    */
   storeOutput(outputStorageStrategy: BackendOutputStorageStrategy): void {
-    outputStorageStrategy.addBackendOutputEntry(
-      AuthOutput.fromAuthOutput({ userPoolId: this.userPool.userPoolId })
-    );
+    outputStorageStrategy.addBackendOutputEntry(authOutputKey, {
+      version: 1,
+      payload: { userPoolId: this.userPool.userPoolId },
+    });
   }
 
   /**

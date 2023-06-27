@@ -4,7 +4,7 @@ import {
   GetTemplateSummaryCommand,
 } from '@aws-sdk/client-cloudformation';
 import {
-  BackendOutputEntry,
+  BackendOutput,
   BackendOutputRetrievalStrategy,
   MainStackNameResolver,
 } from '@aws-amplify/plugin-types';
@@ -31,7 +31,7 @@ export class StackMetadataBackendOutputRetrievalStrategy
    * It combines the metadata and outputs to reconstruct the data object that was provided by the Amplify constructs when writing the output.
    * Except now the data contains the resolved values of the deployed resources rather than CFN references
    */
-  async fetchBackendOutput(): Promise<BackendOutputEntry[]> {
+  async fetchBackendOutput(): Promise<BackendOutput> {
     const stackName = await this.stackNameResolver.resolveMainStackName();
 
     // GetTemplateSummary includes the template metadata as a string
@@ -61,7 +61,7 @@ export class StackMetadataBackendOutputRetrievalStrategy
     }
 
     // outputs is a list of output entries. here we turn that into a Record<name, value> object
-    const outputRecord = outputs
+    const stackOutputRecord = outputs
       .filter((output) => !!output.OutputValue && !!output.OutputKey)
       .reduce(
         (accumulator, outputEntry) => ({
@@ -74,20 +74,25 @@ export class StackMetadataBackendOutputRetrievalStrategy
       );
 
     // now we iterate over the metadata entries and reconstruct the data object based on the stackOutputs that each construct package set
-    return backendOutputMetadata.map((metadataEntry) => ({
-      schemaIdentifier: {
-        schemaName: metadataEntry.schemaName,
-        schemaVersion: metadataEntry.schemaVersion,
-      },
-      payload: metadataEntry.stackOutputs.reduce((accumulator, outputName) => {
-        if (outputRecord[outputName] === undefined) {
-          throw new Error(`Output ${outputName} not found in stack`);
-        }
-        return {
-          ...accumulator,
-          [outputName]: outputRecord[outputName],
-        };
-      }, {} as Record<string, string>),
-    }));
+    const result: BackendOutput = {};
+    Object.entries(backendOutputMetadata).forEach(([outputKeyName, entry]) => {
+      const outputData = entry.stackOutputs.reduce(
+        (accumulator, outputName) => {
+          if (stackOutputRecord[outputName] === undefined) {
+            throw new Error(`Output ${outputName} not found in stack`);
+          }
+          return {
+            ...accumulator,
+            [outputName]: stackOutputRecord[outputName],
+          };
+        },
+        {} as Record<string, string>
+      );
+      result[outputKeyName] = {
+        version: entry.version,
+        payload: outputData,
+      };
+    });
+    return result;
   }
 }
