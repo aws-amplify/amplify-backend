@@ -3,25 +3,29 @@
   "version": "0.0.1",
   "description": "",
   "scripts": {
-    "api:update": "npm run api:update --workspaces",
-    "api:check": "npm run api:update && tsx scripts/check_api_extract.ts",
     "build": "tsc --build packages/*",
-    "clean": "rimraf --glob node_modules coverage .eslintcache verdaccio-cache verdaccio-logs.txt packages/*/lib packages/*/temp packages/*/tsconfig.tsbuildinfo",
+    "check:api": "npm run update:api && tsx scripts/check_api_extract.ts",
+    "check:tsconfig-refs": "npm run update:tsconfig-refs && tsx scripts/check_no_git_diff.mts",
+    "clean": "npm run clean:build && npm run clean:npm-proxy && rimraf --glob node_modules coverage .eslintcache packages/*/temp",
+    "clean:build": "rimraf --glob packages/*/lib packages/*/tsconfig.tsbuildinfo",
+    "clean:npm-proxy": "rimraf verdaccio-cache verdaccio-logs.txt",
     "diff:check": "tsx scripts/check_pr_size.ts",
     "docs": "typedoc",
     "install:local": "npm install && npm run build && npm run install:local --workspaces --if-present",
     "lint": "eslint --max-warnings 0 . && prettier --check .",
     "lint:fix": "eslint --cache --fix . && prettier --write .",
     "new:construct": "tsx scripts/copy_construct_template.ts",
-    "npm-proxy:clear": "rimraf verdaccio-cache",
-    "npm-proxy:start": "tsx scripts/start_npm_proxy.ts",
-    "npm-proxy:stop": "tsx scripts/stop_npm_proxy.ts",
     "prepare": "husky install",
     "publish:snapshot:local": "npm_config_registry=http://localhost:4873/ tsx scripts/publish_snapshot.ts",
+    "start:npm-proxy": "tsx scripts/start_npm_proxy.ts",
+    "stop:npm-proxy": "tsx scripts/stop_npm_proxy.ts",
     "test": "tsx --test --test-reporter spec",
     "test:coverage:generate": "NODE_V8_COVERAGE=coverage/ npm run test",
     "test:coverage:threshold": "c8 npm run test",
-    "vend": "npm run npm-proxy:start && npm run publish:snapshot:local latest",
+    "update:api": "npm run update:api --workspaces",
+    "update:integration-snapshots": "UPDATE_INTEGRATION_SNAPSHOTS=true npm run test packages/integration-tests",
+    "update:tsconfig-refs": "tsx scripts/update_tsconfig_refs.mts",
+    "vend": "npm run start:npm-proxy && npm run publish:snapshot:local latest",
     "watch": "npm run build -- --watch"
   },
   "repository": {
@@ -29,7 +33,7 @@
     "url": "git+https://github.com/aws-amplify/cli.git"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=18.16.0"
   },
   "author": "AWS Amplify",
   "license": "Apache-2.0",

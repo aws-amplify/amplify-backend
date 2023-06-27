@@ -4,14 +4,23 @@
 
 ```ts
 
+import { AuthResources } from '@aws-amplify/plugin-types';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { BackendOutputWriter } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
+import { IRole } from 'aws-cdk-lib/aws-iam';
+import { UserPool } from 'aws-cdk-lib/aws-cognito';
 
 // @public
-export class AmplifyAuth extends Construct implements BackendOutputWriter {
+export class AmplifyAuth extends Construct implements BackendOutputWriter, AuthResources {
     constructor(scope: Construct, id: string, props: AmplifyAuthProps);
+    // (undocumented)
+    readonly authenticatedUserIamRole: IRole;
     storeOutput(outputStorageStrategy: BackendOutputStorageStrategy): void;
+    // (undocumented)
+    readonly unauthenticatedUserIamRole: IRole;
+    // (undocumented)
+    readonly userPool: UserPool;
 }
 
 // @public

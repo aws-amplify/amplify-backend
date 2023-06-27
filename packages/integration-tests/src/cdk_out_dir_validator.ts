@@ -3,6 +3,8 @@ import path from 'path';
 import assert from 'node:assert';
 import fs from 'fs';
 
+const UPDATE_SNAPSHOTS = process.env.UPDATE_INTEGRATION_SNAPSHOTS === 'true';
+
 /**
  * Essentially a snapshot validator.
  *
@@ -16,7 +18,9 @@ export const validateCdkOutDir = async (
   actualDir: string,
   expectedDir: string
 ) => {
-  const ignoreFiles = ['tree.json', 'cdk.out']; // there's a cdk.out file in the cdk.out directory
+  // These are CDK internal bookkeeping files that change across minor versions of CDK.
+  // We only care about validating the CFN templates
+  const ignoreFiles = ['tree.json', 'cdk.out', 'manifest.json'];
 
   const actualFiles = await glob(path.join(actualDir, '*'));
   const expectedFiles = await glob(path.join(expectedDir, '*'));
@@ -31,6 +35,14 @@ export const validateCdkOutDir = async (
 
   const normalizedActualFiles = normalize(actualFiles);
   const normalizedExpectedFiles = normalize(expectedFiles);
+
+  if (UPDATE_SNAPSHOTS) {
+    normalizedActualFiles.forEach((actualFile) => {
+      const destination = path.resolve(expectedDir, path.basename(actualFile));
+      fs.copyFileSync(actualFile, destination);
+    });
+    return;
+  }
 
   assert.deepStrictEqual(
     normalizedActualFiles.map((fileName) => path.basename(fileName)),

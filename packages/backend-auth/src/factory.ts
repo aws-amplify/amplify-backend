@@ -1,17 +1,21 @@
 import { AmplifyAuth, AmplifyAuthProps } from '@aws-amplify/auth-construct';
 import { Construct } from 'constructs';
 import {
+  AuthResources,
   BackendOutputStorageStrategy,
-  ConstructCache,
-  ConstructCacheEntryGenerator,
+  ConstructContainer,
+  ConstructContainerEntryGenerator,
   ConstructFactory,
 } from '@aws-amplify/plugin-types';
 
 /**
- * Singleton factory for AmplifyAuth that can be used in `auth.ts` files
+ * Singleton factory for AmplifyAuth that can be used in Amplify project files
  */
-export class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth> {
-  private generator: ConstructCacheEntryGenerator;
+export class AmplifyAuthFactory
+  implements ConstructFactory<AmplifyAuth & AuthResources>
+{
+  readonly provides = 'AuthResources';
+  private generator: ConstructContainerEntryGenerator;
 
   /**
    * Set the properties that will be used to initialize AmplifyAuth
@@ -22,7 +26,7 @@ export class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth> {
    * Get a singleton instance of AmplifyAuth
    */
   getInstance(
-    cache: ConstructCache,
+    container: ConstructContainer,
     backendOutputStorageStrategy: BackendOutputStorageStrategy
   ): AmplifyAuth {
     if (!this.generator) {
@@ -31,11 +35,11 @@ export class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth> {
         backendOutputStorageStrategy
       );
     }
-    return cache.getOrCompute(this.generator) as AmplifyAuth;
+    return container.getOrCompute(this.generator) as AmplifyAuth;
   }
 }
 
-class AmplifyAuthGenerator implements ConstructCacheEntryGenerator {
+class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
   readonly resourceGroupName = 'auth';
   private readonly defaultName = 'amplifyAuth';
 
@@ -44,7 +48,7 @@ class AmplifyAuthGenerator implements ConstructCacheEntryGenerator {
     private readonly backendOutputStorageStrategy: BackendOutputStorageStrategy
   ) {}
 
-  generateCacheEntry(scope: Construct) {
+  generateContainerEntry(scope: Construct) {
     const authConstruct = new AmplifyAuth(scope, this.defaultName, this.props);
     authConstruct.storeOutput(this.backendOutputStorageStrategy);
     return authConstruct;

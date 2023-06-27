@@ -3,7 +3,7 @@ import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
 import {
   NestedStackResolver,
-  SingletonConstructCache,
+  SingletonConstructContainer,
   StackMetadataBackendOutputStorageStrategy,
 } from '@aws-amplify/backend-engine';
 import { createDefaultStack } from './default_stack_factory.js';
@@ -20,7 +20,7 @@ export class Backend {
     constructFactories: Record<string, ConstructFactory<Construct>>,
     stack: Stack = createDefaultStack()
   ) {
-    const constructCache = new SingletonConstructCache(
+    const constructContainer = new SingletonConstructContainer(
       new NestedStackResolver(stack)
     );
 
@@ -28,8 +28,16 @@ export class Backend {
       stack
     );
 
+    // register providers but don't actually execute anything yet
+    Object.values(constructFactories).forEach((factory) => {
+      if (typeof factory.provides === 'string') {
+        constructContainer.registerConstructFactory(factory.provides, factory);
+      }
+    });
+
+    // now invoke all the factories
     Object.values(constructFactories).forEach((constructFactory) => {
-      constructFactory.getInstance(constructCache, outputStorageStrategy);
+      constructFactory.getInstance(constructContainer, outputStorageStrategy);
     });
 
     outputStorageStrategy.flush();

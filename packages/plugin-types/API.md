@@ -5,7 +5,17 @@
 ```ts
 
 import { Construct } from 'constructs';
+import { IRole } from 'aws-cdk-lib/aws-iam';
+import { IUserPool } from 'aws-cdk-lib/aws-cognito';
 import { Stack } from 'aws-cdk-lib';
+
+// @public
+export type AuthResources = {
+    authenticatedUserIamRole: IRole;
+    unauthenticatedUserIamRole: IRole;
+    userPool?: IUserPool;
+    identityPoolId?: string;
+};
 
 // @public
 export type BackendIdentifier = StackIdentifier | ProjectEnvironmentIdentifier;
@@ -38,19 +48,22 @@ export type BackendOutputWriter = {
 };
 
 // @public
-export type ConstructCache = {
-    getOrCompute(generator: ConstructCacheEntryGenerator): Construct;
+export type ConstructContainer = {
+    getOrCompute(generator: ConstructContainerEntryGenerator): Construct;
+    registerConstructFactory(token: string, provider: ConstructFactory): void;
+    getConstructFactory<T>(token: string): ConstructFactory<T>;
 };
 
 // @public
-export type ConstructCacheEntryGenerator = {
+export type ConstructContainerEntryGenerator = {
     resourceGroupName: string;
-    generateCacheEntry(scope: Construct): Construct;
+    generateContainerEntry(scope: Construct): Construct;
 };
 
 // @public
-export type ConstructFactory<Instance extends Construct> = {
-    getInstance(resolver: ConstructCache, outputStorageStrategy: BackendOutputStorageStrategy): Instance;
+export type ConstructFactory<T = unknown> = {
+    readonly provides?: string;
+    getInstance(constructContainer: ConstructContainer, outputStorageStrategy: BackendOutputStorageStrategy): T;
 };
 
 // @public

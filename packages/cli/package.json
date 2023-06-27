@@ -7,7 +7,7 @@
   },
   "type": "module",
   "scripts": {
-    "api:update": "api-extractor run --local",
+    "update:api": "api-extractor run --local",
     "install:local": "npm link"
   },
   "repository": {
