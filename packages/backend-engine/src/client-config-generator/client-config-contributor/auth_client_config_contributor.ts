@@ -3,7 +3,7 @@ import { StrictlyTypedBackendOutput } from '@aws-amplify/backend-output-schemas'
 import { ClientConfig } from '../client_config.js';
 
 /**
- *
+ * Translator for the Auth portion of ClientConfig
  */
 export class AuthClientConfigContributor implements ClientConfigContributor {
   /**

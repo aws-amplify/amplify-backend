@@ -27,7 +27,6 @@ export type StorageClientConfig = {
   Storage: {
     AWSS3: {
       bucket: string;
-      region: string;
     };
   };
 };

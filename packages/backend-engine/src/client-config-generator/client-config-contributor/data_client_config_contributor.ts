@@ -3,7 +3,7 @@ import { StrictlyTypedBackendOutput } from '@aws-amplify/backend-output-schemas'
 import { ClientConfig } from '../client_config.js';
 
 /**
- *
+ * Translator for the Data/API portion of ClientConfig
  */
 export class DataClientConfigContributor implements ClientConfigContributor {
   /**

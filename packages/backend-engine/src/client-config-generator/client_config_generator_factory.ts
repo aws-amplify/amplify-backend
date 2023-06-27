@@ -12,6 +12,7 @@ import { ProjectEnvironmentMainStackNameResolver } from './project_environment_m
 import { AuthClientConfigContributor } from './client-config-contributor/auth_client_config_contributor.js';
 import { DataClientConfigContributor } from './client-config-contributor/data_client_config_contributor.js';
 import { ClientConfigGenerator } from './client_config_generator.js';
+import { StorageClientConfigContributor } from './client-config-contributor/storage_client_config_contributor.js';
 
 /**
  * Creates ClientConfigGenerators given different backend identifiers
@@ -21,6 +22,7 @@ export class ClientConfigGeneratorFactory {
   private readonly clientConfigContributors = [
     new AuthClientConfigContributor(),
     new DataClientConfigContributor(),
+    new StorageClientConfigContributor(),
   ];
   /**
    * Provide the factory with AWS credentials. These credentials will be used to configure underlying SDK clients for resolving backend output.
