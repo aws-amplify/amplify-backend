@@ -86,13 +86,12 @@ describe('StackMetadataBackendOutputRetrievalStrategy', () => {
           if (command instanceof GetTemplateSummaryCommand) {
             return {
               Metadata: JSON.stringify({
-                [amplifyStackMetadataKey]: [
-                  {
-                    schemaName: 'TestSchema',
-                    schemaVersion: 1,
-                    stackOutputs: [{ wrong: 'stuff' }, 'testName2'],
+                [amplifyStackMetadataKey]: {
+                  TestOutput: {
+                    version: '1', // should be number
+                    stackOutputs: [{ wrong: 'type' }, 'otherThing'],
                   },
-                ],
+                },
               }),
             };
           } else {

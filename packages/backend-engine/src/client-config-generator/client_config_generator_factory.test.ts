@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import { ClientConfigGeneratorFactory } from './client_config_generator_factory.js';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import assert from 'node:assert';
-import { UnifiedClientConfigGenerator } from './client_config_generator.js';
+import { UnifiedClientConfigGenerator } from './unified_client_config_generator.js';
 
 describe('ClientConfigGeneratorFactory', () => {
   describe('fromStackIdentifier', () => {

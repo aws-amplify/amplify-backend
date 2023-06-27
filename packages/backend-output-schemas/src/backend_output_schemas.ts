@@ -45,8 +45,7 @@ export const storageOutputKey = 'storageOutput';
 
 /**
  * Defines the unified expected shape of Amplify backend output.
- * This is the convergence point of the construct plugins into a single output document
- * As new constructs are added that need to contribute backend output, entries should be added here
+ * As new constructs are added that need to contribute backend output, entries should be added here so that client config generation is aware of these outputs
  */
 export const backendOutputSchema = z.object({
   [authOutputKey]: versionedAuthOutputSchema.optional(),
@@ -55,6 +54,7 @@ export const backendOutputSchema = z.object({
 });
 
 /**
- * This type is a stronger assertion on the BackendOutput type that is exposed by the platform
+ * This type is a subset of the BackendOutput type that is exposed by the platform.
+ * It represents BackendOutput that has been validated against the schema of known output values
  */
 export type StrictlyTypedBackendOutput = z.infer<typeof backendOutputSchema>;

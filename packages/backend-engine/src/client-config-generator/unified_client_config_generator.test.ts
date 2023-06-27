@@ -1,15 +1,15 @@
 import { describe, it, mock } from 'node:test';
 import { BackendOutputRetrievalStrategy } from '@aws-amplify/plugin-types';
-import { UnifiedClientConfigGenerator } from './client_config_generator.js';
+import { UnifiedClientConfigGenerator } from './unified_client_config_generator.js';
 import assert from 'node:assert';
 import { AuthClientConfigContributor } from './client-config-contributor/auth_client_config_contributor.js';
 import { DataClientConfigContributor } from './client-config-contributor/data_client_config_contributor.js';
 import { StrictlyTypedBackendOutput } from '@aws-amplify/backend-output-schemas';
 import { ClientConfig } from './client_config.js';
 
-describe('ClientConfigGenerator', () => {
+describe('UnifiedClientConfigGenerator', () => {
   describe('generateClientConfig', () => {
-    it('TODO pass through of backend output for now', async () => {
+    it('transforms backend output into client config', async () => {
       const stubOutput: StrictlyTypedBackendOutput = {
         authOutput: {
           version: 1,
