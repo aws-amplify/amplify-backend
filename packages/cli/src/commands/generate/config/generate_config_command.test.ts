@@ -5,7 +5,10 @@ import { ClientConfig } from '@aws-amplify/backend-engine';
 import { ClientConfigWriter } from './client_config_writer.js';
 import { GenerateConfigCommand } from './generate_config_command.js';
 import yargs, { CommandModule } from 'yargs';
-import { TestCommandRunner } from '../../../test_utils/command_runner.js';
+import {
+  TestCommandError,
+  TestCommandRunner,
+} from '../../../test_utils/command_runner.js';
 import assert from 'node:assert';
 import path from 'path';
 
@@ -102,6 +105,53 @@ describe('generate config command', () => {
     assert.equal(
       writeClientConfigMock.mock.calls[0].arguments[1],
       path.join('/foo/bar', 'amplifyconfiguration.json')
+    );
+  });
+
+  it('shows available options in help output', async () => {
+    const output = await commandRunner.runCommand('config --help');
+    assert.match(output, /--stack/);
+    assert.match(output, /--project/);
+    assert.match(output, /--branch/);
+    assert.match(output, /--out/);
+  });
+
+  it('fails if both stack and project,branch are present', async () => {
+    await assert.rejects(
+      () =>
+        commandRunner.runCommand(
+          'config --stack foo --project bar --branch baz'
+        ),
+      (err: TestCommandError) => {
+        assert.equal(err.error.name, 'YError');
+        assert.match(err.error.message, /Arguments .* mutually exclusive/);
+        assert.match(err.output, /Arguments .* are mutually exclusive/);
+        return true;
+      }
+    );
+  });
+
+  it('fails if only branch is provided', async () => {
+    await assert.rejects(
+      () => commandRunner.runCommand('config --branch foo'),
+      (err: TestCommandError) => {
+        assert.equal(err.error.name, 'YError');
+        assert.match(err.error.message, /Missing dependent arguments:/);
+        assert.match(err.output, /Missing dependent arguments:/);
+        return true;
+      }
+    );
+  });
+
+  it('fails if only project is provided', async () => {
+    await assert.rejects(
+      () => commandRunner.runCommand('config --project foo'),
+      (err: TestCommandError) => {
+        assert.equal(err.error.name, 'YError');
+        assert.match(err.error.message, /Missing dependent arguments:/);
+        assert.match(err.output, /Missing dependent arguments:/);
+        return true;
+      }
     );
   });
 });
