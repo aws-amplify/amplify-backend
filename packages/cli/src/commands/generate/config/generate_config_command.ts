@@ -41,9 +41,9 @@ export class GenerateConfigCommand
   /**
    * @inheritDoc
    */
-  async handler(
+  handler = async (
     args: ArgumentsCamelCase<GenerateConfigCommandOptions>
-  ): Promise<void> {
+  ): Promise<void> => {
     const backendIdentifier = this.getBackendIdentifier(args);
     const clientConfig = await this.clientConfigGenerator.generateClientConfig(
       backendIdentifier
@@ -53,7 +53,7 @@ export class GenerateConfigCommand
       'amplifyconfiguration.json'
     );
     await this.clientConfigWriter.writeClientConfig(clientConfig, targetPath);
-  }
+  };
 
   /**
    * Translates args to BackendIdentifier.
@@ -81,12 +81,14 @@ export class GenerateConfigCommand
     return yargs
       .option('stack', {
         conflicts: ['project', 'branch'],
+        describe: 'A stack name that contains any Amplify Backend construct',
         type: 'string',
         array: false,
         group: 'Stack identifier',
       })
       .option('project', {
         conflicts: ['stack'],
+        describe: 'A name of the Amplify project',
         type: 'string',
         array: false,
         implies: 'branch',
@@ -94,6 +96,7 @@ export class GenerateConfigCommand
       })
       .option('branch', {
         conflicts: ['stack'],
+        describe: 'A git branch of the Amplify project',
         type: 'string',
         array: false,
         implies: 'project',
@@ -109,6 +112,7 @@ export class GenerateConfigCommand
             'Either --stack or --project and --branch must be provided'
           );
         }
+        return true;
       });
   };
 }

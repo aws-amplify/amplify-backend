@@ -7,6 +7,10 @@ import { createGenerateCommand } from './generate_command_factory.js';
 import yargs from 'yargs';
 import assert from 'node:assert';
 
+/**
+ * Top level generate command's responsibility is to wire subcommands and delegate execution down the command chain.
+ * Therefore, testing primarily focuses on help output.
+ */
 describe('top level generate command', () => {
   const generateCommand = createGenerateCommand();
   const parser = yargs().command(generateCommand);

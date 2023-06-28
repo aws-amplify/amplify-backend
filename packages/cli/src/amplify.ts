@@ -6,4 +6,4 @@ import { createMainParser } from './main_parser_factory.js';
 
 const parser = createMainParser();
 
-parser.parse(hideBin(process.argv));
+await parser.parseAsync(hideBin(process.argv));

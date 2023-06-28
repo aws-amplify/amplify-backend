@@ -27,15 +27,20 @@ export class GenerateCommand implements CommandModule {
    * @inheritDoc
    */
   handler(): void | Promise<void> {
-    // generate subcommand is required, this is never called.
+    // CommandModule requires handler implementation. But this is never called if top level command
+    // is configured to require subcommand.
+    // Help is printed by default in that case before ever attempting to call handler.
     throw new Error('Top level generate handler should never be called');
   }
 
   builder = (yargs: Argv): Argv => {
-    return yargs
-      .command(this.generateConfigCommand as unknown as CommandModule)
-      .demandCommand()
-      .strictCommands()
-      .recommendCommands();
+    return (
+      yargs
+        // Cast to erase options types used in internal sub command implementation. Otherwise, compiler fails here.
+        .command(this.generateConfigCommand as unknown as CommandModule)
+        .demandCommand()
+        .strictCommands()
+        .recommendCommands()
+    );
   };
 }
