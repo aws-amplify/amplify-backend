@@ -5,6 +5,7 @@
 ```ts
 
 import { AmplifyGraphqlApiProps } from 'agqlac';
+import { BackendOutputEntry } from '@aws-amplify/plugin-types';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
 import { ConstructContainer } from '@aws-amplify/plugin-types';
@@ -16,7 +17,7 @@ export const Data: typeof DataFactory;
 // @public
 export class DataFactory implements ConstructFactory<Construct> {
     constructor(props: DataProps);
-    getInstance(container: ConstructContainer, outputStorageStrategy: BackendOutputStorageStrategy): Construct;
+    getInstance(container: ConstructContainer, outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>): Construct;
 }
 
 // @public (undocumented)

@@ -6,33 +6,20 @@
 
 import { z } from 'zod';
 
-// @public (undocumented)
+// @public
 export const authOutputKey = "authOutput";
 
-// @public (undocumented)
-export const authOutputSchemaV1: z.ZodObject<{
-    version: z.ZodLiteral<1>;
-    payload: z.ZodObject<{
-        userPoolId: z.ZodString;
-    }, "strip", z.ZodTypeAny, {
-        userPoolId: string;
-    }, {
-        userPoolId: string;
-    }>;
-}, "strip", z.ZodTypeAny, {
-    version: 1;
-    payload: {
-        userPoolId: string;
-    };
-}, {
-    version: 1;
-    payload: {
-        userPoolId: string;
-    };
-}>;
+// @public
+export const dataOutputKey = "dataOutput";
 
 // @public
-export const backendOutputSchema: z.ZodObject<{
+export const storageOutputKey = "storageOutput";
+
+// @public
+export type UnifiedBackendOutput = z.infer<typeof unifiedBackendOutputSchema>;
+
+// @public
+export const unifiedBackendOutputSchema: z.ZodObject<{
     authOutput: z.ZodOptional<z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
         version: z.ZodLiteral<1>;
         payload: z.ZodObject<{
@@ -139,138 +126,6 @@ export const backendOutputSchema: z.ZodObject<{
         };
     } | undefined;
 }>;
-
-// @public (undocumented)
-export const dataOutputKey = "dataOutput";
-
-// @public (undocumented)
-export const dataOutputSchemaV1: z.ZodObject<{
-    version: z.ZodLiteral<1>;
-    payload: z.ZodObject<{
-        appSyncApiEndpoint: z.ZodString;
-        appSyncApiKey: z.ZodOptional<z.ZodString>;
-    }, "strip", z.ZodTypeAny, {
-        appSyncApiEndpoint: string;
-        appSyncApiKey?: string | undefined;
-    }, {
-        appSyncApiEndpoint: string;
-        appSyncApiKey?: string | undefined;
-    }>;
-}, "strip", z.ZodTypeAny, {
-    version: 1;
-    payload: {
-        appSyncApiEndpoint: string;
-        appSyncApiKey?: string | undefined;
-    };
-}, {
-    version: 1;
-    payload: {
-        appSyncApiEndpoint: string;
-        appSyncApiKey?: string | undefined;
-    };
-}>;
-
-// @public (undocumented)
-export type DataOutputV1 = z.infer<typeof dataOutputSchemaV1>;
-
-// @public (undocumented)
-export const storageOutputKey = "storageOutput";
-
-// @public (undocumented)
-export const storageOutputSchemaV1: z.ZodObject<{
-    version: z.ZodLiteral<1>;
-    payload: z.ZodObject<{
-        bucketName: z.ZodString;
-    }, "strip", z.ZodTypeAny, {
-        bucketName: string;
-    }, {
-        bucketName: string;
-    }>;
-}, "strip", z.ZodTypeAny, {
-    version: 1;
-    payload: {
-        bucketName: string;
-    };
-}, {
-    version: 1;
-    payload: {
-        bucketName: string;
-    };
-}>;
-
-// @public
-export type StrictlyTypedBackendOutput = z.infer<typeof backendOutputSchema>;
-
-// @public (undocumented)
-export const versionedAuthOutputSchema: z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
-    version: z.ZodLiteral<1>;
-    payload: z.ZodObject<{
-        userPoolId: z.ZodString;
-    }, "strip", z.ZodTypeAny, {
-        userPoolId: string;
-    }, {
-        userPoolId: string;
-    }>;
-}, "strip", z.ZodTypeAny, {
-    version: 1;
-    payload: {
-        userPoolId: string;
-    };
-}, {
-    version: 1;
-    payload: {
-        userPoolId: string;
-    };
-}>]>;
-
-// @public (undocumented)
-export const versionedDataOutputSchema: z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
-    version: z.ZodLiteral<1>;
-    payload: z.ZodObject<{
-        appSyncApiEndpoint: z.ZodString;
-        appSyncApiKey: z.ZodOptional<z.ZodString>;
-    }, "strip", z.ZodTypeAny, {
-        appSyncApiEndpoint: string;
-        appSyncApiKey?: string | undefined;
-    }, {
-        appSyncApiEndpoint: string;
-        appSyncApiKey?: string | undefined;
-    }>;
-}, "strip", z.ZodTypeAny, {
-    version: 1;
-    payload: {
-        appSyncApiEndpoint: string;
-        appSyncApiKey?: string | undefined;
-    };
-}, {
-    version: 1;
-    payload: {
-        appSyncApiEndpoint: string;
-        appSyncApiKey?: string | undefined;
-    };
-}>]>;
-
-// @public (undocumented)
-export const versionedStorageOutputSchema: z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
-    version: z.ZodLiteral<1>;
-    payload: z.ZodObject<{
-        bucketName: z.ZodString;
-    }, "strip", z.ZodTypeAny, {
-        bucketName: string;
-    }, {
-        bucketName: string;
-    }>;
-}, "strip", z.ZodTypeAny, {
-    version: 1;
-    payload: {
-        bucketName: string;
-    };
-}, {
-    version: 1;
-    payload: {
-        bucketName: string;
-    };
-}>]>;
 
 // (No @packageDocumentation comment for this package)
 

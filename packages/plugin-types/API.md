@@ -35,14 +35,14 @@ export type BackendOutputRetrievalStrategy = {
 };
 
 // @public
-export type BackendOutputStorageStrategy = {
-    addBackendOutputEntry(keyName: string, backendOutputEntry: BackendOutputEntry): void;
+export type BackendOutputStorageStrategy<T extends BackendOutputEntry> = {
+    addBackendOutputEntry(keyName: string, backendOutputEntry: T): void;
     flush(): void;
 };
 
 // @public
 export type BackendOutputWriter = {
-    storeOutput(outputStorageStrategy: BackendOutputStorageStrategy): void;
+    storeOutput(outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>): void;
 };
 
 // @public
@@ -61,7 +61,7 @@ export type ConstructContainerEntryGenerator = {
 // @public
 export type ConstructFactory<T = unknown> = {
     readonly provides?: string;
-    getInstance(constructContainer: ConstructContainer, outputStorageStrategy: BackendOutputStorageStrategy): T;
+    getInstance(constructContainer: ConstructContainer, outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>): T;
 };
 
 // @public

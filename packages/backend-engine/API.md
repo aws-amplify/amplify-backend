@@ -38,7 +38,7 @@ export class SingletonConstructContainer implements ConstructContainer {
 }
 
 // @public
-export class StackMetadataBackendOutputStorageStrategy implements BackendOutputStorageStrategy {
+export class StackMetadataBackendOutputStorageStrategy implements BackendOutputStorageStrategy<BackendOutputEntry> {
     constructor(stack: Stack);
     addBackendOutputEntry(keyName: string, backendOutputEntry: BackendOutputEntry): void;
     flush(): void;

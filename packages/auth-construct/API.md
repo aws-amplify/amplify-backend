@@ -4,6 +4,7 @@
 
 ```ts
 
+import { AuthOutput } from '@aws-amplify/backend-output-schemas/auth';
 import { AuthResources } from '@aws-amplify/plugin-types';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { BackendOutputWriter } from '@aws-amplify/plugin-types';
@@ -16,7 +17,7 @@ export class AmplifyAuth extends Construct implements BackendOutputWriter, AuthR
     constructor(scope: Construct, id: string, props: AmplifyAuthProps);
     // (undocumented)
     readonly authenticatedUserIamRole: IRole;
-    storeOutput(outputStorageStrategy: BackendOutputStorageStrategy): void;
+    storeOutput(outputStorageStrategy: BackendOutputStorageStrategy<AuthOutput>): void;
     // (undocumented)
     readonly unauthenticatedUserIamRole: IRole;
     // (undocumented)
