@@ -85,7 +85,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       dataConstructProps
     );
 
-    const outputData: DataOutput = {
+    const dataOutput: DataOutput = {
       version: 1,
       payload: {
         appSyncApiEndpoint:
@@ -94,11 +94,11 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     };
 
     if (dataConstruct.resources.cfnApiKey) {
-      outputData.payload.appSyncApiKey =
+      dataOutput.payload.appSyncApiKey =
         dataConstruct.resources.cfnApiKey?.attrApiKey;
     }
 
-    this.outputStorageStrategy.addBackendOutputEntry(dataOutputKey, outputData);
+    this.outputStorageStrategy.addBackendOutputEntry(dataOutputKey, dataOutput);
     return dataConstruct;
   }
 }
