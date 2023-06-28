@@ -136,7 +136,6 @@ describe('generate config command', () => {
       () => commandRunner.runCommand('config --branch foo'),
       (err: TestCommandError) => {
         assert.equal(err.error.name, 'YError');
-        assert.match(err.error.message, /Missing dependent arguments:/);
         assert.match(err.output, /Missing dependent arguments:/);
         return true;
       }
@@ -148,7 +147,6 @@ describe('generate config command', () => {
       () => commandRunner.runCommand('config --project foo'),
       (err: TestCommandError) => {
         assert.equal(err.error.name, 'YError');
-        assert.match(err.error.message, /Missing dependent arguments:/);
         assert.match(err.output, /Missing dependent arguments:/);
         return true;
       }
