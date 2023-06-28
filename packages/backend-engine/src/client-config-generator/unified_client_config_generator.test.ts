@@ -5,7 +5,7 @@ import assert from 'node:assert';
 import { AuthClientConfigContributor } from './client-config-contributor/auth_client_config_contributor.js';
 import { DataClientConfigContributor } from './client-config-contributor/data_client_config_contributor.js';
 import { UnifiedBackendOutput } from '@aws-amplify/backend-output-schemas';
-import { ClientConfig } from './client_config.js';
+import { ClientConfig } from './client-config-types/client_config.js';
 
 describe('UnifiedClientConfigGenerator', () => {
   describe('generateClientConfig', () => {
