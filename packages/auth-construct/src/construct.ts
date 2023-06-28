@@ -5,9 +5,10 @@ import {
   BackendOutputStorageStrategy,
   BackendOutputWriter,
 } from '@aws-amplify/plugin-types';
-import packageJson from '#package.json';
 import { UserPool } from 'aws-cdk-lib/aws-cognito';
 import { FederatedPrincipal, IRole, Role } from 'aws-cdk-lib/aws-iam';
+import { AuthOutput } from '@aws-amplify/backend-output-schemas/auth';
+import { authOutputKey } from '@aws-amplify/backend-output-schemas';
 
 export type GoogleLogin = {
   provider: 'google';
@@ -83,12 +84,12 @@ export class AmplifyAuth
   /**
    * Stores auth output using the provided strategy
    */
-  storeOutput(outputStorageStrategy: BackendOutputStorageStrategy): void {
-    outputStorageStrategy.addBackendOutputEntry(packageJson.name, {
-      constructVersion: packageJson.version,
-      data: {
-        userPoolId: this.userPool.userPoolId,
-      },
+  storeOutput(
+    outputStorageStrategy: BackendOutputStorageStrategy<AuthOutput>
+  ): void {
+    outputStorageStrategy.addBackendOutputEntry(authOutputKey, {
+      version: 1,
+      payload: { userPoolId: this.userPool.userPoolId },
     });
   }
 

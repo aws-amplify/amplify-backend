@@ -4,9 +4,6 @@
 
 ```ts
 
-// @public
-export const main: () => void;
-
 // (No @packageDocumentation comment for this package)
 
 ```

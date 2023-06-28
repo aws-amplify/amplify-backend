@@ -20,31 +20,29 @@ export type AuthResources = {
 // @public
 export type BackendIdentifier = StackIdentifier | ProjectEnvironmentIdentifier;
 
-// @public
-export type BackendOutput = Record<string, BackendOutputValue>;
+// @public (undocumented)
+export type BackendOutput = Record<string, BackendOutputEntry>;
 
-// @public
+// @public (undocumented)
+export type BackendOutputEntry<T extends Record<string, string> = Record<string, string>> = {
+    readonly version: number;
+    readonly payload: T;
+};
+
+// @public (undocumented)
 export type BackendOutputRetrievalStrategy = {
     fetchBackendOutput(): Promise<BackendOutput>;
 };
 
 // @public
-export type BackendOutputStorageStrategy = {
-    addBackendOutputEntry(
-    constructPackageName: string,
-    backendOutputValue: BackendOutputValue): void;
+export type BackendOutputStorageStrategy<T extends BackendOutputEntry> = {
+    addBackendOutputEntry(keyName: string, backendOutputEntry: T): void;
     flush(): void;
-};
-
-// @public (undocumented)
-export type BackendOutputValue = {
-    constructVersion: string;
-    data: Record<string, string>;
 };
 
 // @public
 export type BackendOutputWriter = {
-    storeOutput(outputStorageStrategy: BackendOutputStorageStrategy): void;
+    storeOutput(outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>): void;
 };
 
 // @public
@@ -63,7 +61,7 @@ export type ConstructContainerEntryGenerator = {
 // @public
 export type ConstructFactory<T = unknown> = {
     readonly provides?: string;
-    getInstance(constructContainer: ConstructContainer, outputStorageStrategy: BackendOutputStorageStrategy): T;
+    getInstance(constructContainer: ConstructContainer, outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>): T;
 };
 
 // @public

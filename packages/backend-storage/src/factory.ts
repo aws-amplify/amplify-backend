@@ -1,5 +1,6 @@
 import { Construct } from 'constructs';
 import {
+  BackendOutputEntry,
   BackendOutputStorageStrategy,
   ConstructContainer,
   ConstructContainerEntryGenerator,
@@ -26,7 +27,7 @@ export class AmplifyStorageFactory implements ConstructFactory<AmplifyStorage> {
    */
   getInstance(
     container: ConstructContainer,
-    outputStorageStrategy: BackendOutputStorageStrategy
+    outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>
   ): AmplifyStorage {
     if (!this.generator) {
       this.generator = new AmplifyStorageGenerator(
@@ -44,7 +45,7 @@ class AmplifyStorageGenerator implements ConstructContainerEntryGenerator {
 
   constructor(
     private readonly props: AmplifyStorageProps,
-    private readonly outputStorageStrategy: BackendOutputStorageStrategy
+    private readonly outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>
   ) {}
 
   generateContainerEntry(scope: Construct) {

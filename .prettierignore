@@ -6,3 +6,4 @@ lib
 docs
 tsconfig.tsbuildinfo
 API.md
+verdaccio-cache

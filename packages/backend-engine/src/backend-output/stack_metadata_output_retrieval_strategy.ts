@@ -47,7 +47,7 @@ export class StackMetadataBackendOutputRetrievalStrategy
     const unvalidatedBackendOutput = metadataObject[amplifyStackMetadataKey];
 
     // parse and validate the metadata object
-    const backendOutput = backendOutputStackMetadataSchema.parse(
+    const backendOutputMetadata = backendOutputStackMetadataSchema.parse(
       unvalidatedBackendOutput
     );
 
@@ -61,7 +61,7 @@ export class StackMetadataBackendOutputRetrievalStrategy
     }
 
     // outputs is a list of output entries. here we turn that into a Record<name, value> object
-    const outputRecord = outputs
+    const stackOutputRecord = outputs
       .filter((output) => !!output.OutputValue && !!output.OutputKey)
       .reduce(
         (accumulator, outputEntry) => ({
@@ -75,22 +75,22 @@ export class StackMetadataBackendOutputRetrievalStrategy
 
     // now we iterate over the metadata entries and reconstruct the data object based on the stackOutputs that each construct package set
     const result: BackendOutput = {};
-    Object.entries(backendOutput).forEach(([constructPackageName, entry]) => {
-      const constructData = entry.stackOutputs.reduce(
+    Object.entries(backendOutputMetadata).forEach(([outputKeyName, entry]) => {
+      const outputData = entry.stackOutputs.reduce(
         (accumulator, outputName) => {
-          if (outputRecord[outputName] === undefined) {
+          if (stackOutputRecord[outputName] === undefined) {
             throw new Error(`Output ${outputName} not found in stack`);
           }
           return {
             ...accumulator,
-            [outputName]: outputRecord[outputName],
+            [outputName]: stackOutputRecord[outputName],
           };
         },
         {} as Record<string, string>
       );
-      result[constructPackageName] = {
-        constructVersion: entry.constructVersion,
-        data: constructData,
+      result[outputKeyName] = {
+        version: entry.version,
+        payload: outputData,
       };
     });
     return result;

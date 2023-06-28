@@ -1,6 +1,7 @@
 import { Construct } from 'constructs';
 import {
   AuthResources,
+  BackendOutputEntry,
   BackendOutputStorageStrategy,
   ConstructContainer,
   ConstructContainerEntryGenerator,
@@ -11,6 +12,8 @@ import {
   AmplifyGraphqlApiProps,
   AuthorizationConfig,
 } from 'agqlac';
+import { dataOutputKey } from '@aws-amplify/backend-output-schemas';
+import { DataOutput } from '@aws-amplify/backend-output-schemas/data';
 
 export type DataProps = Pick<AmplifyGraphqlApiProps, 'schema'>;
 
@@ -30,7 +33,7 @@ export class DataFactory implements ConstructFactory<Construct> {
    */
   getInstance(
     container: ConstructContainer,
-    outputStorageStrategy: BackendOutputStorageStrategy
+    outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>
   ): Construct {
     if (!this.generator) {
       this.generator = new DataGenerator(
@@ -52,7 +55,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
   constructor(
     private readonly props: DataProps,
     private readonly authResources: AuthResources,
-    private readonly outputStorageStrategy: BackendOutputStorageStrategy
+    private readonly outputStorageStrategy: BackendOutputStorageStrategy<DataOutput>
   ) {}
 
   generateContainerEntry(scope: Construct) {
@@ -82,21 +85,20 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       dataConstructProps
     );
 
-    const outputData: Record<string, string> = {
-      appSyncApiId: dataConstruct.resources.cfnGraphqlApi.attrApiId,
+    const dataOutput: DataOutput = {
+      version: 1,
+      payload: {
+        appSyncApiEndpoint:
+          dataConstruct.resources.cfnGraphqlApi.attrGraphQlUrl,
+      },
     };
 
     if (dataConstruct.resources.cfnApiKey) {
-      outputData.appSyncApiKey = dataConstruct.resources.cfnApiKey?.attrApiKey;
+      dataOutput.payload.appSyncApiKey =
+        dataConstruct.resources.cfnApiKey?.attrApiKey;
     }
 
-    this.outputStorageStrategy.addBackendOutputEntry(
-      'placeholder-type-package',
-      {
-        constructVersion: 'placeholder-version',
-        data: outputData,
-      }
-    );
+    this.outputStorageStrategy.addBackendOutputEntry(dataOutputKey, dataOutput);
     return dataConstruct;
   }
 }

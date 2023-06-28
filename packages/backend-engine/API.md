@@ -6,8 +6,8 @@
 
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { BackendOutputEntry } from '@aws-amplify/plugin-types';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
-import { BackendOutputValue } from '@aws-amplify/plugin-types';
 import { CfnElement } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { ConstructContainer } from '@aws-amplify/plugin-types';
@@ -21,7 +21,25 @@ export class AmplifyStack extends Stack {
 }
 
 // @public
-export const generateClientConfig: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier) => Promise<void>;
+export type AuthClientConfig = {
+    Auth: {
+        userPoolId: string;
+    };
+};
+
+// @public
+export type ClientConfig = Partial<AuthClientConfig> & Partial<DataClientConfig> & Partial<StorageClientConfig>;
+
+// @public
+export type DataClientConfig = {
+    aws_appsync_apiKey?: string;
+    API: {
+        graphql_endpoint: string;
+    };
+};
+
+// @public
+export const generateClientConfig: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier) => Promise<ClientConfig>;
 
 // @public
 export class NestedStackResolver implements StackResolver {
@@ -38,15 +56,24 @@ export class SingletonConstructContainer implements ConstructContainer {
 }
 
 // @public
-export class StackMetadataBackendOutputStorageStrategy implements BackendOutputStorageStrategy {
+export class StackMetadataBackendOutputStorageStrategy implements BackendOutputStorageStrategy<BackendOutputEntry> {
     constructor(stack: Stack);
-    addBackendOutputEntry(constructPackageName: string, backendOutputValue: BackendOutputValue): void;
+    addBackendOutputEntry(keyName: string, backendOutputEntry: BackendOutputEntry): void;
     flush(): void;
 }
 
 // @public
 export type StackResolver = {
     getStackFor(resourceGroupName: string): Stack;
+};
+
+// @public
+export type StorageClientConfig = {
+    Storage: {
+        AWSS3: {
+            bucket: string;
+        };
+    };
 };
 
 // (No @packageDocumentation comment for this package)

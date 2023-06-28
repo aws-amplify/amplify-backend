@@ -19,7 +19,6 @@ export type ConstructContainerEntryGenerator = {
 
 /**
  * Vends Constructs based on an initializer function
- * TODO I'm not going to rename this type yet. Once we land on the approach here, I'll do the rename in a separate PR to avoid blowing up the diff
  */
 export type ConstructContainer = {
   getOrCompute(generator: ConstructContainerEntryGenerator): Construct;

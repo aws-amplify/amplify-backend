@@ -1,6 +1,6 @@
 import {
+  BackendOutputEntry,
   BackendOutputStorageStrategy,
-  BackendOutputValue,
 } from '@aws-amplify/plugin-types';
 import { CfnOutput, Stack } from 'aws-cdk-lib';
 import { amplifyStackMetadataKey } from './amplify_stack_metadata_key.js';
@@ -10,7 +10,7 @@ import { BackendOutputStackMetadata } from './backend_output_schemas.js';
  * Implementation of BackendOutputStorageStrategy that stores config data in stack metadata and outputs
  */
 export class StackMetadataBackendOutputStorageStrategy
-  implements BackendOutputStorageStrategy
+  implements BackendOutputStorageStrategy<BackendOutputEntry>
 {
   private readonly metadata: BackendOutputStackMetadata = {};
   /**
@@ -26,17 +26,17 @@ export class StackMetadataBackendOutputStorageStrategy
    * Metadata is not written to the stack until flush() is called
    */
   addBackendOutputEntry(
-    constructPackageName: string,
-    backendOutputValue: BackendOutputValue
+    keyName: string,
+    backendOutputEntry: BackendOutputEntry
   ): void {
     // add all the data values as stack outputs
-    Object.entries(backendOutputValue.data).forEach(([key, value]) => {
+    Object.entries(backendOutputEntry.payload).forEach(([key, value]) => {
       new CfnOutput(this.stack, key, { value });
     });
 
-    this.metadata[constructPackageName] = {
-      constructVersion: backendOutputValue.constructVersion,
-      stackOutputs: Object.keys(backendOutputValue.data),
+    this.metadata[keyName] = {
+      version: backendOutputEntry.version,
+      stackOutputs: Object.keys(backendOutputEntry.payload),
     };
   }
 

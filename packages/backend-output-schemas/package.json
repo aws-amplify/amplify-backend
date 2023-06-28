@@ -1,0 +1,32 @@
+{
+  "name": "@aws-amplify/backend-output-schemas",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "update:api": "api-extractor run --local"
+  },
+  "devDependencies": {
+    "@aws-amplify/plugin-types": "0.1.0"
+  },
+  "peerDependencies": {
+    "zod": "^3.21.4"
+  },
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "import": "./lib/index.js"
+    },
+    "./auth": {
+      "types": "./lib/auth/index.d.ts",
+      "import": "./lib/auth/index.js"
+    },
+    "./data": {
+      "types": "./lib/data/index.d.ts",
+      "import": "./lib/data/index.js"
+    },
+    "./storage": {
+      "types": "./lib/storage/index.d.ts",
+      "import": "./lib/storage/index.js"
+    }
+  }
+}
