@@ -6,11 +6,7 @@
 
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
-<<<<<<< HEAD
 import { BackendOutputEntry } from '@aws-amplify/plugin-types';
-=======
-import { BackendOutput } from '@aws-amplify/plugin-types';
->>>>>>> origin
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { CfnElement } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
@@ -24,8 +20,23 @@ export class AmplifyStack extends Stack {
     allocateLogicalId(element: CfnElement): string;
 }
 
-// @public (undocumented)
-export type ClientConfig = BackendOutput;
+// @public
+export type AuthClientConfig = {
+    Auth: {
+        userPoolId: string;
+    };
+};
+
+// @public
+export type ClientConfig = Partial<AuthClientConfig> & Partial<DataClientConfig> & Partial<StorageClientConfig>;
+
+// @public
+export type DataClientConfig = {
+    aws_appsync_apiKey?: string;
+    API: {
+        graphql_endpoint: string;
+    };
+};
 
 // @public
 export const generateClientConfig: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier) => Promise<ClientConfig>;
@@ -54,6 +65,15 @@ export class StackMetadataBackendOutputStorageStrategy implements BackendOutputS
 // @public
 export type StackResolver = {
     getStackFor(resourceGroupName: string): Stack;
+};
+
+// @public
+export type StorageClientConfig = {
+    Storage: {
+        AWSS3: {
+            bucket: string;
+        };
+    };
 };
 
 // (No @packageDocumentation comment for this package)
