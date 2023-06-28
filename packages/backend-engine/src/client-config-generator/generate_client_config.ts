@@ -13,7 +13,7 @@ import { ClientConfig } from './client_config_generator.js';
 /**
  * Main entry point for generating client config
  */
-export const generateClientConfig = async (
+export const generateClientConfig = (
   credentialProvider: AwsCredentialIdentityProvider,
   backendIdentifier: BackendIdentifier
 ): Promise<ClientConfig> => {
@@ -26,5 +26,5 @@ export const generateClientConfig = async (
       : clientConfigGeneratorFactory.fromProjectEnvironmentIdentifier(
           backendIdentifier
         );
-  return await clientConfigGenerator.generateClientConfig();
+  return clientConfigGenerator.generateClientConfig();
 };

@@ -12,7 +12,7 @@ export type GenerateConfigCommandOptions = {
 };
 
 /**
- * An command that generates client config.
+ * Command that generates client config.
  */
 export class GenerateConfigCommand
   implements CommandModule<object, GenerateConfigCommandOptions>
@@ -103,6 +103,8 @@ export class GenerateConfigCommand
         group: 'Project identifier',
       })
       .option('out', {
+        describe:
+          'A path to directory where config is written. If not provided defaults to current process working directory.',
         type: 'string',
         array: false,
       })
