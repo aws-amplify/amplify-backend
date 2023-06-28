@@ -2,6 +2,7 @@ import { AmplifyAuth, AmplifyAuthProps } from '@aws-amplify/auth-construct';
 import { Construct } from 'constructs';
 import {
   AuthResources,
+  BackendOutputEntry,
   BackendOutputStorageStrategy,
   ConstructContainer,
   ConstructContainerEntryGenerator,
@@ -27,7 +28,7 @@ export class AmplifyAuthFactory
    */
   getInstance(
     container: ConstructContainer,
-    backendOutputStorageStrategy: BackendOutputStorageStrategy
+    backendOutputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>
   ): AmplifyAuth {
     if (!this.generator) {
       this.generator = new AmplifyAuthGenerator(
@@ -45,7 +46,7 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
 
   constructor(
     private readonly props: AmplifyAuthProps,
-    private readonly backendOutputStorageStrategy: BackendOutputStorageStrategy
+    private readonly backendOutputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>
   ) {}
 
   generateContainerEntry(scope: Construct) {

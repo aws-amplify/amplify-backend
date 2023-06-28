@@ -3,7 +3,10 @@ import { AmplifyAuth } from './construct.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
-import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
+import {
+  BackendOutputEntry,
+  BackendOutputStorageStrategy,
+} from '@aws-amplify/plugin-types';
 import { UserPool } from 'aws-cdk-lib/aws-cognito';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
 
@@ -98,10 +101,11 @@ describe('Auth construct', () => {
       const stack = new Stack(app);
 
       const storeOutputMock = mock.fn();
-      const stubBackendOutputStorageStrategy: BackendOutputStorageStrategy = {
-        addBackendOutputEntry: storeOutputMock,
-        flush: mock.fn(),
-      };
+      const stubBackendOutputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry> =
+        {
+          addBackendOutputEntry: storeOutputMock,
+          flush: mock.fn(),
+        };
       const authConstruct = new AmplifyAuth(stack, 'test', {
         loginMechanisms: ['username'],
       });

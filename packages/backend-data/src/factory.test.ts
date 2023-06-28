@@ -10,6 +10,7 @@ import {
 import { Template } from 'aws-cdk-lib/assertions';
 import {
   AuthResources,
+  BackendOutputEntry,
   BackendOutputStorageStrategy,
   ConstructContainer,
 } from '@aws-amplify/plugin-types';
@@ -28,7 +29,7 @@ const testSchema = `
 describe('DataFactory', () => {
   let stack: Stack;
   let container: ConstructContainer;
-  let outputStorageStrategy: BackendOutputStorageStrategy;
+  let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
   beforeEach(() => {
     const app = new App();
     stack = new Stack(app);

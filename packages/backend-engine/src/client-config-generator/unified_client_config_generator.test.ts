@@ -4,13 +4,13 @@ import { UnifiedClientConfigGenerator } from './unified_client_config_generator.
 import assert from 'node:assert';
 import { AuthClientConfigContributor } from './client-config-contributor/auth_client_config_contributor.js';
 import { DataClientConfigContributor } from './client-config-contributor/data_client_config_contributor.js';
-import { StrictlyTypedBackendOutput } from '@aws-amplify/backend-output-schemas';
+import { UnifiedBackendOutput } from '@aws-amplify/backend-output-schemas';
 import { ClientConfig } from './client_config.js';
 
 describe('UnifiedClientConfigGenerator', () => {
   describe('generateClientConfig', () => {
     it('transforms backend output into client config', async () => {
-      const stubOutput: StrictlyTypedBackendOutput = {
+      const stubOutput: UnifiedBackendOutput = {
         authOutput: {
           version: 1,
           payload: {

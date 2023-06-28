@@ -8,7 +8,10 @@ import {
   StackMetadataBackendOutputStorageStrategy,
 } from '@aws-amplify/backend-engine';
 import assert from 'node:assert';
-import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
+import {
+  BackendOutputEntry,
+  BackendOutputStorageStrategy,
+} from '@aws-amplify/plugin-types';
 
 describe('AmplifyStorageFactory', () => {
   it('returns singleton instance', () => {
@@ -73,10 +76,11 @@ describe('AmplifyStorageFactory', () => {
 
     const storeOutputMock = mock.fn();
 
-    const outputStorageStrategy: BackendOutputStorageStrategy = {
-      addBackendOutputEntry: storeOutputMock,
-      flush: mock.fn(),
-    };
+    const outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry> =
+      {
+        addBackendOutputEntry: storeOutputMock,
+        flush: mock.fn(),
+      };
 
     storageFactory.getInstance(backendBuildState, outputStorageStrategy);
 

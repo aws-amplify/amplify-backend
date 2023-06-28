@@ -1,6 +1,7 @@
 import { Construct } from 'constructs';
 import {
   AuthResources,
+  BackendOutputEntry,
   BackendOutputStorageStrategy,
   ConstructContainer,
   ConstructContainerEntryGenerator,
@@ -11,10 +12,8 @@ import {
   AmplifyGraphqlApiProps,
   AuthorizationConfig,
 } from 'agqlac';
-import {
-  dataOutputKey,
-  DataOutputV1,
-} from '@aws-amplify/backend-output-schemas';
+import { dataOutputKey } from '@aws-amplify/backend-output-schemas';
+import { DataOutput } from '@aws-amplify/backend-output-schemas/data';
 
 export type DataProps = Pick<AmplifyGraphqlApiProps, 'schema'>;
 
@@ -34,7 +33,7 @@ export class DataFactory implements ConstructFactory<Construct> {
    */
   getInstance(
     container: ConstructContainer,
-    outputStorageStrategy: BackendOutputStorageStrategy
+    outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>
   ): Construct {
     if (!this.generator) {
       this.generator = new DataGenerator(
@@ -56,7 +55,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
   constructor(
     private readonly props: DataProps,
     private readonly authResources: AuthResources,
-    private readonly outputStorageStrategy: BackendOutputStorageStrategy
+    private readonly outputStorageStrategy: BackendOutputStorageStrategy<DataOutput>
   ) {}
 
   generateContainerEntry(scope: Construct) {
@@ -86,7 +85,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       dataConstructProps
     );
 
-    const outputData: DataOutputV1 = {
+    const outputData: DataOutput = {
       version: 1,
       payload: {
         appSyncApiEndpoint:

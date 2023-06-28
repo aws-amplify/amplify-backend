@@ -10,7 +10,7 @@ import { BackendOutputStackMetadata } from './backend_output_schemas.js';
  * Implementation of BackendOutputStorageStrategy that stores config data in stack metadata and outputs
  */
 export class StackMetadataBackendOutputStorageStrategy
-  implements BackendOutputStorageStrategy
+  implements BackendOutputStorageStrategy<BackendOutputEntry>
 {
   private readonly metadata: BackendOutputStackMetadata = {};
   /**

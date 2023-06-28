@@ -1,5 +1,5 @@
 import { ClientConfigContributor } from './client_config_contributor.js';
-import { StrictlyTypedBackendOutput } from '@aws-amplify/backend-output-schemas';
+import { UnifiedBackendOutput } from '@aws-amplify/backend-output-schemas';
 import { ClientConfig } from '../client_config.js';
 
 /**
@@ -11,7 +11,7 @@ export class StorageClientConfigContributor implements ClientConfigContributor {
    */
   contribute({
     storageOutput,
-  }: StrictlyTypedBackendOutput): Pick<ClientConfig, 'Storage'> {
+  }: UnifiedBackendOutput): Pick<ClientConfig, 'Storage'> {
     if (storageOutput === undefined) {
       return {};
     }

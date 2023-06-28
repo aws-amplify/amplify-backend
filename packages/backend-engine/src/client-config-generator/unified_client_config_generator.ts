@@ -1,5 +1,5 @@
 import { BackendOutputRetrievalStrategy } from '@aws-amplify/plugin-types';
-import { backendOutputSchema } from '@aws-amplify/backend-output-schemas';
+import { unifiedBackendOutputSchema } from '@aws-amplify/backend-output-schemas';
 import { ClientConfig } from './client_config.js';
 import { ClientConfigContributor } from './client-config-contributor/client_config_contributor.js';
 import { ClientConfigGenerator } from './client_config_generator.js';
@@ -22,7 +22,7 @@ export class UnifiedClientConfigGenerator implements ClientConfigGenerator {
    * Fetch all backend output, invoke each ClientConfigContributor on the result and merge into a single config object
    */
   async generateClientConfig(): Promise<ClientConfig> {
-    const backendOutput = backendOutputSchema.parse(
+    const backendOutput = unifiedBackendOutputSchema.parse(
       await this.outputRetrievalStrategy.fetchBackendOutput()
     );
 

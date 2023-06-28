@@ -5,6 +5,7 @@ import {
   BackendOutputWriter,
 } from '@aws-amplify/plugin-types';
 import { storageOutputKey } from '@aws-amplify/backend-output-schemas';
+import { StorageOutput } from '@aws-amplify/backend-output-schemas/storage';
 
 export type AmplifyStorageProps = {
   versioned?: boolean;
@@ -33,7 +34,9 @@ export class AmplifyStorage extends Construct implements BackendOutputWriter {
   /**
    * Store storage outputs using provided strategy
    */
-  storeOutput(outputStorageStrategy: BackendOutputStorageStrategy): void {
+  storeOutput(
+    outputStorageStrategy: BackendOutputStorageStrategy<StorageOutput>
+  ): void {
     outputStorageStrategy.addBackendOutputEntry(storageOutputKey, {
       version: 1,
       payload: {
