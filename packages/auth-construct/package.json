@@ -7,6 +7,9 @@
   "scripts": {
     "update:api": "api-extractor run --local"
   },
+  "dependencies": {
+    "@aws-amplify/backend-output-schemas": "^0.1.0"
+  },
   "devDependencies": {
     "@aws-amplify/plugin-types": "^0.1.0"
   },

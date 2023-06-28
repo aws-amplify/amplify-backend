@@ -13,9 +13,9 @@ describe('StackMetadataBackendOutputStorageStrategy', () => {
       const outputStorage = new StackMetadataBackendOutputStorageStrategy(
         stack
       );
-      outputStorage.addBackendOutputEntry('test-package', {
-        constructVersion: '2.0.0',
-        data: {
+      outputStorage.addBackendOutputEntry('TestStorageOutput', {
+        version: 1,
+        payload: {
           something: 'special',
         },
       });
@@ -26,8 +26,8 @@ describe('StackMetadataBackendOutputStorageStrategy', () => {
       template.templateMatches({
         Metadata: {
           [amplifyStackMetadataKey]: {
-            'test-package': {
-              constructVersion: '2.0.0',
+            TestStorageOutput: {
+              version: 1,
               stackOutputs: ['something'],
             },
           },
@@ -41,9 +41,9 @@ describe('StackMetadataBackendOutputStorageStrategy', () => {
       const outputStorage = new StackMetadataBackendOutputStorageStrategy(
         stack
       );
-      outputStorage.addBackendOutputEntry('test-package', {
-        constructVersion: '2.0.0',
-        data: {
+      outputStorage.addBackendOutputEntry('TestStorageOutput', {
+        version: 44,
+        payload: {
           something: 'special',
         },
       });

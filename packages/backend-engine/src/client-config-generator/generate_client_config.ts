@@ -1,7 +1,7 @@
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { ClientConfigGeneratorFactory } from './client_config_generator_factory.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
-import { ClientConfig } from './client_config_generator.js';
+import { ClientConfig } from './client-config-types/client_config.js';
 
 // Because this function is acting as the DI container for this functionality, there is no way to test it without
 // exposing the ClientConfigGeneratorFactory in the method signature. For this reason, we're turning off coverage for this file

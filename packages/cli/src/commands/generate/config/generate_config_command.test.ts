@@ -1,7 +1,6 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import { ClientConfigGeneratorAdapter } from './client_config_generator_adapter.js';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
-import { ClientConfig } from '@aws-amplify/backend-engine';
 import { ClientConfigWriter } from './client_config_writer.js';
 import { GenerateConfigCommand } from './generate_config_command.js';
 import yargs, { CommandModule } from 'yargs';
@@ -11,17 +10,15 @@ import {
 } from '../../../test_utils/command_runner.js';
 import assert from 'node:assert';
 import path from 'path';
+import { ClientConfig } from '@aws-amplify/backend-engine/client-config-generator';
 
 describe('generate config command', () => {
   const clientConfigGeneratorAdapter = new ClientConfigGeneratorAdapter(
     fromNodeProviderChain()
   );
   const clientConfig: ClientConfig = {
-    testOutputEntry: {
-      constructVersion: '1.0.0',
-      data: {
-        key1: 'val1',
-      },
+    Auth: {
+      userPoolId: 'something',
     },
   };
   const generateClientConfigMock = mock.method(

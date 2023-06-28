@@ -9,7 +9,7 @@ import { z } from 'zod';
  * Data schema for storing a backend output entry using stack metadata
  */
 export const backendOutputEntryStackMetadataSchema = z.object({
-  constructVersion: z.string(),
+  version: z.number(),
   stackOutputs: z.array(z.string()),
 });
 

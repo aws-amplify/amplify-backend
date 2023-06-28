@@ -45,8 +45,8 @@ describe('StackMetadataBackendOutputRetrievalStrategy', () => {
             return {
               Metadata: JSON.stringify({
                 [amplifyStackMetadataKey]: {
-                  testPackage: {
-                    constructVersion: '1.0.0',
+                  TestOutput: {
+                    version: 1,
                     stackOutputs: ['testName1', 'testName2'],
                   },
                 },
@@ -87,9 +87,9 @@ describe('StackMetadataBackendOutputRetrievalStrategy', () => {
             return {
               Metadata: JSON.stringify({
                 [amplifyStackMetadataKey]: {
-                  testPackage: {
-                    incorrectKey: '1.0.0',
-                    stackOutputs: { wrong: 'stuff here' },
+                  TestOutput: {
+                    version: '1', // should be number
+                    stackOutputs: [{ wrong: 'type' }, 'otherThing'],
                   },
                 },
               }),
@@ -122,8 +122,8 @@ describe('StackMetadataBackendOutputRetrievalStrategy', () => {
             return {
               Metadata: JSON.stringify({
                 [amplifyStackMetadataKey]: {
-                  testPackage: {
-                    constructVersion: '1.0.0',
+                  TestOutput: {
+                    version: 1,
                     stackOutputs: ['testName1', 'testName2'],
                   },
                 },
@@ -169,12 +169,12 @@ describe('StackMetadataBackendOutputRetrievalStrategy', () => {
             return {
               Metadata: JSON.stringify({
                 [amplifyStackMetadataKey]: {
-                  testPackage: {
-                    constructVersion: '1.0.0',
+                  TestOutput: {
+                    version: 1,
                     stackOutputs: ['testName1', 'testName2'],
                   },
-                  otherPackage: {
-                    constructVersion: '2.1.0',
+                  OtherOutput: {
+                    version: 2,
                     stackOutputs: ['thing1', 'thing2'],
                   },
                 },
@@ -222,16 +222,16 @@ describe('StackMetadataBackendOutputRetrievalStrategy', () => {
 
       const output = await retrievalStrategy.fetchBackendOutput();
       assert.deepStrictEqual(output, {
-        testPackage: {
-          constructVersion: '1.0.0',
-          data: {
+        TestOutput: {
+          version: 1,
+          payload: {
             testName1: 'testValue1',
             testName2: 'testValue2',
           },
         },
-        otherPackage: {
-          constructVersion: '2.1.0',
-          data: {
+        OtherOutput: {
+          version: 2,
+          payload: {
             thing1: 'The cat',
             thing2: 'in the hat',
           },

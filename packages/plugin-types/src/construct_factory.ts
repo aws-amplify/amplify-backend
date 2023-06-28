@@ -1,5 +1,6 @@
 import { ConstructContainer } from './construct_container.js';
 import { BackendOutputStorageStrategy } from './output_storage_stragegy.js';
+import { BackendOutputEntry } from './backend_output.js';
 
 /**
  * Functional interface for construct factories. All objects in the backend-engine definition must implement this interface.
@@ -12,6 +13,6 @@ export type ConstructFactory<T = unknown> = {
   readonly provides?: string;
   getInstance(
     constructContainer: ConstructContainer,
-    outputStorageStrategy: BackendOutputStorageStrategy
+    outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>
   ): T;
 };

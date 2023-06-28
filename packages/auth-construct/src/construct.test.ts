@@ -3,9 +3,12 @@ import { AmplifyAuth } from './construct.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
-import packageJson from '#package.json';
-import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
+import {
+  BackendOutputEntry,
+  BackendOutputStorageStrategy,
+} from '@aws-amplify/plugin-types';
 import { UserPool } from 'aws-cdk-lib/aws-cognito';
+import { authOutputKey } from '@aws-amplify/backend-output-schemas';
 
 describe('Auth construct', () => {
   it('creates case sensitive username login', () => {
@@ -98,10 +101,11 @@ describe('Auth construct', () => {
       const stack = new Stack(app);
 
       const storeOutputMock = mock.fn();
-      const stubBackendOutputStorageStrategy: BackendOutputStorageStrategy = {
-        addBackendOutputEntry: storeOutputMock,
-        flush: mock.fn(),
-      };
+      const stubBackendOutputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry> =
+        {
+          addBackendOutputEntry: storeOutputMock,
+          flush: mock.fn(),
+        };
       const authConstruct = new AmplifyAuth(stack, 'test', {
         loginMechanisms: ['username'],
       });
@@ -115,15 +119,15 @@ describe('Auth construct', () => {
       const storeOutputArgs = storeOutputMock.mock.calls[0].arguments;
       assert.equal(storeOutputArgs.length, 2);
 
-      const [actualPackageName, actualOutputEntry] = storeOutputArgs;
-
-      assert.equal(actualPackageName, packageJson.name);
-      assert.deepStrictEqual(actualOutputEntry, {
-        constructVersion: packageJson.version,
-        data: {
-          userPoolId: expectedUserPoolId,
+      assert.deepStrictEqual(storeOutputArgs, [
+        authOutputKey,
+        {
+          version: 1,
+          payload: {
+            userPoolId: expectedUserPoolId,
+          },
         },
-      });
+      ]);
     });
   });
 });

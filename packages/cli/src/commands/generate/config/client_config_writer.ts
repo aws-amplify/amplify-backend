@@ -1,4 +1,4 @@
-import { ClientConfig } from '@aws-amplify/backend-engine';
+import { ClientConfig } from '@aws-amplify/backend-engine/client-config-generator';
 import fs from 'fs/promises';
 
 /**

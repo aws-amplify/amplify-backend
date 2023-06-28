@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, it } from 'node:test';
 import fs from 'fs/promises';
-import { ClientConfig } from '@aws-amplify/backend-engine';
+import { ClientConfig } from '@aws-amplify/backend-engine/client-config-generator';
 import { ClientConfigWriter } from './client_config_writer.js';
 import path from 'path';
 import assert from 'node:assert';
@@ -17,11 +17,8 @@ describe('client config writer', () => {
   });
 
   const clientConfig: ClientConfig = {
-    testOutputEntry: {
-      constructVersion: '1.0.0',
-      data: {
-        key1: 'val1',
-      },
+    Auth: {
+      userPoolId: 'something',
     },
   };
 
