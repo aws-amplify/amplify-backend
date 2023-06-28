@@ -6,6 +6,7 @@
 
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { BackendOutput } from '@aws-amplify/plugin-types';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { BackendOutputValue } from '@aws-amplify/plugin-types';
 import { CfnElement } from 'aws-cdk-lib';
@@ -20,8 +21,11 @@ export class AmplifyStack extends Stack {
     allocateLogicalId(element: CfnElement): string;
 }
 
+// @public (undocumented)
+export type ClientConfig = BackendOutput;
+
 // @public
-export const generateClientConfig: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier) => Promise<void>;
+export const generateClientConfig: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier) => Promise<ClientConfig>;
 
 // @public
 export class NestedStackResolver implements StackResolver {
