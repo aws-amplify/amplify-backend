@@ -20,10 +20,10 @@ const subscribeMock = mock.method(watcher, 'subscribe', async () => {
 });
 let fileChangeEventActualFn: watcher.SubscribeCallback;
 
-// class under test
-let sandboxInstance: Sandbox;
-
 describe('Sandbox', () => {
+  // class under test
+  let sandboxInstance: Sandbox;
+
   /**
    * For each test we start the sandbox and hence file watcher and get hold of
    * file change event function which tests can simulate by calling as desired.

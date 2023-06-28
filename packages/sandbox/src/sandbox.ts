@@ -7,39 +7,40 @@ import util from 'node:util';
  * Main class for Sandbox. Runs a file watcher and deploys using cdk
  */
 export class Sandbox {
-  private readonly watcher: FileWatcher;
+  private readonly watchProcess: SandboxWatchProcess;
 
   /**
-   * Creates a file watcher for this instance
+   * Creates a watcher process for this instance
    */
   constructor() {
-    this.watcher = this.createWatcher();
-    process.once('SIGINT', this.watcher.stop);
-    process.once('SIGTERM', this.watcher.stop);
+    this.watchProcess = this.createWatchProcess();
+    process.once('SIGINT', this.watchProcess.stop);
+    process.once('SIGTERM', this.watchProcess.stop);
+    process.once('SIGKILL', this.watchProcess.stop);
   }
 
   /**
    * Starts the sandbox
    */
   public async start() {
-    await this.watcher.start();
+    await this.watchProcess.start();
   }
 
   /**
    * Stops watching for file changes
    */
   public async stop() {
-    await this.watcher.stop();
+    await this.watchProcess.stop();
   }
 
   /**
    * Creates a file watcher and subscribes file change events to invoke cdk deploy
    */
-  private createWatcher(): FileWatcher {
-    console.debug(`[Sandbox] Starting file watcher...`);
+  private createWatchProcess(): SandboxWatchProcess {
+    console.debug(`[Sandbox] Initializing...`);
 
     let watcherSubscription: Awaited<ReturnType<typeof subscribe>>;
-    const watcher = {
+    const watchProcess = {
       start: async () => {
         // Since 'cdk deploy' is a relatively slow operation for a 'watch' process,
         // introduce a concurrency latch that tracks the state.
@@ -107,7 +108,7 @@ export class Sandbox {
         await watcherSubscription.unsubscribe();
       },
     };
-    return watcher;
+    return watchProcess;
   }
 
   /**
@@ -119,7 +120,7 @@ export class Sandbox {
 
     console.debug(`[Sandbox] Executing cdk deploy`);
     const { stdout, stderr } = await execPromisified(
-      './node_modules/.bin/cdk',
+      'npx cdk',
       [
         'deploy',
         '--app',
@@ -144,7 +145,7 @@ export class Sandbox {
   }
 }
 
-type FileWatcher = {
+type SandboxWatchProcess = {
   start: () => Promise<void>;
   stop: () => Promise<void>;
 };
