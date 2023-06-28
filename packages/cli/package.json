@@ -22,8 +22,5 @@
   "bugs": {
     "url": "https://github.com/aws-amplify/cli/issues"
   },
-  "homepage": "https://github.com/aws-amplify/cli#readme",
-  "dependencies": {
-    "@aws-amplify/lib-synth": "0.0.1"
-  }
+  "homepage": "https://github.com/aws-amplify/cli#readme"
 }
