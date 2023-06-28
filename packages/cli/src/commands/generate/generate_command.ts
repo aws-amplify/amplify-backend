@@ -1,5 +1,5 @@
-import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
-import { GenerateConfigCommand } from './generate_config_command.js';
+import { Argv, CommandModule } from 'yargs';
+import { GenerateConfigCommand } from './config/generate_config_command.js';
 
 /**
  * An entry point for generate command.
@@ -33,7 +33,7 @@ export class GenerateCommand implements CommandModule {
 
   builder = (yargs: Argv): Argv => {
     return yargs
-      .command(this.generateConfigCommand)
+      .command(this.generateConfigCommand as unknown as CommandModule)
       .demandCommand()
       .strictCommands()
       .recommendCommands();

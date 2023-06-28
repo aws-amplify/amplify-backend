@@ -1,6 +1,7 @@
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { ClientConfigGeneratorFactory } from './client_config_generator_factory.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { ClientConfig } from './client_config_generator.js';
 
 // Because this function is acting as the DI container for this functionality, there is no way to test it without
 // exposing the ClientConfigGeneratorFactory in the method signature. For this reason, we're turning off coverage for this file
@@ -15,7 +16,7 @@ import { BackendIdentifier } from '@aws-amplify/plugin-types';
 export const generateClientConfig = async (
   credentialProvider: AwsCredentialIdentityProvider,
   backendIdentifier: BackendIdentifier
-) => {
+): Promise<ClientConfig> => {
   const clientConfigGeneratorFactory = new ClientConfigGeneratorFactory(
     credentialProvider
   );
@@ -25,5 +26,5 @@ export const generateClientConfig = async (
       : clientConfigGeneratorFactory.fromProjectEnvironmentIdentifier(
           backendIdentifier
         );
-  await clientConfigGenerator.generateClientConfig();
+  return await clientConfigGenerator.generateClientConfig();
 };
