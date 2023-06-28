@@ -16,7 +16,6 @@ export class Sandbox {
     this.watchProcess = this.createWatchProcess();
     process.once('SIGINT', this.watchProcess.stop);
     process.once('SIGTERM', this.watchProcess.stop);
-    process.once('SIGKILL', this.watchProcess.stop);
   }
 
   /**

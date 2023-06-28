@@ -4,9 +4,6 @@
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "type": "module",
-  "bin": {
-    "sandbox": "lib/index.js"
-  },
   "scripts": {
     "update:api": "api-extractor run --local"
   },
