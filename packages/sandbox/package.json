@@ -1,0 +1,17 @@
+{
+  "name": "@aws-amplify/sandbox",
+  "version": "0.1.0",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "update:api": "api-extractor run --local"
+  },
+  "dependencies": {
+    "@parcel/watcher": "^2.1.0",
+    "debounce-promise": "^3.1.2"
+  },
+  "devDependencies": {
+    "@types/debounce-promise": "^3.1.6"
+  }
+}
