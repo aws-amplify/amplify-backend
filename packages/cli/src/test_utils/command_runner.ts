@@ -22,8 +22,11 @@ export class TestCommandRunner {
    * Creates new command runner.
    */
   constructor(parser: Argv) {
-    // Make sure we don't exit process on error or --help
-    this.parser = parser.exitProcess(false);
+    this.parser = parser
+      // Override script name to avoid long test file names
+      .scriptName('amplify')
+      // Make sure we don't exit process on error or --help
+      .exitProcess(false);
   }
 
   /**
