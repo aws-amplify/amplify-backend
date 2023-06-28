@@ -23,6 +23,8 @@ export class TestCommandRunner {
    */
   constructor(parser: Argv) {
     this.parser = parser
+      // Pin locale
+      .locale('en')
       // Override script name to avoid long test file names
       .scriptName('amplify')
       // Make sure we don't exit process on error or --help
