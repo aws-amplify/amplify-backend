@@ -30,7 +30,10 @@ describe('Sandbox', () => {
    */
   beforeEach(async () => {
     invokeCDKExecMock.mock.resetCalls();
-    sandboxInstance = new Sandbox();
+    sandboxInstance = new Sandbox({
+      dir: 'testDir',
+      exclude: ['exclude1', 'exclude2'],
+    });
     await sandboxInstance.start();
     if (
       subscribeMock.mock.calls[0].arguments[1] &&
@@ -44,11 +47,32 @@ describe('Sandbox', () => {
     await sandboxInstance.stop();
   });
 
-  it('calls CDK once when a file change is present', async () => {
+  it('calls CDK once when a file change is present with right arguments', async () => {
     await fileChangeEventActualFn(null, [
       { type: 'update', path: 'foo/test1.ts' },
     ]);
+
+    // File watcher should be called with right arguments such as dir and excludes
+    assert.strictEqual(subscribeMock.mock.calls[0].arguments[0], 'testDir');
+    assert.deepStrictEqual(subscribeMock.mock.calls[0].arguments[2], {
+      ignore: ['cdk.out', 'exclude1', 'exclude2'],
+    });
+
+    // CDK should be called once
     assert.strictEqual(invokeCDKExecMock.mock.callCount(), 1);
+
+    // CDK should be called with the right params
+    assert.deepStrictEqual(invokeCDKExecMock.mock.calls[0].arguments, [
+      'npx',
+      [
+        'cdk',
+        'deploy',
+        '--app',
+        'npx tsx index.ts',
+        '--hotswap-fallback',
+        '--method=direct',
+      ],
+    ]);
   });
 
   it('calls CDK once when multiple file changes are present', async () => {
