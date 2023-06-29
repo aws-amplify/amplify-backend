@@ -5,6 +5,7 @@ import { Construct } from 'constructs';
 import { Backend } from './backend.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
+import assert from 'node:assert';
 
 describe('Backend', () => {
   it('initializes constructs in given app', () => {
@@ -76,6 +77,48 @@ describe('Backend', () => {
           },
         },
       },
+    });
+  });
+
+  it('exposes created constructs under resources', () => {
+    const testConstructFactory: ConstructFactory<Bucket> = {
+      getInstance(resolver, storageStrategy): Bucket {
+        return resolver.getOrCompute({
+          resourceGroupName: 'test',
+          generateContainerEntry(scope: Construct): Bucket {
+            const bucket = new Bucket(scope, 'test-bucket', {
+              bucketName: 'test-bucket-name',
+            });
+            storageStrategy.addBackendOutputEntry('TestStorageOutput', {
+              version: '1',
+              payload: {
+                bucketName: bucket.bucketName,
+              },
+            });
+            return bucket;
+          },
+        }) as Bucket;
+      },
+    };
+
+    const app = new App();
+    const rootStack = new Stack(app);
+    const backend = new Backend(
+      {
+        testConstructFactory,
+      },
+      rootStack
+    );
+    assert.equal(backend.resources.testConstructFactory.node.id, 'test-bucket');
+  });
+
+  describe('getOrCreateStack', () => {
+    it('returns nested stack', () => {
+      const app = new App();
+      const rootStack = new Stack(app);
+      const backend = new Backend({}, rootStack);
+      const testStack = backend.getOrCreateStack('testStack');
+      assert.strictEqual(rootStack.node.findChild('testStack'), testStack);
     });
   });
 });
