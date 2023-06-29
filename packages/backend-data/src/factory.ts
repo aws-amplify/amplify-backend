@@ -86,7 +86,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     );
 
     const dataOutput: DataOutput = {
-      version: 1,
+      version: '1',
       payload: {
         appSyncApiEndpoint:
           dataConstruct.resources.cfnGraphqlApi.attrGraphQlUrl,

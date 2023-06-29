@@ -12,6 +12,6 @@ export class ClientConfigWriter {
     clientConfig: ClientConfig,
     targetPath: string
   ): Promise<void> {
-    await fs.writeFile(targetPath, JSON.stringify(clientConfig));
+    await fs.writeFile(targetPath, JSON.stringify(clientConfig, null, 2));
   }
 }

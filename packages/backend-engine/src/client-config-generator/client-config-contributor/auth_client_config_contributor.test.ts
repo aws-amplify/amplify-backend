@@ -7,7 +7,7 @@ describe('AuthClientConfigContributor', () => {
     const contributor = new AuthClientConfigContributor();
     assert.deepStrictEqual(
       contributor.contribute({
-        dataOutput: { version: 1, payload: { appSyncApiEndpoint: 'stuff' } },
+        dataOutput: { version: '1', payload: { appSyncApiEndpoint: 'stuff' } },
       }),
       {}
     );
@@ -18,7 +18,7 @@ describe('AuthClientConfigContributor', () => {
     assert.deepStrictEqual(
       contributor.contribute({
         authOutput: {
-          version: 1,
+          version: '1',
           payload: {
             userPoolId: 'testUserPoolId',
           },

@@ -12,13 +12,13 @@ describe('UnifiedClientConfigGenerator', () => {
     it('transforms backend output into client config', async () => {
       const stubOutput: UnifiedBackendOutput = {
         authOutput: {
-          version: 1,
+          version: '1',
           payload: {
             userPoolId: 'testUserPoolId',
           },
         },
         dataOutput: {
-          version: 1,
+          version: '1',
           payload: {
             appSyncApiEndpoint: 'testAppSyncEndpoint',
           },
