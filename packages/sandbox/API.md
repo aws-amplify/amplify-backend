@@ -6,7 +6,8 @@
 
 // @public
 export class Sandbox {
-    constructor();
+    // Warning: (ae-forgotten-export) The symbol "SandboxOptions" needs to be exported by the entry point index.d.ts
+    constructor(options: SandboxOptions);
     start(): Promise<void>;
     stop(): Promise<void>;
 }
