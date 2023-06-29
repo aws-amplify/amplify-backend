@@ -21,7 +21,7 @@ export type UnifiedBackendOutput = z.infer<typeof unifiedBackendOutputSchema>;
 // @public
 export const unifiedBackendOutputSchema: z.ZodObject<{
     authOutput: z.ZodOptional<z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
-        version: z.ZodLiteral<1>;
+        version: z.ZodLiteral<"1">;
         payload: z.ZodObject<{
             userPoolId: z.ZodString;
         }, "strip", z.ZodTypeAny, {
@@ -30,18 +30,18 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             userPoolId: string;
         }>;
     }, "strip", z.ZodTypeAny, {
-        version: '1';
+        version: "1";
         payload: {
             userPoolId: string;
         };
     }, {
-        version: '1';
+        version: "1";
         payload: {
             userPoolId: string;
         };
     }>]>>;
     dataOutput: z.ZodOptional<z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
-        version: z.ZodLiteral<1>;
+        version: z.ZodLiteral<"1">;
         payload: z.ZodObject<{
             appSyncApiEndpoint: z.ZodString;
             appSyncApiKey: z.ZodOptional<z.ZodString>;
@@ -53,20 +53,20 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             appSyncApiKey?: string | undefined;
         }>;
     }, "strip", z.ZodTypeAny, {
-        version: '1';
+        version: "1";
         payload: {
             appSyncApiEndpoint: string;
             appSyncApiKey?: string | undefined;
         };
     }, {
-        version: '1';
+        version: "1";
         payload: {
             appSyncApiEndpoint: string;
             appSyncApiKey?: string | undefined;
         };
     }>]>>;
     storageOutput: z.ZodOptional<z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
-        version: z.ZodLiteral<1>;
+        version: z.ZodLiteral<"1">;
         payload: z.ZodObject<{
             bucketName: z.ZodString;
         }, "strip", z.ZodTypeAny, {
@@ -75,52 +75,52 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             bucketName: string;
         }>;
     }, "strip", z.ZodTypeAny, {
-        version: '1';
+        version: "1";
         payload: {
             bucketName: string;
         };
     }, {
-        version: '1';
+        version: "1";
         payload: {
             bucketName: string;
         };
     }>]>>;
 }, "strip", z.ZodTypeAny, {
     authOutput?: {
-        version: '1';
+        version: "1";
         payload: {
             userPoolId: string;
         };
     } | undefined;
     dataOutput?: {
-        version: '1';
+        version: "1";
         payload: {
             appSyncApiEndpoint: string;
             appSyncApiKey?: string | undefined;
         };
     } | undefined;
     storageOutput?: {
-        version: '1';
+        version: "1";
         payload: {
             bucketName: string;
         };
     } | undefined;
 }, {
     authOutput?: {
-        version: '1';
+        version: "1";
         payload: {
             userPoolId: string;
         };
     } | undefined;
     dataOutput?: {
-        version: '1';
+        version: "1";
         payload: {
             appSyncApiEndpoint: string;
             appSyncApiKey?: string | undefined;
         };
     } | undefined;
     storageOutput?: {
-        version: '1';
+        version: "1";
         payload: {
             bucketName: string;
         };
