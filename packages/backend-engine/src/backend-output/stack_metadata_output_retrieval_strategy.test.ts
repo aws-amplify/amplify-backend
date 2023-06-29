@@ -174,7 +174,7 @@ describe('StackMetadataBackendOutputRetrievalStrategy', () => {
                     stackOutputs: ['testName1', 'testName2'],
                   },
                   OtherOutput: {
-                    version: 2,
+                    version: '2',
                     stackOutputs: ['thing1', 'thing2'],
                   },
                 },
@@ -230,7 +230,7 @@ describe('StackMetadataBackendOutputRetrievalStrategy', () => {
           },
         },
         OtherOutput: {
-          version: 2,
+          version: '2',
           payload: {
             thing1: 'The cat',
             thing2: 'in the hat',
