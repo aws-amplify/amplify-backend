@@ -1,5 +1,5 @@
 import { Construct } from 'constructs';
-import { aws_cognito as cognito, SecretValue } from 'aws-cdk-lib';
+import { aws_cognito as cognito, SecretValue, Stack } from 'aws-cdk-lib';
 import {
   AuthResources,
   BackendOutputStorageStrategy,
@@ -89,7 +89,10 @@ export class AmplifyAuth
   ): void {
     outputStorageStrategy.addBackendOutputEntry(authOutputKey, {
       version: '1',
-      payload: { userPoolId: this.userPool.userPoolId },
+      payload: {
+        userPoolId: this.userPool.userPoolId,
+        authRegion: Stack.of(this).region,
+      },
     });
   }
 

@@ -3,11 +3,11 @@
     "AWS::Amplify::Output": {
       "authOutput": {
         "version": "1",
-        "stackOutputs": ["userPoolId"]
+        "stackOutputs": ["userPoolId", "authRegion"]
       },
       "storageOutput": {
         "version": "1",
-        "stackOutputs": ["bucketName"]
+        "stackOutputs": ["storageRegion", "bucketName"]
       }
     }
   },
@@ -82,6 +82,16 @@
           "auth179371D7",
           "Outputs.testProjecttestEnvironmentauthamplifyAuthUserPoolFF81EE45Ref"
         ]
+      }
+    },
+    "authRegion": {
+      "Value": {
+        "Ref": "AWS::Region"
+      }
+    },
+    "storageRegion": {
+      "Value": {
+        "Ref": "AWS::Region"
       }
     },
     "bucketName": {

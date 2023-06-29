@@ -26,15 +26,13 @@ describe('StorageClientConfigContributor', () => {
           version: '1',
           payload: {
             bucketName: 'testBucketName',
+            storageRegion: 'testRegion',
           },
         },
       }),
       {
-        Storage: {
-          AWSS3: {
-            bucket: 'testBucketName',
-          },
-        },
+        aws_user_files_s3_bucket: 'testBucketName',
+        aws_user_files_s3_bucket_region: 'testRegion',
       }
     );
   });

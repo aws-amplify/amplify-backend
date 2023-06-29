@@ -113,6 +113,7 @@ describe('Auth construct', () => {
       const expectedUserPoolId = (
         authConstruct.node.findChild('UserPool') as UserPool
       ).userPoolId;
+      const expectedRegion = Stack.of(authConstruct).region;
 
       authConstruct.storeOutput(stubBackendOutputStorageStrategy);
 
@@ -125,6 +126,7 @@ describe('Auth construct', () => {
           version: '1',
           payload: {
             userPoolId: expectedUserPoolId,
+            authRegion: expectedRegion,
           },
         },
       ]);

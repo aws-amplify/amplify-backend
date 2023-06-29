@@ -7,7 +7,10 @@ describe('DataClientConfigContributor', () => {
     const contributor = new DataClientConfigContributor();
     assert.deepStrictEqual(
       contributor.contribute({
-        authOutput: { version: '1', payload: { userPoolId: 'stuff' } },
+        authOutput: {
+          version: '1',
+          payload: { userPoolId: 'stuff', authRegion: 'testRegion ' },
+        },
       }),
       {}
     );
@@ -27,9 +30,7 @@ describe('DataClientConfigContributor', () => {
       }),
       {
         aws_appsync_apiKey: 'testApiKey',
-        API: {
-          graphql_endpoint: 'testApiEndpoint',
-        },
+        aws_appsync_graphqlEndpoint: 'testApiEndpoint',
       }
     );
   });

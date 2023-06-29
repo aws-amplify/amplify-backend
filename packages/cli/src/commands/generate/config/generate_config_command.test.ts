@@ -17,9 +17,7 @@ describe('generate config command', () => {
     fromNodeProviderChain()
   );
   const clientConfig: ClientConfig = {
-    Auth: {
-      userPoolId: 'something',
-    },
+    aws_user_pools_id: 'something',
   };
   const generateClientConfigMock = mock.method(
     clientConfigGeneratorAdapter,
