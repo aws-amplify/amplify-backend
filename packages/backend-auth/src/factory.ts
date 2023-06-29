@@ -9,6 +9,12 @@ import {
   ConstructFactory,
 } from '@aws-amplify/plugin-types';
 
+// to enforce a file convention structure, we check the import path of this module and fail if it does not match the expected convention
+if (!import.meta.url.endsWith('auth.ts')) {
+  if (!process.env.DISABLE_IMPORT_PATH_VERIFICATION) {
+    throw new Error(`Amplify Auth must be defined in an 'auth.ts' file`);
+  }
+}
 /**
  * Singleton factory for AmplifyAuth that can be used in Amplify project files
  */
