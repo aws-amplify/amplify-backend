@@ -22,20 +22,24 @@ export class AmplifyStack extends Stack {
 
 // @public
 export type AuthClientConfig = {
-    Auth: {
-        userPoolId: string;
-    };
+    aws_cognito_region: string;
+    aws_user_pools_id?: string;
+    aws_user_pools_web_client_id?: string;
+    aws_cognito_identity_pool_id?: string;
+    aws_mandatory_sign_in?: string;
 };
 
 // @public
-export type ClientConfig = Partial<AuthClientConfig> & Partial<DataClientConfig> & Partial<StorageClientConfig>;
+export type ClientConfig = Partial<AuthClientConfig & DataClientConfig & StorageClientConfig>;
 
 // @public
 export type DataClientConfig = {
+    aws_appsync_region?: string;
+    aws_appsync_graphqlEndpoint?: string;
+    aws_appsync_authenticationType?: string;
+    graphql_endpoint?: string;
     aws_appsync_apiKey?: string;
-    API: {
-        graphql_endpoint: string;
-    };
+    graphql_endpoint_iam_region?: string;
 };
 
 // @public
@@ -69,11 +73,8 @@ export type StackResolver = {
 
 // @public
 export type StorageClientConfig = {
-    Storage: {
-        AWSS3: {
-            bucket: string;
-        };
-    };
+    aws_user_files_s3_bucket_region: string;
+    aws_user_files_s3_bucket: string;
 };
 
 // (No @packageDocumentation comment for this package)
