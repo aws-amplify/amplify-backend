@@ -46,7 +46,7 @@ describe('StackMetadataBackendOutputRetrievalStrategy', () => {
               Metadata: JSON.stringify({
                 [amplifyStackMetadataKey]: {
                   TestOutput: {
-                    version: 1,
+                    version: '1',
                     stackOutputs: ['testName1', 'testName2'],
                   },
                 },
@@ -123,7 +123,7 @@ describe('StackMetadataBackendOutputRetrievalStrategy', () => {
               Metadata: JSON.stringify({
                 [amplifyStackMetadataKey]: {
                   TestOutput: {
-                    version: 1,
+                    version: '1',
                     stackOutputs: ['testName1', 'testName2'],
                   },
                 },
@@ -170,11 +170,11 @@ describe('StackMetadataBackendOutputRetrievalStrategy', () => {
               Metadata: JSON.stringify({
                 [amplifyStackMetadataKey]: {
                   TestOutput: {
-                    version: 1,
+                    version: '1',
                     stackOutputs: ['testName1', 'testName2'],
                   },
                   OtherOutput: {
-                    version: 2,
+                    version: '2',
                     stackOutputs: ['thing1', 'thing2'],
                   },
                 },
@@ -223,14 +223,14 @@ describe('StackMetadataBackendOutputRetrievalStrategy', () => {
       const output = await retrievalStrategy.fetchBackendOutput();
       assert.deepStrictEqual(output, {
         TestOutput: {
-          version: 1,
+          version: '1',
           payload: {
             testName1: 'testValue1',
             testName2: 'testValue2',
           },
         },
         OtherOutput: {
-          version: 2,
+          version: '2',
           payload: {
             thing1: 'The cat',
             thing2: 'in the hat',

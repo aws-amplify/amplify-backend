@@ -14,7 +14,7 @@ describe('StackMetadataBackendOutputStorageStrategy', () => {
         stack
       );
       outputStorage.addBackendOutputEntry('TestStorageOutput', {
-        version: 1,
+        version: '1',
         payload: {
           something: 'special',
         },
@@ -27,7 +27,7 @@ describe('StackMetadataBackendOutputStorageStrategy', () => {
         Metadata: {
           [amplifyStackMetadataKey]: {
             TestStorageOutput: {
-              version: 1,
+              version: '1',
               stackOutputs: ['something'],
             },
           },
@@ -42,7 +42,7 @@ describe('StackMetadataBackendOutputStorageStrategy', () => {
         stack
       );
       outputStorage.addBackendOutputEntry('TestStorageOutput', {
-        version: 44,
+        version: '44',
         payload: {
           something: 'special',
         },

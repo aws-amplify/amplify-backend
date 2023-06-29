@@ -45,7 +45,7 @@ describe('Backend', () => {
           generateContainerEntry(scope: Construct): Bucket {
             const bucket = new Bucket(scope, 'test-bucket');
             storageStrategy.addBackendOutputEntry('TestStorageOutput', {
-              version: 1,
+              version: '1',
               payload: {
                 bucketName: bucket.bucketName,
               },
@@ -71,7 +71,7 @@ describe('Backend', () => {
       Metadata: {
         'AWS::Amplify::Output': {
           TestStorageOutput: {
-            version: 1,
+            version: '1',
             stackOutputs: ['bucketName'],
           },
         },

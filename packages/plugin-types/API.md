@@ -25,7 +25,7 @@ export type BackendOutput = Record<string, BackendOutputEntry>;
 
 // @public (undocumented)
 export type BackendOutputEntry<T extends Record<string, string> = Record<string, string>> = {
-    readonly version: number;
+    readonly version: string;
     readonly payload: T;
 };
 

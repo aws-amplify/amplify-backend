@@ -8,7 +8,7 @@ describe('StorageClientConfigContributor', () => {
     assert.deepStrictEqual(
       contributor.contribute({
         dataOutput: {
-          version: 1,
+          version: '1',
           payload: {
             appSyncApiEndpoint: 'stuff',
           },
@@ -23,7 +23,7 @@ describe('StorageClientConfigContributor', () => {
     assert.deepStrictEqual(
       contributor.contribute({
         storageOutput: {
-          version: 1,
+          version: '1',
           payload: {
             bucketName: 'testBucketName',
           },

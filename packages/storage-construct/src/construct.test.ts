@@ -53,7 +53,7 @@ describe('AmplifyStorage', () => {
       assert.deepStrictEqual(storeOutputArgs, [
         storageOutputKey,
         {
-          version: 1,
+          version: '1',
           payload: {
             bucketName: expectedBucketName,
           },

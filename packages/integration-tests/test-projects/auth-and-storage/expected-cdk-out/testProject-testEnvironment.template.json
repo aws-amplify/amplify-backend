@@ -2,11 +2,11 @@
   "Metadata": {
     "AWS::Amplify::Output": {
       "authOutput": {
-        "version": 1,
+        "version": "1",
         "stackOutputs": ["userPoolId"]
       },
       "storageOutput": {
-        "version": 1,
+        "version": "1",
         "stackOutputs": ["bucketName"]
       }
     }

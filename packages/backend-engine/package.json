@@ -23,11 +23,13 @@
   "exports": {
     ".": {
       "types": "./lib/index.d.ts",
-      "import": "./lib/index.js"
+      "import": "./lib/index.js",
+      "require": "./lib/index.js"
     },
     "./client-config-generator": {
       "types": "./lib/client-config-generator/index.d.ts",
-      "import": "./lib/client-config-generator/index.js"
+      "import": "./lib/client-config-generator/index.js",
+      "require": "./lib/client-config-generator/index.js"
     }
   }
 }
