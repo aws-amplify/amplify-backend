@@ -88,7 +88,7 @@ export class AmplifyAuth
     outputStorageStrategy: BackendOutputStorageStrategy<AuthOutput>
   ): void {
     outputStorageStrategy.addBackendOutputEntry(authOutputKey, {
-      version: 1,
+      version: '1',
       payload: { userPoolId: this.userPool.userPoolId },
     });
   }

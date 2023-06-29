@@ -122,7 +122,7 @@ describe('Auth construct', () => {
       assert.deepStrictEqual(storeOutputArgs, [
         authOutputKey,
         {
-          version: 1,
+          version: '1',
           payload: {
             userPoolId: expectedUserPoolId,
           },

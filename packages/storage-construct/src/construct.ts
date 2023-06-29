@@ -38,7 +38,7 @@ export class AmplifyStorage extends Construct implements BackendOutputWriter {
     outputStorageStrategy: BackendOutputStorageStrategy<StorageOutput>
   ): void {
     outputStorageStrategy.addBackendOutputEntry(storageOutputKey, {
-      version: 1,
+      version: '1',
       payload: {
         bucketName: this.bucket.bucketName,
       },

@@ -14,19 +14,23 @@
   "exports": {
     ".": {
       "types": "./lib/index.d.ts",
-      "import": "./lib/index.js"
+      "import": "./lib/index.js",
+      "require": "./lib/index.js"
     },
     "./auth": {
       "types": "./lib/auth/index.d.ts",
-      "import": "./lib/auth/index.js"
+      "import": "./lib/auth/index.js",
+      "require": "./lib/auth/index.js"
     },
     "./data": {
       "types": "./lib/data/index.d.ts",
-      "import": "./lib/data/index.js"
+      "import": "./lib/data/index.js",
+      "require": "./lib/data/index.js"
     },
     "./storage": {
       "types": "./lib/storage/index.d.ts",
-      "import": "./lib/storage/index.js"
+      "import": "./lib/storage/index.js",
+      "require": "./lib/storage/index.js"
     }
   }
 }
