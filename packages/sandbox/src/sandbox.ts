@@ -122,7 +122,7 @@ export class Sandbox {
   }
 }
 
-type SandboxOptions = {
+export type SandboxOptions = {
   dir?: string;
   exclude?: string[];
 };
