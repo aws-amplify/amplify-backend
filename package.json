@@ -8,7 +8,7 @@
     "check:tsconfig-refs": "npm run update:tsconfig-refs && tsx scripts/check_no_git_diff.mts",
     "clean": "npm run clean:build && npm run clean:npm-proxy && rimraf --glob node_modules coverage .eslintcache packages/*/temp",
     "clean:build": "rimraf --glob packages/*/lib packages/*/tsconfig.tsbuildinfo",
-    "clean:npm-proxy": "rimraf verdaccio-cache",
+    "clean:npm-proxy": "rimraf verdaccio-cache verdaccio-logs.txt",
     "diff:check": "tsx scripts/check_pr_size.ts",
     "docs": "typedoc",
     "install:local": "npm install && npm run build && npm run install:local --workspaces --if-present",
