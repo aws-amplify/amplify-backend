@@ -19,7 +19,7 @@ npm run test
 
 `npm run test` will run all the unit tests in the project
 
-You should now be able to run the `vnext` CLI.
+You should now be able to run the new `amplify` CLI.
 
 #### Other helpful scripts
 
