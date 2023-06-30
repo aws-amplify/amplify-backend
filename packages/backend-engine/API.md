@@ -13,6 +13,7 @@ import { Construct } from 'constructs';
 import { ConstructContainer } from '@aws-amplify/plugin-types';
 import { ConstructContainerEntryGenerator } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
+import { ImportPathVerifier } from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
 
 // @public
@@ -76,6 +77,13 @@ export type StorageClientConfig = {
     aws_user_files_s3_bucket_region: string;
     aws_user_files_s3_bucket: string;
 };
+
+// @public
+export class ToggleableImportPathVerifier implements ImportPathVerifier {
+    constructor(doVerify?: boolean);
+    // (undocumented)
+    verify(importStack: string | undefined, expectedImportingFileBasename: string, errorMessage: string): void;
+}
 
 // (No @packageDocumentation comment for this package)
 

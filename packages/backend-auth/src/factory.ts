@@ -4,9 +4,9 @@ import {
   AuthResources,
   BackendOutputEntry,
   BackendOutputStorageStrategy,
-  ConstructContainer,
   ConstructContainerEntryGenerator,
   ConstructFactory,
+  ConstructFactoryGetInstanceProps,
 } from '@aws-amplify/plugin-types';
 
 /**
@@ -17,26 +17,36 @@ export class AmplifyAuthFactory
 {
   readonly provides = 'AuthResources';
   private generator: ConstructContainerEntryGenerator;
+  private readonly importStack: string | undefined;
 
   /**
    * Set the properties that will be used to initialize AmplifyAuth
    */
-  constructor(private readonly props: AmplifyAuthProps) {}
+  constructor(private readonly props: AmplifyAuthProps) {
+    // capture the import stack in the ctor because this is what customers call in the backend definition code
+    this.importStack = new Error().stack;
+  }
 
   /**
    * Get a singleton instance of AmplifyAuth
    */
-  getInstance(
-    container: ConstructContainer,
-    backendOutputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>
-  ): AmplifyAuth {
+  getInstance({
+    constructContainer,
+    outputStorageStrategy,
+    importPathVerifier,
+  }: ConstructFactoryGetInstanceProps): AmplifyAuth {
+    importPathVerifier?.verify(
+      this.importStack,
+      'auth',
+      'Amplify Auth must be defined in an "auth.ts" file'
+    );
     if (!this.generator) {
       this.generator = new AmplifyAuthGenerator(
         this.props,
-        backendOutputStorageStrategy
+        outputStorageStrategy
       );
     }
-    return container.getOrCompute(this.generator) as AmplifyAuth;
+    return constructContainer.getOrCompute(this.generator) as AmplifyAuth;
   }
 }
 

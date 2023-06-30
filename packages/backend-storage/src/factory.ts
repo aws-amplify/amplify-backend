@@ -2,9 +2,9 @@ import { Construct } from 'constructs';
 import {
   BackendOutputEntry,
   BackendOutputStorageStrategy,
-  ConstructContainer,
   ConstructContainerEntryGenerator,
   ConstructFactory,
+  ConstructFactoryGetInstanceProps,
 } from '@aws-amplify/plugin-types';
 import {
   AmplifyStorage,
@@ -16,26 +16,35 @@ import {
  */
 export class AmplifyStorageFactory implements ConstructFactory<AmplifyStorage> {
   private generator: ConstructContainerEntryGenerator;
+  private readonly importStack: string | undefined;
 
   /**
    * Set the properties that will be used to initialize the bucket
    */
-  constructor(private readonly props: AmplifyStorageProps) {}
+  constructor(private readonly props: AmplifyStorageProps) {
+    this.importStack = new Error().stack;
+  }
 
   /**
    * Get a singleton instance of the Bucket
    */
-  getInstance(
-    container: ConstructContainer,
-    outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>
-  ): AmplifyStorage {
+  getInstance({
+    constructContainer,
+    outputStorageStrategy,
+    importPathVerifier,
+  }: ConstructFactoryGetInstanceProps): AmplifyStorage {
+    importPathVerifier?.verify(
+      this.importStack,
+      'storage',
+      'Amplify Storage must be defined in a "storage.ts" file'
+    );
     if (!this.generator) {
       this.generator = new AmplifyStorageGenerator(
         this.props,
         outputStorageStrategy
       );
     }
-    return container.getOrCompute(this.generator) as AmplifyStorage;
+    return constructContainer.getOrCompute(this.generator) as AmplifyStorage;
   }
 }
 

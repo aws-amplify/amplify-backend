@@ -6,13 +6,13 @@ import * as path from 'path';
  * Constructs an IntegrationTestCase[] given a directory that conforms to the following convention:
  *
  * If dirPath is an absolute path, it points to the directory
- * If dirPath is relative, the directory is located at path.resolve(<this file location>, relativeDirPath)
+ * If dirPath is relative, the directory is located at path.resolve(\<this file location\>, relativeDirPath)
  * Each subdirectory is the name of the test
  * Within each test directory is an index.ts file that contains the `new Backend({...})` entry point
  * Within each test directory is an `expected-cdk-out` directory that contains a snapshot of the expected synthesis result of the backend
  * @example
  *
- * <relativeDirRoot>
+ * \<relativeDirRoot\>
  *     test-name-1
  *       index.ts
  *       expected-cdk-out

@@ -1,4 +1,4 @@
-import { beforeEach, describe, it } from 'node:test';
+import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { DataFactory } from './factory.js';
 import { App, Stack } from 'aws-cdk-lib';
@@ -6,6 +6,7 @@ import {
   NestedStackResolver,
   SingletonConstructContainer,
   StackMetadataBackendOutputStorageStrategy,
+  ToggleableImportPathVerifier,
 } from '@aws-amplify/backend-engine';
 import { Template } from 'aws-cdk-lib/assertions';
 import {
@@ -13,6 +14,7 @@ import {
   BackendOutputEntry,
   BackendOutputStorageStrategy,
   ConstructContainer,
+  ImportPathVerifier,
 } from '@aws-amplify/plugin-types';
 import { Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 
@@ -28,14 +30,20 @@ const testSchema = `
 
 describe('DataFactory', () => {
   let stack: Stack;
-  let container: ConstructContainer;
+  let constructContainer: ConstructContainer;
   let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
+  let importPathVerifier: ImportPathVerifier;
+  let dataFactory: DataFactory;
   beforeEach(() => {
+    dataFactory = new DataFactory({ schema: testSchema });
+
     const app = new App();
     stack = new Stack(app);
 
-    container = new SingletonConstructContainer(new NestedStackResolver(stack));
-    container.registerConstructFactory('AuthResources', {
+    constructContainer = new SingletonConstructContainer(
+      new NestedStackResolver(stack)
+    );
+    constructContainer.registerConstructFactory('AuthResources', {
       provides: 'AuthResources',
       getInstance: (): AuthResources => ({
         unauthenticatedUserIamRole: new Role(stack, 'testUnauthRole', {
@@ -49,37 +57,58 @@ describe('DataFactory', () => {
     outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
       stack
     );
+    importPathVerifier = new ToggleableImportPathVerifier(false);
   });
   it('returns singleton instance', () => {
-    const dataFactory = new DataFactory({ schema: testSchema });
-
-    const instance1 = dataFactory.getInstance(container, outputStorageStrategy);
-    const instance2 = dataFactory.getInstance(container, outputStorageStrategy);
+    const instance1 = dataFactory.getInstance({
+      constructContainer,
+      outputStorageStrategy,
+      importPathVerifier,
+    });
+    const instance2 = dataFactory.getInstance({
+      constructContainer,
+      outputStorageStrategy,
+      importPathVerifier,
+    });
 
     assert.strictEqual(instance1, instance2);
   });
 
   it('adds construct to stack', () => {
-    const dataFactory = new DataFactory({
-      schema: testSchema,
+    const dataConstruct = dataFactory.getInstance({
+      constructContainer,
+      outputStorageStrategy,
+      importPathVerifier,
     });
-
-    const dataConstruct = dataFactory.getInstance(
-      container,
-      outputStorageStrategy
-    );
     const template = Template.fromStack(Stack.of(dataConstruct));
     template.resourceCountIs('AWS::AppSync::GraphQLApi', 1);
   });
 
   it('sets output using storage strategy', () => {
-    const dataFactory = new DataFactory({
-      schema: testSchema,
+    dataFactory.getInstance({
+      constructContainer,
+      outputStorageStrategy,
+      importPathVerifier,
     });
-
-    dataFactory.getInstance(container, outputStorageStrategy);
 
     const template = Template.fromStack(stack);
     template.hasOutput('appSyncApiEndpoint', {});
+  });
+  it('verifies constructor import path', () => {
+    const importPathVerifier = {
+      verify: mock.fn(),
+    };
+
+    dataFactory.getInstance({
+      constructContainer,
+      outputStorageStrategy,
+      importPathVerifier,
+    });
+
+    assert.ok(
+      (importPathVerifier.verify.mock.calls[0].arguments[0] as string).includes(
+        'DataFactory'
+      )
+    );
   });
 });

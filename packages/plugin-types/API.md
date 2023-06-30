@@ -61,7 +61,19 @@ export type ConstructContainerEntryGenerator = {
 // @public
 export type ConstructFactory<T = unknown> = {
     readonly provides?: string;
-    getInstance(constructContainer: ConstructContainer, outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>): T;
+    getInstance(props: ConstructFactoryGetInstanceProps): T;
+};
+
+// @public (undocumented)
+export type ConstructFactoryGetInstanceProps = {
+    constructContainer: ConstructContainer;
+    outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
+    importPathVerifier?: ImportPathVerifier;
+};
+
+// @public
+export type ImportPathVerifier = {
+    verify(importStack: string | undefined, expectedImportingFile: string, errorMessage: string): void;
 };
 
 // @public

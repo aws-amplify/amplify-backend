@@ -1,60 +1,85 @@
-import { describe, it } from 'node:test';
+import { beforeEach, describe, it, mock } from 'node:test';
 import { AmplifyAuthFactory } from './factory.js';
 import {
   NestedStackResolver,
   SingletonConstructContainer,
   StackMetadataBackendOutputStorageStrategy,
+  ToggleableImportPathVerifier,
 } from '@aws-amplify/backend-engine';
 import { App, Stack } from 'aws-cdk-lib';
 import assert from 'node:assert';
 import { Template } from 'aws-cdk-lib/assertions';
+import {
+  BackendOutputEntry,
+  BackendOutputStorageStrategy,
+  ConstructContainer,
+  ImportPathVerifier,
+} from '@aws-amplify/plugin-types';
 
 describe('AmplifyAuthFactory', () => {
-  it('returns singleton instance', () => {
-    const authFactory = new AmplifyAuthFactory({
+  let authFactory: AmplifyAuthFactory;
+  let constructContainer: ConstructContainer;
+  let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
+  let importPathVerifier: ImportPathVerifier;
+  beforeEach(() => {
+    authFactory = new AmplifyAuthFactory({
       loginMechanisms: ['username'],
     });
 
     const app = new App();
     const stack = new Stack(app);
 
-    const container = new SingletonConstructContainer(
+    constructContainer = new SingletonConstructContainer(
       new NestedStackResolver(stack)
     );
 
-    const outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
+    outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
       stack
     );
 
-    const instance1 = authFactory.getInstance(container, outputStorageStrategy);
-    const instance2 = authFactory.getInstance(container, outputStorageStrategy);
+    importPathVerifier = new ToggleableImportPathVerifier(false);
+  });
+  it('returns singleton instance', () => {
+    const instance1 = authFactory.getInstance({
+      constructContainer: constructContainer,
+      outputStorageStrategy,
+      importPathVerifier,
+    });
+    const instance2 = authFactory.getInstance({
+      constructContainer,
+      outputStorageStrategy,
+      importPathVerifier,
+    });
 
     assert.strictEqual(instance1, instance2);
   });
 
   it('adds construct to stack', () => {
-    const authFactory = new AmplifyAuthFactory({
-      loginMechanisms: ['username'],
+    const authConstruct = authFactory.getInstance({
+      constructContainer,
+      outputStorageStrategy,
+      importPathVerifier,
     });
-
-    const app = new App();
-    const stack = new Stack(app);
-
-    const container = new SingletonConstructContainer(
-      new NestedStackResolver(stack)
-    );
-
-    const outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
-      stack
-    );
-
-    const authConstruct = authFactory.getInstance(
-      container,
-      outputStorageStrategy
-    );
 
     const template = Template.fromStack(Stack.of(authConstruct));
 
     template.resourceCountIs('AWS::Cognito::UserPool', 1);
+  });
+  it('verifies constructor import path', () => {
+    const importPathVerifier = {
+      verify: mock.fn(),
+    };
+
+    authFactory.getInstance({
+      constructContainer,
+      outputStorageStrategy,
+      importPathVerifier,
+    });
+
+    assert.ok(
+      (importPathVerifier.verify.mock.calls[0].arguments[0] as string).includes(
+        'AmplifyAuthFactory'
+      )
+    );
   });
 });
