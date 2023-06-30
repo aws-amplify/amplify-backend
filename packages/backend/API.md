@@ -9,8 +9,12 @@ import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
 
 // @public
-export class Backend {
-    constructor(constructFactories: Record<string, ConstructFactory<Construct>>, stack?: Stack);
+export class Backend<T extends Record<string, ConstructFactory<Construct>>> {
+    constructor(constructFactories: T, stack?: Stack);
+    getOrCreateStack(name: string): Stack;
+    readonly resources: {
+        [K in keyof T]: ReturnType<T[K]['getInstance']>;
+    };
 }
 
 // (No @packageDocumentation comment for this package)
