@@ -48,7 +48,7 @@ export class Backend<T extends Record<string, ConstructFactory<Construct>>> {
     Object.entries(constructFactories).forEach(
       ([resourceName, constructFactory]) => {
         // The type inference on this.resources is not happy about this assignment because it doesn't know the exact type of .getInstance()
-        // However, the assignment is okay because we are iterating over the entries of constructFactories and assigning the resoruce name to the corresponding instance
+        // However, the assignment is okay because we are iterating over the entries of constructFactories and assigning the resource name to the corresponding instance
         this.resources[resourceName as keyof T] = constructFactory.getInstance(
           constructContainer,
           outputStorageStrategy
