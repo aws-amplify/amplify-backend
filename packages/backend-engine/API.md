@@ -13,6 +13,7 @@ import { Construct } from 'constructs';
 import { ConstructContainer } from '@aws-amplify/plugin-types';
 import { ConstructContainerEntryGenerator } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
+import { ImportPathVerifier } from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
 
 // @public
@@ -37,6 +38,13 @@ export type DataClientConfig = {
         graphql_endpoint: string;
     };
 };
+
+// @public
+export class EnvironmentBasedImportPathVerifier implements ImportPathVerifier {
+    constructor(doVerify?: boolean);
+    // (undocumented)
+    verify(importStack: string | undefined, expectedImportingFileBasename: string, errorMessage: string): void;
+}
 
 // @public
 export const generateClientConfig: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier) => Promise<ClientConfig>;

@@ -25,6 +25,7 @@ describe('EnvironmentBasedImportPathVerifier', () => {
   it('does nothing if importStack has fewer than 2 stacktrace lines', () => {
     const tooShortStack = `Error
     at AmplifyAuthFactory (/Users/alias/sandboxes/install-test/node_modules/@aws-amplify/backend-auth/src/factory.ts:28:24)`;
+
     const verifier = new EnvironmentBasedImportPathVerifier(true);
     assert.doesNotThrow(() =>
       verifier.verify(tooShortStack, 'auth', 'test message')
@@ -36,6 +37,7 @@ describe('EnvironmentBasedImportPathVerifier', () => {
     at AmplifyAuthFactory some garbage
     at more garbage
     at Object.<anonymous> (/Users/alias/sandboxes/install-test/backend/auth.ts:5:2)`;
+
     const verifier = new EnvironmentBasedImportPathVerifier(true);
     assert.doesNotThrow(() =>
       verifier.verify(malformedStacktrace, 'auth', 'test message')
@@ -55,6 +57,7 @@ describe('EnvironmentBasedImportPathVerifier', () => {
     at AmplifyAuthFactory (/Users/alias/sandboxes/install-test/node_modules/@aws-amplify/backend-auth/src/factory.ts:28:24)
     at <anonymous> (/Users/alias/sandboxes/install-test/backend/auth.ts:3:21)
     at Object.<anonymous> (/Users/alias/sandboxes/install-test/backend/auth.ts:5:2)`;
+
     const verifier = new EnvironmentBasedImportPathVerifier(true);
     assert.doesNotThrow(() =>
       verifier.verify(correctStackTrace, 'auth', 'test message')
