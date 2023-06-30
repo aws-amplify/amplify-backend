@@ -2,17 +2,13 @@ import { ImportPathVerifier } from '@aws-amplify/plugin-types';
 import path from 'path';
 
 /**
- * Inspects Error stacktrace to determine if the Error originated from the expected location
+ * ImportPathVerifier that can be turned into a noop by passing `false` to the constructor
  */
 export class EnvironmentBasedImportPathVerifier implements ImportPathVerifier {
   /**
-   * Defaults to verifying, but can be turned off by passing in false
-   * Also turned off by setting DISABLE_IMPORT_PATH_VERIFICATION environment variable to true
+   * Defaults to verifying, but can be turned into a noop by passing in false.
    */
-  constructor(
-    private readonly doVerify = process.env.DISABLE_IMPORT_PATH_VERIFICATION !==
-      'true'
-  ) {}
+  constructor(private readonly doVerify = true) {}
 
   /**
    * @inheritDoc

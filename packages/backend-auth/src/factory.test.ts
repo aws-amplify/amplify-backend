@@ -35,7 +35,7 @@ describe('AmplifyAuthFactory', () => {
       stack
     );
 
-    importPathVerifier = new EnvironmentBasedImportPathVerifier();
+    importPathVerifier = new DisableableImportPathVerifier(false);
   });
   it('returns singleton instance', () => {
     const instance1 = authFactory.getInstance(

@@ -35,7 +35,7 @@ describe('AmplifyStorageFactory', () => {
       stack
     );
 
-    importPathVerifier = new EnvironmentBasedImportPathVerifier();
+    importPathVerifier = new DisableableImportPathVerifier(false);
   });
   it('returns singleton instance', () => {
     const instance1 = storageFactory.getInstance(
@@ -73,7 +73,7 @@ describe('AmplifyStorageFactory', () => {
         flush: mock.fn(),
       };
 
-    const importPathVerifier = new EnvironmentBasedImportPathVerifier();
+    const importPathVerifier = new DisableableImportPathVerifier(false);
 
     storageFactory.getInstance(
       constructContainer,

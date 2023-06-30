@@ -19,7 +19,7 @@
     "publish:snapshot:local": "npm_config_registry=http://localhost:4873/ tsx scripts/publish_snapshot.ts",
     "start:npm-proxy": "tsx scripts/start_npm_proxy.ts",
     "stop:npm-proxy": "tsx scripts/stop_npm_proxy.ts",
-    "test": "DISABLE_IMPORT_PATH_VERIFICATION=true tsx --test --test-reporter spec",
+    "test": "tsx --test --test-reporter spec",
     "test:coverage:generate": "NODE_V8_COVERAGE=coverage/ npm run test",
     "test:coverage:threshold": "c8 npm run test",
     "update:api": "npm run update:api --workspaces",

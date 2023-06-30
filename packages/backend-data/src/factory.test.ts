@@ -55,7 +55,7 @@ describe('DataFactory', () => {
     outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
       stack
     );
-    importPathVerifier = new EnvironmentBasedImportPathVerifier();
+    importPathVerifier = new DisableableImportPathVerifier(false);
   });
   it('returns singleton instance', () => {
     const instance1 = dataFactory.getInstance(
