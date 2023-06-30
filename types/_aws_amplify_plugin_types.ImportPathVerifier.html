@@ -1,4 +1,4 @@
-<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>BackendOutputWriter | Amplify Toolbox</title><meta name="description" content="Documentation for Amplify Toolbox"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/search.js" id="tsd-search-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os"</script><header class="tsd-page-toolbar">
+<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>ImportPathVerifier | Amplify Toolbox</title><meta name="description" content="Documentation for Amplify Toolbox"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/search.js" id="tsd-search-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os"</script><header class="tsd-page-toolbar">
 <div class="tsd-toolbar-contents container">
 <div class="table-cell" id="tsd-search" data-base="..">
 <div class="field"><label for="tsd-search-field" class="tsd-widget tsd-toolbar-icon search no-caption"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M15.7824 13.833L12.6666 10.7177C12.5259 10.5771 12.3353 10.499 12.1353 10.499H11.6259C12.4884 9.39596 13.001 8.00859 13.001 6.49937C13.001 2.90909 10.0914 0 6.50048 0C2.90959 0 0 2.90909 0 6.49937C0 10.0896 2.90959 12.9987 6.50048 12.9987C8.00996 12.9987 9.39756 12.4863 10.5008 11.6239V12.1332C10.5008 12.3332 10.5789 12.5238 10.7195 12.6644L13.8354 15.7797C14.1292 16.0734 14.6042 16.0734 14.8948 15.7797L15.7793 14.8954C16.0731 14.6017 16.0731 14.1267 15.7824 13.833ZM6.50048 10.499C4.29094 10.499 2.50018 8.71165 2.50018 6.49937C2.50018 4.29021 4.28781 2.49976 6.50048 2.49976C8.71001 2.49976 10.5008 4.28708 10.5008 6.49937C10.5008 8.70852 8.71314 10.499 6.50048 10.499Z" fill="var(--color-text)"></path></svg></label><input type="text" id="tsd-search-field" aria-label="Search"/></div>
@@ -14,30 +14,39 @@
 <ul class="tsd-breadcrumb">
 <li><a href="../index.html">Amplify Toolbox</a></li>
 <li><a href="../modules/_aws_amplify_plugin_types.html">@aws-amplify/plugin-types</a></li>
-<li><a href="_aws_amplify_plugin_types.BackendOutputWriter.html">BackendOutputWriter</a></li></ul>
-<h1>Type alias BackendOutputWriter</h1></div>
-<div class="tsd-signature"><span class="tsd-kind-type-alias">Backend<wbr/>Output<wbr/>Writer</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-call-signature">storeOutput</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">outputStorageStrategy</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></div>
-<div class="tsd-comment tsd-typography"><p>Functional interface for constructs that provide Amplify output</p>
+<li><a href="_aws_amplify_plugin_types.ImportPathVerifier.html">ImportPathVerifier</a></li></ul>
+<h1>Type alias ImportPathVerifier</h1></div>
+<div class="tsd-signature"><span class="tsd-kind-type-alias">Import<wbr/>Path<wbr/>Verifier</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-call-signature">verify</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">importStack</span>, <span class="tsd-kind-parameter">expectedImportingFile</span>, <span class="tsd-kind-parameter">errorMessage</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></div>
+<div class="tsd-comment tsd-typography"><p>Implementors can verify that an error originated from an expected location</p>
 </div>
 <div class="tsd-type-declaration">
 <h4>Type declaration</h4>
 <ul class="tsd-parameters">
 <li class="tsd-parameter">
-<h5><span class="tsd-kind-method">store<wbr/>Output</span><span class="tsd-signature-symbol">:</span>function</h5>
+<h5><span class="tsd-kind-method">verify</span><span class="tsd-signature-symbol">:</span>function</h5>
 <ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="__type.storeOutput.storeOutput-1"><span class="tsd-kind-call-signature">store<wbr/>Output</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">outputStorageStrategy</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#__type.storeOutput.storeOutput-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><g stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" id="icon-anchor"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5"></path></g></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="__type.verify.verify-1"><span class="tsd-kind-call-signature">verify</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">importStack</span>, <span class="tsd-kind-parameter">expectedImportingFile</span>, <span class="tsd-kind-parameter">errorMessage</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#__type.verify.verify-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><g stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" id="icon-anchor"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5"></path></g></svg></a></li>
 <li class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Verify that the given stack originated from an expected file path</p>
+<p>importStack is expected to be in the format returned by (new Error()).stack</p>
+<p>If the error was not imported by the expected file, an error with errorMessage is thrown</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5><span class="tsd-kind-parameter">outputStorageStrategy</span>: <a href="_aws_amplify_plugin_types.BackendOutputStorageStrategy.html" class="tsd-signature-type tsd-kind-type-alias">BackendOutputStorageStrategy</a><span class="tsd-signature-symbol">&lt;</span><a href="_aws_amplify_plugin_types.BackendOutputEntry.html" class="tsd-signature-type tsd-kind-type-alias">BackendOutputEntry</a><span class="tsd-signature-symbol">&gt;</span></h5></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
-<ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/276edf1/packages/plugin-types/src/amplify_output_writer.ts#L8">amplify_output_writer.ts:8</a></li></ul></aside></li></ul></li></ul></div>
+<h5><span class="tsd-kind-parameter">importStack</span>: <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></h5></li>
+<li>
+<h5><span class="tsd-kind-parameter">expectedImportingFile</span>: <span class="tsd-signature-type">string</span></h5></li>
+<li>
+<h5><span class="tsd-kind-parameter">errorMessage</span>: <span class="tsd-signature-type">string</span></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/276edf1/packages/plugin-types/src/amplify_output_writer.ts#L7">amplify_output_writer.ts:7</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/276edf1/packages/plugin-types/src/import_path_verifier.ts#L12">import_path_verifier.ts:12</a></li></ul></aside></li></ul></li></ul></div>
+<div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/276edf1/packages/plugin-types/src/import_path_verifier.ts#L4">import_path_verifier.ts:4</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -75,12 +84,12 @@
 <li><a href="_aws_amplify_plugin_types.BackendOutputEntry.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Backend<wbr/>Output<wbr/>Entry</span></a></li>
 <li><a href="_aws_amplify_plugin_types.BackendOutputRetrievalStrategy.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Backend<wbr/>Output<wbr/>Retrieval<wbr/>Strategy</span></a></li>
 <li><a href="_aws_amplify_plugin_types.BackendOutputStorageStrategy.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Backend<wbr/>Output<wbr/>Storage<wbr/>Strategy</span></a></li>
-<li><a href="_aws_amplify_plugin_types.BackendOutputWriter.html" class="current"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Backend<wbr/>Output<wbr/>Writer</span></a></li>
+<li><a href="_aws_amplify_plugin_types.BackendOutputWriter.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Backend<wbr/>Output<wbr/>Writer</span></a></li>
 <li><a href="_aws_amplify_plugin_types.ConstructContainer.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Construct<wbr/>Container</span></a></li>
 <li><a href="_aws_amplify_plugin_types.ConstructContainerEntryGenerator.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Construct<wbr/>Container<wbr/>Entry<wbr/>Generator</span></a></li>
 <li><a href="_aws_amplify_plugin_types.ConstructFactory.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Construct<wbr/>Factory</span></a></li>
 <li><a href="_aws_amplify_plugin_types.ConstructFactoryGetInstanceProps.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Construct<wbr/>Factory<wbr/>Get<wbr/>Instance<wbr/>Props</span></a></li>
-<li><a href="_aws_amplify_plugin_types.ImportPathVerifier.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Import<wbr/>Path<wbr/>Verifier</span></a></li>
+<li><a href="_aws_amplify_plugin_types.ImportPathVerifier.html" class="current"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Import<wbr/>Path<wbr/>Verifier</span></a></li>
 <li><a href="_aws_amplify_plugin_types.MainStackCreator.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Main<wbr/>Stack<wbr/>Creator</span></a></li>
 <li><a href="_aws_amplify_plugin_types.MainStackNameResolver.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Main<wbr/>Stack<wbr/>Name<wbr/>Resolver</span></a></li>
 <li><a href="_aws_amplify_plugin_types.ProjectEnvironmentIdentifier.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Project<wbr/>Environment<wbr/>Identifier</span></a></li>
