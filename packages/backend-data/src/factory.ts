@@ -19,7 +19,7 @@ export type DataProps = Pick<AmplifyGraphqlApiProps, 'schema'>;
 /**
  * Singleton factory for AmplifyGraphqlApi constructs that can be used in Amplify project files
  */
-export class DataFactory implements ConstructFactory<Construct> {
+export class DataFactory implements ConstructFactory<AmplifyGraphqlApi> {
   private generator: ConstructContainerEntryGenerator;
   private readonly importStack: string | undefined;
 
@@ -37,7 +37,7 @@ export class DataFactory implements ConstructFactory<Construct> {
     constructContainer,
     outputStorageStrategy,
     importPathVerifier,
-  }: ConstructFactoryGetInstanceProps): Construct {
+  }: ConstructFactoryGetInstanceProps): AmplifyGraphqlApi {
     importPathVerifier?.verify(
       this.importStack,
       'data',
@@ -56,7 +56,7 @@ export class DataFactory implements ConstructFactory<Construct> {
         outputStorageStrategy
       );
     }
-    return constructContainer.getOrCompute(this.generator);
+    return constructContainer.getOrCompute(this.generator) as AmplifyGraphqlApi;
   }
 }
 
