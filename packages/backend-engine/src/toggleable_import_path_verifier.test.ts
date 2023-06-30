@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { ToggleableImportPathVerifier } from './disableable_import_path_verifier.js';
+import { ToggleableImportPathVerifier } from './toggleable_import_path_verifier.js';
 
 describe('ToggleableImportPathVerifier', () => {
   const incorrectStackTrace = `Error
