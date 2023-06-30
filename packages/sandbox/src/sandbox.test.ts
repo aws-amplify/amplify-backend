@@ -68,9 +68,13 @@ describe('Sandbox', () => {
         'cdk',
         'deploy',
         '--app',
-        'npx tsx index.ts',
+        "'npx tsx index.ts'",
         '--hotswap-fallback',
         '--method=direct',
+        '--context',
+        'project-name=testProject',
+        '--context',
+        'environment-name=testEnvironment',
       ],
     ]);
   });
