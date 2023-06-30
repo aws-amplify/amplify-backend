@@ -44,13 +44,6 @@ export type DataClientConfig = {
 };
 
 // @public
-export class EnvironmentBasedImportPathVerifier implements ImportPathVerifier {
-    constructor(doVerify?: boolean);
-    // (undocumented)
-    verify(importStack: string | undefined, expectedImportingFileBasename: string, errorMessage: string): void;
-}
-
-// @public
 export const generateClientConfig: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier) => Promise<ClientConfig>;
 
 // @public
@@ -84,6 +77,13 @@ export type StorageClientConfig = {
     aws_user_files_s3_bucket_region: string;
     aws_user_files_s3_bucket: string;
 };
+
+// @public
+export class ToggleableImportPathVerifier implements ImportPathVerifier {
+    constructor(doVerify?: boolean);
+    // (undocumented)
+    verify(importStack: string | undefined, expectedImportingFileBasename: string, errorMessage: string): void;
+}
 
 // (No @packageDocumentation comment for this package)
 
