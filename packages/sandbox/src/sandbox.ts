@@ -103,9 +103,13 @@ export class Sandbox {
       'cdk',
       'deploy',
       '--app',
-      'npx tsx index.ts',
+      "'npx tsx index.ts'",
       '--hotswap-fallback',
       '--method=direct',
+      '--context', // TODO: https://github.com/aws-amplify/samsara-cli/issues/73
+      'project-name=testProject',
+      '--context',
+      'environment-name=testEnvironment',
     ]);
 
     if (stderr) {
