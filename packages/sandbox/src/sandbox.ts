@@ -11,7 +11,7 @@ export class Sandbox {
   /**
    * Creates a watcher process for this instance
    */
-  constructor() {
+  constructor(private readonly options: SandboxOptions) {
     process.once('SIGINT', this.stop);
     process.once('SIGTERM', this.stop);
   }
@@ -56,7 +56,7 @@ export class Sandbox {
     });
 
     this.watcherSubscription = await parcelWatcher.subscribe(
-      process.cwd(),
+      this.options.dir ?? process.cwd(),
       async (_, events) => {
         // it doesn't matter which file changed, we are just using events to log the filenames. We deploy full state.
         await Promise.all(
@@ -77,7 +77,7 @@ export class Sandbox {
           );
         }
       },
-      { ignore: ['cdk.out'] }
+      { ignore: ['cdk.out'].concat(...(this.options.exclude ?? [])) }
     );
 
     this.emitWatching();
@@ -99,18 +99,18 @@ export class Sandbox {
     const execPromisified = util.promisify(child_process.execFile);
 
     console.debug(`[Sandbox] Executing cdk deploy`);
-    const { stdout, stderr } = await execPromisified(
-      'npx',
-      [
-        'cdk',
-        'deploy',
-        '--app',
-        "'npx tsx index.ts'",
-        '--hotswap-fallback',
-        '--method=direct',
-      ],
-      { shell: true }
-    );
+    const { stdout, stderr } = await execPromisified('npx', [
+      'cdk',
+      'deploy',
+      '--app',
+      "'npx tsx index.ts'",
+      '--hotswap-fallback',
+      '--method=direct',
+      '--context', // TODO: https://github.com/aws-amplify/samsara-cli/issues/73
+      'project-name=testProject',
+      '--context',
+      'environment-name=testEnvironment',
+    ]);
 
     if (stderr) {
       console.error(stderr);
@@ -125,3 +125,8 @@ export class Sandbox {
     console.log(`[Sandbox] Watching for file changes...`);
   }
 }
+
+export type SandboxOptions = {
+  dir?: string;
+  exclude?: string[];
+};

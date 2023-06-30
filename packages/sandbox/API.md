@@ -6,10 +6,16 @@
 
 // @public
 export class Sandbox {
-    constructor();
+    constructor(options: SandboxOptions);
     start(): Promise<void>;
     stop(): Promise<void>;
 }
+
+// @public (undocumented)
+export type SandboxOptions = {
+    dir?: string;
+    exclude?: string[];
+};
 
 // (No @packageDocumentation comment for this package)
 

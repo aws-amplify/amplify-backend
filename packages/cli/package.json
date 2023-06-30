@@ -28,7 +28,8 @@
     "yargs": "^17.7.2"
   },
   "peerDependencies": {
-    "@aws-amplify/backend-engine": "0.1.0",
+    "@aws-amplify/backend-engine": "^0.1.0",
+    "@aws-amplify/sandbox": "^0.1.0",
     "@aws-sdk/types": "^3.347.0"
   },
   "devDependencies": {
