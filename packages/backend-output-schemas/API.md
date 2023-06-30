@@ -24,20 +24,25 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
         version: z.ZodLiteral<"1">;
         payload: z.ZodObject<{
             userPoolId: z.ZodString;
+            authRegion: z.ZodString;
         }, "strip", z.ZodTypeAny, {
             userPoolId: string;
+            authRegion: string;
         }, {
             userPoolId: string;
+            authRegion: string;
         }>;
     }, "strip", z.ZodTypeAny, {
         version: "1";
         payload: {
             userPoolId: string;
+            authRegion: string;
         };
     }, {
         version: "1";
         payload: {
             userPoolId: string;
+            authRegion: string;
         };
     }>]>>;
     dataOutput: z.ZodOptional<z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
@@ -69,20 +74,25 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
         version: z.ZodLiteral<"1">;
         payload: z.ZodObject<{
             bucketName: z.ZodString;
+            storageRegion: z.ZodString;
         }, "strip", z.ZodTypeAny, {
             bucketName: string;
+            storageRegion: string;
         }, {
             bucketName: string;
+            storageRegion: string;
         }>;
     }, "strip", z.ZodTypeAny, {
         version: "1";
         payload: {
             bucketName: string;
+            storageRegion: string;
         };
     }, {
         version: "1";
         payload: {
             bucketName: string;
+            storageRegion: string;
         };
     }>]>>;
 }, "strip", z.ZodTypeAny, {
@@ -90,6 +100,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
         version: "1";
         payload: {
             userPoolId: string;
+            authRegion: string;
         };
     } | undefined;
     dataOutput?: {
@@ -103,6 +114,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
         version: "1";
         payload: {
             bucketName: string;
+            storageRegion: string;
         };
     } | undefined;
 }, {
@@ -110,6 +122,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
         version: "1";
         payload: {
             userPoolId: string;
+            authRegion: string;
         };
     } | undefined;
     dataOutput?: {
@@ -123,6 +136,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
         version: "1";
         payload: {
             bucketName: string;
+            storageRegion: string;
         };
     } | undefined;
 }>;

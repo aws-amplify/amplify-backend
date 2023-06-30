@@ -46,6 +46,7 @@ describe('AmplifyStorage', () => {
       const expectedBucketName = (
         storageConstruct.node.findChild('testBucket') as Bucket
       ).bucketName;
+      const expectedRegion = Stack.of(storageConstruct).region;
 
       const storeOutputArgs = storeOutputMock.mock.calls[0].arguments;
       assert.strictEqual(storeOutputArgs.length, 2);
@@ -56,6 +57,7 @@ describe('AmplifyStorage', () => {
           version: '1',
           payload: {
             bucketName: expectedBucketName,
+            storageRegion: expectedRegion,
           },
         },
       ]);

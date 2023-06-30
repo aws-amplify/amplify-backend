@@ -6,6 +6,7 @@ import {
 } from '@aws-amplify/plugin-types';
 import { storageOutputKey } from '@aws-amplify/backend-output-schemas';
 import { StorageOutput } from '@aws-amplify/backend-output-schemas/storage';
+import { Stack } from 'aws-cdk-lib';
 
 export type AmplifyStorageProps = {
   versioned?: boolean;
@@ -40,6 +41,7 @@ export class AmplifyStorage extends Construct implements BackendOutputWriter {
     outputStorageStrategy.addBackendOutputEntry(storageOutputKey, {
       version: '1',
       payload: {
+        storageRegion: Stack.of(this).region,
         bucketName: this.bucket.bucketName,
       },
     });

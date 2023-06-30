@@ -1,6 +1,6 @@
 import { ClientConfigContributor } from './client_config_contributor.js';
 import { UnifiedBackendOutput } from '@aws-amplify/backend-output-schemas';
-import { ClientConfig } from '../client-config-types/client_config.js';
+import { DataClientConfig } from '../client-config-types/data_client_config.js';
 
 /**
  * Translator for the Data/API portion of ClientConfig
@@ -11,18 +11,13 @@ export class DataClientConfigContributor implements ClientConfigContributor {
    */
   contribute({
     dataOutput,
-  }: UnifiedBackendOutput): Pick<ClientConfig, 'API' | 'aws_appsync_apiKey'> {
+  }: UnifiedBackendOutput): DataClientConfig | Record<string, never> {
     if (dataOutput === undefined) {
       return {};
     }
-    const result: Pick<ClientConfig, 'API' | 'aws_appsync_apiKey'> = {
-      API: {
-        graphql_endpoint: dataOutput.payload.appSyncApiEndpoint,
-      },
+    return {
+      aws_appsync_graphqlEndpoint: dataOutput.payload.appSyncApiEndpoint,
+      aws_appsync_apiKey: dataOutput.payload.appSyncApiKey,
     };
-    if (dataOutput.payload.appSyncApiKey) {
-      result.aws_appsync_apiKey = dataOutput.payload.appSyncApiKey;
-    }
-    return result;
   }
 }
