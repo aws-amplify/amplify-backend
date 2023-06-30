@@ -4,7 +4,7 @@ import {
   BackendOutputStorageStrategy,
   ConstructContainerEntryGenerator,
   ConstructFactory,
-  GetInstanceProps,
+  ConstructFactoryGetInstanceProps,
 } from '@aws-amplify/plugin-types';
 import {
   AmplifyGraphqlApi,
@@ -37,7 +37,7 @@ export class DataFactory implements ConstructFactory<Construct> {
     constructContainer,
     outputStorageStrategy,
     importPathVerifier,
-  }: GetInstanceProps): Construct {
+  }: ConstructFactoryGetInstanceProps): Construct {
     importPathVerifier?.verify(
       this.importStack,
       'data',

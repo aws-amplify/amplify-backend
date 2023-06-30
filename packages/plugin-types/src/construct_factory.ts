@@ -3,7 +3,7 @@ import { BackendOutputStorageStrategy } from './output_storage_stragegy.js';
 import { BackendOutputEntry } from './backend_output.js';
 import { ImportPathVerifier } from './import_path_verifier.js';
 
-export type GetInstanceProps = {
+export type ConstructFactoryGetInstanceProps = {
   constructContainer: ConstructContainer;
   outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
   importPathVerifier?: ImportPathVerifier;
@@ -18,5 +18,5 @@ export type ConstructFactory<T = unknown> = {
    * Registering as a provider allows other construct factories to fetch this one based on the provides token
    */
   readonly provides?: string;
-  getInstance(props: GetInstanceProps): T;
+  getInstance(props: ConstructFactoryGetInstanceProps): T;
 };

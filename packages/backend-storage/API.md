@@ -7,12 +7,12 @@
 import { AmplifyStorage } from '@aws-amplify/storage-construct';
 import { AmplifyStorageProps } from '@aws-amplify/storage-construct';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
-import { GetInstanceProps } from '@aws-amplify/plugin-types';
+import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
 
 // @public
 export class AmplifyStorageFactory implements ConstructFactory<AmplifyStorage> {
     constructor(props: AmplifyStorageProps);
-    getInstance({ constructContainer, outputStorageStrategy, importPathVerifier, }: GetInstanceProps): AmplifyStorage;
+    getInstance({ constructContainer, outputStorageStrategy, importPathVerifier, }: ConstructFactoryGetInstanceProps): AmplifyStorage;
 }
 
 // @public

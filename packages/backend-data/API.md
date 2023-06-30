@@ -7,7 +7,7 @@
 import { AmplifyGraphqlApiProps } from 'agqlac';
 import { Construct } from 'constructs';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
-import { GetInstanceProps } from '@aws-amplify/plugin-types';
+import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
 
 // @public (undocumented)
 export const Data: typeof DataFactory;
@@ -15,7 +15,7 @@ export const Data: typeof DataFactory;
 // @public
 export class DataFactory implements ConstructFactory<Construct> {
     constructor(props: DataProps);
-    getInstance({ constructContainer, outputStorageStrategy, importPathVerifier, }: GetInstanceProps): Construct;
+    getInstance({ constructContainer, outputStorageStrategy, importPathVerifier, }: ConstructFactoryGetInstanceProps): Construct;
 }
 
 // @public (undocumented)

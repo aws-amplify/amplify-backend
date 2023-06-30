@@ -8,12 +8,12 @@ import { AmplifyAuth } from '@aws-amplify/auth-construct';
 import { AmplifyAuthProps } from '@aws-amplify/auth-construct';
 import { AuthResources } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
-import { GetInstanceProps } from '@aws-amplify/plugin-types';
+import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
 
 // @public
 export class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth & AuthResources> {
     constructor(props: AmplifyAuthProps);
-    getInstance({ constructContainer, outputStorageStrategy, importPathVerifier, }: GetInstanceProps): AmplifyAuth;
+    getInstance({ constructContainer, outputStorageStrategy, importPathVerifier, }: ConstructFactoryGetInstanceProps): AmplifyAuth;
     // (undocumented)
     readonly provides = "AuthResources";
 }

@@ -4,7 +4,7 @@ import {
   BackendOutputStorageStrategy,
   ConstructContainerEntryGenerator,
   ConstructFactory,
-  GetInstanceProps,
+  ConstructFactoryGetInstanceProps,
 } from '@aws-amplify/plugin-types';
 import {
   AmplifyStorage,
@@ -32,7 +32,7 @@ export class AmplifyStorageFactory implements ConstructFactory<AmplifyStorage> {
     constructContainer,
     outputStorageStrategy,
     importPathVerifier,
-  }: GetInstanceProps): AmplifyStorage {
+  }: ConstructFactoryGetInstanceProps): AmplifyStorage {
     importPathVerifier?.verify(
       this.importStack,
       'storage',
