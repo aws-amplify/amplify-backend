@@ -10,8 +10,8 @@ import assert from 'node:assert';
 describe('Backend', () => {
   it('initializes constructs in given app', () => {
     const testConstructFactory: ConstructFactory<Bucket> = {
-      getInstance(resolver): Bucket {
-        return resolver.getOrCompute({
+      getInstance({ constructContainer }): Bucket {
+        return constructContainer.getOrCompute({
           resourceGroupName: 'test',
           generateContainerEntry(scope: Construct): Bucket {
             return new Bucket(scope, 'test-bucket');
@@ -40,12 +40,12 @@ describe('Backend', () => {
 
   it('registers construct outputs in root stack', () => {
     const testConstructFactory: ConstructFactory<Bucket> = {
-      getInstance(resolver, storageStrategy): Bucket {
-        return resolver.getOrCompute({
+      getInstance({ constructContainer, outputStorageStrategy }): Bucket {
+        return constructContainer.getOrCompute({
           resourceGroupName: 'test',
           generateContainerEntry(scope: Construct): Bucket {
             const bucket = new Bucket(scope, 'test-bucket');
-            storageStrategy.addBackendOutputEntry('TestStorageOutput', {
+            outputStorageStrategy.addBackendOutputEntry('TestStorageOutput', {
               version: '1',
               payload: {
                 bucketName: bucket.bucketName,
@@ -82,14 +82,14 @@ describe('Backend', () => {
 
   it('exposes created constructs under resources', () => {
     const testConstructFactory: ConstructFactory<Bucket> = {
-      getInstance(resolver, storageStrategy): Bucket {
-        return resolver.getOrCompute({
+      getInstance({ constructContainer, outputStorageStrategy }): Bucket {
+        return constructContainer.getOrCompute({
           resourceGroupName: 'test',
           generateContainerEntry(scope: Construct): Bucket {
             const bucket = new Bucket(scope, 'test-bucket', {
               bucketName: 'test-bucket-name',
             });
-            storageStrategy.addBackendOutputEntry('TestStorageOutput', {
+            outputStorageStrategy.addBackendOutputEntry('TestStorageOutput', {
               version: '1',
               payload: {
                 bucketName: bucket.bucketName,

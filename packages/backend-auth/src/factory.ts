@@ -4,10 +4,9 @@ import {
   AuthResources,
   BackendOutputEntry,
   BackendOutputStorageStrategy,
-  ConstructContainer,
   ConstructContainerEntryGenerator,
   ConstructFactory,
-  ImportPathVerifier,
+  GetInstanceProps,
 } from '@aws-amplify/plugin-types';
 
 /**
@@ -31,12 +30,12 @@ export class AmplifyAuthFactory
   /**
    * Get a singleton instance of AmplifyAuth
    */
-  getInstance(
-    container: ConstructContainer,
-    backendOutputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>,
-    importPathVerifier: ImportPathVerifier
-  ): AmplifyAuth {
-    importPathVerifier.verify(
+  getInstance({
+    constructContainer,
+    outputStorageStrategy,
+    importPathVerifier,
+  }: GetInstanceProps): AmplifyAuth {
+    importPathVerifier?.verify(
       this.importStack,
       'auth',
       'Amplify Auth must be defined in an "auth.ts" file'
@@ -44,10 +43,10 @@ export class AmplifyAuthFactory
     if (!this.generator) {
       this.generator = new AmplifyAuthGenerator(
         this.props,
-        backendOutputStorageStrategy
+        outputStorageStrategy
       );
     }
-    return container.getOrCompute(this.generator) as AmplifyAuth;
+    return constructContainer.getOrCompute(this.generator) as AmplifyAuth;
   }
 }
 

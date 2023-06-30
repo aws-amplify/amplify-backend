@@ -37,7 +37,7 @@ export class Backend<T extends Record<string, ConstructFactory<Construct>>> {
       stack
     );
 
-    const importPathVerifier = new ToggleableImportPathVerifier(false);
+    const importPathVerifier = new ToggleableImportPathVerifier();
 
     // register providers but don't actually execute anything yet
     Object.values(constructFactories).forEach((factory) => {
@@ -54,9 +54,11 @@ export class Backend<T extends Record<string, ConstructFactory<Construct>>> {
         // The type inference on this.resources is not happy about this assignment because it doesn't know the exact type of .getInstance()
         // However, the assignment is okay because we are iterating over the entries of constructFactories and assigning the resource name to the corresponding instance
         this.resources[resourceName as keyof T] = constructFactory.getInstance(
-          constructContainer,
-          outputStorageStrategy,
-          importPathVerifier
+          {
+            constructContainer,
+            outputStorageStrategy,
+            importPathVerifier,
+          }
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ) as any;
       }

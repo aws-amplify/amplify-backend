@@ -18,7 +18,7 @@ import {
 
 describe('AmplifyAuthFactory', () => {
   let authFactory: AmplifyAuthFactory;
-  let container: ConstructContainer;
+  let constructContainer: ConstructContainer;
   let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
   let importPathVerifier: ImportPathVerifier;
   beforeEach(() => {
@@ -29,7 +29,9 @@ describe('AmplifyAuthFactory', () => {
     const app = new App();
     const stack = new Stack(app);
 
-    container = new SingletonConstructContainer(new NestedStackResolver(stack));
+    constructContainer = new SingletonConstructContainer(
+      new NestedStackResolver(stack)
+    );
 
     outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
       stack
@@ -38,26 +40,26 @@ describe('AmplifyAuthFactory', () => {
     importPathVerifier = new ToggleableImportPathVerifier(false);
   });
   it('returns singleton instance', () => {
-    const instance1 = authFactory.getInstance(
-      container,
+    const instance1 = authFactory.getInstance({
+      constructContainer: constructContainer,
       outputStorageStrategy,
-      importPathVerifier
-    );
-    const instance2 = authFactory.getInstance(
-      container,
+      importPathVerifier,
+    });
+    const instance2 = authFactory.getInstance({
+      constructContainer,
       outputStorageStrategy,
-      importPathVerifier
-    );
+      importPathVerifier,
+    });
 
     assert.strictEqual(instance1, instance2);
   });
 
   it('adds construct to stack', () => {
-    const authConstruct = authFactory.getInstance(
-      container,
+    const authConstruct = authFactory.getInstance({
+      constructContainer,
       outputStorageStrategy,
-      importPathVerifier
-    );
+      importPathVerifier,
+    });
 
     const template = Template.fromStack(Stack.of(authConstruct));
 
@@ -68,11 +70,11 @@ describe('AmplifyAuthFactory', () => {
       verify: mock.fn(),
     };
 
-    authFactory.getInstance(
-      container,
+    authFactory.getInstance({
+      constructContainer,
       outputStorageStrategy,
-      importPathVerifier
-    );
+      importPathVerifier,
+    });
 
     assert.ok(
       (importPathVerifier.verify.mock.calls[0].arguments[0] as string).includes(

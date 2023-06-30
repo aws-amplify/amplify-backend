@@ -38,26 +38,26 @@ describe('AmplifyStorageFactory', () => {
     importPathVerifier = new ToggleableImportPathVerifier(false);
   });
   it('returns singleton instance', () => {
-    const instance1 = storageFactory.getInstance(
+    const instance1 = storageFactory.getInstance({
       constructContainer,
       outputStorageStrategy,
-      importPathVerifier
-    );
-    const instance2 = storageFactory.getInstance(
+      importPathVerifier,
+    });
+    const instance2 = storageFactory.getInstance({
       constructContainer,
       outputStorageStrategy,
-      importPathVerifier
-    );
+      importPathVerifier,
+    });
 
     assert.strictEqual(instance1, instance2);
   });
 
   it('adds construct to stack', () => {
-    const storageConstruct = storageFactory.getInstance(
+    const storageConstruct = storageFactory.getInstance({
       constructContainer,
       outputStorageStrategy,
-      importPathVerifier
-    );
+      importPathVerifier,
+    });
 
     const template = Template.fromStack(Stack.of(storageConstruct));
 
@@ -75,11 +75,11 @@ describe('AmplifyStorageFactory', () => {
 
     const importPathVerifier = new ToggleableImportPathVerifier(false);
 
-    storageFactory.getInstance(
+    storageFactory.getInstance({
       constructContainer,
       outputStorageStrategy,
-      importPathVerifier
-    );
+      importPathVerifier,
+    });
 
     assert.strictEqual(storeOutputMock.mock.callCount(), 1);
   });
@@ -89,11 +89,11 @@ describe('AmplifyStorageFactory', () => {
       verify: mock.fn(),
     };
 
-    storageFactory.getInstance(
+    storageFactory.getInstance({
       constructContainer,
       outputStorageStrategy,
-      importPathVerifier
-    );
+      importPathVerifier,
+    });
 
     assert.ok(
       (importPathVerifier.verify.mock.calls[0].arguments[0] as string).includes(

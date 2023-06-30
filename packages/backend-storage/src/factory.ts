@@ -2,10 +2,9 @@ import { Construct } from 'constructs';
 import {
   BackendOutputEntry,
   BackendOutputStorageStrategy,
-  ConstructContainer,
   ConstructContainerEntryGenerator,
   ConstructFactory,
-  ImportPathVerifier,
+  GetInstanceProps,
 } from '@aws-amplify/plugin-types';
 import {
   AmplifyStorage,
@@ -29,12 +28,12 @@ export class AmplifyStorageFactory implements ConstructFactory<AmplifyStorage> {
   /**
    * Get a singleton instance of the Bucket
    */
-  getInstance(
-    container: ConstructContainer,
-    outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>,
-    importPathVerifier: ImportPathVerifier
-  ): AmplifyStorage {
-    importPathVerifier.verify(
+  getInstance({
+    constructContainer,
+    outputStorageStrategy,
+    importPathVerifier,
+  }: GetInstanceProps): AmplifyStorage {
+    importPathVerifier?.verify(
       this.importStack,
       'storage',
       'Amplify Storage must be defined in a "storage.ts" file'
@@ -45,7 +44,7 @@ export class AmplifyStorageFactory implements ConstructFactory<AmplifyStorage> {
         outputStorageStrategy
       );
     }
-    return container.getOrCompute(this.generator) as AmplifyStorage;
+    return constructContainer.getOrCompute(this.generator) as AmplifyStorage;
   }
 }
 
