@@ -16,6 +16,7 @@ export class Backend<T extends Record<string, ConstructFactory<Construct>>> {
   private readonly stackResolver: StackResolver;
   /**
    * These are the resolved CDK constructs that are created by the inputs to the constructor
+   * Used for overriding properties of underlying CDK constructs.
    */
   readonly resources: {
     [K in keyof T]: ReturnType<T[K]['getInstance']>;
