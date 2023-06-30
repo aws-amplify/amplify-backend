@@ -7,14 +7,9 @@ import {
   ConstructContainer,
   ConstructContainerEntryGenerator,
   ConstructFactory,
+  ImportPathVerifier,
 } from '@aws-amplify/plugin-types';
 
-// to enforce a file convention structure, we check the import path of this module and fail if it does not match the expected convention
-if (!import.meta.url.endsWith('auth.ts')) {
-  if (!process.env.DISABLE_IMPORT_PATH_VERIFICATION) {
-    throw new Error(`Amplify Auth must be defined in an 'auth.ts' file`);
-  }
-}
 /**
  * Singleton factory for AmplifyAuth that can be used in Amplify project files
  */
@@ -23,19 +18,29 @@ export class AmplifyAuthFactory
 {
   readonly provides = 'AuthResources';
   private generator: ConstructContainerEntryGenerator;
+  private readonly importStack: string | undefined;
 
   /**
    * Set the properties that will be used to initialize AmplifyAuth
    */
-  constructor(private readonly props: AmplifyAuthProps) {}
+  constructor(private readonly props: AmplifyAuthProps) {
+    // capture the import stack in the ctor because this is what customers call in the backend definition code
+    this.importStack = new Error().stack;
+  }
 
   /**
    * Get a singleton instance of AmplifyAuth
    */
   getInstance(
     container: ConstructContainer,
-    backendOutputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>
+    backendOutputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>,
+    importPathVerifier: ImportPathVerifier
   ): AmplifyAuth {
+    importPathVerifier.verify(
+      this.importStack,
+      'auth',
+      'Amplify Auth must be defined in an "auth.ts" file'
+    );
     if (!this.generator) {
       this.generator = new AmplifyAuthGenerator(
         this.props,

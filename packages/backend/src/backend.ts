@@ -2,6 +2,7 @@ import { Construct } from 'constructs';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
 import {
+  EnvironmentBasedImportPathVerifier,
   NestedStackResolver,
   SingletonConstructContainer,
   StackMetadataBackendOutputStorageStrategy,
@@ -28,6 +29,8 @@ export class Backend {
       stack
     );
 
+    const importPathVerifier = new EnvironmentBasedImportPathVerifier();
+
     // register providers but don't actually execute anything yet
     Object.values(constructFactories).forEach((factory) => {
       if (typeof factory.provides === 'string') {
@@ -37,7 +40,11 @@ export class Backend {
 
     // now invoke all the factories
     Object.values(constructFactories).forEach((constructFactory) => {
-      constructFactory.getInstance(constructContainer, outputStorageStrategy);
+      constructFactory.getInstance(
+        constructContainer,
+        outputStorageStrategy,
+        importPathVerifier
+      );
     });
 
     outputStorageStrategy.flush();

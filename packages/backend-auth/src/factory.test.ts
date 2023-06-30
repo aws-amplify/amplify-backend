@@ -1,6 +1,7 @@
 import { describe, it } from 'node:test';
 import { AmplifyAuthFactory } from './factory.js';
 import {
+  EnvironmentBasedImportPathVerifier,
   NestedStackResolver,
   SingletonConstructContainer,
   StackMetadataBackendOutputStorageStrategy,
@@ -26,8 +27,18 @@ describe('AmplifyAuthFactory', () => {
       stack
     );
 
-    const instance1 = authFactory.getInstance(container, outputStorageStrategy);
-    const instance2 = authFactory.getInstance(container, outputStorageStrategy);
+    const importPathVerifier = new EnvironmentBasedImportPathVerifier();
+
+    const instance1 = authFactory.getInstance(
+      container,
+      outputStorageStrategy,
+      importPathVerifier
+    );
+    const instance2 = authFactory.getInstance(
+      container,
+      outputStorageStrategy,
+      importPathVerifier
+    );
 
     assert.strictEqual(instance1, instance2);
   });
@@ -48,9 +59,12 @@ describe('AmplifyAuthFactory', () => {
       stack
     );
 
+    const importPathVerifier = new EnvironmentBasedImportPathVerifier();
+
     const authConstruct = authFactory.getInstance(
       container,
-      outputStorageStrategy
+      outputStorageStrategy,
+      importPathVerifier
     );
 
     const template = Template.fromStack(Stack.of(authConstruct));

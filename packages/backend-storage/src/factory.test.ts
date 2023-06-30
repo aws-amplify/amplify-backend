@@ -3,6 +3,7 @@ import { AmplifyStorageFactory } from './factory.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import {
+  EnvironmentBasedImportPathVerifier,
   NestedStackResolver,
   SingletonConstructContainer,
   StackMetadataBackendOutputStorageStrategy,
@@ -28,13 +29,17 @@ describe('AmplifyStorageFactory', () => {
       stack
     );
 
+    const importPathVerifier = new EnvironmentBasedImportPathVerifier();
+
     const instance1 = storageFactory.getInstance(
       constructCache,
-      outputStorageStrategy
+      outputStorageStrategy,
+      importPathVerifier
     );
     const instance2 = storageFactory.getInstance(
       constructCache,
-      outputStorageStrategy
+      outputStorageStrategy,
+      importPathVerifier
     );
 
     assert.strictEqual(instance1, instance2);
@@ -54,9 +59,12 @@ describe('AmplifyStorageFactory', () => {
       stack
     );
 
+    const importPathVerifier = new EnvironmentBasedImportPathVerifier();
+
     const storageConstruct = storageFactory.getInstance(
       backendBuildState,
-      outputStorageStrategy
+      outputStorageStrategy,
+      importPathVerifier
     );
 
     const template = Template.fromStack(Stack.of(storageConstruct));
@@ -82,7 +90,13 @@ describe('AmplifyStorageFactory', () => {
         flush: mock.fn(),
       };
 
-    storageFactory.getInstance(backendBuildState, outputStorageStrategy);
+    const importPathVerifier = new EnvironmentBasedImportPathVerifier();
+
+    storageFactory.getInstance(
+      backendBuildState,
+      outputStorageStrategy,
+      importPathVerifier
+    );
 
     assert.strictEqual(storeOutputMock.mock.callCount(), 1);
   });

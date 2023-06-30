@@ -6,6 +6,7 @@ import {
   ConstructContainer,
   ConstructContainerEntryGenerator,
   ConstructFactory,
+  ImportPathVerifier,
 } from '@aws-amplify/plugin-types';
 import {
   AmplifyGraphqlApi,
@@ -22,25 +23,34 @@ export type DataProps = Pick<AmplifyGraphqlApiProps, 'schema'>;
  */
 export class DataFactory implements ConstructFactory<Construct> {
   private generator: ConstructContainerEntryGenerator;
+  private readonly importStack: string | undefined;
 
   /**
    * Create a new AmplifyConstruct
    */
-  constructor(private readonly props: DataProps) {}
+  constructor(private readonly props: DataProps) {
+    this.importStack = new Error().stack;
+  }
 
   /**
    * Gets an instance of the Data construct
    */
   getInstance(
     container: ConstructContainer,
-    outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>
+    outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>,
+    importPathVerifier: ImportPathVerifier
   ): Construct {
+    importPathVerifier.verify(
+      this.importStack,
+      'data',
+      'Amplify Data must be defined in a "data.ts" file'
+    );
     if (!this.generator) {
       this.generator = new DataGenerator(
         this.props,
         container
           .getConstructFactory<AuthResources>('AuthResources')
-          .getInstance(container, outputStorageStrategy),
+          .getInstance(container, outputStorageStrategy, importPathVerifier),
         outputStorageStrategy
       );
     }
