@@ -1,4 +1,4 @@
-import { describe, it, mock } from 'node:test';
+import { beforeEach, describe, it, mock } from 'node:test';
 import { AmplifyStorageFactory } from './factory.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
@@ -12,32 +12,39 @@ import assert from 'node:assert';
 import {
   BackendOutputEntry,
   BackendOutputStorageStrategy,
+  ConstructContainer,
+  ImportPathVerifier,
 } from '@aws-amplify/plugin-types';
 
 describe('AmplifyStorageFactory', () => {
-  it('returns singleton instance', () => {
-    const storageFactory = new AmplifyStorageFactory({});
+  let storageFactory: AmplifyStorageFactory;
+  let constructContainer: ConstructContainer;
+  let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
+  let importPathVerifier: ImportPathVerifier;
+  beforeEach(() => {
+    storageFactory = new AmplifyStorageFactory({});
 
     const app = new App();
     const stack = new Stack(app);
 
-    const constructCache = new SingletonConstructContainer(
+    constructContainer = new SingletonConstructContainer(
       new NestedStackResolver(stack)
     );
 
-    const outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
+    outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
       stack
     );
 
-    const importPathVerifier = new EnvironmentBasedImportPathVerifier();
-
+    importPathVerifier = new EnvironmentBasedImportPathVerifier();
+  });
+  it('returns singleton instance', () => {
     const instance1 = storageFactory.getInstance(
-      constructCache,
+      constructContainer,
       outputStorageStrategy,
       importPathVerifier
     );
     const instance2 = storageFactory.getInstance(
-      constructCache,
+      constructContainer,
       outputStorageStrategy,
       importPathVerifier
     );
@@ -46,23 +53,8 @@ describe('AmplifyStorageFactory', () => {
   });
 
   it('adds construct to stack', () => {
-    const storageFactory = new AmplifyStorageFactory({});
-
-    const app = new App();
-    const stack = new Stack(app);
-
-    const backendBuildState = new SingletonConstructContainer(
-      new NestedStackResolver(stack)
-    );
-
-    const outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
-      stack
-    );
-
-    const importPathVerifier = new EnvironmentBasedImportPathVerifier();
-
     const storageConstruct = storageFactory.getInstance(
-      backendBuildState,
+      constructContainer,
       outputStorageStrategy,
       importPathVerifier
     );
@@ -73,15 +65,6 @@ describe('AmplifyStorageFactory', () => {
   });
 
   it('sets output in storage strategy', () => {
-    const storageFactory = new AmplifyStorageFactory({});
-
-    const app = new App();
-    const stack = new Stack(app);
-
-    const backendBuildState = new SingletonConstructContainer(
-      new NestedStackResolver(stack)
-    );
-
     const storeOutputMock = mock.fn();
 
     const outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry> =
@@ -93,11 +76,29 @@ describe('AmplifyStorageFactory', () => {
     const importPathVerifier = new EnvironmentBasedImportPathVerifier();
 
     storageFactory.getInstance(
-      backendBuildState,
+      constructContainer,
       outputStorageStrategy,
       importPathVerifier
     );
 
     assert.strictEqual(storeOutputMock.mock.callCount(), 1);
+  });
+
+  it('verifies constructor import path', () => {
+    const importPathVerifier = {
+      verify: mock.fn(),
+    };
+
+    storageFactory.getInstance(
+      constructContainer,
+      outputStorageStrategy,
+      importPathVerifier
+    );
+
+    assert.ok(
+      (importPathVerifier.verify.mock.calls[0].arguments[0] as string).includes(
+        'AmplifyStorageFactory'
+      )
+    );
   });
 });

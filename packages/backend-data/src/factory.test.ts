@@ -1,4 +1,4 @@
-import { beforeEach, describe, it } from 'node:test';
+import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { DataFactory } from './factory.js';
 import { App, Stack } from 'aws-cdk-lib';
@@ -33,7 +33,10 @@ describe('DataFactory', () => {
   let container: ConstructContainer;
   let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
   let importPathVerifier: ImportPathVerifier;
+  let dataFactory: DataFactory;
   beforeEach(() => {
+    dataFactory = new DataFactory({ schema: testSchema });
+
     const app = new App();
     stack = new Stack(app);
 
@@ -55,8 +58,6 @@ describe('DataFactory', () => {
     importPathVerifier = new EnvironmentBasedImportPathVerifier();
   });
   it('returns singleton instance', () => {
-    const dataFactory = new DataFactory({ schema: testSchema });
-
     const instance1 = dataFactory.getInstance(
       container,
       outputStorageStrategy,
@@ -72,10 +73,6 @@ describe('DataFactory', () => {
   });
 
   it('adds construct to stack', () => {
-    const dataFactory = new DataFactory({
-      schema: testSchema,
-    });
-
     const dataConstruct = dataFactory.getInstance(
       container,
       outputStorageStrategy,
@@ -86,10 +83,6 @@ describe('DataFactory', () => {
   });
 
   it('sets output using storage strategy', () => {
-    const dataFactory = new DataFactory({
-      schema: testSchema,
-    });
-
     dataFactory.getInstance(
       container,
       outputStorageStrategy,
@@ -98,5 +91,22 @@ describe('DataFactory', () => {
 
     const template = Template.fromStack(stack);
     template.hasOutput('appSyncApiEndpoint', {});
+  });
+  it('verifies constructor import path', () => {
+    const importPathVerifier = {
+      verify: mock.fn(),
+    };
+
+    dataFactory.getInstance(
+      container,
+      outputStorageStrategy,
+      importPathVerifier
+    );
+
+    assert.ok(
+      (importPathVerifier.verify.mock.calls[0].arguments[0] as string).includes(
+        'DataFactory'
+      )
+    );
   });
 });
