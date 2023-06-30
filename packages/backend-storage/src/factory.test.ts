@@ -3,10 +3,10 @@ import { AmplifyStorageFactory } from './factory.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import {
-  EnvironmentBasedImportPathVerifier,
   NestedStackResolver,
   SingletonConstructContainer,
   StackMetadataBackendOutputStorageStrategy,
+  ToggleableImportPathVerifier,
 } from '@aws-amplify/backend-engine';
 import assert from 'node:assert';
 import {
@@ -35,7 +35,7 @@ describe('AmplifyStorageFactory', () => {
       stack
     );
 
-    importPathVerifier = new DisableableImportPathVerifier(false);
+    importPathVerifier = new ToggleableImportPathVerifier(false);
   });
   it('returns singleton instance', () => {
     const instance1 = storageFactory.getInstance(
@@ -73,7 +73,7 @@ describe('AmplifyStorageFactory', () => {
         flush: mock.fn(),
       };
 
-    const importPathVerifier = new DisableableImportPathVerifier(false);
+    const importPathVerifier = new ToggleableImportPathVerifier(false);
 
     storageFactory.getInstance(
       constructContainer,

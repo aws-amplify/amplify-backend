@@ -1,10 +1,10 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import { AmplifyAuthFactory } from './factory.js';
 import {
-  EnvironmentBasedImportPathVerifier,
   NestedStackResolver,
   SingletonConstructContainer,
   StackMetadataBackendOutputStorageStrategy,
+  ToggleableImportPathVerifier,
 } from '@aws-amplify/backend-engine';
 import { App, Stack } from 'aws-cdk-lib';
 import assert from 'node:assert';
@@ -35,7 +35,7 @@ describe('AmplifyAuthFactory', () => {
       stack
     );
 
-    importPathVerifier = new DisableableImportPathVerifier(false);
+    importPathVerifier = new ToggleableImportPathVerifier(false);
   });
   it('returns singleton instance', () => {
     const instance1 = authFactory.getInstance(

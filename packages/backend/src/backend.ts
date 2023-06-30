@@ -2,11 +2,11 @@ import { Construct } from 'constructs';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
 import {
-  EnvironmentBasedImportPathVerifier,
   NestedStackResolver,
   SingletonConstructContainer,
   StackMetadataBackendOutputStorageStrategy,
   StackResolver,
+  ToggleableImportPathVerifier,
 } from '@aws-amplify/backend-engine';
 import { createDefaultStack } from './default_stack_factory.js';
 
@@ -37,7 +37,7 @@ export class Backend<T extends Record<string, ConstructFactory<Construct>>> {
       stack
     );
 
-    const importPathVerifier = new EnvironmentBasedImportPathVerifier();
+    const importPathVerifier = new ToggleableImportPathVerifier(false);
 
     // register providers but don't actually execute anything yet
     Object.values(constructFactories).forEach((factory) => {

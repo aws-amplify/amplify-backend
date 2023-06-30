@@ -3,10 +3,10 @@ import assert from 'node:assert';
 import { DataFactory } from './factory.js';
 import { App, Stack } from 'aws-cdk-lib';
 import {
-  EnvironmentBasedImportPathVerifier,
   NestedStackResolver,
   SingletonConstructContainer,
   StackMetadataBackendOutputStorageStrategy,
+  ToggleableImportPathVerifier,
 } from '@aws-amplify/backend-engine';
 import { Template } from 'aws-cdk-lib/assertions';
 import {
@@ -55,7 +55,7 @@ describe('DataFactory', () => {
     outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
       stack
     );
-    importPathVerifier = new DisableableImportPathVerifier(false);
+    importPathVerifier = new ToggleableImportPathVerifier(false);
   });
   it('returns singleton instance', () => {
     const instance1 = dataFactory.getInstance(

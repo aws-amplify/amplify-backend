@@ -1,22 +1,22 @@
 import { describe, it } from 'node:test';
-import { EnvironmentBasedImportPathVerifier } from './disableable_import_path_verifier.js';
 import assert from 'node:assert';
+import { ToggleableImportPathVerifier } from './disableable_import_path_verifier.js';
 
-describe('DisableableImportPathVerifier', () => {
+describe('ToggleableImportPathVerifier', () => {
   const incorrectStackTrace = `Error
     at AmplifyAuthFactory (/Users/alias/sandboxes/install-test/node_modules/@aws-amplify/backend-auth/src/factory.ts:28:24)
     at <anonymous> (/Users/alias/sandboxes/install-test/backend/otherName.ts:3:21)
     at Object.<anonymous> (/Users/alias/sandboxes/install-test/backend/auth.ts:5:2)`;
 
   it('does nothing if disabled', () => {
-    const verifier = new DisableableImportPathVerifier(false);
+    const verifier = new ToggleableImportPathVerifier(false);
     assert.doesNotThrow(() =>
       verifier.verify(incorrectStackTrace, 'auth', 'test message')
     );
   });
 
   it('does nothing if importStack is undefined', () => {
-    const verifier = new DisableableImportPathVerifier();
+    const verifier = new ToggleableImportPathVerifier();
     assert.doesNotThrow(() =>
       verifier.verify(undefined, 'auth', 'test message')
     );
@@ -26,7 +26,7 @@ describe('DisableableImportPathVerifier', () => {
     const tooShortStack = `Error
     at AmplifyAuthFactory (/Users/alias/sandboxes/install-test/node_modules/@aws-amplify/backend-auth/src/factory.ts:28:24)`;
 
-    const verifier = new DisableableImportPathVerifier();
+    const verifier = new ToggleableImportPathVerifier();
     assert.doesNotThrow(() =>
       verifier.verify(tooShortStack, 'auth', 'test message')
     );
@@ -38,14 +38,14 @@ describe('DisableableImportPathVerifier', () => {
     at more garbage
     at Object.<anonymous> (/Users/alias/sandboxes/install-test/backend/auth.ts:5:2)`;
 
-    const verifier = new DisableableImportPathVerifier();
+    const verifier = new ToggleableImportPathVerifier();
     assert.doesNotThrow(() =>
       verifier.verify(malformedStacktrace, 'auth', 'test message')
     );
   });
 
   it('throws expected error on incorrect import stack', () => {
-    const verifier = new DisableableImportPathVerifier();
+    const verifier = new ToggleableImportPathVerifier();
     assert.throws(
       () => verifier.verify(incorrectStackTrace, 'auth', 'test message'),
       new Error('test message')
@@ -58,7 +58,7 @@ describe('DisableableImportPathVerifier', () => {
     at <anonymous> (/Users/alias/sandboxes/install-test/backend/auth.ts:3:21)
     at Object.<anonymous> (/Users/alias/sandboxes/install-test/backend/auth.ts:5:2)`;
 
-    const verifier = new DisableableImportPathVerifier();
+    const verifier = new ToggleableImportPathVerifier();
     assert.doesNotThrow(() =>
       verifier.verify(correctStackTrace, 'auth', 'test message')
     );

@@ -4,7 +4,7 @@ import path from 'path';
 /**
  * ImportPathVerifier that can be turned into a noop by passing `false` to the constructor
  */
-export class EnvironmentBasedImportPathVerifier implements ImportPathVerifier {
+export class ToggleableImportPathVerifier implements ImportPathVerifier {
   /**
    * Defaults to verifying, but can be turned into a noop by passing in false.
    */
