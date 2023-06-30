@@ -21,13 +21,13 @@ describe('AuthClientConfigContributor', () => {
           version: '1',
           payload: {
             userPoolId: 'testUserPoolId',
+            authRegion: 'testRegion',
           },
         },
       }),
       {
-        Auth: {
-          userPoolId: 'testUserPoolId',
-        },
+        aws_cognito_region: 'testRegion',
+        aws_user_pools_id: 'testUserPoolId',
       }
     );
   });

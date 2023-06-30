@@ -15,6 +15,7 @@ describe('UnifiedClientConfigGenerator', () => {
           version: '1',
           payload: {
             userPoolId: 'testUserPoolId',
+            authRegion: 'testRegion',
           },
         },
         dataOutput: {
@@ -38,12 +39,10 @@ describe('UnifiedClientConfigGenerator', () => {
       );
       const result = await clientConfigGenerator.generateClientConfig();
       const expectedClientConfig: ClientConfig = {
-        Auth: {
-          userPoolId: 'testUserPoolId',
-        },
-        API: {
-          graphql_endpoint: 'testAppSyncEndpoint',
-        },
+        aws_appsync_apiKey: undefined,
+        aws_user_pools_id: 'testUserPoolId',
+        aws_cognito_region: 'testRegion',
+        aws_appsync_graphqlEndpoint: 'testAppSyncEndpoint',
       };
       assert.deepStrictEqual(result, expectedClientConfig);
     });

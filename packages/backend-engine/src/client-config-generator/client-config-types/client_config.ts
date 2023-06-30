@@ -5,6 +5,6 @@ import { StorageClientConfig } from './storage_client_config.js';
 /**
  * Merged type of all category client config types
  */
-export type ClientConfig = Partial<AuthClientConfig> &
-  Partial<DataClientConfig> &
-  Partial<StorageClientConfig>;
+export type ClientConfig = Partial<
+  AuthClientConfig & DataClientConfig & StorageClientConfig
+>;
