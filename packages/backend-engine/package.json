@@ -2,6 +2,19 @@
   "name": "@aws-amplify/backend-engine",
   "version": "0.1.0",
   "type": "module",
+  "exports": {
+    ".": {
+      "types": "lib/index.d.ts",
+      "import": "./lib/index.js",
+      "require": "./lib/index.js"
+    },
+    "./client-config-generator": {
+      "types": "./lib/client-config-generator/index.d.ts",
+      "import": "./lib/client-config-generator/index.js",
+      "require": "./lib/client-config-generator/index.js"
+    }
+  },
+  "types": "lib/index.d.ts",
   "scripts": {
     "update:api": "api-extractor run --local"
   },
@@ -19,17 +32,5 @@
     "@aws-sdk/types": "^3.347.0",
     "aws-cdk-lib": "~2.68.0",
     "constructs": "^10.0.0"
-  },
-  "exports": {
-    ".": {
-      "types": "./lib/index.d.ts",
-      "import": "./lib/index.js",
-      "require": "./lib/index.js"
-    },
-    "./client-config-generator": {
-      "types": "./lib/client-config-generator/index.d.ts",
-      "import": "./lib/client-config-generator/index.js",
-      "require": "./lib/client-config-generator/index.js"
-    }
   }
 }
