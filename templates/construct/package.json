@@ -9,7 +9,7 @@
       "require": "./lib/index.js"
     }
   },
-  "types": "./lib/index.d.ts",
+  "types": "lib/index.d.ts",
   "scripts": {
     "update:api": "api-extractor run --local"
   },
