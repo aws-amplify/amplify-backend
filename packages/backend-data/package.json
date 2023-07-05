@@ -1,9 +1,15 @@
 {
   "name": "@aws-amplify/backend-data",
   "version": "0.1.0",
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
   "type": "module",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "import": "./lib/index.js",
+      "require": "./lib/index.js"
+    }
+  },
+  "types": "lib/index.d.ts",
   "scripts": {
     "update:api": "api-extractor run --local"
   },
@@ -15,9 +21,6 @@
     "aws-cdk-lib": "~2.68.0",
     "constructs": "^10.0.0"
   },
-  "files": [
-    "lib"
-  ],
   "dependencies": {
     "@aws-amplify/backend-output-schemas": "^0.1.0",
     "agqlac": "0.4.0-agqlac.0"

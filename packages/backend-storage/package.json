@@ -1,9 +1,15 @@
 {
   "name": "@aws-amplify/backend-storage",
   "version": "0.1.0",
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
   "type": "module",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "import": "./lib/index.js",
+      "require": "./lib/index.js"
+    }
+  },
+  "types": "lib/index.d.ts",
   "scripts": {
     "update:api": "api-extractor run --local"
   },
