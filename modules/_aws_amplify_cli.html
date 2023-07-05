@@ -31,16 +31,17 @@
 This will start a walkthrough to author the changeset file. This file should be committed to the repo.</p>
 <a id="md:publishing-packages-locally" class="tsd-anchor"></a><h2><a href="#md:publishing-packages-locally">Publishing packages locally</a></h2><p>Publishing packages locally allows you to install local package changes as if they were published to NPM. This is useful for testing or demo scenarios.</p>
 <p>To set up a local npm proxy and publish the current local state to the proxy, run <code>npm run vend</code>.
-This will start a local npm proxy using <a href="https://verdaccio.org/">Verdaccio</a> and run <code>changeset version</code> and <code>changeset publish</code>.
-Note that you will need to create a changeset for any local changes for them to be included in the published artifacts.</p>
+This will start a local npm proxy using <a href="https://verdaccio.org/">Verdaccio</a> and run <code>changeset version</code> and <code>changeset publish</code>.</p>
 <p>This will also point your local npm config to the local npm proxy. At this point you can npm install any packages in the repo and it will pull from the local proxy instead of directly from npm.</p>
 <p>To stop the local server and reset your npm registry run <code>npm run stop:npm-proxy</code>.</p>
-<p>To clear the proxy package cache run <code>npm run clean:npm-proxy</code>. This will remove all packages you have published to the local proxy.</p>
+<p>To clear the proxy package cache run <code>npm run clean:npm-proxy</code>. This will stop the local proxy and remove all packages you have published.</p>
 <p>To start the npm proxy without immediately publishing, run <code>npm run start:npm-proxy</code>.</p>
 <p>To publish a snapshot to an already running npm proxy run <code>npm run publish:snapshot:local latest</code></p>
 <a id="md:adding-a-package" class="tsd-anchor"></a><h2><a href="#md:adding-a-package">Adding a package</a></h2><p>This repo uses a monorepo structure managed by npm workspaces. All the packages in the workspace are under <code>packages/*</code></p>
-<p>Most package types that you might want to add to this repo should have templates in the <code>templates</code> directory.
-These templates can be copied to a new package directory using <code>npm run new:*</code> where * is the type of package you are creating (see <code>package.json</code> for available scripts)</p>
+<p>There are package templates for some common scenarios in the <code>templates</code> directory.
+These templates can be copied to a new package directory using <code>npm run new --template=&lt;template&gt; --name=&lt;new name&gt;</code>
+<code>--template</code> specifies which template to use and <code>--name</code> specifies the new package name.
+Valid templates are the directories in the <code>templates</code> directory</p>
 <p>If you are adding a new package that does not have a template, consider adding a template for that package type.
 You&#39;ll probably want to use an existing template as a starting point for the new package.</p>
 <p>At a minimum, each package needs:</p>
@@ -50,6 +51,7 @@ You&#39;ll probably want to use an existing template as a starting point for the
 <li>An <code>api-extractor.json</code> file. This file should extend <code>api-extractor.base.json</code></li>
 <li>An <code>update:api</code> script in the <code>package.json</code> file</li>
 <li>A <code>typedoc.json</code> file</li>
+<li>An <code>.npmignore</code> file</li>
 </ol>
 </section></div>
 <div class="col-sidebar">
