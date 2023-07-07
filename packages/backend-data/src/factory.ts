@@ -10,7 +10,7 @@ import {
   AmplifyGraphqlApi,
   AmplifyGraphqlApiProps,
   AuthorizationConfig,
-} from 'agqlac';
+} from '@aws-amplify/graphql-construct-alpha';
 import { dataOutputKey } from '@aws-amplify/backend-output-schemas';
 import { DataOutput } from '@aws-amplify/backend-output-schemas/data';
 
