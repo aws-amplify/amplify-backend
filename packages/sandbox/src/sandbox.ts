@@ -8,18 +8,21 @@ import util from 'node:util';
  */
 export class Sandbox {
   private watcherSubscription: Awaited<ReturnType<typeof subscribe>>;
+  // TODO: https://github.com/aws-amplify/samsara-cli/issues/73
+  private readonly projectName = 'testProject';
+  private readonly environmentName = 'testEnvironment';
   /**
    * Creates a watcher process for this instance
    */
-  constructor(private readonly options: SandboxOptions) {
-    process.once('SIGINT', this.stop);
-    process.once('SIGTERM', this.stop);
+  constructor() {
+    process.once('SIGINT', this.stop.bind(this));
+    process.once('SIGTERM', this.stop.bind(this));
   }
 
   /**
    * Starts the sandbox
    */
-  public async start() {
+  public async start(options: SandboxOptions) {
     console.debug(`[Sandbox] Initializing...`);
     // Since 'cdk deploy' is a relatively slow operation for a 'watch' process,
     // introduce a concurrency latch that tracks the state.
@@ -38,7 +41,7 @@ export class Sandbox {
 
     const deployAndWatch = debounce(async () => {
       latch = 'deploying';
-      await this.invokeCDKDeployWithDebounce();
+      await this.invokeCDKWithDebounce(CDKCommand.DEPLOY);
 
       // If latch is still 'deploying' after the 'await', that's fine,
       // but if it's 'queued', that means we need to deploy again
@@ -49,14 +52,14 @@ export class Sandbox {
         console.log(
           "[Sandbox] Detected file changes while previous deployment was in progress. Invoking 'sandbox' again"
         );
-        await this.invokeCDKDeployWithDebounce();
+        await this.invokeCDKWithDebounce(CDKCommand.DEPLOY);
       }
       latch = 'open';
       this.emitWatching();
     });
 
     this.watcherSubscription = await parcelWatcher.subscribe(
-      this.options.dir ?? process.cwd(),
+      options.dir ?? process.cwd(),
       async (_, events) => {
         // it doesn't matter which file changed, we are just using events to log the filenames. We deploy full state.
         await Promise.all(
@@ -77,7 +80,7 @@ export class Sandbox {
           );
         }
       },
-      { ignore: ['cdk.out'].concat(...(this.options.exclude ?? [])) }
+      { ignore: ['cdk.out'].concat(...(options.exclude ?? [])) }
     );
 
     this.emitWatching();
@@ -92,31 +95,49 @@ export class Sandbox {
   }
 
   /**
+   * Deletes this environment
+   */
+  public async delete() {
+    console.log(
+      '[Sandbox] Deleting all the resources in the sandbox environment...'
+    );
+    await this.invokeCDKWithDebounce(CDKCommand.DESTROY);
+    console.log('[Sandbox] Finished deleting.');
+  }
+
+  /**
    * Function that deploys backend resources using CDK.
    * Debounce is added in case multiple duplicate events are received.
    */
-  private invokeCDKDeployWithDebounce = debounce(async (): Promise<void> => {
-    const execPromisified = util.promisify(child_process.execFile);
+  private invokeCDKWithDebounce = debounce(
+    async (cdkCommand: CDKCommand): Promise<void> => {
+      const execPromisified = util.promisify(child_process.execFile);
 
-    console.debug(`[Sandbox] Executing cdk deploy`);
-    const { stdout, stderr } = await execPromisified('npx', [
-      'cdk',
-      'deploy',
-      '--app',
-      "'npx tsx index.ts'",
-      '--hotswap-fallback',
-      '--method=direct',
-      '--context', // TODO: https://github.com/aws-amplify/samsara-cli/issues/73
-      'project-name=testProject',
-      '--context',
-      'environment-name=testEnvironment',
-    ]);
+      console.debug(`[Sandbox] Executing cdk ${cdkCommand.toString()}`);
 
-    if (stderr) {
-      console.error(stderr);
-    }
-    console.log(stdout);
-  }, 100);
+      const cdkCommandArgs = [
+        'cdk',
+        cdkCommand.toString(),
+        '--app',
+        "'npx tsx index.ts'",
+        '--context',
+        'project-name=' + this.projectName,
+        '--context',
+        'environment-name=' + this.environmentName,
+      ];
+      if (cdkCommand === CDKCommand.DEPLOY) {
+        cdkCommandArgs.push('--hotswap-fallback', '--method=direct');
+      } else if (cdkCommand == CDKCommand.DESTROY) {
+        cdkCommandArgs.push('--force');
+      }
+      const { stdout, stderr } = await execPromisified('npx', cdkCommandArgs);
+      if (stderr) {
+        console.error(stderr);
+      }
+      console.log(stdout);
+    },
+    100
+  );
 
   /**
    * Just a shorthand console log to indicate whenever watcher is going idle
@@ -130,3 +151,8 @@ export type SandboxOptions = {
   dir?: string;
   exclude?: string[];
 };
+
+enum CDKCommand {
+  DEPLOY = 'deploy',
+  DESTROY = 'destroy',
+}
