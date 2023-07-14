@@ -89,13 +89,9 @@ describe('sandbox command', () => {
 
   it('asks to delete the sandbox environment when users send ctrl-C and say yes to delete', async (contextual) => {
     // Mock process and extract the sigint handler
-    const processSignal = contextual.mock.method(
-      process,
-      'on',
-      (signal: string) => {
-        console.log(signal);
-      }
-    );
+    const processSignal = contextual.mock.method(process, 'on', () => {
+      /* noop */
+    });
     let sigIntHandlerFn;
     const sandboxStartMock = contextual.mock.method(
       sandbox,
