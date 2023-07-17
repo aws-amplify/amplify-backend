@@ -13,6 +13,7 @@ import { AuthClientConfigContributor } from './client-config-contributor/auth_cl
 import { DataClientConfigContributor } from './client-config-contributor/data_client_config_contributor.js';
 import { ClientConfigGenerator } from './client_config_generator.js';
 import { StorageClientConfigContributor } from './client-config-contributor/storage_client_config_contributor.js';
+import { ApiClientConfigContributor } from '@aws-amplify/api-client-config';
 
 /**
  * Creates ClientConfigGenerators given different backend identifiers
@@ -23,6 +24,7 @@ export class ClientConfigGeneratorFactory {
     new AuthClientConfigContributor(),
     new DataClientConfigContributor(),
     new StorageClientConfigContributor(),
+    new ApiClientConfigContributor(),
   ];
   /**
    * Provide the factory with AWS credentials. These credentials will be used to configure underlying SDK clients for resolving backend output.

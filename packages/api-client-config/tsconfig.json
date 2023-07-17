@@ -1,8 +1,5 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": { "rootDir": "src", "outDir": "lib" },
-  "references": [
-    { "path": "../api-client-config" },
-    { "path": "../plugin-types" }
-  ]
+  "references": []
 }

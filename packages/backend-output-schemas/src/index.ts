@@ -2,6 +2,10 @@ import { z } from 'zod';
 import { versionedAuthOutputSchema } from './auth/index.js';
 import { versionedDataOutputSchema } from './data/index.js';
 import { versionedStorageOutputSchema } from './storage/index.js';
+import {
+  versionedApiOutputSchema,
+  ApiOutputKey,
+} from '@aws-amplify/api-client-config';
 
 /**
  * Expected key that auth output is stored under
@@ -23,6 +27,7 @@ export const unifiedBackendOutputSchema = z.object({
   [authOutputKey]: versionedAuthOutputSchema.optional(),
   [dataOutputKey]: versionedDataOutputSchema.optional(),
   [storageOutputKey]: versionedStorageOutputSchema.optional(),
+  [ApiOutputKey]: versionedApiOutputSchema.optional(),
 });
 /**
  * This type is a subset of the BackendOutput type that is exposed by the platform.
