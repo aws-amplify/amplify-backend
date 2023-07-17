@@ -121,9 +121,9 @@ export class Sandbox {
         '--app',
         "'npx tsx index.ts'",
         '--context',
-        'project-name=' + this.projectName,
+        `project-name=${this.projectName}`,
         '--context',
-        'environment-name=' + this.environmentName,
+        `environment-name=${this.environmentName}`,
       ];
       if (cdkCommand === CDKCommand.DEPLOY) {
         cdkCommandArgs.push('--hotswap-fallback', '--method=direct');

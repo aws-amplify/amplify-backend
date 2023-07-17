@@ -1,7 +1,6 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { Sandbox } from '@aws-amplify/sandbox';
-import prompter from 'enquirer';
-
+import { AmplifyPrompter } from '../../prompter/amplify_prompts.js';
 /**
  * Command that deletes the sandbox environment.
  */
@@ -32,20 +31,16 @@ export class SandboxDeleteCommand
   handler = async (
     args: ArgumentsCamelCase<SandboxDeleteCommandOptions>
   ): Promise<void> => {
-    let confirm = args.force;
-    if (!confirm) {
-      const answer = await prompter.prompt<{ result: boolean }>({
-        type: 'confirm',
-        name: 'result',
-        initial: false,
-        format: (value) => (value ? 'y' : 'N'),
+    let isConfirmed = args.yes;
+    if (!isConfirmed) {
+      const answer = await AmplifyPrompter.yesOrNo({
         message:
           "Are you sure you want to delete all the resources in your sandbox environment (This can't be undone)?",
       });
-      confirm = answer.result;
+      isConfirmed = answer;
     }
 
-    if (confirm) {
+    if (isConfirmed) {
       this.sandbox.delete();
     }
   };
@@ -56,11 +51,12 @@ export class SandboxDeleteCommand
   builder = (yargs: Argv): Argv<SandboxDeleteCommandOptions> => {
     return (
       yargs
-        .option('force', {
+        .option('yes', {
           describe:
             'Do not ask for confirmation before deleting the sandbox environment',
           type: 'boolean',
           array: false,
+          alias: 'y',
         })
         // kinda hack to "hide" the parent command options from getting displayed in the help
         .option('exclude', {
@@ -82,5 +78,5 @@ export class SandboxDeleteCommand
 }
 
 export type SandboxDeleteCommandOptions = {
-  force?: boolean;
+  yes?: boolean;
 };

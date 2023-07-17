@@ -1,6 +1,5 @@
 import { beforeEach, describe, it, mock } from 'node:test';
-import prompter from 'enquirer';
-
+import { AmplifyPrompter } from '../prompter/amplify_prompts.js';
 import yargs, { CommandModule } from 'yargs';
 import {
   TestCommandError,
@@ -25,11 +24,6 @@ describe('sandbox command', () => {
     return Promise.resolve();
   });
   const sandbox_delete_command = new SandboxDeleteCommand(sandbox);
-  const sandbox_delete_command_mock = mock.method(
-    sandbox_delete_command,
-    'handler',
-    () => Promise.resolve()
-  );
 
   const sandboxCommand = new SandboxCommand(sandbox, sandbox_delete_command);
   const parser = yargs().command(sandboxCommand as unknown as CommandModule);
@@ -37,7 +31,6 @@ describe('sandbox command', () => {
 
   beforeEach(() => {
     sandboxStartMock.mock.resetCalls();
-    sandbox_delete_command_mock.mock.resetCalls();
   });
 
   it('starts sandbox without any additional flags', async () => {
@@ -90,7 +83,7 @@ describe('sandbox command', () => {
   it('asks to delete the sandbox environment when users send ctrl-C and say yes to delete', async (contextual) => {
     // Mock process and extract the sigint handler
     const processSignal = contextual.mock.method(process, 'on', () => {
-      /* noop */
+      /* no op */
     });
     let sigIntHandlerFn;
     const sandboxStartMock = contextual.mock.method(
@@ -99,28 +92,32 @@ describe('sandbox command', () => {
       async () => {
         sigIntHandlerFn = processSignal.mock.calls[0].arguments[1];
         if (sigIntHandlerFn) sigIntHandlerFn();
+        return Promise.resolve();
+      }
+    );
+
+    const sandboxDeleteMock = contextual.mock.method(
+      sandbox,
+      'delete',
+      async () => {
         return Promise.resolve();
       }
     );
 
     // User said yes to delete
-    contextual.mock.method(prompter.prototype, 'prompt', () => {
-      return Promise.resolve({ result: true });
+    contextual.mock.method(AmplifyPrompter, 'yesOrNo', () => {
+      return Promise.resolve(true);
     });
     await commandRunner.runCommand('sandbox');
     assert.equal(sandboxStartMock.mock.callCount(), 1);
-    assert.equal(sandbox_delete_command_mock.mock.callCount(), 1);
+    assert.equal(sandboxDeleteMock.mock.callCount(), 1);
   });
 
   it('asks to delete the sandbox environment when users send ctrl-C and say no to delete', async (contextual) => {
     // Mock process and extract the sigint handler
-    const processSignal = contextual.mock.method(
-      process,
-      'on',
-      (signal: string) => {
-        console.log(signal);
-      }
-    );
+    const processSignal = contextual.mock.method(process, 'on', () => {
+      /* no op */
+    });
     let sigIntHandlerFn;
     const sandboxStartMock = contextual.mock.method(
       sandbox,
@@ -132,12 +129,20 @@ describe('sandbox command', () => {
       }
     );
 
+    const sandboxDeleteMock = contextual.mock.method(
+      sandbox,
+      'delete',
+      async () => {
+        return Promise.resolve();
+      }
+    );
+
     // User said no to delete
-    contextual.mock.method(prompter.prototype, 'prompt', () => {
-      return Promise.resolve({ result: false });
+    contextual.mock.method(AmplifyPrompter, 'yesOrNo', () => {
+      return Promise.resolve(false);
     });
     await commandRunner.runCommand('sandbox');
     assert.equal(sandboxStartMock.mock.callCount(), 1);
-    assert.equal(sandbox_delete_command_mock.mock.callCount(), 0);
+    assert.equal(sandboxDeleteMock.mock.callCount(), 0);
   });
 });

@@ -1,11 +1,8 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { Sandbox } from '@aws-amplify/sandbox';
-import prompter from 'enquirer';
-import {
-  SandboxDeleteCommand,
-  SandboxDeleteCommandOptions,
-} from './sandbox_delete/sandbox_delete_command.js';
+import { SandboxDeleteCommand } from './sandbox_delete/sandbox_delete_command.js';
 import fs from 'fs';
+import { AmplifyPrompter } from '../prompter/amplify_prompts.js';
 export type SandboxCommandOptions = {
   dirToWatch: string | undefined;
   exclude: string[] | undefined;
@@ -44,7 +41,7 @@ export class SandboxCommand
   handler = async (
     args: ArgumentsCamelCase<SandboxCommandOptions>
   ): Promise<void> => {
-    process.on('SIGINT', this.sigIntHandler);
+    process.once('SIGINT', this.sigIntHandler.bind(this));
     await this.sandbox.start(args);
   };
 
@@ -86,17 +83,11 @@ export class SandboxCommand
   };
 
   sigIntHandler = async () => {
-    const answer = await prompter.prompt<{ result: boolean }>({
-      type: 'confirm',
-      name: 'result',
-      initial: false,
-      format: (value) => (value ? 'y' : 'N'),
+    const answer = await AmplifyPrompter.yesOrNo({
       message:
         'Would you like to delete all the resources in your sandbox environment (This cannot be undone)?',
+      defaultValue: false,
     });
-    if (answer.result)
-      await this.sandboxDeleteCommand.handler({
-        force: true,
-      } as ArgumentsCamelCase<SandboxDeleteCommandOptions>);
+    if (answer) await this.sandbox.delete();
   };
 }
