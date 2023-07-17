@@ -6,9 +6,9 @@ import { confirm } from '@inquirer/prompts';
 export class AmplifyPrompter {
   /**
    * A confirm style prompt. Styles question as `y/N`
-   * @param options parameters for displaying the prompt
-   * @param options.message message display for the prompt
-   * @param options.defaultValue if user presses enter without typing anything. Defaults false
+   * @param options for displaying the prompt
+   * @param options.message display for the prompt
+   * @param options.defaultValue if user submits without typing anything. Defaults false
    * @returns the boolean answer
    */
   static yesOrNo = async (options: {
