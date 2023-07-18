@@ -6,8 +6,9 @@
 
 // @public
 export class Sandbox {
-    constructor(options: SandboxOptions);
-    start(): Promise<void>;
+    constructor();
+    delete(): Promise<void>;
+    start(options: SandboxOptions): Promise<void>;
     stop(): Promise<void>;
 }
 

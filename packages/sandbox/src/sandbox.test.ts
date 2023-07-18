@@ -30,11 +30,11 @@ describe('Sandbox', () => {
    */
   beforeEach(async () => {
     invokeCDKExecMock.mock.resetCalls();
-    sandboxInstance = new Sandbox({
+    sandboxInstance = new Sandbox();
+    await sandboxInstance.start({
       dir: 'testDir',
       exclude: ['exclude1', 'exclude2'],
     });
-    await sandboxInstance.start();
     if (
       subscribeMock.mock.calls[0].arguments[1] &&
       typeof subscribeMock.mock.calls[0].arguments[1] === 'function'
@@ -69,12 +69,12 @@ describe('Sandbox', () => {
         'deploy',
         '--app',
         "'npx tsx index.ts'",
-        '--hotswap-fallback',
-        '--method=direct',
         '--context',
         'project-name=testProject',
         '--context',
         'environment-name=testEnvironment',
+        '--hotswap-fallback',
+        '--method=direct',
       ],
     ]);
   });
@@ -126,5 +126,28 @@ describe('Sandbox', () => {
     await new Promise((res) => setTimeout(res, 500));
 
     assert.strictEqual(invokeCDKExecMock.mock.callCount(), 2);
+  });
+
+  it('calls CDK destroy when delete is called', async () => {
+    await sandboxInstance.delete();
+
+    // CDK should be called once
+    assert.strictEqual(invokeCDKExecMock.mock.callCount(), 1);
+
+    // CDK should be called with the right params
+    assert.deepStrictEqual(invokeCDKExecMock.mock.calls[0].arguments, [
+      'npx',
+      [
+        'cdk',
+        'destroy',
+        '--app',
+        "'npx tsx index.ts'",
+        '--context',
+        'project-name=testProject',
+        '--context',
+        'environment-name=testEnvironment',
+        '--force',
+      ],
+    ]);
   });
 });
