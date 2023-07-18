@@ -1,7 +1,8 @@
 import { glob } from 'glob';
 import path from 'path';
 import assert from 'node:assert';
-import fs from 'fs';
+import * as fse from 'fs-extra/esm';
+import * as fs from 'fs';
 
 const UPDATE_SNAPSHOTS = process.env.UPDATE_INTEGRATION_SNAPSHOTS === 'true';
 
@@ -31,6 +32,7 @@ export const validateCdkOutDir = async (
   const normalize = (paths: string[]) =>
     paths
       .filter((p) => !ignoreFiles.some((ignoreFile) => p.endsWith(ignoreFile)))
+      .filter((p) => !path.basename(p).startsWith('asset.'))
       .sort();
 
   const normalizedActualFiles = normalize(actualFiles);
@@ -39,7 +41,7 @@ export const validateCdkOutDir = async (
   if (UPDATE_SNAPSHOTS) {
     normalizedActualFiles.forEach((actualFile) => {
       const destination = path.resolve(expectedDir, path.basename(actualFile));
-      fs.copyFileSync(actualFile, destination);
+      fse.copySync(actualFile, destination);
     });
     return;
   }

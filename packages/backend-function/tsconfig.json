@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": { "rootDir": "src", "outDir": "lib" },
+  "references": [
+    { "path": "../function-construct" },
+    { "path": "../backend-engine" },
+    { "path": "../plugin-types" }
+  ]
+}
