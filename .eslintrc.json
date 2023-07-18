@@ -19,6 +19,7 @@
   "plugins": ["@typescript-eslint", "unicorn", "jsdoc", "import"],
   "rules": {
     "@typescript-eslint/switch-exhaustiveness-check": "error",
+    "no-console": "error",
     "no-duplicate-imports": "error",
     "import/no-extraneous-dependencies": "error",
     "unicorn/filename-case": [
