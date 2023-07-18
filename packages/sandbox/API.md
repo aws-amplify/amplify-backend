@@ -5,8 +5,28 @@
 ```ts
 
 // @public
+export class AmplifyCDKExecutor {
+    executeChildProcess: (command: string, cdkCommandArgs: string[]) => Promise<void>;
+    invokeCDKWithDebounce: (cdkCommand: CDKCommand, cdkOptions?: CDKOptions | undefined) => Promise<void>;
+}
+
+// @public (undocumented)
+export enum CDKCommand {
+    // (undocumented)
+    DEPLOY = "deploy",
+    // (undocumented)
+    DESTROY = "destroy"
+}
+
+// @public (undocumented)
+export type CDKOptions = {
+    projectName?: string;
+    environmentName?: string;
+};
+
+// @public
 export class Sandbox {
-    constructor();
+    constructor(cdkExecutor?: AmplifyCDKExecutor);
     delete(): Promise<void>;
     start(options: SandboxOptions): Promise<void>;
     stop(): Promise<void>;

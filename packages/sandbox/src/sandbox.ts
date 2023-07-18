@@ -1,7 +1,6 @@
 import debounce from 'debounce-promise';
 import parcelWatcher, { subscribe } from '@parcel/watcher';
-import child_process from 'node:child_process';
-import util from 'node:util';
+import { AmplifyCDKExecutor, CDKCommand } from './cdk_executor.js';
 
 /**
  * Main class for Sandbox. Runs a file watcher and deploys using cdk
@@ -14,7 +13,9 @@ export class Sandbox {
   /**
    * Creates a watcher process for this instance
    */
-  constructor() {
+  constructor(
+    private readonly cdkExecutor: AmplifyCDKExecutor = new AmplifyCDKExecutor()
+  ) {
     process.once('SIGINT', this.stop.bind(this));
     process.once('SIGTERM', this.stop.bind(this));
   }
@@ -41,7 +42,10 @@ export class Sandbox {
 
     const deployAndWatch = debounce(async () => {
       latch = 'deploying';
-      await this.invokeCDKWithDebounce(CDKCommand.DEPLOY);
+      await this.cdkExecutor.invokeCDKWithDebounce(CDKCommand.DEPLOY, {
+        projectName: this.projectName,
+        environmentName: this.environmentName,
+      });
 
       // If latch is still 'deploying' after the 'await', that's fine,
       // but if it's 'queued', that means we need to deploy again
@@ -52,7 +56,10 @@ export class Sandbox {
         console.log(
           "[Sandbox] Detected file changes while previous deployment was in progress. Invoking 'sandbox' again"
         );
-        await this.invokeCDKWithDebounce(CDKCommand.DEPLOY);
+        await this.cdkExecutor.invokeCDKWithDebounce(CDKCommand.DEPLOY, {
+          projectName: this.projectName,
+          environmentName: this.environmentName,
+        });
       }
       latch = 'open';
       this.emitWatching();
@@ -101,43 +108,12 @@ export class Sandbox {
     console.log(
       '[Sandbox] Deleting all the resources in the sandbox environment...'
     );
-    await this.invokeCDKWithDebounce(CDKCommand.DESTROY);
+    await this.cdkExecutor.invokeCDKWithDebounce(CDKCommand.DESTROY, {
+      projectName: this.projectName,
+      environmentName: this.environmentName,
+    });
     console.log('[Sandbox] Finished deleting.');
   }
-
-  /**
-   * Function that deploys backend resources using CDK.
-   * Debounce is added in case multiple duplicate events are received.
-   */
-  private invokeCDKWithDebounce = debounce(
-    async (cdkCommand: CDKCommand): Promise<void> => {
-      const execPromisified = util.promisify(child_process.execFile);
-
-      console.debug(`[Sandbox] Executing cdk ${cdkCommand.toString()}`);
-
-      const cdkCommandArgs = [
-        'cdk',
-        cdkCommand.toString(),
-        '--app',
-        "'npx tsx index.ts'",
-        '--context',
-        `project-name=${this.projectName}`,
-        '--context',
-        `environment-name=${this.environmentName}`,
-      ];
-      if (cdkCommand === CDKCommand.DEPLOY) {
-        cdkCommandArgs.push('--hotswap-fallback', '--method=direct');
-      } else if (cdkCommand == CDKCommand.DESTROY) {
-        cdkCommandArgs.push('--force');
-      }
-      const { stdout, stderr } = await execPromisified('npx', cdkCommandArgs);
-      if (stderr) {
-        console.error(stderr);
-      }
-      console.log(stdout);
-    },
-    100
-  );
 
   /**
    * Just a shorthand console log to indicate whenever watcher is going idle
@@ -151,8 +127,3 @@ export type SandboxOptions = {
   dir?: string;
   exclude?: string[];
 };
-
-enum CDKCommand {
-  DEPLOY = 'deploy',
-  DESTROY = 'destroy',
-}
