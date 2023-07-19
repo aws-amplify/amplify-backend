@@ -8,13 +8,43 @@ import {
   AmplifyFunctionProps,
 } from '@aws-amplify/function-construct';
 import { Construct } from 'constructs';
-import { execaCommandSync } from 'execa';
+import { execaCommand } from 'execa';
 import * as path from 'path';
+import { getCallerDirectory } from './get_caller_directory.js';
 
-export type AmplifyFunctionFactoryProps = AmplifyFunctionProps & {
+export type AmplifyFunctionBaseProps = {
+  /**
+   * A name for the function that is used to disambiguate it from other functions in the project
+   */
   name: string;
-  buildCommand?: string;
 };
+
+export type AmplifyFunctionBuildProps = AmplifyFunctionBaseProps &
+  Omit<AmplifyFunctionProps, 'absoluteCodePath'> & {
+    /**
+     * The command to run that generates built function code.
+     * This command is run from the directory where this factory is called
+     */
+    buildCommand: string;
+    /**
+     * The buildCommand is expected to place build artifacts at this location.
+     * This path can be relative or absolute. If relative, the absolute path is calculated based on the directory where this factory is called
+     */
+    outDir: string;
+  };
+
+export type AmplifyFunctionFromDirProps = AmplifyFunctionBaseProps &
+  Omit<AmplifyFunctionProps, 'absoluteCodePath'> & {
+    /**
+     * The location of the pre-built function code.
+     * Can be a directory or a .zip file.
+     * Can be a relative or absolute path. If relative, the absolute path is calculated based on the directory where this factory is called.
+     */
+    codePath: string;
+  };
+
+type AmplifyFunctionFactoryProps = AmplifyFunctionBaseProps &
+  AmplifyFunctionProps;
 
 /**
  * Create Lambda functions in the context of an Amplify backend definition
@@ -22,19 +52,53 @@ export type AmplifyFunctionFactoryProps = AmplifyFunctionProps & {
 export class AmplifyFunctionFactory
   implements ConstructFactory<AmplifyFunction>
 {
+  // execaCommand is assigned to a static prop so that it can be mocked in tests
+  private static commandExecutor = execaCommand;
+
   private generator: ConstructContainerEntryGenerator;
-  private readonly importLocation: string;
   /**
    * Create a new AmplifyFunctionFactory
    */
-  constructor(private readonly props: AmplifyFunctionFactoryProps) {
-    this.importLocation = this.getImportLocation(new Error().stack);
-    if (!path.isAbsolute(props.codeLocation)) {
-      props.codeLocation = path.resolve(
-        this.importLocation,
-        props.codeLocation
-      );
-    }
+  private constructor(private readonly props: AmplifyFunctionFactoryProps) {}
+
+  /**
+   * Create a function from a directory that contains pre-built code
+   */
+  static fromDir(props: AmplifyFunctionFromDirProps): AmplifyFunctionFactory {
+    const absoluteCodePath = path.isAbsolute(props.codePath)
+      ? props.codePath
+      : path.resolve(getCallerDirectory(new Error().stack), props.codePath);
+    return new AmplifyFunctionFactory({
+      name: props.name,
+      absoluteCodePath,
+      runtime: props.runtime,
+      handler: props.handler,
+    });
+  }
+
+  /**
+   * Create a function by executing a build command that places build artifacts at a specified location
+   */
+  static async build(
+    props: AmplifyFunctionBuildProps
+  ): Promise<AmplifyFunctionFactory> {
+    const importPath = getCallerDirectory(new Error().stack);
+
+    await AmplifyFunctionFactory.commandExecutor(props.buildCommand, {
+      cwd: importPath,
+      stdio: 'inherit',
+    });
+
+    const absoluteCodePath = path.isAbsolute(props.outDir)
+      ? props.outDir
+      : path.resolve(importPath, props.outDir);
+
+    return new AmplifyFunctionFactory({
+      name: props.name,
+      absoluteCodePath,
+      runtime: props.runtime,
+      handler: props.handler,
+    });
   }
 
   /**
@@ -44,59 +108,18 @@ export class AmplifyFunctionFactory
     constructContainer,
   }: ConstructFactoryGetInstanceProps): AmplifyFunction {
     if (!this.generator) {
-      this.generator = new AmplifyFunctionGenerator(
-        this.props,
-        this.importLocation
-      );
+      this.generator = new AmplifyFunctionGenerator(this.props);
     }
     return constructContainer.getOrCompute(this.generator) as AmplifyFunction;
-  }
-
-  /**
-   * Extracts the file location where this class is imported. This is used as the base path for relative code locations
-   */
-  private getImportLocation(stack?: string): string {
-    const unresolvedImportLocationError = new Error(
-      'Could not determine import path to construct absolute code path from relative path. Consider using an absolute path instead.'
-    );
-    if (!stack) {
-      throw unresolvedImportLocationError;
-    }
-    const stacktraceLines =
-      stack
-        .split('\n')
-        .map((line) => line.trim())
-        .filter((line) => line.startsWith('at')) || [];
-    if (stacktraceLines.length < 2) {
-      throw unresolvedImportLocationError;
-    }
-    const stackTraceImportLine = stacktraceLines[1]; // the first entry is the file where the error was initialized (our code). The second entry is where the customer called our code which is what we are interested in
-    // the line is something like `at <anonymous> (/some/path/to/file.ts:3:21)`
-    // this regex pulls out the file path, ie `/some/path/to/file.ts`
-    const extractFilePathFromStackTraceLine = /\((?<filepath>[^:]*):.*\)/;
-    const match = stackTraceImportLine.match(extractFilePathFromStackTraceLine);
-    if (!match?.groups?.filepath) {
-      throw unresolvedImportLocationError;
-    }
-    return path.dirname(match.groups.filepath);
   }
 }
 
 class AmplifyFunctionGenerator implements ConstructContainerEntryGenerator {
   readonly resourceGroupName = 'function';
 
-  constructor(
-    private readonly props: AmplifyFunctionFactoryProps,
-    private readonly importLocation: string
-  ) {}
+  constructor(private readonly props: AmplifyFunctionFactoryProps) {}
 
   generateContainerEntry(scope: Construct) {
-    if (this.props.buildCommand) {
-      execaCommandSync(this.props.buildCommand, {
-        stdio: 'inherit',
-        cwd: this.importLocation,
-      });
-    }
     return new AmplifyFunction(scope, this.props.name, this.props);
   }
 }

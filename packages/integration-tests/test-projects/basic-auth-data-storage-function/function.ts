@@ -1,6 +1,6 @@
 import { Func } from '@aws-amplify/backend-function';
 
-export const myFunc = new Func({
+export const myFunc = Func.fromDir({
   name: 'testFunc',
-  codeLocation: './func-src',
+  codePath: './func-src',
 });

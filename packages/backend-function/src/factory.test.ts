@@ -1,5 +1,5 @@
-import { beforeEach, describe, it } from 'node:test';
-import { AmplifyFunctionFactory } from './factory.js';
+import { beforeEach, describe, it, mock } from 'node:test';
+import { Func } from './factory.js';
 import { App, Stack } from 'aws-cdk-lib';
 import {
   NestedStackResolver,
@@ -12,7 +12,7 @@ import {
   ConstructContainer,
 } from '@aws-amplify/plugin-types';
 import assert from 'node:assert';
-import * as fs from 'fs';
+import { fileURLToPath } from 'url';
 
 describe('AmplifyFunctionFactory', () => {
   let constructContainer: ConstructContainer;
@@ -32,9 +32,9 @@ describe('AmplifyFunctionFactory', () => {
   });
 
   it('creates singleton function instance', () => {
-    const functionFactory = new AmplifyFunctionFactory({
+    const functionFactory = Func.fromDir({
       name: 'testFunc',
-      codeLocation: '../test-assets/test-lambda',
+      codePath: '../test-assets/test-lambda',
     });
     const instance1 = functionFactory.getInstance({
       constructContainer,
@@ -47,21 +47,28 @@ describe('AmplifyFunctionFactory', () => {
     assert.strictEqual(instance1, instance2);
   });
 
-  it('executes build command from directory where constructor is used', () => {
-    // the build command creates a test.txt file.
-    // We use the existence of this file as an indicator that the build command ran successfully
-    const relativeTestFileLocation = '../test.txt';
+  it('executes build command from directory where constructor is used', async () => {
+    const commandExecutorMock = mock.fn();
 
-    new AmplifyFunctionFactory({
-      name: 'testFunc',
-      codeLocation: '../test-assets/test-lambda',
-      buildCommand: `touch ${relativeTestFileLocation}`,
-    }).getInstance({ constructContainer, outputStorageStrategy });
+    // Casting to never is necessary because commandExecutor is a private method.
+    // TS yells that it's not a property on Func even though it is there
+    mock.method(Func, 'commandExecutor' as never, commandExecutorMock);
 
-    const testFilePath = new URL(relativeTestFileLocation, import.meta.url);
+    (
+      await Func.build({
+        name: 'testFunc',
+        outDir: '../test-assets/test-lambda',
+        buildCommand: 'test command',
+      })
+    ).getInstance({ constructContainer, outputStorageStrategy });
 
-    assert.ok(fs.existsSync(testFilePath));
-
-    fs.unlinkSync(testFilePath);
+    assert.strictEqual(commandExecutorMock.mock.callCount(), 1);
+    assert.deepStrictEqual(commandExecutorMock.mock.calls[0].arguments, [
+      'test command',
+      {
+        cwd: fileURLToPath(new URL('../src', import.meta.url)),
+        stdio: 'inherit',
+      },
+    ]);
   });
 });

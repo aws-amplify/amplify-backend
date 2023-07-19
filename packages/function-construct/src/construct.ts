@@ -2,7 +2,7 @@ import { Construct } from 'constructs';
 import { Code, Function, IFunction, Runtime } from 'aws-cdk-lib/aws-lambda';
 
 export type AmplifyFunctionProps = {
-  codeLocation: string;
+  absoluteCodePath: string;
   runtime?: Runtime;
   handler?: string;
 };
@@ -19,7 +19,7 @@ export class AmplifyFunction extends Construct {
     super(scope, id);
 
     this.lambda = new Function(this, `${id}LambdaFunction`, {
-      code: Code.fromAsset(props.codeLocation),
+      code: Code.fromAsset(props.absoluteCodePath),
       runtime: props.runtime || Runtime.NODEJS_18_X,
       handler: props.handler || 'index.handler',
     });

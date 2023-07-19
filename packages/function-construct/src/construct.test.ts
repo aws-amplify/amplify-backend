@@ -17,7 +17,7 @@ describe('AmplifyFunction', () => {
   });
   it('creates lambda with specified runtime', () => {
     new AmplifyFunction(stack, 'test', {
-      codeLocation: testCodePath,
+      absoluteCodePath: testCodePath,
       runtime: Runtime.JAVA_8,
     });
     const template = Template.fromStack(stack);
@@ -28,7 +28,7 @@ describe('AmplifyFunction', () => {
 
   it('creates lambda with default runtime', () => {
     new AmplifyFunction(stack, 'test', {
-      codeLocation: testCodePath,
+      absoluteCodePath: testCodePath,
     });
     const template = Template.fromStack(stack);
     template.hasResourceProperties('AWS::Lambda::Function', {
@@ -38,7 +38,7 @@ describe('AmplifyFunction', () => {
 
   it('creates lambda with specified handler', () => {
     new AmplifyFunction(stack, 'test', {
-      codeLocation: testCodePath,
+      absoluteCodePath: testCodePath,
       handler: 'test.main',
     });
     const template = Template.fromStack(stack);
@@ -49,7 +49,7 @@ describe('AmplifyFunction', () => {
 
   it('creates lambda with default handler', () => {
     new AmplifyFunction(stack, 'test', {
-      codeLocation: testCodePath,
+      absoluteCodePath: testCodePath,
     });
     const template = Template.fromStack(stack);
     template.hasResourceProperties('AWS::Lambda::Function', {

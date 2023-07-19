@@ -23,8 +23,8 @@ export const validateCdkOutDir = async (
   // We only care about validating the CFN templates
   const ignoreFiles = ['tree.json', 'cdk.out', 'manifest.json'];
 
-  const actualFiles = await glob(path.join(actualDir, '*'));
-  const expectedFiles = await glob(path.join(expectedDir, '*'));
+  const actualPaths = await glob(path.join(actualDir, '*'));
+  const expectedPaths = await glob(path.join(expectedDir, '*'));
 
   /**
    * Filter out ignoreFiles and sort
@@ -35,11 +35,11 @@ export const validateCdkOutDir = async (
       .filter((p) => !path.basename(p).startsWith('asset.'))
       .sort();
 
-  const normalizedActualFiles = normalize(actualFiles);
-  const normalizedExpectedFiles = normalize(expectedFiles);
+  const normalizedActualPaths = normalize(actualPaths);
+  const normalizedExpectedPaths = normalize(expectedPaths);
 
   if (UPDATE_SNAPSHOTS) {
-    normalizedActualFiles.forEach((actualFile) => {
+    normalizedActualPaths.forEach((actualFile) => {
       const destination = path.resolve(expectedDir, path.basename(actualFile));
       fse.copySync(actualFile, destination);
     });
@@ -47,15 +47,15 @@ export const validateCdkOutDir = async (
   }
 
   assert.deepStrictEqual(
-    normalizedActualFiles.map((fileName) => path.basename(fileName)),
-    normalizedExpectedFiles.map((fileName) => path.basename(fileName))
+    normalizedActualPaths.map((fileName) => path.basename(fileName)),
+    normalizedExpectedPaths.map((fileName) => path.basename(fileName))
   );
 
   // check that JSON files parse to the same object
-  for (let i = 0; i < normalizedActualFiles.length; i++) {
-    const actualFile = normalizedActualFiles[i];
-    const expectedFile = normalizedExpectedFiles[i];
-    if (path.extname(normalizedActualFiles[i]) !== '.json') {
+  for (let i = 0; i < normalizedActualPaths.length; i++) {
+    const actualFile = normalizedActualPaths[i];
+    const expectedFile = normalizedExpectedPaths[i];
+    if (path.extname(normalizedActualPaths[i]) !== '.json') {
       assert.fail(`Unknown file type ${actualFile}`);
     }
     const actualObj = JSON.parse(fs.readFileSync(actualFile, 'utf-8'));
