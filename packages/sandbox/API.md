@@ -5,12 +5,14 @@
 ```ts
 
 // @public
-export class Sandbox {
-    constructor();
-    delete(): Promise<void>;
+export type Sandbox = {
     start(options: SandboxOptions): Promise<void>;
     stop(): Promise<void>;
-}
+    delete(): Promise<void>;
+};
+
+// @public (undocumented)
+export const sandbox: Sandbox;
 
 // @public (undocumented)
 export type SandboxOptions = {
