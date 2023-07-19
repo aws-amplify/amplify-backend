@@ -1,5 +1,5 @@
 import { CDKSandbox } from './cdk_sandbox.js';
-import { ISandbox } from './sandbox.js';
+import { Sandbox } from './sandbox.js';
 
 /**
  * Factory to create a new sandbox
@@ -10,4 +10,4 @@ class SandboxFactory {
   };
 }
 
-export const sandbox: ISandbox = SandboxFactory.createCDKSandbox();
+export const sandbox: Sandbox = SandboxFactory.createCDKSandbox();

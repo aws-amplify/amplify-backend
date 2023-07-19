@@ -1,12 +1,12 @@
 import debounce from 'debounce-promise';
 import parcelWatcher, { subscribe } from '@parcel/watcher';
 import { AmplifyCDKExecutor, CDKCommand } from './cdk_executor.js';
-import { ISandbox, SandboxOptions } from './sandbox.js';
+import { Sandbox, SandboxOptions } from './sandbox.js';
 
 /**
  * Runs a file watcher and deploys using cdk
  */
-export class CDKSandbox implements ISandbox {
+export class CDKSandbox implements Sandbox {
   private watcherSubscription: Awaited<ReturnType<typeof subscribe>>;
   // TODO: https://github.com/aws-amplify/samsara-cli/issues/73
   private readonly projectName = 'testProject';

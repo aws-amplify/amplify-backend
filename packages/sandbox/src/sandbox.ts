@@ -1,7 +1,7 @@
 /**
  * Interface for Sandbox.
  */
-export type ISandbox = {
+export type Sandbox = {
   /**
    * Starts the sandbox
    * @param options - such as which directory to watch for file changes

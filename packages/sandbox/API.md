@@ -5,14 +5,14 @@
 ```ts
 
 // @public
-export type ISandbox = {
+export type Sandbox = {
     start(options: SandboxOptions): Promise<void>;
     stop(): Promise<void>;
     delete(): Promise<void>;
 };
 
 // @public (undocumented)
-export const sandbox: ISandbox;
+export const sandbox: Sandbox;
 
 // @public (undocumented)
 export type SandboxOptions = {

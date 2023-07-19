@@ -1,5 +1,5 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
-import { ISandbox } from '@aws-amplify/sandbox';
+import { Sandbox } from '@aws-amplify/sandbox';
 import { SandboxDeleteCommand } from './sandbox_delete/sandbox_delete_command.js';
 import fs from 'fs';
 import { AmplifyPrompter } from '../prompter/amplify_prompts.js';
@@ -28,7 +28,7 @@ export class SandboxCommand
    * Creates sandbox command.
    */
   constructor(
-    private readonly sandbox: ISandbox,
+    private readonly sandbox: Sandbox,
     private readonly sandboxDeleteCommand: SandboxDeleteCommand
   ) {
     this.command = 'sandbox';
