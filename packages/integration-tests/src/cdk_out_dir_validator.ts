@@ -39,9 +39,9 @@ export const validateCdkOutDir = async (
   const normalizedExpectedPaths = normalize(expectedPaths);
 
   if (UPDATE_SNAPSHOTS) {
-    normalizedActualPaths.forEach((actualFile) => {
-      const destination = path.resolve(expectedDir, path.basename(actualFile));
-      fse.copySync(actualFile, destination);
+    normalizedActualPaths.forEach((actualPath) => {
+      const destination = path.resolve(expectedDir, path.basename(actualPath));
+      fse.copySync(actualPath, destination);
     });
     return;
   }
