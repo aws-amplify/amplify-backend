@@ -50,8 +50,7 @@ export class AmplifyCDKExecutor {
    */
   executeChildProcess = async (command: string, cdkCommandArgs: string[]) => {
     await execa(command, cdkCommandArgs, {
-      stdout: 'inherit',
-      stderr: 'inherit',
+      stdio: 'inherit',
     });
   };
 }
