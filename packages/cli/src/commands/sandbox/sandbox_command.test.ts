@@ -22,9 +22,9 @@ describe('sandbox command', () => {
   const sandboxStartMock = mock.method(sandbox, 'start', () => {
     return Promise.resolve();
   });
-  const sandbox_delete_command = new SandboxDeleteCommand();
+  const sandbox_delete_command = new SandboxDeleteCommand(sandbox);
 
-  const sandboxCommand = new SandboxCommand(sandbox_delete_command);
+  const sandboxCommand = new SandboxCommand(sandbox, sandbox_delete_command);
   const parser = yargs().command(sandboxCommand as unknown as CommandModule);
   const commandRunner = new TestCommandRunner(parser);
 

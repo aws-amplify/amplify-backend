@@ -1,5 +1,5 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
-import { sandbox } from '@aws-amplify/sandbox';
+import { ISandbox } from '@aws-amplify/sandbox';
 import { SandboxDeleteCommand } from './sandbox_delete/sandbox_delete_command.js';
 import fs from 'fs';
 import { AmplifyPrompter } from '../prompter/amplify_prompts.js';
@@ -27,7 +27,10 @@ export class SandboxCommand
   /**
    * Creates sandbox command.
    */
-  constructor(private readonly sandboxDeleteCommand: SandboxDeleteCommand) {
+  constructor(
+    private readonly sandbox: ISandbox,
+    private readonly sandboxDeleteCommand: SandboxDeleteCommand
+  ) {
     this.command = 'sandbox';
     this.describe = 'Starts sandbox, watch mode for amplify deployments';
   }
@@ -39,7 +42,7 @@ export class SandboxCommand
     args: ArgumentsCamelCase<SandboxCommandOptions>
   ): Promise<void> => {
     process.once('SIGINT', this.sigIntHandler.bind(this));
-    await sandbox.start(args);
+    await this.sandbox.start(args);
   };
 
   /**
@@ -85,6 +88,6 @@ export class SandboxCommand
         'Would you like to delete all the resources in your sandbox environment (This cannot be undone)?',
       defaultValue: false,
     });
-    if (answer) await sandbox.delete();
+    if (answer) await this.sandbox.delete();
   };
 }

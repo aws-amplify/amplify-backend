@@ -1,5 +1,5 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
-import { sandbox } from '@aws-amplify/sandbox';
+import { ISandbox } from '@aws-amplify/sandbox';
 import { AmplifyPrompter } from '../../prompter/amplify_prompts.js';
 /**
  * Command that deletes the sandbox environment.
@@ -20,7 +20,7 @@ export class SandboxDeleteCommand
   /**
    * Deletes sandbox environment.
    */
-  constructor() {
+  constructor(private readonly sandbox: ISandbox) {
     this.command = 'delete';
     this.describe = 'Deletes sandbox environment';
   }
@@ -41,7 +41,7 @@ export class SandboxDeleteCommand
     }
 
     if (isConfirmed) {
-      sandbox.delete();
+      this.sandbox.delete();
     }
   };
 
