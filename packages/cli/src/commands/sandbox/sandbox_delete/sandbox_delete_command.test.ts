@@ -3,28 +3,25 @@ import { AmplifyPrompter } from '../../prompter/amplify_prompts.js';
 import yargs, { CommandModule } from 'yargs';
 import { TestCommandRunner } from '../../../test_utils/command_runner.js';
 import assert from 'node:assert';
-import { Sandbox } from '@aws-amplify/sandbox';
 import { SandboxDeleteCommand } from './sandbox_delete_command.js';
 import { createSandboxDeleteCommand } from './sandbox_delete_command_factory.js';
 import { SandboxCommand } from '../sandbox_command.js';
+import { sandbox } from '@aws-amplify/sandbox';
 
 describe('sandbox delete command factory', () => {
   it('instantiate a sandbox delete command correctly', () => {
-    assert.ok(
-      createSandboxDeleteCommand(new Sandbox()) instanceof SandboxDeleteCommand
-    );
+    assert.ok(createSandboxDeleteCommand() instanceof SandboxDeleteCommand);
   });
 });
 
 describe('sandbox delete command', () => {
-  const sandbox = new Sandbox();
   const sandboxDeleteMock = mock.method(sandbox, 'delete', () => {
     return Promise.resolve();
   });
 
-  const sandbox_delete_command = new SandboxDeleteCommand(sandbox);
+  const sandbox_delete_command = new SandboxDeleteCommand();
 
-  const sandboxCommand = new SandboxCommand(sandbox, sandbox_delete_command);
+  const sandboxCommand = new SandboxCommand(sandbox_delete_command);
   const parser = yargs().command(sandboxCommand as unknown as CommandModule);
   const commandRunner = new TestCommandRunner(parser);
 

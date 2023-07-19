@@ -7,7 +7,7 @@ import {
 } from '../../test_utils/command_runner.js';
 import assert from 'node:assert';
 import fs from 'fs';
-import { Sandbox } from '@aws-amplify/sandbox';
+import { sandbox } from '@aws-amplify/sandbox';
 import { SandboxCommand } from './sandbox_command.js';
 import { createSandboxCommand } from './sandbox_command_factory.js';
 import { SandboxDeleteCommand } from './sandbox_delete/sandbox_delete_command.js';
@@ -19,13 +19,12 @@ describe('sandbox command factory', () => {
 });
 
 describe('sandbox command', () => {
-  const sandbox = new Sandbox();
   const sandboxStartMock = mock.method(sandbox, 'start', () => {
     return Promise.resolve();
   });
-  const sandbox_delete_command = new SandboxDeleteCommand(sandbox);
+  const sandbox_delete_command = new SandboxDeleteCommand();
 
-  const sandboxCommand = new SandboxCommand(sandbox, sandbox_delete_command);
+  const sandboxCommand = new SandboxCommand(sandbox_delete_command);
   const parser = yargs().command(sandboxCommand as unknown as CommandModule);
   const commandRunner = new TestCommandRunner(parser);
 

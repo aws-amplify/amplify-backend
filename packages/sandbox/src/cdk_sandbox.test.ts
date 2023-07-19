@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import watcher from '@parcel/watcher';
-import { Sandbox } from './sandbox.js';
+import { CDKSandbox } from './cdk_sandbox.js';
 import assert from 'node:assert';
 import { AmplifyCDKExecutor } from './cdk_executor.js';
 
@@ -13,7 +13,7 @@ let fileChangeEventActualFn: watcher.SubscribeCallback;
 
 describe('Sandbox', () => {
   // class under test
-  let sandboxInstance: Sandbox;
+  let sandboxInstance: CDKSandbox;
 
   const cdkExecutor = new AmplifyCDKExecutor();
   const execaMock = mock.method(cdkExecutor, 'executeChildProcess', () =>
@@ -26,7 +26,7 @@ describe('Sandbox', () => {
    */
   beforeEach(async () => {
     execaMock.mock.resetCalls();
-    sandboxInstance = new Sandbox(cdkExecutor);
+    sandboxInstance = new CDKSandbox(cdkExecutor);
     await sandboxInstance.start({
       dir: 'testDir',
       exclude: ['exclude1', 'exclude2'],
