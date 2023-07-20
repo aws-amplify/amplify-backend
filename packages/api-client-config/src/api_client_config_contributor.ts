@@ -38,12 +38,8 @@ export class ApiClientConfigContributor {
         apiOutput.payload[
           ApiClientConfigMapping.aws_appsync_authenticationType
         ],
-      graphql_endpoint:
-        apiOutput.payload[ApiClientConfigMapping.graphql_endpoint],
       aws_appsync_apiKey:
         apiOutput.payload[ApiClientConfigMapping.aws_appsync_apiKey],
-      graphql_endpoint_iam_region:
-        apiOutput.payload[ApiClientConfigMapping.graphql_endpoint_iam_region],
     };
   }
 }
