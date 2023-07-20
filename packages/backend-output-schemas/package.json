@@ -28,6 +28,9 @@
   "scripts": {
     "update:api": "api-extractor run --local"
   },
+  "dependencies": {
+    "@aws-amplify/api-output-schema": "^0.1.0"
+  },
   "devDependencies": {
     "@aws-amplify/plugin-types": "0.1.0"
   },

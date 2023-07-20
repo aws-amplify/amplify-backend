@@ -97,18 +97,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       dataConstructProps
     );
 
-    const dataOutput: DataOutput = {
-      version: '1',
-      payload: {
-        appSyncApiEndpoint:
-          dataConstruct.resources.cfnGraphqlApi.attrGraphQlUrl,
-      },
-    };
-
-    if (dataConstruct.resources.cfnApiKey) {
-      dataOutput.payload.appSyncApiKey =
-        dataConstruct.resources.cfnApiKey?.attrApiKey;
-    }
+    const output = dataConstruct.output();
 
     this.outputStorageStrategy.addBackendOutputEntry(dataOutputKey, dataOutput);
     return dataConstruct;

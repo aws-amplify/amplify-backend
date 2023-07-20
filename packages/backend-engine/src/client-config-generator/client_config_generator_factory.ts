@@ -7,10 +7,10 @@ import {
   ProjectEnvironmentIdentifier,
   StackIdentifier,
 } from '@aws-amplify/plugin-types';
+import { ApiClientConfigContributor } from '@aws-amplify/api-client-config-contributor';
 import { StackNameMainStackNameResolver } from './stack_name_main_stack_name_resolver.js';
 import { ProjectEnvironmentMainStackNameResolver } from './project_environment_main_stack_name_resolver.js';
 import { AuthClientConfigContributor } from './client-config-contributor/auth_client_config_contributor.js';
-import { DataClientConfigContributor } from './client-config-contributor/data_client_config_contributor.js';
 import { ClientConfigGenerator } from './client_config_generator.js';
 import { StorageClientConfigContributor } from './client-config-contributor/storage_client_config_contributor.js';
 
@@ -21,7 +21,7 @@ export class ClientConfigGeneratorFactory {
   private readonly cfnClient: CloudFormationClient;
   private readonly clientConfigContributors = [
     new AuthClientConfigContributor(),
-    new DataClientConfigContributor(),
+    new ApiClientConfigContributor(),
     new StorageClientConfigContributor(),
   ];
   /**

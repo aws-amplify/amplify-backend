@@ -1,16 +1,15 @@
 import { z } from 'zod';
+import {
+  versionedApiOutputSchema,
+  ApiOutputKey,
+} from '@aws-amplify/api-output-schema';
 import { versionedAuthOutputSchema } from './auth/index.js';
-import { versionedDataOutputSchema } from './data/index.js';
 import { versionedStorageOutputSchema } from './storage/index.js';
 
 /**
  * Expected key that auth output is stored under
  */
 export const authOutputKey = 'authOutput';
-/**
- * Expected key that data output is stored under
- */
-export const dataOutputKey = 'dataOutput';
 /**
  * Expected key that storage output is stored under
  */
@@ -21,7 +20,7 @@ export const storageOutputKey = 'storageOutput';
  */
 export const unifiedBackendOutputSchema = z.object({
   [authOutputKey]: versionedAuthOutputSchema.optional(),
-  [dataOutputKey]: versionedDataOutputSchema.optional(),
+  [apiOutputKey]: versionedApiOutputSchema.option(),
   [storageOutputKey]: versionedStorageOutputSchema.optional(),
 });
 /**
