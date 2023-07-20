@@ -11,9 +11,7 @@ export type ApiClientConfig = {
     aws_appsync_region?: string;
     aws_appsync_graphqlEndpoint?: string;
     aws_appsync_authenticationType?: string;
-    graphql_endpoint?: string;
     aws_appsync_apiKey?: string;
-    graphql_endpoint_iam_region?: string;
 };
 
 // @public
@@ -26,17 +24,13 @@ export class ApiClientConfigContributor {
 // @public (undocumented)
 export enum ApiClientConfigMapping {
     // (undocumented)
-    aws_appsync_apiKey = "appSyncApiKey",
+    aws_appsync_apiKey = "awsAppsyncApiKey",
     // (undocumented)
-    aws_appsync_authenticationType = "appSyncAuthenticationType",
+    aws_appsync_authenticationType = "awsAppsyncAuthenticationType",
     // (undocumented)
-    aws_appsync_graphqlEndpoint = "appSyncApiEndpoint",
+    aws_appsync_graphqlEndpoint = "awsAppsyncApiEndpoint",
     // (undocumented)
-    aws_appsync_region = "appSyncRegion",
-    // (undocumented)
-    graphql_endpoint = "graphqlEndpoint",
-    // (undocumented)
-    graphql_endpoint_iam_region = "graphqlEndpointIamRegion"
+    aws_appsync_region = "awsAppsyncRegion"
 }
 
 // @public (undocumented)
@@ -49,46 +43,36 @@ export const ApiOutputKey = "apiOutput";
 export const versionedApiOutputSchema: z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
     version: z.ZodLiteral<"1">;
     payload: z.ZodObject<{
-        appSyncRegion: z.ZodOptional<z.ZodString>;
-        appSyncApiEndpoint: z.ZodString;
-        appSyncApiKey: z.ZodOptional<z.ZodString>;
-        appSyncAuthenticationType: z.ZodOptional<z.ZodString>;
-        graphqlEndpoint: z.ZodOptional<z.ZodString>;
-        graphqlEndpointIamRegion: z.ZodOptional<z.ZodString>;
+        awsAppsyncRegion: z.ZodOptional<z.ZodString>;
+        awsAppsyncApiEndpoint: z.ZodString;
+        awsAppsyncAuthenticationType: z.ZodOptional<z.ZodString>;
+        awsAppsyncApiKey: z.ZodOptional<z.ZodString>;
     }, "strip", z.ZodTypeAny, {
-        appSyncApiEndpoint: string;
-        appSyncRegion?: string | undefined;
-        appSyncApiKey?: string | undefined;
-        appSyncAuthenticationType?: string | undefined;
-        graphqlEndpoint?: string | undefined;
-        graphqlEndpointIamRegion?: string | undefined;
+        awsAppsyncApiEndpoint: string;
+        awsAppsyncRegion?: string | undefined;
+        awsAppsyncAuthenticationType?: string | undefined;
+        awsAppsyncApiKey?: string | undefined;
     }, {
-        appSyncApiEndpoint: string;
-        appSyncRegion?: string | undefined;
-        appSyncApiKey?: string | undefined;
-        appSyncAuthenticationType?: string | undefined;
-        graphqlEndpoint?: string | undefined;
-        graphqlEndpointIamRegion?: string | undefined;
+        awsAppsyncApiEndpoint: string;
+        awsAppsyncRegion?: string | undefined;
+        awsAppsyncAuthenticationType?: string | undefined;
+        awsAppsyncApiKey?: string | undefined;
     }>;
 }, "strip", z.ZodTypeAny, {
     version: "1";
     payload: {
-        appSyncApiEndpoint: string;
-        appSyncRegion?: string | undefined;
-        appSyncApiKey?: string | undefined;
-        appSyncAuthenticationType?: string | undefined;
-        graphqlEndpoint?: string | undefined;
-        graphqlEndpointIamRegion?: string | undefined;
+        awsAppsyncApiEndpoint: string;
+        awsAppsyncRegion?: string | undefined;
+        awsAppsyncAuthenticationType?: string | undefined;
+        awsAppsyncApiKey?: string | undefined;
     };
 }, {
     version: "1";
     payload: {
-        appSyncApiEndpoint: string;
-        appSyncRegion?: string | undefined;
-        appSyncApiKey?: string | undefined;
-        appSyncAuthenticationType?: string | undefined;
-        graphqlEndpoint?: string | undefined;
-        graphqlEndpointIamRegion?: string | undefined;
+        awsAppsyncApiEndpoint: string;
+        awsAppsyncRegion?: string | undefined;
+        awsAppsyncAuthenticationType?: string | undefined;
+        awsAppsyncApiKey?: string | undefined;
     };
 }>]>;
 
