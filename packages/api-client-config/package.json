@@ -13,7 +13,7 @@
   "scripts": {
     "update:api": "api-extractor run --local"
   },
-  "dependencies": {
+  "peerDependencies": {
     "zod": "^3.21.4"
   }
 }
