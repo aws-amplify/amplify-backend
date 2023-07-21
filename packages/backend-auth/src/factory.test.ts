@@ -2,6 +2,7 @@ import { beforeEach, describe, it, mock } from 'node:test';
 import { AmplifyAuthFactory } from './factory.js';
 import {
   NestedStackResolver,
+  OptionalPassThroughBackendParameterResolver,
   SingletonConstructContainer,
   StackMetadataBackendOutputStorageStrategy,
   ToggleableImportPathVerifier,
@@ -12,6 +13,7 @@ import { Template } from 'aws-cdk-lib/assertions';
 import {
   BackendOutputEntry,
   BackendOutputStorageStrategy,
+  BackendParameterResolver,
   ConstructContainer,
   ImportPathVerifier,
 } from '@aws-amplify/plugin-types';
@@ -21,6 +23,7 @@ describe('AmplifyAuthFactory', () => {
   let constructContainer: ConstructContainer;
   let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
   let importPathVerifier: ImportPathVerifier;
+  let backendParameterResolver: BackendParameterResolver;
   beforeEach(() => {
     authFactory = new AmplifyAuthFactory({
       loginMechanisms: ['username'],
@@ -38,17 +41,25 @@ describe('AmplifyAuthFactory', () => {
     );
 
     importPathVerifier = new ToggleableImportPathVerifier(false);
+
+    backendParameterResolver = new OptionalPassThroughBackendParameterResolver(
+      stack,
+      'testProject',
+      'testBranch'
+    );
   });
   it('returns singleton instance', () => {
     const instance1 = authFactory.getInstance({
       constructContainer: constructContainer,
       outputStorageStrategy,
       importPathVerifier,
+      backendParameterResolver,
     });
     const instance2 = authFactory.getInstance({
       constructContainer,
       outputStorageStrategy,
       importPathVerifier,
+      backendParameterResolver,
     });
 
     assert.strictEqual(instance1, instance2);
@@ -59,6 +70,7 @@ describe('AmplifyAuthFactory', () => {
       constructContainer,
       outputStorageStrategy,
       importPathVerifier,
+      backendParameterResolver,
     });
 
     const template = Template.fromStack(Stack.of(authConstruct));
@@ -74,6 +86,7 @@ describe('AmplifyAuthFactory', () => {
       constructContainer,
       outputStorageStrategy,
       importPathVerifier,
+      backendParameterResolver,
     });
 
     assert.ok(

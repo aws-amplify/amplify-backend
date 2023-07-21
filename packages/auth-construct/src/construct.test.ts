@@ -1,6 +1,6 @@
 import { describe, it, mock } from 'node:test';
 import { AmplifyAuth } from './construct.js';
-import { App, Stack } from 'aws-cdk-lib';
+import { App, SecretValue, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
 import {
@@ -79,7 +79,7 @@ describe('Auth construct', () => {
         {
           provider: 'google',
           webClientId: 'testId',
-          webClientSecret: 'testSecret',
+          webClientSecret: SecretValue.unsafePlainText('testSecret'),
         },
       ],
     });

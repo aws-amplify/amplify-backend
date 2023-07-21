@@ -9,3 +9,4 @@ export * from './output_storage_stragegy.js';
 export * from './auth_resources.js';
 export * from './backend_output.js';
 export * from './import_path_verifier.js';
+export * from './backend_parameter_resolver.js';

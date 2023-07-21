@@ -2,10 +2,12 @@ import { ConstructContainer } from './construct_container.js';
 import { BackendOutputStorageStrategy } from './output_storage_stragegy.js';
 import { BackendOutputEntry } from './backend_output.js';
 import { ImportPathVerifier } from './import_path_verifier.js';
+import { BackendParameterResolver } from './backend_parameter_resolver.js';
 
 export type ConstructFactoryGetInstanceProps = {
   constructContainer: ConstructContainer;
   outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
+  backendParameterResolver: BackendParameterResolver;
   importPathVerifier?: ImportPathVerifier;
 };
 

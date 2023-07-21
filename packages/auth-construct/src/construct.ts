@@ -13,7 +13,7 @@ import { authOutputKey } from '@aws-amplify/backend-output-schemas';
 export type GoogleLogin = {
   provider: 'google';
   webClientId: string;
-  webClientSecret: string;
+  webClientSecret: SecretValue;
 };
 
 export type LoginMechanism = 'email' | 'username' | 'phone' | GoogleLogin;
@@ -81,10 +81,8 @@ export class AmplifyAuth
           case 'google':
             new cognito.UserPoolIdentityProviderGoogle(this, 'GoogleIdP', {
               userPool: this.userPool,
-              clientSecretValue: SecretValue.unsafePlainText(
-                loginMechanism.webClientSecret
-              ),
-              clientId: loginMechanism.webClientId,
+              clientSecretValue: loginMechanism.webClientSecret,
+              clientId: loginMechanism.webClientId.toString(),
             });
             break;
         }
