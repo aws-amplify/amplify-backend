@@ -12,14 +12,14 @@ import { execaCommand } from 'execa';
 import * as path from 'path';
 import { getCallerDirectory } from './get_caller_directory.js';
 
-export type AmplifyFunctionBaseProps = {
+export type AmplifyFunctionFactoryBaseProps = {
   /**
    * A name for the function that is used to disambiguate it from other functions in the project
    */
   name: string;
 };
 
-export type AmplifyFunctionBuildProps = AmplifyFunctionBaseProps &
+export type AmplifyFunctionFactoryBuildProps = AmplifyFunctionFactoryBaseProps &
   Omit<AmplifyFunctionProps, 'absoluteCodePath'> & {
     /**
      * The command to run that generates built function code.
@@ -33,17 +33,18 @@ export type AmplifyFunctionBuildProps = AmplifyFunctionBaseProps &
     outDir: string;
   };
 
-export type AmplifyFunctionFromDirProps = AmplifyFunctionBaseProps &
-  Omit<AmplifyFunctionProps, 'absoluteCodePath'> & {
-    /**
-     * The location of the pre-built function code.
-     * Can be a directory or a .zip file.
-     * Can be a relative or absolute path. If relative, the absolute path is calculated based on the directory where this factory is called.
-     */
-    codePath: string;
-  };
+export type AmplifyFunctionFactoryFromDirProps =
+  AmplifyFunctionFactoryBaseProps &
+    Omit<AmplifyFunctionProps, 'absoluteCodePath'> & {
+      /**
+       * The location of the pre-built function code.
+       * Can be a directory or a .zip file.
+       * Can be a relative or absolute path. If relative, the absolute path is calculated based on the directory where this factory is called.
+       */
+      codePath: string;
+    };
 
-type AmplifyFunctionFactoryProps = AmplifyFunctionBaseProps &
+type AmplifyFunctionFactoryProps = AmplifyFunctionFactoryBaseProps &
   AmplifyFunctionProps;
 
 /**
@@ -64,7 +65,9 @@ export class AmplifyFunctionFactory
   /**
    * Create a function from a directory that contains pre-built code
    */
-  static fromDir(props: AmplifyFunctionFromDirProps): AmplifyFunctionFactory {
+  static fromDir(
+    props: AmplifyFunctionFactoryFromDirProps
+  ): AmplifyFunctionFactory {
     const absoluteCodePath = path.isAbsolute(props.codePath)
       ? props.codePath
       : path.resolve(getCallerDirectory(new Error().stack), props.codePath);
@@ -80,7 +83,7 @@ export class AmplifyFunctionFactory
    * Create a function by executing a build command that places build artifacts at a specified location
    */
   static async build(
-    props: AmplifyFunctionBuildProps
+    props: AmplifyFunctionFactoryBuildProps
   ): Promise<AmplifyFunctionFactory> {
     const importPath = getCallerDirectory(new Error().stack);
 
