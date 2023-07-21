@@ -5,10 +5,12 @@ import {
   NestedStackResolver,
   StackResolver,
 } from './engine/nested_stack_resolver.js';
+import { OptionalPassThroughBackendParameterResolver } from './engine/backend_parameters/backend_parameter_resolver.js'
 import { SingletonConstructContainer } from './engine/singleton_construct_container.js';
 import { ToggleableImportPathVerifier } from './engine/toggleable_import_path_verifier.js';
 import { StackMetadataBackendOutputStorageStrategy } from './engine/stack_metadata_output_storage_strategy.js';
 import { createDefaultStack } from './default_stack_factory.js';
+import { getProjectEnvironmentIdentifier } from './get_project_environment_identifier.js';
 
 /**
  * Class that collects and instantiates all the Amplify backend constructs
@@ -39,6 +41,15 @@ export class Backend<T extends Record<string, ConstructFactory<Construct>>> {
 
     const importPathVerifier = new ToggleableImportPathVerifier();
 
+    const projectEnvironmentIdentifier = getProjectEnvironmentIdentifier(stack);
+
+    const backendParameterResolver =
+      new OptionalPassThroughBackendParameterResolver(
+        stack,
+        projectEnvironmentIdentifier.projectName,
+        projectEnvironmentIdentifier.environmentName
+      );
+
     // register providers but don't actually execute anything yet
     Object.values(constructFactories).forEach((factory) => {
       if (typeof factory.provides === 'string') {
@@ -58,6 +69,7 @@ export class Backend<T extends Record<string, ConstructFactory<Construct>>> {
             constructContainer,
             outputStorageStrategy,
             importPathVerifier,
+            backendParameterResolver,
           }
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ) as any;
