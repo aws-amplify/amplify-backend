@@ -3,8 +3,8 @@
   "compilerOptions": { "rootDir": "src", "outDir": "lib" },
   "references": [
     { "path": "../backend" },
-    { "path": "../backend-storage" },
-    { "path": "../backend-auth" }
+    { "path": "../backend-auth" },
+    { "path": "../backend-storage" }
   ],
   "exclude": ["**/node_modules", "**/lib", "test-projects"]
 }
