@@ -19,9 +19,9 @@ describe('sandbox delete command', () => {
     return Promise.resolve();
   });
 
-  const sandbox_delete_command = new SandboxDeleteCommand(sandbox);
+  const sandboxDeleteCommand = new SandboxDeleteCommand(sandbox);
 
-  const sandboxCommand = new SandboxCommand(sandbox, sandbox_delete_command);
+  const sandboxCommand = new SandboxCommand(sandbox, sandboxDeleteCommand);
   const parser = yargs().command(sandboxCommand as unknown as CommandModule);
   const commandRunner = new TestCommandRunner(parser);
 

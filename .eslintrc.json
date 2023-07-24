@@ -18,6 +18,38 @@
   },
   "plugins": ["@typescript-eslint", "unicorn", "jsdoc", "import"],
   "rules": {
+    "@typescript-eslint/naming-convention": [
+      "error",
+      {
+        "selector": "default",
+        "format": ["camelCase"],
+        "leadingUnderscore": "allow",
+        "trailingUnderscore": "allow"
+      },
+      {
+        "selector": "variable",
+        "format": ["camelCase", "UPPER_CASE"],
+        "leadingUnderscore": "allow",
+        "trailingUnderscore": "allow"
+      },
+      {
+        "selector": "typeLike",
+        "format": ["PascalCase"]
+      },
+      {
+        "selector": "enumMember",
+        "format": ["UPPER_CASE"]
+      },
+      {
+        "selector": "objectLiteralProperty",
+        "format": null
+      },
+      {
+        "selector": "variable",
+        "modifiers": ["const", "global"],
+        "format": ["camelCase", "PascalCase", "UPPER_CASE"]
+      }
+    ],
     "@typescript-eslint/switch-exhaustiveness-check": "error",
     "no-console": "error",
     "no-duplicate-imports": "error",
