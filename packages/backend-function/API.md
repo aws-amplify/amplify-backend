@@ -9,26 +9,26 @@ import { AmplifyFunctionProps } from '@aws-amplify/function-construct';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
 
-// @public (undocumented)
-export type AmplifyFunctionBaseProps = {
-    name: string;
-};
-
-// @public (undocumented)
-export type AmplifyFunctionBuildProps = AmplifyFunctionBaseProps & Omit<AmplifyFunctionProps, 'absoluteCodePath'> & {
-    buildCommand: string;
-    outDir: string;
-};
-
 // @public
 export class AmplifyFunctionFactory implements ConstructFactory<AmplifyFunction> {
-    static build(props: AmplifyFunctionBuildProps): Promise<AmplifyFunctionFactory>;
-    static fromDir(props: AmplifyFunctionFromDirProps): AmplifyFunctionFactory;
+    static build(props: AmplifyFunctionFactoryBuildProps): Promise<AmplifyFunctionFactory>;
+    static fromDir(props: AmplifyFunctionFactoryFromDirProps): AmplifyFunctionFactory;
     getInstance({ constructContainer, }: ConstructFactoryGetInstanceProps): AmplifyFunction;
 }
 
 // @public (undocumented)
-export type AmplifyFunctionFromDirProps = AmplifyFunctionBaseProps & Omit<AmplifyFunctionProps, 'absoluteCodePath'> & {
+export type AmplifyFunctionFactoryBaseProps = {
+    name: string;
+};
+
+// @public (undocumented)
+export type AmplifyFunctionFactoryBuildProps = AmplifyFunctionFactoryBaseProps & Omit<AmplifyFunctionProps, 'absoluteCodePath'> & {
+    buildCommand: string;
+    outDir: string;
+};
+
+// @public (undocumented)
+export type AmplifyFunctionFactoryFromDirProps = AmplifyFunctionFactoryBaseProps & Omit<AmplifyFunctionProps, 'absoluteCodePath'> & {
     codePath: string;
 };
 
