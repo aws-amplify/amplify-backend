@@ -3,8 +3,10 @@ import {
   BackendOutputStorageStrategy,
 } from '@aws-amplify/plugin-types';
 import { CfnOutput, Stack } from 'aws-cdk-lib';
-import { amplifyStackMetadataKey } from './amplify_stack_metadata_key.js';
-import { BackendOutputStackMetadata } from './backend_output_schemas.js';
+import {
+  amplifyStackMetadataKey,
+  BackendOutputStackMetadata,
+} from '@aws-amplify/backend-output-schemas/platform';
 
 /**
  * Implementation of BackendOutputStorageStrategy that stores config data in stack metadata and outputs

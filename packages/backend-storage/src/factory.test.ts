@@ -7,7 +7,7 @@ import {
   SingletonConstructContainer,
   StackMetadataBackendOutputStorageStrategy,
   ToggleableImportPathVerifier,
-} from '@aws-amplify/backend-engine';
+} from '@aws-amplify/backend/test-utils';
 import assert from 'node:assert';
 import {
   BackendOutputEntry,

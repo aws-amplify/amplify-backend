@@ -18,6 +18,11 @@
       "import": "./lib/data/index.js",
       "require": "./lib/data/index.js"
     },
+    "./platform": {
+      "types": "./lib/platform/index.d.ts",
+      "import": "./lib/platform/index.js",
+      "require": "./lib/platform/index.js"
+    },
     "./storage": {
       "types": "./lib/storage/index.d.ts",
       "import": "./lib/storage/index.js",

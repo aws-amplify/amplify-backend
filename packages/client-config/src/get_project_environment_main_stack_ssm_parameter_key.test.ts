@@ -18,7 +18,7 @@ describe('getProjectEnvironmentMainStackSSMParameterKey', () => {
 
     const expectedKey = readFileSync(
       new URL(
-        '../../../../shared-test-assets/expected_main_stack_ssm_parameter_key.txt',
+        '../../../shared-test-assets/expected_main_stack_ssm_parameter_key.txt',
         import.meta.url
       ),
       'utf-8'

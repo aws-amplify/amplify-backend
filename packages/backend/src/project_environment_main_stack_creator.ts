@@ -4,7 +4,7 @@ import {
 } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
 import { aws_ssm, Stack } from 'aws-cdk-lib';
-import { AmplifyStack } from '@aws-amplify/backend-engine';
+import { AmplifyStack } from './engine/amplify_stack.js';
 import { getProjectEnvironmentMainStackSSMParameterKey } from './get_project_environment_main_stack_ssm_parameter_key.js';
 
 /**
