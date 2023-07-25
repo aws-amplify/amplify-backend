@@ -6,8 +6,41 @@
 
 import { z } from 'zod';
 
+// @public (undocumented)
+export const amplifyStackMetadataKey = "AWS::Amplify::Output";
+
 // @public
 export const authOutputKey = "authOutput";
+
+// @public
+export type BackendOutputEntryStackMetadata = z.infer<typeof backendOutputEntryStackMetadataSchema>;
+
+// @public
+export const backendOutputEntryStackMetadataSchema: z.ZodObject<{
+    version: z.ZodString;
+    stackOutputs: z.ZodArray<z.ZodString, "many">;
+}, "strip", z.ZodTypeAny, {
+    version: string;
+    stackOutputs: string[];
+}, {
+    version: string;
+    stackOutputs: string[];
+}>;
+
+// @public
+export type BackendOutputStackMetadata = z.infer<typeof backendOutputStackMetadataSchema>;
+
+// @public
+export const backendOutputStackMetadataSchema: z.ZodRecord<z.ZodString, z.ZodObject<{
+    version: z.ZodString;
+    stackOutputs: z.ZodArray<z.ZodString, "many">;
+}, "strip", z.ZodTypeAny, {
+    version: string;
+    stackOutputs: string[];
+}, {
+    version: string;
+    stackOutputs: string[];
+}>>;
 
 // @public
 export const dataOutputKey = "dataOutput";
