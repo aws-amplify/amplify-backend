@@ -17,7 +17,7 @@
     "@aws-amplify/storage-construct": "^0.1.0"
   },
   "devDependencies": {
-    "@aws-amplify/backend-engine": "^0.1.0",
+    "@aws-amplify/backend": "^0.1.0",
     "@aws-amplify/plugin-types": "^0.1.0"
   },
   "peerDependencies": {

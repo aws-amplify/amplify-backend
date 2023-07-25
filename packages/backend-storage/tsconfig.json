@@ -3,6 +3,7 @@
   "compilerOptions": { "rootDir": "src", "outDir": "lib" },
   "references": [
     { "path": "../storage-construct" },
+    { "path": "../backend" },
     { "path": "../plugin-types" }
   ]
 }

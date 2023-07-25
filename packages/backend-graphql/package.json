@@ -1,5 +1,5 @@
 {
-  "name": "@aws-amplify/backend-data",
+  "name": "@aws-amplify/backend-graphql",
   "version": "0.1.0",
   "type": "module",
   "exports": {
