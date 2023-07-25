@@ -6,4 +6,4 @@ export * from './index.js';
  This allows api-extractor to pick up the submodule exports in its analysis
  */
 
-export * from './client-config-generator/index.js';
+export * from './platform/index.js';

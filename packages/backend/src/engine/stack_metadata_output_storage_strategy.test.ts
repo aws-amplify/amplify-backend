@@ -2,8 +2,10 @@ import { describe, it } from 'node:test';
 import { StackMetadataBackendOutputStorageStrategy } from './stack_metadata_output_storage_strategy.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
-import { backendOutputStackMetadataSchema } from './backend_output_schemas.js';
-import { amplifyStackMetadataKey } from './amplify_stack_metadata_key.js';
+import {
+  amplifyStackMetadataKey,
+  backendOutputStackMetadataSchema,
+} from '@aws-amplify/backend-output-schemas/platform';
 
 describe('StackMetadataBackendOutputStorageStrategy', () => {
   describe('storeOutput', () => {

@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import { createDefaultStack } from './default_stack_factory.js';
 import { App } from 'aws-cdk-lib';
 import assert from 'node:assert';
-import { AmplifyStack } from '@aws-amplify/backend-engine';
+import { AmplifyStack } from './engine/amplify_stack.js';
 
 describe('createDefaultRootStack', () => {
   it('creates AmplifyStack with project and env name from CDK context', () => {

@@ -2,7 +2,7 @@ import { UnifiedClientConfigGenerator } from './unified_client_config_generator.
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { SSMClient } from '@aws-sdk/client-ssm';
-import { StackMetadataBackendOutputRetrievalStrategy } from '../backend-output/stack_metadata_output_retrieval_strategy.js';
+import { StackMetadataBackendOutputRetrievalStrategy } from './stack_metadata_output_retrieval_strategy.js';
 import {
   ProjectEnvironmentIdentifier,
   StackIdentifier,

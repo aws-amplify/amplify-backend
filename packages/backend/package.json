@@ -7,6 +7,11 @@
       "types": "./lib/index.d.ts",
       "import": "./lib/index.js",
       "require": "./lib/index.js"
+    },
+    "./test-utils": {
+      "types": "./lib/test-utils/index.d.ts",
+      "import": "./lib/test-utils/index.js",
+      "require": "./lib/test-utils/index.js"
     }
   },
   "types": "lib/index.d.ts",
@@ -14,7 +19,7 @@
     "update:api": "api-extractor run --local"
   },
   "dependencies": {
-    "@aws-amplify/backend-engine": "^0.1.0"
+    "@aws-amplify/backend-output-schemas": "^0.1.0"
   },
   "devDependencies": {
     "@aws-amplify/plugin-types": "^0.1.0"

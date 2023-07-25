@@ -10,7 +10,7 @@ import {
 } from '../../../test_utils/command_runner.js';
 import assert from 'node:assert';
 import path from 'path';
-import { ClientConfig } from '@aws-amplify/backend-engine/client-config-generator';
+import { ClientConfig } from '@aws-amplify/client-config';
 
 describe('generate config command', () => {
   const clientConfigGeneratorAdapter = new ClientConfigGeneratorAdapter(

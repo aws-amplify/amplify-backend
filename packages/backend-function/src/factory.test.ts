@@ -5,7 +5,7 @@ import {
   NestedStackResolver,
   SingletonConstructContainer,
   StackMetadataBackendOutputStorageStrategy,
-} from '@aws-amplify/backend-engine';
+} from '@aws-amplify/backend/test-utils';
 import {
   BackendOutputEntry,
   BackendOutputStorageStrategy,
