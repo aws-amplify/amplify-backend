@@ -42,10 +42,12 @@ describe('UnifiedClientConfigGenerator', () => {
       );
       const result = await clientConfigGenerator.generateClientConfig();
       const expectedClientConfig: ClientConfig = {
-        aws_appsync_apiKey: undefined,
         aws_user_pools_id: 'testUserPoolId',
         aws_cognito_region: 'testRegion',
-        aws_appsync_graphqlEndpoint: 'testAppSyncEndpoint',
+        aws_appsync_apiKey: 'testApiKey',
+        aws_appsync_authenticationType: 'API_KEY',
+        aws_appsync_graphqlEndpoint: 'testApiEndpoint',
+        aws_appsync_region: 'us-east-1',
       };
       assert.deepStrictEqual(result, expectedClientConfig);
     });

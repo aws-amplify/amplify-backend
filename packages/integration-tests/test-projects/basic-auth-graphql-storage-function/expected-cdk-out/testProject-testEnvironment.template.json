@@ -9,9 +9,13 @@
         "version": "1",
         "stackOutputs": ["storageRegion", "bucketName"]
       },
-      "dataOutput": {
+      "graphqlOutput": {
         "version": "1",
-        "stackOutputs": ["appSyncApiEndpoint"]
+        "stackOutputs": [
+          "awsAppsyncApiEndpoint",
+          "awsAppsyncAuthenticationType",
+          "awsAppsyncRegion"
+        ]
       }
     }
   },
@@ -32,13 +36,9 @@
             "",
             [
               "https://s3.",
-              {
-                "Ref": "AWS::Region"
-              },
+              { "Ref": "AWS::Region" },
               ".",
-              {
-                "Ref": "AWS::URLSuffix"
-              },
+              { "Ref": "AWS::URLSuffix" },
               "/",
               {
                 "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
@@ -59,13 +59,9 @@
             "",
             [
               "https://s3.",
-              {
-                "Ref": "AWS::Region"
-              },
+              { "Ref": "AWS::Region" },
               ".",
-              {
-                "Ref": "AWS::URLSuffix"
-              },
+              { "Ref": "AWS::URLSuffix" },
               "/",
               {
                 "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
@@ -86,13 +82,9 @@
             "",
             [
               "https://s3.",
-              {
-                "Ref": "AWS::Region"
-              },
+              { "Ref": "AWS::Region" },
               ".",
-              {
-                "Ref": "AWS::URLSuffix"
-              },
+              { "Ref": "AWS::URLSuffix" },
               "/",
               {
                 "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
@@ -105,7 +97,7 @@
       "UpdateReplacePolicy": "Delete",
       "DeletionPolicy": "Delete"
     },
-    "data7552DF31": {
+    "graphql6CA1E289": {
       "Type": "AWS::CloudFormation::Stack",
       "Properties": {
         "TemplateURL": {
@@ -113,18 +105,14 @@
             "",
             [
               "https://s3.",
-              {
-                "Ref": "AWS::Region"
-              },
+              { "Ref": "AWS::Region" },
               ".",
-              {
-                "Ref": "AWS::URLSuffix"
-              },
+              { "Ref": "AWS::URLSuffix" },
               "/",
               {
                 "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
               },
-              "/fa4fbd49c3ea59a122e67ec5d2b251d89d37a8d021ec164c641aff0d89bb39b9.json"
+              "/34a81e53eb9c7a7e669770c952467beb7f823a1ab3397f52e29bc9f43b1a0a35.json"
             ]
           ]
         },
@@ -162,16 +150,8 @@
         ]
       }
     },
-    "authRegion": {
-      "Value": {
-        "Ref": "AWS::Region"
-      }
-    },
-    "storageRegion": {
-      "Value": {
-        "Ref": "AWS::Region"
-      }
-    },
+    "authRegion": { "Value": { "Ref": "AWS::Region" } },
+    "storageRegion": { "Value": { "Ref": "AWS::Region" } },
     "bucketName": {
       "Value": {
         "Fn::GetAtt": [
@@ -180,14 +160,16 @@
         ]
       }
     },
-    "appSyncApiEndpoint": {
+    "awsAppsyncApiEndpoint": {
       "Value": {
         "Fn::GetAtt": [
-          "data7552DF31",
-          "Outputs.testProjecttestEnvironmentdataamplifyDataRootStackGraphQLAPI682E00A4GraphQLUrl"
+          "graphql6CA1E289",
+          "Outputs.testProjecttestEnvironmentgraphqlamplifyGraphqlRootStackGraphQLAPID1AE41ACGraphQLUrl"
         ]
       }
-    }
+    },
+    "awsAppsyncAuthenticationType": { "Value": "AMAZON_COGNITO_USER_POOLS" },
+    "awsAppsyncRegion": { "Value": { "Ref": "AWS::Region" } }
   },
   "Parameters": {
     "BootstrapVersion": {
@@ -205,9 +187,7 @@
               {
                 "Fn::Contains": [
                   ["1", "2", "3", "4", "5"],
-                  {
-                    "Ref": "BootstrapVersion"
-                  }
+                  { "Ref": "BootstrapVersion" }
                 ]
               }
             ]

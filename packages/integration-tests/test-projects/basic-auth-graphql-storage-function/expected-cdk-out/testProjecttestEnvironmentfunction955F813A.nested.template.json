@@ -8,9 +8,7 @@
             {
               "Action": "sts:AssumeRole",
               "Effect": "Allow",
-              "Principal": {
-                "Service": "lambda.amazonaws.com"
-              }
+              "Principal": { "Service": "lambda.amazonaws.com" }
             }
           ],
           "Version": "2012-10-17"
@@ -21,9 +19,7 @@
               "",
               [
                 "arn:",
-                {
-                  "Ref": "AWS::Partition"
-                },
+                { "Ref": "AWS::Partition" },
                 ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
               ]
             ]
