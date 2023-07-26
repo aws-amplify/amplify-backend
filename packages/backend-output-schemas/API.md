@@ -83,17 +83,17 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
         payload: z.ZodObject<{
             awsAppsyncRegion: z.ZodString;
             awsAppsyncApiEndpoint: z.ZodString;
-            awsAppsyncAuthenticationType: z.ZodString;
+            awsAppsyncAuthenticationType: z.ZodEnum<["API_KEY", "AWS_LAMBDA", "AWS_IAM", "OPENID_CONNECT", "AMAZON_COGNITO_USER_POOLS"]>;
             awsAppsyncApiKey: z.ZodOptional<z.ZodString>;
         }, "strip", z.ZodTypeAny, {
             awsAppsyncRegion: string;
             awsAppsyncApiEndpoint: string;
-            awsAppsyncAuthenticationType: string;
+            awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
             awsAppsyncApiKey?: string | undefined;
         }, {
             awsAppsyncRegion: string;
             awsAppsyncApiEndpoint: string;
-            awsAppsyncAuthenticationType: string;
+            awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
             awsAppsyncApiKey?: string | undefined;
         }>;
     }, "strip", z.ZodTypeAny, {
@@ -101,7 +101,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
         payload: {
             awsAppsyncRegion: string;
             awsAppsyncApiEndpoint: string;
-            awsAppsyncAuthenticationType: string;
+            awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
             awsAppsyncApiKey?: string | undefined;
         };
     }, {
@@ -109,7 +109,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
         payload: {
             awsAppsyncRegion: string;
             awsAppsyncApiEndpoint: string;
-            awsAppsyncAuthenticationType: string;
+            awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
             awsAppsyncApiKey?: string | undefined;
         };
     }>]>>;
@@ -151,7 +151,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
         payload: {
             awsAppsyncRegion: string;
             awsAppsyncApiEndpoint: string;
-            awsAppsyncAuthenticationType: string;
+            awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
             awsAppsyncApiKey?: string | undefined;
         };
     } | undefined;
@@ -175,7 +175,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
         payload: {
             awsAppsyncRegion: string;
             awsAppsyncApiEndpoint: string;
-            awsAppsyncAuthenticationType: string;
+            awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
             awsAppsyncApiKey?: string | undefined;
         };
     } | undefined;

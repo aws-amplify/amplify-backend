@@ -13,7 +13,10 @@ import {
   AuthorizationConfig,
 } from '@aws-amplify/graphql-construct-alpha';
 import { graphqlOutputKey } from '@aws-amplify/backend-output-schemas';
-import { GraphqlOutput } from '@aws-amplify/backend-output-schemas/graphql';
+import {
+  GraphqlOutput,
+  AwsAppsyncAuthenticationType,
+} from '@aws-amplify/backend-output-schemas/graphql';
 
 export type GraphqlProps = Pick<AmplifyGraphqlApiProps, 'schema'>;
 
@@ -106,8 +109,8 @@ class GraphqlGenerator implements ConstructContainerEntryGenerator {
       payload: {
         awsAppsyncApiEndpoint:
           graphqlConstruct.resources.cfnGraphqlApi.attrGraphQlUrl,
-        awsAppsyncAuthenticationType:
-          graphqlConstruct.resources.cfnGraphqlApi.authenticationType,
+        awsAppsyncAuthenticationType: graphqlConstruct.resources.cfnGraphqlApi
+          .authenticationType as AwsAppsyncAuthenticationType,
         awsAppsyncRegion: Stack.of(graphqlConstruct).region,
       },
     };
