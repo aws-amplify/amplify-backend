@@ -17,20 +17,18 @@ export type AuthClientConfig = {
 };
 
 // @public
-export type ClientConfig = Partial<AuthClientConfig & DataClientConfig & StorageClientConfig>;
-
-// @public
-export type DataClientConfig = {
-    aws_appsync_region?: string;
-    aws_appsync_graphqlEndpoint?: string;
-    aws_appsync_authenticationType?: string;
-    graphql_endpoint?: string;
-    aws_appsync_apiKey?: string;
-    graphql_endpoint_iam_region?: string;
-};
+export type ClientConfig = Partial<AuthClientConfig & GraphqlClientConfig & StorageClientConfig>;
 
 // @public
 export const generateClientConfig: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier) => Promise<ClientConfig>;
+
+// @public
+export type GraphqlClientConfig = {
+    aws_appsync_region: string;
+    aws_appsync_graphqlEndpoint: string;
+    aws_appsync_authenticationType: string;
+    aws_appsync_apiKey?: string;
+};
 
 // @public
 export type StorageClientConfig = {

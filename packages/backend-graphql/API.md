@@ -10,16 +10,16 @@ import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
 
 // @public (undocumented)
-export const Data: typeof DataFactory;
+export const Graphql: typeof GraphqlFactory;
 
 // @public
-export class DataFactory implements ConstructFactory<AmplifyGraphqlApi> {
-    constructor(props: DataProps);
+export class GraphqlFactory implements ConstructFactory<AmplifyGraphqlApi> {
+    constructor(props: GraphqlProps);
     getInstance({ constructContainer, outputStorageStrategy, importPathVerifier, }: ConstructFactoryGetInstanceProps): AmplifyGraphqlApi;
 }
 
 // @public (undocumented)
-export type DataProps = Pick<AmplifyGraphqlApiProps, 'schema'>;
+export type GraphqlProps = Pick<AmplifyGraphqlApiProps, 'schema'>;
 
 // (No @packageDocumentation comment for this package)
 
