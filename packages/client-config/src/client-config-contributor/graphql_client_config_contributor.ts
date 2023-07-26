@@ -1,23 +1,31 @@
 import { ClientConfigContributor } from './client_config_contributor.js';
 import { UnifiedBackendOutput } from '@aws-amplify/backend-output-schemas';
-import { DataClientConfig } from '../client-config-types/data_client_config.js';
+import { GraphqlClientConfig } from '../client-config-types/graphql_client_config.js';
 
 /**
- * Translator for the Data/API portion of ClientConfig
+ * Translator for the Graphql API portion of ClientConfig
  */
-export class DataClientConfigContributor implements ClientConfigContributor {
+export class GraphqlClientConfigContributor implements ClientConfigContributor {
   /**
-   * Given some BackendOutput, contribute the data API portion of the client config
+   * Given some BackendOutput, contribute the Graphql API portion of the client config
    */
   contribute({
-    dataOutput,
-  }: UnifiedBackendOutput): DataClientConfig | Record<string, never> {
-    if (dataOutput === undefined) {
+    graphqlOutput,
+  }: UnifiedBackendOutput): GraphqlClientConfig | Record<string, never> {
+    if (graphqlOutput === undefined) {
       return {};
     }
-    return {
-      aws_appsync_graphqlEndpoint: dataOutput.payload.appSyncApiEndpoint,
-      aws_appsync_apiKey: dataOutput.payload.appSyncApiKey,
+    const config: GraphqlClientConfig = {
+      aws_appsync_graphqlEndpoint: graphqlOutput.payload.awsAppsyncApiEndpoint,
+      aws_appsync_region: graphqlOutput.payload.awsAppsyncRegion,
+      aws_appsync_authenticationType:
+        graphqlOutput.payload.awsAppsyncAuthenticationType,
     };
+
+    if (graphqlOutput.payload.awsAppsyncApiKey) {
+      config.aws_appsync_apiKey = graphqlOutput.payload.awsAppsyncApiKey;
+    }
+
+    return config;
   }
 }

@@ -1,4 +1,5 @@
 import { Construct } from 'constructs';
+import { Stack } from 'aws-cdk-lib';
 import {
   AuthResources,
   BackendOutputStorageStrategy,
@@ -11,27 +12,27 @@ import {
   AmplifyGraphqlApiProps,
   AuthorizationConfig,
 } from '@aws-amplify/graphql-construct-alpha';
-import { dataOutputKey } from '@aws-amplify/backend-output-schemas';
-import { DataOutput } from '@aws-amplify/backend-output-schemas/data';
+import { graphqlOutputKey } from '@aws-amplify/backend-output-schemas';
+import { GraphqlOutput } from '@aws-amplify/backend-output-schemas/graphql';
 
-export type DataProps = Pick<AmplifyGraphqlApiProps, 'schema'>;
+export type GraphqlProps = Pick<AmplifyGraphqlApiProps, 'schema'>;
 
 /**
  * Singleton factory for AmplifyGraphqlApi constructs that can be used in Amplify project files
  */
-export class DataFactory implements ConstructFactory<AmplifyGraphqlApi> {
+export class GraphqlFactory implements ConstructFactory<AmplifyGraphqlApi> {
   private generator: ConstructContainerEntryGenerator;
   private readonly importStack: string | undefined;
 
   /**
    * Create a new AmplifyConstruct
    */
-  constructor(private readonly props: DataProps) {
+  constructor(private readonly props: GraphqlProps) {
     this.importStack = new Error().stack;
   }
 
   /**
-   * Gets an instance of the Data construct
+   * Gets an instance of the Graphql construct
    */
   getInstance({
     constructContainer,
@@ -40,11 +41,11 @@ export class DataFactory implements ConstructFactory<AmplifyGraphqlApi> {
   }: ConstructFactoryGetInstanceProps): AmplifyGraphqlApi {
     importPathVerifier?.verify(
       this.importStack,
-      'data',
-      'Amplify Data must be defined in a "data.ts" file'
+      'graphql',
+      'Amplify Graphql must be defined in a "graphql.ts" file'
     );
     if (!this.generator) {
-      this.generator = new DataGenerator(
+      this.generator = new GraphqlGenerator(
         this.props,
         constructContainer
           .getConstructFactory<AuthResources>('AuthResources')
@@ -60,14 +61,14 @@ export class DataFactory implements ConstructFactory<AmplifyGraphqlApi> {
   }
 }
 
-class DataGenerator implements ConstructContainerEntryGenerator {
-  readonly resourceGroupName = 'data';
-  private readonly defaultName = 'amplifyData';
+class GraphqlGenerator implements ConstructContainerEntryGenerator {
+  readonly resourceGroupName = 'graphql';
+  private readonly defaultName = 'amplifyGraphql';
 
   constructor(
-    private readonly props: DataProps,
+    private readonly props: GraphqlProps,
     private readonly authResources: AuthResources,
-    private readonly outputStorageStrategy: BackendOutputStorageStrategy<DataOutput>
+    private readonly outputStorageStrategy: BackendOutputStorageStrategy<GraphqlOutput>
   ) {}
 
   generateContainerEntry(scope: Construct) {
@@ -87,32 +88,42 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     }
 
     // TODO inject the construct with the functionNameMap
-    const dataConstructProps: AmplifyGraphqlApiProps = {
+    const graphqlConstructProps: AmplifyGraphqlApiProps = {
       schema: this.props.schema,
       authorizationConfig: authConfig,
     };
-    const dataConstruct = new AmplifyGraphqlApi(
+    const graphqlConstruct = new AmplifyGraphqlApi(
       scope,
       this.defaultName,
-      dataConstructProps
+      graphqlConstructProps
     );
 
-    const dataOutput: DataOutput = {
+    // TODO: change to storeOutput when available
+    // graphqlConstruct.storeOutput(this.outputStorageStrategy);
+
+    const graphqlOutput: GraphqlOutput = {
       version: '1',
       payload: {
-        appSyncApiEndpoint:
-          dataConstruct.resources.cfnGraphqlApi.attrGraphQlUrl,
+        awsAppsyncApiEndpoint:
+          graphqlConstruct.resources.cfnGraphqlApi.attrGraphQlUrl,
+        awsAppsyncAuthenticationType:
+          graphqlConstruct.resources.cfnGraphqlApi.authenticationType,
+        awsAppsyncRegion: Stack.of(graphqlConstruct).region,
       },
     };
 
-    if (dataConstruct.resources.cfnApiKey) {
-      dataOutput.payload.appSyncApiKey =
-        dataConstruct.resources.cfnApiKey?.attrApiKey;
+    if (graphqlConstruct.resources.cfnApiKey) {
+      graphqlOutput.payload.awsAppsyncApiKey =
+        graphqlConstruct.resources.cfnApiKey.attrApiKey;
     }
 
-    this.outputStorageStrategy.addBackendOutputEntry(dataOutputKey, dataOutput);
-    return dataConstruct;
+    this.outputStorageStrategy.addBackendOutputEntry(
+      graphqlOutputKey,
+      graphqlOutput
+    );
+
+    return graphqlConstruct;
   }
 }
 
-export const Data = DataFactory;
+export const Graphql = GraphqlFactory;

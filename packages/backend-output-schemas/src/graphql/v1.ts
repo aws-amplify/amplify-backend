@@ -1,9 +1,11 @@
 import { z } from 'zod';
 
-export const dataOutputSchema = z.object({
+export const graphqlOutputSchema = z.object({
   version: z.literal('1'),
   payload: z.object({
-    appSyncApiEndpoint: z.string(),
-    appSyncApiKey: z.string().optional(),
+    awsAppsyncRegion: z.string(),
+    awsAppsyncApiEndpoint: z.string(),
+    awsAppsyncAuthenticationType: z.string(),
+    awsAppsyncApiKey: z.string().optional(),
   }),
 });
