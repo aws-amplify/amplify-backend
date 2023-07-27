@@ -1,6 +1,6 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import { GraphqlFactory } from './factory.js';
+import { DataFactory } from './factory.js';
 import { App, Stack } from 'aws-cdk-lib';
 import {
   NestedStackResolver,
@@ -28,14 +28,14 @@ const testSchema = `
   }
 `;
 
-describe('GraphqlFactory', () => {
+describe('DataFactory', () => {
   let stack: Stack;
   let constructContainer: ConstructContainer;
   let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
   let importPathVerifier: ImportPathVerifier;
-  let graphqlFactory: GraphqlFactory;
+  let dataFactory: DataFactory;
   beforeEach(() => {
-    graphqlFactory = new GraphqlFactory({ schema: testSchema });
+    dataFactory = new DataFactory({ schema: testSchema });
 
     const app = new App();
     stack = new Stack(app);
@@ -60,12 +60,12 @@ describe('GraphqlFactory', () => {
     importPathVerifier = new ToggleableImportPathVerifier(false);
   });
   it('returns singleton instance', () => {
-    const instance1 = graphqlFactory.getInstance({
+    const instance1 = dataFactory.getInstance({
       constructContainer,
       outputStorageStrategy,
       importPathVerifier,
     });
-    const instance2 = graphqlFactory.getInstance({
+    const instance2 = dataFactory.getInstance({
       constructContainer,
       outputStorageStrategy,
       importPathVerifier,
@@ -75,17 +75,17 @@ describe('GraphqlFactory', () => {
   });
 
   it('adds construct to stack', () => {
-    const graphqlConstruct = graphqlFactory.getInstance({
+    const dataConstruct = dataFactory.getInstance({
       constructContainer,
       outputStorageStrategy,
       importPathVerifier,
     });
-    const template = Template.fromStack(Stack.of(graphqlConstruct));
+    const template = Template.fromStack(Stack.of(dataConstruct));
     template.resourceCountIs('AWS::AppSync::GraphQLApi', 1);
   });
 
   it('sets output using storage strategy', () => {
-    graphqlFactory.getInstance({
+    dataFactory.getInstance({
       constructContainer,
       outputStorageStrategy,
       importPathVerifier,
@@ -99,7 +99,7 @@ describe('GraphqlFactory', () => {
       verify: mock.fn(),
     };
 
-    graphqlFactory.getInstance({
+    dataFactory.getInstance({
       constructContainer,
       outputStorageStrategy,
       importPathVerifier,
@@ -107,7 +107,7 @@ describe('GraphqlFactory', () => {
 
     assert.ok(
       (importPathVerifier.verify.mock.calls[0].arguments[0] as string).includes(
-        'GraphqlFactory'
+        'DataFactory'
       )
     );
   });

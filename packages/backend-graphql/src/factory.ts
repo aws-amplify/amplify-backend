@@ -1,5 +1,5 @@
-import { Construct } from 'constructs';
 import { Stack } from 'aws-cdk-lib';
+import { Construct } from 'constructs';
 import {
   AuthResources,
   BackendOutputStorageStrategy,
@@ -18,24 +18,24 @@ import {
   AwsAppsyncAuthenticationType,
 } from '@aws-amplify/backend-output-schemas/graphql';
 
-export type GraphqlProps = Pick<AmplifyGraphqlApiProps, 'schema'>;
+export type DataProps = Pick<AmplifyGraphqlApiProps, 'schema'>;
 
 /**
  * Singleton factory for AmplifyGraphqlApi constructs that can be used in Amplify project files
  */
-export class GraphqlFactory implements ConstructFactory<AmplifyGraphqlApi> {
+export class DataFactory implements ConstructFactory<AmplifyGraphqlApi> {
   private generator: ConstructContainerEntryGenerator;
   private readonly importStack: string | undefined;
 
   /**
    * Create a new AmplifyConstruct
    */
-  constructor(private readonly props: GraphqlProps) {
+  constructor(private readonly props: DataProps) {
     this.importStack = new Error().stack;
   }
 
   /**
-   * Gets an instance of the Graphql construct
+   * Gets an instance of the Data construct
    */
   getInstance({
     constructContainer,
@@ -44,11 +44,11 @@ export class GraphqlFactory implements ConstructFactory<AmplifyGraphqlApi> {
   }: ConstructFactoryGetInstanceProps): AmplifyGraphqlApi {
     importPathVerifier?.verify(
       this.importStack,
-      'graphql',
-      'Amplify Graphql must be defined in a "graphql.ts" file'
+      'data',
+      'Amplify Data must be defined in a "data.ts" file'
     );
     if (!this.generator) {
-      this.generator = new GraphqlGenerator(
+      this.generator = new DataGenerator(
         this.props,
         constructContainer
           .getConstructFactory<AuthResources>('AuthResources')
@@ -64,12 +64,12 @@ export class GraphqlFactory implements ConstructFactory<AmplifyGraphqlApi> {
   }
 }
 
-class GraphqlGenerator implements ConstructContainerEntryGenerator {
-  readonly resourceGroupName = 'graphql';
-  private readonly defaultName = 'amplifyGraphql';
+class DataGenerator implements ConstructContainerEntryGenerator {
+  readonly resourceGroupName = 'data';
+  private readonly defaultName = 'amplifyData';
 
   constructor(
-    private readonly props: GraphqlProps,
+    private readonly props: DataProps,
     private readonly authResources: AuthResources,
     private readonly outputStorageStrategy: BackendOutputStorageStrategy<GraphqlOutput>
   ) {}
@@ -129,4 +129,4 @@ class GraphqlGenerator implements ConstructContainerEntryGenerator {
   }
 }
 
-export const Graphql = GraphqlFactory;
+export const Data = DataFactory;

@@ -8,7 +8,9 @@
   },
   "Outputs": {
     "testProjecttestEnvironmentstorageamplifyStorageamplifyStorageBucket05AB04A9Ref": {
-      "Value": { "Ref": "amplifyStorageamplifyStorageBucketC2F702CD" }
+      "Value": {
+        "Ref": "amplifyStorageamplifyStorageBucketC2F702CD"
+      }
     }
   }
 }
