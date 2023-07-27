@@ -1,12 +1,13 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { ClientConfigGeneratorAdapter } from './client_config_generator_adapter.js';
 import { ClientConfigWriter } from './client_config_writer.js';
-import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import path from 'path';
+import { fetchNearestPackageJson } from './package_json_locator.js';
+import { BackendIdentifier } from '@aws-amplify/client-config';
 
 export type GenerateConfigCommandOptions = {
   stack: string | undefined;
-  project: string | undefined;
+  appId: string | undefined;
   branch: string | undefined;
   out: string | undefined;
 };
@@ -27,12 +28,17 @@ export class GenerateConfigCommand
    */
   readonly describe: string;
 
+  private readonly missingArgsError = new Error(
+    'Either --stack or --branch must be provided'
+  );
+
   /**
    * Creates client config generation command.
    */
   constructor(
     private readonly clientConfigGenerator: ClientConfigGeneratorAdapter,
-    private readonly clientConfigWriter: ClientConfigWriter
+    private readonly clientConfigWriter: ClientConfigWriter,
+    private readonly getPackageJson = fetchNearestPackageJson
   ) {
     this.command = 'config';
     this.describe = 'Generates client config';
@@ -44,7 +50,7 @@ export class GenerateConfigCommand
   handler = async (
     args: ArgumentsCamelCase<GenerateConfigCommandOptions>
   ): Promise<void> => {
-    const backendIdentifier = this.getBackendIdentifier(args);
+    const backendIdentifier = await this.getBackendIdentifier(args);
     const clientConfig = await this.clientConfigGenerator.generateClientConfig(
       backendIdentifier
     );
@@ -59,18 +65,24 @@ export class GenerateConfigCommand
    * Translates args to BackendIdentifier.
    * Throws if translation can't be made (this should never happen if command validation works correctly).
    */
-  private getBackendIdentifier(
+  private async getBackendIdentifier(
     args: ArgumentsCamelCase<GenerateConfigCommandOptions>
-  ): BackendIdentifier {
+  ): Promise<BackendIdentifier> {
     if (args.stack) {
       return { stackName: args.stack };
-    } else if (args.project && args.branch) {
-      return {
-        projectName: args.project,
-        environmentName: args.branch,
-      };
+    } else if (args.appId && args.branch) {
+      return { appId: args.appId, branch: args.branch };
+    } else if (args.branch) {
+      const nearestPackageJson = await this.getPackageJson();
+      const appName = nearestPackageJson.name;
+      if (typeof appName !== 'string') {
+        throw new Error(
+          'Could not determine appName from nearest package.json#name field'
+        );
+      }
+      return { appName, branch: args.branch };
     } else {
-      throw new Error('Unable to map arguments to backend identifier');
+      throw this.missingArgsError;
     }
   }
 
@@ -80,15 +92,15 @@ export class GenerateConfigCommand
   builder = (yargs: Argv): Argv<GenerateConfigCommandOptions> => {
     return yargs
       .option('stack', {
-        conflicts: ['project', 'branch'],
-        describe: 'A stack name that contains any Amplify Backend construct',
+        conflicts: ['appId', 'branch'],
+        describe: 'A stack name that contains an Amplify backend',
         type: 'string',
         array: false,
         group: 'Stack identifier',
       })
-      .option('project', {
+      .option('appId', {
         conflicts: ['stack'],
-        describe: 'A name of the Amplify project',
+        describe: 'The Amplify App ID of the project',
         type: 'string',
         array: false,
         implies: 'branch',
@@ -99,7 +111,6 @@ export class GenerateConfigCommand
         describe: 'A git branch of the Amplify project',
         type: 'string',
         array: false,
-        implies: 'project',
         group: 'Project identifier',
       })
       .option('out', {
@@ -109,10 +120,8 @@ export class GenerateConfigCommand
         array: false,
       })
       .check((argv) => {
-        if (!argv.project && !argv.branch && !argv.stack) {
-          throw new Error(
-            'Either --stack or --project and --branch must be provided'
-          );
+        if (!argv.stack && !argv.branch) {
+          throw this.missingArgsError;
         }
         return true;
       });

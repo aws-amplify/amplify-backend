@@ -1,5 +1,8 @@
-import { ClientConfig, generateClientConfig } from '@aws-amplify/client-config';
-import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import {
+  BackendIdentifier,
+  ClientConfig,
+  generateClientConfig,
+} from '@aws-amplify/client-config';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 
 /**

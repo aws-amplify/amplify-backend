@@ -23,9 +23,10 @@ describe('ClientConfigGeneratorFactory', () => {
       );
 
       const clientConfigGenerator =
-        generatorFactory.fromProjectEnvironmentIdentifier({
-          projectName: 'testProjName',
-          environmentName: 'testEnvName',
+        generatorFactory.fromUniqueDeploymentIdentifier({
+          appName: 'testAppName',
+          branchName: 'testBranchName',
+          disambiguator: '1234',
         });
       assert.ok(clientConfigGenerator instanceof UnifiedClientConfigGenerator);
     });

@@ -1,5 +1,5 @@
 import { describe, it } from 'node:test';
-import { getProjectEnvironmentMainStackSSMParameterKey } from './get_project_environment_main_stack_ssm_parameter_key.js';
+import { getMainStackName } from './get_main_stack_name.js';
 import assert from 'node:assert';
 import { readFileSync } from 'fs';
 
@@ -11,14 +11,15 @@ import { readFileSync } from 'fs';
  */
 describe('getProjectEnvironmentMainStackSSMParameterKey', () => {
   it('returns ssm key', () => {
-    const result = getProjectEnvironmentMainStackSSMParameterKey({
-      projectName: 'testProject',
-      environmentName: 'testEnvironment',
+    const result = getMainStackName({
+      appName: 'testAppName',
+      branchName: 'testBranchName',
+      disambiguator: '1234',
     });
 
     const expectedKey = readFileSync(
       new URL(
-        '../../../shared-test-assets/expected_main_stack_ssm_parameter_key.txt',
+        '../../../shared-test-assets/expected_main_stack_name.txt',
         import.meta.url
       ),
       'utf-8'

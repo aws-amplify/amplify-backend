@@ -37,7 +37,8 @@ describe('generate config command', () => {
 
   const generateConfigCommand = new GenerateConfigCommand(
     clientConfigGeneratorAdapter,
-    clientConfigWriter
+    clientConfigWriter,
+    async () => ({ name: 'testAppName' })
   );
   const parser = yargs().command(
     generateConfigCommand as unknown as CommandModule
@@ -66,14 +67,32 @@ describe('generate config command', () => {
     );
   });
 
-  it('generates and writes config for project and branch', async () => {
+  it('generates and writes config for branch', async () => {
+    await commandRunner.runCommand('config --branch branch_name');
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
+    assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
+      appName: 'testAppName',
+      branch: 'branch_name',
+    });
+    assert.equal(writeClientConfigMock.mock.callCount(), 1);
+    assert.deepEqual(
+      writeClientConfigMock.mock.calls[0].arguments[0],
+      clientConfig
+    );
+    assert.equal(
+      writeClientConfigMock.mock.calls[0].arguments[1],
+      path.join(process.cwd(), 'amplifyconfiguration.json')
+    );
+  });
+
+  it('generates and writes config for appID and branch', async () => {
     await commandRunner.runCommand(
-      'config --project project_name --branch branch_name'
+      'config --branch branch_name --appId app_id'
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
-      projectName: 'project_name',
-      environmentName: 'branch_name',
+      appId: 'app_id',
+      branch: 'branch_name',
     });
     assert.equal(writeClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(
@@ -106,17 +125,14 @@ describe('generate config command', () => {
   it('shows available options in help output', async () => {
     const output = await commandRunner.runCommand('config --help');
     assert.match(output, /--stack/);
-    assert.match(output, /--project/);
+    assert.match(output, /--appId/);
     assert.match(output, /--branch/);
     assert.match(output, /--out/);
   });
 
-  it('fails if both stack and project,branch are present', async () => {
+  it('fails if both stack and branch are present', async () => {
     await assert.rejects(
-      () =>
-        commandRunner.runCommand(
-          'config --stack foo --project bar --branch baz'
-        ),
+      () => commandRunner.runCommand('config --stack foo --branch baz'),
       (err: TestCommandError) => {
         assert.equal(err.error.name, 'YError');
         assert.match(err.error.message, /Arguments .* mutually exclusive/);
@@ -126,23 +142,19 @@ describe('generate config command', () => {
     );
   });
 
-  it('fails if only branch is provided', async () => {
+  it('fails if neither stack nor branch are present', async () => {
+    /* Note: there is some issue with yargs when running with .exitProcess(false) where errors thrown in .check() do not bubble up to the top
+      This check then comes to the fallthrough logic in the handler.
+      Additionally, yargs seems to be leaving some promises dangling in this case leading to test warnings, but the test assertion is still being validated
+     */
     await assert.rejects(
-      () => commandRunner.runCommand('config --branch foo'),
+      () => commandRunner.runCommand('config'),
       (err: TestCommandError) => {
-        assert.equal(err.error.name, 'YError');
-        assert.match(err.output, /Missing dependent arguments:/);
-        return true;
-      }
-    );
-  });
-
-  it('fails if only project is provided', async () => {
-    await assert.rejects(
-      () => commandRunner.runCommand('config --project foo'),
-      (err: TestCommandError) => {
-        assert.equal(err.error.name, 'YError');
-        assert.match(err.output, /Missing dependent arguments:/);
+        assert.equal(err.error.name, 'Error');
+        assert.equal(
+          err.error.message,
+          'Either --stack or --branch must be provided'
+        );
         return true;
       }
     );

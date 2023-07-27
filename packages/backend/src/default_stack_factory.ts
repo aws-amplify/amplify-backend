@@ -1,10 +1,11 @@
 import { App, Stack } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { ProjectEnvironmentIdentifier } from '@aws-amplify/plugin-types';
 import { ProjectEnvironmentMainStackCreator } from './project_environment_main_stack_creator.js';
+import { UniqueDeploymentIdentifier } from '@aws-amplify/plugin-types';
 
-const projectNameCDKContextKey = 'project-name';
-const environmentNameCDKContextKey = 'environment-name';
+const appNameCDKContextKey = 'app-name';
+const disambiguatorCDKContextKey = 'disambiguator';
+const branchNameCDKContextKey = 'branch-name';
 
 /**
  * Creates a default CDK scope for the Amplify backend to use if no scope is provided to the constructor
@@ -12,28 +13,40 @@ const environmentNameCDKContextKey = 'environment-name';
 export const createDefaultStack = (app = new App()): Stack => {
   const mainStackCreator = new ProjectEnvironmentMainStackCreator(
     app,
-    getProjectEnvironmentIdentifier(app)
+    loadUniqueDeploymentIdentifier(app)
   );
   return mainStackCreator.getOrCreateMainStack();
 };
 
-const getProjectEnvironmentIdentifier = (
+/**
+ * Populates an instance of DeploymentContext based on CDK context values.
+ *
+ * If an app-id value is present, this is used as both the appId and the disambiguator
+ */
+const loadUniqueDeploymentIdentifier = (
   scope: Construct
-): ProjectEnvironmentIdentifier => {
-  const projectName = scope.node.getContext(projectNameCDKContextKey);
-  const environmentName = scope.node.getContext(environmentNameCDKContextKey);
-  if (typeof projectName !== 'string') {
+): UniqueDeploymentIdentifier => {
+  const appName = scope.node.getContext(appNameCDKContextKey);
+  const branchName = scope.node.getContext(branchNameCDKContextKey);
+  const disambiguator = scope.node.getContext(disambiguatorCDKContextKey);
+  if (typeof appName !== 'string') {
     throw new Error(
-      `${projectNameCDKContextKey} CDK context value is not a string`
+      `${appNameCDKContextKey} CDK context value is not a string`
     );
   }
-  if (typeof environmentName !== 'string') {
+  if (typeof branchName !== 'string') {
     throw new Error(
-      `${environmentNameCDKContextKey} CDK context value is not a string`
+      `${branchNameCDKContextKey} CDK context value is not a string`
+    );
+  }
+  if (typeof disambiguator !== 'string') {
+    throw new Error(
+      `${appNameCDKContextKey} CDK context value is not a string`
     );
   }
   return {
-    projectName,
-    environmentName,
+    appName,
+    disambiguator,
+    branchName,
   };
 };
