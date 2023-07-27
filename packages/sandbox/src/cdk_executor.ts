@@ -5,6 +5,8 @@ import { execa } from 'execa';
  * Execute CDK commands.
  */
 export class AmplifyCDKExecutor {
+  // the entry point relative to cwd where the backend definition is expected
+  private readonly relativeBackendEntryPoint = 'amplify/backend.ts';
   /**
    * Function that deploys backend resources using CDK.
    * Debounce is added in case multiple duplicate events are received.
@@ -18,7 +20,7 @@ export class AmplifyCDKExecutor {
         'cdk',
         cdkCommand.toString(),
         '--app',
-        "'npx tsx index.ts'",
+        `'npx tsx ${this.relativeBackendEntryPoint}'`,
       ];
 
       // Add context information if available
