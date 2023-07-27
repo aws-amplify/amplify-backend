@@ -47,6 +47,7 @@ export class AppNameAndBranchMainStackNameResolver
     // if we get here, appMatches has one and only one entry
     const appId = appMatches[0].appId;
     if (typeof appId !== 'string') {
+      // if this happens something has gone seriously wrong. It's probably an Amplify service issue.
       throw new Error(
         `Could not determine appId from app name ${this.appNameAndBranch.appName}. Try using AppId instead.`
       );
