@@ -2,7 +2,7 @@ import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { ClientConfigGeneratorAdapter } from './client_config_generator_adapter.js';
 import { ClientConfigWriter } from './client_config_writer.js';
 import path from 'path';
-import { fetchNearestPackageJson } from './package_json_locator.js';
+import { fetchNearestPackageJson } from '../../../package_json_locator.js';
 import { BackendIdentifier } from '@aws-amplify/client-config';
 
 export type GenerateConfigCommandOptions = {

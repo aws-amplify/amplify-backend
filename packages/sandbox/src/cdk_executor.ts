@@ -22,12 +22,14 @@ export class AmplifyCDKExecutor {
       ];
 
       // Add context information if available
-      if (cdkOptions?.projectName && cdkOptions?.environmentName) {
+      if (cdkOptions) {
         cdkCommandArgs.push(
           '--context',
-          `project-name=${cdkOptions?.projectName}`,
+          `app-name=${cdkOptions.appName}`,
           '--context',
-          `environment-name=${cdkOptions?.environmentName}`
+          `branch-name=${cdkOptions.branchName}`,
+          '--context',
+          `disambiguator=${cdkOptions.disambiguator}`
         );
       }
 
@@ -61,6 +63,7 @@ export enum CDKCommand {
 }
 
 export type CDKOptions = {
-  projectName?: string;
-  environmentName?: string;
+  appName: string;
+  branchName: string;
+  disambiguator: string;
 };

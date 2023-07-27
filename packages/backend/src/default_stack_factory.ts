@@ -20,8 +20,6 @@ export const createDefaultStack = (app = new App()): Stack => {
 
 /**
  * Populates an instance of DeploymentContext based on CDK context values.
- *
- * If an app-id value is present, this is used as both the appId and the disambiguator
  */
 const loadUniqueDeploymentIdentifier = (
   scope: Construct
@@ -41,7 +39,7 @@ const loadUniqueDeploymentIdentifier = (
   }
   if (typeof disambiguator !== 'string') {
     throw new Error(
-      `${appNameCDKContextKey} CDK context value is not a string`
+      `${disambiguatorCDKContextKey} CDK context value is not a string`
     );
   }
   return {

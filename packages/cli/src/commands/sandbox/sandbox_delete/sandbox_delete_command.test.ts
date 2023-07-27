@@ -4,17 +4,11 @@ import yargs, { CommandModule } from 'yargs';
 import { TestCommandRunner } from '../../../test_utils/command_runner.js';
 import assert from 'node:assert';
 import { SandboxDeleteCommand } from './sandbox_delete_command.js';
-import { createSandboxDeleteCommand } from './sandbox_delete_command_factory.js';
 import { SandboxCommand } from '../sandbox_command.js';
-import { sandbox } from '@aws-amplify/sandbox';
-
-describe('sandbox delete command factory', () => {
-  it('instantiate a sandbox delete command correctly', () => {
-    assert.ok(createSandboxDeleteCommand() instanceof SandboxDeleteCommand);
-  });
-});
+import { SandboxFactory } from '@aws-amplify/sandbox';
 
 describe('sandbox delete command', () => {
+  const sandbox = SandboxFactory.createCDKSandbox('testAppName', 'test1234');
   const sandboxDeleteMock = mock.method(sandbox, 'delete', () => {
     return Promise.resolve();
   });

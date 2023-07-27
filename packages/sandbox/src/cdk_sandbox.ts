@@ -8,13 +8,12 @@ import { Sandbox, SandboxOptions } from './sandbox.js';
  */
 export class CDKSandbox implements Sandbox {
   private watcherSubscription: Awaited<ReturnType<typeof subscribe>>;
-  // TODO: https://github.com/aws-amplify/samsara-cli/issues/73
-  private readonly projectName = 'testProject';
-  private readonly environmentName = 'testEnvironment';
   /**
    * Creates a watcher process for this instance
    */
   constructor(
+    private readonly appName: string,
+    private readonly dismabiguator: string,
     private readonly cdkExecutor: AmplifyCDKExecutor = new AmplifyCDKExecutor()
   ) {
     process.once('SIGINT', this.stop.bind(this));
@@ -44,8 +43,9 @@ export class CDKSandbox implements Sandbox {
     const deployAndWatch = debounce(async () => {
       latch = 'deploying';
       await this.cdkExecutor.invokeCDKWithDebounce(CDKCommand.DEPLOY, {
-        projectName: this.projectName,
-        environmentName: this.environmentName,
+        appName: this.appName,
+        branchName: 'sandbox',
+        disambiguator: this.dismabiguator,
       });
 
       // If latch is still 'deploying' after the 'await', that's fine,
@@ -58,8 +58,9 @@ export class CDKSandbox implements Sandbox {
           "[Sandbox] Detected file changes while previous deployment was in progress. Invoking 'sandbox' again"
         );
         await this.cdkExecutor.invokeCDKWithDebounce(CDKCommand.DEPLOY, {
-          projectName: this.projectName,
-          environmentName: this.environmentName,
+          appName: this.appName,
+          branchName: 'sandbox',
+          disambiguator: this.dismabiguator,
         });
       }
       latch = 'open';
@@ -110,8 +111,9 @@ export class CDKSandbox implements Sandbox {
       '[Sandbox] Deleting all the resources in the sandbox environment...'
     );
     await this.cdkExecutor.invokeCDKWithDebounce(CDKCommand.DESTROY, {
-      projectName: this.projectName,
-      environmentName: this.environmentName,
+      appName: this.appName,
+      branchName: 'sandbox',
+      disambiguator: this.dismabiguator,
     });
     console.log('[Sandbox] Finished deleting.');
   }

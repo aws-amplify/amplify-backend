@@ -4,10 +4,11 @@ import { Sandbox } from './sandbox.js';
 /**
  * Factory to create a new sandbox
  */
-class SandboxFactory {
-  static createCDKSandbox = () => {
-    return new CDKSandbox();
+export class SandboxFactory {
+  static createCDKSandbox = (
+    appName: string,
+    disambiguator: string
+  ): Sandbox => {
+    return new CDKSandbox(appName, disambiguator);
   };
 }
-
-export const sandbox: Sandbox = SandboxFactory.createCDKSandbox();
