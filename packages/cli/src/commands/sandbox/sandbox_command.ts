@@ -51,6 +51,7 @@ export class SandboxCommand
       );
     }
     if (!this.sandboxDeleteCommand) {
+      // TODO need sandbox lazy loader here to pass to delete command so they can share the same reference
       this.sandboxDeleteCommand = new SandboxDeleteCommand(this.sandbox);
     }
     await this.sandbox.start(args);
