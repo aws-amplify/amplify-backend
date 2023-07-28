@@ -107,10 +107,8 @@ describe('sandbox command', () => {
       }
     );
 
-    const sandboxDeleteMock = contextual.mock.method(
-      sandbox,
-      'delete',
-      async () => Promise.resolve()
+    const sandboxDeleteMock = contextual.mock.method(sandbox, 'delete', () =>
+      Promise.resolve()
     );
 
     // User said yes to delete
