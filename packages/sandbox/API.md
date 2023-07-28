@@ -12,13 +12,16 @@ export type Sandbox = {
 };
 
 // @public (undocumented)
-export const sandbox: Sandbox;
-
-// @public (undocumented)
 export type SandboxOptions = {
     dir?: string;
     exclude?: string[];
 };
+
+// @public
+export class SandboxSingletonFactory {
+    constructor(appNameResolver: () => Promise<string>, disambiguatorResolver: () => Promise<string>);
+    getInstance(): Promise<Sandbox>;
+}
 
 // (No @packageDocumentation comment for this package)
 
