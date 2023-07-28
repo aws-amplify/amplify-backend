@@ -26,6 +26,7 @@
   "dependencies": {
     "@aws-sdk/credential-providers": "^3.360.0",
     "@inquirer/prompts": "^3.0.0",
+    "execa": "^7.2.0",
     "yargs": "^17.7.2"
   },
   "peerDependencies": {

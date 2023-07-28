@@ -38,7 +38,7 @@ describe('generate config command', () => {
   const generateConfigCommand = new GenerateConfigCommand(
     clientConfigGeneratorAdapter,
     clientConfigWriter,
-    async () => ({ name: 'testAppName' })
+    { resolve: () => Promise.resolve('testAppName') }
   );
   const parser = yargs().command(
     generateConfigCommand as unknown as CommandModule

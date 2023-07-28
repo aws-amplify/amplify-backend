@@ -2,8 +2,8 @@ import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { ClientConfigGeneratorAdapter } from './client_config_generator_adapter.js';
 import { ClientConfigWriter } from './client_config_writer.js';
 import path from 'path';
-import { fetchNearestPackageJson } from '../../../package_json_locator.js';
 import { BackendIdentifier } from '@aws-amplify/client-config';
+import { ProjectNameResolver } from '../../../local_project_name_resolver.js';
 
 export type GenerateConfigCommandOptions = {
   stack: string | undefined;
@@ -38,7 +38,7 @@ export class GenerateConfigCommand
   constructor(
     private readonly clientConfigGenerator: ClientConfigGeneratorAdapter,
     private readonly clientConfigWriter: ClientConfigWriter,
-    private readonly getPackageJson = fetchNearestPackageJson
+    private readonly projectNameResolver: ProjectNameResolver
   ) {
     this.command = 'config';
     this.describe = 'Generates client config';
@@ -73,14 +73,10 @@ export class GenerateConfigCommand
     } else if (args.appId && args.branch) {
       return { appId: args.appId, branch: args.branch };
     } else if (args.branch) {
-      const nearestPackageJson = await this.getPackageJson();
-      const appName = nearestPackageJson.name;
-      if (typeof appName !== 'string') {
-        throw new Error(
-          'Could not determine appName from nearest package.json#name field'
-        );
-      }
-      return { appName, branch: args.branch };
+      return {
+        appName: await this.projectNameResolver.resolve(),
+        branch: args.branch,
+      };
     } else {
       throw this.missingArgsError;
     }

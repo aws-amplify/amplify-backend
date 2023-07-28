@@ -10,7 +10,7 @@ import fs from 'fs';
 import { SandboxCommand } from './sandbox_command.js';
 import { createSandboxCommand } from './sandbox_command_factory.js';
 import { SandboxDeleteCommand } from './sandbox_delete/sandbox_delete_command.js';
-import { SandboxFactory } from '@aws-amplify/sandbox';
+import { Sandbox, SandboxSingletonFactory } from '@aws-amplify/sandbox';
 
 describe('sandbox command factory', () => {
   it('instantiate a sandbox command correctly', () => {
@@ -19,18 +19,28 @@ describe('sandbox command factory', () => {
 });
 
 describe('sandbox command', () => {
-  const sandbox = SandboxFactory.createCDKSandbox('testAppName', 'test1234');
+  let commandRunner: TestCommandRunner;
+  let sandboxStartMock = mock.fn();
+  let sandbox: Sandbox;
 
-  const sandboxStartMock = mock.method(sandbox, 'start', () => {
-    return Promise.resolve();
-  });
-  const sandboxDeleteCommand = new SandboxDeleteCommand(sandbox);
+  beforeEach(async () => {
+    const sandboxFactory = new SandboxSingletonFactory(
+      () => Promise.resolve('testAppName'),
+      () => Promise.resolve('test1234')
+    );
+    sandbox = await sandboxFactory.getInstance();
 
-  const sandboxCommand = new SandboxCommand(sandbox, sandboxDeleteCommand);
-  const parser = yargs().command(sandboxCommand as unknown as CommandModule);
-  const commandRunner = new TestCommandRunner(parser);
+    sandboxStartMock = mock.method(sandbox, 'start', () =>
+      Promise.resolve()
+    ) as never; // couldn't figure out a good way to type the sandboxStartMock so that TS was happy here
+    const sandboxDeleteCommand = new SandboxDeleteCommand(sandboxFactory);
 
-  beforeEach(() => {
+    const sandboxCommand = new SandboxCommand(
+      sandboxFactory,
+      sandboxDeleteCommand
+    );
+    const parser = yargs().command(sandboxCommand as unknown as CommandModule);
+    commandRunner = new TestCommandRunner(parser);
     sandboxStartMock.mock.resetCalls();
   });
 
@@ -61,9 +71,9 @@ describe('sandbox command', () => {
   });
 
   it('fails if a file is provided in the --dirToWatch flag', async (contextual) => {
-    contextual.mock.method(fs, 'statSync', () => {
-      return { isDirectory: () => false };
-    });
+    contextual.mock.method(fs, 'statSync', () => ({
+      isDirectory: () => false,
+    }));
     await assert.rejects(
       () => commandRunner.runCommand('sandbox --dirToWatch existentFile'),
       (err: TestCommandError) => {
@@ -100,15 +110,13 @@ describe('sandbox command', () => {
     const sandboxDeleteMock = contextual.mock.method(
       sandbox,
       'delete',
-      async () => {
-        return Promise.resolve();
-      }
+      async () => Promise.resolve()
     );
 
     // User said yes to delete
-    contextual.mock.method(AmplifyPrompter, 'yesOrNo', () => {
-      return Promise.resolve(true);
-    });
+    contextual.mock.method(AmplifyPrompter, 'yesOrNo', () =>
+      Promise.resolve(true)
+    );
     await commandRunner.runCommand('sandbox');
     assert.equal(sandboxStartMock.mock.callCount(), 1);
     assert.equal(sandboxDeleteMock.mock.callCount(), 1);
@@ -133,15 +141,13 @@ describe('sandbox command', () => {
     const sandboxDeleteMock = contextual.mock.method(
       sandbox,
       'delete',
-      async () => {
-        return Promise.resolve();
-      }
+      async () => Promise.resolve()
     );
 
     // User said no to delete
-    contextual.mock.method(AmplifyPrompter, 'yesOrNo', () => {
-      return Promise.resolve(false);
-    });
+    contextual.mock.method(AmplifyPrompter, 'yesOrNo', () =>
+      Promise.resolve(false)
+    );
     await commandRunner.runCommand('sandbox');
     assert.equal(sandboxStartMock.mock.callCount(), 1);
     assert.equal(sandboxDeleteMock.mock.callCount(), 0);

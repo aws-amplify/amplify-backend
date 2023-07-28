@@ -5,37 +5,46 @@ import { TestCommandRunner } from '../../../test_utils/command_runner.js';
 import assert from 'node:assert';
 import { SandboxDeleteCommand } from './sandbox_delete_command.js';
 import { SandboxCommand } from '../sandbox_command.js';
-import { SandboxFactory } from '@aws-amplify/sandbox';
+import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
 
 describe('sandbox delete command', () => {
-  const sandbox = SandboxFactory.createCDKSandbox('testAppName', 'test1234');
-  const sandboxDeleteMock = mock.method(sandbox, 'delete', () => {
-    return Promise.resolve();
-  });
+  let commandRunner: TestCommandRunner;
+  let sandboxDeleteMock = mock.fn();
 
-  const sandboxDeleteCommand = new SandboxDeleteCommand(sandbox);
+  beforeEach(async () => {
+    const sandboxFactory = new SandboxSingletonFactory(
+      () => Promise.resolve('testAppName'),
+      () => Promise.resolve('test1234')
+    );
+    const sandbox = await sandboxFactory.getInstance();
+    sandboxDeleteMock = mock.method(sandbox, 'delete', () =>
+      Promise.resolve()
+    ) as never; // couldn't figure out a good way to type the sandboxDeleteMock so that TS was happy here
 
-  const sandboxCommand = new SandboxCommand(sandbox, sandboxDeleteCommand);
-  const parser = yargs().command(sandboxCommand as unknown as CommandModule);
-  const commandRunner = new TestCommandRunner(parser);
+    const sandboxDeleteCommand = new SandboxDeleteCommand(sandboxFactory);
 
-  beforeEach(() => {
+    const sandboxCommand = new SandboxCommand(
+      sandboxFactory,
+      sandboxDeleteCommand
+    );
+    const parser = yargs().command(sandboxCommand as unknown as CommandModule);
+    commandRunner = new TestCommandRunner(parser);
     sandboxDeleteMock.mock.resetCalls();
   });
 
   it('deletes sandbox after confirming with user', async (contextual) => {
-    contextual.mock.method(AmplifyPrompter, 'yesOrNo', () => {
-      return Promise.resolve(true);
-    });
+    contextual.mock.method(AmplifyPrompter, 'yesOrNo', () =>
+      Promise.resolve(true)
+    );
     await commandRunner.runCommand('sandbox delete');
 
     assert.equal(sandboxDeleteMock.mock.callCount(), 1);
   });
 
   it('does not delete sandbox if user said no', async (contextual) => {
-    contextual.mock.method(AmplifyPrompter, 'yesOrNo', () => {
-      return Promise.resolve(false);
-    });
+    contextual.mock.method(AmplifyPrompter, 'yesOrNo', () =>
+      Promise.resolve(false)
+    );
     await commandRunner.runCommand('sandbox delete');
 
     assert.equal(sandboxDeleteMock.mock.callCount(), 0);

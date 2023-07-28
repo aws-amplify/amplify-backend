@@ -1,9 +1,8 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
-import { Sandbox, SandboxFactory } from '@aws-amplify/sandbox';
 import { SandboxDeleteCommand } from './sandbox_delete/sandbox_delete_command.js';
 import fs from 'fs';
 import { AmplifyPrompter } from '../prompter/amplify_prompts.js';
-import { fetchNearestPackageJson } from '../../package_json_locator.js';
+import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
 
 export type SandboxCommandOptions = {
   dirToWatch: string | undefined;
@@ -30,8 +29,8 @@ export class SandboxCommand
    * Creates sandbox command.
    */
   constructor(
-    private sandbox?: Sandbox,
-    private sandboxDeleteCommand?: SandboxDeleteCommand
+    private readonly sandboxFactory: SandboxSingletonFactory,
+    private readonly sandboxDeleteCommand: SandboxDeleteCommand
   ) {
     this.command = 'sandbox';
     this.describe = 'Starts sandbox, watch mode for amplify deployments';
@@ -44,17 +43,7 @@ export class SandboxCommand
     args: ArgumentsCamelCase<SandboxCommandOptions>
   ): Promise<void> => {
     process.once('SIGINT', this.sigIntHandler.bind(this));
-    if (!this.sandbox) {
-      this.sandbox = SandboxFactory.createCDKSandbox(
-        (await fetchNearestPackageJson()).name as string,
-        'foyleef'
-      );
-    }
-    if (!this.sandboxDeleteCommand) {
-      // TODO need sandbox lazy loader here to pass to delete command so they can share the same reference
-      this.sandboxDeleteCommand = new SandboxDeleteCommand(this.sandbox);
-    }
-    await this.sandbox.start(args);
+    await (await this.sandboxFactory.getInstance()).start(args);
   };
 
   /**
@@ -103,6 +92,6 @@ export class SandboxCommand
         'Would you like to delete all the resources in your sandbox environment (This cannot be undone)?',
       defaultValue: false,
     });
-    if (answer) await this.sandbox?.delete();
+    if (answer) await (await this.sandboxFactory.getInstance()).delete();
   };
 }
