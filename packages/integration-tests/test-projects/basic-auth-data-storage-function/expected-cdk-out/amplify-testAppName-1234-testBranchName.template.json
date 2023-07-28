@@ -1,212 +1,226 @@
 {
-  "Metadata": {
-    "AWS::Amplify::Output": {
-      "authOutput": {
-        "version": "1",
-        "stackOutputs": ["userPoolId", "authRegion"]
-      },
-      "storageOutput": {
-        "version": "1",
-        "stackOutputs": ["storageRegion", "bucketName"]
-      },
-      "dataOutput": {
-        "version": "1",
-        "stackOutputs": ["appSyncApiEndpoint"]
-      }
-    }
-  },
-  "Resources": {
-    "auth179371D7": {
-      "Type": "AWS::CloudFormation::Stack",
-      "Properties": {
-        "TemplateURL": {
-          "Fn::Join": [
-            "",
-            [
-              "https://s3.",
-              {
-                "Ref": "AWS::Region"
-              },
-              ".",
-              {
-                "Ref": "AWS::URLSuffix"
-              },
-              "/",
-              {
-                "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
-              },
-              "/6e55e57143180354375f991d41a27ef1594857151b59eaf2814abbd2072ba26a.json"
-            ]
-          ]
-        }
-      },
-      "UpdateReplacePolicy": "Delete",
-      "DeletionPolicy": "Delete"
-    },
-    "storage0EC3F24A": {
-      "Type": "AWS::CloudFormation::Stack",
-      "Properties": {
-        "TemplateURL": {
-          "Fn::Join": [
-            "",
-            [
-              "https://s3.",
-              {
-                "Ref": "AWS::Region"
-              },
-              ".",
-              {
-                "Ref": "AWS::URLSuffix"
-              },
-              "/",
-              {
-                "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
-              },
-              "/24ff370243faceaddf378e08e0b853a79520eb93b93631ab5807d4c1c8d9af55.json"
-            ]
-          ]
-        }
-      },
-      "UpdateReplacePolicy": "Delete",
-      "DeletionPolicy": "Delete"
-    },
-    "function1351588B": {
-      "Type": "AWS::CloudFormation::Stack",
-      "Properties": {
-        "TemplateURL": {
-          "Fn::Join": [
-            "",
-            [
-              "https://s3.",
-              {
-                "Ref": "AWS::Region"
-              },
-              ".",
-              {
-                "Ref": "AWS::URLSuffix"
-              },
-              "/",
-              {
-                "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
-              },
-              "/6bd12547173aeacd987da819a8c8b0e6651f6e6094150a6327e95708bdf251bc.json"
-            ]
-          ]
-        }
-      },
-      "UpdateReplacePolicy": "Delete",
-      "DeletionPolicy": "Delete"
-    },
-    "data7552DF31": {
-      "Type": "AWS::CloudFormation::Stack",
-      "Properties": {
-        "TemplateURL": {
-          "Fn::Join": [
-            "",
-            [
-              "https://s3.",
-              {
-                "Ref": "AWS::Region"
-              },
-              ".",
-              {
-                "Ref": "AWS::URLSuffix"
-              },
-              "/",
-              {
-                "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
-              },
-              "/5eeb2f66590fd927d5bc7d6cd6692215b4a3b3a99ac027b52fedd939b956f4b8.json"
-            ]
-          ]
-        },
-        "Parameters": {
-          "referencetoamplifytestAppName1234testBranchNameauthNestedStackauthNestedStackResourceA79383D0OutputsamplifytestAppName1234testBranchNameauthamplifyAuthUserPool2299DE02Ref": {
-            "Fn::GetAtt": [
-              "auth179371D7",
-              "Outputs.amplifytestAppName1234testBranchNameauthamplifyAuthUserPool2299DE02Ref"
-            ]
-          },
-          "referencetoamplifytestAppName1234testBranchNameauthNestedStackauthNestedStackResourceA79383D0OutputsamplifytestAppName1234testBranchNameauthamplifyAuthauthenticatedUserRoleE3D92679Ref": {
-            "Fn::GetAtt": [
-              "auth179371D7",
-              "Outputs.amplifytestAppName1234testBranchNameauthamplifyAuthauthenticatedUserRoleE3D92679Ref"
-            ]
-          },
-          "referencetoamplifytestAppName1234testBranchNameauthNestedStackauthNestedStackResourceA79383D0OutputsamplifytestAppName1234testBranchNameauthamplifyAuthunauthenticatedUserRole91B91C57Ref": {
-            "Fn::GetAtt": [
-              "auth179371D7",
-              "Outputs.amplifytestAppName1234testBranchNameauthamplifyAuthunauthenticatedUserRole91B91C57Ref"
-            ]
-          }
-        }
-      },
-      "UpdateReplacePolicy": "Delete",
-      "DeletionPolicy": "Delete"
-    }
-  },
-  "Outputs": {
-    "userPoolId": {
-      "Value": {
-        "Fn::GetAtt": [
-          "auth179371D7",
-          "Outputs.amplifytestAppName1234testBranchNameauthamplifyAuthUserPool2299DE02Ref"
-        ]
-      }
-    },
-    "authRegion": {
-      "Value": {
-        "Ref": "AWS::Region"
-      }
-    },
-    "storageRegion": {
-      "Value": {
-        "Ref": "AWS::Region"
-      }
-    },
-    "bucketName": {
-      "Value": {
-        "Fn::GetAtt": [
-          "storage0EC3F24A",
-          "Outputs.amplifytestAppName1234testBranchNamestorageamplifyStorageamplifyStorageBucket64E7D884Ref"
-        ]
-      }
-    },
-    "appSyncApiEndpoint": {
-      "Value": {
-        "Fn::GetAtt": [
-          "data7552DF31",
-          "Outputs.amplifytestAppName1234testBranchNamedataamplifyDataRootStackGraphQLAPI58B0BABDGraphQLUrl"
-        ]
-      }
-    }
-  },
-  "Parameters": {
-    "BootstrapVersion": {
-      "Type": "AWS::SSM::Parameter::Value<String>",
-      "Default": "/cdk-bootstrap/hnb659fds/version",
-      "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
-    }
-  },
-  "Rules": {
-    "CheckBootstrapVersion": {
-      "Assertions": [
-        {
-          "Assert": {
-            "Fn::Not": [
-              {
-                "Fn::Contains": [
-                  ["1", "2", "3", "4", "5"],
-                  {
-                    "Ref": "BootstrapVersion"
-                  }
-                ]
-              }
-            ]
-          },
-          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
-        }
-      ]
-    }
+ "Metadata": {
+  "AWS::Amplify::Output": {
+   "authOutput": {
+    "version": "1",
+    "stackOutputs": [
+     "userPoolId",
+     "authRegion"
+    ]
+   },
+   "storageOutput": {
+    "version": "1",
+    "stackOutputs": [
+     "storageRegion",
+     "bucketName"
+    ]
+   },
+   "dataOutput": {
+    "version": "1",
+    "stackOutputs": [
+     "appSyncApiEndpoint"
+    ]
+   }
   }
+ },
+ "Resources": {
+  "auth179371D7": {
+   "Type": "AWS::CloudFormation::Stack",
+   "Properties": {
+    "TemplateURL": {
+     "Fn::Join": [
+      "",
+      [
+       "https://s3.",
+       {
+        "Ref": "AWS::Region"
+       },
+       ".",
+       {
+        "Ref": "AWS::URLSuffix"
+       },
+       "/",
+       {
+        "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+       },
+       "/6e55e57143180354375f991d41a27ef1594857151b59eaf2814abbd2072ba26a.json"
+      ]
+     ]
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "storage0EC3F24A": {
+   "Type": "AWS::CloudFormation::Stack",
+   "Properties": {
+    "TemplateURL": {
+     "Fn::Join": [
+      "",
+      [
+       "https://s3.",
+       {
+        "Ref": "AWS::Region"
+       },
+       ".",
+       {
+        "Ref": "AWS::URLSuffix"
+       },
+       "/",
+       {
+        "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+       },
+       "/24ff370243faceaddf378e08e0b853a79520eb93b93631ab5807d4c1c8d9af55.json"
+      ]
+     ]
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "function1351588B": {
+   "Type": "AWS::CloudFormation::Stack",
+   "Properties": {
+    "TemplateURL": {
+     "Fn::Join": [
+      "",
+      [
+       "https://s3.",
+       {
+        "Ref": "AWS::Region"
+       },
+       ".",
+       {
+        "Ref": "AWS::URLSuffix"
+       },
+       "/",
+       {
+        "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+       },
+       "/6bd12547173aeacd987da819a8c8b0e6651f6e6094150a6327e95708bdf251bc.json"
+      ]
+     ]
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "data7552DF31": {
+   "Type": "AWS::CloudFormation::Stack",
+   "Properties": {
+    "TemplateURL": {
+     "Fn::Join": [
+      "",
+      [
+       "https://s3.",
+       {
+        "Ref": "AWS::Region"
+       },
+       ".",
+       {
+        "Ref": "AWS::URLSuffix"
+       },
+       "/",
+       {
+        "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+       },
+       "/5eeb2f66590fd927d5bc7d6cd6692215b4a3b3a99ac027b52fedd939b956f4b8.json"
+      ]
+     ]
+    },
+    "Parameters": {
+     "referencetoamplifytestAppName1234testBranchNameauthNestedStackauthNestedStackResourceA79383D0OutputsamplifytestAppName1234testBranchNameauthamplifyAuthUserPool2299DE02Ref": {
+      "Fn::GetAtt": [
+       "auth179371D7",
+       "Outputs.amplifytestAppName1234testBranchNameauthamplifyAuthUserPool2299DE02Ref"
+      ]
+     },
+     "referencetoamplifytestAppName1234testBranchNameauthNestedStackauthNestedStackResourceA79383D0OutputsamplifytestAppName1234testBranchNameauthamplifyAuthauthenticatedUserRoleE3D92679Ref": {
+      "Fn::GetAtt": [
+       "auth179371D7",
+       "Outputs.amplifytestAppName1234testBranchNameauthamplifyAuthauthenticatedUserRoleE3D92679Ref"
+      ]
+     },
+     "referencetoamplifytestAppName1234testBranchNameauthNestedStackauthNestedStackResourceA79383D0OutputsamplifytestAppName1234testBranchNameauthamplifyAuthunauthenticatedUserRole91B91C57Ref": {
+      "Fn::GetAtt": [
+       "auth179371D7",
+       "Outputs.amplifytestAppName1234testBranchNameauthamplifyAuthunauthenticatedUserRole91B91C57Ref"
+      ]
+     }
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  }
+ },
+ "Outputs": {
+  "userPoolId": {
+   "Value": {
+    "Fn::GetAtt": [
+     "auth179371D7",
+     "Outputs.amplifytestAppName1234testBranchNameauthamplifyAuthUserPool2299DE02Ref"
+    ]
+   }
+  },
+  "authRegion": {
+   "Value": {
+    "Ref": "AWS::Region"
+   }
+  },
+  "storageRegion": {
+   "Value": {
+    "Ref": "AWS::Region"
+   }
+  },
+  "bucketName": {
+   "Value": {
+    "Fn::GetAtt": [
+     "storage0EC3F24A",
+     "Outputs.amplifytestAppName1234testBranchNamestorageamplifyStorageamplifyStorageBucket64E7D884Ref"
+    ]
+   }
+  },
+  "appSyncApiEndpoint": {
+   "Value": {
+    "Fn::GetAtt": [
+     "data7552DF31",
+     "Outputs.amplifytestAppName1234testBranchNamedataamplifyDataRootStackGraphQLAPI58B0BABDGraphQLUrl"
+    ]
+   }
+  }
+ },
+ "Parameters": {
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/hnb659fds/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
 }
