@@ -1,16 +1,16 @@
 {
-  "Resources": {
-    "amplifyStorageamplifyStorageBucketC2F702CD": {
-      "Type": "AWS::S3::Bucket",
-      "UpdateReplacePolicy": "Retain",
-      "DeletionPolicy": "Retain"
-    }
-  },
-  "Outputs": {
-    "testProjecttestEnvironmentstorageamplifyStorageamplifyStorageBucket05AB04A9Ref": {
-      "Value": {
-        "Ref": "amplifyStorageamplifyStorageBucketC2F702CD"
-      }
-    }
+ "Resources": {
+  "amplifyStorageamplifyStorageBucketC2F702CD": {
+   "Type": "AWS::S3::Bucket",
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain"
   }
+ },
+ "Outputs": {
+  "testProjecttestEnvironmentstorageamplifyStorageamplifyStorageBucket05AB04A9Ref": {
+   "Value": {
+    "Ref": "amplifyStorageamplifyStorageBucketC2F702CD"
+   }
+  }
+ }
 }
