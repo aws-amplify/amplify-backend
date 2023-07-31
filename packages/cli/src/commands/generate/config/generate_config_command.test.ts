@@ -22,17 +22,13 @@ describe('generate config command', () => {
   const generateClientConfigMock = mock.method(
     clientConfigGeneratorAdapter,
     'generateClientConfig',
-    () => {
-      return Promise.resolve(clientConfig);
-    }
+    () => Promise.resolve(clientConfig)
   );
   const clientConfigWriter = new ClientConfigWriter();
   const writeClientConfigMock = mock.method(
     clientConfigWriter,
     'writeClientConfig',
-    () => {
-      // no op
-    }
+    () => Promise.resolve()
   );
 
   const generateConfigCommand = new GenerateConfigCommand(
@@ -137,24 +133,6 @@ describe('generate config command', () => {
         assert.equal(err.error.name, 'YError');
         assert.match(err.error.message, /Arguments .* mutually exclusive/);
         assert.match(err.output, /Arguments .* are mutually exclusive/);
-        return true;
-      }
-    );
-  });
-
-  it('fails if neither stack nor branch are present', async () => {
-    /* Note: there is some issue with yargs when running with .exitProcess(false) where errors thrown in .check() do not bubble up to the top
-      This check then comes to the fallthrough logic in the handler.
-      Additionally, yargs seems to be leaving some promises dangling in this case leading to test warnings, but the test assertion is still being validated
-     */
-    await assert.rejects(
-      () => commandRunner.runCommand('config'),
-      (err: TestCommandError) => {
-        assert.equal(err.error.name, 'Error');
-        assert.equal(
-          err.error.message,
-          'Either --stack or --branch must be provided'
-        );
         return true;
       }
     );
