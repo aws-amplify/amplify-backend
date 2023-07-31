@@ -2,7 +2,7 @@ import { execa } from 'execa';
 
 // any files that have an "EXCLUDE" string as a substring of the file path will be excluded from the size check
 // note that gitignored files are already ignored
-const EXCLUDE = ['package-lock.json', 'API.md'];
+const EXCLUDE = ['package-lock.json', 'API.md', 'expected-cdk-out'];
 
 const MAX_LINES_ADDED = 1000;
 const MAX_LINES_REMOVED = 1000;

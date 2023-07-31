@@ -7,3 +7,4 @@ docs
 tsconfig.tsbuildinfo
 API.md
 verdaccio-cache
+expected-cdk-out
