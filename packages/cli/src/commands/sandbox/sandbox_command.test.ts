@@ -118,9 +118,9 @@ describe('sandbox command', () => {
     await commandRunner.runCommand('sandbox');
     /*
       I can't find any open node:test or yargs issues that would explain why this is necessary
-      but for some reason the mock call count does not update without this 0ms wait
+      but for some reason the mock call count does not update without this 1ms wait
      */
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await new Promise((resolve) => setTimeout(resolve, 1));
     assert.equal(sandboxStartMock.mock.callCount(), 1);
     assert.equal(sandboxDeleteMock.mock.callCount(), 1);
   });

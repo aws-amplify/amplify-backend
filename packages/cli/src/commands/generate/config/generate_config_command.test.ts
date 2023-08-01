@@ -55,9 +55,9 @@ describe('generate config command', { concurrency: 1 }, () => {
 
     /*
       I can't find any open node:test or yargs issues that would explain why this is necessary
-      but for some reason the mock call count does not update without this 0ms wait
+      but for some reason the mock call count does not update without this 1ms wait
      */
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await new Promise((resolve) => setTimeout(resolve, 1));
     assert.equal(writeClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(
       writeClientConfigMock.mock.calls[0].arguments[0],
