@@ -52,12 +52,6 @@ describe('generate config command', { concurrency: 1 }, () => {
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
       stackName: 'stack_name',
     });
-
-    /*
-      I can't find any open node:test or yargs issues that would explain why this is necessary
-      but for some reason the mock call count does not update without this 1ms wait
-     */
-    await new Promise((resolve) => setTimeout(resolve, 1));
     assert.equal(writeClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(
       writeClientConfigMock.mock.calls[0].arguments[0],
@@ -76,6 +70,11 @@ describe('generate config command', { concurrency: 1 }, () => {
       appName: 'testAppName',
       branch: 'branch_name',
     });
+    /*
+      I can't find any open node:test or yargs issues that would explain why this is necessary
+      but for some reason the mock call count does not update without this 0ms wait
+     */
+    await new Promise((resolve) => setTimeout(resolve, 0));
     assert.equal(writeClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(
       writeClientConfigMock.mock.calls[0].arguments[0],
