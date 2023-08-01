@@ -1,20 +1,20 @@
 import {
   MainStackNameResolver,
-  UniqueDeploymentIdentifier,
+  UniqueBackendIdentifier,
 } from '@aws-amplify/plugin-types';
 import { getMainStackName as getMainStackNameOriginal } from '../get_main_stack_name.js';
 
 /**
  * Resolves the main stack name for a given project environment
  */
-export class UniqueDeploymentIdentifierMainStackNameResolver
+export class UniqueBackendIdentifierMainStackNameResolver
   implements MainStackNameResolver
 {
   /**
    * Initialize with the project environment identifier and an SSMClient
    */
   constructor(
-    private readonly uniqueDeploymentIdentifier: UniqueDeploymentIdentifier,
+    private readonly uniqueDeploymentIdentifier: UniqueBackendIdentifier,
     private readonly getMainStackName = getMainStackNameOriginal
   ) {}
 

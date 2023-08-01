@@ -1,6 +1,6 @@
 import {
   MainStackCreator,
-  UniqueDeploymentIdentifier,
+  UniqueBackendIdentifier,
 } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
 import { Stack } from 'aws-cdk-lib';
@@ -17,7 +17,7 @@ export class ProjectEnvironmentMainStackCreator implements MainStackCreator {
    */
   constructor(
     private readonly scope: Construct,
-    private readonly uniqueDeploymentIdentifier: UniqueDeploymentIdentifier
+    private readonly uniqueDeploymentIdentifier: UniqueBackendIdentifier
   ) {}
 
   /**

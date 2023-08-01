@@ -1,5 +1,6 @@
 import debounce from 'debounce-promise';
 import { execa } from 'execa';
+import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 /**
  * Execute CDK commands.
@@ -12,7 +13,10 @@ export class AmplifyCDKExecutor {
    * Debounce is added in case multiple duplicate events are received.
    */
   invokeCDKWithDebounce = debounce(
-    async (cdkCommand: CDKCommand, cdkOptions?: CDKOptions): Promise<void> => {
+    async (
+      cdkCommand: CDKCommand,
+      cdkOptions?: UniqueBackendIdentifier
+    ): Promise<void> => {
       console.debug(`[Sandbox] Executing cdk ${cdkCommand.toString()}`);
 
       // Basic args
@@ -63,9 +67,3 @@ export enum CDKCommand {
   DEPLOY = 'deploy',
   DESTROY = 'destroy',
 }
-
-export type CDKOptions = {
-  appName: string;
-  branchName: string;
-  disambiguator: string;
-};

@@ -2,7 +2,7 @@
  * Tuple of values that uniquely identifies a deployed backend.
  * Used to generate stack names for deployments
  */
-export type UniqueDeploymentIdentifier = {
+export type UniqueBackendIdentifier = {
   /**
    * For Amplify branch deployments, this is the Amplify app name.
    * For sandbox deployments, this is the value of package.json#name

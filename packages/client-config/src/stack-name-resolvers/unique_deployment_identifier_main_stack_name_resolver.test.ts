@@ -1,11 +1,11 @@
 import { describe, it, mock } from 'node:test';
-import { UniqueDeploymentIdentifierMainStackNameResolver } from './unique_deployment_identifier_main_stack_name_resolver.js';
+import { UniqueBackendIdentifierMainStackNameResolver } from './unique_deployment_identifier_main_stack_name_resolver.js';
 import assert from 'node:assert';
-import { UniqueDeploymentIdentifier } from '@aws-amplify/plugin-types';
+import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
-describe('UniqueDeploymentIdentifierMainStackNameResolver', () => {
+describe('UniqueBackendIdentifierMainStackNameResolver', () => {
   describe('resolveMainStackName', () => {
-    const testBackendIdentifier: UniqueDeploymentIdentifier = {
+    const testBackendIdentifier: UniqueBackendIdentifier = {
       appName: 'testAppName',
       branchName: 'testBranchName',
       disambiguator: '1234',
@@ -16,7 +16,7 @@ describe('UniqueDeploymentIdentifierMainStackNameResolver', () => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const getMainStackNameMock = mock.fn((backendId) => 'testStackName');
       const stackNameResolver =
-        new UniqueDeploymentIdentifierMainStackNameResolver(
+        new UniqueBackendIdentifierMainStackNameResolver(
           testBackendIdentifier,
           getMainStackNameMock
         );

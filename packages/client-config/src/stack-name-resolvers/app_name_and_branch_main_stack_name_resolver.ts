@@ -5,7 +5,7 @@ import { getMainStackName } from '../get_main_stack_name.js';
 /**
  * Tuple of Amplify App name and branch
  */
-export type AppNameAndBranch = {
+export type AppNameAndBranchBackendIdentifier = {
   appName: string;
   branch: string;
 };
@@ -21,7 +21,7 @@ export class AppNameAndBranchMainStackNameResolver
    */
   constructor(
     private readonly amplifyClient: AmplifyClient,
-    private readonly appNameAndBranch: AppNameAndBranch
+    private readonly appNameAndBranch: AppNameAndBranchBackendIdentifier
   ) {}
 
   /**
@@ -30,6 +30,7 @@ export class AppNameAndBranchMainStackNameResolver
    */
   async resolveMainStackName(): Promise<string> {
     const listAppsResult = await this.amplifyClient.send(
+      // 100 is the max page size. It is also the hard limit for how many Amplify apps you can have so no pagination is necessary
       new ListAppsCommand({ maxResults: 100 })
     );
     const appMatches = (listAppsResult?.apps || []).filter(
@@ -37,11 +38,15 @@ export class AppNameAndBranchMainStackNameResolver
     );
     if (appMatches.length === 0) {
       throw new Error(
-        `No apps found with name ${this.appNameAndBranch.appName}`
+        `No apps found with name ${
+          this.appNameAndBranch.appName
+        } in region ${this.amplifyClient.config.region.toString()}`
       );
     } else if (appMatches.length >= 2) {
       throw new Error(
-        `Multiple apps found with name ${this.appNameAndBranch.appName}. Use AppId instead of AppName to specify which Amplify App to use.`
+        `Multiple apps found with name ${
+          this.appNameAndBranch.appName
+        } in region ${this.amplifyClient.config.region.toString()}. Use AppId instead of AppName to specify which Amplify App to use.`
       );
     }
     // if we get here, appMatches has one and only one entry

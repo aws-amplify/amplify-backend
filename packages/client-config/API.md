@@ -5,7 +5,7 @@
 ```ts
 
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
-import { UniqueDeploymentIdentifier } from '@aws-amplify/plugin-types';
+import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 // @public
 export type AppIdAndBranch = {
@@ -29,7 +29,7 @@ export type AuthClientConfig = {
 };
 
 // @public (undocumented)
-export type BackendIdentifier = UniqueDeploymentIdentifier | StackIdentifier | AppNameAndBranch | AppIdAndBranch;
+export type BackendIdentifier = UniqueBackendIdentifier | StackIdentifier | AppNameAndBranch | AppIdAndBranch;
 
 // @public
 export type ClientConfig = Partial<AuthClientConfig & DataClientConfig & StorageClientConfig>;

@@ -1,7 +1,7 @@
 import { App, Stack } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { ProjectEnvironmentMainStackCreator } from './project_environment_main_stack_creator.js';
-import { UniqueDeploymentIdentifier } from '@aws-amplify/plugin-types';
+import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 const appNameCDKContextKey = 'app-name';
 const disambiguatorCDKContextKey = 'disambiguator';
@@ -13,7 +13,7 @@ const branchNameCDKContextKey = 'branch-name';
 export const createDefaultStack = (app = new App()): Stack => {
   const mainStackCreator = new ProjectEnvironmentMainStackCreator(
     app,
-    loadUniqueDeploymentIdentifier(app)
+    getUniqueBackendIdentifier(app)
   );
   return mainStackCreator.getOrCreateMainStack();
 };
@@ -21,9 +21,9 @@ export const createDefaultStack = (app = new App()): Stack => {
 /**
  * Populates an instance of DeploymentContext based on CDK context values.
  */
-const loadUniqueDeploymentIdentifier = (
+const getUniqueBackendIdentifier = (
   scope: Construct
-): UniqueDeploymentIdentifier => {
+): UniqueBackendIdentifier => {
   const appName = scope.node.getContext(appNameCDKContextKey);
   const branchName = scope.node.getContext(branchNameCDKContextKey);
   const disambiguator = scope.node.getContext(disambiguatorCDKContextKey);

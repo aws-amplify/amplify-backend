@@ -23,7 +23,7 @@ describe('ClientConfigGeneratorFactory', () => {
       );
 
       const clientConfigGenerator =
-        generatorFactory.fromUniqueDeploymentIdentifier({
+        generatorFactory.fromUniqueBackendIdentifier({
           appName: 'testAppName',
           branchName: 'testBranchName',
           disambiguator: '1234',

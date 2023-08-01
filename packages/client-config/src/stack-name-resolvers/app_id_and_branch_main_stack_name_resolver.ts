@@ -5,7 +5,7 @@ import { getMainStackName } from '../get_main_stack_name.js';
 /**
  * Tuple of Amplify AppID and branch name
  */
-export type AppIdAndBranch = {
+export type AppIdAndBranchBackendIdentifier = {
   appId: string;
   branch: string;
 };
@@ -21,7 +21,7 @@ export class AppIdAndBranchMainStackNameResolver
    */
   constructor(
     private readonly amplifyClient: AmplifyClient,
-    private readonly appIdAndBranch: AppIdAndBranch
+    private readonly appIdAndBranch: AppIdAndBranchBackendIdentifier
   ) {}
 
   /**
