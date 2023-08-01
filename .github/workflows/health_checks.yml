@@ -72,8 +72,6 @@ jobs:
           path: '**/lib'
           key: ${{ runner.os }}-${{ github.sha }}
           fail-on-cache-miss: true
-      - name: Setup upterm session
-        uses: lhotari/action-upterm@v1
       - run: npm run test:coverage:threshold
   lint:
     runs-on: ubuntu-latest
