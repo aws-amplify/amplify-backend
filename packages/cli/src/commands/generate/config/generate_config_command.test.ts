@@ -12,7 +12,7 @@ import assert from 'node:assert';
 import path from 'path';
 import { ClientConfig } from '@aws-amplify/client-config';
 
-describe('generate config command', () => {
+describe('generate config command', { concurrency: 1 }, () => {
   const clientConfigGeneratorAdapter = new ClientConfigGeneratorAdapter(
     fromNodeProviderChain()
   );
@@ -52,6 +52,12 @@ describe('generate config command', () => {
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
       stackName: 'stack_name',
     });
+
+    /*
+      I can't find any open node:test or yargs issues that would explain why this is necessary
+      but for some reason the mock call count does not update without this 0ms wait
+     */
+    await new Promise((resolve) => setTimeout(resolve, 0));
     assert.equal(writeClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(
       writeClientConfigMock.mock.calls[0].arguments[0],
