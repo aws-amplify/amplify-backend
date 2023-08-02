@@ -7,7 +7,7 @@
   }
  },
  "Outputs": {
-  "testProjecttestEnvironmentstorageamplifyStorageamplifyStorageBucket05AB04A9Ref": {
+  "amplifytestAppName1234testBranchNamestorageamplifyStorageamplifyStorageBucket64E7D884Ref": {
    "Value": {
     "Ref": "amplifyStorageamplifyStorageBucketC2F702CD"
    }

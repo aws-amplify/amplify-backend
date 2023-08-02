@@ -5,10 +5,10 @@ import {
   GetTemplateSummaryCommand,
 } from '@aws-sdk/client-cloudformation';
 import { StackMetadataBackendOutputRetrievalStrategy } from './stack_metadata_output_retrieval_strategy.js';
-import { MainStackNameResolver } from '@aws-amplify/plugin-types';
 import assert from 'node:assert';
 import { amplifyStackMetadataKey } from '@aws-amplify/backend-output-schemas/platform';
 import { ZodError } from 'zod';
+import { MainStackNameResolver } from '@aws-amplify/plugin-types';
 
 describe('StackMetadataBackendOutputRetrievalStrategy', () => {
   describe('fetchBackendOutput', () => {

@@ -26,7 +26,7 @@ describe('Sandbox', () => {
    */
   beforeEach(async () => {
     execaMock.mock.resetCalls();
-    sandboxInstance = new CDKSandbox(cdkExecutor);
+    sandboxInstance = new CDKSandbox('testApp', 'test1234', cdkExecutor);
     await sandboxInstance.start({
       dir: 'testDir',
       exclude: ['exclude1', 'exclude2'],
@@ -66,9 +66,11 @@ describe('Sandbox', () => {
         '--app',
         "'npx tsx amplify/backend.ts'",
         '--context',
-        'project-name=testProject',
+        'app-name=testApp',
         '--context',
-        'environment-name=testEnvironment',
+        'branch-name=sandbox',
+        '--context',
+        'disambiguator=test1234',
         '--hotswap-fallback',
         '--method=direct',
       ],
@@ -139,9 +141,11 @@ describe('Sandbox', () => {
         '--app',
         "'npx tsx amplify/backend.ts'",
         '--context',
-        'project-name=testProject',
+        'app-name=testApp',
         '--context',
-        'environment-name=testEnvironment',
+        'branch-name=sandbox',
+        '--context',
+        'disambiguator=test1234',
         '--force',
       ],
     ]);
