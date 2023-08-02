@@ -13,7 +13,7 @@ export class LocalProjectNameResolver implements ProjectNameResolver {
    * resolve is bound to this so that it can be passed as a function reference
    */
   constructor(private readonly packageJsonLoader = new CwdPackageJsonLoader()) {
-    this.resolve.bind(this);
+    this.resolve = this.resolve.bind(this);
   }
 
   /**

@@ -1,22 +1,21 @@
-import { execa } from 'execa';
+import * as _os from 'os';
 
 /**
- * Creates a local disambiguation value from executing "whoami"
+ * Creates a local disambiguation value from the current username
  */
 export class LocalDisambiguatorResolver {
   /**
    * Execa is assigned to an instance member for testing.
    * Resolve is bound to this so that it can be passed as a function reference
    */
-  constructor(private readonly executeCommand = execa) {
-    this.resolve.bind(this);
+  constructor(private readonly os = _os) {
+    this.resolve = this.resolve.bind(this);
   }
 
   /**
-   * Execute "whoami" and return the result
+   * Return the current username
    */
   async resolve() {
-    const { stdout } = await this.executeCommand('whoami');
-    return stdout.toLocaleString().trim();
+    return this.os.userInfo().username;
   }
 }

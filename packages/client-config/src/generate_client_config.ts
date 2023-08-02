@@ -2,7 +2,7 @@ import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { ClientConfigGeneratorFactory } from './client_config_generator_factory.js';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import { ClientConfig } from './client-config-types/client_config.js';
-import { StackIdentifier } from './stack-name-resolvers/stack_name_main_stack_name_resolver.js';
+import { StackIdentifier } from './stack-name-resolvers/passthrough_main_stack_name_resolver.js';
 import { AppNameAndBranchBackendIdentifier } from './stack-name-resolvers/app_name_and_branch_main_stack_name_resolver.js';
 import { AppIdAndBranchBackendIdentifier } from './stack-name-resolvers/app_id_and_branch_main_stack_name_resolver.js';
 import { ClientConfigGenerator } from './client_config_generator.js';

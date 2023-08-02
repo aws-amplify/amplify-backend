@@ -8,9 +8,9 @@ import { DataClientConfigContributor } from './client-config-contributor/data_cl
 import { ClientConfigGenerator } from './client_config_generator.js';
 import { StorageClientConfigContributor } from './client-config-contributor/storage_client_config_contributor.js';
 import {
+  PassThroughMainStackNameResolver,
   StackIdentifier,
-  StackNameMainStackNameResolver,
-} from './stack-name-resolvers/stack_name_main_stack_name_resolver.js';
+} from './stack-name-resolvers/passthrough_main_stack_name_resolver.js';
 import { UniqueBackendIdentifierMainStackNameResolver } from './stack-name-resolvers/unique_deployment_identifier_main_stack_name_resolver.js';
 import {
   AppNameAndBranchBackendIdentifier,
@@ -56,7 +56,7 @@ export class ClientConfigGeneratorFactory {
     return new UnifiedClientConfigGenerator(
       new StackMetadataBackendOutputRetrievalStrategy(
         this.cfnClient,
-        new StackNameMainStackNameResolver(stackIdentifier)
+        new PassThroughMainStackNameResolver(stackIdentifier)
       ),
       this.clientConfigContributors
     );

@@ -7,7 +7,7 @@ export type StackIdentifier = {
 /**
  * A pass-through implementation of MainStackNameResolver for when the stack name of a backend is already known
  */
-export class StackNameMainStackNameResolver implements MainStackNameResolver {
+export class PassThroughMainStackNameResolver implements MainStackNameResolver {
   /**
    * Initialize with the known stack name
    */
