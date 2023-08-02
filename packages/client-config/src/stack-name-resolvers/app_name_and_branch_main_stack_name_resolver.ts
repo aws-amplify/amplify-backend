@@ -36,17 +36,14 @@ export class AppNameAndBranchMainStackNameResolver
     const appMatches = (listAppsResult?.apps || []).filter(
       (app) => app.name === this.appNameAndBranch.appName
     );
+    const region = await this.amplifyClient.config.region();
     if (appMatches.length === 0) {
       throw new Error(
-        `No apps found with name ${
-          this.appNameAndBranch.appName
-        } in region ${this.amplifyClient.config.region.toString()}`
+        `No apps found with name ${this.appNameAndBranch.appName} in region ${region}`
       );
     } else if (appMatches.length >= 2) {
       throw new Error(
-        `Multiple apps found with name ${
-          this.appNameAndBranch.appName
-        } in region ${this.amplifyClient.config.region.toString()}. Use AppId instead of AppName to specify which Amplify App to use.`
+        `Multiple apps found with name ${this.appNameAndBranch.appName} in region ${region}. Use AppId instead of AppName to specify which Amplify App to use.`
       );
     }
     // if we get here, appMatches has one and only one entry

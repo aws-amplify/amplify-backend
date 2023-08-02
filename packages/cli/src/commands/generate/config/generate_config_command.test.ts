@@ -12,7 +12,7 @@ import assert from 'node:assert';
 import path from 'path';
 import { ClientConfig } from '@aws-amplify/client-config';
 
-describe('generate config command', { concurrency: 1 }, () => {
+describe('generate config command', () => {
   const clientConfigGeneratorAdapter = new ClientConfigGeneratorAdapter(
     fromNodeProviderChain()
   );

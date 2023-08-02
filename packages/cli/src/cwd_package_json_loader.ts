@@ -1,27 +1,39 @@
-import * as fs from 'fs';
-import * as fsp from 'fs/promises';
+import * as _fs from 'fs';
+import * as _fsp from 'fs/promises';
 import * as path from 'path';
 import { z } from 'zod';
 
 /**
- * Returns the contents of the package.json file in process.cwd()
+ * Loads the contents of package.json from process.cwd().
  *
- * If no package.json file exists, or the content does not pass validation, an error is thrown
+ * Throws if no package.json is present
  */
-export const loadCwdPackageJson = async (): Promise<PackageJson> => {
-  const tryPath = path.resolve(process.cwd(), 'package.json');
-  if (!fs.existsSync(tryPath)) {
-    throw new Error(`Could not find a package.json file at ${tryPath}`);
+export class CwdPackageJsonLoader {
+  /**
+   * Pass in fs references so that they can be mocked in tests
+   */
+  constructor(private readonly fs = _fs, private readonly fsp = _fsp) {}
+
+  /**
+   * Returns the contents of the package.json file in process.cwd()
+   *
+   * If no package.json file exists, or the content does not pass validation, an error is thrown
+   */
+  async loadCwdPackageJson(): Promise<PackageJson> {
+    const tryPath = path.resolve(process.cwd(), 'package.json');
+    if (!this.fs.existsSync(tryPath)) {
+      throw new Error(`Could not find a package.json file at ${tryPath}`);
+    }
+    const fileContent = await this.fsp.readFile(tryPath, 'utf-8');
+    let jsonParsedValue: Record<string, unknown>;
+    try {
+      jsonParsedValue = JSON.parse(fileContent);
+    } catch (err) {
+      throw new Error(`Could not JSON.parse the contents of ${tryPath}`);
+    }
+    return packageJsonSchema.parse(jsonParsedValue);
   }
-  const fileContent = await fsp.readFile(tryPath, 'utf-8');
-  let jsonParsedValue: Record<string, unknown>;
-  try {
-    jsonParsedValue = JSON.parse(fileContent);
-  } catch (err) {
-    throw new Error(`Could not JSON.parse the contents of ${tryPath}`);
-  }
-  return packageJsonSchema.parse(jsonParsedValue);
-};
+}
 
 /**
  * Type for package.json content.
