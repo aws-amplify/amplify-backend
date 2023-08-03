@@ -8,13 +8,19 @@
 export type Sandbox = {
     start(options: SandboxOptions): Promise<void>;
     stop(): Promise<void>;
-    delete(): Promise<void>;
+    delete(options: SandboxDeleteOptions): Promise<void>;
+};
+
+// @public (undocumented)
+export type SandboxDeleteOptions = {
+    name?: string;
 };
 
 // @public (undocumented)
 export type SandboxOptions = {
     dir?: string;
     exclude?: string[];
+    name?: string;
 };
 
 // @public

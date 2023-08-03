@@ -1,7 +1,7 @@
 import debounce from 'debounce-promise';
 import parcelWatcher, { subscribe } from '@parcel/watcher';
 import { AmplifyCDKExecutor, CDKCommand } from './cdk_executor.js';
-import { Sandbox, SandboxOptions } from './sandbox.js';
+import { Sandbox, SandboxDeleteOptions, SandboxOptions } from './sandbox.js';
 
 /**
  * Runs a file watcher and deploys using cdk
@@ -24,6 +24,7 @@ export class CDKSandbox implements Sandbox {
    * @inheritdoc
    */
   async start(options: SandboxOptions) {
+    const sandboxAppName = options.name ?? this.appName;
     console.debug(`[Sandbox] Initializing...`);
     // Since 'cdk deploy' is a relatively slow operation for a 'watch' process,
     // introduce a concurrency latch that tracks the state.
@@ -43,7 +44,7 @@ export class CDKSandbox implements Sandbox {
     const deployAndWatch = debounce(async () => {
       latch = 'deploying';
       await this.cdkExecutor.invokeCDKWithDebounce(CDKCommand.DEPLOY, {
-        appName: this.appName,
+        appName: sandboxAppName,
         branchName: 'sandbox',
         disambiguator: this.dismabiguator,
       });
@@ -58,7 +59,7 @@ export class CDKSandbox implements Sandbox {
           "[Sandbox] Detected file changes while previous deployment was in progress. Invoking 'sandbox' again"
         );
         await this.cdkExecutor.invokeCDKWithDebounce(CDKCommand.DEPLOY, {
-          appName: this.appName,
+          appName: sandboxAppName,
           branchName: 'sandbox',
           disambiguator: this.dismabiguator,
         });
@@ -106,12 +107,13 @@ export class CDKSandbox implements Sandbox {
   /**
    * @inheritdoc
    */
-  async delete() {
+  async delete(options: SandboxDeleteOptions) {
+    const sandboxAppName = options.name ?? this.appName;
     console.log(
       '[Sandbox] Deleting all the resources in the sandbox environment...'
     );
     await this.cdkExecutor.invokeCDKWithDebounce(CDKCommand.DESTROY, {
-      appName: this.appName,
+      appName: sandboxAppName,
       branchName: 'sandbox',
       disambiguator: this.dismabiguator,
     });
