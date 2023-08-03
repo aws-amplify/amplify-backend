@@ -7,7 +7,7 @@ import {
   BackendOutputEntry,
   BackendOutputStorageStrategy,
 } from '@aws-amplify/plugin-types';
-import { UserPool } from 'aws-cdk-lib/aws-cognito';
+import { UserPool, UserPoolClient } from 'aws-cdk-lib/aws-cognito';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
 
 describe('Auth construct', () => {
@@ -113,6 +113,9 @@ describe('Auth construct', () => {
       const expectedUserPoolId = (
         authConstruct.node.findChild('UserPool') as UserPool
       ).userPoolId;
+      const expectedWebClientId = (
+        authConstruct.node.findChild('UserPoolWebClient') as UserPoolClient
+      ).userPoolClientId;
       const expectedRegion = Stack.of(authConstruct).region;
 
       authConstruct.storeOutput(stubBackendOutputStorageStrategy);
@@ -126,6 +129,7 @@ describe('Auth construct', () => {
           version: '1',
           payload: {
             userPoolId: expectedUserPoolId,
+            webClientId: expectedWebClientId,
             authRegion: expectedRegion,
           },
         },

@@ -40,6 +40,32 @@
    "UpdateReplacePolicy": "Retain",
    "DeletionPolicy": "Retain"
   },
+  "amplifyAuthUserPoolWebClientA385E48A": {
+   "Type": "AWS::Cognito::UserPoolClient",
+   "Properties": {
+    "UserPoolId": {
+     "Ref": "amplifyAuthUserPool4BA7F805"
+    },
+    "AllowedOAuthFlows": [
+     "implicit",
+     "code"
+    ],
+    "AllowedOAuthFlowsUserPoolClient": true,
+    "AllowedOAuthScopes": [
+     "profile",
+     "phone",
+     "email",
+     "openid",
+     "aws.cognito.signin.user.admin"
+    ],
+    "CallbackURLs": [
+     "https://example.com"
+    ],
+    "SupportedIdentityProviders": [
+     "COGNITO"
+    ]
+   }
+  },
   "amplifyAuthauthenticatedUserRoleD8DA3689": {
    "Type": "AWS::IAM::Role",
    "Properties": {
@@ -79,6 +105,11 @@
   "amplifytestAppName1234testBranchNameauthamplifyAuthUserPool2299DE02Ref": {
    "Value": {
     "Ref": "amplifyAuthUserPool4BA7F805"
+   }
+  },
+  "amplifytestAppName1234testBranchNameauthamplifyAuthUserPoolWebClient46BE4A31Ref": {
+   "Value": {
+    "Ref": "amplifyAuthUserPoolWebClientA385E48A"
    }
   },
   "amplifytestAppName1234testBranchNameauthamplifyAuthauthenticatedUserRoleE3D92679Ref": {

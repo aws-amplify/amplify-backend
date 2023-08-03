@@ -57,24 +57,29 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
         version: z.ZodLiteral<"1">;
         payload: z.ZodObject<{
             userPoolId: z.ZodString;
+            webClientId: z.ZodString;
             authRegion: z.ZodString;
         }, "strip", z.ZodTypeAny, {
             userPoolId: string;
+            webClientId: string;
             authRegion: string;
         }, {
             userPoolId: string;
+            webClientId: string;
             authRegion: string;
         }>;
     }, "strip", z.ZodTypeAny, {
         version: "1";
         payload: {
             userPoolId: string;
+            webClientId: string;
             authRegion: string;
         };
     }, {
         version: "1";
         payload: {
             userPoolId: string;
+            webClientId: string;
             authRegion: string;
         };
     }>]>>;
@@ -133,6 +138,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
         version: "1";
         payload: {
             userPoolId: string;
+            webClientId: string;
             authRegion: string;
         };
     } | undefined;
@@ -155,6 +161,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
         version: "1";
         payload: {
             userPoolId: string;
+            webClientId: string;
             authRegion: string;
         };
     } | undefined;

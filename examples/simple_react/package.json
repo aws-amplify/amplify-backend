@@ -1,24 +1,22 @@
 {
-  "name": "frontend",
+  "name": "simple-react",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@aws-amplify/type-beast": "^0.1.0",
-    "@testing-library/jest-dom": "^5.16.5",
+    "@aws-amplify/ui-react": "^5.0.6",
+    "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
-    "@types/jest": "^27.5.2",
-    "@types/node": "^16.18.31",
-    "@types/react": "^18.2.6",
-    "@types/react-dom": "^18.2.4",
+    "aws-amplify": "^5.3.6",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-scripts": "5.0.1",
-    "typescript": "^4.9.5",
     "web-vitals": "^2.1.4"
   },
-  "overrides": {
-    "nth-check": "^2.0.1"
+  "devDependencies": {
+    "@aws-amplify/backend": "file:../../packages/backend",
+    "@aws-amplify/backend-auth": "file:../../packages/backend-auth",
+    "@aws-amplify/cli": "file:../../packages/cli"
   },
   "scripts": {
     "start": "react-scripts start",
