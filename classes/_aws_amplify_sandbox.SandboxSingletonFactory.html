@@ -25,7 +25,7 @@
 <ul class="tsd-hierarchy">
 <li><span class="target">SandboxSingletonFactory</span></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/bca7b6f/packages/sandbox/src/sandbox_singleton_factory.ts#L7">sandbox_singleton_factory.ts:7</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/02f4a8e/packages/sandbox/src/sandbox_singleton_factory.ts#L9">sandbox_singleton_factory.ts:9</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -38,6 +38,7 @@
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading">Properties</h3>
 <div class="tsd-index-list"><a href="_aws_amplify_sandbox.SandboxSingletonFactory.html#appNameResolver" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-1024"><rect fill="var(--color-icon-background)" stroke="#FF984D" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="12"></rect><path d="M9.354 16V7.24H12.174C12.99 7.24 13.638 7.476 14.118 7.948C14.606 8.412 14.85 9.036 14.85 9.82C14.85 10.604 14.606 11.232 14.118 11.704C13.638 12.168 12.99 12.4 12.174 12.4H10.434V16H9.354ZM10.434 11.428H12.174C12.646 11.428 13.022 11.284 13.302 10.996C13.59 10.7 13.734 10.308 13.734 9.82C13.734 9.324 13.59 8.932 13.302 8.644C13.022 8.356 12.646 8.212 12.174 8.212H10.434V11.428Z" fill="var(--color-text)"></path></g></svg><span>app<wbr/>Name<wbr/>Resolver</span></a>
+<a href="_aws_amplify_sandbox.SandboxSingletonFactory.html#clientConfigGenerator" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>client<wbr/>Config<wbr/>Generator</span></a>
 <a href="_aws_amplify_sandbox.SandboxSingletonFactory.html#disambiguatorResolver" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>disambiguator<wbr/>Resolver</span></a>
 <a href="_aws_amplify_sandbox.SandboxSingletonFactory.html#instance" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>instance</span></a>
 </div></section>
@@ -78,7 +79,7 @@ After that, the cached Sandbox instance is returned.</p>
 <h4 class="tsd-returns-title">Returns <a href="_aws_amplify_sandbox.SandboxSingletonFactory.html" class="tsd-signature-type tsd-kind-class">SandboxSingletonFactory</a></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/bca7b6f/packages/sandbox/src/sandbox_singleton_factory.ts#L15">sandbox_singleton_factory.ts:15</a></li></ul></aside></li></ul></section></section>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/02f4a8e/packages/sandbox/src/sandbox_singleton_factory.ts#L17">sandbox_singleton_factory.ts:17</a></li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Properties</h2>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="appNameResolver" class="tsd-anchor"></a>
@@ -93,7 +94,12 @@ After that, the cached Sandbox instance is returned.</p>
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4></li></ul></li></ul></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/bca7b6f/packages/sandbox/src/sandbox_singleton_factory.ts#L16">sandbox_singleton_factory.ts:16</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/02f4a8e/packages/sandbox/src/sandbox_singleton_factory.ts#L18">sandbox_singleton_factory.ts:18</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-is-private"><a id="clientConfigGenerator" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>client<wbr/>Config<wbr/>Generator</span><a href="#clientConfigGenerator" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">client<wbr/>Config<wbr/>Generator</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type ">ClientConfigGeneratorAdapter</span></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/02f4a8e/packages/sandbox/src/sandbox_singleton_factory.ts#L11">sandbox_singleton_factory.ts:11</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="disambiguatorResolver" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <code class="tsd-tag ts-flagReadonly">Readonly</code> <span>disambiguator<wbr/>Resolver</span><a href="#disambiguatorResolver" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">disambiguator<wbr/>Resolver</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span></div>
@@ -106,12 +112,12 @@ After that, the cached Sandbox instance is returned.</p>
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4></li></ul></li></ul></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/bca7b6f/packages/sandbox/src/sandbox_singleton_factory.ts#L17">sandbox_singleton_factory.ts:17</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/02f4a8e/packages/sandbox/src/sandbox_singleton_factory.ts#L19">sandbox_singleton_factory.ts:19</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="instance" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>instance</span><a href="#instance" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">instance</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="../types/_aws_amplify_sandbox.Sandbox.html" class="tsd-signature-type tsd-kind-type-alias">Sandbox</a></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/bca7b6f/packages/sandbox/src/sandbox_singleton_factory.ts#L8">sandbox_singleton_factory.ts:8</a></li></ul></aside></section></section>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/02f4a8e/packages/sandbox/src/sandbox_singleton_factory.ts#L10">sandbox_singleton_factory.ts:10</a></li></ul></aside></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Methods</h2>
 <section class="tsd-panel tsd-member"><a id="getInstance" class="tsd-anchor"></a>
@@ -124,7 +130,7 @@ After that, the cached Sandbox instance is returned.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/_aws_amplify_sandbox.Sandbox.html" class="tsd-signature-type tsd-kind-type-alias">Sandbox</a><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/bca7b6f/packages/sandbox/src/sandbox_singleton_factory.ts#L23">sandbox_singleton_factory.ts:23</a></li></ul></aside></li></ul></section></section></div>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/02f4a8e/packages/sandbox/src/sandbox_singleton_factory.ts#L29">sandbox_singleton_factory.ts:29</a></li></ul></aside></li></ul></section></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -146,6 +152,7 @@ After that, the cached Sandbox instance is returned.</p>
 <ul>
 <li><a href="#constructor" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-512"></use></svg><span>constructor</span></a></li>
 <li><a href="#appNameResolver" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>app<wbr/>Name<wbr/>Resolver</span></a></li>
+<li><a href="#clientConfigGenerator" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>client<wbr/>Config<wbr/>Generator</span></a></li>
 <li><a href="#disambiguatorResolver" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>disambiguator<wbr/>Resolver</span></a></li>
 <li><a href="#instance" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>instance</span></a></li>
 <li><a href="#getInstance" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>get<wbr/>Instance</span></a></li></ul></div></details></div>
