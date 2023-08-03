@@ -2,8 +2,7 @@ import debounce from 'debounce-promise';
 import parcelWatcher, { subscribe } from '@parcel/watcher';
 import { AmplifyCDKExecutor, CDKCommand } from './cdk_executor.js';
 import { Sandbox, SandboxDeleteOptions, SandboxOptions } from './sandbox.js';
-import { ClientConfigGeneratorAdapter } from '@aws-amplify/client-config';
-import { ClientConfigWriter } from './config/client_config_writer.js';
+import { ClientConfigGeneratorAdapter } from './config/client_config_generator_adapter.js';
 import path from 'path';
 
 /**
@@ -19,7 +18,6 @@ export class CDKSandbox implements Sandbox {
     private readonly appName: string,
     private readonly disambiguator: string,
     private readonly clientConfigGenerator: ClientConfigGeneratorAdapter,
-    private readonly clientConfigWriter: ClientConfigWriter,
     private readonly cdkExecutor: AmplifyCDKExecutor = new AmplifyCDKExecutor()
   ) {
     process.once('SIGINT', this.stop.bind(this));
@@ -151,12 +149,14 @@ export class CDKSandbox implements Sandbox {
    * @param outputPath optional location provided by customer to write client config to
    */
   private async writeUpdatedClientConfig(appName: string, outputPath: string) {
-    const clientConfig = await this.clientConfigGenerator.generateClientConfig({
-      appName,
-      branchName: 'sandbox',
-      disambiguator: this.disambiguator,
-    });
-    await this.clientConfigWriter.writeClientConfig(clientConfig, outputPath);
+    await this.clientConfigGenerator.generateClientConfigToFile(
+      {
+        appName,
+        branchName: 'sandbox',
+        disambiguator: this.disambiguator,
+      },
+      outputPath
+    );
   }
 
   /**

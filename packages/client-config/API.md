@@ -35,12 +35,6 @@ export type BackendIdentifier = UniqueBackendIdentifier | StackIdentifier | AppN
 export type ClientConfig = Partial<AuthClientConfig & DataClientConfig & StorageClientConfig>;
 
 // @public
-export class ClientConfigGeneratorAdapter {
-    constructor(awsCredentialProvider: AwsCredentialIdentityProvider);
-    generateClientConfig(backendIdentifier: BackendIdentifier): Promise<ClientConfig>;
-}
-
-// @public
 export type DataClientConfig = {
     aws_appsync_region?: string;
     aws_appsync_graphqlEndpoint?: string;
@@ -52,6 +46,9 @@ export type DataClientConfig = {
 
 // @public
 export const generateClientConfig: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier) => Promise<ClientConfig>;
+
+// @public
+export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier, targetPath: string) => Promise<void>;
 
 // @public (undocumented)
 export type StackIdentifier = {

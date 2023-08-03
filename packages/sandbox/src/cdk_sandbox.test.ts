@@ -3,8 +3,7 @@ import watcher from '@parcel/watcher';
 import { CDKSandbox } from './cdk_sandbox.js';
 import assert from 'node:assert';
 import { AmplifyCDKExecutor } from './cdk_executor.js';
-import { ClientConfigGeneratorAdapter } from '@aws-amplify/client-config';
-import { ClientConfigWriter } from './config/client_config_writer.js';
+import { ClientConfigGeneratorAdapter } from './config/client_config_generator_adapter.js';
 import path from 'node:path';
 
 // Watcher mocks
@@ -20,14 +19,8 @@ const clientConfigGeneratorAdapter = new ClientConfigGeneratorAdapter(
 );
 const generateClientConfigMock = mock.method(
   clientConfigGeneratorAdapter,
-  'generateClientConfig',
+  'generateClientConfigToFile',
   () => Promise.resolve('testClientConfig')
-);
-const clientConfigWriter = new ClientConfigWriter();
-const writeClientConfigMock = mock.method(
-  clientConfigWriter,
-  'writeClientConfig',
-  () => Promise.resolve()
 );
 
 describe('Sandbox using local project name resolver', () => {
@@ -48,7 +41,6 @@ describe('Sandbox using local project name resolver', () => {
       'testApp',
       'test1234',
       clientConfigGeneratorAdapter,
-      clientConfigWriter,
       cdkExecutor
     );
     await sandboxInstance.start({
@@ -67,7 +59,6 @@ describe('Sandbox using local project name resolver', () => {
     execaMock.mock.resetCalls();
     subscribeMock.mock.resetCalls();
     generateClientConfigMock.mock.resetCalls();
-    writeClientConfigMock.mock.resetCalls();
     await sandboxInstance.stop();
   });
 
@@ -117,8 +108,8 @@ describe('Sandbox using local project name resolver', () => {
     ]);
     assert.strictEqual(execaMock.mock.callCount(), 1);
 
-    // and client config written only once
-    assert.equal(writeClientConfigMock.mock.callCount(), 1);
+    // and client config generated only once
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
   });
 
   it('calls CDK once when multiple file changes are within few milliseconds (debounce)', async () => {
@@ -130,7 +121,7 @@ describe('Sandbox using local project name resolver', () => {
     assert.strictEqual(execaMock.mock.callCount(), 1);
 
     // and client config written only once
-    assert.equal(writeClientConfigMock.mock.callCount(), 1);
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
   });
 
   it('waits for file changes after completing a deployment and deploys again', async () => {
@@ -143,7 +134,7 @@ describe('Sandbox using local project name resolver', () => {
     assert.strictEqual(execaMock.mock.callCount(), 2);
 
     // and client config written twice as well
-    assert.equal(writeClientConfigMock.mock.callCount(), 2);
+    assert.equal(generateClientConfigMock.mock.callCount(), 2);
   });
 
   it('queues deployment if a file change is detected during an ongoing', async () => {
@@ -166,7 +157,7 @@ describe('Sandbox using local project name resolver', () => {
     await new Promise((res) => setTimeout(res, 500));
 
     assert.strictEqual(execaMock.mock.callCount(), 2);
-    assert.equal(writeClientConfigMock.mock.callCount(), 2);
+    assert.equal(generateClientConfigMock.mock.callCount(), 2);
   });
 
   it('writes the correct client-config to default cwd path', async () => {
@@ -175,21 +166,15 @@ describe('Sandbox using local project name resolver', () => {
     ]);
 
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
-    assert.equal(writeClientConfigMock.mock.callCount(), 1);
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
 
     // generate was called with right arguments
     assert.deepStrictEqual(
       generateClientConfigMock.mock.calls[0].arguments[0],
       { appName: 'testApp', branchName: 'sandbox', disambiguator: 'test1234' }
     );
-
-    // write was called with right arguments
     assert.deepStrictEqual(
-      writeClientConfigMock.mock.calls[0].arguments[0],
-      'testClientConfig'
-    );
-    assert.deepStrictEqual(
-      writeClientConfigMock.mock.calls[0].arguments[1],
+      generateClientConfigMock.mock.calls[0].arguments[1],
       process.cwd() + '/amplifyconfiguration.json'
     );
   });
@@ -238,7 +223,6 @@ describe('Sandbox with user provided app name', () => {
       'testApp',
       'test1234',
       clientConfigGeneratorAdapter,
-      clientConfigWriter,
       cdkExecutor
     );
     await sandboxInstance.start({
@@ -259,7 +243,6 @@ describe('Sandbox with user provided app name', () => {
     execaMock.mock.resetCalls();
     subscribeMock.mock.resetCalls();
     generateClientConfigMock.mock.resetCalls();
-    writeClientConfigMock.mock.resetCalls();
     await sandboxInstance.stop();
   });
 
@@ -302,7 +285,7 @@ describe('Sandbox with user provided app name', () => {
     ]);
 
     // and client config written only once
-    assert.equal(writeClientConfigMock.mock.callCount(), 1);
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
   });
 
   it('calls CDK destroy when delete is called with a user provided appName', async () => {
@@ -336,7 +319,7 @@ describe('Sandbox with user provided app name', () => {
     ]);
 
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
-    assert.equal(writeClientConfigMock.mock.callCount(), 1);
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
 
     // generate was called with right arguments
     assert.deepStrictEqual(
@@ -347,14 +330,8 @@ describe('Sandbox with user provided app name', () => {
         disambiguator: 'test1234',
       }
     );
-
-    // write was called with right arguments
     assert.deepStrictEqual(
-      writeClientConfigMock.mock.calls[0].arguments[0],
-      'testClientConfig'
-    );
-    assert.deepStrictEqual(
-      writeClientConfigMock.mock.calls[0].arguments[1],
+      generateClientConfigMock.mock.calls[0].arguments[1],
       'test/location' + '/amplifyconfiguration.json'
     );
   });

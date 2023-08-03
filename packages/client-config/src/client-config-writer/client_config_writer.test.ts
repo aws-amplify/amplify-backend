@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, it } from 'node:test';
 import fs from 'fs/promises';
-import { ClientConfig } from '@aws-amplify/client-config';
 import { ClientConfigWriter } from './client_config_writer.js';
 import path from 'path';
 import assert from 'node:assert';
+import { ClientConfig } from '../client-config-types/client_config.js';
 
 describe('client config writer', () => {
   let targetDirectory: string;
