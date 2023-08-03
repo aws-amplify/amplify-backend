@@ -47,12 +47,22 @@ describe('Sandbox using local project name resolver', () => {
       dir: 'testDir',
       exclude: ['exclude1', 'exclude2'],
     });
+
+    // At this point one deployment should already have been done on sandbox startup
+    assert.strictEqual(execaMock.mock.callCount(), 1);
+    // and client config generated only once
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
+
     if (
       subscribeMock.mock.calls[0].arguments[1] &&
       typeof subscribeMock.mock.calls[0].arguments[1] === 'function'
     ) {
       fileChangeEventActualFn = subscribeMock.mock.calls[0].arguments[1];
     }
+
+    // Reset all the calls to avoid extra startup call
+    execaMock.mock.resetCalls();
+    generateClientConfigMock.mock.resetCalls();
   });
 
   afterEach(async () => {
@@ -237,6 +247,10 @@ describe('Sandbox with user provided app name', () => {
     ) {
       fileChangeEventActualFn = subscribeMock.mock.calls[0].arguments[1];
     }
+
+    // Reset all the calls to avoid extra startup call
+    execaMock.mock.resetCalls();
+    generateClientConfigMock.mock.resetCalls();
   });
 
   afterEach(async () => {

@@ -116,7 +116,8 @@ export class CDKSandbox implements Sandbox {
       }
     );
 
-    this.emitWatching();
+    // Start the first full deployment without waiting for a file change
+    await deployAndWatch();
   }
 
   /**
