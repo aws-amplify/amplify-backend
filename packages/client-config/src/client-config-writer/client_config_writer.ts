@@ -1,5 +1,5 @@
-import { ClientConfig } from '@aws-amplify/client-config';
 import fs from 'fs/promises';
+import { ClientConfig } from '../client-config-types/client_config.js';
 
 /**
  * A class that persists client config to disk.

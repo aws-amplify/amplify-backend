@@ -2,18 +2,22 @@ import debounce from 'debounce-promise';
 import parcelWatcher, { subscribe } from '@parcel/watcher';
 import { AmplifyCDKExecutor, CDKCommand } from './cdk_executor.js';
 import { Sandbox, SandboxDeleteOptions, SandboxOptions } from './sandbox.js';
+import { ClientConfigGeneratorAdapter } from './config/client_config_generator_adapter.js';
+import path from 'path';
 
 /**
  * Runs a file watcher and deploys using cdk
  */
 export class CDKSandbox implements Sandbox {
   private watcherSubscription: Awaited<ReturnType<typeof subscribe>>;
+  private outputFilesExcludedFromWatch = ['cdk.out'];
   /**
    * Creates a watcher process for this instance
    */
   constructor(
     private readonly appName: string,
-    private readonly dismabiguator: string,
+    private readonly disambiguator: string,
+    private readonly clientConfigGenerator: ClientConfigGeneratorAdapter,
     private readonly cdkExecutor: AmplifyCDKExecutor = new AmplifyCDKExecutor()
   ) {
     process.once('SIGINT', this.stop.bind(this));
@@ -25,6 +29,13 @@ export class CDKSandbox implements Sandbox {
    */
   async start(options: SandboxOptions) {
     const sandboxAppName = options.name ?? this.appName;
+    const clientConfigWritePath = path.join(
+      options.clientConfigOutputPath ?? process.cwd(),
+      'amplifyconfiguration.json'
+    );
+    this.outputFilesExcludedFromWatch =
+      this.outputFilesExcludedFromWatch.concat(clientConfigWritePath);
+
     console.debug(`[Sandbox] Initializing...`);
     // Since 'cdk deploy' is a relatively slow operation for a 'watch' process,
     // introduce a concurrency latch that tracks the state.
@@ -46,8 +57,12 @@ export class CDKSandbox implements Sandbox {
       await this.cdkExecutor.invokeCDKWithDebounce(CDKCommand.DEPLOY, {
         appName: sandboxAppName,
         branchName: 'sandbox',
-        disambiguator: this.dismabiguator,
+        disambiguator: this.disambiguator,
       });
+      await this.writeUpdatedClientConfig(
+        sandboxAppName,
+        clientConfigWritePath
+      );
 
       // If latch is still 'deploying' after the 'await', that's fine,
       // but if it's 'queued', that means we need to deploy again
@@ -61,8 +76,12 @@ export class CDKSandbox implements Sandbox {
         await this.cdkExecutor.invokeCDKWithDebounce(CDKCommand.DEPLOY, {
           appName: sandboxAppName,
           branchName: 'sandbox',
-          disambiguator: this.dismabiguator,
+          disambiguator: this.disambiguator,
         });
+        await this.writeUpdatedClientConfig(
+          sandboxAppName,
+          clientConfigWritePath
+        );
       }
       latch = 'open';
       this.emitWatching();
@@ -90,7 +109,11 @@ export class CDKSandbox implements Sandbox {
           );
         }
       },
-      { ignore: ['cdk.out'].concat(...(options.exclude ?? [])) }
+      {
+        ignore: this.outputFilesExcludedFromWatch.concat(
+          ...(options.exclude ?? [])
+        ),
+      }
     );
 
     this.emitWatching();
@@ -115,9 +138,25 @@ export class CDKSandbox implements Sandbox {
     await this.cdkExecutor.invokeCDKWithDebounce(CDKCommand.DESTROY, {
       appName: sandboxAppName,
       branchName: 'sandbox',
-      disambiguator: this.dismabiguator,
+      disambiguator: this.disambiguator,
     });
     console.log('[Sandbox] Finished deleting.');
+  }
+
+  /**
+   * Runs post every deployment. Generates the client config and writes to a local file
+   * @param appName AppName for this sandbox execution. Either package.json#name or provided by user during `amplify sandbox`
+   * @param outputPath optional location provided by customer to write client config to
+   */
+  private async writeUpdatedClientConfig(appName: string, outputPath: string) {
+    await this.clientConfigGenerator.generateClientConfigToFile(
+      {
+        appName,
+        branchName: 'sandbox',
+        disambiguator: this.disambiguator,
+      },
+      outputPath
+    );
   }
 
   /**

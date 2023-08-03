@@ -3,6 +3,8 @@ import watcher from '@parcel/watcher';
 import { CDKSandbox } from './cdk_sandbox.js';
 import assert from 'node:assert';
 import { AmplifyCDKExecutor } from './cdk_executor.js';
+import { ClientConfigGeneratorAdapter } from './config/client_config_generator_adapter.js';
+import path from 'node:path';
 
 // Watcher mocks
 const unsubscribeMockFn = mock.fn();
@@ -10,6 +12,16 @@ const subscribeMock = mock.method(watcher, 'subscribe', async () => {
   return { unsubscribe: unsubscribeMockFn };
 });
 let fileChangeEventActualFn: watcher.SubscribeCallback;
+
+// Client config mocks
+const clientConfigGeneratorAdapter = new ClientConfigGeneratorAdapter(
+  mock.fn()
+);
+const generateClientConfigMock = mock.method(
+  clientConfigGeneratorAdapter,
+  'generateClientConfigToFile',
+  () => Promise.resolve('testClientConfig')
+);
 
 describe('Sandbox using local project name resolver', () => {
   // class under test
@@ -25,9 +37,12 @@ describe('Sandbox using local project name resolver', () => {
    * file change event function which tests can simulate by calling as desired.
    */
   beforeEach(async () => {
-    execaMock.mock.resetCalls();
-    subscribeMock.mock.resetCalls();
-    sandboxInstance = new CDKSandbox('testApp', 'test1234', cdkExecutor);
+    sandboxInstance = new CDKSandbox(
+      'testApp',
+      'test1234',
+      clientConfigGeneratorAdapter,
+      cdkExecutor
+    );
     await sandboxInstance.start({
       dir: 'testDir',
       exclude: ['exclude1', 'exclude2'],
@@ -41,6 +56,9 @@ describe('Sandbox using local project name resolver', () => {
   });
 
   afterEach(async () => {
+    execaMock.mock.resetCalls();
+    subscribeMock.mock.resetCalls();
+    generateClientConfigMock.mock.resetCalls();
     await sandboxInstance.stop();
   });
 
@@ -52,7 +70,12 @@ describe('Sandbox using local project name resolver', () => {
     // File watcher should be called with right arguments such as dir and excludes
     assert.strictEqual(subscribeMock.mock.calls[0].arguments[0], 'testDir');
     assert.deepStrictEqual(subscribeMock.mock.calls[0].arguments[2], {
-      ignore: ['cdk.out', 'exclude1', 'exclude2'],
+      ignore: [
+        'cdk.out',
+        path.join(process.cwd(), 'amplifyconfiguration.json'),
+        'exclude1',
+        'exclude2',
+      ],
     });
 
     // CDK should be called once
@@ -84,6 +107,9 @@ describe('Sandbox using local project name resolver', () => {
       { type: 'create', path: 'foo/test3.ts' },
     ]);
     assert.strictEqual(execaMock.mock.callCount(), 1);
+
+    // and client config generated only once
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
   });
 
   it('calls CDK once when multiple file changes are within few milliseconds (debounce)', async () => {
@@ -93,6 +119,9 @@ describe('Sandbox using local project name resolver', () => {
       { type: 'update', path: 'foo/test4.ts' },
     ]);
     assert.strictEqual(execaMock.mock.callCount(), 1);
+
+    // and client config written only once
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
   });
 
   it('waits for file changes after completing a deployment and deploys again', async () => {
@@ -103,6 +132,9 @@ describe('Sandbox using local project name resolver', () => {
       { type: 'update', path: 'foo/test6.ts' },
     ]);
     assert.strictEqual(execaMock.mock.callCount(), 2);
+
+    // and client config written twice as well
+    assert.equal(generateClientConfigMock.mock.callCount(), 2);
   });
 
   it('queues deployment if a file change is detected during an ongoing', async () => {
@@ -125,6 +157,26 @@ describe('Sandbox using local project name resolver', () => {
     await new Promise((res) => setTimeout(res, 500));
 
     assert.strictEqual(execaMock.mock.callCount(), 2);
+    assert.equal(generateClientConfigMock.mock.callCount(), 2);
+  });
+
+  it('writes the correct client-config to default cwd path', async () => {
+    await fileChangeEventActualFn(null, [
+      { type: 'update', path: 'foo/test1.ts' },
+    ]);
+
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
+
+    // generate was called with right arguments
+    assert.deepStrictEqual(
+      generateClientConfigMock.mock.calls[0].arguments[0],
+      { appName: 'testApp', branchName: 'sandbox', disambiguator: 'test1234' }
+    );
+    assert.deepStrictEqual(
+      generateClientConfigMock.mock.calls[0].arguments[1],
+      process.cwd() + '/amplifyconfiguration.json'
+    );
   });
 
   it('calls CDK destroy when delete is called', async () => {
@@ -167,13 +219,17 @@ describe('Sandbox with user provided app name', () => {
    * file change event function which tests can simulate by calling as desired.
    */
   beforeEach(async () => {
-    execaMock.mock.resetCalls();
-    subscribeMock.mock.resetCalls();
-    sandboxInstance = new CDKSandbox('testApp', 'test1234', cdkExecutor);
+    sandboxInstance = new CDKSandbox(
+      'testApp',
+      'test1234',
+      clientConfigGeneratorAdapter,
+      cdkExecutor
+    );
     await sandboxInstance.start({
       dir: 'testDir',
       exclude: ['exclude1', 'exclude2'],
       name: 'userAppName',
+      clientConfigOutputPath: 'test/location',
     });
     if (
       subscribeMock.mock.calls[0].arguments[1] &&
@@ -184,6 +240,9 @@ describe('Sandbox with user provided app name', () => {
   });
 
   afterEach(async () => {
+    execaMock.mock.resetCalls();
+    subscribeMock.mock.resetCalls();
+    generateClientConfigMock.mock.resetCalls();
     await sandboxInstance.stop();
   });
 
@@ -195,7 +254,12 @@ describe('Sandbox with user provided app name', () => {
     // File watcher should be called with right arguments such as dir and excludes
     assert.strictEqual(subscribeMock.mock.calls[0].arguments[0], 'testDir');
     assert.deepStrictEqual(subscribeMock.mock.calls[0].arguments[2], {
-      ignore: ['cdk.out', 'exclude1', 'exclude2'],
+      ignore: [
+        'cdk.out',
+        'test/location/amplifyconfiguration.json',
+        'exclude1',
+        'exclude2',
+      ],
     });
 
     // CDK should be called once
@@ -219,6 +283,9 @@ describe('Sandbox with user provided app name', () => {
         '--method=direct',
       ],
     ]);
+
+    // and client config written only once
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
   });
 
   it('calls CDK destroy when delete is called with a user provided appName', async () => {
@@ -244,5 +311,28 @@ describe('Sandbox with user provided app name', () => {
         '--force',
       ],
     ]);
+  });
+
+  it('writes the correct client-config to user provided path', async () => {
+    await fileChangeEventActualFn(null, [
+      { type: 'update', path: 'foo/test1.ts' },
+    ]);
+
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
+
+    // generate was called with right arguments
+    assert.deepStrictEqual(
+      generateClientConfigMock.mock.calls[0].arguments[0],
+      {
+        appName: 'userAppName',
+        branchName: 'sandbox',
+        disambiguator: 'test1234',
+      }
+    );
+    assert.deepStrictEqual(
+      generateClientConfigMock.mock.calls[0].arguments[1],
+      'test/location' + '/amplifyconfiguration.json'
+    );
   });
 });

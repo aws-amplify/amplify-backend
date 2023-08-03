@@ -1,7 +1,5 @@
 import { beforeEach, describe, it, mock } from 'node:test';
-import { ClientConfigGeneratorAdapter } from './client_config_generator_adapter.js';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
-import { ClientConfigWriter } from './client_config_writer.js';
 import { GenerateConfigCommand } from './generate_config_command.js';
 import yargs, { CommandModule } from 'yargs';
 import {
@@ -10,30 +8,21 @@ import {
 } from '../../../test_utils/command_runner.js';
 import assert from 'node:assert';
 import path from 'path';
-import { ClientConfig } from '@aws-amplify/client-config';
+import { ClientConfigGeneratorAdapter } from './client_config_generator_adapter.js';
 
 describe('generate config command', () => {
   const clientConfigGeneratorAdapter = new ClientConfigGeneratorAdapter(
     fromNodeProviderChain()
   );
-  const clientConfig: ClientConfig = {
-    aws_user_pools_id: 'something',
-  };
+
   const generateClientConfigMock = mock.method(
     clientConfigGeneratorAdapter,
-    'generateClientConfig',
-    () => Promise.resolve(clientConfig)
-  );
-  const clientConfigWriter = new ClientConfigWriter();
-  const writeClientConfigMock = mock.method(
-    clientConfigWriter,
-    'writeClientConfig',
+    'generateClientConfigToFile',
     () => Promise.resolve()
   );
 
   const generateConfigCommand = new GenerateConfigCommand(
     clientConfigGeneratorAdapter,
-    clientConfigWriter,
     { resolve: () => Promise.resolve('testAppName') }
   );
   const parser = yargs().command(
@@ -43,7 +32,6 @@ describe('generate config command', () => {
 
   beforeEach(() => {
     generateClientConfigMock.mock.resetCalls();
-    writeClientConfigMock.mock.resetCalls();
   });
 
   it('generates and writes config for stack', async () => {
@@ -52,13 +40,9 @@ describe('generate config command', () => {
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
       stackName: 'stack_name',
     });
-    assert.equal(writeClientConfigMock.mock.callCount(), 1);
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(
-      writeClientConfigMock.mock.calls[0].arguments[0],
-      clientConfig
-    );
-    assert.equal(
-      writeClientConfigMock.mock.calls[0].arguments[1],
+      generateClientConfigMock.mock.calls[0].arguments[1],
       path.join(process.cwd(), 'amplifyconfiguration.json')
     );
   });
@@ -73,13 +57,9 @@ describe('generate config command', () => {
     // I can't find any open node:test or yargs issues that would explain why this is necessary
     // but for some reason the mock call count does not update without this 0ms wait
     await new Promise((resolve) => setTimeout(resolve, 0));
-    assert.equal(writeClientConfigMock.mock.callCount(), 1);
-    assert.deepEqual(
-      writeClientConfigMock.mock.calls[0].arguments[0],
-      clientConfig
-    );
-    assert.equal(
-      writeClientConfigMock.mock.calls[0].arguments[1],
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
+    assert.deepStrictEqual(
+      generateClientConfigMock.mock.calls[0].arguments[1],
       path.join(process.cwd(), 'amplifyconfiguration.json')
     );
   });
@@ -93,13 +73,9 @@ describe('generate config command', () => {
       appId: 'app_id',
       branch: 'branch_name',
     });
-    assert.equal(writeClientConfigMock.mock.callCount(), 1);
-    assert.deepEqual(
-      writeClientConfigMock.mock.calls[0].arguments[0],
-      clientConfig
-    );
-    assert.equal(
-      writeClientConfigMock.mock.calls[0].arguments[1],
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
+    assert.deepStrictEqual(
+      generateClientConfigMock.mock.calls[0].arguments[1],
       path.join(process.cwd(), 'amplifyconfiguration.json')
     );
   });
@@ -110,13 +86,9 @@ describe('generate config command', () => {
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
       stackName: 'stack_name',
     });
-    assert.equal(writeClientConfigMock.mock.callCount(), 1);
-    assert.deepEqual(
-      writeClientConfigMock.mock.calls[0].arguments[0],
-      clientConfig
-    );
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.equal(
-      writeClientConfigMock.mock.calls[0].arguments[1],
+      generateClientConfigMock.mock.calls[0].arguments[1],
       path.join('/foo/bar', 'amplifyconfiguration.json')
     );
   });

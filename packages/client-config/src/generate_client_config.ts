@@ -17,7 +17,7 @@ import { ClientConfigGenerator } from './client_config_generator.js';
 /**
  * Main entry point for generating client config
  */
-export const generateClientConfig = (
+export const generateClientConfig = async (
   credentialProvider: AwsCredentialIdentityProvider,
   backendIdentifier: BackendIdentifier
 ): Promise<ClientConfig> => {

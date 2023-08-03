@@ -47,6 +47,9 @@ export type DataClientConfig = {
 // @public
 export const generateClientConfig: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier) => Promise<ClientConfig>;
 
+// @public
+export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier, targetPath: string) => Promise<void>;
+
 // @public (undocumented)
 export type StackIdentifier = {
     stackName: string;

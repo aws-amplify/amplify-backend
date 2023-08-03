@@ -1,9 +1,8 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
-import { ClientConfigGeneratorAdapter } from './client_config_generator_adapter.js';
-import { ClientConfigWriter } from './client_config_writer.js';
 import path from 'path';
 import { BackendIdentifier } from '@aws-amplify/client-config';
 import { ProjectNameResolver } from '../../../local_project_name_resolver.js';
+import { ClientConfigGeneratorAdapter } from './client_config_generator_adapter.js';
 
 export type GenerateConfigCommandOptions = {
   stack: string | undefined;
@@ -37,7 +36,6 @@ export class GenerateConfigCommand
    */
   constructor(
     private readonly clientConfigGenerator: ClientConfigGeneratorAdapter,
-    private readonly clientConfigWriter: ClientConfigWriter,
     private readonly projectNameResolver: ProjectNameResolver
   ) {
     this.command = 'config';
@@ -51,14 +49,14 @@ export class GenerateConfigCommand
     args: ArgumentsCamelCase<GenerateConfigCommandOptions>
   ): Promise<void> => {
     const backendIdentifier = await this.getBackendIdentifier(args);
-    const clientConfig = await this.clientConfigGenerator.generateClientConfig(
-      backendIdentifier
-    );
     const targetPath = path.join(
       args.out ?? process.cwd(),
       'amplifyconfiguration.json'
     );
-    await this.clientConfigWriter.writeClientConfig(clientConfig, targetPath);
+    await this.clientConfigGenerator.generateClientConfigToFile(
+      backendIdentifier,
+      targetPath
+    );
   };
 
   /**
