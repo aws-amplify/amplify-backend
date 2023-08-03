@@ -1,9 +1,9 @@
+import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import {
   BackendIdentifier,
-  ClientConfig,
   generateClientConfig,
-} from '@aws-amplify/client-config';
-import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
+} from './generate_client_config.js';
+import { ClientConfig } from './index.js';
 
 /**
  * Adapts static generateClientConfig from @aws-amplify/client-config call to make it injectable and testable.
