@@ -7,6 +7,7 @@ import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
 export type SandboxCommandOptions = {
   dirToWatch: string | undefined;
   exclude: string[] | undefined;
+  name: string | undefined;
 };
 
 /**
@@ -25,6 +26,8 @@ export class SandboxCommand
    */
   readonly describe: string;
 
+  private appName?: string;
+
   /**
    * Creates sandbox command.
    */
@@ -42,6 +45,7 @@ export class SandboxCommand
   handler = async (
     args: ArgumentsCamelCase<SandboxCommandOptions>
   ): Promise<void> => {
+    this.appName = args.name;
     process.once('SIGINT', this.sigIntHandler.bind(this));
     await (await this.sandboxFactory.getInstance()).start(args);
   };
@@ -66,6 +70,12 @@ export class SandboxCommand
           type: 'string',
           array: true,
         })
+        .option('name', {
+          describe:
+            'An optional name to distinguish between different sandbox environments. Default is the name in your package.json',
+          type: 'string',
+          array: false,
+        })
         .check((argv) => {
           if (argv.dirToWatch) {
             // make sure it's a real directory
@@ -81,6 +91,14 @@ export class SandboxCommand
               );
             }
           }
+          if (argv.name) {
+            const projectNameRegex = /^[a-zA-Z0-9-]{1,15}$/;
+            if (!argv.name.match(projectNameRegex)) {
+              throw new Error(
+                `--name should match [a-zA-Z0-9-] and less than 15 characters.`
+              );
+            }
+          }
           return true;
         })
     );
@@ -92,6 +110,9 @@ export class SandboxCommand
         'Would you like to delete all the resources in your sandbox environment (This cannot be undone)?',
       defaultValue: false,
     });
-    if (answer) await (await this.sandboxFactory.getInstance()).delete();
+    if (answer)
+      await (
+        await this.sandboxFactory.getInstance()
+      ).delete({ name: this.appName });
   };
 }

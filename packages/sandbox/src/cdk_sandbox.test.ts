@@ -11,7 +11,7 @@ const subscribeMock = mock.method(watcher, 'subscribe', async () => {
 });
 let fileChangeEventActualFn: watcher.SubscribeCallback;
 
-describe('Sandbox', () => {
+describe('Sandbox using local project name resolver', () => {
   // class under test
   let sandboxInstance: CDKSandbox;
 
@@ -26,6 +26,7 @@ describe('Sandbox', () => {
    */
   beforeEach(async () => {
     execaMock.mock.resetCalls();
+    subscribeMock.mock.resetCalls();
     sandboxInstance = new CDKSandbox('testApp', 'test1234', cdkExecutor);
     await sandboxInstance.start({
       dir: 'testDir',
@@ -127,7 +128,7 @@ describe('Sandbox', () => {
   });
 
   it('calls CDK destroy when delete is called', async () => {
-    await sandboxInstance.delete();
+    await sandboxInstance.delete({});
 
     // CDK should be called once
     assert.strictEqual(execaMock.mock.callCount(), 1);
@@ -142,6 +143,100 @@ describe('Sandbox', () => {
         "'npx tsx amplify/backend.ts'",
         '--context',
         'app-name=testApp',
+        '--context',
+        'branch-name=sandbox',
+        '--context',
+        'disambiguator=test1234',
+        '--force',
+      ],
+    ]);
+  });
+});
+
+describe('Sandbox with user provided app name', () => {
+  // class under test
+  let sandboxInstance: CDKSandbox;
+
+  const cdkExecutor = new AmplifyCDKExecutor();
+  const execaMock = mock.method(cdkExecutor, 'executeChildProcess', () =>
+    Promise.resolve()
+  );
+
+  /**
+   * For each test we start the sandbox and hence file watcher and get hold of
+   * file change event function which tests can simulate by calling as desired.
+   */
+  beforeEach(async () => {
+    execaMock.mock.resetCalls();
+    subscribeMock.mock.resetCalls();
+    sandboxInstance = new CDKSandbox('testApp', 'test1234', cdkExecutor);
+    await sandboxInstance.start({
+      dir: 'testDir',
+      exclude: ['exclude1', 'exclude2'],
+      name: 'userAppName',
+    });
+    if (
+      subscribeMock.mock.calls[0].arguments[1] &&
+      typeof subscribeMock.mock.calls[0].arguments[1] === 'function'
+    ) {
+      fileChangeEventActualFn = subscribeMock.mock.calls[0].arguments[1];
+    }
+  });
+
+  afterEach(async () => {
+    await sandboxInstance.stop();
+  });
+
+  it('calls CDK once when a file change is present and user provided appName', async () => {
+    await fileChangeEventActualFn(null, [
+      { type: 'update', path: 'foo/test1.ts' },
+    ]);
+
+    // File watcher should be called with right arguments such as dir and excludes
+    assert.strictEqual(subscribeMock.mock.calls[0].arguments[0], 'testDir');
+    assert.deepStrictEqual(subscribeMock.mock.calls[0].arguments[2], {
+      ignore: ['cdk.out', 'exclude1', 'exclude2'],
+    });
+
+    // CDK should be called once
+    assert.strictEqual(execaMock.mock.callCount(), 1);
+
+    // CDK should be called with the right params
+    assert.deepStrictEqual(execaMock.mock.calls[0].arguments, [
+      'npx',
+      [
+        'cdk',
+        'deploy',
+        '--app',
+        "'npx tsx amplify/backend.ts'",
+        '--context',
+        'app-name=userAppName',
+        '--context',
+        'branch-name=sandbox',
+        '--context',
+        'disambiguator=test1234',
+        '--hotswap-fallback',
+        '--method=direct',
+      ],
+    ]);
+  });
+
+  it('calls CDK destroy when delete is called with a user provided appName', async () => {
+    await sandboxInstance.delete({ name: 'userProvidedName' });
+
+    // CDK should be called once
+    assert.strictEqual(execaMock.mock.callCount(), 1);
+
+    // CDK should be called with the right params
+    assert.deepStrictEqual(execaMock.mock.calls[0].arguments, [
+      'npx',
+      [
+        'cdk',
+        'destroy',
+        '--app',
+        "'npx tsx amplify/backend.ts'",
+        '--context',
+        'app-name=userProvidedName',
         '--context',
         'branch-name=sandbox',
         '--context',

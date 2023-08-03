@@ -41,7 +41,9 @@ export class SandboxDeleteCommand
     }
 
     if (isConfirmed) {
-      await (await this.sandboxFactory.getInstance()).delete();
+      await (
+        await this.sandboxFactory.getInstance()
+      ).delete({ name: args.name });
     }
   };
 
@@ -58,6 +60,12 @@ export class SandboxDeleteCommand
           array: false,
           alias: 'y',
         })
+        .option('name', {
+          describe:
+            'An optional name to distinguish between different sandbox environments. Default is the name in your package.json',
+          type: 'string',
+          array: false,
+        })
         // kinda hack to "hide" the parent command options from getting displayed in the help
         .option('exclude', {
           hidden: true,
@@ -71,6 +79,14 @@ export class SandboxDeleteCommand
               `--dirToWatch or --exclude are not valid options for delete`
             );
           }
+          if (argv.name) {
+            const projectNameRegex = /^[a-zA-Z0-9-]{1,15}$/;
+            if (!argv.name.match(projectNameRegex)) {
+              throw new Error(
+                `--name should match [a-zA-Z0-9-] and less than 15 characters.`
+              );
+            }
+          }
           return true;
         })
     );
@@ -79,4 +95,5 @@ export class SandboxDeleteCommand
 
 export type SandboxDeleteCommandOptions = {
   yes?: boolean;
+  name?: string;
 };

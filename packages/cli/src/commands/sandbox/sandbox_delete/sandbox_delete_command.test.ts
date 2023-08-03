@@ -39,6 +39,21 @@ describe('sandbox delete command', () => {
     await commandRunner.runCommand('sandbox delete');
 
     assert.equal(sandboxDeleteMock.mock.callCount(), 1);
+    assert.deepStrictEqual(sandboxDeleteMock.mock.calls[0].arguments[0], {
+      name: undefined,
+    });
+  });
+
+  it('deletes sandbox with user provided name', async (contextual) => {
+    contextual.mock.method(AmplifyPrompter, 'yesOrNo', () =>
+      Promise.resolve(true)
+    );
+    await commandRunner.runCommand('sandbox delete --name test-App-Name');
+
+    assert.equal(sandboxDeleteMock.mock.callCount(), 1);
+    assert.deepStrictEqual(sandboxDeleteMock.mock.calls[0].arguments[0], {
+      name: 'test-App-Name',
+    });
   });
 
   it('does not delete sandbox if user said no', async (contextual) => {
@@ -58,6 +73,7 @@ describe('sandbox delete command', () => {
   it('shows available options in help output', async () => {
     const output = await commandRunner.runCommand('sandbox delete --help');
     assert.match(output, /--yes/);
+    assert.match(output, /--name/);
     assert.doesNotMatch(output, /--exclude/);
     assert.doesNotMatch(output, /--dirToWatch/);
   });

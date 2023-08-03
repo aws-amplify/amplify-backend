@@ -47,10 +47,21 @@ describe('sandbox command', () => {
   it('starts sandbox without any additional flags', async () => {
     await commandRunner.runCommand('sandbox');
     assert.equal(sandboxStartMock.mock.callCount(), 1);
+    assert.ok(!sandboxStartMock.mock.calls[0].arguments[0].name);
+  });
+
+  it('starts sandbox with user provided app name', async () => {
+    await commandRunner.runCommand('sandbox --name user-app-name');
+    assert.equal(sandboxStartMock.mock.callCount(), 1);
+    assert.deepStrictEqual(
+      sandboxStartMock.mock.calls[0].arguments[0].name,
+      'user-app-name'
+    );
   });
 
   it('shows available options in help output', async () => {
     const output = await commandRunner.runCommand('sandbox --help');
+    assert.match(output, /--name/);
     assert.match(output, /--dirToWatch/);
     assert.match(output, /--exclude/);
   });
