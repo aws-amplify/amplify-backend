@@ -40,6 +40,7 @@ describe('generate config command', () => {
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
       stackName: 'stack_name',
     });
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(
       generateClientConfigMock.mock.calls[0].arguments[1],
       path.join(process.cwd(), 'amplifyconfiguration.json')
