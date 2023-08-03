@@ -1,8 +1,10 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
-import { ClientConfigGeneratorAdapter } from './client_config_generator_adapter.js';
 import { ClientConfigWriter } from './client_config_writer.js';
 import path from 'path';
-import { BackendIdentifier } from '@aws-amplify/client-config';
+import {
+  BackendIdentifier,
+  ClientConfigGeneratorAdapter,
+} from '@aws-amplify/client-config';
 import { ProjectNameResolver } from '../../../local_project_name_resolver.js';
 
 export type GenerateConfigCommandOptions = {

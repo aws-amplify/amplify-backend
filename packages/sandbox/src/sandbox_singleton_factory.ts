@@ -1,12 +1,16 @@
 import { CDKSandbox } from './cdk_sandbox.js';
 import { Sandbox } from './sandbox.js';
+import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
+import { ClientConfigGeneratorAdapter } from '@aws-amplify/client-config';
+import { ClientConfigWriter } from './config/client_config_writer.js';
 
 /**
  * Factory to create a new sandbox
  */
 export class SandboxSingletonFactory {
   private instance: Sandbox | undefined;
-
+  private clientConfigGenerator: ClientConfigGeneratorAdapter;
+  private clientConfigWriter: ClientConfigWriter;
   /**
    * Initialize with an appNameResolver and a disambiguatorResolver.
    * These resolvers will be called once and only once the first time getInstance() is called.
@@ -15,7 +19,12 @@ export class SandboxSingletonFactory {
   constructor(
     private readonly appNameResolver: () => Promise<string>,
     private readonly disambiguatorResolver: () => Promise<string>
-  ) {}
+  ) {
+    this.clientConfigGenerator = new ClientConfigGeneratorAdapter(
+      fromNodeProviderChain()
+    );
+    this.clientConfigWriter = new ClientConfigWriter();
+  }
 
   /**
    * Returns a singleton instance of a Sandbox
@@ -24,7 +33,9 @@ export class SandboxSingletonFactory {
     if (!this.instance) {
       this.instance = new CDKSandbox(
         await this.appNameResolver(),
-        await this.disambiguatorResolver()
+        await this.disambiguatorResolver(),
+        this.clientConfigGenerator,
+        this.clientConfigWriter
       );
     }
     return this.instance;

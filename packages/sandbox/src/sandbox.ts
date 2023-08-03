@@ -23,6 +23,7 @@ export type SandboxOptions = {
   dir?: string;
   exclude?: string[];
   name?: string;
+  clientConfigOutputPath?: string;
 };
 
 export type SandboxDeleteOptions = {

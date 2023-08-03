@@ -1,5 +1,4 @@
 import { beforeEach, describe, it, mock } from 'node:test';
-import { ClientConfigGeneratorAdapter } from './client_config_generator_adapter.js';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { ClientConfigWriter } from './client_config_writer.js';
 import { GenerateConfigCommand } from './generate_config_command.js';
@@ -10,7 +9,10 @@ import {
 } from '../../../test_utils/command_runner.js';
 import assert from 'node:assert';
 import path from 'path';
-import { ClientConfig } from '@aws-amplify/client-config';
+import {
+  ClientConfig,
+  ClientConfigGeneratorAdapter,
+} from '@aws-amplify/client-config';
 
 describe('generate config command', () => {
   const clientConfigGeneratorAdapter = new ClientConfigGeneratorAdapter(

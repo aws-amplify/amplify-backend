@@ -8,6 +8,7 @@ export type SandboxCommandOptions = {
   dirToWatch: string | undefined;
   exclude: string[] | undefined;
   name: string | undefined;
+  out: string | undefined;
 };
 
 /**
@@ -47,7 +48,14 @@ export class SandboxCommand
   ): Promise<void> => {
     this.appName = args.name;
     process.once('SIGINT', this.sigIntHandler.bind(this));
-    await (await this.sandboxFactory.getInstance()).start(args);
+    await (
+      await this.sandboxFactory.getInstance()
+    ).start({
+      dir: args.dirToWatch,
+      exclude: args.exclude,
+      name: args.name,
+      clientConfigOutputPath: args.out,
+    });
   };
 
   /**
@@ -73,6 +81,12 @@ export class SandboxCommand
         .option('name', {
           describe:
             'An optional name to distinguish between different sandbox environments. Default is the name in your package.json',
+          type: 'string',
+          array: false,
+        })
+        .option('out', {
+          describe:
+            'A path to directory where config is written. If not provided defaults to current process working directory.',
           type: 'string',
           array: false,
         })

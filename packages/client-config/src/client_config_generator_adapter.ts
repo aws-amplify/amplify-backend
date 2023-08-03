@@ -6,17 +6,17 @@ import {
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 
 /**
- * Adapts static generateClientConfig from @aws-amplify/backend-engine call to make it injectable and testable.
+ * Adapts static generateClientConfig from @aws-amplify/client-config call to make it injectable and testable.
  */
 export class ClientConfigGeneratorAdapter {
   /**
-   * Creates new adapter for generateClientConfig from @aws-amplify/backend-engine.
+   * Creates new adapter for generateClientConfig from @aws-amplify/client-config.
    */
   constructor(
     private readonly awsCredentialProvider: AwsCredentialIdentityProvider
   ) {}
   /**
-   * Calls generateClientConfig from @aws-amplify/backend-engine.
+   * Calls generateClientConfig from @aws-amplify/client-config.
    * @see generateClientConfig for more information.
    */
   async generateClientConfig(

@@ -2,7 +2,7 @@ import { CommandModule } from 'yargs';
 import { GenerateCommand } from './generate_command.js';
 import { GenerateConfigCommand } from './config/generate_config_command.js';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
-import { ClientConfigGeneratorAdapter } from './config/client_config_generator_adapter.js';
+import { ClientConfigGeneratorAdapter } from '@aws-amplify/client-config';
 import { ClientConfigWriter } from './config/client_config_writer.js';
 import { LocalProjectNameResolver } from '../../local_project_name_resolver.js';
 

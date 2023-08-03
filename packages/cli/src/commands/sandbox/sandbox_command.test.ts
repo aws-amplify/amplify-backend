@@ -59,11 +59,21 @@ describe('sandbox command', () => {
     );
   });
 
+  it('starts sandbox with user provided output directory for client config', async () => {
+    await commandRunner.runCommand('sandbox --out test/location');
+    assert.equal(sandboxStartMock.mock.callCount(), 1);
+    assert.deepStrictEqual(
+      sandboxStartMock.mock.calls[0].arguments[0].clientConfigOutputPath,
+      'test/location'
+    );
+  });
+
   it('shows available options in help output', async () => {
     const output = await commandRunner.runCommand('sandbox --help');
     assert.match(output, /--name/);
     assert.match(output, /--dirToWatch/);
     assert.match(output, /--exclude/);
+    assert.match(output, /--out/);
   });
 
   it('fails if invalid dirToWatch is provided', async () => {
