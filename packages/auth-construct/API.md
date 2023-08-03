@@ -11,6 +11,7 @@ import { BackendOutputWriter } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
 import { IRole } from 'aws-cdk-lib/aws-iam';
 import { UserPool } from 'aws-cdk-lib/aws-cognito';
+import { UserPoolClient } from 'aws-cdk-lib/aws-cognito';
 
 // @public
 export class AmplifyAuth extends Construct implements BackendOutputWriter, AuthResources {
@@ -22,11 +23,14 @@ export class AmplifyAuth extends Construct implements BackendOutputWriter, AuthR
     readonly unauthenticatedUserIamRole: IRole;
     // (undocumented)
     readonly userPool: UserPool;
+    // (undocumented)
+    readonly userPoolClientWeb: UserPoolClient;
 }
 
 // @public
 export type AmplifyAuthProps = {
     loginMechanisms: LoginMechanism[];
+    selfSignUpEnabled?: boolean;
 };
 
 // @public (undocumented)

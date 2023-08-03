@@ -9,7 +9,11 @@ describe('DataClientConfigContributor', () => {
       contributor.contribute({
         authOutput: {
           version: '1',
-          payload: { userPoolId: 'stuff', authRegion: 'testRegion ' },
+          payload: {
+            userPoolId: 'stuff',
+            webClientId: 'stuff',
+            authRegion: 'testRegion ',
+          },
         },
       }),
       {}
