@@ -25,16 +25,13 @@ npm install
 ### Run sandbox
 
 ```shell
-npx amplify sandbox
+npx amplify sandbox --out src
 ```
 
-1. Make change in any file to trigger deployment (see [issue](https://github.com/aws-amplify/samsara-cli/issues/104))
-2. After successful deployment hit CTRL+C
-
-### Generate client config
+### Check that client config was generated
 
 ```shell
-npx amplify generate config --stack amplify-simple-react-$(whoami)-sandbox --out src
+cat src/amplifyconfiguration.json
 ```
 
 ### Run react app
