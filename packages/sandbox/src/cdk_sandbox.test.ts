@@ -97,6 +97,7 @@ describe('Sandbox using local project name resolver', () => {
       [
         'cdk',
         'deploy',
+        '--ci',
         '--app',
         "'npx tsx amplify/backend.ts'",
         '--context',
@@ -201,6 +202,7 @@ describe('Sandbox using local project name resolver', () => {
       [
         'cdk',
         'destroy',
+        '--ci',
         '--app',
         "'npx tsx amplify/backend.ts'",
         '--context',
@@ -212,6 +214,27 @@ describe('Sandbox using local project name resolver', () => {
         '--force',
       ],
     ]);
+  });
+
+  it('handles error thrown by cdk and does not crash', async (contextual) => {
+    const contextualExecaMock = contextual.mock.method(
+      cdkExecutor,
+      'executeChildProcess',
+      () => Promise.reject(new Error('random cdk error'))
+    );
+
+    // This test validates that the first file change didn't crash the sandbox process and the second
+    // file change will trigger the CDK again!
+    fileChangeEventActualFn(null, [{ type: 'update', path: 'foo/test1.ts' }]);
+    // Get over debounce so that the next deployment is considered valid
+    await new Promise((res) => setTimeout(res, 100));
+    // second file change
+    fileChangeEventActualFn(null, [{ type: 'update', path: 'foo/test2.ts' }]);
+    // Wait sufficient time for both deployments to have finished before we count number of cdk calls.
+    await new Promise((res) => setTimeout(res, 300));
+
+    // CDK should have been called twice
+    assert.strictEqual(contextualExecaMock.mock.callCount(), 2);
   });
 });
 
@@ -285,6 +308,7 @@ describe('Sandbox with user provided app name', () => {
       [
         'cdk',
         'deploy',
+        '--ci',
         '--app',
         "'npx tsx amplify/backend.ts'",
         '--context',
@@ -314,6 +338,7 @@ describe('Sandbox with user provided app name', () => {
       [
         'cdk',
         'destroy',
+        '--ci',
         '--app',
         "'npx tsx amplify/backend.ts'",
         '--context',
