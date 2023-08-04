@@ -69,10 +69,10 @@ export class AmplifyCDKExecutor {
    * doesn't have capabilities to mock exported functions like `execa` as of right now.
    */
   executeChildProcess = async (command: string, cdkCommandArgs: string[]) => {
-    // We let the stdout inherit and streamed to parent process but pipe
+    // We let the stdout and stdin inherit and streamed to parent process but pipe
     // the stderr and use it to throw on failure. This is to prevent actual
-    // actionable errors being hidden amongst the stdout.
-
+    // actionable errors being hidden amongst the stdout. Moreover execa errors are
+    // useless when calling CLIs unless you made execa calling error.
     let aggregatedStderr = '';
     const aggregatorStream = new stream.Writable();
     aggregatorStream._write = function (chunk, encoding, done) {
