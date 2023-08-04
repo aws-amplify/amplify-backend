@@ -5,5 +5,6 @@ export const dataOutputSchema = z.object({
   payload: z.object({
     appSyncApiEndpoint: z.string(),
     appSyncApiKey: z.string().optional(),
+    authenticationType: z.string().optional(),
   }),
 });

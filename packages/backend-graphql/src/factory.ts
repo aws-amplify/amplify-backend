@@ -110,6 +110,10 @@ class DataGenerator implements ConstructContainerEntryGenerator {
         dataConstruct.resources.cfnApiKey?.attrApiKey;
     }
 
+    if (authConfig.defaultAuthMode) {
+      dataOutput.payload.authenticationType = authConfig.defaultAuthMode;
+    }
+
     this.outputStorageStrategy.addBackendOutputEntry(dataOutputKey, dataOutput);
     return dataConstruct;
   }

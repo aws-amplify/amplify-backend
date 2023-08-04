@@ -29,12 +29,14 @@ describe('DataClientConfigContributor', () => {
           payload: {
             appSyncApiEndpoint: 'testApiEndpoint',
             appSyncApiKey: 'testApiKey',
+            authenticationType: 'testAuthType',
           },
         },
       }),
       {
         aws_appsync_apiKey: 'testApiKey',
         aws_appsync_graphqlEndpoint: 'testApiEndpoint',
+        aws_appsync_authenticationType: 'testAuthType',
       }
     );
   });

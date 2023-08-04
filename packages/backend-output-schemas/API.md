@@ -88,24 +88,29 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
         payload: z.ZodObject<{
             appSyncApiEndpoint: z.ZodString;
             appSyncApiKey: z.ZodOptional<z.ZodString>;
+            authenticationType: z.ZodOptional<z.ZodString>;
         }, "strip", z.ZodTypeAny, {
             appSyncApiEndpoint: string;
             appSyncApiKey?: string | undefined;
+            authenticationType?: string | undefined;
         }, {
             appSyncApiEndpoint: string;
             appSyncApiKey?: string | undefined;
+            authenticationType?: string | undefined;
         }>;
     }, "strip", z.ZodTypeAny, {
         version: "1";
         payload: {
             appSyncApiEndpoint: string;
             appSyncApiKey?: string | undefined;
+            authenticationType?: string | undefined;
         };
     }, {
         version: "1";
         payload: {
             appSyncApiEndpoint: string;
             appSyncApiKey?: string | undefined;
+            authenticationType?: string | undefined;
         };
     }>]>>;
     storageOutput: z.ZodOptional<z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
@@ -147,6 +152,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
         payload: {
             appSyncApiEndpoint: string;
             appSyncApiKey?: string | undefined;
+            authenticationType?: string | undefined;
         };
     } | undefined;
     storageOutput?: {
@@ -170,6 +176,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
         payload: {
             appSyncApiEndpoint: string;
             appSyncApiKey?: string | undefined;
+            authenticationType?: string | undefined;
         };
     } | undefined;
     storageOutput?: {
