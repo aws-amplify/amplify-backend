@@ -19,7 +19,8 @@
    "dataOutput": {
     "version": "1",
     "stackOutputs": [
-     "appSyncApiEndpoint"
+     "appSyncApiEndpoint",
+     "authenticationType"
     ]
    }
   }
@@ -196,6 +197,9 @@
      "Outputs.amplifytestAppName1234testBranchNamedataamplifyDataRootStackGraphQLAPI58B0BABDGraphQLUrl"
     ]
    }
+  },
+  "authenticationType": {
+   "Value": "AMAZON_COGNITO_USER_POOLS"
   }
  },
  "Parameters": {

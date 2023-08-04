@@ -23,6 +23,7 @@ describe('UnifiedClientConfigGenerator', () => {
           version: '1',
           payload: {
             appSyncApiEndpoint: 'testAppSyncEndpoint',
+            authenticationType: 'testAuthType',
           },
         },
       };
@@ -45,6 +46,7 @@ describe('UnifiedClientConfigGenerator', () => {
         aws_user_pools_web_client_id: 'testWebClientId',
         aws_cognito_region: 'testRegion',
         aws_appsync_graphqlEndpoint: 'testAppSyncEndpoint',
+        aws_appsync_authenticationType: 'testAuthType',
       };
       assert.deepStrictEqual(result, expectedClientConfig);
     });

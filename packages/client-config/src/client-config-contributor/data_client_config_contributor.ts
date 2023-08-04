@@ -18,6 +18,7 @@ export class DataClientConfigContributor implements ClientConfigContributor {
     return {
       aws_appsync_graphqlEndpoint: dataOutput.payload.appSyncApiEndpoint,
       aws_appsync_apiKey: dataOutput.payload.appSyncApiKey,
+      aws_appsync_authenticationType: dataOutput.payload.authenticationType,
     };
   }
 }
