@@ -1,0 +1,16 @@
+{
+ "Resources": {
+  "amplifyStorageamplifyStorageBucketC2F702CD": {
+   "Type": "AWS::S3::Bucket",
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain"
+  }
+ },
+ "Outputs": {
+  "amplifytestAppName1234testBranchNamestorageamplifyStorageamplifyStorageBucket64E7D884Ref": {
+   "Value": {
+    "Ref": "amplifyStorageamplifyStorageBucketC2F702CD"
+   }
+  }
+ }
+}

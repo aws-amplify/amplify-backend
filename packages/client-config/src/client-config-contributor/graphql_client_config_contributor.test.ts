@@ -9,7 +9,11 @@ describe('GraphqlClientConfigContributor', () => {
       contributor.contribute({
         authOutput: {
           version: '1',
-          payload: { userPoolId: 'stuff', authRegion: 'testRegion ' },
+          payload: {
+            userPoolId: 'stuff',
+            authRegion: 'testRegion ',
+            webClientId: 'clientId',
+          },
         },
       }),
       {}

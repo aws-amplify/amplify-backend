@@ -1,5 +1,7 @@
 import debounce from 'debounce-promise';
 import { execa } from 'execa';
+import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import stream from 'stream';
 
 /**
  * Execute CDK commands.
@@ -12,24 +14,32 @@ export class AmplifyCDKExecutor {
    * Debounce is added in case multiple duplicate events are received.
    */
   invokeCDKWithDebounce = debounce(
-    async (cdkCommand: CDKCommand, cdkOptions?: CDKOptions): Promise<void> => {
+    async (
+      cdkCommand: CDKCommand,
+      cdkOptions?: UniqueBackendIdentifier
+    ): Promise<void> => {
       console.debug(`[Sandbox] Executing cdk ${cdkCommand.toString()}`);
 
       // Basic args
       const cdkCommandArgs = [
         'cdk',
         cdkCommand.toString(),
+        // This is unfortunate. CDK writes everything to stderr without `--ci` flag and we need to differentiate between the two.
+        // See https://github.com/aws/aws-cdk/issues/7717 for more details.
+        '--ci',
         '--app',
         `'npx tsx ${this.relativeBackendEntryPoint}'`,
       ];
 
       // Add context information if available
-      if (cdkOptions?.projectName && cdkOptions?.environmentName) {
+      if (cdkOptions) {
         cdkCommandArgs.push(
           '--context',
-          `project-name=${cdkOptions?.projectName}`,
+          `app-name=${cdkOptions.appName}`,
           '--context',
-          `environment-name=${cdkOptions?.environmentName}`
+          `branch-name=${cdkOptions.branchName}`,
+          '--context',
+          `disambiguator=${cdkOptions.disambiguator}`
         );
       }
 
@@ -41,7 +51,15 @@ export class AmplifyCDKExecutor {
       }
 
       // call execa for executing the command line
-      await this.executeChildProcess('npx', cdkCommandArgs);
+      try {
+        await this.executeChildProcess('npx', cdkCommandArgs);
+      } catch (error) {
+        let message;
+        if (error instanceof Error) message = error.message;
+        else message = String(error);
+        console.log(message);
+        // do not propagate and let the sandbox continue to run
+      }
     },
     100
   );
@@ -51,9 +69,29 @@ export class AmplifyCDKExecutor {
    * doesn't have capabilities to mock exported functions like `execa` as of right now.
    */
   executeChildProcess = async (command: string, cdkCommandArgs: string[]) => {
-    await execa(command, cdkCommandArgs, {
-      stdio: 'inherit',
+    // We let the stdout and stdin inherit and streamed to parent process but pipe
+    // the stderr and use it to throw on failure. This is to prevent actual
+    // actionable errors being hidden amongst the stdout. Moreover execa errors are
+    // useless when calling CLIs unless you made execa calling error.
+    let aggregatedStderr = '';
+    const aggregatorStream = new stream.Writable();
+    aggregatorStream._write = function (chunk, encoding, done) {
+      aggregatedStderr += chunk;
+      done();
+    };
+    const childProcess = execa(command, cdkCommandArgs, {
+      stdin: 'inherit',
+      stdout: 'inherit',
+      stderr: 'pipe',
     });
+    childProcess.stderr?.pipe(aggregatorStream);
+
+    try {
+      await childProcess;
+    } catch (error) {
+      // swallow execa error which is not really helpful, rather throw stderr
+      throw new Error(aggregatedStderr);
+    }
   };
 }
 
@@ -61,8 +99,3 @@ export enum CDKCommand {
   DEPLOY = 'deploy',
   DESTROY = 'destroy',
 }
-
-export type CDKOptions = {
-  projectName?: string;
-  environmentName?: string;
-};

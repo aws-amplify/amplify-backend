@@ -17,6 +17,7 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
     }
     return {
       aws_user_pools_id: authOutput.payload.userPoolId,
+      aws_user_pools_web_client_id: authOutput.payload.webClientId,
       aws_cognito_region: authOutput.payload.authRegion,
     };
   }

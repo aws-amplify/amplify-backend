@@ -17,9 +17,6 @@ export type AuthResources = {
     identityPoolId?: string;
 };
 
-// @public
-export type BackendIdentifier = StackIdentifier | ProjectEnvironmentIdentifier;
-
 // @public (undocumented)
 export type BackendOutput = Record<string, BackendOutputEntry>;
 
@@ -87,14 +84,10 @@ export type MainStackNameResolver = {
 };
 
 // @public
-export type ProjectEnvironmentIdentifier = {
-    projectName: string;
-    environmentName: string;
-};
-
-// @public
-export type StackIdentifier = {
-    stackName: string;
+export type UniqueBackendIdentifier = {
+    appName: string;
+    disambiguator: string;
+    branchName: string;
 };
 
 // (No @packageDocumentation comment for this package)

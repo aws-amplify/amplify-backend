@@ -8,17 +8,27 @@
 export type Sandbox = {
     start(options: SandboxOptions): Promise<void>;
     stop(): Promise<void>;
-    delete(): Promise<void>;
+    delete(options: SandboxDeleteOptions): Promise<void>;
 };
 
 // @public (undocumented)
-export const sandbox: Sandbox;
+export type SandboxDeleteOptions = {
+    name?: string;
+};
 
 // @public (undocumented)
 export type SandboxOptions = {
     dir?: string;
     exclude?: string[];
+    name?: string;
+    clientConfigOutputPath?: string;
 };
+
+// @public
+export class SandboxSingletonFactory {
+    constructor(appNameResolver: () => Promise<string>, disambiguatorResolver: () => Promise<string>);
+    getInstance(): Promise<Sandbox>;
+}
 
 // (No @packageDocumentation comment for this package)
 

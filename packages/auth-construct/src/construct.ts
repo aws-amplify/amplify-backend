@@ -5,7 +5,7 @@ import {
   BackendOutputStorageStrategy,
   BackendOutputWriter,
 } from '@aws-amplify/plugin-types';
-import { UserPool } from 'aws-cdk-lib/aws-cognito';
+import { UserPool, UserPoolClient } from 'aws-cdk-lib/aws-cognito';
 import { FederatedPrincipal, IRole, Role } from 'aws-cdk-lib/aws-iam';
 import { AuthOutput } from '@aws-amplify/backend-output-schemas/auth';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
@@ -23,6 +23,7 @@ export type LoginMechanism = 'email' | 'username' | 'phone' | GoogleLogin;
  */
 export type AmplifyAuthProps = {
   loginMechanisms: LoginMechanism[];
+  selfSignUpEnabled?: boolean;
 };
 
 /**
@@ -33,6 +34,7 @@ export class AmplifyAuth
   implements BackendOutputWriter, AuthResources
 {
   readonly userPool: UserPool;
+  readonly userPoolClientWeb: UserPoolClient;
   readonly authenticatedUserIamRole: IRole;
   readonly unauthenticatedUserIamRole: IRole;
   /**
@@ -50,7 +52,16 @@ export class AmplifyAuth
         phone: props.loginMechanisms.includes('phone'),
         email: props.loginMechanisms.includes('email'),
       },
+      selfSignUpEnabled: props.selfSignUpEnabled,
     });
+
+    this.userPoolClientWeb = new cognito.UserPoolClient(
+      this,
+      'UserPoolWebClient',
+      {
+        userPool: this.userPool,
+      }
+    );
 
     this.authenticatedUserIamRole = new Role(this, 'authenticatedUserRole', {
       assumedBy: new FederatedPrincipal('cognito-identity.amazonaws.com'),
@@ -91,6 +102,7 @@ export class AmplifyAuth
       version: '1',
       payload: {
         userPoolId: this.userPool.userPoolId,
+        webClientId: this.userPoolClientWeb.userPoolClientId,
         authRegion: Stack.of(this).region,
       },
     });

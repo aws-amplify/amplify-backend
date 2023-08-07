@@ -5,7 +5,19 @@
 ```ts
 
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
-import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+
+// @public
+export type AppIdAndBranchBackendIdentifier = {
+    appId: string;
+    branch: string;
+};
+
+// @public
+export type AppNameAndBranchBackendIdentifier = {
+    appName: string;
+    branch: string;
+};
 
 // @public
 export type AuthClientConfig = {
@@ -16,6 +28,9 @@ export type AuthClientConfig = {
     aws_mandatory_sign_in?: string;
 };
 
+// @public (undocumented)
+export type BackendIdentifier = UniqueBackendIdentifier | StackIdentifier | AppNameAndBranchBackendIdentifier | AppIdAndBranchBackendIdentifier;
+
 // @public
 export type ClientConfig = Partial<AuthClientConfig & GraphqlClientConfig & StorageClientConfig>;
 
@@ -23,11 +38,19 @@ export type ClientConfig = Partial<AuthClientConfig & GraphqlClientConfig & Stor
 export const generateClientConfig: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier) => Promise<ClientConfig>;
 
 // @public
+export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier, targetPath: string) => Promise<void>;
+
+// @public
 export type GraphqlClientConfig = {
     aws_appsync_region: string;
     aws_appsync_graphqlEndpoint: string;
     aws_appsync_authenticationType: string;
     aws_appsync_apiKey?: string;
+};
+
+// @public (undocumented)
+export type StackIdentifier = {
+    stackName: string;
 };
 
 // @public

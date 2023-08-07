@@ -1,0 +1,239 @@
+{
+ "Parameters": {
+  "DynamoDBModelTableReadIOPS": {
+   "Type": "Number",
+   "Default": 5,
+   "Description": "The number of read IOPS the table should support."
+  },
+  "DynamoDBModelTableWriteIOPS": {
+   "Type": "Number",
+   "Default": 5,
+   "Description": "The number of write IOPS the table should support."
+  },
+  "DynamoDBBillingMode": {
+   "Type": "String",
+   "Default": "PAY_PER_REQUEST",
+   "AllowedValues": [
+    "PAY_PER_REQUEST",
+    "PROVISIONED"
+   ],
+   "Description": "Configure @model types to create DynamoDB tables with PAY_PER_REQUEST or PROVISIONED billing modes."
+  },
+  "DynamoDBEnablePointInTimeRecovery": {
+   "Type": "String",
+   "Default": "false",
+   "AllowedValues": [
+    "true",
+    "false"
+   ],
+   "Description": "Whether to enable Point in Time Recovery on the table."
+  },
+  "DynamoDBEnableServerSideEncryption": {
+   "Type": "String",
+   "Default": "true",
+   "AllowedValues": [
+    "true",
+    "false"
+   ],
+   "Description": "Enable server side encryption powered by KMS."
+  },
+  "referencetoamplifytestAppName1234testBranchNameauthNestedStackauthNestedStackResourceA79383D0OutputsamplifytestAppName1234testBranchNameauthamplifyAuthUserPool2299DE02Ref": {
+   "Type": "String"
+  },
+  "referencetoamplifytestAppName1234testBranchNameauthNestedStackauthNestedStackResourceA79383D0OutputsamplifytestAppName1234testBranchNameauthamplifyAuthauthenticatedUserRoleE3D92679Ref": {
+   "Type": "String"
+  },
+  "referencetoamplifytestAppName1234testBranchNameauthNestedStackauthNestedStackResourceA79383D0OutputsamplifytestAppName1234testBranchNameauthamplifyAuthunauthenticatedUserRole91B91C57Ref": {
+   "Type": "String"
+  }
+ },
+ "Resources": {
+  "GraphQLAPI": {
+   "Type": "AWS::AppSync::GraphQLApi",
+   "Properties": {
+    "AuthenticationType": "AMAZON_COGNITO_USER_POOLS",
+    "Name": {
+     "Fn::Join": [
+      "",
+      [
+       "amplifyData",
+       "-",
+       "NONE"
+      ]
+     ]
+    },
+    "AdditionalAuthenticationProviders": [
+     {
+      "AuthenticationType": "AWS_IAM"
+     }
+    ],
+    "UserPoolConfig": {
+     "AwsRegion": {
+      "Ref": "AWS::Region"
+     },
+     "DefaultAction": "ALLOW",
+     "UserPoolId": {
+      "Ref": "referencetoamplifytestAppName1234testBranchNameauthNestedStackauthNestedStackResourceA79383D0OutputsamplifytestAppName1234testBranchNameauthamplifyAuthUserPool2299DE02Ref"
+     }
+    }
+   }
+  },
+  "GraphQLAPITransformerSchema3CB2AE18": {
+   "Type": "AWS::AppSync::GraphQLSchema",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "GraphQLAPI",
+      "ApiId"
+     ]
+    },
+    "DefinitionS3Location": {
+     "Fn::Join": [
+      "",
+      [
+       "s3://",
+       {
+        "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+       },
+       "/6449656554023e0ec45392816430f2a15cc7bd3f61ece8e5597df8547f64e766.graphql"
+      ]
+     ]
+    }
+   }
+  },
+  "GraphQLAPINONEDS95A13CF0": {
+   "Type": "AWS::AppSync::DataSource",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "GraphQLAPI",
+      "ApiId"
+     ]
+    },
+    "Name": "NONE_DS",
+    "Type": "NONE",
+    "Description": "None Data Source for Pipeline functions"
+   }
+  },
+  "Todo": {
+   "Type": "AWS::CloudFormation::Stack",
+   "Properties": {
+    "TemplateURL": {
+     "Fn::Join": [
+      "",
+      [
+       "https://s3.",
+       {
+        "Ref": "AWS::Region"
+       },
+       ".",
+       {
+        "Ref": "AWS::URLSuffix"
+       },
+       "/",
+       {
+        "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+       },
+       "/dfc7748dfea2ce35483bce2eb49f0df37e91bf605fb4551782698ce231456a27.json"
+      ]
+     ]
+    },
+    "Parameters": {
+     "DynamoDBModelTableReadIOPS": {
+      "Ref": "DynamoDBModelTableReadIOPS"
+     },
+     "DynamoDBModelTableWriteIOPS": {
+      "Ref": "DynamoDBModelTableWriteIOPS"
+     },
+     "DynamoDBBillingMode": {
+      "Ref": "DynamoDBBillingMode"
+     },
+     "DynamoDBEnablePointInTimeRecovery": {
+      "Ref": "DynamoDBEnablePointInTimeRecovery"
+     },
+     "DynamoDBEnableServerSideEncryption": {
+      "Ref": "DynamoDBEnableServerSideEncryption"
+     },
+     "referencetotransformerrootstackenv10C5A902Ref": "NONE",
+     "referencetotransformerrootstackGraphQLAPI20497F53ApiId": {
+      "Fn::GetAtt": [
+       "GraphQLAPI",
+       "ApiId"
+      ]
+     },
+     "referencetotransformerrootstackGraphQLAPINONEDS2BA9D1C8Name": {
+      "Fn::GetAtt": [
+       "GraphQLAPINONEDS95A13CF0",
+       "Name"
+      ]
+     },
+     "referencetotransformerrootstackS3DeploymentBucket7592718ARef": "cdk-${Qualifier}-assets-${AWS::AccountId}-${AWS::Region}",
+     "referencetotransformerrootstackS3DeploymentRootKeyA71EA735Ref": "CdkBootstrap-${Qualifier}-FileAssetKeyArn",
+     "referencetotransformerrootstackauthRoleNameFB872D50Ref": {
+      "Ref": "referencetoamplifytestAppName1234testBranchNameauthNestedStackauthNestedStackResourceA79383D0OutputsamplifytestAppName1234testBranchNameauthamplifyAuthauthenticatedUserRoleE3D92679Ref"
+     },
+     "referencetotransformerrootstackunauthRoleName49F3C1FERef": {
+      "Ref": "referencetoamplifytestAppName1234testBranchNameauthNestedStackauthNestedStackResourceA79383D0OutputsamplifytestAppName1234testBranchNameauthamplifyAuthunauthenticatedUserRole91B91C57Ref"
+     }
+    }
+   },
+   "DependsOn": [
+    "GraphQLAPITransformerSchema3CB2AE18"
+   ]
+  }
+ },
+ "Outputs": {
+  "GraphQLAPIIdOutput": {
+   "Description": "Your GraphQL API ID.",
+   "Value": {
+    "Fn::GetAtt": [
+     "GraphQLAPI",
+     "ApiId"
+    ]
+   },
+   "Export": {
+    "Name": {
+     "Fn::Join": [
+      ":",
+      [
+       {
+        "Ref": "AWS::StackName"
+       },
+       "GraphQLApiId"
+      ]
+     ]
+    }
+   }
+  },
+  "GraphQLAPIEndpointOutput": {
+   "Description": "Your GraphQL API endpoint.",
+   "Value": {
+    "Fn::GetAtt": [
+     "GraphQLAPI",
+     "GraphQLUrl"
+    ]
+   },
+   "Export": {
+    "Name": {
+     "Fn::Join": [
+      ":",
+      [
+       {
+        "Ref": "AWS::StackName"
+       },
+       "GraphQLApiEndpoint"
+      ]
+     ]
+    }
+   }
+  },
+  "amplifytestAppName1234testBranchNamedataamplifyDataRootStackGraphQLAPI58B0BABDGraphQLUrl": {
+   "Value": {
+    "Fn::GetAtt": [
+     "GraphQLAPI",
+     "GraphQLUrl"
+    ]
+   }
+  }
+ }
+}

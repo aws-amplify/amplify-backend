@@ -16,10 +16,16 @@ export type Sandbox = {
   /**
    * Deletes this environment
    */
-  delete(): Promise<void>;
+  delete(options: SandboxDeleteOptions): Promise<void>;
 };
 
 export type SandboxOptions = {
   dir?: string;
   exclude?: string[];
+  name?: string;
+  clientConfigOutputPath?: string;
+};
+
+export type SandboxDeleteOptions = {
+  name?: string;
 };
