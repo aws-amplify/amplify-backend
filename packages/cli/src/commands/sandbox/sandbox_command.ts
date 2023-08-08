@@ -47,7 +47,6 @@ export class SandboxCommand
     args: ArgumentsCamelCase<SandboxCommandOptions>
   ): Promise<void> => {
     this.appName = args.name;
-    process.once('SIGINT', this.sigIntHandler.bind(this));
     await (
       await this.sandboxFactory.getInstance()
     ).start({
@@ -56,6 +55,7 @@ export class SandboxCommand
       name: args.name,
       clientConfigOutputPath: args.out,
     });
+    process.once('SIGINT', this.sigIntHandler.bind(this));
   };
 
   /**
