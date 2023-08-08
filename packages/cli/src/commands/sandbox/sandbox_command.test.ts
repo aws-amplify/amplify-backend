@@ -131,6 +131,9 @@ describe('sandbox command', () => {
     );
 
     await commandRunner.runCommand('sandbox');
+
+    // Similar to the later 0ms timeout. Without this tests in github action are failing
+    // but working locally
     await new Promise((resolve) => setTimeout(resolve, 0));
     const sigIntHandlerFn = processSignal.mock.calls[0].arguments[1];
     if (sigIntHandlerFn) sigIntHandlerFn();
@@ -165,6 +168,9 @@ describe('sandbox command', () => {
     );
 
     await commandRunner.runCommand('sandbox');
+
+    // Similar to the previous test's 0ms timeout. Without this tests in github action are failing
+    // but working locally
     await new Promise((resolve) => setTimeout(resolve, 0));
     const sigIntHandlerFn = processSignal.mock.calls[0].arguments[1];
     if (sigIntHandlerFn) sigIntHandlerFn();
