@@ -4,7 +4,7 @@ import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { StackMetadataBackendOutputRetrievalStrategy } from './stack_metadata_output_retrieval_strategy.js';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import { AuthClientConfigContributor } from './client-config-contributor/auth_client_config_contributor.js';
-import { DataClientConfigContributor } from './client-config-contributor/data_client_config_contributor.js';
+import { GraphqlClientConfigContributor } from './client-config-contributor/graphql_client_config_contributor.js';
 import { ClientConfigGenerator } from './client_config_generator.js';
 import { StorageClientConfigContributor } from './client-config-contributor/storage_client_config_contributor.js';
 import {
@@ -30,7 +30,7 @@ export class ClientConfigGeneratorFactory {
   private readonly amplifyClient: AmplifyClient;
   private readonly clientConfigContributors = [
     new AuthClientConfigContributor(),
-    new DataClientConfigContributor(),
+    new GraphqlClientConfigContributor(),
     new StorageClientConfigContributor(),
   ];
   /**

@@ -43,7 +43,7 @@ export const backendOutputStackMetadataSchema: z.ZodRecord<z.ZodString, z.ZodObj
 }>>;
 
 // @public
-export const dataOutputKey = "dataOutput";
+export const graphqlOutputKey = "graphqlOutput";
 
 // @public
 export const storageOutputKey = "storageOutput";
@@ -83,34 +83,39 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             authRegion: string;
         };
     }>]>>;
-    dataOutput: z.ZodOptional<z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
+    graphqlOutput: z.ZodOptional<z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
         version: z.ZodLiteral<"1">;
         payload: z.ZodObject<{
-            appSyncApiEndpoint: z.ZodString;
-            appSyncApiKey: z.ZodOptional<z.ZodString>;
-            authenticationType: z.ZodOptional<z.ZodString>;
+            awsAppsyncRegion: z.ZodString;
+            awsAppsyncApiEndpoint: z.ZodString;
+            awsAppsyncAuthenticationType: z.ZodEnum<["API_KEY", "AWS_LAMBDA", "AWS_IAM", "OPENID_CONNECT", "AMAZON_COGNITO_USER_POOLS"]>;
+            awsAppsyncApiKey: z.ZodOptional<z.ZodString>;
         }, "strip", z.ZodTypeAny, {
-            appSyncApiEndpoint: string;
-            appSyncApiKey?: string | undefined;
-            authenticationType?: string | undefined;
+            awsAppsyncRegion: string;
+            awsAppsyncApiEndpoint: string;
+            awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
+            awsAppsyncApiKey?: string | undefined;
         }, {
-            appSyncApiEndpoint: string;
-            appSyncApiKey?: string | undefined;
-            authenticationType?: string | undefined;
+            awsAppsyncRegion: string;
+            awsAppsyncApiEndpoint: string;
+            awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
+            awsAppsyncApiKey?: string | undefined;
         }>;
     }, "strip", z.ZodTypeAny, {
         version: "1";
         payload: {
-            appSyncApiEndpoint: string;
-            appSyncApiKey?: string | undefined;
-            authenticationType?: string | undefined;
+            awsAppsyncRegion: string;
+            awsAppsyncApiEndpoint: string;
+            awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
+            awsAppsyncApiKey?: string | undefined;
         };
     }, {
         version: "1";
         payload: {
-            appSyncApiEndpoint: string;
-            appSyncApiKey?: string | undefined;
-            authenticationType?: string | undefined;
+            awsAppsyncRegion: string;
+            awsAppsyncApiEndpoint: string;
+            awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
+            awsAppsyncApiKey?: string | undefined;
         };
     }>]>>;
     storageOutput: z.ZodOptional<z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
@@ -147,12 +152,13 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             authRegion: string;
         };
     } | undefined;
-    dataOutput?: {
+    graphqlOutput?: {
         version: "1";
         payload: {
-            appSyncApiEndpoint: string;
-            appSyncApiKey?: string | undefined;
-            authenticationType?: string | undefined;
+            awsAppsyncRegion: string;
+            awsAppsyncApiEndpoint: string;
+            awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
+            awsAppsyncApiKey?: string | undefined;
         };
     } | undefined;
     storageOutput?: {
@@ -171,12 +177,13 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             authRegion: string;
         };
     } | undefined;
-    dataOutput?: {
+    graphqlOutput?: {
         version: "1";
         payload: {
-            appSyncApiEndpoint: string;
-            appSyncApiKey?: string | undefined;
-            authenticationType?: string | undefined;
+            awsAppsyncRegion: string;
+            awsAppsyncApiEndpoint: string;
+            awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
+            awsAppsyncApiKey?: string | undefined;
         };
     } | undefined;
     storageOutput?: {

@@ -16,11 +16,12 @@
      "bucketName"
     ]
    },
-   "dataOutput": {
+   "graphqlOutput": {
     "version": "1",
     "stackOutputs": [
-     "appSyncApiEndpoint",
-     "authenticationType"
+     "awsAppsyncApiEndpoint",
+     "awsAppsyncAuthenticationType",
+     "awsAppsyncRegion"
     ]
    }
   }
@@ -190,7 +191,7 @@
     ]
    }
   },
-  "appSyncApiEndpoint": {
+  "awsAppsyncApiEndpoint": {
    "Value": {
     "Fn::GetAtt": [
      "data7552DF31",
@@ -198,8 +199,13 @@
     ]
    }
   },
-  "authenticationType": {
+  "awsAppsyncAuthenticationType": {
    "Value": "AMAZON_COGNITO_USER_POOLS"
+  },
+  "awsAppsyncRegion": {
+   "Value": {
+    "Ref": "AWS::Region"
+   }
   }
  },
  "Parameters": {

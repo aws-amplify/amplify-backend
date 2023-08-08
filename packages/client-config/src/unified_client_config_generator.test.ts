@@ -3,7 +3,7 @@ import { BackendOutputRetrievalStrategy } from '@aws-amplify/plugin-types';
 import { UnifiedClientConfigGenerator } from './unified_client_config_generator.js';
 import assert from 'node:assert';
 import { AuthClientConfigContributor } from './client-config-contributor/auth_client_config_contributor.js';
-import { DataClientConfigContributor } from './client-config-contributor/data_client_config_contributor.js';
+import { GraphqlClientConfigContributor } from './client-config-contributor/graphql_client_config_contributor.js';
 import { UnifiedBackendOutput } from '@aws-amplify/backend-output-schemas';
 import { ClientConfig } from './client-config-types/client_config.js';
 
@@ -19,11 +19,13 @@ describe('UnifiedClientConfigGenerator', () => {
             authRegion: 'testRegion',
           },
         },
-        dataOutput: {
+        graphqlOutput: {
           version: '1',
           payload: {
-            appSyncApiEndpoint: 'testAppSyncEndpoint',
-            authenticationType: 'testAuthType',
+            awsAppsyncApiEndpoint: 'testApiEndpoint',
+            awsAppsyncRegion: 'us-east-1',
+            awsAppsyncAuthenticationType: 'API_KEY',
+            awsAppsyncApiKey: 'testApiKey',
           },
         },
       };
@@ -32,7 +34,7 @@ describe('UnifiedClientConfigGenerator', () => {
       };
       const configContributors = [
         new AuthClientConfigContributor(),
-        new DataClientConfigContributor(),
+        new GraphqlClientConfigContributor(),
       ];
 
       const clientConfigGenerator = new UnifiedClientConfigGenerator(
@@ -41,12 +43,13 @@ describe('UnifiedClientConfigGenerator', () => {
       );
       const result = await clientConfigGenerator.generateClientConfig();
       const expectedClientConfig: ClientConfig = {
-        aws_appsync_apiKey: undefined,
         aws_user_pools_id: 'testUserPoolId',
         aws_user_pools_web_client_id: 'testWebClientId',
         aws_cognito_region: 'testRegion',
-        aws_appsync_graphqlEndpoint: 'testAppSyncEndpoint',
-        aws_appsync_authenticationType: 'testAuthType',
+        aws_appsync_apiKey: 'testApiKey',
+        aws_appsync_authenticationType: 'API_KEY',
+        aws_appsync_graphqlEndpoint: 'testApiEndpoint',
+        aws_appsync_region: 'us-east-1',
       };
       assert.deepStrictEqual(result, expectedClientConfig);
     });

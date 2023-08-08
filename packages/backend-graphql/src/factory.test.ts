@@ -92,7 +92,7 @@ describe('DataFactory', () => {
     });
 
     const template = Template.fromStack(stack);
-    template.hasOutput('appSyncApiEndpoint', {});
+    template.hasOutput('awsAppsyncApiEndpoint', {});
   });
   it('verifies constructor import path', () => {
     const importPathVerifier = {

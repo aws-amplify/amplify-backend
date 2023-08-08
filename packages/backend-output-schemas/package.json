@@ -13,10 +13,10 @@
       "import": "./lib/auth/index.js",
       "require": "./lib/auth/index.js"
     },
-    "./data": {
-      "types": "./lib/data/index.d.ts",
-      "import": "./lib/data/index.js",
-      "require": "./lib/data/index.js"
+    "./graphql": {
+      "types": "./lib/graphql/index.d.ts",
+      "import": "./lib/graphql/index.js",
+      "require": "./lib/graphql/index.js"
     },
     "./platform": {
       "types": "./lib/platform/index.d.ts",
