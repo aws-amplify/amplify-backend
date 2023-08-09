@@ -94,35 +94,12 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     const graphqlConstructProps: AmplifyGraphqlApiProps = {
       schema: this.props.schema,
       authorizationConfig: authConfig,
+      outputStorageStrategy: this.outputStorageStrategy,
     };
     const graphqlConstruct = new AmplifyGraphqlApi(
       scope,
       this.defaultName,
       graphqlConstructProps
-    );
-
-    // TODO: change to storeOutput when available
-    // graphqlConstruct.storeOutput(this.outputStorageStrategy);
-
-    const graphqlOutput: GraphqlOutput = {
-      version: '1',
-      payload: {
-        awsAppsyncApiEndpoint:
-          graphqlConstruct.resources.cfnGraphqlApi.attrGraphQlUrl,
-        awsAppsyncAuthenticationType: graphqlConstruct.resources.cfnGraphqlApi
-          .authenticationType as AwsAppsyncAuthenticationType,
-        awsAppsyncRegion: Stack.of(graphqlConstruct).region,
-      },
-    };
-
-    if (graphqlConstruct.resources.cfnApiKey) {
-      graphqlOutput.payload.awsAppsyncApiKey =
-        graphqlConstruct.resources.cfnApiKey.attrApiKey;
-    }
-
-    this.outputStorageStrategy.addBackendOutputEntry(
-      graphqlOutputKey,
-      graphqlOutput
     );
 
     return graphqlConstruct;
