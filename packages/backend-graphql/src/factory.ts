@@ -1,4 +1,3 @@
-import { Stack } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import {
   AuthResources,
@@ -12,11 +11,7 @@ import {
   AmplifyGraphqlApiProps,
   AuthorizationConfig,
 } from '@aws-amplify/graphql-construct-alpha';
-import { graphqlOutputKey } from '@aws-amplify/backend-output-schemas';
-import {
-  GraphqlOutput,
-  AwsAppsyncAuthenticationType,
-} from '@aws-amplify/backend-output-schemas/graphql';
+import { GraphqlOutput } from '@aws-amplify/backend-output-schemas/graphql';
 
 export type DataProps = Pick<AmplifyGraphqlApiProps, 'schema'>;
 
