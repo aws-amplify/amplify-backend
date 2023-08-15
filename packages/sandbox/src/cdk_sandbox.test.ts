@@ -262,7 +262,7 @@ describe('Sandbox with user provided app name', () => {
       dir: 'testDir',
       exclude: ['exclude1', 'exclude2'],
       name: 'userAppName',
-      clientConfigOutputPath: 'test/location',
+      relativeClientConfigFilePath: 'test/location',
     });
     if (
       subscribeMock.mock.calls[0].arguments[1] &&

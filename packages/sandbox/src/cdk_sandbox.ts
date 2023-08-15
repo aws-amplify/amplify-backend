@@ -29,9 +29,9 @@ export class CDKSandbox implements Sandbox {
    */
   async start(options: SandboxOptions) {
     const sandboxAppName = options.name ?? this.appName;
-    const clientConfigWritePath = path.join(
-      options.clientConfigOutputPath ?? process.cwd(),
-      'amplifyconfiguration.js'
+    const clientConfigWritePath = path.resolve(
+      process.cwd(),
+      options.relativeClientConfigFilePath ?? 'amplifyconfiguration.js'
     );
     this.outputFilesExcludedFromWatch =
       this.outputFilesExcludedFromWatch.concat(clientConfigWritePath);
