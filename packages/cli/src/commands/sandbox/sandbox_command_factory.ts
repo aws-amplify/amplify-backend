@@ -2,8 +2,7 @@ import { CommandModule } from 'yargs';
 
 import { SandboxCommand, SandboxCommandOptions } from './sandbox_command.js';
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
-import { LocalProjectNameResolver } from '../../local_project_name_resolver.js';
-import { LocalDisambiguatorResolver } from '../../local_disambiguator_resolver.js';
+import { LocalAppIdResolver } from '../../local_app_id_resolver.js';
 import { SandboxDeleteCommand } from './sandbox_delete/sandbox_delete_command.js';
 
 /**
@@ -13,12 +12,8 @@ export const createSandboxCommand = (): CommandModule<
   object,
   SandboxCommandOptions
 > => {
-  const appNameResolver = new LocalProjectNameResolver();
-  const disambiguatorResolver = new LocalDisambiguatorResolver();
-  const sandboxFactory = new SandboxSingletonFactory(
-    appNameResolver.resolve,
-    disambiguatorResolver.resolve
-  );
+  const appIdResolver = new LocalAppIdResolver();
+  const sandboxFactory = new SandboxSingletonFactory(appIdResolver.resolve);
   return new SandboxCommand(
     sandboxFactory,
     new SandboxDeleteCommand(sandboxFactory)

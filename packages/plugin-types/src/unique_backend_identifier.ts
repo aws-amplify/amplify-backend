@@ -4,15 +4,10 @@
  */
 export type UniqueBackendIdentifier = {
   /**
-   * For Amplify branch deployments, this is the Amplify app name.
-   * For sandbox deployments, this is the value of package.json#name
+   * For Amplify branch environments, this is the Amplify app id
+   * For sandbox deployments, this is a concatenation of package.json#name and the current local username
    */
-  appName: string;
-  /**
-   * For Amplify branch deployments, this is the Amplify app id.
-   * For sandbox deployments, this defaults to $(whoami) with the option to override with `npx amplify sandbox --name value`
-   */
-  disambiguator: string;
+  appId: string;
   /**
    * For amplify branch deployments, this is the branch name.
    * For sandbox deployments, this is the string literal "sandbox"

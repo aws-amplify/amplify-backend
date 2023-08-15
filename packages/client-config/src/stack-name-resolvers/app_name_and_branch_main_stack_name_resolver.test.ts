@@ -13,7 +13,7 @@ describe('AppNameAndBranchMainStackNameResolver', () => {
 
   const appNameAndBranch: AppNameAndBranchBackendIdentifier = {
     appName: 'testAppName',
-    branch: 'testBranch',
+    branchName: 'testBranch',
   };
 
   beforeEach(() => {
@@ -72,6 +72,6 @@ describe('AppNameAndBranchMainStackNameResolver', () => {
       appNameAndBranch
     );
     const result = await resolver.resolveMainStackName();
-    assert.equal(result, 'amplify-testAppName-testAppId-testBranch');
+    assert.equal(result, 'amplify-testAppId-testBranch');
   });
 });

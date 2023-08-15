@@ -12,9 +12,8 @@ describe('sandbox delete command', () => {
   let sandboxDeleteMock = mock.fn();
 
   beforeEach(async () => {
-    const sandboxFactory = new SandboxSingletonFactory(
-      () => Promise.resolve('testAppName'),
-      () => Promise.resolve('test1234')
+    const sandboxFactory = new SandboxSingletonFactory(() =>
+      Promise.resolve('testAppId')
     );
     const sandbox = await sandboxFactory.getInstance();
     sandboxDeleteMock = mock.method(sandbox, 'delete', () =>

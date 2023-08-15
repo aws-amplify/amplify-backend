@@ -38,8 +38,7 @@ describe('Sandbox using local project name resolver', () => {
    */
   beforeEach(async () => {
     sandboxInstance = new CDKSandbox(
-      'testApp',
-      'test1234',
+      'testSandboxAppId',
       clientConfigGeneratorAdapter,
       cdkExecutor
     );
@@ -101,11 +100,9 @@ describe('Sandbox using local project name resolver', () => {
         '--app',
         "'npx tsx amplify/backend.ts'",
         '--context',
-        'app-name=testApp',
+        'app-id=testSandboxAppId',
         '--context',
         'branch-name=sandbox',
-        '--context',
-        'disambiguator=test1234',
         '--hotswap-fallback',
         '--method=direct',
       ],
@@ -182,7 +179,7 @@ describe('Sandbox using local project name resolver', () => {
     // generate was called with right arguments
     assert.deepStrictEqual(
       generateClientConfigMock.mock.calls[0].arguments[0],
-      { appName: 'testApp', branchName: 'sandbox', disambiguator: 'test1234' }
+      { appId: 'testSandboxAppId', branchName: 'sandbox' }
     );
     assert.deepStrictEqual(
       generateClientConfigMock.mock.calls[0].arguments[1],
@@ -206,11 +203,9 @@ describe('Sandbox using local project name resolver', () => {
         '--app',
         "'npx tsx amplify/backend.ts'",
         '--context',
-        'app-name=testApp',
+        'app-id=testSandboxAppId',
         '--context',
         'branch-name=sandbox',
-        '--context',
-        'disambiguator=test1234',
         '--force',
       ],
     ]);
@@ -253,15 +248,14 @@ describe('Sandbox with user provided app name', () => {
    */
   beforeEach(async () => {
     sandboxInstance = new CDKSandbox(
-      'testApp',
-      'test1234',
+      'testSandboxAppId',
       clientConfigGeneratorAdapter,
       cdkExecutor
     );
     await sandboxInstance.start({
       dir: 'testDir',
       exclude: ['exclude1', 'exclude2'],
-      name: 'userAppName',
+      name: 'customSandboxName',
       clientConfigOutputPath: 'test/location',
     });
     if (
@@ -312,11 +306,9 @@ describe('Sandbox with user provided app name', () => {
         '--app',
         "'npx tsx amplify/backend.ts'",
         '--context',
-        'app-name=userAppName',
+        'app-id=customSandboxName',
         '--context',
         'branch-name=sandbox',
-        '--context',
-        'disambiguator=test1234',
         '--hotswap-fallback',
         '--method=direct',
       ],
@@ -326,8 +318,8 @@ describe('Sandbox with user provided app name', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
   });
 
-  it('calls CDK destroy when delete is called with a user provided appName', async () => {
-    await sandboxInstance.delete({ name: 'userProvidedName' });
+  it('calls CDK destroy when delete is called with a user provided sandbox name', async () => {
+    await sandboxInstance.delete({ name: 'customSandboxName' });
 
     // CDK should be called once
     assert.strictEqual(execaMock.mock.callCount(), 1);
@@ -342,11 +334,9 @@ describe('Sandbox with user provided app name', () => {
         '--app',
         "'npx tsx amplify/backend.ts'",
         '--context',
-        'app-name=userProvidedName',
+        'app-id=customSandboxName',
         '--context',
         'branch-name=sandbox',
-        '--context',
-        'disambiguator=test1234',
         '--force',
       ],
     ]);
@@ -364,9 +354,8 @@ describe('Sandbox with user provided app name', () => {
     assert.deepStrictEqual(
       generateClientConfigMock.mock.calls[0].arguments[0],
       {
-        appName: 'userAppName',
+        appId: 'customSandboxName',
         branchName: 'sandbox',
-        disambiguator: 'test1234',
       }
     );
     assert.deepStrictEqual(

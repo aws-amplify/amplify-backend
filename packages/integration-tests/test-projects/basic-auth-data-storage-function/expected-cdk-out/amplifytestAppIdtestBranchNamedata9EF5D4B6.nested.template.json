@@ -37,13 +37,13 @@
    ],
    "Description": "Enable server side encryption powered by KMS."
   },
-  "referencetoamplifytestAppName1234testBranchNameauthNestedStackauthNestedStackResourceA79383D0OutputsamplifytestAppName1234testBranchNameauthamplifyAuthUserPool2299DE02Ref": {
+  "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthUserPoolC1B04074Ref": {
    "Type": "String"
   },
-  "referencetoamplifytestAppName1234testBranchNameauthNestedStackauthNestedStackResourceA79383D0OutputsamplifytestAppName1234testBranchNameauthamplifyAuthauthenticatedUserRoleE3D92679Ref": {
+  "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthauthenticatedUserRole1D3D95F1Ref": {
    "Type": "String"
   },
-  "referencetoamplifytestAppName1234testBranchNameauthNestedStackauthNestedStackResourceA79383D0OutputsamplifytestAppName1234testBranchNameauthamplifyAuthunauthenticatedUserRole91B91C57Ref": {
+  "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthunauthenticatedUserRoleF8166590Ref": {
    "Type": "String"
   }
  },
@@ -73,7 +73,7 @@
      },
      "DefaultAction": "ALLOW",
      "UserPoolId": {
-      "Ref": "referencetoamplifytestAppName1234testBranchNameauthNestedStackauthNestedStackResourceA79383D0OutputsamplifytestAppName1234testBranchNameauthamplifyAuthUserPool2299DE02Ref"
+      "Ref": "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthUserPoolC1B04074Ref"
      }
     }
    }
@@ -170,10 +170,10 @@
      "referencetotransformerrootstackS3DeploymentBucket7592718ARef": "cdk-${Qualifier}-assets-${AWS::AccountId}-${AWS::Region}",
      "referencetotransformerrootstackS3DeploymentRootKeyA71EA735Ref": "CdkBootstrap-${Qualifier}-FileAssetKeyArn",
      "referencetotransformerrootstackauthRoleNameFB872D50Ref": {
-      "Ref": "referencetoamplifytestAppName1234testBranchNameauthNestedStackauthNestedStackResourceA79383D0OutputsamplifytestAppName1234testBranchNameauthamplifyAuthauthenticatedUserRoleE3D92679Ref"
+      "Ref": "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthauthenticatedUserRole1D3D95F1Ref"
      },
      "referencetotransformerrootstackunauthRoleName49F3C1FERef": {
-      "Ref": "referencetoamplifytestAppName1234testBranchNameauthNestedStackauthNestedStackResourceA79383D0OutputsamplifytestAppName1234testBranchNameauthamplifyAuthunauthenticatedUserRole91B91C57Ref"
+      "Ref": "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthunauthenticatedUserRoleF8166590Ref"
      }
     }
    },
@@ -227,7 +227,7 @@
     }
    }
   },
-  "amplifytestAppName1234testBranchNamedataamplifyDataRootStackGraphQLAPI58B0BABDGraphQLUrl": {
+  "amplifytestAppIdtestBranchNamedataamplifyDataRootStackGraphQLAPI30DC303DGraphQLUrl": {
    "Value": {
     "Fn::GetAtt": [
      "GraphQLAPI",

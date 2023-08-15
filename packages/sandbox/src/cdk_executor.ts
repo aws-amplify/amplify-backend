@@ -35,11 +35,9 @@ export class AmplifyCDKExecutor {
       if (cdkOptions) {
         cdkCommandArgs.push(
           '--context',
-          `app-name=${cdkOptions.appName}`,
+          `app-id=${cdkOptions.appId}`,
           '--context',
-          `branch-name=${cdkOptions.branchName}`,
-          '--context',
-          `disambiguator=${cdkOptions.disambiguator}`
+          `branch-name=${cdkOptions.branchName}`
         );
       }
 

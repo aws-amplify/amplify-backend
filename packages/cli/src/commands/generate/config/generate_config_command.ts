@@ -1,7 +1,7 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import path from 'path';
 import { BackendIdentifier } from '@aws-amplify/client-config';
-import { ProjectNameResolver } from '../../../local_project_name_resolver.js';
+import { ProjectNameResolver } from '../../../local_app_id_resolver.js';
 import { ClientConfigGeneratorAdapter } from './client_config_generator_adapter.js';
 
 export type GenerateConfigCommandOptions = {
@@ -69,11 +69,11 @@ export class GenerateConfigCommand
     if (args.stack) {
       return { stackName: args.stack };
     } else if (args.appId && args.branch) {
-      return { appId: args.appId, branch: args.branch };
+      return { appId: args.appId, branchName: args.branch };
     } else if (args.branch) {
       return {
         appName: await this.projectNameResolver.resolve(),
-        branch: args.branch,
+        branchName: args.branch,
       };
     } else {
       throw this.missingArgsError;
