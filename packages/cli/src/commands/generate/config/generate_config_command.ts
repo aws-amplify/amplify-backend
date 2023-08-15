@@ -49,10 +49,18 @@ export class GenerateConfigCommand
     args: ArgumentsCamelCase<GenerateConfigCommandOptions>
   ): Promise<void> => {
     const backendIdentifier = await this.getBackendIdentifier(args);
-    const targetPath = path.resolve(
-      process.cwd(),
-      args.out ?? 'amplifyconfiguration.js'
-    );
+
+    let targetPath: string;
+    if (args.out) {
+      if (path.isAbsolute(args.out)) {
+        targetPath = args.out;
+      } else {
+        targetPath = path.resolve(process.cwd(), args.out);
+      }
+    } else {
+      targetPath = path.resolve(process.cwd(), 'amplifyconfiguration.js');
+    }
+
     await this.clientConfigGenerator.generateClientConfigToFile(
       backendIdentifier,
       targetPath

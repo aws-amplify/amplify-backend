@@ -60,11 +60,11 @@ describe('sandbox command', () => {
   });
 
   it('starts sandbox with user provided output directory for client config', async () => {
-    await commandRunner.runCommand('sandbox --out test/location');
+    await commandRunner.runCommand('sandbox --out test/location.js');
     assert.equal(sandboxStartMock.mock.callCount(), 1);
     assert.deepStrictEqual(
-      sandboxStartMock.mock.calls[0].arguments[0].clientConfigOutputPath,
-      'test/location'
+      sandboxStartMock.mock.calls[0].arguments[0].relativeClientConfigFilePath,
+      'test/location.js'
     );
   });
 

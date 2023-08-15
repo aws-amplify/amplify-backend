@@ -293,7 +293,7 @@ describe('Sandbox with user provided app name', () => {
     assert.deepStrictEqual(subscribeMock.mock.calls[0].arguments[2], {
       ignore: [
         'cdk.out',
-        'test/location/amplifyconfiguration.js',
+        path.join(process.cwd(), 'test', 'location', 'amplifyconfiguration.js'),
         'exclude1',
         'exclude2',
       ],
