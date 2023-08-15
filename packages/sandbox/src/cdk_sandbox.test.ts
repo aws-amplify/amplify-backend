@@ -262,7 +262,7 @@ describe('Sandbox with user provided app name', () => {
       dir: 'testDir',
       exclude: ['exclude1', 'exclude2'],
       name: 'userAppName',
-      relativeClientConfigFilePath: 'test/location',
+      relativeClientConfigFilePath: 'test/location/amplifyconfiguration.js',
     });
     if (
       subscribeMock.mock.calls[0].arguments[1] &&
@@ -369,9 +369,9 @@ describe('Sandbox with user provided app name', () => {
         disambiguator: 'test1234',
       }
     );
-    assert.deepStrictEqual(
+    assert.equal(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      'test/location' + '/amplifyconfiguration.js'
+      path.resolve(process.cwd(), 'test', 'location', 'amplifyconfiguration.js')
     );
   });
 });
