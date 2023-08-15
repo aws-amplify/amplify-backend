@@ -1,7 +1,7 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import path from 'path';
 import { BackendIdentifier } from '@aws-amplify/client-config';
-import { ProjectNameResolver } from '../../../local_app_id_resolver.js';
+import { AppNameResolver } from '../../../local_app_name_resolver.js';
 import { ClientConfigGeneratorAdapter } from './client_config_generator_adapter.js';
 
 export type GenerateConfigCommandOptions = {
@@ -36,7 +36,7 @@ export class GenerateConfigCommand
    */
   constructor(
     private readonly clientConfigGenerator: ClientConfigGeneratorAdapter,
-    private readonly projectNameResolver: ProjectNameResolver
+    private readonly appNameResolver: AppNameResolver
   ) {
     this.command = 'config';
     this.describe = 'Generates client config';
@@ -72,7 +72,7 @@ export class GenerateConfigCommand
       return { appId: args.appId, branchName: args.branch };
     } else if (args.branch) {
       return {
-        appName: await this.projectNameResolver.resolve(),
+        appName: await this.appNameResolver.resolve(),
         branchName: args.branch,
       };
     } else {

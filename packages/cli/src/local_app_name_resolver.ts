@@ -1,22 +1,18 @@
 import { CwdPackageJsonLoader } from './cwd_package_json_loader.js';
-import _os from 'os';
 
-export type ProjectNameResolver = {
+export type AppNameResolver = {
   resolve(localPath?: string): Promise<string>;
 };
 
 /**
- * Generates a deterministic local appId using package.json#name and $(whoami)
+ * Reads the local app name from package.json#name in the current directory
  */
-export class LocalAppIdResolver implements ProjectNameResolver {
+export class LocalAppNameResolver implements AppNameResolver {
   /**
    * packageJsonLoader is assigned to an instance member for testing.
    * resolve is bound to this so that it can be passed as a function reference
    */
-  constructor(
-    private readonly packageJsonLoader = new CwdPackageJsonLoader(),
-    private readonly os = _os
-  ) {
+  constructor(private readonly packageJsonLoader = new CwdPackageJsonLoader()) {
     this.resolve = this.resolve.bind(this);
   }
 
@@ -24,8 +20,6 @@ export class LocalAppIdResolver implements ProjectNameResolver {
    * Returns a concatenation of package.json#name and $(whoami)
    */
   async resolve() {
-    return `${(await this.packageJsonLoader.loadCwdPackageJson()).name}-${
-      this.os.userInfo().username
-    }`;
+    return (await this.packageJsonLoader.loadCwdPackageJson()).name;
   }
 }
