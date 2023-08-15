@@ -51,7 +51,7 @@ export class GenerateConfigCommand
     const backendIdentifier = await this.getBackendIdentifier(args);
     const targetPath = path.join(
       args.out ?? process.cwd(),
-      'amplifyconfiguration.json'
+      'amplifyconfiguration.js'
     );
     await this.clientConfigGenerator.generateClientConfigToFile(
       backendIdentifier,

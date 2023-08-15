@@ -82,7 +82,7 @@ describe('Sandbox using local project name resolver', () => {
     assert.deepStrictEqual(subscribeMock.mock.calls[0].arguments[2], {
       ignore: [
         'cdk.out',
-        path.join(process.cwd(), 'amplifyconfiguration.json'),
+        path.join(process.cwd(), 'amplifyconfiguration.js'),
         'exclude1',
         'exclude2',
       ],
@@ -186,7 +186,7 @@ describe('Sandbox using local project name resolver', () => {
     );
     assert.deepStrictEqual(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      process.cwd() + '/amplifyconfiguration.json'
+      process.cwd() + '/amplifyconfiguration.js'
     );
   });
 
@@ -293,7 +293,7 @@ describe('Sandbox with user provided app name', () => {
     assert.deepStrictEqual(subscribeMock.mock.calls[0].arguments[2], {
       ignore: [
         'cdk.out',
-        'test/location/amplifyconfiguration.json',
+        'test/location/amplifyconfiguration.js',
         'exclude1',
         'exclude2',
       ],
@@ -371,7 +371,7 @@ describe('Sandbox with user provided app name', () => {
     );
     assert.deepStrictEqual(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      'test/location' + '/amplifyconfiguration.json'
+      'test/location' + '/amplifyconfiguration.js'
     );
   });
 });

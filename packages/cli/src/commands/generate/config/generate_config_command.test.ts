@@ -43,7 +43,7 @@ describe('generate config command', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      path.join(process.cwd(), 'amplifyconfiguration.json')
+      path.join(process.cwd(), 'amplifyconfiguration.js')
     );
   });
 
@@ -60,7 +60,7 @@ describe('generate config command', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      path.join(process.cwd(), 'amplifyconfiguration.json')
+      path.join(process.cwd(), 'amplifyconfiguration.js')
     );
   });
 
@@ -76,7 +76,7 @@ describe('generate config command', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      path.join(process.cwd(), 'amplifyconfiguration.json')
+      path.join(process.cwd(), 'amplifyconfiguration.js')
     );
   });
 
@@ -89,7 +89,7 @@ describe('generate config command', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.equal(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      path.join('/foo/bar', 'amplifyconfiguration.json')
+      path.join('/foo/bar', 'amplifyconfiguration.js')
     );
   });
 

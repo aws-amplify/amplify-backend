@@ -22,11 +22,27 @@ describe('client config writer', () => {
 
   const clientConfigWriter = new ClientConfigWriter();
 
-  it('writes provided config to target location', async () => {
-    const targetPath = path.join(targetDirectory, 'amplifyconfiguration.json');
+  it('writes json config to target location as json object', async () => {
+    const targetPath = path.join(
+      process.cwd(),
+      targetDirectory,
+      'amplifyconfiguration.json'
+    );
     await clientConfigWriter.writeClientConfig(clientConfig, targetPath);
 
-    const fileContent = await fs.readFile(targetPath);
-    assert.deepEqual(JSON.parse(fileContent.toString()), clientConfig);
+    const actualConfig = await fs.readFile(targetPath, 'utf-8');
+    assert.deepEqual(JSON.parse(actualConfig), clientConfig);
+  });
+
+  it('writes js config to target location as default export', async () => {
+    const targetPath = path.join(
+      process.cwd(),
+      targetDirectory,
+      'amplifyconfiguration.js'
+    );
+    await clientConfigWriter.writeClientConfig(clientConfig, targetPath);
+
+    const { default: actualConfig } = await import(targetPath);
+    assert.deepEqual(actualConfig, clientConfig);
   });
 });

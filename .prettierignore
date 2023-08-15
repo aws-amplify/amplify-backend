@@ -9,4 +9,4 @@ API.md
 verdaccio-cache
 expected-cdk-out
 examples/simple_react/cdk.out
-examples/simple_react/src/amplifyconfiguration.json
+examples/simple_react/src/amplifyconfiguration.js
