@@ -2,6 +2,7 @@ import { CDKSandbox } from './cdk_sandbox.js';
 import { Sandbox } from './sandbox.js';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { ClientConfigGeneratorAdapter } from './config/client_config_generator_adapter.js';
+import { ClientConfigWriter } from '@aws-amplify/client-config';
 
 /**
  * Factory to create a new sandbox
@@ -19,7 +20,8 @@ export class SandboxSingletonFactory {
     private readonly disambiguatorResolver: () => Promise<string>
   ) {
     this.clientConfigGenerator = new ClientConfigGeneratorAdapter(
-      fromNodeProviderChain()
+      fromNodeProviderChain(),
+      new ClientConfigWriter()
     );
   }
 

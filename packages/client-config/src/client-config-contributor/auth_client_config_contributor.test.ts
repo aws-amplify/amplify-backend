@@ -10,6 +10,7 @@ describe('AuthClientConfigContributor', () => {
         graphqlOutput: {
           version: '1',
           payload: {
+            awsAppsyncApiId: 'testApiId',
             awsAppsyncApiEndpoint: 'testApiEndpoint',
             awsAppsyncRegion: 'us-east-1',
             awsAppsyncAuthenticationType: 'API_KEY',

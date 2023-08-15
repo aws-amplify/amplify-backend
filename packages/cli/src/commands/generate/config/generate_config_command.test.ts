@@ -9,10 +9,15 @@ import {
 import assert from 'node:assert';
 import path from 'path';
 import { ClientConfigGeneratorAdapter } from './client_config_generator_adapter.js';
+import { ClientConfigWriter } from '@aws-amplify/client-config';
 
 describe('generate config command', () => {
+  const mockWriter: ClientConfigWriter = {
+    writeClientConfig: mock.fn(),
+  };
   const clientConfigGeneratorAdapter = new ClientConfigGeneratorAdapter(
-    fromNodeProviderChain()
+    fromNodeProviderChain(),
+    mockWriter
   );
 
   const generateClientConfigMock = mock.method(
@@ -23,7 +28,8 @@ describe('generate config command', () => {
 
   const generateConfigCommand = new GenerateConfigCommand(
     clientConfigGeneratorAdapter,
-    { resolve: () => Promise.resolve('testAppName') }
+    { resolve: () => Promise.resolve('testAppName') },
+    mockWriter
   );
   const parser = yargs().command(
     generateConfigCommand as unknown as CommandModule

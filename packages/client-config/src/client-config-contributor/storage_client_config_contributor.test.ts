@@ -10,6 +10,7 @@ describe('StorageClientConfigContributor', () => {
         graphqlOutput: {
           version: '1',
           payload: {
+            awsAppsyncApiId: 'your-api-id',
             awsAppsyncApiEndpoint: 'stuff',
             awsAppsyncRegion: 'us-east-1',
             awsAppsyncAuthenticationType: 'API_KEY',

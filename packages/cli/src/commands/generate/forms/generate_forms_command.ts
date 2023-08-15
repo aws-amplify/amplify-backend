@@ -1,13 +1,11 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import path from 'path';
-import {
-  BackendIdentifier,
-  ClientConfigWriter,
-} from '@aws-amplify/client-config';
+import { BackendIdentifier } from '@aws-amplify/client-config';
 import { ProjectNameResolver } from '../../../local_project_name_resolver.js';
-import { ClientConfigGeneratorAdapter } from './client_config_generator_adapter.js';
+import { ClientConfigGeneratorAdapter } from '../config/client_config_generator_adapter.js';
+import { LocalFormGenerator } from './local_form_generator.js';
 
-export type GenerateConfigCommandOptions = {
+export type GenerateFormsCommandOptions = {
   stack: string | undefined;
   appId: string | undefined;
   branch: string | undefined;
@@ -17,8 +15,8 @@ export type GenerateConfigCommandOptions = {
 /**
  * Command that generates client config.
  */
-export class GenerateConfigCommand
-  implements CommandModule<object, GenerateConfigCommandOptions>
+export class GenerateFormsCommand
+  implements CommandModule<object, GenerateFormsCommandOptions>
 {
   /**
    * @inheritDoc
@@ -39,29 +37,37 @@ export class GenerateConfigCommand
    */
   constructor(
     private readonly clientConfigGenerator: ClientConfigGeneratorAdapter,
-    private readonly projectNameResolver: ProjectNameResolver,
-    private readonly clientConfigWriter: ClientConfigWriter
+    private readonly projectNameResolver: ProjectNameResolver
   ) {
-    this.command = 'config';
-    this.describe = 'Generates client config';
+    this.command = 'forms';
+    this.describe = 'Generates UI forms';
   }
 
   /**
    * @inheritDoc
    */
   handler = async (
-    args: ArgumentsCamelCase<GenerateConfigCommandOptions>
+    args: ArgumentsCamelCase<GenerateFormsCommandOptions>
   ): Promise<void> => {
     const backendIdentifier = await this.getBackendIdentifier(args);
-    const targetPath = path.join(
-      args.out ?? process.cwd(),
-      'amplifyconfiguration.json'
-    );
+    const baseDirectory = args.out ?? process.cwd();
+    const modelgenDirectory = path.join(baseDirectory, 'graphql/');
+    const formgenDirectory = path.join(baseDirectory, 'ui-components/');
     const config = await this.clientConfigGenerator.generateClientConfig(
       backendIdentifier
     );
     console.log('#######HOLA#######', JSON.stringify(config, null, 2));
-    this.clientConfigWriter.writeClientConfig(config, targetPath);
+    if (!config.aws_appsync_graphqlEndpoint) {
+      throw new TypeError('appsync endpoint is null');
+    }
+    const apiId = config.aws_appsync_apiId;
+    console.log(apiId);
+    if (!apiId) {
+      throw new TypeError('AppSync apiId must be defined');
+    }
+
+    const localFormGenerator = new LocalFormGenerator({ apiId });
+    await localFormGenerator.generateForms();
   };
 
   /**
@@ -69,7 +75,7 @@ export class GenerateConfigCommand
    * Throws if translation can't be made (this should never happen if command validation works correctly).
    */
   private async getBackendIdentifier(
-    args: ArgumentsCamelCase<GenerateConfigCommandOptions>
+    args: ArgumentsCamelCase<GenerateFormsCommandOptions>
   ): Promise<BackendIdentifier> {
     if (args.stack) {
       return { stackName: args.stack };
@@ -88,7 +94,7 @@ export class GenerateConfigCommand
   /**
    * @inheritDoc
    */
-  builder = (yargs: Argv): Argv<GenerateConfigCommandOptions> => {
+  builder = (yargs: Argv): Argv<GenerateFormsCommandOptions> => {
     return yargs
       .option('stack', {
         conflicts: ['appId', 'branch'],
