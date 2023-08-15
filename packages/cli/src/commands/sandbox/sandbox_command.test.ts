@@ -63,7 +63,7 @@ describe('sandbox command', () => {
     await commandRunner.runCommand('sandbox --out test/location.js');
     assert.equal(sandboxStartMock.mock.callCount(), 1);
     assert.deepStrictEqual(
-      sandboxStartMock.mock.calls[0].arguments[0].relativeClientConfigFilePath,
+      sandboxStartMock.mock.calls[0].arguments[0].clientConfigFilePath,
       'test/location.js'
     );
   });

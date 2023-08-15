@@ -21,7 +21,7 @@ export type SandboxOptions = {
     dir?: string;
     exclude?: string[];
     name?: string;
-    relativeClientConfigFilePath?: string;
+    clientConfigFilePath?: string;
 };
 
 // @public

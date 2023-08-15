@@ -54,7 +54,7 @@ export class SandboxCommand
       dir: args.dirToWatch,
       exclude: args.exclude,
       name: args.name,
-      relativeClientConfigFilePath: args.out,
+      clientConfigFilePath: args.out,
     });
   };
 

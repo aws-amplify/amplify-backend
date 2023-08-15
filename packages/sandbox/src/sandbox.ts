@@ -26,7 +26,7 @@ export type SandboxOptions = {
   /**
    * Optional path relative to process.cwd() where client config should be generated for sandbox deployments
    */
-  relativeClientConfigFilePath?: string;
+  clientConfigFilePath?: string;
 };
 
 export type SandboxDeleteOptions = {

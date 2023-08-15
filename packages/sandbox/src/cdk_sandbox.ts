@@ -29,10 +29,20 @@ export class CDKSandbox implements Sandbox {
    */
   async start(options: SandboxOptions) {
     const sandboxAppName = options.name ?? this.appName;
-    const clientConfigWritePath = path.resolve(
+    let clientConfigWritePath = path.join(
       process.cwd(),
-      options.relativeClientConfigFilePath ?? 'amplifyconfiguration.js'
+      'amplifyconfiguration.js'
     );
+    if (options.clientConfigFilePath) {
+      if (path.isAbsolute(options.clientConfigFilePath)) {
+        clientConfigWritePath = options.clientConfigFilePath;
+      } else {
+        clientConfigWritePath = path.resolve(
+          process.cwd(),
+          options.clientConfigFilePath
+        );
+      }
+    }
     this.outputFilesExcludedFromWatch =
       this.outputFilesExcludedFromWatch.concat(clientConfigWritePath);
 
