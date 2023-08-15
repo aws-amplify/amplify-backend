@@ -1,6 +1,7 @@
 import fs from 'fs/promises';
 import { ClientConfig } from '../client-config-types/client_config.js';
 import path from 'path';
+import * as os from 'os';
 
 /**
  * A class that persists client config to disk.
@@ -20,7 +21,7 @@ export class ClientConfigWriter {
           clientConfig,
           null,
           2
-        )}\n`;
+        )}${os.EOL}`;
         await fs.writeFile(targetPath, fileContent);
         break;
       }
