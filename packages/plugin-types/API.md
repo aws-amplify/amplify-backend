@@ -85,8 +85,7 @@ export type MainStackNameResolver = {
 
 // @public
 export type UniqueBackendIdentifier = {
-    appName: string;
-    disambiguator: string;
+    appId: string;
     branchName: string;
 };
 
