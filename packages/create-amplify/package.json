@@ -2,6 +2,9 @@
   "name": "create-amplify",
   "version": "0.1.0",
   "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
   "engines": {
     "node": ">=18.16.0"
   },
