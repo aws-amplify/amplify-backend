@@ -8,7 +8,7 @@ import { NpmPackageManagerController } from './npm_package_manager_controller.js
 // once we create `aws-amplify-backend` that will be included here
 const defaultPackages = [
   '@aws-amplify/backend',
-  '@aws-amplify/backend-data',
+  '@aws-amplify/backend-graphql',
   '@aws-amplify/backend-auth',
   '@aws-amplify/cli',
   'aws-amplify',
