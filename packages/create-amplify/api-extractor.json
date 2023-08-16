@@ -1,3 +1,4 @@
 {
+  "mainEntryPointFilePath": "<projectFolder>/lib/create_amplify.d.ts",
   "extends": "../../api-extractor.base.json"
 }
