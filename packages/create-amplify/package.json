@@ -12,8 +12,8 @@
     "create-amplify": "./lib/create_amplify.js"
   },
   "scripts": {
-    "update:api": "api-extractor run --local",
-    "install:local": "npm link"
+    "install:local": "npm link",
+    "update:api": "api-extractor run --local"
   },
   "dependencies": {
     "execa": "^7.2.0"
