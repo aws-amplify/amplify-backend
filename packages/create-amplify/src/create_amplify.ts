@@ -5,7 +5,7 @@ import * as fsp from 'fs/promises';
 import * as path from 'path';
 import { NpmPackageManagerController } from './npm_package_manager_controller.js';
 
-// once we create `aws-amplify-backend` that will be included here
+// TODO once we create `aws-amplify-backend` that will be included here
 const defaultPackages = [
   '@aws-amplify/backend',
   '@aws-amplify/backend-graphql',
@@ -35,14 +35,20 @@ const packageManager = new NpmPackageManagerController();
 console.log(`Installing packages ${defaultPackages.join(', ')}...`);
 await packageManager.installDevDependencies(defaultPackages);
 
-// We should be very careful about how much logic we put here.
-// If this grows beyond just copying template files, we probably should put that logic into @aws-amplify/cli and delegate to it here
-// This is because packages that run as part of `npm create *` are cached in the local npm cache which is cumbersome to update.
-// So customers that have run create before would not necessarily pull in new updates to the logic even after we update this package on npm
+/*
+  We should be very careful about how much logic we put here.
+  If this grows beyond just copying template files, we probably should put that logic into @aws-amplify/cli and delegate to it here
+  This is because packages that run as part of `npm create *` are cached in the global npx cache which is cumbersome to update / clean.
+  If customers have a cached version of the create-amplify packages, they might execute that cached version even after we publish features and fixes to the package on npm.
+ */
 
 console.log(`Scaffolding initial project files...`);
 const targetDir = path.resolve(process.cwd(), 'amplify');
 await fsp.mkdir(targetDir, { recursive: true });
+/*
+  Note: Although the source code template directory contains expected-cdk-out test assets,
+  these assets are not published to npm and thus not copied when this code runs in production
+ */
 await fsp.cp(
   new URL('../templates/basic-auth-data', import.meta.url),
   targetDir,
