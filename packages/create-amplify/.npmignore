@@ -13,5 +13,6 @@
 
 # This leaves us with including only js and ts declaration files of functional code
 
-# In this package we also need to include the templates directory
-templates
+# In this package we also need to include the templates directory but exclude the expected-cdk-out test assets
+!templates/**
+templates/**/expected-cdk-out/**

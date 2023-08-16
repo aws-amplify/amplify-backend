@@ -17,5 +17,8 @@
   },
   "dependencies": {
     "execa": "^7.2.0"
+  },
+  "devDependencies": {
+    "@aws-amplify/integration-tests": "^0.1.0"
   }
 }

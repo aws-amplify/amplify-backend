@@ -8,16 +8,16 @@ import * as path from 'path';
  * If dirPath is an absolute path, it points to the directory
  * If dirPath is relative, the directory is located at path.resolve(\<this file location\>, relativeDirPath)
  * Each subdirectory is the name of the test
- * Within each test directory is an index.ts file that contains the `new Backend({...})` entry point
+ * Within each test directory is a backend.ts file that contains the `new Backend({...})` entry point
  * Within each test directory is an `expected-cdk-out` directory that contains a snapshot of the expected synthesis result of the backend
  * @example
  *
  * \<relativeDirRoot\>
  *     test-name-1
- *       index.ts
+ *       backend.ts
  *       expected-cdk-out
  *     test-name-2
- *       index.ts
+ *       backend.ts
  *       expected-cdk-out
  */
 export const fromConventionalDir = (
@@ -34,7 +34,7 @@ export const fromConventionalDir = (
     absoluteBackendFilePath: path.resolve(
       rootDir.pathname,
       testDirectory.name,
-      'create_amplify.ts'
+      'backend.ts'
     ),
     absoluteExpectedCdkOutDir: path.resolve(
       rootDir.pathname,

@@ -32,10 +32,12 @@ if (
 // right now there's only one controller, but we could add logic to pick between different package managers
 const packageManager = new NpmPackageManagerController();
 
-await packageManager.ensureInitialized();
-
 console.log(`Installing packages ${defaultPackages.join(', ')}...`);
 await packageManager.installDevDependencies(defaultPackages);
+
+// We should be very careful about how much logic we put here.
+// If this grows beyond just copying template files, we probably should put that logic in a CLI command and delegate to it here
+// This is because packages that run as part of `npm create *` are cached in the local npm cache. So customers that have run create before would not pull in new updates to the logic here
 
 console.log(`Scaffolding initial project files...`);
 const targetDir = path.resolve(process.cwd(), 'amplify');
