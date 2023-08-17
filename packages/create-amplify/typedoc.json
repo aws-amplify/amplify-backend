@@ -1,3 +1,3 @@
 {
-  "entryPoints": ["src/index.ts"]
+  "entryPoints": ["src/create_amplify.ts"]
 }
