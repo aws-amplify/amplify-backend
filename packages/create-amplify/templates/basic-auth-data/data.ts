@@ -1,13 +1,10 @@
 import { Data } from '@aws-amplify/backend-graphql';
 
 const schema = `
-  input AMPLIFY {globalAuthRule: AuthRule = { allow: public }} # FOR TESTING ONLY!
-
-  type Todo @model {
+  type Todo @model @auth(rules: [{ allow: private }]) {
     id: ID!
     name: String!
     description: String
-    update: String
   }
 `;
 

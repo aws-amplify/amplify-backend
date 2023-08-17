@@ -1,6 +1,6 @@
 import { execa } from 'execa';
-import * as fsp from 'fs/promises';
-import * as fs from 'fs';
+import * as fs from 'fs/promises';
+import { existsSync } from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import { after, afterEach, before, beforeEach, describe, it } from 'node:test';
@@ -11,6 +11,7 @@ import assert from 'assert';
  * But there's really no way to test the create_amplify script without just running the real thing
  *
  * TODO: we may want to pull this test into our e2e suite once we have that setup
+ * https://github.com/aws-amplify/samsara-cli/issues/136
  */
 describe('create-amplify script', async () => {
   before(async () => {
@@ -22,8 +23,8 @@ describe('create-amplify script', async () => {
     const { stdout } = await execa('npm', ['config', 'get', 'cache']);
     const npxCacheLocation = path.join(stdout.toString().trim(), '_npx');
 
-    if (fs.existsSync(npxCacheLocation)) {
-      await fsp.rm(npxCacheLocation, { recursive: true });
+    if (existsSync(npxCacheLocation)) {
+      await fs.rm(npxCacheLocation, { recursive: true });
     }
   });
 
@@ -34,11 +35,11 @@ describe('create-amplify script', async () => {
 
   let tempDir: string;
   beforeEach(async () => {
-    tempDir = await fsp.mkdtemp(path.join(os.tmpdir(), 'test-create-amplify'));
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'test-create-amplify'));
   });
 
   afterEach(async () => {
-    await fsp.rm(tempDir, { recursive: true });
+    await fs.rm(tempDir, { recursive: true });
   });
 
   it('installs expected packages and scaffolds expected files', async () => {
@@ -49,7 +50,7 @@ describe('create-amplify script', async () => {
     });
     const packageJsonPath = path.resolve(tempDir, 'package.json');
     const packageJsonObject = JSON.parse(
-      await fsp.readFile(packageJsonPath, 'utf-8')
+      await fs.readFile(packageJsonPath, 'utf-8')
     );
     assert.deepStrictEqual(
       Object.keys(packageJsonObject.devDependencies).sort(),
@@ -62,7 +63,7 @@ describe('create-amplify script', async () => {
       ]
     );
 
-    const dirContent = await fsp.readdir(path.join(tempDir, 'amplify'));
+    const dirContent = await fs.readdir(path.join(tempDir, 'amplify'));
     assert.deepStrictEqual(dirContent.sort(), [
       'auth.ts',
       'backend.ts',
@@ -72,8 +73,8 @@ describe('create-amplify script', async () => {
 
   it('fails fast if amplify directory is not empty', async () => {
     const amplifyDirPath = path.join(tempDir, 'amplify');
-    await fsp.mkdir(amplifyDirPath, { recursive: true });
-    await fsp.writeFile(
+    await fs.mkdir(amplifyDirPath, { recursive: true });
+    await fs.writeFile(
       path.join(amplifyDirPath, 'placeholder.txt'),
       'some content'
     );

@@ -1,3 +1,8 @@
+export type DependencyType = 'dev' | 'prod';
+
 export type PackageManagerController = {
-  installDevDependencies: (packageNames: string[]) => Promise<void>;
+  installDependencies: (
+    packageNames: string[],
+    type: DependencyType
+  ) => Promise<void>;
 };
