@@ -37,25 +37,16 @@
    ],
    "Description": "Enable server side encryption powered by KMS."
   },
-  "referencetotransformerrootstackenv10C5A902Ref": {
+  "referencetoamplifytestAppName1234testBranchNamedataamplifyDataGraphQLAPI091D7986ApiId": {
    "Type": "String"
   },
-  "referencetotransformerrootstackGraphQLAPI20497F53ApiId": {
+  "referencetoamplifytestAppName1234testBranchNamedataamplifyDataGraphQLAPINONEDS16717C78Name": {
    "Type": "String"
   },
-  "referencetotransformerrootstackGraphQLAPINONEDS2BA9D1C8Name": {
+  "referencetoamplifytestAppName1234testBranchNameauthNestedStackauthNestedStackResourceA79383D0OutputsamplifytestAppName1234testBranchNameauthamplifyAuthauthenticatedUserRoleE3D92679Ref": {
    "Type": "String"
   },
-  "referencetotransformerrootstackS3DeploymentBucket7592718ARef": {
-   "Type": "String"
-  },
-  "referencetotransformerrootstackS3DeploymentRootKeyA71EA735Ref": {
-   "Type": "String"
-  },
-  "referencetotransformerrootstackauthRoleNameFB872D50Ref": {
-   "Type": "String"
-  },
-  "referencetotransformerrootstackunauthRoleName49F3C1FERef": {
+  "referencetoamplifytestAppName1234testBranchNameauthNestedStackauthNestedStackResourceA79383D0OutputsamplifytestAppName1234testBranchNameauthamplifyAuthunauthenticatedUserRole91B91C57Ref": {
    "Type": "String"
   }
  },
@@ -64,9 +55,7 @@
    "Fn::Not": [
     {
      "Fn::Equals": [
-      {
-       "Ref": "referencetotransformerrootstackenv10C5A902Ref"
-      },
+      "NONE",
       "NONE"
      ]
     }
@@ -98,7 +87,7 @@
   }
  },
  "Resources": {
-  "TodoTable": {
+  "TodoTable585F1D6B": {
    "Type": "AWS::DynamoDB::Table",
    "Properties": {
     "KeySchema": [
@@ -167,12 +156,9 @@
       [
        "Todo-",
        {
-        "Ref": "referencetotransformerrootstackGraphQLAPI20497F53ApiId"
+        "Ref": "referencetoamplifytestAppName1234testBranchNamedataamplifyDataGraphQLAPI091D7986ApiId"
        },
-       "-",
-       {
-        "Ref": "referencetotransformerrootstackenv10C5A902Ref"
-       }
+       "-NONE"
       ]
      ]
     }
@@ -201,12 +187,9 @@
       [
        "TodoIAMRolecfd440-",
        {
-        "Ref": "referencetotransformerrootstackGraphQLAPI20497F53ApiId"
+        "Ref": "referencetoamplifytestAppName1234testBranchNamedataamplifyDataGraphQLAPI091D7986ApiId"
        },
-       "-",
-       {
-        "Ref": "referencetotransformerrootstackenv10C5A902Ref"
-       }
+       "-NONE"
       ]
      ]
     }
@@ -236,7 +219,7 @@
        "Resource": [
         {
          "Fn::GetAtt": [
-          "TodoTable",
+          "TodoTable585F1D6B",
           "Arn"
          ]
         },
@@ -284,12 +267,9 @@
              [
               "Todo-",
               {
-               "Ref": "referencetotransformerrootstackGraphQLAPI20497F53ApiId"
+               "Ref": "referencetoamplifytestAppName1234testBranchNamedataamplifyDataGraphQLAPI091D7986ApiId"
               },
-              "-",
-              {
-               "Ref": "referencetotransformerrootstackenv10C5A902Ref"
-              }
+              "-NONE"
              ]
             ]
            }
@@ -306,12 +286,9 @@
              [
               "Todo-",
               {
-               "Ref": "referencetotransformerrootstackGraphQLAPI20497F53ApiId"
+               "Ref": "referencetoamplifytestAppName1234testBranchNamedataamplifyDataGraphQLAPI091D7986ApiId"
               },
-              "-",
-              {
-               "Ref": "referencetotransformerrootstackenv10C5A902Ref"
-              }
+              "-NONE"
              ]
             ]
            }
@@ -335,7 +312,7 @@
    "Type": "AWS::AppSync::DataSource",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetotransformerrootstackGraphQLAPI20497F53ApiId"
+     "Ref": "referencetoamplifytestAppName1234testBranchNamedataamplifyDataGraphQLAPI091D7986ApiId"
     },
     "Name": "TodoTable",
     "Type": "AMAZON_DYNAMODB",
@@ -344,7 +321,7 @@
       "Ref": "AWS::Region"
      },
      "TableName": {
-      "Ref": "TodoTable"
+      "Ref": "TodoTable585F1D6B"
      }
     },
     "ServiceRoleArn": {
@@ -362,24 +339,15 @@
    "Type": "AWS::AppSync::FunctionConfiguration",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetotransformerrootstackGraphQLAPI20497F53ApiId"
+     "Ref": "referencetoamplifytestAppName1234testBranchNamedataamplifyDataGraphQLAPI091D7986ApiId"
     },
     "DataSourceName": {
-     "Ref": "referencetotransformerrootstackGraphQLAPINONEDS2BA9D1C8Name"
+     "Ref": "referencetoamplifytestAppName1234testBranchNamedataamplifyDataGraphQLAPINONEDS16717C78Name"
     },
     "Name": "QuerygetTodopostAuth0Function",
     "FunctionVersion": "2018-05-29",
     "RequestMappingTemplateS3Location": {
-     "Fn::Join": [
-      "",
-      [
-       "s3://",
-       {
-        "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
-       },
-       "/3a607c80c325a3edcae10503ccceaaad8e73d3447432eceba2dab95a3a1c4665.vtl"
-      ]
-     ]
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/3a607c80c325a3edcae10503ccceaaad8e73d3447432eceba2dab95a3a1c4665.vtl"
     },
     "ResponseMappingTemplate": "$util.toJson({})"
    }
@@ -388,7 +356,7 @@
    "Type": "AWS::AppSync::FunctionConfiguration",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetotransformerrootstackGraphQLAPI20497F53ApiId"
+     "Ref": "referencetoamplifytestAppName1234testBranchNamedataamplifyDataGraphQLAPI091D7986ApiId"
     },
     "DataSourceName": {
      "Fn::GetAtt": [
@@ -399,28 +367,10 @@
     "Name": "QueryGetTodoDataResolverFn",
     "FunctionVersion": "2018-05-29",
     "RequestMappingTemplateS3Location": {
-     "Fn::Join": [
-      "",
-      [
-       "s3://",
-       {
-        "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
-       },
-       "/08f4d557693d96c1a4efba0f9dc91330e4b19772fd5477c156468843e3d9cb5e.vtl"
-      ]
-     ]
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/08f4d557693d96c1a4efba0f9dc91330e4b19772fd5477c156468843e3d9cb5e.vtl"
     },
     "ResponseMappingTemplateS3Location": {
-     "Fn::Join": [
-      "",
-      [
-       "s3://",
-       {
-        "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
-       },
-       "/4c6a2d29f01c6091bd1d9afe16e5849d456c96f17c3b215938c8067399532719.vtl"
-      ]
-     ]
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/4c6a2d29f01c6091bd1d9afe16e5849d456c96f17c3b215938c8067399532719.vtl"
     }
    },
    "DependsOn": [
@@ -431,7 +381,7 @@
    "Type": "AWS::AppSync::Resolver",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetotransformerrootstackGraphQLAPI20497F53ApiId"
+     "Ref": "referencetoamplifytestAppName1234testBranchNamedataamplifyDataGraphQLAPI091D7986ApiId"
     },
     "FieldName": "getTodo",
     "TypeName": "Query",
@@ -458,11 +408,11 @@
       [
        "$util.qr($ctx.stash.put(\"typeName\", \"Query\"))\n$util.qr($ctx.stash.put(\"fieldName\", \"getTodo\"))\n$util.qr($ctx.stash.put(\"conditions\", []))\n$util.qr($ctx.stash.put(\"metadata\", {}))\n$util.qr($ctx.stash.metadata.put(\"dataSourceType\", \"AMAZON_DYNAMODB\"))\n$util.qr($ctx.stash.metadata.put(\"apiId\", \"",
        {
-        "Ref": "referencetotransformerrootstackGraphQLAPI20497F53ApiId"
+        "Ref": "referencetoamplifytestAppName1234testBranchNamedataamplifyDataGraphQLAPI091D7986ApiId"
        },
        "\"))\n$util.qr($ctx.stash.put(\"connectionAttributes\", {}))\n$util.qr($ctx.stash.put(\"tableName\", \"",
        {
-        "Ref": "TodoTable"
+        "Ref": "TodoTable585F1D6B"
        },
        "\"))\n$util.qr($ctx.stash.put(\"authRole\", \"arn:aws:sts::",
        {
@@ -470,7 +420,7 @@
        },
        ":assumed-role/",
        {
-        "Ref": "referencetotransformerrootstackauthRoleNameFB872D50Ref"
+        "Ref": "referencetoamplifytestAppName1234testBranchNameauthNestedStackauthNestedStackResourceA79383D0OutputsamplifytestAppName1234testBranchNameauthamplifyAuthauthenticatedUserRoleE3D92679Ref"
        },
        "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"unauthRole\", \"arn:aws:sts::",
        {
@@ -478,7 +428,7 @@
        },
        ":assumed-role/",
        {
-        "Ref": "referencetotransformerrootstackunauthRoleName49F3C1FERef"
+        "Ref": "referencetoamplifytestAppName1234testBranchNameauthNestedStackauthNestedStackResourceA79383D0OutputsamplifytestAppName1234testBranchNameauthamplifyAuthunauthenticatedUserRole91B91C57Ref"
        },
        "/CognitoIdentityCredentials\"))\n$util.toJson({})"
       ]
@@ -491,7 +441,7 @@
    "Type": "AWS::AppSync::FunctionConfiguration",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetotransformerrootstackGraphQLAPI20497F53ApiId"
+     "Ref": "referencetoamplifytestAppName1234testBranchNamedataamplifyDataGraphQLAPI091D7986ApiId"
     },
     "DataSourceName": {
      "Fn::GetAtt": [
@@ -502,28 +452,10 @@
     "Name": "QueryListTodosDataResolverFn",
     "FunctionVersion": "2018-05-29",
     "RequestMappingTemplateS3Location": {
-     "Fn::Join": [
-      "",
-      [
-       "s3://",
-       {
-        "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
-       },
-       "/3665466abf40cc747bff935f1cf2f49edd920e2cd12d45d502d3857488b3ff3e.vtl"
-      ]
-     ]
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/3665466abf40cc747bff935f1cf2f49edd920e2cd12d45d502d3857488b3ff3e.vtl"
     },
     "ResponseMappingTemplateS3Location": {
-     "Fn::Join": [
-      "",
-      [
-       "s3://",
-       {
-        "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
-       },
-       "/cc01911d0269d4080ea57505dc445dfc315ef7ad85d3d9d4ea1357858bff451d.vtl"
-      ]
-     ]
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/cc01911d0269d4080ea57505dc445dfc315ef7ad85d3d9d4ea1357858bff451d.vtl"
     }
    },
    "DependsOn": [
@@ -534,7 +466,7 @@
    "Type": "AWS::AppSync::Resolver",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetotransformerrootstackGraphQLAPI20497F53ApiId"
+     "Ref": "referencetoamplifytestAppName1234testBranchNamedataamplifyDataGraphQLAPI091D7986ApiId"
     },
     "FieldName": "listTodos",
     "TypeName": "Query",
@@ -561,11 +493,11 @@
       [
        "$util.qr($ctx.stash.put(\"typeName\", \"Query\"))\n$util.qr($ctx.stash.put(\"fieldName\", \"listTodos\"))\n$util.qr($ctx.stash.put(\"conditions\", []))\n$util.qr($ctx.stash.put(\"metadata\", {}))\n$util.qr($ctx.stash.metadata.put(\"dataSourceType\", \"AMAZON_DYNAMODB\"))\n$util.qr($ctx.stash.metadata.put(\"apiId\", \"",
        {
-        "Ref": "referencetotransformerrootstackGraphQLAPI20497F53ApiId"
+        "Ref": "referencetoamplifytestAppName1234testBranchNamedataamplifyDataGraphQLAPI091D7986ApiId"
        },
        "\"))\n$util.qr($ctx.stash.put(\"connectionAttributes\", {}))\n$util.qr($ctx.stash.put(\"tableName\", \"",
        {
-        "Ref": "TodoTable"
+        "Ref": "TodoTable585F1D6B"
        },
        "\"))\n$util.qr($ctx.stash.put(\"authRole\", \"arn:aws:sts::",
        {
@@ -573,7 +505,7 @@
        },
        ":assumed-role/",
        {
-        "Ref": "referencetotransformerrootstackauthRoleNameFB872D50Ref"
+        "Ref": "referencetoamplifytestAppName1234testBranchNameauthNestedStackauthNestedStackResourceA79383D0OutputsamplifytestAppName1234testBranchNameauthamplifyAuthauthenticatedUserRoleE3D92679Ref"
        },
        "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"unauthRole\", \"arn:aws:sts::",
        {
@@ -581,7 +513,7 @@
        },
        ":assumed-role/",
        {
-        "Ref": "referencetotransformerrootstackunauthRoleName49F3C1FERef"
+        "Ref": "referencetoamplifytestAppName1234testBranchNameauthNestedStackauthNestedStackResourceA79383D0OutputsamplifytestAppName1234testBranchNameauthamplifyAuthunauthenticatedUserRole91B91C57Ref"
        },
        "/CognitoIdentityCredentials\"))\n$util.toJson({})"
       ]
@@ -594,24 +526,15 @@
    "Type": "AWS::AppSync::FunctionConfiguration",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetotransformerrootstackGraphQLAPI20497F53ApiId"
+     "Ref": "referencetoamplifytestAppName1234testBranchNamedataamplifyDataGraphQLAPI091D7986ApiId"
     },
     "DataSourceName": {
-     "Ref": "referencetotransformerrootstackGraphQLAPINONEDS2BA9D1C8Name"
+     "Ref": "referencetoamplifytestAppName1234testBranchNamedataamplifyDataGraphQLAPINONEDS16717C78Name"
     },
     "Name": "MutationcreateTodoinit0Function",
     "FunctionVersion": "2018-05-29",
     "RequestMappingTemplateS3Location": {
-     "Fn::Join": [
-      "",
-      [
-       "s3://",
-       {
-        "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
-       },
-       "/01dd50f40481ed4d3b0fb1a5f22dbe631b252847144e59c565ad3874813dc77c.vtl"
-      ]
-     ]
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/01dd50f40481ed4d3b0fb1a5f22dbe631b252847144e59c565ad3874813dc77c.vtl"
     },
     "ResponseMappingTemplate": "$util.toJson({})"
    }
@@ -620,7 +543,7 @@
    "Type": "AWS::AppSync::FunctionConfiguration",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetotransformerrootstackGraphQLAPI20497F53ApiId"
+     "Ref": "referencetoamplifytestAppName1234testBranchNamedataamplifyDataGraphQLAPI091D7986ApiId"
     },
     "DataSourceName": {
      "Fn::GetAtt": [
@@ -631,28 +554,10 @@
     "Name": "MutationCreateTodoDataResolverFn",
     "FunctionVersion": "2018-05-29",
     "RequestMappingTemplateS3Location": {
-     "Fn::Join": [
-      "",
-      [
-       "s3://",
-       {
-        "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
-       },
-       "/2bf64327ca5682da4be84d0d16440204e25abc3a221195b41f2d21dfa432e5ab.vtl"
-      ]
-     ]
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/2bf64327ca5682da4be84d0d16440204e25abc3a221195b41f2d21dfa432e5ab.vtl"
     },
     "ResponseMappingTemplateS3Location": {
-     "Fn::Join": [
-      "",
-      [
-       "s3://",
-       {
-        "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
-       },
-       "/f4a52b72209a9dfa197b5e7367a5c378c5bb86de6e29ddd9e48b49a3fe54b249.vtl"
-      ]
-     ]
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/f4a52b72209a9dfa197b5e7367a5c378c5bb86de6e29ddd9e48b49a3fe54b249.vtl"
     }
    },
    "DependsOn": [
@@ -663,7 +568,7 @@
    "Type": "AWS::AppSync::Resolver",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetotransformerrootstackGraphQLAPI20497F53ApiId"
+     "Ref": "referencetoamplifytestAppName1234testBranchNamedataamplifyDataGraphQLAPI091D7986ApiId"
     },
     "FieldName": "createTodo",
     "TypeName": "Mutation",
@@ -696,11 +601,11 @@
       [
        "$util.qr($ctx.stash.put(\"typeName\", \"Mutation\"))\n$util.qr($ctx.stash.put(\"fieldName\", \"createTodo\"))\n$util.qr($ctx.stash.put(\"conditions\", []))\n$util.qr($ctx.stash.put(\"metadata\", {}))\n$util.qr($ctx.stash.metadata.put(\"dataSourceType\", \"AMAZON_DYNAMODB\"))\n$util.qr($ctx.stash.metadata.put(\"apiId\", \"",
        {
-        "Ref": "referencetotransformerrootstackGraphQLAPI20497F53ApiId"
+        "Ref": "referencetoamplifytestAppName1234testBranchNamedataamplifyDataGraphQLAPI091D7986ApiId"
        },
        "\"))\n$util.qr($ctx.stash.put(\"connectionAttributes\", {}))\n$util.qr($ctx.stash.put(\"tableName\", \"",
        {
-        "Ref": "TodoTable"
+        "Ref": "TodoTable585F1D6B"
        },
        "\"))\n$util.qr($ctx.stash.put(\"authRole\", \"arn:aws:sts::",
        {
@@ -708,7 +613,7 @@
        },
        ":assumed-role/",
        {
-        "Ref": "referencetotransformerrootstackauthRoleNameFB872D50Ref"
+        "Ref": "referencetoamplifytestAppName1234testBranchNameauthNestedStackauthNestedStackResourceA79383D0OutputsamplifytestAppName1234testBranchNameauthamplifyAuthauthenticatedUserRoleE3D92679Ref"
        },
        "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"unauthRole\", \"arn:aws:sts::",
        {
@@ -716,7 +621,7 @@
        },
        ":assumed-role/",
        {
-        "Ref": "referencetotransformerrootstackunauthRoleName49F3C1FERef"
+        "Ref": "referencetoamplifytestAppName1234testBranchNameauthNestedStackauthNestedStackResourceA79383D0OutputsamplifytestAppName1234testBranchNameauthamplifyAuthunauthenticatedUserRole91B91C57Ref"
        },
        "/CognitoIdentityCredentials\"))\n$util.toJson({})"
       ]
@@ -729,24 +634,15 @@
    "Type": "AWS::AppSync::FunctionConfiguration",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetotransformerrootstackGraphQLAPI20497F53ApiId"
+     "Ref": "referencetoamplifytestAppName1234testBranchNamedataamplifyDataGraphQLAPI091D7986ApiId"
     },
     "DataSourceName": {
-     "Ref": "referencetotransformerrootstackGraphQLAPINONEDS2BA9D1C8Name"
+     "Ref": "referencetoamplifytestAppName1234testBranchNamedataamplifyDataGraphQLAPINONEDS16717C78Name"
     },
     "Name": "MutationupdateTodoinit0Function",
     "FunctionVersion": "2018-05-29",
     "RequestMappingTemplateS3Location": {
-     "Fn::Join": [
-      "",
-      [
-       "s3://",
-       {
-        "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
-       },
-       "/06db846fd14e6fc371f22b12b5545ba8e2dbfeda85d8c8d586c71c282166657b.vtl"
-      ]
-     ]
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/06db846fd14e6fc371f22b12b5545ba8e2dbfeda85d8c8d586c71c282166657b.vtl"
     },
     "ResponseMappingTemplate": "$util.toJson({})"
    }
@@ -755,7 +651,7 @@
    "Type": "AWS::AppSync::FunctionConfiguration",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetotransformerrootstackGraphQLAPI20497F53ApiId"
+     "Ref": "referencetoamplifytestAppName1234testBranchNamedataamplifyDataGraphQLAPI091D7986ApiId"
     },
     "DataSourceName": {
      "Fn::GetAtt": [
@@ -766,28 +662,10 @@
     "Name": "MutationUpdateTodoDataResolverFn",
     "FunctionVersion": "2018-05-29",
     "RequestMappingTemplateS3Location": {
-     "Fn::Join": [
-      "",
-      [
-       "s3://",
-       {
-        "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
-       },
-       "/474bf0776ec2164a13191d1a0a9e057154931e4918fea5086f49850d02a5371b.vtl"
-      ]
-     ]
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/474bf0776ec2164a13191d1a0a9e057154931e4918fea5086f49850d02a5371b.vtl"
     },
     "ResponseMappingTemplateS3Location": {
-     "Fn::Join": [
-      "",
-      [
-       "s3://",
-       {
-        "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
-       },
-       "/f4a52b72209a9dfa197b5e7367a5c378c5bb86de6e29ddd9e48b49a3fe54b249.vtl"
-      ]
-     ]
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/f4a52b72209a9dfa197b5e7367a5c378c5bb86de6e29ddd9e48b49a3fe54b249.vtl"
     }
    },
    "DependsOn": [
@@ -798,7 +676,7 @@
    "Type": "AWS::AppSync::Resolver",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetotransformerrootstackGraphQLAPI20497F53ApiId"
+     "Ref": "referencetoamplifytestAppName1234testBranchNamedataamplifyDataGraphQLAPI091D7986ApiId"
     },
     "FieldName": "updateTodo",
     "TypeName": "Mutation",
@@ -831,11 +709,11 @@
       [
        "$util.qr($ctx.stash.put(\"typeName\", \"Mutation\"))\n$util.qr($ctx.stash.put(\"fieldName\", \"updateTodo\"))\n$util.qr($ctx.stash.put(\"conditions\", []))\n$util.qr($ctx.stash.put(\"metadata\", {}))\n$util.qr($ctx.stash.metadata.put(\"dataSourceType\", \"AMAZON_DYNAMODB\"))\n$util.qr($ctx.stash.metadata.put(\"apiId\", \"",
        {
-        "Ref": "referencetotransformerrootstackGraphQLAPI20497F53ApiId"
+        "Ref": "referencetoamplifytestAppName1234testBranchNamedataamplifyDataGraphQLAPI091D7986ApiId"
        },
        "\"))\n$util.qr($ctx.stash.put(\"connectionAttributes\", {}))\n$util.qr($ctx.stash.put(\"tableName\", \"",
        {
-        "Ref": "TodoTable"
+        "Ref": "TodoTable585F1D6B"
        },
        "\"))\n$util.qr($ctx.stash.put(\"authRole\", \"arn:aws:sts::",
        {
@@ -843,7 +721,7 @@
        },
        ":assumed-role/",
        {
-        "Ref": "referencetotransformerrootstackauthRoleNameFB872D50Ref"
+        "Ref": "referencetoamplifytestAppName1234testBranchNameauthNestedStackauthNestedStackResourceA79383D0OutputsamplifytestAppName1234testBranchNameauthamplifyAuthauthenticatedUserRoleE3D92679Ref"
        },
        "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"unauthRole\", \"arn:aws:sts::",
        {
@@ -851,7 +729,7 @@
        },
        ":assumed-role/",
        {
-        "Ref": "referencetotransformerrootstackunauthRoleName49F3C1FERef"
+        "Ref": "referencetoamplifytestAppName1234testBranchNameauthNestedStackauthNestedStackResourceA79383D0OutputsamplifytestAppName1234testBranchNameauthamplifyAuthunauthenticatedUserRole91B91C57Ref"
        },
        "/CognitoIdentityCredentials\"))\n$util.toJson({})"
       ]
@@ -864,7 +742,7 @@
    "Type": "AWS::AppSync::FunctionConfiguration",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetotransformerrootstackGraphQLAPI20497F53ApiId"
+     "Ref": "referencetoamplifytestAppName1234testBranchNamedataamplifyDataGraphQLAPI091D7986ApiId"
     },
     "DataSourceName": {
      "Fn::GetAtt": [
@@ -875,28 +753,10 @@
     "Name": "MutationDeleteTodoDataResolverFn",
     "FunctionVersion": "2018-05-29",
     "RequestMappingTemplateS3Location": {
-     "Fn::Join": [
-      "",
-      [
-       "s3://",
-       {
-        "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
-       },
-       "/4f7907d1209a2c9953a0c053df402c634e359546d70c7cc5c2e8e21ea734880f.vtl"
-      ]
-     ]
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/4f7907d1209a2c9953a0c053df402c634e359546d70c7cc5c2e8e21ea734880f.vtl"
     },
     "ResponseMappingTemplateS3Location": {
-     "Fn::Join": [
-      "",
-      [
-       "s3://",
-       {
-        "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
-       },
-       "/f4a52b72209a9dfa197b5e7367a5c378c5bb86de6e29ddd9e48b49a3fe54b249.vtl"
-      ]
-     ]
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/f4a52b72209a9dfa197b5e7367a5c378c5bb86de6e29ddd9e48b49a3fe54b249.vtl"
     }
    },
    "DependsOn": [
@@ -907,7 +767,7 @@
    "Type": "AWS::AppSync::Resolver",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetotransformerrootstackGraphQLAPI20497F53ApiId"
+     "Ref": "referencetoamplifytestAppName1234testBranchNamedataamplifyDataGraphQLAPI091D7986ApiId"
     },
     "FieldName": "deleteTodo",
     "TypeName": "Mutation",
@@ -934,11 +794,11 @@
       [
        "$util.qr($ctx.stash.put(\"typeName\", \"Mutation\"))\n$util.qr($ctx.stash.put(\"fieldName\", \"deleteTodo\"))\n$util.qr($ctx.stash.put(\"conditions\", []))\n$util.qr($ctx.stash.put(\"metadata\", {}))\n$util.qr($ctx.stash.metadata.put(\"dataSourceType\", \"AMAZON_DYNAMODB\"))\n$util.qr($ctx.stash.metadata.put(\"apiId\", \"",
        {
-        "Ref": "referencetotransformerrootstackGraphQLAPI20497F53ApiId"
+        "Ref": "referencetoamplifytestAppName1234testBranchNamedataamplifyDataGraphQLAPI091D7986ApiId"
        },
        "\"))\n$util.qr($ctx.stash.put(\"connectionAttributes\", {}))\n$util.qr($ctx.stash.put(\"tableName\", \"",
        {
-        "Ref": "TodoTable"
+        "Ref": "TodoTable585F1D6B"
        },
        "\"))\n$util.qr($ctx.stash.put(\"authRole\", \"arn:aws:sts::",
        {
@@ -946,7 +806,7 @@
        },
        ":assumed-role/",
        {
-        "Ref": "referencetotransformerrootstackauthRoleNameFB872D50Ref"
+        "Ref": "referencetoamplifytestAppName1234testBranchNameauthNestedStackauthNestedStackResourceA79383D0OutputsamplifytestAppName1234testBranchNameauthamplifyAuthauthenticatedUserRoleE3D92679Ref"
        },
        "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"unauthRole\", \"arn:aws:sts::",
        {
@@ -954,7 +814,7 @@
        },
        ":assumed-role/",
        {
-        "Ref": "referencetotransformerrootstackunauthRoleName49F3C1FERef"
+        "Ref": "referencetoamplifytestAppName1234testBranchNameauthNestedStackauthNestedStackResourceA79383D0OutputsamplifytestAppName1234testBranchNameauthamplifyAuthunauthenticatedUserRole91B91C57Ref"
        },
        "/CognitoIdentityCredentials\"))\n$util.toJson({})"
       ]
@@ -967,36 +827,18 @@
    "Type": "AWS::AppSync::FunctionConfiguration",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetotransformerrootstackGraphQLAPI20497F53ApiId"
+     "Ref": "referencetoamplifytestAppName1234testBranchNamedataamplifyDataGraphQLAPI091D7986ApiId"
     },
     "DataSourceName": {
-     "Ref": "referencetotransformerrootstackGraphQLAPINONEDS2BA9D1C8Name"
+     "Ref": "referencetoamplifytestAppName1234testBranchNamedataamplifyDataGraphQLAPINONEDS16717C78Name"
     },
     "Name": "SubscriptionOnCreateTodoDataResolverFn",
     "FunctionVersion": "2018-05-29",
     "RequestMappingTemplateS3Location": {
-     "Fn::Join": [
-      "",
-      [
-       "s3://",
-       {
-        "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
-       },
-       "/fe3c43ada4b9d681a5e2312663ef7a73386424d73b73e51f8e2e9d4b50f7c502.vtl"
-      ]
-     ]
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/fe3c43ada4b9d681a5e2312663ef7a73386424d73b73e51f8e2e9d4b50f7c502.vtl"
     },
     "ResponseMappingTemplateS3Location": {
-     "Fn::Join": [
-      "",
-      [
-       "s3://",
-       {
-        "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
-       },
-       "/e0cff47fb007f0bbf2a4e43ca256d6aa7ec109821769fd79fa7c5e83f0e7f9fc.vtl"
-      ]
-     ]
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/e0cff47fb007f0bbf2a4e43ca256d6aa7ec109821769fd79fa7c5e83f0e7f9fc.vtl"
     }
    }
   },
@@ -1004,7 +846,7 @@
    "Type": "AWS::AppSync::Resolver",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetotransformerrootstackGraphQLAPI20497F53ApiId"
+     "Ref": "referencetoamplifytestAppName1234testBranchNamedataamplifyDataGraphQLAPI091D7986ApiId"
     },
     "FieldName": "onCreateTodo",
     "TypeName": "Subscription",
@@ -1031,7 +873,7 @@
       [
        "$util.qr($ctx.stash.put(\"typeName\", \"Subscription\"))\n$util.qr($ctx.stash.put(\"fieldName\", \"onCreateTodo\"))\n$util.qr($ctx.stash.put(\"conditions\", []))\n$util.qr($ctx.stash.put(\"metadata\", {}))\n$util.qr($ctx.stash.metadata.put(\"dataSourceType\", \"NONE\"))\n$util.qr($ctx.stash.metadata.put(\"apiId\", \"",
        {
-        "Ref": "referencetotransformerrootstackGraphQLAPI20497F53ApiId"
+        "Ref": "referencetoamplifytestAppName1234testBranchNamedataamplifyDataGraphQLAPI091D7986ApiId"
        },
        "\"))\n$util.qr($ctx.stash.put(\"connectionAttributes\", {}))\n\n$util.qr($ctx.stash.put(\"authRole\", \"arn:aws:sts::",
        {
@@ -1039,7 +881,7 @@
        },
        ":assumed-role/",
        {
-        "Ref": "referencetotransformerrootstackauthRoleNameFB872D50Ref"
+        "Ref": "referencetoamplifytestAppName1234testBranchNameauthNestedStackauthNestedStackResourceA79383D0OutputsamplifytestAppName1234testBranchNameauthamplifyAuthauthenticatedUserRoleE3D92679Ref"
        },
        "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"unauthRole\", \"arn:aws:sts::",
        {
@@ -1047,7 +889,7 @@
        },
        ":assumed-role/",
        {
-        "Ref": "referencetotransformerrootstackunauthRoleName49F3C1FERef"
+        "Ref": "referencetoamplifytestAppName1234testBranchNameauthNestedStackauthNestedStackResourceA79383D0OutputsamplifytestAppName1234testBranchNameauthamplifyAuthunauthenticatedUserRole91B91C57Ref"
        },
        "/CognitoIdentityCredentials\"))\n$util.toJson({})"
       ]
@@ -1060,7 +902,7 @@
    "Type": "AWS::AppSync::Resolver",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetotransformerrootstackGraphQLAPI20497F53ApiId"
+     "Ref": "referencetoamplifytestAppName1234testBranchNamedataamplifyDataGraphQLAPI091D7986ApiId"
     },
     "FieldName": "onUpdateTodo",
     "TypeName": "Subscription",
@@ -1087,7 +929,7 @@
       [
        "$util.qr($ctx.stash.put(\"typeName\", \"Subscription\"))\n$util.qr($ctx.stash.put(\"fieldName\", \"onUpdateTodo\"))\n$util.qr($ctx.stash.put(\"conditions\", []))\n$util.qr($ctx.stash.put(\"metadata\", {}))\n$util.qr($ctx.stash.metadata.put(\"dataSourceType\", \"NONE\"))\n$util.qr($ctx.stash.metadata.put(\"apiId\", \"",
        {
-        "Ref": "referencetotransformerrootstackGraphQLAPI20497F53ApiId"
+        "Ref": "referencetoamplifytestAppName1234testBranchNamedataamplifyDataGraphQLAPI091D7986ApiId"
        },
        "\"))\n$util.qr($ctx.stash.put(\"connectionAttributes\", {}))\n\n$util.qr($ctx.stash.put(\"authRole\", \"arn:aws:sts::",
        {
@@ -1095,7 +937,7 @@
        },
        ":assumed-role/",
        {
-        "Ref": "referencetotransformerrootstackauthRoleNameFB872D50Ref"
+        "Ref": "referencetoamplifytestAppName1234testBranchNameauthNestedStackauthNestedStackResourceA79383D0OutputsamplifytestAppName1234testBranchNameauthamplifyAuthauthenticatedUserRoleE3D92679Ref"
        },
        "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"unauthRole\", \"arn:aws:sts::",
        {
@@ -1103,7 +945,7 @@
        },
        ":assumed-role/",
        {
-        "Ref": "referencetotransformerrootstackunauthRoleName49F3C1FERef"
+        "Ref": "referencetoamplifytestAppName1234testBranchNameauthNestedStackauthNestedStackResourceA79383D0OutputsamplifytestAppName1234testBranchNameauthamplifyAuthunauthenticatedUserRole91B91C57Ref"
        },
        "/CognitoIdentityCredentials\"))\n$util.toJson({})"
       ]
@@ -1116,7 +958,7 @@
    "Type": "AWS::AppSync::Resolver",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetotransformerrootstackGraphQLAPI20497F53ApiId"
+     "Ref": "referencetoamplifytestAppName1234testBranchNamedataamplifyDataGraphQLAPI091D7986ApiId"
     },
     "FieldName": "onDeleteTodo",
     "TypeName": "Subscription",
@@ -1143,7 +985,7 @@
       [
        "$util.qr($ctx.stash.put(\"typeName\", \"Subscription\"))\n$util.qr($ctx.stash.put(\"fieldName\", \"onDeleteTodo\"))\n$util.qr($ctx.stash.put(\"conditions\", []))\n$util.qr($ctx.stash.put(\"metadata\", {}))\n$util.qr($ctx.stash.metadata.put(\"dataSourceType\", \"NONE\"))\n$util.qr($ctx.stash.metadata.put(\"apiId\", \"",
        {
-        "Ref": "referencetotransformerrootstackGraphQLAPI20497F53ApiId"
+        "Ref": "referencetoamplifytestAppName1234testBranchNamedataamplifyDataGraphQLAPI091D7986ApiId"
        },
        "\"))\n$util.qr($ctx.stash.put(\"connectionAttributes\", {}))\n\n$util.qr($ctx.stash.put(\"authRole\", \"arn:aws:sts::",
        {
@@ -1151,7 +993,7 @@
        },
        ":assumed-role/",
        {
-        "Ref": "referencetotransformerrootstackauthRoleNameFB872D50Ref"
+        "Ref": "referencetoamplifytestAppName1234testBranchNameauthNestedStackauthNestedStackResourceA79383D0OutputsamplifytestAppName1234testBranchNameauthamplifyAuthauthenticatedUserRoleE3D92679Ref"
        },
        "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"unauthRole\", \"arn:aws:sts::",
        {
@@ -1159,7 +1001,7 @@
        },
        ":assumed-role/",
        {
-        "Ref": "referencetotransformerrootstackunauthRoleName49F3C1FERef"
+        "Ref": "referencetoamplifytestAppName1234testBranchNameauthNestedStackauthNestedStackResourceA79383D0OutputsamplifytestAppName1234testBranchNameauthamplifyAuthunauthenticatedUserRole91B91C57Ref"
        },
        "/CognitoIdentityCredentials\"))\n$util.toJson({})"
       ]
@@ -1174,7 +1016,7 @@
    "Description": "Your DynamoDB table StreamArn.",
    "Value": {
     "Fn::GetAtt": [
-     "TodoTable",
+     "TodoTable585F1D6B",
      "StreamArn"
     ]
    },
@@ -1184,7 +1026,7 @@
       ":",
       [
        {
-        "Ref": "referencetotransformerrootstackGraphQLAPI20497F53ApiId"
+        "Ref": "referencetoamplifytestAppName1234testBranchNamedataamplifyDataGraphQLAPI091D7986ApiId"
        },
        "GetAtt:TodoTable:StreamArn"
       ]
@@ -1195,7 +1037,7 @@
   "GetAttTodoTableName": {
    "Description": "Your DynamoDB table name.",
    "Value": {
-    "Ref": "TodoTable"
+    "Ref": "TodoTable585F1D6B"
    },
    "Export": {
     "Name": {
@@ -1203,7 +1045,7 @@
       ":",
       [
        {
-        "Ref": "referencetotransformerrootstackGraphQLAPI20497F53ApiId"
+        "Ref": "referencetoamplifytestAppName1234testBranchNamedataamplifyDataGraphQLAPI091D7986ApiId"
        },
        "GetAtt:TodoTable:Name"
       ]
@@ -1225,7 +1067,7 @@
       ":",
       [
        {
-        "Ref": "referencetotransformerrootstackGraphQLAPI20497F53ApiId"
+        "Ref": "referencetoamplifytestAppName1234testBranchNamedataamplifyDataGraphQLAPI091D7986ApiId"
        },
        "GetAtt:TodoDataSource:Name"
       ]
