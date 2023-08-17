@@ -12,9 +12,8 @@ import { readFileSync } from 'fs';
 describe('getProjectEnvironmentMainStackSSMParameterKey', () => {
   it('returns ssm key', () => {
     const result = getMainStackName({
-      appName: 'testAppName',
+      backendId: 'testBackendId',
       branchName: 'testBranchName',
-      disambiguator: '1234',
     });
 
     const expectedKey = readFileSync(

@@ -52,7 +52,7 @@ describe('generate config command', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
       appName: 'testAppName',
-      branch: 'branch_name',
+      branchName: 'branch_name',
     });
     // I can't find any open node:test or yargs issues that would explain why this is necessary
     // but for some reason the mock call count does not update without this 0ms wait
@@ -70,8 +70,8 @@ describe('generate config command', () => {
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
-      appId: 'app_id',
-      branch: 'branch_name',
+      backendId: 'app_id',
+      branchName: 'branch_name',
     });
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(

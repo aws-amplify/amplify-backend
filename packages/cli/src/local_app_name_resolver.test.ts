@@ -1,15 +1,13 @@
 import { describe, it } from 'node:test';
-import { LocalProjectNameResolver } from './local_project_name_resolver.js';
+import { LocalAppNameResolver } from './local_app_name_resolver.js';
 import assert from 'node:assert';
 
-describe('LocalProjectNameResolver', () => {
-  it('returns package.json name', async () => {
+describe('LocalAppNameResolver', () => {
+  it('returns package.json#name', async () => {
     const packageJsonLoaderMock = {
       loadCwdPackageJson: async () => ({ name: 'testName' }),
     };
-    const resolver = new LocalProjectNameResolver(
-      packageJsonLoaderMock as never
-    );
+    const resolver = new LocalAppNameResolver(packageJsonLoaderMock as never);
     const result = await resolver.resolve();
     assert.equal(result, 'testName');
   });
@@ -18,9 +16,7 @@ describe('LocalProjectNameResolver', () => {
     const packageJsonLoaderMock = {
       loadCwdPackageJson: async () => ({ name: 'testName' }),
     };
-    const resolver = new LocalProjectNameResolver(
-      packageJsonLoaderMock as never
-    );
+    const resolver = new LocalAppNameResolver(packageJsonLoaderMock as never);
     const resolverRef = resolver.resolve;
     const result = await resolverRef();
     assert.equal(result, 'testName');

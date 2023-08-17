@@ -12,9 +12,8 @@ import { readFileSync } from 'fs';
 describe('getMainStackName', () => {
   it('returns stack name with expected convention', () => {
     const result = getMainStackName({
-      appName: 'testAppName',
+      backendId: 'testBackendId',
       branchName: 'testBranchName',
-      disambiguator: '1234',
     });
 
     const expectedName = readFileSync(
