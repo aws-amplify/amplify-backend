@@ -10,12 +10,18 @@ import { IUserPool } from 'aws-cdk-lib/aws-cognito';
 import { Stack } from 'aws-cdk-lib';
 
 // @public
+export type AppId = string;
+
+// @public
 export type AuthResources = {
     authenticatedUserIamRole: IRole;
     unauthenticatedUserIamRole: IRole;
     userPool?: IUserPool;
     identityPoolId?: string;
 };
+
+// @public (undocumented)
+export type BackendId = AppId | SandboxId;
 
 // @public (undocumented)
 export type BackendOutput = Record<string, BackendOutputEntry>;
@@ -83,9 +89,12 @@ export type MainStackNameResolver = {
     resolveMainStackName(): Promise<string>;
 };
 
+// @public (undocumented)
+export type SandboxId = string;
+
 // @public
 export type UniqueBackendIdentifier = {
-    appId: string;
+    backendId: BackendId;
     branchName: string;
 };
 

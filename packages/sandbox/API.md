@@ -26,7 +26,7 @@ export type SandboxOptions = {
 
 // @public
 export class SandboxSingletonFactory {
-    constructor(appIdResolver: () => Promise<string>);
+    constructor(sandboxIdResolver: () => Promise<string>);
     getInstance(): Promise<Sandbox>;
 }
 
