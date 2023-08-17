@@ -31,7 +31,7 @@ describe('GraphqlClientConfigContributor', () => {
             awsAppsyncRegion: 'us-east-1',
             awsAppsyncAuthenticationType: 'API_KEY',
             awsAppsyncApiKey: 'testApiKey',
-            awsAppsyncApiId: 'testApi',
+            awsAppsyncApiId: 'testApiId',
           },
         },
       }),
