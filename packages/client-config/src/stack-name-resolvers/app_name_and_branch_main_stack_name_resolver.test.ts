@@ -13,7 +13,7 @@ describe('AppNameAndBranchMainStackNameResolver', () => {
 
   const appNameAndBranch: AppNameAndBranchBackendIdentifier = {
     appName: 'testAppName',
-    branch: 'testBranch',
+    branchName: 'testBranch',
   };
 
   beforeEach(() => {
@@ -64,7 +64,7 @@ describe('AppNameAndBranchMainStackNameResolver', () => {
   it('returns expected stack name', async () => {
     amplifyCLientSendMock.mock.mockImplementation(() =>
       Promise.resolve({
-        apps: [{ name: 'testAppName', appId: 'testAppId' }],
+        apps: [{ name: 'testAppName', appId: 'testBackendId' }],
       })
     );
     const resolver = new AppNameAndBranchMainStackNameResolver(
@@ -72,6 +72,6 @@ describe('AppNameAndBranchMainStackNameResolver', () => {
       appNameAndBranch
     );
     const result = await resolver.resolveMainStackName();
-    assert.equal(result, 'amplify-testAppName-testAppId-testBranch');
+    assert.equal(result, 'amplify-testBackendId-testBranch');
   });
 });
