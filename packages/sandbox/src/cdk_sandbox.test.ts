@@ -380,15 +380,14 @@ describe('Sandbox with absolute output path', () => {
    */
   beforeEach(async () => {
     sandboxInstance = new CDKSandbox(
-      'testApp',
-      'test1234',
+      'testSandboxId',
       clientConfigGeneratorAdapter,
       cdkExecutor
     );
     await sandboxInstance.start({
       dir: 'testDir',
       exclude: ['exclude1', 'exclude2'],
-      name: 'userAppName',
+      name: 'customSandboxName',
       clientConfigFilePath: '/test/location/amplifyconfiguration.js',
     });
     if (
@@ -422,9 +421,8 @@ describe('Sandbox with absolute output path', () => {
     assert.deepStrictEqual(
       generateClientConfigMock.mock.calls[0].arguments[0],
       {
-        appName: 'userAppName',
+        backendId: 'customSandboxName',
         branchName: 'sandbox',
-        disambiguator: 'test1234',
       }
     );
     assert.equal(
