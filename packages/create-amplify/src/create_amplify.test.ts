@@ -71,13 +71,9 @@ describe('create-amplify script', async () => {
     ]);
   });
 
-  it('fails fast if amplify directory is not empty', async () => {
+  it('fails fast if amplify path already exists', async () => {
     const amplifyDirPath = path.join(tempDir, 'amplify');
     await fs.mkdir(amplifyDirPath, { recursive: true });
-    await fs.writeFile(
-      path.join(amplifyDirPath, 'placeholder.txt'),
-      'some content'
-    );
 
     // the --yes flag here is to bypass a npm prompt to install the create-amplify package, it's not a prompt we control
     const result = await execa('npm', ['create', 'amplify', '--yes'], {
