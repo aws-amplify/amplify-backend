@@ -66,7 +66,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/68e9ac1e248b9eb268fdb133a50bba8d06ae55c6f63e97b044db789a49b1b1c8.json"
+       "/6b9c9a42e9c20f50320fe91085d7244540d194e0f5c18487c67af738e484627b.json"
       ]
      ]
     },
@@ -121,7 +121,7 @@
    "Value": {
     "Fn::GetAtt": [
      "data7552DF31",
-     "Outputs.amplifytestAppName1234testBranchNamedataamplifyDataRootStackGraphQLAPI58B0BABDGraphQLUrl"
+     "Outputs.amplifytestAppName1234testBranchNamedataamplifyDataGraphQLAPI091D7986GraphQLUrl"
     ]
    }
   },
