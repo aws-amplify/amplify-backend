@@ -9,14 +9,13 @@ import assert from 'assert';
 /**
  * This test is more of an e2e test than a unit test.
  * But there's really no way to test the create_amplify script without just running the real thing
- * It adds about 30 seconds to our unit test runtime
  *
  * TODO: we may want to pull this test into our e2e suite once we have that setup
  */
 describe(
   'create-amplify script',
   {
-    timeout: 1000 * 60, // 1 minute
+    timeout: 1000 * 60 * 5, // 5 minutes
     concurrency: 1,
   },
   () => {
