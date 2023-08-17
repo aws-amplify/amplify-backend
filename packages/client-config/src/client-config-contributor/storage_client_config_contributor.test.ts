@@ -13,7 +13,7 @@ describe('StorageClientConfigContributor', () => {
             awsAppsyncApiEndpoint: 'stuff',
             awsAppsyncRegion: 'us-east-1',
             awsAppsyncAuthenticationType: 'API_KEY',
-            awsAppsyncApiId: 'testApi',
+            awsAppsyncApiId: 'testApiId',
           },
         },
       }),
