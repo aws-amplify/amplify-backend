@@ -24,7 +24,9 @@ export type SandboxOptions = {
   exclude?: string[];
   name?: string;
   /**
-   * Optional path relative to process.cwd() where client config should be generated for sandbox deployments
+   * Optional path where client config should be generated for sandbox deployments
+   * If the path is relative, it is computed based on process.cwd()
+   * If the path is absolute, it is used as-is
    */
   clientConfigFilePath?: string;
 };
