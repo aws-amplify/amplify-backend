@@ -8,15 +8,9 @@ import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 // @public
-export type AppIdAndBranchBackendIdentifier = {
-    appId: string;
-    branch: string;
-};
-
-// @public
 export type AppNameAndBranchBackendIdentifier = {
     appName: string;
-    branch: string;
+    branchName: string;
 };
 
 // @public
@@ -29,7 +23,7 @@ export type AuthClientConfig = {
 };
 
 // @public (undocumented)
-export type BackendIdentifier = UniqueBackendIdentifier | StackIdentifier | AppNameAndBranchBackendIdentifier | AppIdAndBranchBackendIdentifier;
+export type BackendIdentifier = UniqueBackendIdentifier | StackIdentifier | AppNameAndBranchBackendIdentifier;
 
 // @public
 export type ClientConfig = Partial<AuthClientConfig & GraphqlClientConfig & StorageClientConfig>;

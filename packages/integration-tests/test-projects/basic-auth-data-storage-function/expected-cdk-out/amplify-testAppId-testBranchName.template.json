@@ -46,7 +46,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/789bbb1267e70374f648f2bff21745b18beb2d8beae1db827074540dd5f4c467.json"
+       "/6595334910a8f09e1124763cbf51d570739dcc44dd89f455ee2e90912326991b.json"
       ]
      ]
     }
@@ -73,7 +73,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/24ff370243faceaddf378e08e0b853a79520eb93b93631ab5807d4c1c8d9af55.json"
+       "/13ff9c2f3099c7132cd0fa666748654fb1ab433d6203f987474934ed0514839c.json"
       ]
      ]
     }
@@ -127,27 +127,27 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/ab5df1ea01f3c38e4c4dbbf3b807f5a7560307b908d55417fc4e4b23b5aed81d.json"
+       "/77c64fed79d3616b19099e8b29361b858930b1a3dfab5a6b150163468d3cc46f.json"
       ]
      ]
     },
     "Parameters": {
-     "referencetoamplifytestAppName1234testBranchNameauthNestedStackauthNestedStackResourceA79383D0OutputsamplifytestAppName1234testBranchNameauthamplifyAuthUserPool2299DE02Ref": {
+     "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthUserPoolC1B04074Ref": {
       "Fn::GetAtt": [
        "auth179371D7",
-       "Outputs.amplifytestAppName1234testBranchNameauthamplifyAuthUserPool2299DE02Ref"
+       "Outputs.amplifytestAppIdtestBranchNameauthamplifyAuthUserPoolC1B04074Ref"
       ]
      },
-     "referencetoamplifytestAppName1234testBranchNameauthNestedStackauthNestedStackResourceA79383D0OutputsamplifytestAppName1234testBranchNameauthamplifyAuthauthenticatedUserRoleE3D92679Ref": {
+     "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthauthenticatedUserRole1D3D95F1Ref": {
       "Fn::GetAtt": [
        "auth179371D7",
-       "Outputs.amplifytestAppName1234testBranchNameauthamplifyAuthauthenticatedUserRoleE3D92679Ref"
+       "Outputs.amplifytestAppIdtestBranchNameauthamplifyAuthauthenticatedUserRole1D3D95F1Ref"
       ]
      },
-     "referencetoamplifytestAppName1234testBranchNameauthNestedStackauthNestedStackResourceA79383D0OutputsamplifytestAppName1234testBranchNameauthamplifyAuthunauthenticatedUserRole91B91C57Ref": {
+     "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthunauthenticatedUserRoleF8166590Ref": {
       "Fn::GetAtt": [
        "auth179371D7",
-       "Outputs.amplifytestAppName1234testBranchNameauthamplifyAuthunauthenticatedUserRole91B91C57Ref"
+       "Outputs.amplifytestAppIdtestBranchNameauthamplifyAuthunauthenticatedUserRoleF8166590Ref"
       ]
      }
     }
@@ -161,7 +161,7 @@
    "Value": {
     "Fn::GetAtt": [
      "auth179371D7",
-     "Outputs.amplifytestAppName1234testBranchNameauthamplifyAuthUserPool2299DE02Ref"
+     "Outputs.amplifytestAppIdtestBranchNameauthamplifyAuthUserPoolC1B04074Ref"
     ]
    }
   },
@@ -169,7 +169,7 @@
    "Value": {
     "Fn::GetAtt": [
      "auth179371D7",
-     "Outputs.amplifytestAppName1234testBranchNameauthamplifyAuthUserPoolWebClient46BE4A31Ref"
+     "Outputs.amplifytestAppIdtestBranchNameauthamplifyAuthUserPoolWebClientEFCFE2AFRef"
     ]
    }
   },
@@ -187,7 +187,7 @@
    "Value": {
     "Fn::GetAtt": [
      "storage0EC3F24A",
-     "Outputs.amplifytestAppName1234testBranchNamestorageamplifyStorageamplifyStorageBucket64E7D884Ref"
+     "Outputs.amplifytestAppIdtestBranchNamestorageamplifyStorageamplifyStorageBucket881B9781Ref"
     ]
    }
   },
@@ -195,7 +195,7 @@
    "Value": {
     "Fn::GetAtt": [
      "data7552DF31",
-     "Outputs.amplifytestAppName1234testBranchNamedataamplifyDataGraphQLAPI091D7986GraphQLUrl"
+     "Outputs.amplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03GraphQLUrl"
     ]
    }
   },
