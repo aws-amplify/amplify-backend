@@ -1,0 +1,11 @@
+.buttons {
+  width: 50%;
+}
+
+.buttons > button {
+  margin-right: 5px;
+}
+
+.result {
+  width: 50%;
+}

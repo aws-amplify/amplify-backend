@@ -1,0 +1,19 @@
+{
+  "name": "type-beast",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "license": "UNLICENSED",
+  "scripts": {
+    "test": "jest __tests__",
+    "lint": "eslint \"**/*.ts*\""
+  },
+  "dependencies": {
+    "@aws-amplify/types-package-alpha": "*"
+  },
+  "devDependencies": {
+    "@tsd/typescript": "^5.1.6",
+    "jest-tsd": "^0.2.2",
+    "typescript": "^5.1.6"
+  }
+}
