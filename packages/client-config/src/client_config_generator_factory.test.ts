@@ -23,7 +23,7 @@ describe('ClientConfigGeneratorFactory', () => {
       );
 
       const clientConfigGenerator = generatorFactory.getInstance({
-        appId: 'testAppId',
+        backendId: 'testBackendId',
         branchName: 'testBranchName',
       });
       assert.ok(clientConfigGenerator instanceof UnifiedClientConfigGenerator);

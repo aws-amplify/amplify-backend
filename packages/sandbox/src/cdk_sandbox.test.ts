@@ -38,7 +38,7 @@ describe('Sandbox using local project name resolver', () => {
    */
   beforeEach(async () => {
     sandboxInstance = new CDKSandbox(
-      'testSandboxAppId',
+      'testSandboxId',
       clientConfigGeneratorAdapter,
       cdkExecutor
     );
@@ -100,7 +100,7 @@ describe('Sandbox using local project name resolver', () => {
         '--app',
         "'npx tsx amplify/backend.ts'",
         '--context',
-        'app-id=testSandboxAppId',
+        'backend-id=testSandboxId',
         '--context',
         'branch-name=sandbox',
         '--hotswap-fallback',
@@ -179,7 +179,7 @@ describe('Sandbox using local project name resolver', () => {
     // generate was called with right arguments
     assert.deepStrictEqual(
       generateClientConfigMock.mock.calls[0].arguments[0],
-      { appId: 'testSandboxAppId', branchName: 'sandbox' }
+      { backendId: 'testSandboxId', branchName: 'sandbox' }
     );
     assert.deepStrictEqual(
       generateClientConfigMock.mock.calls[0].arguments[1],
@@ -203,7 +203,7 @@ describe('Sandbox using local project name resolver', () => {
         '--app',
         "'npx tsx amplify/backend.ts'",
         '--context',
-        'app-id=testSandboxAppId',
+        'backend-id=testSandboxId',
         '--context',
         'branch-name=sandbox',
         '--force',
@@ -248,7 +248,7 @@ describe('Sandbox with user provided app name', () => {
    */
   beforeEach(async () => {
     sandboxInstance = new CDKSandbox(
-      'testSandboxAppId',
+      'testSandboxId',
       clientConfigGeneratorAdapter,
       cdkExecutor
     );
@@ -306,7 +306,7 @@ describe('Sandbox with user provided app name', () => {
         '--app',
         "'npx tsx amplify/backend.ts'",
         '--context',
-        'app-id=customSandboxName',
+        'backend-id=customSandboxName',
         '--context',
         'branch-name=sandbox',
         '--hotswap-fallback',
@@ -334,7 +334,7 @@ describe('Sandbox with user provided app name', () => {
         '--app',
         "'npx tsx amplify/backend.ts'",
         '--context',
-        'app-id=customSandboxName',
+        'backend-id=customSandboxName',
         '--context',
         'branch-name=sandbox',
         '--force',
@@ -354,7 +354,7 @@ describe('Sandbox with user provided app name', () => {
     assert.deepStrictEqual(
       generateClientConfigMock.mock.calls[0].arguments[0],
       {
-        appId: 'customSandboxName',
+        backendId: 'customSandboxName',
         branchName: 'sandbox',
       }
     );

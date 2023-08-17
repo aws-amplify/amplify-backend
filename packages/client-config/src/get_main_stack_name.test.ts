@@ -12,7 +12,7 @@ import { readFileSync } from 'fs';
 describe('getProjectEnvironmentMainStackSSMParameterKey', () => {
   it('returns ssm key', () => {
     const result = getMainStackName({
-      appId: 'testAppId',
+      backendId: 'testBackendId',
       branchName: 'testBranchName',
     });
 

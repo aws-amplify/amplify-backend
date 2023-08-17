@@ -10,11 +10,11 @@ export class SandboxSingletonFactory {
   private instance: Sandbox | undefined;
   private readonly clientConfigGenerator: ClientConfigGeneratorAdapter;
   /**
-   * Initialize with an appIdResolver.
+   * Initialize with an sandboxIdResolver.
    * This resolver will be called once and only once the first time getInstance() is called.
    * After that, the cached Sandbox instance is returned.
    */
-  constructor(private readonly appIdResolver: () => Promise<string>) {
+  constructor(private readonly sandboxIdResolver: () => Promise<string>) {
     this.clientConfigGenerator = new ClientConfigGeneratorAdapter(
       fromNodeProviderChain()
     );
@@ -26,7 +26,7 @@ export class SandboxSingletonFactory {
   async getInstance(): Promise<Sandbox> {
     if (!this.instance) {
       this.instance = new CDKSandbox(
-        await this.appIdResolver(),
+        await this.sandboxIdResolver(),
         this.clientConfigGenerator
       );
     }

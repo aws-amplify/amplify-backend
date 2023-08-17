@@ -3,7 +3,7 @@ import { Construct } from 'constructs';
 import { ProjectEnvironmentMainStackCreator } from './project_environment_main_stack_creator.js';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
-const appIdCDKContextKey = 'app-id';
+const backendIdCDKContextKey = 'backend-id';
 const branchNameCDKContextKey = 'branch-name';
 
 /**
@@ -23,10 +23,12 @@ export const createDefaultStack = (app = new App()): Stack => {
 const getUniqueBackendIdentifier = (
   scope: Construct
 ): UniqueBackendIdentifier => {
-  const appId = scope.node.getContext(appIdCDKContextKey);
+  const backendId = scope.node.getContext(backendIdCDKContextKey);
   const branchName = scope.node.getContext(branchNameCDKContextKey);
-  if (typeof appId !== 'string') {
-    throw new Error(`${appIdCDKContextKey} CDK context value is not a string`);
+  if (typeof backendId !== 'string') {
+    throw new Error(
+      `${backendIdCDKContextKey} CDK context value is not a string`
+    );
   }
   if (typeof branchName !== 'string') {
     throw new Error(
@@ -34,7 +36,7 @@ const getUniqueBackendIdentifier = (
     );
   }
   return {
-    appId,
+    backendId,
     branchName,
   };
 };

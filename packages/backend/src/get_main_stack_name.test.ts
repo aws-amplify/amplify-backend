@@ -12,7 +12,7 @@ import { readFileSync } from 'fs';
 describe('getMainStackName', () => {
   it('returns stack name with expected convention', () => {
     const result = getMainStackName({
-      appId: 'testAppId',
+      backendId: 'testBackendId',
       branchName: 'testBranchName',
     });
 

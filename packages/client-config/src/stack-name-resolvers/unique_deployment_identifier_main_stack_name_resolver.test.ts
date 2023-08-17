@@ -6,7 +6,7 @@ import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 describe('UniqueBackendIdentifierMainStackNameResolver', () => {
   describe('resolveMainStackName', () => {
     const testBackendIdentifier: UniqueBackendIdentifier = {
-      appId: 'testAppId',
+      backendId: 'testBackendId',
       branchName: 'testBranchName',
     };
 

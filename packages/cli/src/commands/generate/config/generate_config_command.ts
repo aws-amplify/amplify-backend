@@ -69,7 +69,7 @@ export class GenerateConfigCommand
     if (args.stack) {
       return { stackName: args.stack };
     } else if (args.appId && args.branch) {
-      return { appId: args.appId, branchName: args.branch };
+      return { backendId: args.appId, branchName: args.branch };
     } else if (args.branch) {
       return {
         appName: await this.appNameResolver.resolve(),

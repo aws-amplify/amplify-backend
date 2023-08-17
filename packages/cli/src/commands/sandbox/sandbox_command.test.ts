@@ -25,7 +25,7 @@ describe('sandbox command', () => {
 
   beforeEach(async () => {
     const sandboxFactory = new SandboxSingletonFactory(() =>
-      Promise.resolve('testAppId')
+      Promise.resolve('testBackendId')
     );
     sandbox = await sandboxFactory.getInstance();
 

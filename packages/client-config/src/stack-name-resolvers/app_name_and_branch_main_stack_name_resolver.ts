@@ -55,7 +55,7 @@ export class AppNameAndBranchMainStackNameResolver
       );
     }
     return getMainStackName({
-      appId,
+      backendId: appId,
       branchName: this.appNameAndBranch.branchName,
     });
   }

@@ -15,7 +15,7 @@ export class CDKSandbox implements Sandbox {
    * Creates a watcher process for this instance
    */
   constructor(
-    private readonly appId: string,
+    private readonly sandboxId: string,
     private readonly clientConfigGenerator: ClientConfigGeneratorAdapter,
     private readonly cdkExecutor: AmplifyCDKExecutor = new AmplifyCDKExecutor()
   ) {
@@ -27,7 +27,7 @@ export class CDKSandbox implements Sandbox {
    * @inheritdoc
    */
   async start(options: SandboxOptions) {
-    const sandboxAppId = options.name ?? this.appId;
+    const sandboxId = options.name ?? this.sandboxId;
     const clientConfigWritePath = path.join(
       options.clientConfigOutputPath ?? process.cwd(),
       'amplifyconfiguration.json'
@@ -54,10 +54,10 @@ export class CDKSandbox implements Sandbox {
     const deployAndWatch = debounce(async () => {
       latch = 'deploying';
       await this.cdkExecutor.invokeCDKWithDebounce(CDKCommand.DEPLOY, {
-        appId: sandboxAppId,
+        backendId: sandboxId,
         branchName: 'sandbox',
       });
-      await this.writeUpdatedClientConfig(sandboxAppId, clientConfigWritePath);
+      await this.writeUpdatedClientConfig(sandboxId, clientConfigWritePath);
 
       // If latch is still 'deploying' after the 'await', that's fine,
       // but if it's 'queued', that means we need to deploy again
@@ -69,13 +69,10 @@ export class CDKSandbox implements Sandbox {
           "[Sandbox] Detected file changes while previous deployment was in progress. Invoking 'sandbox' again"
         );
         await this.cdkExecutor.invokeCDKWithDebounce(CDKCommand.DEPLOY, {
-          appId: sandboxAppId,
+          backendId: sandboxId,
           branchName: 'sandbox',
         });
-        await this.writeUpdatedClientConfig(
-          sandboxAppId,
-          clientConfigWritePath
-        );
+        await this.writeUpdatedClientConfig(sandboxId, clientConfigWritePath);
       }
       latch = 'open';
       this.emitWatching();
@@ -126,12 +123,12 @@ export class CDKSandbox implements Sandbox {
    * @inheritdoc
    */
   async delete(options: SandboxDeleteOptions) {
-    const sandboxAppId = options.name ?? this.appId;
+    const sandboxAppId = options.name ?? this.sandboxId;
     console.log(
       '[Sandbox] Deleting all the resources in the sandbox environment...'
     );
     await this.cdkExecutor.invokeCDKWithDebounce(CDKCommand.DESTROY, {
-      appId: sandboxAppId,
+      backendId: sandboxAppId,
       branchName: 'sandbox',
     });
     console.log('[Sandbox] Finished deleting.');
@@ -139,13 +136,16 @@ export class CDKSandbox implements Sandbox {
 
   /**
    * Runs post every deployment. Generates the client config and writes to a local file
-   * @param appId for this sandbox execution. Either package.json#name + whoami or provided by user during `amplify sandbox`
+   * @param sandboxId for this sandbox execution. Either package.json#name + whoami or provided by user during `amplify sandbox`
    * @param outputPath optional location provided by customer to write client config to
    */
-  private async writeUpdatedClientConfig(appId: string, outputPath: string) {
+  private async writeUpdatedClientConfig(
+    sandboxId: string,
+    outputPath: string
+  ) {
     await this.clientConfigGenerator.generateClientConfigToFile(
       {
-        appId,
+        backendId: sandboxId,
         branchName: 'sandbox',
       },
       outputPath

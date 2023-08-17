@@ -13,7 +13,7 @@ describe('sandbox delete command', () => {
 
   beforeEach(async () => {
     const sandboxFactory = new SandboxSingletonFactory(() =>
-      Promise.resolve('testAppId')
+      Promise.resolve('testBackendId')
     );
     const sandbox = await sandboxFactory.getInstance();
     sandboxDeleteMock = mock.method(sandbox, 'delete', () =>
