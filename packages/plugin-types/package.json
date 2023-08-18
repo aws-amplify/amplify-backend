@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "types": "lib/index.d.ts",
   "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "update:api": "api-extractor run --local"
   },

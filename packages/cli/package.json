@@ -1,11 +1,14 @@
 {
-  "name": "@aws-amplify/cli",
+  "name": "@aws-amplify/backend-cli",
   "version": "0.0.1",
   "description": "Command line interface for various Amplify tools",
   "bin": {
     "amplify": "lib/amplify.js"
   },
   "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "update:api": "api-extractor run --local",
     "install:local": "npm link"
