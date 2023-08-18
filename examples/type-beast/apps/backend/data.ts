@@ -11,6 +11,8 @@ const schema = a.schema({
     .identifier(['id']),
   Comment: a.model({
     id: a.id(),
+    bingo: a.string(),
+    anotherField: a.string().optional(),
   }),
 });
 

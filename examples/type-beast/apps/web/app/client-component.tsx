@@ -20,7 +20,7 @@ Amplify.Logger.LOG_LEVEL = 'DEBUG';
 const client = API.generateClient<Schema>();
 
 type Post = Schema['Post'];
-type Comment = Schema['Post'];
+type Comment = Schema['Comment'];
 
 export function ClientComponent(): JSX.Element {
   const [res, setRes] = useState<any>();

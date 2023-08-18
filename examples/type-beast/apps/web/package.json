@@ -21,10 +21,6 @@
     "@types/react-dom": "^18.0.7",
     "encoding": "^0.1.13",
     "eslint-config-custom": "*",
-    "typescript": "^5.1.6",
-    "@aws-amplify/backend": "file:../../packages/backend",
-    "@aws-amplify/backend-auth": "file:../../packages/backend-auth",
-    "@aws-amplify/backend-graphql": "file:../../packages/backend-graphql",
-    "@aws-amplify/cli": "file:../../packages/cli"
+    "typescript": "^5.1.6"
   }
 }
