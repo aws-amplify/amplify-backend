@@ -24,11 +24,11 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
-    "@aws-amplify/graphql-construct-alpha": "^0.4.1",
+    "@aws-amplify/graphql-construct-alpha": "^0.5.0",
     "aws-cdk-lib": "2.88.0",
     "constructs": "^10.0.0",
     "source-map-support": "^0.5.21",
     "type-beast": "*",
-    "@aws-amplify/types-package-alpha": "*"
+    "@aws-amplify/types-package-alpha": "api-v6-models"
   }
 }

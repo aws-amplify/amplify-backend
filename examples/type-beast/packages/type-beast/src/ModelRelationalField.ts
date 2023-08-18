@@ -1,19 +1,19 @@
-import { Prettify, SetTypeSubArg } from "./util";
-import type { TempAuthParam } from "./authorization";
+import { Prettify, SetTypeSubArg } from './util';
+import type { TempAuthParam } from './authorization';
 
 export enum ModelRelationshipTypes {
-  hasOne = "hasOne",
-  hasMany = "hasMany",
-  belongsTo = "belongsTo",
-  manyToMany = "manyToMany",
+  hasOne = 'hasOne',
+  hasMany = 'hasMany',
+  belongsTo = 'belongsTo',
+  manyToMany = 'manyToMany',
 }
 
 type RelationshipTypes = `${ModelRelationshipTypes}`;
 
-const arrayTypeRelationships = ["hasMany", "manyToMany"];
+const arrayTypeRelationships = ['hasMany', 'manyToMany'];
 
 type ModelRelationalFieldData = {
-  fieldType: "model";
+  fieldType: 'model';
   type: ModelRelationshipTypes;
   relatedModel: string;
   array: boolean;
@@ -22,7 +22,7 @@ type ModelRelationalFieldData = {
 };
 
 export type ModelRelationalFieldParamShape = {
-  type: "model";
+  type: 'model';
   relationshipType: string;
   relatedModel: string;
   valueOptional: boolean;
@@ -32,21 +32,22 @@ export type ModelRelationalFieldParamShape = {
 
 export type ModelRelationalField<
   T extends ModelRelationalFieldParamShape,
+  // RM adds structural separation with ModelField; easier to identify it when mapping to ClientTypes
   RM extends string,
   K extends keyof ModelRelationalField<T, RM> = never
 > = Omit<
   {
     valueOptional(): ModelRelationalField<
-      SetTypeSubArg<T, "valueOptional", true>,
-      K | "valueOptional"
+      SetTypeSubArg<T, 'valueOptional', true>,
+      K | 'valueOptional'
     >;
     arrayOptional(): ModelRelationalField<
-      SetTypeSubArg<T, "arrayOptional", true>,
-      K | "arrayOptional"
+      SetTypeSubArg<T, 'arrayOptional', true>,
+      K | 'arrayOptional'
     >;
     authorization(
       auth: TempAuthParam
-    ): ModelRelationalField<T, K | "authorization">;
+    ): ModelRelationalField<T, K | 'authorization'>;
   },
   K
 >;
@@ -71,7 +72,7 @@ function _modelRelationalField<
   const data: ModelRelationalFieldData = {
     relatedModel,
     type,
-    fieldType: "model",
+    fieldType: 'model',
     array: false,
     valueOptional: false,
     arrayOptional: false,
@@ -110,7 +111,7 @@ type ModelRelationalTypeArgFactory<
   RT extends RelationshipTypes,
   IsArray extends boolean
 > = {
-  type: "model";
+  type: 'model';
   relatedModel: RM;
   relationshipType: RT;
   array: IsArray;
@@ -149,10 +150,3 @@ export function manyToMany<RM extends string>(relatedModel: RM) {
     ModelRelationshipTypes.manyToMany
   >(ModelRelationshipTypes.manyToMany, relatedModel);
 }
-
-//
-
-const ho = hasOne("Blog");
-const hm = hasMany("Comment");
-
-type TypeArg = typeof hm extends ModelRelationalField<infer R, any> ? R : never;

@@ -1,17 +1,16 @@
-import { default as a, ClientSchema, defineData } from "type-beast";
+import { default as a, ClientSchema, defineData } from 'type-beast';
 
 const schema = a.schema({
-  Post: a.model({
-    id: a.id(),
-    title: a.string(),
-    viewCount: a.integer().optional(),
-    comments: a.hasMany("Comment"),
-  }),
-
+  Post: a
+    .model({
+      id: a.id(),
+      title: a.string(),
+      viewCount: a.integer().optional(),
+      comments: a.hasMany('Comment'),
+    })
+    .identifier(['id']),
   Comment: a.model({
     id: a.id(),
-    bingo: a.string(),
-    anotherField: a.string().optional(),
   }),
 });
 

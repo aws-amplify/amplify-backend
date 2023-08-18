@@ -9,7 +9,7 @@
     "lint": "eslint \"**/*.ts*\""
   },
   "dependencies": {
-    "@aws-amplify/types-package-alpha": "*"
+    "@aws-amplify/types-package-alpha": "api-v6-models"
   },
   "devDependencies": {
     "@tsd/typescript": "^5.1.6",

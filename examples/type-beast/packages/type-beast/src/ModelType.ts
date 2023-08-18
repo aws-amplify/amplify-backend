@@ -1,10 +1,10 @@
-import type { ModelField, InternalField } from "./ModelField";
+import type { ModelField, InternalField } from './ModelField';
 import type {
   ModelRelationalField,
   InternalRelationalField,
-} from "./ModelRelationalField";
-import type { TempAuthParam } from "./authorization";
-import type { SetTypeSubArg } from "./util";
+} from './ModelRelationalField';
+import type { TempAuthParam } from './authorization';
+import type { SetTypeSubArg } from './util';
 
 type ModelFields = Record<
   string,
@@ -33,7 +33,7 @@ export type ModelTypeParamShape = {
 };
 
 type ExtractType<T extends ModelTypeParamShape> = {
-  [FieldProp in keyof T["fields"]]: T["fields"][FieldProp] extends ModelField<
+  [FieldProp in keyof T['fields']]: T['fields'][FieldProp] extends ModelField<
     infer R,
     any
   >
@@ -68,8 +68,8 @@ export type ModelType<
   {
     identifier<ID extends IdentifierType<T> = []>(
       identifier: ID
-    ): ModelType<SetTypeSubArg<T, "identifier", ID>, K | "identifier">;
-    authorization(auth: TempAuthParam): ModelType<T, K | "authorization">;
+    ): ModelType<SetTypeSubArg<T, 'identifier', ID>, K | 'identifier'>;
+    authorization(auth: TempAuthParam): ModelType<T, K | 'authorization'>;
   },
   K
 >;
@@ -82,10 +82,10 @@ export type InternalModel = ModelType<any> & {
   data: InternalModelData;
 };
 
-function _model<T extends ModelTypeParamShape>(fields: T["fields"]) {
+function _model<T extends ModelTypeParamShape>(fields: T['fields']) {
   const data: ModelData = {
     fields,
-    identifier: ["id"],
+    identifier: ['id'],
     authorization: undefined,
   };
 
@@ -107,6 +107,6 @@ function _model<T extends ModelTypeParamShape>(fields: T["fields"]) {
 
 export function model<T extends ModelFields>(
   fields: T
-): ModelType<{ fields: T; identifier: Array<"id"> }> {
+): ModelType<{ fields: T; identifier: Array<'id'> }> {
   return _model(fields);
 }

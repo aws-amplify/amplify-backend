@@ -1,12 +1,12 @@
-"use client";
-import { useState, useEffect } from "react";
-import styles from "./client.module.css";
-import { Amplify, API } from "aws-amplify";
+'use client';
+import { useState, useEffect } from 'react';
+import styles from './client.module.css';
+import { Amplify, API } from 'aws-amplify';
 // this will be an export from aws-amplify/api
-import { SelectionSet } from "./utility-types";
-import { Schema } from "../../backend/data";
-import { default as awsconfig } from "../src/aws-exports";
-import { default as modelIntrospection } from "../src/model-introspection.json";
+import { SelectionSet } from './utility-types';
+import { Schema } from '../../backend/data';
+import { default as awsconfig } from '../src/aws-exports';
+import { default as modelIntrospection } from '../src/model-introspection.json';
 
 Amplify.configure({
   ...awsconfig,
@@ -15,55 +15,12 @@ Amplify.configure({
   },
 });
 
-Amplify.Logger.LOG_LEVEL = "DEBUG";
+Amplify.Logger.LOG_LEVEL = 'DEBUG';
 
 const client = API.generateClient<Schema>();
 
-type Post = Schema["Post"];
-type Comment = Schema["Comment"];
-
-function Post(props: { post: Post }): JSX.Element {
-  const {
-    post,
-    post: { id, title, comments },
-  } = props;
-
-  const [postComments, setPostComments] = useState<Comment[]>([]);
-
-  useEffect(() => {
-    getComments();
-  }, []);
-
-  async function getComments() {
-    // const comments = await comments({nextToken})
-    setPostComments(await comments()); // post.comments()
-  }
-
-  async function addComment() {
-    await client.models.Comment.create({
-      id: "comment" + Math.floor(Math.random() * 1_000_000_000_000),
-      bingo: "Comment " + Date.now(),
-      postCommentsId: id,
-    });
-
-    await getComments();
-  }
-
-  return (
-    <div>
-      <h3>{title}</h3>
-      <div>
-        <h5>Comments</h5>
-        <div>
-          {postComments.map((pc) => {
-            return <p key={pc.id}>{pc.bingo}</p>;
-          })}
-        </div>
-        <button onClick={() => addComment()}>Add Comment</button>
-      </div>
-    </div>
-  );
-}
+type Post = Schema['Post'];
+type Comment = Schema['Post'];
 
 export function ClientComponent(): JSX.Element {
   const [res, setRes] = useState<any>();
@@ -72,8 +29,8 @@ export function ClientComponent(): JSX.Element {
   const btnHandlers = {
     create: async () => {
       const res = await client.models.Post.create({
-        id: "post" + Date.now(),
-        title: "My Post",
+        id: 'post' + Date.now(),
+        title: 'My Post',
       });
 
       const post: Post = res;
@@ -85,7 +42,7 @@ export function ClientComponent(): JSX.Element {
 
       const post = await client.models.Post.get({ id: latest.id });
 
-      console.log("Post", post);
+      console.log('Post', post);
 
       const comments = await post.comments();
 
@@ -93,8 +50,8 @@ export function ClientComponent(): JSX.Element {
     },
     update: async () => {
       const res = await client.models.Post.update({
-        id: "post1",
-        title: "Updated Post",
+        id: 'post1',
+        title: 'Updated Post',
       });
 
       setRes(res);
@@ -111,7 +68,7 @@ export function ClientComponent(): JSX.Element {
         await client.models.Post.delete({ id: post.id });
       }
 
-      setRes("deleted");
+      setRes('deleted');
       setPosts(await client.models.Post.list());
     },
     list: async () => {
@@ -121,26 +78,72 @@ export function ClientComponent(): JSX.Element {
       setPosts(posts);
     },
     listCustom: async () => {
-      // const posts = await client.models.Post.list();
       const posts = await client.models.Post.list({
-        selectionSet: ["id", "title", "comments.*"],
+        selectionSet: ['id', 'title', 'comments.*'],
       });
 
-      console.log("custom sel set", posts);
+      const [post] = posts;
+      post.comments;
+
+      console.log('custom sel set', posts);
 
       setRes(posts);
     },
   };
 
+  function Post(props: { post: Post }): JSX.Element {
+    const {
+      post,
+      post: { id, title, comments },
+    } = props;
+
+    const [postComments, setPostComments] = useState<Comment[]>([]);
+
+    useEffect(() => {
+      getComments();
+    }, []);
+
+    async function getComments() {
+      // const comments = await comments({nextToken})
+      setPostComments(await comments()); // post.comments()
+    }
+
+    async function addComment() {
+      await client.models.Comment.create({
+        id: 'comment' + Math.floor(Math.random() * 1_000_000_000_000),
+        bingo: 'Comment ' + Date.now(),
+        // make the FK required unless the relationship is optional on the parent model
+        postCommentsId: id,
+      });
+
+      await getComments();
+    }
+
+    return (
+      <div>
+        <h3>{title}</h3>
+        <div>
+          <h5>Comments</h5>
+          <div>
+            {postComments.map((pc) => {
+              return <p key={pc.id}>{pc.bingo}</p>;
+            })}
+          </div>
+          <button onClick={() => addComment()}>Add Comment</button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className={styles.buttons}>
-        <button onClick={btnHandlers["create"]}>Create</button>
-        <button onClick={btnHandlers["get"]}>Get</button>
-        <button onClick={btnHandlers["update"]}>Update</button>
-        <button onClick={btnHandlers["delete"]}>Delete All</button>
-        <button onClick={btnHandlers["list"]}>List</button>
-        <button onClick={btnHandlers["listCustom"]}>
+        <button onClick={btnHandlers['create']}>Create</button>
+        <button onClick={btnHandlers['get']}>Get</button>
+        <button onClick={btnHandlers['update']}>Update</button>
+        <button onClick={btnHandlers['delete']}>Delete All</button>
+        <button onClick={btnHandlers['list']}>List</button>
+        <button onClick={btnHandlers['listCustom']}>
           List (Custom sel. set)
         </button>
       </div>

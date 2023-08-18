@@ -1,28 +1,28 @@
-import { Brand } from "./util";
+import { Brand } from './util';
 
 export enum ModelFieldType {
-  Id = "ID",
-  String = "String",
-  Integer = "Int",
-  Float = "Float",
-  Boolean = "Boolean",
-  Date = "AWSDate",
-  Time = "AWSTime",
-  DateTime = "AWSDateTime",
-  Timestamp = "AWSTimestamp",
-  Email = "AWSEmail",
-  JSON = "AWSJSON",
-  Phone = "AWSPhone",
-  Url = "AWSURL",
-  IPAddress = "AWSIPAddress",
+  Id = 'ID',
+  String = 'String',
+  Integer = 'Int',
+  Float = 'Float',
+  Boolean = 'Boolean',
+  Date = 'AWSDate',
+  Time = 'AWSTime',
+  DateTime = 'AWSDateTime',
+  Timestamp = 'AWSTimestamp',
+  Email = 'AWSEmail',
+  JSON = 'AWSJSON',
+  Phone = 'AWSPhone',
+  Url = 'AWSURL',
+  IPAddress = 'AWSIPAddress',
 }
 
 export enum ModelFieldDataType {
-  String = "string",
-  Number = "number",
-  Boolean = "boolean",
-  Date = "Date",
-  JSON = "any",
+  String = 'string',
+  Number = 'number',
+  Boolean = 'boolean',
+  Date = 'Date',
+  JSON = 'any',
 }
 
 type FieldMeta = {
@@ -55,13 +55,14 @@ type ToArray<T> = [T] extends [ModelFieldTypeParamInner] ? Array<T> : never;
  */
 export type ModelField<
   T extends ModelFieldTypeParamOuter,
+  // rename K
   K extends keyof ModelField<T> = never
 > = Omit<
   {
-    optional(): ModelField<T | null, K | "optional">;
+    optional(): ModelField<T | null, K | 'optional'>;
     // Exclude `optional` after calling array, because both the value and the array itself can be optional
-    array(): ModelField<ToArray<T>, Exclude<K, "optional"> | "array">;
-    default(val: string): ModelField<T, K | "default">;
+    array(): ModelField<ToArray<T>, Exclude<K, 'optional'> | 'array'>;
+    default(val: string): ModelField<T, K | 'default'>;
   },
   K
 >;
@@ -101,25 +102,25 @@ function _field<T extends ModelFieldTypeParamOuter>(fieldType: ModelFieldType) {
 
   const builder: ModelField<T> = {
     optional() {
-      if (_meta.lastInvokedMethod === "array") {
+      if (_meta.lastInvokedMethod === 'array') {
         data.arrayOptional = true;
       } else {
         data.optional = true;
       }
 
-      _meta.lastInvokedMethod = "optional";
+      _meta.lastInvokedMethod = 'optional';
 
       return this;
     },
     array(): ModelField<ToArray<T>> {
       data.array = true;
-      _meta.lastInvokedMethod = "array";
+      _meta.lastInvokedMethod = 'array';
 
       return this;
     },
     default(val) {
       data.default = val;
-      _meta.lastInvokedMethod = "default";
+      _meta.lastInvokedMethod = 'default';
 
       return this;
     },
