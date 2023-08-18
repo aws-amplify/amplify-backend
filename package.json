@@ -17,6 +17,7 @@
     "lint:fix": "eslint --cache --fix . && prettier --write .",
     "new": "tsx scripts/copy_template.ts",
     "prepare": "husky install",
+    "publish:alpha": "tsx scripts/publish.ts alpha",
     "publish:snapshot:local": "npm_config_registry=http://localhost:4873/ tsx scripts/publish_snapshot.ts",
     "start:npm-proxy": "tsx scripts/start_npm_proxy.ts",
     "stop:npm-proxy": "tsx scripts/stop_npm_proxy.ts",
