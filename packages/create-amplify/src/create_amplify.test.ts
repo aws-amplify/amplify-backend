@@ -58,7 +58,7 @@ describe('create-amplify script', async () => {
         '@aws-amplify/backend',
         '@aws-amplify/backend-auth',
         '@aws-amplify/backend-graphql',
-        '@aws-amplify/cli',
+        '@aws-amplify/backend-cli',
         'aws-amplify',
       ]
     );

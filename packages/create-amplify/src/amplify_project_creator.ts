@@ -11,7 +11,7 @@ export class AmplifyProjectCreator {
     '@aws-amplify/backend',
     '@aws-amplify/backend-graphql',
     '@aws-amplify/backend-auth',
-    '@aws-amplify/cli',
+    '@aws-amplify/backend-cli',
     'aws-amplify',
   ];
 

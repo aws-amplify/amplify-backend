@@ -2,6 +2,9 @@
   "name": "@aws-amplify/auth-construct",
   "version": "0.1.0",
   "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
   "exports": {
     ".": {
       "types": "./lib/index.d.ts",
