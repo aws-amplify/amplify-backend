@@ -24,7 +24,7 @@
 <p>If dirPath is an absolute path, it points to the directory
 If dirPath is relative, the directory is located at path.resolve(&lt;this file location&gt;, relativeDirPath)
 Each subdirectory is the name of the test
-Within each test directory is an index.ts file that contains the <code>new Backend({...})</code> entry point
+Within each test directory is a backend.ts file that contains the <code>new Backend({...})</code> entry point
 Within each test directory is an <code>expected-cdk-out</code> directory that contains a snapshot of the expected synthesis result of the backend</p>
 </div>
 <div class="tsd-parameters">
@@ -34,11 +34,11 @@ Within each test directory is an <code>expected-cdk-out</code> directory that co
 <h5><span class="tsd-kind-parameter">dirPath</span>: <span class="tsd-signature-type">string</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="../types/_aws_amplify_integration_tests.CDKSynthSnapshotTestCase.html" class="tsd-signature-type tsd-kind-type-alias">CDKSynthSnapshotTestCase</a><span class="tsd-signature-symbol">[]</span></h4>
 <div class="tsd-comment tsd-typography">
-<h4>Example</h4><pre><code class="language-ts"><span class="hl-2">\&lt;</span><span class="hl-5">relativeDirRoot</span><span class="hl-2">\&gt;</span><br/><span class="hl-2">    </span><span class="hl-5">test</span><span class="hl-2">-</span><span class="hl-5">name</span><span class="hl-2">-</span><span class="hl-8">1</span><br/><span class="hl-2">      </span><span class="hl-5">index</span><span class="hl-2">.</span><span class="hl-5">ts</span><br/><span class="hl-2">      </span><span class="hl-5">expected</span><span class="hl-2">-</span><span class="hl-5">cdk</span><span class="hl-2">-</span><span class="hl-5">out</span><br/><span class="hl-2">    </span><span class="hl-5">test</span><span class="hl-2">-</span><span class="hl-5">name</span><span class="hl-2">-</span><span class="hl-8">2</span><br/><span class="hl-2">      </span><span class="hl-5">index</span><span class="hl-2">.</span><span class="hl-5">ts</span><br/><span class="hl-2">      </span><span class="hl-5">expected</span><span class="hl-2">-</span><span class="hl-5">cdk</span><span class="hl-2">-</span><span class="hl-5">out</span>
+<h4>Example</h4><pre><code class="language-ts"><span class="hl-2">\&lt;</span><span class="hl-5">relativeDirRoot</span><span class="hl-2">\&gt;</span><br/><span class="hl-2">    </span><span class="hl-5">test</span><span class="hl-2">-</span><span class="hl-5">name</span><span class="hl-2">-</span><span class="hl-8">1</span><br/><span class="hl-2">      </span><span class="hl-5">backend</span><span class="hl-2">.</span><span class="hl-5">ts</span><br/><span class="hl-2">      </span><span class="hl-5">expected</span><span class="hl-2">-</span><span class="hl-5">cdk</span><span class="hl-2">-</span><span class="hl-5">out</span><br/><span class="hl-2">    </span><span class="hl-5">test</span><span class="hl-2">-</span><span class="hl-5">name</span><span class="hl-2">-</span><span class="hl-8">2</span><br/><span class="hl-2">      </span><span class="hl-5">backend</span><span class="hl-2">.</span><span class="hl-5">ts</span><br/><span class="hl-2">      </span><span class="hl-5">expected</span><span class="hl-2">-</span><span class="hl-5">cdk</span><span class="hl-2">-</span><span class="hl-5">out</span>
 </code><button>Copy</button></pre>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/b41a768/packages/integration-tests/src/cdk_snapshot_test_suite_generator.ts#L23">cdk_snapshot_test_suite_generator.ts:23</a></li></ul></aside></li></ul></section></div>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/2176bfd/packages/integration-tests/src/cdk_snapshot_test_suite_generator.ts#L23">cdk_snapshot_test_suite_generator.ts:23</a></li></ul></aside></li></ul></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -66,6 +66,7 @@ Within each test directory is an <code>expected-cdk-out</code> directory that co
 <li><a href="../modules/_aws_amplify_backend_storage.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@aws-<wbr/>amplify/backend-<wbr/>storage</span></a></li>
 <li><a href="../modules/_aws_amplify_cli.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@aws-<wbr/>amplify/cli</span></a></li>
 <li><a href="../modules/_aws_amplify_client_config.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@aws-<wbr/>amplify/client-<wbr/>config</span></a></li>
+<li><a href="../modules/create_amplify.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>create-<wbr/>amplify</span></a></li>
 <li><a href="../modules/_aws_amplify_function_construct.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@aws-<wbr/>amplify/function-<wbr/>construct</span></a></li>
 <li>
 <details class="tsd-index-accordion" open data-key="@aws-amplify/integration-tests"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><use href="#icon-chevronDown"></use></svg><a href="../modules/_aws_amplify_integration_tests.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@aws-<wbr/>amplify/integration-<wbr/>tests</span></a></summary>
