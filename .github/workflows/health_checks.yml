@@ -182,9 +182,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          # for some reason the changeset status command fails unless the job is using node 16
-          # https://github.com/changesets/changesets/issues/1055
-          node-version: 16
+          node-version: 18
           cache: 'npm'
       # restore node_modules from cache
       - uses: actions/cache@v3
@@ -194,7 +192,7 @@ jobs:
           key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}
           fail-on-cache-miss: true
       - run: git fetch origin
-      - run: npx changeset status
+      - run: npx changeset status --since ${{ github.event.pull_request.base.sha }}
 
   codeql:
     runs-on: ubuntu-latest
