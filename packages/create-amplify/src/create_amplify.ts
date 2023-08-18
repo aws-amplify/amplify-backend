@@ -8,8 +8,8 @@
  */
 
 import { NpmPackageManagerController } from './npm_package_manager_controller.js';
-import { NoAmplifyDirValidator } from './no_amplify_dir_validator.js';
-import { CreateAmplifyRunner } from './create_amplify_runner.js';
+import { ProjectRootValidator } from './project_root_validator.js';
+import { AmplifyProjectCreator } from './amplify_project_creator.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
 
 /*
@@ -19,14 +19,14 @@ import { InitialProjectFileGenerator } from './initial_project_file_generator.js
  */
 const projectRoot = process.cwd();
 
-const createAmplifyRunner = new CreateAmplifyRunner(
+const amplifyProjectCreator = new AmplifyProjectCreator(
   new NpmPackageManagerController(projectRoot),
-  new NoAmplifyDirValidator(projectRoot),
+  new ProjectRootValidator(projectRoot),
   new InitialProjectFileGenerator(projectRoot)
 );
 
 try {
-  await createAmplifyRunner.run();
+  await amplifyProjectCreator.create();
 } catch (err) {
   console.error(err instanceof Error ? err.message : err);
   process.exitCode = 1;

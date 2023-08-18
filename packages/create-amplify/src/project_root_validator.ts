@@ -4,9 +4,9 @@ import * as path from 'path';
 /**
  *
  */
-export class NoAmplifyDirValidator {
+export class ProjectRootValidator {
   /**
-   * Checks that a file or directory named 'amplify' does not already exist in the projectRoot
+   * Validates that the given projectRoot path is a valid target for a new Amplify project
    */
   constructor(
     private readonly projectRoot: string,

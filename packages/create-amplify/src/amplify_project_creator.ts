@@ -1,11 +1,11 @@
 import { PackageManagerController } from './package_manager_controller.js';
-import { NoAmplifyDirValidator } from './no_amplify_dir_validator.js';
+import { ProjectRootValidator } from './project_root_validator.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
 
 /**
  *
  */
-export class CreateAmplifyRunner {
+export class AmplifyProjectCreator {
   // TODO once we create `aws-amplify-backend` that will be included here
   private readonly defaultPackages = [
     '@aws-amplify/backend',
@@ -21,7 +21,7 @@ export class CreateAmplifyRunner {
    */
   constructor(
     private readonly packageManagerController: PackageManagerController,
-    private readonly dirValidator: NoAmplifyDirValidator,
+    private readonly projectRootValidator: ProjectRootValidator,
     private readonly initialProjectFileGenerator: InitialProjectFileGenerator,
     private readonly logger: typeof console = console
   ) {}
@@ -29,9 +29,9 @@ export class CreateAmplifyRunner {
   /**
    * Executes the create-amplify workflow
    */
-  async run(): Promise<void> {
+  async create(): Promise<void> {
     this.logger.log(`Validating current state of target directory...`);
-    await this.dirValidator.validate();
+    await this.projectRootValidator.validate();
 
     this.logger.log(
       `Installing packages ${this.defaultPackages.join(', ')}...`
