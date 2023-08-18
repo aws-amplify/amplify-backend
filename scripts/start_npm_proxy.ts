@@ -4,7 +4,7 @@ import { readFile, unlink } from 'fs/promises';
 
 const EXPECTED_URL = 'http://localhost:4873';
 const LOG_FILE = 'verdaccio-logs.txt';
-const STARTUP_TIMEOUT_MS = 1000;
+const STARTUP_TIMEOUT_MS = 10000;
 
 /**
  * Starts [Verdaccio](https://verdaccio.org/) in a background process.

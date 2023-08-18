@@ -62,6 +62,10 @@ const runCDKSnapshotTest = ({
     assert.ok(synth, 'Could not find synth listener in beforeExit listeners');
     synth(0);
 
+    // remove the synth listener now that it's been executed
+    // this allows other tests to run their synth command successfully
+    process.removeAllListeners('beforeExit');
+
     // now check that the synth output matches the expected output
     assert.ok(
       process.env.CDK_OUTDIR,
