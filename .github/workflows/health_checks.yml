@@ -192,7 +192,7 @@ jobs:
           key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}
           fail-on-cache-miss: true
       - run: git fetch origin
-      - run: npx changeset status --since main
+      - run: npx changeset status
 
   codeql:
     runs-on: ubuntu-latest
