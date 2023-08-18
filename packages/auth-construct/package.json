@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/auth-construct",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -17,10 +17,10 @@
     "update:api": "api-extractor run --local"
   },
   "dependencies": {
-    "@aws-amplify/backend-output-schemas": "^0.1.0"
+    "@aws-amplify/backend-output-schemas": "^0.1.1"
   },
   "peerDependencies": {
-    "@aws-amplify/plugin-types": "^0.1.0",
+    "@aws-amplify/plugin-types": "^0.1.1",
     "aws-cdk-lib": "~2.80.0",
     "constructs": "^10.0.0"
   }
