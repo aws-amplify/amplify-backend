@@ -1,5 +1,5 @@
 import { execa } from 'execa';
-import { runPublish } from './publish.js';
+import { runPublish } from './publish_helper.js';
 
 const result = await execa('git', ['diff', '--quiet'], { reject: false });
 if (result.exitCode !== 0) {
