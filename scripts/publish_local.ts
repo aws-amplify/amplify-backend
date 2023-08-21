@@ -15,19 +15,18 @@ if (result.exitCode !== 0) {
   );
 }
 
-// this command will write staged changesets into changelog files and update version
+// this command will write staged changesets into changelog files and update versions
 // this is reverted at the end of this script
-await execa('changeset', ['version', '--snapshot', tagName], {
+await execa('changeset', ['version'], {
   stdio: 'inherit',
 });
-// To change the registry that changeset publishes to, set the `npm_config_registry` environment variable
-await execa(
-  'changeset',
-  ['publish', '--snapshot', '--no-git-tag', '--tag', tagName],
-  {
-    stdio: 'inherit',
-  }
-);
+await execa('changeset', ['publish', '--no-git-tag', '--tag', tagName], {
+  stdio: 'inherit',
+  env: {
+    // publishes to the local registry
+    npm_config_registry: 'http://localhost:4873/',
+  },
+});
 
 // this is safe because the script ensures the working tree is clean before starting
 await execa('git', ['reset', '--hard']);

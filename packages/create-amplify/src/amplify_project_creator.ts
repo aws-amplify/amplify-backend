@@ -7,11 +7,13 @@ import { InitialProjectFileGenerator } from './initial_project_file_generator.js
  */
 export class AmplifyProjectCreator {
   // TODO once we create `aws-amplify-backend` that will be included here
+  // TODO LAUNCH BLOCKER: remove @alpha suffix from packages once the packages are being published to latest
+  // https://github.com/aws-amplify/samsara-cli/issues/144
   private readonly defaultPackages = [
-    '@aws-amplify/backend',
-    '@aws-amplify/backend-graphql',
-    '@aws-amplify/backend-auth',
-    '@aws-amplify/backend-cli',
+    '@aws-amplify/backend@alpha',
+    '@aws-amplify/backend-graphql@alpha',
+    '@aws-amplify/backend-auth@alpha',
+    '@aws-amplify/backend-cli@alpha',
     'aws-amplify',
   ];
 
