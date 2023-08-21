@@ -1,13 +1,6 @@
 import { execa } from 'execa';
 import { runPublish } from './publish.js';
 
-const tag = process.argv[2];
-if (tag === undefined) {
-  throw new Error(
-    `Specify a tag name for the snapshot publish as the first and only argument`
-  );
-}
-
 const result = await execa('git', ['diff', '--quiet'], { reject: false });
 if (result.exitCode !== 0) {
   // non-zero exit code indicates working tree is dirty
@@ -25,7 +18,6 @@ await execa('changeset', ['version'], {
 await runPublish({
   includeGitTags: false,
   useLocalRegistry: true,
-  tagName: tag,
 });
 
 // this is safe because the script ensures the working tree is clean before starting
