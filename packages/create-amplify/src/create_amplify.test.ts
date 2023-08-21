@@ -43,8 +43,10 @@ describe('create-amplify script', async () => {
   });
 
   it('installs expected packages and scaffolds expected files', async () => {
+    // TODO remove alpha tag from command once we are publishing to latest
+    // https://github.com/aws-amplify/samsara-cli/issues/144
     // the --yes flag here is to bypass a npm prompt to install the create-amplify package, it's not a prompt we control
-    await execa('npm', ['create', 'amplify', '--yes'], {
+    await execa('npm', ['create', 'amplify@alpha', '--yes'], {
       cwd: tempDir,
       stdio: 'inherit',
     });

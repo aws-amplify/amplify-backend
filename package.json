@@ -17,8 +17,8 @@
     "lint:fix": "eslint --cache --fix . && prettier --write .",
     "new": "tsx scripts/copy_template.ts",
     "prepare": "husky install",
-    "publish:alpha": "tsx scripts/publish.ts alpha",
-    "publish:snapshot:local": "npm_config_registry=http://localhost:4873/ tsx scripts/publish_snapshot.ts",
+    "publish": "tsx scripts/publish.ts",
+    "publish:local": "tsx scripts/publish_local.ts",
     "start:npm-proxy": "tsx scripts/start_npm_proxy.ts",
     "stop:npm-proxy": "tsx scripts/stop_npm_proxy.ts",
     "test": "tsx --test --test-reporter spec",
@@ -27,7 +27,7 @@
     "update:api": "npm run update:api --workspaces",
     "update:integration-snapshots": "UPDATE_INTEGRATION_SNAPSHOTS=true npm run test packages/integration-tests",
     "update:tsconfig-refs": "tsx scripts/update_tsconfig_refs.ts",
-    "vend": "npm run start:npm-proxy && npm run publish:snapshot:local latest",
+    "vend": "npm run start:npm-proxy && npm run publish:local",
     "watch": "npm run build -- --watch"
   },
   "repository": {
