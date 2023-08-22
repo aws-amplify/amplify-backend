@@ -14,7 +14,8 @@
   },
   "types": "lib/index.d.ts",
   "scripts": {
-    "update:api": "api-extractor run --local"
+    "update:api": "api-extractor run --local",
+    "install:local": "npm link"
   },
   "dependencies": {
     "@aws-amplify/backend-output-schemas": "^0.1.0",
