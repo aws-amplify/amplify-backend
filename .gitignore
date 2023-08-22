@@ -12,3 +12,4 @@ tsconfig.tsbuildinfo
 .DS_Store
 verdaccio-cache
 verdaccio-logs.txt
+cdk.out/

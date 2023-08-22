@@ -1,14 +1,15 @@
 import debounce from 'debounce-promise';
 import parcelWatcher, { subscribe } from '@parcel/watcher';
-import { AmplifyCDKExecutor, CDKCommand } from './cdk_executor.js';
+import { InvokableCommand } from '@aws-amplify/backend-deployer';
+import { AmplifySandboxExecutor } from './sandbox_executor.js';
 import { Sandbox, SandboxDeleteOptions, SandboxOptions } from './sandbox.js';
 import { ClientConfigGeneratorAdapter } from './config/client_config_generator_adapter.js';
 import path from 'path';
 
 /**
- * Runs a file watcher and deploys using cdk
+ * Runs a file watcher and deploys
  */
-export class CDKSandbox implements Sandbox {
+export class SandboxManager implements Sandbox {
   private watcherSubscription: Awaited<ReturnType<typeof subscribe>>;
   private outputFilesExcludedFromWatch = ['cdk.out'];
   /**
@@ -17,7 +18,7 @@ export class CDKSandbox implements Sandbox {
   constructor(
     private readonly sandboxId: string,
     private readonly clientConfigGenerator: ClientConfigGeneratorAdapter,
-    private readonly cdkExecutor: AmplifyCDKExecutor = new AmplifyCDKExecutor()
+    private readonly executor: AmplifySandboxExecutor = new AmplifySandboxExecutor()
   ) {
     process.once('SIGINT', this.stop.bind(this));
     process.once('SIGTERM', this.stop.bind(this));
@@ -63,7 +64,7 @@ export class CDKSandbox implements Sandbox {
 
     const deployAndWatch = debounce(async () => {
       latch = 'deploying';
-      await this.cdkExecutor.invokeCDKWithDebounce(CDKCommand.DEPLOY, {
+      await this.executor.invokeWithDebounce(InvokableCommand.DEPLOY, {
         backendId: sandboxId,
         branchName: 'sandbox',
       });
@@ -78,7 +79,7 @@ export class CDKSandbox implements Sandbox {
         console.log(
           "[Sandbox] Detected file changes while previous deployment was in progress. Invoking 'sandbox' again"
         );
-        await this.cdkExecutor.invokeCDKWithDebounce(CDKCommand.DEPLOY, {
+        await this.executor.invokeWithDebounce(InvokableCommand.DEPLOY, {
           backendId: sandboxId,
           branchName: 'sandbox',
         });
@@ -137,7 +138,7 @@ export class CDKSandbox implements Sandbox {
     console.log(
       '[Sandbox] Deleting all the resources in the sandbox environment...'
     );
-    await this.cdkExecutor.invokeCDKWithDebounce(CDKCommand.DESTROY, {
+    await this.executor.invokeWithDebounce(InvokableCommand.DESTROY, {
       backendId: sandboxAppId,
       branchName: 'sandbox',
     });

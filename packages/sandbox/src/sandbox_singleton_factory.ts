@@ -1,4 +1,4 @@
-import { CDKSandbox } from './cdk_sandbox.js';
+import { SandboxManager } from './sandbox_manager.js';
 import { Sandbox } from './sandbox.js';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { ClientConfigGeneratorAdapter } from './config/client_config_generator_adapter.js';
@@ -25,7 +25,7 @@ export class SandboxSingletonFactory {
    */
   async getInstance(): Promise<Sandbox> {
     if (!this.instance) {
-      this.instance = new CDKSandbox(
+      this.instance = new SandboxManager(
         await this.sandboxIdResolver(),
         this.clientConfigGenerator
       );

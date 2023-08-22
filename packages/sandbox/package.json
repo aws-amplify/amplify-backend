@@ -17,12 +17,12 @@
     "update:api": "api-extractor run --local"
   },
   "dependencies": {
+    "@aws-amplify/backend-deployer": "0.1.0",
     "@aws-amplify/client-config": "0.1.1-alpha.0",
     "@aws-sdk/credential-providers": "^3.382.0",
     "@aws-sdk/types": "^3.378.0",
     "@parcel/watcher": "^2.1.0",
-    "debounce-promise": "^3.1.2",
-    "execa": "^7.1.1"
+    "debounce-promise": "^3.1.2"
   },
   "devDependencies": {
     "@types/debounce-promise": "^3.1.6"

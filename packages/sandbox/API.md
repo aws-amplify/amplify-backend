@@ -4,6 +4,15 @@
 
 ```ts
 
+import { InvokableCommand } from '@aws-amplify/backend-deployer';
+import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+
+// @public
+export class AmplifySandboxExecutor {
+    constructor();
+    invokeWithDebounce: (invokableCommand: InvokableCommand, uniqueBackendIdentifier?: UniqueBackendIdentifier | undefined) => Promise<void>;
+}
+
 // @public
 export type Sandbox = {
     start(options: SandboxOptions): Promise<void>;

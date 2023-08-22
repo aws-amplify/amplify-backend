@@ -1,8 +1,5 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": { "rootDir": "src", "outDir": "lib" },
-  "references": [
-    { "path": "../backend-deployer" },
-    { "path": "../client-config" }
-  ]
+  "references": [{ "path": "../plugin-types" }]
 }

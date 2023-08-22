@@ -1,0 +1,21 @@
+{
+  "name": "@aws-amplify/backend-deployer",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "import": "./lib/index.js",
+      "require": "./lib/index.js"
+    }
+  },
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "update:api": "api-extractor run --local"
+  },
+  "dependencies": {
+    "@aws-amplify/plugin-types": "^0.1.0",
+    "execa": "^7.2.0",
+    "tsx": "^3.12.6"
+  }
+}

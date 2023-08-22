@@ -60,7 +60,7 @@ To publish a snapshot to an already running npm proxy run `npm run publish:snaps
 This repo uses a monorepo structure managed by npm workspaces. All the packages in the workspace are under `packages/*`
 
 There are package templates for some common scenarios in the `templates` directory.
-These templates can be copied to a new package directory using `npm run new --template=<template> --name=<new name>`
+These templates can be copied to a new package directory using `npm run new -- --template=<template> --name=<new name>`
 `--template` specifies which template to use and `--name` specifies the new package name.
 Valid templates are the directories in the `templates` directory
 
