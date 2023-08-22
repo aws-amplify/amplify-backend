@@ -1,31 +1,10 @@
 import isCI from 'is-ci';
-import { AmplifyClient, GetAppCommand } from '@aws-sdk/client-amplify';
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
-import {
-  BackendDeployer,
-  InvokableCommand,
-} from '@aws-amplify/backend-deployer';
+import { BackendDeployer } from '@aws-amplify/backend-deployer';
 
 export type PipelineDeployCommandOptions = {
   branch: string;
   appId: string;
-};
-
-const ensureAppIsAvailable = async (appId: string): Promise<void> => {
-  const client = new AmplifyClient();
-  const command = new GetAppCommand({ appId });
-  try {
-    const output = await client.send(command);
-    if (!output.app) {
-      throw new Error(
-        `Failed request for app ${appId}: ${JSON.stringify(output, null, 2)}`
-      );
-    }
-  } catch (error) {
-    throw new Error(
-      'The provided App Id does not exist in the configured region, or you do not have permission to access it.'
-    );
-  }
 };
 
 /**
@@ -65,16 +44,12 @@ export class PipelineDeployCommand
       );
     }
 
-    await ensureAppIsAvailable(args.appId);
     const uniqueBackendIdentifier = {
       backendId: args.appId,
       branchName: args.branch,
     };
 
-    await this.backendDeployer.invoke(
-      InvokableCommand.DEPLOY,
-      uniqueBackendIdentifier
-    );
+    await this.backendDeployer.deploy(uniqueBackendIdentifier);
   }
 
   builder = (yargs: Argv): Argv<PipelineDeployCommandOptions> => {

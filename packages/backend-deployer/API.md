@@ -9,7 +9,9 @@ import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 // @public
 export interface BackendDeployer {
     // (undocumented)
-    invoke: (invokableCommand: InvokableCommand, uniqueBackendIdentifier?: UniqueBackendIdentifier, invokableCommandProps?: InvokableCommandProps) => Promise<void>;
+    deploy: (uniqueBackendIdentifier?: UniqueBackendIdentifier, deployCommandProps?: DeployCommandProps) => Promise<void>;
+    // (undocumented)
+    destroy: (uniqueBackendIdentifier?: UniqueBackendIdentifier, destroyCommandProps?: DestroyCommandProps) => Promise<void>;
 }
 
 // @public
@@ -19,9 +21,23 @@ export class BackendDeployerSingletonFactory {
 
 // @public
 export class CDKDeployer implements BackendDeployer {
+    // (undocumented)
+    deploy: (uniqueBackendIdentifier?: UniqueBackendIdentifier, deployCommandProps?: DeployCommandProps) => Promise<void>;
+    // (undocumented)
+    destroy: (uniqueBackendIdentifier?: UniqueBackendIdentifier, destroyCommandProps?: DestroyCommandProps) => Promise<void>;
     executeChildProcess: (command: string, cdkCommandArgs: string[]) => Promise<void>;
-    invoke: (invokableCommand: InvokableCommand, uniqueBackendIdentifier?: UniqueBackendIdentifier, invokableCommandProps?: InvokableCommandProps) => Promise<void>;
 }
+
+// @public (undocumented)
+export type DeployCommandProps = {
+    hotswapFallback?: boolean;
+    method?: 'direct';
+};
+
+// @public (undocumented)
+export type DestroyCommandProps = {
+    force?: boolean;
+};
 
 // @public
 export enum InvokableCommand {
@@ -30,13 +46,6 @@ export enum InvokableCommand {
     // (undocumented)
     DESTROY = "destroy"
 }
-
-// @public
-export type InvokableCommandProps = {
-    force?: boolean;
-    hotswapFallback?: boolean;
-    method?: 'direct';
-};
 
 // (No @packageDocumentation comment for this package)
 
