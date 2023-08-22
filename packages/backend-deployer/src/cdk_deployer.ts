@@ -14,10 +14,13 @@ const relativeBackendEntryPoint = 'amplify/backend.ts';
  * Invokes CDK command via execa
  */
 export class CDKDeployer implements BackendDeployer {
-  deploy = async (
+  /**
+   * Invokes cdk deploy command
+   */
+  async deploy(
     uniqueBackendIdentifier?: UniqueBackendIdentifier,
     deployCommandProps?: DeployCommandProps
-  ) => {
+  ) {
     const cdkCommandArgs: string[] = [];
     if (deployCommandProps?.hotswapFallback) {
       cdkCommandArgs.push('--hotswap-fallback');
@@ -30,12 +33,15 @@ export class CDKDeployer implements BackendDeployer {
       uniqueBackendIdentifier,
       cdkCommandArgs
     );
-  };
+  }
 
-  destroy = async (
+  /**
+   * Invokes cdk destroy command
+   */
+  async destroy(
     uniqueBackendIdentifier?: UniqueBackendIdentifier,
     destroyCommandProps?: DestroyCommandProps
-  ) => {
+  ) {
     const cdkCommandArgs: string[] = [];
     if (destroyCommandProps?.force) {
       cdkCommandArgs.push('--force');
@@ -45,16 +51,16 @@ export class CDKDeployer implements BackendDeployer {
       uniqueBackendIdentifier,
       cdkCommandArgs
     );
-  };
+  }
 
   /**
    * Executes a CDK command
    */
-  private invoke = async (
+  private async invoke(
     invokableCommand: InvokableCommand,
     uniqueBackendIdentifier?: UniqueBackendIdentifier,
     additionalArguments?: string[]
-  ) => {
+  ) {
     // Basic args
     const cdkCommandArgs = [
       'cdk',
@@ -81,7 +87,7 @@ export class CDKDeployer implements BackendDeployer {
     }
 
     await this.executeChildProcess('npx', cdkCommandArgs);
-  };
+  }
 
   /**
    * Wrapper for the child process executor. Helps in unit testing as node:test framework

@@ -1,7 +1,6 @@
 import debounce from 'debounce-promise';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import {
-  BackendDeployerSingletonFactory,
   InvokableCommand,
   BackendDeployer,
 } from '@aws-amplify/backend-deployer';
@@ -9,14 +8,10 @@ import {
  * Execute CDK commands.
  */
 export class AmplifySandboxExecutor {
-  private backendDeployer: BackendDeployer;
-
   /**
    * Creates an AmplifySandboxExecutor instance
    */
-  constructor() {
-    this.backendDeployer = BackendDeployerSingletonFactory.getInstance();
-  }
+  constructor(private readonly backendDeployer: BackendDeployer) {}
 
   /**
    * Function that deploys backend resources using CDK.

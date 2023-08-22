@@ -1,8 +1,6 @@
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import { CDKDeployer } from './cdk_deployer.js';
 
-export * from './cdk_deployer.js';
-
 /**
  * Commands that can be invoked
  */

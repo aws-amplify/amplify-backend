@@ -2,6 +2,9 @@
   "name": "@aws-amplify/backend-deployer",
   "version": "0.1.0",
   "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
   "exports": {
     ".": {
       "types": "./lib/index.d.ts",

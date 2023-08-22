@@ -19,15 +19,6 @@ export class BackendDeployerSingletonFactory {
     static getInstance(): BackendDeployer;
 }
 
-// @public
-export class CDKDeployer implements BackendDeployer {
-    // (undocumented)
-    deploy: (uniqueBackendIdentifier?: UniqueBackendIdentifier, deployCommandProps?: DeployCommandProps) => Promise<void>;
-    // (undocumented)
-    destroy: (uniqueBackendIdentifier?: UniqueBackendIdentifier, destroyCommandProps?: DestroyCommandProps) => Promise<void>;
-    executeChildProcess: (command: string, cdkCommandArgs: string[]) => Promise<void>;
-}
-
 // @public (undocumented)
 export type DeployCommandProps = {
     hotswapFallback?: boolean;

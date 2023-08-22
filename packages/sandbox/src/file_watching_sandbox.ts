@@ -9,7 +9,7 @@ import path from 'path';
 /**
  * Runs a file watcher and deploys
  */
-export class SandboxManager implements Sandbox {
+export class FileWatchingSandbox implements Sandbox {
   private watcherSubscription: Awaited<ReturnType<typeof subscribe>>;
   private outputFilesExcludedFromWatch = ['cdk.out'];
   /**
@@ -18,7 +18,7 @@ export class SandboxManager implements Sandbox {
   constructor(
     private readonly sandboxId: string,
     private readonly clientConfigGenerator: ClientConfigGeneratorAdapter,
-    private readonly executor: AmplifySandboxExecutor = new AmplifySandboxExecutor()
+    private readonly executor: AmplifySandboxExecutor
   ) {
     process.once('SIGINT', this.stop.bind(this));
     process.once('SIGTERM', this.stop.bind(this));

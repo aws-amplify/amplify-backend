@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import watcher from '@parcel/watcher';
-import { SandboxManager } from './sandbox_manager.js';
+import { FileWatchingSandbox } from './file_watching_sandbox.js';
 import assert from 'node:assert';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
 import { ClientConfigGeneratorAdapter } from './config/client_config_generator_adapter.js';
@@ -33,16 +33,16 @@ const execaDestroyMock = mock.method(backendDeployer, 'destroy', () =>
 );
 describe('Sandbox using local project name resolver', () => {
   // class under test
-  let sandboxInstance: SandboxManager;
+  let sandboxInstance: FileWatchingSandbox;
 
-  const cdkExecutor = new AmplifySandboxExecutor();
+  const cdkExecutor = new AmplifySandboxExecutor(backendDeployer);
 
   /**
    * For each test we start the sandbox and hence file watcher and get hold of
    * file change event function which tests can simulate by calling as desired.
    */
   beforeEach(async () => {
-    sandboxInstance = new SandboxManager(
+    sandboxInstance = new FileWatchingSandbox(
       'testSandboxId',
       clientConfigGeneratorAdapter,
       cdkExecutor
@@ -230,16 +230,16 @@ describe('Sandbox using local project name resolver', () => {
 
 describe('Sandbox with user provided app name', () => {
   // class under test
-  let sandboxInstance: SandboxManager;
+  let sandboxInstance: FileWatchingSandbox;
 
-  const cdkExecutor = new AmplifySandboxExecutor();
+  const cdkExecutor = new AmplifySandboxExecutor(backendDeployer);
 
   /**
    * For each test we start the sandbox and hence file watcher and get hold of
    * file change event function which tests can simulate by calling as desired.
    */
   beforeEach(async () => {
-    sandboxInstance = new SandboxManager(
+    sandboxInstance = new FileWatchingSandbox(
       'testSandboxId',
       clientConfigGeneratorAdapter,
       cdkExecutor
@@ -349,16 +349,16 @@ describe('Sandbox with user provided app name', () => {
 
 describe('Sandbox with absolute output path', () => {
   // class under test
-  let sandboxInstance: SandboxManager;
+  let sandboxInstance: FileWatchingSandbox;
 
-  const cdkExecutor = new AmplifySandboxExecutor();
+  const cdkExecutor = new AmplifySandboxExecutor(backendDeployer);
 
   /**
    * For each test we start the sandbox and hence file watcher and get hold of
    * file change event function which tests can simulate by calling as desired.
    */
   beforeEach(async () => {
-    sandboxInstance = new SandboxManager(
+    sandboxInstance = new FileWatchingSandbox(
       'testSandboxId',
       clientConfigGeneratorAdapter,
       cdkExecutor

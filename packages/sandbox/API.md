@@ -4,12 +4,13 @@
 
 ```ts
 
+import { BackendDeployer } from '@aws-amplify/backend-deployer';
 import { InvokableCommand } from '@aws-amplify/backend-deployer';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 // @public
 export class AmplifySandboxExecutor {
-    constructor();
+    constructor(backendDeployer: BackendDeployer);
     invokeWithDebounce: (invokableCommand: InvokableCommand, uniqueBackendIdentifier?: UniqueBackendIdentifier | undefined) => Promise<void>;
 }
 

@@ -1,7 +1,9 @@
-import { SandboxManager } from './sandbox_manager.js';
+import { FileWatchingSandbox } from './file_watching_sandbox.js';
 import { Sandbox } from './sandbox.js';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { ClientConfigGeneratorAdapter } from './config/client_config_generator_adapter.js';
+import { BackendDeployerSingletonFactory } from '@aws-amplify/backend-deployer';
+import { AmplifySandboxExecutor } from './sandbox_executor.js';
 
 /**
  * Factory to create a new sandbox
@@ -25,9 +27,12 @@ export class SandboxSingletonFactory {
    */
   async getInstance(): Promise<Sandbox> {
     if (!this.instance) {
-      this.instance = new SandboxManager(
+      this.instance = new FileWatchingSandbox(
         await this.sandboxIdResolver(),
-        this.clientConfigGenerator
+        this.clientConfigGenerator,
+        new AmplifySandboxExecutor(
+          BackendDeployerSingletonFactory.getInstance()
+        )
       );
     }
     return this.instance;
