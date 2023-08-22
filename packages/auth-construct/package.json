@@ -1,5 +1,5 @@
 {
-  "name": "@aws-amplify/auth-construct",
+  "name": "@aws-amplify/auth-construct-alpha",
   "version": "0.1.0",
   "type": "module",
   "publishConfig": {

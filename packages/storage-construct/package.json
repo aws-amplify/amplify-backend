@@ -1,5 +1,5 @@
 {
-  "name": "@aws-amplify/storage-construct",
+  "name": "@aws-amplify/storage-construct-alpha",
   "version": "0.1.0",
   "type": "module",
   "publishConfig": {

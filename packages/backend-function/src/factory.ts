@@ -6,7 +6,7 @@ import {
 import {
   AmplifyFunction,
   AmplifyFunctionProps,
-} from '@aws-amplify/function-construct';
+} from '@aws-amplify/function-construct-alpha';
 import { Construct } from 'constructs';
 import { execaCommand } from 'execa';
 import * as path from 'path';
