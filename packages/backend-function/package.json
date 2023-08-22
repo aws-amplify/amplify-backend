@@ -17,7 +17,7 @@
     "update:api": "api-extractor run --local"
   },
   "dependencies": {
-    "@aws-amplify/function-construct": "^0.1.0",
+    "@aws-amplify/function-construct-alpha": "^0.1.0",
     "execa": "^7.1.1"
   },
   "devDependencies": {

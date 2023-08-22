@@ -1,5 +1,5 @@
 {
-  "name": "@aws-amplify/function-construct",
+  "name": "@aws-amplify/function-construct-alpha",
   "version": "0.1.0",
   "type": "module",
   "publishConfig": {
