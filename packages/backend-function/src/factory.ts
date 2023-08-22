@@ -92,6 +92,7 @@ export class AmplifyFunctionFactory
     await AmplifyFunctionFactory.commandExecutor(props.buildCommand, {
       cwd: importPath,
       stdio: 'inherit',
+      shell: 'bash',
     });
 
     const absoluteCodePath = path.isAbsolute(props.outDir)
