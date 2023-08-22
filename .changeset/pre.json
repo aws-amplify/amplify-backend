@@ -18,5 +18,9 @@
     "@aws-amplify/sandbox": "0.1.0",
     "@aws-amplify/storage-construct-alpha": "0.1.0"
   },
-  "changesets": []
+  "changesets": [
+    "clever-rules-bow",
+    "gold-drinks-give",
+    "honest-experts-allow"
+  ]
 }
