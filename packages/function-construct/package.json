@@ -1,7 +1,10 @@
 {
-  "name": "@aws-amplify/function-construct",
-  "version": "0.1.0",
+  "name": "@aws-amplify/function-construct-alpha",
+  "version": "0.1.1-alpha.0",
   "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
   "exports": {
     ".": {
       "types": "./lib/index.d.ts",

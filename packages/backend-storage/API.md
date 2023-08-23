@@ -4,8 +4,8 @@
 
 ```ts
 
-import { AmplifyStorage } from '@aws-amplify/storage-construct';
-import { AmplifyStorageProps } from '@aws-amplify/storage-construct';
+import { AmplifyStorage } from '@aws-amplify/storage-construct-alpha';
+import { AmplifyStorageProps } from '@aws-amplify/storage-construct-alpha';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
 

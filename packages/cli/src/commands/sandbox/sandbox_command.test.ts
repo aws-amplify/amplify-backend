@@ -24,9 +24,8 @@ describe('sandbox command', () => {
   let sandboxStartMock = mock.fn<typeof sandbox.start>();
 
   beforeEach(async () => {
-    const sandboxFactory = new SandboxSingletonFactory(
-      () => Promise.resolve('testAppName'),
-      () => Promise.resolve('test1234')
+    const sandboxFactory = new SandboxSingletonFactory(() =>
+      Promise.resolve('testBackendId')
     );
     sandbox = await sandboxFactory.getInstance();
 
@@ -58,11 +57,11 @@ describe('sandbox command', () => {
   });
 
   it('starts sandbox with user provided output directory for client config', async () => {
-    await commandRunner.runCommand('sandbox --out test/location');
+    await commandRunner.runCommand('sandbox --out test/location.js');
     assert.equal(sandboxStartMock.mock.callCount(), 1);
     assert.deepStrictEqual(
-      sandboxStartMock.mock.calls[0].arguments[0].clientConfigOutputPath,
-      'test/location'
+      sandboxStartMock.mock.calls[0].arguments[0].clientConfigFilePath,
+      'test/location.js'
     );
   });
 

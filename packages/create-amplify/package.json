@@ -1,0 +1,21 @@
+{
+  "name": "create-amplify",
+  "version": "0.1.1-alpha.0",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=18.16.0"
+  },
+  "bin": {
+    "create-amplify": "./lib/create_amplify.js"
+  },
+  "scripts": {
+    "install:local": "npm link",
+    "update:api": "api-extractor run --local"
+  },
+  "dependencies": {
+    "execa": "^7.2.0"
+  }
+}

@@ -15,8 +15,7 @@ export class CDKSandbox implements Sandbox {
    * Creates a watcher process for this instance
    */
   constructor(
-    private readonly appName: string,
-    private readonly disambiguator: string,
+    private readonly sandboxId: string,
     private readonly clientConfigGenerator: ClientConfigGeneratorAdapter,
     private readonly cdkExecutor: AmplifyCDKExecutor = new AmplifyCDKExecutor()
   ) {
@@ -28,11 +27,21 @@ export class CDKSandbox implements Sandbox {
    * @inheritdoc
    */
   async start(options: SandboxOptions) {
-    const sandboxAppName = options.name ?? this.appName;
-    const clientConfigWritePath = path.join(
-      options.clientConfigOutputPath ?? process.cwd(),
-      'amplifyconfiguration.json'
+    const sandboxId = options.name ?? this.sandboxId;
+    let clientConfigWritePath = path.join(
+      process.cwd(),
+      'amplifyconfiguration.js'
     );
+    if (options.clientConfigFilePath) {
+      if (path.isAbsolute(options.clientConfigFilePath)) {
+        clientConfigWritePath = options.clientConfigFilePath;
+      } else {
+        clientConfigWritePath = path.resolve(
+          process.cwd(),
+          options.clientConfigFilePath
+        );
+      }
+    }
     this.outputFilesExcludedFromWatch =
       this.outputFilesExcludedFromWatch.concat(clientConfigWritePath);
 
@@ -55,14 +64,10 @@ export class CDKSandbox implements Sandbox {
     const deployAndWatch = debounce(async () => {
       latch = 'deploying';
       await this.cdkExecutor.invokeCDKWithDebounce(CDKCommand.DEPLOY, {
-        appName: sandboxAppName,
+        backendId: sandboxId,
         branchName: 'sandbox',
-        disambiguator: this.disambiguator,
       });
-      await this.writeUpdatedClientConfig(
-        sandboxAppName,
-        clientConfigWritePath
-      );
+      await this.writeUpdatedClientConfig(sandboxId, clientConfigWritePath);
 
       // If latch is still 'deploying' after the 'await', that's fine,
       // but if it's 'queued', that means we need to deploy again
@@ -74,14 +79,10 @@ export class CDKSandbox implements Sandbox {
           "[Sandbox] Detected file changes while previous deployment was in progress. Invoking 'sandbox' again"
         );
         await this.cdkExecutor.invokeCDKWithDebounce(CDKCommand.DEPLOY, {
-          appName: sandboxAppName,
+          backendId: sandboxId,
           branchName: 'sandbox',
-          disambiguator: this.disambiguator,
         });
-        await this.writeUpdatedClientConfig(
-          sandboxAppName,
-          clientConfigWritePath
-        );
+        await this.writeUpdatedClientConfig(sandboxId, clientConfigWritePath);
       }
       latch = 'open';
       this.emitWatching();
@@ -132,29 +133,30 @@ export class CDKSandbox implements Sandbox {
    * @inheritdoc
    */
   async delete(options: SandboxDeleteOptions) {
-    const sandboxAppName = options.name ?? this.appName;
+    const sandboxAppId = options.name ?? this.sandboxId;
     console.log(
       '[Sandbox] Deleting all the resources in the sandbox environment...'
     );
     await this.cdkExecutor.invokeCDKWithDebounce(CDKCommand.DESTROY, {
-      appName: sandboxAppName,
+      backendId: sandboxAppId,
       branchName: 'sandbox',
-      disambiguator: this.disambiguator,
     });
     console.log('[Sandbox] Finished deleting.');
   }
 
   /**
    * Runs post every deployment. Generates the client config and writes to a local file
-   * @param appName AppName for this sandbox execution. Either package.json#name or provided by user during `amplify sandbox`
+   * @param sandboxId for this sandbox execution. Either package.json#name + whoami or provided by user during `amplify sandbox`
    * @param outputPath optional location provided by customer to write client config to
    */
-  private async writeUpdatedClientConfig(appName: string, outputPath: string) {
+  private async writeUpdatedClientConfig(
+    sandboxId: string,
+    outputPath: string
+  ) {
     await this.clientConfigGenerator.generateClientConfigToFile(
       {
-        appName,
+        backendId: sandboxId,
         branchName: 'sandbox',
-        disambiguator: this.disambiguator,
       },
       outputPath
     );

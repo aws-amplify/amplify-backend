@@ -38,8 +38,7 @@ describe('Sandbox using local project name resolver', () => {
    */
   beforeEach(async () => {
     sandboxInstance = new CDKSandbox(
-      'testApp',
-      'test1234',
+      'testSandboxId',
       clientConfigGeneratorAdapter,
       cdkExecutor
     );
@@ -82,7 +81,7 @@ describe('Sandbox using local project name resolver', () => {
     assert.deepStrictEqual(subscribeMock.mock.calls[0].arguments[2], {
       ignore: [
         'cdk.out',
-        path.join(process.cwd(), 'amplifyconfiguration.json'),
+        path.join(process.cwd(), 'amplifyconfiguration.js'),
         'exclude1',
         'exclude2',
       ],
@@ -101,11 +100,9 @@ describe('Sandbox using local project name resolver', () => {
         '--app',
         "'npx tsx amplify/backend.ts'",
         '--context',
-        'app-name=testApp',
+        'backend-id=testSandboxId',
         '--context',
         'branch-name=sandbox',
-        '--context',
-        'disambiguator=test1234',
         '--hotswap-fallback',
         '--method=direct',
       ],
@@ -182,11 +179,11 @@ describe('Sandbox using local project name resolver', () => {
     // generate was called with right arguments
     assert.deepStrictEqual(
       generateClientConfigMock.mock.calls[0].arguments[0],
-      { appName: 'testApp', branchName: 'sandbox', disambiguator: 'test1234' }
+      { backendId: 'testSandboxId', branchName: 'sandbox' }
     );
     assert.deepStrictEqual(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      process.cwd() + '/amplifyconfiguration.json'
+      process.cwd() + '/amplifyconfiguration.js'
     );
   });
 
@@ -206,11 +203,9 @@ describe('Sandbox using local project name resolver', () => {
         '--app',
         "'npx tsx amplify/backend.ts'",
         '--context',
-        'app-name=testApp',
+        'backend-id=testSandboxId',
         '--context',
         'branch-name=sandbox',
-        '--context',
-        'disambiguator=test1234',
         '--force',
       ],
     ]);
@@ -253,16 +248,15 @@ describe('Sandbox with user provided app name', () => {
    */
   beforeEach(async () => {
     sandboxInstance = new CDKSandbox(
-      'testApp',
-      'test1234',
+      'testSandboxId',
       clientConfigGeneratorAdapter,
       cdkExecutor
     );
     await sandboxInstance.start({
       dir: 'testDir',
       exclude: ['exclude1', 'exclude2'],
-      name: 'userAppName',
-      clientConfigOutputPath: 'test/location',
+      name: 'customSandboxName',
+      clientConfigFilePath: 'test/location/amplifyconfiguration.js',
     });
     if (
       subscribeMock.mock.calls[0].arguments[1] &&
@@ -293,7 +287,7 @@ describe('Sandbox with user provided app name', () => {
     assert.deepStrictEqual(subscribeMock.mock.calls[0].arguments[2], {
       ignore: [
         'cdk.out',
-        'test/location/amplifyconfiguration.json',
+        path.join(process.cwd(), 'test', 'location', 'amplifyconfiguration.js'),
         'exclude1',
         'exclude2',
       ],
@@ -312,11 +306,9 @@ describe('Sandbox with user provided app name', () => {
         '--app',
         "'npx tsx amplify/backend.ts'",
         '--context',
-        'app-name=userAppName',
+        'backend-id=customSandboxName',
         '--context',
         'branch-name=sandbox',
-        '--context',
-        'disambiguator=test1234',
         '--hotswap-fallback',
         '--method=direct',
       ],
@@ -326,8 +318,8 @@ describe('Sandbox with user provided app name', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
   });
 
-  it('calls CDK destroy when delete is called with a user provided appName', async () => {
-    await sandboxInstance.delete({ name: 'userProvidedName' });
+  it('calls CDK destroy when delete is called with a user provided sandbox name', async () => {
+    await sandboxInstance.delete({ name: 'customSandboxName' });
 
     // CDK should be called once
     assert.strictEqual(execaMock.mock.callCount(), 1);
@@ -342,11 +334,9 @@ describe('Sandbox with user provided app name', () => {
         '--app',
         "'npx tsx amplify/backend.ts'",
         '--context',
-        'app-name=userProvidedName',
+        'backend-id=customSandboxName',
         '--context',
         'branch-name=sandbox',
-        '--context',
-        'disambiguator=test1234',
         '--force',
       ],
     ]);
@@ -364,14 +354,80 @@ describe('Sandbox with user provided app name', () => {
     assert.deepStrictEqual(
       generateClientConfigMock.mock.calls[0].arguments[0],
       {
-        appName: 'userAppName',
+        backendId: 'customSandboxName',
         branchName: 'sandbox',
-        disambiguator: 'test1234',
       }
     );
-    assert.deepStrictEqual(
+    assert.equal(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      'test/location' + '/amplifyconfiguration.json'
+      path.resolve(process.cwd(), 'test', 'location', 'amplifyconfiguration.js')
+    );
+  });
+});
+
+describe('Sandbox with absolute output path', () => {
+  // class under test
+  let sandboxInstance: CDKSandbox;
+
+  const cdkExecutor = new AmplifyCDKExecutor();
+  const execaMock = mock.method(cdkExecutor, 'executeChildProcess', () =>
+    Promise.resolve()
+  );
+
+  /**
+   * For each test we start the sandbox and hence file watcher and get hold of
+   * file change event function which tests can simulate by calling as desired.
+   */
+  beforeEach(async () => {
+    sandboxInstance = new CDKSandbox(
+      'testSandboxId',
+      clientConfigGeneratorAdapter,
+      cdkExecutor
+    );
+    await sandboxInstance.start({
+      dir: 'testDir',
+      exclude: ['exclude1', 'exclude2'],
+      name: 'customSandboxName',
+      clientConfigFilePath: '/test/location/amplifyconfiguration.js',
+    });
+    if (
+      subscribeMock.mock.calls[0].arguments[1] &&
+      typeof subscribeMock.mock.calls[0].arguments[1] === 'function'
+    ) {
+      fileChangeEventActualFn = subscribeMock.mock.calls[0].arguments[1];
+    }
+
+    // Reset all the calls to avoid extra startup call
+    execaMock.mock.resetCalls();
+    generateClientConfigMock.mock.resetCalls();
+  });
+
+  afterEach(async () => {
+    execaMock.mock.resetCalls();
+    subscribeMock.mock.resetCalls();
+    generateClientConfigMock.mock.resetCalls();
+    await sandboxInstance.stop();
+  });
+
+  it('generates client config at absolute location', async () => {
+    await fileChangeEventActualFn(null, [
+      { type: 'update', path: 'foo/test1.ts' },
+    ]);
+
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
+
+    // generate was called with right arguments
+    assert.deepStrictEqual(
+      generateClientConfigMock.mock.calls[0].arguments[0],
+      {
+        backendId: 'customSandboxName',
+        branchName: 'sandbox',
+      }
+    );
+    assert.equal(
+      generateClientConfigMock.mock.calls[0].arguments[1],
+      path.resolve('/', 'test', 'location', 'amplifyconfiguration.js')
     );
   });
 });

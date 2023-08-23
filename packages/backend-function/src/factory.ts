@@ -6,7 +6,7 @@ import {
 import {
   AmplifyFunction,
   AmplifyFunctionProps,
-} from '@aws-amplify/function-construct';
+} from '@aws-amplify/function-construct-alpha';
 import { Construct } from 'constructs';
 import { execaCommand } from 'execa';
 import * as path from 'path';
@@ -92,6 +92,7 @@ export class AmplifyFunctionFactory
     await AmplifyFunctionFactory.commandExecutor(props.buildCommand, {
       cwd: importPath,
       stdio: 'inherit',
+      shell: 'bash',
     });
 
     const absoluteCodePath = path.isAbsolute(props.outDir)

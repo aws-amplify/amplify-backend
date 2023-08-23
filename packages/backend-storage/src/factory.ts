@@ -9,7 +9,7 @@ import {
 import {
   AmplifyStorage,
   AmplifyStorageProps,
-} from '@aws-amplify/storage-construct';
+} from '@aws-amplify/storage-construct-alpha';
 
 /**
  * Singleton factory for a Storage bucket that can be used in `storage.ts` files

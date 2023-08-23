@@ -31,7 +31,7 @@ npx amplify sandbox --out src
 ### Check that client config was generated
 
 ```shell
-cat src/amplifyconfiguration.json
+cat src/amplifyconfiguration.js
 ```
 
 ### Run react app

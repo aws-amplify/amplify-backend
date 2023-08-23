@@ -1,4 +1,7 @@
-import { AmplifyAuth, AmplifyAuthProps } from '@aws-amplify/auth-construct';
+import {
+  AmplifyAuth,
+  AmplifyAuthProps,
+} from '@aws-amplify/auth-construct-alpha';
 import { Construct } from 'constructs';
 import {
   AuthResources,

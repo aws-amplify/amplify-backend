@@ -1,0 +1,26 @@
+{
+  "mode": "pre",
+  "tag": "alpha",
+  "initialVersions": {
+    "@aws-amplify/auth-construct-alpha": "0.1.0",
+    "@aws-amplify/backend": "0.1.0",
+    "@aws-amplify/backend-auth": "0.1.0",
+    "@aws-amplify/backend-function": "0.1.0",
+    "@aws-amplify/backend-graphql": "0.1.0",
+    "@aws-amplify/backend-output-schemas": "0.1.0",
+    "@aws-amplify/backend-storage": "0.1.0",
+    "@aws-amplify/backend-cli": "0.1.0",
+    "@aws-amplify/client-config": "0.1.0",
+    "create-amplify": "0.1.0",
+    "@aws-amplify/function-construct-alpha": "0.1.0",
+    "@aws-amplify/integration-tests": "0.1.0",
+    "@aws-amplify/plugin-types": "0.1.0",
+    "@aws-amplify/sandbox": "0.1.0",
+    "@aws-amplify/storage-construct-alpha": "0.1.0"
+  },
+  "changesets": [
+    "clever-rules-bow",
+    "gold-drinks-give",
+    "honest-experts-allow"
+  ]
+}

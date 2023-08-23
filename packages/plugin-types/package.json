@@ -1,8 +1,11 @@
 {
   "name": "@aws-amplify/plugin-types",
-  "version": "0.1.0",
+  "version": "0.1.1-alpha.0",
   "types": "lib/index.d.ts",
   "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "update:api": "api-extractor run --local"
   },

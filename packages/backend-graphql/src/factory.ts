@@ -1,4 +1,3 @@
-import { Stack } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import {
   AuthResources,
@@ -12,11 +11,7 @@ import {
   AmplifyGraphqlApiProps,
   AuthorizationConfig,
 } from '@aws-amplify/graphql-construct-alpha';
-import { graphqlOutputKey } from '@aws-amplify/backend-output-schemas';
-import {
-  GraphqlOutput,
-  AwsAppsyncAuthenticationType,
-} from '@aws-amplify/backend-output-schemas/graphql';
+import { GraphqlOutput } from '@aws-amplify/backend-output-schemas/graphql';
 
 export type DataProps = Pick<AmplifyGraphqlApiProps, 'schema'>;
 
@@ -94,35 +89,12 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     const graphqlConstructProps: AmplifyGraphqlApiProps = {
       schema: this.props.schema,
       authorizationConfig: authConfig,
+      outputStorageStrategy: this.outputStorageStrategy,
     };
     const graphqlConstruct = new AmplifyGraphqlApi(
       scope,
       this.defaultName,
       graphqlConstructProps
-    );
-
-    // TODO: change to storeOutput when available
-    // graphqlConstruct.storeOutput(this.outputStorageStrategy);
-
-    const graphqlOutput: GraphqlOutput = {
-      version: '1',
-      payload: {
-        awsAppsyncApiEndpoint:
-          graphqlConstruct.resources.cfnGraphqlApi.attrGraphQlUrl,
-        awsAppsyncAuthenticationType: graphqlConstruct.resources.cfnGraphqlApi
-          .authenticationType as AwsAppsyncAuthenticationType,
-        awsAppsyncRegion: Stack.of(graphqlConstruct).region,
-      },
-    };
-
-    if (graphqlConstruct.resources.cfnApiKey) {
-      graphqlOutput.payload.awsAppsyncApiKey =
-        graphqlConstruct.resources.cfnApiKey.attrApiKey;
-    }
-
-    this.outputStorageStrategy.addBackendOutputEntry(
-      graphqlOutputKey,
-      graphqlOutput
     );
 
     return graphqlConstruct;

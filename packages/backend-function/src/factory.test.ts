@@ -68,6 +68,7 @@ describe('AmplifyFunctionFactory', () => {
       {
         cwd: fileURLToPath(new URL('../src', import.meta.url)),
         stdio: 'inherit',
+        shell: 'bash',
       },
     ]);
   });
