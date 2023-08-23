@@ -10,6 +10,7 @@ import { Construct } from 'constructs';
 import { IRole } from 'aws-cdk-lib/aws-iam';
 import { IUserPool } from 'aws-cdk-lib/aws-cognito';
 import { IUserPoolClient } from 'aws-cdk-lib/aws-cognito';
+import { SecretValue } from 'aws-cdk-lib';
 import { Stack } from 'aws-cdk-lib';
 
 // @public
@@ -58,6 +59,16 @@ export type BackendOutputWriter = {
     storeOutput: (outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>) => void;
 };
 
+// @public (undocumented)
+export type BackendParameter = {
+    resolve(scope: Construct, projectName: string, branchName: string): SecretValue;
+};
+
+// @public (undocumented)
+export type BackendParameterResolver = {
+    resolveParameters<T>(props: T): Replace<T, BackendParameter, SecretValue>;
+};
+
 // @public
 export type ConstructContainer = {
     getOrCompute: (generator: ConstructContainerEntryGenerator) => Construct;
@@ -81,6 +92,7 @@ export type ConstructFactory<T = unknown> = {
 export type ConstructFactoryGetInstanceProps = {
     constructContainer: ConstructContainer;
     outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
+    backendParameterResolver: BackendParameterResolver;
     importPathVerifier?: ImportPathVerifier;
 };
 
@@ -98,6 +110,11 @@ export type MainStackCreator = {
 export type MainStackNameResolver = {
     resolveMainStackName: () => Promise<string>;
 };
+
+// @public
+export type Replace<T, Initial, Substitute> = T extends Initial ? Substitute : T extends object ? {
+    [K in keyof T]: Replace<T[K], Initial, Substitute>;
+} : T;
 
 // @public
 export type ResourceProvider<T> = {

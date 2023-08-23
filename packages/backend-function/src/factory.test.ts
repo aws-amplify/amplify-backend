@@ -7,13 +7,7 @@ import {
   SingletonConstructContainer,
   StackMetadataBackendOutputStorageStrategy,
 } from '@aws-amplify/backend/test-utils';
-import {
-  BackendOutputEntry,
-  BackendOutputStorageStrategy,
-  BackendParameterResolver,
-  ConstructContainer,
-  ConstructFactoryGetInstanceProps,
-} from '@aws-amplify/plugin-types';
+import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
 import assert from 'node:assert';
 import { fileURLToPath } from 'url';
 

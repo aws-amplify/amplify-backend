@@ -4,7 +4,6 @@ import { SecretValue } from 'aws-cdk-lib';
 export type BackendParameterResolver = {
   /**
    * Returns a deep copy of props where any occurrance
-   * @param props
    */
   resolveParameters<T>(props: T): Replace<T, BackendParameter, SecretValue>;
 };
@@ -18,27 +17,22 @@ export type BackendParameter = {
 
 /**
  * Utility type that replaces Initial with Substitute type anywhere in an object type T
- *
- * For example, if T is
- * {
+ * @example
  *     field1: string,
  *     field2: SomeType
- *     field3: {
+ *     field3:
  *         nestedField: SomeType,
  *         anotherField: number
- *     }
- * }
  *
- * then the resulting type of Replace<T, SomeType, AnotherType> is:
- * {
+ * Replace\<T, SomeType, AnotherType\>:
+ *
  *     field1: string,
  *     field2: AnotherType,
- *     field3: {
+ *     field3:
  *         nestedField: AnotherType
  *         anotherField: number
- *     }
- * }
  */
+
 export type Replace<T, Initial, Substitute> = T extends Initial
   ? Substitute
   : T extends object

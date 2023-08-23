@@ -10,12 +10,12 @@ const UNRESOLVABLE_PARAM_NAME = 'errorParam';
 class TestBackendParameter implements BackendParameter {
   constructor(private readonly paramName: string) {}
   resolve(
-    scope: Construct,
-    projectName: string,
-    branchName: string
+    scope: Construct, // eslint-disable-line @typescript-eslint/no-unused-vars
+    projectName: string, // eslint-disable-line @typescript-eslint/no-unused-vars
+    branchName: string // eslint-disable-line @typescript-eslint/no-unused-vars
   ): SecretValue {
     if (this.paramName === UNRESOLVABLE_PARAM_NAME) {
-      throw new Error('Failed to resolve!');
+      throw new Error(`Failed to resolve!`);
     }
     return SecretValue.unsafePlainText(this.paramName);
   }
@@ -36,7 +36,7 @@ describe('OptionalPassThroughBackendParameterResolver', () => {
       },
     };
     const resolver = new OptionalPassThroughBackendParameterResolver(
-      {} as any,
+      {} as Construct,
       '',
       ''
     );
@@ -69,7 +69,7 @@ describe('OptionalPassThroughBackendParameterResolver', () => {
     };
 
     const resolver = new OptionalPassThroughBackendParameterResolver(
-      {} as any,
+      {} as Construct,
       '',
       ''
     );
