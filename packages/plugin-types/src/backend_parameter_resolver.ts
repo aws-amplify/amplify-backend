@@ -13,11 +13,7 @@ export type BackendParameter = {
   /**
    * Resolves the given parameter to a value or CDK token
    */
-  resolve(
-    scope: Construct,
-    projectName: string,
-    branchName: string
-  ): SecretValue;
+  resolve(scope: Construct, backendId: string, branchName: string): SecretValue;
 };
 
 /**

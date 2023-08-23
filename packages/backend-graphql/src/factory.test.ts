@@ -101,6 +101,7 @@ describe('DataFactory', () => {
       backendParameterResolver,
     };
   });
+
   it('returns singleton instance', () => {
     const instance1 = dataFactory.getInstance(getInstanceProps);
     const instance2 = dataFactory.getInstance(getInstanceProps);
@@ -120,12 +121,16 @@ describe('DataFactory', () => {
     const template = Template.fromStack(stack);
     template.hasOutput('awsAppsyncApiEndpoint', {});
   });
+
   it('verifies constructor import path', () => {
     const importPathVerifier = {
       verify: mock.fn(),
     };
 
-    dataFactory.getInstance(getInstanceProps);
+    dataFactory.getInstance({
+      ...getInstanceProps,
+      importPathVerifier,
+    });
 
     assert.ok(
       (importPathVerifier.verify.mock.calls[0].arguments[0] as string).includes(
