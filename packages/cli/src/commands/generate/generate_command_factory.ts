@@ -13,11 +13,11 @@ export const createGenerateCommand = (): CommandModule => {
   const clientConfigGenerator = new ClientConfigGeneratorAdapter(
     credentialProvider
   );
-  const localProjectNameResolver = new LocalAppNameResolver();
+  const localAppNameResolver = new LocalAppNameResolver();
 
   const generateConfigCommand = new GenerateConfigCommand(
     clientConfigGenerator,
-    localProjectNameResolver
+    localAppNameResolver
   );
 
   return new GenerateCommand(generateConfigCommand);

@@ -1,6 +1,7 @@
 import { PackageManagerController } from './package_manager_controller.js';
 import { ProjectRootValidator } from './project_root_validator.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
+import { NpmInitializedEnsurer } from './npm_initialized_ensurer.js';
 
 /**
  *
@@ -25,6 +26,7 @@ export class AmplifyProjectCreator {
     private readonly packageManagerController: PackageManagerController,
     private readonly projectRootValidator: ProjectRootValidator,
     private readonly initialProjectFileGenerator: InitialProjectFileGenerator,
+    private readonly npmInitializedEnsurer: NpmInitializedEnsurer,
     private readonly logger: typeof console = console
   ) {}
 
@@ -34,6 +36,8 @@ export class AmplifyProjectCreator {
   async create(): Promise<void> {
     this.logger.log(`Validating current state of target directory...`);
     await this.projectRootValidator.validate();
+
+    await this.npmInitializedEnsurer.ensureNpmInitialized();
 
     this.logger.log(
       `Installing packages ${this.defaultPackages.join(', ')}...`
