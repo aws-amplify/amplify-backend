@@ -1,19 +1,18 @@
 import { PackageManagerController } from './package_manager_controller.js';
 import { ProjectRootValidator } from './project_root_validator.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
+import { NpmProjectInitializer } from './npm_project_initializer.js';
 
 /**
  *
  */
 export class AmplifyProjectCreator {
   // TODO once we create `aws-amplify-backend` that will be included here
-  // TODO LAUNCH BLOCKER: remove @alpha suffix from packages once the packages are being published to latest
-  // https://github.com/aws-amplify/samsara-cli/issues/144
   private readonly defaultPackages = [
-    '@aws-amplify/backend@alpha',
-    '@aws-amplify/backend-graphql@alpha',
-    '@aws-amplify/backend-auth@alpha',
-    '@aws-amplify/backend-cli@alpha',
+    '@aws-amplify/backend',
+    '@aws-amplify/backend-graphql',
+    '@aws-amplify/backend-auth',
+    '@aws-amplify/backend-cli',
     'aws-amplify',
   ];
 
@@ -25,6 +24,7 @@ export class AmplifyProjectCreator {
     private readonly packageManagerController: PackageManagerController,
     private readonly projectRootValidator: ProjectRootValidator,
     private readonly initialProjectFileGenerator: InitialProjectFileGenerator,
+    private readonly npmInitializedEnsurer: NpmProjectInitializer,
     private readonly logger: typeof console = console
   ) {}
 
@@ -34,6 +34,8 @@ export class AmplifyProjectCreator {
   async create(): Promise<void> {
     this.logger.log(`Validating current state of target directory...`);
     await this.projectRootValidator.validate();
+
+    await this.npmInitializedEnsurer.ensureInitialized();
 
     this.logger.log(
       `Installing packages ${this.defaultPackages.join(', ')}...`
