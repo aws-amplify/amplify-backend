@@ -96,6 +96,11 @@ describe('AmplifyStorageFactory', () => {
       verify: mock.fn(),
     };
 
+    storageFactory.getInstance({
+      ...getInstanceProps,
+      importPathVerifier,
+    });
+
     storageFactory.getInstance(getInstanceProps);
 
     assert.ok(

@@ -20,7 +20,7 @@ export const createDefaultStack = (app = new App()): Stack => {
 /**
  * Populates an instance of DeploymentContext based on CDK context values.
  */
-const getUniqueBackendIdentifier = (
+export const getUniqueBackendIdentifier = (
   scope: Construct
 ): UniqueBackendIdentifier => {
   const backendId = scope.node.getContext(backendIdCDKContextKey);

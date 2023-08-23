@@ -7,6 +7,14 @@ import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
 
+const createStackAndSetContext = (): Stack => {
+  const app = new App();
+  app.node.setContext('branch-name', 'testEnvName');
+  app.node.setContext('backend-id', 'testBackendId');
+  const stack = new Stack(app);
+  return stack;
+};
+
 describe('Backend', () => {
   it('initializes constructs in given app', () => {
     const testConstructFactory: ConstructFactory<Bucket> = {
@@ -20,8 +28,7 @@ describe('Backend', () => {
       },
     };
 
-    const app = new App();
-    const rootStack = new Stack(app);
+    const rootStack = createStackAndSetContext();
     new Backend(
       {
         testConstructFactory,
@@ -57,8 +64,7 @@ describe('Backend', () => {
       },
     };
 
-    const app = new App();
-    const rootStack = new Stack(app);
+    const rootStack = createStackAndSetContext();
     new Backend(
       {
         testConstructFactory,
@@ -101,8 +107,7 @@ describe('Backend', () => {
       },
     };
 
-    const app = new App();
-    const rootStack = new Stack(app);
+    const rootStack = createStackAndSetContext();
     const backend = new Backend(
       {
         testConstructFactory,
@@ -114,8 +119,7 @@ describe('Backend', () => {
 
   describe('getOrCreateStack', () => {
     it('returns nested stack', () => {
-      const app = new App();
-      const rootStack = new Stack(app);
+      const rootStack = createStackAndSetContext();
       const backend = new Backend({}, rootStack);
       const testStack = backend.getOrCreateStack('testStack');
       assert.strictEqual(rootStack.node.findChild('testStack'), testStack);
