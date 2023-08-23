@@ -16,11 +16,15 @@
     "@aws-amplify/integration-tests": "0.1.0",
     "@aws-amplify/plugin-types": "0.1.0",
     "@aws-amplify/sandbox": "0.1.0",
-    "@aws-amplify/storage-construct-alpha": "0.1.0"
+    "@aws-amplify/storage-construct-alpha": "0.1.0",
+    "@aws-amplify/backend-deployer": "0.1.0"
   },
   "changesets": [
     "clever-rules-bow",
+    "cool-ligers-drop",
     "gold-drinks-give",
-    "honest-experts-allow"
+    "honest-experts-allow",
+    "pretty-donkeys-film",
+    "wise-nails-melt"
   ]
 }
