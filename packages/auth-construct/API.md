@@ -10,6 +10,7 @@ import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { BackendOutputWriter } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
 import { IRole } from 'aws-cdk-lib/aws-iam';
+import { SecretValue } from 'aws-cdk-lib';
 import { UserPool } from 'aws-cdk-lib/aws-cognito';
 import { UserPoolClient } from 'aws-cdk-lib/aws-cognito';
 
@@ -37,7 +38,7 @@ export type AmplifyAuthProps = {
 export type GoogleLogin = {
     provider: 'google';
     webClientId: string;
-    webClientSecret: string;
+    webClientSecret: SecretValue;
 };
 
 // @public (undocumented)
