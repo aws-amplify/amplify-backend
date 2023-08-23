@@ -1,5 +1,5 @@
 import { CommandModule } from 'yargs';
-import { BackendDeployerSingletonFactory } from '@aws-amplify/backend-deployer';
+import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 
 import {
   PipelineDeployCommand,
@@ -13,6 +13,6 @@ export const createPipelineDeployCommand = (): CommandModule<
   object,
   PipelineDeployCommandOptions
 > => {
-  const backendDeployer = BackendDeployerSingletonFactory.getInstance();
+  const backendDeployer = BackendDeployerFactory.getInstance();
   return new PipelineDeployCommand(backendDeployer);
 };

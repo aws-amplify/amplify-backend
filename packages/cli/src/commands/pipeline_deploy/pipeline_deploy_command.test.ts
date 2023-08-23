@@ -9,10 +9,10 @@ import {
   PipelineDeployCommand,
   PipelineDeployCommandOptions,
 } from './pipeline_deploy_command.js';
-import { BackendDeployerSingletonFactory } from '@aws-amplify/backend-deployer';
+import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 
 describe('deploy command', () => {
-  const backendDeployer = BackendDeployerSingletonFactory.getInstance();
+  const backendDeployer = BackendDeployerFactory.getInstance();
   const deployCommand = new PipelineDeployCommand(
     backendDeployer
   ) as CommandModule<object, PipelineDeployCommandOptions>;

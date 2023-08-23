@@ -1,6 +1,5 @@
 import debounce from 'debounce-promise';
 import parcelWatcher, { subscribe } from '@parcel/watcher';
-import { InvokableCommand } from '@aws-amplify/backend-deployer';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
 import { Sandbox, SandboxDeleteOptions, SandboxOptions } from './sandbox.js';
 import { ClientConfigGeneratorAdapter } from './config/client_config_generator_adapter.js';
@@ -64,7 +63,7 @@ export class FileWatchingSandbox implements Sandbox {
 
     const deployAndWatch = debounce(async () => {
       latch = 'deploying';
-      await this.executor.invokeWithDebounce(InvokableCommand.DEPLOY, {
+      await this.executor.deploy({
         backendId: sandboxId,
         branchName: 'sandbox',
       });
@@ -79,7 +78,7 @@ export class FileWatchingSandbox implements Sandbox {
         console.log(
           "[Sandbox] Detected file changes while previous deployment was in progress. Invoking 'sandbox' again"
         );
-        await this.executor.invokeWithDebounce(InvokableCommand.DEPLOY, {
+        await this.executor.deploy({
           backendId: sandboxId,
           branchName: 'sandbox',
         });
@@ -138,7 +137,7 @@ export class FileWatchingSandbox implements Sandbox {
     console.log(
       '[Sandbox] Deleting all the resources in the sandbox environment...'
     );
-    await this.executor.invokeWithDebounce(InvokableCommand.DESTROY, {
+    await this.executor.destroy({
       backendId: sandboxAppId,
       branchName: 'sandbox',
     });

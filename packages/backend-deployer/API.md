@@ -9,34 +9,26 @@ import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 // @public
 export interface BackendDeployer {
     // (undocumented)
-    deploy: (uniqueBackendIdentifier?: UniqueBackendIdentifier, deployCommandProps?: DeployCommandProps) => Promise<void>;
+    deploy: (uniqueBackendIdentifier?: UniqueBackendIdentifier, deployProps?: DeployProps) => Promise<void>;
     // (undocumented)
-    destroy: (uniqueBackendIdentifier?: UniqueBackendIdentifier, destroyCommandProps?: DestroyCommandProps) => Promise<void>;
+    destroy: (uniqueBackendIdentifier?: UniqueBackendIdentifier, destroyProps?: DestroyProps) => Promise<void>;
 }
 
 // @public
-export class BackendDeployerSingletonFactory {
+export class BackendDeployerFactory {
     static getInstance(): BackendDeployer;
 }
 
 // @public (undocumented)
-export type DeployCommandProps = {
+export type DeployProps = {
     hotswapFallback?: boolean;
     method?: 'direct';
 };
 
 // @public (undocumented)
-export type DestroyCommandProps = {
+export type DestroyProps = {
     force?: boolean;
 };
-
-// @public
-export enum InvokableCommand {
-    // (undocumented)
-    DEPLOY = "deploy",
-    // (undocumented)
-    DESTROY = "destroy"
-}
 
 // (No @packageDocumentation comment for this package)
 

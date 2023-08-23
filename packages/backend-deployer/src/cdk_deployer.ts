@@ -3,12 +3,19 @@ import stream from 'stream';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import {
   BackendDeployer,
-  DeployCommandProps,
-  DestroyCommandProps,
-  InvokableCommand,
+  DeployProps,
+  DestroyProps,
 } from './cdk_deployer_singleton_factory.js';
 
 const relativeBackendEntryPoint = 'amplify/backend.ts';
+
+/**
+ * Commands that can be invoked
+ */
+enum InvokableCommand {
+  DEPLOY = 'deploy',
+  DESTROY = 'destroy',
+}
 
 /**
  * Invokes CDK command via execa
@@ -19,14 +26,14 @@ export class CDKDeployer implements BackendDeployer {
    */
   async deploy(
     uniqueBackendIdentifier?: UniqueBackendIdentifier,
-    deployCommandProps?: DeployCommandProps
+    deployProps?: DeployProps
   ) {
     const cdkCommandArgs: string[] = [];
-    if (deployCommandProps?.hotswapFallback) {
+    if (deployProps?.hotswapFallback) {
       cdkCommandArgs.push('--hotswap-fallback');
     }
-    if (deployCommandProps?.method) {
-      cdkCommandArgs.push(`--method=${deployCommandProps.method}`);
+    if (deployProps?.method) {
+      cdkCommandArgs.push(`--method=${deployProps.method}`);
     }
     await this.invoke(
       InvokableCommand.DEPLOY,
@@ -40,10 +47,10 @@ export class CDKDeployer implements BackendDeployer {
    */
   async destroy(
     uniqueBackendIdentifier?: UniqueBackendIdentifier,
-    destroyCommandProps?: DestroyCommandProps
+    destroyProps?: DestroyProps
   ) {
     const cdkCommandArgs: string[] = [];
-    if (destroyCommandProps?.force) {
+    if (destroyProps?.force) {
       cdkCommandArgs.push('--force');
     }
     await this.invoke(

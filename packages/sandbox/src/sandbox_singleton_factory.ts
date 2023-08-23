@@ -2,7 +2,7 @@ import { FileWatchingSandbox } from './file_watching_sandbox.js';
 import { Sandbox } from './sandbox.js';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { ClientConfigGeneratorAdapter } from './config/client_config_generator_adapter.js';
-import { BackendDeployerSingletonFactory } from '@aws-amplify/backend-deployer';
+import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
 
 /**
@@ -30,9 +30,7 @@ export class SandboxSingletonFactory {
       this.instance = new FileWatchingSandbox(
         await this.sandboxIdResolver(),
         this.clientConfigGenerator,
-        new AmplifySandboxExecutor(
-          BackendDeployerSingletonFactory.getInstance()
-        )
+        new AmplifySandboxExecutor(BackendDeployerFactory.getInstance())
       );
     }
     return this.instance;

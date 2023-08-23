@@ -1,9 +1,6 @@
 import debounce from 'debounce-promise';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
-import {
-  InvokableCommand,
-  BackendDeployer,
-} from '@aws-amplify/backend-deployer';
+import { BackendDeployer } from '@aws-amplify/backend-deployer';
 /**
  * Execute CDK commands.
  */
@@ -14,31 +11,38 @@ export class AmplifySandboxExecutor {
   constructor(private readonly backendDeployer: BackendDeployer) {}
 
   /**
-   * Function that deploys backend resources using CDK.
+   * Deploys sandbox
+   */
+  deploy(uniqueBackendIdentifier?: UniqueBackendIdentifier): Promise<void> {
+    console.debug('[Sandbox] Executing command `deploy`');
+    return this.invoke(() =>
+      this.backendDeployer.deploy(uniqueBackendIdentifier, {
+        hotswapFallback: true,
+        method: 'direct',
+      })
+    );
+  }
+
+  /**
+   * Destroy sandbox
+   */
+  destroy(uniqueBackendIdentifier?: UniqueBackendIdentifier): Promise<void> {
+    console.debug('[Sandbox] Executing command `deploy`');
+    return this.invoke(() =>
+      this.backendDeployer.destroy(uniqueBackendIdentifier, {
+        force: true,
+      })
+    );
+  }
+
+  /**
+   * Function that deploys/destroys backend resources
    * Debounce is added in case multiple duplicate events are received.
    */
-  invokeWithDebounce = debounce(
-    async (
-      invokableCommand: InvokableCommand,
-      uniqueBackendIdentifier?: UniqueBackendIdentifier
-    ): Promise<void> => {
-      console.debug(
-        `[Sandbox] Executing command ${invokableCommand.toString()}`
-      );
-
-      // call execa for executing the command line
+  private invoke = debounce(
+    async (callback: () => Promise<void>): Promise<void> => {
       try {
-        // Sandbox deploys and destroys fast
-        if (invokableCommand === InvokableCommand.DEPLOY) {
-          await this.backendDeployer.deploy(uniqueBackendIdentifier, {
-            hotswapFallback: true,
-            method: 'direct',
-          });
-        } else if (invokableCommand == InvokableCommand.DESTROY) {
-          await this.backendDeployer.destroy(uniqueBackendIdentifier, {
-            force: true,
-          });
-        }
+        await callback();
       } catch (error) {
         let message;
         if (error instanceof Error) message = error.message;

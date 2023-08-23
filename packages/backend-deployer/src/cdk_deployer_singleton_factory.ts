@@ -1,20 +1,12 @@
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import { CDKDeployer } from './cdk_deployer.js';
 
-/**
- * Commands that can be invoked
- */
-export enum InvokableCommand {
-  DEPLOY = 'deploy',
-  DESTROY = 'destroy',
-}
-
-export type DeployCommandProps = {
+export type DeployProps = {
   hotswapFallback?: boolean;
   method?: 'direct';
 };
 
-export type DestroyCommandProps = {
+export type DestroyProps = {
   force?: boolean;
 };
 
@@ -24,27 +16,27 @@ export type DestroyCommandProps = {
 export interface BackendDeployer {
   deploy: (
     uniqueBackendIdentifier?: UniqueBackendIdentifier,
-    deployCommandProps?: DeployCommandProps
+    deployProps?: DeployProps
   ) => Promise<void>;
   destroy: (
     uniqueBackendIdentifier?: UniqueBackendIdentifier,
-    destroyCommandProps?: DestroyCommandProps
+    destroyProps?: DestroyProps
   ) => Promise<void>;
 }
 
 /**
  * Factory to create a backend deployer
  */
-export class BackendDeployerSingletonFactory {
+export class BackendDeployerFactory {
   private static instance: BackendDeployer | undefined;
 
   /**
    * Returns a single instance of BackendDeployer
    */
   static getInstance(): BackendDeployer {
-    if (!BackendDeployerSingletonFactory.instance) {
-      BackendDeployerSingletonFactory.instance = new CDKDeployer();
+    if (!BackendDeployerFactory.instance) {
+      BackendDeployerFactory.instance = new CDKDeployer();
     }
-    return BackendDeployerSingletonFactory.instance;
+    return BackendDeployerFactory.instance;
   }
 }

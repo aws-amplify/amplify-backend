@@ -5,7 +5,7 @@ import assert from 'node:assert';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
 import { ClientConfigGeneratorAdapter } from './config/client_config_generator_adapter.js';
 import path from 'node:path';
-import { BackendDeployerSingletonFactory } from '@aws-amplify/backend-deployer';
+import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 
 // Watcher mocks
 const unsubscribeMockFn = mock.fn();
@@ -24,7 +24,7 @@ const generateClientConfigMock = mock.method(
   () => Promise.resolve('testClientConfig')
 );
 
-const backendDeployer = BackendDeployerSingletonFactory.getInstance();
+const backendDeployer = BackendDeployerFactory.getInstance();
 const execaDeployMock = mock.method(backendDeployer, 'deploy', () =>
   Promise.resolve()
 );
