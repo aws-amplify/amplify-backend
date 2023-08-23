@@ -35,9 +35,9 @@ export class PipelineDeployCommand
   /**
    * @inheritDoc
    */
-  async handler(
+  handler = async (
     args: ArgumentsCamelCase<PipelineDeployCommandOptions>
-  ): Promise<void> {
+  ): Promise<void> => {
     if (!isCI) {
       throw new Error(
         'It looks like this command is being run outside of a CI/CD workflow. To deploy locally use `amplify sandbox` instead.'
@@ -50,7 +50,7 @@ export class PipelineDeployCommand
     };
 
     await this.backendDeployer.deploy(uniqueBackendIdentifier);
-  }
+  };
 
   builder = (yargs: Argv): Argv<PipelineDeployCommandOptions> => {
     return yargs
