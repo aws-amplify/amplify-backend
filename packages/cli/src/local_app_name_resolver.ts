@@ -12,9 +12,7 @@ export class LocalAppNameResolver implements AppNameResolver {
    * packageJsonLoader is assigned to an instance member for testing.
    * resolve is bound to this so that it can be passed as a function reference
    */
-  constructor(
-    private readonly packageJsonLoader = new CwdPackageJsonLoader()
-  ) {}
+  constructor(private readonly packageJsonLoader: CwdPackageJsonLoader) {}
 
   /**
    * Returns the value of package.json#name from the current working directory
