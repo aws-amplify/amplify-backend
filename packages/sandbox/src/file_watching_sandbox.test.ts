@@ -200,9 +200,6 @@ describe('Sandbox using local project name resolver', () => {
         branchName: 'sandbox',
         backendId: 'testSandboxId',
       },
-      {
-        force: true,
-      },
     ]);
   });
 
@@ -317,9 +314,6 @@ describe('Sandbox with user provided app name', () => {
       {
         branchName: 'sandbox',
         backendId: 'customSandboxName',
-      },
-      {
-        force: true,
       },
     ]);
   });

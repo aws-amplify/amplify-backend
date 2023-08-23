@@ -6,10 +6,6 @@ export type DeployProps = {
   method?: 'direct';
 };
 
-export type DestroyProps = {
-  force?: boolean;
-};
-
 /**
  * Invokes an invokable command
  */
@@ -18,10 +14,7 @@ export interface BackendDeployer {
     uniqueBackendIdentifier?: UniqueBackendIdentifier,
     deployProps?: DeployProps
   ) => Promise<void>;
-  destroy: (
-    uniqueBackendIdentifier?: UniqueBackendIdentifier,
-    destroyProps?: DestroyProps
-  ) => Promise<void>;
+  destroy: (uniqueBackendIdentifier?: UniqueBackendIdentifier) => Promise<void>;
 }
 
 /**

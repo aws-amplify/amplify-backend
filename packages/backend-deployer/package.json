@@ -20,5 +20,8 @@
     "@aws-amplify/plugin-types": "^0.1.1-alpha.0",
     "execa": "^7.2.0",
     "tsx": "^3.12.6"
+  },
+  "peerDependencies": {
+    "aws-cdk": "^2.0.0"
   }
 }

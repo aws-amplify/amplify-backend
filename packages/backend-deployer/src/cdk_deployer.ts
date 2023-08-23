@@ -4,7 +4,6 @@ import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import {
   BackendDeployer,
   DeployProps,
-  DestroyProps,
 } from './cdk_deployer_singleton_factory.js';
 
 const relativeBackendEntryPoint = 'amplify/backend.ts';
@@ -45,19 +44,10 @@ export class CDKDeployer implements BackendDeployer {
   /**
    * Invokes cdk destroy command
    */
-  async destroy(
-    uniqueBackendIdentifier?: UniqueBackendIdentifier,
-    destroyProps?: DestroyProps
-  ) {
-    const cdkCommandArgs: string[] = [];
-    if (destroyProps?.force) {
-      cdkCommandArgs.push('--force');
-    }
-    await this.invoke(
-      InvokableCommand.DESTROY,
-      uniqueBackendIdentifier,
-      cdkCommandArgs
-    );
+  async destroy(uniqueBackendIdentifier?: UniqueBackendIdentifier) {
+    await this.invoke(InvokableCommand.DESTROY, uniqueBackendIdentifier, [
+      '--force',
+    ]);
   }
 
   /**

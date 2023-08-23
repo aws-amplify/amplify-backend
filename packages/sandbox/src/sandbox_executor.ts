@@ -29,9 +29,7 @@ export class AmplifySandboxExecutor {
   destroy(uniqueBackendIdentifier?: UniqueBackendIdentifier): Promise<void> {
     console.debug('[Sandbox] Executing command `deploy`');
     return this.invoke(() =>
-      this.backendDeployer.destroy(uniqueBackendIdentifier, {
-        force: true,
-      })
+      this.backendDeployer.destroy(uniqueBackendIdentifier)
     );
   }
 

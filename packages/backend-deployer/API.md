@@ -11,7 +11,7 @@ export interface BackendDeployer {
     // (undocumented)
     deploy: (uniqueBackendIdentifier?: UniqueBackendIdentifier, deployProps?: DeployProps) => Promise<void>;
     // (undocumented)
-    destroy: (uniqueBackendIdentifier?: UniqueBackendIdentifier, destroyProps?: DestroyProps) => Promise<void>;
+    destroy: (uniqueBackendIdentifier?: UniqueBackendIdentifier) => Promise<void>;
 }
 
 // @public
@@ -23,11 +23,6 @@ export class BackendDeployerFactory {
 export type DeployProps = {
     hotswapFallback?: boolean;
     method?: 'direct';
-};
-
-// @public (undocumented)
-export type DestroyProps = {
-    force?: boolean;
 };
 
 // (No @packageDocumentation comment for this package)
