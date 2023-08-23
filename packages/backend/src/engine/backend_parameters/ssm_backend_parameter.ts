@@ -18,6 +18,9 @@ export class SSMBackendParameter implements BackendParameter {
     backendId: string,
     branchName: string
   ): SecretValue {
+    // TODO: Implement actual a lambda custom resource to handle secret
+    // inheritance/override for CI/CD.
+    // https://github.com/aws-amplify/samsara-cli/issues/155
     const parameterFetcher = new custom_resources.AwsCustomResource(
       scope,
       `${this.name}Fetcher`,
