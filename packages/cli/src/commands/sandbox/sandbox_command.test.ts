@@ -20,8 +20,8 @@ describe('sandbox command factory', () => {
 
 describe('sandbox command', () => {
   let commandRunner: TestCommandRunner;
-  let sandboxStartMock = mock.fn();
   let sandbox: Sandbox;
+  let sandboxStartMock = mock.fn<typeof sandbox.start>();
 
   beforeEach(async () => {
     const sandboxFactory = new SandboxSingletonFactory(() =>
@@ -29,9 +29,7 @@ describe('sandbox command', () => {
     );
     sandbox = await sandboxFactory.getInstance();
 
-    sandboxStartMock = mock.method(sandbox, 'start', () =>
-      Promise.resolve()
-    ) as never; // couldn't figure out a good way to type the sandboxStartMock so that TS was happy here
+    sandboxStartMock = mock.method(sandbox, 'start', () => Promise.resolve());
     const sandboxDeleteCommand = new SandboxDeleteCommand(sandboxFactory);
 
     const sandboxCommand = new SandboxCommand(
@@ -112,19 +110,14 @@ describe('sandbox command', () => {
   });
 
   it('asks to delete the sandbox environment when users send ctrl-C and say yes to delete', async (contextual) => {
-    // Mock process and extract the sigint handler
+    // Mock process and extract the sigint handler after calling the sandbox command
     const processSignal = contextual.mock.method(process, 'on', () => {
       /* no op */
     });
-    let sigIntHandlerFn;
     const sandboxStartMock = contextual.mock.method(
       sandbox,
       'start',
-      async () => {
-        sigIntHandlerFn = processSignal.mock.calls[0].arguments[1];
-        if (sigIntHandlerFn) sigIntHandlerFn();
-        return Promise.resolve();
-      }
+      async () => Promise.resolve()
     );
 
     const sandboxDeleteMock = contextual.mock.method(sandbox, 'delete', () =>
@@ -135,7 +128,14 @@ describe('sandbox command', () => {
     contextual.mock.method(AmplifyPrompter, 'yesOrNo', () =>
       Promise.resolve(true)
     );
+
     await commandRunner.runCommand('sandbox');
+
+    // Similar to the later 0ms timeout. Without this tests in github action are failing
+    // but working locally
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const sigIntHandlerFn = processSignal.mock.calls[0].arguments[1];
+    if (sigIntHandlerFn) sigIntHandlerFn();
 
     // I can't find any open node:test or yargs issues that would explain why this is necessary
     // but for some reason the mock call count does not update without this 0ms wait
@@ -145,19 +145,14 @@ describe('sandbox command', () => {
   });
 
   it('asks to delete the sandbox environment when users send ctrl-C and say no to delete', async (contextual) => {
-    // Mock process and extract the sigint handler
+    // Mock process and extract the sigint handler after calling the sandbox command
     const processSignal = contextual.mock.method(process, 'on', () => {
       /* no op */
     });
-    let sigIntHandlerFn;
     const sandboxStartMock = contextual.mock.method(
       sandbox,
       'start',
-      async () => {
-        sigIntHandlerFn = processSignal.mock.calls[0].arguments[1];
-        if (sigIntHandlerFn) sigIntHandlerFn();
-        return Promise.resolve();
-      }
+      async () => Promise.resolve()
     );
 
     const sandboxDeleteMock = contextual.mock.method(
@@ -170,7 +165,15 @@ describe('sandbox command', () => {
     contextual.mock.method(AmplifyPrompter, 'yesOrNo', () =>
       Promise.resolve(false)
     );
+
     await commandRunner.runCommand('sandbox');
+
+    // Similar to the previous test's 0ms timeout. Without this tests in github action are failing
+    // but working locally
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const sigIntHandlerFn = processSignal.mock.calls[0].arguments[1];
+    if (sigIntHandlerFn) sigIntHandlerFn();
+
     assert.equal(sandboxStartMock.mock.callCount(), 1);
     assert.equal(sandboxDeleteMock.mock.callCount(), 0);
   });
