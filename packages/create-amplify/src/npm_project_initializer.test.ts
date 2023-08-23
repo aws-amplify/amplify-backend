@@ -1,5 +1,5 @@
 import { describe, it, mock } from 'node:test';
-import { NpmInitializedEnsurer } from './npm_initialized_ensurer.js';
+import { NpmProjectInitializer } from './npm_project_initializer.js';
 import assert from 'assert';
 
 describe('NpmInitializedEnsurer', async () => {
@@ -7,13 +7,13 @@ describe('NpmInitializedEnsurer', async () => {
     const logMock = mock.fn();
     const existsSyncMock = mock.fn(() => true);
     const execaMock = mock.fn();
-    const npmInitializedEnsurer = new NpmInitializedEnsurer(
+    const npmInitializedEnsurer = new NpmProjectInitializer(
       '/testProjRoot',
       { log: logMock } as never,
       existsSyncMock,
       execaMock as never
     );
-    await npmInitializedEnsurer.ensureNpmInitialized();
+    await npmInitializedEnsurer.ensureInitialized();
     assert.equal(execaMock.mock.callCount(), 0);
   });
 
@@ -21,13 +21,13 @@ describe('NpmInitializedEnsurer', async () => {
     const logMock = mock.fn();
     const existsSyncMock = mock.fn(() => false);
     const execaMock = mock.fn();
-    const npmInitializedEnsurer = new NpmInitializedEnsurer(
+    const npmInitializedEnsurer = new NpmProjectInitializer(
       '/testProjRoot',
       { log: logMock } as never,
       existsSyncMock,
       execaMock as never
     );
-    await npmInitializedEnsurer.ensureNpmInitialized();
+    await npmInitializedEnsurer.ensureInitialized();
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments, [
       'npm',
       ['init'],

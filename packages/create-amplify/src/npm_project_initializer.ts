@@ -5,7 +5,7 @@ import { execa as _execa } from 'execa';
 /**
  * Ensure that the current working directory is a valid Javascript project
  */
-export class NpmInitializedEnsurer {
+export class NpmProjectInitializer {
   /**
    * injecting console and fs for testing
    */
@@ -19,7 +19,7 @@ export class NpmInitializedEnsurer {
   /**
    * If package.json already exists, this is a noop. Otherwise, `npm init` is executed to create a package.json file
    */
-  async ensureNpmInitialized(): Promise<void> {
+  async ensureInitialized(): Promise<void> {
     if (this.existsSync(path.resolve(this.projectRoot, 'package.json'))) {
       // if package.json already exists, no need to do anything
       return;
