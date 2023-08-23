@@ -75,7 +75,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       iamConfig: {
         authenticatedUserRole: this.authResources.authenticatedUserIamRole,
         unauthenticatedUserRole: this.authResources.unauthenticatedUserIamRole,
-        identityPoolId: this.authResources.identityPoolId,
+        identityPoolId: this.authResources.cfnResources.identityPool.ref,
       },
     };
 

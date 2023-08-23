@@ -1,7 +1,7 @@
 import { AmplifyAuth, AmplifyAuthProps } from '@aws-amplify/auth-construct';
 import { Construct } from 'constructs';
 import {
-  AuthResources,
+  AuthResourceProvider,
   BackendOutputEntry,
   BackendOutputStorageStrategy,
   ConstructContainerEntryGenerator,
@@ -13,7 +13,7 @@ import {
  * Singleton factory for AmplifyAuth that can be used in Amplify project files
  */
 export class AmplifyAuthFactory
-  implements ConstructFactory<AmplifyAuth & AuthResources>
+  implements ConstructFactory<AmplifyAuth & AuthResourceProvider>
 {
   readonly provides = 'AuthResources';
   private generator: ConstructContainerEntryGenerator;

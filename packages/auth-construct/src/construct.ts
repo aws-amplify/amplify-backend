@@ -1,95 +1,153 @@
 import { Construct } from 'constructs';
-import { aws_cognito as cognito, SecretValue, Stack } from 'aws-cdk-lib';
+import { aws_cognito as cognito, Stack } from 'aws-cdk-lib';
 import {
-  AuthResources,
+  AuthResourceProvider,
   BackendOutputStorageStrategy,
   BackendOutputWriter,
 } from '@aws-amplify/plugin-types';
-import { UserPool, UserPoolClient } from 'aws-cdk-lib/aws-cognito';
+import {
+  UserPool,
+  UserPoolClient,
+  UserPoolProps,
+} from 'aws-cdk-lib/aws-cognito';
 import { FederatedPrincipal, IRole, Role } from 'aws-cdk-lib/aws-iam';
 import { AuthOutput } from '@aws-amplify/backend-output-schemas/auth';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
+import { AmplifyAuthProps } from './types.js';
 
-export type GoogleLogin = {
-  provider: 'google';
-  webClientId: string;
-  webClientSecret: string;
-};
-
-export type LoginMechanism = 'email' | 'username' | 'phone' | GoogleLogin;
-
-/**
- * Auth props
- */
-export type AmplifyAuthProps = {
-  loginMechanisms: LoginMechanism[];
-  selfSignUpEnabled?: boolean;
-};
+type DefaultRoles = { auth: Role; unAuth: Role };
 
 /**
  * Amplify Auth CDK Construct
  */
 export class AmplifyAuth
   extends Construct
-  implements BackendOutputWriter, AuthResources
+  implements BackendOutputWriter, AuthResourceProvider
 {
-  readonly userPool: UserPool;
-  readonly userPoolClientWeb: UserPoolClient;
-  readonly authenticatedUserIamRole: IRole;
-  readonly unauthenticatedUserIamRole: IRole;
+  public readonly resources;
   /**
    * Create a new Auth construct with AuthProps
    */
   constructor(scope: Construct, id: string, props: AmplifyAuthProps) {
     super(scope, id);
 
-    this.verifyLoginMechanisms(props.loginMechanisms);
+    // UserPool
+    const userPoolProps: UserPoolProps = this.getUserPoolProps(props);
+    const userPool = new cognito.UserPool(this, 'UserPool', userPoolProps);
 
-    this.userPool = new cognito.UserPool(this, 'UserPool', {
-      signInCaseSensitive: true,
-      signInAliases: {
-        username: props.loginMechanisms.includes('username'),
-        phone: props.loginMechanisms.includes('phone'),
-        email: props.loginMechanisms.includes('email'),
-      },
-      selfSignUpEnabled: props.selfSignUpEnabled,
-    });
-
-    this.userPoolClientWeb = new cognito.UserPoolClient(
+    // UserPool Client
+    const userPoolClientWeb = new cognito.UserPoolClient(
       this,
       'UserPoolWebClient',
       {
-        userPool: this.userPool,
+        userPool: userPool,
       }
     );
 
-    this.authenticatedUserIamRole = new Role(this, 'authenticatedUserRole', {
-      assumedBy: new FederatedPrincipal('cognito-identity.amazonaws.com'),
-    });
+    // Auth / UnAuth Roles
+    const { auth, unAuth } = this.setupAuthAndUnAuthRoles();
 
-    this.unauthenticatedUserIamRole = new Role(
-      this,
-      'unauthenticatedUserRole',
-      {
+    // Identity Pool
+    const { identityPool, identityPoolRoleAttachment } = this.setupIdentityPool(
+      { auth, unAuth },
+      userPool,
+      userPoolClientWeb
+    );
+
+    // expose resources
+    this.resources = {
+      userPool,
+      userPoolClientWeb,
+      authenticatedUserIamRole: auth,
+      unauthenticatedUserIamRole: unAuth,
+      cfnResources: {
+        identityPool,
+        identityPoolRoleAttachment,
+      },
+    };
+  }
+
+  /**
+   * Create Auth/UnAuth Roles
+   * @returns DefaultRoles
+   */
+  setupAuthAndUnAuthRoles(): DefaultRoles {
+    const result: DefaultRoles = {
+      auth: new Role(this, 'authenticatedUserRole', {
         assumedBy: new FederatedPrincipal('cognito-identity.amazonaws.com'),
-      }
-    );
+      }),
+      unAuth: new Role(this, 'unauthenticatedUserRole', {
+        assumedBy: new FederatedPrincipal('cognito-identity.amazonaws.com'),
+      }),
+    };
+    return result;
+  }
 
-    for (const loginMechanism of props.loginMechanisms) {
-      if (typeof loginMechanism === 'object') {
-        switch (loginMechanism.provider) {
-          case 'google':
-            new cognito.UserPoolIdentityProviderGoogle(this, 'GoogleIdP', {
-              userPool: this.userPool,
-              clientSecretValue: SecretValue.unsafePlainText(
-                loginMechanism.webClientSecret
-              ),
-              clientId: loginMechanism.webClientId,
-            });
-            break;
+  /**
+   * Setup Identity Pool with default roles/role mappings, and register providers
+   * @param roles DefaultRoles
+   * @param userPool UserPool
+   * @param userPoolClient UserPoolClient
+   */
+  setupIdentityPool(
+    roles: DefaultRoles,
+    userPool: UserPool,
+    userPoolClient: UserPoolClient
+  ) {
+    // setup identity pool
+    const region = Stack.of(this).region;
+    const identityPool = new cognito.CfnIdentityPool(this, 'IdentityPool', {
+      allowUnauthenticatedIdentities: false,
+    });
+    const identityPoolRoleAttachment =
+      new cognito.CfnIdentityPoolRoleAttachment(
+        this,
+        'IdentityPoolRoleAttachment',
+        {
+          identityPoolId: identityPool.logicalId,
+          roles: {
+            unauthenticated: roles.unAuth.roleArn,
+            authenticated: roles.auth.roleArn,
+          },
+          roleMappings: {
+            UserPoolWebClientRoleMapping: {
+              type: 'Token',
+              ambiguousRoleResolution: 'AuthenticatedRole',
+              identityProvider: `cognito-idp.${region}.amazonaws.com/${userPool.userPoolId}:${userPoolClient.userPoolClientId}`,
+            },
+          },
         }
-      }
-    }
+      );
+    identityPoolRoleAttachment.addDependency(identityPool);
+    identityPoolRoleAttachment.node.addDependency(userPoolClient);
+    // add cognito provider
+    identityPool.cognitoIdentityProviders = [
+      {
+        clientId: userPoolClient.userPoolClientId,
+        providerName: `cognito-idp.${region}.amazonaws.com/${userPool.userPoolProviderName}`,
+      },
+    ];
+    return {
+      identityPool,
+      identityPoolRoleAttachment,
+    };
+  }
+
+  /**
+   * Process props into UserPoolProps (set defaults if needed)
+   * @param props AmplifyAuthProps
+   * @returns UserPoolProps
+   */
+  getUserPoolProps(props: AmplifyAuthProps): UserPoolProps {
+    const login = props.loginOptions.basic;
+    const userPoolProps: UserPoolProps = {
+      signInCaseSensitive: false,
+      signInAliases: {
+        phone: login.phoneNumber?.enabled,
+        email: login.email?.enabled,
+      },
+    };
+    return userPoolProps;
   }
 
   /**
@@ -101,26 +159,10 @@ export class AmplifyAuth
     outputStorageStrategy.addBackendOutputEntry(authOutputKey, {
       version: '1',
       payload: {
-        userPoolId: this.userPool.userPoolId,
-        webClientId: this.userPoolClientWeb.userPoolClientId,
+        userPoolId: this.resources.userPool.userPoolId,
+        webClientId: this.resources.userPoolClientWeb.userPoolClientId,
         authRegion: Stack.of(this).region,
       },
     });
-  }
-
-  /**
-   * Username cannot be used in conjunction with phone or email
-   */
-  private verifyLoginMechanisms(loginMechanisms: LoginMechanism[]) {
-    if (loginMechanisms.includes('username')) {
-      if (
-        loginMechanisms.includes('phone') ||
-        loginMechanisms.includes('email')
-      ) {
-        throw new Error(
-          'Username login mechanism cannot be used with phone or email login mechanisms'
-        );
-      }
-    }
   }
 }

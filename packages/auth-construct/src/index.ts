@@ -1,1 +1,2 @@
-export * from './construct.js';
+export { AmplifyAuthProps } from './types.js';
+export { AmplifyAuth } from './construct.js';

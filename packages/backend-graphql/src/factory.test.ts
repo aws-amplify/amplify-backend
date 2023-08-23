@@ -46,12 +46,14 @@ describe('DataFactory', () => {
     constructContainer.registerConstructFactory('AuthResources', {
       provides: 'AuthResources',
       getInstance: (): AuthResources => ({
-        unauthenticatedUserIamRole: new Role(stack, 'testUnauthRole', {
-          assumedBy: new ServicePrincipal('test.amazon.com'),
-        }),
-        authenticatedUserIamRole: new Role(stack, 'testAuthRole', {
-          assumedBy: new ServicePrincipal('test.amazon.com'),
-        }),
+        resources: {
+          unauthenticatedUserIamRole: new Role(stack, 'testUnauthRole', {
+            assumedBy: new ServicePrincipal('test.amazon.com'),
+          }),
+          authenticatedUserIamRole: new Role(stack, 'testAuthRole', {
+            assumedBy: new ServicePrincipal('test.amazon.com'),
+          }),
+        },
       }),
     });
     outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(

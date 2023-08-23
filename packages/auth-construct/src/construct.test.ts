@@ -15,7 +15,13 @@ describe('Auth construct', () => {
     const app = new App();
     const stack = new Stack(app);
     new AmplifyAuth(stack, 'test', {
-      loginMechanisms: ['username'],
+      loginOptions: {
+        basic: {
+          email: {
+            enabled: true,
+          },
+        },
+      },
     });
     const template = Template.fromStack(stack);
     template.hasResourceProperties('AWS::Cognito::UserPool', {
@@ -29,7 +35,13 @@ describe('Auth construct', () => {
     const app = new App();
     const stack = new Stack(app);
     new AmplifyAuth(stack, 'test', {
-      loginMechanisms: ['phone'],
+      loginOptions: {
+        basic: {
+          phoneNumber: {
+            enabled: true,
+          },
+        },
+      },
     });
     const template = Template.fromStack(stack);
     template.hasResourceProperties('AWS::Cognito::UserPool', {
@@ -42,56 +54,18 @@ describe('Auth construct', () => {
     const app = new App();
     const stack = new Stack(app);
     new AmplifyAuth(stack, 'test', {
-      loginMechanisms: ['email'],
+      loginOptions: {
+        basic: {
+          email: {
+            enabled: true,
+          },
+        },
+      },
     });
     const template = Template.fromStack(stack);
     template.hasResourceProperties('AWS::Cognito::UserPool', {
       UsernameAttributes: ['email'],
       AutoVerifiedAttributes: ['email'],
-    });
-  });
-
-  it('does not allow username login with phone number or email', () => {
-    const app = new App();
-    const stack = new Stack(app);
-    assert.throws(
-      () =>
-        new AmplifyAuth(stack, 'test', {
-          loginMechanisms: ['username', 'email'],
-        }),
-      /Username login mechanism cannot be used with phone or email login mechanisms/
-    );
-
-    assert.throws(
-      () =>
-        new AmplifyAuth(stack, 'test2', {
-          loginMechanisms: ['username', 'phone'],
-        }),
-      /Username login mechanism cannot be used with phone or email login mechanisms/
-    );
-  });
-
-  it('creates google login mechanism', () => {
-    const app = new App();
-    const stack = new Stack(app);
-    new AmplifyAuth(stack, 'test', {
-      loginMechanisms: [
-        {
-          provider: 'google',
-          webClientId: 'testId',
-          webClientSecret: 'testSecret',
-        },
-      ],
-    });
-    const template = Template.fromStack(stack);
-    template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
-      ProviderName: 'Google',
-      ProviderType: 'Google',
-      ProviderDetails: {
-        client_id: 'testId',
-        client_secret: 'testSecret',
-        authorize_scopes: 'profile',
-      },
     });
   });
 
@@ -107,7 +81,13 @@ describe('Auth construct', () => {
           flush: mock.fn(),
         };
       const authConstruct = new AmplifyAuth(stack, 'test', {
-        loginMechanisms: ['username'],
+        loginOptions: {
+          basic: {
+            email: {
+              enabled: true,
+            },
+          },
+        },
       });
 
       const expectedUserPoolId = (
