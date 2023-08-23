@@ -27,7 +27,14 @@ export class NpmProjectInitializer {
     this.logger.log(
       'No package.json file found in the current directory. Running `npm init`...'
     );
-    await this.execa('npm', ['init'], { stdio: 'inherit' });
+
+    try {
+      await this.execa('npm', ['init'], { stdio: 'inherit' });
+    } catch {
+      throw new Error(
+        '`npm init` did not exit successfully. Initialize a valid JavaScript package before continuing.'
+      );
+    }
 
     if (!this.packageJsonExists()) {
       // this should only happen if the customer exits out of npm init before finishing
