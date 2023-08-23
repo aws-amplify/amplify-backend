@@ -1,6 +1,6 @@
 import { existsSync as _existsSync } from 'fs';
 import * as path from 'path';
-import { execa } from 'execa';
+import { execa as _execa } from 'execa';
 
 /**
  * Ensure that the current working directory is a valid Javascript project
@@ -12,7 +12,8 @@ export class NpmInitializedEnsurer {
   constructor(
     private readonly projectRoot: string,
     private readonly logger: typeof console = console,
-    private readonly existsSync = _existsSync
+    private readonly existsSync = _existsSync,
+    private readonly execa = _execa
   ) {}
 
   /**
@@ -26,6 +27,6 @@ export class NpmInitializedEnsurer {
     this.logger.log(
       'No package.json file found in the current directory. Running `npm init`...'
     );
-    await execa('npm', ['init'], { stdio: 'inherit' });
+    await this.execa('npm', ['init'], { stdio: 'inherit' });
   }
 }
