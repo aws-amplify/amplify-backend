@@ -39,7 +39,7 @@ describe('NpmInitializedEnsurer', async () => {
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments, [
       'npm',
       ['init'],
-      { stdio: 'inherit' },
+      { stdio: 'inherit', cwd: '/testProjRoot' },
     ]);
   });
 

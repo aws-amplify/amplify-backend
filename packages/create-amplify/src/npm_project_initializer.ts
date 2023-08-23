@@ -29,7 +29,10 @@ export class NpmProjectInitializer {
     );
 
     try {
-      await this.execa('npm', ['init'], { stdio: 'inherit' });
+      await this.execa('npm', ['init'], {
+        stdio: 'inherit',
+        cwd: this.projectRoot,
+      });
     } catch {
       throw new Error(
         '`npm init` did not exit successfully. Initialize a valid JavaScript package before continuing.'
