@@ -11,6 +11,7 @@ import { NpmPackageManagerController } from './npm_package_manager_controller.js
 import { ProjectRootValidator } from './project_root_validator.js';
 import { AmplifyProjectCreator } from './amplify_project_creator.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
+import { NpmProjectInitializer } from './npm_project_initializer.js';
 
 /*
   The project root is the root directory of the customer's repo
@@ -22,7 +23,8 @@ const projectRoot = process.cwd();
 const amplifyProjectCreator = new AmplifyProjectCreator(
   new NpmPackageManagerController(projectRoot),
   new ProjectRootValidator(projectRoot),
-  new InitialProjectFileGenerator(projectRoot)
+  new InitialProjectFileGenerator(projectRoot),
+  new NpmProjectInitializer(projectRoot)
 );
 
 try {

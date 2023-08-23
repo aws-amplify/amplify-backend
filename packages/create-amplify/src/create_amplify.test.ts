@@ -36,6 +36,11 @@ describe('create-amplify script', async () => {
   let tempDir: string;
   beforeEach(async () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'test-create-amplify'));
+    // creating a package.json beforehand skips the npm init in create-amplify
+    await fs.writeFile(
+      path.join(tempDir, 'package.json'),
+      JSON.stringify({ name: 'test-project-name' }, null, 2)
+    );
   });
 
   afterEach(async () => {

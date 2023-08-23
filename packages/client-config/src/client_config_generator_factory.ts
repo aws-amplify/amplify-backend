@@ -116,7 +116,7 @@ export class ClientConfigGeneratorFactory {
 const isUniqueBackendIdentifier = (
   backendIdentifier: BackendIdentifier
 ): backendIdentifier is UniqueBackendIdentifier => {
-  return 'appId' in backendIdentifier && 'branchName' in backendIdentifier;
+  return 'backendId' in backendIdentifier && 'branchName' in backendIdentifier;
 };
 
 const isStackIdentifier = (
