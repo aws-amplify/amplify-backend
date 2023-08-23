@@ -1,10 +1,11 @@
 import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import watcher from '@parcel/watcher';
-import { CDKSandbox } from './cdk_sandbox.js';
+import { FileWatchingSandbox } from './file_watching_sandbox.js';
 import assert from 'node:assert';
-import { AmplifyCDKExecutor } from './cdk_executor.js';
+import { AmplifySandboxExecutor } from './sandbox_executor.js';
 import { ClientConfigGeneratorAdapter } from './config/client_config_generator_adapter.js';
 import path from 'node:path';
+import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 
 // Watcher mocks
 const unsubscribeMockFn = mock.fn();
@@ -23,21 +24,25 @@ const generateClientConfigMock = mock.method(
   () => Promise.resolve('testClientConfig')
 );
 
+const backendDeployer = BackendDeployerFactory.getInstance();
+const execaDeployMock = mock.method(backendDeployer, 'deploy', () =>
+  Promise.resolve()
+);
+const execaDestroyMock = mock.method(backendDeployer, 'destroy', () =>
+  Promise.resolve()
+);
 describe('Sandbox using local project name resolver', () => {
   // class under test
-  let sandboxInstance: CDKSandbox;
+  let sandboxInstance: FileWatchingSandbox;
 
-  const cdkExecutor = new AmplifyCDKExecutor();
-  const execaMock = mock.method(cdkExecutor, 'executeChildProcess', () =>
-    Promise.resolve()
-  );
+  const cdkExecutor = new AmplifySandboxExecutor(backendDeployer);
 
   /**
    * For each test we start the sandbox and hence file watcher and get hold of
    * file change event function which tests can simulate by calling as desired.
    */
   beforeEach(async () => {
-    sandboxInstance = new CDKSandbox(
+    sandboxInstance = new FileWatchingSandbox(
       'testSandboxId',
       clientConfigGeneratorAdapter,
       cdkExecutor
@@ -48,7 +53,7 @@ describe('Sandbox using local project name resolver', () => {
     });
 
     // At this point one deployment should already have been done on sandbox startup
-    assert.strictEqual(execaMock.mock.callCount(), 1);
+    assert.strictEqual(execaDeployMock.mock.callCount(), 1);
     // and client config generated only once
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
 
@@ -60,12 +65,14 @@ describe('Sandbox using local project name resolver', () => {
     }
 
     // Reset all the calls to avoid extra startup call
-    execaMock.mock.resetCalls();
+    execaDestroyMock.mock.resetCalls();
+    execaDeployMock.mock.resetCalls();
     generateClientConfigMock.mock.resetCalls();
   });
 
   afterEach(async () => {
-    execaMock.mock.resetCalls();
+    execaDestroyMock.mock.resetCalls();
+    execaDeployMock.mock.resetCalls();
     subscribeMock.mock.resetCalls();
     generateClientConfigMock.mock.resetCalls();
     await sandboxInstance.stop();
@@ -88,24 +95,18 @@ describe('Sandbox using local project name resolver', () => {
     });
 
     // CDK should be called once
-    assert.strictEqual(execaMock.mock.callCount(), 1);
+    assert.strictEqual(execaDeployMock.mock.callCount(), 1);
 
     // CDK should be called with the right params
-    assert.deepStrictEqual(execaMock.mock.calls[0].arguments, [
-      'npx',
-      [
-        'cdk',
-        'deploy',
-        '--ci',
-        '--app',
-        "'npx tsx amplify/backend.ts'",
-        '--context',
-        'backend-id=testSandboxId',
-        '--context',
-        'branch-name=sandbox',
-        '--hotswap-fallback',
-        '--method=direct',
-      ],
+    assert.deepStrictEqual(execaDeployMock.mock.calls[0].arguments, [
+      {
+        branchName: 'sandbox',
+        backendId: 'testSandboxId',
+      },
+      {
+        hotswapFallback: true,
+        method: 'direct',
+      },
     ]);
   });
 
@@ -114,7 +115,7 @@ describe('Sandbox using local project name resolver', () => {
       { type: 'update', path: 'foo/test2.ts' },
       { type: 'create', path: 'foo/test3.ts' },
     ]);
-    assert.strictEqual(execaMock.mock.callCount(), 1);
+    assert.strictEqual(execaDeployMock.mock.callCount(), 1);
 
     // and client config generated only once
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
@@ -126,7 +127,7 @@ describe('Sandbox using local project name resolver', () => {
     await fileChangeEventActualFn(null, [
       { type: 'update', path: 'foo/test4.ts' },
     ]);
-    assert.strictEqual(execaMock.mock.callCount(), 1);
+    assert.strictEqual(execaDeployMock.mock.callCount(), 1);
 
     // and client config written only once
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
@@ -139,7 +140,7 @@ describe('Sandbox using local project name resolver', () => {
     await fileChangeEventActualFn(null, [
       { type: 'update', path: 'foo/test6.ts' },
     ]);
-    assert.strictEqual(execaMock.mock.callCount(), 2);
+    assert.strictEqual(execaDeployMock.mock.callCount(), 2);
 
     // and client config written twice as well
     assert.equal(generateClientConfigMock.mock.callCount(), 2);
@@ -147,7 +148,7 @@ describe('Sandbox using local project name resolver', () => {
 
   it('queues deployment if a file change is detected during an ongoing', async () => {
     // Mimic cdk taking 200 ms.
-    execaMock.mock.mockImplementationOnce(async () => {
+    execaDeployMock.mock.mockImplementationOnce(async () => {
       await new Promise((res) => setTimeout(res, 200));
       return { stdout: '', stderr: '' };
     });
@@ -164,7 +165,7 @@ describe('Sandbox using local project name resolver', () => {
     // Wait sufficient time for both deployments to have finished before we count number of cdk calls.
     await new Promise((res) => setTimeout(res, 500));
 
-    assert.strictEqual(execaMock.mock.callCount(), 2);
+    assert.strictEqual(execaDeployMock.mock.callCount(), 2);
     assert.equal(generateClientConfigMock.mock.callCount(), 2);
   });
 
@@ -191,30 +192,21 @@ describe('Sandbox using local project name resolver', () => {
     await sandboxInstance.delete({});
 
     // CDK should be called once
-    assert.strictEqual(execaMock.mock.callCount(), 1);
+    assert.strictEqual(execaDestroyMock.mock.callCount(), 1);
 
     // CDK should be called with the right params
-    assert.deepStrictEqual(execaMock.mock.calls[0].arguments, [
-      'npx',
-      [
-        'cdk',
-        'destroy',
-        '--ci',
-        '--app',
-        "'npx tsx amplify/backend.ts'",
-        '--context',
-        'backend-id=testSandboxId',
-        '--context',
-        'branch-name=sandbox',
-        '--force',
-      ],
+    assert.deepStrictEqual(execaDestroyMock.mock.calls[0].arguments, [
+      {
+        branchName: 'sandbox',
+        backendId: 'testSandboxId',
+      },
     ]);
   });
 
   it('handles error thrown by cdk and does not crash', async (contextual) => {
     const contextualExecaMock = contextual.mock.method(
-      cdkExecutor,
-      'executeChildProcess',
+      backendDeployer,
+      'deploy',
       () => Promise.reject(new Error('random cdk error'))
     );
 
@@ -235,19 +227,16 @@ describe('Sandbox using local project name resolver', () => {
 
 describe('Sandbox with user provided app name', () => {
   // class under test
-  let sandboxInstance: CDKSandbox;
+  let sandboxInstance: FileWatchingSandbox;
 
-  const cdkExecutor = new AmplifyCDKExecutor();
-  const execaMock = mock.method(cdkExecutor, 'executeChildProcess', () =>
-    Promise.resolve()
-  );
+  const cdkExecutor = new AmplifySandboxExecutor(backendDeployer);
 
   /**
    * For each test we start the sandbox and hence file watcher and get hold of
    * file change event function which tests can simulate by calling as desired.
    */
   beforeEach(async () => {
-    sandboxInstance = new CDKSandbox(
+    sandboxInstance = new FileWatchingSandbox(
       'testSandboxId',
       clientConfigGeneratorAdapter,
       cdkExecutor
@@ -266,12 +255,14 @@ describe('Sandbox with user provided app name', () => {
     }
 
     // Reset all the calls to avoid extra startup call
-    execaMock.mock.resetCalls();
+    execaDestroyMock.mock.resetCalls();
+    execaDeployMock.mock.resetCalls();
     generateClientConfigMock.mock.resetCalls();
   });
 
   afterEach(async () => {
-    execaMock.mock.resetCalls();
+    execaDestroyMock.mock.resetCalls();
+    execaDeployMock.mock.resetCalls();
     subscribeMock.mock.resetCalls();
     generateClientConfigMock.mock.resetCalls();
     await sandboxInstance.stop();
@@ -294,24 +285,18 @@ describe('Sandbox with user provided app name', () => {
     });
 
     // CDK should be called once
-    assert.strictEqual(execaMock.mock.callCount(), 1);
+    assert.strictEqual(execaDeployMock.mock.callCount(), 1);
 
     // CDK should be called with the right params
-    assert.deepStrictEqual(execaMock.mock.calls[0].arguments, [
-      'npx',
-      [
-        'cdk',
-        'deploy',
-        '--ci',
-        '--app',
-        "'npx tsx amplify/backend.ts'",
-        '--context',
-        'backend-id=customSandboxName',
-        '--context',
-        'branch-name=sandbox',
-        '--hotswap-fallback',
-        '--method=direct',
-      ],
+    assert.deepStrictEqual(execaDeployMock.mock.calls[0].arguments, [
+      {
+        branchName: 'sandbox',
+        backendId: 'customSandboxName',
+      },
+      {
+        hotswapFallback: true,
+        method: 'direct',
+      },
     ]);
 
     // and client config written only once
@@ -322,23 +307,14 @@ describe('Sandbox with user provided app name', () => {
     await sandboxInstance.delete({ name: 'customSandboxName' });
 
     // CDK should be called once
-    assert.strictEqual(execaMock.mock.callCount(), 1);
+    assert.strictEqual(execaDestroyMock.mock.callCount(), 1);
 
     // CDK should be called with the right params
-    assert.deepStrictEqual(execaMock.mock.calls[0].arguments, [
-      'npx',
-      [
-        'cdk',
-        'destroy',
-        '--ci',
-        '--app',
-        "'npx tsx amplify/backend.ts'",
-        '--context',
-        'backend-id=customSandboxName',
-        '--context',
-        'branch-name=sandbox',
-        '--force',
-      ],
+    assert.deepStrictEqual(execaDestroyMock.mock.calls[0].arguments, [
+      {
+        branchName: 'sandbox',
+        backendId: 'customSandboxName',
+      },
     ]);
   });
 
@@ -367,19 +343,16 @@ describe('Sandbox with user provided app name', () => {
 
 describe('Sandbox with absolute output path', () => {
   // class under test
-  let sandboxInstance: CDKSandbox;
+  let sandboxInstance: FileWatchingSandbox;
 
-  const cdkExecutor = new AmplifyCDKExecutor();
-  const execaMock = mock.method(cdkExecutor, 'executeChildProcess', () =>
-    Promise.resolve()
-  );
+  const cdkExecutor = new AmplifySandboxExecutor(backendDeployer);
 
   /**
    * For each test we start the sandbox and hence file watcher and get hold of
    * file change event function which tests can simulate by calling as desired.
    */
   beforeEach(async () => {
-    sandboxInstance = new CDKSandbox(
+    sandboxInstance = new FileWatchingSandbox(
       'testSandboxId',
       clientConfigGeneratorAdapter,
       cdkExecutor
@@ -398,12 +371,14 @@ describe('Sandbox with absolute output path', () => {
     }
 
     // Reset all the calls to avoid extra startup call
-    execaMock.mock.resetCalls();
+    execaDeployMock.mock.resetCalls();
+    execaDestroyMock.mock.resetCalls();
     generateClientConfigMock.mock.resetCalls();
   });
 
   afterEach(async () => {
-    execaMock.mock.resetCalls();
+    execaDeployMock.mock.resetCalls();
+    execaDestroyMock.mock.resetCalls();
     subscribeMock.mock.resetCalls();
     generateClientConfigMock.mock.resetCalls();
     await sandboxInstance.stop();
