@@ -39,7 +39,7 @@ This will start a local npm proxy using <a href="https://verdaccio.org/">Verdacc
 <p>To publish a snapshot to an already running npm proxy run <code>npm run publish:snapshot:local latest</code></p>
 <a id="md:adding-a-package" class="tsd-anchor"></a><h2><a href="#md:adding-a-package">Adding a package</a></h2><p>This repo uses a monorepo structure managed by npm workspaces. All the packages in the workspace are under <code>packages/*</code></p>
 <p>There are package templates for some common scenarios in the <code>templates</code> directory.
-These templates can be copied to a new package directory using <code>npm run new --template=&lt;template&gt; --name=&lt;new name&gt;</code>
+These templates can be copied to a new package directory using <code>npm run new -- --template=&lt;template&gt; --name=&lt;new name&gt;</code>
 <code>--template</code> specifies which template to use and <code>--name</code> specifies the new package name.
 Valid templates are the directories in the <code>templates</code> directory</p>
 <p>If you are adding a new package that does not have a template, consider adding a template for that package type.
@@ -105,6 +105,7 @@ You&#39;ll probably want to use an existing template as a starting point for the
 <li><a href="_aws_amplify_auth_construct_alpha.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@aws-<wbr/>amplify/auth-<wbr/>construct-<wbr/>alpha</span></a></li>
 <li><a href="_aws_amplify_backend.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@aws-<wbr/>amplify/backend</span></a></li>
 <li><a href="_aws_amplify_backend_auth.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@aws-<wbr/>amplify/backend-<wbr/>auth</span></a></li>
+<li><a href="_aws_amplify_backend_deployer.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@aws-<wbr/>amplify/backend-<wbr/>deployer</span></a></li>
 <li><a href="_aws_amplify_backend_function.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@aws-<wbr/>amplify/backend-<wbr/>function</span></a></li>
 <li><a href="_aws_amplify_backend_graphql.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@aws-<wbr/>amplify/backend-<wbr/>graphql</span></a></li>
 <li><a href="_aws_amplify_backend_output_schemas.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@aws-<wbr/>amplify/backend-<wbr/>output-<wbr/>schemas</span></a></li>
