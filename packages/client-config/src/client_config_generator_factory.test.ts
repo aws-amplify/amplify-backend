@@ -31,8 +31,9 @@ describe('ClientConfigGeneratorFactory', () => {
       });
       assert.ok(clientConfigGenerator instanceof UnifiedClientConfigGenerator);
       assert.ok(
-        (clientConfigGenerator as GeneratorInternalType).outputRetrievalStrategy
-          .stackNameResolver instanceof PassThroughMainStackNameResolver
+        (clientConfigGenerator as unknown as GeneratorInternalType)
+          .outputRetrievalStrategy.stackNameResolver instanceof
+          PassThroughMainStackNameResolver
       );
     });
 
@@ -47,8 +48,8 @@ describe('ClientConfigGeneratorFactory', () => {
       });
       assert.ok(clientConfigGenerator instanceof UnifiedClientConfigGenerator);
       assert.ok(
-        (clientConfigGenerator as GeneratorInternalType).outputRetrievalStrategy
-          .stackNameResolver instanceof
+        (clientConfigGenerator as unknown as GeneratorInternalType)
+          .outputRetrievalStrategy.stackNameResolver instanceof
           UniqueBackendIdentifierMainStackNameResolver
       );
     });
@@ -64,8 +65,9 @@ describe('ClientConfigGeneratorFactory', () => {
       });
       assert.ok(clientConfigGenerator instanceof UnifiedClientConfigGenerator);
       assert.ok(
-        (clientConfigGenerator as GeneratorInternalType).outputRetrievalStrategy
-          .stackNameResolver instanceof AppNameAndBranchMainStackNameResolver
+        (clientConfigGenerator as unknown as GeneratorInternalType)
+          .outputRetrievalStrategy.stackNameResolver instanceof
+          AppNameAndBranchMainStackNameResolver
       );
     });
   });

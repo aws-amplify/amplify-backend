@@ -10,6 +10,7 @@ export class NpmInitializedEnsurer {
    * injecting console and fs for testing
    */
   constructor(
+    private readonly projectRoot: string,
     private readonly logger: typeof console = console,
     private readonly existsSync = _existsSync
   ) {}
@@ -18,7 +19,7 @@ export class NpmInitializedEnsurer {
    * If package.json already exists, this is a noop. Otherwise, `npm init` is executed to create a package.json file
    */
   async ensureNpmInitialized(): Promise<void> {
-    if (this.existsSync(path.join(process.cwd(), 'package.json'))) {
+    if (this.existsSync(path.resolve(this.projectRoot, 'package.json'))) {
       // if package.json already exists, no need to do anything
       return;
     }
