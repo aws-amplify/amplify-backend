@@ -1,0 +1,43 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`model auth rules can define public auth with no provider 1`] = `
+"type widget @model @auth(rules: [allow: public])
+{
+  title: String!
+}"
+`;
+
+exports[`model auth rules can define public with with provider apiKey 1`] = `
+"type widget @model @auth(rules: [allow: public, provider: apiKey])
+{
+  title: String!
+}"
+`;
+
+exports[`model auth rules can define public with with provider function 1`] = `
+"type widget @model @auth(rules: [allow: public, provider: function])
+{
+  title: String!
+}"
+`;
+
+exports[`model auth rules can define public with with provider iam 1`] = `
+"type widget @model @auth(rules: [allow: public, provider: iam])
+{
+  title: String!
+}"
+`;
+
+exports[`model auth rules can define public with with provider oidc 1`] = `
+"type widget @model @auth(rules: [allow: public, provider: oidc])
+{
+  title: String!
+}"
+`;
+
+exports[`model auth rules can define public with with provider userPools 1`] = `
+"type widget @model @auth(rules: [allow: public, provider: userPools])
+{
+  title: String!
+}"
+`;

@@ -1,14 +1,15 @@
-import type { ClientSchema } from "./src/ModelSchema";
-import { schema, defineData } from "./src/ModelSchema";
-import { model } from "./src/ModelType";
-import { fields } from "./src/ModelField";
-import { ref } from "./src/ModelRef";
+import { authorization } from './src/authorization';
+import type { ClientSchema } from './src/ModelSchema';
+import { schema, defineData } from './src/ModelSchema';
+import { model } from './src/ModelType';
+import { fields } from './src/ModelField';
+import { ref } from './src/ModelRef';
 import {
   hasOne,
   hasMany,
   belongsTo,
   manyToMany,
-} from "./src/ModelRelationalField";
+} from './src/ModelRelationalField';
 
 const a = {
   schema,
@@ -18,6 +19,7 @@ const a = {
   hasMany,
   belongsTo,
   manyToMany,
+  ...authorization,
   ...fields,
 };
 
