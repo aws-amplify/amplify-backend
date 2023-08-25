@@ -7,7 +7,11 @@ import {
   BackendOutputEntry,
   BackendOutputStorageStrategy,
 } from '@aws-amplify/plugin-types';
-import { UserPool, UserPoolClient } from 'aws-cdk-lib/aws-cognito';
+import {
+  UserPool,
+  UserPoolClient,
+  VerificationEmailStyle,
+} from 'aws-cdk-lib/aws-cognito';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
 
 describe('Auth construct', () => {
@@ -31,6 +35,79 @@ describe('Auth construct', () => {
       UsernameAttributes: ['email'],
       AutoVerifiedAttributes: ['email'],
     });
+  });
+
+  it('creates email login mechanism with specific settings', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const customEmailVerificationMessage = 'custom email body {####}';
+    const customEmailVerificationSubject = 'custom subject';
+    new AmplifyAuth(stack, 'test', {
+      loginWith: {
+        email: {
+          emailBody: customEmailVerificationMessage,
+          emailStyle: VerificationEmailStyle.CODE,
+          emailSubject: customEmailVerificationSubject,
+        },
+      },
+    });
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      EmailVerificationMessage: customEmailVerificationMessage,
+      EmailVerificationSubject: customEmailVerificationSubject,
+      VerificationMessageTemplate: {
+        DefaultEmailOption: 'CONFIRM_WITH_CODE',
+        EmailMessage: customEmailVerificationMessage,
+        EmailSubject: customEmailVerificationSubject,
+        SmsMessage: 'The verification code to your new account is {####}',
+      },
+    });
+  });
+
+  it('throws error if invalid email verification message for CODE', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const customEmailVerificationMessage = 'invalid message without code';
+    const customEmailVerificationSubject = 'custom subject';
+    assert.throws(
+      () =>
+        new AmplifyAuth(stack, 'test', {
+          loginWith: {
+            email: {
+              emailBody: customEmailVerificationMessage,
+              emailStyle: VerificationEmailStyle.CODE,
+              emailSubject: customEmailVerificationSubject,
+            },
+          },
+        }),
+      {
+        message:
+          "Invalid email settings. Property 'emailBody' must contain a template for the validation code with a format of {####}.",
+      }
+    );
+  });
+
+  it('throws error if invalid email verification message for LINK', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const customEmailVerificationMessage = 'invalid message without link';
+    const customEmailVerificationSubject = 'custom subject';
+    assert.throws(
+      () =>
+        new AmplifyAuth(stack, 'test', {
+          loginWith: {
+            email: {
+              emailBody: customEmailVerificationMessage,
+              emailStyle: VerificationEmailStyle.LINK,
+              emailSubject: customEmailVerificationSubject,
+            },
+          },
+        }),
+      {
+        message:
+          "Invalid email settings. Property 'emailBody' must contain a template for the validation link with a format of {##Verify Email##}.",
+      }
+    );
   });
 
   it('requires email attribute if email is enabled', () => {

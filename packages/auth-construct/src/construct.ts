@@ -9,6 +9,7 @@ import {
   UserPool,
   UserPoolClient,
   UserPoolProps,
+  VerificationEmailStyle,
 } from 'aws-cdk-lib/aws-cognito';
 import { FederatedPrincipal, Role } from 'aws-cdk-lib/aws-iam';
 import { AuthOutput } from '@aws-amplify/backend-output-schemas/auth';
@@ -20,7 +21,7 @@ import {
   AmplifyCustomAttributeBase,
   AmplifyCustomAttributeBuilder,
   AmplifyStandardAttribute,
-} from './user-attributes/custom_attributes.js';
+} from './utilities/custom_attributes.js';
 
 type DefaultRoles = { auth: Role; unAuth: Role };
 
@@ -160,6 +161,27 @@ export class AmplifyAuth
     let userVerificationSettings: cognito.UserVerificationConfig = {};
     if (emailEnabled) {
       if (typeof props.loginWith.email === 'object') {
+        const emailSettings = props.loginWith.email;
+        if (
+          emailSettings.emailBody &&
+          emailSettings.emailStyle !== VerificationEmailStyle.LINK
+        ) {
+          if (emailSettings.emailBody.indexOf('{####}') === -1) {
+            throw Error(
+              "Invalid email settings. Property 'emailBody' must contain a template for the validation code with a format of {####}."
+            );
+          }
+        }
+        if (
+          emailSettings.emailBody &&
+          emailSettings.emailStyle === VerificationEmailStyle.LINK
+        ) {
+          if (emailSettings.emailBody.indexOf('{##Verify Email##}') === -1) {
+            throw Error(
+              "Invalid email settings. Property 'emailBody' must contain a template for the validation link with a format of {##Verify Email##}."
+            );
+          }
+        }
         userVerificationSettings = {
           emailBody: props.loginWith.email.emailBody,
           emailStyle: props.loginWith.email.emailStyle,

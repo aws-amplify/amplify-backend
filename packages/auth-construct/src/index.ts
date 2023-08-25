@@ -9,5 +9,5 @@ export {
   AmplifyStandardAttribute,
   AmplifyCustomAttributeBase,
   CustomAttributeType,
-} from './user-attributes/custom_attributes.js';
+} from './utilities/custom_attributes.js';
 export { AmplifyAuth } from './construct.js';
