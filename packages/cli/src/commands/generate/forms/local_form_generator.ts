@@ -4,10 +4,9 @@ import {
   AppSyncClient,
   GetIntrospectionSchemaCommand,
 } from '@aws-sdk/client-appsync';
-import { generateGraphQLDocuments } from '@aws-amplify/graphql-docs-generator';
 import * as graphqlCodegen from '@graphql-codegen/core';
 import * as appsync from '@aws-amplify/appsync-modelgen-plugin';
-import * as appSyncDataStoreCodeGen from '@aws-amplify/appsync-modelgen-plugin';
+import asyncPool from 'tiny-async-pool';
 import { parse } from 'graphql';
 import {
   AmplifyUIBuilder,
@@ -18,14 +17,18 @@ import {
   CodegenJobGenericDataSchema,
   StartCodegenJobData,
   CodegenGenericDataFieldDataType,
-  GenericDataRelationshipType,
   CodegenGenericDataRelationshipType,
+  CodegenJob,
 } from '@aws-sdk/client-amplifyuibuilder';
 import {
   GenericDataField,
   GenericDataSchema,
   getGenericFromDataStore,
 } from '@aws-amplify/codegen-ui';
+import fetch from 'node-fetch';
+import path from 'path';
+import { generateGraphQLDocuments } from '@aws-amplify/graphql-docs-generator';
+import { GraphQLStatementsFormatter } from './graphQLFormatter.js';
 
 type CodegenGenericDataFields = Record<string, CodegenGenericDataField>;
 export type LocalFormGenerationConfig = {
@@ -59,16 +62,28 @@ export class LocalFormGenerator implements FormGenerator<void> {
    * The forms are persisted to disk
    */
   async generateForms(): Promise<void> {
-    //const schema = await this.getAppSyncIntrospectionSchema(this.config.apiId);
-    // const docs = generateGraphQLDocuments(schema, { maxDepth: 3 });
+    const appsyncIntrospectionSchema = await this.getAppSyncIntrospectionSchema(
+      this.config.apiId
+    );
     //console.log('schema', schema);
-    const schema = fs.readFileSync('./schema.graphql', 'utf8');
+    const schema = fs.readFileSync('./s2.graphql', 'utf8');
     const result = await appsync.preset.buildGeneratesSection({
       baseOutputDir: './',
       schema: parse(schema) as any,
       config: {
+        directives:
+          'directive @aws_subscribe(mutations: [String!]!) on FIELD_DEFINITION\n\ndirective @aws_auth(cognito_groups: [String!]!) on FIELD_DEFINITION\n\ndirective @aws_api_key on FIELD_DEFINITION | OBJECT\n\ndirective @aws_iam on FIELD_DEFINITION | OBJECT\n\ndirective @aws_oidc on FIELD_DEFINITION | OBJECT\n\ndirective @aws_cognito_user_pools(cognito_groups: [String!]) on FIELD_DEFINITION | OBJECT\n\ndirective @aws_lambda on FIELD_DEFINITION | OBJECT\n\ndirective @deprecated(reason: String) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION | ENUM | ENUM_VALUE\n\ndirective @model(queries: ModelQueryMap, mutations: ModelMutationMap, subscriptions: ModelSubscriptionMap, timestamps: TimestampConfiguration) on OBJECT\ninput ModelMutationMap {\n  create: String\n  update: String\n  delete: String\n}\ninput ModelQueryMap {\n  get: String\n  list: String\n}\ninput ModelSubscriptionMap {\n  onCreate: [String]\n  onUpdate: [String]\n  onDelete: [String]\n  level: ModelSubscriptionLevel\n}\nenum ModelSubscriptionLevel {\n  off\n  public\n  on\n}\ninput TimestampConfiguration {\n  createdAt: String\n  updatedAt: String\n}\ndirective @function(name: String!, region: String, accountId: String) repeatable on FIELD_DEFINITION\ndirective @http(method: HttpMethod = GET, url: String!, headers: [HttpHeader] = []) on FIELD_DEFINITION\nenum HttpMethod {\n  GET\n  POST\n  PUT\n  DELETE\n  PATCH\n}\ninput HttpHeader {\n  key: String\n  value: String\n}\ndirective @predictions(actions: [PredictionsActions!]!) on FIELD_DEFINITION\nenum PredictionsActions {\n  identifyText\n  identifyLabels\n  convertTextToSpeech\n  translateText\n}\ndirective @primaryKey(sortKeyFields: [String]) on FIELD_DEFINITION\ndirective @index(name: String, sortKeyFields: [String], queryField: String) repeatable on FIELD_DEFINITION\ndirective @hasMany(indexName: String, fields: [String!], limit: Int = 100) on FIELD_DEFINITION\ndirective @hasOne(fields: [String!]) on FIELD_DEFINITION\ndirective @manyToMany(relationName: String!, limit: Int = 100) on FIELD_DEFINITION\ndirective @belongsTo(fields: [String!]) on FIELD_DEFINITION\ndirective @default(value: String!) on FIELD_DEFINITION\ndirective @auth(rules: [AuthRule!]!) on OBJECT | FIELD_DEFINITION\ninput AuthRule {\n  allow: AuthStrategy!\n  provider: AuthProvider\n  identityClaim: String\n  groupClaim: String\n  ownerField: String\n  groupsField: String\n  groups: [String]\n  operations: [ModelOperation]\n}\nenum AuthStrategy {\n  owner\n  groups\n  private\n  public\n  custom\n}\nenum AuthProvider {\n  apiKey\n  iam\n  oidc\n  userPools\n  function\n}\nenum ModelOperation {\n  create\n  update\n  delete\n  read\n  list\n  get\n  sync\n  listen\n  search\n}\ndirective @mapsTo(name: String!) on OBJECT\ndirective @searchable(queries: SearchableQueryMap) on OBJECT\ninput SearchableQueryMap {\n  search: String\n}',
+        isTimestampFieldsAdded: true,
+        emitAuthProvider: true,
+        generateIndexRules: true,
+        handleListNullabilityTransparently: true,
+        usePipelinedTransformer: true,
+        transformerVersion: 2,
+        respectPrimaryKeyAttributesOnConnectionField: true,
+        improvePluralization: false,
+        generateModelsForLazyLoadAndCustomSelectionSet: false,
         target: 'introspection',
-        overrideOutputDir: null,
+        overrideOutputDir: './',
       },
       documents: [],
       pluginMap: {},
@@ -91,15 +106,44 @@ export class LocalFormGenerator implements FormGenerator<void> {
           },
         ],
         pluginMap: {
-          appSyncLocalCodeGen: appSyncDataStoreCodeGen,
+          appSyncLocalCodeGen: appsync,
         },
       });
     });
     const [synced] = await Promise.all(results);
 
-    const genericDataSchema = this.mapGenericDataSchemaToCodegen(
-      JSON.parse(synced)
+    const generatedStatements = generateGraphQLDocuments(
+      appsyncIntrospectionSchema,
+      {
+        maxDepth: 3,
+        typenameIntrospection: true,
+      }
     );
+    const language = 'typescript';
+    const opsGenDir = './src/graphql';
+    fs.mkdirSync(opsGenDir, { recursive: true });
+    await Promise.all(
+      ['queries', 'mutations', 'subscriptions'].flatMap(async (op) => {
+        const ops =
+          generatedStatements[
+            op as unknown as keyof typeof generatedStatements
+          ];
+        if (ops && ops.size) {
+          for (const k of ops.keys()) {
+            const formattedStatements = await new GraphQLStatementsFormatter(
+              language
+            ).format([[k, ops.get(k) as string]]);
+            const outputFile = path.resolve(path.join(opsGenDir, `${k}.ts`));
+            fs.writeFileSync(outputFile, formattedStatements);
+          }
+        }
+      })
+    );
+    console.log('gen-docs', generatedStatements);
+    console.log('synced', synced);
+
+    const d = getGenericFromDataStore(JSON.parse(synced));
+    const genericDataSchema = this.mapGenericDataSchemaToCodegen(d);
     const job: StartCodegenJobData = {
       autoGenerateForms: true,
       genericDataSchema,
@@ -109,20 +153,237 @@ export class LocalFormGenerator implements FormGenerator<void> {
           target: 'es2020',
           script: 'jsx',
           renderTypeDeclarations: true,
-        },
+          apiConfiguration: {
+            graphQLConfig: {
+              typesFilePath: '../graphql',
+              queriesFilePath: '../graphql',
+              mutationsFilePath: '../graphql',
+              subscriptionsFilePath: '../graphql',
+              fragmentsFilePath: '../graphql',
+            },
+          },
+        } as unknown as any,
       },
     };
     console.log('!!!! GENERIC !!!!');
     console.log(genericDataSchema);
-    const uiClient = new AmplifyUIBuilder();
-    //    const response = uiClient.startCodegenJob({
-    //      appId: 'd20by0kaw65zly',
-    //      clientToken: '',
-    //      environmentName: 'staging',
-    //      codegenJobToCreate: job,
-    //    });
+    fs.writeFileSync(`./job-${Date.now()}.json`, JSON.stringify(job, null, 2));
+    const uiClient = new AmplifyUIBuilder({
+      endpoint: 'https://tzhtbadkkh.execute-api.us-west-2.amazonaws.com/prod/',
+    });
+    const appId = 'dkne2bw3gmwb0';
+    const environmentName = '_AMPLIFY_SAMSARA_INTERNAL_';
+    const response = await uiClient.startCodegenJob({
+      appId,
+      clientToken: '',
+      environmentName,
+      codegenJobToCreate: job,
+      apiConfiguration: {
+        graphQLConfig: {
+          typesFilePath: '../graphql',
+          queriesFilePath: '../graphql',
+          mutationsFilePath: '../graphql',
+          subscriptionsFilePath: '../graphql',
+          fragmentsFilePath: '../graphql',
+        },
+      },
+    } as any);
+    const jobId = response.entity?.id;
+    if (!jobId) {
+      throw new TypeError('job id is null');
+    }
+    const finished = await this.waitForSucceededJob(
+      async () => {
+        const { job } = await uiClient.getCodegenJob({
+          appId,
+          environmentName,
+          id: jobId,
+        });
+        if (!job) throw Error('job is not defined');
+        return job;
+      },
+      {
+        pollInterval: 2000,
+      }
+    );
+    if (!finished.asset?.downloadUrl) {
+      throw new Error('did not get download url');
+    }
+    await this.extractUIComponents(
+      finished.asset?.downloadUrl,
+      './src/ui-components'
+    );
+    console.log(finished);
   }
+  //  getCodegenJob = async (jobId: string, appId?: string, envName?: string) => {
+  //    const environmentName = envName || this.#envName;
+  //    const resolvedAppId = appId || this.#appId;
+  //    try {
+  //      const { job } = await this.#amplifyUiBuilder
+  //        .getCodegenJob({
+  //          id: jobId,
+  //          appId: resolvedAppId,
+  //          environmentName,
+  //        })
+  //        .promise();
+  //      if (!job) {
+  //        throw new Error('Error getting codegen job');
+  //      }
+  //      return job;
+  //    } catch (err) {
+  //      console.debug(err.toString());
+  //      throw err;
+  //    }
+  //  };
 
+  delay = (durationMs: number): Promise<void> => {
+    return new Promise((r) => setTimeout(() => r(), durationMs));
+  };
+  waitForSucceededJob = async (
+    getJob: () => Promise<CodegenJob>,
+    { pollInterval }: { pollInterval: number }
+  ) => {
+    const startTime = performance.now();
+    // Adding env variable because if something happens and we need a longer timeout
+    // we will give the customer a chance to increase timeout as a workaround.
+    // Default timeout is 2 minutes for customers with thousands of components.
+    const waitTimeout = process.env.UI_BUILDER_CODEGENJOB_TIMEOUT
+      ? parseInt(process.env.UI_BUILDER_CODEGENJOB_TIMEOUT)
+      : 1000 * 60 * 2;
+
+    const endTime = startTime + waitTimeout;
+
+    while (performance.now() < endTime) {
+      const job = await getJob();
+
+      if (!job) {
+        console.error('Codegen job not found');
+        throw new Error('Codegen job not found');
+      }
+
+      if (job.status === 'failed') {
+        console.error('Codegen job status is failed', {
+          message: job.statusMessage,
+        });
+        throw new Error(job.statusMessage);
+      }
+
+      if (job.status === 'succeeded') {
+        console.debug(`Polling time: ${performance.now() - startTime}`);
+
+        return job;
+      }
+
+      await this.delay(pollInterval);
+    }
+
+    if (performance.now() > endTime) {
+      console.error(`Codegen job never succeeded before timeout`);
+    }
+
+    throw new Error('Failed to return codegen job');
+  };
+
+  fetchWithRetries = async (url: string, retries = 3, delay = 300) => {
+    let retryCount = 0;
+    let retryDelay = delay;
+
+    while (retryCount < retries) {
+      try {
+        const response = await fetch(url);
+        return response;
+      } catch (error) {
+        console.debug(`Error fetching ${url}: ${error}`);
+        retryCount = retryCount + 1;
+        await new Promise((res) => setTimeout(res, delay));
+        retryDelay = retryDelay * 2;
+      }
+    }
+    throw new Error('Fetch reached max number of retries without succeeding');
+  };
+  extractUIComponents = async (
+    url: string,
+    uiBuilderComponentsPath: string
+  ) => {
+    try {
+      if (!fs.existsSync(uiBuilderComponentsPath)) {
+        fs.mkdirSync(uiBuilderComponentsPath, { recursive: true });
+      }
+
+      const response = await this.fetchWithRetries(url);
+      if (!response.ok) {
+        throw new Error('Failed to download component manifest file');
+      }
+      const manifestFile = await (<
+        Promise<{
+          // eslint-disable-next-line @typescript-eslint/naming-convention
+          Output: {
+            downloadUrl: string | undefined;
+            fileName: string;
+            schemaName: string;
+            error: string | undefined;
+          }[];
+        }>
+      >response.json());
+
+      const downloadComponent = async (output: {
+        fileName: string;
+        downloadUrl: string | undefined;
+        error: string | undefined;
+      }) => {
+        if (output.downloadUrl && !output.error) {
+          try {
+            const response = await this.fetchWithRetries(output.downloadUrl);
+            if (!response.ok) {
+              console.debug(`Failed to download ${output.fileName}`);
+              throw new Error(`Failed to download ${output.fileName}`);
+            }
+            return {
+              content: await response.text(),
+              error: undefined,
+              fileName: output.fileName,
+            };
+          } catch (error) {
+            console.debug(
+              `Skipping ${output.fileName} because of an error downloading the component`
+            );
+            return {
+              error: `Failed to download ${output.fileName}`,
+              content: undefined,
+              fileName: output.fileName,
+            };
+          }
+        } else {
+          console.debug(
+            `Skipping ${output.fileName} because of an error generating the component`
+          );
+          return {
+            error: output.error,
+            content: undefined,
+            fileName: output.fileName,
+          };
+        }
+      };
+
+      for await (const downloaded of asyncPool(
+        5,
+        manifestFile.Output,
+        downloadComponent
+      )) {
+        if (downloaded.content) {
+          fs.writeFileSync(
+            path.join(uiBuilderComponentsPath, downloaded.fileName),
+            downloaded.content
+          );
+          console.debug(`Downloaded ${downloaded.fileName}`);
+        }
+      }
+      console.debug('ui-components downloaded successfully');
+    } catch (error) {
+      console.error('failed to download ui-components');
+      throw error;
+    }
+  };
   mapRelationshipTypeToCodegen = (
     relationship: CodegenGenericDataRelationshipType | undefined
   ): CodegenGenericDataRelationshipType | undefined => {

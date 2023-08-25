@@ -29,7 +29,7 @@ export class GenerateFormsCommand
   readonly describe: string;
 
   private readonly missingArgsError = new Error(
-    'Either --stack or --branch must be provided'
+    'Either --stack or --branch must be provided',
   );
 
   /**
@@ -37,7 +37,7 @@ export class GenerateFormsCommand
    */
   constructor(
     private readonly clientConfigGenerator: ClientConfigGeneratorAdapter,
-    private readonly projectNameResolver: ProjectNameResolver
+    private readonly projectNameResolver: ProjectNameResolver,
   ) {
     this.command = 'forms';
     this.describe = 'Generates UI forms';
@@ -47,15 +47,14 @@ export class GenerateFormsCommand
    * @inheritDoc
    */
   handler = async (
-    args: ArgumentsCamelCase<GenerateFormsCommandOptions>
+    args: ArgumentsCamelCase<GenerateFormsCommandOptions>,
   ): Promise<void> => {
     const backendIdentifier = await this.getBackendIdentifier(args);
     const baseDirectory = args.out ?? process.cwd();
-    const modelgenDirectory = path.join(baseDirectory, 'graphql/');
-    const formgenDirectory = path.join(baseDirectory, 'ui-components/');
-    const config = await this.clientConfigGenerator.generateClientConfig(
-      backendIdentifier
-    );
+    const modelgenDirectory = path.join(baseDirectory, 'src/graphql/');
+    const formgenDirectory = path.join(baseDirectory, 'src/ui-components/');
+    const config =
+      await this.clientConfigGenerator.generateClientConfig(backendIdentifier);
     console.log('#######HOLA#######', JSON.stringify(config, null, 2));
     if (!config.aws_appsync_graphqlEndpoint) {
       throw new TypeError('appsync endpoint is null');
@@ -75,7 +74,7 @@ export class GenerateFormsCommand
    * Throws if translation can't be made (this should never happen if command validation works correctly).
    */
   private async getBackendIdentifier(
-    args: ArgumentsCamelCase<GenerateFormsCommandOptions>
+    args: ArgumentsCamelCase<GenerateFormsCommandOptions>,
   ): Promise<BackendIdentifier> {
     if (args.stack) {
       return { stackName: args.stack };

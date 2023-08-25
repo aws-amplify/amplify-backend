@@ -80,5 +80,7 @@
     "*.json": "prettier --write",
     "*.yml": "prettier --write",
     "*.md": "prettier --write"
+  },
+  "dependencies": {
   }
 }
