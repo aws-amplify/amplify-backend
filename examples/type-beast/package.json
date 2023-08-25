@@ -11,6 +11,7 @@
     "clean": "turbo run clean && rimraf node_modules"
   },
   "devDependencies": {
+    "@types/jest": "^29.5.4",
     "eslint": "7.32.0",
     "eslint-config-custom": "*",
     "prettier": "^2.5.1",
