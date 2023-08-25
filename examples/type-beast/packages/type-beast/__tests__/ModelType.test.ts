@@ -1,7 +1,7 @@
 import { expectTypeTestsToPassAsync } from 'jest-tsd';
 import a, { defineData } from '../index';
 import { schemaPreprocessor } from '../src/SchemaProcessor';
-import { Providers } from '../src/authorization';
+import { Providers, Operations, Operation } from '../src/authorization';
 
 // evaluates type defs in corresponding test-d.ts file
 it('should not produce static type errors', async () => {
@@ -52,5 +52,29 @@ describe('model auth rules', () => {
       const graphql = schemaPreprocessor(schema).processedSchema;
       expect(graphql).toMatchSnapshot();
     });
+
+    const TestOperations: Operation[][] = [
+      // each individual operation
+      ...Operations.map((op) => [op]),
+
+      // a couple sanity checks to support a combinations
+      ['create', 'read', 'update', 'delete'],
+      ['create', 'read', 'listen'],
+    ];
+
+    for (const operations of TestOperations) {
+      it(`can define public with with provider ${provider} for operation `, () => {
+        const schema = a.schema({
+          widget: a
+            .model({
+              title: a.string(),
+            })
+            .authorization([a.allow.public(provider).to(operations)]),
+        });
+
+        const graphql = schemaPreprocessor(schema).processedSchema;
+        expect(graphql).toMatchSnapshot();
+      });
+    }
   }
 });
