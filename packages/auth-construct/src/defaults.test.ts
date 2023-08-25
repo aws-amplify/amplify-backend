@@ -3,7 +3,7 @@ import { AmplifyAuth } from './construct.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 
-describe('Auth construct defaults', () => {
+describe.only('Auth construct defaults', () => {
   it('creates email login by default', () => {
     const app = new App();
     const stack = new Stack(app);
@@ -36,6 +36,28 @@ describe('Auth construct defaults', () => {
       UsernameConfiguration: {
         CaseSensitive: false,
       },
+    });
+  });
+
+  it('enables self signup', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    new AmplifyAuth(stack, 'test');
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      AdminCreateUserConfig: {
+        AllowAdminCreateUserOnly: false,
+      },
+    });
+  });
+
+  it('prevents user existence errors', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    new AmplifyAuth(stack, 'test');
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPoolClient', {
+      PreventUserExistenceErrors: 'ENABLED',
     });
   });
 

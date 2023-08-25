@@ -22,8 +22,7 @@
     "@aws-amplify/backend": "file:../../packages/backend",
     "@aws-amplify/backend-auth": "file:../../packages/backend-auth",
     "@aws-amplify/backend-graphql": "file:../../packages/backend-graphql",
-    "@aws-amplify/cli": "file:../../packages/cli",
-    "eslint-config-react-app": "^7.0.1"
+    "@aws-amplify/cli": "file:../../packages/cli"
   },
   "scripts": {
     "start": "react-scripts start",

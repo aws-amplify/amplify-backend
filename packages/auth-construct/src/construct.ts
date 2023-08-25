@@ -50,6 +50,7 @@ export class AmplifyAuth
       {
         userPool: userPool,
         authFlows: DEFAULTS.AUTH_FLOWS,
+        preventUserExistenceErrors: DEFAULTS.PREVENT_USER_EXISTENCE_ERRORS,
       }
     );
 
@@ -200,6 +201,7 @@ export class AmplifyAuth
       customAttributes: {
         ...customAttributes,
       },
+      selfSignUpEnabled: DEFAULTS.ALLOW_SELF_SIGN_UP,
     };
     return userPoolProps;
   }
