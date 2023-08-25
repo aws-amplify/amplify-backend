@@ -4,6 +4,10 @@
 
 ```ts
 
+import { AmplifyCustomBooleanAttribute } from './user-attributes/custom_attributes.js';
+import { AmplifyCustomDateTimeAttribute } from './user-attributes/custom_attributes.js';
+import { AmplifyCustomNumberAttribute } from './user-attributes/custom_attributes.js';
+import { AmplifyCustomStringAttribute } from './user-attributes/custom_attributes.js';
 import { AuthOutput } from '@aws-amplify/backend-output-schemas/auth';
 import { AuthResourceProvider } from '@aws-amplify/plugin-types';
 import { aws_cognito } from 'aws-cdk-lib';
@@ -11,36 +15,17 @@ import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { BackendOutputWriter } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
 import { Role } from 'aws-cdk-lib/aws-iam';
-import { UserPoolProps } from 'aws-cdk-lib/aws-cognito';
+import { StandardAttributes } from 'aws-cdk-lib/aws-cognito';
 
 // @public
 export class AmplifyAuth extends Construct implements BackendOutputWriter, AuthResourceProvider {
     constructor(scope: Construct, id: string, optionalProps?: AmplifyAuthProps);
+    static attribute: (name: keyof aws_cognito.StandardAttributes) => AmplifyStandardAttribute;
     static customAttribute: {
-        string: (name: string, options?: {
-            mutable?: boolean | undefined;
-            minLength?: number | undefined;
-            maxLength?: number | undefined;
-        } | undefined) => {
-            [x: string]: aws_cognito.StringAttribute;
-        };
-        number: (name: string, options?: {
-            mutable?: boolean | undefined;
-            min?: number | undefined;
-            max?: number | undefined;
-        } | undefined) => {
-            [x: string]: aws_cognito.NumberAttribute;
-        };
-        boolean: (name: string, options?: {
-            mutable?: boolean | undefined;
-        } | undefined) => {
-            [x: string]: aws_cognito.BooleanAttribute;
-        };
-        dateTime: (name: string, options?: {
-            mutable?: boolean | undefined;
-        } | undefined) => {
-            [x: string]: aws_cognito.DateTimeAttribute;
-        };
+        string: (name: string) => AmplifyCustomStringAttribute;
+        number: (name: string) => AmplifyCustomNumberAttribute;
+        boolean: (name: string) => AmplifyCustomBooleanAttribute;
+        dateTime: (name: string) => AmplifyCustomDateTimeAttribute;
     };
     readonly resources: {
         userPool: aws_cognito.UserPool;
@@ -56,12 +41,36 @@ export class AmplifyAuth extends Construct implements BackendOutputWriter, AuthR
 }
 
 // @public
-export type AmplifyAuthProps = BasicLoginOptions & {
-    settings?: {
-        standardAttributes?: UserPoolProps['standardAttributes'];
-        customAttributes?: UserPoolProps['customAttributes'][];
-    };
+export type AmplifyAuthProps = {
+    loginWith: BasicLoginOptions;
+    userAttributes?: AmplifyUserAttribute[];
 };
+
+// @public
+export class AmplifyCustomAttributeBase {
+    constructor(name: string);
+    // (undocumented)
+    protected dataType: CustomAttributeType;
+    // (undocumented)
+    protected maxLengthValue: number;
+    // (undocumented)
+    protected maxValue: number;
+    // (undocumented)
+    protected minLengthValue: number;
+    // (undocumented)
+    protected minValue: number;
+    mutable: () => this;
+}
+
+// @public
+export class AmplifyStandardAttribute {
+    constructor(name: keyof StandardAttributes);
+    mutable: () => AmplifyStandardAttribute;
+    required: () => AmplifyStandardAttribute;
+}
+
+// @public
+export type AmplifyUserAttribute = AmplifyStandardAttribute | AmplifyCustomAttributeBase;
 
 // @public
 export type BasicLoginOptions = {
@@ -71,6 +80,9 @@ export type BasicLoginOptions = {
     email?: EmailLogin;
     phoneNumber: PhoneNumberLogin;
 };
+
+// @public (undocumented)
+export type CustomAttributeType = 'String' | 'Number' | 'DateTime' | 'Boolean';
 
 // @public
 export type EmailLogin = true | {

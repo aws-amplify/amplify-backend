@@ -53,7 +53,7 @@ export class AmplifyStandardAttribute {
       };
     };
 }
-type CustomAttributeType = 'String' | 'Number' | 'DateTime' | 'Boolean';
+export type CustomAttributeType = 'String' | 'Number' | 'DateTime' | 'Boolean';
 /**
  * This class facilitates creation of Custom user attributes.
  */
