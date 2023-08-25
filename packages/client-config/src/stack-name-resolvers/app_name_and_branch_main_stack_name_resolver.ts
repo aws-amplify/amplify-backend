@@ -7,7 +7,7 @@ import { getMainStackName } from '../get_main_stack_name.js';
  */
 export type AppNameAndBranchBackendIdentifier = {
   appName: string;
-  branch: string;
+  branchName: string;
 };
 
 /**
@@ -55,9 +55,8 @@ export class AppNameAndBranchMainStackNameResolver
       );
     }
     return getMainStackName({
-      appName: this.appNameAndBranch.appName,
-      disambiguator: appId,
-      branchName: this.appNameAndBranch.branch,
+      backendId: appId,
+      branchName: this.appNameAndBranch.branchName,
     });
   }
 }

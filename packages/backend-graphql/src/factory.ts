@@ -11,8 +11,7 @@ import {
   AmplifyGraphqlApiProps,
   AuthorizationConfig,
 } from '@aws-amplify/graphql-construct-alpha';
-import { dataOutputKey } from '@aws-amplify/backend-output-schemas';
-import { DataOutput } from '@aws-amplify/backend-output-schemas/data';
+import { GraphqlOutput } from '@aws-amplify/backend-output-schemas/graphql';
 
 export type DataProps = Pick<AmplifyGraphqlApiProps, 'schema'>;
 
@@ -67,7 +66,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
   constructor(
     private readonly props: DataProps,
     private readonly authResources: AuthResources,
-    private readonly outputStorageStrategy: BackendOutputStorageStrategy<DataOutput>
+    private readonly outputStorageStrategy: BackendOutputStorageStrategy<GraphqlOutput>
   ) {}
 
   generateContainerEntry(scope: Construct) {
@@ -87,35 +86,18 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     }
 
     // TODO inject the construct with the functionNameMap
-    const dataConstructProps: AmplifyGraphqlApiProps = {
+    const graphqlConstructProps: AmplifyGraphqlApiProps = {
       schema: this.props.schema,
       authorizationConfig: authConfig,
+      outputStorageStrategy: this.outputStorageStrategy,
     };
-    const dataConstruct = new AmplifyGraphqlApi(
+    const graphqlConstruct = new AmplifyGraphqlApi(
       scope,
       this.defaultName,
-      dataConstructProps
+      graphqlConstructProps
     );
 
-    const dataOutput: DataOutput = {
-      version: '1',
-      payload: {
-        appSyncApiEndpoint:
-          dataConstruct.resources.cfnGraphqlApi.attrGraphQlUrl,
-      },
-    };
-
-    if (dataConstruct.resources.cfnApiKey) {
-      dataOutput.payload.appSyncApiKey =
-        dataConstruct.resources.cfnApiKey?.attrApiKey;
-    }
-
-    if (authConfig.defaultAuthMode) {
-      dataOutput.payload.authenticationType = authConfig.defaultAuthMode;
-    }
-
-    this.outputStorageStrategy.addBackendOutputEntry(dataOutputKey, dataOutput);
-    return dataConstruct;
+    return graphqlConstruct;
   }
 }
 

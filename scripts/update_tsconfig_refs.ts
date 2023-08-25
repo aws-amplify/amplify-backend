@@ -33,11 +33,18 @@ packagePaths.forEach((packagePath) => {
   const packageDirName = packagePath.split(path.sep).reverse()[0];
   const relativeReferencePath = path.join('..', packageDirName);
 
+  let tsconfigObject: Record<string, unknown>;
+  try {
+    tsconfigObject = JSON.parse(fs.readFileSync(tsconfigPath, 'utf-8'));
+  } catch {
+    throw new Error(`Failed to parse tsconfig ${tsconfigPath}`);
+  }
+
   repoPackagesInfoRecord[packageJson.name] = {
     packageJsonPath,
     packageJson,
     tsconfigPath,
-    tsconfig: JSON.parse(fs.readFileSync(tsconfigPath, 'utf-8')),
+    tsconfig: tsconfigObject,
     relativeReferencePath,
   };
 });

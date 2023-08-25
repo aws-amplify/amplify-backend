@@ -12,6 +12,9 @@
 //     phoneNumber: (phoneNumberEnabled: boolean) => StandardAttribute;
 //   };
 // };
+
+import { AmplifyAuthProps } from "./types.js";
+
 /**
  * These are the Amplify provided default values for Auth.
  */
@@ -19,7 +22,7 @@ export const DEFAULTS = {
   /**
    * Default Auth Props if customer does not provide any.
    */
-  IF_NO_PROPS_PROVIDED: { email: true },
+  IF_NO_PROPS_PROVIDED: { email: true } as AmplifyAuthProps,
   /**
    * Sign in case sensitivity
    */

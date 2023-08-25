@@ -7,10 +7,12 @@ describe('StorageClientConfigContributor', () => {
     const contributor = new StorageClientConfigContributor();
     assert.deepStrictEqual(
       contributor.contribute({
-        dataOutput: {
+        graphqlOutput: {
           version: '1',
           payload: {
-            appSyncApiEndpoint: 'stuff',
+            awsAppsyncApiEndpoint: 'stuff',
+            awsAppsyncRegion: 'us-east-1',
+            awsAppsyncAuthenticationType: 'API_KEY',
           },
         },
       }),

@@ -19,6 +19,9 @@ export type AmplifyAuthCfnResources = {
 };
 
 // @public
+export type AppId = string;
+
+// @public
 export type AuthResourceProvider = {
     resources: AuthResources;
 };
@@ -31,6 +34,9 @@ export type AuthResources = {
     unauthenticatedUserIamRole?: IRole;
     cfnResources: AmplifyAuthCfnResources;
 };
+
+// @public (undocumented)
+export type BackendId = AppId | SandboxId;
 
 // @public (undocumented)
 export type BackendOutput = Record<string, BackendOutputEntry>;
@@ -98,10 +104,12 @@ export type MainStackNameResolver = {
     resolveMainStackName(): Promise<string>;
 };
 
+// @public (undocumented)
+export type SandboxId = string;
+
 // @public
 export type UniqueBackendIdentifier = {
-    appName: string;
-    disambiguator: string;
+    backendId: BackendId;
     branchName: string;
 };
 

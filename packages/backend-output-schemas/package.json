@@ -1,7 +1,10 @@
 {
   "name": "@aws-amplify/backend-output-schemas",
-  "version": "0.1.0",
+  "version": "0.1.1-alpha.0",
   "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
   "exports": {
     ".": {
       "types": "./lib/index.d.ts",
@@ -13,10 +16,10 @@
       "import": "./lib/auth/index.js",
       "require": "./lib/auth/index.js"
     },
-    "./data": {
-      "types": "./lib/data/index.d.ts",
-      "import": "./lib/data/index.js",
-      "require": "./lib/data/index.js"
+    "./graphql": {
+      "types": "./lib/graphql/index.d.ts",
+      "import": "./lib/graphql/index.js",
+      "require": "./lib/graphql/index.js"
     },
     "./platform": {
       "types": "./lib/platform/index.d.ts",
@@ -34,7 +37,7 @@
     "update:api": "api-extractor run --local"
   },
   "devDependencies": {
-    "@aws-amplify/plugin-types": "0.1.0"
+    "@aws-amplify/plugin-types": "0.1.1-alpha.0"
   },
   "peerDependencies": {
     "zod": "^3.21.4"

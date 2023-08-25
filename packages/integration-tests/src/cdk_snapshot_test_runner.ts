@@ -41,9 +41,8 @@ const runCDKSnapshotTest = ({
     // see https://github.com/aws/aws-cdk/blob/30596fe96bfba240a70e53ab64a9acbf39e92f77/packages/aws-cdk-lib/cx-api/lib/cxapi.ts#L4-L5
     process.env.CDK_OUTDIR = await createTempCdkOutDirForTest(name);
     process.env.CDK_CONTEXT_JSON = JSON.stringify({
-      'app-name': 'testAppName',
+      'backend-id': 'testAppId',
       'branch-name': 'testBranchName',
-      disambiguator: '1234',
     });
   });
   afterEach(() => {
@@ -62,6 +61,10 @@ const runCDKSnapshotTest = ({
       .find((listener) => listener.toString().includes('this.synth()'));
     assert.ok(synth, 'Could not find synth listener in beforeExit listeners');
     synth(0);
+
+    // remove the synth listener now that it's been executed
+    // this allows other tests to run their synth command successfully
+    process.removeAllListeners('beforeExit');
 
     // now check that the synth output matches the expected output
     assert.ok(

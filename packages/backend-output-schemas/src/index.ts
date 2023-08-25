@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { versionedAuthOutputSchema } from './auth/index.js';
-import { versionedDataOutputSchema } from './data/index.js';
+import { versionedGraphqlOutputSchema } from './graphql/index.js';
 import { versionedStorageOutputSchema } from './storage/index.js';
 
 /**
@@ -8,9 +8,9 @@ import { versionedStorageOutputSchema } from './storage/index.js';
  */
 export const authOutputKey = 'authOutput';
 /**
- * Expected key that data output is stored under
+ * Expected key that graphql output is stored under
  */
-export const dataOutputKey = 'dataOutput';
+export const graphqlOutputKey = 'graphqlOutput';
 /**
  * Expected key that storage output is stored under
  */
@@ -21,7 +21,7 @@ export const storageOutputKey = 'storageOutput';
  */
 export const unifiedBackendOutputSchema = z.object({
   [authOutputKey]: versionedAuthOutputSchema.optional(),
-  [dataOutputKey]: versionedDataOutputSchema.optional(),
+  [graphqlOutputKey]: versionedGraphqlOutputSchema.optional(),
   [storageOutputKey]: versionedStorageOutputSchema.optional(),
 });
 /**

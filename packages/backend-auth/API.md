@@ -4,8 +4,8 @@
 
 ```ts
 
-import { AmplifyAuth } from '@aws-amplify/auth-construct';
-import { AmplifyAuthProps } from '@aws-amplify/auth-construct';
+import { AmplifyAuth } from '@aws-amplify/auth-construct-alpha';
+import { AmplifyAuthProps } from '@aws-amplify/auth-construct-alpha';
 import { AuthResourceProvider } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';

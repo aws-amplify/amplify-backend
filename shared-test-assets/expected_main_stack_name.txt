@@ -1,1 +1,1 @@
-amplify-testAppName-1234-testBranchName
+amplify-testBackendId-testBranchName

@@ -7,7 +7,15 @@ describe('AuthClientConfigContributor', () => {
     const contributor = new AuthClientConfigContributor();
     assert.deepStrictEqual(
       contributor.contribute({
-        dataOutput: { version: '1', payload: { appSyncApiEndpoint: 'stuff' } },
+        graphqlOutput: {
+          version: '1',
+          payload: {
+            awsAppsyncApiEndpoint: 'testApiEndpoint',
+            awsAppsyncRegion: 'us-east-1',
+            awsAppsyncAuthenticationType: 'API_KEY',
+            awsAppsyncApiKey: 'testApiKey',
+          },
+        },
       }),
       {}
     );
