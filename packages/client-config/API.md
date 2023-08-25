@@ -40,6 +40,7 @@ export type GraphqlClientConfig = {
     aws_appsync_graphqlEndpoint: string;
     aws_appsync_authenticationType: string;
     aws_appsync_apiKey?: string;
+    aws_appsync_apiUri?: string;
 };
 
 // @public (undocumented)
