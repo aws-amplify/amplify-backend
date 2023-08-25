@@ -1,5 +1,5 @@
 import { aws_cognito as cognito } from 'aws-cdk-lib';
-import { UserPoolProps } from 'aws-cdk-lib/aws-cognito';
+import { AmplifyUserAttribute } from './user-attributes/custom_attributes.js';
 /**
  * Email login options.
  *
@@ -35,19 +35,10 @@ export type BasicLoginOptions =
 /**
  * Input props for the AmplifyAuth construct.
  */
-export type AmplifyAuthProps = BasicLoginOptions & {
+export type AmplifyAuthProps = {
+  loginWith: BasicLoginOptions;
   /**
    * Additional settings.
    */
-  settings?: {
-    /**
-     * Specify which user attributes are required for registration/login and if they are mutable.
-     * By default, email and phone number are required and mutable if they are enabled login types.
-     */
-    standardAttributes?: UserPoolProps['standardAttributes'];
-    /**
-     * Specify custom attributes.
-     */
-    customAttributes?: UserPoolProps['customAttributes'][];
-  };
+  userAttributes?: AmplifyUserAttribute[];
 };

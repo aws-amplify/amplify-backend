@@ -10,11 +10,11 @@ import {
 import { UserPool, UserPoolClient } from 'aws-cdk-lib/aws-cognito';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
 
-describe('Auth construct', () => {
+describe.only('Auth construct', () => {
   it('creates phone number login mechanism', () => {
     const app = new App();
     const stack = new Stack(app);
-    new AmplifyAuth(stack, 'test', { phoneNumber: true });
+    new AmplifyAuth(stack, 'test', { loginWith: { phoneNumber: true } });
     const template = Template.fromStack(stack);
     template.hasResourceProperties('AWS::Cognito::UserPool', {
       UsernameAttributes: ['phone_number'],
@@ -25,11 +25,95 @@ describe('Auth construct', () => {
   it('creates email login mechanism', () => {
     const app = new App();
     const stack = new Stack(app);
-    new AmplifyAuth(stack, 'test', { email: true });
+    new AmplifyAuth(stack, 'test', { loginWith: { email: true } });
     const template = Template.fromStack(stack);
     template.hasResourceProperties('AWS::Cognito::UserPool', {
       UsernameAttributes: ['email'],
       AutoVerifiedAttributes: ['email'],
+    });
+  });
+
+  it('requires email attribute if email is enabled', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    new AmplifyAuth(stack, 'test', { loginWith: { email: true } });
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      UsernameAttributes: ['email'],
+      AutoVerifiedAttributes: ['email'],
+    });
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      Schema: [
+        {
+          Mutable: true,
+          Name: 'email',
+          Required: true,
+        },
+      ],
+    });
+  });
+
+  it('creates user attributes', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    new AmplifyAuth(stack, 'test', {
+      loginWith: { email: true },
+      userAttributes: [
+        AmplifyAuth.attribute('address').mutable(),
+        AmplifyAuth.attribute('familyName').required(),
+        AmplifyAuth.customAttribute.string('defaultString'),
+        AmplifyAuth.customAttribute
+          .string('minMaxString')
+          .minLength(0)
+          .maxLength(100),
+        AmplifyAuth.customAttribute.dateTime('birthDateTime'),
+        AmplifyAuth.customAttribute.number('numberMinMax').min(0).max(5),
+      ],
+    });
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      Schema: [
+        {
+          Mutable: true,
+          Name: 'email',
+          Required: true,
+        },
+        {
+          Mutable: true,
+          Name: 'address',
+          Required: false,
+        },
+        {
+          Mutable: false,
+          Name: 'family_name',
+          Required: true,
+        },
+        {
+          AttributeDataType: 'String',
+          Name: 'defaultString',
+          StringAttributeConstraints: {},
+        },
+        {
+          AttributeDataType: 'String',
+          Name: 'minMaxString',
+          StringAttributeConstraints: {
+            MinLength: '0',
+            MaxLength: '100',
+          },
+        },
+        {
+          AttributeDateType: 'DateTime',
+          Name: 'birthDateTime',
+        },
+        {
+          AttributeDataType: 'Number',
+          Name: 'numberMinMax',
+          NumberAttributeConstraints: {
+            Min: '0',
+            Max: '5',
+          },
+        },
+      ],
     });
   });
 
@@ -45,7 +129,9 @@ describe('Auth construct', () => {
           flush: mock.fn(),
         };
       const authConstruct = new AmplifyAuth(stack, 'test', {
-        email: true,
+        loginWith: {
+          email: true,
+        },
       });
 
       const expectedUserPoolId = (

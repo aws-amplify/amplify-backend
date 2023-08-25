@@ -23,7 +23,7 @@ describe('AmplifyAuthFactory', () => {
   let importPathVerifier: ImportPathVerifier;
   beforeEach(() => {
     authFactory = new AmplifyAuthFactory({
-      email: true,
+      loginWith: { email: true },
     });
 
     const app = new App();

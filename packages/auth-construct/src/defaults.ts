@@ -22,7 +22,7 @@ export const DEFAULTS = {
   /**
    * Default Auth Props if customer does not provide any.
    */
-  IF_NO_PROPS_PROVIDED: { email: true } as AmplifyAuthProps,
+  IF_NO_PROPS_PROVIDED: { loginWith: { email: true } } as AmplifyAuthProps,
   /**
    * Sign in case sensitivity
    */
@@ -36,7 +36,7 @@ export const DEFAULTS = {
   /**
    * Specifies whether the identity pool should support unauthenticated identities
    */
-  ALLOW_UNAUTHENTICATED_IDENTITIES: false,
+  ALLOW_UNAUTHENTICATED_IDENTITIES: true,
   /**
    * Specifies whether user existence errors should be shown.
    * Enabling this protects users as it does not allow attackers to know if users
@@ -48,10 +48,10 @@ export const DEFAULTS = {
    */
   PASSWORD_POLICY: {
     minLength: 8,
-    requireLowercase: false,
-    requireUppercase: false,
-    requireDigits: false,
-    requireSymbols: false,
+    requireLowercase: true,
+    requireUppercase: true,
+    requireDigits: true,
+    requireSymbols: true,
   },
   /**
    * Specifies if SRP or custom logins should be enabled.

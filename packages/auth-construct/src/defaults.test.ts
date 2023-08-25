@@ -3,7 +3,7 @@ import { AmplifyAuth } from './construct.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 
-describe.only('Auth construct defaults', () => {
+describe('Auth construct defaults', () => {
   it('creates email login by default', () => {
     const app = new App();
     const stack = new Stack(app);
@@ -51,6 +51,16 @@ describe.only('Auth construct defaults', () => {
     });
   });
 
+  it('allows unauthenticated identities to the identity pool', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    new AmplifyAuth(stack, 'test');
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::IdentityPool', {
+      AllowUnauthenticatedIdentities: true,
+    });
+  });
+
   it('prevents user existence errors', () => {
     const app = new App();
     const stack = new Stack(app);
@@ -70,10 +80,10 @@ describe.only('Auth construct defaults', () => {
       Policies: {
         PasswordPolicy: {
           MinimumLength: 8,
-          RequireLowercase: false,
-          RequireNumbers: false,
-          RequireSymbols: false,
-          RequireUppercase: false,
+          RequireLowercase: true,
+          RequireNumbers: true,
+          RequireSymbols: true,
+          RequireUppercase: true,
         },
       },
     });

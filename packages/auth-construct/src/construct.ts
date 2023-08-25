@@ -15,7 +15,12 @@ import { AuthOutput } from '@aws-amplify/backend-output-schemas/auth';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
 import { AmplifyAuthProps } from './types.js';
 import { DEFAULTS } from './defaults.js';
-import { CUSTOM_ATTRIBUTE } from './utilities.js';
+import {
+  AmplifyAttributeBuilder,
+  AmplifyCustomAttributeBase,
+  AmplifyCustomAttributeBuilder,
+  AmplifyStandardAttribute,
+} from './user-attributes/custom_attributes.js';
 
 type DefaultRoles = { auth: Role; unAuth: Role };
 
@@ -149,38 +154,48 @@ export class AmplifyAuth
    * @returns UserPoolProps
    */
   private getUserPoolProps(props: AmplifyAuthProps): UserPoolProps {
-    const emailEnabled = props.email ? true : false;
-    const phoneEnabled = props.phoneNumber ? true : false;
+    const emailEnabled = props.loginWith.email ? true : false;
+    const phoneEnabled = props.loginWith.phoneNumber ? true : false;
     // check for customizations
     let userVerificationSettings: cognito.UserVerificationConfig = {};
     if (emailEnabled) {
-      if (typeof props.email === 'object') {
+      if (typeof props.loginWith.email === 'object') {
         userVerificationSettings = {
-          emailBody: props.email.emailBody,
-          emailStyle: props.email.emailStyle,
-          emailSubject: props.email.emailSubject,
+          emailBody: props.loginWith.email.emailBody,
+          emailStyle: props.loginWith.email.emailStyle,
+          emailSubject: props.loginWith.email.emailSubject,
         };
       }
     }
     if (phoneEnabled) {
-      if (typeof props.phoneNumber === 'object') {
+      if (typeof props.loginWith.phoneNumber === 'object') {
         userVerificationSettings = {
           ...userVerificationSettings,
-          smsMessage: props.phoneNumber.verificationMessage,
+          smsMessage: props.loginWith.phoneNumber.verificationMessage,
         };
       }
     }
-    // if custom attributes were provided, convert them to valid input
+    // extract standard and custom attributes
+    let standardAttributes: cognito.StandardAttributes = {};
     let customAttributes: {
       [key: string]: cognito.ICustomAttribute;
     } = {};
-    if (props.settings?.customAttributes) {
-      for (const customAttribute of props.settings.customAttributes) {
-        customAttributes = {
-          ...customAttribute,
-        };
+    if (props.userAttributes) {
+      for (const attr of props.userAttributes) {
+        if (attr instanceof AmplifyStandardAttribute) {
+          standardAttributes = {
+            ...standardAttributes,
+            ...attr['_toStandardAttributes'](),
+          };
+        } else if (attr instanceof AmplifyCustomAttributeBase) {
+          customAttributes = {
+            ...customAttributes,
+            ...attr['_toCustomAttributes'](),
+          };
+        }
       }
     }
+
     const userPoolProps: UserPoolProps = {
       signInCaseSensitive: DEFAULTS.SIGN_IN_CASE_SENSITIVE,
       signInAliases: {
@@ -196,7 +211,7 @@ export class AmplifyAuth
       standardAttributes: {
         email: DEFAULTS.IS_REQUIRED_ATTRIBUTE.email(emailEnabled),
         phoneNumber: DEFAULTS.IS_REQUIRED_ATTRIBUTE.phoneNumber(phoneEnabled),
-        ...(props.settings?.standardAttributes ?? {}),
+        ...standardAttributes,
       },
       customAttributes: {
         ...customAttributes,
@@ -223,12 +238,21 @@ export class AmplifyAuth
   }
 
   /**
+   * Utility for adding user attributes.
+   *
+   * Example:
+   * userAttributes: [
+   *  AmplifyAuth.attribute('address').mutable(true),
+   * ]
+   */
+  public static attribute = AmplifyAttributeBuilder;
+  /**
    * Utility for adding custom attributes.
    *
    * Example:
-   * customAttributes: [
-   *  AmplifyAuth.customAttribute.string('eyeColor', { 'maxLength': 12 })
+   * userAttributes: [
+   *  AmplifyAuth.customAttribute.number('petsCount').min(0).max(5)
    * ]
    */
-  public static customAttribute = CUSTOM_ATTRIBUTE;
+  public static customAttribute = AmplifyCustomAttributeBuilder;
 }
