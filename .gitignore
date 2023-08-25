@@ -8,6 +8,8 @@ tsconfig.tsbuildinfo
 .idea
 .eslintcache
 .nvmrc
+.npmrc
 .DS_Store
 verdaccio-cache
 verdaccio-logs.txt
+cdk.out/

@@ -1,11 +1,14 @@
 {
-  "name": "@aws-amplify/cli",
-  "version": "0.0.1",
+  "name": "@aws-amplify/backend-cli",
+  "version": "0.2.0-alpha.1",
   "description": "Command line interface for various Amplify tools",
   "bin": {
     "amplify": "lib/amplify.js"
   },
   "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "update:api": "api-extractor run --local",
     "install:local": "npm link"
@@ -39,12 +42,13 @@
     "node-fetch": "^3.3.2",
     "prettier": "^3.0.2",
     "tiny-async-pool": "^2.1.0",
+    "is-ci": "^3.0.1",
     "yargs": "^17.7.2",
     "zod": "^3.21.4"
   },
   "peerDependencies": {
-    "@aws-amplify/client-config": "^0.1.0",
-    "@aws-amplify/sandbox": "^0.1.0",
+    "@aws-amplify/client-config": "^0.1.1-alpha.1",
+    "@aws-amplify/sandbox": "^0.1.1-alpha.1",
     "@aws-sdk/types": "^3.347.0"
   },
   "devDependencies": {

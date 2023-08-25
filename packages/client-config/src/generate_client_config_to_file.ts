@@ -15,6 +15,7 @@ export const generateClientConfigToFile = async (
   targetPath: string
 ): Promise<void> => {
   const clientConfigWriter = new ClientConfigWriter();
+
   const clientConfig = await generateClientConfig(
     credentialProvider,
     backendIdentifier

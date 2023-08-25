@@ -1,10 +1,10 @@
 import { execa, execaCommand } from 'execa';
-import * as fs from 'fs-extra';
-import { readFile, unlink } from 'fs/promises';
+import { existsSync } from 'fs';
+import { copyFile, readFile, unlink } from 'fs/promises';
 
 const EXPECTED_URL = 'http://localhost:4873';
 const LOG_FILE = 'verdaccio-logs.txt';
-const STARTUP_TIMEOUT_MS = 1000;
+const STARTUP_TIMEOUT_MS = 10000;
 
 /**
  * Starts [Verdaccio](https://verdaccio.org/) in a background process.
@@ -13,7 +13,7 @@ const STARTUP_TIMEOUT_MS = 1000;
  *
  * Also points the local npm config to point to the proxy server.
  */
-if (await fs.exists(LOG_FILE)) {
+if (existsSync(LOG_FILE)) {
   await unlink(LOG_FILE);
 }
 // start the server in a detached process
@@ -43,3 +43,6 @@ console.log(`Local npm proxy running at ${EXPECTED_URL}.`);
 
 execa('npm', ['config', 'set', 'registry', EXPECTED_URL]);
 console.log(`Set npm registry to ${EXPECTED_URL}`);
+
+// copy local config into .npmrc
+await copyFile('.npmrc.local', '.npmrc');

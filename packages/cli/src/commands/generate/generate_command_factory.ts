@@ -3,9 +3,10 @@ import { GenerateCommand } from './generate_command.js';
 import { GenerateConfigCommand } from './config/generate_config_command.js';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { ClientConfigGeneratorAdapter } from './config/client_config_generator_adapter.js';
-import { LocalProjectNameResolver } from '../../local_project_name_resolver.js';
 import { ClientConfigWriter } from '@aws-amplify/client-config';
 import { GenerateFormsCommand } from './forms/generate_forms_command.js';
+import { LocalAppNameResolver } from '../../local_app_name_resolver.js';
+import { CwdPackageJsonLoader } from '../../cwd_package_json_loader.js';
 
 /**
  * Creates wired generate command.
@@ -15,19 +16,21 @@ export const createGenerateCommand = (): CommandModule => {
   const configWriter = new ClientConfigWriter();
   const clientConfigGenerator = new ClientConfigGeneratorAdapter(
     credentialProvider,
-    configWriter
+    configWriter,
   );
-  const localProjectNameResolver = new LocalProjectNameResolver();
+  const localAppNameResolver = new LocalAppNameResolver(
+    new CwdPackageJsonLoader(),
+  );
 
   const generateConfigCommand = new GenerateConfigCommand(
     clientConfigGenerator,
-    localProjectNameResolver,
-    configWriter
+    localAppNameResolver,
+    configWriter,
   );
 
   const generateFormsCommand = new GenerateFormsCommand(
     clientConfigGenerator,
-    localProjectNameResolver
+    localAppNameResolver,
   );
 
   return new GenerateCommand(generateConfigCommand, generateFormsCommand);

@@ -21,12 +21,12 @@ export type SandboxOptions = {
     dir?: string;
     exclude?: string[];
     name?: string;
-    clientConfigOutputPath?: string;
+    clientConfigFilePath?: string;
 };
 
 // @public
 export class SandboxSingletonFactory {
-    constructor(appNameResolver: () => Promise<string>, disambiguatorResolver: () => Promise<string>);
+    constructor(sandboxIdResolver: () => Promise<string>);
     getInstance(): Promise<Sandbox>;
 }
 

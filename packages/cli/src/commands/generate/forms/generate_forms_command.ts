@@ -1,9 +1,9 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import path from 'path';
 import { BackendIdentifier } from '@aws-amplify/client-config';
-import { ProjectNameResolver } from '../../../local_project_name_resolver.js';
 import { ClientConfigGeneratorAdapter } from '../config/client_config_generator_adapter.js';
 import { LocalFormGenerator } from './local_form_generator.js';
+import { AppNameResolver } from '../../../local_app_name_resolver.js';
 
 export type GenerateFormsCommandOptions = {
   stack: string | undefined;
@@ -37,7 +37,7 @@ export class GenerateFormsCommand
    */
   constructor(
     private readonly clientConfigGenerator: ClientConfigGeneratorAdapter,
-    private readonly projectNameResolver: ProjectNameResolver,
+    private readonly appNameResolver: AppNameResolver,
   ) {
     this.command = 'forms';
     this.describe = 'Generates UI forms';
@@ -79,11 +79,11 @@ export class GenerateFormsCommand
     if (args.stack) {
       return { stackName: args.stack };
     } else if (args.appId && args.branch) {
-      return { appId: args.appId, branch: args.branch };
+      return { backendId: args.appId, branchName: args.branch };
     } else if (args.branch) {
       return {
-        appName: await this.projectNameResolver.resolve(),
-        branch: args.branch,
+        appName: await this.appNameResolver.resolve(),
+        branchName: args.branchName as string,
       };
     } else {
       throw this.missingArgsError;

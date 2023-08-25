@@ -22,11 +22,12 @@ describe('UnifiedClientConfigGenerator', () => {
         graphqlOutput: {
           version: '1',
           payload: {
-            awsAppsyncApiId: 'testApiId',
             awsAppsyncApiEndpoint: 'testApiEndpoint',
             awsAppsyncRegion: 'us-east-1',
             awsAppsyncAuthenticationType: 'API_KEY',
             awsAppsyncApiKey: 'testApiKey',
+            awsAppsyncApiId: 'testApiId',
+            amplifyApiModelSchemaS3Uri: 'testApiSchemaUri',
           },
         },
       };
@@ -48,6 +49,7 @@ describe('UnifiedClientConfigGenerator', () => {
         aws_user_pools_web_client_id: 'testWebClientId',
         aws_cognito_region: 'testRegion',
         aws_appsync_apiKey: 'testApiKey',
+        aws_appsync_apiUri: 's3://testBucketUri',
         aws_appsync_authenticationType: 'API_KEY',
         aws_appsync_graphqlEndpoint: 'testApiEndpoint',
         aws_appsync_region: 'us-east-1',

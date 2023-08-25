@@ -5,7 +5,7 @@ import { Amplify } from 'aws-amplify';
 import theme from './theme';
 import SignOut from './components/signOut';
 import TodoCollection from './components/todos';
-import amplifyConfiguration from './amplifyconfiguration.json';
+import amplifyConfiguration from './amplifyconfiguration.js';
 
 Amplify.configure(amplifyConfiguration);
 

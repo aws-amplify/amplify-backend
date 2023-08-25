@@ -1,10 +1,10 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import path from 'path';
 import {
-  BackendIdentifier,
   ClientConfigWriter,
+  BackendIdentifier,
 } from '@aws-amplify/client-config';
-import { ProjectNameResolver } from '../../../local_project_name_resolver.js';
+import { AppNameResolver } from '../../../local_app_name_resolver.js';
 import { ClientConfigGeneratorAdapter } from './client_config_generator_adapter.js';
 
 export type GenerateConfigCommandOptions = {
@@ -31,7 +31,7 @@ export class GenerateConfigCommand
   readonly describe: string;
 
   private readonly missingArgsError = new Error(
-    'Either --stack or --branch must be provided'
+    'Either --stack or --branch must be provided',
   );
 
   /**
@@ -39,8 +39,8 @@ export class GenerateConfigCommand
    */
   constructor(
     private readonly clientConfigGenerator: ClientConfigGeneratorAdapter,
-    private readonly projectNameResolver: ProjectNameResolver,
-    private readonly clientConfigWriter: ClientConfigWriter
+    private readonly appNameResolver: AppNameResolver,
+    private readonly clientConfigWriter: ClientConfigWriter,
   ) {
     this.command = 'config';
     this.describe = 'Generates client config';
@@ -50,16 +50,23 @@ export class GenerateConfigCommand
    * @inheritDoc
    */
   handler = async (
-    args: ArgumentsCamelCase<GenerateConfigCommandOptions>
+    args: ArgumentsCamelCase<GenerateConfigCommandOptions>,
   ): Promise<void> => {
     const backendIdentifier = await this.getBackendIdentifier(args);
-    const targetPath = path.join(
-      args.out ?? process.cwd(),
-      'amplifyconfiguration.json'
-    );
-    const config = await this.clientConfigGenerator.generateClientConfig(
-      backendIdentifier
-    );
+
+    let targetPath: string;
+    if (args.out) {
+      if (path.isAbsolute(args.out)) {
+        targetPath = args.out;
+      } else {
+        targetPath = path.resolve(process.cwd(), args.out);
+      }
+    } else {
+      targetPath = path.resolve(process.cwd(), 'amplifyconfiguration.js');
+    }
+
+    const config =
+      await this.clientConfigGenerator.generateClientConfig(backendIdentifier);
     console.log('#######HOLA#######', JSON.stringify(config, null, 2));
     this.clientConfigWriter.writeClientConfig(config, targetPath);
   };
@@ -69,16 +76,16 @@ export class GenerateConfigCommand
    * Throws if translation can't be made (this should never happen if command validation works correctly).
    */
   private async getBackendIdentifier(
-    args: ArgumentsCamelCase<GenerateConfigCommandOptions>
+    args: ArgumentsCamelCase<GenerateConfigCommandOptions>,
   ): Promise<BackendIdentifier> {
     if (args.stack) {
       return { stackName: args.stack };
     } else if (args.appId && args.branch) {
-      return { appId: args.appId, branch: args.branch };
+      return { backendId: args.appId, branchName: args.branch };
     } else if (args.branch) {
       return {
-        appName: await this.projectNameResolver.resolve(),
-        branch: args.branch,
+        appName: await this.appNameResolver.resolve(),
+        branchName: args.branch,
       };
     } else {
       throw this.missingArgsError;

@@ -49,7 +49,7 @@ describe('generate config command', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      path.join(process.cwd(), 'amplifyconfiguration.json')
+      path.join(process.cwd(), 'amplifyconfiguration.js')
     );
   });
 
@@ -58,7 +58,7 @@ describe('generate config command', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
       appName: 'testAppName',
-      branch: 'branch_name',
+      branchName: 'branch_name',
     });
     // I can't find any open node:test or yargs issues that would explain why this is necessary
     // but for some reason the mock call count does not update without this 0ms wait
@@ -66,7 +66,7 @@ describe('generate config command', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      path.join(process.cwd(), 'amplifyconfiguration.json')
+      path.join(process.cwd(), 'amplifyconfiguration.js')
     );
   });
 
@@ -76,18 +76,20 @@ describe('generate config command', () => {
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
-      appId: 'app_id',
-      branch: 'branch_name',
+      backendId: 'app_id',
+      branchName: 'branch_name',
     });
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      path.join(process.cwd(), 'amplifyconfiguration.json')
+      path.join(process.cwd(), 'amplifyconfiguration.js')
     );
   });
 
-  it('can generate to custom directory', async () => {
-    await commandRunner.runCommand('config --stack stack_name --out /foo/bar');
+  it('can generate to custom absolute path', async () => {
+    await commandRunner.runCommand(
+      'config --stack stack_name --out /foo/bar/customFile.js'
+    );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
       stackName: 'stack_name',
@@ -95,7 +97,22 @@ describe('generate config command', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.equal(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      path.join('/foo/bar', 'amplifyconfiguration.json')
+      path.join('/', 'foo', 'bar', 'customFile.js')
+    );
+  });
+
+  it('can generate to custom relative path', async () => {
+    await commandRunner.runCommand(
+      'config --stack stack_name --out foo/bar/customFile.js'
+    );
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
+    assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
+      stackName: 'stack_name',
+    });
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
+    assert.equal(
+      generateClientConfigMock.mock.calls[0].arguments[1],
+      path.join(process.cwd(), 'foo', 'bar', 'customFile.js')
     );
   });
 

@@ -23,7 +23,12 @@ export type SandboxOptions = {
   dir?: string;
   exclude?: string[];
   name?: string;
-  clientConfigOutputPath?: string;
+  /**
+   * Optional path where client config should be generated for sandbox deployments
+   * If the path is relative, it is computed based on process.cwd()
+   * If the path is absolute, it is used as-is
+   */
+  clientConfigFilePath?: string;
 };
 
 export type SandboxDeleteOptions = {
