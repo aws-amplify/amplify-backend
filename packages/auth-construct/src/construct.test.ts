@@ -10,7 +10,7 @@ import {
 import { UserPool, UserPoolClient } from 'aws-cdk-lib/aws-cognito';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
 
-describe.only('Auth construct', () => {
+describe('Auth construct', () => {
   it('creates phone number login mechanism', () => {
     const app = new App();
     const stack = new Stack(app);
@@ -90,11 +90,13 @@ describe.only('Auth construct', () => {
         },
         {
           AttributeDataType: 'String',
+          Mutable: false,
           Name: 'defaultString',
           StringAttributeConstraints: {},
         },
         {
           AttributeDataType: 'String',
+          Mutable: false,
           Name: 'minMaxString',
           StringAttributeConstraints: {
             MinLength: '0',
@@ -102,15 +104,17 @@ describe.only('Auth construct', () => {
           },
         },
         {
-          AttributeDateType: 'DateTime',
+          AttributeDataType: 'DateTime',
+          Mutable: false,
           Name: 'birthDateTime',
         },
         {
           AttributeDataType: 'Number',
+          Mutable: false,
           Name: 'numberMinMax',
           NumberAttributeConstraints: {
-            Min: '0',
-            Max: '5',
+            MaxValue: '5',
+            MinValue: '0',
           },
         },
       ],
