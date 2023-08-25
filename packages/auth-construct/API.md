@@ -5,43 +5,84 @@
 ```ts
 
 import { AuthOutput } from '@aws-amplify/backend-output-schemas/auth';
-import { AuthResources } from '@aws-amplify/plugin-types';
+import { AuthResourceProvider } from '@aws-amplify/plugin-types';
+import { aws_cognito } from 'aws-cdk-lib';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { BackendOutputWriter } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
-import { IRole } from 'aws-cdk-lib/aws-iam';
-import { UserPool } from 'aws-cdk-lib/aws-cognito';
-import { UserPoolClient } from 'aws-cdk-lib/aws-cognito';
+import { Role } from 'aws-cdk-lib/aws-iam';
+import { UserPoolProps } from 'aws-cdk-lib/aws-cognito';
 
 // @public
-export class AmplifyAuth extends Construct implements BackendOutputWriter, AuthResources {
-    constructor(scope: Construct, id: string, props: AmplifyAuthProps);
-    // (undocumented)
-    readonly authenticatedUserIamRole: IRole;
+export class AmplifyAuth extends Construct implements BackendOutputWriter, AuthResourceProvider {
+    constructor(scope: Construct, id: string, optionalProps?: AmplifyAuthProps);
+    static customAttribute: {
+        string: (name: string, options?: {
+            mutable?: boolean | undefined;
+            minLength?: number | undefined;
+            maxLength?: number | undefined;
+        } | undefined) => {
+            [x: string]: aws_cognito.StringAttribute;
+        };
+        number: (name: string, options?: {
+            mutable?: boolean | undefined;
+            min?: number | undefined;
+            max?: number | undefined;
+        } | undefined) => {
+            [x: string]: aws_cognito.NumberAttribute;
+        };
+        boolean: (name: string, options?: {
+            mutable?: boolean | undefined;
+        } | undefined) => {
+            [x: string]: aws_cognito.BooleanAttribute;
+        };
+        dateTime: (name: string, options?: {
+            mutable?: boolean | undefined;
+        } | undefined) => {
+            [x: string]: aws_cognito.DateTimeAttribute;
+        };
+    };
+    readonly resources: {
+        userPool: aws_cognito.UserPool;
+        userPoolClientWeb: aws_cognito.UserPoolClient;
+        authenticatedUserIamRole: Role;
+        unauthenticatedUserIamRole: Role;
+        cfnResources: {
+            identityPool: aws_cognito.CfnIdentityPool;
+            identityPoolRoleAttachment: aws_cognito.CfnIdentityPoolRoleAttachment;
+        };
+    };
     storeOutput(outputStorageStrategy: BackendOutputStorageStrategy<AuthOutput>): void;
-    // (undocumented)
-    readonly unauthenticatedUserIamRole: IRole;
-    // (undocumented)
-    readonly userPool: UserPool;
-    // (undocumented)
-    readonly userPoolClientWeb: UserPoolClient;
 }
 
 // @public
-export type AmplifyAuthProps = {
-    loginMechanisms: LoginMechanism[];
-    selfSignUpEnabled?: boolean;
+export type AmplifyAuthProps = BasicLoginOptions & {
+    settings?: {
+        standardAttributes?: UserPoolProps['standardAttributes'];
+        customAttributes?: UserPoolProps['customAttributes'][];
+    };
 };
 
-// @public (undocumented)
-export type GoogleLogin = {
-    provider: 'google';
-    webClientId: string;
-    webClientSecret: string;
+// @public
+export type BasicLoginOptions = {
+    email: EmailLogin;
+    phoneNumber?: PhoneNumberLogin;
+} | {
+    email?: EmailLogin;
+    phoneNumber: PhoneNumberLogin;
 };
 
-// @public (undocumented)
-export type LoginMechanism = 'email' | 'username' | 'phone' | GoogleLogin;
+// @public
+export type EmailLogin = true | {
+    emailBody?: string;
+    emailStyle?: aws_cognito.VerificationEmailStyle;
+    emailSubject?: string;
+};
+
+// @public
+export type PhoneNumberLogin = true | {
+    verificationMessage?: string;
+};
 
 // (No @packageDocumentation comment for this package)
 

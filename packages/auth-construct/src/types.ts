@@ -2,51 +2,52 @@ import { aws_cognito as cognito } from 'aws-cdk-lib';
 import { UserPoolProps } from 'aws-cdk-lib/aws-cognito';
 /**
  * Email login options.
+ *
+ * If true, email login will be enabled with default settings.
+ * If settings are provided, email login will be enabled with the specified settings.
  */
-type EmailLogin =
-  | { enabled: false }
+export type EmailLogin =
+  | true
   | {
-      enabled: true;
-      autoVerify?: {
-        enabled: boolean;
-        emailBody?: string;
-        emailStyle?: cognito.VerificationEmailStyle;
-        emailSubject?: string;
-      };
+      emailBody?: string;
+      emailStyle?: cognito.VerificationEmailStyle;
+      emailSubject?: string;
     };
 /**
  * Phone number login options.
+ *
+ * If true, phone number login will be enabled with default settings.
+ * If settings are provided, phone number login will be enabled with the specified settings.
  */
-type PhoneNumberLogin =
-  | { enabled: false }
+export type PhoneNumberLogin =
+  | true
   | {
-      enabled: true;
-      autoVerify?: {
-        enabled: boolean;
-        smsMessage?: string;
-      };
+      verificationMessage?: string;
     };
 /**
  * Basic login options require at least email or phone number.
  * Additional settings may be configured, such as password policies.
  */
-type BasicLoginOptions = (
+export type BasicLoginOptions =
   | { email: EmailLogin; phoneNumber?: PhoneNumberLogin }
-  | { email?: EmailLogin; phoneNumber: PhoneNumberLogin }
-) & {
-  settings?: {
-    passwordPolicy?: UserPoolProps['passwordPolicy'];
-  };
-};
+  | { email?: EmailLogin; phoneNumber: PhoneNumberLogin };
 
 /**
  * Input props for the AmplifyAuth construct.
  */
-export type AmplifyAuthProps = {
+export type AmplifyAuthProps = BasicLoginOptions & {
   /**
-   * One of email or phone number, and other optional identity providers
+   * Additional settings.
    */
-  loginOptions: {
-    basic: BasicLoginOptions;
+  settings?: {
+    /**
+     * Specify which user attributes are required for registration/login and if they are mutable.
+     * By default, email and phone number are required and mutable if they are enabled login types.
+     */
+    standardAttributes?: UserPoolProps['standardAttributes'];
+    /**
+     * Specify custom attributes.
+     */
+    customAttributes?: UserPoolProps['customAttributes'][];
   };
 };

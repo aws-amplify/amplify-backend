@@ -4,17 +4,32 @@
 
 ```ts
 
+import { CfnIdentityPool } from 'aws-cdk-lib/aws-cognito';
+import { CfnIdentityPoolRoleAttachment } from 'aws-cdk-lib/aws-cognito';
 import { Construct } from 'constructs';
 import { IRole } from 'aws-cdk-lib/aws-iam';
 import { IUserPool } from 'aws-cdk-lib/aws-cognito';
+import { IUserPoolClient } from 'aws-cdk-lib/aws-cognito';
 import { Stack } from 'aws-cdk-lib';
 
 // @public
+export type AmplifyAuthCfnResources = {
+    identityPool: CfnIdentityPool;
+    identityPoolRoleAttachment: CfnIdentityPoolRoleAttachment;
+};
+
+// @public
+export type AuthResourceProvider = {
+    resources: AuthResources;
+};
+
+// @public
 export type AuthResources = {
-    authenticatedUserIamRole: IRole;
-    unauthenticatedUserIamRole: IRole;
     userPool?: IUserPool;
-    identityPoolId?: string;
+    userPoolClientWeb?: IUserPoolClient;
+    authenticatedUserIamRole?: IRole;
+    unauthenticatedUserIamRole?: IRole;
+    cfnResources: AmplifyAuthCfnResources;
 };
 
 // @public (undocumented)

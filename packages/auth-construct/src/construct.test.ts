@@ -11,38 +11,10 @@ import { UserPool, UserPoolClient } from 'aws-cdk-lib/aws-cognito';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
 
 describe('Auth construct', () => {
-  it('creates case sensitive username login', () => {
-    const app = new App();
-    const stack = new Stack(app);
-    new AmplifyAuth(stack, 'test', {
-      loginOptions: {
-        basic: {
-          email: {
-            enabled: true,
-          },
-        },
-      },
-    });
-    const template = Template.fromStack(stack);
-    template.hasResourceProperties('AWS::Cognito::UserPool', {
-      UsernameConfiguration: {
-        CaseSensitive: true,
-      },
-    });
-  });
-
   it('creates phone number login mechanism', () => {
     const app = new App();
     const stack = new Stack(app);
-    new AmplifyAuth(stack, 'test', {
-      loginOptions: {
-        basic: {
-          phoneNumber: {
-            enabled: true,
-          },
-        },
-      },
-    });
+    new AmplifyAuth(stack, 'test', { phoneNumber: true });
     const template = Template.fromStack(stack);
     template.hasResourceProperties('AWS::Cognito::UserPool', {
       UsernameAttributes: ['phone_number'],
@@ -53,15 +25,7 @@ describe('Auth construct', () => {
   it('creates email login mechanism', () => {
     const app = new App();
     const stack = new Stack(app);
-    new AmplifyAuth(stack, 'test', {
-      loginOptions: {
-        basic: {
-          email: {
-            enabled: true,
-          },
-        },
-      },
-    });
+    new AmplifyAuth(stack, 'test', { email: true });
     const template = Template.fromStack(stack);
     template.hasResourceProperties('AWS::Cognito::UserPool', {
       UsernameAttributes: ['email'],
@@ -81,13 +45,7 @@ describe('Auth construct', () => {
           flush: mock.fn(),
         };
       const authConstruct = new AmplifyAuth(stack, 'test', {
-        loginOptions: {
-          basic: {
-            email: {
-              enabled: true,
-            },
-          },
-        },
+        email: true,
       });
 
       const expectedUserPoolId = (

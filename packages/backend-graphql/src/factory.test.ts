@@ -17,6 +17,10 @@ import {
   ImportPathVerifier,
 } from '@aws-amplify/plugin-types';
 import { Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
+import {
+  CfnIdentityPool,
+  CfnIdentityPoolRoleAttachment,
+} from 'aws-cdk-lib/aws-cognito';
 
 const testSchema = `
   input AMPLIFY {globalAuthRule: AuthRule = { allow: public }} # FOR TESTING ONLY!
@@ -46,13 +50,21 @@ describe('DataFactory', () => {
     constructContainer.registerConstructFactory('AuthResources', {
       provides: 'AuthResources',
       getInstance: (): AuthResources => ({
-        resources: {
-          unauthenticatedUserIamRole: new Role(stack, 'testUnauthRole', {
-            assumedBy: new ServicePrincipal('test.amazon.com'),
+        unauthenticatedUserIamRole: new Role(stack, 'testUnauthRole', {
+          assumedBy: new ServicePrincipal('test.amazon.com'),
+        }),
+        authenticatedUserIamRole: new Role(stack, 'testAuthRole', {
+          assumedBy: new ServicePrincipal('test.amazon.com'),
+        }),
+        cfnResources: {
+          identityPool: new CfnIdentityPool(stack, 'identityPool', {
+            allowUnauthenticatedIdentities: false,
           }),
-          authenticatedUserIamRole: new Role(stack, 'testAuthRole', {
-            assumedBy: new ServicePrincipal('test.amazon.com'),
-          }),
+          identityPoolRoleAttachment: new CfnIdentityPoolRoleAttachment(
+            stack,
+            'identityPoolRoleAttachment',
+            { identityPoolId: 'identitypoolid' }
+          ),
         },
       }),
     });
