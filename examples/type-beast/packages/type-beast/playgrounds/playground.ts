@@ -1,55 +1,60 @@
-import { default as a, defineData } from "../index";
+import { default as a, defineData } from '../index';
 
-import type { ModelSchema } from "../src/ModelSchema";
-import { type ModelType } from "../src/ModelType";
-import type { ModelField, InternalField } from "../src/ModelField";
+import type { ModelSchema } from '../src/ModelSchema';
+import { type ModelType } from '../src/ModelType';
+import type { ModelField, InternalField } from '../src/ModelField';
 import type {
   ModelRelationalField,
   ModelRelationalFieldParamShape,
-} from "../src/ModelRelationalField";
-import type { Prettify, UnionToIntersection, ExcludeEmpty } from "../src/util";
-import { __modelMeta__ } from "@aws-amplify/types-package-alpha";
+} from '../src/ModelRelationalField';
+import type { Prettify, UnionToIntersection, ExcludeEmpty } from '../src/util';
+import { __modelMeta__ } from '@aws-amplify/types-package-alpha';
 
 const schema = a.schema({
+  Blog: a
+    .model({
+      id: a.id(),
+      title: a.string(),
+      posts: a.hasMany('Post'),
+    })
+    .identifier(['id']),
   Post: a
     .model({
       id: a.id(),
-      title: a.string().optional(),
+      title: a.string(),
       viewCount: a.integer().optional(),
-      comments: a.hasMany("Comment").valueOptional().arrayOptional(),
-      otherComments: a.hasMany("Comment"),
+      comments: a.hasMany('Comment'),
     })
-    .identifier(["id"]),
-
+    .identifier(['id']),
   Comment: a.model({
     id: a.id(),
-    beemo: a.integer(),
+    bingo: a.string(),
+    anotherField: a.string().optional(),
+    subComments: a.hasMany('SubComment'),
   }),
-
-  AnotherPost: a
-    .model({
-      id: a.id(),
-      title: a.string().optional(),
-      viewCount: a.integer().optional(),
-      comments: a.hasMany("Comment").valueOptional().arrayOptional(),
-    })
-    .identifier(["id"]),
+  SubComment: a.model({
+    id: a.id(),
+    bingo: a.string(),
+    anotherField: a.string().optional(),
+    subSubComments: a.hasMany('SubSubComment'),
+  }),
+  SubSubComment: a.model({
+    id: a.id(),
+    bingo: a.string(),
+    anotherField: a.string().optional(),
+  }),
 });
 
-export type Schema = ClientSchema<typeof schema>;
 type TSchema = typeof schema;
+export type Schema = ClientSchema<TSchema>;
 
 type MMeta = Schema[typeof __modelMeta__];
-
-type FFields = FieldTypes<ModelTypes<SchemaTypes<TSchema>>>;
-
-// instead of `post` we could expose `postCommentsId`. Template literal, then expect post.id passed to it
 
 type ClientSchema<
   Schema extends ModelSchema<any>,
   // Todo: rename Fields to FlattenedSchema
   Fields = FieldTypes<ModelTypes<SchemaTypes<Schema>>>,
-  FieldsWithRelationships = ResolveRelationalField<Fields>,
+  FieldsWithRelationships = ResolveRelationships<Fields>,
   ResolvedFields = Intersection<
     FilterFieldTypes<RequiredFieldTypes<FieldsWithRelationships>>,
     FilterFieldTypes<OptionalFieldTypes<FieldsWithRelationships>>
@@ -67,8 +72,8 @@ type ExtractRelationalMetadata<Fields, ResolvedFields> = UnionToIntersection<
     {
       [ModelName in keyof Fields]: {
         [Field in keyof Fields[ModelName] as Fields[ModelName][Field] extends ModelRelationalFieldParamShape
-          ? Fields[ModelName][Field]["relationshipType"] extends "hasMany"
-            ? Fields[ModelName][Field]["relatedModel"]
+          ? Fields[ModelName][Field]['relationshipType'] extends 'hasMany'
+            ? Fields[ModelName][Field]['relatedModel']
             : never
           : never]: Fields[ModelName][Field] extends ModelRelationalFieldParamShape
           ? ModelName extends keyof ResolvedFields
@@ -78,7 +83,6 @@ type ExtractRelationalMetadata<Fields, ResolvedFields> = UnionToIntersection<
                     `${Lowercase<ModelName & string>}${Capitalize<
                       Field & string
                     >}Id`,
-                    // TODO: custom ID support
                     string
                   >
                 >;
@@ -90,19 +94,19 @@ type ExtractRelationalMetadata<Fields, ResolvedFields> = UnionToIntersection<
   >
 >;
 
-type SchemaTypes<T> = T extends ModelSchema<infer R> ? R["models"] : never;
+type SchemaTypes<T> = T extends ModelSchema<infer R> ? R['models'] : never;
 
 type ModelTypes<Schema> = {
   [Property in keyof Schema]: Schema[Property] extends ModelType<infer R, any>
-    ? R["fields"]
+    ? R['fields']
     : never;
 };
 
 type ModelMeta<T> = {
   [Property in keyof T]: T[Property] extends ModelType<infer R, any>
     ? // reduce back to union
-      R["identifier"] extends any[]
-      ? { identifier: R["identifier"][number] }
+      R['identifier'] extends any[]
+      ? { identifier: R['identifier'][number] }
       : never
     : never;
 };
@@ -113,34 +117,48 @@ type ModelMeta<T> = {
 
 type GetRelationshipRef<
   T,
-  RM extends string,
+  RM extends keyof T,
   TypeArg extends ModelRelationalFieldParamShape,
-  Model = RM extends keyof T
-    ? TypeArg["valueOptional"] extends true
-      ? T[RM] | null | undefined
-      : T[RM]
-    : never,
-  Value = TypeArg["array"] extends true
-    ? TypeArg["arrayOptional"] extends true
+  ResolvedModel = ResolveRelationalFieldsForModel<T, RM>,
+  Model = TypeArg['valueOptional'] extends true
+    ? ResolvedModel | null | undefined
+    : ResolvedModel,
+  Value = TypeArg['array'] extends true
+    ? TypeArg['arrayOptional'] extends true
       ? Array<Model> | null | undefined
       : Array<Model>
     : Model
   // future: we can add an arg here for pagination and other options
-> = () => Promise<Value>;
+> = () => Promise<Prettify<Value>>;
 
-type ResolveRelationalField<Schema> = {
+type ResolveRelationalFieldsForModel<Schema, ModelName extends keyof Schema> = {
+  [FieldName in keyof Schema[ModelName]]: Schema[ModelName][FieldName] extends ModelRelationalFieldParamShape
+    ? Schema[ModelName][FieldName]['relatedModel'] extends keyof Schema
+      ? GetRelationshipRef<
+          Schema,
+          Schema[ModelName][FieldName]['relatedModel'],
+          Schema[ModelName][FieldName]
+        >
+      : never
+    : Schema[ModelName][FieldName];
+};
+
+type ResolveRelationships<Schema> = {
   [ModelProp in keyof Schema]: {
     [FieldProp in keyof Schema[ModelProp]]: Schema[ModelProp][FieldProp] extends ModelRelationalFieldParamShape
-      ? Schema[ModelProp][FieldProp]["relatedModel"] extends keyof Schema
+      ? Schema[ModelProp][FieldProp]['relatedModel'] extends keyof Schema
         ? GetRelationshipRef<
             Schema,
-            Schema[ModelProp][FieldProp]["relatedModel"],
+            Schema[ModelProp][FieldProp]['relatedModel'],
             Schema[ModelProp][FieldProp]
           >
-        : never // if the field value extends ModelRelationalFieldShape "relatedModel" should always point to a Model (keyof T)
+        : never // if the field value extends ModelRelationalFieldShape "relatedModel" should always point to a Model (keyof Schema)
       : Schema[ModelProp][FieldProp];
   };
 };
+
+type FFields = Prettify<FieldTypes<ModelTypes<SchemaTypes<TSchema>>>>;
+type FieldsWithRelationships = Prettify<ResolveRelationships<FFields>>;
 
 type FieldTypes<T> = {
   [ModelProp in keyof T]: {

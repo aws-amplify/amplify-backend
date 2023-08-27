@@ -2,14 +2,14 @@ import type {
   ModelType,
   ModelTypeParamShape,
   InternalModel,
-} from "./ModelType";
-import type { ModelField } from "./ModelField";
-import type { Prettify, UnionToIntersection, ExcludeEmpty } from "./util";
+} from './ModelType';
+import type { ModelField } from './ModelField';
+import type { Prettify, UnionToIntersection, ExcludeEmpty } from './util';
 import type {
   ModelRelationalField,
   ModelRelationalFieldParamShape,
-} from "./ModelRelationalField";
-import { __modelMeta__ } from "@aws-amplify/types-package-alpha";
+} from './ModelRelationalField';
+import { __modelMeta__ } from '@aws-amplify/types-package-alpha';
 
 /*
  * Notes:
@@ -38,7 +38,7 @@ export type ModelSchema<T extends ModelSchemaParamShape> = {
   data: T;
 };
 
-function _schema<T extends ModelSchemaParamShape>(models: T["models"]) {
+function _schema<T extends ModelSchemaParamShape>(models: T['models']) {
   const data: ModelSchemaData = { models };
 
   return { data } as ModelSchema<T>;
@@ -74,7 +74,7 @@ export type ClientSchema<
   Schema extends ModelSchema<any>,
   // Todo: rename Fields to FlattenedSchema
   Fields = FieldTypes<ModelTypes<SchemaTypes<Schema>>>,
-  FieldsWithRelationships = ResolveRelationalField<Fields>,
+  FieldsWithRelationships = ResolveRelationships<Fields>,
   ResolvedFields = Intersection<
     FilterFieldTypes<RequiredFieldTypes<FieldsWithRelationships>>,
     FilterFieldTypes<OptionalFieldTypes<FieldsWithRelationships>>
@@ -92,8 +92,8 @@ type ExtractRelationalMetadata<Fields, ResolvedFields> = UnionToIntersection<
     {
       [ModelName in keyof Fields]: {
         [Field in keyof Fields[ModelName] as Fields[ModelName][Field] extends ModelRelationalFieldParamShape
-          ? Fields[ModelName][Field]["relationshipType"] extends "hasMany"
-            ? Fields[ModelName][Field]["relatedModel"]
+          ? Fields[ModelName][Field]['relationshipType'] extends 'hasMany'
+            ? Fields[ModelName][Field]['relatedModel']
             : never
           : never]: Fields[ModelName][Field] extends ModelRelationalFieldParamShape
           ? ModelName extends keyof ResolvedFields
@@ -114,19 +114,19 @@ type ExtractRelationalMetadata<Fields, ResolvedFields> = UnionToIntersection<
   >
 >;
 
-type SchemaTypes<T> = T extends ModelSchema<infer R> ? R["models"] : never;
+type SchemaTypes<T> = T extends ModelSchema<infer R> ? R['models'] : never;
 
 type ModelTypes<Schema> = {
   [Property in keyof Schema]: Schema[Property] extends ModelType<infer R, any>
-    ? R["fields"]
+    ? R['fields']
     : never;
 };
 
 type ModelMeta<T> = {
   [Property in keyof T]: T[Property] extends ModelType<infer R, any>
     ? // reduce back to union
-      R["identifier"] extends any[]
-      ? { identifier: R["identifier"][number] }
+      R['identifier'] extends any[]
+      ? { identifier: R['identifier'][number] }
       : never
     : never;
 };
@@ -137,31 +137,42 @@ type ModelMeta<T> = {
 
 type GetRelationshipRef<
   T,
-  RM extends string,
+  RM extends keyof T,
   TypeArg extends ModelRelationalFieldParamShape,
-  Model = RM extends keyof T
-    ? TypeArg["valueOptional"] extends true
-      ? T[RM] | null | undefined
-      : T[RM]
-    : never,
-  Value = TypeArg["array"] extends true
-    ? TypeArg["arrayOptional"] extends true
+  ResolvedModel = ResolveRelationalFieldsForModel<T, RM>,
+  Model = TypeArg['valueOptional'] extends true
+    ? ResolvedModel | null | undefined
+    : ResolvedModel,
+  Value = TypeArg['array'] extends true
+    ? TypeArg['arrayOptional'] extends true
       ? Array<Model> | null | undefined
       : Array<Model>
     : Model
   // future: we can add an arg here for pagination and other options
-> = () => Promise<Value>;
+> = () => Promise<Prettify<Value>>;
 
-type ResolveRelationalField<Schema> = {
+type ResolveRelationalFieldsForModel<Schema, ModelName extends keyof Schema> = {
+  [FieldName in keyof Schema[ModelName]]: Schema[ModelName][FieldName] extends ModelRelationalFieldParamShape
+    ? Schema[ModelName][FieldName]['relatedModel'] extends keyof Schema
+      ? GetRelationshipRef<
+          Schema,
+          Schema[ModelName][FieldName]['relatedModel'],
+          Schema[ModelName][FieldName]
+        >
+      : never
+    : Schema[ModelName][FieldName];
+};
+
+type ResolveRelationships<Schema> = {
   [ModelProp in keyof Schema]: {
     [FieldProp in keyof Schema[ModelProp]]: Schema[ModelProp][FieldProp] extends ModelRelationalFieldParamShape
-      ? Schema[ModelProp][FieldProp]["relatedModel"] extends keyof Schema
+      ? Schema[ModelProp][FieldProp]['relatedModel'] extends keyof Schema
         ? GetRelationshipRef<
             Schema,
-            Schema[ModelProp][FieldProp]["relatedModel"],
+            Schema[ModelProp][FieldProp]['relatedModel'],
             Schema[ModelProp][FieldProp]
           >
-        : never // if the field value extends ModelRelationalFieldShape "relatedModel" should always point to a Model (keyof T)
+        : never // if the field value extends ModelRelationalFieldShape "relatedModel" should always point to a Model (keyof Schema)
       : Schema[ModelProp][FieldProp];
   };
 };
