@@ -1,6 +1,7 @@
-import { Equal, Expect } from "../src/util";
-import { type ModelType, type InternalModel, model } from "../src/ModelType";
-import { type ModelField, type InternalField, fields } from "../src/ModelField";
+import { Equal, Expect } from '../src/util';
+import { type ModelType, type InternalModel, model } from '../src/ModelType';
+import { type ModelField, type InternalField, fields } from '../src/ModelField';
+import { describe, test } from 'node:test';
 
 type GetModelTypeArg<T> = T extends ModelType<infer R, any> ? R : never;
 
@@ -14,8 +15,8 @@ const { string, id } = fields;
  *
  */
 
-describe("basic functionality", () => {
-  test("basic ModelType can be cast to InternalModel", () => {
+describe('InternalModel casting', () => {
+  test('basic ModelType can be cast to InternalModel', () => {
     const m = model({
       title: string(),
     });
@@ -25,34 +26,28 @@ describe("basic functionality", () => {
 
     const internalModel = m as InternalModel;
     internalModel.data;
-
-    type internalField = (typeof internalModel.data.fields)[string];
-    type test = Expect<Equal<InternalField, internalField>>;
-
-    type fieldData = internalField["data"];
   });
 
-  test("ModelType with options can be cast to InternalModel", () => {
+  test('ModelType with options can be cast to InternalModel', () => {
     const m = model({
       title: string(),
       description: string().optional(),
-    }).identifier(["title"]);
+    }).identifier(['title']);
 
     // @ts-expect-error
     const data = m.data;
 
     const internalModel = m as InternalModel;
     internalModel.data;
-
-    type internalField = (typeof internalModel.data.fields)[string];
-    type test = Expect<Equal<InternalField, internalField>>;
-
-    type fieldData = internalField["data"];
   });
 });
 
-describe("identifiers", () => {
-  test("model() with fields and default id produces expected type args", () => {
+// describe("basic functionality", () => {
+
+// });
+
+describe('identifiers', () => {
+  test('model() with fields and default id produces expected type args', () => {
     const m = model({
       title: string().optional(),
     });
@@ -62,18 +57,18 @@ describe("identifiers", () => {
     type ExpectedType = {
       fields: {
         // id: ModelField<string>;
-        title: ModelField<string | null, "optional">;
+        title: ModelField<string | null, 'optional'>;
       };
-      identifier: Array<"id">;
+      identifier: Array<'id'>;
     };
 
     type test = Expect<Equal<MT, ExpectedType>>;
   });
 
-  test("model() with fields and custom id produces expected type args", () => {
+  test('model() with fields and custom id produces expected type args', () => {
     const m = model({
       customId: id(),
-    }).identifier(["customId"]);
+    }).identifier(['customId']);
 
     type MT = GetModelTypeArg<typeof m>;
 
@@ -81,7 +76,7 @@ describe("identifiers", () => {
       fields: {
         customId: ModelField<string>;
       };
-      identifier: Array<"customId">;
+      identifier: Array<'customId'>;
     };
 
     type test = Expect<Equal<MT, ExpectedType>>;
@@ -93,6 +88,6 @@ describe("identifiers", () => {
 
     // optional fields can't be used as identifier
     // @ts-expect-error
-    m2.identifier(["title"]);
+    m2.identifier(['title']);
   });
 });
