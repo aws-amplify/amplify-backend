@@ -14,7 +14,7 @@ import {
 } from 'aws-cdk-lib/aws-cognito';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
 
-describe('Auth construct', () => {
+describe.only('Auth construct', () => {
   it('creates phone number login mechanism', () => {
     const app = new App();
     const stack = new Stack(app);
@@ -106,6 +106,26 @@ describe('Auth construct', () => {
       {
         message:
           "Invalid email settings. Property 'emailBody' must contain a template for the validation link with a format of {##Verify Email##}.",
+      }
+    );
+  });
+
+  it('throws error if invalid sms verification message', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const customSMSVerificationMessage = 'invalid message without code';
+    assert.throws(
+      () =>
+        new AmplifyAuth(stack, 'test', {
+          loginWith: {
+            phoneNumber: {
+              verificationMessage: customSMSVerificationMessage,
+            },
+          },
+        }),
+      {
+        message:
+          "Invalid phoneNumber settings. Property 'verificationMessage' must contain a template for the validation code with a format of {####}.",
       }
     );
   });

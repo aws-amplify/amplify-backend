@@ -1,5 +1,5 @@
 import { aws_cognito as cognito } from 'aws-cdk-lib';
-import { AmplifyUserAttribute } from './utilities/custom_attributes.js';
+import { AmplifyUserAttribute } from './utilities/attributes.js';
 /**
  * Email login options.
  *

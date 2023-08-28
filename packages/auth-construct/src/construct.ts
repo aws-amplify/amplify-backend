@@ -21,7 +21,7 @@ import {
   AmplifyCustomAttributeBase,
   AmplifyCustomAttributeBuilder,
   AmplifyStandardAttribute,
-} from './utilities/custom_attributes.js';
+} from './utilities/attributes.js';
 
 type DefaultRoles = { auth: Role; unAuth: Role };
 
@@ -190,10 +190,20 @@ export class AmplifyAuth
       }
     }
     if (phoneEnabled) {
-      if (typeof props.loginWith.phoneNumber === 'object') {
+      const phoneSettings = props.loginWith.phoneNumber;
+      if (typeof phoneSettings === 'object') {
+        if (
+          phoneSettings.verificationMessage &&
+          phoneSettings.verificationMessage.indexOf('{####}') === -1
+        ) {
+          // validate sms message structure
+          throw Error(
+            "Invalid phoneNumber settings. Property 'verificationMessage' must contain a template for the validation code with a format of {####}."
+          );
+        }
         userVerificationSettings = {
           ...userVerificationSettings,
-          smsMessage: props.loginWith.phoneNumber.verificationMessage,
+          smsMessage: phoneSettings.verificationMessage,
         };
       }
     }
