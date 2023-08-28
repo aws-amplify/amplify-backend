@@ -11,7 +11,6 @@ import {
 import { Template } from 'aws-cdk-lib/assertions';
 import {
   AuthResourceProvider,
-  AuthResources,
   BackendOutputEntry,
   BackendOutputStorageStrategy,
   ConstructContainer,
