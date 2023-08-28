@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": { "rootDir": "src", "outDir": "lib" },
+  "references": [
+    { "path": "../backend" },
+    { "path": "../backend-auth" },
+    { "path": "../backend-function" },
+    { "path": "../backend-graphql" },
+    { "path": "../backend-storage" }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "name": "aws-amplify-backend",
+  "version": "0.1.0",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "import": "./lib/index.js",
+      "require": "./lib/index.js"
+    },
+    "./auth": {
+      "types": "./lib/auth/index.d.ts",
+      "import": "./lib/auth/index.js",
+      "require": "./lib/auth/index.js"
+    },
+    "./function": {
+      "types": "./lib/function/index.d.ts",
+      "import": "./lib/function/index.js",
+      "require": "./lib/function/index.js"
+    },
+    "./graphql": {
+      "types": "./lib/graphql/index.d.ts",
+      "import": "./lib/graphql/index.js",
+      "require": "./lib/graphql/index.js"
+    },
+    "./storage": {
+      "types": "./lib/storage/index.d.ts",
+      "import": "./lib/storage/index.js",
+      "require": "./lib/storage/index.js"
+    }
+  },
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "update:api": "api-extractor run --local"
+  },
+  "dependencies": {
+    "@aws-amplify/backend": "^0.1.1-alpha.0",
+    "@aws-amplify/backend-auth": "^0.1.1-alpha.0",
+    "@aws-amplify/backend-function": "^0.1.1-alpha.0",
+    "@aws-amplify/backend-graphql": "^0.1.1-alpha.0",
+    "@aws-amplify/backend-storage": "^0.1.1-alpha.0"
+  }
+}
