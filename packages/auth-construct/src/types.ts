@@ -26,7 +26,7 @@ export type PhoneNumberLogin =
     };
 /**
  * Basic login options require at least email or phone number.
- * Additional settings may be configured, such as password policies.
+ * Additional settings may be configured, such as email messages or sms verification messages.
  */
 export type BasicLoginOptions =
   | { email: EmailLogin; phoneNumber?: PhoneNumberLogin }

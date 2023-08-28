@@ -4,10 +4,10 @@
 
 ```ts
 
-import { AmplifyCustomBooleanAttribute } from './utilities/custom_attributes.js';
-import { AmplifyCustomDateTimeAttribute } from './utilities/custom_attributes.js';
-import { AmplifyCustomNumberAttribute } from './utilities/custom_attributes.js';
-import { AmplifyCustomStringAttribute } from './utilities/custom_attributes.js';
+import { AmplifyCustomBooleanAttribute } from './utilities/attributes.js';
+import { AmplifyCustomDateTimeAttribute } from './utilities/attributes.js';
+import { AmplifyCustomNumberAttribute } from './utilities/attributes.js';
+import { AmplifyCustomStringAttribute } from './utilities/attributes.js';
 import { AuthOutput } from '@aws-amplify/backend-output-schemas/auth';
 import { AuthResourceProvider } from '@aws-amplify/plugin-types';
 import { aws_cognito } from 'aws-cdk-lib';

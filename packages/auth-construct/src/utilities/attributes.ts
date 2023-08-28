@@ -22,7 +22,7 @@ export class AmplifyStandardAttribute {
   private isRequired = false;
   /**
    * Create a Standard Attribute.
-   * @param name The attribute name, must be one of StandardAttributes
+   * @param name - The attribute name, must be one of StandardAttributes
    */
   constructor(name: keyof StandardAttributes) {
     this.name = name;
@@ -67,7 +67,7 @@ export abstract class AmplifyCustomAttributeBase {
   protected maxValue: number;
   /**
    * Create a Custom Attribute
-   * @param name A name for the custom attribute
+   * @param name - A name for the custom attribute
    */
   constructor(name: string) {
     this.name = name;
