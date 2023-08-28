@@ -14,6 +14,7 @@ describe('AuthClientConfigContributor', () => {
             awsAppsyncRegion: 'us-east-1',
             awsAppsyncAuthenticationType: 'API_KEY',
             awsAppsyncApiKey: 'testApiKey',
+            awsAppsyncApiId: 'testApiId',
           },
         },
       }),
