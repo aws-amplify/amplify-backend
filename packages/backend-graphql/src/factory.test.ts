@@ -10,6 +10,7 @@ import {
 } from '@aws-amplify/backend/test-utils';
 import { Template } from 'aws-cdk-lib/assertions';
 import {
+  AuthResourceProvider,
   AuthResources,
   BackendOutputEntry,
   BackendOutputStorageStrategy,
@@ -49,22 +50,24 @@ describe('DataFactory', () => {
     );
     constructContainer.registerConstructFactory('AuthResources', {
       provides: 'AuthResources',
-      getInstance: (): AuthResources => ({
-        unauthenticatedUserIamRole: new Role(stack, 'testUnauthRole', {
-          assumedBy: new ServicePrincipal('test.amazon.com'),
-        }),
-        authenticatedUserIamRole: new Role(stack, 'testAuthRole', {
-          assumedBy: new ServicePrincipal('test.amazon.com'),
-        }),
-        cfnResources: {
-          identityPool: new CfnIdentityPool(stack, 'identityPool', {
-            allowUnauthenticatedIdentities: false,
+      getInstance: (): AuthResourceProvider => ({
+        resources: {
+          unauthenticatedUserIamRole: new Role(stack, 'testUnauthRole', {
+            assumedBy: new ServicePrincipal('test.amazon.com'),
           }),
-          identityPoolRoleAttachment: new CfnIdentityPoolRoleAttachment(
-            stack,
-            'identityPoolRoleAttachment',
-            { identityPoolId: 'identitypoolid' }
-          ),
+          authenticatedUserIamRole: new Role(stack, 'testAuthRole', {
+            assumedBy: new ServicePrincipal('test.amazon.com'),
+          }),
+          cfnResources: {
+            identityPool: new CfnIdentityPool(stack, 'identityPool', {
+              allowUnauthenticatedIdentities: true,
+            }),
+            identityPoolRoleAttachment: new CfnIdentityPoolRoleAttachment(
+              stack,
+              'identityPoolRoleAttachment',
+              { identityPoolId: 'identityPool' }
+            ),
+          },
         },
       }),
     });
