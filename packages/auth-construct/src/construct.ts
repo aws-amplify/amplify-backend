@@ -17,9 +17,9 @@ import { authOutputKey } from '@aws-amplify/backend-output-schemas';
 import { AmplifyAuthProps } from './types.js';
 import { DEFAULTS } from './defaults.js';
 import {
-  AmplifyAttributeBuilder,
+  AmplifyAttributeFactory,
   AmplifyCustomAttributeBase,
-  AmplifyCustomAttributeBuilder,
+  AmplifyCustomAttributeFactory,
   AmplifyStandardAttribute,
 } from './utilities/attributes.js';
 
@@ -40,10 +40,12 @@ export class AmplifyAuth
    * Create a new Auth construct with AuthProps.
    * If no props are provided, email login and defaults will be used.
    */
-  constructor(scope: Construct, id: string, optionalProps?: AmplifyAuthProps) {
+  constructor(
+    scope: Construct,
+    id: string,
+    props: AmplifyAuthProps = DEFAULTS.IF_NO_PROPS_PROVIDED
+  ) {
     super(scope, id);
-    // use provided props or use defaults
-    const props = optionalProps ?? DEFAULTS.IF_NO_PROPS_PROVIDED;
 
     // UserPool
     const userPoolProps: UserPoolProps = this.getUserPoolProps(props);
@@ -274,10 +276,10 @@ export class AmplifyAuth
    *
    * Example:
    * userAttributes: [
-   *  AmplifyAuth.attribute('address').mutable(true),
+   *  AmplifyAuth.attribute('address').mutable().required(),
    * ]
    */
-  public static attribute = AmplifyAttributeBuilder;
+  public static attribute = AmplifyAttributeFactory;
   /**
    * Utility for adding custom attributes.
    *
@@ -286,5 +288,5 @@ export class AmplifyAuth
    *  AmplifyAuth.customAttribute.number('petsCount').min(0).max(5)
    * ]
    */
-  public static customAttribute = AmplifyCustomAttributeBuilder;
+  public static customAttribute = AmplifyCustomAttributeFactory;
 }

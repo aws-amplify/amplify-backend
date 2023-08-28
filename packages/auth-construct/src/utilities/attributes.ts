@@ -2,8 +2,8 @@ import { aws_cognito } from 'aws-cdk-lib';
 import { StandardAttributes } from 'aws-cdk-lib/aws-cognito';
 /**
  * Examples:
- * AmplifyAttributeBuilder('address').mutable(true).required(false);
- * AmplifyCustomAttributeBuilder.string('color').minLength(10).maxLength(100);
+ * AmplifyAttributeFactory('address').mutable().required();
+ * AmplifyCustomAttributeFactory.string('color').minLength(10).maxLength(100);
  */
 
 /**
@@ -193,17 +193,17 @@ export class AmplifyCustomBooleanAttribute extends AmplifyCustomAttributeBase {
   }
 }
 /**
- * This builder allows you to create Standard User Attributes.
+ * This tool simplifies the creation of Standard User Attributes.
  */
-export const AmplifyAttributeBuilder = (
+export const AmplifyAttributeFactory = (
   name: keyof StandardAttributes
 ): AmplifyStandardAttribute => {
   return new AmplifyStandardAttribute(name);
 };
 /**
- * This builder allows you to create Custom User Attributes.
+ * This tool simplifies the creation of Custom User Attributes.
  */
-export const AmplifyCustomAttributeBuilder = {
+export const AmplifyCustomAttributeFactory = {
   string: (name: string) => {
     return new AmplifyCustomStringAttribute(name);
   },
