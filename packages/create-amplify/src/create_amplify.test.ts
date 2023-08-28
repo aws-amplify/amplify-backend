@@ -61,14 +61,11 @@ describe('create-amplify script', async () => {
     );
     assert.deepStrictEqual(
       Object.keys(packageJsonObject.devDependencies).sort(),
-      [
-        '@aws-amplify/backend',
-        '@aws-amplify/backend-auth',
-        '@aws-amplify/backend-cli',
-        '@aws-amplify/backend-graphql',
-        'aws-amplify',
-      ]
+      ['@aws-amplify/backend-cli', 'aws-amplify-backend']
     );
+    assert.deepStrictEqual(Object.keys(packageJsonObject.dependencies).sort(), [
+      'aws-amplify',
+    ]);
 
     const dirContent = await fs.readdir(path.join(tempDir, 'amplify'));
     assert.deepStrictEqual(dirContent.sort(), [
