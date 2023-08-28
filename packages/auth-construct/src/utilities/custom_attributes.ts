@@ -57,7 +57,7 @@ export type CustomAttributeType = 'String' | 'Number' | 'DateTime' | 'Boolean';
 /**
  * This class facilitates creation of Custom user attributes.
  */
-export class AmplifyCustomAttributeBase {
+export abstract class AmplifyCustomAttributeBase {
   private name: string;
   private isMutable = false;
   protected dataType: CustomAttributeType;
