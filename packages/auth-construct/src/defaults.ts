@@ -1,18 +1,3 @@
-// import { UserPoolClientOptions, UserPoolProps } from 'aws-cdk-lib/aws-cognito';
-// import { AmplifyAuthProps } from './types.js';
-// type StandardAttribute = { required: boolean; mutable: boolean } | undefined;
-// type Defaults = {
-//   IF_NO_PROPS_PROVIDED: AmplifyAuthProps;
-//   SIGN_IN_CASE_SENSITIVE: boolean;
-//   ALLOW_UNAUTHENTICATED_IDENTITIES: boolean;
-//   PASSWORD_POLICY: UserPoolProps['passwordPolicy'];
-//   AUTH_FLOWS: UserPoolClientOptions['authFlows'];
-//   IS_REQUIRED_ATTRIBUTE: {
-//     email: (emailEnabled: boolean) => StandardAttribute;
-//     phoneNumber: (phoneNumberEnabled: boolean) => StandardAttribute;
-//   };
-// };
-
 import { AmplifyAuthProps } from './types.js';
 
 /**

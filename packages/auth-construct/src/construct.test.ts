@@ -14,7 +14,7 @@ import {
 } from 'aws-cdk-lib/aws-cognito';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
 
-describe.only('Auth construct', () => {
+describe('Auth construct', () => {
   it('creates phone number login mechanism', () => {
     const app = new App();
     const stack = new Stack(app);
@@ -82,7 +82,7 @@ describe.only('Auth construct', () => {
         }),
       {
         message:
-          "Invalid email settings. Property 'emailBody' must contain a template for the validation code with a format of {####}.",
+          "Invalid email settings. Property 'emailBody' must contain {####} as a placeholder for the verification code.",
       }
     );
   });
@@ -105,7 +105,7 @@ describe.only('Auth construct', () => {
         }),
       {
         message:
-          "Invalid email settings. Property 'emailBody' must contain a template for the validation link with a format of {##Verify Email##}.",
+          "Invalid email settings. Property 'emailBody' must contain {##Verify Email##} as a placeholder for the verification link.",
       }
     );
   });
@@ -125,7 +125,7 @@ describe.only('Auth construct', () => {
         }),
       {
         message:
-          "Invalid phoneNumber settings. Property 'verificationMessage' must contain a template for the validation code with a format of {####}.",
+          "Invalid phoneNumber settings. Property 'verificationMessage' must contain {####} as a placeholder for the verification code.",
       }
     );
   });

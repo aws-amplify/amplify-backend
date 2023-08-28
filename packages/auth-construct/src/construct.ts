@@ -170,7 +170,7 @@ export class AmplifyAuth
         ) {
           if (emailSettings.emailBody.indexOf('{####}') === -1) {
             throw Error(
-              "Invalid email settings. Property 'emailBody' must contain a template for the validation code with a format of {####}."
+              "Invalid email settings. Property 'emailBody' must contain {####} as a placeholder for the verification code."
             );
           }
         }
@@ -180,7 +180,7 @@ export class AmplifyAuth
         ) {
           if (emailSettings.emailBody.indexOf('{##Verify Email##}') === -1) {
             throw Error(
-              "Invalid email settings. Property 'emailBody' must contain a template for the validation link with a format of {##Verify Email##}."
+              "Invalid email settings. Property 'emailBody' must contain {##Verify Email##} as a placeholder for the verification link."
             );
           }
         }
@@ -200,7 +200,7 @@ export class AmplifyAuth
         ) {
           // validate sms message structure
           throw Error(
-            "Invalid phoneNumber settings. Property 'verificationMessage' must contain a template for the validation code with a format of {####}."
+            "Invalid phoneNumber settings. Property 'verificationMessage' must contain {####} as a placeholder for the verification code."
           );
         }
         userVerificationSettings = {
