@@ -34,37 +34,37 @@ export type BackendOutputEntry<T extends Record<string, string> = Record<string,
 
 // @public (undocumented)
 export type BackendOutputRetrievalStrategy = {
-    fetchBackendOutput(): Promise<BackendOutput>;
+    fetchBackendOutput: () => Promise<BackendOutput>;
 };
 
 // @public
 export type BackendOutputStorageStrategy<T extends BackendOutputEntry> = {
-    addBackendOutputEntry(keyName: string, backendOutputEntry: T): void;
-    flush(): void;
+    addBackendOutputEntry: (keyName: string, backendOutputEntry: T) => void;
+    flush: () => void;
 };
 
 // @public
 export type BackendOutputWriter = {
-    storeOutput(outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>): void;
+    storeOutput: (outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>) => void;
 };
 
 // @public
 export type ConstructContainer = {
-    getOrCompute(generator: ConstructContainerEntryGenerator): Construct;
-    registerConstructFactory(token: string, provider: ConstructFactory): void;
-    getConstructFactory<T>(token: string): ConstructFactory<T>;
+    getOrCompute: (generator: ConstructContainerEntryGenerator) => Construct;
+    registerConstructFactory: (token: string, provider: ConstructFactory) => void;
+    getConstructFactory: <T>(token: string) => ConstructFactory<T>;
 };
 
 // @public
 export type ConstructContainerEntryGenerator = {
     resourceGroupName: string;
-    generateContainerEntry(scope: Construct): Construct;
+    generateContainerEntry: (scope: Construct) => Construct;
 };
 
 // @public
 export type ConstructFactory<T = unknown> = {
     readonly provides?: string;
-    getInstance(props: ConstructFactoryGetInstanceProps): T;
+    getInstance: (props: ConstructFactoryGetInstanceProps) => T;
 };
 
 // @public (undocumented)
@@ -76,17 +76,17 @@ export type ConstructFactoryGetInstanceProps = {
 
 // @public
 export type ImportPathVerifier = {
-    verify(importStack: string | undefined, expectedImportingFile: string, errorMessage: string): void;
+    verify: (importStack: string | undefined, expectedImportingFile: string, errorMessage: string) => void;
 };
 
 // @public
 export type MainStackCreator = {
-    getOrCreateMainStack(): Stack;
+    getOrCreateMainStack: () => Stack;
 };
 
 // @public
 export type MainStackNameResolver = {
-    resolveMainStackName(): Promise<string>;
+    resolveMainStackName: () => Promise<string>;
 };
 
 // @public (undocumented)

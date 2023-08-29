@@ -21,7 +21,7 @@ export class UnifiedClientConfigGenerator implements ClientConfigGenerator {
   /**
    * Fetch all backend output, invoke each ClientConfigContributor on the result and merge into a single config object
    */
-  async generateClientConfig(): Promise<ClientConfig> {
+  generateClientConfig = async (): Promise<ClientConfig> => {
     const backendOutput = unifiedBackendOutputSchema.parse(
       await this.outputRetrievalStrategy.fetchBackendOutput()
     );
@@ -33,5 +33,5 @@ export class UnifiedClientConfigGenerator implements ClientConfigGenerator {
       }),
       {} as ClientConfig
     );
-  }
+  };
 }

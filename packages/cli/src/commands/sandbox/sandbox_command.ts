@@ -55,7 +55,7 @@ export class SandboxCommand
       name: args.name,
       clientConfigFilePath: args.out,
     });
-    process.once('SIGINT', this.sigIntHandler.bind(this));
+    process.once('SIGINT', this.sigIntHandler);
   };
 
   /**

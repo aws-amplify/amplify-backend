@@ -18,14 +18,14 @@ export class ClientConfigGeneratorAdapter {
    * Calls generateClientConfigToFile from @aws-amplify/client-config.
    * @see generateClientConfigToFile for more information.
    */
-  async generateClientConfigToFile(
+  generateClientConfigToFile = async (
     backendIdentifier: BackendIdentifier,
     targetPath: string
-  ): Promise<void> {
+  ): Promise<void> => {
     await generateClientConfigToFile(
       this.awsCredentialProvider,
       backendIdentifier,
       targetPath
     );
-  }
+  };
 }

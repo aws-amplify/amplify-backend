@@ -17,7 +17,7 @@ export class InitialProjectFileGenerator {
   /**
    * Copies the template directory to an amplify folder within the projectRoot
    */
-  async generateInitialProjectFiles(): Promise<void> {
+  generateInitialProjectFiles = async (): Promise<void> => {
     const targetDir = path.resolve(this.projectRoot, 'amplify');
     await this.fs.mkdir(targetDir, { recursive: true });
     /*
@@ -29,5 +29,5 @@ export class InitialProjectFileGenerator {
       targetDir,
       { recursive: true }
     );
-  }
+  };
 }

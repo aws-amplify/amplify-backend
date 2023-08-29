@@ -57,6 +57,8 @@
         "format": ["camelCase", "PascalCase", "UPPER_CASE"]
       }
     ],
+    "@typescript-eslint/method-signature-style": "error",
+    "@typescript-eslint/switch-exhaustiveness-check": "error",
     "check-file/filename-blocklist": [
       "error",
       {
@@ -82,7 +84,6 @@
         "**": "KEBAB_CASE"
       }
     ],
-    "@typescript-eslint/switch-exhaustiveness-check": "error",
     "no-console": "error",
     "no-duplicate-imports": "error",
     "no-only-tests/no-only-tests": "error",
@@ -95,6 +96,12 @@
           "snakeCase": true
         }
       }
+    ],
+    "no-restricted-syntax": [
+      "error",
+      "MethodDefinition[kind!=\"constructor\"]",
+      "FunctionDeclaration",
+      "VariableDeclarator > FunctionExpression"
     ],
     "jsdoc/require-description": "error",
     "jsdoc/require-jsdoc": [

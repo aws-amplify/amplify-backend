@@ -11,9 +11,9 @@ import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
 
 // @public
 export class AmplifyFunctionFactory implements ConstructFactory<AmplifyFunction> {
-    static build(props: AmplifyFunctionFactoryBuildProps): Promise<AmplifyFunctionFactory>;
-    static fromDir(props: AmplifyFunctionFactoryFromDirProps): AmplifyFunctionFactory;
-    getInstance({ constructContainer, }: ConstructFactoryGetInstanceProps): AmplifyFunction;
+    static build: (props: AmplifyFunctionFactoryBuildProps) => Promise<AmplifyFunctionFactory>;
+    static fromDir: (props: AmplifyFunctionFactoryFromDirProps) => AmplifyFunctionFactory;
+    getInstance: ({ constructContainer, }: ConstructFactoryGetInstanceProps) => AmplifyFunction;
 }
 
 // @public (undocumented)

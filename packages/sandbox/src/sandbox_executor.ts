@@ -1,6 +1,7 @@
 import debounce from 'debounce-promise';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import { BackendDeployer } from '@aws-amplify/backend-deployer';
+
 /**
  * Execute CDK commands.
  */
@@ -13,7 +14,9 @@ export class AmplifySandboxExecutor {
   /**
    * Deploys sandbox
    */
-  deploy(uniqueBackendIdentifier?: UniqueBackendIdentifier): Promise<void> {
+  deploy = (
+    uniqueBackendIdentifier?: UniqueBackendIdentifier
+  ): Promise<void> => {
     console.debug('[Sandbox] Executing command `deploy`');
     return this.invoke(() =>
       this.backendDeployer.deploy(uniqueBackendIdentifier, {
@@ -21,17 +24,19 @@ export class AmplifySandboxExecutor {
         method: 'direct',
       })
     );
-  }
+  };
 
   /**
    * Destroy sandbox
    */
-  destroy(uniqueBackendIdentifier?: UniqueBackendIdentifier): Promise<void> {
+  destroy = (
+    uniqueBackendIdentifier?: UniqueBackendIdentifier
+  ): Promise<void> => {
     console.debug('[Sandbox] Executing command `deploy`');
     return this.invoke(() =>
       this.backendDeployer.destroy(uniqueBackendIdentifier)
     );
-  }
+  };
 
   /**
    * Function that deploys/destroys backend resources

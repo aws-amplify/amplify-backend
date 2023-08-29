@@ -13,11 +13,11 @@ export class ToggleableImportPathVerifier implements ImportPathVerifier {
   /**
    * @inheritDoc
    */
-  verify(
+  verify = (
     importStack: string | undefined,
     expectedImportingFileBasename: string,
     errorMessage: string
-  ): void {
+  ): void => {
     if (!this.doVerify) {
       return;
     }
@@ -49,5 +49,5 @@ export class ToggleableImportPathVerifier implements ImportPathVerifier {
     if (!allowedFiles.includes(upstreamFilename)) {
       throw new Error(errorMessage);
     }
-  }
+  };
 }

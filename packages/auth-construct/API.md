@@ -18,7 +18,7 @@ export class AmplifyAuth extends Construct implements BackendOutputWriter, AuthR
     constructor(scope: Construct, id: string, props: AmplifyAuthProps);
     // (undocumented)
     readonly authenticatedUserIamRole: IRole;
-    storeOutput(outputStorageStrategy: BackendOutputStorageStrategy<AuthOutput>): void;
+    storeOutput: (outputStorageStrategy: BackendOutputStorageStrategy<AuthOutput>) => void;
     // (undocumented)
     readonly unauthenticatedUserIamRole: IRole;
     // (undocumented)
