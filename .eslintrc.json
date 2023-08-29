@@ -66,6 +66,22 @@
         "**/*helper*/**": "**/*(!helper)*/*(!helper)*"
       }
     ],
+    "check-file/filename-naming-convention": [
+      "error",
+      {
+        "**/*.{js,jsx,ts,tsx}": "SNAKE_CASE",
+        "**/*.{json}": "KEBAB_CASE"
+      },
+      {
+        "ignoreMiddleExtensions": true
+      }
+    ],
+    "check-file/folder-naming-convention": [
+      "error",
+      {
+        "**": "KEBAB_CASE"
+      }
+    ],
     "@typescript-eslint/switch-exhaustiveness-check": "error",
     "no-console": "error",
     "no-duplicate-imports": "error",
