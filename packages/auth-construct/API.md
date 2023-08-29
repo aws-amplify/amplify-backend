@@ -16,8 +16,8 @@ import { StandardAttributes } from 'aws-cdk-lib/aws-cognito';
 // @public
 export class AmplifyAuth extends Construct implements BackendOutputWriter, ResourceProvider<AuthResources> {
     constructor(scope: Construct, id: string, props?: AmplifyAuthProps);
-    static attribute: (name: keyof aws_cognito.StandardAttributes) => AmplifyStandardAttribute;
-    static customAttribute: AmplifyCustomAttributeFactory;
+    static attribute: (name: keyof aws_cognito.StandardAttributes) => AuthStandardAttribute;
+    static customAttribute: AuthCustomAttributeFactory;
     readonly resources: AuthResources;
     storeOutput(outputStorageStrategy: BackendOutputStorageStrategy<AuthOutput>): void;
 }
@@ -25,14 +25,14 @@ export class AmplifyAuth extends Construct implements BackendOutputWriter, Resou
 // @public
 export type AmplifyAuthProps = {
     loginWith: BasicLoginOptions;
-    userAttributes?: AmplifyUserAttribute[];
+    userAttributes?: AuthUserAttribute[];
 };
 
 // @public
-export abstract class AmplifyCustomAttributeBase {
+export abstract class AuthCustomAttributeBase {
     constructor(name: string);
     // (undocumented)
-    protected dataType: CustomAttributeType;
+    protected dataType: AuthCustomAttributeType;
     // (undocumented)
     protected maxLengthValue: number;
     // (undocumented)
@@ -45,46 +45,49 @@ export abstract class AmplifyCustomAttributeBase {
 }
 
 // @public
-export class AmplifyCustomAttributeFactory {
-    boolean(name: string): AmplifyCustomBooleanAttribute;
-    dateTime(name: string): AmplifyCustomDateTimeAttribute;
-    number(name: string): AmplifyCustomNumberAttribute;
-    string(name: string): AmplifyCustomStringAttribute;
+export class AuthCustomAttributeFactory {
+    boolean(name: string): AuthCustomBooleanAttribute;
+    dateTime(name: string): AuthCustomDateTimeAttribute;
+    number(name: string): AuthCustomNumberAttribute;
+    string(name: string): AuthCustomStringAttribute;
 }
 
+// @public (undocumented)
+export type AuthCustomAttributeType = 'String' | 'Number' | 'DateTime' | 'Boolean';
+
 // @public
-export class AmplifyCustomBooleanAttribute extends AmplifyCustomAttributeBase {
+export class AuthCustomBooleanAttribute extends AuthCustomAttributeBase {
     constructor(name: string);
 }
 
 // @public
-export class AmplifyCustomDateTimeAttribute extends AmplifyCustomAttributeBase {
+export class AuthCustomDateTimeAttribute extends AuthCustomAttributeBase {
     constructor(name: string);
 }
 
 // @public
-export class AmplifyCustomNumberAttribute extends AmplifyCustomAttributeBase {
+export class AuthCustomNumberAttribute extends AuthCustomAttributeBase {
     constructor(name: string);
-    max: (max: number) => AmplifyCustomNumberAttribute;
-    min: (min: number) => AmplifyCustomNumberAttribute;
+    max: (max: number) => AuthCustomNumberAttribute;
+    min: (min: number) => AuthCustomNumberAttribute;
 }
 
 // @public
-export class AmplifyCustomStringAttribute extends AmplifyCustomAttributeBase {
+export class AuthCustomStringAttribute extends AuthCustomAttributeBase {
     constructor(name: string);
-    maxLength: (maxLength: number) => AmplifyCustomStringAttribute;
-    minLength: (minLength: number) => AmplifyCustomStringAttribute;
+    maxLength: (maxLength: number) => AuthCustomStringAttribute;
+    minLength: (minLength: number) => AuthCustomStringAttribute;
 }
 
 // @public
-export class AmplifyStandardAttribute {
+export class AuthStandardAttribute {
     constructor(name: keyof StandardAttributes);
-    mutable: () => AmplifyStandardAttribute;
-    required: () => AmplifyStandardAttribute;
+    mutable: () => AuthStandardAttribute;
+    required: () => AuthStandardAttribute;
 }
 
 // @public
-export type AmplifyUserAttribute = AmplifyStandardAttribute | AmplifyCustomAttributeBase;
+export type AuthUserAttribute = AuthStandardAttribute | AuthCustomAttributeBase;
 
 // @public
 export type BasicLoginOptions = {
@@ -94,9 +97,6 @@ export type BasicLoginOptions = {
     email?: EmailLogin;
     phoneNumber: PhoneNumberLogin;
 };
-
-// @public (undocumented)
-export type CustomAttributeType = 'String' | 'Number' | 'DateTime' | 'Boolean';
 
 // @public
 export type EmailLogin = true | {

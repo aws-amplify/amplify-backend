@@ -51,14 +51,18 @@ export class AuthStandardAttribute {
       };
     };
 }
-export type CustomAttributeType = 'String' | 'Number' | 'DateTime' | 'Boolean';
+export type AuthCustomAttributeType =
+  | 'String'
+  | 'Number'
+  | 'DateTime'
+  | 'Boolean';
 /**
  * This class facilitates creation of Custom user attributes.
  */
 export abstract class AuthCustomAttributeBase {
   private name: string;
   private isMutable = false;
-  protected dataType: CustomAttributeType;
+  protected dataType: AuthCustomAttributeType;
   protected minLengthValue: number;
   protected maxLengthValue: number;
   protected minValue: number;
