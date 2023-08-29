@@ -1,4 +1,4 @@
-import { AmplifyAuthProps } from './types.js';
+import { AuthProps } from './types.js';
 
 /**
  * These are the Amplify provided default values for Auth.
@@ -7,7 +7,7 @@ export const DEFAULTS = {
   /**
    * Default Auth Props if customer does not provide any.
    */
-  IF_NO_PROPS_PROVIDED: { loginWith: { email: true } } as AmplifyAuthProps,
+  IF_NO_PROPS_PROVIDED: { loginWith: { email: true } } as AuthProps,
   /**
    * Sign in case sensitivity
    */

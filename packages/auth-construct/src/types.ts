@@ -35,7 +35,7 @@ export type BasicLoginOptions =
 /**
  * Input props for the AmplifyAuth construct.
  */
-export type AmplifyAuthProps = {
+export type AuthProps = {
   loginWith: BasicLoginOptions;
   /**
    * Additional settings.

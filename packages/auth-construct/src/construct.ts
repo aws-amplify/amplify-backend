@@ -15,7 +15,7 @@ import {
 import { FederatedPrincipal, Role } from 'aws-cdk-lib/aws-iam';
 import { AuthOutput } from '@aws-amplify/backend-output-schemas/auth';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
-import { AmplifyAuthProps } from './types.js';
+import { AuthProps } from './types.js';
 import { DEFAULTS } from './defaults.js';
 import {
   AuthAttributeFactory,
@@ -44,7 +44,7 @@ export class AmplifyAuth
   constructor(
     scope: Construct,
     id: string,
-    props: AmplifyAuthProps = DEFAULTS.IF_NO_PROPS_PROVIDED
+    props: AuthProps = DEFAULTS.IF_NO_PROPS_PROVIDED
   ) {
     super(scope, id);
 
@@ -154,10 +154,10 @@ export class AmplifyAuth
 
   /**
    * Process props into UserPoolProps (set defaults if needed)
-   * @param props - AmplifyAuthProps
+   * @param props - AuthProps
    * @returns UserPoolProps
    */
-  private getUserPoolProps(props: AmplifyAuthProps): UserPoolProps {
+  private getUserPoolProps(props: AuthProps): UserPoolProps {
     const emailEnabled = props.loginWith.email ? true : false;
     const phoneEnabled = props.loginWith.phoneNumber ? true : false;
     // check for customizations

@@ -15,7 +15,7 @@ import { StandardAttributes } from 'aws-cdk-lib/aws-cognito';
 
 // @public
 export class AmplifyAuth extends Construct implements BackendOutputWriter, ResourceProvider<AuthResources> {
-    constructor(scope: Construct, id: string, props?: AmplifyAuthProps);
+    constructor(scope: Construct, id: string, props?: AuthProps);
     static attribute: (name: keyof aws_cognito.StandardAttributes) => AuthStandardAttribute;
     static customAttribute: AuthCustomAttributeFactory;
     readonly resources: AuthResources;
@@ -23,7 +23,7 @@ export class AmplifyAuth extends Construct implements BackendOutputWriter, Resou
 }
 
 // @public
-export type AmplifyAuthProps = {
+export type AuthProps = {
     loginWith: BasicLoginOptions;
     userAttributes?: AuthUserAttribute[];
 };

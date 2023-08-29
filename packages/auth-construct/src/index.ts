@@ -1,5 +1,5 @@
 export {
-  AmplifyAuthProps,
+  AuthProps,
   BasicLoginOptions,
   EmailLogin,
   PhoneNumberLogin,
