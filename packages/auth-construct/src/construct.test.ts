@@ -67,8 +67,9 @@ describe('Auth construct', () => {
 
   it('expect compile error if invalid email verification message for CODE', () => {
     const customEmailVerificationMessage = 'invalid message without code';
+    const validMessage = 'valid {####} email';
     const customEmailVerificationSubject = 'custom subject';
-    const props: AuthProps = {
+    let props: AuthProps = {
       loginWith: {
         email: {
           // @ts-expect-error We know this is a compile error, but must have runtime validation as well.
@@ -78,12 +79,24 @@ describe('Auth construct', () => {
         },
       },
     };
+    props = {
+      loginWith: {
+        email: {
+          emailBody: validMessage,
+          emailStyle: VerificationEmailStyle.CODE,
+          emailSubject: customEmailVerificationSubject,
+        },
+      },
+    };
+    // bypass ts unused props warning
+    assert.notEqual(props, undefined);
   });
 
   it('expect compile error if invalid email verification message for LINK', () => {
     const customEmailVerificationMessage = 'invalid message without link';
+    const validMessage = 'valid {##Verify Email##}';
     const customEmailVerificationSubject = 'custom subject';
-    const props: AuthProps = {
+    let props: AuthProps = {
       loginWith: {
         email: {
           // @ts-expect-error We expect this to be a compile error
@@ -93,6 +106,17 @@ describe('Auth construct', () => {
         },
       },
     };
+    props = {
+      loginWith: {
+        email: {
+          emailBody: validMessage,
+          emailStyle: VerificationEmailStyle.LINK,
+          emailSubject: customEmailVerificationSubject,
+        },
+      },
+    };
+    // bypass ts unused props warning
+    assert.notEqual(props, undefined);
   });
 
   it('does not throw if valid email verification message for LINK', () => {
@@ -116,10 +140,9 @@ describe('Auth construct', () => {
   });
 
   it('expect compile error if invalid sms verification message', () => {
-    const app = new App();
-    const stack = new Stack(app);
     const customSMSVerificationMessage = 'invalid message without code';
-    const props: AuthProps = {
+    const validSMSVerificationMesssage = 'valid {####}';
+    let props: AuthProps = {
       loginWith: {
         phoneNumber: {
           // @ts-expect-error We expect this to be a compile error
@@ -127,6 +150,15 @@ describe('Auth construct', () => {
         },
       },
     };
+    props = {
+      loginWith: {
+        phoneNumber: {
+          verificationMessage: validSMSVerificationMesssage,
+        },
+      },
+    };
+    // bypass ts unused props warning
+    assert.notEqual(props, undefined);
   });
 
   it('requires email attribute if email is enabled', () => {

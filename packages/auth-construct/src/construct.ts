@@ -10,7 +10,6 @@ import {
   UserPool,
   UserPoolClient,
   UserPoolProps,
-  VerificationEmailStyle,
 } from 'aws-cdk-lib/aws-cognito';
 import { FederatedPrincipal, Role } from 'aws-cdk-lib/aws-iam';
 import { AuthOutput } from '@aws-amplify/backend-output-schemas/auth';
