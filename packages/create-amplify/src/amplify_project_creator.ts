@@ -31,7 +31,7 @@ export class AmplifyProjectCreator {
   /**
    * Executes the create-amplify workflow
    */
-  async create(): Promise<void> {
+  create = async (): Promise<void> => {
     this.logger.log(`Validating current state of target directory...`);
     await this.projectRootValidator.validate();
 
@@ -51,5 +51,5 @@ export class AmplifyProjectCreator {
     this.logger.log(
       'All done! Run `amplify help` for a list of available commands.'
     );
-  }
+  };
 }

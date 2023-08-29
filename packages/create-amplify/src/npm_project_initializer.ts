@@ -19,7 +19,7 @@ export class NpmProjectInitializer {
   /**
    * If package.json already exists, this is a noop. Otherwise, `npm init` is executed to create a package.json file
    */
-  async ensureInitialized(): Promise<void> {
+  ensureInitialized = async (): Promise<void> => {
     if (this.packageJsonExists()) {
       // if package.json already exists, no need to do anything
       return;
@@ -45,12 +45,12 @@ export class NpmProjectInitializer {
         'package.json does not exist after running `npm init`. Initialize a valid JavaScript package before continuing.'
       );
     }
-  }
+  };
 
   /**
    * Check if a package.json file exists in projectRoot
    */
-  private packageJsonExists(): boolean {
+  private packageJsonExists = (): boolean => {
     return this.existsSync(path.resolve(this.projectRoot, 'package.json'));
-  }
+  };
 }

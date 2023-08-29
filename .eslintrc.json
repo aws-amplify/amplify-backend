@@ -21,7 +21,8 @@
     "unicorn",
     "jsdoc",
     "import",
-    "no-only-tests"
+    "no-only-tests",
+    "check-file"
   ],
   "rules": {
     "@typescript-eslint/naming-convention": [
@@ -56,7 +57,33 @@
         "format": ["camelCase", "PascalCase", "UPPER_CASE"]
       }
     ],
+    "@typescript-eslint/method-signature-style": "error",
     "@typescript-eslint/switch-exhaustiveness-check": "error",
+    "check-file/filename-blocklist": [
+      "error",
+      {
+        "**/*util*": "**/*(!util)*/*(!util)*",
+        "**/*util*/**": "**/*(!util)*/*(!util)*",
+        "**/*helper*": "**/*(!helper)*/*(!helper)*",
+        "**/*helper*/**": "**/*(!helper)*/*(!helper)*"
+      }
+    ],
+    "check-file/filename-naming-convention": [
+      "error",
+      {
+        "**/*.{js,jsx,ts,tsx}": "SNAKE_CASE",
+        "**/*.{json}": "KEBAB_CASE"
+      },
+      {
+        "ignoreMiddleExtensions": true
+      }
+    ],
+    "check-file/folder-naming-convention": [
+      "error",
+      {
+        "**": "KEBAB_CASE"
+      }
+    ],
     "no-console": "error",
     "no-duplicate-imports": "error",
     "no-only-tests/no-only-tests": "error",
@@ -69,6 +96,12 @@
           "snakeCase": true
         }
       }
+    ],
+    "no-restricted-syntax": [
+      "error",
+      "MethodDefinition[kind!=\"constructor\"]",
+      "FunctionDeclaration",
+      "VariableDeclarator > FunctionExpression"
     ],
     "jsdoc/require-description": "error",
     "jsdoc/require-jsdoc": [

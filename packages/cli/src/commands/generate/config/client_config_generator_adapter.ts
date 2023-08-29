@@ -20,22 +20,21 @@ export class ClientConfigGeneratorAdapter {
   /**
    * Generates the client configuration for a given backend
    */
-  async generateClientConfig(
+  generateClientConfig = async (
     backendIdentifier: BackendIdentifier
-  ): Promise<ClientConfig> {
+  ): Promise<ClientConfig> => {
     return generateConfig(this.awsCredentialProvider, backendIdentifier);
-  }
+  };
 
   /**
    * Calls generateClientConfigToFile from @aws-amplify/client-config.
-   * @deprecated
    * @see generateClientConfigToFile for more information.
    */
-  async generateClientConfigToFile(
+  generateClientConfigToFile = async (
     backendIdentifier: BackendIdentifier,
     targetPath: string
-  ): Promise<void> {
+  ): Promise<void> => {
     const clientConfig = await this.generateClientConfig(backendIdentifier);
     this.clientConfigWriter.writeClientConfig(clientConfig, targetPath);
-  }
+  };
 }

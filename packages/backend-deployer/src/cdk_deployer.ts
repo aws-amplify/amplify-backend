@@ -23,10 +23,10 @@ export class CDKDeployer implements BackendDeployer {
   /**
    * Invokes cdk deploy command
    */
-  async deploy(
+  deploy = async (
     uniqueBackendIdentifier?: UniqueBackendIdentifier,
     deployProps?: DeployProps
-  ) {
+  ) => {
     const cdkCommandArgs: string[] = [];
     if (deployProps?.hotswapFallback) {
       cdkCommandArgs.push('--hotswap-fallback');
@@ -39,25 +39,25 @@ export class CDKDeployer implements BackendDeployer {
       uniqueBackendIdentifier,
       cdkCommandArgs
     );
-  }
+  };
 
   /**
    * Invokes cdk destroy command
    */
-  async destroy(uniqueBackendIdentifier?: UniqueBackendIdentifier) {
+  destroy = async (uniqueBackendIdentifier?: UniqueBackendIdentifier) => {
     await this.invoke(InvokableCommand.DESTROY, uniqueBackendIdentifier, [
       '--force',
     ]);
-  }
+  };
 
   /**
    * Executes a CDK command
    */
-  private async invoke(
+  private invoke = async (
     invokableCommand: InvokableCommand,
     uniqueBackendIdentifier?: UniqueBackendIdentifier,
     additionalArguments?: string[]
-  ) {
+  ) => {
     // Basic args
     const cdkCommandArgs = [
       'cdk',
@@ -84,7 +84,7 @@ export class CDKDeployer implements BackendDeployer {
     }
 
     await this.executeChildProcess('npx', cdkCommandArgs);
-  }
+  };
 
   /**
    * Wrapper for the child process executor. Helps in unit testing as node:test framework

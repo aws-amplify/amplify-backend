@@ -9,9 +9,9 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
   /**
    * Given some BackendOutput, contribute the Auth portion of the ClientConfig
    */
-  contribute({
+  contribute = ({
     authOutput,
-  }: UnifiedBackendOutput): AuthClientConfig | Record<string, never> {
+  }: UnifiedBackendOutput): AuthClientConfig | Record<string, never> => {
     if (authOutput === undefined) {
       return {};
     }
@@ -20,5 +20,5 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
       aws_user_pools_web_client_id: authOutput.payload.webClientId,
       aws_cognito_region: authOutput.payload.authRegion,
     };
-  }
+  };
 }

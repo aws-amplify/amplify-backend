@@ -19,14 +19,14 @@ export class FileWatchingSandbox implements Sandbox {
     private readonly clientConfigGenerator: ClientConfigGeneratorAdapter,
     private readonly executor: AmplifySandboxExecutor
   ) {
-    process.once('SIGINT', this.stop.bind(this));
-    process.once('SIGTERM', this.stop.bind(this));
+    process.once('SIGINT', this.stop);
+    process.once('SIGTERM', this.stop);
   }
 
   /**
    * @inheritdoc
    */
-  async start(options: SandboxOptions) {
+  start = async (options: SandboxOptions) => {
     const sandboxId = options.name ?? this.sandboxId;
     let clientConfigWritePath = path.join(
       process.cwd(),
@@ -119,20 +119,20 @@ export class FileWatchingSandbox implements Sandbox {
 
     // Start the first full deployment without waiting for a file change
     await deployAndWatch();
-  }
+  };
 
   /**
    * @inheritdoc
    */
-  async stop() {
+  stop = async () => {
     console.debug(`[Sandbox] Shutting down`);
     await this.watcherSubscription.unsubscribe();
-  }
+  };
 
   /**
    * @inheritdoc
    */
-  async delete(options: SandboxDeleteOptions) {
+  delete = async (options: SandboxDeleteOptions) => {
     const sandboxAppId = options.name ?? this.sandboxId;
     console.log(
       '[Sandbox] Deleting all the resources in the sandbox environment...'
@@ -142,17 +142,17 @@ export class FileWatchingSandbox implements Sandbox {
       branchName: 'sandbox',
     });
     console.log('[Sandbox] Finished deleting.');
-  }
+  };
 
   /**
    * Runs post every deployment. Generates the client config and writes to a local file
    * @param sandboxId for this sandbox execution. Either package.json#name + whoami or provided by user during `amplify sandbox`
    * @param outputPath optional location provided by customer to write client config to
    */
-  private async writeUpdatedClientConfig(
+  private writeUpdatedClientConfig = async (
     sandboxId: string,
     outputPath: string
-  ) {
+  ) => {
     await this.clientConfigGenerator.generateClientConfigToFile(
       {
         backendId: sandboxId,
@@ -160,12 +160,12 @@ export class FileWatchingSandbox implements Sandbox {
       },
       outputPath
     );
-  }
+  };
 
   /**
    * Just a shorthand console log to indicate whenever watcher is going idle
    */
-  private emitWatching() {
+  private emitWatching = () => {
     console.log(`[Sandbox] Watching for file changes...`);
-  }
+  };
 }
