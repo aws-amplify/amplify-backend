@@ -1,6 +1,9 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import path from 'path';
-import { BackendIdentifier } from '@aws-amplify/client-config';
+import {
+  ClientConfigWriter,
+  BackendIdentifier,
+} from '@aws-amplify/client-config';
 import { AppNameResolver } from '../../../local_app_name_resolver.js';
 import { ClientConfigGeneratorAdapter } from './client_config_generator_adapter.js';
 
@@ -36,7 +39,8 @@ export class GenerateConfigCommand
    */
   constructor(
     private readonly clientConfigGenerator: ClientConfigGeneratorAdapter,
-    private readonly appNameResolver: AppNameResolver
+    private readonly appNameResolver: AppNameResolver,
+    private readonly clientConfigWriter: ClientConfigWriter
   ) {
     this.command = 'config';
     this.describe = 'Generates client config';
@@ -60,11 +64,10 @@ export class GenerateConfigCommand
     } else {
       targetPath = path.resolve(process.cwd(), 'amplifyconfiguration.js');
     }
-
-    await this.clientConfigGenerator.generateClientConfigToFile(
-      backendIdentifier,
-      targetPath
+    const config = await this.clientConfigGenerator.generateClientConfig(
+      backendIdentifier
     );
+    this.clientConfigWriter.writeClientConfig(config, targetPath);
   };
 
   /**
