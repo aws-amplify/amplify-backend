@@ -104,7 +104,7 @@ export type EmailLogin = true | {
     emailStyle?: aws_cognito.VerificationEmailStyle.CODE;
     emailSubject?: string;
 } | {
-    emailBody?: `${string}{##${string}##}${string}`;
+    emailBody?: `${string}{##Verify Email##}${string}`;
     emailStyle?: aws_cognito.VerificationEmailStyle.LINK;
     emailSubject?: string;
 };
