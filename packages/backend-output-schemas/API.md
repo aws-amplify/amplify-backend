@@ -91,20 +91,29 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             awsAppsyncAuthenticationType: z.ZodEnum<["API_KEY", "AWS_LAMBDA", "AWS_IAM", "OPENID_CONNECT", "AMAZON_COGNITO_USER_POOLS"]>;
             awsAppsyncApiKey: z.ZodOptional<z.ZodString>;
             awsAppsyncApiId: z.ZodString;
+<<<<<<< HEAD
             amplifyApiModelSchemaS3Uri: z.ZodString;
+=======
+>>>>>>> 25a8a1c9775b00b9d9f0b3e72583c37fb038fdb7
         }, "strip", z.ZodTypeAny, {
             awsAppsyncRegion: string;
             awsAppsyncApiEndpoint: string;
             awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
             awsAppsyncApiId: string;
+<<<<<<< HEAD
             amplifyApiModelSchemaS3Uri: string;
+=======
+>>>>>>> 25a8a1c9775b00b9d9f0b3e72583c37fb038fdb7
             awsAppsyncApiKey?: string | undefined;
         }, {
             awsAppsyncRegion: string;
             awsAppsyncApiEndpoint: string;
             awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
             awsAppsyncApiId: string;
+<<<<<<< HEAD
             amplifyApiModelSchemaS3Uri: string;
+=======
+>>>>>>> 25a8a1c9775b00b9d9f0b3e72583c37fb038fdb7
             awsAppsyncApiKey?: string | undefined;
         }>;
     }, "strip", z.ZodTypeAny, {
@@ -114,7 +123,10 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             awsAppsyncApiEndpoint: string;
             awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
             awsAppsyncApiId: string;
+<<<<<<< HEAD
             amplifyApiModelSchemaS3Uri: string;
+=======
+>>>>>>> 25a8a1c9775b00b9d9f0b3e72583c37fb038fdb7
             awsAppsyncApiKey?: string | undefined;
         };
     }, {
@@ -124,7 +136,10 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             awsAppsyncApiEndpoint: string;
             awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
             awsAppsyncApiId: string;
+<<<<<<< HEAD
             amplifyApiModelSchemaS3Uri: string;
+=======
+>>>>>>> 25a8a1c9775b00b9d9f0b3e72583c37fb038fdb7
             awsAppsyncApiKey?: string | undefined;
         };
     }>]>>;
@@ -169,7 +184,10 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             awsAppsyncApiEndpoint: string;
             awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
             awsAppsyncApiId: string;
+<<<<<<< HEAD
             amplifyApiModelSchemaS3Uri: string;
+=======
+>>>>>>> 25a8a1c9775b00b9d9f0b3e72583c37fb038fdb7
             awsAppsyncApiKey?: string | undefined;
         };
     } | undefined;
@@ -196,7 +214,10 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             awsAppsyncApiEndpoint: string;
             awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
             awsAppsyncApiId: string;
+<<<<<<< HEAD
             amplifyApiModelSchemaS3Uri: string;
+=======
+>>>>>>> 25a8a1c9775b00b9d9f0b3e72583c37fb038fdb7
             awsAppsyncApiKey?: string | undefined;
         };
     } | undefined;
