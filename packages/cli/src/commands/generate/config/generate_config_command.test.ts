@@ -14,6 +14,7 @@ import { ClientConfigWriter } from '@aws-amplify/client-config';
 describe('generate config command', () => {
   const mockedWriteMethod = mock.fn(
     async (
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       ...parameters: Parameters<ClientConfigWriter['writeClientConfig']>
     ) => Promise.resolve()
   );
@@ -29,6 +30,7 @@ describe('generate config command', () => {
     clientConfigGeneratorAdapter,
     'generateClientConfig',
     (
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       ...parameters: Parameters<
         ClientConfigGeneratorAdapter['generateClientConfigToFile']
       >
