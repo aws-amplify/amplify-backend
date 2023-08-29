@@ -16,16 +16,18 @@
 <li><a href="../modules/_aws_amplify_plugin_types.html">@aws-amplify/plugin-types</a></li>
 <li><a href="_aws_amplify_plugin_types.ImportPathVerifier.html">ImportPathVerifier</a></li></ul>
 <h1>Type alias ImportPathVerifier</h1></div>
-<div class="tsd-signature"><span class="tsd-kind-type-alias">Import<wbr/>Path<wbr/>Verifier</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-call-signature">verify</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">importStack</span>, <span class="tsd-kind-parameter">expectedImportingFile</span>, <span class="tsd-kind-parameter">errorMessage</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></div>
+<div class="tsd-signature"><span class="tsd-kind-type-alias">Import<wbr/>Path<wbr/>Verifier</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">verify</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">importStack</span>, <span class="tsd-kind-parameter">expectedImportingFile</span>, <span class="tsd-kind-parameter">errorMessage</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></div>
 <div class="tsd-comment tsd-typography"><p>Implementors can verify that an error originated from an expected location</p>
 </div>
 <div class="tsd-type-declaration">
 <h4>Type declaration</h4>
 <ul class="tsd-parameters">
 <li class="tsd-parameter">
-<h5><span class="tsd-kind-method">verify</span><span class="tsd-signature-symbol">:</span>function</h5>
+<h5><span class="tsd-kind-property">verify</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">importStack</span>, <span class="tsd-kind-parameter">expectedImportingFile</span>, <span class="tsd-kind-parameter">errorMessage</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">)</span></h5>
+<ul class="tsd-parameters">
+<li class="tsd-parameter-signature">
 <ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="__type.verify.verify-1"><span class="tsd-kind-call-signature">verify</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">importStack</span>, <span class="tsd-kind-parameter">expectedImportingFile</span>, <span class="tsd-kind-parameter">errorMessage</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#__type.verify.verify-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><g stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" id="icon-anchor"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5"></path></g></svg></a></li>
+<li class="tsd-signature" id="__type.verify.__type-1.__type-2"><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">importStack</span>, <span class="tsd-kind-parameter">expectedImportingFile</span>, <span class="tsd-kind-parameter">errorMessage</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Verify that the given stack originated from an expected file path</p>
 <p>importStack is expected to be in the format returned by (new Error()).stack</p>
@@ -35,18 +37,16 @@
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5><span class="tsd-kind-parameter">importStack</span>: <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></h5></li>
+<h5><span class="tsd-kind-parameter">importStack</span>: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">undefined</span></h5></li>
 <li>
 <h5><span class="tsd-kind-parameter">expectedImportingFile</span>: <span class="tsd-signature-type">string</span></h5></li>
 <li>
 <h5><span class="tsd-kind-parameter">errorMessage</span>: <span class="tsd-signature-type">string</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+<div class="tsd-comment tsd-typography"></div></li></ul></li></ul></li></ul></div>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/b489f09/packages/plugin-types/src/import_path_verifier.ts#L12">import_path_verifier.ts:12</a></li></ul></aside></li></ul></li></ul></div>
-<div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/b489f09/packages/plugin-types/src/import_path_verifier.ts#L4">import_path_verifier.ts:4</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/3bda96f/packages/plugin-types/src/import_path_verifier.ts#L4">import_path_verifier.ts:4</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

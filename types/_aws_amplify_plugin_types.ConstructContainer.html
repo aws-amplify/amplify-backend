@@ -16,16 +16,18 @@
 <li><a href="../modules/_aws_amplify_plugin_types.html">@aws-amplify/plugin-types</a></li>
 <li><a href="_aws_amplify_plugin_types.ConstructContainer.html">ConstructContainer</a></li></ul>
 <h1>Type alias ConstructContainer</h1></div>
-<div class="tsd-signature"><span class="tsd-kind-type-alias">Construct<wbr/>Container</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-call-signature">getConstructFactory</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">token</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><a href="_aws_amplify_plugin_types.ConstructFactory.html" class="tsd-signature-type tsd-kind-type-alias">ConstructFactory</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-call-signature">getOrCompute</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">generator</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type ">Construct</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-call-signature">registerConstructFactory</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">token</span>, <span class="tsd-kind-parameter">provider</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></div>
+<div class="tsd-signature"><span class="tsd-kind-type-alias">Construct<wbr/>Container</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">getConstructFactory</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">token</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><a href="_aws_amplify_plugin_types.ConstructFactory.html" class="tsd-signature-type tsd-kind-type-alias">ConstructFactory</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">getOrCompute</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">generator</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type ">Construct</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">registerConstructFactory</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">token</span>, <span class="tsd-kind-parameter">provider</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></div>
 <div class="tsd-comment tsd-typography"><p>Vends Constructs based on an initializer function</p>
 </div>
 <div class="tsd-type-declaration">
 <h4>Type declaration</h4>
 <ul class="tsd-parameters">
 <li class="tsd-parameter">
-<h5><span class="tsd-kind-method">get<wbr/>Construct<wbr/>Factory</span><span class="tsd-signature-symbol">:</span>function</h5>
+<h5><span class="tsd-kind-property">get<wbr/>Construct<wbr/>Factory</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">token</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><a href="_aws_amplify_plugin_types.ConstructFactory.html" class="tsd-signature-type tsd-kind-type-alias">ConstructFactory</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span></h5>
+<ul class="tsd-parameters">
+<li class="tsd-parameter-signature">
 <ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="__type.getConstructFactory.getConstructFactory-1"><span class="tsd-kind-call-signature">get<wbr/>Construct<wbr/>Factory</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">token</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_aws_amplify_plugin_types.ConstructFactory.html" class="tsd-signature-type tsd-kind-type-alias">ConstructFactory</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span><a href="#__type.getConstructFactory.getConstructFactory-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><g stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" id="icon-anchor"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5"></path></g></svg></a></li>
+<li class="tsd-signature" id="__type.getConstructFactory.__type-1.__type-2"><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">token</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_aws_amplify_plugin_types.ConstructFactory.html" class="tsd-signature-type tsd-kind-type-alias">ConstructFactory</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span></li>
 <li class="tsd-description">
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
@@ -37,26 +39,26 @@
 <ul class="tsd-parameter-list">
 <li>
 <h5><span class="tsd-kind-parameter">token</span>: <span class="tsd-signature-type">string</span></h5></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="_aws_amplify_plugin_types.ConstructFactory.html" class="tsd-signature-type tsd-kind-type-alias">ConstructFactory</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
-<ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/b489f09/packages/plugin-types/src/construct_container.ts#L26">construct_container.ts:26</a></li></ul></aside></li></ul></li>
+<h4 class="tsd-returns-title">Returns <a href="_aws_amplify_plugin_types.ConstructFactory.html" class="tsd-signature-type tsd-kind-type-alias">ConstructFactory</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span></h4></li></ul></li></ul></li>
 <li class="tsd-parameter">
-<h5><span class="tsd-kind-method">get<wbr/>Or<wbr/>Compute</span><span class="tsd-signature-symbol">:</span>function</h5>
+<h5><span class="tsd-kind-property">get<wbr/>Or<wbr/>Compute</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">generator</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type ">Construct</span><span class="tsd-signature-symbol">)</span></h5>
+<ul class="tsd-parameters">
+<li class="tsd-parameter-signature">
 <ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="__type.getOrCompute.getOrCompute-1"><span class="tsd-kind-call-signature">get<wbr/>Or<wbr/>Compute</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">generator</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Construct</span><a href="#__type.getOrCompute.getOrCompute-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature" id="__type.getOrCompute.__type-3.__type-4"><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">generator</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Construct</span></li>
 <li class="tsd-description">
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
 <h5><span class="tsd-kind-parameter">generator</span>: <a href="_aws_amplify_plugin_types.ConstructContainerEntryGenerator.html" class="tsd-signature-type tsd-kind-type-alias">ConstructContainerEntryGenerator</a></h5></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Construct</span></h4><aside class="tsd-sources">
-<ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/b489f09/packages/plugin-types/src/construct_container.ts#L24">construct_container.ts:24</a></li></ul></aside></li></ul></li>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Construct</span></h4></li></ul></li></ul></li>
 <li class="tsd-parameter">
-<h5><span class="tsd-kind-method">register<wbr/>Construct<wbr/>Factory</span><span class="tsd-signature-symbol">:</span>function</h5>
+<h5><span class="tsd-kind-property">register<wbr/>Construct<wbr/>Factory</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">token</span>, <span class="tsd-kind-parameter">provider</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">)</span></h5>
+<ul class="tsd-parameters">
+<li class="tsd-parameter-signature">
 <ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="__type.registerConstructFactory.registerConstructFactory-1"><span class="tsd-kind-call-signature">register<wbr/>Construct<wbr/>Factory</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">token</span>, <span class="tsd-kind-parameter">provider</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#__type.registerConstructFactory.registerConstructFactory-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature" id="__type.registerConstructFactory.__type-5.__type-6"><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">token</span>, <span class="tsd-kind-parameter">provider</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 <li class="tsd-description">
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -65,12 +67,10 @@
 <h5><span class="tsd-kind-parameter">token</span>: <span class="tsd-signature-type">string</span></h5></li>
 <li>
 <h5><span class="tsd-kind-parameter">provider</span>: <a href="_aws_amplify_plugin_types.ConstructFactory.html" class="tsd-signature-type tsd-kind-type-alias">ConstructFactory</a></h5></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
-<ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/b489f09/packages/plugin-types/src/construct_container.ts#L25">construct_container.ts:25</a></li></ul></aside></li></ul></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4></li></ul></li></ul></li></ul></div>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/b489f09/packages/plugin-types/src/construct_container.ts#L23">construct_container.ts:23</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/3bda96f/packages/plugin-types/src/construct_container.ts#L23">construct_container.ts:23</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
