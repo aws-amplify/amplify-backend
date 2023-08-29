@@ -1,7 +1,7 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import { AmplifyPrompter } from '../../prompter/amplify_prompts.js';
 import yargs, { CommandModule } from 'yargs';
-import { TestCommandRunner } from '../../../test_utils/command_runner.js';
+import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
 import { SandboxDeleteCommand } from './sandbox_delete_command.js';
 import { SandboxCommand } from '../sandbox_command.js';

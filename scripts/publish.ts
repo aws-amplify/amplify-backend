@@ -1,3 +1,3 @@
-import { runPublish } from './publish_helper.js';
+import { runPublish } from './publish_runner.js';
 
 await runPublish();
