@@ -1,5 +1,11 @@
 # create-amplify
 
+## 0.2.0-alpha.2
+
+### Patch Changes
+
+- 3bda96f: update methods to use arrow notation
+
 ## 0.2.0-alpha.1
 
 ### Minor Changes

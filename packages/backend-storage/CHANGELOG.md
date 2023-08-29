@@ -1,5 +1,14 @@
 # @aws-amplify/backend-storage
 
+## 0.1.1-alpha.1
+
+### Patch Changes
+
+- 3bda96f: update methods to use arrow notation
+- Updated dependencies [3bda96f]
+  - @aws-amplify/storage-construct-alpha@0.1.1-alpha.1
+  - @aws-amplify/plugin-types@0.1.1-alpha.1
+
 ## 0.1.1-alpha.0
 
 ### Patch Changes
