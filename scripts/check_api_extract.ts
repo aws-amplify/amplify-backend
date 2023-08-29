@@ -32,7 +32,7 @@ const scanPromises = allApiExtractFiles.map(async (apiExtractFile) => {
   if (forbiddenImports) {
     forbiddenImports.forEach((forbiddenImport) =>
       errors.push(
-        `Found forbiddenImport ${forbiddenImport}, did you forget to export type?`
+        `Found forbiddenImport ${forbiddenImport} in ${apiExtractFile}\nDid you forget to export type?`
       )
     );
   }
