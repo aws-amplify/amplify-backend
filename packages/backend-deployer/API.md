@@ -16,7 +16,7 @@ export interface BackendDeployer {
 
 // @public
 export class BackendDeployerFactory {
-    static getInstance(): BackendDeployer;
+    static getInstance: () => BackendDeployer;
 }
 
 // @public (undocumented)

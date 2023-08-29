@@ -6,9 +6,9 @@
 
 // @public
 export type Sandbox = {
-    start(options: SandboxOptions): Promise<void>;
-    stop(): Promise<void>;
-    delete(options: SandboxDeleteOptions): Promise<void>;
+    start: (options: SandboxOptions) => Promise<void>;
+    stop: () => Promise<void>;
+    delete: (options: SandboxDeleteOptions) => Promise<void>;
 };
 
 // @public (undocumented)
@@ -27,7 +27,7 @@ export type SandboxOptions = {
 // @public
 export class SandboxSingletonFactory {
     constructor(sandboxIdResolver: () => Promise<string>);
-    getInstance(): Promise<Sandbox>;
+    getInstance: () => Promise<Sandbox>;
 }
 
 // (No @packageDocumentation comment for this package)
