@@ -215,14 +215,30 @@ export class AmplifyAuth
     let customAttributes: {
       [key: string]: cognito.ICustomAttribute;
     } = {};
+    // standard attribute names must be unique to prevent unintentional behavior
+    const attributeNames: Set<string> = new Set();
+    // custom attribute names must be unique (they are given a 'custom:' prefix so they don't interfere with standard attributes)
+    const customAttributeNames: Set<string> = new Set();
     if (props.userAttributes) {
       for (const attr of props.userAttributes) {
         if (attr instanceof AmplifyStandardAttribute) {
+          if (attributeNames.has(attr['name'])) {
+            throw new Error(
+              `Invalid userAttributes. Duplicate attribute name found: ${attr['name']}.`
+            );
+          }
+          attributeNames.add(attr['name']);
           standardAttributes = {
             ...standardAttributes,
             ...attr['_toStandardAttributes'](),
           };
         } else if (attr instanceof AmplifyCustomAttributeBase) {
+          if (customAttributeNames.has(attr['name'])) {
+            throw new Error(
+              `Invalid userAttributes. Duplicate custom attribute name found: ${attr['name']}.`
+            );
+          }
+          customAttributeNames.add(attr['name']);
           customAttributes = {
             ...customAttributes,
             ...attr['_toCustomAttributes'](),

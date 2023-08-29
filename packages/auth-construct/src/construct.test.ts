@@ -218,6 +218,42 @@ describe('Auth construct', () => {
     });
   });
 
+  it('throws if duplicate custom attributes are found', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    assert.throws(
+      () =>
+        new AmplifyAuth(stack, 'test', {
+          loginWith: { email: true },
+          userAttributes: [
+            AmplifyAuth.customAttribute.string('myCustomAttribute'),
+            AmplifyAuth.customAttribute.string('myCustomAttribute'),
+          ],
+        }),
+      {
+        message: `Invalid userAttributes. Duplicate custom attribute name found: myCustomAttribute.`,
+      }
+    );
+  });
+
+  it('throws if duplicate user attributes are found', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    assert.throws(
+      () =>
+        new AmplifyAuth(stack, 'test', {
+          loginWith: { email: true },
+          userAttributes: [
+            AmplifyAuth.attribute('address').mutable(),
+            AmplifyAuth.attribute('address').required(),
+          ],
+        }),
+      {
+        message: `Invalid userAttributes. Duplicate attribute name found: address.`,
+      }
+    );
+  });
+
   describe('storeOutput', () => {
     it('stores outputs in platform', () => {
       const app = new App();
