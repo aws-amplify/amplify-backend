@@ -162,55 +162,20 @@ export class AmplifyAuth
     const phoneEnabled = props.loginWith.phoneNumber ? true : false;
     // check for customizations
     let userVerificationSettings: cognito.UserVerificationConfig = {};
-    if (emailEnabled) {
-      if (typeof props.loginWith.email === 'object') {
-        const emailSettings = props.loginWith.email;
-        if (
-          emailSettings.emailBody &&
-          emailSettings.emailStyle !== VerificationEmailStyle.LINK
-        ) {
-          if (emailSettings.emailBody.indexOf('{####}') === -1) {
-            throw Error(
-              "Invalid email settings. Property 'emailBody' must contain {####} as a placeholder for the verification code."
-            );
-          }
-        }
-        if (
-          emailSettings.emailBody &&
-          emailSettings.emailStyle === VerificationEmailStyle.LINK
-        ) {
-          if (
-            emailSettings.emailBody.match(/.*{##Verify Email##}.*/) === null
-          ) {
-            throw Error(
-              "Invalid email settings. Property 'emailBody' must contain {##Verify Email##} as a placeholder for the verification link."
-            );
-          }
-        }
-        userVerificationSettings = {
-          emailBody: props.loginWith.email.emailBody,
-          emailStyle: props.loginWith.email.emailStyle,
-          emailSubject: props.loginWith.email.emailSubject,
-        };
-      }
+    if (emailEnabled && typeof props.loginWith.email === 'object') {
+      const emailSettings = props.loginWith.email;
+      userVerificationSettings = {
+        emailBody: emailSettings.emailBody,
+        emailStyle: emailSettings.emailStyle,
+        emailSubject: emailSettings.emailSubject,
+      };
     }
-    if (phoneEnabled) {
+    if (phoneEnabled && typeof props.loginWith.phoneNumber === 'object') {
       const phoneSettings = props.loginWith.phoneNumber;
-      if (typeof phoneSettings === 'object') {
-        if (
-          phoneSettings.verificationMessage &&
-          phoneSettings.verificationMessage.indexOf('{####}') === -1
-        ) {
-          // validate sms message structure
-          throw Error(
-            "Invalid phoneNumber settings. Property 'verificationMessage' must contain {####} as a placeholder for the verification code."
-          );
-        }
-        userVerificationSettings = {
-          ...userVerificationSettings,
-          smsMessage: phoneSettings.verificationMessage,
-        };
-      }
+      userVerificationSettings = {
+        ...userVerificationSettings,
+        smsMessage: phoneSettings.verificationMessage,
+      };
     }
     // extract standard and custom attributes
     let standardAttributes: cognito.StandardAttributes = {};

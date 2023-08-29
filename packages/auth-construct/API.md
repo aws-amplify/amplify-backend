@@ -111,7 +111,7 @@ export type EmailLogin = true | {
 
 // @public
 export type PhoneNumberLogin = true | {
-    verificationMessage?: string;
+    verificationMessage?: `${string}{####}${string}`;
 };
 
 // (No @packageDocumentation comment for this package)

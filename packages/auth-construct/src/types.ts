@@ -27,7 +27,7 @@ export type EmailLogin =
 export type PhoneNumberLogin =
   | true
   | {
-      verificationMessage?: string;
+      verificationMessage?: `${string}{####}${string}`;
     };
 /**
  * Basic login options require at least email or phone number.

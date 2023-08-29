@@ -13,6 +13,7 @@ import {
   VerificationEmailStyle,
 } from 'aws-cdk-lib/aws-cognito';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
+import { AuthProps } from './types.js';
 
 describe('Auth construct', () => {
   it('creates phone number login mechanism', () => {
@@ -64,52 +65,34 @@ describe('Auth construct', () => {
     });
   });
 
-  it('throws error if invalid email verification message for CODE', () => {
-    const app = new App();
-    const stack = new Stack(app);
+  it('expect compile error if invalid email verification message for CODE', () => {
     const customEmailVerificationMessage = 'invalid message without code';
     const customEmailVerificationSubject = 'custom subject';
-    assert.throws(
-      () =>
-        new AmplifyAuth(stack, 'test', {
-          loginWith: {
-            email: {
-              // @ts-expect-error We know this is a compile error, but must have runtime validation as well.
-              emailBody: customEmailVerificationMessage,
-              emailStyle: VerificationEmailStyle.CODE,
-              emailSubject: customEmailVerificationSubject,
-            },
-          },
-        }),
-      {
-        message:
-          "Invalid email settings. Property 'emailBody' must contain {####} as a placeholder for the verification code.",
-      }
-    );
+    const props: AuthProps = {
+      loginWith: {
+        email: {
+          // @ts-expect-error We know this is a compile error, but must have runtime validation as well.
+          emailBody: customEmailVerificationMessage,
+          emailStyle: VerificationEmailStyle.CODE,
+          emailSubject: customEmailVerificationSubject,
+        },
+      },
+    };
   });
 
-  it('throws error if invalid email verification message for LINK', () => {
-    const app = new App();
-    const stack = new Stack(app);
+  it('expect compile error if invalid email verification message for LINK', () => {
     const customEmailVerificationMessage = 'invalid message without link';
     const customEmailVerificationSubject = 'custom subject';
-    assert.throws(
-      () =>
-        new AmplifyAuth(stack, 'test', {
-          loginWith: {
-            email: {
-              // @ts-expect-error We know this is a compile error, but must have runtime validation as well.
-              emailBody: customEmailVerificationMessage,
-              emailStyle: VerificationEmailStyle.LINK,
-              emailSubject: customEmailVerificationSubject,
-            },
-          },
-        }),
-      {
-        message:
-          "Invalid email settings. Property 'emailBody' must contain {##Verify Email##} as a placeholder for the verification link.",
-      }
-    );
+    const props: AuthProps = {
+      loginWith: {
+        email: {
+          // @ts-expect-error We expect this to be a compile error
+          emailBody: customEmailVerificationMessage,
+          emailStyle: VerificationEmailStyle.LINK,
+          emailSubject: customEmailVerificationSubject,
+        },
+      },
+    };
   });
 
   it('does not throw if valid email verification message for LINK', () => {
@@ -132,24 +115,18 @@ describe('Auth construct', () => {
     );
   });
 
-  it('throws error if invalid sms verification message', () => {
+  it('expect compile error if invalid sms verification message', () => {
     const app = new App();
     const stack = new Stack(app);
     const customSMSVerificationMessage = 'invalid message without code';
-    assert.throws(
-      () =>
-        new AmplifyAuth(stack, 'test', {
-          loginWith: {
-            phoneNumber: {
-              verificationMessage: customSMSVerificationMessage,
-            },
-          },
-        }),
-      {
-        message:
-          "Invalid phoneNumber settings. Property 'verificationMessage' must contain {####} as a placeholder for the verification code.",
-      }
-    );
+    const props: AuthProps = {
+      loginWith: {
+        phoneNumber: {
+          // @ts-expect-error We expect this to be a compile error
+          verificationMessage: customSMSVerificationMessage,
+        },
+      },
+    };
   });
 
   it('requires email attribute if email is enabled', () => {
