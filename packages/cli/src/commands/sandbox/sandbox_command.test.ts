@@ -4,12 +4,12 @@ import yargs, { CommandModule } from 'yargs';
 import {
   TestCommandError,
   TestCommandRunner,
-} from '../../test_utils/command_runner.js';
+} from '../../test-utils/command_runner.js';
 import assert from 'node:assert';
 import fs from 'fs';
 import { SandboxCommand } from './sandbox_command.js';
 import { createSandboxCommand } from './sandbox_command_factory.js';
-import { SandboxDeleteCommand } from './sandbox_delete/sandbox_delete_command.js';
+import { SandboxDeleteCommand } from './sandbox-delete/sandbox_delete_command.js';
 import { Sandbox, SandboxSingletonFactory } from '@aws-amplify/sandbox';
 
 describe('sandbox command factory', () => {

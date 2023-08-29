@@ -3,7 +3,7 @@ import yargs, { CommandModule } from 'yargs';
 import {
   TestCommandError,
   TestCommandRunner,
-} from '../../test_utils/command_runner.js';
+} from '../../test-utils/command_runner.js';
 import assert from 'node:assert';
 import {
   PipelineDeployCommand,

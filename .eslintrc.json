@@ -76,6 +76,12 @@
         "ignoreMiddleExtensions": true
       }
     ],
+    "check-file/folder-naming-convention": [
+      "error",
+      {
+        "**": "KEBAB_CASE"
+      }
+    ],
     "@typescript-eslint/switch-exhaustiveness-check": "error",
     "no-console": "error",
     "no-duplicate-imports": "error",

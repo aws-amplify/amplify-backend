@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import {
   TestCommandError,
   TestCommandRunner,
-} from '../../test_utils/command_runner.js';
+} from '../../test-utils/command_runner.js';
 import { createGenerateCommand } from './generate_command_factory.js';
 import yargs from 'yargs';
 import assert from 'node:assert';

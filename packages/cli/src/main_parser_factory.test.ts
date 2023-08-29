@@ -3,7 +3,7 @@ import assert from 'node:assert';
 import {
   TestCommandError,
   TestCommandRunner,
-} from './test_utils/command_runner.js';
+} from './test-utils/command_runner.js';
 import { createMainParser } from './main_parser_factory.js';
 
 describe('main parser', { concurrency: false }, () => {
