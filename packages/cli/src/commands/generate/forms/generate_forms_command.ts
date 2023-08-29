@@ -50,9 +50,6 @@ export class GenerateFormsCommand
     args: ArgumentsCamelCase<GenerateFormsCommandOptions>,
   ): Promise<void> => {
     const backendIdentifier = await this.getBackendIdentifier(args);
-    const baseDirectory = args.out ?? process.cwd();
-    const modelgenDirectory = path.join(baseDirectory, 'src/graphql/');
-    const formgenDirectory = path.join(baseDirectory, 'src/ui-components/');
     const config =
       await this.clientConfigGenerator.generateClientConfig(backendIdentifier);
     console.log('#######HOLA#######', JSON.stringify(config, null, 2));
@@ -65,7 +62,16 @@ export class GenerateFormsCommand
       throw new TypeError('AppSync apiId must be defined');
     }
 
-    const localFormGenerator = new LocalFormGenerator({ apiId });
+    const apiUrl = config.aws_appsync_apiUri;
+
+    if (!apiUrl) {
+      throw new TypeError('AppSync api url must be defined');
+    }
+
+    const localFormGenerator = new LocalFormGenerator({
+      apiId,
+      introspectionSchemaUrl: apiUrl,
+    });
     await localFormGenerator.generateForms();
   };
 

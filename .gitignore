@@ -13,3 +13,5 @@ tsconfig.tsbuildinfo
 verdaccio-cache
 verdaccio-logs.txt
 cdk.out/
+src/ui-components
+src/graphql

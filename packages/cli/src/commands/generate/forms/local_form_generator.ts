@@ -5,6 +5,7 @@ import {
   GetIntrospectionSchemaCommand,
 } from '@aws-sdk/client-appsync';
 import * as graphqlCodegen from '@graphql-codegen/core';
+import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import * as appsync from '@aws-amplify/appsync-modelgen-plugin';
 import asyncPool from 'tiny-async-pool';
 import { parse } from 'graphql';
@@ -32,6 +33,7 @@ import { GraphQLStatementsFormatter } from './graphQLFormatter.js';
 
 type CodegenGenericDataFields = Record<string, CodegenGenericDataField>;
 export type LocalFormGenerationConfig = {
+  introspectionSchemaUrl: string;
   apiId: string;
 };
 /**
@@ -51,7 +53,7 @@ export class LocalFormGenerator implements FormGenerator<void> {
       new GetIntrospectionSchemaCommand({
         apiId,
         format: 'SDL',
-      })
+      }),
     );
     const decoder = new TextDecoder();
 
@@ -63,10 +65,32 @@ export class LocalFormGenerator implements FormGenerator<void> {
    */
   async generateForms(): Promise<void> {
     const appsyncIntrospectionSchema = await this.getAppSyncIntrospectionSchema(
-      this.config.apiId
+      this.config.apiId,
     );
-    //console.log('schema', schema);
-    const schema = fs.readFileSync('./s2.graphql', 'utf8');
+    const uri = this.config.introspectionSchemaUrl;
+
+    const parseS3Uri = (uri: string): { bucket: string; key: string } => {
+      const regex = new RegExp('s3://(.*?)/(.*)');
+      const match = uri.match(regex);
+      if (match?.length !== 3 || !match[1] || !match[2]) {
+        throw new Error(
+          'Could not identify bucket and key name for introspection schema',
+        );
+      }
+      return {
+        bucket: match[1],
+        key: match[2],
+      };
+    };
+    const { bucket, key } = parseS3Uri(uri);
+    const client = new S3Client();
+    const getSchemaCommandResult = await client.send(
+      new GetObjectCommand({ Bucket: bucket, Key: key }),
+    );
+    const schema = await getSchemaCommandResult.Body?.transformToString();
+    if (!schema) {
+      throw new Error('Error when parsing output schema');
+    }
     const result = await appsync.preset.buildGeneratesSection({
       baseOutputDir: './',
       schema: parse(schema) as any,
@@ -117,7 +141,7 @@ export class LocalFormGenerator implements FormGenerator<void> {
       {
         maxDepth: 3,
         typenameIntrospection: true,
-      }
+      },
     );
     const language = 'typescript';
     const opsGenDir = './src/graphql';
@@ -128,19 +152,11 @@ export class LocalFormGenerator implements FormGenerator<void> {
           generatedStatements[
             op as unknown as keyof typeof generatedStatements
           ];
-        if (ops && ops.size) {
-          for (const k of ops.keys()) {
-            const formattedStatements = await new GraphQLStatementsFormatter(
-              language
-            ).format([[k, ops.get(k) as string]]);
-            const outputFile = path.resolve(path.join(opsGenDir, `${k}.ts`));
-            fs.writeFileSync(outputFile, formattedStatements);
-          }
-        }
-      })
+        const formatter = new GraphQLStatementsFormatter(language);
+        const outputFile = path.resolve(path.join(opsGenDir, `${op}.ts`));
+        fs.writeFileSync(outputFile, await formatter.format(ops as any));
+      }),
     );
-    console.log('gen-docs', generatedStatements);
-    console.log('synced', synced);
 
     const d = getGenericFromDataStore(JSON.parse(synced));
     const genericDataSchema = this.mapGenericDataSchemaToCodegen(d);
@@ -155,19 +171,16 @@ export class LocalFormGenerator implements FormGenerator<void> {
           renderTypeDeclarations: true,
           apiConfiguration: {
             graphQLConfig: {
-              typesFilePath: '../graphql',
-              queriesFilePath: '../graphql',
-              mutationsFilePath: '../graphql',
-              subscriptionsFilePath: '../graphql',
-              fragmentsFilePath: '../graphql',
+              typesFilePath: '../graphql/types',
+              queriesFilePath: '../graphql/queries',
+              mutationsFilePath: '../graphql/mutations',
+              subscriptionsFilePath: '../graphql/subscriptions',
+              fragmentsFilePath: '../graphql/fragments',
             },
           },
         } as unknown as any,
       },
     };
-    console.log('!!!! GENERIC !!!!');
-    console.log(genericDataSchema);
-    fs.writeFileSync(`./job-${Date.now()}.json`, JSON.stringify(job, null, 2));
     const uiClient = new AmplifyUIBuilder({
       endpoint: 'https://tzhtbadkkh.execute-api.us-west-2.amazonaws.com/prod/',
     });
@@ -180,11 +193,11 @@ export class LocalFormGenerator implements FormGenerator<void> {
       codegenJobToCreate: job,
       apiConfiguration: {
         graphQLConfig: {
-          typesFilePath: '../graphql',
-          queriesFilePath: '../graphql',
-          mutationsFilePath: '../graphql',
-          subscriptionsFilePath: '../graphql',
-          fragmentsFilePath: '../graphql',
+          typesFilePath: '../graphql/types',
+          queriesFilePath: '../graphql/queries',
+          mutationsFilePath: '../graphql/mutations',
+          subscriptionsFilePath: '../graphql/subscriptions',
+          fragmentsFilePath: '../graphql/fragments',
         },
       },
     } as any);
@@ -204,49 +217,25 @@ export class LocalFormGenerator implements FormGenerator<void> {
       },
       {
         pollInterval: 2000,
-      }
+      },
     );
     if (!finished.asset?.downloadUrl) {
       throw new Error('did not get download url');
     }
     await this.extractUIComponents(
       finished.asset?.downloadUrl,
-      './src/ui-components'
+      './src/ui-components',
     );
-    console.log(finished);
   }
-  //  getCodegenJob = async (jobId: string, appId?: string, envName?: string) => {
-  //    const environmentName = envName || this.#envName;
-  //    const resolvedAppId = appId || this.#appId;
-  //    try {
-  //      const { job } = await this.#amplifyUiBuilder
-  //        .getCodegenJob({
-  //          id: jobId,
-  //          appId: resolvedAppId,
-  //          environmentName,
-  //        })
-  //        .promise();
-  //      if (!job) {
-  //        throw new Error('Error getting codegen job');
-  //      }
-  //      return job;
-  //    } catch (err) {
-  //      console.debug(err.toString());
-  //      throw err;
-  //    }
-  //  };
 
   delay = (durationMs: number): Promise<void> => {
     return new Promise((r) => setTimeout(() => r(), durationMs));
   };
   waitForSucceededJob = async (
     getJob: () => Promise<CodegenJob>,
-    { pollInterval }: { pollInterval: number }
+    { pollInterval }: { pollInterval: number },
   ) => {
     const startTime = performance.now();
-    // Adding env variable because if something happens and we need a longer timeout
-    // we will give the customer a chance to increase timeout as a workaround.
-    // Default timeout is 2 minutes for customers with thousands of components.
     const waitTimeout = process.env.UI_BUILDER_CODEGENJOB_TIMEOUT
       ? parseInt(process.env.UI_BUILDER_CODEGENJOB_TIMEOUT)
       : 1000 * 60 * 2;
@@ -257,7 +246,6 @@ export class LocalFormGenerator implements FormGenerator<void> {
       const job = await getJob();
 
       if (!job) {
-        console.error('Codegen job not found');
         throw new Error('Codegen job not found');
       }
 
@@ -303,7 +291,7 @@ export class LocalFormGenerator implements FormGenerator<void> {
   };
   extractUIComponents = async (
     url: string,
-    uiBuilderComponentsPath: string
+    uiBuilderComponentsPath: string,
   ) => {
     try {
       if (!fs.existsSync(uiBuilderComponentsPath)) {
@@ -345,7 +333,7 @@ export class LocalFormGenerator implements FormGenerator<void> {
             };
           } catch (error) {
             console.debug(
-              `Skipping ${output.fileName} because of an error downloading the component`
+              `Skipping ${output.fileName} because of an error downloading the component`,
             );
             return {
               error: `Failed to download ${output.fileName}`,
@@ -355,7 +343,7 @@ export class LocalFormGenerator implements FormGenerator<void> {
           }
         } else {
           console.debug(
-            `Skipping ${output.fileName} because of an error generating the component`
+            `Skipping ${output.fileName} because of an error generating the component`,
           );
           return {
             error: output.error,
@@ -368,12 +356,12 @@ export class LocalFormGenerator implements FormGenerator<void> {
       for await (const downloaded of asyncPool(
         5,
         manifestFile.Output,
-        downloadComponent
+        downloadComponent,
       )) {
         if (downloaded.content) {
           fs.writeFileSync(
             path.join(uiBuilderComponentsPath, downloaded.fileName),
-            downloaded.content
+            downloaded.content,
           );
           console.debug(`Downloaded ${downloaded.fileName}`);
         }
@@ -385,7 +373,7 @@ export class LocalFormGenerator implements FormGenerator<void> {
     }
   };
   mapRelationshipTypeToCodegen = (
-    relationship: CodegenGenericDataRelationshipType | undefined
+    relationship: CodegenGenericDataRelationshipType | undefined,
   ): CodegenGenericDataRelationshipType | undefined => {
     if (!relationship) return undefined;
 
@@ -461,7 +449,7 @@ export class LocalFormGenerator implements FormGenerator<void> {
     return codegenFields;
   };
   mapGenericDataSchemaToCodegen = (
-    genericDataSchema: GenericDataSchema
+    genericDataSchema: GenericDataSchema,
   ): CodegenJobGenericDataSchema => {
     const { models, nonModels, enums, dataSourceType } = genericDataSchema;
     const codegenModels: { [key: string]: CodegenGenericDataModel } = {};
@@ -480,7 +468,7 @@ export class LocalFormGenerator implements FormGenerator<void> {
 
     Object.entries(nonModels).forEach(([nonModelName, genericDataModel]) => {
       const nonModelFields = this.mapDataFieldsToCodegen(
-        genericDataModel.fields
+        genericDataModel.fields,
       );
 
       codegenNonModels[nonModelName] = {

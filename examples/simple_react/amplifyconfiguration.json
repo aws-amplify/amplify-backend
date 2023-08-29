@@ -1,9 +1,0 @@
-{
-  "aws_user_pools_id": "us-west-2_YVWTVBI92",
-  "aws_user_pools_web_client_id": "5q7sv2dv7n9p2qlsormtd8ujvt",
-  "aws_cognito_region": "us-west-2",
-  "aws_appsync_graphqlEndpoint": "https://xhfgytxdsnfmbhp7exyns7g22u.appsync-api.us-west-2.amazonaws.com/graphql",
-  "aws_appsync_region": "us-west-2",
-  "aws_appsync_apiId": "zl5oxvq37fa6jcokrmdvh6pl7y",
-  "aws_appsync_authenticationType": "AMAZON_COGNITO_USER_POOLS"
-}

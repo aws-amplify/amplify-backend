@@ -22,6 +22,7 @@ export class GraphqlClientConfigContributor implements ClientConfigContributor {
       aws_appsync_apiKey: graphqlOutput.payload.awsAppsyncApiKey,
       aws_appsync_authenticationType:
         graphqlOutput.payload.awsAppsyncAuthenticationType,
+      aws_appsync_apiUri: graphqlOutput.payload.amplifyApiModelSchemaS3Uri,
     };
 
     if (graphqlOutput.payload.awsAppsyncApiKey) {
