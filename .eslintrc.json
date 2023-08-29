@@ -21,7 +21,8 @@
     "unicorn",
     "jsdoc",
     "import",
-    "no-only-tests"
+    "no-only-tests",
+    "check-file"
   ],
   "rules": {
     "@typescript-eslint/naming-convention": [
@@ -54,6 +55,15 @@
         "selector": "variable",
         "modifiers": ["const", "global"],
         "format": ["camelCase", "PascalCase", "UPPER_CASE"]
+      }
+    ],
+    "check-file/filename-blocklist": [
+      "error",
+      {
+        "**/*util*": "**/*(!util)*/*(!util)*",
+        "**/*util*/**": "**/*(!util)*/*(!util)*",
+        "**/*helper*": "**/*(!helper)*/*(!helper)*",
+        "**/*helper*/**": "**/*(!helper)*/*(!helper)*"
       }
     ],
     "@typescript-eslint/switch-exhaustiveness-check": "error",
