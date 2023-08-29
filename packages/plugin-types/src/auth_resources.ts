@@ -9,7 +9,7 @@ import {
  * Accessible Cfn resources from the Auth construct, which were generated during
  * initialization.
  */
-export type AmplifyAuthCfnResources = {
+export type AuthCfnResources = {
   /**
    * The generated CfnIdentityPool L1 resource.
    */
@@ -42,5 +42,5 @@ export type AuthResources = {
   /**
    * L1 Cfn Resources, for when dipping down a level of abstraction is desirable.
    */
-  cfnResources: AmplifyAuthCfnResources;
+  cfnResources: AuthCfnResources;
 };

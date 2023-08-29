@@ -11,7 +11,6 @@ import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { BackendOutputWriter } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
-import { Role } from 'aws-cdk-lib/aws-iam';
 import { StandardAttributes } from 'aws-cdk-lib/aws-cognito';
 
 // @public
@@ -19,16 +18,7 @@ export class AmplifyAuth extends Construct implements BackendOutputWriter, Resou
     constructor(scope: Construct, id: string, props?: AmplifyAuthProps);
     static attribute: (name: keyof aws_cognito.StandardAttributes) => AmplifyStandardAttribute;
     static customAttribute: AmplifyCustomAttributeFactory;
-    readonly resources: {
-        userPool: aws_cognito.UserPool;
-        userPoolClientWeb: aws_cognito.UserPoolClient;
-        authenticatedUserIamRole: Role;
-        unauthenticatedUserIamRole: Role;
-        cfnResources: {
-            identityPool: aws_cognito.CfnIdentityPool;
-            identityPoolRoleAttachment: aws_cognito.CfnIdentityPoolRoleAttachment;
-        };
-    };
+    readonly resources: AuthResources;
     storeOutput(outputStorageStrategy: BackendOutputStorageStrategy<AuthOutput>): void;
 }
 

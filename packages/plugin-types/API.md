@@ -13,13 +13,13 @@ import { IUserPoolClient } from 'aws-cdk-lib/aws-cognito';
 import { Stack } from 'aws-cdk-lib';
 
 // @public
-export type AmplifyAuthCfnResources = {
+export type AppId = string;
+
+// @public
+export type AuthCfnResources = {
     identityPool: CfnIdentityPool;
     identityPoolRoleAttachment: CfnIdentityPoolRoleAttachment;
 };
-
-// @public
-export type AppId = string;
 
 // @public
 export type AuthResources = {
@@ -27,7 +27,7 @@ export type AuthResources = {
     userPoolClientWeb?: IUserPoolClient;
     authenticatedUserIamRole?: IRole;
     unauthenticatedUserIamRole?: IRole;
-    cfnResources: AmplifyAuthCfnResources;
+    cfnResources: AuthCfnResources;
 };
 
 // @public (undocumented)

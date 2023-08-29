@@ -5,14 +5,14 @@ export {
   PhoneNumberLogin,
 } from './types.js';
 export {
-  AmplifyUserAttribute,
-  AmplifyStandardAttribute,
-  AmplifyCustomAttributeBase,
-  AmplifyCustomAttributeFactory,
-  AmplifyCustomBooleanAttribute,
-  AmplifyCustomDateTimeAttribute,
-  AmplifyCustomNumberAttribute,
-  AmplifyCustomStringAttribute,
+  AuthUserAttribute as AmplifyUserAttribute,
+  AuthStandardAttribute as AmplifyStandardAttribute,
+  AuthCustomAttributeBase as AmplifyCustomAttributeBase,
+  AuthCustomAttributeFactory as AmplifyCustomAttributeFactory,
+  AuthCustomBooleanAttribute as AmplifyCustomBooleanAttribute,
+  AuthCustomDateTimeAttribute as AmplifyCustomDateTimeAttribute,
+  AuthCustomNumberAttribute as AmplifyCustomNumberAttribute,
+  AuthCustomStringAttribute as AmplifyCustomStringAttribute,
   CustomAttributeType,
 } from './utilities/attributes.js';
 export { AmplifyAuth } from './construct.js';

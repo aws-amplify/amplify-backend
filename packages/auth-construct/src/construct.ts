@@ -18,10 +18,10 @@ import { authOutputKey } from '@aws-amplify/backend-output-schemas';
 import { AmplifyAuthProps } from './types.js';
 import { DEFAULTS } from './defaults.js';
 import {
-  AmplifyAttributeFactory,
-  AmplifyCustomAttributeBase,
-  AmplifyCustomAttributeFactory,
-  AmplifyStandardAttribute,
+  AuthAttributeFactory,
+  AuthCustomAttributeBase,
+  AuthCustomAttributeFactory,
+  AuthStandardAttribute,
 } from './utilities/attributes.js';
 
 type DefaultRoles = { auth: Role; unAuth: Role };
@@ -221,7 +221,7 @@ export class AmplifyAuth
     const customAttributeNames: Set<string> = new Set();
     if (props.userAttributes) {
       for (const attr of props.userAttributes) {
-        if (attr instanceof AmplifyStandardAttribute) {
+        if (attr instanceof AuthStandardAttribute) {
           if (attributeNames.has(attr['name'])) {
             throw new Error(
               `Invalid userAttributes. Duplicate attribute name found: ${attr['name']}.`
@@ -232,7 +232,7 @@ export class AmplifyAuth
             ...standardAttributes,
             ...attr['_toStandardAttributes'](),
           };
-        } else if (attr instanceof AmplifyCustomAttributeBase) {
+        } else if (attr instanceof AuthCustomAttributeBase) {
           if (customAttributeNames.has(attr['name'])) {
             throw new Error(
               `Invalid userAttributes. Duplicate custom attribute name found: ${attr['name']}.`
@@ -296,7 +296,7 @@ export class AmplifyAuth
    *  AmplifyAuth.attribute('address').mutable().required(),
    * ]
    */
-  public static attribute = AmplifyAttributeFactory;
+  public static attribute = AuthAttributeFactory;
   /**
    * Utility for adding custom attributes.
    *
@@ -305,5 +305,5 @@ export class AmplifyAuth
    *  AmplifyAuth.customAttribute.number('petsCount').min(0).max(5)
    * ]
    */
-  public static customAttribute = new AmplifyCustomAttributeFactory();
+  public static customAttribute = new AuthCustomAttributeFactory();
 }
