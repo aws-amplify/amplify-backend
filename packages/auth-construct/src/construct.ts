@@ -29,10 +29,6 @@ export type AmplifyAuthProps = {
 /**
  * Amplify Auth CDK Construct
  */
-
-/**
- *
- */
 export class AmplifyAuth
   extends Construct
   implements BackendOutputWriter, AuthResources
