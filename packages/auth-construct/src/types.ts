@@ -9,8 +9,13 @@ import { AuthUserAttribute } from './attributes.js';
 export type EmailLogin =
   | true
   | {
-      emailBody?: string;
-      emailStyle?: cognito.VerificationEmailStyle;
+      emailBody?: `${string}{####}${string}`;
+      emailStyle?: cognito.VerificationEmailStyle.CODE;
+      emailSubject?: string;
+    }
+  | {
+      emailBody?: `${string}{##${string}##}${string}`;
+      emailStyle?: cognito.VerificationEmailStyle.LINK;
       emailSubject?: string;
     };
 /**

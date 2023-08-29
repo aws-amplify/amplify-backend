@@ -179,7 +179,7 @@ export class AmplifyAuth
           emailSettings.emailBody &&
           emailSettings.emailStyle === VerificationEmailStyle.LINK
         ) {
-          if (emailSettings.emailBody.indexOf('{##Verify Email##}') === -1) {
+          if (emailSettings.emailBody.match(/.*{##.*##}.*/) === null) {
             throw Error(
               "Invalid email settings. Property 'emailBody' must contain {##Verify Email##} as a placeholder for the verification link."
             );

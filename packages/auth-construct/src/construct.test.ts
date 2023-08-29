@@ -74,6 +74,7 @@ describe('Auth construct', () => {
         new AmplifyAuth(stack, 'test', {
           loginWith: {
             email: {
+              // @ts-expect-error We know this is a compile error, but must have runtime validation as well.
               emailBody: customEmailVerificationMessage,
               emailStyle: VerificationEmailStyle.CODE,
               emailSubject: customEmailVerificationSubject,
@@ -97,6 +98,7 @@ describe('Auth construct', () => {
         new AmplifyAuth(stack, 'test', {
           loginWith: {
             email: {
+              // @ts-expect-error We know this is a compile error, but must have runtime validation as well.
               emailBody: customEmailVerificationMessage,
               emailStyle: VerificationEmailStyle.LINK,
               emailSubject: customEmailVerificationSubject,
@@ -107,6 +109,26 @@ describe('Auth construct', () => {
         message:
           "Invalid email settings. Property 'emailBody' must contain {##Verify Email##} as a placeholder for the verification link.",
       }
+    );
+  });
+
+  it('does not throw if valid email verification message for LINK', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const customEmailVerificationMessage =
+      'valid message {##my link##} with link';
+    const customEmailVerificationSubject = 'custom subject';
+    assert.doesNotThrow(
+      () =>
+        new AmplifyAuth(stack, 'test', {
+          loginWith: {
+            email: {
+              emailBody: customEmailVerificationMessage,
+              emailStyle: VerificationEmailStyle.LINK,
+              emailSubject: customEmailVerificationSubject,
+            },
+          },
+        })
     );
   });
 
