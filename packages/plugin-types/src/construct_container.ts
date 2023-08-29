@@ -14,14 +14,14 @@ export type ConstructContainerEntryGenerator = {
   /**
    * Create a new instance of a CDK construct in the provided scope.
    */
-  generateContainerEntry(scope: Construct): Construct;
+  generateContainerEntry: (scope: Construct) => Construct;
 };
 
 /**
  * Vends Constructs based on an initializer function
  */
 export type ConstructContainer = {
-  getOrCompute(generator: ConstructContainerEntryGenerator): Construct;
-  registerConstructFactory(token: string, provider: ConstructFactory): void;
-  getConstructFactory<T>(token: string): ConstructFactory<T>;
+  getOrCompute: (generator: ConstructContainerEntryGenerator) => Construct;
+  registerConstructFactory: (token: string, provider: ConstructFactory) => void;
+  getConstructFactory: <T>(token: string) => ConstructFactory<T>;
 };

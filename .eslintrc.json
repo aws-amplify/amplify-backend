@@ -56,6 +56,7 @@
         "format": ["camelCase", "PascalCase", "UPPER_CASE"]
       }
     ],
+    "@typescript-eslint/method-signature-style": "error",
     "@typescript-eslint/switch-exhaustiveness-check": "error",
     "no-console": "error",
     "no-duplicate-imports": "error",

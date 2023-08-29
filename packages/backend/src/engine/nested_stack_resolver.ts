@@ -4,7 +4,7 @@ import { NestedStack, Stack } from 'aws-cdk-lib';
  * Vends stacks for a resource grouping
  */
 export type StackResolver = {
-  getStackFor(resourceGroupName: string): Stack;
+  getStackFor: (resourceGroupName: string) => Stack;
 };
 
 /**
