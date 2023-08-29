@@ -14,7 +14,7 @@ export type EmailLogin =
       emailSubject?: string;
     }
   | {
-      emailBody?: `${string}{##${string}##}${string}`;
+      emailBody?: `${string}{##Verify Email##}${string}`;
       emailStyle?: cognito.VerificationEmailStyle.LINK;
       emailSubject?: string;
     };

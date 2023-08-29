@@ -116,7 +116,7 @@ describe('Auth construct', () => {
     const app = new App();
     const stack = new Stack(app);
     const customEmailVerificationMessage =
-      'valid message {##my link##} with link';
+      'valid message {##Verify Email##} with link';
     const customEmailVerificationSubject = 'custom subject';
     assert.doesNotThrow(
       () =>
