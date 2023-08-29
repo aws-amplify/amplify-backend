@@ -23,12 +23,6 @@ export class AmplifyAuth extends Construct implements BackendOutputWriter, Resou
 }
 
 // @public
-export type AuthProps = {
-    loginWith: BasicLoginOptions;
-    userAttributes?: AuthUserAttribute[];
-};
-
-// @public
 export abstract class AuthCustomAttributeBase {
     constructor(name: string);
     // (undocumented)
@@ -78,6 +72,12 @@ export class AuthCustomStringAttribute extends AuthCustomAttributeBase {
     maxLength: (maxLength: number) => AuthCustomStringAttribute;
     minLength: (minLength: number) => AuthCustomStringAttribute;
 }
+
+// @public
+export type AuthProps = {
+    loginWith: BasicLoginOptions;
+    userAttributes?: AuthUserAttribute[];
+};
 
 // @public
 export class AuthStandardAttribute {

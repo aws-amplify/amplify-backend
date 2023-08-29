@@ -22,7 +22,7 @@ import {
   AuthCustomAttributeBase,
   AuthCustomAttributeFactory,
   AuthStandardAttribute,
-} from './utilities/attributes.js';
+} from './attributes.js';
 
 type DefaultRoles = { auth: Role; unAuth: Role };
 

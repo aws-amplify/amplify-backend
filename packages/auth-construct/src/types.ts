@@ -1,5 +1,5 @@
 import { aws_cognito as cognito } from 'aws-cdk-lib';
-import { AuthUserAttribute } from './utilities/attributes.js';
+import { AuthUserAttribute } from './attributes.js';
 /**
  * Email login options.
  *
