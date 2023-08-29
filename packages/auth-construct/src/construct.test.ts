@@ -79,6 +79,8 @@ describe('Auth construct', () => {
         },
       },
     };
+    // bypass ts unused props warning
+    assert.notEqual(props, undefined);
     props = {
       loginWith: {
         email: {
@@ -106,6 +108,8 @@ describe('Auth construct', () => {
         },
       },
     };
+    // bypass ts unused props warning
+    assert.notEqual(props, undefined);
     props = {
       loginWith: {
         email: {
@@ -150,6 +154,8 @@ describe('Auth construct', () => {
         },
       },
     };
+    // bypass ts unused props warning
+    assert.notEqual(props, undefined);
     props = {
       loginWith: {
         phoneNumber: {
