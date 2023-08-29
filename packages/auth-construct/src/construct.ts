@@ -288,5 +288,5 @@ export class AmplifyAuth
    *  AmplifyAuth.customAttribute.number('petsCount').min(0).max(5)
    * ]
    */
-  public static customAttribute = AmplifyCustomAttributeFactory;
+  public static customAttribute = new AmplifyCustomAttributeFactory();
 }

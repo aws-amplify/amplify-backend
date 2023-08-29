@@ -2,7 +2,9 @@ import { execa } from 'execa';
 import { glob } from 'glob';
 import { readFile } from 'fs/promises';
 
-const ERROR_TOKENS = ['ae-forgotten-export'];
+const ERROR_TOKENS = ['ae-forgotten-export', 'tsdoc-param-tag-missing-hyphen'];
+// Imports from local paths indicate that types exports got forgotten.
+const FORBIDDEN_IMPORTS = /import { .* } from '\.\//;
 
 // first collect the names of files that have been changed, so we can filter out excluded files
 const { stdout: gitDiffFiles } = await execa('git', ['diff', '--name-only']);
@@ -26,6 +28,14 @@ const scanPromises = allApiExtractFiles.map(async (apiExtractFile) => {
       errors.push(`Found error token [${token}] in ${apiExtractFile}`);
     }
   });
+  const forbiddenImports = apiExtract.match(FORBIDDEN_IMPORTS);
+  if (forbiddenImports) {
+    forbiddenImports.forEach((forbiddenImport) =>
+      errors.push(
+        `Found forbiddenImport ${forbiddenImport}, did you forget to export type?`
+      )
+    );
+  }
 });
 await Promise.all(scanPromises);
 if (errors.length > 0) {

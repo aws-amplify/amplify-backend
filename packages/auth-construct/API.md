@@ -4,10 +4,6 @@
 
 ```ts
 
-import { AmplifyCustomBooleanAttribute } from './utilities/attributes.js';
-import { AmplifyCustomDateTimeAttribute } from './utilities/attributes.js';
-import { AmplifyCustomNumberAttribute } from './utilities/attributes.js';
-import { AmplifyCustomStringAttribute } from './utilities/attributes.js';
 import { AuthOutput } from '@aws-amplify/backend-output-schemas/auth';
 import { AuthResourceProvider } from '@aws-amplify/plugin-types';
 import { aws_cognito } from 'aws-cdk-lib';
@@ -21,12 +17,7 @@ import { StandardAttributes } from 'aws-cdk-lib/aws-cognito';
 export class AmplifyAuth extends Construct implements BackendOutputWriter, AuthResourceProvider {
     constructor(scope: Construct, id: string, props?: AmplifyAuthProps);
     static attribute: (name: keyof aws_cognito.StandardAttributes) => AmplifyStandardAttribute;
-    static customAttribute: {
-        string: (name: string) => AmplifyCustomStringAttribute;
-        number: (name: string) => AmplifyCustomNumberAttribute;
-        boolean: (name: string) => AmplifyCustomBooleanAttribute;
-        dateTime: (name: string) => AmplifyCustomDateTimeAttribute;
-    };
+    static customAttribute: AmplifyCustomAttributeFactory;
     readonly resources: {
         userPool: aws_cognito.UserPool;
         userPoolClientWeb: aws_cognito.UserPoolClient;
@@ -60,6 +51,38 @@ export abstract class AmplifyCustomAttributeBase {
     // (undocumented)
     protected minValue: number;
     mutable: () => this;
+}
+
+// @public
+export class AmplifyCustomAttributeFactory {
+    boolean(name: string): AmplifyCustomBooleanAttribute;
+    dateTime(name: string): AmplifyCustomDateTimeAttribute;
+    number(name: string): AmplifyCustomNumberAttribute;
+    string(name: string): AmplifyCustomStringAttribute;
+}
+
+// @public
+export class AmplifyCustomBooleanAttribute extends AmplifyCustomAttributeBase {
+    constructor(name: string);
+}
+
+// @public
+export class AmplifyCustomDateTimeAttribute extends AmplifyCustomAttributeBase {
+    constructor(name: string);
+}
+
+// @public
+export class AmplifyCustomNumberAttribute extends AmplifyCustomAttributeBase {
+    constructor(name: string);
+    max: (max: number) => AmplifyCustomNumberAttribute;
+    min: (min: number) => AmplifyCustomNumberAttribute;
+}
+
+// @public
+export class AmplifyCustomStringAttribute extends AmplifyCustomAttributeBase {
+    constructor(name: string);
+    maxLength: (maxLength: number) => AmplifyCustomStringAttribute;
+    minLength: (minLength: number) => AmplifyCustomStringAttribute;
 }
 
 // @public

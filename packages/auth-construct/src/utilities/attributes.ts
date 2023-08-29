@@ -114,7 +114,7 @@ export abstract class AmplifyCustomAttributeBase {
 export class AmplifyCustomStringAttribute extends AmplifyCustomAttributeBase {
   /**
    * Create a custom attribute of 'String' dataType
-   * @param name the name for this attribute
+   * @param name - the name for this attribute
    */
   constructor(name: string) {
     super(name);
@@ -143,7 +143,7 @@ export class AmplifyCustomStringAttribute extends AmplifyCustomAttributeBase {
 export class AmplifyCustomNumberAttribute extends AmplifyCustomAttributeBase {
   /**
    * Create a custom attribute of 'Number' dataType
-   * @param name the name for this attribute
+   * @param name - the name for this attribute
    */
   constructor(name: string) {
     super(name);
@@ -172,7 +172,7 @@ export class AmplifyCustomNumberAttribute extends AmplifyCustomAttributeBase {
 export class AmplifyCustomDateTimeAttribute extends AmplifyCustomAttributeBase {
   /**
    * Create a custom attribute of 'DateTime' dataType
-   * @param name the name for this attribute
+   * @param name - the name for this attribute
    */
   constructor(name: string) {
     super(name);
@@ -185,7 +185,7 @@ export class AmplifyCustomDateTimeAttribute extends AmplifyCustomAttributeBase {
 export class AmplifyCustomBooleanAttribute extends AmplifyCustomAttributeBase {
   /**
    * Create a custom attribute of 'Boolean' dataType
-   * @param name the name for this attribute
+   * @param name - the name for this attribute
    */
   constructor(name: string) {
     super(name);
@@ -203,17 +203,33 @@ export const AmplifyAttributeFactory = (
 /**
  * This tool simplifies the creation of Custom User Attributes.
  */
-export const AmplifyCustomAttributeFactory = {
-  string: (name: string) => {
+export class AmplifyCustomAttributeFactory {
+  /**
+   * Create a custom attribute of 'String' dataType
+   * @param name - the name for this attribute
+   */
+  string(name: string) {
     return new AmplifyCustomStringAttribute(name);
-  },
-  number: (name: string) => {
+  }
+  /**
+   * Create a custom attribute of 'Number' dataType
+   * @param name - the name for this attribute
+   */
+  number(name: string) {
     return new AmplifyCustomNumberAttribute(name);
-  },
-  boolean: (name: string) => {
+  }
+  /**
+   * Create a custom attribute of 'Boolean' dataType
+   * @param name - the name for this attribute
+   */
+  boolean(name: string) {
     return new AmplifyCustomBooleanAttribute(name);
-  },
-  dateTime: (name: string) => {
+  }
+  /**
+   * Create a custom attribute of 'Boolean' dataType
+   * @param name - the name for this attribute
+   */
+  dateTime(name: string) {
     return new AmplifyCustomDateTimeAttribute(name);
-  },
-};
+  }
+}
