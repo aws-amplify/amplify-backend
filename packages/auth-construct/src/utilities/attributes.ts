@@ -82,9 +82,10 @@ export abstract class AuthCustomAttributeBase {
     this.isMutable = true;
     return this;
   };
-  private _toCustomAttributes = (): {
-    [key: string]: aws_cognito.ICustomAttribute;
-  } => {
+  private _toCustomAttributes = (): Record<
+    string,
+    aws_cognito.ICustomAttribute
+  > => {
     return {
       [this.name]: {
         bind: () => {
