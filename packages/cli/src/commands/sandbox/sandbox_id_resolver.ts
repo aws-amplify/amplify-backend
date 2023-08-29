@@ -11,9 +11,7 @@ export class SandboxIdResolver {
   constructor(
     private readonly appNameResolver: AppNameResolver,
     private readonly userInfo = _userInfo
-  ) {
-    this.resolve = this.resolve.bind(this);
-  }
+  ) {}
 
   /**
    * Returns a concatenation of the resolved appName and the current username
