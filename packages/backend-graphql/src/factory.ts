@@ -1,10 +1,11 @@
 import { Construct } from 'constructs';
 import {
-  AuthResourceProvider,
+  AuthResources,
   BackendOutputStorageStrategy,
   ConstructContainerEntryGenerator,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
+  ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import {
   AmplifyGraphqlApi,
@@ -46,7 +47,7 @@ export class DataFactory implements ConstructFactory<AmplifyGraphqlApi> {
       this.generator = new DataGenerator(
         this.props,
         constructContainer
-          .getConstructFactory<AuthResourceProvider>('AuthResources')
+          .getConstructFactory<ResourceProvider<AuthResources>>('AuthResources')
           .getInstance({
             constructContainer,
             outputStorageStrategy,
@@ -65,7 +66,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
 
   constructor(
     private readonly props: DataProps,
-    private readonly authResources: AuthResourceProvider,
+    private readonly authResources: ResourceProvider<AuthResources>,
     private readonly outputStorageStrategy: BackendOutputStorageStrategy<GraphqlOutput>
   ) {}
 

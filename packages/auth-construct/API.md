@@ -5,16 +5,17 @@
 ```ts
 
 import { AuthOutput } from '@aws-amplify/backend-output-schemas/auth';
-import { AuthResourceProvider } from '@aws-amplify/plugin-types';
+import { AuthResources } from '@aws-amplify/plugin-types';
 import { aws_cognito } from 'aws-cdk-lib';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { BackendOutputWriter } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
+import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { Role } from 'aws-cdk-lib/aws-iam';
 import { StandardAttributes } from 'aws-cdk-lib/aws-cognito';
 
 // @public
-export class AmplifyAuth extends Construct implements BackendOutputWriter, AuthResourceProvider {
+export class AmplifyAuth extends Construct implements BackendOutputWriter, ResourceProvider<AuthResources> {
     constructor(scope: Construct, id: string, props?: AmplifyAuthProps);
     static attribute: (name: keyof aws_cognito.StandardAttributes) => AmplifyStandardAttribute;
     static customAttribute: AmplifyCustomAttributeFactory;

@@ -10,11 +10,12 @@ import {
 } from '@aws-amplify/backend/test-utils';
 import { Template } from 'aws-cdk-lib/assertions';
 import {
-  AuthResourceProvider,
+  AuthResources,
   BackendOutputEntry,
   BackendOutputStorageStrategy,
   ConstructContainer,
   ImportPathVerifier,
+  ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import { Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import {
@@ -49,7 +50,7 @@ describe('DataFactory', () => {
     );
     constructContainer.registerConstructFactory('AuthResources', {
       provides: 'AuthResources',
-      getInstance: (): AuthResourceProvider => ({
+      getInstance: (): ResourceProvider<AuthResources> => ({
         resources: {
           unauthenticatedUserIamRole: new Role(stack, 'testUnauthRole', {
             assumedBy: new ServicePrincipal('test.amazon.com'),

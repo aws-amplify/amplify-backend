@@ -22,11 +22,6 @@ export type AmplifyAuthCfnResources = {
 export type AppId = string;
 
 // @public
-export type AuthResourceProvider = {
-    resources: AuthResources;
-};
-
-// @public
 export type AuthResources = {
     userPool?: IUserPool;
     userPoolClientWeb?: IUserPoolClient;
@@ -102,6 +97,11 @@ export type MainStackCreator = {
 // @public
 export type MainStackNameResolver = {
     resolveMainStackName(): Promise<string>;
+};
+
+// @public
+export type ResourceProvider<T> = {
+    resources: T;
 };
 
 // @public (undocumented)

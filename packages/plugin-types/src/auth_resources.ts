@@ -44,9 +44,3 @@ export type AuthResources = {
    */
   cfnResources: AmplifyAuthCfnResources;
 };
-/**
- * Provider of auth resources.
- */
-export type AuthResourceProvider = {
-  resources: AuthResources;
-};
