@@ -71,9 +71,9 @@ export class GenerateConfigCommand
    * Translates args to BackendIdentifier.
    * Throws if translation can't be made (this should never happen if command validation works correctly).
    */
-  private async getBackendIdentifier(
+  private getBackendIdentifier = async (
     args: ArgumentsCamelCase<GenerateConfigCommandOptions>
-  ): Promise<BackendIdentifier> {
+  ): Promise<BackendIdentifier> => {
     if (args.stack) {
       return { stackName: args.stack };
     } else if (args.appId && args.branch) {
@@ -86,7 +86,7 @@ export class GenerateConfigCommand
     } else {
       throw this.missingArgsError;
     }
-  }
+  };
 
   /**
    * @inheritDoc

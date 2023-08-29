@@ -26,10 +26,10 @@ export class BackendDeployerFactory {
   /**
    * Returns a single instance of BackendDeployer
    */
-  static getInstance(): BackendDeployer {
+  static getInstance = (): BackendDeployer => {
     if (!BackendDeployerFactory.instance) {
       BackendDeployerFactory.instance = new CDKDeployer();
     }
     return BackendDeployerFactory.instance;
-  }
+  };
 }

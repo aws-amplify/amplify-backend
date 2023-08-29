@@ -28,7 +28,7 @@ export class SingletonConstructContainer implements ConstructContainer {
    * If generator has been seen before, the cached Construct instance is returned
    * Otherwise, the generator is called and the value is cached and returned
    */
-  getOrCompute(generator: ConstructContainerEntryGenerator): Construct {
+  getOrCompute = (generator: ConstructContainerEntryGenerator): Construct => {
     if (!this.constructCache.has(generator)) {
       const scope = this.stackResolver.getStackFor(generator.resourceGroupName);
       this.constructCache.set(
@@ -37,7 +37,7 @@ export class SingletonConstructContainer implements ConstructContainer {
       );
     }
     return this.constructCache.get(generator) as Construct;
-  }
+  };
 
   /**
    * Gets a ConstructFactory that has previously been registered to a given token.
@@ -48,18 +48,21 @@ export class SingletonConstructContainer implements ConstructContainer {
    *
    * By convention, tokens should be the name of type T
    */
-  getConstructFactory<T>(token: string): ConstructFactory<T> {
+  getConstructFactory = <T>(token: string): ConstructFactory<T> => {
     if (token in this.providerFactoryTokenMap) {
       return this.providerFactoryTokenMap[token] as ConstructFactory<T>;
     }
     throw new Error(`No provider factory registered for token ${token}`);
-  }
+  };
 
   /**
    * Register a ConstructFactory to a specified token. This ConstructFactory can be retrieved later using getConstructFactory
    * Throws if the token is already registered to a different factory
    */
-  registerConstructFactory(token: string, provider: ConstructFactory): void {
+  registerConstructFactory = (
+    token: string,
+    provider: ConstructFactory
+  ): void => {
     if (
       token in this.providerFactoryTokenMap &&
       this.providerFactoryTokenMap[token] !== provider
@@ -69,5 +72,5 @@ export class SingletonConstructContainer implements ConstructContainer {
       );
     }
     this.providerFactoryTokenMap[token] = provider;
-  }
+  };
 }

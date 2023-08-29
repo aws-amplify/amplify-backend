@@ -70,6 +70,12 @@
         }
       }
     ],
+    "no-restricted-syntax": [
+      "error",
+      "MethodDefinition[kind!=\"constructor\"]",
+      "FunctionDeclaration",
+      "VariableDeclarator > FunctionExpression"
+    ],
     "jsdoc/require-description": "error",
     "jsdoc/require-jsdoc": [
       "error",

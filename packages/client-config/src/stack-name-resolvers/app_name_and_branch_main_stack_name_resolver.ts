@@ -28,7 +28,7 @@ export class AppNameAndBranchMainStackNameResolver
    * Lists all apps and filters by the specified appName. If one and only one app matches, then the appId is used.
    * If zero or multiple apps are found, an error message is thrown
    */
-  async resolveMainStackName(): Promise<string> {
+  resolveMainStackName = async (): Promise<string> => {
     const listAppsResult = await this.amplifyClient.send(
       // 100 is the max page size. It is also the hard limit for how many Amplify apps you can have so no pagination is necessary
       new ListAppsCommand({ maxResults: 100 })
@@ -58,5 +58,5 @@ export class AppNameAndBranchMainStackNameResolver
       backendId: appId,
       branchName: this.appNameAndBranch.branchName,
     });
-  }
+  };
 }

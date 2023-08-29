@@ -65,9 +65,9 @@ export class AmplifyFunctionFactory
   /**
    * Create a function from a directory that contains pre-built code
    */
-  static fromDir(
+  static fromDir = (
     props: AmplifyFunctionFactoryFromDirProps
-  ): AmplifyFunctionFactory {
+  ): AmplifyFunctionFactory => {
     const absoluteCodePath = path.isAbsolute(props.codePath)
       ? props.codePath
       : path.resolve(getCallerDirectory(new Error().stack), props.codePath);
@@ -77,16 +77,16 @@ export class AmplifyFunctionFactory
       runtime: props.runtime,
       handler: props.handler,
     });
-  }
+  };
 
   /**
    * Create a function by executing a build command that places build artifacts at a specified location
    *
    * TODO: Investigate long-term function building strategy: https://github.com/aws-amplify/samsara-cli/issues/92
    */
-  static async build(
+  static build = async (
     props: AmplifyFunctionFactoryBuildProps
-  ): Promise<AmplifyFunctionFactory> {
+  ): Promise<AmplifyFunctionFactory> => {
     const importPath = getCallerDirectory(new Error().stack);
 
     await AmplifyFunctionFactory.commandExecutor(props.buildCommand, {
@@ -105,19 +105,19 @@ export class AmplifyFunctionFactory
       runtime: props.runtime,
       handler: props.handler,
     });
-  }
+  };
 
   /**
    * Creates an instance of AmplifyFunction within the provided Amplify context
    */
-  getInstance({
+  getInstance = ({
     constructContainer,
-  }: ConstructFactoryGetInstanceProps): AmplifyFunction {
+  }: ConstructFactoryGetInstanceProps): AmplifyFunction => {
     if (!this.generator) {
       this.generator = new AmplifyFunctionGenerator(this.props);
     }
     return constructContainer.getOrCompute(this.generator) as AmplifyFunction;
-  }
+  };
 }
 
 class AmplifyFunctionGenerator implements ConstructContainerEntryGenerator {
@@ -125,9 +125,9 @@ class AmplifyFunctionGenerator implements ConstructContainerEntryGenerator {
 
   constructor(private readonly props: AmplifyFunctionFactoryProps) {}
 
-  generateContainerEntry(scope: Construct) {
+  generateContainerEntry = (scope: Construct) => {
     return new AmplifyFunction(scope, this.props.name, this.props);
-  }
+  };
 }
 
 /**

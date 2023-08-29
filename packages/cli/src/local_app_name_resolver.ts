@@ -17,7 +17,7 @@ export class LocalAppNameResolver implements AppNameResolver {
   /**
    * Returns the value of package.json#name from the current working directory
    */
-  async resolve() {
+  resolve = async () => {
     return (await this.packageJsonLoader.loadCwdPackageJson()).name;
-  }
+  };
 }

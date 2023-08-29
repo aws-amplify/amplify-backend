@@ -7,7 +7,7 @@ export class AmplifyStack extends Stack {
   /**
    * Overrides Stack.allocateLogicalId to prevent redundant nested stack logical IDs
    */
-  allocateLogicalId(element: CfnElement): string {
+  allocateLogicalId = (element: CfnElement): string => {
     // Nested stack logical IDs have a redundant structure of <name>NestedStack<name>NestedStackResource<hash>
     // This rewrites the nested stack logical ID to <name><hash>
     const defaultId = super.allocateLogicalId(element);
@@ -18,5 +18,5 @@ export class AmplifyStack extends Stack {
       return `${match?.groups?.name}${match?.groups?.hash}`;
     }
     return defaultId;
-  }
+  };
 }

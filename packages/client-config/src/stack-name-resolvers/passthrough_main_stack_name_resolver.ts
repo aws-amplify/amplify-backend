@@ -16,7 +16,7 @@ export class PassThroughMainStackNameResolver implements MainStackNameResolver {
   /**
    * Return the stack name
    */
-  async resolveMainStackName(): Promise<string> {
+  resolveMainStackName = async (): Promise<string> => {
     return this.stackNameIdentifier.stackName;
-  }
+  };
 }

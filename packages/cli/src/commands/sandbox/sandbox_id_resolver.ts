@@ -18,9 +18,9 @@ export class SandboxIdResolver {
   /**
    * Returns a concatenation of the resolved appName and the current username
    */
-  async resolve(): Promise<string> {
+  resolve = async (): Promise<string> => {
     return `${await this.appNameResolver.resolve()}-${
       this.userInfo().username
     }`;
-  }
+  };
 }

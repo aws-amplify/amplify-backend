@@ -22,7 +22,7 @@ export class NestedStackResolver implements StackResolver {
    * Returns a cached NestedStack if resourceGroupName has been seen before
    * Otherwise, creates a new NestedStack, caches it and returns it
    */
-  getStackFor(resourceGroupName: string): Stack {
+  getStackFor = (resourceGroupName: string): Stack => {
     if (!this.stacks[resourceGroupName]) {
       this.stacks[resourceGroupName] = new NestedStack(
         this.rootStack,
@@ -30,5 +30,5 @@ export class NestedStackResolver implements StackResolver {
       );
     }
     return this.stacks[resourceGroupName];
-  }
+  };
 }

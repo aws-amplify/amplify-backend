@@ -10,10 +10,10 @@ export class ClientConfigWriter {
   /**
    * Persists provided client config as json file to target path.
    */
-  async writeClientConfig(
+  writeClientConfig = async (
     clientConfig: ClientConfig,
     targetPath: string
-  ): Promise<void> {
+  ): Promise<void> => {
     const fileExtension = path.parse(targetPath).ext;
     switch (fileExtension) {
       case '.js': {
@@ -33,5 +33,5 @@ export class ClientConfigWriter {
           `Unknown client config file extension ${fileExtension}`
         );
     }
-  }
+  };
 }
