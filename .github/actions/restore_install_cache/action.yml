@@ -5,7 +5,7 @@ runs:
   using: composite
   steps:
     # restore node_modules from cache
-    - uses: actions/cache@v3
+    - uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # version 3.3.1
       id: npm-cache
       with:
         path: node_modules

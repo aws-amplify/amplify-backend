@@ -5,7 +5,7 @@ runs:
   steps:
     - uses: ./.github/actions/install_with_cache
     # cache build output based on commit sha
-    - uses: actions/cache@v3
+    - uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # version 3.3.1
       id: build-cache
       with:
         path: '**/lib'

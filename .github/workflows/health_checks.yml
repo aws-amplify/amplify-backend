@@ -12,7 +12,7 @@ jobs:
   install:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/install_with_cache
   build:
@@ -20,7 +20,7 @@ jobs:
     needs:
       - install
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/build_with_cache
   test_with_coverage:
@@ -28,7 +28,7 @@ jobs:
     needs:
       - build
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_build_cache
       - run: npm run test:coverage:threshold
@@ -50,10 +50,10 @@ jobs:
         id: check
         run: |
           if [[ ${{ github.event_name }} == 'push' ]] || gh api /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} | jq -r '.labels[].name' | grep run-e2e --quiet; then
-            echo setting run_e2e to true
+            echo setting run_e2e to true;
             echo "run_e2e=true" >> "$GITHUB_OUTPUT";
           else
-            echo setting run_e2e to false
+            echo setting run_e2e to false;
             echo "run_e2e=false" >> "$GITHUB_OUTPUT";
           fi
   run_e2e_tests:
@@ -66,11 +66,11 @@ jobs:
       contents: read
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_build_cache
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v3
+        uses: aws-actions/configure-aws-credentials@04b98b3f9e85f563fb061be8751a0352327246b0 # version 3.0.1
         with:
           role-to-assume: ${{ secrets.E2E_RUNNER_ROLE_ARN }}
           aws-region: us-west-2
@@ -81,7 +81,7 @@ jobs:
     needs:
       - install
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_install_cache
       - run: npm run lint
@@ -90,7 +90,7 @@ jobs:
     needs:
       - install
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_install_cache
       - run: npm run check:tsconfig-refs
@@ -99,7 +99,7 @@ jobs:
     needs:
       - build
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_build_cache
       - run: npm run check:api
@@ -108,12 +108,12 @@ jobs:
     needs:
       - build
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_build_cache
       - run: npm run docs
       - if: github.event_name == 'push'
-        uses: peaceiris/actions-gh-pages@v3
+        uses: peaceiris/actions-gh-pages@373f7f263a76c20808c831209c920827a82a2847 # version 3.9.3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./docs
@@ -124,7 +124,7 @@ jobs:
     needs:
       - install
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_install_cache
       - run: git fetch origin
@@ -135,11 +135,11 @@ jobs:
       - build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_build_cache
       - name: Create release pull request or publish to npm
-        uses: changesets/action@v1
+        uses: changesets/action@f13b1baaa620fde937751f5d2c3572b9da32af23 # version 1.4.5
         with:
           publish: npm run publish
         env:
@@ -158,16 +158,16 @@ jobs:
           - javascript
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
         with:
           # Minimal depth 2 so we can checkout the commit before possible merge commit.
           fetch-depth: 2
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v2
+        uses: github/codeql-action/init@e4262713b504983e61c7728f5452be240d9385a7 # version 2.14.3
         with:
           languages: ${{ matrix.language }}
           queries: +security-and-quality
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
+        uses: github/codeql-action/analyze@e4262713b504983e61c7728f5452be240d9385a7 # version 2.14.3
         with:
           category: /language:${{ matrix.language }}
