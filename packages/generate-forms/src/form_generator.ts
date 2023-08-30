@@ -1,3 +1,3 @@
 export interface FormGenerator<T = void> {
-  generateForms(): Promise<T>;
+  generateForms: () => Promise<T>;
 }
