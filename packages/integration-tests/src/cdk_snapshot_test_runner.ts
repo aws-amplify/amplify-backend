@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, test } from 'node:test';
+import { afterEach, beforeEach, describe, it } from 'node:test';
 import path from 'path';
 import assert from 'node:assert';
 import * as os from 'os';
@@ -50,7 +50,7 @@ const runCDKSnapshotTest = ({
       fs.rmSync(process.env.CDK_OUTDIR, { recursive: true, force: true });
     }
   });
-  test(name, async () => {
+  it(name, async () => {
     // this import must create the CDK App
     await import(absoluteBackendFilePath);
 
