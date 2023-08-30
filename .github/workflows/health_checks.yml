@@ -39,11 +39,15 @@ jobs:
     permissions:
       id-token: write
       contents: read
+      pull-requests: read
     env:
+      # The gh cli expects the token at this environment variable
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       # if this workflow is running on a push (ie merge to main), then e2e tests always run
       # if the workflow is running on a pull request, we perform an additional check for the run-e2e label
+      # this is not a security measure (that is already handled by the pull_request event behavior) but rather a way for PR authors to easily check e2e test results if they wish
+      # the reason it doesn't run all the time is because it will always fail for external contributor PRs (they don't have access to repo secrets) and we don't want to waste resources running e2e on every PR commit
       - if: github.event_name == 'pull_request'
         name: Check pull request has run-e2e label
         run: gh api /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} | jq -r '.labels[].name' | grep run-e2e --quiet
