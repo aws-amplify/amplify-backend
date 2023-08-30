@@ -27,7 +27,7 @@ export class AmplifyAuth extends Construct implements BackendOutputWriter, Resou
 export abstract class AuthCustomAttributeBase {
     constructor(name: string);
     // (undocumented)
-    protected attribute: CustomAttributeConfig;
+    protected attribute: Mutable<CustomAttributeConfig>;
     mutable: () => this;
 }
 
@@ -97,6 +97,11 @@ export type EmailLogin = true | {
     emailBody?: `${string}{##Verify Email##}${string}`;
     emailStyle?: aws_cognito.VerificationEmailStyle.LINK;
     emailSubject?: string;
+};
+
+// @public
+export type Mutable<T> = {
+    -readonly [P in keyof T]: Mutable<T[P]>;
 };
 
 // @public

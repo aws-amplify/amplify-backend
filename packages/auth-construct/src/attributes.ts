@@ -13,7 +13,12 @@ import {
  * Represents a standard or custom user attribute.
  */
 export type AuthUserAttribute = AuthStandardAttribute | AuthCustomAttributeBase;
-
+/**
+ * Type used to make readonly properties of T mutable.
+ */
+export type Mutable<T> = {
+  -readonly [P in keyof T]: Mutable<T[P]>;
+};
 /**
  * This class facilitates creation of Standard user attributes.
  */
@@ -63,7 +68,7 @@ export class AuthStandardAttribute {
  * This class facilitates creation of Custom user attributes.
  */
 export abstract class AuthCustomAttributeBase {
-  protected attribute: CustomAttributeConfig;
+  protected attribute: Mutable<CustomAttributeConfig>;
   /**
    * Create a Custom Attribute
    * @param name - A name for the custom attribute
@@ -80,10 +85,7 @@ export abstract class AuthCustomAttributeBase {
    * @returns the attribute
    */
   mutable = () => {
-    this.attribute = {
-      ...this.attribute,
-      mutable: true,
-    };
+    this.attribute.mutable = true;
     return this;
   };
   /**
@@ -125,12 +127,9 @@ export class AuthCustomStringAttribute extends AuthCustomAttributeBase {
    * @returns the attribute
    */
   minLength = (minLength: number): AuthCustomStringAttribute => {
-    this.attribute = {
-      ...this.attribute,
-      stringConstraints: {
-        ...this.attribute.stringConstraints,
-        minLen: minLength,
-      },
+    this.attribute.stringConstraints = {
+      ...this.attribute.stringConstraints,
+      minLen: minLength,
     };
     return this;
   };
@@ -139,12 +138,9 @@ export class AuthCustomStringAttribute extends AuthCustomAttributeBase {
    * @returns the attribute
    */
   maxLength = (maxLength: number): AuthCustomStringAttribute => {
-    this.attribute = {
-      ...this.attribute,
-      stringConstraints: {
-        ...this.attribute.stringConstraints,
-        maxLen: maxLength,
-      },
+    this.attribute.stringConstraints = {
+      ...this.attribute.stringConstraints,
+      maxLen: maxLength,
     };
     return this;
   };
@@ -170,12 +166,9 @@ export class AuthCustomNumberAttribute extends AuthCustomAttributeBase {
    * @returns the attribute
    */
   min = (min: number): AuthCustomNumberAttribute => {
-    this.attribute = {
-      ...this.attribute,
-      numberConstraints: {
-        ...this.attribute.numberConstraints,
-        min,
-      },
+    this.attribute.numberConstraints = {
+      ...this.attribute.numberConstraints,
+      min,
     };
     return this;
   };
@@ -184,12 +177,9 @@ export class AuthCustomNumberAttribute extends AuthCustomAttributeBase {
    * @returns the attribute
    */
   max = (max: number): AuthCustomNumberAttribute => {
-    this.attribute = {
-      ...this.attribute,
-      numberConstraints: {
-        ...this.attribute.numberConstraints,
-        max,
-      },
+    this.attribute.numberConstraints = {
+      ...this.attribute.numberConstraints,
+      max,
     };
     return this;
   };
