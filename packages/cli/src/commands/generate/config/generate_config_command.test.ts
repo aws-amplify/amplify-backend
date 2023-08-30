@@ -9,14 +9,11 @@ import {
 import assert from 'node:assert';
 import path from 'path';
 import { ClientConfigGeneratorAdapter } from './client_config_generator_adapter.js';
-import { ClientConfigWriter } from '@aws-amplify/client-config';
+import { ClientConfig, ClientConfigWriter } from '@aws-amplify/client-config';
 
 describe('generate config command', () => {
-  const mockedWriteMethod = mock.fn(
-    async (
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      ...parameters: Parameters<ClientConfigWriter['writeClientConfig']>
-    ) => Promise.resolve()
+  const mockedWriteMethod = mock.fn<ClientConfigWriter['writeClientConfig']>(
+    async () => Promise.resolve()
   );
   const mockWriter: ClientConfigWriter = {
     writeClientConfig: mockedWriteMethod,
@@ -26,15 +23,12 @@ describe('generate config command', () => {
     mockWriter
   );
 
-  const generateClientConfigMock = mock.method(
-    clientConfigGeneratorAdapter,
+  const generateClientConfigMock = mock.method<
+    ClientConfigGeneratorAdapter,
     'generateClientConfig',
-    (
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      ...parameters: Parameters<
-        ClientConfigGeneratorAdapter['generateClientConfigToFile']
-      >
-    ) => Promise.resolve()
+    ClientConfigGeneratorAdapter['generateClientConfig']
+  >(clientConfigGeneratorAdapter, 'generateClientConfig', () =>
+    Promise.resolve({} as ClientConfig)
   );
 
   const generateConfigCommand = new GenerateConfigCommand(
