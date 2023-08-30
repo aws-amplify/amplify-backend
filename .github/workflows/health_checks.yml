@@ -39,6 +39,8 @@ jobs:
     permissions:
       id-token: write
       contents: read
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       # if this workflow is running on a push (ie merge to main), then e2e tests always run
       # if the workflow is running on a pull request, we perform an additional check for the run-e2e label
@@ -47,7 +49,7 @@ jobs:
         run: |
           gh api \
           -H "Accept: application/vnd.github+json"\
-          -H "Authorization: Bearer ${{ github.GITHUB_TOKEN }}"\
+          -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}"\
           /repos/${{ github.event.organization }}/${{ github.event.repository }}/pulls/${{ github.event.pull_request.number }}\
           | jq -r '.labels[].name' | grep run-e2e --quiet
       - uses: actions/checkout@v3
