@@ -1,0 +1,13 @@
+# composes restoring node_modules and restoring build artifacts
+name: restore_build_cache
+runs:
+  using: composite
+  steps:
+    - uses: ./.github/restore_install_cache
+    # restore build output from cache
+    - uses: actions/cache@v3
+      id: build-cache
+      with:
+        path: '**/lib'
+        key: ${{ runner.os }}-${{ github.sha }}
+        fail-on-cache-miss: true

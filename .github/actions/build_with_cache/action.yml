@@ -1,0 +1,15 @@
+# builds the source code if cache miss and caches the result
+name: build_with_cache
+runs:
+  using: composite
+  steps:
+    - uses: ./.github/actions/install_with_cache
+    # cache build output based on commit sha
+    - uses: actions/cache@v3
+      id: build-cache
+      with:
+        path: '**/lib'
+        key: ${{ runner.os }}-${{ github.sha }}
+    # only build if cache miss
+    - if: steps.build-cache.outputs.cache-hit != 'true'
+      run: npm run build

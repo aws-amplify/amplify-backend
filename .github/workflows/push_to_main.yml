@@ -1,0 +1,53 @@
+name: push_to_main
+
+on:
+  push:
+    branches: ['main']
+
+jobs:
+  install_and_build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ./.github/actions/checkout_and_setup_node
+      - uses: ./.github/actions/build_with_cache
+  publish_docs:
+    needs:
+      - install_and_build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ./.github/actions/checkout_and_setup_node
+      - uses: ./.github/actions/restore_build_cache
+      - run: npm run docs
+      - uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
+          publish_branch: docs
+  run_e2e_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ./.github/actions/checkout_and_setup_node
+      - uses: ./.github/actions/restore_build_cache
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: ${{ secrets.E2E_RUNNER_ROLE_ARN }}
+          aws-region: us-west-2
+      # Upload a file to AWS s3
+      - name: Verify credentials
+        run: aws sts get-caller-identity
+  update_or_publish_versions:
+    needs:
+      - install_and_build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ./.github/actions/checkout_and_setup_node
+      - uses: ./.github/actions/restore_build_cache
+
+      - name: Create release pull request or publish alpha to npm
+        uses: changesets/action@v1
+        with:
+          publish: npm run publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
