@@ -18,10 +18,10 @@ export class GraphQLClientGenerator {
    * Configures the GraphQLClientGenerator
    */
   constructor(
-    private appSyncClient: AppSyncClient,
+    private apiId: string,
     private path: string,
-    private formatter: GraphQLStatementsFormatter,
-    private apiId: string
+    private appSyncClient: AppSyncClient,
+    private formatter: GraphQLStatementsFormatter
   ) {}
   private getAppSyncIntrospectionSchema = async (apiId: string) => {
     const result = await this.appSyncClient.send(

@@ -2,12 +2,8 @@ import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { BackendIdentifier } from '@aws-amplify/client-config';
 import { ClientConfigGeneratorAdapter } from '../config/client_config_generator_adapter.js';
 import { createFormGenerator } from '@aws-amplify/generate-forms';
-import {
-  GraphQLClientGenerator,
-  GraphQLStatementsFormatter,
-} from '@aws-amplify/generate-models';
+import { createModelGenerator } from '@aws-amplify/generate-models';
 import { AppNameResolver } from '../../../local_app_name_resolver.js';
-import { AppSyncClient } from '@aws-sdk/client-appsync';
 
 export type GenerateFormsCommandOptions = {
   stack: string | undefined;
@@ -71,12 +67,11 @@ export class GenerateFormsCommand
       throw new TypeError('AppSync api schema url must be defined');
     }
 
-    const graphqlClientGenerator = new GraphQLClientGenerator(
-      new AppSyncClient(),
-      './src/graphql',
-      new GraphQLStatementsFormatter('typescript'),
-      apiId
-    );
+    const graphqlClientGenerator = createModelGenerator('graphql', {
+      apiUrl,
+      language: 'typescript',
+      outDir: './src/graphql',
+    });
     await graphqlClientGenerator.generateDocuments();
     const localFormGenerator = createFormGenerator('graphql', {
       appId: 'dkne2bw3gmwb0',
