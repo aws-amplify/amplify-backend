@@ -72,10 +72,11 @@ export class GenerateFormsCommand
       language: 'typescript',
       outDir: './src/graphql',
     });
-    await graphqlClientGenerator.generateDocuments();
+    await graphqlClientGenerator.generateDocumentsForAppSyncApiById(apiId);
     const localFormGenerator = createFormGenerator('graphql', {
       appId: 'dkne2bw3gmwb0',
       apiId,
+      environmentName: '_SAMSARA_ENVIRONMENT_',
       introspectionSchemaUrl: apiUrl,
     });
     await localFormGenerator.generateForms();

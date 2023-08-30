@@ -1,14 +1,21 @@
 import { AppSyncClient } from '@aws-sdk/client-appsync';
-import { GraphQLClientGenerator } from './graphql_document_generator.js';
+import { AppSyncIntrospectionSchemaFetcher } from './appsync_schema_fetcher.js';
+import { AppSyncGraphqlClientGenerator } from './graphql_document_generator.js';
 import { GraphQLStatementsFormatter } from './graphql_statements_formatter.js';
+import { FileWriter } from './schema_writer.js';
 
+export type SupportedLanguages = 'typescript';
 export interface ModelGeneratorParamters {
   graphql: {
     outDir: string;
-    language: 'typescript';
+    language: SupportedLanguages;
     apiUrl: string;
   };
 }
+
+const languageExtensions: Record<SupportedLanguages, string> = {
+  typescript: 'ts',
+};
 
 /**
  * Factory function to compose a model generator
@@ -19,12 +26,12 @@ export const createModelGenerator = <T extends keyof ModelGeneratorParamters>(
 ) => {
   switch (modelType) {
     case 'graphql': {
-      const { outDir, language, apiUrl } = params;
-      return new GraphQLClientGenerator(
-        apiUrl,
-        outDir,
-        new AppSyncClient(),
-        new GraphQLStatementsFormatter(language)
+      const { outDir, language } = params;
+      return new AppSyncGraphqlClientGenerator(
+        new FileWriter(outDir),
+        new AppSyncIntrospectionSchemaFetcher(new AppSyncClient()),
+        new GraphQLStatementsFormatter(language),
+        languageExtensions[language]
       );
     }
     default:

@@ -43,11 +43,11 @@ export class LocalFormGenerator implements FormGenerator<void> {
   generateForms = async (): Promise<void> => {
     const modelIntrospectionSchema =
       await this.generateModelIntrospectionSchema();
-    const job = this.generateJobInput(
-      modelIntrospectionSchema,
-      this.config.apiId,
-      this.config.environmentName
-    );
+    const job = this.generateJobInput({
+      genericDataSchema: modelIntrospectionSchema,
+      appId: this.config.appId,
+      environmentName: this.config.environmentName,
+    });
     const jobHandler = new CodegenJobHandler(this.uiClient);
     const downloadUrl = await jobHandler.execute(job);
 
@@ -130,11 +130,15 @@ export class LocalFormGenerator implements FormGenerator<void> {
     const d = getGenericFromDataStore(JSON.parse(synced));
     return mapGenericDataSchemaToCodegen(d);
   };
-  private generateJobInput = (
-    genericDataSchema: CodegenJobGenericDataSchema,
-    appId: string,
-    environmentName?: string
-  ) => {
+  private generateJobInput = ({
+    genericDataSchema,
+    appId,
+    environmentName,
+  }: {
+    genericDataSchema: CodegenJobGenericDataSchema;
+    appId: string;
+    environmentName?: string;
+  }) => {
     const job: StartCodegenJobData = {
       autoGenerateForms: true,
       genericDataSchema,
