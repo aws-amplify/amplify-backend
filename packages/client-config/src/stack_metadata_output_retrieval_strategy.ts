@@ -58,7 +58,6 @@ export class StackMetadataBackendOutputRetrievalStrategy
       new DescribeStacksCommand({ StackName: stackName })
     );
     const outputs = stackDescription?.Stacks?.[0]?.Outputs;
-
     if (outputs === undefined) {
       throw new Error('Stack outputs are undefined');
     }
