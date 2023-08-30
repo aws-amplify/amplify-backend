@@ -23,14 +23,13 @@ export type Mutable<T> = {
  * This class facilitates creation of Standard user attributes.
  */
 export class AuthStandardAttribute {
-  private name: keyof StandardAttributes;
   private isMutable = false;
   private isRequired = false;
   /**
    * Create a Standard Attribute.
    * @param name - The attribute name, must be one of StandardAttributes
    */
-  constructor(name: keyof StandardAttributes) {
+  constructor(private name: keyof StandardAttributes) {
     this.name = name;
   }
   /**
