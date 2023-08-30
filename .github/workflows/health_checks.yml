@@ -48,7 +48,7 @@ jobs:
           gh api \
           -H "Accept: application/vnd.github+json"\
           -H "Authorization: Bearer ${{ github.GITHUB_TOKEN }}"\
-          /repos/aws-amplify/samsara-cli/pulls/${{ github.event.pull_request.number }}\
+          /repos/${{ github.event.organization }}/${{ github.event.repository }}/pulls/${{ github.event.pull_request.number }}\
           | jq -r '.labels[].name' | grep run-e2e --quiet
       - uses: actions/checkout@v3
       - uses: ./.github/actions/setup_node
