@@ -33,10 +33,10 @@ export abstract class AuthCustomAttributeBase {
 
 // @public
 export class AuthCustomAttributeFactory {
-    boolean(name: string): AuthCustomBooleanAttribute;
-    dateTime(name: string): AuthCustomDateTimeAttribute;
-    number(name: string): AuthCustomNumberAttribute;
-    string(name: string): AuthCustomStringAttribute;
+    boolean: (name: string) => AuthCustomBooleanAttribute;
+    dateTime: (name: string) => AuthCustomDateTimeAttribute;
+    number: (name: string) => AuthCustomNumberAttribute;
+    string: (name: string) => AuthCustomStringAttribute;
 }
 
 // @public
