@@ -12,21 +12,24 @@ jobs:
   install:
     runs-on: ubuntu-latest
     steps:
-      - uses: ./.github/actions/checkout_and_setup_node
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/install_with_cache
   build:
     runs-on: ubuntu-latest
     needs:
       - install
     steps:
-      - uses: ./.github/actions/checkout_and_setup_node
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/build_with_cache
   test_with_coverage:
     runs-on: ubuntu-latest
     needs:
       - build
     steps:
-      - uses: ./.github/actions/checkout_and_setup_node
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_build_cache
       - run: npm run test:coverage:threshold
   run_e2e_tests:
@@ -34,7 +37,8 @@ jobs:
     needs:
       - build
     steps:
-      - uses: ./.github/actions/checkout_and_setup_node
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_build_cache
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v3
@@ -48,7 +52,8 @@ jobs:
     needs:
       - install
     steps:
-      - uses: ./.github/actions/checkout_and_setup_node
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_install_cache
       - run: npm run lint
   check_tsconfig_refs:
@@ -56,7 +61,8 @@ jobs:
     needs:
       - install
     steps:
-      - uses: ./.github/actions/checkout_and_setup_node
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_install_cache
       - run: npm run check:tsconfig-refs
   check_api_extract:
@@ -64,7 +70,8 @@ jobs:
     needs:
       - build
     steps:
-      - uses: ./.github/actions/checkout_and_setup_node
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_build_cache
       - run: npm run check:api
   docs_build_and_publish:
@@ -72,7 +79,8 @@ jobs:
     needs:
       - build
     steps:
-      - uses: ./.github/actions/checkout_and_setup_node
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_build_cache
       - run: npm run docs
       - if: github.event_name == 'push'
@@ -87,7 +95,8 @@ jobs:
     needs:
       - install
     steps:
-      - uses: ./.github/actions/checkout_and_setup_node
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_install_cache
       - run: git fetch origin
       - run: npm run diff:check ${{ github.event.pull_request.base.sha }}
@@ -97,7 +106,8 @@ jobs:
       - build
     runs-on: ubuntu-latest
     steps:
-      - uses: ./.github/actions/checkout_and_setup_node
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_build_cache
       - name: Create release pull request or publish to npm
         uses: changesets/action@v1
