@@ -33,11 +33,11 @@ export class DataFactory implements ConstructFactory<AmplifyGraphqlApi> {
   /**
    * Gets an instance of the Data construct
    */
-  getInstance({
+  getInstance = ({
     constructContainer,
     outputStorageStrategy,
     importPathVerifier,
-  }: ConstructFactoryGetInstanceProps): AmplifyGraphqlApi {
+  }: ConstructFactoryGetInstanceProps): AmplifyGraphqlApi => {
     importPathVerifier?.verify(
       this.importStack,
       'data',
@@ -57,7 +57,7 @@ export class DataFactory implements ConstructFactory<AmplifyGraphqlApi> {
       );
     }
     return constructContainer.getOrCompute(this.generator) as AmplifyGraphqlApi;
-  }
+  };
 }
 
 class DataGenerator implements ConstructContainerEntryGenerator {
@@ -70,7 +70,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     private readonly outputStorageStrategy: BackendOutputStorageStrategy<GraphqlOutput>
   ) {}
 
-  generateContainerEntry(scope: Construct) {
+  generateContainerEntry = (scope: Construct) => {
     const authConfig: AuthorizationConfig = {
       iamConfig: {
         authenticatedUserRole:
@@ -101,7 +101,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     );
 
     return graphqlConstruct;
-  }
+  };
 }
 
 export const Data = DataFactory;

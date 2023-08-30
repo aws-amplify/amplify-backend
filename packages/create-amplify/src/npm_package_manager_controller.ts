@@ -20,10 +20,10 @@ export class NpmPackageManagerController implements PackageManagerController {
   /**
    * Installs the given package names as devDependencies
    */
-  async installDependencies(
+  installDependencies = async (
     packageNames: string[],
     type: DependencyType
-  ): Promise<void> {
+  ): Promise<void> => {
     const args = ['install'].concat(...packageNames);
     if (type === 'dev') {
       args.push('--save-dev');
@@ -32,5 +32,5 @@ export class NpmPackageManagerController implements PackageManagerController {
       stdio: 'inherit',
       cwd: this.projectRoot,
     });
-  }
+  };
 }

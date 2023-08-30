@@ -206,33 +206,33 @@ export const AuthAttributeFactory = (
 /**
  * This tool simplifies the creation of Custom User Attributes.
  */
-export class AuthCustomAttributeFactory {
+export const AuthCustomAttributeFactory = {
   /**
    * Create a custom attribute of 'String' dataType
    * @param name - the name for this attribute
    */
   string(name: string) {
     return new AuthCustomStringAttribute(name);
-  }
+  },
   /**
    * Create a custom attribute of 'Number' dataType
    * @param name - the name for this attribute
    */
   number(name: string) {
     return new AuthCustomNumberAttribute(name);
-  }
+  },
   /**
    * Create a custom attribute of 'Boolean' dataType
    * @param name - the name for this attribute
    */
   boolean(name: string) {
     return new AuthCustomBooleanAttribute(name);
-  }
+  },
   /**
    * Create a custom attribute of 'Boolean' dataType
    * @param name - the name for this attribute
    */
   dateTime(name: string) {
     return new AuthCustomDateTimeAttribute(name);
-  }
-}
+  },
+};

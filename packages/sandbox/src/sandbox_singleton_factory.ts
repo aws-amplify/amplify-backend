@@ -25,7 +25,7 @@ export class SandboxSingletonFactory {
   /**
    * Returns a singleton instance of a Sandbox
    */
-  async getInstance(): Promise<Sandbox> {
+  getInstance = async (): Promise<Sandbox> => {
     if (!this.instance) {
       this.instance = new FileWatchingSandbox(
         await this.sandboxIdResolver(),
@@ -34,5 +34,5 @@ export class SandboxSingletonFactory {
       );
     }
     return this.instance;
-  }
+  };
 }

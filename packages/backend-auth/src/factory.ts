@@ -31,11 +31,11 @@ export class AmplifyAuthFactory
   /**
    * Get a singleton instance of AmplifyAuth
    */
-  getInstance({
+  getInstance = ({
     constructContainer,
     outputStorageStrategy,
     importPathVerifier,
-  }: ConstructFactoryGetInstanceProps): AmplifyAuth {
+  }: ConstructFactoryGetInstanceProps): AmplifyAuth => {
     importPathVerifier?.verify(
       this.importStack,
       'auth',
@@ -48,7 +48,7 @@ export class AmplifyAuthFactory
       );
     }
     return constructContainer.getOrCompute(this.generator) as AmplifyAuth;
-  }
+  };
 }
 
 class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
@@ -60,11 +60,11 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
     private readonly backendOutputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>
   ) {}
 
-  generateContainerEntry(scope: Construct) {
+  generateContainerEntry = (scope: Construct) => {
     const authConstruct = new AmplifyAuth(scope, this.defaultName, this.props);
     authConstruct.storeOutput(this.backendOutputStorageStrategy);
     return authConstruct;
-  }
+  };
 }
 
 /**

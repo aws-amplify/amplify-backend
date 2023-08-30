@@ -1,7 +1,7 @@
 import { CwdPackageJsonLoader } from './cwd_package_json_loader.js';
 
 export type AppNameResolver = {
-  resolve(): Promise<string>;
+  resolve: () => Promise<string>;
 };
 
 /**
@@ -17,7 +17,7 @@ export class LocalAppNameResolver implements AppNameResolver {
   /**
    * Returns the value of package.json#name from the current working directory
    */
-  async resolve() {
+  resolve = async () => {
     return (await this.packageJsonLoader.loadCwdPackageJson()).name;
-  }
+  };
 }

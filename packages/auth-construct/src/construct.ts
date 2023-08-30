@@ -89,7 +89,7 @@ export class AmplifyAuth
    * Create Auth/UnAuth Roles
    * @returns DefaultRoles
    */
-  private setupAuthAndUnAuthRoles(): DefaultRoles {
+  private setupAuthAndUnAuthRoles = (): DefaultRoles => {
     const result: DefaultRoles = {
       auth: new Role(this, 'authenticatedUserRole', {
         assumedBy: new FederatedPrincipal('cognito-identity.amazonaws.com'),
@@ -99,7 +99,7 @@ export class AmplifyAuth
       }),
     };
     return result;
-  }
+  };
 
   /**
    * Setup Identity Pool with default roles/role mappings, and register providers
@@ -107,11 +107,11 @@ export class AmplifyAuth
    * @param userPool - UserPool
    * @param userPoolClient - UserPoolClient
    */
-  private setupIdentityPool(
+  private setupIdentityPool = (
     roles: DefaultRoles,
     userPool: UserPool,
     userPoolClient: UserPoolClient
-  ) {
+  ) => {
     // setup identity pool
     const region = Stack.of(this).region;
     const identityPool = new cognito.CfnIdentityPool(this, 'IdentityPool', {
@@ -149,14 +149,14 @@ export class AmplifyAuth
       identityPool,
       identityPoolRoleAttachment,
     };
-  }
+  };
 
   /**
    * Process props into UserPoolProps (set defaults if needed)
    * @param props - AuthProps
    * @returns UserPoolProps
    */
-  private getUserPoolProps(props: AuthProps): UserPoolProps {
+  private getUserPoolProps = (props: AuthProps): UserPoolProps => {
     const emailEnabled = props.loginWith.email ? true : false;
     const phoneEnabled = props.loginWith.phoneNumber ? true : false;
     // check for customizations
@@ -236,14 +236,14 @@ export class AmplifyAuth
       selfSignUpEnabled: DEFAULTS.ALLOW_SELF_SIGN_UP,
     };
     return userPoolProps;
-  }
+  };
 
   /**
    * Stores auth output using the provided strategy
    */
-  storeOutput(
+  storeOutput = (
     outputStorageStrategy: BackendOutputStorageStrategy<AuthOutput>
-  ): void {
+  ): void => {
     outputStorageStrategy.addBackendOutputEntry(authOutputKey, {
       version: '1',
       payload: {
@@ -252,7 +252,7 @@ export class AmplifyAuth
         authRegion: Stack.of(this).region,
       },
     });
-  }
+  };
 
   /**
    * Utility for adding user attributes.
@@ -271,5 +271,5 @@ export class AmplifyAuth
    *  AmplifyAuth.customAttribute.number('petsCount').min(0).max(5)
    * ]
    */
-  public static customAttribute = new AuthCustomAttributeFactory();
+  public static customAttribute = AuthCustomAttributeFactory;
 }
