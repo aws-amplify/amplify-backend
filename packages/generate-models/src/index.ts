@@ -13,7 +13,7 @@ export interface GraphQLDocumentGenerationStrategy {
 /**
  *
  */
-export class LocalFilesystemGraphqlDocumentGenerator {
+export class GenerateGraphQLClient {
   /**
    *
    */
@@ -21,14 +21,14 @@ export class LocalFilesystemGraphqlDocumentGenerator {
     private appSyncClient: AppSyncClient,
     private path: string,
     private formatter: GraphQLStatementsFormatter,
-    private apiId: string,
+    private apiId: string
   ) {}
   private getAppSyncIntrospectionSchema = async (apiId: string) => {
     const result = await this.appSyncClient.send(
       new GetIntrospectionSchemaCommand({
         apiId,
         format: 'SDL',
-      }),
+      })
     );
     const decoder = new TextDecoder();
 
@@ -36,7 +36,7 @@ export class LocalFilesystemGraphqlDocumentGenerator {
   };
   generateDocuments = async () => {
     const appsyncIntrospectionSchema = await this.getAppSyncIntrospectionSchema(
-      this.apiId,
+      this.apiId
     );
 
     const generatedStatements = generateGraphQLDocuments(
@@ -44,7 +44,7 @@ export class LocalFilesystemGraphqlDocumentGenerator {
       {
         maxDepth: 3,
         typenameIntrospection: true,
-      },
+      }
     );
     fs.mkdirSync(this.path, { recursive: true });
     await Promise.all(
@@ -55,7 +55,7 @@ export class LocalFilesystemGraphqlDocumentGenerator {
           ];
         const outputFile = path.resolve(path.join(this.path, `${op}.ts`));
         fs.writeFileSync(outputFile, await this.formatter.format(ops as any));
-      }),
+      })
     );
   };
 }

@@ -1,9 +1,5 @@
 import { FormGenerator } from './form_generator.js';
 import fs from 'fs';
-import {
-  AppSyncClient,
-  GetIntrospectionSchemaCommand,
-} from '@aws-sdk/client-appsync';
 import * as graphqlCodegen from '@graphql-codegen/core';
 import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import * as appsync from '@aws-amplify/appsync-modelgen-plugin';
@@ -17,12 +13,9 @@ import {
 import { getGenericFromDataStore } from '@aws-amplify/codegen-ui';
 import { fetchWithRetries } from './fetch.js';
 import path from 'path';
-import { generateGraphQLDocuments } from '@aws-amplify/graphql-docs-generator';
-import { GraphQLStatementsFormatter } from './graphql_statements_formatter.js';
 import { directives } from './aws_graphql_directives.js';
 import { CodegenJobHandler } from './codegen_job_handler.js';
 import { mapGenericDataSchemaToCodegen } from './schema_mappers.js';
-import { GraphQLDocumentGenerationStrategy as GraphQLDocumentGenerationStrategy } from './graphql_document_writer.js';
 
 export type LocalFormGenerationConfig = {
   introspectionSchemaUrl: string;
@@ -42,7 +35,6 @@ export class LocalFormGenerator implements FormGenerator<void> {
   constructor(
     private config: LocalFormGenerationConfig,
     private uiClient: AmplifyUIBuilder,
-    private graphqlDocumentGenerator: GraphQLDocumentGenerationStrategy
   ) {
     // const appId = 'dkne2bw3gmwb0';
     // const environmentName = '_AMPLIFY_SAMSARA_INTERNAL_';
@@ -61,7 +53,7 @@ export class LocalFormGenerator implements FormGenerator<void> {
     const job = this.generateJobInput(
       modelIntrospectionSchema,
       this.config.apiId,
-      this.config.environmentName
+      this.config.environmentName,
     );
     const jobHandler = new CodegenJobHandler(this.uiClient);
     const downloadUrl = await jobHandler.execute(job);
@@ -76,7 +68,7 @@ export class LocalFormGenerator implements FormGenerator<void> {
       const match = uri.match(regex);
       if (match?.length !== 3 || !match[1] || !match[2]) {
         throw new Error(
-          'Could not identify bucket and key name for introspection schema'
+          'Could not identify bucket and key name for introspection schema',
         );
       }
       return {
@@ -87,7 +79,7 @@ export class LocalFormGenerator implements FormGenerator<void> {
     const { bucket, key } = parseS3Uri(uri);
     const client = new S3Client();
     const getSchemaCommandResult = await client.send(
-      new GetObjectCommand({ Bucket: bucket, Key: key })
+      new GetObjectCommand({ Bucket: bucket, Key: key }),
     );
     const schema = await getSchemaCommandResult.Body?.transformToString();
     if (!schema) {
@@ -149,7 +141,7 @@ export class LocalFormGenerator implements FormGenerator<void> {
   private generateJobInput = (
     genericDataSchema: CodegenJobGenericDataSchema,
     appId: string,
-    environmentName?: string
+    environmentName?: string,
   ) => {
     const job: StartCodegenJobData = {
       autoGenerateForms: true,
@@ -191,7 +183,7 @@ export class LocalFormGenerator implements FormGenerator<void> {
 
   private extractUIComponents = async (
     url: string,
-    uiBuilderComponentsPath: string
+    uiBuilderComponentsPath: string,
   ) => {
     try {
       if (!fs.existsSync(uiBuilderComponentsPath)) {
@@ -233,7 +225,7 @@ export class LocalFormGenerator implements FormGenerator<void> {
             };
           } catch (error) {
             console.debug(
-              `Skipping ${output.fileName} because of an error downloading the component`
+              `Skipping ${output.fileName} because of an error downloading the component`,
             );
             return {
               error: `Failed to download ${output.fileName}`,
@@ -243,7 +235,7 @@ export class LocalFormGenerator implements FormGenerator<void> {
           }
         } else {
           console.debug(
-            `Skipping ${output.fileName} because of an error generating the component`
+            `Skipping ${output.fileName} because of an error generating the component`,
           );
           return {
             error: output.error,
@@ -256,12 +248,12 @@ export class LocalFormGenerator implements FormGenerator<void> {
       for await (const downloaded of asyncPool(
         5,
         manifestFile.Output,
-        downloadComponent
+        downloadComponent,
       )) {
         if (downloaded.content) {
           fs.writeFileSync(
             path.join(uiBuilderComponentsPath, downloaded.fileName),
-            downloaded.content
+            downloaded.content,
           );
           console.debug(`Downloaded ${downloaded.fileName}`);
         }
