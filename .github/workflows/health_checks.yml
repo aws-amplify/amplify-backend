@@ -34,6 +34,7 @@ jobs:
       - run: npm run test:coverage:threshold
   run_e2e_tests:
     runs-on: ubuntu-latest
+    if: github.event_name == 'push'
     needs:
       - build
     permissions:
