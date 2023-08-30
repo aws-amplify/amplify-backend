@@ -3,8 +3,8 @@ import { BackendIdentifier } from '@aws-amplify/client-config';
 import { ClientConfigGeneratorAdapter } from '../config/client_config_generator_adapter.js';
 import { createFormGenerator } from '@aws-amplify/generate-forms';
 import {
-  GraphQLStatementsFormatter,
   GraphQLClientGenerator,
+  GraphQLStatementsFormatter,
 } from '@aws-amplify/generate-models';
 import { AppNameResolver } from '../../../local_app_name_resolver.js';
 import { AppSyncClient } from '@aws-sdk/client-appsync';
