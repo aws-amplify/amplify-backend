@@ -11,11 +11,14 @@ type Statements = [string, string][];
 export class GraphQLStatementsFormatter {
   private lintOverrides: any[] = [];
   private headerComments: string[] = [];
+  /**
+   *
+   */
   constructor(
     private language: keyof typeof GraphQLStatementsFormatter.parserMap = 'graphql',
   ) {}
 
-  format(statements: Statements) {
+  format = (statements: Statements) => {
     switch (this.language) {
       case 'javascript':
         this.headerComments.push(CODEGEN_WARNING);
@@ -34,9 +37,9 @@ export class GraphQLStatementsFormatter {
         this.headerComments.push(CODEGEN_WARNING);
         return this.prettify(this.formatGraphQL(statements));
     }
-  }
+  };
 
-  formatGraphQL(statements: Statements) {
+  private formatGraphQL = (statements: Statements) => {
     const headerBuffer = this.headerComments
       .map((comment) => `# ${comment}`)
       .join(LINE_DELIMITOR);
@@ -49,9 +52,9 @@ export class GraphQLStatementsFormatter {
       statementsBuffer,
     ].join(LINE_DELIMITOR);
     return formattedOutput;
-  }
+  };
 
-  formatJS(statements: Statements): string {
+  private formatJS = (statements: Statements): string => {
     const lintOverridesBuffer = this.lintOverrides.join(LINE_DELIMITOR);
     const headerBuffer = this.headerComments
       .map((comment) => `// ${comment}`)
@@ -71,7 +74,7 @@ export class GraphQLStatementsFormatter {
       ...formattedStatements,
     ].join(LINE_DELIMITOR);
     return formattedOutput;
-  }
+  };
 
   private static parserMap = {
     javascript: 'babel',
@@ -81,9 +84,9 @@ export class GraphQLStatementsFormatter {
     angular: 'graphql',
   };
 
-  prettify(output: string) {
+  private prettify = (output: string) => {
     return prettier.format(output, {
       parser: GraphQLStatementsFormatter.parserMap[this.language || 'graphql'],
     });
-  }
+  };
 }

@@ -1,8 +1,7 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
-import path from 'path';
 import { BackendIdentifier } from '@aws-amplify/client-config';
 import { ClientConfigGeneratorAdapter } from '../config/client_config_generator_adapter.js';
-import { LocalFormGenerator } from './local_form_generator.js';
+import { LocalFormGenerator } from '@aws-amplify/generate-forms';
 import { AppNameResolver } from '../../../local_app_name_resolver.js';
 
 export type GenerateFormsCommandOptions = {

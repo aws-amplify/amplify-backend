@@ -29,6 +29,7 @@
   "dependencies": {
     "@aws-amplify/appsync-modelgen-plugin": "^2.6.0",
     "@aws-amplify/codegen-ui": "^2.15.3",
+    "@aws-amplify/generate-forms": "^0.1.0",
     "@aws-amplify/graphql-docs-generator": "^4.0.5",
     "@aws-sdk/client-amplifyuibuilder": "^3.391.0",
     "@aws-sdk/client-appsync": "^3.391.0",
