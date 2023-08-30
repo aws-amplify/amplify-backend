@@ -14,6 +14,7 @@ import { aws_cognito } from 'aws-cdk-lib';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { BackendOutputWriter } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
+import { CustomAttributeConfig } from 'aws-cdk-lib/aws-cognito';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { StandardAttributes } from 'aws-cdk-lib/aws-cognito';
 
@@ -35,15 +36,7 @@ export class AmplifyAuth extends Construct implements BackendOutputWriter, Resou
 export abstract class AuthCustomAttributeBase {
     constructor(name: string);
     // (undocumented)
-    protected dataType: AuthCustomAttributeType;
-    // (undocumented)
-    protected maxLengthValue: number;
-    // (undocumented)
-    protected maxValue: number;
-    // (undocumented)
-    protected minLengthValue: number;
-    // (undocumented)
-    protected minValue: number;
+    protected attribute: CustomAttributeConfig;
     mutable: () => this;
 }
 
@@ -54,9 +47,6 @@ export const AuthCustomAttributeFactory: {
     boolean(name: string): AuthCustomBooleanAttribute;
     dateTime(name: string): AuthCustomDateTimeAttribute;
 };
-
-// @public (undocumented)
-export type AuthCustomAttributeType = 'String' | 'Number' | 'DateTime' | 'Boolean';
 
 // @public
 export class AuthCustomBooleanAttribute extends AuthCustomAttributeBase {
