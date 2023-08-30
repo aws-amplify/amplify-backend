@@ -3,6 +3,7 @@
   "compilerOptions": { "rootDir": "src", "outDir": "lib" },
   "references": [
     { "path": "../backend-output-schemas" },
-    { "path": "../plugin-types" }
+    { "path": "../plugin-types" },
+    { "path": "../client-config" }
   ]
 }
