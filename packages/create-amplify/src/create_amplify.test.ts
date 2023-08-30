@@ -13,7 +13,7 @@ import assert from 'assert';
  * TODO: we may want to pull this test into our e2e suite once we have that setup
  * https://github.com/aws-amplify/samsara-cli/issues/136
  */
-describe('create-amplify script', async () => {
+describe('create-amplify script', () => {
   before(async () => {
     // start a local npm proxy and publish the current codebase to the proxy
     await execa('npm', ['run', 'clean:npm-proxy'], { stdio: 'inherit' });

@@ -4,8 +4,8 @@ import {
 } from '@aws-amplify/plugin-types';
 import { CfnOutput, Stack } from 'aws-cdk-lib';
 import {
-  amplifyStackMetadataKey,
   BackendOutputStackMetadata,
+  amplifyStackMetadataKey,
 } from '@aws-amplify/backend-output-schemas/platform';
 
 /**

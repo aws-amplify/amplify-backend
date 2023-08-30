@@ -41,7 +41,7 @@ if (!npmProxyLogs.includes('http address')) {
 
 console.log(`Local npm proxy running at ${EXPECTED_URL}.`);
 
-execa('npm', ['config', 'set', 'registry', EXPECTED_URL]);
+await execa('npm', ['config', 'set', 'registry', EXPECTED_URL]);
 console.log(`Set npm registry to ${EXPECTED_URL}`);
 
 // copy local config into .npmrc

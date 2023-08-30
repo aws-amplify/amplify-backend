@@ -1,4 +1,4 @@
-import { execa, Options } from 'execa';
+import { Options, execa } from 'execa';
 
 const publishDefaults = {
   /**

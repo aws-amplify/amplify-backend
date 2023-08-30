@@ -1,5 +1,5 @@
 import { Construct } from 'constructs';
-import { aws_cognito as cognito, SecretValue, Stack } from 'aws-cdk-lib';
+import { SecretValue, Stack, aws_cognito as cognito } from 'aws-cdk-lib';
 import {
   AuthResources,
   BackendOutputStorageStrategy,
