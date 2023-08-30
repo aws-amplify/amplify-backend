@@ -3,7 +3,7 @@ import type {
   ModelRelationalField,
   InternalRelationalField,
 } from './ModelRelationalField';
-import type { TempAuthParam } from './authorization';
+// import type { TempAuthParam } from './authorization';
 import type { SetTypeSubArg } from './util';
 
 type ModelFields = Record<
@@ -19,7 +19,7 @@ type InternalModelFields = Record<
 type ModelData = {
   fields: ModelFields;
   identifier: string[];
-  authorization: TempAuthParam | undefined;
+  authorization: any | undefined;
 };
 
 type InternalModelData = ModelData & {
@@ -69,7 +69,10 @@ export type ModelType<
     identifier<ID extends IdentifierType<T> = []>(
       identifier: ID
     ): ModelType<SetTypeSubArg<T, 'identifier', ID>, K | 'identifier'>;
-    authorization(auth: TempAuthParam): ModelType<T, K | 'authorization'>;
+
+    // NOTE: We will need to pass fields through to authorization here as well
+    // so that a
+    authorization(auth: any): ModelType<T, K | 'authorization'>;
   },
   K
 >;

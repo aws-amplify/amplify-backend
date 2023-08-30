@@ -1,7 +1,15 @@
 import { expectTypeTestsToPassAsync } from 'jest-tsd';
 import a, { defineData } from '../index';
 import { schemaPreprocessor } from '../src/SchemaProcessor';
-import { Providers, Operations, Operation } from '../src/authorization';
+import {
+  PublicProviders,
+  PrivateProviders,
+  GroupProvider,
+  OwnerProviders,
+  CustomProvider,
+  Operations,
+  Operation,
+} from '../src/authorization';
 
 // evaluates type defs in corresponding test-d.ts file
 it('should not produce static type errors', async () => {
@@ -39,7 +47,7 @@ describe('model auth rules', () => {
     }).toThrow();
   });
 
-  for (const provider of Providers) {
+  for (const provider of PublicProviders) {
     it(`can define public with with provider ${provider}`, () => {
       const schema = a.schema({
         widget: a
@@ -70,6 +78,45 @@ describe('model auth rules', () => {
               title: a.string(),
             })
             .authorization([a.allow.public(provider).to(operations)]),
+        });
+
+        const graphql = schemaPreprocessor(schema).processedSchema;
+        expect(graphql).toMatchSnapshot();
+      });
+    }
+  }
+
+  for (const provider of PrivateProviders) {
+    it(`can define public with with provider ${provider}`, () => {
+      const schema = a.schema({
+        widget: a
+          .model({
+            title: a.string(),
+          })
+          .authorization([a.allow.private(provider)]),
+      });
+
+      const graphql = schemaPreprocessor(schema).processedSchema;
+      expect(graphql).toMatchSnapshot();
+    });
+
+    const TestOperations: Operation[][] = [
+      // each individual operation
+      ...Operations.map((op) => [op]),
+
+      // a couple sanity checks to support a combinations
+      ['create', 'read', 'update', 'delete'],
+      ['create', 'read', 'listen'],
+    ];
+
+    for (const operations of TestOperations) {
+      it(`can define private with with provider ${provider} for operation `, () => {
+        const schema = a.schema({
+          widget: a
+            .model({
+              title: a.string(),
+            })
+            .authorization([a.allow.private(provider).to(operations)]),
         });
 
         const graphql = schemaPreprocessor(schema).processedSchema;
