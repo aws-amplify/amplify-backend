@@ -66,6 +66,10 @@ export abstract class AuthCustomAttributeBase {
    */
   constructor(name: string) {
     this.name = name;
+    this.attribute = {
+      dataType: '',
+      mutable: false,
+    };
   }
   /**
    * Makes this attribute mutable.
@@ -103,6 +107,8 @@ export class AuthCustomStringAttribute extends AuthCustomAttributeBase {
     super(name);
     this.attribute = {
       dataType: 'String',
+      mutable: false,
+      stringConstraints: {},
     };
   }
   /**
@@ -146,6 +152,8 @@ export class AuthCustomNumberAttribute extends AuthCustomAttributeBase {
     super(name);
     this.attribute = {
       dataType: 'Number',
+      mutable: false,
+      numberConstraints: {},
     };
   }
   /**
@@ -189,6 +197,7 @@ export class AuthCustomDateTimeAttribute extends AuthCustomAttributeBase {
     super(name);
     this.attribute = {
       dataType: 'DateTime',
+      mutable: false,
     };
   }
 }
@@ -204,6 +213,7 @@ export class AuthCustomBooleanAttribute extends AuthCustomAttributeBase {
     super(name);
     this.attribute = {
       dataType: 'Boolean',
+      mutable: false,
     };
   }
 }
