@@ -46,12 +46,7 @@ jobs:
       # if the workflow is running on a pull request, we perform an additional check for the run-e2e label
       - if: github.event_name == 'pull_request'
         name: Check pull request has run-e2e label
-        run: |
-          gh api \
-          -H "Accept: application/vnd.github+json"\
-          -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}"\
-          /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}\
-          | jq -r '.labels[].name' | grep run-e2e --quiet
+        run: gh api /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} | jq -r '.labels[].name' | grep run-e2e --quiet
       - uses: actions/checkout@v3
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_build_cache
