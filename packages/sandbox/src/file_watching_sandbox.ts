@@ -19,8 +19,8 @@ export class FileWatchingSandbox implements Sandbox {
     private readonly clientConfigGenerator: ClientConfigGeneratorAdapter,
     private readonly executor: AmplifySandboxExecutor
   ) {
-    process.once('SIGINT', this.stop);
-    process.once('SIGTERM', this.stop);
+    process.once('SIGINT', void this.stop);
+    process.once('SIGTERM', void this.stop);
   }
 
   /**

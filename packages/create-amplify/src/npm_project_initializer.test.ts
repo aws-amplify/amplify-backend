@@ -2,7 +2,7 @@ import { describe, it, mock } from 'node:test';
 import { NpmProjectInitializer } from './npm_project_initializer.js';
 import assert from 'assert';
 
-describe('NpmInitializedEnsurer', async () => {
+describe('NpmInitializedEnsurer', () => {
   it('does nothing if package.json already exists', async () => {
     const logMock = mock.fn();
     const existsSyncMock = mock.fn(() => true);
