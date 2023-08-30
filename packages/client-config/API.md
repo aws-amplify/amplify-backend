@@ -30,7 +30,7 @@ export type ClientConfig = Partial<AuthClientConfig & GraphqlClientConfig & Stor
 
 // @public
 export class ClientConfigWriter {
-    writeClientConfig(clientConfig: ClientConfig, targetPath: string): Promise<void>;
+    writeClientConfig: (clientConfig: ClientConfig, targetPath: string) => Promise<void>;
 }
 
 // @public

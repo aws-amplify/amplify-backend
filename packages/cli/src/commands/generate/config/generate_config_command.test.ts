@@ -12,8 +12,14 @@ import { ClientConfigGeneratorAdapter } from './client_config_generator_adapter.
 import { ClientConfigWriter } from '@aws-amplify/client-config';
 
 describe('generate config command', () => {
+  const mockedWriteMethod = mock.fn(
+    async (
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      ...parameters: Parameters<ClientConfigWriter['writeClientConfig']>
+    ) => Promise.resolve()
+  );
   const mockWriter: ClientConfigWriter = {
-    writeClientConfig: mock.fn(),
+    writeClientConfig: mockedWriteMethod,
   };
   const clientConfigGeneratorAdapter = new ClientConfigGeneratorAdapter(
     fromNodeProviderChain(),
@@ -22,8 +28,13 @@ describe('generate config command', () => {
 
   const generateClientConfigMock = mock.method(
     clientConfigGeneratorAdapter,
-    'generateClientConfigToFile',
-    () => Promise.resolve()
+    'generateClientConfig',
+    (
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      ...parameters: Parameters<
+        ClientConfigGeneratorAdapter['generateClientConfigToFile']
+      >
+    ) => Promise.resolve()
   );
 
   const generateConfigCommand = new GenerateConfigCommand(
@@ -38,6 +49,7 @@ describe('generate config command', () => {
 
   beforeEach(() => {
     generateClientConfigMock.mock.resetCalls();
+    mockedWriteMethod.mock.resetCalls();
   });
 
   it('generates and writes config for stack', async () => {
@@ -48,7 +60,7 @@ describe('generate config command', () => {
     });
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(
-      generateClientConfigMock.mock.calls[0].arguments[1],
+      mockedWriteMethod.mock.calls[0].arguments[1],
       path.join(process.cwd(), 'amplifyconfiguration.js')
     );
   });
@@ -65,7 +77,7 @@ describe('generate config command', () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
-      generateClientConfigMock.mock.calls[0].arguments[1],
+      mockedWriteMethod.mock.calls[0].arguments[1],
       path.join(process.cwd(), 'amplifyconfiguration.js')
     );
   });
@@ -81,7 +93,7 @@ describe('generate config command', () => {
     });
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
-      generateClientConfigMock.mock.calls[0].arguments[1],
+      mockedWriteMethod.mock.calls[0].arguments[1],
       path.join(process.cwd(), 'amplifyconfiguration.js')
     );
   });
@@ -96,7 +108,7 @@ describe('generate config command', () => {
     });
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.equal(
-      generateClientConfigMock.mock.calls[0].arguments[1],
+      mockedWriteMethod.mock.calls[0].arguments[1],
       path.join('/', 'foo', 'bar', 'customFile.js')
     );
   });
@@ -111,7 +123,7 @@ describe('generate config command', () => {
     });
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.equal(
-      generateClientConfigMock.mock.calls[0].arguments[1],
+      mockedWriteMethod.mock.calls[0].arguments[1],
       path.join(process.cwd(), 'foo', 'bar', 'customFile.js')
     );
   });
