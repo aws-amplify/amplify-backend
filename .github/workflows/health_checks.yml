@@ -35,6 +35,7 @@ jobs:
   do_include_e2e:
     runs-on: ubuntu-latest
     permissions:
+      # This is required so that the step can read the labels on the pull request
       pull-requests: read
     env:
       # The gh cli expects the token at this environment variable
@@ -62,6 +63,7 @@ jobs:
       - build
       - do_include_e2e
     permissions:
+      # these permissions are required for the configure-aws-credentials action to get a JWT from GitHub
       id-token: write
       contents: read
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
