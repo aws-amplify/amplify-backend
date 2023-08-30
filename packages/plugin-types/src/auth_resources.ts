@@ -1,9 +1,9 @@
 import { IRole } from 'aws-cdk-lib/aws-iam';
 import {
-  IUserPool,
-  IUserPoolClient,
   CfnIdentityPool,
   CfnIdentityPoolRoleAttachment,
+  IUserPool,
+  IUserPoolClient,
 } from 'aws-cdk-lib/aws-cognito';
 /**
  * Accessible Cfn resources from the Auth construct, which were generated during
