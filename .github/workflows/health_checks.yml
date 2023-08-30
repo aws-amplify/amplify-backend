@@ -50,8 +50,10 @@ jobs:
         id: check
         run: |
           if [[ ${{ github.event_name }} == 'push' ]] || gh api /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} | jq -r '.labels[].name' | grep run-e2e --quiet; then
+            echo setting run_e2e to true
             echo "run_e2e=true" >> "$GITHUB_OUTPUT";
           else
+            echo setting run_e2e to false
             echo "run_e2e=false" >> "$GITHUB_OUTPUT";
           fi
   run_e2e_tests:
@@ -62,7 +64,7 @@ jobs:
     permissions:
       id-token: write
       contents: read
-    if: ${{ needs.do_include_e2e.outputs.run_e2e }} == 'true'
+    if: needs.do_include_e2e.outputs.run_e2e == 'true'
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/setup_node
