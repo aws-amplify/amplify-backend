@@ -1,9 +1,11 @@
 import { execa } from 'execa';
 import { runPublish } from './publish_runner.js';
-
-const result = await execa('git', ['diff', '--quiet'], { reject: false });
-if (result.exitCode !== 0) {
-  // non-zero exit code indicates working tree is dirty
+const isCleanWorkingTree = async (): Promise<boolean> => {
+  const buffer = await execa('git', ['status', '--porcelain']);
+  return !buffer.stdout.trim();
+};
+const isCleanTree = await isCleanWorkingTree();
+if (!isCleanTree) {
   throw new Error(
     `Detected a dirty working tree. Commit or stash changes before publishing a snapshot`
   );
