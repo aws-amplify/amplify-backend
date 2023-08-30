@@ -60,7 +60,6 @@ export class GenerateConfigCommand
     } else {
       targetPath = path.resolve(process.cwd(), 'amplifyconfiguration.js');
     }
-
     await this.clientConfigGenerator.generateClientConfigToFile(
       backendIdentifier,
       targetPath
