@@ -47,7 +47,7 @@ export class AuthStandardAttribute {
   /**
    * This method is effectively package private, we use it to get the attribute configuration
    * without exposing this method to users.
-   * @returns Partial<aws_cognito.StandardAttributes>
+   * @returns Partial\<aws_cognito.StandardAttributes\>
    */
   private _toStandardAttributes =
     (): Partial<aws_cognito.StandardAttributes> => {
@@ -63,13 +63,12 @@ export class AuthStandardAttribute {
  * This class facilitates creation of Custom user attributes.
  */
 export abstract class AuthCustomAttributeBase {
-  private name: string;
   protected attribute: CustomAttributeConfig;
   /**
    * Create a Custom Attribute
    * @param name - A name for the custom attribute
    */
-  constructor(name: string) {
+  constructor(private readonly name: string) {
     this.name = name;
     this.attribute = {
       dataType: '',

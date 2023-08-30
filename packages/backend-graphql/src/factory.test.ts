@@ -21,6 +21,8 @@ import { Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import {
   CfnIdentityPool,
   CfnIdentityPoolRoleAttachment,
+  UserPool,
+  UserPoolClient,
 } from 'aws-cdk-lib/aws-cognito';
 
 const testSchema = `
@@ -48,10 +50,15 @@ describe('DataFactory', () => {
     constructContainer = new SingletonConstructContainer(
       new NestedStackResolver(stack)
     );
+    const sampleUserPool = new UserPool(stack, 'UserPool');
     constructContainer.registerConstructFactory('AuthResources', {
       provides: 'AuthResources',
       getInstance: (): ResourceProvider<AuthResources> => ({
         resources: {
+          userPool: sampleUserPool,
+          userPoolClientWeb: new UserPoolClient(stack, 'UserPoolClient', {
+            userPool: sampleUserPool,
+          }),
           unauthenticatedUserIamRole: new Role(stack, 'testUnauthRole', {
             assumedBy: new ServicePrincipal('test.amazon.com'),
           }),

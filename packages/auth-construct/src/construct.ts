@@ -247,8 +247,8 @@ export class AmplifyAuth
     outputStorageStrategy.addBackendOutputEntry(authOutputKey, {
       version: '1',
       payload: {
-        userPoolId: this.resources.userPool?.userPoolId ?? '',
-        webClientId: this.resources.userPoolClientWeb?.userPoolClientId ?? '',
+        userPoolId: this.resources.userPool.userPoolId,
+        webClientId: this.resources.userPoolClientWeb.userPoolClientId,
         authRegion: Stack.of(this).region,
       },
     });
