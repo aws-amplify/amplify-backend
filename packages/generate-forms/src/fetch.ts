@@ -1,9 +1,12 @@
 import fetch from 'node-fetch';
 
+/**
+ * Attempts a fetch and retries on failure
+ */
 export const fetchWithRetries = async (
   url: string,
   retries = 3,
-  delay = 300,
+  delay = 300
 ) => {
   let retryCount = 0;
   let retryDelay = delay;

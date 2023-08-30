@@ -1,8 +1,13 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { BackendIdentifier } from '@aws-amplify/client-config';
 import { ClientConfigGeneratorAdapter } from '../config/client_config_generator_adapter.js';
-import { LocalFormGenerator } from '@aws-amplify/generate-forms';
+import { createFormGenerator } from '@aws-amplify/generate-forms';
+import {
+  GraphQLStatementsFormatter,
+  GraphQLClientGenerator,
+} from '@aws-amplify/generate-models';
 import { AppNameResolver } from '../../../local_app_name_resolver.js';
+import { AppSyncClient } from '@aws-sdk/client-appsync';
 
 export type GenerateFormsCommandOptions = {
   stack: string | undefined;
@@ -28,7 +33,7 @@ export class GenerateFormsCommand
   readonly describe: string;
 
   private readonly missingArgsError = new Error(
-    'Either --stack or --branch must be provided',
+    'Either --stack or --branch must be provided'
   );
 
   /**
@@ -36,7 +41,7 @@ export class GenerateFormsCommand
    */
   constructor(
     private readonly clientConfigGenerator: ClientConfigGeneratorAdapter,
-    private readonly appNameResolver: AppNameResolver,
+    private readonly appNameResolver: AppNameResolver
   ) {
     this.command = 'forms';
     this.describe = 'Generates UI forms';
@@ -46,17 +51,16 @@ export class GenerateFormsCommand
    * @inheritDoc
    */
   handler = async (
-    args: ArgumentsCamelCase<GenerateFormsCommandOptions>,
+    args: ArgumentsCamelCase<GenerateFormsCommandOptions>
   ): Promise<void> => {
     const backendIdentifier = await this.getBackendIdentifier(args);
-    const config =
-      await this.clientConfigGenerator.generateClientConfig(backendIdentifier);
-    console.log('#######HOLA#######', JSON.stringify(config, null, 2));
+    const config = await this.clientConfigGenerator.generateClientConfig(
+      backendIdentifier
+    );
     if (!config.aws_appsync_graphqlEndpoint) {
       throw new TypeError('appsync endpoint is null');
     }
     const apiId = config.aws_appsync_apiId;
-    console.log(apiId);
     if (!apiId) {
       throw new TypeError('AppSync apiId must be defined');
     }
@@ -64,10 +68,18 @@ export class GenerateFormsCommand
     const apiUrl = config.aws_appsync_apiUri;
 
     if (!apiUrl) {
-      throw new TypeError('AppSync api url must be defined');
+      throw new TypeError('AppSync api schema url must be defined');
     }
 
-    const localFormGenerator = new LocalFormGenerator({
+    const graphqlClientGenerator = new GraphQLClientGenerator(
+      new AppSyncClient(),
+      './src/graphql',
+      new GraphQLStatementsFormatter('typescript'),
+      apiId
+    );
+    await graphqlClientGenerator.generateDocuments();
+    const localFormGenerator = createFormGenerator('graphql', {
+      appId: 'dkne2bw3gmwb0',
       apiId,
       introspectionSchemaUrl: apiUrl,
     });
@@ -78,9 +90,9 @@ export class GenerateFormsCommand
    * Translates args to BackendIdentifier.
    * Throws if translation can't be made (this should never happen if command validation works correctly).
    */
-  private async getBackendIdentifier(
-    args: ArgumentsCamelCase<GenerateFormsCommandOptions>,
-  ): Promise<BackendIdentifier> {
+  private getBackendIdentifier = async (
+    args: ArgumentsCamelCase<GenerateFormsCommandOptions>
+  ): Promise<BackendIdentifier> => {
     if (args.stack) {
       return { stackName: args.stack };
     } else if (args.appId && args.branch) {
@@ -93,7 +105,7 @@ export class GenerateFormsCommand
     } else {
       throw this.missingArgsError;
     }
-  }
+  };
 
   /**
    * @inheritDoc

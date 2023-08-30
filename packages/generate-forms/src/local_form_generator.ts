@@ -23,7 +23,6 @@ export type LocalFormGenerationConfig = {
   appId: string;
   environmentName?: string;
 };
-class FormGenerationDelegate {}
 
 /**
  * Creates UI Forms locally based on an appsync api id
@@ -34,14 +33,8 @@ export class LocalFormGenerator implements FormGenerator<void> {
    */
   constructor(
     private config: LocalFormGenerationConfig,
-    private uiClient: AmplifyUIBuilder,
-  ) {
-    // const appId = 'dkne2bw3gmwb0';
-    // const environmentName = '_AMPLIFY_SAMSARA_INTERNAL_';
-    // const uiClient = new AmplifyUIBuilder({
-    //   endpoint: 'https://tzhtbadkkh.execute-api.us-west-2.amazonaws.com/prod/',
-    // });
-  }
+    private uiClient: AmplifyUIBuilder
+  ) {}
 
   /**
    * Generates a form based on the config passed into the constructor.
@@ -53,12 +46,11 @@ export class LocalFormGenerator implements FormGenerator<void> {
     const job = this.generateJobInput(
       modelIntrospectionSchema,
       this.config.apiId,
-      this.config.environmentName,
+      this.config.environmentName
     );
     const jobHandler = new CodegenJobHandler(this.uiClient);
     const downloadUrl = await jobHandler.execute(job);
 
-    await this.graphqlDocumentGenerator.generateDocuments();
     await this.extractUIComponents(downloadUrl, './src/ui-components');
   };
 
@@ -68,7 +60,7 @@ export class LocalFormGenerator implements FormGenerator<void> {
       const match = uri.match(regex);
       if (match?.length !== 3 || !match[1] || !match[2]) {
         throw new Error(
-          'Could not identify bucket and key name for introspection schema',
+          'Could not identify bucket and key name for introspection schema'
         );
       }
       return {
@@ -79,7 +71,7 @@ export class LocalFormGenerator implements FormGenerator<void> {
     const { bucket, key } = parseS3Uri(uri);
     const client = new S3Client();
     const getSchemaCommandResult = await client.send(
-      new GetObjectCommand({ Bucket: bucket, Key: key }),
+      new GetObjectCommand({ Bucket: bucket, Key: key })
     );
     const schema = await getSchemaCommandResult.Body?.transformToString();
     if (!schema) {
@@ -141,7 +133,7 @@ export class LocalFormGenerator implements FormGenerator<void> {
   private generateJobInput = (
     genericDataSchema: CodegenJobGenericDataSchema,
     appId: string,
-    environmentName?: string,
+    environmentName?: string
   ) => {
     const job: StartCodegenJobData = {
       autoGenerateForms: true,
@@ -183,85 +175,71 @@ export class LocalFormGenerator implements FormGenerator<void> {
 
   private extractUIComponents = async (
     url: string,
-    uiBuilderComponentsPath: string,
+    uiBuilderComponentsPath: string
   ) => {
-    try {
-      if (!fs.existsSync(uiBuilderComponentsPath)) {
-        fs.mkdirSync(uiBuilderComponentsPath, { recursive: true });
-      }
+    if (!fs.existsSync(uiBuilderComponentsPath)) {
+      fs.mkdirSync(uiBuilderComponentsPath, { recursive: true });
+    }
 
-      const response = await fetchWithRetries(url);
-      if (!response.ok) {
-        throw new Error('Failed to download component manifest file');
-      }
-      const manifestFile = await (<
-        Promise<{
-          // eslint-disable-next-line @typescript-eslint/naming-convention
-          Output: {
-            downloadUrl: string | undefined;
-            fileName: string;
-            schemaName: string;
-            error: string | undefined;
-          }[];
-        }>
-      >response.json());
+    const response = await fetchWithRetries(url);
+    if (!response.ok) {
+      throw new Error('Failed to download component manifest file');
+    }
+    const manifestFile = await (<
+      Promise<{
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        Output: {
+          downloadUrl: string | undefined;
+          fileName: string;
+          schemaName: string;
+          error: string | undefined;
+        }[];
+      }>
+    >response.json());
 
-      const downloadComponent = async (output: {
-        fileName: string;
-        downloadUrl: string | undefined;
-        error: string | undefined;
-      }) => {
-        if (output.downloadUrl && !output.error) {
-          try {
-            const response = await fetchWithRetries(output.downloadUrl);
-            if (!response.ok) {
-              console.debug(`Failed to download ${output.fileName}`);
-              throw new Error(`Failed to download ${output.fileName}`);
-            }
-            return {
-              content: await response.text(),
-              error: undefined,
-              fileName: output.fileName,
-            };
-          } catch (error) {
-            console.debug(
-              `Skipping ${output.fileName} because of an error downloading the component`,
-            );
-            return {
-              error: `Failed to download ${output.fileName}`,
-              content: undefined,
-              fileName: output.fileName,
-            };
+    const downloadComponent = async (output: {
+      fileName: string;
+      downloadUrl: string | undefined;
+      error: string | undefined;
+    }) => {
+      if (output.downloadUrl && !output.error) {
+        try {
+          const response = await fetchWithRetries(output.downloadUrl);
+          if (!response.ok) {
+            throw new Error(`Failed to download ${output.fileName}`);
           }
-        } else {
-          console.debug(
-            `Skipping ${output.fileName} because of an error generating the component`,
-          );
           return {
-            error: output.error,
+            content: await response.text(),
+            error: undefined,
+            fileName: output.fileName,
+          };
+        } catch (error) {
+          return {
+            error: `Failed to download ${output.fileName}`,
             content: undefined,
             fileName: output.fileName,
           };
         }
-      };
-
-      for await (const downloaded of asyncPool(
-        5,
-        manifestFile.Output,
-        downloadComponent,
-      )) {
-        if (downloaded.content) {
-          fs.writeFileSync(
-            path.join(uiBuilderComponentsPath, downloaded.fileName),
-            downloaded.content,
-          );
-          console.debug(`Downloaded ${downloaded.fileName}`);
-        }
+      } else {
+        return {
+          error: output.error,
+          content: undefined,
+          fileName: output.fileName,
+        };
       }
-      console.debug('ui-components downloaded successfully');
-    } catch (error) {
-      console.error('failed to download ui-components');
-      throw error;
+    };
+
+    for await (const downloaded of asyncPool(
+      5,
+      manifestFile.Output,
+      downloadComponent
+    )) {
+      if (downloaded.content) {
+        fs.writeFileSync(
+          path.join(uiBuilderComponentsPath, downloaded.fileName),
+          downloaded.content
+        );
+      }
     }
   };
 }

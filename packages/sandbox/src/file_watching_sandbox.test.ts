@@ -16,10 +16,7 @@ let fileChangeEventActualFn: watcher.SubscribeCallback;
 
 // Client config mocks
 const clientConfigGeneratorAdapter = new ClientConfigGeneratorAdapter(
-  mock.fn(),
-  {
-    writeClientConfig: mock.fn(),
-  }
+  mock.fn()
 );
 const generateClientConfigMock = mock.method(
   clientConfigGeneratorAdapter,

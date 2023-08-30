@@ -5,7 +5,6 @@ import * as appsync from '@aws-amplify/appsync-modelgen-plugin';
 import asyncPool from 'tiny-async-pool';
 import { parse } from 'graphql';
 import {
-  AmplifyUIBuilder,
   CodegenJobGenericDataSchema,
   StartCodegenJobData,
 } from '@aws-sdk/client-amplifyuibuilder';
@@ -27,16 +26,16 @@ interface LocalFilesystemFormGenerationStrategyParameters {
   introspectionSchemaUrl: string;
 }
 /**
- *
+ * Generates forms on the local filesystem
  */
 export class LocalFilesystemFormGenerationStrategy
   implements FormGenerationStrategy
 {
   /**
-   *
+   * Accepts a jobHandler and a generation config
    */
   constructor(
-    private uiClient: AmplifyUIBuilder,
+    private jobHandler: CodegenJobHandler,
     private config: LocalFilesystemFormGenerationStrategyParameters
   ) {}
   generateForms = async () => {
@@ -47,8 +46,7 @@ export class LocalFilesystemFormGenerationStrategy
       this.config.apiId,
       this.config.environmentName
     );
-    const jobHandler = new CodegenJobHandler(this.uiClient);
-    const downloadUrl = await jobHandler.execute(job);
+    const downloadUrl = await this.jobHandler.execute(job);
     await this.extractUIComponents(downloadUrl, './src/ui-components');
   };
   private getAppSchema = async (uri: string) => {
@@ -163,83 +161,69 @@ export class LocalFilesystemFormGenerationStrategy
     url: string,
     uiBuilderComponentsPath: string
   ) => {
-    try {
-      if (!fs.existsSync(uiBuilderComponentsPath)) {
-        fs.mkdirSync(uiBuilderComponentsPath, { recursive: true });
-      }
+    if (!fs.existsSync(uiBuilderComponentsPath)) {
+      fs.mkdirSync(uiBuilderComponentsPath, { recursive: true });
+    }
 
-      const response = await fetchWithRetries(url);
-      if (!response.ok) {
-        throw new Error('Failed to download component manifest file');
-      }
-      const manifestFile = await (<
-        Promise<{
-          // eslint-disable-next-line @typescript-eslint/naming-convention
-          Output: {
-            downloadUrl: string | undefined;
-            fileName: string;
-            schemaName: string;
-            error: string | undefined;
-          }[];
-        }>
-      >response.json());
+    const response = await fetchWithRetries(url);
+    if (!response.ok) {
+      throw new Error('Failed to download component manifest file');
+    }
+    const manifestFile = await (<
+      Promise<{
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        Output: {
+          downloadUrl: string | undefined;
+          fileName: string;
+          schemaName: string;
+          error: string | undefined;
+        }[];
+      }>
+    >response.json());
 
-      const downloadComponent = async (output: {
-        fileName: string;
-        downloadUrl: string | undefined;
-        error: string | undefined;
-      }) => {
-        if (output.downloadUrl && !output.error) {
-          try {
-            const response = await fetchWithRetries(output.downloadUrl);
-            if (!response.ok) {
-              console.debug(`Failed to download ${output.fileName}`);
-              throw new Error(`Failed to download ${output.fileName}`);
-            }
-            return {
-              content: await response.text(),
-              error: undefined,
-              fileName: output.fileName,
-            };
-          } catch (error) {
-            console.debug(
-              `Skipping ${output.fileName} because of an error downloading the component`
-            );
-            return {
-              error: `Failed to download ${output.fileName}`,
-              content: undefined,
-              fileName: output.fileName,
-            };
+    const downloadComponent = async (output: {
+      fileName: string;
+      downloadUrl: string | undefined;
+      error: string | undefined;
+    }) => {
+      if (output.downloadUrl && !output.error) {
+        try {
+          const response = await fetchWithRetries(output.downloadUrl);
+          if (!response.ok) {
+            throw new Error(`Failed to download ${output.fileName}`);
           }
-        } else {
-          console.debug(
-            `Skipping ${output.fileName} because of an error generating the component`
-          );
           return {
-            error: output.error,
+            content: await response.text(),
+            error: undefined,
+            fileName: output.fileName,
+          };
+        } catch (error) {
+          return {
+            error: `Failed to download ${output.fileName}`,
             content: undefined,
             fileName: output.fileName,
           };
         }
-      };
-
-      for await (const downloaded of asyncPool(
-        5,
-        manifestFile.Output,
-        downloadComponent
-      )) {
-        if (downloaded.content) {
-          fs.writeFileSync(
-            path.join(uiBuilderComponentsPath, downloaded.fileName),
-            downloaded.content
-          );
-          console.debug(`Downloaded ${downloaded.fileName}`);
-        }
+      } else {
+        return {
+          error: output.error,
+          content: undefined,
+          fileName: output.fileName,
+        };
       }
-      console.debug('ui-components downloaded successfully');
-    } catch (error) {
-      console.error('failed to download ui-components');
-      throw error;
+    };
+
+    for await (const downloaded of asyncPool(
+      5,
+      manifestFile.Output,
+      downloadComponent
+    )) {
+      if (downloaded.content) {
+        fs.writeFileSync(
+          path.join(uiBuilderComponentsPath, downloaded.fileName),
+          downloaded.content
+        );
+      }
     }
   };
 }

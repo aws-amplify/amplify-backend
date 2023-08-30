@@ -12,10 +12,10 @@ export class GraphQLStatementsFormatter {
   private lintOverrides: any[] = [];
   private headerComments: string[] = [];
   /**
-   *
+   * Configures the language of the formatter
    */
   constructor(
-    private language: keyof typeof GraphQLStatementsFormatter.parserMap = 'graphql',
+    private language: keyof typeof GraphQLStatementsFormatter.parserMap = 'graphql'
   ) {}
 
   format = (statements: Statements) => {
@@ -27,7 +27,7 @@ export class GraphQLStatementsFormatter {
       case 'typescript':
         this.headerComments.push(CODEGEN_WARNING);
         this.lintOverrides.push(
-          ...['/* tslint:disable */', '/* eslint-disable */'],
+          ...['/* tslint:disable */', '/* eslint-disable */']
         );
         return this.prettify(this.formatJS(statements));
       case 'flow':
@@ -63,7 +63,7 @@ export class GraphQLStatementsFormatter {
     if (statements) {
       for (const [key, value] of statements) {
         formattedStatements.push(
-          `export const ${key} = /* GraphQL */ \`${value}\``,
+          `export const ${key} = /* GraphQL */ \`${value}\``
         );
       }
     }

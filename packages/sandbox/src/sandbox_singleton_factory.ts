@@ -2,7 +2,6 @@ import { FileWatchingSandbox } from './file_watching_sandbox.js';
 import { Sandbox } from './sandbox.js';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { ClientConfigGeneratorAdapter } from './config/client_config_generator_adapter.js';
-import { ClientConfigWriter } from '@aws-amplify/client-config';
 import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
 
@@ -19,8 +18,7 @@ export class SandboxSingletonFactory {
    */
   constructor(private readonly sandboxIdResolver: () => Promise<string>) {
     this.clientConfigGenerator = new ClientConfigGeneratorAdapter(
-      fromNodeProviderChain(),
-      new ClientConfigWriter()
+      fromNodeProviderChain()
     );
   }
 

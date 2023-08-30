@@ -1,1 +1,1 @@
-export * from './local_form_generator.js';
+export * from './factories.js';

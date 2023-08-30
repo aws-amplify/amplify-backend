@@ -3,6 +3,7 @@
   "compilerOptions": { "rootDir": "src", "outDir": "lib" },
   "references": [
     { "path": "../generate-forms" },
+    { "path": "../generate-models" },
     { "path": "../client-config" },
     { "path": "../sandbox" }
   ]

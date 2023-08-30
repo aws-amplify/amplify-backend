@@ -10,11 +10,8 @@ import {
 } from '@aws-sdk/client-amplifyuibuilder';
 
 type CodegenGenericDataFields = Record<string, CodegenGenericDataField>;
-/**
- *
- */
-export const mapRelationshipTypeToCodegen = (
-  relationship: CodegenGenericDataRelationshipType | undefined,
+const mapRelationshipTypeToCodegen = (
+  relationship: CodegenGenericDataRelationshipType | undefined
 ): CodegenGenericDataRelationshipType | undefined => {
   if (!relationship) return undefined;
 
@@ -47,10 +44,7 @@ export const mapRelationshipTypeToCodegen = (
       throw new Error('Invalid relationship type');
   }
 };
-/**
- *
- */
-export const mapDataFieldsToCodegen = (fields: {
+const mapDataFieldsToCodegen = (fields: {
   [fieldName: string]: GenericDataField;
 }): CodegenGenericDataFields => {
   const codegenFields: CodegenGenericDataFields = {};
@@ -82,7 +76,7 @@ export const mapDataFieldsToCodegen = (fields: {
     };
     if (dataField.relationship) {
       codegenFields[fieldName].relationship = mapRelationshipTypeToCodegen(
-        dataField.relationship,
+        dataField.relationship
       );
     }
   });
@@ -90,10 +84,10 @@ export const mapDataFieldsToCodegen = (fields: {
   return codegenFields;
 };
 /**
- *
+ * Maps a graphql generic data schema to a form that can be understood by the UIBuilder service
  */
 export const mapGenericDataSchemaToCodegen = (
-  genericDataSchema: GenericDataSchema,
+  genericDataSchema: GenericDataSchema
 ): CodegenJobGenericDataSchema => {
   const { models, nonModels, enums, dataSourceType } = genericDataSchema;
   const codegenModels: { [key: string]: CodegenGenericDataModel } = {};

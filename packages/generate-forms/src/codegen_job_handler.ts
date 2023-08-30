@@ -4,9 +4,12 @@ import {
   StartCodegenJobCommandInput,
 } from '@aws-sdk/client-amplifyuibuilder';
 
+/**
+ * Manages the lifecycle of the codegen job
+ */
 export class CodegenJobHandler {
   /**
-   *
+   * Instantiates the CodegenJobHandler
    */
   constructor(private uiClient: AmplifyUIBuilder) {}
 
@@ -28,7 +31,7 @@ export class CodegenJobHandler {
       },
       {
         pollInterval: 2000,
-      },
+      }
     );
     if (!finished.asset?.downloadUrl) {
       throw new Error('did not get download url');
@@ -38,7 +41,7 @@ export class CodegenJobHandler {
 
   waitForSucceededJob = async (
     getJob: () => Promise<CodegenJob>,
-    { pollInterval }: { pollInterval: number },
+    { pollInterval }: { pollInterval: number }
   ) => {
     const startTime = performance.now();
     const waitTimeout = process.env.UI_BUILDER_CODEGENJOB_TIMEOUT
@@ -55,15 +58,10 @@ export class CodegenJobHandler {
       }
 
       if (job.status === 'failed') {
-        console.error('Codegen job status is failed', {
-          message: job.statusMessage,
-        });
         throw new Error(job.statusMessage);
       }
 
       if (job.status === 'succeeded') {
-        console.debug(`Polling time: ${performance.now() - startTime}`);
-
         return job;
       }
 
@@ -71,9 +69,12 @@ export class CodegenJobHandler {
     }
 
     if (performance.now() > endTime) {
-      console.error(`Codegen job never succeeded before timeout`);
+      throw new Error(`Codegen job never succeeded before timeout`);
     }
 
     throw new Error('Failed to return codegen job');
+  };
+  delay = (durationMs: number): Promise<void> => {
+    return new Promise((r) => setTimeout(() => r(), durationMs));
   };
 }
