@@ -44,6 +44,11 @@ export class AuthStandardAttribute {
     this.isRequired = true;
     return this;
   };
+  /**
+   * This method is effectively package private, we use it to get the attribute configuration
+   * without exposing this method to users.
+   * @returns Partial<aws_cognito.StandardAttributes>
+   */
   private _toStandardAttributes =
     (): Partial<aws_cognito.StandardAttributes> => {
       return {
@@ -82,6 +87,11 @@ export abstract class AuthCustomAttributeBase {
     };
     return this;
   };
+  /**
+   * This method is effectively package private, we use it to get the attribute configuration
+   * without exposing this method to users.
+   * @returns aws_cognito.ICustomAttribute
+   */
   private _toCustomAttributes = (): Record<
     string,
     aws_cognito.ICustomAttribute
