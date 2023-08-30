@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { SandboxIdResolver } from './sandbox_id_resolver.js';
 
-describe('SandboxIdResolver', async () => {
+describe('SandboxIdResolver', () => {
   it('resolve can be used as a function reference', async () => {
     const resolver = new SandboxIdResolver(
       {

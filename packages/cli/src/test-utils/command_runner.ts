@@ -38,7 +38,7 @@ export class TestCommandRunner {
     return await new Promise((resolve, reject) => {
       // This trick allows us to capture output and errors in memory.
       // In order to trigger this behavior a parseCallback must be passed to either parse or parseAsync.
-      this.parser.parse(args, {}, (err, argv, output) => {
+      void this.parser.parse(args, {}, (err, argv, output) => {
         if (err) {
           reject(new TestCommandError(err, output));
         } else {
