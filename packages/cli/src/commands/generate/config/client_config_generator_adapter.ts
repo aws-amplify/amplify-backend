@@ -1,6 +1,6 @@
 import {
   BackendIdentifier,
-  generateClientConfig as generateConfig,
+  generateClientConfig,
   ClientConfig,
   generateClientConfigToFile,
 } from '@aws-amplify/client-config';
@@ -22,7 +22,7 @@ export class ClientConfigGeneratorAdapter {
   generateClientConfig = async (
     backendIdentifier: BackendIdentifier
   ): Promise<ClientConfig> => {
-    return generateConfig(this.awsCredentialProvider, backendIdentifier);
+    return generateClientConfig(this.awsCredentialProvider, backendIdentifier);
   };
 
   /**
