@@ -1,5 +1,8 @@
 import { aws_cognito } from 'aws-cdk-lib';
-import { StandardAttributes } from 'aws-cdk-lib/aws-cognito';
+import {
+  CustomAttributeConfig,
+  StandardAttributes,
+} from 'aws-cdk-lib/aws-cognito';
 /**
  * Examples:
  * AuthAttributeFactory('address').mutable().required();
@@ -51,22 +54,12 @@ export class AuthStandardAttribute {
       };
     };
 }
-export type AuthCustomAttributeType =
-  | 'String'
-  | 'Number'
-  | 'DateTime'
-  | 'Boolean';
 /**
  * This class facilitates creation of Custom user attributes.
  */
 export abstract class AuthCustomAttributeBase {
   private name: string;
-  private isMutable = false;
-  protected dataType: AuthCustomAttributeType;
-  protected minLengthValue: number;
-  protected maxLengthValue: number;
-  protected minValue: number;
-  protected maxValue: number;
+  protected attribute: CustomAttributeConfig;
   /**
    * Create a Custom Attribute
    * @param name - A name for the custom attribute
@@ -79,7 +72,10 @@ export abstract class AuthCustomAttributeBase {
    * @returns the attribute
    */
   mutable = () => {
-    this.isMutable = true;
+    this.attribute = {
+      ...this.attribute,
+      mutable: true,
+    };
     return this;
   };
   private _toCustomAttributes = (): Record<
@@ -89,23 +85,7 @@ export abstract class AuthCustomAttributeBase {
     return {
       [this.name]: {
         bind: () => {
-          return {
-            dataType: this.dataType,
-            mutable: this.isMutable,
-            ...(this.dataType === 'String'
-              ? {
-                  stringConstraints: {
-                    minLen: this.minLengthValue,
-                    maxLen: this.maxLengthValue,
-                  },
-                }
-              : {}),
-            ...(this.dataType === 'Number'
-              ? {
-                  numberConstraints: { min: this.minValue, max: this.maxValue },
-                }
-              : {}),
-          };
+          return this.attribute;
         },
       },
     };
@@ -121,14 +101,22 @@ export class AuthCustomStringAttribute extends AuthCustomAttributeBase {
    */
   constructor(name: string) {
     super(name);
-    this.dataType = 'String';
+    this.attribute = {
+      dataType: 'String',
+    };
   }
   /**
    * Set the minimum length for this attribute
    * @returns the attribute
    */
   minLength = (minLength: number): AuthCustomStringAttribute => {
-    this.minLengthValue = minLength;
+    this.attribute = {
+      ...this.attribute,
+      stringConstraints: {
+        ...this.attribute.stringConstraints,
+        minLen: minLength,
+      },
+    };
     return this;
   };
   /**
@@ -136,7 +124,13 @@ export class AuthCustomStringAttribute extends AuthCustomAttributeBase {
    * @returns the attribute
    */
   maxLength = (maxLength: number): AuthCustomStringAttribute => {
-    this.maxLengthValue = maxLength;
+    this.attribute = {
+      ...this.attribute,
+      stringConstraints: {
+        ...this.attribute.stringConstraints,
+        maxLen: maxLength,
+      },
+    };
     return this;
   };
 }
@@ -150,14 +144,22 @@ export class AuthCustomNumberAttribute extends AuthCustomAttributeBase {
    */
   constructor(name: string) {
     super(name);
-    this.dataType = 'Number';
+    this.attribute = {
+      dataType: 'Number',
+    };
   }
   /**
    * Set the minimum value for this attribute
    * @returns the attribute
    */
   min = (min: number): AuthCustomNumberAttribute => {
-    this.minValue = min;
+    this.attribute = {
+      ...this.attribute,
+      numberConstraints: {
+        ...this.attribute.numberConstraints,
+        min,
+      },
+    };
     return this;
   };
   /**
@@ -165,7 +167,13 @@ export class AuthCustomNumberAttribute extends AuthCustomAttributeBase {
    * @returns the attribute
    */
   max = (max: number): AuthCustomNumberAttribute => {
-    this.maxValue = max;
+    this.attribute = {
+      ...this.attribute,
+      numberConstraints: {
+        ...this.attribute.numberConstraints,
+        max,
+      },
+    };
     return this;
   };
 }
@@ -179,7 +187,9 @@ export class AuthCustomDateTimeAttribute extends AuthCustomAttributeBase {
    */
   constructor(name: string) {
     super(name);
-    this.dataType = 'DateTime';
+    this.attribute = {
+      dataType: 'DateTime',
+    };
   }
 }
 /**
@@ -192,7 +202,9 @@ export class AuthCustomBooleanAttribute extends AuthCustomAttributeBase {
    */
   constructor(name: string) {
     super(name);
-    this.dataType = 'Boolean';
+    this.attribute = {
+      dataType: 'Boolean',
+    };
   }
 }
 /**

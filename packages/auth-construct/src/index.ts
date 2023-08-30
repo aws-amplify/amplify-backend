@@ -13,6 +13,5 @@ export {
   AuthCustomDateTimeAttribute,
   AuthCustomNumberAttribute,
   AuthCustomStringAttribute,
-  AuthCustomAttributeType,
 } from './attributes.js';
 export { AmplifyAuth } from './construct.js';
