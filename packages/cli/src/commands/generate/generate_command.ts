@@ -30,12 +30,12 @@ export class GenerateCommand implements CommandModule {
   /**
    * @inheritDoc
    */
-  handler(): void | Promise<void> {
+  handler = (): void | Promise<void> => {
     // CommandModule requires handler implementation. But this is never called if top level command
     // is configured to require subcommand.
     // Help is printed by default in that case before ever attempting to call handler.
     throw new Error('Top level generate handler should never be called');
-  }
+  };
 
   builder = (yargs: Argv): Argv => {
     return (

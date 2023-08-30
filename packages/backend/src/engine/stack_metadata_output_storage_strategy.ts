@@ -27,10 +27,10 @@ export class StackMetadataBackendOutputStorageStrategy
    *
    * Metadata is not written to the stack until flush() is called
    */
-  addBackendOutputEntry(
+  addBackendOutputEntry = (
     keyName: string,
     backendOutputEntry: BackendOutputEntry
-  ): void {
+  ): void => {
     // add all the data values as stack outputs
     Object.entries(backendOutputEntry.payload).forEach(([key, value]) => {
       new CfnOutput(this.stack, key, { value });
@@ -40,12 +40,12 @@ export class StackMetadataBackendOutputStorageStrategy
       version: backendOutputEntry.version,
       stackOutputs: Object.keys(backendOutputEntry.payload),
     };
-  }
+  };
 
   /**
    * Persists the metadata object to the stack metadata
    */
-  flush(): void {
+  flush = (): void => {
     this.stack.addMetadata(amplifyStackMetadataKey, this.metadata);
-  }
+  };
 }

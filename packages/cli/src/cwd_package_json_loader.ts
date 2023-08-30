@@ -19,7 +19,7 @@ export class CwdPackageJsonLoader {
    *
    * If no package.json file exists, or the content does not pass validation, an error is thrown
    */
-  async loadCwdPackageJson(): Promise<PackageJson> {
+  loadCwdPackageJson = async (): Promise<PackageJson> => {
     const tryPath = path.resolve(process.cwd(), 'package.json');
     if (!this.fs.existsSync(tryPath)) {
       throw new Error(`Could not find a package.json file at ${tryPath}`);
@@ -32,7 +32,7 @@ export class CwdPackageJsonLoader {
       throw new Error(`Could not JSON.parse the contents of ${tryPath}`);
     }
     return packageJsonSchema.parse(jsonParsedValue);
-  }
+  };
 }
 
 /**

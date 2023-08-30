@@ -31,7 +31,7 @@ export class GenerateConfigCommand
   readonly describe: string;
 
   private readonly missingArgsError = new Error(
-    'Either --stack or --branch must be provided',
+    'Either --stack or --branch must be provided'
   );
 
   /**
@@ -40,7 +40,7 @@ export class GenerateConfigCommand
   constructor(
     private readonly clientConfigGenerator: ClientConfigGeneratorAdapter,
     private readonly appNameResolver: AppNameResolver,
-    private readonly clientConfigWriter: ClientConfigWriter,
+    private readonly clientConfigWriter: ClientConfigWriter
   ) {
     this.command = 'config';
     this.describe = 'Generates client config';
@@ -50,7 +50,7 @@ export class GenerateConfigCommand
    * @inheritDoc
    */
   handler = async (
-    args: ArgumentsCamelCase<GenerateConfigCommandOptions>,
+    args: ArgumentsCamelCase<GenerateConfigCommandOptions>
   ): Promise<void> => {
     const backendIdentifier = await this.getBackendIdentifier(args);
 
@@ -65,9 +65,9 @@ export class GenerateConfigCommand
       targetPath = path.resolve(process.cwd(), 'amplifyconfiguration.js');
     }
 
-    const config =
-      await this.clientConfigGenerator.generateClientConfig(backendIdentifier);
-    console.log('#######HOLA#######', JSON.stringify(config, null, 2));
+    const config = await this.clientConfigGenerator.generateClientConfig(
+      backendIdentifier
+    );
     this.clientConfigWriter.writeClientConfig(config, targetPath);
   };
 
@@ -75,9 +75,9 @@ export class GenerateConfigCommand
    * Translates args to BackendIdentifier.
    * Throws if translation can't be made (this should never happen if command validation works correctly).
    */
-  private async getBackendIdentifier(
-    args: ArgumentsCamelCase<GenerateConfigCommandOptions>,
-  ): Promise<BackendIdentifier> {
+  private getBackendIdentifier = async (
+    args: ArgumentsCamelCase<GenerateConfigCommandOptions>
+  ): Promise<BackendIdentifier> => {
     if (args.stack) {
       return { stackName: args.stack };
     } else if (args.appId && args.branch) {
@@ -90,7 +90,7 @@ export class GenerateConfigCommand
     } else {
       throw this.missingArgsError;
     }
-  }
+  };
 
   /**
    * @inheritDoc

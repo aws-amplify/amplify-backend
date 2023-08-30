@@ -70,7 +70,7 @@ export class Backend<T extends Record<string, ConstructFactory<Construct>>> {
   /**
    * Returns a CDK stack within the Amplify project that can be used for creating custom resources
    */
-  getOrCreateStack(name: string): Stack {
+  getOrCreateStack = (name: string): Stack => {
     return this.stackResolver.getStackFor(name);
-  }
+  };
 }

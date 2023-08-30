@@ -9,9 +9,9 @@ export class GraphqlClientConfigContributor implements ClientConfigContributor {
   /**
    * Given some BackendOutput, contribute the Graphql API portion of the client config
    */
-  contribute({
+  contribute = ({
     graphqlOutput,
-  }: UnifiedBackendOutput): GraphqlClientConfig | Record<string, never> {
+  }: UnifiedBackendOutput): GraphqlClientConfig | Record<string, never> => {
     if (graphqlOutput === undefined) {
       return {};
     }
@@ -30,5 +30,5 @@ export class GraphqlClientConfigContributor implements ClientConfigContributor {
     }
 
     return config;
-  }
+  };
 }

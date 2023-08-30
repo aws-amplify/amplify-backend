@@ -95,9 +95,9 @@ export class AmplifyAuth
   /**
    * Stores auth output using the provided strategy
    */
-  storeOutput(
+  storeOutput = (
     outputStorageStrategy: BackendOutputStorageStrategy<AuthOutput>
-  ): void {
+  ): void => {
     outputStorageStrategy.addBackendOutputEntry(authOutputKey, {
       version: '1',
       payload: {
@@ -106,12 +106,12 @@ export class AmplifyAuth
         authRegion: Stack.of(this).region,
       },
     });
-  }
+  };
 
   /**
    * Username cannot be used in conjunction with phone or email
    */
-  private verifyLoginMechanisms(loginMechanisms: LoginMechanism[]) {
+  private verifyLoginMechanisms = (loginMechanisms: LoginMechanism[]) => {
     if (loginMechanisms.includes('username')) {
       if (
         loginMechanisms.includes('phone') ||
@@ -122,5 +122,5 @@ export class AmplifyAuth
         );
       }
     }
-  }
+  };
 }
