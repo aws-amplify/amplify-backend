@@ -29,9 +29,14 @@ export type BackendIdentifier = UniqueBackendIdentifier | StackIdentifier | AppN
 export type ClientConfig = Partial<AuthClientConfig & GraphqlClientConfig & StorageClientConfig>;
 
 // @public
-export const generateClientConfig: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier) => Promise<ClientConfig>;
+export class ClientConfigWriter {
+    writeClientConfig: (clientConfig: ClientConfig, targetPath: string) => Promise<void>;
+}
 
 // @public
+export const generateClientConfig: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier) => Promise<ClientConfig>;
+
+// @public @deprecated
 export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier, targetPath: string) => Promise<void>;
 
 // @public
