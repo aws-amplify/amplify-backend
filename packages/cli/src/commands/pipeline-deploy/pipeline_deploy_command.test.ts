@@ -1,4 +1,4 @@
-import { describe, it } from 'node:test';
+import { describe, it, mock } from 'node:test';
 import yargs, { CommandModule } from 'yargs';
 import {
   TestCommandError,
@@ -11,21 +11,53 @@ import {
 } from './pipeline_deploy_command.js';
 import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 
-describe('deploy command', () => {
+const getCommandRunner = (isCI = false) => {
   const backendDeployer = BackendDeployerFactory.getInstance();
   const deployCommand = new PipelineDeployCommand(
-    backendDeployer
+    backendDeployer,
+    isCI
   ) as CommandModule<object, PipelineDeployCommandOptions>;
   const parser = yargs().command(deployCommand);
-  const commandRunner = new TestCommandRunner(parser);
-
+  return new TestCommandRunner(parser);
+};
+describe('deploy command', () => {
   it('fails if required arguments are not supplied', async () => {
     await assert.rejects(
-      () => commandRunner.runCommand('pipeline-deploy'),
+      () => getCommandRunner().runCommand('pipeline-deploy'),
       (err: TestCommandError) => {
         assert.match(err.output, /Missing required arguments/);
         return true;
       }
     );
+  });
+
+  it('throws error if not in CI environment', async () => {
+    await assert.rejects(
+      () =>
+        getCommandRunner().runCommand(
+          'pipeline-deploy --app-id abc --branch testbranch'
+        ),
+      (err: TestCommandError) => {
+        assert.match(
+          err.message,
+          /It looks like this command is being run outside of a CI\/CD workflow/
+        );
+        return true;
+      }
+    );
+  });
+
+  it('executes backend deployer in CI environments', async () => {
+    const mockDeploy = mock.method(
+      BackendDeployerFactory.getInstance(),
+      'deploy',
+      () => {
+        Promise.resolve();
+      }
+    );
+    await getCommandRunner(true).runCommand(
+      'pipeline-deploy --app-id abc --branch testbranch'
+    );
+    assert.strictEqual(mockDeploy.mock.callCount(), 1);
   });
 });
