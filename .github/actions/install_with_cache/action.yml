@@ -11,4 +11,5 @@ runs:
         key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}
     # only install if cache miss
     - if: steps.npm-cache.outputs.cache-hit != 'true'
+      shell: bash
       run: npm ci

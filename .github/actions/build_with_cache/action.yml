@@ -12,4 +12,5 @@ runs:
         key: ${{ runner.os }}-${{ github.sha }}
     # only build if cache miss
     - if: steps.build-cache.outputs.cache-hit != 'true'
+      shell: bash
       run: npm run build
