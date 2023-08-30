@@ -4,6 +4,10 @@
 
 ```ts
 
+import { AuthCustomBooleanAttribute as AuthCustomBooleanAttribute_2 } from './attributes.js';
+import { AuthCustomDateTimeAttribute as AuthCustomDateTimeAttribute_2 } from './attributes.js';
+import { AuthCustomNumberAttribute as AuthCustomNumberAttribute_2 } from './attributes.js';
+import { AuthCustomStringAttribute as AuthCustomStringAttribute_2 } from './attributes.js';
 import { AuthOutput } from '@aws-amplify/backend-output-schemas/auth';
 import { AuthResources } from '@aws-amplify/plugin-types';
 import { aws_cognito } from 'aws-cdk-lib';
@@ -17,9 +21,14 @@ import { StandardAttributes } from 'aws-cdk-lib/aws-cognito';
 export class AmplifyAuth extends Construct implements BackendOutputWriter, ResourceProvider<AuthResources> {
     constructor(scope: Construct, id: string, props?: AuthProps);
     static attribute: (name: keyof aws_cognito.StandardAttributes) => AuthStandardAttribute;
-    static customAttribute: AuthCustomAttributeFactory;
+    static customAttribute: {
+        string(name: string): AuthCustomStringAttribute_2;
+        number(name: string): AuthCustomNumberAttribute_2;
+        boolean(name: string): AuthCustomBooleanAttribute_2;
+        dateTime(name: string): AuthCustomDateTimeAttribute_2;
+    };
     readonly resources: AuthResources;
-    storeOutput(outputStorageStrategy: BackendOutputStorageStrategy<AuthOutput>): void;
+    storeOutput: (outputStorageStrategy: BackendOutputStorageStrategy<AuthOutput>) => void;
 }
 
 // @public
@@ -39,12 +48,12 @@ export abstract class AuthCustomAttributeBase {
 }
 
 // @public
-export class AuthCustomAttributeFactory {
+export const AuthCustomAttributeFactory: {
+    string(name: string): AuthCustomStringAttribute;
+    number(name: string): AuthCustomNumberAttribute;
     boolean(name: string): AuthCustomBooleanAttribute;
     dateTime(name: string): AuthCustomDateTimeAttribute;
-    number(name: string): AuthCustomNumberAttribute;
-    string(name: string): AuthCustomStringAttribute;
-}
+};
 
 // @public (undocumented)
 export type AuthCustomAttributeType = 'String' | 'Number' | 'DateTime' | 'Boolean';

@@ -14,7 +14,7 @@ import { ResourceProvider } from '@aws-amplify/plugin-types';
 // @public
 export class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth & ResourceProvider<AuthResources>> {
     constructor(props: AuthProps);
-    getInstance({ constructContainer, outputStorageStrategy, importPathVerifier, }: ConstructFactoryGetInstanceProps): AmplifyAuth;
+    getInstance: ({ constructContainer, outputStorageStrategy, importPathVerifier, }: ConstructFactoryGetInstanceProps) => AmplifyAuth;
     // (undocumented)
     readonly provides = "AuthResources";
 }
