@@ -7,7 +7,6 @@ import { ClientConfigWriter } from './client-config-writer/client_config_writer.
 
 /**
  * Main entry point for generating client config and writing to a file
- * @deprecated
  */
 export const generateClientConfigToFile = async (
   credentialProvider: AwsCredentialIdentityProvider,
