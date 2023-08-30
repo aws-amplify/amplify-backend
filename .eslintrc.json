@@ -89,6 +89,12 @@
     "no-only-tests/no-only-tests": "error",
     "no-tabs": "error",
     "import/no-extraneous-dependencies": "error",
+    "sort-imports": [
+      "error",
+      {
+        "ignoreDeclarationSort": true
+      }
+    ],
     "unicorn/filename-case": [
       "error",
       {
