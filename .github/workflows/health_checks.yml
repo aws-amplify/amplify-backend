@@ -34,13 +34,22 @@ jobs:
       - run: npm run test:coverage:threshold
   run_e2e_tests:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
     needs:
       - build
     permissions:
       id-token: write
       contents: read
     steps:
+      # if this workflow is running on a push (ie merge to main), then e2e tests always run
+      # if the workflow is running on a pull request, we perform an additional check for the run-e2e label
+      - if: github.event_name == 'pull_request'
+        name: Check pull request has run-e2e label
+        run: |
+          gh api \
+          -H "Accept: application/vnd.github+json"\
+          -H "Authorization: Bearer ${{ github.GITHUB_TOKEN }}"\
+          /repos/aws-amplify/samsara-cli/pulls/${{ github.event.pull_request.number }}\
+          | jq -r '.labels[].name' | grep run-e2e --quiet
       - uses: actions/checkout@v3
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_build_cache
