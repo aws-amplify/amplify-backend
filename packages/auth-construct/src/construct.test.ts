@@ -38,6 +38,28 @@ describe('Auth construct', () => {
     });
   });
 
+  it('creates email login mechanism if settings is empty object', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    new AmplifyAuth(stack, 'test', { loginWith: { email: {} } });
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      UsernameAttributes: ['email'],
+      AutoVerifiedAttributes: ['email'],
+    });
+  });
+
+  it('creates phone login mechanism if settings is empty object', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    new AmplifyAuth(stack, 'test', { loginWith: { phoneNumber: {} } });
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      UsernameAttributes: ['phone_number'],
+      AutoVerifiedAttributes: ['phone_number'],
+    });
+  });
+
   it('creates email login mechanism with specific settings', () => {
     const app = new App();
     const stack = new Stack(app);
