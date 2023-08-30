@@ -6,7 +6,6 @@ const isCleanWorkingTree = async (): Promise<boolean> => {
 };
 const isCleanTree = await isCleanWorkingTree();
 if (!isCleanTree) {
-  // non-zero exit code indicates working tree is dirty
   throw new Error(
     `Detected a dirty working tree. Commit or stash changes before publishing a snapshot`
   );
