@@ -84,7 +84,7 @@ export class GraphQLStatementsFormatter {
     angular: 'graphql',
   };
 
-  private prettify = (output: string) => {
+  private prettify = (output: string): Promise<string> => {
     return prettier.format(output, {
       parser: GraphQLStatementsFormatter.parserMap[this.language || 'graphql'],
     });
