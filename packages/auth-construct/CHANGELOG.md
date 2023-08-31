@@ -1,5 +1,12 @@
 # @aws-amplify/auth-construct-alpha
 
+## 0.2.0-alpha.2
+
+### Patch Changes
+
+- 3f0790b: fix identity pool id ref
+- 3f0790b: fix cognito idp
+
 ## 0.2.0-alpha.1
 
 ### Minor Changes
