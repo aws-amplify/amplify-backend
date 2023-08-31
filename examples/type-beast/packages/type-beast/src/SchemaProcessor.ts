@@ -5,6 +5,8 @@ import type { InternalField } from './ModelField';
 import type { InternalRelationalField } from './ModelRelationalField';
 import type { ModelType } from './ModelType';
 import type { Prettify } from './util';
+import { fields } from './ModelField';
+import { __data } from './authorization';
 
 type ScalarFieldDef = Exclude<InternalField['data'], { fieldType: 'model' }>;
 type ModelFieldDef = Extract<
@@ -76,6 +78,70 @@ function modelFieldToGql(fieldDef: ModelFieldDef) {
   return field;
 }
 
+function calculateAuth(authorization) {
+  // const defaultAuth = '@auth(rules: [{allow: public}])';
+  const authFields = {};
+  const rules = [];
+
+  for (const entry of authorization) {
+    const rule = entry[__data];
+    const ruleParts = [];
+
+    if (rule.strategy) {
+      ruleParts.push([`allow: ${rule.strategy}`]);
+    } else {
+      return null;
+    }
+
+    if (rule.provider) {
+      ruleParts.push(`provider: ${rule.provider}`);
+    }
+
+    if (rule.operations) {
+      ruleParts.push(`operations: [${rule.operations.join(', ')}]`);
+    }
+
+    if (rule.ownerField) {
+      // does this need to be escaped?
+      ruleParts.push(`ownerField: "${rule.ownerField}"`);
+      if (rule.multiOwner) {
+        authFields[rule.ownerField] = fields.string().array();
+      }
+    }
+
+    if (rule.groups) {
+      // does `group` need to be escaped?
+      ruleParts.push(
+        `groups: [${rule.groups.map((group) => `"${group}"`).join(', ')}]`
+      );
+    }
+
+    if (rule.groupsField) {
+      // does this need to be escaped?
+      ruleParts.push(`groupsField: "${rule.groupsField}"`);
+    }
+
+    // identityClaim
+    if (rule.identityClaim) {
+      // does this need to be escaped?
+      ruleParts.push(`identityClaim: "${rule.identityClaim}"`);
+    }
+
+    // groupClaim
+    if (rule.groupClaim) {
+      // does this need to be escaped?
+      ruleParts.push(`groupClaim: "${rule.groupClaim}"`);
+    }
+
+    rules.push(ruleParts.join(', '));
+  }
+
+  const authString =
+    rules.length > 0 ? `@auth(rules: [${rules.join(',\n  ')}])` : '';
+
+  return { authString, authFields };
+}
+
 export const schemaPreprocessor = <T extends ModelSchemaParamShape>(
   schema: ModelSchema<T>
 ) => {
@@ -84,12 +150,23 @@ export const schemaPreprocessor = <T extends ModelSchemaParamShape>(
   for (const [modelName, modelDef] of Object.entries(schema.data.models)) {
     const gqlFields: string[] = [];
 
+    // console.dir(modelDef, { depth: 100 });
+
     const fields = modelDef.data.fields;
     const identifier = modelDef.data.identifier;
     const [partitionKey] = identifier;
 
+    const { authString, authFields } = calculateAuth(
+      modelDef.data.authorization
+    );
+
+    // console.log({ authString, authFields });
+
     // process model and fields
-    for (const [fieldName, fieldDef] of Object.entries(fields)) {
+    for (const [fieldName, fieldDef] of Object.entries({
+      ...authFields,
+      ...fields,
+    })) {
       if (fieldDef.data.fieldType === 'model') {
         gqlFields.push(`${fieldName}: ${modelFieldToGql(fieldDef.data)}`);
       } else {
@@ -105,62 +182,7 @@ export const schemaPreprocessor = <T extends ModelSchemaParamShape>(
 
     const joined = gqlFields.join('\n  ');
 
-    // const defaultAuth = '@auth(rules: [{allow: public}])';
-    const rules = modelDef.data.authorization
-      .map((rule) => {
-        const ruleParts = [];
-
-        if (rule.strategy) {
-          ruleParts.push([`allow: ${rule.strategy}`]);
-        } else {
-          return null;
-        }
-
-        if (rule.provider) {
-          ruleParts.push(`provider: ${rule.provider}`);
-        }
-
-        if (rule.operations) {
-          ruleParts.push(`operations: [${rule.operations.join(', ')}]`);
-        }
-
-        if (rule.ownerField) {
-          // does this need to be escaped?
-          ruleParts.push(`ownerField: "${rule.ownerField}"`);
-        }
-
-        if (rule.groups) {
-          // does `group` need to be escaped?
-          ruleParts.push(
-            `groups: [${rule.groups.map((group) => `"${group}"`).join(', ')}]`
-          );
-        }
-
-        if (rule.groupsField) {
-          // does this need to be escaped?
-          ruleParts.push(`groupsField: "${rule.groupsField}"`);
-        }
-
-        // identityClaim
-        if (rule.identityClaim) {
-          // does this need to be escaped?
-          ruleParts.push(`identityClaim: "${rule.identityClaim}"`);
-        }
-
-        // groupClaim
-        if (rule.groupClaim) {
-          // does this need to be escaped?
-          ruleParts.push(`groupClaim: "${rule.groupClaim}"`);
-        }
-
-        return ruleParts.join(', ');
-      })
-      .filter((r) => r)
-      .join(',');
-
-    const auth = rules.length > 0 ? `@auth(rules: [${rules}])` : '';
-
-    const model = `type ${modelName} @model ${auth}\n{\n  ${joined}\n}`;
+    const model = `type ${modelName} @model ${authString}\n{\n  ${joined}\n}`;
     gqlModels.push(model);
   }
 

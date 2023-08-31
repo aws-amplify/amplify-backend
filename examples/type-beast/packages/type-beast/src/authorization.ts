@@ -1,9 +1,7 @@
 // Warning! Slightly different patterns herein, given the slightly different invocation
 // style for auth, and the branching matrix of sometimes-overlapping options.
 
-type Shape = Record<string, any>;
-
-const __data = Symbol('data');
+export const __data = Symbol('data');
 
 /**
  * All possible providers.
@@ -70,6 +68,54 @@ export const Operations = [
 ] as const;
 export type Operation = (typeof Operations)[number];
 
+// type ImpliedFields<Fields extends string> = Record<
+//   Fields,
+//   any
+// >;
+
+type Shape = Record<string, any>;
+
+export type Authorization<Deps extends Shape = {}> = {
+  [__data]: {
+    strategy?: Strategy;
+    provider?: Provider;
+    operations?: Operation[];
+    ownerField?: keyof Deps; // TODO: `keyof StringFields<Deps>`
+    multiOwner: boolean;
+    identityClaim?: string;
+    dependencies: Deps;
+  };
+};
+
+// copied from ModelField.ts for now
+export enum ModelFieldType {
+  Id = 'ID',
+  String = 'String',
+  Integer = 'Int',
+  Float = 'Float',
+  Boolean = 'Boolean',
+  Date = 'AWSDate',
+  Time = 'AWSTime',
+  DateTime = 'AWSDateTime',
+  Timestamp = 'AWSTimestamp',
+  Email = 'AWSEmail',
+  JSON = 'AWSJSON',
+  Phone = 'AWSPhone',
+  Url = 'AWSURL',
+  IPAddress = 'AWSIPAddress',
+}
+
+// copied from ModelField.ts for now
+type FieldData = {
+  fieldType: ModelFieldType;
+  optional: boolean;
+  array: boolean;
+  arrayOptional: boolean;
+  default: undefined | string;
+};
+
+export type OwnerField = {};
+
 /**
  * Creates a shallow copy of an object with an individual field pruned away.
  *
@@ -86,7 +132,7 @@ function omit<T extends {}, O extends string>(
   return pruned;
 }
 
-function to<SELF extends AuthorizationFor<any>>(
+function to<SELF extends Authorization<any>>(
   this: SELF,
   operations: Operation[]
 ) {
@@ -94,10 +140,7 @@ function to<SELF extends AuthorizationFor<any>>(
   return omit(this, 'to');
 }
 
-function inField<SELF extends AuthorizationFor<any>>(
-  this: SELF,
-  field: keyof SELF[typeof __data]['shape']
-) {
+function inField<SELF extends Authorization<any>>(this: SELF, field: string) {
   (this as any)[__data].ownerField = field;
   return omit(this, 'inField');
 }
@@ -110,7 +153,7 @@ function inField<SELF extends AuthorizationFor<any>>(
  * @param property A property of identity JWT.
  * @returns A copy of the Authorization object with the claim attached.
  */
-function identityClaim<SELF extends AuthorizationFor<any>>(
+function identityClaim<SELF extends Authorization<any>>(
   this: SELF,
   property: string
 ) {
@@ -122,54 +165,57 @@ function validateProvider(
   needle: Provider | undefined,
   haystack: readonly Provider[]
 ) {
-  if (needle !== undefined && !haystack.includes(needle)) {
+  if (needle && !haystack.includes(needle)) {
     throw new Error(`Invalid provider (${needle}) given!`);
   }
 }
 
-function defaultAuth<T extends Shape>(
-  shape: T
-): AuthorizationFor<T>[typeof __data] {
+function defaultAuth(): Authorization<{ owner: OwnerField }>[typeof __data] {
   return {
     strategy: 'public',
-    provider: 'apiKey',
-    operations: [...Operations],
-    ownerField: 'owner',
-    identityClaim: '',
-    shape,
+    provider: undefined,
+    operations: undefined,
+    ownerField: undefined,
+    multiOwner: false,
+    identityClaim: undefined,
+
+    // might not even be needed ...
+    dependencies: {
+      owner: {},
+    },
   };
 }
 
-export class AuthBuilder<T extends Shape> {
-  constructor(private shape: T) {}
-
+export const allow = {
   public(provider?: PublicProvider) {
     validateProvider(provider, PublicProviders);
     return {
       [__data]: {
-        ...defaultAuth(this.shape),
+        ...defaultAuth(),
         strategy: 'public',
         provider,
       },
       to,
     };
-  }
+  },
+
   private(provider?: PrivateProvider) {
     validateProvider(provider, PrivateProviders);
     return {
       [__data]: {
-        ...defaultAuth(this.shape),
+        ...defaultAuth(),
         strategy: 'private',
         provider,
       },
       to,
     };
-  }
+  },
+
   owner(provider?: OwnerProviders) {
     validateProvider(provider, OwnerProviders);
     return {
       [__data]: {
-        ...defaultAuth(this.shape),
+        ...defaultAuth(),
         strategy: 'owner',
         provider,
       },
@@ -177,7 +223,7 @@ export class AuthBuilder<T extends Shape> {
       inField,
       identityClaim,
     };
-  }
+  },
 
   /**
    * Specifies `owner` auth and automatically creates the necessary
@@ -186,31 +232,20 @@ export class AuthBuilder<T extends Shape> {
    * If the desired `[owner]` field already exists and is not the
    * correct type, an error will be thrown.
    */
-  multipleOwners() {}
-  specificGroup() {}
-}
+  multipleOwners(provider?: OwnerProviders) {
+    validateProvider(provider, OwnerProviders);
+    return {
+      [__data]: {
+        ...defaultAuth(),
+        strategy: 'owner',
+        multiOwner: true,
+        provider,
+      },
+      to,
+      inField,
+      identityClaim,
+    };
+  },
 
-export type AuthorizationFor<T extends Shape> = {
-  [__data]: {
-    strategy?: Strategy;
-    provider?: Provider;
-    operations?: Operation[];
-    ownerField?: keyof T | 'owner';
-    identityClaim?: string;
-    shape: T;
-  };
-};
-
-export type AuthBuilderChain<T extends Shape> = (
-  builder: AuthBuilder<T>
-) => AuthorizationFor<T>[];
-
-/**
- * SCRATCH
- */
-
-const test = new AuthBuilder({ a: 'something', b: 'something else' });
-
-const ownerAuth = test.owner();
-const withTo = ownerAuth.to(['create', 'listen']);
-withTo.inField('a');
+  specificGroup() {},
+} as const;

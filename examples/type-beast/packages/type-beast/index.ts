@@ -9,6 +9,7 @@ import {
   belongsTo,
   manyToMany,
 } from './src/ModelRelationalField';
+import { allow } from './src/authorization';
 
 const a = {
   schema,
@@ -18,6 +19,7 @@ const a = {
   hasMany,
   belongsTo,
   manyToMany,
+  allow,
   ...fields,
 };
 

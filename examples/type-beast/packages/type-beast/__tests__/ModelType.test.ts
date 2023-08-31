@@ -16,10 +16,6 @@ it('should not produce static type errors', async () => {
   await expectTypeTestsToPassAsync(__filename);
 });
 
-// console.log({ m: JSON.stringify(m, null, 2) });
-// console.dir(schema, { depth: 100 });
-// console.dir(defineData({ schema }), { depth: 100 });
-
 describe('model auth rules', () => {
   it('can define public auth with no provider', () => {
     const schema = a.schema({
@@ -27,7 +23,7 @@ describe('model auth rules', () => {
         .model({
           title: a.string(),
         })
-        .authorization((allow) => [allow.public()]),
+        .authorization([a.allow.public()]),
     });
 
     const graphql = schemaPreprocessor(schema).processedSchema;
@@ -42,7 +38,7 @@ describe('model auth rules', () => {
             title: a.string(),
           })
           // @ts-expect-error
-          .authorization((allow) => [allow.public('bad-provider')]),
+          .authorization([a.allow.public('bad-provider')]),
       });
     }).toThrow();
   });
@@ -53,7 +49,7 @@ describe('model auth rules', () => {
         .model({
           title: a.string(),
         })
-        .authorization((allow) => [allow.private()]),
+        .authorization([a.allow.private()]),
     });
 
     const graphql = schemaPreprocessor(schema).processedSchema;
@@ -66,7 +62,7 @@ describe('model auth rules', () => {
         .model({
           title: a.string(),
         })
-        .authorization((allow) => [allow.owner()]),
+        .authorization([a.allow.owner()]),
     });
 
     const graphql = schemaPreprocessor(schema).processedSchema;
@@ -79,7 +75,60 @@ describe('model auth rules', () => {
         .model({
           title: a.string(),
         })
-        .authorization((allow) => [allow.owner().inField('title')]),
+        .authorization([a.allow.owner().inField('title')]),
+    });
+
+    const graphql = schemaPreprocessor(schema).processedSchema;
+    expect(graphql).toMatchSnapshot();
+  });
+
+  it(`can specify operations `, () => {
+    const schema = a.schema({
+      widget: a
+        .model({
+          title: a.string(),
+        })
+        .authorization([a.allow.public().to(['create', 'read'])]),
+    });
+
+    const graphql = schemaPreprocessor(schema).processedSchema;
+    expect(graphql).toMatchSnapshot();
+  });
+
+  it(`can specify an owner identityClaim`, () => {
+    const schema = a.schema({
+      widget: a
+        .model({
+          title: a.string(),
+        })
+        .authorization([a.allow.owner().identityClaim('user_id')]),
+    });
+
+    const graphql = schemaPreprocessor(schema).processedSchema;
+    expect(graphql).toMatchSnapshot();
+  });
+
+  it(`can create a "multiple owners" rule on an existing field`, () => {
+    const schema = a.schema({
+      widget: a
+        .model({
+          title: a.string(),
+          authors: a.string().array(),
+        })
+        .authorization([a.allow.multipleOwners().inField('authors')]),
+    });
+
+    const graphql = schemaPreprocessor(schema).processedSchema;
+    expect(graphql).toMatchSnapshot();
+  });
+
+  it.only(`can create a "multiple owners" rule an on implied (auto-created) field`, () => {
+    const schema = a.schema({
+      widget: a
+        .model({
+          title: a.string(),
+        })
+        .authorization([a.allow.multipleOwners().inField('authors')]),
     });
 
     const graphql = schemaPreprocessor(schema).processedSchema;
@@ -93,7 +142,7 @@ describe('model auth rules', () => {
           .model({
             title: a.string(),
           })
-          .authorization((allow) => [allow.public(provider)]),
+          .authorization([a.allow.public(provider)]),
       });
 
       const graphql = schemaPreprocessor(schema).processedSchema;
@@ -110,14 +159,16 @@ describe('model auth rules', () => {
     ];
 
     for (const operations of TestOperations) {
-      it(`can define public with with provider ${provider} for operation `, () => {
+      it(`can define public with with provider ${provider} for operations ${operations}`, () => {
         const schema = a.schema({
-          wonket: {},
           widget: a
             .model({
               title: a.string(),
             })
-            .authorization((allow) => [allow.public(provider).to(operations)]),
+            .authorization([
+              a.allow.public(provider).to(operations),
+              // 'whatever',
+            ]),
         });
 
         const graphql = schemaPreprocessor(schema).processedSchema;
@@ -133,7 +184,7 @@ describe('model auth rules', () => {
           .model({
             title: a.string(),
           })
-          .authorization((allow) => [allow.private(provider)]),
+          .authorization([a.allow.private(provider)]),
       });
 
       const graphql = schemaPreprocessor(schema).processedSchema;
@@ -150,13 +201,13 @@ describe('model auth rules', () => {
     ];
 
     for (const operations of TestOperations) {
-      it(`can define private with with provider ${provider} for operation `, () => {
+      it(`can define private with with provider ${provider} for operations ${operations}`, () => {
         const schema = a.schema({
           widget: a
             .model({
               title: a.string(),
             })
-            .authorization((allow) => [allow.private(provider).to(operations)]),
+            .authorization([a.allow.private(provider).to(operations)]),
         });
 
         const graphql = schemaPreprocessor(schema).processedSchema;

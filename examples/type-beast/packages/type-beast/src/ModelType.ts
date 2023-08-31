@@ -3,11 +3,7 @@ import type {
   ModelRelationalField,
   InternalRelationalField,
 } from './ModelRelationalField';
-import {
-  AuthBuilder,
-  AuthBuilderChain,
-  AuthorizationFor,
-} from './authorization';
+import { Authorization } from './authorization';
 import type { SetTypeSubArg } from './util';
 
 type ModelFields = Record<
@@ -67,6 +63,7 @@ type IdentifierType<
 
 export type ModelType<
   T extends ModelTypeParamShape,
+  // AuthRules extends Authorization[],
   K extends keyof ModelType<T> = never
 > = Omit<
   {
@@ -76,9 +73,7 @@ export type ModelType<
 
     // NOTE: We will need to pass fields through to authorization here as well
     // so that a
-    authorization(
-      rules: AuthBuilderChain<T['fields']>
-    ): ModelType<T, K | 'authorization'>;
+    authorization(rules: any): ModelType<T, K | 'authorization'>;
   },
   K
 >;
@@ -105,7 +100,7 @@ function _model<T extends ModelTypeParamShape>(fields: T['fields']) {
       return this;
     },
     authorization(rules) {
-      data.authorization = rules(new AuthBuilder(fields));
+      data.authorization = rules;
 
       return this;
     },
