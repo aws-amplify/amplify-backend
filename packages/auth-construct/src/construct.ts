@@ -122,7 +122,7 @@ export class AmplifyAuth
         this,
         'IdentityPoolRoleAttachment',
         {
-          identityPoolId: identityPool.logicalId,
+          identityPoolId: identityPool.ref,
           roles: {
             unauthenticated: roles.unAuth.roleArn,
             authenticated: roles.auth.roleArn,
@@ -142,7 +142,7 @@ export class AmplifyAuth
     identityPool.cognitoIdentityProviders = [
       {
         clientId: userPoolClient.userPoolClientId,
-        providerName: `cognito-idp.${region}.amazonaws.com/${userPool.userPoolProviderName}`,
+        providerName: `cognito-idp.${region}.amazonaws.com/${userPool.userPoolId}`,
       },
     ];
     return {
