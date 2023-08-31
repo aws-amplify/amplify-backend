@@ -17,11 +17,17 @@ export class ClientConfigWriter {
     const fileExtension = path.parse(targetPath).ext;
     switch (fileExtension) {
       case '.js': {
-        const fileContent = `export default ${JSON.stringify(
+        const configAnnotation = `/** @type {${JSON.stringify(
+          clientConfig,
+          null
+        )}} */`;
+        const configExport = `export default ${JSON.stringify(
           clientConfig,
           null,
           2
-        )}${os.EOL}`;
+        )}`;
+        const fileContent = `${configAnnotation}\n${configExport}${os.EOL}`;
+
         await fs.writeFile(targetPath, fileContent);
         break;
       }

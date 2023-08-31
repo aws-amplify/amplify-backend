@@ -34,7 +34,7 @@ describe('client config writer', () => {
     assert.deepEqual(JSON.parse(actualConfig), clientConfig);
   });
 
-  it('writes js config to target location as default export', async () => {
+  it('writes js config and type anotation to target location as default export', async () => {
     const targetPath = path.join(
       process.cwd(),
       targetDirectory,
