@@ -1,7 +1,4 @@
-import {
-  AmplifyAuth,
-  AmplifyAuthProps,
-} from '@aws-amplify/auth-construct-alpha';
+import { AmplifyAuth, AuthProps } from '@aws-amplify/auth-construct-alpha';
 import { Construct } from 'constructs';
 import {
   AuthResources,
@@ -10,13 +7,14 @@ import {
   ConstructContainerEntryGenerator,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
+  ResourceProvider,
 } from '@aws-amplify/plugin-types';
 
 /**
  * Singleton factory for AmplifyAuth that can be used in Amplify project files
  */
 export class AmplifyAuthFactory
-  implements ConstructFactory<AmplifyAuth & AuthResources>
+  implements ConstructFactory<AmplifyAuth & ResourceProvider<AuthResources>>
 {
   readonly provides = 'AuthResources';
   private generator: ConstructContainerEntryGenerator;
@@ -25,7 +23,7 @@ export class AmplifyAuthFactory
   /**
    * Set the properties that will be used to initialize AmplifyAuth
    */
-  constructor(private readonly props: AmplifyAuthProps) {
+  constructor(private readonly props: AuthProps) {
     // capture the import stack in the ctor because this is what customers call in the backend definition code
     this.importStack = new Error().stack;
   }
@@ -58,7 +56,7 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
   private readonly defaultName = 'amplifyAuth';
 
   constructor(
-    private readonly props: AmplifyAuthProps,
+    private readonly props: AuthProps,
     private readonly backendOutputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>
   ) {}
 

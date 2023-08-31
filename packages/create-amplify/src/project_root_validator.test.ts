@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import { ProjectRootValidator } from './project_root_validator.js';
 import assert from 'assert';
 
-describe('NoAmplifyDirValidator', async () => {
+describe('NoAmplifyDirValidator', () => {
   it('throws if test path already exists', async () => {
     const noAmplifyDirValidator = new ProjectRootValidator(
       'testRoot',

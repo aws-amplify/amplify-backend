@@ -2,7 +2,7 @@ import { describe, it, mock } from 'node:test';
 import { NpmPackageManagerController } from './npm_package_manager_controller.js';
 import assert from 'assert';
 
-describe('NpmPackageManagerController', async () => {
+describe('NpmPackageManagerController', () => {
   it('executes expected dev dependency install command', async () => {
     const execaMock = mock.fn();
     const npmPackageManagerController = new NpmPackageManagerController(
