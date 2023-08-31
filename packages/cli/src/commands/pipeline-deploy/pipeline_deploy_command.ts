@@ -1,4 +1,4 @@
-import isCI from 'is-ci';
+import _isCI from 'is-ci';
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { BackendDeployer } from '@aws-amplify/backend-deployer';
 
@@ -26,7 +26,10 @@ export class PipelineDeployCommand
   /**
    * Creates top level entry point for deploy command.
    */
-  constructor(private readonly backendDeployer: BackendDeployer) {
+  constructor(
+    private readonly backendDeployer: BackendDeployer,
+    private readonly isCiEnvironment: typeof _isCI = _isCI
+  ) {
     this.command = 'pipeline-deploy';
     // use false for a hidden command
     this.describe = false;
@@ -35,10 +38,10 @@ export class PipelineDeployCommand
   /**
    * @inheritDoc
    */
-  handler = async (
+  handler = (
     args: ArgumentsCamelCase<PipelineDeployCommandOptions>
   ): Promise<void> => {
-    if (!isCI) {
+    if (!this.isCiEnvironment) {
       throw new Error(
         'It looks like this command is being run outside of a CI/CD workflow. To deploy locally use `amplify sandbox` instead.'
       );
@@ -49,7 +52,7 @@ export class PipelineDeployCommand
       branchName: args.branch,
     };
 
-    await this.backendDeployer.deploy(uniqueBackendIdentifier);
+    return this.backendDeployer.deploy(uniqueBackendIdentifier);
   };
 
   builder = (yargs: Argv): Argv<PipelineDeployCommandOptions> => {
