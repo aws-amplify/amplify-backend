@@ -14,24 +14,24 @@ export class ClientConfigWriter {
     clientConfig: ClientConfig,
     targetPath: string
   ): Promise<void> => {
-    const fileExtension = path.parse(targetPath).ext;
-    switch (fileExtension) {
+    const { dir, ext, name } = path.parse(targetPath);
+    switch (ext) {
       case '.js': {
-        const fileContent = `export default ${JSON.stringify(
-          clientConfig,
-          null,
-          2
-        )}${os.EOL}`;
-        await fs.writeFile(targetPath, fileContent);
+        const configContent = JSON.stringify(clientConfig, null, 2);
+        const configFileContent = `export default ${configContent}${os.EOL}`;
+        const moduleTargetPath = `${dir}/${name}.d.ts`;
+        const moduleConfigFileContent = `export interface AmplifyConfiguration ${configContent};\nconst amplifyConfiguration: AmplifyConfiguration = ${configContent};\nexport default amplifyConfiguration;${os.EOL}`;
+        await Promise.all([
+          fs.writeFile(targetPath, configFileContent),
+          fs.writeFile(moduleTargetPath, moduleConfigFileContent),
+        ]);
         break;
       }
       case '.json':
         await fs.writeFile(targetPath, JSON.stringify(clientConfig, null, 2));
         break;
       default:
-        throw new Error(
-          `Unknown client config file extension ${fileExtension}`
-        );
+        throw new Error(`Unknown client config file extension ${ext}`);
     }
   };
 }

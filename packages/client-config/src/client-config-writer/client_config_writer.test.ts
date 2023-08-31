@@ -45,4 +45,22 @@ describe('client config writer', () => {
     const { default: actualConfig } = await import(targetPath);
     assert.deepEqual(actualConfig, clientConfig);
   });
+
+  it('writes d.ts config to target location as default export', async () => {
+    const targetPath = path.join(
+      process.cwd(),
+      targetDirectory,
+      'amplifyconfiguration.js'
+    );
+    await clientConfigWriter.writeClientConfig(clientConfig, targetPath);
+
+    const targetModulePath = path.join(
+      process.cwd(),
+      targetDirectory,
+      'amplifyconfiguration.d.ts'
+    );
+
+    const { default: moduleConfig } = await import(targetModulePath);
+    assert.deepEqual(moduleConfig, clientConfig);
+  });
 });
