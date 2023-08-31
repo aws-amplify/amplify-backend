@@ -1,18 +1,23 @@
 import { Construct } from 'constructs';
 import { SecretValue } from 'aws-cdk-lib';
 
-export type BackendParameterResolver = {
+export type BackendSecretResolver = {
   /**
-   * Returns a deep copy of props where any occurrance
+   * Returns a deep copy of props where any occurrance of BackendSecret are replaced
+   * by SecretValue type.
    */
-  resolveParameters<T>(props: T): Replace<T, BackendParameter, SecretValue>;
+  resolveSecrets: <T>(props: T) => Replace<T, BackendSecret, SecretValue>;
 };
 
-export type BackendParameter = {
+export type BackendSecret = {
   /**
-   * Resolves the given parameter to a value or CDK token
+   * Resolves the given secret to a value or CDK token.
    */
-  resolve(scope: Construct, backendId: string, branchName: string): SecretValue;
+  resolve: (
+    scope: Construct,
+    backendId: string,
+    branchName: string
+  ) => SecretValue;
 };
 
 /**

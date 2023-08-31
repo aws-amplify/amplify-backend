@@ -37,7 +37,7 @@ export class DataFactory implements ConstructFactory<AmplifyGraphqlApi> {
     constructContainer,
     outputStorageStrategy,
     importPathVerifier,
-    backendParameterResolver,
+    backendSecretResolver,
   }: ConstructFactoryGetInstanceProps): AmplifyGraphqlApi => {
     importPathVerifier?.verify(
       this.importStack,
@@ -53,7 +53,7 @@ export class DataFactory implements ConstructFactory<AmplifyGraphqlApi> {
             constructContainer,
             outputStorageStrategy,
             importPathVerifier,
-            backendParameterResolver,
+            backendSecretResolver,
           }),
         outputStorageStrategy
       );

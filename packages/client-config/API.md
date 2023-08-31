@@ -43,6 +43,32 @@ export type GraphqlClientConfig = {
 };
 
 // @public (undocumented)
+export interface Secret {
+    getSecret: (backendId: string, secretName: string, branchName?: string) => Promise<string | undefined>;
+}
+
+// @public
+export const SecretClient: (credentialProvider?: AwsCredentialIdentityProvider) => Secret;
+
+// @public
+export class SecretClientError implements Error {
+    constructor(message: string);
+    // (undocumented)
+    readonly message: string;
+    // (undocumented)
+    readonly name: string;
+}
+
+// @public
+export class SecretServerError implements Error {
+    constructor(message: string);
+    // (undocumented)
+    readonly message: string;
+    // (undocumented)
+    readonly name: string;
+}
+
+// @public (undocumented)
 export type StackIdentifier = {
     stackName: string;
 };

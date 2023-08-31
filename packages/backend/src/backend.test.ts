@@ -1,4 +1,4 @@
-import { describe, it } from 'node:test';
+import { beforeEach, describe, it } from 'node:test';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
@@ -16,6 +16,11 @@ const createStackAndSetContext = (): Stack => {
 };
 
 describe('Backend', () => {
+  let rootStack: Stack;
+  beforeEach(() => {
+    rootStack = createStackAndSetContext();
+  });
+
   it('initializes constructs in given app', () => {
     const testConstructFactory: ConstructFactory<Bucket> = {
       getInstance({ constructContainer }): Bucket {
@@ -28,7 +33,6 @@ describe('Backend', () => {
       },
     };
 
-    const rootStack = createStackAndSetContext();
     new Backend(
       {
         testConstructFactory,
@@ -64,7 +68,6 @@ describe('Backend', () => {
       },
     };
 
-    const rootStack = createStackAndSetContext();
     new Backend(
       {
         testConstructFactory,
@@ -107,7 +110,6 @@ describe('Backend', () => {
       },
     };
 
-    const rootStack = createStackAndSetContext();
     const backend = new Backend(
       {
         testConstructFactory,
@@ -119,7 +121,6 @@ describe('Backend', () => {
 
   describe('getOrCreateStack', () => {
     it('returns nested stack', () => {
-      const rootStack = createStackAndSetContext();
       const backend = new Backend({}, rootStack);
       const testStack = backend.getOrCreateStack('testStack');
       assert.strictEqual(rootStack.node.findChild('testStack'), testStack);

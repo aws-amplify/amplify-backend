@@ -4,7 +4,7 @@
 
 ```ts
 
-import { BackendParameter } from '@aws-amplify/plugin-types';
+import { BackendSecret } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
@@ -19,7 +19,7 @@ export class Backend<T extends Record<string, ConstructFactory<Construct>>> {
 }
 
 // @public
-export const secret: (name: string, version?: number) => BackendParameter;
+export const secret: (name: string) => BackendSecret;
 
 // (No @packageDocumentation comment for this package)
 

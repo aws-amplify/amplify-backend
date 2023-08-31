@@ -1,8 +1,8 @@
 /* eslint-disable no-console */
 import {
   CloudFormationCustomResourceEvent,
-  Context,
   CloudFormationCustomResourceSuccessResponse,
+  Context,
 } from 'aws-lambda';
 import { v4 as uuidv4 } from 'uuid';
 import {
@@ -11,21 +11,20 @@ import {
   SecretServerError,
 } from '@aws-amplify/client-config';
 
-interface ParameterResourceProps {
+type SecretResourceProps = {
   backendId: string;
   branchName: string;
-  parameterName: string;
+  secretName: string;
   // eslint-disable-next-line  @typescript-eslint/naming-convention
   ServiceToken: string;
-}
+};
 
 /**
- * Entry point for the lambda-backend custom resource to retrieve a backend parameter.
+ * Entry point for the lambda-backend custom resource to retrieve a backend secret.
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const handler = async (
   event: CloudFormationCustomResourceEvent,
-  context: Context
+  context: Context // eslint-disable-line @typescript-eslint/no-unused-vars
 ): Promise<CloudFormationCustomResourceSuccessResponse> => {
   console.info(`Received '${event.RequestType}' event`);
 
@@ -36,7 +35,7 @@ export const handler = async (
   if (event.RequestType === 'Update' || event.RequestType === 'Create') {
     const val = await handleCreateUpdateEvent(secretClient, event);
     data = {
-      paramValue: val,
+      secretValue: val,
     };
   }
 
@@ -46,30 +45,31 @@ export const handler = async (
     PhysicalResourceId: physicalId,
     Data: data,
     StackId: event.StackId,
+    NoEcho: true,
     Status: 'SUCCESS',
-  };
+  } as CloudFormationCustomResourceSuccessResponse;
 };
 
 /**
- * Handles create/update event for the backend parameter's custom resource.
+ * Handles create/update event for the secret custom resource.
  */
 export const handleCreateUpdateEvent = async (
   secretClient: Secret,
   event: CloudFormationCustomResourceEvent
 ): Promise<string> => {
-  const props = event.ResourceProperties as ParameterResourceProps;
+  const props = event.ResourceProperties as SecretResourceProps;
   let secret: string | undefined;
 
   try {
     secret = await secretClient.getSecret(
       props.backendId,
-      props.parameterName,
+      props.secretName,
       props.branchName
     );
   } catch (err) {
     if (err instanceof SecretServerError) {
       throw new Error(
-        `Failed to retrieve backend parameter '${props.parameterName}' for '${
+        `Failed to retrieve backend secret '${props.secretName}' for '${
           props.backendId
         }/${props.branchName}'. Reason: ${JSON.stringify(err)}`
       );
@@ -79,13 +79,10 @@ export const handleCreateUpdateEvent = async (
   // if the secret is not available in branch path, retrieve it at app-level.
   if (!secret) {
     try {
-      secret = await secretClient.getSecret(
-        props.backendId,
-        props.parameterName
-      );
+      secret = await secretClient.getSecret(props.backendId, props.secretName);
     } catch (err) {
       throw new Error(
-        `Failed to retrieve backend parameter '${props.parameterName}' for '${
+        `Failed to retrieve backend secret '${props.secretName}' for '${
           props.backendId
         }'. Reason: ${JSON.stringify(err)}`
       );
@@ -94,7 +91,7 @@ export const handleCreateUpdateEvent = async (
 
   if (!secret) {
     throw new Error(
-      `Unable to find backend parameter for backend '${props.backendId}', branch '${props.branchName}', name '${props.parameterName}'`
+      `Unable to find backend secret for backend '${props.backendId}', branch '${props.branchName}', name '${props.secretName}'`
     );
   }
 

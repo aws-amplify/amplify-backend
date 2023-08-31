@@ -26,22 +26,22 @@ export class SSMSecret {
   /**
    * Construct a full paramater name path.
    */
-  private getParameterFullPath(
+  private getParameterFullPath = (
     backendId: string,
     secretName: string,
     branchName: string = SHARED_SECRET_BRANCH
-  ): string {
+  ): string => {
     return `/amplify/${backendId}/${branchName}/${secretName}`;
-  }
+  };
 
   /**
    * Get secret from SSM parameter store.
    */
-  public async getSecret(
+  public getSecret = async (
     backendId: string,
     secretName: string,
     branchName?: string
-  ): Promise<string | undefined> {
+  ): Promise<string | undefined> => {
     const name = this.getParameterFullPath(backendId, secretName, branchName);
     try {
       const resp = await this.ssmClient.getParameter({
@@ -59,5 +59,5 @@ export class SSMSecret {
         throw new SecretServerError(errMsg);
       }
     }
-  }
+  };
 }

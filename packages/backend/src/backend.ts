@@ -5,7 +5,7 @@ import {
   NestedStackResolver,
   StackResolver,
 } from './engine/nested_stack_resolver.js';
-import { OptionalPassThroughBackendParameterResolver } from './engine/backend_parameters/backend_parameter_resolver.js';
+import { DeepBackendSecretResolver } from './engine/backend-secret/backend_secret_resolver.js';
 import { SingletonConstructContainer } from './engine/singleton_construct_container.js';
 import { ToggleableImportPathVerifier } from './engine/toggleable_import_path_verifier.js';
 import { StackMetadataBackendOutputStorageStrategy } from './engine/stack_metadata_output_storage_strategy.js';
@@ -45,12 +45,11 @@ export class Backend<T extends Record<string, ConstructFactory<Construct>>> {
 
     const backendIdentifier = getUniqueBackendIdentifier(stack);
 
-    const backendParameterResolver =
-      new OptionalPassThroughBackendParameterResolver(
-        stack,
-        backendIdentifier.backendId,
-        backendIdentifier.branchName
-      );
+    const backendSecretResolver = new DeepBackendSecretResolver(
+      stack,
+      backendIdentifier.backendId,
+      backendIdentifier.branchName
+    );
 
     // register providers but don't actually execute anything yet
     Object.values(constructFactories).forEach((factory) => {
@@ -71,7 +70,7 @@ export class Backend<T extends Record<string, ConstructFactory<Construct>>> {
             constructContainer,
             outputStorageStrategy,
             importPathVerifier,
-            backendParameterResolver,
+            backendSecretResolver,
           }
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ) as any;

@@ -1,9 +1,6 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import {
-  handleCreateUpdateEvent,
-  handler,
-} from './backend_parameter.lambda.js';
+import { handleCreateUpdateEvent, handler } from './backend_secret.lambda.js';
 import {
   CloudFormationCustomResourceEvent,
   CloudFormationCustomResourceSuccessResponse,
@@ -27,7 +24,7 @@ const customResourceEventCommon = {
   ResourceProperties: {
     backendId: 'testBackendId',
     branchName: 'testBranchName',
-    parameterName: 'testParameterName',
+    secretName: 'testSecretName',
     ServiceToken: 'token',
   },
   OldResourceProperties: {},
@@ -51,6 +48,7 @@ describe('handle', () => {
       LogicalResourceId: deleteCfnEvent.LogicalResourceId,
       PhysicalResourceId: deleteCfnEvent.PhysicalResourceId,
       Data: undefined,
+      NoEcho: true,
       StackId: deleteCfnEvent.StackId,
       Status: 'SUCCESS',
     } as CloudFormationCustomResourceSuccessResponse);
@@ -62,7 +60,7 @@ describe('handleCreateUpdateEvent', () => {
   const serverErr = new SecretServerError('server error');
   const clientErr = new SecretClientError('client err');
 
-  it('gets a backend parameter from a branch', async () => {
+  it('gets a backend secret from a branch', async () => {
     mock.method(secretHandler, 'getSecret', () => Promise.resolve('val'));
     const val = await handleCreateUpdateEvent(secretHandler, createCfnEvent);
     assert.equal(val, 'val');
@@ -70,16 +68,16 @@ describe('handleCreateUpdateEvent', () => {
 
   it('throws if receving server error when getting a branch secret', async () => {
     mock.method(secretHandler, 'getSecret', () => Promise.reject(serverErr));
-    assert.rejects(() =>
+    await assert.rejects(() =>
       handleCreateUpdateEvent(secretHandler, createCfnEvent)
     );
   });
 
-  it('gets a backend parameter from app if the branch returns client error', async () => {
+  it('gets a backend secret from app if the branch returns client error', async () => {
     mock.method(
       secretHandler,
       'getSecret',
-      (backendId: string, paramName: string, branchName?: string) => {
+      (backendId: string, secretName: string, branchName?: string) => {
         if (branchName) {
           return Promise.reject(clientErr);
         }
@@ -90,11 +88,11 @@ describe('handleCreateUpdateEvent', () => {
     assert.equal(val, 'val');
   });
 
-  it('gets a backend parameter from app if the branch returns undefined', async () => {
+  it('gets a backend secret from app if the branch returns undefined', async () => {
     mock.method(
       secretHandler,
       'getSecret',
-      (backendId: string, paramName: string, branchName?: string) => {
+      (backendId: string, secretName: string, branchName?: string) => {
         if (branchName) {
           return Promise.resolve(undefined);
         }
@@ -109,14 +107,14 @@ describe('handleCreateUpdateEvent', () => {
     mock.method(
       secretHandler,
       'getSecret',
-      (backendId: string, paramName: string, branchName?: string) => {
+      (backendId: string, secretName: string, branchName?: string) => {
         if (branchName) {
           return Promise.reject(clientErr);
         }
         return Promise.reject(serverErr);
       }
     );
-    assert.rejects(() =>
+    await assert.rejects(() =>
       handleCreateUpdateEvent(secretHandler, createCfnEvent)
     );
   });

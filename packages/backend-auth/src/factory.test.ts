@@ -1,8 +1,8 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import { AmplifyAuthFactory } from './factory.js';
 import {
+  DeepBackendSecretResolver,
   NestedStackResolver,
-  OptionalPassThroughBackendParameterResolver,
   SingletonConstructContainer,
   StackMetadataBackendOutputStorageStrategy,
   ToggleableImportPathVerifier,
@@ -13,7 +13,7 @@ import { Template } from 'aws-cdk-lib/assertions';
 import {
   BackendOutputEntry,
   BackendOutputStorageStrategy,
-  BackendParameterResolver,
+  BackendSecretResolver,
   ConstructContainer,
   ImportPathVerifier,
 } from '@aws-amplify/plugin-types';
@@ -23,7 +23,7 @@ describe('AmplifyAuthFactory', () => {
   let constructContainer: ConstructContainer;
   let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
   let importPathVerifier: ImportPathVerifier;
-  let backendParameterResolver: BackendParameterResolver;
+  let backendSecretResolver: BackendSecretResolver;
   beforeEach(() => {
     authFactory = new AmplifyAuthFactory({
       loginWith: { email: true },
@@ -42,7 +42,7 @@ describe('AmplifyAuthFactory', () => {
 
     importPathVerifier = new ToggleableImportPathVerifier(false);
 
-    backendParameterResolver = new OptionalPassThroughBackendParameterResolver(
+    backendSecretResolver = new DeepBackendSecretResolver(
       stack,
       'testProject',
       'testBranch'
@@ -53,13 +53,13 @@ describe('AmplifyAuthFactory', () => {
       constructContainer: constructContainer,
       outputStorageStrategy,
       importPathVerifier,
-      backendParameterResolver,
+      backendSecretResolver,
     });
     const instance2 = authFactory.getInstance({
       constructContainer,
       outputStorageStrategy,
       importPathVerifier,
-      backendParameterResolver,
+      backendSecretResolver,
     });
 
     assert.strictEqual(instance1, instance2);
@@ -70,7 +70,7 @@ describe('AmplifyAuthFactory', () => {
       constructContainer,
       outputStorageStrategy,
       importPathVerifier,
-      backendParameterResolver,
+      backendSecretResolver,
     });
 
     const template = Template.fromStack(Stack.of(authConstruct));
@@ -86,7 +86,7 @@ describe('AmplifyAuthFactory', () => {
       constructContainer,
       outputStorageStrategy,
       importPathVerifier,
-      backendParameterResolver,
+      backendSecretResolver,
     });
 
     assert.ok(

@@ -4,20 +4,11 @@ import {
   AuthResources,
   BackendOutputEntry,
   BackendOutputStorageStrategy,
-  BackendParameter,
   ConstructContainerEntryGenerator,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
   ResourceProvider,
-  Replace,
 } from '@aws-amplify/plugin-types';
-import { SecretValue } from 'aws-cdk-lib';
-
-export type AmplifyAuthFactoryProps = Replace<
-  AmplifyAuthProps,
-  SecretValue,
-  BackendParameter
->;
 
 /**
  * Singleton factory for AmplifyAuth that can be used in Amplify project files
@@ -32,7 +23,7 @@ export class AmplifyAuthFactory
   /**
    * Set the properties that will be used to initialize AmplifyAuth
    */
-  constructor(private readonly props: AmplifyAuthFactoryProps) {
+  constructor(private readonly props: AuthProps) {
     // capture the import stack in the ctor because this is what customers call in the backend definition code
     this.importStack = new Error().stack;
   }
@@ -44,7 +35,6 @@ export class AmplifyAuthFactory
     constructContainer,
     outputStorageStrategy,
     importPathVerifier,
-    backendParameterResolver,
   }: ConstructFactoryGetInstanceProps): AmplifyAuth => {
     importPathVerifier?.verify(
       this.importStack,
@@ -52,8 +42,10 @@ export class AmplifyAuthFactory
       'Amplify Auth must be defined in an "auth.ts" file'
     );
     if (!this.generator) {
+      // TODO: https://github.com/aws-amplify/samsara-cli/issues/229
+      // Integrate backend secret to Auth.
       this.generator = new AmplifyAuthGenerator(
-        backendParameterResolver.resolveParameters(this.props),
+        this.props,
         outputStorageStrategy
       );
     }
