@@ -1,5 +1,14 @@
 # @aws-amplify/backend-cli
 
+## 0.2.0-alpha.2
+
+### Patch Changes
+
+- 3bda96f: update methods to use arrow notation
+- Updated dependencies [3bda96f]
+  - @aws-amplify/client-config@0.1.1-alpha.2
+  - @aws-amplify/sandbox@0.1.1-alpha.2
+
 ## 0.2.0-alpha.1
 
 ### Minor Changes
