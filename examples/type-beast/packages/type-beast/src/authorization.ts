@@ -7,6 +7,10 @@ const __data = Symbol('data');
 
 /**
  * All possible providers.
+ *
+ * This list should not be used if you need to restrict available providers
+ * according to an auth strategcy. E.g., `public` auth can only be facilitated
+ * by `apiKey` and `iam` providers.
  */
 export const Providers = [
   'apiKey',
@@ -55,10 +59,14 @@ export type Strategy = (typeof Strategies)[number];
  */
 export const Operations = [
   'create',
-  'read',
   'update',
   'delete',
+  'read',
+  'get',
+  'list',
+  'sync',
   'listen',
+  'search',
 ] as const;
 export type Operation = (typeof Operations)[number];
 
@@ -94,6 +102,14 @@ function inField<SELF extends AuthorizationFor<any>>(
   return omit(this, 'inField');
 }
 
+/**
+ * Specifies a property of the identity JWT to use in place of `sub::username`
+ * as the value to match against the owner field for authorization.
+ *
+ * @param this Authorization object to operate against.
+ * @param property A property of identity JWT.
+ * @returns A copy of the Authorization object with the claim attached.
+ */
 function identityClaim<SELF extends AuthorizationFor<any>>(
   this: SELF,
   property: string
@@ -124,7 +140,7 @@ function defaultAuth<T extends Shape>(
   };
 }
 
-class AuthBuilder<T extends Shape> {
+export class AuthBuilder<T extends Shape> {
   constructor(private shape: T) {}
 
   public(provider?: PublicProvider) {
@@ -163,6 +179,13 @@ class AuthBuilder<T extends Shape> {
     };
   }
 
+  /**
+   * Specifies `owner` auth and automatically creates the necessary
+   * `[owner]: a.string().list()` field if it doesn't already exist.
+   *
+   * If the desired `[owner]` field already exists and is not the
+   * correct type, an error will be thrown.
+   */
   multipleOwners() {}
   specificGroup() {}
 }

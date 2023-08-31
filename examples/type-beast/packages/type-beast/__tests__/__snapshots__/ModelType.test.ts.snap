@@ -1,5 +1,278 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`model auth rules can define owner auth with no provider 1`] = `
+"type widget @model 
+{
+  title: String!
+}"
+`;
+
+exports[`model auth rules can define owner auth with owner field spec 1`] = `
+"type widget @model 
+{
+  title: String!
+}"
+`;
+
+exports[`model auth rules can define private auth with no provider 1`] = `
+"type widget @model 
+{
+  title: String!
+}"
+`;
+
+exports[`model auth rules can define private with with provider iam 1`] = `
+"type widget @model 
+{
+  title: String!
+}"
+`;
+
+exports[`model auth rules can define private with with provider iam for operation  1`] = `
+"type widget @model 
+{
+  title: String!
+}"
+`;
+
+exports[`model auth rules can define private with with provider iam for operation  2`] = `
+"type widget @model 
+{
+  title: String!
+}"
+`;
+
+exports[`model auth rules can define private with with provider iam for operation  3`] = `
+"type widget @model 
+{
+  title: String!
+}"
+`;
+
+exports[`model auth rules can define private with with provider iam for operation  4`] = `
+"type widget @model 
+{
+  title: String!
+}"
+`;
+
+exports[`model auth rules can define private with with provider iam for operation  5`] = `
+"type widget @model 
+{
+  title: String!
+}"
+`;
+
+exports[`model auth rules can define private with with provider iam for operation  6`] = `
+"type widget @model 
+{
+  title: String!
+}"
+`;
+
+exports[`model auth rules can define private with with provider iam for operation  7`] = `
+"type widget @model 
+{
+  title: String!
+}"
+`;
+
+exports[`model auth rules can define private with with provider iam for operation  8`] = `
+"type widget @model 
+{
+  title: String!
+}"
+`;
+
+exports[`model auth rules can define private with with provider iam for operation  9`] = `
+"type widget @model 
+{
+  title: String!
+}"
+`;
+
+exports[`model auth rules can define private with with provider iam for operation  10`] = `
+"type widget @model 
+{
+  title: String!
+}"
+`;
+
+exports[`model auth rules can define private with with provider iam for operation  11`] = `
+"type widget @model 
+{
+  title: String!
+}"
+`;
+
+exports[`model auth rules can define private with with provider oidc 1`] = `
+"type widget @model 
+{
+  title: String!
+}"
+`;
+
+exports[`model auth rules can define private with with provider oidc for operation  1`] = `
+"type widget @model 
+{
+  title: String!
+}"
+`;
+
+exports[`model auth rules can define private with with provider oidc for operation  2`] = `
+"type widget @model 
+{
+  title: String!
+}"
+`;
+
+exports[`model auth rules can define private with with provider oidc for operation  3`] = `
+"type widget @model 
+{
+  title: String!
+}"
+`;
+
+exports[`model auth rules can define private with with provider oidc for operation  4`] = `
+"type widget @model 
+{
+  title: String!
+}"
+`;
+
+exports[`model auth rules can define private with with provider oidc for operation  5`] = `
+"type widget @model 
+{
+  title: String!
+}"
+`;
+
+exports[`model auth rules can define private with with provider oidc for operation  6`] = `
+"type widget @model 
+{
+  title: String!
+}"
+`;
+
+exports[`model auth rules can define private with with provider oidc for operation  7`] = `
+"type widget @model 
+{
+  title: String!
+}"
+`;
+
+exports[`model auth rules can define private with with provider oidc for operation  8`] = `
+"type widget @model 
+{
+  title: String!
+}"
+`;
+
+exports[`model auth rules can define private with with provider oidc for operation  9`] = `
+"type widget @model 
+{
+  title: String!
+}"
+`;
+
+exports[`model auth rules can define private with with provider oidc for operation  10`] = `
+"type widget @model 
+{
+  title: String!
+}"
+`;
+
+exports[`model auth rules can define private with with provider oidc for operation  11`] = `
+"type widget @model 
+{
+  title: String!
+}"
+`;
+
+exports[`model auth rules can define private with with provider userPools 1`] = `
+"type widget @model 
+{
+  title: String!
+}"
+`;
+
+exports[`model auth rules can define private with with provider userPools for operation  1`] = `
+"type widget @model 
+{
+  title: String!
+}"
+`;
+
+exports[`model auth rules can define private with with provider userPools for operation  2`] = `
+"type widget @model 
+{
+  title: String!
+}"
+`;
+
+exports[`model auth rules can define private with with provider userPools for operation  3`] = `
+"type widget @model 
+{
+  title: String!
+}"
+`;
+
+exports[`model auth rules can define private with with provider userPools for operation  4`] = `
+"type widget @model 
+{
+  title: String!
+}"
+`;
+
+exports[`model auth rules can define private with with provider userPools for operation  5`] = `
+"type widget @model 
+{
+  title: String!
+}"
+`;
+
+exports[`model auth rules can define private with with provider userPools for operation  6`] = `
+"type widget @model 
+{
+  title: String!
+}"
+`;
+
+exports[`model auth rules can define private with with provider userPools for operation  7`] = `
+"type widget @model 
+{
+  title: String!
+}"
+`;
+
+exports[`model auth rules can define private with with provider userPools for operation  8`] = `
+"type widget @model 
+{
+  title: String!
+}"
+`;
+
+exports[`model auth rules can define private with with provider userPools for operation  9`] = `
+"type widget @model 
+{
+  title: String!
+}"
+`;
+
+exports[`model auth rules can define private with with provider userPools for operation  10`] = `
+"type widget @model 
+{
+  title: String!
+}"
+`;
+
+exports[`model auth rules can define private with with provider userPools for operation  11`] = `
+"type widget @model 
+{
+  title: String!
+}"
+`;
+
 exports[`model auth rules can define public auth with no provider 1`] = `
 "type widget @model @auth(rules: [allow: public])
 {

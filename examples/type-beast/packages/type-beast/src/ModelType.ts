@@ -4,7 +4,7 @@ import type {
   InternalRelationalField,
 } from './ModelRelationalField';
 import {
-  authBuilder,
+  AuthBuilder,
   AuthBuilderChain,
   AuthorizationFor,
 } from './authorization';
@@ -105,7 +105,7 @@ function _model<T extends ModelTypeParamShape>(fields: T['fields']) {
       return this;
     },
     authorization(rules) {
-      data.authorization = rules(authBuilder(fields));
+      data.authorization = rules(new AuthBuilder(fields));
 
       return this;
     },
