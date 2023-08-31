@@ -5,14 +5,15 @@
 ```ts
 
 import { AmplifyAuth } from '@aws-amplify/auth-construct-alpha';
-import { AmplifyAuthProps } from '@aws-amplify/auth-construct-alpha';
+import { AuthProps } from '@aws-amplify/auth-construct-alpha';
 import { AuthResources } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
+import { ResourceProvider } from '@aws-amplify/plugin-types';
 
 // @public
-export class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth & AuthResources> {
-    constructor(props: AmplifyAuthProps);
+export class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth & ResourceProvider<AuthResources>> {
+    constructor(props: AuthProps);
     getInstance: ({ constructContainer, outputStorageStrategy, importPathVerifier, }: ConstructFactoryGetInstanceProps) => AmplifyAuth;
     // (undocumented)
     readonly provides = "AuthResources";

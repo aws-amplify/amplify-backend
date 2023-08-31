@@ -4,20 +4,30 @@
 
 ```ts
 
+import { CfnIdentityPool } from 'aws-cdk-lib/aws-cognito';
+import { CfnIdentityPoolRoleAttachment } from 'aws-cdk-lib/aws-cognito';
 import { Construct } from 'constructs';
 import { IRole } from 'aws-cdk-lib/aws-iam';
 import { IUserPool } from 'aws-cdk-lib/aws-cognito';
+import { IUserPoolClient } from 'aws-cdk-lib/aws-cognito';
 import { Stack } from 'aws-cdk-lib';
 
 // @public
 export type AppId = string;
 
 // @public
+export type AuthCfnResources = {
+    identityPool: CfnIdentityPool;
+    identityPoolRoleAttachment: CfnIdentityPoolRoleAttachment;
+};
+
+// @public
 export type AuthResources = {
-    authenticatedUserIamRole: IRole;
-    unauthenticatedUserIamRole: IRole;
-    userPool?: IUserPool;
-    identityPoolId?: string;
+    userPool: IUserPool;
+    userPoolClientWeb: IUserPoolClient;
+    authenticatedUserIamRole?: IRole;
+    unauthenticatedUserIamRole?: IRole;
+    cfnResources: AuthCfnResources;
 };
 
 // @public (undocumented)
@@ -87,6 +97,11 @@ export type MainStackCreator = {
 // @public
 export type MainStackNameResolver = {
     resolveMainStackName: () => Promise<string>;
+};
+
+// @public
+export type ResourceProvider<T> = {
+    resources: T;
 };
 
 // @public (undocumented)

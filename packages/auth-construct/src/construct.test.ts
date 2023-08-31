@@ -7,30 +7,19 @@ import {
   BackendOutputEntry,
   BackendOutputStorageStrategy,
 } from '@aws-amplify/plugin-types';
-import { UserPool, UserPoolClient } from 'aws-cdk-lib/aws-cognito';
+import {
+  UserPool,
+  UserPoolClient,
+  VerificationEmailStyle,
+} from 'aws-cdk-lib/aws-cognito';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
+import { AuthProps } from './types.js';
 
 describe('Auth construct', () => {
-  it('creates case sensitive username login', () => {
-    const app = new App();
-    const stack = new Stack(app);
-    new AmplifyAuth(stack, 'test', {
-      loginMechanisms: ['username'],
-    });
-    const template = Template.fromStack(stack);
-    template.hasResourceProperties('AWS::Cognito::UserPool', {
-      UsernameConfiguration: {
-        CaseSensitive: true,
-      },
-    });
-  });
-
   it('creates phone number login mechanism', () => {
     const app = new App();
     const stack = new Stack(app);
-    new AmplifyAuth(stack, 'test', {
-      loginMechanisms: ['phone'],
-    });
+    new AmplifyAuth(stack, 'test', { loginWith: { phoneNumber: true } });
     const template = Template.fromStack(stack);
     template.hasResourceProperties('AWS::Cognito::UserPool', {
       UsernameAttributes: ['phone_number'],
@@ -41,9 +30,7 @@ describe('Auth construct', () => {
   it('creates email login mechanism', () => {
     const app = new App();
     const stack = new Stack(app);
-    new AmplifyAuth(stack, 'test', {
-      loginMechanisms: ['email'],
-    });
+    new AmplifyAuth(stack, 'test', { loginWith: { email: true } });
     const template = Template.fromStack(stack);
     template.hasResourceProperties('AWS::Cognito::UserPool', {
       UsernameAttributes: ['email'],
@@ -51,48 +38,279 @@ describe('Auth construct', () => {
     });
   });
 
-  it('does not allow username login with phone number or email', () => {
+  it('creates email login mechanism if settings is empty object', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    new AmplifyAuth(stack, 'test', { loginWith: { email: {} } });
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      UsernameAttributes: ['email'],
+      AutoVerifiedAttributes: ['email'],
+    });
+  });
+
+  it('creates phone login mechanism if settings is empty object', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    new AmplifyAuth(stack, 'test', { loginWith: { phoneNumber: {} } });
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      UsernameAttributes: ['phone_number'],
+      AutoVerifiedAttributes: ['phone_number'],
+    });
+  });
+
+  it('creates email login mechanism with specific settings', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const customEmailVerificationMessage = 'custom email body {####}';
+    const customEmailVerificationSubject = 'custom subject';
+    new AmplifyAuth(stack, 'test', {
+      loginWith: {
+        email: {
+          emailBody: customEmailVerificationMessage,
+          emailStyle: VerificationEmailStyle.CODE,
+          emailSubject: customEmailVerificationSubject,
+        },
+      },
+    });
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      EmailVerificationMessage: customEmailVerificationMessage,
+      EmailVerificationSubject: customEmailVerificationSubject,
+      VerificationMessageTemplate: {
+        DefaultEmailOption: 'CONFIRM_WITH_CODE',
+        EmailMessage: customEmailVerificationMessage,
+        EmailSubject: customEmailVerificationSubject,
+        SmsMessage: 'The verification code to your new account is {####}',
+      },
+    });
+  });
+
+  it('expect compile error if invalid email verification message for CODE', () => {
+    const customEmailVerificationMessage = 'invalid message without code';
+    const validMessage = 'valid {####} email';
+    const customEmailVerificationSubject = 'custom subject';
+    let props: AuthProps = {
+      loginWith: {
+        email: {
+          // @ts-expect-error We know this is a compile error, but must have runtime validation as well.
+          emailBody: customEmailVerificationMessage,
+          emailStyle: VerificationEmailStyle.CODE,
+          emailSubject: customEmailVerificationSubject,
+        },
+      },
+    };
+    // bypass ts unused props warning
+    assert.notEqual(props, undefined);
+    props = {
+      loginWith: {
+        email: {
+          emailBody: validMessage,
+          emailStyle: VerificationEmailStyle.CODE,
+          emailSubject: customEmailVerificationSubject,
+        },
+      },
+    };
+    // bypass ts unused props warning
+    assert.notEqual(props, undefined);
+  });
+
+  it('expect compile error if invalid email verification message for LINK', () => {
+    const customEmailVerificationMessage = 'invalid message without link';
+    const validMessage = 'valid {##Verify Email##}';
+    const customEmailVerificationSubject = 'custom subject';
+    let props: AuthProps = {
+      loginWith: {
+        email: {
+          // @ts-expect-error We expect this to be a compile error
+          emailBody: customEmailVerificationMessage,
+          emailStyle: VerificationEmailStyle.LINK,
+          emailSubject: customEmailVerificationSubject,
+        },
+      },
+    };
+    // bypass ts unused props warning
+    assert.notEqual(props, undefined);
+    props = {
+      loginWith: {
+        email: {
+          emailBody: validMessage,
+          emailStyle: VerificationEmailStyle.LINK,
+          emailSubject: customEmailVerificationSubject,
+        },
+      },
+    };
+    // bypass ts unused props warning
+    assert.notEqual(props, undefined);
+  });
+
+  it('does not throw if valid email verification message for LINK', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const customEmailVerificationMessage =
+      'valid message {##Verify Email##} with link';
+    const customEmailVerificationSubject = 'custom subject';
+    assert.doesNotThrow(
+      () =>
+        new AmplifyAuth(stack, 'test', {
+          loginWith: {
+            email: {
+              emailBody: customEmailVerificationMessage,
+              emailStyle: VerificationEmailStyle.LINK,
+              emailSubject: customEmailVerificationSubject,
+            },
+          },
+        })
+    );
+  });
+
+  it('expect compile error if invalid sms verification message', () => {
+    const customSMSVerificationMessage = 'invalid message without code';
+    const validSMSVerificationMesssage = 'valid {####}';
+    let props: AuthProps = {
+      loginWith: {
+        phoneNumber: {
+          // @ts-expect-error We expect this to be a compile error
+          verificationMessage: customSMSVerificationMessage,
+        },
+      },
+    };
+    // bypass ts unused props warning
+    assert.notEqual(props, undefined);
+    props = {
+      loginWith: {
+        phoneNumber: {
+          verificationMessage: validSMSVerificationMesssage,
+        },
+      },
+    };
+    // bypass ts unused props warning
+    assert.notEqual(props, undefined);
+  });
+
+  it('requires email attribute if email is enabled', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    new AmplifyAuth(stack, 'test', { loginWith: { email: true } });
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      UsernameAttributes: ['email'],
+      AutoVerifiedAttributes: ['email'],
+    });
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      Schema: [
+        {
+          Mutable: true,
+          Name: 'email',
+          Required: true,
+        },
+      ],
+    });
+  });
+
+  it('creates user attributes', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    new AmplifyAuth(stack, 'test', {
+      loginWith: { email: true },
+      userAttributes: [
+        AmplifyAuth.attribute('address').mutable(),
+        AmplifyAuth.attribute('familyName').required(),
+        AmplifyAuth.customAttribute.string('defaultString'),
+        AmplifyAuth.customAttribute
+          .string('minMaxString')
+          .minLength(0)
+          .maxLength(100),
+        AmplifyAuth.customAttribute.dateTime('birthDateTime'),
+        AmplifyAuth.customAttribute.number('numberMinMax').min(0).max(5),
+      ],
+    });
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      Schema: [
+        {
+          Mutable: true,
+          Name: 'email',
+          Required: true,
+        },
+        {
+          Mutable: true,
+          Name: 'address',
+          Required: false,
+        },
+        {
+          Mutable: false,
+          Name: 'family_name',
+          Required: true,
+        },
+        {
+          AttributeDataType: 'String',
+          Mutable: false,
+          Name: 'defaultString',
+          StringAttributeConstraints: {},
+        },
+        {
+          AttributeDataType: 'String',
+          Mutable: false,
+          Name: 'minMaxString',
+          StringAttributeConstraints: {
+            MinLength: '0',
+            MaxLength: '100',
+          },
+        },
+        {
+          AttributeDataType: 'DateTime',
+          Mutable: false,
+          Name: 'birthDateTime',
+        },
+        {
+          AttributeDataType: 'Number',
+          Mutable: false,
+          Name: 'numberMinMax',
+          NumberAttributeConstraints: {
+            MaxValue: '5',
+            MinValue: '0',
+          },
+        },
+      ],
+    });
+  });
+
+  it('throws if duplicate custom attributes are found', () => {
     const app = new App();
     const stack = new Stack(app);
     assert.throws(
       () =>
         new AmplifyAuth(stack, 'test', {
-          loginMechanisms: ['username', 'email'],
+          loginWith: { email: true },
+          userAttributes: [
+            AmplifyAuth.customAttribute.string('myCustomAttribute'),
+            AmplifyAuth.customAttribute.string('myCustomAttribute'),
+          ],
         }),
-      /Username login mechanism cannot be used with phone or email login mechanisms/
-    );
-
-    assert.throws(
-      () =>
-        new AmplifyAuth(stack, 'test2', {
-          loginMechanisms: ['username', 'phone'],
-        }),
-      /Username login mechanism cannot be used with phone or email login mechanisms/
+      {
+        message: `Invalid userAttributes. Duplicate custom attribute name found: myCustomAttribute.`,
+      }
     );
   });
 
-  it('creates google login mechanism', () => {
+  it('throws if duplicate user attributes are found', () => {
     const app = new App();
     const stack = new Stack(app);
-    new AmplifyAuth(stack, 'test', {
-      loginMechanisms: [
-        {
-          provider: 'google',
-          webClientId: 'testId',
-          webClientSecret: 'testSecret',
-        },
-      ],
-    });
-    const template = Template.fromStack(stack);
-    template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
-      ProviderName: 'Google',
-      ProviderType: 'Google',
-      ProviderDetails: {
-        client_id: 'testId',
-        client_secret: 'testSecret',
-        authorize_scopes: 'profile',
-      },
-    });
+    assert.throws(
+      () =>
+        new AmplifyAuth(stack, 'test', {
+          loginWith: { email: true },
+          userAttributes: [
+            AmplifyAuth.attribute('address').mutable(),
+            AmplifyAuth.attribute('address').required(),
+          ],
+        }),
+      {
+        message: `Invalid userAttributes. Duplicate attribute name found: address.`,
+      }
+    );
   });
 
   describe('storeOutput', () => {
@@ -107,7 +325,9 @@ describe('Auth construct', () => {
           flush: mock.fn(),
         };
       const authConstruct = new AmplifyAuth(stack, 'test', {
-        loginMechanisms: ['username'],
+        loginWith: {
+          email: true,
+        },
       });
 
       const expectedUserPoolId = (
@@ -134,6 +354,129 @@ describe('Auth construct', () => {
           },
         },
       ]);
+    });
+  });
+
+  describe('defaults', () => {
+    it('creates email login by default', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test');
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        UsernameAttributes: ['email'],
+        AutoVerifiedAttributes: ['email'],
+      });
+    });
+
+    it('creates the correct number of default resources', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test');
+      const template = Template.fromStack(stack);
+      template.resourceCountIs('AWS::Cognito::UserPool', 1);
+      template.resourceCountIs('AWS::Cognito::UserPoolClient', 1);
+      template.resourceCountIs('AWS::Cognito::IdentityPool', 1);
+      template.resourceCountIs('AWS::Cognito::IdentityPoolRoleAttachment', 1);
+      template.resourceCountIs('AWS::IAM::Role', 2);
+    });
+
+    it('sets the case sensitivity to false', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test');
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        UsernameConfiguration: {
+          CaseSensitive: false,
+        },
+      });
+    });
+
+    it('enables self signup', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test');
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        AdminCreateUserConfig: {
+          AllowAdminCreateUserOnly: false,
+        },
+      });
+    });
+
+    it('allows unauthenticated identities to the identity pool', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test');
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::IdentityPool', {
+        AllowUnauthenticatedIdentities: true,
+      });
+    });
+
+    it('prevents user existence errors', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test');
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPoolClient', {
+        PreventUserExistenceErrors: 'ENABLED',
+      });
+    });
+
+    it('sets the default password policy', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test');
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        Policies: {
+          PasswordPolicy: {
+            MinimumLength: 8,
+            RequireLowercase: true,
+            RequireNumbers: true,
+            RequireSymbols: true,
+            RequireUppercase: true,
+          },
+        },
+      });
+    });
+
+    it('require verification of email before updating email', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test');
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        UserAttributeUpdateSettings: {
+          AttributesRequireVerificationBeforeUpdate: ['email'],
+        },
+      });
+    });
+
+    it('enables SRP and Custom auth flows', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test');
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPoolClient', {
+        ExplicitAuthFlows: [
+          'ALLOW_CUSTOM_AUTH',
+          'ALLOW_USER_SRP_AUTH',
+          'ALLOW_REFRESH_TOKEN_AUTH',
+        ],
+      });
+    });
+
+    it('creates a default client with cognito provider', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test');
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPoolClient', {
+        SupportedIdentityProviders: ['COGNITO'],
+      });
     });
   });
 });

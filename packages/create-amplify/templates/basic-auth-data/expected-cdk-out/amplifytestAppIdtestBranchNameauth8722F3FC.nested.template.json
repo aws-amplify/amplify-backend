@@ -16,19 +16,40 @@
      ]
     },
     "AdminCreateUserConfig": {
-     "AllowAdminCreateUserOnly": true
+     "AllowAdminCreateUserOnly": false
     },
     "AutoVerifiedAttributes": [
      "email"
     ],
     "EmailVerificationMessage": "The verification code to your new account is {####}",
     "EmailVerificationSubject": "Verify your new account",
+    "Policies": {
+     "PasswordPolicy": {
+      "MinimumLength": 8,
+      "RequireLowercase": true,
+      "RequireNumbers": true,
+      "RequireSymbols": true,
+      "RequireUppercase": true
+     }
+    },
+    "Schema": [
+     {
+      "Mutable": true,
+      "Name": "email",
+      "Required": true
+     }
+    ],
     "SmsVerificationMessage": "The verification code to your new account is {####}",
+    "UserAttributeUpdateSettings": {
+     "AttributesRequireVerificationBeforeUpdate": [
+      "email"
+     ]
+    },
     "UsernameAttributes": [
      "email"
     ],
     "UsernameConfiguration": {
-     "CaseSensitive": true
+     "CaseSensitive": false
     },
     "VerificationMessageTemplate": {
      "DefaultEmailOption": "CONFIRM_WITH_CODE",
@@ -61,6 +82,12 @@
     "CallbackURLs": [
      "https://example.com"
     ],
+    "ExplicitAuthFlows": [
+     "ALLOW_CUSTOM_AUTH",
+     "ALLOW_USER_SRP_AUTH",
+     "ALLOW_REFRESH_TOKEN_AUTH"
+    ],
+    "PreventUserExistenceErrors": "ENABLED",
     "SupportedIdentityProviders": [
      "COGNITO"
     ]
@@ -99,6 +126,86 @@
      "Version": "2012-10-17"
     }
    }
+  },
+  "amplifyAuthIdentityPool3FDE84CC": {
+   "Type": "AWS::Cognito::IdentityPool",
+   "Properties": {
+    "AllowUnauthenticatedIdentities": true,
+    "CognitoIdentityProviders": [
+     {
+      "ClientId": {
+       "Ref": "amplifyAuthUserPoolWebClientA385E48A"
+      },
+      "ProviderName": {
+       "Fn::Join": [
+        "",
+        [
+         "cognito-idp.",
+         {
+          "Ref": "AWS::Region"
+         },
+         ".amazonaws.com/",
+         {
+          "Fn::GetAtt": [
+           "amplifyAuthUserPool4BA7F805",
+           "ProviderName"
+          ]
+         }
+        ]
+       ]
+      }
+     }
+    ]
+   }
+  },
+  "amplifyAuthIdentityPoolRoleAttachment045F17C8": {
+   "Type": "AWS::Cognito::IdentityPoolRoleAttachment",
+   "Properties": {
+    "IdentityPoolId": "amplifyAuthIdentityPool3FDE84CC",
+    "RoleMappings": {
+     "UserPoolWebClientRoleMapping": {
+      "AmbiguousRoleResolution": "AuthenticatedRole",
+      "IdentityProvider": {
+       "Fn::Join": [
+        "",
+        [
+         "cognito-idp.",
+         {
+          "Ref": "AWS::Region"
+         },
+         ".amazonaws.com/",
+         {
+          "Ref": "amplifyAuthUserPool4BA7F805"
+         },
+         ":",
+         {
+          "Ref": "amplifyAuthUserPoolWebClientA385E48A"
+         }
+        ]
+       ]
+      },
+      "Type": "Token"
+     }
+    },
+    "Roles": {
+     "unauthenticated": {
+      "Fn::GetAtt": [
+       "amplifyAuthunauthenticatedUserRole2B524D9E",
+       "Arn"
+      ]
+     },
+     "authenticated": {
+      "Fn::GetAtt": [
+       "amplifyAuthauthenticatedUserRoleD8DA3689",
+       "Arn"
+      ]
+     }
+    }
+   },
+   "DependsOn": [
+    "amplifyAuthIdentityPool3FDE84CC",
+    "amplifyAuthUserPoolWebClientA385E48A"
+   ]
   }
  },
  "Outputs": {
