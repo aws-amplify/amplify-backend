@@ -1,4 +1,4 @@
-import isCI from 'is-ci';
+import _isCI from 'is-ci';
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { BackendDeployer } from '@aws-amplify/backend-deployer';
 
@@ -28,7 +28,7 @@ export class PipelineDeployCommand
    */
   constructor(
     private readonly backendDeployer: BackendDeployer,
-    private readonly isCiEnvironment: typeof isCI = isCI
+    private readonly isCiEnvironment: typeof _isCI = _isCI
   ) {
     this.command = 'pipeline-deploy';
     // use false for a hidden command
