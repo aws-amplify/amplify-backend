@@ -1,5 +1,12 @@
 # create-amplify
 
+## 0.2.0-alpha.2
+
+### Patch Changes
+
+- 2ef006f: Support for email and phone number login has been updated to reflect new type structures. User attributes and verification settings have also been added.
+- 3bda96f: update methods to use arrow notation
+
 ## 0.2.0-alpha.1
 
 ### Minor Changes
