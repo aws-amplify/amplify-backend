@@ -51,9 +51,7 @@ describe('deploy command', () => {
     const mockDeploy = mock.method(
       BackendDeployerFactory.getInstance(),
       'deploy',
-      () => {
-        Promise.resolve();
-      }
+      () => Promise.resolve()
     );
     await getCommandRunner(true).runCommand(
       'pipeline-deploy --app-id abc --branch testbranch'
