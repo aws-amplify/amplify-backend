@@ -146,10 +146,7 @@
          },
          ".amazonaws.com/",
          {
-          "Fn::GetAtt": [
-           "amplifyAuthUserPool4BA7F805",
-           "ProviderName"
-          ]
+          "Ref": "amplifyAuthUserPool4BA7F805"
          }
         ]
        ]
@@ -161,7 +158,9 @@
   "amplifyAuthIdentityPoolRoleAttachment045F17C8": {
    "Type": "AWS::Cognito::IdentityPoolRoleAttachment",
    "Properties": {
-    "IdentityPoolId": "amplifyAuthIdentityPool3FDE84CC",
+    "IdentityPoolId": {
+     "Ref": "amplifyAuthIdentityPool3FDE84CC"
+    },
     "RoleMappings": {
      "UserPoolWebClientRoleMapping": {
       "AmbiguousRoleResolution": "AuthenticatedRole",
