@@ -142,7 +142,7 @@ export class AmplifyAuth
     identityPool.cognitoIdentityProviders = [
       {
         clientId: userPoolClient.userPoolClientId,
-        providerName: `cognito-idp.${region}.amazonaws.com/${userPool.userPoolProviderName}`,
+        providerName: `cognito-idp.${region}.amazonaws.com/${userPool.userPoolId}`,
       },
     ];
     return {
