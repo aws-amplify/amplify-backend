@@ -4,24 +4,6 @@
 
 ```ts
 
-// Warning: (ae-forgotten-export) The symbol "AppSyncGraphqlClientGenerator" needs to be exported by the entry point index.d.ts
-//
-// @public
-export const createModelGenerator: <T extends "graphql">(modelType: T, params: ModelGeneratorParamters[T]) => AppSyncGraphqlClientGenerator;
-
-// @public (undocumented)
-export interface ModelGeneratorParamters {
-    // (undocumented)
-    graphql: {
-        outDir: string;
-        language: SupportedLanguages;
-        apiUrl: string;
-    };
-}
-
-// @public (undocumented)
-export type SupportedLanguages = 'typescript';
-
 // (No @packageDocumentation comment for this package)
 
 ```

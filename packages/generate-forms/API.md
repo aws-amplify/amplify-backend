@@ -4,28 +4,6 @@
 
 ```ts
 
-// Warning: (ae-forgotten-export) The symbol "FormGenerator" needs to be exported by the entry point index.d.ts
-//
-// @public
-export const createFormGenerator: <T extends "graphql">(generationType: T, generationParams: FormGenerationParams[T]) => FormGenerator<FormGenerationOutput[T]>;
-
-// @public (undocumented)
-export interface FormGenerationOutput {
-    // (undocumented)
-    graphql: void;
-}
-
-// @public (undocumented)
-export interface FormGenerationParams {
-    // (undocumented)
-    graphql: {
-        apiId: string;
-        appId: string;
-        introspectionSchemaUrl: string;
-        environmentName?: string;
-    };
-}
-
 // (No @packageDocumentation comment for this package)
 
 ```
