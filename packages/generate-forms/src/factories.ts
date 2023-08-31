@@ -25,13 +25,7 @@ export const createFormGenerator = <
 ): FormGenerator<FormGenerationOutput[T]> => {
   switch (generationType) {
     case 'graphql':
-      return new LocalFormGenerator(
-        generationParams,
-        new AmplifyUIBuilder({
-          endpoint:
-            'https://tzhtbadkkh.execute-api.us-west-2.amazonaws.com/prod/',
-        })
-      );
+      return new LocalFormGenerator(generationParams, new AmplifyUIBuilder());
     default:
       throw new Error('Generation type not found');
   }

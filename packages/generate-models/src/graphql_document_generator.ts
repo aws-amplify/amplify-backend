@@ -1,10 +1,10 @@
 import { generateGraphQLDocuments } from '@aws-amplify/graphql-docs-generator';
 import { FileWriter } from './schema_writer.js';
-import { GraphQLStatementsFormatter } from './graphql_statements_formatter.js';
 
 export interface SchemaFetcher {
   fetch: (apiId: string) => Promise<string>;
 }
+export type Statement = [string, string];
 /**
  * Generates GraphQL documents for a given AppSync API
  */
@@ -15,7 +15,7 @@ export class AppSyncGraphqlClientGenerator {
   constructor(
     private fileWriter: FileWriter,
     private schemaFetcher: SchemaFetcher,
-    private formatter: GraphQLStatementsFormatter,
+    private format: (statements: Statement[]) => Promise<string>,
     private extension: string
   ) {}
   generateDocumentsForAppSyncApiById = async (apiId: string) => {
@@ -32,7 +32,7 @@ export class AppSyncGraphqlClientGenerator {
           generatedStatements[
             op as unknown as keyof typeof generatedStatements
           ];
-        const content = await this.formatter.format(ops as any);
+        const content = await this.format(ops as any);
         await this.fileWriter.write(`${op}.${this.extension}`, content);
       })
     );

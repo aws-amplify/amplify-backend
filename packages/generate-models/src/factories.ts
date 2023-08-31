@@ -30,7 +30,7 @@ export const createModelGenerator = <T extends keyof ModelGeneratorParamters>(
       return new AppSyncGraphqlClientGenerator(
         new FileWriter(outDir),
         new AppSyncIntrospectionSchemaFetcher(new AppSyncClient()),
-        new GraphQLStatementsFormatter(language),
+        new GraphQLStatementsFormatter(language).format,
         languageExtensions[language]
       );
     }

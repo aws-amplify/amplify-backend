@@ -127,8 +127,8 @@ export class LocalFormGenerator implements FormGenerator<void> {
     });
 
     const [synced] = await Promise.all(results);
-    const d = getGenericFromDataStore(JSON.parse(synced));
-    return mapGenericDataSchemaToCodegen(d);
+    const genericDataSchema = getGenericFromDataStore(JSON.parse(synced));
+    return mapGenericDataSchemaToCodegen(genericDataSchema);
   };
   private generateJobInput = ({
     genericDataSchema,

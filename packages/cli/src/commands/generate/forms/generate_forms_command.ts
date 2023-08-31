@@ -76,7 +76,7 @@ export class GenerateFormsCommand
     const localFormGenerator = createFormGenerator('graphql', {
       appId: 'dkne2bw3gmwb0',
       apiId,
-      environmentName: '_SAMSARA_ENVIRONMENT_',
+      environmentName: 'staging',
       introspectionSchemaUrl: apiUrl,
     });
     await localFormGenerator.generateForms();
