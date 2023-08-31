@@ -122,7 +122,7 @@ export class AmplifyAuth
         this,
         'IdentityPoolRoleAttachment',
         {
-          identityPoolId: identityPool.logicalId,
+          identityPoolId: identityPool.ref,
           roles: {
             unauthenticated: roles.unAuth.roleArn,
             authenticated: roles.auth.roleArn,
