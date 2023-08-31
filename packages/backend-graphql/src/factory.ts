@@ -5,6 +5,7 @@ import {
   ConstructContainerEntryGenerator,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
+  ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import {
   AmplifyGraphqlApi,
@@ -46,7 +47,7 @@ export class DataFactory implements ConstructFactory<AmplifyGraphqlApi> {
       this.generator = new DataGenerator(
         this.props,
         constructContainer
-          .getConstructFactory<AuthResources>('AuthResources')
+          .getConstructFactory<ResourceProvider<AuthResources>>('AuthResources')
           .getInstance({
             constructContainer,
             outputStorageStrategy,
@@ -65,22 +66,24 @@ class DataGenerator implements ConstructContainerEntryGenerator {
 
   constructor(
     private readonly props: DataProps,
-    private readonly authResources: AuthResources,
+    private readonly authResources: ResourceProvider<AuthResources>,
     private readonly outputStorageStrategy: BackendOutputStorageStrategy<GraphqlOutput>
   ) {}
 
   generateContainerEntry = (scope: Construct) => {
     const authConfig: AuthorizationConfig = {
       iamConfig: {
-        authenticatedUserRole: this.authResources.authenticatedUserIamRole,
-        unauthenticatedUserRole: this.authResources.unauthenticatedUserIamRole,
-        identityPoolId: this.authResources.identityPoolId,
+        authenticatedUserRole:
+          this.authResources.resources.authenticatedUserIamRole,
+        unauthenticatedUserRole:
+          this.authResources.resources.unauthenticatedUserIamRole,
+        identityPoolId:
+          this.authResources.resources.cfnResources.identityPool.logicalId,
       },
     };
-
-    if (this.authResources.userPool) {
+    if (this.authResources.resources.userPool) {
       authConfig.userPoolConfig = {
-        userPool: this.authResources.userPool,
+        userPool: this.authResources.resources.userPool,
       };
       authConfig.defaultAuthMode = 'AMAZON_COGNITO_USER_POOLS';
     }

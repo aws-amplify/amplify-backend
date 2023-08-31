@@ -61,6 +61,12 @@
     "@typescript-eslint/switch-exhaustiveness-check": "error",
     "@typescript-eslint/no-floating-promises": "error",
     "@typescript-eslint/no-misused-promises": "error",
+    "@typescript-eslint/parameter-properties": [
+      "error",
+      {
+        "prefer": "parameter-property"
+      }
+    ],
     "check-file/filename-blocklist": [
       "error",
       {

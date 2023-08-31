@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/storage-construct-alpha",
-  "version": "0.1.1-alpha.0",
+  "version": "0.1.1-alpha.1",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -20,7 +20,7 @@
     "@aws-amplify/backend-output-schemas": "^0.1.1-alpha.0"
   },
   "devDependencies": {
-    "@aws-amplify/plugin-types": "^0.1.1-alpha.0"
+    "@aws-amplify/plugin-types": "^0.1.1-alpha.1"
   },
   "peerDependencies": {
     "aws-cdk-lib": "~2.80.0",

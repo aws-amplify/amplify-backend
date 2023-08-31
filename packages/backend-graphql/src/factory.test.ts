@@ -15,8 +15,15 @@ import {
   BackendOutputStorageStrategy,
   ConstructContainer,
   ImportPathVerifier,
+  ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import { Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
+import {
+  CfnIdentityPool,
+  CfnIdentityPoolRoleAttachment,
+  UserPool,
+  UserPoolClient,
+} from 'aws-cdk-lib/aws-cognito';
 
 const testSchema = `
   input AMPLIFY {globalAuthRule: AuthRule = { allow: public }} # FOR TESTING ONLY!
@@ -43,15 +50,32 @@ describe('DataFactory', () => {
     constructContainer = new SingletonConstructContainer(
       new NestedStackResolver(stack)
     );
+    const sampleUserPool = new UserPool(stack, 'UserPool');
     constructContainer.registerConstructFactory('AuthResources', {
       provides: 'AuthResources',
-      getInstance: (): AuthResources => ({
-        unauthenticatedUserIamRole: new Role(stack, 'testUnauthRole', {
-          assumedBy: new ServicePrincipal('test.amazon.com'),
-        }),
-        authenticatedUserIamRole: new Role(stack, 'testAuthRole', {
-          assumedBy: new ServicePrincipal('test.amazon.com'),
-        }),
+      getInstance: (): ResourceProvider<AuthResources> => ({
+        resources: {
+          userPool: sampleUserPool,
+          userPoolClientWeb: new UserPoolClient(stack, 'UserPoolClient', {
+            userPool: sampleUserPool,
+          }),
+          unauthenticatedUserIamRole: new Role(stack, 'testUnauthRole', {
+            assumedBy: new ServicePrincipal('test.amazon.com'),
+          }),
+          authenticatedUserIamRole: new Role(stack, 'testAuthRole', {
+            assumedBy: new ServicePrincipal('test.amazon.com'),
+          }),
+          cfnResources: {
+            identityPool: new CfnIdentityPool(stack, 'identityPool', {
+              allowUnauthenticatedIdentities: true,
+            }),
+            identityPoolRoleAttachment: new CfnIdentityPoolRoleAttachment(
+              stack,
+              'identityPoolRoleAttachment',
+              { identityPoolId: 'identityPool' }
+            ),
+          },
+        },
       }),
     });
     outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(

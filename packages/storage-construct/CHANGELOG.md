@@ -1,5 +1,11 @@
 # @aws-amplify/storage-construct-alpha
 
+## 0.1.1-alpha.1
+
+### Patch Changes
+
+- 3bda96f: update methods to use arrow notation
+
 ## 0.1.1-alpha.0
 
 ### Patch Changes
