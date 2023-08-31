@@ -142,7 +142,16 @@ export const schemaPreprocessor = <T extends ModelSchemaParamShape>(
         }
 
         // identityClaim
+        if (rule.identityClaim) {
+          // does this need to be escaped?
+          ruleParts.push(`identityClaim: "${rule.identityClaim}"`);
+        }
+
         // groupClaim
+        if (rule.groupClaim) {
+          // does this need to be escaped?
+          ruleParts.push(`groupClaim: "${rule.groupClaim}"`);
+        }
 
         return ruleParts.join(', ');
       })

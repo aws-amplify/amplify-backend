@@ -1,6 +1,10 @@
 // Warning! Slightly different patterns herein, given the slightly different invocation
 // style for auth, and the branching matrix of sometimes-overlapping options.
 
+type Shape = Record<string, any>;
+
+const __data = Symbol('data');
+
 /**
  * All possible providers.
  */
@@ -58,68 +62,132 @@ export const Operations = [
 ] as const;
 export type Operation = (typeof Operations)[number];
 
-type BuilderFunctions<T, Fields extends string = ''> = {
-  [K in keyof T as T[K] extends Function ? K : never]: T[K] extends (
-    ...args: infer ARGS
-  ) => infer RT
-    ? <_ extends Fields>(...args: ARGS) => RT
-    : never;
-};
-
-function builder<Fields extends string = '', T extends {} = {}, O = unknown>(
-  o: T,
-  without?: O
-): Omit<BuilderFunctions<T, Fields>, O extends string ? O : never> {
-  return Object.fromEntries(
-    Object.entries(o).filter(([k, v]) => k !== without)
-  ) as any;
+/**
+ * Creates a shallow copy of an object with an individual field pruned away.
+ *
+ * @param original The original object to prune.
+ * @param without The field to prune.
+ * @returns The pruned object.
+ */
+function omit<T extends {}, O extends string>(
+  original: T,
+  without: O
+): Omit<T, O> {
+  const pruned = { ...original };
+  delete (pruned as any)[without];
+  return pruned;
 }
 
-function to<Fields extends string, T extends {}>(
-  this: T,
+function to<SELF extends AuthorizationFor<any>>(
+  this: SELF,
   operations: Operation[]
 ) {
-  return builder<Fields>(
-    {
-      ...this,
-      operations,
-    },
-    'to'
-  );
+  (this as any)[__data].operations = operations;
+  return omit(this, 'to');
 }
 
-const allow = {
+function inField<SELF extends AuthorizationFor<any>>(
+  this: SELF,
+  field: keyof SELF[typeof __data]['shape']
+) {
+  (this as any)[__data].ownerField = field;
+  return omit(this, 'inField');
+}
+
+function identityClaim<SELF extends AuthorizationFor<any>>(
+  this: SELF,
+  property: string
+) {
+  (this as any)[__data].identityClaim = property;
+  return omit(this, 'identityClaim');
+}
+
+function validateProvider(
+  needle: Provider | undefined,
+  haystack: readonly Provider[]
+) {
+  if (needle !== undefined && !haystack.includes(needle)) {
+    throw new Error(`Invalid provider (${needle}) given!`);
+  }
+}
+
+function defaultAuth<T extends Shape>(
+  shape: T
+): AuthorizationFor<T>[typeof __data] {
+  return {
+    strategy: 'public',
+    provider: 'apiKey',
+    operations: [...Operations],
+    ownerField: 'owner',
+    identityClaim: '',
+    shape,
+  };
+}
+
+class AuthBuilder<T extends Shape> {
+  constructor(private shape: T) {}
+
   public(provider?: PublicProvider) {
-    if (provider !== undefined && !PublicProviders.includes(provider as any)) {
-      throw new Error(`Invalid provider (${provider}) given`);
-    }
-    const b = builder({
-      strategy: 'public',
-      provider,
+    validateProvider(provider, PublicProviders);
+    return {
+      [__data]: {
+        ...defaultAuth(this.shape),
+        strategy: 'public',
+        provider,
+      },
       to,
-    });
-    return b;
-  },
+    };
+  }
   private(provider?: PrivateProvider) {
-    if (provider !== undefined && !PrivateProviders.includes(provider as any)) {
-      throw new Error(`Invalid provider (${provider}) given`);
-    }
-    return builder({
-      strategy: 'private',
-      provider,
+    validateProvider(provider, PrivateProviders);
+    return {
+      [__data]: {
+        ...defaultAuth(this.shape),
+        strategy: 'private',
+        provider,
+      },
       to,
-    });
-  },
-  owner() {},
-  multipleOwners() {},
-  specificGroup() {},
+    };
+  }
+  owner(provider?: OwnerProviders) {
+    validateProvider(provider, OwnerProviders);
+    return {
+      [__data]: {
+        ...defaultAuth(this.shape),
+        strategy: 'owner',
+        provider,
+      },
+      to,
+      inField,
+      identityClaim,
+    };
+  }
+
+  multipleOwners() {}
+  specificGroup() {}
+}
+
+export type AuthorizationFor<T extends Shape> = {
+  [__data]: {
+    strategy?: Strategy;
+    provider?: Provider;
+    operations?: Operation[];
+    ownerField?: keyof T | 'owner';
+    identityClaim?: string;
+    shape: T;
+  };
 };
 
-function allowBuilder() {}
+export type AuthBuilderChain<T extends Shape> = (
+  builder: AuthBuilder<T>
+) => AuthorizationFor<T>[];
 
-// TODO: Refactor into types + proper builder.
-// This is just here to prove that I'm *starting* to understand how things
-// are wired together here...
-export const authorization = {
-  allow,
-} as const;
+/**
+ * SCRATCH
+ */
+
+const test = new AuthBuilder({ a: 'something', b: 'something else' });
+
+const ownerAuth = test.owner();
+const withTo = ownerAuth.to(['create', 'listen']);
+withTo.inField('a');

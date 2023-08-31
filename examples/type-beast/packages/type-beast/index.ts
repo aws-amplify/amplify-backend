@@ -1,4 +1,3 @@
-import { authorization } from './src/authorization';
 import type { ClientSchema } from './src/ModelSchema';
 import { schema, defineData } from './src/ModelSchema';
 import { model } from './src/ModelType';
@@ -19,7 +18,6 @@ const a = {
   hasMany,
   belongsTo,
   manyToMany,
-  ...authorization,
   ...fields,
 };
 
