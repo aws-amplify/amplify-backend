@@ -48,7 +48,9 @@ const mapDataFieldsToCodegen = (fields: {
 }): CodegenGenericDataFields => {
   const codegenFields: CodegenGenericDataFields = {};
 
-  const parseData = (fieldValue): { type: string; value: string } => {
+  const parseData = (
+    fieldValue: GenericDataField
+  ): { type?: string; value?: string } => {
     if (
       typeof fieldValue.dataType === 'object' &&
       fieldValue.dataType !== null
@@ -63,6 +65,7 @@ const mapDataFieldsToCodegen = (fields: {
       } else if ('nonModel' in fieldValue.dataType) {
         return { type: 'NonModel', value: fieldValue.dataType.nonModel };
       }
+      return { type: undefined, value: undefined };
     } else {
       return {
         type: fieldValue.dataType,

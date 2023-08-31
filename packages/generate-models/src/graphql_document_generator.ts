@@ -15,7 +15,7 @@ export class AppSyncGraphqlClientGenerator {
   constructor(
     private fileWriter: FileWriter,
     private schemaFetcher: SchemaFetcher,
-    private format: (statements: Iterable<[string, string]>) => Promise<string>,
+    private format: (statements: Map<string, string>) => Promise<string>,
     private extension: string
   ) {}
   generateDocumentsForAppSyncApiById = async (apiId: string) => {
