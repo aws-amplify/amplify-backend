@@ -18,7 +18,7 @@ export class GraphQLStatementsFormatter {
     private language: keyof typeof GraphQLStatementsFormatter.parserMap = 'graphql'
   ) {}
 
-  format = (statements: Statements) => {
+  format = (statements: Statements): Promise<string> => {
     switch (this.language) {
       case 'javascript':
         this.headerComments.push(CODEGEN_WARNING);

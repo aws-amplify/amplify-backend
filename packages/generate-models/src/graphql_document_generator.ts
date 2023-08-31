@@ -4,7 +4,7 @@ import { FileWriter } from './schema_writer.js';
 export interface SchemaFetcher {
   fetch: (apiId: string) => Promise<string>;
 }
-export type Statement = Map<string, string>;
+export type Statements = Map<string, string>;
 /**
  * Generates GraphQL documents for a given AppSync API
  */
@@ -15,7 +15,7 @@ export class AppSyncGraphqlClientGenerator {
   constructor(
     private fileWriter: FileWriter,
     private schemaFetcher: SchemaFetcher,
-    private format: (statements: Map<string, string>) => Promise<string>,
+    private format: (statements: Statements) => Promise<string>,
     private extension: string
   ) {}
   generateDocumentsForAppSyncApiById = async (apiId: string) => {
