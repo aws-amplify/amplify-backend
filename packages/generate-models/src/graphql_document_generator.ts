@@ -4,7 +4,7 @@ import { FileWriter } from './schema_writer.js';
 export interface SchemaFetcher {
   fetch: (apiId: string) => Promise<string>;
 }
-export type Statement = [string, string];
+export type Statement = Map<string, string>;
 /**
  * Generates GraphQL documents for a given AppSync API
  */
@@ -15,7 +15,7 @@ export class AppSyncGraphqlClientGenerator {
   constructor(
     private fileWriter: FileWriter,
     private schemaFetcher: SchemaFetcher,
-    private format: (statements: Statement[]) => Promise<string>,
+    private format: (statements: Iterable<[string, string]>) => Promise<string>,
     private extension: string
   ) {}
   generateDocumentsForAppSyncApiById = async (apiId: string) => {
@@ -32,7 +32,7 @@ export class AppSyncGraphqlClientGenerator {
           generatedStatements[
             op as unknown as keyof typeof generatedStatements
           ];
-        const content = await this.format(ops as any);
+        const content = await this.format(ops as Map<string, string>);
         await this.fileWriter.write(`${op}.${this.extension}`, content);
       })
     );

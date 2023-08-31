@@ -4,12 +4,12 @@ const CODEGEN_WARNING =
   'this is an auto generated file. This will be overwritten';
 const LINE_DELIMITOR = '\n';
 
-type Statements = [string, string][];
+type Statements = Map<string, string>;
 /**
  * Utility class to format the generated GraphQL statements based on frontend language type
  */
 export class GraphQLStatementsFormatter {
-  private lintOverrides: any[] = [];
+  private lintOverrides: ([string, string] | string)[] = [];
   private headerComments: string[] = [];
   /**
    * Configures the language of the formatter

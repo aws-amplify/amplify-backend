@@ -81,7 +81,7 @@ export class LocalFilesystemFormGenerationStrategy
 
     const result = await appsync.preset.buildGeneratesSection({
       baseOutputDir: './',
-      schema: parse(schema) as any,
+      schema: parse(schema),
       config: {
         directives,
         isTimestampFieldsAdded: true,

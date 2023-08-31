@@ -2,7 +2,6 @@ import { GenericDataField, GenericDataSchema } from '@aws-amplify/codegen-ui';
 import {
   CodegenGenericDataEnum,
   CodegenGenericDataField,
-  CodegenGenericDataFieldDataType,
   CodegenGenericDataModel,
   CodegenGenericDataNonModel,
   CodegenGenericDataRelationshipType,
@@ -49,34 +48,40 @@ const mapDataFieldsToCodegen = (fields: {
 }): CodegenGenericDataFields => {
   const codegenFields: CodegenGenericDataFields = {};
 
-  Object.entries(fields).forEach(([fieldName, dataField]) => {
-    let dataType: CodegenGenericDataFieldDataType;
-    let dataTypeValue = '';
-    if (typeof dataField.dataType === 'object' && dataField.dataType !== null) {
-      if ('enum' in dataField.dataType) {
-        dataType = 'Enum';
-        dataTypeValue = dataField.dataType.enum;
-      } else if ('model' in dataField.dataType) {
-        dataType = 'Model';
-        dataTypeValue = dataField.dataType.model;
-      } else if ('nonModel' in dataField.dataType) {
-        dataType = 'NonModel';
-        dataTypeValue = dataField.dataType.nonModel;
+  const parseData = (fieldValue): { type: string; value: string } => {
+    if (
+      typeof fieldValue.dataType === 'object' &&
+      fieldValue.dataType !== null
+    ) {
+      if ('enum' in fieldValue.dataType) {
+        return {
+          type: 'Enum',
+          value: fieldValue.dataType.enum,
+        };
+      } else if ('model' in fieldValue.dataType) {
+        return { type: 'Model', value: fieldValue.dataType.model };
+      } else if ('nonModel' in fieldValue.dataType) {
+        return { type: 'NonModel', value: fieldValue.dataType.nonModel };
       }
     } else {
-      dataType = dataField.dataType;
-      dataTypeValue = dataField.dataType;
+      return {
+        type: fieldValue.dataType,
+        value: fieldValue.dataType,
+      };
     }
-    codegenFields[fieldName] = {
-      dataType: dataType!,
+  };
+  Object.entries(fields).forEach(([fieldKey, fieldValue]) => {
+    const { type: dataType, value: dataTypeValue } = parseData(fieldValue);
+    codegenFields[fieldKey] = {
+      dataType: dataType,
       dataTypeValue: dataTypeValue,
-      required: dataField.required,
-      readOnly: dataField.readOnly,
-      isArray: dataField.isArray,
+      required: fieldValue.required,
+      readOnly: fieldValue.readOnly,
+      isArray: fieldValue.isArray,
     };
-    if (dataField.relationship) {
-      codegenFields[fieldName].relationship = mapRelationshipTypeToCodegen(
-        dataField.relationship
+    if (fieldValue.relationship) {
+      codegenFields[fieldKey].relationship = mapRelationshipTypeToCodegen(
+        fieldValue.relationship
       );
     }
   });
