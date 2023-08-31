@@ -39,14 +39,12 @@ export class CodegenJobHandler {
     return finished.asset?.downloadUrl;
   };
 
-  waitForSucceededJob = async (
+  private waitForSucceededJob = async (
     getJob: () => Promise<CodegenJob>,
     { pollInterval }: { pollInterval: number }
   ) => {
     const startTime = performance.now();
-    const waitTimeout = process.env.UI_BUILDER_CODEGENJOB_TIMEOUT
-      ? parseInt(process.env.UI_BUILDER_CODEGENJOB_TIMEOUT)
-      : 1000 * 60 * 2;
+    const waitTimeout = 1000 * 2;
 
     const endTime = startTime + waitTimeout;
 
@@ -74,7 +72,7 @@ export class CodegenJobHandler {
 
     throw new Error('Failed to return codegen job');
   };
-  delay = (durationMs: number): Promise<void> => {
+  private delay = (durationMs: number): Promise<void> => {
     return new Promise((r) => setTimeout(() => r(), durationMs));
   };
 }

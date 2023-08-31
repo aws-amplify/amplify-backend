@@ -1,3 +1,4 @@
+import fetch from 'node-fetch';
 import fs from 'fs';
 import * as graphqlCodegen from '@graphql-codegen/core';
 import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
@@ -9,7 +10,7 @@ import {
   StartCodegenJobData,
 } from '@aws-sdk/client-amplifyuibuilder';
 import { getGenericFromDataStore } from '@aws-amplify/codegen-ui';
-import { fetchWithRetries } from './fetch.js';
+import { retry } from './retry.js';
 import path from 'path';
 import { directives } from './aws_graphql_directives.js';
 import { CodegenJobHandler } from './codegen_job_handler.js';
@@ -165,7 +166,7 @@ export class LocalFilesystemFormGenerationStrategy
       fs.mkdirSync(uiBuilderComponentsPath, { recursive: true });
     }
 
-    const response = await fetchWithRetries(url);
+    const response = await retry(() => fetch(url));
     if (!response.ok) {
       throw new Error('Failed to download component manifest file');
     }
@@ -186,9 +187,11 @@ export class LocalFilesystemFormGenerationStrategy
       downloadUrl: string | undefined;
       error: string | undefined;
     }) => {
-      if (output.downloadUrl && !output.error) {
+      if (typeof output.downloadUrl == 'string' && !output.error) {
         try {
-          const response = await fetchWithRetries(output.downloadUrl);
+          const response = await retry(() =>
+            fetch(output.downloadUrl as string)
+          );
           if (!response.ok) {
             throw new Error(`Failed to download ${output.fileName}`);
           }

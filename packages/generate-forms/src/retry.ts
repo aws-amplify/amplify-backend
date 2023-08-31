@@ -1,17 +1,15 @@
-import fetch from 'node-fetch';
-
 /**
  * Attempts a fetch and retries on failure
  */
-export const fetchWithRetries = async (
-  url: string,
+export const retry = async <T>(
+  executor: () => Promise<T>,
   retries = 3,
   delay = 300
 ) => {
   for (let retryCount = 0; retryCount < retries; retryCount += 1) {
     try {
-      const response = await fetch(url);
-      return response;
+      const result = await executor();
+      return result;
     } catch (error) {
       const retryDelay = delay * 2 ** retryCount;
       await new Promise((res) => setTimeout(res, retryDelay));

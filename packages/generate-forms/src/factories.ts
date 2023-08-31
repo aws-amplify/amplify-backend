@@ -1,6 +1,7 @@
 import { AmplifyUIBuilder } from '@aws-sdk/client-amplifyuibuilder';
+import { CodegenJobHandler } from './codegen_job_handler.js';
 import { FormGenerator } from './form_generator.js';
-import { LocalFormGenerator } from './local_form_generator.js';
+import { LocalFilesystemFormGenerationStrategy } from './form_writer.js';
 
 export interface FormGenerationParams {
   graphql: {
@@ -25,7 +26,10 @@ export const createFormGenerator = <
 ): FormGenerator<FormGenerationOutput[T]> => {
   switch (generationType) {
     case 'graphql':
-      return new LocalFormGenerator(generationParams, new AmplifyUIBuilder());
+      return new LocalFilesystemFormGenerationStrategy(
+        new CodegenJobHandler(new AmplifyUIBuilder()),
+        generationParams
+      );
     default:
       throw new Error('Generation type not found');
   }
