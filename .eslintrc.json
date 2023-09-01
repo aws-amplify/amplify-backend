@@ -9,7 +9,15 @@
     "plugin:jsdoc/recommended-typescript-error",
     "prettier"
   ],
-  "overrides": [],
+  "overrides": [
+    {
+      // Add files to this list that shouldn't be spellchecked
+      "files": [".eslintrc.js"],
+      "rules": {
+        "spellcheck/spell-checker": "off"
+      }
+    }
+  ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "ecmaVersion": "latest",
@@ -22,7 +30,8 @@
     "jsdoc",
     "import",
     "no-only-tests",
-    "check-file"
+    "check-file",
+    "spellcheck"
   ],
   "rules": {
     "@typescript-eslint/naming-convention": [
@@ -101,6 +110,83 @@
       "error",
       {
         "ignoreDeclarationSort": true
+      }
+    ],
+    "spellcheck/spell-checker": [
+      "warn",
+      {
+        "lang": "en_US",
+        "skipWords": [
+          "npx",
+          "aggregator",
+          "amazonaws",
+          "amplifyconfiguration",
+          "appsync",
+          "argv",
+          "cdk",
+          "changelog",
+          "changeset",
+          "changesets",
+          "codebase",
+          "cognito",
+          "ctor",
+          "debounce",
+          "deployer",
+          "enum",
+          "execa",
+          "filepath",
+          "frontend",
+          "frontends",
+          "func",
+          "gitignored",
+          "graphql",
+          "hotswap",
+          "implementors",
+          "inheritdoc",
+          "invokable",
+          "invoker",
+          "lsof",
+          "mkdtemp",
+          "nodejs18.x",
+          "npmrc",
+          "orchestrator",
+          "passthrough",
+          "pathname",
+          "readdir",
+          "readonly",
+          "repo",
+          "resolvers",
+          "schema",
+          "schemas",
+          "shortstat",
+          "sigint",
+          "signup",
+          "stderr",
+          "stdin",
+          "stdout",
+          "subcommand",
+          "subcommands",
+          "tmpdir",
+          "toggleable",
+          "tokenized",
+          "tsconfig",
+          "tsdoc",
+          "unauth",
+          "unlink",
+          "unvalidated",
+          "verdaccio",
+          "verifier",
+          "versioned",
+          "versioning",
+          "whoami",
+          "yaml",
+          "yargs"
+        ],
+        "skipIfMatch": [
+          "http://[^s]*",
+          "^[-\\w]+/[-\\w\\.]+$" //For MIME Types
+        ],
+        "minLength": 4
       }
     ],
     "unicorn/filename-case": [
