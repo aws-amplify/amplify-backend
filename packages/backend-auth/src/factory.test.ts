@@ -24,6 +24,7 @@ describe('AmplifyAuthFactory', () => {
   let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
   let importPathVerifier: ImportPathVerifier;
   let backendSecretResolver: BackendSecretResolver;
+
   beforeEach(() => {
     authFactory = new AmplifyAuthFactory({
       loginWith: { email: true },
@@ -42,11 +43,10 @@ describe('AmplifyAuthFactory', () => {
 
     importPathVerifier = new ToggleableImportPathVerifier(false);
 
-    backendSecretResolver = new DeepBackendSecretResolver(
-      stack,
-      'testProject',
-      'testBranch'
-    );
+    backendSecretResolver = new DeepBackendSecretResolver(stack, {
+      backendId: 'testBackendId',
+      branchName: 'testBranchName',
+    });
   });
   it('returns singleton instance', () => {
     const instance1 = authFactory.getInstance({

@@ -26,11 +26,10 @@ describe('AmplifyFunctionFactory', () => {
       stack
     );
 
-    const backendSecretResolver = new DeepBackendSecretResolver(
-      stack,
-      'backendId',
-      'testBranch'
-    );
+    const backendSecretResolver = new DeepBackendSecretResolver(stack, {
+      backendId: 'testBackendId',
+      branchName: 'testBranchName',
+    });
 
     getInstanceProps = {
       constructContainer,

@@ -42,11 +42,10 @@ describe('AmplifyStorageFactory', () => {
 
     importPathVerifier = new ToggleableImportPathVerifier(false);
 
-    backendSecretResolver = new DeepBackendSecretResolver(
-      stack,
-      'testProj',
-      'testBranch'
-    );
+    backendSecretResolver = new DeepBackendSecretResolver(stack, {
+      backendId: 'testBackendId',
+      branchName: 'testBranchName',
+    });
 
     getInstanceProps = {
       constructContainer,

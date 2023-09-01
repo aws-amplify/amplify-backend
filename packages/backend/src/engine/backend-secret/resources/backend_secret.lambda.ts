@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import {
   CloudFormationCustomResourceEvent,
   CloudFormationCustomResourceSuccessResponse,
@@ -15,16 +14,13 @@ type SecretResourceProps = {
   backendId: string;
   branchName: string;
   secretName: string;
-  // eslint-disable-next-line  @typescript-eslint/naming-convention
-  ServiceToken: string;
-};
+}
 
 /**
  * Entry point for the lambda-backend custom resource to retrieve a backend secret.
  */
 export const handler = async (
-  event: CloudFormationCustomResourceEvent,
-  context: Context // eslint-disable-line @typescript-eslint/no-unused-vars
+  event: CloudFormationCustomResourceEvent
 ): Promise<CloudFormationCustomResourceSuccessResponse> => {
   console.info(`Received '${event.RequestType}' event`);
 
@@ -57,7 +53,7 @@ export const handleCreateUpdateEvent = async (
   secretClient: Secret,
   event: CloudFormationCustomResourceEvent
 ): Promise<string> => {
-  const props = event.ResourceProperties as SecretResourceProps;
+  const props = event.ResourceProperties as unknown as SecretResourceProps;
   let secret: string | undefined;
 
   try {

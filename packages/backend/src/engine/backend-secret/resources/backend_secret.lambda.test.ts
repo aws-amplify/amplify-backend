@@ -42,7 +42,7 @@ const deleteCfnEvent: CloudFormationCustomResourceEvent = {
 
 describe('handle', () => {
   it('handles delete operation', async () => {
-    const resp = await handler(deleteCfnEvent, {} as Context);
+    const resp = await handler(deleteCfnEvent);
     assert.deepStrictEqual(resp, {
       RequestId: deleteCfnEvent.RequestId,
       LogicalResourceId: deleteCfnEvent.LogicalResourceId,

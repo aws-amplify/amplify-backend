@@ -2,6 +2,7 @@ import {
   BackendSecret,
   BackendSecretResolver,
   Replace,
+  UniqueBackendIdentifier,
 } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
 import { SecretValue } from 'aws-cdk-lib';
@@ -16,8 +17,7 @@ export class DeepBackendSecretResolver implements BackendSecretResolver {
    */
   constructor(
     private readonly scope: Construct,
-    private readonly backendId: string,
-    private readonly branchName: string
+    private readonly uniqueBackendIdentifier: UniqueBackendIdentifier
   ) {}
 
   /**
@@ -32,11 +32,11 @@ export class DeepBackendSecretResolver implements BackendSecretResolver {
       typeof arg.resolve === 'function';
 
     if (isBackendSecret(arg)) {
-      return arg.resolve(
-        this.scope,
-        this.backendId,
-        this.branchName
-      ) as Replace<T, BackendSecret, SecretValue>;
+      return arg.resolve(this.scope, this.uniqueBackendIdentifier) as Replace<
+        T,
+        BackendSecret,
+        SecretValue
+      >;
     } else if (Array.isArray(arg)) {
       return arg.map((prop) => this.resolveSecrets(prop)) as Replace<
         T,

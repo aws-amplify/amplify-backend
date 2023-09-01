@@ -1,4 +1,7 @@
-import { BackendSecret } from '@aws-amplify/plugin-types';
+import {
+  BackendSecret,
+  UniqueBackendIdentifier,
+} from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
 import { CustomResource, Duration, SecretValue } from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
@@ -17,26 +20,25 @@ const backendSecretLambdaFilePath = path.join(
   'backend_secret.lambda.js'
 );
 
-const secretFetcherResouceProviderId = 'SecretFetcherResouceProvider';
+const secretFetcherResourceProviderId = 'SecretFetcherResourceProvider';
 const secretFetcherLambdaId = 'SecretFetcherLambda';
 
 /**
- * Resolves a backend secret by using a custom CFN resource.
+ * Resolves a backend secret to a CFN token via a lambda-backed CFN custom resource.
  */
-export class BaseBackendSecret implements BackendSecret {
+export class CfnTokenBackendSecret implements BackendSecret {
   /**
-   * The name and version of the secret to fetch
+   * The name of the secret to fetch.
    */
   constructor(private readonly name: string) {}
   /**
-   * Get a reference to the value within a CDK scope
+   * Get a reference to the value within a CDK scope.
    */
   resolve = (
     scope: Construct,
-    backendId: string,
-    branchName: string
+    uniqueBackendIdentifier: UniqueBackendIdentifier
   ): SecretValue => {
-    const secretCustomResourceId = `${this.name}SecretFetcherResouce`;
+    const secretCustomResourceId = `${this.name}SecretFetcherResource`;
 
     // If there is already a custom resource to fetch this specific secret, reuse it.
     const existingResource = scope.node.tryFindChild(
@@ -49,16 +51,15 @@ export class BaseBackendSecret implements BackendSecret {
     }
 
     const provider = this.findOrCreateResourceProvider(scope);
-
     const secretResource = new CustomResource(scope, secretCustomResourceId, {
       serviceToken: provider.serviceToken,
       properties: {
-        backendId,
-        branchName,
+        backendId: uniqueBackendIdentifier.backendId,
+        branchName: uniqueBackendIdentifier.branchName,
         secretName: this.name,
         noop: uuidv4(), // just so it can be triggered on every deployment.
       },
-      resourceType: `Custom::SecretFetcherResouce`,
+      resourceType: `Custom::SecretFetcherResource`,
     });
 
     const val = secretResource.getAtt('secretValue').toString();
@@ -71,7 +72,7 @@ export class BaseBackendSecret implements BackendSecret {
    */
   findOrCreateResourceProvider = (scope: Construct): Provider => {
     const provider = scope.node.tryFindChild(
-      secretFetcherResouceProviderId
+      secretFetcherResourceProviderId
     ) as Provider;
 
     if (provider) {
@@ -93,7 +94,7 @@ export class BaseBackendSecret implements BackendSecret {
       })
     );
 
-    return new Provider(scope, secretFetcherResouceProviderId, {
+    return new Provider(scope, secretFetcherResourceProviderId, {
       onEventHandler: secretLambda,
     });
   };

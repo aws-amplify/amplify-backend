@@ -1,20 +1,19 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { SecretValue } from 'aws-cdk-lib';
-import { BackendSecret } from '@aws-amplify/plugin-types';
+import {
+  BackendSecret,
+  UniqueBackendIdentifier,
+} from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
 import { DeepBackendSecretResolver } from './backend_secret_resolver.js';
 
-const UNRESOLVABLE_SECRET_NAME = 'errorSecretName';
+const unresolvableSecretName = 'errorSecretName';
 
 class TestBackendSecret implements BackendSecret {
   constructor(private readonly secretName: string) {}
-  resolve = (
-    scope: Construct, // eslint-disable-line @typescript-eslint/no-unused-vars
-    projectName: string, // eslint-disable-line @typescript-eslint/no-unused-vars
-    branchName: string // eslint-disable-line @typescript-eslint/no-unused-vars
-  ): SecretValue => {
-    if (this.secretName === UNRESOLVABLE_SECRET_NAME) {
+  resolve = (): SecretValue => {
+    if (this.secretName === unresolvableSecretName) {
       throw new Error(`Failed to resolve!`);
     }
     return SecretValue.unsafePlainText(this.secretName);
@@ -29,13 +28,16 @@ describe('BackendSecretResolverImpl', () => {
       c: {
         c1: new TestBackendSecret('secret_C1'),
         c2: {
-          c21: new TestBackendSecret(UNRESOLVABLE_SECRET_NAME),
+          c21: new TestBackendSecret(unresolvableSecretName),
           c22: 123,
         },
         c3: 'c3',
       },
     };
-    const resolver = new DeepBackendSecretResolver({} as Construct, '', '');
+    const resolver = new DeepBackendSecretResolver(
+      {} as Construct,
+      {} as UniqueBackendIdentifier
+    );
     assert.throws(
       () => resolver.resolveSecrets(arg),
       new Error('Failed to resolve!')
@@ -64,7 +66,10 @@ describe('BackendSecretResolverImpl', () => {
       ],
     };
 
-    const resolver = new DeepBackendSecretResolver({} as Construct, '', '');
+    const resolver = new DeepBackendSecretResolver(
+      {} as Construct,
+      {} as UniqueBackendIdentifier
+    );
     assert.deepStrictEqual(resolver.resolveSecrets(arg), {
       a: SecretValue.unsafePlainText('c1'),
       b: 'abc',

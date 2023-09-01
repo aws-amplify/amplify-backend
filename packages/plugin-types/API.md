@@ -60,8 +60,8 @@ export type BackendOutputWriter = {
 };
 
 // @public (undocumented)
-export type BackendParameter = {
-    resolve(scope: Construct, projectName: string, branchName: string): SecretValue;
+export type BackendSecret = {
+    resolve: (scope: Construct, uniqueBackendIdentifier: UniqueBackendIdentifier) => SecretValue;
 };
 
 // @public (undocumented)

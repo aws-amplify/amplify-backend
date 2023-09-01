@@ -9,10 +9,8 @@ import { DeepBackendSecretResolver } from './engine/backend-secret/backend_secre
 import { SingletonConstructContainer } from './engine/singleton_construct_container.js';
 import { ToggleableImportPathVerifier } from './engine/toggleable_import_path_verifier.js';
 import { StackMetadataBackendOutputStorageStrategy } from './engine/stack_metadata_output_storage_strategy.js';
-import {
-  createDefaultStack,
-  getUniqueBackendIdentifier,
-} from './default_stack_factory.js';
+import { createDefaultStack } from './default_stack_factory.js';
+import { getUniqueBackendIdentifier } from './backend_identifier.js';
 
 /**
  * Class that collects and instantiates all the Amplify backend constructs
@@ -47,8 +45,7 @@ export class Backend<T extends Record<string, ConstructFactory<Construct>>> {
 
     const backendSecretResolver = new DeepBackendSecretResolver(
       stack,
-      backendIdentifier.backendId,
-      backendIdentifier.branchName
+      backendIdentifier
     );
 
     // register providers but don't actually execute anything yet
