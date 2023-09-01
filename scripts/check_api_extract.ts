@@ -15,7 +15,9 @@ const updatedAPIFiles = gitDiffFiles
 
 if (updatedAPIFiles.length > 0) {
   throw new Error(
-    `Expected no API.md file updates but found ${updatedAPIFiles}\nRun 'npm run update:api' and commit the updates to fix.`
+    `Expected no API.md file updates but found ${updatedAPIFiles.join(
+      ', '
+    )}\nRun 'npm run update:api' and commit the updates to fix.`
   );
 }
 
