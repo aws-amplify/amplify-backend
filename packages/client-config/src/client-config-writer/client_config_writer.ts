@@ -26,7 +26,7 @@ export class ClientConfigWriter {
           null,
           2
         )}`;
-        const fileContent = `${configAnnotation}\n${configExport}${os.EOL}`;
+        const fileContent = `${configAnnotation}${os.EOL}${configExport}${os.EOL}`;
 
         await fs.writeFile(targetPath, fileContent);
         break;
