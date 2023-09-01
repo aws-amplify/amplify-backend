@@ -49,7 +49,13 @@ export type GroupProvider = (typeof GroupProviders)[number];
 export const CustomProviders = ['function'] as const;
 export type CustomProvider = (typeof CustomProviders)[number];
 
-export const Strategies = ['public', 'private', 'owner', 'groups', 'custom'];
+export const Strategies = [
+  'public',
+  'private',
+  'owner',
+  'groups',
+  'custom',
+] as const;
 export type Strategy = (typeof Strategies)[number];
 
 /**
@@ -80,38 +86,13 @@ export type Authorization<Deps extends Shape = {}> = {
     strategy?: Strategy;
     provider?: Provider;
     operations?: Operation[];
-    ownerField?: keyof Deps; // TODO: `keyof StringFields<Deps>`
+    groupOrOwnerField?: string;
+    groups?: string[];
     multiOwner: boolean;
     identityClaim?: string;
+    groupClaim?: string;
     dependencies: Deps;
   };
-};
-
-// copied from ModelField.ts for now
-export enum ModelFieldType {
-  Id = 'ID',
-  String = 'String',
-  Integer = 'Int',
-  Float = 'Float',
-  Boolean = 'Boolean',
-  Date = 'AWSDate',
-  Time = 'AWSTime',
-  DateTime = 'AWSDateTime',
-  Timestamp = 'AWSTimestamp',
-  Email = 'AWSEmail',
-  JSON = 'AWSJSON',
-  Phone = 'AWSPhone',
-  Url = 'AWSURL',
-  IPAddress = 'AWSIPAddress',
-}
-
-// copied from ModelField.ts for now
-type FieldData = {
-  fieldType: ModelFieldType;
-  optional: boolean;
-  array: boolean;
-  arrayOptional: boolean;
-  default: undefined | string;
 };
 
 export type OwnerField = {};
@@ -141,7 +122,7 @@ function to<SELF extends Authorization<any>>(
 }
 
 function inField<SELF extends Authorization<any>>(this: SELF, field: string) {
-  (this as any)[__data].ownerField = field;
+  (this as any)[__data].groupOrOwnerField = field;
   return omit(this, 'inField');
 }
 
@@ -161,6 +142,14 @@ function identityClaim<SELF extends Authorization<any>>(
   return omit(this, 'identityClaim');
 }
 
+function withClaimIn<SELF extends Authorization<any>>(
+  this: SELF,
+  property: string
+) {
+  (this as any)[__data].groupClaim = property;
+  return omit(this, 'withClaimIn');
+}
+
 function validateProvider(
   needle: Provider | undefined,
   haystack: readonly Provider[]
@@ -170,18 +159,24 @@ function validateProvider(
   }
 }
 
-function defaultAuth(): Authorization<{ owner: OwnerField }>[typeof __data] {
+function authData(
+  defaults: Partial<Authorization<{ owner: OwnerField }>[typeof __data]>
+): Authorization<{ owner: OwnerField }> {
   return {
-    strategy: 'public',
-    provider: undefined,
-    operations: undefined,
-    ownerField: undefined,
-    multiOwner: false,
-    identityClaim: undefined,
+    [__data]: {
+      strategy: 'public',
+      provider: undefined,
+      operations: undefined,
+      groupOrOwnerField: undefined,
+      multiOwner: false,
+      identityClaim: undefined,
+      groups: undefined,
+      ...defaults,
 
-    // might not even be needed ...
-    dependencies: {
-      owner: {},
+      // might not even be needed ...
+      dependencies: {
+        owner: {},
+      },
     },
   };
 }
@@ -190,11 +185,10 @@ export const allow = {
   public(provider?: PublicProvider) {
     validateProvider(provider, PublicProviders);
     return {
-      [__data]: {
-        ...defaultAuth(),
+      ...authData({
         strategy: 'public',
         provider,
-      },
+      }),
       to,
     };
   },
@@ -202,11 +196,10 @@ export const allow = {
   private(provider?: PrivateProvider) {
     validateProvider(provider, PrivateProviders);
     return {
-      [__data]: {
-        ...defaultAuth(),
+      ...authData({
         strategy: 'private',
         provider,
-      },
+      }),
       to,
     };
   },
@@ -214,11 +207,10 @@ export const allow = {
   owner(provider?: OwnerProviders) {
     validateProvider(provider, OwnerProviders);
     return {
-      [__data]: {
-        ...defaultAuth(),
+      ...authData({
         strategy: 'owner',
         provider,
-      },
+      }),
       to,
       inField,
       identityClaim,
@@ -226,26 +218,74 @@ export const allow = {
   },
 
   /**
-   * Specifies `owner` auth and automatically creates the necessary
+   * Specifies `owner` auth and automatically adds the necessary
    * `[owner]: a.string().list()` field if it doesn't already exist.
-   *
-   * If the desired `[owner]` field already exists and is not the
-   * correct type, an error will be thrown.
    */
   multipleOwners(provider?: OwnerProviders) {
     validateProvider(provider, OwnerProviders);
     return {
-      [__data]: {
-        ...defaultAuth(),
+      ...authData({
         strategy: 'owner',
         multiOwner: true,
         provider,
-      },
+      }),
       to,
       inField,
       identityClaim,
     };
   },
 
-  specificGroup() {},
+  specificGroup(group: string, provider?: GroupProvider) {
+    return {
+      ...authData({
+        strategy: 'groups',
+        multiOwner: true,
+        provider,
+        groups: [group],
+      }),
+      to,
+      inField,
+      withClaimIn,
+    };
+  },
+
+  specificGroups(groups: string[], provider?: GroupProvider) {
+    return {
+      ...authData({
+        strategy: 'groups',
+        multiOwner: true,
+        provider,
+        groups,
+      }),
+      to,
+      inField,
+      withClaimIn,
+    };
+  },
+
+  groupDefinedIn(groupsField: string, provider?: GroupProvider) {
+    return {
+      ...authData({
+        strategy: 'groups',
+        provider,
+        groupOrOwnerField: groupsField,
+
+        // just explicit here for clarity/distinction from plural version.
+        multiOwner: false,
+      }),
+      to,
+    };
+  },
+
+  groupsDefinedIn(groupsField: string, provider?: GroupProvider) {
+    return {
+      ...authData({
+        strategy: 'groups',
+        provider,
+        groupOrOwnerField: groupsField,
+        multiOwner: true,
+      }),
+      to,
+    };
+  },
 } as const;

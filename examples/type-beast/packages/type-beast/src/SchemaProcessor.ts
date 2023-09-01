@@ -101,11 +101,22 @@ function calculateAuth(authorization) {
       ruleParts.push(`operations: [${rule.operations.join(', ')}]`);
     }
 
-    if (rule.ownerField) {
-      // does this need to be escaped?
-      ruleParts.push(`ownerField: "${rule.ownerField}"`);
+    if (rule.groupOrOwnerField) {
+      // directive attribute, depending whether it's owner or group auth
+      if (rule.strategy === 'groups') {
+        // does this need to be escaped?
+        ruleParts.push(`groupsField: "${rule.groupOrOwnerField}"`);
+      } else {
+        // does this need to be escaped?
+        ruleParts.push(`ownerField: "${rule.groupOrOwnerField}"`);
+      }
+
+      // model field dep, type of which depends on whether multiple owner/group
+      // is required.
       if (rule.multiOwner) {
-        authFields[rule.ownerField] = fields.string().array();
+        authFields[rule.groupOrOwnerField] = fields.string().array();
+      } else {
+        authFields[rule.groupOrOwnerField] = fields.string();
       }
     }
 
@@ -114,11 +125,6 @@ function calculateAuth(authorization) {
       ruleParts.push(
         `groups: [${rule.groups.map((group) => `"${group}"`).join(', ')}]`
       );
-    }
-
-    if (rule.groupsField) {
-      // does this need to be escaped?
-      ruleParts.push(`groupsField: "${rule.groupsField}"`);
     }
 
     // identityClaim

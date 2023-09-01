@@ -11,8 +11,38 @@ exports[`model auth rules can create a "multiple owners" rule an on implied (aut
 exports[`model auth rules can create a "multiple owners" rule on an existing field 1`] = `
 "type widget @model @auth(rules: [allow: owner, ownerField: "authors"])
 {
-  title: String!
   authors: [String!]!
+  title: String!
+}"
+`;
+
+exports[`model auth rules can create a dynamic multi groups rule 1`] = `
+"type widget @model @auth(rules: [allow: groups, operations: [read], groupsField: "sharedWithGroups"])
+{
+  sharedWithGroups: [String!]!
+  title: String!
+}"
+`;
+
+exports[`model auth rules can create a dynamic singular groups rule 1`] = `
+"type widget @model @auth(rules: [allow: groups, groupsField: "businessUnitOwner"])
+{
+  businessUnitOwner: String!
+  title: String!
+}"
+`;
+
+exports[`model auth rules can create a static [Admins, Moderators] groups rule 1`] = `
+"type widget @model @auth(rules: [allow: groups, groups: ["Admins", "Moderators"]])
+{
+  title: String!
+}"
+`;
+
+exports[`model auth rules can create a static Admins group rule 1`] = `
+"type widget @model @auth(rules: [allow: groups, groups: ["Admins"]])
+{
+  title: String!
 }"
 `;
 

@@ -122,13 +122,67 @@ describe('model auth rules', () => {
     expect(graphql).toMatchSnapshot();
   });
 
-  it.only(`can create a "multiple owners" rule an on implied (auto-created) field`, () => {
+  it(`can create a "multiple owners" rule an on implied (auto-created) field`, () => {
     const schema = a.schema({
       widget: a
         .model({
           title: a.string(),
         })
         .authorization([a.allow.multipleOwners().inField('authors')]),
+    });
+
+    const graphql = schemaPreprocessor(schema).processedSchema;
+    expect(graphql).toMatchSnapshot();
+  });
+
+  it(`can create a static Admins group rule`, () => {
+    const schema = a.schema({
+      widget: a
+        .model({
+          title: a.string(),
+        })
+        .authorization([a.allow.specificGroup('Admins')]),
+    });
+
+    const graphql = schemaPreprocessor(schema).processedSchema;
+    expect(graphql).toMatchSnapshot();
+  });
+
+  it(`can create a static [Admins, Moderators] groups rule`, () => {
+    const schema = a.schema({
+      widget: a
+        .model({
+          title: a.string(),
+        })
+        .authorization([a.allow.specificGroups(['Admins', 'Moderators'])]),
+    });
+
+    const graphql = schemaPreprocessor(schema).processedSchema;
+    expect(graphql).toMatchSnapshot();
+  });
+
+  it(`can create a dynamic singular groups rule`, () => {
+    const schema = a.schema({
+      widget: a
+        .model({
+          title: a.string(),
+        })
+        .authorization([a.allow.groupDefinedIn('businessUnitOwner')]),
+    });
+
+    const graphql = schemaPreprocessor(schema).processedSchema;
+    expect(graphql).toMatchSnapshot();
+  });
+
+  it(`can create a dynamic multi groups rule`, () => {
+    const schema = a.schema({
+      widget: a
+        .model({
+          title: a.string(),
+        })
+        .authorization([
+          a.allow.groupsDefinedIn('sharedWithGroups').to(['read']),
+        ]),
     });
 
     const graphql = schemaPreprocessor(schema).processedSchema;
