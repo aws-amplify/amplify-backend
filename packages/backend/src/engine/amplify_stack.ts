@@ -14,8 +14,8 @@ export class AmplifyStack extends Stack {
     const match = /(?<name>.*)NestedStack.+NestedStackResource(?<hash>.*)/.exec(
       defaultId
     );
-    if (Object.keys(match?.groups || {}).length === 2) {
-      return `${match?.groups?.name}${match?.groups?.hash}`;
+    if (match && match.groups && Object.keys(match.groups || {}).length === 2) {
+      return `${match.groups.name}${match.groups.hash}`;
     }
     return defaultId;
   };
