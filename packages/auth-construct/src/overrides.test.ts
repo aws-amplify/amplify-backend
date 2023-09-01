@@ -41,6 +41,29 @@ describe('Auth overrides', () => {
       },
     });
   });
+  it('can override settings for device configuration', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const auth = new AmplifyAuth(stack, 'test', { loginWith: { email: true } });
+    const userPoolResource = auth.resources.userPool.node.findChild(
+      'Resource'
+    ) as CfnUserPool;
+    userPoolResource.addPropertyOverride(
+      'DeviceConfiguration.ChallengeRequiredOnNewDevice',
+      true
+    );
+    userPoolResource.addPropertyOverride(
+      'DeviceConfiguration.DeviceOnlyRememberedOnUserPrompt',
+      true
+    );
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      DeviceConfiguration: {
+        ChallengeRequiredOnNewDevice: true,
+        DeviceOnlyRememberedOnUserPrompt: true,
+      },
+    });
+  });
   it('can override password policy', () => {
     const app = new App();
     const stack = new Stack(app);
