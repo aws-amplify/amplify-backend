@@ -111,4 +111,18 @@ describe('Auth overrides', () => {
       AllowUnauthenticatedIdentities: false,
     });
   });
+  it('can override token validity period', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const auth = new AmplifyAuth(stack, 'test');
+    const userPoolClientResource =
+      auth.resources.userPoolClientWeb.node.findChild(
+        'Resource'
+      ) as CfnUserPoolClient;
+    userPoolClientResource.addPropertyOverride('AccessTokenValidity', 1);
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPoolClient', {
+      AccessTokenValidity: 1,
+    });
+  });
 });
