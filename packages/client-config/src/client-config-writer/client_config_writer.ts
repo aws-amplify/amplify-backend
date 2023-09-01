@@ -20,7 +20,7 @@ export class ClientConfigWriter {
         const configContent = JSON.stringify(clientConfig, null, 2);
         const configFileContent = `export default ${configContent}${os.EOL}`;
         const moduleTargetPath = `${dir}/${name}.d.ts`;
-        const moduleConfigFileContent = `export interface AmplifyConfiguration ${configContent};\nconst amplifyConfiguration: AmplifyConfiguration = ${configContent};\nexport default amplifyConfiguration;${os.EOL}`;
+        const moduleConfigFileContent = `export interface AmplifyConfiguration ${configContent};${os.EOL}declare const amplifyConfiguration: AmplifyConfiguration;${os.EOL}export default amplifyConfiguration;${os.EOL}`;
         await Promise.all([
           fs.writeFile(targetPath, configFileContent),
           fs.writeFile(moduleTargetPath, moduleConfigFileContent),
