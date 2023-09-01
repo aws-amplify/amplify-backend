@@ -1,5 +1,5 @@
 import { expectTypeTestsToPassAsync } from 'jest-tsd';
-import a, { defineData } from '../index';
+import a, { defineData, ClientSchema } from '../index';
 import { schemaPreprocessor } from '../src/SchemaProcessor';
 import {
   PublicProviders,
@@ -17,6 +17,10 @@ it('should not produce static type errors', async () => {
 });
 
 describe('model auth rules', () => {
+  // it('rejects items that are not auth rules', () => {
+
+  // });
+
   it('can define public auth with no provider', () => {
     const schema = a.schema({
       widget: a
@@ -130,6 +134,18 @@ describe('model auth rules', () => {
         })
         .authorization([a.allow.multipleOwners().inField('authors')]),
     });
+
+    // what customers export
+    type Schema = ClientSchema<typeof schema>;
+
+    // If typings are correct, this field should exist
+    type AuthorsType = Schema['widget']['authors'];
+
+    // I should be able to assign a `string` to it
+    let authors: AuthorsType = 'string';
+
+    // I should not be able to assign a `string[]`;
+    authors = ['string'];
 
     const graphql = schemaPreprocessor(schema).processedSchema;
     expect(graphql).toMatchSnapshot();

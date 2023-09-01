@@ -19,7 +19,7 @@ type InternalModelFields = Record<
 type ModelData = {
   fields: ModelFields;
   identifier: string[];
-  authorization: any | undefined;
+  authorization: Authorization<any, any>[];
 };
 
 type InternalModelData = ModelData & {
@@ -73,7 +73,9 @@ export type ModelType<
 
     // NOTE: We will need to pass fields through to authorization here as well
     // so that a
-    authorization(rules: any): ModelType<T, K | 'authorization'>;
+    authorization<AuthRuleFields extends Authorization<any, any>>(
+      rules: AuthRuleFields[]
+    ): ModelType<T, K | 'authorization'>;
   },
   K
 >;
@@ -90,7 +92,7 @@ function _model<T extends ModelTypeParamShape>(fields: T['fields']) {
   const data: ModelData = {
     fields,
     identifier: ['id'],
-    authorization: undefined,
+    authorization: [],
   };
 
   const builder: ModelType<T> = {
