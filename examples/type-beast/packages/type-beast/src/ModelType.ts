@@ -3,7 +3,7 @@ import type {
   ModelRelationalField,
   InternalRelationalField,
 } from './ModelRelationalField';
-import { Authorization } from './authorization';
+import { Authorization, ImpliedAuthFields } from './authorization';
 import type { SetTypeSubArg } from './util';
 
 type ModelFields = Record<

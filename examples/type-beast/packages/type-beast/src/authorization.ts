@@ -1,4 +1,4 @@
-import { UnionToIntersection } from './util';
+import { UnionToIntersection, Prettify } from './util';
 
 // Warning! Slightly different patterns herein, given the slightly different invocation
 // style for auth, and the branching matrix of sometimes-overlapping options.
@@ -330,7 +330,7 @@ const rules = [builtA, builtB, builtC];
 type AuthTypes = ImpliedAuthField<(typeof rules)[number]>;
 type TestRules = UnionToIntersection<AuthTypes>;
 
-type ImpliedAuthField<T extends Authorization<any, any>> =
+export type ImpliedAuthField<T extends Authorization<any, any>> =
   T extends Authorization<infer Field, infer isMulti>
     ? Field extends string
       ? isMulti extends true
@@ -339,9 +339,13 @@ type ImpliedAuthField<T extends Authorization<any, any>> =
       : never
     : never;
 
+export type ImpliedAuthFields<T extends Authorization<any, any>> = Prettify<
+  UnionToIntersection<ImpliedAuthField<T>>
+>;
+
 function compilerules<T extends Authorization<any, any>>(
   rules: T[]
-): UnionToIntersection<ImpliedAuthField<T>> {
+): ImpliedAuthFields<T> {
   return {} as any;
 }
 
