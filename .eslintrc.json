@@ -76,6 +76,7 @@
         "prefer": "parameter-property"
       }
     ],
+    "@typescript-eslint/restrict-template-expressions": "error",
     "check-file/filename-blocklist": [
       "error",
       {
