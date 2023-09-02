@@ -2,8 +2,9 @@ import { after, afterEach, before, beforeEach, describe, it } from 'node:test';
 import path from 'path';
 import { existsSync } from 'fs';
 import fs from 'fs/promises';
-import assert from 'node:assert';
+import { fileURLToPath } from 'url';
 import { ProcessController } from '../process_controller.js';
+import assert from 'node:assert';
 
 describe('[E2E] sandbox', () => {
   const e2eSandboxDir = new URL('./e2e-sandboxes', import.meta.url);
@@ -17,55 +18,64 @@ describe('[E2E] sandbox', () => {
     await fs.rm(e2eSandboxDir, { recursive: true });
   });
 
-  let testDir: string;
+  let testProjectRoot: string;
+  let testAmplifyDir: string;
   beforeEach(async () => {
-    testDir = await fs.mkdtemp(
-      path.join(e2eSandboxDir.toString(), 'test-create-amplify')
+    testProjectRoot = await fs.mkdtemp(
+      path.join(fileURLToPath(e2eSandboxDir), 'test-sandbox')
     );
-    // creating a package.json beforehand skips the npm init in create-amplify
     await fs.writeFile(
-      path.join(testDir, 'package.json'),
-      JSON.stringify({ name: 'test-project-name' }, null, 2)
+      path.join(testProjectRoot, 'package.json'),
+      JSON.stringify({ name: 'test-sandbox' }, null, 2)
     );
+
+    testAmplifyDir = path.join(testProjectRoot, 'amplify');
+    await fs.mkdir(testAmplifyDir);
+  });
+
+  afterEach(async () => {
+    await fs.rm(testAmplifyDir, { recursive: true });
   });
 
   const testProjects = [
     {
-      initialStatePath: new URL(
-        '../test-projects/basic-auth-data-storage-function',
+      initialAmplifyDirPath: new URL(
+        '../../test-projects/basic-auth-data-storage-function/amplify',
         import.meta.url
       ),
       name: 'basic-auth-data-storage-function',
     },
   ];
 
-  afterEach(async () => {
-    await fs.rm(testDir, { recursive: true });
-  });
+  testProjects.forEach((testProject) => {
+    it(`[E2E] ${testProject.name}`, async () => {
+      await fs.cp(testProject.initialAmplifyDirPath, testAmplifyDir, {
+        recursive: true,
+      });
 
-  describe('sandbox', () => {
-    it('deploys fully loaded project', async () => {
-      const sandboxProcess = ProcessController.fromCommand(
-        'npx',
-        ['amplify', 'sandbox'],
-        { cwd: testDir }
-      );
-      await sandboxProcess.waitForLineIncludes(
-        '[Sandbox] Watching for file changes'
-      );
-      sandboxProcess.kill();
-      const clientConfig = await import(
-        path.join(testDir, 'amplifyconfiguration.js')
+      const proc = new ProcessController('amplify', ['sandbox'], {
+        cwd: testProjectRoot,
+      })
+        .waitForLineIncludes('[Sandbox] Watching for file changes')
+        .sendCtrlC()
+        .waitForLineIncludes(
+          'Would you like to delete all the resources in your sandbox environment'
+        )
+        .sendNo();
+
+      await proc.run();
+      const { default: clientConfig } = await import(
+        path.join(testProjectRoot, 'amplifyconfiguration.js')
       );
       assert.deepStrictEqual(Object.keys(clientConfig).sort(), [
-        'aws_user_pools_id',
-        'aws_user_pools_web_client_id',
-        'aws_cognito_region',
+        'aws_appsync_authenticationType',
         'aws_appsync_graphqlEndpoint',
         'aws_appsync_region',
-        'aws_appsync_authenticationType',
-        'aws_user_files_s3_bucket_region',
+        'aws_cognito_region',
         'aws_user_files_s3_bucket',
+        'aws_user_files_s3_bucket_region',
+        'aws_user_pools_id',
+        'aws_user_pools_web_client_id',
       ]);
     });
   });

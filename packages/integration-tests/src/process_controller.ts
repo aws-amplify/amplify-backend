@@ -1,46 +1,50 @@
-/**
- *
- */
-import { ExecaChildProcess, Options, execa } from 'execa';
+import { Options, execa } from 'execa';
 import * as os from 'os';
-import * as readline from 'readline';
-import { Interface } from 'readline';
+import readline from 'readline';
+
+type ExpectedLineAction = {
+  predicate: (line: string) => boolean;
+  thenSend: string[];
+};
+
+const CONTROL_C = '\x03';
 
 /**
  * Provides an abstractions for sending and receiving data on stdin/out of a child process
+ *
+ * The general strategy is a builder pattern which appends actions to a queue
+ * Then when .run() is called, the child process is spawned and the actions are executed one by one
+ *
+ * Each action is essentially a condition to wait for stdout to satisfy and some data to send on stdin once the wait condition is met
+ *
+ * For example `.waitForLineIncludes('Do you like M&Ms').sendLine('yes')`
+ * will wait until a line that includes "Do you like M&Ms" is printed on stdout of the child process,
+ * then send "yes" on stdin of the process
  */
 export class ProcessController {
-  private readonly processInterface: Interface;
+  private readonly expectedLineQueue: ExpectedLineAction[] = [];
   /**
    * Private ctor that initializes a readline interface around the execa process
    */
-  private constructor(private readonly execaProcess: ExecaChildProcess) {
-    if (!execaProcess.stdout || !execaProcess.stdin) {
-      throw new Error(`Process does not have stdout and stdin`);
-    }
-    // We are creating an interface with the child process stdout as the input and stdin as the output
-    // This is because the _output_ of the child process in the input that we want to process here
-    // and the _input_ of the child process is where we want to send commands (the output from this controller)
-    this.processInterface = readline.createInterface(
-      execaProcess.stdout,
-      execaProcess.stdin
-    );
-    this.processInterface.pause();
-  }
+  constructor(
+    private readonly command: string,
+    private readonly args: string[] = [],
+    private readonly options?: Pick<Options, 'cwd'>
+  ) {}
 
-  /**
-   * Factory method to initialize with a command and args
-   */
-  static fromCommand = (
-    command: string,
-    args: string[] = [],
-    options?: Pick<Options, 'cwd'>
-  ) => {
-    return new ProcessController(execa(command, args, options));
+  waitForLineIncludes = (str: string) => {
+    this.expectedLineQueue.push({
+      predicate: (line) => line.includes(str),
+      thenSend: [],
+    });
+    return this;
   };
 
   send = (str: string) => {
-    this.processInterface.write(str);
+    if (this.expectedLineQueue.length === 0) {
+      throw new Error('Must wait for a line before sending');
+    }
+    this.expectedLineQueue.at(-1)?.thenSend.push(str);
     return this;
   };
 
@@ -49,29 +53,56 @@ export class ProcessController {
     return this;
   };
 
-  waitForLineIncludes = async (expected: string) => {
-    // attach a line listener that will wait until the expected line is found
-    // once found, it will pause the input stream and remove itself from the line listeners
-    const foundExpectedStringPromise = new Promise<void>((resolve) => {
-      const selfRemovingListener = (line: string) => {
-        if (line.includes(expected)) {
-          this.processInterface.pause();
-          this.processInterface.removeListener('line', selfRemovingListener);
-          resolve();
-        }
-      };
-      this.processInterface.on('line', selfRemovingListener);
-    });
-
-    // now that the line listener is attached, we can resume the input stream
-    this.processInterface.resume();
-
-    // wait for the line to be found
-    await foundExpectedStringPromise;
+  sendNo = () => {
+    this.sendLine('N');
     return this;
   };
 
-  kill = () => {
-    this.execaProcess.kill();
+  sendYes = () => {
+    this.sendLine('Y');
+    return this;
+  };
+
+  sendCtrlC = () => {
+    this.send(CONTROL_C);
+    return this;
+  };
+
+  /**
+   * Execute the sequence of actions queued on the process
+   */
+  run = async () => {
+    const execaProcess = execa(this.command, this.args, this.options);
+
+    if (process.stdout) {
+      void execaProcess.pipeStdout?.(process.stdout);
+    }
+
+    if (!execaProcess.stdout) {
+      throw new Error('Child process does not have stdout stream');
+    }
+    const reader = readline.createInterface(execaProcess.stdout);
+
+    for await (const line of reader) {
+      const expectedLine = this.expectedLineQueue[0];
+      if (!expectedLine?.predicate(line)) {
+        continue;
+      }
+      // if we got here, the line matched the predicate
+      for (const chunk of expectedLine.thenSend) {
+        if (chunk === CONTROL_C) {
+          execaProcess.kill('SIGINT');
+        } else {
+          await new Promise<void>((resolve, reject) => {
+            execaProcess.stdin?.write(chunk, (err) => {
+              return err ? reject(err) : resolve();
+            });
+          });
+        }
+      }
+      this.expectedLineQueue.shift();
+    }
+
+    await execaProcess;
   };
 }

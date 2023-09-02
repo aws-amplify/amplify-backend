@@ -12,7 +12,7 @@
     "clean:npm-proxy": "npm run stop:npm-proxy && rimraf verdaccio-cache verdaccio-logs.txt",
     "diff:check": "tsx scripts/check_pr_size.ts",
     "docs": "typedoc",
-    "e2e": "tsx --test --test-reporter spec --test-name-pattern /^\\[E2E\\]/",
+    "e2e": "tsx --test --test-reporter spec --test-name-pattern \"/^\\[E2E\\]/\"",
     "install:local": "npm install && npm run build && npm run install:local --workspaces --if-present",
     "lint": "eslint --max-warnings 0 . && prettier --check .",
     "lint:fix": "eslint --cache --fix . && prettier --write .",
