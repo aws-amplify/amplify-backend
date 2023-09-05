@@ -76,11 +76,11 @@ jobs:
         with:
           role-to-assume: ${{ secrets.E2E_RUNNER_ROLE_ARN }}
           aws-region: us-west-2
-      #      - name: Setup upterm session
-      #        uses: lhotari/action-upterm@v1
-      #        with:
-      #          ## limits ssh access and adds the ssh public key for the user which triggered the workflow
-      #          limit-access-to-actor: true
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
+        with:
+          ## limits ssh access and adds the ssh public key for the user which triggered the workflow
+          limit-access-to-actor: true
       - name: Run E2E tests
         run: npm run e2e
   lint:
