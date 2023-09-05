@@ -88,6 +88,48 @@ describe('Auth construct', () => {
     });
   });
 
+  it('creates email login mechanism with MFA', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const customEmailVerificationMessage = 'custom email body {####}';
+    const customEmailVerificationSubject = 'custom subject';
+    const smsVerificationMessage = 'the verification code is {####}';
+    const smsAuthenticationMessage = 'SMS MFA code is {####}';
+    new AmplifyAuth(stack, 'test', {
+      loginWith: {
+        email: {
+          emailBody: customEmailVerificationMessage,
+          emailStyle: VerificationEmailStyle.CODE,
+          emailSubject: customEmailVerificationSubject,
+        },
+        phoneNumber: {
+          verificationMessage: smsVerificationMessage,
+        },
+      },
+      multifactor: {
+        enforcementType: 'OPTIONAL',
+        sms: true,
+        smsMessage: smsAuthenticationMessage,
+        totp: false,
+      },
+    });
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      EmailVerificationMessage: customEmailVerificationMessage,
+      EmailVerificationSubject: customEmailVerificationSubject,
+      VerificationMessageTemplate: {
+        DefaultEmailOption: 'CONFIRM_WITH_CODE',
+        EmailMessage: customEmailVerificationMessage,
+        EmailSubject: customEmailVerificationSubject,
+        SmsMessage: smsVerificationMessage,
+      },
+      MfaConfiguration: 'OPTIONAL',
+      EnabledMfas: ['SMS_MFA'],
+      SmsAuthenticationMessage: smsAuthenticationMessage,
+      SmsVerificationMessage: smsVerificationMessage,
+    });
+  });
+
   it('expect compile error if invalid email verification message for CODE', () => {
     const customEmailVerificationMessage = 'invalid message without code';
     const validMessage = 'valid {####} email';

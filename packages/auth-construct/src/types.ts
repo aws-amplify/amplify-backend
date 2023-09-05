@@ -41,7 +41,7 @@ export type BasicLoginOptions =
  * TOTP and SMS settings for MFA
  */
 export type MFASettings =
-  | { totp: boolean; sms: true; smsMessage?: string }
+  | { totp: boolean; sms: true; smsMessage?: `${string}{####}${string}` }
   | { totp: boolean; sms: false };
 /**
  * MFA Settings

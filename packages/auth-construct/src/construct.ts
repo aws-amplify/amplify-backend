@@ -261,6 +261,18 @@ export class AmplifyAuth
       },
       selfSignUpEnabled: DEFAULTS.ALLOW_SELF_SIGN_UP,
       mfa: this.getMFAEnforcementType(props.multifactor),
+      mfaMessage:
+        typeof props.multifactor === 'object' &&
+        props.multifactor.enforcementType !== 'OFF' &&
+        props.multifactor.sms === true
+          ? props.multifactor.smsMessage
+          : undefined,
+      mfaSecondFactor:
+        typeof props.multifactor === 'object' &&
+        props.multifactor.enforcementType !== 'OFF'
+          ? { sms: props.multifactor.sms, otp: props.multifactor.totp }
+          : undefined,
+      // accountRecovery: cognito.AccountRecovery.
       removalPolicy: RemovalPolicy.DESTROY,
     };
     return userPoolProps;
@@ -301,7 +313,6 @@ export class AmplifyAuth
     const result: IdentityProviderSetupResult = {
       oauthMappings: {},
     };
-    // TODO: TEST
     // external providers
     const external = loginOptions.externalAuthProviders;
     if (external) {
@@ -359,6 +370,16 @@ export class AmplifyAuth
           }
         );
       }
+      if (external.saml) {
+        result.saml = new cognito.UserPoolIdentityProviderSaml(
+          this,
+          'SamlIDP',
+          {
+            userPool,
+            ...external.saml,
+          }
+        );
+      }
     }
     return result;
   };
@@ -374,7 +395,12 @@ export class AmplifyAuth
       payload: {
         userPoolId: this.resources.userPool.userPoolId,
         webClientId: this.resources.userPoolClient.userPoolClientId,
-        identityPoolId: 'id',
+        // TBD
+        // AmazonWebClient: '',
+        // AppleWebClient: '',
+        // FacebookWebClient: '',
+        // GoogleWebClient: '',
+        identityPoolId: this.resources.cfnResources.identityPool.ref,
         authRegion: Stack.of(this).region,
       },
     });
