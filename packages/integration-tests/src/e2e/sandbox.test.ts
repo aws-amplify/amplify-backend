@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 import { amplifyCli } from '../process-controller/process_controller.js';
 import assert from 'node:assert';
 import {
+  confirmDeleteSandbox,
   interruptSandbox,
   rejectCleanupSandbox,
   waitForSandboxDeployment,
@@ -40,7 +41,7 @@ describe('[E2E] sandbox', () => {
 
   afterEach(async () => {
     await amplifyCli(['sandbox', 'delete'], testProjectRoot)
-      .do('confirmDeleteSandbox')
+      .do(confirmDeleteSandbox)
       .run();
     await fs.rm(testProjectRoot, { recursive: true });
   });
