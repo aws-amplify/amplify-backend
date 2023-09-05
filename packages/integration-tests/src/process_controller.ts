@@ -93,11 +93,7 @@ export class ProcessController {
         if (chunk === CONTROL_C) {
           execaProcess.kill('SIGINT');
         } else {
-          await new Promise<void>((resolve, reject) => {
-            execaProcess.stdin?.write(chunk, (err) => {
-              return err ? reject(err) : resolve();
-            });
-          });
+          execaProcess.stdin?.write(chunk);
         }
       }
       this.expectedLineQueue.shift();
