@@ -5,6 +5,11 @@ import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { amplifyCli } from '../process-controller/process_controller.js';
 import assert from 'node:assert';
+import {
+  interruptSandbox,
+  rejectCleanupSandbox,
+  waitForSandboxDeployment,
+} from '../process-controller/command_macros.js';
 
 describe('[E2E] sandbox', () => {
   const e2eSandboxDir = new URL('./e2e-sandboxes', import.meta.url);
@@ -56,11 +61,12 @@ describe('[E2E] sandbox', () => {
         recursive: true,
       });
 
-      const proc = amplifyCli(['sandbox'], testProjectRoot)
-        .do('interruptSandbox')
-        .do('rejectCleanupSandbox');
+      await amplifyCli(['sandbox'], testProjectRoot)
+        .do(waitForSandboxDeployment)
+        .do(interruptSandbox)
+        .do(rejectCleanupSandbox)
+        .run();
 
-      await proc.run();
       const { default: clientConfig } = await import(
         path.join(testProjectRoot, 'amplifyconfiguration.js')
       );

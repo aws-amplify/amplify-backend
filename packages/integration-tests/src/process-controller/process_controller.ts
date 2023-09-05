@@ -1,13 +1,14 @@
 import { Options, execa } from 'execa';
 import readline from 'readline';
-import { CONTROL_C, commandMacros } from './command_macros.js';
+import { CONTROL_C } from './command_macros.js';
 import { LineActionQueueBuilder } from './line_action_queue_builder.js';
 
 /**
  * Provides an abstractions for sending and receiving data on stdin/out of a child process
  *
- * The general strategy is a builder pattern which appends actions to a queue
- * Then when .run() is called, the child process is spawned and the actions are executed one by one
+ * The general strategy is to read stdout of the child process line by line and consume a queue of actions as output is ingested.
+ *
+ * When .run() is called, the child process is spawned and the actions are awaited and executed one by one
  *
  * Each action is essentially a condition to wait for stdout to satisfy and some data to send on stdin once the wait condition is met
  *
@@ -27,8 +28,8 @@ export class ProcessController {
     private readonly options?: Pick<Options, 'cwd'>
   ) {}
 
-  do = (name: keyof typeof commandMacros) => {
-    this.actions.append(commandMacros[name]);
+  do = (actions: LineActionQueueBuilder) => {
+    this.actions.append(actions);
     return this;
   };
 
