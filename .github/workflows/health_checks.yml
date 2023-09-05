@@ -78,13 +78,13 @@ jobs:
           aws-region: us-west-2
       - name: Link Packages
         run: npm run link:local
-      - name: Check CLI version
-        run: amplify version
       - name: Setup upterm session
         uses: lhotari/action-upterm@v1
         with:
           ## limits ssh access and adds the ssh public key for the user which triggered the workflow
           limit-access-to-actor: true
+      - name: Check CLI version
+        run: amplify version
       - name: Run E2E tests
         run: npm run e2e
   lint:
