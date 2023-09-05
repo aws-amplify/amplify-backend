@@ -36,11 +36,6 @@ describe('create-amplify script', () => {
   let tempDir: string;
   beforeEach(async () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'test-create-amplify'));
-    // creating a package.json beforehand skips the npm init in create-amplify
-    await fs.writeFile(
-      path.join(tempDir, 'package.json'),
-      JSON.stringify({ name: 'test-project-name' }, null, 2)
-    );
   });
 
   afterEach(async () => {
@@ -66,9 +61,12 @@ describe('create-amplify script', () => {
         '@aws-amplify/backend-auth',
         '@aws-amplify/backend-cli',
         '@aws-amplify/backend-graphql',
-        'aws-amplify',
       ]
     );
+
+    assert.deepStrictEqual(Object.keys(packageJsonObject.dependencies).sort(), [
+      'aws-amplify',
+    ]);
 
     const dirContent = await fs.readdir(path.join(tempDir, 'amplify'));
     assert.deepStrictEqual(dirContent.sort(), [
