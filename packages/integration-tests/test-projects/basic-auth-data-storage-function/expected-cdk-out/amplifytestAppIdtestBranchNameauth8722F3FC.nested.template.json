@@ -58,8 +58,8 @@
      "SmsMessage": "The verification code to your new account is {####}"
     }
    },
-   "UpdateReplacePolicy": "Retain",
-   "DeletionPolicy": "Retain"
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
   },
   "amplifyAuthUserPoolWebClientA385E48A": {
    "Type": "AWS::Cognito::UserPoolClient",
@@ -152,7 +152,8 @@
        ]
       }
      }
-    ]
+    ],
+    "SupportedLoginProviders": {}
    }
   },
   "amplifyAuthIdentityPoolRoleAttachment045F17C8": {
@@ -216,6 +217,11 @@
   "amplifytestAppIdtestBranchNameauthamplifyAuthUserPoolWebClientEFCFE2AFRef": {
    "Value": {
     "Ref": "amplifyAuthUserPoolWebClientA385E48A"
+   }
+  },
+  "amplifytestAppIdtestBranchNameauthamplifyAuthIdentityPool40350D66Ref": {
+   "Value": {
+    "Ref": "amplifyAuthIdentityPool3FDE84CC"
    }
   },
   "amplifytestAppIdtestBranchNameauthamplifyAuthauthenticatedUserRole1D3D95F1Ref": {
