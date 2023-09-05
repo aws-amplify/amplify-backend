@@ -11,6 +11,7 @@ import {
   rejectCleanupSandbox,
   waitForSandboxDeployment,
 } from '../process-controller/command_macros.js';
+import { shortUuid } from '../short_uuid.js';
 
 describe('[E2E] sandbox', () => {
   const e2eSandboxDir = new URL('./e2e-sandboxes', import.meta.url);
@@ -32,7 +33,7 @@ describe('[E2E] sandbox', () => {
     );
     await fs.writeFile(
       path.join(testProjectRoot, 'package.json'),
-      JSON.stringify({ name: 'test-sandbox' }, null, 2)
+      JSON.stringify({ name: `test-sandbox-${shortUuid()}` }, null, 2)
     );
 
     testAmplifyDir = path.join(testProjectRoot, 'amplify');
