@@ -1,13 +1,7 @@
 import { Options, execa } from 'execa';
-import * as os from 'os';
 import readline from 'readline';
-
-type ExpectedLineAction = {
-  predicate: (line: string) => boolean;
-  thenSend: string[];
-};
-
-const CONTROL_C = '\x03';
+import { CONTROL_C, commandMacros } from './command_macros.js';
+import { LineActionQueueBuilder } from './line_action_queue_builder.js';
 
 /**
  * Provides an abstractions for sending and receiving data on stdin/out of a child process
@@ -22,7 +16,8 @@ const CONTROL_C = '\x03';
  * then send "yes" on stdin of the process
  */
 export class ProcessController {
-  private readonly expectedLineQueue: ExpectedLineAction[] = [];
+  private readonly actions: LineActionQueueBuilder =
+    new LineActionQueueBuilder();
   /**
    * Private ctor that initializes a readline interface around the execa process
    */
@@ -32,39 +27,8 @@ export class ProcessController {
     private readonly options?: Pick<Options, 'cwd'>
   ) {}
 
-  waitForLineIncludes = (str: string) => {
-    this.expectedLineQueue.push({
-      predicate: (line) => line.includes(str),
-      thenSend: [],
-    });
-    return this;
-  };
-
-  send = (str: string) => {
-    if (this.expectedLineQueue.length === 0) {
-      throw new Error('Must wait for a line before sending');
-    }
-    this.expectedLineQueue.at(-1)?.thenSend.push(str);
-    return this;
-  };
-
-  sendLine = (line: string) => {
-    this.send(`${line}${os.EOL}`);
-    return this;
-  };
-
-  sendNo = () => {
-    this.sendLine('N');
-    return this;
-  };
-
-  sendYes = () => {
-    this.sendLine('Y');
-    return this;
-  };
-
-  sendCtrlC = () => {
-    this.send(CONTROL_C);
+  do = (name: keyof typeof commandMacros) => {
+    this.actions.append(commandMacros[name]);
     return this;
   };
 
@@ -72,6 +36,7 @@ export class ProcessController {
    * Execute the sequence of actions queued on the process
    */
   run = async () => {
+    const actionQueue = this.actions.getLineActionQueue();
     const execaProcess = execa(this.command, this.args, this.options);
 
     if (process.stdout) {
@@ -84,7 +49,7 @@ export class ProcessController {
     const reader = readline.createInterface(execaProcess.stdout);
 
     for await (const line of reader) {
-      const expectedLine = this.expectedLineQueue[0];
+      const expectedLine = actionQueue[0];
       if (!expectedLine?.predicate(line)) {
         continue;
       }
@@ -96,9 +61,15 @@ export class ProcessController {
           execaProcess.stdin?.write(chunk);
         }
       }
-      this.expectedLineQueue.shift();
+      actionQueue.shift();
     }
 
     await execaProcess;
   };
 }
+
+/**
+ * Factory function that returns a ProcessController for the Amplify CLI
+ */
+export const amplifyCli = (args: string[] = [], dir: string) =>
+  new ProcessController('amplify', args, { cwd: dir });

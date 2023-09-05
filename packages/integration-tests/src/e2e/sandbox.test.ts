@@ -3,7 +3,7 @@ import path from 'path';
 import { existsSync } from 'fs';
 import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
-import { ProcessController } from '../process_controller.js';
+import { amplifyCli } from '../process-controller/process_controller.js';
 import assert from 'node:assert';
 
 describe('[E2E] sandbox', () => {
@@ -34,6 +34,9 @@ describe('[E2E] sandbox', () => {
   });
 
   afterEach(async () => {
+    await amplifyCli(['sandbox', 'delete'], testAmplifyDir)
+      .do('confirmDeleteSandbox')
+      .run();
     await fs.rm(testAmplifyDir, { recursive: true });
   });
 
@@ -53,15 +56,9 @@ describe('[E2E] sandbox', () => {
         recursive: true,
       });
 
-      const proc = new ProcessController('amplify', ['sandbox'], {
-        cwd: testProjectRoot,
-      })
-        .waitForLineIncludes('[Sandbox] Watching for file changes')
-        .sendCtrlC()
-        .waitForLineIncludes(
-          'Would you like to delete all the resources in your sandbox environment'
-        )
-        .sendNo();
+      const proc = amplifyCli(['sandbox'], testProjectRoot)
+        .do('interruptSandbox')
+        .do('rejectCleanupSandbox');
 
       await proc.run();
       const { default: clientConfig } = await import(

@@ -76,8 +76,8 @@ jobs:
         with:
           role-to-assume: ${{ secrets.E2E_RUNNER_ROLE_ARN }}
           aws-region: us-west-2
-      - name: Verify credentials
-        run: aws sts get-caller-identity
+      - name: Run E2E tests
+        run: npm run e2e
   lint:
     runs-on: ubuntu-latest
     needs:
