@@ -108,10 +108,9 @@ describe('Auth overrides', () => {
     const app = new App();
     const stack = new Stack(app);
     const auth = new AmplifyAuth(stack, 'test');
-    const userPoolClientResource =
-      auth.resources.userPoolClientWeb.node.findChild(
-        'Resource'
-      ) as CfnUserPoolClient;
+    const userPoolClientResource = auth.resources.userPoolClient.node.findChild(
+      'Resource'
+    ) as CfnUserPoolClient;
     userPoolClientResource.addPropertyOverride(
       'PreventUserExistenceErrors',
       'LEGACY'
@@ -138,10 +137,9 @@ describe('Auth overrides', () => {
     const app = new App();
     const stack = new Stack(app);
     const auth = new AmplifyAuth(stack, 'test');
-    const userPoolClientResource =
-      auth.resources.userPoolClientWeb.node.findChild(
-        'Resource'
-      ) as CfnUserPoolClient;
+    const userPoolClientResource = auth.resources.userPoolClient.node.findChild(
+      'Resource'
+    ) as CfnUserPoolClient;
     userPoolClientResource.addPropertyOverride('AccessTokenValidity', 1);
     const template = Template.fromStack(stack);
     template.hasResourceProperties('AWS::Cognito::UserPoolClient', {

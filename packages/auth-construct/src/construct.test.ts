@@ -8,6 +8,7 @@ import {
   BackendOutputStorageStrategy,
 } from '@aws-amplify/plugin-types';
 import {
+  CfnIdentityPool,
   UserPool,
   UserPoolClient,
   VerificationEmailStyle,
@@ -333,6 +334,9 @@ describe('Auth construct', () => {
       const expectedUserPoolId = (
         authConstruct.node.findChild('UserPool') as UserPool
       ).userPoolId;
+      const expectedIdentityPoolId = (
+        authConstruct.node.findChild('IdentityPool') as CfnIdentityPool
+      ).ref;
       const expectedWebClientId = (
         authConstruct.node.findChild('UserPoolWebClient') as UserPoolClient
       ).userPoolClientId;
@@ -350,6 +354,7 @@ describe('Auth construct', () => {
           payload: {
             userPoolId: expectedUserPoolId,
             webClientId: expectedWebClientId,
+            identityPoolId: expectedIdentityPoolId,
             authRegion: expectedRegion,
           },
         },

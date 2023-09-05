@@ -1,5 +1,5 @@
 import { Construct } from 'constructs';
-import { Stack, aws_cognito as cognito } from 'aws-cdk-lib';
+import { RemovalPolicy, Stack, aws_cognito as cognito } from 'aws-cdk-lib';
 import {
   AuthResources,
   BackendOutputStorageStrategy,
@@ -7,8 +7,15 @@ import {
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import {
+  Mfa,
   UserPool,
   UserPoolClient,
+  UserPoolIdentityProviderAmazon,
+  UserPoolIdentityProviderApple,
+  UserPoolIdentityProviderFacebook,
+  UserPoolIdentityProviderGoogle,
+  UserPoolIdentityProviderOidc,
+  UserPoolIdentityProviderSaml,
   UserPoolProps,
 } from 'aws-cdk-lib/aws-cognito';
 import { FederatedPrincipal, Role } from 'aws-cdk-lib/aws-iam';
@@ -24,7 +31,15 @@ import {
 } from './attributes.js';
 
 type DefaultRoles = { auth: Role; unAuth: Role };
-
+type IdentityProviderSetupResult = {
+  oauthMappings: Record<string, string>;
+  google?: UserPoolIdentityProviderGoogle;
+  facebook?: UserPoolIdentityProviderFacebook;
+  amazon?: UserPoolIdentityProviderAmazon;
+  apple?: UserPoolIdentityProviderApple;
+  oidc?: UserPoolIdentityProviderOidc;
+  saml?: UserPoolIdentityProviderSaml;
+};
 /**
  * Amplify Auth CDK Construct
  */
@@ -51,8 +66,14 @@ export class AmplifyAuth
     const userPoolProps: UserPoolProps = this.getUserPoolProps(props);
     const userPool = new cognito.UserPool(this, 'UserPool', userPoolProps);
 
+    // UserPool - Identity Providers
+    const providerSetupResult = this.setupIdentityProviders(
+      userPool,
+      props.loginWith
+    );
+
     // UserPool Client
-    const userPoolClientWeb = new cognito.UserPoolClient(
+    const userPoolClient = new cognito.UserPoolClient(
       this,
       'UserPoolWebClient',
       {
@@ -69,13 +90,14 @@ export class AmplifyAuth
     const { identityPool, identityPoolRoleAttachment } = this.setupIdentityPool(
       { auth, unAuth },
       userPool,
-      userPoolClientWeb
+      userPoolClient,
+      providerSetupResult
     );
 
     // expose resources
     this.resources = {
       userPool,
-      userPoolClientWeb,
+      userPoolClient,
       authenticatedUserIamRole: auth,
       unauthenticatedUserIamRole: unAuth,
       cfnResources: {
@@ -110,7 +132,8 @@ export class AmplifyAuth
   private setupIdentityPool = (
     roles: DefaultRoles,
     userPool: UserPool,
-    userPoolClient: UserPoolClient
+    userPoolClient: UserPoolClient,
+    providerSetupResult: IdentityProviderSetupResult
   ) => {
     // setup identity pool
     const region = Stack.of(this).region;
@@ -145,6 +168,9 @@ export class AmplifyAuth
         providerName: `cognito-idp.${region}.amazonaws.com/${userPool.userPoolId}`,
       },
     ];
+    // add other providers
+    identityPool.supportedLoginProviders = providerSetupResult.oauthMappings;
+    // identityPool.openIdConnectProviderArns = providerSetupResult.oidc.; // how to get ARN?
     return {
       identityPool,
       identityPoolRoleAttachment,
@@ -234,8 +260,107 @@ export class AmplifyAuth
         ...customAttributes,
       },
       selfSignUpEnabled: DEFAULTS.ALLOW_SELF_SIGN_UP,
+      mfa: this.getMFAEnforcementType(props.multifactor),
+      removalPolicy: RemovalPolicy.DESTROY,
     };
     return userPoolProps;
+  };
+
+  /**
+   * Convert user friendly Mfa type to cognito Mfa type.
+   * This elimantes the need for users to import cognito.Mfa.
+   * @param mfa MFA Enforcement type string value
+   * @returns cognito MFA enforcement type
+   */
+  private getMFAEnforcementType = (
+    mfa: AuthProps['multifactor']
+  ): Mfa | undefined => {
+    if (mfa) {
+      switch (mfa.enforcementType) {
+        case 'OFF':
+          return Mfa.OFF;
+        case 'OPTIONAL':
+          return Mfa.OPTIONAL;
+        case 'REQUIRED':
+          return Mfa.REQUIRED;
+      }
+    }
+    return undefined;
+  };
+
+  /**
+   * Setup Identity Providers (OAuth/OIDC/SAML)
+   * @param userPool UserPool
+   * @param loginOptions AmplifyAuthProps['loginOptions']
+   * @returns IDPSetupResult
+   */
+  private setupIdentityProviders = (
+    userPool: UserPool,
+    loginOptions: AuthProps['loginWith']
+  ): IdentityProviderSetupResult => {
+    const result: IdentityProviderSetupResult = {
+      oauthMappings: {},
+    };
+    // TODO: TEST
+    // external providers
+    const external = loginOptions.externalAuthProviders;
+    if (external) {
+      if (external.google) {
+        result.google = new cognito.UserPoolIdentityProviderGoogle(
+          this,
+          'GoogleIdP',
+          {
+            userPool,
+            ...external.google,
+          }
+        );
+        result.oauthMappings['accounts.google.com'] = external.google.clientId;
+      }
+      if (external.facebook) {
+        result.facebook = new cognito.UserPoolIdentityProviderFacebook(
+          this,
+          'FacebookIDP',
+          {
+            userPool,
+            ...external.facebook,
+          }
+        );
+        result.oauthMappings['graph.facebook.com'] = external.facebook.clientId;
+      }
+      if (external.amazon) {
+        result.amazon = new cognito.UserPoolIdentityProviderAmazon(
+          this,
+          'AmazonIDP',
+          {
+            userPool,
+            ...external.amazon,
+          }
+        );
+        result.oauthMappings['www.amazon.com'] = external.amazon.clientId;
+      }
+      if (external.apple) {
+        result.apple = new cognito.UserPoolIdentityProviderApple(
+          this,
+          'AppleIDP',
+          {
+            userPool,
+            ...external.apple,
+          }
+        );
+        result.oauthMappings['appleid.apple.com'] = external.apple.clientId;
+      }
+      if (external.oidc) {
+        result.oidc = new cognito.UserPoolIdentityProviderOidc(
+          this,
+          'OidcIDP',
+          {
+            userPool,
+            ...external.oidc,
+          }
+        );
+      }
+    }
+    return result;
   };
 
   /**
@@ -248,7 +373,8 @@ export class AmplifyAuth
       version: '1',
       payload: {
         userPoolId: this.resources.userPool.userPoolId,
-        webClientId: this.resources.userPoolClientWeb.userPoolClientId,
+        webClientId: this.resources.userPoolClient.userPoolClientId,
+        identityPoolId: 'id',
         authRegion: Stack.of(this).region,
       },
     });

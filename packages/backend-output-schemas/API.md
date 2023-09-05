@@ -58,14 +58,17 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
         payload: z.ZodObject<{
             userPoolId: z.ZodString;
             webClientId: z.ZodString;
+            identityPoolId: z.ZodString;
             authRegion: z.ZodString;
         }, "strip", z.ZodTypeAny, {
             userPoolId: string;
             webClientId: string;
+            identityPoolId: string;
             authRegion: string;
         }, {
             userPoolId: string;
             webClientId: string;
+            identityPoolId: string;
             authRegion: string;
         }>;
     }, "strip", z.ZodTypeAny, {
@@ -73,6 +76,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
         payload: {
             userPoolId: string;
             webClientId: string;
+            identityPoolId: string;
             authRegion: string;
         };
     }, {
@@ -80,6 +84,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
         payload: {
             userPoolId: string;
             webClientId: string;
+            identityPoolId: string;
             authRegion: string;
         };
     }>]>>;
@@ -154,6 +159,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
         payload: {
             userPoolId: string;
             webClientId: string;
+            identityPoolId: string;
             authRegion: string;
         };
     } | undefined;
@@ -180,6 +186,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
         payload: {
             userPoolId: string;
             webClientId: string;
+            identityPoolId: string;
             authRegion: string;
         };
     } | undefined;

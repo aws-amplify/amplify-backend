@@ -65,8 +65,9 @@ export class AuthCustomStringAttribute extends AuthCustomAttributeBase {
 
 // @public
 export type AuthProps = {
-    loginWith: BasicLoginOptions;
+    loginWith: BasicLoginOptions & ExternalAuthProviders;
     userAttributes?: AuthUserAttribute[];
+    multifactor?: MFA;
 };
 
 // @public
@@ -97,6 +98,38 @@ export type EmailLogin = true | {
     emailBody?: `${string}{##Verify Email##}${string}`;
     emailStyle?: aws_cognito.VerificationEmailStyle.LINK;
     emailSubject?: string;
+};
+
+// @public
+export type ExternalAuthProviders = {
+    externalAuthProviders?: {
+        google?: Omit<aws_cognito.UserPoolIdentityProviderGoogleProps, 'userPool'>;
+        facebook?: Omit<aws_cognito.UserPoolIdentityProviderFacebookProps, 'userPool'>;
+        amazon?: Omit<aws_cognito.UserPoolIdentityProviderAmazonProps, 'userPool'>;
+        apple?: Omit<aws_cognito.UserPoolIdentityProviderAppleProps, 'userPool'>;
+        oidc?: Omit<aws_cognito.UserPoolIdentityProviderOidcProps, 'userPool'>;
+        saml?: Omit<aws_cognito.UserPoolIdentityProviderSamlProps, 'userPool'>;
+        scopes?: aws_cognito.OAuthScope[];
+        callbackUrls?: string[];
+        logoutUrls?: string[];
+    };
+};
+
+// @public
+export type MFA = {
+    enforcementType: 'OFF';
+} | ({
+    enforcementType: 'OPTIONAL' | 'REQUIRED';
+} & MFASettings);
+
+// @public
+export type MFASettings = {
+    totp: boolean;
+    sms: true;
+    smsMessage?: string;
+} | {
+    totp: boolean;
+    sms: false;
 };
 
 // @public

@@ -2,6 +2,9 @@ export {
   AuthProps,
   BasicLoginOptions,
   EmailLogin,
+  ExternalAuthProviders,
+  MFA,
+  MFASettings,
   PhoneNumberLogin,
 } from './types.js';
 export {

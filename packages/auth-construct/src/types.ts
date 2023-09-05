@@ -38,12 +38,46 @@ export type BasicLoginOptions =
   | { email?: EmailLogin; phoneNumber: PhoneNumberLogin };
 
 /**
- * Input props for the AmplifyAuth construct.
+ * TOTP and SMS settings for MFA
+ */
+export type MFASettings =
+  | { totp: boolean; sms: true; smsMessage?: string }
+  | { totp: boolean; sms: false };
+/**
+ * MFA Settings
+ */
+export type MFA =
+  | { enforcementType: 'OFF' }
+  | ({ enforcementType: 'OPTIONAL' | 'REQUIRED' } & MFASettings);
+/**
+ * External auth provider options
+ */
+export type ExternalAuthProviders = {
+  externalAuthProviders?: {
+    google?: Omit<cognito.UserPoolIdentityProviderGoogleProps, 'userPool'>;
+    facebook?: Omit<cognito.UserPoolIdentityProviderFacebookProps, 'userPool'>;
+    amazon?: Omit<cognito.UserPoolIdentityProviderAmazonProps, 'userPool'>;
+    apple?: Omit<cognito.UserPoolIdentityProviderAppleProps, 'userPool'>;
+    oidc?: Omit<cognito.UserPoolIdentityProviderOidcProps, 'userPool'>;
+    saml?: Omit<cognito.UserPoolIdentityProviderSamlProps, 'userPool'>;
+    // general configuration
+    scopes?: cognito.OAuthScope[];
+    callbackUrls?: string[];
+    logoutUrls?: string[];
+  };
+};
+
+/**
+ * Input props for the AmplifyAuth construct
  */
 export type AuthProps = {
-  loginWith: BasicLoginOptions;
+  loginWith: BasicLoginOptions & ExternalAuthProviders;
   /**
-   * Additional settings.
+   * Additional settings
    */
   userAttributes?: AuthUserAttribute[];
+  /**
+   * Multifactor Authentication settings
+   */
+  multifactor?: MFA;
 };

@@ -30,7 +30,7 @@ export type AuthResources = {
   /**
    * The generated UserPoolClient L2 Resource.
    */
-  userPoolClientWeb: IUserPoolClient;
+  userPoolClient: IUserPoolClient;
   /**
    * The generated auth role.
    */
