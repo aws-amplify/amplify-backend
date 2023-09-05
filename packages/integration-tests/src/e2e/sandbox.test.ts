@@ -34,10 +34,10 @@ describe('[E2E] sandbox', () => {
   });
 
   afterEach(async () => {
-    await amplifyCli(['sandbox', 'delete'], testAmplifyDir)
+    await amplifyCli(['sandbox', 'delete'], testProjectRoot)
       .do('confirmDeleteSandbox')
       .run();
-    await fs.rm(testAmplifyDir, { recursive: true });
+    await fs.rm(testProjectRoot, { recursive: true });
   });
 
   const testProjects = [
