@@ -76,6 +76,8 @@ jobs:
         with:
           role-to-assume: ${{ secrets.E2E_RUNNER_ROLE_ARN }}
           aws-region: us-west-2
+      - name: Link Packages
+        run: npm run link:local
       - name: Run E2E tests
         run: npm run e2e
   lint:
