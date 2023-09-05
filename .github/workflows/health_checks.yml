@@ -70,17 +70,20 @@ jobs:
     steps:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
       - uses: ./.github/actions/setup_node
-      - uses: ./.github/actions/restore_build_cache
+        # we have to build and install in this job rather than restore from cache because the
+        # symlinks in the node_modules folder are broken if we just restore the build from the cache
+      - name: Install and build
+        run: npm run install:local
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@04b98b3f9e85f563fb061be8751a0352327246b0 # version 3.0.1
         with:
           role-to-assume: ${{ secrets.E2E_RUNNER_ROLE_ARN }}
           aws-region: us-west-2
-      - name: Setup upterm session
-        uses: lhotari/action-upterm@v1
-        with:
-          ## limits ssh access and adds the ssh public key for the user which triggered the workflow
-          limit-access-to-actor: true
+      #      - name: Setup upterm session
+      #        uses: lhotari/action-upterm@v1
+      #        with:
+      #          ## limits ssh access and adds the ssh public key for the user which triggered the workflow
+      #          limit-access-to-actor: true
       - name: Run E2E tests
         run: npm run e2e
   lint:
