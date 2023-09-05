@@ -334,14 +334,13 @@ export type ImpliedAuthField<T extends Authorization<any, any>> =
   T extends Authorization<infer Field, infer isMulti>
     ? Field extends string
       ? isMulti extends true
-        ? Record<Field, string[]>
-        : Record<Field, string>
+        ? { [K in Field]: string[] }
+        : { [K in Field]: string }
       : never
     : never;
 
-export type ImpliedAuthFields<T extends Authorization<any, any>> = Prettify<
-  UnionToIntersection<ImpliedAuthField<T>>
->;
+export type ImpliedAuthFields<T extends Authorization<any, any>> =
+  UnionToIntersection<ImpliedAuthField<T>>;
 
 function compilerules<T extends Authorization<any, any>>(
   rules: T[]

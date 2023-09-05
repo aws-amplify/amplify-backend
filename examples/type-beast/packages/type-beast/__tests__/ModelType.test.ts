@@ -138,7 +138,7 @@ describe('model auth rules', () => {
     // what customers export
     type Schema = ClientSchema<typeof schema>;
 
-    // If typings are correct, this field should exist
+    // If the types are correct, this field should exist
     type AuthorsType = Schema['widget']['authors'];
 
     // I should be able to assign a `string` to it

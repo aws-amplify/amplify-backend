@@ -30,6 +30,7 @@ type InternalModelData = ModelData & {
 export type ModelTypeParamShape = {
   fields: ModelFields;
   identifier: string[];
+  authorization: Authorization<any, any>[];
 };
 
 type ExtractType<T extends ModelTypeParamShape> = {
@@ -63,19 +64,18 @@ type IdentifierType<
 
 export type ModelType<
   T extends ModelTypeParamShape,
-  // AuthRules extends Authorization[],
   K extends keyof ModelType<T> = never
 > = Omit<
   {
     identifier<ID extends IdentifierType<T> = []>(
       identifier: ID
     ): ModelType<SetTypeSubArg<T, 'identifier', ID>, K | 'identifier'>;
-
-    // NOTE: We will need to pass fields through to authorization here as well
-    // so that a
-    authorization<AuthRuleFields extends Authorization<any, any>>(
-      rules: AuthRuleFields[]
-    ): ModelType<T, K | 'authorization'>;
+    authorization<AuthRuleType extends Authorization<any, any>>(
+      rules: AuthRuleType[]
+    ): ModelType<
+      SetTypeSubArg<T, 'authorization', AuthRuleType[]>,
+      K | 'authorization'
+    >;
   },
   K
 >;
@@ -113,6 +113,6 @@ function _model<T extends ModelTypeParamShape>(fields: T['fields']) {
 
 export function model<T extends ModelFields>(
   fields: T
-): ModelType<{ fields: T; identifier: Array<'id'> }> {
+): ModelType<{ fields: T; identifier: Array<'id'>; authorization: [] }> {
   return _model(fields);
 }

@@ -1,3 +1,4 @@
+import type { ImpliedAuthFields } from './authorization';
 import type {
   ModelType,
   ModelTypeParamShape,
@@ -77,7 +78,8 @@ export type ClientSchema<
   FieldsWithRelationships = ResolveRelationalField<Fields>,
   ResolvedFields = Intersection<
     FilterFieldTypes<RequiredFieldTypes<FieldsWithRelationships>>,
-    FilterFieldTypes<OptionalFieldTypes<FieldsWithRelationships>>
+    FilterFieldTypes<OptionalFieldTypes<FieldsWithRelationships>>,
+    FilterFieldTypes<ModelImpliedAuthFields<Schema>>
   >,
   Meta = ModelMeta<SchemaTypes<Schema>> &
     ExtractRelationalMetadata<Fields, ResolvedFields>
@@ -128,6 +130,15 @@ type ModelMeta<T> = {
       R['identifier'] extends any[]
       ? { identifier: R['identifier'][number] }
       : never
+    : never;
+};
+
+type ModelImpliedAuthFields<Schema extends ModelSchema<any>> = {
+  [ModelKey in keyof Schema['data']['models']]: Schema['data']['models'][ModelKey] extends ModelType<
+    infer A,
+    any
+  >
+    ? ImpliedAuthFields<A['authorization'][number]>
     : never;
 };
 
@@ -204,6 +215,6 @@ type RequiredFieldTypes<Schema> = {
   };
 };
 
-type Intersection<A, B> = A & B extends infer U
+type Intersection<A, B, C> = A & B & C extends infer U
   ? { [P in keyof U]: U[P] }
   : never;
