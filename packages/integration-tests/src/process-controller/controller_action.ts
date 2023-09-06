@@ -3,5 +3,10 @@
  */
 export type ControllerAction = {
   predicate: (line: string) => boolean;
-  thenSend: string[];
+  /**
+   * String that should be sent once the predicate is true
+   *
+   * If we need to do things like send multiple keystrokes in response to a single prompt, we will likely need to expand this to an array of values to send
+   */
+  thenSend?: string;
 };

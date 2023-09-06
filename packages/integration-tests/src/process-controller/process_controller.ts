@@ -54,18 +54,20 @@ export class ProcessController {
     const reader = readline.createInterface(execaProcess.stdout);
 
     for await (const line of reader) {
-      const expectedLine = actionQueue[0];
-      if (!expectedLine?.predicate(line)) {
+      const currentAction = actionQueue[0];
+      if (!currentAction?.predicate(line)) {
         continue;
       }
       // if we got here, the line matched the predicate
-      for (const chunk of expectedLine.thenSend) {
-        if (chunk === CONTROL_C) {
+      // now we need to send the payload of the action (if any)
+      if (typeof currentAction.thenSend === 'string') {
+        if (currentAction.thenSend === CONTROL_C) {
           execaProcess.kill('SIGINT');
         } else {
-          execaProcess.stdin?.write(chunk);
+          execaProcess.stdin?.write(currentAction.thenSend);
         }
       }
+      // advance the queue
       actionQueue.shift();
     }
 

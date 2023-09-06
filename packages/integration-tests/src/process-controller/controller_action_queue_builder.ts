@@ -22,7 +22,6 @@ export class ControllerActionQueueBuilder {
   waitForLineIncludes = (str: string) => {
     this.controllerActionQueue.push({
       predicate: (line) => line.includes(str),
-      thenSend: [],
     });
     return this;
   };
@@ -34,7 +33,15 @@ export class ControllerActionQueueBuilder {
     if (this.controllerActionQueue.length === 0) {
       throw new Error('Must wait for a line before sending');
     }
-    this.controllerActionQueue.at(-1)?.thenSend.push(str);
+    // this assertion is safe because we checked the length above
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const lastAction = this.controllerActionQueue.at(-1)!;
+    if (typeof lastAction.thenSend === 'string') {
+      throw new Error(
+        'A string to send is already registered to the last action in the queue. Add a new action to the queue.'
+      );
+    }
+    lastAction.thenSend = str;
     return this;
   };
 
