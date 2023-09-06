@@ -9,13 +9,13 @@ export type DeployProps = {
 /**
  * Invokes an invokable command
  */
-export interface BackendDeployer {
+export type BackendDeployer = {
   deploy: (
     uniqueBackendIdentifier?: UniqueBackendIdentifier,
     deployProps?: DeployProps
   ) => Promise<void>;
   destroy: (uniqueBackendIdentifier?: UniqueBackendIdentifier) => Promise<void>;
-}
+};
 
 /**
  * Factory to create a backend deployer

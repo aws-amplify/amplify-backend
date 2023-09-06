@@ -79,6 +79,7 @@
       }
     ],
     "@typescript-eslint/restrict-template-expressions": "error",
+    "@typescript-eslint/consistent-type-definitions": ["error", "type"],
     "check-file/filename-blocklist": [
       "error",
       {
