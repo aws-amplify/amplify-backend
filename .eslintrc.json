@@ -97,6 +97,9 @@
     "no-duplicate-imports": "error",
     "no-only-tests/no-only-tests": "error",
     "no-tabs": "error",
+    "no-throw-literal": "error",
+    "no-useless-catch": "error",
+    "prefer-promise-reject-errors": "error",
     "import/no-extraneous-dependencies": "error",
     "sort-imports": [
       "error",
