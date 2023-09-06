@@ -5,16 +5,16 @@
 ```ts
 
 // @public
-export const createModelGenerator: <T extends "graphql">(modelType: T, params: ModelGeneratorParamters[T]) => ModelGenerator;
+export const createModelGenerator: <T extends "graphql">(modelType: T, params: ModelGeneratorParameters[T]) => GraphqlModelGenerator;
 
 // @public (undocumented)
-export interface ModelGenerator {
+export interface GraphqlModelGenerator {
     // (undocumented)
     generateModels: () => Promise<void>;
 }
 
 // @public (undocumented)
-export interface ModelGeneratorParamters {
+export interface ModelGeneratorParameters {
     // (undocumented)
     graphql: {
         outDir: string;
