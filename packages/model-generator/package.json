@@ -15,5 +15,10 @@
   "types": "lib/index.d.ts",
   "scripts": {
     "update:api": "api-extractor run --local"
+  },
+  "dependencies": {
+    "@aws-amplify/graphql-docs-generator": "^4.1.0",
+    "@aws-sdk/client-appsync": "^3.398.0",
+    "prettier": "^3.0.3"
   }
 }

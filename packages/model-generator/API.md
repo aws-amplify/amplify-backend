@@ -4,6 +4,29 @@
 
 ```ts
 
+// @public
+export const createModelGenerator: <T extends "graphql">(modelType: T, params: ModelGeneratorParamters[T]) => ModelGenerator;
+
+// @public (undocumented)
+export interface ModelGenerator {
+    // (undocumented)
+    generateModels: () => Promise<void>;
+}
+
+// @public (undocumented)
+export interface ModelGeneratorParamters {
+    // (undocumented)
+    graphql: {
+        outDir: string;
+        language: SupportedLanguages;
+        apiUrl: string;
+        apiId: string;
+    };
+}
+
+// @public (undocumented)
+export type SupportedLanguages = 'typescript';
+
 // (No @packageDocumentation comment for this package)
 
 ```
