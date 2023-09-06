@@ -126,7 +126,7 @@ export type MFA = {
 export type MFASettings = {
     totp: boolean;
     sms: true;
-    smsMessage?: string;
+    smsMessage?: `${string}{####}${string}`;
 } | {
     totp: boolean;
     sms: false;
