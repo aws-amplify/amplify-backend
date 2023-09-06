@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, it } from 'node:test';
 import path from 'path';
 import fs from 'fs/promises';
-import { fileURLToPath } from 'url';
 import { amplifyCli } from '../process-controller/process_controller.js';
 import assert from 'node:assert';
 import {
@@ -25,7 +24,7 @@ describe('sandbox', () => {
   beforeEach(async () => {
     ({ testProjectRoot, testAmplifyDir } = await createEmptyAmplifyProject(
       'test-sandbox',
-      fileURLToPath(e2eSandboxDir)
+      e2eSandboxDir
     ));
   });
 
