@@ -18,14 +18,14 @@ export interface ModelGeneratorParamters {
     // (undocumented)
     graphql: {
         outDir: string;
-        language: SupportedLanguages;
+        language: TargetLanguage;
         apiUrl: string;
         apiId: string;
     };
 }
 
 // @public (undocumented)
-export type SupportedLanguages = 'typescript';
+export type TargetLanguage = 'typescript';
 
 // (No @packageDocumentation comment for this package)
 

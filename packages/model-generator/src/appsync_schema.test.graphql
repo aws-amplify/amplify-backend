@@ -17,13 +17,20 @@ type Mutation {
 
 type Query {
   getTodo(id: ID!): Todo
-  listTodos(filter: ModelTodoFilterInput, limit: Int, nextToken: String): ModelTodoConnection
+  listTodos(
+    filter: ModelTodoFilterInput
+    limit: Int
+    nextToken: String
+  ): ModelTodoConnection
 }
 
 type Subscription {
-  onCreateTodo(filter: ModelSubscriptionTodoFilterInput): Todo @aws_subscribe(mutations : ["createTodo"])
-  onDeleteTodo(filter: ModelSubscriptionTodoFilterInput): Todo @aws_subscribe(mutations : ["deleteTodo"])
-  onUpdateTodo(filter: ModelSubscriptionTodoFilterInput): Todo @aws_subscribe(mutations : ["updateTodo"])
+  onCreateTodo(filter: ModelSubscriptionTodoFilterInput): Todo
+    @aws_subscribe(mutations: ["createTodo"])
+  onDeleteTodo(filter: ModelSubscriptionTodoFilterInput): Todo
+    @aws_subscribe(mutations: ["deleteTodo"])
+  onUpdateTodo(filter: ModelSubscriptionTodoFilterInput): Todo
+    @aws_subscribe(mutations: ["updateTodo"])
 }
 
 type Todo {
