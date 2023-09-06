@@ -62,6 +62,67 @@ type IdentifierType<
   Fields extends string = IdentifierFields<T>
 > = Array<Fields>;
 
+/**
+ * For a given ModelTypeParamShape, produces a map of Authorization rules
+ * that would *conflict* with the given type.
+ *
+ * E.g.,
+ *
+ * ```
+ * const test = {
+ *  fields: {
+ *   title: fields.string(),
+ *   otherfield: fields.string().array(),
+ *   numfield: fields.integer(),
+ *  },
+ *  identifier: [],
+ *  authorization: [],
+ * };
+ *
+ * ConflictingAuthRulesMap<typeof test> === {
+ *  title: Authorization<"title", true>;
+ *  otherfield: Authorization<"otherfield", false>;
+ *  numfield: Authorization<"numfield", true> | Authorization<"numfield", false>;
+ * }
+ * ```
+ */
+type ConflictingAuthRulesMap<T extends ModelTypeParamShape> = {
+  [K in keyof ExtractType<T>]: K extends string
+    ? ExtractType<T>[K] extends string
+      ? Authorization<K, true>
+      : ExtractType<T>[K] extends string[]
+      ? Authorization<K, false>
+      : Authorization<K, true> | Authorization<K, false>
+    : never;
+};
+
+/**
+ * For a given ModelTypeParamShape, produces a union of Authorization rules
+ * that would *conflict* with the given type.
+ *
+ * E.g.,
+ *
+ * ```
+ * const test = {
+ *  fields: {
+ *   title: fields.string(),
+ *   otherfield: fields.string().array(),
+ *   numfield: fields.integer(),
+ *  },
+ *  identifier: [],
+ *  authorization: [],
+ * };
+ *
+ * ConflictingAuthRules<typeof test> ===
+ *  Authorization<"title", true>
+ *  | Authorization<"otherfield", false>
+ *  | Authorization<"numfield", true> | Authorization<"numfield", false>
+ * ;
+ * ```
+ */
+type ConflictingAuthRules<T extends ModelTypeParamShape> =
+  ConflictingAuthRulesMap<T>[keyof ConflictingAuthRulesMap<T>];
+
 export type ModelType<
   T extends ModelTypeParamShape,
   K extends keyof ModelType<T> = never
@@ -71,7 +132,7 @@ export type ModelType<
       identifier: ID
     ): ModelType<SetTypeSubArg<T, 'identifier', ID>, K | 'identifier'>;
     authorization<AuthRuleType extends Authorization<any, any>>(
-      rules: AuthRuleType[]
+      rules: Exclude<AuthRuleType, ConflictingAuthRules<T>>[]
     ): ModelType<
       SetTypeSubArg<T, 'authorization', AuthRuleType[]>,
       K | 'authorization'

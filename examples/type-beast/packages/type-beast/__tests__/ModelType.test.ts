@@ -141,14 +141,31 @@ describe('model auth rules', () => {
     // If the types are correct, this field should exist
     type AuthorsType = Schema['widget']['authors'];
 
-    // I should be able to assign a `string` to it
+    // I should NOT be able to assign a singular `string` to it
+    // @ts-expect-error
     let authors: AuthorsType = 'string';
 
-    // I should not be able to assign a `string[]`;
-    authors = ['string'];
+    // I SHOULD be able to assign a `string[]`;
+    authors = ['username1', 'username2'];
 
     const graphql = schemaPreprocessor(schema).processedSchema;
     expect(graphql).toMatchSnapshot();
+  });
+
+  it(`throws a fit of an implied (auto-created) field conflicts with an explicit field`, () => {
+    const schema = a.schema({
+      widget: a
+        .model({
+          title: a.string(),
+
+          // pluralized `author` fields
+          author: a.string().array(),
+        })
+
+        // authorization expects `author` to be singular `string`
+        // @ts-expect-error
+        .authorization([a.allow.owner().inField('author')]),
+    });
   });
 
   it(`can create a static Admins group rule`, () => {
