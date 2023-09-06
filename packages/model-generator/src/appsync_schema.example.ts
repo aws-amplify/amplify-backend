@@ -1,3 +1,5 @@
+/* eslint-disable spellcheck/spell-checker */
+export const schema = `
 schema {
   query: Query
   mutation: Mutation
@@ -230,4 +232,4 @@ input UpdateTodoInput {
   description: String
   id: ID!
   name: String
-}
+}`;
