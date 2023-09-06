@@ -138,10 +138,12 @@ jobs:
       - install
     steps:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
+        with:
+          # fetch full history so that changeset can properly compute divergence point
+          fetch-depth: 0
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_install_cache
-      - run: git fetch origin
-      - run: npx changeset status --since main
+      - run: npx changeset status
   update_or_publish_versions:
     if: github.event_name == 'push'
     needs:
