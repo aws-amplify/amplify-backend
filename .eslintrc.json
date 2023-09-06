@@ -7,9 +7,18 @@
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
     "plugin:jsdoc/recommended-typescript-error",
+    "plugin:promise/recommended",
     "prettier"
   ],
-  "overrides": [],
+  "overrides": [
+    {
+      // Add files to this list that shouldn't be spellchecked
+      "files": [".eslintrc.js"],
+      "rules": {
+        "spellcheck/spell-checker": "off"
+      }
+    }
+  ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "ecmaVersion": "latest",
@@ -22,7 +31,9 @@
     "jsdoc",
     "import",
     "no-only-tests",
-    "check-file"
+    "check-file",
+    "spellcheck",
+    "promise"
   ],
   "rules": {
     "@typescript-eslint/naming-convention": [
@@ -100,11 +111,89 @@
     "no-throw-literal": "error",
     "no-useless-catch": "error",
     "prefer-promise-reject-errors": "error",
+    "promise/prefer-await-to-then": "error",
     "import/no-extraneous-dependencies": "error",
     "sort-imports": [
       "error",
       {
         "ignoreDeclarationSort": true
+      }
+    ],
+    "spellcheck/spell-checker": [
+      "warn",
+      {
+        "lang": "en_US",
+        "skipWords": [
+          "aggregator",
+          "amazonaws",
+          "amplifyconfiguration",
+          "appsync",
+          "argv",
+          "cdk",
+          "changelog",
+          "changeset",
+          "changesets",
+          "codebase",
+          "cognito",
+          "ctor",
+          "debounce",
+          "deployer",
+          "enum",
+          "execa",
+          "filepath",
+          "frontend",
+          "frontends",
+          "func",
+          "gitignored",
+          "graphql",
+          "hotswap",
+          "implementors",
+          "inheritdoc",
+          "invokable",
+          "invoker",
+          "lsof",
+          "mkdtemp",
+          "nodejs18.x",
+          "npmrc",
+          "npx",
+          "orchestrator",
+          "passthrough",
+          "pathname",
+          "readdir",
+          "readonly",
+          "repo",
+          "resolvers",
+          "schema",
+          "schemas",
+          "shortstat",
+          "sigint",
+          "signup",
+          "stderr",
+          "stdin",
+          "stdout",
+          "subcommand",
+          "subcommands",
+          "tmpdir",
+          "toggleable",
+          "tokenized",
+          "tsconfig",
+          "tsdoc",
+          "unauth",
+          "unlink",
+          "unvalidated",
+          "verdaccio",
+          "verifier",
+          "versioned",
+          "versioning",
+          "whoami",
+          "yaml",
+          "yargs"
+        ],
+        "skipIfMatch": [
+          "http://[^s]*",
+          "^[-\\w]+/[-\\w\\.]+$" //For MIME Types
+        ],
+        "minLength": 4
       }
     ],
     "unicorn/filename-case": [

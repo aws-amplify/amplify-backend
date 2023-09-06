@@ -2,11 +2,11 @@ import { AppSyncClient } from '@aws-sdk/client-appsync';
 import { AppSyncIntrospectionSchemaFetcher } from './appsync_schema_fetcher.js';
 import { AppSyncGraphqlClientGenerator } from './graphql_document_generator.js';
 import { GraphQLStatementsFormatter } from './graphql_statements_formatter.js';
-import { ModelGenerator } from './model_generator.js';
+import { GraphqlModelGenerator } from './model_generator.js';
 import { writeSchemaToFile } from './write_schema_to_file.js';
 
 export type TargetLanguage = 'typescript';
-export interface ModelGeneratorParamters {
+export interface ModelGeneratorParameters {
   graphql: {
     outDir: string;
     language: TargetLanguage;
@@ -21,10 +21,10 @@ const languageExtensions: Record<TargetLanguage, string> = {
 /**
  * Factory function to compose a model generator
  */
-export const createModelGenerator = <T extends keyof ModelGeneratorParamters>(
+export const createModelGenerator = <T extends keyof ModelGeneratorParameters>(
   modelType: T,
-  params: ModelGeneratorParamters[T]
-): ModelGenerator => {
+  params: ModelGeneratorParameters[T]
+): GraphqlModelGenerator => {
   switch (modelType) {
     case 'graphql': {
       const { outDir, language } = params;

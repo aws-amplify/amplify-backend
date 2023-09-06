@@ -1,11 +1,11 @@
 import { generateGraphQLDocuments } from '@aws-amplify/graphql-docs-generator';
-import { ModelGenerator } from './model_generator.js';
+import { GraphqlModelGenerator } from './model_generator.js';
 
 export type Statements = Map<string, string>;
 /**
  * Generates GraphQL documents for a given AppSync API
  */
-export class AppSyncGraphqlClientGenerator implements ModelGenerator {
+export class AppSyncGraphqlClientGenerator implements GraphqlModelGenerator {
   /**
    * Configures the GraphQLClientGenerator
    */
