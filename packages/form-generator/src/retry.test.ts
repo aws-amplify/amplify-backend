@@ -5,7 +5,9 @@ import { retry } from './retry.js';
 describe('retry module', () => {
   it('retries a rejected promise', async () => {
     const retries = 3;
-    const mockPromiseExecutor = mock.fn(() => Promise.reject());
+    const mockPromiseExecutor = mock.fn(() => {
+      throw new Error('test error');
+    });
 
     await assert.rejects(() => retry(mockPromiseExecutor, retries, 5));
     assert.equal(mockPromiseExecutor.mock.callCount(), retries);
@@ -14,7 +16,9 @@ describe('retry module', () => {
     const retries = 3;
     const expectedResult = 0;
     const mockPromiseExecutor = mock.fn(() => Promise.resolve(expectedResult));
-    mockPromiseExecutor.mock.mockImplementationOnce(() => Promise.reject());
+    mockPromiseExecutor.mock.mockImplementationOnce(() => {
+      throw new Error('test error');
+    });
     const result = await retry(mockPromiseExecutor, retries, 10);
     assert.equal(mockPromiseExecutor.mock.callCount(), 2);
     assert.equal(result, expectedResult);

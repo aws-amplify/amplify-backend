@@ -9,7 +9,7 @@ import { CodegenJobHandler } from './codegen_job_handler.js';
 const createJob = () => ({
   appId: 'fake',
   codegenJobToCreate: {},
-  environmentName: 'fakeenv',
+  environmentName: 'fakeEnv',
 });
 const createGetJobResponse = ({
   status = 'succeeded',
@@ -59,7 +59,7 @@ describe('CodegenJobHandler', () => {
     const exampleJob = {
       appId: 'fake',
       codegenJobToCreate: {},
-      environmentName: 'fakeenv',
+      environmentName: 'fakeEnv',
     };
     await handler.execute(exampleJob as StartCodegenJobCommandInput);
     assert.deepEqual(exampleJob, startJobMock.mock.calls[0].arguments[0]);

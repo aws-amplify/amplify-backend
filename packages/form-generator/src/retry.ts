@@ -12,7 +12,7 @@ export const retry = async <T>(
       return result;
     } catch (error) {
       const retryDelay = delay * 2 ** retryCount;
-      await new Promise((res) => setTimeout(res, retryDelay));
+      await new Promise((resolve) => setTimeout(resolve, retryDelay));
     }
   }
   throw new Error('Fetch reached max number of retries without succeeding');

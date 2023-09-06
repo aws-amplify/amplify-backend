@@ -73,6 +73,6 @@ export class CodegenJobHandler {
     throw new Error('Failed to return codegen job');
   };
   private delay = (durationMs: number): Promise<void> => {
-    return new Promise((r) => setTimeout(() => r(), durationMs));
+    return new Promise((resolve) => setTimeout(resolve, durationMs));
   };
 }
