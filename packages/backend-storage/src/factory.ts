@@ -22,6 +22,7 @@ export class AmplifyStorageFactory implements ConstructFactory<AmplifyStorage> {
    * Set the properties that will be used to initialize the bucket
    */
   constructor(private readonly props: AmplifyStorageProps) {
+    // test update package
     this.importStack = new Error().stack;
   }
 
