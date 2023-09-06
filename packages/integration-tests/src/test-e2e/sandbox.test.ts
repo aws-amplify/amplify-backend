@@ -14,7 +14,7 @@ import {
 import { shortUuid } from '../short_uuid.js';
 
 describe('[E2E] sandbox', () => {
-  const e2eSandboxDir = new URL('./e2e-sandboxes', import.meta.url);
+  const e2eSandboxDir = new URL('./test-e2e-sandboxes', import.meta.url);
   before(async () => {
     if (!existsSync(e2eSandboxDir)) {
       await fs.mkdir(e2eSandboxDir, { recursive: true });

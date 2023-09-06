@@ -11,7 +11,7 @@ import { AppNameAndBranchMainStackNameResolver } from './stack-name-resolvers/ap
 /**
  * This type reaches into the internals of the ClientConfigGenerator implementation
  * to allow us to pull out the stackNameResolver that has been injected into the class.
- * Not great, but until we have e2e tests it gives us more confidence that the factory wired everything together properly
+ * Not great, but until we have test-e2e tests it gives us more confidence that the factory wired everything together properly
  */
 type GeneratorInternalType = {
   outputRetrievalStrategy: {
