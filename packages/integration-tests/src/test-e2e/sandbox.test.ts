@@ -9,7 +9,7 @@ import {
   interruptSandbox,
   rejectCleanupSandbox,
   waitForSandboxDeployment,
-} from '../process-controller/command_macros.js';
+} from '../process-controller/controller_action_macros.js';
 import { createEmptyAmplifyProject } from '../create_empty_amplify_project.js';
 import {
   createTestDirectoryBeforeAndCleanupAfter,

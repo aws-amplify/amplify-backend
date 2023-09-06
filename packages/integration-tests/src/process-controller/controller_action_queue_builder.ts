@@ -1,18 +1,18 @@
-import { LineAction } from './expected_line_action.js';
+import { ControllerAction } from './controller_action.js';
 import os from 'os';
-import { CONTROL_C } from './command_macros.js';
+import { CONTROL_C } from './controller_action_macros.js';
 
 /**
  * Builder for a queue of LineActions
  */
-export class LineActionQueueBuilder {
-  private readonly lineActionQueue: LineAction[] = [];
+export class ControllerActionQueueBuilder {
+  private readonly controllerActionQueue: ControllerAction[] = [];
 
   /**
    * Append the action queue from another builder to this builder
    */
-  append = (builder: LineActionQueueBuilder) => {
-    this.lineActionQueue.push(...builder.getLineActionQueue());
+  append = (builder: ControllerActionQueueBuilder) => {
+    this.controllerActionQueue.push(...builder.getLineActionQueue());
     return this;
   };
 
@@ -20,7 +20,7 @@ export class LineActionQueueBuilder {
    * Add a new action to the queue to wait for a line that includes str
    */
   waitForLineIncludes = (str: string) => {
-    this.lineActionQueue.push({
+    this.controllerActionQueue.push({
       predicate: (line) => line.includes(str),
       thenSend: [],
     });
@@ -31,10 +31,10 @@ export class LineActionQueueBuilder {
    * Send str with no newline
    */
   send = (str: string) => {
-    if (this.lineActionQueue.length === 0) {
+    if (this.controllerActionQueue.length === 0) {
       throw new Error('Must wait for a line before sending');
     }
-    this.lineActionQueue.at(-1)?.thenSend.push(str);
+    this.controllerActionQueue.at(-1)?.thenSend.push(str);
     return this;
   };
 
@@ -73,7 +73,7 @@ export class LineActionQueueBuilder {
   /**
    * Get the currently queued actions
    */
-  getLineActionQueue = (): LineAction[] => {
-    return this.lineActionQueue;
+  getLineActionQueue = (): ControllerAction[] => {
+    return this.controllerActionQueue;
   };
 }

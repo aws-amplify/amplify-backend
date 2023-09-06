@@ -1,7 +1,7 @@
 import { Options, execa } from 'execa';
 import readline from 'readline';
-import { CONTROL_C } from './command_macros.js';
-import { LineActionQueueBuilder } from './line_action_queue_builder.js';
+import { CONTROL_C } from './controller_action_macros.js';
+import { ControllerActionQueueBuilder } from './controller_action_queue_builder.js';
 
 /**
  * Provides an abstractions for sending and receiving data on stdin/out of a child process
@@ -17,8 +17,8 @@ import { LineActionQueueBuilder } from './line_action_queue_builder.js';
  * then send "yes" on stdin of the process
  */
 export class ProcessController {
-  private readonly actions: LineActionQueueBuilder =
-    new LineActionQueueBuilder();
+  private readonly actions: ControllerActionQueueBuilder =
+    new ControllerActionQueueBuilder();
   /**
    * Private ctor that initializes a readline interface around the execa process
    */
@@ -28,7 +28,7 @@ export class ProcessController {
     private readonly options?: Pick<Options, 'cwd'>
   ) {}
 
-  do = (actions: LineActionQueueBuilder) => {
+  do = (actions: ControllerActionQueueBuilder) => {
     this.actions.append(actions);
     return this;
   };
