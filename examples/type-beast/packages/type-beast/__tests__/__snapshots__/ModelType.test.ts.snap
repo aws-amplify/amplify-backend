@@ -1,5 +1,21 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`model auth rules can chain off of inField rules 1`] = `
+"type widget @model @auth(rules: [allow: owner, operations: [create, read], ownerField: "customOwnerField"])
+{
+  customOwnerField: String!
+  title: String!
+}"
+`;
+
+exports[`model auth rules can chain off of multi-owner inField rules 1`] = `
+"type widget @model @auth(rules: [allow: owner, operations: [create, read], ownerField: "customOwnerField"])
+{
+  customOwnerField: [String!]!
+  title: String!
+}"
+`;
+
 exports[`model auth rules can create a "multiple owners" rule an on implied (auto-created) field 1`] = `
 "type widget @model @auth(rules: [allow: owner, ownerField: "authors"])
 {

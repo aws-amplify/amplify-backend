@@ -102,7 +102,7 @@ export type Authorization<
 export type OwnerField = {};
 
 type BuilderMethods<T extends {}> = {
-  [K in keyof T as T extends Function ? K : never]: T[K];
+  [K in keyof T as T[K] extends (...args: any) => any ? K : never]: T[K];
 };
 
 /**
@@ -175,10 +175,12 @@ function validateProvider(
 
 function authData<
   Field extends string | undefined = 'owner',
-  isMulti extends boolean = false
+  isMulti extends boolean = false,
+  Builders extends {} = {}
 >(
-  defaults: Partial<Authorization<Field, isMulti>[typeof __data]>
-): Authorization<Field, isMulti> {
+  defaults: Partial<Authorization<Field, isMulti>[typeof __data]>,
+  builderMethods: Builders
+): Authorization<Field, isMulti> & Builders {
   return {
     [__data]: {
       strategy: 'public',
@@ -195,43 +197,50 @@ function authData<
       //   owner: {},
       // },
     } as any,
+    ...builderMethods,
   };
 }
 
 export const allow = {
   public(provider?: PublicProvider) {
     validateProvider(provider, PublicProviders);
-    return {
-      ...authData({
+    return authData(
+      {
         strategy: 'public',
         provider,
-      }),
-      to,
-    };
+      },
+      {
+        to,
+      }
+    );
   },
 
   private(provider?: PrivateProvider) {
     validateProvider(provider, PrivateProviders);
-    return {
-      ...authData({
+    return authData(
+      {
         strategy: 'private',
         provider,
-      }),
-      to,
-    };
+      },
+      {
+        to,
+      }
+    );
   },
 
   owner(provider?: OwnerProviders) {
     validateProvider(provider, OwnerProviders);
-    return {
-      ...authData({
+    return authData(
+      {
         strategy: 'owner',
         provider,
-      }),
-      to,
-      inField,
-      identityClaim,
-    };
+      },
+      {
+        to,
+        inField,
+        identityClaim,
+      }
+    );
   },
 
   /**
@@ -240,126 +249,136 @@ export const allow = {
    */
   multipleOwners(provider?: OwnerProviders) {
     validateProvider(provider, OwnerProviders);
-    return {
-      ...authData({
+    return authData(
+      {
         strategy: 'owner',
         multiOwner: true,
         provider,
-      }),
-      to,
-      inField,
-      identityClaim,
-    };
+      },
+      {
+        to,
+        inField,
+        identityClaim,
+      }
+    );
   },
 
   specificGroup(group: string, provider?: GroupProvider) {
-    return {
-      ...authData({
+    return authData(
+      {
         strategy: 'groups',
         provider,
         groups: [group],
-      }),
-      to,
-      withClaimIn,
-    };
+      },
+      {
+        to,
+        withClaimIn,
+      }
+    );
   },
 
   specificGroups(groups: string[], provider?: GroupProvider) {
-    return {
-      ...authData({
+    return authData(
+      {
         strategy: 'groups',
         provider,
         groups,
-      }),
-      to,
-      withClaimIn,
-    };
+      },
+      {
+        to,
+        withClaimIn,
+      }
+    );
   },
 
-  groupDefinedIn(groupsField: string, provider?: GroupProvider) {
-    return {
-      ...authData({
+  groupDefinedIn<T extends string>(groupsField: T, provider?: GroupProvider) {
+    return authData(
+      {
         strategy: 'groups',
         provider,
         groupOrOwnerField: groupsField,
 
         // just explicit here for clarity/distinction from plural version.
         multiOwner: false,
-      }),
-      to,
-    };
+      },
+      {
+        to,
+      }
+    );
   },
 
-  groupsDefinedIn(groupsField: string, provider?: GroupProvider) {
-    return {
-      ...authData({
+  groupsDefinedIn<T extends string>(groupsField: T, provider?: GroupProvider) {
+    return authData(
+      {
         strategy: 'groups',
         provider,
         groupOrOwnerField: groupsField,
         multiOwner: true,
-      }),
-      to,
-    };
+      },
+      {
+        to,
+      }
+    );
   },
 } as const;
 
-// these are correct.
-const authA = authData({});
-const authB = authData({ groupOrOwnerField: 'other' });
-const authC = authData({ groupOrOwnerField: 'whoever', multiOwner: true });
+// // these are correct.
+// const authA = authData({});
+// const authB = authData({ groupOrOwnerField: 'other' });
+const authC = authData({ groupOrOwnerField: 'whoever', multiOwner: true }, {});
 
-// these are correct.
-type TestAuthA = ImpliedAuthField<typeof authA>;
-type TestAuthB = ImpliedAuthField<typeof authB>;
-type TestAuthC = ImpliedAuthField<typeof authC>;
+// // these are correct.
+// type TestAuthA = ImpliedAuthField<typeof authA>;
+// type TestAuthB = ImpliedAuthField<typeof authB>;
+// type TestAuthC = ImpliedAuthField<typeof authC>;
 
-// this is expected, but perhaps not strictly "correct", as
-// there isn't necessarily an `owner` field for public auth ... maybe OK though???
-const builtA = allow.public();
-type TestBuiltA = ImpliedAuthField<typeof builtA>;
+// // this is expected, but perhaps not strictly "correct", as
+// // there isn't necessarily an `owner` field for public auth ... maybe OK though???
+// const builtA = allow.public();
+// type TestBuiltA = ImpliedAuthField<typeof builtA>;
 
-// works as expected.
-const builtB = allow.owner().inField('otherfield');
-type TestBuiltB = ImpliedAuthField<typeof builtB>;
+// // works as expected.
+// const builtB = allow.owner().inField('otherfield');
+// type TestBuiltB = ImpliedAuthField<typeof builtB>;
 
-// works as expected.
-const builtC = allow.multipleOwners().inField('editors');
-type TestBuiltC = ImpliedAuthField<typeof builtC>;
+// // works as expected.
+// const builtC = allow.multipleOwners().inField('editors');
+// type TestBuiltC = ImpliedAuthField<typeof builtC>;
 
-const rules = [builtA, builtB, builtC];
-type AuthTypes = ImpliedAuthField<(typeof rules)[number]>;
-type TestRules = UnionToIntersection<AuthTypes>;
+// const rules = [builtA, builtB, builtC];
+// type AuthTypes = ImpliedAuthField<(typeof rules)[number]>;
+// type TestRules = UnionToIntersection<AuthTypes>;
 
 export type ImpliedAuthField<T extends Authorization<any, any>> =
   T extends Authorization<infer Field, infer isMulti>
     ? Field extends string
       ? isMulti extends true
-        ? { [K in Field]: string[] }
-        : { [K in Field]: string }
+        ? { [K in Field]?: string[] }
+        : { [K in Field]?: string }
       : never
     : never;
 
 export type ImpliedAuthFields<T extends Authorization<any, any>> =
   UnionToIntersection<ImpliedAuthField<T>>;
 
-function compilerules<T extends Authorization<any, any>>(
-  rules: T[]
-): ImpliedAuthFields<T> {
-  return {} as any;
-}
+// function compilerules<T extends Authorization<any, any>>(
+//   rules: T[]
+// ): ImpliedAuthFields<T> {
+//   return {} as any;
+// }
 
-// works ... i think.
-const x = compilerules(rules);
+// // works ... i think.
+// const x = compilerules(rules);
 
-// type NormalizedOwnerField<T extends Authorization> =
-//   T[typeof __data]['groupOrOwnerField'] extends string
-//     ? T[typeof __data]['groupOrOwnerField']
-//     : 'owner';
+// // type NormalizedOwnerField<T extends Authorization> =
+// //   T[typeof __data]['groupOrOwnerField'] extends string
+// //     ? T[typeof __data]['groupOrOwnerField']
+// //     : 'owner';
 
-// type Test = AuthFieldType<(typeof x)[1]>;
+// // type Test = AuthFieldType<(typeof x)[1]>;
 
-// type AuthFields<T extends Array<Authorization<any, any>>> = {
-//   [K in T[number]]: AuthFieldType<T[number]>
-// };
+// // type AuthFields<T extends Array<Authorization<any, any>>> = {
+// //   [K in T[number]]: AuthFieldType<T[number]>
+// // };
 
-// type T = AuthFields<typeof x>;
+// // type T = AuthFields<typeof x>;

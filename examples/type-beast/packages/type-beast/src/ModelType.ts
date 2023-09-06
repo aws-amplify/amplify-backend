@@ -1,4 +1,4 @@
-import type { ModelField, InternalField } from './ModelField';
+import { ModelField, InternalField, fields } from './ModelField';
 import type {
   ModelRelationalField,
   InternalRelationalField,
@@ -25,6 +25,8 @@ type ModelData = {
 type InternalModelData = ModelData & {
   fields: InternalModelFields;
   identifier: string[];
+  // TODO: Might not actually need an internal version of this type ... TBD.
+  authorization: any;
 };
 
 export type ModelTypeParamShape = {
@@ -88,9 +90,9 @@ type IdentifierType<
  */
 type ConflictingAuthRulesMap<T extends ModelTypeParamShape> = {
   [K in keyof ExtractType<T>]: K extends string
-    ? ExtractType<T>[K] extends string
+    ? string extends ExtractType<T>[K]
       ? Authorization<K, true>
-      : ExtractType<T>[K] extends string[]
+      : string[] extends ExtractType<T>[K]
       ? Authorization<K, false>
       : Authorization<K, true> | Authorization<K, false>
     : never;
@@ -122,6 +124,23 @@ type ConflictingAuthRulesMap<T extends ModelTypeParamShape> = {
  */
 type ConflictingAuthRules<T extends ModelTypeParamShape> =
   ConflictingAuthRulesMap<T>[keyof ConflictingAuthRulesMap<T>];
+
+const test = {
+  fields: {
+    title: fields.string(),
+    optionalField: fields.string().optional(),
+    otherfield: fields.string().array(),
+    numfield: fields.integer(),
+  },
+  identifier: [],
+  authorization: [],
+};
+type TT = ExtractType<typeof test>;
+type TESTA = ConflictingAuthRulesMap<typeof test>;
+type TESTB = ConflictingAuthRules<typeof test>;
+// Authorization<"title", true>
+// | Authorization<"otherfield", false>
+// | Authorization<"numfield", true> | Authorization<"numfield", false>
 
 export type ModelType<
   T extends ModelTypeParamShape,

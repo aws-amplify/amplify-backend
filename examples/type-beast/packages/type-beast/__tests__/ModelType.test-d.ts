@@ -75,6 +75,7 @@ describe('identifiers', () => {
         title: ModelField<string | null, 'optional'>;
       };
       identifier: Array<'id'>;
+      authorization: [];
     };
 
     type test = Expect<Equal<MT, ExpectedType>>;
@@ -92,6 +93,7 @@ describe('identifiers', () => {
         customId: ModelField<string>;
       };
       identifier: Array<'customId'>;
+      authorization: [];
     };
 
     type test = Expect<Equal<MT, ExpectedType>>;

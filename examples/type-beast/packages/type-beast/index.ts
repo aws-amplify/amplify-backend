@@ -9,7 +9,7 @@ import {
   belongsTo,
   manyToMany,
 } from './src/ModelRelationalField';
-import { allow } from './src/authorization';
+import { allow, __data } from './src/authorization';
 
 const a = {
   schema,
@@ -25,6 +25,6 @@ const a = {
 
 export default a;
 
-export { defineData };
+export { defineData, __data };
 
 export type { ClientSchema };
