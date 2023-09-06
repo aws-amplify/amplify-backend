@@ -167,7 +167,7 @@ describe('Auth construct', () => {
 
   it('expect compile error if invalid sms verification message', () => {
     const customSMSVerificationMessage = 'invalid message without code';
-    const validSMSVerificationMesssage = 'valid {####}';
+    const validSMSVerificationMessage = 'valid {####}';
     let props: AuthProps = {
       loginWith: {
         phoneNumber: {
@@ -181,7 +181,7 @@ describe('Auth construct', () => {
     props = {
       loginWith: {
         phoneNumber: {
-          verificationMessage: validSMSVerificationMesssage,
+          verificationMessage: validSMSVerificationMessage,
         },
       },
     };

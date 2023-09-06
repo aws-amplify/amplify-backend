@@ -5,7 +5,7 @@ export * from './backend_stack_resolver.js';
 export * from './construct_container.js';
 export * from './construct_factory.js';
 export * from './output_retrieval_strategy.js';
-export * from './output_storage_stragegy.js';
+export * from './output_storage_strategy.js';
 export * from './auth_resources.js';
 export * from './backend_output.js';
 export * from './import_path_verifier.js';
