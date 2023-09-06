@@ -4,7 +4,7 @@ import {
 } from '@aws-sdk/client-appsync';
 
 /**
- * Fetches the introspection schema for a gvien api id
+ * Fetches the introspection schema for a given api id
  */
 export class AppSyncIntrospectionSchemaFetcher {
   /**
