@@ -13,7 +13,7 @@ import {
 } from '../process-controller/command_macros.js';
 import { shortUuid } from '../short_uuid.js';
 
-describe('[E2E] sandbox', () => {
+describe('sandbox', () => {
   const e2eSandboxDir = new URL('./test-e2e-sandboxes', import.meta.url);
   before(async () => {
     if (!existsSync(e2eSandboxDir)) {
@@ -58,7 +58,7 @@ describe('[E2E] sandbox', () => {
   ];
 
   testProjects.forEach((testProject) => {
-    it(`[E2E] ${testProject.name}`, async () => {
+    it(testProject.name, async () => {
       await fs.cp(testProject.initialAmplifyDirPath, testAmplifyDir, {
         recursive: true,
       });
