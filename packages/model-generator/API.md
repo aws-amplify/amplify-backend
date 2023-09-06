@@ -19,7 +19,6 @@ export interface ModelGeneratorParamters {
     graphql: {
         outDir: string;
         language: TargetLanguage;
-        apiUrl: string;
         apiId: string;
     };
 }
