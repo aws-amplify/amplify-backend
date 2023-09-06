@@ -1,7 +1,10 @@
 import { AmplifyUIBuilder } from '@aws-sdk/client-amplifyuibuilder';
+import { S3Client } from '@aws-sdk/client-s3';
 import { CodegenJobHandler } from './codegen_job_handler.js';
+import { generateModelIntrospectionSchema } from './fetch_app_schema.js';
 import { FormGenerator } from './form_generator.js';
-import { LocalFilesystemFormGenerationStrategy } from './form_writer.js';
+import { CodegenGraphqlFormGenerator } from './codegen_graphql_form_generator.js';
+import { FormGenerationResult } from './form_generation_result.js';
 
 export interface FormGenerationParams {
   graphql: {
@@ -13,8 +16,9 @@ export interface FormGenerationParams {
 }
 
 export interface FormGenerationOutput {
-  graphql: void;
+  graphql: FormGenerationResult;
 }
+
 /**
  * Creates a form generator given a config
  */
@@ -25,11 +29,18 @@ export const createFormGenerator = <
   generationParams: FormGenerationParams[T]
 ): FormGenerator<FormGenerationOutput[T]> => {
   switch (generationType) {
-    case 'graphql':
-      return new LocalFilesystemFormGenerationStrategy(
+    case 'graphql': {
+      const client = new S3Client();
+      return new CodegenGraphqlFormGenerator(
         new CodegenJobHandler(new AmplifyUIBuilder()),
-        generationParams
+        generationParams,
+        () =>
+          generateModelIntrospectionSchema(
+            client,
+            generationParams.introspectionSchemaUrl
+          )
       );
+    }
     default:
       throw new Error('Generation type not found');
   }
