@@ -20,7 +20,11 @@ export class ProcessController {
   private readonly actions: ControllerActionQueueBuilder =
     new ControllerActionQueueBuilder();
   /**
-   * Private ctor that initializes a readline interface around the execa process
+   * Initialize a process controller for the specified command and args.
+   *
+   * The command is not executed until .run() is awaited
+   *
+   * To define actions that the controller should perform on the child process, use .do() before calling .run()
    */
   constructor(
     private readonly command: string,
