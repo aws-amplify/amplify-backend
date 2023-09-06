@@ -149,7 +149,7 @@ describe('Sandbox using local project name resolver', () => {
   it('queues deployment if a file change is detected during an ongoing', async () => {
     // Mimic cdk taking 200 ms.
     execaDeployMock.mock.mockImplementationOnce(async () => {
-      await new Promise((res) => setTimeout(res, 200));
+      await new Promise((resolve) => setTimeout(resolve, 200));
       return { stdout: '', stderr: '' };
     });
 
@@ -157,13 +157,13 @@ describe('Sandbox using local project name resolver', () => {
     fileChangeEventActualFn(null, [{ type: 'update', path: 'foo/test7.ts' }]);
 
     // Get over debounce so that the next deployment is considered valid
-    await new Promise((res) => setTimeout(res, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     // second file change while the previous one is 'ongoing'
     fileChangeEventActualFn(null, [{ type: 'update', path: 'foo/test8.ts' }]);
 
     // Wait sufficient time for both deployments to have finished before we count number of cdk calls.
-    await new Promise((res) => setTimeout(res, 500));
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
     assert.strictEqual(execaDeployMock.mock.callCount(), 2);
     assert.equal(generateClientConfigMock.mock.callCount(), 2);
@@ -214,11 +214,11 @@ describe('Sandbox using local project name resolver', () => {
     // file change will trigger the CDK again!
     fileChangeEventActualFn(null, [{ type: 'update', path: 'foo/test1.ts' }]);
     // Get over debounce so that the next deployment is considered valid
-    await new Promise((res) => setTimeout(res, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
     // second file change
     fileChangeEventActualFn(null, [{ type: 'update', path: 'foo/test2.ts' }]);
     // Wait sufficient time for both deployments to have finished before we count number of cdk calls.
-    await new Promise((res) => setTimeout(res, 300));
+    await new Promise((resolve) => setTimeout(resolve, 300));
 
     // CDK should have been called twice
     assert.strictEqual(contextualExecaMock.mock.callCount(), 2);
