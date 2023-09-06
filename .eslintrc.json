@@ -7,6 +7,7 @@
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
     "plugin:jsdoc/recommended-typescript-error",
+    "plugin:promise/recommended",
     "prettier"
   ],
   "overrides": [
@@ -31,7 +32,8 @@
     "import",
     "no-only-tests",
     "check-file",
-    "spellcheck"
+    "spellcheck",
+    "promise"
   ],
   "rules": {
     "@typescript-eslint/naming-convention": [
@@ -109,6 +111,7 @@
     "no-throw-literal": "error",
     "no-useless-catch": "error",
     "prefer-promise-reject-errors": "error",
+    "promise/prefer-await-to-then": "error",
     "import/no-extraneous-dependencies": "error",
     "sort-imports": [
       "error",
