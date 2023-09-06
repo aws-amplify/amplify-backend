@@ -12,6 +12,10 @@ const appleTeamId = 'team';
 const appleKeyId = 'key';
 const facebookClientId = 'facebookClientId';
 const facebookClientSecret = 'facebookClientSecret';
+const oidcClientId = 'oidcClientId';
+const oidcClientSecret = 'oidcClientSecret';
+const oidcIssuerUrl = 'https://mysampleoidcissuer.com';
+const oidcProviderName = 'myoidcprovider';
 const ExpectedGoogleIDPProperties = {
   ProviderDetails: {
     authorize_scopes: 'profile',
@@ -49,6 +53,17 @@ const ExpectedAmazonIDPProperties = {
   },
   ProviderName: 'LoginWithAmazon',
   ProviderType: 'LoginWithAmazon',
+};
+const ExpectedOidcIDPProperties = {
+  ProviderDetails: {
+    attributes_request_method: 'GET',
+    authorize_scopes: 'openid',
+    client_id: oidcClientId,
+    client_secret: oidcClientSecret,
+    oidc_issuer: oidcIssuerUrl,
+  },
+  ProviderName: oidcProviderName,
+  ProviderType: 'OIDC',
 };
 describe('Auth external login', () => {
   it('supports google idp and email', () => {
@@ -287,6 +302,58 @@ describe('Auth external login', () => {
       },
     });
   });
+  it('supports oidc and email', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    new AmplifyAuth(stack, 'test', {
+      loginWith: {
+        email: true,
+        externalAuthProviders: {
+          oidc: {
+            clientId: oidcClientId,
+            clientSecret: oidcClientSecret,
+            issuerUrl: oidcIssuerUrl,
+            name: oidcProviderName,
+          },
+        },
+      },
+    });
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      UsernameAttributes: ['email'],
+      AutoVerifiedAttributes: ['email'],
+    });
+    template.hasResourceProperties(
+      'AWS::Cognito::UserPoolIdentityProvider',
+      ExpectedOidcIDPProperties
+    );
+  });
+  it('supports oidc and phone', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    new AmplifyAuth(stack, 'test', {
+      loginWith: {
+        phoneNumber: true,
+        externalAuthProviders: {
+          oidc: {
+            clientId: oidcClientId,
+            clientSecret: oidcClientSecret,
+            issuerUrl: oidcIssuerUrl,
+            name: oidcProviderName,
+          },
+        },
+      },
+    });
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      UsernameAttributes: ['phone_number'],
+      AutoVerifiedAttributes: ['phone_number'],
+    });
+    template.hasResourceProperties(
+      'AWS::Cognito::UserPoolIdentityProvider',
+      ExpectedOidcIDPProperties
+    );
+  });
   it('supports all idps and login methods', () => {
     const app = new App();
     const stack = new Stack(app);
@@ -313,6 +380,12 @@ describe('Auth external login', () => {
             clientId: amazonClientId,
             clientSecret: amazonClientSecret,
           },
+          oidc: {
+            clientId: oidcClientId,
+            clientSecret: oidcClientSecret,
+            issuerUrl: oidcIssuerUrl,
+            name: oidcProviderName,
+          },
         },
       },
     });
@@ -336,6 +409,10 @@ describe('Auth external login', () => {
     template.hasResourceProperties(
       'AWS::Cognito::UserPoolIdentityProvider',
       ExpectedGoogleIDPProperties
+    );
+    template.hasResourceProperties(
+      'AWS::Cognito::UserPoolIdentityProvider',
+      ExpectedOidcIDPProperties
     );
     template.hasResourceProperties('AWS::Cognito::IdentityPool', {
       SupportedLoginProviders: {

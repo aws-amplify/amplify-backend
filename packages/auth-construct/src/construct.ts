@@ -170,7 +170,15 @@ export class AmplifyAuth
     ];
     // add other providers
     identityPool.supportedLoginProviders = providerSetupResult.oauthMappings;
-    // identityPool.openIdConnectProviderArns = providerSetupResult.oidc.; // how to get ARN?
+    if (providerSetupResult.oidc) {
+      identityPool.openIdConnectProviderArns = [
+        `arn:${region}:iam::${
+          Stack.of(this).account
+        }:oidc-provider/cognito-idp.${region}.amazonaws.com/${
+          providerSetupResult.oidc.providerName
+        }`,
+      ];
+    }
     return {
       identityPool,
       identityPoolRoleAttachment,
