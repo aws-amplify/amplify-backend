@@ -2,12 +2,11 @@ import {
   AppSyncClient,
   GetIntrospectionSchemaCommand,
 } from '@aws-sdk/client-appsync';
-import { SchemaFetcher } from './schema_writer.js';
 
 /**
  * Fetches the introspection schema for a gvien api id
  */
-export class AppSyncIntrospectionSchemaFetcher implements SchemaFetcher {
+export class AppSyncIntrospectionSchemaFetcher {
   /**
    * Instantiates the schema fetcher with an appsync client
    */
