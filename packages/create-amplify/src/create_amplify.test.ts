@@ -7,10 +7,10 @@ import { after, afterEach, before, beforeEach, describe, it } from 'node:test';
 import assert from 'assert';
 
 /**
- * This test is more of an test-e2e test than a unit test.
+ * This test is more of an e2e test than a unit test.
  * But there's really no way to test the create_amplify script without just running the real thing
  *
- * TODO: we may want to pull this test into our test-e2e suite once we have that setup
+ * TODO: we may want to pull this test into our e2e suite once we have that setup
  * https://github.com/aws-amplify/samsara-cli/issues/136
  */
 describe('create-amplify script', () => {
