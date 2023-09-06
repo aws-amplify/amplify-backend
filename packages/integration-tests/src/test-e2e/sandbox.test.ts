@@ -1,6 +1,5 @@
-import { after, afterEach, before, beforeEach, describe, it } from 'node:test';
+import { afterEach, beforeEach, describe, it } from 'node:test';
 import path from 'path';
-import { existsSync } from 'fs';
 import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { amplifyCli } from '../process-controller/process_controller.js';
@@ -11,33 +10,23 @@ import {
   rejectCleanupSandbox,
   waitForSandboxDeployment,
 } from '../process-controller/command_macros.js';
-import { shortUuid } from '../short_uuid.js';
+import { createEmptyAmplifyProject } from '../create_empty_amplify_project.js';
+import {
+  createTestDirectoryBeforeAndCleanupAfter,
+  getTestDir,
+} from '../setup_test_directory.js';
 
 describe('sandbox', () => {
-  const e2eSandboxDir = new URL('./test-e2e-sandboxes', import.meta.url);
-  before(async () => {
-    if (!existsSync(e2eSandboxDir)) {
-      await fs.mkdir(e2eSandboxDir, { recursive: true });
-    }
-  });
-
-  after(async () => {
-    await fs.rm(e2eSandboxDir, { recursive: true });
-  });
+  const e2eSandboxDir = getTestDir;
+  createTestDirectoryBeforeAndCleanupAfter(e2eSandboxDir);
 
   let testProjectRoot: string;
   let testAmplifyDir: string;
   beforeEach(async () => {
-    testProjectRoot = await fs.mkdtemp(
-      path.join(fileURLToPath(e2eSandboxDir), 'test-sandbox')
-    );
-    await fs.writeFile(
-      path.join(testProjectRoot, 'package.json'),
-      JSON.stringify({ name: `test-sandbox-${shortUuid()}` }, null, 2)
-    );
-
-    testAmplifyDir = path.join(testProjectRoot, 'amplify');
-    await fs.mkdir(testAmplifyDir);
+    ({ testProjectRoot, testAmplifyDir } = await createEmptyAmplifyProject(
+      'test-sandbox',
+      fileURLToPath(e2eSandboxDir)
+    ));
   });
 
   afterEach(async () => {
