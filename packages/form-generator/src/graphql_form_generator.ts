@@ -1,5 +1,5 @@
 import { GraphqlFormGenerationResult } from './graphql_form_generation_result.js';
 
-export interface GraphqlFormGenerator {
+export type GraphqlFormGenerator = {
   generateForms: () => Promise<GraphqlFormGenerationResult>;
-}
+};

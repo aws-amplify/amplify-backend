@@ -5,14 +5,14 @@ import { generateModelIntrospectionSchema } from './fetch_app_schema.js';
 import { GraphqlFormGenerator } from './graphql_form_generator.js';
 import { CodegenGraphqlFormGenerator } from './codegen_graphql_form_generator.js';
 
-export interface FormGenerationParams {
+export type FormGenerationParams = {
   graphql: {
     apiId: string;
     appId: string;
     introspectionSchemaUrl: string;
     environmentName?: string;
   };
-}
+};
 
 /**
  * Creates a form generator given a config

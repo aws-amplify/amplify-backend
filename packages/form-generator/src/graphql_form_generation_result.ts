@@ -3,7 +3,7 @@ export type FileContent = string;
 /**
  * Result of form generation
  */
-export interface GraphqlFormGenerationResult {
+export type GraphqlFormGenerationResult = {
   writeToDirectory: (directoryName: string) => Promise<void>;
   components: Record<FileName, FileContent>;
-}
+};

@@ -6,13 +6,13 @@ import { GraphqlModelGenerator } from './model_generator.js';
 import { writeSchemaToFile } from './write_schema_to_file.js';
 
 export type TargetLanguage = 'typescript';
-export interface ModelGeneratorParameters {
+export type ModelGeneratorParameters = {
   graphql: {
     outDir: string;
     language: TargetLanguage;
     apiId: string;
   };
-}
+};
 
 const languageExtensions: Record<TargetLanguage, string> = {
   typescript: 'ts',

@@ -13,16 +13,16 @@ import {
   Manifest,
 } from './codegen_responses.js';
 
-export interface GraphqlFormGenerationStrategy {
+export type GraphqlFormGenerationStrategy = {
   generateForms: () => Promise<GraphqlFormGenerationResult>;
-}
+};
 
-interface CodegenGraphqlFormGeneratorParameters {
+type CodegenGraphqlFormGeneratorParameters = {
   apiId: string;
   appId: string;
   environmentName?: string;
   introspectionSchemaUrl: string;
-}
+};
 
 /**
  * Generates forms on the local filesystem

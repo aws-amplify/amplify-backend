@@ -1,3 +1,3 @@
-export interface GraphqlModelGenerator {
+export type GraphqlModelGenerator = {
   generateModels: () => Promise<void>;
-}
+};
