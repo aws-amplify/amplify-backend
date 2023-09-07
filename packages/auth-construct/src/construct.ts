@@ -234,7 +234,6 @@ export class AmplifyAuth
         ...customAttributes,
       },
       selfSignUpEnabled: DEFAULTS.ALLOW_SELF_SIGN_UP,
-      removalPolicy: RemovalPolicy.DESTROY,
     };
     return userPoolProps;
   };
