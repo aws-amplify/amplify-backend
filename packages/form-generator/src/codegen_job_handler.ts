@@ -44,7 +44,7 @@ export class CodegenJobHandler {
     { pollInterval }: { pollInterval: number }
   ) => {
     const startTime = performance.now();
-    const waitTimeout = 1000 * 2;
+    const waitTimeout = 1000 * 60 * 2;
 
     const endTime = startTime + waitTimeout;
 
@@ -65,7 +65,6 @@ export class CodegenJobHandler {
 
       await this.delay(pollInterval);
     }
-
     if (performance.now() > endTime) {
       throw new Error(`Codegen job never succeeded before timeout`);
     }

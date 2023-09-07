@@ -26,3 +26,4 @@ cdk.out
 src/amplifyconfiguration.js
 
 src/graphql/
+src/ui-components/

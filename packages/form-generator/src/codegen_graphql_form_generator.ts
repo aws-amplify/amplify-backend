@@ -42,7 +42,7 @@ export class CodegenGraphqlFormGenerator
     const schema = await this.modelIntrospectionSchemaFetcher();
     const job = this.generateJobInput(
       schema,
-      this.config.apiId,
+      this.config.appId,
       this.config.environmentName
     );
     const manifestUrl = await this.jobHandler.execute(job);

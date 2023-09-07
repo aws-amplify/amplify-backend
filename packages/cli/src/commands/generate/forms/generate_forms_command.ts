@@ -79,7 +79,8 @@ export class GenerateFormsCommand
       environmentName: 'staging',
       introspectionSchemaUrl: apiUrl,
     });
-    await localFormGenerator.generateForms();
+    const result = await localFormGenerator.generateForms();
+    await result.writeToDirectory('./src/ui-components');
   };
 
   /**
