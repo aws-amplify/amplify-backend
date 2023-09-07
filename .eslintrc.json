@@ -218,7 +218,7 @@
     ],
     "no-restricted-syntax": [
       "error",
-      "MethodDefinition[kind!=\"constructor\"]",
+      "MethodDefinition[kind!=/[constructor|get]/]",
       "FunctionDeclaration",
       "VariableDeclarator > FunctionExpression"
     ],

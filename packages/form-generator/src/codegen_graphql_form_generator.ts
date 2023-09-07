@@ -1,19 +1,20 @@
 import fetch from 'node-fetch';
-import fs from 'fs';
 import {
   CodegenJobGenericDataSchema,
   StartCodegenJobData,
 } from '@aws-sdk/client-amplifyuibuilder';
 import { retry } from './retry.js';
-import path from 'path';
 import { CodegenJobHandler } from './codegen_job_handler.js';
-
-export interface GraphqlFormGenerationResponse {
-  writeToDirectory: (directoryName: string) => Promise<void>;
-}
+import { GraphqlFormGenerationResult } from './graphql_form_generation_result.js';
+import { CodegenGraphqlFormGeneratorResult } from './codegen_graphql_form_generation_result.js';
+import {
+  DownloadResult,
+  GeneratedFormMetadata,
+  Manifest,
+} from './codegen_responses.js';
 
 export interface GraphqlFormGenerationStrategy {
-  generateForms: () => Promise<GraphqlFormGenerationResponse>;
+  generateForms: () => Promise<GraphqlFormGenerationResult>;
 }
 
 interface CodegenGraphqlFormGeneratorParameters {
@@ -22,6 +23,7 @@ interface CodegenGraphqlFormGeneratorParameters {
   environmentName?: string;
   introspectionSchemaUrl: string;
 }
+
 /**
  * Generates forms on the local filesystem
  */
@@ -44,12 +46,39 @@ export class CodegenGraphqlFormGenerator
       this.config.environmentName
     );
     const manifestUrl = await this.jobHandler.execute(job);
-    const downloads = await downloadUIComponents(manifestUrl);
-    return {
-      writeToDirectory: async (outputDir: string) => {
-        await writeUIComponentsToFile(downloads, outputDir);
-      },
-    };
+    const components = await this.downloadComponentsForManifestUrl(manifestUrl);
+    return new CodegenGraphqlFormGeneratorResult(components);
+  };
+  private downloadComponent = async (
+    output: GeneratedFormMetadata
+  ): Promise<DownloadResult> => {
+    if (output.error) {
+      throw new Error(output.error);
+    }
+    if (typeof output.downloadUrl !== 'string') {
+      throw new Error('Could not parse download url');
+    }
+    try {
+      const response = await retry(() => fetch(output.downloadUrl as string));
+      if (!response.ok) {
+        throw new Error(`Failed to download ${output.fileName}`);
+      }
+      return {
+        content: await response.text(),
+        fileName: output.fileName,
+      };
+    } catch (e) {
+      throw new Error(`Failed to download UI Component.`);
+    }
+  };
+  private downloadComponentsForManifestUrl = async (url: string) => {
+    const manifestResponse = await retry(() => fetch(url));
+    if (!manifestResponse.ok) {
+      throw new Error('Failed to download component manifest file');
+    }
+    const manifestFile = await (<Promise<Manifest>>manifestResponse.json());
+
+    return Promise.all(manifestFile.Output.map(this.downloadComponent));
   };
   private generateJobInput = (
     genericDataSchema: CodegenJobGenericDataSchema,
@@ -85,75 +114,3 @@ export class CodegenGraphqlFormGenerator
     };
   };
 }
-
-type GeneratedFormMetadata = {
-  downloadUrl: string | undefined;
-  fileName: string;
-  schemaName: string;
-  error: string | undefined;
-};
-
-/* eslint-disable @typescript-eslint/naming-convention */
-type Manifest = { Output: GeneratedFormMetadata[] };
-
-type DownloadResult = {
-  content?: string;
-  error?: string;
-  fileName: string;
-};
-
-const downloadComponent = async (
-  output: GeneratedFormMetadata
-): Promise<DownloadResult> => {
-  if (typeof output.downloadUrl == 'string' && !output.error) {
-    try {
-      const response = await retry(() => fetch(output.downloadUrl as string));
-      if (!response.ok) {
-        throw new Error(`Failed to download ${output.fileName}`);
-      }
-      return {
-        content: await response.text(),
-        error: undefined,
-        fileName: output.fileName,
-      };
-    } catch (error) {
-      return {
-        error: `Failed to download ${output.fileName}`,
-        content: undefined,
-        fileName: output.fileName,
-      };
-    }
-  } else {
-    return {
-      error: output.error,
-      content: undefined,
-      fileName: output.fileName,
-    };
-  }
-};
-
-const writeUIComponentsToFile = async (
-  downloads: DownloadResult[],
-  outputDir: string
-) => {
-  if (!fs.existsSync(outputDir)) {
-    fs.mkdirSync(outputDir, { recursive: true });
-  }
-  for (const downloaded of downloads) {
-    if (downloaded.content) {
-      fs.writeFileSync(
-        path.join(outputDir, downloaded.fileName),
-        downloaded.content
-      );
-    }
-  }
-};
-const downloadUIComponents = async (url: string) => {
-  const manifestResponse = await retry(() => fetch(url));
-  if (!manifestResponse.ok) {
-    throw new Error('Failed to download component manifest file');
-  }
-  const manifestFile = await (<Promise<Manifest>>manifestResponse.json());
-
-  return Promise.all(manifestFile.Output.map(downloadComponent));
-};
