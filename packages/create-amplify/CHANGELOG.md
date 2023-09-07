@@ -1,5 +1,11 @@
 # create-amplify
 
+## 0.2.0-alpha.3
+
+### Patch Changes
+
+- 9a1cf73: Execute npm init with --yes flag and split dependencies and dev dependencies when installing packages into the project
+
 ## 0.2.0-alpha.2
 
 ### Patch Changes
