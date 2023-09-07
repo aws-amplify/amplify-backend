@@ -1,5 +1,5 @@
 import { Construct } from 'constructs';
-import { RemovalPolicy, Stack, aws_cognito as cognito } from 'aws-cdk-lib';
+import { Stack, aws_cognito as cognito } from 'aws-cdk-lib';
 import {
   AuthResources,
   BackendOutputStorageStrategy,
