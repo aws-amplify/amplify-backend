@@ -1,27 +1,27 @@
 import { AppSyncClient } from '@aws-sdk/client-appsync';
 import { AppSyncIntrospectionSchemaFetcher } from './appsync_schema_fetcher.js';
 import {
-  AppSyncGraphqlClientGenerator,
+  AppSyncGraphqlDocumentGenerator,
   Statements,
 } from './graphql_document_generator.js';
 import { GraphQLStatementsFormatter } from './graphql_statements_formatter.js';
-import { GraphqlModelGenerator, TargetLanguage } from './model_generator.js';
+import { GraphqlDocumentGenerator, TargetLanguage } from './model_generator.js';
 import { writeSchemaToFile } from './write_schema_to_file.js';
 
-export interface GraphqlGeneratorFactoryParams {
+export type GraphqlDocumentGeneratorFactoryParams = {
   apiId: string;
-}
+};
 
 /**
  * Factory function to compose a model generator
  */
-export const createGraphqlModelGenerator = ({
+export const createGraphqlDocumentGenerator = ({
   apiId,
-}: GraphqlGeneratorFactoryParams): GraphqlModelGenerator => {
+}: GraphqlDocumentGeneratorFactoryParams): GraphqlDocumentGenerator => {
   if (!apiId) {
     throw new Error('`apiId` must be defined');
   }
-  return new AppSyncGraphqlClientGenerator(
+  return new AppSyncGraphqlDocumentGenerator(
     () =>
       new AppSyncIntrospectionSchemaFetcher(new AppSyncClient()).fetch(apiId),
     (_: TargetLanguage, statements: Statements) =>

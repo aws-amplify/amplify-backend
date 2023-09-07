@@ -1,7 +1,7 @@
 import { generateGraphQLDocuments } from '@aws-amplify/graphql-docs-generator';
 import {
-  GraphqlModelGenerator,
-  ModelGenerationParameters,
+  DocumentGenerationParameters,
+  GraphqlDocumentGenerator,
   TargetLanguage,
 } from './model_generator.js';
 
@@ -9,9 +9,11 @@ export type Statements = Map<string, string>;
 /**
  * Generates GraphQL documents for a given AppSync API
  */
-export class AppSyncGraphqlClientGenerator implements GraphqlModelGenerator {
+export class AppSyncGraphqlDocumentGenerator
+  implements GraphqlDocumentGenerator
+{
   /**
-   * Configures the GraphQLClientGenerator
+   * Configures the AppSyncGraphqlDocumentGenerator
    */
   constructor(
     private fetchSchema: () => Promise<string>,
@@ -28,7 +30,10 @@ export class AppSyncGraphqlClientGenerator implements GraphqlModelGenerator {
   private static languageExtensions: Record<TargetLanguage, string> = {
     typescript: 'ts',
   };
-  generateModels = async ({ language, outDir }: ModelGenerationParameters) => {
+  generateModels = async ({
+    language,
+    outDir,
+  }: DocumentGenerationParameters) => {
     const schema = await this.fetchSchema();
 
     if (!schema) {
@@ -52,7 +57,7 @@ export class AppSyncGraphqlClientGenerator implements GraphqlModelGenerator {
         const content = await this.format(language, ops as Map<string, string>);
         await this.writeFile(
           outDir,
-          `${op}.${AppSyncGraphqlClientGenerator.languageExtensions[language]}`,
+          `${op}.${AppSyncGraphqlDocumentGenerator.languageExtensions[language]}`,
           content
         );
       })
