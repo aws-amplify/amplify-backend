@@ -1,4 +1,16 @@
-type Post @model @auth(rules: [{allow: public}]) {
+type Blog @model 
+{
+  id: ID! @primaryKey
+  title: String!
+  posts: [Post] @hasMany
+}
+
+type Post @model @auth(rules: [{allow: public},
+  {allow: owner, operations: [create], ownerField: "creatorOnly"},
+  {allow: owner, operations: [update, read], ownerField: "editors"}])
+{
+  creatorOnly: String
+  editors: [String!]
   id: ID! @primaryKey
   title: String!
   summary: String
@@ -6,7 +18,24 @@ type Post @model @auth(rules: [{allow: public}]) {
   comments: [Comment] @hasMany
 }
 
-type Comment @model @auth(rules: [{allow: public}]) {
+type Comment @model 
+{
+  id: ID! @primaryKey
+  bingo: String!
+  anotherField: String
+  subComments: [SubComment] @hasMany
+}
+
+type SubComment @model 
+{
+  id: ID! @primaryKey
+  bingo: String!
+  anotherField: String
+  subSubComments: [SubSubComment] @hasMany
+}
+
+type SubSubComment @model 
+{
   id: ID! @primaryKey
   bingo: String!
   anotherField: String

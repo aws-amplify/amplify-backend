@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`model auth rules can chain off of inField rules 1`] = `
-"type widget @model @auth(rules: [allow: owner, operations: [create, read], ownerField: "customOwnerField"])
+"type widget @model @auth(rules: [{allow: owner, operations: [create, read], ownerField: "customOwnerField"}])
 {
   customOwnerField: String
   title: String!
@@ -9,7 +9,7 @@ exports[`model auth rules can chain off of inField rules 1`] = `
 `;
 
 exports[`model auth rules can chain off of multi-owner inField rules 1`] = `
-"type widget @model @auth(rules: [allow: owner, operations: [create, read], ownerField: "customOwnerField"])
+"type widget @model @auth(rules: [{allow: owner, operations: [create, read], ownerField: "customOwnerField"}])
 {
   customOwnerField: [String!]
   title: String!
@@ -17,7 +17,7 @@ exports[`model auth rules can chain off of multi-owner inField rules 1`] = `
 `;
 
 exports[`model auth rules can create a "multiple owners" rule an on implied (auto-created) field 1`] = `
-"type widget @model @auth(rules: [allow: owner, ownerField: "authors"])
+"type widget @model @auth(rules: [{allow: owner, ownerField: "authors"}])
 {
   authors: [String!]
   title: String!
@@ -25,7 +25,7 @@ exports[`model auth rules can create a "multiple owners" rule an on implied (aut
 `;
 
 exports[`model auth rules can create a "multiple owners" rule on an existing field 1`] = `
-"type widget @model @auth(rules: [allow: owner, ownerField: "authors"])
+"type widget @model @auth(rules: [{allow: owner, ownerField: "authors"}])
 {
   authors: [String!]!
   title: String!
@@ -33,7 +33,7 @@ exports[`model auth rules can create a "multiple owners" rule on an existing fie
 `;
 
 exports[`model auth rules can create a dynamic multi groups rule 1`] = `
-"type widget @model @auth(rules: [allow: groups, operations: [read], groupsField: "sharedWithGroups"])
+"type widget @model @auth(rules: [{allow: groups, operations: [read], groupsField: "sharedWithGroups"}])
 {
   sharedWithGroups: [String!]
   title: String!
@@ -41,7 +41,7 @@ exports[`model auth rules can create a dynamic multi groups rule 1`] = `
 `;
 
 exports[`model auth rules can create a dynamic singular groups rule 1`] = `
-"type widget @model @auth(rules: [allow: groups, groupsField: "businessUnitOwner"])
+"type widget @model @auth(rules: [{allow: groups, groupsField: "businessUnitOwner"}])
 {
   businessUnitOwner: String
   title: String!
@@ -49,476 +49,476 @@ exports[`model auth rules can create a dynamic singular groups rule 1`] = `
 `;
 
 exports[`model auth rules can create a static [Admins, Moderators] groups rule 1`] = `
-"type widget @model @auth(rules: [allow: groups, groups: ["Admins", "Moderators"]])
+"type widget @model @auth(rules: [{allow: groups, groups: ["Admins", "Moderators"]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can create a static Admins group rule 1`] = `
-"type widget @model @auth(rules: [allow: groups, groups: ["Admins"]])
+"type widget @model @auth(rules: [{allow: groups, groups: ["Admins"]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define owner auth with no provider 1`] = `
-"type widget @model @auth(rules: [allow: owner])
+"type widget @model @auth(rules: [{allow: owner}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define owner auth with owner field spec 1`] = `
-"type widget @model @auth(rules: [allow: owner, ownerField: "title"])
+"type widget @model @auth(rules: [{allow: owner, ownerField: "title"}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define private auth with no provider 1`] = `
-"type widget @model @auth(rules: [allow: private])
+"type widget @model @auth(rules: [{allow: private}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define private with with provider iam 1`] = `
-"type widget @model @auth(rules: [allow: private, provider: iam])
+"type widget @model @auth(rules: [{allow: private, provider: iam}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define private with with provider iam for operations create 1`] = `
-"type widget @model @auth(rules: [allow: private, provider: iam, operations: [create]])
+"type widget @model @auth(rules: [{allow: private, provider: iam, operations: [create]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define private with with provider iam for operations create,read,listen 1`] = `
-"type widget @model @auth(rules: [allow: private, provider: iam, operations: [create, read, listen]])
+"type widget @model @auth(rules: [{allow: private, provider: iam, operations: [create, read, listen]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define private with with provider iam for operations create,read,update,delete 1`] = `
-"type widget @model @auth(rules: [allow: private, provider: iam, operations: [create, read, update, delete]])
+"type widget @model @auth(rules: [{allow: private, provider: iam, operations: [create, read, update, delete]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define private with with provider iam for operations delete 1`] = `
-"type widget @model @auth(rules: [allow: private, provider: iam, operations: [delete]])
+"type widget @model @auth(rules: [{allow: private, provider: iam, operations: [delete]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define private with with provider iam for operations get 1`] = `
-"type widget @model @auth(rules: [allow: private, provider: iam, operations: [get]])
+"type widget @model @auth(rules: [{allow: private, provider: iam, operations: [get]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define private with with provider iam for operations list 1`] = `
-"type widget @model @auth(rules: [allow: private, provider: iam, operations: [list]])
+"type widget @model @auth(rules: [{allow: private, provider: iam, operations: [list]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define private with with provider iam for operations listen 1`] = `
-"type widget @model @auth(rules: [allow: private, provider: iam, operations: [listen]])
+"type widget @model @auth(rules: [{allow: private, provider: iam, operations: [listen]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define private with with provider iam for operations read 1`] = `
-"type widget @model @auth(rules: [allow: private, provider: iam, operations: [read]])
+"type widget @model @auth(rules: [{allow: private, provider: iam, operations: [read]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define private with with provider iam for operations search 1`] = `
-"type widget @model @auth(rules: [allow: private, provider: iam, operations: [search]])
+"type widget @model @auth(rules: [{allow: private, provider: iam, operations: [search]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define private with with provider iam for operations sync 1`] = `
-"type widget @model @auth(rules: [allow: private, provider: iam, operations: [sync]])
+"type widget @model @auth(rules: [{allow: private, provider: iam, operations: [sync]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define private with with provider iam for operations update 1`] = `
-"type widget @model @auth(rules: [allow: private, provider: iam, operations: [update]])
+"type widget @model @auth(rules: [{allow: private, provider: iam, operations: [update]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define private with with provider oidc 1`] = `
-"type widget @model @auth(rules: [allow: private, provider: oidc])
+"type widget @model @auth(rules: [{allow: private, provider: oidc}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define private with with provider oidc for operations create 1`] = `
-"type widget @model @auth(rules: [allow: private, provider: oidc, operations: [create]])
+"type widget @model @auth(rules: [{allow: private, provider: oidc, operations: [create]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define private with with provider oidc for operations create,read,listen 1`] = `
-"type widget @model @auth(rules: [allow: private, provider: oidc, operations: [create, read, listen]])
+"type widget @model @auth(rules: [{allow: private, provider: oidc, operations: [create, read, listen]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define private with with provider oidc for operations create,read,update,delete 1`] = `
-"type widget @model @auth(rules: [allow: private, provider: oidc, operations: [create, read, update, delete]])
+"type widget @model @auth(rules: [{allow: private, provider: oidc, operations: [create, read, update, delete]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define private with with provider oidc for operations delete 1`] = `
-"type widget @model @auth(rules: [allow: private, provider: oidc, operations: [delete]])
+"type widget @model @auth(rules: [{allow: private, provider: oidc, operations: [delete]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define private with with provider oidc for operations get 1`] = `
-"type widget @model @auth(rules: [allow: private, provider: oidc, operations: [get]])
+"type widget @model @auth(rules: [{allow: private, provider: oidc, operations: [get]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define private with with provider oidc for operations list 1`] = `
-"type widget @model @auth(rules: [allow: private, provider: oidc, operations: [list]])
+"type widget @model @auth(rules: [{allow: private, provider: oidc, operations: [list]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define private with with provider oidc for operations listen 1`] = `
-"type widget @model @auth(rules: [allow: private, provider: oidc, operations: [listen]])
+"type widget @model @auth(rules: [{allow: private, provider: oidc, operations: [listen]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define private with with provider oidc for operations read 1`] = `
-"type widget @model @auth(rules: [allow: private, provider: oidc, operations: [read]])
+"type widget @model @auth(rules: [{allow: private, provider: oidc, operations: [read]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define private with with provider oidc for operations search 1`] = `
-"type widget @model @auth(rules: [allow: private, provider: oidc, operations: [search]])
+"type widget @model @auth(rules: [{allow: private, provider: oidc, operations: [search]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define private with with provider oidc for operations sync 1`] = `
-"type widget @model @auth(rules: [allow: private, provider: oidc, operations: [sync]])
+"type widget @model @auth(rules: [{allow: private, provider: oidc, operations: [sync]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define private with with provider oidc for operations update 1`] = `
-"type widget @model @auth(rules: [allow: private, provider: oidc, operations: [update]])
+"type widget @model @auth(rules: [{allow: private, provider: oidc, operations: [update]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define private with with provider userPools 1`] = `
-"type widget @model @auth(rules: [allow: private, provider: userPools])
+"type widget @model @auth(rules: [{allow: private, provider: userPools}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define private with with provider userPools for operations create 1`] = `
-"type widget @model @auth(rules: [allow: private, provider: userPools, operations: [create]])
+"type widget @model @auth(rules: [{allow: private, provider: userPools, operations: [create]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define private with with provider userPools for operations create,read,listen 1`] = `
-"type widget @model @auth(rules: [allow: private, provider: userPools, operations: [create, read, listen]])
+"type widget @model @auth(rules: [{allow: private, provider: userPools, operations: [create, read, listen]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define private with with provider userPools for operations create,read,update,delete 1`] = `
-"type widget @model @auth(rules: [allow: private, provider: userPools, operations: [create, read, update, delete]])
+"type widget @model @auth(rules: [{allow: private, provider: userPools, operations: [create, read, update, delete]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define private with with provider userPools for operations delete 1`] = `
-"type widget @model @auth(rules: [allow: private, provider: userPools, operations: [delete]])
+"type widget @model @auth(rules: [{allow: private, provider: userPools, operations: [delete]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define private with with provider userPools for operations get 1`] = `
-"type widget @model @auth(rules: [allow: private, provider: userPools, operations: [get]])
+"type widget @model @auth(rules: [{allow: private, provider: userPools, operations: [get]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define private with with provider userPools for operations list 1`] = `
-"type widget @model @auth(rules: [allow: private, provider: userPools, operations: [list]])
+"type widget @model @auth(rules: [{allow: private, provider: userPools, operations: [list]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define private with with provider userPools for operations listen 1`] = `
-"type widget @model @auth(rules: [allow: private, provider: userPools, operations: [listen]])
+"type widget @model @auth(rules: [{allow: private, provider: userPools, operations: [listen]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define private with with provider userPools for operations read 1`] = `
-"type widget @model @auth(rules: [allow: private, provider: userPools, operations: [read]])
+"type widget @model @auth(rules: [{allow: private, provider: userPools, operations: [read]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define private with with provider userPools for operations search 1`] = `
-"type widget @model @auth(rules: [allow: private, provider: userPools, operations: [search]])
+"type widget @model @auth(rules: [{allow: private, provider: userPools, operations: [search]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define private with with provider userPools for operations sync 1`] = `
-"type widget @model @auth(rules: [allow: private, provider: userPools, operations: [sync]])
+"type widget @model @auth(rules: [{allow: private, provider: userPools, operations: [sync]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define private with with provider userPools for operations update 1`] = `
-"type widget @model @auth(rules: [allow: private, provider: userPools, operations: [update]])
+"type widget @model @auth(rules: [{allow: private, provider: userPools, operations: [update]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define public auth with no provider 1`] = `
-"type widget @model @auth(rules: [allow: public])
+"type widget @model @auth(rules: [{allow: public}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define public with with provider apiKey 1`] = `
-"type widget @model @auth(rules: [allow: public, provider: apiKey])
+"type widget @model @auth(rules: [{allow: public, provider: apiKey}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define public with with provider apiKey for operations create 1`] = `
-"type widget @model @auth(rules: [allow: public, provider: apiKey, operations: [create]])
+"type widget @model @auth(rules: [{allow: public, provider: apiKey, operations: [create]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define public with with provider apiKey for operations create,read,listen 1`] = `
-"type widget @model @auth(rules: [allow: public, provider: apiKey, operations: [create, read, listen]])
+"type widget @model @auth(rules: [{allow: public, provider: apiKey, operations: [create, read, listen]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define public with with provider apiKey for operations create,read,update,delete 1`] = `
-"type widget @model @auth(rules: [allow: public, provider: apiKey, operations: [create, read, update, delete]])
+"type widget @model @auth(rules: [{allow: public, provider: apiKey, operations: [create, read, update, delete]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define public with with provider apiKey for operations delete 1`] = `
-"type widget @model @auth(rules: [allow: public, provider: apiKey, operations: [delete]])
+"type widget @model @auth(rules: [{allow: public, provider: apiKey, operations: [delete]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define public with with provider apiKey for operations get 1`] = `
-"type widget @model @auth(rules: [allow: public, provider: apiKey, operations: [get]])
+"type widget @model @auth(rules: [{allow: public, provider: apiKey, operations: [get]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define public with with provider apiKey for operations list 1`] = `
-"type widget @model @auth(rules: [allow: public, provider: apiKey, operations: [list]])
+"type widget @model @auth(rules: [{allow: public, provider: apiKey, operations: [list]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define public with with provider apiKey for operations listen 1`] = `
-"type widget @model @auth(rules: [allow: public, provider: apiKey, operations: [listen]])
+"type widget @model @auth(rules: [{allow: public, provider: apiKey, operations: [listen]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define public with with provider apiKey for operations read 1`] = `
-"type widget @model @auth(rules: [allow: public, provider: apiKey, operations: [read]])
+"type widget @model @auth(rules: [{allow: public, provider: apiKey, operations: [read]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define public with with provider apiKey for operations search 1`] = `
-"type widget @model @auth(rules: [allow: public, provider: apiKey, operations: [search]])
+"type widget @model @auth(rules: [{allow: public, provider: apiKey, operations: [search]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define public with with provider apiKey for operations sync 1`] = `
-"type widget @model @auth(rules: [allow: public, provider: apiKey, operations: [sync]])
+"type widget @model @auth(rules: [{allow: public, provider: apiKey, operations: [sync]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define public with with provider apiKey for operations update 1`] = `
-"type widget @model @auth(rules: [allow: public, provider: apiKey, operations: [update]])
+"type widget @model @auth(rules: [{allow: public, provider: apiKey, operations: [update]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define public with with provider iam 1`] = `
-"type widget @model @auth(rules: [allow: public, provider: iam])
+"type widget @model @auth(rules: [{allow: public, provider: iam}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define public with with provider iam for operations create 1`] = `
-"type widget @model @auth(rules: [allow: public, provider: iam, operations: [create]])
+"type widget @model @auth(rules: [{allow: public, provider: iam, operations: [create]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define public with with provider iam for operations create,read,listen 1`] = `
-"type widget @model @auth(rules: [allow: public, provider: iam, operations: [create, read, listen]])
+"type widget @model @auth(rules: [{allow: public, provider: iam, operations: [create, read, listen]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define public with with provider iam for operations create,read,update,delete 1`] = `
-"type widget @model @auth(rules: [allow: public, provider: iam, operations: [create, read, update, delete]])
+"type widget @model @auth(rules: [{allow: public, provider: iam, operations: [create, read, update, delete]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define public with with provider iam for operations delete 1`] = `
-"type widget @model @auth(rules: [allow: public, provider: iam, operations: [delete]])
+"type widget @model @auth(rules: [{allow: public, provider: iam, operations: [delete]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define public with with provider iam for operations get 1`] = `
-"type widget @model @auth(rules: [allow: public, provider: iam, operations: [get]])
+"type widget @model @auth(rules: [{allow: public, provider: iam, operations: [get]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define public with with provider iam for operations list 1`] = `
-"type widget @model @auth(rules: [allow: public, provider: iam, operations: [list]])
+"type widget @model @auth(rules: [{allow: public, provider: iam, operations: [list]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define public with with provider iam for operations listen 1`] = `
-"type widget @model @auth(rules: [allow: public, provider: iam, operations: [listen]])
+"type widget @model @auth(rules: [{allow: public, provider: iam, operations: [listen]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define public with with provider iam for operations read 1`] = `
-"type widget @model @auth(rules: [allow: public, provider: iam, operations: [read]])
+"type widget @model @auth(rules: [{allow: public, provider: iam, operations: [read]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define public with with provider iam for operations search 1`] = `
-"type widget @model @auth(rules: [allow: public, provider: iam, operations: [search]])
+"type widget @model @auth(rules: [{allow: public, provider: iam, operations: [search]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define public with with provider iam for operations sync 1`] = `
-"type widget @model @auth(rules: [allow: public, provider: iam, operations: [sync]])
+"type widget @model @auth(rules: [{allow: public, provider: iam, operations: [sync]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can define public with with provider iam for operations update 1`] = `
-"type widget @model @auth(rules: [allow: public, provider: iam, operations: [update]])
+"type widget @model @auth(rules: [{allow: public, provider: iam, operations: [update]}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can specify an owner identityClaim 1`] = `
-"type widget @model @auth(rules: [allow: owner, identityClaim: "user_id"])
+"type widget @model @auth(rules: [{allow: owner, identityClaim: "user_id"}])
 {
   title: String!
 }"
 `;
 
 exports[`model auth rules can specify operations  1`] = `
-"type widget @model @auth(rules: [allow: public, operations: [create, read]])
+"type widget @model @auth(rules: [{allow: public, operations: [create, read]}])
 {
   title: String!
 }"

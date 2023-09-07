@@ -163,7 +163,7 @@ function calculateAuth(authorization: Authorization<any, any>[]) {
       ruleParts.push(`groupClaim: "${rule.groupClaim}"`);
     }
 
-    rules.push(ruleParts.join(', '));
+    rules.push(`{${ruleParts.join(', ')}}`);
   }
 
   const authString =

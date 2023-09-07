@@ -19,13 +19,8 @@ const schema = a.schema({
     .identifier(['id'])
     .authorization([
       a.allow.public(),
-      // a.allow.owner().inField('customOwner').to(['create']),
-      // a.allow.multipleOwners().to(['update', 'read']).inField('authors'),
-      // a.allow.multipleOwners().to(['read']).inField('editors'),
-      // a.allow.owner().inField('mainAuthor'),
-      // a.allow.groupDefinedIn('somegroup'),
-      // a.allow.owner(),
-      // a.allow.groupsDefinedIn('mygroups'),
+      a.allow.owner().inField('creatorOnly').to(['create']),
+      a.allow.multipleOwners().to(['update', 'read']).inField('editors'),
     ]),
   Comment: a.model({
     id: a.id(),
