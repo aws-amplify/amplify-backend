@@ -1,8 +1,5 @@
 import { UnionToIntersection, Prettify } from './util';
 
-// Warning! Slightly different patterns herein, given the slightly different invocation
-// style for auth, and the branching matrix of sometimes-overlapping options.
-
 export const __data = Symbol('data');
 
 /**
@@ -297,9 +294,6 @@ export const allow = {
         strategy: 'groups',
         provider,
         groupOrOwnerField: groupsField,
-
-        // just explicit here for clarity/distinction from plural version.
-        multiOwner: false,
       },
       {
         to,
@@ -322,33 +316,29 @@ export const allow = {
   },
 } as const;
 
-// // these are correct.
-// const authA = authData({});
-// const authB = authData({ groupOrOwnerField: 'other' });
-const authC = authData({ groupOrOwnerField: 'whoever', multiOwner: true }, {});
-
-// // these are correct.
-// type TestAuthA = ImpliedAuthField<typeof authA>;
-// type TestAuthB = ImpliedAuthField<typeof authB>;
-// type TestAuthC = ImpliedAuthField<typeof authC>;
-
-// // this is expected, but perhaps not strictly "correct", as
-// // there isn't necessarily an `owner` field for public auth ... maybe OK though???
-// const builtA = allow.public();
-// type TestBuiltA = ImpliedAuthField<typeof builtA>;
-
-// // works as expected.
-// const builtB = allow.owner().inField('otherfield');
-// type TestBuiltB = ImpliedAuthField<typeof builtB>;
-
-// // works as expected.
-// const builtC = allow.multipleOwners().inField('editors');
-// type TestBuiltC = ImpliedAuthField<typeof builtC>;
-
-// const rules = [builtA, builtB, builtC];
-// type AuthTypes = ImpliedAuthField<(typeof rules)[number]>;
-// type TestRules = UnionToIntersection<AuthTypes>;
-
+/**
+ * Turns the type from a list of `Authorization` rules like this:
+ *
+ * ```typescript
+ * [
+ *  allow.public(),
+ *  allow.owner().inField('otherfield'),
+ *  allow.multipleOwners().inField('editors')
+ * ]
+ * ```
+ *
+ * Into a union of the possible `fieldname: type` auth objects like this:
+ *
+ * ```typescript
+ * {
+ *  owner?: string | undefined;
+ * } | {
+ *  otherfield?: string | undefined;
+ * } | {
+ *  editors?: string[] | undefined;
+ * }
+ * ```
+ */
 export type ImpliedAuthField<T extends Authorization<any, any>> =
   T extends Authorization<infer Field, infer isMulti>
     ? Field extends string
@@ -358,27 +348,26 @@ export type ImpliedAuthField<T extends Authorization<any, any>> =
       : never
     : never;
 
+/**
+ * Turns the type from a list of `Authorization` rules like this:
+ *
+ * ```typescript
+ * [
+ *  allow.public(),
+ *  allow.owner().inField('otherfield'),
+ *  allow.multipleOwners().inField('editors')
+ * ]
+ * ```
+ *
+ * Into an object type that includes all auth fields like this:
+ *
+ * ```typescript
+ * {
+ *  owner?: string | undefined;
+ *  otherfield?: string | undefined;
+ *  editors?: string[] | undefined;
+ * }
+ * ```
+ */
 export type ImpliedAuthFields<T extends Authorization<any, any>> =
   UnionToIntersection<ImpliedAuthField<T>>;
-
-// function compilerules<T extends Authorization<any, any>>(
-//   rules: T[]
-// ): ImpliedAuthFields<T> {
-//   return {} as any;
-// }
-
-// // works ... i think.
-// const x = compilerules(rules);
-
-// // type NormalizedOwnerField<T extends Authorization> =
-// //   T[typeof __data]['groupOrOwnerField'] extends string
-// //     ? T[typeof __data]['groupOrOwnerField']
-// //     : 'owner';
-
-// // type Test = AuthFieldType<(typeof x)[1]>;
-
-// // type AuthFields<T extends Array<Authorization<any, any>>> = {
-// //   [K in T[number]]: AuthFieldType<T[number]>
-// // };
-
-// // type T = AuthFields<typeof x>;

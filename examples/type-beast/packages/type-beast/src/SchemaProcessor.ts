@@ -1,18 +1,43 @@
-// @ts-nocheck
 import type { AmplifyApiSchemaPreprocessorOutput } from '@aws-amplify/graphql-construct-alpha';
 import type { ModelSchema, ModelSchemaParamShape } from './ModelSchema';
-import type { InternalField } from './ModelField';
+import type { ModelField, InternalField } from './ModelField';
 import type { InternalRelationalField } from './ModelRelationalField';
-import type { ModelType } from './ModelType';
-import type { Prettify } from './util';
+import type { ModelType, InternalModel } from './ModelType';
 import { fields } from './ModelField';
-import { __data } from './authorization';
+import { Authorization, __data } from './Authorization';
 
 type ScalarFieldDef = Exclude<InternalField['data'], { fieldType: 'model' }>;
 type ModelFieldDef = Extract<
   InternalRelationalField['data'],
   { fieldType: 'model' }
 >;
+
+function isInternalModel(model: ModelType<any, any>): model is InternalModel {
+  if ((model as any).data) {
+    return true;
+  }
+  return false;
+}
+
+function isModelFieldDef(data: any): data is ModelFieldDef {
+  return data?.fieldType === 'model';
+}
+
+function isScalarFieldDef(data: any): data is ScalarFieldDef {
+  return data?.fieldType !== 'model';
+}
+
+function isModelField(
+  field: ModelField<any, any>
+): field is { data: ModelFieldDef } {
+  return isModelFieldDef((field as any).data);
+}
+
+function isScalarField(
+  field: ModelField<any, any>
+): field is { data: ScalarFieldDef } {
+  return isScalarFieldDef((field as any).data);
+}
 
 function scalarFieldToGql(fieldDef: ScalarFieldDef, identifier?: string[]) {
   const {
@@ -78,10 +103,9 @@ function modelFieldToGql(fieldDef: ModelFieldDef) {
   return field;
 }
 
-function calculateAuth(authorization) {
-  // const defaultAuth = '@auth(rules: [{allow: public}])';
-  const authFields = {};
-  const rules = [];
+function calculateAuth(authorization: Authorization<any, any>[]) {
+  const authFields: Record<string, ModelField<any, any>> = {};
+  const rules: string[] = [];
 
   for (const entry of authorization) {
     const rule = entry[__data];
@@ -156,26 +180,23 @@ export const schemaPreprocessor = <T extends ModelSchemaParamShape>(
   for (const [modelName, modelDef] of Object.entries(schema.data.models)) {
     const gqlFields: string[] = [];
 
-    // console.dir(modelDef, { depth: 100 });
+    if (!isInternalModel(modelDef)) continue;
 
     const fields = modelDef.data.fields;
     const identifier = modelDef.data.identifier;
     const [partitionKey] = identifier;
 
-    const { authString, authFields } = calculateAuth(
-      modelDef.data.authorization
-    );
-
-    // console.log({ authString, authFields });
+    const { authString, authFields } =
+      calculateAuth((modelDef as any).data.authorization) || {};
 
     // process model and fields
     for (const [fieldName, fieldDef] of Object.entries({
       ...authFields,
       ...fields,
     })) {
-      if (fieldDef.data.fieldType === 'model') {
+      if (isModelField(fieldDef)) {
         gqlFields.push(`${fieldName}: ${modelFieldToGql(fieldDef.data)}`);
-      } else {
+      } else if (isScalarField(fieldDef)) {
         if (fieldName === partitionKey) {
           gqlFields.push(
             `${fieldName}: ${scalarFieldToGql(fieldDef.data, identifier)}`
@@ -183,6 +204,8 @@ export const schemaPreprocessor = <T extends ModelSchemaParamShape>(
         } else {
           gqlFields.push(`${fieldName}: ${scalarFieldToGql(fieldDef.data)}`);
         }
+      } else {
+        throw new Error(`Unexpected field definition: ${fieldDef}`);
       }
     }
 

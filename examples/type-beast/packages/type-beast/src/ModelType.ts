@@ -3,7 +3,7 @@ import type {
   ModelRelationalField,
   InternalRelationalField,
 } from './ModelRelationalField';
-import { Authorization, ImpliedAuthFields } from './authorization';
+import { Authorization, ImpliedAuthFields } from './Authorization';
 import type { SetTypeSubArg } from './util';
 
 type ModelFields = Record<
@@ -124,23 +124,6 @@ type ConflictingAuthRulesMap<T extends ModelTypeParamShape> = {
  */
 type ConflictingAuthRules<T extends ModelTypeParamShape> =
   ConflictingAuthRulesMap<T>[keyof ConflictingAuthRulesMap<T>];
-
-const test = {
-  fields: {
-    title: fields.string(),
-    optionalField: fields.string().optional(),
-    otherfield: fields.string().array(),
-    numfield: fields.integer(),
-  },
-  identifier: [],
-  authorization: [],
-};
-type TT = ExtractType<typeof test>;
-type TESTA = ConflictingAuthRulesMap<typeof test>;
-type TESTB = ConflictingAuthRules<typeof test>;
-// Authorization<"title", true>
-// | Authorization<"otherfield", false>
-// | Authorization<"numfield", true> | Authorization<"numfield", false>
 
 export type ModelType<
   T extends ModelTypeParamShape,

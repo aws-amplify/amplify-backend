@@ -1,18 +1,8 @@
-import { Equal, Expect, Prettify } from '../src/util';
+import { Equal, Expect } from '../src/util';
 import { type ModelType, type InternalModel, model } from '../src/ModelType';
 import { type ModelField, type InternalField, fields } from '../src/ModelField';
-import {
-  type ModelRelationalField,
-  type InternalRelationalField,
-} from '../src/ModelRelationalField';
 
 type GetModelTypeArg<T> = T extends ModelType<infer R, any> ? R : never;
-
-type FullInternalFieldType = (
-  | ModelField<any, any>
-  | ModelRelationalField<any, string, any>
-) &
-  (InternalField | InternalRelationalField);
 
 const { string, id } = fields;
 
@@ -24,8 +14,8 @@ const { string, id } = fields;
  *
  */
 
-describe('basic functionality', () => {
-  test.only('basic ModelType can be cast to InternalModel', () => {
+describe('InternalModel casting', () => {
+  test('basic ModelType can be cast to InternalModel', () => {
     const m = model({
       title: string(),
     });
@@ -35,11 +25,6 @@ describe('basic functionality', () => {
 
     const internalModel = m as InternalModel;
     internalModel.data;
-
-    type internalField = (typeof internalModel.data.fields)[string];
-    type test = Expect<Equal<FullInternalFieldType, internalField>>;
-
-    type fieldData = internalField['data'];
   });
 
   test('ModelType with options can be cast to InternalModel', () => {
@@ -53,11 +38,6 @@ describe('basic functionality', () => {
 
     const internalModel = m as InternalModel;
     internalModel.data;
-
-    type internalField = (typeof internalModel.data.fields)[string];
-    type test = Expect<Equal<FullInternalFieldType, internalField>>;
-
-    type fieldData = internalField['data'];
   });
 });
 

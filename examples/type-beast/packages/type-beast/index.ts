@@ -1,4 +1,4 @@
-import type { ClientSchema } from './src/ModelSchema';
+import type { ClientSchema } from './src/ClientSchema';
 import { schema, defineData } from './src/ModelSchema';
 import { model } from './src/ModelType';
 import { fields } from './src/ModelField';
@@ -9,7 +9,7 @@ import {
   belongsTo,
   manyToMany,
 } from './src/ModelRelationalField';
-import { allow, __data } from './src/authorization';
+import { allow, __data } from './src/Authorization';
 
 const a = {
   schema,

@@ -4,12 +4,9 @@ import { schemaPreprocessor } from '../src/SchemaProcessor';
 import {
   PublicProviders,
   PrivateProviders,
-  GroupProvider,
-  OwnerProviders,
-  CustomProvider,
   Operations,
   Operation,
-} from '../src/authorization';
+} from '../src/Authorization';
 
 // evaluates type defs in corresponding test-d.ts file
 it('should not produce static type errors', async () => {

@@ -1,5 +1,4 @@
 import { Prettify, SetTypeSubArg } from './util';
-// import type { TempAuthParam } from './authorization';
 
 export enum ModelRelationshipTypes {
   hasOne = 'hasOne',

@@ -1,63 +1,39 @@
-import { default as a, defineData } from '../index';
-
-import type { ModelSchema } from '../src/ModelSchema';
-import { type ModelType } from '../src/ModelType';
-import type { ModelField, InternalField } from '../src/ModelField';
+import type { ImpliedAuthFields } from './Authorization';
+import type { Prettify, UnionToIntersection, ExcludeEmpty } from './util';
+import type { ModelField } from './ModelField';
 import type {
   ModelRelationalField,
   ModelRelationalFieldParamShape,
-} from '../src/ModelRelationalField';
-import type { Prettify, UnionToIntersection, ExcludeEmpty } from '../src/util';
+} from './ModelRelationalField';
+import type { ModelType } from './ModelType';
+import type { ModelSchema } from './ModelSchema';
 import { __modelMeta__ } from '@aws-amplify/types-package-alpha';
 
-const schema = a.schema({
-  Blog: a
-    .model({
-      id: a.id(),
-      title: a.string(),
-      posts: a.hasMany('Post'),
-    })
-    .identifier(['id']),
-  Post: a
-    .model({
-      id: a.id(),
-      title: a.string(),
-      viewCount: a.integer().optional(),
-      comments: a.hasMany('Comment'),
-    })
-    .identifier(['id']),
-  Comment: a.model({
-    id: a.id(),
-    bingo: a.string(),
-    anotherField: a.string().optional(),
-    subComments: a.hasMany('SubComment'),
-  }),
-  SubComment: a.model({
-    id: a.id(),
-    bingo: a.string(),
-    anotherField: a.string().optional(),
-    subSubComments: a.hasMany('SubSubComment'),
-  }),
-  SubSubComment: a.model({
-    id: a.id(),
-    bingo: a.string(),
-    anotherField: a.string().optional(),
-  }),
-});
-
-type TSchema = typeof schema;
-export type Schema = ClientSchema<TSchema>;
-
-type MMeta = Schema[typeof __modelMeta__];
-
-type ClientSchema<
+/**
+ * Types for unwrapping generic type args into client-consumable types
+ *
+ * @typeParam Schema - Type Beast schema type
+ *
+ * The following params are used solely as variables in order to simplify mapped type usage.
+ * They should not receive external type args.
+ *
+ * @typeParam Fields - flattened Schema/Models/Fields structure with field type params extracted
+ * @typeParam FieldsWithRelationships - Fields + resolved relational fields
+ * @typeParam ResolvedFields - optionality enforced on nullable types (+?); These are the client-facing types used for CRUDL response shapes
+ *
+ * @typeParam Meta - Stores schema metadata: identifier, relationship metadata;
+ * used by `API.generateClient` to craft strongly typed mutation inputs; hidden from customer-facing types behind __modelMeta__ symbol
+ *
+ */
+export type ClientSchema<
   Schema extends ModelSchema<any>,
   // Todo: rename Fields to FlattenedSchema
   Fields = FieldTypes<ModelTypes<SchemaTypes<Schema>>>,
   FieldsWithRelationships = ResolveRelationships<Fields>,
   ResolvedFields = Intersection<
     FilterFieldTypes<RequiredFieldTypes<FieldsWithRelationships>>,
-    FilterFieldTypes<OptionalFieldTypes<FieldsWithRelationships>>
+    FilterFieldTypes<OptionalFieldTypes<FieldsWithRelationships>>,
+    FilterFieldTypes<ModelImpliedAuthFields<Schema>>
   >,
   Meta = ModelMeta<SchemaTypes<Schema>> &
     ExtractRelationalMetadata<Fields, ResolvedFields>
@@ -111,6 +87,15 @@ type ModelMeta<T> = {
     : never;
 };
 
+type ModelImpliedAuthFields<Schema extends ModelSchema<any>> = {
+  [ModelKey in keyof Schema['data']['models']]: Schema['data']['models'][ModelKey] extends ModelType<
+    infer A,
+    any
+  >
+    ? ImpliedAuthFields<A['authorization'][number]>
+    : never;
+};
+
 /**
  * infer and massage field types
  */
@@ -157,9 +142,6 @@ type ResolveRelationships<Schema> = {
   };
 };
 
-type FFields = Prettify<FieldTypes<ModelTypes<SchemaTypes<TSchema>>>>;
-type FieldsWithRelationships = Prettify<ResolveRelationships<FFields>>;
-
 type FieldTypes<T> = {
   [ModelProp in keyof T]: {
     [FieldProp in keyof T[ModelProp]]: T[ModelProp][FieldProp] extends ModelRelationalField<
@@ -198,6 +180,6 @@ type RequiredFieldTypes<Schema> = {
   };
 };
 
-type Intersection<A, B> = A & B extends infer U
+type Intersection<A, B, C> = A & B & C extends infer U
   ? { [P in keyof U]: U[P] }
   : never;
