@@ -1,5 +1,5 @@
 ---
-'@aws-amplify/backend-cli': patch
+'@aws-amplify/backend-deployer': patch
 ---
 
 Improve known error messages
