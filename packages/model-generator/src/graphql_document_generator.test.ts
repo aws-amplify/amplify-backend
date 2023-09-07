@@ -13,24 +13,44 @@ describe('client generator', () => {
       async () => '',
       async () => {
         return;
-      },
-      'ts'
+      }
     );
-    await assert.rejects(generator.generateModels);
+    await assert.rejects(() =>
+      generator.generateModels({ language: 'typescript', outDir: './' })
+    );
+  });
+  it(`Writes to the provided output directory`, async () => {
+    const writer =
+      mock.fn<
+        (outDir: string, fileName: string, content: string) => Promise<void>
+      >();
+    const generator = new AppSyncGraphqlClientGenerator(
+      async () => appsyncGraphql,
+      (language, statements) =>
+        new GraphQLStatementsFormatter().format(statements),
+      writer
+    );
+    const outDir = './a-fake-out-directory';
+    await generator.generateModels({ language: 'typescript', outDir });
+    ops.forEach((op, i) => {
+      assert.equal(writer.mock.calls[i].arguments[0], outDir);
+    });
   });
   languages.forEach(([language, extension]) => {
     it(`writes ${language} files with the ${extension} extension`, async () => {
       const writer =
-        mock.fn<(fileName: string, content: string) => Promise<void>>();
+        mock.fn<
+          (outDir: string, fileName: string, content: string) => Promise<void>
+        >();
       const generator = new AppSyncGraphqlClientGenerator(
         async () => appsyncGraphql,
-        new GraphQLStatementsFormatter().format,
-        writer,
-        'ts'
+        (language, statements) =>
+          new GraphQLStatementsFormatter().format(statements),
+        writer
       );
-      await generator.generateModels();
+      await generator.generateModels({ language: 'typescript', outDir: './' });
       ops.forEach((op, i) => {
-        assert.equal(writer.mock.calls[i].arguments[0], `${op}.${extension}`);
+        assert.equal(writer.mock.calls[i].arguments[1], `${op}.${extension}`);
       });
     });
   });

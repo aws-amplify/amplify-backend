@@ -1,15 +1,11 @@
 import assert from 'node:assert';
 import { describe, it } from 'node:test';
-import { ModelGeneratorParameters, createModelGenerator } from './factories.js';
+import { createGraphqlModelGenerator } from './factories.js';
 
 describe('model generator factory', () => {
-  it('throws an error if an unsupported model type is passed as a parameter', async () => {
+  it('throws an error if a null apiId is passed in', async () => {
     assert.throws(() =>
-      createModelGenerator('_unsupported' as keyof ModelGeneratorParameters, {
-        apiId: '',
-        language: 'typescript',
-        outDir: '',
-      })
+      createGraphqlModelGenerator({ apiId: null as unknown as string })
     );
   });
 });
