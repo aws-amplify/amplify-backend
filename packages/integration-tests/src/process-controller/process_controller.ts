@@ -1,7 +1,7 @@
 import { Options, execa } from 'execa';
 import readline from 'readline';
-import { CONTROL_C } from './controller_action_macros.js';
-import { ControllerActionQueueBuilder } from './controller_action_queue_builder.js';
+import { CONTROL_C } from './stdio_interaction_macros.js';
+import { StdioInteractionQueueBuilder } from './stdio_interaction_queue_builder.js';
 
 /**
  * Provides an abstractions for sending and receiving data on stdin/out of a child process
@@ -17,8 +17,8 @@ import { ControllerActionQueueBuilder } from './controller_action_queue_builder.
  * then send "yes" on stdin of the process
  */
 export class ProcessController {
-  private readonly actions: ControllerActionQueueBuilder =
-    new ControllerActionQueueBuilder();
+  private readonly interactions: StdioInteractionQueueBuilder =
+    new StdioInteractionQueueBuilder();
   /**
    * Initialize a process controller for the specified command and args.
    *
@@ -32,8 +32,8 @@ export class ProcessController {
     private readonly options?: Pick<Options, 'cwd'>
   ) {}
 
-  do = (actions: ControllerActionQueueBuilder) => {
-    this.actions.append(actions);
+  do = (interactions: StdioInteractionQueueBuilder) => {
+    this.interactions.append(interactions);
     return this;
   };
 
@@ -41,7 +41,7 @@ export class ProcessController {
    * Execute the sequence of actions queued on the process
    */
   run = async () => {
-    const actionQueue = this.actions.getLineActionQueue();
+    const interactionQueue = this.interactions.getStdioInteractionQueue();
     const execaProcess = execa(this.command, this.args, this.options);
 
     if (process.stdout) {
@@ -54,21 +54,21 @@ export class ProcessController {
     const reader = readline.createInterface(execaProcess.stdout);
 
     for await (const line of reader) {
-      const currentAction = actionQueue[0];
-      if (!currentAction?.predicate(line)) {
+      const currentInteraction = interactionQueue[0];
+      if (!currentInteraction?.predicate(line)) {
         continue;
       }
       // if we got here, the line matched the predicate
       // now we need to send the payload of the action (if any)
-      if (typeof currentAction.thenSend === 'string') {
-        if (currentAction.thenSend === CONTROL_C) {
+      if (typeof currentInteraction.payload === 'string') {
+        if (currentInteraction.payload === CONTROL_C) {
           execaProcess.kill('SIGINT');
         } else {
-          execaProcess.stdin?.write(currentAction.thenSend);
+          execaProcess.stdin?.write(currentInteraction.payload);
         }
       }
       // advance the queue
-      actionQueue.shift();
+      interactionQueue.shift();
     }
 
     await execaProcess;

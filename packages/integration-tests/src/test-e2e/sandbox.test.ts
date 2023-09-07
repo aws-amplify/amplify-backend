@@ -8,7 +8,7 @@ import {
   interruptSandbox,
   rejectCleanupSandbox,
   waitForSandboxDeployment,
-} from '../process-controller/controller_action_macros.js';
+} from '../process-controller/stdio_interaction_macros.js';
 import { createEmptyAmplifyProject } from '../create_empty_amplify_project.js';
 import {
   createTestDirectoryBeforeAndCleanupAfter,

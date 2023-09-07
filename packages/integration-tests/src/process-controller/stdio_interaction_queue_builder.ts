@@ -1,18 +1,18 @@
-import { ControllerAction } from './controller_action.js';
+import { StdioInteraction } from './stdio_interaction.js';
 import os from 'os';
-import { CONTROL_C } from './controller_action_macros.js';
+import { CONTROL_C } from './stdio_interaction_macros.js';
 
 /**
  * Builder for a queue of LineActions
  */
-export class ControllerActionQueueBuilder {
-  private readonly controllerActionQueue: ControllerAction[] = [];
+export class StdioInteractionQueueBuilder {
+  private readonly stdioInteractionQueue: StdioInteraction[] = [];
 
   /**
    * Append the action queue from another builder to this builder
    */
-  append = (builder: ControllerActionQueueBuilder) => {
-    this.controllerActionQueue.push(...builder.getLineActionQueue());
+  append = (builder: StdioInteractionQueueBuilder) => {
+    this.stdioInteractionQueue.push(...builder.getStdioInteractionQueue());
     return this;
   };
 
@@ -20,7 +20,7 @@ export class ControllerActionQueueBuilder {
    * Add a new action to the queue to wait for a line that includes str
    */
   waitForLineIncludes = (str: string) => {
-    this.controllerActionQueue.push({
+    this.stdioInteractionQueue.push({
       predicate: (line) => line.includes(str),
     });
     return this;
@@ -30,18 +30,18 @@ export class ControllerActionQueueBuilder {
    * Send str with no newline
    */
   send = (str: string) => {
-    if (this.controllerActionQueue.length === 0) {
+    if (this.stdioInteractionQueue.length === 0) {
       throw new Error('Must wait for a line before sending');
     }
     // this assertion is safe because we checked the length above
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const lastAction = this.controllerActionQueue.at(-1)!;
-    if (typeof lastAction.thenSend === 'string') {
+    const lastInteraction = this.stdioInteractionQueue.at(-1)!;
+    if (typeof lastInteraction.payload === 'string') {
       throw new Error(
         'A string to send is already registered to the last action in the queue. Add a new action to the queue.'
       );
     }
-    lastAction.thenSend = str;
+    lastInteraction.payload = str;
     return this;
   };
 
@@ -80,7 +80,7 @@ export class ControllerActionQueueBuilder {
   /**
    * Get the currently queued actions
    */
-  getLineActionQueue = (): ControllerAction[] => {
-    return this.controllerActionQueue;
+  getStdioInteractionQueue = (): StdioInteraction[] => {
+    return this.stdioInteractionQueue;
   };
 }
