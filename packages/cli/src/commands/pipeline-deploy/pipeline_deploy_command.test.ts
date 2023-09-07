@@ -20,6 +20,7 @@ const getCommandRunner = (isCI = false) => {
   const parser = yargs().command(deployCommand);
   return new TestCommandRunner(parser);
 };
+
 describe('deploy command', () => {
   it('fails if required arguments are not supplied', async () => {
     await assert.rejects(
