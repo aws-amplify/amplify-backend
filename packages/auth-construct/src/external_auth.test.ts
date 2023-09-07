@@ -2,6 +2,7 @@ import { describe, it } from 'node:test';
 import { AmplifyAuth } from './construct.js';
 import { App, SecretValue, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
+import { UserPoolIdentityProviderSamlMetadataType } from 'aws-cdk-lib/aws-cognito';
 const googleClientId = 'googleClientId';
 const googleClientSecret = 'googleClientSecret';
 const amazonClientId = 'amazonClientId';
@@ -64,6 +65,16 @@ const ExpectedOidcIDPProperties = {
   },
   ProviderName: oidcProviderName,
   ProviderType: 'OIDC',
+};
+const samlProviderName = 'samlProviderName';
+const samlMetadataContent = '<?xml version=".10"?>';
+const ExpectedSAMLIDPProperties = {
+  ProviderDetails: {
+    IDPSignout: false,
+    MetadataFile: samlMetadataContent,
+  },
+  ProviderName: samlProviderName,
+  ProviderType: 'SAML',
 };
 describe('Auth external login', () => {
   it('supports google idp and email', () => {
@@ -354,6 +365,61 @@ describe('Auth external login', () => {
       ExpectedOidcIDPProperties
     );
   });
+  it('supports saml and email', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    new AmplifyAuth(stack, 'test', {
+      loginWith: {
+        email: true,
+        externalAuthProviders: {
+          saml: {
+            name: samlProviderName,
+            metadata: {
+              metadataContent: samlMetadataContent,
+              metadataType: UserPoolIdentityProviderSamlMetadataType.FILE,
+            },
+          },
+        },
+      },
+    });
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      UsernameAttributes: ['email'],
+      AutoVerifiedAttributes: ['email'],
+    });
+    template.hasResourceProperties(
+      'AWS::Cognito::UserPoolIdentityProvider',
+      ExpectedSAMLIDPProperties
+    );
+  });
+  it('supports saml and phone', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    new AmplifyAuth(stack, 'test', {
+      loginWith: {
+        phoneNumber: true,
+        externalAuthProviders: {
+          saml: {
+            name: samlProviderName,
+            metadata: {
+              metadataContent: samlMetadataContent,
+              metadataType: UserPoolIdentityProviderSamlMetadataType.FILE,
+            },
+          },
+        },
+      },
+    });
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      UsernameAttributes: ['phone_number'],
+      AutoVerifiedAttributes: ['phone_number'],
+    });
+    template.hasResourceProperties(
+      'AWS::Cognito::UserPoolIdentityProvider',
+      ExpectedSAMLIDPProperties
+    );
+  });
+
   it('supports all idps and login methods', () => {
     const app = new App();
     const stack = new Stack(app);
@@ -386,6 +452,13 @@ describe('Auth external login', () => {
             issuerUrl: oidcIssuerUrl,
             name: oidcProviderName,
           },
+          saml: {
+            name: samlProviderName,
+            metadata: {
+              metadataContent: samlMetadataContent,
+              metadataType: UserPoolIdentityProviderSamlMetadataType.FILE,
+            },
+          },
         },
       },
     });
@@ -413,6 +486,10 @@ describe('Auth external login', () => {
     template.hasResourceProperties(
       'AWS::Cognito::UserPoolIdentityProvider',
       ExpectedOidcIDPProperties
+    );
+    template.hasResourceProperties(
+      'AWS::Cognito::UserPoolIdentityProvider',
+      ExpectedSAMLIDPProperties
     );
     template.hasResourceProperties('AWS::Cognito::IdentityPool', {
       SupportedLoginProviders: {

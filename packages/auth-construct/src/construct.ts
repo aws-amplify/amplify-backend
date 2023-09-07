@@ -179,6 +179,13 @@ export class AmplifyAuth
         }`,
       ];
     }
+    if (providerSetupResult.saml) {
+      identityPool.samlProviderArns = [
+        `arn:${region}:iam::${Stack.of(this).account}:saml-provider/${
+          providerSetupResult.saml.providerName
+        }`,
+      ];
+    }
     return {
       identityPool,
       identityPoolRoleAttachment,
