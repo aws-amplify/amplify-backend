@@ -139,7 +139,7 @@ export class CDKDeployer implements BackendDeployer {
   executeChildProcess = async (command: string, cdkCommandArgs: string[]) => {
     // We let the stdout and stdin inherit and streamed to parent process but pipe
     // the stderr and use it to throw on failure. This is to prevent actual
-    // actionable errors being hidden amongst the stdout. Moreover execa errors are
+    // actionable errors being hidden among the stdout. Moreover execa errors are
     // useless when calling CLIs unless you made execa calling error.
     let aggregatedStderr = '';
     const aggregatorStream = new stream.Writable();

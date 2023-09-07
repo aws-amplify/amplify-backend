@@ -1,9 +1,9 @@
 import { Construct } from 'constructs';
 import { aws_sqs as sqs } from 'aws-cdk-lib';
 
-export interface ConstructCognitoProps {
+export type ConstructCognitoProps = {
   includeQueue?: boolean;
-}
+};
 
 /**
  * Hello world construct implementation
