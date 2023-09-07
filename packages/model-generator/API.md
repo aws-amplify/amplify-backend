@@ -5,9 +5,16 @@
 ```ts
 
 // @public
-export const createModelGenerator: <T extends "graphql">(modelType: T, params: ModelGeneratorParameters[T]) => GraphqlModelGenerator;
+export const createGraphqlModelGenerator: ({ apiId, }: GraphqlGeneratorFactoryParams) => GraphqlModelGenerator;
 
 // @public (undocumented)
+export interface GraphqlGeneratorFactoryParams {
+    // (undocumented)
+    apiId: string;
+}
+
+// @public (undocumented)
+<<<<<<< HEAD
 export type GraphqlModelGenerator = {
     generateModels: () => Promise<void>;
 };
@@ -19,6 +26,17 @@ export type ModelGeneratorParameters = {
         language: TargetLanguage;
         apiId: string;
     };
+=======
+export interface GraphqlModelGenerator {
+    // (undocumented)
+    generateModels: (params: ModelGenerationParameters) => Promise<void>;
+}
+
+// @public (undocumented)
+export type ModelGenerationParameters = {
+    language: TargetLanguage;
+    outDir: string;
+>>>>>>> add-model-gen
 };
 
 // @public (undocumented)

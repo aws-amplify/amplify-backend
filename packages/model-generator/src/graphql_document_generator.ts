@@ -1,21 +1,39 @@
 import { generateGraphQLDocuments } from '@aws-amplify/graphql-docs-generator';
-import { GraphqlModelGenerator } from './model_generator.js';
+import {
+  DocumentGenerationParameters,
+  GraphqlDocumentGenerator,
+  TargetLanguage,
+} from './model_generator.js';
 
 export type Statements = Map<string, string>;
 /**
  * Generates GraphQL documents for a given AppSync API
  */
-export class AppSyncGraphqlClientGenerator implements GraphqlModelGenerator {
+export class AppSyncGraphqlDocumentGenerator
+  implements GraphqlDocumentGenerator
+{
   /**
-   * Configures the GraphQLClientGenerator
+   * Configures the AppSyncGraphqlDocumentGenerator
    */
   constructor(
     private fetchSchema: () => Promise<string>,
-    private format: (statements: Statements) => Promise<string>,
-    private writeFile: (fileName: string, content: string) => Promise<void>,
-    private extension: string
+    private format: (
+      language: TargetLanguage,
+      statements: Statements
+    ) => Promise<string>,
+    private writeFile: (
+      outDir: string,
+      fileName: string,
+      content: string
+    ) => Promise<void>
   ) {}
-  generateModels = async () => {
+  private static languageExtensions: Record<TargetLanguage, string> = {
+    typescript: 'ts',
+  };
+  generateModels = async ({
+    language,
+    outDir,
+  }: DocumentGenerationParameters) => {
     const schema = await this.fetchSchema();
 
     if (!schema) {
@@ -36,8 +54,12 @@ export class AppSyncGraphqlClientGenerator implements GraphqlModelGenerator {
     await Promise.all(
       clientOps.map(async (op) => {
         const ops = generatedStatements[op];
-        const content = await this.format(ops as Map<string, string>);
-        await this.writeFile(`${op}.${this.extension}`, content);
+        const content = await this.format(language, ops as Map<string, string>);
+        await this.writeFile(
+          outDir,
+          `${op}.${AppSyncGraphqlDocumentGenerator.languageExtensions[language]}`,
+          content
+        );
       })
     );
   };
