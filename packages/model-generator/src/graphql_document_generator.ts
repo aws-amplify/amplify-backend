@@ -43,6 +43,7 @@ export class AppSyncGraphqlDocumentGenerator
     const generatedStatements = generateGraphQLDocuments(schema, {
       maxDepth: 3,
       typenameIntrospection: true,
+      includeMetaData: true,
     });
 
     const clientOps: Array<keyof typeof generatedStatements> = [

@@ -11,9 +11,13 @@ import {
   Divider,
   TextField,
 } from '@aws-amplify/ui-react';
+import { GraphQLQuery } from '@aws-amplify/api';
 import { BiTrash } from 'react-icons/bi';
 import { Todo } from '../../models';
 import style from './style';
+import { listTodos } from '../../graphql/queries';
+import { API } from 'aws-amplify';
+import { deleteTodo } from '../../graphql/mutations';
 
 const initialState = { name: '', description: '' };
 
@@ -26,8 +30,14 @@ function TodoView() {
 
   const fetchTodos = async () => {
     try {
-      const todos = await DataStore.query(Todo);
-      setTodos(todos);
+      const {
+        data: {
+          listTodos: { items },
+        },
+      } = await API.graphql<GraphQLQuery<any>>({
+        query: listTodos,
+      });
+      setTodos(items);
     } catch (error) {
       console.log('error fetching todos:', error);
     }
@@ -51,10 +61,7 @@ function TodoView() {
 
   const removeTodo = async (id: string) => {
     try {
-      const toDelete = await DataStore.query(Todo, id);
-      if (toDelete) {
-        await DataStore.delete(toDelete);
-      }
+      await API.graphql({ query: deleteTodo, variables: { input: { id } } });
       fetchTodos();
     } catch (error) {
       console.log('error removing todo:', error);
