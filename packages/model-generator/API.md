@@ -8,20 +8,18 @@
 export const createModelGenerator: <T extends "graphql">(modelType: T, params: ModelGeneratorParameters[T]) => GraphqlModelGenerator;
 
 // @public (undocumented)
-export interface GraphqlModelGenerator {
-    // (undocumented)
+export type GraphqlModelGenerator = {
     generateModels: () => Promise<void>;
-}
+};
 
 // @public (undocumented)
-export interface ModelGeneratorParameters {
-    // (undocumented)
+export type ModelGeneratorParameters = {
     graphql: {
         outDir: string;
         language: TargetLanguage;
         apiId: string;
     };
-}
+};
 
 // @public (undocumented)
 export type TargetLanguage = 'typescript';

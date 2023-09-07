@@ -14,29 +14,25 @@ export type FileContent = string;
 export type FileName = string;
 
 // @public (undocumented)
-export interface FormGenerationParams {
-    // (undocumented)
+export type FormGenerationParams = {
     graphql: {
         apiId: string;
         appId: string;
         introspectionSchemaUrl: string;
         environmentName?: string;
     };
-}
+};
 
 // @public
-export interface GraphqlFormGenerationResult {
-    // (undocumented)
-    components: Record<FileName, FileContent>;
-    // (undocumented)
+export type GraphqlFormGenerationResult = {
     writeToDirectory: (directoryName: string) => Promise<void>;
-}
+    components: Record<FileName, FileContent>;
+};
 
 // @public (undocumented)
-export interface GraphqlFormGenerator {
-    // (undocumented)
+export type GraphqlFormGenerator = {
     generateForms: () => Promise<GraphqlFormGenerationResult>;
-}
+};
 
 // (No @packageDocumentation comment for this package)
 
