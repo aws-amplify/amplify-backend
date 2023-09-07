@@ -17,11 +17,7 @@ const schema = a.schema({
       comments: a.hasMany('Comment'),
     })
     .identifier(['id'])
-    .authorization([
-      a.allow.public(),
-      a.allow.owner().inField('creatorOnly').to(['create']),
-      a.allow.multipleOwners().to(['update', 'read']).inField('editors'),
-    ]),
+    .authorization([a.allow.public()]),
   Comment: a.model({
     id: a.id(),
     bingo: a.string(),
