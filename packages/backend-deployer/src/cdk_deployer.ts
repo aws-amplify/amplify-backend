@@ -41,7 +41,7 @@ const knownErrors: Array<{ errorRegex: RegExp; humanReadableError: string }> = [
   {
     errorRegex: /ROLLBACK_(COMPLETE|FAILED)/,
     humanReadableError:
-      '[CloudformationFailure]: The CloudFormation deployment has failed. Find more information in the CloudFormation AWS Console for this stack.',
+      '[CloudFormationFailure]: The CloudFormation deployment has failed. Find more information in the CloudFormation AWS Console for this stack.',
   },
 ];
 
@@ -112,9 +112,9 @@ export class CDKDeployer implements BackendDeployer {
     if (uniqueBackendIdentifier) {
       cdkCommandArgs.push(
         '--context',
-        `backend-id=${uniqueBackendIdentifier.backendId}`,
+        `backend-id=${uniqueBackendIdentifier.backendId as string}`,
         '--context',
-        `branch-name=${uniqueBackendIdentifier.branchName}`
+        `branch-name=${uniqueBackendIdentifier.branchName as string}`
       );
     }
 
