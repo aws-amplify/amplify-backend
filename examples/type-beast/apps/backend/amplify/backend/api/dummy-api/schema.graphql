@@ -1,6 +1,7 @@
 type Post @model @auth(rules: [{allow: public}]) {
   id: ID! @primaryKey
   title: String!
+  summary: String
   viewCount: Int
   comments: [Comment] @hasMany
 }

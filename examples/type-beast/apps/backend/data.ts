@@ -16,8 +16,9 @@ const schema = a.schema({
       // a.allow.multipleOwners().to(['read']).inField('editors'),
       // a.allow.owner().inField('mainAuthor'),
       // woops. this should create an implied field.
-      a.allow.groupDefinedIn('somegroup'),
+      // a.allow.groupDefinedIn('somegroup'),
       // a.allow.owner(),
+      // a.allow.groupsDefinedIn('mygroups'),
     ]),
   Comment: a.model({
     id: a.id(),
