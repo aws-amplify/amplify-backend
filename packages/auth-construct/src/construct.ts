@@ -1,5 +1,5 @@
 import { Construct } from 'constructs';
-import { Stack, aws_cognito as cognito } from 'aws-cdk-lib';
+import { RemovalPolicy, Stack, aws_cognito as cognito } from 'aws-cdk-lib';
 import {
   AuthResources,
   BackendOutputStorageStrategy,
@@ -234,6 +234,7 @@ export class AmplifyAuth
         ...customAttributes,
       },
       selfSignUpEnabled: DEFAULTS.ALLOW_SELF_SIGN_UP,
+      removalPolicy: RemovalPolicy.DESTROY,
     };
     return userPoolProps;
   };
@@ -249,6 +250,7 @@ export class AmplifyAuth
       payload: {
         userPoolId: this.resources.userPool.userPoolId,
         webClientId: this.resources.userPoolClientWeb.userPoolClientId,
+        identityPoolId: this.resources.cfnResources.identityPool.ref,
         authRegion: Stack.of(this).region,
       },
     });

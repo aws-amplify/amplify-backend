@@ -8,6 +8,7 @@ import {
   BackendOutputStorageStrategy,
 } from '@aws-amplify/plugin-types';
 import {
+  CfnIdentityPool,
   UserPool,
   UserPoolClient,
   VerificationEmailStyle,
@@ -333,6 +334,9 @@ describe('Auth construct', () => {
       const expectedUserPoolId = (
         authConstruct.node.findChild('UserPool') as UserPool
       ).userPoolId;
+      const expectedIdentityPoolId = (
+        authConstruct.node.findChild('IdentityPool') as CfnIdentityPool
+      ).ref;
       const expectedWebClientId = (
         authConstruct.node.findChild('UserPoolWebClient') as UserPoolClient
       ).userPoolClientId;
@@ -350,6 +354,7 @@ describe('Auth construct', () => {
           payload: {
             userPoolId: expectedUserPoolId,
             webClientId: expectedWebClientId,
+            identityPoolId: expectedIdentityPoolId,
             authRegion: expectedRegion,
           },
         },
@@ -452,6 +457,18 @@ describe('Auth construct', () => {
         UserAttributeUpdateSettings: {
           AttributesRequireVerificationBeforeUpdate: ['email'],
         },
+      });
+    });
+
+    it('sets deletion policy to destroy on user pool', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test');
+      const template = Template.fromStack(stack);
+
+      template.hasResource('AWS::Cognito::UserPool', {
+        DeletionPolicy: 'Delete',
+        UpdateReplacePolicy: 'Delete',
       });
     });
 
