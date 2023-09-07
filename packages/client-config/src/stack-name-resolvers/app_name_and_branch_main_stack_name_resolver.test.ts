@@ -8,8 +8,8 @@ import assert from 'node:assert';
 
 describe('AppNameAndBranchMainStackNameResolver', () => {
   const amplifyClientMock = new AmplifyClient({ region: 'test-region' });
-  const amplifyClientSendMock = mock.fn();
-  mock.method(amplifyClientMock, 'send', amplifyClientSendMock);
+  const amplifyCLientSendMock = mock.fn();
+  mock.method(amplifyClientMock, 'send', amplifyCLientSendMock);
 
   const appNameAndBranch: AppNameAndBranchBackendIdentifier = {
     appName: 'testAppName',
@@ -17,7 +17,7 @@ describe('AppNameAndBranchMainStackNameResolver', () => {
   };
 
   beforeEach(() => {
-    amplifyClientSendMock.mock.resetCalls();
+    amplifyCLientSendMock.mock.resetCalls();
   });
   it('fails if no apps have specified name', async () => {
     const resolver = new AppNameAndBranchMainStackNameResolver(
@@ -29,7 +29,7 @@ describe('AppNameAndBranchMainStackNameResolver', () => {
     });
   });
   it('fails if multiple apps have specified name', async () => {
-    amplifyClientSendMock.mock.mockImplementation(() =>
+    amplifyCLientSendMock.mock.mockImplementation(() =>
       Promise.resolve({
         apps: [{ name: 'testAppName' }, { name: 'testAppName' }],
       })
@@ -44,7 +44,7 @@ describe('AppNameAndBranchMainStackNameResolver', () => {
     });
   });
   it('fails if matched app does not have appId', async () => {
-    amplifyClientSendMock.mock.mockImplementation(() =>
+    amplifyCLientSendMock.mock.mockImplementation(() =>
       Promise.resolve({
         apps: [
           { name: 'testAppName' },
@@ -62,7 +62,7 @@ describe('AppNameAndBranchMainStackNameResolver', () => {
     });
   });
   it('returns expected stack name', async () => {
-    amplifyClientSendMock.mock.mockImplementation(() =>
+    amplifyCLientSendMock.mock.mockImplementation(() =>
       Promise.resolve({
         apps: [{ name: 'testAppName', appId: 'testBackendId' }],
       })

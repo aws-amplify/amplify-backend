@@ -27,6 +27,8 @@
   },
   "homepage": "https://github.com/aws-amplify/cli#readme",
   "dependencies": {
+    "@aws-amplify/form-generator": "^0.1.0",
+    "@aws-amplify/model-generator": "^0.1.0",
     "@aws-sdk/credential-providers": "^3.360.0",
     "@inquirer/prompts": "^3.0.0",
     "execa": "^7.2.0",

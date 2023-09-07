@@ -24,3 +24,5 @@ yarn-error.log*
 
 cdk.out
 src/amplifyconfiguration.js
+
+src/graphql/
