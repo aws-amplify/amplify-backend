@@ -17,12 +17,16 @@
     "@aws-amplify/plugin-types": "0.1.0",
     "@aws-amplify/sandbox": "0.1.0",
     "@aws-amplify/storage-construct-alpha": "0.1.0",
-    "@aws-amplify/backend-deployer": "0.1.0"
+    "@aws-amplify/backend-deployer": "0.1.0",
+    "@aws-amplify/form-generator": "0.1.0",
+    "@aws-amplify/model-generator": "0.1.0"
   },
   "changesets": [
     "clever-rules-bow",
     "cool-ligers-drop",
+    "funny-apricots-type",
     "gold-drinks-give",
+    "happy-ants-repair",
     "honest-experts-allow",
     "lovely-hairs-shave",
     "many-dogs-impress",

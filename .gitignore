@@ -13,3 +13,4 @@ tsconfig.tsbuildinfo
 verdaccio-cache
 verdaccio-logs.txt
 cdk.out/
+e2e-tests
