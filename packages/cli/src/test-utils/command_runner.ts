@@ -72,12 +72,7 @@ export class TestCommandRunner {
     const interceptor = new OutputInterceptor();
     try {
       await asyncLocalStorage.run(interceptor, async () => {
-        // The parseAsync might be undefined if there's no async handler in any command.
-        if (typeof this.parser.parseAsync === 'function') {
-          await this.parser.parseAsync(args);
-        } else {
-          await this.parser.parse(args);
-        }
+        await this.parser.parseAsync(args);
       });
       return interceptor.getOutput();
     } catch (err) {
