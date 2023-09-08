@@ -162,6 +162,7 @@
           "passthrough",
           "pathname",
           "readdir",
+          "readline",
           "readonly",
           "repo",
           "resolvers",
