@@ -6,7 +6,6 @@ import theme from './theme';
 import SignOut from './components/signOut';
 import TodoCollection from './components/todos';
 import amplifyConfiguration from './amplifyconfiguration.js';
-import { TodoCreateForm } from './ui-components';
 
 Amplify.configure(amplifyConfiguration);
 
@@ -17,7 +16,6 @@ function App() {
         {({ signOut, user }) => (
           <View>
             <SignOut user={user} signOut={signOut} />
-            <TodoCreateForm />
             <TodoCollection />
           </View>
         )}

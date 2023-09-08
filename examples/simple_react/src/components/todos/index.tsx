@@ -18,6 +18,7 @@ import style from './style';
 import { listTodos } from '../../graphql/queries';
 import { API } from 'aws-amplify';
 import { deleteTodo } from '../../graphql/mutations';
+import { TodoCreateForm } from '../../ui-components';
 
 const initialState = { name: '', description: '' };
 
@@ -94,27 +95,7 @@ function TodoView() {
           </Card>
         )}
       </Collection>
-      <View style={style.form}>
-        <TextField
-          labelHidden
-          label="Name"
-          placeholder="Name"
-          style={style.form.textInput}
-          value={formState.name}
-          onChange={(event) => setInput('name', event.target.value)}
-        />
-        <TextField
-          labelHidden
-          label="Description"
-          placeholder="Description"
-          style={style.form.textInput}
-          value={formState.description}
-          onChange={(event) => setInput('description', event.target.value)}
-        />
-      </View>
-      <Button variation="primary" onClick={addTodo}>
-        Create Todo
-      </Button>
+      <TodoCreateForm />
     </Card>
   );
 }

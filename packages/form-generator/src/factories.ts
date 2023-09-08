@@ -28,7 +28,7 @@ export const createFormGenerator = <T extends keyof FormGenerationParams>(
         new CodegenJobHandler(
           new AmplifyUIBuilder({
             endpoint:
-              'https://wwrfb0vry9.execute-api.us-west-2.amazonaws.com/prod',
+              'https://vzpb1u46mk.execute-api.us-west-2.amazonaws.com/prod',
           })
         ),
         generationParams,
