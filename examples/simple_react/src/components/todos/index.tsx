@@ -95,7 +95,7 @@ function TodoView() {
           </Card>
         )}
       </Collection>
-      <TodoCreateForm />
+      <TodoCreateForm onSuccess={() => fetchTodos()} />
     </Card>
   );
 }
