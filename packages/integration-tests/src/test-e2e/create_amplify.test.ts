@@ -78,13 +78,16 @@ describe('create-amplify script', () => {
     // the --yes flag here is to bypass a npm prompt to install the create-amplify package, it's not a prompt we control
     const result = await execa('npm', ['create', 'amplify@alpha', '--yes'], {
       cwd: tempDir,
-      stdio: 'inherit',
+      stdio: 'pipe',
       reject: false,
     });
     assert.equal(result.exitCode, 1);
+    const resultStdout = result.stdout?.toLocaleString();
+    // eslint-disable-next-line no-console
+    console.log(`got stdout ${resultStdout}`);
     assert.ok(
       result.stdout
-        .toString()
+        .toLocaleString()
         .includes(
           'Either delete this file/directory or initialize the project in a different location'
         )
