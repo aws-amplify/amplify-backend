@@ -71,13 +71,13 @@ export class TestCommandRunner {
   runCommand = async (args: string | Array<string>): Promise<string> => {
     const interceptor = new OutputInterceptor();
     try {
-      const localParser = this.parser;
-      console.log("test1")
-      console.log(typeof localParser.parseAsync);
-      await asyncLocalStorage.run(interceptor, () => {
-        console.log("test2")
-        console.log(typeof localParser.parseAsync);
-        return localParser.parseAsync(args);
+      await asyncLocalStorage.run(interceptor, async () => {
+        // The parseAsync might be undefined if there's no async handler in any command.
+        if (typeof this.parser.parseAsync === 'function') {
+          await this.parser.parseAsync(args);
+        } else {
+          void this.parser.parse(args);
+        }
       });
       return interceptor.getOutput();
     } catch (err) {
