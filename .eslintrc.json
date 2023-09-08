@@ -107,6 +107,7 @@
     ],
     "no-console": "error",
     "no-duplicate-imports": "error",
+    "no-else-return": "error",
     "no-only-tests/no-only-tests": "error",
     "no-tabs": "error",
     "no-throw-literal": "error",
@@ -120,6 +121,35 @@
         "ignoreDeclarationSort": true
       }
     ],
+    "unicorn/filename-case": [
+      "error",
+      {
+        "cases": {
+          "snakeCase": true
+        }
+      }
+    ],
+    "no-restricted-syntax": [
+      "error",
+      "MethodDefinition[kind!=\"constructor\"]",
+      "FunctionDeclaration",
+      "VariableDeclarator > FunctionExpression"
+    ],
+    "jsdoc/require-description": "error",
+    "jsdoc/require-jsdoc": [
+      "error",
+      {
+        "publicOnly": true,
+        "require": {
+          "FunctionDeclaration": true,
+          "MethodDefinition": true,
+          "ClassDeclaration": true,
+          "ArrowFunctionExpression": true
+        }
+      }
+    ],
+    "jsdoc/require-param": "off",
+    "jsdoc/require-returns": "off",
     "spellcheck/spell-checker": [
       "warn",
       {
@@ -201,35 +231,6 @@
         ],
         "minLength": 4
       }
-    ],
-    "unicorn/filename-case": [
-      "error",
-      {
-        "cases": {
-          "snakeCase": true
-        }
-      }
-    ],
-    "no-restricted-syntax": [
-      "error",
-      "MethodDefinition[kind!=\"constructor\"]",
-      "FunctionDeclaration",
-      "VariableDeclarator > FunctionExpression"
-    ],
-    "jsdoc/require-description": "error",
-    "jsdoc/require-jsdoc": [
-      "error",
-      {
-        "publicOnly": true,
-        "require": {
-          "FunctionDeclaration": true,
-          "MethodDefinition": true,
-          "ClassDeclaration": true,
-          "ArrowFunctionExpression": true
-        }
-      }
-    ],
-    "jsdoc/require-param": "off",
-    "jsdoc/require-returns": "off"
+    ]
   }
 }

@@ -82,9 +82,8 @@ export class GenerateConfigCommand
         appName: await this.appNameResolver.resolve(),
         branchName: args.branch,
       };
-    } else {
-      throw this.missingArgsError;
     }
+    throw this.missingArgsError;
   };
 
   /**
