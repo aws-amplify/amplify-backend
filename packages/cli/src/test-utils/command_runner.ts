@@ -69,6 +69,17 @@ export class TestCommandRunner {
   runCommand = async (args: string | Array<string>): Promise<string> => {
     const interceptor = new OutputInterceptor();
     try {
+      // We are using AsyncLocalStorage and OutputInterceptor to capture stdout and stdin streams into memory
+      // instead of using parse/parseAsync with callback.
+      // The reasons are:
+      // - parse/parseAsync with callback leaves orphan promises that trigger unhandledRejection handler in tests
+      // - parse/parseAsync with callback have edge cases if command builder and handler methods are sync or async
+      //   see https://github.com/yargs/yargs/issues/1069
+      //   and https://github.com/yargs/yargs/blob/main/docs/api.md#parseargs-context-parsecallback
+      // - callback can only capture yargs logger outputs. it can't capture messages emitted from our code
+      //
+      // AsyncLocalStorage is used to make sure that we're capturing outputs only from the same asynchronous context
+      // in potentially concurrent environment.
       await asyncLocalStorage.run(interceptor, async () => {
         await this.parser.parseAsync(args);
       });
