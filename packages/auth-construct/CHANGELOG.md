@@ -1,5 +1,16 @@
 # @aws-amplify/auth-construct-alpha
 
+## 0.2.0-alpha.3
+
+### Patch Changes
+
+- b2b0c2d: force version bump
+- 395c8f0: Add identityPoolId to output, and set delete policy on user pool to delete.
+- Updated dependencies [b2b0c2d]
+- Updated dependencies [395c8f0]
+  - @aws-amplify/backend-output-schemas@0.1.1-alpha.1
+  - @aws-amplify/plugin-types@0.1.1-alpha.2
+
 ## 0.2.0-alpha.2
 
 ### Patch Changes
