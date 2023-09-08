@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/backend-output-schemas",
-  "version": "0.1.1-alpha.0",
+  "version": "0.1.1-alpha.1",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -37,7 +37,7 @@
     "update:api": "api-extractor run --local"
   },
   "devDependencies": {
-    "@aws-amplify/plugin-types": "0.1.1-alpha.1"
+    "@aws-amplify/plugin-types": "0.1.1-alpha.2"
   },
   "peerDependencies": {
     "zod": "^3.21.4"

@@ -1,5 +1,15 @@
 # @aws-amplify/backend-auth
 
+## 0.1.1-alpha.2
+
+### Patch Changes
+
+- b2b0c2d: force version bump
+- Updated dependencies [b2b0c2d]
+- Updated dependencies [395c8f0]
+  - @aws-amplify/auth-construct-alpha@0.2.0-alpha.3
+  - @aws-amplify/plugin-types@0.1.1-alpha.2
+
 ## 0.1.1-alpha.1
 
 ### Patch Changes
