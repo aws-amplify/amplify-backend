@@ -6,6 +6,7 @@
     "stackOutputs": [
      "userPoolId",
      "webClientId",
+     "identityPoolId",
      "authRegion"
     ]
    },
@@ -41,7 +42,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/40083de42d466c8de623e08c20b8776eab9925dbeee1ef382050bbab998e98b9.json"
+       "/3df038e7b7651fdc14c0416a0be0bf17a1a92d4e342120d8b0bd6d7f7a9ea091.json"
       ]
      ]
     }
@@ -68,7 +69,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/d30f87e63d0607c552c9561779fdd489870341f9da9aadcf3fabef85aaf96570.json"
+       "/a03c96ec8850490100abe49ec4f52a4a063b7f42eb9df40e10afe2342547d24a.json"
       ]
      ]
     },
@@ -114,6 +115,14 @@
     ]
    }
   },
+  "identityPoolId": {
+   "Value": {
+    "Fn::GetAtt": [
+     "auth179371D7",
+     "Outputs.amplifytestAppIdtestBranchNameauthamplifyAuthIdentityPool40350D66Ref"
+    ]
+   }
+  },
   "authRegion": {
    "Value": {
     "Ref": "AWS::Region"
@@ -152,7 +161,7 @@
       {
        "Fn::GetAtt": [
         "data7552DF31",
-        "Outputs.amplifytestAppIdtestBranchNamedataamplifyDataCodegenAssetsCodegenAssetsBucketC42FF1E2Ref"
+        "Outputs.amplifytestAppIdtestBranchNamedataamplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsBucket25324612Ref"
        ]
       },
       "/model-schema.graphql"

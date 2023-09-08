@@ -218,6 +218,11 @@
     "Ref": "amplifyAuthUserPoolWebClientA385E48A"
    }
   },
+  "amplifytestAppIdtestBranchNameauthamplifyAuthIdentityPool40350D66Ref": {
+   "Value": {
+    "Ref": "amplifyAuthIdentityPool3FDE84CC"
+   }
+  },
   "amplifytestAppIdtestBranchNameauthamplifyAuthauthenticatedUserRole1D3D95F1Ref": {
    "Value": {
     "Ref": "amplifyAuthauthenticatedUserRoleD8DA3689"
