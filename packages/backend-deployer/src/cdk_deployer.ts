@@ -6,6 +6,7 @@ import {
   DeployProps,
 } from './cdk_deployer_singleton_factory.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
+import { CdkErrorMapperFactory } from './cdk_error_mapper_singleton_factory.js';
 
 const relativeBackendEntryPoint = 'amplify/backend.ts';
 
@@ -25,7 +26,7 @@ export class CDKDeployer implements BackendDeployer {
    * Instantiates instance of CDKDeployer
    */
   constructor(
-    private readonly cdkErrorMapper: CdkErrorMapper = new CdkErrorMapper()
+    private readonly cdkErrorMapper: CdkErrorMapper = CdkErrorMapperFactory.getInstance()
   ) {}
   /**
    * Invokes cdk deploy command
