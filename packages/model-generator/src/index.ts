@@ -1,2 +1,2 @@
 export * from './model_generator.js';
-export * from './factories.js';
+export * from './create_graphql_document_generator.js';

@@ -168,6 +168,7 @@
           "pathname",
           "pipelined",
           "readdir",
+          "readline",
           "readonly",
           "repo",
           "resolvers",

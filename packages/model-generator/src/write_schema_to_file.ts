@@ -1,4 +1,4 @@
-import fs from 'fs';
+import fs from 'fs/promises';
 import path from 'path';
 
 /**
@@ -9,6 +9,6 @@ export const writeSchemaToFile = async (
   filePath: string,
   contents: string
 ) => {
-  fs.mkdirSync(basePath, { recursive: true });
-  fs.writeFileSync(path.resolve(path.join(basePath, filePath)), contents);
+  await fs.mkdir(basePath, { recursive: true });
+  await fs.writeFile(path.resolve(path.join(basePath, filePath)), contents);
 };
