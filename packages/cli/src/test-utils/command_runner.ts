@@ -72,7 +72,11 @@ export class TestCommandRunner {
     const interceptor = new OutputInterceptor();
     try {
       const localParser = this.parser;
+      console.log("test1")
+      console.log(typeof localParser.parseAsync);
       await asyncLocalStorage.run(interceptor, () => {
+        console.log("test2")
+        console.log(typeof localParser.parseAsync);
         return localParser.parseAsync(args);
       });
       return interceptor.getOutput();
