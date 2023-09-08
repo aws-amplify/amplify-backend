@@ -71,8 +71,9 @@ export class TestCommandRunner {
   runCommand = async (args: string | Array<string>): Promise<string> => {
     const interceptor = new OutputInterceptor();
     try {
+      const localParser = this.parser;
       await asyncLocalStorage.run(interceptor, () => {
-        return this.parser.parseAsync(args);
+        return localParser.parseAsync(args);
       });
       return interceptor.getOutput();
     } catch (err) {
