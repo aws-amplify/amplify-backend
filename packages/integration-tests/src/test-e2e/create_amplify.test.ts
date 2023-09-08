@@ -82,9 +82,6 @@ describe('create-amplify script', () => {
       reject: false,
     });
     assert.equal(result.exitCode, 1);
-    const resultStdout = result.stderr?.toLocaleString();
-    // eslint-disable-next-line no-console
-    console.log(`got stdout ${resultStdout}`);
     assert.ok(
       result.stderr
         .toLocaleString()
