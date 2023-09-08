@@ -1,4 +1,5 @@
 import { Brand } from './util';
+import { Authorization } from './Authorization';
 
 export enum ModelFieldType {
   Id = 'ID',
@@ -35,9 +36,9 @@ type FieldData = {
   array: boolean;
   arrayOptional: boolean;
   default: undefined | string;
+  authorization: Authorization<any, any>[];
 };
 
-// testing something TODO: remove
 type ModelFieldTypeParamInner = string | number | boolean | Date | null;
 type ModelFieldTypeParamOuter =
   | ModelFieldTypeParamInner
@@ -63,6 +64,9 @@ export type ModelField<
     // Exclude `optional` after calling array, because both the value and the array itself can be optional
     array(): ModelField<ToArray<T>, Exclude<K, 'optional'> | 'array'>;
     default(val: string): ModelField<T, K | 'default'>;
+    authorization<AuthRuleType extends Authorization<any, any>>(
+      rules: AuthRuleType[]
+    ): ModelField<T, K | 'authorization'>;
   },
   K
 >;
@@ -98,6 +102,7 @@ function _field<T extends ModelFieldTypeParamOuter>(fieldType: ModelFieldType) {
     array: false,
     arrayOptional: false,
     default: undefined,
+    authorization: [],
   };
 
   const builder: ModelField<T> = {
@@ -121,6 +126,12 @@ function _field<T extends ModelFieldTypeParamOuter>(fieldType: ModelFieldType) {
     default(val) {
       data.default = val;
       _meta.lastInvokedMethod = 'default';
+
+      return this;
+    },
+    authorization(rules) {
+      data.authorization = rules;
+      _meta.lastInvokedMethod = 'authorization';
 
       return this;
     },
