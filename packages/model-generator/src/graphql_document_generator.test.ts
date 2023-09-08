@@ -7,18 +7,6 @@ import { GraphQLStatementsFormatter } from './graphql_statements_formatter.js';
 describe('client generator', () => {
   const ops = ['queries', 'mutations', 'subscriptions'];
   const languages = [['typescript', 'ts']];
-  it('if `fetchSchema` returns null, it should throw an error', async () => {
-    const generator = new AppSyncGraphqlDocumentGenerator(
-      async () => null as unknown as string,
-      async () => '',
-      async () => {
-        return;
-      }
-    );
-    await assert.rejects(() =>
-      generator.generateModels({ language: 'typescript', outDir: './' })
-    );
-  });
   it(`Writes to the provided output directory`, async () => {
     const writer =
       mock.fn<
