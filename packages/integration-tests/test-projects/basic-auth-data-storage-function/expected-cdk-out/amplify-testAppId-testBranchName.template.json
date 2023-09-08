@@ -6,6 +6,7 @@
     "stackOutputs": [
      "userPoolId",
      "webClientId",
+     "identityPoolId",
      "authRegion"
     ]
    },
@@ -48,7 +49,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/40083de42d466c8de623e08c20b8776eab9925dbeee1ef382050bbab998e98b9.json"
+       "/3df038e7b7651fdc14c0416a0be0bf17a1a92d4e342120d8b0bd6d7f7a9ea091.json"
       ]
      ]
     }
@@ -172,6 +173,14 @@
     "Fn::GetAtt": [
      "auth179371D7",
      "Outputs.amplifytestAppIdtestBranchNameauthamplifyAuthUserPoolWebClientEFCFE2AFRef"
+    ]
+   }
+  },
+  "identityPoolId": {
+   "Value": {
+    "Fn::GetAtt": [
+     "auth179371D7",
+     "Outputs.amplifytestAppIdtestBranchNameauthamplifyAuthIdentityPool40350D66Ref"
     ]
    }
   },
