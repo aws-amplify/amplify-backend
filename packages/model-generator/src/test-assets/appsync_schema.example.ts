@@ -1,4 +1,3 @@
-/* eslint-disable spellcheck/spell-checker */
 export const schema = `
 schema {
   query: Query

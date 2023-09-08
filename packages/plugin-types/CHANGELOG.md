@@ -1,5 +1,11 @@
 # @aws-amplify/plugin-types
 
+## 0.1.1-alpha.2
+
+### Patch Changes
+
+- b2b0c2d: force version bump
+
 ## 0.1.1-alpha.1
 
 ### Patch Changes
