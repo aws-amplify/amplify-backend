@@ -1,9 +1,8 @@
 import * as prettier from 'prettier';
-import os from 'os';
 
 const CODEGEN_WARNING =
-  'This is an auto generated file. Edits will be overwritten.';
-const LINE_DELIMITOR = os.EOL;
+  'this is an auto generated file. This will be overwritten';
+const LINE_DELIMITOR = '\n';
 
 type Statements = Map<string, string>;
 /**
@@ -21,19 +20,21 @@ export class GraphQLStatementsFormatter {
     this.lintOverrides.push(
       ...['/* tslint:disable */', '/* eslint-disable */']
     );
-    return this.formatJS(statements);
+    return this.prettify(this.formatJS(statements));
   };
 
-  private formatJS = async (statements: Statements): Promise<string> => {
+  private formatJS = (statements: Statements): string => {
     const lintOverridesBuffer = this.lintOverrides.join(LINE_DELIMITOR);
     const headerBuffer = this.headerComments
       .map((comment) => `// ${comment}`)
       .join(LINE_DELIMITOR);
     const formattedStatements: string[] = [];
-    for (const [key, value] of statements) {
-      formattedStatements.push(
-        `export const ${key} = /* GraphQL */ \`${value}\``
-      );
+    if (statements) {
+      for (const [key, value] of statements) {
+        formattedStatements.push(
+          `export const ${key} = /* GraphQL */ \`${value}\``
+        );
+      }
     }
     const formattedOutput = [
       lintOverridesBuffer,
@@ -41,12 +42,16 @@ export class GraphQLStatementsFormatter {
       LINE_DELIMITOR,
       ...formattedStatements,
     ].join(LINE_DELIMITOR);
-    return prettier.format(formattedOutput, {
-      parser: GraphQLStatementsFormatter.parserMap.typescript,
-    });
+    return formattedOutput;
   };
 
   private static parserMap = {
     typescript: 'typescript',
+  };
+
+  private prettify = async (output: string): Promise<string> => {
+    return prettier.format(output, {
+      parser: GraphQLStatementsFormatter.parserMap.typescript,
+    });
   };
 }
