@@ -114,16 +114,12 @@
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete"
   },
-  "amplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsBucket9CCB4ACA": {
+  "amplifyDataCodegenAssetsCodegenAssetsBucketAB70C718": {
    "Type": "AWS::S3::Bucket",
    "Properties": {
     "Tags": [
      {
-      "Key": "aws-cdk:auto-delete-objects",
-      "Value": "true"
-     },
-     {
-      "Key": "aws-cdk:cr-owned:f4c59d78",
+      "Key": "aws-cdk:cr-owned:79a1de2f",
       "Value": "true"
      }
     ]
@@ -131,77 +127,7 @@
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete"
   },
-  "amplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsBucketPolicyF1C1C548": {
-   "Type": "AWS::S3::BucketPolicy",
-   "Properties": {
-    "Bucket": {
-     "Ref": "amplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsBucket9CCB4ACA"
-    },
-    "PolicyDocument": {
-     "Statement": [
-      {
-       "Action": [
-        "s3:GetBucket*",
-        "s3:List*",
-        "s3:DeleteObject*"
-       ],
-       "Effect": "Allow",
-       "Principal": {
-        "AWS": {
-         "Fn::GetAtt": [
-          "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092",
-          "Arn"
-         ]
-        }
-       },
-       "Resource": [
-        {
-         "Fn::GetAtt": [
-          "amplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsBucket9CCB4ACA",
-          "Arn"
-         ]
-        },
-        {
-         "Fn::Join": [
-          "",
-          [
-           {
-            "Fn::GetAtt": [
-             "amplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsBucket9CCB4ACA",
-             "Arn"
-            ]
-           },
-           "/*"
-          ]
-         ]
-        }
-       ]
-      }
-     ],
-     "Version": "2012-10-17"
-    }
-   }
-  },
-  "amplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsBucketAutoDeleteObjectsCustomResource437F26F5": {
-   "Type": "Custom::S3AutoDeleteObjects",
-   "Properties": {
-    "ServiceToken": {
-     "Fn::GetAtt": [
-      "CustomS3AutoDeleteObjectsCustomResourceProviderHandler9D90184F",
-      "Arn"
-     ]
-    },
-    "BucketName": {
-     "Ref": "amplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsBucket9CCB4ACA"
-    }
-   },
-   "DependsOn": [
-    "amplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsBucketPolicyF1C1C548"
-   ],
-   "UpdateReplacePolicy": "Delete",
-   "DeletionPolicy": "Delete"
-  },
-  "amplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsDeploymentAwsCliLayerE322F905": {
+  "amplifyDataCodegenAssetsCodegenAssetsDeploymentAwsCliLayer7FBEA1E7": {
    "Type": "AWS::Lambda::LayerVersion",
    "Properties": {
     "Content": {
@@ -213,7 +139,7 @@
     "Description": "/opt/awscli/aws"
    }
   },
-  "amplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsDeploymentCustomResource0311E157": {
+  "amplifyDataCodegenAssetsCodegenAssetsDeploymentCustomResource9D06C0C0": {
    "Type": "Custom::CDKBucketDeployment",
    "Properties": {
     "ServiceToken": {
@@ -234,70 +160,12 @@
      {}
     ],
     "DestinationBucketName": {
-     "Ref": "amplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsBucket9CCB4ACA"
+     "Ref": "amplifyDataCodegenAssetsCodegenAssetsBucketAB70C718"
     },
     "Prune": true
    },
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete"
-  },
-  "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092": {
-   "Type": "AWS::IAM::Role",
-   "Properties": {
-    "AssumeRolePolicyDocument": {
-     "Version": "2012-10-17",
-     "Statement": [
-      {
-       "Action": "sts:AssumeRole",
-       "Effect": "Allow",
-       "Principal": {
-        "Service": "lambda.amazonaws.com"
-       }
-      }
-     ]
-    },
-    "ManagedPolicyArns": [
-     {
-      "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
-     }
-    ]
-   }
-  },
-  "CustomS3AutoDeleteObjectsCustomResourceProviderHandler9D90184F": {
-   "Type": "AWS::Lambda::Function",
-   "Properties": {
-    "Code": {
-     "S3Bucket": {
-      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
-     },
-     "S3Key": "350185a1069fa20a23a583e20c77f6844218bd73097902362dc94f1a108f5d89.zip"
-    },
-    "Timeout": 900,
-    "MemorySize": 128,
-    "Handler": "__entrypoint__.handler",
-    "Role": {
-     "Fn::GetAtt": [
-      "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092",
-      "Arn"
-     ]
-    },
-    "Runtime": "nodejs16.x",
-    "Description": {
-     "Fn::Join": [
-      "",
-      [
-       "Lambda function for auto-deleting objects in ",
-       {
-        "Ref": "amplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsBucket9CCB4ACA"
-       },
-       " S3 bucket."
-      ]
-     ]
-    }
-   },
-   "DependsOn": [
-    "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092"
-   ]
   },
   "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265": {
    "Type": "AWS::IAM::Role",
@@ -393,7 +261,7 @@
        "Resource": [
         {
          "Fn::GetAtt": [
-          "amplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsBucket9CCB4ACA",
+          "amplifyDataCodegenAssetsCodegenAssetsBucketAB70C718",
           "Arn"
          ]
         },
@@ -403,7 +271,7 @@
           [
            {
             "Fn::GetAtt": [
-             "amplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsBucket9CCB4ACA",
+             "amplifyDataCodegenAssetsCodegenAssetsBucketAB70C718",
              "Arn"
             ]
            },
@@ -447,7 +315,7 @@
     "Handler": "index.handler",
     "Layers": [
      {
-      "Ref": "amplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsDeploymentAwsCliLayerE322F905"
+      "Ref": "amplifyDataCodegenAssetsCodegenAssetsDeploymentAwsCliLayer7FBEA1E7"
      }
     ],
     "Runtime": "python3.9",
@@ -520,9 +388,9 @@
     ]
    }
   },
-  "amplifytestAppIdtestBranchNamedataamplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsBucket25324612Ref": {
+  "amplifytestAppIdtestBranchNamedataamplifyDataCodegenAssetsCodegenAssetsBucketC42FF1E2Ref": {
    "Value": {
-    "Ref": "amplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsBucket9CCB4ACA"
+    "Ref": "amplifyDataCodegenAssetsCodegenAssetsBucketAB70C718"
    }
   }
  },
@@ -572,109 +440,6 @@
   },
   "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthunauthenticatedUserRoleF8166590Ref": {
    "Type": "String"
-  }
- },
- "Mappings": {
-  "DefaultCrNodeVersionMap": {
-   "af-south-1": {
-    "value": "nodejs16.x"
-   },
-   "ap-east-1": {
-    "value": "nodejs16.x"
-   },
-   "ap-northeast-1": {
-    "value": "nodejs16.x"
-   },
-   "ap-northeast-2": {
-    "value": "nodejs16.x"
-   },
-   "ap-northeast-3": {
-    "value": "nodejs16.x"
-   },
-   "ap-south-1": {
-    "value": "nodejs16.x"
-   },
-   "ap-south-2": {
-    "value": "nodejs16.x"
-   },
-   "ap-southeast-1": {
-    "value": "nodejs16.x"
-   },
-   "ap-southeast-2": {
-    "value": "nodejs16.x"
-   },
-   "ap-southeast-3": {
-    "value": "nodejs16.x"
-   },
-   "ca-central-1": {
-    "value": "nodejs16.x"
-   },
-   "cn-north-1": {
-    "value": "nodejs16.x"
-   },
-   "cn-northwest-1": {
-    "value": "nodejs16.x"
-   },
-   "eu-central-1": {
-    "value": "nodejs16.x"
-   },
-   "eu-central-2": {
-    "value": "nodejs16.x"
-   },
-   "eu-north-1": {
-    "value": "nodejs16.x"
-   },
-   "eu-south-1": {
-    "value": "nodejs16.x"
-   },
-   "eu-south-2": {
-    "value": "nodejs16.x"
-   },
-   "eu-west-1": {
-    "value": "nodejs16.x"
-   },
-   "eu-west-2": {
-    "value": "nodejs16.x"
-   },
-   "eu-west-3": {
-    "value": "nodejs16.x"
-   },
-   "me-central-1": {
-    "value": "nodejs16.x"
-   },
-   "me-south-1": {
-    "value": "nodejs16.x"
-   },
-   "sa-east-1": {
-    "value": "nodejs16.x"
-   },
-   "us-east-1": {
-    "value": "nodejs16.x"
-   },
-   "us-east-2": {
-    "value": "nodejs16.x"
-   },
-   "us-gov-east-1": {
-    "value": "nodejs16.x"
-   },
-   "us-gov-west-1": {
-    "value": "nodejs16.x"
-   },
-   "us-iso-east-1": {
-    "value": "nodejs14.x"
-   },
-   "us-iso-west-1": {
-    "value": "nodejs14.x"
-   },
-   "us-isob-east-1": {
-    "value": "nodejs14.x"
-   },
-   "us-west-1": {
-    "value": "nodejs16.x"
-   },
-   "us-west-2": {
-    "value": "nodejs16.x"
-   }
   }
  }
 }
