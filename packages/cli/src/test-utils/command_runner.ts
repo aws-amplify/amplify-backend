@@ -9,22 +9,6 @@ export class TestCommandError extends Error {
    */
   constructor(readonly error: Error, readonly output: string) {
     super();
-    const unhandledRejectionListeners = process.listeners('unhandledRejection');
-    process.removeAllListeners('unhandledRejection');
-    unhandledRejectionListeners
-      .map((listener) => {
-        return (reason: unknown, promise: Promise<unknown>) => {
-          if (reason instanceof Error && reason.stack?.includes('yargs')) {
-            // skip unhandled promises from yargs
-            // yargs seems to be producing them if we use callback in parse or parseAsync API
-          } else {
-            listener(reason, promise);
-          }
-        };
-      })
-      .forEach((listener) =>
-        process.addListener('unhandledRejection', listener)
-      );
   }
 }
 
