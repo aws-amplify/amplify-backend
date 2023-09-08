@@ -1,5 +1,5 @@
 import { Construct } from 'constructs';
-import { RemovalPolicy, Stack, aws_cognito as cognito } from 'aws-cdk-lib';
+import { Stack, aws_cognito as cognito } from 'aws-cdk-lib';
 import {
   AuthResources,
   BackendOutputStorageStrategy,
@@ -339,7 +339,7 @@ export class AmplifyAuth
       oauthMappings: {},
     };
     // external providers
-    const external = loginOptions.externalAuthProviders;
+    const external = loginOptions.externalProviders;
     if (external) {
       if (external.google) {
         result.google = new cognito.UserPoolIdentityProviderGoogle(

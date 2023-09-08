@@ -759,7 +759,7 @@ describe('Auth construct', () => {
       new AmplifyAuth(stack, 'test', {
         loginWith: {
           email: true,
-          externalAuthProviders: {
+          externalProviders: {
             google: {
               clientId: googleClientId,
               clientSecretValue:
@@ -789,7 +789,7 @@ describe('Auth construct', () => {
       new AmplifyAuth(stack, 'test', {
         loginWith: {
           phoneNumber: true,
-          externalAuthProviders: {
+          externalProviders: {
             google: {
               clientId: googleClientId,
               clientSecretValue:
@@ -819,7 +819,7 @@ describe('Auth construct', () => {
       new AmplifyAuth(stack, 'test', {
         loginWith: {
           email: true,
-          externalAuthProviders: {
+          externalProviders: {
             facebook: {
               clientId: facebookClientId,
               clientSecret: facebookClientSecret,
@@ -848,7 +848,7 @@ describe('Auth construct', () => {
       new AmplifyAuth(stack, 'test', {
         loginWith: {
           phoneNumber: true,
-          externalAuthProviders: {
+          externalProviders: {
             facebook: {
               clientId: facebookClientId,
               clientSecret: facebookClientSecret,
@@ -877,7 +877,7 @@ describe('Auth construct', () => {
       new AmplifyAuth(stack, 'test', {
         loginWith: {
           email: true,
-          externalAuthProviders: {
+          externalProviders: {
             apple: {
               clientId: appleClientId,
               keyId: appleKeyId,
@@ -908,7 +908,7 @@ describe('Auth construct', () => {
       new AmplifyAuth(stack, 'test', {
         loginWith: {
           phoneNumber: true,
-          externalAuthProviders: {
+          externalProviders: {
             apple: {
               clientId: appleClientId,
               keyId: appleKeyId,
@@ -939,7 +939,7 @@ describe('Auth construct', () => {
       new AmplifyAuth(stack, 'test', {
         loginWith: {
           email: true,
-          externalAuthProviders: {
+          externalProviders: {
             amazon: {
               clientId: amazonClientId,
               clientSecret: amazonClientSecret,
@@ -968,7 +968,7 @@ describe('Auth construct', () => {
       new AmplifyAuth(stack, 'test', {
         loginWith: {
           phoneNumber: true,
-          externalAuthProviders: {
+          externalProviders: {
             amazon: {
               clientId: amazonClientId,
               clientSecret: amazonClientSecret,
@@ -997,7 +997,7 @@ describe('Auth construct', () => {
       new AmplifyAuth(stack, 'test', {
         loginWith: {
           email: true,
-          externalAuthProviders: {
+          externalProviders: {
             oidc: {
               clientId: oidcClientId,
               clientSecret: oidcClientSecret,
@@ -1023,7 +1023,7 @@ describe('Auth construct', () => {
       new AmplifyAuth(stack, 'test', {
         loginWith: {
           phoneNumber: true,
-          externalAuthProviders: {
+          externalProviders: {
             oidc: {
               clientId: oidcClientId,
               clientSecret: oidcClientSecret,
@@ -1049,7 +1049,7 @@ describe('Auth construct', () => {
       new AmplifyAuth(stack, 'test', {
         loginWith: {
           email: true,
-          externalAuthProviders: {
+          externalProviders: {
             saml: {
               name: samlProviderName,
               metadata: {
@@ -1076,7 +1076,7 @@ describe('Auth construct', () => {
       new AmplifyAuth(stack, 'test', {
         loginWith: {
           phoneNumber: true,
-          externalAuthProviders: {
+          externalProviders: {
             saml: {
               name: samlProviderName,
               metadata: {
@@ -1105,7 +1105,7 @@ describe('Auth construct', () => {
         loginWith: {
           email: true,
           phoneNumber: true,
-          externalAuthProviders: {
+          externalProviders: {
             google: {
               clientId: googleClientId,
               clientSecretValue:

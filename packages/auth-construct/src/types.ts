@@ -52,7 +52,7 @@ export type MFA =
 /**
  * External auth provider options
  */
-export type ExternalAuthProviders = {
+export type ExternalProviders = {
   externalAuthProviders?: {
     google?: Omit<cognito.UserPoolIdentityProviderGoogleProps, 'userPool'>;
     facebook?: Omit<cognito.UserPoolIdentityProviderFacebookProps, 'userPool'>;
@@ -71,7 +71,7 @@ export type ExternalAuthProviders = {
  * Input props for the AmplifyAuth construct
  */
 export type AuthProps = {
-  loginWith: BasicLoginOptions & ExternalAuthProviders;
+  loginWith: BasicLoginOptions & ExternalProviders;
   /**
    * Additional settings
    */
