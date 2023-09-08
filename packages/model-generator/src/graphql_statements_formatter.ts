@@ -24,7 +24,7 @@ export class GraphQLStatementsFormatter {
     return this.formatJS(statements);
   };
 
-  private formatJS = (statements: Statements): Promise<string> => {
+  private formatJS = async (statements: Statements): Promise<string> => {
     const lintOverridesBuffer = this.lintOverrides.join(LINE_DELIMITOR);
     const headerBuffer = this.headerComments
       .map((comment) => `// ${comment}`)
