@@ -36,23 +36,19 @@ export class AppSyncGraphqlDocumentGenerator
   }: DocumentGenerationParameters) => {
     const schema = await this.fetchSchema();
 
-    if (!schema) {
-      throw new Error('Invalid schema');
-    }
-
     const generatedStatements = generateGraphQLDocuments(schema, {
       maxDepth: 3,
       typenameIntrospection: true,
     });
 
-    const clientOps: Array<keyof typeof generatedStatements> = [
+    const clientOperations: Array<keyof typeof generatedStatements> = [
       'queries',
       'mutations',
       'subscriptions',
     ];
 
     await Promise.all(
-      clientOps.map(async (op) => {
+      clientOperations.map(async (op) => {
         const ops = generatedStatements[op];
         const content = await this.format(language, ops as Map<string, string>);
         await this.writeFile(

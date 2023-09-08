@@ -1,6 +1,6 @@
 import assert from 'node:assert';
 import { describe, it } from 'node:test';
-import { createGraphqlDocumentGenerator } from './factories.js';
+import { createGraphqlDocumentGenerator } from './create_graphql_document_generator.js';
 
 describe('model generator factory', () => {
   it('throws an error if a null apiId is passed in', async () => {
