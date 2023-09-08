@@ -340,74 +340,65 @@ export class AmplifyAuth
     };
     // external providers
     const external = loginOptions.externalProviders;
-    if (external) {
-      if (external.google) {
-        result.google = new cognito.UserPoolIdentityProviderGoogle(
-          this,
-          'GoogleIdP',
-          {
-            userPool,
-            ...external.google,
-          }
-        );
-        result.oauthMappings[authProvidersList.google] =
-          external.google.clientId;
-      }
-      if (external.facebook) {
-        result.facebook = new cognito.UserPoolIdentityProviderFacebook(
-          this,
-          'FacebookIDP',
-          {
-            userPool,
-            ...external.facebook,
-          }
-        );
-        result.oauthMappings[authProvidersList.facebook] =
-          external.facebook.clientId;
-      }
-      if (external.amazon) {
-        result.amazon = new cognito.UserPoolIdentityProviderAmazon(
-          this,
-          'AmazonIDP',
-          {
-            userPool,
-            ...external.amazon,
-          }
-        );
-        result.oauthMappings[authProvidersList.amazon] =
-          external.amazon.clientId;
-      }
-      if (external.apple) {
-        result.apple = new cognito.UserPoolIdentityProviderApple(
-          this,
-          'AppleIDP',
-          {
-            userPool,
-            ...external.apple,
-          }
-        );
-        result.oauthMappings[authProvidersList.apple] = external.apple.clientId;
-      }
-      if (external.oidc) {
-        result.oidc = new cognito.UserPoolIdentityProviderOidc(
-          this,
-          'OidcIDP',
-          {
-            userPool,
-            ...external.oidc,
-          }
-        );
-      }
-      if (external.saml) {
-        result.saml = new cognito.UserPoolIdentityProviderSaml(
-          this,
-          'SamlIDP',
-          {
-            userPool,
-            ...external.saml,
-          }
-        );
-      }
+    if (!external) {
+      return result;
+    }
+    if (external.google) {
+      result.google = new cognito.UserPoolIdentityProviderGoogle(
+        this,
+        'GoogleIdP',
+        {
+          userPool,
+          ...external.google,
+        }
+      );
+      result.oauthMappings[authProvidersList.google] = external.google.clientId;
+    }
+    if (external.facebook) {
+      result.facebook = new cognito.UserPoolIdentityProviderFacebook(
+        this,
+        'FacebookIDP',
+        {
+          userPool,
+          ...external.facebook,
+        }
+      );
+      result.oauthMappings[authProvidersList.facebook] =
+        external.facebook.clientId;
+    }
+    if (external.amazon) {
+      result.amazon = new cognito.UserPoolIdentityProviderAmazon(
+        this,
+        'AmazonIDP',
+        {
+          userPool,
+          ...external.amazon,
+        }
+      );
+      result.oauthMappings[authProvidersList.amazon] = external.amazon.clientId;
+    }
+    if (external.apple) {
+      result.apple = new cognito.UserPoolIdentityProviderApple(
+        this,
+        'AppleIDP',
+        {
+          userPool,
+          ...external.apple,
+        }
+      );
+      result.oauthMappings[authProvidersList.apple] = external.apple.clientId;
+    }
+    if (external.oidc) {
+      result.oidc = new cognito.UserPoolIdentityProviderOidc(this, 'OidcIDP', {
+        userPool,
+        ...external.oidc,
+      });
+    }
+    if (external.saml) {
+      result.saml = new cognito.UserPoolIdentityProviderSaml(this, 'SamlIDP', {
+        userPool,
+        ...external.saml,
+      });
     }
     return result;
   };
