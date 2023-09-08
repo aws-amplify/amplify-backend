@@ -4,6 +4,28 @@
 
 ```ts
 
+// @public
+export const createGraphqlDocumentGenerator: ({ apiId, }: GraphqlDocumentGeneratorFactoryParams) => GraphqlDocumentGenerator;
+
+// @public (undocumented)
+export type DocumentGenerationParameters = {
+    language: TargetLanguage;
+    outDir: string;
+};
+
+// @public (undocumented)
+export type GraphqlDocumentGenerator = {
+    generateModels: (params: DocumentGenerationParameters) => Promise<void>;
+};
+
+// @public (undocumented)
+export type GraphqlDocumentGeneratorFactoryParams = {
+    apiId: string;
+};
+
+// @public (undocumented)
+export type TargetLanguage = 'typescript';
+
 // (No @packageDocumentation comment for this package)
 
 ```
