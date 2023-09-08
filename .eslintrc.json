@@ -33,7 +33,8 @@
     "no-only-tests",
     "check-file",
     "spellcheck",
-    "promise"
+    "promise",
+    "@shopify"
   ],
   "rules": {
     "@typescript-eslint/naming-convention": [
@@ -80,6 +81,7 @@
     ],
     "@typescript-eslint/restrict-template-expressions": "error",
     "@typescript-eslint/consistent-type-definitions": ["error", "type"],
+    "@shopify/prefer-early-return": "error",
     "check-file/filename-blocklist": [
       "error",
       {
