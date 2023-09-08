@@ -1,6 +1,5 @@
 import { Argv } from 'yargs';
 import { AsyncLocalStorage } from 'node:async_hooks';
-import { WriteStream } from 'fs';
 
 class OutputInterceptor {
   private output = '';
