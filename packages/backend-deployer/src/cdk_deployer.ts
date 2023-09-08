@@ -5,6 +5,7 @@ import {
   BackendDeployer,
   DeployProps,
 } from './cdk_deployer_singleton_factory.js';
+import { CdkErrorMapper } from './cdk_error_mapper.js';
 
 const relativeBackendEntryPoint = 'amplify/backend.ts';
 
@@ -16,49 +17,16 @@ enum InvokableCommand {
   DESTROY = 'destroy',
 }
 
-const knownErrors: Array<{ errorRegex: RegExp; humanReadableError: string }> = [
-  {
-    errorRegex: /ExpiredToken/,
-    humanReadableError:
-      '[ExpiredToken]: The security token included in the request is invalid.',
-  },
-  {
-    errorRegex: /Access Denied/,
-    humanReadableError:
-      '[AccessDenied]: The service role linked to this branch does not have sufficient permissions to perform this deployment. Configure the service role in the settings for this branch.',
-  },
-  {
-    errorRegex: /Has the environment been bootstrapped/,
-    humanReadableError:
-      '[BootstrapFailure]: This AWS account is not bootstrapped. Run `cdk bootstrap aws://{YOUR_ACCOUNT_ID}/{YOUR_REGION}` locally to resolve this.',
-  },
-  {
-    // the backend entry point file is referenced in the stack indicating a problem in customer code
-    errorRegex: /amplify\/backend.ts/,
-    humanReadableError:
-      '[SynthError]: Unable to parse CDK code. Check your backend definition in the `amplify` folder.',
-  },
-  {
-    errorRegex: /ROLLBACK_(COMPLETE|FAILED)/,
-    humanReadableError:
-      '[CloudFormationFailure]: The CloudFormation deployment has failed. Find more information in the CloudFormation AWS Console for this stack.',
-  },
-];
-
-const getHumanReadableErrorMessage = (error: Error): string | undefined => {
-  const matchingError = knownErrors.find((knownError) =>
-    knownError.errorRegex.test(error.message)
-  );
-  if (!matchingError) {
-    return;
-  }
-  return `${matchingError.humanReadableError}`;
-};
-
 /**
  * Invokes CDK command via execa
  */
 export class CDKDeployer implements BackendDeployer {
+  /**
+   * Instantiates instance of CDKDeployer
+   */
+  constructor(
+    private readonly cdkErrorMapper: CdkErrorMapper = new CdkErrorMapper()
+  ) {}
   /**
    * Invokes cdk deploy command
    */
@@ -126,7 +94,8 @@ export class CDKDeployer implements BackendDeployer {
       await this.executeChildProcess('npx', cdkCommandArgs);
     } catch (err) {
       throw new Error(
-        getHumanReadableErrorMessage(err as Error) ?? (err as Error).message,
+        this.cdkErrorMapper.getHumanReadableErrorMessage(err as Error) ??
+          (err as Error).message,
         { cause: err }
       );
     }

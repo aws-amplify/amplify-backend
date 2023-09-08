@@ -109,33 +109,4 @@ describe('invokeCDKCommand', () => {
       '--force',
     ]);
   });
-
-  it('translates known errors', async () => {
-    execaMock.mock.mockImplementation(() => {
-      throw new Error('ExpiredToken');
-    });
-    await assert.rejects(
-      () => invoker.deploy(uniqueBackendIdentifier, deployProps),
-      (err: Error) => {
-        assert.match(
-          err.message,
-          /\[ExpiredToken\]: The security token included in the request is invalid./
-        );
-        return true;
-      }
-    );
-  });
-
-  it('bubbles up unknown errors', async () => {
-    execaMock.mock.mockImplementation(() => {
-      throw new Error('Unknown Error');
-    });
-    await assert.rejects(
-      () => invoker.deploy(uniqueBackendIdentifier, deployProps),
-      (err: Error) => {
-        assert.match(err.message, /Unknown Error/);
-        return true;
-      }
-    );
-  });
 });
