@@ -313,11 +313,7 @@
         }
       }
     },
-<<<<<<< HEAD
-    "e02e076c5233938da291f1ed220de80a7d38249fe255d58c924d6cf13892f961": {
-=======
-    "189f572a60b83f9bbfd7bbee6bb92493936ff37aa7e4988b074737845d2e65e9": {
->>>>>>> main
+    "cb214bb4156786e46414147f52642091e082e9dfcb14fb463358db26a0592c1c": {
       "source": {
         "path": "amplify-testAppId-testBranchName.template.json",
         "packaging": "file"
@@ -325,11 +321,7 @@
       "destinations": {
         "current_account-current_region": {
           "bucketName": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}",
-<<<<<<< HEAD
-          "objectKey": "e02e076c5233938da291f1ed220de80a7d38249fe255d58c924d6cf13892f961.json",
-=======
-          "objectKey": "189f572a60b83f9bbfd7bbee6bb92493936ff37aa7e4988b074737845d2e65e9.json",
->>>>>>> main
+          "objectKey": "cb214bb4156786e46414147f52642091e082e9dfcb14fb463358db26a0592c1c.json",
           "assumeRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-file-publishing-role-${AWS::AccountId}-${AWS::Region}"
         }
       }
