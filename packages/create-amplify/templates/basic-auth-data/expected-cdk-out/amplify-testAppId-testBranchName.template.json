@@ -12,9 +12,11 @@
    "graphqlOutput": {
     "version": "1",
     "stackOutputs": [
+     "awsAppsyncApiId",
      "awsAppsyncApiEndpoint",
      "awsAppsyncAuthenticationType",
-     "awsAppsyncRegion"
+     "awsAppsyncRegion",
+     "amplifyApiModelSchemaS3Uri"
     ]
    }
   }
@@ -66,7 +68,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/d0b4f4d046ae1f182e7cb26c942ae4a7b1990b640110fa6eabb4c72e4f4d640b.json"
+       "/a03c96ec8850490100abe49ec4f52a4a063b7f42eb9df40e10afe2342547d24a.json"
       ]
      ]
     },
@@ -117,6 +119,14 @@
     "Ref": "AWS::Region"
    }
   },
+  "awsAppsyncApiId": {
+   "Value": {
+    "Fn::GetAtt": [
+     "data7552DF31",
+     "Outputs.amplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
+    ]
+   }
+  },
   "awsAppsyncApiEndpoint": {
    "Value": {
     "Fn::GetAtt": [
@@ -131,6 +141,23 @@
   "awsAppsyncRegion": {
    "Value": {
     "Ref": "AWS::Region"
+   }
+  },
+  "amplifyApiModelSchemaS3Uri": {
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "s3://",
+      {
+       "Fn::GetAtt": [
+        "data7552DF31",
+        "Outputs.amplifytestAppIdtestBranchNamedataamplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsBucket25324612Ref"
+       ]
+      },
+      "/model-schema.graphql"
+     ]
+    ]
    }
   }
  },
