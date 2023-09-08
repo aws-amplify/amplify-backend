@@ -7,7 +7,8 @@
     "scripts",
     "templates",
     "**/*.test.ts",
-    "packages/plugin-types"
+    "packages/plugin-types",
+    "packages/integration-tests"
   ],
   "all": true,
   "check-coverage": true,

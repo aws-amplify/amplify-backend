@@ -3,7 +3,7 @@ import * as path from 'path';
 import { execa as _execa } from 'execa';
 
 /**
- * Ensure that the current working directory is a valid Javascript project
+ * Ensure that the current working directory is a valid JavaScript project
  */
 export class NpmProjectInitializer {
   /**
@@ -29,7 +29,7 @@ export class NpmProjectInitializer {
     );
 
     try {
-      await this.execa('npm', ['init'], {
+      await this.execa('npm', ['init', '--yes'], {
         stdio: 'inherit',
         cwd: this.projectRoot,
       });

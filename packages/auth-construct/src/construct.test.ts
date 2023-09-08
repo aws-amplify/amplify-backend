@@ -9,6 +9,8 @@ import {
 } from '@aws-amplify/plugin-types';
 import {
   CfnIdentityPool,
+  CfnUserPool,
+  CfnUserPoolClient,
   UserPool,
   UserPoolClient,
   VerificationEmailStyle,
@@ -210,7 +212,7 @@ describe('Auth construct', () => {
 
   it('expect compile error if invalid sms verification message', () => {
     const customSMSVerificationMessage = 'invalid message without code';
-    const validSMSVerificationMesssage = 'valid {####}';
+    const validSMSVerificationMessage = 'valid {####}';
     let props: AuthProps = {
       loginWith: {
         phoneNumber: {
@@ -224,7 +226,7 @@ describe('Auth construct', () => {
     props = {
       loginWith: {
         phoneNumber: {
-          verificationMessage: validSMSVerificationMesssage,
+          verificationMessage: validSMSVerificationMessage,
         },
       },
     };
@@ -535,6 +537,156 @@ describe('Auth construct', () => {
       const template = Template.fromStack(stack);
       template.hasResourceProperties('AWS::Cognito::UserPoolClient', {
         SupportedIdentityProviders: ['COGNITO'],
+      });
+    });
+  });
+
+  describe('Auth overrides', () => {
+    it('can override case sensitivity', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      const auth = new AmplifyAuth(stack, 'test');
+      const userPoolResource = auth.resources.userPool.node.findChild(
+        'Resource'
+      ) as CfnUserPool;
+      userPoolResource.addPropertyOverride(
+        'UsernameConfiguration.CaseSensitive',
+        true
+      );
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        UsernameConfiguration: {
+          CaseSensitive: true,
+        },
+      });
+    });
+    it('can override setting to keep original attributes until verified', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      const auth = new AmplifyAuth(stack, 'test', {
+        loginWith: { email: true },
+      });
+      const userPoolResource = auth.resources.userPool.node.findChild(
+        'Resource'
+      ) as CfnUserPool;
+      userPoolResource.addPropertyOverride(
+        'UserAttributeUpdateSettings.AttributesRequireVerificationBeforeUpdate',
+        []
+      );
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        UserAttributeUpdateSettings: {
+          AttributesRequireVerificationBeforeUpdate: [],
+        },
+      });
+    });
+    it('can override settings for device configuration', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      const auth = new AmplifyAuth(stack, 'test', {
+        loginWith: { email: true },
+      });
+      const userPoolResource = auth.resources.userPool.node.findChild(
+        'Resource'
+      ) as CfnUserPool;
+      userPoolResource.addPropertyOverride(
+        'DeviceConfiguration.ChallengeRequiredOnNewDevice',
+        true
+      );
+      userPoolResource.addPropertyOverride(
+        'DeviceConfiguration.DeviceOnlyRememberedOnUserPrompt',
+        true
+      );
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        DeviceConfiguration: {
+          ChallengeRequiredOnNewDevice: true,
+          DeviceOnlyRememberedOnUserPrompt: true,
+        },
+      });
+    });
+    it('can override password policy', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      const auth = new AmplifyAuth(stack, 'test');
+      const userPoolResource = auth.resources.userPool.node.findChild(
+        'Resource'
+      ) as CfnUserPool;
+      userPoolResource.addPropertyOverride(
+        'Policies.PasswordPolicy.MinimumLength',
+        10
+      );
+      userPoolResource.addPropertyOverride(
+        'Policies.PasswordPolicy.RequireLowercase',
+        false
+      );
+      userPoolResource.addPropertyOverride(
+        'Policies.PasswordPolicy.RequireNumbers',
+        false
+      );
+      userPoolResource.addPropertyOverride(
+        'Policies.PasswordPolicy.RequireSymbols',
+        false
+      );
+      userPoolResource.addPropertyOverride(
+        'Policies.PasswordPolicy.RequireUppercase',
+        false
+      );
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        Policies: {
+          PasswordPolicy: {
+            MinimumLength: 10,
+            RequireLowercase: false,
+            RequireNumbers: false,
+            RequireSymbols: false,
+            RequireUppercase: false,
+          },
+        },
+      });
+    });
+    it('can override user existence errors', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      const auth = new AmplifyAuth(stack, 'test');
+      const userPoolClientResource =
+        auth.resources.userPoolClient.node.findChild(
+          'Resource'
+        ) as CfnUserPoolClient;
+      userPoolClientResource.addPropertyOverride(
+        'PreventUserExistenceErrors',
+        'LEGACY'
+      );
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPoolClient', {
+        PreventUserExistenceErrors: 'LEGACY',
+      });
+    });
+    it('can override guest access setting', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      const auth = new AmplifyAuth(stack, 'test');
+      auth.resources.cfnResources.identityPool.addPropertyOverride(
+        'AllowUnauthenticatedIdentities',
+        false
+      );
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::IdentityPool', {
+        AllowUnauthenticatedIdentities: false,
+      });
+    });
+    it('can override token validity period', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      const auth = new AmplifyAuth(stack, 'test');
+      const userPoolClientResource =
+        auth.resources.userPoolClient.node.findChild(
+          'Resource'
+        ) as CfnUserPoolClient;
+      userPoolClientResource.addPropertyOverride('AccessTokenValidity', 1);
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPoolClient', {
+        AccessTokenValidity: 1,
       });
     });
   });

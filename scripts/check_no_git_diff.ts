@@ -11,5 +11,5 @@ const changedFiles = gitDiffFiles
   .filter((file) => file.length > 0);
 
 if (changedFiles.length > 0) {
-  throw new Error(`Expected no git diff but found ${changedFiles}`);
+  throw new Error(`Expected no git diff but found ${changedFiles.join(', ')}`);
 }

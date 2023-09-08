@@ -10,8 +10,8 @@ describe('GraphqlClientConfigContributor', () => {
         authOutput: {
           version: '1',
           payload: {
+            identityPoolId: 'testIdentityPoolId',
             userPoolId: 'stuff',
-            identityPoolId: 'stuff',
             authRegion: 'testRegion ',
             webClientId: 'clientId',
           },

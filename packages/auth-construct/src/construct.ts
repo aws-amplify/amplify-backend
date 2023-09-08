@@ -200,7 +200,7 @@ export class AmplifyAuth
   private getUserPoolProps = (props: AuthProps): UserPoolProps => {
     const emailEnabled = props.loginWith.email ? true : false;
     const phoneEnabled = props.loginWith.phoneNumber ? true : false;
-    // check for customizations
+    // check for customization
     let userVerificationSettings: cognito.UserVerificationConfig = {};
     if (emailEnabled && typeof props.loginWith.email === 'object') {
       const emailSettings = props.loginWith.email;
