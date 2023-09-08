@@ -1,5 +1,13 @@
 # @aws-amplify/backend-deployer
 
+## 0.1.1-alpha.2
+
+### Patch Changes
+
+- b2b0c2d: force version bump
+- Updated dependencies [b2b0c2d]
+  - @aws-amplify/plugin-types@0.1.1-alpha.2
+
 ## 0.1.1-alpha.1
 
 ### Patch Changes
