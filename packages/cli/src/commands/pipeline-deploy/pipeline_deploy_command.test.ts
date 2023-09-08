@@ -39,7 +39,7 @@ describe('deploy command', () => {
         ),
       (err: TestCommandError) => {
         assert.match(
-          err.message,
+          err.error.message,
           /It looks like this command is being run outside of a CI\/CD workflow/
         );
         return true;

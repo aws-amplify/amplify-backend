@@ -38,7 +38,7 @@ export class PipelineDeployCommand
   /**
    * @inheritDoc
    */
-  handler = (
+  handler = async (
     args: ArgumentsCamelCase<PipelineDeployCommandOptions>
   ): Promise<void> => {
     if (!this.isCiEnvironment) {
@@ -52,7 +52,7 @@ export class PipelineDeployCommand
       branchName: args.branch,
     };
 
-    return this.backendDeployer.deploy(uniqueBackendIdentifier);
+    await this.backendDeployer.deploy(uniqueBackendIdentifier);
   };
 
   builder = (yargs: Argv): Argv<PipelineDeployCommandOptions> => {
