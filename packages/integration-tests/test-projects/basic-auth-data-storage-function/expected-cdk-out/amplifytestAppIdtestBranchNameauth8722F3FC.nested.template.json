@@ -58,8 +58,8 @@
      "SmsMessage": "The verification code to your new account is {####}"
     }
    },
-   "UpdateReplacePolicy": "Delete",
-   "DeletionPolicy": "Delete"
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain"
   },
   "amplifyAuthUserPoolWebClientA385E48A": {
    "Type": "AWS::Cognito::UserPoolClient",

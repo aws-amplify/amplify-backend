@@ -504,18 +504,6 @@ describe('Auth construct', () => {
       });
     });
 
-    it('sets deletion policy to destroy on user pool', () => {
-      const app = new App();
-      const stack = new Stack(app);
-      new AmplifyAuth(stack, 'test');
-      const template = Template.fromStack(stack);
-
-      template.hasResource('AWS::Cognito::UserPool', {
-        DeletionPolicy: 'Delete',
-        UpdateReplacePolicy: 'Delete',
-      });
-    });
-
     it('enables SRP and Custom auth flows', () => {
       const app = new App();
       const stack = new Stack(app);

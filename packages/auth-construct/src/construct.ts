@@ -287,8 +287,6 @@ export class AmplifyAuth
         props.multifactor.enforcementType !== 'OFF'
           ? { sms: props.multifactor.sms, otp: props.multifactor.totp }
           : undefined,
-      // accountRecovery: cognito.AccountRecovery.
-      removalPolicy: RemovalPolicy.DESTROY,
     };
     return userPoolProps;
   };
