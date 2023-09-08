@@ -5,6 +5,7 @@ const schema = `
     id: ID!
     name: String!
     description: String
+    subtitle: String
   }
 `;
 

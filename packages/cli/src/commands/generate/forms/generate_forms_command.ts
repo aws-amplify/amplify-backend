@@ -74,7 +74,7 @@ export class GenerateFormsCommand
     });
     const localFormGenerator = createFormGenerator('graphql', {
       /* eslint-disable-next-line spellcheck/spell-checker */
-      appId: 'dkne2bw3gmwb0',
+      appId: 'a-fake-app-id',
       apiId,
       environmentName: 'staging',
       introspectionSchemaUrl: apiUrl,

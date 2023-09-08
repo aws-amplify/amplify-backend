@@ -25,7 +25,12 @@ export const createFormGenerator = <T extends keyof FormGenerationParams>(
     case 'graphql': {
       const client = new S3Client();
       return new CodegenGraphqlFormGenerator(
-        new CodegenJobHandler(new AmplifyUIBuilder()),
+        new CodegenJobHandler(
+          new AmplifyUIBuilder({
+            endpoint:
+              'https://wwrfb0vry9.execute-api.us-west-2.amazonaws.com/prod',
+          })
+        ),
         generationParams,
         () =>
           generateModelIntrospectionSchema(
