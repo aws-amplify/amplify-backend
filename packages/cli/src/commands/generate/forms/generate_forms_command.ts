@@ -68,10 +68,13 @@ export class GenerateFormsCommand
     }
 
     const graphqlClientGenerator = createGraphqlDocumentGenerator({ apiId });
+    this.log('Generating GraphQL Client');
     await graphqlClientGenerator.generateModels({
       language: 'typescript',
       outDir: './src/graphql',
     });
+    this.log('GraphQL client successfully generated');
+    this.log('Generating React forms');
     const localFormGenerator = createFormGenerator('graphql', {
       /* eslint-disable-next-line spellcheck/spell-checker */
       appId: 'a-fake-app-id',
@@ -81,6 +84,12 @@ export class GenerateFormsCommand
     });
     const result = await localFormGenerator.generateForms();
     await result.writeToDirectory('./src/ui-components');
+    this.log('React forms successfully generated');
+  };
+
+  private log = (message: string) => {
+    /* eslint-disable-next-line no-console */
+    console.log('[Codegen]\t', message);
   };
 
   /**
