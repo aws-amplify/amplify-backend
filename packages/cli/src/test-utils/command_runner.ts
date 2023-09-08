@@ -11,37 +11,28 @@ class OutputInterceptor {
 
 const asyncLocalStorage = new AsyncLocalStorage<OutputInterceptor>();
 
-const originalStdoutWrite = process.stdout.write.bind(process.stdout);
-process.stdout.write = (...args) => {
-  const interceptor: OutputInterceptor | undefined =
-    asyncLocalStorage.getStore();
-  if (interceptor) {
-    if (args && args.length > 0 && typeof args[0] === 'string') {
-      interceptor.append(args[0]);
+// Casting original write to Function to disable compiler safety intentionally.
+// The process.stdout.write has many overloads and it's impossible to get right types here.
+// We're passing unchanged argument list to original method, therefore this is safe.
+// eslint-disable-next-line @typescript-eslint/ban-types
+const createInterceptedWrite = (originalWrite: Function) => {
+  return (...args: never[]) => {
+    const interceptor: OutputInterceptor | undefined =
+      asyncLocalStorage.getStore();
+    if (interceptor) {
+      if (args && args.length > 0 && typeof args[0] === 'string') {
+        interceptor.append(args[0]);
+      }
     }
-  }
-  // Casting originalStdoutWrite to Function to disable compiler safety intentionally.
-  // The process.stdout.write has many overloads and it's impossible to get right types here.
-  // We're passing unchanged argument list to original method, therefore this is safe.
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  return (originalStdoutWrite as Function)(...args);
+
+    return originalWrite(...args);
+  };
 };
+const originalStdoutWrite = process.stdout.write.bind(process.stdout);
+process.stdout.write = createInterceptedWrite(originalStdoutWrite);
 
 const originalStderrWrite = process.stderr.write.bind(process.stderr);
-process.stderr.write = (...args) => {
-  const interceptor: OutputInterceptor | undefined =
-    asyncLocalStorage.getStore();
-  if (interceptor) {
-    if (args && args.length > 0 && typeof args[0] === 'string') {
-      interceptor.append(args[0]);
-    }
-  }
-  // Casting originalStdoutWrite to Function to disable compiler safety intentionally.
-  // The process.stdout.write has many overloads and it's impossible to get right types here.
-  // We're passing unchanged argument list to original method, therefore this is safe.
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  return (originalStderrWrite as Function)(...args);
-};
+process.stderr.write = createInterceptedWrite(originalStderrWrite);
 
 /**
  * An error that has both output and error that occurred during command execution.
