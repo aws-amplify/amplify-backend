@@ -19,10 +19,8 @@ const createInterceptedWrite = (originalWrite: Function) => {
   return (...args: never[]) => {
     const interceptor: OutputInterceptor | undefined =
       asyncLocalStorage.getStore();
-    if (interceptor) {
-      if (args && args.length > 0 && typeof args[0] === 'string') {
-        interceptor.append(args[0]);
-      }
+    if (interceptor && args.length > 0 && typeof args[0] === 'string') {
+      interceptor.append(args[0]);
     }
 
     return originalWrite(...args);
