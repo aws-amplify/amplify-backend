@@ -5,6 +5,7 @@ export const authOutputSchema = z.object({
   payload: z.object({
     userPoolId: z.string(),
     webClientId: z.string(),
+    identityPoolId: z.string(),
     authRegion: z.string(),
   }),
 });
