@@ -5,7 +5,7 @@ import { CdkErrorMapper } from './cdk_error_mapper.js';
 const testErrorMappings = [
   {
     errorMessage: 'UnknownError',
-    expectedRegex: new RegExp(''),
+    expectedRegex: new RegExp('UnknownError'),
   },
   {
     errorMessage: 'ExpiredToken',
@@ -49,10 +49,14 @@ describe('invokeCDKCommand', { concurrency: 1 }, () => {
   const cdkErrorMapper = new CdkErrorMapper();
   testErrorMappings.forEach(({ errorMessage, expectedRegex }) => {
     it(`handles ${errorMessage} error`, () => {
-      const humanReadableError = cdkErrorMapper.getHumanReadableErrorMessage(
+      const humanReadableError = cdkErrorMapper.getHumanReadableError(
         new Error(errorMessage)
       );
-      assert.match(humanReadableError ?? '', expectedRegex);
+      assert.match(humanReadableError.message, expectedRegex);
+      assert.match(
+        (humanReadableError.cause as Error).message,
+        new RegExp(errorMessage)
+      );
     });
   });
 });

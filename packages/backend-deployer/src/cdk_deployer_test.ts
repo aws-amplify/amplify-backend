@@ -3,6 +3,7 @@ import { CDKDeployer } from './cdk_deployer.js';
 import assert from 'node:assert';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import { DeployProps } from './cdk_deployer_singleton_factory.js';
+import { CdkErrorMapper } from './cdk_error_mapper.js';
 
 describe('invokeCDKCommand', () => {
   const uniqueBackendIdentifier: UniqueBackendIdentifier = {
@@ -15,7 +16,7 @@ describe('invokeCDKCommand', () => {
     method: 'direct',
   };
 
-  const invoker = new CDKDeployer();
+  const invoker = new CDKDeployer(new CdkErrorMapper());
   const execaMock = mock.method(invoker, 'executeChildProcess', () =>
     Promise.resolve()
   );
@@ -108,5 +109,23 @@ describe('invokeCDKCommand', () => {
       'branch-name=testBranch',
       '--force',
     ]);
+  });
+
+  it('returns human readable errors', async () => {
+    mock.method(invoker, 'executeChildProcess', () => {
+      throw new Error('Access Denied');
+    });
+
+    await assert.rejects(
+      () => invoker.deploy(uniqueBackendIdentifier, deployProps),
+      (err: Error) => {
+        assert.equal(
+          err.message,
+          '[AccessDenied]: The service role linked to this branch does not have sufficient permissions to perform this deployment. Configure the service role in the settings for this branch.'
+        );
+        assert.equal((err.cause as Error).message, 'Access Denied');
+        return true;
+      }
+    );
   });
 });
