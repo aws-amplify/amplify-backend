@@ -249,6 +249,7 @@ export class AmplifyAuth
       payload: {
         userPoolId: this.resources.userPool.userPoolId,
         webClientId: this.resources.userPoolClientWeb.userPoolClientId,
+        identityPoolId: this.resources.cfnResources.identityPool.ref,
         authRegion: Stack.of(this).region,
       },
     });

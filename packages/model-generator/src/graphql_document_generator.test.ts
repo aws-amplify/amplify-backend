@@ -1,6 +1,6 @@
 import assert from 'assert';
 import { describe, it, mock } from 'node:test';
-import { schema as appsyncGraphql } from './appsync_schema.example.js';
+import { schema as appsyncGraphql } from './test-assets/appsync_schema.example.js';
 import { AppSyncGraphqlDocumentGenerator } from './graphql_document_generator.js';
 import { GraphQLStatementsFormatter } from './graphql_statements_formatter.js';
 

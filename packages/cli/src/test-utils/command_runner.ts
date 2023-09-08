@@ -1,4 +1,36 @@
 import { Argv } from 'yargs';
+import { AsyncLocalStorage } from 'node:async_hooks';
+
+class OutputInterceptor {
+  private output = '';
+  append = (chunk: string) => {
+    this.output += chunk;
+  };
+  getOutput = () => this.output;
+}
+
+const asyncLocalStorage = new AsyncLocalStorage<OutputInterceptor>();
+
+// Casting original write to Function to disable compiler safety intentionally.
+// The process.stdout.write has many overloads and it's impossible to get right types here.
+// We're passing unchanged argument list to original method, therefore this is safe.
+// eslint-disable-next-line @typescript-eslint/ban-types
+const createInterceptedWrite = (originalWrite: Function) => {
+  return (...args: never[]) => {
+    const interceptor: OutputInterceptor | undefined =
+      asyncLocalStorage.getStore();
+    if (interceptor && args.length > 0 && typeof args[0] === 'string') {
+      interceptor.append(args[0]);
+    }
+
+    return originalWrite(...args);
+  };
+};
+const originalStdoutWrite = process.stdout.write.bind(process.stdout);
+process.stdout.write = createInterceptedWrite(originalStdoutWrite);
+
+const originalStderrWrite = process.stderr.write.bind(process.stderr);
+process.stderr.write = createInterceptedWrite(originalStderrWrite);
 
 /**
  * An error that has both output and error that occurred during command execution.
@@ -35,16 +67,25 @@ export class TestCommandRunner {
    * Runs a command. Returns command output or throws an error if command failed.
    */
   runCommand = async (args: string | Array<string>): Promise<string> => {
-    return await new Promise((resolve, reject) => {
-      // This trick allows us to capture output and errors in memory.
-      // In order to trigger this behavior a parseCallback must be passed to either parse or parseAsync.
-      void this.parser.parse(args, {}, (err, argv, output) => {
-        if (err) {
-          reject(new TestCommandError(err, output));
-        } else {
-          resolve(output);
-        }
+    const interceptor = new OutputInterceptor();
+    try {
+      // We are using AsyncLocalStorage and OutputInterceptor to capture stdout and stdin streams into memory
+      // instead of using parse/parseAsync with callback.
+      // The reasons are:
+      // - parse/parseAsync with callback leaves orphan promises that trigger unhandledRejection handler in tests
+      // - parse/parseAsync with callback have edge cases if command builder and handler methods are sync or async
+      //   see https://github.com/yargs/yargs/issues/1069
+      //   and https://github.com/yargs/yargs/blob/main/docs/api.md#parseargs-context-parsecallback
+      // - callback can only capture yargs logger outputs. it can't capture messages emitted from our code
+      //
+      // AsyncLocalStorage is used to make sure that we're capturing outputs only from the same asynchronous context
+      // in potentially concurrent environment.
+      await asyncLocalStorage.run(interceptor, async () => {
+        await this.parser.parseAsync(args);
       });
-    });
+      return interceptor.getOutput();
+    } catch (err) {
+      throw new TestCommandError(err as Error, interceptor.getOutput());
+    }
   };
 }

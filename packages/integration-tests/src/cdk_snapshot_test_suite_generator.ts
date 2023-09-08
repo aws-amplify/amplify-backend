@@ -34,6 +34,7 @@ export const fromConventionalDir = (
     absoluteBackendFilePath: path.resolve(
       rootDir.pathname,
       testDirectory.name,
+      'amplify',
       'backend.ts'
     ),
     absoluteExpectedCdkOutDir: path.resolve(

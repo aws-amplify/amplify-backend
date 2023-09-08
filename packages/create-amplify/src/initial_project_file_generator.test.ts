@@ -19,7 +19,7 @@ describe('InitialProjectFileGenerator', () => {
       { recursive: true },
     ]);
     assert.deepStrictEqual(fsMock.cp.mock.calls[0].arguments, [
-      new URL('../templates/basic-auth-data', import.meta.url),
+      new URL('../templates/basic-auth-data/amplify', import.meta.url),
       '/testProjectRoot/amplify',
       { recursive: true },
     ]);
