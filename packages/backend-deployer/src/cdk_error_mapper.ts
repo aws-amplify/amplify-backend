@@ -34,13 +34,13 @@ export class CdkErrorMapper {
     },
   ];
 
-  getHumanReadableErrorMessage = (error: Error): string | undefined => {
+  getHumanReadableError = (error: Error): Error => {
     const matchingError = this.knownErrors.find((knownError) =>
       knownError.errorRegex.test(error.message)
     );
-    if (!matchingError) {
-      return;
-    }
-    return `${matchingError.humanReadableError}`;
+
+    return new Error(matchingError?.humanReadableError || error.message, {
+      cause: error,
+    });
   };
 }
