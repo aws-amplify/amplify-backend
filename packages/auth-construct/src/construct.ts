@@ -418,18 +418,27 @@ export class AmplifyAuth
   storeOutput = (
     outputStorageStrategy: BackendOutputStorageStrategy<AuthOutput>
   ): void => {
+    const output: AuthOutput['payload'] = {
+      userPoolId: this.resources.userPool.userPoolId,
+      webClientId: this.resources.userPoolClient.userPoolClientId,
+      identityPoolId: this.resources.cfnResources.identityPool.ref,
+      authRegion: Stack.of(this).region,
+    };
+    if (this.oauthMappings[authProvidersList.amazon]) {
+      output.amazonClientId = this.oauthMappings[authProvidersList.amazon];
+    }
+    if (this.oauthMappings[authProvidersList.facebook]) {
+      output.facebookClientId = this.oauthMappings[authProvidersList.facebook];
+    }
+    if (this.oauthMappings[authProvidersList.google]) {
+      output.googleClientId = this.oauthMappings[authProvidersList.google];
+    }
+    if (this.oauthMappings[authProvidersList.apple]) {
+      output.appleClientId = this.oauthMappings[authProvidersList.apple];
+    }
     outputStorageStrategy.addBackendOutputEntry(authOutputKey, {
       version: '1',
-      payload: {
-        userPoolId: this.resources.userPool.userPoolId,
-        webClientId: this.resources.userPoolClient.userPoolClientId,
-        amazonClientId: this.oauthMappings[authProvidersList.amazon],
-        appleClientId: this.oauthMappings[authProvidersList.apple],
-        facebookClientId: this.oauthMappings[authProvidersList.facebook],
-        googleClientId: this.oauthMappings[authProvidersList.google],
-        identityPoolId: this.resources.cfnResources.identityPool.ref,
-        authRegion: Stack.of(this).region,
-      },
+      payload: output,
     });
   };
 
