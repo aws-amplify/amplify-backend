@@ -69,10 +69,7 @@ jobs:
     steps:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
       - uses: ./.github/actions/setup_node
-        # we have to build and install in this job rather than restore from cache because the
-        # symlinks in the node_modules folder are broken if we just restore the build from the cache
-      - name: Install and build
-        run: npm run install:local
+      - uses: ./.github/actions/restore_build_cache
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@04b98b3f9e85f563fb061be8751a0352327246b0 # version 3.0.1
         with:
