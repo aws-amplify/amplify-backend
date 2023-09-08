@@ -76,7 +76,7 @@ export class TestCommandRunner {
         if (typeof this.parser.parseAsync === 'function') {
           await this.parser.parseAsync(args);
         } else {
-          void this.parser.parse(args);
+          await this.parser.parse(args);
         }
       });
       return interceptor.getOutput();
