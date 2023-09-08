@@ -53,7 +53,7 @@ export type MFA =
  * External auth provider options
  */
 export type ExternalProviders = {
-  externalAuthProviders?: {
+  externalProviders?: {
     google?: Omit<cognito.UserPoolIdentityProviderGoogleProps, 'userPool'>;
     facebook?: Omit<cognito.UserPoolIdentityProviderFacebookProps, 'userPool'>;
     amazon?: Omit<cognito.UserPoolIdentityProviderAmazonProps, 'userPool'>;

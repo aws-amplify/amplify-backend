@@ -2,7 +2,7 @@ export {
   AuthProps,
   BasicLoginOptions,
   EmailLogin,
-  ExternalAuthProviders,
+  ExternalProviders,
   MFA,
   MFASettings,
   PhoneNumberLogin,

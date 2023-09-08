@@ -65,7 +65,7 @@ export class AuthCustomStringAttribute extends AuthCustomAttributeBase {
 
 // @public
 export type AuthProps = {
-    loginWith: BasicLoginOptions & ExternalAuthProviders;
+    loginWith: BasicLoginOptions & ExternalProviders;
     userAttributes?: AuthUserAttribute[];
     multifactor?: MFA;
 };
@@ -101,8 +101,8 @@ export type EmailLogin = true | {
 };
 
 // @public
-export type ExternalAuthProviders = {
-    externalAuthProviders?: {
+export type ExternalProviders = {
+    externalProviders?: {
         google?: Omit<aws_cognito.UserPoolIdentityProviderGoogleProps, 'userPool'>;
         facebook?: Omit<aws_cognito.UserPoolIdentityProviderFacebookProps, 'userPool'>;
         amazon?: Omit<aws_cognito.UserPoolIdentityProviderAmazonProps, 'userPool'>;
