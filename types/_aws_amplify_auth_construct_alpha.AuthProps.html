@@ -16,22 +16,27 @@
 <li><a href="../modules/_aws_amplify_auth_construct_alpha.html">@aws-amplify/auth-construct-alpha</a></li>
 <li><a href="_aws_amplify_auth_construct_alpha.AuthProps.html">AuthProps</a></li></ul>
 <h1>Type alias AuthProps</h1></div>
-<div class="tsd-signature"><span class="tsd-kind-type-alias">Auth<wbr/>Props</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">loginWith</span><span class="tsd-signature-symbol">: </span><a href="_aws_amplify_auth_construct_alpha.BasicLoginOptions.html" class="tsd-signature-type tsd-kind-type-alias">BasicLoginOptions</a><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">userAttributes</span><span class="tsd-signature-symbol">?: </span><a href="_aws_amplify_auth_construct_alpha.AuthUserAttribute.html" class="tsd-signature-type tsd-kind-type-alias">AuthUserAttribute</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></div>
-<div class="tsd-comment tsd-typography"><p>Input props for the AmplifyAuth construct.</p>
+<div class="tsd-signature"><span class="tsd-kind-type-alias">Auth<wbr/>Props</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">loginWith</span><span class="tsd-signature-symbol">: </span><a href="_aws_amplify_auth_construct_alpha.BasicLoginOptions.html" class="tsd-signature-type tsd-kind-type-alias">BasicLoginOptions</a><span class="tsd-signature-symbol"> &amp; </span><a href="_aws_amplify_auth_construct_alpha.ExternalProviders.html" class="tsd-signature-type tsd-kind-type-alias">ExternalProviders</a><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">multifactor</span><span class="tsd-signature-symbol">?: </span><a href="_aws_amplify_auth_construct_alpha.MFA.html" class="tsd-signature-type tsd-kind-type-alias">MFA</a><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">userAttributes</span><span class="tsd-signature-symbol">?: </span><a href="_aws_amplify_auth_construct_alpha.AuthUserAttribute.html" class="tsd-signature-type tsd-kind-type-alias">AuthUserAttribute</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></div>
+<div class="tsd-comment tsd-typography"><p>Input props for the AmplifyAuth construct</p>
 </div>
 <div class="tsd-type-declaration">
 <h4>Type declaration</h4>
 <ul class="tsd-parameters">
 <li class="tsd-parameter">
-<h5><span class="tsd-kind-property">login<wbr/>With</span><span class="tsd-signature-symbol">: </span><a href="_aws_amplify_auth_construct_alpha.BasicLoginOptions.html" class="tsd-signature-type tsd-kind-type-alias">BasicLoginOptions</a></h5></li>
+<h5><span class="tsd-kind-property">login<wbr/>With</span><span class="tsd-signature-symbol">: </span><a href="_aws_amplify_auth_construct_alpha.BasicLoginOptions.html" class="tsd-signature-type tsd-kind-type-alias">BasicLoginOptions</a><span class="tsd-signature-symbol"> &amp; </span><a href="_aws_amplify_auth_construct_alpha.ExternalProviders.html" class="tsd-signature-type tsd-kind-type-alias">ExternalProviders</a></h5></li>
+<li class="tsd-parameter">
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-property">multifactor</span><span class="tsd-signature-symbol">?: </span><a href="_aws_amplify_auth_construct_alpha.MFA.html" class="tsd-signature-type tsd-kind-type-alias">MFA</a></h5>
+<div class="tsd-comment tsd-typography"><p>Multifactor Authentication settings</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li>
 <li class="tsd-parameter">
 <h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-property">user<wbr/>Attributes</span><span class="tsd-signature-symbol">?: </span><a href="_aws_amplify_auth_construct_alpha.AuthUserAttribute.html" class="tsd-signature-type tsd-kind-type-alias">AuthUserAttribute</a><span class="tsd-signature-symbol">[]</span></h5>
-<div class="tsd-comment tsd-typography"><p>Additional settings.</p>
+<div class="tsd-comment tsd-typography"><p>Additional settings</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></li></ul></div>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/4f3c171/packages/auth-construct/src/types.ts#L43">packages/auth-construct/src/types.ts:43</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/f201c94/packages/auth-construct/src/types.ts#L73">packages/auth-construct/src/types.ts:73</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

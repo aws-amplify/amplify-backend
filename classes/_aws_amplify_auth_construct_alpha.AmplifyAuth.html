@@ -32,7 +32,7 @@
 <li><a href="../types/_aws_amplify_plugin_types.BackendOutputWriter.html" class="tsd-signature-type tsd-kind-type-alias">BackendOutputWriter</a></li>
 <li><a href="../types/_aws_amplify_plugin_types.ResourceProvider.html" class="tsd-signature-type tsd-kind-type-alias">ResourceProvider</a><span class="tsd-signature-symbol">&lt;</span><a href="../types/_aws_amplify_plugin_types.AuthResources.html" class="tsd-signature-type tsd-kind-type-alias">AuthResources</a><span class="tsd-signature-symbol">&gt;</span></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/4f3c171/packages/auth-construct/src/construct.ts#L31">packages/auth-construct/src/construct.ts:31</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/f201c94/packages/auth-construct/src/construct.ts#L53">packages/auth-construct/src/construct.ts:53</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -45,15 +45,18 @@
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading">Properties</h3>
 <div class="tsd-index-list"><a href="_aws_amplify_auth_construct_alpha.AmplifyAuth.html#node" class="tsd-index-link tsd-is-inherited tsd-is-external"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>node</span></a>
+<a href="_aws_amplify_auth_construct_alpha.AmplifyAuth.html#oauthMappings" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>oauth<wbr/>Mappings</span></a>
 <a href="_aws_amplify_auth_construct_alpha.AmplifyAuth.html#resources" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>resources</span></a>
 <a href="_aws_amplify_auth_construct_alpha.AmplifyAuth.html#attribute" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>attribute</span></a>
 <a href="_aws_amplify_auth_construct_alpha.AmplifyAuth.html#customAttribute" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>custom<wbr/>Attribute</span></a>
 </div></section>
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading">Methods</h3>
-<div class="tsd-index-list"><a href="_aws_amplify_auth_construct_alpha.AmplifyAuth.html#getUserPoolProps" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>get<wbr/>User<wbr/>Pool<wbr/>Props</span></a>
+<div class="tsd-index-list"><a href="_aws_amplify_auth_construct_alpha.AmplifyAuth.html#getMFAEnforcementType" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>getMFAEnforcement<wbr/>Type</span></a>
+<a href="_aws_amplify_auth_construct_alpha.AmplifyAuth.html#getUserPoolProps" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>get<wbr/>User<wbr/>Pool<wbr/>Props</span></a>
 <a href="_aws_amplify_auth_construct_alpha.AmplifyAuth.html#setupAuthAndUnAuthRoles" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>setup<wbr/>Auth<wbr/>And<wbr/>Un<wbr/>Auth<wbr/>Roles</span></a>
 <a href="_aws_amplify_auth_construct_alpha.AmplifyAuth.html#setupIdentityPool" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>setup<wbr/>Identity<wbr/>Pool</span></a>
+<a href="_aws_amplify_auth_construct_alpha.AmplifyAuth.html#setupIdentityProviders" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>setup<wbr/>Identity<wbr/>Providers</span></a>
 <a href="_aws_amplify_auth_construct_alpha.AmplifyAuth.html#storeOutput" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>store<wbr/>Output</span></a>
 <a href="_aws_amplify_auth_construct_alpha.AmplifyAuth.html#toString" class="tsd-index-link tsd-is-inherited tsd-is-external"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>to<wbr/>String</span></a>
 <a href="_aws_amplify_auth_construct_alpha.AmplifyAuth.html#isConstruct" class="tsd-index-link tsd-is-inherited tsd-is-external"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>is<wbr/>Construct</span></a>
@@ -81,7 +84,7 @@ If no props are provided, email login and defaults will be used.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Overrides Construct.constructor</p>
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/4f3c171/packages/auth-construct/src/construct.ts#L43">packages/auth-construct/src/construct.ts:43</a></li></ul></aside></li></ul></section></section>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/f201c94/packages/auth-construct/src/construct.ts#L69">packages/auth-construct/src/construct.ts:69</a></li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Properties</h2>
 <section class="tsd-panel tsd-member tsd-is-inherited tsd-is-external"><a id="node" class="tsd-anchor"></a>
@@ -93,6 +96,14 @@ If no props are provided, email login and defaults will be used.</p>
 <p>Inherited from Construct.node</p>
 <ul>
 <li>Defined in node_modules/constructs/lib/construct.d.ts:256</li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-is-private"><a id="oauthMappings" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>oauth<wbr/>Mappings</span><a href="#oauthMappings" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">oauth<wbr/>Mappings</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type ">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></div>
+<div class="tsd-comment tsd-typography"><p>Map from oauth provider to client id</p>
+</div>
+<div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/f201c94/packages/auth-construct/src/construct.ts#L64">packages/auth-construct/src/construct.ts:64</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member"><a id="resources" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagReadonly">Readonly</code> <span>resources</span><a href="#resources" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">resources</span><span class="tsd-signature-symbol">:</span> <a href="../types/_aws_amplify_plugin_types.AuthResources.html" class="tsd-signature-type tsd-kind-type-alias">AuthResources</a></div>
@@ -101,7 +112,7 @@ If no props are provided, email login and defaults will be used.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Implementation of ResourceProvider.resources</p>
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/4f3c171/packages/auth-construct/src/construct.ts#L38">packages/auth-construct/src/construct.ts:38</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/f201c94/packages/auth-construct/src/construct.ts#L60">packages/auth-construct/src/construct.ts:60</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member"><a id="attribute" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>attribute</span><a href="#attribute" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">attribute</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">name</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><a href="_aws_amplify_auth_construct_alpha.AuthStandardAttribute.html" class="tsd-signature-type tsd-kind-class">AuthStandardAttribute</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> = AuthAttributeFactory</span></div>
@@ -126,7 +137,7 @@ userAttributes: [
 <h4 class="tsd-returns-title">Returns <a href="_aws_amplify_auth_construct_alpha.AuthStandardAttribute.html" class="tsd-signature-type tsd-kind-class">AuthStandardAttribute</a></h4>
 <div class="tsd-comment tsd-typography"></div></li></ul></li></ul></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/4f3c171/packages/auth-construct/src/construct.ts#L266">packages/auth-construct/src/construct.ts:266</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/f201c94/packages/auth-construct/src/construct.ts#L444">packages/auth-construct/src/construct.ts:444</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member"><a id="customAttribute" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>custom<wbr/>Attribute</span><a href="#customAttribute" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">custom<wbr/>Attribute</span><span class="tsd-signature-symbol">:</span> <a href="_aws_amplify_auth_construct_alpha.AuthCustomAttributeFactory.html" class="tsd-signature-type tsd-kind-class">AuthCustomAttributeFactory</a><span class="tsd-signature-symbol"> = ...</span></div>
@@ -138,9 +149,30 @@ userAttributes: [
 </div>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/4f3c171/packages/auth-construct/src/construct.ts#L275">packages/auth-construct/src/construct.ts:275</a></li></ul></aside></section></section>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/f201c94/packages/auth-construct/src/construct.ts#L453">packages/auth-construct/src/construct.ts:453</a></li></ul></aside></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Methods</h2>
+<section class="tsd-panel tsd-member tsd-is-private"><a id="getMFAEnforcementType" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>getMFAEnforcement<wbr/>Type</span><a href="#getMFAEnforcementType" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-is-private">
+<li class="tsd-signature tsd-anchor-link" id="getMFAEnforcementType.getMFAEnforcementType-1"><span class="tsd-kind-call-signature">getMFAEnforcement<wbr/>Type</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">mfa</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Mfa</span><a href="#getMFAEnforcementType.getMFAEnforcementType-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Convert user friendly Mfa type to cognito Mfa type.
+This eliminates the need for users to import cognito.Mfa.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5><span class="tsd-kind-parameter">mfa</span>: <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="../types/_aws_amplify_auth_construct_alpha.MFA.html" class="tsd-signature-type tsd-kind-type-alias">MFA</a></h5>
+<div class="tsd-comment tsd-typography"><p>MFA Enforcement type string value</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Mfa</span></h4><p>cognito MFA enforcement type</p>
+
+<div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/f201c94/packages/auth-construct/src/construct.ts#L312">packages/auth-construct/src/construct.ts:312</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="getUserPoolProps" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>get<wbr/>User<wbr/>Pool<wbr/>Props</span><a href="#getUserPoolProps" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-private">
@@ -160,7 +192,7 @@ userAttributes: [
 
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/4f3c171/packages/auth-construct/src/construct.ts#L159">packages/auth-construct/src/construct.ts:159</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/f201c94/packages/auth-construct/src/construct.ts#L212">packages/auth-construct/src/construct.ts:212</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="setupAuthAndUnAuthRoles" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>setup<wbr/>Auth<wbr/>And<wbr/>Un<wbr/>Auth<wbr/>Roles</span><a href="#setupAuthAndUnAuthRoles" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-private">
@@ -172,11 +204,11 @@ userAttributes: [
 
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/4f3c171/packages/auth-construct/src/construct.ts#L92">packages/auth-construct/src/construct.ts:92</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/f201c94/packages/auth-construct/src/construct.ts#L126">packages/auth-construct/src/construct.ts:126</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="setupIdentityPool" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>setup<wbr/>Identity<wbr/>Pool</span><a href="#setupIdentityPool" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-private">
-<li class="tsd-signature tsd-anchor-link" id="setupIdentityPool.setupIdentityPool-1"><span class="tsd-kind-call-signature">setup<wbr/>Identity<wbr/>Pool</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">roles</span>, <span class="tsd-kind-parameter">userPool</span>, <span class="tsd-kind-parameter">userPoolClient</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">identityPool</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">CfnIdentityPool</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">identityPoolRoleAttachment</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">CfnIdentityPoolRoleAttachment</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><a href="#setupIdentityPool.setupIdentityPool-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="setupIdentityPool.setupIdentityPool-1"><span class="tsd-kind-call-signature">setup<wbr/>Identity<wbr/>Pool</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">roles</span>, <span class="tsd-kind-parameter">userPool</span>, <span class="tsd-kind-parameter">userPoolClient</span>, <span class="tsd-kind-parameter">providerSetupResult</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">identityPool</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">CfnIdentityPool</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">identityPoolRoleAttachment</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">CfnIdentityPoolRoleAttachment</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><a href="#setupIdentityPool.setupIdentityPool-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Setup Identity Pool with default roles/role mappings, and register providers</p>
 </div>
@@ -197,7 +229,9 @@ userAttributes: [
 <h5><span class="tsd-kind-parameter">userPoolClient</span>: <span class="tsd-signature-type ">UserPoolClient</span></h5>
 <div class="tsd-comment tsd-typography"><p>UserPoolClient</p>
 </div>
-<div class="tsd-comment tsd-typography"></div></li></ul></div>
+<div class="tsd-comment tsd-typography"></div></li>
+<li>
+<h5><span class="tsd-kind-parameter">providerSetupResult</span>: <span class="tsd-signature-type ">IdentityProviderSetupResult</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">identityPool</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">CfnIdentityPool</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">identityPoolRoleAttachment</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">CfnIdentityPoolRoleAttachment</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></h4>
 <ul class="tsd-parameters">
 <li class="tsd-parameter">
@@ -206,7 +240,32 @@ userAttributes: [
 <h5><span class="tsd-kind-property">identity<wbr/>Pool<wbr/>Role<wbr/>Attachment</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">CfnIdentityPoolRoleAttachment</span></h5></li></ul>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/4f3c171/packages/auth-construct/src/construct.ts#L110">packages/auth-construct/src/construct.ts:110</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/f201c94/packages/auth-construct/src/construct.ts#L144">packages/auth-construct/src/construct.ts:144</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-is-private"><a id="setupIdentityProviders" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>setup<wbr/>Identity<wbr/>Providers</span><a href="#setupIdentityProviders" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-is-private">
+<li class="tsd-signature tsd-anchor-link" id="setupIdentityProviders.setupIdentityProviders-1"><span class="tsd-kind-call-signature">setup<wbr/>Identity<wbr/>Providers</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">userPool</span>, <span class="tsd-kind-parameter">loginOptions</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">IdentityProviderSetupResult</span><a href="#setupIdentityProviders.setupIdentityProviders-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Setup Identity Providers (OAuth/OIDC/SAML)</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5><span class="tsd-kind-parameter">userPool</span>: <span class="tsd-signature-type ">UserPool</span></h5>
+<div class="tsd-comment tsd-typography"><p>UserPool</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li>
+<li>
+<h5><span class="tsd-kind-parameter">loginOptions</span>: <span class="tsd-signature-type">Object</span></h5>
+<div class="tsd-comment tsd-typography"><p>AmplifyAuthProps[&#39;loginOptions&#39;]</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">IdentityProviderSetupResult</span></h4><p>IDPSetupResult</p>
+
+<div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/f201c94/packages/auth-construct/src/construct.ts#L334">packages/auth-construct/src/construct.ts:334</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="storeOutput" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>store<wbr/>Output</span><a href="#storeOutput" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -218,12 +277,12 @@ userAttributes: [
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5><span class="tsd-kind-parameter">outputStorageStrategy</span>: <a href="../types/_aws_amplify_plugin_types.BackendOutputStorageStrategy.html" class="tsd-signature-type tsd-kind-type-alias">BackendOutputStorageStrategy</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">payload</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span><br/><span>        </span><span class="tsd-kind-property">authRegion</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span>        </span><span class="tsd-kind-property">identityPoolId</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span>        </span><span class="tsd-kind-property">userPoolId</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span>        </span><span class="tsd-kind-property">webClientId</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">version</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;1&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span></h5></li></ul></div>
+<h5><span class="tsd-kind-parameter">outputStorageStrategy</span>: <a href="../types/_aws_amplify_plugin_types.BackendOutputStorageStrategy.html" class="tsd-signature-type tsd-kind-type-alias">BackendOutputStorageStrategy</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">payload</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span><br/><span>        </span><span class="tsd-kind-property">amazonClientId</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span>        </span><span class="tsd-kind-property">appleClientId</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span>        </span><span class="tsd-kind-property">authRegion</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span>        </span><span class="tsd-kind-property">facebookClientId</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span>        </span><span class="tsd-kind-property">googleClientId</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span>        </span><span class="tsd-kind-property">identityPoolId</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span>        </span><span class="tsd-kind-property">userPoolId</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span>        </span><span class="tsd-kind-property">webClientId</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">version</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;1&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Implementation of BackendOutputWriter.storeOutput</p>
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/4f3c171/packages/auth-construct/src/construct.ts#L244">packages/auth-construct/src/construct.ts:244</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/f201c94/packages/auth-construct/src/construct.ts#L409">packages/auth-construct/src/construct.ts:409</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited tsd-is-external"><a id="toString" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>to<wbr/>String</span><a href="#toString" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited tsd-is-external">
@@ -290,12 +349,15 @@ this type-testing method instead.</p>
 <ul>
 <li><a href="#constructor" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-512"></use></svg><span>constructor</span></a></li>
 <li><a href="#node" class="tsd-is-inherited tsd-is-external"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>node</span></a></li>
+<li><a href="#oauthMappings" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>oauth<wbr/>Mappings</span></a></li>
 <li><a href="#resources" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>resources</span></a></li>
 <li><a href="#attribute" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>attribute</span></a></li>
 <li><a href="#customAttribute" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>custom<wbr/>Attribute</span></a></li>
+<li><a href="#getMFAEnforcementType" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>getMFAEnforcement<wbr/>Type</span></a></li>
 <li><a href="#getUserPoolProps" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>get<wbr/>User<wbr/>Pool<wbr/>Props</span></a></li>
 <li><a href="#setupAuthAndUnAuthRoles" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>setup<wbr/>Auth<wbr/>And<wbr/>Un<wbr/>Auth<wbr/>Roles</span></a></li>
 <li><a href="#setupIdentityPool" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>setup<wbr/>Identity<wbr/>Pool</span></a></li>
+<li><a href="#setupIdentityProviders" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>setup<wbr/>Identity<wbr/>Providers</span></a></li>
 <li><a href="#storeOutput" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>store<wbr/>Output</span></a></li>
 <li><a href="#toString" class="tsd-is-inherited tsd-is-external"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>to<wbr/>String</span></a></li>
 <li><a href="#isConstruct" class="tsd-is-inherited tsd-is-external"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>is<wbr/>Construct</span></a></li></ul></div></details></div>
