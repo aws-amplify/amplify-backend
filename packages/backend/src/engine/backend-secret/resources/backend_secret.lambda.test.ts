@@ -4,22 +4,16 @@ import { handleCreateUpdateEvent, handler } from './backend_secret.lambda.js';
 import {
   CloudFormationCustomResourceEvent,
   CloudFormationCustomResourceSuccessResponse,
-  Context,
 } from 'aws-lambda';
-import {
-  Secret,
-  SecretClient,
-  SecretClientError,
-  SecretServerError,
-} from '@aws-amplify/client-config';
+import { Secret, SecretClient, SecretError } from '@aws-amplify/backend-secret';
 
 const customResourceEventCommon = {
   ServiceToken: 'mockServiceToken',
   ResponseURL: 'mockPreSignedS3Url',
   StackId: 'mockStackId',
-  RequestId: '2c85efd1-56c2-4f20-93d5-68b5a1cdc50b',
-  LogicalResourceId: 'testresource',
-  PhysicalResourceId: '761de17c-3bf6-4d6f-a1e4-e6d472e7d167',
+  RequestId: '123',
+  LogicalResourceId: 'logicalId',
+  PhysicalResourceId: 'physicalId',
   ResourceType: 'AWS::CloudFormation::CustomResource',
   ResourceProperties: {
     backendId: 'testBackendId',
@@ -57,8 +51,8 @@ describe('handle', () => {
 
 describe('handleCreateUpdateEvent', () => {
   const secretHandler: Secret = SecretClient();
-  const serverErr = new SecretServerError('server error');
-  const clientErr = new SecretClientError('client err');
+  const serverErr = new SecretError('server error', { httpStatusCode: 500 });
+  const clientErr = new SecretError('client error', { httpStatusCode: 400 });
 
   it('gets a backend secret from a branch', async () => {
     mock.method(secretHandler, 'getSecret', () => Promise.resolve('val'));
@@ -66,7 +60,7 @@ describe('handleCreateUpdateEvent', () => {
     assert.equal(val, 'val');
   });
 
-  it('throws if receving server error when getting a branch secret', async () => {
+  it('throws if receiving server error when getting a branch secret', async () => {
     mock.method(secretHandler, 'getSecret', () => Promise.reject(serverErr));
     await assert.rejects(() =>
       handleCreateUpdateEvent(secretHandler, createCfnEvent)
@@ -103,7 +97,7 @@ describe('handleCreateUpdateEvent', () => {
     assert.equal(val, 'val');
   });
 
-  it('throws if receving server error when getting branch secret', async () => {
+  it('throws if receiving server error when getting branch secret', async () => {
     mock.method(
       secretHandler,
       'getSecret',

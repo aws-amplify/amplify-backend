@@ -8,9 +8,9 @@ import { Construct } from 'constructs';
 import { SecretValue } from 'aws-cdk-lib';
 
 /**
- * DeepBackendSecretResolver deeply traverses the input object and resolves all BackendSecret instances.
+ * DefaultBackendSecretResolver deeply traverses the input object and resolves all BackendSecret instances.
  */
-export class DeepBackendSecretResolver implements BackendSecretResolver {
+export class DefaultBackendSecretResolver implements BackendSecretResolver {
   /**
    * Construct with context about the backend that is being deployed.
    * These values are used to resolve the correct underlying secret value
@@ -20,18 +20,18 @@ export class DeepBackendSecretResolver implements BackendSecretResolver {
     private readonly uniqueBackendIdentifier: UniqueBackendIdentifier
   ) {}
 
+  private isBackendSecret = (arg: unknown): arg is BackendSecret =>
+    !!arg &&
+    typeof arg === 'object' &&
+    'resolve' in arg &&
+    typeof arg.resolve === 'function';
+
   /**
    * Recursively traverses arg replacing any BackendSecret that it finds with the result of calling BackendSecret.resolve()
    * The output is a copy of the input with the necessary replacements made. The input is unchanged.
    */
   resolveSecrets = <T>(arg: T): Replace<T, BackendSecret, SecretValue> => {
-    const isBackendSecret = (arg: unknown): arg is BackendSecret =>
-      !!arg &&
-      typeof arg === 'object' &&
-      'resolve' in arg &&
-      typeof arg.resolve === 'function';
-
-    if (isBackendSecret(arg)) {
+    if (this.isBackendSecret(arg)) {
       return arg.resolve(this.scope, this.uniqueBackendIdentifier) as Replace<
         T,
         BackendSecret,

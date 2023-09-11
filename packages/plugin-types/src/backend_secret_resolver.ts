@@ -4,7 +4,7 @@ import { UniqueBackendIdentifier } from './unique_backend_identifier.js';
 
 export type BackendSecretResolver = {
   /**
-   * Returns a deep copy of props where any occurrance of BackendSecret are replaced
+   * Returns a deep copy of props where any occurrence of BackendSecret are replaced
    * by SecretValue type.
    */
   resolveSecrets: <T>(props: T) => Replace<T, BackendSecret, SecretValue>;

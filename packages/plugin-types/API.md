@@ -65,8 +65,8 @@ export type BackendSecret = {
 };
 
 // @public (undocumented)
-export type BackendParameterResolver = {
-    resolveParameters<T>(props: T): Replace<T, BackendParameter, SecretValue>;
+export type BackendSecretResolver = {
+    resolveSecrets: <T>(props: T) => Replace<T, BackendSecret, SecretValue>;
 };
 
 // @public
@@ -92,7 +92,7 @@ export type ConstructFactory<T = unknown> = {
 export type ConstructFactoryGetInstanceProps = {
     constructContainer: ConstructContainer;
     outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
-    backendParameterResolver: BackendParameterResolver;
+    backendSecretResolver: BackendSecretResolver;
     importPathVerifier?: ImportPathVerifier;
 };
 

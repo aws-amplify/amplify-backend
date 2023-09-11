@@ -3,7 +3,7 @@ import { AmplifyStorageFactory } from './factory.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import {
-  DeepBackendSecretResolver,
+  DefaultBackendSecretResolver,
   NestedStackResolver,
   SingletonConstructContainer,
   StackMetadataBackendOutputStorageStrategy,
@@ -42,7 +42,7 @@ describe('AmplifyStorageFactory', () => {
 
     importPathVerifier = new ToggleableImportPathVerifier(false);
 
-    backendSecretResolver = new DeepBackendSecretResolver(stack, {
+    backendSecretResolver = new DefaultBackendSecretResolver(stack, {
       backendId: 'testBackendId',
       branchName: 'testBranchName',
     });

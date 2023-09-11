@@ -5,7 +5,7 @@ import {
   NestedStackResolver,
   StackResolver,
 } from './engine/nested_stack_resolver.js';
-import { DeepBackendSecretResolver } from './engine/backend-secret/backend_secret_resolver.js';
+import { DefaultBackendSecretResolver } from './engine/backend-secret/backend_secret_resolver.js';
 import { SingletonConstructContainer } from './engine/singleton_construct_container.js';
 import { ToggleableImportPathVerifier } from './engine/toggleable_import_path_verifier.js';
 import { StackMetadataBackendOutputStorageStrategy } from './engine/stack_metadata_output_storage_strategy.js';
@@ -43,7 +43,7 @@ export class Backend<T extends Record<string, ConstructFactory<Construct>>> {
 
     const backendIdentifier = getUniqueBackendIdentifier(stack);
 
-    const backendSecretResolver = new DeepBackendSecretResolver(
+    const backendSecretResolver = new DefaultBackendSecretResolver(
       stack,
       backendIdentifier
     );

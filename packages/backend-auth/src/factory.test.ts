@@ -1,7 +1,7 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import { AmplifyAuthFactory } from './factory.js';
 import {
-  DeepBackendSecretResolver,
+  DefaultBackendSecretResolver,
   NestedStackResolver,
   SingletonConstructContainer,
   StackMetadataBackendOutputStorageStrategy,
@@ -43,7 +43,7 @@ describe('AmplifyAuthFactory', () => {
 
     importPathVerifier = new ToggleableImportPathVerifier(false);
 
-    backendSecretResolver = new DeepBackendSecretResolver(stack, {
+    backendSecretResolver = new DefaultBackendSecretResolver(stack, {
       backendId: 'testBackendId',
       branchName: 'testBranchName',
     });

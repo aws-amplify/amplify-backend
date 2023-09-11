@@ -3,7 +3,7 @@ import assert from 'node:assert';
 import { DataFactory } from './factory.js';
 import { App, Stack } from 'aws-cdk-lib';
 import {
-  DeepBackendSecretResolver,
+  DefaultBackendSecretResolver,
   NestedStackResolver,
   SingletonConstructContainer,
   StackMetadataBackendOutputStorageStrategy,
@@ -88,7 +88,7 @@ describe('DataFactory', () => {
     );
     importPathVerifier = new ToggleableImportPathVerifier(false);
 
-    backendSecretResolver = new DeepBackendSecretResolver(stack, {
+    backendSecretResolver = new DefaultBackendSecretResolver(stack, {
       backendId: 'testBackendId',
       branchName: 'testBranchName',
     });

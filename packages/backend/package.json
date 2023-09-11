@@ -22,7 +22,8 @@
     "update:api": "api-extractor run --local"
   },
   "dependencies": {
-    "@aws-amplify/backend-output-schemas": "^0.1.1-alpha.1"
+    "@aws-amplify/backend-output-schemas": "^0.1.1-alpha.1",
+    "@aws-amplify/backend-secret": "^0.1.0"
   },
   "peerDependencies": {
     "@aws-amplify/plugin-types": "^0.1.1-alpha.2",
@@ -31,8 +32,6 @@
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.119",
-    "@types/uuid": "^9.0.2",
-    "aws-lambda": "^1.0.7",
-    "uuid": "^9.0.0"
+    "aws-lambda": "^1.0.7"
   }
 }

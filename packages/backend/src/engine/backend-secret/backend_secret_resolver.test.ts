@@ -6,21 +6,21 @@ import {
   UniqueBackendIdentifier,
 } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
-import { DeepBackendSecretResolver } from './backend_secret_resolver.js';
+import { DefaultBackendSecretResolver } from './backend_secret_resolver.js';
 
-const unresolvableSecretName = 'errorSecretName';
+const invalidSecretName = 'errorSecretName';
 
 class TestBackendSecret implements BackendSecret {
   constructor(private readonly secretName: string) {}
   resolve = (): SecretValue => {
-    if (this.secretName === unresolvableSecretName) {
+    if (this.secretName === invalidSecretName) {
       throw new Error(`Failed to resolve!`);
     }
     return SecretValue.unsafePlainText(this.secretName);
   };
 }
 
-describe('BackendSecretResolverImpl', () => {
+describe('DefaultBackendSecretResolver', () => {
   it('throws if failed to resolve a secret', () => {
     const arg = {
       a: new TestBackendSecret('c1'),
@@ -28,13 +28,13 @@ describe('BackendSecretResolverImpl', () => {
       c: {
         c1: new TestBackendSecret('secret_C1'),
         c2: {
-          c21: new TestBackendSecret(unresolvableSecretName),
+          c21: new TestBackendSecret(invalidSecretName),
           c22: 123,
         },
         c3: 'c3',
       },
     };
-    const resolver = new DeepBackendSecretResolver(
+    const resolver = new DefaultBackendSecretResolver(
       {} as Construct,
       {} as UniqueBackendIdentifier
     );
@@ -66,7 +66,7 @@ describe('BackendSecretResolverImpl', () => {
       ],
     };
 
-    const resolver = new DeepBackendSecretResolver(
+    const resolver = new DefaultBackendSecretResolver(
       {} as Construct,
       {} as UniqueBackendIdentifier
     );

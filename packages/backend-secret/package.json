@@ -1,0 +1,27 @@
+{
+  "name": "@aws-amplify/backend-secret",
+  "version": "0.1.0",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "import": "./lib/index.js",
+      "require": "./lib/index.js"
+    }
+  },
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "update:api": "api-extractor run --local"
+  },
+  "dependencies": {
+    "@aws-amplify/plugin-types": "^0.1.1-alpha.0",
+    "@aws-sdk/client-ssm": "^3.398.0",
+    "aws-cdk-lib": "~2.80.0"
+  },
+  "devDependencies": {
+    "@aws-sdk/types": "^3.370.0"
+  }
+}

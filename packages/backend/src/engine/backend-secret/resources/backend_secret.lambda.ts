@@ -1,20 +1,17 @@
 import {
   CloudFormationCustomResourceEvent,
   CloudFormationCustomResourceSuccessResponse,
-  Context,
 } from 'aws-lambda';
-import { v4 as uuidv4 } from 'uuid';
-import {
-  Secret,
-  SecretClient,
-  SecretServerError,
-} from '@aws-amplify/client-config';
+import { Secret, SecretClient, SecretError } from '@aws-amplify/backend-secret';
+import { randomUUID } from 'node:crypto';
 
 type SecretResourceProps = {
   backendId: string;
   branchName: string;
   secretName: string;
-}
+};
+
+const secretClient = SecretClient();
 
 /**
  * Entry point for the lambda-backend custom resource to retrieve a backend secret.
@@ -24,10 +21,9 @@ export const handler = async (
 ): Promise<CloudFormationCustomResourceSuccessResponse> => {
   console.info(`Received '${event.RequestType}' event`);
 
-  const secretClient = SecretClient();
   const physicalId =
-    event.RequestType === 'Create' ? uuidv4() : event.PhysicalResourceId;
-  let data: { [key: string]: string } | undefined = undefined;
+    event.RequestType === 'Create' ? randomUUID() : event.PhysicalResourceId;
+  let data: { secretValue: string } | undefined = undefined;
   if (event.RequestType === 'Update' || event.RequestType === 'Create') {
     const val = await handleCreateUpdateEvent(secretClient, event);
     data = {
@@ -58,12 +54,15 @@ export const handleCreateUpdateEvent = async (
 
   try {
     secret = await secretClient.getSecret(
-      props.backendId,
-      props.secretName,
-      props.branchName
+      {
+        backendId: props.backendId,
+        branchName: props.branchName,
+      },
+      props.secretName
     );
   } catch (err) {
-    if (err instanceof SecretServerError) {
+    const secretErr = err as SecretError;
+    if (secretErr.httpStatusCode && secretErr.httpStatusCode >= 500) {
       throw new Error(
         `Failed to retrieve backend secret '${props.secretName}' for '${
           props.backendId
