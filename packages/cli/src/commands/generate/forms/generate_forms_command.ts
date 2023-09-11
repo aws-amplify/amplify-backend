@@ -67,6 +67,30 @@ export class GenerateFormsCommand
       throw new TypeError('AppSync api schema url must be defined');
     }
 
+    const getAppDescription = (
+      backendIdentifier: BackendIdentifier
+    ): { appId: string; environmentName: string } => {
+      if ('stackName' in backendIdentifier) {
+        return {
+          appId: backendIdentifier.stackName,
+          environmentName: 'sandbox',
+        };
+      } else if ('backendId' in backendIdentifier) {
+        return {
+          appId: backendIdentifier.backendId,
+          environmentName: backendIdentifier.branchName,
+        };
+      } else {
+        return {
+          appId: backendIdentifier.appName,
+          environmentName: backendIdentifier.branchName,
+        };
+      }
+    };
+
+    const { appId, environmentName } = getAppDescription(backendIdentifier);
+
+    this.log(`Generating code for App: ${appId}`);
     const graphqlClientGenerator = createGraphqlDocumentGenerator({ apiId });
     this.log('Generating GraphQL Client');
     await graphqlClientGenerator.generateModels({
@@ -77,9 +101,9 @@ export class GenerateFormsCommand
     this.log('Generating React forms');
     const localFormGenerator = createFormGenerator('graphql', {
       /* eslint-disable-next-line spellcheck/spell-checker */
-      appId: 'a-fake-app-id',
+      appId,
       apiId,
-      environmentName: 'staging',
+      environmentName,
       introspectionSchemaUrl: apiUrl,
     });
     const result = await localFormGenerator.generateForms();
@@ -87,7 +111,7 @@ export class GenerateFormsCommand
     this.log('React forms successfully generated');
   };
 
-  private log = (message: string) => {
+  private log = (message: unknown) => {
     /* eslint-disable-next-line no-console */
     console.log('[Codegen]\t', message);
   };
