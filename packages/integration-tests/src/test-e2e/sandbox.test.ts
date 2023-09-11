@@ -37,11 +37,26 @@ describe('sandbox', () => {
 
   const testProjects = [
     {
+      name: 'basic-auth-data-storage-function',
       initialAmplifyDirPath: new URL(
         '../../test-projects/basic-auth-data-storage-function/amplify',
         import.meta.url
       ),
-      name: 'basic-auth-data-storage-function',
+      assertions: async () => {
+        const { default: clientConfig } = await import(
+          path.join(testProjectRoot, 'amplifyconfiguration.js')
+        );
+        assert.deepStrictEqual(Object.keys(clientConfig).sort(), [
+          'aws_appsync_authenticationType',
+          'aws_appsync_graphqlEndpoint',
+          'aws_appsync_region',
+          'aws_cognito_region',
+          'aws_user_files_s3_bucket',
+          'aws_user_files_s3_bucket_region',
+          'aws_user_pools_id',
+          'aws_user_pools_web_client_id',
+        ]);
+      },
     },
   ];
 
@@ -57,19 +72,7 @@ describe('sandbox', () => {
         .do(rejectCleanupSandbox)
         .run();
 
-      const { default: clientConfig } = await import(
-        path.join(testProjectRoot, 'amplifyconfiguration.js')
-      );
-      assert.deepStrictEqual(Object.keys(clientConfig).sort(), [
-        'aws_appsync_authenticationType',
-        'aws_appsync_graphqlEndpoint',
-        'aws_appsync_region',
-        'aws_cognito_region',
-        'aws_user_files_s3_bucket',
-        'aws_user_files_s3_bucket_region',
-        'aws_user_pools_id',
-        'aws_user_pools_web_client_id',
-      ]);
+      await testProject.assertions();
     });
   });
 });
