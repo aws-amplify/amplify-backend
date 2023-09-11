@@ -78,9 +78,9 @@ export class CDKDeployer implements BackendDeployer {
     if (uniqueBackendIdentifier) {
       cdkCommandArgs.push(
         '--context',
-        `backend-id=${uniqueBackendIdentifier.backendId as string}`,
+        `backend-id=${uniqueBackendIdentifier.backendId}`,
         '--context',
-        `branch-name=${uniqueBackendIdentifier.branchName as string}`
+        `branch-name=${uniqueBackendIdentifier.branchName}`
       );
     }
 

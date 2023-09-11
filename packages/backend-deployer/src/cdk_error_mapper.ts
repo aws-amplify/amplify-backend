@@ -14,12 +14,12 @@ export class CdkErrorMapper {
     {
       errorRegex: /Access Denied/,
       humanReadableError:
-        '[AccessDenied]: The service role linked to this branch does not have sufficient permissions to perform this deployment. Configure the service role in the settings for this branch.',
+        '[AccessDenied]: The deployment role does not have sufficient permissions to perform this deployment.',
     },
     {
       errorRegex: /Has the environment been bootstrapped/,
       humanReadableError:
-        '[BootstrapFailure]: This AWS account is not bootstrapped. Run `cdk bootstrap aws://{YOUR_ACCOUNT_ID}/{YOUR_REGION}` locally to resolve this.',
+        '[BootstrapFailure]: This AWS account and region has not been bootstrapped. Run `cdk bootstrap aws://{YOUR_ACCOUNT_ID}/{YOUR_REGION}` locally to resolve this.',
     },
     {
       // the backend entry point file is referenced in the stack indicating a problem in customer code
