@@ -25,7 +25,7 @@ type ModelData = {
 type InternalModelData = ModelData & {
   fields: InternalModelFields;
   identifier: string[];
-  // TODO: Might not actually need an internal version of this type ... TBD.
+  // TODO: change back to `Authorization<any, any>[]` after defineData change.
   authorization: any;
 };
 
