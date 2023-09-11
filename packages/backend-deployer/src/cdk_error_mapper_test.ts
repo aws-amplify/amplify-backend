@@ -28,7 +28,7 @@ const testErrorMappings = [
   {
     errorMessage: 'amplify/backend.ts',
     expectedRegex: new RegExp(
-      '\\[SynthError\\]: Unable to parse CDK code. Check your backend definition in the `amplify` folder.'
+      '\\[SynthError\\]: Unable to build Amplify backend. Check your backend definition in the `amplify` folder.'
     ),
   },
   {
