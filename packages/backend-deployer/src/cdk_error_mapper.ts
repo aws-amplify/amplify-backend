@@ -25,7 +25,7 @@ export class CdkErrorMapper {
       // the backend entry point file is referenced in the stack indicating a problem in customer code
       errorRegex: /amplify\/backend.ts/,
       humanReadableError:
-        '[SynthError]: Unable to parse CDK code. Check your backend definition in the `amplify` folder.',
+        '[SynthError]: Unable to build Amplify backend. Check your backend definition in the `amplify` folder.',
     },
     {
       errorRegex: /ROLLBACK_(COMPLETE|FAILED)/,
