@@ -187,7 +187,7 @@ export const schemaPreprocessor = <T extends ModelSchemaParamShape>(
     const [partitionKey] = identifier;
 
     const { authString, authFields } =
-      calculateAuth((modelDef as any).data.authorization) || {};
+      calculateAuth(modelDef.data.authorization) || {};
 
     // process model and fields
     for (const [fieldName, fieldDef] of Object.entries({
