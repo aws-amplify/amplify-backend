@@ -152,7 +152,8 @@
        ]
       }
      }
-    ]
+    ],
+    "SupportedLoginProviders": {}
    }
   },
   "amplifyAuthIdentityPoolRoleAttachment045F17C8": {

@@ -59,17 +59,29 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             userPoolId: z.ZodString;
             webClientId: z.ZodString;
             identityPoolId: z.ZodString;
+            amazonClientId: z.ZodOptional<z.ZodString>;
+            appleClientId: z.ZodOptional<z.ZodString>;
+            facebookClientId: z.ZodOptional<z.ZodString>;
+            googleClientId: z.ZodOptional<z.ZodString>;
             authRegion: z.ZodString;
         }, "strip", z.ZodTypeAny, {
             userPoolId: string;
             webClientId: string;
             identityPoolId: string;
             authRegion: string;
+            amazonClientId?: string | undefined;
+            appleClientId?: string | undefined;
+            facebookClientId?: string | undefined;
+            googleClientId?: string | undefined;
         }, {
             userPoolId: string;
             webClientId: string;
             identityPoolId: string;
             authRegion: string;
+            amazonClientId?: string | undefined;
+            appleClientId?: string | undefined;
+            facebookClientId?: string | undefined;
+            googleClientId?: string | undefined;
         }>;
     }, "strip", z.ZodTypeAny, {
         version: "1";
@@ -78,6 +90,10 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             webClientId: string;
             identityPoolId: string;
             authRegion: string;
+            amazonClientId?: string | undefined;
+            appleClientId?: string | undefined;
+            facebookClientId?: string | undefined;
+            googleClientId?: string | undefined;
         };
     }, {
         version: "1";
@@ -86,6 +102,10 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             webClientId: string;
             identityPoolId: string;
             authRegion: string;
+            amazonClientId?: string | undefined;
+            appleClientId?: string | undefined;
+            facebookClientId?: string | undefined;
+            googleClientId?: string | undefined;
         };
     }>]>>;
     graphqlOutput: z.ZodOptional<z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
@@ -161,6 +181,10 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             webClientId: string;
             identityPoolId: string;
             authRegion: string;
+            amazonClientId?: string | undefined;
+            appleClientId?: string | undefined;
+            facebookClientId?: string | undefined;
+            googleClientId?: string | undefined;
         };
     } | undefined;
     graphqlOutput?: {
@@ -188,6 +212,10 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             webClientId: string;
             identityPoolId: string;
             authRegion: string;
+            amazonClientId?: string | undefined;
+            appleClientId?: string | undefined;
+            facebookClientId?: string | undefined;
+            googleClientId?: string | undefined;
         };
     } | undefined;
     graphqlOutput?: {

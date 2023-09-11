@@ -6,6 +6,10 @@ export const authOutputSchema = z.object({
     userPoolId: z.string(),
     webClientId: z.string(),
     identityPoolId: z.string(),
+    amazonClientId: z.optional(z.string()),
+    appleClientId: z.optional(z.string()),
+    facebookClientId: z.optional(z.string()),
+    googleClientId: z.optional(z.string()),
     authRegion: z.string(),
   }),
 });
