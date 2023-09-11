@@ -5,6 +5,7 @@ import {
   BackendDeployer,
   DeployProps,
 } from './cdk_deployer_singleton_factory.js';
+import { CdkErrorMapper } from './cdk_error_mapper.js';
 
 const relativeBackendEntryPoint = 'amplify/backend.ts';
 
@@ -20,6 +21,10 @@ enum InvokableCommand {
  * Invokes CDK command via execa
  */
 export class CDKDeployer implements BackendDeployer {
+  /**
+   * Instantiates instance of CDKDeployer
+   */
+  constructor(private readonly cdkErrorMapper: CdkErrorMapper) {}
   /**
    * Invokes cdk deploy command
    */
@@ -73,9 +78,9 @@ export class CDKDeployer implements BackendDeployer {
     if (uniqueBackendIdentifier) {
       cdkCommandArgs.push(
         '--context',
-        `backend-id=${uniqueBackendIdentifier.backendId}`,
+        `backend-id=${uniqueBackendIdentifier.backendId as string}`,
         '--context',
-        `branch-name=${uniqueBackendIdentifier.branchName}`
+        `branch-name=${uniqueBackendIdentifier.branchName as string}`
       );
     }
 
@@ -83,7 +88,11 @@ export class CDKDeployer implements BackendDeployer {
       cdkCommandArgs.push(...additionalArguments);
     }
 
-    await this.executeChildProcess('npx', cdkCommandArgs);
+    try {
+      await this.executeChildProcess('npx', cdkCommandArgs);
+    } catch (err) {
+      throw this.cdkErrorMapper.getHumanReadableError(err as Error);
+    }
   };
 
   /**

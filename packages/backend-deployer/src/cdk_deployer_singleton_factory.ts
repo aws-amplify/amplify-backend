@@ -1,5 +1,6 @@
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import { CDKDeployer } from './cdk_deployer.js';
+import { CdkErrorMapper } from './cdk_error_mapper.js';
 
 export type DeployProps = {
   hotswapFallback?: boolean;
@@ -28,7 +29,7 @@ export class BackendDeployerFactory {
    */
   static getInstance = (): BackendDeployer => {
     if (!BackendDeployerFactory.instance) {
-      BackendDeployerFactory.instance = new CDKDeployer();
+      BackendDeployerFactory.instance = new CDKDeployer(new CdkErrorMapper());
     }
     return BackendDeployerFactory.instance;
   };
