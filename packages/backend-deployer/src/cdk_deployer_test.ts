@@ -121,7 +121,7 @@ describe('invokeCDKCommand', () => {
       (err: Error) => {
         assert.equal(
           err.message,
-          '[AccessDenied]: The service role linked to this branch does not have sufficient permissions to perform this deployment. Configure the service role in the settings for this branch.'
+          '[AccessDenied]: The deployment role does not have sufficient permissions to perform this deployment.'
         );
         assert.equal((err.cause as Error).message, 'Access Denied');
         return true;
