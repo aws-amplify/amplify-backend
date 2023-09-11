@@ -31,7 +31,7 @@ const facebookClientSecret = 'facebookClientSecret';
 const oidcClientId = 'oidcClientId';
 const oidcClientSecret = 'oidcClientSecret';
 const oidcIssuerUrl = 'https://mysampleoidcissuer.com';
-const oidcProviderName = 'myoidcprovider';
+const oidcProviderName = 'myOidcProvider';
 const ExpectedGoogleIDPProperties = {
   ProviderDetails: {
     authorize_scopes: 'profile',

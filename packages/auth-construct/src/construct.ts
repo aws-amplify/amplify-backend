@@ -305,7 +305,7 @@ export class AmplifyAuth
 
   /**
    * Convert user friendly Mfa type to cognito Mfa type.
-   * This elimantes the need for users to import cognito.Mfa.
+   * This eliminates the need for users to import cognito.Mfa.
    * @param mfa MFA Enforcement type string value
    * @returns cognito MFA enforcement type
    */
