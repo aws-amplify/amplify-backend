@@ -16,6 +16,7 @@ import {
   UserPoolIdentityProviderGoogle,
   UserPoolIdentityProviderOidc,
   UserPoolIdentityProviderSaml,
+  UserPoolOperation,
   UserPoolProps,
 } from 'aws-cdk-lib/aws-cognito';
 import { FederatedPrincipal, Role } from 'aws-cdk-lib/aws-iam';
@@ -29,6 +30,7 @@ import {
   AuthCustomAttributeFactory,
   AuthStandardAttribute,
 } from './attributes.js';
+import { IFunction } from 'aws-cdk-lib/aws-lambda';
 
 type DefaultRoles = { auth: Role; unAuth: Role };
 type IdentityProviderSetupResult = {
@@ -431,6 +433,13 @@ export class AmplifyAuth
       version: '1',
       payload: output,
     });
+  };
+
+  addTrigger = (
+    operation: UserPoolOperation,
+    triggerHandler: IFunction
+  ): void => {
+    this.resources.userPool.addTrigger(operation, triggerHandler);
   };
 
   /**
