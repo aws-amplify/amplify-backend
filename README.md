@@ -27,9 +27,11 @@ You should now be able to run the new `amplify` CLI.
 
 `npm run test:coverage:threshold` will let you know if your changes are passing test coverage limits
 
-`npm run test packages/<package directory>` will run only the tests in that directory
+`npm run test:dir packages/<package directory>` will run only the tests in that directory
 
 `npm run vend` will start a local npm proxy and publish the local packages to this proxy so they can be installed / used as if they were published on npm
+
+`npm run e2e` will run the E2E test suite. Note: you must have valid AWS credentials configured locally to run this command successfully.
 
 ## Creating changesets
 
