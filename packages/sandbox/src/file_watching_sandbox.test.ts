@@ -44,6 +44,8 @@ describe('Sandbox using local project name resolver', () => {
    * file change event function which tests can simulate by calling as desired.
    */
   beforeEach(async () => {
+    // ensures that .gitignore is set as absent
+    mock.method(fs, 'existsSync', () => false);
     sandboxInstance = new FileWatchingSandbox(
       'testSandboxId',
       clientConfigGeneratorAdapter,
@@ -238,6 +240,8 @@ describe('Sandbox with user provided app name', () => {
    * file change event function which tests can simulate by calling as desired.
    */
   beforeEach(async () => {
+    // ensures that .gitignore is set as absent
+    mock.method(fs, 'existsSync', () => false);
     sandboxInstance = new FileWatchingSandbox(
       'testSandboxId',
       clientConfigGeneratorAdapter,
@@ -354,6 +358,8 @@ describe('Sandbox with absolute output path', () => {
    * file change event function which tests can simulate by calling as desired.
    */
   beforeEach(async () => {
+    // ensures that .gitignore is set as absent
+    mock.method(fs, 'existsSync', () => false);
     sandboxInstance = new FileWatchingSandbox(
       'testSandboxId',
       clientConfigGeneratorAdapter,
