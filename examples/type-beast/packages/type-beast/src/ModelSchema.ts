@@ -14,7 +14,7 @@ import type { Prettify } from './util';
 type ModelSchemaModels = Record<string, ModelType<ModelTypeParamShape, any>>;
 type InternalSchemaModels = Record<string, InternalModel>;
 
-type ModelSchemaParamShape = {
+export type ModelSchemaParamShape = {
   models: ModelSchemaModels;
 };
 

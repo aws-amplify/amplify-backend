@@ -1,5 +1,4 @@
 import { Prettify, SetTypeSubArg } from './util';
-import type { TempAuthParam } from './authorization';
 
 export enum ModelRelationshipTypes {
   hasOne = 'hasOne',
@@ -45,9 +44,7 @@ export type ModelRelationalField<
       SetTypeSubArg<T, 'arrayOptional', true>,
       K | 'arrayOptional'
     >;
-    authorization(
-      auth: TempAuthParam
-    ): ModelRelationalField<T, K | 'authorization'>;
+    authorization(auth: any): ModelRelationalField<T, K | 'authorization'>;
   },
   K
 >;

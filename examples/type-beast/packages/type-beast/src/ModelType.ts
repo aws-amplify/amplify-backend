@@ -1,9 +1,9 @@
-import type { ModelField, InternalField } from './ModelField';
+import { ModelField, InternalField, fields } from './ModelField';
 import type {
   ModelRelationalField,
   InternalRelationalField,
 } from './ModelRelationalField';
-import type { TempAuthParam } from './authorization';
+import { Authorization, ImpliedAuthFields } from './Authorization';
 import type { SetTypeSubArg } from './util';
 
 type ModelFields = Record<
@@ -19,17 +19,20 @@ type InternalModelFields = Record<
 type ModelData = {
   fields: ModelFields;
   identifier: string[];
-  authorization: TempAuthParam | undefined;
+  authorization: Authorization<any, any>[];
 };
 
 type InternalModelData = ModelData & {
   fields: InternalModelFields;
   identifier: string[];
+  // TODO: change back to `Authorization<any, any>[]` after defineData change.
+  authorization: any;
 };
 
 export type ModelTypeParamShape = {
   fields: ModelFields;
   identifier: string[];
+  authorization: Authorization<any, any>[];
 };
 
 type ExtractType<T extends ModelTypeParamShape> = {
@@ -61,6 +64,67 @@ type IdentifierType<
   Fields extends string = IdentifierFields<T>
 > = Array<Fields>;
 
+/**
+ * For a given ModelTypeParamShape, produces a map of Authorization rules
+ * that would *conflict* with the given type.
+ *
+ * E.g.,
+ *
+ * ```
+ * const test = {
+ *  fields: {
+ *   title: fields.string(),
+ *   otherfield: fields.string().array(),
+ *   numfield: fields.integer(),
+ *  },
+ *  identifier: [],
+ *  authorization: [],
+ * };
+ *
+ * ConflictingAuthRulesMap<typeof test> === {
+ *  title: Authorization<"title", true>;
+ *  otherfield: Authorization<"otherfield", false>;
+ *  numfield: Authorization<"numfield", true> | Authorization<"numfield", false>;
+ * }
+ * ```
+ */
+type ConflictingAuthRulesMap<T extends ModelTypeParamShape> = {
+  [K in keyof ExtractType<T>]: K extends string
+    ? string extends ExtractType<T>[K]
+      ? Authorization<K, true>
+      : string[] extends ExtractType<T>[K]
+      ? Authorization<K, false>
+      : Authorization<K, true> | Authorization<K, false>
+    : never;
+};
+
+/**
+ * For a given ModelTypeParamShape, produces a union of Authorization rules
+ * that would *conflict* with the given type.
+ *
+ * E.g.,
+ *
+ * ```
+ * const test = {
+ *  fields: {
+ *   title: fields.string(),
+ *   otherfield: fields.string().array(),
+ *   numfield: fields.integer(),
+ *  },
+ *  identifier: [],
+ *  authorization: [],
+ * };
+ *
+ * ConflictingAuthRules<typeof test> ===
+ *  Authorization<"title", true>
+ *  | Authorization<"otherfield", false>
+ *  | Authorization<"numfield", true> | Authorization<"numfield", false>
+ * ;
+ * ```
+ */
+type ConflictingAuthRules<T extends ModelTypeParamShape> =
+  ConflictingAuthRulesMap<T>[keyof ConflictingAuthRulesMap<T>];
+
 export type ModelType<
   T extends ModelTypeParamShape,
   K extends keyof ModelType<T> = never
@@ -69,7 +133,12 @@ export type ModelType<
     identifier<ID extends IdentifierType<T> = []>(
       identifier: ID
     ): ModelType<SetTypeSubArg<T, 'identifier', ID>, K | 'identifier'>;
-    authorization(auth: TempAuthParam): ModelType<T, K | 'authorization'>;
+    authorization<AuthRuleType extends Authorization<any, any>>(
+      rules: Exclude<AuthRuleType, ConflictingAuthRules<T>>[]
+    ): ModelType<
+      SetTypeSubArg<T, 'authorization', AuthRuleType[]>,
+      K | 'authorization'
+    >;
   },
   K
 >;
@@ -86,7 +155,7 @@ function _model<T extends ModelTypeParamShape>(fields: T['fields']) {
   const data: ModelData = {
     fields,
     identifier: ['id'],
-    authorization: undefined,
+    authorization: [],
   };
 
   const builder: ModelType<T> = {
@@ -95,8 +164,8 @@ function _model<T extends ModelTypeParamShape>(fields: T['fields']) {
 
       return this;
     },
-    authorization(auth) {
-      data.authorization = auth;
+    authorization(rules) {
+      data.authorization = rules;
 
       return this;
     },
@@ -107,6 +176,6 @@ function _model<T extends ModelTypeParamShape>(fields: T['fields']) {
 
 export function model<T extends ModelFields>(
   fields: T
-): ModelType<{ fields: T; identifier: Array<'id'> }> {
+): ModelType<{ fields: T; identifier: Array<'id'>; authorization: [] }> {
   return _model(fields);
 }

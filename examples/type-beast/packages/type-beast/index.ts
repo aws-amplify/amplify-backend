@@ -9,6 +9,8 @@ import {
   belongsTo,
   manyToMany,
 } from './src/ModelRelationalField';
+import { allow } from './src/Authorization';
+import { schemaPreprocessor } from './src/SchemaProcessor';
 
 const a = {
   schema,
@@ -18,11 +20,12 @@ const a = {
   hasMany,
   belongsTo,
   manyToMany,
+  allow,
   ...fields,
 };
 
 export default a;
 
-export { defineData };
+export { defineData, schemaPreprocessor };
 
 export type { ClientSchema };

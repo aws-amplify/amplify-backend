@@ -12,10 +12,12 @@ const schema = a.schema({
     .model({
       id: a.id(),
       title: a.string(),
+      summary: a.string().optional(),
       viewCount: a.integer().optional(),
       comments: a.hasMany('Comment'),
     })
-    .identifier(['id']),
+    .identifier(['id'])
+    .authorization([a.allow.public()]),
   Comment: a.model({
     id: a.id(),
     bingo: a.string(),

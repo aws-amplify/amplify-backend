@@ -6,7 +6,6 @@ import {
   type InternalSchema,
   schema,
 } from '../src/ModelSchema';
-import { describe, test } from 'node:test';
 
 type GetModelTypeArg<T> = T extends ModelType<infer R, any> ? R : never;
 

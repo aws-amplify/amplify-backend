@@ -1,7 +1,6 @@
 import { Equal, Expect } from '../src/util';
 import { type ModelType, type InternalModel, model } from '../src/ModelType';
 import { type ModelField, type InternalField, fields } from '../src/ModelField';
-import { describe, test } from 'node:test';
 
 type GetModelTypeArg<T> = T extends ModelType<infer R, any> ? R : never;
 
@@ -42,10 +41,6 @@ describe('InternalModel casting', () => {
   });
 });
 
-// describe("basic functionality", () => {
-
-// });
-
 describe('identifiers', () => {
   test('model() with fields and default id produces expected type args', () => {
     const m = model({
@@ -60,6 +55,7 @@ describe('identifiers', () => {
         title: ModelField<string | null, 'optional'>;
       };
       identifier: Array<'id'>;
+      authorization: [];
     };
 
     type test = Expect<Equal<MT, ExpectedType>>;
@@ -77,6 +73,7 @@ describe('identifiers', () => {
         customId: ModelField<string>;
       };
       identifier: Array<'customId'>;
+      authorization: [];
     };
 
     type test = Expect<Equal<MT, ExpectedType>>;
