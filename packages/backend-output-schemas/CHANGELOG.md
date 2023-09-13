@@ -1,5 +1,15 @@
 # @aws-amplify/backend-output-schemas
 
+## 0.2.0-alpha.2
+
+### Minor Changes
+
+- ce008a2: Add model generation package.
+
+### Patch Changes
+
+- f201c94: add support for external auth providers
+
 ## 0.1.1-alpha.1
 
 ### Patch Changes

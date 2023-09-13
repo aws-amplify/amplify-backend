@@ -1,4 +1,5 @@
 import fetch from 'node-fetch';
+import path from 'path';
 import {
   CodegenJobGenericDataSchema,
   StartCodegenJobData,
@@ -36,7 +37,8 @@ export class CodegenGraphqlFormGenerator
   constructor(
     private jobHandler: CodegenJobHandler,
     private config: CodegenGraphqlFormGeneratorParameters,
-    private modelIntrospectionSchemaFetcher: () => Promise<CodegenJobGenericDataSchema>
+    private modelIntrospectionSchemaFetcher: () => Promise<CodegenJobGenericDataSchema>,
+    private relativePathToGraphqlModelDirectory: string
   ) {}
   generateForms = async () => {
     const schema = await this.modelIntrospectionSchemaFetcher();
@@ -96,11 +98,26 @@ export class CodegenGraphqlFormGenerator
           renderTypeDeclarations: true,
           apiConfiguration: {
             graphQLConfig: {
-              typesFilePath: '../graphql/types',
-              queriesFilePath: '../graphql/queries',
-              mutationsFilePath: '../graphql/mutations',
-              subscriptionsFilePath: '../graphql/subscriptions',
-              fragmentsFilePath: '../graphql/fragments',
+              typesFilePath: path.join(
+                this.relativePathToGraphqlModelDirectory,
+                'types'
+              ),
+              queriesFilePath: path.join(
+                this.relativePathToGraphqlModelDirectory,
+                'queries'
+              ),
+              mutationsFilePath: path.join(
+                this.relativePathToGraphqlModelDirectory,
+                'mutations'
+              ),
+              subscriptionsFilePath: path.join(
+                this.relativePathToGraphqlModelDirectory,
+                'subscriptions'
+              ),
+              fragmentsFilePath: path.join(
+                this.relativePathToGraphqlModelDirectory,
+                'fragments'
+              ),
             },
           },
         },

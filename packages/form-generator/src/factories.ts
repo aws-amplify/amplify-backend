@@ -11,6 +11,7 @@ export type FormGenerationParams = {
     appId: string;
     introspectionSchemaUrl: string;
     environmentName?: string;
+    relativePathToGraphqlModelDirectory?: string;
   };
 };
 
@@ -36,7 +37,8 @@ export const createFormGenerator = <T extends keyof FormGenerationParams>(
           generateModelIntrospectionSchema(
             client,
             generationParams.introspectionSchemaUrl
-          )
+          ),
+        generationParams.relativePathToGraphqlModelDirectory
       );
     }
     default:

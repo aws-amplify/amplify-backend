@@ -1,5 +1,14 @@
 # @aws-amplify/backend-deployer
 
+## 0.1.1-alpha.3
+
+### Patch Changes
+
+- afa0b3d: simplify error map and tests
+- 4f3c171: Improve known error messages
+- Updated dependencies [f201c94]
+  - @aws-amplify/plugin-types@0.1.1-alpha.3
+
 ## 0.1.1-alpha.2
 
 ### Patch Changes
