@@ -5,14 +5,15 @@
 ```ts
 
 import { Construct } from 'constructs';
-import { IFunction } from 'aws-cdk-lib/aws-lambda';
+import { FunctionResources } from '@aws-amplify/plugin-types';
+import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 
 // @public
-export class AmplifyFunction extends Construct {
+export class AmplifyFunction extends Construct implements ResourceProvider<FunctionResources> {
     constructor(scope: Construct, id: string, props: AmplifyFunctionProps);
     // (undocumented)
-    readonly lambda: IFunction;
+    readonly resources: FunctionResources;
 }
 
 // @public (undocumented)

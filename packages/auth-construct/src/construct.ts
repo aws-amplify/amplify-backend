@@ -308,7 +308,7 @@ export class AmplifyAuth
   /**
    * Convert user friendly Mfa type to cognito Mfa type.
    * This eliminates the need for users to import cognito.Mfa.
-   * @param mfa MFA Enforcement type string value
+   * @param mfa - MFA Enforcement type string value
    * @returns cognito MFA enforcement type
    */
   private getMFAEnforcementType = (
@@ -329,9 +329,6 @@ export class AmplifyAuth
 
   /**
    * Setup Identity Providers (OAuth/OIDC/SAML)
-   * @param userPool UserPool
-   * @param loginOptions AmplifyAuthProps['loginOptions']
-   * @returns IDPSetupResult
    */
   private setupIdentityProviders = (
     userPool: UserPool,

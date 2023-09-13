@@ -7,10 +7,11 @@
 import { CfnIdentityPool } from 'aws-cdk-lib/aws-cognito';
 import { CfnIdentityPoolRoleAttachment } from 'aws-cdk-lib/aws-cognito';
 import { Construct } from 'constructs';
+import { Function as Function_2 } from 'aws-cdk-lib/aws-lambda';
 import { IRole } from 'aws-cdk-lib/aws-iam';
-import { IUserPool } from 'aws-cdk-lib/aws-cognito';
 import { IUserPoolClient } from 'aws-cdk-lib/aws-cognito';
 import { Stack } from 'aws-cdk-lib';
+import { UserPool } from 'aws-cdk-lib/aws-cognito';
 
 // @public
 export type AppId = string;
@@ -23,7 +24,7 @@ export type AuthCfnResources = {
 
 // @public
 export type AuthResources = {
-    userPool: IUserPool;
+    userPool: UserPool;
     userPoolClient: IUserPoolClient;
     authenticatedUserIamRole?: IRole;
     unauthenticatedUserIamRole?: IRole;
@@ -82,6 +83,11 @@ export type ConstructFactoryGetInstanceProps = {
     constructContainer: ConstructContainer;
     outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
     importPathVerifier?: ImportPathVerifier;
+};
+
+// @public (undocumented)
+export type FunctionResources = {
+    lambda: Function_2;
 };
 
 // @public

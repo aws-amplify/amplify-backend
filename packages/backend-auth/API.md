@@ -9,18 +9,32 @@ import { AuthProps } from '@aws-amplify/auth-construct-alpha';
 import { AuthResources } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
+import { FunctionResources } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 
 // @public
 export class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth & ResourceProvider<AuthResources>> {
-    constructor(props: AuthProps);
-    getInstance: ({ constructContainer, outputStorageStrategy, importPathVerifier, }: ConstructFactoryGetInstanceProps) => AmplifyAuth;
+    constructor(props: AmplifyAuthFactoryProps);
+    getInstance: (getInstanceProps: ConstructFactoryGetInstanceProps) => AmplifyAuth;
     // (undocumented)
     readonly provides = "AuthResources";
 }
 
+// @public (undocumented)
+export type AmplifyAuthFactoryProps = AuthProps & TriggerConfig;
+
 // @public
 export const Auth: typeof AmplifyAuthFactory;
+
+// @public (undocumented)
+export type TriggerConfig = {
+    triggers?: Partial<Record<TriggerEvent, ConstructFactory<ResourceProvider<FunctionResources>>>>;
+};
+
+// Warning: (ae-forgotten-export) The symbol "triggerEvents" needs to be exported by the entry point index.d.ts
+//
+// @public
+export type TriggerEvent = (typeof triggerEvents)[number];
 
 // (No @packageDocumentation comment for this package)
 

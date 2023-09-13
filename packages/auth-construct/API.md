@@ -11,12 +11,16 @@ import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { BackendOutputWriter } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
 import { CustomAttributeConfig } from 'aws-cdk-lib/aws-cognito';
+import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { StandardAttributes } from 'aws-cdk-lib/aws-cognito';
+import { UserPoolOperation } from 'aws-cdk-lib/aws-cognito';
 
 // @public
 export class AmplifyAuth extends Construct implements BackendOutputWriter, ResourceProvider<AuthResources> {
     constructor(scope: Construct, id: string, props?: AuthProps);
+    // (undocumented)
+    addTrigger: (operation: UserPoolOperation, triggerHandler: IFunction) => void;
     static attribute: (name: keyof aws_cognito.StandardAttributes) => AuthStandardAttribute;
     static customAttribute: AuthCustomAttributeFactory;
     readonly resources: AuthResources;
