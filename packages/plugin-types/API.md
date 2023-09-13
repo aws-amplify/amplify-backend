@@ -87,7 +87,7 @@ export type ConstructFactoryGetInstanceProps = {
 
 // @public (undocumented)
 export type FunctionResources = {
-    function: Function_2;
+    lambda: Function_2;
 };
 
 // @public

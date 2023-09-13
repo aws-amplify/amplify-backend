@@ -19,7 +19,7 @@ import { UserPoolOperation } from 'aws-cdk-lib/aws-cognito';
 // @public
 export class AmplifyAuth extends Construct implements BackendOutputWriter, ResourceProvider<AuthResources> {
     constructor(scope: Construct, id: string, props?: AuthProps);
-    addTrigger: (operation: UserPoolOperation, handler: IFunction) => void;
+    addTrigger: (operation: UserPoolOperation, triggerHandler: IFunction) => void;
     static attribute: (name: keyof aws_cognito.StandardAttributes) => AuthStandardAttribute;
     static customAttribute: AuthCustomAttributeFactory;
     readonly resources: AuthResources;

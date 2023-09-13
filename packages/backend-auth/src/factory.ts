@@ -72,7 +72,7 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
       ([triggerEvent, handlerFactory]) => {
         authConstruct.addTrigger(
           UserPoolOperation.of(triggerEvent),
-          handlerFactory.getInstance(this.getInstanceProps).resources.function
+          handlerFactory.getInstance(this.getInstanceProps).resources.lambda
         );
       }
     );

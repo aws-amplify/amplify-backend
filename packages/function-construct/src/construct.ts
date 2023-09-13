@@ -23,7 +23,7 @@ export class AmplifyFunction
     super(scope, id);
 
     this.resources = {
-      function: new Function(this, `${id}LambdaFunction`, {
+      lambda: new Function(this, `${id}LambdaFunction`, {
         code: Code.fromAsset(props.absoluteCodePath),
         runtime: props.runtime || Runtime.NODEJS_18_X,
         handler: props.handler || 'index.handler',
