@@ -63,7 +63,10 @@ export class AmplifyAuth
   /**
    * Map from oauth provider to client id
    */
-  private oauthMappings: Record<string, string>;
+  private readonly oauthMappings: Record<string, string>;
+
+  private readonly userPool: UserPool;
+
   /**
    * Create a new Auth construct with AuthProps.
    * If no props are provided, email login and defaults will be used.
@@ -77,11 +80,11 @@ export class AmplifyAuth
 
     // UserPool
     const userPoolProps: UserPoolProps = this.getUserPoolProps(props);
-    const userPool = new cognito.UserPool(this, 'UserPool', userPoolProps);
+    this.userPool = new cognito.UserPool(this, 'UserPool', userPoolProps);
 
     // UserPool - Identity Providers
     const providerSetupResult = this.setupIdentityProviders(
-      userPool,
+      this.userPool,
       props.loginWith
     );
     this.oauthMappings = providerSetupResult.oauthMappings;
@@ -91,7 +94,7 @@ export class AmplifyAuth
       this,
       'UserPoolWebClient',
       {
-        userPool: userPool,
+        userPool: this.userPool,
         authFlows: DEFAULTS.AUTH_FLOWS,
         preventUserExistenceErrors: DEFAULTS.PREVENT_USER_EXISTENCE_ERRORS,
       }
@@ -103,14 +106,14 @@ export class AmplifyAuth
     // Identity Pool
     const { identityPool, identityPoolRoleAttachment } = this.setupIdentityPool(
       { auth, unAuth },
-      userPool,
+      this.userPool,
       userPoolClient,
       providerSetupResult
     );
 
     // expose resources
     this.resources = {
-      userPool,
+      userPool: this.userPool,
       userPoolClient,
       authenticatedUserIamRole: auth,
       unauthenticatedUserIamRole: unAuth,
@@ -438,7 +441,7 @@ export class AmplifyAuth
    * @param handler - The lambda function that will handle the event
    */
   addTrigger = (operation: UserPoolOperation, handler: IFunction): void => {
-    (this.resources.userPool as UserPool).addTrigger(operation, handler);
+    this.userPool.addTrigger(operation, handler);
   };
 
   /**
