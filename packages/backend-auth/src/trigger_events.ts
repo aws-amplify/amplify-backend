@@ -1,10 +1,7 @@
 /**
- * This array is exported for testing but is not exported from the package.
- * Only the type derived from the array should be used outside this package.
- *
- * We can't derive this type information from the CDK UserPoolOperation because those operation names are typed as "string" rather that string literals
+ * Supported auth trigger events. Derived from CDK UserPoolOperation, but we can't use that to get type inference
+ * because the operation names are typed as "string" rather than a string literal
  */
-
 export const triggerEvents = [
   'createAuthChallenge',
   'customMessage',

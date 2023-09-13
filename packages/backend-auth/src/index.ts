@@ -1,2 +1,2 @@
 export * from './factory.js';
-export { TriggerEvent } from './trigger_events.js';
+export * from './trigger_events.js';
