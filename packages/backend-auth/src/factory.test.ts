@@ -94,7 +94,7 @@ describe('AmplifyAuthFactory', () => {
         getInstance: () => {
           return {
             resources: {
-              lambda: new aws_lambda.Function(stack, 'testFunc', {
+              function: new aws_lambda.Function(stack, 'testFunc', {
                 code: aws_lambda.Code.fromInline('test placeholder'),
                 runtime: aws_lambda.Runtime.NODEJS_18_X,
                 handler: 'index.handler',
