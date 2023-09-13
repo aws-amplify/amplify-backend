@@ -1,5 +1,14 @@
 # @aws-amplify/backend
 
+## 0.1.1-alpha.3
+
+### Patch Changes
+
+- Updated dependencies [ce008a2]
+- Updated dependencies [f201c94]
+  - @aws-amplify/backend-output-schemas@0.2.0-alpha.2
+  - @aws-amplify/plugin-types@0.1.1-alpha.3
+
 ## 0.1.1-alpha.2
 
 ### Patch Changes
