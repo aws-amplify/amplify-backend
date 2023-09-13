@@ -1,19 +1,22 @@
 import { beforeEach, describe, it, mock } from 'node:test';
-import { AmplifyAuthFactory } from './factory.js';
+import { AmplifyAuthFactory, TriggerEvent } from './factory.js';
 import {
   NestedStackResolver,
   SingletonConstructContainer,
   StackMetadataBackendOutputStorageStrategy,
   ToggleableImportPathVerifier,
 } from '@aws-amplify/backend/test-utils';
-import { App, Stack } from 'aws-cdk-lib';
+import { App, Stack, aws_lambda } from 'aws-cdk-lib';
 import assert from 'node:assert';
 import { Template } from 'aws-cdk-lib/assertions';
 import {
   BackendOutputEntry,
   BackendOutputStorageStrategy,
   ConstructContainer,
+  ConstructFactory,
+  FunctionResources,
   ImportPathVerifier,
+  ResourceProvider,
 } from '@aws-amplify/plugin-types';
 
 describe('AmplifyAuthFactory', () => {
@@ -21,13 +24,14 @@ describe('AmplifyAuthFactory', () => {
   let constructContainer: ConstructContainer;
   let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
   let importPathVerifier: ImportPathVerifier;
+  let stack: Stack;
   beforeEach(() => {
     authFactory = new AmplifyAuthFactory({
       loginWith: { email: true },
     });
 
     const app = new App();
-    const stack = new Stack(app);
+    stack = new Stack(app);
 
     constructContainer = new SingletonConstructContainer(
       new NestedStackResolver(stack)
@@ -41,7 +45,7 @@ describe('AmplifyAuthFactory', () => {
   });
   it('returns singleton instance', () => {
     const instance1 = authFactory.getInstance({
-      constructContainer: constructContainer,
+      constructContainer,
       outputStorageStrategy,
       importPathVerifier,
     });
@@ -81,5 +85,60 @@ describe('AmplifyAuthFactory', () => {
         'AmplifyAuthFactory'
       )
     );
+  });
+
+  const triggerEvents: TriggerEvent[] = [
+    'createAuthChallenge',
+    'customEmailSender',
+    'customMessage',
+    'customSmsSender',
+    'defineAuthChallenge',
+    'postAuthentication',
+    'postConfirmation',
+    'preAuthentication',
+    'preSignUp',
+    'preTokenGeneration',
+    'userMigration',
+    'verifyAuthChallengeResponse',
+  ];
+
+  triggerEvents.forEach((event: TriggerEvent) => {
+    it(`resolves ${event} trigger and attaches handler to auth construct`, () => {
+      const funcStub: ConstructFactory<ResourceProvider<FunctionResources>> = {
+        getInstance: () => {
+          return {
+            resources: {
+              lambda: new aws_lambda.Function(stack, 'testFunc', {
+                code: aws_lambda.Code.fromInline('test placeholder'),
+                runtime: aws_lambda.Runtime.NODEJS_18_X,
+                handler: 'index.handler',
+              }),
+            },
+          };
+        },
+      };
+      const authWithTriggerFactory = new AmplifyAuthFactory({
+        loginWith: { email: true },
+        triggers: { [event]: funcStub },
+      });
+
+      const authConstruct = authWithTriggerFactory.getInstance({
+        constructContainer,
+        outputStorageStrategy,
+        importPathVerifier,
+      });
+
+      const template = Template.fromStack(Stack.of(authConstruct));
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        triggers: { [event]: 'thing' },
+      });
+    });
+  });
+
+  it('resolves triggers and attaches handler to auth construct', () => {
+    const authWithTrigger = new AmplifyAuthFactory({
+      loginWith: { email: true },
+      triggers: {},
+    });
   });
 });
