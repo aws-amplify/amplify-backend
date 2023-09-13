@@ -21,8 +21,9 @@
 <p>You should now be able to run the new <code>amplify</code> CLI.</p>
 <a id="md:other-helpful-scripts" class="tsd-anchor"></a><h4><a href="#md:other-helpful-scripts">Other helpful scripts</a></h4><p><code>npm run watch</code> will start the tsc server and watch for changes in all packages</p>
 <p><code>npm run test:coverage:threshold</code> will let you know if your changes are passing test coverage limits</p>
-<p><code>npm run test packages/&lt;package directory&gt;</code> will run only the tests in that directory</p>
+<p><code>npm run test:dir packages/&lt;package directory&gt;</code> will run only the tests in that directory</p>
 <p><code>npm run vend</code> will start a local npm proxy and publish the local packages to this proxy so they can be installed / used as if they were published on npm</p>
+<p><code>npm run e2e</code> will run the E2E test suite. Note: you must have valid AWS credentials configured locally to run this command successfully.</p>
 <a id="md:creating-changesets" class="tsd-anchor"></a><h2><a href="#md:creating-changesets">Creating changesets</a></h2><p>This repo uses <a href="https://github.com/changesets/changesets">changesets</a> for versioning and releasing changes.</p>
 <p>All changes that affect release artifacts must have a corresponding changeset. To create a changeset run <code>changeset</code>.
 This will start a walkthrough to author the changeset file. This file should be committed to the repo.</p>
