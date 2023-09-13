@@ -1,5 +1,15 @@
 # @aws-amplify/backend-cli
 
+## 1.0.0-alpha.4
+
+### Patch Changes
+
+- 4f3c171: update backend-deployer dependency
+- Updated dependencies [ce008a2]
+- Updated dependencies [f201c94]
+  - @aws-amplify/client-config@0.2.0-alpha.4
+  - @aws-amplify/sandbox@0.1.1-alpha.4
+
 ## 0.2.0-alpha.3
 
 ### Patch Changes
