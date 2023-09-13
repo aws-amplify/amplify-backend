@@ -1,5 +1,18 @@
 # @aws-amplify/auth-construct-alpha
 
+## 0.2.0-alpha.4
+
+### Minor Changes
+
+- f201c94: add support for external auth providers
+
+### Patch Changes
+
+- Updated dependencies [ce008a2]
+- Updated dependencies [f201c94]
+  - @aws-amplify/backend-output-schemas@0.2.0-alpha.2
+  - @aws-amplify/plugin-types@0.1.1-alpha.3
+
 ## 0.2.0-alpha.3
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/backend-cli",
-  "version": "0.2.0-alpha.3",
+  "version": "1.0.0-alpha.4",
   "description": "Command line interface for various Amplify tools",
   "bin": {
     "amplify": "lib/amplify.js"
@@ -35,8 +35,8 @@
     "zod": "^3.21.4"
   },
   "peerDependencies": {
-    "@aws-amplify/client-config": "^0.1.1-alpha.3",
-    "@aws-amplify/sandbox": "^0.1.1-alpha.3",
+    "@aws-amplify/client-config": "^0.2.0-alpha.4",
+    "@aws-amplify/sandbox": "^0.1.1-alpha.4",
     "@aws-sdk/types": "^3.347.0"
   },
   "devDependencies": {
