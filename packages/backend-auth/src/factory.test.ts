@@ -1,5 +1,5 @@
 import { beforeEach, describe, it, mock } from 'node:test';
-import { AmplifyAuthFactory, TriggerEvent } from './factory.js';
+import { AmplifyAuthFactory } from './factory.js';
 import {
   NestedStackResolver,
   SingletonConstructContainer,
@@ -8,7 +8,7 @@ import {
 } from '@aws-amplify/backend/test-utils';
 import { App, Stack, aws_lambda } from 'aws-cdk-lib';
 import assert from 'node:assert';
-import { Template } from 'aws-cdk-lib/assertions';
+import { Match, Template } from 'aws-cdk-lib/assertions';
 import {
   BackendOutputEntry,
   BackendOutputStorageStrategy,
@@ -18,6 +18,7 @@ import {
   ImportPathVerifier,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
+import { triggerEvents } from './trigger_events.js';
 
 describe('AmplifyAuthFactory', () => {
   let authFactory: AmplifyAuthFactory;
@@ -87,22 +88,7 @@ describe('AmplifyAuthFactory', () => {
     );
   });
 
-  const triggerEvents: TriggerEvent[] = [
-    'createAuthChallenge',
-    'customEmailSender',
-    'customMessage',
-    'customSmsSender',
-    'defineAuthChallenge',
-    'postAuthentication',
-    'postConfirmation',
-    'preAuthentication',
-    'preSignUp',
-    'preTokenGeneration',
-    'userMigration',
-    'verifyAuthChallengeResponse',
-  ];
-
-  triggerEvents.forEach((event: TriggerEvent) => {
+  triggerEvents.forEach((event) => {
     it(`resolves ${event} trigger and attaches handler to auth construct`, () => {
       const funcStub: ConstructFactory<ResourceProvider<FunctionResources>> = {
         getInstance: () => {
@@ -130,15 +116,17 @@ describe('AmplifyAuthFactory', () => {
 
       const template = Template.fromStack(Stack.of(authConstruct));
       template.hasResourceProperties('AWS::Cognito::UserPool', {
-        triggers: { [event]: 'thing' },
+        LambdaConfig: {
+          // The key in the CFN template is the trigger event name with the first character uppercase
+          [upperCaseFirstChar(event)]: {
+            Ref: Match.stringLikeRegexp('testFunc'),
+          },
+        },
       });
     });
   });
-
-  it('resolves triggers and attaches handler to auth construct', () => {
-    const authWithTrigger = new AmplifyAuthFactory({
-      loginWith: { email: true },
-      triggers: {},
-    });
-  });
 });
+
+const upperCaseFirstChar = (str: string) => {
+  return `${str.charAt(0).toUpperCase()}${str.slice(1)}`;
+};

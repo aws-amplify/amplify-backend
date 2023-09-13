@@ -9,20 +9,7 @@ import {
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import { UserPoolOperation } from 'aws-cdk-lib/aws-cognito';
-
-export type TriggerEvent =
-  | 'createAuthChallenge'
-  | 'customEmailSender'
-  | 'customMessage'
-  | 'customSmsSender'
-  | 'defineAuthChallenge'
-  | 'postAuthentication'
-  | 'postConfirmation'
-  | 'preAuthentication'
-  | 'preSignUp'
-  | 'preTokenGeneration'
-  | 'userMigration'
-  | 'verifyAuthChallengeResponse';
+import { TriggerEvent } from './trigger_events.js';
 
 export type TriggerConfig = {
   triggers?: Partial<
