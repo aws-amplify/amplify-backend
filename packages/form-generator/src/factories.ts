@@ -11,7 +11,7 @@ export type FormGenerationParams = {
     appId: string;
     introspectionSchemaUrl: string;
     environmentName?: string;
-    relativePathToGraphqlModelDirectory?: string;
+    relativePathToGraphqlModelDirectory: string;
   };
 };
 

@@ -1,3 +1,4 @@
+import path from 'path';
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { BackendIdentifier } from '@aws-amplify/client-config';
 import { ClientConfigGeneratorAdapter } from '../config/client_config_generator_adapter.js';
@@ -87,24 +88,33 @@ export class GenerateFormsCommand
       throw new TypeError('AppSync api schema url must be defined');
     }
 
+    if (!args.uiOut) {
+      throw new TypeError('uiOut must be defined');
+    }
+    if (!args.modelsOut) {
+      throw new TypeError('modelsOut must be defined');
+    }
+
     const { appId, environmentName } =
       this.getAppDescription(backendIdentifier);
 
     this.log(`Generating code for App: ${appId}`);
     const graphqlClientGenerator = createGraphqlDocumentGenerator({ apiId });
-    this.log('Generating GraphQL Client');
+    this.log(`Generating GraphQL Client in ${args.modelsOut}`);
     await graphqlClientGenerator.generateModels({
       language: 'typescript',
       outDir: args.modelsOut,
     });
     this.log('GraphQL client successfully generated');
-    this.log('Generating React forms');
+    this.log(`Generating React forms in ${args.uiOut}`);
+    const relativePath = path.relative(args.uiOut, args.modelsOut);
     const localFormGenerator = createFormGenerator('graphql', {
       /* eslint-disable-next-line spellcheck/spell-checker */
       appId,
       apiId,
       environmentName,
       introspectionSchemaUrl: apiUrl,
+      relativePathToGraphqlModelDirectory: relativePath,
     });
     const result = await localFormGenerator.generateForms();
     await result.writeToDirectory(args.uiOut);
