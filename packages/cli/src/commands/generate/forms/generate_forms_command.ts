@@ -9,7 +9,8 @@ export type GenerateFormsCommandOptions = {
   stack: string | undefined;
   appId: string | undefined;
   branch: string | undefined;
-  out: string | undefined;
+  uiOut: string | undefined;
+  modelsOut: string | undefined;
 };
 
 /**
@@ -94,7 +95,7 @@ export class GenerateFormsCommand
     this.log('Generating GraphQL Client');
     await graphqlClientGenerator.generateModels({
       language: 'typescript',
-      outDir: './src/graphql',
+      outDir: args.modelsOut,
     });
     this.log('GraphQL client successfully generated');
     this.log('Generating React forms');
@@ -106,7 +107,7 @@ export class GenerateFormsCommand
       introspectionSchemaUrl: apiUrl,
     });
     const result = await localFormGenerator.generateForms();
-    await result.writeToDirectory('./src/ui-components');
+    await result.writeToDirectory(args.uiOut);
     this.log('React forms successfully generated');
   };
 
@@ -162,11 +163,25 @@ export class GenerateFormsCommand
         array: false,
         group: 'Project identifier',
       })
-      .option('out', {
-        describe:
-          'A path to directory where config is written. If not provided defaults to current process working directory.',
+      .option('modelsOut', {
+        describe: 'A path to directory where generated forms are written.',
+        default: './src/graphql',
         type: 'string',
         array: false,
+        group: 'Form Generation',
+      })
+      .option('uiOut', {
+        describe: 'A path to directory where generated forms are written.',
+        default: './src/ui-components',
+        type: 'string',
+        array: false,
+        group: 'Form Generation',
+      })
+      .option('models', {
+        describe: 'An array of model names to generate',
+        type: 'string',
+        array: true,
+        group: 'Form Generation',
       })
       .check((argv) => {
         if (!argv.stack && !argv.branch) {
