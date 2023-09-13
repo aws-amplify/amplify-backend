@@ -438,7 +438,7 @@ export class AmplifyAuth
    * @param handler - The lambda function that will handle the event
    */
   addTrigger = (operation: UserPoolOperation, handler: IFunction): void => {
-    this.resources.userPool.addTrigger(operation, handler);
+    (this.resources.userPool as UserPool).addTrigger(operation, handler);
   };
 
   /**

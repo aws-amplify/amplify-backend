@@ -2,8 +2,8 @@ import { IRole } from 'aws-cdk-lib/aws-iam';
 import {
   CfnIdentityPool,
   CfnIdentityPoolRoleAttachment,
+  IUserPool,
   IUserPoolClient,
-  UserPool,
 } from 'aws-cdk-lib/aws-cognito';
 
 /**
@@ -27,7 +27,7 @@ export type AuthResources = {
   /**
    * The generated UserPool L2 Resource.
    */
-  userPool: UserPool;
+  userPool: IUserPool;
   /**
    * The generated UserPoolClient L2 Resource.
    */
