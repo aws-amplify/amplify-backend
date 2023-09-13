@@ -31,10 +31,11 @@ export type TriggerConfig = {
     triggers?: Partial<Record<TriggerEvent, ConstructFactory<ResourceProvider<FunctionResources>>>>;
 };
 
-// Warning: (ae-forgotten-export) The symbol "triggerEvents" needs to be exported by the entry point index.d.ts
-//
 // @public
 export type TriggerEvent = (typeof triggerEvents)[number];
+
+// @public
+export const triggerEvents: readonly ["createAuthChallenge", "customMessage", "defineAuthChallenge", "postAuthentication", "postConfirmation", "preAuthentication", "preSignUp", "preTokenGeneration", "userMigration", "verifyAuthChallengeResponse"];
 
 // (No @packageDocumentation comment for this package)
 
