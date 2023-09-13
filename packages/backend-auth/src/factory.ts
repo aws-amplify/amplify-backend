@@ -25,9 +25,8 @@ export type TriggerEvent =
   | 'verifyAuthChallengeResponse';
 
 export type TriggerConfig = {
-  triggers?: Record<
-    TriggerEvent,
-    ConstructFactory<ResourceProvider<FunctionResources>>
+  triggers?: Partial<
+    Record<TriggerEvent, ConstructFactory<ResourceProvider<FunctionResources>>>
   >;
 };
 

@@ -46,13 +46,6 @@
       "Arn"
      ]
     },
-    "Environment": {
-     "Variables": {
-      "API_ID": {
-       "Ref": "referencetoamplifytestAppIdtestBranchNamedataNestedStackdataNestedStackResource816C08ECOutputsamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
-      }
-     }
-    },
     "Handler": "index.handler",
     "Runtime": "nodejs18.x"
    },
@@ -69,11 +62,6 @@
      "Arn"
     ]
    }
-  }
- },
- "Parameters": {
-  "referencetoamplifytestAppIdtestBranchNamedataNestedStackdataNestedStackResource816C08ECOutputsamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId": {
-   "Type": "String"
   }
  }
 }
