@@ -24,7 +24,7 @@ export type AuthCfnResources = {
 // @public
 export type AuthResources = {
     userPool: IUserPool;
-    userPoolClientWeb: IUserPoolClient;
+    userPoolClient: IUserPoolClient;
     authenticatedUserIamRole?: IRole;
     unauthenticatedUserIamRole?: IRole;
     cfnResources: AuthCfnResources;

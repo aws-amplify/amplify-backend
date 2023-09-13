@@ -60,9 +60,8 @@ describe('StackMetadataBackendOutputRetrievalStrategy', () => {
                 },
               ],
             };
-          } else {
-            assert.fail(`Unknown command ${typeof command}`);
           }
+          assert.fail(`Unknown command ${typeof command}`);
         }),
       } as unknown as CloudFormationClient;
 
@@ -94,9 +93,8 @@ describe('StackMetadataBackendOutputRetrievalStrategy', () => {
                 },
               }),
             };
-          } else {
-            assert.fail(`Unknown command ${typeof command}`);
           }
+          assert.fail(`Unknown command ${typeof command}`);
         }),
       } as unknown as CloudFormationClient;
 
@@ -142,9 +140,8 @@ describe('StackMetadataBackendOutputRetrievalStrategy', () => {
                 },
               ],
             };
-          } else {
-            assert.fail(`Unknown command ${typeof command}`);
           }
+          assert.fail(`Unknown command ${typeof command}`);
         }),
       } as unknown as CloudFormationClient;
 
@@ -205,9 +202,8 @@ describe('StackMetadataBackendOutputRetrievalStrategy', () => {
                 },
               ],
             };
-          } else {
-            assert.fail(`Unknown command ${typeof command}`);
           }
+          assert.fail(`Unknown command ${typeof command}`);
         }),
       } as unknown as CloudFormationClient;
 

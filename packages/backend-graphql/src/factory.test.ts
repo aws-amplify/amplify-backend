@@ -56,7 +56,7 @@ describe('DataFactory', () => {
       getInstance: (): ResourceProvider<AuthResources> => ({
         resources: {
           userPool: sampleUserPool,
-          userPoolClientWeb: new UserPoolClient(stack, 'UserPoolClient', {
+          userPoolClient: new UserPoolClient(stack, 'UserPoolClient', {
             userPool: sampleUserPool,
           }),
           unauthenticatedUserIamRole: new Role(stack, 'testUnauthRole', {
