@@ -66,12 +66,11 @@ const mapDataFieldsToCodegen = (fields: {
         return { type: 'NonModel', value: fieldValue.dataType.nonModel };
       }
       return { type: undefined, value: undefined };
-    } else {
-      return {
-        type: fieldValue.dataType,
-        value: fieldValue.dataType,
-      };
     }
+    return {
+      type: fieldValue.dataType,
+      value: fieldValue.dataType,
+    };
   };
   Object.entries(fields).forEach(([fieldKey, fieldValue]) => {
     const { type: dataType, value: dataTypeValue } = parseData(fieldValue);

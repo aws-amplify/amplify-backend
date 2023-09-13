@@ -42,6 +42,25 @@ export class GenerateFormsCommand
     this.command = 'forms';
     this.describe = 'Generates UI forms';
   }
+  private getAppDescription = (
+    backendIdentifier: BackendIdentifier
+  ): { appId: string; environmentName: string } => {
+    if ('stackName' in backendIdentifier) {
+      return {
+        appId: backendIdentifier.stackName,
+        environmentName: 'sandbox',
+      };
+    } else if ('backendId' in backendIdentifier) {
+      return {
+        appId: backendIdentifier.backendId,
+        environmentName: backendIdentifier.branchName,
+      };
+    }
+    return {
+      appId: backendIdentifier.appName,
+      environmentName: backendIdentifier.branchName,
+    };
+  };
 
   /**
    * @inheritDoc
@@ -67,28 +86,8 @@ export class GenerateFormsCommand
       throw new TypeError('AppSync api schema url must be defined');
     }
 
-    const getAppDescription = (
-      backendIdentifier: BackendIdentifier
-    ): { appId: string; environmentName: string } => {
-      if ('stackName' in backendIdentifier) {
-        return {
-          appId: backendIdentifier.stackName,
-          environmentName: 'sandbox',
-        };
-      } else if ('backendId' in backendIdentifier) {
-        return {
-          appId: backendIdentifier.backendId,
-          environmentName: backendIdentifier.branchName,
-        };
-      } else {
-        return {
-          appId: backendIdentifier.appName,
-          environmentName: backendIdentifier.branchName,
-        };
-      }
-    };
-
-    const { appId, environmentName } = getAppDescription(backendIdentifier);
+    const { appId, environmentName } =
+      this.getAppDescription(backendIdentifier);
 
     this.log(`Generating code for App: ${appId}`);
     const graphqlClientGenerator = createGraphqlDocumentGenerator({ apiId });
@@ -132,9 +131,8 @@ export class GenerateFormsCommand
         appName: await this.appNameResolver.resolve(),
         branchName: args.branchName as string,
       };
-    } else {
-      throw this.missingArgsError;
     }
+    throw this.missingArgsError;
   };
 
   /**

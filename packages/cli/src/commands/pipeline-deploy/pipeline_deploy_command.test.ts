@@ -36,7 +36,7 @@ describe('deploy command', () => {
     await assert.rejects(
       () =>
         getCommandRunner().runCommand(
-          'pipeline-deploy --app-id abc --branch testbranch'
+          'pipeline-deploy --app-id abc --branch testBranch'
         ),
       (err: TestCommandError) => {
         assert.match(
@@ -55,7 +55,7 @@ describe('deploy command', () => {
       () => Promise.resolve()
     );
     await getCommandRunner(true).runCommand(
-      'pipeline-deploy --app-id abc --branch testbranch'
+      'pipeline-deploy --app-id abc --branch testBranch'
     );
     assert.strictEqual(mockDeploy.mock.callCount(), 1);
   });
