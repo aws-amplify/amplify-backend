@@ -14,10 +14,13 @@ import {
   UserPool,
   UserPoolClient,
   UserPoolIdentityProviderSamlMetadataType,
+  UserPoolOperation,
   VerificationEmailStyle,
 } from 'aws-cdk-lib/aws-cognito';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
 import { AuthProps } from './types.js';
+import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
+
 const googleClientId = 'googleClientId';
 const googleClientSecret = 'googleClientSecret';
 const amazonClientId = 'amazonClientId';
@@ -1176,6 +1179,40 @@ describe('Auth construct', () => {
           'accounts.google.com': googleClientId,
           'appleid.apple.com': appleClientId,
           'graph.facebook.com': facebookClientId,
+        },
+      });
+    });
+  });
+
+  describe('addTrigger', () => {
+    it('attaches lambda function to user pool lambda config', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      const testFunc = new Function(stack, 'testFunc', {
+        code: Code.fromInline('test code'),
+        handler: 'index.handler',
+        runtime: Runtime.NODEJS_18_X,
+      });
+      const authConstruct = new AmplifyAuth(stack, 'testAuth', {
+        loginWith: { email: true },
+      });
+      authConstruct.addTrigger(
+        UserPoolOperation.CREATE_AUTH_CHALLENGE,
+        testFunc
+      );
+      const template = Template.fromStack(stack);
+      const lambdas = template.findResources('AWS::Lambda::Function');
+      if (Object.keys(lambdas).length !== 1) {
+        assert.fail(
+          'Expected one and only one lambda function in the template'
+        );
+      }
+      const handlerLogicalId = Object.keys(lambdas)[0];
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        LambdaConfig: {
+          CreateAuthChallenge: {
+            ['Fn::GetAtt']: [handlerLogicalId, 'Arn'],
+          },
         },
       });
     });
