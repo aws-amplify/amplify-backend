@@ -9,13 +9,9 @@ export const configFileName = 'amplifyconfiguration';
 
 export type GenerateConfigCommandOptions = {
   stack: string | undefined;
-} & {
   appId: string | undefined;
-} & {
   branch: string | undefined;
-} & {
   format: (typeof formatChoices)[number] | undefined;
-} & {
   out: string | undefined;
 };
 
