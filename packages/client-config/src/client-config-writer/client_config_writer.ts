@@ -26,11 +26,15 @@ export class ClientConfigWriter {
           null,
           2
         )}${os.EOL}`;
-        fs.writeFileSync(targetPath, fileContent);
+        if (!fs.existsSync(path.dirname(targetPath))) {
+          fs.writeFileSync(targetPath, fileContent);
+        }
         break;
       }
       case '.json':
-        fs.writeFileSync(targetPath, JSON.stringify(clientConfig, null, 2));
+        if (!fs.existsSync(path.dirname(targetPath))) {
+          fs.writeFileSync(targetPath, JSON.stringify(clientConfig, null, 2));
+        }
         break;
       default:
         throw new Error(
