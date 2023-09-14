@@ -8,6 +8,7 @@ import {
   BackendOutputStorageStrategy,
 } from '@aws-amplify/plugin-types';
 import {
+  AccountRecovery,
   CfnIdentityPool,
   CfnUserPool,
   CfnUserPoolClient,
@@ -327,6 +328,30 @@ describe('Auth construct', () => {
     });
   });
 
+  it('sets account recovery settings ', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    new AmplifyAuth(stack, 'test', {
+      loginWith: { phoneNumber: true, email: true },
+      accountRecovery: AccountRecovery.EMAIL_AND_PHONE_WITHOUT_MFA,
+    });
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      AccountRecoverySetting: {
+        RecoveryMechanisms: [
+          {
+            Name: 'verified_email',
+            Priority: 1,
+          },
+          {
+            Name: 'verified_phone_number',
+            Priority: 2,
+          },
+        ],
+      },
+    });
+  });
+
   it('creates user attributes', () => {
     const app = new App();
     const stack = new Stack(app);
@@ -561,6 +586,59 @@ describe('Auth construct', () => {
             RequireSymbols: true,
             RequireUppercase: true,
           },
+        },
+      });
+    });
+
+    it('sets default account recovery settings', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test');
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        AccountRecoverySetting: {
+          RecoveryMechanisms: [
+            {
+              Name: 'verified_email',
+              Priority: 1,
+            },
+          ],
+        },
+      });
+    });
+
+    it('sets account recovery settings to phone if phone is the only login type', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', { loginWith: { phoneNumber: true } });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        AccountRecoverySetting: {
+          RecoveryMechanisms: [
+            {
+              Name: 'verified_phone_number',
+              Priority: 1,
+            },
+          ],
+        },
+      });
+    });
+
+    it('sets account recovery settings to email if both phone and email enabled', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', {
+        loginWith: { phoneNumber: true, email: true },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        AccountRecoverySetting: {
+          RecoveryMechanisms: [
+            {
+              Name: 'verified_email',
+              Priority: 1,
+            },
+          ],
         },
       });
     });

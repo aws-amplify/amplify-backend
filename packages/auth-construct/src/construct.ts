@@ -299,8 +299,41 @@ export class AmplifyAuth
         props.multifactor.enforcementType !== 'OFF'
           ? { sms: props.multifactor.sms, otp: props.multifactor.totp }
           : undefined,
+      accountRecovery: this.getAccountRecoverySetting(
+        emailEnabled,
+        phoneEnabled,
+        props.accountRecovery
+      ),
     };
     return userPoolProps;
+  };
+
+  /**
+   * Determine the account recovery option based on enabled login methods.
+   * @param emailEnabled - is email enabled
+   * @param phoneEnabled - is phone enabled
+   * @param accountRecovery - the user provided account recovery setting
+   * @returns account recovery setting
+   */
+  private getAccountRecoverySetting = (
+    emailEnabled: boolean,
+    phoneEnabled: boolean,
+    accountRecovery: AuthProps['accountRecovery']
+  ): cognito.AccountRecovery | undefined => {
+    if (accountRecovery !== undefined) {
+      return accountRecovery;
+    }
+    // set default based on enabled login methods
+    if (phoneEnabled && emailEnabled) {
+      return cognito.AccountRecovery.EMAIL_ONLY;
+    }
+    if (phoneEnabled) {
+      return cognito.AccountRecovery.PHONE_ONLY_WITHOUT_MFA;
+    }
+    if (emailEnabled) {
+      return cognito.AccountRecovery.EMAIL_ONLY;
+    }
+    return undefined;
   };
 
   /**
