@@ -82,7 +82,7 @@ describe('generate config command', () => {
 
   it('can generate to custom absolute path', async () => {
     await commandRunner.runCommand(
-      'config --stack stack_name --out /foo/bar/customFile.js'
+      'config --stack stack_name --out /foo/bar/customFile --format ts'
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
@@ -91,13 +91,13 @@ describe('generate config command', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.equal(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      path.join('/', 'foo', 'bar', 'customFile.js')
+      path.join('/', 'foo', 'bar', 'customFile', 'amplifyconfiguration.ts')
     );
   });
 
   it('can generate to custom relative path', async () => {
     await commandRunner.runCommand(
-      'config --stack stack_name --out foo/bar/customFile.js'
+      'config --stack stack_name --out foo/bar/customFile --format js'
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
@@ -106,7 +106,13 @@ describe('generate config command', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.equal(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      path.join(process.cwd(), 'foo', 'bar', 'customFile.js')
+      path.join(
+        process.cwd(),
+        'foo',
+        'bar',
+        'customFile',
+        'amplifyconfiguration.js'
+      )
     );
   });
 
@@ -115,6 +121,7 @@ describe('generate config command', () => {
     assert.match(output, /--stack/);
     assert.match(output, /--appId/);
     assert.match(output, /--branch/);
+    assert.match(output, /--format/);
     assert.match(output, /--out/);
   });
 
