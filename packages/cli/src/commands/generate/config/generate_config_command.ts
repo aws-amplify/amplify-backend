@@ -6,9 +6,13 @@ import { ClientConfigGeneratorAdapter } from './client_config_generator_adapter.
 
 export type GenerateConfigCommandOptions = {
   stack: string | undefined;
+} & {
   appId: string | undefined;
+} & {
   branch: string | undefined;
-  format: string | undefined;
+} & {
+  format: 'js' | 'json' | 'ts' | undefined;
+} & {
   out: string | undefined;
 };
 
@@ -124,7 +128,7 @@ export class GenerateConfigCommand
         describe: 'The format which the configuration should be exported into.',
         type: 'string',
         array: false,
-        choices: ['js', 'json', 'ts'],
+        choices: ['js', 'json', 'ts'] as const,
       })
       .option('out', {
         describe:
