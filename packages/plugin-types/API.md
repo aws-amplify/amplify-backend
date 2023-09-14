@@ -13,6 +13,9 @@ import { IUserPool } from 'aws-cdk-lib/aws-cognito';
 import { IUserPoolClient } from 'aws-cdk-lib/aws-cognito';
 import { Stack } from 'aws-cdk-lib';
 
+// @public (undocumented)
+export type AmplifyFunction = ResourceProvider<FunctionResources>;
+
 // @public
 export type AppId = string;
 
