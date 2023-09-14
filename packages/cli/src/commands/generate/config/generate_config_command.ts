@@ -4,6 +4,8 @@ import { BackendIdentifier } from '@aws-amplify/client-config';
 import { AppNameResolver } from '../../../local_app_name_resolver.js';
 import { ClientConfigGeneratorAdapter } from './client_config_generator_adapter.js';
 
+const formatChoices = ['js', 'json', 'ts'] as const;
+
 export type GenerateConfigCommandOptions = {
   stack: string | undefined;
 } & {
@@ -11,7 +13,7 @@ export type GenerateConfigCommandOptions = {
 } & {
   branch: string | undefined;
 } & {
-  format: 'js' | 'json' | 'ts' | undefined;
+  format: (typeof formatChoices)[number] | undefined;
 } & {
   out: string | undefined;
 };
@@ -128,7 +130,7 @@ export class GenerateConfigCommand
         describe: 'The format which the configuration should be exported into.',
         type: 'string',
         array: false,
-        choices: ['js', 'json', 'ts'] as const,
+        choices: formatChoices,
       })
       .option('out', {
         describe:
