@@ -1,4 +1,5 @@
-import fs from 'fs';
+import { existsSync } from 'fs';
+import fs from 'fs/promises';
 import { ClientConfig } from '../client-config-types/client_config.js';
 import path from 'path';
 import * as os from 'os';
@@ -15,7 +16,7 @@ export class ClientConfigWriter {
     targetPath: string
   ): Promise<void> => {
     const fileExtension = path.parse(targetPath).ext;
-    if (fs.existsSync(targetPath)) {
+    if (existsSync(targetPath)) {
       throw new Error(`File ${targetPath} already exists`);
     }
     switch (fileExtension) {
@@ -26,15 +27,11 @@ export class ClientConfigWriter {
           null,
           2
         )}${os.EOL}`;
-        if (!fs.existsSync(path.dirname(targetPath))) {
-          fs.writeFileSync(targetPath, fileContent);
-        }
+        await fs.writeFile(targetPath, fileContent);
         break;
       }
       case '.json':
-        if (!fs.existsSync(path.dirname(targetPath))) {
-          fs.writeFileSync(targetPath, JSON.stringify(clientConfig, null, 2));
-        }
+        await fs.writeFile(targetPath, JSON.stringify(clientConfig, null, 2));
         break;
       default:
         throw new Error(
