@@ -73,8 +73,8 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
     Object.entries(this.props.triggers || {}).forEach(
       ([triggerEvent, handlerFactory]) => {
         authConstruct.addTrigger(
-          triggerEvent as TriggerEvent,
-          handlerFactory.getInstance(this.getInstanceProps).resources.lambda
+          triggerEvent as TriggerEvent, // this type assertion is necessary before .forEach types keys as just "string"
+          handlerFactory.getInstance(this.getInstanceProps)
         );
       }
     );

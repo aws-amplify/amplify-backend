@@ -1,6 +1,7 @@
 import { Construct } from 'constructs';
 import { Stack, aws_cognito as cognito } from 'aws-cdk-lib';
 import {
+  AmplifyFunction,
   AuthResources,
   BackendOutputStorageStrategy,
   BackendOutputWriter,
@@ -433,10 +434,21 @@ export class AmplifyAuth
   /**
    * Attach a Lambda function trigger handler to the UserPool in this construct
    * @param event - The trigger event operation
-   * @param handler - The lambda function that will handle the event
+   * @param handler - The function that will handle the event
    */
-  addTrigger = (event: TriggerEvent, handler: IFunction): void => {
-    this.userPool.addTrigger(UserPoolOperation.of(event), handler);
+  addTrigger = (
+    event: TriggerEvent,
+    handler: IFunction | AmplifyFunction
+  ): void => {
+    if ('resources' in handler) {
+      this.userPool.addTrigger(
+        UserPoolOperation.of(event),
+        handler.resources.lambda
+      );
+    } else {
+      // handler is an IFunction
+      this.userPool.addTrigger(UserPoolOperation.of(event), handler);
+    }
   };
 
   /**

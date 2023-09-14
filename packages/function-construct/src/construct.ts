@@ -1,6 +1,6 @@
 import { Construct } from 'constructs';
 import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
-import { FunctionResources, ResourceProvider } from '@aws-amplify/plugin-types';
+import { AmplifyFunction, FunctionResources } from '@aws-amplify/plugin-types';
 
 export type AmplifyFunctionProps = {
   absoluteCodePath: string;
@@ -11,9 +11,9 @@ export type AmplifyFunctionProps = {
 /**
  * Hello world construct implementation
  */
-export class AmplifyFunction
+export class AmplifyLambdaFunction
   extends Construct
-  implements ResourceProvider<FunctionResources>
+  implements AmplifyFunction
 {
   readonly resources: FunctionResources;
   /**
