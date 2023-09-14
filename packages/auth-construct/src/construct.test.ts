@@ -14,7 +14,6 @@ import {
   UserPool,
   UserPoolClient,
   UserPoolIdentityProviderSamlMetadataType,
-  UserPoolOperation,
   VerificationEmailStyle,
 } from 'aws-cdk-lib/aws-cognito';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
@@ -1196,10 +1195,7 @@ describe('Auth construct', () => {
       const authConstruct = new AmplifyAuth(stack, 'testAuth', {
         loginWith: { email: true },
       });
-      authConstruct.addTrigger(
-        UserPoolOperation.CREATE_AUTH_CHALLENGE,
-        testFunc
-      );
+      authConstruct.addTrigger('createAuthChallenge', testFunc);
       const template = Template.fromStack(stack);
       const lambdas = template.findResources('AWS::Lambda::Function');
       if (Object.keys(lambdas).length !== 1) {

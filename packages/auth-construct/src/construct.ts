@@ -22,7 +22,7 @@ import {
 import { FederatedPrincipal, Role } from 'aws-cdk-lib/aws-iam';
 import { AuthOutput } from '@aws-amplify/backend-output-schemas/auth';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
-import { AuthProps } from './types.js';
+import { AuthProps, TriggerEvent } from './types.js';
 import { DEFAULTS } from './defaults.js';
 import {
   AuthAttributeFactory,
@@ -142,9 +142,6 @@ export class AmplifyAuth
 
   /**
    * Setup Identity Pool with default roles/role mappings, and register providers
-   * @param roles - DefaultRoles
-   * @param userPool - UserPool
-   * @param userPoolClient - UserPoolClient
    */
   private setupIdentityPool = (
     roles: DefaultRoles,
@@ -211,8 +208,6 @@ export class AmplifyAuth
 
   /**
    * Process props into UserPoolProps (set defaults if needed)
-   * @param props - AuthProps
-   * @returns UserPoolProps
    */
   private getUserPoolProps = (props: AuthProps): UserPoolProps => {
     const emailEnabled = props.loginWith.email ? true : false;
@@ -437,11 +432,11 @@ export class AmplifyAuth
 
   /**
    * Attach a Lambda function trigger handler to the UserPool in this construct
-   * @param operation - The trigger event operation
+   * @param event - The trigger event operation
    * @param handler - The lambda function that will handle the event
    */
-  addTrigger = (operation: UserPoolOperation, handler: IFunction): void => {
-    this.userPool.addTrigger(operation, handler);
+  addTrigger = (event: TriggerEvent, handler: IFunction): void => {
+    this.userPool.addTrigger(UserPoolOperation.of(event), handler);
   };
 
   /**

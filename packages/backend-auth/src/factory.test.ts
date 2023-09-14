@@ -18,7 +18,7 @@ import {
   ImportPathVerifier,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
-import { triggerEvents } from './trigger_events.js';
+import { triggerEvents } from '@aws-amplify/auth-construct-alpha';
 
 describe('AmplifyAuthFactory', () => {
   let authFactory: AmplifyAuthFactory;

@@ -14,8 +14,3 @@ export const triggerEvents = [
   'userMigration',
   'verifyAuthChallengeResponse',
 ] as const;
-
-/**
- * Union type of all supported auth trigger events
- */
-export type TriggerEvent = (typeof triggerEvents)[number];

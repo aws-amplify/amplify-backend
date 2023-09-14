@@ -1,4 +1,8 @@
-import { AmplifyAuth, AuthProps } from '@aws-amplify/auth-construct-alpha';
+import {
+  AmplifyAuth,
+  AuthProps,
+  TriggerEvent,
+} from '@aws-amplify/auth-construct-alpha';
 import { Construct } from 'constructs';
 import {
   AuthResources,
@@ -8,8 +12,6 @@ import {
   FunctionResources,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
-import { UserPoolOperation } from 'aws-cdk-lib/aws-cognito';
-import { TriggerEvent } from './trigger_events.js';
 
 export type TriggerConfig = {
   triggers?: Partial<
@@ -71,7 +73,7 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
     Object.entries(this.props.triggers || {}).forEach(
       ([triggerEvent, handlerFactory]) => {
         authConstruct.addTrigger(
-          UserPoolOperation.of(triggerEvent),
+          triggerEvent as TriggerEvent,
           handlerFactory.getInstance(this.getInstanceProps).resources.lambda
         );
       }
