@@ -1,6 +1,10 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
-import { GenerateConfigCommand } from './generate_config_command.js';
+import {
+  GenerateConfigCommand,
+  configFileName,
+  formatChoices,
+} from './generate_config_command.js';
 import yargs, { CommandModule } from 'yargs';
 import {
   TestCommandError,
@@ -43,7 +47,7 @@ describe('generate config command', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      path.join(process.cwd(), 'amplifyconfiguration.js')
+      path.join(process.cwd(), `${configFileName}.${formatChoices[0]}`)
     );
   });
 
@@ -60,7 +64,7 @@ describe('generate config command', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      path.join(process.cwd(), 'amplifyconfiguration.js')
+      path.join(process.cwd(), `${configFileName}.${formatChoices[0]}`)
     );
   });
 
@@ -76,7 +80,7 @@ describe('generate config command', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      path.join(process.cwd(), 'amplifyconfiguration.js')
+      path.join(process.cwd(), `${configFileName}.${formatChoices[0]}`)
     );
   });
 
@@ -91,7 +95,7 @@ describe('generate config command', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.equal(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      path.join('/', 'foo', 'bar', 'customFile', 'amplifyconfiguration.ts')
+      path.join('/', 'foo', 'bar', `${configFileName}.${formatChoices[2]}`)
     );
   });
 
@@ -106,13 +110,7 @@ describe('generate config command', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.equal(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      path.join(
-        process.cwd(),
-        'foo',
-        'bar',
-        'customFile',
-        'amplifyconfiguration.js'
-      )
+      path.join(process.cwd(), 'foo', 'bar', 'amplifyconfiguration.js')
     );
   });
 

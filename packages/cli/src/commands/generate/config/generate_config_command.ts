@@ -4,7 +4,8 @@ import { BackendIdentifier } from '@aws-amplify/client-config';
 import { AppNameResolver } from '../../../local_app_name_resolver.js';
 import { ClientConfigGeneratorAdapter } from './client_config_generator_adapter.js';
 
-const formatChoices = ['js', 'json', 'ts'] as const;
+export const formatChoices = ['js', 'json', 'ts'] as const;
+export const configFileName = 'amplifyconfiguration';
 
 export type GenerateConfigCommandOptions = {
   stack: string | undefined;
@@ -55,22 +56,24 @@ export class GenerateConfigCommand
   handler = async (
     args: ArgumentsCamelCase<GenerateConfigCommandOptions>
   ): Promise<void> => {
+    const defaultArgs = {
+      out: process.cwd(),
+      format: 'js',
+    };
     const backendIdentifier = await this.getBackendIdentifier(args);
 
     let targetPath: string;
     if (args.out) {
-      if (path.isAbsolute(args.out)) {
-        targetPath = args.out;
-      } else {
-        targetPath = path.resolve(process.cwd(), args.out);
-      }
+      targetPath = path.isAbsolute(args.out)
+        ? args.out
+        : path.resolve(process.cwd(), args.out);
     } else {
-      targetPath = process.cwd();
+      targetPath = defaultArgs.out;
     }
 
     targetPath = path.resolve(
       targetPath,
-      `amplifyconfiguration.${args.format || 'js'}`
+      `${configFileName}.${args.format || defaultArgs.format}`
     );
 
     await this.clientConfigGenerator.generateClientConfigToFile(
