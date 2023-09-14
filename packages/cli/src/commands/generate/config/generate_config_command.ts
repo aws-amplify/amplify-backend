@@ -8,6 +8,7 @@ export type GenerateConfigCommandOptions = {
   stack: string | undefined;
   appId: string | undefined;
   branch: string | undefined;
+  extension: string | undefined;
   out: string | undefined;
 };
 
@@ -58,8 +59,14 @@ export class GenerateConfigCommand
         targetPath = path.resolve(process.cwd(), args.out);
       }
     } else {
-      targetPath = path.resolve(process.cwd(), 'amplifyconfiguration.js');
+      targetPath = process.cwd();
     }
+
+    targetPath = path.resolve(
+      targetPath,
+      `amplifyconfiguration.${args.extension || 'js'}`
+    );
+
     await this.clientConfigGenerator.generateClientConfigToFile(
       backendIdentifier,
       targetPath
@@ -112,6 +119,12 @@ export class GenerateConfigCommand
         type: 'string',
         array: false,
         group: 'Project identifier',
+      })
+      .option('extension', {
+        describe: 'The format which the configuration should be exported into.',
+        type: 'string',
+        array: false,
+        choices: ['ts', 'js', 'json'],
       })
       .option('out', {
         describe:

@@ -1,3 +1,4 @@
+import { existsSync } from 'fs';
 import fs from 'fs/promises';
 import { ClientConfig } from '../client-config-types/client_config.js';
 import path from 'path';
@@ -15,7 +16,11 @@ export class ClientConfigWriter {
     targetPath: string
   ): Promise<void> => {
     const fileExtension = path.parse(targetPath).ext;
+    if (existsSync(targetPath)) {
+      throw new Error(`File ${targetPath} already exists`);
+    }
     switch (fileExtension) {
+      case '.ts':
       case '.js': {
         const fileContent = `export default ${JSON.stringify(
           clientConfig,
