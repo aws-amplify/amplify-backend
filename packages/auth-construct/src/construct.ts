@@ -1,5 +1,7 @@
 import { Construct } from 'constructs';
 import { Stack, aws_cognito as cognito } from 'aws-cdk-lib';
+import { Architecture, Runtime } from 'aws-cdk-lib/aws-lambda';
+import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
 import {
   AmplifyFunction,
   AuthResources,
@@ -18,11 +20,12 @@ import {
   UserPoolIdentityProviderSaml,
   UserPoolOperation,
   UserPoolProps,
+  UserPoolTriggers,
 } from 'aws-cdk-lib/aws-cognito';
 import { FederatedPrincipal, Role } from 'aws-cdk-lib/aws-iam';
 import { AuthOutput } from '@aws-amplify/backend-output-schemas/auth';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
-import { AuthProps, TriggerEvent } from './types.js';
+import { AuthProps, PasswordlessAuthOptions, TriggerEvent } from './types.js';
 import { DEFAULTS } from './defaults.js';
 import {
   AuthAttributeFactory,
@@ -32,6 +35,7 @@ import {
 } from './attributes.js';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
+import { join } from 'path';
 
 type DefaultRoles = { auth: Role; unAuth: Role };
 type IdentityProviderSetupResult = {
@@ -80,8 +84,8 @@ export class AmplifyAuth
     super(scope, id);
 
     // UserPool
-    const userPoolProps: UserPoolProps = this.getUserPoolProps(props);
-    this.userPool = new cognito.UserPool(this, 'UserPool', userPoolProps);
+    const userPoolProps: UserPoolProps = this.getUserPoolProps(id, props);
+    const userPool = new cognito.UserPool(this, 'UserPool', userPoolProps);
 
     // UserPool - Identity Providers
     const providerSetupResult = this.setupIdentityProviders(
@@ -210,8 +214,11 @@ export class AmplifyAuth
 
   /**
    * Process props into UserPoolProps (set defaults if needed)
+   * @param id - Stack ID
+   * @param props - AuthProps
+   * @returns UserPoolProps
    */
-  private getUserPoolProps = (props: AuthProps): UserPoolProps => {
+  private getUserPoolProps = (id: string, props: AuthProps): UserPoolProps => {
     const emailEnabled = props.loginWith.email ? true : false;
     const phoneEnabled = props.loginWith.phoneNumber ? true : false;
     // check for customization
@@ -268,6 +275,11 @@ export class AmplifyAuth
       }
     }
 
+    const passwordlessTriggers = this.getPasswordlessTriggers(
+      id,
+      props.passwordlessAuth
+    );
+
     const userPoolProps: UserPoolProps = {
       signInCaseSensitive: DEFAULTS.SIGN_IN_CASE_SENSITIVE,
       signInAliases: {
@@ -287,6 +299,9 @@ export class AmplifyAuth
       },
       customAttributes: {
         ...customAttributes,
+      },
+      lambdaTriggers: {
+        ...passwordlessTriggers,
       },
       selfSignUpEnabled: DEFAULTS.ALLOW_SELF_SIGN_UP,
       mfa: this.getMFAEnforcementType(props.multifactor),
@@ -308,6 +323,62 @@ export class AmplifyAuth
       ),
     };
     return userPoolProps;
+  };
+
+  private getPasswordlessTriggers = (
+    id: string,
+    options?: PasswordlessAuthOptions
+  ): UserPoolTriggers => {
+    if (!options) {
+      return {};
+    }
+    const defineAuthChallenge = new NodejsFunction(
+      this,
+      `DefineAuthChallenge${id}`,
+      {
+        entry: join(__dirname, 'passwordless-auth', 'custom-auth-triggers.js'),
+        handler: 'defineAuthChallengeHandler',
+        runtime: Runtime.NODEJS_18_X,
+        architecture: Architecture.ARM_64,
+        bundling: {
+          format: OutputFormat.ESM,
+        },
+      }
+    );
+
+    const createAuthChallenge = new NodejsFunction(
+      this,
+      `CreateAuthChallenge${id}`,
+      {
+        entry: join(__dirname, 'passwordless-auth', 'custom-auth-triggers.js'),
+        handler: 'createAuthChallengeHandler',
+        runtime: Runtime.NODEJS_18_X,
+        architecture: Architecture.ARM_64,
+        bundling: {
+          format: OutputFormat.ESM,
+        },
+      }
+    );
+
+    const verifyAuthChallengeResponse = new NodejsFunction(
+      this,
+      `VerifyAuthChallengeResponse${id}`,
+      {
+        entry: join(__dirname, 'passwordless-auth', 'custom-auth-triggers.js'),
+        handler: 'verifyAuthChallengeHandler',
+        runtime: Runtime.NODEJS_18_X,
+        architecture: Architecture.ARM_64,
+        bundling: {
+          format: OutputFormat.ESM,
+        },
+      }
+    );
+
+    return {
+      defineAuthChallenge,
+      createAuthChallenge,
+      verifyAuthChallengeResponse,
+    };
   };
 
   /**

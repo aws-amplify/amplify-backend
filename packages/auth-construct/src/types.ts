@@ -111,4 +111,26 @@ export type AuthProps = {
   accountRecovery?: cognito.AccountRecovery;
 
   outputStorageStrategy?: BackendOutputStorageStrategy<AuthOutput>;
+
+  /**
+   * Passwordless Authentication options.
+   *
+   * If no options are provided, passwordless authentication will no be added to this backend.
+   */
+  passwordlessAuth?: PasswordlessAuthOptions;
+};
+
+/**
+ * Options for passwordless auth.
+ */
+export type PasswordlessAuthOptions = {
+  magicLink?: MagicLinkAuthOptions;
+};
+
+/**
+ * Options for Magic Link Passwordless Auth.
+ */
+export type MagicLinkAuthOptions = {
+  sesFromAddress: string;
+  sesRegion?: string;
 };
