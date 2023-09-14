@@ -82,7 +82,7 @@ describe('generate config command', () => {
 
   it('can generate to custom absolute path', async () => {
     await commandRunner.runCommand(
-      'config --stack stack_name --out /foo/bar/customFile --format ts'
+      'config --stack stack_name --out /foo/bar --format ts'
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
@@ -97,7 +97,7 @@ describe('generate config command', () => {
 
   it('can generate to custom relative path', async () => {
     await commandRunner.runCommand(
-      'config --stack stack_name --out foo/bar/customFile --format js'
+      'config --stack stack_name --out foo/bar --format js'
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
