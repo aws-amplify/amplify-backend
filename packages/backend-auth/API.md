@@ -11,6 +11,7 @@ import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
 import { FunctionResources } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
+import { TriggerEvent } from '@aws-amplify/auth-construct-alpha';
 
 // @public
 export class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth & ResourceProvider<AuthResources>> {
@@ -30,12 +31,6 @@ export const Auth: typeof AmplifyAuthFactory;
 export type TriggerConfig = {
     triggers?: Partial<Record<TriggerEvent, ConstructFactory<ResourceProvider<FunctionResources>>>>;
 };
-
-// @public
-export type TriggerEvent = (typeof triggerEvents)[number];
-
-// @public
-export const triggerEvents: readonly ["createAuthChallenge", "customMessage", "defineAuthChallenge", "postAuthentication", "postConfirmation", "preAuthentication", "preSignUp", "preTokenGeneration", "userMigration", "verifyAuthChallengeResponse"];
 
 // (No @packageDocumentation comment for this package)
 

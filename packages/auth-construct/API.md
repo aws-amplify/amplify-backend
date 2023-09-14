@@ -14,12 +14,11 @@ import { CustomAttributeConfig } from 'aws-cdk-lib/aws-cognito';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { StandardAttributes } from 'aws-cdk-lib/aws-cognito';
-import { UserPoolOperation } from 'aws-cdk-lib/aws-cognito';
 
 // @public
 export class AmplifyAuth extends Construct implements BackendOutputWriter, ResourceProvider<AuthResources> {
     constructor(scope: Construct, id: string, props?: AuthProps);
-    addTrigger: (operation: UserPoolOperation, handler: IFunction) => void;
+    addTrigger: (event: TriggerEvent, handler: IFunction) => void;
     static attribute: (name: keyof aws_cognito.StandardAttributes) => AuthStandardAttribute;
     static customAttribute: AuthCustomAttributeFactory;
     readonly resources: AuthResources;
@@ -144,6 +143,12 @@ export type Mutable<T> = {
 export type PhoneNumberLogin = true | {
     verificationMessage?: `${string}{####}${string}`;
 };
+
+// @public
+export type TriggerEvent = (typeof triggerEvents)[number];
+
+// @public
+export const triggerEvents: readonly ["createAuthChallenge", "customMessage", "defineAuthChallenge", "postAuthentication", "postConfirmation", "preAuthentication", "preSignUp", "preTokenGeneration", "userMigration", "verifyAuthChallengeResponse"];
 
 // (No @packageDocumentation comment for this package)
 
