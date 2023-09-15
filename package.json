@@ -22,7 +22,7 @@
     "publish:local": "tsx scripts/publish_local.ts",
     "start:npm-proxy": "tsx scripts/start_npm_proxy.ts",
     "stop:npm-proxy": "tsx scripts/stop_npm_proxy.ts",
-    "test": "npm run test:dir -- $(npx glob packages/* | grep -v integration-tests) packages/integration-tests/lib/test-in-memory",
+    "test": "npm run test:dir $(tsx scripts/get_unit_test_dir_list.ts)",
     "test:coverage:generate": "NODE_V8_COVERAGE=coverage/ npm run test",
     "test:coverage:threshold": "c8 npm run test",
     "test:dir": "tsx --test --test-reporter spec",
