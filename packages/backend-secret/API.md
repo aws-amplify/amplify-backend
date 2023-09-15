@@ -10,45 +10,36 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import { SSMServiceException } from '@aws-sdk/client-ssm';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
+// @public
+export const getSecretClient: (credentialProvider?: AwsCredentialIdentityProvider) => SecretClient;
+
+// @public
+export type SecretAction = 'GET' | 'SET' | 'REMOVE' | 'LIST';
+
 // @public (undocumented)
-export type Secret = {
+export type SecretClient = {
     getSecret: (backendIdentifier: UniqueBackendIdentifier | BackendId, secretName: string) => Promise<string | undefined>;
-    listSecrets: (backendIdentifier: UniqueBackendIdentifier | BackendId) => Promise<string[] | undefined>;
+    listSecrets: (backendIdentifier: UniqueBackendIdentifier | BackendId) => Promise<string[]>;
     setSecret: (backendIdentifier: UniqueBackendIdentifier | BackendId, secretName: string, secretValue: string) => Promise<void>;
     removeSecret: (backendIdentifier: UniqueBackendIdentifier | BackendId, secretName: string) => Promise<void>;
-    getIAMPolicyStatement: (backendIdentifier: UniqueBackendIdentifier, secretActions: SecretActionType[]) => iam.PolicyStatement;
+    grantPermission: (resource: iam.IGrantable, backendIdentifier: UniqueBackendIdentifier, secretActions: SecretAction[]) => void;
 };
-
-// @public
-export enum SecretActionType {
-    // (undocumented)
-    GET = 0,
-    // (undocumented)
-    LIST = 3,
-    // (undocumented)
-    REMOVE = 2,
-    // (undocumented)
-    SET = 1
-}
-
-// @public
-export const SecretClient: (credentialProvider?: AwsCredentialIdentityProvider) => Secret;
 
 // @public
 export class SecretError extends Error {
     constructor(message: string, options?: {
-        cause?: SecretErrorCauseType;
+        cause?: SecretErrorCause;
         httpStatusCode?: number;
     });
     // (undocumented)
-    cause: SecretErrorCauseType;
+    cause: SecretErrorCause;
     static fromSSMException: (ssmException: SSMServiceException) => SecretError;
     // (undocumented)
     httpStatusCode: number | undefined;
 }
 
 // @public (undocumented)
-export type SecretErrorCauseType = SSMServiceException | undefined;
+export type SecretErrorCause = SSMServiceException | undefined;
 
 // (No @packageDocumentation comment for this package)
 

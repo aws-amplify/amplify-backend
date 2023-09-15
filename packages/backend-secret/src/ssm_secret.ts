@@ -1,6 +1,6 @@
 import { SSM, SSMServiceException } from '@aws-sdk/client-ssm';
 import { SecretError } from './secret_error.js';
-import { Secret, SecretActionType } from './secret.js';
+import { SecretAction, SecretClient } from './secret.js';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { BackendId, UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
@@ -9,31 +9,71 @@ const SHARED_SECRET = 'shared';
 /**
  * This class implements Amplify Secret using SSM parameter store.
  */
-export class SSMSecret implements Secret {
+export class SSMSecretClient implements SecretClient {
   /**
    * Creates a new instance of SSMSecret.
    */
   constructor(private readonly ssmClient: SSM) {}
 
   /**
-   * Construct a full parameter name path.
+   * Get a branch-specific parameter prefix.
+   */
+  private getBranchParameterPrefix = (
+    backendIdentifier: UniqueBackendIdentifier
+  ): string => {
+    return `/amplify/${backendIdentifier.backendId}/${backendIdentifier.branchName}`;
+  };
+
+  /**
+   * Get a branch-specific parameter full path.
+   */
+  private getBranchParameterFullPath = (
+    backendIdentifier: UniqueBackendIdentifier,
+    secretName: string
+  ): string => {
+    return `${this.getBranchParameterPrefix(backendIdentifier)}/${secretName}`;
+  };
+
+  /**
+   * Get a shared parameter prefix.
+   */
+  private getSharedParameterPrefix = (backendId: BackendId): string => {
+    return `/amplify/${SHARED_SECRET}/${backendId}`;
+  };
+
+  /**
+   * Get a shared parameter full path.
+   */
+  private getSharedParameterFullPath = (
+    backendId: BackendId,
+    secretName: string
+  ): string => {
+    return `${this.getSharedParameterPrefix(backendId)}/${secretName}`;
+  };
+
+  /**
+   * Get a parameter full path.
    */
   private getParameterFullPath = (
     backendIdentifier: UniqueBackendIdentifier | BackendId,
-    secretName?: string
+    secretName: string
   ): string => {
     if (typeof backendIdentifier === 'object') {
-      // specific-branch secret
-      if (secretName) {
-        return `/amplify/${backendIdentifier.backendId}/${backendIdentifier.branchName}/${secretName}`;
-      }
-      return `/amplify/${backendIdentifier.backendId}/${backendIdentifier.branchName}`;
+      return this.getBranchParameterFullPath(backendIdentifier, secretName);
     }
-    // shared backend secret
-    if (secretName) {
-      return `/amplify/${SHARED_SECRET}/${backendIdentifier}/${secretName}`;
+    return this.getSharedParameterFullPath(backendIdentifier, secretName);
+  };
+
+  /**
+   * Get a parameter prefix.
+   */
+  private getParameterPrefix = (
+    backendIdentifier: UniqueBackendIdentifier | BackendId
+  ): string => {
+    if (typeof backendIdentifier === 'object') {
+      return this.getBranchParameterPrefix(backendIdentifier);
     }
-    return `/amplify/${SHARED_SECRET}/${backendIdentifier}`;
+    return this.getSharedParameterPrefix(backendIdentifier);
   };
 
   /**
@@ -60,8 +100,8 @@ export class SSMSecret implements Secret {
    */
   public listSecrets = async (
     backendIdentifier: UniqueBackendIdentifier | BackendId
-  ): Promise<string[] | undefined> => {
-    const path = this.getParameterFullPath(backendIdentifier);
+  ): Promise<string[]> => {
+    const path = this.getParameterPrefix(backendIdentifier);
     const result: string[] = [];
 
     try {
@@ -127,28 +167,31 @@ export class SSMSecret implements Secret {
   /**
    * Get required IAM policy statement to perform the input actions.
    */
-  public getIAMPolicyStatement = (
+  public grantPermission = (
+    resource: iam.IGrantable,
     backendIdentifier: UniqueBackendIdentifier,
-    secretActions: SecretActionType[]
-  ): iam.PolicyStatement => {
-    const actionMap = {
-      [SecretActionType.GET]: 'ssm:GetParameter',
-      [SecretActionType.SET]: 'ssm:PutParameter',
-      [SecretActionType.LIST]: 'ssm:GetParametersByPath',
-      [SecretActionType.REMOVE]: 'ssm:DeleteParameter',
+    secretActions: SecretAction[]
+  ) => {
+    const actionMap: { [K in SecretAction]: string } = {
+      ['GET']: 'ssm:GetParameter',
+      ['SET']: 'ssm:PutParameter',
+      ['LIST']: 'ssm:GetParametersByPath',
+      ['REMOVE']: 'ssm:DeleteParameter',
     };
 
     const secretPaths = [
-      this.getParameterFullPath(backendIdentifier),
-      this.getParameterFullPath(backendIdentifier.backendId),
+      this.getParameterPrefix(backendIdentifier),
+      this.getParameterPrefix(backendIdentifier.backendId),
     ];
 
-    return new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
-      actions: secretActions.map((action) => actionMap[action]),
-      resources: secretPaths.map(
-        (path) => `arn:aws:ssm:*:*:parameter${path}/*`
-      ),
-    });
+    resource.grantPrincipal.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: secretActions.map((action) => actionMap[action]),
+        resources: secretPaths.map(
+          (path) => `arn:aws:ssm:*:*:parameter${path}/*`
+        ),
+      })
+    );
   };
 }

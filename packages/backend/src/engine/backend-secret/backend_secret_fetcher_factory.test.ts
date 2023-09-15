@@ -1,16 +1,16 @@
 import { App, Stack } from 'aws-cdk-lib';
 import { describe, it } from 'node:test';
-import { BackendSecretResourceProviderFactory } from './backend_secret_resource_provider_factory.js';
-import { SecretClient } from '@aws-amplify/backend-secret';
+import { BackendSecretFetcherProviderFactory } from './backend_secret_fetcher_provider_factory.js';
+import { getSecretClient } from '@aws-amplify/backend-secret';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
 import {
-  BackendSecretResourceFactory,
+  BackendSecretFetcherFactory,
   SECRET_RESOURCE_PROVIDER_ID,
-  SECRET_RESOURCE_TYPE,
-} from './backend_secret_resource_factory.js';
+} from './backend_secret_fetcher_factory.js';
 
+const secretResourceType = 'Custom::SecretFetcherResource';
 const backendId = 'testId';
 const branchName = 'testBranch';
 const secretName1 = 'testSecretName1';
@@ -20,11 +20,11 @@ const uniqueBackendIdentifier: UniqueBackendIdentifier = {
   branchName,
 };
 
-describe('BackendSecretResourceFactory', () => {
-  const providerFactory = new BackendSecretResourceProviderFactory(
-    SecretClient()
+describe('getOrCreate', () => {
+  const providerFactory = new BackendSecretFetcherProviderFactory(
+    getSecretClient()
   );
-  const resourceFactory = new BackendSecretResourceFactory(providerFactory);
+  const resourceFactory = new BackendSecretFetcherFactory(providerFactory);
 
   it('create different secrets', () => {
     const app = new App();
@@ -33,8 +33,8 @@ describe('BackendSecretResourceFactory', () => {
     resourceFactory.getOrCreate(stack, secretName2, uniqueBackendIdentifier);
 
     const template = Template.fromStack(stack);
-    template.resourceCountIs(SECRET_RESOURCE_TYPE, 2);
-    let customResources = template.findResources(SECRET_RESOURCE_TYPE, {
+    template.resourceCountIs(secretResourceType, 2);
+    let customResources = template.findResources(secretResourceType, {
       Properties: {
         backendId,
         branchName,
@@ -43,7 +43,7 @@ describe('BackendSecretResourceFactory', () => {
     });
     assert.equal(Object.keys(customResources).length, 1);
 
-    customResources = template.findResources(SECRET_RESOURCE_TYPE, {
+    customResources = template.findResources(secretResourceType, {
       Properties: {
         backendId,
         branchName,
@@ -70,8 +70,8 @@ describe('BackendSecretResourceFactory', () => {
     resourceFactory.getOrCreate(stack, secretName1, uniqueBackendIdentifier);
 
     const template = Template.fromStack(stack);
-    template.resourceCountIs(SECRET_RESOURCE_TYPE, 1);
-    const customResources = template.findResources(SECRET_RESOURCE_TYPE);
+    template.resourceCountIs(secretResourceType, 1);
+    const customResources = template.findResources(secretResourceType);
     const resourceName = Object.keys(customResources)[0];
 
     const body = customResources[resourceName]['Properties'];

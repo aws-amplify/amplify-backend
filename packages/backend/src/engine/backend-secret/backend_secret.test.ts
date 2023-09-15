@@ -3,9 +3,9 @@ import assert from 'node:assert';
 import { CfnTokenBackendSecret } from './backend_secret.js';
 import { App, SecretValue, Stack } from 'aws-cdk-lib';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
-import { SecretClient } from '@aws-amplify/backend-secret';
-import { BackendSecretResourceProviderFactory } from './backend_secret_resource_provider_factory.js';
-import { BackendSecretResourceFactory } from './backend_secret_resource_factory.js';
+import { getSecretClient } from '@aws-amplify/backend-secret';
+import { BackendSecretFetcherProviderFactory } from './backend_secret_fetcher_provider_factory.js';
+import { BackendSecretFetcherFactory } from './backend_secret_fetcher_factory.js';
 
 const backendId = 'testId';
 const branchName = 'testBranch';
@@ -17,10 +17,10 @@ const uniqueBackendIdentifier: UniqueBackendIdentifier = {
 };
 
 describe('BackendSecret', () => {
-  const providerFactory = new BackendSecretResourceProviderFactory(
-    SecretClient()
+  const providerFactory = new BackendSecretFetcherProviderFactory(
+    getSecretClient()
   );
-  const resourceFactory = new BackendSecretResourceFactory(providerFactory);
+  const resourceFactory = new BackendSecretFetcherFactory(providerFactory);
 
   it('resolves a secret', () => {
     const mockGetOrCreate = mock.method(resourceFactory, 'getOrCreate', () => {

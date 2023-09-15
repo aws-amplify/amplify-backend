@@ -1,5 +1,5 @@
 import { Construct } from 'constructs';
-import { BackendSecretResourceProviderFactory } from './backend_secret_resource_provider_factory.js';
+import { BackendSecretFetcherProviderFactory } from './backend_secret_fetcher_provider_factory.js';
 import { CustomResource } from 'aws-cdk-lib';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import { randomUUID } from 'node:crypto';
@@ -12,17 +12,17 @@ export const SECRET_RESOURCE_PROVIDER_ID = 'SecretFetcherResourceProvider';
 /**
  * Type of the backend custom CFN resource.
  */
-export const SECRET_RESOURCE_TYPE = `Custom::SecretFetcherResource`;
+const SECRET_RESOURCE_TYPE = `Custom::SecretFetcherResource`;
 
 /**
- * The factory to create backend secret resource.
+ * The factory to create backend secret-fetcher resource.
  */
-export class BackendSecretResourceFactory {
+export class BackendSecretFetcherFactory {
   /**
-   * Creates a backend secret resource factory.
+   * Creates a backend secret-fetcher resource factory.
    */
   constructor(
-    private readonly secretProviderFactory: BackendSecretResourceProviderFactory
+    private readonly secretProviderFactory: BackendSecretFetcherProviderFactory
   ) {}
 
   /**

@@ -1,11 +1,15 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import { handleCreateUpdateEvent, handler } from './backend_secret.lambda.js';
+import { handleCreateUpdateEvent, handler } from './backend_secret_fetcher.js';
 import {
   CloudFormationCustomResourceEvent,
   CloudFormationCustomResourceSuccessResponse,
 } from 'aws-lambda';
-import { Secret, SecretClient, SecretError } from '@aws-amplify/backend-secret';
+import {
+  SecretClient,
+  SecretError,
+  getSecretClient,
+} from '@aws-amplify/backend-secret';
 
 const customResourceEventCommon = {
   ServiceToken: 'mockServiceToken',
@@ -50,7 +54,7 @@ describe('handle', () => {
 });
 
 describe('handleCreateUpdateEvent', () => {
-  const secretHandler: Secret = SecretClient();
+  const secretHandler: SecretClient = getSecretClient();
   const serverErr = new SecretError('server error', { httpStatusCode: 500 });
   const clientErr = new SecretError('client error', { httpStatusCode: 400 });
 

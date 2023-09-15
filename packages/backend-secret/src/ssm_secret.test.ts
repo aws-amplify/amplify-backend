@@ -5,10 +5,9 @@ import {
   ParameterNotFound,
   SSM,
 } from '@aws-sdk/client-ssm';
-import { SSMSecret } from './ssm_secret.js';
+import { SSMSecretClient } from './ssm_secret.js';
 import assert from 'node:assert';
 import { SecretError } from './secret_error.js';
-import { SecretActionType } from './secret.js';
 import * as iam from 'aws-cdk-lib/aws-iam';
 
 const shared = 'shared';
@@ -24,7 +23,7 @@ const testSharedSecretFullNamePath = `${testSharedPath}/${testSecretName}`;
 describe('SSMSecret', () => {
   describe('getSecret', () => {
     const ssmClient = new SSM();
-    const ssmSecretClient = new SSMSecret(ssmClient);
+    const ssmSecretClient = new SSMSecretClient(ssmClient);
 
     it('return branch secret value', async () => {
       const mockGetParameter = mock.method(ssmClient, 'getParameter', () =>
@@ -79,7 +78,7 @@ describe('SSMSecret', () => {
       mock.method(ssmClient, 'getParameter', () =>
         Promise.reject(ssmNotFoundException)
       );
-      const ssmSecretClient = new SSMSecret(ssmClient);
+      const ssmSecretClient = new SSMSecretClient(ssmClient);
       const expectedErr = SecretError.fromSSMException(ssmNotFoundException);
       await assert.rejects(
         () => ssmSecretClient.getSecret('', ''),
@@ -90,7 +89,7 @@ describe('SSMSecret', () => {
 
   describe('setSecret', () => {
     const ssmClient = new SSM();
-    const ssmSecretClient = new SSMSecret(ssmClient);
+    const ssmSecretClient = new SSMSecretClient(ssmClient);
 
     it('set branch secret', async () => {
       const mockSetParameter = mock.method(ssmClient, 'putParameter', () =>
@@ -151,7 +150,7 @@ describe('SSMSecret', () => {
       mock.method(ssmClient, 'putParameter', () =>
         Promise.reject(ssmNotFoundException)
       );
-      const ssmSecretClient = new SSMSecret(ssmClient);
+      const ssmSecretClient = new SSMSecretClient(ssmClient);
       const expectedErr = SecretError.fromSSMException(ssmNotFoundException);
       await assert.rejects(
         () => ssmSecretClient.setSecret('', '', ''),
@@ -162,7 +161,7 @@ describe('SSMSecret', () => {
 
   describe('removeSecret', () => {
     const ssmClient = new SSM();
-    const ssmSecretClient = new SSMSecret(ssmClient);
+    const ssmSecretClient = new SSMSecretClient(ssmClient);
 
     it('remove a branch secret', async () => {
       const mockDeleteParameter = mock.method(
@@ -204,7 +203,7 @@ describe('SSMSecret', () => {
       mock.method(ssmClient, 'deleteParameter', () =>
         Promise.reject(ssmNotFoundException)
       );
-      const ssmSecretClient = new SSMSecret(ssmClient);
+      const ssmSecretClient = new SSMSecretClient(ssmClient);
       const expectedErr = SecretError.fromSSMException(ssmNotFoundException);
       await assert.rejects(
         () => ssmSecretClient.removeSecret('', ''),
@@ -215,7 +214,11 @@ describe('SSMSecret', () => {
 
   describe('listSecrets', () => {
     const ssmClient = new SSM();
-    const ssmSecretClient = new SSMSecret(ssmClient);
+    const ssmSecretClient = new SSMSecretClient(ssmClient);
+
+    const testSecretName2 = 'testSecretName2';
+    const testSecretValue2 = 'testSecretValue2';
+    const testSecretFullNamePath2 = `${testBranchPath}/${testSecretName2}`;
 
     it('list branch secrets', async () => {
       const mockGetParametersByPath = mock.method(
@@ -227,6 +230,10 @@ describe('SSMSecret', () => {
               {
                 Name: testBranchSecretFullNamePath,
                 Value: testSecretValue,
+              },
+              {
+                Name: testSecretFullNamePath2,
+                Value: testSecretValue2,
               },
             ],
           } as GetParametersByPathCommandOutput)
@@ -244,7 +251,7 @@ describe('SSMSecret', () => {
         }
       );
 
-      assert.deepEqual(secrets, [testSecretName]);
+      assert.deepEqual(secrets, [testSecretName, testSecretName2]);
     });
 
     it('list shared secrets', async () => {
@@ -274,6 +281,28 @@ describe('SSMSecret', () => {
       assert.deepEqual(secrets, [testSecretName]);
     });
 
+    it('returns an empty list', async () => {
+      const mockGetParametersByPath = mock.method(
+        ssmClient,
+        'getParametersByPath',
+        () => Promise.resolve({} as GetParametersByPathCommandOutput)
+      );
+
+      const secrets = await ssmSecretClient.listSecrets({
+        backendId: testBackendId,
+        branchName: testBranchName,
+      });
+      assert.deepStrictEqual(
+        mockGetParametersByPath.mock.calls[0].arguments[0],
+        {
+          Path: testBranchPath,
+          WithDecryption: true,
+        }
+      );
+
+      assert.deepEqual(secrets, []);
+    });
+
     it('throws error', async () => {
       const ssmInternalServerError = new InternalServerError({
         $metadata: {},
@@ -283,21 +312,27 @@ describe('SSMSecret', () => {
       mock.method(ssmClient, 'getParametersByPath', () =>
         Promise.reject(ssmInternalServerError)
       );
-      const ssmSecretClient = new SSMSecret(ssmClient);
+      const ssmSecretClient = new SSMSecretClient(ssmClient);
       const expectedErr = SecretError.fromSSMException(ssmInternalServerError);
       await assert.rejects(() => ssmSecretClient.listSecrets(''), expectedErr);
     });
   });
 
-  describe('getIAMPolicyStatement', () => {
-    const ssmSecretClient = new SSMSecret(new SSM());
-    it('returns a policy statement', () => {
-      const statement = ssmSecretClient.getIAMPolicyStatement(
+  describe('grantPermission', () => {
+    const ssmSecretClient = new SSMSecretClient(new SSM());
+    it('grants permission', () => {
+      const mockAddToPrincipalPolicy = mock.fn();
+      ssmSecretClient.grantPermission(
+        {
+          grantPrincipal: {
+            addToPrincipalPolicy: mockAddToPrincipalPolicy,
+          } as unknown as iam.IPrincipal,
+        } as iam.IGrantable,
         {
           backendId: testBackendId,
           branchName: testBranchName,
         },
-        [SecretActionType.GET, SecretActionType.LIST]
+        ['GET', 'LIST']
       );
       const expected = new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
@@ -307,7 +342,11 @@ describe('SSMSecret', () => {
           `arn:aws:ssm:*:*:parameter/amplify/${shared}/${testBackendId}/*`,
         ],
       });
-      assert.deepStrictEqual(statement, expected);
+      assert.equal(mockAddToPrincipalPolicy.mock.callCount(), 1);
+      assert.deepStrictEqual(
+        mockAddToPrincipalPolicy.mock.calls[0].arguments[0],
+        expected
+      );
     });
   });
 });

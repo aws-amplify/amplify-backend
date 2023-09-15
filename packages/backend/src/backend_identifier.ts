@@ -5,7 +5,7 @@ const backendIdCDKContextKey = 'backend-id';
 const branchNameCDKContextKey = 'branch-name';
 
 /**
- * Populates an instance of DeploymentContext based on CDK context values.
+ * Populates a unique backend identifier based on CDK context values.
  */
 export const getUniqueBackendIdentifier = (
   scope: Construct

@@ -4,7 +4,7 @@ import {
 } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
 import { SecretValue } from 'aws-cdk-lib';
-import { BackendSecretResourceFactory } from './backend_secret_resource_factory.js';
+import { BackendSecretFetcherFactory } from './backend_secret_fetcher_factory.js';
 
 /**
  * Resolves a backend secret to a CFN token via a lambda-backed CFN custom resource.
@@ -15,7 +15,7 @@ export class CfnTokenBackendSecret implements BackendSecret {
    */
   constructor(
     private readonly name: string,
-    private readonly secretResourceFactory: BackendSecretResourceFactory
+    private readonly secretResourceFactory: BackendSecretFetcherFactory
   ) {}
   /**
    * Get a reference to the value within a CDK scope.
@@ -31,6 +31,6 @@ export class CfnTokenBackendSecret implements BackendSecret {
     );
 
     const val = secretResource.getAttString('secretValue');
-    return SecretValue.unsafePlainText(val); // not unsafe since 'val' is a cdk token.
+    return SecretValue.unsafePlainText(val); // safe since 'val' is a cdk token.
   };
 }

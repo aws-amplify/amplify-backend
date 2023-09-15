@@ -1,12 +1,12 @@
 import { SSMServiceException } from '@aws-sdk/client-ssm';
 
-export type SecretErrorCauseType = SSMServiceException | undefined;
+export type SecretErrorCause = SSMServiceException | undefined;
 
 /**
  * Secret Error.
  */
 export class SecretError extends Error {
-  public cause: SecretErrorCauseType;
+  public cause: SecretErrorCause;
   public httpStatusCode: number | undefined;
 
   /**
@@ -15,7 +15,7 @@ export class SecretError extends Error {
   constructor(
     message: string,
     options?: {
-      cause?: SecretErrorCauseType;
+      cause?: SecretErrorCause;
       httpStatusCode?: number;
     }
   ) {

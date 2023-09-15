@@ -2,7 +2,11 @@ import {
   CloudFormationCustomResourceEvent,
   CloudFormationCustomResourceSuccessResponse,
 } from 'aws-lambda';
-import { Secret, SecretClient, SecretError } from '@aws-amplify/backend-secret';
+import {
+  SecretClient,
+  SecretError,
+  getSecretClient,
+} from '@aws-amplify/backend-secret';
 import { randomUUID } from 'node:crypto';
 
 type SecretResourceProps = {
@@ -11,7 +15,7 @@ type SecretResourceProps = {
   secretName: string;
 };
 
-const secretClient = SecretClient();
+const secretClient = getSecretClient();
 
 /**
  * Entry point for the lambda-backend custom resource to retrieve a backend secret.
@@ -46,7 +50,7 @@ export const handler = async (
  * Handles create/update event for the secret custom resource.
  */
 export const handleCreateUpdateEvent = async (
-  secretClient: Secret,
+  secretClient: SecretClient,
   event: CloudFormationCustomResourceEvent
 ): Promise<string> => {
   const props = event.ResourceProperties as unknown as SecretResourceProps;

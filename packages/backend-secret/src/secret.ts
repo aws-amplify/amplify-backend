@@ -1,10 +1,10 @@
-import { SSMSecret } from './ssm_secret.js';
+import { SSMSecretClient } from './ssm_secret.js';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { BackendId, UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import { SSM } from '@aws-sdk/client-ssm';
 
-export type Secret = {
+export type SecretClient = {
   /**
    * Get a secret value.
    */
@@ -18,7 +18,7 @@ export type Secret = {
    */
   listSecrets: (
     backendIdentifier: UniqueBackendIdentifier | BackendId
-  ) => Promise<string[] | undefined>;
+  ) => Promise<string[]>;
 
   /**
    * Set a secret.
@@ -38,31 +38,27 @@ export type Secret = {
   ) => Promise<void>;
 
   /**
-   * Get an IAM policy statement to invoke secret operations.
+   * Grant permission to operate on secrets.
    */
-  getIAMPolicyStatement: (
+  grantPermission: (
+    resource: iam.IGrantable,
     backendIdentifier: UniqueBackendIdentifier,
-    secretActions: SecretActionType[]
-  ) => iam.PolicyStatement;
+    secretActions: SecretAction[]
+  ) => void;
 };
 
 /**
  * Secret action type.
  */
-export enum SecretActionType {
-  GET,
-  SET,
-  REMOVE,
-  LIST,
-}
+export type SecretAction = 'GET' | 'SET' | 'REMOVE' | 'LIST';
 
 /**
  * Creates an Amplify secret client.
  */
-export const SecretClient = (
+export const getSecretClient = (
   credentialProvider?: AwsCredentialIdentityProvider
-): Secret => {
-  return new SSMSecret(
+): SecretClient => {
+  return new SSMSecretClient(
     new SSM({
       credentials: credentialProvider,
     })

@@ -6,24 +6,24 @@ import * as path from 'path';
 import { Runtime as LambdaRuntime } from 'aws-cdk-lib/aws-lambda';
 import { Provider } from 'aws-cdk-lib/custom-resources';
 import { fileURLToPath } from 'url';
-import { Secret, SecretActionType } from '@aws-amplify/backend-secret';
+import { SecretClient } from '@aws-amplify/backend-secret';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
-const resourcesRoot = path.normalize(path.join(dirname, 'resources'));
+const resourcesRoot = path.normalize(path.join(dirname, 'lambda'));
 const backendSecretLambdaFilePath = path.join(
   resourcesRoot,
-  'backend_secret.lambda.js'
+  'backend_secret_fetcher.js'
 );
 
 /**
- * The factory to create backend secret resource.
+ * The factory to create secret-fetcher provider.
  */
-export class BackendSecretResourceProviderFactory {
+export class BackendSecretFetcherProviderFactory {
   /**
-   * Creates a secret resource provider factory.
+   * Creates a secret-fetcher provider factory.
    */
-  constructor(private readonly secretClient: Secret) {}
+  constructor(private readonly secretClient: SecretClient) {}
 
   /**
    * Returns a resource provider if it exists in the input scope. Otherwise,
@@ -41,16 +41,12 @@ export class BackendSecretResourceProviderFactory {
 
     const secretLambda = new NodejsFunction(scope, `${providerId}Lambda`, {
       runtime: LambdaRuntime.NODEJS_18_X,
-      timeout: Duration.minutes(10),
+      timeout: Duration.seconds(10),
       entry: backendSecretLambdaFilePath,
       handler: 'handler',
     });
 
-    secretLambda.role?.addToPrincipalPolicy(
-      this.secretClient.getIAMPolicyStatement(backendIdentifier, [
-        SecretActionType.GET,
-      ])
-    );
+    this.secretClient.grantPermission(secretLambda, backendIdentifier, ['GET']);
 
     return new Provider(scope, providerId, {
       onEventHandler: secretLambda,
