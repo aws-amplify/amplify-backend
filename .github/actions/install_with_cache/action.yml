@@ -1,5 +1,5 @@
-# installs node_modules if cache miss and stores in the cache
 name: install_with_cache
+description: installs node_modules if cache miss and stores in the cache
 runs:
   using: composite
   steps:
@@ -10,7 +10,8 @@ runs:
         path: |
           node_modules
           packages/**/node_modules
-        key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}-v2
+        key: ${{ hashFiles('package-lock.json') }}
+        enableCrossOsArchive: true
     # only install if cache miss
     - if: steps.npm-cache.outputs.cache-hit != 'true'
       shell: bash

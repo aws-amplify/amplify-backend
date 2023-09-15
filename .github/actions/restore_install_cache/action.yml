@@ -1,6 +1,5 @@
-# restores node_modules from the cache
-# fails if no cache entry found
 name: restore_install_cache
+description: restores node_modules from the cache and fails if no cache entry found
 runs:
   using: composite
   steps:
@@ -11,5 +10,6 @@ runs:
         path: |
           node_modules
           packages/**/node_modules
-        key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}-v2
+        key: ${{ hashFiles('package-lock.json') }}
         fail-on-cache-miss: true
+        enableCrossOsArchive: true
