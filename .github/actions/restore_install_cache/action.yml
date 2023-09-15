@@ -10,6 +10,5 @@ runs:
         path: |
           node_modules
           packages/**/node_modules
-        key: ${{ hashFiles('package-lock.json') }}
+        key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}
         fail-on-cache-miss: true
-        enableCrossOsArchive: true

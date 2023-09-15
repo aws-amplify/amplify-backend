@@ -1,5 +1,0 @@
-# See https://www.git-scm.com/docs/gitattributes for what this file is
-
-# Tells git to always use LF line endings for the package-lock.json file, even on Windows systems
-# This allows consistent hashing of the package-lock file across operating systems
-package-lock.json text eol=lf

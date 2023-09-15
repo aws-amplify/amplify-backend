@@ -10,8 +10,7 @@ runs:
         path: |
           node_modules
           packages/**/node_modules
-        key: ${{ hashFiles('package-lock.json') }}
-        enableCrossOsArchive: true
+        key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}
     # only install if cache miss
     - if: steps.npm-cache.outputs.cache-hit != 'true'
       shell: bash
