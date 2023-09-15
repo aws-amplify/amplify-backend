@@ -6,12 +6,8 @@
     "AccountRecoverySetting": {
      "RecoveryMechanisms": [
       {
-       "Name": "verified_phone_number",
-       "Priority": 1
-      },
-      {
        "Name": "verified_email",
-       "Priority": 2
+       "Priority": 1
       }
      ]
     },
@@ -23,6 +19,11 @@
     ],
     "EmailVerificationMessage": "The verification code to your new account is {####}",
     "EmailVerificationSubject": "Verify your new account",
+    "LambdaConfig": {
+     "PostConfirmation": {
+      "Ref": "referencetoamplifytestAppIdtestBranchNamefunctionNestedStackfunctionNestedStackResourceE968B293OutputsamplifytestAppIdtestBranchNamefunctiontestFunctestFuncLambdaFunction724FFDF6Arn"
+     }
+    },
     "Policies": {
      "PasswordPolicy": {
       "MinimumLength": 8,
@@ -60,6 +61,22 @@
    },
    "UpdateReplacePolicy": "Retain",
    "DeletionPolicy": "Retain"
+  },
+  "amplifyAuthUserPoolPostConfirmationCognitoE7E727CF": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Ref": "referencetoamplifytestAppIdtestBranchNamefunctionNestedStackfunctionNestedStackResourceE968B293OutputsamplifytestAppIdtestBranchNamefunctiontestFunctestFuncLambdaFunction724FFDF6Arn"
+    },
+    "Principal": "cognito-idp.amazonaws.com",
+    "SourceArn": {
+     "Fn::GetAtt": [
+      "amplifyAuthUserPool4BA7F805",
+      "Arn"
+     ]
+    }
+   }
   },
   "amplifyAuthUserPoolWebClientA385E48A": {
    "Type": "AWS::Cognito::UserPoolClient",
@@ -206,6 +223,11 @@
     "amplifyAuthIdentityPool3FDE84CC",
     "amplifyAuthUserPoolWebClientA385E48A"
    ]
+  }
+ },
+ "Parameters": {
+  "referencetoamplifytestAppIdtestBranchNamefunctionNestedStackfunctionNestedStackResourceE968B293OutputsamplifytestAppIdtestBranchNamefunctiontestFunctestFuncLambdaFunction724FFDF6Arn": {
+   "Type": "String"
   }
  },
  "Outputs": {

@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/backend",
-  "version": "0.1.1-alpha.2",
+  "version": "0.1.1-alpha.3",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -22,11 +22,11 @@
     "update:api": "api-extractor run --local"
   },
   "dependencies": {
-    "@aws-amplify/backend-output-schemas": "^0.1.1-alpha.1",
+    "@aws-amplify/backend-output-schemas": "^0.2.0-alpha.2",
     "@aws-amplify/backend-secret": "^0.1.0"
   },
   "peerDependencies": {
-    "@aws-amplify/plugin-types": "^0.1.1-alpha.2",
+    "@aws-amplify/plugin-types": "^0.1.1-alpha.3",
     "aws-cdk-lib": "~2.80.0",
     "constructs": "^10.0.0"
   },

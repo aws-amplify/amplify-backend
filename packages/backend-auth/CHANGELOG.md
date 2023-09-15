@@ -1,5 +1,18 @@
 # @aws-amplify/backend-auth
 
+## 0.2.0-alpha.3
+
+### Minor Changes
+
+- 3c36ace: Implement UserPool trigger config
+
+### Patch Changes
+
+- Updated dependencies [3c36ace]
+- Updated dependencies [790c3a6]
+  - @aws-amplify/auth-construct-alpha@0.2.0-alpha.5
+  - @aws-amplify/plugin-types@0.1.1-alpha.4
+
 ## 0.1.1-alpha.2
 
 ### Patch Changes

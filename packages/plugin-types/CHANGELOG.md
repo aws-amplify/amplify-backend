@@ -1,5 +1,17 @@
 # @aws-amplify/plugin-types
 
+## 0.1.1-alpha.4
+
+### Patch Changes
+
+- 3c36ace: Implement UserPool trigger config
+
+## 0.1.1-alpha.3
+
+### Patch Changes
+
+- f201c94: add support for external auth providers
+
 ## 0.1.1-alpha.2
 
 ### Patch Changes

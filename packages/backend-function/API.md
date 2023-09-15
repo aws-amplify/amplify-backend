@@ -4,7 +4,7 @@
 
 ```ts
 
-import { AmplifyFunction } from '@aws-amplify/function-construct-alpha';
+import { AmplifyFunction } from '@aws-amplify/plugin-types';
 import { AmplifyFunctionProps } from '@aws-amplify/function-construct-alpha';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';

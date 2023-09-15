@@ -11,3 +11,5 @@ export * from './backend_output.js';
 export * from './import_path_verifier.js';
 export * from './resource_provider.js';
 export * from './backend_secret_resolver.js';
+export * from './function_resources.js';
+export * from './amplify_function.js';
