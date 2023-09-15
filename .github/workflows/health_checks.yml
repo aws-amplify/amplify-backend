@@ -38,6 +38,7 @@ jobs:
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_build_cache
       - run: npm run test:coverage:threshold
+        shell: bash
   do_include_e2e:
     runs-on: ubuntu-latest
     permissions:

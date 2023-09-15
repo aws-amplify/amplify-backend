@@ -1,5 +1,6 @@
 import { ImportPathVerifier } from '@aws-amplify/plugin-types';
 import path from 'path';
+import * as os from 'os';
 
 /**
  * ImportPathVerifier that can be turned into a noop by passing `false` to the constructor
@@ -26,7 +27,7 @@ export class ToggleableImportPathVerifier implements ImportPathVerifier {
     }
     const stacktraceLines =
       importStack
-        .split('\n')
+        .split(os.EOL)
         .map((line) => line.trim())
         .filter((line) => line.startsWith('at')) || [];
     if (stacktraceLines.length < 2) {
