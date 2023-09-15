@@ -251,7 +251,8 @@ describe('Sandbox with user provided app name', () => {
       dir: 'testDir',
       exclude: ['exclude1', 'exclude2'],
       name: 'customSandboxName',
-      clientConfigFilePath: 'test/location/amplifyconfiguration.js',
+      format: 'ts',
+      clientConfigFilePath: 'test/location',
     });
     if (
       subscribeMock.mock.calls[0].arguments[1] &&
@@ -284,7 +285,7 @@ describe('Sandbox with user provided app name', () => {
     assert.deepStrictEqual(subscribeMock.mock.calls[0].arguments[2], {
       ignore: [
         'cdk.out',
-        path.join(process.cwd(), 'test', 'location', 'amplifyconfiguration.js'),
+        path.join(process.cwd(), 'test', 'location', 'amplifyconfiguration.ts'),
         'exclude1',
         'exclude2',
       ],
@@ -342,7 +343,7 @@ describe('Sandbox with user provided app name', () => {
     );
     assert.equal(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      path.resolve(process.cwd(), 'test', 'location', 'amplifyconfiguration.js')
+      path.resolve(process.cwd(), 'test', 'location', 'amplifyconfiguration.ts')
     );
   });
 });
@@ -369,7 +370,8 @@ describe('Sandbox with absolute output path', () => {
       dir: 'testDir',
       exclude: ['exclude1', 'exclude2'],
       name: 'customSandboxName',
-      clientConfigFilePath: '/test/location/amplifyconfiguration.js',
+      format: 'json',
+      clientConfigFilePath: '/test/location',
     });
     if (
       subscribeMock.mock.calls[0].arguments[1] &&
@@ -410,7 +412,7 @@ describe('Sandbox with absolute output path', () => {
     );
     assert.equal(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      path.resolve('/', 'test', 'location', 'amplifyconfiguration.js')
+      path.resolve('/', 'test', 'location', 'amplifyconfiguration.json')
     );
   });
 });
@@ -448,7 +450,8 @@ describe('Sandbox ignoring paths in .gitignore', () => {
       dir: 'testDir',
       exclude: ['customer_exclude1', 'customer_exclude2'],
       name: 'customSandboxName',
-      clientConfigFilePath: 'amplifyconfiguration.js',
+      format: 'ts',
+      clientConfigFilePath: '',
     });
     if (
       subscribeMock.mock.calls[0].arguments[1] &&
@@ -481,7 +484,7 @@ describe('Sandbox ignoring paths in .gitignore', () => {
     assert.deepStrictEqual(subscribeMock.mock.calls[0].arguments[2], {
       ignore: [
         'cdk.out',
-        path.join(process.cwd(), 'amplifyconfiguration.js'),
+        path.join(process.cwd(), 'amplifyconfiguration.ts'),
         'patternWithLeadingSlash',
         'patternWithoutLeadingSlash',
         'someFile.js',

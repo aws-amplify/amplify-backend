@@ -1,3 +1,5 @@
+export const formatChoices = ['js', 'json', 'ts'] as const;
+
 /**
  * Interface for Sandbox.
  */
@@ -23,6 +25,7 @@ export type SandboxOptions = {
   dir?: string;
   exclude?: string[];
   name?: string;
+  format?: (typeof formatChoices)[number];
   /**
    * Optional path where client config should be generated for sandbox deployments
    * If the path is relative, it is computed based on process.cwd()

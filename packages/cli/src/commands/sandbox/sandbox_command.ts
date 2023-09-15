@@ -4,10 +4,13 @@ import fs from 'fs';
 import { AmplifyPrompter } from '../prompter/amplify_prompts.js';
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
 
+export const formatChoices = ['js', 'json', 'ts'] as const;
+
 export type SandboxCommandOptions = {
   dirToWatch: string | undefined;
   exclude: string[] | undefined;
   name: string | undefined;
+  format: (typeof formatChoices)[number] | undefined;
   out: string | undefined;
 };
 
@@ -83,6 +86,13 @@ export class SandboxCommand
             'An optional name to distinguish between different sandbox environments. Default is the name in your package.json',
           type: 'string',
           array: false,
+        })
+        .option('format', {
+          describe:
+            'The format which the configuration should be exported into.',
+          type: 'string',
+          array: false,
+          choices: formatChoices,
         })
         .option('out', {
           describe:

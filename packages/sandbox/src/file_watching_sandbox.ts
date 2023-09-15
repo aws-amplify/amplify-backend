@@ -29,11 +29,13 @@ export class FileWatchingSandbox implements Sandbox {
    * @inheritdoc
    */
   start = async (options: SandboxOptions) => {
-    const sandboxId = options.name ?? this.sandboxId;
-    let clientConfigWritePath = path.join(
-      process.cwd(),
-      'amplifyconfiguration.js'
-    );
+    const defaultOptions = {
+      name: this.sandboxId,
+      format: 'js',
+      clientConfigWritePath: process.cwd(),
+    };
+    const sandboxId = options.name ?? defaultOptions.name;
+    let clientConfigWritePath = defaultOptions.clientConfigWritePath;
     if (options.clientConfigFilePath) {
       if (path.isAbsolute(options.clientConfigFilePath)) {
         clientConfigWritePath = options.clientConfigFilePath;
@@ -44,7 +46,10 @@ export class FileWatchingSandbox implements Sandbox {
         );
       }
     }
-
+    clientConfigWritePath = path.join(
+      clientConfigWritePath,
+      `amplifyconfiguration.${options.format || defaultOptions.format}`
+    );
     const ignoredPaths = this.getGitIgnoredPaths();
     this.outputFilesExcludedFromWatch =
       this.outputFilesExcludedFromWatch.concat(
