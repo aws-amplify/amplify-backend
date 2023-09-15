@@ -1,5 +1,17 @@
 # @aws-amplify/auth-construct-alpha
 
+## 0.2.0-alpha.5
+
+### Minor Changes
+
+- 3c36ace: Implement UserPool trigger config
+- 790c3a6: Add support for account recovery settings.
+
+### Patch Changes
+
+- Updated dependencies [3c36ace]
+  - @aws-amplify/plugin-types@0.1.1-alpha.4
+
 ## 0.2.0-alpha.4
 
 ### Minor Changes
