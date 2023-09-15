@@ -37,9 +37,9 @@ describe('sandbox', () => {
 
   const testProjects = [
     {
-      name: 'basic-auth-data-storage-function',
+      name: 'data-storage-auth-with-triggers',
       initialAmplifyDirPath: new URL(
-        '../../test-projects/basic-auth-data-storage-function/amplify',
+        '../../test-projects/data-storage-auth-with-triggers/amplify',
         import.meta.url
       ),
       assertions: async () => {

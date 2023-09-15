@@ -1,6 +1,7 @@
 import { Construct } from 'constructs';
 import { Stack, aws_cognito as cognito } from 'aws-cdk-lib';
 import {
+  AmplifyFunction,
   AuthResources,
   BackendOutputStorageStrategy,
   BackendOutputWriter,
@@ -16,12 +17,13 @@ import {
   UserPoolIdentityProviderGoogle,
   UserPoolIdentityProviderOidc,
   UserPoolIdentityProviderSaml,
+  UserPoolOperation,
   UserPoolProps,
 } from 'aws-cdk-lib/aws-cognito';
 import { FederatedPrincipal, Role } from 'aws-cdk-lib/aws-iam';
 import { AuthOutput } from '@aws-amplify/backend-output-schemas/auth';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
-import { AuthProps } from './types.js';
+import { AuthProps, TriggerEvent } from './types.js';
 import { DEFAULTS } from './defaults.js';
 import {
   AuthAttributeFactory,
@@ -29,6 +31,7 @@ import {
   AuthCustomAttributeFactory,
   AuthStandardAttribute,
 } from './attributes.js';
+import { IFunction } from 'aws-cdk-lib/aws-lambda';
 
 type DefaultRoles = { auth: Role; unAuth: Role };
 type IdentityProviderSetupResult = {
@@ -61,7 +64,10 @@ export class AmplifyAuth
   /**
    * Map from oauth provider to client id
    */
-  private oauthMappings: Record<string, string>;
+  private readonly oauthMappings: Record<string, string>;
+
+  private readonly userPool: UserPool;
+
   /**
    * Create a new Auth construct with AuthProps.
    * If no props are provided, email login and defaults will be used.
@@ -75,11 +81,11 @@ export class AmplifyAuth
 
     // UserPool
     const userPoolProps: UserPoolProps = this.getUserPoolProps(props);
-    const userPool = new cognito.UserPool(this, 'UserPool', userPoolProps);
+    this.userPool = new cognito.UserPool(this, 'UserPool', userPoolProps);
 
     // UserPool - Identity Providers
     const providerSetupResult = this.setupIdentityProviders(
-      userPool,
+      this.userPool,
       props.loginWith
     );
     this.oauthMappings = providerSetupResult.oauthMappings;
@@ -89,7 +95,7 @@ export class AmplifyAuth
       this,
       'UserPoolWebClient',
       {
-        userPool: userPool,
+        userPool: this.userPool,
         authFlows: DEFAULTS.AUTH_FLOWS,
         preventUserExistenceErrors: DEFAULTS.PREVENT_USER_EXISTENCE_ERRORS,
       }
@@ -101,14 +107,14 @@ export class AmplifyAuth
     // Identity Pool
     const { identityPool, identityPoolRoleAttachment } = this.setupIdentityPool(
       { auth, unAuth },
-      userPool,
+      this.userPool,
       userPoolClient,
       providerSetupResult
     );
 
     // expose resources
     this.resources = {
-      userPool,
+      userPool: this.userPool,
       userPoolClient,
       authenticatedUserIamRole: auth,
       unauthenticatedUserIamRole: unAuth,
@@ -137,9 +143,6 @@ export class AmplifyAuth
 
   /**
    * Setup Identity Pool with default roles/role mappings, and register providers
-   * @param roles - DefaultRoles
-   * @param userPool - UserPool
-   * @param userPoolClient - UserPoolClient
    */
   private setupIdentityPool = (
     roles: DefaultRoles,
@@ -206,8 +209,6 @@ export class AmplifyAuth
 
   /**
    * Process props into UserPoolProps (set defaults if needed)
-   * @param props - AuthProps
-   * @returns UserPoolProps
    */
   private getUserPoolProps = (props: AuthProps): UserPoolProps => {
     const emailEnabled = props.loginWith.email ? true : false;
@@ -339,7 +340,7 @@ export class AmplifyAuth
   /**
    * Convert user friendly Mfa type to cognito Mfa type.
    * This eliminates the need for users to import cognito.Mfa.
-   * @param mfa MFA Enforcement type string value
+   * @param mfa - MFA Enforcement type string value
    * @returns cognito MFA enforcement type
    */
   private getMFAEnforcementType = (
@@ -360,9 +361,6 @@ export class AmplifyAuth
 
   /**
    * Setup Identity Providers (OAuth/OIDC/SAML)
-   * @param userPool UserPool
-   * @param loginOptions AmplifyAuthProps['loginOptions']
-   * @returns IDPSetupResult
    */
   private setupIdentityProviders = (
     userPool: UserPool,
@@ -464,6 +462,26 @@ export class AmplifyAuth
       version: '1',
       payload: output,
     });
+  };
+
+  /**
+   * Attach a Lambda function trigger handler to the UserPool in this construct
+   * @param event - The trigger event operation
+   * @param handler - The function that will handle the event
+   */
+  addTrigger = (
+    event: TriggerEvent,
+    handler: IFunction | AmplifyFunction
+  ): void => {
+    if ('resources' in handler) {
+      this.userPool.addTrigger(
+        UserPoolOperation.of(event),
+        handler.resources.lambda
+      );
+    } else {
+      // handler is an IFunction
+      this.userPool.addTrigger(UserPoolOperation.of(event), handler);
+    }
   };
 
   /**
