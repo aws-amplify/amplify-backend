@@ -15,6 +15,7 @@ export class CfnTokenBackendSecret implements BackendSecret {
    */
   constructor(
     private readonly name: string,
+    private readonly version: number,
     private readonly secretResourceFactory: BackendSecretFetcherFactory
   ) {}
   /**
@@ -27,6 +28,7 @@ export class CfnTokenBackendSecret implements BackendSecret {
     const secretResource = this.secretResourceFactory.getOrCreate(
       scope,
       this.name,
+      this.version,
       backendIdentifier
     );
 

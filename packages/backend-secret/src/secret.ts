@@ -10,7 +10,8 @@ export type SecretClient = {
    */
   getSecret: (
     backendIdentifier: UniqueBackendIdentifier | BackendId,
-    secretName: string
+    secretName: string,
+    secretVersion?: number
   ) => Promise<string | undefined>;
 
   /**

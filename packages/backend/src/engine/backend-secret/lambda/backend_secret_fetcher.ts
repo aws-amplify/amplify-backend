@@ -13,6 +13,7 @@ type SecretResourceProps = {
   backendId: string;
   branchName: string;
   secretName: string;
+  secretVersion: number;
 };
 
 const secretClient = getSecretClient();
@@ -62,7 +63,8 @@ export const handleCreateUpdateEvent = async (
         backendId: props.backendId,
         branchName: props.branchName,
       },
-      props.secretName
+      props.secretName,
+      props.secretVersion
     );
   } catch (err) {
     const secretErr = err as SecretError;
@@ -78,7 +80,11 @@ export const handleCreateUpdateEvent = async (
   // if the secret is not available in branch path, retrieve it at app-level.
   if (!secret) {
     try {
-      secret = await secretClient.getSecret(props.backendId, props.secretName);
+      secret = await secretClient.getSecret(
+        props.backendId,
+        props.secretName,
+        props.secretVersion
+      );
     } catch (err) {
       throw new Error(
         `Failed to retrieve backend secret '${props.secretName}' for '${

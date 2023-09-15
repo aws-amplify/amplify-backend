@@ -25,7 +25,7 @@ describe('SSMSecret', () => {
     const ssmClient = new SSM();
     const ssmSecretClient = new SSMSecretClient(ssmClient);
 
-    it('return branch secret value', async () => {
+    it('gets branch secret value', async () => {
       const mockGetParameter = mock.method(ssmClient, 'getParameter', () =>
         Promise.resolve({
           $metadata: {},
@@ -49,7 +49,34 @@ describe('SSMSecret', () => {
       });
     });
 
-    it('return app-shared secret value', async () => {
+    it('gets branch secret value with a specific version', async () => {
+      const testSecretVersion = 20;
+
+      const mockGetParameter = mock.method(ssmClient, 'getParameter', () =>
+        Promise.resolve({
+          $metadata: {},
+          Parameter: {
+            Value: testSecretValue,
+          },
+        })
+      );
+
+      const val = await ssmSecretClient.getSecret(
+        {
+          backendId: testBackendId,
+          branchName: testBranchName,
+        },
+        testSecretName,
+        testSecretVersion
+      );
+      assert.deepEqual(val, testSecretValue);
+      assert.deepStrictEqual(mockGetParameter.mock.calls[0].arguments[0], {
+        Name: `${testBranchSecretFullNamePath}:${testSecretVersion}`,
+        WithDecryption: true,
+      });
+    });
+
+    it('gets app-shared secret value', async () => {
       const mockGetParameter = mock.method(ssmClient, 'getParameter', () =>
         Promise.resolve({
           $metadata: {},
@@ -220,7 +247,7 @@ describe('SSMSecret', () => {
     const testSecretValue2 = 'testSecretValue2';
     const testSecretFullNamePath2 = `${testBranchPath}/${testSecretName2}`;
 
-    it('list branch secrets', async () => {
+    it('lists branch secrets', async () => {
       const mockGetParametersByPath = mock.method(
         ssmClient,
         'getParametersByPath',
@@ -254,7 +281,7 @@ describe('SSMSecret', () => {
       assert.deepEqual(secrets, [testSecretName, testSecretName2]);
     });
 
-    it('list shared secrets', async () => {
+    it('lists shared secrets', async () => {
       const mockGetParametersByPath = mock.method(
         ssmClient,
         'getParametersByPath',
@@ -281,7 +308,7 @@ describe('SSMSecret', () => {
       assert.deepEqual(secrets, [testSecretName]);
     });
 
-    it('returns an empty list', async () => {
+    it('lists an empty list', async () => {
       const mockGetParametersByPath = mock.method(
         ssmClient,
         'getParametersByPath',

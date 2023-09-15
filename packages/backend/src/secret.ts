@@ -7,12 +7,12 @@ import { BackendSecretFetcherFactory } from './engine/backend-secret/backend_sec
 /**
  * Factory function for initializing a backend secret.
  */
-export const secret = (name: string): BackendSecret => {
+export const secret = (name: string, version = 1): BackendSecret => {
   const secretProviderFactory = new BackendSecretFetcherProviderFactory(
     getSecretClient()
   );
   const secretResourceFactory = new BackendSecretFetcherFactory(
     secretProviderFactory
   );
-  return new CfnTokenBackendSecret(name, secretResourceFactory);
+  return new CfnTokenBackendSecret(name, version, secretResourceFactory);
 };

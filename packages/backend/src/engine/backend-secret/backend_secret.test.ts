@@ -31,7 +31,11 @@ describe('BackendSecret', () => {
 
     const app = new App();
     const stack = new Stack(app);
-    const secret = new CfnTokenBackendSecret(testSecretName, resourceFactory);
+    const secret = new CfnTokenBackendSecret(
+      testSecretName,
+      1,
+      resourceFactory
+    );
     const val = secret.resolve(stack, uniqueBackendIdentifier);
     assert.deepStrictEqual(val, new SecretValue(testSecretValue));
     assert.deepStrictEqual(mockGetOrCreate.mock.callCount(), 1);

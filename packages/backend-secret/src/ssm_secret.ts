@@ -81,12 +81,13 @@ export class SSMSecretClient implements SecretClient {
    */
   public getSecret = async (
     backendIdentifier: UniqueBackendIdentifier | BackendId,
-    secretName: string
+    secretName: string,
+    secretVersion?: number
   ): Promise<string | undefined> => {
     const name = this.getParameterFullPath(backendIdentifier, secretName);
     try {
       const resp = await this.ssmClient.getParameter({
-        Name: name,
+        Name: secretVersion ? `${name}:${secretVersion}` : `${name}`,
         WithDecryption: true,
       });
       return resp.Parameter?.Value;

@@ -18,7 +18,7 @@ export type SecretAction = 'GET' | 'SET' | 'REMOVE' | 'LIST';
 
 // @public (undocumented)
 export type SecretClient = {
-    getSecret: (backendIdentifier: UniqueBackendIdentifier | BackendId, secretName: string) => Promise<string | undefined>;
+    getSecret: (backendIdentifier: UniqueBackendIdentifier | BackendId, secretName: string, secretVersion?: number) => Promise<string | undefined>;
     listSecrets: (backendIdentifier: UniqueBackendIdentifier | BackendId) => Promise<string[]>;
     setSecret: (backendIdentifier: UniqueBackendIdentifier | BackendId, secretName: string, secretValue: string) => Promise<void>;
     removeSecret: (backendIdentifier: UniqueBackendIdentifier | BackendId, secretName: string) => Promise<void>;

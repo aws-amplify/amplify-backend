@@ -2,7 +2,6 @@ import { Construct } from 'constructs';
 import { BackendSecretFetcherProviderFactory } from './backend_secret_fetcher_provider_factory.js';
 import { CustomResource } from 'aws-cdk-lib';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
-import { randomUUID } from 'node:crypto';
 
 /**
  * Resource provider ID for the backend secret resource.
@@ -32,6 +31,7 @@ export class BackendSecretFetcherFactory {
   getOrCreate = (
     scope: Construct,
     secretName: string,
+    secretVersion: number,
     backendIdentifier: UniqueBackendIdentifier
   ): CustomResource => {
     const secretResourceId = `${secretName}SecretFetcherResource`;
@@ -55,7 +55,7 @@ export class BackendSecretFetcherFactory {
         backendId: backendIdentifier.backendId,
         branchName: backendIdentifier.branchName,
         secretName: secretName,
-        noop: randomUUID(), // just so it can be triggered on every deployment.
+        secretVersion: secretVersion,
       },
       resourceType: SECRET_RESOURCE_TYPE,
     });
