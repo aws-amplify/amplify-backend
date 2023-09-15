@@ -64,11 +64,6 @@ export type BackendSecret = {
     resolve: (scope: Construct, uniqueBackendIdentifier: UniqueBackendIdentifier) => SecretValue;
 };
 
-// @public (undocumented)
-export type BackendSecretResolver = {
-    resolveSecrets: <T>(props: T) => Replace<T, BackendSecret, SecretValue>;
-};
-
 // @public
 export type ConstructContainer = {
     getOrCompute: (generator: ConstructContainerEntryGenerator) => Construct;
@@ -92,7 +87,6 @@ export type ConstructFactory<T = unknown> = {
 export type ConstructFactoryGetInstanceProps = {
     constructContainer: ConstructContainer;
     outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
-    backendSecretResolver: BackendSecretResolver;
     importPathVerifier?: ImportPathVerifier;
 };
 
@@ -110,11 +104,6 @@ export type MainStackCreator = {
 export type MainStackNameResolver = {
     resolveMainStackName: () => Promise<string>;
 };
-
-// @public
-export type Replace<T, Initial, Substitute> = T extends Initial ? Substitute : T extends object ? {
-    [K in keyof T]: Replace<T[K], Initial, Substitute>;
-} : T;
 
 // @public
 export type ResourceProvider<T> = {

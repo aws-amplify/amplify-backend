@@ -5,12 +5,10 @@ import {
   NestedStackResolver,
   StackResolver,
 } from './engine/nested_stack_resolver.js';
-import { DefaultBackendSecretResolver } from './engine/backend-secret/backend_secret_resolver.js';
 import { SingletonConstructContainer } from './engine/singleton_construct_container.js';
 import { ToggleableImportPathVerifier } from './engine/toggleable_import_path_verifier.js';
 import { StackMetadataBackendOutputStorageStrategy } from './engine/stack_metadata_output_storage_strategy.js';
 import { createDefaultStack } from './default_stack_factory.js';
-import { getUniqueBackendIdentifier } from './backend_identifier.js';
 
 /**
  * Class that collects and instantiates all the Amplify backend constructs
@@ -41,13 +39,6 @@ export class Backend<T extends Record<string, ConstructFactory<Construct>>> {
 
     const importPathVerifier = new ToggleableImportPathVerifier();
 
-    const backendIdentifier = getUniqueBackendIdentifier(stack);
-
-    const backendSecretResolver = new DefaultBackendSecretResolver(
-      stack,
-      backendIdentifier
-    );
-
     // register providers but don't actually execute anything yet
     Object.values(constructFactories).forEach((factory) => {
       if (typeof factory.provides === 'string') {
@@ -67,7 +58,6 @@ export class Backend<T extends Record<string, ConstructFactory<Construct>>> {
             constructContainer,
             outputStorageStrategy,
             importPathVerifier,
-            backendSecretResolver,
           }
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ) as any;

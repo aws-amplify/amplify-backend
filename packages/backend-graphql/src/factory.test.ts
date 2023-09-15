@@ -3,7 +3,6 @@ import assert from 'node:assert';
 import { DataFactory } from './factory.js';
 import { App, Stack } from 'aws-cdk-lib';
 import {
-  DefaultBackendSecretResolver,
   NestedStackResolver,
   SingletonConstructContainer,
   StackMetadataBackendOutputStorageStrategy,
@@ -14,7 +13,6 @@ import {
   AuthResources,
   BackendOutputEntry,
   BackendOutputStorageStrategy,
-  BackendSecretResolver,
   ConstructContainer,
   ConstructFactoryGetInstanceProps,
   ImportPathVerifier,
@@ -44,7 +42,6 @@ describe('DataFactory', () => {
   let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
   let importPathVerifier: ImportPathVerifier;
   let dataFactory: DataFactory;
-  let backendSecretResolver: BackendSecretResolver;
   let getInstanceProps: ConstructFactoryGetInstanceProps;
   beforeEach(() => {
     dataFactory = new DataFactory({ schema: testSchema });
@@ -88,16 +85,10 @@ describe('DataFactory', () => {
     );
     importPathVerifier = new ToggleableImportPathVerifier(false);
 
-    backendSecretResolver = new DefaultBackendSecretResolver(stack, {
-      backendId: 'testBackendId',
-      branchName: 'testBranchName',
-    });
-
     getInstanceProps = {
       constructContainer,
       outputStorageStrategy,
       importPathVerifier,
-      backendSecretResolver,
     };
   });
 

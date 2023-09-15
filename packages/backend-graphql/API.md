@@ -15,7 +15,7 @@ export const Data: typeof DataFactory;
 // @public
 export class DataFactory implements ConstructFactory<AmplifyGraphqlApi> {
     constructor(props: DataProps);
-    getInstance: ({ constructContainer, outputStorageStrategy, importPathVerifier, backendSecretResolver, }: ConstructFactoryGetInstanceProps) => AmplifyGraphqlApi;
+    getInstance: ({ constructContainer, outputStorageStrategy, importPathVerifier }: ConstructFactoryGetInstanceProps) => AmplifyGraphqlApi;
 }
 
 // @public (undocumented)
