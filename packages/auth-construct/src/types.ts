@@ -87,4 +87,12 @@ export type AuthProps = {
    * Multifactor Authentication settings
    */
   multifactor?: MFA;
+  /**
+   * Determined how a user is able to recover their account by setting the account recovery setting.
+   *
+   * If no setting is provided, a default will be set based on the enabled login methods.
+   * When email and phone login methods are both enabled, email will be the default recovery method.
+   * If only email or phone are enabled, they will be the default recovery methods.
+   */
+  accountRecovery?: cognito.AccountRecovery;
 };

@@ -29,6 +29,10 @@ export class FileWatchingSandbox implements Sandbox {
    * @inheritdoc
    */
   start = async (options: SandboxOptions) => {
+    const { profile } = options;
+    if (profile) {
+      process.env.AWS_PROFILE = profile;
+    }
     const defaultOptions = {
       name: this.sandboxId,
       format: 'js',

@@ -1,5 +1,11 @@
 # create-amplify
 
+## 0.2.0-alpha.5
+
+### Patch Changes
+
+- 790c3a6: Add support for account recovery settings.
+
 ## 0.2.0-alpha.4
 
 ### Patch Changes

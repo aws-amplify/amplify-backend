@@ -26,6 +26,7 @@ export type SandboxOptions = {
   exclude?: string[];
   name?: string;
   format?: (typeof formatChoices)[number];
+  profile?: string;
   /**
    * Optional path where client config should be generated for sandbox deployments
    * If the path is relative, it is computed based on process.cwd()

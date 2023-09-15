@@ -12,6 +12,7 @@ export type SandboxCommandOptions = {
   name: string | undefined;
   format: (typeof formatChoices)[number] | undefined;
   out: string | undefined;
+  profile: string | undefined;
 };
 
 /**
@@ -58,6 +59,7 @@ export class SandboxCommand
       name: args.name,
       format: args.format,
       clientConfigFilePath: args.out,
+      profile: args.profile,
     });
     process.once('SIGINT', () => void this.sigIntHandler());
   };
@@ -98,6 +100,11 @@ export class SandboxCommand
         .option('out', {
           describe:
             'A path to directory where config is written. If not provided defaults to current process working directory.',
+          type: 'string',
+          array: false,
+        })
+        .option('profile', {
+          describe: 'An AWS profile name to use for deployment.',
           type: 'string',
           array: false,
         })
