@@ -1,4 +1,5 @@
 import path from 'path';
+import * as os from 'os';
 
 /**
  * Extracts the path of the caller of the code that generated the input stack trace.
@@ -14,7 +15,7 @@ export const getCallerDirectory = (stackTrace?: string): string => {
   }
   const stacktraceLines =
     stackTrace
-      .split('\n')
+      .split(os.EOL)
       .map((line) => line.trim())
       .filter((line) => line.startsWith('at')) || [];
   if (stacktraceLines.length < 2) {
