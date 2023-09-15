@@ -236,6 +236,7 @@
           "tslint",
           "typename",
           "unauth",
+          "unix",
           "unlink",
           "unvalidated",
           "urls",

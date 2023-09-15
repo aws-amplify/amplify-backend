@@ -24,7 +24,8 @@ export const getCallerDirectory = (stackTrace?: string): string => {
   const stackTraceImportLine = stacktraceLines[1]; // the first entry is the file where the error was initialized (our code). The second entry is where the customer called our code which is what we are interested in
   // the line is something like `at <anonymous> (/some/path/to/file.ts:3:21)`
   // this regex pulls out the file path, ie `/some/path/to/file.ts`
-  const extractFilePathFromStackTraceLine = /\((?<filepath>[^:]*):.*\)/;
+  const extractFilePathFromStackTraceLine =
+    /\((?<filepath>(\w:)?[^:]*)[:\d]*\)/;
   const match = stackTraceImportLine.match(extractFilePathFromStackTraceLine);
   if (!match?.groups?.filepath) {
     throw unresolvedImportLocationError;
