@@ -70,6 +70,7 @@ describe('sandbox command', () => {
     assert.match(output, /--name/);
     assert.match(output, /--dirToWatch/);
     assert.match(output, /--exclude/);
+    assert.match(output, /--format/);
     assert.match(output, /--out/);
   });
 
