@@ -93,7 +93,7 @@ export class SandboxCommand
           array: false,
         })
         .option('profile', {
-          describe: 'An AWS profile to use for deployment.',
+          describe: 'An AWS profile name to use for deployment.',
           type: 'string',
           array: false,
         })
