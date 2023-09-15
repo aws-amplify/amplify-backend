@@ -1,5 +1,7 @@
 import { aws_cognito as cognito } from 'aws-cdk-lib';
 import { AuthUserAttribute } from './attributes.js';
+import { triggerEvents } from './trigger_events.js';
+
 /**
  * Email login options.
  *
@@ -66,6 +68,11 @@ export type ExternalProviders = {
     logoutUrls?: string[];
   };
 };
+
+/**
+ * Union type of all supported auth trigger events
+ */
+export type TriggerEvent = (typeof triggerEvents)[number];
 
 /**
  * Input props for the AmplifyAuth construct

@@ -9,18 +9,28 @@ import { AuthProps } from '@aws-amplify/auth-construct-alpha';
 import { AuthResources } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
+import { FunctionResources } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
+import { TriggerEvent } from '@aws-amplify/auth-construct-alpha';
 
 // @public
 export class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth & ResourceProvider<AuthResources>> {
-    constructor(props: AuthProps);
-    getInstance: ({ constructContainer, outputStorageStrategy, importPathVerifier, }: ConstructFactoryGetInstanceProps) => AmplifyAuth;
+    constructor(props: AmplifyAuthFactoryProps);
+    getInstance: (getInstanceProps: ConstructFactoryGetInstanceProps) => AmplifyAuth;
     // (undocumented)
     readonly provides = "AuthResources";
 }
 
+// @public (undocumented)
+export type AmplifyAuthFactoryProps = AuthProps & TriggerConfig;
+
 // @public
 export const Auth: typeof AmplifyAuthFactory;
+
+// @public (undocumented)
+export type TriggerConfig = {
+    triggers?: Partial<Record<TriggerEvent, ConstructFactory<ResourceProvider<FunctionResources>>>>;
+};
 
 // (No @packageDocumentation comment for this package)
 

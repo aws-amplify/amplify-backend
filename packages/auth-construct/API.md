@@ -4,6 +4,7 @@
 
 ```ts
 
+import { AmplifyFunction } from '@aws-amplify/plugin-types';
 import { AuthOutput } from '@aws-amplify/backend-output-schemas/auth';
 import { AuthResources } from '@aws-amplify/plugin-types';
 import { aws_cognito } from 'aws-cdk-lib';
@@ -11,12 +12,14 @@ import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { BackendOutputWriter } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
 import { CustomAttributeConfig } from 'aws-cdk-lib/aws-cognito';
+import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { StandardAttributes } from 'aws-cdk-lib/aws-cognito';
 
 // @public
 export class AmplifyAuth extends Construct implements BackendOutputWriter, ResourceProvider<AuthResources> {
     constructor(scope: Construct, id: string, props?: AuthProps);
+    addTrigger: (event: TriggerEvent, handler: IFunction | AmplifyFunction) => void;
     static attribute: (name: keyof aws_cognito.StandardAttributes) => AuthStandardAttribute;
     static customAttribute: AuthCustomAttributeFactory;
     readonly resources: AuthResources;
@@ -141,6 +144,12 @@ export type Mutable<T> = {
 export type PhoneNumberLogin = true | {
     verificationMessage?: `${string}{####}${string}`;
 };
+
+// @public
+export type TriggerEvent = (typeof triggerEvents)[number];
+
+// @public
+export const triggerEvents: readonly ["createAuthChallenge", "customMessage", "defineAuthChallenge", "postAuthentication", "postConfirmation", "preAuthentication", "preSignUp", "preTokenGeneration", "userMigration", "verifyAuthChallengeResponse"];
 
 // (No @packageDocumentation comment for this package)
 

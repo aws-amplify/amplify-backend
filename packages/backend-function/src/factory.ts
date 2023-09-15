@@ -1,11 +1,12 @@
 import {
+  AmplifyFunction,
   ConstructContainerEntryGenerator,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
 } from '@aws-amplify/plugin-types';
 import {
-  AmplifyFunction,
   AmplifyFunctionProps,
+  AmplifyLambdaFunction,
 } from '@aws-amplify/function-construct-alpha';
 import { Construct } from 'constructs';
 import { execaCommand } from 'execa';
@@ -116,7 +117,9 @@ export class AmplifyFunctionFactory
     if (!this.generator) {
       this.generator = new AmplifyFunctionGenerator(this.props);
     }
-    return constructContainer.getOrCompute(this.generator) as AmplifyFunction;
+    return constructContainer.getOrCompute(
+      this.generator
+    ) as AmplifyLambdaFunction;
   };
 }
 
@@ -126,7 +129,7 @@ class AmplifyFunctionGenerator implements ConstructContainerEntryGenerator {
   constructor(private readonly props: AmplifyFunctionFactoryProps) {}
 
   generateContainerEntry = (scope: Construct) => {
-    return new AmplifyFunction(scope, this.props.name, this.props);
+    return new AmplifyLambdaFunction(scope, this.props.name, this.props);
   };
 }
 

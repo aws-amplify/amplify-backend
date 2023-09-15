@@ -53,5 +53,15 @@
     "testFunctestFuncLambdaFunctionServiceRole09E19D41"
    ]
   }
+ },
+ "Outputs": {
+  "amplifytestAppIdtestBranchNamefunctiontestFunctestFuncLambdaFunction724FFDF6Arn": {
+   "Value": {
+    "Fn::GetAtt": [
+     "testFunctestFuncLambdaFunction419C520E",
+     "Arn"
+    ]
+   }
+  }
  }
 }
