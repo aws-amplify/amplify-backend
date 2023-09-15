@@ -71,7 +71,6 @@ export type AuthProps = {
     loginWith: BasicLoginOptions & ExternalProviders;
     userAttributes?: AuthUserAttribute[];
     multifactor?: MFA;
-    accountRecovery?: aws_cognito.AccountRecovery;
 };
 
 // @public

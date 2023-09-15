@@ -4,6 +4,9 @@
 
 ```ts
 
+// @public (undocumented)
+export const formatChoices: readonly ["js", "json", "ts"];
+
 // @public
 export type Sandbox = {
     start: (options: SandboxOptions) => Promise<void>;
@@ -21,7 +24,7 @@ export type SandboxOptions = {
     dir?: string;
     exclude?: string[];
     name?: string;
-    profile?: string;
+    format?: (typeof formatChoices)[number];
     clientConfigFilePath?: string;
 };
 
