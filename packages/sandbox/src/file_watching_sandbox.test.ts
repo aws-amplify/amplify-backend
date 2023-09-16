@@ -378,6 +378,7 @@ describe('Sandbox with absolute output path', () => {
         'location',
         'amplifyconfiguration.js'
       ),
+      profile: 'amplify-sandbox',
     });
     if (
       subscribeMock.mock.calls[0].arguments[1] &&
@@ -420,6 +421,10 @@ describe('Sandbox with absolute output path', () => {
       generateClientConfigMock.mock.calls[0].arguments[1],
       path.join(process.cwd(), 'test', 'location', 'amplifyconfiguration.js')
     );
+  });
+
+  it('sets AWS profile when starting sandbox', async () => {
+    assert.strictEqual(process.env.AWS_PROFILE, 'amplify-sandbox');
   });
 });
 
