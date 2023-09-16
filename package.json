@@ -4,7 +4,7 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "build": "tsc --build packages/*",
+    "build": "sh -c 'tsc --build packages/*'",
     "check:api": "npm run update:api && tsx scripts/check_api_extract.ts",
     "check:tsconfig-refs": "npm run update:tsconfig-refs && tsx scripts/check_no_git_diff.ts",
     "clean": "npm run clean:build && npm run clean:npm-proxy && rimraf --glob node_modules coverage .eslintcache packages/*/temp",
@@ -22,7 +22,7 @@
     "publish:local": "tsx scripts/publish_local.ts",
     "start:npm-proxy": "tsx scripts/start_npm_proxy.ts",
     "stop:npm-proxy": "tsx scripts/stop_npm_proxy.ts",
-    "test": "npm run test:dir $(tsx scripts/get_unit_test_dir_list.ts)",
+    "test": "sh -c 'npm run test:dir $(tsx scripts/get_unit_test_dir_list.ts)'",
     "test:coverage:generate": "NODE_V8_COVERAGE=coverage/ npm run test",
     "test:coverage:threshold": "c8 npm run test",
     "test:dir": "tsx --test --test-reporter spec",

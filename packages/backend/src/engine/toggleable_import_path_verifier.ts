@@ -26,9 +26,12 @@ export class ToggleableImportPathVerifier implements ImportPathVerifier {
     if (!importStack) {
       return;
     }
+    // normalize EOL to \n so that parsing is consistent across platforms
+    importStack = importStack.replaceAll(os.EOL, '\n');
+
     const stacktraceLines =
       importStack
-        .split(os.EOL)
+        .split('\n')
         .map((line) => line.trim())
         .filter((line) => line.startsWith('at')) || [];
     if (stacktraceLines.length < 2) {
