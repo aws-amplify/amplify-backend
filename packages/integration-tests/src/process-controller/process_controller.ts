@@ -42,7 +42,14 @@ export class ProcessController {
    */
   run = async () => {
     const interactionQueue = this.interactions.getStdioInteractionQueue();
-    const execaProcess = execa(this.command, this.args, this.options);
+    const execaProcess = execa(this.command, this.args, {
+      reject: false,
+      ...this.options,
+    });
+    const pid = execaProcess.pid;
+    if (typeof pid !== 'number') {
+      throw new Error('Could not determine child process id');
+    }
 
     if (process.stdout) {
       void execaProcess.pipeStdout?.(process.stdout);
@@ -53,6 +60,8 @@ export class ProcessController {
     }
     const reader = readline.createInterface(execaProcess.stdout);
 
+    let expectKilled = false;
+
     for await (const line of reader) {
       const currentInteraction = interactionQueue[0];
       if (!currentInteraction?.predicate(line)) {
@@ -62,7 +71,16 @@ export class ProcessController {
       // now we need to send the payload of the action (if any)
       if (typeof currentInteraction.payload === 'string') {
         if (currentInteraction.payload === CONTROL_C) {
-          execaProcess.kill('SIGINT');
+          if (process.platform.startsWith('win')) {
+            // turns out killing child process on Windows is a huge PITA
+            // https://stackoverflow.com/questions/23706055/why-can-i-not-kill-my-child-process-in-nodejs-on-windows
+            // https://github.com/sindresorhus/execa#killsignal-options
+            // eslint-disable-next-line spellcheck/spell-checker
+            await execa('taskkill', ['/pid', `${pid}`, '/f', '/t']);
+          } else {
+            execaProcess.kill('SIGINT');
+          }
+          expectKilled = true;
         } else {
           execaProcess.stdin?.write(currentInteraction.payload);
         }
@@ -71,7 +89,12 @@ export class ProcessController {
       interactionQueue.shift();
     }
 
-    await execaProcess;
+    const result = await execaProcess;
+    if (expectKilled) {
+      return;
+    } else if (result.failed) {
+      throw new Error(result.stdout);
+    }
   };
 }
 

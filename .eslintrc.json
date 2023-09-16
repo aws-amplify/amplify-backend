@@ -208,6 +208,7 @@
           "passthrough",
           "pathname",
           "pipelined",
+          "posix",
           "readdir",
           "readline",
           "readonly",
