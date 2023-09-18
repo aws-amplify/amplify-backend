@@ -1,0 +1,64 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`field level auth implied fields objects can be extracted 1`] = `
+[
+  {
+    Symbol(data): {
+      "groupOrOwnerField": undefined,
+      "groups": undefined,
+      "identityClaim": undefined,
+      "multiOwner": false,
+      "operations": [
+        "read",
+      ],
+      "provider": undefined,
+      "strategy": "public",
+    },
+  },
+  {
+    Symbol(data): {
+      "groupOrOwnerField": undefined,
+      "groups": undefined,
+      "identityClaim": undefined,
+      "multiOwner": false,
+      "operations": [
+        "read",
+        "create",
+      ],
+      "provider": undefined,
+      "strategy": "private",
+    },
+  },
+  {
+    "identityClaim": [Function],
+    Symbol(data): {
+      "groupOrOwnerField": "admin",
+      "groups": undefined,
+      "identityClaim": undefined,
+      "multiOwner": true,
+      "operations": [
+        "read",
+        "create",
+        "delete",
+      ],
+      "provider": undefined,
+      "strategy": "owner",
+    },
+  },
+  {
+    Symbol(data): {
+      "groupOrOwnerField": "admin",
+      "groups": undefined,
+      "identityClaim": "identityClaimValue",
+      "multiOwner": true,
+      "operations": [
+        "read",
+        "create",
+        "delete",
+      ],
+      "provider": undefined,
+      "strategy": "owner",
+    },
+  },
+]
+`;

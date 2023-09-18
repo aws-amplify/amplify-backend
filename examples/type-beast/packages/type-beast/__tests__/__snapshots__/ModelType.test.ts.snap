@@ -523,3 +523,11 @@ exports[`model auth rules can specify operations  1`] = `
   title: String!
 }"
 `;
+
+exports[`model auth rules includes auth from fields 1`] = `
+"type widget @model 
+{
+  customOwner: String
+  title: String! @auth(rules: [{allow: owner, operations: [create, read], ownerField: "customOwner"}])
+}"
+`;

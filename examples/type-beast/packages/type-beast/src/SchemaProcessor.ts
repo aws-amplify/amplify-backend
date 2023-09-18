@@ -114,7 +114,10 @@ function calculateAuth(authorization: Authorization<any, any>[]) {
     if (rule.strategy) {
       ruleParts.push([`allow: ${rule.strategy}`]);
     } else {
-      return null;
+      return {
+        authFields,
+        authString: '',
+      };
     }
 
     if (rule.provider) {
@@ -186,8 +189,28 @@ export const schemaPreprocessor = <T extends ModelSchemaParamShape>(
     const identifier = modelDef.data.identifier;
     const [partitionKey] = identifier;
 
-    const { authString, authFields } =
-      calculateAuth(modelDef.data.authorization) || {};
+    const { authString, authFields } = calculateAuth(
+      modelDef.data.authorization
+    );
+
+    const fieldLevelAuthRules: {
+      [k in keyof typeof fields]: string | null;
+    } = {};
+
+    for (const [fieldName, fieldDef] of Object.entries(fields)) {
+      if (!isScalarField(fieldDef)) {
+        continue;
+      }
+
+      const { authString, authFields: fieldAuthField } = calculateAuth(
+        fieldDef.data.authorization
+      );
+
+      if (authString) fieldLevelAuthRules[fieldName] = authString;
+      if (fieldAuthField) {
+        Object.assign(authFields, fieldAuthField);
+      }
+    }
 
     // process model and fields
     for (const [fieldName, fieldDef] of Object.entries({
@@ -197,12 +220,20 @@ export const schemaPreprocessor = <T extends ModelSchemaParamShape>(
       if (isModelField(fieldDef)) {
         gqlFields.push(`${fieldName}: ${modelFieldToGql(fieldDef.data)}`);
       } else if (isScalarField(fieldDef)) {
+        const fieldAuth = fieldLevelAuthRules[fieldName]
+          ? ` ${fieldLevelAuthRules[fieldName]}`
+          : '';
         if (fieldName === partitionKey) {
           gqlFields.push(
-            `${fieldName}: ${scalarFieldToGql(fieldDef.data, identifier)}`
+            `${fieldName}: ${scalarFieldToGql(
+              fieldDef.data,
+              identifier
+            )}${fieldAuth}`
           );
         } else {
-          gqlFields.push(`${fieldName}: ${scalarFieldToGql(fieldDef.data)}`);
+          gqlFields.push(
+            `${fieldName}: ${scalarFieldToGql(fieldDef.data)}${fieldAuth}`
+          );
         }
       } else {
         throw new Error(`Unexpected field definition: ${fieldDef}`);

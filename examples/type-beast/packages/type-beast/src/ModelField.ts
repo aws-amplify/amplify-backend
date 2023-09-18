@@ -1,5 +1,5 @@
 import { Brand } from './util';
-import { Authorization } from './Authorization';
+import { Authorization, __data } from './Authorization';
 
 export enum ModelFieldType {
   Id = 'ID',
@@ -36,6 +36,7 @@ type FieldData = {
   array: boolean;
   arrayOptional: boolean;
   default: undefined | string;
+  // authorization: any;
   authorization: Authorization<any, any>[];
 };
 
@@ -47,6 +48,8 @@ type ModelFieldTypeParamOuter =
 
 type ToArray<T> = [T] extends [ModelFieldTypeParamInner] ? Array<T> : never;
 
+export const __auth = Symbol('__auth');
+
 /**
  * Public API for the chainable builder methods exposed by Model Field.
  * The type is narrowing e.g., after calling .array() it will be omitted from intellisense suggestions
@@ -57,7 +60,8 @@ type ToArray<T> = [T] extends [ModelFieldTypeParamInner] ? Array<T> : never;
 export type ModelField<
   T extends ModelFieldTypeParamOuter,
   // rename K
-  K extends keyof ModelField<T> = never
+  K extends keyof ModelField<T> = never,
+  Auth = undefined
 > = Omit<
   {
     optional(): ModelField<T | null, K | 'optional'>;
@@ -66,10 +70,14 @@ export type ModelField<
     default(val: string): ModelField<T, K | 'default'>;
     authorization<AuthRuleType extends Authorization<any, any>>(
       rules: AuthRuleType[]
-    ): ModelField<T, K | 'authorization'>;
+    ): ModelField<T, K | 'authorization', AuthRuleType>;
   },
   K
->;
+> & {
+  [__auth]?: Auth;
+  // auth?: Auth;
+  // valueOf: () => Auth;
+};
 
 /**
  * Internal representation of Model Field that exposes the `data` property.

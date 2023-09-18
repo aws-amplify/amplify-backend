@@ -3,6 +3,7 @@ import type {
   ModelTypeParamShape,
   InternalModel,
 } from './ModelType';
+export { __auth } from './ModelField';
 import type { Prettify } from './util';
 
 /*
@@ -45,5 +46,5 @@ export function schema<Models extends ModelSchemaModels>(
 }
 
 export function defineData(arg: { schema: ModelSchema<any> }) {
-  return arg.schema as Prettify<InternalSchema>;
+  return arg.schema as InternalSchema;
 }

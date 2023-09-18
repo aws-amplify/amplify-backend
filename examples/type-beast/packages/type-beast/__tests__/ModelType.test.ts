@@ -252,6 +252,21 @@ describe('model auth rules', () => {
     expect(graphql).toMatchSnapshot();
   });
 
+  it(`includes auth from fields`, () => {
+    const schema = a.schema({
+      widget: a.model({
+        title: a
+          .string()
+          .authorization([
+            a.allow.owner().inField('customOwner').to(['create', 'read']),
+          ]),
+      }),
+    });
+
+    const graphql = schemaPreprocessor(schema).processedSchema;
+    expect(graphql).toMatchSnapshot();
+  });
+
   for (const provider of PublicProviders) {
     it(`can define public with with provider ${provider}`, () => {
       const schema = a.schema({
