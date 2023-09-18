@@ -6,7 +6,6 @@ describe('client generator', () => {
   it('if `fetchSchema` returns null, it should throw an error', async () => {
     const generator = new AppSyncGraphqlDocumentGenerator(
       async () => null as unknown as string,
-      async () => '',
       () => ({ writeToDirectory: () => Promise.resolve() })
     );
     await assert.rejects(() =>
