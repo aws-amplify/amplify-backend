@@ -1,5 +1,11 @@
 # @aws-amplify/client-config
 
+## 0.2.0-alpha.5
+
+### Patch Changes
+
+- 01320d4: add `amplify generate config --format` option
+
 ## 0.2.0-alpha.4
 
 ### Minor Changes

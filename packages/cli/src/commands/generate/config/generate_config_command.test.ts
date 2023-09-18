@@ -1,6 +1,10 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
-import { GenerateConfigCommand } from './generate_config_command.js';
+import {
+  GenerateConfigCommand,
+  configFileName,
+  formatChoices,
+} from './generate_config_command.js';
 import yargs, { CommandModule } from 'yargs';
 import {
   TestCommandError,
@@ -43,7 +47,7 @@ describe('generate config command', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      path.join(process.cwd(), 'amplifyconfiguration.js')
+      path.join(process.cwd(), `${configFileName}.${formatChoices[0]}`)
     );
   });
 
@@ -60,7 +64,7 @@ describe('generate config command', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      path.join(process.cwd(), 'amplifyconfiguration.js')
+      path.join(process.cwd(), `${configFileName}.${formatChoices[0]}`)
     );
   });
 
@@ -76,28 +80,34 @@ describe('generate config command', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      path.join(process.cwd(), 'amplifyconfiguration.js')
+      path.join(process.cwd(), `${configFileName}.${formatChoices[0]}`)
     );
   });
 
   it('can generate to custom absolute path', async () => {
     await commandRunner.runCommand(
-      'config --stack stack_name --out /foo/bar/customFile.js'
+      'config --stack stack_name --out /foo/bar --format ts'
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
       stackName: 'stack_name',
     });
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
+    const actualPath = generateClientConfigMock.mock.calls[0].arguments[1];
+    // normalize the path root across unix and windows platforms
+    const normalizedPath = actualPath?.replace(
+      path.parse(actualPath).root,
+      path.sep
+    );
     assert.equal(
-      generateClientConfigMock.mock.calls[0].arguments[1],
-      path.join('/', 'foo', 'bar', 'customFile.js')
+      normalizedPath,
+      path.join('/', 'foo', 'bar', `${configFileName}.${formatChoices[2]}`)
     );
   });
 
   it('can generate to custom relative path', async () => {
     await commandRunner.runCommand(
-      'config --stack stack_name --out foo/bar/customFile.js'
+      'config --stack stack_name --out foo/bar --format js'
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
@@ -106,7 +116,7 @@ describe('generate config command', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.equal(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      path.join(process.cwd(), 'foo', 'bar', 'customFile.js')
+      path.join(process.cwd(), 'foo', 'bar', 'amplifyconfiguration.js')
     );
   });
 
@@ -115,6 +125,7 @@ describe('generate config command', () => {
     assert.match(output, /--stack/);
     assert.match(output, /--appId/);
     assert.match(output, /--branch/);
+    assert.match(output, /--format/);
     assert.match(output, /--out/);
   });
 

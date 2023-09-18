@@ -1,7 +1,7 @@
 import { beforeEach, describe, it } from 'node:test';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
-import { AmplifyFunction } from './construct.js';
+import { AmplifyLambdaFunction } from './construct.js';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { fileURLToPath } from 'url';
 
@@ -16,7 +16,7 @@ describe('AmplifyFunction', () => {
     stack = new Stack(app);
   });
   it('creates lambda with specified runtime', () => {
-    new AmplifyFunction(stack, 'test', {
+    new AmplifyLambdaFunction(stack, 'test', {
       absoluteCodePath: testCodePath,
       runtime: Runtime.JAVA_8,
     });
@@ -27,7 +27,7 @@ describe('AmplifyFunction', () => {
   });
 
   it('creates lambda with default runtime', () => {
-    new AmplifyFunction(stack, 'test', {
+    new AmplifyLambdaFunction(stack, 'test', {
       absoluteCodePath: testCodePath,
     });
     const template = Template.fromStack(stack);
@@ -37,7 +37,7 @@ describe('AmplifyFunction', () => {
   });
 
   it('creates lambda with specified handler', () => {
-    new AmplifyFunction(stack, 'test', {
+    new AmplifyLambdaFunction(stack, 'test', {
       absoluteCodePath: testCodePath,
       handler: 'test.main',
     });
@@ -48,7 +48,7 @@ describe('AmplifyFunction', () => {
   });
 
   it('creates lambda with default handler', () => {
-    new AmplifyFunction(stack, 'test', {
+    new AmplifyLambdaFunction(stack, 'test', {
       absoluteCodePath: testCodePath,
     });
     const template = Template.fromStack(stack);

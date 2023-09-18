@@ -4,6 +4,7 @@ import assert from 'node:assert';
 import * as os from 'os';
 import * as fs from 'fs';
 import { validateCdkOutDir } from './cdk_out_dir_validator.js';
+import { pathToFileURL } from 'url';
 
 export type CDKSynthSnapshotTestCase = {
   name: string;
@@ -52,7 +53,7 @@ const runCDKSnapshotTest = ({
   });
   it(name, async () => {
     // this import must create the CDK App
-    await import(absoluteBackendFilePath);
+    await import(pathToFileURL(absoluteBackendFilePath).toString());
 
     // now we find and execute the synth beforeExit listener that the CDK App attaches to the process
     // see https://github.com/aws/aws-cdk/blob/9af05d85acf95138a149c03b1e4dfbc48284921a/packages/aws-cdk-lib/core/lib/app.ts#L192-L196

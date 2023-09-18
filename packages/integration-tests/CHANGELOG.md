@@ -1,5 +1,12 @@
 # @aws-amplify/integration-tests
 
+## 0.2.0-alpha.3
+
+### Patch Changes
+
+- 3c36ace: Implement UserPool trigger config
+- 790c3a6: Add support for account recovery settings.
+
 ## 0.2.0-alpha.2
 
 ### Minor Changes

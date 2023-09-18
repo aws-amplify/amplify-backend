@@ -1,5 +1,15 @@
 # @aws-amplify/backend-cli
 
+## 1.0.0-alpha.5
+
+### Patch Changes
+
+- 01320d4: add `amplify generate config --format` option
+- Updated dependencies [233adab]
+- Updated dependencies [01320d4]
+  - @aws-amplify/sandbox@0.1.1-alpha.5
+  - @aws-amplify/client-config@0.2.0-alpha.5
+
 ## 1.0.0-alpha.4
 
 ### Patch Changes
