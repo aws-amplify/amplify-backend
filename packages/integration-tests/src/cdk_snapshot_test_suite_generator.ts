@@ -1,6 +1,7 @@
 import { CDKSynthSnapshotTestCase } from './cdk_snapshot_test_runner.js';
 import * as fs from 'fs';
 import * as path from 'path';
+import { fileURLToPath } from 'url';
 
 /**
  * Constructs an IntegrationTestCase[] given a directory that conforms to the following convention:
@@ -31,13 +32,14 @@ export const fromConventionalDir = (
     .filter((entry) => entry.isDirectory());
   return testDirectories.map((testDirectory) => ({
     name: testDirectory.name,
-    absoluteBackendFilePath: path.resolve(
-      rootDir.pathname,
+    absoluteBackendFilePath: path.join(
+      fileURLToPath(rootDir),
       testDirectory.name,
+      'amplify',
       'backend.ts'
     ),
-    absoluteExpectedCdkOutDir: path.resolve(
-      rootDir.pathname,
+    absoluteExpectedCdkOutDir: path.join(
+      fileURLToPath(rootDir),
       testDirectory.name,
       'expected-cdk-out'
     ),

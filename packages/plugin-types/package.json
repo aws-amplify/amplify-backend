@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/plugin-types",
-  "version": "0.1.1-alpha.1",
+  "version": "0.1.1-alpha.4",
   "types": "lib/index.d.ts",
   "type": "module",
   "publishConfig": {

@@ -5,6 +5,7 @@ import {
   IUserPool,
   IUserPoolClient,
 } from 'aws-cdk-lib/aws-cognito';
+
 /**
  * Accessible Cfn resources from the Auth construct, which were generated during
  * initialization.
@@ -30,7 +31,7 @@ export type AuthResources = {
   /**
    * The generated UserPoolClient L2 Resource.
    */
-  userPoolClientWeb: IUserPoolClient;
+  userPoolClient: IUserPoolClient;
   /**
    * The generated auth role.
    */

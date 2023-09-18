@@ -17,18 +17,37 @@
     "@aws-amplify/plugin-types": "0.1.0",
     "@aws-amplify/sandbox": "0.1.0",
     "@aws-amplify/storage-construct-alpha": "0.1.0",
-    "@aws-amplify/backend-deployer": "0.1.0"
+    "@aws-amplify/backend-deployer": "0.1.0",
+    "@aws-amplify/form-generator": "0.1.0",
+    "@aws-amplify/model-generator": "0.1.0"
   },
   "changesets": [
     "clever-rules-bow",
     "cool-ligers-drop",
+    "eight-cats-clean",
+    "funny-apricots-type",
     "gold-drinks-give",
+    "grumpy-drinks-serve",
+    "happy-ants-repair",
     "honest-experts-allow",
+    "loud-seals-perform",
     "lovely-hairs-shave",
     "many-dogs-impress",
+    "nice-pots-greet",
+    "nine-brooms-fetch",
     "ninety-books-rush",
     "old-boxes-scream",
+    "old-students-guess",
+    "olive-mails-dance",
+    "perfect-garlics-battle",
+    "plenty-bugs-hope",
+    "pretty-dogs-wonder",
     "pretty-donkeys-film",
-    "wise-nails-melt"
+    "proud-clouds-notice",
+    "sour-rockets-care",
+    "tough-scissors-clean",
+    "twelve-mice-tickle",
+    "wise-nails-melt",
+    "yellow-drinks-hammer"
   ]
 }

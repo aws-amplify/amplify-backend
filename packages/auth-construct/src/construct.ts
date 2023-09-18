@@ -1,20 +1,29 @@
 import { Construct } from 'constructs';
 import { Stack, aws_cognito as cognito } from 'aws-cdk-lib';
 import {
+  AmplifyFunction,
   AuthResources,
   BackendOutputStorageStrategy,
   BackendOutputWriter,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import {
+  Mfa,
   UserPool,
   UserPoolClient,
+  UserPoolIdentityProviderAmazon,
+  UserPoolIdentityProviderApple,
+  UserPoolIdentityProviderFacebook,
+  UserPoolIdentityProviderGoogle,
+  UserPoolIdentityProviderOidc,
+  UserPoolIdentityProviderSaml,
+  UserPoolOperation,
   UserPoolProps,
 } from 'aws-cdk-lib/aws-cognito';
 import { FederatedPrincipal, Role } from 'aws-cdk-lib/aws-iam';
 import { AuthOutput } from '@aws-amplify/backend-output-schemas/auth';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
-import { AuthProps } from './types.js';
+import { AuthProps, TriggerEvent } from './types.js';
 import { DEFAULTS } from './defaults.js';
 import {
   AuthAttributeFactory,
@@ -22,8 +31,24 @@ import {
   AuthCustomAttributeFactory,
   AuthStandardAttribute,
 } from './attributes.js';
+import { IFunction } from 'aws-cdk-lib/aws-lambda';
 
 type DefaultRoles = { auth: Role; unAuth: Role };
+type IdentityProviderSetupResult = {
+  oauthMappings: Record<string, string>;
+  google?: UserPoolIdentityProviderGoogle;
+  facebook?: UserPoolIdentityProviderFacebook;
+  amazon?: UserPoolIdentityProviderAmazon;
+  apple?: UserPoolIdentityProviderApple;
+  oidc?: UserPoolIdentityProviderOidc;
+  saml?: UserPoolIdentityProviderSaml;
+};
+const authProvidersList = {
+  facebook: 'graph.facebook.com',
+  google: 'accounts.google.com',
+  amazon: 'www.amazon.com',
+  apple: 'appleid.apple.com',
+};
 
 /**
  * Amplify Auth CDK Construct
@@ -37,6 +62,13 @@ export class AmplifyAuth
    */
   readonly resources: AuthResources;
   /**
+   * Map from oauth provider to client id
+   */
+  private readonly oauthMappings: Record<string, string>;
+
+  private readonly userPool: UserPool;
+
+  /**
    * Create a new Auth construct with AuthProps.
    * If no props are provided, email login and defaults will be used.
    */
@@ -49,14 +81,21 @@ export class AmplifyAuth
 
     // UserPool
     const userPoolProps: UserPoolProps = this.getUserPoolProps(props);
-    const userPool = new cognito.UserPool(this, 'UserPool', userPoolProps);
+    this.userPool = new cognito.UserPool(this, 'UserPool', userPoolProps);
+
+    // UserPool - Identity Providers
+    const providerSetupResult = this.setupIdentityProviders(
+      this.userPool,
+      props.loginWith
+    );
+    this.oauthMappings = providerSetupResult.oauthMappings;
 
     // UserPool Client
-    const userPoolClientWeb = new cognito.UserPoolClient(
+    const userPoolClient = new cognito.UserPoolClient(
       this,
       'UserPoolWebClient',
       {
-        userPool: userPool,
+        userPool: this.userPool,
         authFlows: DEFAULTS.AUTH_FLOWS,
         preventUserExistenceErrors: DEFAULTS.PREVENT_USER_EXISTENCE_ERRORS,
       }
@@ -68,14 +107,15 @@ export class AmplifyAuth
     // Identity Pool
     const { identityPool, identityPoolRoleAttachment } = this.setupIdentityPool(
       { auth, unAuth },
-      userPool,
-      userPoolClientWeb
+      this.userPool,
+      userPoolClient,
+      providerSetupResult
     );
 
     // expose resources
     this.resources = {
-      userPool,
-      userPoolClientWeb,
+      userPool: this.userPool,
+      userPoolClient,
       authenticatedUserIamRole: auth,
       unauthenticatedUserIamRole: unAuth,
       cfnResources: {
@@ -103,14 +143,12 @@ export class AmplifyAuth
 
   /**
    * Setup Identity Pool with default roles/role mappings, and register providers
-   * @param roles - DefaultRoles
-   * @param userPool - UserPool
-   * @param userPoolClient - UserPoolClient
    */
   private setupIdentityPool = (
     roles: DefaultRoles,
     userPool: UserPool,
-    userPoolClient: UserPoolClient
+    userPoolClient: UserPoolClient,
+    providerSetupResult: IdentityProviderSetupResult
   ) => {
     // setup identity pool
     const region = Stack.of(this).region;
@@ -145,6 +183,24 @@ export class AmplifyAuth
         providerName: `cognito-idp.${region}.amazonaws.com/${userPool.userPoolId}`,
       },
     ];
+    // add other providers
+    identityPool.supportedLoginProviders = providerSetupResult.oauthMappings;
+    if (providerSetupResult.oidc) {
+      identityPool.openIdConnectProviderArns = [
+        `arn:${region}:iam::${
+          Stack.of(this).account
+        }:oidc-provider/cognito-idp.${region}.amazonaws.com/${
+          providerSetupResult.oidc.providerName
+        }`,
+      ];
+    }
+    if (providerSetupResult.saml) {
+      identityPool.samlProviderArns = [
+        `arn:${region}:iam::${Stack.of(this).account}:saml-provider/${
+          providerSetupResult.saml.providerName
+        }`,
+      ];
+    }
     return {
       identityPool,
       identityPoolRoleAttachment,
@@ -153,8 +209,6 @@ export class AmplifyAuth
 
   /**
    * Process props into UserPoolProps (set defaults if needed)
-   * @param props - AuthProps
-   * @returns UserPoolProps
    */
   private getUserPoolProps = (props: AuthProps): UserPoolProps => {
     const emailEnabled = props.loginWith.email ? true : false;
@@ -234,8 +288,150 @@ export class AmplifyAuth
         ...customAttributes,
       },
       selfSignUpEnabled: DEFAULTS.ALLOW_SELF_SIGN_UP,
+      mfa: this.getMFAEnforcementType(props.multifactor),
+      mfaMessage:
+        typeof props.multifactor === 'object' &&
+        props.multifactor.enforcementType !== 'OFF' &&
+        props.multifactor.sms === true
+          ? props.multifactor.smsMessage
+          : undefined,
+      mfaSecondFactor:
+        typeof props.multifactor === 'object' &&
+        props.multifactor.enforcementType !== 'OFF'
+          ? { sms: props.multifactor.sms, otp: props.multifactor.totp }
+          : undefined,
+      accountRecovery: this.getAccountRecoverySetting(
+        emailEnabled,
+        phoneEnabled,
+        props.accountRecovery
+      ),
     };
     return userPoolProps;
+  };
+
+  /**
+   * Determine the account recovery option based on enabled login methods.
+   * @param emailEnabled - is email enabled
+   * @param phoneEnabled - is phone enabled
+   * @param accountRecovery - the user provided account recovery setting
+   * @returns account recovery setting
+   */
+  private getAccountRecoverySetting = (
+    emailEnabled: boolean,
+    phoneEnabled: boolean,
+    accountRecovery: AuthProps['accountRecovery']
+  ): cognito.AccountRecovery | undefined => {
+    if (accountRecovery !== undefined) {
+      return accountRecovery;
+    }
+    // set default based on enabled login methods
+    if (phoneEnabled && emailEnabled) {
+      return cognito.AccountRecovery.EMAIL_ONLY;
+    }
+    if (phoneEnabled) {
+      return cognito.AccountRecovery.PHONE_ONLY_WITHOUT_MFA;
+    }
+    if (emailEnabled) {
+      return cognito.AccountRecovery.EMAIL_ONLY;
+    }
+    return undefined;
+  };
+
+  /**
+   * Convert user friendly Mfa type to cognito Mfa type.
+   * This eliminates the need for users to import cognito.Mfa.
+   * @param mfa - MFA Enforcement type string value
+   * @returns cognito MFA enforcement type
+   */
+  private getMFAEnforcementType = (
+    mfa: AuthProps['multifactor']
+  ): Mfa | undefined => {
+    if (mfa) {
+      switch (mfa.enforcementType) {
+        case 'OFF':
+          return Mfa.OFF;
+        case 'OPTIONAL':
+          return Mfa.OPTIONAL;
+        case 'REQUIRED':
+          return Mfa.REQUIRED;
+      }
+    }
+    return undefined;
+  };
+
+  /**
+   * Setup Identity Providers (OAuth/OIDC/SAML)
+   */
+  private setupIdentityProviders = (
+    userPool: UserPool,
+    loginOptions: AuthProps['loginWith']
+  ): IdentityProviderSetupResult => {
+    const result: IdentityProviderSetupResult = {
+      oauthMappings: {},
+    };
+    // external providers
+    const external = loginOptions.externalProviders;
+    if (!external) {
+      return result;
+    }
+    if (external.google) {
+      result.google = new cognito.UserPoolIdentityProviderGoogle(
+        this,
+        'GoogleIdP',
+        {
+          userPool,
+          ...external.google,
+        }
+      );
+      result.oauthMappings[authProvidersList.google] = external.google.clientId;
+    }
+    if (external.facebook) {
+      result.facebook = new cognito.UserPoolIdentityProviderFacebook(
+        this,
+        'FacebookIDP',
+        {
+          userPool,
+          ...external.facebook,
+        }
+      );
+      result.oauthMappings[authProvidersList.facebook] =
+        external.facebook.clientId;
+    }
+    if (external.amazon) {
+      result.amazon = new cognito.UserPoolIdentityProviderAmazon(
+        this,
+        'AmazonIDP',
+        {
+          userPool,
+          ...external.amazon,
+        }
+      );
+      result.oauthMappings[authProvidersList.amazon] = external.amazon.clientId;
+    }
+    if (external.apple) {
+      result.apple = new cognito.UserPoolIdentityProviderApple(
+        this,
+        'AppleIDP',
+        {
+          userPool,
+          ...external.apple,
+        }
+      );
+      result.oauthMappings[authProvidersList.apple] = external.apple.clientId;
+    }
+    if (external.oidc) {
+      result.oidc = new cognito.UserPoolIdentityProviderOidc(this, 'OidcIDP', {
+        userPool,
+        ...external.oidc,
+      });
+    }
+    if (external.saml) {
+      result.saml = new cognito.UserPoolIdentityProviderSaml(this, 'SamlIDP', {
+        userPool,
+        ...external.saml,
+      });
+    }
+    return result;
   };
 
   /**
@@ -244,14 +440,48 @@ export class AmplifyAuth
   storeOutput = (
     outputStorageStrategy: BackendOutputStorageStrategy<AuthOutput>
   ): void => {
+    const output: AuthOutput['payload'] = {
+      userPoolId: this.resources.userPool.userPoolId,
+      webClientId: this.resources.userPoolClient.userPoolClientId,
+      identityPoolId: this.resources.cfnResources.identityPool.ref,
+      authRegion: Stack.of(this).region,
+    };
+    if (this.oauthMappings[authProvidersList.amazon]) {
+      output.amazonClientId = this.oauthMappings[authProvidersList.amazon];
+    }
+    if (this.oauthMappings[authProvidersList.facebook]) {
+      output.facebookClientId = this.oauthMappings[authProvidersList.facebook];
+    }
+    if (this.oauthMappings[authProvidersList.google]) {
+      output.googleClientId = this.oauthMappings[authProvidersList.google];
+    }
+    if (this.oauthMappings[authProvidersList.apple]) {
+      output.appleClientId = this.oauthMappings[authProvidersList.apple];
+    }
     outputStorageStrategy.addBackendOutputEntry(authOutputKey, {
       version: '1',
-      payload: {
-        userPoolId: this.resources.userPool.userPoolId,
-        webClientId: this.resources.userPoolClientWeb.userPoolClientId,
-        authRegion: Stack.of(this).region,
-      },
+      payload: output,
     });
+  };
+
+  /**
+   * Attach a Lambda function trigger handler to the UserPool in this construct
+   * @param event - The trigger event operation
+   * @param handler - The function that will handle the event
+   */
+  addTrigger = (
+    event: TriggerEvent,
+    handler: IFunction | AmplifyFunction
+  ): void => {
+    if ('resources' in handler) {
+      this.userPool.addTrigger(
+        UserPoolOperation.of(event),
+        handler.resources.lambda
+      );
+    } else {
+      // handler is an IFunction
+      this.userPool.addTrigger(UserPoolOperation.of(event), handler);
+    }
   };
 
   /**

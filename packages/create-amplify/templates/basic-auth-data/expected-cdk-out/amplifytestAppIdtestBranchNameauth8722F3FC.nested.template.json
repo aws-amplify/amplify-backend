@@ -6,12 +6,8 @@
     "AccountRecoverySetting": {
      "RecoveryMechanisms": [
       {
-       "Name": "verified_phone_number",
-       "Priority": 1
-      },
-      {
        "Name": "verified_email",
-       "Priority": 2
+       "Priority": 1
       }
      ]
     },
@@ -152,7 +148,8 @@
        ]
       }
      }
-    ]
+    ],
+    "SupportedLoginProviders": {}
    }
   },
   "amplifyAuthIdentityPoolRoleAttachment045F17C8": {
@@ -216,6 +213,11 @@
   "amplifytestAppIdtestBranchNameauthamplifyAuthUserPoolWebClientEFCFE2AFRef": {
    "Value": {
     "Ref": "amplifyAuthUserPoolWebClientA385E48A"
+   }
+  },
+  "amplifytestAppIdtestBranchNameauthamplifyAuthIdentityPool40350D66Ref": {
+   "Value": {
+    "Ref": "amplifyAuthIdentityPool3FDE84CC"
    }
   },
   "amplifytestAppIdtestBranchNameauthamplifyAuthauthenticatedUserRole1D3D95F1Ref": {

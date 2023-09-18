@@ -1,20 +1,100 @@
 import { describe, it, mock } from 'node:test';
 import { AmplifyAuth } from './construct.js';
-import { App, Stack } from 'aws-cdk-lib';
+import { App, SecretValue, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
 import {
+  AmplifyFunction,
   BackendOutputEntry,
   BackendOutputStorageStrategy,
 } from '@aws-amplify/plugin-types';
 import {
+  AccountRecovery,
+  CfnIdentityPool,
+  CfnUserPool,
+  CfnUserPoolClient,
   UserPool,
   UserPoolClient,
+  UserPoolIdentityProviderSamlMetadataType,
   VerificationEmailStyle,
 } from 'aws-cdk-lib/aws-cognito';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
 import { AuthProps } from './types.js';
+import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 
+const googleClientId = 'googleClientId';
+const googleClientSecret = 'googleClientSecret';
+const amazonClientId = 'amazonClientId';
+const amazonClientSecret = 'amazonClientSecret';
+const appleClientId = 'appleClientId';
+const applePrivateKey = 'applePrivateKey';
+const appleTeamId = 'team';
+const appleKeyId = 'key';
+const facebookClientId = 'facebookClientId';
+const facebookClientSecret = 'facebookClientSecret';
+const oidcClientId = 'oidcClientId';
+const oidcClientSecret = 'oidcClientSecret';
+const oidcIssuerUrl = 'https://mysampleoidcissuer.com';
+const oidcProviderName = 'myOidcProvider';
+const ExpectedGoogleIDPProperties = {
+  ProviderDetails: {
+    authorize_scopes: 'profile',
+    client_id: googleClientId,
+    client_secret: googleClientSecret,
+  },
+  ProviderName: 'Google',
+  ProviderType: 'Google',
+};
+const ExpectedFacebookIDPProperties = {
+  ProviderDetails: {
+    authorize_scopes: 'public_profile',
+    client_id: facebookClientId,
+    client_secret: facebookClientSecret,
+  },
+  ProviderName: 'Facebook',
+  ProviderType: 'Facebook',
+};
+const ExpectedAppleIDPProperties = {
+  ProviderDetails: {
+    authorize_scopes: 'name',
+    client_id: appleClientId,
+    key_id: appleKeyId,
+    private_key: applePrivateKey,
+    team_id: appleTeamId,
+  },
+  ProviderName: 'SignInWithApple',
+  ProviderType: 'SignInWithApple',
+};
+const ExpectedAmazonIDPProperties = {
+  ProviderDetails: {
+    authorize_scopes: 'profile',
+    client_id: amazonClientId,
+    client_secret: amazonClientSecret,
+  },
+  ProviderName: 'LoginWithAmazon',
+  ProviderType: 'LoginWithAmazon',
+};
+const ExpectedOidcIDPProperties = {
+  ProviderDetails: {
+    attributes_request_method: 'GET',
+    authorize_scopes: 'openid',
+    client_id: oidcClientId,
+    client_secret: oidcClientSecret,
+    oidc_issuer: oidcIssuerUrl,
+  },
+  ProviderName: oidcProviderName,
+  ProviderType: 'OIDC',
+};
+const samlProviderName = 'samlProviderName';
+const samlMetadataContent = '<?xml version=".10"?>';
+const ExpectedSAMLIDPProperties = {
+  ProviderDetails: {
+    IDPSignout: false,
+    MetadataFile: samlMetadataContent,
+  },
+  ProviderName: samlProviderName,
+  ProviderType: 'SAML',
+};
 describe('Auth construct', () => {
   it('creates phone number login mechanism', () => {
     const app = new App();
@@ -84,6 +164,48 @@ describe('Auth construct', () => {
         EmailSubject: customEmailVerificationSubject,
         SmsMessage: 'The verification code to your new account is {####}',
       },
+    });
+  });
+
+  it('creates email login mechanism with MFA', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const customEmailVerificationMessage = 'custom email body {####}';
+    const customEmailVerificationSubject = 'custom subject';
+    const smsVerificationMessage = 'the verification code is {####}';
+    const smsAuthenticationMessage = 'SMS MFA code is {####}';
+    new AmplifyAuth(stack, 'test', {
+      loginWith: {
+        email: {
+          emailBody: customEmailVerificationMessage,
+          emailStyle: VerificationEmailStyle.CODE,
+          emailSubject: customEmailVerificationSubject,
+        },
+        phoneNumber: {
+          verificationMessage: smsVerificationMessage,
+        },
+      },
+      multifactor: {
+        enforcementType: 'OPTIONAL',
+        sms: true,
+        smsMessage: smsAuthenticationMessage,
+        totp: false,
+      },
+    });
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      EmailVerificationMessage: customEmailVerificationMessage,
+      EmailVerificationSubject: customEmailVerificationSubject,
+      VerificationMessageTemplate: {
+        DefaultEmailOption: 'CONFIRM_WITH_CODE',
+        EmailMessage: customEmailVerificationMessage,
+        EmailSubject: customEmailVerificationSubject,
+        SmsMessage: smsVerificationMessage,
+      },
+      MfaConfiguration: 'OPTIONAL',
+      EnabledMfas: ['SMS_MFA'],
+      SmsAuthenticationMessage: smsAuthenticationMessage,
+      SmsVerificationMessage: smsVerificationMessage,
     });
   });
 
@@ -206,6 +328,30 @@ describe('Auth construct', () => {
           Required: true,
         },
       ],
+    });
+  });
+
+  it('sets account recovery settings ', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    new AmplifyAuth(stack, 'test', {
+      loginWith: { phoneNumber: true, email: true },
+      accountRecovery: AccountRecovery.EMAIL_AND_PHONE_WITHOUT_MFA,
+    });
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      AccountRecoverySetting: {
+        RecoveryMechanisms: [
+          {
+            Name: 'verified_email',
+            Priority: 1,
+          },
+          {
+            Name: 'verified_phone_number',
+            Priority: 2,
+          },
+        ],
+      },
     });
   });
 
@@ -333,6 +479,9 @@ describe('Auth construct', () => {
       const expectedUserPoolId = (
         authConstruct.node.findChild('UserPool') as UserPool
       ).userPoolId;
+      const expectedIdentityPoolId = (
+        authConstruct.node.findChild('IdentityPool') as CfnIdentityPool
+      ).ref;
       const expectedWebClientId = (
         authConstruct.node.findChild('UserPoolWebClient') as UserPoolClient
       ).userPoolClientId;
@@ -350,6 +499,7 @@ describe('Auth construct', () => {
           payload: {
             userPoolId: expectedUserPoolId,
             webClientId: expectedWebClientId,
+            identityPoolId: expectedIdentityPoolId,
             authRegion: expectedRegion,
           },
         },
@@ -443,6 +593,59 @@ describe('Auth construct', () => {
       });
     });
 
+    it('sets default account recovery settings', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test');
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        AccountRecoverySetting: {
+          RecoveryMechanisms: [
+            {
+              Name: 'verified_email',
+              Priority: 1,
+            },
+          ],
+        },
+      });
+    });
+
+    it('sets account recovery settings to phone if phone is the only login type', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', { loginWith: { phoneNumber: true } });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        AccountRecoverySetting: {
+          RecoveryMechanisms: [
+            {
+              Name: 'verified_phone_number',
+              Priority: 1,
+            },
+          ],
+        },
+      });
+    });
+
+    it('sets account recovery settings to email if both phone and email enabled', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', {
+        loginWith: { phoneNumber: true, email: true },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        AccountRecoverySetting: {
+          RecoveryMechanisms: [
+            {
+              Name: 'verified_email',
+              Priority: 1,
+            },
+          ],
+        },
+      });
+    });
+
     it('require verification of email before updating email', () => {
       const app = new App();
       const stack = new Stack(app);
@@ -476,6 +679,650 @@ describe('Auth construct', () => {
       const template = Template.fromStack(stack);
       template.hasResourceProperties('AWS::Cognito::UserPoolClient', {
         SupportedIdentityProviders: ['COGNITO'],
+      });
+    });
+  });
+
+  describe('Auth overrides', () => {
+    it('can override case sensitivity', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      const auth = new AmplifyAuth(stack, 'test');
+      const userPoolResource = auth.resources.userPool.node.findChild(
+        'Resource'
+      ) as CfnUserPool;
+      userPoolResource.addPropertyOverride(
+        'UsernameConfiguration.CaseSensitive',
+        true
+      );
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        UsernameConfiguration: {
+          CaseSensitive: true,
+        },
+      });
+    });
+    it('can override setting to keep original attributes until verified', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      const auth = new AmplifyAuth(stack, 'test', {
+        loginWith: { email: true },
+      });
+      const userPoolResource = auth.resources.userPool.node.findChild(
+        'Resource'
+      ) as CfnUserPool;
+      userPoolResource.addPropertyOverride(
+        'UserAttributeUpdateSettings.AttributesRequireVerificationBeforeUpdate',
+        []
+      );
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        UserAttributeUpdateSettings: {
+          AttributesRequireVerificationBeforeUpdate: [],
+        },
+      });
+    });
+    it('can override settings for device configuration', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      const auth = new AmplifyAuth(stack, 'test', {
+        loginWith: { email: true },
+      });
+      const userPoolResource = auth.resources.userPool.node.findChild(
+        'Resource'
+      ) as CfnUserPool;
+      userPoolResource.addPropertyOverride(
+        'DeviceConfiguration.ChallengeRequiredOnNewDevice',
+        true
+      );
+      userPoolResource.addPropertyOverride(
+        'DeviceConfiguration.DeviceOnlyRememberedOnUserPrompt',
+        true
+      );
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        DeviceConfiguration: {
+          ChallengeRequiredOnNewDevice: true,
+          DeviceOnlyRememberedOnUserPrompt: true,
+        },
+      });
+    });
+    it('can override password policy', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      const auth = new AmplifyAuth(stack, 'test');
+      const userPoolResource = auth.resources.userPool.node.findChild(
+        'Resource'
+      ) as CfnUserPool;
+      userPoolResource.addPropertyOverride(
+        'Policies.PasswordPolicy.MinimumLength',
+        10
+      );
+      userPoolResource.addPropertyOverride(
+        'Policies.PasswordPolicy.RequireLowercase',
+        false
+      );
+      userPoolResource.addPropertyOverride(
+        'Policies.PasswordPolicy.RequireNumbers',
+        false
+      );
+      userPoolResource.addPropertyOverride(
+        'Policies.PasswordPolicy.RequireSymbols',
+        false
+      );
+      userPoolResource.addPropertyOverride(
+        'Policies.PasswordPolicy.RequireUppercase',
+        false
+      );
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        Policies: {
+          PasswordPolicy: {
+            MinimumLength: 10,
+            RequireLowercase: false,
+            RequireNumbers: false,
+            RequireSymbols: false,
+            RequireUppercase: false,
+          },
+        },
+      });
+    });
+    it('can override user existence errors', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      const auth = new AmplifyAuth(stack, 'test');
+      const userPoolClientResource =
+        auth.resources.userPoolClient.node.findChild(
+          'Resource'
+        ) as CfnUserPoolClient;
+      userPoolClientResource.addPropertyOverride(
+        'PreventUserExistenceErrors',
+        'LEGACY'
+      );
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPoolClient', {
+        PreventUserExistenceErrors: 'LEGACY',
+      });
+    });
+    it('can override guest access setting', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      const auth = new AmplifyAuth(stack, 'test');
+      auth.resources.cfnResources.identityPool.addPropertyOverride(
+        'AllowUnauthenticatedIdentities',
+        false
+      );
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::IdentityPool', {
+        AllowUnauthenticatedIdentities: false,
+      });
+    });
+    it('can override token validity period', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      const auth = new AmplifyAuth(stack, 'test');
+      const userPoolClientResource =
+        auth.resources.userPoolClient.node.findChild(
+          'Resource'
+        ) as CfnUserPoolClient;
+      userPoolClientResource.addPropertyOverride('AccessTokenValidity', 1);
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPoolClient', {
+        AccessTokenValidity: 1,
+      });
+    });
+  });
+
+  describe('Auth external login', () => {
+    it('supports google idp and email', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+          externalProviders: {
+            google: {
+              clientId: googleClientId,
+              clientSecretValue:
+                SecretValue.unsafePlainText(googleClientSecret),
+            },
+          },
+        },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        UsernameAttributes: ['email'],
+        AutoVerifiedAttributes: ['email'],
+      });
+      template.hasResourceProperties(
+        'AWS::Cognito::UserPoolIdentityProvider',
+        ExpectedGoogleIDPProperties
+      );
+      template.hasResourceProperties('AWS::Cognito::IdentityPool', {
+        SupportedLoginProviders: {
+          'accounts.google.com': googleClientId,
+        },
+      });
+    });
+    it('supports google idp and phone', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          phoneNumber: true,
+          externalProviders: {
+            google: {
+              clientId: googleClientId,
+              clientSecretValue:
+                SecretValue.unsafePlainText(googleClientSecret),
+            },
+          },
+        },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        UsernameAttributes: ['phone_number'],
+        AutoVerifiedAttributes: ['phone_number'],
+      });
+      template.hasResourceProperties(
+        'AWS::Cognito::UserPoolIdentityProvider',
+        ExpectedGoogleIDPProperties
+      );
+      template.hasResourceProperties('AWS::Cognito::IdentityPool', {
+        SupportedLoginProviders: {
+          'accounts.google.com': googleClientId,
+        },
+      });
+    });
+    it('supports facebook idp and email', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+          externalProviders: {
+            facebook: {
+              clientId: facebookClientId,
+              clientSecret: facebookClientSecret,
+            },
+          },
+        },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        UsernameAttributes: ['email'],
+        AutoVerifiedAttributes: ['email'],
+      });
+      template.hasResourceProperties(
+        'AWS::Cognito::UserPoolIdentityProvider',
+        ExpectedFacebookIDPProperties
+      );
+      template.hasResourceProperties('AWS::Cognito::IdentityPool', {
+        SupportedLoginProviders: {
+          'graph.facebook.com': facebookClientId,
+        },
+      });
+    });
+    it('supports facebook idp and phone', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          phoneNumber: true,
+          externalProviders: {
+            facebook: {
+              clientId: facebookClientId,
+              clientSecret: facebookClientSecret,
+            },
+          },
+        },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        UsernameAttributes: ['phone_number'],
+        AutoVerifiedAttributes: ['phone_number'],
+      });
+      template.hasResourceProperties(
+        'AWS::Cognito::UserPoolIdentityProvider',
+        ExpectedFacebookIDPProperties
+      );
+      template.hasResourceProperties('AWS::Cognito::IdentityPool', {
+        SupportedLoginProviders: {
+          'graph.facebook.com': facebookClientId,
+        },
+      });
+    });
+    it('supports apple idp and email', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+          externalProviders: {
+            apple: {
+              clientId: appleClientId,
+              keyId: appleKeyId,
+              privateKey: applePrivateKey,
+              teamId: appleTeamId,
+            },
+          },
+        },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        UsernameAttributes: ['email'],
+        AutoVerifiedAttributes: ['email'],
+      });
+      template.hasResourceProperties(
+        'AWS::Cognito::UserPoolIdentityProvider',
+        ExpectedAppleIDPProperties
+      );
+      template.hasResourceProperties('AWS::Cognito::IdentityPool', {
+        SupportedLoginProviders: {
+          'appleid.apple.com': appleClientId,
+        },
+      });
+    });
+    it('supports apple idp and phone', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          phoneNumber: true,
+          externalProviders: {
+            apple: {
+              clientId: appleClientId,
+              keyId: appleKeyId,
+              privateKey: applePrivateKey,
+              teamId: appleTeamId,
+            },
+          },
+        },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        UsernameAttributes: ['phone_number'],
+        AutoVerifiedAttributes: ['phone_number'],
+      });
+      template.hasResourceProperties(
+        'AWS::Cognito::UserPoolIdentityProvider',
+        ExpectedAppleIDPProperties
+      );
+      template.hasResourceProperties('AWS::Cognito::IdentityPool', {
+        SupportedLoginProviders: {
+          'appleid.apple.com': appleClientId,
+        },
+      });
+    });
+    it('supports amazon idp and email', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+          externalProviders: {
+            amazon: {
+              clientId: amazonClientId,
+              clientSecret: amazonClientSecret,
+            },
+          },
+        },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        UsernameAttributes: ['email'],
+        AutoVerifiedAttributes: ['email'],
+      });
+      template.hasResourceProperties(
+        'AWS::Cognito::UserPoolIdentityProvider',
+        ExpectedAmazonIDPProperties
+      );
+      template.hasResourceProperties('AWS::Cognito::IdentityPool', {
+        SupportedLoginProviders: {
+          'www.amazon.com': amazonClientId,
+        },
+      });
+    });
+    it('supports amazon idp and phone', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          phoneNumber: true,
+          externalProviders: {
+            amazon: {
+              clientId: amazonClientId,
+              clientSecret: amazonClientSecret,
+            },
+          },
+        },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        UsernameAttributes: ['phone_number'],
+        AutoVerifiedAttributes: ['phone_number'],
+      });
+      template.hasResourceProperties(
+        'AWS::Cognito::UserPoolIdentityProvider',
+        ExpectedAmazonIDPProperties
+      );
+      template.hasResourceProperties('AWS::Cognito::IdentityPool', {
+        SupportedLoginProviders: {
+          'www.amazon.com': amazonClientId,
+        },
+      });
+    });
+    it('supports oidc and email', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+          externalProviders: {
+            oidc: {
+              clientId: oidcClientId,
+              clientSecret: oidcClientSecret,
+              issuerUrl: oidcIssuerUrl,
+              name: oidcProviderName,
+            },
+          },
+        },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        UsernameAttributes: ['email'],
+        AutoVerifiedAttributes: ['email'],
+      });
+      template.hasResourceProperties(
+        'AWS::Cognito::UserPoolIdentityProvider',
+        ExpectedOidcIDPProperties
+      );
+    });
+    it('supports oidc and phone', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          phoneNumber: true,
+          externalProviders: {
+            oidc: {
+              clientId: oidcClientId,
+              clientSecret: oidcClientSecret,
+              issuerUrl: oidcIssuerUrl,
+              name: oidcProviderName,
+            },
+          },
+        },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        UsernameAttributes: ['phone_number'],
+        AutoVerifiedAttributes: ['phone_number'],
+      });
+      template.hasResourceProperties(
+        'AWS::Cognito::UserPoolIdentityProvider',
+        ExpectedOidcIDPProperties
+      );
+    });
+    it('supports saml and email', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+          externalProviders: {
+            saml: {
+              name: samlProviderName,
+              metadata: {
+                metadataContent: samlMetadataContent,
+                metadataType: UserPoolIdentityProviderSamlMetadataType.FILE,
+              },
+            },
+          },
+        },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        UsernameAttributes: ['email'],
+        AutoVerifiedAttributes: ['email'],
+      });
+      template.hasResourceProperties(
+        'AWS::Cognito::UserPoolIdentityProvider',
+        ExpectedSAMLIDPProperties
+      );
+    });
+    it('supports saml and phone', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          phoneNumber: true,
+          externalProviders: {
+            saml: {
+              name: samlProviderName,
+              metadata: {
+                metadataContent: samlMetadataContent,
+                metadataType: UserPoolIdentityProviderSamlMetadataType.FILE,
+              },
+            },
+          },
+        },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        UsernameAttributes: ['phone_number'],
+        AutoVerifiedAttributes: ['phone_number'],
+      });
+      template.hasResourceProperties(
+        'AWS::Cognito::UserPoolIdentityProvider',
+        ExpectedSAMLIDPProperties
+      );
+    });
+
+    it('supports all idps and login methods', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+          phoneNumber: true,
+          externalProviders: {
+            google: {
+              clientId: googleClientId,
+              clientSecretValue:
+                SecretValue.unsafePlainText(googleClientSecret),
+            },
+            facebook: {
+              clientId: facebookClientId,
+              clientSecret: facebookClientSecret,
+            },
+            apple: {
+              clientId: appleClientId,
+              keyId: appleKeyId,
+              privateKey: applePrivateKey,
+              teamId: appleTeamId,
+            },
+            amazon: {
+              clientId: amazonClientId,
+              clientSecret: amazonClientSecret,
+            },
+            oidc: {
+              clientId: oidcClientId,
+              clientSecret: oidcClientSecret,
+              issuerUrl: oidcIssuerUrl,
+              name: oidcProviderName,
+            },
+            saml: {
+              name: samlProviderName,
+              metadata: {
+                metadataContent: samlMetadataContent,
+                metadataType: UserPoolIdentityProviderSamlMetadataType.FILE,
+              },
+            },
+          },
+        },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        UsernameAttributes: ['email', 'phone_number'],
+        AutoVerifiedAttributes: ['email', 'phone_number'],
+      });
+      template.hasResourceProperties(
+        'AWS::Cognito::UserPoolIdentityProvider',
+        ExpectedAmazonIDPProperties
+      );
+      template.hasResourceProperties(
+        'AWS::Cognito::UserPoolIdentityProvider',
+        ExpectedAppleIDPProperties
+      );
+      template.hasResourceProperties(
+        'AWS::Cognito::UserPoolIdentityProvider',
+        ExpectedFacebookIDPProperties
+      );
+      template.hasResourceProperties(
+        'AWS::Cognito::UserPoolIdentityProvider',
+        ExpectedGoogleIDPProperties
+      );
+      template.hasResourceProperties(
+        'AWS::Cognito::UserPoolIdentityProvider',
+        ExpectedOidcIDPProperties
+      );
+      template.hasResourceProperties(
+        'AWS::Cognito::UserPoolIdentityProvider',
+        ExpectedSAMLIDPProperties
+      );
+      template.hasResourceProperties('AWS::Cognito::IdentityPool', {
+        SupportedLoginProviders: {
+          'www.amazon.com': amazonClientId,
+          'accounts.google.com': googleClientId,
+          'appleid.apple.com': appleClientId,
+          'graph.facebook.com': facebookClientId,
+        },
+      });
+    });
+  });
+
+  describe('addTrigger', () => {
+    it('attaches lambda function to UserPool Lambda config', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      const testFunc = new Function(stack, 'testFunc', {
+        code: Code.fromInline('test code'),
+        handler: 'index.handler',
+        runtime: Runtime.NODEJS_18_X,
+      });
+      const authConstruct = new AmplifyAuth(stack, 'testAuth', {
+        loginWith: { email: true },
+      });
+      authConstruct.addTrigger('createAuthChallenge', testFunc);
+      const template = Template.fromStack(stack);
+      const lambdas = template.findResources('AWS::Lambda::Function');
+      if (Object.keys(lambdas).length !== 1) {
+        assert.fail(
+          'Expected one and only one lambda function in the template'
+        );
+      }
+      const handlerLogicalId = Object.keys(lambdas)[0];
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        LambdaConfig: {
+          CreateAuthChallenge: {
+            ['Fn::GetAtt']: [handlerLogicalId, 'Arn'],
+          },
+        },
+      });
+    });
+
+    it('attaches AmplifyFunction to UserPool Lambda config', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      const testFunc = new Function(stack, 'testFunc', {
+        code: Code.fromInline('test code'),
+        handler: 'index.handler',
+        runtime: Runtime.NODEJS_18_X,
+      });
+      const amplifyFuncStub: AmplifyFunction = {
+        resources: {
+          lambda: testFunc,
+        },
+      };
+      const authConstruct = new AmplifyAuth(stack, 'testAuth', {
+        loginWith: { email: true },
+      });
+      authConstruct.addTrigger('createAuthChallenge', amplifyFuncStub);
+      const template = Template.fromStack(stack);
+      const lambdas = template.findResources('AWS::Lambda::Function');
+      if (Object.keys(lambdas).length !== 1) {
+        assert.fail(
+          'Expected one and only one lambda function in the template'
+        );
+      }
+      const handlerLogicalId = Object.keys(lambdas)[0];
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        LambdaConfig: {
+          CreateAuthChallenge: {
+            ['Fn::GetAtt']: [handlerLogicalId, 'Arn'],
+          },
+        },
       });
     });
   });

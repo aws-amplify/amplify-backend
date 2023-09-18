@@ -54,9 +54,8 @@ export class ClientConfigGeneratorFactory {
       return this.fromStackIdentifier(backendIdentifier);
     } else if (isUniqueBackendIdentifier(backendIdentifier)) {
       return this.fromUniqueBackendIdentifier(backendIdentifier);
-    } else {
-      return this.fromAppNameAndBranch(backendIdentifier);
     }
+    return this.fromAppNameAndBranch(backendIdentifier);
   };
   /**
    * Initialize a ClientConfigGenerator given a stack name.
