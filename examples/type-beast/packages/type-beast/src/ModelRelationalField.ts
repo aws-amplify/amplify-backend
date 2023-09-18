@@ -1,4 +1,5 @@
 import { Prettify, SetTypeSubArg } from './util';
+import { Authorization } from './Authorization';
 
 export enum ModelRelationshipTypes {
   hasOne = 'hasOne',
@@ -18,6 +19,7 @@ type ModelRelationalFieldData = {
   array: boolean;
   valueOptional: boolean;
   arrayOptional: boolean;
+  authorization: Authorization<any, any>[];
 };
 
 export type ModelRelationalFieldParamShape = {
@@ -29,11 +31,14 @@ export type ModelRelationalFieldParamShape = {
   arrayOptional: boolean;
 };
 
+export const __auth = Symbol('__auth');
+
 export type ModelRelationalField<
   T extends ModelRelationalFieldParamShape,
   // RM adds structural separation with ModelField; easier to identify it when mapping to ClientTypes
-  RM extends string,
-  K extends keyof ModelRelationalField<T, RM> = never
+  RM extends string | symbol,
+  K extends keyof ModelRelationalField<T, RM> = never,
+  Auth = undefined
 > = Omit<
   {
     valueOptional(): ModelRelationalField<
@@ -44,10 +49,14 @@ export type ModelRelationalField<
       SetTypeSubArg<T, 'arrayOptional', true>,
       K | 'arrayOptional'
     >;
-    authorization(auth: any): ModelRelationalField<T, K | 'authorization'>;
+    authorization<AuthRuleType extends Authorization<any, any>>(
+      rules: AuthRuleType[]
+    ): ModelRelationalField<T, K | 'authorization', K, AuthRuleType>;
   },
   K
->;
+> & {
+  [__auth]?: Auth;
+};
 
 /**
  * Internal representation of Model Field that exposes the `data` property.
@@ -73,6 +82,7 @@ function _modelRelationalField<
     array: false,
     valueOptional: false,
     arrayOptional: false,
+    authorization: [],
   };
 
   if (arrayTypeRelationships.includes(type)) {
@@ -90,8 +100,8 @@ function _modelRelationalField<
 
       return this;
     },
-    authorization() {
-      // TODO: implement
+    authorization(rules) {
+      data.authorization = rules;
 
       return this;
     },

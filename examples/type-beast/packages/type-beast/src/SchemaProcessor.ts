@@ -198,10 +198,6 @@ export const schemaPreprocessor = <T extends ModelSchemaParamShape>(
     } = {};
 
     for (const [fieldName, fieldDef] of Object.entries(fields)) {
-      if (!isScalarField(fieldDef)) {
-        continue;
-      }
-
       const { authString, authFields: fieldAuthField } = calculateAuth(
         fieldDef.data.authorization
       );
@@ -217,12 +213,15 @@ export const schemaPreprocessor = <T extends ModelSchemaParamShape>(
       ...authFields,
       ...fields,
     })) {
+      const fieldAuth = fieldLevelAuthRules[fieldName]
+        ? ` ${fieldLevelAuthRules[fieldName]}`
+        : '';
+
       if (isModelField(fieldDef)) {
-        gqlFields.push(`${fieldName}: ${modelFieldToGql(fieldDef.data)}`);
+        gqlFields.push(
+          `${fieldName}: ${modelFieldToGql(fieldDef.data)}${fieldAuth}`
+        );
       } else if (isScalarField(fieldDef)) {
-        const fieldAuth = fieldLevelAuthRules[fieldName]
-          ? ` ${fieldLevelAuthRules[fieldName]}`
-          : '';
         if (fieldName === partitionKey) {
           gqlFields.push(
             `${fieldName}: ${scalarFieldToGql(
