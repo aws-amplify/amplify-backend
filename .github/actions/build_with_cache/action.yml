@@ -1,5 +1,5 @@
-# builds the source code if cache miss and caches the result
 name: build_with_cache
+description: builds the source code if cache miss and caches the result
 runs:
   using: composite
   steps:
@@ -9,7 +9,8 @@ runs:
       id: build-cache
       with:
         path: '**/lib'
-        key: ${{ runner.os }}-${{ github.sha }}
+        key: ${{ github.sha }}
+        enableCrossOsArchive: true
     # only build if cache miss
     - if: steps.build-cache.outputs.cache-hit != 'true'
       shell: bash

@@ -4,16 +4,10 @@
 
 ```ts
 
+import { AmplifyFunction } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
-import { IFunction } from 'aws-cdk-lib/aws-lambda';
+import { FunctionResources } from '@aws-amplify/plugin-types';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
-
-// @public
-export class AmplifyFunction extends Construct {
-    constructor(scope: Construct, id: string, props: AmplifyFunctionProps);
-    // (undocumented)
-    readonly lambda: IFunction;
-}
 
 // @public (undocumented)
 export type AmplifyFunctionProps = {
@@ -21,6 +15,13 @@ export type AmplifyFunctionProps = {
     runtime?: Runtime;
     handler?: string;
 };
+
+// @public
+export class AmplifyLambdaFunction extends Construct implements AmplifyFunction {
+    constructor(scope: Construct, id: string, props: AmplifyFunctionProps);
+    // (undocumented)
+    readonly resources: FunctionResources;
+}
 
 // (No @packageDocumentation comment for this package)
 

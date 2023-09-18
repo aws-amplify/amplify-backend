@@ -28,7 +28,7 @@ const npmProxyLogs = await readFile(LOG_FILE, 'utf-8');
 
 if (npmProxyLogs.includes('EADDRINUSE')) {
   throw new Error(
-    'Failed to start npm proxy. Port is already in use. Do you ned to run `npm run stop:npm-proxy` first?'
+    'Failed to start npm proxy. Port is already in use. Do you need to run `npm run stop:npm-proxy` first?'
   );
 }
 

@@ -1,5 +1,13 @@
 # @aws-amplify/sandbox
 
+## 0.1.1-alpha.5
+
+### Patch Changes
+
+- 233adab: fix(sandbox): ignore paths in .gitignore to be considered for sandbox watch process
+- Updated dependencies [01320d4]
+  - @aws-amplify/client-config@0.2.0-alpha.5
+
 ## 0.1.1-alpha.4
 
 ### Patch Changes

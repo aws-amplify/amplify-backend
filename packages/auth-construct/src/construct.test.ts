@@ -4,10 +4,12 @@ import { App, SecretValue, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
 import {
+  AmplifyFunction,
   BackendOutputEntry,
   BackendOutputStorageStrategy,
 } from '@aws-amplify/plugin-types';
 import {
+  AccountRecovery,
   CfnIdentityPool,
   CfnUserPool,
   CfnUserPoolClient,
@@ -18,6 +20,8 @@ import {
 } from 'aws-cdk-lib/aws-cognito';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
 import { AuthProps } from './types.js';
+import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
+
 const googleClientId = 'googleClientId';
 const googleClientSecret = 'googleClientSecret';
 const amazonClientId = 'amazonClientId';
@@ -327,6 +331,30 @@ describe('Auth construct', () => {
     });
   });
 
+  it('sets account recovery settings ', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    new AmplifyAuth(stack, 'test', {
+      loginWith: { phoneNumber: true, email: true },
+      accountRecovery: AccountRecovery.EMAIL_AND_PHONE_WITHOUT_MFA,
+    });
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      AccountRecoverySetting: {
+        RecoveryMechanisms: [
+          {
+            Name: 'verified_email',
+            Priority: 1,
+          },
+          {
+            Name: 'verified_phone_number',
+            Priority: 2,
+          },
+        ],
+      },
+    });
+  });
+
   it('creates user attributes', () => {
     const app = new App();
     const stack = new Stack(app);
@@ -561,6 +589,59 @@ describe('Auth construct', () => {
             RequireSymbols: true,
             RequireUppercase: true,
           },
+        },
+      });
+    });
+
+    it('sets default account recovery settings', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test');
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        AccountRecoverySetting: {
+          RecoveryMechanisms: [
+            {
+              Name: 'verified_email',
+              Priority: 1,
+            },
+          ],
+        },
+      });
+    });
+
+    it('sets account recovery settings to phone if phone is the only login type', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', { loginWith: { phoneNumber: true } });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        AccountRecoverySetting: {
+          RecoveryMechanisms: [
+            {
+              Name: 'verified_phone_number',
+              Priority: 1,
+            },
+          ],
+        },
+      });
+    });
+
+    it('sets account recovery settings to email if both phone and email enabled', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', {
+        loginWith: { phoneNumber: true, email: true },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        AccountRecoverySetting: {
+          RecoveryMechanisms: [
+            {
+              Name: 'verified_email',
+              Priority: 1,
+            },
+          ],
         },
       });
     });
@@ -1176,6 +1257,71 @@ describe('Auth construct', () => {
           'accounts.google.com': googleClientId,
           'appleid.apple.com': appleClientId,
           'graph.facebook.com': facebookClientId,
+        },
+      });
+    });
+  });
+
+  describe('addTrigger', () => {
+    it('attaches lambda function to UserPool Lambda config', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      const testFunc = new Function(stack, 'testFunc', {
+        code: Code.fromInline('test code'),
+        handler: 'index.handler',
+        runtime: Runtime.NODEJS_18_X,
+      });
+      const authConstruct = new AmplifyAuth(stack, 'testAuth', {
+        loginWith: { email: true },
+      });
+      authConstruct.addTrigger('createAuthChallenge', testFunc);
+      const template = Template.fromStack(stack);
+      const lambdas = template.findResources('AWS::Lambda::Function');
+      if (Object.keys(lambdas).length !== 1) {
+        assert.fail(
+          'Expected one and only one lambda function in the template'
+        );
+      }
+      const handlerLogicalId = Object.keys(lambdas)[0];
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        LambdaConfig: {
+          CreateAuthChallenge: {
+            ['Fn::GetAtt']: [handlerLogicalId, 'Arn'],
+          },
+        },
+      });
+    });
+
+    it('attaches AmplifyFunction to UserPool Lambda config', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      const testFunc = new Function(stack, 'testFunc', {
+        code: Code.fromInline('test code'),
+        handler: 'index.handler',
+        runtime: Runtime.NODEJS_18_X,
+      });
+      const amplifyFuncStub: AmplifyFunction = {
+        resources: {
+          lambda: testFunc,
+        },
+      };
+      const authConstruct = new AmplifyAuth(stack, 'testAuth', {
+        loginWith: { email: true },
+      });
+      authConstruct.addTrigger('createAuthChallenge', amplifyFuncStub);
+      const template = Template.fromStack(stack);
+      const lambdas = template.findResources('AWS::Lambda::Function');
+      if (Object.keys(lambdas).length !== 1) {
+        assert.fail(
+          'Expected one and only one lambda function in the template'
+        );
+      }
+      const handlerLogicalId = Object.keys(lambdas)[0];
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        LambdaConfig: {
+          CreateAuthChallenge: {
+            ['Fn::GetAtt']: [handlerLogicalId, 'Arn'],
+          },
         },
       });
     });

@@ -3,7 +3,9 @@ import parcelWatcher, { subscribe } from '@parcel/watcher';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
 import { Sandbox, SandboxDeleteOptions, SandboxOptions } from './sandbox.js';
 import { ClientConfigGeneratorAdapter } from './config/client_config_generator_adapter.js';
+import parseGitIgnore from 'parse-gitignore';
 import path from 'path';
+import fs from 'fs';
 
 /**
  * Runs a file watcher and deploys
@@ -27,6 +29,10 @@ export class FileWatchingSandbox implements Sandbox {
    * @inheritdoc
    */
   start = async (options: SandboxOptions) => {
+    const { profile } = options;
+    if (profile) {
+      process.env.AWS_PROFILE = profile;
+    }
     const sandboxId = options.name ?? this.sandboxId;
     let clientConfigWritePath = path.join(
       process.cwd(),
@@ -42,8 +48,13 @@ export class FileWatchingSandbox implements Sandbox {
         );
       }
     }
+
+    const ignoredPaths = this.getGitIgnoredPaths();
     this.outputFilesExcludedFromWatch =
-      this.outputFilesExcludedFromWatch.concat(clientConfigWritePath);
+      this.outputFilesExcludedFromWatch.concat(
+        clientConfigWritePath,
+        ...ignoredPaths
+      );
 
     console.debug(`[Sandbox] Initializing...`);
     // Since 'cdk deploy' is a relatively slow operation for a 'watch' process,
@@ -167,5 +178,20 @@ export class FileWatchingSandbox implements Sandbox {
    */
   private emitWatching = () => {
     console.log(`[Sandbox] Watching for file changes...`);
+  };
+
+  /**
+   * Reads and parses .gitignore file and returns the list of paths
+   */
+  private getGitIgnoredPaths = () => {
+    const gitIgnoreFilePath = path.join(process.cwd(), '.gitignore');
+    if (fs.existsSync(gitIgnoreFilePath)) {
+      return parseGitIgnore
+        .parse(gitIgnoreFilePath)
+        .patterns.map((pattern: string) =>
+          pattern.startsWith('/') ? pattern.substring(1) : pattern
+        );
+    }
+    return [];
   };
 }

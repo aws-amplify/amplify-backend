@@ -14,6 +14,7 @@ import {
   createTestDirectoryBeforeAndCleanupAfter,
   getTestDir,
 } from '../setup_test_directory.js';
+import { pathToFileURL } from 'url';
 
 describe('sandbox', () => {
   const e2eSandboxDir = getTestDir;
@@ -37,14 +38,16 @@ describe('sandbox', () => {
 
   const testProjects = [
     {
-      name: 'basic-auth-data-storage-function',
+      name: 'data-storage-auth-with-triggers',
       initialAmplifyDirPath: new URL(
-        '../../test-projects/basic-auth-data-storage-function/amplify',
+        '../../test-projects/data-storage-auth-with-triggers/amplify',
         import.meta.url
       ),
       assertions: async () => {
         const { default: clientConfig } = await import(
-          path.join(testProjectRoot, 'amplifyconfiguration.js')
+          pathToFileURL(
+            path.join(testProjectRoot, 'amplifyconfiguration.js')
+          ).toString()
         );
         assert.deepStrictEqual(Object.keys(clientConfig).sort(), [
           'aws_appsync_authenticationType',
