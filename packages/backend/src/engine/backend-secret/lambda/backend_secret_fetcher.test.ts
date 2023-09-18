@@ -6,10 +6,33 @@ import {
   CloudFormationCustomResourceSuccessResponse,
 } from 'aws-lambda';
 import {
+  Secret,
   SecretClient,
   SecretError,
+  SecretIdentifier,
   getSecretClient,
 } from '@aws-amplify/backend-secret';
+import { BackendId, UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+
+const testBackendId = 'testBackendId';
+const testBranchName = 'testBranchName';
+const testSecretName = 'testSecretName';
+const testSecretValue = 'testSecretValue';
+const testSecretVersion = 10;
+const testSecretId: SecretIdentifier = {
+  name: testSecretName,
+  version: testSecretVersion,
+};
+
+const testSecret: Secret = {
+  secretIdentifier: testSecretId,
+  value: testSecretValue,
+};
+
+const testBackendIdentifier: UniqueBackendIdentifier = {
+  backendId: testBackendId,
+  branchName: testBranchName,
+};
 
 const customResourceEventCommon = {
   ServiceToken: 'mockServiceToken',
@@ -20,9 +43,10 @@ const customResourceEventCommon = {
   PhysicalResourceId: 'physicalId',
   ResourceType: 'AWS::CloudFormation::CustomResource',
   ResourceProperties: {
-    backendId: 'testBackendId',
-    branchName: 'testBranchName',
-    secretName: 'testSecretName',
+    backendId: testBackendId,
+    branchName: testBranchName,
+    secretName: testSecretName,
+    secretVersion: testSecretVersion,
     ServiceToken: 'token',
   },
   OldResourceProperties: {},
@@ -59,54 +83,90 @@ describe('handleCreateUpdateEvent', () => {
   const clientErr = new SecretError('client error', { httpStatusCode: 400 });
 
   it('gets a backend secret from a branch', async () => {
-    mock.method(secretHandler, 'getSecret', () => Promise.resolve('val'));
+    const mockGetSecret = mock.method(secretHandler, 'getSecret', () =>
+      Promise.resolve(testSecret)
+    );
     const val = await handleCreateUpdateEvent(secretHandler, createCfnEvent);
-    assert.equal(val, 'val');
+    assert.equal(val, testSecretValue);
+
+    assert.equal(mockGetSecret.mock.callCount(), 1);
+    assert.deepStrictEqual(mockGetSecret.mock.calls[0].arguments, [
+      testBackendIdentifier,
+      testSecretId,
+    ]);
   });
 
   it('throws if receiving server error when getting a branch secret', async () => {
-    mock.method(secretHandler, 'getSecret', () => Promise.reject(serverErr));
+    const mockGetSecret = mock.method(secretHandler, 'getSecret', () =>
+      Promise.reject(serverErr)
+    );
     await assert.rejects(() =>
       handleCreateUpdateEvent(secretHandler, createCfnEvent)
     );
+    assert.equal(mockGetSecret.mock.callCount(), 1);
+    assert.deepStrictEqual(mockGetSecret.mock.calls[0].arguments, [
+      testBackendIdentifier,
+      testSecretId,
+    ]);
   });
 
-  it('gets a backend secret from app if the branch returns client error', async () => {
-    mock.method(
+  it('gets a shared backend secret if the branch returns client error', async () => {
+    const mockGetSecret = mock.method(
       secretHandler,
       'getSecret',
-      (backendId: string, secretName: string, branchName?: string) => {
-        if (branchName) {
+      (backendIdentifier: UniqueBackendIdentifier | BackendId) => {
+        if (typeof backendIdentifier === 'object') {
           return Promise.reject(clientErr);
         }
-        return Promise.resolve('val');
+        return Promise.resolve(testSecret);
       }
     );
+
     const val = await handleCreateUpdateEvent(secretHandler, createCfnEvent);
-    assert.equal(val, 'val');
+    assert.equal(val, testSecretValue);
+
+    assert.equal(mockGetSecret.mock.callCount(), 2);
+    assert.deepStrictEqual(mockGetSecret.mock.calls[0].arguments, [
+      testBackendIdentifier,
+      testSecretId,
+    ]);
+    assert.deepStrictEqual(mockGetSecret.mock.calls[1].arguments, [
+      testBackendId,
+      testSecretId,
+    ]);
   });
 
-  it('gets a backend secret from app if the branch returns undefined', async () => {
-    mock.method(
+  it('gets a shared backend secret if the branch returns undefined', async () => {
+    const mockGetSecret = mock.method(
       secretHandler,
       'getSecret',
-      (backendId: string, secretName: string, branchName?: string) => {
-        if (branchName) {
+      (backendIdentifier: UniqueBackendIdentifier | BackendId) => {
+        if (typeof backendIdentifier === 'object') {
           return Promise.resolve(undefined);
         }
-        return Promise.resolve('val');
+        return Promise.resolve(testSecret);
       }
     );
     const val = await handleCreateUpdateEvent(secretHandler, createCfnEvent);
-    assert.equal(val, 'val');
+    assert.equal(val, testSecretValue);
+
+    assert.equal(mockGetSecret.mock.callCount(), 2);
+    assert.deepStrictEqual(mockGetSecret.mock.calls[0].arguments, [
+      testBackendIdentifier,
+      testSecretId,
+    ]);
+    assert.deepStrictEqual(mockGetSecret.mock.calls[1].arguments, [
+      testBackendId,
+      testSecretId,
+    ]);
   });
 
-  it('throws if receiving server error when getting branch secret', async () => {
-    mock.method(
+  it('throws if receiving server error when getting shared secret', async () => {
+    const mockGetSecret = mock.method(
       secretHandler,
       'getSecret',
-      (backendId: string, secretName: string, branchName?: string) => {
-        if (branchName) {
+      (backendIdentifier: UniqueBackendIdentifier | BackendId) => {
+        if (typeof backendIdentifier === 'object') {
           return Promise.reject(clientErr);
         }
         return Promise.reject(serverErr);
@@ -115,5 +175,15 @@ describe('handleCreateUpdateEvent', () => {
     await assert.rejects(() =>
       handleCreateUpdateEvent(secretHandler, createCfnEvent)
     );
+
+    assert.equal(mockGetSecret.mock.callCount(), 2);
+    assert.deepStrictEqual(mockGetSecret.mock.calls[0].arguments, [
+      testBackendIdentifier,
+      testSecretId,
+    ]);
+    assert.deepStrictEqual(mockGetSecret.mock.calls[1].arguments, [
+      testBackendId,
+      testSecretId,
+    ]);
   });
 });

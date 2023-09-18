@@ -4,22 +4,40 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import { BackendId, UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import { SSM } from '@aws-sdk/client-ssm';
 
+/**
+ * The unique identifier of the secret.
+ */
+export type SecretIdentifier = {
+  name: string;
+  version?: number;
+};
+
+/**
+ * The secret object.
+ */
+export type Secret = {
+  secretIdentifier: SecretIdentifier;
+  value: string;
+};
+
+/**
+ * The client to manage backend secret.
+ */
 export type SecretClient = {
   /**
    * Get a secret value.
    */
   getSecret: (
     backendIdentifier: UniqueBackendIdentifier | BackendId,
-    secretName: string,
-    secretVersion?: number
-  ) => Promise<string | undefined>;
+    secretIdentifier: SecretIdentifier
+  ) => Promise<Secret | undefined>;
 
   /**
    * List secrets.
    */
   listSecrets: (
     backendIdentifier: UniqueBackendIdentifier | BackendId
-  ) => Promise<string[]>;
+  ) => Promise<SecretIdentifier[]>;
 
   /**
    * Set a secret.
@@ -28,7 +46,7 @@ export type SecretClient = {
     backendIdentifier: UniqueBackendIdentifier | BackendId,
     secretName: string,
     secretValue: string
-  ) => Promise<void>;
+  ) => Promise<SecretIdentifier>;
 
   /**
    * Remove a secret.

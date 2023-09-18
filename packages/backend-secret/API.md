@@ -14,13 +14,19 @@ import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 export const getSecretClient: (credentialProvider?: AwsCredentialIdentityProvider) => SecretClient;
 
 // @public
+export type Secret = {
+    secretIdentifier: SecretIdentifier;
+    value: string;
+};
+
+// @public
 export type SecretAction = 'GET' | 'SET' | 'REMOVE' | 'LIST';
 
-// @public (undocumented)
+// @public
 export type SecretClient = {
-    getSecret: (backendIdentifier: UniqueBackendIdentifier | BackendId, secretName: string, secretVersion?: number) => Promise<string | undefined>;
-    listSecrets: (backendIdentifier: UniqueBackendIdentifier | BackendId) => Promise<string[]>;
-    setSecret: (backendIdentifier: UniqueBackendIdentifier | BackendId, secretName: string, secretValue: string) => Promise<void>;
+    getSecret: (backendIdentifier: UniqueBackendIdentifier | BackendId, secretIdentifier: SecretIdentifier) => Promise<Secret | undefined>;
+    listSecrets: (backendIdentifier: UniqueBackendIdentifier | BackendId) => Promise<SecretIdentifier[]>;
+    setSecret: (backendIdentifier: UniqueBackendIdentifier | BackendId, secretName: string, secretValue: string) => Promise<SecretIdentifier>;
     removeSecret: (backendIdentifier: UniqueBackendIdentifier | BackendId, secretName: string) => Promise<void>;
     grantPermission: (resource: iam.IGrantable, backendIdentifier: UniqueBackendIdentifier, secretActions: SecretAction[]) => void;
 };
@@ -40,6 +46,12 @@ export class SecretError extends Error {
 
 // @public (undocumented)
 export type SecretErrorCause = SSMServiceException | undefined;
+
+// @public
+export type SecretIdentifier = {
+    name: string;
+    version?: number;
+};
 
 // (No @packageDocumentation comment for this package)
 

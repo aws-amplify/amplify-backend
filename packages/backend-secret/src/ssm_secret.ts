@@ -1,6 +1,11 @@
 import { SSM, SSMServiceException } from '@aws-sdk/client-ssm';
 import { SecretError } from './secret_error.js';
-import { SecretAction, SecretClient } from './secret.js';
+import {
+  Secret,
+  SecretAction,
+  SecretClient,
+  SecretIdentifier,
+} from './secret.js';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { BackendId, UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
@@ -81,16 +86,29 @@ export class SSMSecretClient implements SecretClient {
    */
   public getSecret = async (
     backendIdentifier: UniqueBackendIdentifier | BackendId,
-    secretName: string,
-    secretVersion?: number
-  ): Promise<string | undefined> => {
-    const name = this.getParameterFullPath(backendIdentifier, secretName);
+    secretIdentifier: SecretIdentifier
+  ): Promise<Secret | undefined> => {
+    const name = this.getParameterFullPath(
+      backendIdentifier,
+      secretIdentifier.name
+    );
     try {
       const resp = await this.ssmClient.getParameter({
-        Name: secretVersion ? `${name}:${secretVersion}` : `${name}`,
+        Name: secretIdentifier.version
+          ? `${name}:${secretIdentifier.version}`
+          : `${name}`,
         WithDecryption: true,
       });
-      return resp.Parameter?.Value;
+      if (resp.Parameter?.Name && resp.Parameter?.Value) {
+        return {
+          secretIdentifier: {
+            name: resp.Parameter?.Name,
+            version: resp.Parameter?.Version,
+          },
+          value: resp.Parameter?.Value,
+        };
+      }
+      return;
     } catch (err) {
       throw SecretError.fromSSMException(err as SSMServiceException);
     }
@@ -101,9 +119,9 @@ export class SSMSecretClient implements SecretClient {
    */
   public listSecrets = async (
     backendIdentifier: UniqueBackendIdentifier | BackendId
-  ): Promise<string[]> => {
+  ): Promise<SecretIdentifier[]> => {
     const path = this.getParameterPrefix(backendIdentifier);
-    const result: string[] = [];
+    const result: SecretIdentifier[] = [];
 
     try {
       const resp = await this.ssmClient.getParametersByPath({
@@ -117,7 +135,10 @@ export class SSMSecretClient implements SecretClient {
         }
         const secretName = param.Name.split('/').pop();
         if (secretName) {
-          result.push(secretName);
+          result.push({
+            name: secretName,
+            version: param.Version,
+          });
         }
       });
       return result;
@@ -133,16 +154,20 @@ export class SSMSecretClient implements SecretClient {
     backendIdentifier: UniqueBackendIdentifier | BackendId,
     secretName: string,
     secretValue: string
-  ) => {
+  ): Promise<SecretIdentifier> => {
     const name = this.getParameterFullPath(backendIdentifier, secretName);
     try {
-      await this.ssmClient.putParameter({
+      const resp = await this.ssmClient.putParameter({
         Name: name,
         Type: 'SecureString',
         Value: secretValue,
         Description: `Amplify Secret`,
         Overwrite: true,
       });
+      return {
+        name: secretName,
+        version: resp.Version,
+      };
     } catch (err) {
       throw SecretError.fromSSMException(err as SSMServiceException);
     }
