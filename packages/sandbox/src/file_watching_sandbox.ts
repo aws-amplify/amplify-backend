@@ -1,5 +1,6 @@
 import debounce from 'debounce-promise';
 import parcelWatcher, { subscribe } from '@parcel/watcher';
+import { getConfigPath } from '@aws-amplify/client-config';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
 import { Sandbox, SandboxDeleteOptions, SandboxOptions } from './sandbox.js';
 import { ClientConfigGeneratorAdapter } from './config/client_config_generator_adapter.js';
@@ -35,24 +36,11 @@ export class FileWatchingSandbox implements Sandbox {
     }
     const defaultOptions = {
       name: this.sandboxId,
-      format: 'js',
-      clientConfigWritePath: process.cwd(),
     };
     const sandboxId = options.name ?? defaultOptions.name;
-    let clientConfigWritePath = defaultOptions.clientConfigWritePath;
-    if (options.clientConfigFilePath) {
-      if (path.isAbsolute(options.clientConfigFilePath)) {
-        clientConfigWritePath = options.clientConfigFilePath;
-      } else {
-        clientConfigWritePath = path.resolve(
-          process.cwd(),
-          options.clientConfigFilePath
-        );
-      }
-    }
-    clientConfigWritePath = path.join(
-      clientConfigWritePath,
-      `amplifyconfiguration.${options.format || defaultOptions.format}`
+    const clientConfigWritePath = getConfigPath(
+      options.clientConfigFilePath,
+      options.format
     );
     const ignoredPaths = this.getGitIgnoredPaths();
     this.outputFilesExcludedFromWatch =

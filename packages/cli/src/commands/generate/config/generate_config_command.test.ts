@@ -1,10 +1,7 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
-import {
-  GenerateConfigCommand,
-  configFileName,
-  formatChoices,
-} from './generate_config_command.js';
+import { GenerateConfigCommand } from './generate_config_command.js';
+import { configFileName, formatChoices } from '@aws-amplify/client-config';
 import yargs, { CommandModule } from 'yargs';
 import {
   TestCommandError,

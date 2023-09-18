@@ -1,17 +1,18 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
-import path from 'path';
-import { BackendIdentifier } from '@aws-amplify/client-config';
+import {
+  BackendIdentifier,
+  FormatOption,
+  formatChoices,
+  getConfigPath,
+} from '@aws-amplify/client-config';
 import { AppNameResolver } from '../../../local_app_name_resolver.js';
 import { ClientConfigGeneratorAdapter } from './client_config_generator_adapter.js';
-
-export const formatChoices = ['js', 'json', 'ts'] as const;
-export const configFileName = 'amplifyconfiguration';
 
 export type GenerateConfigCommandOptions = {
   stack: string | undefined;
   appId: string | undefined;
   branch: string | undefined;
-  format: (typeof formatChoices)[number] | undefined;
+  format: FormatOption | undefined;
   out: string | undefined;
 };
 
@@ -52,25 +53,8 @@ export class GenerateConfigCommand
   handler = async (
     args: ArgumentsCamelCase<GenerateConfigCommandOptions>
   ): Promise<void> => {
-    const defaultArgs = {
-      out: process.cwd(),
-      format: 'js',
-    };
     const backendIdentifier = await this.getBackendIdentifier(args);
-
-    let targetPath: string;
-    if (args.out) {
-      targetPath = path.isAbsolute(args.out)
-        ? args.out
-        : path.resolve(process.cwd(), args.out);
-    } else {
-      targetPath = defaultArgs.out;
-    }
-
-    targetPath = path.resolve(
-      targetPath,
-      `${configFileName}.${args.format || defaultArgs.format}`
-    );
+    const targetPath: string = getConfigPath(args.out, args.format);
 
     await this.clientConfigGenerator.generateClientConfigToFile(
       backendIdentifier,
