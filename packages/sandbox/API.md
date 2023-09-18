@@ -25,6 +25,7 @@ export type SandboxOptions = {
     exclude?: string[];
     name?: string;
     format?: (typeof formatChoices)[number];
+    profile?: string;
     clientConfigFilePath?: string;
 };
 

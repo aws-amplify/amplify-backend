@@ -28,11 +28,23 @@ export type BackendIdentifier = UniqueBackendIdentifier | StackIdentifier | AppN
 // @public
 export type ClientConfig = Partial<AuthClientConfig & GraphqlClientConfig & StorageClientConfig>;
 
+// @public (undocumented)
+export const configFileName = "amplifyconfiguration";
+
+// @public (undocumented)
+export const formatChoices: readonly ["js", "json", "ts"];
+
+// @public (undocumented)
+export type FormatOption = (typeof formatChoices)[number];
+
 // @public
 export const generateClientConfig: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier) => Promise<ClientConfig>;
 
 // @public
 export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier, targetPath: string) => Promise<void>;
+
+// @public
+export const getConfigPath: (out: string | undefined, format?: FormatOption) => string;
 
 // @public
 export type GraphqlClientConfig = {
