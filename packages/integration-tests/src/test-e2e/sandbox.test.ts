@@ -14,6 +14,7 @@ import {
   createTestDirectoryBeforeAndCleanupAfter,
   getTestDir,
 } from '../setup_test_directory.js';
+import { pathToFileURL } from 'url';
 
 describe('sandbox', () => {
   const e2eSandboxDir = getTestDir;
@@ -44,7 +45,9 @@ describe('sandbox', () => {
       ),
       assertions: async () => {
         const { default: clientConfig } = await import(
-          path.join(testProjectRoot, 'amplifyconfiguration.js')
+          pathToFileURL(
+            path.join(testProjectRoot, 'amplifyconfiguration.js')
+          ).toString()
         );
         assert.deepStrictEqual(Object.keys(clientConfig).sort(), [
           'aws_appsync_authenticationType',

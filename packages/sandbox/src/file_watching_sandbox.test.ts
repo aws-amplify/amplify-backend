@@ -4,7 +4,7 @@ import { FileWatchingSandbox } from './file_watching_sandbox.js';
 import assert from 'node:assert';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
 import { ClientConfigGeneratorAdapter } from './config/client_config_generator_adapter.js';
-import path from 'node:path';
+import * as path from 'path';
 import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 import fs from 'fs';
 import parseGitIgnore from 'parse-gitignore';
@@ -188,7 +188,7 @@ describe('Sandbox using local project name resolver', () => {
     );
     assert.deepStrictEqual(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      process.cwd() + '/amplifyconfiguration.js'
+      path.join(process.cwd(), 'amplifyconfiguration.js')
     );
   });
 
@@ -251,7 +251,11 @@ describe('Sandbox with user provided app name', () => {
       dir: 'testDir',
       exclude: ['exclude1', 'exclude2'],
       name: 'customSandboxName',
-      clientConfigFilePath: 'test/location/amplifyconfiguration.js',
+      clientConfigFilePath: path.join(
+        'test',
+        'location',
+        'amplifyconfiguration.js'
+      ),
     });
     if (
       subscribeMock.mock.calls[0].arguments[1] &&
@@ -369,7 +373,11 @@ describe('Sandbox with absolute output path', () => {
       dir: 'testDir',
       exclude: ['exclude1', 'exclude2'],
       name: 'customSandboxName',
-      clientConfigFilePath: '/test/location/amplifyconfiguration.js',
+      clientConfigFilePath: path.join(
+        'test',
+        'location',
+        'amplifyconfiguration.js'
+      ),
       profile: 'amplify-sandbox',
     });
     if (
@@ -411,7 +419,7 @@ describe('Sandbox with absolute output path', () => {
     );
     assert.equal(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      path.resolve('/', 'test', 'location', 'amplifyconfiguration.js')
+      path.join(process.cwd(), 'test', 'location', 'amplifyconfiguration.js')
     );
   });
 
