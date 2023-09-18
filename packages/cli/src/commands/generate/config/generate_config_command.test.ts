@@ -90,8 +90,14 @@ describe('generate config command', () => {
       stackName: 'stack_name',
     });
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
+    const actualPath = generateClientConfigMock.mock.calls[0].arguments[1];
+    // normalize the path root across unix and windows platforms
+    const normalizedPath = actualPath?.replace(
+      path.parse(actualPath).root,
+      path.sep
+    );
     assert.equal(
-      generateClientConfigMock.mock.calls[0].arguments[1],
+      normalizedPath,
       path.join('/', 'foo', 'bar', configFileName + '.' + formatChoices[2])
     );
   });

@@ -31,7 +31,7 @@ packagePaths.forEach((packagePath) => {
   const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
   const tsconfigPath = path.resolve(packagePath, 'tsconfig.json');
   const packageDirName = packagePath.split(path.sep).reverse()[0];
-  const relativeReferencePath = path.join('..', packageDirName);
+  const relativeReferencePath = path.posix.join('..', packageDirName);
 
   let tsconfigObject: Record<string, unknown>;
   try {

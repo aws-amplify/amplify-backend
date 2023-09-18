@@ -4,6 +4,7 @@ import { ClientConfigWriter } from './client_config_writer.js';
 import path from 'path';
 import assert from 'node:assert';
 import { ClientConfig } from '../client-config-types/client_config.js';
+import { pathToFileURL } from 'url';
 
 describe('client config writer', () => {
   let targetDirectory: string;
@@ -42,7 +43,10 @@ describe('client config writer', () => {
     );
     await clientConfigWriter.writeClientConfig(clientConfig, targetPath);
 
-    const { default: actualConfig } = await import(targetPath);
+    // importing absolute paths on windows only works by passing through pathToFileURL which prepends `file://` to the path
+    const { default: actualConfig } = await import(
+      pathToFileURL(targetPath).toString()
+    );
     assert.deepEqual(actualConfig, clientConfig);
   });
 });

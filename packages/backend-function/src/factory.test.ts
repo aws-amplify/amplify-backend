@@ -13,6 +13,7 @@ import {
 } from '@aws-amplify/plugin-types';
 import assert from 'node:assert';
 import { fileURLToPath } from 'url';
+import * as path from 'path';
 
 describe('AmplifyFunctionFactory', () => {
   let constructContainer: ConstructContainer;
@@ -34,7 +35,7 @@ describe('AmplifyFunctionFactory', () => {
   it('creates singleton function instance', () => {
     const functionFactory = Func.fromDir({
       name: 'testFunc',
-      codePath: '../test-assets/test-lambda',
+      codePath: path.join('..', 'test-assets', 'test-lambda'),
     });
     const instance1 = functionFactory.getInstance({
       constructContainer,
@@ -57,7 +58,7 @@ describe('AmplifyFunctionFactory', () => {
     (
       await Func.build({
         name: 'testFunc',
-        outDir: '../test-assets/test-lambda',
+        outDir: path.join('..', 'test-assets', 'test-lambda'),
         buildCommand: 'test command',
       })
     ).getInstance({ constructContainer, outputStorageStrategy });
