@@ -1,4 +1,4 @@
-export const formatChoices = ['js', 'json', 'ts'] as const;
+import { formatChoices } from '@aws-amplify/client-config';
 
 /**
  * Interface for Sandbox.
