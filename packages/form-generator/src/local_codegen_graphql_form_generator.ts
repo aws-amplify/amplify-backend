@@ -4,7 +4,6 @@ import {
   GenericDataSchema,
   StudioForm,
 } from '@aws-amplify/codegen-ui';
-import { GenerationResult } from './codegen_responses.js';
 import {
   AmplifyFormRenderer,
   ModuleKind,
