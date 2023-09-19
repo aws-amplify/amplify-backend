@@ -1,6 +1,10 @@
 import { execa } from 'execa';
 import stream from 'stream';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import {
+  BranchBackendIdentifier,
+  SandboxBackendIdentifier,
+  UniqueBackendIdentifier,
+} from '@aws-amplify/plugin-types';
 import {
   BackendDeployer,
   DeployProps,
@@ -76,11 +80,14 @@ export class CDKDeployer implements BackendDeployer {
 
     // Add context information if available
     if (uniqueBackendIdentifier) {
+      const branchName: string =
+        (uniqueBackendIdentifier as BranchBackendIdentifier).branchName ??
+        (uniqueBackendIdentifier as SandboxBackendIdentifier).sandbox;
       cdkCommandArgs.push(
         '--context',
         `backend-id=${uniqueBackendIdentifier.backendId}`,
         '--context',
-        `branch-name=${uniqueBackendIdentifier.branchName}`
+        `branch-name=${branchName}`
       );
     }
 

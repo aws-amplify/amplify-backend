@@ -23,10 +23,54 @@ export type AuthClientConfig = {
 };
 
 // @public (undocumented)
+export enum BackendDeploymentStatus {
+    // (undocumented)
+    DEPLOYED = "DEPLOYED",
+    // (undocumented)
+    DEPLOYING = "DEPLOYING",
+    // (undocumented)
+    FAILED = "FAILED"
+}
+
+// @public (undocumented)
+export enum BackendDeploymentType {
+    // (undocumented)
+    BRANCH = "BRANCH",
+    // (undocumented)
+    SANDBOX = "SANDBOX"
+}
+
+// @public (undocumented)
 export type BackendIdentifier = UniqueBackendIdentifier | StackIdentifier | AppNameAndBranchBackendIdentifier;
+
+// @public (undocumented)
+export type BackendMetadata = {
+    name: string;
+    lastUpdated: Date | undefined;
+    deploymentType: BackendDeploymentType;
+    status: BackendDeploymentStatus | undefined;
+    apiConfiguration?: {
+        status: BackendDeploymentStatus | undefined;
+        lastUpdated: Date | undefined;
+        graphqlEndpoint: string;
+    };
+    authConfiguration?: {
+        status: BackendDeploymentStatus | undefined;
+        lastUpdated: Date | undefined;
+        userPoolId: string;
+    };
+    storageConfiguration?: {
+        status: BackendDeploymentStatus | undefined;
+        lastUpdated: Date | undefined;
+        s3BucketName: string;
+    };
+};
 
 // @public
 export type ClientConfig = Partial<AuthClientConfig & GraphqlClientConfig & StorageClientConfig>;
+
+// @public
+export const deleteSandbox: (sandboxId: string) => Promise<BackendMetadata>;
 
 // @public
 export const generateClientConfig: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier) => Promise<ClientConfig>;
@@ -35,12 +79,18 @@ export const generateClientConfig: (credentialProvider: AwsCredentialIdentityPro
 export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier, targetPath: string) => Promise<void>;
 
 // @public
+export const getBackendMetadata: (uniqueBackendIdentifier: UniqueBackendIdentifier) => Promise<BackendMetadata>;
+
+// @public
 export type GraphqlClientConfig = {
     aws_appsync_region: string;
     aws_appsync_graphqlEndpoint: string;
     aws_appsync_authenticationType: string;
     aws_appsync_apiKey?: string;
 };
+
+// @public
+export const listSandboxes: () => Promise<BackendMetadata[]>;
 
 // @public (undocumented)
 export type StackIdentifier = {

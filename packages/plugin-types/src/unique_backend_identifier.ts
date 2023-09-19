@@ -11,15 +11,28 @@ export type BackendId = AppId | SandboxId;
  * Tuple of values that uniquely identifies a deployed backend.
  * Used to generate stack names for deployments
  */
-export type UniqueBackendIdentifier = {
+export type UniqueBackendIdentifier =
+  | BranchBackendIdentifier
+  | SandboxBackendIdentifier;
+
+export type SandboxBackendIdentifier = {
   /**
    * For Amplify branch environments, this is the Amplify app id
    * For sandbox deployments, this is a concatenation of package.json#name and the current local username
    */
   backendId: BackendId;
+
+  /**
+   * Sandboxes are not associated with a specific branch
+   */
+  sandbox: 'sandbox';
+};
+
+export type BranchBackendIdentifier = {
+  backendId: BackendId;
+
   /**
    * For amplify branch deployments, this is the branch name.
-   * For sandbox deployments, this is the string literal "sandbox"
    */
   branchName: string;
 };

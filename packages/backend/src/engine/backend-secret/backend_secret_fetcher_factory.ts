@@ -1,7 +1,11 @@
 import { Construct } from 'constructs';
 import { BackendSecretFetcherProviderFactory } from './backend_secret_fetcher_provider_factory.js';
 import { CustomResource } from 'aws-cdk-lib';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import {
+  BranchBackendIdentifier,
+  SandboxBackendIdentifier,
+  UniqueBackendIdentifier,
+} from '@aws-amplify/plugin-types';
 
 /**
  * Resource provider ID for the backend secret resource.
@@ -49,11 +53,14 @@ export class BackendSecretFetcherFactory {
       backendIdentifier
     );
 
+    const branchName: string =
+      (backendIdentifier as BranchBackendIdentifier).branchName ??
+      (backendIdentifier as SandboxBackendIdentifier).sandbox;
     return new CustomResource(scope, secretResourceId, {
       serviceToken: provider.serviceToken,
       properties: {
         backendId: backendIdentifier.backendId,
-        branchName: backendIdentifier.branchName,
+        branchName,
         secretName: secretName,
         secretVersion: secretVersion,
       },
