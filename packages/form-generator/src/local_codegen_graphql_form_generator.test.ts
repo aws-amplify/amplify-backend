@@ -1,3 +1,4 @@
+import { GenericDataSchema } from '@aws-amplify/codegen-ui';
 import assert from 'assert';
 import { it } from 'node:test';
 import { LocalGraphqlFormGenerator } from './local_codegen_graphql_form_generator.js';
@@ -49,9 +50,12 @@ it('generates a form', async () => {
     nonModels: {},
     enums: {},
   };
-  const l = new LocalGraphqlFormGenerator(async () => schema as any, {
-    graphqlDir: '../graphql',
-  });
+  const l = new LocalGraphqlFormGenerator(
+    async () => schema as unknown as GenericDataSchema,
+    {
+      graphqlDir: '../graphql',
+    }
+  );
   const forms = await l.generateForms();
   assert('PostCreateForm.jsx' in forms.components);
   assert('PostUpdateForm.jsx' in forms.components);
