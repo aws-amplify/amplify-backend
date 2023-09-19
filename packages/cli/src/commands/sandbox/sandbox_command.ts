@@ -1,5 +1,5 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
-import { FormatOption } from '@aws-amplify/client-config';
+import { FormatOption, formatChoices } from '@aws-amplify/client-config';
 import { SandboxDeleteCommand } from './sandbox-delete/sandbox_delete_command.js';
 import fs from 'fs';
 import { AmplifyPrompter } from '../prompter/amplify_prompts.js';
@@ -9,7 +9,7 @@ export type SandboxCommandOptions = {
   dirToWatch: string | undefined;
   exclude: string[] | undefined;
   name: string | undefined;
-  format: FormatOption;
+  format: FormatOption | undefined;
   out: string | undefined;
   profile: string | undefined;
 };
