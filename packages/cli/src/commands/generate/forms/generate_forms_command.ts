@@ -95,8 +95,7 @@ export class GenerateFormsCommand
       throw new TypeError('modelsOut must be defined');
     }
 
-    const { appId, environmentName } =
-      this.getAppDescription(backendIdentifier);
+    const { appId } = this.getAppDescription(backendIdentifier);
 
     this.log(`Generating code for App: ${appId}`);
     const graphqlClientGenerator = createGraphqlDocumentGenerator({ apiId });
@@ -110,9 +109,6 @@ export class GenerateFormsCommand
     const relativePath = path.relative(args.uiOut, args.modelsOut);
     const localFormGenerator = createFormGenerator('graphql', {
       /* eslint-disable-next-line spellcheck/spell-checker */
-      appId,
-      apiId,
-      environmentName,
       introspectionSchemaUrl: apiUrl,
       relativePathToGraphqlModelDirectory: relativePath,
     });
