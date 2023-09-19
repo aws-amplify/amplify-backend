@@ -5,7 +5,7 @@ import {
 } from 'aws-cdk-lib/aws-cognito';
 /**
  * Examples:
- * AuthAttributeFactory('address').mutable().required();
+ * AuthAttributeFactory('address').immutable().required();
  * AuthCustomAttributeFactory.string('color').minLength(10).maxLength(100);
  */
 
@@ -23,7 +23,7 @@ export type Mutable<T> = {
  * This class facilitates creation of Standard user attributes.
  */
 export class AuthStandardAttribute {
-  private isMutable = false;
+  private isMutable = true;
   private isRequired = false;
   /**
    * Create a Standard Attribute.
@@ -33,11 +33,11 @@ export class AuthStandardAttribute {
     this.name = name;
   }
   /**
-   * Makes this attribute mutable.
+   * Makes this attribute immutable.
    * @returns the attribute
    */
-  mutable = (): AuthStandardAttribute => {
-    this.isMutable = true;
+  immutable = (): AuthStandardAttribute => {
+    this.isMutable = false;
     return this;
   };
   /**
@@ -76,15 +76,15 @@ export abstract class AuthCustomAttributeBase {
     this.name = name;
     this.attribute = {
       dataType: '',
-      mutable: false,
+      mutable: true,
     };
   }
   /**
-   * Makes this attribute mutable.
+   * Makes this attribute immutable.
    * @returns the attribute
    */
-  mutable = () => {
-    this.attribute.mutable = true;
+  immutable = () => {
+    this.attribute.mutable = false;
     return this;
   };
   /**
@@ -117,7 +117,7 @@ export class AuthCustomStringAttribute extends AuthCustomAttributeBase {
     super(name);
     this.attribute = {
       dataType: 'String',
-      mutable: false,
+      mutable: true,
       stringConstraints: {},
     };
   }
@@ -156,7 +156,7 @@ export class AuthCustomNumberAttribute extends AuthCustomAttributeBase {
     super(name);
     this.attribute = {
       dataType: 'Number',
-      mutable: false,
+      mutable: true,
       numberConstraints: {},
     };
   }
@@ -195,7 +195,7 @@ export class AuthCustomDateTimeAttribute extends AuthCustomAttributeBase {
     super(name);
     this.attribute = {
       dataType: 'DateTime',
-      mutable: false,
+      mutable: true,
     };
   }
 }
@@ -211,7 +211,7 @@ export class AuthCustomBooleanAttribute extends AuthCustomAttributeBase {
     super(name);
     this.attribute = {
       dataType: 'Boolean',
-      mutable: false,
+      mutable: true,
     };
   }
 }

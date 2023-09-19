@@ -489,7 +489,7 @@ export class AmplifyAuth
    *
    * Example:
    * userAttributes: [
-   *  AmplifyAuth.attribute('address').mutable().required(),
+   *  AmplifyAuth.attribute('address').immutable().required(),
    * ]
    */
   public static attribute = AuthAttributeFactory;
