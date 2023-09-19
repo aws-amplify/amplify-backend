@@ -5,7 +5,9 @@ const schema = a.schema({
     .model({
       id: a.id(),
       title: a.string(),
-      posts: a.hasMany('Post'),
+      posts: a
+        .hasMany('Post')
+        .authorization([a.allow.owner().inField('someowner')]),
     })
     .identifier(['id']),
   Post: a

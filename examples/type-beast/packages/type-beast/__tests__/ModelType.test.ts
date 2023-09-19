@@ -263,6 +263,16 @@ describe('model auth rules', () => {
       }),
     });
 
+    type Schema = ClientSchema<typeof schema>;
+    type CustomOwnerType = Schema['widget']['customOwner'];
+
+    // single owner should be allowed
+    let customOwner: CustomOwnerType = 'abc';
+
+    // multiple owners should not
+    // @ts-expect-error
+    customOwner = ['multiple', 'owners'];
+
     const graphql = schemaPreprocessor(schema).processedSchema;
     expect(graphql).toMatchSnapshot();
   });
@@ -277,6 +287,16 @@ describe('model auth rules', () => {
           ]),
       }),
     });
+
+    type Schema = ClientSchema<typeof schema>;
+    type CustomOwnerType = Schema['widget']['customOwner'];
+
+    // single owner should be allowed
+    let customOwner: CustomOwnerType = 'abc';
+
+    // multiple owners should not
+    // @ts-expect-error
+    customOwner = ['multiple', 'owners'];
 
     const graphql = schemaPreprocessor(schema).processedSchema;
     expect(graphql).toMatchSnapshot();
