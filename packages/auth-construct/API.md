@@ -31,7 +31,7 @@ export abstract class AuthCustomAttributeBase {
     constructor(name: string);
     // (undocumented)
     protected attribute: Mutable<CustomAttributeConfig>;
-    mutable: () => this;
+    immutable: () => this;
 }
 
 // @public
@@ -77,7 +77,7 @@ export type AuthProps = {
 // @public
 export class AuthStandardAttribute {
     constructor(name: keyof StandardAttributes);
-    mutable: () => AuthStandardAttribute;
+    immutable: () => AuthStandardAttribute;
     required: () => AuthStandardAttribute;
 }
 
