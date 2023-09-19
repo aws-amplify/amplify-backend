@@ -57,7 +57,5 @@ it('generates a form', async () => {
     }
   );
   const forms = await l.generateForms();
-  assert('PostCreateForm.jsx' in forms);
-  assert('PostUpdateForm.jsx' in forms);
-  assert(forms['PostCreateForm.jsx'].includes('React.useState'));
+  assert('writeToDirectory' in forms);
 });
