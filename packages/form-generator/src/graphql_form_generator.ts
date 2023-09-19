@@ -1,5 +1,6 @@
-import { GraphqlFormGenerationResult } from './graphql_form_generation_result.js';
-
+export type FileName = string;
+export type FileContents = string;
+export type GraphqlGenerationResult = Record<FileName, FileContents>;
 export type GraphqlFormGenerator = {
-  generateForms: () => Promise<GraphqlFormGenerationResult>;
+  generateForms: () => Promise<GraphqlGenerationResult>;
 };

@@ -12,9 +12,10 @@ import {
   ScriptKind,
   ScriptTarget,
 } from '@aws-amplify/codegen-ui-react';
-import { GraphqlFormGenerationResult } from './graphql_form_generation_result.js';
-import { GraphqlFormGenerator } from './graphql_form_generator.js';
-import { CodegenGraphqlFormGeneratorResult } from './codegen_graphql_form_generation_result.js';
+import {
+  GraphqlFormGenerator,
+  GraphqlGenerationResult,
+} from './graphql_form_generator.js';
 
 /**
  * Render Configuration Options for react forms
@@ -22,6 +23,8 @@ import { CodegenGraphqlFormGeneratorResult } from './codegen_graphql_form_genera
 export type RenderOptions = {
   graphqlDir: string;
 };
+
+export type SchemaFetcher = () => Promise<GenericDataSchema>;
 /**
  * Generates GraphQL-compatible forms in React by directly leveraging @aws-amplify/codegen-ui-react
  */
@@ -30,7 +33,7 @@ export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
    * Instantiates a LocalGraphqlFormGenerator for a provided schema
    */
   constructor(
-    private schemaFetcher: () => Promise<GenericDataSchema>,
+    private schemaFetcher: SchemaFetcher,
     private renderOptions: RenderOptions
   ) {}
   /**
@@ -121,18 +124,16 @@ export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
   ) => {
     return this.createUiBuilderForm(formSchema, dataSchema, {});
   };
-  generateForms = async (): Promise<GraphqlFormGenerationResult> => {
+  generateForms = async (): Promise<GraphqlGenerationResult> => {
     const dataSchema = await this.schemaFetcher();
     const modelMap = this.getModelMapForDataSchema(dataSchema);
-    const forms = this.generateBaseForms(modelMap).map<GenerationResult>(
-      (formSchema) => {
+    return this.generateBaseForms(modelMap).reduce<GraphqlGenerationResult>(
+      (prev, formSchema) => {
         const result = this.codegenForm(dataSchema, formSchema);
-        return {
-          content: result.componentText,
-          fileName: result.fileName,
-        };
-      }
+        prev[result.fileName] = result.componentText;
+        return prev;
+      },
+      {}
     );
-    return new CodegenGraphqlFormGeneratorResult(forms);
   };
 }

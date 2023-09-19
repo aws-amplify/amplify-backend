@@ -5,31 +5,26 @@
 ```ts
 
 // @public
-export const createFormGenerator: <T extends "graphql">(generationType: T, generationParams: FormGenerationParams[T]) => GraphqlFormGenerator;
+export const createLocalGraphqlFormGenerator: (generationParams: LocalGraphqlFormGeneratorParams) => GraphqlFormGenerator;
 
 // @public (undocumented)
-export type FileContent = string;
+export type FileContents = string;
 
 // @public (undocumented)
 export type FileName = string;
 
 // @public (undocumented)
-export type FormGenerationParams = {
-    graphql: {
-        introspectionSchemaUrl: string;
-        relativePathToGraphqlModelDirectory: string;
-    };
-};
-
-// @public
-export type GraphqlFormGenerationResult = {
-    writeToDirectory: (directoryName: string) => Promise<void>;
-    components: Record<FileName, FileContent>;
+export type GraphqlFormGenerator = {
+    generateForms: () => Promise<GraphqlGenerationResult>;
 };
 
 // @public (undocumented)
-export type GraphqlFormGenerator = {
-    generateForms: () => Promise<GraphqlFormGenerationResult>;
+export type GraphqlGenerationResult = Record<FileName, FileContents>;
+
+// @public (undocumented)
+export type LocalGraphqlFormGeneratorParams = {
+    introspectionSchemaUrl: string;
+    graphqlModelDirectoryPath: string;
 };
 
 // (No @packageDocumentation comment for this package)
