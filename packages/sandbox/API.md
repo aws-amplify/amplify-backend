@@ -4,8 +4,7 @@
 
 ```ts
 
-// @public (undocumented)
-export const formatChoices: readonly ["js", "json", "ts"];
+import { formatChoices } from '@aws-amplify/client-config';
 
 // @public
 export type Sandbox = {
@@ -24,7 +23,7 @@ export type SandboxOptions = {
     dir?: string;
     exclude?: string[];
     name?: string;
-    format?: (typeof formatChoices)[number];
+    format?: typeof formatChoices[number];
     profile?: string;
     clientConfigFilePath?: string;
 };

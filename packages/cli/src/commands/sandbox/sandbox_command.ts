@@ -1,10 +1,9 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
+import { formatChoices } from '@aws-amplify/client-config';
 import { SandboxDeleteCommand } from './sandbox-delete/sandbox_delete_command.js';
 import fs from 'fs';
 import { AmplifyPrompter } from '../prompter/amplify_prompts.js';
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
-
-export const formatChoices = ['js', 'json', 'ts'] as const;
 
 export type SandboxCommandOptions = {
   dirToWatch: string | undefined;

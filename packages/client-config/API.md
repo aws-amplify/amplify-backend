@@ -32,10 +32,17 @@ export type ClientConfig = Partial<AuthClientConfig & GraphqlClientConfig & Stor
 export const configFileName = "amplifyconfiguration";
 
 // @public (undocumented)
-export const formatChoices: readonly ["js", "json", "ts"];
+export const formatChoices: FormatOption[];
 
 // @public (undocumented)
-export type FormatOption = (typeof formatChoices)[number];
+export enum FormatOption {
+    // (undocumented)
+    JS = "js",
+    // (undocumented)
+    JSON = "json",
+    // (undocumented)
+    TS = "ts"
+}
 
 // @public
 export const generateClientConfig: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier) => Promise<ClientConfig>;
@@ -44,7 +51,7 @@ export const generateClientConfig: (credentialProvider: AwsCredentialIdentityPro
 export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier, targetPath: string) => Promise<void>;
 
 // @public
-export const getConfigPath: (out: string | undefined, format?: FormatOption) => string;
+export const getConfigPath: (out: string | undefined, format: (typeof formatChoices)[number] | undefined) => string;
 
 // @public
 export type GraphqlClientConfig = {

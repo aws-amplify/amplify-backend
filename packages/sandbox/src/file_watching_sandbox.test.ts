@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import watcher from '@parcel/watcher';
+import { FormatOption } from '@aws-amplify/client-config';
 import { FileWatchingSandbox } from './file_watching_sandbox.js';
 import assert from 'node:assert';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
@@ -251,7 +252,7 @@ describe('Sandbox with user provided app name', () => {
       dir: 'testDir',
       exclude: ['exclude1', 'exclude2'],
       name: 'customSandboxName',
-      format: 'ts',
+      format: FormatOption.TS,
       clientConfigFilePath: path.join('test', 'location'),
     });
     if (
@@ -370,7 +371,7 @@ describe('Sandbox with absolute output path', () => {
       dir: 'testDir',
       exclude: ['exclude1', 'exclude2'],
       name: 'customSandboxName',
-      format: 'json',
+      format: FormatOption.JSON,
       clientConfigFilePath: path.join('test', 'location'),
       profile: 'amplify-sandbox',
     });
@@ -455,7 +456,7 @@ describe('Sandbox ignoring paths in .gitignore', () => {
       dir: 'testDir',
       exclude: ['customer_exclude1', 'customer_exclude2'],
       name: 'customSandboxName',
-      format: 'ts',
+      format: FormatOption.TS,
       clientConfigFilePath: '',
     });
     if (
