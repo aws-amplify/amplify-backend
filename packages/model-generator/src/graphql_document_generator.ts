@@ -1,7 +1,7 @@
 import { generateStatements } from '@aws-amplify/graphql-generator';
 import {
   DocumentGenerationParameters,
-  DocumentGenerationResult,
+  GenerationResult,
   GraphqlDocumentGenerator,
 } from './model_generator.js';
 
@@ -16,9 +16,7 @@ export class AppSyncGraphqlDocumentGenerator
    */
   constructor(
     private fetchSchema: () => Promise<string>,
-    private resultBuilder: (
-      fileMap: Record<string, string>
-    ) => DocumentGenerationResult
+    private resultBuilder: (fileMap: Record<string, string>) => GenerationResult
   ) {}
   generateModels = async ({ language }: DocumentGenerationParameters) => {
     const schema = await this.fetchSchema();

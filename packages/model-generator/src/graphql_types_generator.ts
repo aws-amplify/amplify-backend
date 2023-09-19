@@ -3,10 +3,10 @@ import {
   generateTypes,
 } from '@aws-amplify/graphql-generator';
 import {
+  GenerationResult,
   GraphqlTypesGenerator,
   TypesGenerationParameters,
 } from './model_generator.js';
-import { extractDocumentFromJavaScript } from './extract_document_from_javascript.js';
 
 /**
  * Generates GraphQL types for a given AppSync API
@@ -17,14 +17,10 @@ export class AppSyncGraphqlTypesGenerator implements GraphqlTypesGenerator {
    */
   constructor(
     private fetchSchema: () => Promise<string>,
-    private writeFile: (
-      outDir: string,
-      fileName: string,
-      content: string
-    ) => Promise<void>
+    private resultBuilder: (fileMap: Record<string, string>) => GenerationResult
   ) {}
 
-  generateTypes = async ({ target, outDir }: TypesGenerationParameters) => {
+  generateTypes = async ({ target }: TypesGenerationParameters) => {
     const schema = await this.fetchSchema();
 
     if (!schema) {
@@ -33,22 +29,10 @@ export class AppSyncGraphqlTypesGenerator implements GraphqlTypesGenerator {
 
     const generatedStatements = generateStatements({
       schema,
-      target,
+      target: 'graphql',
     });
 
-    const queries = Object.entries(generatedStatements)
-      .map(([filename, contents]) => {
-        if (
-          filename.endsWith('.jsx') ||
-          filename.endsWith('.js') ||
-          filename.endsWith('.tsx') ||
-          filename.endsWith('.ts')
-        ) {
-          return extractDocumentFromJavaScript(contents);
-        }
-        return contents;
-      })
-      .join('\n');
+    const queries = Object.values(generatedStatements).join('\n');
 
     const generatedTypes = await generateTypes({
       schema,
@@ -56,10 +40,6 @@ export class AppSyncGraphqlTypesGenerator implements GraphqlTypesGenerator {
       queries,
     });
 
-    await Promise.all(
-      Object.entries(generatedTypes).map(async ([filename, content]) => {
-        await this.writeFile(outDir, filename, content);
-      })
-    );
+    return this.resultBuilder(generatedTypes);
   };
 }

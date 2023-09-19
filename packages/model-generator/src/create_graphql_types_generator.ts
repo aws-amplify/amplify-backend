@@ -1,8 +1,8 @@
 import { AppSyncClient } from '@aws-sdk/client-appsync';
+import { AppsyncGraphqlGenerationResult } from './appsync_graphql_generation_result.js';
 import { AppSyncIntrospectionSchemaFetcher } from './appsync_schema_fetcher.js';
 import { AppSyncGraphqlTypesGenerator } from './graphql_types_generator.js';
 import { GraphqlTypesGenerator } from './model_generator.js';
-import { writeToFile } from './write_to_file.js';
 
 export type GraphqlTypesGeneratorFactoryParams = {
   apiId: string;
@@ -20,7 +20,6 @@ export const createGraphqlTypesGenerator = ({
   return new AppSyncGraphqlTypesGenerator(
     () =>
       new AppSyncIntrospectionSchemaFetcher(new AppSyncClient()).fetch(apiId),
-    (outDir: string, fileName: string, content: string) =>
-      writeToFile(outDir, fileName, content)
+    (fileMap) => new AppsyncGraphqlGenerationResult(fileMap)
   );
 };

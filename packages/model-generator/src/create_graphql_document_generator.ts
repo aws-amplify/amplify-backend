@@ -1,5 +1,5 @@
 import { AppSyncClient } from '@aws-sdk/client-appsync';
-import { AppsyncGraphqlDocumentGenerationResult } from './appsync_graphql_document_generation_result.js';
+import { AppsyncGraphqlGenerationResult } from './appsync_graphql_generation_result.js';
 import { AppSyncIntrospectionSchemaFetcher } from './appsync_schema_fetcher.js';
 import { AppSyncGraphqlDocumentGenerator } from './graphql_document_generator.js';
 import { GraphqlDocumentGenerator } from './model_generator.js';
@@ -20,6 +20,6 @@ export const createGraphqlDocumentGenerator = ({
   return new AppSyncGraphqlDocumentGenerator(
     () =>
       new AppSyncIntrospectionSchemaFetcher(new AppSyncClient()).fetch(apiId),
-    (fileMap) => new AppsyncGraphqlDocumentGenerationResult(fileMap)
+    (fileMap) => new AppsyncGraphqlGenerationResult(fileMap)
   );
 };
