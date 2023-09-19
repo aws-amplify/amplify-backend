@@ -1,12 +1,12 @@
 import path from 'path';
 
 export const configFileName = 'amplifyconfiguration';
-export enum FormatOption {
+export enum FormatChoice {
   JS = 'js',
   JSON = 'json',
   TS = 'ts',
 }
-export const formatChoices = Object.values(FormatOption);
+export const formatChoices = Object.values(FormatChoice);
 
 /**
  * Get path to config file
@@ -14,10 +14,10 @@ export const formatChoices = Object.values(FormatOption);
  * @param format - The format which the configuration should be exported into. Defaults to js.
  * returns path to config file
  */
-export const getClientConfigPath = (out?: string, format?: FormatOption) => {
+export const getClientConfigPath = (out?: string, format?: FormatChoice) => {
   const defaultArgs = {
     out: process.cwd(),
-    format: FormatOption.JS,
+    format: FormatChoice.JS,
   };
 
   let targetPath: string;

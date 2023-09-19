@@ -1,7 +1,7 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { BackendIdentifier } from '@aws-amplify/client-config';
 import {
-  FormatOption,
+  FormatChoice,
   formatChoices,
   getClientConfigPath,
 } from '@aws-amplify/client-config/paths';
@@ -12,7 +12,7 @@ export type GenerateConfigCommandOptions = {
   stack: string | undefined;
   appId: string | undefined;
   branch: string | undefined;
-  format: FormatOption | undefined;
+  format: FormatChoice | undefined;
   out: string | undefined;
 };
 
