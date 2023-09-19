@@ -3,7 +3,7 @@ import { BackendIdentifier } from '@aws-amplify/client-config';
 import {
   FormatOption,
   formatChoices,
-  getConfigPath,
+  getClientConfigPath,
 } from '@aws-amplify/client-config/paths';
 import { AppNameResolver } from '../../../local_app_name_resolver.js';
 import { ClientConfigGeneratorAdapter } from './client_config_generator_adapter.js';
@@ -54,7 +54,7 @@ export class GenerateConfigCommand
     args: ArgumentsCamelCase<GenerateConfigCommandOptions>
   ): Promise<void> => {
     const backendIdentifier = await this.getBackendIdentifier(args);
-    const targetPath: string = getConfigPath(args.out, args.format);
+    const targetPath: string = getClientConfigPath(args.out, args.format);
 
     await this.clientConfigGenerator.generateClientConfigToFile(
       backendIdentifier,

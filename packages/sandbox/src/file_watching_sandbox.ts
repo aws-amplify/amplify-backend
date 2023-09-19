@@ -1,6 +1,6 @@
 import debounce from 'debounce-promise';
 import parcelWatcher, { subscribe } from '@parcel/watcher';
-import { getConfigPath } from '@aws-amplify/client-config/paths';
+import { getClientConfigPath } from '@aws-amplify/client-config/paths';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
 import { Sandbox, SandboxDeleteOptions, SandboxOptions } from './sandbox.js';
 import { ClientConfigGeneratorAdapter } from './config/client_config_generator_adapter.js';
@@ -38,7 +38,7 @@ export class FileWatchingSandbox implements Sandbox {
       name: this.sandboxId,
     };
     const sandboxId = options.name ?? defaultOptions.name;
-    const clientConfigWritePath = getConfigPath(
+    const clientConfigWritePath = getClientConfigPath(
       options.clientConfigFilePath,
       options.format
     );
