@@ -44,6 +44,7 @@ describe('AmplifyAuthFactory', () => {
 
     importPathVerifier = new ToggleableImportPathVerifier(false);
   });
+
   it('returns singleton instance', () => {
     const instance1 = authFactory.getInstance({
       constructContainer,

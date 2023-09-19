@@ -361,7 +361,7 @@ describe('Auth construct', () => {
     new AmplifyAuth(stack, 'test', {
       loginWith: { email: true },
       userAttributes: [
-        AmplifyAuth.attribute('address').mutable(),
+        AmplifyAuth.attribute('address').immutable(),
         AmplifyAuth.attribute('familyName').required(),
         AmplifyAuth.customAttribute.string('defaultString'),
         AmplifyAuth.customAttribute
@@ -381,24 +381,24 @@ describe('Auth construct', () => {
           Required: true,
         },
         {
-          Mutable: true,
+          Mutable: false,
           Name: 'address',
           Required: false,
         },
         {
-          Mutable: false,
+          Mutable: true,
           Name: 'family_name',
           Required: true,
         },
         {
           AttributeDataType: 'String',
-          Mutable: false,
+          Mutable: true,
           Name: 'defaultString',
           StringAttributeConstraints: {},
         },
         {
           AttributeDataType: 'String',
-          Mutable: false,
+          Mutable: true,
           Name: 'minMaxString',
           StringAttributeConstraints: {
             MinLength: '0',
@@ -407,12 +407,12 @@ describe('Auth construct', () => {
         },
         {
           AttributeDataType: 'DateTime',
-          Mutable: false,
+          Mutable: true,
           Name: 'birthDateTime',
         },
         {
           AttributeDataType: 'Number',
-          Mutable: false,
+          Mutable: true,
           Name: 'numberMinMax',
           NumberAttributeConstraints: {
             MaxValue: '5',
@@ -449,7 +449,7 @@ describe('Auth construct', () => {
         new AmplifyAuth(stack, 'test', {
           loginWith: { email: true },
           userAttributes: [
-            AmplifyAuth.attribute('address').mutable(),
+            AmplifyAuth.attribute('address').immutable(),
             AmplifyAuth.attribute('address').required(),
           ],
         }),
