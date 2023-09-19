@@ -336,7 +336,10 @@ export class AmplifyAuth
       this,
       `DefineAuthChallenge${id}`,
       {
-        entry: join(__dirname, 'passwordless-auth', 'custom_auth_triggers.js'),
+        entry: new URL(
+          './passwordless-auth/custom_auth_triggers.js',
+          import.meta.url
+        ).pathname,
         handler: 'defineAuthChallengeHandler',
         runtime: Runtime.NODEJS_18_X,
         architecture: Architecture.ARM_64,
@@ -350,7 +353,10 @@ export class AmplifyAuth
       this,
       `CreateAuthChallenge${id}`,
       {
-        entry: join(__dirname, 'passwordless-auth', 'custom_auth_triggers.js'),
+        entry: new URL(
+          './passwordless-auth/custom_auth_triggers.js',
+          import.meta.url
+        ).pathname,
         handler: 'createAuthChallengeHandler',
         runtime: Runtime.NODEJS_18_X,
         architecture: Architecture.ARM_64,
@@ -364,7 +370,10 @@ export class AmplifyAuth
       this,
       `VerifyAuthChallengeResponse${id}`,
       {
-        entry: join(__dirname, 'passwordless-auth', 'custom_auth_triggers.js'),
+        entry: new URL(
+          './passwordless-auth/custom_auth_triggers.js',
+          import.meta.url
+        ).pathname,
         handler: 'verifyAuthChallengeHandler',
         runtime: Runtime.NODEJS_18_X,
         architecture: Architecture.ARM_64,
