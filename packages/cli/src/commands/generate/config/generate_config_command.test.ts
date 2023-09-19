@@ -44,7 +44,7 @@ describe('generate config command', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      path.join(process.cwd(), configFileName + '.' + formatChoices[0])
+      path.join(process.cwd(), `${configFileName}.${formatChoices[0]}`)
     );
   });
 
@@ -61,7 +61,7 @@ describe('generate config command', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      path.join(process.cwd(), configFileName + '.' + formatChoices[0])
+      path.join(process.cwd(), `${configFileName}.${formatChoices[0]}`)
     );
   });
 
@@ -77,7 +77,7 @@ describe('generate config command', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      path.join(process.cwd(), configFileName + '.' + formatChoices[0])
+      path.join(process.cwd(), `${configFileName}.${formatChoices[0]}`)
     );
   });
 
@@ -98,7 +98,7 @@ describe('generate config command', () => {
     );
     assert.equal(
       normalizedPath,
-      path.join('/', 'foo', 'bar', configFileName + '.' + formatChoices[2])
+      path.join('/', 'foo', 'bar', `${configFileName}.${formatChoices[2]}`)
     );
   });
 
