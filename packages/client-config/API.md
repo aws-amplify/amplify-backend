@@ -4,30 +4,6 @@
 
 ```ts
 
-import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
-
-// @public
-export type AppNameAndBranchBackendIdentifier = {
-    appName: string;
-    branchName: string;
-};
-
-// @public
-export type AuthClientConfig = {
-    aws_cognito_region: string;
-    aws_user_pools_id?: string;
-    aws_user_pools_web_client_id?: string;
-    aws_cognito_identity_pool_id?: string;
-    aws_mandatory_sign_in?: string;
-};
-
-// @public (undocumented)
-export type BackendIdentifier = UniqueBackendIdentifier | StackIdentifier | AppNameAndBranchBackendIdentifier;
-
-// @public
-export type ClientConfig = Partial<AuthClientConfig & GraphqlClientConfig & StorageClientConfig>;
-
 // @public (undocumented)
 export const configFileName = "amplifyconfiguration";
 
@@ -45,32 +21,7 @@ export enum FormatOption {
 }
 
 // @public
-export const generateClientConfig: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier) => Promise<ClientConfig>;
-
-// @public
-export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier, targetPath: string) => Promise<void>;
-
-// @public
-export const getConfigPath: (out: string | undefined, format: (typeof formatChoices)[number] | undefined) => string;
-
-// @public
-export type GraphqlClientConfig = {
-    aws_appsync_region: string;
-    aws_appsync_graphqlEndpoint: string;
-    aws_appsync_authenticationType: string;
-    aws_appsync_apiKey?: string;
-};
-
-// @public (undocumented)
-export type StackIdentifier = {
-    stackName: string;
-};
-
-// @public
-export type StorageClientConfig = {
-    aws_user_files_s3_bucket_region: string;
-    aws_user_files_s3_bucket: string;
-};
+export const getConfigPath: (out?: string, format?: FormatOption) => string;
 
 // (No @packageDocumentation comment for this package)
 

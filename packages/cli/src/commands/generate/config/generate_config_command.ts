@@ -1,10 +1,10 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
+import { BackendIdentifier } from '@aws-amplify/client-config';
 import {
-  BackendIdentifier,
   FormatOption,
   formatChoices,
   getConfigPath,
-} from '@aws-amplify/client-config';
+} from '@aws-amplify/client-config/paths';
 import { AppNameResolver } from '../../../local_app_name_resolver.js';
 import { ClientConfigGeneratorAdapter } from './client_config_generator_adapter.js';
 

@@ -1,4 +1,4 @@
-import { FormatOption } from '@aws-amplify/client-config';
+import { FormatOption } from '@aws-amplify/client-config/paths';
 
 /**
  * Interface for Sandbox.
