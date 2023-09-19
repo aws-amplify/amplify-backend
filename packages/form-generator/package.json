@@ -14,8 +14,7 @@
   },
   "types": "lib/index.d.ts",
   "scripts": {
-    "update:api": "api-extractor run --local",
-    "test": "tsx --test"
+    "update:api": "api-extractor run --local"
   },
   "dependencies": {
     "@aws-amplify/appsync-modelgen-plugin": "^2.6.0",
