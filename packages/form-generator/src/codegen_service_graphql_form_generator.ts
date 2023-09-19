@@ -9,8 +9,8 @@ import { CodegenJobHandler } from './codegen_job_handler.js';
 import { GraphqlFormGenerationResult } from './graphql_form_generation_result.js';
 import { CodegenGraphqlFormGeneratorResult } from './codegen_graphql_form_generation_result.js';
 import {
-  DownloadResult,
   GeneratedFormMetadata,
+  GenerationResult,
   Manifest,
 } from './codegen_responses.js';
 
@@ -28,7 +28,7 @@ type CodegenGraphqlFormGeneratorParameters = {
 /**
  * Generates forms on the local filesystem
  */
-export class CodegenGraphqlFormGenerator
+export class CodegenServiceGraphqlFormGenerator
   implements GraphqlFormGenerationStrategy
 {
   /**
@@ -53,7 +53,7 @@ export class CodegenGraphqlFormGenerator
   };
   private downloadComponent = async (
     output: GeneratedFormMetadata
-  ): Promise<DownloadResult> => {
+  ): Promise<GenerationResult> => {
     if (output.error) {
       throw new Error(output.error);
     }
