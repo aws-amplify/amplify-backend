@@ -1,4 +1,4 @@
-import { formatChoices } from '@aws-amplify/client-config';
+import { FormatOption } from '@aws-amplify/client-config';
 
 /**
  * Interface for Sandbox.
@@ -25,7 +25,7 @@ export type SandboxOptions = {
   dir?: string;
   exclude?: string[];
   name?: string;
-  format?: (typeof formatChoices)[number];
+  format?: FormatOption;
   profile?: string;
   /**
    * Optional path where client config should be generated for sandbox deployments

@@ -14,10 +14,7 @@ export const formatChoices = Object.values(FormatOption);
  * @param format - The format which the configuration should be exported into. Defaults to js.
  * returns path to config file
  */
-export const getConfigPath = (
-  out: string | undefined,
-  format: (typeof formatChoices)[number] | undefined
-) => {
+export const getConfigPath = (out?: string, format?: FormatOption) => {
   const defaultArgs = {
     out: process.cwd(),
     format: FormatOption.JS,
