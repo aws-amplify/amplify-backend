@@ -86,5 +86,5 @@ export const generateModelIntrospectionSchema = async (
 
   const [synced] = await Promise.all(results);
   const d = getGenericFromDataStore(JSON.parse(synced));
-  return mapGenericDataSchemaToCodegen(d);
+  return d;
 };
