@@ -96,13 +96,13 @@ export class SSMSecretClient implements SecretClient {
       const resp = await this.ssmClient.getParameter({
         Name: secretIdentifier.version
           ? `${name}:${secretIdentifier.version}`
-          : `${name}`,
+          : name,
         WithDecryption: true,
       });
       if (resp.Parameter?.Name && resp.Parameter?.Value) {
         return {
           secretIdentifier: {
-            name: resp.Parameter?.Name,
+            name: secretIdentifier.name,
             version: resp.Parameter?.Version,
           },
           value: resp.Parameter?.Value,

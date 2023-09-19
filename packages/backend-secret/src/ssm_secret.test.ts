@@ -50,7 +50,7 @@ describe('SSMSecret', () => {
       Promise.resolve({
         $metadata: {},
         Parameter: {
-          Name: testSecretName,
+          Name: testBranchSecretFullNamePath,
           Value: testSecretValue,
           Version: testSecretVersion,
         },

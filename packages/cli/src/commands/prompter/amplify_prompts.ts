@@ -32,7 +32,7 @@ export class AmplifyPrompter {
     return await password({
       message: promptMessage,
       validate: (val: string) =>
-      val && val.length > 0 ? true : 'Cannot be empty',
+        val && val.length > 0 ? true : 'Cannot be empty',
     });
   };
 }

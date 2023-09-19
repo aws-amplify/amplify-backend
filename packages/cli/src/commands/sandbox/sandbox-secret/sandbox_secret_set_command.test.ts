@@ -7,11 +7,7 @@ import {
 } from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
 import { SandboxIdResolver } from '../sandbox_id_resolver.js';
-import {
-  Secret,
-  SecretIdentifier,
-  getSecretClient,
-} from '@aws-amplify/backend-secret';
+import { SecretIdentifier, getSecretClient } from '@aws-amplify/backend-secret';
 import { SANDBOX_BRANCH } from './constants.js';
 import { SandboxSecretSetCommand } from './sandbox_secret_set_command.js';
 import { BackendId, UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
@@ -71,7 +67,7 @@ describe('sandbox secret set command', () => {
   });
 
   it('show --help', async () => {
-    const output = await commandRunner.runCommand('list --help');
+    const output = await commandRunner.runCommand('set --help');
     assert.match(output, /Set a sandbox secret/);
   });
 
