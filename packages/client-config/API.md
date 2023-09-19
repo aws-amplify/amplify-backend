@@ -8,10 +8,7 @@
 export const configFileName = "amplifyconfiguration";
 
 // @public (undocumented)
-export const formatChoices: FormatOption[];
-
-// @public (undocumented)
-export enum FormatOption {
+export enum FormatChoice {
     // (undocumented)
     JS = "js",
     // (undocumented)
@@ -20,8 +17,11 @@ export enum FormatOption {
     TS = "ts"
 }
 
+// @public (undocumented)
+export const formatChoices: FormatChoice[];
+
 // @public
-export const getConfigPath: (out?: string, format?: FormatOption) => string;
+export const getClientConfigPath: (out?: string, format?: FormatChoice) => string;
 
 // (No @packageDocumentation comment for this package)
 
