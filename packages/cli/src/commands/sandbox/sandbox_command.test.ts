@@ -11,6 +11,11 @@ import { SandboxCommand } from './sandbox_command.js';
 import { createSandboxCommand } from './sandbox_command_factory.js';
 import { SandboxDeleteCommand } from './sandbox-delete/sandbox_delete_command.js';
 import { Sandbox, SandboxSingletonFactory } from '@aws-amplify/sandbox';
+import { SandboxSecretCommand } from './sandbox-secret/sandbox_secret_command.js';
+import { SandboxIdResolver } from './sandbox_id_resolver.js';
+import { LocalAppNameResolver } from '../../local_app_name_resolver.js';
+import { CwdPackageJsonLoader } from '../../cwd_package_json_loader.js';
+import { getSecretClient } from '@aws-amplify/backend-secret';
 
 describe('sandbox command factory', () => {
   it('instantiate a sandbox command correctly', () => {
@@ -31,10 +36,17 @@ describe('sandbox command', () => {
 
     sandboxStartMock = mock.method(sandbox, 'start', () => Promise.resolve());
     const sandboxDeleteCommand = new SandboxDeleteCommand(sandboxFactory);
-
+    const sandboxIdResolver = new SandboxIdResolver(
+      new LocalAppNameResolver(new CwdPackageJsonLoader())
+    );
+    const sandboxSecretCommand = new SandboxSecretCommand(
+      sandboxIdResolver,
+      getSecretClient()
+    );
     const sandboxCommand = new SandboxCommand(
       sandboxFactory,
-      sandboxDeleteCommand
+      sandboxDeleteCommand,
+      sandboxSecretCommand
     );
     const parser = yargs().command(sandboxCommand as unknown as CommandModule);
     commandRunner = new TestCommandRunner(parser);

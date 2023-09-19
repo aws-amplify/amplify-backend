@@ -1,5 +1,9 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": { "rootDir": "src", "outDir": "lib" },
-  "references": [{ "path": "../client-config" }, { "path": "../sandbox" }]
+  "references": [
+    { "path": "../client-config" },
+    { "path": "../sandbox" },
+    { "path": "../backend-secret" }
+  ]
 }
