@@ -3,6 +3,7 @@
   "compilerOptions": { "rootDir": "src", "outDir": "lib" },
   "references": [
     { "path": "../backend-output-schemas" },
+    { "path": "../backend-output-storage" },
     { "path": "../backend-secret" },
     { "path": "../plugin-types" }
   ]

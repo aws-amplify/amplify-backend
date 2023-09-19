@@ -228,6 +228,7 @@
           "stdout",
           "subcommand",
           "subcommands",
+          "submodule",
           "timestamps",
           "tmpdir",
           "toggleable",

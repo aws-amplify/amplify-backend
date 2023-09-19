@@ -33,7 +33,6 @@ describe('AmplifyStorage', () => {
     it('stores output using the provided strategy', () => {
       const app = new App();
       const stack = new Stack(app);
-      const storageConstruct = new AmplifyStorage(stack, 'test', {});
 
       const storeOutputMock = mock.fn();
       const storageStrategy: BackendOutputStorageStrategy<BackendOutputEntry> =
@@ -41,7 +40,10 @@ describe('AmplifyStorage', () => {
           addBackendOutputEntry: storeOutputMock,
           flush: mock.fn(),
         };
-      storageConstruct.storeOutput(storageStrategy);
+
+      const storageConstruct = new AmplifyStorage(stack, 'test', {
+        outputStorageStrategy: storageStrategy,
+      });
 
       const expectedBucketName = (
         storageConstruct.node.findChild('testBucket') as Bucket

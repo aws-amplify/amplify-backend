@@ -3,10 +3,7 @@ import {
   BackendOutputStorageStrategy,
 } from '@aws-amplify/plugin-types';
 import { CfnOutput, Stack } from 'aws-cdk-lib';
-import {
-  BackendOutputStackMetadata,
-  amplifyStackMetadataKey,
-} from '@aws-amplify/backend-output-schemas/platform';
+import { graphqlOutputKey } from '@aws-amplify/backend-output-schemas';
 
 /**
  * Implementation of BackendOutputStorageStrategy that stores config data in stack metadata and outputs
@@ -14,7 +11,6 @@ import {
 export class StackMetadataBackendOutputStorageStrategy
   implements BackendOutputStorageStrategy<BackendOutputEntry>
 {
-  private readonly metadata: BackendOutputStackMetadata = {};
   /**
    * Initialize the instance with a stack.
    *
@@ -36,16 +32,22 @@ export class StackMetadataBackendOutputStorageStrategy
       new CfnOutput(this.stack, key, { value });
     });
 
-    this.metadata[keyName] = {
+    // TODO
+    // temporary hack to work around the fact that the gql construct has hard-coded a duplicate of this key in their codebase
+    // once this hard-coding is removed and they are depending on the shared packages, this can be removed
+    const mappedKeyName =
+      keyName === 'graphqlOutput' ? graphqlOutputKey : keyName;
+
+    this.stack.addMetadata(mappedKeyName, {
       version: backendOutputEntry.version,
       stackOutputs: Object.keys(backendOutputEntry.payload),
-    };
+    });
   };
 
   /**
    * Persists the metadata object to the stack metadata
    */
   flush = (): void => {
-    this.stack.addMetadata(amplifyStackMetadataKey, this.metadata);
+    // NOOP until the duplicate BackendOutputStorageStrategy type in the gql construct can be removed
   };
 }
