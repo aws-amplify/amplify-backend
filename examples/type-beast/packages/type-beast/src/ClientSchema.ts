@@ -103,9 +103,9 @@ type ImpliedAuthFieldsFromFields<T> = T extends ModelTypeParamShape
       | ModelField<any, any, infer Auth>
     ? Auth extends Authorization<any, any>
       ? ImpliedAuthFields<Auth>
-      : never
-    : never
-  : never;
+      : {}
+    : {}
+  : {};
 
 /**
  * infer and massage field types
