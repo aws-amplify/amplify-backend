@@ -1,6 +1,7 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import { AmplifyAuthFactory } from './factory.js';
 import {
+  DefaultBackendSecretResolver,
   NestedStackResolver,
   SingletonConstructContainer,
   StackMetadataBackendOutputStorageStrategy,
@@ -12,6 +13,7 @@ import { Match, Template } from 'aws-cdk-lib/assertions';
 import {
   BackendOutputEntry,
   BackendOutputStorageStrategy,
+  BackendSecretResolver,
   ConstructContainer,
   ConstructFactory,
   FunctionResources,
@@ -26,6 +28,8 @@ describe('AmplifyAuthFactory', () => {
   let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
   let importPathVerifier: ImportPathVerifier;
   let stack: Stack;
+  let backendSecretResolver: BackendSecretResolver;
+
   beforeEach(() => {
     authFactory = new AmplifyAuthFactory({
       loginWith: { email: true },
@@ -43,18 +47,24 @@ describe('AmplifyAuthFactory', () => {
     );
 
     importPathVerifier = new ToggleableImportPathVerifier(false);
-  });
 
+    backendSecretResolver = new DefaultBackendSecretResolver(stack, {
+      backendId: 'testBackendId',
+      branchName: 'testBranchName',
+    });
+  });
   it('returns singleton instance', () => {
     const instance1 = authFactory.getInstance({
       constructContainer,
       outputStorageStrategy,
       importPathVerifier,
+      backendSecretResolver,
     });
     const instance2 = authFactory.getInstance({
       constructContainer,
       outputStorageStrategy,
       importPathVerifier,
+      backendSecretResolver,
     });
 
     assert.strictEqual(instance1, instance2);
@@ -65,6 +75,7 @@ describe('AmplifyAuthFactory', () => {
       constructContainer,
       outputStorageStrategy,
       importPathVerifier,
+      backendSecretResolver,
     });
 
     const template = Template.fromStack(Stack.of(authConstruct));
@@ -80,6 +91,7 @@ describe('AmplifyAuthFactory', () => {
       constructContainer,
       outputStorageStrategy,
       importPathVerifier,
+      backendSecretResolver,
     });
 
     assert.ok(
@@ -113,6 +125,7 @@ describe('AmplifyAuthFactory', () => {
         constructContainer,
         outputStorageStrategy,
         importPathVerifier,
+        backendSecretResolver,
       });
 
       const template = Template.fromStack(Stack.of(authConstruct));

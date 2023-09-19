@@ -3,6 +3,7 @@ import { AmplifyStorageFactory } from './factory.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import {
+  DefaultBackendSecretResolver,
   NestedStackResolver,
   SingletonConstructContainer,
   StackMetadataBackendOutputStorageStrategy,
@@ -12,6 +13,7 @@ import assert from 'node:assert';
 import {
   BackendOutputEntry,
   BackendOutputStorageStrategy,
+  BackendSecretResolver,
   ConstructContainer,
   ConstructFactoryGetInstanceProps,
   ImportPathVerifier,
@@ -22,6 +24,7 @@ describe('AmplifyStorageFactory', () => {
   let constructContainer: ConstructContainer;
   let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
   let importPathVerifier: ImportPathVerifier;
+  let backendSecretResolver: BackendSecretResolver;
   let getInstanceProps: ConstructFactoryGetInstanceProps;
   beforeEach(() => {
     storageFactory = new AmplifyStorageFactory({});
@@ -39,10 +42,16 @@ describe('AmplifyStorageFactory', () => {
 
     importPathVerifier = new ToggleableImportPathVerifier(false);
 
+    backendSecretResolver = new DefaultBackendSecretResolver(stack, {
+      backendId: 'testBackendId',
+      branchName: 'testBranchName',
+    });
+
     getInstanceProps = {
       constructContainer,
       outputStorageStrategy,
       importPathVerifier,
+      backendSecretResolver,
     };
   });
   it('returns singleton instance', () => {
@@ -75,6 +84,7 @@ describe('AmplifyStorageFactory', () => {
       outputStorageStrategy,
       constructContainer,
       importPathVerifier,
+      backendSecretResolver,
     });
 
     assert.strictEqual(storeOutputMock.mock.callCount(), 1);
