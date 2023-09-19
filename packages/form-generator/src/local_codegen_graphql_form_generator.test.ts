@@ -49,7 +49,7 @@ it('generates a form', async () => {
     nonModels: {},
     enums: {},
   };
-  const l = new LocalGraphqlFormGenerator(async () => schema, {
+  const l = new LocalGraphqlFormGenerator(async () => schema as any, {
     graphqlDir: '../graphql',
   });
   const forms = await l.generateForms();
