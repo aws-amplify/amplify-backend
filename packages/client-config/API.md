@@ -29,9 +29,6 @@ export type BackendIdentifier = UniqueBackendIdentifier | StackIdentifier | AppN
 export type ClientConfig = Partial<AuthClientConfig & GraphqlClientConfig & StorageClientConfig>;
 
 // @public (undocumented)
-export const configFileName = "amplifyconfiguration";
-
-// @public (undocumented)
 export enum FormatChoice {
     // (undocumented)
     JS = "js",
@@ -40,9 +37,6 @@ export enum FormatChoice {
     // (undocumented)
     TS = "ts"
 }
-
-// @public (undocumented)
-export const formatChoices: FormatChoice[];
 
 // @public
 export const generateClientConfig: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier) => Promise<ClientConfig>;

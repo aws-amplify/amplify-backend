@@ -1,10 +1,7 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { GenerateConfigCommand } from './generate_config_command.js';
-import {
-  configFileName,
-  formatChoices,
-} from '@aws-amplify/client-config/paths';
+import { FormatChoice } from '@aws-amplify/client-config/paths';
 import yargs, { CommandModule } from 'yargs';
 import {
   TestCommandError,
@@ -15,6 +12,7 @@ import path from 'path';
 import { ClientConfigGeneratorAdapter } from './client_config_generator_adapter.js';
 
 describe('generate config command', () => {
+  const configFileName = 'amplifyconfiguration';
   const clientConfigGeneratorAdapter = new ClientConfigGeneratorAdapter(
     fromNodeProviderChain()
   );
@@ -47,7 +45,7 @@ describe('generate config command', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      path.join(process.cwd(), `${configFileName}.${formatChoices[0]}`)
+      path.join(process.cwd(), `${configFileName}.${FormatChoice.JS as string}`)
     );
   });
 
@@ -64,7 +62,7 @@ describe('generate config command', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      path.join(process.cwd(), `${configFileName}.${formatChoices[0]}`)
+      path.join(process.cwd(), `${configFileName}.${FormatChoice.JS as string}`)
     );
   });
 
@@ -80,7 +78,7 @@ describe('generate config command', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      path.join(process.cwd(), `${configFileName}.${formatChoices[0]}`)
+      path.join(process.cwd(), `${configFileName}.${FormatChoice.JS as string}`)
     );
   });
 
@@ -101,7 +99,12 @@ describe('generate config command', () => {
     );
     assert.equal(
       normalizedPath,
-      path.join('/', 'foo', 'bar', `${configFileName}.${formatChoices[2]}`)
+      path.join(
+        '/',
+        'foo',
+        'bar',
+        `${configFileName}.${FormatChoice.JSON as string}`
+      )
     );
   });
 

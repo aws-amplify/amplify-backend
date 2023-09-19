@@ -1,12 +1,11 @@
 import path from 'path';
 
-export const configFileName = 'amplifyconfiguration';
+const configFileName = 'amplifyconfiguration';
 export enum FormatChoice {
   JS = 'js',
   JSON = 'json',
   TS = 'ts',
 }
-export const formatChoices = Object.values(FormatChoice);
 
 /**
  * Get path to config file

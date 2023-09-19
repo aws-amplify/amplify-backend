@@ -1,5 +1,5 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
-import { FormatChoice, formatChoices } from '@aws-amplify/client-config/paths';
+import { FormatChoice } from '@aws-amplify/client-config/paths';
 import { SandboxDeleteCommand } from './sandbox-delete/sandbox_delete_command.js';
 import fs from 'fs';
 import { AmplifyPrompter } from '../prompter/amplify_prompts.js';
@@ -94,7 +94,7 @@ export class SandboxCommand
             'The format which the configuration should be exported into.',
           type: 'string',
           array: false,
-          choices: formatChoices,
+          choices: Object.values(FormatChoice),
         })
         .option('out', {
           describe:
