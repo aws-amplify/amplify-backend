@@ -1,6 +1,11 @@
 import { Brand } from './util';
 import { Authorization, __data } from './Authorization';
 
+/**
+ * Used to "attach" auth types to ModelField without exposing them on the builder.
+ */
+export const __auth = Symbol('__auth');
+
 export enum ModelFieldType {
   Id = 'ID',
   String = 'String',
@@ -36,7 +41,6 @@ type FieldData = {
   array: boolean;
   arrayOptional: boolean;
   default: undefined | string;
-  // authorization: any;
   authorization: Authorization<any, any>[];
 };
 
@@ -47,8 +51,6 @@ type ModelFieldTypeParamOuter =
   | null;
 
 type ToArray<T> = [T] extends [ModelFieldTypeParamInner] ? Array<T> : never;
-
-export const __auth = Symbol('__auth');
 
 /**
  * Public API for the chainable builder methods exposed by Model Field.
@@ -74,9 +76,8 @@ export type ModelField<
   },
   K
 > & {
+  // This is a lie. This property is never set at runtime. It's just used to smuggle auth types through.
   [__auth]?: Auth;
-  // auth?: Auth;
-  // valueOf: () => Auth;
 };
 
 /**

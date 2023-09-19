@@ -1,6 +1,11 @@
 import { Prettify, SetTypeSubArg } from './util';
 import { Authorization } from './Authorization';
 
+/**
+ * Used to "attach" auth types to ModelField without exposing them on the builder.
+ */
+export const __auth = Symbol('__auth');
+
 export enum ModelRelationshipTypes {
   hasOne = 'hasOne',
   hasMany = 'hasMany',
@@ -31,8 +36,6 @@ export type ModelRelationalFieldParamShape = {
   arrayOptional: boolean;
 };
 
-export const __auth = Symbol('__auth');
-
 export type ModelRelationalField<
   T extends ModelRelationalFieldParamShape,
   // RM adds structural separation with ModelField; easier to identify it when mapping to ClientTypes
@@ -55,6 +58,7 @@ export type ModelRelationalField<
   },
   K
 > & {
+  // This is a lie. This property is never set at runtime. It's just used to smuggle auth types through.
   [__auth]?: Auth;
 };
 

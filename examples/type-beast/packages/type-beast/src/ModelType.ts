@@ -20,7 +20,6 @@ type ModelData = {
   fields: ModelFields;
   identifier: string[];
   authorization: Authorization<any, any>[];
-  // authorization: any;
 };
 
 type InternalModelData = ModelData & {
@@ -34,7 +33,6 @@ export type ModelTypeParamShape = {
   fields: ModelFields;
   identifier: string[];
   authorization: Authorization<any, any>[];
-  // authorization: any;
 };
 
 type ExtractType<T extends ModelTypeParamShape> = {
