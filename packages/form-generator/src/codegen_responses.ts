@@ -8,7 +8,7 @@ export type GeneratedFormMetadata = {
 /* eslint-disable @typescript-eslint/naming-convention */
 export type Manifest = { Output: GeneratedFormMetadata[] };
 
-export type DownloadResult = {
+export type GenerationResult = {
   content?: string;
   fileName: string;
 };

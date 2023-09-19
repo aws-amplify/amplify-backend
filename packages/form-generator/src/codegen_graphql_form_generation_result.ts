@@ -1,6 +1,6 @@
 import path from 'path';
 import fs from 'fs';
-import { DownloadResult } from './codegen_responses.js';
+import { GenerationResult } from './codegen_responses.js';
 import {
   FileContent,
   FileName,
@@ -16,9 +16,9 @@ export class CodegenGraphqlFormGeneratorResult
   /**
    * Creates a CodegenGraphqlFormGeneratorResponse
    */
-  constructor(private downloadedComponents: DownloadResult[]) {}
+  constructor(private downloadedComponents: GenerationResult[]) {}
   private writeUIComponentsToFile = async (
-    downloads: DownloadResult[],
+    downloads: GenerationResult[],
     outputDir: string
   ) => {
     if (!fs.existsSync(outputDir)) {
