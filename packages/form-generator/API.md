@@ -16,10 +16,8 @@ export type FileName = string;
 // @public (undocumented)
 export type FormGenerationParams = {
     graphql: {
-        apiId: string;
-        appId: string;
         introspectionSchemaUrl: string;
-        environmentName?: string;
+        relativePathToGraphqlModelDirectory: string;
     };
 };
 

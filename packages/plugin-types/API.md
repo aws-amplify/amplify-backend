@@ -11,6 +11,7 @@ import { Function as Function_2 } from 'aws-cdk-lib/aws-lambda';
 import { IRole } from 'aws-cdk-lib/aws-iam';
 import { IUserPool } from 'aws-cdk-lib/aws-cognito';
 import { IUserPoolClient } from 'aws-cdk-lib/aws-cognito';
+import { SecretValue } from 'aws-cdk-lib';
 import { Stack } from 'aws-cdk-lib';
 
 // @public (undocumented)
@@ -60,6 +61,11 @@ export type BackendOutputStorageStrategy<T extends BackendOutputEntry> = {
 // @public
 export type BackendOutputWriter = {
     storeOutput: (outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>) => void;
+};
+
+// @public (undocumented)
+export type BackendSecret = {
+    resolve: (scope: Construct, uniqueBackendIdentifier: UniqueBackendIdentifier) => SecretValue;
 };
 
 // @public

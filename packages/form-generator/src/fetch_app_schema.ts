@@ -1,5 +1,4 @@
 import { getGenericFromDataStore } from '@aws-amplify/codegen-ui';
-import { mapGenericDataSchemaToCodegen } from './schema_mappers.js';
 import { parse } from 'graphql';
 import * as graphqlCodegen from '@graphql-codegen/core';
 import * as appsync from '@aws-amplify/appsync-modelgen-plugin';
