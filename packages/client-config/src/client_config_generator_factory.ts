@@ -19,7 +19,7 @@ export class ClientConfigGeneratorFactory {
    * Provide the factory with AWS credentials. These credentials will be used to configure underlying SDK clients for resolving backend output.
    */
   constructor(
-    private outputRetrievalStrategyFactory: BackendOutputRetrievalStrategyFactory
+    private readonly outputRetrievalStrategyFactory: BackendOutputRetrievalStrategyFactory
   ) {}
 
   /**
