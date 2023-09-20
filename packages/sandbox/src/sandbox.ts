@@ -1,4 +1,4 @@
-import { EventHandler } from './event_handler.js';
+import EventEmitter from 'events';
 
 /**
  * Interface for Sandbox.
@@ -19,7 +19,7 @@ export type Sandbox = {
    * Deletes this environment
    */
   delete: (options: SandboxDeleteOptions) => Promise<void>;
-} & EventHandler<SandboxEvents>;
+} & EventEmitter;
 
 export type SandboxEvents =
   | 'beforeDeployment'

@@ -10,15 +10,12 @@ import {
 import parseGitIgnore from 'parse-gitignore';
 import path from 'path';
 import fs from 'fs';
-import { EventHandler } from './event_handler.js';
+import EventEmitter from 'events';
 
 /**
  * Runs a file watcher and deploys
  */
-export class FileWatchingSandbox
-  extends EventHandler<SandboxEvents>
-  implements Sandbox
-{
+export class FileWatchingSandbox extends EventEmitter implements Sandbox {
   private watcherSubscription: Awaited<ReturnType<typeof subscribe>>;
   private outputFilesExcludedFromWatch = ['cdk.out'];
   /**
@@ -36,9 +33,26 @@ export class FileWatchingSandbox
   /**
    * @inheritdoc
    */
+  override emit(eventName: SandboxEvents, ...args: unknown[]): boolean {
+    return super.emit(eventName, args);
+  }
+
+  /**
+   * @inheritdoc
+   */
+  override on(
+    eventName: SandboxEvents,
+    listener: (...args: unknown[]) => void
+  ): this {
+    return super.on(eventName, listener);
+  }
+
+  /**
+   * @inheritdoc
+   */
   start = async (options: SandboxOptions) => {
     console.debug('[Sandbox] Running beforeStart event handlers');
-    await this.emit('beforeStart');
+    this.emit('beforeStart');
     console.debug('[Sandbox] Finished beforeStart event handlers');
     const { profile } = options;
     if (profile) {
@@ -68,7 +82,7 @@ export class FileWatchingSandbox
 
     const deployAndWatch = debounce(async () => {
       console.debug('[Sandbox] Running beforeDeployment event handlers');
-      await this.emit('beforeDeployment');
+      this.emit('beforeDeployment');
       console.debug('[Sandbox] Finished beforeDeployment event handlers');
       latch = 'deploying';
       await this.executor.deploy({
@@ -93,7 +107,7 @@ export class FileWatchingSandbox
       latch = 'open';
       this.emitWatching();
       console.debug('[Sandbox] Running afterDeployment event handlers');
-      await this.emit('afterDeployment');
+      this.emit('afterDeployment');
       console.debug('[Sandbox] Finished afterDeployment event handlers');
     });
 
@@ -129,7 +143,7 @@ export class FileWatchingSandbox
     // Start the first full deployment without waiting for a file change
     await deployAndWatch();
     console.debug('[Sandbox] Running afterStart event handlers');
-    await this.emit('afterStart');
+    this.emit('afterStart');
     console.debug('[Sandbox] Finished afterStart event handlers');
   };
 
@@ -138,12 +152,12 @@ export class FileWatchingSandbox
    */
   stop = async () => {
     console.debug('[Sandbox] Running beforeStop event handlers');
-    await this.emit('beforeStop');
+    this.emit('beforeStop');
     console.debug('[Sandbox] Finished beforeStop event handlers');
     console.debug(`[Sandbox] Shutting down`);
     await this.watcherSubscription.unsubscribe();
     console.debug('[Sandbox] Running afterStop event handlers');
-    await this.emit('afterStop');
+    this.emit('afterStop');
     console.debug('[Sandbox] Finished afterStop event handlers');
   };
 
