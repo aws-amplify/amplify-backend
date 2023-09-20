@@ -198,7 +198,7 @@ describe('Sandbox using local project name resolver', () => {
 
     assert.deepStrictEqual(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      'test/location'
+      path.join('test', 'location')
     );
   });
 
@@ -358,7 +358,7 @@ describe('Sandbox with user provided app name', () => {
     );
     assert.equal(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      'test/location'
+      path.join('test', 'location')
     );
   });
 });
@@ -428,7 +428,7 @@ describe('Sandbox with absolute output path', () => {
     );
     assert.equal(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      'test/location'
+      path.join('test', 'location')
     );
   });
 

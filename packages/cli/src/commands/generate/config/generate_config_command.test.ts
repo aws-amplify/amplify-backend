@@ -46,7 +46,7 @@ describe('generate config command', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      '/foo/bar'
+      path.join('/', 'foo', 'bar')
     );
   });
 
@@ -81,7 +81,7 @@ describe('generate config command', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      '/foo/bar'
+      path.join('/', 'foo', 'bar')
     );
   });
 

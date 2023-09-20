@@ -1,4 +1,5 @@
 import { describe, it } from 'node:test';
+import * as path from 'path';
 import assert from 'node:assert';
 import { getClientConfigPath } from './get_client_config_path.js';
 import { ClientConfigFormat } from '../index.js';
@@ -17,7 +18,11 @@ describe('getClientConfigPath', () => {
     const configPath = getClientConfigPath('some/path');
     assert.equal(
       configPath,
-      `${process.cwd()}/some/path/${configFileName}.${ClientConfigFormat.JS}`
+      path.join(
+        process.cwd(),
+        'some/path',
+        `${configFileName}.${ClientConfigFormat.JS}`
+      )
     );
   });
 
@@ -28,7 +33,11 @@ describe('getClientConfigPath', () => {
     );
     assert.equal(
       configPath,
-      `${process.cwd()}/some/path/${configFileName}.${ClientConfigFormat.JSON}`
+      path.join(
+        process.cwd(),
+        'some/path',
+        `${configFileName}.${ClientConfigFormat.JSON}`
+      )
     );
   });
 
@@ -44,7 +53,7 @@ describe('getClientConfigPath', () => {
     const configPath = getClientConfigPath('some/path/testConfig.json');
     assert.equal(
       configPath,
-      `${process.cwd()}/some/path/testConfig.${ClientConfigFormat.JSON}`
+      path.join(process.cwd(), 'some/path', 'testConfig.json')
     );
   });
 
@@ -55,7 +64,11 @@ describe('getClientConfigPath', () => {
     );
     assert.equal(
       configPath,
-      `${process.cwd()}/some/path/${configFileName}.${ClientConfigFormat.TS}`
+      path.join(
+        process.cwd(),
+        'some/path',
+        `${configFileName}.${ClientConfigFormat.TS}`
+      )
     );
   });
 });

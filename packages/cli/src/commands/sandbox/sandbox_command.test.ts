@@ -1,4 +1,5 @@
 import { beforeEach, describe, it, mock } from 'node:test';
+import * as path from 'path';
 import { AmplifyPrompter } from '../prompter/amplify_prompts.js';
 import yargs, { CommandModule } from 'yargs';
 import {
@@ -61,7 +62,7 @@ describe('sandbox command', () => {
     assert.equal(sandboxStartMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       sandboxStartMock.mock.calls[0].arguments[0].clientConfigFilePath,
-      'test/location'
+      path.join('test', 'location')
     );
     assert.deepStrictEqual(
       sandboxStartMock.mock.calls[0].arguments[0].format,
