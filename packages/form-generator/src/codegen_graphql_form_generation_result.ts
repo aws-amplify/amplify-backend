@@ -26,8 +26,11 @@ export class CodegenGraphqlFormGeneratorResult
     )) {
       if (content) {
         const fd = await fs.open(path.join(directoryPath, fileName), 'w+');
-        await fd.writeFile(content);
-        await fd.close();
+        try {
+          await fd.writeFile(content);
+        } finally {
+          await fd.close();
+        }
       }
     }
   };
