@@ -21,15 +21,15 @@ import dictionary from './.eslint_dictionary.js';
 export default [
   {
     ignores: [
-      'build',
-      'coverage',
-      'bin',
+      '**/build/**',
+      '**/coverage/**',
+      '**/bin/**',
       '**/lib/**',
-      'docs',
-      'temp',
-      'API.md',
-      'examples',
-      'verdaccio-cache',
+      '**/docs/**',
+      '**/temp/**',
+      '**/API.md',
+      '**/examples/**',
+      '**/verdaccio-cache/**',
       '**/*.d.ts',
     ],
   },
@@ -51,7 +51,7 @@ export default [
   {
     rules: {
       ...prettierRecommended.rules,
-      'no-unused-vars': 'off',
+      'no-unused-vars': 'off', // https://github.com/aws-amplify/samsara-cli/issues/259
       'no-console': 'error',
       'no-duplicate-imports': 'error',
       'no-else-return': 'error',
