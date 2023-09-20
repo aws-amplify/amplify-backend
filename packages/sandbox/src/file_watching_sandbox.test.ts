@@ -3,7 +3,6 @@ import watcher from '@parcel/watcher';
 import { FileWatchingSandbox } from './file_watching_sandbox.js';
 import assert from 'node:assert';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
-import * as path from 'path';
 import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 import fs from 'fs';
 import parseGitIgnore from 'parse-gitignore';
@@ -257,121 +256,133 @@ describe('Sandbox with user provided app name', () => {
     ]);
   });
 
-  describe('Sandbox with absolute output path', () => {
-    // class under test
-    let sandboxInstance: FileWatchingSandbox;
+  it('writes the correct client-config to user provided path', async () => {
+    await fileChangeEventActualFn(null, [
+      { type: 'update', path: 'foo/test1.ts' },
+    ]);
+  });
+});
 
-    const cdkExecutor = new AmplifySandboxExecutor(backendDeployer);
+describe('Sandbox with absolute output path', () => {
+  // class under test
+  let sandboxInstance: FileWatchingSandbox;
 
-    /**
-     * For each test we start the sandbox and hence file watcher and get hold of
-     * file change event function which tests can simulate by calling as desired.
-     */
-    beforeEach(async () => {
-      // ensures that .gitignore is set as absent
-      mock.method(fs, 'existsSync', () => false);
-      sandboxInstance = new FileWatchingSandbox('testSandboxId', cdkExecutor);
-      await sandboxInstance.start({
-        dir: 'testDir',
-        exclude: ['exclude1', 'exclude2'],
-        name: 'customSandboxName',
-        profile: 'amplify-sandbox',
-      });
-      if (
-        subscribeMock.mock.calls[0].arguments[1] &&
-        typeof subscribeMock.mock.calls[0].arguments[1] === 'function'
-      ) {
-        fileChangeEventActualFn = subscribeMock.mock.calls[0].arguments[1];
-      }
+  const cdkExecutor = new AmplifySandboxExecutor(backendDeployer);
 
-      // Reset all the calls to avoid extra startup call
-      execaDeployMock.mock.resetCalls();
-      execaDestroyMock.mock.resetCalls();
+  /**
+   * For each test we start the sandbox and hence file watcher and get hold of
+   * file change event function which tests can simulate by calling as desired.
+   */
+  beforeEach(async () => {
+    // ensures that .gitignore is set as absent
+    mock.method(fs, 'existsSync', () => false);
+    sandboxInstance = new FileWatchingSandbox('testSandboxId', cdkExecutor);
+    await sandboxInstance.start({
+      dir: 'testDir',
+      exclude: ['exclude1', 'exclude2'],
+      name: 'customSandboxName',
+      profile: 'amplify-sandbox',
     });
+    if (
+      subscribeMock.mock.calls[0].arguments[1] &&
+      typeof subscribeMock.mock.calls[0].arguments[1] === 'function'
+    ) {
+      fileChangeEventActualFn = subscribeMock.mock.calls[0].arguments[1];
+    }
 
-    afterEach(async () => {
-      execaDeployMock.mock.resetCalls();
-      execaDestroyMock.mock.resetCalls();
-      subscribeMock.mock.resetCalls();
-      await sandboxInstance.stop();
-    });
-
-    it('sets AWS profile when starting sandbox', async () => {
-      assert.strictEqual(process.env.AWS_PROFILE, 'amplify-sandbox');
-    });
+    // Reset all the calls to avoid extra startup call
+    execaDeployMock.mock.resetCalls();
+    execaDestroyMock.mock.resetCalls();
   });
 
-  describe('Sandbox ignoring paths in .gitignore', () => {
-    // class under test
-    let sandboxInstance: FileWatchingSandbox;
+  afterEach(async () => {
+    execaDeployMock.mock.resetCalls();
+    execaDestroyMock.mock.resetCalls();
+    subscribeMock.mock.resetCalls();
+    await sandboxInstance.stop();
+  });
 
-    const cdkExecutor = new AmplifySandboxExecutor(backendDeployer);
+  it('generates client config at absolute location', async () => {
+    await fileChangeEventActualFn(null, [
+      { type: 'update', path: 'foo/test1.ts' },
+    ]);
+  });
 
-    /**
-     * For each test we start the sandbox and hence file watcher and get hold of
-     * file change event function which tests can simulate by calling as desired.
-     */
-    beforeEach(async () => {
-      // setup .gitignore such that parseGitIgnore returns a list of parsed paths
-      mock.method(fs, 'existsSync', () => true);
-      mock.method(parseGitIgnore, 'parse', () => {
-        return {
-          patterns: [
-            '/patternWithLeadingSlash',
-            'patternWithoutLeadingSlash',
-            'someFile.js',
-            'overlap/',
-            'overlap/file',
-          ],
-        };
-      });
-      sandboxInstance = new FileWatchingSandbox('testSandboxId', cdkExecutor);
-      await sandboxInstance.start({
-        dir: 'testDir',
-        exclude: ['customer_exclude1', 'customer_exclude2'],
-        name: 'customSandboxName',
-      });
-      if (
-        subscribeMock.mock.calls[0].arguments[1] &&
-        typeof subscribeMock.mock.calls[0].arguments[1] === 'function'
-      ) {
-        fileChangeEventActualFn = subscribeMock.mock.calls[0].arguments[1];
-      }
+  it('sets AWS profile when starting sandbox', async () => {
+    assert.strictEqual(process.env.AWS_PROFILE, 'amplify-sandbox');
+  });
+});
 
-      // Reset all the calls to avoid extra startup call
-      execaDeployMock.mock.resetCalls();
-      execaDestroyMock.mock.resetCalls();
-    });
+describe('Sandbox ignoring paths in .gitignore', () => {
+  // class under test
+  let sandboxInstance: FileWatchingSandbox;
 
-    afterEach(async () => {
-      execaDeployMock.mock.resetCalls();
-      execaDestroyMock.mock.resetCalls();
-      subscribeMock.mock.resetCalls();
-      await sandboxInstance.stop();
-    });
+  const cdkExecutor = new AmplifySandboxExecutor(backendDeployer);
 
-    it('handles .gitignore files to exclude paths from file watching', async () => {
-      await fileChangeEventActualFn(null, [
-        { type: 'update', path: 'foo/test1.ts' },
-      ]);
-
-      // File watcher should be called with right excludes
-      assert.strictEqual(subscribeMock.mock.calls[0].arguments[0], 'testDir');
-      assert.deepStrictEqual(subscribeMock.mock.calls[0].arguments[2], {
-        ignore: [
-          'cdk.out',
-          'patternWithLeadingSlash',
+  /**
+   * For each test we start the sandbox and hence file watcher and get hold of
+   * file change event function which tests can simulate by calling as desired.
+   */
+  beforeEach(async () => {
+    // setup .gitignore such that parseGitIgnore returns a list of parsed paths
+    mock.method(fs, 'existsSync', () => true);
+    mock.method(parseGitIgnore, 'parse', () => {
+      return {
+        patterns: [
+          '/patternWithLeadingSlash',
           'patternWithoutLeadingSlash',
           'someFile.js',
           'overlap/',
           'overlap/file',
-          'customer_exclude1',
-          'customer_exclude2',
         ],
-      });
-
-      // CDK should also be called once
-      assert.strictEqual(execaDeployMock.mock.callCount(), 1);
+      };
     });
+    sandboxInstance = new FileWatchingSandbox('testSandboxId', cdkExecutor);
+    await sandboxInstance.start({
+      dir: 'testDir',
+      exclude: ['customer_exclude1', 'customer_exclude2'],
+      name: 'customSandboxName',
+    });
+    if (
+      subscribeMock.mock.calls[0].arguments[1] &&
+      typeof subscribeMock.mock.calls[0].arguments[1] === 'function'
+    ) {
+      fileChangeEventActualFn = subscribeMock.mock.calls[0].arguments[1];
+    }
+
+    // Reset all the calls to avoid extra startup call
+    execaDeployMock.mock.resetCalls();
+    execaDestroyMock.mock.resetCalls();
+  });
+
+  afterEach(async () => {
+    execaDeployMock.mock.resetCalls();
+    execaDestroyMock.mock.resetCalls();
+    subscribeMock.mock.resetCalls();
+    await sandboxInstance.stop();
+  });
+
+  it('handles .gitignore files to exclude paths from file watching', async () => {
+    await fileChangeEventActualFn(null, [
+      { type: 'update', path: 'foo/test1.ts' },
+    ]);
+
+    // File watcher should be called with right excludes
+    assert.strictEqual(subscribeMock.mock.calls[0].arguments[0], 'testDir');
+    assert.deepStrictEqual(subscribeMock.mock.calls[0].arguments[2], {
+      ignore: [
+        'cdk.out',
+        'patternWithLeadingSlash',
+        'patternWithoutLeadingSlash',
+        'someFile.js',
+        'overlap/',
+        'overlap/file',
+        'customer_exclude1',
+        'customer_exclude2',
+      ],
+    });
+
+    // CDK should also be called once
+    assert.strictEqual(execaDeployMock.mock.callCount(), 1);
   });
 });
