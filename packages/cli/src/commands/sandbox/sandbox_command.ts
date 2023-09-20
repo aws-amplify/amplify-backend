@@ -87,7 +87,7 @@ export class SandboxCommand
     this.appName = args.name;
     const sandbox = await this.sandboxFactory.getInstance();
     const clientConfigWritePath = this.getClientConfigWritePath(args);
-    sandbox.registerPostDeploymentHook(() =>
+    sandbox.on('afterDeployment', () =>
       this.writeClientConfig(clientConfigWritePath, args.name)
     );
     const watchExclusions = args.exclude ?? [];

@@ -1,4 +1,4 @@
-import { HookHandler } from './hook_handler.js';
+import { EventHandler } from './event_handler.js';
 
 /**
  * Interface for Sandbox.
@@ -19,7 +19,15 @@ export type Sandbox = {
    * Deletes this environment
    */
   delete: (options: SandboxDeleteOptions) => Promise<void>;
-} & HookHandler;
+} & EventHandler<SandboxEvents>;
+
+export type SandboxEvents =
+  | 'beforeDeployment'
+  | 'afterDeployment'
+  | 'beforeStart'
+  | 'afterStart'
+  | 'beforeStop'
+  | 'afterStop';
 
 export type SandboxOptions = {
   dir?: string;

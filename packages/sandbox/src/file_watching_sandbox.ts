@@ -1,16 +1,24 @@
 import debounce from 'debounce-promise';
 import parcelWatcher, { subscribe } from '@parcel/watcher';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
-import { Sandbox, SandboxDeleteOptions, SandboxOptions } from './sandbox.js';
+import {
+  Sandbox,
+  SandboxDeleteOptions,
+  SandboxEvents,
+  SandboxOptions,
+} from './sandbox.js';
 import parseGitIgnore from 'parse-gitignore';
 import path from 'path';
 import fs from 'fs';
-import { Hook, HookHandler } from './hook_handler.js';
+import { EventHandler } from './event_handler.js';
 
 /**
  * Runs a file watcher and deploys
  */
-export class FileWatchingSandbox extends HookHandler implements Sandbox {
+export class FileWatchingSandbox
+  extends EventHandler<SandboxEvents>
+  implements Sandbox
+{
   private watcherSubscription: Awaited<ReturnType<typeof subscribe>>;
   private outputFilesExcludedFromWatch = ['cdk.out'];
   /**
@@ -29,6 +37,7 @@ export class FileWatchingSandbox extends HookHandler implements Sandbox {
    * @inheritdoc
    */
   start = async (options: SandboxOptions) => {
+    await this.emit('beforeStart');
     const { profile } = options;
     if (profile) {
       process.env.AWS_PROFILE = profile;
@@ -57,7 +66,7 @@ export class FileWatchingSandbox extends HookHandler implements Sandbox {
 
     const deployAndWatch = debounce(async () => {
       console.log('[Sandbox] Running pre-deployment hooks');
-      await this.runHooks(this.preDeploymentHooks);
+      await this.emit('beforeDeployment');
       console.log('[Sandbox] Pre-deployment hooks complete');
       latch = 'deploying';
       await this.executor.deploy({
@@ -82,7 +91,7 @@ export class FileWatchingSandbox extends HookHandler implements Sandbox {
       latch = 'open';
       this.emitWatching();
       console.log('[Sandbox] Running post-deployment hooks');
-      await this.runHooks(this.postDeploymentHooks);
+      await this.emit('afterDeployment');
       console.log('[Sandbox] Post-deployment hooks complete');
     });
 
@@ -117,17 +126,17 @@ export class FileWatchingSandbox extends HookHandler implements Sandbox {
 
     // Start the first full deployment without waiting for a file change
     await deployAndWatch();
-  };
-  private runHooks = async (hooks: Hook[]) => {
-    return Promise.all(hooks.map((hook) => hook()));
+    await this.emit('afterStart');
   };
 
   /**
    * @inheritdoc
    */
   stop = async () => {
+    await this.emit('beforeStop');
     console.debug(`[Sandbox] Shutting down`);
     await this.watcherSubscription.unsubscribe();
+    await this.emit('afterStop');
   };
 
   /**
