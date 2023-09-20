@@ -1,9 +1,7 @@
 import debounce from 'debounce-promise';
 import parcelWatcher, { subscribe } from '@parcel/watcher';
-import {
-  ClientConfigFormat,
-  getClientConfigPath,
-} from '@aws-amplify/client-config/paths';
+import { ClientConfigFormat } from '@aws-amplify/client-config';
+import { getClientConfigPath } from '@aws-amplify/client-config/paths';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
 import { Sandbox, SandboxDeleteOptions, SandboxOptions } from './sandbox.js';
 import { ClientConfigGeneratorAdapter } from './config/client_config_generator_adapter.js';

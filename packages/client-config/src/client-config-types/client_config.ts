@@ -8,3 +8,9 @@ import { StorageClientConfig } from './storage_client_config.js';
 export type ClientConfig = Partial<
   AuthClientConfig & GraphqlClientConfig & StorageClientConfig
 >;
+
+export enum ClientConfigFormat {
+  JS = 'js',
+  JSON = 'json',
+  TS = 'ts',
+}

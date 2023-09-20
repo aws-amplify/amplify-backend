@@ -1,5 +1,5 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
-import { ClientConfigFormat } from '@aws-amplify/client-config/paths';
+import { ClientConfigFormat } from '@aws-amplify/client-config';
 import { SandboxDeleteCommand } from './sandbox-delete/sandbox_delete_command.js';
 import fs from 'fs';
 import { AmplifyPrompter } from '../prompter/amplify_prompts.js';
@@ -90,8 +90,7 @@ export class SandboxCommand
           array: false,
         })
         .option('format', {
-          describe:
-            'Client config output format',
+          describe: 'Client config output format',
           type: 'string',
           array: false,
           choices: Object.values(ClientConfigFormat),
