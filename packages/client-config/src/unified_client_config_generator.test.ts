@@ -47,11 +47,9 @@ describe('UnifiedClientConfigGenerator', () => {
       const result = await clientConfigGenerator.generateClientConfig();
       const expectedClientConfig: ClientConfig = {
         aws_user_pools_id: 'testUserPoolId',
-        aws_appsync_apiId: 'testApiId',
         aws_user_pools_web_client_id: 'testWebClientId',
         aws_cognito_region: 'testRegion',
         aws_appsync_apiKey: 'testApiKey',
-        aws_appsync_apiUri: 'testApiSchemaUri',
         aws_appsync_authenticationType: 'API_KEY',
         aws_appsync_graphqlEndpoint: 'testApiEndpoint',
         aws_appsync_region: 'us-east-1',
