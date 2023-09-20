@@ -1,58 +1,34 @@
 import path from 'path';
-import fs from 'fs';
-import { GenerationResult } from './codegen_responses.js';
-import {
-  FileContent,
-  FileName,
-  GraphqlFormGenerationResult,
-} from './graphql_form_generation_result.js';
+import fs from 'fs/promises';
+import { GraphqlGenerationResult } from './graphql_form_generator.js';
 
 /**
  * Encapsulates a result from a call to the codegen form generation service
  */
 export class CodegenGraphqlFormGeneratorResult
-  implements GraphqlFormGenerationResult
+  implements GraphqlGenerationResult
 {
   /**
    * Creates a CodegenGraphqlFormGeneratorResponse
    */
-  constructor(private downloadedComponents: GenerationResult[]) {}
-  private writeUIComponentsToFile = async (
-    downloads: GenerationResult[],
-    outputDir: string
-  ) => {
-    if (!fs.existsSync(outputDir)) {
-      fs.mkdirSync(outputDir, { recursive: true });
-    }
-    for (const downloaded of downloads) {
-      if (downloaded.content) {
-        fs.writeFileSync(
-          path.join(outputDir, downloaded.fileName),
-          downloaded.content
-        );
-      }
-    }
-  };
+  constructor(private fileNameComponentMap: Record<string, string>) {}
   /**
    * writes the components to a given directory
    */
-  writeToDirectory = async (directoryName: string) => {
-    await this.writeUIComponentsToFile(
-      this.downloadedComponents,
-      directoryName
-    );
+  writeToDirectory = async (directoryPath: string) => {
+    try {
+      await fs.stat(directoryPath);
+    } catch (e) {
+      await fs.mkdir(directoryPath);
+    }
+    for (const [fileName, content] of Object.entries(
+      this.fileNameComponentMap
+    )) {
+      if (content) {
+        const fd = await fs.open(path.join(directoryPath, fileName));
+        await fd.writeFile(content);
+        await fd.close();
+      }
+    }
   };
-  /**
-   * The downloaded components
-   * The components are in the shape of Record<FileName, FileContent>
-   */
-  get components() {
-    return this.downloadedComponents.reduce<Record<FileName, FileContent>>(
-      (acc, { fileName, content }) => {
-        acc[fileName] = content ?? '';
-        return acc;
-      },
-      {}
-    );
-  }
 }
