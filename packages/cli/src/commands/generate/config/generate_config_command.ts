@@ -1,6 +1,6 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { BackendIdentifier } from '@aws-amplify/client-config';
-import { FormatChoice } from '@aws-amplify/client-config/paths';
+import { ClientConfigFormat } from '@aws-amplify/client-config/paths';
 import { AppNameResolver } from '../../../local_app_name_resolver.js';
 import { ClientConfigGeneratorAdapter } from './client_config_generator_adapter.js';
 
@@ -8,7 +8,7 @@ export type GenerateConfigCommandOptions = {
   stack: string | undefined;
   appId: string | undefined;
   branch: string | undefined;
-  format: FormatChoice | undefined;
+  format: ClientConfigFormat | undefined;
   out: string | undefined;
 };
 
@@ -109,7 +109,7 @@ export class GenerateConfigCommand
         describe: 'The format which the configuration should be exported into.',
         type: 'string',
         array: false,
-        choices: Object.values(FormatChoice),
+        choices: Object.values(ClientConfigFormat),
       })
       .option('out', {
         describe:

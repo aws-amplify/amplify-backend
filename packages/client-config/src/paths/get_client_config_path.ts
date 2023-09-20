@@ -13,10 +13,13 @@ export enum ClientConfigFormat {
  * @param format - The format which the configuration should be exported into. Defaults to js.
  * returns path to config file
  */
-export const getClientConfigPath = (out?: string, format?: FormatChoice) => {
+export const getClientConfigPath = (
+  out?: string,
+  format?: ClientConfigFormat
+) => {
   const defaultArgs = {
     out: process.cwd(),
-    format: FormatChoice.JS,
+    format: ClientConfigFormat.JS,
   };
 
   let targetPath: string;

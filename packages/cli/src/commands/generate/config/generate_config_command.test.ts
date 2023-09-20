@@ -1,7 +1,7 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { GenerateConfigCommand } from './generate_config_command.js';
-import { FormatChoice } from '@aws-amplify/client-config/paths';
+import { ClientConfigFormat } from '@aws-amplify/client-config/paths';
 import yargs, { CommandModule } from 'yargs';
 import {
   TestCommandError,
@@ -45,7 +45,10 @@ describe('generate config command', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      path.join(process.cwd(), `${configFileName}.${FormatChoice.JS as string}`)
+      path.join(
+        process.cwd(),
+        `${configFileName}.${ClientConfigFormat.JS as string}`
+      )
     );
   });
 
@@ -62,7 +65,10 @@ describe('generate config command', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      path.join(process.cwd(), `${configFileName}.${FormatChoice.JS as string}`)
+      path.join(
+        process.cwd(),
+        `${configFileName}.${ClientConfigFormat.JS as string}`
+      )
     );
   });
 
@@ -78,7 +84,10 @@ describe('generate config command', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      path.join(process.cwd(), `${configFileName}.${FormatChoice.JS as string}`)
+      path.join(
+        process.cwd(),
+        `${configFileName}.${ClientConfigFormat.JS as string}`
+      )
     );
   });
 
@@ -103,7 +112,7 @@ describe('generate config command', () => {
         '/',
         'foo',
         'bar',
-        `${configFileName}.${FormatChoice.TS as string}`
+        `${configFileName}.${ClientConfigFormat.TS as string}`
       )
     );
   });
