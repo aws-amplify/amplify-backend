@@ -1,7 +1,7 @@
 import path from 'path';
 
 const configFileName = 'amplifyconfiguration';
-export enum FormatChoice {
+export enum ClientConfigFormat {
   JS = 'js',
   JSON = 'json',
   TS = 'ts',
