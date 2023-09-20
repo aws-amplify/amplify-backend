@@ -1,10 +1,12 @@
+import globals from 'globals';
+
 // Recommended plugins that we extend as is
 import js_plugin from '@eslint/js';
 import prettierRecommended from 'eslint-config-prettier';
 import typescriptParser from '@typescript-eslint/parser';
+import typescriptPlugin from '@typescript-eslint/eslint-plugin';
 
 // Plugins that we configure
-import typescriptPlugin from '@typescript-eslint/eslint-plugin';
 import unicorn from 'eslint-plugin-unicorn';
 import jsdoc from 'eslint-plugin-jsdoc';
 import importPlugin from 'eslint-plugin-import';
@@ -14,14 +16,17 @@ import spellCheck from 'eslint-plugin-spellcheck';
 import promise from 'eslint-plugin-promise';
 import shopify from '@shopify/eslint-plugin';
 
-import dictionary from './.eslint-dictionary.json' assert { type: 'json' };
+import dictionary from './.eslint_dictionary.js';
 
 export default [
   js_plugin.configs.recommended,
   jsdoc.configs['flat/recommended-typescript-error'],
   {
+    files: ['**/*.{js,jsx,mjs,cjs,ts,tsx}'],
     languageOptions: {
-      files: ['**/*.{js,jsx,mjs,cjs,ts,tsx}'],
+      globals: {
+        ...globals.node,
+      },
       parser: typescriptParser,
       sourceType: 'module',
       parserOptions: {
@@ -31,22 +36,23 @@ export default [
       },
     },
   },
-  // {
-  //   ignores: [
-  //     'build',
-  //     'coverage',
-  //     'bin',
-  //     'lib',
-  //     'docs',
-  //     'temp',
-  //     'API.md',
-  //     'examples',
-  //     'verdaccio-cache',
-  //   ],
-  // },
+  {
+    ignores: [
+      'build',
+      'coverage',
+      'bin',
+      'lib',
+      'docs',
+      'temp',
+      'API.md',
+      'examples',
+      'verdaccio-cache',
+    ],
+  },
   {
     rules: {
       ...prettierRecommended.rules,
+      'no-unused-vars': 'off',
       'no-console': 'error',
       'no-duplicate-imports': 'error',
       'no-else-return': 'error',
@@ -68,13 +74,21 @@ export default [
       ],
     },
   },
+  // Some packages are allowed to use console.log
+  {
+    files: ['packages/sandbox/**/*', 'scripts/**'],
+    rules: {
+      'no-console': 'off',
+    },
+  },
   // Plugin specific rules in each configuration object
   {
     plugins: {
-      typescript: typescriptPlugin,
+      '@typescript-eslint': typescriptPlugin,
       rules: {
-        ...typescriptPlugin.rules,
-        'typescript/naming-convention': [
+        ...typescriptPlugin.configs['recommended-requiring-type-checking']
+          .rules,
+        '@typescript-eslint/naming-convention': [
           'error',
           {
             selector: 'default',
@@ -106,18 +120,18 @@ export default [
             format: ['camelCase', 'PascalCase', 'UPPER_CASE'],
           },
         ],
-        'typescript/method-signature-style': 'error',
-        'typescript/switch-exhaustiveness-check': 'error',
-        'typescript/no-floating-promises': 'error',
-        'typescript/no-misused-promises': 'error',
-        'typescript/parameter-properties': [
+        '@typescript-eslint/method-signature-style': 'error',
+        '@typescript-eslint/switch-exhaustiveness-check': 'error',
+        '@typescript-eslint/no-floating-promises': 'error',
+        '@typescript-eslint/no-misused-promises': 'error',
+        '@typescript-eslint/parameter-properties': [
           'error',
           {
             prefer: 'parameter-property',
           },
         ],
-        '@typescript/restrict-template-expressions': 'error',
-        '@typescript/consistent-type-definitions': ['error', 'type'],
+        '@@typescript-eslint/restrict-template-expressions': 'error',
+        '@@typescript-eslint/consistent-type-definitions': ['error', 'type'],
       },
     },
   },
@@ -133,6 +147,7 @@ export default [
     plugins: {
       checkFile,
     },
+    ignores: ['**/test-utils/**'],
     rules: {
       'checkFile/filename-blocklist': [
         'error',
@@ -210,9 +225,10 @@ export default [
     },
   },
   {
-    plugins: { spellCheck },
+    plugins: { spellcheck: spellCheck },
+    ignores: ['**/test-assets/**/*.ts'],
     rules: {
-      'spellCheck/spell-checker': [
+      'spellcheck/spell-checker': [
         'warn',
         {
           lang: 'en_US',
