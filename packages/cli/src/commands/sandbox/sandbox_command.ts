@@ -91,7 +91,7 @@ export class SandboxCommand
         })
         .option('format', {
           describe:
-            'The format which the configuration should be exported into.',
+            'Client config output format',
           type: 'string',
           array: false,
           choices: Object.values(ClientConfigFormat),
