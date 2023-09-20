@@ -1,7 +1,7 @@
 import globals from 'globals';
 
 // Recommended plugins that we extend as is
-import js_plugin from '@eslint/js';
+import jsPlugin from '@eslint/js';
 import prettierRecommended from 'eslint-config-prettier';
 import typescriptParser from '@typescript-eslint/parser';
 import typescriptPlugin from '@typescript-eslint/eslint-plugin';
@@ -19,7 +19,21 @@ import shopify from '@shopify/eslint-plugin';
 import dictionary from './.eslint_dictionary.js';
 
 export default [
-  js_plugin.configs.recommended,
+  {
+    ignores: [
+      'build',
+      'coverage',
+      'bin',
+      '**/lib/**',
+      'docs',
+      'temp',
+      'API.md',
+      'examples',
+      'verdaccio-cache',
+      '**/*.d.ts',
+    ],
+  },
+  jsPlugin.configs.recommended,
   jsdoc.configs['flat/recommended-typescript-error'],
   {
     files: ['**/*.{ts,tsx}'],
@@ -28,26 +42,11 @@ export default [
         ...globals.node,
       },
       parser: typescriptParser,
-      sourceType: 'module',
       parserOptions: {
-        ecmaFeatures: { modules: true },
         ecmaVersion: 'latest',
         project: ['**/tsconfig.json'],
       },
     },
-  },
-  {
-    ignores: [
-      'build',
-      'coverage',
-      'bin',
-      'lib',
-      'docs',
-      'temp',
-      'API.md',
-      'examples',
-      'verdaccio-cache',
-    ],
   },
   {
     rules: {
@@ -226,6 +225,7 @@ export default [
   },
   {
     plugins: { spellcheck: spellCheck },
+    files: ['**/*.{ts,tsx}'],
     ignores: ['**/test-assets/**/*.ts'],
     rules: {
       'spellcheck/spell-checker': [
