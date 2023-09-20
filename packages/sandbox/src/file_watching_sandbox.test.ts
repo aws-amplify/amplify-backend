@@ -3,7 +3,6 @@ import watcher from '@parcel/watcher';
 import { FileWatchingSandbox } from './file_watching_sandbox.js';
 import assert from 'node:assert';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
-import { ClientConfigGeneratorAdapter } from './config/client_config_generator_adapter.js';
 import * as path from 'path';
 import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 import fs from 'fs';
@@ -15,16 +14,6 @@ const subscribeMock = mock.method(watcher, 'subscribe', async () => {
   return { unsubscribe: unsubscribeMockFn };
 });
 let fileChangeEventActualFn: watcher.SubscribeCallback;
-
-// Client config mocks
-const clientConfigGeneratorAdapter = new ClientConfigGeneratorAdapter(
-  mock.fn()
-);
-const generateClientConfigMock = mock.method(
-  clientConfigGeneratorAdapter,
-  'generateClientConfigToFile',
-  () => Promise.resolve('testClientConfig')
-);
 
 const backendDeployer = BackendDeployerFactory.getInstance();
 const execaDeployMock = mock.method(backendDeployer, 'deploy', () =>
@@ -46,11 +35,7 @@ describe('Sandbox using local project name resolver', () => {
   beforeEach(async () => {
     // ensures that .gitignore is set as absent
     mock.method(fs, 'existsSync', () => false);
-    sandboxInstance = new FileWatchingSandbox(
-      'testSandboxId',
-      clientConfigGeneratorAdapter,
-      cdkExecutor
-    );
+    sandboxInstance = new FileWatchingSandbox('testSandboxId', cdkExecutor);
     await sandboxInstance.start({
       dir: 'testDir',
       exclude: ['exclude1', 'exclude2'],
@@ -59,7 +44,6 @@ describe('Sandbox using local project name resolver', () => {
     // At this point one deployment should already have been done on sandbox startup
     assert.strictEqual(execaDeployMock.mock.callCount(), 1);
     // and client config generated only once
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
 
     if (
       subscribeMock.mock.calls[0].arguments[1] &&
@@ -71,14 +55,12 @@ describe('Sandbox using local project name resolver', () => {
     // Reset all the calls to avoid extra startup call
     execaDestroyMock.mock.resetCalls();
     execaDeployMock.mock.resetCalls();
-    generateClientConfigMock.mock.resetCalls();
   });
 
   afterEach(async () => {
     execaDestroyMock.mock.resetCalls();
     execaDeployMock.mock.resetCalls();
     subscribeMock.mock.resetCalls();
-    generateClientConfigMock.mock.resetCalls();
     await sandboxInstance.stop();
   });
 
@@ -120,9 +102,6 @@ describe('Sandbox using local project name resolver', () => {
       { type: 'create', path: 'foo/test3.ts' },
     ]);
     assert.strictEqual(execaDeployMock.mock.callCount(), 1);
-
-    // and client config generated only once
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
   });
 
   it('calls CDK once when multiple file changes are within few milliseconds (debounce)', async () => {
@@ -132,9 +111,6 @@ describe('Sandbox using local project name resolver', () => {
       { type: 'update', path: 'foo/test4.ts' },
     ]);
     assert.strictEqual(execaDeployMock.mock.callCount(), 1);
-
-    // and client config written only once
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
   });
 
   it('waits for file changes after completing a deployment and deploys again', async () => {
@@ -145,9 +121,6 @@ describe('Sandbox using local project name resolver', () => {
       { type: 'update', path: 'foo/test6.ts' },
     ]);
     assert.strictEqual(execaDeployMock.mock.callCount(), 2);
-
-    // and client config written twice as well
-    assert.equal(generateClientConfigMock.mock.callCount(), 2);
   });
 
   it('queues deployment if a file change is detected during an ongoing', async () => {
@@ -170,26 +143,6 @@ describe('Sandbox using local project name resolver', () => {
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     assert.strictEqual(execaDeployMock.mock.callCount(), 2);
-    assert.equal(generateClientConfigMock.mock.callCount(), 2);
-  });
-
-  it('writes the correct client-config to default cwd path', async () => {
-    await fileChangeEventActualFn(null, [
-      { type: 'update', path: 'foo/test1.ts' },
-    ]);
-
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
-
-    // generate was called with right arguments
-    assert.deepStrictEqual(
-      generateClientConfigMock.mock.calls[0].arguments[0],
-      { backendId: 'testSandboxId', branchName: 'sandbox' }
-    );
-    assert.deepStrictEqual(
-      generateClientConfigMock.mock.calls[0].arguments[1],
-      path.join(process.cwd(), 'amplifyconfiguration.js')
-    );
   });
 
   it('calls CDK destroy when delete is called', async () => {
@@ -242,11 +195,7 @@ describe('Sandbox with user provided app name', () => {
   beforeEach(async () => {
     // ensures that .gitignore is set as absent
     mock.method(fs, 'existsSync', () => false);
-    sandboxInstance = new FileWatchingSandbox(
-      'testSandboxId',
-      clientConfigGeneratorAdapter,
-      cdkExecutor
-    );
+    sandboxInstance = new FileWatchingSandbox('testSandboxId', cdkExecutor);
     await sandboxInstance.start({
       dir: 'testDir',
       exclude: ['exclude1', 'exclude2'],
@@ -267,14 +216,12 @@ describe('Sandbox with user provided app name', () => {
     // Reset all the calls to avoid extra startup call
     execaDestroyMock.mock.resetCalls();
     execaDeployMock.mock.resetCalls();
-    generateClientConfigMock.mock.resetCalls();
   });
 
   afterEach(async () => {
     execaDestroyMock.mock.resetCalls();
     execaDeployMock.mock.resetCalls();
     subscribeMock.mock.resetCalls();
-    generateClientConfigMock.mock.resetCalls();
     await sandboxInstance.stop();
   });
 
@@ -308,9 +255,6 @@ describe('Sandbox with user provided app name', () => {
         method: 'direct',
       },
     ]);
-
-    // and client config written only once
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
   });
 
   it('calls CDK destroy when delete is called with a user provided sandbox name', async () => {
@@ -328,184 +272,128 @@ describe('Sandbox with user provided app name', () => {
     ]);
   });
 
-  it('writes the correct client-config to user provided path', async () => {
-    await fileChangeEventActualFn(null, [
-      { type: 'update', path: 'foo/test1.ts' },
-    ]);
+  describe('Sandbox with absolute output path', () => {
+    // class under test
+    let sandboxInstance: FileWatchingSandbox;
 
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
+    const cdkExecutor = new AmplifySandboxExecutor(backendDeployer);
 
-    // generate was called with right arguments
-    assert.deepStrictEqual(
-      generateClientConfigMock.mock.calls[0].arguments[0],
-      {
-        backendId: 'customSandboxName',
-        branchName: 'sandbox',
+    /**
+     * For each test we start the sandbox and hence file watcher and get hold of
+     * file change event function which tests can simulate by calling as desired.
+     */
+    beforeEach(async () => {
+      // ensures that .gitignore is set as absent
+      mock.method(fs, 'existsSync', () => false);
+      sandboxInstance = new FileWatchingSandbox('testSandboxId', cdkExecutor);
+      await sandboxInstance.start({
+        dir: 'testDir',
+        exclude: ['exclude1', 'exclude2'],
+        name: 'customSandboxName',
+        clientConfigFilePath: path.join(
+          'test',
+          'location',
+          'amplifyconfiguration.js'
+        ),
+        profile: 'amplify-sandbox',
+      });
+      if (
+        subscribeMock.mock.calls[0].arguments[1] &&
+        typeof subscribeMock.mock.calls[0].arguments[1] === 'function'
+      ) {
+        fileChangeEventActualFn = subscribeMock.mock.calls[0].arguments[1];
       }
-    );
-    assert.equal(
-      generateClientConfigMock.mock.calls[0].arguments[1],
-      path.resolve(process.cwd(), 'test', 'location', 'amplifyconfiguration.js')
-    );
-  });
-});
 
-describe('Sandbox with absolute output path', () => {
-  // class under test
-  let sandboxInstance: FileWatchingSandbox;
-
-  const cdkExecutor = new AmplifySandboxExecutor(backendDeployer);
-
-  /**
-   * For each test we start the sandbox and hence file watcher and get hold of
-   * file change event function which tests can simulate by calling as desired.
-   */
-  beforeEach(async () => {
-    // ensures that .gitignore is set as absent
-    mock.method(fs, 'existsSync', () => false);
-    sandboxInstance = new FileWatchingSandbox(
-      'testSandboxId',
-      clientConfigGeneratorAdapter,
-      cdkExecutor
-    );
-    await sandboxInstance.start({
-      dir: 'testDir',
-      exclude: ['exclude1', 'exclude2'],
-      name: 'customSandboxName',
-      clientConfigFilePath: path.join(
-        'test',
-        'location',
-        'amplifyconfiguration.js'
-      ),
-      profile: 'amplify-sandbox',
+      // Reset all the calls to avoid extra startup call
+      execaDeployMock.mock.resetCalls();
+      execaDestroyMock.mock.resetCalls();
     });
-    if (
-      subscribeMock.mock.calls[0].arguments[1] &&
-      typeof subscribeMock.mock.calls[0].arguments[1] === 'function'
-    ) {
-      fileChangeEventActualFn = subscribeMock.mock.calls[0].arguments[1];
-    }
 
-    // Reset all the calls to avoid extra startup call
-    execaDeployMock.mock.resetCalls();
-    execaDestroyMock.mock.resetCalls();
-    generateClientConfigMock.mock.resetCalls();
+    afterEach(async () => {
+      execaDeployMock.mock.resetCalls();
+      execaDestroyMock.mock.resetCalls();
+      subscribeMock.mock.resetCalls();
+      await sandboxInstance.stop();
+    });
+
+    it('sets AWS profile when starting sandbox', async () => {
+      assert.strictEqual(process.env.AWS_PROFILE, 'amplify-sandbox');
+    });
   });
 
-  afterEach(async () => {
-    execaDeployMock.mock.resetCalls();
-    execaDestroyMock.mock.resetCalls();
-    subscribeMock.mock.resetCalls();
-    generateClientConfigMock.mock.resetCalls();
-    await sandboxInstance.stop();
-  });
+  describe('Sandbox ignoring paths in .gitignore', () => {
+    // class under test
+    let sandboxInstance: FileWatchingSandbox;
 
-  it('generates client config at absolute location', async () => {
-    await fileChangeEventActualFn(null, [
-      { type: 'update', path: 'foo/test1.ts' },
-    ]);
+    const cdkExecutor = new AmplifySandboxExecutor(backendDeployer);
 
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
-
-    // generate was called with right arguments
-    assert.deepStrictEqual(
-      generateClientConfigMock.mock.calls[0].arguments[0],
-      {
-        backendId: 'customSandboxName',
-        branchName: 'sandbox',
+    /**
+     * For each test we start the sandbox and hence file watcher and get hold of
+     * file change event function which tests can simulate by calling as desired.
+     */
+    beforeEach(async () => {
+      // setup .gitignore such that parseGitIgnore returns a list of parsed paths
+      mock.method(fs, 'existsSync', () => true);
+      mock.method(parseGitIgnore, 'parse', () => {
+        return {
+          patterns: [
+            '/patternWithLeadingSlash',
+            'patternWithoutLeadingSlash',
+            'someFile.js',
+            'overlap/',
+            'overlap/file',
+          ],
+        };
+      });
+      sandboxInstance = new FileWatchingSandbox('testSandboxId', cdkExecutor);
+      await sandboxInstance.start({
+        dir: 'testDir',
+        exclude: ['customer_exclude1', 'customer_exclude2'],
+        name: 'customSandboxName',
+        clientConfigFilePath: 'amplifyconfiguration.js',
+      });
+      if (
+        subscribeMock.mock.calls[0].arguments[1] &&
+        typeof subscribeMock.mock.calls[0].arguments[1] === 'function'
+      ) {
+        fileChangeEventActualFn = subscribeMock.mock.calls[0].arguments[1];
       }
-    );
-    assert.equal(
-      generateClientConfigMock.mock.calls[0].arguments[1],
-      path.join(process.cwd(), 'test', 'location', 'amplifyconfiguration.js')
-    );
-  });
 
-  it('sets AWS profile when starting sandbox', async () => {
-    assert.strictEqual(process.env.AWS_PROFILE, 'amplify-sandbox');
-  });
-});
+      // Reset all the calls to avoid extra startup call
+      execaDeployMock.mock.resetCalls();
+      execaDestroyMock.mock.resetCalls();
+    });
 
-describe('Sandbox ignoring paths in .gitignore', () => {
-  // class under test
-  let sandboxInstance: FileWatchingSandbox;
+    afterEach(async () => {
+      execaDeployMock.mock.resetCalls();
+      execaDestroyMock.mock.resetCalls();
+      subscribeMock.mock.resetCalls();
+      await sandboxInstance.stop();
+    });
 
-  const cdkExecutor = new AmplifySandboxExecutor(backendDeployer);
+    it('handles .gitignore files to exclude paths from file watching', async () => {
+      await fileChangeEventActualFn(null, [
+        { type: 'update', path: 'foo/test1.ts' },
+      ]);
 
-  /**
-   * For each test we start the sandbox and hence file watcher and get hold of
-   * file change event function which tests can simulate by calling as desired.
-   */
-  beforeEach(async () => {
-    // setup .gitignore such that parseGitIgnore returns a list of parsed paths
-    mock.method(fs, 'existsSync', () => true);
-    mock.method(parseGitIgnore, 'parse', () => {
-      return {
-        patterns: [
-          '/patternWithLeadingSlash',
+      // File watcher should be called with right excludes
+      assert.strictEqual(subscribeMock.mock.calls[0].arguments[0], 'testDir');
+      assert.deepStrictEqual(subscribeMock.mock.calls[0].arguments[2], {
+        ignore: [
+          'cdk.out',
+          path.join(process.cwd(), 'amplifyconfiguration.js'),
+          'patternWithLeadingSlash',
           'patternWithoutLeadingSlash',
           'someFile.js',
           'overlap/',
           'overlap/file',
+          'customer_exclude1',
+          'customer_exclude2',
         ],
-      };
+      });
+
+      // CDK should also be called once
+      assert.strictEqual(execaDeployMock.mock.callCount(), 1);
     });
-    sandboxInstance = new FileWatchingSandbox(
-      'testSandboxId',
-      clientConfigGeneratorAdapter,
-      cdkExecutor
-    );
-    await sandboxInstance.start({
-      dir: 'testDir',
-      exclude: ['customer_exclude1', 'customer_exclude2'],
-      name: 'customSandboxName',
-      clientConfigFilePath: 'amplifyconfiguration.js',
-    });
-    if (
-      subscribeMock.mock.calls[0].arguments[1] &&
-      typeof subscribeMock.mock.calls[0].arguments[1] === 'function'
-    ) {
-      fileChangeEventActualFn = subscribeMock.mock.calls[0].arguments[1];
-    }
-
-    // Reset all the calls to avoid extra startup call
-    execaDeployMock.mock.resetCalls();
-    execaDestroyMock.mock.resetCalls();
-    generateClientConfigMock.mock.resetCalls();
-  });
-
-  afterEach(async () => {
-    execaDeployMock.mock.resetCalls();
-    execaDestroyMock.mock.resetCalls();
-    subscribeMock.mock.resetCalls();
-    generateClientConfigMock.mock.resetCalls();
-    await sandboxInstance.stop();
-  });
-
-  it('handles .gitignore files to exclude paths from file watching', async () => {
-    await fileChangeEventActualFn(null, [
-      { type: 'update', path: 'foo/test1.ts' },
-    ]);
-
-    // File watcher should be called with right excludes
-    assert.strictEqual(subscribeMock.mock.calls[0].arguments[0], 'testDir');
-    assert.deepStrictEqual(subscribeMock.mock.calls[0].arguments[2], {
-      ignore: [
-        'cdk.out',
-        path.join(process.cwd(), 'amplifyconfiguration.js'),
-        'patternWithLeadingSlash',
-        'patternWithoutLeadingSlash',
-        'someFile.js',
-        'overlap/',
-        'overlap/file',
-        'customer_exclude1',
-        'customer_exclude2',
-      ],
-    });
-
-    // CDK should also be called once
-    assert.strictEqual(execaDeployMock.mock.callCount(), 1);
   });
 });

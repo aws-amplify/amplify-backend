@@ -4,12 +4,31 @@
 
 ```ts
 
+// @public (undocumented)
+export type Hook = () => Promise<void>;
+
+// @public
+export class HookHandler {
+    // (undocumented)
+    protected postDeploymentHooks: Array<Hook>;
+    // (undocumented)
+    protected preDeploymentHooks: Array<Hook>;
+    // (undocumented)
+    registerPostDeploymentHook: (hook: Hook) => void;
+    // (undocumented)
+    registerPreDeploymentHook: (hook: Hook) => void;
+    // (undocumented)
+    unregisterPostDeploymentHook: (hook: Hook) => void;
+    // (undocumented)
+    unregisterPreDeploymentHook: (hook: Hook) => void;
+}
+
 // @public
 export type Sandbox = {
     start: (options: SandboxOptions) => Promise<void>;
     stop: () => Promise<void>;
     delete: (options: SandboxDeleteOptions) => Promise<void>;
-};
+} & HookHandler;
 
 // @public (undocumented)
 export type SandboxDeleteOptions = {

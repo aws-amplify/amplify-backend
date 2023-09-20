@@ -1,8 +1,15 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { SandboxDeleteCommand } from './sandbox-delete/sandbox_delete_command.js';
 import fs from 'fs';
+import path from 'path';
 import { AmplifyPrompter } from '../prompter/amplify_prompts.js';
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
+import { SandboxIdResolver } from './sandbox_id_resolver.js';
+import { LocalAppNameResolver } from '../../local_app_name_resolver.js';
+import { CwdPackageJsonLoader } from '../../cwd_package_json_loader.js';
+import { generateClientConfigToFile } from '@aws-amplify/client-config';
+import { ClientConfigGeneratorAdapter } from '../generate/config/client_config_generator_adapter.js';
+import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 
 export type SandboxCommandOptions = {
   dirToWatch: string | undefined;
@@ -48,11 +55,37 @@ export class SandboxCommand
     args: ArgumentsCamelCase<SandboxCommandOptions>
   ): Promise<void> => {
     this.appName = args.name;
-    await (
-      await this.sandboxFactory.getInstance()
-    ).start({
+    const sandbox = await this.sandboxFactory.getInstance();
+    let clientConfigWritePath = path.join(
+      process.cwd(),
+      'amplifyconfiguration.js'
+    );
+    if (args.clientConfigFilePath) {
+      if (args.out && path.isAbsolute(args.out)) {
+        clientConfigWritePath = args.out;
+      } else if (args.out) {
+        clientConfigWritePath = path.resolve(process.cwd(), args.out);
+      }
+    }
+    sandbox.registerPostDeploymentHook(async () => {
+      const sandboxIdResolver = new SandboxIdResolver(
+        new LocalAppNameResolver(new CwdPackageJsonLoader())
+      ); // write config
+      const sandboxId = args.name ?? (await sandboxIdResolver.resolve());
+      await generateClientConfigToFile(
+        fromNodeProviderChain(),
+        {
+          backendId: sandboxId,
+          branchName: 'sandbox',
+        },
+        clientConfigWritePath
+      );
+    });
+    const watchExclusions = args.exclude ?? [];
+    watchExclusions.push(clientConfigWritePath);
+    await sandbox.start({
       dir: args.dirToWatch,
-      exclude: args.exclude,
+      exclude: watchExclusions,
       name: args.name,
       clientConfigFilePath: args.out,
       profile: args.profile,

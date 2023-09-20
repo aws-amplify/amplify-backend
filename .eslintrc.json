@@ -240,6 +240,7 @@
           "unauth",
           "unix",
           "unlink",
+          "unregister",
           "unvalidated",
           "urls",
           "utf",
