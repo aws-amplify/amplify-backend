@@ -1,6 +1,7 @@
 import { generateGraphQLDocuments } from '@aws-amplify/graphql-docs-generator';
 import {
   DocumentGenerationParameters,
+  DocumentGenerationResult,
   GraphqlDocumentGenerator,
   TargetLanguage,
 } from './model_generator.js';
@@ -21,19 +22,14 @@ export class AppSyncGraphqlDocumentGenerator
       language: TargetLanguage,
       statements: Statements
     ) => Promise<string>,
-    private writeFile: (
-      outDir: string,
-      fileName: string,
-      content: string
-    ) => Promise<void>
+    private resultBuilder: (
+      fileMap: Record<string, string>
+    ) => DocumentGenerationResult
   ) {}
   private static languageExtensions: Record<TargetLanguage, string> = {
     typescript: 'ts',
   };
-  generateModels = async ({
-    language,
-    outDir,
-  }: DocumentGenerationParameters) => {
+  generateModels = async ({ language }: DocumentGenerationParameters) => {
     const schema = await this.fetchSchema();
 
     if (!schema) {
@@ -51,16 +47,21 @@ export class AppSyncGraphqlDocumentGenerator
       'subscriptions',
     ];
 
-    await Promise.all(
+    const formattedFiles = await Promise.all(
       clientOps.map(async (op) => {
         const ops = generatedStatements[op];
         const content = await this.format(language, ops as Map<string, string>);
-        await this.writeFile(
-          outDir,
-          `${op}.${AppSyncGraphqlDocumentGenerator.languageExtensions[language]}`,
-          content
-        );
+        const fileName = `${op}.${AppSyncGraphqlDocumentGenerator.languageExtensions[language]}`;
+        return { fileName, content };
       })
     );
+    const fileMap = formattedFiles.reduce<Record<string, string>>(
+      (prev: Record<string, string>, { content, fileName }) => {
+        prev[fileName] = content;
+        return prev;
+      },
+      {}
+    );
+    return this.resultBuilder(fileMap);
   };
 }
