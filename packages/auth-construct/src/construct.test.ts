@@ -504,6 +504,32 @@ describe('Auth construct', () => {
         },
       ]);
     });
+
+    it('stores output when no storage strategy is injected', () => {
+      const app = new App();
+      const stack = new Stack(app);
+
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+        },
+      });
+
+      const template = Template.fromStack(stack);
+      template.templateMatches({
+        Metadata: {
+          [authOutputKey]: {
+            version: '1',
+            stackOutputs: [
+              'userPoolId',
+              'webClientId',
+              'identityPoolId',
+              'authRegion',
+            ],
+          },
+        },
+      });
+    });
   });
 
   describe('defaults', () => {

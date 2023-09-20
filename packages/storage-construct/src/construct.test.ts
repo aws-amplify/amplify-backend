@@ -64,5 +64,20 @@ describe('AmplifyStorage', () => {
         },
       ]);
     });
+    it('stores output when no storage strategy is injected', () => {
+      const app = new App();
+      const stack = new Stack(app);
+
+      new AmplifyStorage(stack, 'test', {});
+      const template = Template.fromStack(stack);
+      template.templateMatches({
+        Metadata: {
+          [storageOutputKey]: {
+            version: '1',
+            stackOutputs: ['storageRegion', 'bucketName'],
+          },
+        },
+      });
+    });
   });
 });
