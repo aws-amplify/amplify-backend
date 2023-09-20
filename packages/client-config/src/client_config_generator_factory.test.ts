@@ -1,12 +1,14 @@
 import { describe, it } from 'node:test';
 import { ClientConfigGeneratorFactory } from './client_config_generator_factory.js';
-import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import assert from 'node:assert';
 import { UnifiedClientConfigGenerator } from './unified_client_config_generator.js';
 import { PassThroughMainStackNameResolver } from './stack-name-resolvers/passthrough_main_stack_name_resolver.js';
 import { MainStackNameResolver } from '@aws-amplify/plugin-types';
 import { UniqueBackendIdentifierMainStackNameResolver } from './stack-name-resolvers/unique_deployment_identifier_main_stack_name_resolver.js';
 import { AppNameAndBranchMainStackNameResolver } from './stack-name-resolvers/app_name_and_branch_main_stack_name_resolver.js';
+import { BackendOutputRetrievalStrategyFactory } from './backend_output_retrieval_strategy_factory.js';
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import { AmplifyClient } from '@aws-sdk/client-amplify';
 
 /**
  * This type reaches into the internals of the ClientConfigGenerator implementation
@@ -23,7 +25,10 @@ describe('ClientConfigGeneratorFactory', () => {
   describe('getInstance', () => {
     it('Creates client config generator for stack identifier', () => {
       const generatorFactory = new ClientConfigGeneratorFactory(
-        fromNodeProviderChain()
+        new BackendOutputRetrievalStrategyFactory(
+          new CloudFormationClient(),
+          new AmplifyClient()
+        )
       );
 
       const clientConfigGenerator = generatorFactory.getInstance({
@@ -39,7 +44,10 @@ describe('ClientConfigGeneratorFactory', () => {
 
     it('Creates client config generator for backendId and branch', () => {
       const generatorFactory = new ClientConfigGeneratorFactory(
-        fromNodeProviderChain()
+        new BackendOutputRetrievalStrategyFactory(
+          new CloudFormationClient(),
+          new AmplifyClient()
+        )
       );
 
       const clientConfigGenerator = generatorFactory.getInstance({
@@ -56,7 +64,10 @@ describe('ClientConfigGeneratorFactory', () => {
 
     it('Creates client config generator for appName and branch', () => {
       const generatorFactory = new ClientConfigGeneratorFactory(
-        fromNodeProviderChain()
+        new BackendOutputRetrievalStrategyFactory(
+          new CloudFormationClient(),
+          new AmplifyClient()
+        )
       );
 
       const clientConfigGenerator = generatorFactory.getInstance({
