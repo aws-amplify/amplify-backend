@@ -1,7 +1,10 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { StorageClientConfigContributor } from './storage_client_config_contributor.js';
-import { graphqlOutputKey } from '@aws-amplify/backend-output-schemas';
+import {
+  graphqlOutputKey,
+  storageOutputKey,
+} from '@aws-amplify/backend-output-schemas';
 
 describe('StorageClientConfigContributor', () => {
   it('returns an empty object if output has no storage output', () => {
@@ -26,7 +29,7 @@ describe('StorageClientConfigContributor', () => {
     const contributor = new StorageClientConfigContributor();
     assert.deepStrictEqual(
       contributor.contribute({
-        'AWS::Amplify::Storage': {
+        [storageOutputKey]: {
           version: '1',
           payload: {
             bucketName: 'testBucketName',
