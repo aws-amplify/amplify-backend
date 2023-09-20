@@ -8,12 +8,6 @@
 export const createLocalGraphqlFormGenerator: (generationParams: LocalGraphqlFormGeneratorParams) => GraphqlFormGenerator;
 
 // @public (undocumented)
-export type FileContents = string;
-
-// @public (undocumented)
-export type FileName = string;
-
-// @public (undocumented)
 export type GraphqlFormGenerator = {
     generateForms: () => Promise<GraphqlGenerationResult>;
 };

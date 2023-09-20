@@ -10,16 +10,10 @@ export class S3StringObjectFetcher {
   constructor(private s3Client: S3Client) {}
 
   private parseS3Uri = (uri: string): { bucket: string; key: string } => {
-    const regex = new RegExp('s3://(.*?)/(.*)');
-    const match = uri.match(regex);
-    if (match?.length !== 3 || !match[1] || !match[2]) {
-      throw new Error(
-        'Could not identify bucket and key name for introspection schema'
-      );
-    }
+    const { hostname, pathname } = new URL(uri);
     return {
-      bucket: match[1],
-      key: match[2],
+      bucket: hostname,
+      key: pathname.replace('/', ''),
     };
   };
   /**

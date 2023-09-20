@@ -10,12 +10,12 @@ import { directives } from './aws_graphql_directives.js';
 /**
  * Transforms an AppSync introspection schema for use in form generation
  */
-export const transformAppsyncIntrospectionSchema = async (
-  appSyncIntrospectionSchema: string
+export const transformIntrospectionSchema = async (
+  modelIntrospectionSchema: string
 ): Promise<GenericDataSchema> => {
   const result = await appsync.preset.buildGeneratesSection({
     baseOutputDir: './',
-    schema: parse(appSyncIntrospectionSchema),
+    schema: parse(modelIntrospectionSchema),
     config: {
       directives,
       isTimestampFieldsAdded: true,
