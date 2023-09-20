@@ -2,7 +2,7 @@ import path from 'path';
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { BackendIdentifier } from '@aws-amplify/client-config';
 import { ClientConfigGeneratorAdapter } from '../config/client_config_generator_adapter.js';
-import { createFormGenerator } from '@aws-amplify/form-generator';
+import { createLocalGraphqlFormGenerator } from '@aws-amplify/form-generator';
 import { createGraphqlDocumentGenerator } from '@aws-amplify/model-generator';
 import { AppNameResolver } from '../../../local_app_name_resolver.js';
 
@@ -107,10 +107,9 @@ export class GenerateFormsCommand
     this.log('GraphQL client successfully generated');
     this.log(`Generating React forms in ${args.uiOut}`);
     const relativePath = path.relative(args.uiOut, args.modelsOut);
-    const localFormGenerator = createFormGenerator('graphql', {
-      /* eslint-disable-next-line spellcheck/spell-checker */
+    const localFormGenerator = createLocalGraphqlFormGenerator({
       introspectionSchemaUrl: apiUrl,
-      relativePathToGraphqlModelDirectory: relativePath,
+      graphqlModelDirectoryPath: relativePath,
     });
     const result = await localFormGenerator.generateForms();
     await result.writeToDirectory(args.uiOut);
