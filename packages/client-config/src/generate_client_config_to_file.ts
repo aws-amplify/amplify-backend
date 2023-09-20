@@ -4,6 +4,7 @@ import {
   generateClientConfig,
 } from './generate_client_config.js';
 import { ClientConfigWriter } from './client-config-writer/client_config_writer.js';
+import { ClientConfigFormat, getClientConfigPath } from './paths/index.js';
 
 /**
  * Main entry point for generating client config and writing to a file
@@ -11,7 +12,8 @@ import { ClientConfigWriter } from './client-config-writer/client_config_writer.
 export const generateClientConfigToFile = async (
   credentialProvider: AwsCredentialIdentityProvider,
   backendIdentifier: BackendIdentifier,
-  targetPath: string
+  out?: string,
+  format?: ClientConfigFormat
 ): Promise<void> => {
   const clientConfigWriter = new ClientConfigWriter();
 
@@ -19,5 +21,6 @@ export const generateClientConfigToFile = async (
     credentialProvider,
     backendIdentifier
   );
+  const targetPath = getClientConfigPath(out, format);
   await clientConfigWriter.writeClientConfig(clientConfig, targetPath);
 };

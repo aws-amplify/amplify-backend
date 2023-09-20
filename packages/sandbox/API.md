@@ -4,7 +4,7 @@
 
 ```ts
 
-import { FormatChoice } from '@aws-amplify/client-config/paths';
+import { ClientConfigFormat } from '@aws-amplify/client-config/paths';
 
 // @public
 export type Sandbox = {
@@ -23,7 +23,7 @@ export type SandboxOptions = {
     dir?: string;
     exclude?: string[];
     name?: string;
-    format?: FormatChoice;
+    format?: ClientConfigFormat;
     profile?: string;
     clientConfigFilePath?: string;
 };

@@ -1,6 +1,9 @@
 import debounce from 'debounce-promise';
 import parcelWatcher, { subscribe } from '@parcel/watcher';
-import { getClientConfigPath } from '@aws-amplify/client-config/paths';
+import {
+  ClientConfigFormat,
+  getClientConfigPath,
+} from '@aws-amplify/client-config/paths';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
 import { Sandbox, SandboxDeleteOptions, SandboxOptions } from './sandbox.js';
 import { ClientConfigGeneratorAdapter } from './config/client_config_generator_adapter.js';
@@ -71,7 +74,11 @@ export class FileWatchingSandbox implements Sandbox {
         backendId: sandboxId,
         branchName: 'sandbox',
       });
-      await this.writeUpdatedClientConfig(sandboxId, clientConfigWritePath);
+      await this.writeUpdatedClientConfig(
+        sandboxId,
+        options.clientConfigFilePath,
+        options.format
+      );
 
       // If latch is still 'deploying' after the 'await', that's fine,
       // but if it's 'queued', that means we need to deploy again
@@ -86,7 +93,11 @@ export class FileWatchingSandbox implements Sandbox {
           backendId: sandboxId,
           branchName: 'sandbox',
         });
-        await this.writeUpdatedClientConfig(sandboxId, clientConfigWritePath);
+        await this.writeUpdatedClientConfig(
+          sandboxId,
+          options.clientConfigFilePath,
+          options.format
+        );
       }
       latch = 'open';
       this.emitWatching();
@@ -151,18 +162,21 @@ export class FileWatchingSandbox implements Sandbox {
   /**
    * Runs post every deployment. Generates the client config and writes to a local file
    * @param sandboxId for this sandbox execution. Either package.json#name + whoami or provided by user during `amplify sandbox`
-   * @param outputPath optional location provided by customer to write client config to
+   * @param out optional location provided by customer to write client config to
+   * @param format optional format provided by customer to write client config in
    */
   private writeUpdatedClientConfig = async (
     sandboxId: string,
-    outputPath: string
+    out?: string,
+    format?: ClientConfigFormat
   ) => {
     await this.clientConfigGenerator.generateClientConfigToFile(
       {
         backendId: sandboxId,
         branchName: 'sandbox',
       },
-      outputPath
+      out,
+      format
     );
   };
 
