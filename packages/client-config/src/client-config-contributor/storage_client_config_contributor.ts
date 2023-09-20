@@ -9,9 +9,9 @@ export class StorageClientConfigContributor implements ClientConfigContributor {
   /**
    * Given some BackendOutput, contribute the Storage portion of the ClientConfig
    */
-  contribute({
+  contribute = ({
     storageOutput,
-  }: UnifiedBackendOutput): StorageClientConfig | Record<string, never> {
+  }: UnifiedBackendOutput): StorageClientConfig | Record<string, never> => {
     if (storageOutput === undefined) {
       return {};
     }
@@ -19,5 +19,5 @@ export class StorageClientConfigContributor implements ClientConfigContributor {
       aws_user_files_s3_bucket_region: storageOutput.payload.storageRegion,
       aws_user_files_s3_bucket: storageOutput.payload.bucketName,
     };
-  }
+  };
 }

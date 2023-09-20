@@ -6,15 +6,18 @@
     "stackOutputs": [
      "userPoolId",
      "webClientId",
+     "identityPoolId",
      "authRegion"
     ]
    },
    "graphqlOutput": {
     "version": "1",
     "stackOutputs": [
+     "awsAppsyncApiId",
      "awsAppsyncApiEndpoint",
      "awsAppsyncAuthenticationType",
-     "awsAppsyncRegion"
+     "awsAppsyncRegion",
+     "amplifyApiModelSchemaS3Uri"
     ]
    }
   }
@@ -39,7 +42,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/6595334910a8f09e1124763cbf51d570739dcc44dd89f455ee2e90912326991b.json"
+       "/ed44630901521ac138d2f1db1de37cd982b80f0bbb28871d69f3076f90dda64d.json"
       ]
      ]
     }
@@ -66,7 +69,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/d0b4f4d046ae1f182e7cb26c942ae4a7b1990b640110fa6eabb4c72e4f4d640b.json"
+       "/a03c96ec8850490100abe49ec4f52a4a063b7f42eb9df40e10afe2342547d24a.json"
       ]
      ]
     },
@@ -112,9 +115,25 @@
     ]
    }
   },
+  "identityPoolId": {
+   "Value": {
+    "Fn::GetAtt": [
+     "auth179371D7",
+     "Outputs.amplifytestAppIdtestBranchNameauthamplifyAuthIdentityPool40350D66Ref"
+    ]
+   }
+  },
   "authRegion": {
    "Value": {
     "Ref": "AWS::Region"
+   }
+  },
+  "awsAppsyncApiId": {
+   "Value": {
+    "Fn::GetAtt": [
+     "data7552DF31",
+     "Outputs.amplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
+    ]
    }
   },
   "awsAppsyncApiEndpoint": {
@@ -131,6 +150,23 @@
   "awsAppsyncRegion": {
    "Value": {
     "Ref": "AWS::Region"
+   }
+  },
+  "amplifyApiModelSchemaS3Uri": {
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "s3://",
+      {
+       "Fn::GetAtt": [
+        "data7552DF31",
+        "Outputs.amplifytestAppIdtestBranchNamedataamplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsBucket25324612Ref"
+       ]
+      },
+      "/model-schema.graphql"
+     ]
+    ]
    }
   }
  },

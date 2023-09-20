@@ -35,9 +35,9 @@ export class AmplifyStorage extends Construct implements BackendOutputWriter {
   /**
    * Store storage outputs using provided strategy
    */
-  storeOutput(
+  storeOutput = (
     outputStorageStrategy: BackendOutputStorageStrategy<StorageOutput>
-  ): void {
+  ): void => {
     outputStorageStrategy.addBackendOutputEntry(storageOutputKey, {
       version: '1',
       payload: {
@@ -45,5 +45,5 @@ export class AmplifyStorage extends Construct implements BackendOutputWriter {
         bucketName: this.bucket.bucketName,
       },
     });
-  }
+  };
 }

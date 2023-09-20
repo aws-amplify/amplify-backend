@@ -8,13 +8,14 @@ import { NpmProjectInitializer } from './npm_project_initializer.js';
  */
 export class AmplifyProjectCreator {
   // TODO once we create `aws-amplify-backend` that will be included here
-  private readonly defaultPackages = [
+  private readonly defaultDevPackages = [
     '@aws-amplify/backend',
     '@aws-amplify/backend-graphql',
     '@aws-amplify/backend-auth',
     '@aws-amplify/backend-cli',
-    'aws-amplify',
   ];
+
+  private readonly defaultProdPackages = ['aws-amplify'];
 
   /**
    * Orchestrator for the create-amplify workflow.
@@ -31,17 +32,26 @@ export class AmplifyProjectCreator {
   /**
    * Executes the create-amplify workflow
    */
-  async create(): Promise<void> {
+  create = async (): Promise<void> => {
     this.logger.log(`Validating current state of target directory...`);
     await this.projectRootValidator.validate();
 
     await this.npmInitializedEnsurer.ensureInitialized();
 
     this.logger.log(
-      `Installing packages ${this.defaultPackages.join(', ')}...`
+      `Installing packages ${this.defaultProdPackages.join(', ')}...`
     );
     await this.packageManagerController.installDependencies(
-      this.defaultPackages,
+      this.defaultProdPackages,
+      'prod'
+    );
+
+    this.logger.log(
+      `Installing dev dependencies ${this.defaultDevPackages.join(', ')}...`
+    );
+
+    await this.packageManagerController.installDependencies(
+      this.defaultDevPackages,
       'dev'
     );
 
@@ -51,5 +61,5 @@ export class AmplifyProjectCreator {
     this.logger.log(
       'All done! Run `amplify help` for a list of available commands.'
     );
-  }
+  };
 }

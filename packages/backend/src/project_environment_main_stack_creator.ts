@@ -23,7 +23,7 @@ export class ProjectEnvironmentMainStackCreator implements MainStackCreator {
   /**
    * Get a stack for this environment in the provided CDK scope
    */
-  getOrCreateMainStack(): Stack {
+  getOrCreateMainStack = (): Stack => {
     if (this.mainStack === undefined) {
       this.mainStack = new AmplifyStack(
         this.scope,
@@ -32,5 +32,5 @@ export class ProjectEnvironmentMainStackCreator implements MainStackCreator {
     }
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return this.mainStack!;
-  }
+  };
 }

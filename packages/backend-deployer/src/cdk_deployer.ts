@@ -5,6 +5,7 @@ import {
   BackendDeployer,
   DeployProps,
 } from './cdk_deployer_singleton_factory.js';
+import { CdkErrorMapper } from './cdk_error_mapper.js';
 
 const relativeBackendEntryPoint = 'amplify/backend.ts';
 
@@ -21,12 +22,16 @@ enum InvokableCommand {
  */
 export class CDKDeployer implements BackendDeployer {
   /**
+   * Instantiates instance of CDKDeployer
+   */
+  constructor(private readonly cdkErrorMapper: CdkErrorMapper) {}
+  /**
    * Invokes cdk deploy command
    */
-  async deploy(
+  deploy = async (
     uniqueBackendIdentifier?: UniqueBackendIdentifier,
     deployProps?: DeployProps
-  ) {
+  ) => {
     const cdkCommandArgs: string[] = [];
     if (deployProps?.hotswapFallback) {
       cdkCommandArgs.push('--hotswap-fallback');
@@ -39,25 +44,25 @@ export class CDKDeployer implements BackendDeployer {
       uniqueBackendIdentifier,
       cdkCommandArgs
     );
-  }
+  };
 
   /**
    * Invokes cdk destroy command
    */
-  async destroy(uniqueBackendIdentifier?: UniqueBackendIdentifier) {
+  destroy = async (uniqueBackendIdentifier?: UniqueBackendIdentifier) => {
     await this.invoke(InvokableCommand.DESTROY, uniqueBackendIdentifier, [
       '--force',
     ]);
-  }
+  };
 
   /**
    * Executes a CDK command
    */
-  private async invoke(
+  private invoke = async (
     invokableCommand: InvokableCommand,
     uniqueBackendIdentifier?: UniqueBackendIdentifier,
     additionalArguments?: string[]
-  ) {
+  ) => {
     // Basic args
     const cdkCommandArgs = [
       'cdk',
@@ -83,8 +88,12 @@ export class CDKDeployer implements BackendDeployer {
       cdkCommandArgs.push(...additionalArguments);
     }
 
-    await this.executeChildProcess('npx', cdkCommandArgs);
-  }
+    try {
+      await this.executeChildProcess('npx', cdkCommandArgs);
+    } catch (err) {
+      throw this.cdkErrorMapper.getHumanReadableError(err as Error);
+    }
+  };
 
   /**
    * Wrapper for the child process executor. Helps in unit testing as node:test framework
@@ -93,7 +102,7 @@ export class CDKDeployer implements BackendDeployer {
   executeChildProcess = async (command: string, cdkCommandArgs: string[]) => {
     // We let the stdout and stdin inherit and streamed to parent process but pipe
     // the stderr and use it to throw on failure. This is to prevent actual
-    // actionable errors being hidden amongst the stdout. Moreover execa errors are
+    // actionable errors being hidden among the stdout. Moreover execa errors are
     // useless when calling CLIs unless you made execa calling error.
     let aggregatedStderr = '';
     const aggregatorStream = new stream.Writable();

@@ -4,20 +4,35 @@
 
 ```ts
 
+import { CfnIdentityPool } from 'aws-cdk-lib/aws-cognito';
+import { CfnIdentityPoolRoleAttachment } from 'aws-cdk-lib/aws-cognito';
 import { Construct } from 'constructs';
+import { Function as Function_2 } from 'aws-cdk-lib/aws-lambda';
 import { IRole } from 'aws-cdk-lib/aws-iam';
 import { IUserPool } from 'aws-cdk-lib/aws-cognito';
+import { IUserPoolClient } from 'aws-cdk-lib/aws-cognito';
+import { SecretValue } from 'aws-cdk-lib';
 import { Stack } from 'aws-cdk-lib';
+
+// @public (undocumented)
+export type AmplifyFunction = ResourceProvider<FunctionResources>;
 
 // @public
 export type AppId = string;
 
 // @public
+export type AuthCfnResources = {
+    identityPool: CfnIdentityPool;
+    identityPoolRoleAttachment: CfnIdentityPoolRoleAttachment;
+};
+
+// @public
 export type AuthResources = {
-    authenticatedUserIamRole: IRole;
-    unauthenticatedUserIamRole: IRole;
-    userPool?: IUserPool;
-    identityPoolId?: string;
+    userPool: IUserPool;
+    userPoolClient: IUserPoolClient;
+    authenticatedUserIamRole?: IRole;
+    unauthenticatedUserIamRole?: IRole;
+    cfnResources: AuthCfnResources;
 };
 
 // @public (undocumented)
@@ -34,37 +49,42 @@ export type BackendOutputEntry<T extends Record<string, string> = Record<string,
 
 // @public (undocumented)
 export type BackendOutputRetrievalStrategy = {
-    fetchBackendOutput(): Promise<BackendOutput>;
+    fetchBackendOutput: () => Promise<BackendOutput>;
 };
 
 // @public
 export type BackendOutputStorageStrategy<T extends BackendOutputEntry> = {
-    addBackendOutputEntry(keyName: string, backendOutputEntry: T): void;
-    flush(): void;
+    addBackendOutputEntry: (keyName: string, backendOutputEntry: T) => void;
+    flush: () => void;
 };
 
 // @public
 export type BackendOutputWriter = {
-    storeOutput(outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>): void;
+    storeOutput: (outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>) => void;
+};
+
+// @public (undocumented)
+export type BackendSecret = {
+    resolve: (scope: Construct, uniqueBackendIdentifier: UniqueBackendIdentifier) => SecretValue;
 };
 
 // @public
 export type ConstructContainer = {
-    getOrCompute(generator: ConstructContainerEntryGenerator): Construct;
-    registerConstructFactory(token: string, provider: ConstructFactory): void;
-    getConstructFactory<T>(token: string): ConstructFactory<T>;
+    getOrCompute: (generator: ConstructContainerEntryGenerator) => Construct;
+    registerConstructFactory: (token: string, provider: ConstructFactory) => void;
+    getConstructFactory: <T>(token: string) => ConstructFactory<T>;
 };
 
 // @public
 export type ConstructContainerEntryGenerator = {
     resourceGroupName: string;
-    generateContainerEntry(scope: Construct): Construct;
+    generateContainerEntry: (scope: Construct) => Construct;
 };
 
 // @public
 export type ConstructFactory<T = unknown> = {
     readonly provides?: string;
-    getInstance(props: ConstructFactoryGetInstanceProps): T;
+    getInstance: (props: ConstructFactoryGetInstanceProps) => T;
 };
 
 // @public (undocumented)
@@ -74,19 +94,29 @@ export type ConstructFactoryGetInstanceProps = {
     importPathVerifier?: ImportPathVerifier;
 };
 
+// @public (undocumented)
+export type FunctionResources = {
+    lambda: Function_2;
+};
+
 // @public
 export type ImportPathVerifier = {
-    verify(importStack: string | undefined, expectedImportingFile: string, errorMessage: string): void;
+    verify: (importStack: string | undefined, expectedImportingFile: string, errorMessage: string) => void;
 };
 
 // @public
 export type MainStackCreator = {
-    getOrCreateMainStack(): Stack;
+    getOrCreateMainStack: () => Stack;
 };
 
 // @public
 export type MainStackNameResolver = {
-    resolveMainStackName(): Promise<string>;
+    resolveMainStackName: () => Promise<string>;
+};
+
+// @public
+export type ResourceProvider<T> = {
+    resources: T;
 };
 
 // @public (undocumented)

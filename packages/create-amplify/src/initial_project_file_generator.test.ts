@@ -1,26 +1,27 @@
 import { describe, it, mock } from 'node:test';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
 import assert from 'assert';
+import * as path from 'path';
 
-describe('InitialProjectFileGenerator', async () => {
+describe('InitialProjectFileGenerator', () => {
   it('creates target directory and copies files', async () => {
     const fsMock = {
       mkdir: mock.fn(),
       cp: mock.fn(),
     };
     const initialProjectFileGenerator = new InitialProjectFileGenerator(
-      '/testProjectRoot',
+      path.join(process.cwd(), 'testDir'),
       fsMock as never
     );
     await initialProjectFileGenerator.generateInitialProjectFiles();
 
     assert.deepStrictEqual(fsMock.mkdir.mock.calls[0].arguments, [
-      '/testProjectRoot/amplify',
+      path.join(process.cwd(), 'testDir', 'amplify'),
       { recursive: true },
     ]);
     assert.deepStrictEqual(fsMock.cp.mock.calls[0].arguments, [
-      new URL('../templates/basic-auth-data', import.meta.url),
-      '/testProjectRoot/amplify',
+      new URL('../templates/basic-auth-data/amplify', import.meta.url),
+      path.join(process.cwd(), 'testDir', 'amplify'),
       { recursive: true },
     ]);
   });

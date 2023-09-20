@@ -14,9 +14,17 @@ import {
   BackendOutputEntry,
   BackendOutputStorageStrategy,
   ConstructContainer,
+  ConstructFactoryGetInstanceProps,
   ImportPathVerifier,
+  ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import { Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
+import {
+  CfnIdentityPool,
+  CfnIdentityPoolRoleAttachment,
+  UserPool,
+  UserPoolClient,
+} from 'aws-cdk-lib/aws-cognito';
 
 const testSchema = `
   input AMPLIFY {globalAuthRule: AuthRule = { allow: public }} # FOR TESTING ONLY!
@@ -34,6 +42,7 @@ describe('DataFactory', () => {
   let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
   let importPathVerifier: ImportPathVerifier;
   let dataFactory: DataFactory;
+  let getInstanceProps: ConstructFactoryGetInstanceProps;
   beforeEach(() => {
     dataFactory = new DataFactory({ schema: testSchema });
 
@@ -43,65 +52,73 @@ describe('DataFactory', () => {
     constructContainer = new SingletonConstructContainer(
       new NestedStackResolver(stack)
     );
+    const sampleUserPool = new UserPool(stack, 'UserPool');
     constructContainer.registerConstructFactory('AuthResources', {
       provides: 'AuthResources',
-      getInstance: (): AuthResources => ({
-        unauthenticatedUserIamRole: new Role(stack, 'testUnauthRole', {
-          assumedBy: new ServicePrincipal('test.amazon.com'),
-        }),
-        authenticatedUserIamRole: new Role(stack, 'testAuthRole', {
-          assumedBy: new ServicePrincipal('test.amazon.com'),
-        }),
+      getInstance: (): ResourceProvider<AuthResources> => ({
+        resources: {
+          userPool: sampleUserPool,
+          userPoolClient: new UserPoolClient(stack, 'UserPoolClient', {
+            userPool: sampleUserPool,
+          }),
+          unauthenticatedUserIamRole: new Role(stack, 'testUnauthRole', {
+            assumedBy: new ServicePrincipal('test.amazon.com'),
+          }),
+          authenticatedUserIamRole: new Role(stack, 'testAuthRole', {
+            assumedBy: new ServicePrincipal('test.amazon.com'),
+          }),
+          cfnResources: {
+            identityPool: new CfnIdentityPool(stack, 'identityPool', {
+              allowUnauthenticatedIdentities: true,
+            }),
+            identityPoolRoleAttachment: new CfnIdentityPoolRoleAttachment(
+              stack,
+              'identityPoolRoleAttachment',
+              { identityPoolId: 'identityPool' }
+            ),
+          },
+        },
       }),
     });
     outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
       stack
     );
     importPathVerifier = new ToggleableImportPathVerifier(false);
+
+    getInstanceProps = {
+      constructContainer,
+      outputStorageStrategy,
+      importPathVerifier,
+    };
   });
+
   it('returns singleton instance', () => {
-    const instance1 = dataFactory.getInstance({
-      constructContainer,
-      outputStorageStrategy,
-      importPathVerifier,
-    });
-    const instance2 = dataFactory.getInstance({
-      constructContainer,
-      outputStorageStrategy,
-      importPathVerifier,
-    });
+    const instance1 = dataFactory.getInstance(getInstanceProps);
+    const instance2 = dataFactory.getInstance(getInstanceProps);
 
     assert.strictEqual(instance1, instance2);
   });
 
   it('adds construct to stack', () => {
-    const dataConstruct = dataFactory.getInstance({
-      constructContainer,
-      outputStorageStrategy,
-      importPathVerifier,
-    });
+    const dataConstruct = dataFactory.getInstance(getInstanceProps);
     const template = Template.fromStack(Stack.of(dataConstruct));
     template.resourceCountIs('AWS::AppSync::GraphQLApi', 1);
   });
 
   it('sets output using storage strategy', () => {
-    dataFactory.getInstance({
-      constructContainer,
-      outputStorageStrategy,
-      importPathVerifier,
-    });
+    dataFactory.getInstance(getInstanceProps);
 
     const template = Template.fromStack(stack);
     template.hasOutput('awsAppsyncApiEndpoint', {});
   });
+
   it('verifies constructor import path', () => {
     const importPathVerifier = {
       verify: mock.fn(),
     };
 
     dataFactory.getInstance({
-      constructContainer,
-      outputStorageStrategy,
+      ...getInstanceProps,
       importPathVerifier,
     });
 

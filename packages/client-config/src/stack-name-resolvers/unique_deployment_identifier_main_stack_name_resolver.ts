@@ -21,7 +21,7 @@ export class UniqueBackendIdentifierMainStackNameResolver
   /**
    * Resolve the stack name for this project environment
    */
-  async resolveMainStackName(): Promise<string> {
+  resolveMainStackName = async (): Promise<string> => {
     return this.getMainStackName(this.uniqueDeploymentIdentifier);
-  }
+  };
 }

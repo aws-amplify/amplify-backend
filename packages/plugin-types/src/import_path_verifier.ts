@@ -9,9 +9,9 @@ export type ImportPathVerifier = {
    *
    * If the error was not imported by the expected file, an error with errorMessage is thrown
    */
-  verify(
+  verify: (
     importStack: string | undefined,
     expectedImportingFile: string,
     errorMessage: string
-  ): void;
+  ) => void;
 };

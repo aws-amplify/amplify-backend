@@ -1,0 +1,24 @@
+{
+  "name": "@aws-amplify/model-generator",
+  "version": "0.2.0-alpha.1",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "import": "./lib/index.js",
+      "require": "./lib/index.js"
+    }
+  },
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "update:api": "api-extractor run --local"
+  },
+  "dependencies": {
+    "@aws-amplify/graphql-docs-generator": "^4.1.0",
+    "@aws-sdk/client-appsync": "^3.398.0",
+    "prettier": "^3.0.3"
+  }
+}

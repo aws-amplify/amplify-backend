@@ -2,13 +2,13 @@ import { describe, it, mock } from 'node:test';
 import { NpmProjectInitializer } from './npm_project_initializer.js';
 import assert from 'assert';
 
-describe('NpmInitializedEnsurer', async () => {
+describe('NpmInitializedEnsurer', () => {
   it('does nothing if package.json already exists', async () => {
     const logMock = mock.fn();
     const existsSyncMock = mock.fn(() => true);
     const execaMock = mock.fn();
     const npmInitializedEnsurer = new NpmProjectInitializer(
-      '/testProjRoot',
+      '/testProjectRoot',
       { log: logMock } as never,
       existsSyncMock,
       execaMock as never
@@ -23,13 +23,13 @@ describe('NpmInitializedEnsurer', async () => {
     // `mock.mockImplementationOnce` seems to be last one wins rather than defining a sequence of return values
     // this is a workaround to allow the first call to return false and the second to return true
     // also add this to the list of reasons we should consider dropping node:test and moving to jest...
-    const mockReturnVals = [false, true];
+    const mockReturnValues = [false, true];
     let idx = 0;
-    const existsSyncMock = mock.fn(() => mockReturnVals[idx++]);
+    const existsSyncMock = mock.fn(() => mockReturnValues[idx++]);
 
     const execaMock = mock.fn();
     const npmInitializedEnsurer = new NpmProjectInitializer(
-      '/testProjRoot',
+      '/testProjectRoot',
       { log: logMock } as never,
       existsSyncMock as never,
       execaMock as never
@@ -38,8 +38,8 @@ describe('NpmInitializedEnsurer', async () => {
     assert.equal(execaMock.mock.callCount(), 1);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments, [
       'npm',
-      ['init'],
-      { stdio: 'inherit', cwd: '/testProjRoot' },
+      ['init', '--yes'],
+      { stdio: 'inherit', cwd: '/testProjectRoot' },
     ]);
   });
 
@@ -50,7 +50,7 @@ describe('NpmInitializedEnsurer', async () => {
       throw new Error('test error');
     });
     const npmInitializedEnsurer = new NpmProjectInitializer(
-      '/testProjRoot',
+      '/testProjectRoot',
       { log: logMock } as never,
       existsSyncMock,
       execaMock as never
@@ -66,7 +66,7 @@ describe('NpmInitializedEnsurer', async () => {
     const existsSyncMock = mock.fn(() => false);
     const execaMock = mock.fn();
     const npmInitializedEnsurer = new NpmProjectInitializer(
-      '/testProjRoot',
+      '/testProjectRoot',
       { log: logMock } as never,
       existsSyncMock,
       execaMock as never

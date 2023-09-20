@@ -1,0 +1,14 @@
+name: restore_build_cache
+description: composes restoring node_modules and restoring build artifacts
+runs:
+  using: composite
+  steps:
+    - uses: ./.github/actions/restore_install_cache
+    # restore build output from cache
+    - uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # version 3.3.1
+      id: build-cache
+      with:
+        path: '**/lib'
+        key: ${{ github.sha }}
+        fail-on-cache-miss: true
+        enableCrossOsArchive: true

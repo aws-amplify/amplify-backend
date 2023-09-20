@@ -28,7 +28,7 @@ const npmProxyLogs = await readFile(LOG_FILE, 'utf-8');
 
 if (npmProxyLogs.includes('EADDRINUSE')) {
   throw new Error(
-    'Failed to start npm proxy. Port is already in use. Do you ned to run `npm run stop:npm-proxy` first?'
+    'Failed to start npm proxy. Port is already in use. Do you need to run `npm run stop:npm-proxy` first?'
   );
 }
 
@@ -41,7 +41,7 @@ if (!npmProxyLogs.includes('http address')) {
 
 console.log(`Local npm proxy running at ${EXPECTED_URL}.`);
 
-execa('npm', ['config', 'set', 'registry', EXPECTED_URL]);
+await execa('npm', ['config', 'set', 'registry', EXPECTED_URL]);
 console.log(`Set npm registry to ${EXPECTED_URL}`);
 
 // copy local config into .npmrc

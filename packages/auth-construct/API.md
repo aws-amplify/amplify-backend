@@ -4,44 +4,153 @@
 
 ```ts
 
+import { AmplifyFunction } from '@aws-amplify/plugin-types';
 import { AuthOutput } from '@aws-amplify/backend-output-schemas/auth';
 import { AuthResources } from '@aws-amplify/plugin-types';
+import { aws_cognito } from 'aws-cdk-lib';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { BackendOutputWriter } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
-import { IRole } from 'aws-cdk-lib/aws-iam';
-import { UserPool } from 'aws-cdk-lib/aws-cognito';
-import { UserPoolClient } from 'aws-cdk-lib/aws-cognito';
+import { CustomAttributeConfig } from 'aws-cdk-lib/aws-cognito';
+import { IFunction } from 'aws-cdk-lib/aws-lambda';
+import { ResourceProvider } from '@aws-amplify/plugin-types';
+import { StandardAttributes } from 'aws-cdk-lib/aws-cognito';
 
 // @public
-export class AmplifyAuth extends Construct implements BackendOutputWriter, AuthResources {
-    constructor(scope: Construct, id: string, props: AmplifyAuthProps);
-    // (undocumented)
-    readonly authenticatedUserIamRole: IRole;
-    storeOutput(outputStorageStrategy: BackendOutputStorageStrategy<AuthOutput>): void;
-    // (undocumented)
-    readonly unauthenticatedUserIamRole: IRole;
-    // (undocumented)
-    readonly userPool: UserPool;
-    // (undocumented)
-    readonly userPoolClientWeb: UserPoolClient;
+export class AmplifyAuth extends Construct implements BackendOutputWriter, ResourceProvider<AuthResources> {
+    constructor(scope: Construct, id: string, props?: AuthProps);
+    addTrigger: (event: TriggerEvent, handler: IFunction | AmplifyFunction) => void;
+    static attribute: (name: keyof aws_cognito.StandardAttributes) => AuthStandardAttribute;
+    static customAttribute: AuthCustomAttributeFactory;
+    readonly resources: AuthResources;
+    storeOutput: (outputStorageStrategy: BackendOutputStorageStrategy<AuthOutput>) => void;
 }
 
 // @public
-export type AmplifyAuthProps = {
-    loginMechanisms: LoginMechanism[];
-    selfSignUpEnabled?: boolean;
+export abstract class AuthCustomAttributeBase {
+    constructor(name: string);
+    // (undocumented)
+    protected attribute: Mutable<CustomAttributeConfig>;
+    immutable: () => this;
+}
+
+// @public
+export class AuthCustomAttributeFactory {
+    boolean: (name: string) => AuthCustomBooleanAttribute;
+    dateTime: (name: string) => AuthCustomDateTimeAttribute;
+    number: (name: string) => AuthCustomNumberAttribute;
+    string: (name: string) => AuthCustomStringAttribute;
+}
+
+// @public
+export class AuthCustomBooleanAttribute extends AuthCustomAttributeBase {
+    constructor(name: string);
+}
+
+// @public
+export class AuthCustomDateTimeAttribute extends AuthCustomAttributeBase {
+    constructor(name: string);
+}
+
+// @public
+export class AuthCustomNumberAttribute extends AuthCustomAttributeBase {
+    constructor(name: string);
+    max: (max: number) => AuthCustomNumberAttribute;
+    min: (min: number) => AuthCustomNumberAttribute;
+}
+
+// @public
+export class AuthCustomStringAttribute extends AuthCustomAttributeBase {
+    constructor(name: string);
+    maxLength: (maxLength: number) => AuthCustomStringAttribute;
+    minLength: (minLength: number) => AuthCustomStringAttribute;
+}
+
+// @public
+export type AuthProps = {
+    loginWith: BasicLoginOptions & ExternalProviders;
+    userAttributes?: AuthUserAttribute[];
+    multifactor?: MFA;
+    accountRecovery?: aws_cognito.AccountRecovery;
 };
 
-// @public (undocumented)
-export type GoogleLogin = {
-    provider: 'google';
-    webClientId: string;
-    webClientSecret: string;
+// @public
+export class AuthStandardAttribute {
+    constructor(name: keyof StandardAttributes);
+    immutable: () => AuthStandardAttribute;
+    required: () => AuthStandardAttribute;
+}
+
+// @public
+export type AuthUserAttribute = AuthStandardAttribute | AuthCustomAttributeBase;
+
+// @public
+export type BasicLoginOptions = {
+    email: EmailLogin;
+    phoneNumber?: PhoneNumberLogin;
+} | {
+    email?: EmailLogin;
+    phoneNumber: PhoneNumberLogin;
 };
 
-// @public (undocumented)
-export type LoginMechanism = 'email' | 'username' | 'phone' | GoogleLogin;
+// @public
+export type EmailLogin = true | {
+    emailBody?: `${string}{####}${string}`;
+    emailStyle?: aws_cognito.VerificationEmailStyle.CODE;
+    emailSubject?: string;
+} | {
+    emailBody?: `${string}{##Verify Email##}${string}`;
+    emailStyle?: aws_cognito.VerificationEmailStyle.LINK;
+    emailSubject?: string;
+};
+
+// @public
+export type ExternalProviders = {
+    externalProviders?: {
+        google?: Omit<aws_cognito.UserPoolIdentityProviderGoogleProps, 'userPool'>;
+        facebook?: Omit<aws_cognito.UserPoolIdentityProviderFacebookProps, 'userPool'>;
+        amazon?: Omit<aws_cognito.UserPoolIdentityProviderAmazonProps, 'userPool'>;
+        apple?: Omit<aws_cognito.UserPoolIdentityProviderAppleProps, 'userPool'>;
+        oidc?: Omit<aws_cognito.UserPoolIdentityProviderOidcProps, 'userPool'>;
+        saml?: Omit<aws_cognito.UserPoolIdentityProviderSamlProps, 'userPool'>;
+        scopes?: aws_cognito.OAuthScope[];
+        callbackUrls?: string[];
+        logoutUrls?: string[];
+    };
+};
+
+// @public
+export type MFA = {
+    enforcementType: 'OFF';
+} | ({
+    enforcementType: 'OPTIONAL' | 'REQUIRED';
+} & MFASettings);
+
+// @public
+export type MFASettings = {
+    totp: boolean;
+    sms: true;
+    smsMessage?: `${string}{####}${string}`;
+} | {
+    totp: boolean;
+    sms: false;
+};
+
+// @public
+export type Mutable<T> = {
+    -readonly [P in keyof T]: Mutable<T[P]>;
+};
+
+// @public
+export type PhoneNumberLogin = true | {
+    verificationMessage?: `${string}{####}${string}`;
+};
+
+// @public
+export type TriggerEvent = (typeof triggerEvents)[number];
+
+// @public
+export const triggerEvents: readonly ["createAuthChallenge", "customMessage", "defineAuthChallenge", "postAuthentication", "postConfirmation", "preAuthentication", "preSignUp", "preTokenGeneration", "userMigration", "verifyAuthChallengeResponse"];
 
 // (No @packageDocumentation comment for this package)
 

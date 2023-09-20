@@ -6,28 +6,33 @@ import {
   StackMetadataBackendOutputStorageStrategy,
   ToggleableImportPathVerifier,
 } from '@aws-amplify/backend/test-utils';
-import { App, Stack } from 'aws-cdk-lib';
+import { App, Stack, aws_lambda } from 'aws-cdk-lib';
 import assert from 'node:assert';
-import { Template } from 'aws-cdk-lib/assertions';
+import { Match, Template } from 'aws-cdk-lib/assertions';
 import {
   BackendOutputEntry,
   BackendOutputStorageStrategy,
   ConstructContainer,
+  ConstructFactory,
+  FunctionResources,
   ImportPathVerifier,
+  ResourceProvider,
 } from '@aws-amplify/plugin-types';
+import { triggerEvents } from '@aws-amplify/auth-construct-alpha';
 
 describe('AmplifyAuthFactory', () => {
   let authFactory: AmplifyAuthFactory;
   let constructContainer: ConstructContainer;
   let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
   let importPathVerifier: ImportPathVerifier;
+  let stack: Stack;
   beforeEach(() => {
     authFactory = new AmplifyAuthFactory({
-      loginMechanisms: ['username'],
+      loginWith: { email: true },
     });
 
     const app = new App();
-    const stack = new Stack(app);
+    stack = new Stack(app);
 
     constructContainer = new SingletonConstructContainer(
       new NestedStackResolver(stack)
@@ -39,9 +44,10 @@ describe('AmplifyAuthFactory', () => {
 
     importPathVerifier = new ToggleableImportPathVerifier(false);
   });
+
   it('returns singleton instance', () => {
     const instance1 = authFactory.getInstance({
-      constructContainer: constructContainer,
+      constructContainer,
       outputStorageStrategy,
       importPathVerifier,
     });
@@ -82,4 +88,46 @@ describe('AmplifyAuthFactory', () => {
       )
     );
   });
+
+  triggerEvents.forEach((event) => {
+    it(`resolves ${event} trigger and attaches handler to auth construct`, () => {
+      const funcStub: ConstructFactory<ResourceProvider<FunctionResources>> = {
+        getInstance: () => {
+          return {
+            resources: {
+              lambda: new aws_lambda.Function(stack, 'testFunc', {
+                code: aws_lambda.Code.fromInline('test placeholder'),
+                runtime: aws_lambda.Runtime.NODEJS_18_X,
+                handler: 'index.handler',
+              }),
+            },
+          };
+        },
+      };
+      const authWithTriggerFactory = new AmplifyAuthFactory({
+        loginWith: { email: true },
+        triggers: { [event]: funcStub },
+      });
+
+      const authConstruct = authWithTriggerFactory.getInstance({
+        constructContainer,
+        outputStorageStrategy,
+        importPathVerifier,
+      });
+
+      const template = Template.fromStack(Stack.of(authConstruct));
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        LambdaConfig: {
+          // The key in the CFN template is the trigger event name with the first character uppercase
+          [upperCaseFirstChar(event)]: {
+            Ref: Match.stringLikeRegexp('testFunc'),
+          },
+        },
+      });
+    });
+  });
 });
+
+const upperCaseFirstChar = (str: string) => {
+  return `${str.charAt(0).toUpperCase()}${str.slice(1)}`;
+};

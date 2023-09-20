@@ -4,10 +4,14 @@ import { BackendIdentifier } from '@aws-amplify/client-config';
 import { AppNameResolver } from '../../../local_app_name_resolver.js';
 import { ClientConfigGeneratorAdapter } from './client_config_generator_adapter.js';
 
+export const formatChoices = ['js', 'json', 'ts'] as const;
+export const configFileName = 'amplifyconfiguration';
+
 export type GenerateConfigCommandOptions = {
   stack: string | undefined;
   appId: string | undefined;
   branch: string | undefined;
+  format: (typeof formatChoices)[number] | undefined;
   out: string | undefined;
 };
 
@@ -48,18 +52,25 @@ export class GenerateConfigCommand
   handler = async (
     args: ArgumentsCamelCase<GenerateConfigCommandOptions>
   ): Promise<void> => {
+    const defaultArgs = {
+      out: process.cwd(),
+      format: 'js',
+    };
     const backendIdentifier = await this.getBackendIdentifier(args);
 
     let targetPath: string;
     if (args.out) {
-      if (path.isAbsolute(args.out)) {
-        targetPath = args.out;
-      } else {
-        targetPath = path.resolve(process.cwd(), args.out);
-      }
+      targetPath = path.isAbsolute(args.out)
+        ? args.out
+        : path.resolve(process.cwd(), args.out);
     } else {
-      targetPath = path.resolve(process.cwd(), 'amplifyconfiguration.js');
+      targetPath = defaultArgs.out;
     }
+
+    targetPath = path.resolve(
+      targetPath,
+      `${configFileName}.${args.format || defaultArgs.format}`
+    );
 
     await this.clientConfigGenerator.generateClientConfigToFile(
       backendIdentifier,
@@ -71,9 +82,9 @@ export class GenerateConfigCommand
    * Translates args to BackendIdentifier.
    * Throws if translation can't be made (this should never happen if command validation works correctly).
    */
-  private async getBackendIdentifier(
+  private getBackendIdentifier = async (
     args: ArgumentsCamelCase<GenerateConfigCommandOptions>
-  ): Promise<BackendIdentifier> {
+  ): Promise<BackendIdentifier> => {
     if (args.stack) {
       return { stackName: args.stack };
     } else if (args.appId && args.branch) {
@@ -83,10 +94,9 @@ export class GenerateConfigCommand
         appName: await this.appNameResolver.resolve(),
         branchName: args.branch,
       };
-    } else {
-      throw this.missingArgsError;
     }
-  }
+    throw this.missingArgsError;
+  };
 
   /**
    * @inheritDoc
@@ -114,6 +124,12 @@ export class GenerateConfigCommand
         type: 'string',
         array: false,
         group: 'Project identifier',
+      })
+      .option('format', {
+        describe: 'The format which the configuration should be exported into.',
+        type: 'string',
+        array: false,
+        choices: formatChoices,
       })
       .option('out', {
         describe:

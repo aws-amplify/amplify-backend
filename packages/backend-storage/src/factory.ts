@@ -28,11 +28,11 @@ export class AmplifyStorageFactory implements ConstructFactory<AmplifyStorage> {
   /**
    * Get a singleton instance of the Bucket
    */
-  getInstance({
+  getInstance = ({
     constructContainer,
     outputStorageStrategy,
     importPathVerifier,
-  }: ConstructFactoryGetInstanceProps): AmplifyStorage {
+  }: ConstructFactoryGetInstanceProps): AmplifyStorage => {
     importPathVerifier?.verify(
       this.importStack,
       'storage',
@@ -45,7 +45,7 @@ export class AmplifyStorageFactory implements ConstructFactory<AmplifyStorage> {
       );
     }
     return constructContainer.getOrCompute(this.generator) as AmplifyStorage;
-  }
+  };
 }
 
 class AmplifyStorageGenerator implements ConstructContainerEntryGenerator {
@@ -57,7 +57,7 @@ class AmplifyStorageGenerator implements ConstructContainerEntryGenerator {
     private readonly outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>
   ) {}
 
-  generateContainerEntry(scope: Construct) {
+  generateContainerEntry = (scope: Construct) => {
     const storageConstruct = new AmplifyStorage(
       scope,
       this.defaultName,
@@ -65,7 +65,7 @@ class AmplifyStorageGenerator implements ConstructContainerEntryGenerator {
     );
     storageConstruct.storeOutput(this.outputStorageStrategy);
     return storageConstruct;
-  }
+  };
 }
 
 /**

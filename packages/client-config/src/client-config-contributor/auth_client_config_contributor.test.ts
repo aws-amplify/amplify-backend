@@ -30,6 +30,7 @@ describe('AuthClientConfigContributor', () => {
         authOutput: {
           version: '1',
           payload: {
+            identityPoolId: 'testIdentityPoolId',
             userPoolId: 'testUserPoolId',
             webClientId: 'testWebClientId',
             authRegion: 'testRegion',

@@ -3,7 +3,7 @@ import * as path from 'path';
 import { execa as _execa } from 'execa';
 
 /**
- * Ensure that the current working directory is a valid Javascript project
+ * Ensure that the current working directory is a valid JavaScript project
  */
 export class NpmProjectInitializer {
   /**
@@ -19,7 +19,7 @@ export class NpmProjectInitializer {
   /**
    * If package.json already exists, this is a noop. Otherwise, `npm init` is executed to create a package.json file
    */
-  async ensureInitialized(): Promise<void> {
+  ensureInitialized = async (): Promise<void> => {
     if (this.packageJsonExists()) {
       // if package.json already exists, no need to do anything
       return;
@@ -29,7 +29,7 @@ export class NpmProjectInitializer {
     );
 
     try {
-      await this.execa('npm', ['init'], {
+      await this.execa('npm', ['init', '--yes'], {
         stdio: 'inherit',
         cwd: this.projectRoot,
       });
@@ -45,12 +45,12 @@ export class NpmProjectInitializer {
         'package.json does not exist after running `npm init`. Initialize a valid JavaScript package before continuing.'
       );
     }
-  }
+  };
 
   /**
    * Check if a package.json file exists in projectRoot
    */
-  private packageJsonExists(): boolean {
+  private packageJsonExists = (): boolean => {
     return this.existsSync(path.resolve(this.projectRoot, 'package.json'));
-  }
+  };
 }

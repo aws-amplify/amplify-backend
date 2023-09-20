@@ -1,0 +1,17 @@
+name: build_with_cache
+description: builds the source code if cache miss and caches the result
+runs:
+  using: composite
+  steps:
+    - uses: ./.github/actions/install_with_cache
+    # cache build output based on commit sha
+    - uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # version 3.3.1
+      id: build-cache
+      with:
+        path: '**/lib'
+        key: ${{ github.sha }}
+        enableCrossOsArchive: true
+    # only build if cache miss
+    - if: steps.build-cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: npm run build

@@ -1,5 +1,5 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
-import { SandboxDeleteCommand } from './sandbox_delete/sandbox_delete_command.js';
+import { SandboxDeleteCommand } from './sandbox-delete/sandbox_delete_command.js';
 import fs from 'fs';
 import { AmplifyPrompter } from '../prompter/amplify_prompts.js';
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
@@ -9,6 +9,7 @@ export type SandboxCommandOptions = {
   exclude: string[] | undefined;
   name: string | undefined;
   out: string | undefined;
+  profile: string | undefined;
 };
 
 /**
@@ -54,8 +55,9 @@ export class SandboxCommand
       exclude: args.exclude,
       name: args.name,
       clientConfigFilePath: args.out,
+      profile: args.profile,
     });
-    process.once('SIGINT', this.sigIntHandler.bind(this));
+    process.once('SIGINT', () => void this.sigIntHandler());
   };
 
   /**
@@ -87,6 +89,11 @@ export class SandboxCommand
         .option('out', {
           describe:
             'A path to directory where config is written. If not provided defaults to current process working directory.',
+          type: 'string',
+          array: false,
+        })
+        .option('profile', {
+          describe: 'An AWS profile name to use for deployment.',
           type: 'string',
           array: false,
         })

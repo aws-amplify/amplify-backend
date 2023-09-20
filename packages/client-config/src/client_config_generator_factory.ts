@@ -47,24 +47,25 @@ export class ClientConfigGeneratorFactory {
   /**
    * Returns a ClientConfigGenerator for the given BackendIdentifier type
    */
-  getInstance(backendIdentifier: BackendIdentifier): ClientConfigGenerator {
+  getInstance = (
+    backendIdentifier: BackendIdentifier
+  ): ClientConfigGenerator => {
     if (isStackIdentifier(backendIdentifier)) {
       return this.fromStackIdentifier(backendIdentifier);
     } else if (isUniqueBackendIdentifier(backendIdentifier)) {
       return this.fromUniqueBackendIdentifier(backendIdentifier);
-    } else {
-      return this.fromAppNameAndBranch(backendIdentifier);
     }
-  }
+    return this.fromAppNameAndBranch(backendIdentifier);
+  };
   /**
    * Initialize a ClientConfigGenerator given a stack name.
    *
    * This can be used when the stack with Amplify resource outputs does not match any known convention.
    * This would be the case when using Amplify constructs in a native CDK app.
    */
-  private fromStackIdentifier(
+  private fromStackIdentifier = (
     stackIdentifier: StackIdentifier
-  ): ClientConfigGenerator {
+  ): ClientConfigGenerator => {
     return new UnifiedClientConfigGenerator(
       new StackMetadataBackendOutputRetrievalStrategy(
         this.cfnClient,
@@ -72,14 +73,14 @@ export class ClientConfigGeneratorFactory {
       ),
       this.clientConfigContributors
     );
-  }
+  };
 
   /**
    * Initialize a ClientConfigGenerator given a UniqueBackendIdentifier
    */
-  private fromUniqueBackendIdentifier(
+  private fromUniqueBackendIdentifier = (
     uniqueDeploymentIdentifier: UniqueBackendIdentifier
-  ): ClientConfigGenerator {
+  ): ClientConfigGenerator => {
     return new UnifiedClientConfigGenerator(
       new StackMetadataBackendOutputRetrievalStrategy(
         this.cfnClient,
@@ -89,7 +90,7 @@ export class ClientConfigGeneratorFactory {
       ),
       this.clientConfigContributors
     );
-  }
+  };
 
   /**
    * Initialize a ClientConfigGenerator given an appName and branch.
@@ -97,9 +98,9 @@ export class ClientConfigGeneratorFactory {
    * This entry point can only be used if appName is unique within the AWS Account and Region that are being used.
    * If appName is not unique, use fromUniqueBackendIdentifier instead to specify a specific appId.
    */
-  private fromAppNameAndBranch(
+  private fromAppNameAndBranch = (
     appNameAndBranch: AppNameAndBranchBackendIdentifier
-  ): ClientConfigGenerator {
+  ): ClientConfigGenerator => {
     return new UnifiedClientConfigGenerator(
       new StackMetadataBackendOutputRetrievalStrategy(
         this.cfnClient,
@@ -110,7 +111,7 @@ export class ClientConfigGeneratorFactory {
       ),
       this.clientConfigContributors
     );
-  }
+  };
 }
 
 const isUniqueBackendIdentifier = (

@@ -1,0 +1,14 @@
+name: restore_install_cache
+description: restores node_modules from the cache and fails if no cache entry found
+runs:
+  using: composite
+  steps:
+    # restore node_modules from cache
+    - uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # version 3.3.1
+      id: npm-cache
+      with:
+        path: |
+          node_modules
+          packages/**/node_modules
+        key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+        fail-on-cache-miss: true
