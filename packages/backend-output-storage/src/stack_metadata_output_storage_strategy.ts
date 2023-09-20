@@ -32,7 +32,7 @@ export class StackMetadataBackendOutputStorageStrategy
       new CfnOutput(this.stack, key, { value });
     });
 
-    // TODO
+    // TODO https://github.com/aws-amplify/samsara-cli/issues/252
     // temporary hack to work around the fact that the gql construct has hard-coded a duplicate of this key in their codebase
     // once this hard-coding is removed and they are depending on the shared packages, this can be removed
     const mappedKeyName =
@@ -48,6 +48,7 @@ export class StackMetadataBackendOutputStorageStrategy
    * Persists the metadata object to the stack metadata
    */
   flush = (): void => {
+    // TODO https://github.com/aws-amplify/samsara-cli/issues/252
     // NOOP until the duplicate BackendOutputStorageStrategy type in the gql construct can be removed
   };
 }
