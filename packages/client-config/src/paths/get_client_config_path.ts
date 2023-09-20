@@ -18,16 +18,27 @@ export const getClientConfigPath = (
     format: ClientConfigFormat.JS,
   };
 
-  let targetPath: string;
+  let targetPath = defaultArgs.out;
+  let providedFilename = '';
+
   if (out) {
-    targetPath = path.isAbsolute(out) ? out : path.resolve(process.cwd(), out);
-  } else {
-    targetPath = defaultArgs.out;
+    if (path.extname(out)) {
+      targetPath = path.isAbsolute(out)
+        ? path.dirname(out)
+        : path.resolve(process.cwd(), path.dirname(out));
+      providedFilename = path.basename(out);
+    } else {
+      targetPath = path.isAbsolute(out)
+        ? out
+        : path.resolve(process.cwd(), out);
+    }
   }
+
+  const defaultFilename = `${configFileName}.${format || defaultArgs.format}`;
 
   targetPath = path.resolve(
     targetPath,
-    `${configFileName}.${format || defaultArgs.format}`
+    providedFilename && !format ? providedFilename : defaultFilename // if custom filename is provided in `--out` and format is not provided, use the provided filename
   );
   return targetPath;
 };
