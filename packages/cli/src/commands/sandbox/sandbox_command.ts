@@ -48,6 +48,37 @@ export class SandboxCommand
     this.describe = 'Starts sandbox, watch mode for amplify deployments';
   }
 
+  private writeClientConfig = async (
+    clientConfigWritePath: string,
+    name?: string
+  ) => {
+    const sandboxIdResolver = new SandboxIdResolver(
+      new LocalAppNameResolver(new CwdPackageJsonLoader())
+    ); // write config
+    const sandboxId = name ?? (await sandboxIdResolver.resolve());
+    await generateClientConfigToFile(
+      fromNodeProviderChain(),
+      {
+        backendId: sandboxId,
+        branchName: 'sandbox',
+      },
+      clientConfigWritePath
+    );
+  };
+
+  private getClientConfigWritePath = (
+    args: ArgumentsCamelCase<SandboxCommandOptions>
+  ) => {
+    if (args.clientConfigFilePath) {
+      if (args.out && path.isAbsolute(args.out)) {
+        return args.out;
+      } else if (args.out) {
+        return path.resolve(process.cwd(), args.out);
+      }
+    }
+    return path.join(process.cwd(), 'amplifyconfiguration.js');
+  };
+
   /**
    * @inheritDoc
    */
@@ -56,31 +87,10 @@ export class SandboxCommand
   ): Promise<void> => {
     this.appName = args.name;
     const sandbox = await this.sandboxFactory.getInstance();
-    let clientConfigWritePath = path.join(
-      process.cwd(),
-      'amplifyconfiguration.js'
+    const clientConfigWritePath = this.getClientConfigWritePath(args);
+    sandbox.registerPostDeploymentHook(() =>
+      this.writeClientConfig(clientConfigWritePath, args.name)
     );
-    if (args.clientConfigFilePath) {
-      if (args.out && path.isAbsolute(args.out)) {
-        clientConfigWritePath = args.out;
-      } else if (args.out) {
-        clientConfigWritePath = path.resolve(process.cwd(), args.out);
-      }
-    }
-    sandbox.registerPostDeploymentHook(async () => {
-      const sandboxIdResolver = new SandboxIdResolver(
-        new LocalAppNameResolver(new CwdPackageJsonLoader())
-      ); // write config
-      const sandboxId = args.name ?? (await sandboxIdResolver.resolve());
-      await generateClientConfigToFile(
-        fromNodeProviderChain(),
-        {
-          backendId: sandboxId,
-          branchName: 'sandbox',
-        },
-        clientConfigWritePath
-      );
-    });
     const watchExclusions = args.exclude ?? [];
     watchExclusions.push(clientConfigWritePath);
     await sandbox.start({
