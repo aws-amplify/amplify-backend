@@ -66,7 +66,7 @@ export class AuthStandardAttribute {
 /**
  * This class facilitates creation of Custom user attributes.
  */
-export abstract class AuthCustomAttributeBase {
+export class AuthCustomAttributeBase {
   protected attribute: Mutable<CustomAttributeConfig>;
   /**
    * Create a Custom Attribute

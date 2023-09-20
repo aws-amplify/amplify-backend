@@ -63,14 +63,16 @@ export type BackendOutputWriter = {
     storeOutput: (outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>) => void;
 };
 
-// @public (undocumented)
+// @public
 export type BackendSecret = {
     resolve: (scope: Construct, uniqueBackendIdentifier: UniqueBackendIdentifier) => SecretValue;
 };
 
-// @public (undocumented)
+// @public
 export type BackendSecretResolver = {
-    resolveSecrets: <T>(props: T) => Replace<T, BackendSecret, SecretValue>;
+    resolveSecrets: <T, Ignore extends any[]>(arg: T, ignoreTypes?: {
+        new (...args: any[]): Ignore[number];
+    }[]) => Replace<T, BackendSecret, SecretValue, Ignore>;
 };
 
 // @public
@@ -121,8 +123,8 @@ export type MainStackNameResolver = {
 };
 
 // @public
-export type Replace<T, Initial, Substitute> = T extends Initial ? Substitute : T extends object ? {
-    [K in keyof T]: Replace<T[K], Initial, Substitute>;
+export type Replace<T, Initial, Substitute, Ignore extends any[] = []> = T extends Initial ? Substitute : T extends (...args: any[]) => any ? T : T extends Ignore[number] ? T : T extends object ? {
+    [K in keyof T]: Replace<T[K], Initial, Substitute, Ignore>;
 } : T;
 
 // @public

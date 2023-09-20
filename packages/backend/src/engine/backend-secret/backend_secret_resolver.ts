@@ -28,30 +28,43 @@ export class DefaultBackendSecretResolver implements BackendSecretResolver {
 
   /**
    * Recursively traverses arg replacing any BackendSecret that it finds with the result of calling BackendSecret.resolve()
-   * The output is a copy of the input with the necessary replacements made. The input is unchanged.
+   * BackendSecret.resolve(). The output is a copy of the input with the necessary replacements made. The input is unchanged.
+   * Note that this function will not work against classes with private/protected members since they are not iterable.
+   * If these class contains no secret to resolve (and it must not be), use the Ignore and ignoreTypes to bypass.
    */
-  resolveSecrets = <T>(arg: T): Replace<T, BackendSecret, SecretValue> => {
+  resolveSecrets = <T, Ignore extends any[]>(
+    arg: T,
+    ignoreTypes?: { new (...args: any[]): Ignore[number] }[]
+  ): Replace<T, BackendSecret, SecretValue, Ignore> => {
     if (this.isBackendSecret(arg)) {
       return arg.resolve(this.scope, this.uniqueBackendIdentifier) as Replace<
         T,
         BackendSecret,
-        SecretValue
+        SecretValue,
+        Ignore
       >;
     } else if (Array.isArray(arg)) {
       return arg.map((prop) => this.resolveSecrets(prop)) as Replace<
         T,
         BackendSecret,
-        SecretValue
+        SecretValue,
+        Ignore
       >;
     } else if (arg && typeof arg === 'object') {
-      const result: Partial<Replace<T, BackendSecret, SecretValue>> = {};
+      const result: Partial<Replace<T, BackendSecret, SecretValue, Ignore>> =
+        {};
       Object.entries(arg).forEach(([key, value]) => {
-        result[key as keyof typeof result] = this.resolveSecrets(
-          value
-        ) as never;
+        if (ignoreTypes && ignoreTypes.some((type) => value instanceof type)) {
+          result[key as keyof typeof result] = value;
+        } else {
+          result[key as keyof typeof result] = this.resolveSecrets(
+            value,
+            ignoreTypes
+          );
+        }
       });
-      return result as Replace<T, BackendSecret, SecretValue>;
+      return result as Replace<T, BackendSecret, SecretValue, Ignore>;
     }
-    return arg as Replace<T, BackendSecret, SecretValue>;
+    return arg as Replace<T, BackendSecret, SecretValue, Ignore>;
   };
 }

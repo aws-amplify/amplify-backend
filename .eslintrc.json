@@ -228,6 +228,7 @@
           "stdout",
           "subcommand",
           "subcommands",
+          "subtree",
           "timestamps",
           "tmpdir",
           "toggleable",

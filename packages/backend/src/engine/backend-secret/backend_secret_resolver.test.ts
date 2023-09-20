@@ -20,11 +20,26 @@ class TestBackendSecret implements BackendSecret {
   };
 }
 
+class TestClassWithPrivateMembers1 {
+  constructor(private readonly a: number, public c: number) {}
+  private somePrivateMethod = (): number => {
+    return this.a;
+  };
+  public getC = (): number => this.c;
+}
+
+class TestClassWithPrivateMembers2 {
+  constructor(private readonly x: number, public y: number, public z: number) {}
+  private privateMethod2 = (): number => {
+    return this.x;
+  };
+  public getY = (): number => this.y;
+}
+
 describe('DefaultBackendSecretResolver', () => {
   it('throws if failed to resolve a secret', () => {
     const arg = {
       a: new TestBackendSecret('c1'),
-      b: 'abc',
       c: {
         c1: new TestBackendSecret('secret_C1'),
         c2: {
@@ -45,50 +60,63 @@ describe('DefaultBackendSecretResolver', () => {
   });
 
   it('returns resolve secrets', () => {
+    const cannotTransformObj1 = new TestClassWithPrivateMembers1(1, 2);
+    const cannotTransformObj2 = new TestClassWithPrivateMembers2(3, 4, 5);
     const arg = {
       a: new TestBackendSecret('c1'),
-      b: 'abc',
       c: {
         c1: new TestBackendSecret('secret_C1'),
         c2: {
           c21: new TestBackendSecret('secret_C21'),
           c22: 123,
+          c23: {
+            c231: cannotTransformObj2,
+          },
         },
         c3: 'c3',
       },
       d: [
         1,
-        2,
         'd',
         {
           d1: new TestBackendSecret('secret_D1'),
         },
       ],
+      e: cannotTransformObj1,
     };
 
     const resolver = new DefaultBackendSecretResolver(
       {} as Construct,
       {} as UniqueBackendIdentifier
     );
-    assert.deepStrictEqual(resolver.resolveSecrets(arg), {
-      a: SecretValue.unsafePlainText('c1'),
-      b: 'abc',
-      c: {
-        c1: SecretValue.unsafePlainText('secret_C1'),
-        c2: {
-          c21: SecretValue.unsafePlainText('secret_C21'),
-          c22: 123,
+
+    assert.deepStrictEqual(
+      resolver.resolveSecrets<
+        typeof arg,
+        [TestClassWithPrivateMembers1, TestClassWithPrivateMembers2]
+      >(arg, [TestClassWithPrivateMembers1, TestClassWithPrivateMembers2]),
+      {
+        a: SecretValue.unsafePlainText('c1'),
+        c: {
+          c1: SecretValue.unsafePlainText('secret_C1'),
+          c2: {
+            c21: SecretValue.unsafePlainText('secret_C21'),
+            c22: 123,
+            c23: {
+              c231: cannotTransformObj2,
+            },
+          },
+          c3: 'c3',
         },
-        c3: 'c3',
-      },
-      d: [
-        1,
-        2,
-        'd',
-        {
-          d1: SecretValue.unsafePlainText('secret_D1'),
-        },
-      ],
-    });
+        d: [
+          1,
+          'd',
+          {
+            d1: SecretValue.unsafePlainText('secret_D1'),
+          },
+        ],
+        e: cannotTransformObj1,
+      }
+    );
   });
 });
