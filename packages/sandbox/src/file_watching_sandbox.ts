@@ -37,7 +37,9 @@ export class FileWatchingSandbox
    * @inheritdoc
    */
   start = async (options: SandboxOptions) => {
+    console.debug('[Sandbox] Running beforeStart event handlers');
     await this.emit('beforeStart');
+    console.debug('[Sandbox] Finished beforeStart event handlers');
     const { profile } = options;
     if (profile) {
       process.env.AWS_PROFILE = profile;
@@ -65,9 +67,9 @@ export class FileWatchingSandbox
     let latch: 'open' | 'deploying' | 'queued' = 'open';
 
     const deployAndWatch = debounce(async () => {
-      console.log('[Sandbox] Running pre-deployment hooks');
+      console.debug('[Sandbox] Running beforeDeployment event handlers');
       await this.emit('beforeDeployment');
-      console.log('[Sandbox] Pre-deployment hooks complete');
+      console.debug('[Sandbox] Finished beforeDeployment event handlers');
       latch = 'deploying';
       await this.executor.deploy({
         backendId: sandboxId,
@@ -90,9 +92,9 @@ export class FileWatchingSandbox
       }
       latch = 'open';
       this.emitWatching();
-      console.log('[Sandbox] Running post-deployment hooks');
+      console.debug('[Sandbox] Running afterDeployment event handlers');
       await this.emit('afterDeployment');
-      console.log('[Sandbox] Post-deployment hooks complete');
+      console.debug('[Sandbox] Finished afterDeployment event handlers');
     });
 
     this.watcherSubscription = await parcelWatcher.subscribe(
@@ -126,17 +128,23 @@ export class FileWatchingSandbox
 
     // Start the first full deployment without waiting for a file change
     await deployAndWatch();
+    console.debug('[Sandbox] Running afterStart event handlers');
     await this.emit('afterStart');
+    console.debug('[Sandbox] Finished afterStart event handlers');
   };
 
   /**
    * @inheritdoc
    */
   stop = async () => {
+    console.debug('[Sandbox] Running beforeStop event handlers');
     await this.emit('beforeStop');
+    console.debug('[Sandbox] Finished beforeStop event handlers');
     console.debug(`[Sandbox] Shutting down`);
     await this.watcherSubscription.unsubscribe();
+    console.debug('[Sandbox] Running afterStop event handlers');
     await this.emit('afterStop');
+    console.debug('[Sandbox] Finished afterStop event handlers');
   };
 
   /**
