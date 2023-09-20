@@ -57,21 +57,19 @@ const describeStacksMock = {
       Outputs: [
         {
           OutputKey: 'webClientId',
-          OutputValue: '1sp1t92rsq7s2s8h9rgtml2v2q',
+          OutputValue: 'webClientIdValue',
         },
         {
           OutputKey: 'awsAppsyncApiEndpoint',
-          OutputValue:
-            'https://yolxf4jfxjdernex6u6yf5trie.appsync-api.us-east-1.amazonaws.com/graphql',
+          OutputValue: 'https://example.com/graphql',
         },
         {
           OutputKey: 'bucketName',
-          OutputValue:
-            'amplify-d2h0zigj89eiw3-t-amplifystorageamplifysto-4uzdlo0u5y5t',
+          OutputValue: 'storageBucketNameValue',
         },
         {
           OutputKey: 'awsAppsyncApiId',
-          OutputValue: 'uy4wtmbo4bbetdlovziypv2jvy',
+          OutputValue: 'apiIdValue',
         },
         {
           OutputKey: 'awsAppsyncAuthenticationType',
@@ -83,8 +81,7 @@ const describeStacksMock = {
         },
         {
           OutputKey: 'amplifyApiModelSchemaS3Uri',
-          OutputValue:
-            's3://amplify-d2h0zigj89eiw3-t-amplifydataamplifycodege-6ujekjlz36xk/model-schema.graphql',
+          OutputValue: 's3://schema.graphql',
         },
         {
           OutputKey: 'userPoolId',
@@ -92,7 +89,7 @@ const describeStacksMock = {
         },
         {
           OutputKey: 'identityPoolId',
-          OutputValue: 'us-east-1:d733dbb0-5dd7-4029-afea-a33c1ae84f73',
+          OutputValue: 'us-east-1:identity-pool-id',
         },
         {
           OutputKey: 'storageRegion',
@@ -123,14 +120,12 @@ const expectedMetadata = {
     status: BackendDeploymentStatus.DEPLOYED,
   },
   storageConfiguration: {
-    s3BucketName:
-      'amplify-d2h0zigj89eiw3-t-amplifystorageamplifysto-4uzdlo0u5y5t',
+    s3BucketName: 'storageBucketNameValue',
     lastUpdated: undefined,
     status: BackendDeploymentStatus.DEPLOYING,
   },
   apiConfiguration: {
-    graphqlEndpoint:
-      'https://yolxf4jfxjdernex6u6yf5trie.appsync-api.us-east-1.amazonaws.com/graphql',
+    graphqlEndpoint: 'https://example.com/graphql',
     lastUpdated: undefined,
     status: BackendDeploymentStatus.FAILED,
   },
