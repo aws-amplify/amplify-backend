@@ -72,12 +72,7 @@ describe('Sandbox using local project name resolver', () => {
     // File watcher should be called with right arguments such as dir and excludes
     assert.strictEqual(subscribeMock.mock.calls[0].arguments[0], 'testDir');
     assert.deepStrictEqual(subscribeMock.mock.calls[0].arguments[2], {
-      ignore: [
-        'cdk.out',
-        path.join(process.cwd(), 'amplifyconfiguration.js'),
-        'exclude1',
-        'exclude2',
-      ],
+      ignore: ['cdk.out', 'exclude1', 'exclude2'],
     });
 
     // CDK should be called once
@@ -200,11 +195,6 @@ describe('Sandbox with user provided app name', () => {
       dir: 'testDir',
       exclude: ['exclude1', 'exclude2'],
       name: 'customSandboxName',
-      clientConfigFilePath: path.join(
-        'test',
-        'location',
-        'amplifyconfiguration.js'
-      ),
     });
     if (
       subscribeMock.mock.calls[0].arguments[1] &&
@@ -233,12 +223,7 @@ describe('Sandbox with user provided app name', () => {
     // File watcher should be called with right arguments such as dir and excludes
     assert.strictEqual(subscribeMock.mock.calls[0].arguments[0], 'testDir');
     assert.deepStrictEqual(subscribeMock.mock.calls[0].arguments[2], {
-      ignore: [
-        'cdk.out',
-        path.join(process.cwd(), 'test', 'location', 'amplifyconfiguration.js'),
-        'exclude1',
-        'exclude2',
-      ],
+      ignore: ['cdk.out', 'exclude1', 'exclude2'],
     });
 
     // CDK should be called once
@@ -290,11 +275,6 @@ describe('Sandbox with user provided app name', () => {
         dir: 'testDir',
         exclude: ['exclude1', 'exclude2'],
         name: 'customSandboxName',
-        clientConfigFilePath: path.join(
-          'test',
-          'location',
-          'amplifyconfiguration.js'
-        ),
         profile: 'amplify-sandbox',
       });
       if (
@@ -350,7 +330,6 @@ describe('Sandbox with user provided app name', () => {
         dir: 'testDir',
         exclude: ['customer_exclude1', 'customer_exclude2'],
         name: 'customSandboxName',
-        clientConfigFilePath: 'amplifyconfiguration.js',
       });
       if (
         subscribeMock.mock.calls[0].arguments[1] &&
@@ -381,7 +360,6 @@ describe('Sandbox with user provided app name', () => {
       assert.deepStrictEqual(subscribeMock.mock.calls[0].arguments[2], {
         ignore: [
           'cdk.out',
-          path.join(process.cwd(), 'amplifyconfiguration.js'),
           'patternWithLeadingSlash',
           'patternWithoutLeadingSlash',
           'someFile.js',

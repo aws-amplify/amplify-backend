@@ -96,7 +96,6 @@ export class SandboxCommand
       dir: args.dirToWatch,
       exclude: watchExclusions,
       name: args.name,
-      clientConfigFilePath: args.out,
       profile: args.profile,
     });
     process.once('SIGINT', () => void this.sigIntHandler());
