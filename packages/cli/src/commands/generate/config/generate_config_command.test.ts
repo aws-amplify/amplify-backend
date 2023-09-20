@@ -12,7 +12,6 @@ import path from 'path';
 import { ClientConfigGeneratorAdapter } from './client_config_generator_adapter.js';
 
 describe('generate config command', () => {
-  const configFileName = 'amplifyconfiguration';
   const clientConfigGeneratorAdapter = new ClientConfigGeneratorAdapter(
     fromNodeProviderChain()
   );

@@ -504,7 +504,10 @@ describe('Sandbox ignoring paths in .gitignore', () => {
     assert.deepStrictEqual(subscribeMock.mock.calls[0].arguments[2], {
       ignore: [
         'cdk.out',
-        path.join(process.cwd(), 'amplifyconfiguration.ts'),
+        path.join(
+          process.cwd(),
+          `${configFileName}.${ClientConfigFormat.TS as string}`
+        ),
         'patternWithLeadingSlash',
         'patternWithoutLeadingSlash',
         'someFile.js',
