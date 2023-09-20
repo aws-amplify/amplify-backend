@@ -6,11 +6,8 @@
 
 import { z } from 'zod';
 
-// @public (undocumented)
-export const amplifyStackMetadataKey = "AWS::Amplify::Output";
-
 // @public
-export const authOutputKey = "authOutput";
+export const authOutputKey = "AWS::Amplify::Auth";
 
 // @public
 export type BackendOutputEntryStackMetadata = z.infer<typeof backendOutputEntryStackMetadataSchema>;
@@ -43,17 +40,17 @@ export const backendOutputStackMetadataSchema: z.ZodRecord<z.ZodString, z.ZodObj
 }>>;
 
 // @public
-export const graphqlOutputKey = "graphqlOutput";
+export const graphqlOutputKey = "AWS::Amplify::GraphQL";
 
 // @public
-export const storageOutputKey = "storageOutput";
+export const storageOutputKey = "AWS::Amplify::Storage";
 
 // @public
 export type UnifiedBackendOutput = z.infer<typeof unifiedBackendOutputSchema>;
 
 // @public
 export const unifiedBackendOutputSchema: z.ZodObject<{
-    authOutput: z.ZodOptional<z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
+    "AWS::Amplify::Auth": z.ZodOptional<z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
         version: z.ZodLiteral<"1">;
         payload: z.ZodObject<{
             userPoolId: z.ZodString;
@@ -108,7 +105,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             googleClientId?: string | undefined;
         };
     }>]>>;
-    graphqlOutput: z.ZodOptional<z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
+    "AWS::Amplify::GraphQL": z.ZodOptional<z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
         version: z.ZodLiteral<"1">;
         payload: z.ZodObject<{
             awsAppsyncRegion: z.ZodString;
@@ -148,7 +145,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             awsAppsyncApiKey?: string | undefined;
         };
     }>]>>;
-    storageOutput: z.ZodOptional<z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
+    "AWS::Amplify::Storage": z.ZodOptional<z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
         version: z.ZodLiteral<"1">;
         payload: z.ZodObject<{
             bucketName: z.ZodString;
@@ -174,7 +171,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
         };
     }>]>>;
 }, "strip", z.ZodTypeAny, {
-    authOutput?: {
+    "AWS::Amplify::Auth"?: {
         version: "1";
         payload: {
             userPoolId: string;
@@ -187,7 +184,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             googleClientId?: string | undefined;
         };
     } | undefined;
-    graphqlOutput?: {
+    "AWS::Amplify::GraphQL"?: {
         version: "1";
         payload: {
             awsAppsyncRegion: string;
@@ -197,7 +194,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             awsAppsyncApiKey?: string | undefined;
         };
     } | undefined;
-    storageOutput?: {
+    "AWS::Amplify::Storage"?: {
         version: "1";
         payload: {
             bucketName: string;
@@ -205,7 +202,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
         };
     } | undefined;
 }, {
-    authOutput?: {
+    "AWS::Amplify::Auth"?: {
         version: "1";
         payload: {
             userPoolId: string;
@@ -218,7 +215,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             googleClientId?: string | undefined;
         };
     } | undefined;
-    graphqlOutput?: {
+    "AWS::Amplify::GraphQL"?: {
         version: "1";
         payload: {
             awsAppsyncRegion: string;
@@ -228,7 +225,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             awsAppsyncApiKey?: string | undefined;
         };
     } | undefined;
-    storageOutput?: {
+    "AWS::Amplify::Storage"?: {
         version: "1";
         payload: {
             bucketName: string;
