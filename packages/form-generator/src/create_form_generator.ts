@@ -17,8 +17,8 @@ export const createLocalGraphqlFormGenerator = (
   generationParams: LocalGraphqlFormGeneratorParams
 ): GraphqlFormGenerator => {
   const client = new S3Client();
+  const schemaFetcher = new S3StringObjectFetcher(client);
   const genericDataSchemaFetcher = async () => {
-    const schemaFetcher = new S3StringObjectFetcher(client);
     const schema = await schemaFetcher.fetch(
       generationParams.introspectionSchemaUrl
     );

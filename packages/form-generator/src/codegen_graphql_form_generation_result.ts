@@ -11,7 +11,7 @@ export class CodegenGraphqlFormGeneratorResult
   /**
    * Creates a CodegenGraphqlFormGeneratorResponse
    */
-  constructor(private fileNameComponentMap: Record<string, string>) {}
+  constructor(private readonly fileNameComponentMap: Record<string, string>) {}
   /**
    * writes the components to a given directory
    */
