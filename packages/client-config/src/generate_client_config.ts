@@ -28,3 +28,21 @@ export type BackendIdentifier =
   | UniqueBackendIdentifier
   | StackIdentifier
   | AppNameAndBranchBackendIdentifier;
+
+/**
+ * Returns true if a BackendIdentifier is a UniqueBackendIdentifier
+ */
+export const isUniqueBackendIdentifier = (
+  backendIdentifier: BackendIdentifier
+): backendIdentifier is UniqueBackendIdentifier => {
+  return 'backendId' in backendIdentifier && 'branchName' in backendIdentifier;
+};
+
+/**
+ * Returns true if a BackendIdentifier is a StackIdentifier
+ */
+export const isStackIdentifier = (
+  backendIdentifier: BackendIdentifier
+): backendIdentifier is StackIdentifier => {
+  return 'stackName' in backendIdentifier;
+};

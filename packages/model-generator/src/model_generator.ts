@@ -1,4 +1,8 @@
-import { StatementsTarget, TypesTarget } from '@aws-amplify/graphql-generator';
+import {
+  ModelsTarget,
+  StatementsTarget,
+  TypesTarget,
+} from '@aws-amplify/graphql-generator';
 export type TargetLanguage = StatementsTarget;
 
 export type DocumentGenerationParameters = {
@@ -19,5 +23,14 @@ export type TypesGenerationParameters = {
 export type GraphqlTypesGenerator = {
   generateTypes: (
     params: TypesGenerationParameters
+  ) => Promise<GenerationResult>;
+};
+
+export type ModelsGenerationParameters = {
+  target: ModelsTarget;
+};
+export type GraphqlModelsGenerator = {
+  generateModels: (
+    params: ModelsGenerationParameters
   ) => Promise<GenerationResult>;
 };

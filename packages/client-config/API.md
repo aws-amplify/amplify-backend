@@ -4,7 +4,12 @@
 
 ```ts
 
+import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
+import { BackendOutput } from '@aws-amplify/plugin-types';
+import { BackendOutputRetrievalStrategy } from '@aws-amplify/plugin-types';
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import { MainStackNameResolver } from '@aws-amplify/plugin-types';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 // @public
@@ -12,6 +17,12 @@ export type AppNameAndBranchBackendIdentifier = {
     appName: string;
     branchName: string;
 };
+
+// @public
+export class AppNameAndBranchMainStackNameResolver implements MainStackNameResolver {
+    constructor(amplifyClient: AmplifyClient, appNameAndBranch: AppNameAndBranchBackendIdentifier);
+    resolveMainStackName: () => Promise<string>;
+}
 
 // @public
 export type AuthClientConfig = {
@@ -42,16 +53,40 @@ export type GraphqlClientConfig = {
     aws_appsync_apiKey?: string;
 };
 
+// @public
+export const isStackIdentifier: (backendIdentifier: BackendIdentifier) => backendIdentifier is StackIdentifier;
+
+// @public
+export const isUniqueBackendIdentifier: (backendIdentifier: BackendIdentifier) => backendIdentifier is UniqueBackendIdentifier;
+
+// @public
+export class PassThroughMainStackNameResolver implements MainStackNameResolver {
+    constructor(stackNameIdentifier: StackIdentifier);
+    resolveMainStackName: () => Promise<string>;
+}
+
 // @public (undocumented)
 export type StackIdentifier = {
     stackName: string;
 };
 
 // @public
+export class StackMetadataBackendOutputRetrievalStrategy implements BackendOutputRetrievalStrategy {
+    constructor(cfnClient: CloudFormationClient, stackNameResolver: MainStackNameResolver);
+    fetchBackendOutput: () => Promise<BackendOutput>;
+}
+
+// @public
 export type StorageClientConfig = {
     aws_user_files_s3_bucket_region: string;
     aws_user_files_s3_bucket: string;
 };
+
+// @public
+export class UniqueBackendIdentifierMainStackNameResolver implements MainStackNameResolver {
+    constructor(uniqueDeploymentIdentifier: UniqueBackendIdentifier, getMainStackName?: (uniqueDeploymentIdentifier: UniqueBackendIdentifier) => string);
+    resolveMainStackName: () => Promise<string>;
+}
 
 // (No @packageDocumentation comment for this package)
 

@@ -8,16 +8,18 @@ import { GraphqlClientConfigContributor } from './client-config-contributor/grap
 import { ClientConfigGenerator } from './client_config_generator.js';
 import { StorageClientConfigContributor } from './client-config-contributor/storage_client_config_contributor.js';
 import {
-  PassThroughMainStackNameResolver,
-  StackIdentifier,
-} from './stack-name-resolvers/passthrough_main_stack_name_resolver.js';
-import { UniqueBackendIdentifierMainStackNameResolver } from './stack-name-resolvers/unique_deployment_identifier_main_stack_name_resolver.js';
-import {
   AppNameAndBranchBackendIdentifier,
   AppNameAndBranchMainStackNameResolver,
-} from './stack-name-resolvers/app_name_and_branch_main_stack_name_resolver.js';
+  PassThroughMainStackNameResolver,
+  StackIdentifier,
+  UniqueBackendIdentifierMainStackNameResolver,
+} from './stack-name-resolvers/index.js';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
-import { BackendIdentifier } from './generate_client_config.js';
+import {
+  BackendIdentifier,
+  isStackIdentifier,
+  isUniqueBackendIdentifier,
+} from './generate_client_config.js';
 
 /**
  * Creates ClientConfigGenerators given different backend identifiers
@@ -113,15 +115,3 @@ export class ClientConfigGeneratorFactory {
     );
   };
 }
-
-const isUniqueBackendIdentifier = (
-  backendIdentifier: BackendIdentifier
-): backendIdentifier is UniqueBackendIdentifier => {
-  return 'backendId' in backendIdentifier && 'branchName' in backendIdentifier;
-};
-
-const isStackIdentifier = (
-  backendIdentifier: BackendIdentifier
-): backendIdentifier is StackIdentifier => {
-  return 'stackName' in backendIdentifier;
-};

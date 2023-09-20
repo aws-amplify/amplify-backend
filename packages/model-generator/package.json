@@ -18,6 +18,10 @@
   },
   "dependencies": {
     "@aws-amplify/graphql-generator": "^0.1.0",
-    "@aws-sdk/client-appsync": "^3.398.0"
+    "@aws-sdk/client-amplify": "^3.414.0",
+    "@aws-sdk/client-appsync": "^3.398.0",
+    "@aws-sdk/client-cloudformation": "^3.414.0",
+    "@aws-sdk/client-s3": "^3.414.0",
+    "@aws-sdk/types": "^3.413.0"
   }
 }

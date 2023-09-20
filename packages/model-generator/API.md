@@ -4,6 +4,7 @@
 
 ```ts
 
+import { ModelsTarget } from '@aws-amplify/graphql-generator';
 import { StatementsTarget } from '@aws-amplify/graphql-generator';
 import { TypesTarget } from '@aws-amplify/graphql-generator';
 
@@ -31,8 +32,18 @@ export type GraphqlDocumentGeneratorFactoryParams = {
 };
 
 // @public (undocumented)
+export type GraphqlModelsGenerator = {
+    generateModels: (params: ModelsGenerationParameters) => Promise<GenerationResult>;
+};
+
+// @public (undocumented)
 export type GraphqlTypesGenerator = {
     generateTypes: (params: TypesGenerationParameters) => Promise<GenerationResult>;
+};
+
+// @public (undocumented)
+export type ModelsGenerationParameters = {
+    target: ModelsTarget;
 };
 
 // @public (undocumented)
