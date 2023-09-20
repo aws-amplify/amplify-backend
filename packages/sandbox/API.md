@@ -4,36 +4,31 @@
 
 ```ts
 
-// @public (undocumented)
-export type Hook = () => Promise<void>;
-
 // @public
-export class HookHandler {
+export class EventHandler<T extends string> {
     // (undocumented)
-    protected postDeploymentHooks: Array<Hook>;
+    protected emit: (event: T) => Promise<void>;
     // (undocumented)
-    protected preDeploymentHooks: Array<Hook>;
-    // (undocumented)
-    registerPostDeploymentHook: (hook: Hook) => void;
-    // (undocumented)
-    registerPreDeploymentHook: (hook: Hook) => void;
-    // (undocumented)
-    unregisterPostDeploymentHook: (hook: Hook) => void;
-    // (undocumented)
-    unregisterPreDeploymentHook: (hook: Hook) => void;
+    on: (event: T, handler: OnEventCallback) => void;
 }
+
+// @public (undocumented)
+export type OnEventCallback = () => Promise<void>;
 
 // @public
 export type Sandbox = {
     start: (options: SandboxOptions) => Promise<void>;
     stop: () => Promise<void>;
     delete: (options: SandboxDeleteOptions) => Promise<void>;
-} & HookHandler;
+} & EventHandler<SandboxEvents>;
 
 // @public (undocumented)
 export type SandboxDeleteOptions = {
     name?: string;
 };
+
+// @public (undocumented)
+export type SandboxEvents = 'beforeDeployment' | 'afterDeployment' | 'beforeStart' | 'afterStart' | 'beforeStop' | 'afterStop';
 
 // @public (undocumented)
 export type SandboxOptions = {
