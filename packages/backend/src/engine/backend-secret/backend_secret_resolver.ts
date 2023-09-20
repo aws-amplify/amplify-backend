@@ -32,7 +32,7 @@ export class DefaultBackendSecretResolver implements BackendSecretResolver {
    * Note that this function will not work against classes with private/protected members since they are not iterable.
    * If these class contains no secret to resolve (and it must not be), use the Ignore and ignoreTypes to bypass.
    */
-  resolveSecrets = <T, Ignore extends any[]>(
+  resolveSecrets = <T, Ignore extends any[] = []>(
     arg: T,
     ignoreTypes?: { new (...args: any[]): Ignore[number] }[]
   ): Replace<T, BackendSecret, SecretValue, Ignore> => {

@@ -70,7 +70,7 @@ export type BackendSecret = {
 
 // @public
 export type BackendSecretResolver = {
-    resolveSecrets: <T, Ignore extends any[]>(arg: T, ignoreTypes?: {
+    resolveSecrets: <T, Ignore extends any[] = []>(arg: T, ignoreTypes?: {
         new (...args: any[]): Ignore[number];
     }[]) => Replace<T, BackendSecret, SecretValue, Ignore>;
 };

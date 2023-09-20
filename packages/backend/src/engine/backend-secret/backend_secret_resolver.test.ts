@@ -59,7 +59,34 @@ describe('DefaultBackendSecretResolver', () => {
     );
   });
 
-  it('returns resolve secrets', () => {
+  it('returns resolve secrets without any types to ignore', () => {
+    const arg = {
+      a: new TestBackendSecret('c1'),
+      c: {
+        c2: {
+          c21: new TestBackendSecret('secret_C21'),
+        },
+        c3: 'c3',
+      },
+    };
+
+    const resolver = new DefaultBackendSecretResolver(
+      {} as Construct,
+      {} as UniqueBackendIdentifier
+    );
+
+    assert.deepStrictEqual(resolver.resolveSecrets(arg), {
+      a: SecretValue.unsafePlainText('c1'),
+      c: {
+        c2: {
+          c21: SecretValue.unsafePlainText('secret_C21'),
+        },
+        c3: 'c3',
+      },
+    });
+  });
+
+  it('returns resolve secrets with some types to ignore', () => {
     const cannotTransformObj1 = new TestClassWithPrivateMembers1(1, 2);
     const cannotTransformObj2 = new TestClassWithPrivateMembers2(3, 4, 5);
     const arg = {

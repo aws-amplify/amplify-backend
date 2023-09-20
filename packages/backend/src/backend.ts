@@ -42,7 +42,6 @@ export class Backend<T extends Record<string, ConstructFactory<Construct>>> {
     const importPathVerifier = new ToggleableImportPathVerifier();
 
     const backendIdentifier = getUniqueBackendIdentifier(stack);
-
     const backendSecretResolver = new DefaultBackendSecretResolver(
       stack,
       backendIdentifier

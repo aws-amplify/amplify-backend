@@ -10,7 +10,7 @@ export type BackendSecretResolver = {
    * Returns a deep copy of props where any occurrence of BackendSecret are replaced
    * by SecretValue type.
    */
-  resolveSecrets: <T, Ignore extends any[]>(
+  resolveSecrets: <T, Ignore extends any[] = []>(
     arg: T,
     ignoreTypes?: { new (...args: any[]): Ignore[number] }[]
   ) => Replace<T, BackendSecret, SecretValue, Ignore>;

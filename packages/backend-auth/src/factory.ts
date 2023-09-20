@@ -84,7 +84,11 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
         typeof this.props,
         [AuthStandardAttribute, AuthCustomAttributeBase]
       >(this.props, [AuthStandardAttribute, AuthCustomAttributeBase]);
-    const authConstruct = new AmplifyAuth(scope, this.defaultName, resolvedSecretProps);
+    const authConstruct = new AmplifyAuth(
+      scope,
+      this.defaultName,
+      resolvedSecretProps
+    );
     authConstruct.storeOutput(this.getInstanceProps.outputStorageStrategy);
     Object.entries(this.props.triggers || {}).forEach(
       ([triggerEvent, handlerFactory]) => {
