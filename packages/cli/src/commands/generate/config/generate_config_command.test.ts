@@ -103,7 +103,7 @@ describe('generate config command', () => {
         '/',
         'foo',
         'bar',
-        `${configFileName}.${FormatChoice.JSON as string}`
+        `${configFileName}.${FormatChoice.TS as string}`
       )
     );
   });
