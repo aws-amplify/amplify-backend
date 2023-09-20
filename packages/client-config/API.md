@@ -36,6 +36,7 @@ export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdent
 
 // @public
 export type GraphqlClientConfig = {
+    aws_appsync_apiId: string;
     aws_appsync_region: string;
     aws_appsync_graphqlEndpoint: string;
     aws_appsync_authenticationType: string;
