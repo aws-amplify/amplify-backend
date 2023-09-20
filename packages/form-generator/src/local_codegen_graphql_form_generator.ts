@@ -15,7 +15,6 @@ import {
   GraphqlFormGenerator,
   GraphqlGenerationResult,
 } from './graphql_form_generator.js';
-import { CodegenGraphqlFormGeneratorResult } from './codegen_graphql_form_generation_result.js';
 
 /**
  * Render Configuration Options for react forms
@@ -23,6 +22,10 @@ import { CodegenGraphqlFormGeneratorResult } from './codegen_graphql_form_genera
 export type RenderOptions = {
   graphqlDir: string;
 };
+
+export type ResultBuilder = (
+  fileMap: Record<string, string>
+) => GraphqlGenerationResult;
 
 export type SchemaFetcher = () => Promise<GenericDataSchema>;
 /**
@@ -34,7 +37,8 @@ export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
    */
   constructor(
     private schemaFetcher: SchemaFetcher,
-    private renderOptions: RenderOptions
+    private renderOptions: RenderOptions,
+    private resultBuilder: ResultBuilder
   ) {}
   /**
    * reduces the dataSchema to a map of models
@@ -127,7 +131,7 @@ export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
   generateForms = async (): Promise<GraphqlGenerationResult> => {
     const dataSchema = await this.schemaFetcher();
     const modelMap = this.getModelMapForDataSchema(dataSchema);
-    return new CodegenGraphqlFormGeneratorResult(
+    return this.resultBuilder(
       this.generateBaseForms(modelMap).reduce<Record<string, string>>(
         (prev, formSchema) => {
           const result = this.codegenForm(dataSchema, formSchema);

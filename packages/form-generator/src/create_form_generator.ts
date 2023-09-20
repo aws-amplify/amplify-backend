@@ -3,6 +3,7 @@ import { transformAppsyncIntrospectionSchema } from './transform_appsync_introsp
 import { GraphqlFormGenerator } from './graphql_form_generator.js';
 import { LocalGraphqlFormGenerator } from './local_codegen_graphql_form_generator.js';
 import { S3StringObjectFetcher } from './s3_string_object_fetcher.js';
+import { CodegenGraphqlFormGeneratorResult } from './codegen_graphql_form_generation_result.js';
 
 export type LocalGraphqlFormGeneratorParams = {
   introspectionSchemaUrl: string;
@@ -23,7 +24,12 @@ export const createLocalGraphqlFormGenerator = (
     );
     return transformAppsyncIntrospectionSchema(schema);
   };
-  return new LocalGraphqlFormGenerator(genericDataSchemaFetcher, {
-    graphqlDir: generationParams.graphqlModelDirectoryPath,
-  });
+  return new LocalGraphqlFormGenerator(
+    genericDataSchemaFetcher,
+    {
+      graphqlDir: generationParams.graphqlModelDirectoryPath,
+    },
+    (fileMap: Record<string, string>) =>
+      new CodegenGraphqlFormGeneratorResult(fileMap)
+  );
 };
