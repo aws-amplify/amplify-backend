@@ -4,7 +4,7 @@ import { GraphqlClientConfigContributor } from './client-config-contributor/grap
 import { ClientConfigGenerator } from './client_config_generator.js';
 import { StorageClientConfigContributor } from './client-config-contributor/storage_client_config_contributor.js';
 import { BackendIdentifier } from './generate_client_config.js';
-import { BackendOutputRetrievalStrategyFactory } from './backend_output_retrieval_strategy_factory.js';
+import { BackendOutputFetcherFactory } from './backend_output_fetcher_factory.js';
 
 /**
  * Creates ClientConfigGenerators given different backend identifiers
@@ -19,7 +19,7 @@ export class ClientConfigGeneratorFactory {
    * Provide the factory with AWS credentials. These credentials will be used to configure underlying SDK clients for resolving backend output.
    */
   constructor(
-    private readonly outputRetrievalStrategyFactory: BackendOutputRetrievalStrategyFactory
+    private readonly outputRetrievalStrategyFactory: BackendOutputFetcherFactory
   ) {}
 
   /**

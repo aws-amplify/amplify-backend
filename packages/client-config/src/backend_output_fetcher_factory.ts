@@ -21,7 +21,7 @@ const isStackIdentifier = (
 /**
  * Constructs an OutputRetrievalStrategy depending on the type of StackIdentifier
  */
-export class BackendOutputRetrievalStrategyFactory {
+export class BackendOutputFetcherFactory {
   /**
    * Instantiates the factory
    */

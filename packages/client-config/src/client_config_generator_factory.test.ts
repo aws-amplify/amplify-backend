@@ -6,7 +6,7 @@ import { PassThroughMainStackNameResolver } from './stack-name-resolvers/passthr
 import { MainStackNameResolver } from '@aws-amplify/plugin-types';
 import { UniqueBackendIdentifierMainStackNameResolver } from './stack-name-resolvers/unique_deployment_identifier_main_stack_name_resolver.js';
 import { AppNameAndBranchMainStackNameResolver } from './stack-name-resolvers/app_name_and_branch_main_stack_name_resolver.js';
-import { BackendOutputRetrievalStrategyFactory } from './backend_output_retrieval_strategy_factory.js';
+import { BackendOutputFetcherFactory } from './backend_output_fetcher_factory.js';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 
@@ -25,7 +25,7 @@ describe('ClientConfigGeneratorFactory', () => {
   describe('getInstance', () => {
     it('Creates client config generator for stack identifier', () => {
       const generatorFactory = new ClientConfigGeneratorFactory(
-        new BackendOutputRetrievalStrategyFactory(
+        new BackendOutputFetcherFactory(
           new CloudFormationClient(),
           new AmplifyClient()
         )
@@ -44,7 +44,7 @@ describe('ClientConfigGeneratorFactory', () => {
 
     it('Creates client config generator for backendId and branch', () => {
       const generatorFactory = new ClientConfigGeneratorFactory(
-        new BackendOutputRetrievalStrategyFactory(
+        new BackendOutputFetcherFactory(
           new CloudFormationClient(),
           new AmplifyClient()
         )
@@ -64,7 +64,7 @@ describe('ClientConfigGeneratorFactory', () => {
 
     it('Creates client config generator for appName and branch', () => {
       const generatorFactory = new ClientConfigGeneratorFactory(
-        new BackendOutputRetrievalStrategyFactory(
+        new BackendOutputFetcherFactory(
           new CloudFormationClient(),
           new AmplifyClient()
         )

@@ -35,6 +35,41 @@ export const generateClientConfig: (credentialProvider: AwsCredentialIdentityPro
 export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier, targetPath: string) => Promise<void>;
 
 // @public
+export const getUnifiedBackendOutput: (credentials: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier) => Promise<{
+    authOutput?: {
+        version: "1";
+        payload: {
+            userPoolId: string;
+            webClientId: string;
+            identityPoolId: string;
+            authRegion: string;
+            amazonClientId?: string | undefined;
+            appleClientId?: string | undefined;
+            facebookClientId?: string | undefined;
+            googleClientId?: string | undefined;
+        };
+    } | undefined;
+    graphqlOutput?: {
+        version: "1";
+        payload: {
+            awsAppsyncRegion: string;
+            awsAppsyncApiEndpoint: string;
+            awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
+            awsAppsyncApiId: string;
+            amplifyApiModelSchemaS3Uri: string;
+            awsAppsyncApiKey?: string | undefined;
+        };
+    } | undefined;
+    storageOutput?: {
+        version: "1";
+        payload: {
+            bucketName: string;
+            storageRegion: string;
+        };
+    } | undefined;
+}>;
+
+// @public
 export type GraphqlClientConfig = {
     aws_appsync_region: string;
     aws_appsync_graphqlEndpoint: string;
