@@ -22,7 +22,7 @@ export default [
   js_plugin.configs.recommended,
   jsdoc.configs['flat/recommended-typescript-error'],
   {
-    files: ['**/*.{js,jsx,mjs,cjs,ts,tsx}'],
+    files: ['**/*.{ts,tsx}'],
     languageOptions: {
       globals: {
         ...globals.node,
@@ -32,7 +32,7 @@ export default [
       parserOptions: {
         ecmaFeatures: { modules: true },
         ecmaVersion: 'latest',
-        project: './tsconfig.json',
+        project: ['**/tsconfig.json'],
       },
     },
   },
