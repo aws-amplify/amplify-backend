@@ -77,12 +77,14 @@ export class GenerateFormsCommand
     if (!config.aws_appsync_graphqlEndpoint) {
       throw new TypeError('appsync endpoint is null');
     }
-    const apiId = config.aws_appsync_apiId;
+    // const apiId = config.aws_appsync_apiId;
+    const apiId = '';
     if (!apiId) {
       throw new TypeError('AppSync apiId must be defined');
     }
 
-    const apiUrl = config.aws_appsync_apiUri;
+    //    const apiUrl = config.aws_appsync_apiUri;
+    const apiUrl = '';
 
     if (!apiUrl) {
       throw new TypeError('AppSync api schema url must be defined');

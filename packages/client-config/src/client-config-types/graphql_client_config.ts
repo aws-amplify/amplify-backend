@@ -3,10 +3,8 @@
  * https://docs.amplify.aws/lib/client-configuration/configuring-amplify-categories/q/platform/js/#scoped-configuration---graphql-api
  */
 export type GraphqlClientConfig = {
-  aws_appsync_apiId: string;
   aws_appsync_region: string;
   aws_appsync_graphqlEndpoint: string;
   aws_appsync_authenticationType: string;
   aws_appsync_apiKey?: string;
-  aws_appsync_apiUri?: string;
 };
