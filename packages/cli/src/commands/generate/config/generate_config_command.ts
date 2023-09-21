@@ -1,8 +1,8 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import path from 'path';
-import { BackendIdentifier } from '@aws-amplify/client-config';
 import { AppNameResolver } from '../../../local_app_name_resolver.js';
 import { ClientConfigGeneratorAdapter } from './client_config_generator_adapter.js';
+import { BackendIdentifier } from '@aws-amplify/deployed-backend-client';
 
 export const formatChoices = ['js', 'json', 'ts'] as const;
 export const configFileName = 'amplifyconfiguration';

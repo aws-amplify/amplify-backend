@@ -5,13 +5,7 @@
 ```ts
 
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
-
-// @public
-export type AppNameAndBranchBackendIdentifier = {
-    appName: string;
-    branchName: string;
-};
+import { BackendIdentifier } from '@aws-amplify/deployed-backend-client';
 
 // @public
 export type AuthClientConfig = {
@@ -21,9 +15,6 @@ export type AuthClientConfig = {
     aws_cognito_identity_pool_id?: string;
     aws_mandatory_sign_in?: string;
 };
-
-// @public (undocumented)
-export type BackendIdentifier = UniqueBackendIdentifier | StackIdentifier | AppNameAndBranchBackendIdentifier;
 
 // @public
 export type ClientConfig = Partial<AuthClientConfig & GraphqlClientConfig & StorageClientConfig>;
@@ -40,11 +31,6 @@ export type GraphqlClientConfig = {
     aws_appsync_graphqlEndpoint: string;
     aws_appsync_authenticationType: string;
     aws_appsync_apiKey?: string;
-};
-
-// @public (undocumented)
-export type StackIdentifier = {
-    stackName: string;
 };
 
 // @public
