@@ -60,6 +60,7 @@ export default [
   'readdir',
   'readline',
   'readonly',
+  'renderer',
   'repo',
   'resolvers',
   'saml',
