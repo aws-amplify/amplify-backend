@@ -1,5 +1,4 @@
 import { describe, it, mock } from 'node:test';
-import { BackendOutputRetrievalStrategy } from '@aws-amplify/plugin-types';
 import { UnifiedClientConfigGenerator } from './unified_client_config_generator.js';
 import assert from 'node:assert';
 import { AuthClientConfigContributor } from './client-config-contributor/auth_client_config_contributor.js';
@@ -32,9 +31,7 @@ describe('UnifiedClientConfigGenerator', () => {
           },
         },
       };
-      const outputRetrieval: BackendOutputRetrievalStrategy = {
-        fetchBackendOutput: mock.fn(async () => stubOutput),
-      };
+      const outputRetrieval = mock.fn(async () => stubOutput);
       const configContributors = [
         new AuthClientConfigContributor(),
         new GraphqlClientConfigContributor(),

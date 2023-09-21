@@ -4,6 +4,7 @@
   "references": [
     { "path": "../form-generator" },
     { "path": "../model-generator" },
+    { "path": "../deployed-backend-client" },
     { "path": "../client-config" },
     { "path": "../sandbox" }
   ]

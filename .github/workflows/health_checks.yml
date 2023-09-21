@@ -37,8 +37,8 @@ jobs:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_build_cache
+      - run: npm run set-script-shell
       - run: npm run test:coverage:threshold
-        shell: bash
   do_include_e2e:
     runs-on: ubuntu-latest
     permissions:
@@ -193,4 +193,4 @@ jobs:
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@e4262713b504983e61c7728f5452be240d9385a7 # version 2.14.3
         with:
-          category: /language:${{ matrix.language }}
+          category: /language:javascript

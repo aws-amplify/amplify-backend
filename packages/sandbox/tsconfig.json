@@ -3,6 +3,7 @@
   "compilerOptions": { "rootDir": "src", "outDir": "lib" },
   "references": [
     { "path": "../backend-deployer" },
-    { "path": "../client-config" }
+    { "path": "../client-config" },
+    { "path": "../deployed-backend-client" }
   ]
 }

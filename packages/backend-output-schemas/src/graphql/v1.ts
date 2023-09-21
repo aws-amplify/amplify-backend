@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-const AwsAppsyncAuthenticationType = z.enum([
+const AwsAppsyncAuthenticationZodEnum = z.enum([
   'API_KEY',
   'AWS_LAMBDA',
   'AWS_IAM',
@@ -8,7 +8,7 @@ const AwsAppsyncAuthenticationType = z.enum([
   'AMAZON_COGNITO_USER_POOLS',
 ]);
 export type AwsAppsyncAuthenticationType = z.infer<
-  typeof AwsAppsyncAuthenticationType
+  typeof AwsAppsyncAuthenticationZodEnum
 >;
 
 export const graphqlOutputSchema = z.object({
@@ -16,7 +16,7 @@ export const graphqlOutputSchema = z.object({
   payload: z.object({
     awsAppsyncRegion: z.string(),
     awsAppsyncApiEndpoint: z.string(),
-    awsAppsyncAuthenticationType: AwsAppsyncAuthenticationType,
+    awsAppsyncAuthenticationType: AwsAppsyncAuthenticationZodEnum,
     awsAppsyncApiKey: z.string().optional(),
     awsAppsyncApiId: z.string(),
     amplifyApiModelSchemaS3Uri: z.string(),
