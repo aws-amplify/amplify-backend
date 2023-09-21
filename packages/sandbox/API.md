@@ -4,25 +4,17 @@
 
 ```ts
 
+/// <reference types="node" />
+
 import { ClientConfigFormat } from '@aws-amplify/client-config';
-
-// @public
-export class EventHandler<T extends string> {
-    // (undocumented)
-    protected emit: (event: T) => Promise<void>;
-    // (undocumented)
-    on: (event: T, handler: OnEventCallback) => void;
-}
-
-// @public (undocumented)
-export type OnEventCallback = () => Promise<void>;
+import EventEmitter from 'events';
 
 // @public
 export type Sandbox = {
     start: (options: SandboxOptions) => Promise<void>;
     stop: () => Promise<void>;
     delete: (options: SandboxDeleteOptions) => Promise<void>;
-} & EventHandler<SandboxEvents>;
+} & EventEmitter;
 
 // @public (undocumented)
 export type SandboxDeleteOptions = {
@@ -39,7 +31,6 @@ export type SandboxOptions = {
     name?: string;
     format?: ClientConfigFormat;
     profile?: string;
-    clientConfigFilePath?: string;
 };
 
 // @public
