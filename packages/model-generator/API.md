@@ -4,6 +4,8 @@
 
 ```ts
 
+import { StatementsTarget } from '@aws-amplify/graphql-generator';
+
 // @public
 export const createGraphqlDocumentGenerator: ({ apiId, }: GraphqlDocumentGeneratorFactoryParams) => GraphqlDocumentGenerator;
 
@@ -29,7 +31,7 @@ export type GraphqlDocumentGeneratorFactoryParams = {
 };
 
 // @public (undocumented)
-export type TargetLanguage = 'typescript';
+export type TargetLanguage = StatementsTarget;
 
 // (No @packageDocumentation comment for this package)
 
