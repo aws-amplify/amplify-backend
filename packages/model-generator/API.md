@@ -10,7 +10,6 @@ export const createGraphqlDocumentGenerator: ({ apiId, }: GraphqlDocumentGenerat
 // @public (undocumented)
 export type DocumentGenerationParameters = {
     language: TargetLanguage;
-    outDir: string;
 };
 
 // @public (undocumented)

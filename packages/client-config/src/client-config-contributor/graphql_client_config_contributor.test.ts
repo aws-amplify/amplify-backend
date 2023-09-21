@@ -39,8 +39,6 @@ describe('GraphqlClientConfigContributor', () => {
       }),
       {
         aws_appsync_apiKey: 'testApiKey',
-        aws_appsync_apiId: 'testApiId',
-        aws_appsync_apiUri: 'testApiSchemaUri',
         aws_appsync_authenticationType: 'API_KEY',
         aws_appsync_graphqlEndpoint: 'testApiEndpoint',
         aws_appsync_region: 'us-east-1',
