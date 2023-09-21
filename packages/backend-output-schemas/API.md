@@ -12,10 +12,11 @@ export type AuthOutput = z.infer<typeof versionedAuthOutputSchema>;
 // @public
 export const authOutputKey = "AWS::Amplify::Auth";
 
-// Warning: (ae-forgotten-export) The symbol "AwsAppsyncAuthenticationZodEnum" needs to be exported by the entry point index.internal.d.ts
-//
 // @public (undocumented)
 export type AwsAppsyncAuthenticationType = z.infer<typeof AwsAppsyncAuthenticationZodEnum>;
+
+// @public (undocumented)
+export const AwsAppsyncAuthenticationZodEnum: z.ZodEnum<["API_KEY", "AWS_LAMBDA", "AWS_IAM", "OPENID_CONNECT", "AMAZON_COGNITO_USER_POOLS"]>;
 
 // @public
 export type BackendOutputEntryStackMetadata = z.infer<typeof backendOutputEntryStackMetadataSchema>;
