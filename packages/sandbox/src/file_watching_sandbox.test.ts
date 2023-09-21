@@ -72,7 +72,9 @@ describe('Sandbox using local project name resolver', () => {
 
     // File watcher should be called with right arguments such as dir and excludes
     assert.strictEqual(subscribeMock.mock.calls[0].arguments[0], 'testDir');
-    assert.deepStrictEqual(subscribeMock.mock.calls[0].arguments[2], {});
+    assert.deepStrictEqual(subscribeMock.mock.calls[0].arguments[2], {
+      ignore: ['cdk.out', 'exclude1', 'exclude2'],
+    });
 
     // CDK should be called once
     assert.strictEqual(execaDeployMock.mock.callCount(), 1);
