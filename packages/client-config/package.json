@@ -30,8 +30,6 @@
     "zod": "^3.21.4"
   },
   "devDependencies": {
-    "@aws-sdk/types": "^3.370.0",
-    "@types/mock-fs": "^4.13.1",
-    "mock-fs": "^5.2.0"
+    "@aws-sdk/types": "^3.370.0"
   }
 }

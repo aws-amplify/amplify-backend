@@ -1,4 +1,4 @@
-import { lstatSync } from 'fs';
+import fs from 'fs';
 import path from 'path';
 import { ClientConfigFormat } from '../index.js';
 
@@ -22,7 +22,7 @@ export const getClientConfigPath = (
   let targetPath = defaultArgs.out;
 
   if (outDir) {
-    const outDirIsFile = lstatSync(outDir).isFile();
+    const outDirIsFile = fs.lstatSync(outDir).isFile();
     if (!outDirIsFile) {
       targetPath = path.isAbsolute(outDir)
         ? outDir

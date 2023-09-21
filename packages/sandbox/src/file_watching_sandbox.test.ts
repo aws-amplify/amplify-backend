@@ -35,6 +35,20 @@ const execaDeployMock = mock.method(backendDeployer, 'deploy', () =>
 const execaDestroyMock = mock.method(backendDeployer, 'destroy', () =>
   Promise.resolve()
 );
+
+mock.method(fs, 'lstatSync', (path: string) => {
+  const testPath = 'test/location';
+  if (path === testPath || path === `${process.cwd()}/${testPath}`) {
+    return { isFile: () => false, isDir: () => true };
+  }
+  return {
+    isFile: () => {
+      throw new Error(`ENOENT: no such file or directory, lstat '${path}'`);
+    },
+    isDir: () => false,
+  };
+});
+
 describe('Sandbox using local project name resolver', () => {
   // class under test
   let sandboxInstance: FileWatchingSandbox;
