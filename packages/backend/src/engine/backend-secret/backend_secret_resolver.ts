@@ -28,7 +28,7 @@ export class DefaultBackendSecretResolver implements BackendSecretResolver {
   /**
    * Recursively traverses arg replacing any BackendSecret that it finds with the result of calling BackendSecret.resolve()
    * BackendSecret.resolve(). The output is a copy of the input with the necessary replacements made. The input is unchanged.
-   * Note that this function will not work against classes with private/protected members since they are not iterable.
+   * Note that the replacement will not work against classes with private/protected members since they are not iterable.
    * If these class contains no secret to resolve (and it must not be), use the Ignore and ignoreTypes to bypass.
    */
   resolveSecrets = <T, Ignore extends any[] = []>(
