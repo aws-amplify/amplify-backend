@@ -35,10 +35,8 @@ export class FileWatchingSandbox implements Sandbox {
     if (profile) {
       process.env.AWS_PROFILE = profile;
     }
-    const defaultOptions = {
-      name: this.sandboxId,
-    };
-    const sandboxId = options.name ?? defaultOptions.name;
+
+    const sandboxId = options.name ?? this.sandboxId;
     const clientConfigWritePath = getClientConfigPath(
       options.clientConfigFilePath,
       options.format
