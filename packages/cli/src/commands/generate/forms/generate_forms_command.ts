@@ -78,7 +78,7 @@ export class GenerateFormsCommand
       this.credentialProvider,
       backendIdentifier
     );
-    const output = await configClient.getOutput();
+    const output = await backendOutputClient.getOutput();
 
     const appsyncGraphqlEndpoint =
       output[graphqlOutputKey]?.payload.awsAppsyncApiEndpoint;
