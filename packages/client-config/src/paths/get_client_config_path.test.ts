@@ -1,11 +1,22 @@
-import { describe, it } from 'node:test';
+import { after, afterEach, beforeEach, describe, it } from 'node:test';
 import * as path from 'path';
+import mock from 'mock-fs';
 import assert from 'node:assert';
 import { getClientConfigPath } from './get_client_config_path.js';
 import { ClientConfigFormat } from '../index.js';
 
 const configFileName = 'amplifyconfiguration';
 describe('getClientConfigPath', () => {
+  beforeEach(() => {
+    mock({
+      'some/path': {},
+    });
+  });
+
+  afterEach(() => {
+    mock.restore();
+  });
+
   it('returns path to config file', () => {
     const configPath = getClientConfigPath();
     assert.equal(
@@ -52,7 +63,18 @@ describe('getClientConfigPath', () => {
   it('throw error if it is provided a file path', () => {
     assert.throws(
       () => getClientConfigPath('some/path/testConfig.json'),
-      new Error('Provided path should be a directory without a file name')
+      new Error(
+        "ENOENT: no such file or directory, lstat 'some/path/testConfig.json'"
+      )
+    );
+  });
+
+  it('throw error if it is provided invalid path', () => {
+    assert.throws(
+      () => getClientConfigPath('some/not/existing/path'),
+      new Error(
+        "ENOENT: no such file or directory, lstat 'some/not/existing/path'"
+      )
     );
   });
 

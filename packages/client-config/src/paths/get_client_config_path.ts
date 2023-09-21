@@ -1,3 +1,4 @@
+import { lstatSync } from 'fs';
 import path from 'path';
 import { ClientConfigFormat } from '../index.js';
 
@@ -21,11 +22,8 @@ export const getClientConfigPath = (
   let targetPath = defaultArgs.out;
 
   if (outDir) {
-    if (path.extname(outDir)) {
-      throw new Error(
-        'Provided path should be a directory without a file name'
-      );
-    } else {
+    const outDirIsFile = lstatSync(outDir).isFile();
+    if (!outDirIsFile) {
       targetPath = path.isAbsolute(outDir)
         ? outDir
         : path.resolve(process.cwd(), outDir);
