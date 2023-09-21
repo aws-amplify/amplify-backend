@@ -14,30 +14,42 @@ import { versionedStorageOutputSchema } from './storage/index.js';
  */
 
 /**
+ * re-export the auth output schema
+ */
+export * from './auth/index.js';
+
+/**
  * Expected key that auth output is stored under
  */
 export const authOutputKey = 'AWS::Amplify::Auth';
-export * from './auth/index.js';
 
 /**
  * ---------- GraphQL exports ----------
  */
 
 /**
+ * re-export the graphql output schema
+ */
+export * from './graphql/index.js';
+
+/**
  * Expected key that graphql output is stored under
  */
 export const graphqlOutputKey = 'AWS::Amplify::GraphQL';
-export * from './graphql/index.js';
 
 /**
  * ---------- Storage exports ----------
  */
 
 /**
+ * re-export the storage output schema
+ */
+export * from './storage/index.js';
+
+/**
  * Expected key that storage output is stored under
  */
 export const storageOutputKey = 'AWS::Amplify::Storage';
-export * from './storage/index.js';
 
 /**
  * ---------- Unified exports ----------
