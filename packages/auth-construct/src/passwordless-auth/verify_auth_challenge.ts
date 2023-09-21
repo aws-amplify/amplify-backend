@@ -23,6 +23,8 @@ export const verifyAuthChallenge = async (
     } else if (signInMethod === 'OTP') {
       // TODO: Implement
       throw Error('OTP not implemented.');
+    } else {
+      throw new Error(`Unrecognized signInMethod: ${signInMethod ?? 'NULL'}`);
     }
 
     // Return event

@@ -25,7 +25,7 @@ export const createAuthChallenge = async (
       if (signInMethod === 'MAGIC_LINK') {
         // TODO: Implement
         throw Error('Magic Link not implemented.');
-      } else if (signInMethod === 'SMS') {
+      } else if (signInMethod === 'OTP') {
         // TODO: Implement
         throw Error('OTP not implemented.');
       } else {

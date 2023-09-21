@@ -1,7 +1,7 @@
 import { describe, it, mock } from 'node:test';
 import { AmplifyAuth } from './construct.js';
 import { App, SecretValue, Stack } from 'aws-cdk-lib';
-import { Template } from 'aws-cdk-lib/assertions';
+import { Match, Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
 import {
   AmplifyFunction,
@@ -1346,6 +1346,55 @@ void describe('Auth construct', () => {
         LambdaConfig: {
           CreateAuthChallenge: {
             ['Fn::GetAtt']: [handlerLogicalId, 'Arn'],
+          },
+        },
+      });
+    });
+  });
+
+  describe('Passwordless', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    new AmplifyAuth(stack, 'test', {
+      loginWith: { email: true },
+      passwordlessAuth: { magicLink: { sesFromAddress: 'foo@example.com' } },
+    });
+    const template = Template.fromStack(stack);
+
+    it('creates a UserPool with a Define Auth Challenge trigger', () => {
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        LambdaConfig: {
+          DefineAuthChallenge: {
+            'Fn::GetAtt': [
+              Match.stringLikeRegexp('DefineAuthChallenge'),
+              'Arn',
+            ],
+          },
+        },
+      });
+    });
+
+    it('creates a UserPool with a Create Auth Challenge trigger', () => {
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        LambdaConfig: {
+          CreateAuthChallenge: {
+            'Fn::GetAtt': [
+              Match.stringLikeRegexp('CreateAuthChallenge'),
+              'Arn',
+            ],
+          },
+        },
+      });
+    });
+
+    it('creates a UserPool with a Verify Challenge trigger', () => {
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        LambdaConfig: {
+          VerifyAuthChallengeResponse: {
+            'Fn::GetAtt': [
+              Match.stringLikeRegexp('VerifyAuthChallengeResponse'),
+              'Arn',
+            ],
           },
         },
       });
