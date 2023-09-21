@@ -47,6 +47,10 @@ describe('generate config command', () => {
       generateClientConfigMock.mock.calls[0].arguments[1],
       '/foo/bar'
     );
+    assert.deepEqual(
+      generateClientConfigMock.mock.calls[0].arguments[2],
+      ClientConfigFormat.TS
+    );
   });
 
   it('generates and writes config for branch', async () => {
@@ -62,6 +66,10 @@ describe('generate config command', () => {
     // but for some reason the mock call count does not update without this 0ms wait
     await new Promise((resolve) => setTimeout(resolve, 0));
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
+    assert.deepStrictEqual(
+      generateClientConfigMock.mock.calls[0].arguments[1],
+      '/foo/bar'
+    );
     assert.deepStrictEqual(
       generateClientConfigMock.mock.calls[0].arguments[2],
       ClientConfigFormat.TS
@@ -82,6 +90,10 @@ describe('generate config command', () => {
       generateClientConfigMock.mock.calls[0].arguments[1],
       '/foo/bar'
     );
+    assert.deepStrictEqual(
+      generateClientConfigMock.mock.calls[0].arguments[2],
+      ClientConfigFormat.JS
+    );
   });
 
   it('can generate to custom absolute path', async () => {
@@ -97,6 +109,10 @@ describe('generate config command', () => {
       generateClientConfigMock.mock.calls[0].arguments[1],
       '/foo/bar'
     );
+    assert.equal(
+      generateClientConfigMock.mock.calls[0].arguments[2],
+      ClientConfigFormat.TS
+    );
   });
 
   it('can generate to custom relative path', async () => {
@@ -108,7 +124,14 @@ describe('generate config command', () => {
       stackName: 'stack_name',
     });
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
-    assert.equal(generateClientConfigMock.mock.calls[0].arguments[2], 'js');
+    assert.equal(
+      generateClientConfigMock.mock.calls[0].arguments[1],
+      'foo/bar'
+    );
+    assert.equal(
+      generateClientConfigMock.mock.calls[0].arguments[2],
+      ClientConfigFormat.JS
+    );
   });
 
   it('shows available options in help output', async () => {
