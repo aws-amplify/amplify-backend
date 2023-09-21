@@ -1,16 +1,14 @@
 import fs from 'fs/promises';
 import path from 'path';
-import { DocumentGenerationResult } from './model_generator.js';
+import { GenerationResult } from './model_generator.js';
 
 type ClientOperations = Record<string, string>;
 /**
  * Defines a result for Graphql document generation
  */
-export class AppsyncGraphqlDocumentGenerationResult
-  implements DocumentGenerationResult
-{
+export class AppsyncGraphqlGenerationResult implements GenerationResult {
   /**
-   * Instantiates an AppsyncGraphqlDocumentGenerationResult
+   * Instantiates an AppsyncGraphqlGenerationResult
    * @param operations A record of FileName to FileContent
    * in the format of Record<string,string>
    */

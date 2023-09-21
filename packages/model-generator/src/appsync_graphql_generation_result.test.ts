@@ -1,7 +1,7 @@
 import { describe, it, mock } from 'node:test';
 import fs from 'fs/promises';
 import path from 'path';
-import { AppsyncGraphqlDocumentGenerationResult } from './appsync_graphql_document_generation_result.js';
+import { AppsyncGraphqlGenerationResult } from './appsync_graphql_generation_result.js';
 import assert from 'assert';
 
 describe('AppsyncGraphqlDocumentGenerationResult', () => {
@@ -14,7 +14,7 @@ describe('AppsyncGraphqlDocumentGenerationResult', () => {
       'a-second-fake-file': 'ooo you tried to trick me',
     };
 
-    const result = new AppsyncGraphqlDocumentGenerationResult(files);
+    const result = new AppsyncGraphqlGenerationResult(files);
     const directory = './fake-dir';
 
     await result.writeToDirectory(directory);
