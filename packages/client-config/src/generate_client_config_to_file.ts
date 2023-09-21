@@ -13,7 +13,7 @@ import { getClientConfigPath } from './paths/index.js';
 export const generateClientConfigToFile = async (
   credentialProvider: AwsCredentialIdentityProvider,
   backendIdentifier: BackendIdentifier,
-  out?: string,
+  outDir?: string,
   format?: ClientConfigFormat
 ): Promise<void> => {
   const clientConfigWriter = new ClientConfigWriter();
@@ -22,6 +22,6 @@ export const generateClientConfigToFile = async (
     credentialProvider,
     backendIdentifier
   );
-  const targetPath = getClientConfigPath(out, format);
+  const targetPath = getClientConfigPath(outDir, format);
   await clientConfigWriter.writeClientConfig(clientConfig, targetPath);
 };

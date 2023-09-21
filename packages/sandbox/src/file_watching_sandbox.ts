@@ -158,12 +158,12 @@ export class FileWatchingSandbox implements Sandbox {
   /**
    * Runs post every deployment. Generates the client config and writes to a local file
    * @param sandboxId for this sandbox execution. Either package.json#name + whoami or provided by user during `amplify sandbox`
-   * @param out optional location provided by customer to write client config to
+   * @param outDir optional location provided by customer to write client config to
    * @param format optional format provided by customer to write client config in
    */
   private writeUpdatedClientConfig = async (
     sandboxId: string,
-    out?: string,
+    outDir?: string,
     format?: ClientConfigFormat
   ) => {
     await this.clientConfigGenerator.generateClientConfigToFile(
@@ -171,7 +171,7 @@ export class FileWatchingSandbox implements Sandbox {
         backendId: sandboxId,
         branchName: 'sandbox',
       },
-      out,
+      outDir,
       format
     );
   };

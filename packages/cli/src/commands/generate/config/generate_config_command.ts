@@ -11,7 +11,7 @@ export type GenerateConfigCommandOptions = {
   appId: string | undefined;
   branch: string | undefined;
   format: ClientConfigFormat | undefined;
-  out: string | undefined;
+  outDir: string | undefined;
 };
 
 /**
@@ -55,7 +55,7 @@ export class GenerateConfigCommand
 
     await this.clientConfigGenerator.generateClientConfigToFile(
       backendIdentifier,
-      args.out,
+      args.outDir,
       args.format
     );
   };
@@ -113,7 +113,7 @@ export class GenerateConfigCommand
         array: false,
         choices: Object.values(ClientConfigFormat),
       })
-      .option('out', {
+      .option('outDir', {
         describe:
           'A path to directory where config is written. If not provided defaults to current process working directory.',
         type: 'string',

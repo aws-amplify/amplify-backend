@@ -36,7 +36,7 @@ describe('generate config command', () => {
 
   it('generates and writes config for stack', async () => {
     await commandRunner.runCommand(
-      'config --stack stack_name --out /foo/bar --format ts'
+      'config --stack stack_name --outDir /foo/bar --format ts'
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
@@ -55,7 +55,7 @@ describe('generate config command', () => {
 
   it('generates and writes config for branch', async () => {
     await commandRunner.runCommand(
-      'config --branch branch_name --out /foo/bar --format ts'
+      'config --branch branch_name --outDir /foo/bar --format ts'
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
@@ -78,7 +78,7 @@ describe('generate config command', () => {
 
   it('generates and writes config for appID and branch', async () => {
     await commandRunner.runCommand(
-      'config --branch branch_name --appId app_id --out /foo/bar --format js'
+      'config --branch branch_name --appId app_id --outDir /foo/bar --format js'
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
@@ -98,7 +98,7 @@ describe('generate config command', () => {
 
   it('can generate to custom absolute path', async () => {
     await commandRunner.runCommand(
-      'config --stack stack_name --out /foo/bar --format ts'
+      'config --stack stack_name --outDir /foo/bar --format ts'
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
@@ -117,7 +117,7 @@ describe('generate config command', () => {
 
   it('can generate to custom relative path', async () => {
     await commandRunner.runCommand(
-      'config --stack stack_name --out foo/bar --format js'
+      'config --stack stack_name --outDir foo/bar --format js'
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
@@ -140,7 +140,7 @@ describe('generate config command', () => {
     assert.match(output, /--appId/);
     assert.match(output, /--branch/);
     assert.match(output, /--format/);
-    assert.match(output, /--out/);
+    assert.match(output, /--outDir/);
   });
 
   it('fails if both stack and branch are present', async () => {
