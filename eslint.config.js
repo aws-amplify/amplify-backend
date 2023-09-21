@@ -75,7 +75,12 @@ export default [
   },
   // Some packages are allowed to use console.log
   {
-    files: ['packages/sandbox/**/*', 'scripts/**'],
+    files: [
+      'packages/sandbox/**/*',
+      'scripts/**',
+      'packages/backend/src/engine/backend-secret/lambda/**',
+      'packages/create-amplify/**',
+    ],
     rules: {
       'no-console': 'off',
     },

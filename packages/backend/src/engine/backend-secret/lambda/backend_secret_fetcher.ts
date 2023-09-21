@@ -24,7 +24,6 @@ const secretClient = getSecretClient();
 export const handler = async (
   event: CloudFormationCustomResourceEvent
 ): Promise<CloudFormationCustomResourceSuccessResponse> => {
-  // eslint-disable-next-line no-console
   console.info(`Received '${event.RequestType}' event`);
 
   const physicalId =
