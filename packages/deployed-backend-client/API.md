@@ -21,7 +21,7 @@ export class BackendOutputClient {
     constructor(credentials: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier);
     // (undocumented)
     getOutput: () => Promise<{
-        authOutput?: {
+        "AWS::Amplify::Auth"?: {
             version: "1";
             payload: {
                 userPoolId: string;
@@ -34,7 +34,7 @@ export class BackendOutputClient {
                 googleClientId?: string | undefined;
             };
         } | undefined;
-        graphqlOutput?: {
+        "AWS::Amplify::GraphQL"?: {
             version: "1";
             payload: {
                 awsAppsyncRegion: string;
@@ -45,7 +45,7 @@ export class BackendOutputClient {
                 awsAppsyncApiKey?: string | undefined;
             };
         } | undefined;
-        storageOutput?: {
+        "AWS::Amplify::Storage"?: {
             version: "1";
             payload: {
                 bucketName: string;
