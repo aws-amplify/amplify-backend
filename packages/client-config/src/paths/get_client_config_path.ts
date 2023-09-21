@@ -10,7 +10,7 @@ const configFileName = 'amplifyconfiguration';
  * @param format - The format which the configuration should be exported into. Defaults to js.
  * returns path to config file
  */
-export const getClientConfigPath = (
+export const getClientConfigPath = async (
   outDir?: string,
   format?: ClientConfigFormat
 ) => {

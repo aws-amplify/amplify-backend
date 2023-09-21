@@ -21,16 +21,16 @@ mock.method(fs, 'lstatSync', (path: string) => {
 });
 
 describe('getClientConfigPath', () => {
-  it('returns path to config file', () => {
-    const configPath = getClientConfigPath();
+  it('returns path to config file', async () => {
+    const configPath = await getClientConfigPath();
     assert.equal(
       configPath,
       path.join(process.cwd(), `${configFileName}.${ClientConfigFormat.JS}`)
     );
   });
 
-  it('returns path to config file with provided dir path', () => {
-    const configPath = getClientConfigPath(testPath);
+  it('returns path to config file with provided dir path', async () => {
+    const configPath = await getClientConfigPath(testPath);
     assert.equal(
       configPath,
       path.join(
@@ -41,8 +41,11 @@ describe('getClientConfigPath', () => {
     );
   });
 
-  it('returns path to config file with provided dir path and format', () => {
-    const configPath = getClientConfigPath(testPath, ClientConfigFormat.JSON);
+  it('returns path to config file with provided dir path and format', async () => {
+    const configPath = await getClientConfigPath(
+      testPath,
+      ClientConfigFormat.JSON
+    );
     assert.equal(
       configPath,
       path.join(
@@ -53,8 +56,11 @@ describe('getClientConfigPath', () => {
     );
   });
 
-  it('returns path to config file with provided format, no dir path', () => {
-    const configPath = getClientConfigPath(undefined, ClientConfigFormat.TS);
+  it('returns path to config file with provided format, no dir path', async () => {
+    const configPath = await getClientConfigPath(
+      undefined,
+      ClientConfigFormat.TS
+    );
     assert.equal(
       configPath,
       path.join(process.cwd(), `${configFileName}.${ClientConfigFormat.TS}`)
@@ -62,8 +68,8 @@ describe('getClientConfigPath', () => {
   });
 
   it('throw error if it is provided a file path', () => {
-    assert.throws(
-      () => getClientConfigPath(`${testPath}/testConfig.json`),
+    assert.rejects(
+      async () => await getClientConfigPath(`${testPath}/testConfig.json`),
       new Error(
         "ENOENT: no such file or directory, lstat 'some/path/testConfig.json'"
       )
@@ -71,16 +77,18 @@ describe('getClientConfigPath', () => {
   });
 
   it('throw error if it is provided invalid path', () => {
-    assert.throws(
-      () => getClientConfigPath('some/not/existing/path'),
+    assert.rejects(
+      async () => await getClientConfigPath('some/not/existing/path'),
       new Error(
         "ENOENT: no such file or directory, lstat 'some/not/existing/path'"
       )
     );
   });
 
-  it('returns path to config file with absolute path', () => {
-    const configPath = getClientConfigPath(`${process.cwd()}/${testPath}`);
+  it('returns path to config file with absolute path', async () => {
+    const configPath = await getClientConfigPath(
+      `${process.cwd()}/${testPath}`
+    );
     assert.equal(
       configPath,
       path.join(

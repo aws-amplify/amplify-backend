@@ -22,6 +22,6 @@ export const generateClientConfigToFile = async (
     credentialProvider,
     backendIdentifier
   );
-  const targetPath = getClientConfigPath(outDir, format);
+  const targetPath = await getClientConfigPath(outDir, format);
   await clientConfigWriter.writeClientConfig(clientConfig, targetPath);
 };

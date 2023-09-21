@@ -37,7 +37,7 @@ export class FileWatchingSandbox implements Sandbox {
     }
 
     const sandboxId = options.name ?? this.sandboxId;
-    const clientConfigWritePath = getClientConfigPath(
+    const clientConfigWritePath = await getClientConfigPath(
       options.clientConfigFilePath,
       options.format
     );

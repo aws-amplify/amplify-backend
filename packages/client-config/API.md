@@ -45,7 +45,7 @@ export const generateClientConfig: (credentialProvider: AwsCredentialIdentityPro
 export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier, outDir?: string, format?: ClientConfigFormat) => Promise<void>;
 
 // @public
-export const getClientConfigPath: (outDir?: string, format?: ClientConfigFormat) => string;
+export const getClientConfigPath: (outDir?: string, format?: ClientConfigFormat) => Promise<string>;
 
 // @public
 export type GraphqlClientConfig = {
