@@ -17,39 +17,43 @@ export type AppNameAndBranchBackendIdentifier = {
 export type BackendIdentifier = UniqueBackendIdentifier | StackIdentifier | AppNameAndBranchBackendIdentifier;
 
 // @public
-export const getUnifiedBackendOutput: (credentials: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier) => Promise<{
-    authOutput?: {
-        version: "1";
-        payload: {
-            userPoolId: string;
-            webClientId: string;
-            identityPoolId: string;
-            authRegion: string;
-            amazonClientId?: string | undefined;
-            appleClientId?: string | undefined;
-            facebookClientId?: string | undefined;
-            googleClientId?: string | undefined;
-        };
-    } | undefined;
-    graphqlOutput?: {
-        version: "1";
-        payload: {
-            awsAppsyncRegion: string;
-            awsAppsyncApiEndpoint: string;
-            awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
-            awsAppsyncApiId: string;
-            amplifyApiModelSchemaS3Uri: string;
-            awsAppsyncApiKey?: string | undefined;
-        };
-    } | undefined;
-    storageOutput?: {
-        version: "1";
-        payload: {
-            bucketName: string;
-            storageRegion: string;
-        };
-    } | undefined;
-}>;
+export class BackendOutputClient {
+    constructor(credentials: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier);
+    // (undocumented)
+    getOutput: () => Promise<{
+        authOutput?: {
+            version: "1";
+            payload: {
+                userPoolId: string;
+                webClientId: string;
+                identityPoolId: string;
+                authRegion: string;
+                amazonClientId?: string | undefined;
+                appleClientId?: string | undefined;
+                facebookClientId?: string | undefined;
+                googleClientId?: string | undefined;
+            };
+        } | undefined;
+        graphqlOutput?: {
+            version: "1";
+            payload: {
+                awsAppsyncRegion: string;
+                awsAppsyncApiEndpoint: string;
+                awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
+                awsAppsyncApiId: string;
+                amplifyApiModelSchemaS3Uri: string;
+                awsAppsyncApiKey?: string | undefined;
+            };
+        } | undefined;
+        storageOutput?: {
+            version: "1";
+            payload: {
+                bucketName: string;
+                storageRegion: string;
+            };
+        } | undefined;
+    }>;
+}
 
 // @public (undocumented)
 export type StackIdentifier = {
