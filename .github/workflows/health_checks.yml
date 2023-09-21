@@ -37,8 +37,8 @@ jobs:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_build_cache
+      - run: npm run set-script-shell
       - run: npm run test:coverage:threshold
-        shell: bash
   do_include_e2e:
     runs-on: ubuntu-latest
     permissions:
