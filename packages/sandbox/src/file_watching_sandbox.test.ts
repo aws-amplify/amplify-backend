@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, it, mock } from 'node:test';
+import path from 'path';
 import watcher from '@parcel/watcher';
 import { ClientConfigFormat } from '@aws-amplify/client-config';
 import { FileWatchingSandbox } from './file_watching_sandbox.js';
@@ -23,8 +24,8 @@ const execaDestroyMock = mock.method(backendDeployer, 'destroy', () =>
   Promise.resolve()
 );
 
+const testPath = path.join('test', 'location');
 mock.method(fs, 'lstatSync', (path: string) => {
-  const testPath = 'test/location';
   if (path === testPath || path === `${process.cwd()}/${testPath}`) {
     return { isFile: () => false, isDir: () => true };
   }
