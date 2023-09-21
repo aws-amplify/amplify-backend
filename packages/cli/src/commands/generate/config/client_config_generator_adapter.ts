@@ -27,7 +27,6 @@ export class ClientConfigGeneratorAdapter {
 
   /**
    * Calls generateClientConfigToFile from @aws-amplify/client-config.
-   * @deprecated
    * @see generateClientConfigToFile for more information.
    */
   generateClientConfigToFile = async (
