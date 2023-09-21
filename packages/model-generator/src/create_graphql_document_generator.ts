@@ -1,4 +1,5 @@
 import { AppSyncClient } from '@aws-sdk/client-appsync';
+import { AppsyncGraphqlDocumentGenerationResult } from './appsync_graphql_document_generation_result.js';
 import { AppSyncIntrospectionSchemaFetcher } from './appsync_schema_fetcher.js';
 import {
   AppSyncGraphqlDocumentGenerator,
@@ -6,7 +7,6 @@ import {
 } from './graphql_document_generator.js';
 import { GraphQLStatementsFormatter } from './graphql_statements_formatter.js';
 import { GraphqlDocumentGenerator, TargetLanguage } from './model_generator.js';
-import { writeSchemaToFile } from './write_schema_to_file.js';
 
 export type GraphqlDocumentGeneratorFactoryParams = {
   apiId: string;
@@ -26,7 +26,6 @@ export const createGraphqlDocumentGenerator = ({
       new AppSyncIntrospectionSchemaFetcher(new AppSyncClient()).fetch(apiId),
     (_: TargetLanguage, statements: Statements) =>
       new GraphQLStatementsFormatter().format(statements),
-    (outDir: string, fileName: string, content: string) =>
-      writeSchemaToFile(outDir, fileName, content)
+    (fileMap) => new AppsyncGraphqlDocumentGenerationResult(fileMap)
   );
 };
