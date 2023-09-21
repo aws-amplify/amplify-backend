@@ -16,6 +16,7 @@ import {
 export type SandboxCommandOptions = {
   dirToWatch: string | undefined;
   exclude: string[] | undefined;
+  format: ClientConfigFormat | undefined;
   name: string | undefined;
   out: string | undefined;
   profile: string | undefined;
@@ -52,7 +53,8 @@ export class SandboxCommand
 
   private writeClientConfig = async (
     clientConfigWritePath: string,
-    name?: string
+    name?: string,
+    format?: ClientConfigFormat
   ) => {
     const sandboxIdResolver = new SandboxIdResolver(
       new LocalAppNameResolver(new CwdPackageJsonLoader())
@@ -64,7 +66,8 @@ export class SandboxCommand
         backendId: sandboxId,
         branchName: 'sandbox',
       },
-      clientConfigWritePath
+      clientConfigWritePath,
+      format
     );
   };
 
@@ -90,9 +93,13 @@ export class SandboxCommand
     this.appName = args.name;
     const sandbox = await this.sandboxFactory.getInstance();
     const clientConfigWritePath = this.getClientConfigWritePath(args);
-    sandbox.on('afterDeployment', () =>
-      this.writeClientConfig(clientConfigWritePath, args.name)
-    );
+    sandbox.on('afterDeployment', () => {
+      void this.writeClientConfig(
+        clientConfigWritePath,
+        args.name,
+        args.format
+      );
+    });
     const watchExclusions = args.exclude ?? [];
     watchExclusions.push(clientConfigWritePath);
     await sandbox.start({
