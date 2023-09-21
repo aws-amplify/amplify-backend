@@ -5,13 +5,7 @@
 ```ts
 
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
-
-// @public
-export type AppNameAndBranchBackendIdentifier = {
-    appName: string;
-    branchName: string;
-};
+import { BackendIdentifier } from '@aws-amplify/deployed-backend-client';
 
 // @public
 export type AuthClientConfig = {
@@ -21,9 +15,6 @@ export type AuthClientConfig = {
     aws_cognito_identity_pool_id?: string;
     aws_mandatory_sign_in?: string;
 };
-
-// @public (undocumented)
-export type BackendIdentifier = UniqueBackendIdentifier | StackIdentifier | AppNameAndBranchBackendIdentifier;
 
 // @public
 export type ClientConfig = Partial<AuthClientConfig & GraphqlClientConfig & StorageClientConfig>;
@@ -35,51 +26,11 @@ export const generateClientConfig: (credentialProvider: AwsCredentialIdentityPro
 export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier, targetPath: string) => Promise<void>;
 
 // @public
-export const getUnifiedBackendOutput: (credentials: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier) => Promise<{
-    authOutput?: {
-        version: "1";
-        payload: {
-            userPoolId: string;
-            webClientId: string;
-            identityPoolId: string;
-            authRegion: string;
-            amazonClientId?: string | undefined;
-            appleClientId?: string | undefined;
-            facebookClientId?: string | undefined;
-            googleClientId?: string | undefined;
-        };
-    } | undefined;
-    graphqlOutput?: {
-        version: "1";
-        payload: {
-            awsAppsyncRegion: string;
-            awsAppsyncApiEndpoint: string;
-            awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
-            awsAppsyncApiId: string;
-            amplifyApiModelSchemaS3Uri: string;
-            awsAppsyncApiKey?: string | undefined;
-        };
-    } | undefined;
-    storageOutput?: {
-        version: "1";
-        payload: {
-            bucketName: string;
-            storageRegion: string;
-        };
-    } | undefined;
-}>;
-
-// @public
 export type GraphqlClientConfig = {
     aws_appsync_region: string;
     aws_appsync_graphqlEndpoint: string;
     aws_appsync_authenticationType: string;
     aws_appsync_apiKey?: string;
-};
-
-// @public (undocumented)
-export type StackIdentifier = {
-    stackName: string;
 };
 
 // @public

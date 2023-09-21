@@ -32,9 +32,7 @@ describe('UnifiedClientConfigGenerator', () => {
           },
         },
       };
-      const outputRetrieval: BackendOutputRetrievalStrategy = {
-        fetchBackendOutput: mock.fn(async () => stubOutput),
-      };
+      const outputRetrieval = mock.fn(async () => stubOutput);
       const configContributors = [
         new AuthClientConfigContributor(),
         new GraphqlClientConfigContributor(),
