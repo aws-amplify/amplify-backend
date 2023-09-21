@@ -1,12 +1,10 @@
-import { generateGraphQLDocuments } from '@aws-amplify/graphql-docs-generator';
+import { generateStatements } from '@aws-amplify/graphql-generator';
 import {
   DocumentGenerationParameters,
   DocumentGenerationResult,
   GraphqlDocumentGenerator,
-  TargetLanguage,
 } from './model_generator.js';
 
-export type Statements = Map<string, string>;
 /**
  * Generates GraphQL documents for a given AppSync API
  */
@@ -18,17 +16,10 @@ export class AppSyncGraphqlDocumentGenerator
    */
   constructor(
     private fetchSchema: () => Promise<string>,
-    private format: (
-      language: TargetLanguage,
-      statements: Statements
-    ) => Promise<string>,
     private resultBuilder: (
       fileMap: Record<string, string>
     ) => DocumentGenerationResult
   ) {}
-  private static languageExtensions: Record<TargetLanguage, string> = {
-    typescript: 'ts',
-  };
   generateModels = async ({ language }: DocumentGenerationParameters) => {
     const schema = await this.fetchSchema();
 
@@ -36,32 +27,13 @@ export class AppSyncGraphqlDocumentGenerator
       throw new Error('Invalid schema');
     }
 
-    const generatedStatements = generateGraphQLDocuments(schema, {
+    const generatedStatements = generateStatements({
+      schema,
+      target: language,
       maxDepth: 3,
       typenameIntrospection: true,
     });
 
-    const clientOps: Array<keyof typeof generatedStatements> = [
-      'queries',
-      'mutations',
-      'subscriptions',
-    ];
-
-    const formattedFiles = await Promise.all(
-      clientOps.map(async (op) => {
-        const ops = generatedStatements[op];
-        const content = await this.format(language, ops as Map<string, string>);
-        const fileName = `${op}.${AppSyncGraphqlDocumentGenerator.languageExtensions[language]}`;
-        return { fileName, content };
-      })
-    );
-    const fileMap = formattedFiles.reduce<Record<string, string>>(
-      (prev: Record<string, string>, { content, fileName }) => {
-        prev[fileName] = content;
-        return prev;
-      },
-      {}
-    );
-    return this.resultBuilder(fileMap);
+    return this.resultBuilder(generatedStatements);
   };
 }

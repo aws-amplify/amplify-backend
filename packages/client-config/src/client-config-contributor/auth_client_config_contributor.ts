@@ -1,5 +1,8 @@
 import { ClientConfigContributor } from './client_config_contributor.js';
-import { UnifiedBackendOutput } from '@aws-amplify/backend-output-schemas';
+import {
+  UnifiedBackendOutput,
+  authOutputKey,
+} from '@aws-amplify/backend-output-schemas';
 import { AuthClientConfig } from '../client-config-types/auth_client_config.js';
 
 /**
@@ -10,7 +13,7 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
    * Given some BackendOutput, contribute the Auth portion of the ClientConfig
    */
   contribute = ({
-    authOutput,
+    [authOutputKey]: authOutput,
   }: UnifiedBackendOutput): AuthClientConfig | Record<string, never> => {
     if (authOutput === undefined) {
       return {};

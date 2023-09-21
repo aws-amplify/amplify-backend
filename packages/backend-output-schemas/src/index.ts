@@ -6,15 +6,15 @@ import { versionedStorageOutputSchema } from './storage/index.js';
 /**
  * Expected key that auth output is stored under
  */
-export const authOutputKey = 'authOutput';
+export const authOutputKey = 'AWS::Amplify::Auth';
 /**
  * Expected key that graphql output is stored under
  */
-export const graphqlOutputKey = 'graphqlOutput';
+export const graphqlOutputKey = 'AWS::Amplify::GraphQL';
 /**
  * Expected key that storage output is stored under
  */
-export const storageOutputKey = 'storageOutput';
+export const storageOutputKey = 'AWS::Amplify::Storage';
 /**
  * Defines the unified expected shape of Amplify backend output.
  * As new constructs are added that need to contribute backend output, entries should be added here so that client config generation is aware of these outputs
