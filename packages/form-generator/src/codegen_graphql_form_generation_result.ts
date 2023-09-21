@@ -11,7 +11,7 @@ export class CodegenGraphqlFormGeneratorResult
   /**
    * Creates a CodegenGraphqlFormGeneratorResponse
    */
-  constructor(private fileNameComponentMap: Record<string, string>) {}
+  constructor(private readonly fileNameComponentMap: Record<string, string>) {}
   /**
    * writes the components to a given directory
    */
@@ -26,8 +26,11 @@ export class CodegenGraphqlFormGeneratorResult
     )) {
       if (content) {
         const fd = await fs.open(path.join(directoryPath, fileName), 'w+');
-        await fd.writeFile(content);
-        await fd.close();
+        try {
+          await fd.writeFile(content);
+        } finally {
+          await fd.close();
+        }
       }
     }
   };

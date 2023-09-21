@@ -7,7 +7,7 @@ export class S3StringObjectFetcher {
   /**
    * Creates an S3StringObjectFetcher with the provided s3 client
    */
-  constructor(private s3Client: S3Client) {}
+  constructor(private readonly s3Client: S3Client) {}
 
   private parseS3Uri = (uri: string): { bucket: string; key: string } => {
     const { hostname, pathname } = new URL(uri);
