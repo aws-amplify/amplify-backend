@@ -51,9 +51,6 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
    * @inheritdoc
    */
   start = async (options: SandboxOptions) => {
-    console.debug('[Sandbox] Running beforeStart event handlers');
-    this.emit('beforeStart');
-    console.debug('[Sandbox] Finished beforeStart event handlers');
     const { profile } = options;
     if (profile) {
       process.env.AWS_PROFILE = profile;
@@ -81,9 +78,6 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     let latch: 'open' | 'deploying' | 'queued' = 'open';
 
     const deployAndWatch = debounce(async () => {
-      console.debug('[Sandbox] Running beforeDeployment event handlers');
-      this.emit('beforeDeployment');
-      console.debug('[Sandbox] Finished beforeDeployment event handlers');
       latch = 'deploying';
       await this.executor.deploy({
         backendId: sandboxId,
@@ -142,23 +136,14 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
 
     // Start the first full deployment without waiting for a file change
     await deployAndWatch();
-    console.debug('[Sandbox] Running afterStart event handlers');
-    this.emit('afterStart');
-    console.debug('[Sandbox] Finished afterStart event handlers');
   };
 
   /**
    * @inheritdoc
    */
   stop = async () => {
-    console.debug('[Sandbox] Running beforeStop event handlers');
-    this.emit('beforeStop');
-    console.debug('[Sandbox] Finished beforeStop event handlers');
     console.debug(`[Sandbox] Shutting down`);
     await this.watcherSubscription.unsubscribe();
-    console.debug('[Sandbox] Running afterStop event handlers');
-    this.emit('afterStop');
-    console.debug('[Sandbox] Finished afterStop event handlers');
   };
 
   /**
