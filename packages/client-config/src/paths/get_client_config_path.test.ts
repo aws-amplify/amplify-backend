@@ -1,5 +1,5 @@
 import fs from 'fs';
-import test, { beforeEach, describe, it, mock } from 'node:test';
+import { describe, it, mock } from 'node:test';
 import * as path from 'path';
 import assert from 'node:assert';
 import { getClientConfigPath } from './get_client_config_path.js';
