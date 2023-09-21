@@ -42,10 +42,10 @@ export enum ClientConfigFormat {
 export const generateClientConfig: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier) => Promise<ClientConfig>;
 
 // @public
-export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier, out?: string, format?: ClientConfigFormat) => Promise<void>;
+export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier, outDir?: string, format?: ClientConfigFormat) => Promise<void>;
 
 // @public
-export const getClientConfigPath: (out?: string, format?: ClientConfigFormat) => string;
+export const getClientConfigPath: (outDir?: string, format?: ClientConfigFormat) => string;
 
 // @public
 export type GraphqlClientConfig = {

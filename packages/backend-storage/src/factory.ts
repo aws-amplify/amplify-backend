@@ -11,6 +11,11 @@ import {
   AmplifyStorageProps,
 } from '@aws-amplify/storage-construct-alpha';
 
+export type AmplifyStorageFactoryProps = Omit<
+  AmplifyStorageProps,
+  'outputStorageStrategy'
+>;
+
 /**
  * Singleton factory for a Storage bucket that can be used in `storage.ts` files
  */
@@ -21,7 +26,7 @@ export class AmplifyStorageFactory implements ConstructFactory<AmplifyStorage> {
   /**
    * Set the properties that will be used to initialize the bucket
    */
-  constructor(private readonly props: AmplifyStorageProps) {
+  constructor(private readonly props: AmplifyStorageFactoryProps) {
     this.importStack = new Error().stack;
   }
 
@@ -58,13 +63,10 @@ class AmplifyStorageGenerator implements ConstructContainerEntryGenerator {
   ) {}
 
   generateContainerEntry = (scope: Construct) => {
-    const storageConstruct = new AmplifyStorage(
-      scope,
-      this.defaultName,
-      this.props
-    );
-    storageConstruct.storeOutput(this.outputStorageStrategy);
-    return storageConstruct;
+    return new AmplifyStorage(scope, this.defaultName, {
+      ...this.props,
+      outputStorageStrategy: this.outputStorageStrategy,
+    });
   };
 }
 

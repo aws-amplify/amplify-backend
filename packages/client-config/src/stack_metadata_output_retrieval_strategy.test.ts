@@ -6,9 +6,12 @@ import {
 } from '@aws-sdk/client-cloudformation';
 import { StackMetadataBackendOutputRetrievalStrategy } from './stack_metadata_output_retrieval_strategy.js';
 import assert from 'node:assert';
-import { amplifyStackMetadataKey } from '@aws-amplify/backend-output-schemas/platform';
 import { ZodError } from 'zod';
 import { MainStackNameResolver } from '@aws-amplify/plugin-types';
+import {
+  authOutputKey,
+  graphqlOutputKey,
+} from '@aws-amplify/backend-output-schemas';
 
 describe('StackMetadataBackendOutputRetrievalStrategy', () => {
   describe('fetchBackendOutput', () => {
@@ -44,11 +47,9 @@ describe('StackMetadataBackendOutputRetrievalStrategy', () => {
           if (command instanceof GetTemplateSummaryCommand) {
             return {
               Metadata: JSON.stringify({
-                [amplifyStackMetadataKey]: {
-                  TestOutput: {
-                    version: '1',
-                    stackOutputs: ['testName1', 'testName2'],
-                  },
+                [authOutputKey]: {
+                  version: '1',
+                  stackOutputs: ['testName1', 'testName2'],
                 },
               }),
             };
@@ -85,11 +86,9 @@ describe('StackMetadataBackendOutputRetrievalStrategy', () => {
           if (command instanceof GetTemplateSummaryCommand) {
             return {
               Metadata: JSON.stringify({
-                [amplifyStackMetadataKey]: {
-                  TestOutput: {
-                    version: '1', // should be number
-                    stackOutputs: [{ wrong: 'type' }, 'otherThing'],
-                  },
+                [authOutputKey]: {
+                  version: '1', // should be number
+                  stackOutputs: [{ wrong: 'type' }, 'otherThing'],
                 },
               }),
             };
@@ -119,11 +118,9 @@ describe('StackMetadataBackendOutputRetrievalStrategy', () => {
           if (command instanceof GetTemplateSummaryCommand) {
             return {
               Metadata: JSON.stringify({
-                [amplifyStackMetadataKey]: {
-                  TestOutput: {
-                    version: '1',
-                    stackOutputs: ['testName1', 'testName2'],
-                  },
+                [authOutputKey]: {
+                  version: '1',
+                  stackOutputs: ['testName1', 'testName2'],
                 },
               }),
             };
@@ -165,15 +162,13 @@ describe('StackMetadataBackendOutputRetrievalStrategy', () => {
           if (command instanceof GetTemplateSummaryCommand) {
             return {
               Metadata: JSON.stringify({
-                [amplifyStackMetadataKey]: {
-                  TestOutput: {
-                    version: '1',
-                    stackOutputs: ['testName1', 'testName2'],
-                  },
-                  OtherOutput: {
-                    version: '2',
-                    stackOutputs: ['thing1', 'thing2'],
-                  },
+                [authOutputKey]: {
+                  version: '1',
+                  stackOutputs: ['testName1', 'testName2'],
+                },
+                [graphqlOutputKey]: {
+                  version: '2',
+                  stackOutputs: ['thing1', 'thing2'],
                 },
               }),
             };
@@ -218,14 +213,14 @@ describe('StackMetadataBackendOutputRetrievalStrategy', () => {
 
       const output = await retrievalStrategy.fetchBackendOutput();
       assert.deepStrictEqual(output, {
-        TestOutput: {
+        [authOutputKey]: {
           version: '1',
           payload: {
             testName1: 'testValue1',
             testName2: 'testValue2',
           },
         },
-        OtherOutput: {
+        [graphqlOutputKey]: {
           version: '2',
           payload: {
             thing1: 'The cat',

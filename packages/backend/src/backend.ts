@@ -7,7 +7,7 @@ import {
 } from './engine/nested_stack_resolver.js';
 import { SingletonConstructContainer } from './engine/singleton_construct_container.js';
 import { ToggleableImportPathVerifier } from './engine/toggleable_import_path_verifier.js';
-import { StackMetadataBackendOutputStorageStrategy } from './engine/stack_metadata_output_storage_strategy.js';
+import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 import { createDefaultStack } from './default_stack_factory.js';
 
 /**
