@@ -71,4 +71,16 @@ describe('getClientConfigPath', () => {
       )
     );
   });
+
+  it('returns path to config file with absolute path', () => {
+    const configPath = getClientConfigPath(`${process.cwd()}/some/path`);
+    assert.equal(
+      configPath,
+      path.join(
+        process.cwd(),
+        'some/path',
+        `${configFileName}.${ClientConfigFormat.JS}`
+      )
+    );
+  });
 });
