@@ -1,5 +1,4 @@
 import { beforeEach, describe, it, mock } from 'node:test';
-import * as path from 'path';
 import { AmplifyPrompter } from '../prompter/amplify_prompts.js';
 import yargs, { CommandModule } from 'yargs';
 import {
