@@ -5,7 +5,6 @@ import { Template } from 'aws-cdk-lib/assertions';
 import {
   NestedStackResolver,
   SingletonConstructContainer,
-  StackMetadataBackendOutputStorageStrategy,
   ToggleableImportPathVerifier,
 } from '@aws-amplify/backend/test-utils';
 import assert from 'node:assert';
@@ -16,6 +15,7 @@ import {
   ConstructFactoryGetInstanceProps,
   ImportPathVerifier,
 } from '@aws-amplify/plugin-types';
+import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 
 describe('AmplifyStorageFactory', () => {
   let storageFactory: AmplifyStorageFactory;

@@ -4,12 +4,12 @@ import { App, Stack } from 'aws-cdk-lib';
 import {
   NestedStackResolver,
   SingletonConstructContainer,
-  StackMetadataBackendOutputStorageStrategy,
 } from '@aws-amplify/backend/test-utils';
 import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
 import assert from 'node:assert';
 import { fileURLToPath } from 'url';
 import * as path from 'path';
+import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 
 describe('AmplifyFunctionFactory', () => {
   let getInstanceProps: ConstructFactoryGetInstanceProps;

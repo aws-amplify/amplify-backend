@@ -1,6 +1,6 @@
 {
-  "name": "@aws-amplify/model-generator",
-  "version": "0.2.0-alpha.1",
+  "name": "@aws-amplify/backend-output-storage",
+  "version": "0.1.0",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -16,8 +16,7 @@
   "scripts": {
     "update:api": "api-extractor run --local"
   },
-  "dependencies": {
-    "@aws-amplify/graphql-generator": "^0.1.0",
-    "@aws-sdk/client-appsync": "^3.398.0"
+  "peerDependencies": {
+    "aws-cdk-lib": "^2.80.0"
   }
 }

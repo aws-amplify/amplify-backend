@@ -1,4 +1,5 @@
-export type TargetLanguage = 'typescript';
+import { StatementsTarget } from '@aws-amplify/graphql-generator';
+export type TargetLanguage = StatementsTarget;
 
 export type DocumentGenerationParameters = {
   language: TargetLanguage;
