@@ -8,9 +8,11 @@ import { UniqueBackendIdentifier } from './unique_backend_identifier.js';
 export type BackendSecretResolver = {
   /**
    * Returns a deep copy of props where any occurrence of BackendSecret are replaced
-   * by SecretValue type.
+   * by SecretValue type. The traversal will skip data field(s) if its type is included
+   * in the Ignore & ignoreTypes array.
    */
   resolveSecrets: <T, Ignore extends any[] = []>(
+    scope: Construct,
     arg: T,
     ignoreTypes?: { new (...args: any[]): Ignore[number] }[]
   ) => Replace<T, BackendSecret, SecretValue, Ignore>;

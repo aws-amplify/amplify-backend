@@ -27,7 +27,7 @@ describe('AmplifyFunctionFactory', () => {
       stack
     );
 
-    const backendSecretResolver = new DefaultBackendSecretResolver(stack, {
+    const backendSecretResolver = new DefaultBackendSecretResolver({
       backendId: 'testBackendId',
       branchName: 'testBranchName',
     });

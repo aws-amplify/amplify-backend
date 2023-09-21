@@ -48,11 +48,12 @@ describe('AmplifyAuthFactory', () => {
 
     importPathVerifier = new ToggleableImportPathVerifier(false);
 
-    backendSecretResolver = new DefaultBackendSecretResolver(stack, {
+    backendSecretResolver = new DefaultBackendSecretResolver({
       backendId: 'testBackendId',
       branchName: 'testBranchName',
     });
   });
+
   it('returns singleton instance', () => {
     const instance1 = authFactory.getInstance({
       constructContainer,

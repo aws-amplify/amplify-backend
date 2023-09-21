@@ -88,7 +88,7 @@ describe('DataFactory', () => {
     );
     importPathVerifier = new ToggleableImportPathVerifier(false);
 
-    backendSecretResolver = new DefaultBackendSecretResolver(stack, {
+    backendSecretResolver = new DefaultBackendSecretResolver({
       backendId: 'testBackendId',
       branchName: 'testBranchName',
     });

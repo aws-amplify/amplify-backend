@@ -16,7 +16,6 @@ export class DefaultBackendSecretResolver implements BackendSecretResolver {
    * These values are used to resolve the correct underlying secret value
    */
   constructor(
-    private readonly scope: Construct,
     private readonly uniqueBackendIdentifier: UniqueBackendIdentifier
   ) {}
 
@@ -33,23 +32,21 @@ export class DefaultBackendSecretResolver implements BackendSecretResolver {
    * If these class contains no secret to resolve (and it must not be), use the Ignore and ignoreTypes to bypass.
    */
   resolveSecrets = <T, Ignore extends any[] = []>(
+    scope: Construct,
     arg: T,
     ignoreTypes?: { new (...args: any[]): Ignore[number] }[]
   ): Replace<T, BackendSecret, SecretValue, Ignore> => {
     if (this.isBackendSecret(arg)) {
-      return arg.resolve(this.scope, this.uniqueBackendIdentifier) as Replace<
+      return arg.resolve(scope, this.uniqueBackendIdentifier) as Replace<
         T,
         BackendSecret,
         SecretValue,
         Ignore
       >;
     } else if (Array.isArray(arg)) {
-      return arg.map((prop) => this.resolveSecrets(prop)) as Replace<
-        T,
-        BackendSecret,
-        SecretValue,
-        Ignore
-      >;
+      return arg.map((prop) =>
+        this.resolveSecrets(scope, prop, ignoreTypes)
+      ) as Replace<T, BackendSecret, SecretValue, Ignore>;
     } else if (arg && typeof arg === 'object') {
       const result: Partial<Replace<T, BackendSecret, SecretValue, Ignore>> =
         {};
@@ -58,6 +55,7 @@ export class DefaultBackendSecretResolver implements BackendSecretResolver {
           result[key as keyof typeof result] = value;
         } else {
           result[key as keyof typeof result] = this.resolveSecrets(
+            scope,
             value,
             ignoreTypes
           );

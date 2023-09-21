@@ -1,11 +1,10 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { SecretValue } from 'aws-cdk-lib';
+import { App, SecretValue, Stack } from 'aws-cdk-lib';
 import {
   BackendSecret,
   UniqueBackendIdentifier,
 } from '@aws-amplify/plugin-types';
-import { Construct } from 'constructs';
 import { DefaultBackendSecretResolver } from './backend_secret_resolver.js';
 
 const invalidSecretName = 'errorSecretName';
@@ -37,6 +36,12 @@ class TestClassWithPrivateMembers2 {
 }
 
 describe('DefaultBackendSecretResolver', () => {
+  const testApp = new App();
+  const testStack = new Stack(testApp);
+  const resolver = new DefaultBackendSecretResolver(
+    {} as UniqueBackendIdentifier
+  );
+
   it('throws if failed to resolve a secret', () => {
     const arg = {
       a: new TestBackendSecret('c1'),
@@ -49,12 +54,9 @@ describe('DefaultBackendSecretResolver', () => {
         c3: 'c3',
       },
     };
-    const resolver = new DefaultBackendSecretResolver(
-      {} as Construct,
-      {} as UniqueBackendIdentifier
-    );
+
     assert.throws(
-      () => resolver.resolveSecrets(arg),
+      () => resolver.resolveSecrets(testStack, arg),
       new Error('Failed to resolve!')
     );
   });
@@ -70,12 +72,7 @@ describe('DefaultBackendSecretResolver', () => {
       },
     };
 
-    const resolver = new DefaultBackendSecretResolver(
-      {} as Construct,
-      {} as UniqueBackendIdentifier
-    );
-
-    assert.deepStrictEqual(resolver.resolveSecrets(arg), {
+    assert.deepStrictEqual(resolver.resolveSecrets(testStack, arg), {
       a: SecretValue.unsafePlainText('c1'),
       c: {
         c2: {
@@ -112,16 +109,14 @@ describe('DefaultBackendSecretResolver', () => {
       e: cannotTransformObj1,
     };
 
-    const resolver = new DefaultBackendSecretResolver(
-      {} as Construct,
-      {} as UniqueBackendIdentifier
-    );
-
     assert.deepStrictEqual(
       resolver.resolveSecrets<
         typeof arg,
         [TestClassWithPrivateMembers1, TestClassWithPrivateMembers2]
-      >(arg, [TestClassWithPrivateMembers1, TestClassWithPrivateMembers2]),
+      >(testStack, arg, [
+        TestClassWithPrivateMembers1,
+        TestClassWithPrivateMembers2,
+      ]),
       {
         a: SecretValue.unsafePlainText('c1'),
         c: {
