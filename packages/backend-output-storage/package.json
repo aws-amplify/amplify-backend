@@ -1,6 +1,6 @@
 {
-  "name": "@aws-amplify/auth-construct-alpha",
-  "version": "0.2.0-alpha.5",
+  "name": "@aws-amplify/backend-output-storage",
+  "version": "0.1.0",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -16,13 +16,7 @@
   "scripts": {
     "update:api": "api-extractor run --local"
   },
-  "dependencies": {
-    "@aws-amplify/backend-output-schemas": "^0.2.0-alpha.2",
-    "@aws-amplify/backend-output-storage": "^0.1.0"
-  },
   "peerDependencies": {
-    "@aws-amplify/plugin-types": "^0.1.1-alpha.4",
-    "aws-cdk-lib": "~2.80.0",
-    "constructs": "^10.0.0"
+    "aws-cdk-lib": "^2.80.0"
   }
 }

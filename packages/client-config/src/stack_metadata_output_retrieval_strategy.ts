@@ -8,10 +8,7 @@ import {
   BackendOutputRetrievalStrategy,
   MainStackNameResolver,
 } from '@aws-amplify/plugin-types';
-import {
-  amplifyStackMetadataKey,
-  backendOutputStackMetadataSchema,
-} from '@aws-amplify/backend-output-schemas/platform';
+import { backendOutputStackMetadataSchema } from '@aws-amplify/backend-output-schemas/platform';
 
 /**
  * Gets Amplify backend outputs from stack metadata and outputs
@@ -46,12 +43,9 @@ export class StackMetadataBackendOutputRetrievalStrategy
 
     const metadataObject = JSON.parse(templateSummary.Metadata);
 
-    const unvalidatedBackendOutput = metadataObject[amplifyStackMetadataKey];
-
     // parse and validate the metadata object
-    const backendOutputMetadata = backendOutputStackMetadataSchema.parse(
-      unvalidatedBackendOutput
-    );
+    const backendOutputMetadata =
+      backendOutputStackMetadataSchema.parse(metadataObject);
 
     // DescribeStacks includes the template output
     const stackDescription = await this.cfnClient.send(
