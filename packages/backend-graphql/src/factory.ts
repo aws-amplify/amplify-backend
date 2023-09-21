@@ -10,11 +10,15 @@ import {
 import {
   AmplifyGraphqlApi,
   AmplifyGraphqlApiProps,
+  AmplifyGraphqlSchema,
   AuthorizationConfig,
+  IAMAuthorizationConfig,
 } from '@aws-amplify/graphql-construct-alpha';
 import { GraphqlOutput } from '@aws-amplify/backend-output-schemas/graphql';
 
-export type DataProps = Pick<AmplifyGraphqlApiProps, 'schema'>;
+export type DataProps = {
+  schema: string;
+};
 
 /**
  * Singleton factory for AmplifyGraphqlApi constructs that can be used in Amplify project files
@@ -71,26 +75,31 @@ class DataGenerator implements ConstructContainerEntryGenerator {
   ) {}
 
   generateContainerEntry = (scope: Construct) => {
-    const authConfig: AuthorizationConfig = {
-      iamConfig: {
-        authenticatedUserRole:
-          this.authResources.resources.authenticatedUserIamRole,
-        unauthenticatedUserRole:
-          this.authResources.resources.unauthenticatedUserIamRole,
-        identityPoolId:
-          this.authResources.resources.cfnResources.identityPool.logicalId,
-      },
+    const iamConfig: IAMAuthorizationConfig = {
+      authenticatedUserRole:
+        this.authResources.resources.authenticatedUserIamRole,
+      unauthenticatedUserRole:
+        this.authResources.resources.unauthenticatedUserIamRole,
+      identityPoolId:
+        this.authResources.resources.cfnResources.identityPool.logicalId,
     };
-    if (this.authResources.resources.userPool) {
-      authConfig.userPoolConfig = {
-        userPool: this.authResources.resources.userPool,
-      };
-      authConfig.defaultAuthMode = 'AMAZON_COGNITO_USER_POOLS';
-    }
+
+    const authConfig: AuthorizationConfig = this.authResources.resources
+      .userPool
+      ? {
+          iamConfig,
+          defaultAuthMode: 'AMAZON_COGNITO_USER_POOLS',
+          userPoolConfig: {
+            userPool: this.authResources.resources.userPool,
+          },
+        }
+      : {
+          iamConfig,
+        };
 
     // TODO inject the construct with the functionNameMap
     const graphqlConstructProps: AmplifyGraphqlApiProps = {
-      schema: this.props.schema,
+      schema: AmplifyGraphqlSchema.fromString(this.props.schema),
       authorizationConfig: authConfig,
       outputStorageStrategy: this.outputStorageStrategy,
     };
