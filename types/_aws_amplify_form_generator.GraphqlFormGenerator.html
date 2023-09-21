@@ -1,4 +1,4 @@
-<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>MFASettings | Amplify Toolbox</title><meta name="description" content="Documentation for Amplify Toolbox"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os"</script><header class="tsd-page-toolbar">
+<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>GraphqlFormGenerator | Amplify Toolbox</title><meta name="description" content="Documentation for Amplify Toolbox"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os"</script><header class="tsd-page-toolbar">
 <div class="tsd-toolbar-contents container">
 <div class="table-cell" id="tsd-search" data-base="..">
 <div class="field"><label for="tsd-search-field" class="tsd-widget tsd-toolbar-icon search no-caption"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><use href="#icon-search"></use></svg></label><input type="text" id="tsd-search-field" aria-label="Search"/></div>
@@ -13,31 +13,23 @@
 <div class="tsd-page-title">
 <ul class="tsd-breadcrumb">
 <li><a href="../index.html">Amplify Toolbox</a></li>
-<li><a href="../modules/_aws_amplify_auth_construct_alpha.html">@aws-amplify/auth-construct-alpha</a></li>
-<li><a href="_aws_amplify_auth_construct_alpha.MFASettings.html">MFASettings</a></li></ul>
-<h1>Type alias MFASettings</h1></div>
-<div class="tsd-signature"><span class="tsd-kind-type-alias">MFASettings</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">sms</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">true</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">smsMessage</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-symbol">`</span><span class="tsd-signature-symbol">${</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">}</span><span class="tsd-signature-type">{####}</span><span class="tsd-signature-symbol">${</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">`</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">totp</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">sms</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">totp</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></div>
-<div class="tsd-comment tsd-typography"><p>TOTP and SMS settings for MFA</p>
-</div>
+<li><a href="../modules/_aws_amplify_form_generator.html">@aws-amplify/form-generator</a></li>
+<li><a href="_aws_amplify_form_generator.GraphqlFormGenerator.html">GraphqlFormGenerator</a></li></ul>
+<h1>Type alias GraphqlFormGenerator</h1></div>
+<div class="tsd-signature"><span class="tsd-kind-type-alias">Graphql<wbr/>Form<wbr/>Generator</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">generateForms</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="_aws_amplify_form_generator.GraphqlGenerationResult.html" class="tsd-signature-type tsd-kind-type-alias">GraphqlGenerationResult</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></div>
 <div class="tsd-type-declaration">
 <h4>Type declaration</h4>
 <ul class="tsd-parameters">
 <li class="tsd-parameter">
-<h5><span class="tsd-kind-property">sms</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">true</span></h5></li>
-<li class="tsd-parameter">
-<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-property">sms<wbr/>Message</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-symbol">`</span><span class="tsd-signature-symbol">${</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">}</span><span class="tsd-signature-type">{####}</span><span class="tsd-signature-symbol">${</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">`</span></h5></li>
-<li class="tsd-parameter">
-<h5><span class="tsd-kind-property">totp</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></h5></li></ul></div>
-<div class="tsd-type-declaration">
-<h4>Type declaration</h4>
+<h5><span class="tsd-kind-property">generate<wbr/>Forms</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="_aws_amplify_form_generator.GraphqlGenerationResult.html" class="tsd-signature-type tsd-kind-type-alias">GraphqlGenerationResult</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span></h5>
 <ul class="tsd-parameters">
-<li class="tsd-parameter">
-<h5><span class="tsd-kind-property">sms</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">false</span></h5></li>
-<li class="tsd-parameter">
-<h5><span class="tsd-kind-property">totp</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></h5></li></ul></div>
-<div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
+<li class="tsd-parameter-signature">
+<ul class="tsd-signatures">
+<li class="tsd-signature" id="__type.generateForms.__type-1.__type-2"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="_aws_amplify_form_generator.GraphqlGenerationResult.html" class="tsd-signature-type tsd-kind-type-alias">GraphqlGenerationResult</a><span class="tsd-signature-symbol">&gt;</span></li>
+<li class="tsd-description">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="_aws_amplify_form_generator.GraphqlGenerationResult.html" class="tsd-signature-type tsd-kind-type-alias">GraphqlGenerationResult</a><span class="tsd-signature-symbol">&gt;</span></h4></li></ul></li></ul></li></ul></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/ad73f89/packages/auth-construct/src/types.ts#L45">packages/auth-construct/src/types.ts:45</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/ad73f89/packages/form-generator/src/graphql_form_generator.ts#L4">graphql_form_generator.ts:4</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
