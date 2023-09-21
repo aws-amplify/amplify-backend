@@ -3,7 +3,6 @@ import { AuthClientConfigContributor } from './client-config-contributor/auth_cl
 import { GraphqlClientConfigContributor } from './client-config-contributor/graphql_client_config_contributor.js';
 import { ClientConfigGenerator } from './client_config_generator.js';
 import { StorageClientConfigContributor } from './client-config-contributor/storage_client_config_contributor.js';
-import { BackendIdentifier } from '@aws-amplify/deployed-backend-client';
 import { BackendOutput } from '@aws-amplify/plugin-types';
 
 /**
@@ -23,7 +22,7 @@ export class ClientConfigGeneratorFactory {
   /**
    * Returns a ClientConfigGenerator for the given BackendIdentifier type
    */
-  getInstance = (_: BackendIdentifier): ClientConfigGenerator => {
+  getInstance = (): ClientConfigGenerator => {
     return new UnifiedClientConfigGenerator(
       this.fetchOutput,
       this.clientConfigContributors

@@ -23,6 +23,6 @@ export const generateClientConfig = async (
   const fetchOutput = () =>
     getUnifiedBackendOutput(credentialProvider, backendIdentifier);
   return new ClientConfigGeneratorFactory(fetchOutput)
-    .getInstance(backendIdentifier)
+    .getInstance()
     .generateClientConfig();
 };
