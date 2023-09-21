@@ -7,9 +7,12 @@
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
-// Warning: (ae-forgotten-export) The symbol "StackIdentifier" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "AppNameAndBranchBackendIdentifier" needs to be exported by the entry point index.d.ts
-//
+// @public
+export type AppNameAndBranchBackendIdentifier = {
+    appName: string;
+    branchName: string;
+};
+
 // @public (undocumented)
 export type BackendIdentifier = UniqueBackendIdentifier | StackIdentifier | AppNameAndBranchBackendIdentifier;
 
@@ -47,6 +50,11 @@ export const getUnifiedBackendOutput: (credentials: AwsCredentialIdentityProvide
         };
     } | undefined;
 }>;
+
+// @public (undocumented)
+export type StackIdentifier = {
+    stackName: string;
+};
 
 // (No @packageDocumentation comment for this package)
 
