@@ -77,6 +77,7 @@ export default [
   'stdout',
   'subcommand',
   'subcommands',
+  'submodule',
   'timestamps',
   'tmpdir',
   'toggleable',

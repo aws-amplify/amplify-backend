@@ -19,7 +19,8 @@ export type TriggerConfig = {
   >;
 };
 
-export type AmplifyAuthFactoryProps = AuthProps & TriggerConfig;
+export type AmplifyAuthFactoryProps = Omit<AuthProps, 'outputStorageStrategy'> &
+  TriggerConfig;
 
 /**
  * Singleton factory for AmplifyAuth that can be used in Amplify project files
@@ -68,8 +69,11 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
   ) {}
 
   generateContainerEntry = (scope: Construct) => {
-    const authConstruct = new AmplifyAuth(scope, this.defaultName, this.props);
-    authConstruct.storeOutput(this.getInstanceProps.outputStorageStrategy);
+    const authProps: AuthProps = {
+      ...this.props,
+      outputStorageStrategy: this.getInstanceProps.outputStorageStrategy,
+    };
+    const authConstruct = new AmplifyAuth(scope, this.defaultName, authProps);
     Object.entries(this.props.triggers || {}).forEach(
       ([triggerEvent, handlerFactory]) => {
         authConstruct.addTrigger(

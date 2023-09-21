@@ -1,15 +1,15 @@
 import assert from 'assert';
 import { describe, it } from 'node:test';
-import { AppSyncGraphqlDocumentGenerator } from './graphql_document_generator.js';
+import { AppSyncGraphqlTypesGenerator } from './graphql_types_generator.js';
 
-describe('client generator', () => {
+describe('types generator', () => {
   it('if `fetchSchema` returns null, it should throw an error', async () => {
-    const generator = new AppSyncGraphqlDocumentGenerator(
+    const generator = new AppSyncGraphqlTypesGenerator(
       async () => null as unknown as string,
       () => ({ writeToDirectory: () => Promise.resolve() })
     );
     await assert.rejects(() =>
-      generator.generateModels({ language: 'typescript' })
+      generator.generateTypes({ target: 'typescript' })
     );
   });
 });

@@ -5,7 +5,6 @@ import { App, Stack } from 'aws-cdk-lib';
 import {
   NestedStackResolver,
   SingletonConstructContainer,
-  StackMetadataBackendOutputStorageStrategy,
   ToggleableImportPathVerifier,
 } from '@aws-amplify/backend/test-utils';
 import { Template } from 'aws-cdk-lib/assertions';
@@ -25,6 +24,7 @@ import {
   UserPool,
   UserPoolClient,
 } from 'aws-cdk-lib/aws-cognito';
+import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 
 const testSchema = `
   input AMPLIFY {globalAuthRule: AuthRule = { allow: public }} # FOR TESTING ONLY!
