@@ -10,7 +10,7 @@ describe('client generator', () => {
       () => ({ writeToDirectory: () => Promise.resolve() })
     );
     await assert.rejects(() =>
-      generator.generateModels({ language: 'typescript', outDir: './' })
+      generator.generateModels({ language: 'typescript' })
     );
   });
 });

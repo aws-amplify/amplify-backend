@@ -1,10 +1,12 @@
-import path from 'path';
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
-import { BackendIdentifier } from '@aws-amplify/client-config';
-import { ClientConfigGeneratorAdapter } from '../config/client_config_generator_adapter.js';
-import { createLocalGraphqlFormGenerator } from '@aws-amplify/form-generator';
-import { createGraphqlDocumentGenerator } from '@aws-amplify/model-generator';
 import { AppNameResolver } from '../../../local_app_name_resolver.js';
+import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
+import {
+  BackendIdentifier,
+  BackendOutputClient,
+} from '@aws-amplify/deployed-backend-client';
+import { graphqlOutputKey } from '@aws-amplify/backend-output-schemas';
+import { FormGenerationHandler } from './form_generation_handler.js';
 
 export type GenerateFormsCommandOptions = {
   stack: string | undefined;
@@ -38,8 +40,8 @@ export class GenerateFormsCommand
    * Creates client config generation command.
    */
   constructor(
-    private readonly clientConfigGenerator: ClientConfigGeneratorAdapter,
-    private readonly appNameResolver: AppNameResolver
+    private readonly appNameResolver: AppNameResolver,
+    private readonly credentialProvider: AwsCredentialIdentityProvider
   ) {
     this.command = 'forms';
     this.describe = 'Generates UI forms';
@@ -71,20 +73,26 @@ export class GenerateFormsCommand
     args: ArgumentsCamelCase<GenerateFormsCommandOptions>
   ): Promise<void> => {
     const backendIdentifier = await this.getBackendIdentifier(args);
-    const config = await this.clientConfigGenerator.generateClientConfig(
+
+    const configClient = new BackendOutputClient(
+      this.credentialProvider,
       backendIdentifier
     );
-    if (!config.aws_appsync_graphqlEndpoint) {
+    const output = await configClient.getOutput();
+
+    const appsyncGraphqlEndpoint =
+      output[graphqlOutputKey]?.payload.awsAppsyncApiEndpoint;
+
+    if (!appsyncGraphqlEndpoint) {
       throw new TypeError('appsync endpoint is null');
     }
-    // const apiId = config.aws_appsync_apiId;
-    const apiId = '';
+
+    const apiId = output[graphqlOutputKey]?.payload.awsAppsyncApiId;
     if (!apiId) {
       throw new TypeError('AppSync apiId must be defined');
     }
 
-    //    const apiUrl = config.aws_appsync_apiUri;
-    const apiUrl = '';
+    const apiUrl = output[graphqlOutputKey]?.payload.amplifyApiModelSchemaS3Uri;
 
     if (!apiUrl) {
       throw new TypeError('AppSync api schema url must be defined');
@@ -93,34 +101,20 @@ export class GenerateFormsCommand
     if (!args.uiOut) {
       throw new TypeError('uiOut must be defined');
     }
+
     if (!args.modelsOut) {
       throw new TypeError('modelsOut must be defined');
     }
 
     const { appId } = this.getAppDescription(backendIdentifier);
-
-    this.log(`Generating code for App: ${appId}`);
-    const graphqlClientGenerator = createGraphqlDocumentGenerator({ apiId });
-    this.log(`Generating GraphQL Client in ${args.modelsOut}`);
-    await graphqlClientGenerator.generateModels({
-      language: 'typescript',
-      outDir: args.modelsOut,
+    const formGenerationHandler = new FormGenerationHandler({
+      apiId,
+      appId,
+      modelOutPath: args.modelsOut,
+      formsOutPath: args.uiOut,
+      apiUrl,
     });
-    this.log('GraphQL client successfully generated');
-    this.log(`Generating React forms in ${args.uiOut}`);
-    const relativePath = path.relative(args.uiOut, args.modelsOut);
-    const localFormGenerator = createLocalGraphqlFormGenerator({
-      introspectionSchemaUrl: apiUrl,
-      graphqlModelDirectoryPath: relativePath,
-    });
-    const result = await localFormGenerator.generateForms();
-    await result.writeToDirectory(args.uiOut);
-    this.log('React forms successfully generated');
-  };
-
-  private log = (message: unknown) => {
-    /* eslint-disable-next-line no-console */
-    console.log('[Codegen]\t', message);
+    await formGenerationHandler.generate();
   };
 
   /**

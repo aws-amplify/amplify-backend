@@ -25,8 +25,8 @@ export const createGenerateCommand = (): CommandModule => {
   );
 
   const generateFormsCommand = new GenerateFormsCommand(
-    clientConfigGenerator,
-    localAppNameResolver
+    localAppNameResolver,
+    credentialProvider
   );
 
   return new GenerateCommand(generateConfigCommand, generateFormsCommand);
