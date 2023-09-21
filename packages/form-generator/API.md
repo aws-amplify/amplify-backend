@@ -4,6 +4,25 @@
 
 ```ts
 
+// @public
+export const createLocalGraphqlFormGenerator: (generationParams: LocalGraphqlFormGeneratorParams) => GraphqlFormGenerator;
+
+// @public (undocumented)
+export type GraphqlFormGenerator = {
+    generateForms: () => Promise<GraphqlGenerationResult>;
+};
+
+// @public (undocumented)
+export type GraphqlGenerationResult = {
+    writeToDirectory: (directoryPath: string) => Promise<void>;
+};
+
+// @public (undocumented)
+export type LocalGraphqlFormGeneratorParams = {
+    introspectionSchemaUrl: string;
+    graphqlModelDirectoryPath: string;
+};
+
 // (No @packageDocumentation comment for this package)
 
 ```
