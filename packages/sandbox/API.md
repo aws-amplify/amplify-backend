@@ -22,7 +22,7 @@ export type SandboxDeleteOptions = {
 };
 
 // @public (undocumented)
-export type SandboxEvents = 'beforeDeployment' | 'afterDeployment' | 'beforeStart' | 'afterStart' | 'beforeStop' | 'afterStop';
+export type SandboxEvents = 'afterDeployment';
 
 // @public (undocumented)
 export type SandboxOptions = {
