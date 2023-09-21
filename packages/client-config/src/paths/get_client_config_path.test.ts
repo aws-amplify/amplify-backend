@@ -49,26 +49,10 @@ describe('getClientConfigPath', () => {
     );
   });
 
-  it('returns path to config file with provided file path', () => {
-    const configPath = getClientConfigPath('some/path/testConfig.json');
-    assert.equal(
-      configPath,
-      path.join(process.cwd(), 'some/path', 'testConfig.json')
-    );
-  });
-
-  it('returns path to config file with provided file path and format, use default file name', () => {
-    const configPath = getClientConfigPath(
-      'some/path/testConfig.json',
-      ClientConfigFormat.TS
-    );
-    assert.equal(
-      configPath,
-      path.join(
-        process.cwd(),
-        'some/path',
-        `${configFileName}.${ClientConfigFormat.TS}`
-      )
+  it('throw error if it is provided a file path', () => {
+    assert.throws(
+      () => getClientConfigPath('some/path/testConfig.json'),
+      new Error('Provided path should be a directory without a file name')
     );
   });
 
