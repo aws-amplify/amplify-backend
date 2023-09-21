@@ -24,12 +24,15 @@ export type GraphqlModelsGeneratorFactoryParams = {
 /**
  * Factory function to compose a model generator
  */
-export const createGraphqlDocumentGenerator = ({
+export const createGraphqlModelsGenerator = ({
   backendIdentifier,
   credentialProvider,
 }: GraphqlModelsGeneratorFactoryParams): GraphqlModelsGenerator => {
   if (!backendIdentifier) {
     throw new Error('`backendIdentifier` must be defined');
+  }
+  if (!credentialProvider) {
+    throw new Error('`credentialProvider` must be defined');
   }
 
   return new StackMetadataGraphqlModelsGenerator(
