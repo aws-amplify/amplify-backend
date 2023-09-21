@@ -58,8 +58,8 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     if (profile) {
       process.env.AWS_PROFILE = profile;
     }
-    const sandboxId = options.name ?? this.sandboxId;
 
+    const sandboxId = options.name ?? this.sandboxId;
     const ignoredPaths = this.getGitIgnoredPaths();
     this.outputFilesExcludedFromWatch =
       this.outputFilesExcludedFromWatch.concat(...ignoredPaths);

@@ -1,4 +1,5 @@
 import EventEmitter from 'events';
+import { ClientConfigFormat } from '@aws-amplify/client-config';
 
 /**
  * Interface for Sandbox.
@@ -33,6 +34,7 @@ export type SandboxOptions = {
   dir?: string;
   exclude?: string[];
   name?: string;
+  format?: ClientConfigFormat;
   profile?: string;
 };
 

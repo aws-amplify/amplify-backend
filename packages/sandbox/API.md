@@ -4,6 +4,8 @@
 
 ```ts
 
+import { ClientConfigFormat } from '@aws-amplify/client-config';
+
 // @public
 export class EventHandler<T extends string> {
     // (undocumented)
@@ -35,6 +37,7 @@ export type SandboxOptions = {
     dir?: string;
     exclude?: string[];
     name?: string;
+    format?: ClientConfigFormat;
     profile?: string;
     clientConfigFilePath?: string;
 };

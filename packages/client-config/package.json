@@ -10,6 +10,11 @@
       "types": "./lib/index.d.ts",
       "import": "./lib/index.js",
       "require": "./lib/index.js"
+    },
+    "./paths": {
+      "types": "./lib/paths/index.d.ts",
+      "import": "./lib/paths/index.js",
+      "require": "./lib/paths/index.js"
     }
   },
   "types": "lib/index.d.ts",

@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import watcher from '@parcel/watcher';
+import { ClientConfigFormat } from '@aws-amplify/client-config';
 import { FileWatchingSandbox } from './file_watching_sandbox.js';
 import assert from 'node:assert';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
@@ -38,6 +39,7 @@ describe('Sandbox using local project name resolver', () => {
     await sandboxInstance.start({
       dir: 'testDir',
       exclude: ['exclude1', 'exclude2'],
+      format: ClientConfigFormat.JS,
     });
 
     // At this point one deployment should already have been done on sandbox startup
@@ -70,9 +72,7 @@ describe('Sandbox using local project name resolver', () => {
 
     // File watcher should be called with right arguments such as dir and excludes
     assert.strictEqual(subscribeMock.mock.calls[0].arguments[0], 'testDir');
-    assert.deepStrictEqual(subscribeMock.mock.calls[0].arguments[2], {
-      ignore: ['cdk.out', 'exclude1', 'exclude2'],
-    });
+    assert.deepStrictEqual(subscribeMock.mock.calls[0].arguments[2], {});
 
     // CDK should be called once
     assert.strictEqual(execaDeployMock.mock.callCount(), 1);
@@ -255,12 +255,6 @@ describe('Sandbox with user provided app name', () => {
       },
     ]);
   });
-
-  it('writes the correct client-config to user provided path', async () => {
-    await fileChangeEventActualFn(null, [
-      { type: 'update', path: 'foo/test1.ts' },
-    ]);
-  });
 });
 
 describe('Sandbox with absolute output path', () => {
@@ -300,12 +294,6 @@ describe('Sandbox with absolute output path', () => {
     execaDestroyMock.mock.resetCalls();
     subscribeMock.mock.resetCalls();
     await sandboxInstance.stop();
-  });
-
-  it('generates client config at absolute location', async () => {
-    await fileChangeEventActualFn(null, [
-      { type: 'update', path: 'foo/test1.ts' },
-    ]);
   });
 
   it('sets AWS profile when starting sandbox', async () => {

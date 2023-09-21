@@ -28,11 +28,24 @@ export type BackendIdentifier = UniqueBackendIdentifier | StackIdentifier | AppN
 // @public
 export type ClientConfig = Partial<AuthClientConfig & GraphqlClientConfig & StorageClientConfig>;
 
+// @public (undocumented)
+export enum ClientConfigFormat {
+    // (undocumented)
+    JS = "js",
+    // (undocumented)
+    JSON = "json",
+    // (undocumented)
+    TS = "ts"
+}
+
 // @public
 export const generateClientConfig: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier) => Promise<ClientConfig>;
 
 // @public
-export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier, targetPath: string) => Promise<void>;
+export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier, out?: string, format?: ClientConfigFormat) => Promise<void>;
+
+// @public
+export const getClientConfigPath: (out?: string, format?: ClientConfigFormat) => string;
 
 // @public
 export type GraphqlClientConfig = {

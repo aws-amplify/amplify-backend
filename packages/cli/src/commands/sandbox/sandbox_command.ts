@@ -7,8 +7,11 @@ import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
 import { SandboxIdResolver } from './sandbox_id_resolver.js';
 import { LocalAppNameResolver } from '../../local_app_name_resolver.js';
 import { CwdPackageJsonLoader } from '../../cwd_package_json_loader.js';
-import { generateClientConfigToFile } from '@aws-amplify/client-config';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
+import {
+  ClientConfigFormat,
+  generateClientConfigToFile,
+} from '@aws-amplify/client-config';
 
 export type SandboxCommandOptions = {
   dirToWatch: string | undefined;
@@ -126,6 +129,12 @@ export class SandboxCommand
             'An optional name to distinguish between different sandbox environments. Default is the name in your package.json',
           type: 'string',
           array: false,
+        })
+        .option('format', {
+          describe: 'Client config output format',
+          type: 'string',
+          array: false,
+          choices: Object.values(ClientConfigFormat),
         })
         .option('out', {
           describe:
