@@ -255,6 +255,7 @@ describe('model auth rules', () => {
   it(`includes auth from fields`, () => {
     const schema = a.schema({
       widget: a.model({
+        id: a.id(),
         title: a
           .string()
           .authorization([
@@ -280,6 +281,7 @@ describe('model auth rules', () => {
   it(`includes auth from related model fields`, () => {
     const schema = a.schema({
       widget: a.model({
+        id: a.id(),
         parent: a
           .belongsTo('widget')
           .authorization([

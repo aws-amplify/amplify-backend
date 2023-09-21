@@ -528,6 +528,7 @@ exports[`model auth rules includes auth from fields 1`] = `
 "type widget @model 
 {
   customOwner: String
+  id: ID! @primaryKey
   title: String! @auth(rules: [{allow: owner, operations: [create, read], ownerField: "customOwner"}])
 }"
 `;
@@ -536,6 +537,7 @@ exports[`model auth rules includes auth from related model fields 1`] = `
 "type widget @model 
 {
   customOwner: String
+  id: ID! @primaryKey
   parent: widget @belongsTo @auth(rules: [{allow: owner, operations: [create, read], ownerField: "customOwner"}])
 }"
 `;

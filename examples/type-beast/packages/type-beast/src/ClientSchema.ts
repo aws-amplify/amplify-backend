@@ -94,18 +94,20 @@ type ModelImpliedAuthFields<Schema extends ModelSchema<any>> = {
   >
     ? ImpliedAuthFields<Model['authorization'][number]> &
         ImpliedAuthFieldsFromFields<Model>
-    : never;
+    : {};
 };
 
-type ImpliedAuthFieldsFromFields<T> = T extends ModelTypeParamShape
-  ? T['fields'][keyof T['fields']] extends
-      | ModelRelationalField<any, any, any, infer Auth>
-      | ModelField<any, any, infer Auth>
-    ? Auth extends Authorization<any, any>
-      ? ImpliedAuthFields<Auth>
+type ImpliedAuthFieldsFromFields<T> = UnionToIntersection<
+  T extends ModelTypeParamShape
+    ? T['fields'][keyof T['fields']] extends
+        | ModelField<any, any, infer Auth>
+        | ModelRelationalField<any, any, any, infer Auth>
+      ? Auth extends Authorization<any, any>
+        ? ImpliedAuthFields<Auth>
+        : {}
       : {}
     : {}
-  : {};
+>;
 
 /**
  * infer and massage field types

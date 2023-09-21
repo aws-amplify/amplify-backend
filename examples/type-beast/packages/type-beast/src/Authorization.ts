@@ -345,8 +345,8 @@ export type ImpliedAuthField<T extends Authorization<any, any>> =
       ? isMulti extends true
         ? { [K in Field]?: string[] }
         : { [K in Field]?: string }
-      : never
-    : never;
+      : {}
+    : {};
 
 /**
  * Turns the type from a list of `Authorization` rules like this:
