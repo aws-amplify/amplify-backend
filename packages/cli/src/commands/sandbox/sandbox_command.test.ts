@@ -62,7 +62,7 @@ describe('sandbox command', () => {
     assert.equal(sandboxStartMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       sandboxStartMock.mock.calls[0].arguments[0].clientConfigFilePath,
-      path.join('test', 'location')
+      'test/location'
     );
     assert.deepStrictEqual(
       sandboxStartMock.mock.calls[0].arguments[0].format,

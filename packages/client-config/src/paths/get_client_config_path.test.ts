@@ -10,7 +10,7 @@ describe('getClientConfigPath', () => {
     const configPath = getClientConfigPath();
     assert.equal(
       configPath,
-      `${process.cwd()}/${configFileName}.${ClientConfigFormat.JS}`
+      path.join(process.cwd(), `${configFileName}.${ClientConfigFormat.JS}`)
     );
   });
 
@@ -45,7 +45,7 @@ describe('getClientConfigPath', () => {
     const configPath = getClientConfigPath(undefined, ClientConfigFormat.TS);
     assert.equal(
       configPath,
-      `${process.cwd()}/${configFileName}.${ClientConfigFormat.TS}`
+      path.join(process.cwd(), `${configFileName}.${ClientConfigFormat.TS}`)
     );
   });
 
