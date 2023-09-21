@@ -14,8 +14,13 @@ export type DocumentGenerationParameters = {
 };
 
 // @public (undocumented)
+export type DocumentGenerationResult = {
+    writeToDirectory: (directoryPath: string) => Promise<void>;
+};
+
+// @public (undocumented)
 export type GraphqlDocumentGenerator = {
-    generateModels: (params: DocumentGenerationParameters) => Promise<void>;
+    generateModels: (params: DocumentGenerationParameters) => Promise<DocumentGenerationResult>;
 };
 
 // @public (undocumented)
