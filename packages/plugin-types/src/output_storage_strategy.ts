@@ -5,5 +5,9 @@ import { BackendOutputEntry } from './backend_output.js';
  */
 export type BackendOutputStorageStrategy<T extends BackendOutputEntry> = {
   addBackendOutputEntry: (keyName: string, backendOutputEntry: T) => void;
+
+  /**
+   * Write all pending data to the destination
+   */
   flush: () => void;
 };
