@@ -1,5 +1,4 @@
-// TODO: Update to "NONE"
-const defaultLogLevel = 'DEBUG';
+const defaultLogLevel = 'NONE';
 
 /**
  * The log level.

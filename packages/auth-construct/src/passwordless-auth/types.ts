@@ -6,11 +6,11 @@ export type DefineAuthChallengeTriggerEvent = {
     userNotFound?: boolean | undefined;
   };
   response: {
-    challengeName: string;
-    failAuthentication: boolean;
-    issueTokens: boolean;
+    challengeName?: string;
+    failAuthentication?: boolean;
+    issueTokens?: boolean;
   };
-} & BaseTriggerEvent<'DefineAuthChallenge_Authentication'>
+} & BaseTriggerEvent<'DefineAuthChallenge_Authentication'>;
 
 export type DefineAuthChallengeTriggerHandler =
   Handler<DefineAuthChallengeTriggerEvent>;
@@ -26,9 +26,9 @@ export type CreateAuthChallengeTriggerEvent = {
   response: {
     publicChallengeParameters: StringMap;
     privateChallengeParameters: StringMap;
-    challengeMetadata: string;
+    challengeMetadata?: string;
   };
-} & BaseTriggerEvent<'CreateAuthChallenge_Authentication'>
+} & BaseTriggerEvent<'CreateAuthChallenge_Authentication'>;
 
 export type CreateAuthChallengeTriggerHandler =
   Handler<CreateAuthChallengeTriggerEvent>;
@@ -42,28 +42,28 @@ export type VerifyAuthChallengeResponseTriggerEvent = {
     userNotFound?: boolean | undefined;
   };
   response: {
-    answerCorrect: boolean;
+    answerCorrect?: boolean;
   };
-} & BaseTriggerEvent<'VerifyAuthChallengeResponse_Authentication'>
+} & BaseTriggerEvent<'VerifyAuthChallengeResponse_Authentication'>;
 
 export type VerifyAuthChallengeResponseTriggerHandler =
   Handler<VerifyAuthChallengeResponseTriggerEvent>;
 
 export type StringMap = {
   [name: string]: string;
-}
+};
 
 export type ChallengeResult = {
   challengeName: ChallengeName;
   challengeResult: boolean;
   challengeMetadata?: undefined;
-}
+};
 
 export type CustomChallengeResult = {
   challengeName: 'CUSTOM_CHALLENGE';
   challengeResult: boolean;
   challengeMetadata?: string | undefined;
-}
+};
 
 export type ChallengeName =
   | 'PASSWORD_VERIFIER'
@@ -102,8 +102,9 @@ export type Context = {
   /** @deprecated Use handler callback with first argument or reject a promise result */
   fail: (error: Error | string) => void;
   /** @deprecated Use handler callback with second argument or resolve a promise result */
-  succeed: ((messageOrObject: any) => void) & ((message: string, object: any) => void);
-}
+  succeed: ((messageOrObject: any) => void) &
+    ((message: string, object: any) => void);
+};
 
 export type Callback<TResult = any> = (
   error?: Error | string | null,
@@ -113,14 +114,14 @@ export type Callback<TResult = any> = (
 export type CognitoIdentity = {
   cognitoIdentityId: string;
   cognitoIdentityPoolId: string;
-}
+};
 
 export type ClientContext = {
   client: ClientContextClient;
   // eslint-disable-next-line @typescript-eslint/naming-convention
   Custom?: any;
   env: ClientContextEnv;
-}
+};
 
 export type ClientContextClient = {
   installationId: string;
@@ -128,7 +129,7 @@ export type ClientContextClient = {
   appVersionName: string;
   appVersionCode: string;
   appPackageName: string;
-}
+};
 
 export type ClientContextEnv = {
   platformVersion: string;
@@ -136,7 +137,7 @@ export type ClientContextEnv = {
   make: string;
   model: string;
   locale: string;
-}
+};
 
 export type BaseTriggerEvent<T extends string> = {
   version: string;
@@ -150,4 +151,40 @@ export type BaseTriggerEvent<T extends string> = {
   };
   request: object;
   response: object;
-}
+};
+
+/**
+ * The client meta data object provided during passwordless auth.
+ */
+export type PasswordlessClientMetaData =
+  | RequestMagicLinkClientMetaData
+  | ConfirmMagicLinkClientMetaData
+  | RequestOTPClientMetaData
+  | ConfirmOTPClientMetaData;
+
+export type RequestMagicLinkClientMetaData = {
+  signInMethod: 'MAGIC_LINK';
+  action: 'REQUEST';
+  deliveryMedium: 'EMAIL';
+  /**
+   * A redirect URL, with a placeholder for the code.
+   * For example: "https://example.com/sign-in?code=##code##"
+   */
+  redirectUri: string;
+};
+
+export type ConfirmMagicLinkClientMetaData = {
+  signInMethod: 'MAGIC_LINK';
+  action: 'CONFIRM';
+};
+
+export type RequestOTPClientMetaData = {
+  signInMethod: 'OTP';
+  action: 'REQUEST';
+  deliveryMedium: 'SMS' | 'EMAIL';
+};
+
+export type ConfirmOTPClientMetaData = {
+  signInMethod: 'OTP';
+  action: 'CONFIRM';
+};
