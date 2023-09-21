@@ -74,7 +74,7 @@ export class GenerateFormsCommand
   ): Promise<void> => {
     const backendIdentifier = await this.getBackendIdentifier(args);
 
-    const configClient = new BackendOutputClient(
+    const backendOutputClient = new BackendOutputClient(
       this.credentialProvider,
       backendIdentifier
     );
@@ -84,7 +84,7 @@ export class GenerateFormsCommand
       output[graphqlOutputKey]?.payload.awsAppsyncApiEndpoint;
 
     if (!appsyncGraphqlEndpoint) {
-      throw new TypeError('appsync endpoint is null');
+      throw new TypeError('Appsync endpoint is null');
     }
 
     const apiId = output[graphqlOutputKey]?.payload.awsAppsyncApiId;
