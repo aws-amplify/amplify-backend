@@ -1,11 +1,12 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { App, SecretValue, Stack } from 'aws-cdk-lib';
+import { SecretValue } from 'aws-cdk-lib';
 import {
   BackendSecret,
   UniqueBackendIdentifier,
 } from '@aws-amplify/plugin-types';
 import { DefaultBackendSecretResolver } from './backend_secret_resolver.js';
+import { Construct } from 'constructs';
 
 const invalidSecretName = 'errorSecretName';
 
@@ -36,8 +37,7 @@ class TestClassWithPrivateMembers2 {
 }
 
 describe('DefaultBackendSecretResolver', () => {
-  const testApp = new App();
-  const testStack = new Stack(testApp);
+  const testStack = {} as Construct;
   const resolver = new DefaultBackendSecretResolver(
     {} as UniqueBackendIdentifier
   );
