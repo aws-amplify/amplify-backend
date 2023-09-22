@@ -1,32 +1,30 @@
 {
  "Metadata": {
-  "AWS::Amplify::Output": {
-   "authOutput": {
-    "version": "1",
-    "stackOutputs": [
-     "userPoolId",
-     "webClientId",
-     "identityPoolId",
-     "authRegion"
-    ]
-   },
-   "storageOutput": {
-    "version": "1",
-    "stackOutputs": [
-     "storageRegion",
-     "bucketName"
-    ]
-   },
-   "graphqlOutput": {
-    "version": "1",
-    "stackOutputs": [
-     "awsAppsyncApiId",
-     "awsAppsyncApiEndpoint",
-     "awsAppsyncAuthenticationType",
-     "awsAppsyncRegion",
-     "amplifyApiModelSchemaS3Uri"
-    ]
-   }
+  "AWS::Amplify::Auth": {
+   "version": "1",
+   "stackOutputs": [
+    "userPoolId",
+    "webClientId",
+    "identityPoolId",
+    "authRegion"
+   ]
+  },
+  "AWS::Amplify::Storage": {
+   "version": "1",
+   "stackOutputs": [
+    "storageRegion",
+    "bucketName"
+   ]
+  },
+  "AWS::Amplify::GraphQL": {
+   "version": "1",
+   "stackOutputs": [
+    "awsAppsyncApiId",
+    "awsAppsyncApiEndpoint",
+    "awsAppsyncAuthenticationType",
+    "awsAppsyncRegion",
+    "amplifyApiModelSchemaS3Uri"
+   ]
   }
  },
  "Resources": {

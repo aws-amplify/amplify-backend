@@ -1,17 +1,20 @@
 import { describe, it, mock } from 'node:test';
-import { BackendOutputRetrievalStrategy } from '@aws-amplify/plugin-types';
 import { UnifiedClientConfigGenerator } from './unified_client_config_generator.js';
 import assert from 'node:assert';
 import { AuthClientConfigContributor } from './client-config-contributor/auth_client_config_contributor.js';
 import { GraphqlClientConfigContributor } from './client-config-contributor/graphql_client_config_contributor.js';
-import { UnifiedBackendOutput } from '@aws-amplify/backend-output-schemas';
+import {
+  UnifiedBackendOutput,
+  authOutputKey,
+  graphqlOutputKey,
+} from '@aws-amplify/backend-output-schemas';
 import { ClientConfig } from './client-config-types/client_config.js';
 
 describe('UnifiedClientConfigGenerator', () => {
   describe('generateClientConfig', () => {
     it('transforms backend output into client config', async () => {
       const stubOutput: UnifiedBackendOutput = {
-        authOutput: {
+        [authOutputKey]: {
           version: '1',
           payload: {
             identityPoolId: 'testIdentityPoolId',
@@ -20,7 +23,7 @@ describe('UnifiedClientConfigGenerator', () => {
             authRegion: 'testRegion',
           },
         },
-        graphqlOutput: {
+        [graphqlOutputKey]: {
           version: '1',
           payload: {
             awsAppsyncApiEndpoint: 'testApiEndpoint',
@@ -32,9 +35,7 @@ describe('UnifiedClientConfigGenerator', () => {
           },
         },
       };
-      const outputRetrieval: BackendOutputRetrievalStrategy = {
-        fetchBackendOutput: mock.fn(async () => stubOutput),
-      };
+      const outputRetrieval = mock.fn(async () => stubOutput);
       const configContributors = [
         new AuthClientConfigContributor(),
         new GraphqlClientConfigContributor(),

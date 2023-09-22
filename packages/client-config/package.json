@@ -10,6 +10,11 @@
       "types": "./lib/index.d.ts",
       "import": "./lib/index.js",
       "require": "./lib/index.js"
+    },
+    "./paths": {
+      "types": "./lib/paths/index.d.ts",
+      "import": "./lib/paths/index.js",
+      "require": "./lib/paths/index.js"
     }
   },
   "types": "lib/index.d.ts",
@@ -18,6 +23,7 @@
   },
   "dependencies": {
     "@aws-amplify/backend-output-schemas": "^0.2.0-alpha.2",
+    "@aws-amplify/deployed-backend-client": "^0.1.0",
     "@aws-sdk/client-amplify": "^3.376.0",
     "@aws-sdk/client-cloudformation": "^3.376.0",
     "@aws-sdk/client-ssm": "^3.398.0",

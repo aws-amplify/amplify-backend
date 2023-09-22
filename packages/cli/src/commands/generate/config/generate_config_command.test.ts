@@ -1,17 +1,13 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
-import {
-  GenerateConfigCommand,
-  configFileName,
-  formatChoices,
-} from './generate_config_command.js';
+import { GenerateConfigCommand } from './generate_config_command.js';
+import { ClientConfigFormat } from '@aws-amplify/client-config';
 import yargs, { CommandModule } from 'yargs';
 import {
   TestCommandError,
   TestCommandRunner,
 } from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
-import path from 'path';
 import { ClientConfigGeneratorAdapter } from './client_config_generator_adapter.js';
 
 describe('generate config command', () => {
@@ -39,7 +35,9 @@ describe('generate config command', () => {
   });
 
   it('generates and writes config for stack', async () => {
-    await commandRunner.runCommand('config --stack stack_name');
+    await commandRunner.runCommand(
+      'config --stack stack_name --outDir /foo/bar --format ts'
+    );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
       stackName: 'stack_name',
@@ -47,12 +45,18 @@ describe('generate config command', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      path.join(process.cwd(), `${configFileName}.${formatChoices[0]}`)
+      '/foo/bar'
+    );
+    assert.deepEqual(
+      generateClientConfigMock.mock.calls[0].arguments[2],
+      ClientConfigFormat.TS
     );
   });
 
   it('generates and writes config for branch', async () => {
-    await commandRunner.runCommand('config --branch branch_name');
+    await commandRunner.runCommand(
+      'config --branch branch_name --outDir /foo/bar --format ts'
+    );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
       appName: 'testAppName',
@@ -64,13 +68,17 @@ describe('generate config command', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      path.join(process.cwd(), `${configFileName}.${formatChoices[0]}`)
+      '/foo/bar'
+    );
+    assert.deepStrictEqual(
+      generateClientConfigMock.mock.calls[0].arguments[2],
+      ClientConfigFormat.TS
     );
   });
 
   it('generates and writes config for appID and branch', async () => {
     await commandRunner.runCommand(
-      'config --branch branch_name --appId app_id'
+      'config --branch branch_name --appId app_id --outDir /foo/bar --format js'
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
@@ -80,34 +88,17 @@ describe('generate config command', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      path.join(process.cwd(), `${configFileName}.${formatChoices[0]}`)
+      '/foo/bar'
+    );
+    assert.deepStrictEqual(
+      generateClientConfigMock.mock.calls[0].arguments[2],
+      ClientConfigFormat.JS
     );
   });
 
   it('can generate to custom absolute path', async () => {
     await commandRunner.runCommand(
-      'config --stack stack_name --out /foo/bar --format ts'
-    );
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
-    assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
-      stackName: 'stack_name',
-    });
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
-    const actualPath = generateClientConfigMock.mock.calls[0].arguments[1];
-    // normalize the path root across unix and windows platforms
-    const normalizedPath = actualPath?.replace(
-      path.parse(actualPath).root,
-      path.sep
-    );
-    assert.equal(
-      normalizedPath,
-      path.join('/', 'foo', 'bar', `${configFileName}.${formatChoices[2]}`)
-    );
-  });
-
-  it('can generate to custom relative path', async () => {
-    await commandRunner.runCommand(
-      'config --stack stack_name --out foo/bar --format js'
+      'config --stack stack_name --outDir /foo/bar --format ts'
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
@@ -116,7 +107,30 @@ describe('generate config command', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.equal(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      path.join(process.cwd(), 'foo', 'bar', 'amplifyconfiguration.js')
+      '/foo/bar'
+    );
+    assert.equal(
+      generateClientConfigMock.mock.calls[0].arguments[2],
+      ClientConfigFormat.TS
+    );
+  });
+
+  it('can generate to custom relative path', async () => {
+    await commandRunner.runCommand(
+      'config --stack stack_name --outDir foo/bar --format js'
+    );
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
+    assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
+      stackName: 'stack_name',
+    });
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
+    assert.equal(
+      generateClientConfigMock.mock.calls[0].arguments[1],
+      'foo/bar'
+    );
+    assert.equal(
+      generateClientConfigMock.mock.calls[0].arguments[2],
+      ClientConfigFormat.JS
     );
   });
 
@@ -126,7 +140,7 @@ describe('generate config command', () => {
     assert.match(output, /--appId/);
     assert.match(output, /--branch/);
     assert.match(output, /--format/);
-    assert.match(output, /--out/);
+    assert.match(output, /--outDir/);
   });
 
   it('fails if both stack and branch are present', async () => {

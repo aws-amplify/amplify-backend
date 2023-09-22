@@ -22,7 +22,7 @@ export class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth & Resour
 }
 
 // @public (undocumented)
-export type AmplifyAuthFactoryProps = AuthProps & TriggerConfig;
+export type AmplifyAuthFactoryProps = Omit<AuthProps, 'outputStorageStrategy'> & TriggerConfig;
 
 // @public
 export const Auth: typeof AmplifyAuthFactory;

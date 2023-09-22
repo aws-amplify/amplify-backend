@@ -474,6 +474,7 @@ describe('Auth construct', () => {
         loginWith: {
           email: true,
         },
+        outputStorageStrategy: stubBackendOutputStorageStrategy,
       });
 
       const expectedUserPoolId = (
@@ -486,8 +487,6 @@ describe('Auth construct', () => {
         authConstruct.node.findChild('UserPoolWebClient') as UserPoolClient
       ).userPoolClientId;
       const expectedRegion = Stack.of(authConstruct).region;
-
-      authConstruct.storeOutput(stubBackendOutputStorageStrategy);
 
       const storeOutputArgs = storeOutputMock.mock.calls[0].arguments;
       assert.equal(storeOutputArgs.length, 2);
@@ -504,6 +503,32 @@ describe('Auth construct', () => {
           },
         },
       ]);
+    });
+
+    it('stores output when no storage strategy is injected', () => {
+      const app = new App();
+      const stack = new Stack(app);
+
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+        },
+      });
+
+      const template = Template.fromStack(stack);
+      template.templateMatches({
+        Metadata: {
+          [authOutputKey]: {
+            version: '1',
+            stackOutputs: [
+              'userPoolId',
+              'webClientId',
+              'identityPoolId',
+              'authRegion',
+            ],
+          },
+        },
+      });
     });
   });
 

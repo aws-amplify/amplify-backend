@@ -4,6 +4,8 @@
 
 ```ts
 
+import { ClientConfigFormat } from '@aws-amplify/client-config';
+
 // @public
 export type Sandbox = {
     start: (options: SandboxOptions) => Promise<void>;
@@ -21,6 +23,7 @@ export type SandboxOptions = {
     dir?: string;
     exclude?: string[];
     name?: string;
+    format?: ClientConfigFormat;
     profile?: string;
     clientConfigFilePath?: string;
 };
