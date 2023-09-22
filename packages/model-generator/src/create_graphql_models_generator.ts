@@ -8,6 +8,7 @@ import { graphqlOutputKey } from '@aws-amplify/backend-output-schemas';
 import { AppsyncGraphqlGenerationResult } from './appsync_graphql_generation_result.js';
 import { StackMetadataGraphqlModelsGenerator } from './graphql_models_generator.js';
 import { GraphqlModelsGenerator } from './model_generator.js';
+import { S3StringObjectFetcher } from './s3_string_object_fetcher.js';
 
 export type GraphqlModelsGeneratorFactoryParams = {
   backendIdentifier: BackendIdentifier;
@@ -45,28 +46,14 @@ const getModelSchema = async (
   const output = await configClient.getOutput();
   const modelSchemaS3Uri =
     output[graphqlOutputKey]?.payload.amplifyApiModelSchemaS3Uri;
+  if (!modelSchemaS3Uri) {
+    throw new Error(`Cannot find model schema at ${modelSchemaS3Uri}`);
+  }
 
   const s3Client = new S3Client({
     credentials: credentialProvider,
   });
-  const match =
-    modelSchemaS3Uri && modelSchemaS3Uri.match(/^s3:\/\/([^/]+)\/(.+?)(\/*)$/);
-  if (!match) {
-    throw new Error(`Cannot find model schema at ${modelSchemaS3Uri}`);
-  }
-  const [, bucket, key] = match;
-  const command = new GetObjectCommand({
-    Bucket: bucket,
-    Key: key,
-  });
-  try {
-    const response = await s3Client.send(command);
-    if (!response.Body) {
-      // fall through to next error
-      throw new Error('S3 response has no body.');
-    }
-    return response.Body.transformToString();
-  } catch {
-    throw new Error('Unable to download model schema.');
-  }
+  const client = new S3Client();
+  const schemaFetcher = new S3StringObjectFetcher(client);
+  return await schemaFetcher.fetch(modelSchemaS3Uri);
 };
