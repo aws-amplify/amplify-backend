@@ -7,10 +7,11 @@ import {
 } from '../../test-utils/command_runner.js';
 import assert from 'node:assert';
 import fs from 'fs';
-import { SandboxCommand } from './sandbox_command.js';
+import { EventHandler, SandboxCommand } from './sandbox_command.js';
 import { createSandboxCommand } from './sandbox_command_factory.js';
 import { SandboxDeleteCommand } from './sandbox-delete/sandbox_delete_command.js';
 import { Sandbox, SandboxSingletonFactory } from '@aws-amplify/sandbox';
+import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 
 describe('sandbox command factory', () => {
   it('instantiate a sandbox command correctly', () => {
@@ -22,6 +23,9 @@ describe('sandbox command', () => {
   let commandRunner: TestCommandRunner;
   let sandbox: Sandbox;
   let sandboxStartMock = mock.fn<typeof sandbox.start>();
+  let mockGenerate =
+    mock.fn<ClientConfigGeneratorAdapter['generateClientConfigToFile']>();
+  const generationMock = mock.fn<EventHandler>();
 
   beforeEach(async () => {
     const sandboxFactory = new SandboxSingletonFactory(() =>
@@ -34,11 +38,22 @@ describe('sandbox command', () => {
 
     const sandboxCommand = new SandboxCommand(
       sandboxFactory,
-      sandboxDeleteCommand
+      sandboxDeleteCommand,
+      () => ({
+        successfulDeployment: [generationMock],
+      })
     );
     const parser = yargs().command(sandboxCommand as unknown as CommandModule);
     commandRunner = new TestCommandRunner(parser);
     sandboxStartMock.mock.resetCalls();
+    mockGenerate.mock.resetCalls();
+  });
+
+  it('registers a callback on the "successfulDeployment" event', async () => {
+    const mockOn = mock.method(sandbox, 'on');
+    await commandRunner.runCommand('sandbox');
+    assert.equal(mockOn.mock.calls[0].arguments[0], 'successfulDeployment');
+    assert.equal(mockOn.mock.calls[0].arguments[1], generationMock);
   });
 
   it('starts sandbox without any additional flags', async () => {
@@ -53,19 +68,6 @@ describe('sandbox command', () => {
     assert.deepStrictEqual(
       sandboxStartMock.mock.calls[0].arguments[0].name,
       'user-app-name'
-    );
-  });
-
-  it('starts sandbox with user provided output directory for client config', async () => {
-    await commandRunner.runCommand('sandbox --out test/location --format js');
-    assert.equal(sandboxStartMock.mock.callCount(), 1);
-    assert.deepStrictEqual(
-      sandboxStartMock.mock.calls[0].arguments[0].clientConfigFilePath,
-      'test/location'
-    );
-    assert.deepStrictEqual(
-      sandboxStartMock.mock.calls[0].arguments[0].format,
-      'js'
     );
   });
 

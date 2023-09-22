@@ -1,7 +1,7 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { ClientConfigFormat } from '@aws-amplify/client-config';
-import { ClientConfigGeneratorAdapter } from './client_config_generator_adapter.js';
 import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
+import { ClientConfigGeneratorAdapter } from '../../../client-config/client_config_generator_adapter.js';
 
 export type GenerateConfigCommandOptions = {
   stack: string | undefined;
