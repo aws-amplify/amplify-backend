@@ -24,8 +24,7 @@ describe('sandbox delete command', () => {
 
     const sandboxCommand = new SandboxCommand(
       sandboxFactory,
-      sandboxDeleteCommand,
-      () => async () => {}
+      sandboxDeleteCommand
     );
     const parser = yargs().command(sandboxCommand as unknown as CommandModule);
     commandRunner = new TestCommandRunner(parser);

@@ -17,6 +17,22 @@ export type SandboxCommandOptions = {
   profile: string | undefined;
 };
 
+export type EventHandler = () => void;
+
+export type SandboxEventHandlers = {
+  successfulDeployment: EventHandler[];
+};
+
+export type SandboxEventHandlerParams = {
+  appName?: string;
+  outDir?: string;
+  format?: ClientConfigFormat;
+};
+
+export type SandboxEventHandlerCreator = (
+  params: SandboxEventHandlerParams
+) => SandboxEventHandlers;
+
 /**
  * Command that starts sandbox.
  */
@@ -41,11 +57,7 @@ export class SandboxCommand
   constructor(
     private readonly sandboxFactory: SandboxSingletonFactory,
     private readonly sandboxDeleteCommand: SandboxDeleteCommand,
-    private readonly createConfigGenerationCallback: (
-      appName?: string,
-      outDir?: string,
-      format?: ClientConfigFormat
-    ) => () => Promise<void>
+    private readonly createConfigGenerationCallback?: SandboxEventHandlerCreator
   ) {
     this.command = 'sandbox';
     this.describe = 'Starts sandbox, watch mode for amplify deployments';
@@ -59,12 +71,16 @@ export class SandboxCommand
   ): Promise<void> => {
     const sandbox = await this.sandboxFactory.getInstance();
     this.appName = args.name;
-    const generationCommand = this.createConfigGenerationCallback(
-      args.name,
-      args.out,
-      args.format
-    );
-    sandbox.on('successfulDeployment', generationCommand);
+    const eventHandlers = this.createConfigGenerationCallback?.({
+      appName: args.name,
+      format: args.format,
+      outDir: args.out,
+    });
+    if (eventHandlers) {
+      Object.entries(eventHandlers).forEach(([event, handlers]) => {
+        handlers.forEach((handler) => sandbox.on(event, handler));
+      });
+    }
     const watchExclusions = args.exclude ?? [];
     const clientConfigWritePath = await getClientConfigPath(
       args.out,

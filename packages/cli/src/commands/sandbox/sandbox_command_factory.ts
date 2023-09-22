@@ -31,14 +31,18 @@ export const createSandboxCommand = (): CommandModule<
   return new SandboxCommand(
     sandboxFactory,
     new SandboxDeleteCommand(sandboxFactory),
-    (appName?: string, outDir?: string, format?: ClientConfigFormat) => {
-      return async () => {
-        const id = await getBackendIdentifier(appName);
-        clientConfigGeneratorAdapter.generateClientConfigToFile(
-          id,
-          outDir,
-          format
-        );
+    ({ appName, outDir, format }) => {
+      return {
+        successfulDeployment: [
+          async () => {
+            const id = await getBackendIdentifier(appName);
+            clientConfigGeneratorAdapter.generateClientConfigToFile(
+              id,
+              outDir,
+              format
+            );
+          },
+        ],
       };
     }
   );

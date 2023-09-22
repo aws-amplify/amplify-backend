@@ -7,7 +7,11 @@ import {
 } from '../../test-utils/command_runner.js';
 import assert from 'node:assert';
 import fs from 'fs';
-import { SandboxCommand } from './sandbox_command.js';
+import {
+  EventHandler,
+  SandboxCommand,
+  SandboxEventHandlerCreator,
+} from './sandbox_command.js';
 import { createSandboxCommand } from './sandbox_command_factory.js';
 import { SandboxDeleteCommand } from './sandbox-delete/sandbox_delete_command.js';
 import { Sandbox, SandboxSingletonFactory } from '@aws-amplify/sandbox';
@@ -25,7 +29,7 @@ describe('sandbox command', () => {
   let sandboxStartMock = mock.fn<typeof sandbox.start>();
   let mockGenerate =
     mock.fn<ClientConfigGeneratorAdapter['generateClientConfigToFile']>();
-  const generationMock = mock.fn<() => Promise<void>>();
+  const generationMock = mock.fn<EventHandler>();
 
   beforeEach(async () => {
     const sandboxFactory = new SandboxSingletonFactory(() =>
@@ -39,7 +43,9 @@ describe('sandbox command', () => {
     const sandboxCommand = new SandboxCommand(
       sandboxFactory,
       sandboxDeleteCommand,
-      () => generationMock
+      () => ({
+        successfulDeployment: [generationMock],
+      })
     );
     const parser = yargs().command(sandboxCommand as unknown as CommandModule);
     commandRunner = new TestCommandRunner(parser);
