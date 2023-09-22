@@ -57,7 +57,7 @@ export class SandboxCommand
   constructor(
     private readonly sandboxFactory: SandboxSingletonFactory,
     private readonly sandboxDeleteCommand: SandboxDeleteCommand,
-    private readonly createConfigGenerationCallback?: SandboxEventHandlerCreator
+    private readonly sandboxEventHandlerCreator?: SandboxEventHandlerCreator
   ) {
     this.command = 'sandbox';
     this.describe = 'Starts sandbox, watch mode for amplify deployments';
@@ -71,7 +71,7 @@ export class SandboxCommand
   ): Promise<void> => {
     const sandbox = await this.sandboxFactory.getInstance();
     this.appName = args.name;
-    const eventHandlers = this.createConfigGenerationCallback?.({
+    const eventHandlers = this.sandboxEventHandlerCreator?.({
       appName: args.name,
       format: args.format,
       outDir: args.out,

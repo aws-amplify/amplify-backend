@@ -1,5 +1,9 @@
 import { CommandModule } from 'yargs';
-import { SandboxCommand, SandboxCommandOptions } from './sandbox_command.js';
+import {
+  SandboxCommand,
+  SandboxCommandOptions,
+  SandboxEventHandlerCreator,
+} from './sandbox_command.js';
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
 import { SandboxDeleteCommand } from './sandbox-delete/sandbox_delete_command.js';
 import { SandboxIdResolver } from './sandbox_id_resolver.js';
@@ -27,22 +31,27 @@ export const createSandboxCommand = (): CommandModule<
     const sandboxId = appName ?? (await sandboxIdResolver.resolve());
     return { backendId: sandboxId, branchName: 'sandbox' };
   };
+  const sandboxEventHandlerCreator: SandboxEventHandlerCreator = ({
+    appName,
+    outDir,
+    format,
+  }) => {
+    return {
+      successfulDeployment: [
+        async () => {
+          const id = await getBackendIdentifier(appName);
+          clientConfigGeneratorAdapter.generateClientConfigToFile(
+            id,
+            outDir,
+            format
+          );
+        },
+      ],
+    };
+  };
   return new SandboxCommand(
     sandboxFactory,
     new SandboxDeleteCommand(sandboxFactory),
-    ({ appName, outDir, format }) => {
-      return {
-        successfulDeployment: [
-          async () => {
-            const id = await getBackendIdentifier(appName);
-            clientConfigGeneratorAdapter.generateClientConfigToFile(
-              id,
-              outDir,
-              format
-            );
-          },
-        ],
-      };
-    }
+    sandboxEventHandlerCreator
   );
 };
