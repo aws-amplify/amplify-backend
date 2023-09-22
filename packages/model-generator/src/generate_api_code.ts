@@ -1,5 +1,6 @@
 import { BackendIdentifier } from '@aws-amplify/deployed-backend-client';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
+import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 
 import { createGraphqlModelsGenerator } from './create_graphql_models_generator.js';
 import { createGraphqlTypesGenerator } from './create_graphql_types_generator.js';
@@ -45,7 +46,10 @@ export type GenerateOptions =
   | GenerateModelsOptions
   | GenerateIntrospectionOptions;
 
-export type GenerateAPICodeProps = GenerateOptions & BackendIdentifier;
+export type GenerateAPICodeProps = GenerateOptions &
+  BackendIdentifier & {
+    credentialProvider: AwsCredentialIdentityProvider;
+  };
 
 /**
  * Mock generateApiCode command.
@@ -53,7 +57,7 @@ export type GenerateAPICodeProps = GenerateOptions & BackendIdentifier;
 export const generateAPICode = async (
   props: GenerateAPICodeProps
 ): Promise<GeneratedOutput> => {
-  const credentialProvider = fromNodeProviderChain();
+  const { credentialProvider = fromNodeProviderChain() } = props;
 
   switch (props.format) {
     case 'graphql-codegen': {

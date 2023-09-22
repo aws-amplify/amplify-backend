@@ -24,7 +24,9 @@ export type DocumentGenerationParameters = {
 export const generateAPICode: (props: GenerateAPICodeProps) => Promise<GeneratedOutput>;
 
 // @public (undocumented)
-export type GenerateAPICodeProps = GenerateOptions & BackendIdentifier;
+export type GenerateAPICodeProps = GenerateOptions & BackendIdentifier & {
+    credentialProvider: AwsCredentialIdentityProvider;
+};
 
 // @public (undocumented)
 export type GeneratedOutput = {
