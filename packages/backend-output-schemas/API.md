@@ -6,8 +6,17 @@
 
 import { z } from 'zod';
 
+// @public (undocumented)
+export type AuthOutput = z.infer<typeof versionedAuthOutputSchema>;
+
 // @public
 export const authOutputKey = "AWS::Amplify::Auth";
+
+// @public (undocumented)
+export type AwsAppsyncAuthenticationType = z.infer<typeof AwsAppsyncAuthenticationZodEnum>;
+
+// @public (undocumented)
+export const AwsAppsyncAuthenticationZodEnum: z.ZodEnum<["API_KEY", "AWS_LAMBDA", "AWS_IAM", "OPENID_CONNECT", "AMAZON_COGNITO_USER_POOLS"]>;
 
 // @public
 export type BackendOutputEntryStackMetadata = z.infer<typeof backendOutputEntryStackMetadataSchema>;
@@ -39,8 +48,14 @@ export const backendOutputStackMetadataSchema: z.ZodRecord<z.ZodString, z.ZodObj
     stackOutputs: string[];
 }>>;
 
+// @public (undocumented)
+export type GraphqlOutput = z.infer<typeof versionedGraphqlOutputSchema>;
+
 // @public
 export const graphqlOutputKey = "AWS::Amplify::GraphQL";
+
+// @public (undocumented)
+export type StorageOutput = z.infer<typeof versionedStorageOutputSchema>;
 
 // @public
 export const storageOutputKey = "AWS::Amplify::Storage";
@@ -240,6 +255,137 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
         };
     } | undefined;
 }>;
+
+// @public (undocumented)
+export const versionedAuthOutputSchema: z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
+    version: z.ZodLiteral<"1">;
+    payload: z.ZodObject<{
+        userPoolId: z.ZodString;
+        webClientId: z.ZodString;
+        identityPoolId: z.ZodString;
+        amazonClientId: z.ZodOptional<z.ZodString>;
+        appleClientId: z.ZodOptional<z.ZodString>;
+        facebookClientId: z.ZodOptional<z.ZodString>;
+        googleClientId: z.ZodOptional<z.ZodString>;
+        authRegion: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        userPoolId: string;
+        webClientId: string;
+        identityPoolId: string;
+        authRegion: string;
+        amazonClientId?: string | undefined;
+        appleClientId?: string | undefined;
+        facebookClientId?: string | undefined;
+        googleClientId?: string | undefined;
+    }, {
+        userPoolId: string;
+        webClientId: string;
+        identityPoolId: string;
+        authRegion: string;
+        amazonClientId?: string | undefined;
+        appleClientId?: string | undefined;
+        facebookClientId?: string | undefined;
+        googleClientId?: string | undefined;
+    }>;
+}, "strip", z.ZodTypeAny, {
+    version: "1";
+    payload: {
+        userPoolId: string;
+        webClientId: string;
+        identityPoolId: string;
+        authRegion: string;
+        amazonClientId?: string | undefined;
+        appleClientId?: string | undefined;
+        facebookClientId?: string | undefined;
+        googleClientId?: string | undefined;
+    };
+}, {
+    version: "1";
+    payload: {
+        userPoolId: string;
+        webClientId: string;
+        identityPoolId: string;
+        authRegion: string;
+        amazonClientId?: string | undefined;
+        appleClientId?: string | undefined;
+        facebookClientId?: string | undefined;
+        googleClientId?: string | undefined;
+    };
+}>]>;
+
+// @public (undocumented)
+export const versionedGraphqlOutputSchema: z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
+    version: z.ZodLiteral<"1">;
+    payload: z.ZodObject<{
+        awsAppsyncRegion: z.ZodString;
+        awsAppsyncApiEndpoint: z.ZodString;
+        awsAppsyncAuthenticationType: z.ZodEnum<["API_KEY", "AWS_LAMBDA", "AWS_IAM", "OPENID_CONNECT", "AMAZON_COGNITO_USER_POOLS"]>;
+        awsAppsyncApiKey: z.ZodOptional<z.ZodString>;
+        awsAppsyncApiId: z.ZodString;
+        amplifyApiModelSchemaS3Uri: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        awsAppsyncRegion: string;
+        awsAppsyncApiEndpoint: string;
+        awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
+        awsAppsyncApiId: string;
+        amplifyApiModelSchemaS3Uri: string;
+        awsAppsyncApiKey?: string | undefined;
+    }, {
+        awsAppsyncRegion: string;
+        awsAppsyncApiEndpoint: string;
+        awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
+        awsAppsyncApiId: string;
+        amplifyApiModelSchemaS3Uri: string;
+        awsAppsyncApiKey?: string | undefined;
+    }>;
+}, "strip", z.ZodTypeAny, {
+    version: "1";
+    payload: {
+        awsAppsyncRegion: string;
+        awsAppsyncApiEndpoint: string;
+        awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
+        awsAppsyncApiId: string;
+        amplifyApiModelSchemaS3Uri: string;
+        awsAppsyncApiKey?: string | undefined;
+    };
+}, {
+    version: "1";
+    payload: {
+        awsAppsyncRegion: string;
+        awsAppsyncApiEndpoint: string;
+        awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
+        awsAppsyncApiId: string;
+        amplifyApiModelSchemaS3Uri: string;
+        awsAppsyncApiKey?: string | undefined;
+    };
+}>]>;
+
+// @public (undocumented)
+export const versionedStorageOutputSchema: z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
+    version: z.ZodLiteral<"1">;
+    payload: z.ZodObject<{
+        bucketName: z.ZodString;
+        storageRegion: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        bucketName: string;
+        storageRegion: string;
+    }, {
+        bucketName: string;
+        storageRegion: string;
+    }>;
+}, "strip", z.ZodTypeAny, {
+    version: "1";
+    payload: {
+        bucketName: string;
+        storageRegion: string;
+    };
+}, {
+    version: "1";
+    payload: {
+        bucketName: string;
+        storageRegion: string;
+    };
+}>]>;
 
 // (No @packageDocumentation comment for this package)
 
