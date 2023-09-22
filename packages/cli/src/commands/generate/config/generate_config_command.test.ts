@@ -9,6 +9,7 @@ import {
 } from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
 import { ClientConfigGeneratorAdapter } from './client_config_generator_adapter.js';
+import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
 
 describe('generate config command', () => {
   const clientConfigGeneratorAdapter = new ClientConfigGeneratorAdapter(
@@ -21,9 +22,12 @@ describe('generate config command', () => {
     () => Promise.resolve()
   );
 
+  const backendIdResolver = new BackendIdentifierResolver({
+    resolve: () => Promise.resolve('testAppName'),
+  });
   const generateConfigCommand = new GenerateConfigCommand(
     clientConfigGeneratorAdapter,
-    { resolve: () => Promise.resolve('testAppName') }
+    backendIdResolver
   );
   const parser = yargs().command(
     generateConfigCommand as unknown as CommandModule

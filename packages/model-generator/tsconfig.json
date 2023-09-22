@@ -5,5 +5,8 @@
     "outDir": "lib",
     "resolveJsonModule": true
   },
-  "references": []
+  "references": [
+    { "path": "../backend-output-schemas" },
+    { "path": "../deployed-backend-client" }
+  ]
 }
