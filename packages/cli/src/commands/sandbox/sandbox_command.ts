@@ -82,7 +82,7 @@ export class SandboxCommand
     sandbox.on('onSuccessfulDeployment', () => {
       this.clientConfigGenerator.generateClientConfigToFile(
         backendIdentifier,
-        clientConfigWritePath,
+        args.out,
         args.format
       );
     });
