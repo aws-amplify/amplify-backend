@@ -16,7 +16,7 @@ describe('top level generate command', () => {
   const parser = yargs().command(generateCommand);
   const commandRunner = new TestCommandRunner(parser);
 
-  it('includes generate config and graphql-client-code in help output', async () => {
+  it('includes generate subcommands in help output', async () => {
     const output = await commandRunner.runCommand('generate --help');
     assert.match(output, /Commands:/);
     assert.match(output, /generate config\W*Generates client config/);
