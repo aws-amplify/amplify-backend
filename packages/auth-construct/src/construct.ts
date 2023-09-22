@@ -1,6 +1,6 @@
 import { Construct } from 'constructs';
 import { Stack, aws_cognito as cognito } from 'aws-cdk-lib';
-import { Architecture, Runtime } from 'aws-cdk-lib/aws-lambda';
+import { Architecture, IFunction, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
 import {
   AmplifyFunction,
@@ -33,7 +33,6 @@ import {
   AuthCustomAttributeFactory,
   AuthStandardAttribute,
 } from './attributes.js';
-import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 import { join } from 'path';
 
@@ -85,7 +84,7 @@ export class AmplifyAuth
 
     // UserPool
     const userPoolProps: UserPoolProps = this.getUserPoolProps(id, props);
-    const userPool = new cognito.UserPool(this, 'UserPool', userPoolProps);
+    this.userPool = new cognito.UserPool(this, 'UserPool', userPoolProps);
 
     // UserPool - Identity Providers
     const providerSetupResult = this.setupIdentityProviders(
