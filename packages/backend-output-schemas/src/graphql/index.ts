@@ -1,6 +1,10 @@
 import { z } from 'zod';
 import { graphqlOutputSchema as graphqlOutputSchemaV1 } from './v1.js';
-export type { AwsAppsyncAuthenticationType } from './v1.js';
+
+export {
+  AwsAppsyncAuthenticationType,
+  AwsAppsyncAuthenticationZodEnum,
+} from './v1.js';
 
 export const versionedGraphqlOutputSchema = z.discriminatedUnion('version', [
   graphqlOutputSchemaV1,
