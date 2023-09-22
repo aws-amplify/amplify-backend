@@ -35,7 +35,7 @@ export const createGenerateCommand = (): CommandModule => {
 
   const generateGraphqlClientCodeCommand = new GenerateGraphqlClientCodeCommand(
     graphqlClientCodeGeneratorAdapter,
-    localAppNameResolver
+    backendIdentifierResolver
   );
 
   return new GenerateCommand(

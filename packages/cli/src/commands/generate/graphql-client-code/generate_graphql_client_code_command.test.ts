@@ -9,6 +9,7 @@ import {
 import assert from 'node:assert';
 import path from 'path';
 import { GraphqlClientCodeGeneratorAdapter } from './generate_graphql_client_code_generator_adapter.js';
+import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
 
 describe('generate graphql-client-code command', () => {
   const graphqlClientCodeGeneratorAdapter =
@@ -20,9 +21,12 @@ describe('generate graphql-client-code command', () => {
     () => Promise.resolve()
   );
 
+  const backendIdentifierResolver = new BackendIdentifierResolver({
+    resolve: () => Promise.resolve('testAppName'),
+  });
   const generateGraphqlClientCodeCommand = new GenerateGraphqlClientCodeCommand(
     graphqlClientCodeGeneratorAdapter,
-    { resolve: () => Promise.resolve('testAppName') }
+    backendIdentifierResolver
   );
   const parser = yargs().command(
     generateGraphqlClientCodeCommand as unknown as CommandModule
@@ -37,7 +41,9 @@ describe('generate graphql-client-code command', () => {
     await commandRunner.runCommand('graphql-client-code --stack stack_name');
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
-      stackName: 'stack_name',
+      backendIdentifier: {
+        stackName: 'stack_name',
+      },
       format: 'graphql-codegen',
       out: process.cwd(),
       statementTarget: 'javascript',
@@ -48,8 +54,10 @@ describe('generate graphql-client-code command', () => {
     await commandRunner.runCommand('graphql-client-code --branch branch_name');
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
-      appName: 'testAppName',
-      branchName: 'branch_name',
+      backendIdentifier: {
+        appName: 'testAppName',
+        branchName: 'branch_name',
+      },
       out: process.cwd(),
       format: 'graphql-codegen',
       statementTarget: 'javascript',
@@ -62,8 +70,10 @@ describe('generate graphql-client-code command', () => {
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
-      backendId: 'app_id',
-      branchName: 'branch_name',
+      backendIdentifier: {
+        backendId: 'app_id',
+        branchName: 'branch_name',
+      },
       out: process.cwd(),
       format: 'graphql-codegen',
       statementTarget: 'javascript',
@@ -76,7 +86,9 @@ describe('generate graphql-client-code command', () => {
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
-      stackName: 'stack_name',
+      backendIdentifier: {
+        stackName: 'stack_name',
+      },
       format: 'graphql-codegen',
       statementTarget: 'javascript',
       out: path.join(process.cwd(), 'foo', 'bar'),
@@ -101,7 +113,9 @@ describe('generate graphql-client-code command', () => {
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
-      stackName: 'stack_name',
+      backendIdentifier: {
+        stackName: 'stack_name',
+      },
       format: 'graphql-codegen',
       statementTarget: 'javascript',
       out: process.cwd(),
@@ -114,7 +128,9 @@ describe('generate graphql-client-code command', () => {
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
-      stackName: 'stack_name',
+      backendIdentifier: {
+        stackName: 'stack_name',
+      },
       format: 'modelgen',
       modelTarget: 'javascript',
       out: process.cwd(),
@@ -127,7 +143,9 @@ describe('generate graphql-client-code command', () => {
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
-      stackName: 'stack_name',
+      backendIdentifier: {
+        stackName: 'stack_name',
+      },
       format: 'introspection',
       out: process.cwd(),
     });

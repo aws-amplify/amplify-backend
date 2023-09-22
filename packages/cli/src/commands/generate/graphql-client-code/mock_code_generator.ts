@@ -41,7 +41,9 @@ export type GenerateOptions =
   | GenerateModelsOptions
   | GenerateIntrospectionOptions;
 
-export type GenerateAPICodeProps = BackendIdentifier & GenerateOptions;
+export type GenerateAPICodeProps = GenerateOptions & {
+  backendIdentifier: BackendIdentifier;
+};
 
 /**
  * Mock generateApiCode command.

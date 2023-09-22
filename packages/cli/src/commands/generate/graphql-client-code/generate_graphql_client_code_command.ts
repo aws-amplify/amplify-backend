@@ -1,6 +1,5 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
-import { BackendIdentifier } from '@aws-amplify/deployed-backend-client';
-import { AppNameResolver } from '../../../local_app_name_resolver.js';
+import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
 import { GraphqlClientCodeGeneratorAdapter } from './generate_graphql_client_code_generator_adapter.js';
 import { isAbsolute, resolve } from 'path';
 
@@ -66,7 +65,7 @@ export class GenerateGraphqlClientCodeCommand
    */
   constructor(
     private readonly graphqlClientCodeGeneratorAdapter: GraphqlClientCodeGeneratorAdapter,
-    private readonly appNameResolver: AppNameResolver
+    private readonly backendIdentifierResolver: BackendIdentifierResolver
   ) {
     this.command = 'graphql-client-code';
     this.describe = 'Generates graphql API code';
@@ -109,39 +108,21 @@ export class GenerateGraphqlClientCodeCommand
   handler = async (
     args: ArgumentsCamelCase<GenerateGraphqlClientCodeCommandOptions>
   ): Promise<void> => {
-    const backendIdentifierParts = await this.getBackendIdentifier(args);
+    const backendIdentifier = await this.backendIdentifierResolver.resolve(
+      args
+    );
     const out = this.getOutDir(args);
     const format = args.format ?? ('graphql-codegen' as unknown as any);
     const targetParts = this.getTargetParts(format, args);
 
     await this.graphqlClientCodeGeneratorAdapter.generateGraphqlClientCodeToFile(
       {
-        ...backendIdentifierParts,
+        backendIdentifier,
         out,
         format,
         ...targetParts,
       }
     );
-  };
-
-  /**
-   * Translates args to BackendIdentifier.
-   * Throws if translation can't be made (this should never happen if command validation works correctly).
-   */
-  private getBackendIdentifier = async (
-    args: ArgumentsCamelCase<GenerateGraphqlClientCodeCommandOptions>
-  ): Promise<BackendIdentifier> => {
-    if (args.stack) {
-      return { stackName: args.stack };
-    } else if (args.appId && args.branch) {
-      return { backendId: args.appId, branchName: args.branch };
-    } else if (args.branch) {
-      return {
-        appName: await this.appNameResolver.resolve(),
-        branchName: args.branch,
-      };
-    }
-    throw this.missingArgsError;
   };
 
   /**
@@ -185,19 +166,22 @@ export class GenerateGraphqlClientCodeCommand
         choices: formatChoices,
       })
       .option('modelTarget', {
-        describe: 'TK',
+        describe:
+          'The modelgen export target. Only applies when the `--format` parameter is set to `modelgen`',
         type: 'string',
         array: false,
         choices: modelgenTargetChoices,
       })
       .option('statementTarget', {
-        describe: 'TK',
+        describe:
+          'The graphql-codegen statement export target. Only applies when the `--format` parameter is set to `graphql-codegen`',
         type: 'string',
         array: false,
         choices: statementsTargetChoices,
       })
       .option('typeTarget', {
-        describe: 'TK',
+        describe:
+          'The optional graphql-codegen type export target. Only applies when the `--format` parameter is set to `graphql-codegen`',
         type: 'string',
         array: false,
         choices: typesTargetChoice,
