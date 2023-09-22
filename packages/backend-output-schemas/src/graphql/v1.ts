@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-const AwsAppsyncAuthenticationZodEnum = z.enum([
+export const AwsAppsyncAuthenticationZodEnum = z.enum([
   'API_KEY',
   'AWS_LAMBDA',
   'AWS_IAM',
