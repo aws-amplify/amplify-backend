@@ -25,7 +25,7 @@ export type GenerateGraphqlCodegenOptions = {
   format: 'graphql-codegen';
   statementTarget: 'javascript' | 'graphql' | 'flow' | 'typescript' | 'angular';
   maxDepth?: number;
-  typenameIntrospection?: boolean;
+  typeNameIntrospection?: boolean;
   typeTarget?:
     | 'json'
     | 'swift'
@@ -68,7 +68,7 @@ export const generateApiCode = async (
         }).generateModels({
           language: props.statementTarget,
           maxDepth: props.maxDepth,
-          typenameIntrospection: props.typenameIntrospection,
+          typenameIntrospection: props.typeNameIntrospection,
         })
       ).operations;
 

@@ -38,7 +38,7 @@ export type GenerateGraphqlCodegenOptions = {
     format: 'graphql-codegen';
     statementTarget: 'javascript' | 'graphql' | 'flow' | 'typescript' | 'angular';
     maxDepth?: number;
-    typenameIntrospection?: boolean;
+    typeNameIntrospection?: boolean;
     typeTarget?: 'json' | 'swift' | 'typescript' | 'flow' | 'scala' | 'flow-modern' | 'angular';
     multipleSwiftFiles?: boolean;
 };
