@@ -61,7 +61,7 @@ export class SandboxCommand
     const sandbox = await this.sandboxFactory.getInstance();
     const sandboxIdResolver = new SandboxIdResolver(
       new LocalAppNameResolver(new CwdPackageJsonLoader())
-    ); // write config
+    );
     const sandboxId = args.name ?? (await sandboxIdResolver.resolve());
     const backendIdentifier = {
       backendId: sandboxId,
