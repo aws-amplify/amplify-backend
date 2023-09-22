@@ -12,7 +12,6 @@ export type DocumentGenerationParameters = {
 };
 export type GenerationResult = {
   writeToDirectory: (directoryPath: string) => Promise<void>;
-  operations: Record<string, string>;
 };
 export type GraphqlDocumentGenerator = {
   generateModels: (

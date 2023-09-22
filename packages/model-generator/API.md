@@ -21,16 +21,11 @@ export type DocumentGenerationParameters = {
 };
 
 // @public
-export const generateApiCode: (props: GenerateApiCodeProps) => Promise<GeneratedOutput>;
+export const generateApiCode: (props: GenerateApiCodeProps) => Promise<GenerationResult>;
 
 // @public (undocumented)
 export type GenerateApiCodeProps = GenerateOptions & BackendIdentifier & {
     credentialProvider: AwsCredentialIdentityProvider;
-};
-
-// @public (undocumented)
-export type GeneratedOutput = {
-    [filename: string]: string;
 };
 
 // @public (undocumented)
@@ -68,7 +63,6 @@ export type GenerateOptions = GenerateGraphqlCodegenOptions | GenerateModelsOpti
 // @public (undocumented)
 export type GenerationResult = {
     writeToDirectory: (directoryPath: string) => Promise<void>;
-    operations: Record<string, string>;
 };
 
 // @public (undocumented)

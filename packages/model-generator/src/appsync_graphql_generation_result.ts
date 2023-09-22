@@ -12,7 +12,7 @@ export class AppsyncGraphqlGenerationResult implements GenerationResult {
    * @param operations A record of FileName to FileContent
    * in the format of Record<string,string>
    */
-  constructor(public operations: ClientOperations) {}
+  constructor(private operations: ClientOperations) {}
   private writeSchemaToFile = async (
     basePath: string,
     filePath: string,

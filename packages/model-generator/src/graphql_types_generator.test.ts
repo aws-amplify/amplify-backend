@@ -6,7 +6,7 @@ describe('types generator', () => {
   it('if `fetchSchema` returns null, it should throw an error', async () => {
     const generator = new AppSyncGraphqlTypesGenerator(
       async () => null as unknown as string,
-      () => ({ writeToDirectory: () => Promise.resolve(), operations: {} })
+      () => ({ writeToDirectory: () => Promise.resolve() })
     );
     await assert.rejects(() =>
       generator.generateTypes({ target: 'typescript' })
