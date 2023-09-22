@@ -18,7 +18,7 @@
 <h1>Function generateClientConfigToFile</h1></div>
 <section class="tsd-panel">
 <ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="generateClientConfigToFile"><span class="tsd-kind-call-signature">generate<wbr/>Client<wbr/>Config<wbr/>To<wbr/>File</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">credentialProvider</span>, <span class="tsd-kind-parameter">backendIdentifier</span>, <span class="tsd-kind-parameter">targetPath</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#generateClientConfigToFile" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="generateClientConfigToFile"><span class="tsd-kind-call-signature">generate<wbr/>Client<wbr/>Config<wbr/>To<wbr/>File</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">credentialProvider</span>, <span class="tsd-kind-parameter">backendIdentifier</span>, <span class="tsd-kind-parameter">outDir</span><span class="tsd-signature-symbol">?</span>, <span class="tsd-kind-parameter">format</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#generateClientConfigToFile" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Main entry point for generating client config and writing to a file</p>
 </div>
@@ -30,11 +30,13 @@
 <li>
 <h5><span class="tsd-kind-parameter">backendIdentifier</span>: <a href="../types/_aws_amplify_deployed_backend_client.BackendIdentifier.html" class="tsd-signature-type tsd-kind-type-alias">BackendIdentifier</a></h5></li>
 <li>
-<h5><span class="tsd-kind-parameter">targetPath</span>: <span class="tsd-signature-type">string</span></h5></li></ul></div>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">outDir</span>: <span class="tsd-signature-type">string</span></h5></li>
+<li>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">format</span>: <a href="../enums/_aws_amplify_client_config.ClientConfigFormat.html" class="tsd-signature-type tsd-kind-enum">ClientConfigFormat</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/b4f8271/packages/client-config/src/generate_client_config_to_file.ts#L9">generate_client_config_to_file.ts:9</a></li></ul></aside></li></ul></section></div>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/75d90a5/packages/client-config/src/generate_client_config_to_file.ts#L11">generate_client_config_to_file.ts:11</a></li></ul></aside></li></ul></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
