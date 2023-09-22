@@ -104,7 +104,6 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       this.emitWatching();
       console.debug('[Sandbox] Running onSuccessfulDeployment event handlers');
       this.emit('onSuccessfulDeployment');
-      console.debug('[Sandbox] Finished onSuccessfulDeployment event handlers');
     });
 
     this.watcherSubscription = await parcelWatcher.subscribe(
