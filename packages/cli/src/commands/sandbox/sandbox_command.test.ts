@@ -57,7 +57,9 @@ describe('sandbox command', () => {
   });
 
   it('starts sandbox with user provided output directory for client config', async () => {
-    await commandRunner.runCommand('sandbox --out test/location --format js');
+    await commandRunner.runCommand(
+      'sandbox --outDir test/location --format js'
+    );
     assert.equal(sandboxStartMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       sandboxStartMock.mock.calls[0].arguments[0].clientConfigFilePath,
@@ -75,7 +77,7 @@ describe('sandbox command', () => {
     assert.match(output, /--dirToWatch/);
     assert.match(output, /--exclude/);
     assert.match(output, /--format/);
-    assert.match(output, /--out/);
+    assert.match(output, /--outDir/);
   });
 
   it('fails if invalid dirToWatch is provided', async () => {
