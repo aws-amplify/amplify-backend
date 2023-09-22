@@ -7,11 +7,8 @@ import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
 import { SandboxIdResolver } from './sandbox_id_resolver.js';
 import { LocalAppNameResolver } from '../../local_app_name_resolver.js';
 import { CwdPackageJsonLoader } from '../../cwd_package_json_loader.js';
-import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
-import {
-  ClientConfigFormat,
-  generateClientConfigToFile,
-} from '@aws-amplify/client-config';
+import { ClientConfigFormat } from '@aws-amplify/client-config';
+import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 
 export type SandboxCommandOptions = {
   dirToWatch: string | undefined;
@@ -45,31 +42,12 @@ export class SandboxCommand
    */
   constructor(
     private readonly sandboxFactory: SandboxSingletonFactory,
-    private readonly sandboxDeleteCommand: SandboxDeleteCommand
+    private readonly sandboxDeleteCommand: SandboxDeleteCommand,
+    private readonly clientConfigGenerator: ClientConfigGeneratorAdapter
   ) {
     this.command = 'sandbox';
     this.describe = 'Starts sandbox, watch mode for amplify deployments';
   }
-
-  private writeClientConfig = async (
-    clientConfigWritePath: string,
-    name?: string,
-    format?: ClientConfigFormat
-  ) => {
-    const sandboxIdResolver = new SandboxIdResolver(
-      new LocalAppNameResolver(new CwdPackageJsonLoader())
-    ); // write config
-    const sandboxId = name ?? (await sandboxIdResolver.resolve());
-    await generateClientConfigToFile(
-      fromNodeProviderChain(),
-      {
-        backendId: sandboxId,
-        branchName: 'sandbox',
-      },
-      clientConfigWritePath,
-      format
-    );
-  };
 
   private getClientConfigWritePath = (
     args: ArgumentsCamelCase<SandboxCommandOptions>
@@ -93,10 +71,18 @@ export class SandboxCommand
     this.appName = args.name;
     const sandbox = await this.sandboxFactory.getInstance();
     const clientConfigWritePath = this.getClientConfigWritePath(args);
-    sandbox.on('afterDeployment', () => {
-      void this.writeClientConfig(
+    const sandboxIdResolver = new SandboxIdResolver(
+      new LocalAppNameResolver(new CwdPackageJsonLoader())
+    ); // write config
+    const sandboxId = args.name ?? (await sandboxIdResolver.resolve());
+    const backendIdentifier = {
+      backendId: sandboxId,
+      branchName: 'sandbox',
+    };
+    sandbox.on('onSuccessfulDeployment', () => {
+      this.clientConfigGenerator.generateClientConfigToFile(
+        backendIdentifier,
         clientConfigWritePath,
-        args.name,
         args.format
       );
     });

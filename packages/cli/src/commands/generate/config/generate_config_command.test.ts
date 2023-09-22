@@ -8,7 +8,7 @@ import {
   TestCommandRunner,
 } from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
-import { ClientConfigGeneratorAdapter } from './client_config_generator_adapter.js';
+import { ClientConfigGeneratorAdapter } from '../../../client-config/client_config_generator_adapter.js';
 
 describe('generate config command', () => {
   const clientConfigGeneratorAdapter = new ClientConfigGeneratorAdapter(
