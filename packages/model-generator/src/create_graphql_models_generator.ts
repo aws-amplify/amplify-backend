@@ -1,5 +1,5 @@
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
-import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { S3Client } from '@aws-sdk/client-s3';
 import {
   BackendIdentifier,
   BackendOutputClient,
@@ -53,7 +53,6 @@ const getModelSchema = async (
   const s3Client = new S3Client({
     credentials: credentialProvider,
   });
-  const client = new S3Client();
-  const schemaFetcher = new S3StringObjectFetcher(client);
+  const schemaFetcher = new S3StringObjectFetcher(s3Client);
   return await schemaFetcher.fetch(modelSchemaS3Uri);
 };
