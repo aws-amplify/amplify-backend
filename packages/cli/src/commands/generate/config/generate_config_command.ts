@@ -1,8 +1,7 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { ClientConfigFormat } from '@aws-amplify/client-config';
-import { AppNameResolver } from '../../../local_app_name_resolver.js';
 import { ClientConfigGeneratorAdapter } from './client_config_generator_adapter.js';
-import { BackendIdentifier } from '@aws-amplify/deployed-backend-client';
+import { BackendIdentifierResolver } from '../../../backend_identifier_resolver.js';
 
 export type GenerateConfigCommandOptions = {
   stack: string | undefined;
@@ -37,7 +36,7 @@ export class GenerateConfigCommand
    */
   constructor(
     private readonly clientConfigGenerator: ClientConfigGeneratorAdapter,
-    private readonly appNameResolver: AppNameResolver
+    private readonly backendIdentifierResolver: BackendIdentifierResolver
   ) {
     this.command = 'config';
     this.describe = 'Generates client config';
@@ -49,33 +48,15 @@ export class GenerateConfigCommand
   handler = async (
     args: ArgumentsCamelCase<GenerateConfigCommandOptions>
   ): Promise<void> => {
-    const backendIdentifier = await this.getBackendIdentifier(args);
+    const backendIdentifier = await this.backendIdentifierResolver.resolve(
+      args
+    );
 
     await this.clientConfigGenerator.generateClientConfigToFile(
       backendIdentifier,
       args.outDir,
       args.format
     );
-  };
-
-  /**
-   * Translates args to BackendIdentifier.
-   * Throws if translation can't be made (this should never happen if command validation works correctly).
-   */
-  private getBackendIdentifier = async (
-    args: ArgumentsCamelCase<GenerateConfigCommandOptions>
-  ): Promise<BackendIdentifier> => {
-    if (args.stack) {
-      return { stackName: args.stack };
-    } else if (args.appId && args.branch) {
-      return { backendId: args.appId, branchName: args.branch };
-    } else if (args.branch) {
-      return {
-        appName: await this.appNameResolver.resolve(),
-        branchName: args.branch,
-      };
-    }
-    throw this.missingArgsError;
   };
 
   /**
