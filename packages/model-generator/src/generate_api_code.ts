@@ -46,7 +46,7 @@ export type GenerateOptions =
   | GenerateModelsOptions
   | GenerateIntrospectionOptions;
 
-export type GenerateAPICodeProps = GenerateOptions &
+export type GenerateApiCodeProps = GenerateOptions &
   BackendIdentifier & {
     credentialProvider: AwsCredentialIdentityProvider;
   };
@@ -54,8 +54,8 @@ export type GenerateAPICodeProps = GenerateOptions &
 /**
  * Mock generateApiCode command.
  */
-export const generateAPICode = async (
-  props: GenerateAPICodeProps
+export const generateApiCode = async (
+  props: GenerateApiCodeProps
 ): Promise<GeneratedOutput> => {
   const { credentialProvider = fromNodeProviderChain() } = props;
 
@@ -121,7 +121,7 @@ export const generateAPICode = async (
     }
     default:
       throw new Error(
-        `${(props as GenerateAPICodeProps).format} is not a supported format.`
+        `${(props as GenerateApiCodeProps).format} is not a supported format.`
       );
   }
 };

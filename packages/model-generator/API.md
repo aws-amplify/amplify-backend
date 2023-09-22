@@ -21,10 +21,10 @@ export type DocumentGenerationParameters = {
 };
 
 // @public
-export const generateAPICode: (props: GenerateAPICodeProps) => Promise<GeneratedOutput>;
+export const generateApiCode: (props: GenerateApiCodeProps) => Promise<GeneratedOutput>;
 
 // @public (undocumented)
-export type GenerateAPICodeProps = GenerateOptions & BackendIdentifier & {
+export type GenerateApiCodeProps = GenerateOptions & BackendIdentifier & {
     credentialProvider: AwsCredentialIdentityProvider;
 };
 
