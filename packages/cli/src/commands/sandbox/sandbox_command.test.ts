@@ -7,11 +7,7 @@ import {
 } from '../../test-utils/command_runner.js';
 import assert from 'node:assert';
 import fs from 'fs';
-import {
-  EventHandler,
-  SandboxCommand,
-  SandboxEventHandlerCreator,
-} from './sandbox_command.js';
+import { EventHandler, SandboxCommand } from './sandbox_command.js';
 import { createSandboxCommand } from './sandbox_command_factory.js';
 import { SandboxDeleteCommand } from './sandbox-delete/sandbox_delete_command.js';
 import { Sandbox, SandboxSingletonFactory } from '@aws-amplify/sandbox';

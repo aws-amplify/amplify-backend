@@ -6,7 +6,6 @@ import { SandboxIdResolver } from './sandbox_id_resolver.js';
 import { CwdPackageJsonLoader } from '../../cwd_package_json_loader.js';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
-import { ClientConfigFormat } from '@aws-amplify/client-config';
 import { LocalAppNameResolver } from '../../backend-identifier/local_app_name_resolver.js';
 
 /**
