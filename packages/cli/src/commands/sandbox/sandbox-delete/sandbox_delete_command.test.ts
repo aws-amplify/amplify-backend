@@ -6,17 +6,10 @@ import assert from 'node:assert';
 import { SandboxDeleteCommand } from './sandbox_delete_command.js';
 import { SandboxCommand } from '../sandbox_command.js';
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
-import { ClientConfigGeneratorAdapter } from '../../../client-config/client_config_generator_adapter.js';
 
 describe('sandbox delete command', () => {
   let commandRunner: TestCommandRunner;
   let sandboxDeleteMock = mock.fn();
-  let generatorAdapter: ClientConfigGeneratorAdapter =
-    {} as ClientConfigGeneratorAdapter;
-  const sandboxIdResolver = async () => ({
-    branchName: 'sandbox',
-    backendId: 'a-fake-backend',
-  });
 
   beforeEach(async () => {
     const sandboxFactory = new SandboxSingletonFactory(() =>

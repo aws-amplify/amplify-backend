@@ -7,8 +7,6 @@ import {
   ClientConfigFormat,
   getClientConfigPath,
 } from '@aws-amplify/client-config';
-import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
-import { BackendIdentifier } from '@aws-amplify/deployed-backend-client';
 
 export type SandboxCommandOptions = {
   dirToWatch: string | undefined;
