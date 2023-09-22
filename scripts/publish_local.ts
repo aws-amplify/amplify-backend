@@ -1,5 +1,7 @@
 import { execa } from 'execa';
 import { runPublish } from './publish_runner.js';
+import * as path from 'path';
+
 const isCleanWorkingTree = async (): Promise<boolean> => {
   const buffer = await execa('git', ['status', '--porcelain']);
   return !buffer.stdout.trim();
@@ -24,3 +26,13 @@ await runPublish({
 
 // this is safe because the script ensures the working tree is clean before starting
 await execa('git', ['reset', '--hard']);
+
+// if any packages have not been published yet, this script will produce a new changelog file
+// this is not cleaned up by git reset because the file is not tracked by git yet
+// this command cleans up those changelogs
+await execa('git', [
+  'clean',
+  '-f',
+  '--',
+  path.join('packages', '**', 'CHANGELOG.md'),
+]);
