@@ -29,7 +29,7 @@ await execa('git', ['reset', '--hard']);
 
 // if any packages have not been published yet, this script will produce a new changelog file
 // this is not cleaned up by git reset because the file is not tracked by git yet
-// this command cleans up those changelogs
+// this command cleans up those changelog files
 await execa('git', [
   'clean',
   '-f',
