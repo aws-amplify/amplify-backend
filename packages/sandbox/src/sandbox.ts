@@ -22,7 +22,7 @@ export type Sandbox = {
   delete: (options: SandboxDeleteOptions) => Promise<void>;
 } & EventEmitter;
 
-export type SandboxEvents = 'onSuccessfulDeployment';
+export type SandboxEvents = 'successfulDeployment';
 
 export type SandboxOptions = {
   dir?: string;

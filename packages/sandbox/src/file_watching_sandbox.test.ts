@@ -388,4 +388,16 @@ describe('Sandbox ignoring paths in .gitignore', () => {
     // CDK should also be called once
     assert.strictEqual(execaDeployMock.mock.callCount(), 1);
   });
+  it('emits the successfulDeployment event after deployment', async () => {
+    const mockListener = mock.fn();
+    const mockDeploy = mock.fn();
+    mockDeploy.mock.mockImplementation(async () => null);
+    const executor: AmplifySandboxExecutor = {
+      deploy: mockDeploy,
+    } as unknown as AmplifySandboxExecutor;
+    const sandbox = new FileWatchingSandbox('my-sandbox', executor);
+    sandbox.on('successfulDeployment', mockListener);
+    await sandbox.start({});
+    assert.equal(mockListener.mock.callCount(), 1);
+  });
 });

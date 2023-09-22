@@ -1,7 +1,5 @@
 import debounce from 'debounce-promise';
 import parcelWatcher, { subscribe } from '@parcel/watcher';
-import { ClientConfigFormat } from '@aws-amplify/client-config';
-import { getClientConfigPath } from '@aws-amplify/client-config/paths';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
 import {
   Sandbox,
@@ -102,8 +100,8 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       }
       latch = 'open';
       this.emitWatching();
-      console.debug('[Sandbox] Running onSuccessfulDeployment event handlers');
-      this.emit('onSuccessfulDeployment');
+      console.debug('[Sandbox] Running successfulDeployment event handlers');
+      this.emit('successfulDeployment');
     });
 
     this.watcherSubscription = await parcelWatcher.subscribe(

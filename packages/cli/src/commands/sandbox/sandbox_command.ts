@@ -61,7 +61,7 @@ export class SandboxCommand
     const sandbox = await this.sandboxFactory.getInstance();
     this.appName = args.name;
     const backendIdentifier = await this.sandboxIdentifierResolver(args.name);
-    sandbox.on('onSuccessfulDeployment', () => {
+    sandbox.on('successfulDeployment', () => {
       this.clientConfigGenerator.generateClientConfigToFile(
         backendIdentifier,
         args.out,
