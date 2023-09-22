@@ -1,4 +1,4 @@
-import { CwdPackageJsonLoader } from './cwd_package_json_loader.js';
+import { CwdPackageJsonLoader } from '../cwd_package_json_loader.js';
 
 export type AppNameResolver = {
   resolve: () => Promise<string>;
