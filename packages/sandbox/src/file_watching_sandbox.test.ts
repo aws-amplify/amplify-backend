@@ -9,6 +9,7 @@ import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 import fs from 'fs';
 import parseGitIgnore from 'parse-gitignore';
 
+const configFileName = 'amplifyconfiguration';
 // Watcher mocks
 const unsubscribeMockFn = mock.fn();
 const subscribeMock = mock.method(watcher, 'subscribe', async () => {

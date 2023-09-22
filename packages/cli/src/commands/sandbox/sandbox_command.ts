@@ -16,8 +16,8 @@ import {
 export type SandboxCommandOptions = {
   dirToWatch: string | undefined;
   exclude: string[] | undefined;
-  format: ClientConfigFormat | undefined;
   name: string | undefined;
+  format: ClientConfigFormat | undefined;
   out: string | undefined;
   profile: string | undefined;
 };
