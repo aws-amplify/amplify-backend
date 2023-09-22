@@ -1,9 +1,10 @@
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { ClientConfigGeneratorFactory } from './client_config_generator_factory.js';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import { ClientConfig } from './client-config-types/client_config.js';
-import { StackIdentifier } from './stack-name-resolvers/passthrough_main_stack_name_resolver.js';
-import { AppNameAndBranchBackendIdentifier } from './stack-name-resolvers/app_name_and_branch_main_stack_name_resolver.js';
+import {
+  BackendIdentifier,
+  BackendOutputClient,
+} from '@aws-amplify/deployed-backend-client';
 
 // Because this function is acting as the DI container for this functionality, there is no way to test it without
 // exposing the ClientConfigGeneratorFactory in the method signature. For this reason, we're turning off coverage for this file
@@ -19,12 +20,11 @@ export const generateClientConfig = async (
   credentialProvider: AwsCredentialIdentityProvider,
   backendIdentifier: BackendIdentifier
 ): Promise<ClientConfig> => {
-  return new ClientConfigGeneratorFactory(credentialProvider)
-    .getInstance(backendIdentifier)
+  const backendOutputClient = new BackendOutputClient(
+    credentialProvider,
+    backendIdentifier
+  );
+  return new ClientConfigGeneratorFactory(backendOutputClient.getOutput)
+    .getInstance()
     .generateClientConfig();
 };
-
-export type BackendIdentifier =
-  | UniqueBackendIdentifier
-  | StackIdentifier
-  | AppNameAndBranchBackendIdentifier;

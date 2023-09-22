@@ -1,4 +1,5 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
+import { ClientConfigFormat } from '@aws-amplify/client-config';
 import { SandboxDeleteCommand } from './sandbox-delete/sandbox_delete_command.js';
 import fs from 'fs';
 import { AmplifyPrompter } from '../prompter/amplify_prompts.js';
@@ -8,6 +9,7 @@ export type SandboxCommandOptions = {
   dirToWatch: string | undefined;
   exclude: string[] | undefined;
   name: string | undefined;
+  format: ClientConfigFormat | undefined;
   out: string | undefined;
   profile: string | undefined;
 };
@@ -54,6 +56,7 @@ export class SandboxCommand
       dir: args.dirToWatch,
       exclude: args.exclude,
       name: args.name,
+      format: args.format,
       clientConfigFilePath: args.out,
       profile: args.profile,
     });
@@ -85,6 +88,12 @@ export class SandboxCommand
             'An optional name to distinguish between different sandbox environments. Default is the name in your package.json',
           type: 'string',
           array: false,
+        })
+        .option('format', {
+          describe: 'Client config output format',
+          type: 'string',
+          array: false,
+          choices: Object.values(ClientConfigFormat),
         })
         .option('out', {
           describe:

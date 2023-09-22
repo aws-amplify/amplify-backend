@@ -1,5 +1,8 @@
 import { ClientConfigContributor } from './client_config_contributor.js';
-import { UnifiedBackendOutput } from '@aws-amplify/backend-output-schemas';
+import {
+  UnifiedBackendOutput,
+  storageOutputKey,
+} from '@aws-amplify/backend-output-schemas';
 import { StorageClientConfig } from '../client-config-types/storage_client_config.js';
 
 /**
@@ -10,7 +13,7 @@ export class StorageClientConfigContributor implements ClientConfigContributor {
    * Given some BackendOutput, contribute the Storage portion of the ClientConfig
    */
   contribute = ({
-    storageOutput,
+    [storageOutputKey]: storageOutput,
   }: UnifiedBackendOutput): StorageClientConfig | Record<string, never> => {
     if (storageOutput === undefined) {
       return {};

@@ -1,14 +1,23 @@
-export type TargetLanguage = 'typescript';
+import { StatementsTarget, TypesTarget } from '@aws-amplify/graphql-generator';
+export type TargetLanguage = StatementsTarget;
 
 export type DocumentGenerationParameters = {
   language: TargetLanguage;
-  outDir: string;
 };
-export type DocumentGenerationResult = {
+export type GenerationResult = {
   writeToDirectory: (directoryPath: string) => Promise<void>;
 };
 export type GraphqlDocumentGenerator = {
   generateModels: (
     params: DocumentGenerationParameters
-  ) => Promise<DocumentGenerationResult>;
+  ) => Promise<GenerationResult>;
+};
+
+export type TypesGenerationParameters = {
+  target: TypesTarget;
+};
+export type GraphqlTypesGenerator = {
+  generateTypes: (
+    params: TypesGenerationParameters
+  ) => Promise<GenerationResult>;
 };

@@ -94,13 +94,11 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       authorizationConfig: authConfig,
       outputStorageStrategy: this.outputStorageStrategy,
     };
-    const graphqlConstruct = new AmplifyGraphqlApi(
+    return new AmplifyGraphqlApi(
       scope,
       this.defaultName,
       graphqlConstructProps
     );
-
-    return graphqlConstruct;
   };
 }
 

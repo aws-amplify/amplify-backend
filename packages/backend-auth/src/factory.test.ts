@@ -3,7 +3,6 @@ import { AmplifyAuthFactory } from './factory.js';
 import {
   NestedStackResolver,
   SingletonConstructContainer,
-  StackMetadataBackendOutputStorageStrategy,
   ToggleableImportPathVerifier,
 } from '@aws-amplify/backend/test-utils';
 import { App, Stack, aws_lambda } from 'aws-cdk-lib';
@@ -19,6 +18,7 @@ import {
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import { triggerEvents } from '@aws-amplify/auth-construct-alpha';
+import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 
 describe('AmplifyAuthFactory', () => {
   let authFactory: AmplifyAuthFactory;

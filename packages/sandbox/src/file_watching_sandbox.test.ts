@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import watcher from '@parcel/watcher';
+import { ClientConfigFormat } from '@aws-amplify/client-config';
 import { FileWatchingSandbox } from './file_watching_sandbox.js';
 import assert from 'node:assert';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
@@ -9,6 +10,7 @@ import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 import fs from 'fs';
 import parseGitIgnore from 'parse-gitignore';
 
+const configFileName = 'amplifyconfiguration';
 // Watcher mocks
 const unsubscribeMockFn = mock.fn();
 const subscribeMock = mock.method(watcher, 'subscribe', async () => {
@@ -33,6 +35,20 @@ const execaDeployMock = mock.method(backendDeployer, 'deploy', () =>
 const execaDestroyMock = mock.method(backendDeployer, 'destroy', () =>
   Promise.resolve()
 );
+
+const testPath = path.join('test', 'location');
+mock.method(fs, 'lstatSync', (path: string) => {
+  if (path === testPath || path === `${process.cwd()}/${testPath}`) {
+    return { isFile: () => false, isDir: () => true };
+  }
+  return {
+    isFile: () => {
+      throw new Error(`ENOENT: no such file or directory, lstat '${path}'`);
+    },
+    isDir: () => false,
+  };
+});
+
 describe('Sandbox using local project name resolver', () => {
   // class under test
   let sandboxInstance: FileWatchingSandbox;
@@ -54,6 +70,8 @@ describe('Sandbox using local project name resolver', () => {
     await sandboxInstance.start({
       dir: 'testDir',
       exclude: ['exclude1', 'exclude2'],
+      clientConfigFilePath: path.join('test', 'location'),
+      format: ClientConfigFormat.JS,
     });
 
     // At this point one deployment should already have been done on sandbox startup
@@ -92,7 +110,12 @@ describe('Sandbox using local project name resolver', () => {
     assert.deepStrictEqual(subscribeMock.mock.calls[0].arguments[2], {
       ignore: [
         'cdk.out',
-        path.join(process.cwd(), 'amplifyconfiguration.js'),
+        path.join(
+          process.cwd(),
+          'test',
+          'location',
+          `${configFileName}.${ClientConfigFormat.JS as string}`
+        ),
         'exclude1',
         'exclude2',
       ],
@@ -186,9 +209,10 @@ describe('Sandbox using local project name resolver', () => {
       generateClientConfigMock.mock.calls[0].arguments[0],
       { backendId: 'testSandboxId', branchName: 'sandbox' }
     );
+
     assert.deepStrictEqual(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      path.join(process.cwd(), 'amplifyconfiguration.js')
+      path.join('test', 'location')
     );
   });
 
@@ -251,11 +275,8 @@ describe('Sandbox with user provided app name', () => {
       dir: 'testDir',
       exclude: ['exclude1', 'exclude2'],
       name: 'customSandboxName',
-      clientConfigFilePath: path.join(
-        'test',
-        'location',
-        'amplifyconfiguration.js'
-      ),
+      format: ClientConfigFormat.TS,
+      clientConfigFilePath: path.join('test', 'location'),
     });
     if (
       subscribeMock.mock.calls[0].arguments[1] &&
@@ -288,7 +309,12 @@ describe('Sandbox with user provided app name', () => {
     assert.deepStrictEqual(subscribeMock.mock.calls[0].arguments[2], {
       ignore: [
         'cdk.out',
-        path.join(process.cwd(), 'test', 'location', 'amplifyconfiguration.js'),
+        path.join(
+          process.cwd(),
+          'test',
+          'location',
+          `${configFileName}.${ClientConfigFormat.TS as string}`
+        ),
         'exclude1',
         'exclude2',
       ],
@@ -346,7 +372,7 @@ describe('Sandbox with user provided app name', () => {
     );
     assert.equal(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      path.resolve(process.cwd(), 'test', 'location', 'amplifyconfiguration.js')
+      path.join('test', 'location')
     );
   });
 });
@@ -373,11 +399,8 @@ describe('Sandbox with absolute output path', () => {
       dir: 'testDir',
       exclude: ['exclude1', 'exclude2'],
       name: 'customSandboxName',
-      clientConfigFilePath: path.join(
-        'test',
-        'location',
-        'amplifyconfiguration.js'
-      ),
+      format: ClientConfigFormat.JSON,
+      clientConfigFilePath: path.join('test', 'location'),
       profile: 'amplify-sandbox',
     });
     if (
@@ -419,7 +442,7 @@ describe('Sandbox with absolute output path', () => {
     );
     assert.equal(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      path.join(process.cwd(), 'test', 'location', 'amplifyconfiguration.js')
+      path.join('test', 'location')
     );
   });
 
@@ -461,7 +484,8 @@ describe('Sandbox ignoring paths in .gitignore', () => {
       dir: 'testDir',
       exclude: ['customer_exclude1', 'customer_exclude2'],
       name: 'customSandboxName',
-      clientConfigFilePath: 'amplifyconfiguration.js',
+      format: ClientConfigFormat.TS,
+      clientConfigFilePath: '',
     });
     if (
       subscribeMock.mock.calls[0].arguments[1] &&
@@ -494,7 +518,10 @@ describe('Sandbox ignoring paths in .gitignore', () => {
     assert.deepStrictEqual(subscribeMock.mock.calls[0].arguments[2], {
       ignore: [
         'cdk.out',
-        path.join(process.cwd(), 'amplifyconfiguration.js'),
+        path.join(
+          process.cwd(),
+          `${configFileName}.${ClientConfigFormat.TS as string}`
+        ),
         'patternWithLeadingSlash',
         'patternWithoutLeadingSlash',
         'someFile.js',

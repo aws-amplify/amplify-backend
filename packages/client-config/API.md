@@ -5,13 +5,7 @@
 ```ts
 
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
-
-// @public
-export type AppNameAndBranchBackendIdentifier = {
-    appName: string;
-    branchName: string;
-};
+import { BackendIdentifier } from '@aws-amplify/deployed-backend-client';
 
 // @public
 export type AuthClientConfig = {
@@ -22,6 +16,7 @@ export type AuthClientConfig = {
     aws_mandatory_sign_in?: string;
 };
 
+<<<<<<< HEAD
 // @public (undocumented)
 export enum BackendDeploymentStatus {
     // (undocumented)
@@ -66,8 +61,20 @@ export type BackendMetadata = {
     };
 };
 
+=======
+>>>>>>> 537792536debeea7dd7ae30374499d2de4189ac6
 // @public
 export type ClientConfig = Partial<AuthClientConfig & GraphqlClientConfig & StorageClientConfig>;
+
+// @public (undocumented)
+export enum ClientConfigFormat {
+    // (undocumented)
+    JS = "js",
+    // (undocumented)
+    JSON = "json",
+    // (undocumented)
+    TS = "ts"
+}
 
 // @public
 export const deleteSandbox: (sandboxId: string) => Promise<BackendMetadata>;
@@ -76,7 +83,10 @@ export const deleteSandbox: (sandboxId: string) => Promise<BackendMetadata>;
 export const generateClientConfig: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier) => Promise<ClientConfig>;
 
 // @public
-export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier, targetPath: string) => Promise<void>;
+export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier, outDir?: string, format?: ClientConfigFormat) => Promise<void>;
+
+// @public
+export const getClientConfigPath: (outDir?: string, format?: ClientConfigFormat) => Promise<string>;
 
 // @public
 export const getBackendMetadata: (uniqueBackendIdentifier: UniqueBackendIdentifier) => Promise<BackendMetadata>;
@@ -89,6 +99,7 @@ export type GraphqlClientConfig = {
     aws_appsync_apiKey?: string;
 };
 
+<<<<<<< HEAD
 // @public
 export const listSandboxes: () => Promise<BackendMetadata[]>;
 
@@ -97,6 +108,8 @@ export type StackIdentifier = {
     stackName: string;
 };
 
+=======
+>>>>>>> 537792536debeea7dd7ae30374499d2de4189ac6
 // @public
 export type StorageClientConfig = {
     aws_user_files_s3_bucket_region: string;
