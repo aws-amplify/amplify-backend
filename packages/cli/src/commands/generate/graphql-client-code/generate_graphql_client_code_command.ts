@@ -1,6 +1,6 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
-import { GraphqlClientCodeGeneratorAdapter } from './generate_graphql_client_code_generator_adapter.js';
+import { ApiCodeGenerator } from './mock_code_generator.js';
 import { isAbsolute, resolve } from 'path';
 
 export const formatChoices = ['graphql-codegen', 'introspection', 'modelgen'];
@@ -64,7 +64,7 @@ export class GenerateGraphqlClientCodeCommand
    * Creates graphql client code generation command.
    */
   constructor(
-    private readonly graphqlClientCodeGeneratorAdapter: GraphqlClientCodeGeneratorAdapter,
+    private readonly apiCodeGenerator: ApiCodeGenerator,
     private readonly backendIdentifierResolver: BackendIdentifierResolver
   ) {
     this.command = 'graphql-client-code';
@@ -115,14 +115,12 @@ export class GenerateGraphqlClientCodeCommand
     const format = args.format ?? ('graphql-codegen' as unknown as any);
     const targetParts = this.getTargetParts(format, args);
 
-    await this.graphqlClientCodeGeneratorAdapter.generateGraphqlClientCodeToFile(
-      {
-        backendIdentifier,
-        out,
-        format,
-        ...targetParts,
-      }
-    );
+    await this.apiCodeGenerator.generateAPICodeToFile({
+      backendIdentifier,
+      out,
+      format,
+      ...targetParts,
+    });
   };
 
   /**

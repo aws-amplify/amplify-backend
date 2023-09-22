@@ -8,16 +8,15 @@ import {
 } from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
 import path from 'path';
-import { GraphqlClientCodeGeneratorAdapter } from './generate_graphql_client_code_generator_adapter.js';
 import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
+import { ApiCodeGenerator } from './mock_code_generator.js';
 
 describe('generate graphql-client-code command', () => {
-  const graphqlClientCodeGeneratorAdapter =
-    new GraphqlClientCodeGeneratorAdapter(fromNodeProviderChain());
+  const apiCodeGenerator = new ApiCodeGenerator(fromNodeProviderChain());
 
-  const generateClientConfigMock = mock.method(
-    graphqlClientCodeGeneratorAdapter,
-    'generateGraphqlClientCodeToFile',
+  const codeGeneratorMock = mock.method(
+    apiCodeGenerator,
+    'generateAPICodeToFile',
     () => Promise.resolve()
   );
 
@@ -25,7 +24,7 @@ describe('generate graphql-client-code command', () => {
     resolve: () => Promise.resolve('testAppName'),
   });
   const generateGraphqlClientCodeCommand = new GenerateGraphqlClientCodeCommand(
-    graphqlClientCodeGeneratorAdapter,
+    apiCodeGenerator,
     backendIdentifierResolver
   );
   const parser = yargs().command(
@@ -34,13 +33,13 @@ describe('generate graphql-client-code command', () => {
   const commandRunner = new TestCommandRunner(parser);
 
   beforeEach(() => {
-    generateClientConfigMock.mock.resetCalls();
+    codeGeneratorMock.mock.resetCalls();
   });
 
   it('generates and writes graphql client code for stack', async () => {
     await commandRunner.runCommand('graphql-client-code --stack stack_name');
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
-    assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
+    assert.equal(codeGeneratorMock.mock.callCount(), 1);
+    assert.deepEqual(codeGeneratorMock.mock.calls[0].arguments[0], {
       backendIdentifier: {
         stackName: 'stack_name',
       },
@@ -52,8 +51,8 @@ describe('generate graphql-client-code command', () => {
 
   it('generates and writes graphql client code for branch', async () => {
     await commandRunner.runCommand('graphql-client-code --branch branch_name');
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
-    assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
+    assert.equal(codeGeneratorMock.mock.callCount(), 1);
+    assert.deepEqual(codeGeneratorMock.mock.calls[0].arguments[0], {
       backendIdentifier: {
         appName: 'testAppName',
         branchName: 'branch_name',
@@ -68,8 +67,8 @@ describe('generate graphql-client-code command', () => {
     await commandRunner.runCommand(
       'graphql-client-code --branch branch_name --appId app_id'
     );
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
-    assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
+    assert.equal(codeGeneratorMock.mock.callCount(), 1);
+    assert.deepEqual(codeGeneratorMock.mock.calls[0].arguments[0], {
       backendIdentifier: {
         backendId: 'app_id',
         branchName: 'branch_name',
@@ -84,8 +83,8 @@ describe('generate graphql-client-code command', () => {
     await commandRunner.runCommand(
       'graphql-client-code --stack stack_name --out foo/bar'
     );
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
-    assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
+    assert.equal(codeGeneratorMock.mock.callCount(), 1);
+    assert.deepEqual(codeGeneratorMock.mock.calls[0].arguments[0], {
       backendIdentifier: {
         stackName: 'stack_name',
       },
@@ -111,8 +110,8 @@ describe('generate graphql-client-code command', () => {
     await commandRunner.runCommand(
       'graphql-client-code --stack stack_name --format graphql-codegen'
     );
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
-    assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
+    assert.equal(codeGeneratorMock.mock.callCount(), 1);
+    assert.deepEqual(codeGeneratorMock.mock.calls[0].arguments[0], {
       backendIdentifier: {
         stackName: 'stack_name',
       },
@@ -126,8 +125,8 @@ describe('generate graphql-client-code command', () => {
     await commandRunner.runCommand(
       'graphql-client-code --stack stack_name --format modelgen'
     );
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
-    assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
+    assert.equal(codeGeneratorMock.mock.callCount(), 1);
+    assert.deepEqual(codeGeneratorMock.mock.calls[0].arguments[0], {
       backendIdentifier: {
         stackName: 'stack_name',
       },
@@ -141,8 +140,8 @@ describe('generate graphql-client-code command', () => {
     await commandRunner.runCommand(
       'graphql-client-code --stack stack_name --format introspection'
     );
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
-    assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
+    assert.equal(codeGeneratorMock.mock.callCount(), 1);
+    assert.deepEqual(codeGeneratorMock.mock.calls[0].arguments[0], {
       backendIdentifier: {
         stackName: 'stack_name',
       },

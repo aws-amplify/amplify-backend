@@ -1,5 +1,7 @@
 import { BackendIdentifier } from '@aws-amplify/deployed-backend-client';
 import path from 'path';
+import fs from 'fs';
+import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 
 export type GeneratedOutput = { [filename: string]: string };
 
@@ -45,32 +47,66 @@ export type GenerateAPICodeProps = GenerateOptions & {
   backendIdentifier: BackendIdentifier;
 };
 
-/**
- * Mock generateApiCode command.
- */
-export const generateAPICode = async (
-  props: GenerateAPICodeProps
-): Promise<GeneratedOutput> => {
-  switch (props.format) {
-    case 'graphql-codegen':
-      return {
-        [path.join('src', 'graphql', 'mutations.js')]: 'type Mutations {}',
-        [path.join('src', 'graphql', 'queries.js')]: 'type Queries {}',
-        [path.join('src', 'graphql', 'subscriptions.js')]:
-          'type Subscriptions {}',
-      };
-    case 'modelgen':
-      return {
-        [path.join('src', 'models', 'index.js')]: 'export me',
-        [path.join('src', 'models', 'models.js')]: 'im a models',
-      };
-    case 'introspection':
-      return {
-        'model-introspection-schema.json': JSON.stringify(
-          { version: 1, models: [], nonModels: [] },
-          null,
-          4
-        ),
-      };
-  }
+export type GenerateAPICodeToFileProps = GenerateAPICodeProps & {
+  out: string;
 };
+
+/**
+ * API Code Generator mock.
+ */
+export class ApiCodeGenerator {
+  /**
+   * Constructor
+   * @param awsCredentialProvider credential provider
+   */
+  constructor(
+    private readonly awsCredentialProvider: AwsCredentialIdentityProvider
+  ) {}
+
+  /**
+   * Mock generateApiCode command.
+   */
+  generateAPICode = async (
+    props: GenerateAPICodeProps
+  ): Promise<GeneratedOutput> => {
+    switch (props.format) {
+      case 'graphql-codegen':
+        return {
+          [path.join('src', 'graphql', 'mutations.js')]: 'type Mutations {}',
+          [path.join('src', 'graphql', 'queries.js')]: 'type Queries {}',
+          [path.join('src', 'graphql', 'subscriptions.js')]:
+            'type Subscriptions {}',
+        };
+      case 'modelgen':
+        return {
+          [path.join('src', 'models', 'index.js')]: 'export me',
+          [path.join('src', 'models', 'models.js')]: 'im a models',
+        };
+      case 'introspection':
+        return {
+          'model-introspection-schema.json': JSON.stringify(
+            { version: 1, models: [], nonModels: [] },
+            null,
+            4
+          ),
+        };
+    }
+  };
+
+  /**
+   * Generates the platform-specific graphql client code for a given backend, and write the outputs to the specified target.
+   */
+  generateAPICodeToFile = async (
+    props: GenerateAPICodeToFileProps
+  ): Promise<void> => {
+    const { out, ...rest } = props;
+
+    const generatedCode = await this.generateAPICode({ ...rest });
+
+    Object.entries(generatedCode).forEach(([filePathSuffix, fileContents]) => {
+      const filePath = path.join(out, filePathSuffix);
+      fs.mkdirSync(path.dirname(filePath), { recursive: true });
+      fs.writeFileSync(filePath, fileContents);
+    });
+  };
+}
