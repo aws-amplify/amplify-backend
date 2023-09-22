@@ -77,7 +77,15 @@ export const generateApiCode = async (
           target: props.typeTarget,
           multipleSwiftFiles: props.multipleSwiftFiles,
         });
-        return { ...documents, ...types };
+
+        return {
+          writeToDirectory: async (directoryPath: string) => {
+            await Promise.all([
+              documents.writeToDirectory(directoryPath),
+              types.writeToDirectory(directoryPath),
+            ]);
+          },
+        };
       }
 
       return documents;
