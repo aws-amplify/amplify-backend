@@ -7,7 +7,10 @@ import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
 import { SandboxIdResolver } from './sandbox_id_resolver.js';
 import { LocalAppNameResolver } from '../../local_app_name_resolver.js';
 import { CwdPackageJsonLoader } from '../../cwd_package_json_loader.js';
-import { ClientConfigFormat } from '@aws-amplify/client-config';
+import {
+  ClientConfigFormat,
+  getClientConfigPath,
+} from '@aws-amplify/client-config';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 
 export type SandboxCommandOptions = {
@@ -49,19 +52,6 @@ export class SandboxCommand
     this.describe = 'Starts sandbox, watch mode for amplify deployments';
   }
 
-  private getClientConfigWritePath = (
-    args: ArgumentsCamelCase<SandboxCommandOptions>
-  ) => {
-    if (args.clientConfigFilePath) {
-      if (args.out && path.isAbsolute(args.out)) {
-        return args.out;
-      } else if (args.out) {
-        return path.resolve(process.cwd(), args.out);
-      }
-    }
-    return path.join(process.cwd(), 'amplifyconfiguration.js');
-  };
-
   /**
    * @inheritDoc
    */
@@ -70,7 +60,6 @@ export class SandboxCommand
   ): Promise<void> => {
     this.appName = args.name;
     const sandbox = await this.sandboxFactory.getInstance();
-    const clientConfigWritePath = this.getClientConfigWritePath(args);
     const sandboxIdResolver = new SandboxIdResolver(
       new LocalAppNameResolver(new CwdPackageJsonLoader())
     ); // write config
@@ -87,6 +76,10 @@ export class SandboxCommand
       );
     });
     const watchExclusions = args.exclude ?? [];
+    const clientConfigWritePath = await getClientConfigPath(
+      args.out,
+      args.format
+    );
     watchExclusions.push(clientConfigWritePath);
     await sandbox.start({
       dir: args.dirToWatch,
