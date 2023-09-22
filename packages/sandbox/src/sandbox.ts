@@ -1,3 +1,5 @@
+import { ClientConfigFormat } from '@aws-amplify/client-config';
+
 /**
  * Interface for Sandbox.
  */
@@ -23,6 +25,7 @@ export type SandboxOptions = {
   dir?: string;
   exclude?: string[];
   name?: string;
+  format?: ClientConfigFormat;
   profile?: string;
   /**
    * Optional path where client config should be generated for sandbox deployments

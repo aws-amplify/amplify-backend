@@ -42,6 +42,7 @@ export default [
   'jsdoc',
   'lang',
   'lsof',
+  'lstat',
   'mfas',
   'mkdtemp',
   'multifactor',
