@@ -90,20 +90,7 @@ export type Context = {
   logStreamName: string;
   identity?: CognitoIdentity | undefined;
   clientContext?: ClientContext | undefined;
-
   getRemainingTimeInMillis: () => number;
-
-  // Functions for compatibility with earlier Node.js Runtime v0.10.42
-  // No longer documented, so they are deprecated, but they still work
-  // as of the 12.x runtime, so they are not removed from the types.
-
-  /** @deprecated Use handler callback or promise result */
-  done: (error?: Error, result?: any) => void;
-  /** @deprecated Use handler callback with first argument or reject a promise result */
-  fail: (error: Error | string) => void;
-  /** @deprecated Use handler callback with second argument or resolve a promise result */
-  succeed: ((messageOrObject: any) => void) &
-    ((message: string, object: any) => void);
 };
 
 export type Callback<TResult = any> = (
