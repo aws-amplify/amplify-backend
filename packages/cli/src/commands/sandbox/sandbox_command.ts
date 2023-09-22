@@ -3,14 +3,12 @@ import { SandboxDeleteCommand } from './sandbox-delete/sandbox_delete_command.js
 import fs from 'fs';
 import { AmplifyPrompter } from '../prompter/amplify_prompts.js';
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
-import { SandboxIdResolver } from './sandbox_id_resolver.js';
-import { LocalAppNameResolver } from '../../local_app_name_resolver.js';
-import { CwdPackageJsonLoader } from '../../cwd_package_json_loader.js';
 import {
   ClientConfigFormat,
   getClientConfigPath,
 } from '@aws-amplify/client-config';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
+import { BackendIdentifier } from '@aws-amplify/deployed-backend-client';
 
 export type SandboxCommandOptions = {
   dirToWatch: string | undefined;
@@ -45,7 +43,10 @@ export class SandboxCommand
   constructor(
     private readonly sandboxFactory: SandboxSingletonFactory,
     private readonly sandboxDeleteCommand: SandboxDeleteCommand,
-    private readonly clientConfigGenerator: ClientConfigGeneratorAdapter
+    private readonly clientConfigGenerator: ClientConfigGeneratorAdapter,
+    private readonly sandboxIdentifierResolver: (
+      appName?: string
+    ) => Promise<BackendIdentifier>
   ) {
     this.command = 'sandbox';
     this.describe = 'Starts sandbox, watch mode for amplify deployments';
@@ -57,16 +58,9 @@ export class SandboxCommand
   handler = async (
     args: ArgumentsCamelCase<SandboxCommandOptions>
   ): Promise<void> => {
-    this.appName = args.name;
     const sandbox = await this.sandboxFactory.getInstance();
-    const sandboxIdResolver = new SandboxIdResolver(
-      new LocalAppNameResolver(new CwdPackageJsonLoader())
-    );
-    const sandboxId = args.name ?? (await sandboxIdResolver.resolve());
-    const backendIdentifier = {
-      backendId: sandboxId,
-      branchName: 'sandbox',
-    };
+    this.appName = args.name;
+    const backendIdentifier = await this.sandboxIdentifierResolver(args.name);
     sandbox.on('onSuccessfulDeployment', () => {
       this.clientConfigGenerator.generateClientConfigToFile(
         backendIdentifier,

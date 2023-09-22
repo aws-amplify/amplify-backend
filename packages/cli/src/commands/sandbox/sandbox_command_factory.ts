@@ -24,9 +24,14 @@ export const createSandboxCommand = (): CommandModule<
   const clientConfigGeneratorAdapter = new ClientConfigGeneratorAdapter(
     credentialProvider
   );
+  const getBackendIdentifier = async (appName?: string) => {
+    const sandboxId = appName ?? (await sandboxIdResolver.resolve());
+    return { backendId: sandboxId, branchName: 'sandbox' };
+  };
   return new SandboxCommand(
     sandboxFactory,
     new SandboxDeleteCommand(sandboxFactory),
-    clientConfigGeneratorAdapter
+    clientConfigGeneratorAdapter,
+    getBackendIdentifier
   );
 };

@@ -25,6 +25,10 @@ describe('sandbox command', () => {
   let sandboxStartMock = mock.fn<typeof sandbox.start>();
   let generatorAdapter: ClientConfigGeneratorAdapter =
     {} as ClientConfigGeneratorAdapter;
+  const sandboxIdResolver = async () => ({
+    branchName: 'sandbox',
+    backendId: 'a-fake-backend',
+  });
 
   beforeEach(async () => {
     const sandboxFactory = new SandboxSingletonFactory(() =>
@@ -38,7 +42,8 @@ describe('sandbox command', () => {
     const sandboxCommand = new SandboxCommand(
       sandboxFactory,
       sandboxDeleteCommand,
-      generatorAdapter
+      generatorAdapter,
+      sandboxIdResolver
     );
     const parser = yargs().command(sandboxCommand as unknown as CommandModule);
     commandRunner = new TestCommandRunner(parser);
