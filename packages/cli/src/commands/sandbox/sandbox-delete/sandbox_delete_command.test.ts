@@ -7,14 +7,12 @@ import { SandboxDeleteCommand } from './sandbox_delete_command.js';
 import { SandboxCommand } from '../sandbox_command.js';
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
 import { ClientConfigGeneratorAdapter } from '../../../client-config/client_config_generator_adapter.js';
-import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 
 describe('sandbox delete command', () => {
   let commandRunner: TestCommandRunner;
   let sandboxDeleteMock = mock.fn();
-  const generatorAdapter = new ClientConfigGeneratorAdapter(
-    fromNodeProviderChain()
-  );
+  let generatorAdapter: ClientConfigGeneratorAdapter =
+    {} as ClientConfigGeneratorAdapter;
 
   beforeEach(async () => {
     const sandboxFactory = new SandboxSingletonFactory(() =>
