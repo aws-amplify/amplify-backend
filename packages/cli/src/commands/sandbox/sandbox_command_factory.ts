@@ -1,5 +1,4 @@
 import { CommandModule } from 'yargs';
-
 import { SandboxCommand, SandboxCommandOptions } from './sandbox_command.js';
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
 import { LocalAppNameResolver } from '../../local_app_name_resolver.js';
@@ -8,6 +7,7 @@ import { SandboxIdResolver } from './sandbox_id_resolver.js';
 import { CwdPackageJsonLoader } from '../../cwd_package_json_loader.js';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
+import { ClientConfigFormat } from '@aws-amplify/client-config';
 
 /**
  * Creates wired sandbox command.
@@ -31,7 +31,15 @@ export const createSandboxCommand = (): CommandModule<
   return new SandboxCommand(
     sandboxFactory,
     new SandboxDeleteCommand(sandboxFactory),
-    clientConfigGeneratorAdapter,
-    getBackendIdentifier
+    (appName?: string, outDir?: string, format?: ClientConfigFormat) => {
+      return async () => {
+        const id = await getBackendIdentifier(appName);
+        clientConfigGeneratorAdapter.generateClientConfigToFile(
+          id,
+          outDir,
+          format
+        );
+      };
+    }
   );
 };

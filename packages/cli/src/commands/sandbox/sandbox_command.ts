@@ -43,10 +43,11 @@ export class SandboxCommand
   constructor(
     private readonly sandboxFactory: SandboxSingletonFactory,
     private readonly sandboxDeleteCommand: SandboxDeleteCommand,
-    private readonly clientConfigGenerator: ClientConfigGeneratorAdapter,
-    private readonly sandboxIdentifierResolver: (
-      appName?: string
-    ) => Promise<BackendIdentifier>
+    private readonly createConfigGenerationCallback: (
+      appName?: string,
+      outDir?: string,
+      format?: ClientConfigFormat
+    ) => () => Promise<void>
   ) {
     this.command = 'sandbox';
     this.describe = 'Starts sandbox, watch mode for amplify deployments';
@@ -60,14 +61,12 @@ export class SandboxCommand
   ): Promise<void> => {
     const sandbox = await this.sandboxFactory.getInstance();
     this.appName = args.name;
-    const backendIdentifier = await this.sandboxIdentifierResolver(args.name);
-    sandbox.on('successfulDeployment', () => {
-      this.clientConfigGenerator.generateClientConfigToFile(
-        backendIdentifier,
-        args.out,
-        args.format
-      );
-    });
+    const generationCommand = this.createConfigGenerationCallback(
+      args.name,
+      args.out,
+      args.format
+    );
+    sandbox.on('successfulDeployment', generationCommand);
     const watchExclusions = args.exclude ?? [];
     const clientConfigWritePath = await getClientConfigPath(
       args.out,

@@ -23,12 +23,9 @@ describe('sandbox command', () => {
   let commandRunner: TestCommandRunner;
   let sandbox: Sandbox;
   let sandboxStartMock = mock.fn<typeof sandbox.start>();
-  let generatorAdapter: ClientConfigGeneratorAdapter =
-    {} as ClientConfigGeneratorAdapter;
-  const sandboxIdResolver = async () => ({
-    branchName: 'sandbox',
-    backendId: 'a-fake-backend',
-  });
+  let mockGenerate =
+    mock.fn<ClientConfigGeneratorAdapter['generateClientConfigToFile']>();
+  const generationMock = mock.fn<() => Promise<void>>();
 
   beforeEach(async () => {
     const sandboxFactory = new SandboxSingletonFactory(() =>
@@ -42,12 +39,19 @@ describe('sandbox command', () => {
     const sandboxCommand = new SandboxCommand(
       sandboxFactory,
       sandboxDeleteCommand,
-      generatorAdapter,
-      sandboxIdResolver
+      () => generationMock
     );
     const parser = yargs().command(sandboxCommand as unknown as CommandModule);
     commandRunner = new TestCommandRunner(parser);
     sandboxStartMock.mock.resetCalls();
+    mockGenerate.mock.resetCalls();
+  });
+
+  it('registers a callback on the "successfulDeployment" event', async () => {
+    const mockOn = mock.method(sandbox, 'on');
+    await commandRunner.runCommand('sandbox');
+    assert.equal(mockOn.mock.calls[0].arguments[0], 'successfulDeployment');
+    assert.equal(mockOn.mock.calls[0].arguments[1], generationMock);
   });
 
   it('starts sandbox without any additional flags', async () => {
