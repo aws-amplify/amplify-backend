@@ -12,6 +12,7 @@
       "require": "./lib/index.js"
     }
   },
+  "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
     "update:api": "api-extractor run --local"
