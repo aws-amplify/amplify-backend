@@ -17,6 +17,9 @@
   "scripts": {
     "update:api": "api-extractor run --local"
   },
+  "dependencies": {
+    "@aws-amplify/backend-output-schemas": "^0.2.0-alpha.2"
+  },
   "peerDependencies": {
     "aws-cdk-lib": "^2.80.0"
   }
