@@ -4,27 +4,109 @@
 
 ```ts
 
+import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
+import { BackendIdentifier } from '@aws-amplify/deployed-backend-client';
+import { ModelsTarget } from '@aws-amplify/graphql-generator';
+import { StatementsTarget } from '@aws-amplify/graphql-generator';
+import { TypesTarget } from '@aws-amplify/graphql-generator';
+
 // @public
-export const createGraphqlDocumentGenerator: ({ apiId, }: GraphqlDocumentGeneratorFactoryParams) => GraphqlDocumentGenerator;
+export const createGraphqlDocumentGenerator: ({ backendIdentifier, credentialProvider, }: GraphqlDocumentGeneratorFactoryParams) => GraphqlDocumentGenerator;
 
 // @public (undocumented)
 export type DocumentGenerationParameters = {
     language: TargetLanguage;
-    outDir: string;
+    maxDepth?: number;
+    typenameIntrospection?: boolean;
+};
+
+// @public
+export const generateApiCode: (props: GenerateApiCodeProps) => Promise<GenerationResult>;
+
+// @public (undocumented)
+export type GenerateApiCodeProps = GenerateOptions & BackendIdentifier & {
+    credentialProvider: AwsCredentialIdentityProvider;
+};
+
+// @public (undocumented)
+export type GenerateGraphqlCodegenOptions = {
+    format: 'graphql-codegen';
+    statementTarget: 'javascript' | 'graphql' | 'flow' | 'typescript' | 'angular';
+    maxDepth?: number;
+    typeNameIntrospection?: boolean;
+    typeTarget?: 'json' | 'swift' | 'typescript' | 'flow' | 'scala' | 'flow-modern' | 'angular';
+    multipleSwiftFiles?: boolean;
+};
+
+// @public (undocumented)
+export type GenerateIntrospectionOptions = {
+    format: 'introspection';
+};
+
+// @public (undocumented)
+export type GenerateModelsOptions = {
+    format: 'modelgen';
+    modelTarget: 'java' | 'swift' | 'javascript' | 'typescript' | 'dart';
+    generateIndexRules?: boolean;
+    emitAuthProvider?: boolean;
+    useExperimentalPipelinedTransformer?: boolean;
+    transformerVersion?: boolean;
+    respectPrimaryKeyAttributesOnConnectionField?: boolean;
+    generateModelsForLazyLoadAndCustomSelectionSet?: boolean;
+    addTimestampFields?: boolean;
+    handleListNullabilityTransparently?: boolean;
+};
+
+// @public (undocumented)
+export type GenerateOptions = GenerateGraphqlCodegenOptions | GenerateModelsOptions | GenerateIntrospectionOptions;
+
+// @public (undocumented)
+export type GenerationResult = {
+    writeToDirectory: (directoryPath: string) => Promise<void>;
 };
 
 // @public (undocumented)
 export type GraphqlDocumentGenerator = {
-    generateModels: (params: DocumentGenerationParameters) => Promise<void>;
+    generateModels: (params: DocumentGenerationParameters) => Promise<GenerationResult>;
 };
 
 // @public (undocumented)
 export type GraphqlDocumentGeneratorFactoryParams = {
-    apiId: string;
+    backendIdentifier: BackendIdentifier;
+    credentialProvider: AwsCredentialIdentityProvider;
 };
 
 // @public (undocumented)
-export type TargetLanguage = 'typescript';
+export type GraphqlModelsGenerator = {
+    generateModels: (params: ModelsGenerationParameters) => Promise<GenerationResult>;
+};
+
+// @public (undocumented)
+export type GraphqlTypesGenerator = {
+    generateTypes: (params: TypesGenerationParameters) => Promise<GenerationResult>;
+};
+
+// @public (undocumented)
+export type ModelsGenerationParameters = {
+    target: ModelsTarget;
+    generateIndexRules?: boolean;
+    emitAuthProvider?: boolean;
+    useExperimentalPipelinedTransformer?: boolean;
+    transformerVersion?: boolean;
+    respectPrimaryKeyAttributesOnConnectionField?: boolean;
+    generateModelsForLazyLoadAndCustomSelectionSet?: boolean;
+    addTimestampFields?: boolean;
+    handleListNullabilityTransparently?: boolean;
+};
+
+// @public (undocumented)
+export type TargetLanguage = StatementsTarget;
+
+// @public (undocumented)
+export type TypesGenerationParameters = {
+    target: TypesTarget;
+    multipleSwiftFiles?: boolean;
+};
 
 // (No @packageDocumentation comment for this package)
 

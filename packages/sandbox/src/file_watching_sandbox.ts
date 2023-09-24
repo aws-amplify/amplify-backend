@@ -1,5 +1,7 @@
 import debounce from 'debounce-promise';
 import parcelWatcher, { subscribe } from '@parcel/watcher';
+import { ClientConfigFormat } from '@aws-amplify/client-config';
+import { getClientConfigPath } from '@aws-amplify/client-config/paths';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
 import { Sandbox, SandboxDeleteOptions, SandboxOptions } from './sandbox.js';
 import { ClientConfigGeneratorAdapter } from './config/client_config_generator_adapter.js';
@@ -33,22 +35,12 @@ export class FileWatchingSandbox implements Sandbox {
     if (profile) {
       process.env.AWS_PROFILE = profile;
     }
-    const sandboxId = options.name ?? this.sandboxId;
-    let clientConfigWritePath = path.join(
-      process.cwd(),
-      'amplifyconfiguration.js'
-    );
-    if (options.clientConfigFilePath) {
-      if (path.isAbsolute(options.clientConfigFilePath)) {
-        clientConfigWritePath = options.clientConfigFilePath;
-      } else {
-        clientConfigWritePath = path.resolve(
-          process.cwd(),
-          options.clientConfigFilePath
-        );
-      }
-    }
 
+    const sandboxId = options.name ?? this.sandboxId;
+    const clientConfigWritePath = await getClientConfigPath(
+      options.clientConfigFilePath,
+      options.format
+    );
     const ignoredPaths = this.getGitIgnoredPaths();
     this.outputFilesExcludedFromWatch =
       this.outputFilesExcludedFromWatch.concat(
@@ -78,7 +70,11 @@ export class FileWatchingSandbox implements Sandbox {
         backendId: sandboxId,
         branchName: 'sandbox',
       });
-      await this.writeUpdatedClientConfig(sandboxId, clientConfigWritePath);
+      await this.writeUpdatedClientConfig(
+        sandboxId,
+        options.clientConfigFilePath,
+        options.format
+      );
 
       // If latch is still 'deploying' after the 'await', that's fine,
       // but if it's 'queued', that means we need to deploy again
@@ -93,7 +89,11 @@ export class FileWatchingSandbox implements Sandbox {
           backendId: sandboxId,
           branchName: 'sandbox',
         });
-        await this.writeUpdatedClientConfig(sandboxId, clientConfigWritePath);
+        await this.writeUpdatedClientConfig(
+          sandboxId,
+          options.clientConfigFilePath,
+          options.format
+        );
       }
       latch = 'open';
       this.emitWatching();
@@ -158,18 +158,21 @@ export class FileWatchingSandbox implements Sandbox {
   /**
    * Runs post every deployment. Generates the client config and writes to a local file
    * @param sandboxId for this sandbox execution. Either package.json#name + whoami or provided by user during `amplify sandbox`
-   * @param outputPath optional location provided by customer to write client config to
+   * @param outDir optional location provided by customer to write client config to
+   * @param format optional format provided by customer to write client config in
    */
   private writeUpdatedClientConfig = async (
     sandboxId: string,
-    outputPath: string
+    outDir?: string,
+    format?: ClientConfigFormat
   ) => {
     await this.clientConfigGenerator.generateClientConfigToFile(
       {
         backendId: sandboxId,
         branchName: 'sandbox',
       },
-      outputPath
+      outDir,
+      format
     );
   };
 

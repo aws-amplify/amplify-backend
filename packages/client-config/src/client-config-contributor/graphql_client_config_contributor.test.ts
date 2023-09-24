@@ -1,13 +1,17 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { GraphqlClientConfigContributor } from './graphql_client_config_contributor.js';
+import {
+  authOutputKey,
+  graphqlOutputKey,
+} from '@aws-amplify/backend-output-schemas';
 
 describe('GraphqlClientConfigContributor', () => {
   it('returns an empty object if output has no graphql output', () => {
     const contributor = new GraphqlClientConfigContributor();
     assert.deepStrictEqual(
       contributor.contribute({
-        authOutput: {
+        [authOutputKey]: {
           version: '1',
           payload: {
             identityPoolId: 'testIdentityPoolId',
@@ -25,7 +29,7 @@ describe('GraphqlClientConfigContributor', () => {
     const contributor = new GraphqlClientConfigContributor();
     assert.deepStrictEqual(
       contributor.contribute({
-        graphqlOutput: {
+        [graphqlOutputKey]: {
           version: '1',
           payload: {
             awsAppsyncApiEndpoint: 'testApiEndpoint',
@@ -33,6 +37,7 @@ describe('GraphqlClientConfigContributor', () => {
             awsAppsyncAuthenticationType: 'API_KEY',
             awsAppsyncApiKey: 'testApiKey',
             awsAppsyncApiId: 'testApiId',
+            amplifyApiModelSchemaS3Uri: 'testApiSchemaUri',
           },
         },
       }),
