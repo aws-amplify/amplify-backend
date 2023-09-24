@@ -24,9 +24,9 @@ export class AmplifyPrompter {
   };
 
   /**
-   * A non-empty secret prompt.
+   * A secret prompt.
    */
-  static nonEmptySecretValue = async (
+  static secretValue = async (
     promptMessage = 'Enter secret value'
   ): Promise<string> => {
     return await password({

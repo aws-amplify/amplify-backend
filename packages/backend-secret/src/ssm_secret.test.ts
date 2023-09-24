@@ -33,7 +33,7 @@ const testSecretIdWithVersion: SecretIdentifier = {
 };
 
 const testSecret: Secret = {
-  secretIdentifier: testSecretIdWithVersion,
+  ...testSecretIdWithVersion,
   value: testSecretValue,
 };
 

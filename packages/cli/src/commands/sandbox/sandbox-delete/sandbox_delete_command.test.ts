@@ -6,11 +6,7 @@ import assert from 'node:assert';
 import { SandboxDeleteCommand } from './sandbox_delete_command.js';
 import { SandboxCommand } from '../sandbox_command.js';
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
-import { SandboxSecretCommand } from '../sandbox-secret/sandbox_secret_command.js';
-import { SandboxIdResolver } from '../sandbox_id_resolver.js';
-import { LocalAppNameResolver } from '../../../local_app_name_resolver.js';
-import { CwdPackageJsonLoader } from '../../../cwd_package_json_loader.js';
-import { getSecretClient } from '@aws-amplify/backend-secret';
+import { createSandboxSecretCommand } from '../sandbox-secret/sandbox_secret_command_factory.js';
 
 describe('sandbox delete command', () => {
   let commandRunner: TestCommandRunner;
@@ -26,17 +22,10 @@ describe('sandbox delete command', () => {
     ) as never; // couldn't figure out a good way to type the sandboxDeleteMock so that TS was happy here
 
     const sandboxDeleteCommand = new SandboxDeleteCommand(sandboxFactory);
-    const sandboxIdResolver = new SandboxIdResolver(
-      new LocalAppNameResolver(new CwdPackageJsonLoader())
-    );
-    const sandboxSecretCommand = new SandboxSecretCommand(
-      sandboxIdResolver,
-      getSecretClient()
-    );
     const sandboxCommand = new SandboxCommand(
       sandboxFactory,
       sandboxDeleteCommand,
-      sandboxSecretCommand
+      createSandboxSecretCommand()
     );
     const parser = yargs().command(sandboxCommand as unknown as CommandModule);
     commandRunner = new TestCommandRunner(parser);

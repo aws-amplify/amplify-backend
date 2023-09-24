@@ -5,9 +5,8 @@ import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
 import { SandboxDeleteCommand } from './sandbox-delete/sandbox_delete_command.js';
 import { SandboxIdResolver } from './sandbox_id_resolver.js';
 import { CwdPackageJsonLoader } from '../../cwd_package_json_loader.js';
-import { SandboxSecretCommand } from './sandbox-secret/sandbox_secret_command.js';
-import { getSecretClient } from '@aws-amplify/backend-secret';
 import { LocalAppNameResolver } from '../../backend-identifier/local_app_name_resolver.js';
+import { createSandboxSecretCommand } from './sandbox-secret/sandbox_secret_command_factory.js';
 
 /**
  * Creates wired sandbox command.
@@ -24,6 +23,6 @@ export const createSandboxCommand = (): CommandModule<
   return new SandboxCommand(
     sandboxFactory,
     new SandboxDeleteCommand(sandboxFactory),
-    new SandboxSecretCommand(sandboxIdResolver, getSecretClient())
+    createSandboxSecretCommand()
   );
 };

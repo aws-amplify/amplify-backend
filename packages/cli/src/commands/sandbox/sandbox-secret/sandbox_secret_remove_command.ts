@@ -54,17 +54,11 @@ export class SandboxSecretRemoveCommand
    * @inheritDoc
    */
   builder = (yargs: Argv): Argv<SecretRemoveCommandOptions> => {
-    return yargs
-      .positional('secretName', {
-        describe: 'Name of the secret to remove',
-        type: 'string',
-      })
-      .check((argv) => {
-        if (!argv.secretName) {
-          throw new Error(`secret 'name' is undefined`);
-        }
-        return true;
-      });
+    return yargs.positional('secretName', {
+      describe: 'Name of the secret to remove',
+      type: 'string',
+      demandOption: true,
+    });
   };
 }
 

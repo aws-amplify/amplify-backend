@@ -3,8 +3,8 @@
   "compilerOptions": { "rootDir": "src", "outDir": "lib" },
   "references": [
     { "path": "../client-config" },
-    { "path": "../backend-secret" }
+    { "path": "../backend-secret" },
     { "path": "../deployed-backend-client" },
-    { "path": "../sandbox" },
+    { "path": "../sandbox" }
   ]
 }

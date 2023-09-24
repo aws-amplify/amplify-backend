@@ -3,6 +3,7 @@ import { SecretClient } from '@aws-amplify/backend-secret';
 import { SandboxIdResolver } from '../sandbox_id_resolver.js';
 import { SANDBOX_BRANCH } from './constants.js';
 import { AmplifyPrompter } from '../../prompter/amplify_prompts.js';
+import { Printer } from '../../printer/printer.js';
 
 /**
  * Command to set sandbox secret.
@@ -37,15 +38,15 @@ export class SandboxSecretSetCommand
   handler = async (
     args: ArgumentsCamelCase<SecretSetCommandOptions>
   ): Promise<void> => {
-    const secretVal = await AmplifyPrompter.nonEmptySecretValue();
+    const secretVal = await AmplifyPrompter.secretValue();
     const backendId = await this.sandboxIdResolver.resolve();
     if (args.secretName) {
-      const resp = await this.secretClient.setSecret(
+      const secretId = await this.secretClient.setSecret(
         { backendId, branchName: SANDBOX_BRANCH },
         args.secretName,
         secretVal
       );
-      console.log(resp);
+      Printer.printRecord(secretId);
     } else {
       throw new Error('empty secret name');
     }
@@ -55,17 +56,11 @@ export class SandboxSecretSetCommand
    * @inheritDoc
    */
   builder = (yargs: Argv): Argv<SecretSetCommandOptions> => {
-    return yargs
-      .positional('secretName', {
-        describe: 'Name of the secret to set',
-        type: 'string',
-      })
-      .check((argv) => {
-        if (!argv.secretName) {
-          throw new Error(`secret name is undefined.`);
-        }
-        return true;
-      });
+    return yargs.positional('secretName', {
+      describe: 'Name of the secret to set',
+      type: 'string',
+      demandOption: true,
+    });
   };
 }
 

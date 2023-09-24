@@ -52,7 +52,7 @@ describe('sandbox secret set command', () => {
   });
 
   it('sets a secret', async (contextual) => {
-    contextual.mock.method(AmplifyPrompter, 'nonEmptySecretValue', () =>
+    contextual.mock.method(AmplifyPrompter, 'secretValue', () =>
       Promise.resolve(testSecretValue)
     );
 

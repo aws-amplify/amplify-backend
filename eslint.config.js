@@ -76,6 +76,7 @@ export default [
   // Some packages are allowed to use console.log
   {
     files: [
+      'packages/cli/src/commands/printer/**',
       'packages/sandbox/**/*',
       'scripts/**',
       'packages/backend/src/engine/backend-secret/lambda/**',

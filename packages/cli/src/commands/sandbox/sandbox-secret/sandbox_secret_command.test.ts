@@ -1,5 +1,5 @@
 import { beforeEach, describe, it } from 'node:test';
-import yargs from 'yargs';
+import yargs, { CommandModule } from 'yargs';
 import {
   TestCommandError,
   TestCommandRunner,
@@ -8,10 +8,11 @@ import assert from 'node:assert';
 import { SandboxIdResolver } from '../sandbox_id_resolver.js';
 import { getSecretClient } from '@aws-amplify/backend-secret';
 import { SandboxSecretCommand } from './sandbox_secret_command.js';
+import { SandboxSecretGetCommand } from './sandbox_secret_get_command.js';
 
 const testBackendId = 'testBackendId';
 
-describe('sandbox secret list command', () => {
+describe('sandbox secret command', () => {
   let commandRunner: TestCommandRunner;
 
   beforeEach(async () => {
@@ -20,9 +21,12 @@ describe('sandbox secret list command', () => {
       resolve: () => Promise.resolve(testBackendId),
     });
 
+    // Creates only a 'get' subcommand.
     const sandboxSecretCmd = new SandboxSecretCommand(
-      sandboxIdResolver,
-      secretClient
+      new SandboxSecretGetCommand(
+        sandboxIdResolver,
+        secretClient
+      ) as unknown as CommandModule
     );
 
     const parser = yargs().command(sandboxSecretCmd);
@@ -32,8 +36,9 @@ describe('sandbox secret list command', () => {
   it('show --help', async () => {
     const output = await commandRunner.runCommand('secret --help');
     assert.match(output, /Manage sandbox secret/);
-    ['secret set', 'secret remove', 'secret get ', 'secret list'].forEach(
-      (cmd) => assert.match(output, new RegExp(cmd))
+    ['secret get'].forEach((cmd) => assert.match(output, new RegExp(cmd)));
+    ['secret set', 'secret list', 'secret remove'].forEach((cmd) =>
+      assert.doesNotMatch(output, new RegExp(cmd))
     );
   });
 

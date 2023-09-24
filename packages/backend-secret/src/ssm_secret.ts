@@ -101,10 +101,8 @@ export class SSMSecretClient implements SecretClient {
       });
       if (resp.Parameter?.Name && resp.Parameter?.Value) {
         return {
-          secretIdentifier: {
-            name: secretIdentifier.name,
-            version: resp.Parameter?.Version,
-          },
+          name: secretIdentifier.name,
+          version: resp.Parameter?.Version,
           value: resp.Parameter?.Value,
         };
       }

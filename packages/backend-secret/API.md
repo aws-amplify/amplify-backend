@@ -14,8 +14,7 @@ import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 export const getSecretClient: (credentialProvider?: AwsCredentialIdentityProvider) => SecretClient;
 
 // @public
-export type Secret = {
-    secretIdentifier: SecretIdentifier;
+export type Secret = SecretIdentifier & {
     value: string;
 };
 

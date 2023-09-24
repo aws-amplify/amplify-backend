@@ -2,6 +2,7 @@ import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { SecretClient } from '@aws-amplify/backend-secret';
 import { SandboxIdResolver } from '../sandbox_id_resolver.js';
 import { SANDBOX_BRANCH } from './constants.js';
+import { Printer } from '../../printer/printer.js';
 
 /**
  * Command to get sandbox secret.
@@ -38,11 +39,13 @@ export class SandboxSecretGetCommand
   ): Promise<void> => {
     const backendId = await this.sandboxIdResolver.resolve();
     if (args.secretName) {
-      const resp = await this.secretClient.getSecret(
+      const secret = await this.secretClient.getSecret(
         { backendId, branchName: SANDBOX_BRANCH },
         { name: args.secretName }
       );
-      console.log(resp);
+      if (secret) {
+        Printer.printRecord(secret);
+      }
     } else {
       throw new Error('empty secret name');
     }
@@ -56,12 +59,7 @@ export class SandboxSecretGetCommand
       .positional('secretName', {
         describe: 'Name of the secret to get',
         type: 'string',
-      })
-      .check((argv) => {
-        if (!argv.secretName) {
-          throw new Error(`secret name is undefined`);
-        }
-        return true;
+        demandOption: true,
       })
       .help();
   };
