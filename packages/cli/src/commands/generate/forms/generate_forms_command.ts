@@ -1,12 +1,11 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
-import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import {
   BackendIdentifier,
   BackendOutputClient,
 } from '@aws-amplify/deployed-backend-client';
 import { graphqlOutputKey } from '@aws-amplify/backend-output-schemas';
 import { FormGenerationHandler } from './form_generation_handler.js';
-import { AppNameResolver } from '../../../backend-identifier/local_app_name_resolver.js';
+import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
 
 export type GenerateFormsCommandOptions = {
   stack: string | undefined;
@@ -40,8 +39,11 @@ export class GenerateFormsCommand
    * Creates client config generation command.
    */
   constructor(
-    private readonly appNameResolver: AppNameResolver,
-    private readonly credentialProvider: AwsCredentialIdentityProvider
+    private readonly backendIdentifierResolver: BackendIdentifierResolver,
+    private readonly backendOutputClientBuilder: (
+      backendIdentifier: BackendIdentifier
+    ) => BackendOutputClient,
+    private readonly formGenerationHandler: FormGenerationHandler
   ) {
     this.command = 'forms';
     this.describe = 'Generates UI forms';
@@ -72,70 +74,49 @@ export class GenerateFormsCommand
   handler = async (
     args: ArgumentsCamelCase<GenerateFormsCommandOptions>
   ): Promise<void> => {
-    const backendIdentifier = await this.getBackendIdentifier(args);
-
-    const backendOutputClient = new BackendOutputClient(
-      this.credentialProvider,
-      backendIdentifier
+    const backendIdentifier = await this.backendIdentifierResolver.resolve(
+      args
     );
+
+    const backendOutputClient =
+      this.backendOutputClientBuilder(backendIdentifier);
+
     const output = await backendOutputClient.getOutput();
 
     const appsyncGraphqlEndpoint =
       output[graphqlOutputKey]?.payload.awsAppsyncApiEndpoint;
 
     if (!appsyncGraphqlEndpoint) {
-      throw new TypeError('Appsync endpoint is null');
+      throw new Error('Appsync endpoint is null');
     }
 
     const apiId = output[graphqlOutputKey]?.payload.awsAppsyncApiId;
     if (!apiId) {
-      throw new TypeError('AppSync apiId must be defined');
+      throw new Error('AppSync apiId must be defined');
     }
 
     const apiUrl = output[graphqlOutputKey]?.payload.amplifyApiModelSchemaS3Uri;
 
     if (!apiUrl) {
-      throw new TypeError('AppSync api schema url must be defined');
+      throw new Error('AppSync api schema url must be defined');
     }
 
     if (!args.uiOut) {
-      throw new TypeError('uiOut must be defined');
+      throw new Error('uiOut must be defined');
     }
 
     if (!args.modelsOut) {
-      throw new TypeError('modelsOut must be defined');
+      throw new Error('modelsOut must be defined');
     }
 
     const { appId } = this.getAppDescription(backendIdentifier);
-    const formGenerationHandler = new FormGenerationHandler({
-      appId,
-      modelOutPath: args.modelsOut,
-      formsOutPath: args.uiOut,
-      apiUrl,
+    await this.formGenerationHandler.generate({
+      modelsOut: args.modelsOut,
       backendIdentifier,
-      credentialProvider: this.credentialProvider,
+      uiOut: args.uiOut,
+      appId,
+      apiUrl,
     });
-    await formGenerationHandler.generate();
-  };
-
-  /**
-   * Translates args to BackendIdentifier.
-   * Throws if translation can't be made (this should never happen if command validation works correctly).
-   */
-  private getBackendIdentifier = async (
-    args: ArgumentsCamelCase<GenerateFormsCommandOptions>
-  ): Promise<BackendIdentifier> => {
-    if (args.stack) {
-      return { stackName: args.stack };
-    } else if (args.appId && args.branch) {
-      return { backendId: args.appId, branchName: args.branch };
-    } else if (args.branch) {
-      return {
-        appName: await this.appNameResolver.resolve(),
-        branchName: args.branchName as string,
-      };
-    }
-    throw this.missingArgsError;
   };
 
   /**
