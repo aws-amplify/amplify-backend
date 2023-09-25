@@ -39,11 +39,8 @@ const getModelSchema = async (
   backendIdentifier: BackendIdentifier,
   credentialProvider: AwsCredentialIdentityProvider
 ): Promise<string> => {
-  const backendOutputClient = new BackendOutputClient(
-    credentialProvider,
-    backendIdentifier
-  );
-  const output = await backendOutputClient.getOutput();
+  const backendOutputClient = new BackendOutputClient(credentialProvider);
+  const output = await backendOutputClient.getOutput(backendIdentifier);
   const modelSchemaS3Uri =
     output[graphqlOutputKey]?.payload.amplifyApiModelSchemaS3Uri;
   if (!modelSchemaS3Uri) {

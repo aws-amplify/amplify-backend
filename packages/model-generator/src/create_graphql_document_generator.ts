@@ -30,11 +30,8 @@ export const createGraphqlDocumentGenerator = ({
   }
 
   const fetchSchema = async () => {
-    const backendOutputClient = new BackendOutputClient(
-      credentialProvider,
-      backendIdentifier
-    );
-    const output = await backendOutputClient.getOutput();
+    const backendOutputClient = new BackendOutputClient(credentialProvider);
+    const output = await backendOutputClient.getOutput(backendIdentifier);
     const apiId = output[graphqlOutputKey]?.payload.awsAppsyncApiId;
     if (!apiId) {
       throw new Error(`Unable to determine AppSync API ID.`);
