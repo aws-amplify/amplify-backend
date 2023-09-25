@@ -1,7 +1,7 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
-import { ApiCodeGenerator } from './mock_code_generator.js';
 import { isAbsolute, resolve } from 'path';
+import { GenerateApiCodeAdapter } from './generate_api_code_adapter.js';
 
 export const formatChoices = ['graphql-codegen', 'introspection', 'modelgen'];
 export const modelgenTargetChoices = [
@@ -73,7 +73,7 @@ export class GenerateGraphqlClientCodeCommand
    * Creates graphql client code generation command.
    */
   constructor(
-    private readonly apiCodeGenerator: ApiCodeGenerator,
+    private readonly generateApiCodeAdapter: GenerateApiCodeAdapter,
     private readonly backendIdentifierResolver: BackendIdentifierResolver
   ) {
     this.command = 'graphql-client-code';
@@ -88,42 +88,42 @@ export class GenerateGraphqlClientCodeCommand
       case 'graphql-codegen':
         return {
           statementTarget: args.statementTarget ?? 'javascript',
-          ...(args.typeTarget ? { typeTarget: args.typeTarget } : {}),
-          ...(args.statementMaxDepth
+          ...('typeTarget' in args ? { typeTarget: args.typeTarget } : {}),
+          ...('statementMaxDepth' in args
             ? { maxDepth: args.statementMaxDepth }
             : {}),
-          ...(args.statementTypenameIntrospection
+          ...('statementTypenameIntrospection' in args
             ? { typenameIntrospection: args.statementTypenameIntrospection }
             : {}),
-          ...(args.typeMultipleSwiftFiles
+          ...('typeMultipleSwiftFiles' in args
             ? { multipleSwiftFiles: args.typeMultipleSwiftFiles }
             : {}),
         };
       case 'modelgen':
         return {
           modelTarget: args.modelTarget ?? 'javascript',
-          ...(args.modelGenerateIndexRules
+          ...('modelGenerateIndexRules' in args
             ? { generateIndexRules: args.modelGenerateIndexRules }
             : {}),
-          ...(args.modelEmitAuthProvider
+          ...('modelEmitAuthProvider' in args
             ? { emitAuthProvider: args.modelEmitAuthProvider }
             : {}),
-          ...(args.modelRespectPrimaryKeyAttributesOnConnectionField
+          ...('modelRespectPrimaryKeyAttributesOnConnectionField' in args
             ? {
                 respectPrimaryKeyAttributesOnConnectionField:
                   args.modelRespectPrimaryKeyAttributesOnConnectionField,
               }
             : {}),
-          ...(args.modelGenerateModelsForLazyLoadAndCustomSelectionSet
+          ...('modelGenerateModelsForLazyLoadAndCustomSelectionSet' in args
             ? {
                 generateModelsForLazyLoadAndCustomSelectionSet:
                   args.modelGenerateModelsForLazyLoadAndCustomSelectionSet,
               }
             : {}),
-          ...(args.modelAddTimestampFields
+          ...('modelAddTimestampFields' in args
             ? { addTimestampFields: args.modelAddTimestampFields }
             : {}),
-          ...(args.modelHandleListNullabilityTransparently
+          ...('modelHandleListNullabilityTransparently' in args
             ? {
                 handleListNullabilityTransparently:
                   args.modelHandleListNullabilityTransparently,
@@ -160,12 +160,13 @@ export class GenerateGraphqlClientCodeCommand
     const format = args.format ?? ('graphql-codegen' as unknown as any);
     const formatParams = this.getFormatParams(format, args);
 
-    await this.apiCodeGenerator.generateAPICodeToFile({
-      backendIdentifier,
-      out,
+    const result = await this.generateApiCodeAdapter.invokeGenerateApiCode({
+      ...backendIdentifier,
       format,
       ...formatParams,
     });
+
+    await result.writeToDirectory(out);
   };
 
   /**
@@ -230,31 +231,40 @@ export class GenerateGraphqlClientCodeCommand
         choices: typesTargetChoice,
       })
       .option('modelGenerateIndexRules', {
+        description: 'Adds key/index details to iOS models',
         type: 'boolean',
         array: false,
         hidden: true,
       })
       .option('modelEmitAuthProvider', {
+        description: 'Adds auth provider details to iOS models',
         type: 'boolean',
         array: false,
         hidden: true,
       })
       .option('modelRespectPrimaryKeyAttributesOnConnectionField', {
+        description:
+          'If enabled, datastore queries will respect the primary + sort key fields, rather than a defaut id field',
         type: 'boolean',
         array: false,
         hidden: true,
       })
       .option('modelGenerateModelsForLazyLoadAndCustomSelectionSet', {
+        description:
+          'Generates lazy model type definitions, required or amplify-js v5+',
         type: 'boolean',
         array: false,
         hidden: true,
       })
       .option('modelAddTimestampFields', {
+        description: 'Add read-only timestamp fields in modelgen.',
         type: 'boolean',
         array: false,
         hidden: true,
       })
       .option('modelHandleListNullabilityTransparently', {
+        description:
+          'Configure the nullability of the List and List components in Datastore Models generation',
         type: 'boolean',
         array: false,
         hidden: true,
@@ -267,11 +277,15 @@ export class GenerateGraphqlClientCodeCommand
         hidden: true,
       })
       .option('statementTypenameIntrospection', {
+        description:
+          'Determines whether to include default __typename for all generated statements',
         type: 'boolean',
         array: false,
         hidden: true,
       })
       .option('typeMultipleSwiftFiles', {
+        description:
+          'Determines whether or not to generate a single API.swift, or multiple per-model swift files.',
         type: 'boolean',
         array: false,
         hidden: true,

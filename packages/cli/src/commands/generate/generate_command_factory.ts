@@ -7,7 +7,7 @@ import { CwdPackageJsonLoader } from '../../cwd_package_json_loader.js';
 import { GenerateGraphqlClientCodeCommand } from './graphql-client-code/generate_graphql_client_code_command.js';
 import { LocalAppNameResolver } from '../../backend-identifier/local_app_name_resolver.js';
 import { BackendIdentifierResolver } from '../../backend-identifier/backend_identifier_resolver.js';
-import { ApiCodeGenerator } from './graphql-client-code/mock_code_generator.js';
+import { GenerateApiCodeAdapter } from './graphql-client-code/generate_api_code_adapter.js';
 
 /**
  * Creates wired generate command.
@@ -30,10 +30,10 @@ export const createGenerateCommand = (): CommandModule => {
     backendIdentifierResolver
   );
 
-  const apiCodeGenerator = new ApiCodeGenerator(credentialProvider);
+  const generateApiCodeAdapter = new GenerateApiCodeAdapter(credentialProvider);
 
   const generateGraphqlClientCodeCommand = new GenerateGraphqlClientCodeCommand(
-    apiCodeGenerator,
+    generateApiCodeAdapter,
     backendIdentifierResolver
   );
 

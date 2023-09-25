@@ -9,22 +9,28 @@ import {
 import assert from 'node:assert';
 import path from 'path';
 import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
-import { ApiCodeGenerator } from './mock_code_generator.js';
+import { GenerateApiCodeAdapter } from './generate_api_code_adapter.js';
 
 describe('generate graphql-client-code command', () => {
-  const apiCodeGenerator = new ApiCodeGenerator(fromNodeProviderChain());
+  const generateApiCodeAdapter = new GenerateApiCodeAdapter(
+    fromNodeProviderChain()
+  );
 
-  const codeGeneratorMock = mock.method(
-    apiCodeGenerator,
-    'generateAPICodeToFile',
-    () => Promise.resolve()
+  const writeToDirectoryMock = mock.fn();
+  const invokeGenerateApiCodeMock = mock.method(
+    generateApiCodeAdapter,
+    'invokeGenerateApiCode',
+    () =>
+      Promise.resolve({
+        writeToDirectory: writeToDirectoryMock,
+      })
   );
 
   const backendIdentifierResolver = new BackendIdentifierResolver({
     resolve: () => Promise.resolve('testAppName'),
   });
   const generateGraphqlClientCodeCommand = new GenerateGraphqlClientCodeCommand(
-    apiCodeGenerator,
+    generateApiCodeAdapter,
     backendIdentifierResolver
   );
   const parser = yargs().command(
@@ -33,65 +39,74 @@ describe('generate graphql-client-code command', () => {
   const commandRunner = new TestCommandRunner(parser);
 
   beforeEach(() => {
-    codeGeneratorMock.mock.resetCalls();
+    invokeGenerateApiCodeMock.mock.resetCalls();
+    writeToDirectoryMock.mock.resetCalls();
   });
 
   it('generates and writes graphql client code for stack', async () => {
     await commandRunner.runCommand('graphql-client-code --stack stack_name');
-    assert.equal(codeGeneratorMock.mock.callCount(), 1);
-    assert.deepEqual(codeGeneratorMock.mock.calls[0].arguments[0], {
-      backendIdentifier: {
-        stackName: 'stack_name',
-      },
+    assert.equal(invokeGenerateApiCodeMock.mock.callCount(), 1);
+    assert.deepEqual(invokeGenerateApiCodeMock.mock.calls[0].arguments[0], {
+      stackName: 'stack_name',
       format: 'graphql-codegen',
-      out: process.cwd(),
       statementTarget: 'javascript',
     });
+    assert.equal(writeToDirectoryMock.mock.callCount(), 1);
+    assert.equal(
+      writeToDirectoryMock.mock.calls[0].arguments[0],
+      process.cwd()
+    );
   });
 
   it('generates and writes graphql client code for branch', async () => {
     await commandRunner.runCommand('graphql-client-code --branch branch_name');
-    assert.equal(codeGeneratorMock.mock.callCount(), 1);
-    assert.deepEqual(codeGeneratorMock.mock.calls[0].arguments[0], {
-      backendIdentifier: {
-        appName: 'testAppName',
-        branchName: 'branch_name',
-      },
-      out: process.cwd(),
+    assert.equal(invokeGenerateApiCodeMock.mock.callCount(), 1);
+    assert.deepEqual(invokeGenerateApiCodeMock.mock.calls[0].arguments[0], {
+      appName: 'testAppName',
+      branchName: 'branch_name',
       format: 'graphql-codegen',
       statementTarget: 'javascript',
     });
+    assert.equal(writeToDirectoryMock.mock.callCount(), 1);
+    assert.equal(
+      writeToDirectoryMock.mock.calls[0].arguments[0],
+      process.cwd()
+    );
   });
 
   it('generates and writes graphql client code for appID and branch', async () => {
     await commandRunner.runCommand(
       'graphql-client-code --branch branch_name --appId app_id'
     );
-    assert.equal(codeGeneratorMock.mock.callCount(), 1);
-    assert.deepEqual(codeGeneratorMock.mock.calls[0].arguments[0], {
-      backendIdentifier: {
-        backendId: 'app_id',
-        branchName: 'branch_name',
-      },
-      out: process.cwd(),
+    assert.equal(invokeGenerateApiCodeMock.mock.callCount(), 1);
+    assert.deepEqual(invokeGenerateApiCodeMock.mock.calls[0].arguments[0], {
+      backendId: 'app_id',
+      branchName: 'branch_name',
       format: 'graphql-codegen',
       statementTarget: 'javascript',
     });
+    assert.equal(writeToDirectoryMock.mock.callCount(), 1);
+    assert.equal(
+      writeToDirectoryMock.mock.calls[0].arguments[0],
+      process.cwd()
+    );
   });
 
   it('can generate to custom relative path', async () => {
     await commandRunner.runCommand(
       'graphql-client-code --stack stack_name --out foo/bar'
     );
-    assert.equal(codeGeneratorMock.mock.callCount(), 1);
-    assert.deepEqual(codeGeneratorMock.mock.calls[0].arguments[0], {
-      backendIdentifier: {
-        stackName: 'stack_name',
-      },
+    assert.equal(invokeGenerateApiCodeMock.mock.callCount(), 1);
+    assert.deepEqual(invokeGenerateApiCodeMock.mock.calls[0].arguments[0], {
+      stackName: 'stack_name',
       format: 'graphql-codegen',
       statementTarget: 'javascript',
-      out: path.join(process.cwd(), 'foo', 'bar'),
     });
+    assert.equal(writeToDirectoryMock.mock.callCount(), 1);
+    assert.equal(
+      writeToDirectoryMock.mock.calls[0].arguments[0],
+      path.join(process.cwd(), 'foo', 'bar')
+    );
   });
 
   it('shows available options in help output', async () => {
@@ -104,50 +119,117 @@ describe('generate graphql-client-code command', () => {
     assert.match(output, /--typeTarget/);
     assert.match(output, /--modelTarget/);
     assert.match(output, /--out/);
+    assert.match(output, /--all/);
+  });
+
+  it('shows all available options in help output', async () => {
+    const output = await commandRunner.runCommand(
+      'graphql-client-code --help --all'
+    );
+    assert.match(output, /--stack/);
+    assert.match(output, /--appId/);
+    assert.match(output, /--branch/);
+    assert.match(output, /--format/);
+    assert.match(output, /--statementTarget/);
+    assert.match(output, /--typeTarget/);
+    assert.match(output, /--modelTarget/);
+    assert.match(output, /--out/);
+    assert.match(output, /--all/);
+    assert.match(output, /--modelGenerateIndexRules/);
+    assert.match(output, /--modelEmitAuthProvider/);
+    assert.match(output, /--modelAddTimestampFields/);
+    assert.match(output, /--statementMaxDepth/);
+    assert.match(output, /--statementTypenameIntrospection/);
+    assert.match(output, /--typeMultipleSwiftFiles/);
   });
 
   it('can be invoked explicitly with graphql-codegen format', async () => {
     await commandRunner.runCommand(
       'graphql-client-code --stack stack_name --format graphql-codegen'
     );
-    assert.equal(codeGeneratorMock.mock.callCount(), 1);
-    assert.deepEqual(codeGeneratorMock.mock.calls[0].arguments[0], {
-      backendIdentifier: {
-        stackName: 'stack_name',
-      },
+    assert.equal(invokeGenerateApiCodeMock.mock.callCount(), 1);
+    assert.deepEqual(invokeGenerateApiCodeMock.mock.calls[0].arguments[0], {
+      stackName: 'stack_name',
       format: 'graphql-codegen',
       statementTarget: 'javascript',
-      out: process.cwd(),
     });
+    assert.equal(writeToDirectoryMock.mock.callCount(), 1);
+    assert.equal(
+      writeToDirectoryMock.mock.calls[0].arguments[0],
+      process.cwd()
+    );
   });
 
   it('can be invoked explicitly with modelgen format', async () => {
     await commandRunner.runCommand(
       'graphql-client-code --stack stack_name --format modelgen'
     );
-    assert.equal(codeGeneratorMock.mock.callCount(), 1);
-    assert.deepEqual(codeGeneratorMock.mock.calls[0].arguments[0], {
-      backendIdentifier: {
-        stackName: 'stack_name',
-      },
+    assert.equal(invokeGenerateApiCodeMock.mock.callCount(), 1);
+    assert.deepEqual(invokeGenerateApiCodeMock.mock.calls[0].arguments[0], {
+      stackName: 'stack_name',
       format: 'modelgen',
       modelTarget: 'javascript',
-      out: process.cwd(),
     });
+    assert.equal(writeToDirectoryMock.mock.callCount(), 1);
+    assert.equal(
+      writeToDirectoryMock.mock.calls[0].arguments[0],
+      process.cwd()
+    );
   });
 
   it('can be invoked explicitly with introspection format', async () => {
     await commandRunner.runCommand(
       'graphql-client-code --stack stack_name --format introspection'
     );
-    assert.equal(codeGeneratorMock.mock.callCount(), 1);
-    assert.deepEqual(codeGeneratorMock.mock.calls[0].arguments[0], {
-      backendIdentifier: {
-        stackName: 'stack_name',
-      },
+    assert.equal(invokeGenerateApiCodeMock.mock.callCount(), 1);
+    assert.deepEqual(invokeGenerateApiCodeMock.mock.calls[0].arguments[0], {
+      stackName: 'stack_name',
       format: 'introspection',
-      out: process.cwd(),
     });
+    assert.equal(writeToDirectoryMock.mock.callCount(), 1);
+    assert.equal(
+      writeToDirectoryMock.mock.calls[0].arguments[0],
+      process.cwd()
+    );
+  });
+
+  it('passes in feature flags on modelgen', async () => {
+    await commandRunner.runCommand(
+      'graphql-client-code --stack stack_name --format modelgen --modelGenerateIndexRules true --modelEmitAuthProvider true --modelGenerateModelsForLazyLoadAndCustomSelectionSet false'
+    );
+    assert.equal(invokeGenerateApiCodeMock.mock.callCount(), 1);
+    assert.deepEqual(invokeGenerateApiCodeMock.mock.calls[0].arguments[0], {
+      stackName: 'stack_name',
+      format: 'modelgen',
+      modelTarget: 'javascript',
+      generateIndexRules: true,
+      emitAuthProvider: true,
+      generateModelsForLazyLoadAndCustomSelectionSet: false,
+    });
+    assert.equal(writeToDirectoryMock.mock.callCount(), 1);
+    assert.equal(
+      writeToDirectoryMock.mock.calls[0].arguments[0],
+      process.cwd()
+    );
+  });
+
+  it('passes in feature flags on graphql-codegen', async () => {
+    await commandRunner.runCommand(
+      'graphql-client-code --stack stack_name --format graphql-codegen --statementTarget typescript --statementMaxDepth 3 --statementTypenameIntrospection true'
+    );
+    assert.equal(invokeGenerateApiCodeMock.mock.callCount(), 1);
+    assert.deepEqual(invokeGenerateApiCodeMock.mock.calls[0].arguments[0], {
+      stackName: 'stack_name',
+      format: 'graphql-codegen',
+      statementTarget: 'typescript',
+      maxDepth: 3,
+      typenameIntrospection: true,
+    });
+    assert.equal(writeToDirectoryMock.mock.callCount(), 1);
+    assert.equal(
+      writeToDirectoryMock.mock.calls[0].arguments[0],
+      process.cwd()
+    );
   });
 
   // Note: after this test, future tests seem to be in a weird state, leaving this at the
