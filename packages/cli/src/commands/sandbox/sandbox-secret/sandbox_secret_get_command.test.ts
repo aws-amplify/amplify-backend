@@ -13,7 +13,7 @@ import {
 } from '@aws-amplify/backend-secret';
 import { SandboxSecretGetCommand } from './sandbox_secret_get_command.js';
 import { SANDBOX_BRANCH } from './constants.js';
-import { BackendId, UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import { Printer } from '../../printer/printer.js';
 
 const testSecretName = 'testSecretName';
