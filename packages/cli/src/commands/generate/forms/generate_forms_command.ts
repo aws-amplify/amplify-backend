@@ -78,18 +78,18 @@ export class GenerateFormsCommand
       throw new Error('AppSync api schema url must be defined');
     }
 
-    if (!args.uiOut) {
+    if (!args.uiOutDir) {
       throw new Error('uiOut must be defined');
     }
 
-    if (!args.modelsOut) {
+    if (!args.modelsOutDir) {
       throw new Error('modelsOut must be defined');
     }
 
     await this.formGenerationHandler.generate({
-      modelsOutDir: args.modelsOut,
+      modelsOutDir: args.modelsOutDir,
       backendIdentifier,
-      uiOutDir: args.uiOut,
+      uiOutDir: args.uiOutDir,
       apiUrl,
     });
   };
