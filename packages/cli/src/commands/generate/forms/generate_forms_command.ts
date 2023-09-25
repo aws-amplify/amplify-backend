@@ -60,23 +60,11 @@ export class GenerateFormsCommand
 
     const output = await backendOutputClient.getOutput();
 
-    const appsyncGraphqlEndpoint =
-      output[graphqlOutputKey]?.payload.awsAppsyncApiEndpoint;
-
-    if (!appsyncGraphqlEndpoint) {
-      throw new Error('Appsync endpoint is null');
+    if (!(graphqlOutputKey in output) || !output[graphqlOutputKey]) {
+      throw new Error('No GraphQL API configured for this backend.');
     }
 
-    const apiId = output[graphqlOutputKey]?.payload.awsAppsyncApiId;
-    if (!apiId) {
-      throw new Error('AppSync apiId must be defined');
-    }
-
-    const apiUrl = output[graphqlOutputKey]?.payload.amplifyApiModelSchemaS3Uri;
-
-    if (!apiUrl) {
-      throw new Error('AppSync api schema url must be defined');
-    }
+    const apiUrl = output[graphqlOutputKey].payload.amplifyApiModelSchemaS3Uri;
 
     if (!args.uiOutDir) {
       throw new Error('uiOut must be defined');
