@@ -11,7 +11,7 @@ import { GenerateFormsCommand } from './generate_forms_command.js';
 
 describe('generate forms command', () => {
   describe('form generation validation', () => {
-    it('modelsOut path can be customized', async () => {
+    it('modelsOutDir path can be customized', async () => {
       const credentialProvider = fromNodeProviderChain();
 
       const backendIdResolver = new BackendIdentifierResolver({
@@ -52,14 +52,14 @@ describe('generate forms command', () => {
       const modelsOutPath = './my-fake-models-path';
       const commandRunner = new TestCommandRunner(parser);
       await commandRunner.runCommand(
-        `forms --stack my_stack --modelsOut ${modelsOutPath}`
+        `forms --stack my_stack --modelsOutDir ${modelsOutPath}`
       );
       assert.equal(
-        generationMock.mock.calls[0].arguments[0].modelsOut,
+        generationMock.mock.calls[0].arguments[0].modelsOutDir,
         modelsOutPath
       );
     });
-    it('uiOut path can be customized', async () => {
+    it('uiOutDir path can be customized', async () => {
       const credentialProvider = fromNodeProviderChain();
 
       const backendIdResolver = new BackendIdentifierResolver({
@@ -100,9 +100,12 @@ describe('generate forms command', () => {
       const uiOutPath = './my-fake-ui-path';
       const commandRunner = new TestCommandRunner(parser);
       await commandRunner.runCommand(
-        `forms --stack my_stack --uiOut ${uiOutPath}`
+        `forms --stack my_stack --uiOutDir ${uiOutPath}`
       );
-      assert.equal(generationMock.mock.calls[0].arguments[0].uiOut, uiOutPath);
+      assert.equal(
+        generationMock.mock.calls[0].arguments[0].uiOutDir,
+        uiOutPath
+      );
     });
     it('./src/ui-components is the default graphql model generation path', async () => {
       const credentialProvider = fromNodeProviderChain();
@@ -144,7 +147,7 @@ describe('generate forms command', () => {
       const commandRunner = new TestCommandRunner(parser);
       await commandRunner.runCommand('forms --stack my_stack');
       assert.equal(
-        generationMock.mock.calls[0].arguments[0].uiOut,
+        generationMock.mock.calls[0].arguments[0].uiOutDir,
         './src/ui-components'
       );
     });
@@ -188,7 +191,7 @@ describe('generate forms command', () => {
       const commandRunner = new TestCommandRunner(parser);
       await commandRunner.runCommand('forms --stack my_stack');
       assert.equal(
-        generationMock.mock.calls[0].arguments[0].modelsOut,
+        generationMock.mock.calls[0].arguments[0].modelsOutDir,
         './src/graphql'
       );
     });

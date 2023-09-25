@@ -11,8 +11,8 @@ export type GenerateFormsCommandOptions = {
   stack: string | undefined;
   appId: string | undefined;
   branch: string | undefined;
-  uiOut: string | undefined;
-  modelsOut: string | undefined;
+  uiOutDir: string | undefined;
+  modelsOutDir: string | undefined;
 };
 
 /**
@@ -31,10 +31,6 @@ export class GenerateFormsCommand
    */
   readonly describe: string;
 
-  private readonly missingArgsError = new Error(
-    'Either --stack or --branch must be provided'
-  );
-
   /**
    * Creates client config generation command.
    */
@@ -48,25 +44,6 @@ export class GenerateFormsCommand
     this.command = 'forms';
     this.describe = 'Generates UI forms';
   }
-  private getAppDescription = (
-    backendIdentifier: BackendIdentifier
-  ): { appId: string; environmentName: string } => {
-    if ('stackName' in backendIdentifier) {
-      return {
-        appId: backendIdentifier.stackName,
-        environmentName: 'sandbox',
-      };
-    } else if ('backendId' in backendIdentifier) {
-      return {
-        appId: backendIdentifier.backendId,
-        environmentName: backendIdentifier.branchName,
-      };
-    }
-    return {
-      appId: backendIdentifier.appName,
-      environmentName: backendIdentifier.branchName,
-    };
-  };
 
   /**
    * @inheritDoc
@@ -109,12 +86,10 @@ export class GenerateFormsCommand
       throw new Error('modelsOut must be defined');
     }
 
-    const { appId } = this.getAppDescription(backendIdentifier);
     await this.formGenerationHandler.generate({
-      modelsOut: args.modelsOut,
+      modelsOutDir: args.modelsOut,
       backendIdentifier,
-      uiOut: args.uiOut,
-      appId,
+      uiOutDir: args.uiOut,
       apiUrl,
     });
   };
@@ -145,15 +120,16 @@ export class GenerateFormsCommand
         type: 'string',
         array: false,
         group: 'Project identifier',
+        implies: 'appId',
       })
-      .option('modelsOut', {
+      .option('modelsOutDir', {
         describe: 'A path to directory where generated forms are written.',
         default: './src/graphql',
         type: 'string',
         array: false,
         group: 'Form Generation',
       })
-      .option('uiOut', {
+      .option('uiOutDir', {
         describe: 'A path to directory where generated forms are written.',
         default: './src/ui-components',
         type: 'string',
@@ -168,7 +144,7 @@ export class GenerateFormsCommand
       })
       .check((argv) => {
         if (!argv.stack && !argv.branch) {
-          throw this.missingArgsError;
+          throw new Error('Either --stack or --branch must be provided');
         }
         return true;
       });
