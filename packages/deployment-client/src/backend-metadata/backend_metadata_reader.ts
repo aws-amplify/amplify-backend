@@ -1,4 +1,7 @@
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import {
+  BackendOutput,
+  UniqueBackendIdentifier,
+} from '@aws-amplify/plugin-types';
 import {
   CloudFormationClient,
   DeleteStackCommand,
@@ -22,11 +25,10 @@ import {
 } from '../deployment_client.js';
 import {
   BackendOutputClient,
+  BackendOutputClientError,
+  BackendOutputClientErrorType,
   BackendOutputClientFactory,
-  MetadataRetrievalError,
   getMainStackName,
-  mainStackNamePrefix,
-  sandboxStackNameSuffix,
 } from '@aws-amplify/deployed-backend-client';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 
@@ -97,21 +99,25 @@ export class BackendMetadataReader {
    */
   listSandboxBackendMetadata = async (): Promise<BackendMetadata[]> => {
     const allStackSummaries = await this.listStacks();
-    const allStackMetadataPromises = allStackSummaries
-      .filter((stackSummary) => this.isSandboxStack(stackSummary.StackName))
-      .map(async (stackSummary) => {
+    const allStackMetadataPromises = allStackSummaries.map(
+      async (stackSummary) => {
         try {
           return await this.buildBackendMetadata(
             stackSummary.StackName as string
           );
         } catch (err) {
-          if (err instanceof MetadataRetrievalError) {
+          if (
+            err &&
+            (err as BackendOutputClientError).code ===
+              BackendOutputClientErrorType.MetadataRetrievalError
+          ) {
             // if backend metadata cannot be built, it is not an Amplify stack
             return;
           }
           throw err;
         }
-      });
+      }
+    );
     const allStackMetadata = (
       await Promise.all(allStackMetadataPromises)
     ).filter((stackMetadata) => stackMetadata);
@@ -153,14 +159,6 @@ export class BackendMetadataReader {
     return allStackSummaries;
   };
 
-  private isSandboxStack = (stackName: string | undefined): boolean => {
-    return (
-      !!stackName &&
-      stackName.startsWith(mainStackNamePrefix) &&
-      stackName.endsWith(sandboxStackNameSuffix)
-    );
-  };
-
   private buildBackendMetadata = async (
     stackName: string
   ): Promise<BackendMetadata> => {
@@ -168,7 +166,9 @@ export class BackendMetadataReader {
       stackName,
     };
 
-    const backendOutput = await this.backendOutput.getOutput(backendIdentifier);
+    const backendOutput: BackendOutput = await this.backendOutput.getOutput(
+      backendIdentifier
+    );
     const stackDescription = await this.cfnClient.send(
       new DescribeStacksCommand({ StackName: stackName })
     );
@@ -191,9 +191,9 @@ export class BackendMetadataReader {
     );
 
     const backendMetadataObject: BackendMetadata = {
-      deploymentType: this.isSandboxStack(stackName)
-        ? BackendDeploymentType.SANDBOX
-        : BackendDeploymentType.BRANCH,
+      // FIXME: sandboxes will have an additional field in their outputs
+      // Once that output is added, make this field conditional
+      deploymentType: BackendDeploymentType.SANDBOX,
       lastUpdated,
       status,
       name: stackName,

@@ -24,22 +24,25 @@ export interface BackendOutputClient {
 }
 
 // @public
+export class BackendOutputClientError extends Error {
+    constructor(code: string, message: string, options?: ErrorOptions);
+    // (undocumented)
+    code: BackendOutputClientErrorType | string;
+}
+
+// @public (undocumented)
+export enum BackendOutputClientErrorType {
+    // (undocumented)
+    MetadataRetrievalError = "MetadataRetrievalError"
+}
+
+// @public
 export class BackendOutputClientFactory {
     static getInstance: (credentials: AwsCredentialIdentityProvider) => BackendOutputClient;
 }
 
 // @public
 export const getMainStackName: (uniqueDeploymentIdentifier: UniqueBackendIdentifier) => string;
-
-// @public (undocumented)
-export const mainStackNamePrefix = "amplify";
-
-// @public (undocumented)
-export class MetadataRetrievalError extends Error {
-}
-
-// @public (undocumented)
-export const sandboxStackNameSuffix = "sandbox";
 
 // @public (undocumented)
 export type StackIdentifier = {

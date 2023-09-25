@@ -4,6 +4,7 @@
 
 ```ts
 
+import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 // @public (undocumented)
@@ -47,14 +48,13 @@ export type BackendMetadata = {
     };
 };
 
-// @public
-export const deleteSandbox: (sandboxId: string) => Promise<BackendMetadata>;
-
-// @public
-export const getBackendMetadata: (uniqueBackendIdentifier: UniqueBackendIdentifier) => Promise<BackendMetadata>;
-
-// @public
-export const listSandboxes: () => Promise<BackendMetadata[]>;
+// @public (undocumented)
+export class DeploymentClient {
+    constructor(credentials: AwsCredentialIdentityProvider);
+    deleteSandbox: (sandboxId: string) => Promise<BackendMetadata>;
+    getBackendMetadata: (uniqueBackendIdentifier: UniqueBackendIdentifier) => Promise<BackendMetadata>;
+    listSandboxes: () => Promise<BackendMetadata[]>;
+}
 
 // (No @packageDocumentation comment for this package)
 

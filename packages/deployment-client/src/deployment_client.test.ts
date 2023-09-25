@@ -3,13 +3,19 @@ import assert from 'node:assert';
 import {
   BackendDeploymentType,
   BackendMetadata,
-  deleteSandbox,
-  getBackendMetadata,
-  listSandboxes,
+  DeploymentClient,
 } from './deployment_client.js';
 import { BackendMetadataReaderFactory } from './backend-metadata/backend_metadata_reader_factory.js';
 
-const backendMetadataReader = BackendMetadataReaderFactory.getInstance();
+const credentials = async () => ({
+  accessKeyId: 'test',
+  secretAccessKey: 'test',
+});
+
+const deploymentClient = new DeploymentClient(credentials);
+const backendMetadataReader = await BackendMetadataReaderFactory.getInstance(
+  credentials
+);
 mock.method(
   backendMetadataReader,
   'listSandboxBackendMetadata',
@@ -53,17 +59,17 @@ mock.method(
 
 describe('Backend Metadata Functions', () => {
   it('runs listSandboxes', async () => {
-    const sandboxes = await listSandboxes();
+    const sandboxes = await deploymentClient.listSandboxes();
     assert.equal(sandboxes.length, 1);
   });
 
   it('runs deleteSandbox', async () => {
-    const sandbox = await deleteSandbox('abc');
+    const sandbox = await deploymentClient.deleteSandbox('abc');
     assert.equal(sandbox.name, 'testDeleteSandbox');
   });
 
   it('runs getBackendMetadata', async () => {
-    const metadata = await getBackendMetadata({
+    const metadata = await deploymentClient.getBackendMetadata({
       backendId: 'abc',
       branchName: '123',
     });

@@ -1,6 +1,7 @@
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { BackendMetadataReader } from './backend_metadata_reader.js';
 import { BackendOutputClientFactory } from '@aws-amplify/deployed-backend-client';
+import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 
 /**
  * Factory to create a backend metadata reader
@@ -11,14 +12,16 @@ export class BackendMetadataReaderFactory {
   /**
    * Returns a single instance of BackendMetadataReader
    */
-  static getInstance = (): BackendMetadataReader => {
+  static getInstance = (
+    credentials: AwsCredentialIdentityProvider
+  ): BackendMetadataReader => {
     if (!BackendMetadataReaderFactory.instance) {
-      const cfnClient = new CloudFormationClient();
+      const cfnClient = new CloudFormationClient({
+        credentials: credentials,
+      });
       BackendMetadataReaderFactory.instance = new BackendMetadataReader(
         cfnClient,
-        BackendOutputClientFactory.getInstance(() =>
-          cfnClient.config.credentials()
-        )
+        BackendOutputClientFactory.getInstance(credentials)
       );
     }
     return BackendMetadataReaderFactory.instance;

@@ -4,8 +4,8 @@ import {
   UniqueBackendIdentifier,
 } from '@aws-amplify/plugin-types';
 
-export const mainStackNamePrefix = 'amplify';
-export const sandboxStackNameSuffix = 'sandbox';
+const mainStackNamePrefix = 'amplify';
+const sandboxStackNameSuffix = 'sandbox';
 
 /**
  * Generates a stack name based on the unique deployment identifier

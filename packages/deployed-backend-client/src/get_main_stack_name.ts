@@ -4,8 +4,8 @@ import {
   UniqueBackendIdentifier,
 } from '@aws-amplify/plugin-types';
 
-export const mainStackNamePrefix = 'amplify';
-export const sandboxStackNameSuffix = 'sandbox';
+const mainStackNamePrefix = 'amplify';
+const sandboxStackNameSuffix = 'sandbox';
 
 /**
  * Generates an SSM parameter key to identify the main stack associated with the given project environment.

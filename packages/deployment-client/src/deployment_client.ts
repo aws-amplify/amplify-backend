@@ -1,6 +1,6 @@
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import { BackendMetadataReaderFactory } from './backend-metadata/backend_metadata_reader_factory.js';
-import { sandboxStackNameSuffix } from '@aws-amplify/deployed-backend-client';
+import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 
 export type BackendMetadata = {
   name: string;
@@ -36,31 +36,41 @@ export enum BackendDeploymentType {
 }
 
 /**
- * Returns all the Amplify Sandboxes for the account
+ *
  */
-export const listSandboxes = async (): Promise<BackendMetadata[]> => {
-  return await BackendMetadataReaderFactory.getInstance().listSandboxBackendMetadata();
-};
+export class DeploymentClient {
+  /**
+   * Constructor for deployment client
+   */
+  constructor(private readonly credentials: AwsCredentialIdentityProvider) {}
+  /**
+   * Returns all the Amplify Sandboxes for the account
+   */
+  listSandboxes = async (): Promise<BackendMetadata[]> => {
+    const backendMetadataReader =
+      await BackendMetadataReaderFactory.getInstance(this.credentials);
+    return backendMetadataReader.listSandboxBackendMetadata();
+  };
 
-/**
- * Deletes a sandbox with the specified id
- */
-export const deleteSandbox = async (
-  sandboxId: string
-): Promise<BackendMetadata> => {
-  return await BackendMetadataReaderFactory.getInstance().deleteBackend({
-    backendId: sandboxId,
-    sandbox: sandboxStackNameSuffix,
-  });
-};
-
-/**
- * Fetches all backend metadata for a specified backend
- */
-export const getBackendMetadata = async (
-  uniqueBackendIdentifier: UniqueBackendIdentifier
-): Promise<BackendMetadata> => {
-  return await BackendMetadataReaderFactory.getInstance().getBackendMetadata(
-    uniqueBackendIdentifier
-  );
-};
+  /**
+   * Deletes a sandbox with the specified id
+   */
+  deleteSandbox = async (sandboxId: string): Promise<BackendMetadata> => {
+    const backendMetadataReader =
+      await BackendMetadataReaderFactory.getInstance(this.credentials);
+    return backendMetadataReader.deleteBackend({
+      backendId: sandboxId,
+      sandbox: 'sandbox',
+    });
+  };
+  /**
+   * Fetches all backend metadata for a specified backend
+   */
+  getBackendMetadata = async (
+    uniqueBackendIdentifier: UniqueBackendIdentifier
+  ): Promise<BackendMetadata> => {
+    const backendMetadataReader =
+      await BackendMetadataReaderFactory.getInstance(this.credentials);
+    return backendMetadataReader.getBackendMetadata(uniqueBackendIdentifier);
+  };
+}
