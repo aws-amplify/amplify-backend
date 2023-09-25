@@ -10,6 +10,11 @@ import assert from 'node:assert';
 import path from 'path';
 import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
 import { GenerateApiCodeAdapter } from './generate_api_code_adapter.js';
+import {
+  GenerateApiCodeFormat,
+  GenerateApiCodeModelTarget,
+  GenerateApiCodeStatementTarget,
+} from '@aws-amplify/model-generator';
 
 describe('generate graphql-client-code command', () => {
   const generateApiCodeAdapter = new GenerateApiCodeAdapter(
@@ -48,8 +53,8 @@ describe('generate graphql-client-code command', () => {
     assert.equal(invokeGenerateApiCodeMock.mock.callCount(), 1);
     assert.deepEqual(invokeGenerateApiCodeMock.mock.calls[0].arguments[0], {
       stackName: 'stack_name',
-      format: 'graphql-codegen',
-      statementTarget: 'javascript',
+      format: GenerateApiCodeFormat.GRAPHQL_CODEGEN,
+      statementTarget: GenerateApiCodeStatementTarget.JAVASCRIPT,
     });
     assert.equal(writeToDirectoryMock.mock.callCount(), 1);
     assert.equal(
@@ -64,8 +69,8 @@ describe('generate graphql-client-code command', () => {
     assert.deepEqual(invokeGenerateApiCodeMock.mock.calls[0].arguments[0], {
       appName: 'testAppName',
       branchName: 'branch_name',
-      format: 'graphql-codegen',
-      statementTarget: 'javascript',
+      format: GenerateApiCodeFormat.GRAPHQL_CODEGEN,
+      statementTarget: GenerateApiCodeStatementTarget.JAVASCRIPT,
     });
     assert.equal(writeToDirectoryMock.mock.callCount(), 1);
     assert.equal(
@@ -82,8 +87,8 @@ describe('generate graphql-client-code command', () => {
     assert.deepEqual(invokeGenerateApiCodeMock.mock.calls[0].arguments[0], {
       backendId: 'app_id',
       branchName: 'branch_name',
-      format: 'graphql-codegen',
-      statementTarget: 'javascript',
+      format: GenerateApiCodeFormat.GRAPHQL_CODEGEN,
+      statementTarget: GenerateApiCodeStatementTarget.JAVASCRIPT,
     });
     assert.equal(writeToDirectoryMock.mock.callCount(), 1);
     assert.equal(
@@ -99,8 +104,8 @@ describe('generate graphql-client-code command', () => {
     assert.equal(invokeGenerateApiCodeMock.mock.callCount(), 1);
     assert.deepEqual(invokeGenerateApiCodeMock.mock.calls[0].arguments[0], {
       stackName: 'stack_name',
-      format: 'graphql-codegen',
-      statementTarget: 'javascript',
+      format: GenerateApiCodeFormat.GRAPHQL_CODEGEN,
+      statementTarget: GenerateApiCodeStatementTarget.JAVASCRIPT,
     });
     assert.equal(writeToDirectoryMock.mock.callCount(), 1);
     assert.equal(
@@ -150,8 +155,8 @@ describe('generate graphql-client-code command', () => {
     assert.equal(invokeGenerateApiCodeMock.mock.callCount(), 1);
     assert.deepEqual(invokeGenerateApiCodeMock.mock.calls[0].arguments[0], {
       stackName: 'stack_name',
-      format: 'graphql-codegen',
-      statementTarget: 'javascript',
+      format: GenerateApiCodeFormat.GRAPHQL_CODEGEN,
+      statementTarget: GenerateApiCodeStatementTarget.JAVASCRIPT,
     });
     assert.equal(writeToDirectoryMock.mock.callCount(), 1);
     assert.equal(
@@ -167,8 +172,8 @@ describe('generate graphql-client-code command', () => {
     assert.equal(invokeGenerateApiCodeMock.mock.callCount(), 1);
     assert.deepEqual(invokeGenerateApiCodeMock.mock.calls[0].arguments[0], {
       stackName: 'stack_name',
-      format: 'modelgen',
-      modelTarget: 'javascript',
+      format: GenerateApiCodeFormat.MODELGEN,
+      modelTarget: GenerateApiCodeModelTarget.JAVASCRIPT,
     });
     assert.equal(writeToDirectoryMock.mock.callCount(), 1);
     assert.equal(
@@ -184,7 +189,7 @@ describe('generate graphql-client-code command', () => {
     assert.equal(invokeGenerateApiCodeMock.mock.callCount(), 1);
     assert.deepEqual(invokeGenerateApiCodeMock.mock.calls[0].arguments[0], {
       stackName: 'stack_name',
-      format: 'introspection',
+      format: GenerateApiCodeFormat.INTROSPECTION,
     });
     assert.equal(writeToDirectoryMock.mock.callCount(), 1);
     assert.equal(
@@ -200,8 +205,8 @@ describe('generate graphql-client-code command', () => {
     assert.equal(invokeGenerateApiCodeMock.mock.callCount(), 1);
     assert.deepEqual(invokeGenerateApiCodeMock.mock.calls[0].arguments[0], {
       stackName: 'stack_name',
-      format: 'modelgen',
-      modelTarget: 'javascript',
+      format: GenerateApiCodeFormat.MODELGEN,
+      modelTarget: GenerateApiCodeModelTarget.JAVASCRIPT,
       generateIndexRules: true,
       emitAuthProvider: true,
       generateModelsForLazyLoadAndCustomSelectionSet: false,
@@ -220,8 +225,8 @@ describe('generate graphql-client-code command', () => {
     assert.equal(invokeGenerateApiCodeMock.mock.callCount(), 1);
     assert.deepEqual(invokeGenerateApiCodeMock.mock.calls[0].arguments[0], {
       stackName: 'stack_name',
-      format: 'graphql-codegen',
-      statementTarget: 'typescript',
+      format: GenerateApiCodeFormat.GRAPHQL_CODEGEN,
+      statementTarget: GenerateApiCodeStatementTarget.TYPESCRIPT,
       maxDepth: 3,
       typenameIntrospection: true,
     });
