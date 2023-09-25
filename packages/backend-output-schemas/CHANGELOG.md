@@ -1,5 +1,19 @@
 # @aws-amplify/backend-output-schemas
 
+## 0.2.0-alpha.3
+
+### Minor Changes
+
+- b4f82717: Create a new deployed-backend-client package that provides a convenient interface for retrieving stack outputs
+- 05f97b26: Add AppSync outputs to client config
+- f75fa531: Refactor OutputStorageStrategy into stateless shared dependency
+
+### Patch Changes
+
+- ac3df080: Add "main" field to package.json to support CJS loaders
+- 53779253: re-export construct output objects in root package namespace
+- 1dada824: chore: Update eslint config to new flat config type
+
 ## 0.2.0-alpha.2
 
 ### Minor Changes
