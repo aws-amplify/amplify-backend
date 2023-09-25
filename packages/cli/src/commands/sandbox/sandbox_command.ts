@@ -10,7 +10,7 @@ export type SandboxCommandOptions = {
   exclude: string[] | undefined;
   name: string | undefined;
   format: ClientConfigFormat | undefined;
-  out: string | undefined;
+  outDir: string | undefined;
   profile: string | undefined;
 };
 
@@ -57,7 +57,7 @@ export class SandboxCommand
       exclude: args.exclude,
       name: args.name,
       format: args.format,
-      clientConfigFilePath: args.out,
+      clientConfigFilePath: args.outDir,
       profile: args.profile,
     });
     process.once('SIGINT', () => void this.sigIntHandler());
@@ -95,7 +95,7 @@ export class SandboxCommand
           array: false,
           choices: Object.values(ClientConfigFormat),
         })
-        .option('out', {
+        .option('outDir', {
           describe:
             'A path to directory where config is written. If not provided defaults to current process working directory.',
           type: 'string',
