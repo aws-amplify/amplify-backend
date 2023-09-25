@@ -3,9 +3,9 @@ import { describe, it } from 'node:test';
 import { GenerateApiCodeProps, generateApiCode } from './generate_api_code.js';
 
 describe('generateAPICode', () => {
-  describe('graphql-codegen', () => {});
-  describe('modelgen', () => {});
-  describe('introspection', () => {});
+  describe('graphql-codegen', () => undefined);
+  describe('modelgen', () => undefined);
+  describe('introspection', () => undefined);
 
   it('throws error on unknown format', async () => {
     const props = {
