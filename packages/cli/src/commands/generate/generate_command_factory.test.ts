@@ -11,12 +11,12 @@ import assert from 'node:assert';
  * Top level generate command's responsibility is to wire subcommands and delegate execution down the command chain.
  * Therefore, testing primarily focuses on help output.
  */
-describe('top level generate command', () => {
+void describe('top level generate command', () => {
   const generateCommand = createGenerateCommand();
   const parser = yargs().command(generateCommand);
   const commandRunner = new TestCommandRunner(parser);
 
-  it('includes generate subcommands in help output', async () => {
+  void it('includes generate subcommands in help output', async () => {
     const output = await commandRunner.runCommand('generate --help');
     assert.match(output, /Commands:/);
     assert.match(output, /generate config\W*Generates client config/);
@@ -26,7 +26,7 @@ describe('top level generate command', () => {
     );
   });
 
-  it('fails if subcommand is not provided', async () => {
+  void it('fails if subcommand is not provided', async () => {
     await assert.rejects(
       () => commandRunner.runCommand('generate'),
       (err: TestCommandError) => {
@@ -39,7 +39,7 @@ describe('top level generate command', () => {
     );
   });
 
-  it('should throw if top level command handler is ever called', () => {
+  void it('should throw if top level command handler is ever called', () => {
     assert.throws(
       () => generateCommand.handler({ $0: '', _: [] }),
       (err: Error) => {

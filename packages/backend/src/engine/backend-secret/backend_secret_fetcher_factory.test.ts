@@ -20,13 +20,13 @@ const uniqueBackendIdentifier: UniqueBackendIdentifier = {
   branchName,
 };
 
-describe('getOrCreate', () => {
+void describe('getOrCreate', () => {
   const providerFactory = new BackendSecretFetcherProviderFactory(
     getSecretClient()
   );
   const resourceFactory = new BackendSecretFetcherFactory(providerFactory);
 
-  it('create different secrets', () => {
+  void it('create different secrets', () => {
     const app = new App();
     const stack = new Stack(app);
     resourceFactory.getOrCreate(stack, secretName1, 1, uniqueBackendIdentifier);
@@ -63,7 +63,7 @@ describe('getOrCreate', () => {
     );
   });
 
-  it('does not create duplicate resource for the same secret name', () => {
+  void it('does not create duplicate resource for the same secret name', () => {
     const app = new App();
     const stack = new Stack(app);
     resourceFactory.getOrCreate(stack, secretName1, 1, uniqueBackendIdentifier);

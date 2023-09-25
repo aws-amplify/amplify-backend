@@ -20,8 +20,8 @@ mock.method(fs, 'lstatSync', (path: string) => {
   };
 });
 
-describe('getClientConfigPath', () => {
-  it('returns path to config file', async () => {
+void describe('getClientConfigPath', () => {
+  void it('returns path to config file', async () => {
     const configPath = await getClientConfigPath();
     assert.equal(
       configPath,
@@ -29,7 +29,7 @@ describe('getClientConfigPath', () => {
     );
   });
 
-  it('returns path to config file with provided dir path', async () => {
+  void it('returns path to config file with provided dir path', async () => {
     const configPath = await getClientConfigPath(testPath);
     assert.equal(
       configPath,
@@ -41,7 +41,7 @@ describe('getClientConfigPath', () => {
     );
   });
 
-  it('returns path to config file with provided dir path and format', async () => {
+  void it('returns path to config file with provided dir path and format', async () => {
     const configPath = await getClientConfigPath(
       testPath,
       ClientConfigFormat.JSON
@@ -56,7 +56,7 @@ describe('getClientConfigPath', () => {
     );
   });
 
-  it('returns path to config file with provided format, no dir path', async () => {
+  void it('returns path to config file with provided format, no dir path', async () => {
     const configPath = await getClientConfigPath(
       undefined,
       ClientConfigFormat.TS
@@ -67,7 +67,7 @@ describe('getClientConfigPath', () => {
     );
   });
 
-  it('throw error if it is provided a file path', async () => {
+  void it('throw error if it is provided a file path', async () => {
     await assert.rejects(
       async () => await getClientConfigPath(`${testPath}/testConfig.json`),
       new Error(
@@ -76,7 +76,7 @@ describe('getClientConfigPath', () => {
     );
   });
 
-  it('throw error if it is provided invalid path', async () => {
+  void it('throw error if it is provided invalid path', async () => {
     await assert.rejects(
       async () => await getClientConfigPath('some/not/existing/path'),
       new Error(
@@ -85,7 +85,7 @@ describe('getClientConfigPath', () => {
     );
   });
 
-  it('returns path to config file with absolute path', async () => {
+  void it('returns path to config file with absolute path', async () => {
     const configPath = await getClientConfigPath(
       `${process.cwd()}/${testPath}`
     );

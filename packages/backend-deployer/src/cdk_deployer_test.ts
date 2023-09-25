@@ -5,7 +5,7 @@ import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import { DeployProps } from './cdk_deployer_singleton_factory.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
 
-describe('invokeCDKCommand', () => {
+void describe('invokeCDKCommand', () => {
   const uniqueBackendIdentifier: UniqueBackendIdentifier = {
     backendId: '123',
     branchName: 'testBranch',
@@ -29,7 +29,7 @@ describe('invokeCDKCommand', () => {
     execaMock.mock.restore();
   });
 
-  it('handles no options/args', async () => {
+  void it('handles no options/args', async () => {
     await invoker.deploy();
     assert.strictEqual(execaMock.mock.callCount(), 1);
     assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 5);
@@ -42,7 +42,7 @@ describe('invokeCDKCommand', () => {
     ]);
   });
 
-  it('handles options', async () => {
+  void it('handles options', async () => {
     await invoker.deploy(uniqueBackendIdentifier);
     assert.strictEqual(execaMock.mock.callCount(), 1);
     assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 9);
@@ -59,7 +59,7 @@ describe('invokeCDKCommand', () => {
     ]);
   });
 
-  it('handles deployProps', async () => {
+  void it('handles deployProps', async () => {
     await invoker.deploy(undefined, deployProps);
     assert.strictEqual(execaMock.mock.callCount(), 1);
     assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 7);
@@ -74,7 +74,7 @@ describe('invokeCDKCommand', () => {
     ]);
   });
 
-  it('handles options and deployProps', async () => {
+  void it('handles options and deployProps', async () => {
     await invoker.deploy(uniqueBackendIdentifier, deployProps);
     assert.strictEqual(execaMock.mock.callCount(), 1);
     assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 11);
@@ -93,7 +93,7 @@ describe('invokeCDKCommand', () => {
     ]);
   });
 
-  it('handles destroy', async () => {
+  void it('handles destroy', async () => {
     await invoker.destroy(uniqueBackendIdentifier);
     assert.strictEqual(execaMock.mock.callCount(), 1);
     assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 10);
@@ -111,7 +111,7 @@ describe('invokeCDKCommand', () => {
     ]);
   });
 
-  it('returns human readable errors', async () => {
+  void it('returns human readable errors', async () => {
     mock.method(invoker, 'executeChildProcess', () => {
       throw new Error('Access Denied');
     });

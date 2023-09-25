@@ -16,7 +16,7 @@ import {
   GenerateApiCodeStatementTarget,
 } from '@aws-amplify/model-generator';
 
-describe('generate graphql-client-code command', () => {
+void describe('generate graphql-client-code command', () => {
   const generateApiCodeAdapter = new GenerateApiCodeAdapter(
     fromNodeProviderChain()
   );
@@ -48,7 +48,7 @@ describe('generate graphql-client-code command', () => {
     writeToDirectoryMock.mock.resetCalls();
   });
 
-  it('generates and writes graphql client code for stack', async () => {
+  void it('generates and writes graphql client code for stack', async () => {
     await commandRunner.runCommand('graphql-client-code --stack stack_name');
     assert.equal(invokeGenerateApiCodeMock.mock.callCount(), 1);
     assert.deepEqual(invokeGenerateApiCodeMock.mock.calls[0].arguments[0], {
@@ -63,7 +63,7 @@ describe('generate graphql-client-code command', () => {
     );
   });
 
-  it('generates and writes graphql client code for branch', async () => {
+  void it('generates and writes graphql client code for branch', async () => {
     await commandRunner.runCommand('graphql-client-code --branch branch_name');
     assert.equal(invokeGenerateApiCodeMock.mock.callCount(), 1);
     assert.deepEqual(invokeGenerateApiCodeMock.mock.calls[0].arguments[0], {
@@ -79,7 +79,7 @@ describe('generate graphql-client-code command', () => {
     );
   });
 
-  it('generates and writes graphql client code for appID and branch', async () => {
+  void it('generates and writes graphql client code for appID and branch', async () => {
     await commandRunner.runCommand(
       'graphql-client-code --branch branch_name --appId app_id'
     );
@@ -97,7 +97,7 @@ describe('generate graphql-client-code command', () => {
     );
   });
 
-  it('can generate to custom relative path', async () => {
+  void it('can generate to custom relative path', async () => {
     await commandRunner.runCommand(
       'graphql-client-code --stack stack_name --out foo/bar'
     );
@@ -114,7 +114,7 @@ describe('generate graphql-client-code command', () => {
     );
   });
 
-  it('shows available options in help output', async () => {
+  void it('shows available options in help output', async () => {
     const output = await commandRunner.runCommand('graphql-client-code --help');
     assert.match(output, /--stack/);
     assert.match(output, /--appId/);
@@ -127,7 +127,7 @@ describe('generate graphql-client-code command', () => {
     assert.match(output, /--all/);
   });
 
-  it('shows all available options in help output', async () => {
+  void it('shows all available options in help output', async () => {
     const output = await commandRunner.runCommand(
       'graphql-client-code --help --all'
     );
@@ -148,7 +148,7 @@ describe('generate graphql-client-code command', () => {
     assert.match(output, /--typeMultipleSwiftFiles/);
   });
 
-  it('can be invoked explicitly with graphql-codegen format', async () => {
+  void it('can be invoked explicitly with graphql-codegen format', async () => {
     await commandRunner.runCommand(
       'graphql-client-code --stack stack_name --format graphql-codegen'
     );
@@ -165,7 +165,7 @@ describe('generate graphql-client-code command', () => {
     );
   });
 
-  it('can be invoked explicitly with modelgen format', async () => {
+  void it('can be invoked explicitly with modelgen format', async () => {
     await commandRunner.runCommand(
       'graphql-client-code --stack stack_name --format modelgen'
     );
@@ -182,7 +182,7 @@ describe('generate graphql-client-code command', () => {
     );
   });
 
-  it('can be invoked explicitly with introspection format', async () => {
+  void it('can be invoked explicitly with introspection format', async () => {
     await commandRunner.runCommand(
       'graphql-client-code --stack stack_name --format introspection'
     );
@@ -198,7 +198,7 @@ describe('generate graphql-client-code command', () => {
     );
   });
 
-  it('passes in feature flags on modelgen', async () => {
+  void it('passes in feature flags on modelgen', async () => {
     await commandRunner.runCommand(
       'graphql-client-code --stack stack_name --format modelgen --modelGenerateIndexRules true --modelEmitAuthProvider true --modelGenerateModelsForLazyLoadAndCustomSelectionSet false'
     );
@@ -218,7 +218,7 @@ describe('generate graphql-client-code command', () => {
     );
   });
 
-  it('passes in feature flags on graphql-codegen', async () => {
+  void it('passes in feature flags on graphql-codegen', async () => {
     await commandRunner.runCommand(
       'graphql-client-code --stack stack_name --format graphql-codegen --statementTarget typescript --statementMaxDepth 3 --statementTypenameIntrospection true'
     );
@@ -238,7 +238,7 @@ describe('generate graphql-client-code command', () => {
   });
 
   // Note: after this test, future tests seem to be in a weird state, leaving this at the
-  it('fails if both stack and branch are present', async () => {
+  void it('fails if both stack and branch are present', async () => {
     await assert.rejects(
       () =>
         commandRunner.runCommand(

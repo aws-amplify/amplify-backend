@@ -10,8 +10,8 @@ import assert from 'node:assert';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { storageOutputKey } from '@aws-amplify/backend-output-schemas';
 
-describe('AmplifyStorage', () => {
-  it('creates a bucket', () => {
+void describe('AmplifyStorage', () => {
+  void it('creates a bucket', () => {
     const app = new App();
     const stack = new Stack(app);
     new AmplifyStorage(stack, 'test', {});
@@ -19,7 +19,7 @@ describe('AmplifyStorage', () => {
     template.resourceCountIs('AWS::S3::Bucket', 1);
   });
 
-  it('turns versioning on if specified', () => {
+  void it('turns versioning on if specified', () => {
     const app = new App();
     const stack = new Stack(app);
     new AmplifyStorage(stack, 'test', { versioned: true });
@@ -29,8 +29,8 @@ describe('AmplifyStorage', () => {
       VersioningConfiguration: { Status: 'Enabled' },
     });
   });
-  describe('storeOutput', () => {
-    it('stores output using the provided strategy', () => {
+  void describe('storeOutput', () => {
+    void it('stores output using the provided strategy', () => {
       const app = new App();
       const stack = new Stack(app);
 
@@ -64,7 +64,7 @@ describe('AmplifyStorage', () => {
         },
       ]);
     });
-    it('stores output when no storage strategy is injected', () => {
+    void it('stores output when no storage strategy is injected', () => {
       const app = new App();
       const stack = new Stack(app);
 
