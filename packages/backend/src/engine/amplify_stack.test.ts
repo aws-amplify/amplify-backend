@@ -4,8 +4,8 @@ import { AmplifyStack } from './amplify_stack.js';
 import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
 
-describe('AmplifyStack', () => {
-  it('renames nested stack logical IDs to non-redundant value', () => {
+void describe('AmplifyStack', () => {
+  void it('renames nested stack logical IDs to non-redundant value', () => {
     const app = new App();
     const rootStack = new AmplifyStack(app, 'test-id');
     new NestedStack(rootStack, 'testName');

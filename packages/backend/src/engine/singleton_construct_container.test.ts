@@ -8,9 +8,9 @@ import { Queue } from 'aws-cdk-lib/aws-sqs';
 import { NestedStackResolver } from './nested_stack_resolver.js';
 import { ConstructContainerEntryGenerator } from '@aws-amplify/plugin-types';
 
-describe('SingletonConstructContainer', () => {
-  describe('resolve', () => {
-    it('calls initializer to create construct instance', () => {
+void describe('SingletonConstructContainer', () => {
+  void describe('resolve', () => {
+    void it('calls initializer to create construct instance', () => {
       const app = new App();
       const stack = new Stack(app);
       const container = new SingletonConstructContainer(
@@ -25,7 +25,7 @@ describe('SingletonConstructContainer', () => {
       assert.equal(instance instanceof Bucket, true);
     });
 
-    it('returns cached instance if initializer has been seen before', () => {
+    void it('returns cached instance if initializer has been seen before', () => {
       const app = new App();
       const stack = new Stack(app);
       const container = new SingletonConstructContainer(
@@ -43,7 +43,7 @@ describe('SingletonConstructContainer', () => {
       assert.strictEqual(instance1, instance2);
     });
 
-    it('returns correct cached value for each initializer', () => {
+    void it('returns correct cached value for each initializer', () => {
       const app = new App();
       const stack = new Stack(app);
       const container = new SingletonConstructContainer(

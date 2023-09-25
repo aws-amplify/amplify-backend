@@ -43,9 +43,7 @@ export class StackMetadataGraphqlModelsGenerator
       directives: defaultDirectiveDefinitions,
       generateIndexRules,
       emitAuthProvider,
-      // typo in @aws-amplify/graphql-generator. Will be fixed in next release
-      // eslint-disable-next-line spellcheck/spell-checker
-      useExperimentalPipelinedTranformer: useExperimentalPipelinedTransformer,
+      useExperimentalPipelinedTransformer,
       transformerVersion,
       respectPrimaryKeyAttributesOnConnectionField,
       generateModelsForLazyLoadAndCustomSelectionSet,

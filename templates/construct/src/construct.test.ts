@@ -3,8 +3,8 @@ import { AmplifyConstruct } from './construct.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 
-describe('AmplifyConstruct', () => {
-  it('creates a queue if specified', () => {
+void describe('AmplifyConstruct', () => {
+  void it('creates a queue if specified', () => {
     const app = new App();
     const stack = new Stack(app);
     new AmplifyConstruct(stack, 'test', {
@@ -14,7 +14,7 @@ describe('AmplifyConstruct', () => {
     template.resourceCountIs('AWS::SQS::Queue', 1);
   });
 
-  it('does nothing if queue is false', () => {
+  void it('does nothing if queue is false', () => {
     const app = new App();
     const stack = new Stack(app);
     new AmplifyConstruct(stack, 'test', {

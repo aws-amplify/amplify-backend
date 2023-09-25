@@ -6,7 +6,7 @@ import assert from 'node:assert';
 import { ClientConfig } from '../client-config-types/client_config.js';
 import { pathToFileURL } from 'url';
 
-describe('client config writer', () => {
+void describe('client config writer', () => {
   let targetDirectory: string;
 
   beforeEach(async () => {
@@ -23,7 +23,7 @@ describe('client config writer', () => {
 
   const clientConfigWriter = new ClientConfigWriter();
 
-  it('writes json config to target location as json object', async () => {
+  void it('writes json config to target location as json object', async () => {
     const targetPath = path.join(
       process.cwd(),
       targetDirectory,
@@ -35,7 +35,7 @@ describe('client config writer', () => {
     assert.deepEqual(JSON.parse(actualConfig), clientConfig);
   });
 
-  it('writes js config to target location as default export', async () => {
+  void it('writes js config to target location as default export', async () => {
     const targetPath = path.join(
       process.cwd(),
       targetDirectory,

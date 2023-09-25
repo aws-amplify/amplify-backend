@@ -17,7 +17,7 @@ import {
 } from '@aws-amplify/plugin-types';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 
-describe('AmplifyStorageFactory', () => {
+void describe('AmplifyStorageFactory', () => {
   let storageFactory: AmplifyStorageFactory;
   let constructContainer: ConstructContainer;
   let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
@@ -45,14 +45,14 @@ describe('AmplifyStorageFactory', () => {
       importPathVerifier,
     };
   });
-  it('returns singleton instance', () => {
+  void it('returns singleton instance', () => {
     const instance1 = storageFactory.getInstance(getInstanceProps);
     const instance2 = storageFactory.getInstance(getInstanceProps);
 
     assert.strictEqual(instance1, instance2);
   });
 
-  it('adds construct to stack', () => {
+  void it('adds construct to stack', () => {
     const storageConstruct = storageFactory.getInstance(getInstanceProps);
 
     const template = Template.fromStack(Stack.of(storageConstruct));
@@ -60,7 +60,7 @@ describe('AmplifyStorageFactory', () => {
     template.resourceCountIs('AWS::S3::Bucket', 1);
   });
 
-  it('sets output in storage strategy', () => {
+  void it('sets output in storage strategy', () => {
     const storeOutputMock = mock.fn();
 
     const outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry> =
@@ -80,7 +80,7 @@ describe('AmplifyStorageFactory', () => {
     assert.strictEqual(storeOutputMock.mock.callCount(), 1);
   });
 
-  it('verifies constructor import path', () => {
+  void it('verifies constructor import path', () => {
     const importPathVerifier = {
       verify: mock.fn(),
     };

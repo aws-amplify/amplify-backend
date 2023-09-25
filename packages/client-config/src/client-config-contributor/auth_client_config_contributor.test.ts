@@ -6,8 +6,8 @@ import {
   graphqlOutputKey,
 } from '@aws-amplify/backend-output-schemas';
 
-describe('AuthClientConfigContributor', () => {
-  it('returns an empty object if output has no auth output', () => {
+void describe('AuthClientConfigContributor', () => {
+  void it('returns an empty object if output has no auth output', () => {
     const contributor = new AuthClientConfigContributor();
     assert.deepStrictEqual(
       contributor.contribute({
@@ -27,7 +27,7 @@ describe('AuthClientConfigContributor', () => {
     );
   });
 
-  it('returns translated config when output has auth', () => {
+  void it('returns translated config when output has auth', () => {
     const contributor = new AuthClientConfigContributor();
     assert.deepStrictEqual(
       contributor.contribute({

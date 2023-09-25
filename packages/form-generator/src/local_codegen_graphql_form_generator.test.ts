@@ -4,7 +4,7 @@ import { it } from 'node:test';
 import { CodegenGraphqlFormGeneratorResult } from './codegen_graphql_form_generation_result.js';
 import { LocalGraphqlFormGenerator } from './local_codegen_graphql_form_generator.js';
 
-it('generates a form', async () => {
+void it('generates a form', async () => {
   const schema = {
     models: {
       Post: {

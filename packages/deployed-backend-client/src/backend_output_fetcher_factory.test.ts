@@ -6,7 +6,7 @@ import {
   isUniqueBackendIdentifier,
 } from './backend_output_fetcher_factory.js';
 
-describe('Backend Identifiers', () => {
+void describe('Backend Identifiers', () => {
   const backendIdentifiers = [
     {
       stackName: 'testStackName',
@@ -21,14 +21,14 @@ describe('Backend Identifiers', () => {
     },
   ];
 
-  it('isStackIdentifier correctly asserts Stack Identifier', () => {
+  void it('isStackIdentifier correctly asserts Stack Identifier', () => {
     const expected = [true, false, false];
     assert(expected.length === backendIdentifiers.length);
     for (let i = 0; i < backendIdentifiers.length; i += 1) {
       assert.equal(isStackIdentifier(backendIdentifiers[i]), expected[i]);
     }
   });
-  it('isUniqueBackendIdentifier correctly asserts Stack Identifier', () => {
+  void it('isUniqueBackendIdentifier correctly asserts Stack Identifier', () => {
     const expected = [false, true, false];
     assert(expected.length === backendIdentifiers.length);
     for (let i = 0; i < backendIdentifiers.length; i += 1) {
@@ -38,7 +38,7 @@ describe('Backend Identifiers', () => {
       );
     }
   });
-  it('isAppNameAndBranchIdentifier correctly asserts Stack Identifier', () => {
+  void it('isAppNameAndBranchIdentifier correctly asserts Stack Identifier', () => {
     const expected = [false, false, true];
     assert(expected.length === backendIdentifiers.length);
     for (let i = 0; i < backendIdentifiers.length; i += 1) {
