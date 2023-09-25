@@ -31,7 +31,7 @@ export class FormGenerationHandler {
     const modelsResult = await graphqlClientGenerator.generateModels({
       language: 'typescript',
     });
-    modelsResult.writeToDirectory(modelsOutDir);
+    await modelsResult.writeToDirectory(modelsOutDir);
     const relativePath = path.relative(uiOutDir, modelsOutDir);
     const localFormGenerator = createLocalGraphqlFormGenerator({
       introspectionSchemaUrl: apiUrl,
