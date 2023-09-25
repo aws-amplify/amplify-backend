@@ -24,29 +24,85 @@ export type DocumentGenerationParameters = {
 export const generateApiCode: (props: GenerateApiCodeProps) => Promise<GenerationResult>;
 
 // @public (undocumented)
+export enum GenerateApiCodeFormat {
+    // (undocumented)
+    GRAPHQL_CODEGEN = "graphql-codegen",
+    // (undocumented)
+    INTROSPECTION = "introspection",
+    // (undocumented)
+    MODELGEN = "modelgen"
+}
+
+// @public (undocumented)
+export enum GenerateApiCodeModelTarget {
+    // (undocumented)
+    DART = "dart",
+    // (undocumented)
+    JAVA = "java",
+    // (undocumented)
+    JAVASCRIPT = "javascript",
+    // (undocumented)
+    SWIFT = "swift",
+    // (undocumented)
+    TYPESCRIPT = "typescript"
+}
+
+// @public (undocumented)
 export type GenerateApiCodeProps = GenerateOptions & BackendIdentifier & {
     credentialProvider: AwsCredentialIdentityProvider;
 };
 
 // @public (undocumented)
+export enum GenerateApiCodeStatementTarget {
+    // (undocumented)
+    ANGULAR = "angular",
+    // (undocumented)
+    FLOW = "flow",
+    // (undocumented)
+    GRAPHQL = "graphql",
+    // (undocumented)
+    JAVASCRIPT = "javascript",
+    // (undocumented)
+    TYPESCRIPT = "typescript"
+}
+
+// @public (undocumented)
+export enum GenerateApiCodeTypeTarget {
+    // (undocumented)
+    ANGULAR = "angular",
+    // (undocumented)
+    FLOW = "flow",
+    // (undocumented)
+    FLOW_MODERN = "flow-modern",
+    // (undocumented)
+    JSON = "json",
+    // (undocumented)
+    SCALA = "scala",
+    // (undocumented)
+    SWIFT = "swift",
+    // (undocumented)
+    TYPESCRIPT = "typescript"
+}
+
+// @public (undocumented)
 export type GenerateGraphqlCodegenOptions = {
-    format: 'graphql-codegen';
-    statementTarget: 'javascript' | 'graphql' | 'flow' | 'typescript' | 'angular';
+    format: GenerateApiCodeFormat.GRAPHQL_CODEGEN;
+    statementTarget: GenerateApiCodeStatementTarget;
     maxDepth?: number;
     typeNameIntrospection?: boolean;
-    typeTarget?: 'json' | 'swift' | 'typescript' | 'flow' | 'scala' | 'flow-modern' | 'angular';
+    typeTarget?: GenerateApiCodeTypeTarget;
     multipleSwiftFiles?: boolean;
 };
 
 // @public (undocumented)
 export type GenerateIntrospectionOptions = {
-    format: 'introspection';
+    format: GenerateApiCodeFormat.INTROSPECTION;
 };
 
 // @public (undocumented)
 export type GenerateModelsOptions = {
-    format: 'modelgen';
-    modelTarget: 'java' | 'swift' | 'javascript' | 'typescript' | 'dart';
+    format: GenerateApiCodeFormat.MODELGEN;
+    modelTarget: GenerateApiCodeModelTarget;
     generateIndexRules?: boolean;
     emitAuthProvider?: boolean;
     useExperimentalPipelinedTransformer?: boolean;

@@ -7,9 +7,41 @@ import { createGraphqlModelsGenerator } from './create_graphql_models_generator.
 import { createGraphqlTypesGenerator } from './create_graphql_types_generator.js';
 import { createGraphqlDocumentGenerator } from './create_graphql_document_generator.js';
 
+export enum GenerateApiCodeFormat {
+  MODELGEN = 'modelgen',
+  GRAPHQL_CODEGEN = 'graphql-codegen',
+  INTROSPECTION = 'introspection',
+}
+
+export enum GenerateApiCodeModelTarget {
+  JAVA = 'java',
+  SWIFT = 'swift',
+  JAVASCRIPT = 'javascript',
+  TYPESCRIPT = 'typescript',
+  DART = 'dart',
+}
+
+export enum GenerateApiCodeStatementTarget {
+  JAVASCRIPT = 'javascript',
+  GRAPHQL = 'graphql',
+  FLOW = 'flow',
+  TYPESCRIPT = 'typescript',
+  ANGULAR = 'angular',
+}
+
+export enum GenerateApiCodeTypeTarget {
+  JSON = 'json',
+  SWIFT = 'swift',
+  TYPESCRIPT = 'typescript',
+  FLOW = 'flow',
+  SCALA = 'scala',
+  FLOW_MODERN = 'flow-modern',
+  ANGULAR = 'angular',
+}
+
 export type GenerateModelsOptions = {
-  format: 'modelgen';
-  modelTarget: 'java' | 'swift' | 'javascript' | 'typescript' | 'dart';
+  format: GenerateApiCodeFormat.MODELGEN;
+  modelTarget: GenerateApiCodeModelTarget;
   generateIndexRules?: boolean;
   emitAuthProvider?: boolean;
   useExperimentalPipelinedTransformer?: boolean;
@@ -21,23 +53,16 @@ export type GenerateModelsOptions = {
 };
 
 export type GenerateGraphqlCodegenOptions = {
-  format: 'graphql-codegen';
-  statementTarget: 'javascript' | 'graphql' | 'flow' | 'typescript' | 'angular';
+  format: GenerateApiCodeFormat.GRAPHQL_CODEGEN;
+  statementTarget: GenerateApiCodeStatementTarget;
   maxDepth?: number;
   typeNameIntrospection?: boolean;
-  typeTarget?:
-    | 'json'
-    | 'swift'
-    | 'typescript'
-    | 'flow'
-    | 'scala'
-    | 'flow-modern'
-    | 'angular';
+  typeTarget?: GenerateApiCodeTypeTarget;
   multipleSwiftFiles?: boolean;
 };
 
 export type GenerateIntrospectionOptions = {
-  format: 'introspection';
+  format: GenerateApiCodeFormat.INTROSPECTION;
 };
 
 export type GenerateOptions =
