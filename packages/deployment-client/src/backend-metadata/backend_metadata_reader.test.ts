@@ -4,7 +4,6 @@ import {
   CloudFormation,
   DeleteStackCommand,
   DescribeStacksCommand,
-  GetTemplateSummaryCommand,
   ListStacksCommand,
   StackStatus,
 } from '@aws-sdk/client-cloudformation';
@@ -13,10 +12,6 @@ import {
   BackendDeploymentStatus,
   BackendDeploymentType,
 } from '../deployment_client.js';
-import {
-  BackendOutputClient,
-  BackendOutputClientInterface,
-} from '@aws-amplify/deployed-backend-client';
 import {
   authOutputKey,
   graphqlOutputKey,
