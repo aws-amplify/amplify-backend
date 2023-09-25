@@ -9,6 +9,10 @@ on:
       - main
 
 jobs:
+  testing:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo $GITHUB_CONTEXT
   install:
     strategy:
       matrix:
