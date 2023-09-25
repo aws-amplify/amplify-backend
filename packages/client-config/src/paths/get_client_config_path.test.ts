@@ -67,8 +67,8 @@ describe('getClientConfigPath', () => {
     );
   });
 
-  it('throw error if it is provided a file path', () => {
-    assert.rejects(
+  it('throw error if it is provided a file path', async () => {
+    await assert.rejects(
       async () => await getClientConfigPath(`${testPath}/testConfig.json`),
       new Error(
         "ENOENT: no such file or directory, lstat 'some/path/testConfig.json'"
@@ -76,8 +76,8 @@ describe('getClientConfigPath', () => {
     );
   });
 
-  it('throw error if it is provided invalid path', () => {
-    assert.rejects(
+  it('throw error if it is provided invalid path', async () => {
+    await assert.rejects(
       async () => await getClientConfigPath('some/not/existing/path'),
       new Error(
         "ENOENT: no such file or directory, lstat 'some/not/existing/path'"

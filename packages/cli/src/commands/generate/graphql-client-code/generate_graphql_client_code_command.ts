@@ -1,7 +1,10 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
 import { isAbsolute, resolve } from 'path';
-import { GenerateApiCodeAdapter } from './generate_api_code_adapter.js';
+import {
+  GenerateApiCodeAdapter,
+  InvokeGenerateApiCodeProps,
+} from './generate_api_code_adapter.js';
 import {
   GenerateApiCodeFormat,
   GenerateApiCodeModelTarget,
@@ -62,7 +65,7 @@ export class GenerateGraphqlClientCodeCommand
     format: string,
     args: ArgumentsCamelCase<GenerateGraphqlClientCodeCommandOptions>
   ):
-    | {}
+    | object
     | Pick<
         GenerateGraphqlCodegenOptions,
         'statementTarget' | 'typeTarget' | 'maxDepth' | 'multipleSwiftFiles'
@@ -141,14 +144,14 @@ export class GenerateGraphqlClientCodeCommand
       args
     );
     const out = this.getOutDir(args);
-    const format = args.format ?? ('graphql-codegen' as unknown as any);
+    const format = args.format ?? 'graphql-codegen';
     const formatParams = this.getFormatParams(format, args);
 
     const result = await this.generateApiCodeAdapter.invokeGenerateApiCode({
       ...backendIdentifier,
       format,
       ...formatParams,
-    });
+    } as unknown as InvokeGenerateApiCodeProps);
 
     await result.writeToDirectory(out);
   };

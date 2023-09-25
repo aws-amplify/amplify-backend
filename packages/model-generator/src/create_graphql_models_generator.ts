@@ -47,7 +47,7 @@ const getModelSchema = async (
   const modelSchemaS3Uri =
     output[graphqlOutputKey]?.payload.amplifyApiModelSchemaS3Uri;
   if (!modelSchemaS3Uri) {
-    throw new Error(`Cannot find model schema at ${modelSchemaS3Uri}`);
+    throw new Error(`Cannot find model schema at amplifyApiModelSchemaS3Uri`);
   }
 
   const s3Client = new S3Client({
