@@ -32,11 +32,10 @@ describe('sandbox command', () => {
 
     sandboxStartMock = mock.method(sandbox, 'start', () => Promise.resolve());
     const sandboxDeleteCommand = new SandboxDeleteCommand(sandboxFactory);
-    const sandboxCommand = new SandboxCommand(
-      sandboxFactory,
+    const sandboxCommand = new SandboxCommand(sandboxFactory, [
       sandboxDeleteCommand,
-      createSandboxSecretCommand()
-    );
+      createSandboxSecretCommand(),
+    ]);
     const parser = yargs().command(sandboxCommand as unknown as CommandModule);
     commandRunner = new TestCommandRunner(parser);
     sandboxStartMock.mock.resetCalls();

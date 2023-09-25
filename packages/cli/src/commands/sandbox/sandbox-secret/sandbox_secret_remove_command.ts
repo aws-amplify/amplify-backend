@@ -37,17 +37,13 @@ export class SandboxSecretRemoveCommand
     args: ArgumentsCamelCase<SecretRemoveCommandOptions>
   ): Promise<void> => {
     const backendId = await this.sandboxIdResolver.resolve();
-    if (args.secretName) {
-      await this.secretClient.removeSecret(
-        {
-          backendId,
-          branchName: SANDBOX_BRANCH,
-        },
-        args.secretName
-      );
-    } else {
-      throw new Error('empty secret name');
-    }
+    await this.secretClient.removeSecret(
+      {
+        backendId,
+        branchName: SANDBOX_BRANCH,
+      },
+      args.secretName
+    );
   };
 
   /**
@@ -63,5 +59,5 @@ export class SandboxSecretRemoveCommand
 }
 
 type SecretRemoveCommandOptions = {
-  secretName: string | undefined;
+  secretName: string;
 };

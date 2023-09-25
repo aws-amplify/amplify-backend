@@ -1,5 +1,7 @@
+import { EOL } from 'os';
+
 /**
- * Wrapper for printer library.
+ * The class that pretty prints to the console.
  */
 export class Printer {
   /**
@@ -11,7 +13,7 @@ export class Printer {
     let message = '';
     const entries = Object.entries(object);
     entries.forEach(([key, val]) => {
-      message = message.concat(` ${key}: ${val}\n`);
+      message = message.concat(` ${key}: ${val}${EOL}`);
     });
     console.log(message);
   };

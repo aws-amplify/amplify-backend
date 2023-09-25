@@ -1,4 +1,4 @@
-import { beforeEach, describe, it } from 'node:test';
+import { describe, it } from 'node:test';
 import yargs, { CommandModule } from 'yargs';
 import {
   TestCommandError,
@@ -13,25 +13,21 @@ import { SandboxSecretGetCommand } from './sandbox_secret_get_command.js';
 const testBackendId = 'testBackendId';
 
 describe('sandbox secret command', () => {
-  let commandRunner: TestCommandRunner;
-
-  beforeEach(async () => {
-    const secretClient = getSecretClient();
-    const sandboxIdResolver = new SandboxIdResolver({
-      resolve: () => Promise.resolve(testBackendId),
-    });
-
-    // Creates only a 'get' subcommand.
-    const sandboxSecretCmd = new SandboxSecretCommand(
-      new SandboxSecretGetCommand(
-        sandboxIdResolver,
-        secretClient
-      ) as unknown as CommandModule
-    );
-
-    const parser = yargs().command(sandboxSecretCmd);
-    commandRunner = new TestCommandRunner(parser);
+  const secretClient = getSecretClient();
+  const sandboxIdResolver = new SandboxIdResolver({
+    resolve: () => Promise.resolve(testBackendId),
   });
+
+  // Creates only a 'get' subcommand.
+  const sandboxSecretCmd = new SandboxSecretCommand([
+    new SandboxSecretGetCommand(
+      sandboxIdResolver,
+      secretClient
+    ) as unknown as CommandModule,
+  ]);
+
+  const parser = yargs().command(sandboxSecretCmd);
+  const commandRunner = new TestCommandRunner(parser);
 
   it('show --help', async () => {
     const output = await commandRunner.runCommand('secret --help');

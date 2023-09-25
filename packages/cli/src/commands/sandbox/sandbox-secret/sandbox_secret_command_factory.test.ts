@@ -1,4 +1,4 @@
-import { beforeEach, describe, it } from 'node:test';
+import { describe, it } from 'node:test';
 import yargs from 'yargs';
 import {
   TestCommandError,
@@ -8,14 +8,10 @@ import assert from 'node:assert';
 import { createSandboxSecretCommand } from './sandbox_secret_command_factory.js';
 
 describe('sandbox secret command factory', () => {
-  let commandRunner: TestCommandRunner;
+  const sandboxSecretCmd = createSandboxSecretCommand();
 
-  beforeEach(async () => {
-    const sandboxSecretCmd = createSandboxSecretCommand();
-
-    const parser = yargs().command(sandboxSecretCmd);
-    commandRunner = new TestCommandRunner(parser);
-  });
+  const parser = yargs().command(sandboxSecretCmd);
+  const commandRunner = new TestCommandRunner(parser);
 
   it('show --help', async () => {
     const output = await commandRunner.runCommand('secret --help');

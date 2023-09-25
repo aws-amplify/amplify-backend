@@ -20,9 +20,8 @@ export const createSandboxCommand = (): CommandModule<
   );
   const sandboxFactory = new SandboxSingletonFactory(sandboxIdResolver.resolve);
 
-  return new SandboxCommand(
-    sandboxFactory,
+  return new SandboxCommand(sandboxFactory, [
     new SandboxDeleteCommand(sandboxFactory),
-    createSandboxSecretCommand()
-  );
+    createSandboxSecretCommand(),
+  ]);
 };

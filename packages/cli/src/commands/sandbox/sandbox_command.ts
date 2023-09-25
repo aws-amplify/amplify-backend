@@ -38,7 +38,7 @@ export class SandboxCommand
    */
   constructor(
     private readonly sandboxFactory: SandboxSingletonFactory,
-    ...sandboxSubCommands: CommandModule[]
+    sandboxSubCommands: CommandModule[]
   ) {
     this.command = 'sandbox';
     this.describe = 'Starts sandbox, watch mode for amplify deployments';

@@ -18,7 +18,7 @@ export class SandboxSecretCommand implements CommandModule<object> {
   /**
    * Root command to manage sandbox secret
    */
-  constructor(...subCommands: CommandModule[]) {
+  constructor(subCommands: CommandModule[]) {
     this.command = 'secret <command>';
     this.describe = 'Manage sandbox secret';
     this.sandboxSecretSubCommands = subCommands;

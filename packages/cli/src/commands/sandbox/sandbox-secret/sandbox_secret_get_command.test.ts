@@ -14,54 +14,63 @@ import {
 import { SandboxSecretGetCommand } from './sandbox_secret_get_command.js';
 import { SANDBOX_BRANCH } from './constants.js';
 import { BackendId, UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import { Printer } from '../../printer/printer.js';
 
 const testSecretName = 'testSecretName';
 const testBackendId = 'testBackendId';
+const testSecretIdentifier: SecretIdentifier = {
+  name: testSecretName,
+};
+const testSecret: Secret = {
+  ...testSecretIdentifier,
+  version: 100,
+  value: 'testValue',
+};
 
 describe('sandbox secret get command', () => {
-  let commandRunner: TestCommandRunner;
-  let secretGetMock =
-    mock.fn<
-      (
-        backendId: UniqueBackendIdentifier | BackendId,
-        secretId: SecretIdentifier
-      ) => Promise<Secret | undefined>
-    >();
+  const secretClient = getSecretClient();
+  let secretGetMock = mock.method(
+    secretClient,
+    'getSecret',
+    (): Promise<Secret | undefined> => Promise.resolve(testSecret)
+  );
+
+  const sandboxIdResolver = new SandboxIdResolver({
+    resolve: () => Promise.resolve(testBackendId),
+  });
+
+  const sandboxSecretGetCmd = new SandboxSecretGetCommand(
+    sandboxIdResolver,
+    secretClient
+  );
+
+  const parser = yargs().command(
+    sandboxSecretGetCmd as unknown as CommandModule
+  );
+
+  const commandRunner = new TestCommandRunner(parser);
 
   beforeEach(async () => {
-    const secretClient = getSecretClient();
-
-    secretGetMock = mock.method(
-      secretClient,
-      'getSecret',
-      (): Promise<Secret | undefined> => Promise.resolve({} as Secret)
-    );
-    const sandboxIdResolver = new SandboxIdResolver({
-      resolve: () => Promise.resolve(testBackendId),
-    });
-
-    const sandboxSecretGetCmd = new SandboxSecretGetCommand(
-      sandboxIdResolver,
-      secretClient
-    );
-
-    const parser = yargs().command(
-      sandboxSecretGetCmd as unknown as CommandModule
-    );
-    commandRunner = new TestCommandRunner(parser);
     secretGetMock.mock.resetCalls();
   });
 
-  it('gets a secret', async () => {
+  it('gets a secret', async (contextual) => {
+    const mockPrintRecord = contextual.mock.method(Printer, 'printRecord');
+
     await commandRunner.runCommand(`get ${testSecretName}`);
+
     assert.equal(secretGetMock.mock.callCount(), 1);
     const backendIdentifier = secretGetMock.mock.calls[0]
       .arguments[0] as UniqueBackendIdentifier;
     assert.match(backendIdentifier.backendId, new RegExp(testBackendId));
     assert.equal(backendIdentifier.branchName, SANDBOX_BRANCH);
-    assert.deepStrictEqual(secretGetMock.mock.calls[0].arguments[1], {
-      name: testSecretName,
-    });
+    assert.deepStrictEqual(
+      secretGetMock.mock.calls[0].arguments[1],
+      testSecretIdentifier
+    );
+
+    assert.equal(mockPrintRecord.mock.callCount(), 1);
+    assert.equal(mockPrintRecord.mock.calls[0].arguments[0], testSecret);
   });
 
   it('show --help', async () => {

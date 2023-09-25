@@ -40,16 +40,12 @@ export class SandboxSecretSetCommand
   ): Promise<void> => {
     const secretVal = await AmplifyPrompter.secretValue();
     const backendId = await this.sandboxIdResolver.resolve();
-    if (args.secretName) {
-      const secretId = await this.secretClient.setSecret(
-        { backendId, branchName: SANDBOX_BRANCH },
-        args.secretName,
-        secretVal
-      );
-      Printer.printRecord(secretId);
-    } else {
-      throw new Error('empty secret name');
-    }
+    const secretId = await this.secretClient.setSecret(
+      { backendId, branchName: SANDBOX_BRANCH },
+      args.secretName,
+      secretVal
+    );
+    Printer.printRecord(secretId);
   };
 
   /**
@@ -65,5 +61,5 @@ export class SandboxSecretSetCommand
 }
 
 type SecretSetCommandOptions = {
-  secretName: string | undefined;
+  secretName: string;
 };

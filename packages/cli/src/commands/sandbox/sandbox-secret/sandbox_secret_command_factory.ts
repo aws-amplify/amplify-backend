@@ -36,10 +36,10 @@ export const createSandboxSecretCommand = (): CommandModule => {
     secretClient
   );
 
-  return new SandboxSecretCommand(
+  return new SandboxSecretCommand([
     setCommand as unknown as CommandModule,
     removeCommand as unknown as CommandModule,
     getCommand as unknown as CommandModule,
-    listCommand
-  );
+    listCommand,
+  ]);
 };

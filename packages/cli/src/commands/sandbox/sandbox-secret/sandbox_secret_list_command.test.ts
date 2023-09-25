@@ -6,43 +6,49 @@ import { SandboxIdResolver } from '../sandbox_id_resolver.js';
 import { SecretIdentifier, getSecretClient } from '@aws-amplify/backend-secret';
 import { SANDBOX_BRANCH } from './constants.js';
 import { SandboxSecretListCommand } from './sandbox_secret_list_command.js';
-import { BackendId, UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import { Printer } from '../../printer/printer.js';
 
 const testBackendId = 'testBackendId';
 
+const testSecretIds: SecretIdentifier[] = [
+  {
+    name: 'testSecret1',
+    version: 12,
+  },
+  {
+    name: 'testSecret2',
+    version: 24,
+  },
+];
+
 describe('sandbox secret list command', () => {
-  let commandRunner: TestCommandRunner;
-  let secretListMock =
-    mock.fn<
-      (
-        backendId: UniqueBackendIdentifier | BackendId,
-        branchName?: string
-      ) => Promise<SecretIdentifier[] | undefined>
-    >();
+  const secretClient = getSecretClient();
+  const secretListMock = mock.method(
+    secretClient,
+    'listSecrets',
+    (): Promise<SecretIdentifier[] | undefined> =>
+      Promise.resolve(testSecretIds)
+  );
+  const sandboxIdResolver = new SandboxIdResolver({
+    resolve: () => Promise.resolve(testBackendId),
+  });
+
+  const sandboxSecretListCmd = new SandboxSecretListCommand(
+    sandboxIdResolver,
+    secretClient
+  );
+
+  const parser = yargs().command(sandboxSecretListCmd);
+  const commandRunner = new TestCommandRunner(parser);
 
   beforeEach(async () => {
-    const secretClient = getSecretClient();
-
-    secretListMock = mock.method(
-      secretClient,
-      'listSecrets',
-      (): Promise<SecretIdentifier[] | undefined> => Promise.resolve([])
-    );
-    const sandboxIdResolver = new SandboxIdResolver({
-      resolve: () => Promise.resolve(testBackendId),
-    });
-
-    const sandboxSecretListCmd = new SandboxSecretListCommand(
-      sandboxIdResolver,
-      secretClient
-    );
-
-    const parser = yargs().command(sandboxSecretListCmd);
-    commandRunner = new TestCommandRunner(parser);
     secretListMock.mock.resetCalls();
   });
 
-  it('list secrets', async () => {
+  it('list secrets', async (contextual) => {
+    const mockPrintRecords = contextual.mock.method(Printer, 'printRecords');
+
     await commandRunner.runCommand(`list`);
     assert.equal(secretListMock.mock.callCount(), 1);
 
@@ -50,6 +56,9 @@ describe('sandbox secret list command', () => {
       .arguments[0] as UniqueBackendIdentifier;
     assert.match(backendIdentifier.backendId, new RegExp(testBackendId));
     assert.equal(backendIdentifier.branchName, SANDBOX_BRANCH);
+
+    assert.equal(mockPrintRecords.mock.callCount(), 1);
+    assert.equal(mockPrintRecords.mock.calls[0].arguments[0], testSecretIds);
   });
 
   it('show --help', async () => {

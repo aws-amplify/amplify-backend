@@ -38,16 +38,12 @@ export class SandboxSecretGetCommand
     args: ArgumentsCamelCase<SecretGetCommandOptions>
   ): Promise<void> => {
     const backendId = await this.sandboxIdResolver.resolve();
-    if (args.secretName) {
-      const secret = await this.secretClient.getSecret(
-        { backendId, branchName: SANDBOX_BRANCH },
-        { name: args.secretName }
-      );
-      if (secret) {
-        Printer.printRecord(secret);
-      }
-    } else {
-      throw new Error('empty secret name');
+    const secret = await this.secretClient.getSecret(
+      { backendId, branchName: SANDBOX_BRANCH },
+      { name: args.secretName }
+    );
+    if (secret) {
+      Printer.printRecord(secret);
     }
   };
 
@@ -66,5 +62,5 @@ export class SandboxSecretGetCommand
 }
 
 type SecretGetCommandOptions = {
-  secretName: string | undefined;
+  secretName: string;
 };

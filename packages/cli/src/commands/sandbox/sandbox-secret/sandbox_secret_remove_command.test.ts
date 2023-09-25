@@ -14,37 +14,30 @@ import { BackendId, UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 const testSecretName = 'testSecretName';
 const testBackendId = 'testBackendId';
 
-describe('sandbox secret set command', () => {
-  let commandRunner: TestCommandRunner;
-  let secretRemoveMock =
-    mock.fn<
-      (
-        backendId: UniqueBackendIdentifier | BackendId,
-        secretName: string
-      ) => Promise<void>
-    >();
+describe('sandbox secret remove command', () => {
+  const secretClient = getSecretClient();
+  const secretRemoveMock = mock.method(
+    secretClient,
+    'removeSecret',
+    (): Promise<void> => Promise.resolve()
+  );
+
+  const sandboxIdResolver = new SandboxIdResolver({
+    resolve: () => Promise.resolve('testBackendId'),
+  });
+
+  const sandboxSecretRemoveCmd = new SandboxSecretRemoveCommand(
+    sandboxIdResolver,
+    secretClient
+  );
+
+  const parser = yargs().command(
+    sandboxSecretRemoveCmd as unknown as CommandModule
+  );
+
+  const commandRunner = new TestCommandRunner(parser);
 
   beforeEach(async () => {
-    const secretClient = getSecretClient();
-
-    secretRemoveMock = mock.method(
-      secretClient,
-      'removeSecret',
-      (): Promise<void> => Promise.resolve()
-    );
-    const sandboxIdResolver = new SandboxIdResolver({
-      resolve: () => Promise.resolve('testBackendId'),
-    });
-
-    const sandboxSecretRemoveCmd = new SandboxSecretRemoveCommand(
-      sandboxIdResolver,
-      secretClient
-    );
-
-    const parser = yargs().command(
-      sandboxSecretRemoveCmd as unknown as CommandModule
-    );
-    commandRunner = new TestCommandRunner(parser);
     secretRemoveMock.mock.resetCalls();
   });
 

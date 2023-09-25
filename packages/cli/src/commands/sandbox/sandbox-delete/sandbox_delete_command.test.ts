@@ -22,11 +22,10 @@ describe('sandbox delete command', () => {
     ) as never; // couldn't figure out a good way to type the sandboxDeleteMock so that TS was happy here
 
     const sandboxDeleteCommand = new SandboxDeleteCommand(sandboxFactory);
-    const sandboxCommand = new SandboxCommand(
-      sandboxFactory,
+    const sandboxCommand = new SandboxCommand(sandboxFactory, [
       sandboxDeleteCommand,
-      createSandboxSecretCommand()
-    );
+      createSandboxSecretCommand(),
+    ]);
     const parser = yargs().command(sandboxCommand as unknown as CommandModule);
     commandRunner = new TestCommandRunner(parser);
     sandboxDeleteMock.mock.resetCalls();
