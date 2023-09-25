@@ -29,7 +29,7 @@ const testSecret: Secret = {
 
 describe('sandbox secret get command', () => {
   const secretClient = getSecretClient();
-  let secretGetMock = mock.method(
+  const secretGetMock = mock.method(
     secretClient,
     'getSecret',
     (): Promise<Secret | undefined> => Promise.resolve(testSecret)
