@@ -6,7 +6,7 @@ import {
   deleteSandbox,
   getBackendMetadata,
   listSandboxes,
-} from './get_backend_metadata.js';
+} from './deployment_client.js';
 import { BackendMetadataReaderFactory } from './backend-metadata/backend_metadata_reader_factory.js';
 
 const backendMetadataReader = BackendMetadataReaderFactory.getInstance();

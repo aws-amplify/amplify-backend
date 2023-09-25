@@ -5,6 +5,7 @@
 ```ts
 
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
+import { BackendOutput } from '@aws-amplify/plugin-types';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 // @public
@@ -17,10 +18,10 @@ export type AppNameAndBranchBackendIdentifier = {
 export type BackendIdentifier = UniqueBackendIdentifier | StackIdentifier | AppNameAndBranchBackendIdentifier;
 
 // @public
-export class BackendOutputClient {
-    constructor(credentials: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier);
+export class BackendOutputClient implements BackendOutputClientInterface {
+    constructor(credentials: AwsCredentialIdentityProvider);
     // (undocumented)
-    getOutput: () => Promise<{
+    getOutput: (backendIdentifier: BackendIdentifier) => Promise<{
         "AWS::Amplify::Auth"?: {
             version: "1";
             payload: {
@@ -54,6 +55,25 @@ export class BackendOutputClient {
         } | undefined;
     }>;
 }
+
+// @public (undocumented)
+export interface BackendOutputClientInterface {
+    // (undocumented)
+    readonly getOutput: (backendIdentifier: BackendIdentifier) => Promise<BackendOutput>;
+}
+
+// @public
+export const getMainStackName: (uniqueDeploymentIdentifier: UniqueBackendIdentifier) => string;
+
+// @public (undocumented)
+export const mainStackNamePrefix = "amplify";
+
+// @public (undocumented)
+export class MetadataRetrievalError extends Error {
+}
+
+// @public (undocumented)
+export const sandboxStackNameSuffix = "sandbox";
 
 // @public (undocumented)
 export type StackIdentifier = {

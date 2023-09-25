@@ -4,18 +4,25 @@
 
 ```ts
 
+import { StatementsTarget } from '@aws-amplify/graphql-generator';
+import { TypesTarget } from '@aws-amplify/graphql-generator';
+
 // @public
 export const createGraphqlDocumentGenerator: ({ apiId, }: GraphqlDocumentGeneratorFactoryParams) => GraphqlDocumentGenerator;
 
 // @public (undocumented)
 export type DocumentGenerationParameters = {
     language: TargetLanguage;
-    outDir: string;
+};
+
+// @public (undocumented)
+export type GenerationResult = {
+    writeToDirectory: (directoryPath: string) => Promise<void>;
 };
 
 // @public (undocumented)
 export type GraphqlDocumentGenerator = {
-    generateModels: (params: DocumentGenerationParameters) => Promise<void>;
+    generateModels: (params: DocumentGenerationParameters) => Promise<GenerationResult>;
 };
 
 // @public (undocumented)
@@ -24,7 +31,17 @@ export type GraphqlDocumentGeneratorFactoryParams = {
 };
 
 // @public (undocumented)
-export type TargetLanguage = 'typescript';
+export type GraphqlTypesGenerator = {
+    generateTypes: (params: TypesGenerationParameters) => Promise<GenerationResult>;
+};
+
+// @public (undocumented)
+export type TargetLanguage = StatementsTarget;
+
+// @public (undocumented)
+export type TypesGenerationParameters = {
+    target: TypesTarget;
+};
 
 // (No @packageDocumentation comment for this package)
 

@@ -8,24 +8,27 @@ import {
   StackStatus,
   StackSummary,
 } from '@aws-sdk/client-cloudformation';
-import {
-  getMainStackName,
-  mainStackNamePrefix,
-  sandboxStackNameSuffix,
-} from '../get_main_stack_name.js';
+
 import {
   authOutputKey,
   graphqlOutputKey,
   storageOutputKey,
-  unifiedBackendOutputSchema,
 } from '@aws-amplify/backend-output-schemas';
-import { StackMetadataBackendOutputRetrievalStrategy } from '../stack_metadata_output_retrieval_strategy.js';
-import { PassThroughMainStackNameResolver } from '../stack-name-resolvers/passthrough_main_stack_name_resolver.js';
+
 import {
   BackendDeploymentStatus,
   BackendDeploymentType,
   BackendMetadata,
-} from '../get_backend_metadata.js';
+} from '../deployment_client.js';
+import {
+  BackendOutputClient,
+  BackendOutputClientInterface,
+  MetadataRetrievalError,
+  getMainStackName,
+  mainStackNamePrefix,
+  sandboxStackNameSuffix,
+} from '@aws-amplify/deployed-backend-client';
+import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 
 const translateStackStatus = (
   status: StackStatus | string | undefined
@@ -69,10 +72,24 @@ const translateStackStatus = (
  * Parses stack metadata to be read by web client
  */
 export class BackendMetadataReader {
+  private backendOutput: BackendOutputClientInterface;
+
   /**
-   * Provide the factory with AWS credentials. These credentials will be used to configure underlying SDK clients for resolving backend output.
+   * Constructor for backend metadata reader
    */
-  constructor(private readonly cfnClient: CloudFormationClient) {}
+  constructor(
+    private readonly cfnClient: CloudFormationClient,
+    backendOutputClient?: BackendOutputClientInterface
+  ) {
+    if (!backendOutputClient) {
+      const credentials = this.cfnClient.config.credentials();
+      const credentialProvider: AwsCredentialIdentityProvider = () =>
+        credentials;
+      this.backendOutput = new BackendOutputClient(credentialProvider);
+    } else {
+      this.backendOutput = backendOutputClient;
+    }
+  }
 
   /**
    * Returns metadata for all sandbox stacks
@@ -87,8 +104,11 @@ export class BackendMetadataReader {
             stackSummary.StackName as string
           );
         } catch (err) {
-          // if backend metadata cannot be built, it is not an Amplify stack
-          return;
+          if (err instanceof MetadataRetrievalError) {
+            // if backend metadata cannot be built, it is not an Amplify stack
+            return;
+          }
+          throw err;
         }
       });
     const allStackMetadata = (
@@ -105,7 +125,7 @@ export class BackendMetadataReader {
   ): Promise<BackendMetadata> => {
     const stackName = getMainStackName(uniqueBackendIdentifier);
     await this.cfnClient.send(new DeleteStackCommand({ StackName: stackName }));
-    return await this.buildBackendMetadata(stackName);
+    return this.buildBackendMetadata(stackName);
   };
 
   /**
@@ -115,7 +135,7 @@ export class BackendMetadataReader {
     uniqueBackendIdentifier: UniqueBackendIdentifier
   ): Promise<BackendMetadata> => {
     const stackName = getMainStackName(uniqueBackendIdentifier);
-    return await this.buildBackendMetadata(stackName);
+    return this.buildBackendMetadata(stackName);
   };
 
   private listStacks = async (): Promise<StackSummary[]> => {
@@ -143,18 +163,11 @@ export class BackendMetadataReader {
   private buildBackendMetadata = async (
     stackName: string
   ): Promise<BackendMetadata> => {
-    const mainStackNameResolver = new PassThroughMainStackNameResolver({
+    const backendIdentifier = {
       stackName,
-    });
-    const outputRetrievalStrategy =
-      new StackMetadataBackendOutputRetrievalStrategy(
-        this.cfnClient,
-        mainStackNameResolver
-      );
-    const backendOutput = unifiedBackendOutputSchema.parse(
-      await outputRetrievalStrategy.fetchBackendOutput()
-    );
+    };
 
+    const backendOutput = await this.backendOutput.getOutput(backendIdentifier);
     const stackDescription = await this.cfnClient.send(
       new DescribeStacksCommand({ StackName: stackName })
     );

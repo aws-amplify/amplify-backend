@@ -9,6 +9,7 @@ import {
   MainStackNameResolver,
 } from '@aws-amplify/plugin-types';
 import { backendOutputStackMetadataSchema } from '@aws-amplify/backend-output-schemas/platform';
+import { MetadataRetrievalError } from './index.js';
 
 /**
  * Gets Amplify backend outputs from stack metadata and outputs
@@ -38,7 +39,9 @@ export class StackMetadataBackendOutputRetrievalStrategy
       new GetTemplateSummaryCommand({ StackName: stackName })
     );
     if (typeof templateSummary.Metadata !== 'string') {
-      throw new Error('Stack template metadata is not a string');
+      throw new MetadataRetrievalError(
+        'Stack template metadata is not a string'
+      );
     }
 
     const metadataObject = JSON.parse(templateSummary.Metadata);
@@ -53,7 +56,7 @@ export class StackMetadataBackendOutputRetrievalStrategy
     );
     const outputs = stackDescription?.Stacks?.[0]?.Outputs;
     if (outputs === undefined) {
-      throw new Error('Stack outputs are undefined');
+      throw new MetadataRetrievalError('Stack outputs are undefined');
     }
 
     // outputs is a list of output entries. here we turn that into a Record<name, value> object
@@ -75,7 +78,9 @@ export class StackMetadataBackendOutputRetrievalStrategy
       const outputData = entry.stackOutputs.reduce(
         (accumulator, outputName) => {
           if (stackOutputRecord[outputName] === undefined) {
-            throw new Error(`Output ${outputName} not found in stack`);
+            throw new MetadataRetrievalError(
+              `Output ${outputName} not found in stack`
+            );
           }
           return {
             ...accumulator,

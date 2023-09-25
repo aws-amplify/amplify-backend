@@ -1,6 +1,6 @@
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
-import { sandboxStackNameSuffix } from './get_main_stack_name.js';
 import { BackendMetadataReaderFactory } from './backend-metadata/backend_metadata_reader_factory.js';
+import { sandboxStackNameSuffix } from '@aws-amplify/deployed-backend-client';
 
 export type BackendMetadata = {
   name: string;

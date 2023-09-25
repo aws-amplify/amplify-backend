@@ -1,5 +1,6 @@
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { BackendMetadataReader } from './backend_metadata_reader.js';
+import { BackendOutputClient } from '@aws-amplify/deployed-backend-client';
 
 /**
  * Factory to create a backend metadata reader
@@ -14,7 +15,8 @@ export class BackendMetadataReaderFactory {
     if (!BackendMetadataReaderFactory.instance) {
       const cfnClient = new CloudFormationClient();
       BackendMetadataReaderFactory.instance = new BackendMetadataReader(
-        cfnClient
+        cfnClient,
+        new BackendOutputClient(() => cfnClient.config.credentials())
       );
     }
     return BackendMetadataReaderFactory.instance;

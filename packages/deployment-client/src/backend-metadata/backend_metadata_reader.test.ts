@@ -12,12 +12,17 @@ import { BackendMetadataReader } from './backend_metadata_reader.js';
 import {
   BackendDeploymentStatus,
   BackendDeploymentType,
-} from '../get_backend_metadata.js';
-
-const mockCfnClient = new CloudFormation();
-const cfnClientSendMock = mock.fn();
-mock.method(mockCfnClient, 'send', cfnClientSendMock);
-const backendMetadataReader = new BackendMetadataReader(mockCfnClient);
+} from '../deployment_client.js';
+import {
+  BackendOutputClient,
+  BackendOutputClientInterface,
+} from '@aws-amplify/deployed-backend-client';
+import {
+  authOutputKey,
+  graphqlOutputKey,
+  storageOutputKey,
+} from '@aws-amplify/backend-output-schemas';
+import { BackendOutput } from '@aws-amplify/plugin-types';
 
 const listStacksMock = {
   StackSummaries: [
@@ -104,55 +109,73 @@ const describeStacksMock = {
   ],
 };
 
-const getTemplateSummaryMock = {
-  Metadata:
-    '{"AWS::Amplify::Output":{"authOutput":{"version":"1","stackOutputs":["userPoolId","webClientId","identityPoolId","authRegion"]},"storageOutput":{"version":"1","stackOutputs":["storageRegion","bucketName"]},"graphqlOutput":{"version":"1","stackOutputs":["awsAppsyncApiId","awsAppsyncApiEndpoint","awsAppsyncAuthenticationType","awsAppsyncRegion","amplifyApiModelSchemaS3Uri"]}}}',
-};
-
 const deleteStackMock = undefined;
+
+const getOutputMockResponse = {
+  [authOutputKey]: {
+    payload: {
+      userPoolId: 'testUserPoolId',
+    },
+  },
+  [storageOutputKey]: {
+    payload: {
+      bucketName: 'testBucketName',
+    },
+  },
+  [graphqlOutputKey]: {
+    payload: {
+      awsAppsyncApiEndpoint: 'testAwsAppsyncApiEndpoint',
+    },
+  },
+};
 
 const expectedMetadata = {
   lastUpdated: undefined,
   status: BackendDeploymentStatus.DEPLOYED,
   authConfiguration: {
-    userPoolId: 'us-east-1_HNkNiDMQF',
+    userPoolId: 'testUserPoolId',
     lastUpdated: undefined,
     status: BackendDeploymentStatus.DEPLOYED,
   },
   storageConfiguration: {
-    s3BucketName: 'storageBucketNameValue',
+    s3BucketName: 'testBucketName',
     lastUpdated: undefined,
     status: BackendDeploymentStatus.DEPLOYING,
   },
   apiConfiguration: {
-    graphqlEndpoint: 'https://example.com/graphql',
+    graphqlEndpoint: 'testAwsAppsyncApiEndpoint',
     lastUpdated: undefined,
     status: BackendDeploymentStatus.FAILED,
   },
 };
 
 describe('BackendMetadataReader', () => {
+  let backendMetadataReader: BackendMetadataReader;
+
   beforeEach(() => {
+    const mockCfnClient = new CloudFormation();
+    const cfnClientSendMock = mock.fn();
+    const getOutputMock = mock.fn();
+    getOutputMock.mock.mockImplementation(() => getOutputMockResponse);
+    mock.method(mockCfnClient, 'send', cfnClientSendMock);
+
+    getOutputMock.mock.resetCalls();
     cfnClientSendMock.mock.resetCalls();
+    const mockImplementation = (
+      request: ListStacksCommand | DescribeStacksCommand | DeleteStackCommand
+    ) => {
+      if (request instanceof ListStacksCommand) return listStacksMock;
+      if (request instanceof DescribeStacksCommand) return describeStacksMock;
+      if (request instanceof DeleteStackCommand) return deleteStackMock;
+      throw request;
+    };
 
-    cfnClientSendMock.mock.mockImplementation(
-      (
-        request:
-          | ListStacksCommand
-          | DescribeStacksCommand
-          | DeleteStackCommand
-          | GetTemplateSummaryCommand
-      ) => {
-        if (request instanceof ListStacksCommand) return listStacksMock;
-        if (request instanceof DescribeStacksCommand) return describeStacksMock;
-        if (request instanceof DeleteStackCommand) return deleteStackMock;
-        if (request instanceof GetTemplateSummaryCommand)
-          return getTemplateSummaryMock;
-        throw request;
-      }
-    );
+    cfnClientSendMock.mock.mockImplementation(mockImplementation);
+
+    backendMetadataReader = new BackendMetadataReader(mockCfnClient, {
+      getOutput: getOutputMock as unknown as () => Promise<BackendOutput>,
+    });
   });
-
   it('listSandboxBackendMetadata', async () => {
     const sandboxes = await backendMetadataReader.listSandboxBackendMetadata();
     assert.deepEqual(sandboxes, [

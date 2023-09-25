@@ -20,11 +20,10 @@ export const generateClientConfig = async (
   credentialProvider: AwsCredentialIdentityProvider,
   backendIdentifier: BackendIdentifier
 ): Promise<ClientConfig> => {
-  const backendOutputClient = new BackendOutputClient(
-    credentialProvider,
-    backendIdentifier
-  );
-  return new ClientConfigGeneratorFactory(backendOutputClient.getOutput)
+  const backendOutputClient = new BackendOutputClient(credentialProvider);
+  return new ClientConfigGeneratorFactory(() =>
+    backendOutputClient.getOutput(backendIdentifier)
+  )
     .getInstance()
     .generateClientConfig();
 };

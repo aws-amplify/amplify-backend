@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { BackendMetadataReaderFactory } from '../backend-metadata/backend_metadata_reader_factory.js';
+import { BackendMetadataReaderFactory } from './backend_metadata_reader_factory.js';
 
 describe('BackendMetadataReaderFactory', () => {
   it('instance', async () => {

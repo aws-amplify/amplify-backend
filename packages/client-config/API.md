@@ -16,53 +16,6 @@ export type AuthClientConfig = {
     aws_mandatory_sign_in?: string;
 };
 
-<<<<<<< HEAD
-// @public (undocumented)
-export enum BackendDeploymentStatus {
-    // (undocumented)
-    DEPLOYED = "DEPLOYED",
-    // (undocumented)
-    DEPLOYING = "DEPLOYING",
-    // (undocumented)
-    FAILED = "FAILED"
-}
-
-// @public (undocumented)
-export enum BackendDeploymentType {
-    // (undocumented)
-    BRANCH = "BRANCH",
-    // (undocumented)
-    SANDBOX = "SANDBOX"
-}
-
-// @public (undocumented)
-export type BackendIdentifier = UniqueBackendIdentifier | StackIdentifier | AppNameAndBranchBackendIdentifier;
-
-// @public (undocumented)
-export type BackendMetadata = {
-    name: string;
-    lastUpdated: Date | undefined;
-    deploymentType: BackendDeploymentType;
-    status: BackendDeploymentStatus | undefined;
-    apiConfiguration?: {
-        status: BackendDeploymentStatus | undefined;
-        lastUpdated: Date | undefined;
-        graphqlEndpoint: string;
-    };
-    authConfiguration?: {
-        status: BackendDeploymentStatus | undefined;
-        lastUpdated: Date | undefined;
-        userPoolId: string;
-    };
-    storageConfiguration?: {
-        status: BackendDeploymentStatus | undefined;
-        lastUpdated: Date | undefined;
-        s3BucketName: string;
-    };
-};
-
-=======
->>>>>>> 537792536debeea7dd7ae30374499d2de4189ac6
 // @public
 export type ClientConfig = Partial<AuthClientConfig & GraphqlClientConfig & StorageClientConfig>;
 
@@ -77,9 +30,6 @@ export enum ClientConfigFormat {
 }
 
 // @public
-export const deleteSandbox: (sandboxId: string) => Promise<BackendMetadata>;
-
-// @public
 export const generateClientConfig: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier) => Promise<ClientConfig>;
 
 // @public
@@ -89,9 +39,6 @@ export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdent
 export const getClientConfigPath: (outDir?: string, format?: ClientConfigFormat) => Promise<string>;
 
 // @public
-export const getBackendMetadata: (uniqueBackendIdentifier: UniqueBackendIdentifier) => Promise<BackendMetadata>;
-
-// @public
 export type GraphqlClientConfig = {
     aws_appsync_region: string;
     aws_appsync_graphqlEndpoint: string;
@@ -99,17 +46,6 @@ export type GraphqlClientConfig = {
     aws_appsync_apiKey?: string;
 };
 
-<<<<<<< HEAD
-// @public
-export const listSandboxes: () => Promise<BackendMetadata[]>;
-
-// @public (undocumented)
-export type StackIdentifier = {
-    stackName: string;
-};
-
-=======
->>>>>>> 537792536debeea7dd7ae30374499d2de4189ac6
 // @public
 export type StorageClientConfig = {
     aws_user_files_s3_bucket_region: string;
