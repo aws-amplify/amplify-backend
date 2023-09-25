@@ -1,7 +1,7 @@
 import { AppSyncClient } from '@aws-sdk/client-appsync';
 import {
   BackendIdentifier,
-  BackendOutputClient,
+  BackendOutputClientFactory,
 } from '@aws-amplify/deployed-backend-client';
 import { graphqlOutputKey } from '@aws-amplify/backend-output-schemas';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
@@ -30,7 +30,8 @@ export const createGraphqlDocumentGenerator = ({
   }
 
   const fetchSchema = async () => {
-    const backendOutputClient = new BackendOutputClient(credentialProvider);
+    const backendOutputClient =
+      BackendOutputClientFactory.getInstance(credentialProvider);
     const output = await backendOutputClient.getOutput(backendIdentifier);
     const apiId = output[graphqlOutputKey]?.payload.awsAppsyncApiId;
     if (!apiId) {

@@ -22,7 +22,7 @@ import {
 } from '../deployment_client.js';
 import {
   BackendOutputClient,
-  BackendOutputClientInterface,
+  BackendOutputClientFactory,
   MetadataRetrievalError,
   getMainStackName,
   mainStackNamePrefix,
@@ -72,20 +72,21 @@ const translateStackStatus = (
  * Parses stack metadata to be read by web client
  */
 export class BackendMetadataReader {
-  private backendOutput: BackendOutputClientInterface;
+  private backendOutput: BackendOutputClient;
 
   /**
    * Constructor for backend metadata reader
    */
   constructor(
     private readonly cfnClient: CloudFormationClient,
-    backendOutputClient?: BackendOutputClientInterface
+    backendOutputClient?: BackendOutputClient
   ) {
     if (!backendOutputClient) {
       const credentials = this.cfnClient.config.credentials();
       const credentialProvider: AwsCredentialIdentityProvider = () =>
         credentials;
-      this.backendOutput = new BackendOutputClient(credentialProvider);
+      this.backendOutput =
+        BackendOutputClientFactory.getInstance(credentialProvider);
     } else {
       this.backendOutput = backendOutputClient;
     }

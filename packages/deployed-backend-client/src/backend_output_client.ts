@@ -1,25 +1,15 @@
 import { unifiedBackendOutputSchema } from '@aws-amplify/backend-output-schemas';
-import { BackendOutput } from '@aws-amplify/plugin-types';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { BackendOutputFetcherFactory } from './backend_output_fetcher_factory.js';
 import { BackendIdentifier } from './index.js';
+import { BackendOutputClient } from './backend_output_client_factory.js';
 
-/**
- *
- */
-export class MetadataRetrievalError extends Error {}
-
-export interface BackendOutputClientInterface {
-  readonly getOutput: (
-    backendIdentifier: BackendIdentifier
-  ) => Promise<BackendOutput>;
-}
 /**
  * Simplifies the retrieval of all backend output values
  */
-export class BackendOutputClient implements BackendOutputClientInterface {
+export class DefaultBackendOutputClient implements BackendOutputClient {
   /**
    * Instantiates a BackendOutputClient
    */
