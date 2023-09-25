@@ -148,9 +148,9 @@ describe('Auth construct', () => {
     new AmplifyAuth(stack, 'test', {
       loginWith: {
         email: {
-          emailBody: customEmailVerificationMessage,
-          emailStyle: VerificationEmailStyle.CODE,
-          emailSubject: customEmailVerificationSubject,
+          verificationEmailBody: customEmailVerificationMessage,
+          verificationEmailStyle: VerificationEmailStyle.CODE,
+          verificationEmailSubject: customEmailVerificationSubject,
         },
       },
     });
@@ -177,9 +177,9 @@ describe('Auth construct', () => {
     new AmplifyAuth(stack, 'test', {
       loginWith: {
         email: {
-          emailBody: customEmailVerificationMessage,
-          emailStyle: VerificationEmailStyle.CODE,
-          emailSubject: customEmailVerificationSubject,
+          verificationEmailBody: customEmailVerificationMessage,
+          verificationEmailStyle: VerificationEmailStyle.CODE,
+          verificationEmailSubject: customEmailVerificationSubject,
         },
         phoneNumber: {
           verificationMessage: smsVerificationMessage,
@@ -217,9 +217,9 @@ describe('Auth construct', () => {
       loginWith: {
         email: {
           // @ts-expect-error We know this is a compile error, but must have runtime validation as well.
-          emailBody: customEmailVerificationMessage,
-          emailStyle: VerificationEmailStyle.CODE,
-          emailSubject: customEmailVerificationSubject,
+          verificationEmailBody: customEmailVerificationMessage,
+          verificationEmailStyle: VerificationEmailStyle.CODE,
+          verificationEmailSubject: customEmailVerificationSubject,
         },
       },
     };
@@ -228,9 +228,9 @@ describe('Auth construct', () => {
     props = {
       loginWith: {
         email: {
-          emailBody: validMessage,
-          emailStyle: VerificationEmailStyle.CODE,
-          emailSubject: customEmailVerificationSubject,
+          verificationEmailBody: validMessage,
+          verificationEmailStyle: VerificationEmailStyle.CODE,
+          verificationEmailSubject: customEmailVerificationSubject,
         },
       },
     };
@@ -246,9 +246,9 @@ describe('Auth construct', () => {
       loginWith: {
         email: {
           // @ts-expect-error We expect this to be a compile error
-          emailBody: customEmailVerificationMessage,
-          emailStyle: VerificationEmailStyle.LINK,
-          emailSubject: customEmailVerificationSubject,
+          verificationEmailBody: customEmailVerificationMessage,
+          verificationEmailStyle: VerificationEmailStyle.LINK,
+          verificationEmailSubject: customEmailVerificationSubject,
         },
       },
     };
@@ -257,9 +257,9 @@ describe('Auth construct', () => {
     props = {
       loginWith: {
         email: {
-          emailBody: validMessage,
-          emailStyle: VerificationEmailStyle.LINK,
-          emailSubject: customEmailVerificationSubject,
+          verificationEmailBody: validMessage,
+          verificationEmailStyle: VerificationEmailStyle.LINK,
+          verificationEmailSubject: customEmailVerificationSubject,
         },
       },
     };
@@ -278,9 +278,9 @@ describe('Auth construct', () => {
         new AmplifyAuth(stack, 'test', {
           loginWith: {
             email: {
-              emailBody: customEmailVerificationMessage,
-              emailStyle: VerificationEmailStyle.LINK,
-              emailSubject: customEmailVerificationSubject,
+              verificationEmailBody: customEmailVerificationMessage,
+              verificationEmailStyle: VerificationEmailStyle.LINK,
+              verificationEmailSubject: customEmailVerificationSubject,
             },
           },
         })

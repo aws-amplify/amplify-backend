@@ -218,9 +218,9 @@ export class AmplifyAuth
     if (emailEnabled && typeof props.loginWith.email === 'object') {
       const emailSettings = props.loginWith.email;
       userVerificationSettings = {
-        emailBody: emailSettings.emailBody,
-        emailStyle: emailSettings.emailStyle,
-        emailSubject: emailSettings.emailSubject,
+        emailBody: emailSettings.verificationEmailBody,
+        emailStyle: emailSettings.verificationEmailStyle,
+        emailSubject: emailSettings.verificationEmailSubject,
       };
     }
     if (phoneEnabled && typeof props.loginWith.phoneNumber === 'object') {

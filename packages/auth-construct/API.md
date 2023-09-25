@@ -95,13 +95,13 @@ export type BasicLoginOptions = {
 
 // @public
 export type EmailLogin = true | {
-    emailBody?: `${string}{####}${string}`;
-    emailStyle?: aws_cognito.VerificationEmailStyle.CODE;
-    emailSubject?: string;
+    verificationEmailStyle?: aws_cognito.VerificationEmailStyle.CODE;
+    verificationEmailBody?: `${string}{####}${string}`;
+    verificationEmailSubject?: string;
 } | {
-    emailBody?: `${string}{##Verify Email##}${string}`;
-    emailStyle?: aws_cognito.VerificationEmailStyle.LINK;
-    emailSubject?: string;
+    verificationEmailStyle?: aws_cognito.VerificationEmailStyle.LINK;
+    verificationEmailBody?: `${string}{##Verify Email##}${string}`;
+    verificationEmailSubject?: string;
 };
 
 // @public
