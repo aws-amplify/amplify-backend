@@ -12,7 +12,7 @@ jobs:
   testing:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "${{ github.actor }}"
+      - run: echo "${{ github.event.pull_request.user.login }}"
       - run: echo "${{ github.triggering_actor }}"
   install:
     strategy:
