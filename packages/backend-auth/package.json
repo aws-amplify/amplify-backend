@@ -17,6 +17,7 @@
     "update:api": "api-extractor run --local"
   },
   "dependencies": {
+    "@aws-amplify/backend-output-storage": "0.1.0",
     "@aws-amplify/auth-construct-alpha": "^0.2.0-alpha.5"
   },
   "devDependencies": {

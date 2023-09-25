@@ -14,6 +14,7 @@ export default [
   'codegen',
   'cognito',
   'ctor',
+  'datastore',
   'debounce',
   'declarator',
   'deployer',

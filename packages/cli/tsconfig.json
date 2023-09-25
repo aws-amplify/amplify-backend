@@ -5,6 +5,7 @@
     { "path": "../backend-secret" },
     { "path": "../client-config" },
     { "path": "../deployed-backend-client" },
+    { "path": "../model-generator" },
     { "path": "../sandbox" }
   ]
 }
