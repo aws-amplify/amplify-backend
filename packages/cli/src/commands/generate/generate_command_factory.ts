@@ -5,10 +5,12 @@ import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { ClientConfigGeneratorAdapter } from './config/client_config_generator_adapter.js';
 import { GenerateFormsCommand } from './forms/generate_forms_command.js';
 import { CwdPackageJsonLoader } from '../../cwd_package_json_loader.js';
+import { GenerateGraphqlClientCodeCommand } from './graphql-client-code/generate_graphql_client_code_command.js';
 import { LocalAppNameResolver } from '../../backend-identifier/local_app_name_resolver.js';
 import { BackendIdentifierResolver } from '../../backend-identifier/backend_identifier_resolver.js';
 import { FormGenerationHandler } from './forms/form_generation_handler.js';
 import { BackendOutputClient } from '@aws-amplify/deployed-backend-client';
+import { GenerateApiCodeAdapter } from './graphql-client-code/generate_api_code_adapter.js';
 
 /**
  * Creates wired generate command.
@@ -37,5 +39,16 @@ export const createGenerateCommand = (): CommandModule => {
     new FormGenerationHandler({ credentialProvider })
   );
 
-  return new GenerateCommand(generateConfigCommand, generateFormsCommand);
+  const generateApiCodeAdapter = new GenerateApiCodeAdapter(credentialProvider);
+
+  const generateGraphqlClientCodeCommand = new GenerateGraphqlClientCodeCommand(
+    generateApiCodeAdapter,
+    backendIdentifierResolver
+  );
+
+  return new GenerateCommand(
+    generateConfigCommand,
+    generateFormsCommand,
+    generateGraphqlClientCodeCommand
+  );
 };
