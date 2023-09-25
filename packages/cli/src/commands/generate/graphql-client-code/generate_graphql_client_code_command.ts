@@ -2,41 +2,21 @@ import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
 import { isAbsolute, resolve } from 'path';
 import { GenerateApiCodeAdapter } from './generate_api_code_adapter.js';
-
-export const formatChoices = ['graphql-codegen', 'introspection', 'modelgen'];
-export const modelgenTargetChoices = [
-  'java',
-  'swift',
-  'javascript',
-  'typescript',
-  'dart',
-];
-export const statementsTargetChoices = [
-  'javascript',
-  'graphql',
-  'flow',
-  'typescript',
-  'angular',
-];
-export const typesTargetChoice = [
-  'json',
-  'swift',
-  'ts',
-  'typescript',
-  'flow',
-  'scala',
-  'flow-modern',
-  'angular',
-];
+import {
+  generateApiCodeFormats,
+  generateApiCodeModelTargets,
+  generateApiCodeStatementTargets,
+  generateApiCodeTypeTargets,
+} from '@aws-amplify/model-generator';
 
 export type GenerateGraphqlClientCodeCommandOptions = {
   stack: string | undefined;
   appId: string | undefined;
   branch: string | undefined;
-  format: (typeof formatChoices)[number] | undefined;
-  modelTarget: (typeof modelgenTargetChoices)[number] | undefined;
-  statementTarget: (typeof statementsTargetChoices)[number] | undefined;
-  typeTarget: (typeof typesTargetChoice)[number] | undefined;
+  format: (typeof generateApiCodeFormats)[number] | undefined;
+  modelTarget: (typeof generateApiCodeModelTargets)[number] | undefined;
+  statementTarget: (typeof generateApiCodeStatementTargets)[number] | undefined;
+  typeTarget: (typeof generateApiCodeTypeTargets)[number] | undefined;
   out: string | undefined;
   modelGenerateIndexRules: boolean | undefined;
   modelEmitAuthProvider: boolean | undefined;
@@ -207,28 +187,28 @@ export class GenerateGraphqlClientCodeCommand
           'The format that the GraphQL client code should be generated in.',
         type: 'string',
         array: false,
-        choices: formatChoices,
+        choices: generateApiCodeFormats,
       })
       .option('modelTarget', {
         describe:
           'The modelgen export target. Only applies when the `--format` parameter is set to `modelgen`',
         type: 'string',
         array: false,
-        choices: modelgenTargetChoices,
+        choices: generateApiCodeModelTargets,
       })
       .option('statementTarget', {
         describe:
           'The graphql-codegen statement export target. Only applies when the `--format` parameter is set to `graphql-codegen`',
         type: 'string',
         array: false,
-        choices: statementsTargetChoices,
+        choices: generateApiCodeStatementTargets,
       })
       .option('typeTarget', {
         describe:
           'The optional graphql-codegen type export target. Only applies when the `--format` parameter is set to `graphql-codegen`',
         type: 'string',
         array: false,
-        choices: typesTargetChoice,
+        choices: generateApiCodeTypeTargets,
       })
       .option('modelGenerateIndexRules', {
         description: 'Adds key/index details to iOS models',

@@ -7,9 +7,38 @@ import { createGraphqlModelsGenerator } from './create_graphql_models_generator.
 import { createGraphqlTypesGenerator } from './create_graphql_types_generator.js';
 import { createGraphqlDocumentGenerator } from './create_graphql_document_generator.js';
 
+export const generateApiCodeFormats = [
+  'modelgen',
+  'graphql-codegen',
+  'introspection',
+] as const;
+export const generateApiCodeModelTargets = [
+  'java',
+  'swift',
+  'javascript',
+  'typescript',
+  'dart',
+] as const;
+export const generateApiCodeStatementTargets = [
+  'javascript',
+  'graphql',
+  'flow',
+  'typescript',
+  'angular',
+] as const;
+export const generateApiCodeTypeTargets = [
+  'json',
+  'swift',
+  'typescript',
+  'flow',
+  'scala',
+  'flow-modern',
+  'angular',
+] as const;
+
 export type GenerateModelsOptions = {
   format: 'modelgen';
-  modelTarget: 'java' | 'swift' | 'javascript' | 'typescript' | 'dart';
+  modelTarget: (typeof generateApiCodeModelTargets)[number];
   generateIndexRules?: boolean;
   emitAuthProvider?: boolean;
   useExperimentalPipelinedTransformer?: boolean;
@@ -22,17 +51,10 @@ export type GenerateModelsOptions = {
 
 export type GenerateGraphqlCodegenOptions = {
   format: 'graphql-codegen';
-  statementTarget: 'javascript' | 'graphql' | 'flow' | 'typescript' | 'angular';
+  statementTarget: (typeof generateApiCodeStatementTargets)[number];
   maxDepth?: number;
   typeNameIntrospection?: boolean;
-  typeTarget?:
-    | 'json'
-    | 'swift'
-    | 'typescript'
-    | 'flow'
-    | 'scala'
-    | 'flow-modern'
-    | 'angular';
+  typeTarget?: (typeof generateApiCodeTypeTargets)[number];
   multipleSwiftFiles?: boolean;
 };
 

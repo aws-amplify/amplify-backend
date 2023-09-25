@@ -24,17 +24,29 @@ export type DocumentGenerationParameters = {
 export const generateApiCode: (props: GenerateApiCodeProps) => Promise<GenerationResult>;
 
 // @public (undocumented)
+export const generateApiCodeFormats: readonly ["modelgen", "graphql-codegen", "introspection"];
+
+// @public (undocumented)
+export const generateApiCodeModelTargets: readonly ["java", "swift", "javascript", "typescript", "dart"];
+
+// @public (undocumented)
 export type GenerateApiCodeProps = GenerateOptions & BackendIdentifier & {
     credentialProvider: AwsCredentialIdentityProvider;
 };
 
 // @public (undocumented)
+export const generateApiCodeStatementTargets: readonly ["javascript", "graphql", "flow", "typescript", "angular"];
+
+// @public (undocumented)
+export const generateApiCodeTypeTargets: readonly ["json", "swift", "typescript", "flow", "scala", "flow-modern", "angular"];
+
+// @public (undocumented)
 export type GenerateGraphqlCodegenOptions = {
     format: 'graphql-codegen';
-    statementTarget: 'javascript' | 'graphql' | 'flow' | 'typescript' | 'angular';
+    statementTarget: typeof generateApiCodeStatementTargets[number];
     maxDepth?: number;
     typeNameIntrospection?: boolean;
-    typeTarget?: 'json' | 'swift' | 'typescript' | 'flow' | 'scala' | 'flow-modern' | 'angular';
+    typeTarget?: typeof generateApiCodeTypeTargets[number];
     multipleSwiftFiles?: boolean;
 };
 
@@ -46,7 +58,7 @@ export type GenerateIntrospectionOptions = {
 // @public (undocumented)
 export type GenerateModelsOptions = {
     format: 'modelgen';
-    modelTarget: 'java' | 'swift' | 'javascript' | 'typescript' | 'dart';
+    modelTarget: typeof generateApiCodeModelTargets[number];
     generateIndexRules?: boolean;
     emitAuthProvider?: boolean;
     useExperimentalPipelinedTransformer?: boolean;
