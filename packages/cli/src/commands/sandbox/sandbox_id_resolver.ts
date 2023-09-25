@@ -1,5 +1,5 @@
-import { AppNameResolver } from '../../local_app_name_resolver.js';
 import { userInfo as _userInfo } from 'os';
+import { AppNameResolver } from '../../backend-identifier/local_app_name_resolver.js';
 
 /**
  * Resolves an ID that can be used to uniquely identify sandbox environments

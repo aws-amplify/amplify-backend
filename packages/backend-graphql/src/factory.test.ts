@@ -5,7 +5,6 @@ import { App, Stack } from 'aws-cdk-lib';
 import {
   NestedStackResolver,
   SingletonConstructContainer,
-  StackMetadataBackendOutputStorageStrategy,
   ToggleableImportPathVerifier,
 } from '@aws-amplify/backend/test-utils';
 import { Template } from 'aws-cdk-lib/assertions';
@@ -14,6 +13,7 @@ import {
   BackendOutputEntry,
   BackendOutputStorageStrategy,
   ConstructContainer,
+  ConstructFactoryGetInstanceProps,
   ImportPathVerifier,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
@@ -24,6 +24,7 @@ import {
   UserPool,
   UserPoolClient,
 } from 'aws-cdk-lib/aws-cognito';
+import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 
 const testSchema = `
   input AMPLIFY {globalAuthRule: AuthRule = { allow: public }} # FOR TESTING ONLY!
@@ -41,6 +42,7 @@ describe('DataFactory', () => {
   let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
   let importPathVerifier: ImportPathVerifier;
   let dataFactory: DataFactory;
+  let getInstanceProps: ConstructFactoryGetInstanceProps;
   beforeEach(() => {
     dataFactory = new DataFactory({ schema: testSchema });
 
@@ -82,50 +84,41 @@ describe('DataFactory', () => {
       stack
     );
     importPathVerifier = new ToggleableImportPathVerifier(false);
+
+    getInstanceProps = {
+      constructContainer,
+      outputStorageStrategy,
+      importPathVerifier,
+    };
   });
+
   it('returns singleton instance', () => {
-    const instance1 = dataFactory.getInstance({
-      constructContainer,
-      outputStorageStrategy,
-      importPathVerifier,
-    });
-    const instance2 = dataFactory.getInstance({
-      constructContainer,
-      outputStorageStrategy,
-      importPathVerifier,
-    });
+    const instance1 = dataFactory.getInstance(getInstanceProps);
+    const instance2 = dataFactory.getInstance(getInstanceProps);
 
     assert.strictEqual(instance1, instance2);
   });
 
   it('adds construct to stack', () => {
-    const dataConstruct = dataFactory.getInstance({
-      constructContainer,
-      outputStorageStrategy,
-      importPathVerifier,
-    });
+    const dataConstruct = dataFactory.getInstance(getInstanceProps);
     const template = Template.fromStack(Stack.of(dataConstruct));
     template.resourceCountIs('AWS::AppSync::GraphQLApi', 1);
   });
 
   it('sets output using storage strategy', () => {
-    dataFactory.getInstance({
-      constructContainer,
-      outputStorageStrategy,
-      importPathVerifier,
-    });
+    dataFactory.getInstance(getInstanceProps);
 
     const template = Template.fromStack(stack);
     template.hasOutput('awsAppsyncApiEndpoint', {});
   });
+
   it('verifies constructor import path', () => {
     const importPathVerifier = {
       verify: mock.fn(),
     };
 
     dataFactory.getInstance({
-      constructContainer,
-      outputStorageStrategy,
+      ...getInstanceProps,
       importPathVerifier,
     });
 

@@ -1,8 +1,10 @@
 import { z } from 'zod';
 
 /**
- * The types here are meant to be used internally when reading / writing backend output to stack metadata
- * They should not be exposed in public APIs
+ * The types here are meant to be used internally when reading / writing backend output to stack metadata.
+ *
+ * They represent broader metadata types than the category-specific metadata objects that allows the platform to interact with metadata in a category-agnostic way
+ * They should not be exposed in public APIs (although they currently are under the "platform" submodule export so they can be consumed by both the backend and client-config packages
  */
 
 /**

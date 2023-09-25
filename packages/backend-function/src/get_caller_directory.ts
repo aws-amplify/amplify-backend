@@ -1,4 +1,6 @@
 import path from 'path';
+import * as os from 'os';
+import { extractFilePathFromStackTraceLine } from './extract_file_path_from_stack_trace_line.js';
 
 /**
  * Extracts the path of the caller of the code that generated the input stack trace.
@@ -12,6 +14,8 @@ export const getCallerDirectory = (stackTrace?: string): string => {
   if (!stackTrace) {
     throw unresolvedImportLocationError;
   }
+  // normalize EOL to \n so that parsing is consistent across platforms
+  stackTrace = stackTrace.replaceAll(os.EOL, '\n');
   const stacktraceLines =
     stackTrace
       .split('\n')
@@ -21,9 +25,6 @@ export const getCallerDirectory = (stackTrace?: string): string => {
     throw unresolvedImportLocationError;
   }
   const stackTraceImportLine = stacktraceLines[1]; // the first entry is the file where the error was initialized (our code). The second entry is where the customer called our code which is what we are interested in
-  // the line is something like `at <anonymous> (/some/path/to/file.ts:3:21)`
-  // this regex pulls out the file path, ie `/some/path/to/file.ts`
-  const extractFilePathFromStackTraceLine = /\((?<filepath>[^:]*):.*\)/;
   const match = stackTraceImportLine.match(extractFilePathFromStackTraceLine);
   if (!match?.groups?.filepath) {
     throw unresolvedImportLocationError;

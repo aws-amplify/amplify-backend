@@ -9,7 +9,6 @@ import { AuthOutput } from '@aws-amplify/backend-output-schemas/auth';
 import { AuthResources } from '@aws-amplify/plugin-types';
 import { aws_cognito } from 'aws-cdk-lib';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
-import { BackendOutputWriter } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
 import { CustomAttributeConfig } from 'aws-cdk-lib/aws-cognito';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
@@ -17,13 +16,12 @@ import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { StandardAttributes } from 'aws-cdk-lib/aws-cognito';
 
 // @public
-export class AmplifyAuth extends Construct implements BackendOutputWriter, ResourceProvider<AuthResources> {
+export class AmplifyAuth extends Construct implements ResourceProvider<AuthResources> {
     constructor(scope: Construct, id: string, props?: AuthProps);
     addTrigger: (event: TriggerEvent, handler: IFunction | AmplifyFunction) => void;
     static attribute: (name: keyof aws_cognito.StandardAttributes) => AuthStandardAttribute;
     static customAttribute: AuthCustomAttributeFactory;
     readonly resources: AuthResources;
-    storeOutput: (outputStorageStrategy: BackendOutputStorageStrategy<AuthOutput>) => void;
 }
 
 // @public
@@ -31,7 +29,7 @@ export abstract class AuthCustomAttributeBase {
     constructor(name: string);
     // (undocumented)
     protected attribute: Mutable<CustomAttributeConfig>;
-    mutable: () => this;
+    immutable: () => this;
 }
 
 // @public
@@ -72,12 +70,13 @@ export type AuthProps = {
     userAttributes?: AuthUserAttribute[];
     multifactor?: MFA;
     accountRecovery?: aws_cognito.AccountRecovery;
+    outputStorageStrategy?: BackendOutputStorageStrategy<AuthOutput>;
 };
 
 // @public
 export class AuthStandardAttribute {
     constructor(name: keyof StandardAttributes);
-    mutable: () => AuthStandardAttribute;
+    immutable: () => AuthStandardAttribute;
     required: () => AuthStandardAttribute;
 }
 

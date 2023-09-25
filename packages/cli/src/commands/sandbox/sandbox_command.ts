@@ -1,4 +1,5 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
+import { ClientConfigFormat } from '@aws-amplify/client-config';
 import { SandboxDeleteCommand } from './sandbox-delete/sandbox_delete_command.js';
 import fs from 'fs';
 import { AmplifyPrompter } from '../prompter/amplify_prompts.js';
@@ -8,7 +9,8 @@ export type SandboxCommandOptions = {
   dirToWatch: string | undefined;
   exclude: string[] | undefined;
   name: string | undefined;
-  out: string | undefined;
+  format: ClientConfigFormat | undefined;
+  outDir: string | undefined;
   profile: string | undefined;
 };
 
@@ -54,7 +56,8 @@ export class SandboxCommand
       dir: args.dirToWatch,
       exclude: args.exclude,
       name: args.name,
-      clientConfigFilePath: args.out,
+      format: args.format,
+      clientConfigFilePath: args.outDir,
       profile: args.profile,
     });
     process.once('SIGINT', () => void this.sigIntHandler());
@@ -86,7 +89,13 @@ export class SandboxCommand
           type: 'string',
           array: false,
         })
-        .option('out', {
+        .option('format', {
+          describe: 'Client config output format',
+          type: 'string',
+          array: false,
+          choices: Object.values(ClientConfigFormat),
+        })
+        .option('outDir', {
           describe:
             'A path to directory where config is written. If not provided defaults to current process working directory.',
           type: 'string',

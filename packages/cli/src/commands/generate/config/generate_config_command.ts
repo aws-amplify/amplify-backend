@@ -1,18 +1,14 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
-import path from 'path';
-import { BackendIdentifier } from '@aws-amplify/client-config';
-import { AppNameResolver } from '../../../local_app_name_resolver.js';
+import { ClientConfigFormat } from '@aws-amplify/client-config';
 import { ClientConfigGeneratorAdapter } from './client_config_generator_adapter.js';
-
-export const formatChoices = ['js', 'json', 'ts'] as const;
-export const configFileName = 'amplifyconfiguration';
+import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
 
 export type GenerateConfigCommandOptions = {
   stack: string | undefined;
   appId: string | undefined;
   branch: string | undefined;
-  format: (typeof formatChoices)[number] | undefined;
-  out: string | undefined;
+  format: ClientConfigFormat | undefined;
+  outDir: string | undefined;
 };
 
 /**
@@ -40,7 +36,7 @@ export class GenerateConfigCommand
    */
   constructor(
     private readonly clientConfigGenerator: ClientConfigGeneratorAdapter,
-    private readonly appNameResolver: AppNameResolver
+    private readonly backendIdentifierResolver: BackendIdentifierResolver
   ) {
     this.command = 'config';
     this.describe = 'Generates client config';
@@ -52,50 +48,15 @@ export class GenerateConfigCommand
   handler = async (
     args: ArgumentsCamelCase<GenerateConfigCommandOptions>
   ): Promise<void> => {
-    const defaultArgs = {
-      out: process.cwd(),
-      format: 'js',
-    };
-    const backendIdentifier = await this.getBackendIdentifier(args);
-
-    let targetPath: string;
-    if (args.out) {
-      targetPath = path.isAbsolute(args.out)
-        ? args.out
-        : path.resolve(process.cwd(), args.out);
-    } else {
-      targetPath = defaultArgs.out;
-    }
-
-    targetPath = path.resolve(
-      targetPath,
-      `${configFileName}.${args.format || defaultArgs.format}`
+    const backendIdentifier = await this.backendIdentifierResolver.resolve(
+      args
     );
 
     await this.clientConfigGenerator.generateClientConfigToFile(
       backendIdentifier,
-      targetPath
+      args.outDir,
+      args.format
     );
-  };
-
-  /**
-   * Translates args to BackendIdentifier.
-   * Throws if translation can't be made (this should never happen if command validation works correctly).
-   */
-  private getBackendIdentifier = async (
-    args: ArgumentsCamelCase<GenerateConfigCommandOptions>
-  ): Promise<BackendIdentifier> => {
-    if (args.stack) {
-      return { stackName: args.stack };
-    } else if (args.appId && args.branch) {
-      return { backendId: args.appId, branchName: args.branch };
-    } else if (args.branch) {
-      return {
-        appName: await this.appNameResolver.resolve(),
-        branchName: args.branch,
-      };
-    }
-    throw this.missingArgsError;
   };
 
   /**
@@ -129,9 +90,9 @@ export class GenerateConfigCommand
         describe: 'The format which the configuration should be exported into.',
         type: 'string',
         array: false,
-        choices: formatChoices,
+        choices: Object.values(ClientConfigFormat),
       })
-      .option('out', {
+      .option('outDir', {
         describe:
           'A path to directory where config is written. If not provided defaults to current process working directory.',
         type: 'string',

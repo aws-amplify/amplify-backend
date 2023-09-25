@@ -1,4 +1,4 @@
-import { describe, it } from 'node:test';
+import { beforeEach, describe, it } from 'node:test';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
@@ -7,7 +7,20 @@ import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
 
+const createStackAndSetContext = (): Stack => {
+  const app = new App();
+  app.node.setContext('branch-name', 'testEnvName');
+  app.node.setContext('backend-id', 'testBackendId');
+  const stack = new Stack(app);
+  return stack;
+};
+
 describe('Backend', () => {
+  let rootStack: Stack;
+  beforeEach(() => {
+    rootStack = createStackAndSetContext();
+  });
+
   it('initializes constructs in given app', () => {
     const testConstructFactory: ConstructFactory<Bucket> = {
       getInstance({ constructContainer }): Bucket {
@@ -20,8 +33,6 @@ describe('Backend', () => {
       },
     };
 
-    const app = new App();
-    const rootStack = new Stack(app);
     new Backend(
       {
         testConstructFactory,
@@ -57,8 +68,6 @@ describe('Backend', () => {
       },
     };
 
-    const app = new App();
-    const rootStack = new Stack(app);
     new Backend(
       {
         testConstructFactory,
@@ -70,11 +79,9 @@ describe('Backend', () => {
     rootStackTemplate.hasOutput('bucketName', {});
     rootStackTemplate.templateMatches({
       Metadata: {
-        'AWS::Amplify::Output': {
-          TestStorageOutput: {
-            version: '1',
-            stackOutputs: ['bucketName'],
-          },
+        TestStorageOutput: {
+          version: '1',
+          stackOutputs: ['bucketName'],
         },
       },
     });
@@ -101,8 +108,6 @@ describe('Backend', () => {
       },
     };
 
-    const app = new App();
-    const rootStack = new Stack(app);
     const backend = new Backend(
       {
         testConstructFactory,
@@ -114,8 +119,6 @@ describe('Backend', () => {
 
   describe('getOrCreateStack', () => {
     it('returns nested stack', () => {
-      const app = new App();
-      const rootStack = new Stack(app);
       const backend = new Backend({}, rootStack);
       const testStack = backend.getOrCreateStack('testStack');
       assert.strictEqual(rootStack.node.findChild('testStack'), testStack);
