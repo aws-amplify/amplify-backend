@@ -1,5 +1,25 @@
 # @aws-amplify/sandbox
 
+## 0.2.0-alpha.6
+
+### Minor Changes
+
+- 2bd14d48: Adds profile option to sandbox command
+- b4f82717: Create a new deployed-backend-client package that provides a convenient interface for retrieving stack outputs
+
+### Patch Changes
+
+- 75d90a57: add `format` option to sandbox. Rename `out` option to `outDir`.
+- 1dada824: chore: Update eslint config to new flat config type
+- Updated dependencies [1dada824]
+- Updated dependencies [407a09ff]
+- Updated dependencies [b4f82717]
+- Updated dependencies [05f97b26]
+- Updated dependencies [f75fa531]
+- Updated dependencies [e0e1488b]
+  - @aws-amplify/client-config@0.2.0-alpha.6
+  - @aws-amplify/deployed-backend-client@0.2.0-alpha.0
+
 ## 0.1.1-alpha.5
 
 ### Patch Changes
