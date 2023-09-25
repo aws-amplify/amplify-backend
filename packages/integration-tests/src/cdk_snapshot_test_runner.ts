@@ -20,7 +20,7 @@ export const runCDKSnapshotTestSuite = (
   testCases: CDKSynthSnapshotTestCase[]
 ) => {
   // concurrency of 1 is needed because the tests set environment variables that would create a race condition if multiple tests ran in parallel
-  describe(suiteName, { concurrency: 1 }, () => {
+  void describe(suiteName, { concurrency: 1 }, () => {
     testCases.forEach(runCDKSnapshotTest);
   });
 };
@@ -51,7 +51,7 @@ const runCDKSnapshotTest = ({
       fs.rmSync(process.env.CDK_OUTDIR, { recursive: true, force: true });
     }
   });
-  it(name, async () => {
+  void it(name, async () => {
     // this import must create the CDK App
     await import(pathToFileURL(absoluteBackendFilePath).toString());
 

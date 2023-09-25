@@ -4,8 +4,8 @@ import { App } from 'aws-cdk-lib';
 import assert from 'node:assert';
 import { AmplifyStack } from './engine/amplify_stack.js';
 
-describe('createDefaultRootStack', () => {
-  it('creates AmplifyStack with backend ID and branch from CDK context', () => {
+void describe('createDefaultRootStack', () => {
+  void it('creates AmplifyStack with backend ID and branch from CDK context', () => {
     const app = new App();
     app.node.setContext('backend-id', 'testBackendId');
     app.node.setContext('branch-name', 'testBranchName');
@@ -14,7 +14,7 @@ describe('createDefaultRootStack', () => {
     assert.strictEqual(stack.stackName, 'amplify-testBackendId-testBranchName');
   });
 
-  it('throws if backend-id is missing', () => {
+  void it('throws if backend-id is missing', () => {
     const app = new App();
     app.node.setContext('branch-name', 'testEnvName');
     assert.throws(() => createDefaultStack(app), {
@@ -22,7 +22,7 @@ describe('createDefaultRootStack', () => {
     });
   });
 
-  it('throws if branch-name is missing', () => {
+  void it('throws if branch-name is missing', () => {
     const app = new App();
     app.node.setContext('backend-id', 'testBackendId');
     assert.throws(() => createDefaultStack(app), {

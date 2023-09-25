@@ -6,7 +6,7 @@ import {
 } from './app_name_and_branch_main_stack_name_resolver.js';
 import assert from 'node:assert';
 
-describe('AppNameAndBranchMainStackNameResolver', () => {
+void describe('AppNameAndBranchMainStackNameResolver', () => {
   const amplifyClientMock = new AmplifyClient({ region: 'test-region' });
   const amplifyClientSendMock = mock.fn();
   mock.method(amplifyClientMock, 'send', amplifyClientSendMock);
@@ -19,7 +19,7 @@ describe('AppNameAndBranchMainStackNameResolver', () => {
   beforeEach(() => {
     amplifyClientSendMock.mock.resetCalls();
   });
-  it('fails if no apps have specified name', async () => {
+  void it('fails if no apps have specified name', async () => {
     const resolver = new AppNameAndBranchMainStackNameResolver(
       amplifyClientMock,
       appNameAndBranch
@@ -28,7 +28,7 @@ describe('AppNameAndBranchMainStackNameResolver', () => {
       message: 'No apps found with name testAppName in region test-region',
     });
   });
-  it('fails if multiple apps have specified name', async () => {
+  void it('fails if multiple apps have specified name', async () => {
     amplifyClientSendMock.mock.mockImplementation(() =>
       Promise.resolve({
         apps: [{ name: 'testAppName' }, { name: 'testAppName' }],
@@ -43,7 +43,7 @@ describe('AppNameAndBranchMainStackNameResolver', () => {
         'Multiple apps found with name testAppName in region test-region. Use AppId instead of AppName to specify which Amplify App to use.',
     });
   });
-  it('fails if matched app does not have appId', async () => {
+  void it('fails if matched app does not have appId', async () => {
     amplifyClientSendMock.mock.mockImplementation(() =>
       Promise.resolve({
         apps: [
@@ -61,7 +61,7 @@ describe('AppNameAndBranchMainStackNameResolver', () => {
         'Could not determine appId from app name testAppName. Try using AppId instead.',
     });
   });
-  it('returns expected stack name', async () => {
+  void it('returns expected stack name', async () => {
     amplifyClientSendMock.mock.mockImplementation(() =>
       Promise.resolve({
         apps: [{ name: 'testAppName', appId: 'testBackendId' }],

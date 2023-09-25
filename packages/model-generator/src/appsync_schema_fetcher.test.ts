@@ -3,8 +3,8 @@ import { describe, it, mock } from 'node:test';
 import { AppSyncClient } from '@aws-sdk/client-appsync';
 import { AppSyncIntrospectionSchemaFetcher } from './appsync_schema_fetcher.js';
 
-describe('AppSyncIntrospectionSchemaFetcher', () => {
-  it('fetches schema from AppSync', async () => {
+void describe('AppSyncIntrospectionSchemaFetcher', () => {
+  void it('fetches schema from AppSync', async () => {
     const schema = Buffer.from([1, 2, 3, 4, 5]);
     const send = mock.fn(() => {
       return { schema };
