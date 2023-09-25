@@ -6,6 +6,7 @@
     { "path": "../form-generator" },
     { "path": "../model-generator" },
     { "path": "../client-config" },
+    { "path": "../deployed-backend-client" },
     { "path": "../sandbox" }
   ]
 }

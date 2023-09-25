@@ -2,12 +2,12 @@ import assert from 'node:assert';
 import { describe, it } from 'node:test';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { BackendIdentifier } from '@aws-amplify/deployed-backend-client';
-import { createGraphqlTypesGenerator } from './create_graphql_types_generator.js';
+import { createGraphqlModelsGenerator } from './create_graphql_models_generator.js';
 
-describe('types generator factory', () => {
+describe('models generator factory', () => {
   it('throws an error if a null backendIdentifier is passed in', async () => {
     assert.throws(() =>
-      createGraphqlTypesGenerator({
+      createGraphqlModelsGenerator({
         backendIdentifier: null as unknown as BackendIdentifier,
         credentialProvider: null as unknown as AwsCredentialIdentityProvider,
       })
@@ -16,7 +16,7 @@ describe('types generator factory', () => {
 
   it('throws an error if a null backendIdentifier is passed in', async () => {
     assert.throws(() =>
-      createGraphqlTypesGenerator({
+      createGraphqlModelsGenerator({
         backendIdentifier: { stackName: 'foo' },
         credentialProvider: null as unknown as AwsCredentialIdentityProvider,
       })

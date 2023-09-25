@@ -1,5 +1,4 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
-import { AppNameResolver } from '../../../local_app_name_resolver.js';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import {
   BackendIdentifier,
@@ -7,6 +6,7 @@ import {
 } from '@aws-amplify/deployed-backend-client';
 import { graphqlOutputKey } from '@aws-amplify/backend-output-schemas';
 import { FormGenerationHandler } from './form_generation_handler.js';
+import { AppNameResolver } from '../../../backend-identifier/local_app_name_resolver.js';
 
 export type GenerateFormsCommandOptions = {
   stack: string | undefined;
@@ -108,11 +108,12 @@ export class GenerateFormsCommand
 
     const { appId } = this.getAppDescription(backendIdentifier);
     const formGenerationHandler = new FormGenerationHandler({
-      apiId,
       appId,
       modelOutPath: args.modelsOut,
       formsOutPath: args.uiOut,
       apiUrl,
+      backendIdentifier,
+      credentialProvider: this.credentialProvider,
     });
     await formGenerationHandler.generate();
   };

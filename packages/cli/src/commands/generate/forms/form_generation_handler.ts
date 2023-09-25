@@ -1,13 +1,16 @@
 import path from 'path';
 import { createLocalGraphqlFormGenerator } from '@aws-amplify/form-generator';
 import { createGraphqlDocumentGenerator } from '@aws-amplify/model-generator';
+import { BackendIdentifier } from '@aws-amplify/deployed-backend-client';
+import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 
 type FormGenerationHandlerOptions = {
   appId: string;
   modelOutPath: string;
   formsOutPath: string;
   apiUrl: string;
-  apiId: string;
+  backendIdentifier: BackendIdentifier;
+  credentialProvider: AwsCredentialIdentityProvider;
 };
 /**
  * Creates a handler for FormGeneration
@@ -27,10 +30,14 @@ export class FormGenerationHandler {
       modelOutPath: modelsOut,
       formsOutPath: uiOut,
       apiUrl,
-      apiId,
+      backendIdentifier,
+      credentialProvider,
     } = this.formGenParams;
     this.log(`Generating code for App: ${appId}`);
-    const graphqlClientGenerator = createGraphqlDocumentGenerator({ apiId });
+    const graphqlClientGenerator = createGraphqlDocumentGenerator({
+      backendIdentifier,
+      credentialProvider,
+    });
     this.log(`Generating GraphQL Client in ${modelsOut}`);
     const modelsResult = await graphqlClientGenerator.generateModels({
       language: 'typescript',
