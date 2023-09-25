@@ -17,7 +17,7 @@ export type AppNameAndBranchBackendIdentifier = {
 // @public (undocumented)
 export type BackendIdentifier = UniqueBackendIdentifier | StackIdentifier | AppNameAndBranchBackendIdentifier;
 
-// @public (undocumented)
+// @public
 export interface BackendOutputClient {
     // (undocumented)
     readonly getOutput: (backendIdentifier: BackendIdentifier) => Promise<BackendOutput>;

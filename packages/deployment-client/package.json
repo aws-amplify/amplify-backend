@@ -20,6 +20,7 @@
     "@aws-sdk/client-cloudformation": "^3.414.0"
   },
   "devDependencies": {
+    "@aws-amplify/backend-output-schemas": "^0.2.0-alpha.2",
     "@aws-sdk/types": "^3.418.0"
   }
 }

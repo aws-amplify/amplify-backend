@@ -18,6 +18,11 @@ import {
   storageOutputKey,
 } from '@aws-amplify/backend-output-schemas';
 import { BackendOutput } from '@aws-amplify/plugin-types';
+import {
+  BackendOutputClientError,
+  BackendOutputClientErrorType,
+  StackIdentifier,
+} from '@aws-amplify/deployed-backend-client';
 
 const listStacksMock = {
   StackSummaries: [
@@ -146,11 +151,11 @@ const expectedMetadata = {
 
 describe('BackendMetadataReader', () => {
   let backendMetadataReader: BackendMetadataReader;
+  let getOutputMock = mock.fn();
 
   beforeEach(() => {
     const mockCfnClient = new CloudFormation();
     const cfnClientSendMock = mock.fn();
-    const getOutputMock = mock.fn();
     getOutputMock.mock.mockImplementation(() => getOutputMockResponse);
     mock.method(mockCfnClient, 'send', cfnClientSendMock);
 
@@ -172,6 +177,17 @@ describe('BackendMetadataReader', () => {
     });
   });
   it('listSandboxBackendMetadata', async () => {
+    getOutputMock.mock.mockImplementation(
+      (backendIdentifier: StackIdentifier) => {
+        if (!backendIdentifier.stackName.includes('-sandbox')) {
+          throw new BackendOutputClientError(
+            BackendOutputClientErrorType.MetadataRetrievalError,
+            'Not a sandbox'
+          );
+        }
+        return getOutputMockResponse;
+      }
+    );
     const sandboxes = await backendMetadataReader.listSandboxBackendMetadata();
     assert.deepEqual(sandboxes, [
       {
@@ -200,7 +216,7 @@ describe('BackendMetadataReader', () => {
       branchName: 'testBranch',
     });
     assert.deepEqual(getMetadataResponse, {
-      deploymentType: BackendDeploymentType.BRANCH,
+      deploymentType: BackendDeploymentType.SANDBOX,
       name: 'amplify-test-testBranch',
       ...expectedMetadata,
     });
