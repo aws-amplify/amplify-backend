@@ -33,7 +33,7 @@ describe('generate forms command', () => {
       );
 
       const generationMock = mock.method(formGenerationHandler, 'generate');
-      generationMock.mock.mockImplementation(async () => {});
+      generationMock.mock.mockImplementation(async () => undefined);
       mock
         .method(fakedBackendOutputClient, 'getOutput')
         .mock.mockImplementation(async () => ({
@@ -81,7 +81,7 @@ describe('generate forms command', () => {
       );
 
       const generationMock = mock.method(formGenerationHandler, 'generate');
-      generationMock.mock.mockImplementation(async () => {});
+      generationMock.mock.mockImplementation(async () => undefined);
       mock
         .method(fakedBackendOutputClient, 'getOutput')
         .mock.mockImplementation(async () => ({
@@ -129,7 +129,7 @@ describe('generate forms command', () => {
       );
 
       const generationMock = mock.method(formGenerationHandler, 'generate');
-      generationMock.mock.mockImplementation(async () => {});
+      generationMock.mock.mockImplementation(async () => undefined);
       mock
         .method(fakedBackendOutputClient, 'getOutput')
         .mock.mockImplementation(async () => ({
@@ -173,7 +173,7 @@ describe('generate forms command', () => {
       );
 
       const generationMock = mock.method(formGenerationHandler, 'generate');
-      generationMock.mock.mockImplementation(async () => {});
+      generationMock.mock.mockImplementation(async () => undefined);
       mock
         .method(fakedBackendOutputClient, 'getOutput')
         .mock.mockImplementation(async () => ({
