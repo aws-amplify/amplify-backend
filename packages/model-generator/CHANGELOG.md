@@ -1,5 +1,30 @@
 # @aws-amplify/model-generator
 
+## 0.2.0-alpha.2
+
+### Minor Changes
+
+- 92950f99: Return a DocumentGenerationResult that has a writeToDirectory method
+- b48dae80: Add wrapper to around types, documents, and model generation (`generateAPICode`).
+
+  Change `createGraphqlDocumentGenerator` and `createGraphqlTypesGenerator` to use backendIdentifier and credentialProvider.
+
+- 1cefbdd4: feat: add model generation to @aws-amplify/model-generator
+- 5c1d9de8: feat: add types generation
+
+### Patch Changes
+
+- 1dada824: chore: Update eslint config to new flat config type
+- 1a6dd467: refactor: use @aws-amplify/graphql-generator in model-generator
+- Updated dependencies [ac3df080]
+- Updated dependencies [53779253]
+- Updated dependencies [1dada824]
+- Updated dependencies [b4f82717]
+- Updated dependencies [05f97b26]
+- Updated dependencies [f75fa531]
+  - @aws-amplify/backend-output-schemas@0.2.0-alpha.3
+  - @aws-amplify/deployed-backend-client@0.2.0-alpha.0
+
 ## 0.2.0-alpha.1
 
 ### Minor Changes

@@ -1,5 +1,12 @@
 # create-amplify
 
+## 0.2.0-alpha.6
+
+### Patch Changes
+
+- 1dada824: chore: Update eslint config to new flat config type
+- f75fa531: Refactor OutputStorageStrategy into stateless shared dependency
+
 ## 0.2.0-alpha.5
 
 ### Patch Changes
