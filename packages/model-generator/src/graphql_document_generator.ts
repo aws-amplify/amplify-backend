@@ -18,7 +18,11 @@ export class AppSyncGraphqlDocumentGenerator
     private fetchSchema: () => Promise<string>,
     private resultBuilder: (fileMap: Record<string, string>) => GenerationResult
   ) {}
-  generateModels = async ({ language }: DocumentGenerationParameters) => {
+  generateModels = async ({
+    language,
+    maxDepth,
+    typenameIntrospection,
+  }: DocumentGenerationParameters) => {
     const schema = await this.fetchSchema();
 
     if (!schema) {
@@ -28,8 +32,8 @@ export class AppSyncGraphqlDocumentGenerator
     const generatedStatements = generateStatements({
       schema,
       target: language,
-      maxDepth: 3,
-      typenameIntrospection: true,
+      maxDepth,
+      typenameIntrospection,
     });
 
     return this.resultBuilder(generatedStatements);

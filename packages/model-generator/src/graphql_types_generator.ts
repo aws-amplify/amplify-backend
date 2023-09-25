@@ -20,7 +20,10 @@ export class AppSyncGraphqlTypesGenerator implements GraphqlTypesGenerator {
     private resultBuilder: (fileMap: Record<string, string>) => GenerationResult
   ) {}
 
-  generateTypes = async ({ target }: TypesGenerationParameters) => {
+  generateTypes = async ({
+    target,
+    multipleSwiftFiles,
+  }: TypesGenerationParameters) => {
     const schema = await this.fetchSchema();
 
     if (!schema) {
@@ -38,6 +41,7 @@ export class AppSyncGraphqlTypesGenerator implements GraphqlTypesGenerator {
       schema,
       target,
       queries,
+      multipleSwiftFiles,
     });
 
     return this.resultBuilder(generatedTypes);
