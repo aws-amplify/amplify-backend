@@ -10,7 +10,7 @@ import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 export type InvokeGenerateApiCodeProps = GenerateOptions & BackendIdentifier;
 
 /**
- * Class to wrap static generateApiCode method for testability.
+ * Class to wrap static generateApiCode method to facilitate testing.
  */
 export class GenerateApiCodeAdapter {
   /**

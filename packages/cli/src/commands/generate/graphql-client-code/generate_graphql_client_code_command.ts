@@ -244,7 +244,7 @@ export class GenerateGraphqlClientCodeCommand
       })
       .option('modelRespectPrimaryKeyAttributesOnConnectionField', {
         description:
-          'If enabled, datastore queries will respect the primary + sort key fields, rather than a defaut id field',
+          'If enabled, Datastore queries will respect the primary + sort key fields, rather than a default id field',
         type: 'boolean',
         array: false,
         hidden: true,
