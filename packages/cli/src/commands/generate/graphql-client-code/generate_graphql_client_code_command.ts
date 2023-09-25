@@ -38,6 +38,15 @@ export type GenerateGraphqlClientCodeCommandOptions = {
   statementTarget: (typeof statementsTargetChoices)[number] | undefined;
   typeTarget: (typeof typesTargetChoice)[number] | undefined;
   out: string | undefined;
+  modelGenerateIndexRules: boolean | undefined;
+  modelEmitAuthProvider: boolean | undefined;
+  modelRespectPrimaryKeyAttributesOnConnectionField: boolean | undefined;
+  modelGenerateModelsForLazyLoadAndCustomSelectionSet: boolean | undefined;
+  modelAddTimestampFields: boolean | undefined;
+  modelHandleListNullabilityTransparently: boolean | undefined;
+  statementMaxDepth: number | undefined;
+  statementTypenameIntrospection: boolean | undefined;
+  typeMultipleSwiftFiles: boolean | undefined;
 };
 
 /**
@@ -71,19 +80,55 @@ export class GenerateGraphqlClientCodeCommand
     this.describe = 'Generates graphql API code';
   }
 
-  private getTargetParts = (
+  private getFormatParams = (
     format: string,
     args: ArgumentsCamelCase<GenerateGraphqlClientCodeCommandOptions>
-  ): Record<string, string | undefined> => {
+  ): Record<string, string | boolean | number | undefined> => {
     switch (format) {
       case 'graphql-codegen':
         return {
           statementTarget: args.statementTarget ?? 'javascript',
           ...(args.typeTarget ? { typeTarget: args.typeTarget } : {}),
+          ...(args.statementMaxDepth
+            ? { maxDepth: args.statementMaxDepth }
+            : {}),
+          ...(args.statementTypenameIntrospection
+            ? { typenameIntrospection: args.statementTypenameIntrospection }
+            : {}),
+          ...(args.typeMultipleSwiftFiles
+            ? { multipleSwiftFiles: args.typeMultipleSwiftFiles }
+            : {}),
         };
       case 'modelgen':
         return {
           modelTarget: args.modelTarget ?? 'javascript',
+          ...(args.modelGenerateIndexRules
+            ? { generateIndexRules: args.modelGenerateIndexRules }
+            : {}),
+          ...(args.modelEmitAuthProvider
+            ? { emitAuthProvider: args.modelEmitAuthProvider }
+            : {}),
+          ...(args.modelRespectPrimaryKeyAttributesOnConnectionField
+            ? {
+                respectPrimaryKeyAttributesOnConnectionField:
+                  args.modelRespectPrimaryKeyAttributesOnConnectionField,
+              }
+            : {}),
+          ...(args.modelGenerateModelsForLazyLoadAndCustomSelectionSet
+            ? {
+                generateModelsForLazyLoadAndCustomSelectionSet:
+                  args.modelGenerateModelsForLazyLoadAndCustomSelectionSet,
+              }
+            : {}),
+          ...(args.modelAddTimestampFields
+            ? { addTimestampFields: args.modelAddTimestampFields }
+            : {}),
+          ...(args.modelHandleListNullabilityTransparently
+            ? {
+                handleListNullabilityTransparently:
+                  args.modelHandleListNullabilityTransparently,
+              }
+            : {}),
         };
       case 'introspection':
         return {};
@@ -113,13 +158,13 @@ export class GenerateGraphqlClientCodeCommand
     );
     const out = this.getOutDir(args);
     const format = args.format ?? ('graphql-codegen' as unknown as any);
-    const targetParts = this.getTargetParts(format, args);
+    const formatParams = this.getFormatParams(format, args);
 
     await this.apiCodeGenerator.generateAPICodeToFile({
       backendIdentifier,
       out,
       format,
-      ...targetParts,
+      ...formatParams,
     });
   };
 
@@ -184,6 +229,54 @@ export class GenerateGraphqlClientCodeCommand
         array: false,
         choices: typesTargetChoice,
       })
+      .option('modelGenerateIndexRules', {
+        type: 'boolean',
+        array: false,
+        hidden: true,
+      })
+      .option('modelEmitAuthProvider', {
+        type: 'boolean',
+        array: false,
+        hidden: true,
+      })
+      .option('modelRespectPrimaryKeyAttributesOnConnectionField', {
+        type: 'boolean',
+        array: false,
+        hidden: true,
+      })
+      .option('modelGenerateModelsForLazyLoadAndCustomSelectionSet', {
+        type: 'boolean',
+        array: false,
+        hidden: true,
+      })
+      .option('modelAddTimestampFields', {
+        type: 'boolean',
+        array: false,
+        hidden: true,
+      })
+      .option('modelHandleListNullabilityTransparently', {
+        type: 'boolean',
+        array: false,
+        hidden: true,
+      })
+      .option('statementMaxDepth', {
+        description:
+          'Determines how deeply nested to generate graphql statements.',
+        type: 'number',
+        array: false,
+        hidden: true,
+      })
+      .option('statementTypenameIntrospection', {
+        type: 'boolean',
+        array: false,
+        hidden: true,
+      })
+      .option('typeMultipleSwiftFiles', {
+        type: 'boolean',
+        array: false,
+        hidden: true,
+      })
+      .showHidden('all')
       .check((argv) => {
         if (!argv.stack && !argv.branch) {
           throw this.missingArgsError;

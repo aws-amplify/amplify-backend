@@ -10,8 +10,6 @@ export type GenerateModelsOptions = {
   modelTarget: 'java' | 'swift' | 'javascript' | 'typescript' | 'dart';
   generateIndexRules?: boolean;
   emitAuthProvider?: boolean;
-  useExperimentalPipelinedTransformer?: boolean;
-  transformerVersion?: boolean;
   respectPrimaryKeyAttributesOnConnectionField?: boolean;
   generateModelsForLazyLoadAndCustomSelectionSet?: boolean;
   addTimestampFields?: boolean;
