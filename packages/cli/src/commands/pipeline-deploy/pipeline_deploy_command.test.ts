@@ -21,8 +21,8 @@ const getCommandRunner = (isCI = false) => {
   return new TestCommandRunner(parser);
 };
 
-describe('deploy command', () => {
-  it('fails if required arguments are not supplied', async () => {
+void describe('deploy command', () => {
+  void it('fails if required arguments are not supplied', async () => {
     await assert.rejects(
       () => getCommandRunner().runCommand('pipeline-deploy'),
       (err: TestCommandError) => {
@@ -32,7 +32,7 @@ describe('deploy command', () => {
     );
   });
 
-  it('throws error if not in CI environment', async () => {
+  void it('throws error if not in CI environment', async () => {
     await assert.rejects(
       () =>
         getCommandRunner().runCommand(
@@ -48,7 +48,7 @@ describe('deploy command', () => {
     );
   });
 
-  it('executes backend deployer in CI environments', async () => {
+  void it('executes backend deployer in CI environments', async () => {
     const mockDeploy = mock.method(
       BackendDeployerFactory.getInstance(),
       'deploy',

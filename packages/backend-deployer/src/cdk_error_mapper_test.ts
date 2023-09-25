@@ -39,10 +39,10 @@ const testErrorMappings = [
   },
 ];
 
-describe('invokeCDKCommand', { concurrency: 1 }, () => {
+void describe('invokeCDKCommand', { concurrency: 1 }, () => {
   const cdkErrorMapper = new CdkErrorMapper();
   testErrorMappings.forEach(({ errorMessage, expectedString }) => {
-    it(`handles ${errorMessage} error`, () => {
+    void it(`handles ${errorMessage} error`, () => {
       const humanReadableError = cdkErrorMapper.getHumanReadableError(
         new Error(errorMessage)
       );

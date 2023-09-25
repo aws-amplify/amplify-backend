@@ -3,9 +3,9 @@ import { App, NestedStack, Stack } from 'aws-cdk-lib';
 import { NestedStackResolver } from './nested_stack_resolver.js';
 import assert from 'node:assert';
 
-describe('NestedStackResolver', () => {
-  describe('getStackFor', () => {
-    it('creates a new nested stack for new resource groups', () => {
+void describe('NestedStackResolver', () => {
+  void describe('getStackFor', () => {
+    void it('creates a new nested stack for new resource groups', () => {
       const app = new App();
       const stack = new Stack(app);
       const stackResolver = new NestedStackResolver(stack);
@@ -17,7 +17,7 @@ describe('NestedStackResolver', () => {
       assert.notStrictEqual(testStack, otherStack);
     });
 
-    it('returns cached nested stack for existing resource groups', () => {
+    void it('returns cached nested stack for existing resource groups', () => {
       const app = new App();
       const stack = new Stack(app);
       const stackResolver = new NestedStackResolver(stack);

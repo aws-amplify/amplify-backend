@@ -16,7 +16,7 @@ import {
 } from '../setup_test_directory.js';
 import { pathToFileURL } from 'url';
 
-describe('sandbox', () => {
+void describe('sandbox', () => {
   const e2eSandboxDir = getTestDir;
   createTestDirectoryBeforeAndCleanupAfter(e2eSandboxDir);
 
@@ -64,7 +64,7 @@ describe('sandbox', () => {
   ];
 
   testProjects.forEach((testProject) => {
-    it(testProject.name, async () => {
+    void it(testProject.name, async () => {
       await fs.cp(testProject.initialAmplifyDirPath, testAmplifyDir, {
         recursive: true,
       });

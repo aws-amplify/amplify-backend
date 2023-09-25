@@ -1,0 +1,11 @@
+# Ignore artifacts:
+build
+coverage
+bin
+lib
+docs
+temp
+API.md
+examples
+verdaccio-cache
+expected-cdk-out

@@ -20,7 +20,7 @@ import {
 import { triggerEvents } from '@aws-amplify/auth-construct-alpha';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 
-describe('AmplifyAuthFactory', () => {
+void describe('AmplifyAuthFactory', () => {
   let authFactory: AmplifyAuthFactory;
   let constructContainer: ConstructContainer;
   let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
@@ -45,7 +45,7 @@ describe('AmplifyAuthFactory', () => {
     importPathVerifier = new ToggleableImportPathVerifier(false);
   });
 
-  it('returns singleton instance', () => {
+  void it('returns singleton instance', () => {
     const instance1 = authFactory.getInstance({
       constructContainer,
       outputStorageStrategy,
@@ -60,7 +60,7 @@ describe('AmplifyAuthFactory', () => {
     assert.strictEqual(instance1, instance2);
   });
 
-  it('adds construct to stack', () => {
+  void it('adds construct to stack', () => {
     const authConstruct = authFactory.getInstance({
       constructContainer,
       outputStorageStrategy,
@@ -71,7 +71,7 @@ describe('AmplifyAuthFactory', () => {
 
     template.resourceCountIs('AWS::Cognito::UserPool', 1);
   });
-  it('verifies constructor import path', () => {
+  void it('verifies constructor import path', () => {
     const importPathVerifier = {
       verify: mock.fn(),
     };
@@ -90,7 +90,7 @@ describe('AmplifyAuthFactory', () => {
   });
 
   triggerEvents.forEach((event) => {
-    it(`resolves ${event} trigger and attaches handler to auth construct`, () => {
+    void it(`resolves ${event} trigger and attaches handler to auth construct`, () => {
       const funcStub: ConstructFactory<ResourceProvider<FunctionResources>> = {
         getInstance: () => {
           return {
