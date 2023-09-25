@@ -1,6 +1,6 @@
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
-import { BackendMetadataReaderFactory } from './backend-metadata/backend_metadata_reader_factory.js';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
+import { BackendMetadataReaderFactory } from './backend-metadata/backend_metadata_reader_factory.js';
 
 export type BackendMetadata = {
   name: string;

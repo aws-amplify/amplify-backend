@@ -23,14 +23,15 @@ import {
   BackendDeploymentType,
   BackendMetadata,
 } from '../deployment_client.js';
+
+import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
+import { getMainStackName } from '../get_main_stack_name.js';
 import {
   BackendOutputClient,
   BackendOutputClientError,
   BackendOutputClientErrorType,
   BackendOutputClientFactory,
-  getMainStackName,
-} from '@aws-amplify/deployed-backend-client';
-import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
+} from '../backend_output_client_factory.js';
 
 const translateStackStatus = (
   status: StackStatus | string | undefined

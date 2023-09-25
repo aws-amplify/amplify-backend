@@ -15,7 +15,48 @@ export type AppNameAndBranchBackendIdentifier = {
 };
 
 // @public (undocumented)
+export enum BackendDeploymentStatus {
+    // (undocumented)
+    DEPLOYED = "DEPLOYED",
+    // (undocumented)
+    DEPLOYING = "DEPLOYING",
+    // (undocumented)
+    FAILED = "FAILED"
+}
+
+// @public (undocumented)
+export enum BackendDeploymentType {
+    // (undocumented)
+    BRANCH = "BRANCH",
+    // (undocumented)
+    SANDBOX = "SANDBOX"
+}
+
+// @public (undocumented)
 export type BackendIdentifier = UniqueBackendIdentifier | StackIdentifier | AppNameAndBranchBackendIdentifier;
+
+// @public (undocumented)
+export type BackendMetadata = {
+    name: string;
+    lastUpdated: Date | undefined;
+    deploymentType: BackendDeploymentType;
+    status: BackendDeploymentStatus | undefined;
+    apiConfiguration?: {
+        status: BackendDeploymentStatus | undefined;
+        lastUpdated: Date | undefined;
+        graphqlEndpoint: string;
+    };
+    authConfiguration?: {
+        status: BackendDeploymentStatus | undefined;
+        lastUpdated: Date | undefined;
+        userPoolId: string;
+    };
+    storageConfiguration?: {
+        status: BackendDeploymentStatus | undefined;
+        lastUpdated: Date | undefined;
+        s3BucketName: string;
+    };
+};
 
 // @public
 export interface BackendOutputClient {
@@ -39,6 +80,14 @@ export enum BackendOutputClientErrorType {
 // @public
 export class BackendOutputClientFactory {
     static getInstance: (credentials: AwsCredentialIdentityProvider) => BackendOutputClient;
+}
+
+// @public (undocumented)
+export class DeploymentClient {
+    constructor(credentials: AwsCredentialIdentityProvider);
+    deleteSandbox: (sandboxId: string) => Promise<BackendMetadata>;
+    getBackendMetadata: (uniqueBackendIdentifier: UniqueBackendIdentifier) => Promise<BackendMetadata>;
+    listSandboxes: () => Promise<BackendMetadata[]>;
 }
 
 // @public

@@ -1,7 +1,7 @@
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { BackendMetadataReader } from './backend_metadata_reader.js';
-import { BackendOutputClientFactory } from '@aws-amplify/deployed-backend-client';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
+import { BackendOutputClientFactory } from '../backend_output_client_factory.js';
 
 /**
  * Factory to create a backend metadata reader
