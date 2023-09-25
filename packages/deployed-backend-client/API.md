@@ -17,49 +17,15 @@ export type AppNameAndBranchBackendIdentifier = {
 // @public (undocumented)
 export type BackendIdentifier = UniqueBackendIdentifier | StackIdentifier | AppNameAndBranchBackendIdentifier;
 
-// @public
-export class BackendOutputClient implements BackendOutputClientInterface {
-    constructor(credentials: AwsCredentialIdentityProvider);
-    // (undocumented)
-    getOutput: (backendIdentifier: BackendIdentifier) => Promise<{
-        "AWS::Amplify::Auth"?: {
-            version: "1";
-            payload: {
-                userPoolId: string;
-                webClientId: string;
-                identityPoolId: string;
-                authRegion: string;
-                amazonClientId?: string | undefined;
-                appleClientId?: string | undefined;
-                facebookClientId?: string | undefined;
-                googleClientId?: string | undefined;
-            };
-        } | undefined;
-        "AWS::Amplify::GraphQL"?: {
-            version: "1";
-            payload: {
-                awsAppsyncRegion: string;
-                awsAppsyncApiEndpoint: string;
-                awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
-                awsAppsyncApiId: string;
-                amplifyApiModelSchemaS3Uri: string;
-                awsAppsyncApiKey?: string | undefined;
-            };
-        } | undefined;
-        "AWS::Amplify::Storage"?: {
-            version: "1";
-            payload: {
-                bucketName: string;
-                storageRegion: string;
-            };
-        } | undefined;
-    }>;
-}
-
 // @public (undocumented)
-export interface BackendOutputClientInterface {
+export interface BackendOutputClient {
     // (undocumented)
     readonly getOutput: (backendIdentifier: BackendIdentifier) => Promise<BackendOutput>;
+}
+
+// @public
+export class BackendOutputClientFactory {
+    static getInstance: (credentials: AwsCredentialIdentityProvider) => BackendOutputClient;
 }
 
 // @public
