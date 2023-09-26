@@ -16,6 +16,9 @@ import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { StandardAttributes } from 'aws-cdk-lib/aws-cognito';
 
 // @public
+export type AmazonProvider = Omit<aws_cognito.UserPoolIdentityProviderAmazonProps, 'userPool'>;
+
+// @public
 export class AmplifyAuth extends Construct implements ResourceProvider<AuthResources> {
     constructor(scope: Construct, id: string, props?: AuthProps);
     addTrigger: (event: TriggerEvent, handler: IFunction | AmplifyFunction) => void;
@@ -23,6 +26,9 @@ export class AmplifyAuth extends Construct implements ResourceProvider<AuthResou
     static customAttribute: AuthCustomAttributeFactory;
     readonly resources: AuthResources;
 }
+
+// @public
+export type AppleProvider = Omit<aws_cognito.UserPoolIdentityProviderAppleProps, 'userPool'>;
 
 // @public
 export abstract class AuthCustomAttributeBase {
@@ -104,19 +110,28 @@ export type EmailLogin = true | {
 };
 
 // @public
-export type ExternalProviders = {
-    externalProviders?: {
-        google?: Omit<aws_cognito.UserPoolIdentityProviderGoogleProps, 'userPool'>;
-        facebook?: Omit<aws_cognito.UserPoolIdentityProviderFacebookProps, 'userPool'>;
-        amazon?: Omit<aws_cognito.UserPoolIdentityProviderAmazonProps, 'userPool'>;
-        apple?: Omit<aws_cognito.UserPoolIdentityProviderAppleProps, 'userPool'>;
-        oidc?: Omit<aws_cognito.UserPoolIdentityProviderOidcProps, 'userPool'>;
-        saml?: Omit<aws_cognito.UserPoolIdentityProviderSamlProps, 'userPool'>;
-        scopes?: aws_cognito.OAuthScope[];
-        callbackUrls?: string[];
-        logoutUrls?: string[];
-    };
+export type ExternalProviderGroup = {
+    google?: GoogleProvider;
+    facebook?: FacebookProvider;
+    amazon?: AmazonProvider;
+    apple?: AppleProvider;
+    oidc?: OidcProvider;
+    saml?: SamlProvider;
+    scopes?: aws_cognito.OAuthScope[];
+    callbackUrls?: string[];
+    logoutUrls?: string[];
 };
+
+// @public
+export type ExternalProviders = {
+    externalProviders?: ExternalProviderGroup;
+};
+
+// @public
+export type FacebookProvider = Omit<aws_cognito.UserPoolIdentityProviderFacebookProps, 'userPool'>;
+
+// @public
+export type GoogleProvider = Omit<aws_cognito.UserPoolIdentityProviderGoogleProps, 'userPool'>;
 
 // @public
 export type MFA = {
@@ -141,9 +156,15 @@ export type Mutable<T> = {
 };
 
 // @public
+export type OidcProvider = Omit<aws_cognito.UserPoolIdentityProviderOidcProps, 'userPool'>;
+
+// @public
 export type PhoneNumberLogin = true | {
     verificationMessage?: `${string}{####}${string}`;
 };
+
+// @public
+export type SamlProvider = Omit<aws_cognito.UserPoolIdentityProviderSamlProps, 'userPool'>;
 
 // @public
 export type TriggerEvent = (typeof triggerEvents)[number];

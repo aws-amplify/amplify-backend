@@ -50,7 +50,10 @@ export type OidcProviderProps = Omit<OidcProvider, 'clientSecret'> & {
   clientSecret: BackendSecret;
 };
 
-type ExternalGroupGeneralProps = Omit<
+/**
+ * External provider general properties.
+ */
+export type ExternalProviderGeneralProps = Omit<
   ExternalProviderGroup,
   'apple' | 'amazon' | 'facebook' | 'oidc' | 'google'
 >;
@@ -58,7 +61,7 @@ type ExternalGroupGeneralProps = Omit<
 /**
  * External provider group properties.
  */
-export type ExternalProviderGroupProps = ExternalGroupGeneralProps & {
+export type ExternalProviderGroupProps = ExternalProviderGeneralProps & {
   apple?: AppleProviderProps;
   amazon?: AmazonProviderProps;
   facebook?: FacebookProviderProps;
@@ -69,7 +72,10 @@ export type ExternalProviderGroupProps = ExternalGroupGeneralProps & {
 /**
  * External provider properties.
  */
-export type ExternalProviderProps = Omit<ExternalProviders, 'externalProviders'> & {
+export type ExternalProviderProps = Omit<
+  ExternalProviders,
+  'externalProviders'
+> & {
   externalProviders?: ExternalProviderGroupProps;
 };
 
@@ -96,7 +102,7 @@ export const translateToAuthConstructLoginWith = (
 
   const externalProviders = authFactoryLoginWith.externalProviders;
   result.externalProviders = {
-    ...(externalProviders as ExternalGroupGeneralProps),
+    ...(externalProviders as ExternalProviderGeneralProps),
   };
 
   const amazonProps = translateAmazonProps(

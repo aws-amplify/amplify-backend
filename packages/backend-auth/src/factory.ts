@@ -24,7 +24,7 @@ export type TriggerConfig = {
   >;
 };
 
-type ReplacedLoginWithAuthProps = Omit<AuthProps, 'loginWith'> & {
+export type ReplacedLoginWithAuthProps = Omit<AuthProps, 'loginWith'> & {
   loginWith: AuthFactoryLoginWith;
 };
 

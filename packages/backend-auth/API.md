@@ -4,14 +4,30 @@
 
 ```ts
 
+import { AmazonProvider } from '@aws-amplify/auth-construct-alpha';
 import { AmplifyAuth } from '@aws-amplify/auth-construct-alpha';
+import { AppleProvider } from '@aws-amplify/auth-construct-alpha';
 import { AuthProps } from '@aws-amplify/auth-construct-alpha';
 import { AuthResources } from '@aws-amplify/plugin-types';
+import { BackendSecret } from '@aws-amplify/plugin-types';
+import { BasicLoginOptions } from '@aws-amplify/auth-construct-alpha';
+import { Construct } from 'constructs';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
+import { ExternalProviderGroup } from '@aws-amplify/auth-construct-alpha';
+import { ExternalProviders } from '@aws-amplify/auth-construct-alpha';
+import { FacebookProvider } from '@aws-amplify/auth-construct-alpha';
 import { FunctionResources } from '@aws-amplify/plugin-types';
+import { GoogleProvider } from '@aws-amplify/auth-construct-alpha';
+import { OidcProvider } from '@aws-amplify/auth-construct-alpha';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { TriggerEvent } from '@aws-amplify/auth-construct-alpha';
+import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+
+// @public
+export type AmazonProviderProps = Omit<AmazonProvider, 'clientSecret'> & {
+    clientSecret: BackendSecret;
+};
 
 // @public
 export class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth & ResourceProvider<AuthResources>> {
@@ -22,10 +38,58 @@ export class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth & Resour
 }
 
 // @public (undocumented)
-export type AmplifyAuthFactoryProps = Omit<AuthProps, 'outputStorageStrategy'> & TriggerConfig;
+export type AmplifyAuthFactoryProps = Omit<ReplacedLoginWithAuthProps, 'outputStorageStrategy'> & TriggerConfig;
+
+// @public
+export type AppleProviderProps = Omit<AppleProvider, 'privateKey'> & {
+    privateKey: BackendSecret;
+};
 
 // @public
 export const Auth: typeof AmplifyAuthFactory;
+
+// @public
+export type AuthFactoryLoginWith = BasicLoginOptions & ExternalProviderProps;
+
+// @public
+export type ExternalProviderGeneralProps = Omit<ExternalProviderGroup, 'apple' | 'amazon' | 'facebook' | 'oidc' | 'google'>;
+
+// @public
+export type ExternalProviderGroupProps = ExternalProviderGeneralProps & {
+    apple?: AppleProviderProps;
+    amazon?: AmazonProviderProps;
+    facebook?: FacebookProviderProps;
+    oidc?: OidcProviderProps;
+    google?: GoogleProviderProps;
+};
+
+// @public
+export type ExternalProviderProps = Omit<ExternalProviders, 'externalProviders'> & {
+    externalProviders?: ExternalProviderGroupProps;
+};
+
+// @public
+export type FacebookProviderProps = Omit<FacebookProvider, 'clientSecret'> & {
+    clientSecret: BackendSecret;
+};
+
+// @public
+export type GoogleProviderProps = Omit<GoogleProvider, 'clientSecretValue'> & {
+    clientSecretValue: BackendSecret;
+};
+
+// @public
+export type OidcProviderProps = Omit<OidcProvider, 'clientSecret'> & {
+    clientSecret: BackendSecret;
+};
+
+// @public (undocumented)
+export type ReplacedLoginWithAuthProps = Omit<AuthProps, 'loginWith'> & {
+    loginWith: AuthFactoryLoginWith;
+};
+
+// @public
+export const translateToAuthConstructLoginWith: (scope: Construct, backendId: UniqueBackendIdentifier, authFactoryLoginWith: AuthFactoryLoginWith) => BasicLoginOptions & ExternalProviders;
 
 // @public (undocumented)
 export type TriggerConfig = {

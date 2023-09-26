@@ -7,6 +7,7 @@ export {
   AmazonProvider,
   AppleProvider,
   OidcProvider,
+  SamlProvider,
   ExternalProviderGroup,
   ExternalProviders,
   MFA,
