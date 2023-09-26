@@ -16,6 +16,7 @@ import {
   ConstructFactoryGetInstanceProps,
   ImportPathVerifier,
   ResourceProvider,
+  UniqueBackendIdentifier,
 } from '@aws-amplify/plugin-types';
 import { Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import {
@@ -43,6 +44,11 @@ void describe('DataFactory', () => {
   let importPathVerifier: ImportPathVerifier;
   let dataFactory: DataFactory;
   let getInstanceProps: ConstructFactoryGetInstanceProps;
+  const backendIdentifier: UniqueBackendIdentifier = {
+    backendId: 'testBackendId',
+    branchName: 'testBranchName',
+  };
+
   beforeEach(() => {
     dataFactory = new DataFactory({ schema: testSchema });
 
@@ -89,6 +95,7 @@ void describe('DataFactory', () => {
       constructContainer,
       outputStorageStrategy,
       importPathVerifier,
+      backendIdentifier,
     };
   });
 

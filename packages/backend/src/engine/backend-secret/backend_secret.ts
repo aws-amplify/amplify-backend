@@ -3,7 +3,6 @@ import {
   UniqueBackendIdentifier,
 } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
-import { SecretValue } from 'aws-cdk-lib';
 import { BackendSecretFetcherFactory } from './backend_secret_fetcher_factory.js';
 
 /**
@@ -24,7 +23,7 @@ export class CfnTokenBackendSecret implements BackendSecret {
   resolve = (
     scope: Construct,
     backendIdentifier: UniqueBackendIdentifier
-  ): SecretValue => {
+  ): string => {
     const secretResource = this.secretResourceFactory.getOrCreate(
       scope,
       this.name,
@@ -32,7 +31,6 @@ export class CfnTokenBackendSecret implements BackendSecret {
       backendIdentifier
     );
 
-    const val = secretResource.getAttString('secretValue');
-    return SecretValue.unsafePlainText(val); // safe since 'val' is a cdk token.
+    return secretResource.getAttString('secretValue');
   };
 }

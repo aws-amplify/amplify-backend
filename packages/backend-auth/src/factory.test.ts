@@ -16,9 +16,15 @@ import {
   FunctionResources,
   ImportPathVerifier,
   ResourceProvider,
+  UniqueBackendIdentifier,
 } from '@aws-amplify/plugin-types';
 import { triggerEvents } from '@aws-amplify/auth-construct-alpha';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
+
+const backendIdentifier: UniqueBackendIdentifier = {
+  backendId: 'testBackendId',
+  branchName: 'testBranchName',
+};
 
 void describe('AmplifyAuthFactory', () => {
   let authFactory: AmplifyAuthFactory;
@@ -50,11 +56,13 @@ void describe('AmplifyAuthFactory', () => {
       constructContainer,
       outputStorageStrategy,
       importPathVerifier,
+      backendIdentifier,
     });
     const instance2 = authFactory.getInstance({
       constructContainer,
       outputStorageStrategy,
       importPathVerifier,
+      backendIdentifier,
     });
 
     assert.strictEqual(instance1, instance2);
@@ -65,6 +73,7 @@ void describe('AmplifyAuthFactory', () => {
       constructContainer,
       outputStorageStrategy,
       importPathVerifier,
+      backendIdentifier,
     });
 
     const template = Template.fromStack(Stack.of(authConstruct));
@@ -80,6 +89,7 @@ void describe('AmplifyAuthFactory', () => {
       constructContainer,
       outputStorageStrategy,
       importPathVerifier,
+      backendIdentifier,
     });
 
     assert.ok(
@@ -113,6 +123,7 @@ void describe('AmplifyAuthFactory', () => {
         constructContainer,
         outputStorageStrategy,
         importPathVerifier,
+        backendIdentifier,
       });
 
       const template = Template.fromStack(Stack.of(authConstruct));

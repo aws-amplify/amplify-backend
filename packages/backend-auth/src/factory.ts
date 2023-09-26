@@ -11,7 +11,12 @@ import {
   ConstructFactoryGetInstanceProps,
   FunctionResources,
   ResourceProvider,
+  UniqueBackendIdentifier,
 } from '@aws-amplify/plugin-types';
+import {
+  AuthFactoryLoginWith,
+  translateToAuthConstructLoginWith,
+} from './types.js';
 
 export type TriggerConfig = {
   triggers?: Partial<
@@ -19,7 +24,14 @@ export type TriggerConfig = {
   >;
 };
 
-export type AmplifyAuthFactoryProps = Omit<AuthProps, 'outputStorageStrategy'> &
+type ReplacedLoginWithAuthProps = Omit<AuthProps, 'loginWith'> & {
+  loginWith: AuthFactoryLoginWith;
+};
+
+export type AmplifyAuthFactoryProps = Omit<
+  ReplacedLoginWithAuthProps,
+  'outputStorageStrategy'
+> &
   TriggerConfig;
 
 /**
@@ -46,14 +58,19 @@ export class AmplifyAuthFactory
   getInstance = (
     getInstanceProps: ConstructFactoryGetInstanceProps
   ): AmplifyAuth => {
-    const { constructContainer, importPathVerifier } = getInstanceProps;
+    const { constructContainer, importPathVerifier, backendIdentifier } =
+      getInstanceProps;
     importPathVerifier?.verify(
       this.importStack,
       'auth',
       'Amplify Auth must be defined in an "auth.ts" file'
     );
     if (!this.generator) {
-      this.generator = new AmplifyAuthGenerator(this.props, getInstanceProps);
+      this.generator = new AmplifyAuthGenerator(
+        this.props,
+        getInstanceProps,
+        backendIdentifier
+      );
     }
     return constructContainer.getOrCompute(this.generator) as AmplifyAuth;
   };
@@ -65,14 +82,21 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
 
   constructor(
     private readonly props: AmplifyAuthFactoryProps,
-    private readonly getInstanceProps: ConstructFactoryGetInstanceProps
+    private readonly getInstanceProps: ConstructFactoryGetInstanceProps,
+    private readonly backendIdentifier: UniqueBackendIdentifier
   ) {}
 
   generateContainerEntry = (scope: Construct) => {
     const authProps: AuthProps = {
       ...this.props,
+      loginWith: translateToAuthConstructLoginWith(
+        scope,
+        this.backendIdentifier,
+        this.props.loginWith
+      ),
       outputStorageStrategy: this.getInstanceProps.outputStorageStrategy,
     };
+
     const authConstruct = new AmplifyAuth(scope, this.defaultName, authProps);
     Object.entries(this.props.triggers || {}).forEach(
       ([triggerEvent, handlerFactory]) => {

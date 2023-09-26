@@ -5,7 +5,10 @@ import {
   NestedStackResolver,
   SingletonConstructContainer,
 } from '@aws-amplify/backend/test-utils';
-import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
+import {
+  ConstructFactoryGetInstanceProps,
+  UniqueBackendIdentifier,
+} from '@aws-amplify/plugin-types';
 import assert from 'node:assert';
 import { fileURLToPath } from 'url';
 import * as path from 'path';
@@ -13,6 +16,10 @@ import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-
 
 void describe('AmplifyFunctionFactory', () => {
   let getInstanceProps: ConstructFactoryGetInstanceProps;
+  const backendIdentifier: UniqueBackendIdentifier = {
+    backendId: 'testBackendId',
+    branchName: 'testBranchName',
+  };
 
   beforeEach(() => {
     const app = new App();
@@ -29,6 +36,7 @@ void describe('AmplifyFunctionFactory', () => {
     getInstanceProps = {
       constructContainer,
       outputStorageStrategy,
+      backendIdentifier,
     };
   });
 

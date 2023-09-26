@@ -14,6 +14,7 @@ import {
   ConstructContainer,
   ConstructFactoryGetInstanceProps,
   ImportPathVerifier,
+  UniqueBackendIdentifier,
 } from '@aws-amplify/plugin-types';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 
@@ -23,6 +24,11 @@ void describe('AmplifyStorageFactory', () => {
   let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
   let importPathVerifier: ImportPathVerifier;
   let getInstanceProps: ConstructFactoryGetInstanceProps;
+  const backendIdentifier: UniqueBackendIdentifier = {
+    backendId: 'testBackendId',
+    branchName: 'testBranchName',
+  };
+
   beforeEach(() => {
     storageFactory = new AmplifyStorageFactory({});
 
@@ -43,6 +49,7 @@ void describe('AmplifyStorageFactory', () => {
       constructContainer,
       outputStorageStrategy,
       importPathVerifier,
+      backendIdentifier,
     };
   });
   void it('returns singleton instance', () => {
@@ -75,6 +82,7 @@ void describe('AmplifyStorageFactory', () => {
       outputStorageStrategy,
       constructContainer,
       importPathVerifier,
+      backendIdentifier,
     });
 
     assert.strictEqual(storeOutputMock.mock.callCount(), 1);

@@ -53,22 +53,76 @@ export type MFASettings =
 export type MFA =
   | { enforcementType: 'OFF' }
   | ({ enforcementType: 'OPTIONAL' | 'REQUIRED' } & MFASettings);
+
+/**
+ * Google provider.
+ */
+export type GoogleProvider = Omit<
+  cognito.UserPoolIdentityProviderGoogleProps,
+  'userPool'
+>;
+
+/**
+ * Apple provider.
+ */
+export type AppleProvider = Omit<
+  cognito.UserPoolIdentityProviderAppleProps,
+  'userPool'
+>;
+
+/**
+ * Amazon provider.
+ */
+export type AmazonProvider = Omit<
+  cognito.UserPoolIdentityProviderAmazonProps,
+  'userPool'
+>;
+
+/**
+ * Facebook provider.
+ */
+export type FacebookProvider = Omit<
+  cognito.UserPoolIdentityProviderFacebookProps,
+  'userPool'
+>;
+
+/**
+ * OIDC provider.
+ */
+export type OidcProvider = Omit<
+  cognito.UserPoolIdentityProviderOidcProps,
+  'userPool'
+>;
+
+/**
+ * SAML provider.
+ */
+export type SamlProvider = Omit<
+  cognito.UserPoolIdentityProviderSamlProps,
+  'userPool'
+>;
+
+/**
+ * External provider group.
+ */
+export type ExternalProviderGroup = {
+  google?: GoogleProvider;
+  facebook?: FacebookProvider;
+  amazon?: AmazonProvider;
+  apple?: AppleProvider;
+  oidc?: OidcProvider;
+  saml?: SamlProvider;
+  // general configuration
+  scopes?: cognito.OAuthScope[];
+  callbackUrls?: string[];
+  logoutUrls?: string[];
+};
+
 /**
  * External auth provider options
  */
 export type ExternalProviders = {
-  externalProviders?: {
-    google?: Omit<cognito.UserPoolIdentityProviderGoogleProps, 'userPool'>;
-    facebook?: Omit<cognito.UserPoolIdentityProviderFacebookProps, 'userPool'>;
-    amazon?: Omit<cognito.UserPoolIdentityProviderAmazonProps, 'userPool'>;
-    apple?: Omit<cognito.UserPoolIdentityProviderAppleProps, 'userPool'>;
-    oidc?: Omit<cognito.UserPoolIdentityProviderOidcProps, 'userPool'>;
-    saml?: Omit<cognito.UserPoolIdentityProviderSamlProps, 'userPool'>;
-    // general configuration
-    scopes?: cognito.OAuthScope[];
-    callbackUrls?: string[];
-    logoutUrls?: string[];
-  };
+  externalProviders?: ExternalProviderGroup;
 };
 
 /**
