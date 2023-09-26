@@ -104,7 +104,7 @@ describe('Logger', () => {
   });
 });
 
-class MockConsole {
+class MockConsole implements /*global Console*/ Console {
   public errorCount = 0;
   public infoCount = 0;
   public debugCount = 0;
