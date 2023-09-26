@@ -69,14 +69,14 @@ export type ExternalProviderGroupProps = ExternalGroupGeneralProps & {
 /**
  * External provider properties.
  */
-export type ExternalProps = Omit<ExternalProviders, 'externalProviders'> & {
+export type ExternalProviderProps = Omit<ExternalProviders, 'externalProviders'> & {
   externalProviders?: ExternalProviderGroupProps;
 };
 
 /**
  * Auth factory loginWith attribute.
  */
-export type AuthFactoryLoginWith = BasicLoginOptions & ExternalProps;
+export type AuthFactoryLoginWith = BasicLoginOptions & ExternalProviderProps;
 
 /**
  * Translate an Auth factory's loginWith to its Auth construct counterpart. Backend secret fields will be resolved
