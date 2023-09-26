@@ -2,8 +2,8 @@ import { describe, it } from 'node:test';
 import { LocalAppNameResolver } from './local_app_name_resolver.js';
 import assert from 'node:assert';
 
-describe('LocalAppNameResolver', () => {
-  it('returns package.json#name', async () => {
+void describe('LocalAppNameResolver', () => {
+  void it('returns package.json#name', async () => {
     const packageJsonLoaderMock = {
       loadCwdPackageJson: async () => ({ name: 'testName' }),
     };

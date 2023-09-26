@@ -2,8 +2,8 @@ import assert from 'node:assert';
 import { describe, it } from 'node:test';
 import { BackendIdentifierResolver } from './backend_identifier_resolver.js';
 
-describe('BackendIdentifierResolver', () => {
-  it('returns an App Name and Branch identifier', async () => {
+void describe('BackendIdentifierResolver', () => {
+  void it('returns an App Name and Branch identifier', async () => {
     const backendIdResolver = new BackendIdentifierResolver({
       resolve: () => Promise.resolve('testAppName'),
     });
@@ -12,7 +12,7 @@ describe('BackendIdentifierResolver', () => {
       branchName: 'test',
     });
   });
-  it('returns a App Id identifier', async () => {
+  void it('returns a App Id identifier', async () => {
     const backendIdResolver = new BackendIdentifierResolver({
       resolve: () => Promise.resolve('testAppName'),
     });
@@ -24,7 +24,7 @@ describe('BackendIdentifierResolver', () => {
       }
     );
   });
-  it('returns a Stack name identifier', async () => {
+  void it('returns a Stack name identifier', async () => {
     const backendIdResolver = new BackendIdentifierResolver({
       resolve: () => Promise.resolve('testAppName'),
     });

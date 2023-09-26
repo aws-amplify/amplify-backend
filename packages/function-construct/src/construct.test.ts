@@ -9,13 +9,13 @@ const testCodePath = fileURLToPath(
   new URL('../test-assets/test-lambda', import.meta.url)
 );
 
-describe('AmplifyFunction', () => {
+void describe('AmplifyFunction', () => {
   let stack: Stack;
   beforeEach(() => {
     const app = new App();
     stack = new Stack(app);
   });
-  it('creates lambda with specified runtime', () => {
+  void it('creates lambda with specified runtime', () => {
     new AmplifyLambdaFunction(stack, 'test', {
       absoluteCodePath: testCodePath,
       runtime: Runtime.JAVA_8,
@@ -26,7 +26,7 @@ describe('AmplifyFunction', () => {
     });
   });
 
-  it('creates lambda with default runtime', () => {
+  void it('creates lambda with default runtime', () => {
     new AmplifyLambdaFunction(stack, 'test', {
       absoluteCodePath: testCodePath,
     });
@@ -36,7 +36,7 @@ describe('AmplifyFunction', () => {
     });
   });
 
-  it('creates lambda with specified handler', () => {
+  void it('creates lambda with specified handler', () => {
     new AmplifyLambdaFunction(stack, 'test', {
       absoluteCodePath: testCodePath,
       handler: 'test.main',
@@ -47,7 +47,7 @@ describe('AmplifyFunction', () => {
     });
   });
 
-  it('creates lambda with default handler', () => {
+  void it('creates lambda with default handler', () => {
     new AmplifyLambdaFunction(stack, 'test', {
       absoluteCodePath: testCodePath,
     });

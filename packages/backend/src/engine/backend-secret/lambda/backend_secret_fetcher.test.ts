@@ -62,8 +62,8 @@ const deleteCfnEvent: CloudFormationCustomResourceEvent = {
   ...customResourceEventCommon,
 };
 
-describe('handle', () => {
-  it('handles delete operation', async () => {
+void describe('handle', () => {
+  void it('handles delete operation', async () => {
     const resp = await handler(deleteCfnEvent);
     assert.deepStrictEqual(resp, {
       RequestId: deleteCfnEvent.RequestId,
@@ -77,12 +77,12 @@ describe('handle', () => {
   });
 });
 
-describe('handleCreateUpdateEvent', () => {
+void describe('handleCreateUpdateEvent', () => {
   const secretHandler: SecretClient = getSecretClient();
   const serverErr = new SecretError('server error', { httpStatusCode: 500 });
   const clientErr = new SecretError('client error', { httpStatusCode: 400 });
 
-  it('gets a backend secret from a branch', async () => {
+  void it('gets a backend secret from a branch', async () => {
     const mockGetSecret = mock.method(secretHandler, 'getSecret', () =>
       Promise.resolve(testSecret)
     );
@@ -96,7 +96,7 @@ describe('handleCreateUpdateEvent', () => {
     ]);
   });
 
-  it('throws if receiving server error when getting a branch secret', async () => {
+  void it('throws if receiving server error when getting a branch secret', async () => {
     const mockGetSecret = mock.method(secretHandler, 'getSecret', () =>
       Promise.reject(serverErr)
     );
@@ -110,7 +110,7 @@ describe('handleCreateUpdateEvent', () => {
     ]);
   });
 
-  it('gets a shared backend secret if the branch returns client error', async () => {
+  void it('gets a shared backend secret if the branch returns client error', async () => {
     const mockGetSecret = mock.method(
       secretHandler,
       'getSecret',
@@ -136,7 +136,7 @@ describe('handleCreateUpdateEvent', () => {
     ]);
   });
 
-  it('gets a shared backend secret if the branch returns undefined', async () => {
+  void it('gets a shared backend secret if the branch returns undefined', async () => {
     const mockGetSecret = mock.method(
       secretHandler,
       'getSecret',
@@ -161,7 +161,7 @@ describe('handleCreateUpdateEvent', () => {
     ]);
   });
 
-  it('throws if receiving server error when getting shared secret', async () => {
+  void it('throws if receiving server error when getting shared secret', async () => {
     const mockGetSecret = mock.method(
       secretHandler,
       'getSecret',

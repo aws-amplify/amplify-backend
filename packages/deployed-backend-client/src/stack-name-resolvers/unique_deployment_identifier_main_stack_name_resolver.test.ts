@@ -3,14 +3,14 @@ import { UniqueBackendIdentifierMainStackNameResolver } from './unique_deploymen
 import assert from 'node:assert';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
-describe('UniqueBackendIdentifierMainStackNameResolver', () => {
-  describe('resolveMainStackName', () => {
+void describe('UniqueBackendIdentifierMainStackNameResolver', () => {
+  void describe('resolveMainStackName', () => {
     const testBackendIdentifier: UniqueBackendIdentifier = {
       backendId: 'testBackendId',
       branchName: 'testBranchName',
     };
 
-    it('returns value of getMainStackName', async () => {
+    void it('returns value of getMainStackName', async () => {
       // suppressing this because TS needs to know the mock has one input so that args typing works, but it's not used in the mock
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const getMainStackNameMock = mock.fn((backendId) => 'testStackName');

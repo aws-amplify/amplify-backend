@@ -3,8 +3,8 @@ import { SecretError } from './secret_error.js';
 import { SSMServiceException } from '@aws-sdk/client-ssm';
 import assert from 'node:assert';
 
-describe('SecretError', () => {
-  it('creates from SSM exception', () => {
+void describe('SecretError', () => {
+  void it('creates from SSM exception', () => {
     const ssmException = {
       message: 'ssm exception error message',
       $metadata: {

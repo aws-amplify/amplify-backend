@@ -2,12 +2,12 @@ import assert from 'assert';
 import { describe, it } from 'node:test';
 import { GenerateApiCodeProps, generateApiCode } from './generate_api_code.js';
 
-describe('generateAPICode', () => {
-  describe('graphql-codegen', () => {});
-  describe('modelgen', () => {});
-  describe('introspection', () => {});
+void describe('generateAPICode', () => {
+  void describe('graphql-codegen', () => undefined);
+  void describe('modelgen', () => undefined);
+  void describe('introspection', () => undefined);
 
-  it('throws error on unknown format', async () => {
+  void it('throws error on unknown format', async () => {
     const props = {
       format: 'unsupported',
       stackName: 'stack_name',

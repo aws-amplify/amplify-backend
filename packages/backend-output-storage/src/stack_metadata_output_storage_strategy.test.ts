@@ -4,9 +4,9 @@ import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import { backendOutputStackMetadataSchema } from '@aws-amplify/backend-output-schemas/platform';
 
-describe('StackMetadataBackendOutputStorageStrategy', () => {
-  describe('storeOutput', () => {
-    it('adds stack output and metadata for entry', () => {
+void describe('StackMetadataBackendOutputStorageStrategy', () => {
+  void describe('storeOutput', () => {
+    void it('adds stack output and metadata for entry', () => {
       const app = new App();
       const stack = new Stack(app);
       const outputStorage = new StackMetadataBackendOutputStorageStrategy(
@@ -32,7 +32,7 @@ describe('StackMetadataBackendOutputStorageStrategy', () => {
       });
     });
 
-    it('conforms stack metadata to primitive type', () => {
+    void it('conforms stack metadata to primitive type', () => {
       const app = new App();
       const stack = new Stack(app);
       const outputStorage = new StackMetadataBackendOutputStorageStrategy(
