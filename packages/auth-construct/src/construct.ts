@@ -38,7 +38,6 @@ import {
   AuthStandardAttribute,
 } from './attributes.js';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
-import { join } from 'path';
 
 type DefaultRoles = { auth: Role; unAuth: Role };
 type IdentityProviderSetupResult = {

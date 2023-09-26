@@ -1,4 +1,4 @@
-import { after, afterEach, beforeEach, describe, it } from 'node:test';
+import { after, beforeEach, describe, it } from 'node:test';
 import { strictEqual } from 'node:assert';
 import { LogLevel, Logger } from './logger.js';
 import { InspectOptions } from 'util';
