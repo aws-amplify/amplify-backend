@@ -1,5 +1,5 @@
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
-import { DefaultDeploymentClient } from './deployment_client.js';
+import { DefaultDeployedBackendClient } from './deployed_backend_client.js';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 export type BackendMetadata = {
@@ -35,7 +35,7 @@ export enum BackendDeploymentType {
   BRANCH = 'BRANCH',
 }
 
-export type DeploymentClient = {
+export type DeployedBackendClient = {
   listSandboxes: () => Promise<BackendMetadata[]>;
   deleteSandbox: (sandboxId: string) => Promise<BackendMetadata>;
   getBackendMetadata: (
@@ -46,13 +46,13 @@ export type DeploymentClient = {
 /**
  * Factory to create a DeploymentClient
  */
-export class DeploymentClientFactory {
+export class DeployedBackendClientFactory {
   /**
    * Returns a single instance of DeploymentClient
    */
   static getInstance = (
     credentials: AwsCredentialIdentityProvider
-  ): DeploymentClient => {
-    return new DefaultDeploymentClient(credentials);
+  ): DeployedBackendClient => {
+    return new DefaultDeployedBackendClient(credentials);
   };
 }

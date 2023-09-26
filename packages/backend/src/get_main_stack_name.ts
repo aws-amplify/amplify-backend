@@ -1,11 +1,7 @@
-import {
-  BranchBackendIdentifier,
-  SandboxBackendIdentifier,
-  UniqueBackendIdentifier,
-} from '@aws-amplify/plugin-types';
+import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import { getDisambiguator } from '@aws-amplify/deployed-backend-client';
 
 const mainStackNamePrefix = 'amplify';
-const sandboxStackNameSuffix = 'sandbox';
 
 /**
  * Generates a stack name based on the unique deployment identifier
@@ -18,10 +14,6 @@ const sandboxStackNameSuffix = 'sandbox';
 export const getMainStackName = (
   uniqueDeploymentIdentifier: UniqueBackendIdentifier
 ): string => {
-  const stackNameSuffix: string = (
-    uniqueDeploymentIdentifier as SandboxBackendIdentifier
-  ).sandbox
-    ? sandboxStackNameSuffix
-    : (uniqueDeploymentIdentifier as BranchBackendIdentifier).branchName;
+  const stackNameSuffix: string = getDisambiguator(uniqueDeploymentIdentifier);
   return `${mainStackNamePrefix}-${uniqueDeploymentIdentifier.backendId}-${stackNameSuffix}`;
 };

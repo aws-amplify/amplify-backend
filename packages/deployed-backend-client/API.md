@@ -65,9 +65,9 @@ export type BackendOutputClient = {
 
 // @public
 export class BackendOutputClientError extends Error {
-    constructor(code: string, message: string, options?: ErrorOptions);
+    constructor(code: BackendOutputClientErrorType, message: string, options?: ErrorOptions);
     // (undocumented)
-    code: BackendOutputClientErrorType | string;
+    code: BackendOutputClientErrorType;
 }
 
 // @public (undocumented)
@@ -82,16 +82,19 @@ export class BackendOutputClientFactory {
 }
 
 // @public (undocumented)
-export type DeploymentClient = {
+export type DeployedBackendClient = {
     listSandboxes: () => Promise<BackendMetadata[]>;
     deleteSandbox: (sandboxId: string) => Promise<BackendMetadata>;
     getBackendMetadata: (backendIdentifier: UniqueBackendIdentifier) => Promise<BackendMetadata>;
 };
 
 // @public
-export class DeploymentClientFactory {
-    static getInstance: (credentials: AwsCredentialIdentityProvider) => DeploymentClient;
+export class DeployedBackendClientFactory {
+    static getInstance: (credentials: AwsCredentialIdentityProvider) => DeployedBackendClient;
 }
+
+// @public
+export const getDisambiguator: (uniqueBackendIdentifier: UniqueBackendIdentifier) => string;
 
 // @public (undocumented)
 export type StackIdentifier = {

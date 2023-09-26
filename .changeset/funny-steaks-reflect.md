@@ -4,6 +4,9 @@
 '@aws-amplify/backend-secret': patch
 '@aws-amplify/client-config': patch
 '@aws-amplify/plugin-types': patch
+'@aws-amplify/deployed-backend-client': patch
+'@aws-amplify/model-generator': patch
+'@aws-amplify/sandbox': patch
 ---
 
-support reading backend metadata
+support backend metadata operations

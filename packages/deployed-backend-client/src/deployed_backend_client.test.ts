@@ -1,23 +1,23 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import { DefaultDeploymentClient } from './deployment_client.js';
-import { BackendMetadataReaderFactory } from './backend-metadata/backend_metadata_reader_factory.js';
+import { DefaultDeployedBackendClient } from './deployed_backend_client.js';
+import { BackendMetadataManagerFactory } from './backend-metadata/backend_metadata_manager_factory.js';
 import {
   BackendDeploymentType,
   BackendMetadata,
-} from './deployment_client_factory.js';
+} from './deployed_backend_client_factory.js';
 
 const credentials = async () => ({
   accessKeyId: 'test',
   secretAccessKey: 'test',
 });
 
-const deploymentClient = new DefaultDeploymentClient(credentials);
-const backendMetadataReader = await BackendMetadataReaderFactory.getInstance(
+const deploymentClient = new DefaultDeployedBackendClient(credentials);
+const backendMetadataManager = await BackendMetadataManagerFactory.getInstance(
   credentials
 );
 mock.method(
-  backendMetadataReader,
+  backendMetadataManager,
   'listSandboxBackendMetadata',
   async (): Promise<BackendMetadata[]> => {
     return [
@@ -32,7 +32,7 @@ mock.method(
 );
 
 mock.method(
-  backendMetadataReader,
+  backendMetadataManager,
   'deleteBackend',
   async (): Promise<BackendMetadata> => {
     return {
@@ -45,7 +45,7 @@ mock.method(
 );
 
 mock.method(
-  backendMetadataReader,
+  backendMetadataManager,
   'getBackendMetadata',
   async (): Promise<BackendMetadata> => {
     return {

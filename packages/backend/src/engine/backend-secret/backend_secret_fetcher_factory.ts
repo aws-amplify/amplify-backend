@@ -6,6 +6,7 @@ import {
   SandboxBackendIdentifier,
   UniqueBackendIdentifier,
 } from '@aws-amplify/plugin-types';
+import { getDisambiguator } from '@aws-amplify/deployed-backend-client';
 
 /**
  * Resource provider ID for the backend secret resource.
@@ -53,9 +54,7 @@ export class BackendSecretFetcherFactory {
       backendIdentifier
     );
 
-    const branchName: string =
-      (backendIdentifier as BranchBackendIdentifier).branchName ??
-      (backendIdentifier as SandboxBackendIdentifier).sandbox;
+    const branchName: string = getDisambiguator(backendIdentifier);
     return new CustomResource(scope, secretResourceId, {
       serviceToken: provider.serviceToken,
       properties: {

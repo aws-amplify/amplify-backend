@@ -13,7 +13,10 @@ import {
 } from '@aws-amplify/backend-secret';
 import { SandboxSecretGetCommand } from './sandbox_secret_get_command.js';
 import { SANDBOX_BRANCH } from './constants.js';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import {
+  BranchBackendIdentifier,
+  UniqueBackendIdentifier,
+} from '@aws-amplify/plugin-types';
 import { Printer } from '../../printer/printer.js';
 
 const testSecretName = 'testSecretName';
@@ -63,7 +66,10 @@ void describe('sandbox secret get command', () => {
     const backendIdentifier = secretGetMock.mock.calls[0]
       .arguments[0] as UniqueBackendIdentifier;
     assert.match(backendIdentifier.backendId, new RegExp(testBackendId));
-    assert.equal(backendIdentifier.branchName, SANDBOX_BRANCH);
+    assert.equal(
+      (backendIdentifier as BranchBackendIdentifier).branchName,
+      SANDBOX_BRANCH
+    );
     assert.deepStrictEqual(
       secretGetMock.mock.calls[0].arguments[1],
       testSecretIdentifier

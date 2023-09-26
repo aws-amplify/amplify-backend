@@ -7,11 +7,11 @@ import {
   ListStacksCommand,
   StackStatus,
 } from '@aws-sdk/client-cloudformation';
-import { BackendMetadataReader } from './backend_metadata_reader.js';
+import { BackendMetadataManager } from './backend_metadata_manager.js';
 import {
   BackendDeploymentStatus,
   BackendDeploymentType,
-} from '../deployment_client_factory.js';
+} from '../deployed_backend_client_factory.js';
 import {
   authOutputKey,
   graphqlOutputKey,
@@ -149,8 +149,8 @@ const expectedMetadata = {
   },
 };
 
-void describe('BackendMetadataReader', () => {
-  let backendMetadataReader: BackendMetadataReader;
+void describe('BackendMetadataManager', () => {
+  let backendMetadataManager: BackendMetadataManager;
   const getOutputMock = mock.fn();
 
   beforeEach(() => {
@@ -172,7 +172,7 @@ void describe('BackendMetadataReader', () => {
 
     cfnClientSendMock.mock.mockImplementation(mockImplementation);
 
-    backendMetadataReader = new BackendMetadataReader(mockCfnClient, {
+    backendMetadataManager = new BackendMetadataManager(mockCfnClient, {
       getOutput: getOutputMock as unknown as () => Promise<BackendOutput>,
     });
   });
@@ -188,7 +188,7 @@ void describe('BackendMetadataReader', () => {
         return getOutputMockResponse;
       }
     );
-    const sandboxes = await backendMetadataReader.listSandboxBackendMetadata();
+    const sandboxes = await backendMetadataManager.listSandboxBackendMetadata();
     assert.deepEqual(sandboxes, [
       {
         deploymentType: BackendDeploymentType.SANDBOX,
@@ -199,9 +199,9 @@ void describe('BackendMetadataReader', () => {
   });
 
   void it('deletes a sandbox', async () => {
-    const deleteResponse = await backendMetadataReader.deleteBackend({
+    const deleteResponse = await backendMetadataManager.deleteBackend({
       backendId: 'test',
-      sandbox: 'sandbox',
+      sandbox: true,
     });
     assert.deepEqual(deleteResponse, {
       deploymentType: BackendDeploymentType.SANDBOX,
@@ -211,10 +211,12 @@ void describe('BackendMetadataReader', () => {
   });
 
   void it('fetches metadata', async () => {
-    const getMetadataResponse = await backendMetadataReader.getBackendMetadata({
-      backendId: 'test',
-      branchName: 'testBranch',
-    });
+    const getMetadataResponse = await backendMetadataManager.getBackendMetadata(
+      {
+        backendId: 'test',
+        branchName: 'testBranch',
+      }
+    );
     assert.deepEqual(getMetadataResponse, {
       deploymentType: BackendDeploymentType.SANDBOX,
       name: 'amplify-test-testBranch',

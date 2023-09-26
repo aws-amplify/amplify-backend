@@ -128,7 +128,7 @@ export type ResourceProvider<T> = {
 // @public (undocumented)
 export type SandboxBackendIdentifier = {
     backendId: BackendId;
-    sandbox: 'sandbox';
+    sandbox: true;
 };
 
 // @public (undocumented)

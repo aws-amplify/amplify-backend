@@ -25,7 +25,7 @@ export type SandboxBackendIdentifier = {
   /**
    * Sandboxes are not associated with a specific branch
    */
-  sandbox: 'sandbox';
+  sandbox: true;
 };
 
 export type BranchBackendIdentifier = {

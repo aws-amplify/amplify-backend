@@ -10,12 +10,16 @@ export enum BackendOutputClientErrorType {
  * Error type for BackendOutputClientError
  */
 export class BackendOutputClientError extends Error {
-  public code: BackendOutputClientErrorType | string;
+  public code: BackendOutputClientErrorType;
 
   /**
    * Constructor for BackendOutputClientError
    */
-  constructor(code: string, message: string, options?: ErrorOptions) {
+  constructor(
+    code: BackendOutputClientErrorType,
+    message: string,
+    options?: ErrorOptions
+  ) {
     super(message, options);
     this.code = code;
   }
@@ -34,7 +38,7 @@ export type BackendOutputClient = {
  */
 export class BackendOutputClientFactory {
   /**
-   * Returns a single instance of BackendMetadataReader
+   * Returns a single instance of BackendOutputClient
    */
   static getInstance = (
     credentials: AwsCredentialIdentityProvider

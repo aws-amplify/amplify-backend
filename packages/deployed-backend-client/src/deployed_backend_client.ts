@@ -1,15 +1,15 @@
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
-import { BackendMetadataReaderFactory } from './backend-metadata/backend_metadata_reader_factory.js';
+import { BackendMetadataManagerFactory } from './backend-metadata/backend_metadata_manager_factory.js';
 import {
   BackendMetadata,
-  DeploymentClient,
-} from './deployment_client_factory.js';
+  DeployedBackendClient,
+} from './deployed_backend_client_factory.js';
 
 /**
  * Deployment Client
  */
-export class DefaultDeploymentClient implements DeploymentClient {
+export class DefaultDeployedBackendClient implements DeployedBackendClient {
   /**
    * Constructor for deployment client
    */
@@ -18,20 +18,20 @@ export class DefaultDeploymentClient implements DeploymentClient {
    * Returns all the Amplify Sandboxes for the account
    */
   listSandboxes = async (): Promise<BackendMetadata[]> => {
-    const backendMetadataReader =
-      await BackendMetadataReaderFactory.getInstance(this.credentials);
-    return backendMetadataReader.listSandboxBackendMetadata();
+    const backendMetadataManager =
+      await BackendMetadataManagerFactory.getInstance(this.credentials);
+    return backendMetadataManager.listSandboxBackendMetadata();
   };
 
   /**
    * Deletes a sandbox with the specified id
    */
   deleteSandbox = async (sandboxId: string): Promise<BackendMetadata> => {
-    const backendMetadataReader =
-      await BackendMetadataReaderFactory.getInstance(this.credentials);
-    return backendMetadataReader.deleteBackend({
+    const backendMetadataManager =
+      await BackendMetadataManagerFactory.getInstance(this.credentials);
+    return backendMetadataManager.deleteBackend({
       backendId: sandboxId,
-      sandbox: 'sandbox',
+      sandbox: true,
     });
   };
   /**
@@ -40,8 +40,8 @@ export class DefaultDeploymentClient implements DeploymentClient {
   getBackendMetadata = async (
     uniqueBackendIdentifier: UniqueBackendIdentifier
   ): Promise<BackendMetadata> => {
-    const backendMetadataReader =
-      await BackendMetadataReaderFactory.getInstance(this.credentials);
-    return backendMetadataReader.getBackendMetadata(uniqueBackendIdentifier);
+    const backendMetadataManager =
+      await BackendMetadataManagerFactory.getInstance(this.credentials);
+    return backendMetadataManager.getBackendMetadata(uniqueBackendIdentifier);
   };
 }

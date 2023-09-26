@@ -22,7 +22,7 @@ import {
   BackendDeploymentStatus,
   BackendDeploymentType,
   BackendMetadata,
-} from '../deployment_client_factory.js';
+} from '../deployed_backend_client_factory.js';
 
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { getMainStackName } from '../get_main_stack_name.js';
@@ -74,7 +74,7 @@ const translateStackStatus = (
 /**
  * Parses stack metadata to be read by web client
  */
-export class BackendMetadataReader {
+export class BackendMetadataManager {
   private backendOutput: BackendOutputClient;
 
   /**

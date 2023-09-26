@@ -1,11 +1,7 @@
-import {
-  BranchBackendIdentifier,
-  SandboxBackendIdentifier,
-  UniqueBackendIdentifier,
-} from '@aws-amplify/plugin-types';
+import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import { getDisambiguator } from './backend_identifier.js';
 
 const mainStackNamePrefix = 'amplify';
-const sandboxStackNameSuffix = 'sandbox';
 
 /**
  * Generates an SSM parameter key to identify the main stack associated with the given project environment.
@@ -18,10 +14,6 @@ const sandboxStackNameSuffix = 'sandbox';
 export const getMainStackName = (
   uniqueDeploymentIdentifier: UniqueBackendIdentifier
 ): string => {
-  const stackNameSuffix: string = (
-    uniqueDeploymentIdentifier as SandboxBackendIdentifier
-  ).sandbox
-    ? sandboxStackNameSuffix
-    : (uniqueDeploymentIdentifier as BranchBackendIdentifier).branchName;
+  const stackNameSuffix = getDisambiguator(uniqueDeploymentIdentifier);
   return `${mainStackNamePrefix}-${uniqueDeploymentIdentifier.backendId}-${stackNameSuffix}`;
 };

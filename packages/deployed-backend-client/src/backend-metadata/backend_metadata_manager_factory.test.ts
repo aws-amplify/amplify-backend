@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, it } from 'node:test';
 import assert from 'node:assert';
-import { BackendMetadataReaderFactory } from './backend_metadata_reader_factory.js';
+import { BackendMetadataManagerFactory } from './backend_metadata_manager_factory.js';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 
-void describe('BackendMetadataReaderFactory', () => {
+void describe('BackendMetadataManagerFactory', () => {
   let credentials: AwsCredentialIdentityProvider;
   beforeEach(() => {
     credentials = async () => ({
@@ -17,10 +17,10 @@ void describe('BackendMetadataReaderFactory', () => {
   });
 
   void it('instance', async () => {
-    const instance1 = await BackendMetadataReaderFactory.getInstance(
+    const instance1 = await BackendMetadataManagerFactory.getInstance(
       credentials
     );
-    const instance2 = await BackendMetadataReaderFactory.getInstance(
+    const instance2 = await BackendMetadataManagerFactory.getInstance(
       credentials
     );
     assert.equal(instance1, instance2);
