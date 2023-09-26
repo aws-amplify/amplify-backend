@@ -1,18 +1,18 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
+import { DefaultDeploymentClient } from './deployment_client.js';
+import { BackendMetadataReaderFactory } from './backend-metadata/backend_metadata_reader_factory.js';
 import {
   BackendDeploymentType,
   BackendMetadata,
-  DeploymentClient,
-} from './deployment_client.js';
-import { BackendMetadataReaderFactory } from './backend-metadata/backend_metadata_reader_factory.js';
+} from './deployment_client_factory.js';
 
 const credentials = async () => ({
   accessKeyId: 'test',
   secretAccessKey: 'test',
 });
 
-const deploymentClient = new DeploymentClient(credentials);
+const deploymentClient = new DefaultDeploymentClient(credentials);
 const backendMetadataReader = await BackendMetadataReaderFactory.getInstance(
   credentials
 );

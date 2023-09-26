@@ -83,15 +83,19 @@ export class BackendOutputClientFactory {
 }
 
 // @public (undocumented)
-export class DeploymentClient {
-    constructor(credentials: AwsCredentialIdentityProvider);
+export interface DeploymentClient {
+    // (undocumented)
     deleteSandbox: (sandboxId: string) => Promise<BackendMetadata>;
-    getBackendMetadata: (uniqueBackendIdentifier: UniqueBackendIdentifier) => Promise<BackendMetadata>;
+    // (undocumented)
+    getBackendMetadata: (backendIdentifier: UniqueBackendIdentifier) => Promise<BackendMetadata>;
+    // (undocumented)
     listSandboxes: () => Promise<BackendMetadata[]>;
 }
 
 // @public
-export const getMainStackName: (uniqueDeploymentIdentifier: UniqueBackendIdentifier) => string;
+export class DeploymentClientFactory {
+    static getInstance: (credentials: AwsCredentialIdentityProvider) => DeploymentClient;
+}
 
 // @public (undocumented)
 export type StackIdentifier = {

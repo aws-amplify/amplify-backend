@@ -11,7 +11,7 @@ import { BackendMetadataReader } from './backend_metadata_reader.js';
 import {
   BackendDeploymentStatus,
   BackendDeploymentType,
-} from '../deployment_client.js';
+} from '../deployment_client_factory.js';
 import {
   authOutputKey,
   graphqlOutputKey,

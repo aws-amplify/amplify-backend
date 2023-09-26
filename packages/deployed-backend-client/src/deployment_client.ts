@@ -1,44 +1,15 @@
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { BackendMetadataReaderFactory } from './backend-metadata/backend_metadata_reader_factory.js';
-
-export type BackendMetadata = {
-  name: string;
-  lastUpdated: Date | undefined;
-  deploymentType: BackendDeploymentType;
-  status: BackendDeploymentStatus | undefined;
-  apiConfiguration?: {
-    status: BackendDeploymentStatus | undefined;
-    lastUpdated: Date | undefined;
-    graphqlEndpoint: string;
-  };
-  authConfiguration?: {
-    status: BackendDeploymentStatus | undefined;
-    lastUpdated: Date | undefined;
-    userPoolId: string;
-  };
-  storageConfiguration?: {
-    status: BackendDeploymentStatus | undefined;
-    lastUpdated: Date | undefined;
-    s3BucketName: string;
-  };
-};
-
-export enum BackendDeploymentStatus {
-  DEPLOYED = 'DEPLOYED',
-  FAILED = 'FAILED',
-  DEPLOYING = 'DEPLOYING',
-}
-
-export enum BackendDeploymentType {
-  SANDBOX = 'SANDBOX',
-  BRANCH = 'BRANCH',
-}
+import {
+  BackendMetadata,
+  DeploymentClient,
+} from './deployment_client_factory.js';
 
 /**
- *
+ * Deployment Client
  */
-export class DeploymentClient {
+export class DefaultDeploymentClient implements DeploymentClient {
   /**
    * Constructor for deployment client
    */

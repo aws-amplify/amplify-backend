@@ -22,7 +22,7 @@ import {
   BackendDeploymentStatus,
   BackendDeploymentType,
   BackendMetadata,
-} from '../deployment_client.js';
+} from '../deployment_client_factory.js';
 
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { getMainStackName } from '../get_main_stack_name.js';
