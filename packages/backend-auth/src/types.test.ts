@@ -48,7 +48,7 @@ void describe('translateToAuthConstructLoginWith', () => {
     branchName: 'testBranchName',
   };
 
-  void it('translates to auth construct', () => {
+  void it('translates with external providers', () => {
     const loginWith: AuthFactoryLoginWith = {
       phoneNumber,
       externalProviders: {
@@ -113,6 +113,46 @@ void describe('translateToAuthConstructLoginWith', () => {
         },
         callbackUrls: callbackUrls,
       },
+    };
+    assert.deepStrictEqual(translated, expected);
+  });
+
+  void it('translates with only a general provider attribute', () => {
+    const loginWith: AuthFactoryLoginWith = {
+      phoneNumber,
+      externalProviders: {
+        callbackUrls: callbackUrls,
+      },
+    };
+
+    const translated = translateToAuthConstructLoginWith(
+      testStack,
+      backendIdentifier,
+      loginWith
+    );
+
+    const expected: BasicLoginOptions & ExternalProviders = {
+      phoneNumber,
+      externalProviders: {
+        callbackUrls: callbackUrls,
+      },
+    };
+    assert.deepStrictEqual(translated, expected);
+  });
+
+  void it('translates without external providers', () => {
+    const loginWith: AuthFactoryLoginWith = {
+      phoneNumber,
+    };
+
+    const translated = translateToAuthConstructLoginWith(
+      testStack,
+      backendIdentifier,
+      loginWith
+    );
+
+    const expected: BasicLoginOptions & ExternalProviders = {
+      phoneNumber,
     };
     assert.deepStrictEqual(translated, expected);
   });
