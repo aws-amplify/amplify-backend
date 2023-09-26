@@ -44,16 +44,16 @@ const buildEvent = (
   return {
     version: '1',
     region: 'us-east-1',
-    userPoolId: 'us-east-1_ABCD12345',
-    userName: 'abcd1234-1234-1234-1234-abcd12345678',
+    userPoolId: 'us-east-1_12345678',
+    userName: '12345678-1234-1234-1234-123456789012',
     callerContext: {
       awsSdkVersion: 'aws-sdk-unknown-unknown',
-      clientId: 'abcd12345678',
+      clientId: '12345678',
     },
     triggerSource: 'CreateAuthChallenge_Authentication',
     request: {
       userAttributes: {
-        sub: 'abcd1234-1234-1234-1234-abcd12345678',
+        sub: '12345678-1234-1234-1234-123456789012',
         email_verified: 'true',
         email: 'foo@example.com',
       },

@@ -90,6 +90,7 @@ export type Context = {
   logStreamName: string;
   identity?: CognitoIdentity | undefined;
   clientContext?: ClientContext | undefined;
+  // eslint-disable-next-line spellcheck/spell-checker
   getRemainingTimeInMillis: () => number;
 };
 
