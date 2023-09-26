@@ -14,9 +14,7 @@
   },
   "types": "lib/index.d.ts",
   "scripts": {
-    "update:api": "api-extractor run --local",
-    "build": "tsc --build .",
-    "test": "npm run build && node --test ./lib/"
+    "update:api": "api-extractor run --local"
   },
   "dependencies": {
     "@aws-amplify/backend-output-schemas": "^0.2.0-alpha.2",
