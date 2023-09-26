@@ -4,8 +4,8 @@ import { LogLevel, Logger } from './logger.js';
 import { InspectOptions } from 'util';
 
 describe('Logger', () => {
-  var logger: Logger;
-  var mockConsole: MockConsole;
+  let logger: Logger;
+  let mockConsole: MockConsole;
   const oldConsole = console;
 
   beforeEach(() => {
