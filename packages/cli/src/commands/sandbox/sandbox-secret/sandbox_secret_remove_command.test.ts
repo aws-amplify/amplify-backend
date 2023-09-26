@@ -14,7 +14,7 @@ import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 const testSecretName = 'testSecretName';
 const testBackendId = 'testBackendId';
 
-describe('sandbox secret remove command', () => {
+void describe('sandbox secret remove command', () => {
   const secretClient = getSecretClient();
   const secretRemoveMock = mock.method(
     secretClient,
@@ -41,7 +41,7 @@ describe('sandbox secret remove command', () => {
     secretRemoveMock.mock.resetCalls();
   });
 
-  it('remove a secret', async () => {
+  void it('remove a secret', async () => {
     await commandRunner.runCommand(`remove ${testSecretName}`);
     assert.equal(secretRemoveMock.mock.callCount(), 1);
     const backendIdentifier = secretRemoveMock.mock.calls[0]
@@ -51,12 +51,12 @@ describe('sandbox secret remove command', () => {
     assert.equal(secretRemoveMock.mock.calls[0].arguments[1], testSecretName);
   });
 
-  it('show --help', async () => {
+  void it('show --help', async () => {
     const output = await commandRunner.runCommand('remove --help');
     assert.match(output, /Remove a sandbox secret/);
   });
 
-  it('throws error if no secret name argument', async () => {
+  void it('throws error if no secret name argument', async () => {
     await assert.rejects(
       () => commandRunner.runCommand('remove'),
       (err: TestCommandError) => {

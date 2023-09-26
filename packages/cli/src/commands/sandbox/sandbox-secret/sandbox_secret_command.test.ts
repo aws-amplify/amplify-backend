@@ -12,7 +12,7 @@ import { SandboxSecretGetCommand } from './sandbox_secret_get_command.js';
 
 const testBackendId = 'testBackendId';
 
-describe('sandbox secret command', () => {
+void describe('sandbox secret command', () => {
   const secretClient = getSecretClient();
   const sandboxIdResolver = new SandboxIdResolver({
     resolve: () => Promise.resolve(testBackendId),
@@ -29,7 +29,7 @@ describe('sandbox secret command', () => {
   const parser = yargs().command(sandboxSecretCmd);
   const commandRunner = new TestCommandRunner(parser);
 
-  it('show --help', async () => {
+  void it('show --help', async () => {
     const output = await commandRunner.runCommand('secret --help');
     assert.match(output, /Manage sandbox secret/);
     ['secret get'].forEach((cmd) => assert.match(output, new RegExp(cmd)));
@@ -38,7 +38,7 @@ describe('sandbox secret command', () => {
     );
   });
 
-  it('throws error if no verb subcommand', async () => {
+  void it('throws error if no verb subcommand', async () => {
     await assert.rejects(
       () => commandRunner.runCommand('secret'),
       (err: TestCommandError) => {

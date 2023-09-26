@@ -22,7 +22,7 @@ const testSecretIds: SecretIdentifier[] = [
   },
 ];
 
-describe('sandbox secret list command', () => {
+void describe('sandbox secret list command', () => {
   const secretClient = getSecretClient();
   const secretListMock = mock.method(
     secretClient,
@@ -46,7 +46,7 @@ describe('sandbox secret list command', () => {
     secretListMock.mock.resetCalls();
   });
 
-  it('list secrets', async (contextual) => {
+  void it('list secrets', async (contextual) => {
     const mockPrintRecords = contextual.mock.method(Printer, 'printRecords');
 
     await commandRunner.runCommand(`list`);
@@ -61,7 +61,7 @@ describe('sandbox secret list command', () => {
     assert.equal(mockPrintRecords.mock.calls[0].arguments[0], testSecretIds);
   });
 
-  it('show --help', async () => {
+  void it('show --help', async () => {
     const output = await commandRunner.runCommand('list --help');
     assert.match(output, /List all sandbox secrets/);
   });

@@ -22,7 +22,7 @@ const testSecretIdentifier: SecretIdentifier = {
 
 const testBackendId = 'testBackendId';
 
-describe('sandbox secret set command', () => {
+void describe('sandbox secret set command', () => {
   const secretClient = getSecretClient();
   const secretSetMock = mock.method(
     secretClient,
@@ -49,7 +49,7 @@ describe('sandbox secret set command', () => {
     secretSetMock.mock.resetCalls();
   });
 
-  it('sets a secret', async (contextual) => {
+  void it('sets a secret', async (contextual) => {
     const mockSecretValue = contextual.mock.method(
       AmplifyPrompter,
       'secretValue',
@@ -75,12 +75,12 @@ describe('sandbox secret set command', () => {
     assert.equal(secretSetMock.mock.calls[0].arguments[2], testSecretValue);
   });
 
-  it('show --help', async () => {
+  void it('show --help', async () => {
     const output = await commandRunner.runCommand('set --help');
     assert.match(output, /Set a sandbox secret/);
   });
 
-  it('throws error if no secret name argument', async () => {
+  void it('throws error if no secret name argument', async () => {
     await assert.rejects(
       () => commandRunner.runCommand('set'),
       (err: TestCommandError) => {

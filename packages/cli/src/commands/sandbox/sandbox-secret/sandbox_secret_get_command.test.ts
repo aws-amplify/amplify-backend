@@ -27,7 +27,7 @@ const testSecret: Secret = {
   value: 'testValue',
 };
 
-describe('sandbox secret get command', () => {
+void describe('sandbox secret get command', () => {
   const secretClient = getSecretClient();
   const secretGetMock = mock.method(
     secretClient,
@@ -54,7 +54,7 @@ describe('sandbox secret get command', () => {
     secretGetMock.mock.resetCalls();
   });
 
-  it('gets a secret', async (contextual) => {
+  void it('gets a secret', async (contextual) => {
     const mockPrintRecord = contextual.mock.method(Printer, 'printRecord');
 
     await commandRunner.runCommand(`get ${testSecretName}`);
@@ -73,12 +73,12 @@ describe('sandbox secret get command', () => {
     assert.equal(mockPrintRecord.mock.calls[0].arguments[0], testSecret);
   });
 
-  it('show --help', async () => {
+  void it('show --help', async () => {
     const output = await commandRunner.runCommand('list --help');
     assert.match(output, /Get a sandbox secret/);
   });
 
-  it('throws error if no secret name argument', async () => {
+  void it('throws error if no secret name argument', async () => {
     await assert.rejects(
       () => commandRunner.runCommand('get'),
       (err: TestCommandError) => {

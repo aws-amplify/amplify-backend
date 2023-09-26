@@ -7,13 +7,13 @@ import {
 import assert from 'node:assert';
 import { createSandboxSecretCommand } from './sandbox_secret_command_factory.js';
 
-describe('sandbox secret command factory', () => {
+void describe('sandbox secret command factory', () => {
   const sandboxSecretCmd = createSandboxSecretCommand();
 
   const parser = yargs().command(sandboxSecretCmd);
   const commandRunner = new TestCommandRunner(parser);
 
-  it('show --help', async () => {
+  void it('show --help', async () => {
     const output = await commandRunner.runCommand('secret --help');
     assert.match(output, /Manage sandbox secret/);
     ['secret set', 'secret remove', 'secret get ', 'secret list'].forEach(
@@ -21,7 +21,7 @@ describe('sandbox secret command factory', () => {
     );
   });
 
-  it('throws error if no verb subcommand', async () => {
+  void it('throws error if no verb subcommand', async () => {
     await assert.rejects(
       () => commandRunner.runCommand('secret'),
       (err: TestCommandError) => {
