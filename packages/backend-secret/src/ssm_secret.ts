@@ -87,7 +87,8 @@ export class SSMSecretClient implements SecretClient {
   public getSecret = async (
     backendIdentifier: UniqueBackendIdentifier | BackendId,
     secretIdentifier: SecretIdentifier
-  ): Promise<Secret | undefined> => {
+  ): Promise<Secret> => {
+    let secret: Secret | undefined;
     const name = this.getParameterFullPath(
       backendIdentifier,
       secretIdentifier.name
@@ -99,17 +100,24 @@ export class SSMSecretClient implements SecretClient {
           : name,
         WithDecryption: true,
       });
-      if (resp.Parameter?.Name && resp.Parameter?.Value) {
-        return {
+      if (resp.Parameter?.Value) {
+        secret = {
           name: secretIdentifier.name,
           version: resp.Parameter?.Version,
           value: resp.Parameter?.Value,
         };
       }
-      return;
     } catch (err) {
       throw SecretError.fromSSMException(err as SSMServiceException);
     }
+
+    if (!secret) {
+      throw new SecretError(
+        `The value of secret '${secretIdentifier.name}' is undefined`
+      );
+    }
+
+    return secret;
   };
 
   /**

@@ -27,7 +27,7 @@ export type SecretClient = {
   getSecret: (
     backendIdentifier: UniqueBackendIdentifier | BackendId,
     secretIdentifier: SecretIdentifier
-  ) => Promise<Secret | undefined>;
+  ) => Promise<Secret>;
 
   /**
    * List secrets.

@@ -42,9 +42,7 @@ export class SandboxSecretGetCommand
       { backendId, branchName: SANDBOX_BRANCH },
       { name: args.secretName }
     );
-    if (secret) {
-      Printer.printRecord(secret);
-    }
+    Printer.printRecord(secret);
   };
 
   /**
