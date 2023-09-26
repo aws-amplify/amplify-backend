@@ -149,7 +149,7 @@ const expectedMetadata = {
   },
 };
 
-describe('BackendMetadataReader', () => {
+void describe('BackendMetadataReader', () => {
   let backendMetadataReader: BackendMetadataReader;
   const getOutputMock = mock.fn();
 
@@ -176,7 +176,7 @@ describe('BackendMetadataReader', () => {
       getOutput: getOutputMock as unknown as () => Promise<BackendOutput>,
     });
   });
-  it('listSandboxBackendMetadata', async () => {
+  void it('listSandboxBackendMetadata', async () => {
     getOutputMock.mock.mockImplementation(
       (backendIdentifier: StackIdentifier) => {
         if (!backendIdentifier.stackName.includes('-sandbox')) {
@@ -198,7 +198,7 @@ describe('BackendMetadataReader', () => {
     ]);
   });
 
-  it('deletes a sandbox', async () => {
+  void it('deletes a sandbox', async () => {
     const deleteResponse = await backendMetadataReader.deleteBackend({
       backendId: 'test',
       sandbox: 'sandbox',
@@ -210,7 +210,7 @@ describe('BackendMetadataReader', () => {
     });
   });
 
-  it('fetches metadata', async () => {
+  void it('fetches metadata', async () => {
     const getMetadataResponse = await backendMetadataReader.getBackendMetadata({
       backendId: 'test',
       branchName: 'testBranch',

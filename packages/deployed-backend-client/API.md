@@ -59,10 +59,9 @@ export type BackendMetadata = {
 };
 
 // @public
-export interface BackendOutputClient {
-    // (undocumented)
+export type BackendOutputClient = {
     readonly getOutput: (backendIdentifier: BackendIdentifier) => Promise<BackendOutput>;
-}
+};
 
 // @public
 export class BackendOutputClientError extends Error {
@@ -74,7 +73,7 @@ export class BackendOutputClientError extends Error {
 // @public (undocumented)
 export enum BackendOutputClientErrorType {
     // (undocumented)
-    MetadataRetrievalError = "MetadataRetrievalError"
+    METADATA_RETRIEVAL_ERROR = "MetadataRetrievalError"
 }
 
 // @public
@@ -83,14 +82,11 @@ export class BackendOutputClientFactory {
 }
 
 // @public (undocumented)
-export interface DeploymentClient {
-    // (undocumented)
-    deleteSandbox: (sandboxId: string) => Promise<BackendMetadata>;
-    // (undocumented)
-    getBackendMetadata: (backendIdentifier: UniqueBackendIdentifier) => Promise<BackendMetadata>;
-    // (undocumented)
+export type DeploymentClient = {
     listSandboxes: () => Promise<BackendMetadata[]>;
-}
+    deleteSandbox: (sandboxId: string) => Promise<BackendMetadata>;
+    getBackendMetadata: (backendIdentifier: UniqueBackendIdentifier) => Promise<BackendMetadata>;
+};
 
 // @public
 export class DeploymentClientFactory {

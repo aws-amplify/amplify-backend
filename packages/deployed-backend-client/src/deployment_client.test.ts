@@ -57,18 +57,18 @@ mock.method(
   }
 );
 
-describe('Backend Metadata Functions', () => {
-  it('runs listSandboxes', async () => {
+void describe('Backend Metadata Functions', () => {
+  void it('runs listSandboxes', async () => {
     const sandboxes = await deploymentClient.listSandboxes();
     assert.equal(sandboxes.length, 1);
   });
 
-  it('runs deleteSandbox', async () => {
+  void it('runs deleteSandbox', async () => {
     const sandbox = await deploymentClient.deleteSandbox('abc');
     assert.equal(sandbox.name, 'testDeleteSandbox');
   });
 
-  it('runs getBackendMetadata', async () => {
+  void it('runs getBackendMetadata', async () => {
     const metadata = await deploymentClient.getBackendMetadata({
       backendId: 'abc',
       branchName: '123',
