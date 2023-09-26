@@ -13,9 +13,9 @@ import {
   graphqlOutputKey,
 } from '@aws-amplify/backend-output-schemas';
 
-describe('StackMetadataBackendOutputRetrievalStrategy', () => {
-  describe('fetchBackendOutput', () => {
-    it('throws if stack does not have metadata', async () => {
+void describe('StackMetadataBackendOutputRetrievalStrategy', () => {
+  void describe('fetchBackendOutput', () => {
+    void it('throws if stack does not have metadata', async () => {
       const cfnClientMock = {
         send: mock.fn((command) => {
           if (command instanceof GetTemplateSummaryCommand) {
@@ -41,7 +41,7 @@ describe('StackMetadataBackendOutputRetrievalStrategy', () => {
       });
     });
 
-    it('throws if stack does not have outputs', async () => {
+    void it('throws if stack does not have outputs', async () => {
       const cfnClientMock = {
         send: mock.fn((command) => {
           if (command instanceof GetTemplateSummaryCommand) {
@@ -80,7 +80,7 @@ describe('StackMetadataBackendOutputRetrievalStrategy', () => {
       });
     });
 
-    it('throws if metadata fails schema validation', async () => {
+    void it('throws if metadata fails schema validation', async () => {
       const cfnClientMock = {
         send: mock.fn((command) => {
           if (command instanceof GetTemplateSummaryCommand) {
@@ -112,7 +112,7 @@ describe('StackMetadataBackendOutputRetrievalStrategy', () => {
       );
     });
 
-    it('throws on missing output', async () => {
+    void it('throws on missing output', async () => {
       const cfnClientMock = {
         send: mock.fn((command) => {
           if (command instanceof GetTemplateSummaryCommand) {
@@ -156,7 +156,7 @@ describe('StackMetadataBackendOutputRetrievalStrategy', () => {
       });
     });
 
-    it('returns expected BackendOutput', async () => {
+    void it('returns expected BackendOutput', async () => {
       const cfnClientMock = {
         send: mock.fn((command) => {
           if (command instanceof GetTemplateSummaryCommand) {

@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/backend-function",
-  "version": "0.1.1-alpha.2",
+  "version": "0.1.1-alpha.3",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -17,14 +17,15 @@
     "update:api": "api-extractor run --local"
   },
   "dependencies": {
+    "@aws-amplify/backend-output-storage": "0.1.1-alpha.0",
     "@aws-amplify/function-construct-alpha": "^0.1.1-alpha.1",
     "execa": "^7.1.1"
   },
   "devDependencies": {
-    "@aws-amplify/backend": "^0.1.1-alpha.2"
+    "@aws-amplify/backend": "^0.2.0-alpha.4"
   },
   "peerDependencies": {
-    "@aws-amplify/plugin-types": "^0.1.1-alpha.2",
+    "@aws-amplify/plugin-types": "^0.1.1-alpha.5",
     "aws-cdk-lib": "~2.80.0",
     "constructs": "^10.0.0"
   }

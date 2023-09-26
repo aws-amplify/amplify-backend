@@ -2,9 +2,9 @@ import { describe, it, mock } from 'node:test';
 import { CwdPackageJsonLoader } from './cwd_package_json_loader.js';
 import assert from 'node:assert';
 
-describe('CwdPackageJsonLoader', () => {
-  describe('loadCwdPackageJson', () => {
-    it('throws error if package.json does not exist', async () => {
+void describe('CwdPackageJsonLoader', () => {
+  void describe('loadCwdPackageJson', () => {
+    void it('throws error if package.json does not exist', async () => {
       const loader = new CwdPackageJsonLoader(
         {
           existsSync: mock.fn(() => false),
@@ -13,7 +13,7 @@ describe('CwdPackageJsonLoader', () => {
       );
       await assert.rejects(() => loader.loadCwdPackageJson());
     });
-    it('throws error if contents are not valid json', async () => {
+    void it('throws error if contents are not valid json', async () => {
       const loader = new CwdPackageJsonLoader(
         {
           existsSync: mock.fn(() => true),
@@ -22,7 +22,7 @@ describe('CwdPackageJsonLoader', () => {
       );
       await assert.rejects(() => loader.loadCwdPackageJson());
     });
-    it('throws error if contents do not pass validation', async () => {
+    void it('throws error if contents do not pass validation', async () => {
       const loader = new CwdPackageJsonLoader(
         {
           existsSync: mock.fn(() => true),
@@ -35,7 +35,7 @@ describe('CwdPackageJsonLoader', () => {
       );
       await assert.rejects(() => loader.loadCwdPackageJson());
     });
-    it('returns validated object', async () => {
+    void it('returns validated object', async () => {
       const validValue = { name: 'test-name' };
       const loader = new CwdPackageJsonLoader(
         {

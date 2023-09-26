@@ -1,5 +1,11 @@
 # @aws-amplify/plugin-types
 
+## 0.1.1-alpha.5
+
+### Patch Changes
+
+- 407a09ff: Implements backend secret feature, include backend secret resolver and the backend-secret pkg.
+
 ## 0.1.1-alpha.4
 
 ### Patch Changes

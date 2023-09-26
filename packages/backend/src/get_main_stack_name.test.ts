@@ -9,8 +9,8 @@ import { readFileSync } from 'fs';
  * You probably shouldn't be changing this naming scheme.
  * This represents the glue between how the backend main stack is created and later identified
  */
-describe('getMainStackName', () => {
-  it('returns stack name with expected convention', () => {
+void describe('getMainStackName', () => {
+  void it('returns stack name with expected convention', () => {
     const result = getMainStackName({
       backendId: 'testBackendId',
       branchName: 'testBranchName',
