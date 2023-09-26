@@ -40,7 +40,6 @@ export class SandboxCommand
   ) {
     this.command = 'sandbox';
     this.describe = 'Starts sandbox, watch mode for amplify deployments';
-    this.sandboxSubCommands = sandboxSubCommands;
   }
 
   /**

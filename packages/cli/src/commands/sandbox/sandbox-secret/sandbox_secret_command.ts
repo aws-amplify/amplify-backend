@@ -14,14 +14,12 @@ export class SandboxSecretCommand implements CommandModule<object> {
    */
   readonly describe: string;
 
-  private readonly sandboxSecretSubCommands: CommandModule[];
   /**
    * Root command to manage sandbox secret
    */
-  constructor(subCommands: CommandModule[]) {
+  constructor(private readonly secretSubCommands: CommandModule[]) {
     this.command = 'secret <command>';
     this.describe = 'Manage sandbox secret';
-    this.sandboxSecretSubCommands = subCommands;
   }
 
   /**
@@ -38,7 +36,7 @@ export class SandboxSecretCommand implements CommandModule<object> {
   builder = (yargs: Argv): Argv => {
     return (
       yargs
-        .command(this.sandboxSecretSubCommands)
+        .command(this.secretSubCommands)
         // Hide inherited options since they are not applicable here.
         .option('dirToWatch', {
           hidden: true,
