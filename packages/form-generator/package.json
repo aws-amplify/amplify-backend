@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/form-generator",
-  "version": "0.1.1-alpha.0",
+  "version": "0.2.0-alpha.1",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -15,5 +15,19 @@
   "types": "lib/index.d.ts",
   "scripts": {
     "update:api": "api-extractor run --local"
+  },
+  "dependencies": {
+    "@aws-amplify/appsync-modelgen-plugin": "^2.6.0",
+    "@aws-amplify/codegen-ui": "^2.15.8",
+    "@aws-amplify/codegen-ui-react": "^2.15.9",
+    "@aws-amplify/graphql-docs-generator": "^4.1.0",
+    "@aws-sdk/client-amplifyuibuilder": "^3.398.0",
+    "@aws-sdk/client-appsync": "^3.398.0",
+    "@aws-sdk/client-s3": "^3.400.0",
+    "@graphql-codegen/core": "^4.0.0",
+    "@graphql-codegen/typescript": "^2.8.3",
+    "graphql": "^15.8.0",
+    "node-fetch": "^3.3.2",
+    "prettier": "^2.8.7"
   }
 }

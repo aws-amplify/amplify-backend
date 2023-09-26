@@ -15,13 +15,13 @@ const createStackAndSetContext = (): Stack => {
   return stack;
 };
 
-describe('Backend', () => {
+void describe('Backend', () => {
   let rootStack: Stack;
   beforeEach(() => {
     rootStack = createStackAndSetContext();
   });
 
-  it('initializes constructs in given app', () => {
+  void it('initializes constructs in given app', () => {
     const testConstructFactory: ConstructFactory<Bucket> = {
       getInstance({ constructContainer }): Bucket {
         return constructContainer.getOrCompute({
@@ -49,7 +49,7 @@ describe('Backend', () => {
     bucketStackTemplate.resourceCountIs('AWS::S3::Bucket', 1);
   });
 
-  it('registers construct outputs in root stack', () => {
+  void it('registers construct outputs in root stack', () => {
     const testConstructFactory: ConstructFactory<Bucket> = {
       getInstance({ constructContainer, outputStorageStrategy }): Bucket {
         return constructContainer.getOrCompute({
@@ -79,17 +79,15 @@ describe('Backend', () => {
     rootStackTemplate.hasOutput('bucketName', {});
     rootStackTemplate.templateMatches({
       Metadata: {
-        'AWS::Amplify::Output': {
-          TestStorageOutput: {
-            version: '1',
-            stackOutputs: ['bucketName'],
-          },
+        TestStorageOutput: {
+          version: '1',
+          stackOutputs: ['bucketName'],
         },
       },
     });
   });
 
-  it('exposes created constructs under resources', () => {
+  void it('exposes created constructs under resources', () => {
     const testConstructFactory: ConstructFactory<Bucket> = {
       getInstance({ constructContainer, outputStorageStrategy }): Bucket {
         return constructContainer.getOrCompute({
@@ -119,8 +117,8 @@ describe('Backend', () => {
     assert.equal(backend.resources.testConstructFactory.node.id, 'test-bucket');
   });
 
-  describe('getOrCreateStack', () => {
-    it('returns nested stack', () => {
+  void describe('getOrCreateStack', () => {
+    void it('returns nested stack', () => {
       const backend = new Backend({}, rootStack);
       const testStack = backend.getOrCreateStack('testStack');
       assert.strictEqual(rootStack.node.findChild('testStack'), testStack);

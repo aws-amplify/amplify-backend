@@ -1,6 +1,8 @@
 import { aws_cognito as cognito } from 'aws-cdk-lib';
 import { AuthUserAttribute } from './attributes.js';
 import { triggerEvents } from './trigger_events.js';
+import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
+import { AuthOutput } from '@aws-amplify/backend-output-schemas/auth';
 
 /**
  * Email login options.
@@ -95,4 +97,6 @@ export type AuthProps = {
    * If only email or phone are enabled, they will be the default recovery methods.
    */
   accountRecovery?: cognito.AccountRecovery;
+
+  outputStorageStrategy?: BackendOutputStorageStrategy<AuthOutput>;
 };

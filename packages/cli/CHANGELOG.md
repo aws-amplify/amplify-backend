@@ -1,24 +1,36 @@
 # @aws-amplify/backend-cli
 
-## 1.0.0-alpha.5
+## 0.2.0-alpha.4
+
+### Minor Changes
+
+- 6ec93aed: Add generate graphql-client-code command with mocked implementation
+- 2bd14d48: Adds profile option to sandbox command
+- b4f82717: Create a new deployed-backend-client package that provides a convenient interface for retrieving stack outputs
 
 ### Patch Changes
 
-- 01320d4: add `amplify generate config --format` option
-- Updated dependencies [233adab]
-- Updated dependencies [01320d4]
-  - @aws-amplify/sandbox@0.1.1-alpha.5
-  - @aws-amplify/client-config@0.2.0-alpha.5
-
-## 1.0.0-alpha.4
-
-### Patch Changes
-
-- 4f3c171: update backend-deployer dependency
-- Updated dependencies [ce008a2]
-- Updated dependencies [f201c94]
-  - @aws-amplify/client-config@0.2.0-alpha.4
-  - @aws-amplify/sandbox@0.1.1-alpha.4
+- 813cdfb0: Extract BackendIdentifierResolver into its own class
+- 4fd18b12: fix: change 'out' to 'outDir'
+- 75d90a57: add `format` option to sandbox. Rename `out` option to `outDir`.
+- 1dada824: chore: Update eslint config to new flat config type
+- Updated dependencies [92950f99]
+- Updated dependencies [b48dae80]
+- Updated dependencies [75d90a57]
+- Updated dependencies [1dada824]
+- Updated dependencies [1cefbdd4]
+- Updated dependencies [2bd14d48]
+- Updated dependencies [407a09ff]
+- Updated dependencies [b4f82717]
+- Updated dependencies [05f97b26]
+- Updated dependencies [1a6dd467]
+- Updated dependencies [f75fa531]
+- Updated dependencies [5c1d9de8]
+- Updated dependencies [e0e1488b]
+  - @aws-amplify/model-generator@0.2.0-alpha.2
+  - @aws-amplify/sandbox@0.2.0-alpha.6
+  - @aws-amplify/client-config@0.2.0-alpha.6
+  - @aws-amplify/deployed-backend-client@0.2.0-alpha.0
 
 ## 0.2.0-alpha.3
 

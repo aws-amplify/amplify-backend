@@ -6,8 +6,9 @@ import assert from 'node:assert';
 import { SandboxDeleteCommand } from './sandbox_delete_command.js';
 import { SandboxCommand } from '../sandbox_command.js';
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
+import { createSandboxSecretCommand } from '../sandbox-secret/sandbox_secret_command_factory.js';
 
-describe('sandbox delete command', () => {
+void describe('sandbox delete command', () => {
   let commandRunner: TestCommandRunner;
   let sandboxDeleteMock = mock.fn();
 
@@ -21,17 +22,16 @@ describe('sandbox delete command', () => {
     ) as never; // couldn't figure out a good way to type the sandboxDeleteMock so that TS was happy here
 
     const sandboxDeleteCommand = new SandboxDeleteCommand(sandboxFactory);
-
-    const sandboxCommand = new SandboxCommand(
-      sandboxFactory,
-      sandboxDeleteCommand
-    );
+    const sandboxCommand = new SandboxCommand(sandboxFactory, [
+      sandboxDeleteCommand,
+      createSandboxSecretCommand(),
+    ]);
     const parser = yargs().command(sandboxCommand as unknown as CommandModule);
     commandRunner = new TestCommandRunner(parser);
     sandboxDeleteMock.mock.resetCalls();
   });
 
-  it('deletes sandbox after confirming with user', async (contextual) => {
+  void it('deletes sandbox after confirming with user', async (contextual) => {
     contextual.mock.method(AmplifyPrompter, 'yesOrNo', () =>
       Promise.resolve(true)
     );
@@ -43,7 +43,7 @@ describe('sandbox delete command', () => {
     });
   });
 
-  it('deletes sandbox with user provided name', async (contextual) => {
+  void it('deletes sandbox with user provided name', async (contextual) => {
     contextual.mock.method(AmplifyPrompter, 'yesOrNo', () =>
       Promise.resolve(true)
     );
@@ -55,7 +55,7 @@ describe('sandbox delete command', () => {
     });
   });
 
-  it('does not delete sandbox if user said no', async (contextual) => {
+  void it('does not delete sandbox if user said no', async (contextual) => {
     contextual.mock.method(AmplifyPrompter, 'yesOrNo', () =>
       Promise.resolve(false)
     );
@@ -64,12 +64,12 @@ describe('sandbox delete command', () => {
     assert.equal(sandboxDeleteMock.mock.callCount(), 0);
   });
 
-  it('deletes sandbox without confirming from user if a yes flag is given', async () => {
+  void it('deletes sandbox without confirming from user if a yes flag is given', async () => {
     await commandRunner.runCommand('sandbox delete --yes');
     assert.equal(sandboxDeleteMock.mock.callCount(), 1);
   });
 
-  it('shows available options in help output', async () => {
+  void it('shows available options in help output', async () => {
     const output = await commandRunner.runCommand('sandbox delete --help');
     assert.match(output, /--yes/);
     assert.match(output, /--name/);

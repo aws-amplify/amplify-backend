@@ -5,19 +5,18 @@
 ```ts
 
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
-import { BackendOutputWriter } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
 import { StorageOutput } from '@aws-amplify/backend-output-schemas/storage';
 
 // @public
-export class AmplifyStorage extends Construct implements BackendOutputWriter {
+export class AmplifyStorage extends Construct {
     constructor(scope: Construct, id: string, props: AmplifyStorageProps);
-    storeOutput: (outputStorageStrategy: BackendOutputStorageStrategy<StorageOutput>) => void;
 }
 
 // @public (undocumented)
 export type AmplifyStorageProps = {
     versioned?: boolean;
+    outputStorageStrategy?: BackendOutputStorageStrategy<StorageOutput>;
 };
 
 // (No @packageDocumentation comment for this package)

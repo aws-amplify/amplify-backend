@@ -6,7 +6,7 @@ import * as os from 'os';
 import { after, afterEach, before, beforeEach, describe, it } from 'node:test';
 import assert from 'assert';
 
-describe('create-amplify script', () => {
+void describe('create-amplify script', () => {
   before(async () => {
     // start a local npm proxy and publish the current codebase to the proxy
     await execa('npm', ['run', 'clean:npm-proxy'], { stdio: 'inherit' });
@@ -35,7 +35,7 @@ describe('create-amplify script', () => {
     await fs.rm(tempDir, { recursive: true });
   });
 
-  it('installs expected packages and scaffolds expected files', async () => {
+  void it('installs expected packages and scaffolds expected files', async () => {
     // TODO remove alpha tag from command once we are publishing to latest
     // https://github.com/aws-amplify/samsara-cli/issues/144
     // the --yes flag here is to bypass a npm prompt to install the create-amplify package, it's not a prompt we control
@@ -69,7 +69,7 @@ describe('create-amplify script', () => {
     ]);
   });
 
-  it('fails fast if amplify path already exists', async () => {
+  void it('fails fast if amplify path already exists', async () => {
     const amplifyDirPath = path.join(tempDir, 'amplify');
     await fs.mkdir(amplifyDirPath, { recursive: true });
 

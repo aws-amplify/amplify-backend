@@ -33,7 +33,7 @@ const testSecretIdWithVersion: SecretIdentifier = {
 };
 
 const testSecret: Secret = {
-  secretIdentifier: testSecretIdWithVersion,
+  ...testSecretIdWithVersion,
   value: testSecretValue,
 };
 
@@ -42,15 +42,15 @@ const testBackendIdentifier: UniqueBackendIdentifier = {
   branchName: testBranchName,
 };
 
-describe('SSMSecret', () => {
-  describe('getSecret', () => {
+void describe('SSMSecret', () => {
+  void describe('getSecret', () => {
     const ssmClient = new SSM();
     const ssmSecretClient = new SSMSecretClient(ssmClient);
     const mockGetParameter = mock.method(ssmClient, 'getParameter', () =>
       Promise.resolve({
         $metadata: {},
         Parameter: {
-          Name: testSecretName,
+          Name: testBranchSecretFullNamePath,
           Value: testSecretValue,
           Version: testSecretVersion,
         },
@@ -61,7 +61,7 @@ describe('SSMSecret', () => {
       mockGetParameter.mock.resetCalls();
     });
 
-    it('gets branch secret value', async () => {
+    void it('gets branch secret value', async () => {
       const resp = await ssmSecretClient.getSecret(
         testBackendIdentifier,
         testSecretId
@@ -74,7 +74,7 @@ describe('SSMSecret', () => {
       });
     });
 
-    it('gets branch secret value with a specific version', async () => {
+    void it('gets branch secret value with a specific version', async () => {
       const resp = await ssmSecretClient.getSecret(
         testBackendIdentifier,
         testSecretIdWithVersion
@@ -87,7 +87,7 @@ describe('SSMSecret', () => {
       });
     });
 
-    it('gets app-shared secret value', async () => {
+    void it('gets app-shared secret value', async () => {
       const resp = await ssmSecretClient.getSecret(testBackendId, testSecretId);
       assert.deepEqual(resp, testSecret);
       assert.deepStrictEqual(mockGetParameter.mock.calls[0].arguments[0], {
@@ -96,7 +96,26 @@ describe('SSMSecret', () => {
       });
     });
 
-    it('throws error', async () => {
+    void it('gets undefined secret value', async () => {
+      mock.method(ssmClient, 'getParameter', () =>
+        Promise.resolve({
+          $metadata: {},
+          Parameter: {
+            Name: testBranchSecretFullNamePath,
+            Version: testSecretVersion,
+          },
+        })
+      );
+      const expectedErr = new SecretError(
+        `The value of secret '${testSecretName}' is undefined`
+      );
+      await assert.rejects(
+        () => ssmSecretClient.getSecret('', { name: testSecretName }),
+        expectedErr
+      );
+    });
+
+    void it('throws error', async () => {
       const ssmNotFoundException = new ParameterNotFound({
         $metadata: {},
         message: '',
@@ -105,7 +124,6 @@ describe('SSMSecret', () => {
       mock.method(ssmClient, 'getParameter', () =>
         Promise.reject(ssmNotFoundException)
       );
-      const ssmSecretClient = new SSMSecretClient(ssmClient);
       const expectedErr = SecretError.fromSSMException(ssmNotFoundException);
       await assert.rejects(
         () => ssmSecretClient.getSecret('', { name: '' }),
@@ -114,7 +132,7 @@ describe('SSMSecret', () => {
     });
   });
 
-  describe('setSecret', () => {
+  void describe('setSecret', () => {
     const ssmClient = new SSM();
     const ssmSecretClient = new SSMSecretClient(ssmClient);
     const mockSetParameter = mock.method(ssmClient, 'putParameter', () =>
@@ -128,7 +146,7 @@ describe('SSMSecret', () => {
       mockSetParameter.mock.resetCalls();
     });
 
-    it('set branch secret', async () => {
+    void it('set branch secret', async () => {
       const resp = await ssmSecretClient.setSecret(
         testBackendIdentifier,
         testSecretName,
@@ -145,7 +163,7 @@ describe('SSMSecret', () => {
       });
     });
 
-    it('set app-shared secret', async () => {
+    void it('set app-shared secret', async () => {
       const mockSetParameter = mock.method(ssmClient, 'putParameter', () =>
         Promise.resolve({
           $metadata: {},
@@ -169,7 +187,7 @@ describe('SSMSecret', () => {
       });
     });
 
-    it('throws error', async () => {
+    void it('throws error', async () => {
       const ssmNotFoundException = new ParameterNotFound({
         $metadata: {},
         message: '',
@@ -187,11 +205,11 @@ describe('SSMSecret', () => {
     });
   });
 
-  describe('removeSecret', () => {
+  void describe('removeSecret', () => {
     const ssmClient = new SSM();
     const ssmSecretClient = new SSMSecretClient(ssmClient);
 
-    it('remove a branch secret', async () => {
+    void it('remove a branch secret', async () => {
       const mockDeleteParameter = mock.method(
         ssmClient,
         'deleteParameter',
@@ -204,7 +222,7 @@ describe('SSMSecret', () => {
       });
     });
 
-    it('remove a backend shared secret', async () => {
+    void it('remove a backend shared secret', async () => {
       const mockDeleteParameter = mock.method(
         ssmClient,
         'deleteParameter',
@@ -216,7 +234,7 @@ describe('SSMSecret', () => {
       });
     });
 
-    it('throws error', async () => {
+    void it('throws error', async () => {
       const ssmNotFoundException = new ParameterNotFound({
         $metadata: {},
         message: '',
@@ -234,7 +252,7 @@ describe('SSMSecret', () => {
     });
   });
 
-  describe('listSecrets', () => {
+  void describe('listSecrets', () => {
     const ssmClient = new SSM();
     const ssmSecretClient = new SSMSecretClient(ssmClient);
 
@@ -247,7 +265,7 @@ describe('SSMSecret', () => {
       version: testSecretVersion2,
     };
 
-    it('lists branch secrets', async () => {
+    void it('lists branch secrets', async () => {
       const mockGetParametersByPath = mock.method(
         ssmClient,
         'getParametersByPath',
@@ -282,7 +300,7 @@ describe('SSMSecret', () => {
       ] as SecretIdentifier[]);
     });
 
-    it('lists shared secrets', async () => {
+    void it('lists shared secrets', async () => {
       const mockGetParametersByPath = mock.method(
         ssmClient,
         'getParametersByPath',
@@ -309,7 +327,7 @@ describe('SSMSecret', () => {
       assert.deepEqual(secrets, [testSecretIdWithVersion]);
     });
 
-    it('lists an empty list', async () => {
+    void it('lists an empty list', async () => {
       const mockGetParametersByPath = mock.method(
         ssmClient,
         'getParametersByPath',
@@ -331,7 +349,7 @@ describe('SSMSecret', () => {
       assert.deepEqual(secrets, []);
     });
 
-    it('throws error', async () => {
+    void it('throws error', async () => {
       const ssmInternalServerError = new InternalServerError({
         $metadata: {},
         message: '',
@@ -346,9 +364,9 @@ describe('SSMSecret', () => {
     });
   });
 
-  describe('grantPermission', () => {
+  void describe('grantPermission', () => {
     const ssmSecretClient = new SSMSecretClient(new SSM());
-    it('grants permission', () => {
+    void it('grants permission', () => {
       const mockAddToPrincipalPolicy = mock.fn();
       ssmSecretClient.grantPermission(
         {

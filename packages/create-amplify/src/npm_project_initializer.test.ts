@@ -2,8 +2,8 @@ import { describe, it, mock } from 'node:test';
 import { NpmProjectInitializer } from './npm_project_initializer.js';
 import assert from 'assert';
 
-describe('NpmInitializedEnsurer', () => {
-  it('does nothing if package.json already exists', async () => {
+void describe('NpmInitializedEnsurer', () => {
+  void it('does nothing if package.json already exists', async () => {
     const logMock = mock.fn();
     const existsSyncMock = mock.fn(() => true);
     const execaMock = mock.fn();
@@ -17,7 +17,7 @@ describe('NpmInitializedEnsurer', () => {
     assert.equal(execaMock.mock.callCount(), 0);
   });
 
-  it('runs `npm init` if no package.json exists', async () => {
+  void it('runs `npm init` if no package.json exists', async () => {
     const logMock = mock.fn();
 
     // `mock.mockImplementationOnce` seems to be last one wins rather than defining a sequence of return values
@@ -43,7 +43,7 @@ describe('NpmInitializedEnsurer', () => {
     ]);
   });
 
-  it('throws if npm init rejects', async () => {
+  void it('throws if npm init rejects', async () => {
     const logMock = mock.fn();
     const existsSyncMock = mock.fn(() => false);
     const execaMock = mock.fn(() => {
@@ -61,7 +61,7 @@ describe('NpmInitializedEnsurer', () => {
     });
   });
 
-  it('throws if package.json does not exist after npm init', async () => {
+  void it('throws if package.json does not exist after npm init', async () => {
     const logMock = mock.fn();
     const existsSyncMock = mock.fn(() => false);
     const execaMock = mock.fn();

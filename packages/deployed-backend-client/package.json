@@ -1,0 +1,26 @@
+{
+  "name": "@aws-amplify/deployed-backend-client",
+  "version": "0.2.0-alpha.0",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "import": "./lib/index.js",
+      "require": "./lib/index.js"
+    }
+  },
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "update:api": "api-extractor run --local"
+  },
+  "dependencies": {
+    "@aws-amplify/backend-output-schemas": "^0.2.0-alpha.3",
+    "@aws-sdk/client-amplify": "^3.414.0",
+    "@aws-sdk/client-cloudformation": "^3.414.0",
+    "@aws-sdk/types": "^3.413.0",
+    "zod": "^3.22.2"
+  }
+}

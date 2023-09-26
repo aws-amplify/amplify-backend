@@ -1,5 +1,11 @@
 # @aws-amplify/integration-tests
 
+## 0.2.0-alpha.4
+
+### Patch Changes
+
+- f75fa531: Refactor OutputStorageStrategy into stateless shared dependency
+
 ## 0.2.0-alpha.3
 
 ### Patch Changes

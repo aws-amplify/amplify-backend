@@ -1,19 +1,24 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { StorageClientConfigContributor } from './storage_client_config_contributor.js';
+import {
+  graphqlOutputKey,
+  storageOutputKey,
+} from '@aws-amplify/backend-output-schemas';
 
-describe('StorageClientConfigContributor', () => {
-  it('returns an empty object if output has no storage output', () => {
+void describe('StorageClientConfigContributor', () => {
+  void it('returns an empty object if output has no storage output', () => {
     const contributor = new StorageClientConfigContributor();
     assert.deepStrictEqual(
       contributor.contribute({
-        graphqlOutput: {
+        [graphqlOutputKey]: {
           version: '1',
           payload: {
             awsAppsyncApiEndpoint: 'stuff',
             awsAppsyncRegion: 'us-east-1',
             awsAppsyncAuthenticationType: 'API_KEY',
             awsAppsyncApiId: 'testApiId',
+            amplifyApiModelSchemaS3Uri: 'testApiSchemaUri',
           },
         },
       }),
@@ -21,11 +26,11 @@ describe('StorageClientConfigContributor', () => {
     );
   });
 
-  it('returns translated config when output has storage', () => {
+  void it('returns translated config when output has storage', () => {
     const contributor = new StorageClientConfigContributor();
     assert.deepStrictEqual(
       contributor.contribute({
-        storageOutput: {
+        [storageOutputKey]: {
           version: '1',
           payload: {
             bucketName: 'testBucketName',

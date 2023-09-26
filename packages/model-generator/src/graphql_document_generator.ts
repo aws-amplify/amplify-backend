@@ -1,11 +1,10 @@
-import { generateGraphQLDocuments } from '@aws-amplify/graphql-docs-generator';
+import { generateStatements } from '@aws-amplify/graphql-generator';
 import {
   DocumentGenerationParameters,
+  GenerationResult,
   GraphqlDocumentGenerator,
-  TargetLanguage,
 } from './model_generator.js';
 
-export type Statements = Map<string, string>;
 /**
  * Generates GraphQL documents for a given AppSync API
  */
@@ -17,22 +16,12 @@ export class AppSyncGraphqlDocumentGenerator
    */
   constructor(
     private fetchSchema: () => Promise<string>,
-    private format: (
-      language: TargetLanguage,
-      statements: Statements
-    ) => Promise<string>,
-    private writeFile: (
-      outDir: string,
-      fileName: string,
-      content: string
-    ) => Promise<void>
+    private resultBuilder: (fileMap: Record<string, string>) => GenerationResult
   ) {}
-  private static languageExtensions: Record<TargetLanguage, string> = {
-    typescript: 'ts',
-  };
   generateModels = async ({
     language,
-    outDir,
+    maxDepth,
+    typenameIntrospection,
   }: DocumentGenerationParameters) => {
     const schema = await this.fetchSchema();
 
@@ -40,27 +29,13 @@ export class AppSyncGraphqlDocumentGenerator
       throw new Error('Invalid schema');
     }
 
-    const generatedStatements = generateGraphQLDocuments(schema, {
-      maxDepth: 3,
-      typenameIntrospection: true,
+    const generatedStatements = generateStatements({
+      schema,
+      target: language,
+      maxDepth,
+      typenameIntrospection,
     });
 
-    const clientOps: Array<keyof typeof generatedStatements> = [
-      'queries',
-      'mutations',
-      'subscriptions',
-    ];
-
-    await Promise.all(
-      clientOps.map(async (op) => {
-        const ops = generatedStatements[op];
-        const content = await this.format(language, ops as Map<string, string>);
-        await this.writeFile(
-          outDir,
-          `${op}.${AppSyncGraphqlDocumentGenerator.languageExtensions[language]}`,
-          content
-        );
-      })
-    );
+    return this.resultBuilder(generatedStatements);
   };
 }

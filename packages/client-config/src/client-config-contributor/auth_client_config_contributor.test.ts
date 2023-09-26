@@ -1,13 +1,17 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { AuthClientConfigContributor } from './auth_client_config_contributor.js';
+import {
+  authOutputKey,
+  graphqlOutputKey,
+} from '@aws-amplify/backend-output-schemas';
 
-describe('AuthClientConfigContributor', () => {
-  it('returns an empty object if output has no auth output', () => {
+void describe('AuthClientConfigContributor', () => {
+  void it('returns an empty object if output has no auth output', () => {
     const contributor = new AuthClientConfigContributor();
     assert.deepStrictEqual(
       contributor.contribute({
-        graphqlOutput: {
+        [graphqlOutputKey]: {
           version: '1',
           payload: {
             awsAppsyncApiEndpoint: 'testApiEndpoint',
@@ -15,6 +19,7 @@ describe('AuthClientConfigContributor', () => {
             awsAppsyncAuthenticationType: 'API_KEY',
             awsAppsyncApiKey: 'testApiKey',
             awsAppsyncApiId: 'testApiId',
+            amplifyApiModelSchemaS3Uri: 'testApiSchemaUri',
           },
         },
       }),
@@ -22,11 +27,11 @@ describe('AuthClientConfigContributor', () => {
     );
   });
 
-  it('returns translated config when output has auth', () => {
+  void it('returns translated config when output has auth', () => {
     const contributor = new AuthClientConfigContributor();
     assert.deepStrictEqual(
       contributor.contribute({
-        authOutput: {
+        [authOutputKey]: {
           version: '1',
           payload: {
             identityPoolId: 'testIdentityPoolId',
