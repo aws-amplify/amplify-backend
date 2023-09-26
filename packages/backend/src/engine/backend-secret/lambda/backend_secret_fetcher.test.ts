@@ -25,7 +25,7 @@ const testSecretId: SecretIdentifier = {
 };
 
 const testSecret: Secret = {
-  secretIdentifier: testSecretId,
+  ...testSecretId,
   value: testSecretValue,
 };
 

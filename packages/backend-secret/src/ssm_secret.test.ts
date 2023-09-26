@@ -33,7 +33,7 @@ const testSecretIdWithVersion: SecretIdentifier = {
 };
 
 const testSecret: Secret = {
-  secretIdentifier: testSecretIdWithVersion,
+  ...testSecretIdWithVersion,
   value: testSecretValue,
 };
 
@@ -50,7 +50,7 @@ void describe('SSMSecret', () => {
       Promise.resolve({
         $metadata: {},
         Parameter: {
-          Name: testSecretName,
+          Name: testBranchSecretFullNamePath,
           Value: testSecretValue,
           Version: testSecretVersion,
         },
@@ -96,6 +96,25 @@ void describe('SSMSecret', () => {
       });
     });
 
+    void it('gets undefined secret value', async () => {
+      mock.method(ssmClient, 'getParameter', () =>
+        Promise.resolve({
+          $metadata: {},
+          Parameter: {
+            Name: testBranchSecretFullNamePath,
+            Version: testSecretVersion,
+          },
+        })
+      );
+      const expectedErr = new SecretError(
+        `The value of secret '${testSecretName}' is undefined`
+      );
+      await assert.rejects(
+        () => ssmSecretClient.getSecret('', { name: testSecretName }),
+        expectedErr
+      );
+    });
+
     void it('throws error', async () => {
       const ssmNotFoundException = new ParameterNotFound({
         $metadata: {},
@@ -105,7 +124,6 @@ void describe('SSMSecret', () => {
       mock.method(ssmClient, 'getParameter', () =>
         Promise.reject(ssmNotFoundException)
       );
-      const ssmSecretClient = new SSMSecretClient(ssmClient);
       const expectedErr = SecretError.fromSSMException(ssmNotFoundException);
       await assert.rejects(
         () => ssmSecretClient.getSecret('', { name: '' }),

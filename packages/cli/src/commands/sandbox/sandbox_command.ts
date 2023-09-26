@@ -1,6 +1,5 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { ClientConfigFormat } from '@aws-amplify/client-config';
-import { SandboxDeleteCommand } from './sandbox-delete/sandbox_delete_command.js';
 import fs from 'fs';
 import { AmplifyPrompter } from '../prompter/amplify_prompts.js';
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
@@ -37,7 +36,7 @@ export class SandboxCommand
    */
   constructor(
     private readonly sandboxFactory: SandboxSingletonFactory,
-    private readonly sandboxDeleteCommand: SandboxDeleteCommand
+    private readonly sandboxSubCommands: CommandModule[]
   ) {
     this.command = 'sandbox';
     this.describe = 'Starts sandbox, watch mode for amplify deployments';
@@ -70,7 +69,7 @@ export class SandboxCommand
     return (
       yargs
         // Cast to erase options types used in internal sub command implementation. Otherwise, compiler fails here.
-        .command(this.sandboxDeleteCommand as unknown as CommandModule)
+        .command(this.sandboxSubCommands)
         .option('dirToWatch', {
           describe:
             'Directory to watch for file changes. All subdirectories and files will be included. defaults to the current directory.',
