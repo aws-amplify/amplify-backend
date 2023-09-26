@@ -151,7 +151,7 @@ const expectedMetadata = {
 
 describe('BackendMetadataReader', () => {
   let backendMetadataReader: BackendMetadataReader;
-  let getOutputMock = mock.fn();
+  const getOutputMock = mock.fn();
 
   beforeEach(() => {
     const mockCfnClient = new CloudFormation();
@@ -181,7 +181,7 @@ describe('BackendMetadataReader', () => {
       (backendIdentifier: StackIdentifier) => {
         if (!backendIdentifier.stackName.includes('-sandbox')) {
           throw new BackendOutputClientError(
-            BackendOutputClientErrorType.MetadataRetrievalError,
+            BackendOutputClientErrorType.METADATA_RETRIEVAL_ERROR,
             'Not a sandbox'
           );
         }

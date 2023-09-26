@@ -4,7 +4,7 @@ import { BackendOutput } from '@aws-amplify/plugin-types';
 import { DefaultBackendOutputClient } from './backend_output_client.js';
 
 export enum BackendOutputClientErrorType {
-  MetadataRetrievalError = 'MetadataRetrievalError',
+  METADATA_RETRIEVAL_ERROR = 'MetadataRetrievalError',
 }
 /**
  * Error type for BackendOutputClientError
@@ -24,11 +24,11 @@ export class BackendOutputClientError extends Error {
 /**
  * Defines BackendOutputClient
  */
-export interface BackendOutputClient {
+export type BackendOutputClient = {
   readonly getOutput: (
     backendIdentifier: BackendIdentifier
   ) => Promise<BackendOutput>;
-}
+};
 /**
  * Factory to create a backend metadata reader
  */

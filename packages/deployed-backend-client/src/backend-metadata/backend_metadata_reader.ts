@@ -110,7 +110,7 @@ export class BackendMetadataReader {
           if (
             err &&
             (err as BackendOutputClientError).code ===
-              BackendOutputClientErrorType.MetadataRetrievalError
+              BackendOutputClientErrorType.METADATA_RETRIEVAL_ERROR
           ) {
             // if backend metadata cannot be built, it is not an Amplify stack
             return;

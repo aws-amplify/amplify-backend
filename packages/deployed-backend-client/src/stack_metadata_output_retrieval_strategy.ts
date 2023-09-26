@@ -43,7 +43,7 @@ export class StackMetadataBackendOutputRetrievalStrategy
     );
     if (typeof templateSummary.Metadata !== 'string') {
       throw new BackendOutputClientError(
-        BackendOutputClientErrorType.MetadataRetrievalError,
+        BackendOutputClientErrorType.METADATA_RETRIEVAL_ERROR,
         'Stack template metadata is not a string'
       );
     }
@@ -61,7 +61,7 @@ export class StackMetadataBackendOutputRetrievalStrategy
     const outputs = stackDescription?.Stacks?.[0]?.Outputs;
     if (outputs === undefined) {
       throw new BackendOutputClientError(
-        BackendOutputClientErrorType.MetadataRetrievalError,
+        BackendOutputClientErrorType.METADATA_RETRIEVAL_ERROR,
         'Stack outputs are undefined'
       );
     }
@@ -86,7 +86,7 @@ export class StackMetadataBackendOutputRetrievalStrategy
         (accumulator, outputName) => {
           if (stackOutputRecord[outputName] === undefined) {
             throw new BackendOutputClientError(
-              BackendOutputClientErrorType.MetadataRetrievalError,
+              BackendOutputClientErrorType.METADATA_RETRIEVAL_ERROR,
               `Output ${outputName} not found in stack`
             );
           }

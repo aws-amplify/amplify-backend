@@ -35,13 +35,13 @@ export enum BackendDeploymentType {
   BRANCH = 'BRANCH',
 }
 
-export interface DeploymentClient {
+export type DeploymentClient = {
   listSandboxes: () => Promise<BackendMetadata[]>;
   deleteSandbox: (sandboxId: string) => Promise<BackendMetadata>;
   getBackendMetadata: (
     backendIdentifier: UniqueBackendIdentifier
   ) => Promise<BackendMetadata>;
-}
+};
 
 /**
  * Factory to create a DeploymentClient
