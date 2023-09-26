@@ -11,6 +11,7 @@ import { SandboxCommand } from './sandbox_command.js';
 import { createSandboxCommand } from './sandbox_command_factory.js';
 import { SandboxDeleteCommand } from './sandbox-delete/sandbox_delete_command.js';
 import { Sandbox, SandboxSingletonFactory } from '@aws-amplify/sandbox';
+import { createSandboxSecretCommand } from './sandbox-secret/sandbox_secret_command_factory.js';
 
 void describe('sandbox command factory', () => {
   void it('instantiate a sandbox command correctly', () => {
@@ -31,11 +32,10 @@ void describe('sandbox command', () => {
 
     sandboxStartMock = mock.method(sandbox, 'start', () => Promise.resolve());
     const sandboxDeleteCommand = new SandboxDeleteCommand(sandboxFactory);
-
-    const sandboxCommand = new SandboxCommand(
-      sandboxFactory,
-      sandboxDeleteCommand
-    );
+    const sandboxCommand = new SandboxCommand(sandboxFactory, [
+      sandboxDeleteCommand,
+      createSandboxSecretCommand(),
+    ]);
     const parser = yargs().command(sandboxCommand as unknown as CommandModule);
     commandRunner = new TestCommandRunner(parser);
     sandboxStartMock.mock.resetCalls();
