@@ -6,6 +6,7 @@ import assert from 'node:assert';
 import { SandboxDeleteCommand } from './sandbox_delete_command.js';
 import { SandboxCommand } from '../sandbox_command.js';
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
+import { createSandboxSecretCommand } from '../sandbox-secret/sandbox_secret_command_factory.js';
 
 void describe('sandbox delete command', () => {
   let commandRunner: TestCommandRunner;
@@ -21,11 +22,10 @@ void describe('sandbox delete command', () => {
     ) as never; // couldn't figure out a good way to type the sandboxDeleteMock so that TS was happy here
 
     const sandboxDeleteCommand = new SandboxDeleteCommand(sandboxFactory);
-
-    const sandboxCommand = new SandboxCommand(
-      sandboxFactory,
-      sandboxDeleteCommand
-    );
+    const sandboxCommand = new SandboxCommand(sandboxFactory, [
+      sandboxDeleteCommand,
+      createSandboxSecretCommand(),
+    ]);
     const parser = yargs().command(sandboxCommand as unknown as CommandModule);
     commandRunner = new TestCommandRunner(parser);
     sandboxDeleteMock.mock.resetCalls();
