@@ -4,8 +4,8 @@ import path from 'path';
 import { AppsyncGraphqlGenerationResult } from './appsync_graphql_generation_result.js';
 import assert from 'assert';
 
-describe('AppsyncGraphqlDocumentGenerationResult', () => {
-  it('writes a map of files to disk', async () => {
+void describe('AppsyncGraphqlDocumentGenerationResult', () => {
+  void it('writes a map of files to disk', async () => {
     const writeMock = mock.method(fs, 'writeFile');
     mock.method(fs, 'mkdir').mock.mockImplementation(async () => null);
     writeMock.mock.mockImplementation(async () => null);

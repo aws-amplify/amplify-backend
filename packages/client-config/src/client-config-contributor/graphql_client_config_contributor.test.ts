@@ -6,8 +6,8 @@ import {
   graphqlOutputKey,
 } from '@aws-amplify/backend-output-schemas';
 
-describe('GraphqlClientConfigContributor', () => {
-  it('returns an empty object if output has no graphql output', () => {
+void describe('GraphqlClientConfigContributor', () => {
+  void it('returns an empty object if output has no graphql output', () => {
     const contributor = new GraphqlClientConfigContributor();
     assert.deepStrictEqual(
       contributor.contribute({
@@ -25,7 +25,7 @@ describe('GraphqlClientConfigContributor', () => {
     );
   });
 
-  it('returns translated config when output has graphql', () => {
+  void it('returns translated config when output has graphql', () => {
     const contributor = new GraphqlClientConfigContributor();
     assert.deepStrictEqual(
       contributor.contribute({

@@ -13,11 +13,11 @@ const backendIdentifier: UniqueBackendIdentifier = {
   branchName: 'testBranchName',
 };
 
-describe('getOrCreate', () => {
+void describe('getOrCreate', () => {
   const providerFactory = new BackendSecretFetcherProviderFactory(
     getSecretClient()
   );
-  it('creates new providers', () => {
+  void it('creates new providers', () => {
     const app = new App();
     const stack = new Stack(app);
     providerFactory.getOrCreateInstance(
@@ -46,7 +46,7 @@ describe('getOrCreate', () => {
     );
   });
 
-  it('returns an existing provider', () => {
+  void it('returns an existing provider', () => {
     const app = new App();
     const stack = new Stack(app);
     providerFactory.getOrCreateInstance(
