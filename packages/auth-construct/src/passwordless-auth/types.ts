@@ -73,7 +73,7 @@ export type ChallengeName =
   | 'ADMIN_NO_SRP_AUTH'
   | 'SRP_A';
 
-export type Handler<TEvent = any, TResult = any> = (
+export type Handler<TEvent = object, TResult = object> = (
   event: TEvent,
   context: Context,
   callback: Callback<TResult>
@@ -94,7 +94,7 @@ export type Context = {
   getRemainingTimeInMillis: () => number;
 };
 
-export type Callback<TResult = any> = (
+export type Callback<TResult = object> = (
   error?: Error | string | null,
   result?: TResult
 ) => void;
@@ -107,7 +107,7 @@ export type CognitoIdentity = {
 export type ClientContext = {
   client: ClientContextClient;
   // eslint-disable-next-line @typescript-eslint/naming-convention
-  Custom?: any;
+  Custom?: object;
   env: ClientContextEnv;
 };
 
