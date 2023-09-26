@@ -9,9 +9,9 @@ import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import { FormGenerationHandler } from './form_generation_handler.js';
 import { GenerateFormsCommand } from './generate_forms_command.js';
 
-describe('generate forms command', () => {
-  describe('form generation validation', () => {
-    it('modelsOutDir path can be customized', async () => {
+void describe('generate forms command', () => {
+  void describe('form generation validation', () => {
+    void it('modelsOutDir path can be customized', async () => {
       const credentialProvider = fromNodeProviderChain();
 
       const backendIdResolver = new BackendIdentifierResolver({
@@ -59,7 +59,7 @@ describe('generate forms command', () => {
         modelsOutPath
       );
     });
-    it('uiOutDir path can be customized', async () => {
+    void it('uiOutDir path can be customized', async () => {
       const credentialProvider = fromNodeProviderChain();
 
       const backendIdResolver = new BackendIdentifierResolver({
@@ -107,7 +107,7 @@ describe('generate forms command', () => {
         uiOutPath
       );
     });
-    it('./src/ui-components is the default graphql model generation path', async () => {
+    void it('./src/ui-components is the default graphql model generation path', async () => {
       const credentialProvider = fromNodeProviderChain();
 
       const backendIdResolver = new BackendIdentifierResolver({
@@ -151,7 +151,7 @@ describe('generate forms command', () => {
         './src/ui-components'
       );
     });
-    it('./src/graphql is the default graphql model generation path', async () => {
+    void it('./src/graphql is the default graphql model generation path', async () => {
       const credentialProvider = fromNodeProviderChain();
 
       const backendIdResolver = new BackendIdentifierResolver({
