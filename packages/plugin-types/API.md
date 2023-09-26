@@ -63,16 +63,9 @@ export type BackendOutputWriter = {
     storeOutput: (outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>) => void;
 };
 
-// @public
+// @public (undocumented)
 export type BackendSecret = {
     resolve: (scope: Construct, uniqueBackendIdentifier: UniqueBackendIdentifier) => SecretValue;
-};
-
-// @public
-export type BackendSecretResolver = {
-    resolveSecrets: <T, Ignore extends any[] = []>(scope: Construct, arg: T, ignoreTypes?: {
-        new (...args: any[]): Ignore[number];
-    }[]) => Replace<T, BackendSecret, SecretValue, Ignore>;
 };
 
 // @public
@@ -98,7 +91,6 @@ export type ConstructFactory<T = unknown> = {
 export type ConstructFactoryGetInstanceProps = {
     constructContainer: ConstructContainer;
     outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
-    backendSecretResolver: BackendSecretResolver;
     importPathVerifier?: ImportPathVerifier;
 };
 
@@ -121,11 +113,6 @@ export type MainStackCreator = {
 export type MainStackNameResolver = {
     resolveMainStackName: () => Promise<string>;
 };
-
-// @public
-export type Replace<T, Initial, Substitute, Ignore extends any[] = []> = T extends Initial ? Substitute : T extends (...args: any[]) => any ? T : T extends Ignore[number] ? T : T extends object ? {
-    [K in keyof T]: Replace<T[K], Initial, Substitute, Ignore>;
-} : T;
 
 // @public
 export type ResourceProvider<T> = {

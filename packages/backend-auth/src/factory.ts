@@ -1,23 +1,17 @@
 import {
   AmplifyAuth,
-  AuthCustomAttributeBase,
   AuthProps,
-  AuthStandardAttribute,
-  AuthUserAttribute,
   TriggerEvent,
 } from '@aws-amplify/auth-construct-alpha';
 import { Construct } from 'constructs';
 import {
   AuthResources,
-  BackendSecret,
   ConstructContainerEntryGenerator,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
   FunctionResources,
-  Replace,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
-import { SecretValue } from 'aws-cdk-lib';
 
 export type TriggerConfig = {
   triggers?: Partial<
@@ -25,12 +19,7 @@ export type TriggerConfig = {
   >;
 };
 
-export type AmplifyAuthFactoryProps = Replace<
-  AuthProps & TriggerConfig,
-  SecretValue,
-  BackendSecret,
-  [AuthUserAttribute, AuthCustomAttributeBase]
->;
+export type AmplifyAuthFactoryProps = AuthProps & TriggerConfig;
 
 /**
  * Singleton factory for AmplifyAuth that can be used in Amplify project files
@@ -79,16 +68,7 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
   ) {}
 
   generateContainerEntry = (scope: Construct) => {
-    const resolvedSecretProps =
-      this.getInstanceProps.backendSecretResolver.resolveSecrets<
-        typeof this.props,
-        [AuthStandardAttribute, AuthCustomAttributeBase]
-      >(scope, this.props, [AuthStandardAttribute, AuthCustomAttributeBase]);
-    const authConstruct = new AmplifyAuth(
-      scope,
-      this.defaultName,
-      resolvedSecretProps
-    );
+    const authConstruct = new AmplifyAuth(scope, this.defaultName, this.props);
     authConstruct.storeOutput(this.getInstanceProps.outputStorageStrategy);
     Object.entries(this.props.triggers || {}).forEach(
       ([triggerEvent, handlerFactory]) => {

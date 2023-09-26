@@ -2,7 +2,6 @@ import { beforeEach, describe, it, mock } from 'node:test';
 import { Func } from './factory.js';
 import { App, Stack } from 'aws-cdk-lib';
 import {
-  DefaultBackendSecretResolver,
   NestedStackResolver,
   SingletonConstructContainer,
   StackMetadataBackendOutputStorageStrategy,
@@ -27,15 +26,9 @@ describe('AmplifyFunctionFactory', () => {
       stack
     );
 
-    const backendSecretResolver = new DefaultBackendSecretResolver({
-      backendId: 'testBackendId',
-      branchName: 'testBranchName',
-    });
-
     getInstanceProps = {
       constructContainer,
       outputStorageStrategy,
-      backendSecretResolver,
     };
   });
 

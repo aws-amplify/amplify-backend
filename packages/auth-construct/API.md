@@ -27,7 +27,7 @@ export class AmplifyAuth extends Construct implements BackendOutputWriter, Resou
 }
 
 // @public
-export class AuthCustomAttributeBase {
+export abstract class AuthCustomAttributeBase {
     constructor(name: string);
     // (undocumented)
     protected attribute: Mutable<CustomAttributeConfig>;
