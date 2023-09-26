@@ -109,74 +109,70 @@ class MockConsole {
   public infoCount = 0;
   public debugCount = 0;
   Console: console.ConsoleConstructor;
-  assert(
-    value: any,
-    message?: string | undefined,
-    ...optionalParams: any[]
-  ): void {
+  assert(_: any, __?: string | undefined, ...___: any[]): void {
     throw new Error('Method not implemented.');
   }
   clear(): void {
     throw new Error('Method not implemented.');
   }
-  count(label?: string | undefined): void {
+  count(_?: string | undefined): void {
     throw new Error('Method not implemented.');
   }
-  countReset(label?: string | undefined): void {
+  countReset(_?: string | undefined): void {
     throw new Error('Method not implemented.');
   }
-  debug(message?: any, ...optionalParams: any[]): void {
+  debug(_?: any, ...__: any[]): void {
     throw new Error('Method not implemented.');
   }
-  dir(obj: any, options?: InspectOptions | undefined): void {
+  dir(_: any, __?: InspectOptions | undefined): void {
     throw new Error('Method not implemented.');
   }
-  dirxml(...data: any[]): void {
+  dirxml(..._: any[]): void {
     throw new Error('Method not implemented.');
   }
-  error(message?: any, ...optionalParams: any[]): void {
+  error(_?: any, ...__: any[]): void {
     this.errorCount++;
   }
-  group(...label: any[]): void {
+  group(..._: any[]): void {
     throw new Error('Method not implemented.');
   }
-  groupCollapsed(...label: any[]): void {
+  groupCollapsed(..._: any[]): void {
     throw new Error('Method not implemented.');
   }
   groupEnd(): void {
     throw new Error('Method not implemented.');
   }
-  info(message?: any, ...optionalParams: any[]): void {
+  info(_?: any, ...__: any[]): void {
     this.infoCount++;
   }
-  log(message?: any, ...optionalParams: any[]): void {
+  log(_?: any, ...__: any[]): void {
     throw new Error('Method not implemented.');
   }
-  table(tabularData: any, properties?: readonly string[] | undefined): void {
+  table(_: any, __?: readonly string[] | undefined): void {
     throw new Error('Method not implemented.');
   }
-  time(label?: string | undefined): void {
+  time(_?: string | undefined): void {
     throw new Error('Method not implemented.');
   }
-  timeEnd(label?: string | undefined): void {
+  timeEnd(_?: string | undefined): void {
     throw new Error('Method not implemented.');
   }
-  timeLog(label?: string | undefined, ...data: any[]): void {
+  timeLog(_?: string | undefined, ...data: any[]): void {
     throw new Error('Method not implemented.');
   }
-  trace(message?: any, ...optionalParams: any[]): void {
+  trace(_?: any, ...__: any[]): void {
     this.debugCount++;
   }
-  warn(message?: any, ...optionalParams: any[]): void {
+  warn(_?: any, ...__: any[]): void {
     throw new Error('Method not implemented.');
   }
-  profile(label?: string | undefined): void {
+  profile(_?: string | undefined): void {
     throw new Error('Method not implemented.');
   }
-  profileEnd(label?: string | undefined): void {
+  profileEnd(_?: string | undefined): void {
     throw new Error('Method not implemented.');
   }
-  timeStamp(label?: string | undefined): void {
+  timeStamp(_?: string | undefined): void {
     throw new Error('Method not implemented.');
   }
 }
