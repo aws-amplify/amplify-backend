@@ -5,7 +5,7 @@
 '@aws-amplify/backend-function': patch
 '@aws-amplify/backend-graphql': patch
 '@aws-amplify/backend-storage': patch
-'@aws-amplify/backend': patch
+'@aws-amplify/backend': minor
 ---
 
 Integrate secret to Auth
