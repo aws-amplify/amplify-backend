@@ -94,7 +94,7 @@ export class DeployedBackendClientFactory {
 }
 
 // @public
-export const getDisambiguator: (uniqueBackendIdentifier: UniqueBackendIdentifier) => string;
+export const getBackendIdentifierDisambiguator: (uniqueBackendIdentifier: UniqueBackendIdentifier) => string;
 
 // @public (undocumented)
 export type StackIdentifier = {

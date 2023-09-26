@@ -13,7 +13,7 @@ export type BackendIdentifier =
 /**
  * Returns a disambiguator
  */
-export const getDisambiguator = (
+export const getBackendIdentifierDisambiguator = (
   uniqueBackendIdentifier: UniqueBackendIdentifier
 ) => {
   const environment: string = (

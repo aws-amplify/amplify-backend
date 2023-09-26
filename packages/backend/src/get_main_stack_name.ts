@@ -1,5 +1,5 @@
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
-import { getDisambiguator } from '@aws-amplify/deployed-backend-client';
+import { getBackendIdentifierDisambiguator } from '@aws-amplify/deployed-backend-client';
 
 const mainStackNamePrefix = 'amplify';
 
@@ -14,6 +14,8 @@ const mainStackNamePrefix = 'amplify';
 export const getMainStackName = (
   uniqueDeploymentIdentifier: UniqueBackendIdentifier
 ): string => {
-  const stackNameSuffix: string = getDisambiguator(uniqueDeploymentIdentifier);
+  const stackNameSuffix: string = getBackendIdentifierDisambiguator(
+    uniqueDeploymentIdentifier
+  );
   return `${mainStackNamePrefix}-${uniqueDeploymentIdentifier.backendId}-${stackNameSuffix}`;
 };
