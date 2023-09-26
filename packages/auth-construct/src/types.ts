@@ -13,14 +13,26 @@ import { AuthOutput } from '@aws-amplify/backend-output-schemas/auth';
 export type EmailLogin =
   | true
   | {
-      emailBody?: `${string}{####}${string}`;
-      emailStyle?: cognito.VerificationEmailStyle.CODE;
-      emailSubject?: string;
+      /**
+       * The type of verification. Must be one of aws_cognito.VerificationEmailStyle.
+       */
+      verificationEmailStyle?: cognito.VerificationEmailStyle.CODE;
+      /**
+       * When verificationEmailStyle is set to VerificationEmailStyle.CODE, the emailBody must contain the template {####} where the code will be inserted.
+       */
+      verificationEmailBody?: `${string}{####}${string}`;
+      /**
+       * The verification email subject.
+       */
+      verificationEmailSubject?: string;
     }
   | {
-      emailBody?: `${string}{##Verify Email##}${string}`;
-      emailStyle?: cognito.VerificationEmailStyle.LINK;
-      emailSubject?: string;
+      verificationEmailStyle?: cognito.VerificationEmailStyle.LINK;
+      /**
+       * When verificationEmailStyle is set to VerificationEmailStyle.LINK, the emailBody must contain the template {##Verify Email##} where the link will be inserted.
+       */
+      verificationEmailBody?: `${string}{##Verify Email##}${string}`;
+      verificationEmailSubject?: string;
     };
 /**
  * Phone number login options.
