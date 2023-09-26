@@ -1,7 +1,11 @@
 import { Construct } from 'constructs';
 import { Stack, aws_cognito as cognito } from 'aws-cdk-lib';
 import { Architecture, IFunction, Runtime } from 'aws-cdk-lib/aws-lambda';
-import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
+import {
+  NodejsFunction,
+  NodejsFunctionProps,
+  OutputFormat,
+} from 'aws-cdk-lib/aws-lambda-nodejs';
 import {
   AmplifyFunction,
   AuthResources,
@@ -331,20 +335,26 @@ export class AmplifyAuth
     if (!options) {
       return {};
     }
+
+    const commonOptions: NodejsFunctionProps = {
+      entry: new URL(
+        './passwordless-auth/custom_auth_triggers.js',
+        import.meta.url
+      ).pathname,
+      handler: 'defineAuthChallengeHandler',
+      runtime: Runtime.NODEJS_18_X,
+      architecture: Architecture.ARM_64,
+      bundling: {
+        format: OutputFormat.ESM,
+      },
+    };
+
     const defineAuthChallenge = new NodejsFunction(
       this,
       `DefineAuthChallenge${id}`,
       {
-        entry: new URL(
-          './passwordless-auth/custom_auth_triggers.js',
-          import.meta.url
-        ).pathname,
         handler: 'defineAuthChallengeHandler',
-        runtime: Runtime.NODEJS_18_X,
-        architecture: Architecture.ARM_64,
-        bundling: {
-          format: OutputFormat.ESM,
-        },
+        ...commonOptions,
       }
     );
 
@@ -352,16 +362,8 @@ export class AmplifyAuth
       this,
       `CreateAuthChallenge${id}`,
       {
-        entry: new URL(
-          './passwordless-auth/custom_auth_triggers.js',
-          import.meta.url
-        ).pathname,
         handler: 'createAuthChallengeHandler',
-        runtime: Runtime.NODEJS_18_X,
-        architecture: Architecture.ARM_64,
-        bundling: {
-          format: OutputFormat.ESM,
-        },
+        ...commonOptions,
       }
     );
 
@@ -369,16 +371,8 @@ export class AmplifyAuth
       this,
       `VerifyAuthChallengeResponse${id}`,
       {
-        entry: new URL(
-          './passwordless-auth/custom_auth_triggers.js',
-          import.meta.url
-        ).pathname,
         handler: 'verifyAuthChallengeHandler',
-        runtime: Runtime.NODEJS_18_X,
-        architecture: Architecture.ARM_64,
-        bundling: {
-          format: OutputFormat.ESM,
-        },
+        ...commonOptions,
       }
     );
 
