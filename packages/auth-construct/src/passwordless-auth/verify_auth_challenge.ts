@@ -18,22 +18,14 @@ export const verifyAuthChallenge = async (
 
     // Verify challenge answer
     if (signInMethod === 'MAGIC_LINK') {
-      // TODO: Implement
+      // TODO: Implement magic link.
       throw Error('Magic Link not implemented.');
     } else if (signInMethod === 'OTP') {
-      // TODO: Implement
+      // TODO: Implement OTP.
       throw Error('OTP not implemented.');
     } else {
       throw new Error(`Unrecognized signInMethod: ${signInMethod ?? 'NULL'}`);
     }
-
-    // Return event
-    logger.debug(JSON.stringify(event, null, 2));
-    logger.debug(
-      'Verification result, answerCorrect:',
-      event.response.answerCorrect
-    );
-    return event;
   } catch (err) {
     logger.error(err);
     throw err;

@@ -12,21 +12,25 @@ export const createAuthChallenge = async (
   event: CreateAuthChallengeTriggerEvent
 ) => {
   logger.debug(JSON.stringify(event, null, 2));
+  const previousSessions = event.request.session;
   try {
-    if (!event.request.session || !event.request.session.length) {
-      // This is the first time Create Auth Challenge is called, create a
-      // dummy challenge, allowing the user to send a challenge response
-      // with client metadata, that can be used to to provide auth parameters.
-      logger.info('Client has no session yet, starting one ...');
+    if (!previousSessions || !previousSessions.length) {
+      // If there are no previous sessions, this is the first time CreateAuthChallenge is called.
+      // In this scenarios, a dummy challenge is created allowing the client to send a challenge
+      // response with client metadata that can be used to to provide auth parameters.
+      // This is required because Cognito only passes client metadata to custom auth triggers
+      // when the RespondToAuthChallenge API is invoked. Client metadata is not included when the
+      // InitiateAuth API is invoked.
+      // See: https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_InitiateAuth.html#CognitoUserPools-InitiateAuth-request-ClientMetadata
       await provideAuthParameters(event);
     } else {
       const { signInMethod } = event.request.clientMetadata ?? {};
       logger.info(`Client has requested signInMethod: ${signInMethod}`);
       if (signInMethod === 'MAGIC_LINK') {
-        // TODO: Implement
+        // TODO: Implement magic link.
         throw Error('Magic Link not implemented.');
       } else if (signInMethod === 'OTP') {
-        // TODO: Implement
+        // TODO: Implement OTP.
         throw Error('OTP not implemented.');
       } else {
         throw new Error(`Unrecognized signInMethod: ${signInMethod}`);
@@ -40,6 +44,10 @@ export const createAuthChallenge = async (
   }
 };
 
+/**
+ * Adds metadata to the event to indicate that auth parameters need to be supplied.
+ * @param event The lambda event.
+ */
 const provideAuthParameters = async (
   event: CreateAuthChallengeTriggerEvent
 ): Promise<void> => {

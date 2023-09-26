@@ -7,11 +7,17 @@ import {
 import { strictEqual } from 'node:assert';
 import { defineAuthChallenge } from './define_auth_challenge.js';
 
+// A challenge session from Device SRP sign in.
 const srpSession: ChallengeResult = {
   challengeName: 'DEVICE_SRP_AUTH',
   challengeResult: false,
 };
 
+/**
+ * Creates a mock lambda event for testing.
+ * @param previousSessions The array of sessions from previous challenges
+ * @returns A lambda trigger event for Define Auth Challenge.
+ */
 const buildEvent = (
   previousSessions?: Array<ChallengeResult | CustomChallengeResult>
 ): DefineAuthChallengeTriggerEvent => {

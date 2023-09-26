@@ -13,34 +13,46 @@ export const defineAuthChallenge = async (
 ) => {
   logger.debug(JSON.stringify(event, null, 2));
 
-  if (!event.request.session.length) {
-    logger.info('No session yet, starting one ...');
+  const previousSessions = event.request.session;
+  if (!previousSessions || !previousSessions.length) {
     return customChallenge(event);
   }
 
-  const isCustomChallenge = event.request.session.find(
+  const onlyContainsCustomChallenges = previousSessions.every(
     (attempt) => attempt.challengeName !== 'CUSTOM_CHALLENGE'
   );
 
-  if (isCustomChallenge) {
-    return deny(event, 'Expected CUSTOM_CHALLENGE');
+  if (!onlyContainsCustomChallenges) {
+    return failAuthentication(event, 'Expected CUSTOM_CHALLENGE');
   }
 
   const { signInMethod } = event.request.clientMetadata ?? {};
   logger.info(`Requested signInMethod: ${signInMethod}`);
 
   if (signInMethod === 'MAGIC_LINK') {
-    // TODO: Implement
-    return deny(event, 'Magic Link is not yet implemented.');
+    // TODO: Implement magic link.
+    return failAuthentication(event, 'Magic Link is not yet implemented.');
   } else if (signInMethod === 'OTP') {
-    // TODO: Implement
-    return deny(event, 'OTP is not yet implemented.');
+    // TODO: Implement OTP.
+    return failAuthentication(event, 'OTP is not yet implemented.');
   }
 
-  return deny(event, `Unrecognized signInMethod: ${signInMethod}`);
+  return failAuthentication(
+    event,
+    `Unrecognized signInMethod: ${signInMethod}`
+  );
 };
 
-const deny = (event: DefineAuthChallengeTriggerEvent, reason: string) => {
+/**
+ * Updates the event to fail authentication and returns it.
+ * @param event The lambda event.
+ * @param reason The reason that authentication has failed.
+ * @returns The updated event.
+ */
+const failAuthentication = (
+  event: DefineAuthChallengeTriggerEvent,
+  reason: string
+) => {
   logger.info('Failing authentication because:', reason);
   event.response.issueTokens = false;
   event.response.failAuthentication = true;
@@ -48,7 +60,13 @@ const deny = (event: DefineAuthChallengeTriggerEvent, reason: string) => {
   return event;
 };
 
+/**
+ * Updates the event with the name `CUSTOM_CHALLENGE` and returns it.
+ * @param event The lambda event.
+ * @returns The updated event.
+ */
 const customChallenge = (event: DefineAuthChallengeTriggerEvent) => {
+  logger.info('No session yet, starting one ...');
   event.response.issueTokens = false;
   event.response.failAuthentication = false;
   event.response.challengeName = 'CUSTOM_CHALLENGE';
