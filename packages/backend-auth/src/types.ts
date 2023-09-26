@@ -86,15 +86,15 @@ export type AuthFactoryLoginWith = BasicLoginOptions & ExternalProps;
 export const translateToAuthConstructLoginWith = (
   scope: Construct,
   backendId: UniqueBackendIdentifier,
-  backendLoginWith: AuthFactoryLoginWith
+  authFactoryLoginWith: AuthFactoryLoginWith
 ): BasicLoginOptions & ExternalProviders => {
   const result: BasicLoginOptions & ExternalProviders =
-    backendLoginWith as BasicLoginOptions;
-  if (!backendLoginWith.externalProviders) {
+    authFactoryLoginWith as BasicLoginOptions;
+  if (!authFactoryLoginWith.externalProviders) {
     return result;
   }
 
-  const externalProviders = backendLoginWith.externalProviders;
+  const externalProviders = authFactoryLoginWith.externalProviders;
   result.externalProviders = {
     ...(externalProviders as ExternalGroupGeneralProps),
   };
