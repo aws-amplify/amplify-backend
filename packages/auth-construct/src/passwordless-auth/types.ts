@@ -153,9 +153,9 @@ export type RequestMagicLinkClientMetaData = {
   signInMethod: 'MAGIC_LINK';
   action: 'REQUEST';
   deliveryMedium: 'EMAIL';
+
   /**
-   * A redirect URL, with a placeholder for the code.
-   * For example: "https://example.com/sign-in?code=##code##"
+   * A redirect URL with a code placeholder. For example: 'https://example.com/signin?code=##code##'
    */
   redirectUri: string;
 };

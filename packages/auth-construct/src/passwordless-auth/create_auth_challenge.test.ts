@@ -9,12 +9,14 @@ import {
 } from './types.js';
 import { strictEqual } from 'node:assert';
 
+// The custom auth session from the initial Cognito InitiateAuth call.
 const initialSession: CustomChallengeResult = {
   challengeName: 'CUSTOM_CHALLENGE',
   challengeResult: false,
   challengeMetadata: 'PROVIDE_AUTH_PARAMETERS',
 };
 
+// Client metadata when requesting a magic link.
 const requestMagicLinkMetaData: PasswordlessClientMetaData = {
   signInMethod: 'MAGIC_LINK',
   action: 'REQUEST',
@@ -22,12 +24,19 @@ const requestMagicLinkMetaData: PasswordlessClientMetaData = {
   redirectUri: 'https://example.com/sign-in-link/##code##',
 };
 
+// Client metadata when requesting an OTP via email.
 const requestOTPMetaData: PasswordlessClientMetaData = {
   signInMethod: 'OTP',
   action: 'REQUEST',
   deliveryMedium: 'EMAIL',
 };
 
+/**
+ * Creates a mock lambda event for testing.
+ * @param previousSessions The array of sessions from previous challenges
+ * @param clientMetadata The client metadata included in the request from the client.
+ * @returns A lambda trigger event for Create Auth Challenge.
+ */
 const buildEvent = (
   previousSessions?: Array<ChallengeResult | CustomChallengeResult>,
   clientMetadata?: PasswordlessClientMetaData | StringMap
@@ -70,19 +79,21 @@ describe('createAuthChallenge', () => {
     );
   });
 
-  it('returns an error if for an unrecognized sign in method', async () => {
+  it('returns an error for an unrecognized sign in method', async () => {
     const event = buildEvent([initialSession], { signInMethod: 'FOO' });
     const error = await createAuthChallenge(event).catch((error) => error);
     strictEqual(error.message, 'Unrecognized signInMethod: FOO');
   });
 
+  // TODO: remove when magic link is implemented.
   it('returns a not implemented exception when invoking magic link', async () => {
     const event = buildEvent([initialSession], requestMagicLinkMetaData);
     const error = await createAuthChallenge(event).catch((error) => error);
     strictEqual(error.message, 'Magic Link not implemented.');
   });
 
-  it('returns a not implemented exception when invoking otp', async () => {
+  // TODO: remove when OTP is implemented.
+  it('returns a not implemented exception when invoking OTP', async () => {
     const event = buildEvent([initialSession], requestOTPMetaData);
     const error = await createAuthChallenge(event).catch((error) => error);
     strictEqual(error.message, 'OTP not implemented.');
