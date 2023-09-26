@@ -31,14 +31,12 @@ export class SandboxCommand
 
   private appName?: string;
 
-  private readonly sandboxSubCommands: CommandModule[];
-
   /**
    * Creates sandbox command.
    */
   constructor(
     private readonly sandboxFactory: SandboxSingletonFactory,
-    sandboxSubCommands: CommandModule[]
+    private readonly sandboxSubCommands: CommandModule[]
   ) {
     this.command = 'sandbox';
     this.describe = 'Starts sandbox, watch mode for amplify deployments';
