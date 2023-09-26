@@ -33,9 +33,9 @@ const requestOTPMetaData: PasswordlessClientMetaData = {
 
 /**
  * Creates a mock lambda event for testing.
- * @param previousSessions The array of sessions from previous challenges
- * @param clientMetadata The client metadata included in the request from the client.
- * @returns A lambda trigger event for Create Auth Challenge.
+ * @param previousSessions - The array of sessions from previous challenges
+ * @param clientMetadata - The client metadata included in the request from the client.
+ * @returns a lambda trigger event for Create Auth Challenge.
  */
 const buildEvent = (
   previousSessions?: Array<ChallengeResult | CustomChallengeResult>,

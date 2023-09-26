@@ -4,7 +4,7 @@
 export class Logger {
   /**
    * Creates a new Logger instance.
-   * @param logLevel The log level for this Logger instance.
+   * @param logLevel - The log level for this Logger instance.
    */
   constructor(private logLevel: LogLevel) {}
 
@@ -40,8 +40,8 @@ export enum LogLevel {
 
 /**
  * Parses a string into a log level.
- * @param level The log level as as string.
- * @returns The LogLevel
+ * @param level - The log level as as string.
+ * @returns the log level.
  */
 const parseLogLevel = (level?: string): LogLevel => {
   switch (level) {

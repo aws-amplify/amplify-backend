@@ -12,8 +12,8 @@ import { verifyAuthChallenge } from './verify_auth_challenge.js';
 
 /**
  * The Define Auth Challenge lambda handler.
- * @param event The Define Auth Challenge event provided by Cognito.
- * @returns The response, including the challenge name.
+ * @param event - The Define Auth Challenge event provided by Cognito.
+ * @returns the response, including the challenge name.
  *
  * Reference: https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-lambda-define-auth-challenge.html
  */
@@ -24,8 +24,8 @@ export const defineAuthChallengeHandler: DefineAuthChallengeTriggerHandler =
 
 /**
  * The Verify Auth Challenge Response lambda handler.
- * @param event The Verify Auth Challenge Response event provided by Cognito.
- * @returns The response, including whether or not the answer was correct.
+ * @param event - The Verify Auth Challenge Response event provided by Cognito.
+ * @returns the response, including whether or not the answer was correct.
  *
  * Reference: https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-lambda-verify-auth-challenge-response.html
  */
@@ -36,8 +36,8 @@ export const createAuthChallengeHandler: CreateAuthChallengeTriggerHandler =
 
 /**
  * The Create Auth Challenge lambda handler.
- * @param event The Create Auth Challenge event provided by Cognito.
- * @returns The response, including the public and private challenge params.
+ * @param event - The Create Auth Challenge event provided by Cognito.
+ * @returns the response, including the public and private challenge params.
  *
  * Reference: https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-lambda-create-auth-challenge.html
  */

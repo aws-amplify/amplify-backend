@@ -3,8 +3,8 @@ import { DefineAuthChallengeTriggerEvent } from './types.js';
 
 /**
  * The Define Auth Challenge lambda handler.
- * @param event The Define Auth Challenge event provided by Cognito.
- * @returns The response, including the challenge name.
+ * @param event - The Define Auth Challenge event provided by Cognito.
+ * @returns the response, including the challenge name.
  *
  * Reference: https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-lambda-define-auth-challenge.html
  */
@@ -45,9 +45,9 @@ export const defineAuthChallenge = async (
 
 /**
  * Updates the event to fail authentication and returns it.
- * @param event The lambda event.
- * @param reason The reason that authentication has failed.
- * @returns The updated event.
+ * @param event - The lambda event.
+ * @param reason - The reason that authentication has failed.
+ * @returns the updated event.
  */
 const failAuthentication = (
   event: DefineAuthChallengeTriggerEvent,
@@ -62,8 +62,8 @@ const failAuthentication = (
 
 /**
  * Updates the event with the name `CUSTOM_CHALLENGE` and returns it.
- * @param event The lambda event.
- * @returns The updated event.
+ * @param event - The lambda event.
+ * @returns the updated event.
  */
 const customChallenge = (event: DefineAuthChallengeTriggerEvent) => {
   logger.info('No session yet, starting one ...');
