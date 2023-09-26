@@ -1,11 +1,7 @@
 import { Construct } from 'constructs';
 import { BackendSecretFetcherProviderFactory } from './backend_secret_fetcher_provider_factory.js';
 import { CustomResource } from 'aws-cdk-lib';
-import {
-  BranchBackendIdentifier,
-  SandboxBackendIdentifier,
-  UniqueBackendIdentifier,
-} from '@aws-amplify/plugin-types';
+import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import { getDisambiguator } from '@aws-amplify/deployed-backend-client';
 
 /**
