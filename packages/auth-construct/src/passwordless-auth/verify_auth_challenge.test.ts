@@ -9,8 +9,8 @@ import { verifyAuthChallenge } from './verify_auth_challenge.js';
 
 /**
  * Creates a mock lambda event for testing.
- * @param clientMetadata The client metadata included in the request from the client.
- * @returns A lambda trigger event for Create Auth Challenge.
+ * @param clientMetadata - The client metadata included in the request from the client.
+ * @returns a lambda trigger event for Create Auth Challenge.
  */
 const buildEvent = (
   clientMetadata?: PasswordlessClientMetaData | StringMap

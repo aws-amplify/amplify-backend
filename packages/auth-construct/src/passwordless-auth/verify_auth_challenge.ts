@@ -3,8 +3,8 @@ import { VerifyAuthChallengeResponseTriggerEvent } from './types.js';
 
 /**
  * The Verify Auth Challenge Response lambda handler.
- * @param event The Verify Auth Challenge Response event provided by Cognito.
- * @returns The response, including whether or not the answer was correct.
+ * @param event - The Verify Auth Challenge Response event provided by Cognito.
+ * @returns the response, including whether or not the answer was correct.
  *
  * Reference: https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-lambda-verify-auth-challenge-response.html
  */

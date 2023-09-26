@@ -3,8 +3,8 @@ import { CreateAuthChallengeTriggerEvent } from './types.js';
 
 /**
  * The Create Auth Challenge lambda handler.
- * @param event The Create Auth Challenge event provided by Cognito.
- * @returns The response, including the public and private challenge params.
+ * @param event - The Create Auth Challenge event provided by Cognito.
+ * @returns the response, including the public and private challenge params.
  *
  * Reference: https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-lambda-create-auth-challenge.html
  */
@@ -16,8 +16,8 @@ export const createAuthChallenge = async (
   try {
     if (!previousSessions || !previousSessions.length) {
       // If there are no previous sessions, this is the first time CreateAuthChallenge is called.
-      // In this scenarios, a dummy challenge is created allowing the client to send a challenge
-      // response with client metadata that can be used to to provide auth parameters.
+      // In this scenario, a dummy challenge is created to allow the client to send a challenge
+      // response with client metadata that contains auth parameters.
       // This is required because Cognito only passes client metadata to custom auth triggers
       // when the RespondToAuthChallenge API is invoked. Client metadata is not included when the
       // InitiateAuth API is invoked.
@@ -46,7 +46,7 @@ export const createAuthChallenge = async (
 
 /**
  * Adds metadata to the event to indicate that auth parameters need to be supplied.
- * @param event The lambda event.
+ * @param event - The lambda event.
  */
 const provideAuthParameters = async (
   event: CreateAuthChallengeTriggerEvent

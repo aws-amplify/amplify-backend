@@ -15,8 +15,8 @@ const srpSession: ChallengeResult = {
 
 /**
  * Creates a mock lambda event for testing.
- * @param previousSessions The array of sessions from previous challenges
- * @returns A lambda trigger event for Define Auth Challenge.
+ * @param previousSessions - The array of sessions from previous challenges
+ * @returns a lambda trigger event for Define Auth Challenge.
  */
 const buildEvent = (
   previousSessions?: Array<ChallengeResult | CustomChallengeResult>
