@@ -1,5 +1,6 @@
 import { BackendIdentifier } from '@aws-amplify/deployed-backend-client';
 import {
+  GenerateApiCodeProps,
   GenerateOptions,
   GenerationResult,
   generateApiCode,
@@ -29,5 +30,5 @@ export class GenerateApiCodeAdapter {
     generateApiCode({
       ...props,
       credentialProvider: this.credentialProvider,
-    });
+    } as GenerateApiCodeProps);
 }

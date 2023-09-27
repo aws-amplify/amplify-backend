@@ -15,6 +15,7 @@ import { createSandboxSecretCommand } from './sandbox-secret/sandbox_secret_comm
 import { BackendOutputClient } from '@aws-amplify/deployed-backend-client';
 import { graphqlOutputKey } from '@aws-amplify/backend-output-schemas';
 import { FormGenerationHandler } from '../../form-generation/form_generation_handler.js';
+import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
 
 /**
  * Creates wired sandbox command.
@@ -33,7 +34,7 @@ export const createSandboxCommand = (): CommandModule<
   );
   const getBackendIdentifier = async (appName?: string) => {
     const sandboxId = appName ?? (await sandboxIdResolver.resolve());
-    return { backendId: sandboxId, branchName: 'sandbox' };
+    return new SandboxBackendIdentifier(sandboxId);
   };
   const formGeneratorHandler = new FormGenerationHandler({
     credentialProvider,

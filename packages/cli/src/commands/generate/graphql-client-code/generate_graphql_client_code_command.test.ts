@@ -86,7 +86,7 @@ void describe('generate graphql-client-code command', () => {
     assert.equal(invokeGenerateApiCodeMock.mock.callCount(), 1);
     assert.deepEqual(invokeGenerateApiCodeMock.mock.calls[0].arguments[0], {
       backendId: 'app_id',
-      branchName: 'branch_name',
+      disambiguator: 'branch_name',
       format: GenerateApiCodeFormat.GRAPHQL_CODEGEN,
       statementTarget: GenerateApiCodeStatementTarget.JAVASCRIPT,
     });
