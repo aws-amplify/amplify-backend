@@ -13,10 +13,12 @@ import { IUserPool } from 'aws-cdk-lib/aws-cognito';
 import { IUserPoolClient } from 'aws-cdk-lib/aws-cognito';
 import { SecretValue } from 'aws-cdk-lib';
 import { Stack } from 'aws-cdk-lib';
-import { UniqueBackendIdentifier } from '@aws-amplify/platform-core';
 
 // @public (undocumented)
 export type AmplifyFunction = ResourceProvider<FunctionResources>;
+
+// @public
+export type AppId = string;
 
 // @public
 export type AuthCfnResources = {
@@ -32,6 +34,9 @@ export type AuthResources = {
     unauthenticatedUserIamRole?: IRole;
     cfnResources: AuthCfnResources;
 };
+
+// @public (undocumented)
+export type BackendId = AppId | SandboxId;
 
 // @public (undocumented)
 export type BackendOutput = Record<string, BackendOutputEntry>;
@@ -112,6 +117,15 @@ export type MainStackNameResolver = {
 // @public
 export type ResourceProvider<T> = {
     resources: T;
+};
+
+// @public (undocumented)
+export type SandboxId = string;
+
+// @public
+export type UniqueBackendIdentifier = {
+    backendId: BackendId;
+    disambiguator: string;
 };
 
 // (No @packageDocumentation comment for this package)

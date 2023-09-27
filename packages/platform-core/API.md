@@ -4,14 +4,13 @@
 
 ```ts
 
-// @public
-export type AppId = string;
+import { BackendId } from '@aws-amplify/plugin-types';
+import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
-// @public (undocumented)
-export type BackendId = AppId | SandboxId;
-
+// Warning: (ae-forgotten-export) The symbol "UniqueBackendIdentifierBase" needs to be exported by the entry point index.d.ts
+//
 // @public
-export class BranchBackendIdentifier extends UniqueBackendIdentifier {
+export class BranchBackendIdentifier extends UniqueBackendIdentifierBase {
     constructor(backendId: BackendId,
     disambiguator: string);
     // (undocumented)
@@ -20,22 +19,11 @@ export class BranchBackendIdentifier extends UniqueBackendIdentifier {
 }
 
 // @public
-export class SandboxBackendIdentifier extends UniqueBackendIdentifier {
+export class SandboxBackendIdentifier extends UniqueBackendIdentifierBase {
     constructor(backendId: BackendId);
     // (undocumented)
     readonly backendId: BackendId;
     readonly disambiguator = "sandbox";
-}
-
-// @public (undocumented)
-export type SandboxId = string;
-
-// @public
-export abstract class UniqueBackendIdentifier {
-    constructor(backendId: BackendId);
-    // (undocumented)
-    readonly backendId: BackendId;
-    readonly disambiguator: string;
 }
 
 // (No @packageDocumentation comment for this package)
