@@ -1,4 +1,4 @@
-<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>AmplifyFunctionFactoryBuildProps | Amplify Toolbox</title><meta name="description" content="Documentation for Amplify Toolbox"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os"</script><header class="tsd-page-toolbar">
+<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>getClientConfigPath | Amplify Toolbox</title><meta name="description" content="Documentation for Amplify Toolbox"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os"</script><header class="tsd-page-toolbar">
 <div class="tsd-toolbar-contents container">
 <div class="table-cell" id="tsd-search" data-base="..">
 <div class="field"><label for="tsd-search-field" class="tsd-widget tsd-toolbar-icon search no-caption"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><use href="#icon-search"></use></svg></label><input type="text" id="tsd-search-field" aria-label="Search"/></div>
@@ -13,27 +13,33 @@
 <div class="tsd-page-title">
 <ul class="tsd-breadcrumb">
 <li><a href="../index.html">Amplify Toolbox</a></li>
-<li><a href="../modules/_aws_amplify_backend_function.html">@aws-amplify/backend-function</a></li>
-<li><a href="_aws_amplify_backend_function.AmplifyFunctionFactoryBuildProps.html">AmplifyFunctionFactoryBuildProps</a></li></ul>
-<h1>Type alias AmplifyFunctionFactoryBuildProps</h1></div>
-<div class="tsd-signature"><span class="tsd-kind-type-alias">Amplify<wbr/>Function<wbr/>Factory<wbr/>Build<wbr/>Props</span><span class="tsd-signature-symbol">:</span> <a href="_aws_amplify_backend_function.AmplifyFunctionFactoryBaseProps.html" class="tsd-signature-type tsd-kind-type-alias">AmplifyFunctionFactoryBaseProps</a><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-type ">Omit</span><span class="tsd-signature-symbol">&lt;</span><a href="_aws_amplify_function_construct_alpha.AmplifyFunctionProps.html" class="tsd-signature-type tsd-kind-type-alias">AmplifyFunctionProps</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">&quot;absoluteCodePath&quot;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">buildCommand</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">outDir</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></div>
-<div class="tsd-type-declaration">
-<h4>Type declaration</h4>
-<ul class="tsd-parameters">
-<li class="tsd-parameter">
-<h5><span class="tsd-kind-property">build<wbr/>Command</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></h5>
-<div class="tsd-comment tsd-typography"><p>The command to run that generates built function code.
-This command is run from the directory where this factory is called</p>
+<li><a href="../modules/_aws_amplify_client_config.html">@aws-amplify/client-config</a></li>
+<li><a href="_aws_amplify_client_config.getClientConfigPath.html">getClientConfigPath</a></li></ul>
+<h1>Function getClientConfigPath</h1></div>
+<section class="tsd-panel">
+<ul class="tsd-signatures">
+<li class="tsd-signature tsd-anchor-link" id="getClientConfigPath"><span class="tsd-kind-call-signature">get<wbr/>Client<wbr/>Config<wbr/>Path</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">outDir</span><span class="tsd-signature-symbol">?</span>, <span class="tsd-kind-parameter">format</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span><a href="#getClientConfigPath" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Get path to config file</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">outDir</span>: <span class="tsd-signature-type">string</span></h5>
+<div class="tsd-comment tsd-typography"><p>path to directory where config is written. If not provided defaults to current process working directory.</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></li>
-<li class="tsd-parameter">
-<h5><span class="tsd-kind-property">out<wbr/>Dir</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></h5>
-<div class="tsd-comment tsd-typography"><p>The buildCommand is expected to place build artifacts at this location.
-This path can be relative or absolute. If relative, the absolute path is calculated based on the directory where this factory is called</p>
+<li>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">format</span>: <a href="../enums/_aws_amplify_client_config.ClientConfigFormat.html" class="tsd-signature-type tsd-kind-enum">ClientConfigFormat</a></h5>
+<div class="tsd-comment tsd-typography"><p>The format which the configuration should be exported into. Defaults to js.
+returns path to config file</p>
 </div>
-<div class="tsd-comment tsd-typography"></div></li></ul></div><aside class="tsd-sources">
+<div class="tsd-comment tsd-typography"></div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4>
+<div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/ee3d55f/packages/backend-function/src/factory.ts#L23">packages/backend-function/src/factory.ts:23</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/ee3d55f/packages/client-config/src/paths/get_client_config_path.ts#L13">paths/get_client_config_path.ts:13</a></li></ul></aside></li></ul></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
