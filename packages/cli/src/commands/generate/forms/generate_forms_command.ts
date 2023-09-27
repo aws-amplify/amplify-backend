@@ -117,7 +117,7 @@ export class GenerateFormsCommand
         implies: 'appId',
       })
       .option('modelsOutDir', {
-        describe: 'A path to directory where generated forms are written.',
+        describe: 'A path to directory where generated models are written.',
         default: DEFAULT_GRAPHQL_PATH,
         type: 'string',
         array: false,
