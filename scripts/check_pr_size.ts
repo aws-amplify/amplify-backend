@@ -34,7 +34,7 @@ const filteredList = diffFileList.filter(
 
 if (filteredList.length === 0) {
   // if the diff only touches ignored files, then early return
-  return;
+  process.exit();
 }
 
 // now run diff --shortstat on the filtered list of files
