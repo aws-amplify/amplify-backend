@@ -127,7 +127,6 @@ export class GenerateFormsCommand
         group: 'Form Generation',
       })
       .option('models', {
-        alias: 'm',
         describe: 'Model name to generate',
         type: 'string',
         array: true,

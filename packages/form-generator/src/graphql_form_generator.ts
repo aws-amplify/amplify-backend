@@ -1,11 +1,11 @@
 export type GraphqlGenerationResult = {
   writeToDirectory: (directoryPath: string) => Promise<void>;
 };
-export type GenerationOptions = {
+export type FormGenerationOptions = {
   models?: string[];
 };
 export type GraphqlFormGenerator = {
   generateForms: (
-    options?: GenerationOptions
+    options?: FormGenerationOptions
   ) => Promise<GraphqlGenerationResult>;
 };

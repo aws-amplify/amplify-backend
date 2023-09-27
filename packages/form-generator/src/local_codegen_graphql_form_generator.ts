@@ -12,7 +12,7 @@ import {
   ScriptTarget,
 } from '@aws-amplify/codegen-ui-react';
 import {
-  GenerationOptions,
+  FormGenerationOptions,
   GraphqlFormGenerator,
   GraphqlGenerationResult,
 } from './graphql_form_generator.js';
@@ -127,46 +127,63 @@ export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
       declaration,
     };
   };
+  private filterModelsByName = (
+    filteredModelNames: string[],
+    schemaModel: ModelRecord
+  ) => {
+    const lowerCaseModelKeys = new Set(
+      Object.keys(schemaModel).map((k) => k.toLowerCase())
+    );
+    const modelEntries = Object.entries(schemaModel);
+    return filteredModelNames.reduce<Array<[string, FormDef]>>(
+      (prev, model) => {
+        if (lowerCaseModelKeys?.has(model.toLowerCase())) {
+          const entry = modelEntries.find(
+            ([key]) => key.toLowerCase() === model.toLowerCase()
+          );
+          if (!entry) {
+            throw new Error(`Could not find specified model ${model}`);
+          }
+          prev.push(entry);
+          return prev;
+        }
+        throw new Error(`Could not find specified model ${model}`);
+      },
+      []
+    );
+  };
   private codegenForm = (
     dataSchema: GenericDataSchema,
     formSchema: StudioForm
   ) => {
     return this.createUiBuilderForm(formSchema, dataSchema, {});
   };
-  generateForms = async (
-    options?: GenerationOptions
-  ): Promise<GraphqlGenerationResult> => {
-    const dataSchema = await this.schemaFetcher();
-    const modelMap = this.getModelMapForDataSchema(dataSchema);
-    const lowerCaseModelKeys = new Set(
-      Object.keys(modelMap).map((k) => k.toLowerCase())
-    );
-    const filteredModels: Array<[string, FormDef]> = [];
 
-    const modelEntries = Object.entries(modelMap);
-    if (!options?.models || !options?.models?.length) {
-      filteredModels.push(...modelEntries);
+  private getFilteredModels = (
+    dataSchema: GenericDataSchema,
+    filteredModelNames?: string[]
+  ) => {
+    const modelMap = this.getModelMapForDataSchema(dataSchema);
+    const filteredModels: Array<[string, FormDef]> = [];
+    if (!filteredModelNames || !filteredModelNames?.length) {
+      filteredModels.push(...Object.entries(modelMap));
     } else {
       filteredModels.push(
-        ...options.models.reduce<Array<[string, FormDef]>>((prev, model) => {
-          if (lowerCaseModelKeys?.has(model.toLowerCase())) {
-            const entry = modelEntries.find(
-              ([key]) => key.toLowerCase() === model.toLowerCase()
-            );
-            if (!entry) {
-              throw new Error(`Could not find specified model ${model}`);
-            }
-            prev.push(entry);
-            return prev;
-          }
-          throw new Error(`Could not find specified model ${model}`);
-        }, [])
+        ...this.filterModelsByName(filteredModelNames, modelMap)
       );
     }
-    const filteredSchema = filteredModels.reduce(
+    return filteredModels.reduce(
       (prev, [key, value]) => ({ ...prev, [key]: value }),
       {}
     );
+  };
+
+  generateForms = async (
+    options?: FormGenerationOptions
+  ): Promise<GraphqlGenerationResult> => {
+    const dataSchema = await this.schemaFetcher();
+    const filteredSchema = this.getFilteredModels(dataSchema, options?.models);
+
     const baseForms = this.generateBaseForms(filteredSchema);
     return this.resultBuilder(
       baseForms.reduce<Record<string, string>>((prev, formSchema) => {

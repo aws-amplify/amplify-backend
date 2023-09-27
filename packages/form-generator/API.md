@@ -8,13 +8,13 @@
 export const createLocalGraphqlFormGenerator: (generationParams: LocalGraphqlFormGeneratorParams) => GraphqlFormGenerator;
 
 // @public (undocumented)
-export type GenerationOptions = {
+export type FormGenerationOptions = {
     models?: string[];
 };
 
 // @public (undocumented)
 export type GraphqlFormGenerator = {
-    generateForms: (options?: GenerationOptions) => Promise<GraphqlGenerationResult>;
+    generateForms: (options?: FormGenerationOptions) => Promise<GraphqlGenerationResult>;
 };
 
 // @public (undocumented)
