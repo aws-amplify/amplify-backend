@@ -1,5 +1,5 @@
 import debounce from 'debounce-promise';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-core';
+import { UniqueBackendIdentifier } from '@aws-amplify/platform-core';
 import { BackendDeployer } from '@aws-amplify/backend-deployer';
 
 /**

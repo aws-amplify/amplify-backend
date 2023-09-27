@@ -7,7 +7,7 @@ import {
   SecretIdentifier,
 } from './secret.js';
 import * as iam from 'aws-cdk-lib/aws-iam';
-import { BackendId, UniqueBackendIdentifier } from '@aws-amplify/plugin-core';
+import { BackendId, UniqueBackendIdentifier } from '@aws-amplify/platform-core';
 
 const SHARED_SECRET = 'shared';
 

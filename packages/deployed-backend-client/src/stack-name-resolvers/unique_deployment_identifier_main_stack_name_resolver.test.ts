@@ -4,7 +4,7 @@ import assert from 'node:assert';
 import {
   BranchBackendIdentifier,
   UniqueBackendIdentifier,
-} from '@aws-amplify/plugin-core';
+} from '@aws-amplify/platform-core';
 
 void describe('UniqueBackendIdentifierMainStackNameResolver', () => {
   void describe('resolveMainStackName', () => {

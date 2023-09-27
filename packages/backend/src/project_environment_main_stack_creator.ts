@@ -3,7 +3,7 @@ import { Construct } from 'constructs';
 import { Stack } from 'aws-cdk-lib';
 import { AmplifyStack } from './engine/amplify_stack.js';
 import { getMainStackName } from './get_main_stack_name.js';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-core';
+import { UniqueBackendIdentifier } from '@aws-amplify/platform-core';
 
 /**
  * Creates stacks that are tied to a given project environment via an SSM parameter

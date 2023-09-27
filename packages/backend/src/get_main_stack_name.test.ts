@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import { getMainStackName } from './get_main_stack_name.js';
 import assert from 'node:assert';
 import { readFileSync } from 'fs';
-import { BranchBackendIdentifier } from '@aws-amplify/plugin-core';
+import { BranchBackendIdentifier } from '@aws-amplify/platform-core';
 
 /**
  * !!!CAUTION!!!

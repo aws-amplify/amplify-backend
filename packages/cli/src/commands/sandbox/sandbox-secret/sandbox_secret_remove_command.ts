@@ -1,7 +1,7 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { SecretClient } from '@aws-amplify/backend-secret';
 import { SandboxIdResolver } from '../sandbox_id_resolver.js';
-import { SandboxBackendIdentifier } from '@aws-amplify/plugin-core';
+import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
 
 /**
  * Command to remove sandbox secret.

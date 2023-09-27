@@ -3,7 +3,7 @@ import { SecretClient } from '@aws-amplify/backend-secret';
 import { SandboxIdResolver } from '../sandbox_id_resolver.js';
 import { AmplifyPrompter } from '../../prompter/amplify_prompts.js';
 import { Printer } from '../../printer/printer.js';
-import { SandboxBackendIdentifier } from '@aws-amplify/plugin-core';
+import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
 
 /**
  * Command to set sandbox secret.

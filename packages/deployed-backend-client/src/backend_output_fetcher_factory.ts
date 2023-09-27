@@ -1,4 +1,4 @@
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-core';
+import { UniqueBackendIdentifier } from '@aws-amplify/platform-core';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { BackendIdentifier } from './backend_identifier.js';

@@ -13,7 +13,7 @@ import { Secret, SecretIdentifier } from './secret.js';
 import {
   BranchBackendIdentifier,
   UniqueBackendIdentifier,
-} from '@aws-amplify/plugin-core';
+} from '@aws-amplify/platform-core';
 
 const shared = 'shared';
 const testBackendId = 'testBackendId';

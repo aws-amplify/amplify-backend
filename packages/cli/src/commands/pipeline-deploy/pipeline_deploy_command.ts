@@ -1,7 +1,7 @@
 import _isCI from 'is-ci';
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { BackendDeployer } from '@aws-amplify/backend-deployer';
-import { BranchBackendIdentifier } from '@aws-amplify/plugin-core';
+import { BranchBackendIdentifier } from '@aws-amplify/platform-core';
 
 export type PipelineDeployCommandOptions = {
   branch: string;

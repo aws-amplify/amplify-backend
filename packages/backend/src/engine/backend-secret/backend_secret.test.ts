@@ -5,7 +5,7 @@ import { App, SecretValue, Stack } from 'aws-cdk-lib';
 import {
   BranchBackendIdentifier,
   UniqueBackendIdentifier,
-} from '@aws-amplify/plugin-core';
+} from '@aws-amplify/platform-core';
 import { getSecretClient } from '@aws-amplify/backend-secret';
 import { BackendSecretFetcherProviderFactory } from './backend_secret_fetcher_provider_factory.js';
 import { BackendSecretFetcherFactory } from './backend_secret_fetcher_factory.js';

@@ -7,7 +7,7 @@ import { AmplifySandboxExecutor } from './sandbox_executor.js';
 import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 import fs from 'fs';
 import parseGitIgnore from 'parse-gitignore';
-import { SandboxBackendIdentifier } from '@aws-amplify/plugin-core';
+import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
 
 // Watcher mocks
 const unsubscribeMockFn = mock.fn();

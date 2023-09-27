@@ -8,7 +8,7 @@ import {
   getSecretClient,
 } from '@aws-amplify/backend-secret';
 import { randomUUID } from 'node:crypto';
-import { BranchBackendIdentifier } from '@aws-amplify/plugin-core';
+import { BranchBackendIdentifier } from '@aws-amplify/platform-core';
 
 type SecretResourceProps = {
   backendId: string;

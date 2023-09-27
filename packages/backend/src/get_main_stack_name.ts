@@ -1,4 +1,4 @@
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-core';
+import { UniqueBackendIdentifier } from '@aws-amplify/platform-core';
 
 /**
  * Generates a stack name based on the unique deployment identifier

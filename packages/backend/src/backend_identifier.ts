@@ -2,7 +2,7 @@ import { Construct } from 'constructs';
 import {
   BranchBackendIdentifier,
   UniqueBackendIdentifier,
-} from '@aws-amplify/plugin-core';
+} from '@aws-amplify/platform-core';
 
 const backendIdCDKContextKey = 'backend-id';
 const branchNameCDKContextKey = 'branch-name';

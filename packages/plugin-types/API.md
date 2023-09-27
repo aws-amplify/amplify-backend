@@ -13,7 +13,7 @@ import { IUserPool } from 'aws-cdk-lib/aws-cognito';
 import { IUserPoolClient } from 'aws-cdk-lib/aws-cognito';
 import { SecretValue } from 'aws-cdk-lib';
 import { Stack } from 'aws-cdk-lib';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-core';
+import { UniqueBackendIdentifier } from '@aws-amplify/platform-core';
 
 // @public (undocumented)
 export type AmplifyFunction = ResourceProvider<FunctionResources>;

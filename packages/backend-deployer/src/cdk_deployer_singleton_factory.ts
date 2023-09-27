@@ -1,4 +1,4 @@
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-core';
+import { UniqueBackendIdentifier } from '@aws-amplify/platform-core';
 import { CDKDeployer } from './cdk_deployer.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
 

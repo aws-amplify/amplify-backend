@@ -11,7 +11,7 @@ import parseGitIgnore from 'parse-gitignore';
 import path from 'path';
 import fs from 'fs';
 import EventEmitter from 'events';
-import { SandboxBackendIdentifier } from '@aws-amplify/plugin-core';
+import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
 
 /**
  * Runs a file watcher and deploys

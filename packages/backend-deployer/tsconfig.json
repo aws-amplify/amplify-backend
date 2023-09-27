@@ -1,5 +1,5 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": { "rootDir": "src", "outDir": "lib" },
-  "references": [{ "path": "../plugin-core" }, { "path": "../plugin-types" }]
+  "references": [{ "path": "../platform-core" }, { "path": "../plugin-types" }]
 }

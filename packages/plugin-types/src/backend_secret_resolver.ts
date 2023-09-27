@@ -1,6 +1,6 @@
 import { Construct } from 'constructs';
 import { SecretValue } from 'aws-cdk-lib';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-core';
+import { UniqueBackendIdentifier } from '@aws-amplify/platform-core';
 
 export type BackendSecret = {
   /**

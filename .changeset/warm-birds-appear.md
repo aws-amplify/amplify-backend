@@ -5,10 +5,10 @@
 '@aws-amplify/form-generator': patch
 '@aws-amplify/client-config': patch
 '@aws-amplify/plugin-types': patch
-'@aws-amplify/plugin-core': patch
+'@aws-amplify/platform-core': patch
 '@aws-amplify/backend': patch
 '@aws-amplify/sandbox': patch
 '@aws-amplify/backend-cli': patch
 ---
 
-move UniqueBackendIdentifier to plugin-core package
+move UniqueBackendIdentifier to platform-core package

@@ -3,7 +3,7 @@ import { AppNameResolver } from './local_app_name_resolver.js';
 import {
   BranchBackendIdentifier,
   UniqueBackendIdentifier,
-} from '@aws-amplify/plugin-core';
+} from '@aws-amplify/platform-core';
 
 type BackendIdentifierParameters = {
   stack?: string;

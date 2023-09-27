@@ -1,7 +1,7 @@
 import { MainStackNameResolver } from '@aws-amplify/plugin-types';
 import { AmplifyClient, ListAppsCommand } from '@aws-sdk/client-amplify';
 import { getMainStackName } from '../get_main_stack_name.js';
-import { BranchBackendIdentifier } from '@aws-amplify/plugin-core';
+import { BranchBackendIdentifier } from '@aws-amplify/platform-core';
 
 /**
  * Tuple of Amplify App name and branch

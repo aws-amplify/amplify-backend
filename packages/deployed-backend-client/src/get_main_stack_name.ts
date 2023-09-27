@@ -1,4 +1,4 @@
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-core';
+import { UniqueBackendIdentifier } from '@aws-amplify/platform-core';
 
 /**
  * Generates an SSM parameter key to identify the main stack associated with the given project environment.

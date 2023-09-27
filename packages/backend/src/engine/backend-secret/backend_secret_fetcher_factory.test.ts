@@ -5,7 +5,7 @@ import { getSecretClient } from '@aws-amplify/backend-secret';
 import {
   BranchBackendIdentifier,
   UniqueBackendIdentifier,
-} from '@aws-amplify/plugin-core';
+} from '@aws-amplify/platform-core';
 import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
 import {

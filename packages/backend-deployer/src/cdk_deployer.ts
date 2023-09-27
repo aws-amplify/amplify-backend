@@ -1,6 +1,6 @@
 import { execa } from 'execa';
 import stream from 'stream';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-core';
+import { UniqueBackendIdentifier } from '@aws-amplify/platform-core';
 import {
   BackendDeployer,
   DeployProps,

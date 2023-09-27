@@ -5,6 +5,6 @@
     { "path": "../backend-deployer" },
     { "path": "../client-config" },
     { "path": "../deployed-backend-client" },
-    { "path": "../plugin-core" }
+    { "path": "../platform-core" }
   ]
 }

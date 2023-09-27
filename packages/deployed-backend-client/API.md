@@ -5,7 +5,7 @@
 ```ts
 
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-core';
+import { UniqueBackendIdentifier } from '@aws-amplify/platform-core';
 
 // @public
 export type AppNameAndBranchBackendIdentifier = {

@@ -12,7 +12,7 @@ import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { LocalAppNameResolver } from '../../backend-identifier/local_app_name_resolver.js';
 import { createSandboxSecretCommand } from './sandbox-secret/sandbox_secret_command_factory.js';
-import { SandboxBackendIdentifier } from '@aws-amplify/plugin-core';
+import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
 
 /**
  * Creates wired sandbox command.

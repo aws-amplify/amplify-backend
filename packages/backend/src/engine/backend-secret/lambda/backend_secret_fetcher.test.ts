@@ -16,7 +16,7 @@ import {
   BackendId,
   BranchBackendIdentifier,
   UniqueBackendIdentifier,
-} from '@aws-amplify/plugin-core';
+} from '@aws-amplify/platform-core';
 
 const testBackendId = 'testBackendId';
 const testBranchName = 'testBranchName';

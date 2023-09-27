@@ -5,7 +5,7 @@ import {
   isStackIdentifier,
   isUniqueBackendIdentifier,
 } from './backend_output_fetcher_factory.js';
-import { BranchBackendIdentifier } from '@aws-amplify/plugin-core';
+import { BranchBackendIdentifier } from '@aws-amplify/platform-core';
 
 void describe('Backend Identifiers', () => {
   const backendIdentifiers = [
