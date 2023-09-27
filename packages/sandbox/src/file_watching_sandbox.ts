@@ -8,6 +8,7 @@ import { ClientConfigGeneratorAdapter } from './config/client_config_generator_a
 import parseGitIgnore from 'parse-gitignore';
 import path from 'path';
 import fs from 'fs';
+import { SandboxBackendIdentifier } from '@aws-amplify/plugin-core';
 
 /**
  * Runs a file watcher and deploys
@@ -66,10 +67,7 @@ export class FileWatchingSandbox implements Sandbox {
 
     const deployAndWatch = debounce(async () => {
       latch = 'deploying';
-      await this.executor.deploy({
-        backendId: sandboxId,
-        branchName: 'sandbox',
-      });
+      await this.executor.deploy(new SandboxBackendIdentifier(sandboxId));
       await this.writeUpdatedClientConfig(
         sandboxId,
         options.clientConfigFilePath,
@@ -85,10 +83,7 @@ export class FileWatchingSandbox implements Sandbox {
         console.log(
           "[Sandbox] Detected file changes while previous deployment was in progress. Invoking 'sandbox' again"
         );
-        await this.executor.deploy({
-          backendId: sandboxId,
-          branchName: 'sandbox',
-        });
+        await this.executor.deploy(new SandboxBackendIdentifier(sandboxId));
         await this.writeUpdatedClientConfig(
           sandboxId,
           options.clientConfigFilePath,
@@ -148,10 +143,7 @@ export class FileWatchingSandbox implements Sandbox {
     console.log(
       '[Sandbox] Deleting all the resources in the sandbox environment...'
     );
-    await this.executor.destroy({
-      backendId: sandboxAppId,
-      branchName: 'sandbox',
-    });
+    await this.executor.destroy(new SandboxBackendIdentifier(sandboxAppId));
     console.log('[Sandbox] Finished deleting.');
   };
 
@@ -167,10 +159,7 @@ export class FileWatchingSandbox implements Sandbox {
     format?: ClientConfigFormat
   ) => {
     await this.clientConfigGenerator.generateClientConfigToFile(
-      {
-        backendId: sandboxId,
-        branchName: 'sandbox',
-      },
+      new SandboxBackendIdentifier(sandboxId),
       outDir,
       format
     );

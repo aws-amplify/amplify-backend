@@ -9,6 +9,7 @@ import * as path from 'path';
 import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 import fs from 'fs';
 import parseGitIgnore from 'parse-gitignore';
+import { SandboxBackendIdentifier } from '@aws-amplify/plugin-core';
 
 const configFileName = 'amplifyconfiguration';
 // Watcher mocks
@@ -125,11 +126,8 @@ void describe('Sandbox using local project name resolver', () => {
     assert.strictEqual(execaDeployMock.mock.callCount(), 1);
 
     // CDK should be called with the right params
-    assert.deepStrictEqual(execaDeployMock.mock.calls[0].arguments, [
-      {
-        branchName: 'sandbox',
-        backendId: 'testSandboxId',
-      },
+    assert.deepEqual(execaDeployMock.mock.calls[0].arguments, [
+      new SandboxBackendIdentifier('testSandboxId'),
       {
         hotswapFallback: true,
         method: 'direct',
@@ -207,7 +205,7 @@ void describe('Sandbox using local project name resolver', () => {
     // generate was called with right arguments
     assert.deepStrictEqual(
       generateClientConfigMock.mock.calls[0].arguments[0],
-      { backendId: 'testSandboxId', branchName: 'sandbox' }
+      new SandboxBackendIdentifier('testSandboxId')
     );
 
     assert.deepStrictEqual(
@@ -223,11 +221,8 @@ void describe('Sandbox using local project name resolver', () => {
     assert.strictEqual(execaDestroyMock.mock.callCount(), 1);
 
     // CDK should be called with the right params
-    assert.deepStrictEqual(execaDestroyMock.mock.calls[0].arguments, [
-      {
-        branchName: 'sandbox',
-        backendId: 'testSandboxId',
-      },
+    assert.deepEqual(execaDestroyMock.mock.calls[0].arguments, [
+      new SandboxBackendIdentifier('testSandboxId'),
     ]);
   });
 
@@ -324,11 +319,8 @@ void describe('Sandbox with user provided app name', () => {
     assert.strictEqual(execaDeployMock.mock.callCount(), 1);
 
     // CDK should be called with the right params
-    assert.deepStrictEqual(execaDeployMock.mock.calls[0].arguments, [
-      {
-        branchName: 'sandbox',
-        backendId: 'customSandboxName',
-      },
+    assert.deepEqual(execaDeployMock.mock.calls[0].arguments, [
+      new SandboxBackendIdentifier('customSandboxName'),
       {
         hotswapFallback: true,
         method: 'direct',
@@ -346,11 +338,8 @@ void describe('Sandbox with user provided app name', () => {
     assert.strictEqual(execaDestroyMock.mock.callCount(), 1);
 
     // CDK should be called with the right params
-    assert.deepStrictEqual(execaDestroyMock.mock.calls[0].arguments, [
-      {
-        branchName: 'sandbox',
-        backendId: 'customSandboxName',
-      },
+    assert.deepEqual(execaDestroyMock.mock.calls[0].arguments, [
+      new SandboxBackendIdentifier('customSandboxName'),
     ]);
   });
 
@@ -363,12 +352,9 @@ void describe('Sandbox with user provided app name', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
 
     // generate was called with right arguments
-    assert.deepStrictEqual(
+    assert.deepEqual(
       generateClientConfigMock.mock.calls[0].arguments[0],
-      {
-        backendId: 'customSandboxName',
-        branchName: 'sandbox',
-      }
+      new SandboxBackendIdentifier('customSandboxName')
     );
     assert.equal(
       generateClientConfigMock.mock.calls[0].arguments[1],
@@ -433,12 +419,9 @@ void describe('Sandbox with absolute output path', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
 
     // generate was called with right arguments
-    assert.deepStrictEqual(
+    assert.deepEqual(
       generateClientConfigMock.mock.calls[0].arguments[0],
-      {
-        backendId: 'customSandboxName',
-        branchName: 'sandbox',
-      }
+      new SandboxBackendIdentifier('customSandboxName')
     );
     assert.equal(
       generateClientConfigMock.mock.calls[0].arguments[1],

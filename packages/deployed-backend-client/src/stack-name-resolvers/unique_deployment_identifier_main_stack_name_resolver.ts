@@ -1,8 +1,6 @@
-import {
-  MainStackNameResolver,
-  UniqueBackendIdentifier,
-} from '@aws-amplify/plugin-types';
+import { MainStackNameResolver } from '@aws-amplify/plugin-types';
 import { getMainStackName as getMainStackNameOriginal } from '../get_main_stack_name.js';
+import { UniqueBackendIdentifier } from '@aws-amplify/plugin-core';
 
 /**
  * Resolves the main stack name for a given project environment

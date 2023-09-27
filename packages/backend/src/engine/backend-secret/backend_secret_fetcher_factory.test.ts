@@ -2,7 +2,10 @@ import { App, Stack } from 'aws-cdk-lib';
 import { describe, it } from 'node:test';
 import { BackendSecretFetcherProviderFactory } from './backend_secret_fetcher_provider_factory.js';
 import { getSecretClient } from '@aws-amplify/backend-secret';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import {
+  BranchBackendIdentifier,
+  UniqueBackendIdentifier,
+} from '@aws-amplify/plugin-core';
 import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
 import {
@@ -15,10 +18,8 @@ const backendId = 'testId';
 const branchName = 'testBranch';
 const secretName1 = 'testSecretName1';
 const secretName2 = 'testSecretName2';
-const uniqueBackendIdentifier: UniqueBackendIdentifier = {
-  backendId,
-  branchName,
-};
+const uniqueBackendIdentifier: UniqueBackendIdentifier =
+  new BranchBackendIdentifier(backendId, branchName);
 
 void describe('getOrCreate', () => {
   const providerFactory = new BackendSecretFetcherProviderFactory(

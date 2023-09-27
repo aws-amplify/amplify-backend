@@ -1,4 +1,4 @@
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import { UniqueBackendIdentifier } from '@aws-amplify/plugin-core';
 
 /**
  * Generates an SSM parameter key to identify the main stack associated with the given project environment.
@@ -11,4 +11,4 @@ import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 export const getMainStackName = (
   uniqueDeploymentIdentifier: UniqueBackendIdentifier
 ): string =>
-  `amplify-${uniqueDeploymentIdentifier.backendId}-${uniqueDeploymentIdentifier.branchName}`;
+  `amplify-${uniqueDeploymentIdentifier.backendId}-${uniqueDeploymentIdentifier.disambiguator}`;

@@ -1,7 +1,7 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { SecretClient } from '@aws-amplify/backend-secret';
 import { SandboxIdResolver } from '../sandbox_id_resolver.js';
-import { SANDBOX_BRANCH } from './constants.js';
+import { SandboxBackendIdentifier } from '@aws-amplify/plugin-core';
 
 /**
  * Command to remove sandbox secret.
@@ -38,10 +38,7 @@ export class SandboxSecretRemoveCommand
   ): Promise<void> => {
     const backendId = await this.sandboxIdResolver.resolve();
     await this.secretClient.removeSecret(
-      {
-        backendId,
-        branchName: SANDBOX_BRANCH,
-      },
+      new SandboxBackendIdentifier(backendId),
       args.secretName
     );
   };

@@ -1,8 +1,8 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { SecretClient } from '@aws-amplify/backend-secret';
 import { SandboxIdResolver } from '../sandbox_id_resolver.js';
-import { SANDBOX_BRANCH } from './constants.js';
 import { Printer } from '../../printer/printer.js';
+import { SandboxBackendIdentifier } from '@aws-amplify/plugin-core';
 
 /**
  * Command to get sandbox secret.
@@ -39,7 +39,7 @@ export class SandboxSecretGetCommand
   ): Promise<void> => {
     const backendId = await this.sandboxIdResolver.resolve();
     const secret = await this.secretClient.getSecret(
-      { backendId, branchName: SANDBOX_BRANCH },
+      new SandboxBackendIdentifier(backendId),
       { name: args.secretName }
     );
     Printer.printRecord(secret);

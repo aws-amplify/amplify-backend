@@ -7,7 +7,7 @@ import {
   SecretIdentifier,
 } from './secret.js';
 import * as iam from 'aws-cdk-lib/aws-iam';
-import { BackendId, UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import { BackendId, UniqueBackendIdentifier } from '@aws-amplify/plugin-core';
 
 const SHARED_SECRET = 'shared';
 
@@ -26,7 +26,7 @@ export class SSMSecretClient implements SecretClient {
   private getBranchParameterPrefix = (
     backendIdentifier: UniqueBackendIdentifier
   ): string => {
-    return `/amplify/${backendIdentifier.backendId}/${backendIdentifier.branchName}`;
+    return `/amplify/${backendIdentifier.backendId}/${backendIdentifier.disambiguator}`;
   };
 
   /**

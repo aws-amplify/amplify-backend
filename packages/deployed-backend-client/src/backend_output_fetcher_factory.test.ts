@@ -5,16 +5,14 @@ import {
   isStackIdentifier,
   isUniqueBackendIdentifier,
 } from './backend_output_fetcher_factory.js';
+import { BranchBackendIdentifier } from '@aws-amplify/plugin-core';
 
 void describe('Backend Identifiers', () => {
   const backendIdentifiers = [
     {
       stackName: 'testStackName',
     },
-    {
-      backendId: 'testBackendId',
-      branchName: 'testBranchName',
-    },
+    new BranchBackendIdentifier('testBackendId', 'testBranchName'),
     {
       appName: 'testAppName',
       branchName: 'testBranchName',

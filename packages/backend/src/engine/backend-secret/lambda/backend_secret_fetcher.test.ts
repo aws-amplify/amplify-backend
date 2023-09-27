@@ -12,7 +12,11 @@ import {
   SecretIdentifier,
   getSecretClient,
 } from '@aws-amplify/backend-secret';
-import { BackendId, UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import {
+  BackendId,
+  BranchBackendIdentifier,
+  UniqueBackendIdentifier,
+} from '@aws-amplify/plugin-core';
 
 const testBackendId = 'testBackendId';
 const testBranchName = 'testBranchName';
@@ -29,10 +33,8 @@ const testSecret: Secret = {
   value: testSecretValue,
 };
 
-const testBackendIdentifier: UniqueBackendIdentifier = {
-  backendId: testBackendId,
-  branchName: testBranchName,
-};
+const testBackendIdentifier: UniqueBackendIdentifier =
+  new BranchBackendIdentifier(testBackendId, testBranchName);
 
 const customResourceEventCommon = {
   ServiceToken: 'mockServiceToken',

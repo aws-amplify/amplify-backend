@@ -4,7 +4,7 @@
 
 ```ts
 
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import { UniqueBackendIdentifier } from '@aws-amplify/plugin-core';
 
 // @public
 export type BackendDeployer = {

@@ -8,8 +8,7 @@ import assert from 'node:assert';
 import { SandboxIdResolver } from '../sandbox_id_resolver.js';
 import { getSecretClient } from '@aws-amplify/backend-secret';
 import { SandboxSecretRemoveCommand } from './sandbox_secret_remove_command.js';
-import { SANDBOX_BRANCH } from './constants.js';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import { UniqueBackendIdentifier } from '@aws-amplify/plugin-core';
 
 const testSecretName = 'testSecretName';
 const testBackendId = 'testBackendId';
@@ -47,7 +46,7 @@ void describe('sandbox secret remove command', () => {
     const backendIdentifier = secretRemoveMock.mock.calls[0]
       .arguments[0] as UniqueBackendIdentifier;
     assert.match(backendIdentifier.backendId, new RegExp(testBackendId));
-    assert.equal(backendIdentifier.branchName, SANDBOX_BRANCH);
+    assert.equal(backendIdentifier.disambiguator, SANDBOX_BRANCH);
     assert.equal(secretRemoveMock.mock.calls[0].arguments[1], testSecretName);
   });
 

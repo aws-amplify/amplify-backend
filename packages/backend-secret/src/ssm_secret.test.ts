@@ -10,7 +10,10 @@ import assert from 'node:assert';
 import { SecretError } from './secret_error.js';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { Secret, SecretIdentifier } from './secret.js';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import {
+  BranchBackendIdentifier,
+  UniqueBackendIdentifier,
+} from '@aws-amplify/plugin-core';
 
 const shared = 'shared';
 const testBackendId = 'testBackendId';
@@ -37,10 +40,8 @@ const testSecret: Secret = {
   value: testSecretValue,
 };
 
-const testBackendIdentifier: UniqueBackendIdentifier = {
-  backendId: testBackendId,
-  branchName: testBranchName,
-};
+const testBackendIdentifier: UniqueBackendIdentifier =
+  new BranchBackendIdentifier(testBackendId, testBranchName);
 
 void describe('SSMSecret', () => {
   void describe('getSecret', () => {
@@ -334,10 +335,9 @@ void describe('SSMSecret', () => {
         () => Promise.resolve({} as GetParametersByPathCommandOutput)
       );
 
-      const secrets = await ssmSecretClient.listSecrets({
-        backendId: testBackendId,
-        branchName: testBranchName,
-      });
+      const secrets = await ssmSecretClient.listSecrets(
+        new BranchBackendIdentifier(testBackendId, testBranchName)
+      );
       assert.deepStrictEqual(
         mockGetParametersByPath.mock.calls[0].arguments[0],
         {
@@ -374,10 +374,7 @@ void describe('SSMSecret', () => {
             addToPrincipalPolicy: mockAddToPrincipalPolicy,
           } as unknown as iam.IPrincipal,
         } as iam.IGrantable,
-        {
-          backendId: testBackendId,
-          branchName: testBranchName,
-        },
+        new BranchBackendIdentifier(testBackendId, testBranchName),
         ['GET', 'LIST']
       );
       const expected = new iam.PolicyStatement({

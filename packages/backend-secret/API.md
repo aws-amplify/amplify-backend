@@ -5,10 +5,10 @@
 ```ts
 
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
-import { BackendId } from '@aws-amplify/plugin-types';
+import { BackendId } from '@aws-amplify/plugin-core';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { SSMServiceException } from '@aws-sdk/client-ssm';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import { UniqueBackendIdentifier } from '@aws-amplify/plugin-core';
 
 // @public
 export const getSecretClient: (credentialProvider?: AwsCredentialIdentityProvider) => SecretClient;
