@@ -5,7 +5,7 @@
 ```ts
 
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
-import { BackendOutput } from '@aws-amplify/plugin-types';
+import { UnifiedBackendOutput } from '@aws-amplify/backend-output-schemas';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 // @public
@@ -60,7 +60,7 @@ export type BackendMetadata = {
 
 // @public
 export type BackendOutputClient = {
-    readonly getOutput: (backendIdentifier: BackendIdentifier) => Promise<BackendOutput>;
+    readonly getOutput: (backendIdentifier: BackendIdentifier) => Promise<UnifiedBackendOutput>;
 };
 
 // @public
@@ -92,9 +92,6 @@ export type DeployedBackendClient = {
 export class DeployedBackendClientFactory {
     static getInstance: (credentials: AwsCredentialIdentityProvider) => DeployedBackendClient;
 }
-
-// @public
-export const getBackendIdentifierDisambiguator: (uniqueBackendIdentifier: UniqueBackendIdentifier) => string;
 
 // @public (undocumented)
 export type StackIdentifier = {

@@ -121,7 +121,11 @@ export class BackendMetadataManager {
     );
     const allStackMetadata = (
       await Promise.all(allStackMetadataPromises)
-    ).filter((stackMetadata) => stackMetadata);
+    ).filter(
+      (stackMetadata) =>
+        stackMetadata &&
+        stackMetadata.deploymentType === BackendDeploymentType.SANDBOX
+    );
     return allStackMetadata as BackendMetadata[];
   };
 

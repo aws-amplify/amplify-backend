@@ -1,7 +1,7 @@
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { BackendIdentifier } from './index.js';
-import { BackendOutput } from '@aws-amplify/plugin-types';
 import { DefaultBackendOutputClient } from './backend_output_client.js';
+import { UnifiedBackendOutput } from '@aws-amplify/backend-output-schemas';
 
 export enum BackendOutputClientErrorType {
   METADATA_RETRIEVAL_ERROR = 'MetadataRetrievalError',
@@ -31,7 +31,7 @@ export class BackendOutputClientError extends Error {
 export type BackendOutputClient = {
   readonly getOutput: (
     backendIdentifier: BackendIdentifier
-  ) => Promise<BackendOutput>;
+  ) => Promise<UnifiedBackendOutput>;
 };
 /**
  * Factory to create a backend metadata reader

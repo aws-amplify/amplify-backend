@@ -201,7 +201,7 @@ void describe('BackendMetadataManager', () => {
   void it('deletes a sandbox', async () => {
     const deleteResponse = await backendMetadataManager.deleteBackend({
       backendId: 'test',
-      sandbox: true,
+      branchName: 'sandbox',
     });
     assert.deepEqual(deleteResponse, {
       deploymentType: BackendDeploymentType.SANDBOX,

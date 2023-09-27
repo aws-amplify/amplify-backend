@@ -68,12 +68,6 @@ export type BackendSecret = {
     resolve: (scope: Construct, uniqueBackendIdentifier: UniqueBackendIdentifier) => SecretValue;
 };
 
-// @public (undocumented)
-export type BranchBackendIdentifier = {
-    backendId: BackendId;
-    branchName: string;
-};
-
 // @public
 export type ConstructContainer = {
     getOrCompute: (generator: ConstructContainerEntryGenerator) => Construct;
@@ -126,16 +120,13 @@ export type ResourceProvider<T> = {
 };
 
 // @public (undocumented)
-export type SandboxBackendIdentifier = {
-    backendId: BackendId;
-    sandbox: true;
-};
-
-// @public (undocumented)
 export type SandboxId = string;
 
 // @public
-export type UniqueBackendIdentifier = BranchBackendIdentifier | SandboxBackendIdentifier;
+export type UniqueBackendIdentifier = {
+    backendId: BackendId;
+    branchName: 'sandbox' | string;
+};
 
 // (No @packageDocumentation comment for this package)
 

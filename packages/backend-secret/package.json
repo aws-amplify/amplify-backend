@@ -17,7 +17,6 @@
     "update:api": "api-extractor run --local"
   },
   "dependencies": {
-    "@aws-amplify/deployed-backend-client": "^0.2.0-alpha.0",
     "@aws-sdk/client-ssm": "^3.398.0"
   },
   "peerDependencies": {
