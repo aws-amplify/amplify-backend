@@ -54,7 +54,7 @@ void describe('sandbox secret list command', () => {
     const backendIdentifier = secretListMock.mock.calls[0]
       .arguments[0] as UniqueBackendIdentifier;
     assert.match(backendIdentifier.backendId, new RegExp(testBackendId));
-    assert.equal(backendIdentifier.disambiguator, SANDBOX_BRANCH);
+    assert.equal(backendIdentifier.disambiguator, 'sandbox');
 
     assert.equal(mockPrintRecords.mock.callCount(), 1);
     assert.equal(mockPrintRecords.mock.calls[0].arguments[0], testSecretIds);

@@ -46,7 +46,7 @@ void describe('sandbox secret remove command', () => {
     const backendIdentifier = secretRemoveMock.mock.calls[0]
       .arguments[0] as UniqueBackendIdentifier;
     assert.match(backendIdentifier.backendId, new RegExp(testBackendId));
-    assert.equal(backendIdentifier.disambiguator, SANDBOX_BRANCH);
+    assert.equal(backendIdentifier.disambiguator, 'sandbox');
     assert.equal(secretRemoveMock.mock.calls[0].arguments[1], testSecretName);
   });
 

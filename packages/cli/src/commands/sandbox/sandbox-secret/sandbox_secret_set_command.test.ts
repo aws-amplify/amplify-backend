@@ -69,7 +69,7 @@ void describe('sandbox secret set command', () => {
     const backendIdentifier = secretSetMock.mock.calls[0]
       .arguments[0] as UniqueBackendIdentifier;
     assert.match(backendIdentifier.backendId, new RegExp(testBackendId));
-    assert.equal(backendIdentifier.disambiguator, SANDBOX_BRANCH);
+    assert.equal(backendIdentifier.disambiguator, 'sandbox');
     assert.equal(secretSetMock.mock.calls[0].arguments[1], testSecretName);
     assert.equal(secretSetMock.mock.calls[0].arguments[2], testSecretValue);
   });

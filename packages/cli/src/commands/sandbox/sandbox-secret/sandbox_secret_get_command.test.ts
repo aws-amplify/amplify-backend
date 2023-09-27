@@ -26,6 +26,8 @@ const testSecret: Secret = {
   value: 'testValue',
 };
 
+const SANDBOX_BRANCH = 'sandbox';
+
 void describe('sandbox secret get command', () => {
   const secretClient = getSecretClient();
   const secretGetMock = mock.method(
