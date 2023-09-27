@@ -7,8 +7,6 @@
 import { BackendId } from '@aws-amplify/plugin-types';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
-// Warning: (ae-forgotten-export) The symbol "UniqueBackendIdentifierBase" needs to be exported by the entry point index.d.ts
-//
 // @public
 export class BranchBackendIdentifier extends UniqueBackendIdentifierBase {
     constructor(backendId: BackendId, branchName: string);
@@ -21,6 +19,15 @@ export class SandboxBackendIdentifier extends UniqueBackendIdentifierBase {
     constructor(backendId: BackendId);
     // (undocumented)
     readonly backendId: BackendId;
+}
+
+// @public
+export abstract class UniqueBackendIdentifierBase implements UniqueBackendIdentifier {
+    constructor(
+    backendId: BackendId,
+    disambiguator: string);
+    readonly backendId: BackendId;
+    readonly disambiguator: string;
 }
 
 // (No @packageDocumentation comment for this package)

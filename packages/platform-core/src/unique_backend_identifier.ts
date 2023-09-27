@@ -3,7 +3,9 @@ import { BackendId, UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 /**
  * UniqueBackendIdentifierBase
  */
-abstract class UniqueBackendIdentifierBase implements UniqueBackendIdentifier {
+export abstract class UniqueBackendIdentifierBase
+  implements UniqueBackendIdentifier
+{
   /**
    * UniqueBackendIdentifierBase
    */
