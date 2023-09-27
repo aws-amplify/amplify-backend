@@ -13,6 +13,7 @@ export type GenerateFormsCommandOptions = {
   branch: string | undefined;
   uiOutDir: string | undefined;
   modelsOutDir: string | undefined;
+  models: string[] | undefined;
 };
 
 /**
@@ -79,6 +80,7 @@ export class GenerateFormsCommand
       backendIdentifier,
       uiOutDir: args.uiOutDir,
       apiUrl,
+      modelsFilter: args.models,
     });
   };
 
@@ -125,7 +127,7 @@ export class GenerateFormsCommand
         group: 'Form Generation',
       })
       .option('models', {
-        describe: 'An array of model names to generate',
+        describe: 'Model name to generate',
         type: 'string',
         array: true,
         group: 'Form Generation',
