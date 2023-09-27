@@ -1,32 +1,19 @@
 import { afterEach, beforeEach, describe, it, mock } from 'node:test';
+import path from 'path';
 import watcher from '@parcel/watcher';
-import { ClientConfigFormat } from '@aws-amplify/client-config';
 import { FileWatchingSandbox } from './file_watching_sandbox.js';
 import assert from 'node:assert';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
-import { ClientConfigGeneratorAdapter } from './config/client_config_generator_adapter.js';
-import * as path from 'path';
 import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 import fs from 'fs';
 import parseGitIgnore from 'parse-gitignore';
 
-const configFileName = 'amplifyconfiguration';
 // Watcher mocks
 const unsubscribeMockFn = mock.fn();
 const subscribeMock = mock.method(watcher, 'subscribe', async () => {
   return { unsubscribe: unsubscribeMockFn };
 });
 let fileChangeEventActualFn: watcher.SubscribeCallback;
-
-// Client config mocks
-const clientConfigGeneratorAdapter = new ClientConfigGeneratorAdapter(
-  mock.fn()
-);
-const generateClientConfigMock = mock.method(
-  clientConfigGeneratorAdapter,
-  'generateClientConfigToFile',
-  () => Promise.resolve('testClientConfig')
-);
 
 const backendDeployer = BackendDeployerFactory.getInstance();
 const execaDeployMock = mock.method(backendDeployer, 'deploy', () =>
@@ -62,22 +49,15 @@ void describe('Sandbox using local project name resolver', () => {
   beforeEach(async () => {
     // ensures that .gitignore is set as absent
     mock.method(fs, 'existsSync', () => false);
-    sandboxInstance = new FileWatchingSandbox(
-      'testSandboxId',
-      clientConfigGeneratorAdapter,
-      cdkExecutor
-    );
+    sandboxInstance = new FileWatchingSandbox('testSandboxId', cdkExecutor);
     await sandboxInstance.start({
       dir: 'testDir',
       exclude: ['exclude1', 'exclude2'],
-      clientConfigFilePath: path.join('test', 'location'),
-      format: ClientConfigFormat.JS,
     });
 
     // At this point one deployment should already have been done on sandbox startup
     assert.strictEqual(execaDeployMock.mock.callCount(), 1);
     // and client config generated only once
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
 
     if (
       subscribeMock.mock.calls[0].arguments[1] &&
@@ -89,14 +69,12 @@ void describe('Sandbox using local project name resolver', () => {
     // Reset all the calls to avoid extra startup call
     execaDestroyMock.mock.resetCalls();
     execaDeployMock.mock.resetCalls();
-    generateClientConfigMock.mock.resetCalls();
   });
 
   afterEach(async () => {
     execaDestroyMock.mock.resetCalls();
     execaDeployMock.mock.resetCalls();
     subscribeMock.mock.resetCalls();
-    generateClientConfigMock.mock.resetCalls();
     await sandboxInstance.stop();
   });
 
@@ -108,17 +86,7 @@ void describe('Sandbox using local project name resolver', () => {
     // File watcher should be called with right arguments such as dir and excludes
     assert.strictEqual(subscribeMock.mock.calls[0].arguments[0], 'testDir');
     assert.deepStrictEqual(subscribeMock.mock.calls[0].arguments[2], {
-      ignore: [
-        'cdk.out',
-        path.join(
-          process.cwd(),
-          'test',
-          'location',
-          `${configFileName}.${ClientConfigFormat.JS as string}`
-        ),
-        'exclude1',
-        'exclude2',
-      ],
+      ignore: ['cdk.out', 'exclude1', 'exclude2'],
     });
 
     // CDK should be called once
@@ -143,9 +111,6 @@ void describe('Sandbox using local project name resolver', () => {
       { type: 'create', path: 'foo/test3.ts' },
     ]);
     assert.strictEqual(execaDeployMock.mock.callCount(), 1);
-
-    // and client config generated only once
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
   });
 
   void it('calls CDK once when multiple file changes are within few milliseconds (debounce)', async () => {
@@ -155,9 +120,6 @@ void describe('Sandbox using local project name resolver', () => {
       { type: 'update', path: 'foo/test4.ts' },
     ]);
     assert.strictEqual(execaDeployMock.mock.callCount(), 1);
-
-    // and client config written only once
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
   });
 
   void it('waits for file changes after completing a deployment and deploys again', async () => {
@@ -168,9 +130,6 @@ void describe('Sandbox using local project name resolver', () => {
       { type: 'update', path: 'foo/test6.ts' },
     ]);
     assert.strictEqual(execaDeployMock.mock.callCount(), 2);
-
-    // and client config written twice as well
-    assert.equal(generateClientConfigMock.mock.callCount(), 2);
   });
 
   void it('queues deployment if a file change is detected during an ongoing', async () => {
@@ -193,27 +152,6 @@ void describe('Sandbox using local project name resolver', () => {
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     assert.strictEqual(execaDeployMock.mock.callCount(), 2);
-    assert.equal(generateClientConfigMock.mock.callCount(), 2);
-  });
-
-  void it('writes the correct client-config to default cwd path', async () => {
-    await fileChangeEventActualFn(null, [
-      { type: 'update', path: 'foo/test1.ts' },
-    ]);
-
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
-
-    // generate was called with right arguments
-    assert.deepStrictEqual(
-      generateClientConfigMock.mock.calls[0].arguments[0],
-      { backendId: 'testSandboxId', branchName: 'sandbox' }
-    );
-
-    assert.deepStrictEqual(
-      generateClientConfigMock.mock.calls[0].arguments[1],
-      path.join('test', 'location')
-    );
   });
 
   void it('calls CDK destroy when delete is called', async () => {
@@ -266,17 +204,11 @@ void describe('Sandbox with user provided app name', () => {
   beforeEach(async () => {
     // ensures that .gitignore is set as absent
     mock.method(fs, 'existsSync', () => false);
-    sandboxInstance = new FileWatchingSandbox(
-      'testSandboxId',
-      clientConfigGeneratorAdapter,
-      cdkExecutor
-    );
+    sandboxInstance = new FileWatchingSandbox('testSandboxId', cdkExecutor);
     await sandboxInstance.start({
       dir: 'testDir',
       exclude: ['exclude1', 'exclude2'],
       name: 'customSandboxName',
-      format: ClientConfigFormat.TS,
-      clientConfigFilePath: path.join('test', 'location'),
     });
     if (
       subscribeMock.mock.calls[0].arguments[1] &&
@@ -288,14 +220,12 @@ void describe('Sandbox with user provided app name', () => {
     // Reset all the calls to avoid extra startup call
     execaDestroyMock.mock.resetCalls();
     execaDeployMock.mock.resetCalls();
-    generateClientConfigMock.mock.resetCalls();
   });
 
   afterEach(async () => {
     execaDestroyMock.mock.resetCalls();
     execaDeployMock.mock.resetCalls();
     subscribeMock.mock.resetCalls();
-    generateClientConfigMock.mock.resetCalls();
     await sandboxInstance.stop();
   });
 
@@ -307,17 +237,7 @@ void describe('Sandbox with user provided app name', () => {
     // File watcher should be called with right arguments such as dir and excludes
     assert.strictEqual(subscribeMock.mock.calls[0].arguments[0], 'testDir');
     assert.deepStrictEqual(subscribeMock.mock.calls[0].arguments[2], {
-      ignore: [
-        'cdk.out',
-        path.join(
-          process.cwd(),
-          'test',
-          'location',
-          `${configFileName}.${ClientConfigFormat.TS as string}`
-        ),
-        'exclude1',
-        'exclude2',
-      ],
+      ignore: ['cdk.out', 'exclude1', 'exclude2'],
     });
 
     // CDK should be called once
@@ -334,9 +254,6 @@ void describe('Sandbox with user provided app name', () => {
         method: 'direct',
       },
     ]);
-
-    // and client config written only once
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
   });
 
   void it('calls CDK destroy when delete is called with a user provided sandbox name', async () => {
@@ -353,28 +270,6 @@ void describe('Sandbox with user provided app name', () => {
       },
     ]);
   });
-
-  void it('writes the correct client-config to user provided path', async () => {
-    await fileChangeEventActualFn(null, [
-      { type: 'update', path: 'foo/test1.ts' },
-    ]);
-
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
-
-    // generate was called with right arguments
-    assert.deepStrictEqual(
-      generateClientConfigMock.mock.calls[0].arguments[0],
-      {
-        backendId: 'customSandboxName',
-        branchName: 'sandbox',
-      }
-    );
-    assert.equal(
-      generateClientConfigMock.mock.calls[0].arguments[1],
-      path.join('test', 'location')
-    );
-  });
 });
 
 void describe('Sandbox with absolute output path', () => {
@@ -390,17 +285,11 @@ void describe('Sandbox with absolute output path', () => {
   beforeEach(async () => {
     // ensures that .gitignore is set as absent
     mock.method(fs, 'existsSync', () => false);
-    sandboxInstance = new FileWatchingSandbox(
-      'testSandboxId',
-      clientConfigGeneratorAdapter,
-      cdkExecutor
-    );
+    sandboxInstance = new FileWatchingSandbox('testSandboxId', cdkExecutor);
     await sandboxInstance.start({
       dir: 'testDir',
       exclude: ['exclude1', 'exclude2'],
       name: 'customSandboxName',
-      format: ClientConfigFormat.JSON,
-      clientConfigFilePath: path.join('test', 'location'),
       profile: 'amplify-sandbox',
     });
     if (
@@ -413,37 +302,13 @@ void describe('Sandbox with absolute output path', () => {
     // Reset all the calls to avoid extra startup call
     execaDeployMock.mock.resetCalls();
     execaDestroyMock.mock.resetCalls();
-    generateClientConfigMock.mock.resetCalls();
   });
 
   afterEach(async () => {
     execaDeployMock.mock.resetCalls();
     execaDestroyMock.mock.resetCalls();
     subscribeMock.mock.resetCalls();
-    generateClientConfigMock.mock.resetCalls();
     await sandboxInstance.stop();
-  });
-
-  void it('generates client config at absolute location', async () => {
-    await fileChangeEventActualFn(null, [
-      { type: 'update', path: 'foo/test1.ts' },
-    ]);
-
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
-
-    // generate was called with right arguments
-    assert.deepStrictEqual(
-      generateClientConfigMock.mock.calls[0].arguments[0],
-      {
-        backendId: 'customSandboxName',
-        branchName: 'sandbox',
-      }
-    );
-    assert.equal(
-      generateClientConfigMock.mock.calls[0].arguments[1],
-      path.join('test', 'location')
-    );
   });
 
   void it('sets AWS profile when starting sandbox', async () => {
@@ -475,17 +340,11 @@ void describe('Sandbox ignoring paths in .gitignore', () => {
         ],
       };
     });
-    sandboxInstance = new FileWatchingSandbox(
-      'testSandboxId',
-      clientConfigGeneratorAdapter,
-      cdkExecutor
-    );
+    sandboxInstance = new FileWatchingSandbox('testSandboxId', cdkExecutor);
     await sandboxInstance.start({
       dir: 'testDir',
       exclude: ['customer_exclude1', 'customer_exclude2'],
       name: 'customSandboxName',
-      format: ClientConfigFormat.TS,
-      clientConfigFilePath: '',
     });
     if (
       subscribeMock.mock.calls[0].arguments[1] &&
@@ -497,14 +356,12 @@ void describe('Sandbox ignoring paths in .gitignore', () => {
     // Reset all the calls to avoid extra startup call
     execaDeployMock.mock.resetCalls();
     execaDestroyMock.mock.resetCalls();
-    generateClientConfigMock.mock.resetCalls();
   });
 
   afterEach(async () => {
     execaDeployMock.mock.resetCalls();
     execaDestroyMock.mock.resetCalls();
     subscribeMock.mock.resetCalls();
-    generateClientConfigMock.mock.resetCalls();
     await sandboxInstance.stop();
   });
 
@@ -518,10 +375,6 @@ void describe('Sandbox ignoring paths in .gitignore', () => {
     assert.deepStrictEqual(subscribeMock.mock.calls[0].arguments[2], {
       ignore: [
         'cdk.out',
-        path.join(
-          process.cwd(),
-          `${configFileName}.${ClientConfigFormat.TS as string}`
-        ),
         'patternWithLeadingSlash',
         'patternWithoutLeadingSlash',
         'someFile.js',
@@ -534,5 +387,17 @@ void describe('Sandbox ignoring paths in .gitignore', () => {
 
     // CDK should also be called once
     assert.strictEqual(execaDeployMock.mock.callCount(), 1);
+  });
+  void it('emits the successfulDeployment event after deployment', async () => {
+    const mockListener = mock.fn();
+    const mockDeploy = mock.fn();
+    mockDeploy.mock.mockImplementation(async () => null);
+    const executor: AmplifySandboxExecutor = {
+      deploy: mockDeploy,
+    } as unknown as AmplifySandboxExecutor;
+    const sandbox = new FileWatchingSandbox('my-sandbox', executor);
+    sandbox.on('successfulDeployment', mockListener);
+    await sandbox.start({});
+    assert.equal(mockListener.mock.callCount(), 1);
   });
 });
