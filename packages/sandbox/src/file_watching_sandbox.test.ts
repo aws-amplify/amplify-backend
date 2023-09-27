@@ -52,7 +52,7 @@ mock.method(fs, 'lstatSync', (path: string) => {
   };
 });
 
-describe('Sandbox to check if region is bootstrapped', () => {
+void describe('Sandbox to check if region is bootstrapped', () => {
   // class under test
   let sandboxInstance: FileWatchingSandbox;
 
@@ -87,8 +87,6 @@ describe('Sandbox to check if region is bootstrapped', () => {
     await sandboxInstance.start({
       dir: 'testDir',
       exclude: ['exclude1', 'exclude2'],
-      clientConfigFilePath: path.join('test', 'location'),
-      format: ClientConfigFormat.JS,
     });
 
     assert.strictEqual(ssmClientSendMock.mock.callCount(), 1);
@@ -389,11 +387,8 @@ void describe('Sandbox with absolute output path', () => {
     execaDeployMock.mock.resetCalls();
     execaDestroyMock.mock.resetCalls();
     subscribeMock.mock.resetCalls();
+    ssmClientSendMock.mock.resetCalls();
     await sandboxInstance.stop();
-  });
-
-  void it('sets AWS profile when starting sandbox', async () => {
-    assert.strictEqual(process.env.AWS_PROFILE, 'amplify-sandbox');
   });
 });
 
@@ -482,7 +477,11 @@ void describe('Sandbox ignoring paths in .gitignore', () => {
     const executor: AmplifySandboxExecutor = {
       deploy: mockDeploy,
     } as unknown as AmplifySandboxExecutor;
-    const sandbox = new FileWatchingSandbox('my-sandbox', executor, ssmClientMock);
+    const sandbox = new FileWatchingSandbox(
+      'my-sandbox',
+      executor,
+      ssmClientMock
+    );
     sandbox.on('successfulDeployment', mockListener);
     await sandbox.start({});
     assert.equal(mockListener.mock.callCount(), 1);

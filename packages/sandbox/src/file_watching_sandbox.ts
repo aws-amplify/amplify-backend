@@ -11,8 +11,8 @@ import parseGitIgnore from 'parse-gitignore';
 import path from 'path';
 import fs from 'fs';
 import _open from 'open';
-import { DescribeParametersCommand, SSMClient } from '@aws-sdk/client-ssm';
 import EventEmitter from 'events';
+import { DescribeParametersCommand, SSMClient } from '@aws-sdk/client-ssm';
 
 const CDK_BOOTSTRAP_PARAM_PREFIX = '/cdk-bootstrap';
 // TODO: finalize bootstrap url
