@@ -21,5 +21,5 @@ export type UniqueBackendIdentifier = {
    * For amplify branch deployments, this is the branch name.
    * For sandbox deployments, this is the string literal "sandbox"
    */
-  branchName: 'sandbox' | string;
+  disambiguator: string;
 };

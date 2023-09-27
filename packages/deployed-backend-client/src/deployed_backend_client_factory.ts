@@ -1,6 +1,7 @@
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { DefaultDeployedBackendClient } from './deployed_backend_client.js';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
 
 export type BackendMetadata = {
   name: string;
@@ -37,7 +38,9 @@ export enum BackendDeploymentType {
 
 export type DeployedBackendClient = {
   listSandboxes: () => Promise<BackendMetadata[]>;
-  deleteSandbox: (sandboxId: string) => Promise<BackendMetadata>;
+  deleteSandbox: (
+    sandboxBackendIdentifier: SandboxBackendIdentifier
+  ) => Promise<BackendMetadata>;
   getBackendMetadata: (
     backendIdentifier: UniqueBackendIdentifier
   ) => Promise<BackendMetadata>;

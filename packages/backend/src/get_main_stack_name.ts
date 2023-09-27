@@ -1,7 +1,5 @@
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
-const mainStackNamePrefix = 'amplify';
-
 /**
  * Generates a stack name based on the unique deployment identifier
  *
@@ -12,6 +10,5 @@ const mainStackNamePrefix = 'amplify';
  */
 export const getMainStackName = (
   uniqueDeploymentIdentifier: UniqueBackendIdentifier
-): string => {
-  return `${mainStackNamePrefix}-${uniqueDeploymentIdentifier.backendId}-${uniqueDeploymentIdentifier.branchName}`;
-};
+): string =>
+  `amplify-${uniqueDeploymentIdentifier.backendId}-${uniqueDeploymentIdentifier.disambiguator}`;

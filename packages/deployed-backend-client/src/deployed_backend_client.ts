@@ -6,6 +6,7 @@ import {
   DeployedBackendClient,
 } from './deployed_backend_client_factory.js';
 import { BackendMetadataManager } from './backend-metadata/backend_metadata_manager.js';
+import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
 
 /**
  * Deployment Client
@@ -31,11 +32,10 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
   /**
    * Deletes a sandbox with the specified id
    */
-  deleteSandbox = async (sandboxId: string): Promise<BackendMetadata> => {
-    return this.backendMetadataManager.deleteBackend({
-      backendId: sandboxId,
-      branchName: 'sandbox',
-    });
+  deleteSandbox = async (
+    sandboxBackendIdentifier: SandboxBackendIdentifier
+  ): Promise<BackendMetadata> => {
+    return this.backendMetadataManager.deleteBackend(sandboxBackendIdentifier);
   };
   /**
    * Fetches all backend metadata for a specified backend

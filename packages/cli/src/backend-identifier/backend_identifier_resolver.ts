@@ -1,5 +1,7 @@
 import { BackendIdentifier } from '@aws-amplify/deployed-backend-client';
 import { AppNameResolver } from './local_app_name_resolver.js';
+import { BranchBackendIdentifier } from '@aws-amplify/platform-core';
+import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 type BackendIdentifierParameters = {
   stack?: string;
@@ -21,7 +23,9 @@ export class BackendIdentifierResolver {
     if (args.stack) {
       return { stackName: args.stack };
     } else if (args.appId && args.branch) {
-      return { backendId: args.appId, branchName: args.branch };
+      const uniqueBackendIdentifier: UniqueBackendIdentifier =
+        new BranchBackendIdentifier(args.appId, args.branch);
+      return uniqueBackendIdentifier;
     } else if (args.branch) {
       return {
         appName: await this.appNameResolver.resolve(),
