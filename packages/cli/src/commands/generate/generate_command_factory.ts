@@ -9,10 +9,7 @@ import { LocalAppNameResolver } from '../../backend-identifier/local_app_name_re
 import { BackendIdentifierResolver } from '../../backend-identifier/backend_identifier_resolver.js';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 import { FormGenerationHandler } from './forms/form_generation_handler.js';
-import {
-  BackendOutputClient,
-  BackendOutputClientFactory,
-} from '@aws-amplify/deployed-backend-client';
+import { BackendOutputClientFactory } from '@aws-amplify/deployed-backend-client';
 import { GenerateApiCodeAdapter } from './graphql-client-code/generate_api_code_adapter.js';
 
 /**
@@ -38,7 +35,7 @@ export const createGenerateCommand = (): CommandModule => {
 
   const generateFormsCommand = new GenerateFormsCommand(
     backendIdentifierResolver,
-    (id) => BackendOutputClientFactory.getInstance(credentialProvider),
+    () => BackendOutputClientFactory.getInstance(credentialProvider),
     new FormGenerationHandler({ credentialProvider })
   );
 

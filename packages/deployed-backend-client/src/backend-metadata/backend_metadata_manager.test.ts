@@ -23,6 +23,10 @@ import {
   BackendOutputClientErrorType,
   StackIdentifier,
 } from '@aws-amplify/deployed-backend-client';
+import {
+  BranchBackendIdentifier,
+  SandboxBackendIdentifier,
+} from '@aws-amplify/platform-core';
 
 const listStacksMock = {
   StackSummaries: [
@@ -199,10 +203,9 @@ void describe('BackendMetadataManager', () => {
   });
 
   void it('deletes a sandbox', async () => {
-    const deleteResponse = await backendMetadataManager.deleteBackend({
-      backendId: 'test',
-      branchName: 'sandbox',
-    });
+    const deleteResponse = await backendMetadataManager.deleteBackend(
+      new SandboxBackendIdentifier('test')
+    );
     assert.deepEqual(deleteResponse, {
       deploymentType: BackendDeploymentType.SANDBOX,
       name: 'amplify-test-sandbox',
@@ -212,10 +215,7 @@ void describe('BackendMetadataManager', () => {
 
   void it('fetches metadata', async () => {
     const getMetadataResponse = await backendMetadataManager.getBackendMetadata(
-      {
-        backendId: 'test',
-        branchName: 'testBranch',
-      }
+      new BranchBackendIdentifier('test', 'testBranch')
     );
     assert.deepEqual(getMetadataResponse, {
       deploymentType: BackendDeploymentType.SANDBOX,

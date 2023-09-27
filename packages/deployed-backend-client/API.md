@@ -5,6 +5,7 @@
 ```ts
 
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
+import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
 import { UnifiedBackendOutput } from '@aws-amplify/backend-output-schemas';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
@@ -84,7 +85,7 @@ export class BackendOutputClientFactory {
 // @public (undocumented)
 export type DeployedBackendClient = {
     listSandboxes: () => Promise<BackendMetadata[]>;
-    deleteSandbox: (sandboxId: string) => Promise<BackendMetadata>;
+    deleteSandbox: (sandboxBackendIdentifier: SandboxBackendIdentifier) => Promise<BackendMetadata>;
     getBackendMetadata: (backendIdentifier: UniqueBackendIdentifier) => Promise<BackendMetadata>;
 };
 

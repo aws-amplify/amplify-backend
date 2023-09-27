@@ -6,6 +6,10 @@ import {
   BackendDeploymentType,
   BackendMetadata,
 } from './deployed_backend_client_factory.js';
+import {
+  BranchBackendIdentifier,
+  SandboxBackendIdentifier,
+} from '@aws-amplify/platform-core';
 
 const credentials = async () => ({
   accessKeyId: 'test',
@@ -64,15 +68,16 @@ void describe('Backend Metadata Functions', () => {
   });
 
   void it('runs deleteSandbox', async () => {
-    const sandbox = await deploymentClient.deleteSandbox('abc');
+    const sandbox = await deploymentClient.deleteSandbox(
+      new SandboxBackendIdentifier('abc')
+    );
     assert.equal(sandbox.name, 'testDeleteSandbox');
   });
 
   void it('runs getBackendMetadata', async () => {
-    const metadata = await deploymentClient.getBackendMetadata({
-      backendId: 'abc',
-      branchName: '123',
-    });
+    const metadata = await deploymentClient.getBackendMetadata(
+      new BranchBackendIdentifier('abc', '123')
+    );
     assert.equal(metadata.name, 'testGetBackendMetadata');
   });
 });
