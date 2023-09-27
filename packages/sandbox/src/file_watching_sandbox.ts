@@ -12,8 +12,8 @@ import _open from 'open';
 import { DescribeParametersCommand, SSMClient } from '@aws-sdk/client-ssm';
 
 const CDK_BOOTSTRAP_PARAM_PREFIX = '/cdk-bootstrap';
-// TODO: finalize bootstrap url. This is just a placeholder for now.
-const AMPLIFY_CONSOLE_BOOTSTRAP_URL = `https://<REGION>.console.aws.amazon.com/amplify/create/bootstrap?region=<REGION>#/`;
+// TODO: finalize bootstrap url
+export const AMPLIFY_CONSOLE_BOOTSTRAP_URL = `https://<REGION>.console.aws.amazon.com/amplify/create/bootstrap?region=<REGION>#/`;
 /**
  * Runs a file watcher and deploys
  */

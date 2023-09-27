@@ -1,7 +1,10 @@
 import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import watcher from '@parcel/watcher';
 import { ClientConfigFormat } from '@aws-amplify/client-config';
-import { FileWatchingSandbox } from './file_watching_sandbox.js';
+import {
+  AMPLIFY_CONSOLE_BOOTSTRAP_URL,
+  FileWatchingSandbox,
+} from './file_watching_sandbox.js';
 import assert from 'node:assert';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
 import { ClientConfigGeneratorAdapter } from './config/client_config_generator_adapter.js';
@@ -37,7 +40,8 @@ const execaDeployMock = mock.method(backendDeployer, 'deploy', () =>
 const execaDestroyMock = mock.method(backendDeployer, 'destroy', () =>
   Promise.resolve()
 );
-const ssmClientMock = new SSMClient({ region: 'test-region' });
+const region = 'test-region';
+const ssmClientMock = new SSMClient({ region });
 const ssmClientSendMock = mock.fn();
 mock.method(ssmClientMock, 'send', ssmClientSendMock);
 ssmClientSendMock.mock.mockImplementation(() =>
@@ -102,6 +106,10 @@ describe('Sandbox to check if region is bootstrapped', () => {
 
     assert.strictEqual(ssmClientSendMock.mock.callCount(), 1);
     assert.strictEqual(openMock.mock.callCount(), 1);
+    assert.strictEqual(
+      openMock.mock.calls[0].arguments[0],
+      AMPLIFY_CONSOLE_BOOTSTRAP_URL.replaceAll('<REGION>', region)
+    );
   });
 });
 
@@ -194,6 +202,7 @@ describe('Sandbox using local project name resolver', () => {
         method: 'direct',
       },
     ]);
+    assert.strictEqual(ssmClientSendMock.mock.callCount(), 0);
   });
 
   it('calls CDK once when multiple file changes are present', async () => {
