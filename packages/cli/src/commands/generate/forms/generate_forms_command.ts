@@ -58,7 +58,7 @@ export class GenerateFormsCommand
     const backendOutputClient =
       this.backendOutputClientBuilder(backendIdentifier);
 
-    const output = await backendOutputClient.getOutput();
+    const output = await backendOutputClient.getOutput(backendIdentifier);
 
     if (!(graphqlOutputKey in output) || !output[graphqlOutputKey]) {
       throw new Error('No GraphQL API configured for this backend.');

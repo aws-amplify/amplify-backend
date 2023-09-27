@@ -1,5 +1,5 @@
 import { graphqlOutputKey } from '@aws-amplify/backend-output-schemas';
-import { BackendOutputClient } from '@aws-amplify/deployed-backend-client';
+import { BackendOutputClientFactory } from '@aws-amplify/deployed-backend-client';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import assert from 'node:assert';
 import { describe, it, mock } from 'node:test';
@@ -21,10 +21,8 @@ void describe('generate forms command', () => {
         credentialProvider,
       });
 
-      const fakedBackendOutputClient = new BackendOutputClient(
-        credentialProvider,
-        { stackName: 'test_stack' }
-      );
+      const fakedBackendOutputClient =
+        BackendOutputClientFactory.getInstance(credentialProvider);
 
       const generateFormsCommand = new GenerateFormsCommand(
         backendIdResolver,
@@ -69,10 +67,8 @@ void describe('generate forms command', () => {
         credentialProvider,
       });
 
-      const fakedBackendOutputClient = new BackendOutputClient(
-        credentialProvider,
-        { stackName: 'test_stack' }
-      );
+      const fakedBackendOutputClient =
+        BackendOutputClientFactory.getInstance(credentialProvider);
 
       const generateFormsCommand = new GenerateFormsCommand(
         backendIdResolver,
@@ -117,10 +113,8 @@ void describe('generate forms command', () => {
         credentialProvider,
       });
 
-      const fakedBackendOutputClient = new BackendOutputClient(
-        credentialProvider,
-        { stackName: 'test_stack' }
-      );
+      const fakedBackendOutputClient =
+        BackendOutputClientFactory.getInstance(credentialProvider);
 
       const generateFormsCommand = new GenerateFormsCommand(
         backendIdResolver,
@@ -161,10 +155,8 @@ void describe('generate forms command', () => {
         credentialProvider,
       });
 
-      const fakedBackendOutputClient = new BackendOutputClient(
-        credentialProvider,
-        { stackName: 'test_stack' }
-      );
+      const fakedBackendOutputClient =
+        BackendOutputClientFactory.getInstance(credentialProvider);
 
       const generateFormsCommand = new GenerateFormsCommand(
         backendIdResolver,
