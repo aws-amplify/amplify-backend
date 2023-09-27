@@ -10,7 +10,7 @@ void describe('Logger', () => {
   void beforeEach(() => {
     mockConsole = new MockConsole();
     // eslint-disable-next-line no-global-assign
-    console = mockConsole;
+    console = mockConsole as unknown as Console;
   });
 
   void after(() => {
@@ -107,72 +107,13 @@ class MockConsole {
   public errorCount = 0;
   public infoCount = 0;
   public debugCount = 0;
-  // eslint-disable-next-line @typescript-eslint/naming-convention
-  Console: console.ConsoleConstructor;
-  assert(): void {
-    throw new Error('Method not implemented.');
-  }
-  clear(): void {
-    throw new Error('Method not implemented.');
-  }
-  count(): void {
-    throw new Error('Method not implemented.');
-  }
-  countReset(): void {
-    throw new Error('Method not implemented.');
-  }
-  debug(): void {
-    throw new Error('Method not implemented.');
-  }
-  dir(): void {
-    throw new Error('Method not implemented.');
-  }
-  dirxml(): void {
-    throw new Error('Method not implemented.');
-  }
   error(): void {
     this.errorCount++;
-  }
-  group(): void {
-    throw new Error('Method not implemented.');
-  }
-  groupCollapsed(): void {
-    throw new Error('Method not implemented.');
-  }
-  groupEnd(): void {
-    throw new Error('Method not implemented.');
   }
   info(): void {
     this.infoCount++;
   }
-  log(): void {
-    throw new Error('Method not implemented.');
-  }
-  table(): void {
-    throw new Error('Method not implemented.');
-  }
-  time(): void {
-    throw new Error('Method not implemented.');
-  }
-  timeEnd(): void {
-    throw new Error('Method not implemented.');
-  }
-  timeLog(): void {
-    throw new Error('Method not implemented.');
-  }
   trace(): void {
     this.debugCount++;
-  }
-  warn(): void {
-    throw new Error('Method not implemented.');
-  }
-  profile(): void {
-    throw new Error('Method not implemented.');
-  }
-  profileEnd(): void {
-    throw new Error('Method not implemented.');
-  }
-  timeStamp(): void {
-    throw new Error('Method not implemented.');
   }
 }
