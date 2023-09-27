@@ -3,6 +3,7 @@ export {
   BasicLoginOptions,
   EmailLogin,
   ExternalProviders,
+  MagicLinkAuthOptions,
   MFA,
   MFASettings,
   PasswordlessAuthOptions,
