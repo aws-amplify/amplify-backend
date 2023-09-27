@@ -5,6 +5,7 @@ export {
   ExternalProviders,
   MFA,
   MFASettings,
+  PasswordlessAuthOptions,
   PhoneNumberLogin,
   TriggerEvent,
 } from './types.js';
