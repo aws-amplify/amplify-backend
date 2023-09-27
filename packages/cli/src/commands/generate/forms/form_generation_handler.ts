@@ -9,6 +9,7 @@ type FormGenerationParams = {
   uiOutDir: string;
   apiUrl: string;
   backendIdentifier: BackendIdentifier;
+  modelsFilter?: string[];
 };
 type FormGenerationInstanceOptions = {
   credentialProvider: AwsCredentialIdentityProvider;
@@ -22,7 +23,8 @@ export class FormGenerationHandler {
    */
   constructor(private readonly formGenParams: FormGenerationInstanceOptions) {}
   generate = async (params: FormGenerationParams) => {
-    const { backendIdentifier, modelsOutDir, uiOutDir, apiUrl } = params;
+    const { backendIdentifier, modelsOutDir, uiOutDir, apiUrl, modelsFilter } =
+      params;
     const { credentialProvider } = this.formGenParams;
     const graphqlClientGenerator = createGraphqlDocumentGenerator({
       backendIdentifier,
@@ -37,7 +39,9 @@ export class FormGenerationHandler {
       introspectionSchemaUrl: apiUrl,
       graphqlModelDirectoryPath: relativePath,
     });
-    const result = await localFormGenerator.generateForms();
+    const result = await localFormGenerator.generateForms({
+      models: modelsFilter,
+    });
     await result.writeToDirectory(uiOutDir);
   };
 }

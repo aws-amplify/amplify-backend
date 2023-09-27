@@ -12,9 +12,13 @@ import {
   ScriptTarget,
 } from '@aws-amplify/codegen-ui-react';
 import {
+  FormGenerationOptions,
   GraphqlFormGenerator,
   GraphqlGenerationResult,
 } from './graphql_form_generator.js';
+
+type FormDef = Set<'create' | 'update'>;
+type ModelRecord = Record<string, FormDef>;
 
 /**
  * Render Configuration Options for react forms
@@ -44,35 +48,36 @@ export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
    * reduces the dataSchema to a map of models
    */
   private getModelMapForDataSchema = (dataSchema: GenericDataSchema) => {
-    return Object.entries(dataSchema.models).reduce<
-      Record<string, Set<'create' | 'update'>>
-    >((prev, [name, model]) => {
-      if (!model.isJoinTable) {
-        prev[name] = new Set(['create', 'update']);
-      }
-      return prev;
-    }, {});
+    return Object.entries(dataSchema.models).reduce<ModelRecord>(
+      (prev, [name, model]) => {
+        if (!model.isJoinTable) {
+          prev[name] = new Set(['create', 'update']);
+        }
+        return prev;
+      },
+      {}
+    );
   };
+
+  private getSchema = (
+    name: string,
+    type: 'create' | 'update'
+  ): StudioForm => ({
+    name: `${name}${type === 'create' ? 'CreateForm' : 'UpdateForm'}`,
+    formActionType: type,
+    dataType: { dataSourceType: 'DataStore', dataTypeName: name },
+    fields: {},
+    sectionalElements: {},
+    style: {},
+    cta: {},
+  });
+
   private generateBaseForms = (modelMap: {
     [model: string]: Set<'create' | 'update'>;
   }): StudioForm[] => {
-    const getSchema = (
-      name: string,
-      type: 'create' | 'update'
-    ): StudioForm => ({
-      name: `${name}${type === 'create' ? 'CreateForm' : 'UpdateForm'}`,
-      formActionType: type,
-      dataType: { dataSourceType: 'DataStore', dataTypeName: name },
-      fields: {},
-      sectionalElements: {},
-      style: {},
-      cta: {},
-    });
-
     const schemas: StudioForm[] = [];
-
     Object.entries(modelMap).forEach(([name, set]) => {
-      set.forEach((type) => schemas.push(getSchema(name, type)));
+      set.forEach((type) => schemas.push(this.getSchema(name, type)));
     });
     return schemas;
   };
@@ -122,24 +127,70 @@ export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
       declaration,
     };
   };
+  private filterModelsByName = (
+    filteredModelNames: string[],
+    schemaModel: ModelRecord
+  ) => {
+    const lowerCaseModelKeys = new Set(
+      Object.keys(schemaModel).map((k) => k.toLowerCase())
+    );
+    const modelEntries = Object.entries(schemaModel);
+    return filteredModelNames.reduce<Array<[string, FormDef]>>(
+      (prev, model) => {
+        if (lowerCaseModelKeys?.has(model.toLowerCase())) {
+          const entry = modelEntries.find(
+            ([key]) => key.toLowerCase() === model.toLowerCase()
+          );
+          if (!entry) {
+            throw new Error(`Could not find specified model ${model}`);
+          }
+          prev.push(entry);
+          return prev;
+        }
+        throw new Error(`Could not find specified model ${model}`);
+      },
+      []
+    );
+  };
   private codegenForm = (
     dataSchema: GenericDataSchema,
     formSchema: StudioForm
   ) => {
     return this.createUiBuilderForm(formSchema, dataSchema, {});
   };
-  generateForms = async (): Promise<GraphqlGenerationResult> => {
-    const dataSchema = await this.schemaFetcher();
+
+  private getFilteredModels = (
+    dataSchema: GenericDataSchema,
+    filteredModelNames?: string[]
+  ) => {
     const modelMap = this.getModelMapForDataSchema(dataSchema);
+    const filteredModels: Array<[string, FormDef]> = [];
+    if (!filteredModelNames || !filteredModelNames?.length) {
+      filteredModels.push(...Object.entries(modelMap));
+    } else {
+      filteredModels.push(
+        ...this.filterModelsByName(filteredModelNames, modelMap)
+      );
+    }
+    return filteredModels.reduce(
+      (prev, [key, value]) => ({ ...prev, [key]: value }),
+      {}
+    );
+  };
+
+  generateForms = async (
+    options?: FormGenerationOptions
+  ): Promise<GraphqlGenerationResult> => {
+    const dataSchema = await this.schemaFetcher();
+    const filteredSchema = this.getFilteredModels(dataSchema, options?.models);
+
+    const baseForms = this.generateBaseForms(filteredSchema);
     return this.resultBuilder(
-      this.generateBaseForms(modelMap).reduce<Record<string, string>>(
-        (prev, formSchema) => {
-          const result = this.codegenForm(dataSchema, formSchema);
-          prev[result.fileName] = result.componentText;
-          return prev;
-        },
-        {}
-      )
+      baseForms.reduce<Record<string, string>>((prev, formSchema) => {
+        const result = this.codegenForm(dataSchema, formSchema);
+        prev[result.fileName] = result.componentText;
+        return prev;
+      }, {})
     );
   };
 }
