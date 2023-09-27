@@ -1,3 +1,4 @@
+import EventEmitter from 'events';
 import { ClientConfigFormat } from '@aws-amplify/client-config';
 
 /**
@@ -19,19 +20,15 @@ export type Sandbox = {
    * Deletes this environment
    */
   delete: (options: SandboxDeleteOptions) => Promise<void>;
-};
+} & EventEmitter;
+
+export type SandboxEvents = 'successfulDeployment';
 
 export type SandboxOptions = {
   dir?: string;
   exclude?: string[];
   name?: string;
   format?: ClientConfigFormat;
-  /**
-   * Optional path where client config should be generated for sandbox deployments
-   * If the path is relative, it is computed based on process.cwd()
-   * If the path is absolute, it is used as-is
-   */
-  clientConfigFilePath?: string;
 };
 
 export type SandboxDeleteOptions = {

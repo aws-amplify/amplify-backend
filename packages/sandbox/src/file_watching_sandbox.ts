@@ -1,15 +1,18 @@
 import debounce from 'debounce-promise';
 import parcelWatcher, { subscribe } from '@parcel/watcher';
-import { ClientConfigFormat } from '@aws-amplify/client-config';
-import { getClientConfigPath } from '@aws-amplify/client-config/paths';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
-import { Sandbox, SandboxDeleteOptions, SandboxOptions } from './sandbox.js';
-import { ClientConfigGeneratorAdapter } from './config/client_config_generator_adapter.js';
+import {
+  Sandbox,
+  SandboxDeleteOptions,
+  SandboxEvents,
+  SandboxOptions,
+} from './sandbox.js';
 import parseGitIgnore from 'parse-gitignore';
 import path from 'path';
 import fs from 'fs';
 import _open from 'open';
 import { DescribeParametersCommand, SSMClient } from '@aws-sdk/client-ssm';
+import EventEmitter from 'events';
 
 const CDK_BOOTSTRAP_PARAM_PREFIX = '/cdk-bootstrap';
 // TODO: finalize bootstrap url
@@ -17,7 +20,7 @@ export const AMPLIFY_CONSOLE_BOOTSTRAP_URL = `https://<REGION>.console.aws.amazo
 /**
  * Runs a file watcher and deploys
  */
-export class FileWatchingSandbox implements Sandbox {
+export class FileWatchingSandbox extends EventEmitter implements Sandbox {
   private watcherSubscription: Awaited<ReturnType<typeof subscribe>>;
   private outputFilesExcludedFromWatch = ['cdk.out'];
   /**
@@ -25,13 +28,30 @@ export class FileWatchingSandbox implements Sandbox {
    */
   constructor(
     private readonly sandboxId: string,
-    private readonly clientConfigGenerator: ClientConfigGeneratorAdapter,
     private readonly executor: AmplifySandboxExecutor,
     private readonly ssmClient: SSMClient,
     private readonly open = _open
   ) {
     process.once('SIGINT', () => void this.stop());
     process.once('SIGTERM', () => void this.stop());
+    super();
+  }
+
+  /**
+   * @inheritdoc
+   */
+  override emit(eventName: SandboxEvents, ...args: unknown[]): boolean {
+    return super.emit(eventName, args);
+  }
+
+  /**
+   * @inheritdoc
+   */
+  override on(
+    eventName: SandboxEvents,
+    listener: (...args: unknown[]) => void
+  ): this {
+    return super.on(eventName, listener);
   }
 
   /**
@@ -50,16 +70,9 @@ export class FileWatchingSandbox implements Sandbox {
     }
 
     const sandboxId = options.name ?? this.sandboxId;
-    const clientConfigWritePath = await getClientConfigPath(
-      options.clientConfigFilePath,
-      options.format
-    );
     const ignoredPaths = this.getGitIgnoredPaths();
     this.outputFilesExcludedFromWatch =
-      this.outputFilesExcludedFromWatch.concat(
-        clientConfigWritePath,
-        ...ignoredPaths
-      );
+      this.outputFilesExcludedFromWatch.concat(...ignoredPaths);
 
     console.debug(`[Sandbox] Initializing...`);
     // Since 'cdk deploy' is a relatively slow operation for a 'watch' process,
@@ -83,11 +96,6 @@ export class FileWatchingSandbox implements Sandbox {
         backendId: sandboxId,
         branchName: 'sandbox',
       });
-      await this.writeUpdatedClientConfig(
-        sandboxId,
-        options.clientConfigFilePath,
-        options.format
-      );
 
       // If latch is still 'deploying' after the 'await', that's fine,
       // but if it's 'queued', that means we need to deploy again
@@ -102,14 +110,11 @@ export class FileWatchingSandbox implements Sandbox {
           backendId: sandboxId,
           branchName: 'sandbox',
         });
-        await this.writeUpdatedClientConfig(
-          sandboxId,
-          options.clientConfigFilePath,
-          options.format
-        );
       }
       latch = 'open';
       this.emitWatching();
+      console.debug('[Sandbox] Running successfulDeployment event handlers');
+      this.emit('successfulDeployment');
     });
 
     this.watcherSubscription = await parcelWatcher.subscribe(
@@ -167,27 +172,6 @@ export class FileWatchingSandbox implements Sandbox {
       branchName: 'sandbox',
     });
     console.log('[Sandbox] Finished deleting.');
-  };
-
-  /**
-   * Runs post every deployment. Generates the client config and writes to a local file
-   * @param sandboxId for this sandbox execution. Either package.json#name + whoami or provided by user during `amplify sandbox`
-   * @param outDir optional location provided by customer to write client config to
-   * @param format optional format provided by customer to write client config in
-   */
-  private writeUpdatedClientConfig = async (
-    sandboxId: string,
-    outDir?: string,
-    format?: ClientConfigFormat
-  ) => {
-    await this.clientConfigGenerator.generateClientConfigToFile(
-      {
-        backendId: sandboxId,
-        branchName: 'sandbox',
-      },
-      outDir,
-      format
-    );
   };
 
   /**

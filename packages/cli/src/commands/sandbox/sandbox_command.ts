@@ -1,8 +1,11 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
-import { ClientConfigFormat } from '@aws-amplify/client-config';
 import fs from 'fs';
 import { AmplifyPrompter } from '../prompter/amplify_prompts.js';
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
+import {
+  ClientConfigFormat,
+  getClientConfigPath,
+} from '@aws-amplify/client-config';
 
 export type SandboxCommandOptions = {
   dirToWatch: string | undefined;
@@ -12,6 +15,22 @@ export type SandboxCommandOptions = {
   outDir: string | undefined;
   profile: string | undefined;
 };
+
+export type EventHandler = () => void;
+
+export type SandboxEventHandlers = {
+  successfulDeployment: EventHandler[];
+};
+
+export type SandboxEventHandlerParams = {
+  appName?: string;
+  outDir?: string;
+  format?: ClientConfigFormat;
+};
+
+export type SandboxEventHandlerCreator = (
+  params: SandboxEventHandlerParams
+) => SandboxEventHandlers;
 
 /**
  * Command that starts sandbox.
@@ -36,7 +55,8 @@ export class SandboxCommand
    */
   constructor(
     private readonly sandboxFactory: SandboxSingletonFactory,
-    private readonly sandboxSubCommands: CommandModule[]
+    private readonly sandboxSubCommands: CommandModule[],
+    private readonly sandboxEventHandlerCreator?: SandboxEventHandlerCreator
   ) {
     this.command = 'sandbox';
     this.describe = 'Starts sandbox, watch mode for amplify deployments';
@@ -48,19 +68,32 @@ export class SandboxCommand
   handler = async (
     args: ArgumentsCamelCase<SandboxCommandOptions>
   ): Promise<void> => {
-    this.appName = args.name;
     const { profile } = args;
     if (profile) {
       process.env.AWS_PROFILE = profile;
     }
-    await (
-      await this.sandboxFactory.getInstance()
-    ).start({
-      dir: args.dirToWatch,
-      exclude: args.exclude,
-      name: args.name,
+    const sandbox = await this.sandboxFactory.getInstance();
+    this.appName = args.name;
+    const eventHandlers = this.sandboxEventHandlerCreator?.({
+      appName: args.name,
       format: args.format,
-      clientConfigFilePath: args.outDir,
+      outDir: args.outDir,
+    });
+    if (eventHandlers) {
+      Object.entries(eventHandlers).forEach(([event, handlers]) => {
+        handlers.forEach((handler) => sandbox.on(event, handler));
+      });
+    }
+    const watchExclusions = args.exclude ?? [];
+    const clientConfigWritePath = await getClientConfigPath(
+      args.outDir,
+      args.format
+    );
+    watchExclusions.push(clientConfigWritePath);
+    await sandbox.start({
+      dir: args.dirToWatch,
+      exclude: watchExclusions,
+      name: args.name,
     });
     process.once('SIGINT', () => void this.sigIntHandler());
   };
