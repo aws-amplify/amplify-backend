@@ -2,13 +2,11 @@ import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { CfnTokenBackendSecret } from './backend_secret.js';
 import { App, SecretValue, Stack } from 'aws-cdk-lib';
-import {
-  BranchBackendIdentifier,
-  UniqueBackendIdentifier,
-} from '@aws-amplify/platform-core';
+import { BranchBackendIdentifier } from '@aws-amplify/platform-core';
 import { getSecretClient } from '@aws-amplify/backend-secret';
 import { BackendSecretFetcherProviderFactory } from './backend_secret_fetcher_provider_factory.js';
 import { BackendSecretFetcherFactory } from './backend_secret_fetcher_factory.js';
+import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 const backendId = 'testId';
 const branchName = 'testBranch';

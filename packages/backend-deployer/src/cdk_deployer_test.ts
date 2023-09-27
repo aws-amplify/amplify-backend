@@ -1,12 +1,10 @@
 import { after, beforeEach, describe, it, mock } from 'node:test';
 import { CDKDeployer } from './cdk_deployer.js';
 import assert from 'node:assert';
-import {
-  BranchBackendIdentifier,
-  UniqueBackendIdentifier,
-} from '@aws-amplify/platform-core';
+import { BranchBackendIdentifier } from '@aws-amplify/platform-core';
 import { DeployProps } from './cdk_deployer_singleton_factory.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
+import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 void describe('invokeCDKCommand', () => {
   const uniqueBackendIdentifier: UniqueBackendIdentifier =

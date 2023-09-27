@@ -15,5 +15,8 @@
   "types": "lib/index.d.ts",
   "scripts": {
     "update:api": "api-extractor run --local"
+  },
+  "dependencies": {
+    "@aws-amplify/plugin-types": "^0.1.1-alpha.3"
   }
 }

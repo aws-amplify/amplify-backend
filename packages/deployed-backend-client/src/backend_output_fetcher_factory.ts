@@ -1,4 +1,3 @@
-import { UniqueBackendIdentifier } from '@aws-amplify/platform-core';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { BackendIdentifier } from './backend_identifier.js';
@@ -12,6 +11,7 @@ import {
 } from './stack-name-resolvers/passthrough_main_stack_name_resolver.js';
 import { UniqueBackendIdentifierMainStackNameResolver } from './stack-name-resolvers/unique_deployment_identifier_main_stack_name_resolver.js';
 import { StackMetadataBackendOutputRetrievalStrategy } from './stack_metadata_output_retrieval_strategy.js';
+import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 /**
  * Asserts that a BackendIdentifier is a UniqueBackendIdentifier

@@ -2,16 +2,14 @@ import { App, Stack } from 'aws-cdk-lib';
 import { describe, it } from 'node:test';
 import { BackendSecretFetcherProviderFactory } from './backend_secret_fetcher_provider_factory.js';
 import { getSecretClient } from '@aws-amplify/backend-secret';
-import {
-  BranchBackendIdentifier,
-  UniqueBackendIdentifier,
-} from '@aws-amplify/platform-core';
+import { BranchBackendIdentifier } from '@aws-amplify/platform-core';
 import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
 import {
   BackendSecretFetcherFactory,
   SECRET_RESOURCE_PROVIDER_ID,
 } from './backend_secret_fetcher_factory.js';
+import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 const secretResourceType = 'Custom::SecretFetcherResource';
 const backendId = 'testId';

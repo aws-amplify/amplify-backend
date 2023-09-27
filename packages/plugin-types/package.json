@@ -15,8 +15,5 @@
   },
   "imports": {
     "#package.json": "./package.json"
-  },
-  "dependencies": {
-    "@aws-amplify/platform-core": "^0.1.0"
   }
 }

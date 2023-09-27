@@ -10,10 +10,8 @@ import assert from 'node:assert';
 import { SecretError } from './secret_error.js';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { Secret, SecretIdentifier } from './secret.js';
-import {
-  BranchBackendIdentifier,
-  UniqueBackendIdentifier,
-} from '@aws-amplify/platform-core';
+import { BranchBackendIdentifier } from '@aws-amplify/platform-core';
+import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 const shared = 'shared';
 const testBackendId = 'testBackendId';

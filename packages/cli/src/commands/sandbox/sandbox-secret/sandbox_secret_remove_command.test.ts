@@ -8,7 +8,7 @@ import assert from 'node:assert';
 import { SandboxIdResolver } from '../sandbox_id_resolver.js';
 import { getSecretClient } from '@aws-amplify/backend-secret';
 import { SandboxSecretRemoveCommand } from './sandbox_secret_remove_command.js';
-import { UniqueBackendIdentifier } from '@aws-amplify/platform-core';
+import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 const testSecretName = 'testSecretName';
 const testBackendId = 'testBackendId';

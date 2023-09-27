@@ -1,10 +1,8 @@
 import { describe, it, mock } from 'node:test';
 import { UniqueBackendIdentifierMainStackNameResolver } from './unique_deployment_identifier_main_stack_name_resolver.js';
 import assert from 'node:assert';
-import {
-  BranchBackendIdentifier,
-  UniqueBackendIdentifier,
-} from '@aws-amplify/platform-core';
+import { BranchBackendIdentifier } from '@aws-amplify/platform-core';
+import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 void describe('UniqueBackendIdentifierMainStackNameResolver', () => {
   void describe('resolveMainStackName', () => {

@@ -12,8 +12,8 @@ import {
   getSecretClient,
 } from '@aws-amplify/backend-secret';
 import { SandboxSecretGetCommand } from './sandbox_secret_get_command.js';
-import { UniqueBackendIdentifier } from '@aws-amplify/platform-core';
 import { Printer } from '../../printer/printer.js';
+import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 const testSecretName = 'testSecretName';
 const testBackendId = 'testBackendId';
