@@ -50,6 +50,10 @@ export class SandboxCommand
     args: ArgumentsCamelCase<SandboxCommandOptions>
   ): Promise<void> => {
     this.appName = args.name;
+    const { profile } = args;
+    if (profile) {
+      process.env.AWS_PROFILE = profile;
+    }
     await (
       await this.sandboxFactory.getInstance()
     ).start({
@@ -58,7 +62,6 @@ export class SandboxCommand
       name: args.name,
       format: args.format,
       clientConfigFilePath: args.outDir,
-      profile: args.profile,
     });
     process.once('SIGINT', () => void this.sigIntHandler());
   };

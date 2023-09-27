@@ -8,7 +8,12 @@ import { ClientConfigGeneratorAdapter } from './config/client_config_generator_a
 import parseGitIgnore from 'parse-gitignore';
 import path from 'path';
 import fs from 'fs';
+import _open from 'open';
+import { DescribeParametersCommand, SSMClient } from '@aws-sdk/client-ssm';
 
+const CDK_BOOTSTRAP_PARAM_PREFIX = '/cdk-bootstrap';
+// TODO: finalize bootstrap url. This is just a placeholder for now.
+const AMPLIFY_CONSOLE_BOOTSTRAP_URL = `https://<REGION>.console.aws.amazon.com/amplify/create/bootstrap?region=<REGION>#/`;
 /**
  * Runs a file watcher and deploys
  */
@@ -21,7 +26,9 @@ export class FileWatchingSandbox implements Sandbox {
   constructor(
     private readonly sandboxId: string,
     private readonly clientConfigGenerator: ClientConfigGeneratorAdapter,
-    private readonly executor: AmplifySandboxExecutor
+    private readonly executor: AmplifySandboxExecutor,
+    private readonly ssmClient: SSMClient,
+    private readonly open = _open
   ) {
     process.once('SIGINT', () => void this.stop());
     process.once('SIGTERM', () => void this.stop());
@@ -31,9 +38,15 @@ export class FileWatchingSandbox implements Sandbox {
    * @inheritdoc
    */
   start = async (options: SandboxOptions) => {
-    const { profile } = options;
-    if (profile) {
-      process.env.AWS_PROFILE = profile;
+    const bootstrapped = await this.hasBootstrapped();
+    if (!bootstrapped) {
+      console.warn(
+        'The given region has not been bootstrapped. Sign in to console as a Root user or Admin to complete the bootstrap process and re-run the amplify sandbox command.'
+      );
+      // get region from an available sdk client;
+      const region = await this.ssmClient.config.region();
+      this.open(AMPLIFY_CONSOLE_BOOTSTRAP_URL.replaceAll('<REGION>', region));
+      return;
     }
 
     const sandboxId = options.name ?? this.sandboxId;
@@ -137,7 +150,8 @@ export class FileWatchingSandbox implements Sandbox {
    */
   stop = async () => {
     console.debug(`[Sandbox] Shutting down`);
-    await this.watcherSubscription.unsubscribe();
+    // can be undefined if command exits before subscription
+    await this.watcherSubscription?.unsubscribe();
   };
 
   /**
@@ -196,5 +210,28 @@ export class FileWatchingSandbox implements Sandbox {
         );
     }
     return [];
+  };
+
+  /**
+   * Check if given region has been bootstrapped using SSM param.
+   * @returns A Boolean that represents if region has been bootstrapped
+   */
+  private hasBootstrapped = async () => {
+    let bootstrapped = false;
+    let nextToken;
+    do {
+      const { Parameters, NextToken } = await this.ssmClient.send(
+        new DescribeParametersCommand({})
+      );
+      if (
+        Parameters?.some((p) => p.Name?.startsWith(CDK_BOOTSTRAP_PARAM_PREFIX))
+      ) {
+        bootstrapped = true;
+        break;
+      }
+      nextToken = NextToken;
+    } while (nextToken);
+
+    return bootstrapped;
   };
 }

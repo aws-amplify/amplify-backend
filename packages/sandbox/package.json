@@ -21,10 +21,12 @@
     "@aws-amplify/client-config": "0.2.0-alpha.5",
     "@aws-amplify/deployed-backend-client": "^0.1.0",
     "@aws-sdk/credential-providers": "^3.382.0",
+    "@aws-sdk/client-ssm": "^3.419.0",
     "@aws-sdk/types": "^3.378.0",
     "@parcel/watcher": "^2.3.0",
     "debounce-promise": "^3.1.2",
-    "parse-gitignore": "^2.0.0"
+    "parse-gitignore": "^2.0.0",
+    "open": "^9.1.0"
   },
   "devDependencies": {
     "@types/debounce-promise": "^3.1.6",

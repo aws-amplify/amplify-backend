@@ -4,6 +4,7 @@ import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { ClientConfigGeneratorAdapter } from './config/client_config_generator_adapter.js';
 import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
+import { SSMClient } from '@aws-sdk/client-ssm';
 
 /**
  * Factory to create a new sandbox
@@ -30,7 +31,8 @@ export class SandboxSingletonFactory {
       this.instance = new FileWatchingSandbox(
         await this.sandboxIdResolver(),
         this.clientConfigGenerator,
-        new AmplifySandboxExecutor(BackendDeployerFactory.getInstance())
+        new AmplifySandboxExecutor(BackendDeployerFactory.getInstance()),
+        new SSMClient()
       );
     }
     return this.instance;
