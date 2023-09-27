@@ -4,6 +4,7 @@
   "references": [
     { "path": "../backend-deployer" },
     { "path": "../client-config" },
-    { "path": "../deployed-backend-client" }
+    { "path": "../deployed-backend-client" },
+    { "path": "../plugin-core" }
   ]
 }
