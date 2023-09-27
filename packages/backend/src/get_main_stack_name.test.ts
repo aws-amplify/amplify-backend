@@ -2,6 +2,7 @@ import { describe, it } from 'node:test';
 import { getMainStackName } from './get_main_stack_name.js';
 import assert from 'node:assert';
 import { readFileSync } from 'fs';
+import { BranchBackendIdentifier } from '@aws-amplify/platform-core';
 
 /**
  * !!!CAUTION!!!
@@ -11,10 +12,9 @@ import { readFileSync } from 'fs';
  */
 void describe('getMainStackName', () => {
   void it('returns stack name with expected convention', () => {
-    const result = getMainStackName({
-      backendId: 'testBackendId',
-      branchName: 'testBranchName',
-    });
+    const result = getMainStackName(
+      new BranchBackendIdentifier('testBackendId', 'testBranchName')
+    );
 
     const expectedName = readFileSync(
       new URL(

@@ -1,4 +1,3 @@
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { BackendIdentifier } from './backend_identifier.js';
@@ -12,6 +11,7 @@ import {
 } from './stack-name-resolvers/passthrough_main_stack_name_resolver.js';
 import { UniqueBackendIdentifierMainStackNameResolver } from './stack-name-resolvers/unique_deployment_identifier_main_stack_name_resolver.js';
 import { StackMetadataBackendOutputRetrievalStrategy } from './stack_metadata_output_retrieval_strategy.js';
+import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 /**
  * Asserts that a BackendIdentifier is a UniqueBackendIdentifier
@@ -19,7 +19,9 @@ import { StackMetadataBackendOutputRetrievalStrategy } from './stack_metadata_ou
 export const isUniqueBackendIdentifier = (
   backendIdentifier: BackendIdentifier
 ): backendIdentifier is UniqueBackendIdentifier => {
-  return 'backendId' in backendIdentifier && 'branchName' in backendIdentifier;
+  return (
+    'backendId' in backendIdentifier && 'disambiguator' in backendIdentifier
+  );
 };
 /**
  * Asserts that a BackendIdentifier is a AppNameAndBranchBackendIdentifier

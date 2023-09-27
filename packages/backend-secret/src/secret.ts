@@ -1,8 +1,8 @@
 import { SSMSecretClient } from './ssm_secret.js';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import * as iam from 'aws-cdk-lib/aws-iam';
-import { BackendId, UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import { SSM } from '@aws-sdk/client-ssm';
+import { BackendId, UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 /**
  * The unique identifier of the secret.
