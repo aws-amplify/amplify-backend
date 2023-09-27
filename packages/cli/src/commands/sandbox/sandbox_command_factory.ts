@@ -62,7 +62,7 @@ export const createSandboxCommand = (): CommandModule<
           const output = await outputClient.getOutput();
           const apiUrl =
             output[graphqlOutputKey]?.payload.amplifyApiModelSchemaS3Uri;
-          if (apiUrl && modelsOutDir && uiOutDir) {
+          if (apiUrl) {
             await formGeneratorHandler.generate({
               backendIdentifier,
               apiUrl,
