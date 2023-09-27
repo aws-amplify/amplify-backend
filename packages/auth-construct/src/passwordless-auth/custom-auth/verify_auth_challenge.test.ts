@@ -1,9 +1,5 @@
 import { describe, it } from 'node:test';
-import {
-  PasswordlessClientMetaData,
-  StringMap,
-  VerifyAuthChallengeResponseTriggerEvent,
-} from './types.js';
+import { StringMap, VerifyAuthChallengeResponseTriggerEvent } from './types.js';
 import { strictEqual } from 'node:assert';
 import { verifyAuthChallenge } from './verify_auth_challenge.js';
 
@@ -13,7 +9,7 @@ import { verifyAuthChallenge } from './verify_auth_challenge.js';
  * @returns a lambda trigger event for Create Auth Challenge.
  */
 const buildEvent = (
-  clientMetadata?: PasswordlessClientMetaData | StringMap
+  clientMetadata?: StringMap
 ): VerifyAuthChallengeResponseTriggerEvent => {
   return {
     version: '1',

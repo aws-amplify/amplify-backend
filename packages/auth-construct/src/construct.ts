@@ -337,10 +337,9 @@ export class AmplifyAuth
 
     const commonOptions: NodejsFunctionProps = {
       entry: new URL(
-        './passwordless-auth/custom_auth_triggers.js',
+        './passwordless-auth/custom-auth/index.js',
         import.meta.url
       ).pathname,
-      handler: 'defineAuthChallengeHandler',
       runtime: Runtime.NODEJS_18_X,
       architecture: Architecture.ARM_64,
       bundling: {
@@ -352,7 +351,7 @@ export class AmplifyAuth
       this,
       `DefineAuthChallenge${id}`,
       {
-        handler: 'defineAuthChallengeHandler',
+        handler: 'defineAuthChallenge',
         ...commonOptions,
       }
     );
@@ -361,7 +360,7 @@ export class AmplifyAuth
       this,
       `CreateAuthChallenge${id}`,
       {
-        handler: 'createAuthChallengeHandler',
+        handler: 'createAuthChallenge',
         ...commonOptions,
       }
     );
@@ -370,7 +369,7 @@ export class AmplifyAuth
       this,
       `VerifyAuthChallengeResponse${id}`,
       {
-        handler: 'verifyAuthChallengeHandler',
+        handler: 'verifyAuthChallenge',
         ...commonOptions,
       }
     );

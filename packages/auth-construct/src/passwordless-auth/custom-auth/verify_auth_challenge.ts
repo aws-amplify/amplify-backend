@@ -1,4 +1,4 @@
-import { logger } from './logger.js';
+import { logger } from '../logger.js';
 import { VerifyAuthChallengeResponseTriggerEvent } from './types.js';
 
 /**
@@ -10,13 +10,11 @@ import { VerifyAuthChallengeResponseTriggerEvent } from './types.js';
  */
 export const verifyAuthChallenge = async (
   event: VerifyAuthChallengeResponseTriggerEvent
-) => {
+): Promise<VerifyAuthChallengeResponseTriggerEvent> => {
   logger.debug(JSON.stringify(event, null, 2));
   try {
     event.response.answerCorrect = false;
     const signInMethod = event.request.clientMetadata?.signInMethod;
-
-    // Verify challenge answer
     if (signInMethod === 'MAGIC_LINK') {
       // TODO: Implement magic link.
       throw Error('Magic Link not implemented.');

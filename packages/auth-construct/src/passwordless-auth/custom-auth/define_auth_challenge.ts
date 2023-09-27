@@ -1,4 +1,4 @@
-import { logger } from './logger.js';
+import { logger } from '../logger.js';
 import { DefineAuthChallengeTriggerEvent } from './types.js';
 
 /**
@@ -10,7 +10,7 @@ import { DefineAuthChallengeTriggerEvent } from './types.js';
  */
 export const defineAuthChallenge = async (
   event: DefineAuthChallengeTriggerEvent
-) => {
+): Promise<DefineAuthChallengeTriggerEvent> => {
   logger.debug(JSON.stringify(event, null, 2));
 
   const previousSessions = event.request.session;

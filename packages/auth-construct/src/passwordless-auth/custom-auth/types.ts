@@ -12,9 +12,6 @@ export type DefineAuthChallengeTriggerEvent = {
   };
 } & BaseTriggerEvent<'DefineAuthChallenge_Authentication'>;
 
-export type DefineAuthChallengeTriggerHandler =
-  Handler<DefineAuthChallengeTriggerEvent>;
-
 export type CreateAuthChallengeTriggerEvent = {
   request: {
     userAttributes: StringMap;
@@ -30,9 +27,6 @@ export type CreateAuthChallengeTriggerEvent = {
   };
 } & BaseTriggerEvent<'CreateAuthChallenge_Authentication'>;
 
-export type CreateAuthChallengeTriggerHandler =
-  Handler<CreateAuthChallengeTriggerEvent>;
-
 export type VerifyAuthChallengeResponseTriggerEvent = {
   request: {
     userAttributes: StringMap;
@@ -45,9 +39,6 @@ export type VerifyAuthChallengeResponseTriggerEvent = {
     answerCorrect?: boolean;
   };
 } & BaseTriggerEvent<'VerifyAuthChallengeResponse_Authentication'>;
-
-export type VerifyAuthChallengeResponseTriggerHandler =
-  Handler<VerifyAuthChallengeResponseTriggerEvent>;
 
 export type StringMap = {
   [name: string]: string;
@@ -72,12 +63,6 @@ export type ChallengeName =
   | 'DEVICE_PASSWORD_VERIFIER'
   | 'ADMIN_NO_SRP_AUTH'
   | 'SRP_A';
-
-export type Handler<TEvent = object, TResult = object> = (
-  event: TEvent,
-  context: Context,
-  callback: Callback<TResult>
-) => void | Promise<TResult>;
 
 export type Context = {
   callbackWaitsForEmptyEventLoop: boolean;

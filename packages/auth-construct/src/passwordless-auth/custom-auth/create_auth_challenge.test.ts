@@ -39,7 +39,7 @@ const requestOTPMetaData: PasswordlessClientMetaData = {
  */
 const buildEvent = (
   previousSessions?: Array<ChallengeResult | CustomChallengeResult>,
-  clientMetadata?: PasswordlessClientMetaData | StringMap
+  clientMetadata?: StringMap
 ): CreateAuthChallengeTriggerEvent => {
   return {
     version: '1',
