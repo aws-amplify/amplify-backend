@@ -1,12 +1,17 @@
 import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import path from 'path';
 import watcher from '@parcel/watcher';
-import { FileWatchingSandbox } from './file_watching_sandbox.js';
+import {
+  AMPLIFY_CONSOLE_BOOTSTRAP_URL,
+  FileWatchingSandbox,
+} from './file_watching_sandbox.js';
 import assert from 'node:assert';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
 import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 import fs from 'fs';
 import parseGitIgnore from 'parse-gitignore';
+import { SSMClient } from '@aws-sdk/client-ssm';
+import open from 'open';
 
 // Watcher mocks
 const unsubscribeMockFn = mock.fn();
@@ -22,6 +27,16 @@ const execaDeployMock = mock.method(backendDeployer, 'deploy', () =>
 const execaDestroyMock = mock.method(backendDeployer, 'destroy', () =>
   Promise.resolve()
 );
+const region = 'test-region';
+const ssmClientMock = new SSMClient({ region });
+const ssmClientSendMock = mock.fn();
+mock.method(ssmClientMock, 'send', ssmClientSendMock);
+ssmClientSendMock.mock.mockImplementation(() =>
+  Promise.resolve({
+    Parameters: [{ Name: '/cdk-bootstrap/foo/version' }, { name: 'testParam' }],
+  })
+);
+const openMock = mock.fn(open, (url: string) => Promise.resolve(url));
 
 const testPath = path.join('test', 'location');
 mock.method(fs, 'lstatSync', (path: string) => {
@@ -34,6 +49,51 @@ mock.method(fs, 'lstatSync', (path: string) => {
     },
     isDir: () => false,
   };
+});
+
+void describe('Sandbox to check if region is bootstrapped', () => {
+  // class under test
+  let sandboxInstance: FileWatchingSandbox;
+
+  const cdkExecutor = new AmplifySandboxExecutor(backendDeployer);
+
+  beforeEach(async () => {
+    sandboxInstance = new FileWatchingSandbox(
+      'testSandboxId',
+      cdkExecutor,
+      ssmClientMock,
+      openMock as never
+    );
+    // ensures that .gitignore is set as absent
+    mock.method(fs, 'existsSync', () => false);
+    ssmClientSendMock.mock.resetCalls();
+  });
+
+  afterEach(async () => {
+    ssmClientSendMock.mock.resetCalls();
+    await sandboxInstance.stop();
+  });
+
+  void it('region has not bootstrapped', async () => {
+    ssmClientSendMock.mock.mockImplementationOnce(() =>
+      Promise.resolve({
+        Parameters: [{ name: 'testParam' }],
+        NextToken: undefined,
+      })
+    );
+
+    await sandboxInstance.start({
+      dir: 'testDir',
+      exclude: ['exclude1', 'exclude2'],
+    });
+
+    assert.strictEqual(ssmClientSendMock.mock.callCount(), 1);
+    assert.strictEqual(openMock.mock.callCount(), 1);
+    assert.strictEqual(
+      openMock.mock.calls[0].arguments[0],
+      AMPLIFY_CONSOLE_BOOTSTRAP_URL.replaceAll('<REGION>', region)
+    );
+  });
 });
 
 void describe('Sandbox using local project name resolver', () => {
@@ -49,7 +109,11 @@ void describe('Sandbox using local project name resolver', () => {
   beforeEach(async () => {
     // ensures that .gitignore is set as absent
     mock.method(fs, 'existsSync', () => false);
-    sandboxInstance = new FileWatchingSandbox('testSandboxId', cdkExecutor);
+    sandboxInstance = new FileWatchingSandbox(
+      'testSandboxId',
+      cdkExecutor,
+      ssmClientMock
+    );
     await sandboxInstance.start({
       dir: 'testDir',
       exclude: ['exclude1', 'exclude2'],
@@ -69,12 +133,14 @@ void describe('Sandbox using local project name resolver', () => {
     // Reset all the calls to avoid extra startup call
     execaDestroyMock.mock.resetCalls();
     execaDeployMock.mock.resetCalls();
+    ssmClientSendMock.mock.resetCalls();
   });
 
   afterEach(async () => {
     execaDestroyMock.mock.resetCalls();
     execaDeployMock.mock.resetCalls();
     subscribeMock.mock.resetCalls();
+    ssmClientSendMock.mock.resetCalls();
     await sandboxInstance.stop();
   });
 
@@ -103,6 +169,7 @@ void describe('Sandbox using local project name resolver', () => {
         method: 'direct',
       },
     ]);
+    assert.strictEqual(ssmClientSendMock.mock.callCount(), 0);
   });
 
   void it('calls CDK once when multiple file changes are present', async () => {
@@ -204,7 +271,11 @@ void describe('Sandbox with user provided app name', () => {
   beforeEach(async () => {
     // ensures that .gitignore is set as absent
     mock.method(fs, 'existsSync', () => false);
-    sandboxInstance = new FileWatchingSandbox('testSandboxId', cdkExecutor);
+    sandboxInstance = new FileWatchingSandbox(
+      'testSandboxId',
+      cdkExecutor,
+      ssmClientMock
+    );
     await sandboxInstance.start({
       dir: 'testDir',
       exclude: ['exclude1', 'exclude2'],
@@ -220,12 +291,14 @@ void describe('Sandbox with user provided app name', () => {
     // Reset all the calls to avoid extra startup call
     execaDestroyMock.mock.resetCalls();
     execaDeployMock.mock.resetCalls();
+    ssmClientSendMock.mock.resetCalls();
   });
 
   afterEach(async () => {
     execaDestroyMock.mock.resetCalls();
     execaDeployMock.mock.resetCalls();
     subscribeMock.mock.resetCalls();
+    ssmClientSendMock.mock.resetCalls();
     await sandboxInstance.stop();
   });
 
@@ -285,12 +358,15 @@ void describe('Sandbox with absolute output path', () => {
   beforeEach(async () => {
     // ensures that .gitignore is set as absent
     mock.method(fs, 'existsSync', () => false);
-    sandboxInstance = new FileWatchingSandbox('testSandboxId', cdkExecutor);
+    sandboxInstance = new FileWatchingSandbox(
+      'testSandboxId',
+      cdkExecutor,
+      ssmClientMock
+    );
     await sandboxInstance.start({
       dir: 'testDir',
       exclude: ['exclude1', 'exclude2'],
       name: 'customSandboxName',
-      profile: 'amplify-sandbox',
     });
     if (
       subscribeMock.mock.calls[0].arguments[1] &&
@@ -302,17 +378,15 @@ void describe('Sandbox with absolute output path', () => {
     // Reset all the calls to avoid extra startup call
     execaDeployMock.mock.resetCalls();
     execaDestroyMock.mock.resetCalls();
+    ssmClientSendMock.mock.resetCalls();
   });
 
   afterEach(async () => {
     execaDeployMock.mock.resetCalls();
     execaDestroyMock.mock.resetCalls();
     subscribeMock.mock.resetCalls();
+    ssmClientSendMock.mock.resetCalls();
     await sandboxInstance.stop();
-  });
-
-  void it('sets AWS profile when starting sandbox', async () => {
-    assert.strictEqual(process.env.AWS_PROFILE, 'amplify-sandbox');
   });
 });
 
@@ -340,7 +414,11 @@ void describe('Sandbox ignoring paths in .gitignore', () => {
         ],
       };
     });
-    sandboxInstance = new FileWatchingSandbox('testSandboxId', cdkExecutor);
+    sandboxInstance = new FileWatchingSandbox(
+      'testSandboxId',
+      cdkExecutor,
+      ssmClientMock
+    );
     await sandboxInstance.start({
       dir: 'testDir',
       exclude: ['customer_exclude1', 'customer_exclude2'],
@@ -356,12 +434,14 @@ void describe('Sandbox ignoring paths in .gitignore', () => {
     // Reset all the calls to avoid extra startup call
     execaDeployMock.mock.resetCalls();
     execaDestroyMock.mock.resetCalls();
+    ssmClientSendMock.mock.resetCalls();
   });
 
   afterEach(async () => {
     execaDeployMock.mock.resetCalls();
     execaDestroyMock.mock.resetCalls();
     subscribeMock.mock.resetCalls();
+    ssmClientSendMock.mock.resetCalls();
     await sandboxInstance.stop();
   });
 
@@ -395,7 +475,11 @@ void describe('Sandbox ignoring paths in .gitignore', () => {
     const executor: AmplifySandboxExecutor = {
       deploy: mockDeploy,
     } as unknown as AmplifySandboxExecutor;
-    const sandbox = new FileWatchingSandbox('my-sandbox', executor);
+    const sandbox = new FileWatchingSandbox(
+      'my-sandbox',
+      executor,
+      ssmClientMock
+    );
     sandbox.on('successfulDeployment', mockListener);
     await sandbox.start({});
     assert.equal(mockListener.mock.callCount(), 1);
