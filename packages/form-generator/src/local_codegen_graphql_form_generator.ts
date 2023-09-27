@@ -3,13 +3,17 @@ import {
   FormFeatureFlags,
   GenericDataSchema,
   StudioForm,
+  StudioSchema,
 } from '@aws-amplify/codegen-ui';
 import {
   AmplifyFormRenderer,
   ModuleKind,
+  ReactIndexStudioTemplateRenderer,
   ReactRenderConfig,
+  ReactUtilsStudioTemplateRenderer,
   ScriptKind,
   ScriptTarget,
+  UtilTemplateType,
 } from '@aws-amplify/codegen-ui-react';
 import {
   FormGenerationOptions,
@@ -172,25 +176,100 @@ export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
         ...this.filterModelsByName(filteredModelNames, modelMap)
       );
     }
-    return filteredModels.reduce(
+    return filteredModels;
+  };
+  private transformModelListToMap = (models: Array<[string, FormDef]>) => {
+    return models.reduce(
       (prev, [key, value]) => ({ ...prev, [key]: value }),
       {}
     );
+  };
+  private static defaultConfig = {
+    module: ModuleKind.ES2020,
+    target: ScriptTarget.ES2020,
+    script: ScriptKind.JSX,
+    renderTypeDeclarations: true,
+  };
+  private createUtilFile = (utils: UtilTemplateType[]) => {
+    const renderer = new ReactUtilsStudioTemplateRenderer(
+      utils,
+      LocalGraphqlFormGenerator.defaultConfig
+    );
+    const { componentText } = renderer.renderComponentInternal();
+    return {
+      componentText,
+      fileName: renderer.fileName,
+    };
+  };
+
+  /**
+   * Return utils file text
+   */
+  private generateUtilFile = () => {
+    const utils: UtilTemplateType[] = [
+      'validation',
+      'formatter',
+      'fetchByPath',
+      'processFile',
+    ];
+    const { componentText, fileName } = this.createUtilFile(utils);
+    return {
+      schemaName: 'AmplifyStudioUtilFile',
+      componentText,
+      fileName,
+      declaration: undefined,
+      error: undefined,
+    };
+  };
+
+  private createIndexFile = (schemas: StudioSchema[]) => {
+    const renderer = new ReactIndexStudioTemplateRenderer(
+      schemas,
+      LocalGraphqlFormGenerator.defaultConfig
+    );
+    const { componentText } = renderer.renderComponentInternal();
+    return {
+      componentText,
+      fileName: renderer.fileName,
+    };
+  };
+
+  generateIndexFile = (schemas: { name: string }[]) => {
+    const { componentText, fileName } = this.createIndexFile(
+      schemas as StudioSchema[]
+    );
+    return {
+      schemaName: 'AmplifyStudioIndexFile',
+      componentText,
+      fileName,
+      declaration: undefined,
+      error: undefined,
+    };
   };
 
   generateForms = async (
     options?: FormGenerationOptions
   ): Promise<GraphqlGenerationResult> => {
     const dataSchema = await this.schemaFetcher();
-    const filteredSchema = this.getFilteredModels(dataSchema, options?.models);
-
+    const filteredModels = this.getFilteredModels(dataSchema, options?.models);
+    const filteredSchema = this.transformModelListToMap(filteredModels);
+    const utilFile = this.generateUtilFile();
     const baseForms = this.generateBaseForms(filteredSchema);
-    return this.resultBuilder(
-      baseForms.reduce<Record<string, string>>((prev, formSchema) => {
+    const indexFile = this.generateIndexFile(
+      baseForms.map(({ name }) => ({
+        name,
+      }))
+    );
+    const forms = baseForms.reduce<Record<string, string>>(
+      (prev, formSchema) => {
         const result = this.codegenForm(dataSchema, formSchema);
         prev[result.fileName] = result.componentText;
         return prev;
-      }, {})
+      },
+      {}
     );
+    forms[utilFile.fileName] = utilFile.componentText;
+    forms[indexFile.fileName] = indexFile.componentText;
+    return this.resultBuilder(forms);
   };
 }
