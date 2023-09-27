@@ -5,15 +5,19 @@ import { BackendId, UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
  */
 abstract class UniqueBackendIdentifierBase implements UniqueBackendIdentifier {
   /**
-   * Disambiguator for the identifier
+   * UniqueBackendIdentifierBase
    */
-  public readonly disambiguator: string;
-
-  /**
-   * For Amplify branch environments, this is the Amplify app id
-   * For sandbox deployments, this is a concatenation of package.json#name and the current local username
-   */
-  constructor(public readonly backendId: BackendId) {}
+  constructor(
+    /**
+     * For Amplify branch environments, this is the Amplify app id
+     * For sandbox deployments, this is a concatenation of package.json#name and the current local username
+     */
+    public readonly backendId: BackendId,
+    /**
+     * Disambiguator for the identifier
+     */
+    public readonly disambiguator: string
+  ) {}
 }
 
 /**
@@ -23,14 +27,8 @@ export class BranchBackendIdentifier extends UniqueBackendIdentifierBase {
   /**
    * BranchBackendIdentifier
    */
-  constructor(
-    public readonly backendId: BackendId,
-    /**
-     * For amplify branch deployments, this is the branch name.
-     */
-    public readonly disambiguator: string
-  ) {
-    super(backendId);
+  constructor(public readonly backendId: BackendId, branchName: string) {
+    super(backendId, branchName);
   }
 }
 
@@ -39,14 +37,12 @@ export class BranchBackendIdentifier extends UniqueBackendIdentifierBase {
  */
 export class SandboxBackendIdentifier extends UniqueBackendIdentifierBase {
   /**
-   * For sandbox deployments, this is the string literal "sandbox"
-   */
-  public readonly disambiguator = 'sandbox';
-
-  /**
    * SandboxBackendIdentifier
    */
   constructor(public readonly backendId: BackendId) {
-    super(backendId);
+    /**
+     * For sandbox deployments, disambiguator is the string literal "sandbox"
+     */
+    super(backendId, 'sandbox');
   }
 }

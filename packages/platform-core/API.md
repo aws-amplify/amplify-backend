@@ -11,11 +11,9 @@ import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 //
 // @public
 export class BranchBackendIdentifier extends UniqueBackendIdentifierBase {
-    constructor(backendId: BackendId,
-    disambiguator: string);
+    constructor(backendId: BackendId, branchName: string);
     // (undocumented)
     readonly backendId: BackendId;
-    readonly disambiguator: string;
 }
 
 // @public
@@ -23,7 +21,6 @@ export class SandboxBackendIdentifier extends UniqueBackendIdentifierBase {
     constructor(backendId: BackendId);
     // (undocumented)
     readonly backendId: BackendId;
-    readonly disambiguator = "sandbox";
 }
 
 // (No @packageDocumentation comment for this package)
