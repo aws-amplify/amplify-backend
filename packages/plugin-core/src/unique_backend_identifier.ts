@@ -13,17 +13,15 @@ export type BackendId = AppId | SandboxId;
  */
 export abstract class UniqueBackendIdentifier {
   /**
+   * Disambiguator for the identifier
+   */
+  public readonly disambiguator: string;
+
+  /**
    * For Amplify branch environments, this is the Amplify app id
    * For sandbox deployments, this is a concatenation of package.json#name and the current local username
    */
   constructor(public readonly backendId: BackendId) {}
-
-  /**
-   * Disambiguator for the identifier
-   */
-  get disambiguator(): string {
-    throw new Error('Implement get disambiguator');
-  }
 }
 
 /**
@@ -35,15 +33,12 @@ export class BranchBackendIdentifier extends UniqueBackendIdentifier {
    */
   constructor(
     public readonly backendId: BackendId,
-    public readonly branchName: string
+    /**
+     * For amplify branch deployments, this is the branch name.
+     */
+    public readonly disambiguator: string
   ) {
     super(backendId);
-  }
-  /**
-   * For amplify branch deployments, this is the branch name.
-   */
-  get disambiguator() {
-    return this.branchName;
   }
 }
 
@@ -52,15 +47,14 @@ export class BranchBackendIdentifier extends UniqueBackendIdentifier {
  */
 export class SandboxBackendIdentifier extends UniqueBackendIdentifier {
   /**
+   * For sandbox deployments, this is the string literal "sandbox"
+   */
+  public readonly disambiguator = 'sandbox';
+
+  /**
    * SandboxBackendIdentifier
    */
   constructor(public readonly backendId: BackendId) {
     super(backendId);
-  }
-  /**
-   * For sandbox deployments, this is the string literal "sandbox"
-   */
-  get disambiguator() {
-    return 'sandbox';
   }
 }

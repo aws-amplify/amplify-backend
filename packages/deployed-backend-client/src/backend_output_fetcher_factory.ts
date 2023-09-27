@@ -19,7 +19,9 @@ import { StackMetadataBackendOutputRetrievalStrategy } from './stack_metadata_ou
 export const isUniqueBackendIdentifier = (
   backendIdentifier: BackendIdentifier
 ): backendIdentifier is UniqueBackendIdentifier => {
-  return 'backendId' in backendIdentifier && 'branchName' in backendIdentifier;
+  return (
+    'backendId' in backendIdentifier && 'disambiguator' in backendIdentifier
+  );
 };
 /**
  * Asserts that a BackendIdentifier is a AppNameAndBranchBackendIdentifier

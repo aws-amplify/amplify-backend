@@ -12,12 +12,11 @@ export type BackendId = AppId | SandboxId;
 
 // @public
 export class BranchBackendIdentifier extends UniqueBackendIdentifier {
-    constructor(backendId: BackendId, branchName: string);
+    constructor(backendId: BackendId,
+    disambiguator: string);
     // (undocumented)
     readonly backendId: BackendId;
-    // (undocumented)
-    readonly branchName: string;
-    get disambiguator(): string;
+    readonly disambiguator: string;
 }
 
 // @public
@@ -25,7 +24,7 @@ export class SandboxBackendIdentifier extends UniqueBackendIdentifier {
     constructor(backendId: BackendId);
     // (undocumented)
     readonly backendId: BackendId;
-    get disambiguator(): string;
+    readonly disambiguator = "sandbox";
 }
 
 // @public (undocumented)
@@ -36,8 +35,7 @@ export abstract class UniqueBackendIdentifier {
     constructor(backendId: BackendId);
     // (undocumented)
     readonly backendId: BackendId;
-    // (undocumented)
-    get disambiguator(): string;
+    readonly disambiguator: string;
 }
 
 // (No @packageDocumentation comment for this package)
