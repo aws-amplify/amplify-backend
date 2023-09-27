@@ -27,6 +27,6 @@
   "dependencies": {
     "@aws-amplify/backend-output-storage": "0.1.1-alpha.0",
     "@aws-amplify/backend-output-schemas": "^0.2.0-alpha.3",
-    "@aws-amplify/graphql-construct-alpha": "^0.6.2"
+    "@aws-amplify/graphql-construct-alpha": "^0.9.0"
   }
 }
