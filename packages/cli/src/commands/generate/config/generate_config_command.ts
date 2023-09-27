@@ -27,10 +27,6 @@ export class GenerateConfigCommand
    */
   readonly describe: string;
 
-  private readonly missingArgsError = new Error(
-    'Either --stack or --branch must be provided'
-  );
-
   /**
    * Creates client config generation command.
    */
@@ -100,7 +96,7 @@ export class GenerateConfigCommand
       })
       .check((argv) => {
         if (!argv.stack && !argv.branch) {
-          throw this.missingArgsError;
+          throw new Error('Either --stack or --branch must be provided');
         }
         return true;
       });

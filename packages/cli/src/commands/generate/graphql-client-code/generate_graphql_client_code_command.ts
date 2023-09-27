@@ -50,10 +50,6 @@ export class GenerateGraphqlClientCodeCommand
    */
   readonly describe: string;
 
-  private readonly missingArgsError = new Error(
-    'Either --stack or --branch must be provided'
-  );
-
   /**
    * Creates graphql client code generation command.
    */
@@ -284,7 +280,7 @@ export class GenerateGraphqlClientCodeCommand
       .showHidden('all')
       .check((argv) => {
         if (!argv.stack && !argv.branch) {
-          throw this.missingArgsError;
+          throw new Error('Either --stack or --branch must be provided');
         }
         return true;
       });
