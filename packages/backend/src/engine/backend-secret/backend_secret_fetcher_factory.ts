@@ -53,7 +53,7 @@ export class BackendSecretFetcherFactory {
       serviceToken: provider.serviceToken,
       properties: {
         backendId: backendIdentifier.backendId,
-        branchName: backendIdentifier.branchName,
+        branchName: backendIdentifier.disambiguator,
         secretName: secretName,
         secretVersion: secretVersion,
       },
