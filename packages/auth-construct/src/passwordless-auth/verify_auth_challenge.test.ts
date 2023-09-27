@@ -40,22 +40,22 @@ const buildEvent = (
   };
 };
 
-describe('verifyAuthChallenge', () => {
-  it('returns an error if for an unrecognized sign in method', async () => {
+void describe('verifyAuthChallenge', () => {
+  void it('returns an error if for an unrecognized sign in method', async () => {
     const event = buildEvent({ signInMethod: 'FOO' });
     const error = await verifyAuthChallenge(event).catch((error) => error);
     strictEqual(error.message, 'Unrecognized signInMethod: FOO');
   });
 
   // TODO: remove when magic link is implemented.
-  it('returns a not implemented exception when invoking magic link', async () => {
+  void it('returns a not implemented exception when invoking magic link', async () => {
     const event = buildEvent({ signInMethod: 'MAGIC_LINK' });
     const error = await verifyAuthChallenge(event).catch((error) => error);
     strictEqual(error.message, 'Magic Link not implemented.');
   });
 
   // TODO: remove when OTP is implemented.
-  it('returns a not implemented exception when invoking OTP', async () => {
+  void it('returns a not implemented exception when invoking OTP', async () => {
     const event = buildEvent({ signInMethod: 'OTP' });
     const error = await verifyAuthChallenge(event).catch((error) => error);
     strictEqual(error.message, 'OTP not implemented.');

@@ -1352,7 +1352,7 @@ void describe('Auth construct', () => {
     });
   });
 
-  describe('Passwordless', () => {
+  void describe('Passwordless', () => {
     const app = new App();
     const stack = new Stack(app);
     new AmplifyAuth(stack, 'test', {
@@ -1361,7 +1361,7 @@ void describe('Auth construct', () => {
     });
     const template = Template.fromStack(stack);
 
-    it('creates a UserPool with a Define Auth Challenge trigger', () => {
+    void it('creates a UserPool with a Define Auth Challenge trigger', () => {
       template.hasResourceProperties('AWS::Cognito::UserPool', {
         LambdaConfig: {
           DefineAuthChallenge: {
@@ -1374,7 +1374,7 @@ void describe('Auth construct', () => {
       });
     });
 
-    it('creates a UserPool with a Create Auth Challenge trigger', () => {
+    void it('creates a UserPool with a Create Auth Challenge trigger', () => {
       template.hasResourceProperties('AWS::Cognito::UserPool', {
         LambdaConfig: {
           CreateAuthChallenge: {
@@ -1387,7 +1387,7 @@ void describe('Auth construct', () => {
       });
     });
 
-    it('creates a UserPool with a Verify Challenge trigger', () => {
+    void it('creates a UserPool with a Verify Challenge trigger', () => {
       template.hasResourceProperties('AWS::Cognito::UserPool', {
         LambdaConfig: {
           VerifyAuthChallengeResponse: {

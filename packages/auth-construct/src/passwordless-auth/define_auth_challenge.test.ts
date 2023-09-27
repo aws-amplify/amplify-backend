@@ -44,15 +44,15 @@ const buildEvent = (
   };
 };
 
-describe('defineAuthChallenge', () => {
-  it('returns CUSTOM_CHALLENGE if no session currently exists', async () => {
+void describe('defineAuthChallenge', () => {
+  void it('returns CUSTOM_CHALLENGE if no session currently exists', async () => {
     const event = buildEvent();
     const updatedEvent = await defineAuthChallenge(event);
     strictEqual(updatedEvent.response.challengeName, 'CUSTOM_CHALLENGE');
     strictEqual(updatedEvent.response.failAuthentication, false);
   });
 
-  it('fails authentication if any previous sessions were not a custom challenge', async () => {
+  void it('fails authentication if any previous sessions were not a custom challenge', async () => {
     const event = buildEvent([srpSession]);
     const updatedEvent = await defineAuthChallenge(event);
     strictEqual(updatedEvent.response.failAuthentication, true);

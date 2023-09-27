@@ -69,8 +69,8 @@ const buildEvent = (
   };
 };
 
-describe('createAuthChallenge', () => {
-  it('returns PROVIDE_AUTH_PARAMETERS if auth params have not yet been provided', async () => {
+void describe('createAuthChallenge', () => {
+  void it('returns PROVIDE_AUTH_PARAMETERS if auth params have not yet been provided', async () => {
     const event = buildEvent();
     const updatedEvent = await createAuthChallenge(event);
     strictEqual(
@@ -79,21 +79,21 @@ describe('createAuthChallenge', () => {
     );
   });
 
-  it('returns an error for an unrecognized sign in method', async () => {
+  void it('returns an error for an unrecognized sign in method', async () => {
     const event = buildEvent([initialSession], { signInMethod: 'FOO' });
     const error = await createAuthChallenge(event).catch((error) => error);
     strictEqual(error.message, 'Unrecognized signInMethod: FOO');
   });
 
   // TODO: remove when magic link is implemented.
-  it('returns a not implemented exception when invoking magic link', async () => {
+  void it('returns a not implemented exception when invoking magic link', async () => {
     const event = buildEvent([initialSession], requestMagicLinkMetaData);
     const error = await createAuthChallenge(event).catch((error) => error);
     strictEqual(error.message, 'Magic Link not implemented.');
   });
 
   // TODO: remove when OTP is implemented.
-  it('returns a not implemented exception when invoking OTP', async () => {
+  void it('returns a not implemented exception when invoking OTP', async () => {
     const event = buildEvent([initialSession], requestOTPMetaData);
     const error = await createAuthChallenge(event).catch((error) => error);
     strictEqual(error.message, 'OTP not implemented.');

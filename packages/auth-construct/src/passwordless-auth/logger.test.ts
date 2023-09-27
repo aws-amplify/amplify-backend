@@ -2,101 +2,101 @@ import { after, beforeEach, describe, it } from 'node:test';
 import { strictEqual } from 'node:assert';
 import { LogLevel, Logger } from './logger.js';
 
-describe('Logger', () => {
+void describe('Logger', () => {
   let logger: Logger;
   let mockConsole: MockConsole;
   const oldConsole = console;
 
-  beforeEach(() => {
+  void beforeEach(() => {
     mockConsole = new MockConsole();
     // eslint-disable-next-line no-global-assign
     console = mockConsole;
   });
 
-  after(() => {
+  void after(() => {
     // eslint-disable-next-line no-global-assign
     console = oldConsole;
   });
 
-  describe('Log level ERROR', () => {
-    beforeEach(() => {
+  void describe('Log level ERROR', () => {
+    void beforeEach(() => {
       logger = new Logger(LogLevel.ERROR);
     });
 
-    it('Logger.error calls console.error', async () => {
+    void it('Logger.error calls console.error', async () => {
       logger.error('foo');
       strictEqual(mockConsole.errorCount, 1);
     });
 
-    it('Logger.info does not call console.info', async () => {
+    void it('Logger.info does not call console.info', async () => {
       logger.info('foo');
       strictEqual(mockConsole.infoCount, 0);
     });
 
-    it('Logger.debug does not call console.trace', async () => {
+    void it('Logger.debug does not call console.trace', async () => {
       logger.debug('foo');
       strictEqual(mockConsole.debugCount, 0);
     });
   });
 
-  describe('Log level INFO', () => {
-    beforeEach(() => {
+  void describe('Log level INFO', () => {
+    void beforeEach(() => {
       logger = new Logger(LogLevel.INFO);
     });
 
-    it('Logger.error calls console.error', async () => {
+    void it('Logger.error calls console.error', async () => {
       logger.error('foo');
       strictEqual(mockConsole.errorCount, 1);
     });
 
-    it('Logger.info calls console.info', async () => {
+    void it('Logger.info calls console.info', async () => {
       logger.info('foo');
       strictEqual(mockConsole.infoCount, 1);
     });
 
-    it('Logger.debug does not call console.trace', async () => {
+    void it('Logger.debug does not call console.trace', async () => {
       logger.debug('foo');
       strictEqual(mockConsole.debugCount, 0);
     });
   });
 
-  describe('Log level DEBUG', () => {
-    beforeEach(() => {
+  void describe('Log level DEBUG', () => {
+    void beforeEach(() => {
       logger = new Logger(LogLevel.DEBUG);
     });
 
-    it('Logger.error calls console.error', async () => {
+    void it('Logger.error calls console.error', async () => {
       logger.error('foo');
       strictEqual(mockConsole.errorCount, 1);
     });
 
-    it('Logger.info calls console.info', async () => {
+    void it('Logger.info calls console.info', async () => {
       logger.info('foo');
       strictEqual(mockConsole.infoCount, 1);
     });
 
-    it('Logger.debug calls console.trace', async () => {
+    void it('Logger.debug calls console.trace', async () => {
       logger.debug('foo');
       strictEqual(mockConsole.debugCount, 1);
     });
   });
 
-  describe('Log level NONE', () => {
-    beforeEach(() => {
+  void describe('Log level NONE', () => {
+    void beforeEach(() => {
       logger = new Logger(LogLevel.NONE);
     });
 
-    it('Logger.error does not call console.error', async () => {
+    void it('Logger.error does not call console.error', async () => {
       logger.error('foo');
       strictEqual(mockConsole.errorCount, 0);
     });
 
-    it('Logger.info does not call console.info', async () => {
+    void it('Logger.info does not call console.info', async () => {
       logger.info('foo');
       strictEqual(mockConsole.infoCount, 0);
     });
 
-    it('Logger.debug does not call console.trace', async () => {
+    void it('Logger.debug does not call console.trace', async () => {
       logger.debug('foo');
       strictEqual(mockConsole.debugCount, 0);
     });
