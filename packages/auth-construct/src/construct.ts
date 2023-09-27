@@ -38,6 +38,7 @@ import {
   AuthStandardAttribute,
 } from './attributes.js';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
+import { fileURLToPath } from 'node:url';
 
 type DefaultRoles = { auth: Role; unAuth: Role };
 type IdentityProviderSetupResult = {
@@ -338,7 +339,7 @@ export class AmplifyAuth
     const commonOptions: NodejsFunctionProps = {
       entry: new URL(
         './passwordless-auth/custom-auth/index.js',
-        import.meta.url
+        fileURLToPath(import.meta.url)
       ).pathname,
       runtime: Runtime.NODEJS_18_X,
       architecture: Architecture.ARM_64,
