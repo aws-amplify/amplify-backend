@@ -16,13 +16,13 @@ const uniqueBackendIdentifier: UniqueBackendIdentifier = {
   branchName,
 };
 
-describe('BackendSecret', () => {
+void describe('BackendSecret', () => {
   const providerFactory = new BackendSecretFetcherProviderFactory(
     getSecretClient()
   );
   const resourceFactory = new BackendSecretFetcherFactory(providerFactory);
 
-  it('resolves a secret', () => {
+  void it('resolves a secret', () => {
     const mockGetOrCreate = mock.method(resourceFactory, 'getOrCreate', () => {
       return {
         getAttString: (): string => testSecretValue,

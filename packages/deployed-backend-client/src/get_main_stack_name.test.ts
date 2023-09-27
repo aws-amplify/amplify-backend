@@ -9,8 +9,8 @@ import { readFileSync } from 'fs';
  * You probably shouldn't be changing this naming scheme.
  * This represents the glue between how the backend main stack is created and later identified
  */
-describe('getProjectEnvironmentMainStackSSMParameterKey', () => {
-  it('returns ssm key', () => {
+void describe('getProjectEnvironmentMainStackSSMParameterKey', () => {
+  void it('returns ssm key', () => {
     const result = getMainStackName({
       backendId: 'testBackendId',
       branchName: 'testBranchName',

@@ -36,7 +36,7 @@ mock.method(fs, 'lstatSync', (path: string) => {
   };
 });
 
-describe('Sandbox using local project name resolver', () => {
+void describe('Sandbox using local project name resolver', () => {
   // class under test
   let sandboxInstance: FileWatchingSandbox;
 
@@ -78,7 +78,7 @@ describe('Sandbox using local project name resolver', () => {
     await sandboxInstance.stop();
   });
 
-  it('calls CDK once when a file change is present', async () => {
+  void it('calls CDK once when a file change is present', async () => {
     await fileChangeEventActualFn(null, [
       { type: 'update', path: 'foo/test1.ts' },
     ]);
@@ -105,7 +105,7 @@ describe('Sandbox using local project name resolver', () => {
     ]);
   });
 
-  it('calls CDK once when multiple file changes are present', async () => {
+  void it('calls CDK once when multiple file changes are present', async () => {
     await fileChangeEventActualFn(null, [
       { type: 'update', path: 'foo/test2.ts' },
       { type: 'create', path: 'foo/test3.ts' },
@@ -113,7 +113,7 @@ describe('Sandbox using local project name resolver', () => {
     assert.strictEqual(execaDeployMock.mock.callCount(), 1);
   });
 
-  it('calls CDK once when multiple file changes are within few milliseconds (debounce)', async () => {
+  void it('calls CDK once when multiple file changes are within few milliseconds (debounce)', async () => {
     // Not awaiting for this file event to be processed and submitting another one right away
     fileChangeEventActualFn(null, [{ type: 'update', path: 'foo/test4.ts' }]);
     await fileChangeEventActualFn(null, [
@@ -122,7 +122,7 @@ describe('Sandbox using local project name resolver', () => {
     assert.strictEqual(execaDeployMock.mock.callCount(), 1);
   });
 
-  it('waits for file changes after completing a deployment and deploys again', async () => {
+  void it('waits for file changes after completing a deployment and deploys again', async () => {
     await fileChangeEventActualFn(null, [
       { type: 'update', path: 'foo/test5.ts' },
     ]);
@@ -132,7 +132,7 @@ describe('Sandbox using local project name resolver', () => {
     assert.strictEqual(execaDeployMock.mock.callCount(), 2);
   });
 
-  it('queues deployment if a file change is detected during an ongoing', async () => {
+  void it('queues deployment if a file change is detected during an ongoing', async () => {
     // Mimic cdk taking 200 ms.
     execaDeployMock.mock.mockImplementationOnce(async () => {
       await new Promise((resolve) => setTimeout(resolve, 200));
@@ -154,7 +154,7 @@ describe('Sandbox using local project name resolver', () => {
     assert.strictEqual(execaDeployMock.mock.callCount(), 2);
   });
 
-  it('calls CDK destroy when delete is called', async () => {
+  void it('calls CDK destroy when delete is called', async () => {
     await sandboxInstance.delete({});
 
     // CDK should be called once
@@ -169,7 +169,7 @@ describe('Sandbox using local project name resolver', () => {
     ]);
   });
 
-  it('handles error thrown by cdk and does not crash', async (contextual) => {
+  void it('handles error thrown by cdk and does not crash', async (contextual) => {
     const contextualExecaMock = contextual.mock.method(
       backendDeployer,
       'deploy',
@@ -191,7 +191,7 @@ describe('Sandbox using local project name resolver', () => {
   });
 });
 
-describe('Sandbox with user provided app name', () => {
+void describe('Sandbox with user provided app name', () => {
   // class under test
   let sandboxInstance: FileWatchingSandbox;
 
@@ -229,7 +229,7 @@ describe('Sandbox with user provided app name', () => {
     await sandboxInstance.stop();
   });
 
-  it('calls CDK once when a file change is present and user provided appName', async () => {
+  void it('calls CDK once when a file change is present and user provided appName', async () => {
     await fileChangeEventActualFn(null, [
       { type: 'update', path: 'foo/test1.ts' },
     ]);
@@ -256,7 +256,7 @@ describe('Sandbox with user provided app name', () => {
     ]);
   });
 
-  it('calls CDK destroy when delete is called with a user provided sandbox name', async () => {
+  void it('calls CDK destroy when delete is called with a user provided sandbox name', async () => {
     await sandboxInstance.delete({ name: 'customSandboxName' });
 
     // CDK should be called once
@@ -272,7 +272,7 @@ describe('Sandbox with user provided app name', () => {
   });
 });
 
-describe('Sandbox with absolute output path', () => {
+void describe('Sandbox with absolute output path', () => {
   // class under test
   let sandboxInstance: FileWatchingSandbox;
 
@@ -311,12 +311,12 @@ describe('Sandbox with absolute output path', () => {
     await sandboxInstance.stop();
   });
 
-  it('sets AWS profile when starting sandbox', async () => {
+  void it('sets AWS profile when starting sandbox', async () => {
     assert.strictEqual(process.env.AWS_PROFILE, 'amplify-sandbox');
   });
 });
 
-describe('Sandbox ignoring paths in .gitignore', () => {
+void describe('Sandbox ignoring paths in .gitignore', () => {
   // class under test
   let sandboxInstance: FileWatchingSandbox;
 
@@ -365,7 +365,7 @@ describe('Sandbox ignoring paths in .gitignore', () => {
     await sandboxInstance.stop();
   });
 
-  it('handles .gitignore files to exclude paths from file watching', async () => {
+  void it('handles .gitignore files to exclude paths from file watching', async () => {
     await fileChangeEventActualFn(null, [
       { type: 'update', path: 'foo/test1.ts' },
     ]);
@@ -388,7 +388,7 @@ describe('Sandbox ignoring paths in .gitignore', () => {
     // CDK should also be called once
     assert.strictEqual(execaDeployMock.mock.callCount(), 1);
   });
-  it('emits the successfulDeployment event after deployment', async () => {
+  void it('emits the successfulDeployment event after deployment', async () => {
     const mockListener = mock.fn();
     const mockDeploy = mock.fn();
     mockDeploy.mock.mockImplementation(async () => null);

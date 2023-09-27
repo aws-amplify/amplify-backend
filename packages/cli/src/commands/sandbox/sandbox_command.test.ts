@@ -12,18 +12,19 @@ import { createSandboxCommand } from './sandbox_command_factory.js';
 import { SandboxDeleteCommand } from './sandbox-delete/sandbox_delete_command.js';
 import { Sandbox, SandboxSingletonFactory } from '@aws-amplify/sandbox';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
+import { createSandboxSecretCommand } from './sandbox-secret/sandbox_secret_command_factory.js';
 
-describe('sandbox command factory', () => {
-  it('instantiate a sandbox command correctly', () => {
+void describe('sandbox command factory', () => {
+  void it('instantiate a sandbox command correctly', () => {
     assert.ok(createSandboxCommand() instanceof SandboxCommand);
   });
 });
 
-describe('sandbox command', () => {
+void describe('sandbox command', () => {
   let commandRunner: TestCommandRunner;
   let sandbox: Sandbox;
   let sandboxStartMock = mock.fn<typeof sandbox.start>();
-  let mockGenerate =
+  const mockGenerate =
     mock.fn<ClientConfigGeneratorAdapter['generateClientConfigToFile']>();
   const generationMock = mock.fn<EventHandler>();
 
@@ -38,7 +39,7 @@ describe('sandbox command', () => {
 
     const sandboxCommand = new SandboxCommand(
       sandboxFactory,
-      sandboxDeleteCommand,
+      [sandboxDeleteCommand, createSandboxSecretCommand()],
       () => ({
         successfulDeployment: [generationMock],
       })
@@ -49,20 +50,20 @@ describe('sandbox command', () => {
     mockGenerate.mock.resetCalls();
   });
 
-  it('registers a callback on the "successfulDeployment" event', async () => {
+  void it('registers a callback on the "successfulDeployment" event', async () => {
     const mockOn = mock.method(sandbox, 'on');
     await commandRunner.runCommand('sandbox');
     assert.equal(mockOn.mock.calls[0].arguments[0], 'successfulDeployment');
     assert.equal(mockOn.mock.calls[0].arguments[1], generationMock);
   });
 
-  it('starts sandbox without any additional flags', async () => {
+  void it('starts sandbox without any additional flags', async () => {
     await commandRunner.runCommand('sandbox');
     assert.equal(sandboxStartMock.mock.callCount(), 1);
     assert.ok(!sandboxStartMock.mock.calls[0].arguments[0].name);
   });
 
-  it('starts sandbox with user provided app name', async () => {
+  void it('starts sandbox with user provided app name', async () => {
     await commandRunner.runCommand('sandbox --name user-app-name');
     assert.equal(sandboxStartMock.mock.callCount(), 1);
     assert.deepStrictEqual(
@@ -71,16 +72,16 @@ describe('sandbox command', () => {
     );
   });
 
-  it('shows available options in help output', async () => {
+  void it('shows available options in help output', async () => {
     const output = await commandRunner.runCommand('sandbox --help');
     assert.match(output, /--name/);
     assert.match(output, /--dirToWatch/);
     assert.match(output, /--exclude/);
     assert.match(output, /--format/);
-    assert.match(output, /--out/);
+    assert.match(output, /--outDir/);
   });
 
-  it('fails if invalid dirToWatch is provided', async () => {
+  void it('fails if invalid dirToWatch is provided', async () => {
     await assert.rejects(
       () => commandRunner.runCommand('sandbox --dirToWatch nonExistentDir'),
       (err: TestCommandError) => {
@@ -95,7 +96,7 @@ describe('sandbox command', () => {
     );
   });
 
-  it('fails if a file is provided in the --dirToWatch flag', async (contextual) => {
+  void it('fails if a file is provided in the --dirToWatch flag', async (contextual) => {
     contextual.mock.method(fs, 'statSync', () => ({
       isDirectory: () => false,
     }));
@@ -116,7 +117,7 @@ describe('sandbox command', () => {
     );
   });
 
-  it('asks to delete the sandbox environment when users send ctrl-C and say yes to delete', async (contextual) => {
+  void it('asks to delete the sandbox environment when users send ctrl-C and say yes to delete', async (contextual) => {
     // Mock process and extract the sigint handler after calling the sandbox command
     const processSignal = contextual.mock.method(process, 'on', () => {
       /* no op */
@@ -151,7 +152,7 @@ describe('sandbox command', () => {
     assert.equal(sandboxDeleteMock.mock.callCount(), 1);
   });
 
-  it('asks to delete the sandbox environment when users send ctrl-C and say no to delete', async (contextual) => {
+  void it('asks to delete the sandbox environment when users send ctrl-C and say no to delete', async (contextual) => {
     // Mock process and extract the sigint handler after calling the sandbox command
     const processSignal = contextual.mock.method(process, 'on', () => {
       /* no op */
@@ -185,7 +186,7 @@ describe('sandbox command', () => {
     assert.equal(sandboxDeleteMock.mock.callCount(), 0);
   });
 
-  it('starts sandbox with user provided AWS profile', async () => {
+  void it('starts sandbox with user provided AWS profile', async () => {
     await commandRunner.runCommand('sandbox --profile amplify-sandbox');
     assert.equal(sandboxStartMock.mock.callCount(), 1);
     assert.deepStrictEqual(

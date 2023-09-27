@@ -11,7 +11,7 @@ import assert from 'node:assert';
 import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
 import { ClientConfigGeneratorAdapter } from '../../../client-config/client_config_generator_adapter.js';
 
-describe('generate config command', () => {
+void describe('generate config command', () => {
   const clientConfigGeneratorAdapter = new ClientConfigGeneratorAdapter(
     fromNodeProviderChain()
   );
@@ -38,7 +38,7 @@ describe('generate config command', () => {
     generateClientConfigMock.mock.resetCalls();
   });
 
-  it('generates and writes config for stack', async () => {
+  void it('generates and writes config for stack', async () => {
     await commandRunner.runCommand(
       'config --stack stack_name --outDir /foo/bar --format ts'
     );
@@ -57,7 +57,7 @@ describe('generate config command', () => {
     );
   });
 
-  it('generates and writes config for branch', async () => {
+  void it('generates and writes config for branch', async () => {
     await commandRunner.runCommand(
       'config --branch branch_name --outDir /foo/bar --format ts'
     );
@@ -80,7 +80,7 @@ describe('generate config command', () => {
     );
   });
 
-  it('generates and writes config for appID and branch', async () => {
+  void it('generates and writes config for appID and branch', async () => {
     await commandRunner.runCommand(
       'config --branch branch_name --appId app_id --outDir /foo/bar --format js'
     );
@@ -100,7 +100,7 @@ describe('generate config command', () => {
     );
   });
 
-  it('can generate to custom absolute path', async () => {
+  void it('can generate to custom absolute path', async () => {
     await commandRunner.runCommand(
       'config --stack stack_name --outDir /foo/bar --format ts'
     );
@@ -119,7 +119,7 @@ describe('generate config command', () => {
     );
   });
 
-  it('can generate to custom relative path', async () => {
+  void it('can generate to custom relative path', async () => {
     await commandRunner.runCommand(
       'config --stack stack_name --outDir foo/bar --format js'
     );
@@ -138,7 +138,7 @@ describe('generate config command', () => {
     );
   });
 
-  it('shows available options in help output', async () => {
+  void it('shows available options in help output', async () => {
     const output = await commandRunner.runCommand('config --help');
     assert.match(output, /--stack/);
     assert.match(output, /--appId/);
@@ -147,7 +147,7 @@ describe('generate config command', () => {
     assert.match(output, /--outDir/);
   });
 
-  it('fails if both stack and branch are present', async () => {
+  void it('fails if both stack and branch are present', async () => {
     await assert.rejects(
       () => commandRunner.runCommand('config --stack foo --branch baz'),
       (err: TestCommandError) => {

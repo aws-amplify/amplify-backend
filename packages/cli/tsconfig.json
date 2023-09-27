@@ -2,8 +2,12 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": { "rootDir": "src", "outDir": "lib" },
   "references": [
+    { "path": "../backend-output-schemas" },
+    { "path": "../backend-secret" },
     { "path": "../client-config" },
     { "path": "../deployed-backend-client" },
+    { "path": "../form-generator" },
+    { "path": "../model-generator" },
     { "path": "../sandbox" }
   ]
 }

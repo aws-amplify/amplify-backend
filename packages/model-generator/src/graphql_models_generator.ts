@@ -20,7 +20,17 @@ export class StackMetadataGraphqlModelsGenerator
     private resultBuilder: (fileMap: Record<string, string>) => GenerationResult
   ) {}
 
-  generateModels = async ({ target }: ModelsGenerationParameters) => {
+  generateModels = async ({
+    target,
+    generateIndexRules,
+    emitAuthProvider,
+    useExperimentalPipelinedTransformer,
+    transformerVersion,
+    respectPrimaryKeyAttributesOnConnectionField,
+    generateModelsForLazyLoadAndCustomSelectionSet,
+    addTimestampFields,
+    handleListNullabilityTransparently,
+  }: ModelsGenerationParameters) => {
     const schema = await this.fetchSchema();
 
     if (!schema) {
@@ -31,6 +41,14 @@ export class StackMetadataGraphqlModelsGenerator
       schema,
       target,
       directives: defaultDirectiveDefinitions,
+      generateIndexRules,
+      emitAuthProvider,
+      useExperimentalPipelinedTransformer,
+      transformerVersion,
+      respectPrimaryKeyAttributesOnConnectionField,
+      generateModelsForLazyLoadAndCustomSelectionSet,
+      addTimestampFields,
+      handleListNullabilityTransparently,
     });
 
     return this.resultBuilder(generatedModels);

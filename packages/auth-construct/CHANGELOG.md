@@ -1,5 +1,22 @@
 # @aws-amplify/auth-construct-alpha
 
+## 0.2.0-alpha.6
+
+### Patch Changes
+
+- a911292b: Change default behavior of user attributes to mutable.
+- f75fa531: Refactor OutputStorageStrategy into stateless shared dependency
+- Updated dependencies [ac3df080]
+- Updated dependencies [53779253]
+- Updated dependencies [1dada824]
+- Updated dependencies [407a09ff]
+- Updated dependencies [b4f82717]
+- Updated dependencies [05f97b26]
+- Updated dependencies [f75fa531]
+  - @aws-amplify/backend-output-schemas@0.2.0-alpha.3
+  - @aws-amplify/backend-output-storage@0.1.1-alpha.0
+  - @aws-amplify/plugin-types@0.1.1-alpha.5
+
 ## 0.2.0-alpha.5
 
 ### Minor Changes

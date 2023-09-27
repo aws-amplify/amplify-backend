@@ -3,8 +3,8 @@ import { InitialProjectFileGenerator } from './initial_project_file_generator.js
 import assert from 'assert';
 import * as path from 'path';
 
-describe('InitialProjectFileGenerator', () => {
-  it('creates target directory and copies files', async () => {
+void describe('InitialProjectFileGenerator', () => {
+  void it('creates target directory and copies files', async () => {
     const fsMock = {
       mkdir: mock.fn(),
       cp: mock.fn(),

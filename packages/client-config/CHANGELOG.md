@@ -1,5 +1,27 @@
 # @aws-amplify/client-config
 
+## 0.2.0-alpha.6
+
+### Minor Changes
+
+- b4f82717: Create a new deployed-backend-client package that provides a convenient interface for retrieving stack outputs
+- 05f97b26: Add AppSync outputs to client config
+- f75fa531: Refactor OutputStorageStrategy into stateless shared dependency
+
+### Patch Changes
+
+- 1dada824: chore: Update eslint config to new flat config type
+- 407a09ff: Implements backend secret feature, include backend secret resolver and the backend-secret pkg.
+- e0e1488b: fix config export lint error
+- Updated dependencies [ac3df080]
+- Updated dependencies [53779253]
+- Updated dependencies [1dada824]
+- Updated dependencies [b4f82717]
+- Updated dependencies [05f97b26]
+- Updated dependencies [f75fa531]
+  - @aws-amplify/backend-output-schemas@0.2.0-alpha.3
+  - @aws-amplify/deployed-backend-client@0.2.0-alpha.0
+
 ## 0.2.0-alpha.5
 
 ### Patch Changes

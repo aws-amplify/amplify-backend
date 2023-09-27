@@ -10,9 +10,9 @@ import {
 } from '@aws-amplify/backend-output-schemas';
 import { ClientConfig } from './client-config-types/client_config.js';
 
-describe('UnifiedClientConfigGenerator', () => {
-  describe('generateClientConfig', () => {
-    it('transforms backend output into client config', async () => {
+void describe('UnifiedClientConfigGenerator', () => {
+  void describe('generateClientConfig', () => {
+    void it('transforms backend output into client config', async () => {
       const stubOutput: UnifiedBackendOutput = {
         [authOutputKey]: {
           version: '1',

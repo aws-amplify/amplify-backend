@@ -15,10 +15,7 @@ export type SecretIdentifier = {
 /**
  * The secret object.
  */
-export type Secret = {
-  secretIdentifier: SecretIdentifier;
-  value: string;
-};
+export type Secret = SecretIdentifier & { value: string };
 
 /**
  * The client to manage backend secret.
@@ -30,7 +27,7 @@ export type SecretClient = {
   getSecret: (
     backendIdentifier: UniqueBackendIdentifier | BackendId,
     secretIdentifier: SecretIdentifier
-  ) => Promise<Secret | undefined>;
+  ) => Promise<Secret>;
 
   /**
    * List secrets.

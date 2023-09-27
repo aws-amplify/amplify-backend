@@ -18,11 +18,12 @@ export class ClientConfigWriter {
     switch (fileExtension) {
       case '.ts':
       case '.js': {
-        const fileContent = `export default ${JSON.stringify(
+        const fileContent = `const amplifyConfig = ${JSON.stringify(
           clientConfig,
           null,
           2
-        )}${os.EOL}`;
+        )}${os.EOL}export default amplifyConfig;${os.EOL}
+        `;
         await fsp.writeFile(targetPath, fileContent);
         break;
       }

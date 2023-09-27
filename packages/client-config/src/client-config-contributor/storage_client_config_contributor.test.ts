@@ -6,8 +6,8 @@ import {
   storageOutputKey,
 } from '@aws-amplify/backend-output-schemas';
 
-describe('StorageClientConfigContributor', () => {
-  it('returns an empty object if output has no storage output', () => {
+void describe('StorageClientConfigContributor', () => {
+  void it('returns an empty object if output has no storage output', () => {
     const contributor = new StorageClientConfigContributor();
     assert.deepStrictEqual(
       contributor.contribute({
@@ -26,7 +26,7 @@ describe('StorageClientConfigContributor', () => {
     );
   });
 
-  it('returns translated config when output has storage', () => {
+  void it('returns translated config when output has storage', () => {
     const contributor = new StorageClientConfigContributor();
     assert.deepStrictEqual(
       contributor.contribute({

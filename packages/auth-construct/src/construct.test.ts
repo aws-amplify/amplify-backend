@@ -95,8 +95,8 @@ const ExpectedSAMLIDPProperties = {
   ProviderName: samlProviderName,
   ProviderType: 'SAML',
 };
-describe('Auth construct', () => {
-  it('creates phone number login mechanism', () => {
+void describe('Auth construct', () => {
+  void it('creates phone number login mechanism', () => {
     const app = new App();
     const stack = new Stack(app);
     new AmplifyAuth(stack, 'test', { loginWith: { phoneNumber: true } });
@@ -107,7 +107,7 @@ describe('Auth construct', () => {
     });
   });
 
-  it('creates email login mechanism', () => {
+  void it('creates email login mechanism', () => {
     const app = new App();
     const stack = new Stack(app);
     new AmplifyAuth(stack, 'test', { loginWith: { email: true } });
@@ -118,7 +118,7 @@ describe('Auth construct', () => {
     });
   });
 
-  it('creates email login mechanism if settings is empty object', () => {
+  void it('creates email login mechanism if settings is empty object', () => {
     const app = new App();
     const stack = new Stack(app);
     new AmplifyAuth(stack, 'test', { loginWith: { email: {} } });
@@ -129,7 +129,7 @@ describe('Auth construct', () => {
     });
   });
 
-  it('creates phone login mechanism if settings is empty object', () => {
+  void it('creates phone login mechanism if settings is empty object', () => {
     const app = new App();
     const stack = new Stack(app);
     new AmplifyAuth(stack, 'test', { loginWith: { phoneNumber: {} } });
@@ -140,7 +140,7 @@ describe('Auth construct', () => {
     });
   });
 
-  it('creates email login mechanism with specific settings', () => {
+  void it('creates email login mechanism with specific settings', () => {
     const app = new App();
     const stack = new Stack(app);
     const customEmailVerificationMessage = 'custom email body {####}';
@@ -148,9 +148,9 @@ describe('Auth construct', () => {
     new AmplifyAuth(stack, 'test', {
       loginWith: {
         email: {
-          emailBody: customEmailVerificationMessage,
-          emailStyle: VerificationEmailStyle.CODE,
-          emailSubject: customEmailVerificationSubject,
+          verificationEmailBody: customEmailVerificationMessage,
+          verificationEmailStyle: VerificationEmailStyle.CODE,
+          verificationEmailSubject: customEmailVerificationSubject,
         },
       },
     });
@@ -167,7 +167,7 @@ describe('Auth construct', () => {
     });
   });
 
-  it('creates email login mechanism with MFA', () => {
+  void it('creates email login mechanism with MFA', () => {
     const app = new App();
     const stack = new Stack(app);
     const customEmailVerificationMessage = 'custom email body {####}';
@@ -177,9 +177,9 @@ describe('Auth construct', () => {
     new AmplifyAuth(stack, 'test', {
       loginWith: {
         email: {
-          emailBody: customEmailVerificationMessage,
-          emailStyle: VerificationEmailStyle.CODE,
-          emailSubject: customEmailVerificationSubject,
+          verificationEmailBody: customEmailVerificationMessage,
+          verificationEmailStyle: VerificationEmailStyle.CODE,
+          verificationEmailSubject: customEmailVerificationSubject,
         },
         phoneNumber: {
           verificationMessage: smsVerificationMessage,
@@ -209,7 +209,7 @@ describe('Auth construct', () => {
     });
   });
 
-  it('expect compile error if invalid email verification message for CODE', () => {
+  void it('expect compile error if invalid email verification message for CODE', () => {
     const customEmailVerificationMessage = 'invalid message without code';
     const validMessage = 'valid {####} email';
     const customEmailVerificationSubject = 'custom subject';
@@ -217,9 +217,9 @@ describe('Auth construct', () => {
       loginWith: {
         email: {
           // @ts-expect-error We know this is a compile error, but must have runtime validation as well.
-          emailBody: customEmailVerificationMessage,
-          emailStyle: VerificationEmailStyle.CODE,
-          emailSubject: customEmailVerificationSubject,
+          verificationEmailBody: customEmailVerificationMessage,
+          verificationEmailStyle: VerificationEmailStyle.CODE,
+          verificationEmailSubject: customEmailVerificationSubject,
         },
       },
     };
@@ -228,9 +228,9 @@ describe('Auth construct', () => {
     props = {
       loginWith: {
         email: {
-          emailBody: validMessage,
-          emailStyle: VerificationEmailStyle.CODE,
-          emailSubject: customEmailVerificationSubject,
+          verificationEmailBody: validMessage,
+          verificationEmailStyle: VerificationEmailStyle.CODE,
+          verificationEmailSubject: customEmailVerificationSubject,
         },
       },
     };
@@ -238,7 +238,7 @@ describe('Auth construct', () => {
     assert.notEqual(props, undefined);
   });
 
-  it('expect compile error if invalid email verification message for LINK', () => {
+  void it('expect compile error if invalid email verification message for LINK', () => {
     const customEmailVerificationMessage = 'invalid message without link';
     const validMessage = 'valid {##Verify Email##}';
     const customEmailVerificationSubject = 'custom subject';
@@ -246,9 +246,9 @@ describe('Auth construct', () => {
       loginWith: {
         email: {
           // @ts-expect-error We expect this to be a compile error
-          emailBody: customEmailVerificationMessage,
-          emailStyle: VerificationEmailStyle.LINK,
-          emailSubject: customEmailVerificationSubject,
+          verificationEmailBody: customEmailVerificationMessage,
+          verificationEmailStyle: VerificationEmailStyle.LINK,
+          verificationEmailSubject: customEmailVerificationSubject,
         },
       },
     };
@@ -257,9 +257,9 @@ describe('Auth construct', () => {
     props = {
       loginWith: {
         email: {
-          emailBody: validMessage,
-          emailStyle: VerificationEmailStyle.LINK,
-          emailSubject: customEmailVerificationSubject,
+          verificationEmailBody: validMessage,
+          verificationEmailStyle: VerificationEmailStyle.LINK,
+          verificationEmailSubject: customEmailVerificationSubject,
         },
       },
     };
@@ -267,7 +267,7 @@ describe('Auth construct', () => {
     assert.notEqual(props, undefined);
   });
 
-  it('does not throw if valid email verification message for LINK', () => {
+  void it('does not throw if valid email verification message for LINK', () => {
     const app = new App();
     const stack = new Stack(app);
     const customEmailVerificationMessage =
@@ -278,16 +278,16 @@ describe('Auth construct', () => {
         new AmplifyAuth(stack, 'test', {
           loginWith: {
             email: {
-              emailBody: customEmailVerificationMessage,
-              emailStyle: VerificationEmailStyle.LINK,
-              emailSubject: customEmailVerificationSubject,
+              verificationEmailBody: customEmailVerificationMessage,
+              verificationEmailStyle: VerificationEmailStyle.LINK,
+              verificationEmailSubject: customEmailVerificationSubject,
             },
           },
         })
     );
   });
 
-  it('expect compile error if invalid sms verification message', () => {
+  void it('expect compile error if invalid sms verification message', () => {
     const customSMSVerificationMessage = 'invalid message without code';
     const validSMSVerificationMessage = 'valid {####}';
     let props: AuthProps = {
@@ -311,7 +311,7 @@ describe('Auth construct', () => {
     assert.notEqual(props, undefined);
   });
 
-  it('requires email attribute if email is enabled', () => {
+  void it('requires email attribute if email is enabled', () => {
     const app = new App();
     const stack = new Stack(app);
     new AmplifyAuth(stack, 'test', { loginWith: { email: true } });
@@ -331,7 +331,7 @@ describe('Auth construct', () => {
     });
   });
 
-  it('sets account recovery settings ', () => {
+  void it('sets account recovery settings ', () => {
     const app = new App();
     const stack = new Stack(app);
     new AmplifyAuth(stack, 'test', {
@@ -355,7 +355,7 @@ describe('Auth construct', () => {
     });
   });
 
-  it('creates user attributes', () => {
+  void it('creates user attributes', () => {
     const app = new App();
     const stack = new Stack(app);
     new AmplifyAuth(stack, 'test', {
@@ -423,7 +423,7 @@ describe('Auth construct', () => {
     });
   });
 
-  it('throws if duplicate custom attributes are found', () => {
+  void it('throws if duplicate custom attributes are found', () => {
     const app = new App();
     const stack = new Stack(app);
     assert.throws(
@@ -441,7 +441,7 @@ describe('Auth construct', () => {
     );
   });
 
-  it('throws if duplicate user attributes are found', () => {
+  void it('throws if duplicate user attributes are found', () => {
     const app = new App();
     const stack = new Stack(app);
     assert.throws(
@@ -459,8 +459,8 @@ describe('Auth construct', () => {
     );
   });
 
-  describe('storeOutput', () => {
-    it('stores outputs in platform', () => {
+  void describe('storeOutput', () => {
+    void it('stores outputs in platform', () => {
       const app = new App();
       const stack = new Stack(app);
 
@@ -505,7 +505,7 @@ describe('Auth construct', () => {
       ]);
     });
 
-    it('stores output when no storage strategy is injected', () => {
+    void it('stores output when no storage strategy is injected', () => {
       const app = new App();
       const stack = new Stack(app);
 
@@ -532,8 +532,8 @@ describe('Auth construct', () => {
     });
   });
 
-  describe('defaults', () => {
-    it('creates email login by default', () => {
+  void describe('defaults', () => {
+    void it('creates email login by default', () => {
       const app = new App();
       const stack = new Stack(app);
       new AmplifyAuth(stack, 'test');
@@ -544,7 +544,7 @@ describe('Auth construct', () => {
       });
     });
 
-    it('creates the correct number of default resources', () => {
+    void it('creates the correct number of default resources', () => {
       const app = new App();
       const stack = new Stack(app);
       new AmplifyAuth(stack, 'test');
@@ -556,7 +556,7 @@ describe('Auth construct', () => {
       template.resourceCountIs('AWS::IAM::Role', 2);
     });
 
-    it('sets the case sensitivity to false', () => {
+    void it('sets the case sensitivity to false', () => {
       const app = new App();
       const stack = new Stack(app);
       new AmplifyAuth(stack, 'test');
@@ -568,7 +568,7 @@ describe('Auth construct', () => {
       });
     });
 
-    it('enables self signup', () => {
+    void it('enables self signup', () => {
       const app = new App();
       const stack = new Stack(app);
       new AmplifyAuth(stack, 'test');
@@ -580,7 +580,7 @@ describe('Auth construct', () => {
       });
     });
 
-    it('allows unauthenticated identities to the identity pool', () => {
+    void it('allows unauthenticated identities to the identity pool', () => {
       const app = new App();
       const stack = new Stack(app);
       new AmplifyAuth(stack, 'test');
@@ -590,7 +590,7 @@ describe('Auth construct', () => {
       });
     });
 
-    it('prevents user existence errors', () => {
+    void it('prevents user existence errors', () => {
       const app = new App();
       const stack = new Stack(app);
       new AmplifyAuth(stack, 'test');
@@ -600,7 +600,7 @@ describe('Auth construct', () => {
       });
     });
 
-    it('sets the default password policy', () => {
+    void it('sets the default password policy', () => {
       const app = new App();
       const stack = new Stack(app);
       new AmplifyAuth(stack, 'test');
@@ -618,7 +618,7 @@ describe('Auth construct', () => {
       });
     });
 
-    it('sets default account recovery settings', () => {
+    void it('sets default account recovery settings', () => {
       const app = new App();
       const stack = new Stack(app);
       new AmplifyAuth(stack, 'test');
@@ -635,7 +635,7 @@ describe('Auth construct', () => {
       });
     });
 
-    it('sets account recovery settings to phone if phone is the only login type', () => {
+    void it('sets account recovery settings to phone if phone is the only login type', () => {
       const app = new App();
       const stack = new Stack(app);
       new AmplifyAuth(stack, 'test', { loginWith: { phoneNumber: true } });
@@ -652,7 +652,7 @@ describe('Auth construct', () => {
       });
     });
 
-    it('sets account recovery settings to email if both phone and email enabled', () => {
+    void it('sets account recovery settings to email if both phone and email enabled', () => {
       const app = new App();
       const stack = new Stack(app);
       new AmplifyAuth(stack, 'test', {
@@ -671,7 +671,7 @@ describe('Auth construct', () => {
       });
     });
 
-    it('require verification of email before updating email', () => {
+    void it('require verification of email before updating email', () => {
       const app = new App();
       const stack = new Stack(app);
       new AmplifyAuth(stack, 'test');
@@ -683,7 +683,7 @@ describe('Auth construct', () => {
       });
     });
 
-    it('enables SRP and Custom auth flows', () => {
+    void it('enables SRP and Custom auth flows', () => {
       const app = new App();
       const stack = new Stack(app);
       new AmplifyAuth(stack, 'test');
@@ -697,7 +697,7 @@ describe('Auth construct', () => {
       });
     });
 
-    it('creates a default client with cognito provider', () => {
+    void it('creates a default client with cognito provider', () => {
       const app = new App();
       const stack = new Stack(app);
       new AmplifyAuth(stack, 'test');
@@ -708,8 +708,8 @@ describe('Auth construct', () => {
     });
   });
 
-  describe('Auth overrides', () => {
-    it('can override case sensitivity', () => {
+  void describe('Auth overrides', () => {
+    void it('can override case sensitivity', () => {
       const app = new App();
       const stack = new Stack(app);
       const auth = new AmplifyAuth(stack, 'test');
@@ -727,7 +727,7 @@ describe('Auth construct', () => {
         },
       });
     });
-    it('can override setting to keep original attributes until verified', () => {
+    void it('can override setting to keep original attributes until verified', () => {
       const app = new App();
       const stack = new Stack(app);
       const auth = new AmplifyAuth(stack, 'test', {
@@ -747,7 +747,7 @@ describe('Auth construct', () => {
         },
       });
     });
-    it('can override settings for device configuration', () => {
+    void it('can override settings for device configuration', () => {
       const app = new App();
       const stack = new Stack(app);
       const auth = new AmplifyAuth(stack, 'test', {
@@ -772,7 +772,7 @@ describe('Auth construct', () => {
         },
       });
     });
-    it('can override password policy', () => {
+    void it('can override password policy', () => {
       const app = new App();
       const stack = new Stack(app);
       const auth = new AmplifyAuth(stack, 'test');
@@ -812,7 +812,7 @@ describe('Auth construct', () => {
         },
       });
     });
-    it('can override user existence errors', () => {
+    void it('can override user existence errors', () => {
       const app = new App();
       const stack = new Stack(app);
       const auth = new AmplifyAuth(stack, 'test');
@@ -829,7 +829,7 @@ describe('Auth construct', () => {
         PreventUserExistenceErrors: 'LEGACY',
       });
     });
-    it('can override guest access setting', () => {
+    void it('can override guest access setting', () => {
       const app = new App();
       const stack = new Stack(app);
       const auth = new AmplifyAuth(stack, 'test');
@@ -842,7 +842,7 @@ describe('Auth construct', () => {
         AllowUnauthenticatedIdentities: false,
       });
     });
-    it('can override token validity period', () => {
+    void it('can override token validity period', () => {
       const app = new App();
       const stack = new Stack(app);
       const auth = new AmplifyAuth(stack, 'test');
@@ -858,8 +858,8 @@ describe('Auth construct', () => {
     });
   });
 
-  describe('Auth external login', () => {
-    it('supports google idp and email', () => {
+  void describe('Auth external login', () => {
+    void it('supports google idp and email', () => {
       const app = new App();
       const stack = new Stack(app);
       new AmplifyAuth(stack, 'test', {
@@ -889,7 +889,7 @@ describe('Auth construct', () => {
         },
       });
     });
-    it('supports google idp and phone', () => {
+    void it('supports google idp and phone', () => {
       const app = new App();
       const stack = new Stack(app);
       new AmplifyAuth(stack, 'test', {
@@ -919,7 +919,7 @@ describe('Auth construct', () => {
         },
       });
     });
-    it('supports facebook idp and email', () => {
+    void it('supports facebook idp and email', () => {
       const app = new App();
       const stack = new Stack(app);
       new AmplifyAuth(stack, 'test', {
@@ -948,7 +948,7 @@ describe('Auth construct', () => {
         },
       });
     });
-    it('supports facebook idp and phone', () => {
+    void it('supports facebook idp and phone', () => {
       const app = new App();
       const stack = new Stack(app);
       new AmplifyAuth(stack, 'test', {
@@ -977,7 +977,7 @@ describe('Auth construct', () => {
         },
       });
     });
-    it('supports apple idp and email', () => {
+    void it('supports apple idp and email', () => {
       const app = new App();
       const stack = new Stack(app);
       new AmplifyAuth(stack, 'test', {
@@ -1008,7 +1008,7 @@ describe('Auth construct', () => {
         },
       });
     });
-    it('supports apple idp and phone', () => {
+    void it('supports apple idp and phone', () => {
       const app = new App();
       const stack = new Stack(app);
       new AmplifyAuth(stack, 'test', {
@@ -1039,7 +1039,7 @@ describe('Auth construct', () => {
         },
       });
     });
-    it('supports amazon idp and email', () => {
+    void it('supports amazon idp and email', () => {
       const app = new App();
       const stack = new Stack(app);
       new AmplifyAuth(stack, 'test', {
@@ -1068,7 +1068,7 @@ describe('Auth construct', () => {
         },
       });
     });
-    it('supports amazon idp and phone', () => {
+    void it('supports amazon idp and phone', () => {
       const app = new App();
       const stack = new Stack(app);
       new AmplifyAuth(stack, 'test', {
@@ -1097,7 +1097,7 @@ describe('Auth construct', () => {
         },
       });
     });
-    it('supports oidc and email', () => {
+    void it('supports oidc and email', () => {
       const app = new App();
       const stack = new Stack(app);
       new AmplifyAuth(stack, 'test', {
@@ -1123,7 +1123,7 @@ describe('Auth construct', () => {
         ExpectedOidcIDPProperties
       );
     });
-    it('supports oidc and phone', () => {
+    void it('supports oidc and phone', () => {
       const app = new App();
       const stack = new Stack(app);
       new AmplifyAuth(stack, 'test', {
@@ -1149,7 +1149,7 @@ describe('Auth construct', () => {
         ExpectedOidcIDPProperties
       );
     });
-    it('supports saml and email', () => {
+    void it('supports saml and email', () => {
       const app = new App();
       const stack = new Stack(app);
       new AmplifyAuth(stack, 'test', {
@@ -1176,7 +1176,7 @@ describe('Auth construct', () => {
         ExpectedSAMLIDPProperties
       );
     });
-    it('supports saml and phone', () => {
+    void it('supports saml and phone', () => {
       const app = new App();
       const stack = new Stack(app);
       new AmplifyAuth(stack, 'test', {
@@ -1204,7 +1204,7 @@ describe('Auth construct', () => {
       );
     });
 
-    it('supports all idps and login methods', () => {
+    void it('supports all idps and login methods', () => {
       const app = new App();
       const stack = new Stack(app);
       new AmplifyAuth(stack, 'test', {
@@ -1287,8 +1287,8 @@ describe('Auth construct', () => {
     });
   });
 
-  describe('addTrigger', () => {
-    it('attaches lambda function to UserPool Lambda config', () => {
+  void describe('addTrigger', () => {
+    void it('attaches lambda function to UserPool Lambda config', () => {
       const app = new App();
       const stack = new Stack(app);
       const testFunc = new Function(stack, 'testFunc', {
@@ -1317,7 +1317,7 @@ describe('Auth construct', () => {
       });
     });
 
-    it('attaches AmplifyFunction to UserPool Lambda config', () => {
+    void it('attaches AmplifyFunction to UserPool Lambda config', () => {
       const app = new App();
       const stack = new Stack(app);
       const testFunc = new Function(stack, 'testFunc', {

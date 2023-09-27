@@ -11,6 +11,7 @@ import { CwdPackageJsonLoader } from '../../cwd_package_json_loader.js';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { LocalAppNameResolver } from '../../backend-identifier/local_app_name_resolver.js';
+import { createSandboxSecretCommand } from './sandbox-secret/sandbox_secret_command_factory.js';
 
 /**
  * Creates wired sandbox command.
@@ -40,7 +41,7 @@ export const createSandboxCommand = (): CommandModule<
       successfulDeployment: [
         async () => {
           const id = await getBackendIdentifier(appName);
-          clientConfigGeneratorAdapter.generateClientConfigToFile(
+          await clientConfigGeneratorAdapter.generateClientConfigToFile(
             id,
             outDir,
             format
@@ -51,7 +52,7 @@ export const createSandboxCommand = (): CommandModule<
   };
   return new SandboxCommand(
     sandboxFactory,
-    new SandboxDeleteCommand(sandboxFactory),
+    [new SandboxDeleteCommand(sandboxFactory), createSandboxSecretCommand()],
     sandboxEventHandlerCreator
   );
 };

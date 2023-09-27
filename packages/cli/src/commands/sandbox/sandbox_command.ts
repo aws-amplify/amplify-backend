@@ -1,5 +1,4 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
-import { SandboxDeleteCommand } from './sandbox-delete/sandbox_delete_command.js';
 import fs from 'fs';
 import { AmplifyPrompter } from '../prompter/amplify_prompts.js';
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
@@ -13,7 +12,7 @@ export type SandboxCommandOptions = {
   exclude: string[] | undefined;
   name: string | undefined;
   format: ClientConfigFormat | undefined;
-  out: string | undefined;
+  outDir: string | undefined;
   profile: string | undefined;
 };
 
@@ -56,7 +55,7 @@ export class SandboxCommand
    */
   constructor(
     private readonly sandboxFactory: SandboxSingletonFactory,
-    private readonly sandboxDeleteCommand: SandboxDeleteCommand,
+    private readonly sandboxSubCommands: CommandModule[],
     private readonly sandboxEventHandlerCreator?: SandboxEventHandlerCreator
   ) {
     this.command = 'sandbox';
@@ -74,7 +73,7 @@ export class SandboxCommand
     const eventHandlers = this.sandboxEventHandlerCreator?.({
       appName: args.name,
       format: args.format,
-      outDir: args.out,
+      outDir: args.outDir,
     });
     if (eventHandlers) {
       Object.entries(eventHandlers).forEach(([event, handlers]) => {
@@ -83,7 +82,7 @@ export class SandboxCommand
     }
     const watchExclusions = args.exclude ?? [];
     const clientConfigWritePath = await getClientConfigPath(
-      args.out,
+      args.outDir,
       args.format
     );
     watchExclusions.push(clientConfigWritePath);
@@ -103,7 +102,7 @@ export class SandboxCommand
     return (
       yargs
         // Cast to erase options types used in internal sub command implementation. Otherwise, compiler fails here.
-        .command(this.sandboxDeleteCommand as unknown as CommandModule)
+        .command(this.sandboxSubCommands)
         .option('dirToWatch', {
           describe:
             'Directory to watch for file changes. All subdirectories and files will be included. defaults to the current directory.',
@@ -128,7 +127,7 @@ export class SandboxCommand
           array: false,
           choices: Object.values(ClientConfigFormat),
         })
-        .option('out', {
+        .option('outDir', {
           describe:
             'A path to directory where config is written. If not provided defaults to current process working directory.',
           type: 'string',
