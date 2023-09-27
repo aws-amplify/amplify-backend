@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env node --no-warnings
 
 import { hideBin } from 'yargs/helpers';
 import * as process from 'process';

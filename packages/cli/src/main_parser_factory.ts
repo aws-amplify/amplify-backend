@@ -2,7 +2,7 @@ import yargs, { Argv } from 'yargs';
 import { createGenerateCommand } from './commands/generate/generate_command_factory.js';
 import { createSandboxCommand } from './commands/sandbox/sandbox_command_factory.js';
 import { createPipelineDeployCommand } from './commands/pipeline-deploy/pipeline_deploy_command_factory.js';
-import packageJson from '#package.json';
+import packageJson from '#package.json' assert { type: 'json' };
 
 /**
  * Creates main parser.
