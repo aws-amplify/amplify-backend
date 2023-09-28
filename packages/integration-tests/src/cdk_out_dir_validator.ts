@@ -3,8 +3,33 @@ import path from 'path';
 import assert from 'node:assert';
 import * as fse from 'fs-extra/esm';
 import * as fs from 'fs';
+import { ObjectPath, Predicate, assertCustomMatch } from './object_compare.js';
 
 const UPDATE_SNAPSHOTS = process.env.UPDATE_INTEGRATION_SNAPSHOTS === 'true';
+
+const matchHashedJsonFile: Predicate = (actual, expected) => {
+  const jsonFileHashRegex = /^\/[a-z0-9]{64}\.json$/;
+  return (
+    typeof actual === 'string' &&
+    jsonFileHashRegex.test(actual) &&
+    typeof expected === 'string' &&
+    jsonFileHashRegex.test(expected)
+  );
+};
+const customMatchers: Map<ObjectPath, Predicate> = new Map([
+  [
+    [
+      'Resources',
+      'data7552DF31',
+      'Properties',
+      'TemplateURL',
+      'Fn::Join',
+      1,
+      6,
+    ],
+    matchHashedJsonFile,
+  ],
+]);
 
 /**
  * Essentially a snapshot validator.
@@ -60,6 +85,6 @@ export const validateCdkOutDir = async (
     }
     const actualObj = JSON.parse(fs.readFileSync(actualFile, 'utf-8'));
     const expectedObj = JSON.parse(fs.readFileSync(expectedFile, 'utf-8'));
-    assert.deepStrictEqual(actualObj, expectedObj);
+    assertCustomMatch(actualObj, expectedObj, customMatchers);
   }
 };
