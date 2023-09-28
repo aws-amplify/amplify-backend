@@ -20,7 +20,7 @@ void describe('BackendIdentifierResolver', () => {
       await backendIdResolver.resolve({ appId: 'my-id', branch: 'my-branch' }),
       {
         backendId: 'my-id',
-        branchName: 'my-branch',
+        disambiguator: 'my-branch',
       }
     );
   });

@@ -5,8 +5,8 @@ import assert from 'node:assert';
 import { describe, it, mock } from 'node:test';
 import yargs, { CommandModule } from 'yargs';
 import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
+import { FormGenerationHandler } from '../../../form-generation/form_generation_handler.js';
 import { TestCommandRunner } from '../../../test-utils/command_runner.js';
-import { FormGenerationHandler } from './form_generation_handler.js';
 import { GenerateFormsCommand } from './generate_forms_command.js';
 
 void describe('generate forms command', () => {
