@@ -9,18 +9,16 @@ import { fileURLToPath } from 'url';
  * Creates main parser.
  */
 export const createMainParser = async (): Promise<Argv> => {
+  const packageDir = fileURLToPath(new URL('..', import.meta.url));
+  const { version } = await new PackageJsonFileLoader().loadPackageJson(
+    packageDir
+  );
   return yargs()
     .command(createGenerateCommand())
     .command(createSandboxCommand())
     .command(createPipelineDeployCommand())
     .help()
-    .version(
-      (
-        await new PackageJsonFileLoader().loadPackageJson(
-          fileURLToPath(new URL('..', import.meta.url))
-        )
-      ).version
-    )
+    .version(version)
     .demandCommand()
     .strictCommands()
     .recommendCommands();
