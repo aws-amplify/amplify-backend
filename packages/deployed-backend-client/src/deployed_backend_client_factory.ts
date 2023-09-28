@@ -38,7 +38,7 @@ export type BackendMetadata = {
 };
 
 export type ListSandboxesResponse = {
-  sandboxes: BackendMetadata[];
+  sandboxes: SandboxMetadata[];
   nextToken: string | undefined;
 };
 

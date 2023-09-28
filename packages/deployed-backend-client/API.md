@@ -103,7 +103,7 @@ export type ListSandboxesRequest = {
 
 // @public (undocumented)
 export type ListSandboxesResponse = {
-    sandboxes: BackendMetadata[];
+    sandboxes: SandboxMetadata[];
     nextToken: string | undefined;
 };
 
