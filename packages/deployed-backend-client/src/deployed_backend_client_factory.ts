@@ -29,6 +29,7 @@ export enum BackendDeploymentStatus {
   DEPLOYED = 'DEPLOYED',
   FAILED = 'FAILED',
   DEPLOYING = 'DEPLOYING',
+  UNKNOWN = 'UNKNOWN',
 }
 
 export enum BackendDeploymentType {

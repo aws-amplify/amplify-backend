@@ -22,7 +22,9 @@ export enum BackendDeploymentStatus {
     // (undocumented)
     DEPLOYING = "DEPLOYING",
     // (undocumented)
-    FAILED = "FAILED"
+    FAILED = "FAILED",
+    // (undocumented)
+    UNKNOWN = "UNKNOWN"
 }
 
 // @public (undocumented)
