@@ -4,7 +4,7 @@
 
 ```ts
 
-import { AmplifyGraphqlApi } from '@aws-amplify/graphql-construct-alpha';
+import { AmplifyGraphqlApi } from '@aws-amplify/graphql-api-construct';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
 
