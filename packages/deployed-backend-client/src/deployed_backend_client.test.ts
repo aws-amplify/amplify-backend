@@ -17,12 +17,7 @@ import {
   storageOutputKey,
 } from '@aws-amplify/backend-output-schemas';
 import { BackendOutput } from '@aws-amplify/plugin-types';
-import {
-  BackendOutputClientError,
-  BackendOutputClientErrorType,
-  BackendOutputClientFactory,
-  StackIdentifier,
-} from '@aws-amplify/deployed-backend-client';
+import { BackendOutputClientFactory } from '@aws-amplify/deployed-backend-client';
 import {
   BranchBackendIdentifier,
   SandboxBackendIdentifier,
@@ -198,25 +193,42 @@ void describe('Deployed Backend Client', () => {
     );
   });
   void it('listSandboxBackendMetadata', async () => {
-    getOutputMock.mock.mockImplementation(
-      (backendIdentifier: StackIdentifier) => {
-        if (!backendIdentifier.stackName.includes('-sandbox')) {
-          throw new BackendOutputClientError(
-            BackendOutputClientErrorType.METADATA_RETRIEVAL_ERROR,
-            'Not a sandbox'
-          );
-        }
-        return getOutputMockResponse;
-      }
-    );
     const sandboxes = await deployedBackendClient.listSandboxes();
-    assert.deepEqual(sandboxes, [
-      {
-        deploymentType: BackendDeploymentType.SANDBOX,
-        name: 'amplify-test-sandbox',
-        ...expectedMetadata,
-      },
-    ]);
+    assert.deepEqual(sandboxes, {
+      nextToken: undefined,
+      sandboxes: [
+        {
+          deploymentType: BackendDeploymentType.SANDBOX,
+          name: 'testStackName',
+          status: BackendDeploymentStatus.DEPLOYED,
+          lastUpdated: undefined,
+        },
+        {
+          deploymentType: BackendDeploymentType.SANDBOX,
+          name: 'amplify-test-sandbox',
+          status: BackendDeploymentStatus.DEPLOYED,
+          lastUpdated: undefined,
+        },
+        {
+          deploymentType: BackendDeploymentType.SANDBOX,
+          name: 'testStackName-auth',
+          status: BackendDeploymentStatus.DEPLOYED,
+          lastUpdated: undefined,
+        },
+        {
+          deploymentType: BackendDeploymentType.SANDBOX,
+          name: 'testStackName-storage',
+          status: BackendDeploymentStatus.DEPLOYING,
+          lastUpdated: undefined,
+        },
+        {
+          deploymentType: BackendDeploymentType.SANDBOX,
+          name: 'testStackName-api',
+          status: BackendDeploymentStatus.FAILED,
+          lastUpdated: undefined,
+        },
+      ],
+    });
   });
 
   void it('deletes a sandbox', async () => {
