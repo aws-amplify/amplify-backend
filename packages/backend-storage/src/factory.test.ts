@@ -66,7 +66,6 @@ void describe('AmplifyStorageFactory', () => {
     const outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry> =
       {
         addBackendOutputEntry: storeOutputMock,
-        flush: mock.fn(),
       };
 
     const importPathVerifier = new ToggleableImportPathVerifier(false);

@@ -63,8 +63,6 @@ export class Backend<T extends Record<string, ConstructFactory<Construct>>> {
         ) as any;
       }
     );
-
-    outputStorageStrategy.flush();
   }
 
   /**

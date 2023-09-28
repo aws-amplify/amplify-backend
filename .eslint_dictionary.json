@@ -46,6 +46,7 @@
   "lang",
   "lsof",
   "lstat",
+  "matchers",
   "mfas",
   "mkdtemp",
   "modelgen",
