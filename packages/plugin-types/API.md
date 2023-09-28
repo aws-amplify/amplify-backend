@@ -55,7 +55,6 @@ export type BackendOutputRetrievalStrategy = {
 // @public
 export type BackendOutputStorageStrategy<T extends BackendOutputEntry> = {
     addBackendOutputEntry: (keyName: string, backendOutputEntry: T) => void;
-    flush: () => void;
 };
 
 // @public
