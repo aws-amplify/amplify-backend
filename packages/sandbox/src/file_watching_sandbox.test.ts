@@ -56,7 +56,7 @@ mock.method(fs, 'lstatSync', (path: string) => {
   };
 });
 
-void describe('Sandbox to check if region is bootstrapped', (test) => {
+void describe('Sandbox to check if region is bootstrapped', () => {
   // class under test
   let sandboxInstance: FileWatchingSandbox;
 
