@@ -33,6 +33,6 @@ export class CfnTokenBackendSecret implements BackendSecret {
     );
 
     const val = secretResource.getAttString('secretValue');
-    return SecretValue.unsafePlainText(val);
+    return SecretValue.unsafePlainText(val); // safe since 'val' is a cdk token.
   };
 }

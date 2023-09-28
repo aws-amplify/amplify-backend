@@ -22,15 +22,13 @@ export type TriggerConfig = {
   >;
 };
 
-export type ReplacedLoginWithAuthProps = Omit<AuthProps, 'loginWith'> & {
-  loginWith: AuthLoginWithFactoryProps;
-};
-
 export type AmplifyAuthFactoryProps = Omit<
-  ReplacedLoginWithAuthProps,
-  'outputStorageStrategy'
+  AuthProps,
+  'outputStorageStrategy' | 'loginWith'
 > &
-  TriggerConfig;
+  TriggerConfig & {
+    loginWith: AuthLoginWithFactoryProps;
+  };
 
 /**
  * Singleton factory for AmplifyAuth that can be used in Amplify project files

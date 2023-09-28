@@ -36,7 +36,9 @@ export class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth & Resour
 }
 
 // @public (undocumented)
-export type AmplifyAuthFactoryProps = Omit<ReplacedLoginWithAuthProps, 'outputStorageStrategy'> & TriggerConfig;
+export type AmplifyAuthFactoryProps = Omit<AuthProps, 'outputStorageStrategy' | 'loginWith'> & TriggerConfig & {
+    loginWith: AuthLoginWithFactoryProps;
+};
 
 // @public
 export type AppleProviderFactoryProps = Omit<AppleProviderProps, 'privateKey'> & {
@@ -79,11 +81,6 @@ export type GoogleProviderFactoryProps = Omit<GoogleProviderProps, 'clientSecret
 // @public
 export type OidcProviderFactoryProps = Omit<OidcProviderProps, 'clientSecret'> & {
     clientSecret: BackendSecret;
-};
-
-// @public (undocumented)
-export type ReplacedLoginWithAuthProps = Omit<AuthProps, 'loginWith'> & {
-    loginWith: AuthLoginWithFactoryProps;
 };
 
 // @public (undocumented)
