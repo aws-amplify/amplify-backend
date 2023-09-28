@@ -2,7 +2,6 @@ import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import {
   CloudFormation,
-  CloudFormationClient,
   DeleteStackCommand,
   DescribeStacksCommand,
   ListStacksCommand,
@@ -11,8 +10,6 @@ import {
 import {
   BackendDeploymentStatus,
   BackendDeploymentType,
-  DeployedBackendClient,
-  DeployedBackendClientFactory,
 } from './deployed_backend_client_factory.js';
 import {
   authOutputKey,
