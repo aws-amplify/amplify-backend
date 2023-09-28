@@ -17,9 +17,10 @@ export class DataFactory implements ConstructFactory<AmplifyGraphqlApi> {
     getInstance: ({ constructContainer, outputStorageStrategy, importPathVerifier, }: ConstructFactoryGetInstanceProps) => AmplifyGraphqlApi;
 }
 
-// @public (undocumented)
+// @public
 export type DataProps = {
     schema: string;
+    name?: string;
 };
 
 // (No @packageDocumentation comment for this package)
