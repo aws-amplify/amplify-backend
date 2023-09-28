@@ -11,6 +11,10 @@ export type SandboxMetadata = {
   status: BackendDeploymentStatus;
 };
 
+export type ListSandboxesRequest = {
+  nextToken?: string;
+};
+
 export type BackendMetadata = {
   name: string;
   lastUpdated: Date | undefined;
@@ -37,6 +41,7 @@ export type ListSandboxesResponse = {
   sandboxes: BackendMetadata[];
   nextToken: string | undefined;
 };
+
 export enum BackendDeploymentStatus {
   DEPLOYED = 'DEPLOYED',
   FAILED = 'FAILED',
@@ -50,7 +55,9 @@ export enum BackendDeploymentType {
 }
 
 export type DeployedBackendClient = {
-  listSandboxes: (paginationToken?: string) => Promise<ListSandboxesResponse>;
+  listSandboxes: (
+    listSandboxesRequest?: ListSandboxesRequest
+  ) => Promise<ListSandboxesResponse>;
   deleteSandbox: (
     sandboxBackendIdentifier: SandboxBackendIdentifier
   ) => Promise<BackendMetadata>;
