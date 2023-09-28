@@ -86,7 +86,7 @@ export class BackendOutputClientFactory {
 
 // @public (undocumented)
 export type DeployedBackendClient = {
-    listSandboxes: (paginationToken?: string) => Promise<ListSandboxesResponse>;
+    listSandboxes: (listSandboxesRequest?: ListSandboxesRequest) => Promise<ListSandboxesResponse>;
     deleteSandbox: (sandboxBackendIdentifier: SandboxBackendIdentifier) => Promise<BackendMetadata>;
     getBackendMetadata: (backendIdentifier: UniqueBackendIdentifier) => Promise<BackendMetadata>;
 };
@@ -95,6 +95,11 @@ export type DeployedBackendClient = {
 export class DeployedBackendClientFactory {
     static getInstance: (credentials: AwsCredentialIdentityProvider) => DeployedBackendClient;
 }
+
+// @public (undocumented)
+export type ListSandboxesRequest = {
+    nextToken?: string;
+};
 
 // @public (undocumented)
 export type ListSandboxesResponse = {

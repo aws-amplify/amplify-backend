@@ -8,6 +8,7 @@ import {
   BackendDeploymentType,
   BackendMetadata,
   DeployedBackendClient,
+  ListSandboxesRequest,
   ListSandboxesResponse,
   SandboxMetadata,
 } from './deployed_backend_client_factory.js';
@@ -45,15 +46,16 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
    * Returns Amplify Sandboxes for the account. The number of sandboxes returned can vary
    */
   listSandboxes = async (
-    paginationToken?: string
+    listSandboxesRequest?: ListSandboxesRequest
   ): Promise<ListSandboxesResponse> => {
     const stackSummaries: StackSummary[] = [];
+    let nextToken = listSandboxesRequest?.nextToken;
 
     do {
-      const listStacksResponse = await this.listStacks(paginationToken);
+      const listStacksResponse = await this.listStacks(nextToken);
       stackSummaries.push(...listStacksResponse.stackSummaries);
-      paginationToken = listStacksResponse.nextToken;
-    } while (stackSummaries.length === 0 && paginationToken);
+      nextToken = listStacksResponse.nextToken;
+    } while (stackSummaries.length === 0 && nextToken);
 
     const stackMetadata: SandboxMetadata[] = stackSummaries
       .map((stackSummary: StackSummary) => {
@@ -71,7 +73,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
 
     return {
       sandboxes: stackMetadata,
-      nextToken: paginationToken,
+      nextToken,
     };
   };
 
