@@ -7,7 +7,7 @@ import {
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
 import { SandboxDeleteCommand } from './sandbox-delete/sandbox_delete_command.js';
 import { SandboxIdResolver } from './sandbox_id_resolver.js';
-import { PackageJsonFileLoader } from '../../package_json_loader.js';
+import { CwdPackageJsonLoader } from '../../cwd_package_json_loader.js';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { LocalAppNameResolver } from '../../backend-identifier/local_app_name_resolver.js';
@@ -26,7 +26,7 @@ export const createSandboxCommand = (): CommandModule<
 > => {
   const credentialProvider = fromNodeProviderChain();
   const sandboxIdResolver = new SandboxIdResolver(
-    new LocalAppNameResolver(new PackageJsonFileLoader())
+    new LocalAppNameResolver(new CwdPackageJsonLoader())
   );
   const sandboxFactory = new SandboxSingletonFactory(sandboxIdResolver.resolve);
   const clientConfigGeneratorAdapter = new ClientConfigGeneratorAdapter(
