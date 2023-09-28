@@ -5,12 +5,11 @@ import { BackendSecretFetcherFactory } from './backend_secret_fetcher_factory.js
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import { App, Stack } from 'aws-cdk-lib';
 import assert from 'node:assert';
+import { BranchBackendIdentifier } from '@aws-amplify/platform-core';
 
 void describe('DefaultBackendSecretResolver', () => {
-  const testBackendIdentifier: UniqueBackendIdentifier = {
-    backendId: 'testBackendId',
-    branchName: 'testBranchName',
-  };
+  const testBackendIdentifier: UniqueBackendIdentifier =
+    new BranchBackendIdentifier('testBackendId', 'testBranchName');
   const app = new App();
   const stack = new Stack(app);
 

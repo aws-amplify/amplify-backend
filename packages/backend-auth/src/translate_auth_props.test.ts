@@ -14,6 +14,7 @@ import {
 import { SecretValue } from 'aws-cdk-lib';
 import assert from 'node:assert';
 import { translateToAuthConstructLoginWith } from './translate_auth_props.js';
+import { BranchBackendIdentifier } from '@aws-amplify/platform-core';
 
 const phoneNumber: PhoneNumberLogin = {
   verificationMessage: 'text{####}text2',
@@ -33,10 +34,9 @@ const appleKeyId = 'appleKeyId';
 const applePrivateKey = 'applePrivateKey';
 const callbackUrls = ['a', 'b'];
 
-const backendIdentifier: UniqueBackendIdentifier = {
-  backendId: 'testBackendId',
-  branchName: 'testBranchName',
-};
+const testBackendIdentifier: UniqueBackendIdentifier =
+  new BranchBackendIdentifier('testBackendId', 'testBranchName');
+
 const testStack = {} as Construct;
 
 class TestBackendSecret implements BackendSecret {
@@ -48,7 +48,7 @@ class TestBackendSecret implements BackendSecret {
 
 class TestBackendSecretResolver implements BackendSecretResolver {
   resolveSecret = (backendSecret: BackendSecret): SecretValue => {
-    return backendSecret.resolve(testStack, backendIdentifier);
+    return backendSecret.resolve(testStack, testBackendIdentifier);
   };
 }
 
