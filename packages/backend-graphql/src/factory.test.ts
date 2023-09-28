@@ -16,7 +16,6 @@ import {
   ConstructFactoryGetInstanceProps,
   ImportPathVerifier,
   ResourceProvider,
-  UniqueBackendIdentifier,
 } from '@aws-amplify/plugin-types';
 import { Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import {
@@ -37,6 +36,14 @@ const testSchema = `
   }
 `;
 
+const createStackAndSetContext = (): Stack => {
+  const app = new App();
+  app.node.setContext('branch-name', 'testEnvName');
+  app.node.setContext('backend-id', 'testBackendId');
+  const stack = new Stack(app);
+  return stack;
+};
+
 void describe('DataFactory', () => {
   let stack: Stack;
   let constructContainer: ConstructContainer;
@@ -44,16 +51,10 @@ void describe('DataFactory', () => {
   let importPathVerifier: ImportPathVerifier;
   let dataFactory: DataFactory;
   let getInstanceProps: ConstructFactoryGetInstanceProps;
-  const backendIdentifier: UniqueBackendIdentifier = {
-    backendId: 'testBackendId',
-    branchName: 'testBranchName',
-  };
 
   beforeEach(() => {
     dataFactory = new DataFactory({ schema: testSchema });
-
-    const app = new App();
-    stack = new Stack(app);
+    stack = createStackAndSetContext();
 
     constructContainer = new SingletonConstructContainer(
       new NestedStackResolver(stack)
@@ -95,7 +96,6 @@ void describe('DataFactory', () => {
       constructContainer,
       outputStorageStrategy,
       importPathVerifier,
-      backendIdentifier,
     };
   });
 

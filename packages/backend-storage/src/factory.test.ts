@@ -14,9 +14,16 @@ import {
   ConstructContainer,
   ConstructFactoryGetInstanceProps,
   ImportPathVerifier,
-  UniqueBackendIdentifier,
 } from '@aws-amplify/plugin-types';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
+
+const createStackAndSetContext = (): Stack => {
+  const app = new App();
+  app.node.setContext('branch-name', 'testEnvName');
+  app.node.setContext('backend-id', 'testBackendId');
+  const stack = new Stack(app);
+  return stack;
+};
 
 void describe('AmplifyStorageFactory', () => {
   let storageFactory: AmplifyStorageFactory;
@@ -24,16 +31,10 @@ void describe('AmplifyStorageFactory', () => {
   let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
   let importPathVerifier: ImportPathVerifier;
   let getInstanceProps: ConstructFactoryGetInstanceProps;
-  const backendIdentifier: UniqueBackendIdentifier = {
-    backendId: 'testBackendId',
-    branchName: 'testBranchName',
-  };
 
   beforeEach(() => {
     storageFactory = new AmplifyStorageFactory({});
-
-    const app = new App();
-    const stack = new Stack(app);
+    const stack = createStackAndSetContext();
 
     constructContainer = new SingletonConstructContainer(
       new NestedStackResolver(stack)
@@ -49,7 +50,6 @@ void describe('AmplifyStorageFactory', () => {
       constructContainer,
       outputStorageStrategy,
       importPathVerifier,
-      backendIdentifier,
     };
   });
   void it('returns singleton instance', () => {
@@ -82,7 +82,6 @@ void describe('AmplifyStorageFactory', () => {
       outputStorageStrategy,
       constructContainer,
       importPathVerifier,
-      backendIdentifier,
     });
 
     assert.strictEqual(storeOutputMock.mock.callCount(), 1);

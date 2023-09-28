@@ -57,7 +57,7 @@ export type MFA =
 /**
  * Google provider.
  */
-export type GoogleProvider = Omit<
+export type GoogleProviderProps = Omit<
   cognito.UserPoolIdentityProviderGoogleProps,
   'userPool'
 >;
@@ -65,7 +65,7 @@ export type GoogleProvider = Omit<
 /**
  * Apple provider.
  */
-export type AppleProvider = Omit<
+export type AppleProviderProps = Omit<
   cognito.UserPoolIdentityProviderAppleProps,
   'userPool'
 >;
@@ -73,7 +73,7 @@ export type AppleProvider = Omit<
 /**
  * Amazon provider.
  */
-export type AmazonProvider = Omit<
+export type AmazonProviderProps = Omit<
   cognito.UserPoolIdentityProviderAmazonProps,
   'userPool'
 >;
@@ -81,7 +81,7 @@ export type AmazonProvider = Omit<
 /**
  * Facebook provider.
  */
-export type FacebookProvider = Omit<
+export type FacebookProviderProps = Omit<
   cognito.UserPoolIdentityProviderFacebookProps,
   'userPool'
 >;
@@ -89,7 +89,7 @@ export type FacebookProvider = Omit<
 /**
  * OIDC provider.
  */
-export type OidcProvider = Omit<
+export type OidcProviderProps = Omit<
   cognito.UserPoolIdentityProviderOidcProps,
   'userPool'
 >;
@@ -97,21 +97,21 @@ export type OidcProvider = Omit<
 /**
  * SAML provider.
  */
-export type SamlProvider = Omit<
+export type SamlProviderProps = Omit<
   cognito.UserPoolIdentityProviderSamlProps,
   'userPool'
 >;
 
 /**
- * External provider group.
+ * External provider options.
  */
-export type ExternalProviderGroup = {
-  google?: GoogleProvider;
-  facebook?: FacebookProvider;
-  amazon?: AmazonProvider;
-  apple?: AppleProvider;
-  oidc?: OidcProvider;
-  saml?: SamlProvider;
+export type ExternalProviderOptions = {
+  google?: GoogleProviderProps;
+  facebook?: FacebookProviderProps;
+  amazon?: AmazonProviderProps;
+  apple?: AppleProviderProps;
+  oidc?: OidcProviderProps;
+  saml?: SamlProviderProps;
   // general configuration
   scopes?: cognito.OAuthScope[];
   callbackUrls?: string[];
@@ -119,10 +119,10 @@ export type ExternalProviderGroup = {
 };
 
 /**
- * External auth provider options
+ * External auth provider.
  */
-export type ExternalProviders = {
-  externalProviders?: ExternalProviderGroup;
+export type ExternalProviderProps = {
+  externalProviders?: ExternalProviderOptions;
 };
 
 /**
@@ -134,7 +134,7 @@ export type TriggerEvent = (typeof triggerEvents)[number];
  * Input props for the AmplifyAuth construct
  */
 export type AuthProps = {
-  loginWith: BasicLoginOptions & ExternalProviders;
+  loginWith: BasicLoginOptions & ExternalProviderProps;
   /**
    * Additional settings
    */

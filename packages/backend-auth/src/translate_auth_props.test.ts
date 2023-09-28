@@ -1,27 +1,19 @@
 import {
   BackendSecret,
+  BackendSecretResolver,
   UniqueBackendIdentifier,
 } from '@aws-amplify/plugin-types';
 import { describe, it } from 'node:test';
-import {
-  AuthFactoryLoginWith,
-  translateToAuthConstructLoginWith,
-} from './types.js';
+import { AuthLoginWithFactoryProps } from './types.js';
 import { Construct } from 'constructs';
 import {
   BasicLoginOptions,
-  ExternalProviders,
+  ExternalProviderProps,
   PhoneNumberLogin,
 } from '@aws-amplify/auth-construct-alpha';
 import { SecretValue } from 'aws-cdk-lib';
 import assert from 'node:assert';
-
-class TestBackendSecret implements BackendSecret {
-  constructor(private readonly secretName: string) {}
-  resolve = (): string => {
-    return this.secretName;
-  };
-}
+import { translateToAuthConstructLoginWith } from './translate_auth_props.js';
 
 const phoneNumber: PhoneNumberLogin = {
   verificationMessage: 'text{####}text2',
@@ -41,15 +33,30 @@ const appleKeyId = 'appleKeyId';
 const applePrivateKey = 'applePrivateKey';
 const callbackUrls = ['a', 'b'];
 
-void describe('translateToAuthConstructLoginWith', () => {
-  const testStack = {} as Construct;
-  const backendIdentifier: UniqueBackendIdentifier = {
-    backendId: 'testBackendId',
-    branchName: 'testBranchName',
+const backendIdentifier: UniqueBackendIdentifier = {
+  backendId: 'testBackendId',
+  branchName: 'testBranchName',
+};
+const testStack = {} as Construct;
+
+class TestBackendSecret implements BackendSecret {
+  constructor(private readonly secretName: string) {}
+  resolve = (): SecretValue => {
+    return SecretValue.unsafePlainText(this.secretName);
   };
+}
+
+class TestBackendSecretResolver implements BackendSecretResolver {
+  resolveSecret = (backendSecret: BackendSecret): SecretValue => {
+    return backendSecret.resolve(testStack, backendIdentifier);
+  };
+}
+
+void describe('translateToAuthConstructLoginWith', () => {
+  const backendResolver = new TestBackendSecretResolver();
 
   void it('translates with external providers', () => {
-    const loginWith: AuthFactoryLoginWith = {
+    const loginWith: AuthLoginWithFactoryProps = {
       phoneNumber,
       externalProviders: {
         google: {
@@ -80,12 +87,11 @@ void describe('translateToAuthConstructLoginWith', () => {
     };
 
     const translated = translateToAuthConstructLoginWith(
-      testStack,
-      backendIdentifier,
-      loginWith
+      loginWith,
+      backendResolver
     );
 
-    const expected: BasicLoginOptions & ExternalProviders = {
+    const expected: BasicLoginOptions & ExternalProviderProps = {
       phoneNumber,
       externalProviders: {
         google: {
@@ -118,7 +124,7 @@ void describe('translateToAuthConstructLoginWith', () => {
   });
 
   void it('translates with only a general provider attribute', () => {
-    const loginWith: AuthFactoryLoginWith = {
+    const loginWith: AuthLoginWithFactoryProps = {
       phoneNumber,
       externalProviders: {
         callbackUrls: callbackUrls,
@@ -126,12 +132,11 @@ void describe('translateToAuthConstructLoginWith', () => {
     };
 
     const translated = translateToAuthConstructLoginWith(
-      testStack,
-      backendIdentifier,
-      loginWith
+      loginWith,
+      backendResolver
     );
 
-    const expected: BasicLoginOptions & ExternalProviders = {
+    const expected: BasicLoginOptions & ExternalProviderProps = {
       phoneNumber,
       externalProviders: {
         callbackUrls: callbackUrls,
@@ -141,17 +146,16 @@ void describe('translateToAuthConstructLoginWith', () => {
   });
 
   void it('translates without external providers', () => {
-    const loginWith: AuthFactoryLoginWith = {
+    const loginWith: AuthLoginWithFactoryProps = {
       phoneNumber,
     };
 
     const translated = translateToAuthConstructLoginWith(
-      testStack,
-      backendIdentifier,
-      loginWith
+      loginWith,
+      backendResolver
     );
 
-    const expected: BasicLoginOptions & ExternalProviders = {
+    const expected: BasicLoginOptions & ExternalProviderProps = {
       phoneNumber,
     };
     assert.deepStrictEqual(translated, expected);

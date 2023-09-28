@@ -5,25 +5,25 @@ import {
   NestedStackResolver,
   SingletonConstructContainer,
 } from '@aws-amplify/backend/test-utils';
-import {
-  ConstructFactoryGetInstanceProps,
-  UniqueBackendIdentifier,
-} from '@aws-amplify/plugin-types';
+import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
 import assert from 'node:assert';
 import { fileURLToPath } from 'url';
 import * as path from 'path';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 
+const createStackAndSetContext = (): Stack => {
+  const app = new App();
+  app.node.setContext('branch-name', 'testEnvName');
+  app.node.setContext('backend-id', 'testBackendId');
+  const stack = new Stack(app);
+  return stack;
+};
+
 void describe('AmplifyFunctionFactory', () => {
   let getInstanceProps: ConstructFactoryGetInstanceProps;
-  const backendIdentifier: UniqueBackendIdentifier = {
-    backendId: 'testBackendId',
-    branchName: 'testBranchName',
-  };
 
   beforeEach(() => {
-    const app = new App();
-    const stack = new Stack(app, 'testStack');
+    const stack = createStackAndSetContext();
 
     const constructContainer = new SingletonConstructContainer(
       new NestedStackResolver(stack)
@@ -36,7 +36,6 @@ void describe('AmplifyFunctionFactory', () => {
     getInstanceProps = {
       constructContainer,
       outputStorageStrategy,
-      backendIdentifier,
     };
   });
 

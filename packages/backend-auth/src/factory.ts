@@ -6,17 +6,15 @@ import {
 import { Construct } from 'constructs';
 import {
   AuthResources,
+  BackendSecretResolver,
   ConstructContainerEntryGenerator,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
   FunctionResources,
   ResourceProvider,
-  UniqueBackendIdentifier,
 } from '@aws-amplify/plugin-types';
-import {
-  AuthFactoryLoginWith,
-  translateToAuthConstructLoginWith,
-} from './types.js';
+import { AuthLoginWithFactoryProps } from './types.js';
+import { translateToAuthConstructLoginWith } from './translate_auth_props.js';
 
 export type TriggerConfig = {
   triggers?: Partial<
@@ -25,7 +23,7 @@ export type TriggerConfig = {
 };
 
 export type ReplacedLoginWithAuthProps = Omit<AuthProps, 'loginWith'> & {
-  loginWith: AuthFactoryLoginWith;
+  loginWith: AuthLoginWithFactoryProps;
 };
 
 export type AmplifyAuthFactoryProps = Omit<
@@ -58,19 +56,14 @@ export class AmplifyAuthFactory
   getInstance = (
     getInstanceProps: ConstructFactoryGetInstanceProps
   ): AmplifyAuth => {
-    const { constructContainer, importPathVerifier, backendIdentifier } =
-      getInstanceProps;
+    const { constructContainer, importPathVerifier } = getInstanceProps;
     importPathVerifier?.verify(
       this.importStack,
       'auth',
       'Amplify Auth must be defined in an "auth.ts" file'
     );
     if (!this.generator) {
-      this.generator = new AmplifyAuthGenerator(
-        this.props,
-        getInstanceProps,
-        backendIdentifier
-      );
+      this.generator = new AmplifyAuthGenerator(this.props, getInstanceProps);
     }
     return constructContainer.getOrCompute(this.generator) as AmplifyAuth;
   };
@@ -82,17 +75,18 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
 
   constructor(
     private readonly props: AmplifyAuthFactoryProps,
-    private readonly getInstanceProps: ConstructFactoryGetInstanceProps,
-    private readonly backendIdentifier: UniqueBackendIdentifier
+    private readonly getInstanceProps: ConstructFactoryGetInstanceProps
   ) {}
 
-  generateContainerEntry = (scope: Construct) => {
+  generateContainerEntry = (
+    scope: Construct,
+    backendSecretResolver: BackendSecretResolver
+  ) => {
     const authProps: AuthProps = {
       ...this.props,
       loginWith: translateToAuthConstructLoginWith(
-        scope,
-        this.backendIdentifier,
-        this.props.loginWith
+        this.props.loginWith,
+        backendSecretResolver
       ),
       outputStorageStrategy: this.getInstanceProps.outputStorageStrategy,
     };

@@ -9,7 +9,6 @@ import { SingletonConstructContainer } from './engine/singleton_construct_contai
 import { ToggleableImportPathVerifier } from './engine/toggleable_import_path_verifier.js';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 import { createDefaultStack } from './default_stack_factory.js';
-import { getUniqueBackendIdentifier } from './backend_identifier.js';
 
 /**
  * Class that collects and instantiates all the Amplify backend constructs
@@ -39,7 +38,6 @@ export class Backend<T extends Record<string, ConstructFactory<Construct>>> {
     );
 
     const importPathVerifier = new ToggleableImportPathVerifier();
-    const backendIdentifier = getUniqueBackendIdentifier(stack);
 
     // register providers but don't actually execute anything yet
     Object.values(constructFactories).forEach((factory) => {
@@ -60,7 +58,6 @@ export class Backend<T extends Record<string, ConstructFactory<Construct>>> {
             constructContainer,
             outputStorageStrategy,
             importPathVerifier,
-            backendIdentifier,
           }
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ) as any;

@@ -1,7 +1,7 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { CfnTokenBackendSecret } from './backend_secret.js';
-import { App, Stack } from 'aws-cdk-lib';
+import { App, SecretValue, Stack } from 'aws-cdk-lib';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import { getSecretClient } from '@aws-amplify/backend-secret';
 import { BackendSecretFetcherProviderFactory } from './backend_secret_fetcher_provider_factory.js';
@@ -37,7 +37,7 @@ void describe('BackendSecret', () => {
       resourceFactory
     );
     const val = secret.resolve(stack, uniqueBackendIdentifier);
-    assert.deepStrictEqual(val, testSecretValue);
+    assert.deepStrictEqual(val, SecretValue.unsafePlainText(testSecretValue));
     assert.deepStrictEqual(mockGetOrCreate.mock.callCount(), 1);
   });
 });

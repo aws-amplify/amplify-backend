@@ -4,6 +4,7 @@ import {
 } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
 import { BackendSecretFetcherFactory } from './backend_secret_fetcher_factory.js';
+import { SecretValue } from 'aws-cdk-lib';
 
 /**
  * Resolves a backend secret to a CFN token via a lambda-backed CFN custom resource.
@@ -23,7 +24,7 @@ export class CfnTokenBackendSecret implements BackendSecret {
   resolve = (
     scope: Construct,
     backendIdentifier: UniqueBackendIdentifier
-  ): string => {
+  ): SecretValue => {
     const secretResource = this.secretResourceFactory.getOrCreate(
       scope,
       this.name,
@@ -31,6 +32,7 @@ export class CfnTokenBackendSecret implements BackendSecret {
       backendIdentifier
     );
 
-    return secretResource.getAttString('secretValue');
+    const val = secretResource.getAttString('secretValue');
+    return SecretValue.unsafePlainText(val);
   };
 }

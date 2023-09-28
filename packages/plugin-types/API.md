@@ -11,6 +11,7 @@ import { Function as Function_2 } from 'aws-cdk-lib/aws-lambda';
 import { IRole } from 'aws-cdk-lib/aws-iam';
 import { IUserPool } from 'aws-cdk-lib/aws-cognito';
 import { IUserPoolClient } from 'aws-cdk-lib/aws-cognito';
+import { SecretValue } from 'aws-cdk-lib';
 import { Stack } from 'aws-cdk-lib';
 
 // @public (undocumented)
@@ -64,7 +65,12 @@ export type BackendOutputWriter = {
 
 // @public (undocumented)
 export type BackendSecret = {
-    resolve: (scope: Construct, uniqueBackendIdentifier: UniqueBackendIdentifier) => string;
+    resolve: (scope: Construct, uniqueBackendIdentifier: UniqueBackendIdentifier) => SecretValue;
+};
+
+// @public (undocumented)
+export type BackendSecretResolver = {
+    resolveSecret: (backendSecret: BackendSecret) => SecretValue;
 };
 
 // @public
@@ -77,7 +83,7 @@ export type ConstructContainer = {
 // @public
 export type ConstructContainerEntryGenerator = {
     resourceGroupName: string;
-    generateContainerEntry: (scope: Construct) => Construct;
+    generateContainerEntry: (scope: Construct, backendSecretResolver: BackendSecretResolver) => Construct;
 };
 
 // @public
@@ -91,7 +97,6 @@ export type ConstructFactoryGetInstanceProps = {
     constructContainer: ConstructContainer;
     outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
     importPathVerifier?: ImportPathVerifier;
-    backendIdentifier: UniqueBackendIdentifier;
 };
 
 // @public (undocumented)

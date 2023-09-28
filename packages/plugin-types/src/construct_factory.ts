@@ -2,13 +2,11 @@ import { ConstructContainer } from './construct_container.js';
 import { BackendOutputStorageStrategy } from './output_storage_strategy.js';
 import { BackendOutputEntry } from './backend_output.js';
 import { ImportPathVerifier } from './import_path_verifier.js';
-import { UniqueBackendIdentifier } from './unique_backend_identifier.js';
 
 export type ConstructFactoryGetInstanceProps = {
   constructContainer: ConstructContainer;
   outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
   importPathVerifier?: ImportPathVerifier;
-  backendIdentifier: UniqueBackendIdentifier;
 };
 
 /**

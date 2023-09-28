@@ -1,4 +1,4 @@
-import { describe, it } from 'node:test';
+import { beforeEach, describe, it } from 'node:test';
 import { SingletonConstructContainer } from './singleton_construct_container.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
@@ -8,11 +8,21 @@ import { Queue } from 'aws-cdk-lib/aws-sqs';
 import { NestedStackResolver } from './nested_stack_resolver.js';
 import { ConstructContainerEntryGenerator } from '@aws-amplify/plugin-types';
 
+const createStackAndSetContext = (): Stack => {
+  const app = new App();
+  app.node.setContext('branch-name', 'testEnvName');
+  app.node.setContext('backend-id', 'testBackendId');
+  const stack = new Stack(app);
+  return stack;
+};
+
 void describe('SingletonConstructContainer', () => {
   void describe('resolve', () => {
+    let stack: Stack;
+    beforeEach(() => {
+      stack = createStackAndSetContext();
+    });
     void it('calls initializer to create construct instance', () => {
-      const app = new App();
-      const stack = new Stack(app);
       const container = new SingletonConstructContainer(
         new NestedStackResolver(stack)
       );
@@ -26,8 +36,6 @@ void describe('SingletonConstructContainer', () => {
     });
 
     void it('returns cached instance if initializer has been seen before', () => {
-      const app = new App();
-      const stack = new Stack(app);
       const container = new SingletonConstructContainer(
         new NestedStackResolver(stack)
       );
@@ -44,8 +52,6 @@ void describe('SingletonConstructContainer', () => {
     });
 
     void it('returns correct cached value for each initializer', () => {
-      const app = new App();
-      const stack = new Stack(app);
       const container = new SingletonConstructContainer(
         new NestedStackResolver(stack)
       );

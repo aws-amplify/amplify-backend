@@ -16,14 +16,16 @@ import {
   FunctionResources,
   ImportPathVerifier,
   ResourceProvider,
-  UniqueBackendIdentifier,
 } from '@aws-amplify/plugin-types';
 import { triggerEvents } from '@aws-amplify/auth-construct-alpha';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 
-const backendIdentifier: UniqueBackendIdentifier = {
-  backendId: 'testBackendId',
-  branchName: 'testBranchName',
+const createStackAndSetContext = (): Stack => {
+  const app = new App();
+  app.node.setContext('branch-name', 'testEnvName');
+  app.node.setContext('backend-id', 'testBackendId');
+  const stack = new Stack(app);
+  return stack;
 };
 
 void describe('AmplifyAuthFactory', () => {
@@ -37,8 +39,7 @@ void describe('AmplifyAuthFactory', () => {
       loginWith: { email: true },
     });
 
-    const app = new App();
-    stack = new Stack(app);
+    stack = createStackAndSetContext();
 
     constructContainer = new SingletonConstructContainer(
       new NestedStackResolver(stack)
@@ -56,13 +57,11 @@ void describe('AmplifyAuthFactory', () => {
       constructContainer,
       outputStorageStrategy,
       importPathVerifier,
-      backendIdentifier,
     });
     const instance2 = authFactory.getInstance({
       constructContainer,
       outputStorageStrategy,
       importPathVerifier,
-      backendIdentifier,
     });
 
     assert.strictEqual(instance1, instance2);
@@ -73,7 +72,6 @@ void describe('AmplifyAuthFactory', () => {
       constructContainer,
       outputStorageStrategy,
       importPathVerifier,
-      backendIdentifier,
     });
 
     const template = Template.fromStack(Stack.of(authConstruct));
@@ -89,7 +87,6 @@ void describe('AmplifyAuthFactory', () => {
       constructContainer,
       outputStorageStrategy,
       importPathVerifier,
-      backendIdentifier,
     });
 
     assert.ok(
@@ -123,7 +120,6 @@ void describe('AmplifyAuthFactory', () => {
         constructContainer,
         outputStorageStrategy,
         importPathVerifier,
-        backendIdentifier,
       });
 
       const template = Template.fromStack(Stack.of(authConstruct));
