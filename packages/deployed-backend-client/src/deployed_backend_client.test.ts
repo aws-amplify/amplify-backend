@@ -32,7 +32,7 @@ import {
 } from '@aws-amplify/platform-core';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { DefaultBackendOutputClient } from './backend_output_client.js';
-import { CloudFormationClientFactory } from './cloudformation_client_factory.js';
+import { DefaultDeployedBackendClient } from './deployed_backend_client.js';
 
 const listStacksMock = {
   StackSummaries: [
@@ -161,7 +161,7 @@ const expectedMetadata = {
 
 void describe('Deployed Backend Client', () => {
   const getOutputMock = mock.fn();
-  let deployedBackendClient: DeployedBackendClient;
+  let deployedBackendClient: DefaultDeployedBackendClient;
 
   beforeEach(() => {
     const mockCredentials: AwsCredentialIdentityProvider = async () => ({
@@ -195,17 +195,10 @@ void describe('Deployed Backend Client', () => {
         credentials: AwsCredentialIdentityProvider
       ) => DefaultBackendOutputClient;
 
-    deployedBackendClient =
-      DeployedBackendClientFactory.getInstance(mockCredentials);
-
-    const cloudFormationClientFactoryMock = mock.fn();
-    cloudFormationClientFactoryMock.mock.mockImplementation(
-      () => mockCfnClient
+    deployedBackendClient = new DefaultDeployedBackendClient(
+      mockCredentials,
+      mockCfnClient
     );
-    CloudFormationClientFactory.getInstance =
-      cloudFormationClientFactoryMock as unknown as (
-        credentials: AwsCredentialIdentityProvider
-      ) => CloudFormationClient;
   });
   void it('listSandboxBackendMetadata', async () => {
     getOutputMock.mock.mockImplementation(

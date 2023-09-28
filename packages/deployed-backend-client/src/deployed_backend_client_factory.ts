@@ -2,29 +2,41 @@ import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { DefaultDeployedBackendClient } from './deployed_backend_client.js';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
+import { CloudFormation } from '@aws-sdk/client-cloudformation';
+
+export type SandboxMetadata = {
+  name: string;
+  lastUpdated: Date | undefined;
+  deploymentType: BackendDeploymentType;
+  status: BackendDeploymentStatus;
+};
 
 export type BackendMetadata = {
   name: string;
   lastUpdated: Date | undefined;
   deploymentType: BackendDeploymentType;
-  status: BackendDeploymentStatus | undefined;
+  status: BackendDeploymentStatus;
   apiConfiguration?: {
-    status: BackendDeploymentStatus | undefined;
+    status: BackendDeploymentStatus;
     lastUpdated: Date | undefined;
     graphqlEndpoint: string;
   };
   authConfiguration?: {
-    status: BackendDeploymentStatus | undefined;
+    status: BackendDeploymentStatus;
     lastUpdated: Date | undefined;
     userPoolId: string;
   };
   storageConfiguration?: {
-    status: BackendDeploymentStatus | undefined;
+    status: BackendDeploymentStatus;
     lastUpdated: Date | undefined;
     s3BucketName: string;
   };
 };
 
+export type ListSandboxesResponse = {
+  sandboxes: BackendMetadata[];
+  nextToken: string | undefined;
+};
 export enum BackendDeploymentStatus {
   DEPLOYED = 'DEPLOYED',
   FAILED = 'FAILED',
@@ -38,7 +50,7 @@ export enum BackendDeploymentType {
 }
 
 export type DeployedBackendClient = {
-  listSandboxes: () => Promise<BackendMetadata[]>;
+  listSandboxes: (paginationToken?: string) => Promise<ListSandboxesResponse>;
   deleteSandbox: (
     sandboxBackendIdentifier: SandboxBackendIdentifier
   ) => Promise<BackendMetadata>;
@@ -57,6 +69,7 @@ export class DeployedBackendClientFactory {
   static getInstance = (
     credentials: AwsCredentialIdentityProvider
   ): DeployedBackendClient => {
-    return new DefaultDeployedBackendClient(credentials);
+    const cfnClient = new CloudFormation(credentials);
+    return new DefaultDeployedBackendClient(credentials, cfnClient);
   };
 }

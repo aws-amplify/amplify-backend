@@ -43,19 +43,19 @@ export type BackendMetadata = {
     name: string;
     lastUpdated: Date | undefined;
     deploymentType: BackendDeploymentType;
-    status: BackendDeploymentStatus | undefined;
+    status: BackendDeploymentStatus;
     apiConfiguration?: {
-        status: BackendDeploymentStatus | undefined;
+        status: BackendDeploymentStatus;
         lastUpdated: Date | undefined;
         graphqlEndpoint: string;
     };
     authConfiguration?: {
-        status: BackendDeploymentStatus | undefined;
+        status: BackendDeploymentStatus;
         lastUpdated: Date | undefined;
         userPoolId: string;
     };
     storageConfiguration?: {
-        status: BackendDeploymentStatus | undefined;
+        status: BackendDeploymentStatus;
         lastUpdated: Date | undefined;
         s3BucketName: string;
     };
@@ -86,7 +86,7 @@ export class BackendOutputClientFactory {
 
 // @public (undocumented)
 export type DeployedBackendClient = {
-    listSandboxes: () => Promise<BackendMetadata[]>;
+    listSandboxes: (paginationToken?: string) => Promise<ListSandboxesResponse>;
     deleteSandbox: (sandboxBackendIdentifier: SandboxBackendIdentifier) => Promise<BackendMetadata>;
     getBackendMetadata: (backendIdentifier: UniqueBackendIdentifier) => Promise<BackendMetadata>;
 };
@@ -95,6 +95,20 @@ export type DeployedBackendClient = {
 export class DeployedBackendClientFactory {
     static getInstance: (credentials: AwsCredentialIdentityProvider) => DeployedBackendClient;
 }
+
+// @public (undocumented)
+export type ListSandboxesResponse = {
+    sandboxes: BackendMetadata[];
+    nextToken: string | undefined;
+};
+
+// @public (undocumented)
+export type SandboxMetadata = {
+    name: string;
+    lastUpdated: Date | undefined;
+    deploymentType: BackendDeploymentType;
+    status: BackendDeploymentStatus;
+};
 
 // @public (undocumented)
 export type StackIdentifier = {

@@ -8,13 +8,11 @@ import {
   BackendDeploymentType,
   BackendMetadata,
   DeployedBackendClient,
+  ListSandboxesResponse,
+  SandboxMetadata,
 } from './deployed_backend_client_factory.js';
 import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
-import {
-  BackendOutputClientError,
-  BackendOutputClientErrorType,
-  BackendOutputClientFactory,
-} from './backend_output_client_factory.js';
+import { BackendOutputClientFactory } from './backend_output_client_factory.js';
 import { getMainStackName } from './get_main_stack_name.js';
 import {
   CloudFormationClient,
@@ -30,7 +28,6 @@ import {
   graphqlOutputKey,
   storageOutputKey,
 } from '@aws-amplify/backend-output-schemas';
-import { CloudFormationClientFactory } from './cloudformation_client_factory.js';
 
 /**
  * Deployment Client
@@ -39,40 +36,40 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
   /**
    * Constructor for deployment client
    */
-  constructor(private readonly credentials: AwsCredentialIdentityProvider) {}
+  constructor(
+    private readonly credentials: AwsCredentialIdentityProvider,
+    private readonly cfnClient: CloudFormationClient
+  ) {}
 
   /**
    * Returns all the Amplify Sandboxes for the account
    */
-  listSandboxes = async (): Promise<BackendMetadata[]> => {
-    const allStackSummaries = await this.listStacks();
-    const allStackMetadataPromises = allStackSummaries.map(
-      async (stackSummary) => {
-        try {
-          return await this.buildBackendMetadata(
-            stackSummary.StackName as string
-          );
-        } catch (err) {
-          if (
-            err &&
-            (err as BackendOutputClientError).code ===
-              BackendOutputClientErrorType.METADATA_RETRIEVAL_ERROR
-          ) {
-            // if backend metadata cannot be built, it is not an Amplify stack
-            return;
-          }
-          throw err;
-        }
-      }
+  listSandboxes = async (
+    paginationToken?: string
+  ): Promise<ListSandboxesResponse> => {
+    const { stackSummaries, nextToken } = await this.listStacks(
+      paginationToken
     );
-    const allStackMetadata = (
-      await Promise.all(allStackMetadataPromises)
-    ).filter(
-      (stackMetadata) =>
-        stackMetadata &&
-        stackMetadata.deploymentType === BackendDeploymentType.SANDBOX
-    );
-    return allStackMetadata as BackendMetadata[];
+    const stackMetadata: SandboxMetadata[] = stackSummaries
+      .map((stackSummary: StackSummary) => {
+        return {
+          name: stackSummary.StackName as string,
+          lastUpdated: stackSummary.LastUpdatedTime,
+          status: this.translateStackStatus(stackSummary.StackStatus),
+          // FIXME: sandboxes will have an additional field in their outputs
+          // Once that output is added, make this field conditional
+          deploymentType: BackendDeploymentType.SANDBOX,
+        };
+      })
+      .filter(
+        (stackMetadata) =>
+          stackMetadata.deploymentType === BackendDeploymentType.SANDBOX
+      );
+
+    return {
+      sandboxes: stackMetadata,
+      nextToken,
+    };
   };
 
   /**
@@ -82,9 +79,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     sandboxBackendIdentifier: SandboxBackendIdentifier
   ): Promise<BackendMetadata> => {
     const stackName = getMainStackName(sandboxBackendIdentifier);
-    await this.getCfnClient().send(
-      new DeleteStackCommand({ StackName: stackName })
-    );
+    await this.cfnClient.send(new DeleteStackCommand({ StackName: stackName }));
     return this.buildBackendMetadata(stackName);
   };
   /**
@@ -97,22 +92,17 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     return this.buildBackendMetadata(stackName);
   };
 
-  private getCfnClient = (): CloudFormationClient => {
-    return CloudFormationClientFactory.getInstance(this.credentials);
-  };
-
-  private listStacks = async (): Promise<StackSummary[]> => {
-    const allStackSummaries = [];
-    let nextToken = undefined;
-    do {
-      const stacks: ListStacksCommandOutput = await this.getCfnClient().send(
-        new ListStacksCommand({ NextToken: nextToken })
-      );
-      nextToken = stacks.NextToken;
-      allStackSummaries.push(...(stacks.StackSummaries ?? []));
-    } while (nextToken);
-
-    return allStackSummaries;
+  private listStacks = async (
+    nextToken: string | undefined
+  ): Promise<{
+    stackSummaries: StackSummary[];
+    nextToken: string | undefined;
+  }> => {
+    const stacks: ListStacksCommandOutput = await this.cfnClient.send(
+      new ListStacksCommand({ NextToken: nextToken })
+    );
+    nextToken = stacks.NextToken;
+    return { stackSummaries: stacks.StackSummaries ?? [], nextToken };
   };
 
   private buildBackendMetadata = async (
@@ -126,14 +116,21 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
       await BackendOutputClientFactory.getInstance(this.credentials).getOutput(
         backendIdentifier
       );
-    const stackDescription = await this.getCfnClient().send(
+    const stackDescription = await this.cfnClient.send(
       new DescribeStacksCommand({ StackName: stackName })
     );
     const stack = stackDescription?.Stacks?.[0];
     const status = this.translateStackStatus(stack?.StackStatus);
     const lastUpdated = stack?.LastUpdatedTime;
 
-    const allStackSummaries = await this.listStacks();
+    const allStackSummaries: StackSummary[] = [];
+    let nextToken;
+    do {
+      const listStacksResponse = await this.listStacks(nextToken);
+      nextToken = listStacksResponse.nextToken;
+      allStackSummaries.push(...listStacksResponse.stackSummaries);
+    } while (nextToken);
+
     const childStacks = allStackSummaries.filter(
       (stackSummary) => stackSummary.ParentId === stack?.StackId
     );
