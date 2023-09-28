@@ -42,6 +42,54 @@ const createMockSchema = (fields: string[]) => {
 };
 
 void describe('LocalCodegenGraphqlFormGenerator', () => {
+  void describe('util files', () => {
+    void it('generates util file', async () => {
+      const models = ['Foo'];
+      const schema = createMockSchema(models);
+      const l = new LocalGraphqlFormGenerator(
+        async () => schema as unknown as GenericDataSchema,
+        {
+          graphqlDir: '../graphql',
+        },
+        (map) => {
+          return new CodegenGraphqlFormGeneratorResult(map);
+        }
+      );
+      const output = await l.generateForms();
+      const fsMock = mock.method(fs, 'open');
+      fsMock.mock.mockImplementation(async () => ({
+        writeFile: async () => undefined,
+        stat: async () => ({}),
+        close: async () => undefined,
+      }));
+      await output.writeToDirectory('./');
+      const writeArgs = fsMock.mock.calls.flatMap((c) => c.arguments[0]);
+      assert(writeArgs.includes('utils.js'));
+    });
+    void it('generates index file', async () => {
+      const models = ['Post', 'Author', 'Foo'];
+      const schema = createMockSchema(models);
+      const l = new LocalGraphqlFormGenerator(
+        async () => schema as unknown as GenericDataSchema,
+        {
+          graphqlDir: '../graphql',
+        },
+        (map) => {
+          return new CodegenGraphqlFormGeneratorResult(map);
+        }
+      );
+      const output = await l.generateForms();
+      const fsMock = mock.method(fs, 'open');
+      fsMock.mock.mockImplementation(async () => ({
+        writeFile: async () => undefined,
+        stat: async () => ({}),
+        close: async () => undefined,
+      }));
+      await output.writeToDirectory('./');
+      const writeArgs = fsMock.mock.calls.flatMap((c) => c.arguments[0]);
+      assert(writeArgs.includes('index.js'));
+    });
+  });
   void describe('filtering', () => {
     void it('throws an error if a non-existent model is passed in the filter', async () => {
       const schema = createMockSchema(['Post']);
@@ -156,11 +204,10 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
         close: async () => undefined,
       }));
       await output.writeToDirectory('./');
-      assert(
-        fsMock.mock.calls.every((c) =>
-          c.arguments[0].toString().startsWith('Author')
-        )
+      const writeArgs = fsMock.mock.calls.flatMap((c) =>
+        c.arguments[0].toString()
       );
+      assert(writeArgs.every((c) => !c.startsWith('Post')));
     });
   });
   void it('generates a form', async () => {

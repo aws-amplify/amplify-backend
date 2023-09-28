@@ -1,6 +1,7 @@
 import _isCI from 'is-ci';
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { BackendDeployer } from '@aws-amplify/backend-deployer';
+import { BranchBackendIdentifier } from '@aws-amplify/platform-core';
 
 export type PipelineDeployCommandOptions = {
   branch: string;
@@ -47,11 +48,10 @@ export class PipelineDeployCommand
       );
     }
 
-    const uniqueBackendIdentifier = {
-      backendId: args.appId,
-      branchName: args.branch,
-    };
-
+    const uniqueBackendIdentifier = new BranchBackendIdentifier(
+      args.appId,
+      args.branch
+    );
     await this.backendDeployer.deploy(uniqueBackendIdentifier);
   };
 

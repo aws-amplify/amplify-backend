@@ -1,6 +1,6 @@
 import debounce from 'debounce-promise';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import { BackendDeployer } from '@aws-amplify/backend-deployer';
+import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 /**
  * Execute CDK commands.

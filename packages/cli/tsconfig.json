@@ -8,6 +8,7 @@
     { "path": "../deployed-backend-client" },
     { "path": "../form-generator" },
     { "path": "../model-generator" },
+    { "path": "../platform-core" },
     { "path": "../sandbox" }
   ]
 }

@@ -1,4 +1,5 @@
 import { Construct } from 'constructs';
+import { BranchBackendIdentifier } from '@aws-amplify/platform-core';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 const backendIdCDKContextKey = 'backend-id';
@@ -22,8 +23,5 @@ export const getUniqueBackendIdentifier = (
       `${branchNameCDKContextKey} CDK context value is not a string`
     );
   }
-  return {
-    backendId,
-    branchName,
-  };
+  return new BranchBackendIdentifier(backendId, branchName);
 };

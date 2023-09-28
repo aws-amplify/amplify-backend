@@ -1,12 +1,12 @@
 import { Construct } from 'constructs';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import { Duration } from 'aws-cdk-lib';
 import * as path from 'path';
 import { Runtime as LambdaRuntime } from 'aws-cdk-lib/aws-lambda';
 import { Provider } from 'aws-cdk-lib/custom-resources';
 import { fileURLToPath } from 'url';
 import { SecretClient } from '@aws-amplify/backend-secret';
+import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
