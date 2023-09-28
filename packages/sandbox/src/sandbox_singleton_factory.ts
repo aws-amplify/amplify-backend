@@ -2,7 +2,7 @@ import { FileWatchingSandbox } from './file_watching_sandbox.js';
 import { Sandbox } from './sandbox.js';
 import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
-import { SSMClient } from '@aws-sdk/client-ssm';
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 
 /**
  * Factory to create a new sandbox
@@ -24,7 +24,7 @@ export class SandboxSingletonFactory {
       this.instance = new FileWatchingSandbox(
         await this.sandboxIdResolver(),
         new AmplifySandboxExecutor(BackendDeployerFactory.getInstance()),
-        new SSMClient()
+        new CloudFormationClient()
       );
     }
     return this.instance;

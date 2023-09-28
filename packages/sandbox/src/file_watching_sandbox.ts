@@ -12,12 +12,23 @@ import path from 'path';
 import fs from 'fs';
 import _open from 'open';
 import EventEmitter from 'events';
-import { DescribeParametersCommand, SSMClient } from '@aws-sdk/client-ssm';
+import {
+  CloudFormationClient,
+  DescribeStacksCommand,
+} from '@aws-sdk/client-cloudformation';
 import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
 
-export const CDK_BOOTSTRAP_PARAM_PREFIX = '/cdk-bootstrap';
+export const CDK_BOOTSTRAP_STACK_NAME = 'CDKToolkit';
 // TODO: finalize bootstrap url
-export const AMPLIFY_CONSOLE_BOOTSTRAP_URL = `https://<REGION>.console.aws.amazon.com/amplify/create/bootstrap?region=<REGION>`;
+
+/**
+ * Constructs Amplify Console bootstrap URL for a given region
+ * @param region AWS region
+ * @returns Amplify Console bootstrap URL
+ */
+export const getBootstrapUrl = (region: string) =>
+  `https://${region}.console.aws.amazon.com/amplify/create/bootstrap?region=${region}`;
+
 /**
  * Runs a file watcher and deploys
  */
@@ -30,7 +41,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
   constructor(
     private readonly sandboxId: string,
     private readonly executor: AmplifySandboxExecutor,
-    private readonly ssmClient: SSMClient,
+    private readonly cfnClient: CloudFormationClient,
     private readonly open = _open
   ) {
     process.once('SIGINT', () => void this.stop());
@@ -59,16 +70,14 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
    * @inheritdoc
    */
   start = async (options: SandboxOptions) => {
-    const bootstrapped = await this.hasBootstrapped();
+    const bootstrapped = await this.isBootstrapped();
     if (!bootstrapped) {
       console.warn(
         'The given region has not been bootstrapped. Sign in to console as a Root user or Admin to complete the bootstrap process and re-run the amplify sandbox command.'
       );
       // get region from an available sdk client;
-      const region = await this.ssmClient.config.region();
-      await this.open(
-        AMPLIFY_CONSOLE_BOOTSTRAP_URL.replaceAll('<REGION>', region)
-      );
+      const region = await this.cfnClient.config.region();
+      await this.open(getBootstrapUrl(region));
       return;
     }
 
@@ -191,22 +200,30 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
   };
 
   /**
-   * Check if given region has been bootstrapped using SSM param.
+   * Check if given region has been bootstrapped using CFN describeStacks with CDKToolKit.
    * @returns A Boolean that represents if region has been bootstrapped.
    */
-  private hasBootstrapped = async () => {
-    let _nextToken;
-    do {
-      const { Parameters: parameters, NextToken: nextToken } =
-        await this.ssmClient.send(new DescribeParametersCommand({}));
+  private isBootstrapped = async () => {
+    try {
+      await this.cfnClient.send(
+        new DescribeStacksCommand({
+          StackName: CDK_BOOTSTRAP_STACK_NAME,
+        })
+      );
+      // TODO: Check if its possible to look for a min bootstrap version from stack output to be able to re-bootstrap CDKv1 stack
+      return true;
+    } catch (e) {
       if (
-        parameters?.some((p) => p.Name?.startsWith(CDK_BOOTSTRAP_PARAM_PREFIX))
+        e &&
+        typeof e === 'object' &&
+        'message' in e &&
+        typeof e.message === 'string' &&
+        e.message.includes('does not exist')
       ) {
-        return true;
+        return false;
       }
-      _nextToken = nextToken;
-    } while (_nextToken);
-
-    return false;
+      // If we are unable to get the stack info due to other reasons(AccessDenied), we fail fast.
+      throw e;
+    }
   };
 }

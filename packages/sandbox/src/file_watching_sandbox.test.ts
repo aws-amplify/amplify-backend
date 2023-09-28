@@ -2,16 +2,16 @@ import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import path from 'path';
 import watcher from '@parcel/watcher';
 import {
-  AMPLIFY_CONSOLE_BOOTSTRAP_URL,
-  CDK_BOOTSTRAP_PARAM_PREFIX,
+  CDK_BOOTSTRAP_STACK_NAME,
   FileWatchingSandbox,
+  getBootstrapUrl,
 } from './file_watching_sandbox.js';
 import assert from 'node:assert';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
 import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 import fs from 'fs';
 import parseGitIgnore from 'parse-gitignore';
-import { SSMClient } from '@aws-sdk/client-ssm';
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import open from 'open';
 import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
 
@@ -30,14 +30,23 @@ const execaDestroyMock = mock.method(backendDeployer, 'destroy', () =>
   Promise.resolve()
 );
 const region = 'test-region';
-const ssmClientMock = new SSMClient({ region });
-const ssmClientSendMock = mock.fn();
-mock.method(ssmClientMock, 'send', ssmClientSendMock);
-ssmClientSendMock.mock.mockImplementation(() =>
+const cfnClientMock = new CloudFormationClient({ region });
+const cfnClientSendMock = mock.fn();
+mock.method(cfnClientMock, 'send', cfnClientSendMock);
+cfnClientSendMock.mock.mockImplementation(() =>
   Promise.resolve({
-    Parameters: [
-      { Name: `${CDK_BOOTSTRAP_PARAM_PREFIX}/foo/version` },
-      { name: 'testParam' },
+    Stacks: [
+      {
+        Name: CDK_BOOTSTRAP_STACK_NAME,
+        Outputs: [
+          {
+            Description:
+              'The version of the bootstrap resources that are currently mastered in this stack',
+            OutputKey: 'BootstrapVersion',
+            OutputValue: 18,
+          },
+        ],
+      },
     ],
   })
 );
@@ -68,52 +77,49 @@ void describe('Sandbox to check if region is bootstrapped', () => {
     sandboxInstance = new FileWatchingSandbox(
       'testSandboxId',
       cdkExecutor,
-      ssmClientMock,
+      cfnClientMock,
       openMock as never
     );
 
-    ssmClientSendMock.mock.resetCalls();
+    cfnClientSendMock.mock.resetCalls();
     openMock.mock.resetCalls();
     execaDestroyMock.mock.resetCalls();
     execaDeployMock.mock.resetCalls();
   });
 
   afterEach(async () => {
-    ssmClientSendMock.mock.resetCalls();
+    cfnClientSendMock.mock.resetCalls();
     openMock.mock.resetCalls();
     execaDestroyMock.mock.resetCalls();
     execaDeployMock.mock.resetCalls();
     await sandboxInstance.stop();
   });
 
-  void it('region has not bootstrapped', async () => {
-    ssmClientSendMock.mock.mockImplementationOnce(() =>
-      Promise.resolve({
-        Parameters: [{ name: 'testParam' }],
-        NextToken: undefined,
-      })
-    );
+  void it('when region has not bootstrapped, then opens console to initiate bootstrap', async () => {
+    cfnClientSendMock.mock.mockImplementationOnce(() => {
+      throw new Error('Stack with id CDKToolkit does not exist');
+    });
 
     await sandboxInstance.start({
       dir: 'testDir',
       exclude: ['exclude1', 'exclude2'],
     });
 
-    assert.strictEqual(ssmClientSendMock.mock.callCount(), 1);
+    assert.strictEqual(cfnClientSendMock.mock.callCount(), 1);
     assert.strictEqual(openMock.mock.callCount(), 1);
     assert.strictEqual(
       openMock.mock.calls[0].arguments[0],
-      AMPLIFY_CONSOLE_BOOTSTRAP_URL.replaceAll('<REGION>', region)
+      getBootstrapUrl(region)
     );
   });
 
-  void it('region has bootstrapped', async () => {
+  void it('when region has bootstrapped, resumes sandbox command successfully', async () => {
     await sandboxInstance.start({
       dir: 'testDir',
       exclude: ['exclude1', 'exclude2'],
     });
 
-    assert.strictEqual(ssmClientSendMock.mock.callCount(), 1);
+    assert.strictEqual(cfnClientSendMock.mock.callCount(), 1);
     assert.strictEqual(openMock.mock.callCount(), 0);
   });
 });
@@ -134,7 +140,7 @@ void describe('Sandbox using local project name resolver', () => {
     sandboxInstance = new FileWatchingSandbox(
       'testSandboxId',
       cdkExecutor,
-      ssmClientMock
+      cfnClientMock
     );
     await sandboxInstance.start({
       dir: 'testDir',
@@ -155,14 +161,14 @@ void describe('Sandbox using local project name resolver', () => {
     // Reset all the calls to avoid extra startup call
     execaDestroyMock.mock.resetCalls();
     execaDeployMock.mock.resetCalls();
-    ssmClientSendMock.mock.resetCalls();
+    cfnClientSendMock.mock.resetCalls();
   });
 
   afterEach(async () => {
     execaDestroyMock.mock.resetCalls();
     execaDeployMock.mock.resetCalls();
     subscribeMock.mock.resetCalls();
-    ssmClientSendMock.mock.resetCalls();
+    cfnClientSendMock.mock.resetCalls();
     await sandboxInstance.stop();
   });
 
@@ -188,7 +194,7 @@ void describe('Sandbox using local project name resolver', () => {
         method: 'direct',
       },
     ]);
-    assert.strictEqual(ssmClientSendMock.mock.callCount(), 0);
+    assert.strictEqual(cfnClientSendMock.mock.callCount(), 0);
   });
 
   void it('calls CDK once when multiple file changes are present', async () => {
@@ -290,7 +296,7 @@ void describe('Sandbox with user provided app name', () => {
     sandboxInstance = new FileWatchingSandbox(
       'testSandboxId',
       cdkExecutor,
-      ssmClientMock
+      cfnClientMock
     );
     await sandboxInstance.start({
       dir: 'testDir',
@@ -307,14 +313,14 @@ void describe('Sandbox with user provided app name', () => {
     // Reset all the calls to avoid extra startup call
     execaDestroyMock.mock.resetCalls();
     execaDeployMock.mock.resetCalls();
-    ssmClientSendMock.mock.resetCalls();
+    cfnClientSendMock.mock.resetCalls();
   });
 
   afterEach(async () => {
     execaDestroyMock.mock.resetCalls();
     execaDeployMock.mock.resetCalls();
     subscribeMock.mock.resetCalls();
-    ssmClientSendMock.mock.resetCalls();
+    cfnClientSendMock.mock.resetCalls();
     await sandboxInstance.stop();
   });
 
@@ -371,7 +377,7 @@ void describe('Sandbox with absolute output path', () => {
     sandboxInstance = new FileWatchingSandbox(
       'testSandboxId',
       cdkExecutor,
-      ssmClientMock
+      cfnClientMock
     );
     await sandboxInstance.start({
       dir: 'testDir',
@@ -388,14 +394,14 @@ void describe('Sandbox with absolute output path', () => {
     // Reset all the calls to avoid extra startup call
     execaDeployMock.mock.resetCalls();
     execaDestroyMock.mock.resetCalls();
-    ssmClientSendMock.mock.resetCalls();
+    cfnClientSendMock.mock.resetCalls();
   });
 
   afterEach(async () => {
     execaDeployMock.mock.resetCalls();
     execaDestroyMock.mock.resetCalls();
     subscribeMock.mock.resetCalls();
-    ssmClientSendMock.mock.resetCalls();
+    cfnClientSendMock.mock.resetCalls();
     await sandboxInstance.stop();
   });
 });
@@ -427,7 +433,7 @@ void describe('Sandbox ignoring paths in .gitignore', () => {
     sandboxInstance = new FileWatchingSandbox(
       'testSandboxId',
       cdkExecutor,
-      ssmClientMock
+      cfnClientMock
     );
     await sandboxInstance.start({
       dir: 'testDir',
@@ -444,14 +450,14 @@ void describe('Sandbox ignoring paths in .gitignore', () => {
     // Reset all the calls to avoid extra startup call
     execaDeployMock.mock.resetCalls();
     execaDestroyMock.mock.resetCalls();
-    ssmClientSendMock.mock.resetCalls();
+    cfnClientSendMock.mock.resetCalls();
   });
 
   afterEach(async () => {
     execaDeployMock.mock.resetCalls();
     execaDestroyMock.mock.resetCalls();
     subscribeMock.mock.resetCalls();
-    ssmClientSendMock.mock.resetCalls();
+    cfnClientSendMock.mock.resetCalls();
     await sandboxInstance.stop();
   });
 
@@ -488,7 +494,7 @@ void describe('Sandbox ignoring paths in .gitignore', () => {
     const sandbox = new FileWatchingSandbox(
       'my-sandbox',
       executor,
-      ssmClientMock
+      cfnClientMock
     );
     sandbox.on('successfulDeployment', mockListener);
     await sandbox.start({});
