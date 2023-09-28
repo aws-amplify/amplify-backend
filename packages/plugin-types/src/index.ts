@@ -1,5 +1,4 @@
 export * from './amplify_output_writer.js';
-export * from './unique_backend_identifier.js';
 export * from './backend_stack_creator.js';
 export * from './backend_stack_resolver.js';
 export * from './construct_container.js';
@@ -13,3 +12,4 @@ export * from './resource_provider.js';
 export * from './backend_secret_resolver.js';
 export * from './function_resources.js';
 export * from './amplify_function.js';
+export * from './unique_backend_identifier.js';

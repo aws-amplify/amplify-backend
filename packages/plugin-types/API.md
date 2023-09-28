@@ -130,7 +130,7 @@ export type SandboxId = string;
 // @public
 export type UniqueBackendIdentifier = {
     backendId: BackendId;
-    branchName: string;
+    disambiguator: string;
 };
 
 // (No @packageDocumentation comment for this package)

@@ -1,7 +1,7 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { ClientConfigFormat } from '@aws-amplify/client-config';
-import { ClientConfigGeneratorAdapter } from './client_config_generator_adapter.js';
 import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
+import { ClientConfigGeneratorAdapter } from '../../../client-config/client_config_generator_adapter.js';
 
 export type GenerateConfigCommandOptions = {
   stack: string | undefined;
@@ -26,10 +26,6 @@ export class GenerateConfigCommand
    * @inheritDoc
    */
   readonly describe: string;
-
-  private readonly missingArgsError = new Error(
-    'Either --stack or --branch must be provided'
-  );
 
   /**
    * Creates client config generation command.
@@ -100,7 +96,7 @@ export class GenerateConfigCommand
       })
       .check((argv) => {
         if (!argv.stack && !argv.branch) {
-          throw this.missingArgsError;
+          throw new Error('Either --stack or --branch must be provided');
         }
         return true;
       });

@@ -8,6 +8,7 @@ import {
   getSecretClient,
 } from '@aws-amplify/backend-secret';
 import { randomUUID } from 'node:crypto';
+import { BranchBackendIdentifier } from '@aws-amplify/platform-core';
 
 type SecretResourceProps = {
   backendId: string;
@@ -59,10 +60,7 @@ export const handleCreateUpdateEvent = async (
 
   try {
     const resp = await secretClient.getSecret(
-      {
-        backendId: props.backendId,
-        branchName: props.branchName,
-      },
+      new BranchBackendIdentifier(props.backendId, props.branchName),
       {
         name: props.secretName,
         version: props.secretVersion,

@@ -1,8 +1,15 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
-import { ClientConfigFormat } from '@aws-amplify/client-config';
 import fs from 'fs';
 import { AmplifyPrompter } from '../prompter/amplify_prompts.js';
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
+import {
+  ClientConfigFormat,
+  getClientConfigPath,
+} from '@aws-amplify/client-config';
+import {
+  DEFAULT_GRAPHQL_PATH,
+  DEFAULT_UI_PATH,
+} from '../../form-generation/default_form_generation_output_paths.js';
 
 export type SandboxCommandOptions = {
   dirToWatch: string | undefined;
@@ -11,7 +18,29 @@ export type SandboxCommandOptions = {
   format: ClientConfigFormat | undefined;
   outDir: string | undefined;
   profile: string | undefined;
+  modelsOutDir: string;
+  uiOutDir: string;
+  modelsFilter?: string[];
 };
+
+export type EventHandler = () => void;
+
+export type SandboxEventHandlers = {
+  successfulDeployment: EventHandler[];
+};
+
+export type SandboxEventHandlerParams = {
+  appName?: string;
+  clientConfigOutDir?: string;
+  format?: ClientConfigFormat;
+  modelsOutDir: string;
+  uiOutDir: string;
+  modelsFilter?: string[];
+};
+
+export type SandboxEventHandlerCreator = (
+  params: SandboxEventHandlerParams
+) => SandboxEventHandlers;
 
 /**
  * Command that starts sandbox.
@@ -36,7 +65,8 @@ export class SandboxCommand
    */
   constructor(
     private readonly sandboxFactory: SandboxSingletonFactory,
-    private readonly sandboxSubCommands: CommandModule[]
+    private readonly sandboxSubCommands: CommandModule[],
+    private readonly sandboxEventHandlerCreator?: SandboxEventHandlerCreator
   ) {
     this.command = 'sandbox';
     this.describe = 'Starts sandbox, watch mode for amplify deployments';
@@ -48,15 +78,31 @@ export class SandboxCommand
   handler = async (
     args: ArgumentsCamelCase<SandboxCommandOptions>
   ): Promise<void> => {
+    const sandbox = await this.sandboxFactory.getInstance();
     this.appName = args.name;
-    await (
-      await this.sandboxFactory.getInstance()
-    ).start({
-      dir: args.dirToWatch,
-      exclude: args.exclude,
-      name: args.name,
+    const eventHandlers = this.sandboxEventHandlerCreator?.({
+      appName: args.name,
       format: args.format,
-      clientConfigFilePath: args.outDir,
+      clientConfigOutDir: args.outDir,
+      modelsOutDir: args.modelsOutDir,
+      uiOutDir: args.uiOutDir,
+      modelsFilter: args.modelsFilter,
+    });
+    if (eventHandlers) {
+      Object.entries(eventHandlers).forEach(([event, handlers]) => {
+        handlers.forEach((handler) => sandbox.on(event, handler));
+      });
+    }
+    const watchExclusions = args.exclude ?? [];
+    const clientConfigWritePath = await getClientConfigPath(
+      args.outDir,
+      args.format
+    );
+    watchExclusions.push(clientConfigWritePath);
+    await sandbox.start({
+      dir: args.dirToWatch,
+      exclude: watchExclusions,
+      name: args.name,
       profile: args.profile,
     });
     process.once('SIGINT', () => void this.sigIntHandler());
@@ -104,6 +150,26 @@ export class SandboxCommand
           describe: 'An AWS profile name to use for deployment.',
           type: 'string',
           array: false,
+        })
+        .option('modelsOutDir', {
+          describe: 'A path to directory where generated models are written.',
+          default: DEFAULT_GRAPHQL_PATH,
+          type: 'string',
+          array: false,
+          group: 'Form Generation',
+        })
+        .option('uiOutDir', {
+          describe: 'A path to directory where generated forms are written.',
+          default: DEFAULT_UI_PATH,
+          type: 'string',
+          array: false,
+          group: 'Form Generation',
+        })
+        .option('models', {
+          describe: 'Model name to generate',
+          type: 'string',
+          array: true,
+          group: 'Form Generation',
         })
         .check((argv) => {
           if (argv.dirToWatch) {

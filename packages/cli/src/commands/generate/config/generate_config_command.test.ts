@@ -8,8 +8,8 @@ import {
   TestCommandRunner,
 } from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
-import { ClientConfigGeneratorAdapter } from './client_config_generator_adapter.js';
 import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
+import { ClientConfigGeneratorAdapter } from '../../../client-config/client_config_generator_adapter.js';
 
 void describe('generate config command', () => {
   const clientConfigGeneratorAdapter = new ClientConfigGeneratorAdapter(
@@ -87,7 +87,7 @@ void describe('generate config command', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
       backendId: 'app_id',
-      branchName: 'branch_name',
+      disambiguator: 'branch_name',
     });
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
