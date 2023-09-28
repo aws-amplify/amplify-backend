@@ -94,6 +94,7 @@ export class SandboxCommand
       });
     }
     const watchExclusions = args.exclude ?? [];
+    watchExclusions.push(args.uiOutDir, args.modelsOutDir);
     const clientConfigWritePath = await getClientConfigPath(
       args.outDir,
       args.format
