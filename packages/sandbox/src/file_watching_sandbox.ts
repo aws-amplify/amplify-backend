@@ -14,7 +14,7 @@ import _open from 'open';
 import EventEmitter from 'events';
 import { DescribeParametersCommand, SSMClient } from '@aws-sdk/client-ssm';
 
-const CDK_BOOTSTRAP_PARAM_PREFIX = '/cdk-bootstrap';
+export const CDK_BOOTSTRAP_PARAM_PREFIX = '/cdk-bootstrap';
 // TODO: finalize bootstrap url
 export const AMPLIFY_CONSOLE_BOOTSTRAP_URL = `https://<REGION>.console.aws.amazon.com/amplify/create/bootstrap?region=<REGION>#/`;
 /**

@@ -3,6 +3,7 @@ import path from 'path';
 import watcher from '@parcel/watcher';
 import {
   AMPLIFY_CONSOLE_BOOTSTRAP_URL,
+  CDK_BOOTSTRAP_PARAM_PREFIX,
   FileWatchingSandbox,
 } from './file_watching_sandbox.js';
 import assert from 'node:assert';
@@ -33,7 +34,10 @@ const ssmClientSendMock = mock.fn();
 mock.method(ssmClientMock, 'send', ssmClientSendMock);
 ssmClientSendMock.mock.mockImplementation(() =>
   Promise.resolve({
-    Parameters: [{ Name: '/cdk-bootstrap/foo/version' }, { name: 'testParam' }],
+    Parameters: [
+      { Name: `${CDK_BOOTSTRAP_PARAM_PREFIX}/foo/version` },
+      { name: 'testParam' },
+    ],
   })
 );
 const openMock = mock.fn(open, (url: string) => Promise.resolve(url));
@@ -51,26 +55,33 @@ mock.method(fs, 'lstatSync', (path: string) => {
   };
 });
 
-void describe('Sandbox to check if region is bootstrapped', () => {
+void describe('Sandbox to check if region is bootstrapped', (test) => {
   // class under test
   let sandboxInstance: FileWatchingSandbox;
 
   const cdkExecutor = new AmplifySandboxExecutor(backendDeployer);
 
   beforeEach(async () => {
+    // ensures that .gitignore is set as absent
+    mock.method(fs, 'existsSync', () => false);
     sandboxInstance = new FileWatchingSandbox(
       'testSandboxId',
       cdkExecutor,
       ssmClientMock,
       openMock as never
     );
-    // ensures that .gitignore is set as absent
-    mock.method(fs, 'existsSync', () => false);
+
     ssmClientSendMock.mock.resetCalls();
+    openMock.mock.resetCalls();
+    execaDestroyMock.mock.resetCalls();
+    execaDeployMock.mock.resetCalls();
   });
 
   afterEach(async () => {
     ssmClientSendMock.mock.resetCalls();
+    openMock.mock.resetCalls();
+    execaDestroyMock.mock.resetCalls();
+    execaDeployMock.mock.resetCalls();
     await sandboxInstance.stop();
   });
 
@@ -93,6 +104,16 @@ void describe('Sandbox to check if region is bootstrapped', () => {
       openMock.mock.calls[0].arguments[0],
       AMPLIFY_CONSOLE_BOOTSTRAP_URL.replaceAll('<REGION>', region)
     );
+  });
+
+  void it('region has bootstrapped', async () => {
+    await sandboxInstance.start({
+      dir: 'testDir',
+      exclude: ['exclude1', 'exclude2'],
+    });
+
+    assert.strictEqual(ssmClientSendMock.mock.callCount(), 1);
+    assert.strictEqual(openMock.mock.callCount(), 0);
   });
 });
 
