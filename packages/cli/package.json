@@ -47,5 +47,8 @@
   },
   "devDependencies": {
     "@types/yargs": "^17.0.24"
+  },
+  "imports": {
+    "#package.json": "./package.json"
   }
 }
