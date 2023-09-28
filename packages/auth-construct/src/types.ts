@@ -34,6 +34,7 @@ export type EmailLogin =
       verificationEmailBody?: `${string}{##Verify Email##}${string}`;
       verificationEmailSubject?: string;
     };
+
 /**
  * Phone number login options.
  *
@@ -45,6 +46,7 @@ export type PhoneNumberLogin =
   | {
       verificationMessage?: `${string}{####}${string}`;
     };
+
 /**
  * Basic login options require at least email or phone number.
  * Additional settings may be configured, such as email messages or sms verification messages.
@@ -59,26 +61,62 @@ export type BasicLoginOptions =
 export type MFASettings =
   | { totp: boolean; sms: true; smsMessage?: `${string}{####}${string}` }
   | { totp: boolean; sms: false };
+
 /**
  * MFA Settings
  */
 export type MFA =
   | { enforcementType: 'OFF' }
   | ({ enforcementType: 'OPTIONAL' | 'REQUIRED' } & MFASettings);
+
 /**
  * External auth provider options
  */
 export type ExternalProviders = {
   externalProviders?: {
+    /**
+     * Add Google sign-in
+     * @see https://developers.google.com/identity/sign-in/web/sign-in
+     */
     google?: Omit<cognito.UserPoolIdentityProviderGoogleProps, 'userPool'>;
+    /**
+     * Add Facebook Login
+     * @see https://developers.facebook.com/docs/facebook-login/
+     */
     facebook?: Omit<cognito.UserPoolIdentityProviderFacebookProps, 'userPool'>;
+    /**
+     * Add Login with Amazon
+     * @see https://developer.amazon.com/docs/login-with-amazon/documentation-overview.html
+     */
     amazon?: Omit<cognito.UserPoolIdentityProviderAmazonProps, 'userPool'>;
+    /**
+     * Add Sign in with Apple
+     * @see https://developer.apple.com/sign-in-with-apple/
+     */
     apple?: Omit<cognito.UserPoolIdentityProviderAppleProps, 'userPool'>;
+    /**
+     * Add an OpenID Connect provider
+     * @see https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-oidc-idp.html
+     */
     oidc?: Omit<cognito.UserPoolIdentityProviderOidcProps, 'userPool'>;
+    /**
+     * Add a SAML provider
+     * @see https://docs.aws.amazon.com/cognito/latest/developerguide/saml-identity-provider.html
+     */
     saml?: Omit<cognito.UserPoolIdentityProviderSamlProps, 'userPool'>;
-    // general configuration
+    /**
+     *
+     * OAuth scopes that are allowed with this client.
+     * @see https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-app-idp-settings.html
+     */
     scopes?: cognito.OAuthScope[];
+    /**
+     * Application URLs to redirect users after logging in
+     */
     callbackUrls?: string[];
+    /**
+     * Application URLs to redirect users after logging out
+     */
     logoutUrls?: string[];
   };
 };
@@ -92,13 +130,19 @@ export type TriggerEvent = (typeof triggerEvents)[number];
  * Input props for the AmplifyAuth construct
  */
 export type AuthProps = {
+  /**
+   * Define how users will log in to your application
+   * @default { email: true }
+   */
   loginWith: BasicLoginOptions & ExternalProviders;
   /**
-   * Additional settings
+   * Attributes that are set on users. User attributes can either be required or optional
+   * @example AmplifyAuth.attribute('email').required()
+   * @example AmplifyAuth.attribute('birthday')
    */
   userAttributes?: AuthUserAttribute[];
   /**
-   * Multifactor Authentication settings
+   * Multi-factor Authentication settings
    */
   multifactor?: MFA;
   /**
