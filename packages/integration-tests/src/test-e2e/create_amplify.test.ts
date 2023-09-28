@@ -64,7 +64,8 @@ void describe('create-amplify script', () => {
 
     const pathPrefix = path.join(tempDir, 'amplify');
 
-    const files = await glob(path.join(pathPrefix, '**', '*'));
+    // eslint-disable-next-line spellcheck/spell-checker
+    const files = await glob(path.join(pathPrefix, '**', '*'), { nodir: true });
 
     assert.deepStrictEqual(
       files.sort(),
