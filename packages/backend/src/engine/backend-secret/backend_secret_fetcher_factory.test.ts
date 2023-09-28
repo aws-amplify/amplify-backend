@@ -28,8 +28,8 @@ void describe('getOrCreate', () => {
   void it('create different secrets', () => {
     const app = new App();
     const stack = new Stack(app);
-    resourceFactory.getOrCreate(stack, secretName1, 1, uniqueBackendIdentifier);
-    resourceFactory.getOrCreate(stack, secretName2, 1, uniqueBackendIdentifier);
+    resourceFactory.getOrCreate(stack, secretName1, uniqueBackendIdentifier);
+    resourceFactory.getOrCreate(stack, secretName2, uniqueBackendIdentifier);
 
     const template = Template.fromStack(stack);
     template.resourceCountIs(secretResourceType, 2);
@@ -65,8 +65,8 @@ void describe('getOrCreate', () => {
   void it('does not create duplicate resource for the same secret name', () => {
     const app = new App();
     const stack = new Stack(app);
-    resourceFactory.getOrCreate(stack, secretName1, 1, uniqueBackendIdentifier);
-    resourceFactory.getOrCreate(stack, secretName1, 1, uniqueBackendIdentifier);
+    resourceFactory.getOrCreate(stack, secretName1, uniqueBackendIdentifier);
+    resourceFactory.getOrCreate(stack, secretName1, uniqueBackendIdentifier);
 
     const template = Template.fromStack(stack);
     template.resourceCountIs(secretResourceType, 1);

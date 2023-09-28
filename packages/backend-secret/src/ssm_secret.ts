@@ -103,8 +103,9 @@ export class SSMSecretClient implements SecretClient {
       if (resp.Parameter?.Value) {
         secret = {
           name: secretIdentifier.name,
-          version: resp.Parameter?.Version,
-          value: resp.Parameter?.Value,
+          value: resp.Parameter.Value,
+          version: resp.Parameter.Version,
+          lastUpdated: resp.Parameter.LastModifiedDate,
         };
       }
     } catch (err) {
@@ -125,9 +126,9 @@ export class SSMSecretClient implements SecretClient {
    */
   public listSecrets = async (
     backendIdentifier: UniqueBackendIdentifier | BackendId
-  ): Promise<SecretIdentifier[]> => {
+  ): Promise<Secret[]> => {
     const path = this.getParameterPrefix(backendIdentifier);
-    const result: SecretIdentifier[] = [];
+    const result: Secret[] = [];
 
     try {
       const resp = await this.ssmClient.getParametersByPath({
@@ -143,7 +144,9 @@ export class SSMSecretClient implements SecretClient {
         if (secretName) {
           result.push({
             name: secretName,
+            value: param.Value,
             version: param.Version,
+            lastUpdated: param.LastModifiedDate,
           });
         }
       });
@@ -160,20 +163,16 @@ export class SSMSecretClient implements SecretClient {
     backendIdentifier: UniqueBackendIdentifier | BackendId,
     secretName: string,
     secretValue: string
-  ): Promise<SecretIdentifier> => {
+  ) => {
     const name = this.getParameterFullPath(backendIdentifier, secretName);
     try {
-      const resp = await this.ssmClient.putParameter({
+      await this.ssmClient.putParameter({
         Name: name,
         Type: 'SecureString',
         Value: secretValue,
         Description: `Amplify Secret`,
         Overwrite: true,
       });
-      return {
-        name: secretName,
-        version: resp.Version,
-      };
     } catch (err) {
       throw SecretError.fromSSMException(err as SSMServiceException);
     }

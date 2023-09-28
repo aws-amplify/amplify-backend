@@ -1,5 +1,6 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import {
+  GetParameterCommandOutput,
   GetParametersByPathCommandOutput,
   InternalServerError,
   ParameterNotFound,
@@ -18,6 +19,7 @@ const testBackendId = 'testBackendId';
 const testBranchName = 'testBranchName';
 const testSecretName = 'testSecretName';
 const testSecretValue = 'testSecretValue';
+const testLastUpdated = new Date(98765);
 const testSecretVersion = 20;
 const testBranchPath = `/amplify/${testBackendId}/${testBranchName}`;
 const testSharedPath = `/amplify/${shared}/${testBackendId}`;
@@ -36,6 +38,7 @@ const testSecretIdWithVersion: SecretIdentifier = {
 const testSecret: Secret = {
   ...testSecretIdWithVersion,
   value: testSecretValue,
+  lastUpdated: testLastUpdated,
 };
 
 const testBackendIdentifier: UniqueBackendIdentifier =
@@ -52,8 +55,9 @@ void describe('SSMSecret', () => {
           Name: testBranchSecretFullNamePath,
           Value: testSecretValue,
           Version: testSecretVersion,
+          LastModifiedDate: testLastUpdated,
         },
-      })
+      } as GetParameterCommandOutput)
     );
 
     beforeEach(() => {
@@ -135,10 +139,7 @@ void describe('SSMSecret', () => {
     const ssmClient = new SSM();
     const ssmSecretClient = new SSMSecretClient(ssmClient);
     const mockSetParameter = mock.method(ssmClient, 'putParameter', () =>
-      Promise.resolve({
-        $metadata: {},
-        Version: testSecretVersion,
-      })
+      Promise.resolve()
     );
 
     beforeEach(() => {
@@ -146,13 +147,12 @@ void describe('SSMSecret', () => {
     });
 
     void it('set branch secret', async () => {
-      const resp = await ssmSecretClient.setSecret(
+      await ssmSecretClient.setSecret(
         testBackendIdentifier,
         testSecretName,
         testSecretValue
       );
 
-      assert.deepEqual(resp, testSecretIdWithVersion);
       assert.deepStrictEqual(mockSetParameter.mock.calls[0].arguments[0], {
         Name: testBranchSecretFullNamePath,
         Type: 'SecureString',
@@ -170,13 +170,12 @@ void describe('SSMSecret', () => {
         })
       );
 
-      const resp = await ssmSecretClient.setSecret(
+      await ssmSecretClient.setSecret(
         testBackendId,
         testSecretName,
         testSecretValue
       );
 
-      assert.deepEqual(resp, testSecretIdWithVersion);
       assert.deepStrictEqual(mockSetParameter.mock.calls[0].arguments[0], {
         Name: testSharedSecretFullNamePath,
         Type: 'SecureString',
@@ -255,13 +254,16 @@ void describe('SSMSecret', () => {
     const ssmClient = new SSM();
     const ssmSecretClient = new SSMSecretClient(ssmClient);
 
+    const testLastUpdated2 = new Date(123456);
     const testSecretName2 = 'testSecretName2';
     const testSecretValue2 = 'testSecretValue2';
     const testSecretFullNamePath2 = `${testBranchPath}/${testSecretName2}`;
     const testSecretVersion2 = 33;
-    const testSecretIdWithVersion2: SecretIdentifier = {
+    const testSecret2: Secret = {
       name: testSecretName2,
       version: testSecretVersion2,
+      lastUpdated: testLastUpdated2,
+      value: testSecretValue2,
     };
 
     void it('lists branch secrets', async () => {
@@ -275,11 +277,13 @@ void describe('SSMSecret', () => {
                 Name: testBranchSecretFullNamePath,
                 Value: testSecretValue,
                 Version: testSecretVersion,
+                LastModifiedDate: testLastUpdated,
               },
               {
                 Name: testSecretFullNamePath2,
                 Value: testSecretValue2,
                 Version: testSecretVersion2,
+                LastModifiedDate: testLastUpdated2,
               },
             ],
           } as GetParametersByPathCommandOutput)
@@ -294,8 +298,8 @@ void describe('SSMSecret', () => {
         }
       );
       assert.deepEqual(secrets, [
-        testSecretIdWithVersion,
-        testSecretIdWithVersion2,
+        testSecret,
+        testSecret2,
       ] as SecretIdentifier[]);
     });
 
@@ -310,6 +314,7 @@ void describe('SSMSecret', () => {
                 Name: testSharedSecretFullNamePath,
                 Value: testSecretValue,
                 Version: testSecretVersion,
+                LastModifiedDate: testLastUpdated,
               },
             ],
           } as GetParametersByPathCommandOutput)
@@ -323,7 +328,7 @@ void describe('SSMSecret', () => {
           WithDecryption: true,
         }
       );
-      assert.deepEqual(secrets, [testSecretIdWithVersion]);
+      assert.deepEqual(secrets, [testSecret]);
     });
 
     void it('lists an empty list', async () => {

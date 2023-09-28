@@ -14,7 +14,6 @@ type SecretResourceProps = {
   backendId: string;
   branchName: string;
   secretName: string;
-  secretVersion: number;
 };
 
 const secretClient = getSecretClient();
@@ -63,7 +62,6 @@ export const handleCreateUpdateEvent = async (
       new BranchBackendIdentifier(props.backendId, props.branchName),
       {
         name: props.secretName,
-        version: props.secretVersion,
       }
     );
     secret = resp?.value;
@@ -83,7 +81,6 @@ export const handleCreateUpdateEvent = async (
     try {
       const resp = await secretClient.getSecret(props.backendId, {
         name: props.secretName,
-        version: props.secretVersion,
       });
       secret = resp?.value;
     } catch (err) {

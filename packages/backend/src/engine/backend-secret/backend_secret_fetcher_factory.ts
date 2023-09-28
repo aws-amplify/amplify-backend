@@ -31,7 +31,6 @@ export class BackendSecretFetcherFactory {
   getOrCreate = (
     scope: Construct,
     secretName: string,
-    secretVersion: number,
     backendIdentifier: UniqueBackendIdentifier
   ): CustomResource => {
     const secretResourceId = `${secretName}SecretFetcherResource`;
@@ -55,7 +54,6 @@ export class BackendSecretFetcherFactory {
         backendId: backendIdentifier.backendId,
         branchName: backendIdentifier.disambiguator,
         secretName: secretName,
-        secretVersion: secretVersion,
       },
       resourceType: SECRET_RESOURCE_TYPE,
     });
