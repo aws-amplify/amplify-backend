@@ -29,6 +29,10 @@ const customMatchers: Map<ObjectPath, Predicate> = new Map([
     ],
     matchHashedJsonFile,
   ],
+  [
+    ['Description'],
+    (actual) => typeof actual === 'string' && JSON.parse(actual),
+  ],
 ]);
 
 /**
@@ -85,6 +89,9 @@ export const validateCdkOutDir = async (
     }
     const actualObj = JSON.parse(fs.readFileSync(actualFile, 'utf-8'));
     const expectedObj = JSON.parse(fs.readFileSync(expectedFile, 'utf-8'));
+
+    // there are some CDK asset hashes that differ when the template is synthesized on different operating systems
+    // we specify a custom match rule for some paths in the template to work around these differences
     assertCustomMatch(actualObj, expectedObj, customMatchers);
   }
 };
