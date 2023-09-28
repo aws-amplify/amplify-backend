@@ -3,8 +3,39 @@ import path from 'path';
 import assert from 'node:assert';
 import * as fse from 'fs-extra/esm';
 import * as fs from 'fs';
+import { ObjectPath, Predicate, assertCustomMatch } from './object_compare.js';
 
 const UPDATE_SNAPSHOTS = process.env.UPDATE_INTEGRATION_SNAPSHOTS === 'true';
+
+const matchHashedJsonFile: Predicate = (actual, expected) => {
+  const jsonFileHashRegex = /^\/[a-z0-9]{64}\.json$/;
+  return (
+    typeof actual === 'string' &&
+    jsonFileHashRegex.test(actual) &&
+    typeof expected === 'string' &&
+    jsonFileHashRegex.test(expected)
+  );
+};
+const customMatchers: Map<ObjectPath, Predicate> = new Map([
+  [
+    [
+      'Resources',
+      'data7552DF31',
+      'Properties',
+      'TemplateURL',
+      'Fn::Join',
+      1,
+      6,
+    ],
+    matchHashedJsonFile,
+  ],
+  [
+    ['Description'],
+    // the description field of the gql template contains a JSON string that includes "createdOn": "Linux|Mac|Windows"
+    // this check just verifies that the string is valid JSON because the createdOn value is different for each platform
+    (actual) => typeof actual === 'string' && JSON.parse(actual),
+  ],
+]);
 
 /**
  * Essentially a snapshot validator.
@@ -21,7 +52,7 @@ export const validateCdkOutDir = async (
 ) => {
   // These are CDK internal bookkeeping files that change across minor versions of CDK.
   // We only care about validating the CFN templates
-  const ignoreFiles = ['tree.json', 'cdk.out', 'manifest.json'];
+  const ignoreFiles = ['tree.json', 'cdk.out', 'manifest.json', '.assets.json'];
 
   const actualPaths = await glob(path.join(actualDir, '*'));
   const expectedPaths = await glob(path.join(expectedDir, '*'));
@@ -60,6 +91,9 @@ export const validateCdkOutDir = async (
     }
     const actualObj = JSON.parse(fs.readFileSync(actualFile, 'utf-8'));
     const expectedObj = JSON.parse(fs.readFileSync(expectedFile, 'utf-8'));
-    assert.deepStrictEqual(actualObj, expectedObj);
+
+    // there are some CDK asset hashes that differ when the template is synthesized on different operating systems
+    // we specify a custom match rule for some paths in the template to work around these differences
+    assertCustomMatch(actualObj, expectedObj, customMatchers);
   }
 };

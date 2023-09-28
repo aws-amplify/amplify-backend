@@ -1,4 +1,5 @@
 {
+ "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyCDK\",\"createdWith\":\"0.9.0\",\"stackType\":\"api-AppSync\"}",
  "Resources": {
   "amplifyDataGraphQLAPI42A6FA33": {
    "Type": "AWS::AppSync::GraphQLApi",
@@ -68,7 +69,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/d45aaafd2fd464046e23216c9bdd5e5391cc17dc61e4dc0d87342cdd58261f00.json"
+       "/74bffe31519a8d1a57232c7796e602635dd98e37cea67dbf2f325adc09ea16e5.json"
       ]
      ]
     },
@@ -459,73 +460,6 @@
    ]
   }
  },
- "Outputs": {
-  "GraphQLAPIIdOutput": {
-   "Description": "Your GraphQL API ID.",
-   "Value": {
-    "Fn::GetAtt": [
-     "amplifyDataGraphQLAPI42A6FA33",
-     "ApiId"
-    ]
-   },
-   "Export": {
-    "Name": {
-     "Fn::Join": [
-      ":",
-      [
-       {
-        "Ref": "AWS::StackName"
-       },
-       "GraphQLApiId"
-      ]
-     ]
-    }
-   }
-  },
-  "GraphQLAPIEndpointOutput": {
-   "Description": "Your GraphQL API endpoint.",
-   "Value": {
-    "Fn::GetAtt": [
-     "amplifyDataGraphQLAPI42A6FA33",
-     "GraphQLUrl"
-    ]
-   },
-   "Export": {
-    "Name": {
-     "Fn::Join": [
-      ":",
-      [
-       {
-        "Ref": "AWS::StackName"
-       },
-       "GraphQLApiEndpoint"
-      ]
-     ]
-    }
-   }
-  },
-  "amplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId": {
-   "Value": {
-    "Fn::GetAtt": [
-     "amplifyDataGraphQLAPI42A6FA33",
-     "ApiId"
-    ]
-   }
-  },
-  "amplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03GraphQLUrl": {
-   "Value": {
-    "Fn::GetAtt": [
-     "amplifyDataGraphQLAPI42A6FA33",
-     "GraphQLUrl"
-    ]
-   }
-  },
-  "amplifytestAppIdtestBranchNamedataamplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsBucket25324612Ref": {
-   "Value": {
-    "Ref": "amplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsBucket9CCB4ACA"
-   }
-  }
- },
  "Parameters": {
   "DynamoDBModelTableReadIOPS": {
    "Type": "Number",
@@ -674,6 +608,29 @@
    },
    "us-west-2": {
     "value": "nodejs16.x"
+   }
+  }
+ },
+ "Outputs": {
+  "amplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId": {
+   "Value": {
+    "Fn::GetAtt": [
+     "amplifyDataGraphQLAPI42A6FA33",
+     "ApiId"
+    ]
+   }
+  },
+  "amplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03GraphQLUrl": {
+   "Value": {
+    "Fn::GetAtt": [
+     "amplifyDataGraphQLAPI42A6FA33",
+     "GraphQLUrl"
+    ]
+   }
+  },
+  "amplifytestAppIdtestBranchNamedataamplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsBucket25324612Ref": {
+   "Value": {
+    "Ref": "amplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsBucket9CCB4ACA"
    }
   }
  }
