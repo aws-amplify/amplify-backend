@@ -87,7 +87,7 @@ void describe('generate config command', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
       backendId: 'app_id',
-      branchName: 'branch_name',
+      disambiguator: 'branch_name',
     });
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(

@@ -1,11 +1,11 @@
 import { execa } from 'execa';
 import stream from 'stream';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import {
   BackendDeployer,
   DeployProps,
 } from './cdk_deployer_singleton_factory.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
+import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 const relativeBackendEntryPoint = 'amplify/backend.ts';
 
@@ -80,7 +80,7 @@ export class CDKDeployer implements BackendDeployer {
         '--context',
         `backend-id=${uniqueBackendIdentifier.backendId}`,
         '--context',
-        `branch-name=${uniqueBackendIdentifier.branchName}`
+        `branch-name=${uniqueBackendIdentifier.disambiguator}`
       );
     }
 

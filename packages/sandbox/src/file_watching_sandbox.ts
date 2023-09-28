@@ -13,6 +13,7 @@ import fs from 'fs';
 import _open from 'open';
 import EventEmitter from 'events';
 import { DescribeParametersCommand, SSMClient } from '@aws-sdk/client-ssm';
+import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
 
 export const CDK_BOOTSTRAP_PARAM_PREFIX = '/cdk-bootstrap';
 // TODO: finalize bootstrap url
@@ -94,10 +95,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
 
     const deployAndWatch = debounce(async () => {
       latch = 'deploying';
-      await this.executor.deploy({
-        backendId: sandboxId,
-        branchName: 'sandbox',
-      });
+      await this.executor.deploy(new SandboxBackendIdentifier(sandboxId));
 
       // If latch is still 'deploying' after the 'await', that's fine,
       // but if it's 'queued', that means we need to deploy again
@@ -108,10 +106,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
         console.log(
           "[Sandbox] Detected file changes while previous deployment was in progress. Invoking 'sandbox' again"
         );
-        await this.executor.deploy({
-          backendId: sandboxId,
-          branchName: 'sandbox',
-        });
+        await this.executor.deploy(new SandboxBackendIdentifier(sandboxId));
       }
       latch = 'open';
       this.emitWatching();
@@ -169,10 +164,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     console.log(
       '[Sandbox] Deleting all the resources in the sandbox environment...'
     );
-    await this.executor.destroy({
-      backendId: sandboxAppId,
-      branchName: 'sandbox',
-    });
+    await this.executor.destroy(new SandboxBackendIdentifier(sandboxAppId));
     console.log('[Sandbox] Finished deleting.');
   };
 
