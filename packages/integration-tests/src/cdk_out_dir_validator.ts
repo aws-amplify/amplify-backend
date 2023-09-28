@@ -21,7 +21,7 @@ export const validateCdkOutDir = async (
 ) => {
   // These are CDK internal bookkeeping files that change across minor versions of CDK.
   // We only care about validating the CFN templates
-  const ignoreFiles = ['tree.json', 'cdk.out', 'manifest.json'];
+  const ignoreFiles = ['tree.json', 'cdk.out', 'manifest.json', '.assets.json'];
 
   const actualPaths = await glob(path.join(actualDir, '*'));
   const expectedPaths = await glob(path.join(expectedDir, '*'));
