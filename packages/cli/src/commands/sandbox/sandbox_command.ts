@@ -6,6 +6,10 @@ import {
   ClientConfigFormat,
   getClientConfigPath,
 } from '@aws-amplify/client-config';
+import {
+  DEFAULT_GRAPHQL_PATH,
+  DEFAULT_UI_PATH,
+} from '../../form-generation/default_form_generation_output_paths.js';
 
 export type SandboxCommandOptions = {
   dirToWatch: string | undefined;
@@ -14,6 +18,9 @@ export type SandboxCommandOptions = {
   format: ClientConfigFormat | undefined;
   outDir: string | undefined;
   profile: string | undefined;
+  modelsOutDir: string;
+  uiOutDir: string;
+  modelsFilter?: string[];
 };
 
 export type EventHandler = () => void;
@@ -24,8 +31,11 @@ export type SandboxEventHandlers = {
 
 export type SandboxEventHandlerParams = {
   appName?: string;
-  outDir?: string;
+  clientConfigOutDir?: string;
   format?: ClientConfigFormat;
+  modelsOutDir: string;
+  uiOutDir: string;
+  modelsFilter?: string[];
 };
 
 export type SandboxEventHandlerCreator = (
@@ -73,7 +83,10 @@ export class SandboxCommand
     const eventHandlers = this.sandboxEventHandlerCreator?.({
       appName: args.name,
       format: args.format,
-      outDir: args.outDir,
+      clientConfigOutDir: args.outDir,
+      modelsOutDir: args.modelsOutDir,
+      uiOutDir: args.uiOutDir,
+      modelsFilter: args.modelsFilter,
     });
     if (eventHandlers) {
       Object.entries(eventHandlers).forEach(([event, handlers]) => {
@@ -137,6 +150,26 @@ export class SandboxCommand
           describe: 'An AWS profile name to use for deployment.',
           type: 'string',
           array: false,
+        })
+        .option('modelsOutDir', {
+          describe: 'A path to directory where generated models are written.',
+          default: DEFAULT_GRAPHQL_PATH,
+          type: 'string',
+          array: false,
+          group: 'Form Generation',
+        })
+        .option('uiOutDir', {
+          describe: 'A path to directory where generated forms are written.',
+          default: DEFAULT_UI_PATH,
+          type: 'string',
+          array: false,
+          group: 'Form Generation',
+        })
+        .option('models', {
+          describe: 'Model name to generate',
+          type: 'string',
+          array: true,
+          group: 'Form Generation',
         })
         .check((argv) => {
           if (argv.dirToWatch) {

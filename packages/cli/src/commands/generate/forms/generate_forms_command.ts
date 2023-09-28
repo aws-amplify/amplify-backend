@@ -4,8 +4,12 @@ import {
   BackendOutputClient,
 } from '@aws-amplify/deployed-backend-client';
 import { graphqlOutputKey } from '@aws-amplify/backend-output-schemas';
-import { FormGenerationHandler } from './form_generation_handler.js';
 import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
+import {
+  DEFAULT_GRAPHQL_PATH,
+  DEFAULT_UI_PATH,
+} from '../../../form-generation/default_form_generation_output_paths.js';
+import { FormGenerationHandler } from '../../../form-generation/form_generation_handler.js';
 
 export type GenerateFormsCommandOptions = {
   stack: string | undefined;
@@ -113,15 +117,15 @@ export class GenerateFormsCommand
         implies: 'appId',
       })
       .option('modelsOutDir', {
-        describe: 'A path to directory where generated forms are written.',
-        default: './src/graphql',
+        describe: 'A path to directory where generated models are written.',
+        default: DEFAULT_GRAPHQL_PATH,
         type: 'string',
         array: false,
         group: 'Form Generation',
       })
       .option('uiOutDir', {
         describe: 'A path to directory where generated forms are written.',
-        default: './src/ui-components',
+        default: DEFAULT_UI_PATH,
         type: 'string',
         array: false,
         group: 'Form Generation',
