@@ -61,9 +61,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
           name: stackSummary.StackName as string,
           lastUpdated: stackSummary.LastUpdatedTime,
           status: this.translateStackStatus(stackSummary.StackStatus),
-          // FIXME: sandboxes will have an additional field in their outputs
-          // Once that output is added, make this field conditional
-          deploymentType: BackendDeploymentType.SANDBOX,
+          deploymentType: this.getDeploymentType(),
         };
       })
       .filter(
@@ -150,9 +148,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     );
 
     const backendMetadataObject: BackendMetadata = {
-      // FIXME: sandboxes will have an additional field in their outputs
-      // Once that output is added, make this field conditional
-      deploymentType: BackendDeploymentType.SANDBOX,
+      deploymentType: this.getDeploymentType(),
       lastUpdated,
       status,
       name: stackName,
@@ -185,6 +181,12 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     }
 
     return backendMetadataObject;
+  };
+
+  private getDeploymentType = (): BackendDeploymentType => {
+    // FIXME: sandboxes will have an additional field in their outputs
+    // Once that output is added, make this field conditional
+    return BackendDeploymentType.SANDBOX;
   };
 
   private translateStackStatus = (
