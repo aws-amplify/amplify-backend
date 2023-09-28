@@ -64,8 +64,8 @@ void describe('create-amplify script', () => {
 
     const pathPrefix = path.join(tempDir, 'amplify');
 
-    // eslint-disable-next-line spellcheck/spell-checker
     const files = await glob(path.join(pathPrefix, '**', '*'), {
+      // eslint-disable-next-line spellcheck/spell-checker
       nodir: true,
       windowsPathsNoEscape: true,
     });
