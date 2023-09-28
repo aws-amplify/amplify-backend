@@ -18,7 +18,6 @@ void describe('StackMetadataBackendOutputStorageStrategy', () => {
           something: 'special',
         },
       });
-      outputStorage.flush();
 
       const template = Template.fromStack(stack);
       template.hasOutput('something', { Value: 'special' });
@@ -44,7 +43,6 @@ void describe('StackMetadataBackendOutputStorageStrategy', () => {
           something: 'special',
         },
       });
-      outputStorage.flush();
 
       const template = Template.fromStack(stack);
       // successfully parsing the metadata means it validated against the schema

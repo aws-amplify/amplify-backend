@@ -10,11 +10,14 @@ import {
 import {
   AmplifyGraphqlApi,
   AmplifyGraphqlApiProps,
-  AuthorizationConfig,
+  AmplifyGraphqlDefinition,
+  AuthorizationModes,
+  IAMAuthorizationConfig,
+  UserPoolAuthorizationConfig,
 } from '@aws-amplify/graphql-construct-alpha';
 import { GraphqlOutput } from '@aws-amplify/backend-output-schemas/graphql';
 
-export type DataProps = Pick<AmplifyGraphqlApiProps, 'schema'>;
+export type DataProps = { schema: string };
 
 /**
  * Singleton factory for AmplifyGraphqlApi constructs that can be used in Amplify project files
@@ -71,27 +74,42 @@ class DataGenerator implements ConstructContainerEntryGenerator {
   ) {}
 
   generateContainerEntry = (scope: Construct) => {
-    const authConfig: AuthorizationConfig = {
-      iamConfig: {
+    let iamConfig: IAMAuthorizationConfig | undefined = undefined;
+    let defaultAuthorizationMode: AuthorizationModes['defaultAuthorizationMode'] =
+      'AWS_IAM';
+    if (
+      this.authResources.resources.authenticatedUserIamRole &&
+      this.authResources.resources.unauthenticatedUserIamRole &&
+      this.authResources.resources.cfnResources.identityPool.logicalId
+    ) {
+      iamConfig = {
         authenticatedUserRole:
           this.authResources.resources.authenticatedUserIamRole,
         unauthenticatedUserRole:
           this.authResources.resources.unauthenticatedUserIamRole,
         identityPoolId:
           this.authResources.resources.cfnResources.identityPool.logicalId,
-      },
-    };
+      };
+    }
+
+    let userPoolConfig: UserPoolAuthorizationConfig | undefined = undefined;
     if (this.authResources.resources.userPool) {
-      authConfig.userPoolConfig = {
+      userPoolConfig = {
         userPool: this.authResources.resources.userPool,
       };
-      authConfig.defaultAuthMode = 'AMAZON_COGNITO_USER_POOLS';
+      defaultAuthorizationMode = 'AMAZON_COGNITO_USER_POOLS';
     }
+
+    const authorizationModes: AuthorizationModes = {
+      defaultAuthorizationMode,
+      iamConfig,
+      userPoolConfig,
+    };
 
     // TODO inject the construct with the functionNameMap
     const graphqlConstructProps: AmplifyGraphqlApiProps = {
-      schema: this.props.schema,
-      authorizationConfig: authConfig,
+      definition: AmplifyGraphqlDefinition.fromString(this.props.schema),
+      authorizationModes,
       outputStorageStrategy: this.outputStorageStrategy,
     };
     return new AmplifyGraphqlApi(

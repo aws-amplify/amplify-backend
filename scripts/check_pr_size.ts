@@ -32,6 +32,11 @@ const filteredList = diffFileList.filter(
   (file) => !EXCLUDE.find((e) => file.includes(e))
 );
 
+if (filteredList.length === 0) {
+  // if the diff only touches ignored files, then early return
+  process.exit();
+}
+
 // now run diff --shortstat on the filtered list of files
 const shortStatArgs = [
   'diff',

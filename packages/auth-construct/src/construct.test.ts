@@ -468,7 +468,6 @@ void describe('Auth construct', () => {
       const stubBackendOutputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry> =
         {
           addBackendOutputEntry: storeOutputMock,
-          flush: mock.fn(),
         };
       const authConstruct = new AmplifyAuth(stack, 'test', {
         loginWith: {

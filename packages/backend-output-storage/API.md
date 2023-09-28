@@ -12,7 +12,6 @@ import { Stack } from 'aws-cdk-lib';
 export class StackMetadataBackendOutputStorageStrategy implements BackendOutputStorageStrategy<BackendOutputEntry> {
     constructor(stack: Stack);
     addBackendOutputEntry: (keyName: string, backendOutputEntry: BackendOutputEntry) => void;
-    flush: () => void;
 }
 
 // (No @packageDocumentation comment for this package)
