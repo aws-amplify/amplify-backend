@@ -30,6 +30,7 @@ import {
   graphqlOutputKey,
   storageOutputKey,
 } from '@aws-amplify/backend-output-schemas';
+import { CloudFormationClientFactory } from './cloudformation_client_factory.js';
 
 /**
  * Deployment Client
@@ -97,7 +98,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
   };
 
   private getCfnClient = (): CloudFormationClient => {
-    return new CloudFormationClient(this.credentials);
+    return CloudFormationClientFactory.getInstance(this.credentials);
   };
 
   private listStacks = async (): Promise<StackSummary[]> => {
