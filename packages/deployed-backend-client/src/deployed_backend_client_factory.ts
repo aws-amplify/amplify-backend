@@ -7,7 +7,6 @@ import { CloudFormation } from '@aws-sdk/client-cloudformation';
 export type SandboxMetadata = {
   name: string;
   lastUpdated: Date | undefined;
-  deploymentType: BackendDeploymentType;
   status: BackendDeploymentStatus;
 };
 
@@ -46,6 +45,7 @@ export enum BackendDeploymentStatus {
   DEPLOYED = 'DEPLOYED',
   FAILED = 'FAILED',
   DEPLOYING = 'DEPLOYING',
+  DELETED = 'DELETED',
   UNKNOWN = 'UNKNOWN',
 }
 
@@ -60,7 +60,7 @@ export type DeployedBackendClient = {
   ) => Promise<ListSandboxesResponse>;
   deleteSandbox: (
     sandboxBackendIdentifier: SandboxBackendIdentifier
-  ) => Promise<BackendMetadata>;
+  ) => Promise<void>;
   getBackendMetadata: (
     backendIdentifier: UniqueBackendIdentifier
   ) => Promise<BackendMetadata>;

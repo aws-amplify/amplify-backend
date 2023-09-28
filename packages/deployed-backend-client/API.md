@@ -18,6 +18,8 @@ export type AppNameAndBranchBackendIdentifier = {
 // @public (undocumented)
 export enum BackendDeploymentStatus {
     // (undocumented)
+    DELETED = "DELETED",
+    // (undocumented)
     DEPLOYED = "DEPLOYED",
     // (undocumented)
     DEPLOYING = "DEPLOYING",
@@ -87,7 +89,7 @@ export class BackendOutputClientFactory {
 // @public (undocumented)
 export type DeployedBackendClient = {
     listSandboxes: (listSandboxesRequest?: ListSandboxesRequest) => Promise<ListSandboxesResponse>;
-    deleteSandbox: (sandboxBackendIdentifier: SandboxBackendIdentifier) => Promise<BackendMetadata>;
+    deleteSandbox: (sandboxBackendIdentifier: SandboxBackendIdentifier) => Promise<void>;
     getBackendMetadata: (backendIdentifier: UniqueBackendIdentifier) => Promise<BackendMetadata>;
 };
 
@@ -111,7 +113,6 @@ export type ListSandboxesResponse = {
 export type SandboxMetadata = {
     name: string;
     lastUpdated: Date | undefined;
-    deploymentType: BackendDeploymentType;
     status: BackendDeploymentStatus;
 };
 

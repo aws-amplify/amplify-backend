@@ -4,6 +4,7 @@ import {
   CloudFormation,
   DeleteStackCommand,
   DescribeStacksCommand,
+  ListStackResourcesCommand,
   ListStacksCommand,
   StackStatus,
 } from '@aws-sdk/client-cloudformation';
@@ -29,7 +30,7 @@ import { DefaultDeployedBackendClient } from './deployed_backend_client.js';
 const listStacksMock = {
   StackSummaries: [
     {
-      StackName: 'testStackName',
+      StackName: 'amplify-test-testBranch',
       StackStatus: StackStatus.CREATE_COMPLETE,
     },
     {
@@ -37,17 +38,17 @@ const listStacksMock = {
       StackStatus: StackStatus.CREATE_COMPLETE,
     },
     {
-      StackName: 'testStackName-auth',
+      StackName: 'amplify-test-testBranch-auth',
       StackStatus: StackStatus.CREATE_COMPLETE,
       ParentId: 'testStackId',
     },
     {
-      StackName: 'testStackName-storage',
+      StackName: 'amplify-test-testBranch-storage',
       StackStatus: StackStatus.CREATE_IN_PROGRESS,
       ParentId: 'testStackId',
     },
     {
-      StackName: 'testStackName-api',
+      StackName: 'amplify-test-testBranch-api',
       StackStatus: StackStatus.CREATE_FAILED,
       ParentId: 'testStackId',
     },
@@ -57,7 +58,7 @@ const listStacksMock = {
 const describeStacksMock = {
   Stacks: [
     {
-      StackName: 'testStackName',
+      StackName: 'amplify-test-testBranch',
       StackStatus: StackStatus.CREATE_COMPLETE,
       StackId: 'testStackId',
       ParentId: undefined,
@@ -113,6 +114,29 @@ const describeStacksMock = {
 
 const deleteStackMock = undefined;
 
+const listStackResourcesMock = {
+  StackResourceSummaries: [
+    {
+      PhysicalResourceId:
+        'arn:aws:cloudformation:us-east-1:123:stack/amplify-test-testBranch-storage/randomString',
+      ResourceType: 'AWS::CloudFormation::Stack',
+    },
+    {
+      PhysicalResourceId:
+        'arn:aws:cloudformation:us-east-1:123:stack/amplify-test-testBranch-api/randomString',
+      ResourceType: 'AWS::CloudFormation::Stack',
+    },
+    {
+      PhysicalResourceId:
+        'arn:aws:cloudformation:us-east-1:123:stack/amplify-test-testBranch-auth/randomString',
+      ResourceType: 'AWS::CloudFormation::Stack',
+    },
+    {
+      ResourceType: 'AWS::CDK::Metadata',
+    },
+  ],
+};
+
 const getOutputMockResponse = {
   [authOutputKey]: {
     payload: {
@@ -154,6 +178,7 @@ const expectedMetadata = {
 void describe('Deployed Backend Client', () => {
   const getOutputMock = mock.fn();
   let deployedBackendClient: DefaultDeployedBackendClient;
+  const cfnClientSendMock = mock.fn();
 
   beforeEach(() => {
     const mockCredentials: AwsCredentialIdentityProvider = async () => ({
@@ -161,18 +186,31 @@ void describe('Deployed Backend Client', () => {
       secretAccessKey: 'secretAccessKey',
     });
     const mockCfnClient = new CloudFormation();
-    const cfnClientSendMock = mock.fn();
     getOutputMock.mock.mockImplementation(() => getOutputMockResponse);
     mock.method(mockCfnClient, 'send', cfnClientSendMock);
 
     getOutputMock.mock.resetCalls();
     cfnClientSendMock.mock.resetCalls();
     const mockImplementation = (
-      request: ListStacksCommand | DescribeStacksCommand | DeleteStackCommand
+      request:
+        | ListStacksCommand
+        | DescribeStacksCommand
+        | DeleteStackCommand
+        | ListStackResourcesCommand
     ) => {
       if (request instanceof ListStacksCommand) return listStacksMock;
-      if (request instanceof DescribeStacksCommand) return describeStacksMock;
+      if (request instanceof DescribeStacksCommand) {
+        const matchingStack = listStacksMock.StackSummaries.find((stack) => {
+          return stack.StackName === request.input.StackName;
+        });
+        const stack = matchingStack ?? describeStacksMock;
+        return {
+          Stacks: [stack],
+        };
+      }
       if (request instanceof DeleteStackCommand) return deleteStackMock;
+      if (request instanceof ListStackResourcesCommand)
+        return listStackResourcesMock;
       throw request;
     };
 
@@ -192,6 +230,7 @@ void describe('Deployed Backend Client', () => {
       mockCfnClient
     );
   });
+
   void it('listSandboxBackendMetadata', async () => {
     const sandboxes = await deployedBackendClient.listSandboxes();
     assert.deepEqual(sandboxes, {
@@ -199,7 +238,7 @@ void describe('Deployed Backend Client', () => {
       sandboxes: [
         {
           deploymentType: BackendDeploymentType.SANDBOX,
-          name: 'testStackName',
+          name: 'amplify-test-testBranch',
           status: BackendDeploymentStatus.DEPLOYED,
           lastUpdated: undefined,
         },
@@ -211,19 +250,19 @@ void describe('Deployed Backend Client', () => {
         },
         {
           deploymentType: BackendDeploymentType.SANDBOX,
-          name: 'testStackName-auth',
+          name: 'amplify-test-testBranch-auth',
           status: BackendDeploymentStatus.DEPLOYED,
           lastUpdated: undefined,
         },
         {
           deploymentType: BackendDeploymentType.SANDBOX,
-          name: 'testStackName-storage',
+          name: 'amplify-test-testBranch-storage',
           status: BackendDeploymentStatus.DEPLOYING,
           lastUpdated: undefined,
         },
         {
           deploymentType: BackendDeploymentType.SANDBOX,
-          name: 'testStackName-api',
+          name: 'amplify-test-testBranch-api',
           status: BackendDeploymentStatus.FAILED,
           lastUpdated: undefined,
         },
@@ -232,24 +271,97 @@ void describe('Deployed Backend Client', () => {
   });
 
   void it('deletes a sandbox', async () => {
-    const deleteResponse = await deployedBackendClient.deleteSandbox(
+    await deployedBackendClient.deleteSandbox(
       new SandboxBackendIdentifier('test')
     );
-    assert.deepEqual(deleteResponse, {
-      deploymentType: BackendDeploymentType.SANDBOX,
-      name: 'amplify-test-sandbox',
-      ...expectedMetadata,
-    });
+
+    assert.equal(cfnClientSendMock.mock.callCount(), 1);
   });
 
   void it('fetches metadata', async () => {
     const getMetadataResponse = await deployedBackendClient.getBackendMetadata(
       new BranchBackendIdentifier('test', 'testBranch')
     );
+
     assert.deepEqual(getMetadataResponse, {
       deploymentType: BackendDeploymentType.SANDBOX,
       name: 'amplify-test-testBranch',
       ...expectedMetadata,
+    });
+  });
+});
+
+void describe('Deployed Backend Client pagination', () => {
+  let deployedBackendClient: DefaultDeployedBackendClient;
+  const cfnClientSendMock = mock.fn();
+  beforeEach(() => {
+    const mockCredentials: AwsCredentialIdentityProvider = async () => ({
+      accessKeyId: 'accessKeyId',
+      secretAccessKey: 'secretAccessKey',
+    });
+    const mockCfnClient = new CloudFormation();
+    mock.method(mockCfnClient, 'send', cfnClientSendMock);
+    cfnClientSendMock.mock.resetCalls();
+    const mockImplementation = (
+      request: ListStacksCommand | DescribeStacksCommand | DeleteStackCommand
+    ) => {
+      if (request instanceof ListStacksCommand) {
+        if (request.input.NextToken) {
+          return {
+            StackSummaries: [],
+            nextToken: 'abc',
+          };
+        }
+        return listStacksMock;
+      }
+      if (request instanceof DescribeStacksCommand) return describeStacksMock;
+      throw request;
+    };
+
+    cfnClientSendMock.mock.mockImplementation(mockImplementation);
+
+    deployedBackendClient = new DefaultDeployedBackendClient(
+      mockCredentials,
+      mockCfnClient
+    );
+  });
+
+  void it('paginates listSandboxes when one page contains no sandboxes', async () => {
+    const sandboxes = await deployedBackendClient.listSandboxes();
+    assert.deepEqual(sandboxes, {
+      nextToken: undefined,
+      sandboxes: [
+        {
+          deploymentType: BackendDeploymentType.SANDBOX,
+          name: 'amplify-test-testBranch',
+          status: BackendDeploymentStatus.DEPLOYED,
+          lastUpdated: undefined,
+        },
+        {
+          deploymentType: BackendDeploymentType.SANDBOX,
+          name: 'amplify-test-sandbox',
+          status: BackendDeploymentStatus.DEPLOYED,
+          lastUpdated: undefined,
+        },
+        {
+          deploymentType: BackendDeploymentType.SANDBOX,
+          name: 'amplify-test-testBranch-auth',
+          status: BackendDeploymentStatus.DEPLOYED,
+          lastUpdated: undefined,
+        },
+        {
+          deploymentType: BackendDeploymentType.SANDBOX,
+          name: 'amplify-test-testBranch-storage',
+          status: BackendDeploymentStatus.DEPLOYING,
+          lastUpdated: undefined,
+        },
+        {
+          deploymentType: BackendDeploymentType.SANDBOX,
+          name: 'amplify-test-testBranch-api',
+          status: BackendDeploymentStatus.FAILED,
+          lastUpdated: undefined,
+        },
+      ],
     });
   });
 });

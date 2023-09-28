@@ -19,8 +19,11 @@ import {
   CloudFormationClient,
   DeleteStackCommand,
   DescribeStacksCommand,
+  ListStackResourcesCommand,
   ListStacksCommand,
   ListStacksCommandOutput,
+  Stack,
+  StackResourceSummary,
   StackStatus,
   StackSummary,
 } from '@aws-sdk/client-cloudformation';
@@ -43,7 +46,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
   ) {}
 
   /**
-   * Returns Amplify Sandboxes for the account. The number of sandboxes returned can vary
+   * Returns Amplify Sandboxes for the account and region. The number of sandboxes returned can vary
    */
   listSandboxes = async (
     listSandboxesRequest?: ListSandboxesRequest
@@ -58,6 +61,9 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     } while (stackSummaries.length === 0 && nextToken);
 
     const stackMetadata: SandboxMetadata[] = stackSummaries
+      .filter((stackSummary: StackSummary) => {
+        return stackSummary.StackStatus !== StackStatus.DELETE_COMPLETE;
+      })
       .map((stackSummary: StackSummary) => {
         return {
           name: stackSummary.StackName as string,
@@ -82,10 +88,9 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
    */
   deleteSandbox = async (
     sandboxBackendIdentifier: SandboxBackendIdentifier
-  ): Promise<BackendMetadata> => {
+  ): Promise<void> => {
     const stackName = getMainStackName(sandboxBackendIdentifier);
     await this.cfnClient.send(new DeleteStackCommand({ StackName: stackName }));
-    return this.buildBackendMetadata(stackName);
   };
   /**
    * Fetches all backend metadata for a specified backend
@@ -128,25 +133,44 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     const status = this.translateStackStatus(stack?.StackStatus);
     const lastUpdated = stack?.LastUpdatedTime;
 
-    const allStackSummaries: StackSummary[] = [];
-    let nextToken;
-    do {
-      const listStacksResponse = await this.listStacks(nextToken);
-      nextToken = listStacksResponse.nextToken;
-      allStackSummaries.push(...listStacksResponse.stackSummaries);
-    } while (nextToken);
+    const stackResources = await this.cfnClient.send(
+      new ListStackResourcesCommand({
+        StackName: stackName,
+      })
+    );
+    const childStackPromises: Promise<Stack | undefined>[] =
+      stackResources.StackResourceSummaries?.filter(
+        (stackResourceSummary: StackResourceSummary) => {
+          return (
+            stackResourceSummary.ResourceType === 'AWS::CloudFormation::Stack'
+          );
+        }
+      ).map(async (stackResourceSummary: StackResourceSummary) => {
+        // arn:aws:{service}:{region}:{account}:stack/{stackName}/{additionalFields}
+        const arnParts = stackResourceSummary.PhysicalResourceId?.split('/');
+        const childStackName = arnParts?.[1];
+        if (!childStackName) {
+          return;
+        }
+        const stackDescription = await this.cfnClient.send(
+          new DescribeStacksCommand({ StackName: childStackName })
+        );
 
-    const childStacks = allStackSummaries.filter(
-      (stackSummary) => stackSummary.ParentId === stack?.StackId
+        const stack = stackDescription?.Stacks?.[0];
+        return stack;
+      }) ?? [];
+
+    const childStacks = await Promise.all(childStackPromises);
+    const authStack = childStacks.find(
+      (nestedStack: StackSummary | undefined) =>
+        nestedStack?.StackName?.includes('auth')
     );
-    const authStack = childStacks.find((nestedStack: StackSummary) =>
-      nestedStack.StackName?.includes('auth')
+    const storageStack = childStacks.find(
+      (nestedStack: StackSummary | undefined) =>
+        nestedStack?.StackName?.includes('storage')
     );
-    const storageStack = childStacks.find((nestedStack: StackSummary) =>
-      nestedStack.StackName?.includes('storage')
-    );
-    const apiStack = childStacks.find((nestedStack: StackSummary) =>
-      nestedStack.StackName?.includes('api')
+    const apiStack = childStacks.find((nestedStack: StackSummary | undefined) =>
+      nestedStack?.StackName?.includes('api')
     );
 
     const backendMetadataObject: BackendMetadata = {
@@ -196,7 +220,6 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
   ): BackendDeploymentStatus => {
     switch (status) {
       case StackStatus.CREATE_COMPLETE:
-      case StackStatus.DELETE_COMPLETE:
       case StackStatus.IMPORT_COMPLETE:
       case StackStatus.UPDATE_COMPLETE:
         return BackendDeploymentStatus.DEPLOYED;
@@ -223,6 +246,9 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
       case StackStatus.UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS:
       case StackStatus.UPDATE_ROLLBACK_IN_PROGRESS:
         return BackendDeploymentStatus.DEPLOYING;
+
+      case StackStatus.DELETE_COMPLETE:
+        return BackendDeploymentStatus.DELETED;
 
       default:
         return BackendDeploymentStatus.UNKNOWN;
