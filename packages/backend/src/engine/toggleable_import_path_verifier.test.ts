@@ -60,7 +60,7 @@ void describe('ToggleableImportPathVerifier', () => {
 
     const verifier = new ToggleableImportPathVerifier();
     assert.doesNotThrow(() =>
-      verifier.verify(correctStackTrace, 'backend/auth', 'test message')
+      verifier.verify(correctStackTrace, 'auth', 'test message')
     );
   });
 });
