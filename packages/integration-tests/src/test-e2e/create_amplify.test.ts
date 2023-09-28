@@ -63,9 +63,9 @@ void describe('create-amplify script', () => {
 
     const dirContent = await fs.readdir(path.join(tempDir, 'amplify'));
     assert.deepStrictEqual(dirContent.sort(), [
-      'auth.ts',
+      'resource.ts',
       'backend.ts',
-      'data.ts',
+      'resource.ts',
     ]);
   });
 

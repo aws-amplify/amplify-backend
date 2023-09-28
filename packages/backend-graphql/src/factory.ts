@@ -13,6 +13,7 @@ import {
   AuthorizationConfig,
 } from '@aws-amplify/graphql-construct-alpha';
 import { GraphqlOutput } from '@aws-amplify/backend-output-schemas/graphql';
+import * as path from 'path';
 
 export type DataProps = Pick<AmplifyGraphqlApiProps, 'schema'>;
 
@@ -40,8 +41,8 @@ export class DataFactory implements ConstructFactory<AmplifyGraphqlApi> {
   }: ConstructFactoryGetInstanceProps): AmplifyGraphqlApi => {
     importPathVerifier?.verify(
       this.importStack,
-      'data',
-      'Amplify Data must be defined in a "data.ts" file'
+      path.join('amplify', 'data', 'resource'),
+      'Amplify Data must be defined in amplify/data/resource.ts'
     );
     if (!this.generator) {
       this.generator = new DataGenerator(

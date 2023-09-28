@@ -12,6 +12,7 @@ import {
   FunctionResources,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
+import * as path from 'path';
 
 export type TriggerConfig = {
   triggers?: Partial<
@@ -49,8 +50,8 @@ export class AmplifyAuthFactory
     const { constructContainer, importPathVerifier } = getInstanceProps;
     importPathVerifier?.verify(
       this.importStack,
-      'auth',
-      'Amplify Auth must be defined in an "auth.ts" file'
+      path.join('amplify', 'auth', 'resource'),
+      'Amplify Auth must be defined in amplify/auth/resource.ts'
     );
     if (!this.generator) {
       this.generator = new AmplifyAuthGenerator(this.props, getInstanceProps);

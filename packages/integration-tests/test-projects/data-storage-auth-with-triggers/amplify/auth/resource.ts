@@ -1,5 +1,5 @@
 import { Auth } from '@aws-amplify/backend-auth';
-import { myFunc } from './function.js';
+import { myFunc } from '../function.js';
 
 export const auth = new Auth({
   loginWith: {
