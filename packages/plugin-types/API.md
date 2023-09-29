@@ -55,7 +55,6 @@ export type BackendOutputRetrievalStrategy = {
 // @public
 export type BackendOutputStorageStrategy<T extends BackendOutputEntry> = {
     addBackendOutputEntry: (keyName: string, backendOutputEntry: T) => void;
-    flush: () => void;
 };
 
 // @public
@@ -68,6 +67,11 @@ export type BackendSecret = {
     resolve: (scope: Construct, uniqueBackendIdentifier: UniqueBackendIdentifier) => SecretValue;
 };
 
+// @public (undocumented)
+export type BackendSecretResolver = {
+    resolveSecret: (backendSecret: BackendSecret) => SecretValue;
+};
+
 // @public
 export type ConstructContainer = {
     getOrCompute: (generator: ConstructContainerEntryGenerator) => Construct;
@@ -78,7 +82,7 @@ export type ConstructContainer = {
 // @public
 export type ConstructContainerEntryGenerator = {
     resourceGroupName: string;
-    generateContainerEntry: (scope: Construct) => Construct;
+    generateContainerEntry: (scope: Construct, backendSecretResolver: BackendSecretResolver) => Construct;
 };
 
 // @public

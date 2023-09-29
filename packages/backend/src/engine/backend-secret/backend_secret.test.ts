@@ -32,7 +32,7 @@ void describe('BackendSecret', () => {
     const stack = new Stack(app);
     const secret = new CfnTokenBackendSecret(testSecretName, resourceFactory);
     const val = secret.resolve(stack, uniqueBackendIdentifier);
-    assert.deepStrictEqual(val, new SecretValue(testSecretValue));
+    assert.deepStrictEqual(val, SecretValue.unsafePlainText(testSecretValue));
     assert.deepStrictEqual(mockGetOrCreate.mock.callCount(), 1);
   });
 });

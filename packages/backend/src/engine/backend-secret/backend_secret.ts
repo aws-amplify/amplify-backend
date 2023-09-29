@@ -3,8 +3,8 @@ import {
   UniqueBackendIdentifier,
 } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
-import { SecretValue } from 'aws-cdk-lib';
 import { BackendSecretFetcherFactory } from './backend_secret_fetcher_factory.js';
+import { SecretValue } from 'aws-cdk-lib';
 
 /**
  * Resolves a backend secret to a CFN token via a lambda-backed CFN custom resource.

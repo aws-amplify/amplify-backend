@@ -5,7 +5,6 @@
 ```ts
 
 import { AmplifyGraphqlApi } from '@aws-amplify/graphql-construct-alpha';
-import { AmplifyGraphqlApiProps } from '@aws-amplify/graphql-construct-alpha';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
 
@@ -19,7 +18,9 @@ export class DataFactory implements ConstructFactory<AmplifyGraphqlApi> {
 }
 
 // @public (undocumented)
-export type DataProps = Pick<AmplifyGraphqlApiProps, 'schema'>;
+export type DataProps = {
+    schema: string;
+};
 
 // (No @packageDocumentation comment for this package)
 
