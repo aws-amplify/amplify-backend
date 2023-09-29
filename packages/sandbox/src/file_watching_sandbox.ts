@@ -21,8 +21,8 @@ import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
 export const CDK_BOOTSTRAP_STACK_NAME = 'CDKToolkit';
 export const CDK_BOOTSTRAP_VERSION_KEY = 'BootstrapVersion';
 export const CDK_MIN_BOOTSTRAP_VERSION = 6;
-// TODO: finalize bootstrap url
 
+// TODO: finalize bootstrap url: https://github.com/aws-amplify/samsara-cli/issues/338
 /**
  * Constructs Amplify Console bootstrap URL for a given region
  * @param region AWS region
