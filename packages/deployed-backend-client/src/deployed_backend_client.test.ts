@@ -6,6 +6,7 @@ import {
   DescribeStacksCommand,
   ListStackResourcesCommand,
   ListStacksCommand,
+  ListStacksCommandInput,
   StackStatus,
 } from '@aws-sdk/client-cloudformation';
 import {
@@ -28,6 +29,7 @@ import { DefaultBackendOutputClient } from './backend_output_client.js';
 import { DefaultDeployedBackendClient } from './deployed_backend_client.js';
 
 const listStacksMock = {
+  NextToken: undefined,
   StackSummaries: [
     {
       StackName: 'amplify-test-testBranch',
@@ -293,7 +295,41 @@ void describe('Deployed Backend Client', () => {
 
 void describe('Deployed Backend Client pagination', () => {
   let deployedBackendClient: DefaultDeployedBackendClient;
+  const listStacksMockFn = mock.fn();
   const cfnClientSendMock = mock.fn();
+  const returnedSandboxes = [
+    {
+      deploymentType: BackendDeploymentType.SANDBOX,
+      name: 'amplify-test-testBranch',
+      status: BackendDeploymentStatus.DEPLOYED,
+      lastUpdated: undefined,
+    },
+    {
+      deploymentType: BackendDeploymentType.SANDBOX,
+      name: 'amplify-test-sandbox',
+      status: BackendDeploymentStatus.DEPLOYED,
+      lastUpdated: undefined,
+    },
+    {
+      deploymentType: BackendDeploymentType.SANDBOX,
+      name: 'amplify-test-testBranch-auth',
+      status: BackendDeploymentStatus.DEPLOYED,
+      lastUpdated: undefined,
+    },
+    {
+      deploymentType: BackendDeploymentType.SANDBOX,
+      name: 'amplify-test-testBranch-storage',
+      status: BackendDeploymentStatus.DEPLOYING,
+      lastUpdated: undefined,
+    },
+    {
+      deploymentType: BackendDeploymentType.SANDBOX,
+      name: 'amplify-test-testBranch-api',
+      status: BackendDeploymentStatus.FAILED,
+      lastUpdated: undefined,
+    },
+  ];
+
   beforeEach(() => {
     const mockCredentials: AwsCredentialIdentityProvider = async () => ({
       accessKeyId: 'accessKeyId',
@@ -301,18 +337,16 @@ void describe('Deployed Backend Client pagination', () => {
     });
     const mockCfnClient = new CloudFormation();
     mock.method(mockCfnClient, 'send', cfnClientSendMock);
+    listStacksMockFn.mock.resetCalls();
+    listStacksMockFn.mock.mockImplementation(() => {
+      return listStacksMock;
+    });
     cfnClientSendMock.mock.resetCalls();
     const mockImplementation = (
       request: ListStacksCommand | DescribeStacksCommand | DeleteStackCommand
     ) => {
       if (request instanceof ListStacksCommand) {
-        if (request.input.NextToken) {
-          return {
-            StackSummaries: [],
-            nextToken: 'abc',
-          };
-        }
-        return listStacksMock;
+        return listStacksMockFn(request.input);
       }
       if (request instanceof DescribeStacksCommand) return describeStacksMock;
       throw request;
@@ -327,41 +361,87 @@ void describe('Deployed Backend Client pagination', () => {
   });
 
   void it('paginates listSandboxes when one page contains no sandboxes', async () => {
+    listStacksMockFn.mock.mockImplementationOnce(() => {
+      return {
+        StackSummaries: [],
+        NextToken: 'abc',
+      };
+    });
     const sandboxes = await deployedBackendClient.listSandboxes();
     assert.deepEqual(sandboxes, {
       nextToken: undefined,
-      sandboxes: [
-        {
-          deploymentType: BackendDeploymentType.SANDBOX,
-          name: 'amplify-test-testBranch',
-          status: BackendDeploymentStatus.DEPLOYED,
-          lastUpdated: undefined,
-        },
-        {
-          deploymentType: BackendDeploymentType.SANDBOX,
-          name: 'amplify-test-sandbox',
-          status: BackendDeploymentStatus.DEPLOYED,
-          lastUpdated: undefined,
-        },
-        {
-          deploymentType: BackendDeploymentType.SANDBOX,
-          name: 'amplify-test-testBranch-auth',
-          status: BackendDeploymentStatus.DEPLOYED,
-          lastUpdated: undefined,
-        },
-        {
-          deploymentType: BackendDeploymentType.SANDBOX,
-          name: 'amplify-test-testBranch-storage',
-          status: BackendDeploymentStatus.DEPLOYING,
-          lastUpdated: undefined,
-        },
-        {
-          deploymentType: BackendDeploymentType.SANDBOX,
-          name: 'amplify-test-testBranch-api',
-          status: BackendDeploymentStatus.FAILED,
-          lastUpdated: undefined,
-        },
-      ],
+      sandboxes: returnedSandboxes,
     });
+
+    assert.equal(listStacksMockFn.mock.callCount(), 2);
+  });
+
+  void it('paginates listSandboxes when one page contains sandboxes, but it gets filtered', async () => {
+    listStacksMockFn.mock.mockImplementationOnce(() => {
+      return {
+        StackSummaries: [
+          {
+            StackStatus: StackStatus.DELETE_COMPLETE,
+          },
+        ],
+        NextToken: 'abc',
+      };
+    });
+    const sandboxes = await deployedBackendClient.listSandboxes();
+    assert.deepEqual(sandboxes, {
+      nextToken: undefined,
+      sandboxes: returnedSandboxes,
+    });
+
+    assert.equal(listStacksMockFn.mock.callCount(), 2);
+  });
+
+  void it('does not paginate listSandboxes when one page contains sandboxes', async () => {
+    const sandboxes = await deployedBackendClient.listSandboxes();
+    assert.deepEqual(sandboxes, {
+      nextToken: undefined,
+      sandboxes: returnedSandboxes,
+    });
+
+    assert.equal(listStacksMockFn.mock.callCount(), 1);
+  });
+
+  void it('includes a nextToken when there are more pages', async () => {
+    listStacksMockFn.mock.mockImplementation(() => {
+      return {
+        StackSummaries: listStacksMock.StackSummaries,
+        NextToken: 'abc',
+      };
+    });
+    const sandboxes = await deployedBackendClient.listSandboxes();
+    assert.deepEqual(sandboxes, {
+      nextToken: 'abc',
+      sandboxes: returnedSandboxes,
+    });
+
+    assert.equal(listStacksMockFn.mock.callCount(), 1);
+  });
+
+  void it('accepts a nextToken to get the next page', async () => {
+    listStacksMockFn.mock.mockImplementation(
+      (input: ListStacksCommandInput) => {
+        if (!input.NextToken) {
+          return {
+            StackSummaries: listStacksMock.StackSummaries,
+            NextToken: 'abc',
+          };
+        }
+        return listStacksMock;
+      }
+    );
+    const sandboxes = await deployedBackendClient.listSandboxes({
+      nextToken: 'abc',
+    });
+    assert.deepEqual(sandboxes, {
+      nextToken: undefined,
+      sandboxes: returnedSandboxes,
+    });
+
+    assert.equal(listStacksMockFn.mock.callCount(), 1);
   });
 });

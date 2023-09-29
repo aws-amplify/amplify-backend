@@ -51,31 +51,30 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
   listSandboxes = async (
     listSandboxesRequest?: ListSandboxesRequest
   ): Promise<ListSandboxesResponse> => {
-    const stackSummaries: StackSummary[] = [];
+    const stackMetadata: SandboxMetadata[] = [];
     let nextToken = listSandboxesRequest?.nextToken;
 
     do {
       const listStacksResponse = await this.listStacks(nextToken);
-      stackSummaries.push(...listStacksResponse.stackSummaries);
+      const filteredMetadata = listStacksResponse.stackSummaries
+        .filter((stackSummary: StackSummary) => {
+          return stackSummary.StackStatus !== StackStatus.DELETE_COMPLETE;
+        })
+        .map((stackSummary: StackSummary) => {
+          return {
+            name: stackSummary.StackName as string,
+            lastUpdated: stackSummary.LastUpdatedTime,
+            status: this.translateStackStatus(stackSummary.StackStatus),
+            deploymentType: this.getDeploymentType(),
+          };
+        })
+        .filter(
+          (stackMetadata) =>
+            stackMetadata.deploymentType === BackendDeploymentType.SANDBOX
+        );
+      stackMetadata.push(...filteredMetadata);
       nextToken = listStacksResponse.nextToken;
-    } while (stackSummaries.length === 0 && nextToken);
-
-    const stackMetadata: SandboxMetadata[] = stackSummaries
-      .filter((stackSummary: StackSummary) => {
-        return stackSummary.StackStatus !== StackStatus.DELETE_COMPLETE;
-      })
-      .map((stackSummary: StackSummary) => {
-        return {
-          name: stackSummary.StackName as string,
-          lastUpdated: stackSummary.LastUpdatedTime,
-          status: this.translateStackStatus(stackSummary.StackStatus),
-          deploymentType: this.getDeploymentType(),
-        };
-      })
-      .filter(
-        (stackMetadata) =>
-          stackMetadata.deploymentType === BackendDeploymentType.SANDBOX
-      );
+    } while (stackMetadata.length === 0 && nextToken);
 
     return {
       sandboxes: stackMetadata,
