@@ -1,8 +1,8 @@
 import { CommandModule } from 'yargs';
 import { SecretClient } from '@aws-amplify/backend-secret';
 import { SandboxIdResolver } from '../sandbox_id_resolver.js';
-import { SANDBOX_BRANCH } from './constants.js';
 import { Printer } from '../../printer/printer.js';
+import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
 
 /**
  * Command to list sandbox secrets.
@@ -34,10 +34,9 @@ export class SandboxSecretListCommand implements CommandModule<object> {
    */
   handler = async (): Promise<void> => {
     const backendId = await this.sandboxIdResolver.resolve();
-    const secretIds = await this.secretClient.listSecrets({
-      backendId,
-      branchName: SANDBOX_BRANCH,
-    });
+    const secretIds = await this.secretClient.listSecrets(
+      new SandboxBackendIdentifier(backendId)
+    );
     Printer.printRecords(secretIds);
   };
 }

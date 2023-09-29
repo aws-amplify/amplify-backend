@@ -20,6 +20,14 @@ import {
 import { triggerEvents } from '@aws-amplify/auth-construct-alpha';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 
+const createStackAndSetContext = (): Stack => {
+  const app = new App();
+  app.node.setContext('branch-name', 'testEnvName');
+  app.node.setContext('backend-id', 'testBackendId');
+  const stack = new Stack(app);
+  return stack;
+};
+
 void describe('AmplifyAuthFactory', () => {
   let authFactory: AmplifyAuthFactory;
   let constructContainer: ConstructContainer;
@@ -31,8 +39,7 @@ void describe('AmplifyAuthFactory', () => {
       loginWith: { email: true },
     });
 
-    const app = new App();
-    stack = new Stack(app);
+    stack = createStackAndSetContext();
 
     constructContainer = new SingletonConstructContainer(
       new NestedStackResolver(stack)

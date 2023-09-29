@@ -1,11 +1,12 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
-import {
-  BackendIdentifier,
-  BackendOutputClient,
-} from '@aws-amplify/deployed-backend-client';
+import { BackendOutputClient } from '@aws-amplify/deployed-backend-client';
 import { graphqlOutputKey } from '@aws-amplify/backend-output-schemas';
-import { FormGenerationHandler } from './form_generation_handler.js';
 import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
+import {
+  DEFAULT_GRAPHQL_PATH,
+  DEFAULT_UI_PATH,
+} from '../../../form-generation/default_form_generation_output_paths.js';
+import { FormGenerationHandler } from '../../../form-generation/form_generation_handler.js';
 
 export type GenerateFormsCommandOptions = {
   stack: string | undefined;
@@ -13,6 +14,7 @@ export type GenerateFormsCommandOptions = {
   branch: string | undefined;
   uiOutDir: string | undefined;
   modelsOutDir: string | undefined;
+  models: string[] | undefined;
 };
 
 /**
@@ -36,9 +38,7 @@ export class GenerateFormsCommand
    */
   constructor(
     private readonly backendIdentifierResolver: BackendIdentifierResolver,
-    private readonly backendOutputClientBuilder: (
-      backendIdentifier: BackendIdentifier
-    ) => BackendOutputClient,
+    private readonly backendOutputClientBuilder: () => BackendOutputClient,
     private readonly formGenerationHandler: FormGenerationHandler
   ) {
     this.command = 'forms';
@@ -55,10 +55,9 @@ export class GenerateFormsCommand
       args
     );
 
-    const backendOutputClient =
-      this.backendOutputClientBuilder(backendIdentifier);
+    const backendOutputClient = this.backendOutputClientBuilder();
 
-    const output = await backendOutputClient.getOutput();
+    const output = await backendOutputClient.getOutput(backendIdentifier);
 
     if (!(graphqlOutputKey in output) || !output[graphqlOutputKey]) {
       throw new Error('No GraphQL API configured for this backend.');
@@ -79,6 +78,7 @@ export class GenerateFormsCommand
       backendIdentifier,
       uiOutDir: args.uiOutDir,
       apiUrl,
+      modelsFilter: args.models,
     });
   };
 
@@ -111,21 +111,21 @@ export class GenerateFormsCommand
         implies: 'appId',
       })
       .option('modelsOutDir', {
-        describe: 'A path to directory where generated forms are written.',
-        default: './src/graphql',
+        describe: 'A path to directory where generated models are written.',
+        default: DEFAULT_GRAPHQL_PATH,
         type: 'string',
         array: false,
         group: 'Form Generation',
       })
       .option('uiOutDir', {
         describe: 'A path to directory where generated forms are written.',
-        default: './src/ui-components',
+        default: DEFAULT_UI_PATH,
         type: 'string',
         array: false,
         group: 'Form Generation',
       })
       .option('models', {
-        describe: 'An array of model names to generate',
+        describe: 'Model name to generate',
         type: 'string',
         array: true,
         group: 'Form Generation',

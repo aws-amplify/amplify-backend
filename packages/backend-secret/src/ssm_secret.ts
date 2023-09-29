@@ -26,7 +26,7 @@ export class SSMSecretClient implements SecretClient {
   private getBranchParameterPrefix = (
     backendIdentifier: UniqueBackendIdentifier
   ): string => {
-    return `/amplify/${backendIdentifier.backendId}/${backendIdentifier.branchName}`;
+    return `/amplify/${backendIdentifier.backendId}/${backendIdentifier.disambiguator}`;
   };
 
   /**

@@ -1,7 +1,7 @@
 import { AppSyncClient } from '@aws-sdk/client-appsync';
 import {
   BackendIdentifier,
-  BackendOutputClient,
+  BackendOutputClientFactory,
 } from '@aws-amplify/deployed-backend-client';
 import { graphqlOutputKey } from '@aws-amplify/backend-output-schemas';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
@@ -30,11 +30,9 @@ export const createGraphqlTypesGenerator = ({
   }
 
   const fetchSchema = async () => {
-    const backendOutputClient = new BackendOutputClient(
-      credentialProvider,
-      backendIdentifier
-    );
-    const output = await backendOutputClient.getOutput();
+    const backendOutputClient =
+      BackendOutputClientFactory.getInstance(credentialProvider);
+    const output = await backendOutputClient.getOutput(backendIdentifier);
     const apiId = output[graphqlOutputKey]?.payload.awsAppsyncApiId;
     if (!apiId) {
       throw new Error(`Unable to determine AppSync API ID.`);
