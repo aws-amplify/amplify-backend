@@ -135,4 +135,26 @@ void describe('DataFactory', () => {
       )
     );
   });
+
+  void it('sets a default api name if none is specified', () => {
+    const dataConstruct = dataFactory.getInstance(getInstanceProps);
+    const template = Template.fromStack(Stack.of(dataConstruct));
+    template.resourceCountIs('AWS::AppSync::GraphQLApi', 1);
+    template.hasResourceProperties('AWS::AppSync::GraphQLApi', {
+      Name: 'amplifyData',
+    });
+  });
+
+  void it('sets the api name if a name property is specified', () => {
+    dataFactory = new DataFactory({
+      schema: testSchema,
+      name: 'MyTestApiName',
+    });
+    const dataConstruct = dataFactory.getInstance(getInstanceProps);
+    const template = Template.fromStack(Stack.of(dataConstruct));
+    template.resourceCountIs('AWS::AppSync::GraphQLApi', 1);
+    template.hasResourceProperties('AWS::AppSync::GraphQLApi', {
+      Name: 'MyTestApiName',
+    });
+  });
 });
