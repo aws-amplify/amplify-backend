@@ -1,10 +1,10 @@
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import { CDKDeployer } from './cdk_deployer.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
+import { BackendDeploymentType } from '@aws-amplify/platform-core';
 
 export type DeployProps = {
-  hotswapFallback?: boolean;
-  method?: 'direct';
+  deploymentType?: BackendDeploymentType;
 };
 
 /**

@@ -7,7 +7,10 @@ import { AmplifySandboxExecutor } from './sandbox_executor.js';
 import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 import fs from 'fs';
 import parseGitIgnore from 'parse-gitignore';
-import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
+import {
+  BackendDeploymentType,
+  SandboxBackendIdentifier,
+} from '@aws-amplify/platform-core';
 
 // Watcher mocks
 const unsubscribeMockFn = mock.fn();
@@ -97,8 +100,7 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepEqual(execaDeployMock.mock.calls[0].arguments, [
       new SandboxBackendIdentifier('testSandboxId'),
       {
-        hotswapFallback: true,
-        method: 'direct',
+        deploymentType: BackendDeploymentType.SANDBOX,
       },
     ]);
   });
@@ -242,8 +244,7 @@ void describe('Sandbox with user provided app name', () => {
     assert.deepEqual(execaDeployMock.mock.calls[0].arguments, [
       new SandboxBackendIdentifier('customSandboxName'),
       {
-        hotswapFallback: true,
-        method: 'direct',
+        deploymentType: BackendDeploymentType.SANDBOX,
       },
     ]);
   });

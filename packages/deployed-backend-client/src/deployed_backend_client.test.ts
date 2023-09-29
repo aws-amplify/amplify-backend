@@ -9,24 +9,24 @@ import {
   ListStacksCommandInput,
   StackStatus,
 } from '@aws-sdk/client-cloudformation';
-import {
-  BackendDeploymentStatus,
-  BackendDeploymentType,
-} from './deployed_backend_client_factory.js';
+import { BackendDeploymentStatus } from './deployed_backend_client_factory.js';
 import {
   authOutputKey,
   graphqlOutputKey,
+  stackOutputKey,
   storageOutputKey,
 } from '@aws-amplify/backend-output-schemas';
 import { BackendOutput } from '@aws-amplify/plugin-types';
 import { BackendOutputClientFactory } from '@aws-amplify/deployed-backend-client';
 import {
+  BackendDeploymentType,
   BranchBackendIdentifier,
   SandboxBackendIdentifier,
 } from '@aws-amplify/platform-core';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { DefaultBackendOutputClient } from './backend_output_client.js';
 import { DefaultDeployedBackendClient } from './deployed_backend_client.js';
+import { StackIdentifier } from './index.js';
 
 const listStacksMock = {
   NextToken: undefined,
@@ -140,6 +140,11 @@ const listStackResourcesMock = {
 };
 
 const getOutputMockResponse = {
+  [stackOutputKey]: {
+    payload: {
+      deploymentType: 'SANDBOX',
+    },
+  },
   [authOutputKey]: {
     payload: {
       userPoolId: 'testUserPoolId',
@@ -297,35 +302,12 @@ void describe('Deployed Backend Client pagination', () => {
   let deployedBackendClient: DefaultDeployedBackendClient;
   const listStacksMockFn = mock.fn();
   const cfnClientSendMock = mock.fn();
+  const getOutputMock = mock.fn();
   const returnedSandboxes = [
-    {
-      deploymentType: BackendDeploymentType.SANDBOX,
-      name: 'amplify-test-testBranch',
-      status: BackendDeploymentStatus.DEPLOYED,
-      lastUpdated: undefined,
-    },
     {
       deploymentType: BackendDeploymentType.SANDBOX,
       name: 'amplify-test-sandbox',
       status: BackendDeploymentStatus.DEPLOYED,
-      lastUpdated: undefined,
-    },
-    {
-      deploymentType: BackendDeploymentType.SANDBOX,
-      name: 'amplify-test-testBranch-auth',
-      status: BackendDeploymentStatus.DEPLOYED,
-      lastUpdated: undefined,
-    },
-    {
-      deploymentType: BackendDeploymentType.SANDBOX,
-      name: 'amplify-test-testBranch-storage',
-      status: BackendDeploymentStatus.DEPLOYING,
-      lastUpdated: undefined,
-    },
-    {
-      deploymentType: BackendDeploymentType.SANDBOX,
-      name: 'amplify-test-testBranch-api',
-      status: BackendDeploymentStatus.FAILED,
       lastUpdated: undefined,
     },
   ];
@@ -335,6 +317,31 @@ void describe('Deployed Backend Client pagination', () => {
       accessKeyId: 'accessKeyId',
       secretAccessKey: 'secretAccessKey',
     });
+    getOutputMock.mock.mockImplementation(
+      (backendIdentifier: StackIdentifier) => {
+        if (backendIdentifier.stackName !== 'amplify-test-sandbox') {
+          return {
+            ...getOutputMockResponse,
+            [stackOutputKey]: {
+              payload: {
+                deploymentType: 'BRANCH',
+              },
+            },
+          };
+        }
+        return getOutputMockResponse;
+      }
+    );
+    getOutputMock.mock.resetCalls();
+    const backendOutputClientFactoryMock = mock.fn();
+    backendOutputClientFactoryMock.mock.mockImplementation(() => ({
+      getOutput: getOutputMock as unknown as () => Promise<BackendOutput>,
+    }));
+    BackendOutputClientFactory.getInstance =
+      backendOutputClientFactoryMock as unknown as (
+        credentials: AwsCredentialIdentityProvider
+      ) => DefaultBackendOutputClient;
+
     const mockCfnClient = new CloudFormation();
     mock.method(mockCfnClient, 'send', cfnClientSendMock);
     listStacksMockFn.mock.resetCalls();
@@ -348,7 +355,15 @@ void describe('Deployed Backend Client pagination', () => {
       if (request instanceof ListStacksCommand) {
         return listStacksMockFn(request.input);
       }
-      if (request instanceof DescribeStacksCommand) return describeStacksMock;
+      if (request instanceof DescribeStacksCommand) {
+        const matchingStack = listStacksMock.StackSummaries.find((stack) => {
+          return stack.StackName === request.input.StackName;
+        });
+        const stack = matchingStack ?? describeStacksMock;
+        return {
+          Stacks: [stack],
+        };
+      }
       throw request;
     };
 
