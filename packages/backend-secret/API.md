@@ -15,7 +15,8 @@ export const getSecretClient: (credentialProvider?: AwsCredentialIdentityProvide
 
 // @public
 export type Secret = SecretIdentifier & {
-    value: string;
+    value?: string;
+    lastUpdated?: Date;
 };
 
 // @public
@@ -24,8 +25,8 @@ export type SecretAction = 'GET' | 'SET' | 'REMOVE' | 'LIST';
 // @public
 export type SecretClient = {
     getSecret: (backendIdentifier: UniqueBackendIdentifier | BackendId, secretIdentifier: SecretIdentifier) => Promise<Secret>;
-    listSecrets: (backendIdentifier: UniqueBackendIdentifier | BackendId) => Promise<SecretIdentifier[]>;
-    setSecret: (backendIdentifier: UniqueBackendIdentifier | BackendId, secretName: string, secretValue: string) => Promise<SecretIdentifier>;
+    listSecrets: (backendIdentifier: UniqueBackendIdentifier | BackendId) => Promise<Secret[]>;
+    setSecret: (backendIdentifier: UniqueBackendIdentifier | BackendId, secretName: string, secretValue: string) => Promise<void>;
     removeSecret: (backendIdentifier: UniqueBackendIdentifier | BackendId, secretName: string) => Promise<void>;
     grantPermission: (resource: iam.IGrantable, backendIdentifier: UniqueBackendIdentifier, secretActions: SecretAction[]) => void;
 };
