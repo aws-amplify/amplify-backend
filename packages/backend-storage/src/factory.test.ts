@@ -1,5 +1,5 @@
 import { beforeEach, describe, it, mock } from 'node:test';
-import { AmplifyStorageFactory } from './factory.js';
+import { defineStorage } from './factory.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import {
@@ -12,11 +12,13 @@ import {
   BackendOutputEntry,
   BackendOutputStorageStrategy,
   ConstructContainer,
+  ConstructFactory,
   ConstructFactoryGetInstanceProps,
   ImportPathVerifier,
 } from '@aws-amplify/plugin-types';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 import { BackendDeploymentType } from '@aws-amplify/platform-core';
+import { AmplifyStorage } from '@aws-amplify/storage-construct-alpha';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
@@ -28,14 +30,14 @@ const createStackAndSetContext = (): Stack => {
 };
 
 void describe('AmplifyStorageFactory', () => {
-  let storageFactory: AmplifyStorageFactory;
+  let storageFactory: ConstructFactory<AmplifyStorage>;
   let constructContainer: ConstructContainer;
   let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
   let importPathVerifier: ImportPathVerifier;
   let getInstanceProps: ConstructFactoryGetInstanceProps;
 
   beforeEach(() => {
-    storageFactory = new AmplifyStorageFactory({});
+    storageFactory = defineStorage({});
     const stack = createStackAndSetContext();
 
     constructContainer = new SingletonConstructContainer(
@@ -102,7 +104,7 @@ void describe('AmplifyStorageFactory', () => {
 
     assert.ok(
       (importPathVerifier.verify.mock.calls[0].arguments[0] as string).includes(
-        'AmplifyStorageFactory'
+        'defineStorage'
       )
     );
   });

@@ -34,20 +34,19 @@ export type AmplifyAuthFactoryProps = Omit<
 /**
  * Singleton factory for AmplifyAuth that can be used in Amplify project files
  */
-export class AmplifyAuthFactory
+class AmplifyAuthFactory
   implements ConstructFactory<AmplifyAuth & ResourceProvider<AuthResources>>
 {
   readonly provides = 'AuthResources';
   private generator: ConstructContainerEntryGenerator;
-  private readonly importStack: string | undefined;
 
   /**
    * Set the properties that will be used to initialize AmplifyAuth
    */
-  constructor(private readonly props: AmplifyAuthFactoryProps) {
-    // capture the import stack in the ctor because this is what customers call in the backend definition code
-    this.importStack = new Error().stack;
-  }
+  constructor(
+    private readonly props: AmplifyAuthFactoryProps,
+    private readonly importStack = new Error().stack
+  ) {}
 
   /**
    * Get a singleton instance of AmplifyAuth
@@ -104,6 +103,9 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
 }
 
 /**
- * Alias for AmplifyAuthFactory
+ * Factory function wrapper around AmplifyAuthFactory
  */
-export const Auth = AmplifyAuthFactory;
+export const defineAuth = (
+  props: AmplifyAuthFactoryProps
+): ConstructFactory<AmplifyAuth & ResourceProvider<AuthResources>> =>
+  new AmplifyAuthFactory(props, new Error().stack);

@@ -36,16 +36,16 @@ export type DataProps = {
 /**
  * Singleton factory for AmplifyGraphqlApi constructs that can be used in Amplify project files
  */
-export class DataFactory implements ConstructFactory<AmplifyGraphqlApi> {
+class DataFactory implements ConstructFactory<AmplifyGraphqlApi> {
   private generator: ConstructContainerEntryGenerator;
-  private readonly importStack: string | undefined;
 
   /**
    * Create a new AmplifyConstruct
    */
-  constructor(private readonly props: DataProps) {
-    this.importStack = new Error().stack;
-  }
+  constructor(
+    private readonly props: DataProps,
+    private readonly importStack = new Error().stack
+  ) {}
 
   /**
    * Gets an instance of the Data construct
@@ -135,4 +135,10 @@ class DataGenerator implements ConstructContainerEntryGenerator {
   };
 }
 
-export const Data = DataFactory;
+/**
+ * Factory function wrapper around DataFactory
+ */
+export const defineData = (
+  props: DataProps
+): ConstructFactory<AmplifyGraphqlApi> =>
+  new DataFactory(props, new Error().stack);

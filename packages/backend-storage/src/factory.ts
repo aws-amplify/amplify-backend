@@ -20,16 +20,16 @@ export type AmplifyStorageFactoryProps = Omit<
 /**
  * Singleton factory for a Storage bucket that can be used in `resource.ts` files
  */
-export class AmplifyStorageFactory implements ConstructFactory<AmplifyStorage> {
+class AmplifyStorageFactory implements ConstructFactory<AmplifyStorage> {
   private generator: ConstructContainerEntryGenerator;
-  private readonly importStack: string | undefined;
 
   /**
    * Set the properties that will be used to initialize the bucket
    */
-  constructor(private readonly props: AmplifyStorageFactoryProps) {
-    this.importStack = new Error().stack;
-  }
+  constructor(
+    private readonly props: AmplifyStorageFactoryProps,
+    private readonly importStack = new Error().stack
+  ) {}
 
   /**
    * Get a singleton instance of the Bucket
@@ -72,6 +72,9 @@ class AmplifyStorageGenerator implements ConstructContainerEntryGenerator {
 }
 
 /**
- * Alias for AmplifyStorageFactory
+ * Factory function wrapper around AmplifyStorageFactory
  */
-export const Storage = AmplifyStorageFactory;
+export const defineStorage = (
+  props: AmplifyStorageProps
+): ConstructFactory<AmplifyStorage> =>
+  new AmplifyStorageFactory(props, new Error().stack);

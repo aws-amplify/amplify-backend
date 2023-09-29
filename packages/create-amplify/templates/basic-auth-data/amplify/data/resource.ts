@@ -1,4 +1,4 @@
-import { Data } from '@aws-amplify/backend-graphql';
+import { defineData } from '@aws-amplify/backend-graphql';
 
 const schema = `
   type Todo @model @auth(rules: [{ allow: private }]) {
@@ -8,4 +8,4 @@ const schema = `
   }
 `;
 
-export const data = new Data({ schema });
+export const data = defineData({ schema });
