@@ -6,10 +6,7 @@ import {
 } from './cdk_deployer_singleton_factory.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
-import {
-  BackendDeploymentType,
-  SandboxBackendIdentifier,
-} from '@aws-amplify/platform-core';
+import { BackendDeploymentType } from '@aws-amplify/platform-core';
 
 const relativeBackendEntryPoint = 'amplify/backend.ts';
 
