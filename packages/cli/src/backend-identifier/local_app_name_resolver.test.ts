@@ -20,6 +20,6 @@ void describe('LocalAppNameResolver', () => {
     };
     const resolver = new LocalAppNameResolver(packageJsonLoaderMock as never);
     const result = await resolver.resolve();
-    assert.equal(result, 'ABcdEfGhiJkl');
+    assert.equal(result, 'A---B-cd---E-----f----Ghi-------------Jkl--');
   });
 });
