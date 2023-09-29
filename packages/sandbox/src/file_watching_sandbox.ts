@@ -74,7 +74,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
   start = async (options: SandboxOptions) => {
     const bootstrapped = await this.isBootstrapped();
     if (!bootstrapped) {
-      console.warn(
+      console.log(
         'The given region has not been bootstrapped. Sign in to console as a Root user or Admin to complete the bootstrap process and re-run the amplify sandbox command.'
       );
       // get region from an available sdk client;
@@ -212,8 +212,8 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
           StackName: CDK_BOOTSTRAP_STACK_NAME,
         })
       );
-      const bootstrapVersion = stacks?.[0].Outputs?.find(
-        (op) => op.OutputKey === CDK_BOOTSTRAP_VERSION_KEY
+      const bootstrapVersion = stacks?.[0]?.Outputs?.find(
+        (output) => output.OutputKey === CDK_BOOTSTRAP_VERSION_KEY
       )?.OutputValue;
       if (
         !bootstrapVersion ||
