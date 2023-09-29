@@ -22,6 +22,6 @@ export class LocalAppNameResolver implements AppNameResolver {
       .name;
 
     // App Names are used in generating stack names where some special symbols are not allowed
-    return packageJsonName.replace(/[.,_@/ ]/g, '-');
+    return packageJsonName.replace(/[.,@ ]/g, '').replace(/[_/]/g, '-');
   };
 }
