@@ -1,3 +1,4 @@
+import { OtpChallenge } from '../challenges/otp_challenge.js';
 import { logger } from '../logger.js';
 import { DefineAuthChallengeTriggerEvent } from './types.js';
 
@@ -33,8 +34,7 @@ export const defineAuthChallenge = async (
     // TODO: Implement magic link.
     return failAuthentication(event, 'Magic Link is not yet implemented.');
   } else if (signInMethod === 'OTP') {
-    // TODO: Implement OTP.
-    return failAuthentication(event, 'OTP is not yet implemented.');
+    return OtpChallenge.instance.defineChallenge(event);
   }
 
   return failAuthentication(

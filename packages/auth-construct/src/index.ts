@@ -6,8 +6,9 @@ export {
   MagicLinkAuthOptions,
   MFA,
   MFASettings,
-  PasswordlessAuthOptions,
+  OtpAuthOptions,
   PhoneNumberLogin,
+  PasswordlessAuthOptions,
   TriggerEvent,
 } from './types.js';
 export {

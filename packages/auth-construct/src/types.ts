@@ -125,6 +125,7 @@ export type AuthProps = {
  */
 export type PasswordlessAuthOptions = {
   magicLink?: MagicLinkAuthOptions;
+  otp?: OtpAuthOptions;
 };
 
 /**
@@ -133,4 +134,35 @@ export type PasswordlessAuthOptions = {
 export type MagicLinkAuthOptions = {
   sesFromAddress: string;
   sesRegion?: string;
+};
+
+/**
+ * Options for OTP Passwordless Auth.
+ */
+export type OtpAuthOptions = {
+  /**
+   * The AWS SNS origination number.
+   * A numeric string that identifies an SMS message sender's phone number.
+   * @default to_come
+   */
+  originationNumber?: string;
+
+  /**
+   * The AWS SNS Sender Id.
+   * The name that appears as the message sender on recipients' devices.
+   * @default to_come
+   */
+  snsSenderId?: string;
+
+  /**
+   * The AWS region of the SNS topic.
+   * @default cdk.AWS.REGION
+   */
+  snsRegion?: string;
+
+  /**
+   * The length of the OTP code.
+   * @default 6 length of the code. Minimum 6.
+   */
+  length?: number;
 };

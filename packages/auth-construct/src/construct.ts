@@ -1,17 +1,13 @@
-import { Construct } from 'constructs';
-import { Stack, aws_cognito as cognito } from 'aws-cdk-lib';
-import { Architecture, IFunction, Runtime } from 'aws-cdk-lib/aws-lambda';
-import {
-  NodejsFunction,
-  NodejsFunctionProps,
-  OutputFormat,
-} from 'aws-cdk-lib/aws-lambda-nodejs';
+import { authOutputKey } from '@aws-amplify/backend-output-schemas';
+import { AuthOutput } from '@aws-amplify/backend-output-schemas/auth';
+import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 import {
   AmplifyFunction,
   AuthResources,
   BackendOutputStorageStrategy,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
+import { Stack, aws_cognito as cognito } from 'aws-cdk-lib';
 import {
   Mfa,
   UserPool,
@@ -26,20 +22,24 @@ import {
   UserPoolProps,
   UserPoolTriggers,
 } from 'aws-cdk-lib/aws-cognito';
-import { FederatedPrincipal, Role } from 'aws-cdk-lib/aws-iam';
-import { AuthOutput } from '@aws-amplify/backend-output-schemas/auth';
-import { authOutputKey } from '@aws-amplify/backend-output-schemas';
-import { AuthProps, PasswordlessAuthOptions, TriggerEvent } from './types.js';
-import { DEFAULTS } from './defaults.js';
+import { FederatedPrincipal, PolicyStatement, Role } from 'aws-cdk-lib/aws-iam';
+import { Architecture, IFunction, Runtime } from 'aws-cdk-lib/aws-lambda';
+import {
+  NodejsFunction,
+  NodejsFunctionProps,
+  OutputFormat,
+} from 'aws-cdk-lib/aws-lambda-nodejs';
+import { Construct } from 'constructs';
+import { fileURLToPath } from 'node:url';
+import * as path from 'path';
 import {
   AuthAttributeFactory,
   AuthCustomAttributeBase,
   AuthCustomAttributeFactory,
   AuthStandardAttribute,
 } from './attributes.js';
-import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
-import { fileURLToPath } from 'node:url';
-import * as path from 'path';
+import { DEFAULTS } from './defaults.js';
+import { AuthProps, PasswordlessAuthOptions, TriggerEvent } from './types.js';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -348,6 +348,26 @@ export class AmplifyAuth
         format: OutputFormat.ESM,
       },
     };
+    let createAuthChallengeOptions: NodejsFunctionProps = {};
+
+    // Configure OTP environment
+    if (options.otp) {
+      createAuthChallengeOptions = {
+        environment: {
+          originationNumber: options.otp?.originationNumber ?? '',
+          snsSenderId: options.otp?.snsSenderId ?? '',
+          snsRegion: options.otp?.snsRegion ?? '',
+          otpLength: options.otp?.length?.toString() ?? '',
+        },
+        initialPolicy: [
+          // SNS IAM policy
+          new PolicyStatement({
+            actions: ['sns:publish'],
+            resources: ['*'],
+          }),
+        ],
+      };
+    }
 
     const defineAuthChallenge = new NodejsFunction(
       this,
@@ -364,6 +384,7 @@ export class AmplifyAuth
       {
         handler: 'createAuthChallenge',
         ...commonOptions,
+        ...createAuthChallengeOptions,
       }
     );
 

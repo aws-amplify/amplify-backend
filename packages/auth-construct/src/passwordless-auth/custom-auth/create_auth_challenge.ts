@@ -1,3 +1,4 @@
+import { OtpChallenge } from '../challenges/otp_challenge.js';
 import { logger } from '../logger.js';
 import { CreateAuthChallengeTriggerEvent } from './types.js';
 
@@ -23,21 +24,23 @@ export const createAuthChallenge = async (
       // InitiateAuth API is invoked.
       // See: https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_InitiateAuth.html#CognitoUserPools-InitiateAuth-request-ClientMetadata
       await provideAuthParameters(event);
-    } else {
-      const { signInMethod } = event.request.clientMetadata ?? {};
-      logger.info(`Client has requested signInMethod: ${signInMethod}`);
-      if (signInMethod === 'MAGIC_LINK') {
-        // TODO: Implement magic link.
-        throw Error('Magic Link not implemented.');
-      } else if (signInMethod === 'OTP') {
-        // TODO: Implement OTP.
-        throw Error('OTP not implemented.');
-      } else {
-        throw new Error(`Unrecognized signInMethod: ${signInMethod}`);
-      }
+      logger.debug(JSON.stringify(event, null, 2));
+      return event;
     }
-    logger.debug(JSON.stringify(event, null, 2));
-    return event;
+
+    const { signInMethod } = event.request.clientMetadata ?? {};
+    logger.info(`Client has requested signInMethod: ${signInMethod ?? 'NULL'}`);
+
+    if (signInMethod === 'MAGIC_LINK') {
+      // TODO: Implement
+      throw Error('Magic Link not implemented.');
+    }
+
+    if (signInMethod === 'OTP') {
+      return await OtpChallenge.instance.createChallenge(event);
+    }
+
+    throw new Error(`Unrecognized signInMethod: ${signInMethod ?? 'NULL'}`);
   } catch (err) {
     logger.error(err);
     throw err;

@@ -14,11 +14,15 @@
   },
   "types": "lib/index.d.ts",
   "scripts": {
+    "build": "tsc --build .",
+    "test": "npm run build && node --test ./lib/",
     "update:api": "api-extractor run --local"
   },
   "dependencies": {
     "@aws-amplify/backend-output-schemas": "^0.2.0-alpha.3",
-    "@aws-amplify/backend-output-storage": "^0.1.1-alpha.0"
+    "@aws-amplify/backend-output-storage": "^0.1.1-alpha.0",
+    "@aws-sdk/client-sns": "^3.421.0",
+    "lodash": "^4.17.21"
   },
   "peerDependencies": {
     "@aws-amplify/plugin-types": "^0.1.1-alpha.5",

@@ -17,7 +17,7 @@ export type CreateAuthChallengeTriggerEvent = {
     userAttributes: StringMap;
     challengeName: string;
     session: Array<ChallengeResult | CustomChallengeResult>;
-    clientMetadata?: StringMap | undefined;
+    clientMetadata?: PasswordlessClientMetaData | undefined;
     userNotFound?: boolean | undefined;
   };
   response: {
@@ -32,7 +32,7 @@ export type VerifyAuthChallengeResponseTriggerEvent = {
     userAttributes: StringMap;
     privateChallengeParameters: StringMap;
     challengeAnswer: string;
-    clientMetadata?: StringMap | undefined;
+    clientMetadata?: PasswordlessClientMetaData | undefined;
     userNotFound?: boolean | undefined;
   };
   response: {

@@ -1,3 +1,4 @@
+import { OtpChallenge } from '../challenges/otp_challenge.js';
 import { logger } from '../logger.js';
 import { VerifyAuthChallengeResponseTriggerEvent } from './types.js';
 
@@ -19,8 +20,7 @@ export const verifyAuthChallenge = async (
       // TODO: Implement magic link.
       throw Error('Magic Link not implemented.');
     } else if (signInMethod === 'OTP') {
-      // TODO: Implement OTP.
-      throw Error('OTP not implemented.');
+      return OtpChallenge.instance.verifyChallenge(event);
     } else {
       throw new Error(`Unrecognized signInMethod: ${signInMethod ?? 'NULL'}`);
     }
