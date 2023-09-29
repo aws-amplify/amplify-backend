@@ -21,6 +21,7 @@ export class BackendDeployerFactory {
 export type DeployProps = {
     hotswapFallback?: boolean;
     method?: 'direct';
+    additionalArguments?: string[];
 };
 
 // (No @packageDocumentation comment for this package)

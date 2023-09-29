@@ -163,16 +163,21 @@ export class SSMSecretClient implements SecretClient {
     backendIdentifier: UniqueBackendIdentifier | BackendId,
     secretName: string,
     secretValue: string
-  ) => {
+  ): Promise<SecretIdentifier> => {
     const name = this.getParameterFullPath(backendIdentifier, secretName);
     try {
-      await this.ssmClient.putParameter({
+      const resp = await this.ssmClient.putParameter({
         Name: name,
         Type: 'SecureString',
         Value: secretValue,
         Description: `Amplify Secret`,
         Overwrite: true,
       });
+
+      return {
+        name: secretName,
+        version: resp.Version,
+      };
     } catch (err) {
       throw SecretError.fromSSMException(err as SSMServiceException);
     }

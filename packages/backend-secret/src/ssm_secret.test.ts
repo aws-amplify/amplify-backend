@@ -139,7 +139,10 @@ void describe('SSMSecret', () => {
     const ssmClient = new SSM();
     const ssmSecretClient = new SSMSecretClient(ssmClient);
     const mockSetParameter = mock.method(ssmClient, 'putParameter', () =>
-      Promise.resolve()
+      Promise.resolve({
+        $metadata: {},
+        Version: testSecretVersion,
+      })
     );
 
     beforeEach(() => {
@@ -147,12 +150,13 @@ void describe('SSMSecret', () => {
     });
 
     void it('set branch secret', async () => {
-      await ssmSecretClient.setSecret(
+      const resp = await ssmSecretClient.setSecret(
         testBackendIdentifier,
         testSecretName,
         testSecretValue
       );
 
+      assert.deepEqual(resp, testSecretIdWithVersion);
       assert.deepStrictEqual(mockSetParameter.mock.calls[0].arguments[0], {
         Name: testBranchSecretFullNamePath,
         Type: 'SecureString',
@@ -163,19 +167,13 @@ void describe('SSMSecret', () => {
     });
 
     void it('set app-shared secret', async () => {
-      const mockSetParameter = mock.method(ssmClient, 'putParameter', () =>
-        Promise.resolve({
-          $metadata: {},
-          Version: testSecretVersion,
-        })
-      );
-
-      await ssmSecretClient.setSecret(
+      const resp = await ssmSecretClient.setSecret(
         testBackendId,
         testSecretName,
         testSecretValue
       );
 
+      assert.deepEqual(resp, testSecretIdWithVersion);
       assert.deepStrictEqual(mockSetParameter.mock.calls[0].arguments[0], {
         Name: testSharedSecretFullNamePath,
         Type: 'SecureString',
