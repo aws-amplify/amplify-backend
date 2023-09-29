@@ -15,6 +15,7 @@ const secretResourceType = 'Custom::SecretFetcherResource';
 const backendId = 'testId';
 const branchName = 'testBranch';
 const secretName1 = 'testSecretName1';
+const secretLastUpdate1 = '1245462';
 const secretName2 = 'testSecretName2';
 const uniqueBackendIdentifier: UniqueBackendIdentifier =
   new BranchBackendIdentifier(backendId, branchName);
@@ -28,6 +29,7 @@ void describe('getOrCreate', () => {
   void it('create different secrets', () => {
     const app = new App();
     const stack = new Stack(app);
+    stack.node.setContext(secretName1, secretLastUpdate1);
     resourceFactory.getOrCreate(stack, secretName1, uniqueBackendIdentifier);
     resourceFactory.getOrCreate(stack, secretName2, uniqueBackendIdentifier);
 
@@ -38,6 +40,7 @@ void describe('getOrCreate', () => {
         backendId,
         branchName,
         secretName: secretName1,
+        lastUpdated: secretLastUpdate1,
       },
     });
     assert.equal(Object.keys(customResources).length, 1);

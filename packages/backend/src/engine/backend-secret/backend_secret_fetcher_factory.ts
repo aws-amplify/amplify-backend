@@ -49,13 +49,22 @@ export class BackendSecretFetcherFactory {
       backendIdentifier
     );
 
+    // In sandbox environment, the context contains the secret updated timestamp. It is
+    // to avoid unnecessary secret resource update which blocks sandbox hot-swapping feature.
+    let lastUpdated = scope.node.tryGetContext(`${secretName}`);
+    if (!lastUpdated) {
+      // This case is either a secret is not defined or pipeline deployment. We pass in a random uuid
+      // to trigger resource update event. It it is an undefined-secret case, the deployment will fail.
+      lastUpdated = randomUUID();
+    }
+
     return new CustomResource(scope, secretResourceId, {
       serviceToken: provider.serviceToken,
       properties: {
         backendId: backendIdentifier.backendId,
         branchName: backendIdentifier.disambiguator,
         secretName: secretName,
-        noop: randomUUID(),
+        lastUpdated: lastUpdated,
       },
       resourceType: SECRET_RESOURCE_TYPE,
     });

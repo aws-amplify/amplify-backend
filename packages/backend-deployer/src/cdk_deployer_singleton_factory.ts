@@ -5,6 +5,7 @@ import { CdkErrorMapper } from './cdk_error_mapper.js';
 export type DeployProps = {
   hotswapFallback?: boolean;
   method?: 'direct';
+  additionalArguments?: string[];
 };
 
 /**

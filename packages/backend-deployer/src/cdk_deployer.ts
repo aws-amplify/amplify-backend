@@ -39,6 +39,11 @@ export class CDKDeployer implements BackendDeployer {
     if (deployProps?.method) {
       cdkCommandArgs.push(`--method=${deployProps.method}`);
     }
+
+    if (deployProps?.additionalArguments) {
+      cdkCommandArgs.push(...deployProps.additionalArguments);
+    }
+
     await this.invoke(
       InvokableCommand.DEPLOY,
       uniqueBackendIdentifier,
