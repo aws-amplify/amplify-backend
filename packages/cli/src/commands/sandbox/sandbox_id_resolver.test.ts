@@ -14,4 +14,24 @@ void describe('SandboxIdResolver', () => {
     const result = await resolverRef();
     assert.equal(result, 'testAppName-testUsername');
   });
+  void it('resolve when insanely long appName is given', async () => {
+    const resolver = new SandboxIdResolver(
+      {
+        resolve: () =>
+          Promise.resolve(
+            'InsanelyLongApplicationNameProvidedByCustomer' +
+              'DoNotKnowWhatCustomersAreThinkingWhenChoosingThisGreatBigName'
+          ),
+      },
+      () => ({ username: 'testUsername' } as never)
+    );
+    const resolverRef = resolver.resolve;
+    const result = await resolverRef();
+    assert.equal(
+      result,
+      'InsanelyLongApplicationNameProvidedByCustomerDoNotKnowWhat' +
+        'CustomersAreThinkingWhenChoosingThisGreat-testUsername'
+    );
+    assert.equal(result.length, 128 - 16); //128 is the CFN stack name limit and 16 for prefix and suffix
+  });
 });
