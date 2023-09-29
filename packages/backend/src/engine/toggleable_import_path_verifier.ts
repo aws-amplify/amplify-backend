@@ -17,7 +17,7 @@ export class ToggleableImportPathVerifier implements ImportPathVerifier {
    */
   verify = (
     importStack: string | undefined,
-    expectedImportingFileBasename: string,
+    expectedImportSuffix: string,
     errorMessage: string
   ): void => {
     if (!this.doVerify) {
@@ -43,12 +43,10 @@ export class ToggleableImportPathVerifier implements ImportPathVerifier {
       // don't fail if for some reason we can't parse the stack trace
       return;
     }
-    // get just the filename, ie `auth.ts`
-    const upstreamFilename = path.basename(match.groups.filepath);
-    const allowedFiles = ['ts', 'js', 'mjs', 'cjs', 'mts', 'cts'].map(
-      (ext) => `${expectedImportingFileBasename}.${ext}`
-    );
-    if (!allowedFiles.includes(upstreamFilename)) {
+
+    const parts = path.parse(match.groups.filepath);
+    const pathWithoutExtension = path.join(parts.dir, parts.name);
+    if (!pathWithoutExtension.endsWith(expectedImportSuffix)) {
       throw new Error(errorMessage);
     }
   };
