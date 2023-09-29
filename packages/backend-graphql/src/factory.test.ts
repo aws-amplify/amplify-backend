@@ -36,6 +36,14 @@ const testSchema = `
   }
 `;
 
+const createStackAndSetContext = (): Stack => {
+  const app = new App();
+  app.node.setContext('branch-name', 'testEnvName');
+  app.node.setContext('backend-id', 'testBackendId');
+  const stack = new Stack(app);
+  return stack;
+};
+
 void describe('DataFactory', () => {
   let stack: Stack;
   let constructContainer: ConstructContainer;
@@ -43,11 +51,10 @@ void describe('DataFactory', () => {
   let importPathVerifier: ImportPathVerifier;
   let dataFactory: DataFactory;
   let getInstanceProps: ConstructFactoryGetInstanceProps;
+
   beforeEach(() => {
     dataFactory = new DataFactory({ schema: testSchema });
-
-    const app = new App();
-    stack = new Stack(app);
+    stack = createStackAndSetContext();
 
     constructContainer = new SingletonConstructContainer(
       new NestedStackResolver(stack)

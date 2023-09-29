@@ -67,6 +67,11 @@ export type BackendSecret = {
     resolve: (scope: Construct, uniqueBackendIdentifier: UniqueBackendIdentifier) => SecretValue;
 };
 
+// @public (undocumented)
+export type BackendSecretResolver = {
+    resolveSecret: (backendSecret: BackendSecret) => SecretValue;
+};
+
 // @public
 export type ConstructContainer = {
     getOrCompute: (generator: ConstructContainerEntryGenerator) => Construct;
@@ -77,7 +82,7 @@ export type ConstructContainer = {
 // @public
 export type ConstructContainerEntryGenerator = {
     resourceGroupName: string;
-    generateContainerEntry: (scope: Construct) => Construct;
+    generateContainerEntry: (scope: Construct, backendSecretResolver: BackendSecretResolver) => Construct;
 };
 
 // @public

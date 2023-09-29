@@ -6,6 +6,7 @@ import {
 import { Construct } from 'constructs';
 import {
   AuthResources,
+  BackendSecretResolver,
   ConstructContainerEntryGenerator,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
@@ -13,6 +14,8 @@ import {
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import * as path from 'path';
+import { AuthLoginWithFactoryProps } from './types.js';
+import { translateToAuthConstructLoginWith } from './translate_auth_props.js';
 
 export type TriggerConfig = {
   triggers?: Partial<
@@ -20,8 +23,13 @@ export type TriggerConfig = {
   >;
 };
 
-export type AmplifyAuthFactoryProps = Omit<AuthProps, 'outputStorageStrategy'> &
-  TriggerConfig;
+export type AmplifyAuthFactoryProps = Omit<
+  AuthProps,
+  'outputStorageStrategy' | 'loginWith'
+> &
+  TriggerConfig & {
+    loginWith: AuthLoginWithFactoryProps;
+  };
 
 /**
  * Singleton factory for AmplifyAuth that can be used in Amplify project files
@@ -69,11 +77,19 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
     private readonly getInstanceProps: ConstructFactoryGetInstanceProps
   ) {}
 
-  generateContainerEntry = (scope: Construct) => {
+  generateContainerEntry = (
+    scope: Construct,
+    backendSecretResolver: BackendSecretResolver
+  ) => {
     const authProps: AuthProps = {
       ...this.props,
+      loginWith: translateToAuthConstructLoginWith(
+        this.props.loginWith,
+        backendSecretResolver
+      ),
       outputStorageStrategy: this.getInstanceProps.outputStorageStrategy,
     };
+
     const authConstruct = new AmplifyAuth(scope, this.defaultName, authProps);
     Object.entries(this.props.triggers || {}).forEach(
       ([triggerEvent, handlerFactory]) => {
