@@ -1,21 +1,14 @@
-import { beforeEach, describe, it } from 'node:test';
+import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import {
   TestCommandError,
   TestCommandRunner,
 } from './test-utils/command_runner.js';
 import { createMainParser } from './main_parser_factory.js';
-import packageJson from '#package.json';
-import { Argv } from 'yargs';
 
 void describe('main parser', { concurrency: false }, () => {
-  let parser: Argv;
-  let commandRunner: TestCommandRunner;
-
-  beforeEach(async () => {
-    parser = await createMainParser();
-    commandRunner = new TestCommandRunner(parser);
-  });
+  const parser = createMainParser();
+  const commandRunner = new TestCommandRunner(parser);
 
   void it('includes generate command in help output', async () => {
     const output = await commandRunner.runCommand('--help');
@@ -34,10 +27,5 @@ void describe('main parser', { concurrency: false }, () => {
         return true;
       }
     );
-  });
-
-  void it('prints package.json version', async () => {
-    const output = await commandRunner.runCommand('--version');
-    assert.equal(output.trim(), packageJson.version);
   });
 });

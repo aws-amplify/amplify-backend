@@ -3,30 +3,24 @@ import * as _fsp from 'fs/promises';
 import * as path from 'path';
 import { z } from 'zod';
 
-export type PackageJsonLoader = {
-  loadPackageJson: (dir?: string) => Promise<PackageJson>;
-};
-
 /**
  * Loads the contents of package.json from process.cwd().
  *
  * Throws if no package.json is present
  */
-export class PackageJsonFileLoader implements PackageJsonLoader {
+export class CwdPackageJsonLoader {
   /**
    * Pass in fs references so that they can be mocked in tests
    */
   constructor(private readonly fs = _fs, private readonly fsp = _fsp) {}
 
   /**
-   * Returns the contents of the package.json file in the specified absolute dir path
-   *
-   * If no dir is provided, it defaults to process.cwd()
+   * Returns the contents of the package.json file in process.cwd()
    *
    * If no package.json file exists, or the content does not pass validation, an error is thrown
    */
-  loadPackageJson = async (dir = process.cwd()): Promise<PackageJson> => {
-    const tryPath = path.resolve(dir, 'package.json');
+  loadCwdPackageJson = async (): Promise<PackageJson> => {
+    const tryPath = path.resolve(process.cwd(), 'package.json');
     if (!this.fs.existsSync(tryPath)) {
       throw new Error(`Could not find a package.json file at ${tryPath}`);
     }
@@ -48,7 +42,6 @@ export class PackageJsonFileLoader implements PackageJsonLoader {
  */
 const packageJsonSchema = z.object({
   name: z.string(),
-  version: z.string(),
 });
 
 type PackageJson = z.infer<typeof packageJsonSchema>;

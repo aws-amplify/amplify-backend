@@ -36,7 +36,7 @@ void describe('BackendSecret', () => {
       resourceFactory
     );
     const val = secret.resolve(stack, uniqueBackendIdentifier);
-    assert.deepStrictEqual(val, new SecretValue(testSecretValue));
+    assert.deepStrictEqual(val, SecretValue.unsafePlainText(testSecretValue));
     assert.deepStrictEqual(mockGetOrCreate.mock.callCount(), 1);
   });
 });

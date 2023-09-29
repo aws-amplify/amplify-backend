@@ -4,6 +4,6 @@ import { hideBin } from 'yargs/helpers';
 import * as process from 'process';
 import { createMainParser } from './main_parser_factory.js';
 
-const parser = await createMainParser();
+const parser = createMainParser();
 
 await parser.parseAsync(hideBin(process.argv));

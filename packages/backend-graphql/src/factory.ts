@@ -10,11 +10,27 @@ import {
 import {
   AmplifyGraphqlApi,
   AmplifyGraphqlApiProps,
-  AuthorizationConfig,
-} from '@aws-amplify/graphql-construct-alpha';
+  AmplifyGraphqlDefinition,
+  AuthorizationModes,
+  IAMAuthorizationConfig,
+  UserPoolAuthorizationConfig,
+} from '@aws-amplify/graphql-api-construct';
 import { GraphqlOutput } from '@aws-amplify/backend-output-schemas/graphql';
 
-export type DataProps = Pick<AmplifyGraphqlApiProps, 'schema'>;
+/**
+ * Exposed props for Data which are configurable by the end user.
+ */
+export type DataProps = {
+  /**
+   * Graphql Schema as a string to be passed into the CDK construct.
+   */
+  schema: string;
+
+  /**
+   * Optional name for the generated Api.
+   */
+  name?: string;
+};
 
 /**
  * Singleton factory for AmplifyGraphqlApi constructs that can be used in Amplify project files
@@ -71,27 +87,43 @@ class DataGenerator implements ConstructContainerEntryGenerator {
   ) {}
 
   generateContainerEntry = (scope: Construct) => {
-    const authConfig: AuthorizationConfig = {
-      iamConfig: {
+    let iamConfig: IAMAuthorizationConfig | undefined = undefined;
+    let defaultAuthorizationMode: AuthorizationModes['defaultAuthorizationMode'] =
+      'AWS_IAM';
+    if (
+      this.authResources.resources.authenticatedUserIamRole &&
+      this.authResources.resources.unauthenticatedUserIamRole &&
+      this.authResources.resources.cfnResources.identityPool.logicalId
+    ) {
+      iamConfig = {
         authenticatedUserRole:
           this.authResources.resources.authenticatedUserIamRole,
         unauthenticatedUserRole:
           this.authResources.resources.unauthenticatedUserIamRole,
         identityPoolId:
           this.authResources.resources.cfnResources.identityPool.logicalId,
-      },
-    };
+      };
+    }
+
+    let userPoolConfig: UserPoolAuthorizationConfig | undefined = undefined;
     if (this.authResources.resources.userPool) {
-      authConfig.userPoolConfig = {
+      userPoolConfig = {
         userPool: this.authResources.resources.userPool,
       };
-      authConfig.defaultAuthMode = 'AMAZON_COGNITO_USER_POOLS';
+      defaultAuthorizationMode = 'AMAZON_COGNITO_USER_POOLS';
     }
+
+    const authorizationModes: AuthorizationModes = {
+      defaultAuthorizationMode,
+      iamConfig,
+      userPoolConfig,
+    };
 
     // TODO inject the construct with the functionNameMap
     const graphqlConstructProps: AmplifyGraphqlApiProps = {
-      schema: this.props.schema,
-      authorizationConfig: authConfig,
+      apiName: this.props.name,
+      definition: AmplifyGraphqlDefinition.fromString(this.props.schema),
+      authorizationModes,
       outputStorageStrategy: this.outputStorageStrategy,
     };
     return new AmplifyGraphqlApi(
