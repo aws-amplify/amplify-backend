@@ -5,6 +5,7 @@
     { "path": "../backend-output-schemas" },
     { "path": "../backend-secret" },
     { "path": "../client-config" },
+    { "path": "../configure-profile" },
     { "path": "../deployed-backend-client" },
     { "path": "../form-generator" },
     { "path": "../model-generator" },
