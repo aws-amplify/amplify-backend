@@ -12,7 +12,7 @@ void describe('LocalAppNameResolver', () => {
     assert.equal(result, 'testName');
   });
 
-  void it('removes any punctuations or symbols', async () => {
+  void it('removes any punctuation or symbols', async () => {
     const packageJsonLoaderMock = {
       loadCwdPackageJson: async () => ({
         name: 'A.,.B@cd,..E, , .f , .Ghi, _@/ //, @, Jkl /',
