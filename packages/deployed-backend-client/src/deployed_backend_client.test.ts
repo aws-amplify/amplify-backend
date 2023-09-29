@@ -17,10 +17,7 @@ import {
   storageOutputKey,
 } from '@aws-amplify/backend-output-schemas';
 import { BackendOutput } from '@aws-amplify/plugin-types';
-import {
-  BackendIdentifier,
-  BackendOutputClientFactory,
-} from '@aws-amplify/deployed-backend-client';
+import { BackendOutputClientFactory } from '@aws-amplify/deployed-backend-client';
 import {
   BackendDeploymentType,
   BranchBackendIdentifier,
