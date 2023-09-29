@@ -33,4 +33,13 @@ void describe('createDefaultRootStack', () => {
       message: 'No context value present for branch-name key',
     });
   });
+
+  void it('throws if deployment-type is missing', () => {
+    const app = new App();
+    app.node.setContext('backend-id', 'testBackendId');
+    app.node.setContext('branch-name', 'testEnvName');
+    assert.throws(() => createDefaultStack(app), {
+      message: 'No context value present for deployment-type key',
+    });
+  });
 });

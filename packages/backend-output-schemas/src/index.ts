@@ -14,7 +14,7 @@ import { versionedStackOutputSchema } from './stack/index.js';
  * ---------- Auth exports ----------
  */
 
-export const stackOutputKey = 'AWS::Amplify::Stack';
+export const stackOutputKey = 'AWS::Amplify::Platform';
 
 /**
  * re-export the auth output schema
