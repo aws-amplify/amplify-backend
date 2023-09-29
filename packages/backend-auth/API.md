@@ -4,14 +4,28 @@
 
 ```ts
 
+import { AmazonProviderProps } from '@aws-amplify/auth-construct-alpha';
 import { AmplifyAuth } from '@aws-amplify/auth-construct-alpha';
+import { AppleProviderProps } from '@aws-amplify/auth-construct-alpha';
 import { AuthProps } from '@aws-amplify/auth-construct-alpha';
 import { AuthResources } from '@aws-amplify/plugin-types';
+import { BackendSecret } from '@aws-amplify/plugin-types';
+import { BasicLoginOptions } from '@aws-amplify/auth-construct-alpha';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
+import { ExternalProviderOptions } from '@aws-amplify/auth-construct-alpha';
+import { ExternalProviderProps } from '@aws-amplify/auth-construct-alpha';
+import { FacebookProviderProps } from '@aws-amplify/auth-construct-alpha';
 import { FunctionResources } from '@aws-amplify/plugin-types';
+import { GoogleProviderProps } from '@aws-amplify/auth-construct-alpha';
+import { OidcProviderProps } from '@aws-amplify/auth-construct-alpha';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { TriggerEvent } from '@aws-amplify/auth-construct-alpha';
+
+// @public
+export type AmazonProviderFactoryProps = Omit<AmazonProviderProps, 'clientSecret'> & {
+    clientSecret: BackendSecret;
+};
 
 // @public
 export class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth & ResourceProvider<AuthResources>> {
@@ -22,10 +36,52 @@ export class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth & Resour
 }
 
 // @public (undocumented)
-export type AmplifyAuthFactoryProps = Omit<AuthProps, 'outputStorageStrategy'> & TriggerConfig;
+export type AmplifyAuthFactoryProps = Omit<AuthProps, 'outputStorageStrategy' | 'loginWith'> & TriggerConfig & {
+    loginWith: AuthLoginWithFactoryProps;
+};
+
+// @public
+export type AppleProviderFactoryProps = Omit<AppleProviderProps, 'privateKey'> & {
+    privateKey: BackendSecret;
+};
 
 // @public
 export const Auth: typeof AmplifyAuthFactory;
+
+// @public
+export type AuthLoginWithFactoryProps = BasicLoginOptions & ExternalProviderFactoryProps;
+
+// @public
+export type ExternalProviderFactoryProps = Omit<ExternalProviderProps, 'externalProviders'> & {
+    externalProviders?: ExternalProviderSpecificFactoryProps;
+};
+
+// @public
+export type ExternalProviderGeneralFactoryProps = Omit<ExternalProviderOptions, 'apple' | 'amazon' | 'facebook' | 'oidc' | 'google'>;
+
+// @public
+export type ExternalProviderSpecificFactoryProps = ExternalProviderGeneralFactoryProps & {
+    apple?: AppleProviderFactoryProps;
+    amazon?: AmazonProviderFactoryProps;
+    facebook?: FacebookProviderFactoryProps;
+    oidc?: OidcProviderFactoryProps;
+    google?: GoogleProviderFactoryProps;
+};
+
+// @public
+export type FacebookProviderFactoryProps = Omit<FacebookProviderProps, 'clientSecret'> & {
+    clientSecret: BackendSecret;
+};
+
+// @public
+export type GoogleProviderFactoryProps = Omit<GoogleProviderProps, 'clientSecretValue'> & {
+    clientSecretValue: BackendSecret;
+};
+
+// @public
+export type OidcProviderFactoryProps = Omit<OidcProviderProps, 'clientSecret'> & {
+    clientSecret: BackendSecret;
+};
 
 // @public (undocumented)
 export type TriggerConfig = {

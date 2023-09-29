@@ -8,9 +8,9 @@ import { GenerateGraphqlClientCodeCommand } from './graphql-client-code/generate
 import { LocalAppNameResolver } from '../../backend-identifier/local_app_name_resolver.js';
 import { BackendIdentifierResolver } from '../../backend-identifier/backend_identifier_resolver.js';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
-import { BackendOutputClient } from '@aws-amplify/deployed-backend-client';
 import { GenerateApiCodeAdapter } from './graphql-client-code/generate_api_code_adapter.js';
 import { FormGenerationHandler } from '../../form-generation/form_generation_handler.js';
+import { BackendOutputClientFactory } from '@aws-amplify/deployed-backend-client';
 
 /**
  * Creates wired generate command.
@@ -35,7 +35,7 @@ export const createGenerateCommand = (): CommandModule => {
 
   const generateFormsCommand = new GenerateFormsCommand(
     backendIdentifierResolver,
-    (id) => new BackendOutputClient(credentialProvider, id),
+    () => BackendOutputClientFactory.getInstance(credentialProvider),
     new FormGenerationHandler({ credentialProvider })
   );
 

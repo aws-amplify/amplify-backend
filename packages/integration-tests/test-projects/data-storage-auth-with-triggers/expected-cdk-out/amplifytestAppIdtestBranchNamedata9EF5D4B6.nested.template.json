@@ -1,5 +1,5 @@
 {
- "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyCDK\",\"createdWith\":\"0.9.0\",\"stackType\":\"api-AppSync\"}",
+ "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyCDK\",\"createdWith\":\"1.1.0\",\"stackType\":\"api-AppSync\"}",
  "Resources": {
   "amplifyDataGraphQLAPI42A6FA33": {
    "Type": "AWS::AppSync::GraphQLApi",

@@ -17,17 +17,24 @@ import {
 } from '@aws-amplify/plugin-types';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 
+const createStackAndSetContext = (): Stack => {
+  const app = new App();
+  app.node.setContext('branch-name', 'testEnvName');
+  app.node.setContext('backend-id', 'testBackendId');
+  const stack = new Stack(app);
+  return stack;
+};
+
 void describe('AmplifyStorageFactory', () => {
   let storageFactory: AmplifyStorageFactory;
   let constructContainer: ConstructContainer;
   let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
   let importPathVerifier: ImportPathVerifier;
   let getInstanceProps: ConstructFactoryGetInstanceProps;
+
   beforeEach(() => {
     storageFactory = new AmplifyStorageFactory({});
-
-    const app = new App();
-    const stack = new Stack(app);
+    const stack = createStackAndSetContext();
 
     constructContainer = new SingletonConstructContainer(
       new NestedStackResolver(stack)

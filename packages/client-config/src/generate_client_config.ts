@@ -3,7 +3,7 @@ import { ClientConfigGeneratorFactory } from './client_config_generator_factory.
 import { ClientConfig } from './client-config-types/client_config.js';
 import {
   BackendIdentifier,
-  BackendOutputClient,
+  BackendOutputClientFactory,
 } from '@aws-amplify/deployed-backend-client';
 
 // Because this function is acting as the DI container for this functionality, there is no way to test it without
@@ -20,11 +20,11 @@ export const generateClientConfig = async (
   credentialProvider: AwsCredentialIdentityProvider,
   backendIdentifier: BackendIdentifier
 ): Promise<ClientConfig> => {
-  const backendOutputClient = new BackendOutputClient(
-    credentialProvider,
-    backendIdentifier
-  );
-  return new ClientConfigGeneratorFactory(backendOutputClient.getOutput)
+  const backendOutputClient =
+    BackendOutputClientFactory.getInstance(credentialProvider);
+  return new ClientConfigGeneratorFactory(() =>
+    backendOutputClient.getOutput(backendIdentifier)
+  )
     .getInstance()
     .generateClientConfig();
 };

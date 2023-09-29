@@ -1,5 +1,6 @@
 import { Construct } from 'constructs';
 import { ConstructFactory } from './construct_factory.js';
+import { BackendSecretResolver } from './backend_secret_resolver.js';
 
 /**
  * Initializes a CDK Construct in a given scope
@@ -14,7 +15,10 @@ export type ConstructContainerEntryGenerator = {
   /**
    * Create a new instance of a CDK construct in the provided scope.
    */
-  generateContainerEntry: (scope: Construct) => Construct;
+  generateContainerEntry: (
+    scope: Construct,
+    backendSecretResolver: BackendSecretResolver
+  ) => Construct;
 };
 
 /**
