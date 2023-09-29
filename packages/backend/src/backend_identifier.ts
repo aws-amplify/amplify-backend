@@ -17,20 +17,15 @@ export const getUniqueBackendIdentifier = (
   scope: Construct
 ): UniqueBackendIdentifier => {
   const backendId = scope.node.getContext(backendIdCDKContextKey);
-  const branchName = scope.node.getContext(branchNameCDKContextKey);
-  const deploymentType: BackendDeploymentType = scope.node.getContext(
-    deploymentTypeCDKContextKey
-  );
   if (typeof backendId !== 'string') {
     throw new Error(
       `${backendIdCDKContextKey} CDK context value is not a string`
     );
   }
-  if (typeof branchName !== 'string') {
-    throw new Error(
-      `${branchNameCDKContextKey} CDK context value is not a string`
-    );
-  }
+
+  const deploymentType: BackendDeploymentType = scope.node.getContext(
+    deploymentTypeCDKContextKey
+  );
   const expectedDeploymentTypeValues = [
     BackendDeploymentType.BRANCH,
     BackendDeploymentType.SANDBOX,
@@ -46,6 +41,14 @@ export const getUniqueBackendIdentifier = (
 
   if (deploymentType === BackendDeploymentType.SANDBOX) {
     return new SandboxBackendIdentifier(backendId);
+  }
+
+  const branchName = scope.node.getContext(branchNameCDKContextKey);
+
+  if (typeof branchName !== 'string') {
+    throw new Error(
+      `${branchNameCDKContextKey} CDK context value is not a string`
+    );
   }
 
   return new BranchBackendIdentifier(backendId, branchName);

@@ -1,6 +1,6 @@
 {
  "Metadata": {
-   "AWS::Amplify::Stack": {
+   "AWS::Amplify::Platform": {
    "stackOutputs": [
     "deploymentType"
    ],

@@ -80,7 +80,7 @@ void describe('invokeCDKCommand', () => {
   void it('handles options and deployProps', async () => {
     await invoker.deploy(uniqueBackendIdentifier, deployProps);
     assert.strictEqual(execaMock.mock.callCount(), 1);
-    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 13);
+    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 11);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
       'cdk',
       'deploy',
@@ -89,8 +89,6 @@ void describe('invokeCDKCommand', () => {
       "'npx tsx amplify/backend.ts'",
       '--context',
       'backend-id=123',
-      '--context',
-      'branch-name=testBranch',
       '--context',
       'deployment-type=SANDBOX',
       '--hotswap-fallback',

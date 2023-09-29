@@ -16,6 +16,15 @@ void describe('createDefaultRootStack', () => {
     assert.strictEqual(stack.stackName, 'amplify-testBackendId-testBranchName');
   });
 
+  void it('creates AmplifyStack with only backend ID from CDK context when deployment_type is SANDBOX', () => {
+    const app = new App();
+    app.node.setContext('backend-id', 'testBackendId');
+    app.node.setContext('deployment-type', BackendDeploymentType.SANDBOX);
+    const stack = createDefaultStack(app);
+    assert.ok(stack instanceof AmplifyStack);
+    assert.strictEqual(stack.stackName, 'amplify-testBackendId-sandbox');
+  });
+
   void it('throws if backend-id is missing', () => {
     const app = new App();
     app.node.setContext('branch-name', 'testEnvName');
