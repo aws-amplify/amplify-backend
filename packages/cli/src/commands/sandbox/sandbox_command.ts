@@ -98,7 +98,11 @@ export class SandboxCommand
       args.outDir,
       args.format
     );
-    watchExclusions.push(clientConfigWritePath);
+    watchExclusions.push(
+      clientConfigWritePath,
+      args.uiOutDir,
+      args.modelsOutDir
+    );
     await sandbox.start({
       dir: args.dirToWatch,
       exclude: watchExclusions,
