@@ -295,10 +295,7 @@ void describe('SSMSecret', () => {
           WithDecryption: true,
         }
       );
-      assert.deepEqual(secrets, [
-        testSecret,
-        testSecret2,
-      ] as SecretIdentifier[]);
+      assert.deepEqual(secrets, [testSecret, testSecret2] as Secret[]);
     });
 
     void it('lists shared secrets', async () => {
