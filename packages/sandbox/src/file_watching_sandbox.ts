@@ -19,6 +19,8 @@ import {
 import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
 
 export const CDK_BOOTSTRAP_STACK_NAME = 'CDKToolkit';
+export const CDK_BOOTSTRAP_VERSION_KEY = 'BootstrapVersion';
+export const CDK_MIN_BOOTSTRAP_VERSION = 6;
 // TODO: finalize bootstrap url
 
 /**
@@ -200,17 +202,25 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
   };
 
   /**
-   * Check if given region has been bootstrapped using CFN describeStacks with CDKToolKit.
+   * Checks if a given region has been bootstrapped with >= min version using CFN describeStacks with CDKToolKit.
    * @returns A Boolean that represents if region has been bootstrapped.
    */
   private isBootstrapped = async () => {
     try {
-      await this.cfnClient.send(
+      const { Stacks: stacks } = await this.cfnClient.send(
         new DescribeStacksCommand({
           StackName: CDK_BOOTSTRAP_STACK_NAME,
         })
       );
-      // TODO: Check if its possible to look for a min bootstrap version from stack output to be able to re-bootstrap CDKv1 stack
+      const bootstrapVersion = stacks?.[0].Outputs?.find(
+        (op) => op.OutputKey === CDK_BOOTSTRAP_VERSION_KEY
+      )?.OutputValue;
+      if (
+        !bootstrapVersion ||
+        Number(bootstrapVersion) < CDK_MIN_BOOTSTRAP_VERSION
+      ) {
+        return false;
+      }
       return true;
     } catch (e) {
       if (

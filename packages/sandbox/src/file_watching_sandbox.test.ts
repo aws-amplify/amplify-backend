@@ -3,6 +3,7 @@ import path from 'path';
 import watcher from '@parcel/watcher';
 import {
   CDK_BOOTSTRAP_STACK_NAME,
+  CDK_BOOTSTRAP_VERSION_KEY,
   FileWatchingSandbox,
   getBootstrapUrl,
 } from './file_watching_sandbox.js';
@@ -42,8 +43,8 @@ cfnClientSendMock.mock.mockImplementation(() =>
           {
             Description:
               'The version of the bootstrap resources that are currently mastered in this stack',
-            OutputKey: 'BootstrapVersion',
-            OutputValue: 18,
+            OutputKey: CDK_BOOTSTRAP_VERSION_KEY,
+            OutputValue: '18',
           },
         ],
       },
@@ -99,6 +100,38 @@ void describe('Sandbox to check if region is bootstrapped', () => {
     cfnClientSendMock.mock.mockImplementationOnce(() => {
       throw new Error('Stack with id CDKToolkit does not exist');
     });
+
+    await sandboxInstance.start({
+      dir: 'testDir',
+      exclude: ['exclude1', 'exclude2'],
+    });
+
+    assert.strictEqual(cfnClientSendMock.mock.callCount(), 1);
+    assert.strictEqual(openMock.mock.callCount(), 1);
+    assert.strictEqual(
+      openMock.mock.calls[0].arguments[0],
+      getBootstrapUrl(region)
+    );
+  });
+
+  void it('when region has bootstrapped, but with a version lower than the minimum (6), then opens console to initiate bootstrap', async () => {
+    cfnClientSendMock.mock.mockImplementationOnce(() =>
+      Promise.resolve({
+        Stacks: [
+          {
+            Name: CDK_BOOTSTRAP_STACK_NAME,
+            Outputs: [
+              {
+                Description:
+                  'The version of the bootstrap resources that are currently mastered in this stack',
+                OutputKey: CDK_BOOTSTRAP_VERSION_KEY,
+                OutputValue: '5',
+              },
+            ],
+          },
+        ],
+      })
+    );
 
     await sandboxInstance.start({
       dir: 'testDir',
