@@ -44,6 +44,7 @@ const runCDKSnapshotTest = ({
     process.env.CDK_CONTEXT_JSON = JSON.stringify({
       'backend-id': 'testAppId',
       'branch-name': 'testBranchName',
+      'deployment-type': 'BRANCH',
     });
   });
   afterEach(() => {

@@ -1,5 +1,11 @@
 {
  "Metadata": {
+   "AWS::Amplify::Stack": {
+   "stackOutputs": [
+    "deploymentType"
+   ],
+   "version": "1"
+  },
   "AWS::Amplify::Auth": {
    "version": "1",
    "stackOutputs": [
@@ -125,6 +131,9 @@
    "Value": {
     "Ref": "AWS::Region"
    }
+  },
+  "deploymentType": {
+   "Value": "BRANCH"
   },
   "awsAppsyncApiId": {
    "Value": {

@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { versionedAuthOutputSchema } from './auth/index.js';
 import { versionedGraphqlOutputSchema } from './graphql/index.js';
 import { versionedStorageOutputSchema } from './storage/index.js';
+import { versionedStackOutputSchema } from './stack/index.js';
 
 /**
  * The auth, graphql and storage exports here are duplicated from the submodule exports in the package.json file
@@ -12,6 +13,8 @@ import { versionedStorageOutputSchema } from './storage/index.js';
 /**
  * ---------- Auth exports ----------
  */
+
+export const stackOutputKey = 'AWS::Amplify::Stack';
 
 /**
  * re-export the auth output schema
@@ -60,6 +63,7 @@ export const storageOutputKey = 'AWS::Amplify::Storage';
  * As new constructs are added that need to contribute backend output, entries should be added here so that client config generation is aware of these outputs
  */
 export const unifiedBackendOutputSchema = z.object({
+  [stackOutputKey]: versionedStackOutputSchema.optional(),
   [authOutputKey]: versionedAuthOutputSchema.optional(),
   [graphqlOutputKey]: versionedGraphqlOutputSchema.optional(),
   [storageOutputKey]: versionedStorageOutputSchema.optional(),

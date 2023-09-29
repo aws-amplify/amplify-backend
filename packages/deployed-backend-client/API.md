@@ -5,6 +5,7 @@
 ```ts
 
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
+import { BackendDeploymentType } from '@aws-amplify/platform-core';
 import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
 import { UnifiedBackendOutput } from '@aws-amplify/backend-output-schemas';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
@@ -27,14 +28,6 @@ export enum BackendDeploymentStatus {
     FAILED = "FAILED",
     // (undocumented)
     UNKNOWN = "UNKNOWN"
-}
-
-// @public (undocumented)
-export enum BackendDeploymentType {
-    // (undocumented)
-    BRANCH = "BRANCH",
-    // (undocumented)
-    SANDBOX = "SANDBOX"
 }
 
 // @public (undocumented)
