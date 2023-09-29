@@ -156,6 +156,7 @@ jobs:
           fetch-depth: 0
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_install_cache
+      - run: echo ${{ github.event.pull_request.user.login }}
       - run: npx changeset status --since origin/main
   update_or_publish_versions:
     if: github.event_name == 'push'
