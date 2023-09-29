@@ -1,4 +1,8 @@
-import { confirm, password } from '@inquirer/prompts';
+import { confirm, password, select } from '@inquirer/prompts';
+
+export type Choice = {
+  value: string;
+};
 
 /**
  * Wrapper for prompter library
@@ -33,6 +37,42 @@ export class AmplifyPrompter {
       message: promptMessage,
       validate: (val: string) =>
         val && val.length > 0 ? true : 'Cannot be empty',
+    });
+  };
+
+  /**
+   * A password prompt
+   * @param options An options object for configuring password prompt
+   * @param options.message Message for the prompt
+   * @param options.validate Function to validate the password input
+   * @returns the password as a string
+   */
+  static password = (options: {
+    message: string;
+    validate: (value: string) => boolean | string;
+  }): Promise<string> => {
+    const { message, validate } = options;
+    return password({
+      message,
+      validate,
+    });
+  };
+
+  /**
+   * A select prompt
+   * @param options An options object for configuring select prompt
+   * @param options.message A message for the select prompt
+   * @param options.choices Choices for the prompt
+   * @returns the selection as a string
+   */
+  static select = (options: {
+    message: string;
+    choices: Choice[];
+  }): Promise<string> => {
+    const { message, choices } = options;
+    return select({
+      message,
+      choices,
     });
   };
 }

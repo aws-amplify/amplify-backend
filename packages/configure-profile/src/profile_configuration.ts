@@ -2,7 +2,8 @@ import path from 'path';
 import fs from 'fs/promises';
 import { homedir } from 'os';
 import * as ini from 'ini';
-import open from 'open';
+import _open from 'open';
+import { regions } from './aws_regions.js';
 
 const AWS_CREDENTIALS_FILE_NAME = 'credentials';
 const CONFIG_FILE_NAME = 'config';
@@ -53,11 +54,24 @@ const getAWSConfigFilePath = (): string =>
  */
 class ProfileConfiguration {
   /**
+   * constructor for ProfileConfiguration
+   * @param open Injecting open 3P dependency in order to swap with a mockable counterpart
+   */
+  constructor(private readonly open = _open) {}
+  /**
    * Opens docs site for setting up aws profile
    *
    */
-  static async openDocs() {
-    await open(DOCS_URL);
+  async openDocs() {
+    await this.open(DOCS_URL);
+  }
+
+  /**
+   * gets a list of AWS regions from a static file
+   * @returns a list of AWS regions
+   */
+  getRegions() {
+    return regions;
   }
 
   /**
@@ -67,11 +81,7 @@ class ProfileConfiguration {
    * @param param0.secretAccessKey Secret access key of the credentials pair
    * @param param0.region AWS region
    */
-  static async configure({
-    accessKeyId,
-    secretAccessKey,
-    region,
-  }: ProfileSettings) {
+  async configure({ accessKeyId, secretAccessKey, region }: ProfileSettings) {
     let credentials: IniCredentials = {};
     let config: IniConfig = {};
 
@@ -109,6 +119,8 @@ class ProfileConfiguration {
     await fs.writeFile(awsConfigFilesPath, ini.stringify(config), {
       mode: SECRET_FILE_MODE,
     });
+    // eslint-disable-next-line
+    console.log('Successfully configured the profile.');
   }
 }
 
