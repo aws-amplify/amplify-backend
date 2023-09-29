@@ -72,7 +72,7 @@ class AmplifyStorageGenerator implements ConstructContainerEntryGenerator {
 }
 
 /**
- * Factory function wrapper around AmplifyStorageFactory
+ * Creates a factory that implements ConstructFactory<AmplifyStorage>
  */
 export const defineStorage = (
   props: AmplifyStorageProps

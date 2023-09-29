@@ -103,7 +103,7 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
 }
 
 /**
- * Factory function wrapper around AmplifyAuthFactory
+ * Creates a factory that implements ConstructFactory<AmplifyAuth & ResourceProvider<AuthResources>>
  */
 export const defineAuth = (
   props: AmplifyAuthFactoryProps
