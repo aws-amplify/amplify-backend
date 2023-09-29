@@ -5,6 +5,8 @@
 ```ts
 
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
+import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
+import { UnifiedBackendOutput } from '@aws-amplify/backend-output-schemas';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 // @public
@@ -14,46 +16,105 @@ export type AppNameAndBranchBackendIdentifier = {
 };
 
 // @public (undocumented)
+export enum BackendDeploymentStatus {
+    // (undocumented)
+    DELETED = "DELETED",
+    // (undocumented)
+    DEPLOYED = "DEPLOYED",
+    // (undocumented)
+    DEPLOYING = "DEPLOYING",
+    // (undocumented)
+    FAILED = "FAILED",
+    // (undocumented)
+    UNKNOWN = "UNKNOWN"
+}
+
+// @public (undocumented)
+export enum BackendDeploymentType {
+    // (undocumented)
+    BRANCH = "BRANCH",
+    // (undocumented)
+    SANDBOX = "SANDBOX"
+}
+
+// @public (undocumented)
 export type BackendIdentifier = UniqueBackendIdentifier | StackIdentifier | AppNameAndBranchBackendIdentifier;
 
+// @public (undocumented)
+export type BackendMetadata = {
+    name: string;
+    lastUpdated: Date | undefined;
+    deploymentType: BackendDeploymentType;
+    status: BackendDeploymentStatus;
+    apiConfiguration?: {
+        status: BackendDeploymentStatus;
+        lastUpdated: Date | undefined;
+        graphqlEndpoint: string;
+    };
+    authConfiguration?: {
+        status: BackendDeploymentStatus;
+        lastUpdated: Date | undefined;
+        userPoolId: string;
+    };
+    storageConfiguration?: {
+        status: BackendDeploymentStatus;
+        lastUpdated: Date | undefined;
+        s3BucketName: string;
+    };
+};
+
 // @public
-export class BackendOutputClient {
-    constructor(credentials: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier);
+export type BackendOutputClient = {
+    readonly getOutput: (backendIdentifier: BackendIdentifier) => Promise<UnifiedBackendOutput>;
+};
+
+// @public
+export class BackendOutputClientError extends Error {
+    constructor(code: BackendOutputClientErrorType, message: string, options?: ErrorOptions);
     // (undocumented)
-    getOutput: () => Promise<{
-        "AWS::Amplify::Auth"?: {
-            version: "1";
-            payload: {
-                userPoolId: string;
-                webClientId: string;
-                identityPoolId: string;
-                authRegion: string;
-                amazonClientId?: string | undefined;
-                appleClientId?: string | undefined;
-                facebookClientId?: string | undefined;
-                googleClientId?: string | undefined;
-            };
-        } | undefined;
-        "AWS::Amplify::GraphQL"?: {
-            version: "1";
-            payload: {
-                awsAppsyncRegion: string;
-                awsAppsyncApiEndpoint: string;
-                awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
-                awsAppsyncApiId: string;
-                amplifyApiModelSchemaS3Uri: string;
-                awsAppsyncApiKey?: string | undefined;
-            };
-        } | undefined;
-        "AWS::Amplify::Storage"?: {
-            version: "1";
-            payload: {
-                bucketName: string;
-                storageRegion: string;
-            };
-        } | undefined;
-    }>;
+    code: BackendOutputClientErrorType;
 }
+
+// @public (undocumented)
+export enum BackendOutputClientErrorType {
+    // (undocumented)
+    METADATA_RETRIEVAL_ERROR = "MetadataRetrievalError"
+}
+
+// @public
+export class BackendOutputClientFactory {
+    static getInstance: (credentials: AwsCredentialIdentityProvider) => BackendOutputClient;
+}
+
+// @public (undocumented)
+export type DeployedBackendClient = {
+    listSandboxes: (listSandboxesRequest?: ListSandboxesRequest) => Promise<ListSandboxesResponse>;
+    deleteSandbox: (sandboxBackendIdentifier: SandboxBackendIdentifier) => Promise<void>;
+    getBackendMetadata: (backendIdentifier: UniqueBackendIdentifier) => Promise<BackendMetadata>;
+};
+
+// @public
+export class DeployedBackendClientFactory {
+    static getInstance: (credentials: AwsCredentialIdentityProvider) => DeployedBackendClient;
+}
+
+// @public (undocumented)
+export type ListSandboxesRequest = {
+    nextToken?: string;
+};
+
+// @public (undocumented)
+export type ListSandboxesResponse = {
+    sandboxes: SandboxMetadata[];
+    nextToken: string | undefined;
+};
+
+// @public (undocumented)
+export type SandboxMetadata = {
+    name: string;
+    lastUpdated: Date | undefined;
+    status: BackendDeploymentStatus;
+};
 
 // @public (undocumented)
 export type StackIdentifier = {

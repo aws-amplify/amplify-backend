@@ -2,7 +2,7 @@ import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { S3Client } from '@aws-sdk/client-s3';
 import {
   BackendIdentifier,
-  BackendOutputClient,
+  BackendOutputClientFactory,
 } from '@aws-amplify/deployed-backend-client';
 import { graphqlOutputKey } from '@aws-amplify/backend-output-schemas';
 import { AppsyncGraphqlGenerationResult } from './appsync_graphql_generation_result.js';
@@ -39,11 +39,9 @@ const getModelSchema = async (
   backendIdentifier: BackendIdentifier,
   credentialProvider: AwsCredentialIdentityProvider
 ): Promise<string> => {
-  const backendOutputClient = new BackendOutputClient(
-    credentialProvider,
-    backendIdentifier
-  );
-  const output = await backendOutputClient.getOutput();
+  const backendOutputClient =
+    BackendOutputClientFactory.getInstance(credentialProvider);
+  const output = await backendOutputClient.getOutput(backendIdentifier);
   const modelSchemaS3Uri =
     output[graphqlOutputKey]?.payload.amplifyApiModelSchemaS3Uri;
   if (!modelSchemaS3Uri) {
