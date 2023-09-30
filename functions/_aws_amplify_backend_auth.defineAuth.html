@@ -1,4 +1,4 @@
-<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>AmplifyStorageFactory | Amplify Toolbox</title><meta name="description" content="Documentation for Amplify Toolbox"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os"</script><header class="tsd-page-toolbar">
+<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>defineAuth | Amplify Toolbox</title><meta name="description" content="Documentation for Amplify Toolbox"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os"</script><header class="tsd-page-toolbar">
 <div class="tsd-toolbar-contents container">
 <div class="table-cell" id="tsd-search" data-base="..">
 <div class="field"><label for="tsd-search-field" class="tsd-widget tsd-toolbar-icon search no-caption"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><use href="#icon-search"></use></svg></label><input type="text" id="tsd-search-field" aria-label="Search"/></div>
@@ -13,96 +13,24 @@
 <div class="tsd-page-title">
 <ul class="tsd-breadcrumb">
 <li><a href="../index.html">Amplify Toolbox</a></li>
-<li><a href="../modules/_aws_amplify_backend_storage.html">@aws-amplify/backend-storage</a></li>
-<li><a href="_aws_amplify_backend_storage.AmplifyStorageFactory.html">AmplifyStorageFactory</a></li></ul>
-<h1>Class AmplifyStorageFactory</h1></div>
-<section class="tsd-panel tsd-comment">
-<div class="tsd-comment tsd-typography"><p>Singleton factory for a Storage bucket that can be used in <code>resource.ts</code> files</p>
-</div>
-<div class="tsd-comment tsd-typography"></div></section>
-<section class="tsd-panel tsd-hierarchy">
-<h4>Hierarchy</h4>
-<ul class="tsd-hierarchy">
-<li><span class="target">AmplifyStorageFactory</span></li></ul></section>
+<li><a href="../modules/_aws_amplify_backend_auth.html">@aws-amplify/backend-auth</a></li>
+<li><a href="_aws_amplify_backend_auth.defineAuth.html">defineAuth</a></li></ul>
+<h1>Function defineAuth</h1></div>
 <section class="tsd-panel">
-<h4>Implements</h4>
-<ul class="tsd-hierarchy">
-<li><a href="../types/_aws_amplify_plugin_types.ConstructFactory.html" class="tsd-signature-type tsd-kind-type-alias">ConstructFactory</a><span class="tsd-signature-symbol">&lt;</span><a href="_aws_amplify_storage_construct_alpha.AmplifyStorage.html" class="tsd-signature-type tsd-kind-class">AmplifyStorage</a><span class="tsd-signature-symbol">&gt;</span></li></ul></section><aside class="tsd-sources">
-<ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/baa7a90/packages/backend-storage/src/factory.ts#L23">factory.ts:23</a></li></ul></aside>
-<section class="tsd-panel-group tsd-index-group">
-<section class="tsd-panel tsd-index-panel">
-<details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
-<h5 class="tsd-index-heading uppercase" role="button" aria-expanded="false" tabIndex=0><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><use href="#icon-chevronSmall"></use></svg> Index</h5></summary>
-<div class="tsd-accordion-details">
-<section class="tsd-index-section">
-<h3 class="tsd-index-heading">Constructors</h3>
-<div class="tsd-index-list"><a href="_aws_amplify_backend_storage.AmplifyStorageFactory.html#constructor" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-512"></use></svg><span>constructor</span></a>
-</div></section>
-<section class="tsd-index-section">
-<h3 class="tsd-index-heading">Properties</h3>
-<div class="tsd-index-list"><a href="_aws_amplify_backend_storage.AmplifyStorageFactory.html#generator" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>generator</span></a>
-<a href="_aws_amplify_backend_storage.AmplifyStorageFactory.html#importStack" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>import<wbr/>Stack</span></a>
-<a href="_aws_amplify_backend_storage.AmplifyStorageFactory.html#props" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>props</span></a>
-</div></section>
-<section class="tsd-index-section">
-<h3 class="tsd-index-heading">Methods</h3>
-<div class="tsd-index-list"><a href="_aws_amplify_backend_storage.AmplifyStorageFactory.html#getInstance" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>get<wbr/>Instance</span></a>
-</div></section></div></details></section></section>
-<section class="tsd-panel-group tsd-member-group">
-<h2>Constructors</h2>
-<section class="tsd-panel tsd-member"><a id="constructor" class="tsd-anchor"></a>
-<h3 class="tsd-anchor-link"><span>constructor</span><a href="#constructor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="constructor.new_AmplifyStorageFactory"><span class="tsd-kind-constructor-signature">new <wbr/>Amplify<wbr/>Storage<wbr/>Factory</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">props</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_aws_amplify_backend_storage.AmplifyStorageFactory.html" class="tsd-signature-type tsd-kind-class">AmplifyStorageFactory</a><a href="#constructor.new_AmplifyStorageFactory" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="defineAuth"><span class="tsd-kind-call-signature">define<wbr/>Auth</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">props</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../types/_aws_amplify_plugin_types.ConstructFactory.html" class="tsd-signature-type tsd-kind-type-alias">ConstructFactory</a><span class="tsd-signature-symbol">&lt;</span><a href="../classes/_aws_amplify_auth_construct_alpha.AmplifyAuth.html" class="tsd-signature-type tsd-kind-class">AmplifyAuth</a><span class="tsd-signature-symbol"> &amp; </span><a href="../types/_aws_amplify_plugin_types.ResourceProvider.html" class="tsd-signature-type tsd-kind-type-alias">ResourceProvider</a><span class="tsd-signature-symbol">&lt;</span><a href="../types/_aws_amplify_plugin_types.AuthResources.html" class="tsd-signature-type tsd-kind-type-alias">AuthResources</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><a href="#defineAuth" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Set the properties that will be used to initialize the bucket</p>
+<div class="tsd-comment tsd-typography"><p>Creates a factory that implements ConstructFactory&lt;AmplifyAuth &amp; ResourceProvider<AuthResources>&gt;</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5><span class="tsd-kind-parameter">props</span>: <a href="../types/_aws_amplify_backend_storage.AmplifyStorageFactoryProps.html" class="tsd-signature-type tsd-kind-type-alias">AmplifyStorageFactoryProps</a></h5></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="_aws_amplify_backend_storage.AmplifyStorageFactory.html" class="tsd-signature-type tsd-kind-class">AmplifyStorageFactory</a></h4>
+<h5><span class="tsd-kind-parameter">props</span>: <a href="../types/_aws_amplify_backend_auth.AmplifyAuthFactoryProps.html" class="tsd-signature-type tsd-kind-type-alias">AmplifyAuthFactoryProps</a></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="../types/_aws_amplify_plugin_types.ConstructFactory.html" class="tsd-signature-type tsd-kind-type-alias">ConstructFactory</a><span class="tsd-signature-symbol">&lt;</span><a href="../classes/_aws_amplify_auth_construct_alpha.AmplifyAuth.html" class="tsd-signature-type tsd-kind-class">AmplifyAuth</a><span class="tsd-signature-symbol"> &amp; </span><a href="../types/_aws_amplify_plugin_types.ResourceProvider.html" class="tsd-signature-type tsd-kind-type-alias">ResourceProvider</a><span class="tsd-signature-symbol">&lt;</span><a href="../types/_aws_amplify_plugin_types.AuthResources.html" class="tsd-signature-type tsd-kind-type-alias">AuthResources</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/baa7a90/packages/backend-storage/src/factory.ts#L30">factory.ts:30</a></li></ul></aside></li></ul></section></section>
-<section class="tsd-panel-group tsd-member-group">
-<h2>Properties</h2>
-<section class="tsd-panel tsd-member tsd-is-private"><a id="generator" class="tsd-anchor"></a>
-<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>generator</span><a href="#generator" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">generator</span><span class="tsd-signature-symbol">:</span> <a href="../types/_aws_amplify_plugin_types.ConstructContainerEntryGenerator.html" class="tsd-signature-type tsd-kind-type-alias">ConstructContainerEntryGenerator</a></div><aside class="tsd-sources">
-<ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/baa7a90/packages/backend-storage/src/factory.ts#L24">factory.ts:24</a></li></ul></aside></section>
-<section class="tsd-panel tsd-member tsd-is-private"><a id="importStack" class="tsd-anchor"></a>
-<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <code class="tsd-tag ts-flagReadonly">Readonly</code> <span>import<wbr/>Stack</span><a href="#importStack" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">import<wbr/>Stack</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></div><aside class="tsd-sources">
-<ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/baa7a90/packages/backend-storage/src/factory.ts#L25">factory.ts:25</a></li></ul></aside></section>
-<section class="tsd-panel tsd-member tsd-is-private"><a id="props" class="tsd-anchor"></a>
-<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <code class="tsd-tag ts-flagReadonly">Readonly</code> <span>props</span><a href="#props" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">props</span><span class="tsd-signature-symbol">:</span> <a href="../types/_aws_amplify_backend_storage.AmplifyStorageFactoryProps.html" class="tsd-signature-type tsd-kind-type-alias">AmplifyStorageFactoryProps</a></div><aside class="tsd-sources">
-<ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/baa7a90/packages/backend-storage/src/factory.ts#L30">factory.ts:30</a></li></ul></aside></section></section>
-<section class="tsd-panel-group tsd-member-group">
-<h2>Methods</h2>
-<section class="tsd-panel tsd-member"><a id="getInstance" class="tsd-anchor"></a>
-<h3 class="tsd-anchor-link"><span>get<wbr/>Instance</span><a href="#getInstance" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="getInstance.getInstance-1"><span class="tsd-kind-call-signature">get<wbr/>Instance</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">__namedParameters</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_aws_amplify_storage_construct_alpha.AmplifyStorage.html" class="tsd-signature-type tsd-kind-class">AmplifyStorage</a><a href="#getInstance.getInstance-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
-<li class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Get a singleton instance of the Bucket</p>
-</div>
-<div class="tsd-parameters">
-<h4 class="tsd-parameters-title">Parameters</h4>
-<ul class="tsd-parameter-list">
-<li>
-<h5><span class="tsd-kind-parameter">__namedParameters</span>: <a href="../types/_aws_amplify_plugin_types.ConstructFactoryGetInstanceProps.html" class="tsd-signature-type tsd-kind-type-alias">ConstructFactoryGetInstanceProps</a></h5></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="_aws_amplify_storage_construct_alpha.AmplifyStorage.html" class="tsd-signature-type tsd-kind-class">AmplifyStorage</a></h4>
-<div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Implementation of ConstructFactory.getInstance</p>
-<ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/baa7a90/packages/backend-storage/src/factory.ts#L37">factory.ts:37</a></li></ul></aside></li></ul></section></section></div>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/ae9e9f1/packages/backend-auth/src/factory.ts#L108">factory.ts:108</a></li></ul></aside></li></ul></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -117,16 +45,7 @@
 <li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><use href="#icon-checkbox"></use></svg><span>Inherited</span></label></li>
 <li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-external" name="external"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><use href="#icon-checkbox"></use></svg><span>External</span></label></li></ul></form></div>
 <div class="tsd-theme-toggle">
-<h4 class="uppercase">Theme</h4><select id="tsd-theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div>
-<details open class="tsd-index-accordion tsd-page-navigation"><summary class="tsd-accordion-summary">
-<h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><use href="#icon-chevronDown"></use></svg>On This Page</h3></summary>
-<div class="tsd-accordion-details">
-<ul>
-<li><a href="#constructor" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-512"></use></svg><span>constructor</span></a></li>
-<li><a href="#generator" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>generator</span></a></li>
-<li><a href="#importStack" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>import<wbr/>Stack</span></a></li>
-<li><a href="#props" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>props</span></a></li>
-<li><a href="#getInstance" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>get<wbr/>Instance</span></a></li></ul></div></details></div>
+<h4 class="uppercase">Theme</h4><select id="tsd-theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div></div>
 <div class="site-menu">
 <nav class="tsd-navigation"><a href="../index.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1"></use></svg><span>Amplify Toolbox</span></a>
 <ul class="tsd-small-nested-navigation" id="tsd-nav-container" data-base="..">
