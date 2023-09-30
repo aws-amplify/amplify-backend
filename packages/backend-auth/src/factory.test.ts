@@ -1,5 +1,5 @@
 import { beforeEach, describe, it, mock } from 'node:test';
-import { AmplifyAuthFactory } from './factory.js';
+import { defineAuth } from './factory.js';
 import {
   NestedStackResolver,
   SingletonConstructContainer,
@@ -17,7 +17,7 @@ import {
   ImportPathVerifier,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
-import { triggerEvents } from '@aws-amplify/auth-construct-alpha';
+import { AmplifyAuth, triggerEvents } from '@aws-amplify/auth-construct-alpha';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 import { BackendDeploymentType } from '@aws-amplify/platform-core';
 
@@ -31,13 +31,13 @@ const createStackAndSetContext = (): Stack => {
 };
 
 void describe('AmplifyAuthFactory', () => {
-  let authFactory: AmplifyAuthFactory;
+  let authFactory: ConstructFactory<AmplifyAuth>;
   let constructContainer: ConstructContainer;
   let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
   let importPathVerifier: ImportPathVerifier;
   let stack: Stack;
   beforeEach(() => {
-    authFactory = new AmplifyAuthFactory({
+    authFactory = defineAuth({
       loginWith: { email: true },
     });
 
@@ -93,7 +93,7 @@ void describe('AmplifyAuthFactory', () => {
 
     assert.ok(
       (importPathVerifier.verify.mock.calls[0].arguments[0] as string).includes(
-        'AmplifyAuthFactory'
+        'defineAuth'
       )
     );
   });
@@ -113,7 +113,7 @@ void describe('AmplifyAuthFactory', () => {
           };
         },
       };
-      const authWithTriggerFactory = new AmplifyAuthFactory({
+      const authWithTriggerFactory = defineAuth({
         loginWith: { email: true },
         triggers: { [event]: funcStub },
       });
