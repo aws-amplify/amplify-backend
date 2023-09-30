@@ -1,12 +1,19 @@
 import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import path from 'path';
 import watcher from '@parcel/watcher';
-import { FileWatchingSandbox } from './file_watching_sandbox.js';
+import {
+  CDK_BOOTSTRAP_STACK_NAME,
+  CDK_BOOTSTRAP_VERSION_KEY,
+  FileWatchingSandbox,
+  getBootstrapUrl,
+} from './file_watching_sandbox.js';
 import assert from 'node:assert';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
 import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 import fs from 'fs';
 import parseGitIgnore from 'parse-gitignore';
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import open from 'open';
 import {
   BackendDeploymentType,
   SandboxBackendIdentifier,
@@ -26,6 +33,28 @@ const execaDeployMock = mock.method(backendDeployer, 'deploy', () =>
 const execaDestroyMock = mock.method(backendDeployer, 'destroy', () =>
   Promise.resolve()
 );
+const region = 'test-region';
+const cfnClientMock = new CloudFormationClient({ region });
+const cfnClientSendMock = mock.fn();
+mock.method(cfnClientMock, 'send', cfnClientSendMock);
+cfnClientSendMock.mock.mockImplementation(() =>
+  Promise.resolve({
+    Stacks: [
+      {
+        Name: CDK_BOOTSTRAP_STACK_NAME,
+        Outputs: [
+          {
+            Description:
+              'The version of the bootstrap resources that are currently mastered in this stack',
+            OutputKey: CDK_BOOTSTRAP_VERSION_KEY,
+            OutputValue: '18',
+          },
+        ],
+      },
+    ],
+  })
+);
+const openMock = mock.fn(open, (url: string) => Promise.resolve(url));
 
 const testPath = path.join('test', 'location');
 mock.method(fs, 'lstatSync', (path: string) => {
@@ -38,6 +67,97 @@ mock.method(fs, 'lstatSync', (path: string) => {
     },
     isDir: () => false,
   };
+});
+
+void describe('Sandbox to check if region is bootstrapped', () => {
+  // class under test
+  let sandboxInstance: FileWatchingSandbox;
+
+  const cdkExecutor = new AmplifySandboxExecutor(backendDeployer);
+
+  beforeEach(async () => {
+    // ensures that .gitignore is set as absent
+    mock.method(fs, 'existsSync', () => false);
+    sandboxInstance = new FileWatchingSandbox(
+      'testSandboxId',
+      cdkExecutor,
+      cfnClientMock,
+      openMock as never
+    );
+
+    cfnClientSendMock.mock.resetCalls();
+    openMock.mock.resetCalls();
+    execaDestroyMock.mock.resetCalls();
+    execaDeployMock.mock.resetCalls();
+  });
+
+  afterEach(async () => {
+    cfnClientSendMock.mock.resetCalls();
+    openMock.mock.resetCalls();
+    execaDestroyMock.mock.resetCalls();
+    execaDeployMock.mock.resetCalls();
+    await sandboxInstance.stop();
+  });
+
+  void it('when region has not bootstrapped, then opens console to initiate bootstrap', async () => {
+    cfnClientSendMock.mock.mockImplementationOnce(() => {
+      throw new Error('Stack with id CDKToolkit does not exist');
+    });
+
+    await sandboxInstance.start({
+      dir: 'testDir',
+      exclude: ['exclude1', 'exclude2'],
+    });
+
+    assert.strictEqual(cfnClientSendMock.mock.callCount(), 1);
+    assert.strictEqual(openMock.mock.callCount(), 1);
+    assert.strictEqual(
+      openMock.mock.calls[0].arguments[0],
+      getBootstrapUrl(region)
+    );
+  });
+
+  void it('when region has bootstrapped, but with a version lower than the minimum (6), then opens console to initiate bootstrap', async () => {
+    cfnClientSendMock.mock.mockImplementationOnce(() =>
+      Promise.resolve({
+        Stacks: [
+          {
+            Name: CDK_BOOTSTRAP_STACK_NAME,
+            Outputs: [
+              {
+                Description:
+                  'The version of the bootstrap resources that are currently mastered in this stack',
+                OutputKey: CDK_BOOTSTRAP_VERSION_KEY,
+                OutputValue: '5',
+              },
+            ],
+          },
+        ],
+      })
+    );
+
+    await sandboxInstance.start({
+      dir: 'testDir',
+      exclude: ['exclude1', 'exclude2'],
+    });
+
+    assert.strictEqual(cfnClientSendMock.mock.callCount(), 1);
+    assert.strictEqual(openMock.mock.callCount(), 1);
+    assert.strictEqual(
+      openMock.mock.calls[0].arguments[0],
+      getBootstrapUrl(region)
+    );
+  });
+
+  void it('when region has bootstrapped, resumes sandbox command successfully', async () => {
+    await sandboxInstance.start({
+      dir: 'testDir',
+      exclude: ['exclude1', 'exclude2'],
+    });
+
+    assert.strictEqual(cfnClientSendMock.mock.callCount(), 1);
+    assert.strictEqual(openMock.mock.callCount(), 0);
+  });
 });
 
 void describe('Sandbox using local project name resolver', () => {
@@ -53,7 +173,11 @@ void describe('Sandbox using local project name resolver', () => {
   beforeEach(async () => {
     // ensures that .gitignore is set as absent
     mock.method(fs, 'existsSync', () => false);
-    sandboxInstance = new FileWatchingSandbox('testSandboxId', cdkExecutor);
+    sandboxInstance = new FileWatchingSandbox(
+      'testSandboxId',
+      cdkExecutor,
+      cfnClientMock
+    );
     await sandboxInstance.start({
       dir: 'testDir',
       exclude: ['exclude1', 'exclude2'],
@@ -73,12 +197,14 @@ void describe('Sandbox using local project name resolver', () => {
     // Reset all the calls to avoid extra startup call
     execaDestroyMock.mock.resetCalls();
     execaDeployMock.mock.resetCalls();
+    cfnClientSendMock.mock.resetCalls();
   });
 
   afterEach(async () => {
     execaDestroyMock.mock.resetCalls();
     execaDeployMock.mock.resetCalls();
     subscribeMock.mock.resetCalls();
+    cfnClientSendMock.mock.resetCalls();
     await sandboxInstance.stop();
   });
 
@@ -103,6 +229,7 @@ void describe('Sandbox using local project name resolver', () => {
         deploymentType: BackendDeploymentType.SANDBOX,
       },
     ]);
+    assert.strictEqual(cfnClientSendMock.mock.callCount(), 0);
   });
 
   void it('calls CDK once when multiple file changes are present', async () => {
@@ -201,7 +328,11 @@ void describe('Sandbox with user provided app name', () => {
   beforeEach(async () => {
     // ensures that .gitignore is set as absent
     mock.method(fs, 'existsSync', () => false);
-    sandboxInstance = new FileWatchingSandbox('testSandboxId', cdkExecutor);
+    sandboxInstance = new FileWatchingSandbox(
+      'testSandboxId',
+      cdkExecutor,
+      cfnClientMock
+    );
     await sandboxInstance.start({
       dir: 'testDir',
       exclude: ['exclude1', 'exclude2'],
@@ -217,12 +348,14 @@ void describe('Sandbox with user provided app name', () => {
     // Reset all the calls to avoid extra startup call
     execaDestroyMock.mock.resetCalls();
     execaDeployMock.mock.resetCalls();
+    cfnClientSendMock.mock.resetCalls();
   });
 
   afterEach(async () => {
     execaDestroyMock.mock.resetCalls();
     execaDeployMock.mock.resetCalls();
     subscribeMock.mock.resetCalls();
+    cfnClientSendMock.mock.resetCalls();
     await sandboxInstance.stop();
   });
 
@@ -275,12 +408,15 @@ void describe('Sandbox with absolute output path', () => {
   beforeEach(async () => {
     // ensures that .gitignore is set as absent
     mock.method(fs, 'existsSync', () => false);
-    sandboxInstance = new FileWatchingSandbox('testSandboxId', cdkExecutor);
+    sandboxInstance = new FileWatchingSandbox(
+      'testSandboxId',
+      cdkExecutor,
+      cfnClientMock
+    );
     await sandboxInstance.start({
       dir: 'testDir',
       exclude: ['exclude1', 'exclude2'],
       name: 'customSandboxName',
-      profile: 'amplify-sandbox',
     });
     if (
       subscribeMock.mock.calls[0].arguments[1] &&
@@ -292,17 +428,15 @@ void describe('Sandbox with absolute output path', () => {
     // Reset all the calls to avoid extra startup call
     execaDeployMock.mock.resetCalls();
     execaDestroyMock.mock.resetCalls();
+    cfnClientSendMock.mock.resetCalls();
   });
 
   afterEach(async () => {
     execaDeployMock.mock.resetCalls();
     execaDestroyMock.mock.resetCalls();
     subscribeMock.mock.resetCalls();
+    cfnClientSendMock.mock.resetCalls();
     await sandboxInstance.stop();
-  });
-
-  void it('sets AWS profile when starting sandbox', async () => {
-    assert.strictEqual(process.env.AWS_PROFILE, 'amplify-sandbox');
   });
 });
 
@@ -330,7 +464,11 @@ void describe('Sandbox ignoring paths in .gitignore', () => {
         ],
       };
     });
-    sandboxInstance = new FileWatchingSandbox('testSandboxId', cdkExecutor);
+    sandboxInstance = new FileWatchingSandbox(
+      'testSandboxId',
+      cdkExecutor,
+      cfnClientMock
+    );
     await sandboxInstance.start({
       dir: 'testDir',
       exclude: ['customer_exclude1', 'customer_exclude2'],
@@ -346,12 +484,14 @@ void describe('Sandbox ignoring paths in .gitignore', () => {
     // Reset all the calls to avoid extra startup call
     execaDeployMock.mock.resetCalls();
     execaDestroyMock.mock.resetCalls();
+    cfnClientSendMock.mock.resetCalls();
   });
 
   afterEach(async () => {
     execaDeployMock.mock.resetCalls();
     execaDestroyMock.mock.resetCalls();
     subscribeMock.mock.resetCalls();
+    cfnClientSendMock.mock.resetCalls();
     await sandboxInstance.stop();
   });
 
@@ -385,7 +525,11 @@ void describe('Sandbox ignoring paths in .gitignore', () => {
     const executor: AmplifySandboxExecutor = {
       deploy: mockDeploy,
     } as unknown as AmplifySandboxExecutor;
-    const sandbox = new FileWatchingSandbox('my-sandbox', executor);
+    const sandbox = new FileWatchingSandbox(
+      'my-sandbox',
+      executor,
+      cfnClientMock
+    );
     sandbox.on('successfulDeployment', mockListener);
     await sandbox.start({});
     assert.equal(mockListener.mock.callCount(), 1);

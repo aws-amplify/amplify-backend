@@ -78,6 +78,10 @@ export class SandboxCommand
   handler = async (
     args: ArgumentsCamelCase<SandboxCommandOptions>
   ): Promise<void> => {
+    const { profile } = args;
+    if (profile) {
+      process.env.AWS_PROFILE = profile;
+    }
     const sandbox = await this.sandboxFactory.getInstance();
     this.appName = args.name;
     const eventHandlers = this.sandboxEventHandlerCreator?.({
