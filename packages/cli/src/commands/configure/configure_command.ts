@@ -22,7 +22,7 @@ export class ConfigureCommand implements CommandModule {
     private readonly configureProfileCommand: ConfigureProfileCommand
   ) {
     this.command = 'configure';
-    this.describe = 'Configures entities (e.g AWS profiles)';
+    this.describe = 'Configuration management';
   }
 
   /**

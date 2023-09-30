@@ -1,9 +1,19 @@
 import { confirm, password, select } from '@inquirer/prompts';
 
 export type Choice = {
+  // can extend this to other properties as required.
   value: string;
 };
 
+export type PasswordPromptOptions = {
+  message: string;
+  validate: (value: string) => boolean | string;
+};
+
+export type SelectPromptOptions = {
+  message: string;
+  choices: Choice[];
+};
 /**
  * Wrapper for prompter library
  */
@@ -47,10 +57,7 @@ export class AmplifyPrompter {
    * @param options.validate Function to validate the password input
    * @returns the password as a string
    */
-  static password = (options: {
-    message: string;
-    validate: (value: string) => boolean | string;
-  }): Promise<string> => {
+  static password = (options: PasswordPromptOptions): Promise<string> => {
     const { message, validate } = options;
     return password({
       message,
@@ -65,10 +72,7 @@ export class AmplifyPrompter {
    * @param options.choices Choices for the prompt
    * @returns the selection as a string
    */
-  static select = (options: {
-    message: string;
-    choices: Choice[];
-  }): Promise<string> => {
+  static select = (options: SelectPromptOptions): Promise<string> => {
     const { message, choices } = options;
     return select({
       message,

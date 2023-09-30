@@ -55,15 +55,15 @@ const getAWSConfigFilePath = (): string =>
 class ProfileConfiguration {
   /**
    * constructor for ProfileConfiguration
-   * @param open Injecting open 3P dependency in order to swap with a mockable counterpart
+   * @param open Injecting open 3P dependency in order to swap with a mock-able counterpart
    */
   constructor(private readonly open = _open) {}
   /**
    * Opens docs site for setting up aws profile
    *
    */
-  async openDocs() {
-    await this.open(DOCS_URL);
+  openDocs() {
+    return this.open(DOCS_URL);
   }
 
   /**
@@ -124,4 +124,4 @@ class ProfileConfiguration {
   }
 }
 
-export { ProfileConfiguration };
+export { ProfileConfiguration, ProfileSettings };

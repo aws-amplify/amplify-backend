@@ -20,10 +20,7 @@ void describe('top level generate command', () => {
     const output = await commandRunner.runCommand('configure --help');
     assert.match(output, /Commands:/);
     assert.match(output, /configure profile\W*Configures local AWS profile/);
-    assert.match(
-      output,
-      /generate graphql-client-code\W*Generates graphql API code/
-    );
+    assert.match(output, /amplify configure\W*Configuration management/);
   });
 
   void it('fails if subcommand is not provided', async () => {

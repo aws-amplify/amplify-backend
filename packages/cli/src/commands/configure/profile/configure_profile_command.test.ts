@@ -1,21 +1,31 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import { ConfigureProfileCommand } from './configure_profile_command.js';
 import yargs, { CommandModule } from 'yargs';
-import {
-  TestCommandError,
-  TestCommandRunner,
-} from '../../../test-utils/command_runner.js';
+import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
-import { ProfileConfiguration } from '@aws-amplify/configure-profile';
+import {
+  ProfileConfiguration,
+  ProfileSettings,
+} from '@aws-amplify/configure-profile';
+import {
+  AmplifyPrompter,
+  PasswordPromptOptions,
+} from '../../prompter/amplify_prompts.js';
 
 const profileConfiguration = new ProfileConfiguration();
 const profileConfigurationOpenDocsMock = mock.method(
   profileConfiguration,
-  'openDocs'
+  'openDocs',
+  () => {
+    return Promise.resolve();
+  }
 );
 const profileConfigurationConfigureMock = mock.method(
   profileConfiguration,
-  'configure'
+  'configure',
+  (profileSettings: ProfileSettings) => {
+    return Promise.resolve(profileSettings);
+  }
 );
 
 void describe('configure profile command', () => {
@@ -33,7 +43,30 @@ void describe('configure profile command', () => {
     profileConfigurationConfigureMock.mock.resetCalls();
   });
 
-  void it('generates and writes config for stack', async () => {
+  void it('configures local AWS profile', async (contextual) => {
+    // User inputted accessKeyId & secretAccessKey
+    contextual.mock.method(
+      AmplifyPrompter,
+      'password',
+      ({ message }: PasswordPromptOptions) => Promise.resolve(message)
+    );
+    // User inputted region
+    contextual.mock.method(AmplifyPrompter, 'select', () =>
+      Promise.resolve('us-west-2')
+    );
+
     await commandRunner.runCommand('profile');
+    assert.equal(profileConfigurationOpenDocsMock.mock.callCount(), 1);
+    assert.equal(profileConfigurationConfigureMock.mock.callCount(), 1);
+    assert.deepEqual(
+      profileConfigurationConfigureMock.mock.calls[0].arguments,
+      [
+        {
+          accessKeyId: 'accessKeyId',
+          secretAccessKey: 'secretAccessKey',
+          region: 'us-west-2',
+        },
+      ]
+    );
   });
 });
