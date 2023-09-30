@@ -14,7 +14,10 @@ import fs from 'fs';
 import parseGitIgnore from 'parse-gitignore';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import open from 'open';
-import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
+import {
+  BackendDeploymentType,
+  SandboxBackendIdentifier,
+} from '@aws-amplify/platform-core';
 
 // Watcher mocks
 const unsubscribeMockFn = mock.fn();
@@ -223,8 +226,7 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepEqual(execaDeployMock.mock.calls[0].arguments, [
       new SandboxBackendIdentifier('testSandboxId'),
       {
-        hotswapFallback: true,
-        method: 'direct',
+        deploymentType: BackendDeploymentType.SANDBOX,
       },
     ]);
     assert.strictEqual(cfnClientSendMock.mock.callCount(), 0);
@@ -375,8 +377,7 @@ void describe('Sandbox with user provided app name', () => {
     assert.deepEqual(execaDeployMock.mock.calls[0].arguments, [
       new SandboxBackendIdentifier('customSandboxName'),
       {
-        hotswapFallback: true,
-        method: 'direct',
+        deploymentType: BackendDeploymentType.SANDBOX,
       },
     ]);
   });

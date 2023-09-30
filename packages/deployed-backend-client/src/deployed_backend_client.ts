@@ -5,14 +5,16 @@ import {
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import {
   BackendDeploymentStatus,
-  BackendDeploymentType,
   BackendMetadata,
   DeployedBackendClient,
   ListSandboxesRequest,
   ListSandboxesResponse,
   SandboxMetadata,
 } from './deployed_backend_client_factory.js';
-import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
+import {
+  BackendDeploymentType,
+  SandboxBackendIdentifier,
+} from '@aws-amplify/platform-core';
 import { BackendOutputClientFactory } from './backend_output_client_factory.js';
 import { getMainStackName } from './get_main_stack_name.js';
 import {
@@ -30,6 +32,7 @@ import {
 import {
   authOutputKey,
   graphqlOutputKey,
+  stackOutputKey,
   storageOutputKey,
 } from '@aws-amplify/backend-output-schemas';
 
@@ -56,22 +59,27 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
 
     do {
       const listStacksResponse = await this.listStacks(nextToken);
-      const filteredMetadata = listStacksResponse.stackSummaries
+      const stackMetadataPromises = listStacksResponse.stackSummaries
         .filter((stackSummary: StackSummary) => {
           return stackSummary.StackStatus !== StackStatus.DELETE_COMPLETE;
         })
-        .map((stackSummary: StackSummary) => {
+        .map(async (stackSummary: StackSummary) => {
           return {
             name: stackSummary.StackName as string,
             lastUpdated: stackSummary.LastUpdatedTime,
             status: this.translateStackStatus(stackSummary.StackStatus),
-            deploymentType: this.getDeploymentType(),
+            deploymentType: await this.getDeploymentType(stackSummary),
           };
-        })
-        .filter(
-          (stackMetadata) =>
-            stackMetadata.deploymentType === BackendDeploymentType.SANDBOX
-        );
+        });
+
+      const stackMetadataResolvedPromises = await Promise.all(
+        stackMetadataPromises
+      );
+      const filteredMetadata = stackMetadataResolvedPromises.filter(
+        (stackMetadata) =>
+          stackMetadata.deploymentType === BackendDeploymentType.SANDBOX
+      );
+
       stackMetadata.push(...filteredMetadata);
       nextToken = listStacksResponse.nextToken;
     } while (stackMetadata.length === 0 && nextToken);
@@ -80,6 +88,22 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
       sandboxes: stackMetadata,
       nextToken,
     };
+  };
+
+  private getDeploymentType = async (
+    stackSummary: StackSummary
+  ): Promise<BackendDeploymentType> => {
+    const backendIdentifier = {
+      stackName: stackSummary.StackName as string,
+    };
+
+    const backendOutput: BackendOutput =
+      await BackendOutputClientFactory.getInstance(this.credentials).getOutput(
+        backendIdentifier
+      );
+
+    return backendOutput[stackOutputKey].payload
+      .deploymentType as BackendDeploymentType;
   };
 
   /**
@@ -173,7 +197,8 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     );
 
     const backendMetadataObject: BackendMetadata = {
-      deploymentType: this.getDeploymentType(),
+      deploymentType: backendOutput[stackOutputKey].payload
+        .deploymentType as BackendDeploymentType,
       lastUpdated,
       status,
       name: stackName,
@@ -206,12 +231,6 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     }
 
     return backendMetadataObject;
-  };
-
-  private getDeploymentType = (): BackendDeploymentType => {
-    // FIXME: sandboxes will have an additional field in their outputs
-    // Once that output is added, make this field conditional
-    return BackendDeploymentType.SANDBOX;
   };
 
   private translateStackStatus = (

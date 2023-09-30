@@ -6,22 +6,15 @@
 
 import { AmplifyGraphqlApi } from '@aws-amplify/graphql-api-construct';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
-import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
-
-// @public (undocumented)
-export const Data: typeof DataFactory;
-
-// @public
-export class DataFactory implements ConstructFactory<AmplifyGraphqlApi> {
-    constructor(props: DataProps);
-    getInstance: ({ constructContainer, outputStorageStrategy, importPathVerifier, }: ConstructFactoryGetInstanceProps) => AmplifyGraphqlApi;
-}
 
 // @public
 export type DataProps = {
     schema: string;
     name?: string;
 };
+
+// @public
+export const defineData: (props: DataProps) => ConstructFactory<AmplifyGraphqlApi>;
 
 // (No @packageDocumentation comment for this package)
 

@@ -17,8 +17,14 @@ export class SandboxIdResolver {
    * Returns a concatenation of the resolved appName and the current username
    */
   resolve = async (): Promise<string> => {
-    return `${await this.appNameResolver.resolve()}-${
-      this.userInfo().username
-    }`;
+    const appName = await this.appNameResolver.resolve();
+    const userName = this.userInfo().username;
+
+    /**
+     * Sandbox Id is used to construct the stack name which has a limitation of 128 characters.
+     * Sandbox uses the format `amplify-sandboxId-sandbox`. To prevent breaching the CFN limit
+     * and avoiding truncating username, we truncate the length of AppName (128 - 16 - length of userName - 1).
+     */
+    return `${appName.substring(0, 112 - userName.length - 1)}-${userName}`;
   };
 }

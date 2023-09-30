@@ -1,6 +1,6 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import { DataFactory } from './factory.js';
+import { defineData } from './factory.js';
 import { App, Stack } from 'aws-cdk-lib';
 import {
   NestedStackResolver,
@@ -13,6 +13,7 @@ import {
   BackendOutputEntry,
   BackendOutputStorageStrategy,
   ConstructContainer,
+  ConstructFactory,
   ConstructFactoryGetInstanceProps,
   ImportPathVerifier,
   ResourceProvider,
@@ -25,6 +26,8 @@ import {
   UserPoolClient,
 } from 'aws-cdk-lib/aws-cognito';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
+import { BackendDeploymentType } from '@aws-amplify/platform-core';
+import { AmplifyGraphqlApi } from '@aws-amplify/graphql-api-construct';
 
 const testSchema = `
   input AMPLIFY {globalAuthRule: AuthRule = { allow: public }} # FOR TESTING ONLY!
@@ -40,6 +43,7 @@ const createStackAndSetContext = (): Stack => {
   const app = new App();
   app.node.setContext('branch-name', 'testEnvName');
   app.node.setContext('backend-id', 'testBackendId');
+  app.node.setContext('deployment-type', BackendDeploymentType.BRANCH);
   const stack = new Stack(app);
   return stack;
 };
@@ -49,11 +53,11 @@ void describe('DataFactory', () => {
   let constructContainer: ConstructContainer;
   let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
   let importPathVerifier: ImportPathVerifier;
-  let dataFactory: DataFactory;
+  let dataFactory: ConstructFactory<AmplifyGraphqlApi>;
   let getInstanceProps: ConstructFactoryGetInstanceProps;
 
   beforeEach(() => {
-    dataFactory = new DataFactory({ schema: testSchema });
+    dataFactory = defineData({ schema: testSchema });
     stack = createStackAndSetContext();
 
     constructContainer = new SingletonConstructContainer(
@@ -131,7 +135,7 @@ void describe('DataFactory', () => {
 
     assert.ok(
       (importPathVerifier.verify.mock.calls[0].arguments[0] as string).includes(
-        'DataFactory'
+        'defineData'
       )
     );
   });
@@ -146,7 +150,7 @@ void describe('DataFactory', () => {
   });
 
   void it('sets the api name if a name property is specified', () => {
-    dataFactory = new DataFactory({
+    dataFactory = defineData({
       schema: testSchema,
       name: 'MyTestApiName',
     });

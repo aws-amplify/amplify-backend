@@ -6,11 +6,13 @@ import { Backend } from './backend.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
+import { BackendDeploymentType } from '@aws-amplify/platform-core';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
   app.node.setContext('branch-name', 'testEnvName');
   app.node.setContext('backend-id', 'testBackendId');
+  app.node.setContext('deployment-type', BackendDeploymentType.BRANCH);
   const stack = new Stack(app);
   return stack;
 };
