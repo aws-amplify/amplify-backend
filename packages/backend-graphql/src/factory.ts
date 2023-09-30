@@ -16,6 +16,7 @@ import {
   UserPoolAuthorizationConfig,
 } from '@aws-amplify/graphql-api-construct';
 import { GraphqlOutput } from '@aws-amplify/backend-output-schemas/graphql';
+import * as path from 'path';
 
 /**
  * Exposed props for Data which are configurable by the end user.
@@ -35,16 +36,16 @@ export type DataProps = {
 /**
  * Singleton factory for AmplifyGraphqlApi constructs that can be used in Amplify project files
  */
-export class DataFactory implements ConstructFactory<AmplifyGraphqlApi> {
+class DataFactory implements ConstructFactory<AmplifyGraphqlApi> {
   private generator: ConstructContainerEntryGenerator;
-  private readonly importStack: string | undefined;
 
   /**
    * Create a new AmplifyConstruct
    */
-  constructor(private readonly props: DataProps) {
-    this.importStack = new Error().stack;
-  }
+  constructor(
+    private readonly props: DataProps,
+    private readonly importStack = new Error().stack
+  ) {}
 
   /**
    * Gets an instance of the Data construct
@@ -56,8 +57,8 @@ export class DataFactory implements ConstructFactory<AmplifyGraphqlApi> {
   }: ConstructFactoryGetInstanceProps): AmplifyGraphqlApi => {
     importPathVerifier?.verify(
       this.importStack,
-      'data',
-      'Amplify Data must be defined in a "data.ts" file'
+      path.join('amplify', 'data', 'resource'),
+      'Amplify Data must be defined in amplify/data/resource.ts'
     );
     if (!this.generator) {
       this.generator = new DataGenerator(
@@ -134,4 +135,10 @@ class DataGenerator implements ConstructContainerEntryGenerator {
   };
 }
 
-export const Data = DataFactory;
+/**
+ * Creates a factory that implements ConstructFactory<AmplifyGraphqlApi>
+ */
+export const defineData = (
+  props: DataProps
+): ConstructFactory<AmplifyGraphqlApi> =>
+  new DataFactory(props, new Error().stack);

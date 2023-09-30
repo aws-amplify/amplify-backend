@@ -12,7 +12,6 @@ import { AuthResources } from '@aws-amplify/plugin-types';
 import { BackendSecret } from '@aws-amplify/plugin-types';
 import { BasicLoginOptions } from '@aws-amplify/auth-construct-alpha';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
-import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
 import { ExternalProviderOptions } from '@aws-amplify/auth-construct-alpha';
 import { ExternalProviderProps } from '@aws-amplify/auth-construct-alpha';
 import { FacebookProviderProps } from '@aws-amplify/auth-construct-alpha';
@@ -27,14 +26,6 @@ export type AmazonProviderFactoryProps = Omit<AmazonProviderProps, 'clientSecret
     clientSecret: BackendSecret;
 };
 
-// @public
-export class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth & ResourceProvider<AuthResources>> {
-    constructor(props: AmplifyAuthFactoryProps);
-    getInstance: (getInstanceProps: ConstructFactoryGetInstanceProps) => AmplifyAuth;
-    // (undocumented)
-    readonly provides = "AuthResources";
-}
-
 // @public (undocumented)
 export type AmplifyAuthFactoryProps = Omit<AuthProps, 'outputStorageStrategy' | 'loginWith'> & TriggerConfig & {
     loginWith: AuthLoginWithFactoryProps;
@@ -46,10 +37,10 @@ export type AppleProviderFactoryProps = Omit<AppleProviderProps, 'privateKey'> &
 };
 
 // @public
-export const Auth: typeof AmplifyAuthFactory;
+export type AuthLoginWithFactoryProps = BasicLoginOptions & ExternalProviderFactoryProps;
 
 // @public
-export type AuthLoginWithFactoryProps = BasicLoginOptions & ExternalProviderFactoryProps;
+export const defineAuth: (props: AmplifyAuthFactoryProps) => ConstructFactory<AmplifyAuth & ResourceProvider<AuthResources>>;
 
 // @public
 export type ExternalProviderFactoryProps = Omit<ExternalProviderProps, 'externalProviders'> & {

@@ -1,7 +1,10 @@
 import { after, beforeEach, describe, it, mock } from 'node:test';
 import { CDKDeployer } from './cdk_deployer.js';
 import assert from 'node:assert';
-import { BranchBackendIdentifier } from '@aws-amplify/platform-core';
+import {
+  BackendDeploymentType,
+  BranchBackendIdentifier,
+} from '@aws-amplify/platform-core';
 import { DeployProps } from './cdk_deployer_singleton_factory.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
@@ -11,8 +14,7 @@ void describe('invokeCDKCommand', () => {
     new BranchBackendIdentifier('123', 'testBranch');
 
   const deployProps: DeployProps = {
-    hotswapFallback: true,
-    method: 'direct',
+    deploymentType: BackendDeploymentType.SANDBOX,
   };
 
   const invoker = new CDKDeployer(new CdkErrorMapper());
@@ -61,13 +63,15 @@ void describe('invokeCDKCommand', () => {
   void it('handles deployProps', async () => {
     await invoker.deploy(undefined, deployProps);
     assert.strictEqual(execaMock.mock.callCount(), 1);
-    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 7);
+    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 9);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
       'cdk',
       'deploy',
       '--ci',
       '--app',
       "'npx tsx amplify/backend.ts'",
+      '--context',
+      'deployment-type=SANDBOX',
       '--hotswap-fallback',
       '--method=direct',
     ]);
@@ -86,7 +90,7 @@ void describe('invokeCDKCommand', () => {
       '--context',
       'backend-id=123',
       '--context',
-      'branch-name=testBranch',
+      'deployment-type=SANDBOX',
       '--hotswap-fallback',
       '--method=direct',
     ]);

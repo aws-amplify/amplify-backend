@@ -10,6 +10,7 @@ import {
   AmplifyStorage,
   AmplifyStorageProps,
 } from '@aws-amplify/storage-construct-alpha';
+import * as path from 'path';
 
 export type AmplifyStorageFactoryProps = Omit<
   AmplifyStorageProps,
@@ -17,18 +18,18 @@ export type AmplifyStorageFactoryProps = Omit<
 >;
 
 /**
- * Singleton factory for a Storage bucket that can be used in `storage.ts` files
+ * Singleton factory for a Storage bucket that can be used in `resource.ts` files
  */
-export class AmplifyStorageFactory implements ConstructFactory<AmplifyStorage> {
+class AmplifyStorageFactory implements ConstructFactory<AmplifyStorage> {
   private generator: ConstructContainerEntryGenerator;
-  private readonly importStack: string | undefined;
 
   /**
    * Set the properties that will be used to initialize the bucket
    */
-  constructor(private readonly props: AmplifyStorageFactoryProps) {
-    this.importStack = new Error().stack;
-  }
+  constructor(
+    private readonly props: AmplifyStorageFactoryProps,
+    private readonly importStack = new Error().stack
+  ) {}
 
   /**
    * Get a singleton instance of the Bucket
@@ -40,8 +41,8 @@ export class AmplifyStorageFactory implements ConstructFactory<AmplifyStorage> {
   }: ConstructFactoryGetInstanceProps): AmplifyStorage => {
     importPathVerifier?.verify(
       this.importStack,
-      'storage',
-      'Amplify Storage must be defined in a "storage.ts" file'
+      path.join('amplify', 'storage', 'resource'),
+      'Amplify Storage must be defined in amplify/storage/resource.ts'
     );
     if (!this.generator) {
       this.generator = new AmplifyStorageGenerator(
@@ -71,6 +72,9 @@ class AmplifyStorageGenerator implements ConstructContainerEntryGenerator {
 }
 
 /**
- * Alias for AmplifyStorageFactory
+ * Creates a factory that implements ConstructFactory<AmplifyStorage>
  */
-export const Storage = AmplifyStorageFactory;
+export const defineStorage = (
+  props: AmplifyStorageProps
+): ConstructFactory<AmplifyStorage> =>
+  new AmplifyStorageFactory(props, new Error().stack);

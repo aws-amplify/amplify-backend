@@ -7,6 +7,14 @@
 import { BackendId } from '@aws-amplify/plugin-types';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
+// @public (undocumented)
+export enum BackendDeploymentType {
+    // (undocumented)
+    BRANCH = "BRANCH",
+    // (undocumented)
+    SANDBOX = "SANDBOX"
+}
+
 // @public
 export class BranchBackendIdentifier extends UniqueBackendIdentifierBase {
     constructor(backendId: BackendId, branchName: string);

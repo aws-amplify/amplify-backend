@@ -1,7 +1,10 @@
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { DefaultDeployedBackendClient } from './deployed_backend_client.js';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
-import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
+import {
+  BackendDeploymentType,
+  SandboxBackendIdentifier,
+} from '@aws-amplify/platform-core';
 import { CloudFormation } from '@aws-sdk/client-cloudformation';
 
 export type SandboxMetadata = {
@@ -47,11 +50,6 @@ export enum BackendDeploymentStatus {
   DEPLOYING = 'DEPLOYING',
   DELETED = 'DELETED',
   UNKNOWN = 'UNKNOWN',
-}
-
-export enum BackendDeploymentType {
-  SANDBOX = 'SANDBOX',
-  BRANCH = 'BRANCH',
 }
 
 export type DeployedBackendClient = {
