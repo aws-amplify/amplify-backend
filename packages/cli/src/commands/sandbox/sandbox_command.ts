@@ -78,6 +78,10 @@ export class SandboxCommand
   handler = async (
     args: ArgumentsCamelCase<SandboxCommandOptions>
   ): Promise<void> => {
+    const { profile } = args;
+    if (profile) {
+      process.env.AWS_PROFILE = profile;
+    }
     const sandbox = await this.sandboxFactory.getInstance();
     this.appName = args.name;
     const eventHandlers = this.sandboxEventHandlerCreator?.({
@@ -98,7 +102,11 @@ export class SandboxCommand
       args.outDir,
       args.format
     );
-    watchExclusions.push(clientConfigWritePath);
+    watchExclusions.push(
+      clientConfigWritePath,
+      args.uiOutDir,
+      args.modelsOutDir
+    );
     await sandbox.start({
       dir: args.dirToWatch,
       exclude: watchExclusions,

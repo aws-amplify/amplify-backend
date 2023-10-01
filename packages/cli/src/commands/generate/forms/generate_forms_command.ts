@@ -1,8 +1,5 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
-import {
-  BackendIdentifier,
-  BackendOutputClient,
-} from '@aws-amplify/deployed-backend-client';
+import { BackendOutputClient } from '@aws-amplify/deployed-backend-client';
 import { graphqlOutputKey } from '@aws-amplify/backend-output-schemas';
 import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
 import {
@@ -41,9 +38,7 @@ export class GenerateFormsCommand
    */
   constructor(
     private readonly backendIdentifierResolver: BackendIdentifierResolver,
-    private readonly backendOutputClientBuilder: (
-      backendIdentifier: BackendIdentifier
-    ) => BackendOutputClient,
+    private readonly backendOutputClientBuilder: () => BackendOutputClient,
     private readonly formGenerationHandler: FormGenerationHandler
   ) {
     this.command = 'forms';
@@ -60,10 +55,9 @@ export class GenerateFormsCommand
       args
     );
 
-    const backendOutputClient =
-      this.backendOutputClientBuilder(backendIdentifier);
+    const backendOutputClient = this.backendOutputClientBuilder();
 
-    const output = await backendOutputClient.getOutput();
+    const output = await backendOutputClient.getOutput(backendIdentifier);
 
     if (!(graphqlOutputKey in output) || !output[graphqlOutputKey]) {
       throw new Error('No GraphQL API configured for this backend.');

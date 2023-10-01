@@ -189,9 +189,6 @@ void describe('sandbox command', () => {
   void it('starts sandbox with user provided AWS profile', async () => {
     await commandRunner.runCommand('sandbox --profile amplify-sandbox');
     assert.equal(sandboxStartMock.mock.callCount(), 1);
-    assert.deepStrictEqual(
-      sandboxStartMock.mock.calls[0].arguments[0].profile,
-      'amplify-sandbox'
-    );
+    assert.strictEqual(process.env.AWS_PROFILE, 'amplify-sandbox');
   });
 });

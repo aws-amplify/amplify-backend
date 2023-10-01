@@ -4,6 +4,7 @@
 
 ```ts
 
+import { BackendDeploymentType } from '@aws-amplify/platform-core';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 // @public
@@ -19,9 +20,7 @@ export class BackendDeployerFactory {
 
 // @public (undocumented)
 export type DeployProps = {
-    hotswapFallback?: boolean;
-    method?: 'direct';
-    additionalArguments?: string[];
+    deploymentType?: BackendDeploymentType;
 };
 
 // (No @packageDocumentation comment for this package)

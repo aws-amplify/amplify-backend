@@ -5,6 +5,7 @@ import * as path from 'path';
 import * as os from 'os';
 import { after, afterEach, before, beforeEach, describe, it } from 'node:test';
 import assert from 'assert';
+import { glob } from 'glob';
 
 void describe('create-amplify script', () => {
   before(async () => {
@@ -61,12 +62,22 @@ void describe('create-amplify script', () => {
       'aws-amplify',
     ]);
 
-    const dirContent = await fs.readdir(path.join(tempDir, 'amplify'));
-    assert.deepStrictEqual(dirContent.sort(), [
-      'auth.ts',
-      'backend.ts',
-      'data.ts',
-    ]);
+    const pathPrefix = path.join(tempDir, 'amplify');
+
+    const files = await glob(path.join(pathPrefix, '**', '*'), {
+      // eslint-disable-next-line spellcheck/spell-checker
+      nodir: true,
+      windowsPathsNoEscape: true,
+    });
+
+    assert.deepStrictEqual(
+      files.sort(),
+      [
+        path.join('auth', 'resource.ts'),
+        'backend.ts',
+        path.join('data', 'resource.ts'),
+      ].map((suffix) => path.join(pathPrefix, suffix))
+    );
   });
 
   void it('fails fast if amplify path already exists', async () => {

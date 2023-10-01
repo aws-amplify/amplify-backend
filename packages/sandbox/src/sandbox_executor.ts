@@ -1,6 +1,7 @@
 import debounce from 'debounce-promise';
 import { BackendDeployer } from '@aws-amplify/backend-deployer';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import { BackendDeploymentType } from '@aws-amplify/platform-core';
 
 /**
  * Execute CDK commands.
@@ -20,8 +21,7 @@ export class AmplifySandboxExecutor {
     console.debug('[Sandbox] Executing command `deploy`');
     return this.invoke(() =>
       this.backendDeployer.deploy(uniqueBackendIdentifier, {
-        hotswapFallback: true,
-        method: 'direct',
+        deploymentType: BackendDeploymentType.SANDBOX,
       })
     );
   };

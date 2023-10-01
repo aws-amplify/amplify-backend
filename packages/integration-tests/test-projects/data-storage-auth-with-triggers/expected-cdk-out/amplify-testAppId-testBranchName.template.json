@@ -1,5 +1,11 @@
 {
  "Metadata": {
+  "AWS::Amplify::Platform": {
+   "stackOutputs": [
+    "deploymentType"
+   ],
+   "version": "1"
+  },
   "AWS::Amplify::Auth": {
    "version": "1",
    "stackOutputs": [
@@ -136,7 +142,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/296e14f58081f646ca3b7fa6cb9189894480dcab10ce3a29ff4c4e59e1f8009d.json"
+       "/2291b9f3ada54f04b3efac6351d7fbb89e9826f57fbfeb98806229bcc93e2694.json"
       ]
      ]
     },
@@ -194,6 +200,9 @@
    "Value": {
     "Ref": "AWS::Region"
    }
+  },
+  "deploymentType": {
+   "Value": "BRANCH"
   },
   "storageRegion": {
    "Value": {

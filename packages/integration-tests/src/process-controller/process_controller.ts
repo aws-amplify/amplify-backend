@@ -73,7 +73,7 @@ export class ProcessController {
         if (currentInteraction.payload === CONTROL_C) {
           if (process.platform.startsWith('win')) {
             // Wait X milliseconds before sending kill in hopes of draining the node event queue
-            await new Promise((resolve) => setTimeout(resolve, 5000));
+            await new Promise((resolve) => setTimeout(resolve, 1500));
             // turns out killing child process on Windows is a huge PITA
             // https://stackoverflow.com/questions/23706055/why-can-i-not-kill-my-child-process-in-nodejs-on-windows
             // https://github.com/sindresorhus/execa#killsignal-options

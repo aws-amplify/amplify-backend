@@ -18,6 +18,10 @@ export class LocalAppNameResolver implements AppNameResolver {
    * Returns the value of package.json#name from the current working directory
    */
   resolve = async () => {
-    return (await this.packageJsonLoader.loadCwdPackageJson()).name;
+    const packageJsonName = (await this.packageJsonLoader.loadCwdPackageJson())
+      .name;
+
+    // App Names are used in generating stack names where some special symbols are not allowed
+    return packageJsonName.replace(/[.,@ ]/g, '').replace(/[_/]/g, '-');
   };
 }
