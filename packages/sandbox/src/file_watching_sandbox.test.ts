@@ -8,7 +8,6 @@ import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 import fs from 'fs';
 import parseGitIgnore from 'parse-gitignore';
 import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
-import { Secret, getSecretClient } from '@aws-amplify/backend-secret';
 
 // Watcher mocks
 const unsubscribeMockFn = mock.fn();
@@ -24,9 +23,6 @@ const execaDeployMock = mock.method(backendDeployer, 'deploy', () =>
 const execaDestroyMock = mock.method(backendDeployer, 'destroy', () =>
   Promise.resolve()
 );
-
-const secretClient = getSecretClient();
-mock.method(secretClient, 'listSecrets', (): Secret[] => []);
 
 const testPath = path.join('test', 'location');
 mock.method(fs, 'lstatSync', (path: string) => {
@@ -45,7 +41,7 @@ void describe('Sandbox using local project name resolver', () => {
   // class under test
   let sandboxInstance: FileWatchingSandbox;
 
-  const cdkExecutor = new AmplifySandboxExecutor(backendDeployer, secretClient);
+  const cdkExecutor = new AmplifySandboxExecutor(backendDeployer);
 
   /**
    * For each test we start the sandbox and hence file watcher and get hold of
@@ -194,7 +190,7 @@ void describe('Sandbox with user provided app name', () => {
   // class under test
   let sandboxInstance: FileWatchingSandbox;
 
-  const cdkExecutor = new AmplifySandboxExecutor(backendDeployer, secretClient);
+  const cdkExecutor = new AmplifySandboxExecutor(backendDeployer);
 
   /**
    * For each test we start the sandbox and hence file watcher and get hold of
@@ -269,7 +265,7 @@ void describe('Sandbox with absolute output path', () => {
   // class under test
   let sandboxInstance: FileWatchingSandbox;
 
-  const cdkExecutor = new AmplifySandboxExecutor(backendDeployer, secretClient);
+  const cdkExecutor = new AmplifySandboxExecutor(backendDeployer);
 
   /**
    * For each test we start the sandbox and hence file watcher and get hold of
@@ -313,7 +309,7 @@ void describe('Sandbox ignoring paths in .gitignore', () => {
   // class under test
   let sandboxInstance: FileWatchingSandbox;
 
-  const cdkExecutor = new AmplifySandboxExecutor(backendDeployer, secretClient);
+  const cdkExecutor = new AmplifySandboxExecutor(backendDeployer);
 
   /**
    * For each test we start the sandbox and hence file watcher and get hold of

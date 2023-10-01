@@ -103,9 +103,8 @@ export class SSMSecretClient implements SecretClient {
       if (resp.Parameter?.Value) {
         secret = {
           name: secretIdentifier.name,
-          value: resp.Parameter.Value,
-          version: resp.Parameter.Version,
-          lastUpdated: resp.Parameter.LastModifiedDate,
+          version: resp.Parameter?.Version,
+          value: resp.Parameter?.Value,
         };
       }
     } catch (err) {
@@ -126,9 +125,9 @@ export class SSMSecretClient implements SecretClient {
    */
   public listSecrets = async (
     backendIdentifier: UniqueBackendIdentifier | BackendId
-  ): Promise<Secret[]> => {
+  ): Promise<SecretIdentifier[]> => {
     const path = this.getParameterPrefix(backendIdentifier);
-    const result: Secret[] = [];
+    const result: SecretIdentifier[] = [];
 
     try {
       const resp = await this.ssmClient.getParametersByPath({
@@ -144,9 +143,7 @@ export class SSMSecretClient implements SecretClient {
         if (secretName) {
           result.push({
             name: secretName,
-            value: param.Value,
             version: param.Version,
-            lastUpdated: param.LastModifiedDate,
           });
         }
       });
@@ -173,7 +170,6 @@ export class SSMSecretClient implements SecretClient {
         Description: `Amplify Secret`,
         Overwrite: true,
       });
-
       return {
         name: secretName,
         version: resp.Version,

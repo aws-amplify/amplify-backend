@@ -42,7 +42,10 @@ export class SandboxSecretGetCommand
       new SandboxBackendIdentifier(backendId),
       { name: args.secretName }
     );
-    Printer.printRecord(secret);
+    Printer.printRecord({
+      name: secret.name,
+      value: secret.value,
+    });
   };
 
   /**
