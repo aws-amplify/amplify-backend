@@ -55,6 +55,10 @@ export class ProcessController {
       void execaProcess.pipeStdout?.(process.stdout);
     }
 
+    if (process.stderr) {
+      void execaProcess.pipeStderr?.(process.stderr);
+    }
+
     if (!execaProcess.stdout) {
       throw new Error('Child process does not have stdout stream');
     }
@@ -104,4 +108,8 @@ export class ProcessController {
  * Factory function that returns a ProcessController for the Amplify CLI
  */
 export const amplifyCli = (args: string[] = [], dir: string) =>
-  new ProcessController('amplify', args, { cwd: dir });
+  new ProcessController(
+    '/Users/sobkamil/git/samsara-cli/packages/cli/lib/amplify.js',
+    args,
+    { cwd: dir }
+  );
