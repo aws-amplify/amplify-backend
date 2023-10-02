@@ -92,45 +92,15 @@ class ProfileConfiguration {
    * @param param0.region AWS region
    */
   async configure({ accessKeyId, secretAccessKey, region }: ProfileSettings) {
-    let credentials: IniCredentials = {};
-    let config: IniConfig = {};
-
     const awsCredentialsFilePath = getAWSCredentialsFilePath();
     const awsConfigFilesPath = getAWSConfigFilePath();
     // 1. Read credentials file
-    try {
-      const credentialsFileContents = await fs.readFile(
-        awsCredentialsFilePath,
-        'utf-8'
-      );
-      credentials = ini.parse(credentialsFileContents);
-    } catch (e) {
-      // throw any errors except file/dir does not exist since we will create them if they don't exist.
-      if (
-        e &&
-        typeof e === 'object' &&
-        'code' in e &&
-        e.code !== FILE_NOT_FOUND_ERROR_CODE
-      ) {
-        throw e;
-      }
-    }
+    const credentials = (await this.parseAWSFile(
+      awsCredentialsFilePath
+    )) as IniCredentials;
 
     // 2. Read config file
-    try {
-      const configFileContents = await fs.readFile(awsConfigFilesPath, 'utf-8');
-      config = ini.parse(configFileContents);
-    } catch (e) {
-      // throw any errors except file/dir does not exist since we will create them if they don't exist.
-      if (
-        e &&
-        typeof e === 'object' &&
-        'code' in e &&
-        e.code !== FILE_NOT_FOUND_ERROR_CODE
-      ) {
-        throw e;
-      }
-    }
+    const config = (await this.parseAWSFile(awsConfigFilesPath)) as IniConfig;
 
     // 3. set credentials and config keys
     credentials[DEFAULT_PROFILE] = {
@@ -153,6 +123,29 @@ class ProfileConfiguration {
     });
     // eslint-disable-next-line
     console.log('Successfully configured the profile.');
+  }
+  /**
+   * Reads AWS config/credentials file and parses the file using ini library
+   * @param filePath AWS file path
+   * @returns parsed file contents
+   */
+  private async parseAWSFile(filePath: string) {
+    let content = {};
+    try {
+      const fileResponse = await fs.readFile(filePath, 'utf-8');
+      content = ini.parse(fileResponse);
+    } catch (e) {
+      // throw any errors except file/dir does not exist since we will create them if they don't exist.
+      if (
+        e &&
+        typeof e === 'object' &&
+        'code' in e &&
+        e.code !== FILE_NOT_FOUND_ERROR_CODE
+      ) {
+        throw e;
+      }
+    }
+    return content;
   }
 }
 

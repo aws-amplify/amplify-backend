@@ -22,7 +22,8 @@ export class ConfigureCommand implements CommandModule {
     private readonly configureProfileCommand: ConfigureProfileCommand
   ) {
     this.command = 'configure';
-    this.describe = 'Configuration management';
+    this.describe =
+      'Configuration management refers to using the CLI to customize settings for specific commands. For example, you can use amplify configure profile to adjust the settings of your local profile.';
   }
 
   /**
