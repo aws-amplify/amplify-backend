@@ -55,6 +55,10 @@ export class ProcessController {
       void execaProcess.pipeStdout?.(process.stdout);
     }
 
+    if (process.stderr) {
+      void execaProcess.pipeStderr?.(process.stderr);
+    }
+
     if (!execaProcess.stdout) {
       throw new Error('Child process does not have stdout stream');
     }
