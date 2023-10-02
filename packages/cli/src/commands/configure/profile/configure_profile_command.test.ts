@@ -45,8 +45,7 @@ void describe('configure profile command', () => {
     contextual.mock.method(
       AmplifyPrompter,
       'secretValue',
-      (promptMessage: string, validateFn: ValidateFn) =>
-        Promise.resolve(promptMessage)
+      (promptMessage: string) => Promise.resolve(promptMessage)
     );
     // User inputted region
     contextual.mock.method(AmplifyPrompter, 'select', () =>

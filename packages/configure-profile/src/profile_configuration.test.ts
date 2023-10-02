@@ -1,4 +1,4 @@
-import { after, beforeEach, describe, it, mock } from 'node:test';
+import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import {
   AWS_CREDENTIALS_FILE_NAME,

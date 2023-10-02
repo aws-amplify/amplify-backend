@@ -1,4 +1,4 @@
-import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
+import { Argv, CommandModule } from 'yargs';
 import { ProfileConfiguration } from '@aws-amplify/configure-profile';
 import { AmplifyPrompter } from '../../prompter/amplify_prompts.js';
 
