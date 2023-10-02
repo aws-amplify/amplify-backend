@@ -8,9 +8,7 @@ permissions:
 on:
   schedule:
     - cron: '0 * * * *' # Every hour
-  push:
-    branches:
-      - cleanup-e2e-resources
+  workflow_dispatch:
 
 jobs:
   cleanup_e2e_resources:
