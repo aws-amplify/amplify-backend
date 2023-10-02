@@ -108,8 +108,4 @@ export class ProcessController {
  * Factory function that returns a ProcessController for the Amplify CLI
  */
 export const amplifyCli = (args: string[] = [], dir: string) =>
-  new ProcessController(
-    '/Users/sobkamil/git/samsara-cli/packages/cli/lib/amplify.js',
-    args,
-    { cwd: dir }
-  );
+  new ProcessController('amplify', args, { cwd: dir });
