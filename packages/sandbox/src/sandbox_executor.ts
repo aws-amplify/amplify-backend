@@ -10,7 +10,10 @@ export class AmplifySandboxExecutor {
   /**
    * Creates an AmplifySandboxExecutor instance
    */
-  constructor(private readonly backendDeployer: BackendDeployer) {}
+  constructor(
+    private readonly backendDeployer: BackendDeployer,
+    private readonly startUpTime: Date
+  ) {}
 
   /**
    * Deploys sandbox
@@ -22,6 +25,7 @@ export class AmplifySandboxExecutor {
     return this.invoke(() =>
       this.backendDeployer.deploy(uniqueBackendIdentifier, {
         deploymentType: BackendDeploymentType.SANDBOX,
+        deployerStartUpTime: this.startUpTime,
       })
     );
   };

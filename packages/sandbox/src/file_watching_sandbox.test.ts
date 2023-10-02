@@ -27,6 +27,12 @@ const subscribeMock = mock.method(watcher, 'subscribe', async () => {
 let fileChangeEventActualFn: watcher.SubscribeCallback;
 
 const backendDeployer = BackendDeployerFactory.getInstance();
+const deployerStartUpTime = new Date();
+const cdkExecutor = new AmplifySandboxExecutor(
+  backendDeployer,
+  deployerStartUpTime
+);
+
 const execaDeployMock = mock.method(backendDeployer, 'deploy', () =>
   Promise.resolve()
 );
@@ -72,8 +78,6 @@ mock.method(fs, 'lstatSync', (path: string) => {
 void describe('Sandbox to check if region is bootstrapped', () => {
   // class under test
   let sandboxInstance: FileWatchingSandbox;
-
-  const cdkExecutor = new AmplifySandboxExecutor(backendDeployer);
 
   beforeEach(async () => {
     // ensures that .gitignore is set as absent
@@ -164,8 +168,6 @@ void describe('Sandbox using local project name resolver', () => {
   // class under test
   let sandboxInstance: FileWatchingSandbox;
 
-  const cdkExecutor = new AmplifySandboxExecutor(backendDeployer);
-
   /**
    * For each test we start the sandbox and hence file watcher and get hold of
    * file change event function which tests can simulate by calling as desired.
@@ -227,6 +229,7 @@ void describe('Sandbox using local project name resolver', () => {
       new SandboxBackendIdentifier('testSandboxId'),
       {
         deploymentType: BackendDeploymentType.SANDBOX,
+        deployerStartUpTime,
       },
     ]);
     assert.strictEqual(cfnClientSendMock.mock.callCount(), 0);
@@ -319,8 +322,6 @@ void describe('Sandbox with user provided app name', () => {
   // class under test
   let sandboxInstance: FileWatchingSandbox;
 
-  const cdkExecutor = new AmplifySandboxExecutor(backendDeployer);
-
   /**
    * For each test we start the sandbox and hence file watcher and get hold of
    * file change event function which tests can simulate by calling as desired.
@@ -378,6 +379,7 @@ void describe('Sandbox with user provided app name', () => {
       new SandboxBackendIdentifier('customSandboxName'),
       {
         deploymentType: BackendDeploymentType.SANDBOX,
+        deployerStartUpTime,
       },
     ]);
   });
@@ -398,8 +400,6 @@ void describe('Sandbox with user provided app name', () => {
 void describe('Sandbox with absolute output path', () => {
   // class under test
   let sandboxInstance: FileWatchingSandbox;
-
-  const cdkExecutor = new AmplifySandboxExecutor(backendDeployer);
 
   /**
    * For each test we start the sandbox and hence file watcher and get hold of
@@ -443,8 +443,6 @@ void describe('Sandbox with absolute output path', () => {
 void describe('Sandbox ignoring paths in .gitignore', () => {
   // class under test
   let sandboxInstance: FileWatchingSandbox;
-
-  const cdkExecutor = new AmplifySandboxExecutor(backendDeployer);
 
   /**
    * For each test we start the sandbox and hence file watcher and get hold of

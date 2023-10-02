@@ -15,6 +15,7 @@ void describe('invokeCDKCommand', () => {
 
   const deployProps: DeployProps = {
     deploymentType: BackendDeploymentType.SANDBOX,
+    deployerStartUpTime: new Date(),
   };
 
   const invoker = new CDKDeployer(new CdkErrorMapper());
@@ -63,7 +64,7 @@ void describe('invokeCDKCommand', () => {
   void it('handles deployProps', async () => {
     await invoker.deploy(undefined, deployProps);
     assert.strictEqual(execaMock.mock.callCount(), 1);
-    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 9);
+    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 11);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
       'cdk',
       'deploy',
@@ -74,13 +75,17 @@ void describe('invokeCDKCommand', () => {
       'deployment-type=SANDBOX',
       '--hotswap-fallback',
       '--method=direct',
+      '--context',
+      `sandboxStartUpTime=${
+        deployProps.deployerStartUpTime?.getTime() as number
+      }`,
     ]);
   });
 
   void it('handles options and deployProps', async () => {
     await invoker.deploy(uniqueBackendIdentifier, deployProps);
     assert.strictEqual(execaMock.mock.callCount(), 1);
-    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 11);
+    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 13);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
       'cdk',
       'deploy',
@@ -93,6 +98,10 @@ void describe('invokeCDKCommand', () => {
       'deployment-type=SANDBOX',
       '--hotswap-fallback',
       '--method=direct',
+      '--context',
+      `sandboxStartUpTime=${
+        deployProps.deployerStartUpTime?.getTime() as number
+      }`,
     ]);
   });
 

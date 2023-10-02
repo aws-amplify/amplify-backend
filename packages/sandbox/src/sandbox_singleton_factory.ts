@@ -23,7 +23,10 @@ export class SandboxSingletonFactory {
     if (!this.instance) {
       this.instance = new FileWatchingSandbox(
         await this.sandboxIdResolver(),
-        new AmplifySandboxExecutor(BackendDeployerFactory.getInstance()),
+        new AmplifySandboxExecutor(
+          BackendDeployerFactory.getInstance(),
+          new Date()
+        ),
         new CloudFormationClient()
       );
     }
