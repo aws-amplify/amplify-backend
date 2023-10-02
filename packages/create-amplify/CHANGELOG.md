@@ -1,5 +1,16 @@
 # create-amplify
 
+## 0.2.0-alpha.7
+
+### Minor Changes
+
+- ae9e9f10: Create factory functions for defining category config
+
+### Patch Changes
+
+- 34c3fd38: Update backend definition file path convention
+- f6618771: add deployment type to stack outputs
+
 ## 0.2.0-alpha.6
 
 ### Patch Changes

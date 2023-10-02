@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/backend-deployer",
-  "version": "0.1.1-alpha.3",
+  "version": "0.1.1-alpha.4",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -17,8 +17,8 @@
     "update:api": "api-extractor run --local"
   },
   "dependencies": {
-    "@aws-amplify/platform-core": "^0.1.0",
-    "@aws-amplify/plugin-types": "^0.1.1-alpha.3",
+    "@aws-amplify/platform-core": "^0.1.1-alpha.0",
+    "@aws-amplify/plugin-types": "^0.2.0-alpha.6",
     "execa": "^7.2.0",
     "tsx": "^3.12.6"
   },
