@@ -7,7 +7,7 @@ import {
   ProfileConfiguration,
   ProfileSettings,
 } from '@aws-amplify/configure-profile';
-import { AmplifyPrompter, ValidateFn } from '../../prompter/amplify_prompts.js';
+import { AmplifyPrompter } from '../../prompter/amplify_prompts.js';
 
 const profileConfiguration = new ProfileConfiguration();
 const profileConfigurationOpenDocsMock = mock.method(
