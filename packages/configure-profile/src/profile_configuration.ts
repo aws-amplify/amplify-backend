@@ -5,10 +5,12 @@ import * as ini from 'ini';
 import _open from 'open';
 import { regions } from './aws_regions.js';
 
-const AWS_CREDENTIALS_FILE_NAME = 'credentials';
-const CONFIG_FILE_NAME = 'config';
+export const AWS_CREDENTIALS_FILE_NAME = 'credentials';
+export const CONFIG_FILE_NAME = 'config';
 const AWS_DOT_DIRECTORY = '.aws';
 const SECRET_FILE_MODE = 0o6_0_0;
+const FILE_NOT_FOUND_ERROR_CODE = 'ENOENT';
+
 // TODO: change it to the new docs before launch
 const DOCS_URL =
   'https://docs.amplify.aws/cli/start/install/#configure-the-amplify-cli';
@@ -41,12 +43,20 @@ const DEFAULT_PROFILE = 'default';
 const getDotAWSDirPath = (): string =>
   path.normalize(path.join(homedir(), AWS_DOT_DIRECTORY));
 
-const getAWSCredentialsFilePath = (): string =>
-  process.env.AWS_SHARED_CREDENTIALS_FILE ||
+/**
+ * Gets file path for AWS credentials
+ * @returns normalized credentials file path
+ */
+export const getAWSCredentialsFilePath = (): string =>
+  process.env.AWS_SHARED_CREDENTIALS_FILE ??
   path.normalize(path.join(getDotAWSDirPath(), AWS_CREDENTIALS_FILE_NAME));
 
-const getAWSConfigFilePath = (): string =>
-  process.env.AWS_CONFIG_FILE ||
+/**
+ *  Gets file path for AWS config
+ * @returns normalized config file path
+ */
+export const getAWSConfigFilePath = (): string =>
+  process.env.AWS_CONFIG_FILE ??
   path.normalize(path.join(getDotAWSDirPath(), CONFIG_FILE_NAME));
 
 /**
@@ -87,21 +97,42 @@ class ProfileConfiguration {
 
     const awsCredentialsFilePath = getAWSCredentialsFilePath();
     const awsConfigFilesPath = getAWSConfigFilePath();
+    // 1. Read credentials file
     try {
       const credentialsFileContents = await fs.readFile(
         awsCredentialsFilePath,
         'utf-8'
       );
       credentials = ini.parse(credentialsFileContents);
-      const configFileContents = await fs.readFile(awsConfigFilesPath, 'utf-8');
-      config = ini.parse(configFileContents);
     } catch (e) {
       // throw any errors expect file/dir does not exist since we will create them if they don't exist.
-      if (e && typeof e === 'object' && 'code' in e && e.code !== 'ENOENT') {
+      if (
+        e &&
+        typeof e === 'object' &&
+        'code' in e &&
+        e.code !== FILE_NOT_FOUND_ERROR_CODE
+      ) {
         throw e;
       }
     }
 
+    // 2. Read config file
+    try {
+      const configFileContents = await fs.readFile(awsConfigFilesPath, 'utf-8');
+      config = ini.parse(configFileContents);
+    } catch (e) {
+      // throw any errors expect file/dir does not exist since we will create them if they don't exist.
+      if (
+        e &&
+        typeof e === 'object' &&
+        'code' in e &&
+        e.code !== FILE_NOT_FOUND_ERROR_CODE
+      ) {
+        throw e;
+      }
+    }
+
+    // 3. set credentials and config keys
     credentials[DEFAULT_PROFILE] = {
       aws_access_key_id: accessKeyId,
       aws_secret_access_key: secretAccessKey,
@@ -111,9 +142,12 @@ class ProfileConfiguration {
       region,
     };
 
+    // 4. Write credentials file
     await fs.writeFile(awsCredentialsFilePath, ini.stringify(credentials), {
       mode: SECRET_FILE_MODE,
     });
+
+    // 5. Write config file
     await fs.writeFile(awsConfigFilesPath, ini.stringify(config), {
       mode: SECRET_FILE_MODE,
     });
