@@ -105,7 +105,7 @@ class ProfileConfiguration {
       );
       credentials = ini.parse(credentialsFileContents);
     } catch (e) {
-      // throw any errors expect file/dir does not exist since we will create them if they don't exist.
+      // throw any errors except file/dir does not exist since we will create them if they don't exist.
       if (
         e &&
         typeof e === 'object' &&
@@ -121,7 +121,7 @@ class ProfileConfiguration {
       const configFileContents = await fs.readFile(awsConfigFilesPath, 'utf-8');
       config = ini.parse(configFileContents);
     } catch (e) {
-      // throw any errors expect file/dir does not exist since we will create them if they don't exist.
+      // throw any errors except file/dir does not exist since we will create them if they don't exist.
       if (
         e &&
         typeof e === 'object' &&
