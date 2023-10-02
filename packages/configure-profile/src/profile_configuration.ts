@@ -11,7 +11,7 @@ const AWS_DOT_DIRECTORY = '.aws';
 const SECRET_FILE_MODE = 0o6_0_0;
 const FILE_NOT_FOUND_ERROR_CODE = 'ENOENT';
 
-// TODO: change it to the new docs before launch
+// TODO: change it to the new docs before launch: https://github.com/aws-amplify/samsara-cli/issues/349
 const DOCS_URL =
   'https://docs.amplify.aws/cli/start/install/#configure-the-amplify-cli';
 
