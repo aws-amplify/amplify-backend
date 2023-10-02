@@ -1,5 +1,25 @@
 # @aws-amplify/sandbox
 
+## 0.2.0-alpha.7
+
+### Minor Changes
+
+- 319e62bb: Add bootstrap detection in sandbox
+- ee3d55fe: Add event handlers for Sandbox
+
+### Patch Changes
+
+- f6618771: add deployment type to stack outputs
+- 512f0778: move UniqueBackendIdentifier to platform-core package
+- Updated dependencies [23fc5b13]
+- Updated dependencies [bb3bf89a]
+- Updated dependencies [f6618771]
+- Updated dependencies [512f0778]
+  - @aws-amplify/client-config@0.2.0-alpha.7
+  - @aws-amplify/deployed-backend-client@0.2.0-alpha.1
+  - @aws-amplify/backend-deployer@0.1.1-alpha.4
+  - @aws-amplify/platform-core@0.1.1-alpha.0
+
 ## 0.2.0-alpha.6
 
 ### Minor Changes

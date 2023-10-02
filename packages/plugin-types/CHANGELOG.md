@@ -1,5 +1,16 @@
 # @aws-amplify/plugin-types
 
+## 0.2.0-alpha.6
+
+### Minor Changes
+
+- dc22fdf4: Integrate secret to Auth
+
+### Patch Changes
+
+- 0398b8e1: Bump graphql construct to 0.9.0 and remove some interface cruft
+- 512f0778: move UniqueBackendIdentifier to platform-core package
+
 ## 0.1.1-alpha.5
 
 ### Patch Changes

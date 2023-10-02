@@ -1,5 +1,17 @@
 # @aws-amplify/model-generator
 
+## 0.2.0-alpha.3
+
+### Patch Changes
+
+- 23fc5b13: Lint fixes
+- bb3bf89a: add backend metadata manager
+- Updated dependencies [bb3bf89a]
+- Updated dependencies [f6618771]
+- Updated dependencies [512f0778]
+  - @aws-amplify/deployed-backend-client@0.2.0-alpha.1
+  - @aws-amplify/backend-output-schemas@0.2.0-alpha.4
+
 ## 0.2.0-alpha.2
 
 ### Minor Changes
