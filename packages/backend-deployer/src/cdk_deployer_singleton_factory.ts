@@ -5,7 +5,7 @@ import { BackendDeploymentType } from '@aws-amplify/platform-core';
 
 export type DeployProps = {
   deploymentType?: BackendDeploymentType;
-  deployerStartUpTime?: Date;
+  secretLastUpdated?: number;
 };
 
 /**

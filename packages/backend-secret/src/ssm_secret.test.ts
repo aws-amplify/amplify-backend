@@ -1,5 +1,6 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import {
+  GetParameterCommandOutput,
   GetParametersByPathCommandOutput,
   InternalServerError,
   ParameterNotFound,
@@ -9,7 +10,7 @@ import { SSMSecretClient } from './ssm_secret.js';
 import assert from 'node:assert';
 import { SecretError } from './secret_error.js';
 import * as iam from 'aws-cdk-lib/aws-iam';
-import { Secret, SecretIdentifier } from './secret.js';
+import { Secret, SecretIdentifier, SecretInfo } from './secret.js';
 import { BranchBackendIdentifier } from '@aws-amplify/platform-core';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
@@ -18,6 +19,7 @@ const testBackendId = 'testBackendId';
 const testBranchName = 'testBranchName';
 const testSecretName = 'testSecretName';
 const testSecretValue = 'testSecretValue';
+const testSecretLastUpdated = new Date(1234567);
 const testSecretVersion = 20;
 const testBranchPath = `/amplify/${testBackendId}/${testBranchName}`;
 const testSharedPath = `/amplify/${shared}/${testBackendId}`;
@@ -33,8 +35,12 @@ const testSecretIdWithVersion: SecretIdentifier = {
   version: testSecretVersion,
 };
 
-const testSecret: Secret = {
+const testSecretInfo: SecretInfo = {
   ...testSecretIdWithVersion,
+  lastUpdated: testSecretLastUpdated,
+};
+const testSecret: Secret = {
+  ...testSecretInfo,
   value: testSecretValue,
 };
 
@@ -52,8 +58,9 @@ void describe('SSMSecret', () => {
           Name: testBranchSecretFullNamePath,
           Value: testSecretValue,
           Version: testSecretVersion,
+          LastModifiedDate: testSecretLastUpdated,
         },
-      })
+      } as GetParameterCommandOutput)
     );
 
     beforeEach(() => {
@@ -255,16 +262,18 @@ void describe('SSMSecret', () => {
     const ssmClient = new SSM();
     const ssmSecretClient = new SSMSecretClient(ssmClient);
 
-    const testSecretName2 = 'testSecretName2';
-    const testSecretValue2 = 'testSecretValue2';
-    const testSecretFullNamePath2 = `${testBranchPath}/${testSecretName2}`;
-    const testSecretVersion2 = 33;
-    const testSecretIdWithVersion2: SecretIdentifier = {
-      name: testSecretName2,
-      version: testSecretVersion2,
-    };
-
     void it('lists branch secrets', async () => {
+      const testSecretName2 = 'testSecretName2';
+      const testSecretValue2 = 'testSecretValue2';
+      const testSecretLastUpdated2 = new Date();
+      const testSecretFullNamePath2 = `${testBranchPath}/${testSecretName2}`;
+      const testSecretVersion2 = 33;
+      const testSecretInfo2: SecretInfo = {
+        name: testSecretName2,
+        version: testSecretVersion2,
+        lastUpdated: testSecretLastUpdated2,
+      };
+
       const mockGetParametersByPath = mock.method(
         ssmClient,
         'getParametersByPath',
@@ -275,11 +284,13 @@ void describe('SSMSecret', () => {
                 Name: testBranchSecretFullNamePath,
                 Value: testSecretValue,
                 Version: testSecretVersion,
+                LastModifiedDate: testSecretLastUpdated,
               },
               {
                 Name: testSecretFullNamePath2,
                 Value: testSecretValue2,
                 Version: testSecretVersion2,
+                LastModifiedDate: testSecretLastUpdated2,
               },
             ],
           } as GetParametersByPathCommandOutput)
@@ -294,9 +305,9 @@ void describe('SSMSecret', () => {
         }
       );
       assert.deepEqual(secrets, [
-        testSecretIdWithVersion,
-        testSecretIdWithVersion2,
-      ] as SecretIdentifier[]);
+        testSecretInfo,
+        testSecretInfo2,
+      ] as SecretInfo[]);
     });
 
     void it('lists shared secrets', async () => {
@@ -310,6 +321,7 @@ void describe('SSMSecret', () => {
                 Name: testSharedSecretFullNamePath,
                 Value: testSecretValue,
                 Version: testSecretVersion,
+                LastModifiedDate: testSecretLastUpdated,
               },
             ],
           } as GetParametersByPathCommandOutput)
@@ -323,7 +335,7 @@ void describe('SSMSecret', () => {
           WithDecryption: true,
         }
       );
-      assert.deepEqual(secrets, [testSecretIdWithVersion]);
+      assert.deepEqual(secrets, [testSecretInfo]);
     });
 
     void it('lists an empty list', async () => {

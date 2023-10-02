@@ -49,11 +49,10 @@ export class BackendSecretFetcherFactory {
       backendIdentifier
     );
 
-    // In sandbox environment, we don't want to update secret resources in every deployment.
-    // It will disable the hotswap capability. The solution here is to use the sandbox start-up
-    // time as a no-op parameter. Secrets will only be loaded when `amplify sandbox` is executed.
-    // Subsequent deployments triggered by the sandbox watcher will not update secret resources.
-    const sandboxStartUpTime = scope.node.tryGetContext('sandboxStartUpTime');
+    // Sandbox deployment passes down the secret's last updated timestamp to
+    // trigger secret update. It is to optimize sandbox deployment time by
+    // leveraging cdk hotswap.
+    const secretLastUpdated = scope.node.tryGetContext('secretLastUpdated');
 
     return new CustomResource(scope, secretResourceId, {
       serviceToken: provider.serviceToken,
@@ -61,7 +60,7 @@ export class BackendSecretFetcherFactory {
         backendId: backendIdentifier.backendId,
         branchName: backendIdentifier.disambiguator,
         secretName: secretName,
-        noop: sandboxStartUpTime ?? randomUUID(),
+        noop: secretLastUpdated ?? randomUUID(),
       },
       resourceType: SECRET_RESOURCE_TYPE,
     });

@@ -1,6 +1,6 @@
 import { EOL } from 'os';
 
-type RecordValue = string | number | string[];
+type RecordValue = string | number | string[] | Date;
 
 /**
  * The class that pretty prints to the console.

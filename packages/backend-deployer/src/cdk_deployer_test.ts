@@ -15,7 +15,7 @@ void describe('invokeCDKCommand', () => {
 
   const deployProps: DeployProps = {
     deploymentType: BackendDeploymentType.SANDBOX,
-    deployerStartUpTime: new Date(),
+    secretLastUpdated: 12345678,
   };
 
   const invoker = new CDKDeployer(new CdkErrorMapper());
@@ -76,9 +76,7 @@ void describe('invokeCDKCommand', () => {
       '--hotswap-fallback',
       '--method=direct',
       '--context',
-      `sandboxStartUpTime=${
-        deployProps.deployerStartUpTime?.getTime() as number
-      }`,
+      `secretLastUpdated=${deployProps.secretLastUpdated as number}`,
     ]);
   });
 
@@ -99,9 +97,7 @@ void describe('invokeCDKCommand', () => {
       '--hotswap-fallback',
       '--method=direct',
       '--context',
-      `sandboxStartUpTime=${
-        deployProps.deployerStartUpTime?.getTime() as number
-      }`,
+      `secretLastUpdated=${deployProps.secretLastUpdated as number}`,
     ]);
   });
 

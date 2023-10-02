@@ -21,7 +21,7 @@ export class BackendDeployerFactory {
 // @public (undocumented)
 export type DeployProps = {
     deploymentType?: BackendDeploymentType;
-    deployerStartUpTime?: Date;
+    secretLastUpdated?: number;
 };
 
 // (No @packageDocumentation comment for this package)

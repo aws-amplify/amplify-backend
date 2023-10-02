@@ -14,7 +14,7 @@ import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 export const getSecretClient: (credentialProvider?: AwsCredentialIdentityProvider) => SecretClient;
 
 // @public
-export type Secret = SecretIdentifier & {
+export type Secret = SecretInfo & {
     value: string;
 };
 
@@ -24,7 +24,7 @@ export type SecretAction = 'GET' | 'SET' | 'REMOVE' | 'LIST';
 // @public
 export type SecretClient = {
     getSecret: (backendIdentifier: UniqueBackendIdentifier | BackendId, secretIdentifier: SecretIdentifier) => Promise<Secret>;
-    listSecrets: (backendIdentifier: UniqueBackendIdentifier | BackendId) => Promise<SecretIdentifier[]>;
+    listSecrets: (backendIdentifier: UniqueBackendIdentifier | BackendId) => Promise<SecretInfo[]>;
     setSecret: (backendIdentifier: UniqueBackendIdentifier | BackendId, secretName: string, secretValue: string) => Promise<SecretIdentifier>;
     removeSecret: (backendIdentifier: UniqueBackendIdentifier | BackendId, secretName: string) => Promise<void>;
     grantPermission: (resource: iam.IGrantable, backendIdentifier: UniqueBackendIdentifier, secretActions: SecretAction[]) => void;
@@ -50,6 +50,11 @@ export type SecretErrorCause = SSMServiceException | undefined;
 export type SecretIdentifier = {
     name: string;
     version?: number;
+};
+
+// @public
+export type SecretInfo = SecretIdentifier & {
+    lastUpdated?: Date;
 };
 
 // (No @packageDocumentation comment for this package)

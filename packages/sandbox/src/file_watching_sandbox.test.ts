@@ -18,6 +18,7 @@ import {
   BackendDeploymentType,
   SandboxBackendIdentifier,
 } from '@aws-amplify/platform-core';
+import { SecretInfo, getSecretClient } from '@aws-amplify/backend-secret';
 
 // Watcher mocks
 const unsubscribeMockFn = mock.fn();
@@ -27,11 +28,23 @@ const subscribeMock = mock.method(watcher, 'subscribe', async () => {
 let fileChangeEventActualFn: watcher.SubscribeCallback;
 
 const backendDeployer = BackendDeployerFactory.getInstance();
-const deployerStartUpTime = new Date();
-const cdkExecutor = new AmplifySandboxExecutor(
-  backendDeployer,
-  deployerStartUpTime
+
+const secretInfo: SecretInfo = {
+  name: 'A',
+  lastUpdated: new Date(1234),
+};
+
+const newlyUpdatedSecretInfo: SecretInfo = {
+  name: 'B',
+  lastUpdated: new Date(123456),
+};
+
+const secretClient = getSecretClient();
+const listSecretMock = mock.method(secretClient, 'listSecrets', () =>
+  Promise.resolve([secretInfo, newlyUpdatedSecretInfo])
 );
+
+const cdkExecutor = new AmplifySandboxExecutor(backendDeployer, secretClient);
 
 const execaDeployMock = mock.method(backendDeployer, 'deploy', () =>
   Promise.resolve()
@@ -200,6 +213,7 @@ void describe('Sandbox using local project name resolver', () => {
     execaDestroyMock.mock.resetCalls();
     execaDeployMock.mock.resetCalls();
     cfnClientSendMock.mock.resetCalls();
+    listSecretMock.mock.resetCalls();
   });
 
   afterEach(async () => {
@@ -223,13 +237,14 @@ void describe('Sandbox using local project name resolver', () => {
 
     // CDK should be called once
     assert.strictEqual(execaDeployMock.mock.callCount(), 1);
+    assert.strictEqual(listSecretMock.mock.callCount(), 1);
 
     // CDK should be called with the right params
     assert.deepEqual(execaDeployMock.mock.calls[0].arguments, [
       new SandboxBackendIdentifier('testSandboxId'),
       {
         deploymentType: BackendDeploymentType.SANDBOX,
-        deployerStartUpTime,
+        secretLastUpdated: newlyUpdatedSecretInfo.lastUpdated?.getTime(),
       },
     ]);
     assert.strictEqual(cfnClientSendMock.mock.callCount(), 0);
@@ -350,6 +365,7 @@ void describe('Sandbox with user provided app name', () => {
     execaDestroyMock.mock.resetCalls();
     execaDeployMock.mock.resetCalls();
     cfnClientSendMock.mock.resetCalls();
+    listSecretMock.mock.resetCalls();
   });
 
   afterEach(async () => {
@@ -373,13 +389,14 @@ void describe('Sandbox with user provided app name', () => {
 
     // CDK should be called once
     assert.strictEqual(execaDeployMock.mock.callCount(), 1);
+    assert.strictEqual(listSecretMock.mock.callCount(), 1);
 
     // CDK should be called with the right params
     assert.deepEqual(execaDeployMock.mock.calls[0].arguments, [
       new SandboxBackendIdentifier('customSandboxName'),
       {
         deploymentType: BackendDeploymentType.SANDBOX,
-        deployerStartUpTime,
+        secretLastUpdated: newlyUpdatedSecretInfo.lastUpdated?.getTime(),
       },
     ]);
   });
