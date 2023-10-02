@@ -5,10 +5,9 @@ export type Choice = {
   value: string;
 };
 
-export type PasswordPromptOptions = {
-  message: string;
-  validate: (value: string) => boolean | string;
-};
+export type ValidateFn = (value: string) => boolean | string;
+const defaultSecretValidateFn: ValidateFn = (val: string) =>
+  val && val.length > 0 ? true : 'Cannot be empty';
 
 export type SelectPromptOptions = {
   message: string;
@@ -39,28 +38,15 @@ export class AmplifyPrompter {
 
   /**
    * A secret prompt.
+   * @param promptMessage An optional message for the secret
+   * @param validate An optional validate function to run against the secret
    */
   static secretValue = async (
-    promptMessage = 'Enter secret value'
+    promptMessage = 'Enter secret value',
+    validate = defaultSecretValidateFn
   ): Promise<string> => {
     return await password({
       message: promptMessage,
-      validate: (val: string) =>
-        val && val.length > 0 ? true : 'Cannot be empty',
-    });
-  };
-
-  /**
-   * A password prompt
-   * @param options An options object for configuring password prompt
-   * @param options.message Message for the prompt
-   * @param options.validate Function to validate the password input
-   * @returns the password as a string
-   */
-  static password = (options: PasswordPromptOptions): Promise<string> => {
-    const { message, validate } = options;
-    return password({
-      message,
       validate,
     });
   };

@@ -7,10 +7,7 @@ import {
   ProfileConfiguration,
   ProfileSettings,
 } from '@aws-amplify/configure-profile';
-import {
-  AmplifyPrompter,
-  PasswordPromptOptions,
-} from '../../prompter/amplify_prompts.js';
+import { AmplifyPrompter, ValidateFn } from '../../prompter/amplify_prompts.js';
 
 const profileConfiguration = new ProfileConfiguration();
 const profileConfigurationOpenDocsMock = mock.method(
@@ -47,8 +44,9 @@ void describe('configure profile command', () => {
     // User inputted accessKeyId & secretAccessKey
     contextual.mock.method(
       AmplifyPrompter,
-      'password',
-      ({ message }: PasswordPromptOptions) => Promise.resolve(message)
+      'secretValue',
+      (promptMessage: string, validateFn: ValidateFn) =>
+        Promise.resolve(promptMessage)
     );
     // User inputted region
     contextual.mock.method(AmplifyPrompter, 'select', () =>

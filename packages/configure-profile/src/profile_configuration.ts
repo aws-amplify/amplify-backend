@@ -59,7 +59,7 @@ class ProfileConfiguration {
    */
   constructor(private readonly open = _open) {}
   /**
-   * Opens docs site for setting up aws profile
+   * Opens docs site for setting up IAM user with managed policy and security credentials
    *
    */
   openDocs() {
@@ -86,22 +86,20 @@ class ProfileConfiguration {
     let config: IniConfig = {};
 
     const awsCredentialsFilePath = getAWSCredentialsFilePath();
+    const awsConfigFilesPath = getAWSConfigFilePath();
     try {
       const credentialsFileContents = await fs.readFile(
         awsCredentialsFilePath,
         'utf-8'
       );
       credentials = ini.parse(credentialsFileContents);
-    } catch (e) {
-      // if file does not exist we swallow
-    }
-
-    const awsConfigFilesPath = getAWSConfigFilePath();
-    try {
       const configFileContents = await fs.readFile(awsConfigFilesPath, 'utf-8');
       config = ini.parse(configFileContents);
     } catch (e) {
-      // if file does not exist we swallow
+      // throw any errors expect file/dir does not exist since we will create them if they don't exist.
+      if (e && typeof e === 'object' && 'code' in e && e.code !== 'ENOENT') {
+        throw e;
+      }
     }
 
     credentials[DEFAULT_PROFILE] = {
