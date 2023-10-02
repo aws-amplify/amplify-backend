@@ -29,19 +29,23 @@ let fileChangeEventActualFn: watcher.SubscribeCallback;
 
 const backendDeployer = BackendDeployerFactory.getInstance();
 
-const secretInfo: SecretInfo = {
-  name: 'A',
-  lastUpdated: new Date(1234),
-};
-
-const newlyUpdatedSecretInfo: SecretInfo = {
-  name: 'B',
-  lastUpdated: new Date(123456),
-};
-
 const secretClient = getSecretClient();
+const newlyUpdatedSecretInfo: SecretInfo = {
+  name: 'C',
+  lastUpdated: new Date(1234567),
+};
+
 const listSecretMock = mock.method(secretClient, 'listSecrets', () =>
-  Promise.resolve([secretInfo, newlyUpdatedSecretInfo])
+  Promise.resolve([
+    {
+      name: 'A',
+      lastUpdated: new Date(1234),
+    },
+    {
+      name: 'B',
+    },
+    newlyUpdatedSecretInfo,
+  ])
 );
 
 const cdkExecutor = new AmplifySandboxExecutor(backendDeployer, secretClient);
