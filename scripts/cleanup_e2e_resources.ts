@@ -2,6 +2,7 @@ import {
   CloudFormationClient,
   DeleteStackCommand,
   ListStacksCommand,
+  StackStatus,
   StackSummary,
 } from '@aws-sdk/client-cloudformation';
 
@@ -23,7 +24,12 @@ const listAllStaleTestStacks = async (): Array<StackSummary> => {
   const stackSummaries: Array<StackSummary> = [];
   do {
     const listStacksResponse = await cfnClient.send(
-      new ListStacksCommand({ NextToken: nextToken })
+      new ListStacksCommand({
+        NextToken: nextToken,
+        StackStatusFilter: Object.keys(StackStatus).filter(
+          (status) => status != StackStatus.DELETE_COMPLETE
+        ),
+      })
     );
     nextToken = listStacksResponse.NextToken;
     listStacksResponse.StackSummaries?.filter(
@@ -44,10 +50,10 @@ for (const staleStack of allStaleStacks) {
     const stackName = staleStack.StackName;
     try {
       await cfnClient.send(new DeleteStackCommand({ StackName: stackName }));
-      console.log(`Successfully deleted ${stackName} stack`);
+      console.log(`Successfully kicked off ${stackName} stack deletion`);
     } catch (e: Error) {
       console.log(
-        `Failed to delete ${stackName} stack. ${e.message as string}`
+        `Failed to kick off ${stackName} stack deletion. ${e.message as string}`
       );
     }
   }
