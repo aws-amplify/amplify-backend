@@ -10,6 +10,7 @@ const cfnClient = new CloudFormationClient({
   maxAttempts: 5,
 });
 const now = new Date();
+const TEST_RESOURCE_PREFIX = 'amplify-test-sandbox';
 
 const isStale = (creationDate: Date | undefined): boolean | undefined => {
   if (!creationDate) {
@@ -34,7 +35,7 @@ const listAllStaleTestStacks = async (): Array<StackSummary> => {
     nextToken = listStacksResponse.NextToken;
     listStacksResponse.StackSummaries?.filter(
       (stackSummary) =>
-        stackSummary.StackName?.startsWith('amplify-test-sandbox') &&
+        stackSummary.StackName?.startsWith(TEST_RESOURCE_PREFIX) &&
         isStale(stackSummary.CreationTime)
     ).forEach((item) => {
       stackSummaries.push(item);
