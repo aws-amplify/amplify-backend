@@ -17,7 +17,7 @@ const regionMappings = {
   'ap-south-1': 'Asia Pacific (Mumbai)',
   'ca-central-1': 'Canada (Central)',
   'me-south-1': 'Middle East (Bahrain)',
-  'sa-east-1': 'South America (São Paulo)',
+  'sa-east-1': 'South America (São Paulo)', // eslint-disable-line spellcheck/spell-checker
 };
 
 const regions = Object.keys(regionMappings);

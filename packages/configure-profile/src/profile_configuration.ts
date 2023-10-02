@@ -1,6 +1,6 @@
 import path from 'path';
 import fs from 'fs/promises';
-import { homedir } from 'os';
+import { homedir } from 'os'; // eslint-disable-line spellcheck/spell-checker
 import * as ini from 'ini';
 import _open from 'open';
 import { regions } from './aws_regions.js';
@@ -41,7 +41,7 @@ type ProfileSettings = {
 const DEFAULT_PROFILE = 'default';
 
 const getDotAWSDirPath = (): string =>
-  path.normalize(path.join(homedir(), AWS_DOT_DIRECTORY));
+  path.normalize(path.join(homedir(), AWS_DOT_DIRECTORY)); // eslint-disable-line spellcheck/spell-checker
 
 /**
  * Gets file path for AWS credentials
