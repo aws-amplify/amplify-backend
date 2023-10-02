@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/backend-secret",
-  "version": "0.2.0-alpha.0",
+  "version": "0.2.0-alpha.1",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -17,8 +17,8 @@
     "update:api": "api-extractor run --local"
   },
   "dependencies": {
-    "@aws-amplify/plugin-types": "^0.1.1-alpha.5",
-    "@aws-amplify/platform-core": "^0.1.0",
+    "@aws-amplify/plugin-types": "^0.2.0-alpha.6",
+    "@aws-amplify/platform-core": "^0.1.1-alpha.0",
     "@aws-sdk/client-ssm": "^3.398.0"
   },
   "peerDependencies": {

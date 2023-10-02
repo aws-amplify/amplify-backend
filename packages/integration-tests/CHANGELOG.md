@@ -1,5 +1,12 @@
 # @aws-amplify/integration-tests
 
+## 0.2.0-alpha.5
+
+### Patch Changes
+
+- ecacab6c: stream stderr of child process
+- f6618771: add deployment type to stack outputs
+
 ## 0.2.0-alpha.4
 
 ### Patch Changes

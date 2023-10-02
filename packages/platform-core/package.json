@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/platform-core",
-  "version": "0.1.0",
+  "version": "0.1.1-alpha.0",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -17,6 +17,6 @@
     "update:api": "api-extractor run --local"
   },
   "dependencies": {
-    "@aws-amplify/plugin-types": "^0.1.1-alpha.3"
+    "@aws-amplify/plugin-types": "^0.2.0-alpha.6"
   }
 }

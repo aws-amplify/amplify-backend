@@ -1,5 +1,31 @@
 # @aws-amplify/backend
 
+## 0.2.0-alpha.5
+
+### Minor Changes
+
+- dc22fdf4: Integrate secret to Auth
+
+### Patch Changes
+
+- 98b17069: Provides sandbox secret CLI commands
+- 0398b8e1: Bump graphql construct to 0.9.0 and remove some interface cruft
+- baa7a905: Move types package from peer deps to deps
+- 34c3fd38: Update backend definition file path convention
+- f6618771: add deployment type to stack outputs
+- 512f0778: move UniqueBackendIdentifier to platform-core package
+- Updated dependencies [98b17069]
+- Updated dependencies [0398b8e1]
+- Updated dependencies [baa7a905]
+- Updated dependencies [dc22fdf4]
+- Updated dependencies [f6618771]
+- Updated dependencies [512f0778]
+  - @aws-amplify/backend-secret@0.2.0-alpha.1
+  - @aws-amplify/backend-output-storage@0.1.1-alpha.1
+  - @aws-amplify/plugin-types@0.2.0-alpha.6
+  - @aws-amplify/backend-output-schemas@0.2.0-alpha.4
+  - @aws-amplify/platform-core@0.1.1-alpha.0
+
 ## 0.2.0-alpha.4
 
 ### Minor Changes

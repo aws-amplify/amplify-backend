@@ -1,5 +1,11 @@
 # @aws-amplify/backend-output-schemas
 
+## 0.2.0-alpha.4
+
+### Patch Changes
+
+- f6618771: add deployment type to stack outputs
+
 ## 0.2.0-alpha.3
 
 ### Minor Changes

@@ -1,5 +1,16 @@
 # @aws-amplify/form-generator
 
+## 0.2.0-alpha.2
+
+### Minor Changes
+
+- b1da9601: Fix missing generated files
+- 2b18af15: Add model filtering to form generation
+
+### Patch Changes
+
+- 512f0778: move UniqueBackendIdentifier to platform-core package
+
 ## 0.2.0-alpha.1
 
 ### Minor Changes
