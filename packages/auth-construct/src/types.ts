@@ -2,7 +2,7 @@ import { aws_cognito as cognito } from 'aws-cdk-lib';
 import { AuthUserAttribute } from './attributes.js';
 import { triggerEvents } from './trigger_events.js';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
-import { AuthOutput } from '@aws-amplify/backend-output-schemas/auth';
+import { AuthOutput } from '@aws-amplify/backend-output-schemas';
 
 /**
  * Email login options.

@@ -36,7 +36,8 @@ packagePaths.forEach((packagePath) => {
   let tsconfigObject: Record<string, unknown>;
   try {
     tsconfigObject = JSON.parse(fs.readFileSync(tsconfigPath, 'utf-8'));
-  } catch {
+  } catch (e) {
+    console.log(e);
     throw new Error(`Failed to parse tsconfig ${tsconfigPath}`);
   }
 
