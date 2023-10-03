@@ -2,7 +2,6 @@ import { Construct } from 'constructs';
 import { BackendSecretFetcherProviderFactory } from './backend_secret_fetcher_provider_factory.js';
 import { CustomResource } from 'aws-cdk-lib';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
-import { randomUUID } from 'node:crypto';
 
 /**
  * Resource provider ID for the backend secret resource.
@@ -52,7 +51,8 @@ export class BackendSecretFetcherFactory {
     // Sandbox deployment passes down the secret's last updated timestamp to
     // trigger secret update. It is to optimize sandbox deployment time by
     // leveraging cdk hotswap.
-    const secretLastUpdated = scope.node.tryGetContext('secretLastUpdated');
+    const secretLastUpdated =
+      scope.node.tryGetContext('secretLastUpdated') ?? Date.now();
 
     return new CustomResource(scope, secretResourceId, {
       serviceToken: provider.serviceToken,
@@ -60,7 +60,7 @@ export class BackendSecretFetcherFactory {
         backendId: backendIdentifier.backendId,
         branchName: backendIdentifier.disambiguator,
         secretName: secretName,
-        noop: secretLastUpdated ?? randomUUID(),
+        secretLastUpdated, // this property is only to trigger resource update event.
       },
       resourceType: SECRET_RESOURCE_TYPE,
     });
