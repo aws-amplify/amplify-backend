@@ -3,6 +3,7 @@ import { Sandbox } from './sandbox.js';
 import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import { getSecretClient } from '@aws-amplify/backend-secret';
 
 /**
  * Factory to create a new sandbox
@@ -23,7 +24,10 @@ export class SandboxSingletonFactory {
     if (!this.instance) {
       this.instance = new FileWatchingSandbox(
         await this.sandboxIdResolver(),
-        new AmplifySandboxExecutor(BackendDeployerFactory.getInstance()),
+        new AmplifySandboxExecutor(
+          BackendDeployerFactory.getInstance(),
+          getSecretClient()
+        ),
         new CloudFormationClient()
       );
     }

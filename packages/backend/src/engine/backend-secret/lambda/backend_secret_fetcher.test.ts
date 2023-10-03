@@ -19,10 +19,8 @@ const testBackendId = 'testBackendId';
 const testBranchName = 'testBranchName';
 const testSecretName = 'testSecretName';
 const testSecretValue = 'testSecretValue';
-const testSecretVersion = 10;
 const testSecretId: SecretIdentifier = {
   name: testSecretName,
-  version: testSecretVersion,
 };
 
 const testSecret: Secret = {
@@ -45,7 +43,6 @@ const customResourceEventCommon = {
     backendId: testBackendId,
     branchName: testBranchName,
     secretName: testSecretName,
-    secretVersion: testSecretVersion,
     ServiceToken: 'token',
   },
   OldResourceProperties: {},

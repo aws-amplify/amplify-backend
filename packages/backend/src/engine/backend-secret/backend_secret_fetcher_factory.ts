@@ -31,7 +31,6 @@ export class BackendSecretFetcherFactory {
   getOrCreate = (
     scope: Construct,
     secretName: string,
-    secretVersion: number,
     backendIdentifier: UniqueBackendIdentifier
   ): CustomResource => {
     const secretResourceId = `${secretName}SecretFetcherResource`;
@@ -49,13 +48,19 @@ export class BackendSecretFetcherFactory {
       backendIdentifier
     );
 
+    // Sandbox deployment passes down the secret's last updated timestamp to
+    // trigger secret update. It is to optimize sandbox deployment time by
+    // leveraging cdk hotswap.
+    const secretLastUpdated =
+      scope.node.tryGetContext('secretLastUpdated') ?? Date.now();
+
     return new CustomResource(scope, secretResourceId, {
       serviceToken: provider.serviceToken,
       properties: {
         backendId: backendIdentifier.backendId,
         branchName: backendIdentifier.disambiguator,
         secretName: secretName,
-        secretVersion: secretVersion,
+        secretLastUpdated, // this property is only to trigger resource update event.
       },
       resourceType: SECRET_RESOURCE_TYPE,
     });

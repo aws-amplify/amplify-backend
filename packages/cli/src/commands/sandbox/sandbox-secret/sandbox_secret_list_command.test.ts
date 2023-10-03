@@ -3,21 +3,21 @@ import yargs from 'yargs';
 import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
 import { SandboxIdResolver } from '../sandbox_id_resolver.js';
-import { SecretIdentifier, getSecretClient } from '@aws-amplify/backend-secret';
+import { Secret, getSecretClient } from '@aws-amplify/backend-secret';
 import { SandboxSecretListCommand } from './sandbox_secret_list_command.js';
 import { Printer } from '../../printer/printer.js';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 const testBackendId = 'testBackendId';
 
-const testSecretIds: SecretIdentifier[] = [
+const testSecrets: Secret[] = [
   {
     name: 'testSecret1',
-    version: 12,
+    value: 'val1',
   },
   {
     name: 'testSecret2',
-    version: 24,
+    value: 'val2',
   },
 ];
 
@@ -26,8 +26,7 @@ void describe('sandbox secret list command', () => {
   const secretListMock = mock.method(
     secretClient,
     'listSecrets',
-    (): Promise<SecretIdentifier[] | undefined> =>
-      Promise.resolve(testSecretIds)
+    (): Promise<Secret[] | undefined> => Promise.resolve(testSecrets)
   );
   const sandboxIdResolver = new SandboxIdResolver({
     resolve: () => Promise.resolve(testBackendId),
@@ -46,7 +45,7 @@ void describe('sandbox secret list command', () => {
   });
 
   void it('list secrets', async (contextual) => {
-    const mockPrintRecords = contextual.mock.method(Printer, 'printRecords');
+    const mockPrintRecord = contextual.mock.method(Printer, 'printRecord');
 
     await commandRunner.runCommand(`list`);
     assert.equal(secretListMock.mock.callCount(), 1);
@@ -56,8 +55,10 @@ void describe('sandbox secret list command', () => {
     assert.match(backendIdentifier.backendId, new RegExp(testBackendId));
     assert.equal(backendIdentifier.disambiguator, 'sandbox');
 
-    assert.equal(mockPrintRecords.mock.callCount(), 1);
-    assert.equal(mockPrintRecords.mock.calls[0].arguments[0], testSecretIds);
+    assert.equal(mockPrintRecord.mock.callCount(), 1);
+    assert.deepStrictEqual(mockPrintRecord.mock.calls[0].arguments[0], {
+      names: testSecrets.map((s) => s.name),
+    });
   });
 
   void it('show --help', async () => {
