@@ -15,5 +15,6 @@
   "types": "lib/index.d.ts",
   "scripts": {
     "update:api": "api-extractor run --local"
-  }
+  },
+  "license": "Apache-2.0"
 }
