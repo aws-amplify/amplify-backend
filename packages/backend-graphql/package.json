@@ -16,6 +16,7 @@
   "scripts": {
     "update:api": "api-extractor run --local"
   },
+  "license": "Apache-2.0",
   "devDependencies": {
     "@aws-amplify/backend": "^0.2.0-alpha.5"
   },
