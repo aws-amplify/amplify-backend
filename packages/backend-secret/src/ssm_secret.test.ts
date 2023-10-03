@@ -10,7 +10,7 @@ import { SSMSecretClient } from './ssm_secret.js';
 import assert from 'node:assert';
 import { SecretError } from './secret_error.js';
 import * as iam from 'aws-cdk-lib/aws-iam';
-import { Secret, SecretIdentifier, SecretInfo } from './secret.js';
+import { Secret, SecretIdentifier, SecretListItem } from './secret.js';
 import { BranchBackendIdentifier } from '@aws-amplify/platform-core';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
@@ -35,13 +35,15 @@ const testSecretIdWithVersion: SecretIdentifier = {
   version: testSecretVersion,
 };
 
-const testSecretInfo: SecretInfo = {
+const testSecretListItem: SecretListItem = {
   ...testSecretIdWithVersion,
   lastUpdated: testSecretLastUpdated,
 };
+
 const testSecret: Secret = {
-  ...testSecretInfo,
+  ...testSecretIdWithVersion,
   value: testSecretValue,
+  lastUpdated: testSecretLastUpdated,
 };
 
 const testBackendIdentifier: UniqueBackendIdentifier =
@@ -268,7 +270,7 @@ void describe('SSMSecret', () => {
       const testSecretLastUpdated2 = new Date();
       const testSecretFullNamePath2 = `${testBranchPath}/${testSecretName2}`;
       const testSecretVersion2 = 33;
-      const testSecretInfo2: SecretInfo = {
+      const testSecretListItem2: SecretListItem = {
         name: testSecretName2,
         version: testSecretVersion2,
         lastUpdated: testSecretLastUpdated2,
@@ -305,9 +307,9 @@ void describe('SSMSecret', () => {
         }
       );
       assert.deepEqual(secrets, [
-        testSecretInfo,
-        testSecretInfo2,
-      ] as SecretInfo[]);
+        testSecretListItem,
+        testSecretListItem2,
+      ] as SecretListItem[]);
     });
 
     void it('lists shared secrets', async () => {
@@ -335,7 +337,7 @@ void describe('SSMSecret', () => {
           WithDecryption: true,
         }
       );
-      assert.deepEqual(secrets, [testSecretInfo]);
+      assert.deepEqual(secrets, [testSecretListItem]);
     });
 
     void it('lists an empty list', async () => {

@@ -13,15 +13,19 @@ export type SecretIdentifier = {
 };
 
 /**
- * Contains secret information but not secret value.
- */
-export type SecretInfo = SecretIdentifier & {
-  lastUpdated?: Date;
-};
-/**
  * The secret object.
  */
-export type Secret = SecretInfo & { value: string };
+export type Secret = SecretIdentifier & {
+  value: string;
+  lastUpdated?: Date;
+};
+
+/**
+ * The returned object type of listSecrets API.
+ */
+export type SecretListItem = SecretIdentifier & {
+  lastUpdated?: Date;
+};
 
 /**
  * The client to manage backend secret.
@@ -40,7 +44,7 @@ export type SecretClient = {
    */
   listSecrets: (
     backendIdentifier: UniqueBackendIdentifier | BackendId
-  ) => Promise<SecretInfo[]>;
+  ) => Promise<SecretListItem[]>;
 
   /**
    * Set a secret.

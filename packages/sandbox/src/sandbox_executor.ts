@@ -18,17 +18,25 @@ export class AmplifySandboxExecutor {
 
   private getSecretLastUpdated = async (
     uniqueBackendIdentifier: UniqueBackendIdentifier
-  ): Promise<number | undefined> => {
+  ): Promise<Date | undefined> => {
     const secrets = await this.secretClient.listSecrets(
       uniqueBackendIdentifier
     );
-    let lastUpdated = -1;
+    let latestTimestamp = -1;
+    let secretLastUpdate: Date | undefined;
+
     secrets.forEach((secret) => {
-      if (secret.lastUpdated) {
-        lastUpdated = Math.max(lastUpdated, secret.lastUpdated.getTime());
+      if (!secret.lastUpdated) {
+        return;
+      }
+      const curTimeStamp = secret.lastUpdated.getTime();
+      if (curTimeStamp > 0 && curTimeStamp > latestTimestamp) {
+        latestTimestamp = curTimeStamp;
+        secretLastUpdate = secret.lastUpdated;
       }
     });
-    return lastUpdated < 0 ? undefined : lastUpdated;
+
+    return secretLastUpdate;
   };
 
   /**

@@ -18,7 +18,7 @@ import {
   BackendDeploymentType,
   SandboxBackendIdentifier,
 } from '@aws-amplify/platform-core';
-import { SecretInfo, getSecretClient } from '@aws-amplify/backend-secret';
+import { SecretListItem, getSecretClient } from '@aws-amplify/backend-secret';
 
 // Watcher mocks
 const unsubscribeMockFn = mock.fn();
@@ -30,7 +30,7 @@ let fileChangeEventActualFn: watcher.SubscribeCallback;
 const backendDeployer = BackendDeployerFactory.getInstance();
 
 const secretClient = getSecretClient();
-const newlyUpdatedSecretInfo: SecretInfo = {
+const newlyUpdatedSecretItem: SecretListItem = {
   name: 'C',
   lastUpdated: new Date(1234567),
 };
@@ -44,7 +44,7 @@ const listSecretMock = mock.method(secretClient, 'listSecrets', () =>
     {
       name: 'B',
     },
-    newlyUpdatedSecretInfo,
+    newlyUpdatedSecretItem,
   ])
 );
 
@@ -248,7 +248,7 @@ void describe('Sandbox using local project name resolver', () => {
       new SandboxBackendIdentifier('testSandboxId'),
       {
         deploymentType: BackendDeploymentType.SANDBOX,
-        secretLastUpdated: newlyUpdatedSecretInfo.lastUpdated?.getTime(),
+        secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
       },
     ]);
     assert.strictEqual(cfnClientSendMock.mock.callCount(), 0);
@@ -400,7 +400,7 @@ void describe('Sandbox with user provided app name', () => {
       new SandboxBackendIdentifier('customSandboxName'),
       {
         deploymentType: BackendDeploymentType.SANDBOX,
-        secretLastUpdated: newlyUpdatedSecretInfo.lastUpdated?.getTime(),
+        secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
       },
     ]);
   });

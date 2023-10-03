@@ -5,7 +5,7 @@ import {
   SecretAction,
   SecretClient,
   SecretIdentifier,
-  SecretInfo,
+  SecretListItem,
 } from './secret.js';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { BackendId, UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
@@ -127,9 +127,9 @@ export class SSMSecretClient implements SecretClient {
    */
   public listSecrets = async (
     backendIdentifier: UniqueBackendIdentifier | BackendId
-  ): Promise<SecretInfo[]> => {
+  ): Promise<SecretListItem[]> => {
     const path = this.getParameterPrefix(backendIdentifier);
-    const result: SecretInfo[] = [];
+    const result: SecretListItem[] = [];
 
     try {
       const resp = await this.ssmClient.getParametersByPath({

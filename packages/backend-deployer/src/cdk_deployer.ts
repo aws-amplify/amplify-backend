@@ -40,7 +40,7 @@ export class CDKDeployer implements BackendDeployer {
       if (deployProps.secretLastUpdated) {
         cdkCommandArgs.push(
           '--context',
-          `secretLastUpdated=${deployProps.secretLastUpdated}`
+          `secretLastUpdated=${deployProps.secretLastUpdated.getTime()}`
         );
       }
     }
