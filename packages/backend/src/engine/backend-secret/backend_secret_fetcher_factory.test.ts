@@ -40,7 +40,7 @@ void describe('getOrCreate', () => {
         backendId,
         branchName,
         secretName: secretName1,
-        noop: secretLastUpdated,
+        secretLastUpdated,
       },
     });
     assert.equal(Object.keys(customResources).length, 1);
