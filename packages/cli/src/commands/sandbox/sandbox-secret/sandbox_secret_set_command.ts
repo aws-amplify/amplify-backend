@@ -2,7 +2,6 @@ import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { SecretClient } from '@aws-amplify/backend-secret';
 import { SandboxIdResolver } from '../sandbox_id_resolver.js';
 import { AmplifyPrompter } from '../../prompter/amplify_prompts.js';
-import { Printer } from '../../printer/printer.js';
 import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
 
 /**
@@ -40,12 +39,11 @@ export class SandboxSecretSetCommand
   ): Promise<void> => {
     const secretVal = await AmplifyPrompter.secretValue();
     const backendId = await this.sandboxIdResolver.resolve();
-    const secretId = await this.secretClient.setSecret(
+    await this.secretClient.setSecret(
       new SandboxBackendIdentifier(backendId),
       args.secretName,
       secretVal
     );
-    Printer.printRecord(secretId);
   };
 
   /**

@@ -1,0 +1,26 @@
+name: e2e_resource_cleanup
+
+# This is required by aws-actions/configure-aws-credentials
+permissions:
+  id-token: write
+  contents: read
+
+on:
+  schedule:
+    - cron: '0 * * * *' # Every hour
+  workflow_dispatch:
+
+jobs:
+  cleanup_e2e_resources:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
+      - uses: ./.github/actions/setup_node
+      - uses: ./.github/actions/install_with_cache
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@04b98b3f9e85f563fb061be8751a0352327246b0 # version 3.0.1
+        with:
+          role-to-assume: ${{ secrets.E2E_RESOURCE_CLEANUP_ROLE_ARN }}
+          aws-region: us-west-2
+      - name: Run E2E resource cleanup
+        run: npm run e2e:cleanup-resources

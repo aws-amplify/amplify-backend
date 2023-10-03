@@ -9,7 +9,6 @@ import assert from 'node:assert';
 import { SandboxIdResolver } from '../sandbox_id_resolver.js';
 import { SecretIdentifier, getSecretClient } from '@aws-amplify/backend-secret';
 import { SandboxSecretSetCommand } from './sandbox_secret_set_command.js';
-import { Printer } from '../../printer/printer.js';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 const testSecretName = 'testSecretName';
@@ -55,15 +54,8 @@ void describe('sandbox secret set command', () => {
       () => Promise.resolve(testSecretValue)
     );
 
-    const mockPrintRecord = contextual.mock.method(Printer, 'printRecord');
-
     await commandRunner.runCommand(`set ${testSecretName}`);
     assert.equal(mockSecretValue.mock.callCount(), 1);
-    assert.equal(mockPrintRecord.mock.callCount(), 1);
-    assert.deepStrictEqual(
-      mockPrintRecord.mock.calls[0].arguments[0],
-      testSecretIdentifier
-    );
     assert.equal(secretSetMock.mock.callCount(), 1);
 
     const backendIdentifier = secretSetMock.mock.calls[0]
