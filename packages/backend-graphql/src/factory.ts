@@ -18,10 +18,7 @@ import {
 } from '@aws-amplify/graphql-api-construct';
 import { GraphqlOutput } from '@aws-amplify/backend-output-schemas/graphql';
 import * as path from 'path';
-// TODO before merging change to:
-// import { DerivedModelSchema } from '@aws-amplify/amplify-api-next-types-alpha';
-import { ModelSchemaType } from '@aws-amplify/amplify-api-next-types-alpha';
-
+import { DerivedModelSchema } from '@aws-amplify/amplify-api-next-types-alpha';
 /**
  * Exposed props for Data which are configurable by the end user.
  */
@@ -29,7 +26,7 @@ export type DataProps = {
   /**
    * Graphql Schema as a string to be passed into the CDK construct.
    */
-  schema: string | ModelSchemaType;
+  schema: string | DerivedModelSchema;
 
   /**
    * Optional name for the generated Api.
@@ -125,8 +122,8 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     };
 
     const isModelSchema = (
-      schema: string | ModelSchemaType
-    ): schema is ModelSchemaType => {
+      schema: string | DerivedModelSchema
+    ): schema is DerivedModelSchema => {
       if (
         schema !== null &&
         typeof schema == 'object' &&
@@ -138,7 +135,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     };
 
     const normalizeSchema = (
-      schema: string | ModelSchemaType
+      schema: string | DerivedModelSchema
     ): IAmplifyGraphqlDefinition => {
       if (isModelSchema(schema)) {
         return schema.transform();
