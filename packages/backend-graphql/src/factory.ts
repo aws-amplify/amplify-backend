@@ -13,10 +13,14 @@ import {
   AmplifyGraphqlDefinition,
   AuthorizationModes,
   IAMAuthorizationConfig,
+  IAmplifyGraphqlDefinition,
   UserPoolAuthorizationConfig,
 } from '@aws-amplify/graphql-api-construct';
 import { GraphqlOutput } from '@aws-amplify/backend-output-schemas/graphql';
 import * as path from 'path';
+// TODO before merging change to:
+// import { DerivedModelSchema } from '@aws-amplify/amplify-api-next-types-alpha';
+import { ModelSchemaType } from '@aws-amplify/amplify-api-next-types-alpha';
 
 /**
  * Exposed props for Data which are configurable by the end user.
@@ -25,7 +29,7 @@ export type DataProps = {
   /**
    * Graphql Schema as a string to be passed into the CDK construct.
    */
-  schema: string;
+  schema: string | ModelSchemaType;
 
   /**
    * Optional name for the generated Api.
@@ -120,10 +124,33 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       userPoolConfig,
     };
 
+    const isModelSchema = (
+      schema: string | ModelSchemaType
+    ): schema is ModelSchemaType => {
+      if (
+        schema !== null &&
+        typeof schema == 'object' &&
+        typeof schema.transform == 'function'
+      ) {
+        return true;
+      }
+      return false;
+    };
+
+    const normalizeSchema = (
+      schema: string | ModelSchemaType
+    ): IAmplifyGraphqlDefinition => {
+      if (isModelSchema(schema)) {
+        return schema.transform();
+      }
+
+      return AmplifyGraphqlDefinition.fromString(schema);
+    };
+
     // TODO inject the construct with the functionNameMap
     const graphqlConstructProps: AmplifyGraphqlApiProps = {
       apiName: this.props.name,
-      definition: AmplifyGraphqlDefinition.fromString(this.props.schema),
+      definition: normalizeSchema(this.props.schema),
       authorizationModes,
       outputStorageStrategy: this.outputStorageStrategy,
     };
