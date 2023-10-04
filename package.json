@@ -13,6 +13,7 @@
     "diff:check": "tsx scripts/check_pr_size.ts",
     "docs": "typedoc",
     "e2e": "npm run test:dir packages/integration-tests/lib/test-e2e",
+    "e2e:cleanup-resources": "tsx scripts/cleanup_e2e_resources.ts",
     "install:local": "npm run set-script-shell && npm install && npm run build && npm run install:local --workspaces --if-present",
     "lint": "eslint --max-warnings 0 . && prettier --check .",
     "lint:fix": "eslint --cache --fix . && prettier --write .",
@@ -47,6 +48,7 @@
   },
   "homepage": "https://github.com/aws-amplify/cli#readme",
   "devDependencies": {
+    "@aws-sdk/client-cloudformation": "^3.421.0",
     "@changesets/cli": "^2.26.1",
     "@microsoft/api-extractor": "^7.34.4",
     "@shopify/eslint-plugin": "^43.0.0",

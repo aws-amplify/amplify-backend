@@ -17,7 +17,6 @@ void describe('DefaultBackendSecretResolver', () => {
     const testSecretName = 'testSecretName';
     const testSecret = new CfnTokenBackendSecret(
       testSecretName,
-      1,
       {} as BackendSecretFetcherFactory
     );
     const mockResolve = mock.method(testSecret, 'resolve', () => true);

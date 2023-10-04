@@ -2,6 +2,7 @@ import debounce from 'debounce-promise';
 import { BackendDeployer } from '@aws-amplify/backend-deployer';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import { BackendDeploymentType } from '@aws-amplify/platform-core';
+import { SecretClient } from '@aws-amplify/backend-secret';
 
 /**
  * Execute CDK commands.
@@ -10,18 +11,48 @@ export class AmplifySandboxExecutor {
   /**
    * Creates an AmplifySandboxExecutor instance
    */
-  constructor(private readonly backendDeployer: BackendDeployer) {}
+  constructor(
+    private readonly backendDeployer: BackendDeployer,
+    private readonly secretClient: SecretClient
+  ) {}
+
+  private getSecretLastUpdated = async (
+    uniqueBackendIdentifier: UniqueBackendIdentifier
+  ): Promise<Date | undefined> => {
+    const secrets = await this.secretClient.listSecrets(
+      uniqueBackendIdentifier
+    );
+    let latestTimestamp = -1;
+    let secretLastUpdate: Date | undefined;
+
+    secrets.forEach((secret) => {
+      if (!secret.lastUpdated) {
+        return;
+      }
+      const curTimeStamp = secret.lastUpdated.getTime();
+      if (curTimeStamp > 0 && curTimeStamp > latestTimestamp) {
+        latestTimestamp = curTimeStamp;
+        secretLastUpdate = secret.lastUpdated;
+      }
+    });
+
+    return secretLastUpdate;
+  };
 
   /**
    * Deploys sandbox
    */
-  deploy = (
-    uniqueBackendIdentifier?: UniqueBackendIdentifier
+  deploy = async (
+    uniqueBackendIdentifier: UniqueBackendIdentifier
   ): Promise<void> => {
     console.debug('[Sandbox] Executing command `deploy`');
+    const secretLastUpdated = await this.getSecretLastUpdated(
+      uniqueBackendIdentifier
+    );
     return this.invoke(() =>
       this.backendDeployer.deploy(uniqueBackendIdentifier, {
         deploymentType: BackendDeploymentType.SANDBOX,
+        secretLastUpdated,
       })
     );
   };

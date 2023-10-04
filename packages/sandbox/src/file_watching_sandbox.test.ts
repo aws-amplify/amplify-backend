@@ -18,6 +18,7 @@ import {
   BackendDeploymentType,
   SandboxBackendIdentifier,
 } from '@aws-amplify/platform-core';
+import { SecretListItem, getSecretClient } from '@aws-amplify/backend-secret';
 
 // Watcher mocks
 const unsubscribeMockFn = mock.fn();
@@ -27,6 +28,28 @@ const subscribeMock = mock.method(watcher, 'subscribe', async () => {
 let fileChangeEventActualFn: watcher.SubscribeCallback;
 
 const backendDeployer = BackendDeployerFactory.getInstance();
+
+const secretClient = getSecretClient();
+const newlyUpdatedSecretItem: SecretListItem = {
+  name: 'C',
+  lastUpdated: new Date(1234567),
+};
+
+const listSecretMock = mock.method(secretClient, 'listSecrets', () =>
+  Promise.resolve([
+    {
+      name: 'A',
+      lastUpdated: new Date(1234),
+    },
+    {
+      name: 'B',
+    },
+    newlyUpdatedSecretItem,
+  ])
+);
+
+const cdkExecutor = new AmplifySandboxExecutor(backendDeployer, secretClient);
+
 const execaDeployMock = mock.method(backendDeployer, 'deploy', () =>
   Promise.resolve()
 );
@@ -72,8 +95,6 @@ mock.method(fs, 'lstatSync', (path: string) => {
 void describe('Sandbox to check if region is bootstrapped', () => {
   // class under test
   let sandboxInstance: FileWatchingSandbox;
-
-  const cdkExecutor = new AmplifySandboxExecutor(backendDeployer);
 
   beforeEach(async () => {
     // ensures that .gitignore is set as absent
@@ -164,8 +185,6 @@ void describe('Sandbox using local project name resolver', () => {
   // class under test
   let sandboxInstance: FileWatchingSandbox;
 
-  const cdkExecutor = new AmplifySandboxExecutor(backendDeployer);
-
   /**
    * For each test we start the sandbox and hence file watcher and get hold of
    * file change event function which tests can simulate by calling as desired.
@@ -198,6 +217,7 @@ void describe('Sandbox using local project name resolver', () => {
     execaDestroyMock.mock.resetCalls();
     execaDeployMock.mock.resetCalls();
     cfnClientSendMock.mock.resetCalls();
+    listSecretMock.mock.resetCalls();
   });
 
   afterEach(async () => {
@@ -221,12 +241,14 @@ void describe('Sandbox using local project name resolver', () => {
 
     // CDK should be called once
     assert.strictEqual(execaDeployMock.mock.callCount(), 1);
+    assert.strictEqual(listSecretMock.mock.callCount(), 1);
 
     // CDK should be called with the right params
     assert.deepEqual(execaDeployMock.mock.calls[0].arguments, [
       new SandboxBackendIdentifier('testSandboxId'),
       {
         deploymentType: BackendDeploymentType.SANDBOX,
+        secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
       },
     ]);
     assert.strictEqual(cfnClientSendMock.mock.callCount(), 0);
@@ -319,8 +341,6 @@ void describe('Sandbox with user provided app name', () => {
   // class under test
   let sandboxInstance: FileWatchingSandbox;
 
-  const cdkExecutor = new AmplifySandboxExecutor(backendDeployer);
-
   /**
    * For each test we start the sandbox and hence file watcher and get hold of
    * file change event function which tests can simulate by calling as desired.
@@ -349,6 +369,7 @@ void describe('Sandbox with user provided app name', () => {
     execaDestroyMock.mock.resetCalls();
     execaDeployMock.mock.resetCalls();
     cfnClientSendMock.mock.resetCalls();
+    listSecretMock.mock.resetCalls();
   });
 
   afterEach(async () => {
@@ -372,12 +393,14 @@ void describe('Sandbox with user provided app name', () => {
 
     // CDK should be called once
     assert.strictEqual(execaDeployMock.mock.callCount(), 1);
+    assert.strictEqual(listSecretMock.mock.callCount(), 1);
 
     // CDK should be called with the right params
     assert.deepEqual(execaDeployMock.mock.calls[0].arguments, [
       new SandboxBackendIdentifier('customSandboxName'),
       {
         deploymentType: BackendDeploymentType.SANDBOX,
+        secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
       },
     ]);
   });
@@ -398,8 +421,6 @@ void describe('Sandbox with user provided app name', () => {
 void describe('Sandbox with absolute output path', () => {
   // class under test
   let sandboxInstance: FileWatchingSandbox;
-
-  const cdkExecutor = new AmplifySandboxExecutor(backendDeployer);
 
   /**
    * For each test we start the sandbox and hence file watcher and get hold of
@@ -443,8 +464,6 @@ void describe('Sandbox with absolute output path', () => {
 void describe('Sandbox ignoring paths in .gitignore', () => {
   // class under test
   let sandboxInstance: FileWatchingSandbox;
-
-  const cdkExecutor = new AmplifySandboxExecutor(backendDeployer);
 
   /**
    * For each test we start the sandbox and hence file watcher and get hold of

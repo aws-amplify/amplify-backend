@@ -37,6 +37,12 @@ export class CDKDeployer implements BackendDeployer {
     if (deployProps?.deploymentType === BackendDeploymentType.SANDBOX) {
       cdkCommandArgs.push('--hotswap-fallback');
       cdkCommandArgs.push('--method=direct');
+      if (deployProps.secretLastUpdated) {
+        cdkCommandArgs.push(
+          '--context',
+          `secretLastUpdated=${deployProps.secretLastUpdated.getTime()}`
+        );
+      }
     }
 
     await this.invoke(
