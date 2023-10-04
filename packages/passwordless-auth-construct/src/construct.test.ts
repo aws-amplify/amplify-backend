@@ -17,36 +17,23 @@ void describe('Passwordless Auth construct', () => {
   });
   const template = Template.fromStack(stack);
 
-  void it('Adds a Define Auth Challenge lambda', () => {
-    template.hasResourceProperties('AWS::Cognito::UserPool', {
-      LambdaConfig: {
-        DefineAuthChallenge: {
-          'Fn::GetAtt': [Match.stringLikeRegexp('DefineAuthChallenge'), 'Arn'],
-        },
-      },
-    });
-  });
+  void describe('Triggers', () => {
+    const triggers = [
+      'DefineAuthChallenge',
+      'CreateAuthChallenge',
+      'VerifyAuthChallengeResponse',
+    ];
 
-  void it('Adds a Create Auth Challenge lambda', () => {
-    template.hasResourceProperties('AWS::Cognito::UserPool', {
-      LambdaConfig: {
-        CreateAuthChallenge: {
-          'Fn::GetAtt': [Match.stringLikeRegexp('CreateAuthChallenge'), 'Arn'],
-        },
-      },
-    });
-  });
-
-  void it('Adds a Verify Auth Challenge lambda', () => {
-    template.hasResourceProperties('AWS::Cognito::UserPool', {
-      LambdaConfig: {
-        VerifyAuthChallengeResponse: {
-          'Fn::GetAtt': [
-            Match.stringLikeRegexp('VerifyAuthChallengeResponse'),
-            'Arn',
-          ],
-        },
-      },
+    triggers.forEach((trigger) => {
+      void it(`Adds a ${trigger} lambda`, () => {
+        template.hasResourceProperties('AWS::Cognito::UserPool', {
+          LambdaConfig: {
+            [trigger]: {
+              'Fn::GetAtt': [Match.stringLikeRegexp(trigger), 'Arn'],
+            },
+          },
+        });
+      });
     });
   });
 
