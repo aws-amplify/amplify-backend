@@ -13,9 +13,14 @@ export class AmplifyProjectCreator {
     '@aws-amplify/backend-graphql',
     '@aws-amplify/backend-auth',
     '@aws-amplify/backend-cli',
+    // TODO after API-Next is GA change to: @aws-amplify/amplify-api-next
+    // https://github.com/aws-amplify/samsara-cli/issues/332
+    '@aws-amplify/amplify-api-next-alpha',
   ];
 
-  private readonly defaultProdPackages = ['aws-amplify'];
+  // TODO after API-Next is GA change to: `aws-amplify`
+  // https://github.com/aws-amplify/samsara-cli/issues/332
+  private readonly defaultProdPackages = ['aws-amplify@api-v6-models'];
 
   /**
    * Orchestrator for the create-amplify workflow.
