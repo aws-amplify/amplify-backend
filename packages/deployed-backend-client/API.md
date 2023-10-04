@@ -4,8 +4,11 @@
 
 ```ts
 
+import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { BackendDeploymentType } from '@aws-amplify/platform-core';
+import { CloudFormation } from '@aws-sdk/client-cloudformation';
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
 import { UnifiedBackendOutput } from '@aws-amplify/backend-output-schemas';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
@@ -76,8 +79,14 @@ export enum BackendOutputClientErrorType {
 
 // @public
 export class BackendOutputClientFactory {
-    static getInstance: (credentials: AwsCredentialIdentityProvider) => BackendOutputClient;
+    static getInstance: (credentials: AwsCredentialIdentityProvider, { amplifyClient: amplifyClientParameter, cloudFormationClient: cloudFormationClientParameter, }?: BackendOutputClientFactoryOptions) => BackendOutputClient;
 }
+
+// @public (undocumented)
+export type BackendOutputClientFactoryOptions = {
+    cloudFormationClient?: CloudFormationClient;
+    amplifyClient?: AmplifyClient;
+};
 
 // @public (undocumented)
 export type DeployedBackendClient = {
@@ -88,8 +97,14 @@ export type DeployedBackendClient = {
 
 // @public
 export class DeployedBackendClientFactory {
-    static getInstance: (credentials: AwsCredentialIdentityProvider) => DeployedBackendClient;
+    static getInstance: (credentials: AwsCredentialIdentityProvider, { cloudFormationClient, backendOutputClient: backendOutputClientParameter, }?: DeployedBackendClientFactoryOptions) => DeployedBackendClient;
 }
+
+// @public (undocumented)
+export type DeployedBackendClientFactoryOptions = {
+    cloudFormationClient?: CloudFormation;
+    backendOutputClient?: BackendOutputClient;
+};
 
 // @public (undocumented)
 export type ListSandboxesRequest = {
