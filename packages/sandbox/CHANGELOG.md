@@ -1,5 +1,22 @@
 # @aws-amplify/sandbox
 
+## 0.2.0-alpha.8
+
+### Minor Changes
+
+- 2216d37d: 1. Remove version from the backend secret feature. 2. Use max(secret_last_updated) to trigger secret fetcher.
+
+### Patch Changes
+
+- 36d93e46: add license to package.json
+- Updated dependencies [2216d37d]
+- Updated dependencies [36d93e46]
+  - @aws-amplify/backend-deployer@0.2.0-alpha.5
+  - @aws-amplify/backend-secret@0.2.0-alpha.2
+  - @aws-amplify/deployed-backend-client@0.2.0-alpha.2
+  - @aws-amplify/client-config@0.2.0-alpha.8
+  - @aws-amplify/platform-core@0.1.1-alpha.1
+
 ## 0.2.0-alpha.7
 
 ### Minor Changes

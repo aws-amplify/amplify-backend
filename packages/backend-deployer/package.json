@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/backend-deployer",
-  "version": "0.1.1-alpha.4",
+  "version": "0.2.0-alpha.5",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -18,8 +18,8 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@aws-amplify/platform-core": "^0.1.1-alpha.0",
-    "@aws-amplify/plugin-types": "^0.2.0-alpha.6",
+    "@aws-amplify/platform-core": "^0.1.1-alpha.1",
+    "@aws-amplify/plugin-types": "^0.2.0-alpha.7",
     "execa": "^7.2.0",
     "tsx": "^3.12.6"
   },

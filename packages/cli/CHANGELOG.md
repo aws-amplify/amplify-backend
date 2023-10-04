@@ -1,5 +1,25 @@
 # @aws-amplify/backend-cli
 
+## 0.2.0-alpha.6
+
+### Minor Changes
+
+- 2216d37d: 1. Remove version from the backend secret feature. 2. Use max(secret_last_updated) to trigger secret fetcher.
+
+### Patch Changes
+
+- ed841e3e: fix: pipeline deploy passes the required parameter to the deployer
+- Updated dependencies [2216d37d]
+- Updated dependencies [36d93e46]
+  - @aws-amplify/backend-secret@0.2.0-alpha.2
+  - @aws-amplify/sandbox@0.2.0-alpha.8
+  - @aws-amplify/deployed-backend-client@0.2.0-alpha.2
+  - @aws-amplify/backend-output-schemas@0.2.0-alpha.5
+  - @aws-amplify/model-generator@0.2.0-alpha.4
+  - @aws-amplify/form-generator@0.2.0-alpha.3
+  - @aws-amplify/client-config@0.2.0-alpha.8
+  - @aws-amplify/platform-core@0.1.1-alpha.1
+
 ## 0.2.0-alpha.5
 
 ### Minor Changes

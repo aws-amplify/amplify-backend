@@ -1,5 +1,11 @@
 # @aws-amplify/backend-output-schemas
 
+## 0.2.0-alpha.5
+
+### Patch Changes
+
+- 36d93e46: add license to package.json
+
 ## 0.2.0-alpha.4
 
 ### Patch Changes
