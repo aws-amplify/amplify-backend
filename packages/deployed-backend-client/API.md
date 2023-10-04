@@ -98,8 +98,7 @@ export type DeployedBackendClient = {
 
 // @public
 export class DeployedBackendClientFactory {
-    // Warning: (ae-forgotten-export) The symbol "DefaultDeployedBackendClient" needs to be exported by the entry point index.d.ts
-    static getInstance(options: Pick<DeployedBackendClientFactoryOptions, 'credential'> | Pick<DeployedBackendClientFactoryOptions, 'cloudFormationClient' | 'backendOutputClient'>): DefaultDeployedBackendClient;
+    static getInstance(options: Pick<DeployedBackendClientFactoryOptions, 'credential'> | Pick<DeployedBackendClientFactoryOptions, 'cloudFormationClient' | 'backendOutputClient'>): DeployedBackendClient;
 }
 
 // @public (undocumented)

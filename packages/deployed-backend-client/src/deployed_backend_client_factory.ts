@@ -91,7 +91,7 @@ export class DeployedBackendClientFactory {
           DeployedBackendClientFactoryOptions,
           'cloudFormationClient' | 'backendOutputClient'
         >
-  ) {
+  ): DeployedBackendClient {
     if ('backendOutputClient' in options && 'cloudFormationClient' in options) {
       return new DefaultDeployedBackendClient(
         options.cloudFormationClient,
