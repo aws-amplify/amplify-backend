@@ -10,6 +10,7 @@ import { AuthResources } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
 import { FunctionResources } from '@aws-amplify/plugin-types';
+import { PasswordlessAuthProps } from '@aws-amplify/passwordless-auth-construct-alpha';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { TriggerEvent } from '@aws-amplify/auth-construct-alpha';
 
@@ -22,7 +23,9 @@ export class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth & Resour
 }
 
 // @public (undocumented)
-export type AmplifyAuthFactoryProps = Omit<AuthProps, 'outputStorageStrategy'> & TriggerConfig;
+export type AmplifyAuthFactoryProps = Omit<AuthProps, 'outputStorageStrategy'> & TriggerConfig & {
+    passwordlessOptions?: PasswordlessAuthProps;
+};
 
 // @public
 export const Auth: typeof AmplifyAuthFactory;
