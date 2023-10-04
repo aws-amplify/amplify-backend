@@ -1,5 +1,14 @@
 # @aws-amplify/model-generator
 
+## 0.2.0-alpha.4
+
+### Patch Changes
+
+- 36d93e46: add license to package.json
+- Updated dependencies [36d93e46]
+  - @aws-amplify/deployed-backend-client@0.2.0-alpha.2
+  - @aws-amplify/backend-output-schemas@0.2.0-alpha.5
+
 ## 0.2.0-alpha.3
 
 ### Patch Changes

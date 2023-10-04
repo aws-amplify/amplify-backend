@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/platform-core",
-  "version": "0.1.1-alpha.0",
+  "version": "0.1.1-alpha.1",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -18,6 +18,6 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@aws-amplify/plugin-types": "^0.2.0-alpha.6"
+    "@aws-amplify/plugin-types": "^0.2.0-alpha.7"
   }
 }

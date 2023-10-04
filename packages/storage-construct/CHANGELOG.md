@@ -1,5 +1,14 @@
 # @aws-amplify/storage-construct-alpha
 
+## 0.1.1-alpha.6
+
+### Patch Changes
+
+- 36d93e46: add license to package.json
+- Updated dependencies [36d93e46]
+  - @aws-amplify/backend-output-schemas@0.2.0-alpha.5
+  - @aws-amplify/backend-output-storage@0.1.1-alpha.2
+
 ## 0.1.1-alpha.5
 
 ### Patch Changes

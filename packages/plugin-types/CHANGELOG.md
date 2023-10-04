@@ -1,5 +1,11 @@
 # @aws-amplify/plugin-types
 
+## 0.2.0-alpha.7
+
+### Patch Changes
+
+- 36d93e46: add license to package.json
+
 ## 0.2.0-alpha.6
 
 ### Minor Changes
