@@ -15,10 +15,7 @@ import {
   BackendDeploymentType,
   SandboxBackendIdentifier,
 } from '@aws-amplify/platform-core';
-import {
-  BackendOutputClient,
-  BackendOutputClientFactory,
-} from './backend_output_client_factory.js';
+import { BackendOutputClient } from './backend_output_client_factory.js';
 import { getMainStackName } from './get_main_stack_name.js';
 import {
   CloudFormationClient,
@@ -148,9 +145,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     };
 
     const backendOutput: BackendOutput =
-      await BackendOutputClientFactory.getInstance(this.credentials).getOutput(
-        backendIdentifier
-      );
+      await this.backendOutputClient.getOutput(backendIdentifier);
     const stackDescription = await this.cfnClient.send(
       new DescribeStacksCommand({ StackName: stackName })
     );

@@ -16,8 +16,6 @@ import {
   stackOutputKey,
   storageOutputKey,
 } from '@aws-amplify/backend-output-schemas';
-import { BackendOutput } from '@aws-amplify/plugin-types';
-import { BackendOutputClientFactory } from '@aws-amplify/deployed-backend-client';
 import {
   BackendDeploymentType,
   BranchBackendIdentifier,
@@ -184,7 +182,12 @@ const expectedMetadata = {
 };
 
 void describe('Deployed Backend Client', () => {
-  const getOutputMock = mock.fn();
+  const mockCfnClient = new CloudFormation();
+  const mockBackendOutputClient = new DefaultBackendOutputClient(
+    mockCfnClient,
+    new AmplifyClient()
+  );
+  const getOutputMock = mock.method(mockBackendOutputClient, 'getOutput');
   let deployedBackendClient: DefaultDeployedBackendClient;
   const cfnClientSendMock = mock.fn();
 
@@ -193,17 +196,12 @@ void describe('Deployed Backend Client', () => {
       accessKeyId: 'accessKeyId',
       secretAccessKey: 'secretAccessKey',
     });
-    const mockCfnClient = new CloudFormation();
-    const mockBackendOutputClient = new DefaultBackendOutputClient(
-      mockCfnClient,
-      new AmplifyClient()
-    );
     getOutputMock.mock.mockImplementation(() => getOutputMockResponse);
     mock.method(mockCfnClient, 'send', cfnClientSendMock);
 
     getOutputMock.mock.resetCalls();
     cfnClientSendMock.mock.resetCalls();
-    const mockImplementation = (
+    const mockSend = (
       request:
         | ListStacksCommand
         | DescribeStacksCommand
@@ -226,16 +224,7 @@ void describe('Deployed Backend Client', () => {
       throw request;
     };
 
-    cfnClientSendMock.mock.mockImplementation(mockImplementation);
-
-    const backendOutputClientFactoryMock = mock.fn();
-    backendOutputClientFactoryMock.mock.mockImplementation(() => ({
-      getOutput: getOutputMock as unknown as () => Promise<BackendOutput>,
-    }));
-    BackendOutputClientFactory.getInstance =
-      backendOutputClientFactoryMock as unknown as (
-        credentials: AwsCredentialIdentityProvider
-      ) => DefaultBackendOutputClient;
+    cfnClientSendMock.mock.mockImplementation(mockSend);
 
     deployedBackendClient = new DefaultDeployedBackendClient(
       mockCredentials,
@@ -305,10 +294,10 @@ void describe('Deployed Backend Client', () => {
 });
 
 void describe('Deployed Backend Client pagination', () => {
+  const mockCfnClient = new CloudFormation();
+  const cfnClientSendMock = mock.method(mockCfnClient, 'send');
   let deployedBackendClient: DefaultDeployedBackendClient;
   const listStacksMockFn = mock.fn();
-  const cfnClientSendMock = mock.fn();
-  const getOutputMock = mock.fn();
   const returnedSandboxes = [
     {
       deploymentType: BackendDeploymentType.SANDBOX,
@@ -323,6 +312,11 @@ void describe('Deployed Backend Client pagination', () => {
       accessKeyId: 'accessKeyId',
       secretAccessKey: 'secretAccessKey',
     });
+    const mockBackendOutputClient = new DefaultBackendOutputClient(
+      mockCfnClient,
+      new AmplifyClient()
+    );
+    const getOutputMock = mock.method(mockBackendOutputClient, 'getOutput');
     getOutputMock.mock.mockImplementation(
       (backendIdentifier: StackIdentifier) => {
         if (backendIdentifier.stackName !== 'amplify-test-sandbox') {
@@ -339,27 +333,13 @@ void describe('Deployed Backend Client pagination', () => {
       }
     );
     getOutputMock.mock.resetCalls();
-    const backendOutputClientFactoryMock = mock.fn();
-    backendOutputClientFactoryMock.mock.mockImplementation(() => ({
-      getOutput: getOutputMock as unknown as () => Promise<BackendOutput>,
-    }));
-    BackendOutputClientFactory.getInstance =
-      backendOutputClientFactoryMock as unknown as (
-        credentials: AwsCredentialIdentityProvider
-      ) => DefaultBackendOutputClient;
 
-    const mockCfnClient = new CloudFormation();
-    const mockBackendOutputClient = new DefaultBackendOutputClient(
-      mockCfnClient,
-      new AmplifyClient()
-    );
-    mock.method(mockCfnClient, 'send', cfnClientSendMock);
     listStacksMockFn.mock.resetCalls();
     listStacksMockFn.mock.mockImplementation(() => {
       return listStacksMock;
     });
     cfnClientSendMock.mock.resetCalls();
-    const mockImplementation = (
+    const mockSend = (
       request: ListStacksCommand | DescribeStacksCommand | DeleteStackCommand
     ) => {
       if (request instanceof ListStacksCommand) {
@@ -377,7 +357,7 @@ void describe('Deployed Backend Client pagination', () => {
       throw request;
     };
 
-    cfnClientSendMock.mock.mockImplementation(mockImplementation);
+    cfnClientSendMock.mock.mockImplementation(mockSend);
 
     deployedBackendClient = new DefaultDeployedBackendClient(
       mockCredentials,
