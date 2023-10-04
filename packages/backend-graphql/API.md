@@ -6,11 +6,11 @@
 
 import { AmplifyGraphqlApi } from '@aws-amplify/graphql-api-construct';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
-import { ModelSchemaType } from '@aws-amplify/amplify-api-next-types-alpha';
+import { DerivedModelSchema } from '@aws-amplify/amplify-api-next-types-alpha';
 
 // @public
 export type DataProps = {
-    schema: string | ModelSchemaType;
+    schema: string | DerivedModelSchema;
     name?: string;
 };
 
