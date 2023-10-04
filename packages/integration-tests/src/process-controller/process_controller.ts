@@ -110,5 +110,7 @@ export class ProcessController {
 export const amplifyCli = (
   args: string[] = [],
   dir: string,
-  env: Record<string, string> = {}
-) => new ProcessController('amplify', args, { cwd: dir, env: env });
+  options: {
+    env?: Record<string, string>;
+  }
+) => new ProcessController('amplify', args, { cwd: dir, env: options?.env });
