@@ -8,7 +8,11 @@ import {
 import {
   Bucket,
   DeleteBucketCommand,
+  DeleteObjectsCommand,
   ListBucketsCommand,
+  ListObjectVersionsCommand,
+  ListObjectsV2Command,
+  ObjectIdentifier,
   S3Client,
 } from '@aws-sdk/client-s3';
 
@@ -82,11 +86,71 @@ const listStaleS3Buckets = async (): Array<Bucket> => {
 
 const staleBuckets = await listStaleS3Buckets();
 
+const emptyAndDeleteS3Bucket = async (bucketName: string): Promise<void> => {
+  let nextToken: string | undefined = undefined;
+  do {
+    const listObjectsResponse = await s3Client.send(
+      new ListObjectsV2Command({
+        Bucket: bucketName,
+        ContinuationToken: nextToken,
+      })
+    );
+    const objectsToDelete: ObjectIdentifier[] | undefined =
+      listObjectsResponse.Contents?.map(
+        (s3Object) => s3Object as ObjectIdentifier
+      );
+    if (objectsToDelete && objectsToDelete.length > 0) {
+      await s3Client.send(
+        new DeleteObjectsCommand({
+          Bucket: bucketName,
+          Delete: {
+            Objects: objectsToDelete,
+          },
+        })
+      );
+    }
+    nextToken = listObjectsResponse.NextContinuationToken;
+  } while (nextToken);
+
+  do {
+    const listVersionsResponse = await s3Client.send(
+      new ListObjectVersionsCommand({
+        Bucket: bucketName,
+        KeyMarker: nextToken,
+      })
+    );
+    const objectsToDelete = []
+      .concat(
+        listVersionsResponse.DeleteMarkers?.map(
+          (s3Object) => s3Object as ObjectIdentifier
+        ) ?? []
+      )
+      .concat(
+        listVersionsResponse.Versions?.map(
+          (s3Object) => s3Object as ObjectIdentifier
+        ) ?? []
+      );
+    if (objectsToDelete.length > 0) {
+      await s3Client.send(
+        new DeleteObjectsCommand({
+          Bucket: bucketName,
+          Delete: {
+            Objects: objectsToDelete,
+          },
+        })
+      );
+    }
+    nextToken = listVersionsResponse.NextKeyMarker;
+  } while (nextToken);
+
+  await s3Client.send(new DeleteBucketCommand({ Bucket: bucketName }));
+};
+
 for (const staleBucket of staleBuckets) {
   if (staleBucket.Name) {
     const bucketName = staleBucket.Name;
     try {
-      await s3Client.send(new DeleteBucketCommand({ Bucket: bucketName }));
+      await emptyAndDeleteS3Bucket(bucketName);
       console.log(`Successfully deleted ${bucketName} bucket`);
     } catch (e: Error) {
       console.log(
