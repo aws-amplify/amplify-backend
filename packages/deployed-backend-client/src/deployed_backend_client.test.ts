@@ -27,7 +27,7 @@ import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { DefaultBackendOutputClient } from './backend_output_client.js';
 import { DefaultDeployedBackendClient } from './deployed_backend_client.js';
 import { StackIdentifier } from './index.js';
-import { S3 } from '@aws-sdk/client-s3';
+import { GetObjectCommand, S3 } from '@aws-sdk/client-s3';
 
 const listStacksMock = {
   NextToken: undefined,
@@ -92,7 +92,7 @@ const describeStacksMock = {
         },
         {
           OutputKey: 'amplifyApiModelSchemaS3Uri',
-          OutputValue: 's3://schema.graphql',
+          OutputValue: 's3://{bucketName}/{fileName}',
         },
         {
           OutputKey: 'userPoolId',
@@ -159,6 +159,7 @@ const getOutputMockResponse = {
   [graphqlOutputKey]: {
     payload: {
       awsAppsyncApiEndpoint: 'testAwsAppsyncApiEndpoint',
+      amplifyApiModelSchemaS3Uri: 's3://bucketName/filePath',
     },
   },
 };
@@ -182,7 +183,7 @@ const expectedMetadata = {
     status: BackendDeploymentStatus.FAILED,
     defaultAuthType: undefined,
     additionalAuthTypes: [],
-    graphqlSchema: '',
+    graphqlSchema: 's3://bucketName/filePath schema contents!',
     conflictResolutionMode: undefined,
   },
 };
@@ -192,6 +193,16 @@ void describe('Deployed Backend Client', () => {
   let deployedBackendClient: DefaultDeployedBackendClient;
   const cfnClientSendMock = mock.fn();
   const s3ClientSendMock = mock.fn();
+  s3ClientSendMock.mock.mockImplementation((input: GetObjectCommand) => {
+    return {
+      Body: {
+        transformToString: () =>
+          `s3://${input.input.Bucket as string}/${
+            input.input.Key as string
+          } schema contents!`,
+      },
+    };
+  });
 
   beforeEach(() => {
     const mockCredentials: AwsCredentialIdentityProvider = async () => ({
@@ -206,6 +217,7 @@ void describe('Deployed Backend Client', () => {
 
     getOutputMock.mock.resetCalls();
     cfnClientSendMock.mock.resetCalls();
+    s3ClientSendMock.mock.resetCalls();
     const mockImplementation = (
       request:
         | ListStacksCommand
