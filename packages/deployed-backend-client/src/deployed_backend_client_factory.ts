@@ -71,11 +71,18 @@ export type DeployedBackendClient = {
   ) => Promise<BackendMetadata>;
 };
 
-export type DeployedBackendClientFactoryOptions = {
-  credential: AwsCredentialIdentityProvider;
+export type DeployedBackendClientOverrides = {
   cloudFormationClient: CloudFormation;
   backendOutputClient: BackendOutputClient;
 };
+
+export type DeployedBackendCredentials = {
+  credentials: AwsCredentialIdentityProvider;
+};
+
+export type DeployedBackendClientFactoryOptions =
+  | DeployedBackendCredentials
+  | DeployedBackendClientOverrides;
 
 /**
  * Factory to create a DeploymentClient
@@ -85,12 +92,7 @@ export class DeployedBackendClientFactory {
    * Returns a single instance of DeploymentClient
    */
   static getInstance(
-    options:
-      | Pick<DeployedBackendClientFactoryOptions, 'credential'>
-      | Pick<
-          DeployedBackendClientFactoryOptions,
-          'cloudFormationClient' | 'backendOutputClient'
-        >
+    options: DeployedBackendClientFactoryOptions
   ): DeployedBackendClient {
     if ('backendOutputClient' in options && 'cloudFormationClient' in options) {
       return new DefaultDeployedBackendClient(
@@ -99,9 +101,9 @@ export class DeployedBackendClientFactory {
       );
     }
     return new DefaultDeployedBackendClient(
-      new CloudFormationClient(options.credential),
+      new CloudFormationClient(options.credentials),
       BackendOutputClientFactory.getInstance({
-        credentials: options.credential,
+        credentials: options.credentials,
       })
     );
   }

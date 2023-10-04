@@ -79,13 +79,20 @@ export enum BackendOutputClientErrorType {
 
 // @public
 export class BackendOutputClientFactory {
-    static getInstance: (options: Pick<BackendOutputClientFactoryOptions, 'cloudFormationClient' | 'amplifyClient'> | Pick<BackendOutputClientFactoryOptions, 'credentials'>) => BackendOutputClient;
+    static getInstance: (options: BackendOutputClientFactoryOptions) => BackendOutputClient;
 }
 
 // @public (undocumented)
-export type BackendOutputClientFactoryOptions = {
+export type BackendOutputClientFactoryOptions = BackendOutputClientOverrides | BackendOutputCredentials;
+
+// @public (undocumented)
+export type BackendOutputClientOverrides = {
     cloudFormationClient: CloudFormationClient;
     amplifyClient: AmplifyClient;
+};
+
+// @public (undocumented)
+export type BackendOutputCredentials = {
     credentials: AwsCredentialIdentityProvider;
 };
 
@@ -98,14 +105,21 @@ export type DeployedBackendClient = {
 
 // @public
 export class DeployedBackendClientFactory {
-    static getInstance(options: Pick<DeployedBackendClientFactoryOptions, 'credential'> | Pick<DeployedBackendClientFactoryOptions, 'cloudFormationClient' | 'backendOutputClient'>): DeployedBackendClient;
+    static getInstance(options: DeployedBackendClientFactoryOptions): DeployedBackendClient;
 }
 
 // @public (undocumented)
-export type DeployedBackendClientFactoryOptions = {
-    credential: AwsCredentialIdentityProvider;
+export type DeployedBackendClientFactoryOptions = DeployedBackendCredentials | DeployedBackendClientOverrides;
+
+// @public (undocumented)
+export type DeployedBackendClientOverrides = {
     cloudFormationClient: CloudFormation;
     backendOutputClient: BackendOutputClient;
+};
+
+// @public (undocumented)
+export type DeployedBackendCredentials = {
+    credentials: AwsCredentialIdentityProvider;
 };
 
 // @public (undocumented)

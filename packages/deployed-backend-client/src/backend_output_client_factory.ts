@@ -36,11 +36,18 @@ export type BackendOutputClient = {
   ) => Promise<UnifiedBackendOutput>;
 };
 
-export type BackendOutputClientFactoryOptions = {
+export type BackendOutputClientOverrides = {
   cloudFormationClient: CloudFormationClient;
   amplifyClient: AmplifyClient;
+};
+
+export type BackendOutputCredentials = {
   credentials: AwsCredentialIdentityProvider;
 };
+
+export type BackendOutputClientFactoryOptions =
+  | BackendOutputClientOverrides
+  | BackendOutputCredentials;
 /**
  * Factory to create a backend metadata reader
  */
@@ -49,12 +56,7 @@ export class BackendOutputClientFactory {
    * Returns a single instance of BackendOutputClient
    */
   static getInstance = (
-    options:
-      | Pick<
-          BackendOutputClientFactoryOptions,
-          'cloudFormationClient' | 'amplifyClient'
-        >
-      | Pick<BackendOutputClientFactoryOptions, 'credentials'>
+    options: BackendOutputClientFactoryOptions
   ): BackendOutputClient => {
     if ('cloudFormationClient' in options && 'amplifyClient' in options) {
       return new DefaultBackendOutputClient(
