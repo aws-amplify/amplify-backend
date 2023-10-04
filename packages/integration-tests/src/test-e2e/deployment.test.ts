@@ -36,10 +36,6 @@ void describe('amplify deploys', () => {
     ));
   });
 
-  afterEach(async () => {
-    await fs.rm(testProjectRoot, { recursive: true });
-  });
-
   const testProjects = [
     {
       name: 'data-storage-auth-with-triggers',
@@ -72,6 +68,7 @@ void describe('amplify deploys', () => {
       await amplifyCli(['sandbox', 'delete'], testProjectRoot)
         .do(confirmDeleteSandbox)
         .run();
+      await fs.rm(testProjectRoot, { recursive: true });
     });
 
     testProjects.forEach((testProject) => {
@@ -106,6 +103,7 @@ void describe('amplify deploys', () => {
           StackName: `amplify-${appId}-${branchName}`,
         })
       );
+      await fs.rm(testProjectRoot, { recursive: true });
     });
 
     testProjects.forEach((testProject) => {
