@@ -20,7 +20,6 @@
     "@aws-amplify/auth-construct-alpha": "^0.2.0-alpha.6"
   },
   "peerDependencies": {
-    "@aws-amplify/plugin-types": "^0.1.1-alpha.5",
     "aws-cdk-lib": "~2.80.0",
     "constructs": "^10.0.0"
   }
