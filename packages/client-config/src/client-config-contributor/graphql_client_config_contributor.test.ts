@@ -35,6 +35,8 @@ void describe('GraphqlClientConfigContributor', () => {
             awsAppsyncApiEndpoint: 'testApiEndpoint',
             awsAppsyncRegion: 'us-east-1',
             awsAppsyncAuthenticationType: 'API_KEY',
+            awsAppsyncAdditionalAuthenticationTypes: 'API_KEY',
+            awsAppsyncConflictResolutionMode: undefined,
             awsAppsyncApiKey: 'testApiKey',
             awsAppsyncApiId: 'testApiId',
             amplifyApiModelSchemaS3Uri: 'testApiSchemaUri',
@@ -44,6 +46,8 @@ void describe('GraphqlClientConfigContributor', () => {
       {
         aws_appsync_apiKey: 'testApiKey',
         aws_appsync_authenticationType: 'API_KEY',
+        aws_appsync_additionalAuthenticationTypes: 'API_KEY',
+        aws_appsync_conflictResolutionMode: undefined,
         aws_appsync_graphqlEndpoint: 'testApiEndpoint',
         aws_appsync_region: 'us-east-1',
       }
