@@ -261,7 +261,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     // s3://{bucketName}/{fileName}
     const uriParts = graphqlSchemaS3Uri.split('/');
     const bucketName = uriParts[2];
-    const objectPath = uriParts[3];
+    const objectPath = uriParts.slice(3, uriParts.length).join('/');
 
     if (!bucketName || !objectPath) return '';
 
