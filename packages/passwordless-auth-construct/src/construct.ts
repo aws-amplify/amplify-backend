@@ -7,7 +7,11 @@ import {
 import { Architecture, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { PasswordlessAuthProps } from './types.js';
 import { AmplifyAuth } from '@aws-amplify/auth-construct-alpha';
+import * as path from 'path';
+import { fileURLToPath } from 'url';
 
+const filename = fileURLToPath(import.meta.url);
+const dirname = path.dirname(filename);
 /**
  * Amplify Auth CDK Construct
  */
@@ -29,7 +33,7 @@ export class AmplifyPasswordlessAuth extends Construct {
     }
 
     const commonOptions: NodejsFunctionProps = {
-      entry: new URL('./custom-auth/index.js', import.meta.url).pathname,
+      entry: path.join(dirname, 'custom-auth', 'index.js'),
       runtime: Runtime.NODEJS_18_X,
       architecture: Architecture.ARM_64,
       bundling: {
