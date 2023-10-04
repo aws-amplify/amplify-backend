@@ -1,5 +1,8 @@
 import { describe, it } from 'node:test';
-import { StringMap, VerifyAuthChallengeResponseTriggerEvent } from './types.js';
+import {
+  StringMap,
+  VerifyAuthChallengeResponseTriggerEvent,
+} from '../types.js';
 import { strictEqual } from 'node:assert';
 import { verifyAuthChallenge } from './verify_auth_challenge.js';
 

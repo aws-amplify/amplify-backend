@@ -71,7 +71,6 @@ export type AuthProps = {
     multifactor?: MFA;
     accountRecovery?: aws_cognito.AccountRecovery;
     outputStorageStrategy?: BackendOutputStorageStrategy<AuthOutput>;
-    passwordlessAuth?: PasswordlessAuthOptions;
 };
 
 // @public
@@ -120,12 +119,6 @@ export type ExternalProviders = {
 };
 
 // @public
-export type MagicLinkAuthOptions = {
-    sesFromAddress: string;
-    sesRegion?: string;
-};
-
-// @public
 export type MFA = {
     enforcementType: 'OFF';
 } | ({
@@ -145,11 +138,6 @@ export type MFASettings = {
 // @public
 export type Mutable<T> = {
     -readonly [P in keyof T]: Mutable<T[P]>;
-};
-
-// @public
-export type PasswordlessAuthOptions = {
-    magicLink?: MagicLinkAuthOptions;
 };
 
 // @public

@@ -12,6 +12,10 @@ import {
   FunctionResources,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
+import {
+  AmplifyPasswordlessAuth,
+  PasswordlessAuthProps,
+} from '@aws-amplify/passwordless-auth-construct-alpha';
 
 export type TriggerConfig = {
   triggers?: Partial<
@@ -20,7 +24,7 @@ export type TriggerConfig = {
 };
 
 export type AmplifyAuthFactoryProps = Omit<AuthProps, 'outputStorageStrategy'> &
-  TriggerConfig;
+  TriggerConfig & { passwordlessOptions?: PasswordlessAuthProps };
 
 /**
  * Singleton factory for AmplifyAuth that can be used in Amplify project files
@@ -62,6 +66,7 @@ export class AmplifyAuthFactory
 class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
   readonly resourceGroupName = 'auth';
   private readonly defaultName = 'amplifyAuth';
+  private readonly defaultPasswordlessName = 'amplifyPasswordlessAuth';
 
   constructor(
     private readonly props: AmplifyAuthFactoryProps,
@@ -74,6 +79,14 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
       outputStorageStrategy: this.getInstanceProps.outputStorageStrategy,
     };
     const authConstruct = new AmplifyAuth(scope, this.defaultName, authProps);
+    if (this.props.passwordlessOptions) {
+      new AmplifyPasswordlessAuth(
+        scope,
+        this.defaultPasswordlessName,
+        authConstruct,
+        this.props.passwordlessOptions
+      );
+    }
     Object.entries(this.props.triggers || {}).forEach(
       ([triggerEvent, handlerFactory]) => {
         authConstruct.addTrigger(

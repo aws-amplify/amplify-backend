@@ -1,5 +1,8 @@
 import { logger } from '../logger.js';
-import { CreateAuthChallengeTriggerEvent } from './types.js';
+import {
+  CreateAuthChallengeTriggerEvent,
+  PasswordlessAuthChallengeParams,
+} from '../types.js';
 
 /**
  * The Create Auth Challenge lambda handler.
@@ -53,8 +56,8 @@ const provideAuthParameters = async (
 ): Promise<void> => {
   logger.info('Creating challenge: PROVIDE_AUTH_PARAMETERS');
   event.response.challengeMetadata = 'PROVIDE_AUTH_PARAMETERS';
-  const parameters: Record<string, string> = {
-    challenge: 'PROVIDE_AUTH_PARAMETERS',
+  const parameters: PasswordlessAuthChallengeParams = {
+    NextStep: 'PROVIDE_AUTH_PARAMETERS',
   };
   event.response.privateChallengeParameters = parameters;
   event.response.publicChallengeParameters = parameters;

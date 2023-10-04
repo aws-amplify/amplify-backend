@@ -4,6 +4,7 @@
   "references": [
     { "path": "../backend-output-storage" },
     { "path": "../auth-construct" },
+    { "path": "../passwordless-auth-construct" },
     { "path": "../backend" },
     { "path": "../plugin-types" }
   ]

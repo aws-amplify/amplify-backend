@@ -3,7 +3,7 @@ import {
   ChallengeResult,
   CustomChallengeResult,
   DefineAuthChallengeTriggerEvent,
-} from './types.js';
+} from '../types.js';
 import { strictEqual } from 'node:assert';
 import { defineAuthChallenge } from './define_auth_challenge.js';
 

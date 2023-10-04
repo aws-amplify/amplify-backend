@@ -6,7 +6,7 @@ import {
   CustomChallengeResult,
   PasswordlessClientMetaData,
   StringMap,
-} from './types.js';
+} from '../types.js';
 import { strictEqual } from 'node:assert';
 
 // The custom auth session from the initial Cognito InitiateAuth call.

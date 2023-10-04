@@ -1,11 +1,6 @@
 import { Construct } from 'constructs';
 import { Stack, aws_cognito as cognito } from 'aws-cdk-lib';
-import { Architecture, IFunction, Runtime } from 'aws-cdk-lib/aws-lambda';
-import {
-  NodejsFunction,
-  NodejsFunctionProps,
-  OutputFormat,
-} from 'aws-cdk-lib/aws-lambda-nodejs';
+import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import {
   AmplifyFunction,
   AuthResources,
@@ -24,12 +19,11 @@ import {
   UserPoolIdentityProviderSaml,
   UserPoolOperation,
   UserPoolProps,
-  UserPoolTriggers,
 } from 'aws-cdk-lib/aws-cognito';
 import { FederatedPrincipal, Role } from 'aws-cdk-lib/aws-iam';
 import { AuthOutput } from '@aws-amplify/backend-output-schemas/auth';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
-import { AuthProps, PasswordlessAuthOptions, TriggerEvent } from './types.js';
+import { AuthProps, TriggerEvent } from './types.js';
 import { DEFAULTS } from './defaults.js';
 import {
   AuthAttributeFactory,
@@ -38,11 +32,6 @@ import {
   AuthStandardAttribute,
 } from './attributes.js';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
-import { fileURLToPath } from 'node:url';
-import * as path from 'path';
-
-const filename = fileURLToPath(import.meta.url);
-const dirname = path.dirname(filename);
 
 type DefaultRoles = { auth: Role; unAuth: Role };
 type IdentityProviderSetupResult = {
@@ -282,11 +271,6 @@ export class AmplifyAuth
       }
     }
 
-    const passwordlessTriggers = this.getPasswordlessTriggers(
-      id,
-      props.passwordlessAuth
-    );
-
     const userPoolProps: UserPoolProps = {
       signInCaseSensitive: DEFAULTS.SIGN_IN_CASE_SENSITIVE,
       signInAliases: {
@@ -306,9 +290,6 @@ export class AmplifyAuth
       },
       customAttributes: {
         ...customAttributes,
-      },
-      lambdaTriggers: {
-        ...passwordlessTriggers,
       },
       selfSignUpEnabled: DEFAULTS.ALLOW_SELF_SIGN_UP,
       mfa: this.getMFAEnforcementType(props.multifactor),
@@ -330,57 +311,6 @@ export class AmplifyAuth
       ),
     };
     return userPoolProps;
-  };
-
-  private getPasswordlessTriggers = (
-    id: string,
-    options?: PasswordlessAuthOptions
-  ): UserPoolTriggers => {
-    if (!options) {
-      return {};
-    }
-
-    const commonOptions: NodejsFunctionProps = {
-      entry: path.join(dirname, 'passwordless-auth', 'custom-auth', 'index.js'),
-      runtime: Runtime.NODEJS_18_X,
-      architecture: Architecture.ARM_64,
-      bundling: {
-        format: OutputFormat.ESM,
-      },
-    };
-
-    const defineAuthChallenge = new NodejsFunction(
-      this,
-      `DefineAuthChallenge${id}`,
-      {
-        handler: 'defineAuthChallenge',
-        ...commonOptions,
-      }
-    );
-
-    const createAuthChallenge = new NodejsFunction(
-      this,
-      `CreateAuthChallenge${id}`,
-      {
-        handler: 'createAuthChallenge',
-        ...commonOptions,
-      }
-    );
-
-    const verifyAuthChallengeResponse = new NodejsFunction(
-      this,
-      `VerifyAuthChallengeResponse${id}`,
-      {
-        handler: 'verifyAuthChallenge',
-        ...commonOptions,
-      }
-    );
-
-    return {
-      defineAuthChallenge,
-      createAuthChallenge,
-      verifyAuthChallengeResponse,
-    };
   };
 
   /**

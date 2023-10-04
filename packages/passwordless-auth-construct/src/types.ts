@@ -21,7 +21,7 @@ export type CreateAuthChallengeTriggerEvent = {
     userNotFound?: boolean | undefined;
   };
   response: {
-    publicChallengeParameters: StringMap;
+    publicChallengeParameters: PasswordlessAuthChallengeParams;
     privateChallengeParameters: StringMap;
     challengeMetadata?: string;
   };
@@ -160,4 +160,48 @@ export type RequestOTPClientMetaData = {
 export type ConfirmOTPClientMetaData = {
   signInMethod: 'OTP';
   action: 'CONFIRM';
+};
+
+export type PasswordlessAuthChallengeParams =
+  | InitiateAuthChallengeParams
+  | RespondToAutChallengeParams
+  | EmptyAuthChallengeParams;
+
+type EmptyAuthChallengeParams = { [index: string]: never };
+
+type InitiateAuthChallengeParams = {
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  NextStep: 'PROVIDE_AUTH_PARAMETERS'; //
+};
+
+type RespondToAutChallengeParams = {
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  NextStep: 'PROVIDE_CHALLENGE_RESPONSE';
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  CodeDeliveryDetails: CodeDeliveryDetails;
+};
+
+type CodeDeliveryDetails = {
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  AttributeName: 'email' | 'phone_number';
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  DeliveryMedium: 'EMAIL' | 'SMS';
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  Destination: string;
+};
+
+/**
+ * Options for passwordless auth.
+ */
+export type PasswordlessAuthProps = {
+  magicLink?: MagicLinkAuthOptions;
+};
+
+/**
+ * Options for Magic Link Passwordless Auth.
+ */
+export type MagicLinkAuthOptions = {
+  enabled: boolean;
+  sesFromAddress: string;
+  sesRegion?: string;
 };

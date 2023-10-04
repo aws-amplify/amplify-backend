@@ -1,5 +1,5 @@
 import { logger } from '../logger.js';
-import { DefineAuthChallengeTriggerEvent } from './types.js';
+import { DefineAuthChallengeTriggerEvent } from '../types.js';
 
 /**
  * The Define Auth Challenge lambda handler.
