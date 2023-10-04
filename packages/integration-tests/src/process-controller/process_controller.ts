@@ -29,7 +29,7 @@ export class ProcessController {
   constructor(
     private readonly command: string,
     private readonly args: string[] = [],
-    private readonly options?: Pick<Options, 'cwd'>
+    private readonly options?: Pick<Options, 'cwd' | 'env'>
   ) {}
 
   do = (interactions: StdioInteractionQueueBuilder) => {
@@ -107,5 +107,8 @@ export class ProcessController {
 /**
  * Factory function that returns a ProcessController for the Amplify CLI
  */
-export const amplifyCli = (args: string[] = [], dir: string) =>
-  new ProcessController('amplify', args, { cwd: dir });
+export const amplifyCli = (
+  args: string[] = [],
+  dir: string,
+  env: Record<string, string> = {}
+) => new ProcessController('amplify', args, { cwd: dir, env: env });

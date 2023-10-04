@@ -15,24 +15,22 @@ import {
   getTestDir,
 } from '../setup_test_directory.js';
 import { pathToFileURL } from 'url';
+import { shortUuid } from '../short_uuid.js';
 
 void describe('sandbox', () => {
-  const e2eSandboxDir = getTestDir;
-  createTestDirectoryBeforeAndCleanupAfter(e2eSandboxDir);
+  const e2eProjectDir = getTestDir;
+  createTestDirectoryBeforeAndCleanupAfter(e2eProjectDir);
 
   let testProjectRoot: string;
   let testAmplifyDir: string;
   beforeEach(async () => {
     ({ testProjectRoot, testAmplifyDir } = await createEmptyAmplifyProject(
-      'test-sandbox',
-      e2eSandboxDir
+      'test-project',
+      e2eProjectDir
     ));
   });
 
   afterEach(async () => {
-    await amplifyCli(['sandbox', 'delete'], testProjectRoot)
-      .do(confirmDeleteSandbox)
-      .run();
     await fs.rm(testProjectRoot, { recursive: true });
   });
 
@@ -63,19 +61,46 @@ void describe('sandbox', () => {
     },
   ];
 
-  testProjects.forEach((testProject) => {
-    void it(testProject.name, async () => {
-      await fs.cp(testProject.initialAmplifyDirPath, testAmplifyDir, {
-        recursive: true,
-      });
-
-      await amplifyCli(['sandbox'], testProjectRoot)
-        .do(waitForSandboxDeployment)
-        .do(interruptSandbox)
-        .do(rejectCleanupSandbox)
+  void describe('deploys sandbox', () => {
+    afterEach(async () => {
+      await amplifyCli(['sandbox', 'delete'], testProjectRoot)
+        .do(confirmDeleteSandbox)
         .run();
+    });
 
-      await testProject.assertions();
+    testProjects.forEach((testProject) => {
+      void it(testProject.name, async () => {
+        await fs.cp(testProject.initialAmplifyDirPath, testAmplifyDir, {
+          recursive: true,
+        });
+
+        await amplifyCli(['sandbox'], testProjectRoot)
+          .do(waitForSandboxDeployment)
+          .do(interruptSandbox)
+          .do(rejectCleanupSandbox)
+          .run();
+
+        await testProject.assertions();
+      });
+    });
+  });
+
+  void describe('deploys in pipeline', () => {
+    testProjects.forEach((testProject) => {
+      void it(testProject.name, async () => {
+        await fs.cp(testProject.initialAmplifyDirPath, testAmplifyDir, {
+          recursive: true,
+        });
+
+        const appId = shortUuid();
+        await amplifyCli(
+          ['pipeline-deploy', '--branch', 'test-branch', '--appId', appId],
+          testProjectRoot,
+          { CI: 'true' }
+        ).run();
+
+        await testProject.assertions();
+      });
     });
   });
 });

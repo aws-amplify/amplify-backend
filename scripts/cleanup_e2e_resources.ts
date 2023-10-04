@@ -10,7 +10,7 @@ const cfnClient = new CloudFormationClient({
   maxAttempts: 5,
 });
 const now = new Date();
-const TEST_RESOURCE_PREFIX = 'amplify-test-sandbox';
+const TEST_RESOURCE_PREFIX = 'amplify-test';
 
 const isStale = (creationDate: Date | undefined): boolean | undefined => {
   if (!creationDate) {
