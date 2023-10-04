@@ -23,6 +23,6 @@
     "@aws-sdk/client-amplify": "^3.414.0",
     "@aws-sdk/client-cloudformation": "^3.414.0",
     "@aws-sdk/types": "^3.413.0",
-    "zod": "^3.22.2"
+    "zod": "^3.22.3"
   }
 }
