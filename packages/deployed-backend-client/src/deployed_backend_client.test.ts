@@ -192,10 +192,6 @@ void describe('Deployed Backend Client', () => {
   const cfnClientSendMock = mock.fn();
 
   beforeEach(() => {
-    const mockCredentials: AwsCredentialIdentityProvider = async () => ({
-      accessKeyId: 'accessKeyId',
-      secretAccessKey: 'secretAccessKey',
-    });
     getOutputMock.mock.mockImplementation(() => getOutputMockResponse);
     mock.method(mockCfnClient, 'send', cfnClientSendMock);
 
@@ -307,10 +303,6 @@ void describe('Deployed Backend Client pagination', () => {
   ];
 
   beforeEach(() => {
-    const mockCredentials: AwsCredentialIdentityProvider = async () => ({
-      accessKeyId: 'accessKeyId',
-      secretAccessKey: 'secretAccessKey',
-    });
     const mockBackendOutputClient = new DefaultBackendOutputClient(
       mockCfnClient,
       new AmplifyClient()
