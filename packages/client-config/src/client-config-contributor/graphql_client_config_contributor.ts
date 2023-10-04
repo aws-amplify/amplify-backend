@@ -24,11 +24,11 @@ export class GraphqlClientConfigContributor implements ClientConfigContributor {
       aws_appsync_apiKey: graphqlOutput.payload.awsAppsyncApiKey,
       aws_appsync_authenticationType:
         graphqlOutput.payload.awsAppsyncAuthenticationType,
+      aws_appsync_additionalAuthenticationTypes:
+        graphqlOutput.payload.awsAppsyncAdditionalAuthenticationTypes,
+      aws_appsync_conflictResolutionMode:
+        graphqlOutput.payload.awsAppsyncConflictResolutionMode,
     };
-
-    if (graphqlOutput.payload.awsAppsyncApiKey) {
-      config.aws_appsync_apiKey = graphqlOutput.payload.awsAppsyncApiKey;
-    }
 
     return config;
   };

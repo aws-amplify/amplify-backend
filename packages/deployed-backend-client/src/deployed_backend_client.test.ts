@@ -27,6 +27,7 @@ import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { DefaultBackendOutputClient } from './backend_output_client.js';
 import { DefaultDeployedBackendClient } from './deployed_backend_client.js';
 import { StackIdentifier } from './index.js';
+import { S3 } from '@aws-sdk/client-s3';
 
 const listStacksMock = {
   NextToken: undefined,
@@ -179,6 +180,10 @@ const expectedMetadata = {
     graphqlEndpoint: 'testAwsAppsyncApiEndpoint',
     lastUpdated: undefined,
     status: BackendDeploymentStatus.FAILED,
+    defaultAuthType: undefined,
+    additionalAuthTypes: [],
+    graphqlSchema: '',
+    conflictResolutionMode: undefined,
   },
 };
 
@@ -186,6 +191,7 @@ void describe('Deployed Backend Client', () => {
   const getOutputMock = mock.fn();
   let deployedBackendClient: DefaultDeployedBackendClient;
   const cfnClientSendMock = mock.fn();
+  const s3ClientSendMock = mock.fn();
 
   beforeEach(() => {
     const mockCredentials: AwsCredentialIdentityProvider = async () => ({
@@ -193,8 +199,10 @@ void describe('Deployed Backend Client', () => {
       secretAccessKey: 'secretAccessKey',
     });
     const mockCfnClient = new CloudFormation();
+    const mockS3Client = new S3();
     getOutputMock.mock.mockImplementation(() => getOutputMockResponse);
     mock.method(mockCfnClient, 'send', cfnClientSendMock);
+    mock.method(mockS3Client, 'send', s3ClientSendMock);
 
     getOutputMock.mock.resetCalls();
     cfnClientSendMock.mock.resetCalls();
@@ -234,7 +242,8 @@ void describe('Deployed Backend Client', () => {
 
     deployedBackendClient = new DefaultDeployedBackendClient(
       mockCredentials,
-      mockCfnClient
+      mockCfnClient,
+      mockS3Client
     );
   });
 
@@ -302,6 +311,7 @@ void describe('Deployed Backend Client pagination', () => {
   let deployedBackendClient: DefaultDeployedBackendClient;
   const listStacksMockFn = mock.fn();
   const cfnClientSendMock = mock.fn();
+  const s3ClientSendMock = mock.fn();
   const getOutputMock = mock.fn();
   const returnedSandboxes = [
     {
@@ -343,7 +353,9 @@ void describe('Deployed Backend Client pagination', () => {
       ) => DefaultBackendOutputClient;
 
     const mockCfnClient = new CloudFormation();
+    const mockS3Client = new S3();
     mock.method(mockCfnClient, 'send', cfnClientSendMock);
+    mock.method(mockS3Client, 'send', s3ClientSendMock);
     listStacksMockFn.mock.resetCalls();
     listStacksMockFn.mock.mockImplementation(() => {
       return listStacksMock;
@@ -371,7 +383,8 @@ void describe('Deployed Backend Client pagination', () => {
 
     deployedBackendClient = new DefaultDeployedBackendClient(
       mockCredentials,
-      mockCfnClient
+      mockCfnClient,
+      mockS3Client
     );
   });
 

@@ -4,8 +4,10 @@ import {
 } from '@aws-amplify/plugin-types';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import {
+  ApiAuthType,
   BackendDeploymentStatus,
   BackendMetadata,
+  ConflictResolutionMode,
   DeployedBackendClient,
   ListSandboxesRequest,
   ListSandboxesResponse,
@@ -29,6 +31,9 @@ import {
   StackStatus,
   StackSummary,
 } from '@aws-sdk/client-cloudformation';
+
+import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
+
 import {
   authOutputKey,
   graphqlOutputKey,
@@ -45,7 +50,8 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
    */
   constructor(
     private readonly credentials: AwsCredentialIdentityProvider,
-    private readonly cfnClient: CloudFormationClient
+    private readonly cfnClient: CloudFormationClient,
+    private readonly s3Client: S3Client
   ) {}
 
   /**
@@ -222,15 +228,48 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     }
 
     if (apiStack) {
+      const additionalAuthTypesString =
+        backendOutput[graphqlOutputKey]?.payload
+          .awsAppsyncAdditionalAuthenticationTypes;
+      const additionalAuthTypes = additionalAuthTypesString
+        ? (additionalAuthTypesString.split(',') as ApiAuthType[])
+        : [];
       backendMetadataObject.apiConfiguration = {
         status: this.translateStackStatus(apiStack.StackStatus),
         lastUpdated: apiStack.LastUpdatedTime,
         graphqlEndpoint: backendOutput[graphqlOutputKey]?.payload
           .awsAppsyncApiEndpoint as string,
+        defaultAuthType: backendOutput[graphqlOutputKey]?.payload
+          .awsAppsyncAuthenticationType as ApiAuthType,
+        additionalAuthTypes,
+        conflictResolutionMode: backendOutput[graphqlOutputKey]?.payload
+          .awsAppsyncConflictResolutionMode as ConflictResolutionMode,
+        graphqlSchema: await this.fetchGraphqlSchema(
+          backendOutput[graphqlOutputKey]?.payload.amplifyApiModelSchemaS3Uri
+        ),
       };
     }
 
     return backendMetadataObject;
+  };
+
+  private fetchGraphqlSchema = async (
+    graphqlSchemaS3Uri: string | undefined
+  ): Promise<string> => {
+    if (!graphqlSchemaS3Uri) return '';
+
+    // s3://{bucketName}/{fileName}
+    const uriParts = graphqlSchemaS3Uri.split('/');
+    const bucketName = uriParts[2];
+    const objectPath = uriParts[3];
+
+    if (!bucketName || !objectPath) return '';
+
+    const s3Response = await this.s3Client.send(
+      new GetObjectCommand({ Bucket: bucketName, Key: objectPath })
+    );
+    const fileContents = await s3Response.Body?.transformToString();
+    return fileContents ?? '';
   };
 
   private translateStackStatus = (

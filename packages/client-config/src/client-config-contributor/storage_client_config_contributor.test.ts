@@ -17,6 +17,7 @@ void describe('StorageClientConfigContributor', () => {
             awsAppsyncApiEndpoint: 'stuff',
             awsAppsyncRegion: 'us-east-1',
             awsAppsyncAuthenticationType: 'API_KEY',
+            awsAppsyncAdditionalAuthenticationTypes: 'API_KEY',
             awsAppsyncApiId: 'testApiId',
             amplifyApiModelSchemaS3Uri: 'testApiSchemaUri',
           },
