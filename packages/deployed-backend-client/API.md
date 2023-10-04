@@ -10,6 +10,20 @@ import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
 import { UnifiedBackendOutput } from '@aws-amplify/backend-output-schemas';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
+// @public (undocumented)
+export enum ApiAuthType {
+    // (undocumented)
+    AMAZON_COGNITO_USER_POOLS = "AMAZON_COGNITO_USER_POOLS",
+    // (undocumented)
+    API_KEY = "API_KEY",
+    // (undocumented)
+    AWS_IAM = "AWS_IAM",
+    // (undocumented)
+    AWS_LAMBDA = "AWS_LAMBDA",
+    // (undocumented)
+    OPENID_CONNECT = "OPENID_CONNECT"
+}
+
 // @public
 export type AppNameAndBranchBackendIdentifier = {
     appName: string;
@@ -43,6 +57,10 @@ export type BackendMetadata = {
         status: BackendDeploymentStatus;
         lastUpdated: Date | undefined;
         graphqlEndpoint: string;
+        graphqlSchema: string;
+        defaultAuthType: ApiAuthType;
+        additionalAuthTypes: ApiAuthType[];
+        conflictResolutionMode?: ConflictResolutionMode;
     };
     authConfiguration?: {
         status: BackendDeploymentStatus;
@@ -77,6 +95,16 @@ export enum BackendOutputClientErrorType {
 // @public
 export class BackendOutputClientFactory {
     static getInstance: (credentials: AwsCredentialIdentityProvider) => BackendOutputClient;
+}
+
+// @public (undocumented)
+export enum ConflictResolutionMode {
+    // (undocumented)
+    AUTOMERGE = "AUTOMERGE",
+    // (undocumented)
+    LAMBDA = "LAMBDA",
+    // (undocumented)
+    OPTIMISTIC_CONCURRENCY = "OPTIMISTIC_CONCURRENCY"
 }
 
 // @public (undocumented)

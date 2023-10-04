@@ -19,7 +19,7 @@ export class Backend<T extends Record<string, ConstructFactory<Construct>>> {
 }
 
 // @public
-export const secret: (name: string) => BackendSecret;
+export const secret: (name: string, version?: number) => BackendSecret;
 
 // (No @packageDocumentation comment for this package)
 
