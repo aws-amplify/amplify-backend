@@ -256,20 +256,30 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
   private fetchGraphqlSchema = async (
     graphqlSchemaS3Uri: string | undefined
   ): Promise<string> => {
-    if (!graphqlSchemaS3Uri) return '';
+    if (!graphqlSchemaS3Uri) {
+      throw new Error('graphqlSchemaS3Uri output is not available');
+    }
 
     // s3://{bucketName}/{fileName}
     const uriParts = graphqlSchemaS3Uri.split('/');
     const bucketName = uriParts[2];
     const objectPath = uriParts.slice(3, uriParts.length).join('/');
 
-    if (!bucketName || !objectPath) return '';
+    if (!bucketName || !objectPath) {
+      throw new Error('graphqlSchemaS3Uri is not valid');
+    }
 
     const s3Response = await this.s3Client.send(
       new GetObjectCommand({ Bucket: bucketName, Key: objectPath })
     );
-    const fileContents = await s3Response.Body?.transformToString();
-    return fileContents ?? '';
+
+    if (!s3Response.Body) {
+      throw new Error(
+        `s3Response from ${graphqlSchemaS3Uri} does not contain a Body`
+      );
+    }
+
+    return await s3Response.Body?.transformToString();
   };
 
   private translateStackStatus = (

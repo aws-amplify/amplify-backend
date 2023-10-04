@@ -58,63 +58,6 @@ const listStacksMock = {
   ],
 };
 
-const describeStacksMock = {
-  Stacks: [
-    {
-      StackName: 'amplify-test-testBranch',
-      StackStatus: StackStatus.CREATE_COMPLETE,
-      StackId: 'testStackId',
-      ParentId: undefined,
-      Outputs: [
-        {
-          OutputKey: 'webClientId',
-          OutputValue: 'webClientIdValue',
-        },
-        {
-          OutputKey: 'awsAppsyncApiEndpoint',
-          OutputValue: 'https://example.com/graphql',
-        },
-        {
-          OutputKey: 'bucketName',
-          OutputValue: 'storageBucketNameValue',
-        },
-        {
-          OutputKey: 'awsAppsyncApiId',
-          OutputValue: 'apiIdValue',
-        },
-        {
-          OutputKey: 'awsAppsyncAuthenticationType',
-          OutputValue: 'AMAZON_COGNITO_USER_POOLS',
-        },
-        {
-          OutputKey: 'authRegion',
-          OutputValue: 'us-east-1',
-        },
-        {
-          OutputKey: 'amplifyApiModelSchemaS3Uri',
-          OutputValue: 's3://{bucketName}/{fileName}',
-        },
-        {
-          OutputKey: 'userPoolId',
-          OutputValue: 'us-east-1_HNkNiDMQF',
-        },
-        {
-          OutputKey: 'identityPoolId',
-          OutputValue: 'us-east-1:identity-pool-id',
-        },
-        {
-          OutputKey: 'storageRegion',
-          OutputValue: 'us-east-1',
-        },
-        {
-          OutputKey: 'awsAppsyncRegion',
-          OutputValue: 'us-east-1',
-        },
-      ],
-    },
-  ],
-};
-
 const deleteStackMock = undefined;
 
 const listStackResourcesMock = {
@@ -230,7 +173,7 @@ void describe('Deployed Backend Client', () => {
         const matchingStack = listStacksMock.StackSummaries.find((stack) => {
           return stack.StackName === request.input.StackName;
         });
-        const stack = matchingStack ?? describeStacksMock;
+        const stack = matchingStack;
         return {
           Stacks: [stack],
         };
@@ -383,7 +326,7 @@ void describe('Deployed Backend Client pagination', () => {
         const matchingStack = listStacksMock.StackSummaries.find((stack) => {
           return stack.StackName === request.input.StackName;
         });
-        const stack = matchingStack ?? describeStacksMock;
+        const stack = matchingStack;
         return {
           Stacks: [stack],
         };
