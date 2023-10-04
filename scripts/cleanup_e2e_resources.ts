@@ -5,8 +5,17 @@ import {
   StackStatus,
   StackSummary,
 } from '@aws-sdk/client-cloudformation';
+import {
+  Bucket,
+  DeleteBucketCommand,
+  ListBucketsCommand,
+  S3Client,
+} from '@aws-sdk/client-s3';
 
 const cfnClient = new CloudFormationClient({
+  maxAttempts: 5,
+});
+const s3Client = new S3Client({
   maxAttempts: 5,
 });
 const now = new Date();
@@ -55,6 +64,33 @@ for (const staleStack of allStaleStacks) {
     } catch (e: Error) {
       console.log(
         `Failed to kick off ${stackName} stack deletion. ${e.message as string}`
+      );
+    }
+  }
+}
+
+const listStaleS3Buckets = async (): Array<Bucket> => {
+  const listBucketsResponse = await s3Client.send(new ListBucketsCommand({}));
+  return (
+    listBucketsResponse.Buckets?.filter(
+      (bucket) =>
+        isStale(bucket.CreationDate) &&
+        bucket.Name.startsWith(TEST_RESOURCE_PREFIX)
+    ) ?? []
+  );
+};
+
+const staleBuckets = await listStaleS3Buckets();
+
+for (const staleBucket of staleBuckets) {
+  if (staleBucket.Name) {
+    const bucketName = staleBucket.Name;
+    try {
+      await s3Client.send(new DeleteBucketCommand({ Bucket: bucketName }));
+      console.log(`Successfully deleted ${bucketName} bucket`);
+    } catch (e: Error) {
+      console.log(
+        `Failed to delete ${bucketName} bucket. ${e.message as string}`
       );
     }
   }
