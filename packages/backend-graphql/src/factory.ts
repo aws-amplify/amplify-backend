@@ -126,8 +126,8 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     ): schema is DerivedModelSchema => {
       if (
         schema !== null &&
-        typeof schema == 'object' &&
-        typeof schema.transform == 'function'
+        typeof schema === 'object' &&
+        typeof schema.transform === 'function'
       ) {
         return true;
       }
