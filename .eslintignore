@@ -9,3 +9,4 @@ API.md
 examples
 verdaccio-cache
 expected-cdk-out
+packages/integration-tests/src/e2e-tests

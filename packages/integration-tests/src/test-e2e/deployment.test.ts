@@ -16,10 +16,16 @@ import {
 } from '../setup_test_directory.js';
 import { pathToFileURL } from 'url';
 import { shortUuid } from '../short_uuid.js';
+import {
+  CloudFormationClient,
+  DeleteStackCommand,
+} from '@aws-sdk/client-cloudformation';
 
-void describe('sandbox', () => {
+void describe('amplify deploys', () => {
   const e2eProjectDir = getTestDir;
   createTestDirectoryBeforeAndCleanupAfter(e2eProjectDir);
+
+  const cfnClient = new CloudFormationClient();
 
   let testProjectRoot: string;
   let testAmplifyDir: string;
@@ -61,7 +67,7 @@ void describe('sandbox', () => {
     },
   ];
 
-  void describe('deploys sandbox', () => {
+  void describe('sandbox', () => {
     afterEach(async () => {
       await amplifyCli(['sandbox', 'delete'], testProjectRoot)
         .do(confirmDeleteSandbox)
@@ -85,18 +91,38 @@ void describe('sandbox', () => {
     });
   });
 
-  void describe('deploys in pipeline', () => {
+  void describe('in pipeline', () => {
+    let appId: string;
+    let branchName: string;
+
+    beforeEach(() => {
+      branchName = 'test-branch';
+      appId = `test-${shortUuid()}`;
+    });
+
+    afterEach(async () => {
+      await cfnClient.send(
+        new DeleteStackCommand({
+          StackName: `amplify-${appId}-${branchName}`,
+        })
+      );
+    });
+
     testProjects.forEach((testProject) => {
       void it(testProject.name, async () => {
         await fs.cp(testProject.initialAmplifyDirPath, testAmplifyDir, {
           recursive: true,
         });
 
-        const appId = shortUuid();
         await amplifyCli(
-          ['pipeline-deploy', '--branch', 'test-branch', '--appId', appId],
+          ['pipeline-deploy', '--branch', branchName, '--appId', appId],
           testProjectRoot,
           { CI: 'true' }
+        ).run();
+
+        await amplifyCli(
+          ['generate', 'config', '--branch', branchName, '--appId', appId],
+          testProjectRoot
         ).run();
 
         await testProject.assertions();
