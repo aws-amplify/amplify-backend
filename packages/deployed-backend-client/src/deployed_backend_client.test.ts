@@ -27,6 +27,7 @@ import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { DefaultBackendOutputClient } from './backend_output_client.js';
 import { DefaultDeployedBackendClient } from './deployed_backend_client.js';
 import { StackIdentifier } from './index.js';
+import { AmplifyClient } from '@aws-sdk/client-amplify';
 
 const listStacksMock = {
   NextToken: undefined,
@@ -193,6 +194,10 @@ void describe('Deployed Backend Client', () => {
       secretAccessKey: 'secretAccessKey',
     });
     const mockCfnClient = new CloudFormation();
+    const mockBackendOutputClient = new DefaultBackendOutputClient(
+      mockCfnClient,
+      new AmplifyClient()
+    );
     getOutputMock.mock.mockImplementation(() => getOutputMockResponse);
     mock.method(mockCfnClient, 'send', cfnClientSendMock);
 
@@ -234,7 +239,8 @@ void describe('Deployed Backend Client', () => {
 
     deployedBackendClient = new DefaultDeployedBackendClient(
       mockCredentials,
-      mockCfnClient
+      mockCfnClient,
+      mockBackendOutputClient
     );
   });
 
@@ -343,6 +349,10 @@ void describe('Deployed Backend Client pagination', () => {
       ) => DefaultBackendOutputClient;
 
     const mockCfnClient = new CloudFormation();
+    const mockBackendOutputClient = new DefaultBackendOutputClient(
+      mockCfnClient,
+      new AmplifyClient()
+    );
     mock.method(mockCfnClient, 'send', cfnClientSendMock);
     listStacksMockFn.mock.resetCalls();
     listStacksMockFn.mock.mockImplementation(() => {
@@ -371,7 +381,8 @@ void describe('Deployed Backend Client pagination', () => {
 
     deployedBackendClient = new DefaultDeployedBackendClient(
       mockCredentials,
-      mockCfnClient
+      mockCfnClient,
+      mockBackendOutputClient
     );
   });
 

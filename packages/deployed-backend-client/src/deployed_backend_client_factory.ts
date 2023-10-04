@@ -6,6 +6,10 @@ import {
   SandboxBackendIdentifier,
 } from '@aws-amplify/platform-core';
 import { CloudFormation } from '@aws-sdk/client-cloudformation';
+import {
+  BackendOutputClient,
+  BackendOutputClientFactory,
+} from './backend_output_client_factory.js';
 
 export type SandboxMetadata = {
   name: string;
@@ -64,6 +68,11 @@ export type DeployedBackendClient = {
   ) => Promise<BackendMetadata>;
 };
 
+export type DeployedBackendClientFactoryOptions = {
+  cloudFormationClient?: CloudFormation;
+  backendOutputClient?: BackendOutputClient;
+};
+
 /**
  * Factory to create a DeploymentClient
  */
@@ -72,9 +81,19 @@ export class DeployedBackendClientFactory {
    * Returns a single instance of DeploymentClient
    */
   static getInstance = (
-    credentials: AwsCredentialIdentityProvider
+    credentials: AwsCredentialIdentityProvider,
+    {
+      cloudFormationClient = new CloudFormation(credentials),
+      backendOutputClient: backendOutputClientParameter,
+    }: DeployedBackendClientFactoryOptions = {}
   ): DeployedBackendClient => {
-    const cfnClient = new CloudFormation(credentials);
-    return new DefaultDeployedBackendClient(credentials, cfnClient);
+    const backendOutputClient =
+      backendOutputClientParameter ??
+      BackendOutputClientFactory.getInstance(credentials);
+    return new DefaultDeployedBackendClient(
+      credentials,
+      cloudFormationClient,
+      backendOutputClient
+    );
   };
 }
