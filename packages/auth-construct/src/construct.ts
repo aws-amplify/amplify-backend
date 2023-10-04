@@ -1,6 +1,5 @@
 import { Construct } from 'constructs';
 import { Stack, aws_cognito as cognito } from 'aws-cdk-lib';
-import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import {
   AmplifyFunction,
   AuthResources,
@@ -31,6 +30,7 @@ import {
   AuthCustomAttributeFactory,
   AuthStandardAttribute,
 } from './attributes.js';
+import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 
 type DefaultRoles = { auth: Role; unAuth: Role };
@@ -80,7 +80,7 @@ export class AmplifyAuth
     super(scope, id);
 
     // UserPool
-    const userPoolProps: UserPoolProps = this.getUserPoolProps(id, props);
+    const userPoolProps: UserPoolProps = this.getUserPoolProps(props);
     this.userPool = new cognito.UserPool(this, 'UserPool', userPoolProps);
 
     // UserPool - Identity Providers
@@ -210,11 +210,8 @@ export class AmplifyAuth
 
   /**
    * Process props into UserPoolProps (set defaults if needed)
-   * @param id - Stack ID
-   * @param props - AuthProps
-   * @returns UserPoolProps
    */
-  private getUserPoolProps = (id: string, props: AuthProps): UserPoolProps => {
+  private getUserPoolProps = (props: AuthProps): UserPoolProps => {
     const emailEnabled = props.loginWith.email ? true : false;
     const phoneEnabled = props.loginWith.phoneNumber ? true : false;
     // check for customization
