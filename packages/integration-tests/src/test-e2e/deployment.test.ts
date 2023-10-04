@@ -115,7 +115,9 @@ void describe('amplify deploys', () => {
         await amplifyCli(
           ['pipeline-deploy', '--branch', branchName, '--appId', appId],
           testProjectRoot,
-          { CI: 'true' }
+          {
+            env: { CI: 'true' },
+          }
         ).run();
 
         await amplifyCli(
