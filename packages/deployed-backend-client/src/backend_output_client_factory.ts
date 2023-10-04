@@ -37,8 +37,9 @@ export type BackendOutputClient = {
 };
 
 export type BackendOutputClientFactoryOptions = {
-  cloudFormationClient?: CloudFormationClient;
-  amplifyClient?: AmplifyClient;
+  cloudFormationClient: CloudFormationClient;
+  amplifyClient: AmplifyClient;
+  credentials: AwsCredentialIdentityProvider;
 };
 /**
  * Factory to create a backend metadata reader
@@ -48,16 +49,20 @@ export class BackendOutputClientFactory {
    * Returns a single instance of BackendOutputClient
    */
   static getInstance = (
-    credentials: AwsCredentialIdentityProvider,
-    {
-      amplifyClient: amplifyClientParameter,
-      cloudFormationClient: cloudFormationClientParameter,
-    }: BackendOutputClientFactoryOptions = {}
+    options:
+      | Pick<
+          BackendOutputClientFactoryOptions,
+          'cloudFormationClient' | 'amplifyClient'
+        >
+      | Pick<BackendOutputClientFactoryOptions, 'credentials'>
   ): BackendOutputClient => {
-    const cloudFormationClient =
-      cloudFormationClientParameter ?? new CloudFormationClient(credentials);
-    const amplifyClient =
-      amplifyClientParameter ?? new AmplifyClient(credentials);
-    return new DefaultBackendOutputClient(cloudFormationClient, amplifyClient);
+    if ('cloudFormationClient' in options && 'amplifyClient' in options) {
+      return new DefaultBackendOutputClient(
+        options.cloudFormationClient,
+        options.amplifyClient
+      );
+    }
+    const cfnClient = new CloudFormationClient(options.credentials);
+    return new DefaultBackendOutputClient(cfnClient, new AmplifyClient());
   };
 }

@@ -2,7 +2,6 @@ import {
   BackendOutput,
   UniqueBackendIdentifier,
 } from '@aws-amplify/plugin-types';
-import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import {
   BackendDeploymentStatus,
   BackendMetadata,
@@ -44,7 +43,6 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
    * Constructor for deployment client
    */
   constructor(
-    private readonly credentials: AwsCredentialIdentityProvider,
     private readonly cfnClient: CloudFormationClient,
     private readonly backendOutputClient: BackendOutputClient
   ) {}

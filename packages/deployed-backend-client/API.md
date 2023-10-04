@@ -79,13 +79,14 @@ export enum BackendOutputClientErrorType {
 
 // @public
 export class BackendOutputClientFactory {
-    static getInstance: (credentials: AwsCredentialIdentityProvider, { amplifyClient: amplifyClientParameter, cloudFormationClient: cloudFormationClientParameter, }?: BackendOutputClientFactoryOptions) => BackendOutputClient;
+    static getInstance: (options: Pick<BackendOutputClientFactoryOptions, 'cloudFormationClient' | 'amplifyClient'> | Pick<BackendOutputClientFactoryOptions, 'credentials'>) => BackendOutputClient;
 }
 
 // @public (undocumented)
 export type BackendOutputClientFactoryOptions = {
-    cloudFormationClient?: CloudFormationClient;
-    amplifyClient?: AmplifyClient;
+    cloudFormationClient: CloudFormationClient;
+    amplifyClient: AmplifyClient;
+    credentials: AwsCredentialIdentityProvider;
 };
 
 // @public (undocumented)
@@ -97,13 +98,15 @@ export type DeployedBackendClient = {
 
 // @public
 export class DeployedBackendClientFactory {
-    static getInstance: (credentials: AwsCredentialIdentityProvider, { cloudFormationClient, backendOutputClient: backendOutputClientParameter, }?: DeployedBackendClientFactoryOptions) => DeployedBackendClient;
+    // Warning: (ae-forgotten-export) The symbol "DefaultDeployedBackendClient" needs to be exported by the entry point index.d.ts
+    static getInstance(options: Pick<DeployedBackendClientFactoryOptions, 'credential'> | Pick<DeployedBackendClientFactoryOptions, 'cloudFormationClient' | 'backendOutputClient'>): DefaultDeployedBackendClient;
 }
 
 // @public (undocumented)
 export type DeployedBackendClientFactoryOptions = {
-    cloudFormationClient?: CloudFormation;
-    backendOutputClient?: BackendOutputClient;
+    credential: AwsCredentialIdentityProvider;
+    cloudFormationClient: CloudFormation;
+    backendOutputClient: BackendOutputClient;
 };
 
 // @public (undocumented)

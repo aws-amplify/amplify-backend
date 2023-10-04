@@ -227,7 +227,6 @@ void describe('Deployed Backend Client', () => {
     cfnClientSendMock.mock.mockImplementation(mockSend);
 
     deployedBackendClient = new DefaultDeployedBackendClient(
-      mockCredentials,
       mockCfnClient,
       mockBackendOutputClient
     );
@@ -360,7 +359,6 @@ void describe('Deployed Backend Client pagination', () => {
     cfnClientSendMock.mock.mockImplementation(mockSend);
 
     deployedBackendClient = new DefaultDeployedBackendClient(
-      mockCredentials,
       mockCfnClient,
       mockBackendOutputClient
     );

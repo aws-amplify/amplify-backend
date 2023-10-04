@@ -5,7 +5,10 @@ import {
   BackendDeploymentType,
   SandboxBackendIdentifier,
 } from '@aws-amplify/platform-core';
-import { CloudFormation } from '@aws-sdk/client-cloudformation';
+import {
+  CloudFormation,
+  CloudFormationClient,
+} from '@aws-sdk/client-cloudformation';
 import {
   BackendOutputClient,
   BackendOutputClientFactory,
@@ -69,8 +72,9 @@ export type DeployedBackendClient = {
 };
 
 export type DeployedBackendClientFactoryOptions = {
-  cloudFormationClient?: CloudFormation;
-  backendOutputClient?: BackendOutputClient;
+  credential: AwsCredentialIdentityProvider;
+  cloudFormationClient: CloudFormation;
+  backendOutputClient: BackendOutputClient;
 };
 
 /**
@@ -80,20 +84,25 @@ export class DeployedBackendClientFactory {
   /**
    * Returns a single instance of DeploymentClient
    */
-  static getInstance = (
-    credentials: AwsCredentialIdentityProvider,
-    {
-      cloudFormationClient = new CloudFormation(credentials),
-      backendOutputClient: backendOutputClientParameter,
-    }: DeployedBackendClientFactoryOptions = {}
-  ): DeployedBackendClient => {
-    const backendOutputClient =
-      backendOutputClientParameter ??
-      BackendOutputClientFactory.getInstance(credentials);
+  static getInstance(
+    options:
+      | Pick<DeployedBackendClientFactoryOptions, 'credential'>
+      | Pick<
+          DeployedBackendClientFactoryOptions,
+          'cloudFormationClient' | 'backendOutputClient'
+        >
+  ) {
+    if ('backendOutputClient' in options && 'cloudFormationClient' in options) {
+      return new DefaultDeployedBackendClient(
+        options.cloudFormationClient,
+        options.backendOutputClient
+      );
+    }
     return new DefaultDeployedBackendClient(
-      credentials,
-      cloudFormationClient,
-      backendOutputClient
+      new CloudFormationClient(options.credential),
+      BackendOutputClientFactory.getInstance({
+        credentials: options.credential,
+      })
     );
-  };
+  }
 }
