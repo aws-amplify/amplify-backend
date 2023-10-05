@@ -1,5 +1,11 @@
 # @aws-amplify/backend-auth
 
+## 0.2.0-alpha.7
+
+### Minor Changes
+
+- bf24d363: Change Auth external providers'IDs to secret type
+
 ## 0.2.0-alpha.6
 
 ### Patch Changes

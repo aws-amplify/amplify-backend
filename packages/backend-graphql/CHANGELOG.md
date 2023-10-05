@@ -1,5 +1,11 @@
 # @aws-amplify/backend-graphql
 
+## 0.2.0-alpha.7
+
+### Patch Changes
+
+- f8df0ed6: add defineData authorizationModes passthrough
+
 ## 0.2.0-alpha.6
 
 ### Minor Changes
