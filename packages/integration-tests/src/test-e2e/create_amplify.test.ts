@@ -79,6 +79,12 @@ void describe('create-amplify script', () => {
         path.join('data', 'resource.ts'),
       ].map((suffix) => path.join(pathPrefix, suffix))
     );
+
+    // assert that project compiles successfully
+    await execa('npx', ['tsc', '--noEmit'], {
+      cwd: tempDir,
+      stdio: 'inherit',
+    });
   });
 
   void it('fails fast if amplify path already exists', async () => {
