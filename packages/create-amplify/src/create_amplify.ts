@@ -17,7 +17,7 @@ import { NpmProjectInitializer } from './npm_project_initializer.js';
 try {
   const projectRoot = await input({
     message: 'Where should we create your project?',
-    default: './',
+    default: '.',
   });
 
   const amplifyProjectCreator = new AmplifyProjectCreator(

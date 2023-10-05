@@ -1,3 +1,5 @@
+import boxen from 'boxen';
+import { confirm } from '@inquirer/prompts';
 import { PackageManagerController } from './package_manager_controller.js';
 import { ProjectRootValidator } from './project_root_validator.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
@@ -43,22 +45,47 @@ export class AmplifyProjectCreator {
 
     await this.npmInitializedEnsurer.ensureInitialized();
 
-    this.logger.log(
-      `Installing packages ${this.defaultProdPackages.join(', ')}...`
+    const boxOptions = { padding: 1, margin: 1, borderStyle: 'round' } as const;
+    const installDependenciesCMD = boxen(
+      `npm install ${this.defaultProdPackages.join(' ')}`,
+      boxOptions
     );
-    await this.packageManagerController.installDependencies(
-      this.defaultProdPackages,
-      'prod'
+    const installDevDependenciesCMD = boxen(
+      `npm install --save-dev ${this.defaultDevPackages.join(' ')}`,
+      boxOptions
     );
+    const message = `The Amplify CLI will download the following packages as dependencies by running:
 
-    this.logger.log(
-      `Installing dev dependencies ${this.defaultDevPackages.join(', ')}...`
-    );
+${installDependenciesCMD}
 
-    await this.packageManagerController.installDependencies(
-      this.defaultDevPackages,
-      'dev'
-    );
+and dependencies by running;
+
+${installDevDependenciesCMD}
+
+If you skip this step, you can install those packages manually whenever you need them.
+
+Continue?`;
+
+    const toContinue = await confirm({ message, default: true });
+
+    if (toContinue) {
+      this.logger.log(
+        `Installing packages ${this.defaultProdPackages.join(', ')}...`
+      );
+      await this.packageManagerController.installDependencies(
+        this.defaultProdPackages,
+        'prod'
+      );
+
+      this.logger.log(
+        `Installing dev dependencies ${this.defaultDevPackages.join(', ')}...`
+      );
+
+      await this.packageManagerController.installDependencies(
+        this.defaultDevPackages,
+        'dev'
+      );
+    }
 
     this.logger.log('Scaffolding initial project files...');
     await this.initialProjectFileGenerator.generateInitialProjectFiles();
