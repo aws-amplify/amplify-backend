@@ -3,7 +3,6 @@ import {
   CreateAuthChallengeTriggerEvent,
   CustomChallengeResult,
   DefineAuthChallengeTriggerEvent,
-  StringMap,
   VerifyAuthChallengeResponseTriggerEvent,
 } from '../types.js';
 
@@ -49,7 +48,7 @@ export const buildDefineAuthChallengeEvent = (
  */
 export const buildCreateAuthChallengeEvent = (
   previousSessions?: Array<ChallengeResult | CustomChallengeResult>,
-  clientMetadata?: StringMap
+  clientMetadata?: Record<string, string>
 ): CreateAuthChallengeTriggerEvent => {
   return {
     ...baseEvent,
@@ -71,7 +70,7 @@ export const buildCreateAuthChallengeEvent = (
  * Creates a mock event for Verify Auth Challenge Response.
  */
 export const buildVerifyAuthChallengeResponseEvent = (
-  clientMetadata?: StringMap
+  clientMetadata?: Record<string, string>
 ): VerifyAuthChallengeResponseTriggerEvent => {
   return {
     ...baseEvent,

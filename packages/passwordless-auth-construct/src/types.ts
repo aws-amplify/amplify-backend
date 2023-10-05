@@ -1,8 +1,8 @@
 export type DefineAuthChallengeTriggerEvent = {
   request: {
-    userAttributes: StringMap;
+    userAttributes: Record<string, string>;
     session: Array<ChallengeResult | CustomChallengeResult>;
-    clientMetadata?: StringMap | undefined;
+    clientMetadata?: Record<string, string> | undefined;
     userNotFound?: boolean | undefined;
   };
   response: {
@@ -14,35 +14,31 @@ export type DefineAuthChallengeTriggerEvent = {
 
 export type CreateAuthChallengeTriggerEvent = {
   request: {
-    userAttributes: StringMap;
+    userAttributes: Record<string, string>;
     challengeName: string;
     session: Array<ChallengeResult | CustomChallengeResult>;
-    clientMetadata?: StringMap | undefined;
+    clientMetadata?: Record<string, string> | undefined;
     userNotFound?: boolean | undefined;
   };
   response: {
     publicChallengeParameters: PasswordlessAuthChallengeParams;
-    privateChallengeParameters: StringMap;
+    privateChallengeParameters: Record<string, string>;
     challengeMetadata?: string;
   };
 } & BaseTriggerEvent<'CreateAuthChallenge_Authentication'>;
 
 export type VerifyAuthChallengeResponseTriggerEvent = {
   request: {
-    userAttributes: StringMap;
-    privateChallengeParameters: StringMap;
+    userAttributes: Record<string, string>;
+    privateChallengeParameters: Record<string, string>;
     challengeAnswer: string;
-    clientMetadata?: StringMap | undefined;
+    clientMetadata?: Record<string, string> | undefined;
     userNotFound?: boolean | undefined;
   };
   response: {
     answerCorrect?: boolean;
   };
 } & BaseTriggerEvent<'VerifyAuthChallengeResponse_Authentication'>;
-
-export type StringMap = {
-  [name: string]: string;
-};
 
 export type ChallengeResult = {
   challengeName: ChallengeName;
