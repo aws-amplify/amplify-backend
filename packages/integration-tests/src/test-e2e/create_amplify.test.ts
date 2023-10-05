@@ -56,6 +56,7 @@ void describe('create-amplify script', () => {
         '@aws-amplify/backend-auth',
         '@aws-amplify/backend-cli',
         '@aws-amplify/backend-graphql',
+        'typescript',
       ]
     );
 
