@@ -1,8 +1,6 @@
+import { CreateAuthChallengeTriggerEvent } from 'aws-lambda';
 import { logger } from '../logger.js';
-import {
-  CreateAuthChallengeTriggerEvent,
-  PasswordlessAuthChallengeParams,
-} from '../types.js';
+import { PasswordlessAuthChallengeParams } from '../types.js';
 
 /**
  * The Create Auth Challenge lambda handler.
@@ -57,7 +55,7 @@ const provideAuthParameters = async (
   logger.info('Creating challenge: PROVIDE_AUTH_PARAMETERS');
   event.response.challengeMetadata = 'PROVIDE_AUTH_PARAMETERS';
   const parameters: PasswordlessAuthChallengeParams = {
-    NextStep: 'PROVIDE_AUTH_PARAMETERS',
+    nextStep: 'PROVIDE_AUTH_PARAMETERS',
   };
   event.response.privateChallengeParameters = parameters;
   event.response.publicChallengeParameters = parameters;

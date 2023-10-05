@@ -1,5 +1,5 @@
+import { VerifyAuthChallengeResponseTriggerEvent } from 'aws-lambda';
 import { logger } from '../logger.js';
-import { VerifyAuthChallengeResponseTriggerEvent } from '../types.js';
 
 /**
  * The Verify Auth Challenge Response lambda handler.

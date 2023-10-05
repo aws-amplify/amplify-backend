@@ -1,5 +1,5 @@
+import { DefineAuthChallengeTriggerEvent } from 'aws-lambda';
 import { logger } from '../logger.js';
-import { DefineAuthChallengeTriggerEvent } from '../types.js';
 
 /**
  * The Define Auth Challenge lambda handler.

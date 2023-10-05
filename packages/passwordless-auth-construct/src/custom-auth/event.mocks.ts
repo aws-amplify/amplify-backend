@@ -1,10 +1,9 @@
 import {
-  ChallengeResult,
   CreateAuthChallengeTriggerEvent,
-  CustomChallengeResult,
   DefineAuthChallengeTriggerEvent,
   VerifyAuthChallengeResponseTriggerEvent,
-} from '../types.js';
+} from 'aws-lambda';
+import { ChallengeResult } from '../types.js';
 
 const baseEvent = {
   version: '1',
@@ -30,7 +29,7 @@ const baseRequest = {
  * Creates a mock event for Define Auth Challenge.
  */
 export const buildDefineAuthChallengeEvent = (
-  previousSessions?: Array<ChallengeResult | CustomChallengeResult>
+  previousSessions?: [ChallengeResult]
 ): DefineAuthChallengeTriggerEvent => {
   return {
     ...baseEvent,
@@ -39,7 +38,11 @@ export const buildDefineAuthChallengeEvent = (
       ...baseRequest,
       session: previousSessions ?? [],
     },
-    response: {},
+    response: {
+      challengeName: '',
+      failAuthentication: false,
+      issueTokens: false,
+    },
   };
 };
 
@@ -47,7 +50,7 @@ export const buildDefineAuthChallengeEvent = (
  * Creates a mock event for Create Auth Challenge.
  */
 export const buildCreateAuthChallengeEvent = (
-  previousSessions?: Array<ChallengeResult | CustomChallengeResult>,
+  previousSessions?: [ChallengeResult],
   clientMetadata?: Record<string, string>
 ): CreateAuthChallengeTriggerEvent => {
   return {
@@ -62,6 +65,7 @@ export const buildCreateAuthChallengeEvent = (
     response: {
       publicChallengeParameters: {},
       privateChallengeParameters: {},
+      challengeMetadata: '',
     },
   };
 };
@@ -81,6 +85,8 @@ export const buildVerifyAuthChallengeResponseEvent = (
       challengeAnswer: 'answer',
       clientMetadata: clientMetadata,
     },
-    response: {},
+    response: {
+      answerCorrect: false,
+    },
   };
 };

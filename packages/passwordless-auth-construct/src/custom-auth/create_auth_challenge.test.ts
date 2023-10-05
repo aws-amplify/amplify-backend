@@ -1,11 +1,11 @@
 import { describe, it } from 'node:test';
 import { createAuthChallenge } from './create_auth_challenge.js';
-import { CustomChallengeResult } from '../types.js';
 import { strictEqual } from 'node:assert';
 import { buildCreateAuthChallengeEvent } from './event.mocks.js';
+import { ChallengeResult } from '../types.js';
 
 // The custom auth session from the initial Cognito InitiateAuth call.
-const initialSession: CustomChallengeResult = {
+const initialSession: ChallengeResult = {
   challengeName: 'CUSTOM_CHALLENGE',
   challengeResult: false,
   challengeMetadata: 'PROVIDE_AUTH_PARAMETERS',
