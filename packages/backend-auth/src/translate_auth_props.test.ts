@@ -59,15 +59,15 @@ void describe('translateToAuthConstructLoginWith', () => {
     const loginWith: AuthLoginWithFactoryProps = {
       phoneNumber,
       externalProviders: {
-        google: {
+        Google: {
           clientId: googleClientId,
           clientSecretValue: new TestBackendSecret(googleClientSecret),
         },
-        facebook: {
+        Facebook: {
           clientId: facebookClientId,
           clientSecret: new TestBackendSecret(facebookClientSecret),
         },
-        amazon: {
+        LoginWithAmazon: {
           clientId: amazonClientId,
           clientSecret: new TestBackendSecret(amazonClientSecret),
         },
@@ -76,7 +76,7 @@ void describe('translateToAuthConstructLoginWith', () => {
           clientSecret: new TestBackendSecret(oidcClientSecret),
           issuerUrl: oidcIssueURL,
         },
-        apple: {
+        SignInWithApple: {
           clientId: appleClientId,
           teamId: appleTeamId,
           keyId: appleKeyId,
@@ -94,15 +94,15 @@ void describe('translateToAuthConstructLoginWith', () => {
     const expected: BasicLoginOptions & ExternalProviderProps = {
       phoneNumber,
       externalProviders: {
-        google: {
+        Google: {
           clientId: googleClientId,
           clientSecretValue: SecretValue.unsafePlainText(googleClientSecret),
         },
-        facebook: {
+        Facebook: {
           clientId: facebookClientId,
           clientSecret: facebookClientSecret,
         },
-        amazon: {
+        LoginWithAmazon: {
           clientId: amazonClientId,
           clientSecret: amazonClientSecret,
         },
@@ -111,7 +111,7 @@ void describe('translateToAuthConstructLoginWith', () => {
           clientSecret: oidcClientSecret,
           issuerUrl: oidcIssueURL,
         },
-        apple: {
+        SignInWithApple: {
           clientId: appleClientId,
           teamId: appleTeamId,
           keyId: appleKeyId,

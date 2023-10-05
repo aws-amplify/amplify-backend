@@ -65,7 +65,7 @@ export type OidcProviderFactoryProps = Omit<
  */
 export type ExternalProviderGeneralFactoryProps = Omit<
   ExternalProviderOptions,
-  'apple' | 'amazon' | 'facebook' | 'oidc' | 'google'
+  'SignInWithApple' | 'LoginWithAmazon' | 'Facebook' | 'oidc' | 'Google'
 >;
 
 /**
@@ -73,11 +73,15 @@ export type ExternalProviderGeneralFactoryProps = Omit<
  */
 export type ExternalProviderSpecificFactoryProps =
   ExternalProviderGeneralFactoryProps & {
-    apple?: AppleProviderFactoryProps;
-    amazon?: AmazonProviderFactoryProps;
-    facebook?: FacebookProviderFactoryProps;
+    /* eslint-disable @typescript-eslint/naming-convention */
+    SignInWithApple?: AppleProviderFactoryProps;
+    /* eslint-disable @typescript-eslint/naming-convention */
+    LoginWithAmazon?: AmazonProviderFactoryProps;
+    /* eslint-disable @typescript-eslint/naming-convention */
+    Facebook?: FacebookProviderFactoryProps;
     oidc?: OidcProviderFactoryProps;
-    google?: GoogleProviderFactoryProps;
+    /* eslint-disable @typescript-eslint/naming-convention */
+    Google?: GoogleProviderFactoryProps;
   };
 
 /**

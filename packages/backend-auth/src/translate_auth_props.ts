@@ -40,26 +40,26 @@ export const translateToAuthConstructLoginWith = (
 
   const amazonProps = translateAmazonProps(
     backendSecretResolver,
-    externalProviders.amazon
+    externalProviders.LoginWithAmazon
   );
   if (amazonProps) {
-    result.externalProviders.amazon = amazonProps;
+    result.externalProviders.LoginWithAmazon = amazonProps;
   }
 
   const appleProps = translateAppleProps(
     backendSecretResolver,
-    externalProviders.apple
+    externalProviders.SignInWithApple
   );
   if (appleProps) {
-    result.externalProviders.apple = appleProps;
+    result.externalProviders.SignInWithApple = appleProps;
   }
 
   const facebookProps = translateFacebookProps(
     backendSecretResolver,
-    externalProviders.facebook
+    externalProviders.Facebook
   );
   if (facebookProps) {
-    result.externalProviders.facebook = facebookProps;
+    result.externalProviders.Facebook = facebookProps;
   }
 
   const oidcProps = translateOidcProps(
@@ -72,10 +72,10 @@ export const translateToAuthConstructLoginWith = (
 
   const googleProps = translateGoogleProps(
     backendSecretResolver,
-    externalProviders.google
+    externalProviders.Google
   );
   if (googleProps) {
-    result.externalProviders.google = googleProps;
+    result.externalProviders.Google = googleProps;
   }
 
   return result;
