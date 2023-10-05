@@ -16,17 +16,29 @@
 <li><a href="../modules/_aws_amplify_backend_auth.html">@aws-amplify/backend-auth</a></li>
 <li><a href="_aws_amplify_backend_auth.AmazonProviderFactoryProps.html">AmazonProviderFactoryProps</a></li></ul>
 <h1>Type alias AmazonProviderFactoryProps</h1></div>
-<div class="tsd-signature"><span class="tsd-kind-type-alias">Amazon<wbr/>Provider<wbr/>Factory<wbr/>Props</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type ">Omit</span><span class="tsd-signature-symbol">&lt;</span><a href="_aws_amplify_auth_construct_alpha.AmazonProviderProps.html" class="tsd-signature-type tsd-kind-type-alias">AmazonProviderProps</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">&quot;clientSecret&quot;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">clientSecret</span><span class="tsd-signature-symbol">: </span><a href="_aws_amplify_plugin_types.BackendSecret.html" class="tsd-signature-type tsd-kind-type-alias">BackendSecret</a><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></div>
+<div class="tsd-signature"><span class="tsd-kind-type-alias">Amazon<wbr/>Provider<wbr/>Factory<wbr/>Props</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type ">Omit</span><span class="tsd-signature-symbol">&lt;</span><a href="_aws_amplify_auth_construct_alpha.AmazonProviderProps.html" class="tsd-signature-type tsd-kind-type-alias">AmazonProviderProps</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">&quot;clientId&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;clientSecret&quot;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">clientId</span><span class="tsd-signature-symbol">: </span><a href="_aws_amplify_plugin_types.BackendSecret.html" class="tsd-signature-type tsd-kind-type-alias">BackendSecret</a><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">clientSecret</span><span class="tsd-signature-symbol">: </span><a href="_aws_amplify_plugin_types.BackendSecret.html" class="tsd-signature-type tsd-kind-type-alias">BackendSecret</a><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></div>
 <div class="tsd-comment tsd-typography"><p>Amazon provider properties.</p>
 </div>
 <div class="tsd-type-declaration">
 <h4>Type declaration</h4>
 <ul class="tsd-parameters">
 <li class="tsd-parameter">
-<h5><span class="tsd-kind-property">client<wbr/>Secret</span><span class="tsd-signature-symbol">: </span><a href="_aws_amplify_plugin_types.BackendSecret.html" class="tsd-signature-type tsd-kind-type-alias">BackendSecret</a></h5></li></ul></div>
+<h5><span class="tsd-kind-property">client<wbr/>Id</span><span class="tsd-signature-symbol">: </span><a href="_aws_amplify_plugin_types.BackendSecret.html" class="tsd-signature-type tsd-kind-type-alias">BackendSecret</a></h5>
+<div class="tsd-comment tsd-typography"><p>The client id recognized by &#39;Login with Amazon&#39; APIs.</p>
+</div>
+<div class="tsd-comment tsd-typography">
+<h4>See</h4><p><a href="https://developer.amazon.com/docs/login-with-amazon/security-profile.html#client-identifier">https://developer.amazon.com/docs/login-with-amazon/security-profile.html#client-identifier</a></p>
+</div></li>
+<li class="tsd-parameter">
+<h5><span class="tsd-kind-property">client<wbr/>Secret</span><span class="tsd-signature-symbol">: </span><a href="_aws_amplify_plugin_types.BackendSecret.html" class="tsd-signature-type tsd-kind-type-alias">BackendSecret</a></h5>
+<div class="tsd-comment tsd-typography"><p>The client secret to be accompanied with clientId for &#39;Login with Amazon&#39; APIs to authenticate the client.</p>
+</div>
+<div class="tsd-comment tsd-typography">
+<h4>See</h4><p><a href="https://developer.amazon.com/docs/login-with-amazon/security-profile.html#client-identifier">https://developer.amazon.com/docs/login-with-amazon/security-profile.html#client-identifier</a></p>
+</div></li></ul></div>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/de8398e/packages/backend-auth/src/types.ts#L36">types.ts:36</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/bf24d36/packages/backend-auth/src/types.ts#L62">types.ts:62</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
