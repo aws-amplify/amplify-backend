@@ -71,18 +71,18 @@ export type DeployedBackendClient = {
   ) => Promise<BackendMetadata>;
 };
 
-export type DeployedBackendClientOverrides = {
+export type DeployedBackendClientOptions = {
   cloudFormationClient: CloudFormation;
   backendOutputClient: BackendOutputClient;
 };
 
-export type DeployedBackendCredentials = {
+export type DeployedBackendCredentialsOptions = {
   credentials: AwsCredentialIdentityProvider;
 };
 
 export type DeployedBackendClientFactoryOptions =
-  | DeployedBackendCredentials
-  | DeployedBackendClientOverrides;
+  | DeployedBackendCredentialsOptions
+  | DeployedBackendClientOptions;
 
 /**
  * Factory to create a DeploymentClient

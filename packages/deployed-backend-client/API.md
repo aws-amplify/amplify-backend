@@ -83,16 +83,16 @@ export class BackendOutputClientFactory {
 }
 
 // @public (undocumented)
-export type BackendOutputClientFactoryOptions = BackendOutputClientOverrides | BackendOutputCredentials;
+export type BackendOutputClientFactoryOptions = BackendOutputClientOptions | BackendOutputCredentialsOptions;
 
 // @public (undocumented)
-export type BackendOutputClientOverrides = {
+export type BackendOutputClientOptions = {
     cloudFormationClient: CloudFormationClient;
     amplifyClient: AmplifyClient;
 };
 
 // @public (undocumented)
-export type BackendOutputCredentials = {
+export type BackendOutputCredentialsOptions = {
     credentials: AwsCredentialIdentityProvider;
 };
 
@@ -109,16 +109,16 @@ export class DeployedBackendClientFactory {
 }
 
 // @public (undocumented)
-export type DeployedBackendClientFactoryOptions = DeployedBackendCredentials | DeployedBackendClientOverrides;
+export type DeployedBackendClientFactoryOptions = DeployedBackendCredentialsOptions | DeployedBackendClientOptions;
 
 // @public (undocumented)
-export type DeployedBackendClientOverrides = {
+export type DeployedBackendClientOptions = {
     cloudFormationClient: CloudFormation;
     backendOutputClient: BackendOutputClient;
 };
 
 // @public (undocumented)
-export type DeployedBackendCredentials = {
+export type DeployedBackendCredentialsOptions = {
     credentials: AwsCredentialIdentityProvider;
 };
 

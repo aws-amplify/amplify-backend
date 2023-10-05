@@ -36,18 +36,18 @@ export type BackendOutputClient = {
   ) => Promise<UnifiedBackendOutput>;
 };
 
-export type BackendOutputClientOverrides = {
+export type BackendOutputClientOptions = {
   cloudFormationClient: CloudFormationClient;
   amplifyClient: AmplifyClient;
 };
 
-export type BackendOutputCredentials = {
+export type BackendOutputCredentialsOptions = {
   credentials: AwsCredentialIdentityProvider;
 };
 
 export type BackendOutputClientFactoryOptions =
-  | BackendOutputClientOverrides
-  | BackendOutputCredentials;
+  | BackendOutputClientOptions
+  | BackendOutputCredentialsOptions;
 /**
  * Factory to create a backend metadata reader
  */
