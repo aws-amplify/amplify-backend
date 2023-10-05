@@ -1,5 +1,13 @@
 # @aws-amplify/platform-core
 
+## 0.1.1-alpha.1
+
+### Patch Changes
+
+- 36d93e46: add license to package.json
+- Updated dependencies [36d93e46]
+  - @aws-amplify/plugin-types@0.2.0-alpha.7
+
 ## 0.1.1-alpha.0
 
 ### Patch Changes

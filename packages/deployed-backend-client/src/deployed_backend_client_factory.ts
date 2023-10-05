@@ -6,6 +6,21 @@ import {
   SandboxBackendIdentifier,
 } from '@aws-amplify/platform-core';
 import { CloudFormation } from '@aws-sdk/client-cloudformation';
+import { S3 } from '@aws-sdk/client-s3';
+
+export enum ConflictResolutionMode {
+  LAMBDA = 'LAMBDA',
+  OPTIMISTIC_CONCURRENCY = 'OPTIMISTIC_CONCURRENCY',
+  AUTOMERGE = 'AUTOMERGE',
+}
+
+export enum ApiAuthType {
+  API_KEY = 'API_KEY',
+  AWS_LAMBDA = 'AWS_LAMBDA',
+  AWS_IAM = 'AWS_IAM',
+  OPENID_CONNECT = 'OPENID_CONNECT',
+  AMAZON_COGNITO_USER_POOLS = 'AMAZON_COGNITO_USER_POOLS',
+}
 
 export type SandboxMetadata = {
   name: string;
@@ -26,6 +41,10 @@ export type BackendMetadata = {
     status: BackendDeploymentStatus;
     lastUpdated: Date | undefined;
     graphqlEndpoint: string;
+    graphqlSchema: string;
+    defaultAuthType: ApiAuthType;
+    additionalAuthTypes: ApiAuthType[];
+    conflictResolutionMode?: ConflictResolutionMode;
   };
   authConfiguration?: {
     status: BackendDeploymentStatus;
@@ -75,6 +94,7 @@ export class DeployedBackendClientFactory {
     credentials: AwsCredentialIdentityProvider
   ): DeployedBackendClient => {
     const cfnClient = new CloudFormation(credentials);
-    return new DefaultDeployedBackendClient(credentials, cfnClient);
+    const s3Client = new S3(credentials);
+    return new DefaultDeployedBackendClient(credentials, cfnClient, s3Client);
   };
 }

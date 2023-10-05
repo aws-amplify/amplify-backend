@@ -1,5 +1,15 @@
 # create-amplify
 
+## 0.2.0-alpha.8
+
+### Minor Changes
+
+- 66190beb: integrate api-next as the default data experience
+
+### Patch Changes
+
+- 36d93e46: add license to package.json
+
 ## 0.2.0-alpha.7
 
 ### Minor Changes

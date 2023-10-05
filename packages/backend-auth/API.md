@@ -22,7 +22,8 @@ import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { TriggerEvent } from '@aws-amplify/auth-construct-alpha';
 
 // @public
-export type AmazonProviderFactoryProps = Omit<AmazonProviderProps, 'clientSecret'> & {
+export type AmazonProviderFactoryProps = Omit<AmazonProviderProps, 'clientId' | 'clientSecret'> & {
+    clientId: BackendSecret;
     clientSecret: BackendSecret;
 };
 
@@ -32,7 +33,10 @@ export type AmplifyAuthFactoryProps = Omit<AuthProps, 'outputStorageStrategy' | 
 };
 
 // @public
-export type AppleProviderFactoryProps = Omit<AppleProviderProps, 'privateKey'> & {
+export type AppleProviderFactoryProps = Omit<AppleProviderProps, 'clientId' | 'teamId' | 'keyId' | 'privateKey'> & {
+    clientId: BackendSecret;
+    teamId: BackendSecret;
+    keyId: BackendSecret;
     privateKey: BackendSecret;
 };
 
@@ -60,17 +64,20 @@ export type ExternalProviderSpecificFactoryProps = ExternalProviderGeneralFactor
 };
 
 // @public
-export type FacebookProviderFactoryProps = Omit<FacebookProviderProps, 'clientSecret'> & {
+export type FacebookProviderFactoryProps = Omit<FacebookProviderProps, 'clientId' | 'clientSecret'> & {
+    clientId: BackendSecret;
     clientSecret: BackendSecret;
 };
 
 // @public
-export type GoogleProviderFactoryProps = Omit<GoogleProviderProps, 'clientSecretValue'> & {
+export type GoogleProviderFactoryProps = Omit<GoogleProviderProps, 'clientId' | 'clientSecretValue'> & {
+    clientId: BackendSecret;
     clientSecretValue: BackendSecret;
 };
 
 // @public
-export type OidcProviderFactoryProps = Omit<OidcProviderProps, 'clientSecret'> & {
+export type OidcProviderFactoryProps = Omit<OidcProviderProps, 'clientId' | 'clientSecret'> & {
+    clientId: BackendSecret;
     clientSecret: BackendSecret;
 };
 
