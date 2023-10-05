@@ -202,6 +202,5 @@ export type PasswordlessAuthProps = {
  */
 export type MagicLinkAuthOptions = {
   enabled: boolean;
-  sesFromAddress: string;
-  sesRegion?: string;
+  fromAddress: string;
 };

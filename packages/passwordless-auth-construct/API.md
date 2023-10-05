@@ -15,8 +15,7 @@ export class AmplifyPasswordlessAuth extends Construct {
 // @public
 export type MagicLinkAuthOptions = {
     enabled: boolean;
-    sesFromAddress: string;
-    sesRegion?: string;
+    fromAddress: string;
 };
 
 // @public
