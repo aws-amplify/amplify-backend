@@ -2,7 +2,7 @@ import { PackageManagerController } from './package_manager_controller.js';
 import { ProjectRootValidator } from './project_root_validator.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
 import { NpmProjectInitializer } from './npm_project_initializer.js';
-import { NpmTypeScriptProjectInitializer } from './npm_typescript_project_initializer.js';
+import { TsConfigInitializer } from './tsconfig_initializer.js';
 
 /**
  *
@@ -33,7 +33,7 @@ export class AmplifyProjectCreator {
     private readonly projectRootValidator: ProjectRootValidator,
     private readonly initialProjectFileGenerator: InitialProjectFileGenerator,
     private readonly npmInitializedEnsurer: NpmProjectInitializer,
-    private readonly npmTypeScriptProjectInitializer: NpmTypeScriptProjectInitializer,
+    private readonly tsConfigInitializer: TsConfigInitializer,
     private readonly logger: typeof console = console
   ) {}
 
@@ -63,7 +63,7 @@ export class AmplifyProjectCreator {
       'dev'
     );
 
-    await this.npmTypeScriptProjectInitializer.ensureInitialized();
+    await this.tsConfigInitializer.ensureInitialized();
 
     this.logger.log('Scaffolding initial project files...');
     await this.initialProjectFileGenerator.generateInitialProjectFiles();

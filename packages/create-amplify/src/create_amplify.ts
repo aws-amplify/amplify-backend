@@ -12,7 +12,7 @@ import { ProjectRootValidator } from './project_root_validator.js';
 import { AmplifyProjectCreator } from './amplify_project_creator.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
 import { NpmProjectInitializer } from './npm_project_initializer.js';
-import { NpmTypeScriptProjectInitializer } from './npm_typescript_project_initializer.js';
+import { TsConfigInitializer } from './tsconfig_initializer.js';
 
 /*
   The project root is the root directory of the customer's repo
@@ -26,7 +26,7 @@ const amplifyProjectCreator = new AmplifyProjectCreator(
   new ProjectRootValidator(projectRoot),
   new InitialProjectFileGenerator(projectRoot),
   new NpmProjectInitializer(projectRoot),
-  new NpmTypeScriptProjectInitializer(projectRoot)
+  new TsConfigInitializer(projectRoot)
 );
 
 try {

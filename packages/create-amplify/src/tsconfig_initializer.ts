@@ -5,7 +5,7 @@ import { execa as _execa } from 'execa';
 /**
  * Ensure that the current working directory is a valid TypeScript project
  */
-export class NpmTypeScriptProjectInitializer {
+export class TsConfigInitializer {
   /**
    * injecting console and fs for testing
    */
