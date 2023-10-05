@@ -19,13 +19,11 @@ void describe('TsConfigInitializer', () => {
 
   void it('runs `npx tsc --init` if no tsconfig.json exists', async () => {
     const logMock = mock.fn();
-
-    // `mock.mockImplementationOnce` seems to be last one wins rather than defining a sequence of return values
-    // this is a workaround to allow the first call to return false and the second to return true
-    // also add this to the list of reasons we should consider dropping node:test and moving to jest...
-    const mockReturnValues = [false, true];
-    let idx = 0;
-    const existsSyncMock = mock.fn(() => mockReturnValues[idx++]);
+    const existsSyncMock = mock.fn(
+      () => true,
+      () => false,
+      { times: 1 }
+    );
 
     const execaMock = mock.fn();
     const tsConfigInitializer = new TsConfigInitializer(
