@@ -86,6 +86,26 @@ void describe('create-amplify script', () => {
       cwd: tempDir,
       stdio: 'inherit',
     });
+
+    // assert that project synthesizes successfully
+    await execa(
+      'npx',
+      [
+        'cdk',
+        'synth',
+        '--context',
+        'backend-id=123',
+        '--context',
+        'deployment-type=SANDBOX',
+        '--app',
+        "'npx tsx amplify/backend.ts'",
+        '--quiet',
+      ],
+      {
+        cwd: tempDir,
+        stdio: 'inherit',
+      }
+    );
   });
 
   void it('fails fast if amplify path already exists', async () => {
