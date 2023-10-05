@@ -1,29 +1,34 @@
 /**
+ * A simple logger interface.
+ */
+export type LoggerInterface = Pick<Console, 'error' | 'info' | 'debug'>;
+
+/**
  * The logger class to be used in Lambda functions.
  */
-export class Logger {
+export class Logger implements LoggerInterface {
   /**
    * Creates a new Logger instance.
    * @param logLevel - The log level for this Logger instance.
    */
-  constructor(private logLevel: LogLevel) {}
+  constructor(
+    private logLevel: LogLevel,
+    private readonly _logger: LoggerInterface = console
+  ) {}
 
-  public error = (...args: unknown[]) => {
+  public error = (message?: any, ...optionalParams: any[]) => {
     if (this.logLevel >= LogLevel.ERROR) {
-      // eslint-disable-next-line no-console
-      console.error(...args);
+      this._logger.error(message, ...optionalParams);
     }
   };
-  public info = (...args: unknown[]) => {
+  public info = (message?: any, ...optionalParams: any[]) => {
     if (this.logLevel >= LogLevel.INFO) {
-      // eslint-disable-next-line no-console
-      console.info(...args);
+      this._logger.info(message, ...optionalParams);
     }
   };
-  public debug = (...args: unknown[]) => {
+  public debug = (message?: any, ...optionalParams: any[]) => {
     if (this.logLevel >= LogLevel.DEBUG) {
-      // eslint-disable-next-line no-console
-      console.trace(...args);
+      this._logger.debug(message, ...optionalParams);
     }
   };
 }
