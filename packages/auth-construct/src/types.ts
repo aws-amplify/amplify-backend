@@ -118,10 +118,14 @@ export type SamlProviderProps = Omit<
  * External provider options.
  */
 export type ExternalProviderOptions = {
-  google?: GoogleProviderProps;
-  facebook?: FacebookProviderProps;
-  amazon?: AmazonProviderProps;
-  apple?: AppleProviderProps;
+  /* eslint-disable @typescript-eslint/naming-convention */
+  Google?: GoogleProviderProps;
+  /* eslint-disable @typescript-eslint/naming-convention */
+  Facebook?: FacebookProviderProps;
+  /* eslint-disable @typescript-eslint/naming-convention */
+  LoginWithAmazon?: AmazonProviderProps;
+  /* eslint-disable @typescript-eslint/naming-convention */
+  SignInWithApple?: AppleProviderProps;
   oidc?: OidcProviderProps;
   saml?: SamlProviderProps;
   // general configuration

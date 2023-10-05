@@ -375,50 +375,52 @@ export class AmplifyAuth
     if (!external) {
       return result;
     }
-    if (external.google) {
+    if (external.Google) {
       result.google = new cognito.UserPoolIdentityProviderGoogle(
         this,
         'GoogleIdP',
         {
           userPool,
-          ...external.google,
+          ...external.Google,
         }
       );
-      result.oauthMappings[authProvidersList.google] = external.google.clientId;
+      result.oauthMappings[authProvidersList.google] = external.Google.clientId;
     }
-    if (external.facebook) {
+    if (external.Facebook) {
       result.facebook = new cognito.UserPoolIdentityProviderFacebook(
         this,
         'FacebookIDP',
         {
           userPool,
-          ...external.facebook,
+          ...external.Facebook,
         }
       );
       result.oauthMappings[authProvidersList.facebook] =
-        external.facebook.clientId;
+        external.Facebook.clientId;
     }
-    if (external.amazon) {
+    if (external.LoginWithAmazon) {
       result.amazon = new cognito.UserPoolIdentityProviderAmazon(
         this,
         'AmazonIDP',
         {
           userPool,
-          ...external.amazon,
+          ...external.LoginWithAmazon,
         }
       );
-      result.oauthMappings[authProvidersList.amazon] = external.amazon.clientId;
+      result.oauthMappings[authProvidersList.amazon] =
+        external.LoginWithAmazon.clientId;
     }
-    if (external.apple) {
+    if (external.SignInWithApple) {
       result.apple = new cognito.UserPoolIdentityProviderApple(
         this,
         'AppleIDP',
         {
           userPool,
-          ...external.apple,
+          ...external.SignInWithApple,
         }
       );
-      result.oauthMappings[authProvidersList.apple] = external.apple.clientId;
+      result.oauthMappings[authProvidersList.apple] =
+        external.SignInWithApple.clientId;
     }
     if (external.oidc) {
       result.oidc = new cognito.UserPoolIdentityProviderOidc(this, 'OidcIDP', {
