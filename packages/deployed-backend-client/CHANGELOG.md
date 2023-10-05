@@ -1,5 +1,13 @@
 # @aws-amplify/deployed-backend-client
 
+## 0.2.0-alpha.3
+
+### Patch Changes
+
+- 2525b582: add reader for cms metadata
+- Updated dependencies [2525b582]
+  - @aws-amplify/backend-output-schemas@0.2.0-alpha.6
+
 ## 0.2.0-alpha.2
 
 ### Patch Changes

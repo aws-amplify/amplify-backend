@@ -89,9 +89,10 @@ const translateAmazonProps = (
     return undefined;
   }
 
-  const { clientSecret, ...noSecretProps } = amazonProviderProps;
+  const { clientId, clientSecret, ...noSecretProps } = amazonProviderProps;
   return {
     ...noSecretProps,
+    clientId: backendSecretResolver.resolveSecret(clientId).unsafeUnwrap(),
     clientSecret: backendSecretResolver
       .resolveSecret(clientSecret)
       .unsafeUnwrap(),
@@ -106,9 +107,13 @@ const translateAppleProps = (
     return undefined;
   }
 
-  const { privateKey, ...noSecretProps } = amazonProviderProps;
+  const { clientId, teamId, keyId, privateKey, ...noSecretProps } =
+    amazonProviderProps;
   return {
     ...noSecretProps,
+    clientId: backendSecretResolver.resolveSecret(clientId).unsafeUnwrap(),
+    teamId: backendSecretResolver.resolveSecret(teamId).unsafeUnwrap(),
+    keyId: backendSecretResolver.resolveSecret(keyId).unsafeUnwrap(),
     privateKey: backendSecretResolver.resolveSecret(privateKey).unsafeUnwrap(),
   };
 };
@@ -121,9 +126,10 @@ const translateFacebookProps = (
     return undefined;
   }
 
-  const { clientSecret, ...noSecretProps } = facebookProviderProps;
+  const { clientId, clientSecret, ...noSecretProps } = facebookProviderProps;
   return {
     ...noSecretProps,
+    clientId: backendSecretResolver.resolveSecret(clientId).unsafeUnwrap(),
     clientSecret: backendSecretResolver
       .resolveSecret(clientSecret)
       .unsafeUnwrap(),
@@ -138,9 +144,10 @@ const translateOidcProps = (
     return undefined;
   }
 
-  const { clientSecret, ...noSecretProps } = oidcProviderProps;
+  const { clientId, clientSecret, ...noSecretProps } = oidcProviderProps;
   return {
     ...noSecretProps,
+    clientId: backendSecretResolver.resolveSecret(clientId).unsafeUnwrap(),
     clientSecret: backendSecretResolver
       .resolveSecret(clientSecret)
       .unsafeUnwrap(),
@@ -155,9 +162,10 @@ const translateGoogleProps = (
     return undefined;
   }
 
-  const { clientSecretValue, ...noSecretProps } = googleProviderProps;
+  const { clientId, clientSecretValue, ...noSecretProps } = googleProviderProps;
   return {
     ...noSecretProps,
+    clientId: backendSecretResolver.resolveSecret(clientId).unsafeUnwrap(),
     clientSecretValue: backendSecretResolver.resolveSecret(clientSecretValue),
   };
 };

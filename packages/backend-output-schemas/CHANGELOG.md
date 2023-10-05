@@ -1,5 +1,11 @@
 # @aws-amplify/backend-output-schemas
 
+## 0.2.0-alpha.6
+
+### Patch Changes
+
+- 2525b582: add reader for cms metadata
+
 ## 0.2.0-alpha.5
 
 ### Patch Changes
