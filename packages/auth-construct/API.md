@@ -111,10 +111,10 @@ export type EmailLogin = true | {
 
 // @public
 export type ExternalProviderOptions = {
-    google?: GoogleProviderProps;
-    facebook?: FacebookProviderProps;
-    amazon?: AmazonProviderProps;
-    apple?: AppleProviderProps;
+    Google?: GoogleProviderProps;
+    Facebook?: FacebookProviderProps;
+    LoginWithAmazon?: AmazonProviderProps;
+    SignInWithApple?: AppleProviderProps;
     oidc?: OidcProviderProps;
     saml?: SamlProviderProps;
     scopes?: aws_cognito.OAuthScope[];

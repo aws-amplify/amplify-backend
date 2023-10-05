@@ -48,15 +48,15 @@ export type ExternalProviderFactoryProps = Omit<ExternalProviderProps, 'external
 };
 
 // @public
-export type ExternalProviderGeneralFactoryProps = Omit<ExternalProviderOptions, 'apple' | 'amazon' | 'facebook' | 'oidc' | 'google'>;
+export type ExternalProviderGeneralFactoryProps = Omit<ExternalProviderOptions, 'SignInWithApple' | 'LoginWithAmazon' | 'Facebook' | 'oidc' | 'Google'>;
 
 // @public
 export type ExternalProviderSpecificFactoryProps = ExternalProviderGeneralFactoryProps & {
-    apple?: AppleProviderFactoryProps;
-    amazon?: AmazonProviderFactoryProps;
-    facebook?: FacebookProviderFactoryProps;
+    SignInWithApple?: AppleProviderFactoryProps;
+    LoginWithAmazon?: AmazonProviderFactoryProps;
+    Facebook?: FacebookProviderFactoryProps;
     oidc?: OidcProviderFactoryProps;
-    google?: GoogleProviderFactoryProps;
+    Google?: GoogleProviderFactoryProps;
 };
 
 // @public
