@@ -209,62 +209,50 @@ void describe('Auth construct', () => {
     });
   });
 
-  void it('expect compile error if invalid email verification message for CODE', () => {
+  void it('throws error if invalid email verification message for CODE', () => {
+    const app = new App();
+    const stack = new Stack(app);
     const customEmailVerificationMessage = 'invalid message without code';
-    const validMessage = 'valid {####} email';
     const customEmailVerificationSubject = 'custom subject';
-    let props: AuthProps = {
-      loginWith: {
-        email: {
-          // @ts-expect-error We know this is a compile error, but must have runtime validation as well.
-          verificationEmailBody: customEmailVerificationMessage,
-          verificationEmailStyle: VerificationEmailStyle.CODE,
-          verificationEmailSubject: customEmailVerificationSubject,
-        },
-      },
-    };
-    // bypass ts unused props warning
-    assert.notEqual(props, undefined);
-    props = {
-      loginWith: {
-        email: {
-          verificationEmailBody: validMessage,
-          verificationEmailStyle: VerificationEmailStyle.CODE,
-          verificationEmailSubject: customEmailVerificationSubject,
-        },
-      },
-    };
-    // bypass ts unused props warning
-    assert.notEqual(props, undefined);
+    assert.throws(
+      () =>
+        new AmplifyAuth(stack, 'test', {
+          loginWith: {
+            email: {
+              verificationEmailBody: customEmailVerificationMessage,
+              verificationEmailStyle: VerificationEmailStyle.CODE,
+              verificationEmailSubject: customEmailVerificationSubject,
+            },
+          },
+        }),
+      {
+        message:
+          "Invalid email settings. Property 'emailBody' must contain {####} as a placeholder for the verification code.",
+      }
+    );
   });
 
-  void it('expect compile error if invalid email verification message for LINK', () => {
+  void it('throws error if invalid email verification message for LINK', () => {
+    const app = new App();
+    const stack = new Stack(app);
     const customEmailVerificationMessage = 'invalid message without link';
-    const validMessage = 'valid {##Verify Email##}';
     const customEmailVerificationSubject = 'custom subject';
-    let props: AuthProps = {
-      loginWith: {
-        email: {
-          // @ts-expect-error We expect this to be a compile error
-          verificationEmailBody: customEmailVerificationMessage,
-          verificationEmailStyle: VerificationEmailStyle.LINK,
-          verificationEmailSubject: customEmailVerificationSubject,
-        },
-      },
-    };
-    // bypass ts unused props warning
-    assert.notEqual(props, undefined);
-    props = {
-      loginWith: {
-        email: {
-          verificationEmailBody: validMessage,
-          verificationEmailStyle: VerificationEmailStyle.LINK,
-          verificationEmailSubject: customEmailVerificationSubject,
-        },
-      },
-    };
-    // bypass ts unused props warning
-    assert.notEqual(props, undefined);
+    assert.throws(
+      () =>
+        new AmplifyAuth(stack, 'test', {
+          loginWith: {
+            email: {
+              verificationEmailBody: customEmailVerificationMessage,
+              verificationEmailStyle: VerificationEmailStyle.LINK,
+              verificationEmailSubject: customEmailVerificationSubject,
+            },
+          },
+        }),
+      {
+        message:
+          "Invalid email settings. Property 'emailBody' must contain {##Verify Email##} as a placeholder for the verification link.",
+      }
+    );
   });
 
   void it('does not throw if valid email verification message for LINK', () => {
@@ -287,28 +275,24 @@ void describe('Auth construct', () => {
     );
   });
 
-  void it('expect compile error if invalid sms verification message', () => {
+  void it('throws error if invalid sms verification message', () => {
+    const app = new App();
+    const stack = new Stack(app);
     const customSMSVerificationMessage = 'invalid message without code';
-    const validSMSVerificationMessage = 'valid {####}';
-    let props: AuthProps = {
-      loginWith: {
-        phoneNumber: {
-          // @ts-expect-error We expect this to be a compile error
-          verificationMessage: customSMSVerificationMessage,
-        },
-      },
-    };
-    // bypass ts unused props warning
-    assert.notEqual(props, undefined);
-    props = {
-      loginWith: {
-        phoneNumber: {
-          verificationMessage: validSMSVerificationMessage,
-        },
-      },
-    };
-    // bypass ts unused props warning
-    assert.notEqual(props, undefined);
+    assert.throws(
+      () =>
+        new AmplifyAuth(stack, 'test', {
+          loginWith: {
+            phoneNumber: {
+              verificationMessage: customSMSVerificationMessage,
+            },
+          },
+        }),
+      {
+        message:
+          "Invalid phoneNumber settings. Property 'verificationMessage' must contain {####} as a placeholder for the verification code.",
+      }
+    );
   });
 
   void it('requires email attribute if email is enabled', () => {

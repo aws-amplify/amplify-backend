@@ -18,6 +18,7 @@ import {
   UserPoolIdentityProviderSaml,
   UserPoolOperation,
   UserPoolProps,
+  VerificationEmailStyle,
 } from 'aws-cdk-lib/aws-cognito';
 import { FederatedPrincipal, Role } from 'aws-cdk-lib/aws-iam';
 import { AuthOutput } from '@aws-amplify/backend-output-schemas/auth';
@@ -218,6 +219,29 @@ export class AmplifyAuth
     let userVerificationSettings: cognito.UserVerificationConfig = {};
     if (emailEnabled && typeof props.loginWith.email === 'object') {
       const emailSettings = props.loginWith.email;
+      if (
+        emailSettings.verificationEmailBody &&
+        emailSettings.verificationEmailStyle !== VerificationEmailStyle.LINK
+      ) {
+        if (emailSettings.verificationEmailBody.indexOf('{####}') === -1) {
+          throw Error(
+            "Invalid email settings. Property 'emailBody' must contain {####} as a placeholder for the verification code."
+          );
+        }
+      }
+      if (
+        emailSettings.verificationEmailBody &&
+        emailSettings.verificationEmailStyle === VerificationEmailStyle.LINK
+      ) {
+        if (
+          emailSettings.verificationEmailBody.indexOf('{##Verify Email##}') ===
+          -1
+        ) {
+          throw Error(
+            "Invalid email settings. Property 'emailBody' must contain {##Verify Email##} as a placeholder for the verification link."
+          );
+        }
+      }
       userVerificationSettings = {
         emailBody: emailSettings.verificationEmailBody,
         emailStyle: emailSettings.verificationEmailStyle,
@@ -226,6 +250,15 @@ export class AmplifyAuth
     }
     if (phoneEnabled && typeof props.loginWith.phoneNumber === 'object') {
       const phoneSettings = props.loginWith.phoneNumber;
+      if (
+        phoneSettings.verificationMessage &&
+        phoneSettings.verificationMessage.indexOf('{####}') === -1
+      ) {
+        // validate sms message structure
+        throw Error(
+          "Invalid phoneNumber settings. Property 'verificationMessage' must contain {####} as a placeholder for the verification code."
+        );
+      }
       userVerificationSettings = {
         ...userVerificationSettings,
         smsMessage: phoneSettings.verificationMessage,
