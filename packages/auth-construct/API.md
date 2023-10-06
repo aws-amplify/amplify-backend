@@ -100,12 +100,8 @@ export type BasicLoginOptions = {
 
 // @public
 export type EmailLogin = true | {
-    verificationEmailStyle?: aws_cognito.VerificationEmailStyle.CODE;
-    verificationEmailBody?: `${string}{####}${string}`;
-    verificationEmailSubject?: string;
-} | {
-    verificationEmailStyle?: aws_cognito.VerificationEmailStyle.LINK;
-    verificationEmailBody?: `${string}{##Verify Email##}${string}`;
+    verificationEmailStyle?: aws_cognito.VerificationEmailStyle;
+    verificationEmailBody?: string;
     verificationEmailSubject?: string;
 };
 
@@ -160,7 +156,7 @@ export type OidcProviderProps = Omit<aws_cognito.UserPoolIdentityProviderOidcPro
 
 // @public
 export type PhoneNumberLogin = true | {
-    verificationMessage?: `${string}{####}${string}`;
+    verificationMessage?: string;
 };
 
 // @public
