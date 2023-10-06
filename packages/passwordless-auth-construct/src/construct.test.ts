@@ -13,7 +13,7 @@ void describe('Passwordless Auth construct', () => {
     loginWith: { email: true },
   });
   new AmplifyPasswordlessAuth(stack, 'test', auth, {
-    magicLink: { enabled: true, fromAddress: 'foo@example.com' },
+    magicLink: { fromAddress: 'foo@example.com' },
   });
   const template = Template.fromStack(stack);
 
@@ -51,7 +51,7 @@ void describe('Passwordless Auth construct', () => {
     auth.addTrigger('createAuthChallenge', testFunc);
     throws(() => {
       new AmplifyPasswordlessAuth(stack, 'test', auth, {
-        magicLink: { enabled: true, fromAddress: 'foo@example.com' },
+        magicLink: { fromAddress: 'foo@example.com' },
       });
     });
   });

@@ -28,7 +28,8 @@ export class AmplifyPasswordlessAuth extends Construct {
   ) {
     super(scope, id);
 
-    if (!props.magicLink?.enabled) {
+    // TODO: add check for OTP
+    if (!props.magicLink) {
       return;
     }
 

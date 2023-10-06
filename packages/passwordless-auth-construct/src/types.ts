@@ -69,7 +69,6 @@ export type PasswordlessAuthProps = {
  * Options for Magic Link Passwordless Auth.
  */
 export type MagicLinkAuthOptions = {
-  enabled: boolean;
   fromAddress: string;
 };
 
