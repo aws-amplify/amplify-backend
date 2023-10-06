@@ -19,7 +19,6 @@ import {
   VerificationEmailStyle,
 } from 'aws-cdk-lib/aws-cognito';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
-import { AuthProps } from './types.js';
 import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 
 const googleClientId = 'googleClientId';
