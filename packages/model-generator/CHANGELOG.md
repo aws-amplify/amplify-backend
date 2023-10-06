@@ -1,5 +1,11 @@
 # @aws-amplify/model-generator
 
+## 0.2.0-alpha.5
+
+### Minor Changes
+
+- 1a87500d: Generate model introspection schema when producing client config.
+
 ## 0.2.0-alpha.4
 
 ### Patch Changes
