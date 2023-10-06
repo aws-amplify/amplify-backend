@@ -21,8 +21,9 @@ void describe('generate forms command', () => {
         credentialProvider,
       });
 
-      const fakedBackendOutputClient =
-        BackendOutputClientFactory.getInstance(credentialProvider);
+      const fakedBackendOutputClient = BackendOutputClientFactory.getInstance({
+        credentials: credentialProvider,
+      });
 
       const generateFormsCommand = new GenerateFormsCommand(
         backendIdResolver,
@@ -67,8 +68,9 @@ void describe('generate forms command', () => {
         credentialProvider,
       });
 
-      const fakedBackendOutputClient =
-        BackendOutputClientFactory.getInstance(credentialProvider);
+      const fakedBackendOutputClient = BackendOutputClientFactory.getInstance({
+        credentials: credentialProvider,
+      });
 
       const generateFormsCommand = new GenerateFormsCommand(
         backendIdResolver,
@@ -113,8 +115,9 @@ void describe('generate forms command', () => {
         credentialProvider,
       });
 
-      const fakedBackendOutputClient =
-        BackendOutputClientFactory.getInstance(credentialProvider);
+      const fakedBackendOutputClient = BackendOutputClientFactory.getInstance({
+        credentials: credentialProvider,
+      });
 
       const generateFormsCommand = new GenerateFormsCommand(
         backendIdResolver,
@@ -155,8 +158,9 @@ void describe('generate forms command', () => {
         credentialProvider,
       });
 
-      const fakedBackendOutputClient =
-        BackendOutputClientFactory.getInstance(credentialProvider);
+      const fakedBackendOutputClient = BackendOutputClientFactory.getInstance({
+        credentials: credentialProvider,
+      });
 
       const generateFormsCommand = new GenerateFormsCommand(
         backendIdResolver,

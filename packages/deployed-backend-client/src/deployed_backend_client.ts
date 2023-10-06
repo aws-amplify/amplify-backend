@@ -2,7 +2,6 @@ import {
   BackendOutput,
   UniqueBackendIdentifier,
 } from '@aws-amplify/plugin-types';
-import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import {
   ApiAuthType,
   BackendDeploymentStatus,
@@ -17,7 +16,7 @@ import {
   BackendDeploymentType,
   SandboxBackendIdentifier,
 } from '@aws-amplify/platform-core';
-import { BackendOutputClientFactory } from './backend_output_client_factory.js';
+import { BackendOutputClient } from './backend_output_client_factory.js';
 import { getMainStackName } from './get_main_stack_name.js';
 import {
   CloudFormationClient,
@@ -49,9 +48,9 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
    * Constructor for deployment client
    */
   constructor(
-    private readonly credentials: AwsCredentialIdentityProvider,
     private readonly cfnClient: CloudFormationClient,
-    private readonly s3Client: S3Client
+    private readonly s3Client: S3Client,
+    private readonly backendOutputClient: BackendOutputClient
   ) {}
 
   /**
@@ -104,9 +103,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     };
 
     const backendOutput: BackendOutput =
-      await BackendOutputClientFactory.getInstance(this.credentials).getOutput(
-        backendIdentifier
-      );
+      await this.backendOutputClient.getOutput(backendIdentifier);
 
     return backendOutput[stackOutputKey].payload
       .deploymentType as BackendDeploymentType;
@@ -152,9 +149,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     };
 
     const backendOutput: BackendOutput =
-      await BackendOutputClientFactory.getInstance(this.credentials).getOutput(
-        backendIdentifier
-      );
+      await this.backendOutputClient.getOutput(backendIdentifier);
     const stackDescription = await this.cfnClient.send(
       new DescribeStacksCommand({ StackName: stackName })
     );

@@ -30,8 +30,9 @@ export const createGraphqlTypesGenerator = ({
   }
 
   const fetchSchema = async () => {
-    const backendOutputClient =
-      BackendOutputClientFactory.getInstance(credentialProvider);
+    const backendOutputClient = BackendOutputClientFactory.getInstance({
+      credentials: credentialProvider,
+    });
     const output = await backendOutputClient.getOutput(backendIdentifier);
     const apiId = output[graphqlOutputKey]?.payload.awsAppsyncApiId;
     if (!apiId) {

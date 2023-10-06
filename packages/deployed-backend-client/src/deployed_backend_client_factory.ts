@@ -5,7 +5,14 @@ import {
   BackendDeploymentType,
   SandboxBackendIdentifier,
 } from '@aws-amplify/platform-core';
-import { CloudFormation } from '@aws-sdk/client-cloudformation';
+import {
+  CloudFormation,
+  CloudFormationClient,
+} from '@aws-sdk/client-cloudformation';
+import {
+  BackendOutputClient,
+  BackendOutputClientFactory,
+} from './backend_output_client_factory.js';
 import { S3 } from '@aws-sdk/client-s3';
 
 export enum ConflictResolutionMode {
@@ -83,6 +90,20 @@ export type DeployedBackendClient = {
   ) => Promise<BackendMetadata>;
 };
 
+export type DeployedBackendClientOptions = {
+  s3Client: S3;
+  cloudFormationClient: CloudFormation;
+  backendOutputClient: BackendOutputClient;
+};
+
+export type DeployedBackendCredentialsOptions = {
+  credentials: AwsCredentialIdentityProvider;
+};
+
+export type DeployedBackendClientFactoryOptions =
+  | DeployedBackendCredentialsOptions
+  | DeployedBackendClientOptions;
+
 /**
  * Factory to create a DeploymentClient
  */
@@ -90,11 +111,22 @@ export class DeployedBackendClientFactory {
   /**
    * Returns a single instance of DeploymentClient
    */
-  static getInstance = (
-    credentials: AwsCredentialIdentityProvider
-  ): DeployedBackendClient => {
-    const cfnClient = new CloudFormation(credentials);
-    const s3Client = new S3(credentials);
-    return new DefaultDeployedBackendClient(credentials, cfnClient, s3Client);
-  };
+  static getInstance(
+    options: DeployedBackendClientFactoryOptions
+  ): DeployedBackendClient {
+    if ('backendOutputClient' in options && 'cloudFormationClient' in options) {
+      return new DefaultDeployedBackendClient(
+        options.cloudFormationClient,
+        options.s3Client,
+        options.backendOutputClient
+      );
+    }
+    return new DefaultDeployedBackendClient(
+      new CloudFormationClient(options.credentials),
+      new S3(options.credentials),
+      BackendOutputClientFactory.getInstance({
+        credentials: options.credentials,
+      })
+    );
+  }
 }
