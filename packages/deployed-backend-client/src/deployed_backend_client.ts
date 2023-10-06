@@ -194,7 +194,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
         nestedStack?.StackName?.includes('storage')
     );
     const apiStack = childStacks.find((nestedStack: StackSummary | undefined) =>
-      nestedStack?.StackName?.includes('api')
+      nestedStack?.StackName?.includes('data')
     );
 
     const backendMetadataObject: BackendMetadata = {
