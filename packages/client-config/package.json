@@ -29,7 +29,6 @@
     "@aws-sdk/client-amplify": "^3.376.0",
     "@aws-sdk/client-cloudformation": "^3.376.0",
     "@aws-sdk/client-ssm": "^3.398.0",
-    "@aws-sdk/client-s3": "^3.398.0",
     "@aws-sdk/credential-providers": "^3.370.0",
     "zod": "^3.21.4"
   },

@@ -26,6 +26,6 @@ export const generateClientConfig = async (
   return new ClientConfigGeneratorFactory(() =>
     backendOutputClient.getOutput(backendIdentifier)
   )
-    .getInstance()
+    .getInstance(credentialProvider)
     .generateClientConfig();
 };

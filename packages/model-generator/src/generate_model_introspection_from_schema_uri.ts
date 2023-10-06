@@ -1,3 +1,6 @@
+import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
+import { createGraphqlModelsFromS3UriGenerator } from './create_graphql_models_generator.js';
+
 /**
  * Root Schema Representation
  */
@@ -34,7 +37,7 @@ export type SchemaEnum = {
 
 export type ModelAttribute = {
   type: string;
-  properties?: { [key: string]: unknown };
+  properties?: { [key: string]: any };
 };
 /**
  * Field Definition
@@ -106,16 +109,42 @@ export type PrimaryKeyInfo = {
   sortKeyFieldNames: string[];
 };
 
+export type GetModelIntrospectionSchemaParams = {
+  modelSchemaS3Uri?: string;
+  credentialProvider: AwsCredentialIdentityProvider;
+};
+
 /**
- * Build this up over time based on
- * https://docs.amplify.aws/lib/client-configuration/configuring-amplify-categories/q/platform/js/#scoped-configuration---graphql-api
+ * Try and convert the modelSchemaS3Uri into an introspection schema object.
  */
-export type GraphqlClientConfig = {
-  aws_appsync_region: string;
-  aws_appsync_graphqlEndpoint: string;
-  aws_appsync_authenticationType: string;
-  aws_appsync_additionalAuthenticationTypes?: string;
-  aws_appsync_conflictResolutionMode?: string;
-  aws_appsync_apiKey?: string;
-  modelIntrospection?: ModelIntrospectionSchema;
+export const getModelIntrospectionSchemaFromS3Uri = async ({
+  modelSchemaS3Uri,
+  credentialProvider,
+}: GetModelIntrospectionSchemaParams): Promise<
+  ModelIntrospectionSchema | undefined
+> => {
+  if (!modelSchemaS3Uri) {
+    return;
+  }
+
+  const modelGenerator = await createGraphqlModelsFromS3UriGenerator({
+    modelSchemaS3Uri,
+    credentialProvider,
+  }).generateModels({ target: 'introspection' });
+  const generatedModels = await modelGenerator.returnResults();
+
+  const generatedModelFiles = Object.values(generatedModels);
+  if (generatedModelFiles.length !== 1) {
+    throw new Error(
+      `A single model introspection schema is expected, received ${generatedModelFiles.length} values.`
+    );
+  }
+
+  try {
+    return JSON.parse(generatedModelFiles[0]);
+  } catch (_) {
+    throw new Error(
+      'Caught exception while converting introspection schema to JSON representation'
+    );
+  }
 };

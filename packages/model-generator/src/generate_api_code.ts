@@ -110,6 +110,10 @@ export const generateApiCode = async (
               types.writeToDirectory(directoryPath),
             ]);
           },
+          returnResults: async () => ({
+            ...documents.returnResults,
+            ...types.returnResults,
+          }),
         };
       }
 

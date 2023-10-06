@@ -35,6 +35,31 @@ export const createGraphqlModelsGenerator = ({
   );
 };
 
+export type GraphqlModelsFromS3UriGeneratorFactoryParams = {
+  modelSchemaS3Uri: string;
+  credentialProvider: AwsCredentialIdentityProvider;
+};
+
+/**
+ * Factory function to compose a model generator
+ */
+export const createGraphqlModelsFromS3UriGenerator = ({
+  modelSchemaS3Uri,
+  credentialProvider,
+}: GraphqlModelsFromS3UriGeneratorFactoryParams): GraphqlModelsGenerator => {
+  if (!modelSchemaS3Uri) {
+    throw new Error('`modelSchemaS3Uri` must be defined');
+  }
+  if (!credentialProvider) {
+    throw new Error('`credentialProvider` must be defined');
+  }
+
+  return new StackMetadataGraphqlModelsGenerator(
+    () => getModelSchemaFromS3Uri(modelSchemaS3Uri, credentialProvider),
+    (fileMap) => new AppsyncGraphqlGenerationResult(fileMap)
+  );
+};
+
 const getModelSchema = async (
   backendIdentifier: BackendIdentifier,
   credentialProvider: AwsCredentialIdentityProvider
@@ -49,6 +74,17 @@ const getModelSchema = async (
     throw new Error(`Cannot find model schema at amplifyApiModelSchemaS3Uri`);
   }
 
+  const s3Client = new S3Client({
+    credentials: credentialProvider,
+  });
+  const schemaFetcher = new S3StringObjectFetcher(s3Client);
+  return await schemaFetcher.fetch(modelSchemaS3Uri);
+};
+
+const getModelSchemaFromS3Uri = async (
+  modelSchemaS3Uri: string,
+  credentialProvider: AwsCredentialIdentityProvider
+): Promise<string> => {
   const s3Client = new S3Client({
     credentials: credentialProvider,
   });

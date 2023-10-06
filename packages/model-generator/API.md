@@ -10,6 +10,43 @@ import { ModelsTarget } from '@aws-amplify/graphql-generator';
 import { StatementsTarget } from '@aws-amplify/graphql-generator';
 import { TypesTarget } from '@aws-amplify/graphql-generator';
 
+// @public (undocumented)
+export type AssociationBaseType = {
+    connectionType: CodeGenConnectionType;
+};
+
+// @public (undocumented)
+export type AssociationBelongsTo = AssociationBaseType & {
+    connectionType: CodeGenConnectionType.BELONGS_TO;
+    targetNames: string[];
+};
+
+// @public (undocumented)
+export type AssociationHasMany = AssociationBaseType & {
+    connectionType: CodeGenConnectionType.HAS_MANY;
+    associatedWith: string[];
+};
+
+// @public (undocumented)
+export type AssociationHasOne = AssociationBaseType & {
+    connectionType: CodeGenConnectionType.HAS_ONE;
+    associatedWith: string[];
+    targetNames: string[];
+};
+
+// @public (undocumented)
+export type AssociationType = AssociationHasMany | AssociationHasOne | AssociationBelongsTo;
+
+// @public
+export enum CodeGenConnectionType {
+    // (undocumented)
+    BELONGS_TO = "BELONGS_TO",
+    // (undocumented)
+    HAS_MANY = "HAS_MANY",
+    // (undocumented)
+    HAS_ONE = "HAS_ONE"
+}
+
 // @public
 export const createGraphqlDocumentGenerator: ({ backendIdentifier, credentialProvider, }: GraphqlDocumentGeneratorFactoryParams) => GraphqlDocumentGenerator;
 
@@ -18,6 +55,33 @@ export type DocumentGenerationParameters = {
     language: TargetLanguage;
     maxDepth?: number;
     typenameIntrospection?: boolean;
+};
+
+// @public (undocumented)
+export type Field = {
+    name: string;
+    type: FieldType;
+    isArray: boolean;
+    isRequired: boolean;
+    isReadOnly?: boolean;
+    isArrayNullable?: boolean;
+    attributes?: FieldAttribute[];
+    association?: AssociationType;
+};
+
+// @public (undocumented)
+export type FieldAttribute = ModelAttribute;
+
+// @public
+export type Fields = Record<string, Field>;
+
+// @public (undocumented)
+export type FieldType = 'ID' | 'String' | 'Int' | 'Float' | 'AWSDate' | 'AWSTime' | 'AWSDateTime' | 'AWSTimestamp' | 'AWSEmail' | 'AWSURL' | 'AWSIPAddress' | 'Boolean' | 'AWSJSON' | 'AWSPhone' | {
+    enum: string;
+} | {
+    model: string;
+} | {
+    nonModel: string;
 };
 
 // @public
@@ -119,6 +183,16 @@ export type GenerateOptions = GenerateGraphqlCodegenOptions | GenerateModelsOpti
 // @public (undocumented)
 export type GenerationResult = {
     writeToDirectory: (directoryPath: string) => Promise<void>;
+    returnResults: () => Promise<Record<string, string>>;
+};
+
+// @public
+export const getModelIntrospectionSchemaFromS3Uri: ({ modelSchemaS3Uri, credentialProvider, }: GetModelIntrospectionSchemaParams) => Promise<ModelIntrospectionSchema | undefined>;
+
+// @public (undocumented)
+export type GetModelIntrospectionSchemaParams = {
+    modelSchemaS3Uri?: string;
+    credentialProvider: AwsCredentialIdentityProvider;
 };
 
 // @public (undocumented)
@@ -143,6 +217,22 @@ export type GraphqlTypesGenerator = {
 };
 
 // @public (undocumented)
+export type ModelAttribute = {
+    type: string;
+    properties?: {
+        [key: string]: any;
+    };
+};
+
+// @public
+export type ModelIntrospectionSchema = {
+    version: 1;
+    models: SchemaModels;
+    nonModels: SchemaNonModels;
+    enums: SchemaEnums;
+};
+
+// @public (undocumented)
 export type ModelsGenerationParameters = {
     target: ModelsTarget;
     generateIndexRules?: boolean;
@@ -154,6 +244,44 @@ export type ModelsGenerationParameters = {
     addTimestampFields?: boolean;
     handleListNullabilityTransparently?: boolean;
 };
+
+// @public (undocumented)
+export type PrimaryKeyInfo = {
+    isCustomPrimaryKey: boolean;
+    primaryKeyFieldName: string;
+    sortKeyFieldNames: string[];
+};
+
+// @public (undocumented)
+export type SchemaEnum = {
+    name: string;
+    values: string[];
+};
+
+// @public (undocumented)
+export type SchemaEnums = Record<string, SchemaEnum>;
+
+// @public (undocumented)
+export type SchemaModel = {
+    name: string;
+    attributes?: ModelAttribute[];
+    fields: Fields;
+    pluralName: string;
+    syncable?: boolean;
+    primaryKeyInfo: PrimaryKeyInfo;
+};
+
+// @public
+export type SchemaModels = Record<string, SchemaModel>;
+
+// @public (undocumented)
+export type SchemaNonModel = {
+    name: string;
+    fields: Fields;
+};
+
+// @public (undocumented)
+export type SchemaNonModels = Record<string, SchemaNonModel>;
 
 // @public (undocumented)
 export type TargetLanguage = StatementsTarget;

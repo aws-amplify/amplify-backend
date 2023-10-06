@@ -11,6 +11,8 @@ import {
 } from '@aws-amplify/backend-output-schemas';
 import { ClientConfig } from './client-config-types/client_config.js';
 import { BackendDeploymentType } from '@aws-amplify/platform-core';
+import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
+import { ModelIntrospectionSchemaAdapter } from './client-config-contributor/model_introspection_schema_adapater.js';
 
 void describe('UnifiedClientConfigGenerator', () => {
   void describe('generateClientConfig', () => {
@@ -46,9 +48,18 @@ void describe('UnifiedClientConfigGenerator', () => {
         },
       };
       const outputRetrieval = mock.fn(async () => stubOutput);
+      const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
+        fromNodeProviderChain()
+      );
+
+      mock.method(
+        modelSchemaAdapter,
+        'getModelIntrospectionSchemaFromS3Uri',
+        () => undefined
+      );
       const configContributors = [
         new AuthClientConfigContributor(),
-        new GraphqlClientConfigContributor(),
+        new GraphqlClientConfigContributor(modelSchemaAdapter),
       ];
 
       const clientConfigGenerator = new UnifiedClientConfigGenerator(
