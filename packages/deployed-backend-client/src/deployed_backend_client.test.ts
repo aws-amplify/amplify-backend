@@ -49,7 +49,7 @@ const listStacksMock = {
       ParentId: 'testStackId',
     },
     {
-      StackName: 'amplify-test-testBranch-api',
+      StackName: 'amplify-test-testBranch-data',
       StackStatus: StackStatus.CREATE_FAILED,
       ParentId: 'testStackId',
     },
@@ -67,7 +67,7 @@ const listStackResourcesMock = {
     },
     {
       PhysicalResourceId:
-        'arn:aws:cloudformation:us-east-1:123:stack/amplify-test-testBranch-api/randomString',
+        'arn:aws:cloudformation:us-east-1:123:stack/amplify-test-testBranch-data/randomString',
       ResourceType: 'AWS::CloudFormation::Stack',
     },
     {
@@ -222,7 +222,7 @@ void describe('Deployed Backend Client', () => {
         },
         {
           deploymentType: BackendDeploymentType.SANDBOX,
-          name: 'amplify-test-testBranch-api',
+          name: 'amplify-test-testBranch-data',
           status: BackendDeploymentStatus.FAILED,
           lastUpdated: undefined,
         },
