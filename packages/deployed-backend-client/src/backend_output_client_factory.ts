@@ -64,7 +64,9 @@ export class BackendOutputClientFactory {
         options.amplifyClient
       );
     }
-    const cfnClient = new CloudFormationClient(options.credentials);
-    return new DefaultBackendOutputClient(cfnClient, new AmplifyClient());
+    return new DefaultBackendOutputClient(
+      new CloudFormationClient(options.credentials),
+      new AmplifyClient(options.credentials)
+    );
   };
 }
