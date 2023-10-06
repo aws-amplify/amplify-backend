@@ -61,7 +61,7 @@ export class AmplifyProjectCreator {
 
 ${installDependenciesCMD}
 
-and dependencies by running;
+and devDependencies by running:
 
 ${installDevDependenciesCMD}
 
@@ -97,8 +97,8 @@ Continue?`;
     this.logger.log('Scaffolding initial project files...');
     await this.initialProjectFileGenerator.generateInitialProjectFiles();
 
-    this.logger.log(
-      'All done! Run `amplify help` for a list of available commands.'
-    );
+    this.logger.log(`All done! 
+Run \`amplify help\` for a list of available commands.
+Get started by running \`amplify sandbox\``);
   };
 }
