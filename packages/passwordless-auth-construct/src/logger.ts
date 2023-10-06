@@ -16,19 +16,19 @@ export class Logger implements LoggerInterface {
     private readonly _logger: LoggerInterface = console
   ) {}
 
-  public error = (message?: any, ...optionalParams: any[]) => {
+  public error = (...args: Parameters<Console['error']>) => {
     if (this.logLevel >= LogLevel.ERROR) {
-      this._logger.error(message, ...optionalParams);
+      this._logger.error(...args);
     }
   };
-  public info = (message?: any, ...optionalParams: any[]) => {
+  public info = (...args: Parameters<Console['info']>) => {
     if (this.logLevel >= LogLevel.INFO) {
-      this._logger.info(message, ...optionalParams);
+      this._logger.info(...args);
     }
   };
-  public debug = (message?: any, ...optionalParams: any[]) => {
+  public debug = (...args: Parameters<Console['debug']>) => {
     if (this.logLevel >= LogLevel.DEBUG) {
-      this._logger.debug(message, ...optionalParams);
+      this._logger.debug(...args);
     }
   };
 }
