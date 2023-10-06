@@ -1,5 +1,14 @@
 # @aws-amplify/backend-function
 
+## 0.1.1-alpha.6
+
+### Patch Changes
+
+- 7103735b: cdk lib dependency declaration
+- Updated dependencies [7103735b]
+  - @aws-amplify/function-construct-alpha@0.1.1-alpha.4
+  - @aws-amplify/plugin-types@0.2.0-alpha.8
+
 ## 0.1.1-alpha.5
 
 ### Patch Changes

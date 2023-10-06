@@ -1,5 +1,13 @@
 # @aws-amplify/backend-deployer
 
+## 0.2.0-alpha.6
+
+### Patch Changes
+
+- c78daa11: fix(sandbox): delete should pass the deployment type to deployer
+- Updated dependencies [7103735b]
+  - @aws-amplify/plugin-types@0.2.0-alpha.8
+
 ## 0.2.0-alpha.5
 
 ### Minor Changes
