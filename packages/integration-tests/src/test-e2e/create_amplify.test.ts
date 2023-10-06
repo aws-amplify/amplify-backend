@@ -56,6 +56,7 @@ void describe('create-amplify script', () => {
         '@aws-amplify/backend-auth',
         '@aws-amplify/backend-cli',
         '@aws-amplify/backend-graphql',
+        'typescript',
       ]
     );
 
@@ -78,6 +79,32 @@ void describe('create-amplify script', () => {
         'backend.ts',
         path.join('data', 'resource.ts'),
       ].map((suffix) => path.join(pathPrefix, suffix))
+    );
+
+    // assert that project compiles successfully
+    await execa('npx', ['tsc', '--noEmit'], {
+      cwd: tempDir,
+      stdio: 'inherit',
+    });
+
+    // assert that project synthesizes successfully
+    await execa(
+      'npx',
+      [
+        'cdk',
+        'synth',
+        '--context',
+        'backend-id=123',
+        '--context',
+        'deployment-type=SANDBOX',
+        '--app',
+        "'npx tsx amplify/backend.ts'",
+        '--quiet',
+      ],
+      {
+        cwd: tempDir,
+        stdio: 'inherit',
+      }
     );
   });
 
