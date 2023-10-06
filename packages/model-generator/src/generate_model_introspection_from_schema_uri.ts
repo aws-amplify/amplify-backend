@@ -37,7 +37,7 @@ export type SchemaEnum = {
 
 export type ModelAttribute = {
   type: string;
-  properties?: { [key: string]: any };
+  properties?: { [key: string]: unknown };
 };
 /**
  * Field Definition
@@ -131,7 +131,7 @@ export const getModelIntrospectionSchemaFromS3Uri = async ({
     modelSchemaS3Uri,
     credentialProvider,
   }).generateModels({ target: 'introspection' });
-  const generatedModels = await modelGenerator.returnResults();
+  const generatedModels = await modelGenerator.getResults();
 
   const generatedModelFiles = Object.values(generatedModels);
   if (generatedModelFiles.length !== 1) {

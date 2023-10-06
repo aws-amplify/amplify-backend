@@ -1,6 +1,8 @@
-import { getModelIntrospectionSchemaFromS3Uri } from '@aws-amplify/model-generator';
+import {
+  ModelIntrospectionSchema,
+  getModelIntrospectionSchemaFromS3Uri,
+} from '@aws-amplify/model-generator';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
-import { ModelIntrospectionSchema } from '../index.js';
 
 /**
  * Adapts static getModelIntrospectionSchemaFromS3Uri from @aws-amplify/model-generator call to make it injectable and testable.

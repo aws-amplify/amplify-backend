@@ -31,7 +31,7 @@ export class AppsyncGraphqlGenerationResult implements GenerationResult {
     );
   };
 
-  returnResults = async (): Promise<Record<string, string>> => {
+  getResults = async (): Promise<Record<string, string>> => {
     return this.operations;
   };
 }

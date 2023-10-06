@@ -74,11 +74,7 @@ const getModelSchema = async (
     throw new Error(`Cannot find model schema at amplifyApiModelSchemaS3Uri`);
   }
 
-  const s3Client = new S3Client({
-    credentials: credentialProvider,
-  });
-  const schemaFetcher = new S3StringObjectFetcher(s3Client);
-  return await schemaFetcher.fetch(modelSchemaS3Uri);
+  return await getModelSchemaFromS3Uri(modelSchemaS3Uri, credentialProvider);
 };
 
 const getModelSchemaFromS3Uri = async (

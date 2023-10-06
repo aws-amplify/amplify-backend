@@ -8,7 +8,7 @@ void describe('types generator', () => {
       async () => null as unknown as string,
       () => ({
         writeToDirectory: () => Promise.resolve(),
-        returnResults: async () => ({}),
+        getResults: async () => ({}),
       })
     );
     await assert.rejects(() =>

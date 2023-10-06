@@ -183,7 +183,7 @@ export type GenerateOptions = GenerateGraphqlCodegenOptions | GenerateModelsOpti
 // @public (undocumented)
 export type GenerationResult = {
     writeToDirectory: (directoryPath: string) => Promise<void>;
-    returnResults: () => Promise<Record<string, string>>;
+    getResults: () => Promise<Record<string, string>>;
 };
 
 // @public
@@ -220,7 +220,7 @@ export type GraphqlTypesGenerator = {
 export type ModelAttribute = {
     type: string;
     properties?: {
-        [key: string]: any;
+        [key: string]: unknown;
     };
 };
 
