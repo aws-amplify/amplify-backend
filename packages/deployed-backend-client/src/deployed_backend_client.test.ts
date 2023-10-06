@@ -16,17 +16,15 @@ import {
   stackOutputKey,
   storageOutputKey,
 } from '@aws-amplify/backend-output-schemas';
-import { BackendOutput } from '@aws-amplify/plugin-types';
-import { BackendOutputClientFactory } from '@aws-amplify/deployed-backend-client';
 import {
   BackendDeploymentType,
   BranchBackendIdentifier,
   SandboxBackendIdentifier,
 } from '@aws-amplify/platform-core';
-import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { DefaultBackendOutputClient } from './backend_output_client.js';
 import { DefaultDeployedBackendClient } from './deployed_backend_client.js';
 import { StackIdentifier } from './index.js';
+import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { GetObjectCommand, S3 } from '@aws-sdk/client-s3';
 
 const listStacksMock = {
@@ -51,7 +49,7 @@ const listStacksMock = {
       ParentId: 'testStackId',
     },
     {
-      StackName: 'amplify-test-testBranch-api',
+      StackName: 'amplify-test-testBranch-data',
       StackStatus: StackStatus.CREATE_FAILED,
       ParentId: 'testStackId',
     },
@@ -69,7 +67,7 @@ const listStackResourcesMock = {
     },
     {
       PhysicalResourceId:
-        'arn:aws:cloudformation:us-east-1:123:stack/amplify-test-testBranch-api/randomString',
+        'arn:aws:cloudformation:us-east-1:123:stack/amplify-test-testBranch-data/randomString',
       ResourceType: 'AWS::CloudFormation::Stack',
     },
     {
@@ -132,7 +130,13 @@ const expectedMetadata = {
 };
 
 void describe('Deployed Backend Client', () => {
-  const getOutputMock = mock.fn();
+  const mockCfnClient = new CloudFormation();
+  const mockS3Client = new S3();
+  const mockBackendOutputClient = new DefaultBackendOutputClient(
+    mockCfnClient,
+    new AmplifyClient()
+  );
+  const getOutputMock = mock.method(mockBackendOutputClient, 'getOutput');
   let deployedBackendClient: DefaultDeployedBackendClient;
   const cfnClientSendMock = mock.fn();
   const s3ClientSendMock = mock.fn();
@@ -148,12 +152,6 @@ void describe('Deployed Backend Client', () => {
   });
 
   beforeEach(() => {
-    const mockCredentials: AwsCredentialIdentityProvider = async () => ({
-      accessKeyId: 'accessKeyId',
-      secretAccessKey: 'secretAccessKey',
-    });
-    const mockCfnClient = new CloudFormation();
-    const mockS3Client = new S3();
     getOutputMock.mock.mockImplementation(() => getOutputMockResponse);
     mock.method(mockCfnClient, 'send', cfnClientSendMock);
     mock.method(mockS3Client, 'send', s3ClientSendMock);
@@ -161,7 +159,7 @@ void describe('Deployed Backend Client', () => {
     getOutputMock.mock.resetCalls();
     cfnClientSendMock.mock.resetCalls();
     s3ClientSendMock.mock.resetCalls();
-    const mockImplementation = (
+    const mockSend = (
       request:
         | ListStacksCommand
         | DescribeStacksCommand
@@ -184,21 +182,12 @@ void describe('Deployed Backend Client', () => {
       throw request;
     };
 
-    cfnClientSendMock.mock.mockImplementation(mockImplementation);
-
-    const backendOutputClientFactoryMock = mock.fn();
-    backendOutputClientFactoryMock.mock.mockImplementation(() => ({
-      getOutput: getOutputMock as unknown as () => Promise<BackendOutput>,
-    }));
-    BackendOutputClientFactory.getInstance =
-      backendOutputClientFactoryMock as unknown as (
-        credentials: AwsCredentialIdentityProvider
-      ) => DefaultBackendOutputClient;
+    cfnClientSendMock.mock.mockImplementation(mockSend);
 
     deployedBackendClient = new DefaultDeployedBackendClient(
-      mockCredentials,
       mockCfnClient,
-      mockS3Client
+      mockS3Client,
+      mockBackendOutputClient
     );
   });
 
@@ -233,7 +222,7 @@ void describe('Deployed Backend Client', () => {
         },
         {
           deploymentType: BackendDeploymentType.SANDBOX,
-          name: 'amplify-test-testBranch-api',
+          name: 'amplify-test-testBranch-data',
           status: BackendDeploymentStatus.FAILED,
           lastUpdated: undefined,
         },
@@ -263,11 +252,11 @@ void describe('Deployed Backend Client', () => {
 });
 
 void describe('Deployed Backend Client pagination', () => {
+  const mockCfnClient = new CloudFormation();
+  const mockS3Client = new S3();
+  const cfnClientSendMock = mock.method(mockCfnClient, 'send');
   let deployedBackendClient: DefaultDeployedBackendClient;
   const listStacksMockFn = mock.fn();
-  const cfnClientSendMock = mock.fn();
-  const s3ClientSendMock = mock.fn();
-  const getOutputMock = mock.fn();
   const returnedSandboxes = [
     {
       deploymentType: BackendDeploymentType.SANDBOX,
@@ -278,10 +267,11 @@ void describe('Deployed Backend Client pagination', () => {
   ];
 
   beforeEach(() => {
-    const mockCredentials: AwsCredentialIdentityProvider = async () => ({
-      accessKeyId: 'accessKeyId',
-      secretAccessKey: 'secretAccessKey',
-    });
+    const mockBackendOutputClient = new DefaultBackendOutputClient(
+      mockCfnClient,
+      new AmplifyClient()
+    );
+    const getOutputMock = mock.method(mockBackendOutputClient, 'getOutput');
     getOutputMock.mock.mockImplementation(
       (backendIdentifier: StackIdentifier) => {
         if (backendIdentifier.stackName !== 'amplify-test-sandbox') {
@@ -298,25 +288,13 @@ void describe('Deployed Backend Client pagination', () => {
       }
     );
     getOutputMock.mock.resetCalls();
-    const backendOutputClientFactoryMock = mock.fn();
-    backendOutputClientFactoryMock.mock.mockImplementation(() => ({
-      getOutput: getOutputMock as unknown as () => Promise<BackendOutput>,
-    }));
-    BackendOutputClientFactory.getInstance =
-      backendOutputClientFactoryMock as unknown as (
-        credentials: AwsCredentialIdentityProvider
-      ) => DefaultBackendOutputClient;
 
-    const mockCfnClient = new CloudFormation();
-    const mockS3Client = new S3();
-    mock.method(mockCfnClient, 'send', cfnClientSendMock);
-    mock.method(mockS3Client, 'send', s3ClientSendMock);
     listStacksMockFn.mock.resetCalls();
     listStacksMockFn.mock.mockImplementation(() => {
       return listStacksMock;
     });
     cfnClientSendMock.mock.resetCalls();
-    const mockImplementation = (
+    const mockSend = (
       request: ListStacksCommand | DescribeStacksCommand | DeleteStackCommand
     ) => {
       if (request instanceof ListStacksCommand) {
@@ -334,12 +312,12 @@ void describe('Deployed Backend Client pagination', () => {
       throw request;
     };
 
-    cfnClientSendMock.mock.mockImplementation(mockImplementation);
+    cfnClientSendMock.mock.mockImplementation(mockSend);
 
     deployedBackendClient = new DefaultDeployedBackendClient(
-      mockCredentials,
       mockCfnClient,
-      mockS3Client
+      mockS3Client,
+      mockBackendOutputClient
     );
   });
 

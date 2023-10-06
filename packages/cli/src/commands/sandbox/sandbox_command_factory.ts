@@ -56,8 +56,9 @@ export const createSandboxCommand = (): CommandModule<
             clientConfigOutDir,
             format
           );
-          const outputClient =
-            BackendOutputClientFactory.getInstance(credentialProvider);
+          const outputClient = BackendOutputClientFactory.getInstance({
+            credentials: credentialProvider,
+          });
           const output = await outputClient.getOutput(backendIdentifier);
           const apiUrl =
             output[graphqlOutputKey]?.payload.amplifyApiModelSchemaS3Uri;

@@ -5,7 +5,7 @@
   "type": "module",
   "devDependencies": {
     "@aws-amplify/backend": "0.2.0-alpha.6",
-    "@aws-amplify/backend-auth": "0.2.0-alpha.6",
+    "@aws-amplify/backend-auth": "0.2.0-alpha.7",
     "@aws-amplify/backend-storage": "0.2.0-alpha.5",
     "@aws-amplify/amplify-api-next-alpha": "^0.3.2",
     "@aws-sdk/client-cloudformation": "^3.421.0",

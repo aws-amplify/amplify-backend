@@ -4,6 +4,7 @@ import { PackageManagerController } from './package_manager_controller.js';
 import { ProjectRootValidator } from './project_root_validator.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
 import { NpmProjectInitializer } from './npm_project_initializer.js';
+import { TsConfigInitializer } from './tsconfig_initializer.js';
 
 /**
  *
@@ -18,6 +19,7 @@ export class AmplifyProjectCreator {
     // TODO after API-Next is GA change to: @aws-amplify/amplify-api-next
     // https://github.com/aws-amplify/samsara-cli/issues/332
     '@aws-amplify/amplify-api-next-alpha',
+    'typescript@^5.0.0',
   ];
 
   // TODO after API-Next is GA change to: `aws-amplify`
@@ -33,6 +35,7 @@ export class AmplifyProjectCreator {
     private readonly projectRootValidator: ProjectRootValidator,
     private readonly initialProjectFileGenerator: InitialProjectFileGenerator,
     private readonly npmInitializedEnsurer: NpmProjectInitializer,
+    private readonly tsConfigInitializer: TsConfigInitializer,
     private readonly logger: typeof console = console
   ) {}
 
@@ -88,6 +91,8 @@ Continue?`;
         'dev'
       );
     }
+
+    await this.tsConfigInitializer.ensureInitialized();
 
     this.logger.log('Scaffolding initial project files...');
     await this.initialProjectFileGenerator.generateInitialProjectFiles();
