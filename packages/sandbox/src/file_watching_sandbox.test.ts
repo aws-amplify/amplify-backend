@@ -315,6 +315,7 @@ void describe('Sandbox using local project name resolver', () => {
     // BackendDeployer should be called with the right params
     assert.deepEqual(backendDeployerDestroyMock.mock.calls[0].arguments, [
       new SandboxBackendIdentifier('testSandboxId'),
+      { deploymentType: BackendDeploymentType.SANDBOX },
     ]);
   });
 
@@ -432,6 +433,7 @@ void describe('Sandbox with user provided app name', () => {
     // BackendDeployer should be called with the right params
     assert.deepEqual(backendDeployerDestroyMock.mock.calls[0].arguments, [
       new SandboxBackendIdentifier('customSandboxName'),
+      { deploymentType: BackendDeploymentType.SANDBOX },
     ]);
   });
 });

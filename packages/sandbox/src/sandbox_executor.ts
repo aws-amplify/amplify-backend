@@ -71,7 +71,10 @@ export class AmplifySandboxExecutor {
   ): Promise<void> => {
     console.debug('[Sandbox] Executing command `destroy`');
     return this.invoke(
-      async () => await this.backendDeployer.destroy(uniqueBackendIdentifier)
+      async () =>
+        await this.backendDeployer.destroy(uniqueBackendIdentifier, {
+          deploymentType: BackendDeploymentType.SANDBOX,
+        })
     );
   };
 
