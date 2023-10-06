@@ -60,26 +60,26 @@ void describe('translateToAuthConstructLoginWith', () => {
       phoneNumber,
       externalProviders: {
         google: {
-          clientId: googleClientId,
+          clientId: new TestBackendSecret(googleClientId),
           clientSecretValue: new TestBackendSecret(googleClientSecret),
         },
         facebook: {
-          clientId: facebookClientId,
+          clientId: new TestBackendSecret(facebookClientId),
           clientSecret: new TestBackendSecret(facebookClientSecret),
         },
         amazon: {
-          clientId: amazonClientId,
+          clientId: new TestBackendSecret(amazonClientId),
           clientSecret: new TestBackendSecret(amazonClientSecret),
         },
         oidc: {
-          clientId: oidcClientId,
+          clientId: new TestBackendSecret(oidcClientId),
           clientSecret: new TestBackendSecret(oidcClientSecret),
           issuerUrl: oidcIssueURL,
         },
         apple: {
-          clientId: appleClientId,
-          teamId: appleTeamId,
-          keyId: appleKeyId,
+          clientId: new TestBackendSecret(appleClientId),
+          teamId: new TestBackendSecret(appleTeamId),
+          keyId: new TestBackendSecret(appleKeyId),
           privateKey: new TestBackendSecret(applePrivateKey),
         },
         callbackUrls: callbackUrls,

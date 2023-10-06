@@ -9,9 +9,24 @@ import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { BackendDeploymentType } from '@aws-amplify/platform-core';
 import { CloudFormation } from '@aws-sdk/client-cloudformation';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import { S3 } from '@aws-sdk/client-s3';
 import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
 import { UnifiedBackendOutput } from '@aws-amplify/backend-output-schemas';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+
+// @public (undocumented)
+export enum ApiAuthType {
+    // (undocumented)
+    AMAZON_COGNITO_USER_POOLS = "AMAZON_COGNITO_USER_POOLS",
+    // (undocumented)
+    API_KEY = "API_KEY",
+    // (undocumented)
+    AWS_IAM = "AWS_IAM",
+    // (undocumented)
+    AWS_LAMBDA = "AWS_LAMBDA",
+    // (undocumented)
+    OPENID_CONNECT = "OPENID_CONNECT"
+}
 
 // @public
 export type AppNameAndBranchBackendIdentifier = {
@@ -46,6 +61,10 @@ export type BackendMetadata = {
         status: BackendDeploymentStatus;
         lastUpdated: Date | undefined;
         graphqlEndpoint: string;
+        graphqlSchema: string;
+        defaultAuthType: ApiAuthType;
+        additionalAuthTypes: ApiAuthType[];
+        conflictResolutionMode?: ConflictResolutionMode;
     };
     authConfiguration?: {
         status: BackendDeploymentStatus;
@@ -97,6 +116,16 @@ export type BackendOutputCredentialsOptions = {
 };
 
 // @public (undocumented)
+export enum ConflictResolutionMode {
+    // (undocumented)
+    AUTOMERGE = "AUTOMERGE",
+    // (undocumented)
+    LAMBDA = "LAMBDA",
+    // (undocumented)
+    OPTIMISTIC_CONCURRENCY = "OPTIMISTIC_CONCURRENCY"
+}
+
+// @public (undocumented)
 export type DeployedBackendClient = {
     listSandboxes: (listSandboxesRequest?: ListSandboxesRequest) => Promise<ListSandboxesResponse>;
     deleteSandbox: (sandboxBackendIdentifier: SandboxBackendIdentifier) => Promise<void>;
@@ -113,6 +142,7 @@ export type DeployedBackendClientFactoryOptions = DeployedBackendCredentialsOpti
 
 // @public (undocumented)
 export type DeployedBackendClientOptions = {
+    s3Client: S3;
     cloudFormationClient: CloudFormation;
     backendOutputClient: BackendOutputClient;
 };

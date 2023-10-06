@@ -13,6 +13,21 @@ import {
   BackendOutputClient,
   BackendOutputClientFactory,
 } from './backend_output_client_factory.js';
+import { S3 } from '@aws-sdk/client-s3';
+
+export enum ConflictResolutionMode {
+  LAMBDA = 'LAMBDA',
+  OPTIMISTIC_CONCURRENCY = 'OPTIMISTIC_CONCURRENCY',
+  AUTOMERGE = 'AUTOMERGE',
+}
+
+export enum ApiAuthType {
+  API_KEY = 'API_KEY',
+  AWS_LAMBDA = 'AWS_LAMBDA',
+  AWS_IAM = 'AWS_IAM',
+  OPENID_CONNECT = 'OPENID_CONNECT',
+  AMAZON_COGNITO_USER_POOLS = 'AMAZON_COGNITO_USER_POOLS',
+}
 
 export type SandboxMetadata = {
   name: string;
@@ -33,6 +48,10 @@ export type BackendMetadata = {
     status: BackendDeploymentStatus;
     lastUpdated: Date | undefined;
     graphqlEndpoint: string;
+    graphqlSchema: string;
+    defaultAuthType: ApiAuthType;
+    additionalAuthTypes: ApiAuthType[];
+    conflictResolutionMode?: ConflictResolutionMode;
   };
   authConfiguration?: {
     status: BackendDeploymentStatus;
@@ -72,6 +91,7 @@ export type DeployedBackendClient = {
 };
 
 export type DeployedBackendClientOptions = {
+  s3Client: S3;
   cloudFormationClient: CloudFormation;
   backendOutputClient: BackendOutputClient;
 };
@@ -97,11 +117,13 @@ export class DeployedBackendClientFactory {
     if ('backendOutputClient' in options && 'cloudFormationClient' in options) {
       return new DefaultDeployedBackendClient(
         options.cloudFormationClient,
+        options.s3Client,
         options.backendOutputClient
       );
     }
     return new DefaultDeployedBackendClient(
       new CloudFormationClient(options.credentials),
+      new S3(options.credentials),
       BackendOutputClientFactory.getInstance({
         credentials: options.credentials,
       })

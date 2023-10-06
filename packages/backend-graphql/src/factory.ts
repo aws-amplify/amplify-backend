@@ -13,10 +13,12 @@ import {
   AmplifyGraphqlDefinition,
   AuthorizationModes,
   IAMAuthorizationConfig,
+  IAmplifyGraphqlDefinition,
   UserPoolAuthorizationConfig,
 } from '@aws-amplify/graphql-api-construct';
 import { GraphqlOutput } from '@aws-amplify/backend-output-schemas/graphql';
 import * as path from 'path';
+import { DerivedModelSchema } from '@aws-amplify/amplify-api-next-types-alpha';
 
 /**
  * Exposed props for Data which are configurable by the end user.
@@ -25,12 +27,18 @@ export type DataProps = {
   /**
    * Graphql Schema as a string to be passed into the CDK construct.
    */
-  schema: string;
+  schema: string | DerivedModelSchema;
 
   /**
    * Optional name for the generated Api.
    */
   name?: string;
+
+  /**
+   * Temporary authZ pass-through into the CDK construct
+   * https://github.com/aws-amplify/samsara-cli/issues/370
+   */
+  authorizationModes?: AuthorizationModes;
 };
 
 /**
@@ -114,16 +122,42 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       defaultAuthorizationMode = 'AMAZON_COGNITO_USER_POOLS';
     }
 
+    const dataAuthorizationModes = this.props.authorizationModes || {};
+
     const authorizationModes: AuthorizationModes = {
       defaultAuthorizationMode,
       iamConfig,
       userPoolConfig,
+      ...dataAuthorizationModes,
+    };
+
+    const isModelSchema = (
+      schema: DataProps['schema']
+    ): schema is DerivedModelSchema => {
+      if (
+        schema !== null &&
+        typeof schema === 'object' &&
+        typeof schema.transform === 'function'
+      ) {
+        return true;
+      }
+      return false;
+    };
+
+    const normalizeSchema = (
+      schema: DataProps['schema']
+    ): IAmplifyGraphqlDefinition => {
+      if (isModelSchema(schema)) {
+        return schema.transform();
+      }
+
+      return AmplifyGraphqlDefinition.fromString(schema);
     };
 
     // TODO inject the construct with the functionNameMap
     const graphqlConstructProps: AmplifyGraphqlApiProps = {
       apiName: this.props.name,
-      definition: AmplifyGraphqlDefinition.fromString(this.props.schema),
+      definition: normalizeSchema(this.props.schema),
       authorizationModes,
       outputStorageStrategy: this.outputStorageStrategy,
     };

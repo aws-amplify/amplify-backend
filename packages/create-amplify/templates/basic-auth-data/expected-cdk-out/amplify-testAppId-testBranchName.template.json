@@ -1,10 +1,10 @@
 {
  "Metadata": {
-   "AWS::Amplify::Platform": {
+  "AWS::Amplify::Platform": {
+   "version": "1",
    "stackOutputs": [
     "deploymentType"
-   ],
-   "version": "1"
+   ]
   },
   "AWS::Amplify::Auth": {
    "version": "1",
@@ -24,6 +24,81 @@
     "awsAppsyncRegion",
     "amplifyApiModelSchemaS3Uri"
    ]
+  }
+ },
+ "Outputs": {
+  "deploymentType": {
+   "Value": "BRANCH"
+  },
+  "userPoolId": {
+   "Value": {
+    "Fn::GetAtt": [
+     "auth179371D7",
+     "Outputs.amplifytestAppIdtestBranchNameauthamplifyAuthUserPoolC1B04074Ref"
+    ]
+   }
+  },
+  "webClientId": {
+   "Value": {
+    "Fn::GetAtt": [
+     "auth179371D7",
+     "Outputs.amplifytestAppIdtestBranchNameauthamplifyAuthUserPoolWebClientEFCFE2AFRef"
+    ]
+   }
+  },
+  "identityPoolId": {
+   "Value": {
+    "Fn::GetAtt": [
+     "auth179371D7",
+     "Outputs.amplifytestAppIdtestBranchNameauthamplifyAuthIdentityPool40350D66Ref"
+    ]
+   }
+  },
+  "authRegion": {
+   "Value": {
+    "Ref": "AWS::Region"
+   }
+  },
+  "awsAppsyncApiId": {
+   "Value": {
+    "Fn::GetAtt": [
+     "data7552DF31",
+     "Outputs.amplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
+    ]
+   }
+  },
+  "awsAppsyncApiEndpoint": {
+   "Value": {
+    "Fn::GetAtt": [
+     "data7552DF31",
+     "Outputs.amplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03GraphQLUrl"
+    ]
+   }
+  },
+  "awsAppsyncAuthenticationType": {
+   "Value": "AMAZON_COGNITO_USER_POOLS"
+  },
+  "awsAppsyncRegion": {
+   "Value": {
+    "Ref": "AWS::Region"
+   }
+  },
+  "amplifyApiModelSchemaS3Uri": {
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "s3://",
+      {
+       "Fn::GetAtt": [
+        "data7552DF31",
+        "Outputs.amplifytestAppIdtestBranchNamedataamplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsBucket25324612Ref"
+       ]
+      },
+      "/model-schema.graphql"
+     ]
+    ]
+   }
   }
  },
  "Resources": {
@@ -73,7 +148,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/4e62affd7a69437c32228c826e7e0609a18a172bec546ab660c2aa16d4eddef4.json"
+       "/27a2b992f3f158f5cc653b414b05d756a1cfc270efae1fbdc06a3d80ce0dbb73.json"
       ]
      ]
     },
@@ -100,81 +175,6 @@
    },
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete"
-  }
- },
- "Outputs": {
-  "userPoolId": {
-   "Value": {
-    "Fn::GetAtt": [
-     "auth179371D7",
-     "Outputs.amplifytestAppIdtestBranchNameauthamplifyAuthUserPoolC1B04074Ref"
-    ]
-   }
-  },
-  "webClientId": {
-   "Value": {
-    "Fn::GetAtt": [
-     "auth179371D7",
-     "Outputs.amplifytestAppIdtestBranchNameauthamplifyAuthUserPoolWebClientEFCFE2AFRef"
-    ]
-   }
-  },
-  "identityPoolId": {
-   "Value": {
-    "Fn::GetAtt": [
-     "auth179371D7",
-     "Outputs.amplifytestAppIdtestBranchNameauthamplifyAuthIdentityPool40350D66Ref"
-    ]
-   }
-  },
-  "authRegion": {
-   "Value": {
-    "Ref": "AWS::Region"
-   }
-  },
-  "deploymentType": {
-   "Value": "BRANCH"
-  },
-  "awsAppsyncApiId": {
-   "Value": {
-    "Fn::GetAtt": [
-     "data7552DF31",
-     "Outputs.amplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
-    ]
-   }
-  },
-  "awsAppsyncApiEndpoint": {
-   "Value": {
-    "Fn::GetAtt": [
-     "data7552DF31",
-     "Outputs.amplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03GraphQLUrl"
-    ]
-   }
-  },
-  "awsAppsyncAuthenticationType": {
-   "Value": "AMAZON_COGNITO_USER_POOLS"
-  },
-  "awsAppsyncRegion": {
-   "Value": {
-    "Ref": "AWS::Region"
-   }
-  },
-  "amplifyApiModelSchemaS3Uri": {
-   "Value": {
-    "Fn::Join": [
-     "",
-     [
-      "s3://",
-      {
-       "Fn::GetAtt": [
-        "data7552DF31",
-        "Outputs.amplifytestAppIdtestBranchNamedataamplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsBucket25324612Ref"
-       ]
-      },
-      "/model-schema.graphql"
-     ]
-    ]
-   }
   }
  },
  "Parameters": {

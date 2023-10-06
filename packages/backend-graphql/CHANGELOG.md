@@ -1,5 +1,25 @@
 # @aws-amplify/backend-graphql
 
+## 0.2.0-alpha.7
+
+### Patch Changes
+
+- f8df0ed6: add defineData authorizationModes passthrough
+
+## 0.2.0-alpha.6
+
+### Minor Changes
+
+- 66190beb: integrate api-next as the default data experience
+
+### Patch Changes
+
+- 36d93e46: add license to package.json
+- Updated dependencies [36d93e46]
+  - @aws-amplify/backend-output-schemas@0.2.0-alpha.5
+  - @aws-amplify/backend-output-storage@0.1.1-alpha.2
+  - @aws-amplify/plugin-types@0.2.0-alpha.7
+
 ## 0.2.0-alpha.5
 
 ### Minor Changes

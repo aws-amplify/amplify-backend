@@ -5,12 +5,15 @@
 ```ts
 
 import { AmplifyGraphqlApi } from '@aws-amplify/graphql-api-construct';
+import { AuthorizationModes } from '@aws-amplify/graphql-api-construct';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
+import { DerivedModelSchema } from '@aws-amplify/amplify-api-next-types-alpha';
 
 // @public
 export type DataProps = {
-    schema: string;
+    schema: string | DerivedModelSchema;
     name?: string;
+    authorizationModes?: AuthorizationModes;
 };
 
 // @public

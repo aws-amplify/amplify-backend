@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/model-generator",
-  "version": "0.2.0-alpha.3",
+  "version": "0.2.0-alpha.4",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -18,8 +18,8 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@aws-amplify/backend-output-schemas": "^0.2.0-alpha.4",
-    "@aws-amplify/deployed-backend-client": "^0.2.0-alpha.1",
+    "@aws-amplify/backend-output-schemas": "^0.2.0-alpha.5",
+    "@aws-amplify/deployed-backend-client": "^0.2.0-alpha.2",
     "@aws-amplify/graphql-generator": "^0.1.0",
     "@aws-sdk/client-appsync": "^3.398.0",
     "@aws-sdk/client-s3": "^3.414.0",

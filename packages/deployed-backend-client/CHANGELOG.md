@@ -1,5 +1,22 @@
 # @aws-amplify/deployed-backend-client
 
+## 0.2.0-alpha.3
+
+### Patch Changes
+
+- 2525b582: add reader for cms metadata
+- Updated dependencies [2525b582]
+  - @aws-amplify/backend-output-schemas@0.2.0-alpha.6
+
+## 0.2.0-alpha.2
+
+### Patch Changes
+
+- 36d93e46: add license to package.json
+- Updated dependencies [36d93e46]
+  - @aws-amplify/backend-output-schemas@0.2.0-alpha.5
+  - @aws-amplify/platform-core@0.1.1-alpha.1
+
 ## 0.2.0-alpha.1
 
 ### Patch Changes

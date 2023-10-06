@@ -1,5 +1,21 @@
 # @aws-amplify/backend-auth
 
+## 0.2.0-alpha.7
+
+### Minor Changes
+
+- bf24d363: Change Auth external providers'IDs to secret type
+
+## 0.2.0-alpha.6
+
+### Patch Changes
+
+- 36d93e46: add license to package.json
+- Updated dependencies [36d93e46]
+  - @aws-amplify/backend-output-storage@0.1.1-alpha.2
+  - @aws-amplify/auth-construct-alpha@0.2.0-alpha.8
+  - @aws-amplify/plugin-types@0.2.0-alpha.7
+
 ## 0.2.0-alpha.5
 
 ### Minor Changes

@@ -15,8 +15,18 @@ import { BackendSecret } from '@aws-amplify/plugin-types';
  */
 export type GoogleProviderFactoryProps = Omit<
   GoogleProviderProps,
-  'clientSecretValue'
+  'clientId' | 'clientSecretValue'
 > & {
+  /**
+   * The client id recognized by Google APIs.
+   * @see https://developers.google.com/identity/sign-in/web/sign-in#specify_your_apps_client_id
+   */
+  clientId: BackendSecret;
+  /**
+   * The client secret to be accompanied with clientId for Google APIs to authenticate the client as SecretValue
+   * @see https://developers.google.com/identity/sign-in/web/sign-in
+   * @default none
+   */
   clientSecretValue: BackendSecret;
 };
 
@@ -25,8 +35,24 @@ export type GoogleProviderFactoryProps = Omit<
  */
 export type AppleProviderFactoryProps = Omit<
   AppleProviderProps,
-  'privateKey'
+  'clientId' | 'teamId' | 'keyId' | 'privateKey'
 > & {
+  /**
+   * The client id recognized by Apple APIs.
+   * @see https://developer.apple.com/documentation/sign_in_with_apple/clientconfigi/3230948-clientid
+   */
+  clientId: BackendSecret;
+  /**
+   * The teamId for Apple APIs to authenticate the client.
+   */
+  teamId: BackendSecret;
+  /**
+   * The keyId (of the same key, which content has to be later supplied as `privateKey`) for Apple APIs to authenticate the client.
+   */
+  keyId: BackendSecret;
+  /**
+   * The privateKey content for Apple APIs to authenticate the client.
+   */
   privateKey: BackendSecret;
 };
 
@@ -35,8 +61,18 @@ export type AppleProviderFactoryProps = Omit<
  */
 export type AmazonProviderFactoryProps = Omit<
   AmazonProviderProps,
-  'clientSecret'
+  'clientId' | 'clientSecret'
 > & {
+  /**
+   * The client id recognized by 'Login with Amazon' APIs.
+   * @see https://developer.amazon.com/docs/login-with-amazon/security-profile.html#client-identifier
+   */
+  clientId: BackendSecret;
+
+  /**
+   * The client secret to be accompanied with clientId for 'Login with Amazon' APIs to authenticate the client.
+   * @see https://developer.amazon.com/docs/login-with-amazon/security-profile.html#client-identifier
+   */
   clientSecret: BackendSecret;
 };
 
@@ -45,8 +81,17 @@ export type AmazonProviderFactoryProps = Omit<
  */
 export type FacebookProviderFactoryProps = Omit<
   FacebookProviderProps,
-  'clientSecret'
+  'clientId' | 'clientSecret'
 > & {
+  /**
+   * The client id recognized by Facebook APIs.
+   */
+  clientId: BackendSecret;
+
+  /**
+   * The client secret to be accompanied with clientUd for Facebook to authenticate the client.
+   * @see https://developers.facebook.com/docs/facebook-login/security#appsecret
+   */
   clientSecret: BackendSecret;
 };
 
@@ -55,8 +100,15 @@ export type FacebookProviderFactoryProps = Omit<
  */
 export type OidcProviderFactoryProps = Omit<
   OidcProviderProps,
-  'clientSecret'
+  'clientId' | 'clientSecret'
 > & {
+  /**
+   * The client id
+   */
+  clientId: BackendSecret;
+  /**
+   * The client secret
+   */
   clientSecret: BackendSecret;
 };
 
