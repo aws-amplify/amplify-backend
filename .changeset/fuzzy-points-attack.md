@@ -3,4 +3,4 @@
 '@aws-amplify/client-config': minor
 ---
 
-Generate model introspection schema when producing client config for javascript projects
+Generate model introspection schema when producing client config.

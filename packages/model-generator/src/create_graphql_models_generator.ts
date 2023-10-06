@@ -16,7 +16,7 @@ export type GraphqlModelsGeneratorFactoryParams = {
 };
 
 /**
- * Factory function to compose a model generator
+ * Factory function to compose a model generator from a backend identifier.
  */
 export const createGraphqlModelsGenerator = ({
   backendIdentifier,
@@ -41,7 +41,7 @@ export type GraphqlModelsFromS3UriGeneratorFactoryParams = {
 };
 
 /**
- * Factory function to compose a model generator
+ * Factory function to compose a model generator from an s3 uri.
  */
 export const createGraphqlModelsFromS3UriGenerator = ({
   modelSchemaS3Uri,

@@ -69,4 +69,51 @@ void describe('GraphqlClientConfigContributor', () => {
       aws_appsync_region: 'us-east-1',
     });
   });
+
+  void it('returns translated config with model introspection when resolvable', async () => {
+    const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
+      fromNodeProviderChain()
+    );
+
+    mock.method(
+      modelSchemaAdapter,
+      'getModelIntrospectionSchemaFromS3Uri',
+      () => ({
+        version: 1,
+        models: {},
+        nonModels: {},
+        enums: {},
+      })
+    );
+    const contributor = new GraphqlClientConfigContributor(modelSchemaAdapter);
+    const contribution = await contributor.contribute({
+      [graphqlOutputKey]: {
+        version: '1',
+        payload: {
+          awsAppsyncApiEndpoint: 'testApiEndpoint',
+          awsAppsyncRegion: 'us-east-1',
+          awsAppsyncAuthenticationType: 'API_KEY',
+          awsAppsyncAdditionalAuthenticationTypes: 'API_KEY',
+          awsAppsyncConflictResolutionMode: undefined,
+          awsAppsyncApiKey: 'testApiKey',
+          awsAppsyncApiId: 'testApiId',
+          amplifyApiModelSchemaS3Uri: 'testApiSchemaUri',
+        },
+      },
+    });
+    assert.deepStrictEqual(contribution, {
+      aws_appsync_apiKey: 'testApiKey',
+      aws_appsync_authenticationType: 'API_KEY',
+      aws_appsync_additionalAuthenticationTypes: 'API_KEY',
+      aws_appsync_conflictResolutionMode: undefined,
+      aws_appsync_graphqlEndpoint: 'testApiEndpoint',
+      aws_appsync_region: 'us-east-1',
+      modelIntrospection: {
+        version: 1,
+        models: {},
+        nonModels: {},
+        enums: {},
+      },
+    });
+  });
 });
