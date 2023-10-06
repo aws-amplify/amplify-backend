@@ -1,5 +1,19 @@
 # @aws-amplify/sandbox
 
+## 0.2.0-alpha.10
+
+### Patch Changes
+
+- c78daa11: fix(sandbox): delete should pass the deployment type to deployer
+- c03a2f8c: fix(sandbox): Show underlying error message and quit if sandbox delete fails
+- Updated dependencies [c78daa11]
+- Updated dependencies [7103735b]
+- Updated dependencies [f46f69fb]
+- Updated dependencies [d925b097]
+  - @aws-amplify/backend-deployer@0.2.0-alpha.6
+  - @aws-amplify/backend-secret@0.2.0-alpha.3
+  - @aws-amplify/deployed-backend-client@0.2.0-alpha.4
+
 ## 0.2.0-alpha.9
 
 ### Patch Changes

@@ -1,5 +1,15 @@
 # @aws-amplify/deployed-backend-client
 
+## 0.2.0-alpha.4
+
+### Minor Changes
+
+- f46f69fb: Allows overrides in backend metadata class factories
+
+### Patch Changes
+
+- d925b097: update api child stack finder
+
 ## 0.2.0-alpha.3
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # create-amplify
 
+## 0.2.0-alpha.9
+
+### Patch Changes
+
+- c0d7c475: fix create amplify artifact compilation
+
 ## 0.2.0-alpha.8
 
 ### Minor Changes

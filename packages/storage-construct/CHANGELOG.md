@@ -1,5 +1,11 @@
 # @aws-amplify/storage-construct-alpha
 
+## 0.1.1-alpha.7
+
+### Patch Changes
+
+- 7103735b: cdk lib dependency declaration
+
 ## 0.1.1-alpha.6
 
 ### Patch Changes

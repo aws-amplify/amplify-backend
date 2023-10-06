@@ -1,5 +1,14 @@
 # @aws-amplify/backend-auth
 
+## 0.2.0-alpha.8
+
+### Patch Changes
+
+- 7103735b: cdk lib dependency declaration
+- Updated dependencies [7103735b]
+  - @aws-amplify/auth-construct-alpha@0.2.0-alpha.9
+  - @aws-amplify/plugin-types@0.2.0-alpha.8
+
 ## 0.2.0-alpha.7
 
 ### Minor Changes

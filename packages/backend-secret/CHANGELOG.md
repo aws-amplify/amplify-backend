@@ -1,5 +1,13 @@
 # @aws-amplify/backend-secret
 
+## 0.2.0-alpha.3
+
+### Patch Changes
+
+- 7103735b: cdk lib dependency declaration
+- Updated dependencies [7103735b]
+  - @aws-amplify/plugin-types@0.2.0-alpha.8
+
 ## 0.2.0-alpha.2
 
 ### Minor Changes
