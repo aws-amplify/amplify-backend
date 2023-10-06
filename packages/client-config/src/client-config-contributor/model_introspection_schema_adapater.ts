@@ -1,7 +1,4 @@
-import {
-  ModelIntrospectionSchema,
-  getModelIntrospectionSchemaFromS3Uri,
-} from '@aws-amplify/model-generator';
+import { getModelIntrospectionSchemaFromS3Uri } from '@aws-amplify/model-generator';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 
 /**
@@ -20,7 +17,7 @@ export class ModelIntrospectionSchemaAdapter {
    */
   getModelIntrospectionSchemaFromS3Uri = async (
     modelSchemaS3Uri: string | undefined
-  ): Promise<ModelIntrospectionSchema | undefined> => {
+  ): Promise<unknown | undefined> => {
     return getModelIntrospectionSchemaFromS3Uri({
       credentialProvider: this.awsCredentialProvider,
       modelSchemaS3Uri,

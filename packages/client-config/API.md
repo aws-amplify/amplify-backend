@@ -6,7 +6,6 @@
 
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { BackendIdentifier } from '@aws-amplify/deployed-backend-client';
-import { ModelIntrospectionSchema } from '@aws-amplify/model-generator';
 
 // @public
 export type AuthClientConfig = {
@@ -47,7 +46,7 @@ export type GraphqlClientConfig = {
     aws_appsync_additionalAuthenticationTypes?: string;
     aws_appsync_conflictResolutionMode?: string;
     aws_appsync_apiKey?: string;
-    modelIntrospection?: ModelIntrospectionSchema;
+    modelIntrospection?: unknown;
 };
 
 // @public

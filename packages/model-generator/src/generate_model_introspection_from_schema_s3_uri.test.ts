@@ -100,6 +100,7 @@ void describe('getModelIntrospectionSchemaFromS3Uri', () => {
             },
           },
           syncable: true,
+          // eslint-disable-next-line spellcheck/spell-checker
           pluralName: 'Todos',
           attributes: [
             {
