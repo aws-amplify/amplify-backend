@@ -66,7 +66,9 @@ If you skip this step, you can install those packages manually whenever you need
 
 Continue?`;
 
-    const toContinue = await confirm({ message, default: true });
+    const toContinue =
+      process.env.npm_config_yes === 'true' ||
+      (await confirm({ message, default: true }));
 
     if (toContinue) {
       this.logger.log(

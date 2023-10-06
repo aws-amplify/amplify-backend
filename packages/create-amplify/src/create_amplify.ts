@@ -15,10 +15,14 @@ import { InitialProjectFileGenerator } from './initial_project_file_generator.js
 import { NpmProjectInitializer } from './npm_project_initializer.js';
 
 try {
-  const projectRoot = await input({
-    message: 'Where should we create your project?',
-    default: '.',
-  });
+  const useDefault = process.env.npm_config_yes === 'true';
+  const defaultProjectRoot = '.';
+  const projectRoot = useDefault
+    ? defaultProjectRoot
+    : await input({
+        message: 'Where should we create your project?',
+        default: defaultProjectRoot,
+      });
 
   const amplifyProjectCreator = new AmplifyProjectCreator(
     new NpmPackageManagerController(projectRoot),
