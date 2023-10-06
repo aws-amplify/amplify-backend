@@ -46,6 +46,7 @@ export type GraphqlClientConfig = {
     aws_appsync_additionalAuthenticationTypes?: string;
     aws_appsync_conflictResolutionMode?: string;
     aws_appsync_apiKey?: string;
+    modelIntrospection?: unknown;
 };
 
 // @public

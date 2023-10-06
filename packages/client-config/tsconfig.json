@@ -3,6 +3,7 @@
   "compilerOptions": { "rootDir": "src", "outDir": "lib" },
   "references": [
     { "path": "../backend-output-schemas" },
-    { "path": "../deployed-backend-client" }
+    { "path": "../deployed-backend-client" },
+    { "path": "../model-generator" }
   ]
 }
