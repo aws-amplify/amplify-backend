@@ -69,11 +69,19 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
           return stackSummary.StackStatus !== StackStatus.DELETE_COMPLETE;
         })
         .map(async (stackSummary: StackSummary) => {
+          let deploymentType;
+          try {
+            deploymentType = await this.getDeploymentType(stackSummary);
+          } catch (e) {
+            // Mark deployment as non-sandbox so that it is filtered out of sandbox results
+            deploymentType = BackendDeploymentType.BRANCH;
+          }
+
           return {
             name: stackSummary.StackName as string,
             lastUpdated: stackSummary.LastUpdatedTime,
             status: this.translateStackStatus(stackSummary.StackStatus),
-            deploymentType: await this.getDeploymentType(stackSummary),
+            deploymentType,
           };
         });
 
