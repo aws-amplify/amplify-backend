@@ -7,9 +7,8 @@
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { BackendDeploymentType } from '@aws-amplify/platform-core';
-import { CloudFormation } from '@aws-sdk/client-cloudformation';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
-import { S3 } from '@aws-sdk/client-s3';
+import { S3Client } from '@aws-sdk/client-s3';
 import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
 import { UnifiedBackendOutput } from '@aws-amplify/backend-output-schemas';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
@@ -142,8 +141,8 @@ export type DeployedBackendClientFactoryOptions = DeployedBackendCredentialsOpti
 
 // @public (undocumented)
 export type DeployedBackendClientOptions = {
-    s3Client: S3;
-    cloudFormationClient: CloudFormation;
+    s3Client: S3Client;
+    cloudFormationClient: CloudFormationClient;
     backendOutputClient: BackendOutputClient;
 };
 
