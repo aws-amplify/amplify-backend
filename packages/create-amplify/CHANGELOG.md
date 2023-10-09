@@ -1,5 +1,11 @@
 # create-amplify
 
+## 0.2.0-alpha.10
+
+### Patch Changes
+
+- a130ba6a: fix data template
+
 ## 0.2.0-alpha.9
 
 ### Patch Changes
