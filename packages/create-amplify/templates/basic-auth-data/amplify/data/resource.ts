@@ -3,9 +3,8 @@ import { type ClientSchema, a } from '@aws-amplify/amplify-api-next-alpha';
 
 const schema = a.schema({
   Todo: a.model({
-    id: a.id(),
     name: a.string(),
-    description: a.string().optional(),
+    description: a.string(),
   }),
 });
 
