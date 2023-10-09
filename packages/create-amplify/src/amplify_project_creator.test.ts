@@ -1,6 +1,6 @@
 import { afterEach, describe, it, mock } from 'node:test';
 import assert from 'assert';
-import { confirm } from '@inquirer/prompts';
+import { AmplifyPrompter } from './amplify_prompts.js';
 import { AmplifyProjectCreator } from './amplify_project_creator.js';
 
 const originalEnv = process.env;
@@ -44,11 +44,12 @@ void describe('AmplifyProjectCreator', () => {
     assert.equal(tsConfigInitializerMock.ensureInitialized.mock.callCount(), 1);
   });
 
-  void it('prompt questions', async () => {
+  void it('prompt questions', async (contextual) => {
     process.env.npm_config_yes = 'false';
-    const mockConfirm = mock.fn(() => true);
 
-    mock.fn(confirm, mockConfirm);
+    contextual.mock.method(AmplifyPrompter, 'yesOrNo', () =>
+      Promise.resolve(true)
+    );
 
     const logMock = mock.fn();
 

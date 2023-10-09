@@ -1,4 +1,4 @@
-import { confirm, password } from '@inquirer/prompts';
+import { confirm } from '@inquirer/prompts';
 
 /**
  * Wrapper for prompter library
@@ -23,18 +23,5 @@ export class AmplifyPrompter {
       default: options.defaultValue ?? false,
     });
     return response;
-  };
-
-  /**
-   * A secret prompt.
-   */
-  static secretValue = async (
-    promptMessage = 'Enter secret value'
-  ): Promise<string> => {
-    return await password({
-      message: promptMessage,
-      validate: (val: string) =>
-        val && val.length > 0 ? true : 'Cannot be empty',
-    });
   };
 }
