@@ -35,6 +35,10 @@ const listStacksMock = {
       StackStatus: StackStatus.CREATE_COMPLETE,
     },
     {
+      StackName: 'amplify-error-testBranch',
+      StackStatus: StackStatus.CREATE_COMPLETE,
+    },
+    {
       StackName: 'amplify-test-sandbox',
       StackStatus: StackStatus.CREATE_COMPLETE,
     },
@@ -152,7 +156,14 @@ void describe('Deployed Backend Client', () => {
   });
 
   beforeEach(() => {
-    getOutputMock.mock.mockImplementation(() => getOutputMockResponse);
+    getOutputMock.mock.mockImplementation(
+      (backendIdentifier: StackIdentifier) => {
+        if (backendIdentifier.stackName === 'amplify-error-testBranch') {
+          throw new Error('Stack template metadata is not a string');
+        }
+        return getOutputMockResponse;
+      }
+    );
     mock.method(mockCfnClient, 'send', cfnClientSendMock);
     mock.method(mockS3Client, 'send', s3ClientSendMock);
 
@@ -257,6 +268,11 @@ void describe('Deployed Backend Client pagination', () => {
   const cfnClientSendMock = mock.method(mockCfnClient, 'send');
   let deployedBackendClient: DefaultDeployedBackendClient;
   const listStacksMockFn = mock.fn();
+  const mockBackendOutputClient = new DefaultBackendOutputClient(
+    mockCfnClient,
+    new AmplifyClient()
+  );
+  const getOutputMock = mock.method(mockBackendOutputClient, 'getOutput');
   const returnedSandboxes = [
     {
       deploymentType: BackendDeploymentType.SANDBOX,
@@ -267,13 +283,11 @@ void describe('Deployed Backend Client pagination', () => {
   ];
 
   beforeEach(() => {
-    const mockBackendOutputClient = new DefaultBackendOutputClient(
-      mockCfnClient,
-      new AmplifyClient()
-    );
-    const getOutputMock = mock.method(mockBackendOutputClient, 'getOutput');
     getOutputMock.mock.mockImplementation(
       (backendIdentifier: StackIdentifier) => {
+        if (backendIdentifier.stackName === 'amplify-error-testBranch') {
+          throw new Error('Stack template metadata is not a string');
+        }
         if (backendIdentifier.stackName !== 'amplify-test-sandbox') {
           return {
             ...getOutputMockResponse,
