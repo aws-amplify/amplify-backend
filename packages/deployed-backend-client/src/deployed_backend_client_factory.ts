@@ -5,15 +5,12 @@ import {
   BackendDeploymentType,
   SandboxBackendIdentifier,
 } from '@aws-amplify/platform-core';
-import {
-  CloudFormation,
-  CloudFormationClient,
-} from '@aws-sdk/client-cloudformation';
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import {
   BackendOutputClient,
   BackendOutputClientFactory,
 } from './backend_output_client_factory.js';
-import { S3 } from '@aws-sdk/client-s3';
+import { S3Client } from '@aws-sdk/client-s3';
 
 export enum ConflictResolutionMode {
   LAMBDA = 'LAMBDA',
@@ -91,8 +88,8 @@ export type DeployedBackendClient = {
 };
 
 export type DeployedBackendClientOptions = {
-  s3Client: S3;
-  cloudFormationClient: CloudFormation;
+  s3Client: S3Client;
+  cloudFormationClient: CloudFormationClient;
   backendOutputClient: BackendOutputClient;
 };
 
@@ -123,7 +120,7 @@ export class DeployedBackendClientFactory {
     }
     return new DefaultDeployedBackendClient(
       new CloudFormationClient(options.credentials),
-      new S3(options.credentials),
+      new S3Client(options.credentials),
       BackendOutputClientFactory.getInstance({
         credentials: options.credentials,
       })
