@@ -69,13 +69,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
           return stackSummary.StackStatus !== StackStatus.DELETE_COMPLETE;
         })
         .map(async (stackSummary: StackSummary) => {
-          let deploymentType;
-          try {
-            deploymentType = await this.getDeploymentType(stackSummary);
-          } catch (e) {
-            // Mark deployment as non-sandbox so that it is filtered out of sandbox results
-            deploymentType = BackendDeploymentType.BRANCH;
-          }
+          const deploymentType = await this.tryGetDeploymentType(stackSummary);
 
           return {
             name: stackSummary.StackName as string,
@@ -103,18 +97,22 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     };
   };
 
-  private getDeploymentType = async (
+  private tryGetDeploymentType = async (
     stackSummary: StackSummary
-  ): Promise<BackendDeploymentType> => {
+  ): Promise<BackendDeploymentType | undefined> => {
     const backendIdentifier = {
       stackName: stackSummary.StackName as string,
     };
 
-    const backendOutput: BackendOutput =
-      await this.backendOutputClient.getOutput(backendIdentifier);
+    try {
+      const backendOutput: BackendOutput =
+        await this.backendOutputClient.getOutput(backendIdentifier);
 
-    return backendOutput[stackOutputKey].payload
-      .deploymentType as BackendDeploymentType;
+      return backendOutput[stackOutputKey].payload
+        .deploymentType as BackendDeploymentType;
+    } catch {
+      return;
+    }
   };
 
   /**
