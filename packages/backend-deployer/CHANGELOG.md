@@ -1,5 +1,13 @@
 # @aws-amplify/backend-deployer
 
+## 0.2.0-alpha.7
+
+### Patch Changes
+
+- 59f5ea24: chore: upgrade aws-cdk to 2.100.0
+- Updated dependencies [59f5ea24]
+  - @aws-amplify/plugin-types@0.2.0-alpha.9
+
 ## 0.2.0-alpha.6
 
 ### Patch Changes
