@@ -1,5 +1,15 @@
 # @aws-amplify/auth-construct-alpha
 
+## 0.2.0-alpha.10
+
+### Patch Changes
+
+- eac939b5: Update types and validation for email and sms.
+- 59f5ea24: chore: upgrade aws-cdk to 2.100.0
+- Updated dependencies [59f5ea24]
+  - @aws-amplify/backend-output-storage@0.1.1-alpha.3
+  - @aws-amplify/plugin-types@0.2.0-alpha.9
+
 ## 0.2.0-alpha.9
 
 ### Patch Changes
