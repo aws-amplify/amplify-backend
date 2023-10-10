@@ -1,25 +1,28 @@
-import { after, before } from 'node:test';
 import { existsSync } from 'fs';
 import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 
-export const getTestDir = fileURLToPath(
+/**
+ * Root test directory.
+ */
+export const rootTestDir = fileURLToPath(
   new URL('./e2e-tests', import.meta.url)
 );
 
 /**
- * Registers before and after handlers to create a test dir at the beginning of a test suite and delete it at the end
+ * Creates a test directory.
  */
-export const createTestDirectoryBeforeAndCleanupAfter = (
-  pathName: string | URL
-) => {
-  before(async () => {
-    if (!existsSync(pathName)) {
-      await fs.mkdir(pathName, { recursive: true });
-    }
-  });
+export const createTestDirectory = async (pathName: string | URL) => {
+  if (!existsSync(pathName)) {
+    await fs.mkdir(pathName, { recursive: true });
+  }
+};
 
-  after(async () => {
+/**
+ * Delete a test directory.
+ */
+export const deleteTestDirectory = async (pathName: string | URL) => {
+  if (existsSync(pathName)) {
     await fs.rm(pathName, { recursive: true });
-  });
+  }
 };

@@ -1,131 +1,47 @@
-import { afterEach, beforeEach, describe, it } from 'node:test';
-import path from 'path';
-import fs from 'fs/promises';
-import { amplifyCli } from '../process-controller/process_controller.js';
-import assert from 'node:assert';
+import { after, describe, it } from 'node:test';
 import {
-  confirmDeleteSandbox,
-  interruptSandbox,
-  rejectCleanupSandbox,
-  waitForSandboxDeployment,
-} from '../process-controller/stdio_interaction_macros.js';
-import { createEmptyAmplifyProject } from '../create_empty_amplify_project.js';
-import {
-  createTestDirectoryBeforeAndCleanupAfter,
-  getTestDir,
+  createTestDirectory,
+  deleteTestDirectory,
+  rootTestDir,
 } from '../setup_test_directory.js';
-import { pathToFileURL } from 'url';
 import { shortUuid } from '../short_uuid.js';
+import { generateTestProjects } from './test_project.js';
 import {
-  CloudFormationClient,
-  DeleteStackCommand,
-} from '@aws-sdk/client-cloudformation';
+  BranchBackendIdentifier,
+  SandboxBackendIdentifier,
+} from '@aws-amplify/platform-core';
+import { userInfo } from 'os';
 
-void describe('amplify deploys', () => {
-  const e2eProjectDir = getTestDir;
-  createTestDirectoryBeforeAndCleanupAfter(e2eProjectDir);
-
-  const cfnClient = new CloudFormationClient();
-
-  let testProjectRoot: string;
-  let testAmplifyDir: string;
-  beforeEach(async () => {
-    ({ testProjectRoot, testAmplifyDir } = await createEmptyAmplifyProject(
-      'test-project',
-      e2eProjectDir
-    ));
+void describe('amplify deploys', async () => {
+  after(async () => {
+    await deleteTestDirectory(rootTestDir);
   });
 
-  const testProjects = [
-    {
-      name: 'data-storage-auth-with-triggers',
-      initialAmplifyDirPath: new URL(
-        '../../test-projects/data-storage-auth-with-triggers/amplify',
-        import.meta.url
-      ),
-      assertions: async () => {
-        const { default: clientConfig } = await import(
-          pathToFileURL(
-            path.join(testProjectRoot, 'amplifyconfiguration.js')
-          ).toString()
-        );
-        assert.deepStrictEqual(Object.keys(clientConfig).sort(), [
-          'aws_appsync_authenticationType',
-          'aws_appsync_graphqlEndpoint',
-          'aws_appsync_region',
-          'aws_cognito_region',
-          'aws_user_files_s3_bucket',
-          'aws_user_files_s3_bucket_region',
-          'aws_user_pools_id',
-          'aws_user_pools_web_client_id',
-        ]);
-      },
-    },
-  ];
+  await createTestDirectory(rootTestDir);
+  const testProjects = await generateTestProjects(rootTestDir);
 
-  void describe('sandbox', () => {
-    afterEach(async () => {
-      await amplifyCli(['sandbox', 'delete'], testProjectRoot)
-        .do(confirmDeleteSandbox)
-        .run();
-      await fs.rm(testProjectRoot, { recursive: true });
-    });
-
-    testProjects.forEach((testProject) => {
-      void it(testProject.name, async () => {
-        await fs.cp(testProject.initialAmplifyDirPath, testAmplifyDir, {
-          recursive: true,
-        });
-
-        await amplifyCli(['sandbox'], testProjectRoot)
-          .do(waitForSandboxDeployment)
-          .do(interruptSandbox)
-          .do(rejectCleanupSandbox)
-          .run();
-
-        await testProject.assertions();
-      });
-    });
-  });
-
-  void describe('in pipeline', () => {
-    let appId: string;
-    let branchName: string;
-
-    beforeEach(() => {
-      branchName = 'test-branch';
-      appId = `test-${shortUuid()}`;
-    });
-
-    afterEach(async () => {
-      await cfnClient.send(
-        new DeleteStackCommand({
-          StackName: `amplify-${appId}-${branchName}`,
-        })
+  testProjects.forEach((testProject) => {
+    void describe(`amplify deploys ${testProject.name}`, () => {
+      const sandboxBackendId = new SandboxBackendIdentifier(
+        `${testProject.name}-${userInfo().username}`
       );
-      await fs.rm(testProjectRoot, { recursive: true });
-    });
+      const branchBackendId = new BranchBackendIdentifier(
+        `test-${shortUuid()}`,
+        'test-pipeline-branch'
+      );
 
-    testProjects.forEach((testProject) => {
-      void it(testProject.name, async () => {
-        await fs.cp(testProject.initialAmplifyDirPath, testAmplifyDir, {
-          recursive: true,
-        });
-
-        await amplifyCli(
-          ['pipeline-deploy', '--branch', branchName, '--appId', appId],
-          testProjectRoot,
-          {
-            env: { CI: 'true' },
+      [sandboxBackendId, branchBackendId].forEach((backendIdentifier) => {
+        void it(`branch environment - ${backendIdentifier.disambiguator}`, async () => {
+          try {
+            await testProject.setUpDeployEnvironment(backendIdentifier);
+            await testProject.deploy(backendIdentifier);
+            await testProject.assertDeployment();
+          } finally {
+            await testProject.tearDown(backendIdentifier);
+            await testProject.clearDeployEnvironment(backendIdentifier);
           }
-        ).run();
-
-        await amplifyCli(
-          ['generate', 'config', '--branch', branchName, '--appId', appId],
-          testProjectRoot
-        ).run();
-
-        await testProject.assertions();
+        });
+        return;
       });
     });
   });
