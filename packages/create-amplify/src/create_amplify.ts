@@ -38,13 +38,7 @@ try {
     new NpmProjectInitializer(projectRoot),
     new TsConfigInitializer(projectRoot)
   );
-  await amplifyProjectCreator.create({
-    /**
-     * process.env.npm_config_yes is set by npm when the user passes `--yes` or `-y` to `npm init`.
-     * See https://github.com/npm/init-package-json/blob/4a9b5f1832bd2709e6e432f019f1a964b7159910/test/npm-defaults.js#L112
-     */
-    skipPrompts: process.env.npm_config_yes === 'true',
-  });
+  await amplifyProjectCreator.create();
 } catch (err) {
   console.error(err instanceof Error ? err.message : err);
   process.exitCode = 1;

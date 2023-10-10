@@ -41,55 +41,29 @@ export class AmplifyProjectCreator {
 
   /**
    * Executes the create-amplify workflow
-   * @param options AmplifyProjectCreator.create options
-   * @param "options.skipPrompts" Default: "false". If "true", will skip prompts and use default values.
    */
-  create = async ({
-    skipPrompts = false,
-  }: { skipPrompts?: boolean } = {}): Promise<void> => {
+  create = async (): Promise<void> => {
     this.logger.log(`Validating current state of target directory...`);
     await this.projectRootValidator.validate();
 
     await this.npmInitializedEnsurer.ensureInitialized();
 
-    const boxOptions = { padding: 1, margin: 1, borderStyle: 'round' } as const;
-    const installDependenciesCMD = boxen(
-      `npm install ${this.defaultProdPackages.join(' ')}`,
-      boxOptions
+    this.logger.log(
+      `Installing packages ${this.defaultProdPackages.join(', ')}...`
     );
-    const installDevDependenciesCMD = boxen(
-      `npm install --save-dev ${this.defaultDevPackages.join(' ')}`,
-      boxOptions
+    await this.packageManagerController.installDependencies(
+      this.defaultProdPackages,
+      'prod'
     );
-    const message = `The Amplify CLI will download the following packages as dependencies by running:
-${installDependenciesCMD}
-and devDependencies by running:
-${installDevDependenciesCMD}
-If you skip this step, you can install those packages manually whenever you need them.
-Continue?`;
 
-    const toContinue =
-      skipPrompts === true ||
-      (await AmplifyPrompter.yesOrNo({ message, defaultValue: true }));
+    this.logger.log(
+      `Installing dev dependencies ${this.defaultDevPackages.join(', ')}...`
+    );
 
-    if (toContinue) {
-      this.logger.log(
-        `Installing packages ${this.defaultProdPackages.join(', ')}...`
-      );
-      await this.packageManagerController.installDependencies(
-        this.defaultProdPackages,
-        'prod'
-      );
-
-      this.logger.log(
-        `Installing dev dependencies ${this.defaultDevPackages.join(', ')}...`
-      );
-
-      await this.packageManagerController.installDependencies(
-        this.defaultDevPackages,
-        'dev'
-      );
-    }
+    await this.packageManagerController.installDependencies(
+      this.defaultDevPackages,
+      'dev'
+    );
 
     await this.tsConfigInitializer.ensureInitialized();
 
