@@ -125,6 +125,14 @@
   "auth179371D7": {
    "Type": "AWS::CloudFormation::Stack",
    "Properties": {
+    "Parameters": {
+     "referencetoamplifytestAppIdtestBranchNamefunctionNestedStackfunctionNestedStackResourceE968B293OutputsamplifytestAppIdtestBranchNamefunctiontestFunctestFuncLambdaFunction724FFDF6Arn": {
+      "Fn::GetAtt": [
+       "function1351588B",
+       "Outputs.amplifytestAppIdtestBranchNamefunctiontestFunctestFuncLambdaFunction724FFDF6Arn"
+      ]
+     }
+    },
     "TemplateURL": {
      "Fn::Join": [
       "",
@@ -141,17 +149,9 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/3f273559d066749fab1a50050cb9ad725e65294ecdc973e60e33847943f94542.json"
+       "/118a8eb906e4b76701245e59dee7db3f076ae330cc9a88a7720c8cf0e10fd42c.json"
       ]
      ]
-    },
-    "Parameters": {
-     "referencetoamplifytestAppIdtestBranchNamefunctionNestedStackfunctionNestedStackResourceE968B293OutputsamplifytestAppIdtestBranchNamefunctiontestFunctestFuncLambdaFunction724FFDF6Arn": {
-      "Fn::GetAtt": [
-       "function1351588B",
-       "Outputs.amplifytestAppIdtestBranchNamefunctiontestFunctestFuncLambdaFunction724FFDF6Arn"
-      ]
-     }
     }
    },
    "UpdateReplacePolicy": "Delete",
@@ -176,7 +176,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/36c96164547ba9fe2c5c47de252edb4c09e392620e8e8d04134897f50cdf4702.json"
+       "/830b351eeaed7f75a81c6851d4073d4de7e7beafbf24990a08d6ca1e8a1ab65f.json"
       ]
      ]
     }
@@ -214,26 +214,6 @@
   "data7552DF31": {
    "Type": "AWS::CloudFormation::Stack",
    "Properties": {
-    "TemplateURL": {
-     "Fn::Join": [
-      "",
-      [
-       "https://s3.",
-       {
-        "Ref": "AWS::Region"
-       },
-       ".",
-       {
-        "Ref": "AWS::URLSuffix"
-       },
-       "/",
-       {
-        "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
-       },
-       "/a3da0cd89272c0de75d4f2b671dc55e0b416190b64d9faa2e7f146e860de618f.json"
-      ]
-     ]
-    },
     "Parameters": {
      "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthUserPoolC1B04074Ref": {
       "Fn::GetAtt": [
@@ -253,6 +233,26 @@
        "Outputs.amplifytestAppIdtestBranchNameauthamplifyAuthunauthenticatedUserRoleF8166590Ref"
       ]
      }
+    },
+    "TemplateURL": {
+     "Fn::Join": [
+      "",
+      [
+       "https://s3.",
+       {
+        "Ref": "AWS::Region"
+       },
+       ".",
+       {
+        "Ref": "AWS::URLSuffix"
+       },
+       "/",
+       {
+        "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+       },
+       "/7f286c07bb6907f128b4ed58dc99eabbce2d3de288131d4ad898c9440c142d4b.json"
+      ]
+     ]
     }
    },
    "UpdateReplacePolicy": "Delete",
