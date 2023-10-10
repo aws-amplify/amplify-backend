@@ -22,7 +22,7 @@ void describe('AmplifyProjectCreator', () => {
       { log: logMock } as never
     );
     await amplifyProjectCreator.create({
-      npmConfigYes: 'true',
+      skipPrompts: true,
     });
     assert.equal(
       packageManagerControllerMock.installDependencies.mock.callCount(),
@@ -64,7 +64,7 @@ void describe('AmplifyProjectCreator', () => {
     );
     assert.equal(
       await amplifyProjectCreator.create({
-        npmConfigYes: 'false',
+        skipPrompts: true,
       }),
       undefined
     );

@@ -42,15 +42,11 @@ export class AmplifyProjectCreator {
   /**
    * Executes the create-amplify workflow
    * @param options AmplifyProjectCreator.create options
-   * @param "options.npmConfigYes"
-   *        Default: "false".
-   *        If "true", will skip prompts and use default values.
-   *        process.env.npm_config_yes is set by npm when the user passes `--yes` or `-y` to `npm init`.
-   *        See https://github.com/npm/init-package-json/blob/4a9b5f1832bd2709e6e432f019f1a964b7159910/test/npm-defaults.js#L112
+   * @param "options.skipPrompts" Default: "false". If "true", will skip prompts and use default values.
    */
   create = async ({
-    npmConfigYes = 'false',
-  }: { npmConfigYes?: string } = {}): Promise<void> => {
+    skipPrompts = false,
+  }: { skipPrompts?: boolean } = {}): Promise<void> => {
     this.logger.log(`Validating current state of target directory...`);
     await this.projectRootValidator.validate();
 
@@ -73,7 +69,7 @@ If you skip this step, you can install those packages manually whenever you need
 Continue?`;
 
     const toContinue =
-      npmConfigYes === 'true' ||
+      skipPrompts === true ||
       (await AmplifyPrompter.yesOrNo({ message, defaultValue: true }));
 
     if (toContinue) {
