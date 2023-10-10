@@ -1,5 +1,3 @@
-import boxen from 'boxen';
-import { AmplifyPrompter } from './amplify_prompts.js';
 import { PackageManagerController } from './package_manager_controller.js';
 import { ProjectRootValidator } from './project_root_validator.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
