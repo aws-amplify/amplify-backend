@@ -114,3 +114,17 @@ export const amplifyCli = (
     env?: Record<string, string>;
   }
 ) => new ProcessController('amplify', args, { cwd: dir, env: options?.env });
+
+/**
+ * Factory function that returns a ProcessController for CLI commands
+ */
+export const exeCli = (
+  cmd: string,
+  args: string[] = [],
+  dir: string,
+  options?: {
+    env?: Record<string, string>;
+  }
+) => {
+  return new ProcessController(cmd, args, { cwd: dir, env: options?.env });
+};
