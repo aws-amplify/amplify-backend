@@ -105,7 +105,7 @@ const getOutputMockResponse = {
     payload: {
       awsAppsyncApiEndpoint: 'testAwsAppsyncApiEndpoint',
       amplifyApiModelSchemaS3Uri: 's3://bucketName/model-schema.graphql',
-      awsAppsyncApiId: 'abcdefghijklmnopqrstuvwxyz',
+      awsAppsyncApiId: 'awsAppsyncApiId',
     },
   },
 };
@@ -131,7 +131,7 @@ const expectedMetadata = {
     additionalAuthTypes: [],
     graphqlSchema: 's3://bucketName/model-schema.graphql schema contents!',
     conflictResolutionMode: undefined,
-    apiId: 'abcdefghijklmnopqrstuvwxyz',
+    apiId: 'awsAppsyncApiId',
     modelIntrospectionSchema:
       's3://bucketName/model-introspection-schema.json schema contents!',
   },
