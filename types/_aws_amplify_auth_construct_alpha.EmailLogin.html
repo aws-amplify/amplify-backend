@@ -16,7 +16,7 @@
 <li><a href="../modules/_aws_amplify_auth_construct_alpha.html">@aws-amplify/auth-construct-alpha</a></li>
 <li><a href="_aws_amplify_auth_construct_alpha.EmailLogin.html">EmailLogin</a></li></ul>
 <h1>Type alias EmailLogin</h1></div>
-<div class="tsd-signature"><span class="tsd-kind-type-alias">Email<wbr/>Login</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">true</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">verificationEmailBody</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-symbol">`</span><span class="tsd-signature-symbol">${</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">}</span><span class="tsd-signature-type">{####}</span><span class="tsd-signature-symbol">${</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">`</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">verificationEmailStyle</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type ">cognito.VerificationEmailStyle.CODE</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">verificationEmailSubject</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">verificationEmailBody</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-symbol">`</span><span class="tsd-signature-symbol">${</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">}</span><span class="tsd-signature-type">{##Verify Email##}</span><span class="tsd-signature-symbol">${</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">`</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">verificationEmailStyle</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type ">cognito.VerificationEmailStyle.LINK</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">verificationEmailSubject</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></div>
+<div class="tsd-signature"><span class="tsd-kind-type-alias">Email<wbr/>Login</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">true</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">verificationEmailBody</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">verificationEmailStyle</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type ">cognito.VerificationEmailStyle</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">verificationEmailSubject</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></div>
 <div class="tsd-comment tsd-typography"><p>Email login options.</p>
 <p>If true, email login will be enabled with default settings.
 If settings are provided, email login will be enabled with the specified settings.</p>
@@ -25,12 +25,13 @@ If settings are provided, email login will be enabled with the specified setting
 <h4>Type declaration</h4>
 <ul class="tsd-parameters">
 <li class="tsd-parameter">
-<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-property">verification<wbr/>Email<wbr/>Body</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-symbol">`</span><span class="tsd-signature-symbol">${</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">}</span><span class="tsd-signature-type">{####}</span><span class="tsd-signature-symbol">${</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">`</span></h5>
-<div class="tsd-comment tsd-typography"><p>When verificationEmailStyle is set to VerificationEmailStyle.CODE, the emailBody must contain the template {####} where the code will be inserted.</p>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-property">verification<wbr/>Email<wbr/>Body</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span></h5>
+<div class="tsd-comment tsd-typography"><p>When verificationEmailStyle is set to VerificationEmailStyle.CODE, the emailBody must contain the template {####} where the code will be inserted.
+When verificationEmailStyle is set to VerificationEmailStyle.LINK, the emailBody must contain the template {##Verify Email##} where the link will be inserted.</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></li>
 <li class="tsd-parameter">
-<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-property">verification<wbr/>Email<wbr/>Style</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type ">cognito.VerificationEmailStyle.CODE</span></h5>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-property">verification<wbr/>Email<wbr/>Style</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type ">cognito.VerificationEmailStyle</span></h5>
 <div class="tsd-comment tsd-typography"><p>The type of verification. Must be one of aws_cognito.VerificationEmailStyle.</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></li>
@@ -39,21 +40,9 @@ If settings are provided, email login will be enabled with the specified setting
 <div class="tsd-comment tsd-typography"><p>The verification email subject.</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></li></ul></div>
-<div class="tsd-type-declaration">
-<h4>Type declaration</h4>
-<ul class="tsd-parameters">
-<li class="tsd-parameter">
-<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-property">verification<wbr/>Email<wbr/>Body</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-symbol">`</span><span class="tsd-signature-symbol">${</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">}</span><span class="tsd-signature-type">{##Verify Email##}</span><span class="tsd-signature-symbol">${</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">`</span></h5>
-<div class="tsd-comment tsd-typography"><p>When verificationEmailStyle is set to VerificationEmailStyle.LINK, the emailBody must contain the template {##Verify Email##} where the link will be inserted.</p>
-</div>
-<div class="tsd-comment tsd-typography"></div></li>
-<li class="tsd-parameter">
-<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-property">verification<wbr/>Email<wbr/>Style</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type ">cognito.VerificationEmailStyle.LINK</span></h5></li>
-<li class="tsd-parameter">
-<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-property">verification<wbr/>Email<wbr/>Subject</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span></h5></li></ul></div>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/9030629/packages/auth-construct/src/types.ts#L13">packages/auth-construct/src/types.ts:13</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/eac939b/packages/auth-construct/src/types.ts#L13">packages/auth-construct/src/types.ts:13</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
