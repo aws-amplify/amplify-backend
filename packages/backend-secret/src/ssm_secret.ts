@@ -2,12 +2,10 @@ import { SSM, SSMServiceException } from '@aws-sdk/client-ssm';
 import { SecretError } from './secret_error.js';
 import {
   Secret,
-  SecretAction,
   SecretClient,
   SecretIdentifier,
   SecretListItem,
 } from './secret.js';
-import * as iam from 'aws-cdk-lib/aws-iam';
 import { BackendId, UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 const SHARED_SECRET = 'shared';
@@ -197,36 +195,5 @@ export class SSMSecretClient implements SecretClient {
     } catch (err) {
       throw SecretError.fromSSMException(err as SSMServiceException);
     }
-  };
-
-  /**
-   * Get required IAM policy statement to perform the input actions.
-   */
-  public grantPermission = (
-    resource: iam.IGrantable,
-    backendIdentifier: UniqueBackendIdentifier,
-    secretActions: SecretAction[]
-  ) => {
-    const actionMap: { [K in SecretAction]: string } = {
-      ['GET']: 'ssm:GetParameter',
-      ['SET']: 'ssm:PutParameter',
-      ['LIST']: 'ssm:GetParametersByPath',
-      ['REMOVE']: 'ssm:DeleteParameter',
-    };
-
-    const secretPaths = [
-      this.getParameterPrefix(backendIdentifier),
-      this.getParameterPrefix(backendIdentifier.backendId),
-    ];
-
-    resource.grantPrincipal.addToPrincipalPolicy(
-      new iam.PolicyStatement({
-        effect: iam.Effect.ALLOW,
-        actions: secretActions.map((action) => actionMap[action]),
-        resources: secretPaths.map(
-          (path) => `arn:aws:ssm:*:*:parameter${path}/*`
-        ),
-      })
-    );
   };
 }

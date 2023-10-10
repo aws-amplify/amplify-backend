@@ -1,36 +1,19 @@
 import { App, Stack } from 'aws-cdk-lib';
 import { describe, it } from 'node:test';
 import { BackendSecretFetcherProviderFactory } from './backend_secret_fetcher_provider_factory.js';
-import { getSecretClient } from '@aws-amplify/backend-secret';
-import { BranchBackendIdentifier } from '@aws-amplify/platform-core';
 import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 const testProviderId1 = 'testProvider1';
 const testProviderId2 = 'testProvider2';
-const backendIdentifier: UniqueBackendIdentifier = new BranchBackendIdentifier(
-  'testBackendId',
-  'testBranchName'
-);
 
 void describe('getOrCreate', () => {
-  const providerFactory = new BackendSecretFetcherProviderFactory(
-    getSecretClient()
-  );
+  const providerFactory = new BackendSecretFetcherProviderFactory();
   void it('creates new providers', () => {
     const app = new App();
     const stack = new Stack(app);
-    providerFactory.getOrCreateInstance(
-      stack,
-      testProviderId1,
-      backendIdentifier
-    );
-    providerFactory.getOrCreateInstance(
-      stack,
-      testProviderId2,
-      backendIdentifier
-    );
+    providerFactory.getOrCreateInstance(stack, testProviderId1);
+    providerFactory.getOrCreateInstance(stack, testProviderId2);
     const template = Template.fromStack(stack);
 
     const resources = template.findResources('AWS::Lambda::Function');
@@ -50,16 +33,8 @@ void describe('getOrCreate', () => {
   void it('returns an existing provider', () => {
     const app = new App();
     const stack = new Stack(app);
-    providerFactory.getOrCreateInstance(
-      stack,
-      testProviderId1,
-      backendIdentifier
-    );
-    providerFactory.getOrCreateInstance(
-      stack,
-      testProviderId1,
-      backendIdentifier
-    );
+    providerFactory.getOrCreateInstance(stack, testProviderId1);
+    providerFactory.getOrCreateInstance(stack, testProviderId1);
     const template = Template.fromStack(stack);
 
     const resources = template.findResources('AWS::Lambda::Function');

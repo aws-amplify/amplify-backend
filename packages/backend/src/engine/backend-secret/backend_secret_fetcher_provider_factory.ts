@@ -1,12 +1,11 @@
 import { Construct } from 'constructs';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Duration } from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import * as path from 'path';
 import { Runtime as LambdaRuntime } from 'aws-cdk-lib/aws-lambda';
 import { Provider } from 'aws-cdk-lib/custom-resources';
 import { fileURLToPath } from 'url';
-import { SecretClient } from '@aws-amplify/backend-secret';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -21,19 +20,10 @@ const backendSecretLambdaFilePath = path.join(
  */
 export class BackendSecretFetcherProviderFactory {
   /**
-   * Creates a secret-fetcher provider factory.
-   */
-  constructor(private readonly secretClient: SecretClient) {}
-
-  /**
    * Returns a resource provider if it exists in the input scope. Otherwise,
    * creates a new provider.
    */
-  getOrCreateInstance = (
-    scope: Construct,
-    providerId: string,
-    backendIdentifier: UniqueBackendIdentifier
-  ) => {
+  getOrCreateInstance = (scope: Construct, providerId: string) => {
     const provider = scope.node.tryFindChild(providerId) as Provider;
     if (provider) {
       return provider;
@@ -46,7 +36,13 @@ export class BackendSecretFetcherProviderFactory {
       handler: 'handler',
     });
 
-    this.secretClient.grantPermission(secretLambda, backendIdentifier, ['GET']);
+    secretLambda.grantPrincipal.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['ssm:GetParameter'],
+        resources: ['arn:aws:ssm:*:*:parameter/amplify/*'],
+      })
+    );
 
     return new Provider(scope, providerId, {
       onEventHandler: secretLambda,

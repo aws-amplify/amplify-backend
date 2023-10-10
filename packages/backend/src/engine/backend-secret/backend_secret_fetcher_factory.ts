@@ -44,8 +44,7 @@ export class BackendSecretFetcherFactory {
 
     const provider = this.secretProviderFactory.getOrCreateInstance(
       scope,
-      SECRET_RESOURCE_PROVIDER_ID,
-      backendIdentifier
+      SECRET_RESOURCE_PROVIDER_ID
     );
 
     // Sandbox deployment passes down the secret's last updated timestamp to
