@@ -1,5 +1,28 @@
 # @aws-amplify/backend-graphql
 
+## 0.2.0-alpha.9
+
+### Patch Changes
+
+- 59f5ea24: chore: upgrade aws-cdk to 2.100.0
+- Updated dependencies [59f5ea24]
+  - @aws-amplify/backend-output-storage@0.1.1-alpha.3
+  - @aws-amplify/plugin-types@0.2.0-alpha.9
+
+## 0.2.0-alpha.8
+
+### Patch Changes
+
+- 7103735b: cdk lib dependency declaration
+- Updated dependencies [7103735b]
+  - @aws-amplify/plugin-types@0.2.0-alpha.8
+
+## 0.2.0-alpha.7
+
+### Patch Changes
+
+- f8df0ed6: add defineData authorizationModes passthrough
+
 ## 0.2.0-alpha.6
 
 ### Minor Changes

@@ -7,6 +7,8 @@ on:
   pull_request:
     branches:
       - main
+  schedule:
+    - cron: '0 12 * * *' # every day 12:00 UTC
 
 jobs:
   install:

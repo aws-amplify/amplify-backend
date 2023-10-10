@@ -48,12 +48,15 @@ const listSecretMock = mock.method(secretClient, 'listSecrets', () =>
   ])
 );
 
-const cdkExecutor = new AmplifySandboxExecutor(backendDeployer, secretClient);
+const sandboxExecutor = new AmplifySandboxExecutor(
+  backendDeployer,
+  secretClient
+);
 
-const execaDeployMock = mock.method(backendDeployer, 'deploy', () =>
+const backendDeployerDeployMock = mock.method(backendDeployer, 'deploy', () =>
   Promise.resolve()
 );
-const execaDestroyMock = mock.method(backendDeployer, 'destroy', () =>
+const backendDeployerDestroyMock = mock.method(backendDeployer, 'destroy', () =>
   Promise.resolve()
 );
 const region = 'test-region';
@@ -101,22 +104,22 @@ void describe('Sandbox to check if region is bootstrapped', () => {
     mock.method(fs, 'existsSync', () => false);
     sandboxInstance = new FileWatchingSandbox(
       'testSandboxId',
-      cdkExecutor,
+      sandboxExecutor,
       cfnClientMock,
       openMock as never
     );
 
     cfnClientSendMock.mock.resetCalls();
     openMock.mock.resetCalls();
-    execaDestroyMock.mock.resetCalls();
-    execaDeployMock.mock.resetCalls();
+    backendDeployerDestroyMock.mock.resetCalls();
+    backendDeployerDeployMock.mock.resetCalls();
   });
 
   afterEach(async () => {
     cfnClientSendMock.mock.resetCalls();
     openMock.mock.resetCalls();
-    execaDestroyMock.mock.resetCalls();
-    execaDeployMock.mock.resetCalls();
+    backendDeployerDestroyMock.mock.resetCalls();
+    backendDeployerDeployMock.mock.resetCalls();
     await sandboxInstance.stop();
   });
 
@@ -194,7 +197,7 @@ void describe('Sandbox using local project name resolver', () => {
     mock.method(fs, 'existsSync', () => false);
     sandboxInstance = new FileWatchingSandbox(
       'testSandboxId',
-      cdkExecutor,
+      sandboxExecutor,
       cfnClientMock
     );
     await sandboxInstance.start({
@@ -203,7 +206,7 @@ void describe('Sandbox using local project name resolver', () => {
     });
 
     // At this point one deployment should already have been done on sandbox startup
-    assert.strictEqual(execaDeployMock.mock.callCount(), 1);
+    assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
     // and client config generated only once
 
     if (
@@ -214,21 +217,21 @@ void describe('Sandbox using local project name resolver', () => {
     }
 
     // Reset all the calls to avoid extra startup call
-    execaDestroyMock.mock.resetCalls();
-    execaDeployMock.mock.resetCalls();
+    backendDeployerDestroyMock.mock.resetCalls();
+    backendDeployerDeployMock.mock.resetCalls();
     cfnClientSendMock.mock.resetCalls();
     listSecretMock.mock.resetCalls();
   });
 
   afterEach(async () => {
-    execaDestroyMock.mock.resetCalls();
-    execaDeployMock.mock.resetCalls();
+    backendDeployerDestroyMock.mock.resetCalls();
+    backendDeployerDeployMock.mock.resetCalls();
     subscribeMock.mock.resetCalls();
     cfnClientSendMock.mock.resetCalls();
     await sandboxInstance.stop();
   });
 
-  void it('calls CDK once when a file change is present', async () => {
+  void it('calls BackendDeployer once when a file change is present', async () => {
     await fileChangeEventActualFn(null, [
       { type: 'update', path: 'foo/test1.ts' },
     ]);
@@ -239,12 +242,12 @@ void describe('Sandbox using local project name resolver', () => {
       ignore: ['cdk.out', 'exclude1', 'exclude2'],
     });
 
-    // CDK should be called once
-    assert.strictEqual(execaDeployMock.mock.callCount(), 1);
+    // BackendDeployer should be called once
+    assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
     assert.strictEqual(listSecretMock.mock.callCount(), 1);
 
-    // CDK should be called with the right params
-    assert.deepEqual(execaDeployMock.mock.calls[0].arguments, [
+    // BackendDeployer should be called with the right params
+    assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
       new SandboxBackendIdentifier('testSandboxId'),
       {
         deploymentType: BackendDeploymentType.SANDBOX,
@@ -254,21 +257,21 @@ void describe('Sandbox using local project name resolver', () => {
     assert.strictEqual(cfnClientSendMock.mock.callCount(), 0);
   });
 
-  void it('calls CDK once when multiple file changes are present', async () => {
+  void it('calls BackendDeployer once when multiple file changes are present', async () => {
     await fileChangeEventActualFn(null, [
       { type: 'update', path: 'foo/test2.ts' },
       { type: 'create', path: 'foo/test3.ts' },
     ]);
-    assert.strictEqual(execaDeployMock.mock.callCount(), 1);
+    assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
   });
 
-  void it('calls CDK once when multiple file changes are within few milliseconds (debounce)', async () => {
+  void it('calls BackendDeployer once when multiple file changes are within few milliseconds (debounce)', async () => {
     // Not awaiting for this file event to be processed and submitting another one right away
     fileChangeEventActualFn(null, [{ type: 'update', path: 'foo/test4.ts' }]);
     await fileChangeEventActualFn(null, [
       { type: 'update', path: 'foo/test4.ts' },
     ]);
-    assert.strictEqual(execaDeployMock.mock.callCount(), 1);
+    assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
   });
 
   void it('waits for file changes after completing a deployment and deploys again', async () => {
@@ -278,12 +281,12 @@ void describe('Sandbox using local project name resolver', () => {
     await fileChangeEventActualFn(null, [
       { type: 'update', path: 'foo/test6.ts' },
     ]);
-    assert.strictEqual(execaDeployMock.mock.callCount(), 2);
+    assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 2);
   });
 
   void it('queues deployment if a file change is detected during an ongoing', async () => {
-    // Mimic cdk taking 200 ms.
-    execaDeployMock.mock.mockImplementationOnce(async () => {
+    // Mimic BackendDeployer taking 200 ms.
+    backendDeployerDeployMock.mock.mockImplementationOnce(async () => {
       await new Promise((resolve) => setTimeout(resolve, 200));
       return { stdout: '', stderr: '' };
     });
@@ -297,43 +300,59 @@ void describe('Sandbox using local project name resolver', () => {
     // second file change while the previous one is 'ongoing'
     fileChangeEventActualFn(null, [{ type: 'update', path: 'foo/test8.ts' }]);
 
-    // Wait sufficient time for both deployments to have finished before we count number of cdk calls.
+    // Wait sufficient time for both deployments to have finished before we count number of BackendDeployer calls.
     await new Promise((resolve) => setTimeout(resolve, 500));
 
-    assert.strictEqual(execaDeployMock.mock.callCount(), 2);
+    assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 2);
   });
 
-  void it('calls CDK destroy when delete is called', async () => {
+  void it('calls BackendDeployer destroy when delete is called', async () => {
     await sandboxInstance.delete({});
 
-    // CDK should be called once
-    assert.strictEqual(execaDestroyMock.mock.callCount(), 1);
+    // BackendDeployer should be called once
+    assert.strictEqual(backendDeployerDestroyMock.mock.callCount(), 1);
 
-    // CDK should be called with the right params
-    assert.deepEqual(execaDestroyMock.mock.calls[0].arguments, [
+    // BackendDeployer should be called with the right params
+    assert.deepEqual(backendDeployerDestroyMock.mock.calls[0].arguments, [
       new SandboxBackendIdentifier('testSandboxId'),
+      { deploymentType: BackendDeploymentType.SANDBOX },
     ]);
   });
 
-  void it('handles error thrown by cdk and does not crash', async (contextual) => {
-    const contextualExecaMock = contextual.mock.method(
+  void it('handles error thrown by BackendDeployer and does not crash while deploying', async (contextual) => {
+    const contextualBackendDeployerMock = contextual.mock.method(
       backendDeployer,
       'deploy',
-      () => Promise.reject(new Error('random cdk error'))
+      () => Promise.reject(new Error('random BackendDeployer error'))
     );
 
     // This test validates that the first file change didn't crash the sandbox process and the second
-    // file change will trigger the CDK again!
+    // file change will trigger the BackendDeployer again!
     fileChangeEventActualFn(null, [{ type: 'update', path: 'foo/test1.ts' }]);
     // Get over debounce so that the next deployment is considered valid
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 200));
     // second file change
     fileChangeEventActualFn(null, [{ type: 'update', path: 'foo/test2.ts' }]);
-    // Wait sufficient time for both deployments to have finished before we count number of cdk calls.
+    // Wait sufficient time for both deployments to have finished before we count number of BackendDeployer calls.
     await new Promise((resolve) => setTimeout(resolve, 300));
 
-    // CDK should have been called twice
-    assert.strictEqual(contextualExecaMock.mock.callCount(), 2);
+    // BackendDeployer should have been called twice
+    assert.strictEqual(contextualBackendDeployerMock.mock.callCount(), 2);
+  });
+
+  void it('handles error thrown by BackendDeployer and terminate while destroying', async (contextual) => {
+    const contextualBackendDeployerMock = contextual.mock.method(
+      backendDeployer,
+      'destroy',
+      () => Promise.reject(new Error('random BackendDeployer error'))
+    );
+
+    await assert.rejects(() => sandboxInstance.delete({}), {
+      message: 'random BackendDeployer error',
+    });
+
+    // BackendDeployer should have been called once
+    assert.strictEqual(contextualBackendDeployerMock.mock.callCount(), 1);
   });
 });
 
@@ -350,7 +369,7 @@ void describe('Sandbox with user provided app name', () => {
     mock.method(fs, 'existsSync', () => false);
     sandboxInstance = new FileWatchingSandbox(
       'testSandboxId',
-      cdkExecutor,
+      sandboxExecutor,
       cfnClientMock
     );
     await sandboxInstance.start({
@@ -366,21 +385,21 @@ void describe('Sandbox with user provided app name', () => {
     }
 
     // Reset all the calls to avoid extra startup call
-    execaDestroyMock.mock.resetCalls();
-    execaDeployMock.mock.resetCalls();
+    backendDeployerDestroyMock.mock.resetCalls();
+    backendDeployerDeployMock.mock.resetCalls();
     cfnClientSendMock.mock.resetCalls();
     listSecretMock.mock.resetCalls();
   });
 
   afterEach(async () => {
-    execaDestroyMock.mock.resetCalls();
-    execaDeployMock.mock.resetCalls();
+    backendDeployerDestroyMock.mock.resetCalls();
+    backendDeployerDeployMock.mock.resetCalls();
     subscribeMock.mock.resetCalls();
     cfnClientSendMock.mock.resetCalls();
     await sandboxInstance.stop();
   });
 
-  void it('calls CDK once when a file change is present and user provided appName', async () => {
+  void it('calls BackendDeployer once when a file change is present and user provided appName', async () => {
     await fileChangeEventActualFn(null, [
       { type: 'update', path: 'foo/test1.ts' },
     ]);
@@ -391,12 +410,12 @@ void describe('Sandbox with user provided app name', () => {
       ignore: ['cdk.out', 'exclude1', 'exclude2'],
     });
 
-    // CDK should be called once
-    assert.strictEqual(execaDeployMock.mock.callCount(), 1);
+    // BackendDeployer should be called once
+    assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
     assert.strictEqual(listSecretMock.mock.callCount(), 1);
 
-    // CDK should be called with the right params
-    assert.deepEqual(execaDeployMock.mock.calls[0].arguments, [
+    // BackendDeployer should be called with the right params
+    assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
       new SandboxBackendIdentifier('customSandboxName'),
       {
         deploymentType: BackendDeploymentType.SANDBOX,
@@ -405,15 +424,16 @@ void describe('Sandbox with user provided app name', () => {
     ]);
   });
 
-  void it('calls CDK destroy when delete is called with a user provided sandbox name', async () => {
+  void it('calls BackendDeployer destroy when delete is called with a user provided sandbox name', async () => {
     await sandboxInstance.delete({ name: 'customSandboxName' });
 
-    // CDK should be called once
-    assert.strictEqual(execaDestroyMock.mock.callCount(), 1);
+    // BackendDeployer should be called once
+    assert.strictEqual(backendDeployerDestroyMock.mock.callCount(), 1);
 
-    // CDK should be called with the right params
-    assert.deepEqual(execaDestroyMock.mock.calls[0].arguments, [
+    // BackendDeployer should be called with the right params
+    assert.deepEqual(backendDeployerDestroyMock.mock.calls[0].arguments, [
       new SandboxBackendIdentifier('customSandboxName'),
+      { deploymentType: BackendDeploymentType.SANDBOX },
     ]);
   });
 });
@@ -431,7 +451,7 @@ void describe('Sandbox with absolute output path', () => {
     mock.method(fs, 'existsSync', () => false);
     sandboxInstance = new FileWatchingSandbox(
       'testSandboxId',
-      cdkExecutor,
+      sandboxExecutor,
       cfnClientMock
     );
     await sandboxInstance.start({
@@ -447,14 +467,14 @@ void describe('Sandbox with absolute output path', () => {
     }
 
     // Reset all the calls to avoid extra startup call
-    execaDeployMock.mock.resetCalls();
-    execaDestroyMock.mock.resetCalls();
+    backendDeployerDeployMock.mock.resetCalls();
+    backendDeployerDestroyMock.mock.resetCalls();
     cfnClientSendMock.mock.resetCalls();
   });
 
   afterEach(async () => {
-    execaDeployMock.mock.resetCalls();
-    execaDestroyMock.mock.resetCalls();
+    backendDeployerDeployMock.mock.resetCalls();
+    backendDeployerDestroyMock.mock.resetCalls();
     subscribeMock.mock.resetCalls();
     cfnClientSendMock.mock.resetCalls();
     await sandboxInstance.stop();
@@ -485,7 +505,7 @@ void describe('Sandbox ignoring paths in .gitignore', () => {
     });
     sandboxInstance = new FileWatchingSandbox(
       'testSandboxId',
-      cdkExecutor,
+      sandboxExecutor,
       cfnClientMock
     );
     await sandboxInstance.start({
@@ -501,14 +521,14 @@ void describe('Sandbox ignoring paths in .gitignore', () => {
     }
 
     // Reset all the calls to avoid extra startup call
-    execaDeployMock.mock.resetCalls();
-    execaDestroyMock.mock.resetCalls();
+    backendDeployerDeployMock.mock.resetCalls();
+    backendDeployerDestroyMock.mock.resetCalls();
     cfnClientSendMock.mock.resetCalls();
   });
 
   afterEach(async () => {
-    execaDeployMock.mock.resetCalls();
-    execaDestroyMock.mock.resetCalls();
+    backendDeployerDeployMock.mock.resetCalls();
+    backendDeployerDestroyMock.mock.resetCalls();
     subscribeMock.mock.resetCalls();
     cfnClientSendMock.mock.resetCalls();
     await sandboxInstance.stop();
@@ -534,8 +554,8 @@ void describe('Sandbox ignoring paths in .gitignore', () => {
       ],
     });
 
-    // CDK should also be called once
-    assert.strictEqual(execaDeployMock.mock.callCount(), 1);
+    // BackendDeployer should also be called once
+    assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
   });
   void it('emits the successfulDeployment event after deployment', async () => {
     const mockListener = mock.fn();

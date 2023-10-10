@@ -104,6 +104,7 @@ export class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
       'aws_user_files_s3_bucket_region',
       'aws_user_pools_id',
       'aws_user_pools_web_client_id',
+      'modelIntrospection',
     ]);
   };
 }

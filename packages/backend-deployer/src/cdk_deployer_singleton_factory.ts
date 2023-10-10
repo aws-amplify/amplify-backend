@@ -8,6 +8,10 @@ export type DeployProps = {
   secretLastUpdated?: Date;
 };
 
+export type DestroyProps = {
+  deploymentType?: BackendDeploymentType;
+};
+
 /**
  * Invokes an invokable command
  */
@@ -16,7 +20,10 @@ export type BackendDeployer = {
     uniqueBackendIdentifier?: UniqueBackendIdentifier,
     deployProps?: DeployProps
   ) => Promise<void>;
-  destroy: (uniqueBackendIdentifier?: UniqueBackendIdentifier) => Promise<void>;
+  destroy: (
+    uniqueBackendIdentifier?: UniqueBackendIdentifier,
+    destroyProps?: DestroyProps
+  ) => Promise<void>;
 };
 
 /**

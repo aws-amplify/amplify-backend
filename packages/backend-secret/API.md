@@ -6,7 +6,6 @@
 
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { BackendId } from '@aws-amplify/plugin-types';
-import * as iam from 'aws-cdk-lib/aws-iam';
 import { SSMServiceException } from '@aws-sdk/client-ssm';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
@@ -20,15 +19,11 @@ export type Secret = SecretIdentifier & {
 };
 
 // @public
-export type SecretAction = 'GET' | 'SET' | 'REMOVE' | 'LIST';
-
-// @public
 export type SecretClient = {
     getSecret: (backendIdentifier: UniqueBackendIdentifier | BackendId, secretIdentifier: SecretIdentifier) => Promise<Secret>;
     listSecrets: (backendIdentifier: UniqueBackendIdentifier | BackendId) => Promise<SecretListItem[]>;
     setSecret: (backendIdentifier: UniqueBackendIdentifier | BackendId, secretName: string, secretValue: string) => Promise<SecretIdentifier>;
     removeSecret: (backendIdentifier: UniqueBackendIdentifier | BackendId, secretName: string) => Promise<void>;
-    grantPermission: (resource: iam.IGrantable, backendIdentifier: UniqueBackendIdentifier, secretActions: SecretAction[]) => void;
 };
 
 // @public

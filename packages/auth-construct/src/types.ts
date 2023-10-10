@@ -16,22 +16,15 @@ export type EmailLogin =
       /**
        * The type of verification. Must be one of aws_cognito.VerificationEmailStyle.
        */
-      verificationEmailStyle?: cognito.VerificationEmailStyle.CODE;
+      verificationEmailStyle?: cognito.VerificationEmailStyle;
       /**
        * When verificationEmailStyle is set to VerificationEmailStyle.CODE, the emailBody must contain the template {####} where the code will be inserted.
+       * When verificationEmailStyle is set to VerificationEmailStyle.LINK, the emailBody must contain the template {##Verify Email##} where the link will be inserted.
        */
-      verificationEmailBody?: `${string}{####}${string}`;
+      verificationEmailBody?: string;
       /**
        * The verification email subject.
        */
-      verificationEmailSubject?: string;
-    }
-  | {
-      verificationEmailStyle?: cognito.VerificationEmailStyle.LINK;
-      /**
-       * When verificationEmailStyle is set to VerificationEmailStyle.LINK, the emailBody must contain the template {##Verify Email##} where the link will be inserted.
-       */
-      verificationEmailBody?: `${string}{##Verify Email##}${string}`;
       verificationEmailSubject?: string;
     };
 /**
@@ -43,7 +36,7 @@ export type EmailLogin =
 export type PhoneNumberLogin =
   | true
   | {
-      verificationMessage?: `${string}{####}${string}`;
+      verificationMessage?: string;
     };
 /**
  * Basic login options require at least email or phone number.

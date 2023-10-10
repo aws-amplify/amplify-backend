@@ -13,7 +13,7 @@ void describe('invokeCDKCommand', () => {
   const uniqueBackendIdentifier: UniqueBackendIdentifier =
     new BranchBackendIdentifier('123', 'testBranch');
 
-  const deployProps: DeployProps = {
+  const sandboxDeployProps: DeployProps = {
     deploymentType: BackendDeploymentType.SANDBOX,
     secretLastUpdated: new Date(12345678),
   };
@@ -44,7 +44,7 @@ void describe('invokeCDKCommand', () => {
     ]);
   });
 
-  void it('handles options', async () => {
+  void it('handles options for branch deployments', async () => {
     await invoker.deploy(uniqueBackendIdentifier);
     assert.strictEqual(execaMock.mock.callCount(), 1);
     assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 9);
@@ -61,8 +61,8 @@ void describe('invokeCDKCommand', () => {
     ]);
   });
 
-  void it('handles deployProps', async () => {
-    await invoker.deploy(undefined, deployProps);
+  void it('handles deployProps for sandbox', async () => {
+    await invoker.deploy(undefined, sandboxDeployProps);
     assert.strictEqual(execaMock.mock.callCount(), 1);
     assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 11);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
@@ -76,12 +76,14 @@ void describe('invokeCDKCommand', () => {
       '--hotswap-fallback',
       '--method=direct',
       '--context',
-      `secretLastUpdated=${deployProps.secretLastUpdated?.getTime() as number}`,
+      `secretLastUpdated=${
+        sandboxDeployProps.secretLastUpdated?.getTime() as number
+      }`,
     ]);
   });
 
-  void it('handles options and deployProps', async () => {
-    await invoker.deploy(uniqueBackendIdentifier, deployProps);
+  void it('handles options and deployProps for sandbox', async () => {
+    await invoker.deploy(uniqueBackendIdentifier, sandboxDeployProps);
     assert.strictEqual(execaMock.mock.callCount(), 1);
     assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 13);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
@@ -97,12 +99,16 @@ void describe('invokeCDKCommand', () => {
       '--hotswap-fallback',
       '--method=direct',
       '--context',
-      `secretLastUpdated=${deployProps.secretLastUpdated?.getTime() as number}`,
+      `secretLastUpdated=${
+        sandboxDeployProps.secretLastUpdated?.getTime() as number
+      }`,
     ]);
   });
 
-  void it('handles destroy', async () => {
-    await invoker.destroy(uniqueBackendIdentifier);
+  void it('handles destroy for sandbox', async () => {
+    await invoker.destroy(uniqueBackendIdentifier, {
+      deploymentType: BackendDeploymentType.SANDBOX,
+    });
     assert.strictEqual(execaMock.mock.callCount(), 1);
     assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 10);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
@@ -114,7 +120,7 @@ void describe('invokeCDKCommand', () => {
       '--context',
       'backend-id=123',
       '--context',
-      'branch-name=testBranch',
+      'deployment-type=SANDBOX',
       '--force',
     ]);
   });
@@ -125,7 +131,7 @@ void describe('invokeCDKCommand', () => {
     });
 
     await assert.rejects(
-      () => invoker.deploy(uniqueBackendIdentifier, deployProps),
+      () => invoker.deploy(uniqueBackendIdentifier, sandboxDeployProps),
       (err: Error) => {
         assert.equal(
           err.message,

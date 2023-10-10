@@ -19,6 +19,7 @@ import {
 import { GraphqlOutput } from '@aws-amplify/backend-output-schemas/graphql';
 import * as path from 'path';
 import { DerivedModelSchema } from '@aws-amplify/amplify-api-next-types-alpha';
+
 /**
  * Exposed props for Data which are configurable by the end user.
  */
@@ -32,6 +33,12 @@ export type DataProps = {
    * Optional name for the generated Api.
    */
   name?: string;
+
+  /**
+   * Temporary authZ pass-through into the CDK construct
+   * https://github.com/aws-amplify/samsara-cli/issues/370
+   */
+  authorizationModes?: AuthorizationModes;
 };
 
 /**
@@ -115,14 +122,17 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       defaultAuthorizationMode = 'AMAZON_COGNITO_USER_POOLS';
     }
 
+    const dataAuthorizationModes = this.props.authorizationModes || {};
+
     const authorizationModes: AuthorizationModes = {
       defaultAuthorizationMode,
       iamConfig,
       userPoolConfig,
+      ...dataAuthorizationModes,
     };
 
     const isModelSchema = (
-      schema: string | DerivedModelSchema
+      schema: DataProps['schema']
     ): schema is DerivedModelSchema => {
       if (
         schema !== null &&
@@ -135,7 +145,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     };
 
     const normalizeSchema = (
-      schema: string | DerivedModelSchema
+      schema: DataProps['schema']
     ): IAmplifyGraphqlDefinition => {
       if (isModelSchema(schema)) {
         return schema.transform();

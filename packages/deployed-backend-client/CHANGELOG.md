@@ -1,5 +1,28 @@
 # @aws-amplify/deployed-backend-client
 
+## 0.2.0-alpha.6
+
+### Minor Changes
+
+- 5585f473: Add apiId and modelIntrospectionSchema props
+
+## 0.2.0-alpha.5
+
+### Patch Changes
+
+- b40d2d7b: if getOutput throws, filter the result from the sandbox list
+- b40d2d7b: update input types
+
+## 0.2.0-alpha.4
+
+### Minor Changes
+
+- f46f69fb: Allows overrides in backend metadata class factories
+
+### Patch Changes
+
+- d925b097: update api child stack finder
+
 ## 0.2.0-alpha.3
 
 ### Patch Changes

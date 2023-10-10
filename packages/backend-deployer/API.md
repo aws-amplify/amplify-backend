@@ -10,7 +10,7 @@ import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 // @public
 export type BackendDeployer = {
     deploy: (uniqueBackendIdentifier?: UniqueBackendIdentifier, deployProps?: DeployProps) => Promise<void>;
-    destroy: (uniqueBackendIdentifier?: UniqueBackendIdentifier) => Promise<void>;
+    destroy: (uniqueBackendIdentifier?: UniqueBackendIdentifier, destroyProps?: DestroyProps) => Promise<void>;
 };
 
 // @public
@@ -22,6 +22,11 @@ export class BackendDeployerFactory {
 export type DeployProps = {
     deploymentType?: BackendDeploymentType;
     secretLastUpdated?: Date;
+};
+
+// @public (undocumented)
+export type DestroyProps = {
+    deploymentType?: BackendDeploymentType;
 };
 
 // (No @packageDocumentation comment for this package)

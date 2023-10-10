@@ -26,12 +26,13 @@ export class UnifiedClientConfigGenerator implements ClientConfigGenerator {
       await this.fetchOutput()
     );
 
-    return this.clientConfigContributors.reduce(
-      (accumulator, configContributor) => ({
+    let accumulator = {};
+    for (const contributor of this.clientConfigContributors) {
+      accumulator = {
         ...accumulator,
-        ...configContributor.contribute(backendOutput),
-      }),
-      {} as ClientConfig
-    );
+        ...(await contributor.contribute(backendOutput)),
+      };
+    }
+    return accumulator;
   };
 }

@@ -3,6 +3,7 @@ import stream from 'stream';
 import {
   BackendDeployer,
   DeployProps,
+  DestroyProps,
 } from './cdk_deployer_singleton_factory.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
@@ -56,11 +57,14 @@ export class CDKDeployer implements BackendDeployer {
   /**
    * Invokes cdk destroy command
    */
-  destroy = async (uniqueBackendIdentifier?: UniqueBackendIdentifier) => {
+  destroy = async (
+    uniqueBackendIdentifier?: UniqueBackendIdentifier,
+    destroyProps?: DestroyProps
+  ) => {
     await this.invoke(
       InvokableCommand.DESTROY,
       uniqueBackendIdentifier,
-      undefined,
+      destroyProps?.deploymentType,
       ['--force']
     );
   };
