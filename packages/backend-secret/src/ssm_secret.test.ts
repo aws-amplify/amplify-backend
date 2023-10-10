@@ -9,7 +9,6 @@ import {
 import { SSMSecretClient } from './ssm_secret.js';
 import assert from 'node:assert';
 import { SecretError } from './secret_error.js';
-import * as iam from 'aws-cdk-lib/aws-iam';
 import { Secret, SecretIdentifier, SecretListItem } from './secret.js';
 import { BranchBackendIdentifier } from '@aws-amplify/platform-core';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
@@ -373,35 +372,6 @@ void describe('SSMSecret', () => {
       const ssmSecretClient = new SSMSecretClient(ssmClient);
       const expectedErr = SecretError.fromSSMException(ssmInternalServerError);
       await assert.rejects(() => ssmSecretClient.listSecrets(''), expectedErr);
-    });
-  });
-
-  void describe('grantPermission', () => {
-    const ssmSecretClient = new SSMSecretClient(new SSM());
-    void it('grants permission', () => {
-      const mockAddToPrincipalPolicy = mock.fn();
-      ssmSecretClient.grantPermission(
-        {
-          grantPrincipal: {
-            addToPrincipalPolicy: mockAddToPrincipalPolicy,
-          } as unknown as iam.IPrincipal,
-        } as iam.IGrantable,
-        new BranchBackendIdentifier(testBackendId, testBranchName),
-        ['GET', 'LIST']
-      );
-      const expected = new iam.PolicyStatement({
-        effect: iam.Effect.ALLOW,
-        actions: ['ssm:GetParameter', 'ssm:GetParametersByPath'],
-        resources: [
-          `arn:aws:ssm:*:*:parameter/amplify/${testBackendId}/${testBranchName}/*`,
-          `arn:aws:ssm:*:*:parameter/amplify/${shared}/${testBackendId}/*`,
-        ],
-      });
-      assert.equal(mockAddToPrincipalPolicy.mock.callCount(), 1);
-      assert.deepStrictEqual(
-        mockAddToPrincipalPolicy.mock.calls[0].arguments[0],
-        expected
-      );
     });
   });
 });

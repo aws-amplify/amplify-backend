@@ -1,7 +1,6 @@
 import { App, Stack } from 'aws-cdk-lib';
 import { describe, it } from 'node:test';
 import { BackendSecretFetcherProviderFactory } from './backend_secret_fetcher_provider_factory.js';
-import { getSecretClient } from '@aws-amplify/backend-secret';
 import { BranchBackendIdentifier } from '@aws-amplify/platform-core';
 import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
@@ -15,9 +14,7 @@ const backendIdentifier: UniqueBackendIdentifier = new BranchBackendIdentifier(
 );
 
 void describe('getOrCreate', () => {
-  const providerFactory = new BackendSecretFetcherProviderFactory(
-    getSecretClient()
-  );
+  const providerFactory = new BackendSecretFetcherProviderFactory();
   void it('creates new providers', () => {
     const app = new App();
     const stack = new Stack(app);
