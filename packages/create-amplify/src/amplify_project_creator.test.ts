@@ -1,16 +1,10 @@
-import { afterEach, describe, it, mock } from 'node:test';
+import { describe, it, mock } from 'node:test';
 import assert from 'assert';
 import { AmplifyPrompter } from './amplify_prompts.js';
 import { AmplifyProjectCreator } from './amplify_project_creator.js';
 
-const originalEnv = process.env;
-
 void describe('AmplifyProjectCreator', () => {
-  afterEach(() => {
-    process.env = originalEnv;
-  });
   void it('create project if passing `--yes` or `-y` to `npm create`', async () => {
-    process.env.npm_config_yes = 'true';
     const logMock = mock.fn();
     const packageManagerControllerMock = { installDependencies: mock.fn() };
     const projectRootValidatorMock = { validate: mock.fn() };
@@ -28,7 +22,7 @@ void describe('AmplifyProjectCreator', () => {
       { log: logMock } as never
     );
     await amplifyProjectCreator.create({
-      npmConfigYes: process.env.npm_config_yes,
+      npmConfigYes: 'true',
     });
     assert.equal(
       packageManagerControllerMock.installDependencies.mock.callCount(),
@@ -47,8 +41,6 @@ void describe('AmplifyProjectCreator', () => {
   });
 
   void it('prompt questions', async (contextual) => {
-    process.env.npm_config_yes = 'false';
-
     contextual.mock.method(AmplifyPrompter, 'yesOrNo', () =>
       Promise.resolve(true)
     );
@@ -72,7 +64,7 @@ void describe('AmplifyProjectCreator', () => {
     );
     assert.equal(
       await amplifyProjectCreator.create({
-        npmConfigYes: process.env.npm_config_yes,
+        npmConfigYes: 'false',
       }),
       undefined
     );
