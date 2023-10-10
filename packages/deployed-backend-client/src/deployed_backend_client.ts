@@ -2,18 +2,21 @@ import {
   BackendOutput,
   UniqueBackendIdentifier,
 } from '@aws-amplify/plugin-types';
-import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import {
+  ApiAuthType,
   BackendDeploymentStatus,
-  BackendDeploymentType,
   BackendMetadata,
+  ConflictResolutionMode,
   DeployedBackendClient,
   ListSandboxesRequest,
   ListSandboxesResponse,
   SandboxMetadata,
 } from './deployed_backend_client_factory.js';
-import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
-import { BackendOutputClientFactory } from './backend_output_client_factory.js';
+import {
+  BackendDeploymentType,
+  SandboxBackendIdentifier,
+} from '@aws-amplify/platform-core';
+import { BackendOutputClient } from './backend_output_client_factory.js';
 import { getMainStackName } from './get_main_stack_name.js';
 import {
   CloudFormationClient,
@@ -27,9 +30,13 @@ import {
   StackStatus,
   StackSummary,
 } from '@aws-sdk/client-cloudformation';
+
+import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
+
 import {
   authOutputKey,
   graphqlOutputKey,
+  stackOutputKey,
   storageOutputKey,
 } from '@aws-amplify/backend-output-schemas';
 
@@ -41,8 +48,9 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
    * Constructor for deployment client
    */
   constructor(
-    private readonly credentials: AwsCredentialIdentityProvider,
-    private readonly cfnClient: CloudFormationClient
+    private readonly cfnClient: CloudFormationClient,
+    private readonly s3Client: S3Client,
+    private readonly backendOutputClient: BackendOutputClient
   ) {}
 
   /**
@@ -56,22 +64,29 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
 
     do {
       const listStacksResponse = await this.listStacks(nextToken);
-      const filteredMetadata = listStacksResponse.stackSummaries
+      const stackMetadataPromises = listStacksResponse.stackSummaries
         .filter((stackSummary: StackSummary) => {
           return stackSummary.StackStatus !== StackStatus.DELETE_COMPLETE;
         })
-        .map((stackSummary: StackSummary) => {
+        .map(async (stackSummary: StackSummary) => {
+          const deploymentType = await this.tryGetDeploymentType(stackSummary);
+
           return {
             name: stackSummary.StackName as string,
             lastUpdated: stackSummary.LastUpdatedTime,
             status: this.translateStackStatus(stackSummary.StackStatus),
-            deploymentType: this.getDeploymentType(),
+            deploymentType,
           };
-        })
-        .filter(
-          (stackMetadata) =>
-            stackMetadata.deploymentType === BackendDeploymentType.SANDBOX
-        );
+        });
+
+      const stackMetadataResolvedPromises = await Promise.all(
+        stackMetadataPromises
+      );
+      const filteredMetadata = stackMetadataResolvedPromises.filter(
+        (stackMetadata) =>
+          stackMetadata.deploymentType === BackendDeploymentType.SANDBOX
+      );
+
       stackMetadata.push(...filteredMetadata);
       nextToken = listStacksResponse.nextToken;
     } while (stackMetadata.length === 0 && nextToken);
@@ -80,6 +95,24 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
       sandboxes: stackMetadata,
       nextToken,
     };
+  };
+
+  private tryGetDeploymentType = async (
+    stackSummary: StackSummary
+  ): Promise<BackendDeploymentType | undefined> => {
+    const backendIdentifier = {
+      stackName: stackSummary.StackName as string,
+    };
+
+    try {
+      const backendOutput: BackendOutput =
+        await this.backendOutputClient.getOutput(backendIdentifier);
+
+      return backendOutput[stackOutputKey].payload
+        .deploymentType as BackendDeploymentType;
+    } catch {
+      return;
+    }
   };
 
   /**
@@ -122,9 +155,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     };
 
     const backendOutput: BackendOutput =
-      await BackendOutputClientFactory.getInstance(this.credentials).getOutput(
-        backendIdentifier
-      );
+      await this.backendOutputClient.getOutput(backendIdentifier);
     const stackDescription = await this.cfnClient.send(
       new DescribeStacksCommand({ StackName: stackName })
     );
@@ -169,11 +200,12 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
         nestedStack?.StackName?.includes('storage')
     );
     const apiStack = childStacks.find((nestedStack: StackSummary | undefined) =>
-      nestedStack?.StackName?.includes('api')
+      nestedStack?.StackName?.includes('data')
     );
 
     const backendMetadataObject: BackendMetadata = {
-      deploymentType: this.getDeploymentType(),
+      deploymentType: backendOutput[stackOutputKey].payload
+        .deploymentType as BackendDeploymentType,
       lastUpdated,
       status,
       name: stackName,
@@ -197,21 +229,58 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     }
 
     if (apiStack) {
+      const additionalAuthTypesString =
+        backendOutput[graphqlOutputKey]?.payload
+          .awsAppsyncAdditionalAuthenticationTypes;
+      const additionalAuthTypes = additionalAuthTypesString
+        ? (additionalAuthTypesString.split(',') as ApiAuthType[])
+        : [];
       backendMetadataObject.apiConfiguration = {
         status: this.translateStackStatus(apiStack.StackStatus),
         lastUpdated: apiStack.LastUpdatedTime,
         graphqlEndpoint: backendOutput[graphqlOutputKey]?.payload
           .awsAppsyncApiEndpoint as string,
+        defaultAuthType: backendOutput[graphqlOutputKey]?.payload
+          .awsAppsyncAuthenticationType as ApiAuthType,
+        additionalAuthTypes,
+        conflictResolutionMode: backendOutput[graphqlOutputKey]?.payload
+          .awsAppsyncConflictResolutionMode as ConflictResolutionMode,
+        graphqlSchema: await this.fetchGraphqlSchema(
+          backendOutput[graphqlOutputKey]?.payload.amplifyApiModelSchemaS3Uri
+        ),
       };
     }
 
     return backendMetadataObject;
   };
 
-  private getDeploymentType = (): BackendDeploymentType => {
-    // FIXME: sandboxes will have an additional field in their outputs
-    // Once that output is added, make this field conditional
-    return BackendDeploymentType.SANDBOX;
+  private fetchGraphqlSchema = async (
+    graphqlSchemaS3Uri: string | undefined
+  ): Promise<string> => {
+    if (!graphqlSchemaS3Uri) {
+      throw new Error('graphqlSchemaS3Uri output is not available');
+    }
+
+    // s3://{bucketName}/{fileName}
+    const uriParts = graphqlSchemaS3Uri.split('/');
+    const bucketName = uriParts[2];
+    const objectPath = uriParts.slice(3, uriParts.length).join('/');
+
+    if (!bucketName || !objectPath) {
+      throw new Error('graphqlSchemaS3Uri is not valid');
+    }
+
+    const s3Response = await this.s3Client.send(
+      new GetObjectCommand({ Bucket: bucketName, Key: objectPath })
+    );
+
+    if (!s3Response.Body) {
+      throw new Error(
+        `s3Response from ${graphqlSchemaS3Uri} does not contain a Body`
+      );
+    }
+
+    return await s3Response.Body?.transformToString();
   };
 
   private translateStackStatus = (

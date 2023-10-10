@@ -7,13 +7,23 @@ import {
   UnifiedBackendOutput,
   authOutputKey,
   graphqlOutputKey,
+  stackOutputKey,
 } from '@aws-amplify/backend-output-schemas';
 import { ClientConfig } from './client-config-types/client_config.js';
+import { BackendDeploymentType } from '@aws-amplify/platform-core';
+import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
+import { ModelIntrospectionSchemaAdapter } from './client-config-contributor/model_introspection_schema_adapater.js';
 
 void describe('UnifiedClientConfigGenerator', () => {
   void describe('generateClientConfig', () => {
     void it('transforms backend output into client config', async () => {
       const stubOutput: UnifiedBackendOutput = {
+        [stackOutputKey]: {
+          version: '1',
+          payload: {
+            deploymentType: BackendDeploymentType.BRANCH,
+          },
+        },
         [authOutputKey]: {
           version: '1',
           payload: {
@@ -29,6 +39,8 @@ void describe('UnifiedClientConfigGenerator', () => {
             awsAppsyncApiEndpoint: 'testApiEndpoint',
             awsAppsyncRegion: 'us-east-1',
             awsAppsyncAuthenticationType: 'API_KEY',
+            awsAppsyncAdditionalAuthenticationTypes: 'API_KEY',
+            awsAppsyncConflictResolutionMode: undefined,
             awsAppsyncApiKey: 'testApiKey',
             awsAppsyncApiId: 'testApiId',
             amplifyApiModelSchemaS3Uri: 'testApiSchemaUri',
@@ -36,9 +48,18 @@ void describe('UnifiedClientConfigGenerator', () => {
         },
       };
       const outputRetrieval = mock.fn(async () => stubOutput);
+      const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
+        fromNodeProviderChain()
+      );
+
+      mock.method(
+        modelSchemaAdapter,
+        'getModelIntrospectionSchemaFromS3Uri',
+        () => undefined
+      );
       const configContributors = [
         new AuthClientConfigContributor(),
-        new GraphqlClientConfigContributor(),
+        new GraphqlClientConfigContributor(modelSchemaAdapter),
       ];
 
       const clientConfigGenerator = new UnifiedClientConfigGenerator(
@@ -52,8 +73,10 @@ void describe('UnifiedClientConfigGenerator', () => {
         aws_cognito_region: 'testRegion',
         aws_appsync_apiKey: 'testApiKey',
         aws_appsync_authenticationType: 'API_KEY',
+        aws_appsync_conflictResolutionMode: undefined,
         aws_appsync_graphqlEndpoint: 'testApiEndpoint',
         aws_appsync_region: 'us-east-1',
+        aws_appsync_additionalAuthenticationTypes: 'API_KEY',
       };
       assert.deepStrictEqual(result, expectedClientConfig);
     });

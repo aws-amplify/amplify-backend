@@ -54,6 +54,9 @@ export type GraphqlOutput = z.infer<typeof versionedGraphqlOutputSchema>;
 // @public
 export const graphqlOutputKey = "AWS::Amplify::GraphQL";
 
+// @public
+export const stackOutputKey = "AWS::Amplify::Platform";
+
 // @public (undocumented)
 export type StorageOutput = z.infer<typeof versionedStorageOutputSchema>;
 
@@ -65,6 +68,26 @@ export type UnifiedBackendOutput = z.infer<typeof unifiedBackendOutputSchema>;
 
 // @public
 export const unifiedBackendOutputSchema: z.ZodObject<{
+    "AWS::Amplify::Platform": z.ZodOptional<z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
+        version: z.ZodLiteral<"1">;
+        payload: z.ZodObject<{
+            deploymentType: z.ZodString;
+        }, "strip", z.ZodTypeAny, {
+            deploymentType: string;
+        }, {
+            deploymentType: string;
+        }>;
+    }, "strip", z.ZodTypeAny, {
+        version: "1";
+        payload: {
+            deploymentType: string;
+        };
+    }, {
+        version: "1";
+        payload: {
+            deploymentType: string;
+        };
+    }>]>>;
     "AWS::Amplify::Auth": z.ZodOptional<z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
         version: z.ZodLiteral<"1">;
         payload: z.ZodObject<{
@@ -126,6 +149,8 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             awsAppsyncRegion: z.ZodString;
             awsAppsyncApiEndpoint: z.ZodString;
             awsAppsyncAuthenticationType: z.ZodEnum<["API_KEY", "AWS_LAMBDA", "AWS_IAM", "OPENID_CONNECT", "AMAZON_COGNITO_USER_POOLS"]>;
+            awsAppsyncAdditionalAuthenticationTypes: z.ZodOptional<z.ZodString>;
+            awsAppsyncConflictResolutionMode: z.ZodOptional<z.ZodString>;
             awsAppsyncApiKey: z.ZodOptional<z.ZodString>;
             awsAppsyncApiId: z.ZodString;
             amplifyApiModelSchemaS3Uri: z.ZodString;
@@ -135,6 +160,8 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
             awsAppsyncApiId: string;
             amplifyApiModelSchemaS3Uri: string;
+            awsAppsyncAdditionalAuthenticationTypes?: string | undefined;
+            awsAppsyncConflictResolutionMode?: string | undefined;
             awsAppsyncApiKey?: string | undefined;
         }, {
             awsAppsyncRegion: string;
@@ -142,6 +169,8 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
             awsAppsyncApiId: string;
             amplifyApiModelSchemaS3Uri: string;
+            awsAppsyncAdditionalAuthenticationTypes?: string | undefined;
+            awsAppsyncConflictResolutionMode?: string | undefined;
             awsAppsyncApiKey?: string | undefined;
         }>;
     }, "strip", z.ZodTypeAny, {
@@ -152,6 +181,8 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
             awsAppsyncApiId: string;
             amplifyApiModelSchemaS3Uri: string;
+            awsAppsyncAdditionalAuthenticationTypes?: string | undefined;
+            awsAppsyncConflictResolutionMode?: string | undefined;
             awsAppsyncApiKey?: string | undefined;
         };
     }, {
@@ -162,6 +193,8 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
             awsAppsyncApiId: string;
             amplifyApiModelSchemaS3Uri: string;
+            awsAppsyncAdditionalAuthenticationTypes?: string | undefined;
+            awsAppsyncConflictResolutionMode?: string | undefined;
             awsAppsyncApiKey?: string | undefined;
         };
     }>]>>;
@@ -191,6 +224,12 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
         };
     }>]>>;
 }, "strip", z.ZodTypeAny, {
+    "AWS::Amplify::Platform"?: {
+        version: "1";
+        payload: {
+            deploymentType: string;
+        };
+    } | undefined;
     "AWS::Amplify::Auth"?: {
         version: "1";
         payload: {
@@ -212,6 +251,8 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
             awsAppsyncApiId: string;
             amplifyApiModelSchemaS3Uri: string;
+            awsAppsyncAdditionalAuthenticationTypes?: string | undefined;
+            awsAppsyncConflictResolutionMode?: string | undefined;
             awsAppsyncApiKey?: string | undefined;
         };
     } | undefined;
@@ -223,6 +264,12 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
         };
     } | undefined;
 }, {
+    "AWS::Amplify::Platform"?: {
+        version: "1";
+        payload: {
+            deploymentType: string;
+        };
+    } | undefined;
     "AWS::Amplify::Auth"?: {
         version: "1";
         payload: {
@@ -244,6 +291,8 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
             awsAppsyncApiId: string;
             amplifyApiModelSchemaS3Uri: string;
+            awsAppsyncAdditionalAuthenticationTypes?: string | undefined;
+            awsAppsyncConflictResolutionMode?: string | undefined;
             awsAppsyncApiKey?: string | undefined;
         };
     } | undefined;
@@ -320,6 +369,8 @@ export const versionedGraphqlOutputSchema: z.ZodDiscriminatedUnion<"version", [z
         awsAppsyncRegion: z.ZodString;
         awsAppsyncApiEndpoint: z.ZodString;
         awsAppsyncAuthenticationType: z.ZodEnum<["API_KEY", "AWS_LAMBDA", "AWS_IAM", "OPENID_CONNECT", "AMAZON_COGNITO_USER_POOLS"]>;
+        awsAppsyncAdditionalAuthenticationTypes: z.ZodOptional<z.ZodString>;
+        awsAppsyncConflictResolutionMode: z.ZodOptional<z.ZodString>;
         awsAppsyncApiKey: z.ZodOptional<z.ZodString>;
         awsAppsyncApiId: z.ZodString;
         amplifyApiModelSchemaS3Uri: z.ZodString;
@@ -329,6 +380,8 @@ export const versionedGraphqlOutputSchema: z.ZodDiscriminatedUnion<"version", [z
         awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
         awsAppsyncApiId: string;
         amplifyApiModelSchemaS3Uri: string;
+        awsAppsyncAdditionalAuthenticationTypes?: string | undefined;
+        awsAppsyncConflictResolutionMode?: string | undefined;
         awsAppsyncApiKey?: string | undefined;
     }, {
         awsAppsyncRegion: string;
@@ -336,6 +389,8 @@ export const versionedGraphqlOutputSchema: z.ZodDiscriminatedUnion<"version", [z
         awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
         awsAppsyncApiId: string;
         amplifyApiModelSchemaS3Uri: string;
+        awsAppsyncAdditionalAuthenticationTypes?: string | undefined;
+        awsAppsyncConflictResolutionMode?: string | undefined;
         awsAppsyncApiKey?: string | undefined;
     }>;
 }, "strip", z.ZodTypeAny, {
@@ -346,6 +401,8 @@ export const versionedGraphqlOutputSchema: z.ZodDiscriminatedUnion<"version", [z
         awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
         awsAppsyncApiId: string;
         amplifyApiModelSchemaS3Uri: string;
+        awsAppsyncAdditionalAuthenticationTypes?: string | undefined;
+        awsAppsyncConflictResolutionMode?: string | undefined;
         awsAppsyncApiKey?: string | undefined;
     };
 }, {
@@ -356,6 +413,8 @@ export const versionedGraphqlOutputSchema: z.ZodDiscriminatedUnion<"version", [z
         awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
         awsAppsyncApiId: string;
         amplifyApiModelSchemaS3Uri: string;
+        awsAppsyncAdditionalAuthenticationTypes?: string | undefined;
+        awsAppsyncConflictResolutionMode?: string | undefined;
         awsAppsyncApiKey?: string | undefined;
     };
 }>]>;

@@ -1,5 +1,23 @@
 # @aws-amplify/backend-output-schemas
 
+## 0.2.0-alpha.6
+
+### Patch Changes
+
+- 2525b582: add reader for cms metadata
+
+## 0.2.0-alpha.5
+
+### Patch Changes
+
+- 36d93e46: add license to package.json
+
+## 0.2.0-alpha.4
+
+### Patch Changes
+
+- f6618771: add deployment type to stack outputs
+
 ## 0.2.0-alpha.3
 
 ### Minor Changes

@@ -4,17 +4,28 @@ import {
   graphqlOutputKey,
 } from '@aws-amplify/backend-output-schemas';
 import { GraphqlClientConfig } from '../client-config-types/graphql_client_config.js';
+import { ModelIntrospectionSchemaAdapter } from './model_introspection_schema_adapater.js';
 
 /**
  * Translator for the Graphql API portion of ClientConfig
  */
 export class GraphqlClientConfigContributor implements ClientConfigContributor {
   /**
+   * Constructor
+   * @param modelIntrospectionSchemaAdapter the adapter to provide the model introspection schema from s3 uri
+   */
+  constructor(
+    private readonly modelIntrospectionSchemaAdapter: ModelIntrospectionSchemaAdapter
+  ) {}
+
+  /**
    * Given some BackendOutput, contribute the Graphql API portion of the client config
    */
-  contribute = ({
+  contribute = async ({
     [graphqlOutputKey]: graphqlOutput,
-  }: UnifiedBackendOutput): GraphqlClientConfig | Record<string, never> => {
+  }: UnifiedBackendOutput): Promise<
+    GraphqlClientConfig | Record<string, never>
+  > => {
     if (graphqlOutput === undefined) {
       return {};
     }
@@ -24,10 +35,19 @@ export class GraphqlClientConfigContributor implements ClientConfigContributor {
       aws_appsync_apiKey: graphqlOutput.payload.awsAppsyncApiKey,
       aws_appsync_authenticationType:
         graphqlOutput.payload.awsAppsyncAuthenticationType,
+      aws_appsync_additionalAuthenticationTypes:
+        graphqlOutput.payload.awsAppsyncAdditionalAuthenticationTypes,
+      aws_appsync_conflictResolutionMode:
+        graphqlOutput.payload.awsAppsyncConflictResolutionMode,
     };
 
-    if (graphqlOutput.payload.awsAppsyncApiKey) {
-      config.aws_appsync_apiKey = graphqlOutput.payload.awsAppsyncApiKey;
+    const modelIntrospection =
+      await this.modelIntrospectionSchemaAdapter.getModelIntrospectionSchemaFromS3Uri(
+        graphqlOutput.payload.amplifyApiModelSchemaS3Uri
+      );
+
+    if (modelIntrospection) {
+      config.modelIntrospection = modelIntrospection;
     }
 
     return config;

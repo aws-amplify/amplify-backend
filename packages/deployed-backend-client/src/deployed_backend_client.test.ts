@@ -9,30 +9,33 @@ import {
   ListStacksCommandInput,
   StackStatus,
 } from '@aws-sdk/client-cloudformation';
-import {
-  BackendDeploymentStatus,
-  BackendDeploymentType,
-} from './deployed_backend_client_factory.js';
+import { BackendDeploymentStatus } from './deployed_backend_client_factory.js';
 import {
   authOutputKey,
   graphqlOutputKey,
+  stackOutputKey,
   storageOutputKey,
 } from '@aws-amplify/backend-output-schemas';
-import { BackendOutput } from '@aws-amplify/plugin-types';
-import { BackendOutputClientFactory } from '@aws-amplify/deployed-backend-client';
 import {
+  BackendDeploymentType,
   BranchBackendIdentifier,
   SandboxBackendIdentifier,
 } from '@aws-amplify/platform-core';
-import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { DefaultBackendOutputClient } from './backend_output_client.js';
 import { DefaultDeployedBackendClient } from './deployed_backend_client.js';
+import { StackIdentifier } from './index.js';
+import { AmplifyClient } from '@aws-sdk/client-amplify';
+import { GetObjectCommand, S3 } from '@aws-sdk/client-s3';
 
 const listStacksMock = {
   NextToken: undefined,
   StackSummaries: [
     {
       StackName: 'amplify-test-testBranch',
+      StackStatus: StackStatus.CREATE_COMPLETE,
+    },
+    {
+      StackName: 'amplify-error-testBranch',
       StackStatus: StackStatus.CREATE_COMPLETE,
     },
     {
@@ -50,66 +53,9 @@ const listStacksMock = {
       ParentId: 'testStackId',
     },
     {
-      StackName: 'amplify-test-testBranch-api',
+      StackName: 'amplify-test-testBranch-data',
       StackStatus: StackStatus.CREATE_FAILED,
       ParentId: 'testStackId',
-    },
-  ],
-};
-
-const describeStacksMock = {
-  Stacks: [
-    {
-      StackName: 'amplify-test-testBranch',
-      StackStatus: StackStatus.CREATE_COMPLETE,
-      StackId: 'testStackId',
-      ParentId: undefined,
-      Outputs: [
-        {
-          OutputKey: 'webClientId',
-          OutputValue: 'webClientIdValue',
-        },
-        {
-          OutputKey: 'awsAppsyncApiEndpoint',
-          OutputValue: 'https://example.com/graphql',
-        },
-        {
-          OutputKey: 'bucketName',
-          OutputValue: 'storageBucketNameValue',
-        },
-        {
-          OutputKey: 'awsAppsyncApiId',
-          OutputValue: 'apiIdValue',
-        },
-        {
-          OutputKey: 'awsAppsyncAuthenticationType',
-          OutputValue: 'AMAZON_COGNITO_USER_POOLS',
-        },
-        {
-          OutputKey: 'authRegion',
-          OutputValue: 'us-east-1',
-        },
-        {
-          OutputKey: 'amplifyApiModelSchemaS3Uri',
-          OutputValue: 's3://schema.graphql',
-        },
-        {
-          OutputKey: 'userPoolId',
-          OutputValue: 'us-east-1_HNkNiDMQF',
-        },
-        {
-          OutputKey: 'identityPoolId',
-          OutputValue: 'us-east-1:identity-pool-id',
-        },
-        {
-          OutputKey: 'storageRegion',
-          OutputValue: 'us-east-1',
-        },
-        {
-          OutputKey: 'awsAppsyncRegion',
-          OutputValue: 'us-east-1',
-        },
-      ],
     },
   ],
 };
@@ -125,7 +71,7 @@ const listStackResourcesMock = {
     },
     {
       PhysicalResourceId:
-        'arn:aws:cloudformation:us-east-1:123:stack/amplify-test-testBranch-api/randomString',
+        'arn:aws:cloudformation:us-east-1:123:stack/amplify-test-testBranch-data/randomString',
       ResourceType: 'AWS::CloudFormation::Stack',
     },
     {
@@ -140,6 +86,11 @@ const listStackResourcesMock = {
 };
 
 const getOutputMockResponse = {
+  [stackOutputKey]: {
+    payload: {
+      deploymentType: 'SANDBOX',
+    },
+  },
   [authOutputKey]: {
     payload: {
       userPoolId: 'testUserPoolId',
@@ -153,6 +104,7 @@ const getOutputMockResponse = {
   [graphqlOutputKey]: {
     payload: {
       awsAppsyncApiEndpoint: 'testAwsAppsyncApiEndpoint',
+      amplifyApiModelSchemaS3Uri: 's3://bucketName/filePath',
     },
   },
 };
@@ -174,26 +126,51 @@ const expectedMetadata = {
     graphqlEndpoint: 'testAwsAppsyncApiEndpoint',
     lastUpdated: undefined,
     status: BackendDeploymentStatus.FAILED,
+    defaultAuthType: undefined,
+    additionalAuthTypes: [],
+    graphqlSchema: 's3://bucketName/filePath schema contents!',
+    conflictResolutionMode: undefined,
   },
 };
 
 void describe('Deployed Backend Client', () => {
-  const getOutputMock = mock.fn();
+  const mockCfnClient = new CloudFormation();
+  const mockS3Client = new S3();
+  const mockBackendOutputClient = new DefaultBackendOutputClient(
+    mockCfnClient,
+    new AmplifyClient()
+  );
+  const getOutputMock = mock.method(mockBackendOutputClient, 'getOutput');
   let deployedBackendClient: DefaultDeployedBackendClient;
   const cfnClientSendMock = mock.fn();
+  const s3ClientSendMock = mock.fn();
+  s3ClientSendMock.mock.mockImplementation((input: GetObjectCommand) => {
+    return {
+      Body: {
+        transformToString: () =>
+          `s3://${input.input.Bucket as string}/${
+            input.input.Key as string
+          } schema contents!`,
+      },
+    };
+  });
 
   beforeEach(() => {
-    const mockCredentials: AwsCredentialIdentityProvider = async () => ({
-      accessKeyId: 'accessKeyId',
-      secretAccessKey: 'secretAccessKey',
-    });
-    const mockCfnClient = new CloudFormation();
-    getOutputMock.mock.mockImplementation(() => getOutputMockResponse);
+    getOutputMock.mock.mockImplementation(
+      (backendIdentifier: StackIdentifier) => {
+        if (backendIdentifier.stackName === 'amplify-error-testBranch') {
+          throw new Error('Stack template metadata is not a string');
+        }
+        return getOutputMockResponse;
+      }
+    );
     mock.method(mockCfnClient, 'send', cfnClientSendMock);
+    mock.method(mockS3Client, 'send', s3ClientSendMock);
 
     getOutputMock.mock.resetCalls();
     cfnClientSendMock.mock.resetCalls();
-    const mockImplementation = (
+    s3ClientSendMock.mock.resetCalls();
+    const mockSend = (
       request:
         | ListStacksCommand
         | DescribeStacksCommand
@@ -205,7 +182,7 @@ void describe('Deployed Backend Client', () => {
         const matchingStack = listStacksMock.StackSummaries.find((stack) => {
           return stack.StackName === request.input.StackName;
         });
-        const stack = matchingStack ?? describeStacksMock;
+        const stack = matchingStack;
         return {
           Stacks: [stack],
         };
@@ -216,20 +193,12 @@ void describe('Deployed Backend Client', () => {
       throw request;
     };
 
-    cfnClientSendMock.mock.mockImplementation(mockImplementation);
-
-    const backendOutputClientFactoryMock = mock.fn();
-    backendOutputClientFactoryMock.mock.mockImplementation(() => ({
-      getOutput: getOutputMock as unknown as () => Promise<BackendOutput>,
-    }));
-    BackendOutputClientFactory.getInstance =
-      backendOutputClientFactoryMock as unknown as (
-        credentials: AwsCredentialIdentityProvider
-      ) => DefaultBackendOutputClient;
+    cfnClientSendMock.mock.mockImplementation(mockSend);
 
     deployedBackendClient = new DefaultDeployedBackendClient(
-      mockCredentials,
-      mockCfnClient
+      mockCfnClient,
+      mockS3Client,
+      mockBackendOutputClient
     );
   });
 
@@ -264,7 +233,7 @@ void describe('Deployed Backend Client', () => {
         },
         {
           deploymentType: BackendDeploymentType.SANDBOX,
-          name: 'amplify-test-testBranch-api',
+          name: 'amplify-test-testBranch-data',
           status: BackendDeploymentStatus.FAILED,
           lastUpdated: undefined,
         },
@@ -294,69 +263,75 @@ void describe('Deployed Backend Client', () => {
 });
 
 void describe('Deployed Backend Client pagination', () => {
+  const mockCfnClient = new CloudFormation();
+  const mockS3Client = new S3();
+  const cfnClientSendMock = mock.method(mockCfnClient, 'send');
   let deployedBackendClient: DefaultDeployedBackendClient;
   const listStacksMockFn = mock.fn();
-  const cfnClientSendMock = mock.fn();
+  const mockBackendOutputClient = new DefaultBackendOutputClient(
+    mockCfnClient,
+    new AmplifyClient()
+  );
+  const getOutputMock = mock.method(mockBackendOutputClient, 'getOutput');
   const returnedSandboxes = [
-    {
-      deploymentType: BackendDeploymentType.SANDBOX,
-      name: 'amplify-test-testBranch',
-      status: BackendDeploymentStatus.DEPLOYED,
-      lastUpdated: undefined,
-    },
     {
       deploymentType: BackendDeploymentType.SANDBOX,
       name: 'amplify-test-sandbox',
       status: BackendDeploymentStatus.DEPLOYED,
       lastUpdated: undefined,
     },
-    {
-      deploymentType: BackendDeploymentType.SANDBOX,
-      name: 'amplify-test-testBranch-auth',
-      status: BackendDeploymentStatus.DEPLOYED,
-      lastUpdated: undefined,
-    },
-    {
-      deploymentType: BackendDeploymentType.SANDBOX,
-      name: 'amplify-test-testBranch-storage',
-      status: BackendDeploymentStatus.DEPLOYING,
-      lastUpdated: undefined,
-    },
-    {
-      deploymentType: BackendDeploymentType.SANDBOX,
-      name: 'amplify-test-testBranch-api',
-      status: BackendDeploymentStatus.FAILED,
-      lastUpdated: undefined,
-    },
   ];
 
   beforeEach(() => {
-    const mockCredentials: AwsCredentialIdentityProvider = async () => ({
-      accessKeyId: 'accessKeyId',
-      secretAccessKey: 'secretAccessKey',
-    });
-    const mockCfnClient = new CloudFormation();
-    mock.method(mockCfnClient, 'send', cfnClientSendMock);
+    getOutputMock.mock.mockImplementation(
+      (backendIdentifier: StackIdentifier) => {
+        if (backendIdentifier.stackName === 'amplify-error-testBranch') {
+          throw new Error('Stack template metadata is not a string');
+        }
+        if (backendIdentifier.stackName !== 'amplify-test-sandbox') {
+          return {
+            ...getOutputMockResponse,
+            [stackOutputKey]: {
+              payload: {
+                deploymentType: 'BRANCH',
+              },
+            },
+          };
+        }
+        return getOutputMockResponse;
+      }
+    );
+    getOutputMock.mock.resetCalls();
+
     listStacksMockFn.mock.resetCalls();
     listStacksMockFn.mock.mockImplementation(() => {
       return listStacksMock;
     });
     cfnClientSendMock.mock.resetCalls();
-    const mockImplementation = (
+    const mockSend = (
       request: ListStacksCommand | DescribeStacksCommand | DeleteStackCommand
     ) => {
       if (request instanceof ListStacksCommand) {
         return listStacksMockFn(request.input);
       }
-      if (request instanceof DescribeStacksCommand) return describeStacksMock;
+      if (request instanceof DescribeStacksCommand) {
+        const matchingStack = listStacksMock.StackSummaries.find((stack) => {
+          return stack.StackName === request.input.StackName;
+        });
+        const stack = matchingStack;
+        return {
+          Stacks: [stack],
+        };
+      }
       throw request;
     };
 
-    cfnClientSendMock.mock.mockImplementation(mockImplementation);
+    cfnClientSendMock.mock.mockImplementation(mockSend);
 
     deployedBackendClient = new DefaultDeployedBackendClient(
-      mockCredentials,
-      mockCfnClient
+      mockCfnClient,
+      mockS3Client,
+      mockBackendOutputClient
     );
   });
 

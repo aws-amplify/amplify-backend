@@ -37,6 +37,9 @@ export class SandboxSecretListCommand implements CommandModule<object> {
     const secretIds = await this.secretClient.listSecrets(
       new SandboxBackendIdentifier(backendId)
     );
-    Printer.printRecords(secretIds);
+
+    Printer.printRecord({
+      names: secretIds.map((secretId) => secretId.name),
+    });
   };
 }

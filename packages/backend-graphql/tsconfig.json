@@ -4,7 +4,7 @@
   "references": [
     { "path": "../backend-output-storage" },
     { "path": "../backend-output-schemas" },
-    { "path": "../backend" },
-    { "path": "../plugin-types" }
+    { "path": "../plugin-types" },
+    { "path": "../backend" }
   ]
 }

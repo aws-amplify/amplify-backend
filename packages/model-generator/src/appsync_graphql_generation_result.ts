@@ -13,6 +13,7 @@ export class AppsyncGraphqlGenerationResult implements GenerationResult {
    * in the format of Record<string,string>
    */
   constructor(private operations: ClientOperations) {}
+
   private writeSchemaToFile = async (
     basePath: string,
     filePath: string,
@@ -21,11 +22,16 @@ export class AppsyncGraphqlGenerationResult implements GenerationResult {
     await fs.mkdir(basePath, { recursive: true });
     await fs.writeFile(path.resolve(path.join(basePath, filePath)), contents);
   };
+
   writeToDirectory = async (directoryPath: string) => {
     await Promise.all(
       Object.entries(this.operations).map(async ([fileName, content]) => {
         await this.writeSchemaToFile(directoryPath, fileName, content);
       })
     );
+  };
+
+  getResults = async (): Promise<Record<string, string>> => {
+    return this.operations;
   };
 }

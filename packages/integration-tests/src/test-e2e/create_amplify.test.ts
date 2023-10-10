@@ -5,6 +5,7 @@ import * as path from 'path';
 import * as os from 'os';
 import { after, afterEach, before, beforeEach, describe, it } from 'node:test';
 import assert from 'assert';
+import { glob } from 'glob';
 
 void describe('create-amplify script', () => {
   before(async () => {
@@ -50,10 +51,12 @@ void describe('create-amplify script', () => {
     assert.deepStrictEqual(
       Object.keys(packageJsonObject.devDependencies).sort(),
       [
+        '@aws-amplify/amplify-api-next-alpha',
         '@aws-amplify/backend',
         '@aws-amplify/backend-auth',
         '@aws-amplify/backend-cli',
         '@aws-amplify/backend-graphql',
+        'typescript',
       ]
     );
 
@@ -61,12 +64,48 @@ void describe('create-amplify script', () => {
       'aws-amplify',
     ]);
 
-    const dirContent = await fs.readdir(path.join(tempDir, 'amplify'));
-    assert.deepStrictEqual(dirContent.sort(), [
-      'auth.ts',
-      'backend.ts',
-      'data.ts',
-    ]);
+    const pathPrefix = path.join(tempDir, 'amplify');
+
+    const files = await glob(path.join(pathPrefix, '**', '*'), {
+      // eslint-disable-next-line spellcheck/spell-checker
+      nodir: true,
+      windowsPathsNoEscape: true,
+    });
+
+    assert.deepStrictEqual(
+      files.sort(),
+      [
+        path.join('auth', 'resource.ts'),
+        'backend.ts',
+        path.join('data', 'resource.ts'),
+      ].map((suffix) => path.join(pathPrefix, suffix))
+    );
+
+    // assert that project compiles successfully
+    await execa('npx', ['tsc', '--noEmit'], {
+      cwd: tempDir,
+      stdio: 'inherit',
+    });
+
+    // assert that project synthesizes successfully
+    await execa(
+      'npx',
+      [
+        'cdk',
+        'synth',
+        '--context',
+        'backend-id=123',
+        '--context',
+        'deployment-type=SANDBOX',
+        '--app',
+        "'npx tsx amplify/backend.ts'",
+        '--quiet',
+      ],
+      {
+        cwd: tempDir,
+        stdio: 'inherit',
+      }
+    );
   });
 
   void it('fails fast if amplify path already exists', async () => {

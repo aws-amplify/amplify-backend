@@ -1,5 +1,38 @@
 # create-amplify
 
+## 0.2.0-alpha.10
+
+### Patch Changes
+
+- a130ba6a: fix data template
+
+## 0.2.0-alpha.9
+
+### Patch Changes
+
+- c0d7c475: fix create amplify artifact compilation
+
+## 0.2.0-alpha.8
+
+### Minor Changes
+
+- 66190beb: integrate api-next as the default data experience
+
+### Patch Changes
+
+- 36d93e46: add license to package.json
+
+## 0.2.0-alpha.7
+
+### Minor Changes
+
+- ae9e9f10: Create factory functions for defining category config
+
+### Patch Changes
+
+- 34c3fd38: Update backend definition file path convention
+- f6618771: add deployment type to stack outputs
+
 ## 0.2.0-alpha.6
 
 ### Patch Changes

@@ -4,12 +4,13 @@
 
 ```ts
 
+import { BackendDeploymentType } from '@aws-amplify/platform-core';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 // @public
 export type BackendDeployer = {
     deploy: (uniqueBackendIdentifier?: UniqueBackendIdentifier, deployProps?: DeployProps) => Promise<void>;
-    destroy: (uniqueBackendIdentifier?: UniqueBackendIdentifier) => Promise<void>;
+    destroy: (uniqueBackendIdentifier?: UniqueBackendIdentifier, destroyProps?: DestroyProps) => Promise<void>;
 };
 
 // @public
@@ -19,8 +20,13 @@ export class BackendDeployerFactory {
 
 // @public (undocumented)
 export type DeployProps = {
-    hotswapFallback?: boolean;
-    method?: 'direct';
+    deploymentType?: BackendDeploymentType;
+    secretLastUpdated?: Date;
+};
+
+// @public (undocumented)
+export type DestroyProps = {
+    deploymentType?: BackendDeploymentType;
 };
 
 // (No @packageDocumentation comment for this package)

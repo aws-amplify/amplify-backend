@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/sandbox",
-  "version": "0.2.0-alpha.6",
+  "version": "0.2.0-alpha.11",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -16,16 +16,20 @@
   "scripts": {
     "update:api": "api-extractor run --local"
   },
+  "license": "Apache-2.0",
   "dependencies": {
-    "@aws-amplify/backend-deployer": "0.1.1-alpha.3",
-    "@aws-amplify/client-config": "0.2.0-alpha.6",
-    "@aws-amplify/deployed-backend-client": "^0.2.0-alpha.0",
-    "@aws-amplify/platform-core": "^0.1.0",
+    "@aws-amplify/backend-deployer": "0.2.0-alpha.6",
+    "@aws-amplify/backend-secret": "^0.2.0-alpha.3",
+    "@aws-amplify/client-config": "0.2.0-alpha.10",
+    "@aws-amplify/deployed-backend-client": "^0.2.0-alpha.4",
+    "@aws-amplify/platform-core": "^0.1.1-alpha.1",
     "@aws-sdk/credential-providers": "^3.382.0",
     "@aws-sdk/types": "^3.378.0",
+    "@aws-sdk/client-cloudformation": "^3.421.0",
     "@parcel/watcher": "^2.3.0",
     "debounce-promise": "^3.1.2",
-    "parse-gitignore": "^2.0.0"
+    "parse-gitignore": "^2.0.0",
+    "open": "^9.1.0"
   },
   "devDependencies": {
     "@types/debounce-promise": "^3.1.6",

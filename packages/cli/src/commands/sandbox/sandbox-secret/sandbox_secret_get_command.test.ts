@@ -71,7 +71,10 @@ void describe('sandbox secret get command', () => {
     );
 
     assert.equal(mockPrintRecord.mock.callCount(), 1);
-    assert.equal(mockPrintRecord.mock.calls[0].arguments[0], testSecret);
+    assert.deepStrictEqual(
+      mockPrintRecord.mock.calls[0].arguments[0],
+      testSecret
+    );
   });
 
   void it('show --help', async () => {

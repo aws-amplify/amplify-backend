@@ -7,6 +7,8 @@ on:
   pull_request:
     branches:
       - main
+  schedule:
+    - cron: '0 12 * * *' # every day 12:00 UTC
 
 jobs:
   install:
@@ -145,7 +147,7 @@ jobs:
       - run: git fetch origin
       - run: npm run diff:check ${{ github.event.pull_request.base.sha }}
   check_pr_has_changeset:
-    if: github.event_name == 'pull_request' && github.event.pull_request.user.login != 'github-actions'
+    if: github.event_name == 'pull_request' && github.event.pull_request.user.login != 'github-actions[bot]'
     runs-on: ubuntu-latest
     needs:
       - install
@@ -156,7 +158,6 @@ jobs:
           fetch-depth: 0
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_install_cache
-      - run: echo ${{ github.event.pull_request.user.login }}
       - run: npx changeset status --since origin/main
   update_or_publish_versions:
     if: github.event_name == 'push'

@@ -3,9 +3,11 @@ import stream from 'stream';
 import {
   BackendDeployer,
   DeployProps,
+  DestroyProps,
 } from './cdk_deployer_singleton_factory.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import { BackendDeploymentType } from '@aws-amplify/platform-core';
 
 const relativeBackendEntryPoint = 'amplify/backend.ts';
 
@@ -33,15 +35,21 @@ export class CDKDeployer implements BackendDeployer {
     deployProps?: DeployProps
   ) => {
     const cdkCommandArgs: string[] = [];
-    if (deployProps?.hotswapFallback) {
+    if (deployProps?.deploymentType === BackendDeploymentType.SANDBOX) {
       cdkCommandArgs.push('--hotswap-fallback');
+      cdkCommandArgs.push('--method=direct');
+      if (deployProps.secretLastUpdated) {
+        cdkCommandArgs.push(
+          '--context',
+          `secretLastUpdated=${deployProps.secretLastUpdated.getTime()}`
+        );
+      }
     }
-    if (deployProps?.method) {
-      cdkCommandArgs.push(`--method=${deployProps.method}`);
-    }
+
     await this.invoke(
       InvokableCommand.DEPLOY,
       uniqueBackendIdentifier,
+      deployProps?.deploymentType,
       cdkCommandArgs
     );
   };
@@ -49,10 +57,16 @@ export class CDKDeployer implements BackendDeployer {
   /**
    * Invokes cdk destroy command
    */
-  destroy = async (uniqueBackendIdentifier?: UniqueBackendIdentifier) => {
-    await this.invoke(InvokableCommand.DESTROY, uniqueBackendIdentifier, [
-      '--force',
-    ]);
+  destroy = async (
+    uniqueBackendIdentifier?: UniqueBackendIdentifier,
+    destroyProps?: DestroyProps
+  ) => {
+    await this.invoke(
+      InvokableCommand.DESTROY,
+      uniqueBackendIdentifier,
+      destroyProps?.deploymentType,
+      ['--force']
+    );
   };
 
   /**
@@ -61,6 +75,7 @@ export class CDKDeployer implements BackendDeployer {
   private invoke = async (
     invokableCommand: InvokableCommand,
     uniqueBackendIdentifier?: UniqueBackendIdentifier,
+    deploymentType?: BackendDeploymentType,
     additionalArguments?: string[]
   ) => {
     // Basic args
@@ -78,10 +93,19 @@ export class CDKDeployer implements BackendDeployer {
     if (uniqueBackendIdentifier) {
       cdkCommandArgs.push(
         '--context',
-        `backend-id=${uniqueBackendIdentifier.backendId}`,
-        '--context',
-        `branch-name=${uniqueBackendIdentifier.disambiguator}`
+        `backend-id=${uniqueBackendIdentifier.backendId}`
       );
+
+      if (deploymentType !== BackendDeploymentType.SANDBOX) {
+        cdkCommandArgs.push(
+          '--context',
+          `branch-name=${uniqueBackendIdentifier.disambiguator}`
+        );
+      }
+    }
+
+    if (deploymentType) {
+      cdkCommandArgs.push('--context', `deployment-type=${deploymentType}`);
     }
 
     if (additionalArguments) {

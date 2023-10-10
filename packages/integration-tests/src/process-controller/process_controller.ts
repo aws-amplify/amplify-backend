@@ -29,7 +29,7 @@ export class ProcessController {
   constructor(
     private readonly command: string,
     private readonly args: string[] = [],
-    private readonly options?: Pick<Options, 'cwd'>
+    private readonly options?: Pick<Options, 'cwd' | 'env'>
   ) {}
 
   do = (interactions: StdioInteractionQueueBuilder) => {
@@ -55,6 +55,10 @@ export class ProcessController {
       void execaProcess.pipeStdout?.(process.stdout);
     }
 
+    if (process.stderr) {
+      void execaProcess.pipeStderr?.(process.stderr);
+    }
+
     if (!execaProcess.stdout) {
       throw new Error('Child process does not have stdout stream');
     }
@@ -73,7 +77,7 @@ export class ProcessController {
         if (currentInteraction.payload === CONTROL_C) {
           if (process.platform.startsWith('win')) {
             // Wait X milliseconds before sending kill in hopes of draining the node event queue
-            await new Promise((resolve) => setTimeout(resolve, 5000));
+            await new Promise((resolve) => setTimeout(resolve, 1500));
             // turns out killing child process on Windows is a huge PITA
             // https://stackoverflow.com/questions/23706055/why-can-i-not-kill-my-child-process-in-nodejs-on-windows
             // https://github.com/sindresorhus/execa#killsignal-options
@@ -103,5 +107,10 @@ export class ProcessController {
 /**
  * Factory function that returns a ProcessController for the Amplify CLI
  */
-export const amplifyCli = (args: string[] = [], dir: string) =>
-  new ProcessController('amplify', args, { cwd: dir });
+export const amplifyCli = (
+  args: string[] = [],
+  dir: string,
+  options?: {
+    env?: Record<string, string>;
+  }
+) => new ProcessController('amplify', args, { cwd: dir, env: options?.env });

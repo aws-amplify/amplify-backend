@@ -4,10 +4,28 @@
 
 ```ts
 
+import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
+import { BackendDeploymentType } from '@aws-amplify/platform-core';
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import { S3Client } from '@aws-sdk/client-s3';
 import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
 import { UnifiedBackendOutput } from '@aws-amplify/backend-output-schemas';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+
+// @public (undocumented)
+export enum ApiAuthType {
+    // (undocumented)
+    AMAZON_COGNITO_USER_POOLS = "AMAZON_COGNITO_USER_POOLS",
+    // (undocumented)
+    API_KEY = "API_KEY",
+    // (undocumented)
+    AWS_IAM = "AWS_IAM",
+    // (undocumented)
+    AWS_LAMBDA = "AWS_LAMBDA",
+    // (undocumented)
+    OPENID_CONNECT = "OPENID_CONNECT"
+}
 
 // @public
 export type AppNameAndBranchBackendIdentifier = {
@@ -30,14 +48,6 @@ export enum BackendDeploymentStatus {
 }
 
 // @public (undocumented)
-export enum BackendDeploymentType {
-    // (undocumented)
-    BRANCH = "BRANCH",
-    // (undocumented)
-    SANDBOX = "SANDBOX"
-}
-
-// @public (undocumented)
 export type BackendIdentifier = UniqueBackendIdentifier | StackIdentifier | AppNameAndBranchBackendIdentifier;
 
 // @public (undocumented)
@@ -50,6 +60,10 @@ export type BackendMetadata = {
         status: BackendDeploymentStatus;
         lastUpdated: Date | undefined;
         graphqlEndpoint: string;
+        graphqlSchema: string;
+        defaultAuthType: ApiAuthType;
+        additionalAuthTypes: ApiAuthType[];
+        conflictResolutionMode?: ConflictResolutionMode;
     };
     authConfiguration?: {
         status: BackendDeploymentStatus;
@@ -83,7 +97,31 @@ export enum BackendOutputClientErrorType {
 
 // @public
 export class BackendOutputClientFactory {
-    static getInstance: (credentials: AwsCredentialIdentityProvider) => BackendOutputClient;
+    static getInstance: (options: BackendOutputClientFactoryOptions) => BackendOutputClient;
+}
+
+// @public (undocumented)
+export type BackendOutputClientFactoryOptions = BackendOutputClientOptions | BackendOutputCredentialsOptions;
+
+// @public (undocumented)
+export type BackendOutputClientOptions = {
+    cloudFormationClient: CloudFormationClient;
+    amplifyClient: AmplifyClient;
+};
+
+// @public (undocumented)
+export type BackendOutputCredentialsOptions = {
+    credentials: AwsCredentialIdentityProvider;
+};
+
+// @public (undocumented)
+export enum ConflictResolutionMode {
+    // (undocumented)
+    AUTOMERGE = "AUTOMERGE",
+    // (undocumented)
+    LAMBDA = "LAMBDA",
+    // (undocumented)
+    OPTIMISTIC_CONCURRENCY = "OPTIMISTIC_CONCURRENCY"
 }
 
 // @public (undocumented)
@@ -95,8 +133,23 @@ export type DeployedBackendClient = {
 
 // @public
 export class DeployedBackendClientFactory {
-    static getInstance: (credentials: AwsCredentialIdentityProvider) => DeployedBackendClient;
+    static getInstance(options: DeployedBackendClientFactoryOptions): DeployedBackendClient;
 }
+
+// @public (undocumented)
+export type DeployedBackendClientFactoryOptions = DeployedBackendCredentialsOptions | DeployedBackendClientOptions;
+
+// @public (undocumented)
+export type DeployedBackendClientOptions = {
+    s3Client: S3Client;
+    cloudFormationClient: CloudFormationClient;
+    backendOutputClient: BackendOutputClient;
+};
+
+// @public (undocumented)
+export type DeployedBackendCredentialsOptions = {
+    credentials: AwsCredentialIdentityProvider;
+};
 
 // @public (undocumented)
 export type ListSandboxesRequest = {

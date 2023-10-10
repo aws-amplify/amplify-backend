@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/form-generator",
-  "version": "0.2.0-alpha.1",
+  "version": "0.2.0-alpha.3",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -16,6 +16,7 @@
   "scripts": {
     "update:api": "api-extractor run --local"
   },
+  "license": "Apache-2.0",
   "dependencies": {
     "@aws-amplify/appsync-modelgen-plugin": "^2.6.0",
     "@aws-amplify/codegen-ui": "^2.15.8",

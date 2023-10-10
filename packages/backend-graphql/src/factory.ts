@@ -13,9 +13,12 @@ import {
   AmplifyGraphqlDefinition,
   AuthorizationModes,
   IAMAuthorizationConfig,
+  IAmplifyGraphqlDefinition,
   UserPoolAuthorizationConfig,
 } from '@aws-amplify/graphql-api-construct';
 import { GraphqlOutput } from '@aws-amplify/backend-output-schemas/graphql';
+import * as path from 'path';
+import { DerivedModelSchema } from '@aws-amplify/amplify-api-next-types-alpha';
 
 /**
  * Exposed props for Data which are configurable by the end user.
@@ -24,27 +27,33 @@ export type DataProps = {
   /**
    * Graphql Schema as a string to be passed into the CDK construct.
    */
-  schema: string;
+  schema: string | DerivedModelSchema;
 
   /**
    * Optional name for the generated Api.
    */
   name?: string;
+
+  /**
+   * Temporary authZ pass-through into the CDK construct
+   * https://github.com/aws-amplify/samsara-cli/issues/370
+   */
+  authorizationModes?: AuthorizationModes;
 };
 
 /**
  * Singleton factory for AmplifyGraphqlApi constructs that can be used in Amplify project files
  */
-export class DataFactory implements ConstructFactory<AmplifyGraphqlApi> {
+class DataFactory implements ConstructFactory<AmplifyGraphqlApi> {
   private generator: ConstructContainerEntryGenerator;
-  private readonly importStack: string | undefined;
 
   /**
    * Create a new AmplifyConstruct
    */
-  constructor(private readonly props: DataProps) {
-    this.importStack = new Error().stack;
-  }
+  constructor(
+    private readonly props: DataProps,
+    private readonly importStack = new Error().stack
+  ) {}
 
   /**
    * Gets an instance of the Data construct
@@ -56,8 +65,8 @@ export class DataFactory implements ConstructFactory<AmplifyGraphqlApi> {
   }: ConstructFactoryGetInstanceProps): AmplifyGraphqlApi => {
     importPathVerifier?.verify(
       this.importStack,
-      'data',
-      'Amplify Data must be defined in a "data.ts" file'
+      path.join('amplify', 'data', 'resource'),
+      'Amplify Data must be defined in amplify/data/resource.ts'
     );
     if (!this.generator) {
       this.generator = new DataGenerator(
@@ -113,16 +122,42 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       defaultAuthorizationMode = 'AMAZON_COGNITO_USER_POOLS';
     }
 
+    const dataAuthorizationModes = this.props.authorizationModes || {};
+
     const authorizationModes: AuthorizationModes = {
       defaultAuthorizationMode,
       iamConfig,
       userPoolConfig,
+      ...dataAuthorizationModes,
+    };
+
+    const isModelSchema = (
+      schema: DataProps['schema']
+    ): schema is DerivedModelSchema => {
+      if (
+        schema !== null &&
+        typeof schema === 'object' &&
+        typeof schema.transform === 'function'
+      ) {
+        return true;
+      }
+      return false;
+    };
+
+    const normalizeSchema = (
+      schema: DataProps['schema']
+    ): IAmplifyGraphqlDefinition => {
+      if (isModelSchema(schema)) {
+        return schema.transform();
+      }
+
+      return AmplifyGraphqlDefinition.fromString(schema);
     };
 
     // TODO inject the construct with the functionNameMap
     const graphqlConstructProps: AmplifyGraphqlApiProps = {
       apiName: this.props.name,
-      definition: AmplifyGraphqlDefinition.fromString(this.props.schema),
+      definition: normalizeSchema(this.props.schema),
       authorizationModes,
       outputStorageStrategy: this.outputStorageStrategy,
     };
@@ -134,4 +169,10 @@ class DataGenerator implements ConstructContainerEntryGenerator {
   };
 }
 
-export const Data = DataFactory;
+/**
+ * Creates a factory that implements ConstructFactory<AmplifyGraphqlApi>
+ */
+export const defineData = (
+  props: DataProps
+): ConstructFactory<AmplifyGraphqlApi> =>
+  new DataFactory(props, new Error().stack);

@@ -10,8 +10,26 @@ import {
 import parseGitIgnore from 'parse-gitignore';
 import path from 'path';
 import fs from 'fs';
+import _open from 'open';
 import EventEmitter from 'events';
+import {
+  CloudFormationClient,
+  DescribeStacksCommand,
+} from '@aws-sdk/client-cloudformation';
 import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
+
+export const CDK_BOOTSTRAP_STACK_NAME = 'CDKToolkit';
+export const CDK_BOOTSTRAP_VERSION_KEY = 'BootstrapVersion';
+export const CDK_MIN_BOOTSTRAP_VERSION = 6;
+
+// TODO: finalize bootstrap url: https://github.com/aws-amplify/samsara-cli/issues/338
+/**
+ * Constructs Amplify Console bootstrap URL for a given region
+ * @param region AWS region
+ * @returns Amplify Console bootstrap URL
+ */
+export const getBootstrapUrl = (region: string) =>
+  `https://${region}.console.aws.amazon.com/amplify/create/bootstrap?region=${region}`;
 
 /**
  * Runs a file watcher and deploys
@@ -24,7 +42,9 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
    */
   constructor(
     private readonly sandboxId: string,
-    private readonly executor: AmplifySandboxExecutor
+    private readonly executor: AmplifySandboxExecutor,
+    private readonly cfnClient: CloudFormationClient,
+    private readonly open = _open
   ) {
     process.once('SIGINT', () => void this.stop());
     process.once('SIGTERM', () => void this.stop());
@@ -52,9 +72,15 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
    * @inheritdoc
    */
   start = async (options: SandboxOptions) => {
-    const { profile } = options;
-    if (profile) {
-      process.env.AWS_PROFILE = profile;
+    const bootstrapped = await this.isBootstrapped();
+    if (!bootstrapped) {
+      console.log(
+        'The given region has not been bootstrapped. Sign in to console as a Root user or Admin to complete the bootstrap process and re-run the amplify sandbox command.'
+      );
+      // get region from an available sdk client;
+      const region = await this.cfnClient.config.region();
+      await this.open(getBootstrapUrl(region));
+      return;
     }
 
     const sandboxId = options.name ?? this.sandboxId;
@@ -137,7 +163,8 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
    */
   stop = async () => {
     console.debug(`[Sandbox] Shutting down`);
-    await this.watcherSubscription.unsubscribe();
+    // can be undefined if command exits before subscription
+    await this.watcherSubscription?.unsubscribe();
   };
 
   /**
@@ -172,5 +199,41 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
         );
     }
     return [];
+  };
+
+  /**
+   * Checks if a given region has been bootstrapped with >= min version using CFN describeStacks with CDKToolKit.
+   * @returns A Boolean that represents if region has been bootstrapped.
+   */
+  private isBootstrapped = async () => {
+    try {
+      const { Stacks: stacks } = await this.cfnClient.send(
+        new DescribeStacksCommand({
+          StackName: CDK_BOOTSTRAP_STACK_NAME,
+        })
+      );
+      const bootstrapVersion = stacks?.[0]?.Outputs?.find(
+        (output) => output.OutputKey === CDK_BOOTSTRAP_VERSION_KEY
+      )?.OutputValue;
+      if (
+        !bootstrapVersion ||
+        Number(bootstrapVersion) < CDK_MIN_BOOTSTRAP_VERSION
+      ) {
+        return false;
+      }
+      return true;
+    } catch (e) {
+      if (
+        e &&
+        typeof e === 'object' &&
+        'message' in e &&
+        typeof e.message === 'string' &&
+        e.message.includes('does not exist')
+      ) {
+        return false;
+      }
+      // If we are unable to get the stack info due to other reasons(AccessDenied), we fail fast.
+      throw e;
+    }
   };
 }

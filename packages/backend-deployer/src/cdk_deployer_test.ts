@@ -1,7 +1,10 @@
 import { after, beforeEach, describe, it, mock } from 'node:test';
 import { CDKDeployer } from './cdk_deployer.js';
 import assert from 'node:assert';
-import { BranchBackendIdentifier } from '@aws-amplify/platform-core';
+import {
+  BackendDeploymentType,
+  BranchBackendIdentifier,
+} from '@aws-amplify/platform-core';
 import { DeployProps } from './cdk_deployer_singleton_factory.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
@@ -10,9 +13,9 @@ void describe('invokeCDKCommand', () => {
   const uniqueBackendIdentifier: UniqueBackendIdentifier =
     new BranchBackendIdentifier('123', 'testBranch');
 
-  const deployProps: DeployProps = {
-    hotswapFallback: true,
-    method: 'direct',
+  const sandboxDeployProps: DeployProps = {
+    deploymentType: BackendDeploymentType.SANDBOX,
+    secretLastUpdated: new Date(12345678),
   };
 
   const invoker = new CDKDeployer(new CdkErrorMapper());
@@ -41,7 +44,7 @@ void describe('invokeCDKCommand', () => {
     ]);
   });
 
-  void it('handles options', async () => {
+  void it('handles options for branch deployments', async () => {
     await invoker.deploy(uniqueBackendIdentifier);
     assert.strictEqual(execaMock.mock.callCount(), 1);
     assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 9);
@@ -58,23 +61,8 @@ void describe('invokeCDKCommand', () => {
     ]);
   });
 
-  void it('handles deployProps', async () => {
-    await invoker.deploy(undefined, deployProps);
-    assert.strictEqual(execaMock.mock.callCount(), 1);
-    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 7);
-    assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
-      'cdk',
-      'deploy',
-      '--ci',
-      '--app',
-      "'npx tsx amplify/backend.ts'",
-      '--hotswap-fallback',
-      '--method=direct',
-    ]);
-  });
-
-  void it('handles options and deployProps', async () => {
-    await invoker.deploy(uniqueBackendIdentifier, deployProps);
+  void it('handles deployProps for sandbox', async () => {
+    await invoker.deploy(undefined, sandboxDeployProps);
     assert.strictEqual(execaMock.mock.callCount(), 1);
     assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 11);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
@@ -84,16 +72,43 @@ void describe('invokeCDKCommand', () => {
       '--app',
       "'npx tsx amplify/backend.ts'",
       '--context',
-      'backend-id=123',
-      '--context',
-      'branch-name=testBranch',
+      'deployment-type=SANDBOX',
       '--hotswap-fallback',
       '--method=direct',
+      '--context',
+      `secretLastUpdated=${
+        sandboxDeployProps.secretLastUpdated?.getTime() as number
+      }`,
     ]);
   });
 
-  void it('handles destroy', async () => {
-    await invoker.destroy(uniqueBackendIdentifier);
+  void it('handles options and deployProps for sandbox', async () => {
+    await invoker.deploy(uniqueBackendIdentifier, sandboxDeployProps);
+    assert.strictEqual(execaMock.mock.callCount(), 1);
+    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 13);
+    assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
+      'cdk',
+      'deploy',
+      '--ci',
+      '--app',
+      "'npx tsx amplify/backend.ts'",
+      '--context',
+      'backend-id=123',
+      '--context',
+      'deployment-type=SANDBOX',
+      '--hotswap-fallback',
+      '--method=direct',
+      '--context',
+      `secretLastUpdated=${
+        sandboxDeployProps.secretLastUpdated?.getTime() as number
+      }`,
+    ]);
+  });
+
+  void it('handles destroy for sandbox', async () => {
+    await invoker.destroy(uniqueBackendIdentifier, {
+      deploymentType: BackendDeploymentType.SANDBOX,
+    });
     assert.strictEqual(execaMock.mock.callCount(), 1);
     assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 10);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
@@ -105,7 +120,7 @@ void describe('invokeCDKCommand', () => {
       '--context',
       'backend-id=123',
       '--context',
-      'branch-name=testBranch',
+      'deployment-type=SANDBOX',
       '--force',
     ]);
   });
@@ -116,7 +131,7 @@ void describe('invokeCDKCommand', () => {
     });
 
     await assert.rejects(
-      () => invoker.deploy(uniqueBackendIdentifier, deployProps),
+      () => invoker.deploy(uniqueBackendIdentifier, sandboxDeployProps),
       (err: Error) => {
         assert.equal(
           err.message,

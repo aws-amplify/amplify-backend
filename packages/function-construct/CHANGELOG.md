@@ -1,5 +1,17 @@
 # @aws-amplify/function-construct-alpha
 
+## 0.1.1-alpha.4
+
+### Patch Changes
+
+- 7103735b: cdk lib dependency declaration
+
+## 0.1.1-alpha.3
+
+### Patch Changes
+
+- 36d93e46: add license to package.json
+
 ## 0.1.1-alpha.2
 
 ### Patch Changes

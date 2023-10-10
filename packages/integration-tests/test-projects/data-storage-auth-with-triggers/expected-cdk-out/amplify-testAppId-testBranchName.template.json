@@ -1,5 +1,11 @@
 {
  "Metadata": {
+  "AWS::Amplify::Platform": {
+   "version": "1",
+   "stackOutputs": [
+    "deploymentType"
+   ]
+  },
   "AWS::Amplify::Auth": {
    "version": "1",
    "stackOutputs": [
@@ -25,6 +31,94 @@
     "awsAppsyncRegion",
     "amplifyApiModelSchemaS3Uri"
    ]
+  }
+ },
+ "Outputs": {
+  "deploymentType": {
+   "Value": "BRANCH"
+  },
+  "userPoolId": {
+   "Value": {
+    "Fn::GetAtt": [
+     "auth179371D7",
+     "Outputs.amplifytestAppIdtestBranchNameauthamplifyAuthUserPoolC1B04074Ref"
+    ]
+   }
+  },
+  "webClientId": {
+   "Value": {
+    "Fn::GetAtt": [
+     "auth179371D7",
+     "Outputs.amplifytestAppIdtestBranchNameauthamplifyAuthUserPoolWebClientEFCFE2AFRef"
+    ]
+   }
+  },
+  "identityPoolId": {
+   "Value": {
+    "Fn::GetAtt": [
+     "auth179371D7",
+     "Outputs.amplifytestAppIdtestBranchNameauthamplifyAuthIdentityPool40350D66Ref"
+    ]
+   }
+  },
+  "authRegion": {
+   "Value": {
+    "Ref": "AWS::Region"
+   }
+  },
+  "storageRegion": {
+   "Value": {
+    "Ref": "AWS::Region"
+   }
+  },
+  "bucketName": {
+   "Value": {
+    "Fn::GetAtt": [
+     "storage0EC3F24A",
+     "Outputs.amplifytestAppIdtestBranchNamestorageamplifyStorageamplifyStorageBucket881B9781Ref"
+    ]
+   }
+  },
+  "awsAppsyncApiId": {
+   "Value": {
+    "Fn::GetAtt": [
+     "data7552DF31",
+     "Outputs.amplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
+    ]
+   }
+  },
+  "awsAppsyncApiEndpoint": {
+   "Value": {
+    "Fn::GetAtt": [
+     "data7552DF31",
+     "Outputs.amplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03GraphQLUrl"
+    ]
+   }
+  },
+  "awsAppsyncAuthenticationType": {
+   "Value": "AMAZON_COGNITO_USER_POOLS"
+  },
+  "awsAppsyncRegion": {
+   "Value": {
+    "Ref": "AWS::Region"
+   }
+  },
+  "amplifyApiModelSchemaS3Uri": {
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "s3://",
+      {
+       "Fn::GetAtt": [
+        "data7552DF31",
+        "Outputs.amplifytestAppIdtestBranchNamedataamplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsBucket25324612Ref"
+       ]
+      },
+      "/model-schema.graphql"
+     ]
+    ]
+   }
   }
  },
  "Resources": {
@@ -136,7 +230,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/2291b9f3ada54f04b3efac6351d7fbb89e9826f57fbfeb98806229bcc93e2694.json"
+       "/a3da0cd89272c0de75d4f2b671dc55e0b416190b64d9faa2e7f146e860de618f.json"
       ]
      ]
     },
@@ -163,91 +257,6 @@
    },
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete"
-  }
- },
- "Outputs": {
-  "userPoolId": {
-   "Value": {
-    "Fn::GetAtt": [
-     "auth179371D7",
-     "Outputs.amplifytestAppIdtestBranchNameauthamplifyAuthUserPoolC1B04074Ref"
-    ]
-   }
-  },
-  "webClientId": {
-   "Value": {
-    "Fn::GetAtt": [
-     "auth179371D7",
-     "Outputs.amplifytestAppIdtestBranchNameauthamplifyAuthUserPoolWebClientEFCFE2AFRef"
-    ]
-   }
-  },
-  "identityPoolId": {
-   "Value": {
-    "Fn::GetAtt": [
-     "auth179371D7",
-     "Outputs.amplifytestAppIdtestBranchNameauthamplifyAuthIdentityPool40350D66Ref"
-    ]
-   }
-  },
-  "authRegion": {
-   "Value": {
-    "Ref": "AWS::Region"
-   }
-  },
-  "storageRegion": {
-   "Value": {
-    "Ref": "AWS::Region"
-   }
-  },
-  "bucketName": {
-   "Value": {
-    "Fn::GetAtt": [
-     "storage0EC3F24A",
-     "Outputs.amplifytestAppIdtestBranchNamestorageamplifyStorageamplifyStorageBucket881B9781Ref"
-    ]
-   }
-  },
-  "awsAppsyncApiId": {
-   "Value": {
-    "Fn::GetAtt": [
-     "data7552DF31",
-     "Outputs.amplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
-    ]
-   }
-  },
-  "awsAppsyncApiEndpoint": {
-   "Value": {
-    "Fn::GetAtt": [
-     "data7552DF31",
-     "Outputs.amplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03GraphQLUrl"
-    ]
-   }
-  },
-  "awsAppsyncAuthenticationType": {
-   "Value": "AMAZON_COGNITO_USER_POOLS"
-  },
-  "awsAppsyncRegion": {
-   "Value": {
-    "Ref": "AWS::Region"
-   }
-  },
-  "amplifyApiModelSchemaS3Uri": {
-   "Value": {
-    "Fn::Join": [
-     "",
-     [
-      "s3://",
-      {
-       "Fn::GetAtt": [
-        "data7552DF31",
-        "Outputs.amplifytestAppIdtestBranchNamedataamplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsBucket25324612Ref"
-       ]
-      },
-      "/model-schema.graphql"
-     ]
-    ]
-   }
   }
  },
  "Parameters": {

@@ -5,23 +5,19 @@
 ```ts
 
 import { AmplifyGraphqlApi } from '@aws-amplify/graphql-api-construct';
+import { AuthorizationModes } from '@aws-amplify/graphql-api-construct';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
-import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
-
-// @public (undocumented)
-export const Data: typeof DataFactory;
-
-// @public
-export class DataFactory implements ConstructFactory<AmplifyGraphqlApi> {
-    constructor(props: DataProps);
-    getInstance: ({ constructContainer, outputStorageStrategy, importPathVerifier, }: ConstructFactoryGetInstanceProps) => AmplifyGraphqlApi;
-}
+import { DerivedModelSchema } from '@aws-amplify/amplify-api-next-types-alpha';
 
 // @public
 export type DataProps = {
-    schema: string;
+    schema: string | DerivedModelSchema;
     name?: string;
+    authorizationModes?: AuthorizationModes;
 };
+
+// @public
+export const defineData: (props: DataProps) => ConstructFactory<AmplifyGraphqlApi>;
 
 // (No @packageDocumentation comment for this package)
 

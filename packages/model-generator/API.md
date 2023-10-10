@@ -119,6 +119,16 @@ export type GenerateOptions = GenerateGraphqlCodegenOptions | GenerateModelsOpti
 // @public (undocumented)
 export type GenerationResult = {
     writeToDirectory: (directoryPath: string) => Promise<void>;
+    getResults: () => Promise<Record<string, string>>;
+};
+
+// @public
+export const getModelIntrospectionSchemaFromS3Uri: ({ modelSchemaS3Uri, credentialProvider, }: GetModelIntrospectionSchemaParams) => Promise<unknown | undefined>;
+
+// @public (undocumented)
+export type GetModelIntrospectionSchemaParams = {
+    modelSchemaS3Uri?: string;
+    credentialProvider: AwsCredentialIdentityProvider;
 };
 
 // @public (undocumented)

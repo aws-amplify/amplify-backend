@@ -1,5 +1,5 @@
 {
- "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyCDK\",\"createdWith\":\"1.1.0\",\"stackType\":\"api-AppSync\"}",
+ "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyCDK\",\"createdWith\":\"1.1.2\",\"stackType\":\"api-AppSync\"}",
  "Resources": {
   "amplifyDataGraphQLAPI42A6FA33": {
    "Type": "AWS::AppSync::GraphQLApi",
@@ -32,7 +32,7 @@
      ]
     },
     "DefinitionS3Location": {
-     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/7e502ba5303800830c46c6acd7cc27c4f49bfc8330e0c512159fd4f09db5ea4a.graphql"
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/567b2de3c99b1663d62aa6dd0055bcc8ef043ddb51a08d1b4dc8c56df1d2a12c.graphql"
     }
    }
   },
@@ -69,7 +69,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/14fb0b36e31e50d408d193c04651947250cdd855eb3a5c883bce70c29c19b836.json"
+       "/74bffe31519a8d1a57232c7796e602635dd98e37cea67dbf2f325adc09ea16e5.json"
       ]
      ]
     },
@@ -229,7 +229,7 @@
      }
     ],
     "SourceObjectKeys": [
-     "ebcebf048afca40fc46da2b2a56e4c0bac61ce9168b91d78fe4ab3e358eb8a7c.zip"
+     "0dbdf9378cc41e073a8e234ee8d0c3c166eda9288fc05ee4a8062060cb442588.zip"
     ],
     "SourceMarkers": [
      {}

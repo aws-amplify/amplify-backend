@@ -1,5 +1,30 @@
 # @aws-amplify/storage-construct-alpha
 
+## 0.1.1-alpha.7
+
+### Patch Changes
+
+- 7103735b: cdk lib dependency declaration
+
+## 0.1.1-alpha.6
+
+### Patch Changes
+
+- 36d93e46: add license to package.json
+- Updated dependencies [36d93e46]
+  - @aws-amplify/backend-output-schemas@0.2.0-alpha.5
+  - @aws-amplify/backend-output-storage@0.1.1-alpha.2
+
+## 0.1.1-alpha.5
+
+### Patch Changes
+
+- 0398b8e1: Bump graphql construct to 0.9.0 and remove some interface cruft
+- Updated dependencies [0398b8e1]
+- Updated dependencies [f6618771]
+  - @aws-amplify/backend-output-storage@0.1.1-alpha.1
+  - @aws-amplify/backend-output-schemas@0.2.0-alpha.4
+
 ## 0.1.1-alpha.4
 
 ### Patch Changes

@@ -2,6 +2,8 @@ import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { BackendIdentifier } from './index.js';
 import { DefaultBackendOutputClient } from './backend_output_client.js';
 import { UnifiedBackendOutput } from '@aws-amplify/backend-output-schemas';
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import { AmplifyClient } from '@aws-sdk/client-amplify';
 
 export enum BackendOutputClientErrorType {
   METADATA_RETRIEVAL_ERROR = 'MetadataRetrievalError',
@@ -33,6 +35,19 @@ export type BackendOutputClient = {
     backendIdentifier: BackendIdentifier
   ) => Promise<UnifiedBackendOutput>;
 };
+
+export type BackendOutputClientOptions = {
+  cloudFormationClient: CloudFormationClient;
+  amplifyClient: AmplifyClient;
+};
+
+export type BackendOutputCredentialsOptions = {
+  credentials: AwsCredentialIdentityProvider;
+};
+
+export type BackendOutputClientFactoryOptions =
+  | BackendOutputClientOptions
+  | BackendOutputCredentialsOptions;
 /**
  * Factory to create a backend metadata reader
  */
@@ -41,8 +56,17 @@ export class BackendOutputClientFactory {
    * Returns a single instance of BackendOutputClient
    */
   static getInstance = (
-    credentials: AwsCredentialIdentityProvider
+    options: BackendOutputClientFactoryOptions
   ): BackendOutputClient => {
-    return new DefaultBackendOutputClient(credentials);
+    if ('cloudFormationClient' in options && 'amplifyClient' in options) {
+      return new DefaultBackendOutputClient(
+        options.cloudFormationClient,
+        options.amplifyClient
+      );
+    }
+    return new DefaultBackendOutputClient(
+      new CloudFormationClient(options.credentials),
+      new AmplifyClient(options.credentials)
+    );
   };
 }

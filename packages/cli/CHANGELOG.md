@@ -1,5 +1,62 @@
 # @aws-amplify/backend-cli
 
+## 0.2.0-alpha.6
+
+### Minor Changes
+
+- 2216d37d: 1. Remove version from the backend secret feature. 2. Use max(secret_last_updated) to trigger secret fetcher.
+
+### Patch Changes
+
+- ed841e3e: fix: pipeline deploy passes the required parameter to the deployer
+- Updated dependencies [2216d37d]
+- Updated dependencies [36d93e46]
+  - @aws-amplify/backend-secret@0.2.0-alpha.2
+  - @aws-amplify/sandbox@0.2.0-alpha.8
+  - @aws-amplify/deployed-backend-client@0.2.0-alpha.2
+  - @aws-amplify/backend-output-schemas@0.2.0-alpha.5
+  - @aws-amplify/model-generator@0.2.0-alpha.4
+  - @aws-amplify/form-generator@0.2.0-alpha.3
+  - @aws-amplify/client-config@0.2.0-alpha.8
+  - @aws-amplify/platform-core@0.1.1-alpha.1
+
+## 0.2.0-alpha.5
+
+### Minor Changes
+
+- 348b3783: Added form generation event to sandbox
+- 98b17069: Provides sandbox secret CLI commands
+- 319e62bb: Add bootstrap detection in sandbox
+- 0b2d50da: Add form generation interface
+- ee3d55fe: Add event handlers for Sandbox
+- 2b18af15: Add model filtering to form generation
+
+### Patch Changes
+
+- 23fc5b13: Lint fixes
+- 0765e494: fix(cli): Sanitize app names generated from package json
+- caaf1fee: Add model and form generation outputs to watch exclusions
+- bb3bf89a: add backend metadata manager
+- 512f0778: move UniqueBackendIdentifier to platform-core package
+- Updated dependencies [23fc5b13]
+- Updated dependencies [98b17069]
+- Updated dependencies [baa7a905]
+- Updated dependencies [319e62bb]
+- Updated dependencies [ee3d55fe]
+- Updated dependencies [b1da9601]
+- Updated dependencies [bb3bf89a]
+- Updated dependencies [2b18af15]
+- Updated dependencies [f6618771]
+- Updated dependencies [512f0778]
+  - @aws-amplify/model-generator@0.2.0-alpha.3
+  - @aws-amplify/client-config@0.2.0-alpha.7
+  - @aws-amplify/backend-secret@0.2.0-alpha.1
+  - @aws-amplify/sandbox@0.2.0-alpha.7
+  - @aws-amplify/form-generator@0.2.0-alpha.2
+  - @aws-amplify/deployed-backend-client@0.2.0-alpha.1
+  - @aws-amplify/backend-output-schemas@0.2.0-alpha.4
+  - @aws-amplify/platform-core@0.1.1-alpha.0
+
 ## 0.2.0-alpha.4
 
 ### Minor Changes

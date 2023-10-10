@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/plugin-types",
-  "version": "0.1.1-alpha.5",
+  "version": "0.2.0-alpha.8",
   "types": "lib/index.d.ts",
   "type": "module",
   "publishConfig": {
@@ -9,8 +9,9 @@
   "scripts": {
     "update:api": "api-extractor run --local"
   },
+  "license": "Apache-2.0",
   "peerDependencies": {
-    "aws-cdk-lib": "~2.80.0",
+    "aws-cdk-lib": "^2.80.0",
     "constructs": "^10.0.0"
   },
   "imports": {
