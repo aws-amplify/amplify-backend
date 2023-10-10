@@ -19,9 +19,6 @@ export type Secret = SecretIdentifier & {
 };
 
 // @public
-export type SecretAction = 'GET' | 'SET' | 'REMOVE' | 'LIST';
-
-// @public
 export type SecretClient = {
     getSecret: (backendIdentifier: UniqueBackendIdentifier | BackendId, secretIdentifier: SecretIdentifier) => Promise<Secret>;
     listSecrets: (backendIdentifier: UniqueBackendIdentifier | BackendId) => Promise<SecretListItem[]>;

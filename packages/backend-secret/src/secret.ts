@@ -64,11 +64,6 @@ export type SecretClient = {
 };
 
 /**
- * Secret action type.
- */
-export type SecretAction = 'GET' | 'SET' | 'REMOVE' | 'LIST';
-
-/**
  * Creates an Amplify secret client.
  */
 export const getSecretClient = (
