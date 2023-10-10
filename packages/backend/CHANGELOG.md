@@ -1,5 +1,13 @@
 # @aws-amplify/backend
 
+## 0.2.0-alpha.8
+
+### Patch Changes
+
+- 642e8d55: Remove grantPermission API from backend-secret
+- Updated dependencies [642e8d55]
+  - @aws-amplify/backend-secret@0.2.0-alpha.5
+
 ## 0.2.0-alpha.7
 
 ### Patch Changes
