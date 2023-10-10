@@ -42,7 +42,9 @@ export class AmplifyProjectCreator {
   /**
    * Executes the create-amplify workflow
    */
-  create = async (): Promise<void> => {
+  create = async ({
+    npmConfigYes = 'false',
+  }: { npmConfigYes?: string } = {}): Promise<void> => {
     this.logger.log(`Validating current state of target directory...`);
     await this.projectRootValidator.validate();
 
@@ -65,7 +67,7 @@ If you skip this step, you can install those packages manually whenever you need
 Continue?`;
 
     const toContinue =
-      process.env.npm_config_yes === 'true' ||
+      npmConfigYes === 'true' ||
       (await AmplifyPrompter.yesOrNo({ message, defaultValue: true }));
 
     if (toContinue) {

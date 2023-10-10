@@ -38,7 +38,9 @@ try {
     new NpmProjectInitializer(projectRoot),
     new TsConfigInitializer(projectRoot)
   );
-  await amplifyProjectCreator.create();
+  await amplifyProjectCreator.create({
+    npmConfigYes: process.env.npm_config_yes,
+  });
 } catch (err) {
   console.error(err instanceof Error ? err.message : err);
   process.exitCode = 1;

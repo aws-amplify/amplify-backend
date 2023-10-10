@@ -27,7 +27,9 @@ void describe('AmplifyProjectCreator', () => {
       tsConfigInitializerMock as never,
       { log: logMock } as never
     );
-    await amplifyProjectCreator.create();
+    await amplifyProjectCreator.create({
+      npmConfigYes: process.env.npm_config_yes,
+    });
     assert.equal(
       packageManagerControllerMock.installDependencies.mock.callCount(),
       2
@@ -68,6 +70,11 @@ void describe('AmplifyProjectCreator', () => {
       tsConfigInitializerMock as never,
       { log: logMock } as never
     );
-    assert.equal(await amplifyProjectCreator.create(), undefined);
+    assert.equal(
+      await amplifyProjectCreator.create({
+        npmConfigYes: process.env.npm_config_yes,
+      }),
+      undefined
+    );
   });
 });
