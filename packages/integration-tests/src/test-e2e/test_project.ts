@@ -2,6 +2,7 @@ import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { DataStorageAuthWithTriggerTestProject } from './data_storage_auth_with_triggers.js';
 import { getSecretClient } from '@aws-amplify/backend-secret';
+import { createTestDirectory } from '../setup_test_directory.js';
 
 export type TestProject = {
   readonly name: string;
@@ -23,6 +24,7 @@ export const generateTestProjects = async (
   const testProjects: TestProject[] = [];
   const cfnClient = new CloudFormationClient();
   const secretClient = getSecretClient();
+  await createTestDirectory(e2eProjectDir);
   testProjects.push(
     await DataStorageAuthWithTriggerTestProject.createProject(
       e2eProjectDir,

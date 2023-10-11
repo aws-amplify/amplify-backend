@@ -1,9 +1,5 @@
 import { after, describe, it } from 'node:test';
-import {
-  createTestDirectory,
-  deleteTestDirectory,
-  rootTestDir,
-} from '../setup_test_directory.js';
+import { deleteTestDirectory, rootTestDir } from '../setup_test_directory.js';
 import { shortUuid } from '../short_uuid.js';
 import { generateTestProjects } from './test_project.js';
 import {
@@ -12,13 +8,12 @@ import {
 } from '@aws-amplify/platform-core';
 import { userInfo } from 'os';
 
+const testProjects = await generateTestProjects(rootTestDir);
+
 void describe('amplify deploys', async () => {
   after(async () => {
     await deleteTestDirectory(rootTestDir);
   });
-
-  await createTestDirectory(rootTestDir);
-  const testProjects = await generateTestProjects(rootTestDir);
 
   testProjects.forEach((testProject) => {
     void describe(`amplify deploys ${testProject.name}`, () => {
@@ -41,7 +36,6 @@ void describe('amplify deploys', async () => {
             await testProject.clearDeployEnvironment(backendIdentifier);
           }
         });
-        return;
       });
     });
   });

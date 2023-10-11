@@ -10,7 +10,7 @@ import assert from 'node:assert';
 import path from 'path';
 
 /**
- * Test project with data, storage, and auth, categories.
+ * Test project with data, storage, and auth categories.
  */
 export class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   private readonly sourceProjectAmplifyDirSuffix =
