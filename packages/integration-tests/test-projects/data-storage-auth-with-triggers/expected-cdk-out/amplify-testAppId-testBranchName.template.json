@@ -12,7 +12,10 @@
     "userPoolId",
     "webClientId",
     "identityPoolId",
-    "authRegion"
+    "authRegion",
+    "amazonClientId",
+    "facebookClientId",
+    "googleClientId"
    ]
   },
   "AWS::Amplify::Storage": {
@@ -29,7 +32,8 @@
     "awsAppsyncApiEndpoint",
     "awsAppsyncAuthenticationType",
     "awsAppsyncRegion",
-    "amplifyApiModelSchemaS3Uri"
+    "amplifyApiModelSchemaS3Uri",
+    "awsAppsyncAdditionalAuthenticationTypes"
    ]
   }
  },
@@ -64,6 +68,30 @@
   "authRegion": {
    "Value": {
     "Ref": "AWS::Region"
+   }
+  },
+  "amazonClientId": {
+   "Value": {
+    "Fn::GetAtt": [
+     "auth179371D7",
+     "Outputs.amplifytestAppIdtestBranchNameauthtestAmazonIdSecretFetcherResourceD2E00281secretValue"
+    ]
+   }
+  },
+  "facebookClientId": {
+   "Value": {
+    "Fn::GetAtt": [
+     "auth179371D7",
+     "Outputs.amplifytestAppIdtestBranchNameauthtestFacebookIdSecretFetcherResource5EBFBDA2secretValue"
+    ]
+   }
+  },
+  "googleClientId": {
+   "Value": {
+    "Fn::GetAtt": [
+     "auth179371D7",
+     "Outputs.amplifytestAppIdtestBranchNameauthtestGoogleIdSecretFetcherResource307D00F8secretValue"
+    ]
    }
   },
   "storageRegion": {
@@ -119,6 +147,9 @@
      ]
     ]
    }
+  },
+  "awsAppsyncAdditionalAuthenticationTypes": {
+   "Value": "AWS_IAM"
   }
  },
  "Resources": {
@@ -149,7 +180,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/118a8eb906e4b76701245e59dee7db3f076ae330cc9a88a7720c8cf0e10fd42c.json"
+       "/c677838bd029bc17dacbe74fc669f69523b380caa59b1691c74adb5438940ede.json"
       ]
      ]
     }
@@ -250,7 +281,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/7f286c07bb6907f128b4ed58dc99eabbce2d3de288131d4ad898c9440c142d4b.json"
+       "/b2a20d5c6aca5c6afee8ace463e260c10cd40bd6ed2e570aeccf342d831638bb.json"
       ]
      ]
     }

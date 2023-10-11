@@ -16,6 +16,7 @@ const matchHashedJsonFile: Predicate = (actual, expected) => {
     jsonFileHashRegex.test(expected)
   );
 };
+
 const customMatchers: Map<ObjectPath, Predicate> = new Map([
   [
     [
@@ -28,6 +29,72 @@ const customMatchers: Map<ObjectPath, Predicate> = new Map([
       6,
     ],
     matchHashedJsonFile,
+  ],
+  [
+    [
+      'Resources',
+      'auth179371D7',
+      'Properties',
+      'TemplateURL',
+      'Fn::Join',
+      1,
+      6,
+    ],
+    matchHashedJsonFile,
+  ],
+  [
+    [
+      'Resources',
+      'testGoogleIdSecretFetcherResource',
+      'Properties',
+      'secretLastUpdated'
+    ],
+    (actual) => typeof actual === 'number',
+  ],
+  [
+    [
+      'Resources',
+      'testGoogleSecretSecretFetcherResource',
+      'Properties',
+      'secretLastUpdated'
+    ],
+    (actual) => typeof actual === 'number',
+  ],
+  [
+    [
+      'Resources',
+      'testFacebookIdSecretFetcherResource',
+      'Properties',
+      'secretLastUpdated'
+    ],
+    (actual) => typeof actual === 'number',
+  ],
+  [
+    [
+      'Resources',
+      'testFacebookSecretSecretFetcherResource',
+      'Properties',
+      'secretLastUpdated'
+    ],
+    (actual) => typeof actual === 'number',
+  ],
+  [
+    [
+      'Resources',
+      'testAmazonIdSecretFetcherResource',
+      'Properties',
+      'secretLastUpdated'
+    ],
+    (actual) => typeof actual === 'number',
+  ],
+  [
+    [
+      'Resources',
+      'testAmazonSecretSecretFetcherResource',
+      'Properties',
+      'secretLastUpdated'
+    ],
+    (actual) => typeof actual === 'number',
   ],
   [
     ['Description'],
