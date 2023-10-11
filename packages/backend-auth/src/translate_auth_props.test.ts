@@ -102,7 +102,7 @@ void describe('translateToAuthConstructLoginWith', () => {
           clientId: facebookClientId,
           clientSecret: facebookClientSecret,
         },
-        amazon: {
+        loginWithAmazon: {
           clientId: amazonClientId,
           clientSecret: amazonClientSecret,
         },
@@ -111,7 +111,7 @@ void describe('translateToAuthConstructLoginWith', () => {
           clientSecret: oidcClientSecret,
           issuerUrl: oidcIssueURL,
         },
-        apple: {
+        signInWithApple: {
           clientId: appleClientId,
           teamId: appleTeamId,
           keyId: appleKeyId,
