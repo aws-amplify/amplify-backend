@@ -5,6 +5,7 @@ import {
   BackendDeploymentType,
   BranchBackendIdentifier,
 } from '@aws-amplify/platform-core';
+import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 
 export type PipelineDeployCommandOptions = {
   branch: string;
@@ -31,6 +32,7 @@ export class PipelineDeployCommand
    * Creates top level entry point for deploy command.
    */
   constructor(
+    private readonly clientConfigGenerator: ClientConfigGeneratorAdapter,
     private readonly backendDeployer: BackendDeployer,
     private readonly isCiEnvironment: typeof _isCI = _isCI
   ) {
@@ -58,6 +60,9 @@ export class PipelineDeployCommand
     await this.backendDeployer.deploy(uniqueBackendIdentifier, {
       deploymentType: BackendDeploymentType.BRANCH,
     });
+    await this.clientConfigGenerator.generateClientConfigToFile(
+      uniqueBackendIdentifier
+    );
   };
 
   builder = (yargs: Argv): Argv<PipelineDeployCommandOptions> => {
