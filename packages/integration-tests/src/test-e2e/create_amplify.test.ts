@@ -6,7 +6,6 @@ import * as os from 'os';
 import { after, afterEach, before, beforeEach, describe, it } from 'node:test';
 import assert from 'assert';
 import { glob } from 'glob';
-import { exeCli } from '../process-controller/process_controller.js';
 
 void describe('create-amplify script', () => {
   before(async () => {
@@ -40,7 +39,10 @@ void describe('create-amplify script', () => {
   void it('installs expected packages and scaffolds expected files', async () => {
     // TODO remove alpha tag from command once we are publishing to latest
     // https://github.com/aws-amplify/samsara-cli/issues/144
-    await exeCli('npm', ['create', 'amplify@alpha', '--yes'], tempDir).run();
+    await execa('npm', ['create', 'amplify@alpha', '--yes'], {
+      cwd: tempDir,
+      stdio: 'inherit',
+    });
     const packageJsonPath = path.resolve(tempDir, 'package.json');
     const packageJsonObject = JSON.parse(
       await fs.readFile(packageJsonPath, 'utf-8')
