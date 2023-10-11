@@ -40,7 +40,7 @@ export const translateToAuthConstructLoginWith = (
 
   const amazonProps = translateAmazonProps(
     backendSecretResolver,
-    externalProviders.amazon
+    externalProviders.loginWithAmazon
   );
   if (amazonProps) {
     result.externalProviders.amazon = amazonProps;
@@ -48,7 +48,7 @@ export const translateToAuthConstructLoginWith = (
 
   const appleProps = translateAppleProps(
     backendSecretResolver,
-    externalProviders.apple
+    externalProviders.signInWithApple
   );
   if (appleProps) {
     result.externalProviders.apple = appleProps;

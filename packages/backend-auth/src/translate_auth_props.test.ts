@@ -67,7 +67,7 @@ void describe('translateToAuthConstructLoginWith', () => {
           clientId: new TestBackendSecret(facebookClientId),
           clientSecret: new TestBackendSecret(facebookClientSecret),
         },
-        amazon: {
+        loginWithAmazon: {
           clientId: new TestBackendSecret(amazonClientId),
           clientSecret: new TestBackendSecret(amazonClientSecret),
         },
@@ -76,7 +76,7 @@ void describe('translateToAuthConstructLoginWith', () => {
           clientSecret: new TestBackendSecret(oidcClientSecret),
           issuerUrl: oidcIssueURL,
         },
-        apple: {
+        signInWithApple: {
           clientId: new TestBackendSecret(appleClientId),
           teamId: new TestBackendSecret(appleTeamId),
           keyId: new TestBackendSecret(appleKeyId),

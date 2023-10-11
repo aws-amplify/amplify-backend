@@ -117,7 +117,7 @@ export type OidcProviderFactoryProps = Omit<
  */
 export type ExternalProviderGeneralFactoryProps = Omit<
   ExternalProviderOptions,
-  'apple' | 'amazon' | 'facebook' | 'oidc' | 'google'
+  'signInWithApple' | 'loginWithAmazon' | 'facebook' | 'oidc' | 'google'
 >;
 
 /**
@@ -125,8 +125,8 @@ export type ExternalProviderGeneralFactoryProps = Omit<
  */
 export type ExternalProviderSpecificFactoryProps =
   ExternalProviderGeneralFactoryProps & {
-    apple?: AppleProviderFactoryProps;
-    amazon?: AmazonProviderFactoryProps;
+    signInWithApple?: AppleProviderFactoryProps;
+    loginWithAmazon?: AmazonProviderFactoryProps;
     facebook?: FacebookProviderFactoryProps;
     oidc?: OidcProviderFactoryProps;
     google?: GoogleProviderFactoryProps;
