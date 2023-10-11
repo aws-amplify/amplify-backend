@@ -294,8 +294,8 @@ void describe('SSMSecret', () => {
                 LastModifiedDate: testSecretLastUpdated2,
               },
               {
-                Name: 'novalueSecret',
-              }
+                Name: 'noValueSecret',
+              },
             ],
           } as GetParametersByPathCommandOutput)
       );
