@@ -1,8 +1,9 @@
-import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
+import { Argv, CommandModule } from 'yargs';
 import { SecretClient } from '@aws-amplify/backend-secret';
 import { SandboxIdResolver } from '../sandbox_id_resolver.js';
 import { Printer } from '../../printer/printer.js';
 import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
+import { ArgumentsKebabCase } from '../../../kebab_case.js';
 
 /**
  * Command to get sandbox secret.
@@ -34,13 +35,11 @@ export class SandboxSecretGetCommand
   /**
    * @inheritDoc
    */
-  handler = async (
-    args: ArgumentsCamelCase<SecretGetCommandOptions>
-  ): Promise<void> => {
+  handler = async (args: SecretGetCommandOptions): Promise<void> => {
     const backendId = await this.sandboxIdResolver.resolve();
     const secret = await this.secretClient.getSecret(
       new SandboxBackendIdentifier(backendId),
-      { name: args.secretName }
+      { name: args['secret-name'] }
     );
     Printer.printRecord(secret);
   };
@@ -50,7 +49,7 @@ export class SandboxSecretGetCommand
    */
   builder = (yargs: Argv): Argv<SecretGetCommandOptions> => {
     return yargs
-      .positional('secretName', {
+      .positional('secret-name', {
         describe: 'Name of the secret to get',
         type: 'string',
         demandOption: true,
@@ -59,6 +58,9 @@ export class SandboxSecretGetCommand
   };
 }
 
-type SecretGetCommandOptions = {
+type SecretGetCommandOptions =
+  ArgumentsKebabCase<SecretGetCommandOptionsCamelCase>;
+
+type SecretGetCommandOptionsCamelCase = {
   secretName: string;
 };

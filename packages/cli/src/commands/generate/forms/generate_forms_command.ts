@@ -1,4 +1,4 @@
-import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
+import { Argv, CommandModule } from 'yargs';
 import { BackendOutputClient } from '@aws-amplify/deployed-backend-client';
 import { graphqlOutputKey } from '@aws-amplify/backend-output-schemas';
 import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
@@ -7,8 +7,12 @@ import {
   DEFAULT_UI_PATH,
 } from '../../../form-generation/default_form_generation_output_paths.js';
 import { FormGenerationHandler } from '../../../form-generation/form_generation_handler.js';
+import { ArgumentsKebabCase } from '../../../kebab_case.js';
 
-export type GenerateFormsCommandOptions = {
+export type GenerateFormsCommandOptions =
+  ArgumentsKebabCase<GenerateFormsCommandOptionsCamelCase>;
+
+type GenerateFormsCommandOptionsCamelCase = {
   stack: string | undefined;
   appId: string | undefined;
   branch: string | undefined;
@@ -48,9 +52,7 @@ export class GenerateFormsCommand
   /**
    * @inheritDoc
    */
-  handler = async (
-    args: ArgumentsCamelCase<GenerateFormsCommandOptions>
-  ): Promise<void> => {
+  handler = async (args: GenerateFormsCommandOptions): Promise<void> => {
     const backendIdentifier = await this.backendIdentifierResolver.resolve(
       args
     );
@@ -65,18 +67,18 @@ export class GenerateFormsCommand
 
     const apiUrl = output[graphqlOutputKey].payload.amplifyApiModelSchemaS3Uri;
 
-    if (!args.uiOutDir) {
+    if (!args['ui-out-dir']) {
       throw new Error('uiOut must be defined');
     }
 
-    if (!args.modelsOutDir) {
+    if (!args['models-out-dir']) {
       throw new Error('modelsOut must be defined');
     }
 
     await this.formGenerationHandler.generate({
-      modelsOutDir: args.modelsOutDir,
+      modelsOutDir: args['models-out-dir'],
       backendIdentifier,
-      uiOutDir: args.uiOutDir,
+      uiOutDir: args['ui-out-dir'],
       apiUrl,
       modelsFilter: args.models,
     });
@@ -88,13 +90,13 @@ export class GenerateFormsCommand
   builder = (yargs: Argv): Argv<GenerateFormsCommandOptions> => {
     return yargs
       .option('stack', {
-        conflicts: ['appId', 'branch'],
+        conflicts: ['app-id', 'branch'],
         describe: 'A stack name that contains an Amplify backend',
         type: 'string',
         array: false,
         group: 'Stack identifier',
       })
-      .option('appId', {
+      .option('app-id', {
         conflicts: ['stack'],
         describe: 'The Amplify App ID of the project',
         type: 'string',
@@ -110,14 +112,14 @@ export class GenerateFormsCommand
         group: 'Project identifier',
         implies: 'appId',
       })
-      .option('modelsOutDir', {
+      .option('models-out-dir', {
         describe: 'A path to directory where generated models are written.',
         default: DEFAULT_GRAPHQL_PATH,
         type: 'string',
         array: false,
         group: 'Form Generation',
       })
-      .option('uiOutDir', {
+      .option('ui-out-dir', {
         describe: 'A path to directory where generated forms are written.',
         default: DEFAULT_UI_PATH,
         type: 'string',
