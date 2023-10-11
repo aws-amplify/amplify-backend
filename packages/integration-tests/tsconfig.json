@@ -4,7 +4,9 @@
   "references": [
     { "path": "../backend" },
     { "path": "../backend-auth" },
-    { "path": "../backend-storage" }
+    { "path": "../backend-secret" },
+    { "path": "../backend-storage" },
+    { "path": "../platform-core" }
   ],
   "exclude": ["**/node_modules", "**/lib", "test-projects"]
 }
