@@ -966,7 +966,7 @@ void describe('Auth construct', () => {
         loginWith: {
           email: true,
           externalProviders: {
-            apple: {
+            signInWithApple: {
               clientId: appleClientId,
               keyId: appleKeyId,
               privateKey: applePrivateKey,
@@ -997,7 +997,7 @@ void describe('Auth construct', () => {
         loginWith: {
           phoneNumber: true,
           externalProviders: {
-            apple: {
+            signInWithApple: {
               clientId: appleClientId,
               keyId: appleKeyId,
               privateKey: applePrivateKey,
@@ -1028,7 +1028,7 @@ void describe('Auth construct', () => {
         loginWith: {
           email: true,
           externalProviders: {
-            amazon: {
+            loginWithAmazon: {
               clientId: amazonClientId,
               clientSecret: amazonClientSecret,
             },
@@ -1057,7 +1057,7 @@ void describe('Auth construct', () => {
         loginWith: {
           phoneNumber: true,
           externalProviders: {
-            amazon: {
+            loginWithAmazon: {
               clientId: amazonClientId,
               clientSecret: amazonClientSecret,
             },
@@ -1203,13 +1203,13 @@ void describe('Auth construct', () => {
               clientId: facebookClientId,
               clientSecret: facebookClientSecret,
             },
-            apple: {
+            signInWithApple: {
               clientId: appleClientId,
               keyId: appleKeyId,
               privateKey: applePrivateKey,
               teamId: appleTeamId,
             },
-            amazon: {
+            loginWithAmazon: {
               clientId: amazonClientId,
               clientSecret: amazonClientSecret,
             },
