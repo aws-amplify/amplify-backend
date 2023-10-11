@@ -1,5 +1,11 @@
 # @aws-amplify/backend-output-storage
 
+## 0.1.1-alpha.3
+
+### Patch Changes
+
+- 59f5ea24: chore: upgrade aws-cdk to 2.100.0
+
 ## 0.1.1-alpha.2
 
 ### Patch Changes

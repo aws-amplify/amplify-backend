@@ -3,7 +3,6 @@ import assert from 'node:assert';
 import { CfnTokenBackendSecret } from './backend_secret.js';
 import { App, SecretValue, Stack } from 'aws-cdk-lib';
 import { BranchBackendIdentifier } from '@aws-amplify/platform-core';
-import { getSecretClient } from '@aws-amplify/backend-secret';
 import { BackendSecretFetcherProviderFactory } from './backend_secret_fetcher_provider_factory.js';
 import { BackendSecretFetcherFactory } from './backend_secret_fetcher_factory.js';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
@@ -16,9 +15,7 @@ const uniqueBackendIdentifier: UniqueBackendIdentifier =
   new BranchBackendIdentifier(backendId, branchName);
 
 void describe('BackendSecret', () => {
-  const providerFactory = new BackendSecretFetcherProviderFactory(
-    getSecretClient()
-  );
+  const providerFactory = new BackendSecretFetcherProviderFactory();
   const resourceFactory = new BackendSecretFetcherFactory(providerFactory);
 
   void it('resolves a secret', () => {

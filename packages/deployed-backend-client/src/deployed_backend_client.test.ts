@@ -104,7 +104,8 @@ const getOutputMockResponse = {
   [graphqlOutputKey]: {
     payload: {
       awsAppsyncApiEndpoint: 'testAwsAppsyncApiEndpoint',
-      amplifyApiModelSchemaS3Uri: 's3://bucketName/filePath',
+      amplifyApiModelSchemaS3Uri: 's3://bucketName/model-schema.graphql',
+      awsAppsyncApiId: 'awsAppsyncApiId',
     },
   },
 };
@@ -128,8 +129,11 @@ const expectedMetadata = {
     status: BackendDeploymentStatus.FAILED,
     defaultAuthType: undefined,
     additionalAuthTypes: [],
-    graphqlSchema: 's3://bucketName/filePath schema contents!',
+    graphqlSchema: 's3://bucketName/model-schema.graphql schema contents!',
     conflictResolutionMode: undefined,
+    apiId: 'awsAppsyncApiId',
+    modelIntrospectionSchema:
+      's3://bucketName/model-introspection-schema.json schema contents!',
   },
 };
 

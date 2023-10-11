@@ -1,5 +1,19 @@
 # @aws-amplify/backend-secret
 
+## 0.2.0-alpha.5
+
+### Minor Changes
+
+- 642e8d55: Remove grantPermission API from backend-secret
+
+## 0.2.0-alpha.4
+
+### Patch Changes
+
+- 59f5ea24: chore: upgrade aws-cdk to 2.100.0
+- Updated dependencies [59f5ea24]
+  - @aws-amplify/plugin-types@0.2.0-alpha.9
+
 ## 0.2.0-alpha.3
 
 ### Patch Changes

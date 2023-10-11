@@ -1,5 +1,11 @@
 # @aws-amplify/deployed-backend-client
 
+## 0.2.0-alpha.6
+
+### Minor Changes
+
+- 5585f473: Add apiId and modelIntrospectionSchema props
+
 ## 0.2.0-alpha.5
 
 ### Patch Changes
