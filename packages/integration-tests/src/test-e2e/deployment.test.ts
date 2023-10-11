@@ -5,10 +5,12 @@ import { amplifyCli } from '../process-controller/process_controller.js';
 import assert from 'node:assert';
 import {
   confirmDeleteSandbox,
+  ensureDeploymentTimeLessThan,
   interruptSandbox,
   rejectCleanupSandbox,
+  updateBackendCode,
   waitForSandboxDeployment,
-} from '../process-controller/stdio_interaction_macros.js';
+} from '../process-controller/predicated_action_macros.js';
 import { createEmptyAmplifyProject } from '../create_empty_amplify_project.js';
 import {
   createTestDirectoryBeforeAndCleanupAfter,
@@ -39,10 +41,20 @@ void describe('amplify deploys', () => {
   const testProjects = [
     {
       name: 'data-storage-auth-with-triggers',
-      initialAmplifyDirPath: new URL(
+      amplifyPath: new URL(
         '../../test-projects/data-storage-auth-with-triggers/amplify',
         import.meta.url
       ),
+      updates: [
+        {
+          amplifyPath: new URL(
+            '../../test-projects/data-storage-auth-with-triggers/update-1',
+            import.meta.url
+          ),
+          fileToUpdate: 'data/resource.ts',
+          deploymentThresholdInSeconds: 80,
+        },
+      ],
       assertions: async () => {
         const { default: clientConfig } = await import(
           pathToFileURL(
@@ -67,21 +79,56 @@ void describe('amplify deploys', () => {
   void describe('sandbox', () => {
     afterEach(async () => {
       await amplifyCli(['sandbox', 'delete'], testProjectRoot)
-        .do(confirmDeleteSandbox)
+        .do(confirmDeleteSandbox())
         .run();
       await fs.rm(testProjectRoot, { recursive: true });
     });
 
     testProjects.forEach((testProject) => {
-      void it(testProject.name, async () => {
-        await fs.cp(testProject.initialAmplifyDirPath, testAmplifyDir, {
+      void it(`${testProject.name} deploys with sandbox on startup`, async () => {
+        await fs.cp(testProject.amplifyPath, testAmplifyDir, {
           recursive: true,
         });
 
         await amplifyCli(['sandbox'], testProjectRoot)
-          .do(waitForSandboxDeployment)
-          .do(interruptSandbox)
-          .do(rejectCleanupSandbox)
+          .do(waitForSandboxDeployment())
+          .do(interruptSandbox())
+          .do(rejectCleanupSandbox())
+          .run();
+
+        await testProject.assertions();
+      });
+    });
+
+    testProjects.forEach((testProject) => {
+      void it(`${testProject.name} hot swaps a change`, async () => {
+        await fs.cp(testProject.amplifyPath, testAmplifyDir, {
+          recursive: true,
+        });
+
+        const processController = amplifyCli(
+          ['sandbox', '--dirToWatch', 'amplify'],
+          testProjectRoot
+        ).do(waitForSandboxDeployment());
+
+        for (const update of testProject.updates) {
+          const fileToUpdate = path.join(
+            update.amplifyPath.pathname,
+            update.fileToUpdate
+          );
+          const updateSource = path.join(testAmplifyDir, update.fileToUpdate);
+
+          processController
+            .do(updateBackendCode(fileToUpdate, updateSource))
+            .do(
+              ensureDeploymentTimeLessThan(update.deploymentThresholdInSeconds)
+            );
+        }
+
+        // Execute the process.
+        await processController
+          .do(interruptSandbox())
+          .do(rejectCleanupSandbox())
           .run();
 
         await testProject.assertions();
@@ -109,7 +156,7 @@ void describe('amplify deploys', () => {
 
     testProjects.forEach((testProject) => {
       void it(testProject.name, async () => {
-        await fs.cp(testProject.initialAmplifyDirPath, testAmplifyDir, {
+        await fs.cp(testProject.amplifyPath, testAmplifyDir, {
           recursive: true,
         });
 
