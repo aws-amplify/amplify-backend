@@ -15,7 +15,7 @@ export const auth = defineAuth({
         clientId: secret(secretNames.facebookId),
         clientSecret: secret(secretNames.facebookSecret),
       },
-      amazon: {
+      loginWithAmazon: {
         clientId: secret(secretNames.amazonId),
         clientSecret: secret(secretNames.amazonSecret),
       },
