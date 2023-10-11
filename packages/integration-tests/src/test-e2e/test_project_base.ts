@@ -56,17 +56,6 @@ export abstract class TestProjectBase implements TestProject {
           env: { CI: 'true' },
         }
       ).run();
-      await amplifyCli(
-        [
-          'generate',
-          'config',
-          '--branch',
-          backendIdentifier.disambiguator,
-          '--appId',
-          backendIdentifier.backendId,
-        ],
-        this.projectDirPath
-      ).run();
     }
   };
 
