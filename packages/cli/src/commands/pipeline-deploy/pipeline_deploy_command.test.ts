@@ -1,4 +1,4 @@
-import { describe, it, mock } from 'node:test';
+import { beforeEach, describe, it, mock } from 'node:test';
 import yargs, { CommandModule } from 'yargs';
 import {
   TestCommandError,
@@ -11,18 +11,35 @@ import {
 } from './pipeline_deploy_command.js';
 import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 import { BranchBackendIdentifier } from '@aws-amplify/platform-core';
-
-const getCommandRunner = (isCI = false) => {
-  const backendDeployer = BackendDeployerFactory.getInstance();
-  const deployCommand = new PipelineDeployCommand(
-    backendDeployer,
-    isCI
-  ) as CommandModule<object, PipelineDeployCommandOptions>;
-  const parser = yargs().command(deployCommand);
-  return new TestCommandRunner(parser);
-};
+import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
+import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 
 void describe('deploy command', () => {
+  const credentialProvider = fromNodeProviderChain();
+  const clientConfigGenerator = new ClientConfigGeneratorAdapter(
+    credentialProvider
+  );
+  const generateClientConfigMock = mock.method(
+    clientConfigGenerator,
+    'generateClientConfigToFile',
+    () => Promise.resolve()
+  );
+
+  const getCommandRunner = (isCI = false) => {
+    const backendDeployer = BackendDeployerFactory.getInstance();
+    const deployCommand = new PipelineDeployCommand(
+      clientConfigGenerator,
+      backendDeployer,
+      isCI
+    ) as CommandModule<object, PipelineDeployCommandOptions>;
+    const parser = yargs().command(deployCommand);
+    return new TestCommandRunner(parser);
+  };
+
+  beforeEach(() => {
+    generateClientConfigMock.mock.resetCalls();
+  });
+
   void it('fails if required arguments are not supplied', async () => {
     await assert.rejects(
       () => getCommandRunner().runCommand('pipeline-deploy'),
@@ -31,6 +48,7 @@ void describe('deploy command', () => {
         return true;
       }
     );
+    assert.equal(generateClientConfigMock.mock.callCount(), 0);
   });
 
   void it('throws error if not in CI environment', async () => {
@@ -47,6 +65,7 @@ void describe('deploy command', () => {
         return true;
       }
     );
+    assert.equal(generateClientConfigMock.mock.callCount(), 0);
   });
 
   void it('executes backend deployer in CI environments', async () => {
@@ -66,5 +85,6 @@ void describe('deploy command', () => {
     assert.deepStrictEqual(mockDeploy.mock.calls[0].arguments[1], {
       deploymentType: 'BRANCH',
     });
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
   });
 });

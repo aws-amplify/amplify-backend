@@ -121,11 +121,6 @@ void describe('amplify deploys', () => {
           }
         ).run();
 
-        await amplifyCli(
-          ['generate', 'config', '--branch', branchName, '--appId', appId],
-          testProjectRoot
-        ).run();
-
         await testProject.assertions();
       });
     });
