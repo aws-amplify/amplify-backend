@@ -47,7 +47,7 @@ const customMatchers: Map<ObjectPath, Predicate> = new Map([
       'Resources',
       'testGoogleIdSecretFetcherResource',
       'Properties',
-      'secretLastUpdated'
+      'secretLastUpdated',
     ],
     (actual) => typeof actual === 'number',
   ],
@@ -56,7 +56,7 @@ const customMatchers: Map<ObjectPath, Predicate> = new Map([
       'Resources',
       'testGoogleSecretSecretFetcherResource',
       'Properties',
-      'secretLastUpdated'
+      'secretLastUpdated',
     ],
     (actual) => typeof actual === 'number',
   ],
@@ -65,7 +65,7 @@ const customMatchers: Map<ObjectPath, Predicate> = new Map([
       'Resources',
       'testFacebookIdSecretFetcherResource',
       'Properties',
-      'secretLastUpdated'
+      'secretLastUpdated',
     ],
     (actual) => typeof actual === 'number',
   ],
@@ -74,7 +74,7 @@ const customMatchers: Map<ObjectPath, Predicate> = new Map([
       'Resources',
       'testFacebookSecretSecretFetcherResource',
       'Properties',
-      'secretLastUpdated'
+      'secretLastUpdated',
     ],
     (actual) => typeof actual === 'number',
   ],
@@ -83,7 +83,7 @@ const customMatchers: Map<ObjectPath, Predicate> = new Map([
       'Resources',
       'testAmazonIdSecretFetcherResource',
       'Properties',
-      'secretLastUpdated'
+      'secretLastUpdated',
     ],
     (actual) => typeof actual === 'number',
   ],
@@ -92,7 +92,7 @@ const customMatchers: Map<ObjectPath, Predicate> = new Map([
       'Resources',
       'testAmazonSecretSecretFetcherResource',
       'Properties',
-      'secretLastUpdated'
+      'secretLastUpdated',
     ],
     (actual) => typeof actual === 'number',
   ],
