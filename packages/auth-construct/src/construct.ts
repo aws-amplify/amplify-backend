@@ -431,27 +431,29 @@ export class AmplifyAuth
       result.oauthMappings[authProvidersList.facebook] =
         external.facebook.clientId;
     }
-    if (external.amazon) {
+    if (external.loginWithAmazon) {
       result.amazon = new cognito.UserPoolIdentityProviderAmazon(
         this,
         'AmazonIDP',
         {
           userPool,
-          ...external.amazon,
+          ...external.loginWithAmazon,
         }
       );
-      result.oauthMappings[authProvidersList.amazon] = external.amazon.clientId;
+      result.oauthMappings[authProvidersList.amazon] =
+        external.loginWithAmazon.clientId;
     }
-    if (external.apple) {
+    if (external.signInWithApple) {
       result.apple = new cognito.UserPoolIdentityProviderApple(
         this,
         'AppleIDP',
         {
           userPool,
-          ...external.apple,
+          ...external.signInWithApple,
         }
       );
-      result.oauthMappings[authProvidersList.apple] = external.apple.clientId;
+      result.oauthMappings[authProvidersList.apple] =
+        external.signInWithApple.clientId;
     }
     if (external.oidc) {
       result.oidc = new cognito.UserPoolIdentityProviderOidc(this, 'OidcIDP', {

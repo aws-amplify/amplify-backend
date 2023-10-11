@@ -113,8 +113,8 @@ export type SamlProviderProps = Omit<
 export type ExternalProviderOptions = {
   google?: GoogleProviderProps;
   facebook?: FacebookProviderProps;
-  amazon?: AmazonProviderProps;
-  apple?: AppleProviderProps;
+  loginWithAmazon?: AmazonProviderProps;
+  signInWithApple?: AppleProviderProps;
   oidc?: OidcProviderProps;
   saml?: SamlProviderProps;
   // general configuration
