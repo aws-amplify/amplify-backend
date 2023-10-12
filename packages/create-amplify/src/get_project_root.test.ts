@@ -9,7 +9,7 @@ void describe('getProjectRoot', () => {
   afterEach(() => {
     process.env = originalEnv;
   });
-  void it('returns the default project root directory if `--yes` is passed', async (ctx) => {
+  void it('returns the default project root directory if `--yes` is passed', async () => {
     process.env.npm_config_yes = 'true';
     const projectRoot = await getProjectRoot();
 

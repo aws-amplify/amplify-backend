@@ -4,6 +4,10 @@
 
 ```ts
 
+// @public
+const createAmplifyProject: () => Promise<void>;
+export default createAmplifyProject;
+
 // (No @packageDocumentation comment for this package)
 
 ```
