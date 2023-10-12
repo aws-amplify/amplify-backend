@@ -169,6 +169,7 @@ export type SandboxMetadata = {
     name: string;
     lastUpdated: Date | undefined;
     status: BackendDeploymentStatus;
+    backendId: SandboxBackendIdentifier;
 };
 
 // @public (undocumented)
