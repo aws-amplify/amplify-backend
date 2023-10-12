@@ -3,7 +3,7 @@ import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
 import { Construct } from 'constructs';
 
-const MODEL_INTROSPECTION_SCHEMA_KEY = 'model-introspection-schema.graphql';
+const MODEL_INTROSPECTION_SCHEMA_KEY = 'model-introspection-schema.json';
 const DATASTORE_SCHEMA_KEY = 'schema.js';
 
 /**
