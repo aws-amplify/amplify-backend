@@ -1,8 +1,8 @@
 import { aws_cognito as cognito } from 'aws-cdk-lib';
-import { AuthUserAttribute } from './attributes.js';
 import { triggerEvents } from './trigger_events.js';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { AuthOutput } from '@aws-amplify/backend-output-schemas/auth';
+import { StandardAttributes } from 'aws-cdk-lib/aws-cognito';
 
 /**
  * Email login options.
@@ -139,11 +139,15 @@ export type TriggerEvent = (typeof triggerEvents)[number];
  * Input props for the AmplifyAuth construct
  */
 export type AuthProps = {
+  /**
+   * Specify the allowed login mechanisms
+   */
   loginWith: BasicLoginOptions & ExternalProviderProps;
   /**
-   * Additional settings
+   * The set of attributes that are required for every user in the user pool. Read more on attributes here - https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-settings-attributes.html
+   * @default - email/phone will be added as required user attributes if they are included as login methods
    */
-  userAttributes?: AuthUserAttribute[];
+  userAttributes?: StandardAttributes;
   /**
    * Multifactor Authentication settings
    */

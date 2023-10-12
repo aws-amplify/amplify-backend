@@ -343,17 +343,14 @@ void describe('Auth construct', () => {
     const stack = new Stack(app);
     new AmplifyAuth(stack, 'test', {
       loginWith: { email: true },
-      userAttributes: [
-        AmplifyAuth.attribute('address').immutable(),
-        AmplifyAuth.attribute('familyName').required(),
-        AmplifyAuth.customAttribute.string('defaultString'),
-        AmplifyAuth.customAttribute
-          .string('minMaxString')
-          .minLength(0)
-          .maxLength(100),
-        AmplifyAuth.customAttribute.dateTime('birthDateTime'),
-        AmplifyAuth.customAttribute.number('numberMinMax').min(0).max(5),
-      ],
+      userAttributes: {
+        address: {
+          mutable: false,
+        },
+        familyName: {
+          required: true,
+        },
+      },
     });
     const template = Template.fromStack(stack);
     template.hasResourceProperties('AWS::Cognito::UserPool', {
@@ -373,73 +370,8 @@ void describe('Auth construct', () => {
           Name: 'family_name',
           Required: true,
         },
-        {
-          AttributeDataType: 'String',
-          Mutable: true,
-          Name: 'defaultString',
-          StringAttributeConstraints: {},
-        },
-        {
-          AttributeDataType: 'String',
-          Mutable: true,
-          Name: 'minMaxString',
-          StringAttributeConstraints: {
-            MinLength: '0',
-            MaxLength: '100',
-          },
-        },
-        {
-          AttributeDataType: 'DateTime',
-          Mutable: true,
-          Name: 'birthDateTime',
-        },
-        {
-          AttributeDataType: 'Number',
-          Mutable: true,
-          Name: 'numberMinMax',
-          NumberAttributeConstraints: {
-            MaxValue: '5',
-            MinValue: '0',
-          },
-        },
       ],
     });
-  });
-
-  void it('throws if duplicate custom attributes are found', () => {
-    const app = new App();
-    const stack = new Stack(app);
-    assert.throws(
-      () =>
-        new AmplifyAuth(stack, 'test', {
-          loginWith: { email: true },
-          userAttributes: [
-            AmplifyAuth.customAttribute.string('myCustomAttribute'),
-            AmplifyAuth.customAttribute.string('myCustomAttribute'),
-          ],
-        }),
-      {
-        message: `Invalid userAttributes. Duplicate custom attribute name found: myCustomAttribute.`,
-      }
-    );
-  });
-
-  void it('throws if duplicate user attributes are found', () => {
-    const app = new App();
-    const stack = new Stack(app);
-    assert.throws(
-      () =>
-        new AmplifyAuth(stack, 'test', {
-          loginWith: { email: true },
-          userAttributes: [
-            AmplifyAuth.attribute('address').immutable(),
-            AmplifyAuth.attribute('address').required(),
-          ],
-        }),
-      {
-        message: `Invalid userAttributes. Duplicate attribute name found: address.`,
-      }
-    );
   });
 
   void describe('storeOutput', () => {
