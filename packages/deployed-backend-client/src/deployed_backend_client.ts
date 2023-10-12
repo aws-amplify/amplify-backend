@@ -73,6 +73,9 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
 
           return {
             name: stackSummary.StackName as string,
+            backendId: SandboxBackendIdentifier.parse(
+              stackSummary.StackName as string
+            ),
             lastUpdated:
               stackSummary.LastUpdatedTime ?? stackSummary.CreationTime,
             status: this.translateStackStatus(stackSummary.StackStatus),

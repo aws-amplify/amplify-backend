@@ -20,6 +20,13 @@ export abstract class UniqueBackendIdentifierBase
      */
     public readonly disambiguator: string
   ) {}
+
+  /**
+   * Parses identifier instance from stack name
+   */
+  static parse(stackName: string): UniqueBackendIdentifierBase {
+    throw new Error('Static method `parse` is not implemented');
+  }
 }
 
 /**
@@ -31,6 +38,21 @@ export class BranchBackendIdentifier extends UniqueBackendIdentifierBase {
    */
   constructor(public readonly backendId: BackendId, branchName: string) {
     super(backendId, branchName);
+  }
+
+  /**
+   * Parses identifier instance from stack name
+   */
+  static parse(stackName: string): UniqueBackendIdentifierBase {
+    const backendId = stackName.slice(
+      stackName.indexOf('-') + 1,
+      stackName.lastIndexOf('-')
+    );
+    const disambiguator = stackName.slice(
+      stackName.lastIndexOf('-') + 1,
+      stackName.length
+    );
+    return new BranchBackendIdentifier(backendId, disambiguator);
   }
 }
 
@@ -46,5 +68,13 @@ export class SandboxBackendIdentifier extends UniqueBackendIdentifierBase {
      * For sandbox deployments, disambiguator is the string literal "sandbox"
      */
     super(backendId, 'sandbox');
+  }
+
+  /**
+   * Parses identifier instance from stack name
+   */
+  static parse(stackName: string): UniqueBackendIdentifierBase {
+    const backendId = stackName.replace('amplify-', '').replace('-sandbox', '');
+    return new SandboxBackendIdentifier(backendId);
   }
 }
