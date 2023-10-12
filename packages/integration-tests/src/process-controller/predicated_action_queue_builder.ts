@@ -6,7 +6,7 @@ import {
 import os from 'os';
 import fs from 'fs/promises';
 
-import { killExecaProcess } from './execa_process_manager.js';
+import { killExecaProcess } from './execa_process_killer.js';
 import { ExecaChildProcess } from 'execa';
 
 export const CONTROL_C = '\x03';
@@ -68,9 +68,9 @@ export class PredicatedActionBuilder {
    * Update the last predicated action to update backend code by copying files from
    * `from` location to `to` location.
    */
-  updateBackendCode = (from: URL, to: URL) => {
+  updateFileContent = (from: URL, to: URL) => {
     this.getLastPredicatedAction().then = {
-      actionType: ActionType.MAKE_CODE_CHANGES,
+      actionType: ActionType.UPDATE_FILE_CONTENT,
       action: async () => {
         await fs.cp(from, to, {
           recursive: true,

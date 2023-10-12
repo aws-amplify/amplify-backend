@@ -5,7 +5,7 @@ import { ExecaChildProcess } from 'execa';
  */
 export enum ActionType {
   SEND_INPUT_TO_PROCESS,
-  MAKE_CODE_CHANGES,
+  UPDATE_FILE_CONTENT,
   ASSERT_ON_PROCESS_OUTPUT,
   KILL_PROCESS,
 }
@@ -18,8 +18,8 @@ type KillProcess = {
   actionType: ActionType.KILL_PROCESS;
   action: (execaProcess: ExecaChildProcess<string>) => Promise<void>;
 };
-type MakeCodeChangesAction = {
-  actionType: ActionType.MAKE_CODE_CHANGES;
+type UpdateFileContentAction = {
+  actionType: ActionType.UPDATE_FILE_CONTENT;
   action: () => Promise<void>;
 };
 type AssertOnProcessOutputAction = {
@@ -30,7 +30,7 @@ type AssertOnProcessOutputAction = {
 export type Action =
   | SendInputToProcessAction
   | KillProcess
-  | MakeCodeChangesAction
+  | UpdateFileContentAction
   | AssertOnProcessOutputAction;
 
 /**

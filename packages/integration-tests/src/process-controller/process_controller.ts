@@ -2,7 +2,7 @@ import { Options, execa } from 'execa';
 import readline from 'readline';
 import { PredicatedActionBuilder } from './predicated_action_queue_builder.js';
 import { ActionType } from './predicated_action.js';
-import { killExecaProcess } from './execa_process_manager.js';
+import { killExecaProcess } from './execa_process_killer.js';
 /**
  * Provides an abstractions for sending and receiving data on stdin/out of a child process
  *
@@ -79,7 +79,7 @@ export class ProcessController {
               expectKilled = true;
               await currentInteraction.then.action(execaProcess);
               break;
-            case ActionType.MAKE_CODE_CHANGES:
+            case ActionType.UPDATE_FILE_CONTENT:
               await currentInteraction.then.action();
               break;
             case ActionType.ASSERT_ON_PROCESS_OUTPUT:

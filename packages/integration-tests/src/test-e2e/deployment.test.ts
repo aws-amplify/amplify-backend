@@ -8,8 +8,8 @@ import {
   ensureDeploymentTimeLessThan,
   interruptSandbox,
   rejectCleanupSandbox,
-  updateBackendCode,
-  waitForSandboxDeployment,
+  updateFileContent,
+  waitForSandboxDeploymentToPrintTotalTime,
 } from '../process-controller/predicated_action_macros.js';
 import { createEmptyAmplifyProject } from '../create_empty_amplify_project.js';
 import {
@@ -91,7 +91,7 @@ void describe('amplify deploys', () => {
         });
 
         await amplifyCli(['sandbox'], testProjectRoot)
-          .do(waitForSandboxDeployment())
+          .do(waitForSandboxDeploymentToPrintTotalTime())
           .do(interruptSandbox())
           .do(rejectCleanupSandbox())
           .run();
@@ -109,7 +109,7 @@ void describe('amplify deploys', () => {
         const processController = amplifyCli(
           ['sandbox', '--dirToWatch', 'amplify'],
           testProjectRoot
-        ).do(waitForSandboxDeployment());
+        ).do(waitForSandboxDeploymentToPrintTotalTime());
 
         for (const update of testProject.updates) {
           const fileToUpdate = pathToFileURL(
@@ -120,7 +120,7 @@ void describe('amplify deploys', () => {
           );
 
           processController
-            .do(updateBackendCode(fileToUpdate, updateSource))
+            .do(updateFileContent(fileToUpdate, updateSource))
             .do(
               ensureDeploymentTimeLessThan(update.deploymentThresholdInSeconds)
             );

@@ -9,7 +9,7 @@ import { PredicatedActionBuilder } from './predicated_action_queue_builder.js';
 /**
  * Reusable predicates: Wait for sandbox to finish and emit "✨  Total time: xx.xxs"
  */
-export const waitForSandboxDeployment = () =>
+export const waitForSandboxDeploymentToPrintTotalTime = () =>
   new PredicatedActionBuilder().waitForLineIncludes('Total time');
 
 /**
@@ -44,8 +44,8 @@ export const rejectCleanupSandbox = () =>
  * Reusable predicated action: Wait for sandbox to become idle and then update the
  * backend code which should trigger sandbox again
  */
-export const updateBackendCode = (from: URL, to: URL) => {
-  return waitForSandboxToBecomeIdle().updateBackendCode(from, to);
+export const updateFileContent = (from: URL, to: URL) => {
+  return waitForSandboxToBecomeIdle().updateFileContent(from, to);
 };
 
 /**
@@ -58,5 +58,7 @@ export const interruptSandbox = () => waitForSandboxToBecomeIdle().sendCtrlC();
  * than the threshold.
  */
 export const ensureDeploymentTimeLessThan = (seconds: number) => {
-  return waitForSandboxDeployment().ensureDeploymentTimeLessThan(seconds);
+  return waitForSandboxDeploymentToPrintTotalTime().ensureDeploymentTimeLessThan(
+    seconds
+  );
 };
