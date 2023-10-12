@@ -86,7 +86,7 @@ export class CDKDeployer implements BackendDeployer {
       // See https://github.com/aws/aws-cdk/issues/7717 for more details.
       '--ci',
       '--app',
-      `'npx tsx ${relativeBackendEntryPoint}'`,
+      `'npx ts-node ${relativeBackendEntryPoint}'`,
     ];
 
     // Add context information if available
