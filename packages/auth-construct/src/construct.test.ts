@@ -172,7 +172,7 @@ void describe('Auth construct', () => {
     const customEmailVerificationMessage = 'custom email body {####}';
     const customEmailVerificationSubject = 'custom subject';
     const smsVerificationMessage = 'the verification code is {####}';
-    const smsAuthenticationMessage = 'SMS MFA code is {####}';
+    const smsMFAMessage = 'SMS MFA code is {####}';
     new AmplifyAuth(stack, 'test', {
       loginWith: {
         email: {
@@ -187,7 +187,7 @@ void describe('Auth construct', () => {
       multifactor: {
         enforcementType: 'OPTIONAL',
         sms: {
-          smsMessage: smsVerificationMessage,
+          smsMessage: smsMFAMessage,
         },
         totp: false,
       },
@@ -204,7 +204,7 @@ void describe('Auth construct', () => {
       },
       MfaConfiguration: 'OPTIONAL',
       EnabledMfas: ['SMS_MFA'],
-      SmsAuthenticationMessage: smsAuthenticationMessage,
+      SmsAuthenticationMessage: smsMFAMessage,
       SmsVerificationMessage: smsVerificationMessage,
     });
   });
