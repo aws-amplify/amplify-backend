@@ -25,12 +25,6 @@ import { AuthOutput } from '@aws-amplify/backend-output-schemas/auth';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
 import { AuthProps, TriggerEvent } from './types.js';
 import { DEFAULTS } from './defaults.js';
-import {
-  AuthAttributeFactory,
-  AuthCustomAttributeBase,
-  AuthCustomAttributeFactory,
-  AuthStandardAttribute,
-} from './attributes.js';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 
@@ -264,43 +258,6 @@ export class AmplifyAuth
         smsMessage: phoneSettings.verificationMessage,
       };
     }
-    // extract standard and custom attributes
-    let standardAttributes: cognito.StandardAttributes = {};
-    let customAttributes: {
-      [key: string]: cognito.ICustomAttribute;
-    } = {};
-    // standard attribute names must be unique to prevent unintentional behavior
-    const attributeNames: Set<string> = new Set();
-    // custom attribute names must be unique (they are given a 'custom:' prefix so they don't interfere with standard attributes)
-    const customAttributeNames: Set<string> = new Set();
-    if (props.userAttributes) {
-      for (const attr of props.userAttributes) {
-        if (attr instanceof AuthStandardAttribute) {
-          if (attributeNames.has(attr['name'])) {
-            throw new Error(
-              `Invalid userAttributes. Duplicate attribute name found: ${attr['name']}.`
-            );
-          }
-          attributeNames.add(attr['name']);
-          standardAttributes = {
-            ...standardAttributes,
-            ...attr['_toStandardAttributes'](),
-          };
-        } else if (attr instanceof AuthCustomAttributeBase) {
-          if (customAttributeNames.has(attr['name'])) {
-            throw new Error(
-              `Invalid userAttributes. Duplicate custom attribute name found: ${attr['name']}.`
-            );
-          }
-          customAttributeNames.add(attr['name']);
-          customAttributes = {
-            ...customAttributes,
-            ...attr['_toCustomAttributes'](),
-          };
-        }
-      }
-    }
-
     const userPoolProps: UserPoolProps = {
       signInCaseSensitive: DEFAULTS.SIGN_IN_CASE_SENSITIVE,
       signInAliases: {
@@ -316,10 +273,7 @@ export class AmplifyAuth
       standardAttributes: {
         email: DEFAULTS.IS_REQUIRED_ATTRIBUTE.email(emailEnabled),
         phoneNumber: DEFAULTS.IS_REQUIRED_ATTRIBUTE.phoneNumber(phoneEnabled),
-        ...standardAttributes,
-      },
-      customAttributes: {
-        ...customAttributes,
+        ...(props.userAttributes ? props.userAttributes : {}),
       },
       selfSignUpEnabled: DEFAULTS.ALLOW_SELF_SIGN_UP,
       mfa: this.getMFAEnforcementType(props.multifactor),
@@ -521,23 +475,4 @@ export class AmplifyAuth
       this.userPool.addTrigger(UserPoolOperation.of(event), handler);
     }
   };
-
-  /**
-   * Utility for adding user attributes.
-   *
-   * Example:
-   * userAttributes: [
-   *  AmplifyAuth.attribute('address').immutable().required(),
-   * ]
-   */
-  public static attribute = AuthAttributeFactory;
-  /**
-   * Utility for adding custom attributes.
-   *
-   * Example:
-   * userAttributes: [
-   *  AmplifyAuth.customAttribute.number('petsCount').min(0).max(5)
-   * ]
-   */
-  public static customAttribute = new AuthCustomAttributeFactory();
 }
