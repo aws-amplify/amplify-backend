@@ -16,7 +16,7 @@ import {
   createTestDirectoryBeforeAndCleanupAfter,
   getTestDir,
 } from '../setup_test_directory.js';
-import { pathToFileURL } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 import { shortUuid } from '../short_uuid.js';
 import {
   CloudFormationClient,
@@ -113,10 +113,10 @@ void describe('amplify deploys', () => {
 
         for (const update of testProject.updates) {
           const fileToUpdate = pathToFileURL(
-            path.join(update.amplifyPath.pathname, update.fileToUpdate)
+            path.join(fileURLToPath(update.amplifyPath), update.fileToUpdate)
           );
           const updateSource = pathToFileURL(
-            path.join(testAmplifyDir, update.fileToUpdate)
+            path.join(fileURLToPath(testAmplifyDir), update.fileToUpdate)
           );
 
           processController

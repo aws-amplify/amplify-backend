@@ -47,6 +47,7 @@ export class ProcessController {
       ...this.options,
     });
     let errorThrownFromActions = undefined;
+    let expectKilled = false;
     if (typeof execaProcess.pid !== 'number') {
       throw new Error('Could not determine child process id');
     }
@@ -74,6 +75,10 @@ export class ProcessController {
             case ActionType.SEND_INPUT_TO_PROCESS:
               await currentInteraction.then.action(execaProcess);
               break;
+            case ActionType.KILL_PROCESS:
+              expectKilled = true;
+              await currentInteraction.then.action(execaProcess);
+              break;
             case ActionType.MAKE_CODE_CHANGES:
               await currentInteraction.then.action();
               break;
@@ -99,7 +104,7 @@ export class ProcessController {
 
     if (errorThrownFromActions) {
       throw errorThrownFromActions;
-    } else if (result.failed) {
+    } else if (result.failed && !expectKilled) {
       throw new Error(result.stdout);
     }
   };

@@ -7,10 +7,15 @@ export enum ActionType {
   SEND_INPUT_TO_PROCESS,
   MAKE_CODE_CHANGES,
   ASSERT_ON_PROCESS_OUTPUT,
+  KILL_PROCESS,
 }
 
 type SendInputToProcessAction = {
   actionType: ActionType.SEND_INPUT_TO_PROCESS;
+  action: (execaProcess: ExecaChildProcess<string>) => Promise<void>;
+};
+type KillProcess = {
+  actionType: ActionType.KILL_PROCESS;
   action: (execaProcess: ExecaChildProcess<string>) => Promise<void>;
 };
 type MakeCodeChangesAction = {
@@ -24,6 +29,7 @@ type AssertOnProcessOutputAction = {
 
 export type Action =
   | SendInputToProcessAction
+  | KillProcess
   | MakeCodeChangesAction
   | AssertOnProcessOutputAction;
 
