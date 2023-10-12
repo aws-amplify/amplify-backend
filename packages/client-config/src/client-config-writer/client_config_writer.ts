@@ -27,6 +27,15 @@ export class ClientConfigWriter {
         await fsp.writeFile(targetPath, fileContent);
         break;
       }
+      case '.dart': {
+        const fileContent = `final Map<String, dynamic> amplifyConfig = ${JSON.stringify(
+          clientConfig,
+          null,
+          2
+        )}`;
+        await fsp.writeFile(targetPath, fileContent);
+        break;
+      }
       case '.json':
         await fsp.writeFile(targetPath, JSON.stringify(clientConfig, null, 2));
         break;

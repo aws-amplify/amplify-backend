@@ -13,4 +13,5 @@ export enum ClientConfigFormat {
   MJS = 'mjs',
   JSON = 'json',
   TS = 'ts',
+  DART = 'dart',
 }
