@@ -77,9 +77,9 @@ export type FacebookProviderProps = Omit<aws_cognito.UserPoolIdentityProviderFac
 export type GoogleProviderProps = Omit<aws_cognito.UserPoolIdentityProviderGoogleProps, 'userPool'>;
 
 // @public
-export type MFA = ({
+export type MFA = {
     enforcementType: 'OFF' | 'OPTIONAL' | 'REQUIRED';
-} & MFASettings);
+} & MFASettings;
 
 // @public
 export type MFASettings = {
