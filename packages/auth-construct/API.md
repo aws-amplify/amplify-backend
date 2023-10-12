@@ -10,7 +10,6 @@ import { AuthResources } from '@aws-amplify/plugin-types';
 import { aws_cognito } from 'aws-cdk-lib';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
-import { CustomAttributeConfig } from 'aws-cdk-lib/aws-cognito';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { StandardAttributes } from 'aws-cdk-lib/aws-cognito';
@@ -22,8 +21,6 @@ export type AmazonProviderProps = Omit<aws_cognito.UserPoolIdentityProviderAmazo
 export class AmplifyAuth extends Construct implements ResourceProvider<AuthResources> {
     constructor(scope: Construct, id: string, props?: AuthProps);
     addTrigger: (event: TriggerEvent, handler: IFunction | AmplifyFunction) => void;
-    static attribute: (name: keyof aws_cognito.StandardAttributes) => AuthStandardAttribute;
-    static customAttribute: AuthCustomAttributeFactory;
     readonly resources: AuthResources;
 }
 
@@ -31,63 +28,13 @@ export class AmplifyAuth extends Construct implements ResourceProvider<AuthResou
 export type AppleProviderProps = Omit<aws_cognito.UserPoolIdentityProviderAppleProps, 'userPool'>;
 
 // @public
-export abstract class AuthCustomAttributeBase {
-    constructor(name: string);
-    // (undocumented)
-    protected attribute: Mutable<CustomAttributeConfig>;
-    immutable: () => this;
-}
-
-// @public
-export class AuthCustomAttributeFactory {
-    boolean: (name: string) => AuthCustomBooleanAttribute;
-    dateTime: (name: string) => AuthCustomDateTimeAttribute;
-    number: (name: string) => AuthCustomNumberAttribute;
-    string: (name: string) => AuthCustomStringAttribute;
-}
-
-// @public
-export class AuthCustomBooleanAttribute extends AuthCustomAttributeBase {
-    constructor(name: string);
-}
-
-// @public
-export class AuthCustomDateTimeAttribute extends AuthCustomAttributeBase {
-    constructor(name: string);
-}
-
-// @public
-export class AuthCustomNumberAttribute extends AuthCustomAttributeBase {
-    constructor(name: string);
-    max: (max: number) => AuthCustomNumberAttribute;
-    min: (min: number) => AuthCustomNumberAttribute;
-}
-
-// @public
-export class AuthCustomStringAttribute extends AuthCustomAttributeBase {
-    constructor(name: string);
-    maxLength: (maxLength: number) => AuthCustomStringAttribute;
-    minLength: (minLength: number) => AuthCustomStringAttribute;
-}
-
-// @public
 export type AuthProps = {
     loginWith: BasicLoginOptions & ExternalProviderProps;
-    userAttributes?: AuthUserAttribute[];
+    userAttributes?: StandardAttributes;
     multifactor?: MFA;
     accountRecovery?: aws_cognito.AccountRecovery;
     outputStorageStrategy?: BackendOutputStorageStrategy<AuthOutput>;
 };
-
-// @public
-export class AuthStandardAttribute {
-    constructor(name: keyof StandardAttributes);
-    immutable: () => AuthStandardAttribute;
-    required: () => AuthStandardAttribute;
-}
-
-// @public
-export type AuthUserAttribute = AuthStandardAttribute | AuthCustomAttributeBase;
 
 // @public
 export type BasicLoginOptions = {
@@ -144,11 +91,6 @@ export type MFASettings = {
 } | {
     totp: boolean;
     sms: false;
-};
-
-// @public
-export type Mutable<T> = {
-    -readonly [P in keyof T]: Mutable<T[P]>;
 };
 
 // @public
