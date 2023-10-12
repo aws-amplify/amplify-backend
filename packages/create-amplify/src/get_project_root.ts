@@ -14,9 +14,11 @@ export const getProjectRoot = async () => {
         message: 'Where should we create your project?',
         defaultValue: defaultProjectRoot,
       });
+
   projectRoot = path.isAbsolute(projectRoot)
     ? projectRoot
     : path.resolve(__dirname, projectRoot);
+  console.log(`🦋 Creating project in ${projectRoot}`);
   if (!fs.existsSync(projectRoot)) {
     fs.mkdirSync(projectRoot, { recursive: true });
   }
