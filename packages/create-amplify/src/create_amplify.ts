@@ -7,29 +7,19 @@
   If customers have a cached version of the create-amplify package, they might execute that cached version even after we publish features and fixes to the package on npm.
  */
 
-import { input } from '@inquirer/prompts';
 import { NpmPackageManagerController } from './npm_package_manager_controller.js';
 import { ProjectRootValidator } from './project_root_validator.js';
 import { AmplifyProjectCreator } from './amplify_project_creator.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
 import { NpmProjectInitializer } from './npm_project_initializer.js';
 import { TsConfigInitializer } from './tsconfig_initializer.js';
+import { getProjectRoot } from './get_project_root.js';
 
-/*
-  The project root is the root directory of the customer's repo
-  This is the directory above the `amplify` directory
-  We may want to expose a `--target` arg to the `create-amplify` command at some point, but for now, we just use process.cwd()
+/**
+ * This file exports a function that creates an Amplify project.
  */
-
-try {
-  const useDefault = process.env.npm_config_yes === 'true';
-  const defaultProjectRoot = '.';
-  const projectRoot = useDefault
-    ? defaultProjectRoot
-    : await input({
-        message: 'Where should we create your project?',
-        default: defaultProjectRoot,
-      });
+const createAmplifyProject = async () => {
+  const projectRoot = await getProjectRoot();
 
   const amplifyProjectCreator = new AmplifyProjectCreator(
     new NpmPackageManagerController(projectRoot),
@@ -38,8 +28,7 @@ try {
     new NpmProjectInitializer(projectRoot),
     new TsConfigInitializer(projectRoot)
   );
-  await amplifyProjectCreator.create();
-} catch (err) {
-  console.error(err instanceof Error ? err.message : err);
-  process.exitCode = 1;
-}
+  return await amplifyProjectCreator.create();
+};
+
+export default createAmplifyProject;
