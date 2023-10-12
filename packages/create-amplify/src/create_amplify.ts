@@ -15,20 +15,19 @@ import { NpmProjectInitializer } from './npm_project_initializer.js';
 import { TsConfigInitializer } from './tsconfig_initializer.js';
 import { getProjectRoot } from './get_project_root.js';
 
-/**
- * This file exports a function that creates an Amplify project.
- */
-const createAmplifyProject = async () => {
-  const projectRoot = await getProjectRoot();
+const projectRoot = await getProjectRoot();
 
-  const amplifyProjectCreator = new AmplifyProjectCreator(
-    new NpmPackageManagerController(projectRoot),
-    new ProjectRootValidator(projectRoot),
-    new InitialProjectFileGenerator(projectRoot),
-    new NpmProjectInitializer(projectRoot),
-    new TsConfigInitializer(projectRoot)
-  );
-  return await amplifyProjectCreator.create();
-};
+const amplifyProjectCreator = new AmplifyProjectCreator(
+  new NpmPackageManagerController(projectRoot),
+  new ProjectRootValidator(projectRoot),
+  new InitialProjectFileGenerator(projectRoot),
+  new NpmProjectInitializer(projectRoot),
+  new TsConfigInitializer(projectRoot)
+);
 
-export default createAmplifyProject;
+try {
+  await amplifyProjectCreator.create();
+} catch (err) {
+  console.error(err instanceof Error ? err.message : err);
+  process.exitCode = 1;
+}
