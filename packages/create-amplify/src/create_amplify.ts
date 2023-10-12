@@ -13,20 +13,13 @@ import { AmplifyProjectCreator } from './amplify_project_creator.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
 import { NpmProjectInitializer } from './npm_project_initializer.js';
 import { TsConfigInitializer } from './tsconfig_initializer.js';
-import { AmplifyPrompter } from './amplify_prompts.js';
+import { getProjectRoot } from './get_project_root.js';
 
 /**
  * This file exports a function that creates an Amplify project.
  */
 const createAmplifyProject = async () => {
-  const useDefault = process.env.npm_config_yes === 'true';
-  const defaultProjectRoot = '.';
-  const projectRoot = useDefault
-    ? defaultProjectRoot
-    : await AmplifyPrompter.input({
-        message: 'Where should we create your project?',
-        defaultValue: defaultProjectRoot,
-      });
+  const projectRoot = await getProjectRoot();
 
   const amplifyProjectCreator = new AmplifyProjectCreator(
     new NpmPackageManagerController(projectRoot),
