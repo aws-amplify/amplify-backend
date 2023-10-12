@@ -55,10 +55,22 @@ const shortStatOutputString = shortStatOutput.toString();
 let linesAdded = 0;
 let linesRemoved = 0;
 if (shortStatOutputString.includes('insertion')) {
-  linesAdded = parseInt(shortStatOutputString.match(/(\d+)\s+insertion/)?.[1]);
+  const insertionsCount = shortStatOutputString.match(/(\d+)\s+insertion/)?.[1];
+  if (!insertionsCount) {
+    throw new Error(
+      `Unable to parse insertion count from ${shortStatOutputString}`
+    );
+  }
+  linesAdded = parseInt(insertionsCount);
 }
 if (shortStatOutputString.includes('deletion')) {
-  linesRemoved = parseInt(shortStatOutputString.match(/(\d+)\s+deletion/)?.[1]);
+  const deletionsCount = shortStatOutputString.match(/(\d+)\s+deletion/)?.[1];
+  if (!deletionsCount) {
+    throw new Error(
+      `Unable to parse deletions count from ${shortStatOutputString}`
+    );
+  }
+  linesRemoved = parseInt(deletionsCount);
 }
 console.log(`Lines Added: ${linesAdded}`);
 console.log(`Lines Removed: ${linesRemoved}`);
