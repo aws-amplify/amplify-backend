@@ -1,13 +1,17 @@
 import _isCI from 'is-ci';
-import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
+import { Argv, CommandModule } from 'yargs';
 import { BackendDeployer } from '@aws-amplify/backend-deployer';
 import {
   BackendDeploymentType,
   BranchBackendIdentifier,
 } from '@aws-amplify/platform-core';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
+import { ArgumentsKebabCase } from '../../kebab_case.js';
 
-export type PipelineDeployCommandOptions = {
+export type PipelineDeployCommandOptions =
+  ArgumentsKebabCase<PipelineDeployCommandOptionsCamelCase>;
+
+type PipelineDeployCommandOptionsCamelCase = {
   branch: string;
   appId: string;
 };
@@ -44,9 +48,7 @@ export class PipelineDeployCommand
   /**
    * @inheritDoc
    */
-  handler = async (
-    args: ArgumentsCamelCase<PipelineDeployCommandOptions>
-  ): Promise<void> => {
+  handler = async (args: PipelineDeployCommandOptions): Promise<void> => {
     if (!this.isCiEnvironment) {
       throw new Error(
         'It looks like this command is being run outside of a CI/CD workflow. To deploy locally use `amplify sandbox` instead.'
@@ -54,7 +56,7 @@ export class PipelineDeployCommand
     }
 
     const uniqueBackendIdentifier = new BranchBackendIdentifier(
-      args.appId,
+      args['app-id'],
       args.branch
     );
     await this.backendDeployer.deploy(uniqueBackendIdentifier, {
@@ -73,8 +75,8 @@ export class PipelineDeployCommand
         type: 'string',
         array: false,
       })
-      .option('appId', {
-        describe: 'The appId of the target Amplify app',
+      .option('app-id', {
+        describe: 'The app id of the target Amplify app',
         demandOption: true,
         type: 'string',
         array: false,

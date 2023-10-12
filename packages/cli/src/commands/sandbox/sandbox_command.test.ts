@@ -75,42 +75,45 @@ void describe('sandbox command', () => {
   void it('shows available options in help output', async () => {
     const output = await commandRunner.runCommand('sandbox --help');
     assert.match(output, /--name/);
-    assert.match(output, /--dirToWatch/);
+    assert.match(output, /--dir-to-watch/);
     assert.match(output, /--exclude/);
     assert.match(output, /--format/);
-    assert.match(output, /--outDir/);
+    assert.match(output, /--out-dir/);
   });
 
-  void it('fails if invalid dirToWatch is provided', async () => {
+  void it('fails if invalid dir-to-watch is provided', async () => {
     await assert.rejects(
-      () => commandRunner.runCommand('sandbox --dirToWatch nonExistentDir'),
+      () => commandRunner.runCommand('sandbox --dir-to-watch nonExistentDir'),
       (err: TestCommandError) => {
         assert.equal(err.error.name, 'Error');
         assert.equal(
           err.error.message,
-          '--dirToWatch nonExistentDir does not exist'
+          '--dir-to-watch nonExistentDir does not exist'
         );
-        assert.match(err.output, /--dirToWatch nonExistentDir does not exist/);
+        assert.match(
+          err.output,
+          /--dir-to-watch nonExistentDir does not exist/
+        );
         return true;
       }
     );
   });
 
-  void it('fails if a file is provided in the --dirToWatch flag', async (contextual) => {
+  void it('fails if a file is provided in the --dir-to-watch flag', async (contextual) => {
     contextual.mock.method(fs, 'statSync', () => ({
       isDirectory: () => false,
     }));
     await assert.rejects(
-      () => commandRunner.runCommand('sandbox --dirToWatch existentFile'),
+      () => commandRunner.runCommand('sandbox --dir-to-watch existentFile'),
       (err: TestCommandError) => {
         assert.equal(err.error.name, 'Error');
         assert.equal(
           err.error.message,
-          '--dirToWatch existentFile is not a valid directory'
+          '--dir-to-watch existentFile is not a valid directory'
         );
         assert.match(
           err.output,
-          /--dirToWatch existentFile is not a valid directory/
+          /--dir-to-watch existentFile is not a valid directory/
         );
         return true;
       }

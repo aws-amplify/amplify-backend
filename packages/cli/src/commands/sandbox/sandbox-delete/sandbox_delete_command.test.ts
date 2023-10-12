@@ -74,6 +74,6 @@ void describe('sandbox delete command', () => {
     assert.match(output, /--yes/);
     assert.match(output, /--name/);
     assert.doesNotMatch(output, /--exclude/);
-    assert.doesNotMatch(output, /--dirToWatch/);
+    assert.doesNotMatch(output, /--dir-to-watch/);
   });
 });
