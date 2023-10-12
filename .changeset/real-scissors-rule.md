@@ -1,5 +1,6 @@
 ---
 '@aws-amplify/integration-tests': minor
+'@aws-amplify/backend-secret': patch
 'create-amplify': patch
 ---
 
