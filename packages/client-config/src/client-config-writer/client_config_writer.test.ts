@@ -35,11 +35,11 @@ void describe('client config writer', () => {
     assert.deepEqual(JSON.parse(actualConfig), clientConfig);
   });
 
-  void it('writes js config to target location as default export', async () => {
+  void it('writes mjs config to target location as default export', async () => {
     const targetPath = path.join(
       process.cwd(),
       targetDirectory,
-      'amplifyconfiguration.js'
+      'amplifyconfiguration.mjs'
     );
     await clientConfigWriter.writeClientConfig(clientConfig, targetPath);
 

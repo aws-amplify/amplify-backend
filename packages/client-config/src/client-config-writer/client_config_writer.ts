@@ -17,7 +17,7 @@ export class ClientConfigWriter {
     const fileExtension = path.parse(targetPath).ext;
     switch (fileExtension) {
       case '.ts':
-      case '.js': {
+      case '.mjs': {
         const fileContent = `const amplifyConfig = ${JSON.stringify(
           clientConfig,
           null,
