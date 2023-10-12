@@ -2,7 +2,7 @@ import { beforeEach, describe, it } from 'node:test';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
-import { Backend, defineBackend } from './backend.js';
+import { Backend } from './backend.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
@@ -39,36 +39,11 @@ void describe('Backend', () => {
       {
         testConstructFactory,
       },
-      rootStack
-    ).generate();
-
-    const bucketStack = Stack.of(rootStack.node.findChild('test'));
-
-    const rootStackTemplate = Template.fromStack(rootStack);
-    rootStackTemplate.resourceCountIs('AWS::CloudFormation::Stack', 1);
-
-    const bucketStackTemplate = Template.fromStack(bucketStack);
-    bucketStackTemplate.resourceCountIs('AWS::S3::Bucket', 1);
-  });
-
-  void it('can be initialized via async define method in given app', async () => {
-    const testConstructFactory: ConstructFactory<Bucket> = {
-      getInstance({ constructContainer }): Bucket {
-        return constructContainer.getOrCompute({
-          resourceGroupName: 'test',
-          generateContainerEntry(scope: Construct): Bucket {
-            return new Bucket(scope, 'test-bucket');
-          },
-        }) as Bucket;
-      },
-    };
-
-    await defineBackend(
-      {
-        testConstructFactory,
+      () => {
+        /* No-op */
       },
       rootStack
-    );
+    ).isSettled();
 
     const bucketStack = Stack.of(rootStack.node.findChild('test'));
 
@@ -102,8 +77,11 @@ void describe('Backend', () => {
       {
         testConstructFactory,
       },
+      () => {
+        /* No-op */
+      },
       rootStack
-    ).generate();
+    ).isSettled();
 
     const rootStackTemplate = Template.fromStack(rootStack);
     rootStackTemplate.hasOutput('bucketName', {});
@@ -138,19 +116,30 @@ void describe('Backend', () => {
       },
     };
 
+    let wasVisited = false;
     const backend = new Backend(
       {
         testConstructFactory,
       },
+      ({ resources }) => {
+        assert.equal(resources.testConstructFactory.node.id, 'test-bucket');
+        wasVisited = true;
+      },
       rootStack
     );
-    await backend.generate();
-    assert.equal(backend.resources.testConstructFactory.node.id, 'test-bucket');
+    await backend.isSettled();
+    assert.equal(wasVisited, true);
   });
 
   void describe('getOrCreateStack', () => {
     void it('returns nested stack', () => {
-      const backend = new Backend({}, rootStack);
+      const backend = new Backend(
+        {},
+        () => {
+          /* No-op */
+        },
+        rootStack
+      );
       const testStack = backend.getOrCreateStack('testStack');
       assert.strictEqual(rootStack.node.findChild('testStack'), testStack);
     });

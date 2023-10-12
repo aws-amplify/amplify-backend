@@ -16,18 +16,15 @@ import {
 } from '@aws-amplify/platform-core';
 import { stackOutputKey } from '@aws-amplify/backend-output-schemas';
 
-/**
- * Async builder for Backend class.
- */
-export const defineBackend = async <
+type ResourcesType<T extends Record<string, ConstructFactory<Construct>>> = {
+  [K in keyof T]: ReturnType<T[K]['getInstance']>;
+};
+
+type ResourceCustomizationCallbackProps<
   T extends Record<string, ConstructFactory<Construct>>
->(
-  constructFactories: T,
-  stack: Stack = createDefaultStack()
-): Promise<Backend<T>> => {
-  const backend = new Backend(constructFactories, stack);
-  await backend.generate();
-  return backend;
+> = {
+  resources: ResourcesType<T>;
+  stack: Stack;
 };
 
 /**
@@ -40,9 +37,9 @@ export class Backend<T extends Record<string, ConstructFactory<Construct>>> {
    * Used for overriding properties of underlying CDK constructs or to reference in custom CDK code
    * Only initialized after invoking `generate` on the backend.
    */
-  readonly resources: {
-    [K in keyof T]: ReturnType<T[K]['getInstance']>;
-  };
+  private readonly resources: ResourcesType<T>;
+
+  private _isSettled: boolean;
 
   /**
    * Initialize an Amplify backend with the given construct factories and in the given CDK App.
@@ -50,17 +47,36 @@ export class Backend<T extends Record<string, ConstructFactory<Construct>>> {
    */
   constructor(
     private constructFactories: T,
+    private resourceCustomizationCallback: (
+      props: ResourceCustomizationCallbackProps<T>
+    ) => Promise<void> | void = () => {
+      /* No-op */
+    },
     private stack: Stack = createDefaultStack()
   ) {
     this.stackResolver = new NestedStackResolver(stack);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     this.resources = {} as any;
+    this._isSettled = false;
+    void this.generate();
+  }
+
+  /**
+   * Utility method to allow awaiting completed generation.
+   */
+  public async isSettled(): Promise<void> {
+    const sleep = (delayMs: number): Promise<void> =>
+      new Promise((resolve) => setTimeout(resolve, delayMs));
+    while (!this._isSettled) {
+      await sleep(250);
+    }
+    return;
   }
 
   /**
    * Async synth the app resources.
    */
-  async generate(): Promise<void> {
+  private async generate(): Promise<void> {
     const constructContainer = new SingletonConstructContainer(
       this.stackResolver
     );
@@ -110,6 +126,13 @@ export class Backend<T extends Record<string, ConstructFactory<Construct>>> {
         ) as any;
       }
     );
+
+    await this.resourceCustomizationCallback({
+      resources: this.resources,
+      stack: this.stack,
+    });
+
+    this._isSettled = true;
   }
 
   /**
