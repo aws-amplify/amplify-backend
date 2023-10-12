@@ -29,7 +29,8 @@
     "awsAppsyncApiEndpoint",
     "awsAppsyncAuthenticationType",
     "awsAppsyncRegion",
-    "amplifyApiModelSchemaS3Uri"
+    "amplifyApiModelSchemaS3Uri",
+    "awsAppsyncAdditionalAuthenticationTypes"
    ]
   }
  },
@@ -119,6 +120,9 @@
      ]
     ]
    }
+  },
+  "awsAppsyncAdditionalAuthenticationTypes": {
+   "Value": "AWS_IAM"
   }
  },
  "Resources": {
@@ -250,7 +254,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/7f286c07bb6907f128b4ed58dc99eabbce2d3de288131d4ad898c9440c142d4b.json"
+       "/49b3bbf8240dfbf86b23bc95e2e9944c57457328c5d71a9002825809483996f1.json"
       ]
      ]
     }
