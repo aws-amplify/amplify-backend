@@ -27,7 +27,7 @@ export type SecretClient = {
 
 // @public
 export type SecretClientConfig = {
-    credentialProvider?: AwsCredentialIdentityProvider;
+    credentials?: AwsCredentialIdentityProvider;
     region?: string;
 };
 

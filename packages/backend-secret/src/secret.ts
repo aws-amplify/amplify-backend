@@ -78,11 +78,9 @@ export const getSecretClient = (
   secretClientConfig?: SecretClientConfig
 ): SecretClient => {
   return new SSMSecretClient(
-    new SSM(
-      {
-        credentials: secretClientConfig?.credentials,
-        region: secretClientConfig?.region,
-      }
-    )
+    new SSM({
+      credentials: secretClientConfig?.credentials,
+      region: secretClientConfig?.region,
+    })
   );
 };
