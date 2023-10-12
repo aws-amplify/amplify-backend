@@ -23,7 +23,7 @@ void describe('Backend', () => {
     rootStack = createStackAndSetContext();
   });
 
-  void it('initializes constructs in given app', () => {
+  void it('initializes constructs in given app', async () => {
     const testConstructFactory: ConstructFactory<Bucket> = {
       getInstance({ constructContainer }): Bucket {
         return constructContainer.getOrCompute({
@@ -35,12 +35,12 @@ void describe('Backend', () => {
       },
     };
 
-    new Backend(
+    await new Backend(
       {
         testConstructFactory,
       },
       rootStack
-    );
+    ).generate();
 
     const bucketStack = Stack.of(rootStack.node.findChild('test'));
 
@@ -51,7 +51,7 @@ void describe('Backend', () => {
     bucketStackTemplate.resourceCountIs('AWS::S3::Bucket', 1);
   });
 
-  void it('registers construct outputs in root stack', () => {
+  void it('registers construct outputs in root stack', async () => {
     const testConstructFactory: ConstructFactory<Bucket> = {
       getInstance({ constructContainer, outputStorageStrategy }): Bucket {
         return constructContainer.getOrCompute({
@@ -70,12 +70,12 @@ void describe('Backend', () => {
       },
     };
 
-    new Backend(
+    await new Backend(
       {
         testConstructFactory,
       },
       rootStack
-    );
+    ).generate();
 
     const rootStackTemplate = Template.fromStack(rootStack);
     rootStackTemplate.hasOutput('bucketName', {});
@@ -89,7 +89,7 @@ void describe('Backend', () => {
     });
   });
 
-  void it('exposes created constructs under resources', () => {
+  void it('exposes created constructs under resources', async () => {
     const testConstructFactory: ConstructFactory<Bucket> = {
       getInstance({ constructContainer, outputStorageStrategy }): Bucket {
         return constructContainer.getOrCompute({
@@ -116,6 +116,7 @@ void describe('Backend', () => {
       },
       rootStack
     );
+    await backend.generate();
     assert.equal(backend.resources.testConstructFactory.node.id, 'test-bucket');
   });
 

@@ -19,6 +19,36 @@ import {
 import { GraphqlOutput } from '@aws-amplify/backend-output-schemas/graphql';
 import * as path from 'path';
 import { DerivedModelSchema } from '@aws-amplify/amplify-api-next-types-alpha';
+import { generateCMSResourceFilesFromSchema } from '@aws-amplify/model-generator';
+import { AmplifyCMS } from './amplify_cms_construct.js';
+
+const isModelSchema = (
+  schema: DataProps['schema']
+): schema is DerivedModelSchema => {
+  if (
+    schema !== null &&
+    typeof schema === 'object' &&
+    typeof schema.transform === 'function'
+  ) {
+    return true;
+  }
+  return false;
+};
+
+const normalizeSchema = (
+  schema: DataProps['schema']
+): IAmplifyGraphqlDefinition => {
+  if (isModelSchema(schema)) {
+    return schema.transform();
+  }
+
+  return AmplifyGraphqlDefinition.fromString(schema);
+};
+
+type PreparedDataResources = {
+  modelIntrospectionSchema: string;
+  datastoreSchema: string;
+};
 
 /**
  * Exposed props for Data which are configurable by the end user.
@@ -46,6 +76,7 @@ export type DataProps = {
  */
 class DataFactory implements ConstructFactory<AmplifyGraphqlApi> {
   private generator: ConstructContainerEntryGenerator;
+  public preparedResources: PreparedDataResources;
 
   /**
    * Create a new AmplifyConstruct
@@ -54,6 +85,16 @@ class DataFactory implements ConstructFactory<AmplifyGraphqlApi> {
     private readonly props: DataProps,
     private readonly importStack = new Error().stack
   ) {}
+
+  /**
+   * Async produce required codegen assets for CMS/Console
+   */
+  prepareInstance = async (): Promise<void> => {
+    const modelSchema = normalizeSchema(this.props.schema).schema;
+    this.preparedResources = await generateCMSResourceFilesFromSchema(
+      modelSchema
+    );
+  };
 
   /**
    * Gets an instance of the Data construct
@@ -71,6 +112,7 @@ class DataFactory implements ConstructFactory<AmplifyGraphqlApi> {
     if (!this.generator) {
       this.generator = new DataGenerator(
         this.props,
+        this.preparedResources,
         constructContainer
           .getConstructFactory<ResourceProvider<AuthResources>>('AuthResources')
           .getInstance({
@@ -91,6 +133,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
 
   constructor(
     private readonly props: DataProps,
+    private readonly preparedResources: PreparedDataResources,
     private readonly authResources: ResourceProvider<AuthResources>,
     private readonly outputStorageStrategy: BackendOutputStorageStrategy<GraphqlOutput>
   ) {}
@@ -131,28 +174,13 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       ...dataAuthorizationModes,
     };
 
-    const isModelSchema = (
-      schema: DataProps['schema']
-    ): schema is DerivedModelSchema => {
-      if (
-        schema !== null &&
-        typeof schema === 'object' &&
-        typeof schema.transform === 'function'
-      ) {
-        return true;
-      }
-      return false;
-    };
-
-    const normalizeSchema = (
-      schema: DataProps['schema']
-    ): IAmplifyGraphqlDefinition => {
-      if (isModelSchema(schema)) {
-        return schema.transform();
-      }
-
-      return AmplifyGraphqlDefinition.fromString(schema);
-    };
+    if (
+      this.preparedResources &&
+      this.preparedResources.datastoreSchema &&
+      this.preparedResources.modelIntrospectionSchema
+    ) {
+      new AmplifyCMS(scope, `AmplifyCMS`, this.preparedResources);
+    }
 
     // TODO inject the construct with the functionNameMap
     const graphqlConstructProps: AmplifyGraphqlApiProps = {

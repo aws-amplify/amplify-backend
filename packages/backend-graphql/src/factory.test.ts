@@ -161,4 +161,12 @@ void describe('DataFactory', () => {
       Name: 'MyTestApiName',
     });
   });
+
+  void it('includes cms assets when prepareFactory is invoked', async () => {
+    await dataFactory.prepareInstance?.();
+    dataFactory.getInstance(getInstanceProps);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const preparedResources = (dataFactory as any).preparedResources;
+    assert.deepEqual(Object.values(preparedResources).length, 2);
+  });
 });

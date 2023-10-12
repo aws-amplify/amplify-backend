@@ -18,5 +18,6 @@ export type ConstructFactory<T = unknown> = {
    * Registering as a provider allows other construct factories to fetch this one based on the provides token
    */
   readonly provides?: string;
+  prepareInstance?: () => Promise<void>;
   getInstance: (props: ConstructFactoryGetInstanceProps) => T;
 };

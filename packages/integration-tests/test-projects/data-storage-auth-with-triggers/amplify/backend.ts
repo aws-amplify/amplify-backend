@@ -4,9 +4,9 @@ import { storage } from './storage/resource.js';
 import { myFunc } from './function.js';
 import { data } from './data/resource.js';
 
-new Backend({
+await new Backend({
   auth,
   storage,
   myFunc,
   data,
-});
+}).generate();

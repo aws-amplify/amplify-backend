@@ -10,6 +10,12 @@ import { ModelsTarget } from '@aws-amplify/graphql-generator';
 import { StatementsTarget } from '@aws-amplify/graphql-generator';
 import { TypesTarget } from '@aws-amplify/graphql-generator';
 
+// @public (undocumented)
+export type CMSResourceFiles = {
+    modelIntrospectionSchema: string;
+    datastoreSchema: string;
+};
+
 // @public
 export const createGraphqlDocumentGenerator: ({ backendIdentifier, credentialProvider, }: GraphqlDocumentGeneratorFactoryParams) => GraphqlDocumentGenerator;
 
@@ -83,6 +89,9 @@ export enum GenerateApiCodeTypeTarget {
     // (undocumented)
     TYPESCRIPT = "typescript"
 }
+
+// @public
+export const generateCMSResourceFilesFromSchema: (modelSchema: string) => Promise<CMSResourceFiles>;
 
 // @public (undocumented)
 export type GenerateGraphqlCodegenOptions = {

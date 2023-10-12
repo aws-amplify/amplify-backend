@@ -88,6 +88,7 @@ export type ConstructContainerEntryGenerator = {
 // @public
 export type ConstructFactory<T = unknown> = {
     readonly provides?: string;
+    prepareInstance?: () => Promise<void>;
     getInstance: (props: ConstructFactoryGetInstanceProps) => T;
 };
 
