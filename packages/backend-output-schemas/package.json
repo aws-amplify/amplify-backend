@@ -7,34 +7,36 @@
   },
   "exports": {
     ".": {
-      "types": "./lib/index.d.ts",
-      "import": "./lib/index.js",
-      "require": "./lib/index.js"
+      "types": "./lib/esm/index.d.ts",
+      "import": "./lib/esm/index.js",
+      "require": "./lib/cjs/index.js"
     },
     "./auth": {
-      "types": "./lib/auth/index.d.ts",
-      "import": "./lib/auth/index.js",
-      "require": "./lib/auth/index.js"
+      "types": "./lib/esm/auth/index.d.ts",
+      "import": "./lib/esm/auth/index.js",
+      "require": "./lib/cjs/auth/index.js"
     },
     "./graphql": {
-      "types": "./lib/graphql/index.d.ts",
-      "import": "./lib/graphql/index.js",
-      "require": "./lib/graphql/index.js"
+      "types": "./lib/esm/graphql/index.d.ts",
+      "import": "./lib/esm/graphql/index.js",
+      "require": "./lib/cjs/graphql/index.js"
     },
     "./platform": {
-      "types": "./lib/platform/index.d.ts",
-      "import": "./lib/platform/index.js",
-      "require": "./lib/platform/index.js"
+      "types": "./lib/esm/platform/index.d.ts",
+      "import": "./lib/esm/platform/index.js",
+      "require": "./lib/cjs/platform/index.js"
     },
     "./storage": {
-      "types": "./lib/storage/index.d.ts",
-      "import": "./lib/storage/index.js",
-      "require": "./lib/storage/index.js"
+      "types": "./lib/esm/storage/index.d.ts",
+      "import": "./lib/esm/storage/index.js",
+      "require": "./lib/cjs/storage/index.js"
     }
   },
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "main": "lib/cjs/index.js",
+  "types": "lib/cjs/index.d.ts",
   "scripts": {
+    "build:esm" : "tsc --build",
+    "build:cjs": "tsc --project tsconfig-cjs.json",
     "update:api": "api-extractor run --local"
   },
   "license": "Apache-2.0",

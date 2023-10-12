@@ -1,9 +1,14 @@
 {
   "extends": "../../tsconfig.base.json",
-  "compilerOptions": { "rootDir": "src", "outDir": "lib/esm" },
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "lib/cjs",
+    "module": "CommonJS",
+    "moduleResolution": "Node"
+  },
   "references": [
     { "path": "../backend-output-storage" },
-    { "path": "../storage-construct" },
+    { "path": "../function-construct" },
     { "path": "../plugin-types" },
     { "path": "../backend" }
   ]

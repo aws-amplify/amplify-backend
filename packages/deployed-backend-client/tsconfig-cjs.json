@@ -2,11 +2,12 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "rootDir": "src",
-    "outDir": "lib/esm",
-    "resolveJsonModule": true
+    "outDir": "lib/cjs",
+    "module": "CommonJS",
+    "moduleResolution": "Node"
   },
   "references": [
     { "path": "../backend-output-schemas" },
-    { "path": "../deployed-backend-client" }
+    { "path": "../platform-core" }
   ]
 }

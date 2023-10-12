@@ -1,5 +1,5 @@
 {
   "extends": "../../tsconfig.base.json",
-  "compilerOptions": { "rootDir": "src", "outDir": "lib" },
+  "compilerOptions": { "rootDir": "src", "outDir": "lib/esm" },
   "references": [{ "path": "../plugin-types" }, { "path": "../platform-core" }]
 }

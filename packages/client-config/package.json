@@ -7,18 +7,20 @@
   },
   "exports": {
     ".": {
-      "types": "./lib/index.d.ts",
-      "import": "./lib/index.js",
-      "require": "./lib/index.js"
+      "types": "./lib/esm/index.d.ts",
+      "import": "./lib/esm/index.js",
+      "require": "./lib/cjs/index.js"
     },
     "./paths": {
-      "types": "./lib/paths/index.d.ts",
-      "import": "./lib/paths/index.js",
-      "require": "./lib/paths/index.js"
+      "types": "./lib/esm/paths/index.d.ts",
+      "import": "./lib/esm/paths/index.js",
+      "require": "./lib/cjs/paths/index.js"
     }
   },
-  "types": "lib/index.d.ts",
+  "types": "lib/cjs/index.d.ts",
   "scripts": {
+    "build:esm" : "tsc --build",
+    "build:cjs": "tsc --project tsconfig-cjs.json",
     "update:api": "api-extractor run --local"
   },
   "license": "Apache-2.0",

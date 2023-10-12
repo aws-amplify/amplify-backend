@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "lib/cjs",
+    "module": "CommonJS",
+    "moduleResolution": "Node"
+  },
+  "references": [{ "path": "../platform-core" }, { "path": "../plugin-types" }]
+}

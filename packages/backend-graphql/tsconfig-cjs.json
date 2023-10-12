@@ -2,11 +2,13 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "rootDir": "src",
-    "outDir": "lib/esm",
-    "resolveJsonModule": true
+    "outDir": "lib/cjs",
+    "module": "CommonJS"
   },
   "references": [
+    { "path": "../backend-output-storage" },
     { "path": "../backend-output-schemas" },
-    { "path": "../deployed-backend-client" }
+    { "path": "../plugin-types" },
+    { "path": "../backend" }
   ]
 }

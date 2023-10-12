@@ -1,12 +1,14 @@
 {
   "name": "@aws-amplify/plugin-types",
   "version": "0.2.0-alpha.9",
-  "types": "lib/index.d.ts",
+  "types": "lib/cjs/index.d.ts",
   "type": "module",
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
+    "build:esm" : "tsc --build",
+    "build:cjs": "tsc --project tsconfig-cjs.json",
     "update:api": "api-extractor run --local"
   },
   "license": "Apache-2.0",

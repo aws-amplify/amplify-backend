@@ -12,6 +12,8 @@
     "create-amplify": "./lib/create_amplify.js"
   },
   "scripts": {
+    "build:esm" : "tsc --build",
+    "build:cjs": "",
     "install:local": "npm link",
     "update:api": "api-extractor run --local"
   },
