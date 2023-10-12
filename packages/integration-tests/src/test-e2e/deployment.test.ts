@@ -62,6 +62,7 @@ void describe('amplify deploys', () => {
           ).toString()
         );
         assert.deepStrictEqual(Object.keys(clientConfig).sort(), [
+          'aws_appsync_additionalAuthenticationTypes',
           'aws_appsync_authenticationType',
           'aws_appsync_graphqlEndpoint',
           'aws_appsync_region',
