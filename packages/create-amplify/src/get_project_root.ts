@@ -17,7 +17,7 @@ export const getProjectRoot = async () => {
 
   projectRoot = path.isAbsolute(projectRoot)
     ? projectRoot
-    : path.resolve(__dirname, projectRoot);
+    : path.resolve(process.cwd(), projectRoot);
   console.log(`🦋 Creating project in ${projectRoot}`);
   if (!fs.existsSync(projectRoot)) {
     fs.mkdirSync(projectRoot, { recursive: true });
