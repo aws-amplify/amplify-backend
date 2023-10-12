@@ -44,7 +44,7 @@ export const rejectCleanupSandbox = () =>
  * Reusable predicated action: Wait for sandbox to become idle and then update the
  * backend code which should trigger sandbox again
  */
-export const updateBackendCode = (from: string, to: string) => {
+export const updateBackendCode = (from: URL, to: URL) => {
   return waitForSandboxToBecomeIdle().updateBackendCode(from, to);
 };
 

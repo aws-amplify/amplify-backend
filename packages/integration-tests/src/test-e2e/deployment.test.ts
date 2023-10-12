@@ -112,11 +112,12 @@ void describe('amplify deploys', () => {
         ).do(waitForSandboxDeployment());
 
         for (const update of testProject.updates) {
-          const fileToUpdate = path.join(
-            update.amplifyPath.pathname,
-            update.fileToUpdate
+          const fileToUpdate = pathToFileURL(
+            path.join(update.amplifyPath.pathname, update.fileToUpdate)
           );
-          const updateSource = path.join(testAmplifyDir, update.fileToUpdate);
+          const updateSource = pathToFileURL(
+            path.join(testAmplifyDir, update.fileToUpdate)
+          );
 
           processController
             .do(updateBackendCode(fileToUpdate, updateSource))

@@ -64,7 +64,7 @@ export class PredicatedActionBuilder {
    * Update the last predicated action to update backend code by copying files from
    * `from` location to `to` location.
    */
-  updateBackendCode = (from: string, to: string) => {
+  updateBackendCode = (from: URL, to: URL) => {
     this.getLastPredicatedAction().then = {
       actionType: ActionType.MAKE_CODE_CHANGES,
       action: async () => {
