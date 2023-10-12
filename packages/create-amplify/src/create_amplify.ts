@@ -13,13 +13,9 @@ import { AmplifyProjectCreator } from './amplify_project_creator.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
 import { NpmProjectInitializer } from './npm_project_initializer.js';
 import { TsConfigInitializer } from './tsconfig_initializer.js';
+import { getProjectRoot } from './get_project_root.js';
 
-/*
-  The project root is the root directory of the customer's repo
-  This is the directory above the `amplify` directory
-  We may want to expose a `--target` arg to the `create-amplify` command at some point, but for now, we just use process.cwd()
- */
-const projectRoot = process.cwd();
+const projectRoot = await getProjectRoot();
 
 const amplifyProjectCreator = new AmplifyProjectCreator(
   new NpmPackageManagerController(projectRoot),

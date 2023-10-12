@@ -2,6 +2,8 @@ import { confirm, password } from '@inquirer/prompts';
 
 /**
  * Wrapper for prompter library
+ * Because @inquirer/prompts library set the methods as non-configurable, we cannot mock the methods directly.
+ * see details: https://github.com/orgs/nodejs/discussions/47959
  */
 export class AmplifyPrompter {
   /**
