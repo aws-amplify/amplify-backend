@@ -186,8 +186,9 @@ void describe('Auth construct', () => {
       },
       multifactor: {
         enforcementType: 'OPTIONAL',
-        sms: true,
-        smsMessage: smsAuthenticationMessage,
+        sms: {
+          smsMessage: smsVerificationMessage,
+        },
         totp: false,
       },
     });
@@ -290,6 +291,52 @@ void describe('Auth construct', () => {
       {
         message:
           "Invalid phoneNumber settings. Property 'verificationMessage' must contain {####} as a placeholder for the verification code.",
+      }
+    );
+  });
+
+  void it('does not throw error if valid MFA message', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const validMFAMessage = 'valid MFA message with {####}';
+    assert.doesNotThrow(
+      () =>
+        new AmplifyAuth(stack, 'test', {
+          loginWith: {
+            email: true,
+          },
+          multifactor: {
+            enforcementType: 'OPTIONAL',
+            sms: {
+              smsMessage: validMFAMessage,
+            },
+            totp: false,
+          },
+        })
+    );
+  });
+
+  void it('throws error if invalid MFA message', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const invalidMFAMessage = 'invalid MFA message without code';
+    assert.throws(
+      () =>
+        new AmplifyAuth(stack, 'test', {
+          loginWith: {
+            email: true,
+          },
+          multifactor: {
+            enforcementType: 'OPTIONAL',
+            sms: {
+              smsMessage: invalidMFAMessage,
+            },
+            totp: false,
+          },
+        }),
+      {
+        message:
+          "Invalid MFA settings. Property 'smsMessage' must contain {####} as a placeholder for the verification code.",
       }
     );
   });

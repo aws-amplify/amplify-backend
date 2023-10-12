@@ -77,20 +77,16 @@ export type FacebookProviderProps = Omit<aws_cognito.UserPoolIdentityProviderFac
 export type GoogleProviderProps = Omit<aws_cognito.UserPoolIdentityProviderGoogleProps, 'userPool'>;
 
 // @public
-export type MFA = {
-    enforcementType: 'OFF';
-} | ({
-    enforcementType: 'OPTIONAL' | 'REQUIRED';
+export type MFA = ({
+    enforcementType: 'OFF' | 'OPTIONAL' | 'REQUIRED';
 } & MFASettings);
 
 // @public
 export type MFASettings = {
     totp: boolean;
-    sms: true;
-    smsMessage?: `${string}{####}${string}`;
-} | {
-    totp: boolean;
-    sms: false;
+    sms: boolean | {
+        smsMessage: string;
+    };
 };
 
 // @public
