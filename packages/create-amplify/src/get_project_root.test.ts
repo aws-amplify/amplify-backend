@@ -11,7 +11,6 @@ void describe('getProjectRoot', () => {
   });
   void it('returns the default project root directory if `--yes` is passed', async (ctx) => {
     process.env.npm_config_yes = 'true';
-    ctx.mock.method(AmplifyPrompter, 'input', () => Promise.resolve());
     const projectRoot = await getProjectRoot();
 
     assert.equal(projectRoot, '.');
