@@ -73,7 +73,8 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
 
           return {
             name: stackSummary.StackName as string,
-            lastUpdated: stackSummary.LastUpdatedTime,
+            lastUpdated:
+              stackSummary.LastUpdatedTime || stackSummary.CreationTime,
             status: this.translateStackStatus(stackSummary.StackStatus),
             deploymentType,
           };
