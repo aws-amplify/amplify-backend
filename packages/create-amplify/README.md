@@ -1,4 +1,4 @@
-create-amplify is a package allows the user to create an Amplify project by running `npm create amplify` (`npm` can be other popular package managers).
+create-amplify is a package allows the user to create an Amplify project by running `npm create amplify` (or using one of other popular package managers).
 
 ## Usage
 
