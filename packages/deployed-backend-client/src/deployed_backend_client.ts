@@ -74,7 +74,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
           return {
             name: stackSummary.StackName as string,
             lastUpdated:
-              stackSummary.LastUpdatedTime || stackSummary.CreationTime,
+              stackSummary.LastUpdatedTime ?? stackSummary.CreationTime,
             status: this.translateStackStatus(stackSummary.StackStatus),
             deploymentType,
           };
@@ -162,7 +162,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     );
     const stack = stackDescription?.Stacks?.[0];
     const status = this.translateStackStatus(stack?.StackStatus);
-    const lastUpdated = stack?.LastUpdatedTime || stack?.CreationTime;
+    const lastUpdated = stack?.LastUpdatedTime ?? stack?.CreationTime;
 
     const stackResources = await this.cfnClient.send(
       new ListStackResourcesCommand({
@@ -215,7 +215,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     if (authStack) {
       backendMetadataObject.authConfiguration = {
         status: this.translateStackStatus(authStack.StackStatus),
-        lastUpdated: authStack.LastUpdatedTime || authStack?.CreationTime,
+        lastUpdated: authStack.LastUpdatedTime ?? authStack.CreationTime,
         userPoolId: backendOutput[authOutputKey]?.payload.userPoolId as string,
       };
     }
@@ -223,7 +223,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     if (storageStack) {
       backendMetadataObject.storageConfiguration = {
         status: this.translateStackStatus(storageStack.StackStatus),
-        lastUpdated: storageStack.LastUpdatedTime || storageStack?.CreationTime,
+        lastUpdated: storageStack.LastUpdatedTime ?? storageStack.CreationTime,
         s3BucketName: backendOutput[storageOutputKey]?.payload
           .bucketName as string,
       };
@@ -250,7 +250,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
         : [];
       backendMetadataObject.apiConfiguration = {
         status: this.translateStackStatus(apiStack.StackStatus),
-        lastUpdated: apiStack.LastUpdatedTime || apiStack.CreationTime,
+        lastUpdated: apiStack.LastUpdatedTime ?? apiStack.CreationTime,
         graphqlEndpoint: backendOutput[graphqlOutputKey]?.payload
           .awsAppsyncApiEndpoint as string,
         defaultAuthType: backendOutput[graphqlOutputKey]?.payload

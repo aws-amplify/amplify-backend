@@ -2,4 +2,4 @@
 '@aws-amplify/deployed-backend-client': patch
 ---
 
-fix lastUpdated behavior
+Fall back backend metadata lastUpdated field to `CreationTime` when `LastUpdatedTime` is not set
