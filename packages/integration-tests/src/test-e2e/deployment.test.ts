@@ -116,7 +116,7 @@ void describe('amplify deploys', () => {
             path.join(fileURLToPath(update.amplifyPath), update.fileToUpdate)
           );
           const updateSource = pathToFileURL(
-            path.join(fileURLToPath(testAmplifyDir), update.fileToUpdate)
+            path.join(testAmplifyDir, update.fileToUpdate)
           );
 
           processController
