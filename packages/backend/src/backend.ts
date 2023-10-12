@@ -17,6 +17,20 @@ import {
 import { stackOutputKey } from '@aws-amplify/backend-output-schemas';
 
 /**
+ * Async builder for Backend class.
+ */
+export const defineBackend = async <
+  T extends Record<string, ConstructFactory<Construct>>
+>(
+  constructFactories: T,
+  stack: Stack = createDefaultStack()
+): Promise<Backend<T>> => {
+  const backend = new Backend(constructFactories, stack);
+  await backend.generate();
+  return backend;
+};
+
+/**
  * Class that collects and instantiates all the Amplify backend constructs
  */
 export class Backend<T extends Record<string, ConstructFactory<Construct>>> {
@@ -24,6 +38,7 @@ export class Backend<T extends Record<string, ConstructFactory<Construct>>> {
   /**
    * These are the resolved CDK constructs that are created by the inputs to the constructor
    * Used for overriding properties of underlying CDK constructs or to reference in custom CDK code
+   * Only initialized after invoking `generate` on the backend.
    */
   readonly resources: {
     [K in keyof T]: ReturnType<T[K]['getInstance']>;
