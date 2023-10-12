@@ -25,7 +25,9 @@ export abstract class UniqueBackendIdentifierBase
    * Parses identifier instance from stack name
    */
   static parse(stackName: string): UniqueBackendIdentifierBase {
-    throw new Error('Static method `parse` is not implemented');
+    throw new Error(
+      `Cannot parse '${stackName}'. Static method \`parse\` is not implemented.`
+    );
   }
 }
 
