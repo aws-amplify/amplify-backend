@@ -16,12 +16,25 @@
 <li><a href="../modules/_aws_amplify_auth_construct_alpha.html">@aws-amplify/auth-construct-alpha</a></li>
 <li><a href="_aws_amplify_auth_construct_alpha.GoogleProviderProps.html">GoogleProviderProps</a></li></ul>
 <h1>Type alias GoogleProviderProps</h1></div>
-<div class="tsd-signature"><span class="tsd-kind-type-alias">Google<wbr/>Provider<wbr/>Props</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type ">Omit</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">cognito.UserPoolIdentityProviderGoogleProps</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">&quot;userPool&quot;</span><span class="tsd-signature-symbol">&gt;</span></div>
+<div class="tsd-signature"><span class="tsd-kind-type-alias">Google<wbr/>Provider<wbr/>Props</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type ">Omit</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">cognito.UserPoolIdentityProviderGoogleProps</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">&quot;userPool&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;clientSecretValue&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;clientSecret&quot;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">clientSecret</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type ">SecretValue</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></div>
 <div class="tsd-comment tsd-typography"><p>Google provider.</p>
 </div>
+<div class="tsd-type-declaration">
+<h4>Type declaration</h4>
+<ul class="tsd-parameters">
+<li class="tsd-parameter">
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-property">client<wbr/>Secret</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type ">SecretValue</span></h5>
+<div class="tsd-comment tsd-typography"><p>The client secret to be accompanied with clientId for Google APIs to authenticate the client as SecretValue</p>
+</div>
+<div class="tsd-comment tsd-typography">
+<h4>See</h4><p><a href="https://developers.google.com/identity/sign-in/web/sign-in">https://developers.google.com/identity/sign-in/web/sign-in</a></p>
+
+<h4>Default</h4><pre><code class="language-ts"><span class="hl-4">none</span>
+</code><button>Copy</button></pre>
+</div></li></ul></div>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/73cad93/packages/auth-construct/src/types.ts#L87">packages/auth-construct/src/types.ts:87</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/db395e9/packages/auth-construct/src/types.ts#L87">packages/auth-construct/src/types.ts:87</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
