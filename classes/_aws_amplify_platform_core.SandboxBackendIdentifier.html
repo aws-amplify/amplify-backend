@@ -27,7 +27,7 @@
 <ul class="tsd-hierarchy">
 <li><span class="target">SandboxBackendIdentifier</span></li></ul></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/3082017/packages/platform-core/src/unique_backend_identifier.ts#L40">unique_backend_identifier.ts:40</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/5b9aac1/packages/platform-core/src/unique_backend_identifier.ts#L40">unique_backend_identifier.ts:40</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -41,6 +41,10 @@
 <h3 class="tsd-index-heading">Properties</h3>
 <div class="tsd-index-list"><a href="_aws_amplify_platform_core.SandboxBackendIdentifier.html#backendId" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>backend<wbr/>Id</span></a>
 <a href="_aws_amplify_platform_core.SandboxBackendIdentifier.html#disambiguator" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>disambiguator</span></a>
+</div></section>
+<section class="tsd-index-section">
+<h3 class="tsd-index-heading">Methods</h3>
+<div class="tsd-index-list"><a href="_aws_amplify_platform_core.SandboxBackendIdentifier.html#tryParse" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>try<wbr/>Parse</span></a>
 </div></section></div></details></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Constructors</h2>
@@ -60,7 +64,7 @@
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Overrides <a href="_aws_amplify_platform_core.UniqueBackendIdentifierBase.html">UniqueBackendIdentifierBase</a>.<a href="_aws_amplify_platform_core.UniqueBackendIdentifierBase.html#constructor">constructor</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/3082017/packages/platform-core/src/unique_backend_identifier.ts#L44">unique_backend_identifier.ts:44</a></li></ul></aside></li></ul></section></section>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/5b9aac1/packages/platform-core/src/unique_backend_identifier.ts#L44">unique_backend_identifier.ts:44</a></li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Properties</h2>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="backendId" class="tsd-anchor"></a>
@@ -72,7 +76,7 @@ For sandbox deployments, this is a concatenation of package.json#name and the cu
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="_aws_amplify_platform_core.UniqueBackendIdentifierBase.html">UniqueBackendIdentifierBase</a>.<a href="_aws_amplify_platform_core.UniqueBackendIdentifierBase.html#backendId">backendId</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/3082017/packages/platform-core/src/unique_backend_identifier.ts#L44">unique_backend_identifier.ts:44</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/5b9aac1/packages/platform-core/src/unique_backend_identifier.ts#L44">unique_backend_identifier.ts:44</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="disambiguator" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagReadonly">Readonly</code> <span>disambiguator</span><a href="#disambiguator" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">disambiguator</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
@@ -81,7 +85,25 @@ For sandbox deployments, this is a concatenation of package.json#name and the cu
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="_aws_amplify_platform_core.UniqueBackendIdentifierBase.html">UniqueBackendIdentifierBase</a>.<a href="_aws_amplify_platform_core.UniqueBackendIdentifierBase.html#disambiguator">disambiguator</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/3082017/packages/platform-core/src/unique_backend_identifier.ts#L21">unique_backend_identifier.ts:21</a></li></ul></aside></section></section></div>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/5b9aac1/packages/platform-core/src/unique_backend_identifier.ts#L21">unique_backend_identifier.ts:21</a></li></ul></aside></section></section>
+<section class="tsd-panel-group tsd-member-group">
+<h2>Methods</h2>
+<section class="tsd-panel tsd-member"><a id="tryParse" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>try<wbr/>Parse</span><a href="#tryParse" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="tsd-signature tsd-anchor-link" id="tryParse.tryParse-1"><span class="tsd-kind-call-signature">try<wbr/>Parse</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">sandboxName</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="_aws_amplify_platform_core.SandboxBackendIdentifier.html" class="tsd-signature-type tsd-kind-class">SandboxBackendIdentifier</a><a href="#tryParse.tryParse-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Parses identifier instance from sandbox name</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5><span class="tsd-kind-parameter">sandboxName</span>: <span class="tsd-signature-type">string</span></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="_aws_amplify_platform_core.SandboxBackendIdentifier.html" class="tsd-signature-type tsd-kind-class">SandboxBackendIdentifier</a></h4>
+<div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/5b9aac1/packages/platform-core/src/unique_backend_identifier.ts#L54">unique_backend_identifier.ts:54</a></li></ul></aside></li></ul></section></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -103,7 +125,8 @@ For sandbox deployments, this is a concatenation of package.json#name and the cu
 <ul>
 <li><a href="#constructor" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-512"></use></svg><span>constructor</span></a></li>
 <li><a href="#backendId" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>backend<wbr/>Id</span></a></li>
-<li><a href="#disambiguator" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>disambiguator</span></a></li></ul></div></details></div>
+<li><a href="#disambiguator" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>disambiguator</span></a></li>
+<li><a href="#tryParse" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>try<wbr/>Parse</span></a></li></ul></div></details></div>
 <div class="site-menu">
 <nav class="tsd-navigation"><a href="../index.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1"></use></svg><span>Amplify Toolbox</span></a>
 <ul class="tsd-small-nested-navigation" id="tsd-nav-container" data-base="..">
