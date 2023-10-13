@@ -381,12 +381,16 @@ export class AmplifyAuth
       return result;
     }
     if (external.google) {
+      const googleProps = external.google;
       result.google = new cognito.UserPoolIdentityProviderGoogle(
         this,
         'GoogleIdP',
         {
           userPool,
-          ...external.google,
+          clientId: googleProps.clientId,
+          clientSecretValue: googleProps.clientSecret,
+          attributeMapping: googleProps.attributeMapping,
+          scopes: googleProps.scopes,
         }
       );
       result.oauthMappings[authProvidersList.google] = external.google.clientId;

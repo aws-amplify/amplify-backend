@@ -829,8 +829,7 @@ void describe('Auth construct', () => {
           externalProviders: {
             google: {
               clientId: googleClientId,
-              clientSecretValue:
-                SecretValue.unsafePlainText(googleClientSecret),
+              clientSecret: SecretValue.unsafePlainText(googleClientSecret),
             },
           },
         },
@@ -859,8 +858,7 @@ void describe('Auth construct', () => {
           externalProviders: {
             google: {
               clientId: googleClientId,
-              clientSecretValue:
-                SecretValue.unsafePlainText(googleClientSecret),
+              clientSecret: SecretValue.unsafePlainText(googleClientSecret),
             },
           },
         },
@@ -1175,8 +1173,7 @@ void describe('Auth construct', () => {
           externalProviders: {
             google: {
               clientId: googleClientId,
-              clientSecretValue:
-                SecretValue.unsafePlainText(googleClientSecret),
+              clientSecret: SecretValue.unsafePlainText(googleClientSecret),
             },
             facebook: {
               clientId: facebookClientId,

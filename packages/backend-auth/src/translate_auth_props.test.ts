@@ -61,7 +61,7 @@ void describe('translateToAuthConstructLoginWith', () => {
       externalProviders: {
         google: {
           clientId: new TestBackendSecret(googleClientId),
-          clientSecretValue: new TestBackendSecret(googleClientSecret),
+          clientSecret: new TestBackendSecret(googleClientSecret),
         },
         facebook: {
           clientId: new TestBackendSecret(facebookClientId),
@@ -96,7 +96,7 @@ void describe('translateToAuthConstructLoginWith', () => {
       externalProviders: {
         google: {
           clientId: googleClientId,
-          clientSecretValue: SecretValue.unsafePlainText(googleClientSecret),
+          clientSecret: SecretValue.unsafePlainText(googleClientSecret),
         },
         facebook: {
           clientId: facebookClientId,
