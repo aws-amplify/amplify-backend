@@ -6,11 +6,10 @@
 
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { BackendId } from '@aws-amplify/plugin-types';
-import { SSMServiceException } from '@aws-sdk/client-ssm';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 // @public
-export const getSecretClient: (credentialProvider?: AwsCredentialIdentityProvider) => SecretClient;
+export const getSecretClient: (secretClientOptions?: SecretClientOptions) => SecretClient;
 
 // @public
 export type Secret = SecretIdentifier & {
@@ -27,20 +26,23 @@ export type SecretClient = {
 };
 
 // @public
+export type SecretClientOptions = {
+    credentials?: AwsCredentialIdentityProvider;
+    region?: string;
+};
+
+// @public
 export class SecretError extends Error {
     constructor(message: string, options?: {
-        cause?: SecretErrorCause;
+        cause?: Error;
         httpStatusCode?: number;
     });
     // (undocumented)
-    cause: SecretErrorCause;
-    static fromSSMException: (ssmException: SSMServiceException) => SecretError;
+    cause?: Error;
+    static createInstance: (cause: Error) => SecretError;
     // (undocumented)
-    httpStatusCode: number | undefined;
+    httpStatusCode?: number;
 }
-
-// @public (undocumented)
-export type SecretErrorCause = SSMServiceException | undefined;
 
 // @public
 export type SecretIdentifier = {

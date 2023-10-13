@@ -64,14 +64,23 @@ export type SecretClient = {
 };
 
 /**
+ * Secret client options.
+ */
+export type SecretClientOptions = {
+  credentials?: AwsCredentialIdentityProvider;
+  region?: string;
+};
+
+/**
  * Creates an Amplify secret client.
  */
 export const getSecretClient = (
-  credentialProvider?: AwsCredentialIdentityProvider
+  secretClientOptions?: SecretClientOptions
 ): SecretClient => {
   return new SSMSecretClient(
     new SSM({
-      credentials: credentialProvider,
+      credentials: secretClientOptions?.credentials,
+      region: secretClientOptions?.region,
     })
   );
 };
