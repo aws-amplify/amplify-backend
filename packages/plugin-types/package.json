@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/plugin-types",
-  "version": "0.2.0-alpha.8",
+  "version": "0.2.0-alpha.9",
   "types": "lib/index.d.ts",
   "type": "module",
   "publishConfig": {
@@ -11,7 +11,7 @@
   },
   "license": "Apache-2.0",
   "peerDependencies": {
-    "aws-cdk-lib": "^2.80.0",
+    "aws-cdk-lib": "^2.100.0",
     "constructs": "^10.0.0"
   },
   "imports": {

@@ -1,5 +1,15 @@
 # @aws-amplify/backend-function
 
+## 0.1.1-alpha.7
+
+### Patch Changes
+
+- 59f5ea24: chore: upgrade aws-cdk to 2.100.0
+- Updated dependencies [59f5ea24]
+  - @aws-amplify/backend-output-storage@0.1.1-alpha.3
+  - @aws-amplify/function-construct-alpha@0.1.1-alpha.5
+  - @aws-amplify/plugin-types@0.2.0-alpha.9
+
 ## 0.1.1-alpha.6
 
 ### Patch Changes

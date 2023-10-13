@@ -1,11 +1,11 @@
 import { Construct } from 'constructs';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Duration } from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import * as path from 'path';
 import { Runtime as LambdaRuntime } from 'aws-cdk-lib/aws-lambda';
 import { Provider } from 'aws-cdk-lib/custom-resources';
 import { fileURLToPath } from 'url';
-import { SecretClient } from '@aws-amplify/backend-secret';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 const filename = fileURLToPath(import.meta.url);
@@ -20,11 +20,6 @@ const backendSecretLambdaFilePath = path.join(
  * The factory to create secret-fetcher provider.
  */
 export class BackendSecretFetcherProviderFactory {
-  /**
-   * Creates a secret-fetcher provider factory.
-   */
-  constructor(private readonly secretClient: SecretClient) {}
-
   /**
    * Returns a resource provider if it exists in the input scope. Otherwise,
    * creates a new provider.
@@ -46,7 +41,16 @@ export class BackendSecretFetcherProviderFactory {
       handler: 'handler',
     });
 
-    this.secretClient.grantPermission(secretLambda, backendIdentifier, ['GET']);
+    secretLambda.grantPrincipal.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['ssm:GetParameter'],
+        resources: [
+          `arn:aws:ssm:*:*:parameter/amplify/${backendIdentifier.backendId}/${backendIdentifier.disambiguator}/*`,
+          `arn:aws:ssm:*:*:parameter/amplify/shared/${backendIdentifier.backendId}/*`,
+        ],
+      })
+    );
 
     return new Provider(scope, providerId, {
       onEventHandler: secretLambda,

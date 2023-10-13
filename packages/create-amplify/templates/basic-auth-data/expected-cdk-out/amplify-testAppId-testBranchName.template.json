@@ -22,7 +22,8 @@
     "awsAppsyncApiEndpoint",
     "awsAppsyncAuthenticationType",
     "awsAppsyncRegion",
-    "amplifyApiModelSchemaS3Uri"
+    "amplifyApiModelSchemaS3Uri",
+    "awsAppsyncAdditionalAuthenticationTypes"
    ]
   }
  },
@@ -99,6 +100,9 @@
      ]
     ]
    }
+  },
+  "awsAppsyncAdditionalAuthenticationTypes": {
+   "Value": "AWS_IAM"
   }
  },
  "Resources": {
@@ -121,7 +125,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/ed44630901521ac138d2f1db1de37cd982b80f0bbb28871d69f3076f90dda64d.json"
+       "/c4edf79f7574430b93f82b5cfe42f5484c752e1c4cdae81e2e624f3b3ff1c2e5.json"
       ]
      ]
     }
@@ -132,26 +136,6 @@
   "data7552DF31": {
    "Type": "AWS::CloudFormation::Stack",
    "Properties": {
-    "TemplateURL": {
-     "Fn::Join": [
-      "",
-      [
-       "https://s3.",
-       {
-        "Ref": "AWS::Region"
-       },
-       ".",
-       {
-        "Ref": "AWS::URLSuffix"
-       },
-       "/",
-       {
-        "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
-       },
-       "/82883e013ee7b1df6300e6f10efeb028af79c1f3bc38f12203ccb07569466153.json"
-      ]
-     ]
-    },
     "Parameters": {
      "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthUserPoolC1B04074Ref": {
       "Fn::GetAtt": [
@@ -171,6 +155,26 @@
        "Outputs.amplifytestAppIdtestBranchNameauthamplifyAuthunauthenticatedUserRoleF8166590Ref"
       ]
      }
+    },
+    "TemplateURL": {
+     "Fn::Join": [
+      "",
+      [
+       "https://s3.",
+       {
+        "Ref": "AWS::Region"
+       },
+       ".",
+       {
+        "Ref": "AWS::URLSuffix"
+       },
+       "/",
+       {
+        "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+       },
+       "/7b8e00934c36879e19ee3b1bb8c801b4645b5a5fdc02774509f801c32e6c7f1e.json"
+      ]
+     ]
     }
    },
    "UpdateReplacePolicy": "Delete",

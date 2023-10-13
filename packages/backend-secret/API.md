@@ -6,12 +6,10 @@
 
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { BackendId } from '@aws-amplify/plugin-types';
-import * as iam from 'aws-cdk-lib/aws-iam';
-import { SSMServiceException } from '@aws-sdk/client-ssm';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 // @public
-export const getSecretClient: (credentialProvider?: AwsCredentialIdentityProvider) => SecretClient;
+export const getSecretClient: (secretClientOptions?: SecretClientOptions) => SecretClient;
 
 // @public
 export type Secret = SecretIdentifier & {
@@ -20,32 +18,31 @@ export type Secret = SecretIdentifier & {
 };
 
 // @public
-export type SecretAction = 'GET' | 'SET' | 'REMOVE' | 'LIST';
-
-// @public
 export type SecretClient = {
     getSecret: (backendIdentifier: UniqueBackendIdentifier | BackendId, secretIdentifier: SecretIdentifier) => Promise<Secret>;
     listSecrets: (backendIdentifier: UniqueBackendIdentifier | BackendId) => Promise<SecretListItem[]>;
     setSecret: (backendIdentifier: UniqueBackendIdentifier | BackendId, secretName: string, secretValue: string) => Promise<SecretIdentifier>;
     removeSecret: (backendIdentifier: UniqueBackendIdentifier | BackendId, secretName: string) => Promise<void>;
-    grantPermission: (resource: iam.IGrantable, backendIdentifier: UniqueBackendIdentifier, secretActions: SecretAction[]) => void;
+};
+
+// @public
+export type SecretClientOptions = {
+    credentials?: AwsCredentialIdentityProvider;
+    region?: string;
 };
 
 // @public
 export class SecretError extends Error {
     constructor(message: string, options?: {
-        cause?: SecretErrorCause;
+        cause?: Error;
         httpStatusCode?: number;
     });
     // (undocumented)
-    cause: SecretErrorCause;
-    static fromSSMException: (ssmException: SSMServiceException) => SecretError;
+    cause?: Error;
+    static createInstance: (cause: Error) => SecretError;
     // (undocumented)
-    httpStatusCode: number | undefined;
+    httpStatusCode?: number;
 }
-
-// @public (undocumented)
-export type SecretErrorCause = SSMServiceException | undefined;
 
 // @public
 export type SecretIdentifier = {

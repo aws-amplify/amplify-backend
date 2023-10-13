@@ -19,7 +19,6 @@ import {
   VerificationEmailStyle,
 } from 'aws-cdk-lib/aws-cognito';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
-import { AuthProps } from './types.js';
 import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 
 const googleClientId = 'googleClientId';
@@ -173,7 +172,7 @@ void describe('Auth construct', () => {
     const customEmailVerificationMessage = 'custom email body {####}';
     const customEmailVerificationSubject = 'custom subject';
     const smsVerificationMessage = 'the verification code is {####}';
-    const smsAuthenticationMessage = 'SMS MFA code is {####}';
+    const smsMFAMessage = 'SMS MFA code is {####}';
     new AmplifyAuth(stack, 'test', {
       loginWith: {
         email: {
@@ -187,8 +186,9 @@ void describe('Auth construct', () => {
       },
       multifactor: {
         enforcementType: 'OPTIONAL',
-        sms: true,
-        smsMessage: smsAuthenticationMessage,
+        sms: {
+          smsMessage: smsMFAMessage,
+        },
         totp: false,
       },
     });
@@ -204,67 +204,55 @@ void describe('Auth construct', () => {
       },
       MfaConfiguration: 'OPTIONAL',
       EnabledMfas: ['SMS_MFA'],
-      SmsAuthenticationMessage: smsAuthenticationMessage,
+      SmsAuthenticationMessage: smsMFAMessage,
       SmsVerificationMessage: smsVerificationMessage,
     });
   });
 
-  void it('expect compile error if invalid email verification message for CODE', () => {
+  void it('throws error if invalid email verification message for CODE', () => {
+    const app = new App();
+    const stack = new Stack(app);
     const customEmailVerificationMessage = 'invalid message without code';
-    const validMessage = 'valid {####} email';
     const customEmailVerificationSubject = 'custom subject';
-    let props: AuthProps = {
-      loginWith: {
-        email: {
-          // @ts-expect-error We know this is a compile error, but must have runtime validation as well.
-          verificationEmailBody: customEmailVerificationMessage,
-          verificationEmailStyle: VerificationEmailStyle.CODE,
-          verificationEmailSubject: customEmailVerificationSubject,
-        },
-      },
-    };
-    // bypass ts unused props warning
-    assert.notEqual(props, undefined);
-    props = {
-      loginWith: {
-        email: {
-          verificationEmailBody: validMessage,
-          verificationEmailStyle: VerificationEmailStyle.CODE,
-          verificationEmailSubject: customEmailVerificationSubject,
-        },
-      },
-    };
-    // bypass ts unused props warning
-    assert.notEqual(props, undefined);
+    assert.throws(
+      () =>
+        new AmplifyAuth(stack, 'test', {
+          loginWith: {
+            email: {
+              verificationEmailBody: customEmailVerificationMessage,
+              verificationEmailStyle: VerificationEmailStyle.CODE,
+              verificationEmailSubject: customEmailVerificationSubject,
+            },
+          },
+        }),
+      {
+        message:
+          "Invalid email settings. Property 'emailBody' must contain {####} as a placeholder for the verification code.",
+      }
+    );
   });
 
-  void it('expect compile error if invalid email verification message for LINK', () => {
+  void it('throws error if invalid email verification message for LINK', () => {
+    const app = new App();
+    const stack = new Stack(app);
     const customEmailVerificationMessage = 'invalid message without link';
-    const validMessage = 'valid {##Verify Email##}';
     const customEmailVerificationSubject = 'custom subject';
-    let props: AuthProps = {
-      loginWith: {
-        email: {
-          // @ts-expect-error We expect this to be a compile error
-          verificationEmailBody: customEmailVerificationMessage,
-          verificationEmailStyle: VerificationEmailStyle.LINK,
-          verificationEmailSubject: customEmailVerificationSubject,
-        },
-      },
-    };
-    // bypass ts unused props warning
-    assert.notEqual(props, undefined);
-    props = {
-      loginWith: {
-        email: {
-          verificationEmailBody: validMessage,
-          verificationEmailStyle: VerificationEmailStyle.LINK,
-          verificationEmailSubject: customEmailVerificationSubject,
-        },
-      },
-    };
-    // bypass ts unused props warning
-    assert.notEqual(props, undefined);
+    assert.throws(
+      () =>
+        new AmplifyAuth(stack, 'test', {
+          loginWith: {
+            email: {
+              verificationEmailBody: customEmailVerificationMessage,
+              verificationEmailStyle: VerificationEmailStyle.LINK,
+              verificationEmailSubject: customEmailVerificationSubject,
+            },
+          },
+        }),
+      {
+        message:
+          "Invalid email settings. Property 'emailBody' must contain {##Verify Email##} as a placeholder for the verification link.",
+      }
+    );
   });
 
   void it('does not throw if valid email verification message for LINK', () => {
@@ -287,28 +275,70 @@ void describe('Auth construct', () => {
     );
   });
 
-  void it('expect compile error if invalid sms verification message', () => {
+  void it('throws error if invalid sms verification message', () => {
+    const app = new App();
+    const stack = new Stack(app);
     const customSMSVerificationMessage = 'invalid message without code';
-    const validSMSVerificationMessage = 'valid {####}';
-    let props: AuthProps = {
-      loginWith: {
-        phoneNumber: {
-          // @ts-expect-error We expect this to be a compile error
-          verificationMessage: customSMSVerificationMessage,
-        },
-      },
-    };
-    // bypass ts unused props warning
-    assert.notEqual(props, undefined);
-    props = {
-      loginWith: {
-        phoneNumber: {
-          verificationMessage: validSMSVerificationMessage,
-        },
-      },
-    };
-    // bypass ts unused props warning
-    assert.notEqual(props, undefined);
+    assert.throws(
+      () =>
+        new AmplifyAuth(stack, 'test', {
+          loginWith: {
+            phoneNumber: {
+              verificationMessage: customSMSVerificationMessage,
+            },
+          },
+        }),
+      {
+        message:
+          "Invalid phoneNumber settings. Property 'verificationMessage' must contain {####} as a placeholder for the verification code.",
+      }
+    );
+  });
+
+  void it('does not throw error if valid MFA message', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const validMFAMessage = 'valid MFA message with {####}';
+    assert.doesNotThrow(
+      () =>
+        new AmplifyAuth(stack, 'test', {
+          loginWith: {
+            email: true,
+          },
+          multifactor: {
+            enforcementType: 'OPTIONAL',
+            sms: {
+              smsMessage: validMFAMessage,
+            },
+            totp: false,
+          },
+        })
+    );
+  });
+
+  void it('throws error if invalid MFA message', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const invalidMFAMessage = 'invalid MFA message without code';
+    assert.throws(
+      () =>
+        new AmplifyAuth(stack, 'test', {
+          loginWith: {
+            email: true,
+          },
+          multifactor: {
+            enforcementType: 'OPTIONAL',
+            sms: {
+              smsMessage: invalidMFAMessage,
+            },
+            totp: false,
+          },
+        }),
+      {
+        message:
+          "Invalid MFA settings. Property 'smsMessage' must contain {####} as a placeholder for the verification code.",
+      }
+    );
   });
 
   void it('requires email attribute if email is enabled', () => {
@@ -360,17 +390,14 @@ void describe('Auth construct', () => {
     const stack = new Stack(app);
     new AmplifyAuth(stack, 'test', {
       loginWith: { email: true },
-      userAttributes: [
-        AmplifyAuth.attribute('address').immutable(),
-        AmplifyAuth.attribute('familyName').required(),
-        AmplifyAuth.customAttribute.string('defaultString'),
-        AmplifyAuth.customAttribute
-          .string('minMaxString')
-          .minLength(0)
-          .maxLength(100),
-        AmplifyAuth.customAttribute.dateTime('birthDateTime'),
-        AmplifyAuth.customAttribute.number('numberMinMax').min(0).max(5),
-      ],
+      userAttributes: {
+        address: {
+          mutable: false,
+        },
+        familyName: {
+          required: true,
+        },
+      },
     });
     const template = Template.fromStack(stack);
     template.hasResourceProperties('AWS::Cognito::UserPool', {
@@ -390,73 +417,8 @@ void describe('Auth construct', () => {
           Name: 'family_name',
           Required: true,
         },
-        {
-          AttributeDataType: 'String',
-          Mutable: true,
-          Name: 'defaultString',
-          StringAttributeConstraints: {},
-        },
-        {
-          AttributeDataType: 'String',
-          Mutable: true,
-          Name: 'minMaxString',
-          StringAttributeConstraints: {
-            MinLength: '0',
-            MaxLength: '100',
-          },
-        },
-        {
-          AttributeDataType: 'DateTime',
-          Mutable: true,
-          Name: 'birthDateTime',
-        },
-        {
-          AttributeDataType: 'Number',
-          Mutable: true,
-          Name: 'numberMinMax',
-          NumberAttributeConstraints: {
-            MaxValue: '5',
-            MinValue: '0',
-          },
-        },
       ],
     });
-  });
-
-  void it('throws if duplicate custom attributes are found', () => {
-    const app = new App();
-    const stack = new Stack(app);
-    assert.throws(
-      () =>
-        new AmplifyAuth(stack, 'test', {
-          loginWith: { email: true },
-          userAttributes: [
-            AmplifyAuth.customAttribute.string('myCustomAttribute'),
-            AmplifyAuth.customAttribute.string('myCustomAttribute'),
-          ],
-        }),
-      {
-        message: `Invalid userAttributes. Duplicate custom attribute name found: myCustomAttribute.`,
-      }
-    );
-  });
-
-  void it('throws if duplicate user attributes are found', () => {
-    const app = new App();
-    const stack = new Stack(app);
-    assert.throws(
-      () =>
-        new AmplifyAuth(stack, 'test', {
-          loginWith: { email: true },
-          userAttributes: [
-            AmplifyAuth.attribute('address').immutable(),
-            AmplifyAuth.attribute('address').required(),
-          ],
-        }),
-      {
-        message: `Invalid userAttributes. Duplicate attribute name found: address.`,
-      }
-    );
   });
 
   void describe('storeOutput', () => {
@@ -983,7 +945,7 @@ void describe('Auth construct', () => {
         loginWith: {
           email: true,
           externalProviders: {
-            apple: {
+            signInWithApple: {
               clientId: appleClientId,
               keyId: appleKeyId,
               privateKey: applePrivateKey,
@@ -1014,7 +976,7 @@ void describe('Auth construct', () => {
         loginWith: {
           phoneNumber: true,
           externalProviders: {
-            apple: {
+            signInWithApple: {
               clientId: appleClientId,
               keyId: appleKeyId,
               privateKey: applePrivateKey,
@@ -1045,7 +1007,7 @@ void describe('Auth construct', () => {
         loginWith: {
           email: true,
           externalProviders: {
-            amazon: {
+            loginWithAmazon: {
               clientId: amazonClientId,
               clientSecret: amazonClientSecret,
             },
@@ -1074,7 +1036,7 @@ void describe('Auth construct', () => {
         loginWith: {
           phoneNumber: true,
           externalProviders: {
-            amazon: {
+            loginWithAmazon: {
               clientId: amazonClientId,
               clientSecret: amazonClientSecret,
             },
@@ -1220,13 +1182,13 @@ void describe('Auth construct', () => {
               clientId: facebookClientId,
               clientSecret: facebookClientSecret,
             },
-            apple: {
+            signInWithApple: {
               clientId: appleClientId,
               keyId: appleKeyId,
               privateKey: applePrivateKey,
               teamId: appleTeamId,
             },
-            amazon: {
+            loginWithAmazon: {
               clientId: amazonClientId,
               clientSecret: amazonClientSecret,
             },

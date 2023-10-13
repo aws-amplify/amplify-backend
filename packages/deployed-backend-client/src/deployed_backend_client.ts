@@ -73,7 +73,8 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
 
           return {
             name: stackSummary.StackName as string,
-            lastUpdated: stackSummary.LastUpdatedTime,
+            lastUpdated:
+              stackSummary.LastUpdatedTime ?? stackSummary.CreationTime,
             status: this.translateStackStatus(stackSummary.StackStatus),
             deploymentType,
           };
@@ -161,7 +162,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     );
     const stack = stackDescription?.Stacks?.[0];
     const status = this.translateStackStatus(stack?.StackStatus);
-    const lastUpdated = stack?.LastUpdatedTime;
+    const lastUpdated = stack?.LastUpdatedTime ?? stack?.CreationTime;
 
     const stackResources = await this.cfnClient.send(
       new ListStackResourcesCommand({
@@ -214,7 +215,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     if (authStack) {
       backendMetadataObject.authConfiguration = {
         status: this.translateStackStatus(authStack.StackStatus),
-        lastUpdated: authStack.LastUpdatedTime,
+        lastUpdated: authStack.LastUpdatedTime ?? authStack.CreationTime,
         userPoolId: backendOutput[authOutputKey]?.payload.userPoolId as string,
       };
     }
@@ -222,13 +223,25 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     if (storageStack) {
       backendMetadataObject.storageConfiguration = {
         status: this.translateStackStatus(storageStack.StackStatus),
-        lastUpdated: storageStack.LastUpdatedTime,
+        lastUpdated: storageStack.LastUpdatedTime ?? storageStack.CreationTime,
         s3BucketName: backendOutput[storageOutputKey]?.payload
           .bucketName as string,
       };
     }
 
     if (apiStack) {
+      const schemaFileUri =
+        backendOutput[graphqlOutputKey]?.payload.amplifyApiModelSchemaS3Uri;
+      const modelIntrospectionSchemaUri =
+        backendOutput[graphqlOutputKey]?.payload
+          .amplifyApiModelIntrospectionSchemaS3Uri ||
+        // TODO: Once the introspection schema is in the CFN output, remove the below line and the OR operator above.
+        // GH link: https://github.com/aws-amplify/samsara-cli/issues/395
+        `${schemaFileUri.slice(
+          0,
+          schemaFileUri.lastIndexOf('/')
+        )}/model-introspection-schema.json`;
+
       const additionalAuthTypesString =
         backendOutput[graphqlOutputKey]?.payload
           .awsAppsyncAdditionalAuthenticationTypes;
@@ -237,7 +250,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
         : [];
       backendMetadataObject.apiConfiguration = {
         status: this.translateStackStatus(apiStack.StackStatus),
-        lastUpdated: apiStack.LastUpdatedTime,
+        lastUpdated: apiStack.LastUpdatedTime ?? apiStack.CreationTime,
         graphqlEndpoint: backendOutput[graphqlOutputKey]?.payload
           .awsAppsyncApiEndpoint as string,
         defaultAuthType: backendOutput[graphqlOutputKey]?.payload
@@ -245,8 +258,11 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
         additionalAuthTypes,
         conflictResolutionMode: backendOutput[graphqlOutputKey]?.payload
           .awsAppsyncConflictResolutionMode as ConflictResolutionMode,
-        graphqlSchema: await this.fetchGraphqlSchema(
-          backendOutput[graphqlOutputKey]?.payload.amplifyApiModelSchemaS3Uri
+        graphqlSchema: await this.fetchSchema(schemaFileUri),
+        apiId: backendOutput[graphqlOutputKey]?.payload
+          .awsAppsyncApiId as string,
+        modelIntrospectionSchema: await this.fetchSchema(
+          modelIntrospectionSchemaUri
         ),
       };
     }
@@ -254,20 +270,20 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     return backendMetadataObject;
   };
 
-  private fetchGraphqlSchema = async (
-    graphqlSchemaS3Uri: string | undefined
+  private fetchSchema = async (
+    schemaS3Uri: string | undefined
   ): Promise<string> => {
-    if (!graphqlSchemaS3Uri) {
-      throw new Error('graphqlSchemaS3Uri output is not available');
+    if (!schemaS3Uri) {
+      throw new Error('schemaS3Uri output is not available');
     }
 
     // s3://{bucketName}/{fileName}
-    const uriParts = graphqlSchemaS3Uri.split('/');
+    const uriParts = schemaS3Uri.split('/');
     const bucketName = uriParts[2];
     const objectPath = uriParts.slice(3, uriParts.length).join('/');
 
     if (!bucketName || !objectPath) {
-      throw new Error('graphqlSchemaS3Uri is not valid');
+      throw new Error('schemaS3Uri is not valid');
     }
 
     const s3Response = await this.s3Client.send(
@@ -275,9 +291,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     );
 
     if (!s3Response.Body) {
-      throw new Error(
-        `s3Response from ${graphqlSchemaS3Uri} does not contain a Body`
-      );
+      throw new Error(`s3Response from ${schemaS3Uri} does not contain a Body`);
     }
 
     return await s3Response.Body?.transformToString();

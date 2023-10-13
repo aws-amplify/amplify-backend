@@ -69,7 +69,7 @@ export class AmplifyProjectCreator {
     await this.initialProjectFileGenerator.generateInitialProjectFiles();
 
     this.logger.log(
-      'All done! Run `amplify help` for a list of available commands.'
+      `All done! Run \`amplify help\` for a list of available commands. Get started by running \`amplify sandbox\``
     );
   };
 }

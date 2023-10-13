@@ -33,29 +33,39 @@ const listStacksMock = {
     {
       StackName: 'amplify-test-testBranch',
       StackStatus: StackStatus.CREATE_COMPLETE,
+      CreationTime: new Date(0),
     },
     {
       StackName: 'amplify-error-testBranch',
       StackStatus: StackStatus.CREATE_COMPLETE,
+      CreationTime: new Date(0),
     },
     {
       StackName: 'amplify-test-sandbox',
       StackStatus: StackStatus.CREATE_COMPLETE,
+      CreationTime: new Date(0),
+      LastUpdatedTime: new Date(1),
     },
     {
       StackName: 'amplify-test-testBranch-auth',
       StackStatus: StackStatus.CREATE_COMPLETE,
       ParentId: 'testStackId',
+      CreationTime: new Date(0),
+      LastUpdatedTime: new Date(1),
     },
     {
       StackName: 'amplify-test-testBranch-storage',
       StackStatus: StackStatus.CREATE_IN_PROGRESS,
       ParentId: 'testStackId',
+      CreationTime: new Date(0),
+      LastUpdatedTime: new Date(1),
     },
     {
       StackName: 'amplify-test-testBranch-data',
       StackStatus: StackStatus.CREATE_FAILED,
       ParentId: 'testStackId',
+      CreationTime: new Date(0),
+      LastUpdatedTime: new Date(1),
     },
   ],
 };
@@ -104,32 +114,36 @@ const getOutputMockResponse = {
   [graphqlOutputKey]: {
     payload: {
       awsAppsyncApiEndpoint: 'testAwsAppsyncApiEndpoint',
-      amplifyApiModelSchemaS3Uri: 's3://bucketName/filePath',
+      amplifyApiModelSchemaS3Uri: 's3://bucketName/model-schema.graphql',
+      awsAppsyncApiId: 'awsAppsyncApiId',
     },
   },
 };
 
 const expectedMetadata = {
-  lastUpdated: undefined,
+  lastUpdated: new Date(0),
   status: BackendDeploymentStatus.DEPLOYED,
   authConfiguration: {
     userPoolId: 'testUserPoolId',
-    lastUpdated: undefined,
+    lastUpdated: new Date(1),
     status: BackendDeploymentStatus.DEPLOYED,
   },
   storageConfiguration: {
     s3BucketName: 'testBucketName',
-    lastUpdated: undefined,
+    lastUpdated: new Date(1),
     status: BackendDeploymentStatus.DEPLOYING,
   },
   apiConfiguration: {
     graphqlEndpoint: 'testAwsAppsyncApiEndpoint',
-    lastUpdated: undefined,
+    lastUpdated: new Date(1),
     status: BackendDeploymentStatus.FAILED,
     defaultAuthType: undefined,
     additionalAuthTypes: [],
-    graphqlSchema: 's3://bucketName/filePath schema contents!',
+    graphqlSchema: 's3://bucketName/model-schema.graphql schema contents!',
     conflictResolutionMode: undefined,
+    apiId: 'awsAppsyncApiId',
+    modelIntrospectionSchema:
+      's3://bucketName/model-introspection-schema.json schema contents!',
   },
 };
 
@@ -211,31 +225,31 @@ void describe('Deployed Backend Client', () => {
           deploymentType: BackendDeploymentType.SANDBOX,
           name: 'amplify-test-testBranch',
           status: BackendDeploymentStatus.DEPLOYED,
-          lastUpdated: undefined,
+          lastUpdated: new Date(0),
         },
         {
           deploymentType: BackendDeploymentType.SANDBOX,
           name: 'amplify-test-sandbox',
           status: BackendDeploymentStatus.DEPLOYED,
-          lastUpdated: undefined,
+          lastUpdated: new Date(1),
         },
         {
           deploymentType: BackendDeploymentType.SANDBOX,
           name: 'amplify-test-testBranch-auth',
           status: BackendDeploymentStatus.DEPLOYED,
-          lastUpdated: undefined,
+          lastUpdated: new Date(1),
         },
         {
           deploymentType: BackendDeploymentType.SANDBOX,
           name: 'amplify-test-testBranch-storage',
           status: BackendDeploymentStatus.DEPLOYING,
-          lastUpdated: undefined,
+          lastUpdated: new Date(1),
         },
         {
           deploymentType: BackendDeploymentType.SANDBOX,
           name: 'amplify-test-testBranch-data',
           status: BackendDeploymentStatus.FAILED,
-          lastUpdated: undefined,
+          lastUpdated: new Date(1),
         },
       ],
     });
@@ -278,7 +292,7 @@ void describe('Deployed Backend Client pagination', () => {
       deploymentType: BackendDeploymentType.SANDBOX,
       name: 'amplify-test-sandbox',
       status: BackendDeploymentStatus.DEPLOYED,
-      lastUpdated: undefined,
+      lastUpdated: new Date(1),
     },
   ];
 

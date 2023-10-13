@@ -70,13 +70,13 @@ export class SandboxDeleteCommand
         .option('exclude', {
           hidden: true,
         })
-        .option('dirToWatch', {
+        .option('dir-to-watch', {
           hidden: true,
         })
         .check((argv) => {
           if (argv.dirToWatch || argv.exclude) {
             throw new Error(
-              `--dirToWatch or --exclude are not valid options for delete`
+              `--dir-to-watch or --exclude are not valid options for delete`
             );
           }
           if (argv.name) {

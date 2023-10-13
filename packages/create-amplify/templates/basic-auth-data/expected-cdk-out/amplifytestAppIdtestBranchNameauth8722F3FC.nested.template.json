@@ -60,9 +60,6 @@
   "amplifyAuthUserPoolWebClientA385E48A": {
    "Type": "AWS::Cognito::UserPoolClient",
    "Properties": {
-    "UserPoolId": {
-     "Ref": "amplifyAuthUserPool4BA7F805"
-    },
     "AllowedOAuthFlows": [
      "implicit",
      "code"
@@ -86,7 +83,10 @@
     "PreventUserExistenceErrors": "ENABLED",
     "SupportedIdentityProviders": [
      "COGNITO"
-    ]
+    ],
+    "UserPoolId": {
+     "Ref": "amplifyAuthUserPool4BA7F805"
+    }
    }
   },
   "amplifyAuthauthenticatedUserRoleD8DA3689": {

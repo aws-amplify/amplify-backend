@@ -9,7 +9,6 @@ import {
 import { SSMSecretClient } from './ssm_secret.js';
 import assert from 'node:assert';
 import { SecretError } from './secret_error.js';
-import * as iam from 'aws-cdk-lib/aws-iam';
 import { Secret, SecretIdentifier, SecretListItem } from './secret.js';
 import { BranchBackendIdentifier } from '@aws-amplify/platform-core';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
@@ -132,7 +131,7 @@ void describe('SSMSecret', () => {
       mock.method(ssmClient, 'getParameter', () =>
         Promise.reject(ssmNotFoundException)
       );
-      const expectedErr = SecretError.fromSSMException(ssmNotFoundException);
+      const expectedErr = SecretError.createInstance(ssmNotFoundException);
       await assert.rejects(
         () => ssmSecretClient.getSecret('', { name: '' }),
         expectedErr
@@ -205,7 +204,7 @@ void describe('SSMSecret', () => {
         Promise.reject(ssmNotFoundException)
       );
       const ssmSecretClient = new SSMSecretClient(ssmClient);
-      const expectedErr = SecretError.fromSSMException(ssmNotFoundException);
+      const expectedErr = SecretError.createInstance(ssmNotFoundException);
       await assert.rejects(
         () => ssmSecretClient.setSecret('', '', ''),
         expectedErr
@@ -252,7 +251,7 @@ void describe('SSMSecret', () => {
         Promise.reject(ssmNotFoundException)
       );
       const ssmSecretClient = new SSMSecretClient(ssmClient);
-      const expectedErr = SecretError.fromSSMException(ssmNotFoundException);
+      const expectedErr = SecretError.createInstance(ssmNotFoundException);
       await assert.rejects(
         () => ssmSecretClient.removeSecret('', ''),
         expectedErr
@@ -371,37 +370,8 @@ void describe('SSMSecret', () => {
         Promise.reject(ssmInternalServerError)
       );
       const ssmSecretClient = new SSMSecretClient(ssmClient);
-      const expectedErr = SecretError.fromSSMException(ssmInternalServerError);
+      const expectedErr = SecretError.createInstance(ssmInternalServerError);
       await assert.rejects(() => ssmSecretClient.listSecrets(''), expectedErr);
-    });
-  });
-
-  void describe('grantPermission', () => {
-    const ssmSecretClient = new SSMSecretClient(new SSM());
-    void it('grants permission', () => {
-      const mockAddToPrincipalPolicy = mock.fn();
-      ssmSecretClient.grantPermission(
-        {
-          grantPrincipal: {
-            addToPrincipalPolicy: mockAddToPrincipalPolicy,
-          } as unknown as iam.IPrincipal,
-        } as iam.IGrantable,
-        new BranchBackendIdentifier(testBackendId, testBranchName),
-        ['GET', 'LIST']
-      );
-      const expected = new iam.PolicyStatement({
-        effect: iam.Effect.ALLOW,
-        actions: ['ssm:GetParameter', 'ssm:GetParametersByPath'],
-        resources: [
-          `arn:aws:ssm:*:*:parameter/amplify/${testBackendId}/${testBranchName}/*`,
-          `arn:aws:ssm:*:*:parameter/amplify/${shared}/${testBackendId}/*`,
-        ],
-      });
-      assert.equal(mockAddToPrincipalPolicy.mock.callCount(), 1);
-      assert.deepStrictEqual(
-        mockAddToPrincipalPolicy.mock.calls[0].arguments[0],
-        expected
-      );
     });
   });
 });

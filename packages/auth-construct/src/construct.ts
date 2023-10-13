@@ -18,18 +18,13 @@ import {
   UserPoolIdentityProviderSaml,
   UserPoolOperation,
   UserPoolProps,
+  VerificationEmailStyle,
 } from 'aws-cdk-lib/aws-cognito';
 import { FederatedPrincipal, Role } from 'aws-cdk-lib/aws-iam';
 import { AuthOutput } from '@aws-amplify/backend-output-schemas/auth';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
 import { AuthProps, TriggerEvent } from './types.js';
 import { DEFAULTS } from './defaults.js';
-import {
-  AuthAttributeFactory,
-  AuthCustomAttributeBase,
-  AuthCustomAttributeFactory,
-  AuthStandardAttribute,
-} from './attributes.js';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 
@@ -218,6 +213,29 @@ export class AmplifyAuth
     let userVerificationSettings: cognito.UserVerificationConfig = {};
     if (emailEnabled && typeof props.loginWith.email === 'object') {
       const emailSettings = props.loginWith.email;
+      if (
+        emailSettings.verificationEmailBody &&
+        emailSettings.verificationEmailStyle !== VerificationEmailStyle.LINK
+      ) {
+        if (emailSettings.verificationEmailBody.indexOf('{####}') === -1) {
+          throw Error(
+            "Invalid email settings. Property 'emailBody' must contain {####} as a placeholder for the verification code."
+          );
+        }
+      }
+      if (
+        emailSettings.verificationEmailBody &&
+        emailSettings.verificationEmailStyle === VerificationEmailStyle.LINK
+      ) {
+        if (
+          emailSettings.verificationEmailBody.indexOf('{##Verify Email##}') ===
+          -1
+        ) {
+          throw Error(
+            "Invalid email settings. Property 'emailBody' must contain {##Verify Email##} as a placeholder for the verification link."
+          );
+        }
+      }
       userVerificationSettings = {
         emailBody: emailSettings.verificationEmailBody,
         emailStyle: emailSettings.verificationEmailStyle,
@@ -226,48 +244,20 @@ export class AmplifyAuth
     }
     if (phoneEnabled && typeof props.loginWith.phoneNumber === 'object') {
       const phoneSettings = props.loginWith.phoneNumber;
+      if (
+        phoneSettings.verificationMessage &&
+        phoneSettings.verificationMessage.indexOf('{####}') === -1
+      ) {
+        // validate sms message structure
+        throw Error(
+          "Invalid phoneNumber settings. Property 'verificationMessage' must contain {####} as a placeholder for the verification code."
+        );
+      }
       userVerificationSettings = {
         ...userVerificationSettings,
         smsMessage: phoneSettings.verificationMessage,
       };
     }
-    // extract standard and custom attributes
-    let standardAttributes: cognito.StandardAttributes = {};
-    let customAttributes: {
-      [key: string]: cognito.ICustomAttribute;
-    } = {};
-    // standard attribute names must be unique to prevent unintentional behavior
-    const attributeNames: Set<string> = new Set();
-    // custom attribute names must be unique (they are given a 'custom:' prefix so they don't interfere with standard attributes)
-    const customAttributeNames: Set<string> = new Set();
-    if (props.userAttributes) {
-      for (const attr of props.userAttributes) {
-        if (attr instanceof AuthStandardAttribute) {
-          if (attributeNames.has(attr['name'])) {
-            throw new Error(
-              `Invalid userAttributes. Duplicate attribute name found: ${attr['name']}.`
-            );
-          }
-          attributeNames.add(attr['name']);
-          standardAttributes = {
-            ...standardAttributes,
-            ...attr['_toStandardAttributes'](),
-          };
-        } else if (attr instanceof AuthCustomAttributeBase) {
-          if (customAttributeNames.has(attr['name'])) {
-            throw new Error(
-              `Invalid userAttributes. Duplicate custom attribute name found: ${attr['name']}.`
-            );
-          }
-          customAttributeNames.add(attr['name']);
-          customAttributes = {
-            ...customAttributes,
-            ...attr['_toCustomAttributes'](),
-          };
-        }
-      }
-    }
-
     const userPoolProps: UserPoolProps = {
       signInCaseSensitive: DEFAULTS.SIGN_IN_CASE_SENSITIVE,
       signInAliases: {
@@ -283,23 +273,18 @@ export class AmplifyAuth
       standardAttributes: {
         email: DEFAULTS.IS_REQUIRED_ATTRIBUTE.email(emailEnabled),
         phoneNumber: DEFAULTS.IS_REQUIRED_ATTRIBUTE.phoneNumber(phoneEnabled),
-        ...standardAttributes,
-      },
-      customAttributes: {
-        ...customAttributes,
+        ...(props.userAttributes ? props.userAttributes : {}),
       },
       selfSignUpEnabled: DEFAULTS.ALLOW_SELF_SIGN_UP,
       mfa: this.getMFAEnforcementType(props.multifactor),
-      mfaMessage:
-        typeof props.multifactor === 'object' &&
-        props.multifactor.enforcementType !== 'OFF' &&
-        props.multifactor.sms === true
-          ? props.multifactor.smsMessage
-          : undefined,
+      mfaMessage: this.getMFAMessage(props.multifactor),
       mfaSecondFactor:
         typeof props.multifactor === 'object' &&
         props.multifactor.enforcementType !== 'OFF'
-          ? { sms: props.multifactor.sms, otp: props.multifactor.totp }
+          ? {
+              sms: props.multifactor.sms ? true : false,
+              otp: props.multifactor.totp,
+            }
           : undefined,
       accountRecovery: this.getAccountRecoverySetting(
         emailEnabled,
@@ -341,7 +326,7 @@ export class AmplifyAuth
   /**
    * Convert user friendly Mfa type to cognito Mfa type.
    * This eliminates the need for users to import cognito.Mfa.
-   * @param mfa - MFA Enforcement type string value
+   * @param mfa - MFA settings
    * @returns cognito MFA enforcement type
    */
   private getMFAEnforcementType = (
@@ -356,6 +341,26 @@ export class AmplifyAuth
         case 'REQUIRED':
           return Mfa.REQUIRED;
       }
+    }
+    return undefined;
+  };
+
+  /**
+   * Extract the MFA message settings and perform validation.
+   * @param mfa - MFA settings
+   * @returns mfa message
+   */
+  private getMFAMessage = (
+    mfa: AuthProps['multifactor']
+  ): string | undefined => {
+    if (mfa && mfa.enforcementType !== 'OFF' && typeof mfa.sms === 'object') {
+      const message = mfa.sms.smsMessage;
+      if (message.indexOf('{####}') === -1) {
+        throw Error(
+          "Invalid MFA settings. Property 'smsMessage' must contain {####} as a placeholder for the verification code."
+        );
+      }
+      return message;
     }
     return undefined;
   };
@@ -398,27 +403,29 @@ export class AmplifyAuth
       result.oauthMappings[authProvidersList.facebook] =
         external.facebook.clientId;
     }
-    if (external.amazon) {
+    if (external.loginWithAmazon) {
       result.amazon = new cognito.UserPoolIdentityProviderAmazon(
         this,
         'AmazonIDP',
         {
           userPool,
-          ...external.amazon,
+          ...external.loginWithAmazon,
         }
       );
-      result.oauthMappings[authProvidersList.amazon] = external.amazon.clientId;
+      result.oauthMappings[authProvidersList.amazon] =
+        external.loginWithAmazon.clientId;
     }
-    if (external.apple) {
+    if (external.signInWithApple) {
       result.apple = new cognito.UserPoolIdentityProviderApple(
         this,
         'AppleIDP',
         {
           userPool,
-          ...external.apple,
+          ...external.signInWithApple,
         }
       );
-      result.oauthMappings[authProvidersList.apple] = external.apple.clientId;
+      result.oauthMappings[authProvidersList.apple] =
+        external.signInWithApple.clientId;
     }
     if (external.oidc) {
       result.oidc = new cognito.UserPoolIdentityProviderOidc(this, 'OidcIDP', {
@@ -486,23 +493,4 @@ export class AmplifyAuth
       this.userPool.addTrigger(UserPoolOperation.of(event), handler);
     }
   };
-
-  /**
-   * Utility for adding user attributes.
-   *
-   * Example:
-   * userAttributes: [
-   *  AmplifyAuth.attribute('address').immutable().required(),
-   * ]
-   */
-  public static attribute = AuthAttributeFactory;
-  /**
-   * Utility for adding custom attributes.
-   *
-   * Example:
-   * userAttributes: [
-   *  AmplifyAuth.customAttribute.number('petsCount').min(0).max(5)
-   * ]
-   */
-  public static customAttribute = new AuthCustomAttributeFactory();
 }
