@@ -47,4 +47,22 @@ export class SandboxBackendIdentifier extends UniqueBackendIdentifierBase {
      */
     super(backendId, 'sandbox');
   }
+
+  /**
+   * Parses identifier instance from sandbox name
+   */
+  static tryParse(sandboxName: string): SandboxBackendIdentifier | undefined {
+    const expectedSandboxNamePrefix = 'amplify-';
+    const expectedSandboxNameSuffix = '-sandbox';
+    if (
+      !sandboxName.startsWith(expectedSandboxNamePrefix) ||
+      !sandboxName.endsWith(expectedSandboxNameSuffix)
+    ) {
+      return;
+    }
+    const backendId = sandboxName
+      .replace(expectedSandboxNamePrefix, '')
+      .replace(expectedSandboxNameSuffix, '');
+    return new SandboxBackendIdentifier(backendId);
+  }
 }

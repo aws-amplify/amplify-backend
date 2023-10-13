@@ -27,6 +27,7 @@ export class SandboxBackendIdentifier extends UniqueBackendIdentifierBase {
     constructor(backendId: BackendId);
     // (undocumented)
     readonly backendId: BackendId;
+    static tryParse(sandboxName: string): SandboxBackendIdentifier | undefined;
 }
 
 // @public
