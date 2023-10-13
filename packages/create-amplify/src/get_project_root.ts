@@ -1,4 +1,4 @@
-import fs from 'fs';
+import fsp from 'fs/promises';
 import path from 'path';
 import { AmplifyPrompter } from './amplify_prompts.js';
 
@@ -18,10 +18,15 @@ export const getProjectRoot = async () => {
   projectRoot = path.isAbsolute(projectRoot)
     ? projectRoot
     : path.resolve(process.cwd(), projectRoot);
-  if (!fs.existsSync(projectRoot)) {
+
+  const isExistProjectRoot = await fsp
+    .stat(projectRoot)
+    .then(() => true)
+    .catch(() => false); // There's no `fsp.exists` method, so we use `stat` instead. See https://github.com/nodejs/node/issues/39960#issuecomment-909444667
+  if (!isExistProjectRoot) {
     console.log(`⚠️ The provided directory (${projectRoot}) does not exist.`);
     console.log(`🗂️ Creating directory ${projectRoot}`);
-    fs.mkdirSync(projectRoot, { recursive: true });
+    await fsp.mkdir(projectRoot, { recursive: true });
   }
   return projectRoot;
 };

@@ -1,6 +1,6 @@
 import { afterEach, describe, it } from 'node:test';
 import assert from 'assert';
-import fs from 'fs';
+import fsp from 'fs/promises';
 import path from 'path';
 import { getProjectRoot } from './get_project_root.js';
 import { AmplifyPrompter } from './amplify_prompts.js';
@@ -41,8 +41,8 @@ void describe('getProjectRoot', () => {
   void it('creates the project root directory if the user provided absolute path does not exist', async (ctx) => {
     process.env.npm_config_yes = 'false';
     const userInput = path.resolve(process.cwd(), 'test', 'root');
-    const fsMkDirSyncMock = ctx.mock.method(fs, 'mkdirSync', () => undefined);
-    ctx.mock.method(fs, 'existsSync', () => false);
+    const fsMkDirSyncMock = ctx.mock.method(fsp, 'mkdir', () => undefined);
+    ctx.mock.method(fsp, 'stat', () => Promise.reject(new Error()));
     ctx.mock.method(AmplifyPrompter, 'input', () => Promise.resolve(userInput));
 
     const projectRoot = await getProjectRoot();
@@ -54,8 +54,8 @@ void describe('getProjectRoot', () => {
   void it('creates the project root directory if the user provided relative path does not exist', async (ctx) => {
     process.env.npm_config_yes = 'false';
     const userInput = path.resolve('test', 'root');
-    const fsMkDirSyncMock = ctx.mock.method(fs, 'mkdirSync', () => undefined);
-    ctx.mock.method(fs, 'existsSync', () => false);
+    const fsMkDirSyncMock = ctx.mock.method(fsp, 'mkdir', () => undefined);
+    ctx.mock.method(fsp, 'stat', () => Promise.reject(new Error()));
     ctx.mock.method(AmplifyPrompter, 'input', () => Promise.resolve(userInput));
 
     const projectRoot = await getProjectRoot();
