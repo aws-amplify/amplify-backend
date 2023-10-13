@@ -73,7 +73,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
 
           return {
             name: stackSummary.StackName as string,
-            backendId: SandboxBackendIdentifier.parse(
+            backendId: SandboxBackendIdentifier.tryParse(
               stackSummary.StackName as string
             ),
             lastUpdated:

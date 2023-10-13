@@ -30,7 +30,7 @@ export type SandboxMetadata = {
   name: string;
   lastUpdated: Date | undefined;
   status: BackendDeploymentStatus;
-  backendId: SandboxBackendIdentifier;
+  backendId: SandboxBackendIdentifier | undefined;
 };
 
 export type ListSandboxesRequest = {

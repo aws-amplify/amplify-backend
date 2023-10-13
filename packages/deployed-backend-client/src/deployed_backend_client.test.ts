@@ -223,7 +223,7 @@ void describe('Deployed Backend Client', () => {
       sandboxes: [
         {
           deploymentType: BackendDeploymentType.SANDBOX,
-          backendId: new SandboxBackendIdentifier('test-testBranch'),
+          backendId: undefined,
           name: 'amplify-test-testBranch',
           status: BackendDeploymentStatus.DEPLOYED,
           lastUpdated: new Date(0),
@@ -237,21 +237,21 @@ void describe('Deployed Backend Client', () => {
         },
         {
           deploymentType: BackendDeploymentType.SANDBOX,
-          backendId: new SandboxBackendIdentifier('test-testBranch-auth'),
+          backendId: undefined,
           name: 'amplify-test-testBranch-auth',
           status: BackendDeploymentStatus.DEPLOYED,
           lastUpdated: new Date(1),
         },
         {
           deploymentType: BackendDeploymentType.SANDBOX,
-          backendId: new SandboxBackendIdentifier('test-testBranch-storage'),
+          backendId: undefined,
           name: 'amplify-test-testBranch-storage',
           status: BackendDeploymentStatus.DEPLOYING,
           lastUpdated: new Date(1),
         },
         {
           deploymentType: BackendDeploymentType.SANDBOX,
-          backendId: new SandboxBackendIdentifier('test-testBranch-data'),
+          backendId: undefined,
           name: 'amplify-test-testBranch-data',
           status: BackendDeploymentStatus.FAILED,
           lastUpdated: new Date(1),

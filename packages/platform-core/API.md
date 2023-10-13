@@ -20,7 +20,6 @@ export class BranchBackendIdentifier extends UniqueBackendIdentifierBase {
     constructor(backendId: BackendId, branchName: string);
     // (undocumented)
     readonly backendId: BackendId;
-    static parse(stackName: string): UniqueBackendIdentifierBase;
 }
 
 // @public
@@ -28,7 +27,7 @@ export class SandboxBackendIdentifier extends UniqueBackendIdentifierBase {
     constructor(backendId: BackendId);
     // (undocumented)
     readonly backendId: BackendId;
-    static parse(stackName: string): UniqueBackendIdentifierBase;
+    static tryParse(sandboxName: string): SandboxBackendIdentifier | undefined;
 }
 
 // @public
@@ -38,7 +37,6 @@ export abstract class UniqueBackendIdentifierBase implements UniqueBackendIdenti
     disambiguator: string);
     readonly backendId: BackendId;
     readonly disambiguator: string;
-    static parse(stackName: string): UniqueBackendIdentifierBase;
 }
 
 // (No @packageDocumentation comment for this package)

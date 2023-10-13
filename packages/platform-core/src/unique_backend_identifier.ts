@@ -20,15 +20,6 @@ export abstract class UniqueBackendIdentifierBase
      */
     public readonly disambiguator: string
   ) {}
-
-  /**
-   * Parses identifier instance from stack name
-   */
-  static parse(stackName: string): UniqueBackendIdentifierBase {
-    throw new Error(
-      `Cannot parse '${stackName}'. Static method \`parse\` is not implemented.`
-    );
-  }
 }
 
 /**
@@ -40,21 +31,6 @@ export class BranchBackendIdentifier extends UniqueBackendIdentifierBase {
    */
   constructor(public readonly backendId: BackendId, branchName: string) {
     super(backendId, branchName);
-  }
-
-  /**
-   * Parses identifier instance from stack name
-   */
-  static parse(stackName: string): UniqueBackendIdentifierBase {
-    const backendId = stackName.slice(
-      stackName.indexOf('-') + 1,
-      stackName.lastIndexOf('-')
-    );
-    const disambiguator = stackName.slice(
-      stackName.lastIndexOf('-') + 1,
-      stackName.length
-    );
-    return new BranchBackendIdentifier(backendId, disambiguator);
   }
 }
 
@@ -73,10 +49,20 @@ export class SandboxBackendIdentifier extends UniqueBackendIdentifierBase {
   }
 
   /**
-   * Parses identifier instance from stack name
+   * Parses identifier instance from sandbox name
    */
-  static parse(stackName: string): UniqueBackendIdentifierBase {
-    const backendId = stackName.replace('amplify-', '').replace('-sandbox', '');
+  static tryParse(sandboxName: string): SandboxBackendIdentifier | undefined {
+    const expectedSandboxNamePrefix = 'amplify-';
+    const expectedSandboxNameSuffix = '-sandbox';
+    if (
+      !sandboxName.startsWith(expectedSandboxNamePrefix) ||
+      !sandboxName.endsWith(expectedSandboxNameSuffix)
+    ) {
+      return;
+    }
+    const backendId = sandboxName
+      .replace(expectedSandboxNamePrefix, '')
+      .replace(expectedSandboxNameSuffix, '');
     return new SandboxBackendIdentifier(backendId);
   }
 }
