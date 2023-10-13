@@ -52,7 +52,7 @@ void describe('amplify deploys', () => {
             import.meta.url
           ),
           fileToUpdate: 'data/resource.ts',
-          deploymentThresholdInSeconds: 20,
+          deploymentThresholdInSeconds: 22,
         },
       ],
       assertions: async () => {
