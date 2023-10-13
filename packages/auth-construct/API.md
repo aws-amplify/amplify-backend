@@ -78,19 +78,15 @@ export type GoogleProviderProps = Omit<aws_cognito.UserPoolIdentityProviderGoogl
 
 // @public
 export type MFA = {
-    enforcementType: 'OFF';
-} | ({
-    enforcementType: 'OPTIONAL' | 'REQUIRED';
-} & MFASettings);
+    enforcementType: 'OFF' | 'OPTIONAL' | 'REQUIRED';
+} & MFASettings;
 
 // @public
 export type MFASettings = {
     totp: boolean;
-    sms: true;
-    smsMessage?: `${string}{####}${string}`;
-} | {
-    totp: boolean;
-    sms: false;
+    sms: boolean | {
+        smsMessage: string;
+    };
 };
 
 // @public

@@ -277,16 +277,14 @@ export class AmplifyAuth
       },
       selfSignUpEnabled: DEFAULTS.ALLOW_SELF_SIGN_UP,
       mfa: this.getMFAEnforcementType(props.multifactor),
-      mfaMessage:
-        typeof props.multifactor === 'object' &&
-        props.multifactor.enforcementType !== 'OFF' &&
-        props.multifactor.sms === true
-          ? props.multifactor.smsMessage
-          : undefined,
+      mfaMessage: this.getMFAMessage(props.multifactor),
       mfaSecondFactor:
         typeof props.multifactor === 'object' &&
         props.multifactor.enforcementType !== 'OFF'
-          ? { sms: props.multifactor.sms, otp: props.multifactor.totp }
+          ? {
+              sms: props.multifactor.sms ? true : false,
+              otp: props.multifactor.totp,
+            }
           : undefined,
       accountRecovery: this.getAccountRecoverySetting(
         emailEnabled,
@@ -328,7 +326,7 @@ export class AmplifyAuth
   /**
    * Convert user friendly Mfa type to cognito Mfa type.
    * This eliminates the need for users to import cognito.Mfa.
-   * @param mfa - MFA Enforcement type string value
+   * @param mfa - MFA settings
    * @returns cognito MFA enforcement type
    */
   private getMFAEnforcementType = (
@@ -343,6 +341,26 @@ export class AmplifyAuth
         case 'REQUIRED':
           return Mfa.REQUIRED;
       }
+    }
+    return undefined;
+  };
+
+  /**
+   * Extract the MFA message settings and perform validation.
+   * @param mfa - MFA settings
+   * @returns mfa message
+   */
+  private getMFAMessage = (
+    mfa: AuthProps['multifactor']
+  ): string | undefined => {
+    if (mfa && mfa.enforcementType !== 'OFF' && typeof mfa.sms === 'object') {
+      const message = mfa.sms.smsMessage;
+      if (message.indexOf('{####}') === -1) {
+        throw Error(
+          "Invalid MFA settings. Property 'smsMessage' must contain {####} as a placeholder for the verification code."
+        );
+      }
+      return message;
     }
     return undefined;
   };
