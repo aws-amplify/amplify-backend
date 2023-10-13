@@ -1,5 +1,11 @@
 # @aws-amplify/integration-tests
 
+## 0.2.0-alpha.7
+
+### Patch Changes
+
+- 7853b00a: Make CLI options kebab case
+
 ## 0.2.0-alpha.6
 
 ### Minor Changes

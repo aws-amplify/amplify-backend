@@ -1,5 +1,16 @@
 # @aws-amplify/backend-secret
 
+## 0.2.0-alpha.6
+
+### Minor Changes
+
+- f2394dbe: Add secret client config
+
+### Patch Changes
+
+- Updated dependencies [5b9aac15]
+  - @aws-amplify/platform-core@0.1.1-alpha.2
+
 ## 0.2.0-alpha.5
 
 ### Minor Changes
