@@ -1,5 +1,13 @@
 # @aws-amplify/auth-construct-alpha
 
+## 0.2.0-alpha.11
+
+### Patch Changes
+
+- fa75e94b: Remove custom attributes and change userAttributes to UserPool Standard Attributes.
+- ccacd673: Update types for MFA settings.
+- bc419e41: Update naming for social login providers.
+
 ## 0.2.0-alpha.10
 
 ### Patch Changes
