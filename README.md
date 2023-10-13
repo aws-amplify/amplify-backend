@@ -77,3 +77,15 @@ At a minimum, each package needs:
 4. An `update:api` script in the `package.json` file
 5. A `typedoc.json` file
 6. An `.npmignore` file
+
+## Troubleshooting
+
+### `amplify --version` still shows classic amplify version
+
+Check when you ran `npm run install:local`, if you got the following error:
+
+> File exists: ~/.nvm/versions/node/v18.17.0/bin/amplify
+
+If yes, remove it by running `rm -rf /~/.nvm/versions/node/v18.17.0/bin/amplify`.
+
+Then run `npm run install:local`, `amplify --version` should show the correct alpha version.
