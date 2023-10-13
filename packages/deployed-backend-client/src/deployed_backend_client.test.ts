@@ -218,41 +218,48 @@ void describe('Deployed Backend Client', () => {
 
   void it('listSandboxBackendMetadata', async () => {
     const sandboxes = await deployedBackendClient.listSandboxes();
-    assert.deepEqual(sandboxes, {
+    const expectedSandboxes = {
       nextToken: undefined,
       sandboxes: [
         {
           deploymentType: BackendDeploymentType.SANDBOX,
+          backendId: new SandboxBackendIdentifier('test-testBranch'),
           name: 'amplify-test-testBranch',
           status: BackendDeploymentStatus.DEPLOYED,
           lastUpdated: new Date(0),
         },
         {
           deploymentType: BackendDeploymentType.SANDBOX,
+          backendId: new SandboxBackendIdentifier('test'),
           name: 'amplify-test-sandbox',
           status: BackendDeploymentStatus.DEPLOYED,
           lastUpdated: new Date(1),
         },
         {
           deploymentType: BackendDeploymentType.SANDBOX,
+          backendId: new SandboxBackendIdentifier('test-testBranch-auth'),
           name: 'amplify-test-testBranch-auth',
           status: BackendDeploymentStatus.DEPLOYED,
           lastUpdated: new Date(1),
         },
         {
           deploymentType: BackendDeploymentType.SANDBOX,
+          backendId: new SandboxBackendIdentifier('test-testBranch-storage'),
           name: 'amplify-test-testBranch-storage',
           status: BackendDeploymentStatus.DEPLOYING,
           lastUpdated: new Date(1),
         },
         {
           deploymentType: BackendDeploymentType.SANDBOX,
+          backendId: new SandboxBackendIdentifier('test-testBranch-data'),
           name: 'amplify-test-testBranch-data',
           status: BackendDeploymentStatus.FAILED,
           lastUpdated: new Date(1),
         },
       ],
-    });
+    };
+
+    assert.deepEqual(sandboxes, expectedSandboxes);
   });
 
   void it('deletes a sandbox', async () => {
@@ -290,6 +297,10 @@ void describe('Deployed Backend Client pagination', () => {
   const returnedSandboxes = [
     {
       deploymentType: BackendDeploymentType.SANDBOX,
+      backendId: {
+        backendId: 'test',
+        disambiguator: 'sandbox',
+      },
       name: 'amplify-test-sandbox',
       status: BackendDeploymentStatus.DEPLOYED,
       lastUpdated: new Date(1),
