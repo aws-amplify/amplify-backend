@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "lib/types",
+    "declaration": true,
+    "emitDeclarationOnly": true
+  },
+  "references": [
+    { "path": "../auth-construct" },
+    { "path": "../backend-output-storage" },
+    { "path": "../plugin-types" },
+    { "path": "../backend" }
+  ]
+}

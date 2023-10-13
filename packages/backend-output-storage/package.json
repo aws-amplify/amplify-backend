@@ -7,14 +7,15 @@
   },
   "exports": {
     ".": {
-      "types": "./lib/esm/index.d.ts",
+      "types": "./lib/types/index.d.ts",
       "import": "./lib/esm/index.js",
       "require": "./lib/cjs/index.js"
     }
   },
   "main": "lib/cjs/index.js",
-  "types": "lib/cjs/index.d.ts",
+  "types": "lib/types/index.d.ts",
   "scripts": {
+    "build:types": "tsc --project tsconfig-types.json",
     "build:esm" : "tsc --build",
     "build:cjs": "tsc --project tsconfig-cjs.json",
     "update:api": "api-extractor run --local"

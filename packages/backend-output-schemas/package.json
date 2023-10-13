@@ -7,34 +7,33 @@
   },
   "exports": {
     ".": {
-      "types": "./lib/esm/index.d.ts",
+      "types": "./lib/types/index.d.ts",
       "import": "./lib/esm/index.js",
       "require": "./lib/cjs/index.js"
     },
     "./auth": {
-      "types": "./lib/esm/auth/index.d.ts",
+      "types": "./lib/types/auth/index.d.ts",
       "import": "./lib/esm/auth/index.js",
       "require": "./lib/cjs/auth/index.js"
     },
     "./graphql": {
-      "types": "./lib/esm/graphql/index.d.ts",
+      "types": "./lib/types/graphql/index.d.ts",
       "import": "./lib/esm/graphql/index.js",
       "require": "./lib/cjs/graphql/index.js"
     },
     "./platform": {
-      "types": "./lib/esm/platform/index.d.ts",
+      "types": "./lib/types/platform/index.d.ts",
       "import": "./lib/esm/platform/index.js",
       "require": "./lib/cjs/platform/index.js"
     },
     "./storage": {
-      "types": "./lib/esm/storage/index.d.ts",
+      "types": "./lib/types/storage/index.d.ts",
       "import": "./lib/esm/storage/index.js",
       "require": "./lib/cjs/storage/index.js"
     }
   },
-  "main": "lib/cjs/index.js",
-  "types": "lib/cjs/index.d.ts",
   "scripts": {
+    "build:types": "tsc --project tsconfig-types.json",
     "build:esm" : "tsc --build",
     "build:cjs": "tsc --project tsconfig-cjs.json",
     "update:api": "api-extractor run --local"

@@ -4,7 +4,8 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "build": "npm run build:esm && npm run build:cjs && tsc --build scripts",
+    "build": "npm run build:types && npm run build:esm && npm run build:cjs && tsc --build scripts",
+    "build:types": "npm run build:types --workspaces",
     "build:esm": "npm run build:esm --workspaces",
     "build:cjs": "npm run build:cjs --workspaces",
     "check:api": "npm run update:api && tsx scripts/check_api_extract.ts",
@@ -84,7 +85,28 @@
     "verdaccio": "^5.24.1"
   },
   "workspaces": [
-    "packages/*"
+    "packages/plugin-types",
+    "packages/plugin-core",
+    "packages/backend-secret",
+    "packages/backend-output-schemas",
+    "packages/backend-output-storage",
+    "packages/backend-deployer",
+    "packages/backend",
+    "packages/create-amplify",
+    "packages/deployed-backend-client",
+    "packages/client-config",
+    "packages/sandbox",
+    "packages/form-generator",
+    "pacakges/model-generator",
+    "packages/cli",
+    "packages/auth-construct",
+    "packages/function-construct",
+    "packages/storage-construct",
+    "packages/backend-auth",
+    "packages/backend-function",
+    "packages/backend-graphql",
+    "packages/backend-storage",
+    "packages/integration-test"
   ],
   "lint-staged": {
     "*.ts": [

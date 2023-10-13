@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "lib/types",
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "resolveJsonModule": true
+  },
+  "references": [
+    { "path": "../backend-output-schemas" },
+    { "path": "../deployed-backend-client" }
+  ]
+}

@@ -14,6 +14,7 @@
     "glob": "^10.2.7"
   },
   "scripts": {
+    "build:types": "",
     "build:esm" : "tsc --build",
     "build:cjs": "",
     "update:api": "api-extractor run --local"

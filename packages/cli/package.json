@@ -12,6 +12,7 @@
   "scripts": {
     "build:esm" : "tsc --build",
     "build:cjs": "",
+    "build:types": "",
     "update:api": "api-extractor run --local",
     "install:local": "npm link"
   },
