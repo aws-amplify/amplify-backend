@@ -1,5 +1,11 @@
 # @aws-amplify/platform-core
 
+## 0.1.1-alpha.2
+
+### Patch Changes
+
+- 5b9aac15: add backend identifier to sandbox metadata response
+
 ## 0.1.1-alpha.1
 
 ### Patch Changes

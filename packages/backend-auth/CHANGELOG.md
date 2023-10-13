@@ -1,5 +1,15 @@
 # @aws-amplify/backend-auth
 
+## 0.2.0-alpha.10
+
+### Patch Changes
+
+- bc419e41: Update naming for social login providers.
+- Updated dependencies [fa75e94b]
+- Updated dependencies [ccacd673]
+- Updated dependencies [bc419e41]
+  - @aws-amplify/auth-construct-alpha@0.2.0-alpha.11
+
 ## 0.2.0-alpha.9
 
 ### Patch Changes
