@@ -15,9 +15,45 @@
 <li><a href="../index.html">Amplify Toolbox</a></li>
 <li><a href="create_amplify.html">create-amplify</a></li></ul>
 <h1>Module create-amplify</h1></div>
-<section class="tsd-panel tsd-typography"><p>create-amplify is a package allows the user to create an Amplify project by running <code>npm create amplify</code> (or using one of other popular package managers).</p>
-<a id="md:usage" class="tsd-anchor"></a><h2><a href="#md:usage">Usage</a></h2><p>In a project folder or empty folder, run <code>npm create amplify@alpha</code>.</p>
-<a id="md:dev" class="tsd-anchor"></a><h2><a href="#md:dev">Dev</a></h2><p>See more in <a href="../../CONTRIBUTING.md#create-amplify">CONTRIBUTING</a></p>
+<section class="tsd-panel tsd-typography"><a id="md:security" class="tsd-anchor"></a><h2><a href="#md:security">Security</a></h2><p>See <a href="CONTRIBUTING.md#security-issue-notifications">CONTRIBUTING</a> for more information.</p>
+<a id="md:license" class="tsd-anchor"></a><h2><a href="#md:license">License</a></h2><p>This project is licensed under the Apache-2.0 License.</p>
+<a id="md:set-up-your-local-development-environment" class="tsd-anchor"></a><h2><a href="#md:set-up-your-local-development-environment">Set up your local development environment</a></h2><pre><code class="language-sh"><span class="hl-0"># clone project repo</span><br/><span class="hl-1">cd</span><span class="hl-2"> &lt;</span><span class="hl-3">project</span><span class="hl-2"> </span><span class="hl-3">director</span><span class="hl-2">y&gt;</span><br/><span class="hl-1">npm</span><span class="hl-2"> </span><span class="hl-3">run</span><span class="hl-2"> </span><span class="hl-3">install:local</span><br/><span class="hl-1">npm</span><span class="hl-2"> </span><span class="hl-3">run</span><span class="hl-2"> </span><span class="hl-3">test</span>
+</code><button>Copy</button></pre>
+<p><code>npm run install:local</code> will run <code>npm install</code>, then build all packages in the project and run <code>npm link</code></p>
+<p><code>npm run test</code> will run all the unit tests in the project</p>
+<p>You should now be able to run the new <code>amplify</code> CLI.</p>
+<a id="md:other-helpful-scripts" class="tsd-anchor"></a><h4><a href="#md:other-helpful-scripts">Other helpful scripts</a></h4><p><code>npm run watch</code> will start the tsc server and watch for changes in all packages</p>
+<p><code>npm run test:coverage:threshold</code> will let you know if your changes are passing test coverage limits</p>
+<p><code>npm run test:dir packages/&lt;package directory&gt;</code> will run only the tests in that directory</p>
+<p><code>npm run vend</code> will start a local npm proxy and publish the local packages to this proxy so they can be installed / used as if they were published on npm</p>
+<p><code>npm run e2e</code> will run the E2E test suite. Note: you must have valid AWS credentials configured locally to run this command successfully.</p>
+<a id="md:creating-changesets" class="tsd-anchor"></a><h2><a href="#md:creating-changesets">Creating changesets</a></h2><p>This repo uses <a href="https://github.com/changesets/changesets">changesets</a> for versioning and releasing changes.</p>
+<p>All changes that affect release artifacts must have a corresponding changeset. To create a changeset run <code>changeset</code>.
+This will start a walkthrough to author the changeset file. This file should be committed to the repo.</p>
+<a id="md:publishing-packages-locally" class="tsd-anchor"></a><h2><a href="#md:publishing-packages-locally">Publishing packages locally</a></h2><p>Publishing packages locally allows you to install local package changes as if they were published to NPM. This is useful for testing or demo scenarios.</p>
+<p>To set up a local npm proxy and publish the current local state to the proxy, run <code>npm run vend</code>.
+This will start a local npm proxy using <a href="https://verdaccio.org/">Verdaccio</a> and run <code>changeset version</code> and <code>changeset publish</code>.</p>
+<p>This will also point your local npm config to the local npm proxy. At this point you can npm install any packages in the repo and it will pull from the local proxy instead of directly from npm.</p>
+<p>To stop the local server and reset your npm registry run <code>npm run stop:npm-proxy</code>.</p>
+<p>To clear the proxy package cache run <code>npm run clean:npm-proxy</code>. This will stop the local proxy and remove all packages you have published.</p>
+<p>To start the npm proxy without immediately publishing, run <code>npm run start:npm-proxy</code>.</p>
+<p>To publish a snapshot to an already running npm proxy run <code>npm run publish:snapshot:local latest</code></p>
+<a id="md:adding-a-package" class="tsd-anchor"></a><h2><a href="#md:adding-a-package">Adding a package</a></h2><p>This repo uses a monorepo structure managed by npm workspaces. All the packages in the workspace are under <code>packages/*</code></p>
+<p>There are package templates for some common scenarios in the <code>templates</code> directory.
+These templates can be copied to a new package directory using <code>npm run new -- --template=&lt;template&gt; --name=&lt;new name&gt;</code>
+<code>--template</code> specifies which template to use and <code>--name</code> specifies the new package name.
+Valid templates are the directories in the <code>templates</code> directory</p>
+<p>If you are adding a new package that does not have a template, consider adding a template for that package type.
+You&#39;ll probably want to use an existing template as a starting point for the new package.</p>
+<p>At a minimum, each package needs:</p>
+<ol>
+<li>A <code>package.json</code> file</li>
+<li>A <code>tsconfig.json</code> file. This file should extend <code>tsconfig.base.json</code></li>
+<li>An <code>api-extractor.json</code> file. This file should extend <code>api-extractor.base.json</code></li>
+<li>An <code>update:api</code> script in the <code>package.json</code> file</li>
+<li>A <code>typedoc.json</code> file</li>
+<li>An <code>.npmignore</code> file</li>
+</ol>
 </section></div>
 <div class="col-sidebar">
 <div class="page-menu">
@@ -40,10 +76,17 @@
 <ul>
 <li>
 <ul>
-<li><a href="#md:usage"><span>Usage</span></a></li>
+<li><a href="#md:security"><span>Security</span></a></li>
 <li>
 <ul>
-<li><a href="#md:dev"><span>Dev</span></a></li></ul></li></ul></li></ul></div></details></div>
+<li><a href="#md:license"><span>License</span></a></li>
+<li><a href="#md:set-up-your-local-development-environment"><span>Set up your local development environment</span></a></li>
+<li>
+<ul>
+<li><a href="#md:other-helpful-scripts"><span>Other helpful scripts</span></a></li></ul></li>
+<li><a href="#md:creating-changesets"><span>Creating changesets</span></a></li>
+<li><a href="#md:publishing-packages-locally"><span>Publishing packages locally</span></a></li>
+<li><a href="#md:adding-a-package"><span>Adding a package</span></a></li></ul></li></ul></li></ul></div></details></div>
 <div class="site-menu">
 <nav class="tsd-navigation"><a href="../index.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1"></use></svg><span>Amplify Toolbox</span></a>
 <ul class="tsd-small-nested-navigation" id="tsd-nav-container" data-base="..">
@@ -65,7 +108,7 @@
 <li><a href="_aws_amplify_function_construct_alpha.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2"></use></svg>@aws-amplify/function-construct-alpha</a></li>
 <li><a href="_aws_amplify_integration_tests.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2"></use></svg>@aws-amplify/integration-tests</a></li>
 <li><a href="_aws_amplify_model_generator.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2"></use></svg>@aws-amplify/model-generator</a></li>
-<li><a href="_aws_amplify_platform_core.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2"></use></svg>@aws-amplify/platform-core</a></li>
+<li><a href="_aws_amplify_passwordless_auth_construct_alpha.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2"></use></svg>@aws-amplify/passwordless-auth-construct-alpha</a></li>
 <li><a href="_aws_amplify_plugin_types.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2"></use></svg>@aws-amplify/plugin-types</a></li>
 <li><a href="_aws_amplify_sandbox.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2"></use></svg>@aws-amplify/sandbox</a></li>
 <li>Loading...</li></ul></nav></div></div></div>
