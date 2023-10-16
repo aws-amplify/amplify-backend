@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - main
+      - feat/passwordless-auth # TODO: Remove before feature branch is merged.
   pull_request:
     branches:
       - main
+      - feat/passwordless-auth # TODO: Remove before feature branch is merged.
   schedule:
     - cron: '0 12 * * *' # every day 12:00 UTC
 

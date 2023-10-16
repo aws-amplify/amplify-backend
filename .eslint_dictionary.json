@@ -79,6 +79,7 @@
   "openid",
   "orchestrator",
   "passthrough",
+  "passwordless",
   "pathname",
   "pipelined",
   "posix",

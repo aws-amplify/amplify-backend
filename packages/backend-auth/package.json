@@ -20,6 +20,7 @@
   "dependencies": {
     "@aws-amplify/auth-construct-alpha": "^0.4.1",
     "@aws-amplify/backend-output-storage": "0.2.4",
+    "@aws-amplify/passwordless-auth-construct-alpha": "^0.0.1-alpha.0",
     "@aws-amplify/plugin-types": "^0.4.1"
   },
   "devDependencies": {
