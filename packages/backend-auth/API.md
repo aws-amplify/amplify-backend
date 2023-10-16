@@ -16,6 +16,7 @@ import { FacebookProviderProps } from '@aws-amplify/auth-construct-alpha';
 import { FunctionResources } from '@aws-amplify/plugin-types';
 import { GoogleProviderProps } from '@aws-amplify/auth-construct-alpha';
 import { OidcProviderProps } from '@aws-amplify/auth-construct-alpha';
+import { PasswordlessAuthProps } from '@aws-amplify/passwordless-auth-construct-alpha';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { TriggerEvent } from '@aws-amplify/auth-construct-alpha';
 
@@ -28,6 +29,7 @@ export type AmazonProviderFactoryProps = Omit<AmazonProviderProps, 'clientId' | 
 // @public (undocumented)
 export type AmplifyAuthFactoryProps = Omit<AuthProps, 'outputStorageStrategy' | 'loginWith'> & TriggerConfig & {
     loginWith: AuthLoginWithFactoryProps;
+    passwordlessOptions?: PasswordlessAuthProps;
 };
 
 // @public
