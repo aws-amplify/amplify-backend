@@ -43,6 +43,7 @@ void describe('types generator', () => {
 
     const mockResultBuilder = mock.fn(() => ({
       writeToDirectory: () => Promise.resolve(),
+      getResults: () => Promise.resolve({}),
     }));
     const generator = new AppSyncGraphqlTypesGenerator(
       async () => schema,
