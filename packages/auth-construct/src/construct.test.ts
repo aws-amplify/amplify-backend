@@ -16,7 +16,6 @@ import {
   UserPool,
   UserPoolClient,
   UserPoolIdentityProviderSamlMetadataType,
-  VerificationEmailStyle,
 } from 'aws-cdk-lib/aws-cognito';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
 import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
