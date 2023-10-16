@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - main
+      - feat/passwordless-auth # TODO: Remove before feature branch is merged.
   pull_request:
     branches:
       - main
+      - feat/passwordless-auth # TODO: Remove before feature branch is merged.
   workflow_dispatch:
 
 jobs:
