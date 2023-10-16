@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/passwordless-auth-construct-alpha",
-  "version": "0.0.1-alpha.0",
+  "version": "0.1.0-alpha.1",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -17,7 +17,7 @@
     "update:api": "api-extractor run --local"
   },
   "dependencies": {
-    "@aws-amplify/auth-construct-alpha": "^0.2.0-alpha.6"
+    "@aws-amplify/auth-construct-alpha": "^0.2.0-alpha.7"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.119",

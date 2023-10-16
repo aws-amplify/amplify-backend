@@ -1,5 +1,11 @@
 # @aws-amplify/client-config
 
+## 0.2.0-alpha.7
+
+### Patch Changes
+
+- 23fc5b13: Lint fixes
+
 ## 0.2.0-alpha.6
 
 ### Minor Changes

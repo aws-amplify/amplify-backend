@@ -1,5 +1,13 @@
 # @aws-amplify/backend
 
+## 0.2.0-alpha.5
+
+### Patch Changes
+
+- 98b17069: Provides sandbox secret CLI commands
+- Updated dependencies [98b17069]
+  - @aws-amplify/backend-secret@0.2.0-alpha.1
+
 ## 0.2.0-alpha.4
 
 ### Minor Changes

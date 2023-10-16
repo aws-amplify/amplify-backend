@@ -1,5 +1,11 @@
 # @aws-amplify/auth-construct-alpha
 
+## 0.2.0-alpha.7
+
+### Patch Changes
+
+- 740e2dc2: Update types for verification settings.
+
 ## 0.2.0-alpha.6
 
 ### Patch Changes

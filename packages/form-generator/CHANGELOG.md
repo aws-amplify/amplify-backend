@@ -1,5 +1,11 @@
 # @aws-amplify/form-generator
 
+## 0.2.0-alpha.2
+
+### Minor Changes
+
+- 2b18af15: Add model filtering to form generation
+
 ## 0.2.0-alpha.1
 
 ### Minor Changes

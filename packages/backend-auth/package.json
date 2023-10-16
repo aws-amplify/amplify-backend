@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/backend-auth",
-  "version": "0.2.0-alpha.4",
+  "version": "0.2.0-alpha.5",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -18,11 +18,11 @@
   },
   "dependencies": {
     "@aws-amplify/backend-output-storage": "0.1.1-alpha.0",
-    "@aws-amplify/auth-construct-alpha": "^0.2.0-alpha.6",
-    "@aws-amplify/passwordless-auth-construct-alpha": "^0.0.1-alpha.0"
+    "@aws-amplify/auth-construct-alpha": "^0.2.0-alpha.7",
+    "@aws-amplify/passwordless-auth-construct-alpha": "^0.1.0-alpha.1"
   },
   "devDependencies": {
-    "@aws-amplify/backend": "^0.2.0-alpha.4"
+    "@aws-amplify/backend": "^0.2.0-alpha.5"
   },
   "peerDependencies": {
     "@aws-amplify/plugin-types": "^0.1.1-alpha.5",

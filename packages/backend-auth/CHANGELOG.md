@@ -1,5 +1,18 @@
 # @aws-amplify/backend-auth
 
+## 0.2.0-alpha.5
+
+### Minor Changes
+
+- e60130d6: Add Magic Link and One Time Password Authentication
+
+### Patch Changes
+
+- Updated dependencies [e60130d6]
+- Updated dependencies [740e2dc2]
+  - @aws-amplify/passwordless-auth-construct-alpha@0.1.0-alpha.1
+  - @aws-amplify/auth-construct-alpha@0.2.0-alpha.7
+
 ## 0.2.0-alpha.4
 
 ### Patch Changes

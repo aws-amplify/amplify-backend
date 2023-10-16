@@ -1,5 +1,11 @@
 # @aws-amplify/model-generator
 
+## 0.2.0-alpha.3
+
+### Patch Changes
+
+- 23fc5b13: Lint fixes
+
 ## 0.2.0-alpha.2
 
 ### Minor Changes

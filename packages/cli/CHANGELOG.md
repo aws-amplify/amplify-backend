@@ -1,5 +1,27 @@
 # @aws-amplify/backend-cli
 
+## 0.2.0-alpha.5
+
+### Minor Changes
+
+- 98b17069: Provides sandbox secret CLI commands
+- 0b2d50da: Add form generation interface
+- ee3d55fe: Add event handlers for Sandbox
+- 2b18af15: Add model filtering to form generation
+
+### Patch Changes
+
+- 23fc5b13: Lint fixes
+- Updated dependencies [23fc5b13]
+- Updated dependencies [98b17069]
+- Updated dependencies [ee3d55fe]
+- Updated dependencies [2b18af15]
+  - @aws-amplify/model-generator@0.2.0-alpha.3
+  - @aws-amplify/client-config@0.2.0-alpha.7
+  - @aws-amplify/backend-secret@0.2.0-alpha.1
+  - @aws-amplify/sandbox@0.2.0-alpha.7
+  - @aws-amplify/form-generator@0.2.0-alpha.2
+
 ## 0.2.0-alpha.4
 
 ### Minor Changes

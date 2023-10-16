@@ -1,5 +1,16 @@
 # @aws-amplify/sandbox
 
+## 0.2.0-alpha.7
+
+### Minor Changes
+
+- ee3d55fe: Add event handlers for Sandbox
+
+### Patch Changes
+
+- Updated dependencies [23fc5b13]
+  - @aws-amplify/client-config@0.2.0-alpha.7
+
 ## 0.2.0-alpha.6
 
 ### Minor Changes
