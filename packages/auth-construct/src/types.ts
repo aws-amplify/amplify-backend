@@ -1,4 +1,4 @@
-import { aws_cognito as cognito } from 'aws-cdk-lib';
+import { SecretValue, aws_cognito as cognito } from 'aws-cdk-lib';
 import { triggerEvents } from './trigger_events.js';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { AuthOutput } from '@aws-amplify/backend-output-schemas/auth';
@@ -86,8 +86,15 @@ export type MFA = {
  */
 export type GoogleProviderProps = Omit<
   cognito.UserPoolIdentityProviderGoogleProps,
-  'userPool'
->;
+  'userPool' | 'clientSecretValue' | 'clientSecret'
+> & {
+  /**
+   * The client secret to be accompanied with clientId for Google APIs to authenticate the client as SecretValue
+   * @see https://developers.google.com/identity/sign-in/web/sign-in
+   * @default none
+   */
+  clientSecret?: SecretValue;
+};
 
 /**
  * Apple provider.

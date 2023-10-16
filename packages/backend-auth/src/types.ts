@@ -15,7 +15,7 @@ import { BackendSecret } from '@aws-amplify/plugin-types';
  */
 export type GoogleProviderFactoryProps = Omit<
   GoogleProviderProps,
-  'clientId' | 'clientSecretValue'
+  'clientId' | 'clientSecret'
 > & {
   /**
    * The client id recognized by Google APIs.
@@ -27,7 +27,7 @@ export type GoogleProviderFactoryProps = Omit<
    * @see https://developers.google.com/identity/sign-in/web/sign-in
    * @default none
    */
-  clientSecretValue: BackendSecret;
+  clientSecret: BackendSecret;
 };
 
 /**

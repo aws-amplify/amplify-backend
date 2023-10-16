@@ -70,9 +70,9 @@ export type FacebookProviderFactoryProps = Omit<FacebookProviderProps, 'clientId
 };
 
 // @public
-export type GoogleProviderFactoryProps = Omit<GoogleProviderProps, 'clientId' | 'clientSecretValue'> & {
+export type GoogleProviderFactoryProps = Omit<GoogleProviderProps, 'clientId' | 'clientSecret'> & {
     clientId: BackendSecret;
-    clientSecretValue: BackendSecret;
+    clientSecret: BackendSecret;
 };
 
 // @public

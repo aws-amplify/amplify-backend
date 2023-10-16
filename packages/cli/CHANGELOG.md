@@ -1,5 +1,18 @@
 # @aws-amplify/backend-cli
 
+## 0.2.0-alpha.7
+
+### Patch Changes
+
+- 7853b00a: Make CLI options kebab case
+- d84f92c0: make pipeline-deploy cmd generate config
+- Updated dependencies [a351b261]
+- Updated dependencies [f2394dbe]
+- Updated dependencies [5b9aac15]
+  - @aws-amplify/deployed-backend-client@0.2.0-alpha.7
+  - @aws-amplify/backend-secret@0.2.0-alpha.6
+  - @aws-amplify/platform-core@0.1.1-alpha.2
+
 ## 0.2.0-alpha.6
 
 ### Minor Changes

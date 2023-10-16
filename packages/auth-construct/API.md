@@ -12,6 +12,7 @@ import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
+import { SecretValue } from 'aws-cdk-lib';
 import { StandardAttributes } from 'aws-cdk-lib/aws-cognito';
 
 // @public
@@ -74,7 +75,9 @@ export type ExternalProviderProps = {
 export type FacebookProviderProps = Omit<aws_cognito.UserPoolIdentityProviderFacebookProps, 'userPool'>;
 
 // @public
-export type GoogleProviderProps = Omit<aws_cognito.UserPoolIdentityProviderGoogleProps, 'userPool'>;
+export type GoogleProviderProps = Omit<aws_cognito.UserPoolIdentityProviderGoogleProps, 'userPool' | 'clientSecretValue' | 'clientSecret'> & {
+    clientSecret?: SecretValue;
+};
 
 // @public
 export type MFA = {

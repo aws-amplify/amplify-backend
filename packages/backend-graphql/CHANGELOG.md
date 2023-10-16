@@ -1,5 +1,11 @@
 # @aws-amplify/backend-graphql
 
+## 0.2.0-alpha.10
+
+### Patch Changes
+
+- 30820177: Update @aws-amplify/graphql-api-construct dependency to 1.1.4
+
 ## 0.2.0-alpha.9
 
 ### Patch Changes
