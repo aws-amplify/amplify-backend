@@ -252,6 +252,7 @@ void describe('Sandbox using local project name resolver', () => {
       {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+        typeCheckingEnabled: true,
       },
     ]);
     assert.strictEqual(cfnClientSendMock.mock.callCount(), 0);
@@ -420,6 +421,7 @@ void describe('Sandbox with user provided app name', () => {
       {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+        typeCheckingEnabled: true,
       },
     ]);
   });
