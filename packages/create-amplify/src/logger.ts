@@ -1,15 +1,18 @@
 import yargs from 'yargs';
 
 /**
- *
+ * A logger that logs messages to the console.
  */
 class Logger {
-  private level: LogLevel;
-
   /**
-   * Creates a new logger.
+   * Creates a new Logger instance.
+   * @param level The minimum log level to log.
+   * @param console The console to log to.
    */
-  constructor(level: LogLevel | undefined = LogLevel.INFO) {
+  constructor(
+    private readonly level: LogLevel = LogLevel.INFO,
+    private readonly console: Console = global.console
+  ) {
     this.level = level;
   }
 
@@ -28,7 +31,7 @@ class Logger {
       },
     }).argv;
 
-    const toLogMessage = level >= this.level || argv.debug || argv.verbose;
+    const toLogMessage = level <= this.level || argv.debug || argv.verbose;
 
     if (!toLogMessage) {
       return;
@@ -37,7 +40,7 @@ class Logger {
     const logMessage = `[${
       LogLevel[level]
     }] ${new Date().toISOString()}: ${message}`;
-    console.log(logMessage);
+    this.console.log(logMessage);
   }
 }
 
