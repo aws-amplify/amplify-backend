@@ -26,6 +26,7 @@ import { DefaultDeployedBackendClient } from './deployed_backend_client.js';
 import { StackIdentifier } from './index.js';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { GetObjectCommand, S3 } from '@aws-sdk/client-s3';
+import { ListDeployedResources } from './deployed-backend-client/list_deployed_resources.js';
 
 const listStacksMock = {
   NextToken: undefined,
@@ -123,6 +124,7 @@ const getOutputMockResponse = {
 const expectedMetadata = {
   lastUpdated: new Date(0),
   status: BackendDeploymentStatus.DEPLOYED,
+  resources: [],
   authConfiguration: {
     userPoolId: 'testUserPoolId',
     lastUpdated: new Date(1),
@@ -209,10 +211,14 @@ void describe('Deployed Backend Client', () => {
 
     cfnClientSendMock.mock.mockImplementation(mockSend);
 
+    const listDeployedResources = new ListDeployedResources();
+    mock.method(listDeployedResources, 'listDeployedResources', () => []);
+
     deployedBackendClient = new DefaultDeployedBackendClient(
       mockCfnClient,
       mockS3Client,
-      mockBackendOutputClient
+      mockBackendOutputClient,
+      listDeployedResources
     );
   });
 
@@ -352,11 +358,14 @@ void describe('Deployed Backend Client pagination', () => {
     };
 
     cfnClientSendMock.mock.mockImplementation(mockSend);
+    const listDeployedResources = new ListDeployedResources();
+    mock.method(listDeployedResources, 'listDeployedResources', () => []);
 
     deployedBackendClient = new DefaultDeployedBackendClient(
       mockCfnClient,
       mockS3Client,
-      mockBackendOutputClient
+      mockBackendOutputClient,
+      listDeployedResources
     );
   });
 

@@ -11,6 +11,7 @@ import {
   BackendOutputClientFactory,
 } from './backend_output_client_factory.js';
 import { S3Client } from '@aws-sdk/client-s3';
+import { ListDeployedResources } from './deployed-backend-client/list_deployed_resources.js';
 
 export enum ConflictResolutionMode {
   LAMBDA = 'LAMBDA',
@@ -37,11 +38,21 @@ export type ListSandboxesRequest = {
   nextToken?: string;
 };
 
+export type DeployedBackendResource = {
+  logicalResourceId?: string;
+  lastUpdated?: Date;
+  resourceStatus?: string;
+  resourceStatusReason?: string;
+  resourceType?: string;
+  physicalResourceId?: string;
+};
+
 export type BackendMetadata = {
   name: string;
   lastUpdated: Date | undefined;
   deploymentType: BackendDeploymentType;
   status: BackendDeploymentStatus;
+  resources: DeployedBackendResource[];
   apiConfiguration?: {
     status: BackendDeploymentStatus;
     lastUpdated: Date | undefined;
@@ -118,7 +129,8 @@ export class DeployedBackendClientFactory {
       return new DefaultDeployedBackendClient(
         options.cloudFormationClient,
         options.s3Client,
-        options.backendOutputClient
+        options.backendOutputClient,
+        new ListDeployedResources()
       );
     }
     return new DefaultDeployedBackendClient(
@@ -126,7 +138,8 @@ export class DeployedBackendClientFactory {
       new S3Client(options.credentials),
       BackendOutputClientFactory.getInstance({
         credentials: options.credentials,
-      })
+      }),
+      new ListDeployedResources()
     );
   }
 }
