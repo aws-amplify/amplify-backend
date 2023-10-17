@@ -5,28 +5,36 @@ import { AuthOutput } from '@aws-amplify/backend-output-schemas/auth';
 import { StandardAttributes } from 'aws-cdk-lib/aws-cognito';
 
 /**
+ * Email login settings object
+ */
+export type EmailLoginSettings = {
+  /**
+   * The type of verification. Must be one of "CODE" or "LINK".
+   */
+  verificationEmailStyle?: 'CODE' | 'LINK';
+  /**
+   * Customize your verification emails.
+   * Use the code or link parameter to inject verification codes or links into the user verification email.
+   * @example
+   * verificationEmailStyle: "CODE",
+   * verificationEmailBody: (code: string) => `Your verification code is ${code}.`
+   * @example
+   * verificationEmailStyle: "LINK",
+   * verificationEmailBody: (link: string) => `Your verification link is ${link}.`
+   */
+  verificationEmailBody?: (codeOrLink: string) => string;
+  /**
+   * The verification email subject.
+   */
+  verificationEmailSubject?: string;
+};
+/**
  * Email login options.
  *
  * If true, email login will be enabled with default settings.
  * If settings are provided, email login will be enabled with the specified settings.
  */
-export type EmailLogin =
-  | true
-  | {
-      /**
-       * The type of verification. Must be one of "CONFIRM_WITH_CODE" or "CONFIRM_WITH_LINK".
-       */
-      verificationEmailStyle?: 'CONFIRM_WITH_CODE' | 'CONFIRM_WITH_LINK';
-      /**
-       * When verificationEmailStyle is set to "CONFIRM_WITH_CODE", the emailBody must contain the template {####} where the code will be inserted.
-       * When verificationEmailStyle is set to "CONFIRM_WITH_LINK", the emailBody must contain the template {##Verify Email##} where the link will be inserted.
-       */
-      verificationEmailBody?: string;
-      /**
-       * The verification email subject.
-       */
-      verificationEmailSubject?: string;
-    };
+export type EmailLogin = true | EmailLoginSettings;
 /**
  * Phone number login options.
  *
@@ -36,7 +44,13 @@ export type EmailLogin =
 export type PhoneNumberLogin =
   | true
   | {
-      verificationMessage?: string;
+      /**
+       * The message template for the verification SMS sent to the user upon sign up.
+       * Use the code parameter in the template where Cognito should insert the verification code.
+       * @default - verificationMessage: (code: string) => `The verification code to your new account is ${code}` if VerificationEmailStyle.CODE is chosen,
+       * not configured if VerificationEmailStyle.LINK is chosen
+       */
+      verificationMessage?: (code: string) => string;
     };
 /**
  * Basic login options require at least email or phone number.
@@ -63,11 +77,12 @@ export type MFASettings = {
     | boolean
     | {
         /**
-         * The SMS message template sent during MFA verification. Use '{####}' in the template where Cognito should insert the verification code.
+         * The SMS message template sent during MFA verification.
+         * Use the code parameter in the template where Cognito should insert the verification code.
          * @default
-         * 'Your authentication code is {####}.'
+         * smsMessage: (code: string) => `Your authentication code is ${code}.`
          */
-        smsMessage: string;
+        smsMessage: (code: string) => string;
       };
 };
 /**
