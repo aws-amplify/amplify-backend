@@ -1,23 +1,33 @@
 import { describe, it } from 'node:test';
 import { SecretError } from './secret_error.js';
-import { SSMServiceException } from '@aws-sdk/client-ssm';
+import { ParameterNotFound } from '@aws-sdk/client-ssm';
 import assert from 'node:assert';
 
 void describe('SecretError', () => {
   void it('creates from SSM exception', () => {
-    const ssmException = {
-      message: 'ssm exception error message',
+    const ssmNotFoundException = new ParameterNotFound({
       $metadata: {
         httpStatusCode: 500,
       },
-    } as SSMServiceException;
-
-    const expectedErr = new SecretError(JSON.stringify(ssmException), {
-      cause: ssmException,
-      httpStatusCode: ssmException.$metadata.httpStatusCode,
+      message: 'ssm exception error message',
     });
 
-    const actualErr = SecretError.fromSSMException(ssmException);
+    const expectedErr = new SecretError(JSON.stringify(ssmNotFoundException), {
+      cause: ssmNotFoundException,
+      httpStatusCode: ssmNotFoundException.$metadata.httpStatusCode,
+    });
+
+    const actualErr = SecretError.createInstance(ssmNotFoundException);
+    assert.deepStrictEqual(actualErr, expectedErr);
+  });
+
+  void it('creates from non-ssm exception', () => {
+    const randomError = new Error(`some random error`);
+    const expectedErr = new SecretError(randomError.message, {
+      cause: randomError,
+    });
+
+    const actualErr = SecretError.createInstance(randomError);
     assert.deepStrictEqual(actualErr, expectedErr);
   });
 });

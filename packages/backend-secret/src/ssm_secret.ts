@@ -1,4 +1,4 @@
-import { SSM, SSMServiceException } from '@aws-sdk/client-ssm';
+import { SSM } from '@aws-sdk/client-ssm';
 import { SecretError } from './secret_error.js';
 import {
   Secret,
@@ -108,7 +108,7 @@ export class SSMSecretClient implements SecretClient {
         };
       }
     } catch (err) {
-      throw SecretError.fromSSMException(err as SSMServiceException);
+      throw SecretError.createInstance(err as Error);
     }
 
     if (!secret) {
@@ -150,7 +150,7 @@ export class SSMSecretClient implements SecretClient {
       });
       return result;
     } catch (err) {
-      throw SecretError.fromSSMException(err as SSMServiceException);
+      throw SecretError.createInstance(err as Error);
     }
   };
 
@@ -176,7 +176,7 @@ export class SSMSecretClient implements SecretClient {
         version: resp.Version,
       };
     } catch (err) {
-      throw SecretError.fromSSMException(err as SSMServiceException);
+      throw SecretError.createInstance(err as Error);
     }
   };
 
@@ -193,7 +193,7 @@ export class SSMSecretClient implements SecretClient {
         Name: name,
       });
     } catch (err) {
-      throw SecretError.fromSSMException(err as SSMServiceException);
+      throw SecretError.createInstance(err as Error);
     }
   };
 }

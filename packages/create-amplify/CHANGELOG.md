@@ -1,5 +1,11 @@
 # create-amplify
 
+## 0.2.0-alpha.11
+
+### Patch Changes
+
+- 0c7d55fb: add prompts to customize the project root and to confirm if to continue installing all the dependencies
+
 ## 0.2.0-alpha.10
 
 ### Patch Changes

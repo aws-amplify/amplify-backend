@@ -1,4 +1,4 @@
-import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
+import { Argv, CommandModule } from 'yargs';
 import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
 import { isAbsolute, resolve } from 'path';
 import {
@@ -13,8 +13,12 @@ import {
   GenerateGraphqlCodegenOptions,
   GenerateModelsOptions,
 } from '@aws-amplify/model-generator';
+import { ArgumentsKebabCase } from '../../../kebab_case.js';
 
-export type GenerateGraphqlClientCodeCommandOptions = {
+export type GenerateGraphqlClientCodeCommandOptions =
+  ArgumentsKebabCase<GenerateGraphqlClientCodeCommandOptionsCamelCase>;
+
+type GenerateGraphqlClientCodeCommandOptionsCamelCase = {
   stack: string | undefined;
   appId: string | undefined;
   branch: string | undefined;
@@ -63,18 +67,24 @@ export class GenerateGraphqlClientCodeCommand
 
   private getFormatParams = (
     format: string,
-    args: ArgumentsCamelCase<GenerateGraphqlClientCodeCommandOptions>
+    args: GenerateGraphqlClientCodeCommandOptions
   ):
     | object
     | Pick<
-        GenerateGraphqlCodegenOptions,
-        'statementTarget' | 'typeTarget' | 'maxDepth' | 'multipleSwiftFiles'
+        ArgumentsKebabCase<GenerateGraphqlCodegenOptions>,
+        | 'statement-target'
+        | 'type-target'
+        | 'max-depth'
+        | 'multiple-swift-files'
       >
-    | Pick<GenerateModelsOptions, 'modelTarget' | 'generateIndexRules'> => {
+    | Pick<
+        ArgumentsKebabCase<GenerateModelsOptions>,
+        'model-target' | 'generate-index-rules'
+      > => {
     switch (format) {
       case 'graphql-codegen':
         return {
-          statementTarget: args.statementTarget ?? 'javascript',
+          statementTarget: args['statement-target'] ?? 'javascript',
           ...('typeTarget' in args ? { typeTarget: args.typeTarget } : {}),
           ...('statementMaxDepth' in args
             ? { maxDepth: args.statementMaxDepth }
@@ -88,7 +98,7 @@ export class GenerateGraphqlClientCodeCommand
         };
       case 'modelgen':
         return {
-          modelTarget: args.modelTarget ?? 'javascript',
+          modelTarget: args['model-target'] ?? 'javascript',
           ...('modelGenerateIndexRules' in args
             ? { generateIndexRules: args.modelGenerateIndexRules }
             : {}),
@@ -124,9 +134,7 @@ export class GenerateGraphqlClientCodeCommand
     }
   };
 
-  private getOutDir = (
-    args: ArgumentsCamelCase<GenerateGraphqlClientCodeCommandOptions>
-  ) => {
+  private getOutDir = (args: GenerateGraphqlClientCodeCommandOptions) => {
     const cwd = process.cwd();
     if (!args.out) {
       return cwd;
@@ -138,7 +146,7 @@ export class GenerateGraphqlClientCodeCommand
    * @inheritDoc
    */
   handler = async (
-    args: ArgumentsCamelCase<GenerateGraphqlClientCodeCommandOptions>
+    args: GenerateGraphqlClientCodeCommandOptions
   ): Promise<void> => {
     const backendIdentifier = await this.backendIdentifierResolver.resolve(
       args
@@ -162,13 +170,13 @@ export class GenerateGraphqlClientCodeCommand
   builder = (yargs: Argv): Argv<GenerateGraphqlClientCodeCommandOptions> => {
     return yargs
       .option('stack', {
-        conflicts: ['appId', 'branch'],
+        conflicts: ['app-id', 'branch'],
         describe: 'A stack name that contains an Amplify backend',
         type: 'string',
         array: false,
         group: 'Stack identifier',
       })
-      .option('appId', {
+      .option('app-id', {
         conflicts: ['stack'],
         describe: 'The Amplify App ID of the project',
         type: 'string',
@@ -196,81 +204,81 @@ export class GenerateGraphqlClientCodeCommand
         array: false,
         choices: Object.values(GenerateApiCodeFormat),
       })
-      .option('modelTarget', {
+      .option('model-target', {
         describe:
           'The modelgen export target. Only applies when the `--format` parameter is set to `modelgen`',
         type: 'string',
         array: false,
         choices: Object.values(GenerateApiCodeModelTarget),
       })
-      .option('statementTarget', {
+      .option('statement-target', {
         describe:
           'The graphql-codegen statement export target. Only applies when the `--format` parameter is set to `graphql-codegen`',
         type: 'string',
         array: false,
         choices: Object.values(GenerateApiCodeStatementTarget),
       })
-      .option('typeTarget', {
+      .option('type-target', {
         describe:
           'The optional graphql-codegen type export target. Only applies when the `--format` parameter is set to `graphql-codegen`',
         type: 'string',
         array: false,
         choices: Object.values(GenerateApiCodeTypeTarget),
       })
-      .option('modelGenerateIndexRules', {
+      .option('model-generate-index-rules', {
         description: 'Adds key/index details to iOS models',
         type: 'boolean',
         array: false,
         hidden: true,
       })
-      .option('modelEmitAuthProvider', {
+      .option('model-emit-auth-provider', {
         description: 'Adds auth provider details to iOS models',
         type: 'boolean',
         array: false,
         hidden: true,
       })
-      .option('modelRespectPrimaryKeyAttributesOnConnectionField', {
+      .option('model-respect-primary-key-attributes-on-connection-field', {
         description:
           'If enabled, Datastore queries will respect the primary + sort key fields, rather than a default id field',
         type: 'boolean',
         array: false,
         hidden: true,
       })
-      .option('modelGenerateModelsForLazyLoadAndCustomSelectionSet', {
+      .option('model-generate-models-for-lazy-load-and-custom-selection-set', {
         description:
           'Generates lazy model type definitions, required or amplify-js v5+',
         type: 'boolean',
         array: false,
         hidden: true,
       })
-      .option('modelAddTimestampFields', {
+      .option('model-add-timestamp-fields', {
         description: 'Add read-only timestamp fields in modelgen.',
         type: 'boolean',
         array: false,
         hidden: true,
       })
-      .option('modelHandleListNullabilityTransparently', {
+      .option('model-handle-list-nullability-transparently', {
         description:
           'Configure the nullability of the List and List components in Datastore Models generation',
         type: 'boolean',
         array: false,
         hidden: true,
       })
-      .option('statementMaxDepth', {
+      .option('statement-max-depth', {
         description:
           'Determines how deeply nested to generate graphql statements.',
         type: 'number',
         array: false,
         hidden: true,
       })
-      .option('statementTypenameIntrospection', {
+      .option('statement-typename-introspection', {
         description:
           'Determines whether to include default __typename for all generated statements',
         type: 'boolean',
         array: false,
         hidden: true,
       })
-      .option('typeMultipleSwiftFiles', {
+      .option('type-multiple-swift-files', {
         description:
           'Determines whether or not to generate a single API.swift, or multiple per-model swift files.',
         type: 'boolean',

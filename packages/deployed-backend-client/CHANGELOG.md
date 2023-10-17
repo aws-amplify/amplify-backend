@@ -1,5 +1,14 @@
 # @aws-amplify/deployed-backend-client
 
+## 0.2.0-alpha.7
+
+### Patch Changes
+
+- a351b261: Fall back backend metadata lastUpdated field to `CreationTime` when `LastUpdatedTime` is not set
+- 5b9aac15: add backend identifier to sandbox metadata response
+- Updated dependencies [5b9aac15]
+  - @aws-amplify/platform-core@0.1.1-alpha.2
+
 ## 0.2.0-alpha.6
 
 ### Minor Changes

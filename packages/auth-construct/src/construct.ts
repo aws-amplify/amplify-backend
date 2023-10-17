@@ -18,7 +18,6 @@ import {
   UserPoolIdentityProviderSaml,
   UserPoolOperation,
   UserPoolProps,
-  VerificationEmailStyle,
 } from 'aws-cdk-lib/aws-cognito';
 import { FederatedPrincipal, Role } from 'aws-cdk-lib/aws-iam';
 import { AuthOutput } from '@aws-amplify/backend-output-schemas/auth';
@@ -208,14 +207,14 @@ export class AmplifyAuth
    */
   private getUserPoolProps = (props: AuthProps): UserPoolProps => {
     const emailEnabled = props.loginWith.email ? true : false;
-    const phoneEnabled = props.loginWith.phoneNumber ? true : false;
+    const phoneEnabled = props.loginWith.phone ? true : false;
     // check for customization
     let userVerificationSettings: cognito.UserVerificationConfig = {};
     if (emailEnabled && typeof props.loginWith.email === 'object') {
       const emailSettings = props.loginWith.email;
       if (
         emailSettings.verificationEmailBody &&
-        emailSettings.verificationEmailStyle !== VerificationEmailStyle.LINK
+        emailSettings.verificationEmailStyle !== 'CONFIRM_WITH_LINK'
       ) {
         if (emailSettings.verificationEmailBody.indexOf('{####}') === -1) {
           throw Error(
@@ -225,7 +224,7 @@ export class AmplifyAuth
       }
       if (
         emailSettings.verificationEmailBody &&
-        emailSettings.verificationEmailStyle === VerificationEmailStyle.LINK
+        emailSettings.verificationEmailStyle === 'CONFIRM_WITH_LINK'
       ) {
         if (
           emailSettings.verificationEmailBody.indexOf('{##Verify Email##}') ===
@@ -238,19 +237,21 @@ export class AmplifyAuth
       }
       userVerificationSettings = {
         emailBody: emailSettings.verificationEmailBody,
-        emailStyle: emailSettings.verificationEmailStyle,
+        emailStyle: this.getEmailVerificationStyle(
+          emailSettings.verificationEmailStyle
+        ),
         emailSubject: emailSettings.verificationEmailSubject,
       };
     }
-    if (phoneEnabled && typeof props.loginWith.phoneNumber === 'object') {
-      const phoneSettings = props.loginWith.phoneNumber;
+    if (phoneEnabled && typeof props.loginWith.phone === 'object') {
+      const phoneSettings = props.loginWith.phone;
       if (
         phoneSettings.verificationMessage &&
         phoneSettings.verificationMessage.indexOf('{####}') === -1
       ) {
         // validate sms message structure
         throw Error(
-          "Invalid phoneNumber settings. Property 'verificationMessage' must contain {####} as a placeholder for the verification code."
+          "Invalid phone settings. Property 'verificationMessage' must contain {####} as a placeholder for the verification code."
         );
       }
       userVerificationSettings = {
@@ -277,16 +278,14 @@ export class AmplifyAuth
       },
       selfSignUpEnabled: DEFAULTS.ALLOW_SELF_SIGN_UP,
       mfa: this.getMFAEnforcementType(props.multifactor),
-      mfaMessage:
-        typeof props.multifactor === 'object' &&
-        props.multifactor.enforcementType !== 'OFF' &&
-        props.multifactor.sms === true
-          ? props.multifactor.smsMessage
-          : undefined,
+      mfaMessage: this.getMFAMessage(props.multifactor),
       mfaSecondFactor:
         typeof props.multifactor === 'object' &&
         props.multifactor.enforcementType !== 'OFF'
-          ? { sms: props.multifactor.sms, otp: props.multifactor.totp }
+          ? {
+              sms: props.multifactor.sms ? true : false,
+              otp: props.multifactor.totp,
+            }
           : undefined,
       accountRecovery: this.getAccountRecoverySetting(
         emailEnabled,
@@ -295,6 +294,25 @@ export class AmplifyAuth
       ),
     };
     return userPoolProps;
+  };
+
+  /**
+   * Get email verification style from user props
+   * @param verificationEmailStyle - string value
+   * @returns verificationEmailStyle - enum value
+   */
+  private getEmailVerificationStyle = (
+    verificationEmailStyle:
+      | 'CONFIRM_WITH_CODE'
+      | 'CONFIRM_WITH_LINK'
+      | undefined
+  ): cognito.VerificationEmailStyle | undefined => {
+    if (verificationEmailStyle === 'CONFIRM_WITH_CODE') {
+      return cognito.VerificationEmailStyle.CODE;
+    } else if (verificationEmailStyle === 'CONFIRM_WITH_LINK') {
+      return cognito.VerificationEmailStyle.LINK;
+    }
+    return undefined;
   };
 
   /**
@@ -328,7 +346,7 @@ export class AmplifyAuth
   /**
    * Convert user friendly Mfa type to cognito Mfa type.
    * This eliminates the need for users to import cognito.Mfa.
-   * @param mfa - MFA Enforcement type string value
+   * @param mfa - MFA settings
    * @returns cognito MFA enforcement type
    */
   private getMFAEnforcementType = (
@@ -343,6 +361,26 @@ export class AmplifyAuth
         case 'REQUIRED':
           return Mfa.REQUIRED;
       }
+    }
+    return undefined;
+  };
+
+  /**
+   * Extract the MFA message settings and perform validation.
+   * @param mfa - MFA settings
+   * @returns mfa message
+   */
+  private getMFAMessage = (
+    mfa: AuthProps['multifactor']
+  ): string | undefined => {
+    if (mfa && mfa.enforcementType !== 'OFF' && typeof mfa.sms === 'object') {
+      const message = mfa.sms.smsMessage;
+      if (message.indexOf('{####}') === -1) {
+        throw Error(
+          "Invalid MFA settings. Property 'smsMessage' must contain {####} as a placeholder for the verification code."
+        );
+      }
+      return message;
     }
     return undefined;
   };
@@ -363,12 +401,16 @@ export class AmplifyAuth
       return result;
     }
     if (external.google) {
+      const googleProps = external.google;
       result.google = new cognito.UserPoolIdentityProviderGoogle(
         this,
         'GoogleIdP',
         {
           userPool,
-          ...external.google,
+          clientId: googleProps.clientId,
+          clientSecretValue: googleProps.clientSecret,
+          attributeMapping: googleProps.attributeMapping,
+          scopes: googleProps.scopes,
         }
       );
       result.oauthMappings[authProvidersList.google] = external.google.clientId;

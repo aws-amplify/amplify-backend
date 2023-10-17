@@ -1,4 +1,4 @@
-import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
+import { Argv, CommandModule } from 'yargs';
 import fs from 'fs';
 import { AmplifyPrompter } from '../prompter/amplify_prompts.js';
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
@@ -10,8 +10,12 @@ import {
   DEFAULT_GRAPHQL_PATH,
   DEFAULT_UI_PATH,
 } from '../../form-generation/default_form_generation_output_paths.js';
+import { ArgumentsKebabCase } from '../../kebab_case.js';
 
-export type SandboxCommandOptions = {
+export type SandboxCommandOptions =
+  ArgumentsKebabCase<SandboxCommandOptionsCamelCase>;
+
+type SandboxCommandOptionsCamelCase = {
   dirToWatch: string | undefined;
   exclude: string[] | undefined;
   name: string | undefined;
@@ -75,9 +79,7 @@ export class SandboxCommand
   /**
    * @inheritDoc
    */
-  handler = async (
-    args: ArgumentsCamelCase<SandboxCommandOptions>
-  ): Promise<void> => {
+  handler = async (args: SandboxCommandOptions): Promise<void> => {
     const { profile } = args;
     if (profile) {
       process.env.AWS_PROFILE = profile;
@@ -87,10 +89,10 @@ export class SandboxCommand
     const eventHandlers = this.sandboxEventHandlerCreator?.({
       appName: args.name,
       format: args.format,
-      clientConfigOutDir: args.outDir,
-      modelsOutDir: args.modelsOutDir,
-      uiOutDir: args.uiOutDir,
-      modelsFilter: args.modelsFilter,
+      clientConfigOutDir: args['out-dir'],
+      modelsOutDir: args['models-out-dir'],
+      uiOutDir: args['ui-out-dir'],
+      modelsFilter: args['models-filter'],
     });
     if (eventHandlers) {
       Object.entries(eventHandlers).forEach(([event, handlers]) => {
@@ -99,16 +101,16 @@ export class SandboxCommand
     }
     const watchExclusions = args.exclude ?? [];
     const clientConfigWritePath = await getClientConfigPath(
-      args.outDir,
+      args['out-dir'],
       args.format
     );
     watchExclusions.push(
       clientConfigWritePath,
-      args.uiOutDir,
-      args.modelsOutDir
+      args['ui-out-dir'],
+      args['models-out-dir']
     );
     await sandbox.start({
-      dir: args.dirToWatch,
+      dir: args['dir-to-watch'],
       exclude: watchExclusions,
       name: args.name,
       profile: args.profile,
@@ -124,7 +126,7 @@ export class SandboxCommand
       yargs
         // Cast to erase options types used in internal sub command implementation. Otherwise, compiler fails here.
         .command(this.sandboxSubCommands)
-        .option('dirToWatch', {
+        .option('dir-to-watch', {
           describe:
             'Directory to watch for file changes. All subdirectories and files will be included. defaults to the current directory.',
           type: 'string',
@@ -148,7 +150,7 @@ export class SandboxCommand
           array: false,
           choices: Object.values(ClientConfigFormat),
         })
-        .option('outDir', {
+        .option('out-dir', {
           describe:
             'A path to directory where config is written. If not provided defaults to current process working directory.',
           type: 'string',
@@ -159,14 +161,14 @@ export class SandboxCommand
           type: 'string',
           array: false,
         })
-        .option('modelsOutDir', {
+        .option('models-out-dir', {
           describe: 'A path to directory where generated models are written.',
           default: DEFAULT_GRAPHQL_PATH,
           type: 'string',
           array: false,
           group: 'Form Generation',
         })
-        .option('uiOutDir', {
+        .option('ui-out-dir', {
           describe: 'A path to directory where generated forms are written.',
           default: DEFAULT_UI_PATH,
           type: 'string',
@@ -180,17 +182,19 @@ export class SandboxCommand
           group: 'Form Generation',
         })
         .check((argv) => {
-          if (argv.dirToWatch) {
+          if (argv['dir-to-watch']) {
             // make sure it's a real directory
             let stats;
             try {
-              stats = fs.statSync(argv.dirToWatch, {});
+              stats = fs.statSync(argv['dir-to-watch'], {});
             } catch (e) {
-              throw new Error(`--dirToWatch ${argv.dirToWatch} does not exist`);
+              throw new Error(
+                `--dir-to-watch ${argv['dir-to-watch']} does not exist`
+              );
             }
             if (!stats.isDirectory()) {
               throw new Error(
-                `--dirToWatch ${argv.dirToWatch} is not a valid directory`
+                `--dir-to-watch ${argv['dir-to-watch']} is not a valid directory`
               );
             }
           }

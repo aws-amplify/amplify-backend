@@ -5,16 +5,18 @@ import { amplifyCli } from '../process-controller/process_controller.js';
 import assert from 'node:assert';
 import {
   confirmDeleteSandbox,
+  ensureDeploymentTimeLessThan,
   interruptSandbox,
   rejectCleanupSandbox,
-  waitForSandboxDeployment,
-} from '../process-controller/stdio_interaction_macros.js';
+  updateFileContent,
+  waitForSandboxDeploymentToPrintTotalTime,
+} from '../process-controller/predicated_action_macros.js';
 import { createEmptyAmplifyProject } from '../create_empty_amplify_project.js';
 import {
   createTestDirectoryBeforeAndCleanupAfter,
   getTestDir,
 } from '../setup_test_directory.js';
-import { pathToFileURL } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 import { shortUuid } from '../short_uuid.js';
 import {
   CloudFormationClient,
@@ -39,10 +41,20 @@ void describe('amplify deploys', () => {
   const testProjects = [
     {
       name: 'data-storage-auth-with-triggers',
-      initialAmplifyDirPath: new URL(
+      amplifyPath: new URL(
         '../../test-projects/data-storage-auth-with-triggers/amplify',
         import.meta.url
       ),
+      updates: [
+        {
+          amplifyPath: new URL(
+            '../../test-projects/data-storage-auth-with-triggers/update-1',
+            import.meta.url
+          ),
+          fileToUpdate: 'data/resource.ts',
+          deploymentThresholdInSeconds: 22,
+        },
+      ],
       assertions: async () => {
         const { default: clientConfig } = await import(
           pathToFileURL(
@@ -50,6 +62,7 @@ void describe('amplify deploys', () => {
           ).toString()
         );
         assert.deepStrictEqual(Object.keys(clientConfig).sort(), [
+          'aws_appsync_additionalAuthenticationTypes',
           'aws_appsync_authenticationType',
           'aws_appsync_graphqlEndpoint',
           'aws_appsync_region',
@@ -67,21 +80,57 @@ void describe('amplify deploys', () => {
   void describe('sandbox', () => {
     afterEach(async () => {
       await amplifyCli(['sandbox', 'delete'], testProjectRoot)
-        .do(confirmDeleteSandbox)
+        .do(confirmDeleteSandbox())
         .run();
       await fs.rm(testProjectRoot, { recursive: true });
     });
 
     testProjects.forEach((testProject) => {
-      void it(testProject.name, async () => {
-        await fs.cp(testProject.initialAmplifyDirPath, testAmplifyDir, {
+      void it(`${testProject.name} deploys with sandbox on startup`, async () => {
+        await fs.cp(testProject.amplifyPath, testAmplifyDir, {
           recursive: true,
         });
 
         await amplifyCli(['sandbox'], testProjectRoot)
-          .do(waitForSandboxDeployment)
-          .do(interruptSandbox)
-          .do(rejectCleanupSandbox)
+          .do(waitForSandboxDeploymentToPrintTotalTime())
+          .do(interruptSandbox())
+          .do(rejectCleanupSandbox())
+          .run();
+
+        await testProject.assertions();
+      });
+    });
+
+    testProjects.forEach((testProject) => {
+      void it(`${testProject.name} hot swaps a change`, async () => {
+        await fs.cp(testProject.amplifyPath, testAmplifyDir, {
+          recursive: true,
+        });
+
+        const processController = amplifyCli(
+          ['sandbox', '--dirToWatch', 'amplify'],
+          testProjectRoot
+        ).do(waitForSandboxDeploymentToPrintTotalTime());
+
+        for (const update of testProject.updates) {
+          const fileToUpdate = pathToFileURL(
+            path.join(fileURLToPath(update.amplifyPath), update.fileToUpdate)
+          );
+          const updateSource = pathToFileURL(
+            path.join(testAmplifyDir, update.fileToUpdate)
+          );
+
+          processController
+            .do(updateFileContent(fileToUpdate, updateSource))
+            .do(
+              ensureDeploymentTimeLessThan(update.deploymentThresholdInSeconds)
+            );
+        }
+
+        // Execute the process.
+        await processController
+          .do(interruptSandbox())
+          .do(rejectCleanupSandbox())
           .run();
 
         await testProject.assertions();
@@ -109,12 +158,12 @@ void describe('amplify deploys', () => {
 
     testProjects.forEach((testProject) => {
       void it(testProject.name, async () => {
-        await fs.cp(testProject.initialAmplifyDirPath, testAmplifyDir, {
+        await fs.cp(testProject.amplifyPath, testAmplifyDir, {
           recursive: true,
         });
 
         await amplifyCli(
-          ['pipeline-deploy', '--branch', branchName, '--appId', appId],
+          ['pipeline-deploy', '--branch', branchName, '--app-id', appId],
           testProjectRoot,
           {
             env: { CI: 'true' },

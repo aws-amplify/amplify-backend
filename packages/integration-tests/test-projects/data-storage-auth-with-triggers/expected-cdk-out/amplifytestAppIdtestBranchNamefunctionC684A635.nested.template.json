@@ -40,13 +40,13 @@
      },
      "S3Key": "efe12e580179d925ecc56ede6195533f23db3a8e887169b63ecb5cc644193f2b.zip"
     },
+    "Handler": "index.handler",
     "Role": {
      "Fn::GetAtt": [
       "testFunctestFuncLambdaFunctionServiceRole09E19D41",
       "Arn"
      ]
     },
-    "Handler": "index.handler",
     "Runtime": "nodejs18.x"
    },
    "DependsOn": [
