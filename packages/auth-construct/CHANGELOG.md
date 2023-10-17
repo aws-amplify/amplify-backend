@@ -1,5 +1,11 @@
 # @aws-amplify/auth-construct-alpha
 
+## 0.2.0-alpha.13
+
+### Patch Changes
+
+- 88fe36a1: Update code and link message templates to be more intuitive.
+
 ## 0.2.0-alpha.12
 
 ### Patch Changes
