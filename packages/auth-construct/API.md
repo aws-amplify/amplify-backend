@@ -40,15 +40,15 @@ export type AuthProps = {
 // @public
 export type BasicLoginOptions = {
     email: EmailLogin;
-    phoneNumber?: PhoneNumberLogin;
+    phone?: PhoneNumberLogin;
 } | {
     email?: EmailLogin;
-    phoneNumber: PhoneNumberLogin;
+    phone: PhoneNumberLogin;
 };
 
 // @public
 export type EmailLogin = true | {
-    verificationEmailStyle?: aws_cognito.VerificationEmailStyle;
+    verificationEmailStyle?: 'CONFIRM_WITH_CODE' | 'CONFIRM_WITH_LINK';
     verificationEmailBody?: string;
     verificationEmailSubject?: string;
 };
