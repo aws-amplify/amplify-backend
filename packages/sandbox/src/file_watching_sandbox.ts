@@ -106,7 +106,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
 
     const deployAndWatch = debounce(async () => {
       latch = 'deploying';
-      await this.executor.deploy(new SandboxBackendIdentifier(sandboxId));
+      await this.executor.deploy(new SandboxBackendIdentifier(sandboxId), true);
 
       // If latch is still 'deploying' after the 'await', that's fine,
       // but if it's 'queued', that means we need to deploy again
@@ -117,7 +117,10 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
         console.log(
           "[Sandbox] Detected file changes while previous deployment was in progress. Invoking 'sandbox' again"
         );
-        await this.executor.deploy(new SandboxBackendIdentifier(sandboxId));
+        await this.executor.deploy(
+          new SandboxBackendIdentifier(sandboxId),
+          true
+        );
       }
       latch = 'open';
       this.emitWatching();

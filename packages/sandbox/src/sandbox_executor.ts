@@ -43,7 +43,8 @@ export class AmplifySandboxExecutor {
    * Deploys sandbox
    */
   deploy = async (
-    uniqueBackendIdentifier: UniqueBackendIdentifier
+    uniqueBackendIdentifier: UniqueBackendIdentifier,
+    typeCheckingEnabled: boolean
   ): Promise<void> => {
     console.debug('[Sandbox] Executing command `deploy`');
     const secretLastUpdated = await this.getSecretLastUpdated(
@@ -55,6 +56,7 @@ export class AmplifySandboxExecutor {
           await this.backendDeployer.deploy(uniqueBackendIdentifier, {
             deploymentType: BackendDeploymentType.SANDBOX,
             secretLastUpdated,
+            typeCheckingEnabled,
           })
       );
     } catch (error) {
