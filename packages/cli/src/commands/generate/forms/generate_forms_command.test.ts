@@ -105,7 +105,7 @@ void describe('generate forms command', () => {
         uiOutPath
       );
     });
-    void it('./src/ui-components is the default graphql model generation path', async () => {
+    void it('./ui-components is the default graphql model generation path', async () => {
       const credentialProvider = fromNodeProviderChain();
 
       const backendIdResolver = new BackendIdentifierResolver({
@@ -145,10 +145,10 @@ void describe('generate forms command', () => {
       await commandRunner.runCommand('forms --stack my_stack');
       assert.equal(
         generationMock.mock.calls[0].arguments[0].uiOutDir,
-        './src/ui-components'
+        './ui-components'
       );
     });
-    void it('./src/graphql is the default graphql model generation path', async () => {
+    void it('./graphql is the default graphql model generation path', async () => {
       const credentialProvider = fromNodeProviderChain();
 
       const backendIdResolver = new BackendIdentifierResolver({
@@ -188,7 +188,7 @@ void describe('generate forms command', () => {
       await commandRunner.runCommand('forms --stack my_stack');
       assert.equal(
         generationMock.mock.calls[0].arguments[0].modelsOutDir,
-        './src/graphql'
+        './graphql'
       );
     });
   });
