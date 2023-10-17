@@ -16,9 +16,31 @@
 <li><a href="../modules/_aws_amplify_backend_graphql.html">@aws-amplify/backend-graphql</a></li>
 <li><a href="_aws_amplify_backend_graphql.DataProps.html">DataProps</a></li></ul>
 <h1>Type alias DataProps</h1></div>
-<div class="tsd-signature"><span class="tsd-kind-type-alias">Data<wbr/>Props</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type ">Pick</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">AmplifyGraphqlApiProps</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">&quot;schema&quot;</span><span class="tsd-signature-symbol">&gt;</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-type-alias">Data<wbr/>Props</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">authorizationModes</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type ">AuthorizationModes</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">name</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">schema</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">DerivedModelSchema</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></div>
+<div class="tsd-comment tsd-typography"><p>Exposed props for Data which are configurable by the end user.</p>
+</div>
+<div class="tsd-type-declaration">
+<h4>Type declaration</h4>
+<ul class="tsd-parameters">
+<li class="tsd-parameter">
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-property">authorization<wbr/>Modes</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type ">AuthorizationModes</span></h5>
+<div class="tsd-comment tsd-typography"><p>Temporary authZ pass-through into the CDK construct
+<a href="https://github.com/aws-amplify/samsara-cli/issues/370">https://github.com/aws-amplify/samsara-cli/issues/370</a></p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li>
+<li class="tsd-parameter">
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-property">name</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span></h5>
+<div class="tsd-comment tsd-typography"><p>Optional name for the generated Api.</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li>
+<li class="tsd-parameter">
+<h5><span class="tsd-kind-property">schema</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">DerivedModelSchema</span></h5>
+<div class="tsd-comment tsd-typography"><p>Graphql Schema as a string to be passed into the CDK construct.</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li></ul></div>
+<div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/e60130d/packages/backend-graphql/src/factory.ts#L17">factory.ts:17</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/41ae36e/packages/backend-graphql/src/factory.ts#L26">factory.ts:26</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -55,7 +77,7 @@
 <li><a href="../modules/_aws_amplify_function_construct_alpha.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2"></use></svg>@aws-amplify/function-construct-alpha</a></li>
 <li><a href="../modules/_aws_amplify_integration_tests.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2"></use></svg>@aws-amplify/integration-tests</a></li>
 <li><a href="../modules/_aws_amplify_model_generator.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2"></use></svg>@aws-amplify/model-generator</a></li>
-<li><a href="../modules/_aws_amplify_passwordless_auth_construct_alpha.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2"></use></svg>@aws-amplify/passwordless-auth-construct-alpha</a></li>
+<li><a href="../modules/_aws_amplify_platform_core.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2"></use></svg>@aws-amplify/platform-core</a></li>
 <li><a href="../modules/_aws_amplify_plugin_types.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2"></use></svg>@aws-amplify/plugin-types</a></li>
 <li><a href="../modules/_aws_amplify_sandbox.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2"></use></svg>@aws-amplify/sandbox</a></li>
 <li>Loading...</li></ul></nav></div></div></div>
