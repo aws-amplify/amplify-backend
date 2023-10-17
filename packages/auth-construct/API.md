@@ -23,6 +23,8 @@ export class AmplifyAuth extends Construct implements ResourceProvider<AuthResou
     constructor(scope: Construct, id: string, props?: AuthProps);
     addTrigger: (event: TriggerEvent, handler: IFunction | AmplifyFunction) => void;
     readonly resources: AuthResources;
+    // Warning: (ae-forgotten-export) The symbol "EmailLoginSettings" needs to be exported by the entry point index.d.ts
+    verifyEmailBody(emailSettings: EmailLoginSettings): string | undefined;
 }
 
 // @public
@@ -47,11 +49,7 @@ export type BasicLoginOptions = {
 };
 
 // @public
-export type EmailLogin = true | {
-    verificationEmailStyle?: 'CONFIRM_WITH_CODE' | 'CONFIRM_WITH_LINK';
-    verificationEmailBody?: string;
-    verificationEmailSubject?: string;
-};
+export type EmailLogin = true | EmailLoginSettings;
 
 // @public
 export type ExternalProviderOptions = {
@@ -88,7 +86,7 @@ export type MFA = {
 export type MFASettings = {
     totp: boolean;
     sms: boolean | {
-        smsMessage: string;
+        smsMessage: (code: string) => string;
     };
 };
 
@@ -97,7 +95,7 @@ export type OidcProviderProps = Omit<aws_cognito.UserPoolIdentityProviderOidcPro
 
 // @public
 export type PhoneNumberLogin = true | {
-    verificationMessage?: string;
+    verificationMessage?: (code: string) => string;
 };
 
 // @public
