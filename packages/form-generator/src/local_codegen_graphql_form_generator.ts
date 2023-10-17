@@ -128,7 +128,7 @@ export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
     const { componentText, declaration } = renderer.renderComponentInternal();
     const files = [
       {
-        componentText,
+        componentText: `'use client';\n\n${componentText}`,
         fileName: renderer.fileName,
       },
     ];
