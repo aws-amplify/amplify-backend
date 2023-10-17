@@ -1,5 +1,6 @@
 ---
 '@aws-amplify/client-config': minor
+'@aws-amplify/integration-tests': patch
 '@aws-amplify/backend-cli': patch
 ---
 
