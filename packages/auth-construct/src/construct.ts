@@ -298,7 +298,9 @@ export class AmplifyAuth
    * @param emailSettings the provided email settings
    * @returns emailBody
    */
-  verifyEmailBody(emailSettings: EmailLoginSettings): string | undefined {
+  private verifyEmailBody(
+    emailSettings: EmailLoginSettings
+  ): string | undefined {
     let emailBody: string | undefined;
     if (
       emailSettings.verificationEmailBody &&

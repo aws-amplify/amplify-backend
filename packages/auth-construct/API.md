@@ -23,7 +23,6 @@ export class AmplifyAuth extends Construct implements ResourceProvider<AuthResou
     constructor(scope: Construct, id: string, props?: AuthProps);
     addTrigger: (event: TriggerEvent, handler: IFunction | AmplifyFunction) => void;
     readonly resources: AuthResources;
-    verifyEmailBody(emailSettings: EmailLoginSettings): string | undefined;
 }
 
 // @public
