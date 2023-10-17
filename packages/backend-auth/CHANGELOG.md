@@ -1,5 +1,15 @@
 # @aws-amplify/backend-auth
 
+## 0.2.0-alpha.11
+
+### Patch Changes
+
+- 41ae36e2: Simplify phoneNumber to phone, and make verificationEmailStyle more user friendly.
+- db395e9c: Refactor clientSecretValue to clientSecret in Google provider props.
+- Updated dependencies [41ae36e2]
+- Updated dependencies [db395e9c]
+  - @aws-amplify/auth-construct-alpha@0.2.0-alpha.12
+
 ## 0.2.0-alpha.10
 
 ### Patch Changes

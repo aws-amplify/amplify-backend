@@ -1,5 +1,17 @@
 # @aws-amplify/backend-cli
 
+## 0.2.0-alpha.8
+
+### Minor Changes
+
+- 1a19914d: By default, artifacts render in ./{ui-components,graphql}
+
+### Patch Changes
+
+- Updated dependencies [2bbf3f20]
+  - @aws-amplify/client-config@0.2.0-alpha.11
+  - @aws-amplify/sandbox@0.2.0-alpha.13
+
 ## 0.2.0-alpha.7
 
 ### Patch Changes
