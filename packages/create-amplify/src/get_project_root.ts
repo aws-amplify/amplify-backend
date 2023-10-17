@@ -1,23 +1,13 @@
 import fsp from 'fs/promises';
 import path from 'path';
-import yargs from 'yargs';
 import { AmplifyPrompter } from './amplify_prompts.js';
-
-const argv = await yargs(process.argv.slice(2)).options({
-  debug: {
-    type: 'boolean',
-    default: false,
-  },
-  verbose: {
-    type: 'boolean',
-    default: false,
-  },
-}).argv;
+import { LogLevel, Logger } from './logger.js';
 
 /**
  * Returns the project root directory.
  */
 export const getProjectRoot = async () => {
+  const logger = new Logger();
   const useDefault = process.env.npm_config_yes === 'true';
   const defaultProjectRoot = '.';
   let projectRoot = useDefault
@@ -36,12 +26,11 @@ export const getProjectRoot = async () => {
     .then(() => true)
     .catch(() => false); // There's no `fsp.exists` method, so we use `stat` instead. See https://github.com/nodejs/node/issues/39960#issuecomment-909444667
   if (!isExistProjectRoot) {
-    if (argv.debug || argv.verbose) {
-      console.info(
-        `⚠️ The provided directory (${projectRoot}) does not exist.`
-      );
-      console.info(`🗂️ Creating directory ${projectRoot}`);
-    }
+    await logger.log(
+      `The provided directory (${projectRoot}) does not exist.`,
+      LogLevel.DEBUG
+    );
+    await logger.log(`Creating directory ${projectRoot}`, LogLevel.DEBUG);
     await fsp.mkdir(projectRoot, { recursive: true });
   }
   return projectRoot;
