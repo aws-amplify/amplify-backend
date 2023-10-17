@@ -23,7 +23,7 @@ export const getProjectRoot = async () => {
   let projectRoot = useDefault
     ? defaultProjectRoot
     : await AmplifyPrompter.input({
-        message: 'WHERE Where should we create your project?',
+        message: 'Where should we create your project?',
         defaultValue: defaultProjectRoot,
       });
 
