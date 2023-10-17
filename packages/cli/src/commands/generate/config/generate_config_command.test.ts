@@ -138,6 +138,25 @@ void describe('generate config command', () => {
     );
   });
 
+  void it('can generate to custom relative path', async () => {
+    await commandRunner.runCommand(
+      'config --stack stack_name --out-dir foo/bar --format dart'
+    );
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
+    assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
+      stackName: 'stack_name',
+    });
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
+    assert.equal(
+      generateClientConfigMock.mock.calls[0].arguments[1],
+      'foo/bar'
+    );
+    assert.equal(
+      generateClientConfigMock.mock.calls[0].arguments[2],
+      ClientConfigFormat.DART
+    );
+  });
+
   void it('shows available options in help output', async () => {
     const output = await commandRunner.runCommand('config --help');
     assert.match(output, /--stack/);

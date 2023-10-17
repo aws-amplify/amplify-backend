@@ -49,4 +49,16 @@ void describe('client config writer', () => {
     );
     assert.deepEqual(actualConfig, clientConfig);
   });
+
+  void it('writes dart config to target location as map object', async () => {
+    const targetPath = path.join(
+      process.cwd(),
+      targetDirectory,
+      'amplifyconfiguration.json'
+    );
+    await clientConfigWriter.writeClientConfig(clientConfig, targetPath);
+
+    const actualConfig = await fs.readFile(targetPath, 'utf-8');
+    assert.deepEqual(actualConfig, JSON.stringify(clientConfig, null, 2));
+  });
 });
