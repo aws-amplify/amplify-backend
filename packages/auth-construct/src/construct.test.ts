@@ -158,7 +158,7 @@ void describe('Auth construct', () => {
       EmailVerificationMessage: expectedEmailMessage,
       EmailVerificationSubject: customEmailVerificationSubject,
       VerificationMessageTemplate: {
-        DefaultEmailOption: 'CODE',
+        DefaultEmailOption: 'CONFIRM_WITH_CODE',
         EmailMessage: expectedEmailMessage,
         EmailSubject: customEmailVerificationSubject,
         SmsMessage: 'The verification code to your new account is {####}',
@@ -201,7 +201,7 @@ void describe('Auth construct', () => {
       EmailVerificationMessage: expectedEmailMessage,
       EmailVerificationSubject: customEmailVerificationSubject,
       VerificationMessageTemplate: {
-        DefaultEmailOption: 'CODE',
+        DefaultEmailOption: 'CONFIRM_WITH_CODE',
         EmailMessage: expectedEmailMessage,
         EmailSubject: customEmailVerificationSubject,
         SmsMessage: expectedSMSVerificationMessage,
