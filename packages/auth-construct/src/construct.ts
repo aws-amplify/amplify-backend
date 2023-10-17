@@ -244,9 +244,11 @@ export class AmplifyAuth
         smsMessage = phoneSettings.verificationMessage(
           VERIFICATION_SMS_PLACEHOLDERS.CODE
         );
-        throw Error(
-          "Invalid phone settings. Property 'verificationMessage' must utilize the 'code' parameter at least once as a placeholder for the verification code."
-        );
+        if (!smsMessage.includes(VERIFICATION_SMS_PLACEHOLDERS.CODE)) {
+          throw Error(
+            "Invalid phone settings. Property 'verificationMessage' must utilize the 'code' parameter at least once as a placeholder for the verification code."
+          );
+        }
       }
       userVerificationSettings = {
         ...userVerificationSettings,
