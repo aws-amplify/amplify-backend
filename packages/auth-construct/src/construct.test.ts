@@ -142,7 +142,7 @@ void describe('Auth construct', () => {
     const app = new App();
     const stack = new Stack(app);
     const emailBodyFunction = (code: string) => `custom email body ${code}`;
-    const expectedEmailMessage = 'custom email body ${####}';
+    const expectedEmailMessage = 'custom email body {####}';
     const customEmailVerificationSubject = 'custom subject';
     new AmplifyAuth(stack, 'test', {
       loginWith: {
@@ -170,7 +170,7 @@ void describe('Auth construct', () => {
     const app = new App();
     const stack = new Stack(app);
     const emailBodyFunction = (code: string) => `custom email body ${code}`;
-    const expectedEmailMessage = 'custom email body ${####}';
+    const expectedEmailMessage = 'custom email body {####}';
     const customEmailVerificationSubject = 'custom subject';
     const smsVerificationMessageFunction = (code: string) =>
       `the verification code is ${code}`;
