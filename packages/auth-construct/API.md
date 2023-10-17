@@ -23,7 +23,6 @@ export class AmplifyAuth extends Construct implements ResourceProvider<AuthResou
     constructor(scope: Construct, id: string, props?: AuthProps);
     addTrigger: (event: TriggerEvent, handler: IFunction | AmplifyFunction) => void;
     readonly resources: AuthResources;
-    // Warning: (ae-forgotten-export) The symbol "EmailLoginSettings" needs to be exported by the entry point index.d.ts
     verifyEmailBody(emailSettings: EmailLoginSettings): string | undefined;
 }
 
@@ -50,6 +49,13 @@ export type BasicLoginOptions = {
 
 // @public
 export type EmailLogin = true | EmailLoginSettings;
+
+// @public
+export type EmailLoginSettings = {
+    verificationEmailStyle?: 'CODE' | 'LINK';
+    verificationEmailBody?: (codeOrLink: string) => string;
+    verificationEmailSubject?: string;
+};
 
 // @public
 export type ExternalProviderOptions = {
