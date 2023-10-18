@@ -1,5 +1,13 @@
 # @aws-amplify/backend-auth
 
+## 0.2.0-alpha.12
+
+### Patch Changes
+
+- 88fe36a1: Update code and link message templates to be more intuitive.
+- Updated dependencies [88fe36a1]
+  - @aws-amplify/auth-construct-alpha@0.2.0-alpha.13
+
 ## 0.2.0-alpha.11
 
 ### Patch Changes
