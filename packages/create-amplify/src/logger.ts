@@ -6,29 +6,25 @@ import yargs from 'yargs';
 export class Logger {
   /**
    * Creates a new Logger instance.
-   * @param level The minimum log level to log.
    * @param console The console to log to.
    * @param args The command line arguments.
    * @param args.debug Whether to log debug messages.
    * @param args.verbose Whether to log verbose messages.
    */
   constructor(
-    private readonly level: LogLevel = LogLevel.INFO,
     private readonly console: Console = global.console,
     private readonly args: { debug?: boolean; verbose?: boolean } = {
       debug: false,
       verbose: false,
     }
-  ) {
-    this.level = level;
-  }
+  ) {}
 
   /**
    * Logs a message to the console.
    */
   async log(message: string, level: LogLevel = LogLevel.INFO) {
-    const toLogMessage =
-      level <= this.level || this.args.debug || this.args.verbose;
+    const minimumLogLevel = LogLevel.INFO;
+    const toLogMessage = level <= minimumLogLevel;
 
     if (!toLogMessage) {
       return;
@@ -86,6 +82,6 @@ export const argv = await yargs(process.argv.slice(2)).options({
   },
 }).argv;
 
-const logger = new Logger(LogLevel.INFO, global.console, argv);
+const logger = new Logger(global.console, argv);
 
 export { logger };

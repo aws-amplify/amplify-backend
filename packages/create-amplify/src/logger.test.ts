@@ -7,7 +7,7 @@ void describe('Logger', () => {
     const mockConsole = {
       log: ctx.mock.fn(() => undefined),
     };
-    const logger = new Logger(LogLevel.INFO, mockConsole as never, {});
+    const logger = new Logger(mockConsole as never, {});
     await logger.info('Test log message');
     assert.equal(mockConsole.log.mock.callCount(), 1);
     assert.match(
@@ -20,17 +20,8 @@ void describe('Logger', () => {
     const mockConsole = {
       log: ctx.mock.fn(() => undefined),
     };
-    const logger = new Logger(LogLevel.INFO, mockConsole as never, {});
+    const logger = new Logger(mockConsole as never, {});
     await logger.debug('Test log message');
-    assert.equal(mockConsole.log.mock.callCount(), 0);
-  });
-
-  void it('does not log a message below the minimum log level', async (ctx) => {
-    const mockConsole = {
-      log: ctx.mock.fn(() => undefined),
-    };
-    const logger = new Logger(LogLevel.ERROR, mockConsole as never, {});
-    await logger.info('Test log message');
     assert.equal(mockConsole.log.mock.callCount(), 0);
   });
 
@@ -39,7 +30,7 @@ void describe('Logger', () => {
       log: ctx.mock.fn(() => undefined),
     };
 
-    const logger = new Logger(LogLevel.INFO, mockConsole as never, {
+    const logger = new Logger(mockConsole as never, {
       debug: true,
     });
     await logger.info('Test log message');
@@ -55,7 +46,7 @@ void describe('Logger', () => {
       log: ctx.mock.fn(() => undefined),
     };
 
-    const logger = new Logger(LogLevel.INFO, mockConsole as never, {
+    const logger = new Logger(mockConsole as never, {
       debug: false,
       verbose: true,
     });
