@@ -125,6 +125,58 @@ void describe('invokeCDKCommand', () => {
     ]);
   });
 
+  void it('enables type checking for branch deployments', async () => {
+    await invoker.deploy(uniqueBackendIdentifier, {
+      deploymentType: BackendDeploymentType.BRANCH,
+      typeCheckingEnabled: true,
+    });
+    assert.strictEqual(execaMock.mock.callCount(), 2);
+    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 2);
+    assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
+      'tsc',
+      '--noEmit',
+    ]);
+    assert.equal(execaMock.mock.calls[1].arguments[1]?.length, 11);
+    assert.deepStrictEqual(execaMock.mock.calls[1].arguments[1], [
+      'cdk',
+      'deploy',
+      '--ci',
+      '--app',
+      "'npx tsx amplify/backend.ts'",
+      '--context',
+      'backend-id=123',
+      '--context',
+      'branch-name=testBranch',
+      '--context',
+      'deployment-type=BRANCH',
+    ]);
+  });
+
+  void it('enables type checking for sandbox deployments', async () => {
+    await invoker.deploy(undefined, {
+      deploymentType: BackendDeploymentType.SANDBOX,
+      typeCheckingEnabled: true,
+    });
+    assert.strictEqual(execaMock.mock.callCount(), 2);
+    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 2);
+    assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
+      'tsc',
+      '--noEmit',
+    ]);
+    assert.equal(execaMock.mock.calls[1].arguments[1]?.length, 9);
+    assert.deepStrictEqual(execaMock.mock.calls[1].arguments[1], [
+      'cdk',
+      'deploy',
+      '--ci',
+      '--app',
+      "'npx tsx amplify/backend.ts'",
+      '--context',
+      'deployment-type=SANDBOX',
+      '--hotswap-fallback',
+      '--method=direct',
+    ]);
+  });
+
   void it('returns human readable errors', async () => {
     mock.method(invoker, 'executeChildProcess', () => {
       throw new Error('Access Denied');
