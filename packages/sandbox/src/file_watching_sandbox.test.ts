@@ -1,4 +1,4 @@
-import test, { afterEach, beforeEach, describe, it, mock } from 'node:test';
+import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import path from 'path';
 import watcher from '@parcel/watcher';
 import {
