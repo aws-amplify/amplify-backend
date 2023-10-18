@@ -26,7 +26,8 @@ import { DefaultDeployedBackendClient } from './deployed_backend_client.js';
 import { StackIdentifier } from './index.js';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { GetObjectCommand, S3 } from '@aws-sdk/client-s3';
-import { ListDeployedResources } from './deployed-backend-client/list_deployed_resources.js';
+import { DeployedResourcesEnumerator } from './deployed-backend-client/deployed_resources_enumerator.js';
+import { StackStatusMapper } from './deployed-backend-client/stack_status_mapper.js';
 
 const listStacksMock = {
   NextToken: undefined,
@@ -211,14 +212,17 @@ void describe('Deployed Backend Client', () => {
 
     cfnClientSendMock.mock.mockImplementation(mockSend);
 
-    const listDeployedResources = new ListDeployedResources();
-    mock.method(listDeployedResources, 'listDeployedResources', () => []);
+    const deployedResourcesEnumerator = new DeployedResourcesEnumerator(
+      new StackStatusMapper()
+    );
+    mock.method(deployedResourcesEnumerator, 'listDeployedResources', () => []);
 
     deployedBackendClient = new DefaultDeployedBackendClient(
       mockCfnClient,
       mockS3Client,
       mockBackendOutputClient,
-      listDeployedResources
+      deployedResourcesEnumerator,
+      new StackStatusMapper()
     );
   });
 
@@ -358,14 +362,17 @@ void describe('Deployed Backend Client pagination', () => {
     };
 
     cfnClientSendMock.mock.mockImplementation(mockSend);
-    const listDeployedResources = new ListDeployedResources();
-    mock.method(listDeployedResources, 'listDeployedResources', () => []);
+    const deployedResourcesEnumerator = new DeployedResourcesEnumerator(
+      new StackStatusMapper()
+    );
+    mock.method(deployedResourcesEnumerator, 'listDeployedResources', () => []);
 
     deployedBackendClient = new DefaultDeployedBackendClient(
       mockCfnClient,
       mockS3Client,
       mockBackendOutputClient,
-      listDeployedResources
+      deployedResourcesEnumerator,
+      new StackStatusMapper()
     );
   });
 

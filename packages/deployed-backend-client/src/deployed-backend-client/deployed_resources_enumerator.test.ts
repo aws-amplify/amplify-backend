@@ -9,10 +9,13 @@ import {
   BackendDeploymentStatus,
   DeployedBackendResource,
 } from '../deployed_backend_client_factory.js';
-import { ListDeployedResources } from './list_deployed_resources.js';
+import { DeployedResourcesEnumerator } from './deployed_resources_enumerator.js';
+import { StackStatusMapper } from './stack_status_mapper.js';
 
 void describe('listDeployedResources', () => {
-  const listDeployedResources = new ListDeployedResources();
+  const deployedResourcesEnumerator = new DeployedResourcesEnumerator(
+    new StackStatusMapper()
+  );
   const cfnClientSendMock = mock.fn();
   const mockCfnClient = new CloudFormation();
 
@@ -21,7 +24,7 @@ void describe('listDeployedResources', () => {
   });
 
   void it('Recursively fetches resources for all stacks', async () => {
-    const mockRootStackResources: StackResourceSummary[] = [
+    const mockRootStackResourcesPage1: StackResourceSummary[] = [
       {
         ResourceType: 'AWS::CloudFormation::Stack',
         PhysicalResourceId:
@@ -42,6 +45,9 @@ void describe('listDeployedResources', () => {
         ResourceStatusReason: undefined,
         LastUpdatedTimestamp: new Date(1),
       },
+    ];
+
+    const mockRootStackResourcesPage2: StackResourceSummary[] = [
       {
         ResourceType: 'AWS::IAM::Role',
         PhysicalResourceId: 'rootStackIamRolePhysicalResourceId',
@@ -98,8 +104,16 @@ void describe('listDeployedResources', () => {
     cfnClientSendMock.mock.mockImplementation(
       (listStackResourcesCommand: ListStackResourcesCommand) => {
         switch (listStackResourcesCommand.input.StackName) {
-          case 'testRootStack':
-            return { StackResourceSummaries: mockRootStackResources };
+          case 'testRootStack': {
+            if (listStackResourcesCommand.input.NextToken) {
+              return { StackResourceSummaries: mockRootStackResourcesPage2 };
+            }
+
+            return {
+              StackResourceSummaries: mockRootStackResourcesPage1,
+              NextToken: 1,
+            };
+          }
           case 'authStack':
             return { StackResourceSummaries: mockAuthStackResources };
           case 'apiStack':
@@ -115,10 +129,11 @@ void describe('listDeployedResources', () => {
         }
       }
     );
-    const deployedResources = await listDeployedResources.listDeployedResources(
-      mockCfnClient,
-      'testRootStack'
-    );
+    const deployedResources =
+      await deployedResourcesEnumerator.listDeployedResources(
+        mockCfnClient,
+        'testRootStack'
+      );
 
     const expectedResources: DeployedBackendResource[] = [
       {

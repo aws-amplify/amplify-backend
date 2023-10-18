@@ -38,7 +38,8 @@ import {
   stackOutputKey,
   storageOutputKey,
 } from '@aws-amplify/backend-output-schemas';
-import { ListDeployedResources } from './deployed-backend-client/list_deployed_resources.js';
+import { DeployedResourcesEnumerator } from './deployed-backend-client/deployed_resources_enumerator.js';
+import { StackStatusMapper } from './deployed-backend-client/stack_status_mapper.js';
 
 /**
  * Deployment Client
@@ -51,7 +52,8 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     private readonly cfnClient: CloudFormationClient,
     private readonly s3Client: S3Client,
     private readonly backendOutputClient: BackendOutputClient,
-    private readonly listDeployedResources: ListDeployedResources
+    private readonly deployedResourcesEnumerator: DeployedResourcesEnumerator,
+    private readonly stackStatusMapper: StackStatusMapper
   ) {}
 
   /**
@@ -79,7 +81,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
             ),
             lastUpdated:
               stackSummary.LastUpdatedTime ?? stackSummary.CreationTime,
-            status: this.listDeployedResources.translateStackStatus(
+            status: this.stackStatusMapper.translateStackStatus(
               stackSummary.StackStatus
             ),
             deploymentType,
@@ -167,7 +169,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
       new DescribeStacksCommand({ StackName: stackName })
     );
     const stack = stackDescription?.Stacks?.[0];
-    const status = this.listDeployedResources.translateStackStatus(
+    const status = this.stackStatusMapper.translateStackStatus(
       stack?.StackStatus
     );
     const lastUpdated = stack?.LastUpdatedTime ?? stack?.CreationTime;
@@ -218,7 +220,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
       lastUpdated,
       status,
       name: stackName,
-      resources: await this.listDeployedResources.listDeployedResources(
+      resources: await this.deployedResourcesEnumerator.listDeployedResources(
         this.cfnClient,
         stackName
       ),
@@ -226,7 +228,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
 
     if (authStack) {
       backendMetadataObject.authConfiguration = {
-        status: this.listDeployedResources.translateStackStatus(
+        status: this.stackStatusMapper.translateStackStatus(
           authStack.StackStatus
         ),
         lastUpdated: authStack.LastUpdatedTime ?? authStack.CreationTime,
@@ -236,7 +238,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
 
     if (storageStack) {
       backendMetadataObject.storageConfiguration = {
-        status: this.listDeployedResources.translateStackStatus(
+        status: this.stackStatusMapper.translateStackStatus(
           storageStack.StackStatus
         ),
         lastUpdated: storageStack.LastUpdatedTime ?? storageStack.CreationTime,
@@ -264,7 +266,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
         ? (additionalAuthTypesString.split(',') as ApiAuthType[])
         : [];
       backendMetadataObject.apiConfiguration = {
-        status: this.listDeployedResources.translateStackStatus(
+        status: this.stackStatusMapper.translateStackStatus(
           apiStack.StackStatus
         ),
         lastUpdated: apiStack.LastUpdatedTime ?? apiStack.CreationTime,

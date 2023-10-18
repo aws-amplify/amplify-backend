@@ -11,7 +11,8 @@ import {
   BackendOutputClientFactory,
 } from './backend_output_client_factory.js';
 import { S3Client } from '@aws-sdk/client-s3';
-import { ListDeployedResources } from './deployed-backend-client/list_deployed_resources.js';
+import { DeployedResourcesEnumerator } from './deployed-backend-client/deployed_resources_enumerator.js';
+import { StackStatusMapper } from './deployed-backend-client/stack_status_mapper.js';
 
 export enum ConflictResolutionMode {
   LAMBDA = 'LAMBDA',
@@ -125,12 +126,17 @@ export class DeployedBackendClientFactory {
   static getInstance(
     options: DeployedBackendClientFactoryOptions
   ): DeployedBackendClient {
+    const stackStatusMapper = new StackStatusMapper();
+    const deployedResourcesEnumerator = new DeployedResourcesEnumerator(
+      stackStatusMapper
+    );
     if ('backendOutputClient' in options && 'cloudFormationClient' in options) {
       return new DefaultDeployedBackendClient(
         options.cloudFormationClient,
         options.s3Client,
         options.backendOutputClient,
-        new ListDeployedResources()
+        deployedResourcesEnumerator,
+        stackStatusMapper
       );
     }
     return new DefaultDeployedBackendClient(
@@ -139,7 +145,8 @@ export class DeployedBackendClientFactory {
       BackendOutputClientFactory.getInstance({
         credentials: options.credentials,
       }),
-      new ListDeployedResources()
+      deployedResourcesEnumerator,
+      stackStatusMapper
     );
   }
 }
