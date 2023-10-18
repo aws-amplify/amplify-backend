@@ -86,7 +86,6 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       return;
     }
 
-    const sandboxId = options.name ?? this.sandboxId;
     const ignoredPaths = this.getGitIgnoredPaths();
     this.outputFilesExcludedFromWatch =
       this.outputFilesExcludedFromWatch.concat(...ignoredPaths);
