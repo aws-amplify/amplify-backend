@@ -1,29 +1,36 @@
 import { describe, it } from 'node:test';
 import assert from 'assert';
-import yargs from 'yargs';
-import { LogLevel, Logger } from './logger.js';
+import { LogLevel, Logger } from './create_logger.js';
 
 void describe('Logger', () => {
   void it('logs a message at INFO level', async (ctx) => {
     const mockConsole = {
       log: ctx.mock.fn(() => undefined),
     };
-    const logger = new Logger(LogLevel.INFO, mockConsole as never);
-    await logger.log('Test log message', LogLevel.INFO);
+    const logger = new Logger(LogLevel.INFO, mockConsole as never, {});
+    await logger.info('Test log message');
     assert.equal(mockConsole.log.mock.callCount(), 1);
     assert.match(
       [...mockConsole.log.mock.calls[0].arguments][0] ?? '',
       new RegExp(`\\[INFO\\].*: Test log message`)
     );
-    mockConsole.log.mock.restore();
+  });
+
+  void it('do NOT logs a message at DEBUG level', async (ctx) => {
+    const mockConsole = {
+      log: ctx.mock.fn(() => undefined),
+    };
+    const logger = new Logger(LogLevel.INFO, mockConsole as never, {});
+    await logger.debug('Test log message');
+    assert.equal(mockConsole.log.mock.callCount(), 0);
   });
 
   void it('does not log a message below the minimum log level', async (ctx) => {
     const mockConsole = {
       log: ctx.mock.fn(() => undefined),
     };
-    const logger = new Logger(LogLevel.ERROR, mockConsole as never);
-    await logger.log('Test log message', LogLevel.INFO);
+    const logger = new Logger(LogLevel.ERROR, mockConsole as never, {});
+    await logger.info('Test log message');
     assert.equal(mockConsole.log.mock.callCount(), 0);
   });
 
@@ -32,13 +39,10 @@ void describe('Logger', () => {
       log: ctx.mock.fn(() => undefined),
     };
 
-    ctx.mock.method(yargs(), 'options', () => ({
+    const logger = new Logger(LogLevel.INFO, mockConsole as never, {
       debug: true,
-      verbose: false,
-    }));
-
-    const logger = new Logger(LogLevel.INFO, mockConsole as never);
-    await logger.log('Test log message', LogLevel.INFO);
+    });
+    await logger.info('Test log message');
 
     assert.match(
       [...mockConsole.log.mock.calls[0].arguments][0] ?? '',
@@ -51,13 +55,12 @@ void describe('Logger', () => {
       log: ctx.mock.fn(() => undefined),
     };
 
-    ctx.mock.method(yargs(), 'options', () => ({
+    const logger = new Logger(LogLevel.INFO, mockConsole as never, {
       debug: false,
       verbose: true,
-    }));
-
-    const logger = new Logger(LogLevel.INFO, mockConsole as never);
+    });
     await logger.log('Test log message', LogLevel.INFO);
+    await logger.info('Test log message');
     assert.match(
       [...mockConsole.log.mock.calls[0].arguments][0] ?? '',
       new RegExp(`\\[INFO\\].*: Test log message`)
