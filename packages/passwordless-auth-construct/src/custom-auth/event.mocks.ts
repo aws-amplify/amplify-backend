@@ -29,7 +29,8 @@ const baseRequest = {
  * Creates a mock event for Define Auth Challenge.
  */
 export const buildDefineAuthChallengeEvent = (
-  previousSessions?: [ChallengeResult]
+  previousSessions?: ChallengeResult[],
+  clientMetadata?: Record<string, string>
 ): DefineAuthChallengeTriggerEvent => {
   return {
     ...baseEvent,
@@ -37,6 +38,7 @@ export const buildDefineAuthChallengeEvent = (
     request: {
       ...baseRequest,
       session: previousSessions ?? [],
+      clientMetadata: clientMetadata,
     },
     response: {
       challengeName: '',
@@ -50,7 +52,7 @@ export const buildDefineAuthChallengeEvent = (
  * Creates a mock event for Create Auth Challenge.
  */
 export const buildCreateAuthChallengeEvent = (
-  previousSessions?: [ChallengeResult],
+  previousSessions?: ChallengeResult[],
   clientMetadata?: Record<string, string>
 ): CreateAuthChallengeTriggerEvent => {
   return {
@@ -74,15 +76,17 @@ export const buildCreateAuthChallengeEvent = (
  * Creates a mock event for Verify Auth Challenge Response.
  */
 export const buildVerifyAuthChallengeResponseEvent = (
-  clientMetadata?: Record<string, string>
+  clientMetadata: Record<string, string>,
+  answer = '',
+  privateChallengeParameters = {}
 ): VerifyAuthChallengeResponseTriggerEvent => {
   return {
     ...baseEvent,
     triggerSource: 'VerifyAuthChallengeResponse_Authentication',
     request: {
       ...baseRequest,
-      privateChallengeParameters: {},
-      challengeAnswer: 'answer',
+      privateChallengeParameters: privateChallengeParameters,
+      challengeAnswer: answer,
       clientMetadata: clientMetadata,
     },
     response: {
