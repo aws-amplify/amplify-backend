@@ -1,5 +1,5 @@
 import { beforeEach, describe, it, mock } from 'node:test';
-import { AmplifyPrompter } from '../prompter/amplify_prompts.js';
+import { AmplifyPrompter } from '@aws-amplify/platform-core';
 import yargs, { CommandModule } from 'yargs';
 import {
   TestCommandError,
