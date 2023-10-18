@@ -155,6 +155,8 @@ void describe('verifyAuthChallenge', () => {
   });
 });
 
+// The following tests verify the integration of the three separate handlers by
+// stubbing cognito's custom auth logic. See MockCognitoCustomAuth for details.
 void describe('CustomAuthService', () => {
   void describe('initiateAuth', () => {
     void it('returns nextStep = PROVIDE_AUTH_PARAMETERS for a valid request', async () => {
@@ -164,14 +166,31 @@ void describe('CustomAuthService', () => {
     });
   });
 
-  void describe('initiateAuth', () => {
-    void it(' returns an authenticated session for the correct answer.', async () => {
+  void describe('respondToAuthChallenge', () => {
+    void it('returns the appropriate challenge params when action = REQUEST', async () => {
       const otpChallengeService = new MockChallengeService('correct-answer');
-
       const cognito = new MockCognitoCustomAuth(
         new CustomAuthService(otpChallengeService)
       );
+      const { sessionId } = await cognito.initiateAuth();
 
+      const { challengeParameters } = await cognito.respondToAuthChallenge(
+        sessionId,
+        '__dummy__',
+        {
+          signInMethod: 'OTP',
+          action: 'REQUEST',
+          deliveryMedium: 'EMAIL',
+        }
+      );
+
+      strictEqual(challengeParameters?.deliveryMedium, 'EMAIL');
+    });
+    void it('returns an authenticated session for a correct answer.', async () => {
+      const otpChallengeService = new MockChallengeService('correct-answer');
+      const cognito = new MockCognitoCustomAuth(
+        new CustomAuthService(otpChallengeService)
+      );
       const { sessionId } = await cognito.initiateAuth();
 
       await cognito.respondToAuthChallenge(sessionId, '__dummy__', {
@@ -191,13 +210,12 @@ void describe('CustomAuthService', () => {
 
       strictEqual(isAuthenticated, true);
     });
-    void it('does not return an authenticated session for the incorrect answer.', async () => {
-      const otpChallengeService = new MockChallengeService('correct-answer');
 
+    void it('does not return an authenticated session for an incorrect answer.', async () => {
+      const otpChallengeService = new MockChallengeService('correct-answer');
       const cognito = new MockCognitoCustomAuth(
         new CustomAuthService(otpChallengeService)
       );
-
       const { sessionId } = await cognito.initiateAuth();
 
       await cognito.respondToAuthChallenge(sessionId, '__dummy__', {
@@ -220,7 +238,13 @@ void describe('CustomAuthService', () => {
   });
 });
 
-// A stub of Cognito's custom auth implementation / API.
+/**
+ * A stub of Cognito's custom auth implementation / API.
+ *
+ * Cognito exposes two APIs for custom auth, and invokes the three handlers
+ * based on the arguments provided to those APIs and the responses from the
+ * previous invocations of the handlers. This class mimics that logic.
+ */
 class MockCognitoCustomAuth {
   constructor(private customAuthService = new CustomAuthService()) {}
 
