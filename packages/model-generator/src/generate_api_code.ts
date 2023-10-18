@@ -1,11 +1,15 @@
 import { BackendIdentifier } from '@aws-amplify/deployed-backend-client';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
-
-import { GenerationResult } from './model_generator.js';
+import {
+  DocumentGenerationParameters,
+  GenerationResult,
+} from './model_generator.js';
 import { createGraphqlModelsGenerator } from './create_graphql_models_generator.js';
 import { createGraphqlTypesGenerator } from './create_graphql_types_generator.js';
 import { createGraphqlDocumentGenerator } from './create_graphql_document_generator.js';
+import { getOutputFileName } from '@aws-amplify/graphql-types-generator';
+import path from 'path';
 
 export enum GenerateApiCodeFormat {
   MODELGEN = 'modelgen',
@@ -85,14 +89,30 @@ export const generateApiCode = async (
 
   switch (props.format) {
     case 'graphql-codegen': {
-      const documents = await createGraphqlDocumentGenerator({
-        backendIdentifier: props as BackendIdentifier,
-        credentialProvider,
-      }).generateModels({
+      const generateModelsParams: DocumentGenerationParameters = {
         language: props.statementTarget,
         maxDepth: props.maxDepth,
         typenameIntrospection: props.typeNameIntrospection,
-      });
+      };
+      if (
+        props.statementTarget === GenerateApiCodeStatementTarget.TYPESCRIPT &&
+        props.typeTarget === GenerateApiCodeTypeTarget.TYPESCRIPT
+      ) {
+        // Cast to unknown to string since the original input to this is typed as a required string, but expects an optional
+        // value, and we want to rely on that behavior.
+        const typeOutputFilepath = getOutputFileName(
+          null as unknown as string,
+          props.typeTarget
+        );
+        const fileName = path.parse(typeOutputFilepath).name;
+        // This is an node import path, so we don't want to use path.join, since that'll produce invalid paths on windows platforms
+        // Hard-coding since this method explicitly writes to the same directory if types are enabled.
+        generateModelsParams.relativeTypesPath = `./${fileName}`;
+      }
+      const documents = await createGraphqlDocumentGenerator({
+        backendIdentifier: props as BackendIdentifier,
+        credentialProvider,
+      }).generateModels(generateModelsParams);
 
       if (props.typeTarget) {
         const types = await createGraphqlTypesGenerator({
@@ -111,8 +131,8 @@ export const generateApiCode = async (
             ]);
           },
           getResults: async () => ({
-            ...documents.getResults,
-            ...types.getResults,
+            ...(await documents.getResults()),
+            ...(await types.getResults()),
           }),
         };
       }
