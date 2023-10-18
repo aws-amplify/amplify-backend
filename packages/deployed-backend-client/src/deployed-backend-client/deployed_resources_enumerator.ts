@@ -14,12 +14,22 @@ export class DeployedResourcesEnumerator {
   /**
    * Constructs a DeployedResourcesEnumerator
    */
-  constructor(public readonly stackStatusMapper: StackStatusMapper) {}
+  constructor(private readonly stackStatusMapper: StackStatusMapper) {}
 
   /**
    * Lists all resources deployed in all nested cfn stacks
    */
-  listDeployedResources = async (
+  listDeployedResources = (
+    cfnClient: CloudFormationClient,
+    stackName: string
+  ): Promise<DeployedBackendResource[]> => {
+    return this.listDeployedResourcesRecursive(cfnClient, stackName);
+  };
+
+  /**
+   * Lists all resources deployed in all nested cfn stacks recursively
+   */
+  private listDeployedResourcesRecursive = async (
     cfnClient: CloudFormationClient,
     stackName: string,
     deployedBackendResources: DeployedBackendResource[] = []
@@ -59,7 +69,7 @@ export class DeployedResourcesEnumerator {
         return [];
       }
       // Recursive call to get all the resources from child stacks
-      return this.listDeployedResources(cfnClient, childStackName);
+      return this.listDeployedResourcesRecursive(cfnClient, childStackName);
     });
     const deployedResourcesPerChildStack = await Promise.all(promises);
     deployedBackendResources.push(...deployedResourcesPerChildStack.flat());
