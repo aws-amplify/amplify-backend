@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'assert';
-import { LogLevel, Logger } from './create_logger.js';
+import { LogLevel, Logger } from './logger.js';
 
 void describe('Logger', () => {
   void it('logs a message at INFO level', async (ctx) => {
