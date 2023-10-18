@@ -1,6 +1,5 @@
 import { describe, it } from 'node:test';
 import assert from 'assert';
-import yargs from 'yargs';
 import { LogLevel, Logger } from './logger.js';
 
 void describe('Logger', () => {
