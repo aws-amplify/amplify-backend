@@ -19,6 +19,7 @@ import {
   SandboxBackendIdentifier,
 } from '@aws-amplify/platform-core';
 import { SecretListItem, getSecretClient } from '@aws-amplify/backend-secret';
+import { FileChangesAnalyzer } from './file_changes_analyzer.js';
 
 // Watcher mocks
 const unsubscribeMockFn = mock.fn();
@@ -80,6 +81,7 @@ cfnClientSendMock.mock.mockImplementation(() =>
     ],
   })
 );
+const fileChangesAnalyzer = new FileChangesAnalyzer();
 const openMock = mock.fn(open, (url: string) => Promise.resolve(url));
 
 const testPath = path.join('test', 'location');
@@ -106,6 +108,7 @@ void describe('Sandbox to check if region is bootstrapped', () => {
       'testSandboxId',
       sandboxExecutor,
       cfnClientMock,
+      fileChangesAnalyzer,
       openMock as never
     );
 
@@ -198,7 +201,8 @@ void describe('Sandbox using local project name resolver', () => {
     sandboxInstance = new FileWatchingSandbox(
       'testSandboxId',
       sandboxExecutor,
-      cfnClientMock
+      cfnClientMock,
+      fileChangesAnalyzer
     );
     await sandboxInstance.start({
       dir: 'testDir',
@@ -371,7 +375,8 @@ void describe('Sandbox with user provided app name', () => {
     sandboxInstance = new FileWatchingSandbox(
       'testSandboxId',
       sandboxExecutor,
-      cfnClientMock
+      cfnClientMock,
+      fileChangesAnalyzer
     );
     await sandboxInstance.start({
       dir: 'testDir',
@@ -454,7 +459,8 @@ void describe('Sandbox with absolute output path', () => {
     sandboxInstance = new FileWatchingSandbox(
       'testSandboxId',
       sandboxExecutor,
-      cfnClientMock
+      cfnClientMock,
+      fileChangesAnalyzer
     );
     await sandboxInstance.start({
       dir: 'testDir',
@@ -508,7 +514,8 @@ void describe('Sandbox ignoring paths in .gitignore', () => {
     sandboxInstance = new FileWatchingSandbox(
       'testSandboxId',
       sandboxExecutor,
-      cfnClientMock
+      cfnClientMock,
+      fileChangesAnalyzer
     );
     await sandboxInstance.start({
       dir: 'testDir',
@@ -569,7 +576,8 @@ void describe('Sandbox ignoring paths in .gitignore', () => {
     const sandbox = new FileWatchingSandbox(
       'my-sandbox',
       executor,
-      cfnClientMock
+      cfnClientMock,
+      fileChangesAnalyzer
     );
     sandbox.on('successfulDeployment', mockListener);
     await sandbox.start({});

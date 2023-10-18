@@ -3,6 +3,7 @@ import { BackendDeployer } from '@aws-amplify/backend-deployer';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import { BackendDeploymentType } from '@aws-amplify/platform-core';
 import { SecretClient } from '@aws-amplify/backend-secret';
+import { FileChangesAnalysisSummary } from './file_changes_analyzer.js';
 
 /**
  * Execute CDK commands.
@@ -44,12 +45,14 @@ export class AmplifySandboxExecutor {
    */
   deploy = async (
     uniqueBackendIdentifier: UniqueBackendIdentifier,
-    typeCheckingEnabled: boolean
+    fileChangesAnalysisSummary: FileChangesAnalysisSummary
   ): Promise<void> => {
     console.debug('[Sandbox] Executing command `deploy`');
     const secretLastUpdated = await this.getSecretLastUpdated(
       uniqueBackendIdentifier
     );
+    const typeCheckingEnabled =
+      fileChangesAnalysisSummary.anyTypeScriptFileChanged;
     try {
       await this.invoke(
         async () =>

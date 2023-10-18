@@ -17,6 +17,7 @@ import {
   DescribeStacksCommand,
 } from '@aws-sdk/client-cloudformation';
 import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
+import { FileChangesAnalyzer } from './file_changes_analyzer.js';
 
 export const CDK_BOOTSTRAP_STACK_NAME = 'CDKToolkit';
 export const CDK_BOOTSTRAP_VERSION_KEY = 'BootstrapVersion';
@@ -37,6 +38,7 @@ export const getBootstrapUrl = (region: string) =>
 export class FileWatchingSandbox extends EventEmitter implements Sandbox {
   private watcherSubscription: Awaited<ReturnType<typeof subscribe>>;
   private outputFilesExcludedFromWatch = ['cdk.out'];
+
   /**
    * Creates a watcher process for this instance
    */
@@ -44,6 +46,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     private readonly sandboxId: string,
     private readonly executor: AmplifySandboxExecutor,
     private readonly cfnClient: CloudFormationClient,
+    private readonly fileChangesAnalyzer: FileChangesAnalyzer,
     private readonly open = _open
   ) {
     process.once('SIGINT', () => void this.stop());
@@ -106,7 +109,10 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
 
     const deployAndWatch = debounce(async () => {
       latch = 'deploying';
-      await this.executor.deploy(new SandboxBackendIdentifier(sandboxId), true);
+      await this.executor.deploy(
+        new SandboxBackendIdentifier(sandboxId),
+        this.fileChangesAnalyzer.getSummaryAndReset()
+      );
 
       // If latch is still 'deploying' after the 'await', that's fine,
       // but if it's 'queued', that means we need to deploy again
@@ -119,7 +125,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
         );
         await this.executor.deploy(
           new SandboxBackendIdentifier(sandboxId),
-          true
+          this.fileChangesAnalyzer.getSummaryAndReset()
         );
       }
       latch = 'open';
@@ -131,9 +137,10 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     this.watcherSubscription = await parcelWatcher.subscribe(
       options.dir ?? process.cwd(),
       async (_, events) => {
-        // it doesn't matter which file changed, we are just using events to log the filenames. We deploy full state.
+        // log and analyze file changes
         await Promise.all(
           events.map(({ type: eventName, path }) => {
+            this.fileChangesAnalyzer.onFileChange(path);
             console.log(
               `[Sandbox] Triggered due to a file ${eventName} event: ${path}`
             );

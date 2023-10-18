@@ -4,6 +4,7 @@ import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { getSecretClient } from '@aws-amplify/backend-secret';
+import { FileChangesAnalyzer } from './file_changes_analyzer.js';
 
 /**
  * Factory to create a new sandbox
@@ -28,7 +29,8 @@ export class SandboxSingletonFactory {
           BackendDeployerFactory.getInstance(),
           getSecretClient()
         ),
-        new CloudFormationClient()
+        new CloudFormationClient(),
+        new FileChangesAnalyzer()
       );
     }
     return this.instance;
