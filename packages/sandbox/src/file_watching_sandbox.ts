@@ -16,10 +16,8 @@ import {
   CloudFormationClient,
   DescribeStacksCommand,
 } from '@aws-sdk/client-cloudformation';
-import {
-  AmplifyPrompter,
-  SandboxBackendIdentifier,
-} from '@aws-amplify/platform-core';
+import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
+import { AmplifyPrompter } from '@aws-amplify/cli-core';
 
 export const CDK_BOOTSTRAP_STACK_NAME = 'CDKToolkit';
 export const CDK_BOOTSTRAP_VERSION_KEY = 'BootstrapVersion';

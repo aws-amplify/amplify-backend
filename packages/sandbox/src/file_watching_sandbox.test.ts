@@ -15,13 +15,13 @@ import parseGitIgnore from 'parse-gitignore';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import _open from 'open';
 import {
-  AmplifyPrompter,
   BackendDeploymentType,
   SandboxBackendIdentifier,
 } from '@aws-amplify/platform-core';
 import { SecretListItem, getSecretClient } from '@aws-amplify/backend-secret';
 import { ClientConfigFormat } from '@aws-amplify/client-config';
 import { Sandbox } from './sandbox.js';
+import { AmplifyPrompter } from '@aws-amplify/cli-core';
 
 // Watcher mocks
 const unsubscribeMockFn = mock.fn();

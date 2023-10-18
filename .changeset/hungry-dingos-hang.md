@@ -1,4 +1,5 @@
 ---
+'@aws-amplify/cli-core': minor
 '@aws-amplify/backend-deployer': patch
 '@aws-amplify/platform-core': patch
 '@aws-amplify/sandbox': patch

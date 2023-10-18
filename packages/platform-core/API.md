@@ -7,15 +7,6 @@
 import { BackendId } from '@aws-amplify/plugin-types';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
-// @public
-export class AmplifyPrompter {
-    static secretValue: (promptMessage?: string) => Promise<string>;
-    static yesOrNo: (options: {
-        message: string;
-        defaultValue?: boolean;
-    }) => Promise<boolean>;
-}
-
 // @public (undocumented)
 export enum BackendDeploymentType {
     // (undocumented)

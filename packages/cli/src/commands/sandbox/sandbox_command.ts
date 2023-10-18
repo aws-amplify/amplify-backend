@@ -1,6 +1,6 @@
 import { Argv, CommandModule } from 'yargs';
 import fs from 'fs';
-import { AmplifyPrompter } from '@aws-amplify/platform-core';
+import { AmplifyPrompter } from '@aws-amplify/cli-core';
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
 import {
   ClientConfigFormat,

@@ -1,10 +1,9 @@
 import { Argv, CommandModule } from 'yargs';
 import { SecretClient } from '@aws-amplify/backend-secret';
 import { SandboxIdResolver } from '../sandbox_id_resolver.js';
-import {
-  AmplifyPrompter,
-  SandboxBackendIdentifier,
-} from '@aws-amplify/platform-core';
+import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
+import { AmplifyPrompter } from '@aws-amplify/cli-core';
+
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
 
 /**
