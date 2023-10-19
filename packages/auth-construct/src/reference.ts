@@ -11,14 +11,18 @@ import { AmplifyAuth } from './construct.js';
 import { Construct } from 'constructs';
 import { AuthOutput } from '@aws-amplify/backend-output-schemas';
 import path from 'path';
+import { authOutputKey } from '@aws-amplify/backend-output-schemas';
 import { Stack, aws_cognito, aws_iam } from 'aws-cdk-lib';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
+import { CfnIdentityPool } from 'aws-cdk-lib/aws-cognito';
 
 type ReferenceAuthProps = {
   userPoolArn: string;
   webClientId: string;
-  nativeClientId: string;
-  identityPoolId: string;
+  nativeClientArn: string;
+  identityPoolArn: string;
+  authRoleArn: string;
+  unauthRoleArn: string;
   outputStorageStrategy?: BackendOutputStorageStrategy<AuthOutput>;
 };
 export type AmplifyReferenceAuthFactoryProps = Omit<
@@ -44,8 +48,14 @@ class AmplifyReferenceAuth extends Construct {
         'UserPoolClient',
         props.webClientId
       );
+    this.resources.authenticatedUserIamRole = aws_iam.Role.fromRoleArn(
+      scope,
+      'AuthRole',
+      props.authRoleArn
+    );
 
     // can't do the same for identity pools
+    this.resources.cfnResources.identityPool = CfnIdentityPool.
   }
 
   /**

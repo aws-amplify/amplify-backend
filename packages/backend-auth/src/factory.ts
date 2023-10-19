@@ -109,3 +109,16 @@ export const defineAuth = (
   props: AmplifyAuthFactoryProps
 ): ConstructFactory<AmplifyAuth & ResourceProvider<AuthResources>> =>
   new AmplifyAuthFactory(props, new Error().stack);
+
+/**
+ * Creates a factory that implements ConstructFactory<AmplifyAuth & ResourceProvider<AuthResources>>
+ */
+export const referenceAuth = (
+  props: {
+    userPoolId: string,
+    webClientId: string,
+    nativeClientId: string,
+    identityPoolId: string,
+  }
+): ConstructFactory<ResourceProvider<AuthResources>> =>
+  new AmplifyReferenceAuthFactory(props, new Error().stack);
