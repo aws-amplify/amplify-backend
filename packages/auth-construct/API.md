@@ -39,11 +39,8 @@ export type AuthProps = {
 
 // @public
 export type BasicLoginOptions = {
-    email: EmailLogin;
-    phone?: PhoneNumberLogin;
-} | {
     email?: EmailLogin;
-    phone: PhoneNumberLogin;
+    phone?: PhoneNumberLogin;
 };
 
 // @public
