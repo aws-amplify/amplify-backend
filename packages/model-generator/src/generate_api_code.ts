@@ -77,35 +77,32 @@ export type GenerateOptions =
   | GenerateModelsOptions
   | GenerateIntrospectionOptions;
 
-type GenerateApiCodeGeneratorOverrides = {
-  overrideGraphqlDocumentGenerator?: GraphqlDocumentGenerator;
-  overrideGraphqlTypesGenerator?: GraphqlTypesGenerator;
-  overrideGraphqlModelsGenerator?: GraphqlModelsGenerator;
-};
-
-type CredentialProvider = {
-  credentialProvider: AwsCredentialIdentityProvider;
-};
-
 type GenerateGraphqlCodegenApiCodeProps = GenerateGraphqlCodegenOptions &
-  BackendIdentifier &
-  GenerateApiCodeGeneratorOverrides &
-  CredentialProvider;
+  BackendIdentifier & {
+    credentialProvider: AwsCredentialIdentityProvider;
+    overrideGraphqlDocumentGenerator?: GraphqlDocumentGenerator;
+    overrideGraphqlTypesGenerator?: GraphqlTypesGenerator;
+  };
 
 type GenerateModelgenApiCodeProp = GenerateModelsOptions &
-  BackendIdentifier &
-  GenerateApiCodeGeneratorOverrides &
-  CredentialProvider;
+  BackendIdentifier & {
+    credentialProvider: AwsCredentialIdentityProvider;
+    overrideGraphqlModelsGenerator?: GraphqlModelsGenerator;
+  };
 
 type GenerateIntrospectionApiCodeProps = GenerateIntrospectionOptions &
-  BackendIdentifier &
-  GenerateApiCodeGeneratorOverrides &
-  CredentialProvider;
+  BackendIdentifier & {
+    credentialProvider: AwsCredentialIdentityProvider;
+    overrideGraphqlModelsGenerator?: GraphqlModelsGenerator;
+  };
 
 export type GenerateApiCodeProps = GenerateOptions &
-  BackendIdentifier &
-  GenerateApiCodeGeneratorOverrides &
-  Partial<CredentialProvider>;
+  BackendIdentifier & {
+    credentialProvider?: AwsCredentialIdentityProvider;
+    overrideGraphqlDocumentGenerator?: GraphqlDocumentGenerator;
+    overrideGraphqlTypesGenerator?: GraphqlTypesGenerator;
+    overrideGraphqlModelsGenerator?: GraphqlModelsGenerator;
+  };
 
 /**
  * Mock generateApiCode command.

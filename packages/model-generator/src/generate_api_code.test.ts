@@ -46,11 +46,14 @@ void describe('generateAPICode', () => {
 
       // Validate generate calls
       assert.equal(generateModels.mock.callCount(), 1);
-      assert.deepEqual((generateModels.mock.calls[0].arguments as any)[0], {
-        language: 'typescript',
-        maxDepth: undefined,
-        typenameIntrospection: undefined,
-      });
+      assert.deepEqual(
+        (generateModels.mock.calls[0].arguments as unknown[])[0],
+        {
+          language: 'typescript',
+          maxDepth: undefined,
+          typenameIntrospection: undefined,
+        }
+      );
       assert.equal(generateTypes.mock.callCount(), 0);
 
       const receivedResults = await results.getResults();
@@ -89,11 +92,14 @@ void describe('generateAPICode', () => {
 
       // Validate generate calls
       assert.equal(generateModels.mock.callCount(), 1);
-      assert.deepEqual((generateModels.mock.calls[0].arguments as any)[0], {
-        language: 'typescript',
-        maxDepth: 3,
-        typenameIntrospection: false,
-      });
+      assert.deepEqual(
+        (generateModels.mock.calls[0].arguments as unknown[])[0],
+        {
+          language: 'typescript',
+          maxDepth: 3,
+          typenameIntrospection: false,
+        }
+      );
       assert.equal(generateTypes.mock.callCount(), 0);
 
       const receivedResults = await results.getResults();
@@ -131,17 +137,23 @@ void describe('generateAPICode', () => {
 
       // Validate generate calls
       assert.equal(generateModels.mock.callCount(), 1);
-      assert.deepEqual((generateModels.mock.calls[0].arguments as any)[0], {
-        language: 'typescript',
-        maxDepth: undefined,
-        relativeTypesPath: './API',
-        typenameIntrospection: undefined,
-      });
+      assert.deepEqual(
+        (generateModels.mock.calls[0].arguments as unknown[])[0],
+        {
+          language: 'typescript',
+          maxDepth: undefined,
+          relativeTypesPath: './API',
+          typenameIntrospection: undefined,
+        }
+      );
       assert.equal(generateTypes.mock.callCount(), 1);
-      assert.deepEqual((generateTypes.mock.calls[0].arguments as any)[0], {
-        target: 'typescript',
-        multipleSwiftFiles: undefined,
-      });
+      assert.deepEqual(
+        (generateTypes.mock.calls[0].arguments as unknown[])[0],
+        {
+          target: 'typescript',
+          multipleSwiftFiles: undefined,
+        }
+      );
 
       const receivedResults = await results.getResults();
       assert.deepEqual(receivedResults, {
@@ -171,17 +183,20 @@ void describe('generateAPICode', () => {
         modelTarget: GenerateApiCodeModelTarget.TYPESCRIPT,
       });
       assert.equal(generateModels.mock.callCount(), 1);
-      assert.deepEqual((generateModels.mock.calls[0].arguments as any)[0], {
-        target: 'typescript',
-        addTimestampFields: undefined,
-        emitAuthProvider: undefined,
-        generateIndexRules: undefined,
-        generateModelsForLazyLoadAndCustomSelectionSet: undefined,
-        handleListNullabilityTransparently: undefined,
-        respectPrimaryKeyAttributesOnConnectionField: undefined,
-        transformerVersion: undefined,
-        useExperimentalPipelinedTransformer: undefined,
-      });
+      assert.deepEqual(
+        (generateModels.mock.calls[0].arguments as unknown[])[0],
+        {
+          target: 'typescript',
+          addTimestampFields: undefined,
+          emitAuthProvider: undefined,
+          generateIndexRules: undefined,
+          generateModelsForLazyLoadAndCustomSelectionSet: undefined,
+          handleListNullabilityTransparently: undefined,
+          respectPrimaryKeyAttributesOnConnectionField: undefined,
+          transformerVersion: undefined,
+          useExperimentalPipelinedTransformer: undefined,
+        }
+      );
 
       const receivedResults = await results.getResults();
       assert.deepEqual(receivedResults, expectedResults);
@@ -207,17 +222,20 @@ void describe('generateAPICode', () => {
         addTimestampFields: false,
       });
       assert.equal(generateModels.mock.callCount(), 1);
-      assert.deepEqual((generateModels.mock.calls[0].arguments as any)[0], {
-        target: 'dart',
-        addTimestampFields: false,
-        emitAuthProvider: undefined,
-        generateIndexRules: undefined,
-        generateModelsForLazyLoadAndCustomSelectionSet: undefined,
-        handleListNullabilityTransparently: true,
-        respectPrimaryKeyAttributesOnConnectionField: true,
-        transformerVersion: undefined,
-        useExperimentalPipelinedTransformer: undefined,
-      });
+      assert.deepEqual(
+        (generateModels.mock.calls[0].arguments as unknown[])[0],
+        {
+          target: 'dart',
+          addTimestampFields: false,
+          emitAuthProvider: undefined,
+          generateIndexRules: undefined,
+          generateModelsForLazyLoadAndCustomSelectionSet: undefined,
+          handleListNullabilityTransparently: true,
+          respectPrimaryKeyAttributesOnConnectionField: true,
+          transformerVersion: undefined,
+          useExperimentalPipelinedTransformer: undefined,
+        }
+      );
     });
   });
 
@@ -240,9 +258,12 @@ void describe('generateAPICode', () => {
         format: GenerateApiCodeFormat.INTROSPECTION,
       });
       assert.equal(generateModels.mock.callCount(), 1);
-      assert.deepEqual((generateModels.mock.calls[0].arguments as any)[0], {
-        target: 'introspection',
-      });
+      assert.deepEqual(
+        (generateModels.mock.calls[0].arguments as unknown[])[0],
+        {
+          target: 'introspection',
+        }
+      );
 
       const receivedResults = await results.getResults();
       assert.deepEqual(receivedResults, expectedResults);

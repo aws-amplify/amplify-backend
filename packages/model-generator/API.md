@@ -50,7 +50,10 @@ export enum GenerateApiCodeModelTarget {
 
 // @public (undocumented)
 export type GenerateApiCodeProps = GenerateOptions & BackendIdentifier & {
-    credentialProvider: AwsCredentialIdentityProvider;
+    credentialProvider?: AwsCredentialIdentityProvider;
+    overrideGraphqlDocumentGenerator?: GraphqlDocumentGenerator;
+    overrideGraphqlTypesGenerator?: GraphqlTypesGenerator;
+    overrideGraphqlModelsGenerator?: GraphqlModelsGenerator;
 };
 
 // @public (undocumented)
