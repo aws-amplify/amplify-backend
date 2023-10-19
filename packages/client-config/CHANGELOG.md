@@ -1,5 +1,11 @@
 # @aws-amplify/client-config
 
+## 0.2.0-alpha.11
+
+### Patch Changes
+
+- 2bbf3f20: Remove trailing whitespace for ts and js config files
+
 ## 0.2.0-alpha.10
 
 ### Minor Changes

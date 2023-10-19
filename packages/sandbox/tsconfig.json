@@ -4,6 +4,7 @@
   "references": [
     { "path": "../backend-deployer" },
     { "path": "../backend-secret" },
+    { "path": "../cli-core" },
     { "path": "../client-config" },
     { "path": "../deployed-backend-client" },
     { "path": "../platform-core" }
