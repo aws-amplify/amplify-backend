@@ -16,7 +16,7 @@ import assert from 'node:assert';
 import { translateToAuthConstructLoginWith } from './translate_auth_props.js';
 import { BranchBackendIdentifier } from '@aws-amplify/platform-core';
 
-const phoneNumber: PhoneNumberLogin = {
+const phone: PhoneNumberLogin = {
   verificationMessage: 'text{####}text2',
 };
 const googleClientId = 'googleId';
@@ -57,7 +57,7 @@ void describe('translateToAuthConstructLoginWith', () => {
 
   void it('translates with external providers', () => {
     const loginWith: AuthLoginWithFactoryProps = {
-      phoneNumber,
+      phone,
       externalProviders: {
         google: {
           clientId: new TestBackendSecret(googleClientId),
@@ -92,7 +92,7 @@ void describe('translateToAuthConstructLoginWith', () => {
     );
 
     const expected: BasicLoginOptions & ExternalProviderProps = {
-      phoneNumber,
+      phone,
       externalProviders: {
         google: {
           clientId: googleClientId,
@@ -125,7 +125,7 @@ void describe('translateToAuthConstructLoginWith', () => {
 
   void it('translates with only a general provider attribute', () => {
     const loginWith: AuthLoginWithFactoryProps = {
-      phoneNumber,
+      phone,
       externalProviders: {
         callbackUrls: callbackUrls,
       },
@@ -137,7 +137,7 @@ void describe('translateToAuthConstructLoginWith', () => {
     );
 
     const expected: BasicLoginOptions & ExternalProviderProps = {
-      phoneNumber,
+      phone,
       externalProviders: {
         callbackUrls: callbackUrls,
       },
@@ -147,7 +147,7 @@ void describe('translateToAuthConstructLoginWith', () => {
 
   void it('translates without external providers', () => {
     const loginWith: AuthLoginWithFactoryProps = {
-      phoneNumber,
+      phone,
     };
 
     const translated = translateToAuthConstructLoginWith(
@@ -156,7 +156,7 @@ void describe('translateToAuthConstructLoginWith', () => {
     );
 
     const expected: BasicLoginOptions & ExternalProviderProps = {
-      phoneNumber,
+      phone,
     };
     assert.deepStrictEqual(translated, expected);
   });

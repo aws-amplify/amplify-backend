@@ -14,12 +14,12 @@ export type EmailLogin =
   | true
   | {
       /**
-       * The type of verification. Must be one of aws_cognito.VerificationEmailStyle.
+       * The type of verification. Must be one of "CONFIRM_WITH_CODE" or "CONFIRM_WITH_LINK".
        */
-      verificationEmailStyle?: cognito.VerificationEmailStyle;
+      verificationEmailStyle?: 'CONFIRM_WITH_CODE' | 'CONFIRM_WITH_LINK';
       /**
-       * When verificationEmailStyle is set to VerificationEmailStyle.CODE, the emailBody must contain the template {####} where the code will be inserted.
-       * When verificationEmailStyle is set to VerificationEmailStyle.LINK, the emailBody must contain the template {##Verify Email##} where the link will be inserted.
+       * When verificationEmailStyle is set to "CONFIRM_WITH_CODE", the emailBody must contain the template {####} where the code will be inserted.
+       * When verificationEmailStyle is set to "CONFIRM_WITH_LINK", the emailBody must contain the template {##Verify Email##} where the link will be inserted.
        */
       verificationEmailBody?: string;
       /**
@@ -43,8 +43,8 @@ export type PhoneNumberLogin =
  * Additional settings may be configured, such as email messages or sms verification messages.
  */
 export type BasicLoginOptions =
-  | { email: EmailLogin; phoneNumber?: PhoneNumberLogin }
-  | { email?: EmailLogin; phoneNumber: PhoneNumberLogin };
+  | { email: EmailLogin; phone?: PhoneNumberLogin }
+  | { email?: EmailLogin; phone: PhoneNumberLogin };
 
 /**
  * Configure the MFA types that users can use. Ignored if MFA enforcementType is set to OFF.
