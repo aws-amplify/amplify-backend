@@ -14,7 +14,7 @@ export class FileChangesTracker {
 
   trackFileChange = (path: string) => {
     this.summary.filesChanged++;
-    if (path.endsWith('.ts')) {
+    if (path.endsWith('.ts') || path.endsWith('.tsx')) {
       this.summary.typeScriptFilesChanged++;
     }
   };

@@ -26,6 +26,15 @@ void describe('File changes tracker', () => {
     assert.strictEqual(summary.typeScriptFilesChanged, 1);
   });
 
+  void it('counts tsx file change', () => {
+    tracker.trackFileChange('/foo/bar.tsx');
+
+    const summary = tracker.getSummaryAndReset();
+
+    assert.strictEqual(summary.filesChanged, 1);
+    assert.strictEqual(summary.typeScriptFilesChanged, 1);
+  });
+
   void it('aggregates counts', () => {
     tracker.trackFileChange('/foo/bar.ts');
     tracker.trackFileChange('/foo/bar.ts');
