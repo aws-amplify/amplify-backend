@@ -138,6 +138,20 @@ void describe('Auth construct', () => {
     });
   });
 
+  void it('throws error login settings do not include at least phone or email', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    assert.throws(
+      () =>
+        new AmplifyAuth(stack, 'test', {
+          loginWith: {},
+        }),
+      {
+        message: 'At least one of email or phone must be enabled.',
+      }
+    );
+  });
+
   void it('creates email login mechanism with specific settings', () => {
     const app = new App();
     const stack = new Stack(app);

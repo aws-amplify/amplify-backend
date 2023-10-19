@@ -56,9 +56,22 @@ export type PhoneNumberLogin =
  * Basic login options require at least email or phone number.
  * Additional settings may be configured, such as email messages or sms verification messages.
  */
-export type BasicLoginOptions =
-  | { email: EmailLogin; phone?: PhoneNumberLogin }
-  | { email?: EmailLogin; phone: PhoneNumberLogin };
+export type BasicLoginOptions = {
+  /**
+   * Email login options.
+   *
+   * If true, email login will be enabled with default settings.
+   * If settings are provided, email login will be enabled with the specified settings.
+   */
+  email?: EmailLogin;
+  /**
+   * Phone number login options.
+   *
+   * If true, phone number login will be enabled with default settings.
+   * If settings are provided, phone number login will be enabled with the specified settings.
+   */
+  phone?: PhoneNumberLogin;
+};
 
 /**
  * Configure the MFA types that users can use. Ignored if MFA enforcementType is set to OFF.
@@ -155,15 +168,41 @@ export type SamlProviderProps = Omit<
  * External provider options.
  */
 export type ExternalProviderOptions = {
+  /**
+   * Google OAuth Settings
+   */
   google?: GoogleProviderProps;
+  /**
+   * Facebook OAuth Settings
+   */
   facebook?: FacebookProviderProps;
+  /**
+   * LoginWithAmazon Settings
+   */
   loginWithAmazon?: AmazonProviderProps;
+  /**
+   * SignInWithApple Settings
+   */
   signInWithApple?: AppleProviderProps;
+  /**
+   * OIDC Settings
+   */
   oidc?: OidcProviderProps;
+  /**
+   * SAML Settings
+   */
   saml?: SamlProviderProps;
-  // general configuration
+  /**
+   * OAuth scopes that will be allowed with the app client.
+   */
   scopes?: cognito.OAuthScope[];
+  /**
+   * List of allowed redirect URLs for the identity providers.
+   */
   callbackUrls?: string[];
+  /**
+   * List of allowed logout URLs for the identity providers.
+   */
   logoutUrls?: string[];
 };
 
@@ -205,5 +244,8 @@ export type AuthProps = {
    */
   accountRecovery?: cognito.AccountRecovery;
 
+  /**
+   * @internal
+   */
   outputStorageStrategy?: BackendOutputStorageStrategy<AuthOutput>;
 };
