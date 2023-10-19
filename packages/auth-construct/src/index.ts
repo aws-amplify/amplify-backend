@@ -2,6 +2,7 @@ export {
   AuthProps,
   BasicLoginOptions,
   EmailLogin,
+  EmailLoginSettings,
   GoogleProviderProps,
   FacebookProviderProps,
   AmazonProviderProps,

@@ -1,5 +1,25 @@
 # @aws-amplify/sandbox
 
+## 0.2.0-alpha.14
+
+### Patch Changes
+
+- 915c0325: Offer to reset the sandbox if a non deployable change is detected
+- Updated dependencies [e9c0c9b5]
+- Updated dependencies [915c0325]
+- Updated dependencies [9c86218e]
+  - @aws-amplify/deployed-backend-client@0.2.0-alpha.8
+  - @aws-amplify/cli-core@0.1.0-alpha.2
+  - @aws-amplify/backend-deployer@0.2.0-alpha.8
+  - @aws-amplify/platform-core@0.1.1-alpha.3
+
+## 0.2.0-alpha.13
+
+### Patch Changes
+
+- Updated dependencies [2bbf3f20]
+  - @aws-amplify/client-config@0.2.0-alpha.11
+
 ## 0.2.0-alpha.12
 
 ### Patch Changes
