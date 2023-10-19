@@ -51,6 +51,7 @@ export class AmplifySandboxExecutor {
     const secretLastUpdated = await this.getSecretLastUpdated(
       uniqueBackendIdentifier
     );
+
     await this.invoke(async () => {
       // it's important to get information about file changes and reset tracker here
       // so that it doesn't get lost in debounced calls.

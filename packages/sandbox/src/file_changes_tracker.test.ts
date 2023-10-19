@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, it, mock } from 'node:test';
+import { beforeEach, describe, it } from 'node:test';
 import assert from 'node:assert';
 import { FileChangesTracker } from './file_changes_tracker.js';
 
