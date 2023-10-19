@@ -22,6 +22,7 @@ import { SecretListItem, getSecretClient } from '@aws-amplify/backend-secret';
 import { ClientConfigFormat } from '@aws-amplify/client-config';
 import { Sandbox } from './sandbox.js';
 import { AmplifyPrompter } from '@aws-amplify/cli-core';
+import { fileURLToPath } from 'url';
 
 // Watcher mocks
 const unsubscribeMockFn = mock.fn();
@@ -228,6 +229,34 @@ void describe('Sandbox using local project name resolver', () => {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: false,
+      },
+    ]);
+  });
+
+  void it('makes initial deployment with type checking at start if some typescript file is present', async () => {
+    // using this file's dir, mocking a glob search appears to be impossible
+    const testDir = path.dirname(fileURLToPath(new URL(import.meta.url)));
+
+    ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox(
+      {
+        executor: sandboxExecutor,
+        cfnClient: cfnClientMock,
+        dir: testDir,
+        exclude: ['exclude1', 'exclude2'],
+      },
+      false
+    ));
+
+    // BackendDeployer should be called once
+    assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
+
+    // BackendDeployer should be called with the right params
+    assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
+      new SandboxBackendIdentifier('testSandboxId'),
+      {
+        deploymentType: BackendDeploymentType.SANDBOX,
+        secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+        validateAppSources: true,
       },
     ]);
   });
