@@ -48,6 +48,7 @@ void describe('getProjectRoot', () => {
     const projectRoot = await getProjectRoot();
 
     assert.equal(fsMkDirSyncMock.mock.callCount(), 1);
+    assert.equal(fsMkDirSyncMock.mock.calls[0].arguments[0], userInput);
     assert.equal(projectRoot, userInput);
   });
 
@@ -61,6 +62,7 @@ void describe('getProjectRoot', () => {
     const projectRoot = await getProjectRoot();
 
     assert.equal(fsMkDirSyncMock.mock.callCount(), 1);
+    assert.equal(fsMkDirSyncMock.mock.calls[0].arguments[0], userInput);
     assert.equal(projectRoot, userInput);
   });
 });
