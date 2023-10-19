@@ -74,7 +74,12 @@ export class CDKDeployer implements BackendDeployer {
   };
 
   private invokeTsc = async () => {
-    await this.executeChildProcess('npx', ['tsc', '--noEmit']);
+    await this.executeChildProcess('npx', [
+      'tsc',
+      '--noEmit',
+      '--skipLibCheck',
+      relativeBackendEntryPoint,
+    ]);
   };
 
   /**
