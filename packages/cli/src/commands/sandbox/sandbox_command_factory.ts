@@ -43,9 +43,6 @@ export const createSandboxCommand = (): CommandModule<
     appName,
     clientConfigOutDir,
     format,
-    modelsOutDir,
-    uiOutDir,
-    modelsFilter,
   }) => {
     return {
       successfulDeployment: [
@@ -66,9 +63,6 @@ export const createSandboxCommand = (): CommandModule<
             await formGeneratorHandler.generate({
               backendIdentifier,
               apiUrl,
-              modelsOutDir,
-              uiOutDir,
-              modelsFilter,
             });
           }
         },
