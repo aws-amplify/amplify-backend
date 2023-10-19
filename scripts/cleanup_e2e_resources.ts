@@ -180,7 +180,7 @@ const listStaleCognitoUserPools = async () => {
       await cognitoClient.send(
         new ListUserPoolsCommand({
           NextToken: nextToken,
-          MaxResults: 1000,
+          MaxResults: 60,
         })
       );
     nextToken = listUserPoolsResponse.NextToken;
