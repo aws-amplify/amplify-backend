@@ -47,9 +47,12 @@ export type BasicLoginOptions = {
 };
 
 // @public
-export type EmailLogin = true | {
-    verificationEmailStyle?: 'CONFIRM_WITH_CODE' | 'CONFIRM_WITH_LINK';
-    verificationEmailBody?: string;
+export type EmailLogin = true | EmailLoginSettings;
+
+// @public
+export type EmailLoginSettings = {
+    verificationEmailStyle?: 'CODE' | 'LINK';
+    verificationEmailBody?: (codeOrLink: string) => string;
     verificationEmailSubject?: string;
 };
 
@@ -88,7 +91,7 @@ export type MFA = {
 export type MFASettings = {
     totp: boolean;
     sms: boolean | {
-        smsMessage: string;
+        smsMessage: (code: string) => string;
     };
 };
 
@@ -97,7 +100,7 @@ export type OidcProviderProps = Omit<aws_cognito.UserPoolIdentityProviderOidcPro
 
 // @public
 export type PhoneNumberLogin = true | {
-    verificationMessage?: string;
+    verificationMessage?: (code: string) => string;
 };
 
 // @public

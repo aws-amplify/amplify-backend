@@ -95,6 +95,7 @@ export class CDKDeployer implements BackendDeployer {
       '--ci',
       '--app',
       `'npx tsx ${relativeBackendEntryPoint}'`,
+      '--all',
     ];
 
     // Add context information if available

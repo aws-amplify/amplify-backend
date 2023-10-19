@@ -3,7 +3,6 @@ import { BackendDeployer } from '@aws-amplify/backend-deployer';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import { BackendDeploymentType } from '@aws-amplify/platform-core';
 import { SecretClient } from '@aws-amplify/backend-secret';
-import { FileChangesAnalysisSummary } from './file_changes_analyzer.js';
 
 /**
  * Execute CDK commands.
@@ -44,28 +43,19 @@ export class AmplifySandboxExecutor {
    * Deploys sandbox
    */
   deploy = async (
-    uniqueBackendIdentifier: UniqueBackendIdentifier,
-    fileChangesAnalysisSummary: FileChangesAnalysisSummary
+    uniqueBackendIdentifier: UniqueBackendIdentifier
   ): Promise<void> => {
     console.debug('[Sandbox] Executing command `deploy`');
     const secretLastUpdated = await this.getSecretLastUpdated(
       uniqueBackendIdentifier
     );
-    const typeCheckingEnabled =
-      fileChangesAnalysisSummary.anyTypeScriptFileChanged;
-    try {
-      await this.invoke(
-        async () =>
-          await this.backendDeployer.deploy(uniqueBackendIdentifier, {
-            deploymentType: BackendDeploymentType.SANDBOX,
-            secretLastUpdated,
-            typeCheckingEnabled,
-          })
-      );
-    } catch (error) {
-      console.log(this.getErrorMessage(error));
-      // do not propagate and let the sandbox continue to run
-    }
+    await this.invoke(
+      async () =>
+        await this.backendDeployer.deploy(uniqueBackendIdentifier, {
+          deploymentType: BackendDeploymentType.SANDBOX,
+          secretLastUpdated,
+        })
+    );
   };
 
   /**
@@ -91,24 +81,4 @@ export class AmplifySandboxExecutor {
     async (callback: () => Promise<void>): Promise<void> => await callback(),
     100
   );
-
-  /**
-   * Generates a printable error message from the thrown error
-   */
-  private getErrorMessage(error: unknown) {
-    let message;
-    if (error instanceof Error) {
-      message = error.message;
-
-      // Add the downstream exception
-      if (error.cause && error.cause instanceof Error) {
-        message = `${message}\nCaused By: ${
-          error.cause instanceof Error
-            ? error.cause.message
-            : String(error.cause)
-        }`;
-      }
-    } else message = String(error);
-    return message;
-  }
 }
