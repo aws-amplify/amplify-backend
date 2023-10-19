@@ -14,13 +14,13 @@ import {
   ScriptKind,
   ScriptTarget,
   UtilTemplateType,
+  getDeclarationFilename,
 } from '@aws-amplify/codegen-ui-react';
 import {
   FormGenerationOptions,
   GraphqlFormGenerator,
   GraphqlGenerationResult,
 } from './graphql_form_generator.js';
-import { getDeclarationFilename } from '@aws-amplify/codegen-ui-react/dist/lib/react-studio-template-renderer-helper.js';
 
 type FormDef = Set<'create' | 'update'>;
 type ModelRecord = Record<string, FormDef>;

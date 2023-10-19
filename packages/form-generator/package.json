@@ -20,7 +20,7 @@
   "dependencies": {
     "@aws-amplify/appsync-modelgen-plugin": "^2.6.0",
     "@aws-amplify/codegen-ui": "^2.15.8",
-    "@aws-amplify/codegen-ui-react": "^2.15.9",
+    "@aws-amplify/codegen-ui-react": "^2.18.0",
     "@aws-amplify/graphql-docs-generator": "^4.1.0",
     "@aws-sdk/client-amplifyuibuilder": "^3.398.0",
     "@aws-sdk/client-appsync": "^3.398.0",
