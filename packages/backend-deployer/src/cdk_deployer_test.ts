@@ -141,13 +141,14 @@ void describe('invokeCDKCommand', () => {
       'tsc',
       '--noEmit',
     ]);
-    assert.equal(execaMock.mock.calls[1].arguments[1]?.length, 11);
+    assert.equal(execaMock.mock.calls[1].arguments[1]?.length, 12);
     assert.deepStrictEqual(execaMock.mock.calls[1].arguments[1], [
       'cdk',
       'deploy',
       '--ci',
       '--app',
       "'npx tsx amplify/backend.ts'",
+      '--all',
       '--context',
       'backend-id=123',
       '--context',
@@ -168,13 +169,14 @@ void describe('invokeCDKCommand', () => {
       'tsc',
       '--noEmit',
     ]);
-    assert.equal(execaMock.mock.calls[1].arguments[1]?.length, 9);
+    assert.equal(execaMock.mock.calls[1].arguments[1]?.length, 10);
     assert.deepStrictEqual(execaMock.mock.calls[1].arguments[1], [
       'cdk',
       'deploy',
       '--ci',
       '--app',
       "'npx tsx amplify/backend.ts'",
+      '--all',
       '--context',
       'deployment-type=SANDBOX',
       '--hotswap-fallback',
