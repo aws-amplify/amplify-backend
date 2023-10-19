@@ -63,6 +63,6 @@ void describe('getProjectRoot', () => {
 
     assert.equal(fsMkDirSyncMock.mock.callCount(), 1);
     assert.equal(fsMkDirSyncMock.mock.calls[0].arguments[0], userInput);
-    assert.equal(projectRoot, path.resolve(userInput));
+    assert.equal(projectRoot, path.resolve(process.cwd(), userInput));
   });
 });
