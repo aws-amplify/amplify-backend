@@ -56,6 +56,8 @@ export class AmplifySandboxExecutor {
       // so that it doesn't get lost in debounced calls.
       const fileChangesSummary = fileChangesTracker.getSummaryAndReset();
       const typeCheckingEnabled =
+        // zero files changed indicate that deployment was kicked off due to different
+        // reason than file change, e.g. at initial start
         fileChangesSummary.filesChanged === 0 ||
         fileChangesSummary.typeScriptFilesChanged > 0;
       await this.backendDeployer.deploy(uniqueBackendIdentifier, {

@@ -22,7 +22,6 @@ import { SecretListItem, getSecretClient } from '@aws-amplify/backend-secret';
 import { ClientConfigFormat } from '@aws-amplify/client-config';
 import { Sandbox } from './sandbox.js';
 import { AmplifyPrompter } from '@aws-amplify/cli-core';
-import { FileChangesTracker } from './file_changes_tracker.js';
 
 // Watcher mocks
 const unsubscribeMockFn = mock.fn();
@@ -578,7 +577,10 @@ void describe('Sandbox using local project name resolver', () => {
  *
  * Both the instance and the event handler are returned.
  */
-const setupAndStartSandbox = async (testData: SandboxTestData) => {
+const setupAndStartSandbox = async (
+  testData: SandboxTestData,
+  resetMocksAfterStart = true
+) => {
   const sandboxInstance = new FileWatchingSandbox(
     testData.sandboxId ?? 'testSandboxId',
     testData.executor,
@@ -614,11 +616,13 @@ const setupAndStartSandbox = async (testData: SandboxTestData) => {
     );
   }
 
-  // Reset all the calls to avoid extra startup call
-  backendDeployerDestroyMock.mock.resetCalls();
-  backendDeployerDeployMock.mock.resetCalls();
-  cfnClientSendMock.mock.resetCalls();
-  listSecretMock.mock.resetCalls();
+  if (resetMocksAfterStart) {
+    // Reset all the calls to avoid extra startup call
+    backendDeployerDestroyMock.mock.resetCalls();
+    backendDeployerDeployMock.mock.resetCalls();
+    cfnClientSendMock.mock.resetCalls();
+    listSecretMock.mock.resetCalls();
+  }
 
   return { sandboxInstance, fileChangeEventCallback };
 };
