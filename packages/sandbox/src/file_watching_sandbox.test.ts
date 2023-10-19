@@ -206,6 +206,31 @@ void describe('Sandbox using local project name resolver', () => {
     await sandboxInstance.stop();
   });
 
+  void it('makes initial deployment with type checking at start', async () => {
+    ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox(
+      {
+        executor: sandboxExecutor,
+        cfnClient: cfnClientMock,
+        dir: 'testDir',
+        exclude: ['exclude1', 'exclude2'],
+      },
+      false
+    ));
+
+    // BackendDeployer should be called once
+    assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
+
+    // BackendDeployer should be called with the right params
+    assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
+      new SandboxBackendIdentifier('testSandboxId'),
+      {
+        deploymentType: BackendDeploymentType.SANDBOX,
+        secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+        typeCheckingEnabled: true,
+      },
+    ]);
+  });
+
   void it('calls BackendDeployer once when a file change is present', async () => {
     ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
       executor: sandboxExecutor,
@@ -249,6 +274,36 @@ void describe('Sandbox using local project name resolver', () => {
       { type: 'create', path: 'foo/test3.ts' },
     ]);
     assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
+    // BackendDeployer should be called with the right params
+    assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
+      new SandboxBackendIdentifier('testSandboxId'),
+      {
+        deploymentType: BackendDeploymentType.SANDBOX,
+        secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+        typeCheckingEnabled: true,
+      },
+    ]);
+  });
+
+  void it('skips type checking if no typescript change is detected', async () => {
+    ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
+      executor: sandboxExecutor,
+      cfnClient: cfnClientMock,
+    }));
+    await fileChangeEventCallback(null, [
+      { type: 'update', path: 'foo/test2.txt' },
+      { type: 'create', path: 'foo/test3.txt' },
+    ]);
+    assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
+    // BackendDeployer should be called with the right params
+    assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
+      new SandboxBackendIdentifier('testSandboxId'),
+      {
+        deploymentType: BackendDeploymentType.SANDBOX,
+        secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+        typeCheckingEnabled: false,
+      },
+    ]);
   });
 
   void it('calls BackendDeployer once when multiple file changes are within few milliseconds (debounce)', async () => {
@@ -260,11 +315,22 @@ void describe('Sandbox using local project name resolver', () => {
     const firstFileChange = fileChangeEventCallback(null, [
       { type: 'update', path: 'foo/test4.ts' },
     ]);
+    // Second file change is non typescript file
+    // so that we assert that ts file change is not lost
     await fileChangeEventCallback(null, [
-      { type: 'update', path: 'foo/test4.ts' },
+      { type: 'update', path: 'foo/test4.txt' },
     ]);
     await firstFileChange;
     assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
+    // BackendDeployer should be called with the right params
+    assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
+      new SandboxBackendIdentifier('testSandboxId'),
+      {
+        deploymentType: BackendDeploymentType.SANDBOX,
+        secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+        typeCheckingEnabled: true,
+      },
+    ]);
   });
 
   void it('waits for file changes after completing a deployment and deploys again', async () => {
@@ -279,6 +345,24 @@ void describe('Sandbox using local project name resolver', () => {
       { type: 'update', path: 'foo/test6.ts' },
     ]);
     assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 2);
+    // BackendDeployer should be called with the right params
+    assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
+      new SandboxBackendIdentifier('testSandboxId'),
+      {
+        deploymentType: BackendDeploymentType.SANDBOX,
+        secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+        typeCheckingEnabled: true,
+      },
+    ]);
+    // BackendDeployer should be called with the right params
+    assert.deepEqual(backendDeployerDeployMock.mock.calls[1].arguments, [
+      new SandboxBackendIdentifier('testSandboxId'),
+      {
+        deploymentType: BackendDeploymentType.SANDBOX,
+        secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+        typeCheckingEnabled: true,
+      },
+    ]);
   });
 
   void it('queues deployment if a file change is detected during an ongoing deployment', async () => {
@@ -308,6 +392,24 @@ void describe('Sandbox using local project name resolver', () => {
     await Promise.all([firstFileChange, secondFileChange]);
 
     assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 2);
+    // BackendDeployer should be called with the right params
+    assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
+      new SandboxBackendIdentifier('testSandboxId'),
+      {
+        deploymentType: BackendDeploymentType.SANDBOX,
+        secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+        typeCheckingEnabled: true,
+      },
+    ]);
+    // BackendDeployer should be called with the right params
+    assert.deepEqual(backendDeployerDeployMock.mock.calls[1].arguments, [
+      new SandboxBackendIdentifier('testSandboxId'),
+      {
+        deploymentType: BackendDeploymentType.SANDBOX,
+        secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+        typeCheckingEnabled: true,
+      },
+    ]);
   });
 
   void it('calls BackendDeployer destroy when delete is called', async () => {
