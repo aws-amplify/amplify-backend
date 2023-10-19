@@ -54,7 +54,7 @@ void describe('getProjectRoot', () => {
 
   void it('creates the project root directory if the user provided relative path does not exist', async (ctx) => {
     process.env.npm_config_yes = 'false';
-    const userInput = path.resolve('test', 'root');
+    const userInput = 'test';
     const fsMkDirSyncMock = ctx.mock.method(fsp, 'mkdir', () => undefined);
     ctx.mock.method(fsp, 'stat', () => Promise.reject(new Error()));
     ctx.mock.method(AmplifyPrompter, 'input', () => Promise.resolve(userInput));
