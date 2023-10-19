@@ -206,11 +206,12 @@ void describe('Sandbox using local project name resolver', () => {
     await sandboxInstance.stop();
   });
 
-  void it('makes initial deployment with type checking at start', async () => {
+  void it('makes initial deployment without type checking at start if no typescript file is present', async () => {
     ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox(
       {
         executor: sandboxExecutor,
         cfnClient: cfnClientMock,
+        // imaginary dir does not have any ts files
         dir: 'testDir',
         exclude: ['exclude1', 'exclude2'],
       },
@@ -226,7 +227,7 @@ void describe('Sandbox using local project name resolver', () => {
       {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
-        validateAppSources: true,
+        validateAppSources: false,
       },
     ]);
   });
@@ -382,7 +383,7 @@ void describe('Sandbox using local project name resolver', () => {
     ]);
 
     // Get over debounce so that the next deployment is considered valid
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 110));
 
     // second file change while the previous one is 'ongoing'
     const secondFileChange = fileChangeEventCallback(null, [

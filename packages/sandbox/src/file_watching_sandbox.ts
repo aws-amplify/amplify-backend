@@ -18,7 +18,10 @@ import {
 } from '@aws-sdk/client-cloudformation';
 import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
 import { AmplifyPrompter } from '@aws-amplify/cli-core';
-import { FileChangesTracker } from './file_changes_tracker.js';
+import {
+  FileChangesTracker,
+  createFileChangesTracker,
+} from './file_changes_tracker.js';
 
 export const CDK_BOOTSTRAP_STACK_NAME = 'CDKToolkit';
 export const CDK_BOOTSTRAP_VERSION_KEY = 'BootstrapVersion';
@@ -39,7 +42,7 @@ export const getBootstrapUrl = (region: string) =>
 export class FileWatchingSandbox extends EventEmitter implements Sandbox {
   private watcherSubscription: Awaited<ReturnType<typeof subscribe>>;
   private outputFilesExcludedFromWatch = ['cdk.out'];
-  private readonly fileChangesTracker = new FileChangesTracker();
+  private fileChangesTracker: FileChangesTracker;
 
   /**
    * Creates a watcher process for this instance
@@ -76,7 +79,9 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
    * @inheritdoc
    */
   start = async (options: SandboxOptions) => {
-    this.fileChangesTracker.reset();
+    this.fileChangesTracker = await createFileChangesTracker(
+      options.dir ?? process.cwd()
+    );
     const bootstrapped = await this.isBootstrapped();
     if (!bootstrapped) {
       console.log(
@@ -182,23 +187,24 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     console.log('[Sandbox] Finished deleting.');
   };
 
+  private shouldValidateAppSources = (): boolean => {
+    const counters = this.fileChangesTracker.getSnapshot();
+    // if zero files changed this indicates initial deployment
+    const shouldValidateOnColdStart =
+      counters.initialTypeScriptFilesCount > 0 && counters.filesChanged === 0;
+    const didAnyTypeScriptFileChange =
+      counters.typeScriptFilesChangedSinceLastSnapshot > 0;
+    return shouldValidateOnColdStart || didAnyTypeScriptFileChange;
+  };
+
   private deploy = async (options: SandboxOptions) => {
     const sandboxAppId = options.name ?? this.sandboxId;
-    // It's important to pass this as callback so that debounce does
-    // not reset tracker prematurely
-    const validateAppSourcesProvider = () => {
-      const fileChangesSummary = this.fileChangesTracker.getSummaryAndReset();
-      // zero files changed indicate that deployment was kicked off due to different
-      // reason than file change, e.g. at initial start
-      return (
-        fileChangesSummary.filesChanged === 0 ||
-        fileChangesSummary.typeScriptFilesChanged > 0
-      );
-    };
     try {
       await this.executor.deploy(
         new SandboxBackendIdentifier(sandboxAppId),
-        validateAppSourcesProvider
+        // It's important to pass this as callback so that debounce does
+        // not reset tracker prematurely
+        this.shouldValidateAppSources
       );
       console.debug('[Sandbox] Running successfulDeployment event handlers');
       this.emit('successfulDeployment');

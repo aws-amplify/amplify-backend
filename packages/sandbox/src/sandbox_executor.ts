@@ -3,7 +3,6 @@ import { BackendDeployer } from '@aws-amplify/backend-deployer';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import { BackendDeploymentType } from '@aws-amplify/platform-core';
 import { SecretClient } from '@aws-amplify/backend-secret';
-import { FileChangesTracker } from './file_changes_tracker.js';
 
 /**
  * Execute CDK commands.

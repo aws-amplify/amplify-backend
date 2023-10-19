@@ -3,7 +3,6 @@ import assert from 'node:assert';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
 import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 import { SecretListItem, getSecretClient } from '@aws-amplify/backend-secret';
-import { FileChangesTracker } from './file_changes_tracker.js';
 import {
   BackendDeploymentType,
   SandboxBackendIdentifier,
