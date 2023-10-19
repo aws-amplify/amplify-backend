@@ -187,6 +187,47 @@ void describe('Sandbox to check if region is bootstrapped', () => {
   });
 });
 
+void describe('Sandbox start', () => {
+  // class under test
+  let sandboxInstance: FileWatchingSandbox;
+
+  beforeEach(async () => {
+    sandboxInstance = new FileWatchingSandbox(
+      'testSandboxId',
+      sandboxExecutor,
+      cfnClientMock,
+      fileChangesAnalyzer
+    );
+  });
+
+  afterEach(async () => {
+    backendDeployerDestroyMock.mock.resetCalls();
+    backendDeployerDeployMock.mock.resetCalls();
+    subscribeMock.mock.resetCalls();
+    cfnClientSendMock.mock.resetCalls();
+    await sandboxInstance.stop();
+  });
+
+  void it('Executes initial deployment with type checking', async () => {
+    await sandboxInstance.start({
+      dir: 'testDir',
+      exclude: ['exclude1', 'exclude2'],
+    });
+
+    assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
+
+    // BackendDeployer should be called with the right params
+    assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
+      new SandboxBackendIdentifier('testSandboxId'),
+      {
+        deploymentType: BackendDeploymentType.SANDBOX,
+        secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+        typeCheckingEnabled: true,
+      },
+    ]);
+  });
+});
+
 void describe('Sandbox using local project name resolver', () => {
   // class under test
   let sandboxInstance: FileWatchingSandbox;
@@ -235,20 +276,163 @@ void describe('Sandbox using local project name resolver', () => {
     await sandboxInstance.stop();
   });
 
-  void it('calls BackendDeployer once when a file change is present', async () => {
-    await fileChangeEventActualFn(null, [
-      { type: 'update', path: 'foo/test1.ts' },
-    ]);
+  [
+    {
+      extension: 'ts',
+      expectedTypeCheckingEnabled: true,
+    },
+    {
+      extension: 'txt',
+      expectedTypeCheckingEnabled: false,
+    },
+  ].forEach((testParams) => {
+    void it('calls BackendDeployer once when a file change is present', async () => {
+      await fileChangeEventActualFn(null, [
+        { type: 'update', path: `foo/test1.${testParams.extension}` },
+      ]);
 
-    // File watcher should be called with right arguments such as dir and excludes
-    assert.strictEqual(subscribeMock.mock.calls[0].arguments[0], 'testDir');
-    assert.deepStrictEqual(subscribeMock.mock.calls[0].arguments[2], {
-      ignore: ['cdk.out', 'exclude1', 'exclude2'],
+      // File watcher should be called with right arguments such as dir and excludes
+      assert.strictEqual(subscribeMock.mock.calls[0].arguments[0], 'testDir');
+      assert.deepStrictEqual(subscribeMock.mock.calls[0].arguments[2], {
+        ignore: ['cdk.out', 'exclude1', 'exclude2'],
+      });
+
+      // BackendDeployer should be called once
+      assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
+      assert.strictEqual(listSecretMock.mock.callCount(), 1);
+
+      // BackendDeployer should be called with the right params
+      assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
+        new SandboxBackendIdentifier('testSandboxId'),
+        {
+          deploymentType: BackendDeploymentType.SANDBOX,
+          secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+          typeCheckingEnabled: testParams.expectedTypeCheckingEnabled,
+        },
+      ]);
+      assert.strictEqual(cfnClientSendMock.mock.callCount(), 0);
     });
 
-    // BackendDeployer should be called once
+    void it('calls BackendDeployer once when multiple file changes are present', async () => {
+      await fileChangeEventActualFn(null, [
+        { type: 'update', path: `foo/test2.${testParams.extension}` },
+        { type: 'create', path: `foo/test3.${testParams.extension}` },
+      ]);
+      assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
+
+      // BackendDeployer should be called with the right params
+      assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
+        new SandboxBackendIdentifier('testSandboxId'),
+        {
+          deploymentType: BackendDeploymentType.SANDBOX,
+          secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+          typeCheckingEnabled: testParams.expectedTypeCheckingEnabled,
+        },
+      ]);
+    });
+
+    void it('calls BackendDeployer once when multiple file changes are within few milliseconds (debounce)', async () => {
+      // Not awaiting for this file event to be processed and submitting another one right away
+      fileChangeEventActualFn(null, [
+        { type: 'update', path: `foo/test4.${testParams.extension}` },
+      ]);
+      await fileChangeEventActualFn(null, [
+        { type: 'update', path: `foo/test4.${testParams.extension}` },
+      ]);
+      assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
+
+      // BackendDeployer should be called with the right params
+      assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
+        new SandboxBackendIdentifier('testSandboxId'),
+        {
+          deploymentType: BackendDeploymentType.SANDBOX,
+          secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+          typeCheckingEnabled: testParams.expectedTypeCheckingEnabled,
+        },
+      ]);
+    });
+
+    void it('waits for file changes after completing a deployment and deploys again', async () => {
+      await fileChangeEventActualFn(null, [
+        { type: 'update', path: `foo/test5.${testParams.extension}` },
+      ]);
+      await fileChangeEventActualFn(null, [
+        { type: 'update', path: `foo/test6.${testParams.extension}` },
+      ]);
+      assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 2);
+
+      // BackendDeployer should be called with the right params
+      assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
+        new SandboxBackendIdentifier('testSandboxId'),
+        {
+          deploymentType: BackendDeploymentType.SANDBOX,
+          secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+          typeCheckingEnabled: testParams.expectedTypeCheckingEnabled,
+        },
+      ]);
+      assert.deepEqual(backendDeployerDeployMock.mock.calls[1].arguments, [
+        new SandboxBackendIdentifier('testSandboxId'),
+        {
+          deploymentType: BackendDeploymentType.SANDBOX,
+          secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+          typeCheckingEnabled: testParams.expectedTypeCheckingEnabled,
+        },
+      ]);
+    });
+
+    void it('queues deployment if a file change is detected during an ongoing', async () => {
+      // Mimic BackendDeployer taking 200 ms.
+      backendDeployerDeployMock.mock.mockImplementationOnce(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 200));
+        return { stdout: '', stderr: '' };
+      });
+
+      // Not awaiting so we can push another file change while deployment is ongoing
+      fileChangeEventActualFn(null, [
+        { type: 'update', path: `foo/test7.${testParams.extension}` },
+      ]);
+
+      // Get over debounce so that the next deployment is considered valid
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // second file change while the previous one is 'ongoing'
+      fileChangeEventActualFn(null, [
+        { type: 'update', path: `foo/test8.${testParams.extension}` },
+      ]);
+
+      // Wait sufficient time for both deployments to have finished before we count number of BackendDeployer calls.
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 2);
+
+      // BackendDeployer should be called with the right params
+      assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
+        new SandboxBackendIdentifier('testSandboxId'),
+        {
+          deploymentType: BackendDeploymentType.SANDBOX,
+          secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+          typeCheckingEnabled: testParams.expectedTypeCheckingEnabled,
+        },
+      ]);
+      assert.deepEqual(backendDeployerDeployMock.mock.calls[1].arguments, [
+        new SandboxBackendIdentifier('testSandboxId'),
+        {
+          deploymentType: BackendDeploymentType.SANDBOX,
+          secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+          typeCheckingEnabled: testParams.expectedTypeCheckingEnabled,
+        },
+      ]);
+    });
+  });
+
+  void it('calls BackendDeployer once with type checking when at lest one change is typescript', async () => {
+    // Not awaiting for this file event to be processed and submitting another one right away
+    fileChangeEventActualFn(null, [{ type: 'update', path: 'foo/test4.ts' }]);
+    // Last change is txt file, so that we assert that debounce does not make it forget about ts file change
+    await fileChangeEventActualFn(null, [
+      { type: 'update', path: 'foo/test4.txt' },
+    ]);
     assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
-    assert.strictEqual(listSecretMock.mock.callCount(), 1);
 
     // BackendDeployer should be called with the right params
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
@@ -259,56 +443,6 @@ void describe('Sandbox using local project name resolver', () => {
         typeCheckingEnabled: true,
       },
     ]);
-    assert.strictEqual(cfnClientSendMock.mock.callCount(), 0);
-  });
-
-  void it('calls BackendDeployer once when multiple file changes are present', async () => {
-    await fileChangeEventActualFn(null, [
-      { type: 'update', path: 'foo/test2.ts' },
-      { type: 'create', path: 'foo/test3.ts' },
-    ]);
-    assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
-  });
-
-  void it('calls BackendDeployer once when multiple file changes are within few milliseconds (debounce)', async () => {
-    // Not awaiting for this file event to be processed and submitting another one right away
-    fileChangeEventActualFn(null, [{ type: 'update', path: 'foo/test4.ts' }]);
-    await fileChangeEventActualFn(null, [
-      { type: 'update', path: 'foo/test4.ts' },
-    ]);
-    assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
-  });
-
-  void it('waits for file changes after completing a deployment and deploys again', async () => {
-    await fileChangeEventActualFn(null, [
-      { type: 'update', path: 'foo/test5.ts' },
-    ]);
-    await fileChangeEventActualFn(null, [
-      { type: 'update', path: 'foo/test6.ts' },
-    ]);
-    assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 2);
-  });
-
-  void it('queues deployment if a file change is detected during an ongoing', async () => {
-    // Mimic BackendDeployer taking 200 ms.
-    backendDeployerDeployMock.mock.mockImplementationOnce(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 200));
-      return { stdout: '', stderr: '' };
-    });
-
-    // Not awaiting so we can push another file change while deployment is ongoing
-    fileChangeEventActualFn(null, [{ type: 'update', path: 'foo/test7.ts' }]);
-
-    // Get over debounce so that the next deployment is considered valid
-    await new Promise((resolve) => setTimeout(resolve, 100));
-
-    // second file change while the previous one is 'ongoing'
-    fileChangeEventActualFn(null, [{ type: 'update', path: 'foo/test8.ts' }]);
-
-    // Wait sufficient time for both deployments to have finished before we count number of BackendDeployer calls.
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 2);
   });
 
   void it('calls BackendDeployer destroy when delete is called', async () => {
