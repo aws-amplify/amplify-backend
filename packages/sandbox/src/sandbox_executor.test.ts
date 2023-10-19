@@ -38,113 +38,54 @@ const backendDeployerDeployMock = mock.method(backendDeployer, 'deploy', () =>
   Promise.resolve()
 );
 
-const fileChangesTracker = new FileChangesTracker();
-
-const fileChangesTrackerMock = mock.method(
-  fileChangesTracker,
-  'getSummaryAndReset',
-  () => {
-    return {
-      filesChanged: 1,
-      typeScriptFilesChanged: 1,
-    };
-  }
-);
+const validateAppSourcesProvider = mock.fn(() => true);
 
 void describe('Sandbox executor', () => {
   afterEach(() => {
     backendDeployerDeployMock.mock.resetCalls();
-    fileChangesTrackerMock.mock.resetCalls();
+    validateAppSourcesProvider.mock.resetCalls();
     listSecretMock.mock.resetCalls();
   });
 
   void it('retrieves file change summary once (debounce)', async () => {
     const firstDeployPromise = sandboxExecutor.deploy(
       new SandboxBackendIdentifier('testSandboxId'),
-      fileChangesTracker
+      validateAppSourcesProvider
     );
 
     const secondDeployPromise = sandboxExecutor.deploy(
       new SandboxBackendIdentifier('testSandboxId'),
-      fileChangesTracker
+      validateAppSourcesProvider
     );
 
     await Promise.all([firstDeployPromise, secondDeployPromise]);
 
     // Assert debounce worked as expected
     assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
-    assert.strictEqual(fileChangesTrackerMock.mock.callCount(), 1);
+    assert.strictEqual(validateAppSourcesProvider.mock.callCount(), 1);
   });
 
-  void it('enables type checking if no files were modified (cold start)', async () => {
-    fileChangesTrackerMock.mock.mockImplementationOnce(() => {
-      return {
-        filesChanged: 0,
-        typeScriptFilesChanged: 0,
-      };
+  [true, false].forEach((shouldValidateSources) => {
+    void it(`calls deployer with correct validateSources=${shouldValidateSources.toString()} setting`, async () => {
+      validateAppSourcesProvider.mock.mockImplementationOnce(
+        () => shouldValidateSources
+      );
+
+      await sandboxExecutor.deploy(
+        new SandboxBackendIdentifier('testSandboxId'),
+        validateAppSourcesProvider
+      );
+
+      assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
+      // BackendDeployer should be called with the right params
+      assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
+        new SandboxBackendIdentifier('testSandboxId'),
+        {
+          deploymentType: BackendDeploymentType.SANDBOX,
+          secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+          validateAppSources: shouldValidateSources,
+        },
+      ]);
     });
-
-    await sandboxExecutor.deploy(
-      new SandboxBackendIdentifier('testSandboxId'),
-      fileChangesTracker
-    );
-
-    assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
-    assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
-      new SandboxBackendIdentifier('testSandboxId'),
-      {
-        deploymentType: BackendDeploymentType.SANDBOX,
-        secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
-        validateAppSources: true,
-      },
-    ]);
-  });
-
-  void it('enables type checking if typescript files were modified', async () => {
-    fileChangesTrackerMock.mock.mockImplementationOnce(() => {
-      return {
-        filesChanged: 4,
-        typeScriptFilesChanged: 1,
-      };
-    });
-
-    await sandboxExecutor.deploy(
-      new SandboxBackendIdentifier('testSandboxId'),
-      fileChangesTracker
-    );
-
-    assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
-    assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
-      new SandboxBackendIdentifier('testSandboxId'),
-      {
-        deploymentType: BackendDeploymentType.SANDBOX,
-        secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
-        validateAppSources: true,
-      },
-    ]);
-  });
-
-  void it('disables type checking if no typescript files were modified', async () => {
-    fileChangesTrackerMock.mock.mockImplementationOnce(() => {
-      return {
-        filesChanged: 1,
-        typeScriptFilesChanged: 0,
-      };
-    });
-
-    await sandboxExecutor.deploy(
-      new SandboxBackendIdentifier('testSandboxId'),
-      fileChangesTracker
-    );
-
-    assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
-    assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
-      new SandboxBackendIdentifier('testSandboxId'),
-      {
-        deploymentType: BackendDeploymentType.SANDBOX,
-        secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
-        validateAppSources: false,
-      },
-    ]);
   });
 });

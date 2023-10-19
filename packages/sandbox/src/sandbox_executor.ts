@@ -45,7 +45,7 @@ export class AmplifySandboxExecutor {
    */
   deploy = async (
     uniqueBackendIdentifier: UniqueBackendIdentifier,
-    fileChangesTracker: FileChangesTracker
+    validateAppSourcesProvider: () => boolean
   ): Promise<void> => {
     console.debug('[Sandbox] Executing command `deploy`');
     const secretLastUpdated = await this.getSecretLastUpdated(
@@ -53,14 +53,9 @@ export class AmplifySandboxExecutor {
     );
 
     await this.invoke(async () => {
-      // it's important to get information about file changes and reset tracker here
-      // so that it doesn't get lost in debounced calls.
-      const fileChangesSummary = fileChangesTracker.getSummaryAndReset();
-      const validateAppSources =
-        // zero files changed indicate that deployment was kicked off due to different
-        // reason than file change, e.g. at initial start
-        fileChangesSummary.filesChanged === 0 ||
-        fileChangesSummary.typeScriptFilesChanged > 0;
+      // it's important to get information here so that information
+      // doesn't get lost while debouncing
+      const validateAppSources = validateAppSourcesProvider();
       await this.backendDeployer.deploy(uniqueBackendIdentifier, {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated,

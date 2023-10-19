@@ -184,10 +184,21 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
 
   private deploy = async (options: SandboxOptions) => {
     const sandboxAppId = options.name ?? this.sandboxId;
+    // It's important to pass this as callback so that debounce does
+    // not reset tracker prematurely
+    const validateAppSourcesProvider = () => {
+      const fileChangesSummary = this.fileChangesTracker.getSummaryAndReset();
+      // zero files changed indicate that deployment was kicked off due to different
+      // reason than file change, e.g. at initial start
+      return (
+        fileChangesSummary.filesChanged === 0 ||
+        fileChangesSummary.typeScriptFilesChanged > 0
+      );
+    };
     try {
       await this.executor.deploy(
         new SandboxBackendIdentifier(sandboxAppId),
-        this.fileChangesTracker
+        validateAppSourcesProvider
       );
       console.debug('[Sandbox] Running successfulDeployment event handlers');
       this.emit('successfulDeployment');
