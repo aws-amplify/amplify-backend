@@ -13,7 +13,6 @@ import {
   CfnIdentityPool,
   CfnUserPool,
   CfnUserPoolClient,
-  OAuthScope,
   UserPool,
   UserPoolClient,
   UserPoolIdentityProviderSamlMetadataType,
@@ -835,13 +834,7 @@ void describe('Auth construct', () => {
             google: {
               clientId: googleClientId,
               clientSecret: SecretValue.unsafePlainText(googleClientSecret),
-              scopes: [
-                'profile','some_google_specific_scope'
-              ]
             },
-            scopes: [
-              OAuthScope.OPENID
-            ]
           },
         },
       });
