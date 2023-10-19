@@ -61,7 +61,7 @@ export class PipelineDeployCommand
     );
     await this.backendDeployer.deploy(uniqueBackendIdentifier, {
       deploymentType: BackendDeploymentType.BRANCH,
-      typeCheckingEnabled: true,
+      validateAppSources: true,
     });
     await this.clientConfigGenerator.generateClientConfigToFile(
       uniqueBackendIdentifier

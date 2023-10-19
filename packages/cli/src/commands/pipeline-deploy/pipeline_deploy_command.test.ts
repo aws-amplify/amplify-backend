@@ -84,7 +84,7 @@ void describe('deploy command', () => {
     );
     assert.deepStrictEqual(mockDeploy.mock.calls[0].arguments[1], {
       deploymentType: 'BRANCH',
-      typeCheckingEnabled: true,
+      validateAppSources: true,
     });
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
   });

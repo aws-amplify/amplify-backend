@@ -95,7 +95,7 @@ void describe('Sandbox executor', () => {
       {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
-        typeCheckingEnabled: true,
+        validateAppSources: true,
       },
     ]);
   });
@@ -119,7 +119,7 @@ void describe('Sandbox executor', () => {
       {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
-        typeCheckingEnabled: true,
+        validateAppSources: true,
       },
     ]);
   });
@@ -143,7 +143,7 @@ void describe('Sandbox executor', () => {
       {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
-        typeCheckingEnabled: false,
+        validateAppSources: false,
       },
     ]);
   });

@@ -133,7 +133,7 @@ void describe('invokeCDKCommand', () => {
   void it('enables type checking for branch deployments', async () => {
     await invoker.deploy(uniqueBackendIdentifier, {
       deploymentType: BackendDeploymentType.BRANCH,
-      typeCheckingEnabled: true,
+      validateAppSources: true,
     });
     assert.strictEqual(execaMock.mock.callCount(), 2);
     assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 2);
@@ -161,7 +161,7 @@ void describe('invokeCDKCommand', () => {
   void it('enables type checking for sandbox deployments', async () => {
     await invoker.deploy(undefined, {
       deploymentType: BackendDeploymentType.SANDBOX,
-      typeCheckingEnabled: true,
+      validateAppSources: true,
     });
     assert.strictEqual(execaMock.mock.callCount(), 2);
     assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 2);

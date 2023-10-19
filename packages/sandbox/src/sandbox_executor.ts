@@ -56,7 +56,7 @@ export class AmplifySandboxExecutor {
       // it's important to get information about file changes and reset tracker here
       // so that it doesn't get lost in debounced calls.
       const fileChangesSummary = fileChangesTracker.getSummaryAndReset();
-      const typeCheckingEnabled =
+      const validateAppSources =
         // zero files changed indicate that deployment was kicked off due to different
         // reason than file change, e.g. at initial start
         fileChangesSummary.filesChanged === 0 ||
@@ -64,7 +64,7 @@ export class AmplifySandboxExecutor {
       await this.backendDeployer.deploy(uniqueBackendIdentifier, {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated,
-        typeCheckingEnabled,
+        validateAppSources,
       });
     });
   };

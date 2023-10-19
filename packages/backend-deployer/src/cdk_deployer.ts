@@ -34,7 +34,7 @@ export class CDKDeployer implements BackendDeployer {
     uniqueBackendIdentifier?: UniqueBackendIdentifier,
     deployProps?: DeployProps
   ) => {
-    if (deployProps?.typeCheckingEnabled) {
+    if (deployProps?.validateAppSources) {
       await this.invokeTsc();
     }
 

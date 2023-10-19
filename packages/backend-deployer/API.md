@@ -22,7 +22,7 @@ export class BackendDeployerFactory {
 export type DeployProps = {
     deploymentType?: BackendDeploymentType;
     secretLastUpdated?: Date;
-    typeCheckingEnabled?: boolean;
+    validateAppSources?: boolean;
 };
 
 // @public (undocumented)

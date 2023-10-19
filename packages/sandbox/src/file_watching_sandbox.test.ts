@@ -226,7 +226,7 @@ void describe('Sandbox using local project name resolver', () => {
       {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
-        typeCheckingEnabled: true,
+        validateAppSources: true,
       },
     ]);
   });
@@ -258,7 +258,7 @@ void describe('Sandbox using local project name resolver', () => {
       {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
-        typeCheckingEnabled: true,
+        validateAppSources: true,
       },
     ]);
     assert.strictEqual(cfnClientSendMock.mock.callCount(), 0);
@@ -280,7 +280,7 @@ void describe('Sandbox using local project name resolver', () => {
       {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
-        typeCheckingEnabled: true,
+        validateAppSources: true,
       },
     ]);
   });
@@ -301,7 +301,7 @@ void describe('Sandbox using local project name resolver', () => {
       {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
-        typeCheckingEnabled: false,
+        validateAppSources: false,
       },
     ]);
   });
@@ -328,7 +328,7 @@ void describe('Sandbox using local project name resolver', () => {
       {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
-        typeCheckingEnabled: true,
+        validateAppSources: true,
       },
     ]);
   });
@@ -351,7 +351,7 @@ void describe('Sandbox using local project name resolver', () => {
       {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
-        typeCheckingEnabled: true,
+        validateAppSources: true,
       },
     ]);
     // BackendDeployer should be called with the right params
@@ -360,7 +360,7 @@ void describe('Sandbox using local project name resolver', () => {
       {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
-        typeCheckingEnabled: true,
+        validateAppSources: true,
       },
     ]);
   });
@@ -398,7 +398,7 @@ void describe('Sandbox using local project name resolver', () => {
       {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
-        typeCheckingEnabled: true,
+        validateAppSources: true,
       },
     ]);
     // BackendDeployer should be called with the right params
@@ -407,7 +407,7 @@ void describe('Sandbox using local project name resolver', () => {
       {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
-        typeCheckingEnabled: true,
+        validateAppSources: true,
       },
     ]);
   });
@@ -592,7 +592,7 @@ void describe('Sandbox using local project name resolver', () => {
       {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
-        typeCheckingEnabled: true,
+        validateAppSources: true,
       },
     ]);
   });
