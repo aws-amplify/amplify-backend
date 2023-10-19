@@ -22,6 +22,7 @@ import { SecretListItem, getSecretClient } from '@aws-amplify/backend-secret';
 import { ClientConfigFormat } from '@aws-amplify/client-config';
 import { Sandbox } from './sandbox.js';
 import { AmplifyPrompter } from '@aws-amplify/cli-core';
+import { FileChangesTracker } from './file_changes_tracker.js';
 
 // Watcher mocks
 const unsubscribeMockFn = mock.fn();
@@ -233,6 +234,7 @@ void describe('Sandbox using local project name resolver', () => {
       {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+        typeCheckingEnabled: true,
       },
     ]);
     assert.strictEqual(cfnClientSendMock.mock.callCount(), 0);
@@ -489,6 +491,7 @@ void describe('Sandbox using local project name resolver', () => {
       {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+        typeCheckingEnabled: true,
       },
     ]);
   });

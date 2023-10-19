@@ -18,6 +18,7 @@ import {
 } from '@aws-sdk/client-cloudformation';
 import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
 import { AmplifyPrompter } from '@aws-amplify/cli-core';
+import { FileChangesTracker } from './file_changes_tracker.js';
 
 export const CDK_BOOTSTRAP_STACK_NAME = 'CDKToolkit';
 export const CDK_BOOTSTRAP_VERSION_KEY = 'BootstrapVersion';
@@ -38,6 +39,8 @@ export const getBootstrapUrl = (region: string) =>
 export class FileWatchingSandbox extends EventEmitter implements Sandbox {
   private watcherSubscription: Awaited<ReturnType<typeof subscribe>>;
   private outputFilesExcludedFromWatch = ['cdk.out'];
+  private readonly fileChangesTracker = new FileChangesTracker();
+
   /**
    * Creates a watcher process for this instance
    */
@@ -73,6 +76,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
    * @inheritdoc
    */
   start = async (options: SandboxOptions) => {
+    this.fileChangesTracker.reset();
     const bootstrapped = await this.isBootstrapped();
     if (!bootstrapped) {
       console.log(
@@ -126,9 +130,10 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     this.watcherSubscription = await parcelWatcher.subscribe(
       options.dir ?? process.cwd(),
       async (_, events) => {
-        // it doesn't matter which file changed, we are just using events to log the filenames. We deploy full state.
+        // Log and track file changes.
         await Promise.all(
           events.map(({ type: eventName, path }) => {
+            this.fileChangesTracker.trackFileChange(path);
             console.log(
               `[Sandbox] Triggered due to a file ${eventName} event: ${path}`
             );
@@ -180,7 +185,10 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
   private deploy = async (options: SandboxOptions) => {
     const sandboxAppId = options.name ?? this.sandboxId;
     try {
-      await this.executor.deploy(new SandboxBackendIdentifier(sandboxAppId));
+      await this.executor.deploy(
+        new SandboxBackendIdentifier(sandboxAppId),
+        this.fileChangesTracker
+      );
       console.debug('[Sandbox] Running successfulDeployment event handlers');
       this.emit('successfulDeployment');
     } catch (error) {

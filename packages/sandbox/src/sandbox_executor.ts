@@ -3,6 +3,7 @@ import { BackendDeployer } from '@aws-amplify/backend-deployer';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import { BackendDeploymentType } from '@aws-amplify/platform-core';
 import { SecretClient } from '@aws-amplify/backend-secret';
+import { FileChangesTracker } from './file_changes_tracker.js';
 
 /**
  * Execute CDK commands.
@@ -43,19 +44,26 @@ export class AmplifySandboxExecutor {
    * Deploys sandbox
    */
   deploy = async (
-    uniqueBackendIdentifier: UniqueBackendIdentifier
+    uniqueBackendIdentifier: UniqueBackendIdentifier,
+    fileChangesTracker: FileChangesTracker
   ): Promise<void> => {
     console.debug('[Sandbox] Executing command `deploy`');
     const secretLastUpdated = await this.getSecretLastUpdated(
       uniqueBackendIdentifier
     );
-    await this.invoke(
-      async () =>
-        await this.backendDeployer.deploy(uniqueBackendIdentifier, {
-          deploymentType: BackendDeploymentType.SANDBOX,
-          secretLastUpdated,
-        })
-    );
+    await this.invoke(async () => {
+      // it's important to get information about file changes and reset tracker here
+      // so that it doesn't get lost in debounced calls.
+      const fileChangesSummary = fileChangesTracker.getSummaryAndReset();
+      const typeCheckingEnabled =
+        fileChangesSummary.filesChanged === 0 ||
+        fileChangesSummary.typeScriptFilesChanged > 0;
+      await this.backendDeployer.deploy(uniqueBackendIdentifier, {
+        deploymentType: BackendDeploymentType.SANDBOX,
+        secretLastUpdated,
+        typeCheckingEnabled,
+      });
+    });
   };
 
   /**
