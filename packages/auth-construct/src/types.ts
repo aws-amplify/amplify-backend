@@ -210,6 +210,9 @@ export type ExternalProviderOptions = {
  * External auth provider.
  */
 export type ExternalProviderProps = {
+  /**
+   * Configure OAuth, OIDC, and SAML login providers
+   */
   externalProviders?: ExternalProviderOptions;
 };
 
