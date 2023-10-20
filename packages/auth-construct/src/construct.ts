@@ -20,8 +20,7 @@ import {
   UserPoolProps,
 } from 'aws-cdk-lib/aws-cognito';
 import { FederatedPrincipal, Role } from 'aws-cdk-lib/aws-iam';
-import { AuthOutput } from '@aws-amplify/backend-output-schemas/auth';
-import { authOutputKey } from '@aws-amplify/backend-output-schemas';
+import { AuthOutput, authOutputKey } from '@aws-amplify/backend-output-schemas';
 import { AuthProps, EmailLoginSettings, TriggerEvent } from './types.js';
 import { DEFAULTS } from './defaults.js';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
