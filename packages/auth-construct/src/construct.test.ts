@@ -449,7 +449,7 @@ void describe('Auth construct', () => {
         authConstruct.node.findChild('IdentityPool') as CfnIdentityPool
       ).ref;
       const expectedWebClientId = (
-        authConstruct.node.findChild('UserPoolWebClient') as UserPoolClient
+        authConstruct.node.findChild('UserPoolAppClient') as UserPoolClient
       ).userPoolClientId;
       const expectedRegion = Stack.of(authConstruct).region;
 

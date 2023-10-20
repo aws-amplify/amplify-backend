@@ -97,7 +97,7 @@ export class AmplifyAuth
     // UserPool Client
     const userPoolClient = new cognito.UserPoolClient(
       this,
-      'UserPoolWebClient',
+      'UserPoolAppClient',
       {
         userPool: this.userPool,
         authFlows: DEFAULTS.AUTH_FLOWS,
