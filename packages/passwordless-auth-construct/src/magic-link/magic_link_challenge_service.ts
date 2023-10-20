@@ -8,15 +8,15 @@ import { ChallengeService } from '../models/challenge_service.js';
  * Magic Link Challenge Service Implementation.
  */
 export class MagicLinkChallengeService implements ChallengeService {
-  public createChallenge = (
+  public createChallenge = async (
     event: CreateAuthChallengeTriggerEvent
-  ): CreateAuthChallengeTriggerEvent => {
+  ): Promise<CreateAuthChallengeTriggerEvent> => {
     // TODO: implement Magic Link
     return event;
   };
-  public verifyChallenge = (
+  public verifyChallenge = async (
     event: VerifyAuthChallengeResponseTriggerEvent
-  ): VerifyAuthChallengeResponseTriggerEvent => {
+  ): Promise<VerifyAuthChallengeResponseTriggerEvent> => {
     // TODO: implement Magic Link
     return event;
   };
