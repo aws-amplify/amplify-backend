@@ -77,170 +77,147 @@ export type GenerateOptions =
   | GenerateModelsOptions
   | GenerateIntrospectionOptions;
 
-type GenerateGraphqlCodegenApiCodeProps = GenerateGraphqlCodegenOptions &
-  BackendIdentifier & {
-    credentialProvider: AwsCredentialIdentityProvider;
-    overrideGraphqlDocumentGenerator?: GraphqlDocumentGenerator;
-    overrideGraphqlTypesGenerator?: GraphqlTypesGenerator;
-  };
-
-type GenerateModelgenApiCodeProp = GenerateModelsOptions &
-  BackendIdentifier & {
-    credentialProvider: AwsCredentialIdentityProvider;
-    overrideGraphqlModelsGenerator?: GraphqlModelsGenerator;
-  };
-
-type GenerateIntrospectionApiCodeProps = GenerateIntrospectionOptions &
-  BackendIdentifier & {
-    credentialProvider: AwsCredentialIdentityProvider;
-    overrideGraphqlModelsGenerator?: GraphqlModelsGenerator;
-  };
-
 export type GenerateApiCodeProps = GenerateOptions &
   BackendIdentifier & {
-    credentialProvider?: AwsCredentialIdentityProvider;
-    overrideGraphqlDocumentGenerator?: GraphqlDocumentGenerator;
-    overrideGraphqlTypesGenerator?: GraphqlTypesGenerator;
-    overrideGraphqlModelsGenerator?: GraphqlModelsGenerator;
+    credentialProvider: AwsCredentialIdentityProvider;
   };
 
 /**
- * Mock generateApiCode command.
+ * Generate api code using Api Code Generator with default generators.
  */
 export const generateApiCode = async (
   props: GenerateApiCodeProps
 ): Promise<GenerationResult> => {
-  const propsWithDefaultCredentialProvider = {
-    credentialProvider: fromNodeProviderChain(),
-    ...props,
-  };
-
-  switch (propsWithDefaultCredentialProvider.format) {
-    case 'graphql-codegen': {
-      return generateGraphqlCodegenApiCode(propsWithDefaultCredentialProvider);
-    }
-    case 'modelgen': {
-      return generateModelgenApiCode(propsWithDefaultCredentialProvider);
-    }
-    case 'introspection': {
-      return generateIntrospectionApiCode(propsWithDefaultCredentialProvider);
-    }
-    default:
-      throw new Error(
-        `${(props as GenerateApiCodeProps).format} is not a supported format.`
-      );
-  }
+  const { credentialProvider = fromNodeProviderChain() } = props;
+  const backendIdentifier = props as BackendIdentifier;
+  return new ApiCodeGenerator(
+    createGraphqlDocumentGenerator({ backendIdentifier, credentialProvider }),
+    createGraphqlTypesGenerator({ backendIdentifier, credentialProvider }),
+    createGraphqlModelsGenerator({ backendIdentifier, credentialProvider })
+  ).generate(props);
 };
 
 /**
- * Execute document, and optionally type generation with relevant targets, wiring through types into statements if possible.
+ * Generator for Api Code resources.
  */
-const generateGraphqlCodegenApiCode = async (
-  props: GenerateGraphqlCodegenApiCodeProps
-): Promise<GenerationResult> => {
-  const documentGenerator =
-    props.overrideGraphqlDocumentGenerator ??
-    createGraphqlDocumentGenerator({
-      backendIdentifier: props as BackendIdentifier,
-      credentialProvider: props.credentialProvider,
-    });
-  const generateModelsParams: DocumentGenerationParameters = {
-    language: props.statementTarget,
-    maxDepth: props.maxDepth,
-    typenameIntrospection: props.typeNameIntrospection,
-  };
-  if (
-    props.statementTarget === GenerateApiCodeStatementTarget.TYPESCRIPT &&
-    props.typeTarget === GenerateApiCodeTypeTarget.TYPESCRIPT
-  ) {
-    // Cast to unknown to string since the original input to this is typed as a required string, but expects an optional
-    // value, and we want to rely on that behavior.
-    const typeOutputFilepath = getOutputFileName(
-      null as unknown as string,
-      props.typeTarget
-    );
-    const fileName = path.parse(typeOutputFilepath).name;
-    // This is an node import path, so we don't want to use path.join, since that'll produce invalid paths on windows platforms
-    // Hard-coding since this method explicitly writes to the same directory if types are enabled.
-    generateModelsParams.relativeTypesPath = `./${fileName}`;
+export class ApiCodeGenerator {
+  /**
+   * Construct generator, passing in nested generators.
+   * @param graphqlDocumentGenerator the graphql document generator
+   * @param graphqlTypesGenerator the type generator
+   * @param graphqlModelsGenerator the model object generator
+   */
+  constructor(
+    private readonly graphqlDocumentGenerator: GraphqlDocumentGenerator,
+    private readonly graphqlTypesGenerator: GraphqlTypesGenerator,
+    private readonly graphqlModelsGenerator: GraphqlModelsGenerator
+  ) {}
+
+  /**
+   * Execute the generation.
+   * @param props the required generate options.
+   * @returns a promise with the generation results
+   */
+  generate(props: GenerateOptions): Promise<GenerationResult> {
+    switch (props.format) {
+      case 'graphql-codegen': {
+        return this.generateGraphqlCodegenApiCode(props);
+      }
+      case 'modelgen': {
+        return this.generateModelgenApiCode(props);
+      }
+      case 'introspection': {
+        return this.generateIntrospectionApiCode();
+      }
+      default:
+        throw new Error(
+          `${(props as GenerateApiCodeProps).format} is not a supported format.`
+        );
+    }
   }
-  const documents = await documentGenerator.generateModels(
-    generateModelsParams
-  );
 
-  if (props.typeTarget) {
-    const typesGenerator =
-      props.overrideGraphqlTypesGenerator ??
-      createGraphqlTypesGenerator({
-        backendIdentifier: props as BackendIdentifier,
-        credentialProvider: props.credentialProvider,
-      });
-    const types = await typesGenerator.generateTypes({
-      target: props.typeTarget,
-      multipleSwiftFiles: props.multipleSwiftFiles,
-    });
-
-    return {
-      writeToDirectory: async (directoryPath: string) => {
-        await Promise.all([
-          documents.writeToDirectory(directoryPath),
-          types.writeToDirectory(directoryPath),
-        ]);
-      },
-      getResults: async () => ({
-        ...(await documents.getResults()),
-        ...(await types.getResults()),
-      }),
+  /**
+   * Execute document, and optionally type generation with relevant targets, wiring through types into statements if possible.
+   */
+  private async generateGraphqlCodegenApiCode(
+    props: GenerateGraphqlCodegenOptions
+  ): Promise<GenerationResult> {
+    const generateModelsParams: DocumentGenerationParameters = {
+      language: props.statementTarget,
+      maxDepth: props.maxDepth,
+      typenameIntrospection: props.typeNameIntrospection,
     };
+    if (
+      props.statementTarget === GenerateApiCodeStatementTarget.TYPESCRIPT &&
+      props.typeTarget === GenerateApiCodeTypeTarget.TYPESCRIPT
+    ) {
+      // Cast to unknown to string since the original input to this is typed as a required string, but expects an optional
+      // value, and we want to rely on that behavior.
+      const typeOutputFilepath = getOutputFileName(
+        null as unknown as string,
+        props.typeTarget
+      );
+      const fileName = path.parse(typeOutputFilepath).name;
+      // This is an node import path, so we don't want to use path.join, since that'll produce invalid paths on windows platforms
+      // Hard-coding since this method explicitly writes to the same directory if types are enabled.
+      generateModelsParams.relativeTypesPath = `./${fileName}`;
+    }
+    const documents = await this.graphqlDocumentGenerator.generateModels(
+      generateModelsParams
+    );
+
+    if (props.typeTarget) {
+      const types = await this.graphqlTypesGenerator.generateTypes({
+        target: props.typeTarget,
+        multipleSwiftFiles: props.multipleSwiftFiles,
+      });
+
+      return {
+        writeToDirectory: async (directoryPath: string) => {
+          await Promise.all([
+            documents.writeToDirectory(directoryPath),
+            types.writeToDirectory(directoryPath),
+          ]);
+        },
+        getResults: async () => ({
+          ...(await documents.getResults()),
+          ...(await types.getResults()),
+        }),
+      };
+    }
+
+    return documents;
   }
 
-  return documents;
-};
-
-/**
- * Execute model generation with model target.
- */
-const generateModelgenApiCode = (
-  props: GenerateModelgenApiCodeProp
-): Promise<GenerationResult> => {
-  const generator =
-    props.overrideGraphqlModelsGenerator ??
-    createGraphqlModelsGenerator({
-      backendIdentifier: props as BackendIdentifier,
-      credentialProvider: props.credentialProvider,
+  /**
+   * Execute model generation with model target.
+   */
+  private async generateModelgenApiCode(
+    props: GenerateModelsOptions
+  ): Promise<GenerationResult> {
+    return this.graphqlModelsGenerator.generateModels({
+      target: props.modelTarget,
+      generateIndexRules: props.generateIndexRules,
+      emitAuthProvider: props.emitAuthProvider,
+      useExperimentalPipelinedTransformer:
+        props.useExperimentalPipelinedTransformer,
+      transformerVersion: props.transformerVersion,
+      respectPrimaryKeyAttributesOnConnectionField:
+        props.respectPrimaryKeyAttributesOnConnectionField,
+      generateModelsForLazyLoadAndCustomSelectionSet:
+        props.generateModelsForLazyLoadAndCustomSelectionSet,
+      addTimestampFields: props.addTimestampFields,
+      handleListNullabilityTransparently:
+        props.handleListNullabilityTransparently,
     });
+  }
 
-  return generator.generateModels({
-    target: props.modelTarget,
-    generateIndexRules: props.generateIndexRules,
-    emitAuthProvider: props.emitAuthProvider,
-    useExperimentalPipelinedTransformer:
-      props.useExperimentalPipelinedTransformer,
-    transformerVersion: props.transformerVersion,
-    respectPrimaryKeyAttributesOnConnectionField:
-      props.respectPrimaryKeyAttributesOnConnectionField,
-    generateModelsForLazyLoadAndCustomSelectionSet:
-      props.generateModelsForLazyLoadAndCustomSelectionSet,
-    addTimestampFields: props.addTimestampFields,
-    handleListNullabilityTransparently:
-      props.handleListNullabilityTransparently,
-  });
-};
-
-/**
- * Execute model generation with introspection target.
- */
-const generateIntrospectionApiCode = (
-  props: GenerateIntrospectionApiCodeProps
-): Promise<GenerationResult> => {
-  const generator =
-    props.overrideGraphqlModelsGenerator ??
-    createGraphqlModelsGenerator({
-      backendIdentifier: props as BackendIdentifier,
-      credentialProvider: props.credentialProvider,
+  /**
+   * Execute model generation with introspection target.
+   */
+  private async generateIntrospectionApiCode(): Promise<GenerationResult> {
+    return this.graphqlModelsGenerator.generateModels({
+      target: 'introspection',
     });
-
-  return generator.generateModels({
-    target: 'introspection',
-  });
-};
+  }
+}

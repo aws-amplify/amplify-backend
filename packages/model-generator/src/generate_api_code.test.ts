@@ -1,12 +1,12 @@
 import assert from 'assert';
 import { describe, it, mock } from 'node:test';
 import {
+  ApiCodeGenerator,
   GenerateApiCodeFormat,
   GenerateApiCodeModelTarget,
   GenerateApiCodeProps,
   GenerateApiCodeStatementTarget,
   GenerateApiCodeTypeTarget,
-  generateApiCode,
 } from './generate_api_code.js';
 import {
   GraphqlDocumentGenerator,
@@ -15,6 +15,20 @@ import {
 } from './model_generator.js';
 
 void describe('generateAPICode', () => {
+  const noopGenerate = mock.fn(async () => ({
+    writeToDirectory: mock.fn(),
+    getResults: async () => ({}),
+  }));
+  const noopGraphqlDocumentGenerator = {
+    generateModels: noopGenerate,
+  } as unknown as GraphqlDocumentGenerator;
+  const noopGraphqlTypesGenerator = {
+    generateModels: noopGenerate,
+  } as unknown as GraphqlTypesGenerator;
+  const noopGraphqlModelsGenerator = {
+    generateModels: noopGenerate,
+  } as unknown as GraphqlModelsGenerator;
+
   void describe('graphql-codegen', () => {
     void it('is invoked with expected input, and returns generated output', async () => {
       const expectedDocsResults = { docGen: 'results1' };
@@ -29,17 +43,19 @@ void describe('generateAPICode', () => {
         writeToDirectory: mock.fn(),
         getResults: async () => unexpectedTypeResults,
       }));
-      const overrideGraphqlDocumentGenerator = {
+
+      const graphqlDocumentGenerator = {
         generateModels,
       } as unknown as GraphqlDocumentGenerator;
-      const overrideGraphqlTypesGenerator = {
+      const graphqlTypesGenerator = {
         generateTypes,
       } as unknown as GraphqlTypesGenerator;
 
-      const results = await generateApiCode({
-        stackName: 'testStack',
-        overrideGraphqlDocumentGenerator,
-        overrideGraphqlTypesGenerator,
+      const results = await new ApiCodeGenerator(
+        graphqlDocumentGenerator,
+        graphqlTypesGenerator,
+        noopGraphqlModelsGenerator
+      ).generate({
         format: GenerateApiCodeFormat.GRAPHQL_CODEGEN,
         statementTarget: GenerateApiCodeStatementTarget.TYPESCRIPT,
       });
@@ -73,17 +89,18 @@ void describe('generateAPICode', () => {
         writeToDirectory: mock.fn(),
         getResults: async () => unexpectedTypeResults,
       }));
-      const overrideGraphqlDocumentGenerator = {
+      const graphqlDocumentGenerator = {
         generateModels,
       } as unknown as GraphqlDocumentGenerator;
-      const overrideGraphqlTypesGenerator = {
+      const graphqlTypesGenerator = {
         generateTypes,
       } as unknown as GraphqlTypesGenerator;
 
-      const results = await generateApiCode({
-        stackName: 'testStack',
-        overrideGraphqlDocumentGenerator,
-        overrideGraphqlTypesGenerator,
+      const results = await new ApiCodeGenerator(
+        graphqlDocumentGenerator,
+        graphqlTypesGenerator,
+        noopGraphqlModelsGenerator
+      ).generate({
         format: GenerateApiCodeFormat.GRAPHQL_CODEGEN,
         statementTarget: GenerateApiCodeStatementTarget.TYPESCRIPT,
         maxDepth: 3,
@@ -119,17 +136,18 @@ void describe('generateAPICode', () => {
         writeToDirectory: mock.fn(),
         getResults: async () => expectedTypesResults,
       }));
-      const overrideGraphqlDocumentGenerator = {
+      const graphqlDocumentGenerator = {
         generateModels,
       } as unknown as GraphqlDocumentGenerator;
-      const overrideGraphqlTypesGenerator = {
+      const graphqlTypesGenerator = {
         generateTypes,
       } as unknown as GraphqlTypesGenerator;
 
-      const results = await generateApiCode({
-        stackName: 'testStack',
-        overrideGraphqlDocumentGenerator,
-        overrideGraphqlTypesGenerator,
+      const results = await new ApiCodeGenerator(
+        graphqlDocumentGenerator,
+        graphqlTypesGenerator,
+        noopGraphqlModelsGenerator
+      ).generate({
         format: GenerateApiCodeFormat.GRAPHQL_CODEGEN,
         statementTarget: GenerateApiCodeStatementTarget.TYPESCRIPT,
         typeTarget: GenerateApiCodeTypeTarget.TYPESCRIPT,
@@ -172,16 +190,19 @@ void describe('generateAPICode', () => {
         writeToDirectory: mock.fn(),
         getResults: async () => expectedResults,
       }));
-      const overrideGraphqlModelsGenerator = {
+      const graphqlModelsGenerator = {
         generateModels,
       } as unknown as GraphqlModelsGenerator;
 
-      const results = await generateApiCode({
-        stackName: 'testStack',
-        overrideGraphqlModelsGenerator,
+      const results = await new ApiCodeGenerator(
+        noopGraphqlDocumentGenerator,
+        noopGraphqlTypesGenerator,
+        graphqlModelsGenerator
+      ).generate({
         format: GenerateApiCodeFormat.MODELGEN,
         modelTarget: GenerateApiCodeModelTarget.TYPESCRIPT,
       });
+
       assert.equal(generateModels.mock.callCount(), 1);
       assert.deepEqual(
         (generateModels.mock.calls[0].arguments as unknown[])[0],
@@ -208,13 +229,15 @@ void describe('generateAPICode', () => {
         writeToDirectory: mock.fn(),
         getResults: async () => ({}),
       }));
-      const overrideGraphqlModelsGenerator = {
+      const graphqlModelsGenerator = {
         generateModels,
       } as unknown as GraphqlModelsGenerator;
 
-      await generateApiCode({
-        stackName: 'testStack',
-        overrideGraphqlModelsGenerator,
+      await new ApiCodeGenerator(
+        noopGraphqlDocumentGenerator,
+        noopGraphqlTypesGenerator,
+        graphqlModelsGenerator
+      ).generate({
         format: GenerateApiCodeFormat.MODELGEN,
         modelTarget: GenerateApiCodeModelTarget.DART,
         respectPrimaryKeyAttributesOnConnectionField: true,
@@ -248,15 +271,18 @@ void describe('generateAPICode', () => {
         writeToDirectory: mock.fn(),
         getResults: async () => expectedResults,
       }));
-      const overrideGraphqlModelsGenerator = {
+      const graphqlModelsGenerator = {
         generateModels,
       } as unknown as GraphqlModelsGenerator;
 
-      const results = await generateApiCode({
-        stackName: 'testStack',
-        overrideGraphqlModelsGenerator,
+      const results = await new ApiCodeGenerator(
+        noopGraphqlDocumentGenerator,
+        noopGraphqlTypesGenerator,
+        graphqlModelsGenerator
+      ).generate({
         format: GenerateApiCodeFormat.INTROSPECTION,
       });
+
       assert.equal(generateModels.mock.callCount(), 1);
       assert.deepEqual(
         (generateModels.mock.calls[0].arguments as unknown[])[0],
@@ -271,10 +297,14 @@ void describe('generateAPICode', () => {
   });
 
   void it('throws error on unknown format', async () => {
+    const generator = new ApiCodeGenerator(
+      noopGraphqlDocumentGenerator,
+      noopGraphqlTypesGenerator,
+      noopGraphqlModelsGenerator
+    );
     const props = {
       format: 'unsupported',
-      stackName: 'stack_name',
     } as unknown as GenerateApiCodeProps;
-    await assert.rejects(() => generateApiCode(props));
+    await assert.rejects(async () => await generator.generate(props));
   });
 });
