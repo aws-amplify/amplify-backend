@@ -98,7 +98,7 @@ export class AmplifyAuth
     const externalProviders = props.loginWith.externalProviders;
     const userPoolClient = new cognito.UserPoolClient(
       this,
-      'UserPoolWebClient',
+      'UserPoolAppClient',
       {
         userPool: this.userPool,
         authFlows: DEFAULTS.AUTH_FLOWS,
