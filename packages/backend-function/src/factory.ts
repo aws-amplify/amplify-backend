@@ -1,5 +1,4 @@
 import {
-  AmplifyFunction,
   ConstructContainerEntryGenerator,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
