@@ -9,6 +9,7 @@ export type DocumentGenerationParameters = {
   language: TargetLanguage;
   maxDepth?: number;
   typenameIntrospection?: boolean;
+  relativeTypesPath?: string;
 };
 export type GenerationResult = {
   writeToDirectory: (directoryPath: string) => Promise<void>;
