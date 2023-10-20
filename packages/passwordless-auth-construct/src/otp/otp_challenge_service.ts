@@ -8,15 +8,15 @@ import { ChallengeService } from '../models/challenge_service.js';
  * OTP Challenge Service Implementation.
  */
 export class OtpChallengeService implements ChallengeService {
-  public createChallenge = (
+  public createChallenge = async (
     event: CreateAuthChallengeTriggerEvent
-  ): CreateAuthChallengeTriggerEvent => {
+  ): Promise<CreateAuthChallengeTriggerEvent> => {
     // TODO: Implement OTP
     return event;
   };
-  public verifyChallenge = (
+  public verifyChallenge = async (
     event: VerifyAuthChallengeResponseTriggerEvent
-  ): VerifyAuthChallengeResponseTriggerEvent => {
+  ): Promise<VerifyAuthChallengeResponseTriggerEvent> => {
     // TODO: Implement OTP
     return event;
   };

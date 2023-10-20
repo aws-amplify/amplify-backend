@@ -7,6 +7,7 @@ import { logger } from '../logger.js';
 import { PasswordlessAuthChallengeParams } from '../types.js';
 import { MagicLinkChallengeService } from '../magic-link/magic_link_challenge_service.js';
 import { OtpChallengeService } from '../otp/otp_challenge_service.js';
+import { ChallengeService } from '../models/challenge_service.js';
 
 /**
  * A class containing the Cognito Auth triggers used for Custom Auth.
@@ -18,8 +19,8 @@ export class CustomAuthService {
    * @param magicLinkChallengeService - The service to use for Magic Link.
    */
   constructor(
-    private otpChallengeService = new OtpChallengeService(),
-    private magicLinkChallengeService = new MagicLinkChallengeService()
+    private otpChallengeService: ChallengeService = new OtpChallengeService(),
+    private magicLinkChallengeService: ChallengeService = new MagicLinkChallengeService()
   ) {}
 
   /**

@@ -14,7 +14,7 @@ export abstract class ChallengeService {
    */
   abstract createChallenge(
     event: CreateAuthChallengeTriggerEvent
-  ): CreateAuthChallengeTriggerEvent;
+  ): Promise<CreateAuthChallengeTriggerEvent>;
 
   /**
    * Verifies the challenge based on the event.
@@ -22,5 +22,5 @@ export abstract class ChallengeService {
    */
   abstract verifyChallenge(
     event: VerifyAuthChallengeResponseTriggerEvent
-  ): VerifyAuthChallengeResponseTriggerEvent;
+  ): Promise<VerifyAuthChallengeResponseTriggerEvent>;
 }
