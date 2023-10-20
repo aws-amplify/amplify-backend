@@ -13,6 +13,7 @@ import {
   CfnIdentityPool,
   CfnUserPool,
   CfnUserPoolClient,
+  OAuthScope,
   UserPool,
   UserPoolClient,
   UserPoolIdentityProviderSamlMetadataType,
@@ -136,6 +137,20 @@ void describe('Auth construct', () => {
       UsernameAttributes: ['phone_number'],
       AutoVerifiedAttributes: ['phone_number'],
     });
+  });
+
+  void it('throws error login settings do not include at least phone or email', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    assert.throws(
+      () =>
+        new AmplifyAuth(stack, 'test', {
+          loginWith: {},
+        }),
+      {
+        message: 'At least one of email or phone must be enabled.',
+      }
+    );
   });
 
   void it('creates email login mechanism with specific settings', () => {
@@ -449,7 +464,7 @@ void describe('Auth construct', () => {
         authConstruct.node.findChild('IdentityPool') as CfnIdentityPool
       ).ref;
       const expectedWebClientId = (
-        authConstruct.node.findChild('UserPoolWebClient') as UserPoolClient
+        authConstruct.node.findChild('UserPoolAppClient') as UserPoolClient
       ).userPoolClientId;
       const expectedRegion = Stack.of(authConstruct).region;
 
@@ -1165,6 +1180,45 @@ void describe('Auth construct', () => {
         'AWS::Cognito::UserPoolIdentityProvider',
         ExpectedSAMLIDPProperties
       );
+    });
+
+    void it('supports additional oauth settings', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+          externalProviders: {
+            google: {
+              clientId: googleClientId,
+              clientSecret: SecretValue.unsafePlainText(googleClientSecret),
+            },
+            scopes: [OAuthScope.EMAIL, OAuthScope.PROFILE],
+            callbackUrls: ['http://localhost'],
+            logoutUrls: ['http://localhost'],
+          },
+        },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        UsernameAttributes: ['email'],
+        AutoVerifiedAttributes: ['email'],
+      });
+      template.hasResourceProperties(
+        'AWS::Cognito::UserPoolIdentityProvider',
+        ExpectedGoogleIDPProperties
+      );
+      template.hasResourceProperties('AWS::Cognito::IdentityPool', {
+        SupportedLoginProviders: {
+          'accounts.google.com': googleClientId,
+        },
+      });
+      template.hasResourceProperties('AWS::Cognito::UserPoolClient', {
+        PreventUserExistenceErrors: 'ENABLED',
+        CallbackURLs: ['http://localhost'],
+        LogoutURLs: ['http://localhost'],
+        AllowedOAuthScopes: ['email', 'profile', 'openid'],
+      });
     });
 
     void it('supports all idps and login methods', () => {

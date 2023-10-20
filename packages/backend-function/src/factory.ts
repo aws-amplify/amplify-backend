@@ -1,5 +1,4 @@
 import {
-  AmplifyFunction,
   ConstructContainerEntryGenerator,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
@@ -52,7 +51,7 @@ type AmplifyFunctionFactoryProps = AmplifyFunctionFactoryBaseProps &
  * Create Lambda functions in the context of an Amplify backend definition
  */
 export class AmplifyFunctionFactory
-  implements ConstructFactory<AmplifyFunction>
+  implements ConstructFactory<AmplifyLambdaFunction>
 {
   // execaCommand is assigned to a static prop so that it can be mocked in tests
   private static commandExecutor = execaCommand;
@@ -113,7 +112,7 @@ export class AmplifyFunctionFactory
    */
   getInstance = ({
     constructContainer,
-  }: ConstructFactoryGetInstanceProps): AmplifyFunction => {
+  }: ConstructFactoryGetInstanceProps): AmplifyLambdaFunction => {
     if (!this.generator) {
       this.generator = new AmplifyFunctionGenerator(this.props);
     }
