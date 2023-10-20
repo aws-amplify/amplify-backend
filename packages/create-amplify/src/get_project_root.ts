@@ -1,4 +1,4 @@
-import { AmplifyPrompter } from './amplify_prompts.js';
+import { AmplifyPrompter } from '@aws-amplify/cli-core';
 
 /**
  * Returns the project root directory.
