@@ -342,9 +342,9 @@ type AuthResponse = {
 
 class MockChallengeService implements ChallengeService {
   constructor(private answer: string = '123456') {}
-  createChallenge = (
+  createChallenge = async (
     event: CreateAuthChallengeTriggerEvent
-  ): CreateAuthChallengeTriggerEvent => {
+  ): Promise<CreateAuthChallengeTriggerEvent> => {
     return {
       ...event,
       response: {
@@ -360,9 +360,9 @@ class MockChallengeService implements ChallengeService {
     };
   };
 
-  verifyChallenge = (
+  verifyChallenge = async (
     event: VerifyAuthChallengeResponseTriggerEvent
-  ): VerifyAuthChallengeResponseTriggerEvent => {
+  ): Promise<VerifyAuthChallengeResponseTriggerEvent> => {
     return {
       ...event,
       response: {
