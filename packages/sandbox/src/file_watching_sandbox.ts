@@ -19,9 +19,9 @@ import {
 import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
 import { AmplifyPrompter } from '@aws-amplify/cli-core';
 import {
-  FileChangesTracker,
-  createFileChangesTracker,
-} from './file_changes_tracker.js';
+  FilesChangesTracker,
+  createFilesChangesTracker,
+} from './files_changes_tracker.js';
 
 export const CDK_BOOTSTRAP_STACK_NAME = 'CDKToolkit';
 export const CDK_BOOTSTRAP_VERSION_KEY = 'BootstrapVersion';
@@ -42,7 +42,7 @@ export const getBootstrapUrl = (region: string) =>
 export class FileWatchingSandbox extends EventEmitter implements Sandbox {
   private watcherSubscription: Awaited<ReturnType<typeof subscribe>>;
   private outputFilesExcludedFromWatch = ['cdk.out'];
-  private fileChangesTracker: FileChangesTracker;
+  private filesChangesTracker: FilesChangesTracker;
 
   /**
    * Creates a watcher process for this instance
@@ -79,7 +79,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
    * @inheritdoc
    */
   start = async (options: SandboxOptions) => {
-    this.fileChangesTracker = await createFileChangesTracker(
+    this.filesChangesTracker = await createFilesChangesTracker(
       options.dir ?? process.cwd()
     );
     const bootstrapped = await this.isBootstrapped();
@@ -138,7 +138,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
         // Log and track file changes.
         await Promise.all(
           events.map(({ type: eventName, path }) => {
-            this.fileChangesTracker.trackFileChange(path);
+            this.filesChangesTracker.trackFileChange(path);
             console.log(
               `[Sandbox] Triggered due to a file ${eventName} event: ${path}`
             );
@@ -188,13 +188,15 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
   };
 
   private shouldValidateAppSources = (): boolean => {
-    const counters = this.fileChangesTracker.getSnapshot();
+    const snapshot = this.filesChangesTracker.getAndResetSnapshot();
     // if zero files changed this indicates initial deployment
     const shouldValidateOnColdStart =
-      counters.initialTypeScriptFilesCount > 0 && counters.filesChanged === 0;
-    const didAnyTypeScriptFileChange =
-      counters.typeScriptFilesChangedSinceLastSnapshot > 0;
-    return shouldValidateOnColdStart || didAnyTypeScriptFileChange;
+      snapshot.hadTypeScriptFilesAtStart &&
+      !snapshot.didAnyFileChangeSinceStart;
+    return (
+      shouldValidateOnColdStart ||
+      snapshot.didAnyTypeScriptFileChangeSinceLastSnapshot
+    );
   };
 
   private deploy = async (options: SandboxOptions) => {

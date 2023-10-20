@@ -412,7 +412,7 @@ void describe('Sandbox using local project name resolver', () => {
     ]);
 
     // Get over debounce so that the next deployment is considered valid
-    await new Promise((resolve) => setTimeout(resolve, 110));
+    await new Promise((resolve) => setTimeout(resolve, 150));
 
     // second file change while the previous one is 'ongoing'
     const secondFileChange = fileChangeEventCallback(null, [
