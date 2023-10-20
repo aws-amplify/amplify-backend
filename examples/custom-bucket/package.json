@@ -1,0 +1,20 @@
+{
+  "name": "samsara-demo-custom-stuff",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "aws-amplify": "^5.3.12-api-v6-models.179af4d.0"
+  },
+  "devDependencies": {
+    "@aws-amplify/amplify-api-next-alpha": "^0.6.0",
+    "@aws-amplify/backend": "0.2.0-alpha.9",
+    "@aws-amplify/backend-auth": "0.2.0-alpha.12",
+    "@aws-amplify/backend-cli": "0.2.0-alpha.9",
+    "@aws-amplify/backend-graphql": "0.2.0-alpha.10",
+    "aws-cdk-lib": "^2.102.0",
+    "constructs": "^10.3.0",
+    "typescript": "^5.2.2"
+  }
+}
