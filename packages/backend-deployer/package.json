@@ -24,6 +24,7 @@
     "tsx": "^3.12.6"
   },
   "peerDependencies": {
-    "aws-cdk": "^2.0.0"
+    "aws-cdk": "^2.0.0",
+    "typescript": "^5.0.0"
   }
 }
