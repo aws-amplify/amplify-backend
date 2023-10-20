@@ -1,5 +1,13 @@
 # @aws-amplify/sandbox
 
+## 0.2.0-alpha.15
+
+### Patch Changes
+
+- fcc7d389: Enable type checking during deployment
+- Updated dependencies [fcc7d389]
+  - @aws-amplify/backend-deployer@0.2.0-alpha.9
+
 ## 0.2.0-alpha.14
 
 ### Patch Changes
