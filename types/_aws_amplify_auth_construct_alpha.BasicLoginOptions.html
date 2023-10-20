@@ -16,7 +16,7 @@
 <li><a href="../modules/_aws_amplify_auth_construct_alpha.html">@aws-amplify/auth-construct-alpha</a></li>
 <li><a href="_aws_amplify_auth_construct_alpha.BasicLoginOptions.html">BasicLoginOptions</a></li></ul>
 <h1>Type alias BasicLoginOptions</h1></div>
-<div class="tsd-signature"><span class="tsd-kind-type-alias">Basic<wbr/>Login<wbr/>Options</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">email</span><span class="tsd-signature-symbol">: </span><a href="_aws_amplify_auth_construct_alpha.EmailLogin.html" class="tsd-signature-type tsd-kind-type-alias">EmailLogin</a><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">phone</span><span class="tsd-signature-symbol">?: </span><a href="_aws_amplify_auth_construct_alpha.PhoneNumberLogin.html" class="tsd-signature-type tsd-kind-type-alias">PhoneNumberLogin</a><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">email</span><span class="tsd-signature-symbol">?: </span><a href="_aws_amplify_auth_construct_alpha.EmailLogin.html" class="tsd-signature-type tsd-kind-type-alias">EmailLogin</a><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">phone</span><span class="tsd-signature-symbol">: </span><a href="_aws_amplify_auth_construct_alpha.PhoneNumberLogin.html" class="tsd-signature-type tsd-kind-type-alias">PhoneNumberLogin</a><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></div>
+<div class="tsd-signature"><span class="tsd-kind-type-alias">Basic<wbr/>Login<wbr/>Options</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">email</span><span class="tsd-signature-symbol">?: </span><a href="_aws_amplify_auth_construct_alpha.EmailLogin.html" class="tsd-signature-type tsd-kind-type-alias">EmailLogin</a><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">phone</span><span class="tsd-signature-symbol">?: </span><a href="_aws_amplify_auth_construct_alpha.PhoneNumberLogin.html" class="tsd-signature-type tsd-kind-type-alias">PhoneNumberLogin</a><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></div>
 <div class="tsd-comment tsd-typography"><p>Basic login options require at least email or phone number.
 Additional settings may be configured, such as email messages or sms verification messages.</p>
 </div>
@@ -24,19 +24,22 @@ Additional settings may be configured, such as email messages or sms verificatio
 <h4>Type declaration</h4>
 <ul class="tsd-parameters">
 <li class="tsd-parameter">
-<h5><span class="tsd-kind-property">email</span><span class="tsd-signature-symbol">: </span><a href="_aws_amplify_auth_construct_alpha.EmailLogin.html" class="tsd-signature-type tsd-kind-type-alias">EmailLogin</a></h5></li>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-property">email</span><span class="tsd-signature-symbol">?: </span><a href="_aws_amplify_auth_construct_alpha.EmailLogin.html" class="tsd-signature-type tsd-kind-type-alias">EmailLogin</a></h5>
+<div class="tsd-comment tsd-typography"><p>Email login options.</p>
+<p>If true, email login will be enabled with default settings.
+If settings are provided, email login will be enabled with the specified settings.</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li>
 <li class="tsd-parameter">
-<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-property">phone</span><span class="tsd-signature-symbol">?: </span><a href="_aws_amplify_auth_construct_alpha.PhoneNumberLogin.html" class="tsd-signature-type tsd-kind-type-alias">PhoneNumberLogin</a></h5></li></ul></div>
-<div class="tsd-type-declaration">
-<h4>Type declaration</h4>
-<ul class="tsd-parameters">
-<li class="tsd-parameter">
-<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-property">email</span><span class="tsd-signature-symbol">?: </span><a href="_aws_amplify_auth_construct_alpha.EmailLogin.html" class="tsd-signature-type tsd-kind-type-alias">EmailLogin</a></h5></li>
-<li class="tsd-parameter">
-<h5><span class="tsd-kind-property">phone</span><span class="tsd-signature-symbol">: </span><a href="_aws_amplify_auth_construct_alpha.PhoneNumberLogin.html" class="tsd-signature-type tsd-kind-type-alias">PhoneNumberLogin</a></h5></li></ul></div>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-property">phone</span><span class="tsd-signature-symbol">?: </span><a href="_aws_amplify_auth_construct_alpha.PhoneNumberLogin.html" class="tsd-signature-type tsd-kind-type-alias">PhoneNumberLogin</a></h5>
+<div class="tsd-comment tsd-typography"><p>Phone number login options.</p>
+<p>If true, phone number login will be enabled with default settings.
+If settings are provided, phone number login will be enabled with the specified settings.</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li></ul></div>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/d65cf3b/packages/auth-construct/src/types.ts#L59">packages/auth-construct/src/types.ts:59</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/5f02b83/packages/auth-construct/src/types.ts#L59">packages/auth-construct/src/types.ts:59</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
