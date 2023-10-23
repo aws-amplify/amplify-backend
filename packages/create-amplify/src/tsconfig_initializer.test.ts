@@ -17,7 +17,7 @@ void describe('TsConfigInitializer', () => {
     assert.equal(execaMock.mock.callCount(), 0);
   });
 
-  void it('runs `npx tsc --init` if no tsconfig.json exists', async () => {
+  void it('runs `npx tsc --init --resolveJsonModule true` if no tsconfig.json exists', async () => {
     const logMock = mock.fn();
     const existsSyncMock = mock.fn(
       () => true,
@@ -41,7 +41,7 @@ void describe('TsConfigInitializer', () => {
     ]);
   });
 
-  void it('throws if npx tsc --init rejects', async () => {
+  void it('throws if npx tsc --init --resolveJsonModule true rejects', async () => {
     const logMock = mock.fn();
     const existsSyncMock = mock.fn(() => false);
     const execaMock = mock.fn(() => {
@@ -55,11 +55,11 @@ void describe('TsConfigInitializer', () => {
     );
     await assert.rejects(() => tsConfigInitializer.ensureInitialized(), {
       message:
-        '`npx tsc --init` did not exit successfully. Initialize a valid TypeScript configuration before continuing.',
+        '`npx tsc --init --resolveJsonModule true` did not exit successfully. Initialize a valid TypeScript configuration before continuing.',
     });
   });
 
-  void it('throws if tsconfig.json does not exist after npx tsc --init', async () => {
+  void it('throws if tsconfig.json does not exist after npx tsc --init --resolveJsonModule true', async () => {
     const logMock = mock.fn();
     const existsSyncMock = mock.fn(() => false);
     const execaMock = mock.fn();
@@ -71,7 +71,7 @@ void describe('TsConfigInitializer', () => {
     );
     await assert.rejects(() => tsConfigInitializer.ensureInitialized(), {
       message:
-        'tsconfig.json does not exist after running `npx tsc --init`. Initialize a valid TypeScript configuration before continuing.',
+        'tsconfig.json does not exist after running `npx tsc --init --resolveJsonModule true`. Initialize a valid TypeScript configuration before continuing.',
     });
   });
 });
