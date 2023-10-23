@@ -34,8 +34,8 @@ export class AmplifyProjectCreator {
     private readonly initialProjectFileGenerator: InitialProjectFileGenerator,
     private readonly npmInitializedEnsurer: NpmProjectInitializer,
     private readonly tsConfigInitializer: TsConfigInitializer,
-    private readonly logger: typeof console = console,
-    private readonly projectRoot: string
+    private readonly projectRoot: string,
+    private readonly logger: typeof console = console
   ) {}
 
   /**
