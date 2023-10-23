@@ -1,5 +1,12 @@
 # create-amplify
 
+## 0.2.0-alpha.12
+
+### Patch Changes
+
+- e45f8525: make directory if the user provided directory doesn't exist
+- b10f2a61: Rename UserPoolWebClient to UserPoolAppClient
+
 ## 0.2.0-alpha.11
 
 ### Patch Changes

@@ -1,5 +1,37 @@
 # @aws-amplify/backend-cli
 
+## 0.2.0-alpha.10
+
+### Patch Changes
+
+- fcc7d389: Enable type checking during deployment
+- Updated dependencies [fcc7d389]
+  - @aws-amplify/sandbox@0.2.0-alpha.15
+
+## 0.2.0-alpha.9
+
+### Patch Changes
+
+- 915c0325: Offer to reset the sandbox if a non deployable change is detected
+- Updated dependencies [e9c0c9b5]
+- Updated dependencies [915c0325]
+  - @aws-amplify/deployed-backend-client@0.2.0-alpha.8
+  - @aws-amplify/cli-core@0.1.0-alpha.2
+  - @aws-amplify/platform-core@0.1.1-alpha.3
+  - @aws-amplify/sandbox@0.2.0-alpha.14
+
+## 0.2.0-alpha.8
+
+### Minor Changes
+
+- 1a19914d: By default, artifacts render in ./{ui-components,graphql}
+
+### Patch Changes
+
+- Updated dependencies [2bbf3f20]
+  - @aws-amplify/client-config@0.2.0-alpha.11
+  - @aws-amplify/sandbox@0.2.0-alpha.13
+
 ## 0.2.0-alpha.7
 
 ### Patch Changes

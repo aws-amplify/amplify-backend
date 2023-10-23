@@ -162,10 +162,14 @@ const translateGoogleProps = (
     return undefined;
   }
 
-  const { clientId, clientSecretValue, ...noSecretProps } = googleProviderProps;
+  const {
+    clientId,
+    clientSecret: clientSecretValue,
+    ...noSecretProps
+  } = googleProviderProps;
   return {
     ...noSecretProps,
     clientId: backendSecretResolver.resolveSecret(clientId).unsafeUnwrap(),
-    clientSecretValue: backendSecretResolver.resolveSecret(clientSecretValue),
+    clientSecret: backendSecretResolver.resolveSecret(clientSecretValue),
   };
 };

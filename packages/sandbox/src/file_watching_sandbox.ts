@@ -17,6 +17,11 @@ import {
   DescribeStacksCommand,
 } from '@aws-sdk/client-cloudformation';
 import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
+import { AmplifyPrompter } from '@aws-amplify/cli-core';
+import {
+  FilesChangesTracker,
+  createFilesChangesTracker,
+} from './files_changes_tracker.js';
 
 export const CDK_BOOTSTRAP_STACK_NAME = 'CDKToolkit';
 export const CDK_BOOTSTRAP_VERSION_KEY = 'BootstrapVersion';
@@ -37,6 +42,8 @@ export const getBootstrapUrl = (region: string) =>
 export class FileWatchingSandbox extends EventEmitter implements Sandbox {
   private watcherSubscription: Awaited<ReturnType<typeof subscribe>>;
   private outputFilesExcludedFromWatch = ['cdk.out'];
+  private filesChangesTracker: FilesChangesTracker;
+
   /**
    * Creates a watcher process for this instance
    */
@@ -72,6 +79,9 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
    * @inheritdoc
    */
   start = async (options: SandboxOptions) => {
+    this.filesChangesTracker = await createFilesChangesTracker(
+      options.dir ?? process.cwd()
+    );
     const bootstrapped = await this.isBootstrapped();
     if (!bootstrapped) {
       console.log(
@@ -83,7 +93,6 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       return;
     }
 
-    const sandboxId = options.name ?? this.sandboxId;
     const ignoredPaths = this.getGitIgnoredPaths();
     this.outputFilesExcludedFromWatch =
       this.outputFilesExcludedFromWatch.concat(...ignoredPaths);
@@ -106,7 +115,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
 
     const deployAndWatch = debounce(async () => {
       latch = 'deploying';
-      await this.executor.deploy(new SandboxBackendIdentifier(sandboxId));
+      await this.deploy(options);
 
       // If latch is still 'deploying' after the 'await', that's fine,
       // but if it's 'queued', that means we need to deploy again
@@ -117,20 +126,19 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
         console.log(
           "[Sandbox] Detected file changes while previous deployment was in progress. Invoking 'sandbox' again"
         );
-        await this.executor.deploy(new SandboxBackendIdentifier(sandboxId));
+        await this.deploy(options);
       }
       latch = 'open';
       this.emitWatching();
-      console.debug('[Sandbox] Running successfulDeployment event handlers');
-      this.emit('successfulDeployment');
     });
 
     this.watcherSubscription = await parcelWatcher.subscribe(
       options.dir ?? process.cwd(),
       async (_, events) => {
-        // it doesn't matter which file changed, we are just using events to log the filenames. We deploy full state.
+        // Log and track file changes.
         await Promise.all(
           events.map(({ type: eventName, path }) => {
+            this.filesChangesTracker.trackFileChange(path);
             console.log(
               `[Sandbox] Triggered due to a file ${eventName} event: ${path}`
             );
@@ -177,6 +185,51 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     );
     await this.executor.destroy(new SandboxBackendIdentifier(sandboxAppId));
     console.log('[Sandbox] Finished deleting.');
+  };
+
+  private shouldValidateAppSources = (): boolean => {
+    const snapshot = this.filesChangesTracker.getAndResetSnapshot();
+    // if zero files changed this indicates initial deployment
+    const shouldValidateOnColdStart =
+      snapshot.hadTypeScriptFilesAtStart &&
+      !snapshot.didAnyFileChangeSinceStart;
+    return (
+      shouldValidateOnColdStart ||
+      snapshot.didAnyTypeScriptFileChangeSinceLastSnapshot
+    );
+  };
+
+  private deploy = async (options: SandboxOptions) => {
+    const sandboxAppId = options.name ?? this.sandboxId;
+    try {
+      await this.executor.deploy(
+        new SandboxBackendIdentifier(sandboxAppId),
+        // It's important to pass this as callback so that debounce does
+        // not reset tracker prematurely
+        this.shouldValidateAppSources
+      );
+      console.debug('[Sandbox] Running successfulDeployment event handlers');
+      this.emit('successfulDeployment');
+    } catch (error) {
+      // Print the meaningful message
+      console.log(this.getErrorMessage(error));
+
+      // If the error is because of a non-allowed destructive change such as
+      // https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-userpool.html#cfn-cognito-userpool-aliasattributes
+      // offer to recreate the sandbox or revert the change
+      if (
+        error instanceof Error &&
+        error.message.includes('UpdateNotSupported')
+      ) {
+        await this.handleUnsupportedDestructiveChanges(options);
+      }
+      // else do not propagate and let the sandbox continue to run
+    }
+  };
+
+  private reset = async (options: SandboxOptions) => {
+    await this.delete({ name: options.name });
+    await this.start(options);
   };
 
   /**
@@ -235,5 +288,44 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       // If we are unable to get the stack info due to other reasons(AccessDenied), we fail fast.
       throw e;
     }
+  };
+
+  /**
+   * Generates a printable error message from the thrown error
+   */
+  private getErrorMessage = (error: unknown) => {
+    let message;
+    if (error instanceof Error) {
+      message = error.message;
+
+      // Add the downstream exception
+      if (error.cause && error.cause instanceof Error) {
+        message = `${message}\nCaused By: ${
+          error.cause instanceof Error
+            ? error.cause.message
+            : String(error.cause)
+        }`;
+      }
+    } else message = String(error);
+    return message;
+  };
+
+  private handleUnsupportedDestructiveChanges = async (
+    options: SandboxOptions
+  ) => {
+    console.error(
+      '[Sandbox] We cannot deploy your new changes. You can either revert them or recreate your sandbox with the new changes (deleting all user data)'
+    );
+    // offer to recreate the sandbox with new properties
+    const answer = await AmplifyPrompter.yesOrNo({
+      message:
+        'Would you like to recreate your sandbox (deleting all user data)?',
+      defaultValue: false,
+    });
+    if (answer) {
+      await this.stop();
+      await this.reset(options);
+    }
+    // else let the sandbox continue so customers can revert their changes
   };
 }

@@ -43,24 +43,24 @@ export class AmplifySandboxExecutor {
    * Deploys sandbox
    */
   deploy = async (
-    uniqueBackendIdentifier: UniqueBackendIdentifier
+    uniqueBackendIdentifier: UniqueBackendIdentifier,
+    validateAppSourcesProvider: () => boolean
   ): Promise<void> => {
     console.debug('[Sandbox] Executing command `deploy`');
     const secretLastUpdated = await this.getSecretLastUpdated(
       uniqueBackendIdentifier
     );
-    try {
-      await this.invoke(
-        async () =>
-          await this.backendDeployer.deploy(uniqueBackendIdentifier, {
-            deploymentType: BackendDeploymentType.SANDBOX,
-            secretLastUpdated,
-          })
-      );
-    } catch (error) {
-      console.log(this.getErrorMessage(error));
-      // do not propagate and let the sandbox continue to run
-    }
+
+    await this.invoke(async () => {
+      // it's important to get information here so that information
+      // doesn't get lost while debouncing
+      const validateAppSources = validateAppSourcesProvider();
+      await this.backendDeployer.deploy(uniqueBackendIdentifier, {
+        deploymentType: BackendDeploymentType.SANDBOX,
+        secretLastUpdated,
+        validateAppSources,
+      });
+    });
   };
 
   /**
@@ -86,24 +86,4 @@ export class AmplifySandboxExecutor {
     async (callback: () => Promise<void>): Promise<void> => await callback(),
     100
   );
-
-  /**
-   * Generates a printable error message from the thrown error
-   */
-  private getErrorMessage(error: unknown) {
-    let message;
-    if (error instanceof Error) {
-      message = error.message;
-
-      // Add the downstream exception
-      if (error.cause && error.cause instanceof Error) {
-        message = `${message}\nCaused By: ${
-          error.cause instanceof Error
-            ? error.cause.message
-            : String(error.cause)
-        }`;
-      }
-    } else message = String(error);
-    return message;
-  }
 }

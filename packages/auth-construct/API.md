@@ -5,13 +5,14 @@
 ```ts
 
 import { AmplifyFunction } from '@aws-amplify/plugin-types';
-import { AuthOutput } from '@aws-amplify/backend-output-schemas/auth';
+import { AuthOutput } from '@aws-amplify/backend-output-schemas';
 import { AuthResources } from '@aws-amplify/plugin-types';
 import { aws_cognito } from 'aws-cdk-lib';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
+import { SecretValue } from 'aws-cdk-lib';
 import { StandardAttributes } from 'aws-cdk-lib/aws-cognito';
 
 // @public
@@ -38,17 +39,17 @@ export type AuthProps = {
 
 // @public
 export type BasicLoginOptions = {
-    email: EmailLogin;
-    phoneNumber?: PhoneNumberLogin;
-} | {
     email?: EmailLogin;
-    phoneNumber: PhoneNumberLogin;
+    phone?: PhoneNumberLogin;
 };
 
 // @public
-export type EmailLogin = true | {
-    verificationEmailStyle?: aws_cognito.VerificationEmailStyle;
-    verificationEmailBody?: string;
+export type EmailLogin = true | EmailLoginSettings;
+
+// @public
+export type EmailLoginSettings = {
+    verificationEmailStyle?: 'CODE' | 'LINK';
+    verificationEmailBody?: (codeOrLink: string) => string;
     verificationEmailSubject?: string;
 };
 
@@ -74,7 +75,9 @@ export type ExternalProviderProps = {
 export type FacebookProviderProps = Omit<aws_cognito.UserPoolIdentityProviderFacebookProps, 'userPool'>;
 
 // @public
-export type GoogleProviderProps = Omit<aws_cognito.UserPoolIdentityProviderGoogleProps, 'userPool'>;
+export type GoogleProviderProps = Omit<aws_cognito.UserPoolIdentityProviderGoogleProps, 'userPool' | 'clientSecretValue' | 'clientSecret'> & {
+    clientSecret?: SecretValue;
+};
 
 // @public
 export type MFA = {
@@ -85,7 +88,7 @@ export type MFA = {
 export type MFASettings = {
     totp: boolean;
     sms: boolean | {
-        smsMessage: string;
+        smsMessage: (code: string) => string;
     };
 };
 
@@ -94,7 +97,7 @@ export type OidcProviderProps = Omit<aws_cognito.UserPoolIdentityProviderOidcPro
 
 // @public
 export type PhoneNumberLogin = true | {
-    verificationMessage?: string;
+    verificationMessage?: (code: string) => string;
 };
 
 // @public

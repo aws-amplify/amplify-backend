@@ -4,16 +4,16 @@
 
 ```ts
 
-import { AmplifyFunction } from '@aws-amplify/plugin-types';
 import { AmplifyFunctionProps } from '@aws-amplify/function-construct-alpha';
+import { AmplifyLambdaFunction } from '@aws-amplify/function-construct-alpha';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
 
 // @public
-export class AmplifyFunctionFactory implements ConstructFactory<AmplifyFunction> {
+export class AmplifyFunctionFactory implements ConstructFactory<AmplifyLambdaFunction> {
     static build: (props: AmplifyFunctionFactoryBuildProps) => Promise<AmplifyFunctionFactory>;
     static fromDir: (props: AmplifyFunctionFactoryFromDirProps) => AmplifyFunctionFactory;
-    getInstance: ({ constructContainer, }: ConstructFactoryGetInstanceProps) => AmplifyFunction;
+    getInstance: ({ constructContainer, }: ConstructFactoryGetInstanceProps) => AmplifyLambdaFunction;
 }
 
 // @public (undocumented)

@@ -22,8 +22,7 @@ export class ClientConfigWriter {
           clientConfig,
           null,
           2
-        )}${os.EOL}export default amplifyConfig;${os.EOL}
-        `;
+        )}${os.EOL}export default amplifyConfig;${os.EOL}`;
         await fsp.writeFile(targetPath, fileContent);
         break;
       }
