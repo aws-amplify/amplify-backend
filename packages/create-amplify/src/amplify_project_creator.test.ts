@@ -18,7 +18,8 @@ void describe('AmplifyProjectCreator', () => {
       initialProjectFileGeneratorMock as never,
       npmInitializedEnsurerMock as never,
       tsConfigInitializerMock as never,
-      { log: logMock } as never
+      { log: logMock } as never,
+      process.cwd()
     );
     await amplifyProjectCreator.create();
     assert.equal(
@@ -37,7 +38,33 @@ void describe('AmplifyProjectCreator', () => {
     assert.equal(tsConfigInitializerMock.ensureInitialized.mock.callCount(), 1);
     assert.equal(
       logMock.mock.calls[4].arguments[0],
-      'All done! Run `amplify help` for a list of available commands. Get started by running `amplify sandbox` in /project/root.'
+      'All done! \nRun `amplify help` for a list of available commands. \nGet started by running `amplify sandbox`.'
+    );
+  });
+
+  void it('should instruct users to use the custom project root', async () => {
+    const logMock = mock.fn();
+    const packageManagerControllerMock = { installDependencies: mock.fn() };
+    const projectRootValidatorMock = { validate: mock.fn() };
+    const initialProjectFileGeneratorMock = {
+      generateInitialProjectFiles: mock.fn(),
+    };
+    const npmInitializedEnsurerMock = { ensureInitialized: mock.fn() };
+    const tsConfigInitializerMock = { ensureInitialized: mock.fn() };
+    const amplifyProjectCreator = new AmplifyProjectCreator(
+      packageManagerControllerMock as never,
+      projectRootValidatorMock as never,
+      initialProjectFileGeneratorMock as never,
+      npmInitializedEnsurerMock as never,
+      tsConfigInitializerMock as never,
+      { log: logMock } as never,
+      '/project/root'
+    );
+    await amplifyProjectCreator.create();
+
+    assert.equal(
+      logMock.mock.calls[4].arguments[0],
+      'All done! \nRun `amplify help` for a list of available commands. \nGet started by running `cd /project/root; amplify sandbox`.'
     );
   });
 });
