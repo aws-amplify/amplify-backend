@@ -108,6 +108,10 @@ export class CustomAuthService {
     const { action, signInMethod } = event.request.clientMetadata ?? {};
     logger.info(`Requested signInMethod: ${signInMethod} and action ${action}`);
 
+    if (action != 'REQUEST') {
+      throw new Error(`Unsupported action for Create Auth: ${action}`);
+    }
+
     if (signInMethod === 'MAGIC_LINK') {
       return this.magicLinkChallengeService.createChallenge(event);
     }
@@ -140,6 +144,10 @@ export class CustomAuthService {
         ...event,
         response: { ...event.response, answerCorrect: false },
       };
+    }
+
+    if (action !== 'CONFIRM') {
+      throw new Error(`Unsupported action: ${action}`);
     }
 
     if (signInMethod === 'MAGIC_LINK') {

@@ -1,18 +1,17 @@
 import { describe, it, mock } from 'node:test';
-import { strictEqual } from 'node:assert';
-import { ChallengeResult, PasswordlessClientMetaData } from '../types.js';
+import { rejects, strictEqual } from 'node:assert';
+import { ChallengeResult } from '../types.js';
 import {
   buildCreateAuthChallengeEvent,
   buildDefineAuthChallengeEvent,
   buildVerifyAuthChallengeResponseEvent,
 } from './event.mocks.js';
-import { randomUUID } from 'node:crypto';
 import {
   CreateAuthChallengeTriggerEvent,
-  VerifyAuthChallengeResponseTriggerEvent,
+  DefineAuthChallengeTriggerEvent,
 } from 'aws-lambda';
 import { CustomAuthService } from './custom_auth_service.js';
-import { ChallengeService } from '../models/challenge_service.js';
+import { MockChallengeService } from '../models/challenge_service.mock.js';
 
 // The custom auth session from the initial Cognito InitiateAuth call.
 const initialSession: ChallengeResult = {
@@ -21,356 +20,269 @@ const initialSession: ChallengeResult = {
   challengeMetadata: 'PROVIDE_AUTH_PARAMETERS',
 };
 
+/**
+ * Returns true if the response is a Custom Challenge Response.
+ *
+ * This results in Cognito invoking Create Auth Challenge.
+ */
+const isCustomChallengeResponse = (
+  response: DefineAuthChallengeTriggerEvent['response']
+) => {
+  return (
+    response.challengeName === 'CUSTOM_CHALLENGE' &&
+    response.failAuthentication === false
+  );
+};
+
+/**
+ * Returns true if the response a failed authentication response.
+ *
+ * This results in Cognito returning an error to the client.
+ */
+const isFailedAuthentication = (
+  response: DefineAuthChallengeTriggerEvent['response']
+) => {
+  return response.failAuthentication === true && response.issueTokens === false;
+};
+
+/**
+ * Returns true if the response a failed authentication response.
+ *
+ * This results in Cognito issuing tokens to the client.
+ */
+const isSuccessfulAuthentication = (
+  response: DefineAuthChallengeTriggerEvent['response']
+) => {
+  return response.failAuthentication === false && response.issueTokens === true;
+};
+
 const customAuthService = new CustomAuthService();
 
 void describe('defineAuthChallenge', () => {
-  void it('returns CUSTOM_CHALLENGE if no session currently exists', async () => {
-    const event = buildDefineAuthChallengeEvent();
-    const updatedEvent = await customAuthService.defineAuthChallenge(event);
-    strictEqual(updatedEvent.response.challengeName, 'CUSTOM_CHALLENGE');
-    strictEqual(updatedEvent.response.failAuthentication, false);
-  });
-
-  void it('returns CUSTOM_CHALLENGE when action == REQUEST', async () => {
-    const event = buildDefineAuthChallengeEvent([initialSession], {
-      signInMethod: 'OTP',
-      action: 'REQUEST',
-    });
-    const updatedEvent = await customAuthService.defineAuthChallenge(event);
-    strictEqual(updatedEvent.response.challengeName, 'CUSTOM_CHALLENGE');
-    strictEqual(updatedEvent.response.failAuthentication, false);
-  });
-
-  void it('returns tokens when the previous challengeResult == true', async () => {
-    const verifyAuthChallengeSuccess: ChallengeResult = {
-      challengeName: 'CUSTOM_CHALLENGE',
-      challengeResult: true,
-    };
-    const event = buildDefineAuthChallengeEvent([verifyAuthChallengeSuccess], {
-      signInMethod: 'OTP',
-      action: 'CONFIRM',
-    });
-    const updatedEvent = await customAuthService.defineAuthChallenge(event);
-    strictEqual(updatedEvent.response.failAuthentication, false);
-    strictEqual(updatedEvent.response.issueTokens, true);
-  });
-
-  void it('fails authentication when the previous challengeResult == false', async () => {
-    const verifyAuthChallengeFailure: ChallengeResult = {
-      challengeName: 'CUSTOM_CHALLENGE',
-      challengeResult: false,
-    };
-    const event = buildDefineAuthChallengeEvent([verifyAuthChallengeFailure], {
-      signInMethod: 'OTP',
-      action: 'CONFIRM',
-    });
-    const updatedEvent = await customAuthService.defineAuthChallenge(event);
-    strictEqual(updatedEvent.response.failAuthentication, true);
-    strictEqual(updatedEvent.response.issueTokens, false);
-  });
-
-  void it('fails authentication if any previous sessions were not a custom challenge', async () => {
-    const srpSession: ChallengeResult = {
-      challengeName: 'DEVICE_SRP_AUTH',
-      challengeResult: false,
-    };
-    const event = buildDefineAuthChallengeEvent([srpSession]);
-    const updatedEvent = await customAuthService.defineAuthChallenge(event);
-    strictEqual(updatedEvent.response.failAuthentication, true);
-  });
-
-  void it('fails authentication for unknown sign in methods', async () => {
-    const event = buildDefineAuthChallengeEvent([initialSession], {
-      signInMethod: 'FOO',
-      action: 'REQUEST',
-    });
-    const updatedEvent = await customAuthService.defineAuthChallenge(event);
-    strictEqual(updatedEvent.response.failAuthentication, true);
-  });
-
-  void it('fails authentication for unknown actions', async () => {
-    const event = buildDefineAuthChallengeEvent([initialSession], {
-      signInMethod: 'OTP',
-      action: 'FOO',
-    });
-    const updatedEvent = await customAuthService.defineAuthChallenge(event);
-    strictEqual(updatedEvent.response.failAuthentication, true);
-  });
-});
-
-void describe('createAuthChallenge', () => {
-  void it('returns PROVIDE_AUTH_PARAMETERS if auth params have not yet been provided', async () => {
-    const event = buildCreateAuthChallengeEvent();
-    const updatedEvent = await customAuthService.createAuthChallenge(event);
-    strictEqual(
-      updatedEvent.response.challengeMetadata,
-      'PROVIDE_AUTH_PARAMETERS'
-    );
-  });
-
-  void it('returns an error for an unrecognized sign in method', async () => {
-    const event = buildCreateAuthChallengeEvent([initialSession], {
-      signInMethod: 'FOO',
-      action: 'REQUEST',
-    });
-    const error = await customAuthService
-      .createAuthChallenge(event)
-      .catch((error) => error);
-    strictEqual(error.message, 'Unrecognized signInMethod: FOO');
-  });
-});
-
-void describe('verifyAuthChallenge', () => {
-  void it('returns answerCorrect=false when the action is REQUEST', async () => {
-    const event = buildVerifyAuthChallengeResponseEvent({
-      signInMethod: 'OTP',
-      action: 'REQUEST',
-    });
-    const updatedEvent = await customAuthService.verifyAuthChallenge(event);
-    strictEqual(updatedEvent.response.answerCorrect, false);
-  });
-  void it('calls the appropriate service when the action is CONFIRM', async () => {
-    const otpChallengeService = new MockChallengeService();
-    const mockVerify = mock.method(otpChallengeService, 'verifyChallenge');
-
-    const customAuthService = new CustomAuthService(otpChallengeService);
-    const event = buildVerifyAuthChallengeResponseEvent({
-      signInMethod: 'OTP',
-      action: 'CONFIRM',
-    });
-
-    strictEqual(mockVerify.mock.callCount(), 0);
-    await customAuthService.verifyAuthChallenge(event);
-    strictEqual(mockVerify.mock.callCount(), 1);
-  });
-  void it('returns an error for an unrecognized sign in method', async () => {
-    const event = buildVerifyAuthChallengeResponseEvent({
-      signInMethod: 'FOO',
-      action: 'CONFIRM',
-    });
-    const error = await customAuthService
-      .verifyAuthChallenge(event)
-      .catch((error) => error);
-    strictEqual(error.message, 'Unrecognized signInMethod: FOO');
-  });
-});
-
-// The following tests verify the integration of the three separate handlers by
-// stubbing cognito's custom auth logic. See MockCognitoCustomAuth for details.
-void describe('CustomAuthService', () => {
-  void describe('initiateAuth', () => {
-    void it('returns nextStep = PROVIDE_AUTH_PARAMETERS for a valid request', async () => {
-      const cognito = new MockCognitoCustomAuth();
-      const { challengeParameters } = await cognito.initiateAuth();
-      strictEqual(challengeParameters?.nextStep, 'PROVIDE_AUTH_PARAMETERS');
+  void describe('no previous session exists', () => {
+    const previousSessions: ChallengeResult[] = [];
+    const event = buildDefineAuthChallengeEvent(previousSessions);
+    void it('starts a new custom challenge', async () => {
+      const { response } = await customAuthService.defineAuthChallenge(event);
+      strictEqual(isCustomChallengeResponse(response), true);
     });
   });
 
-  void describe('respondToAuthChallenge', () => {
-    void it('returns the appropriate challenge params when action = REQUEST', async () => {
-      const otpChallengeService = new MockChallengeService('correct-answer');
-      const cognito = new MockCognitoCustomAuth(
-        new CustomAuthService(otpChallengeService)
-      );
-      const { sessionId } = await cognito.initiateAuth();
-
-      const { challengeParameters } = await cognito.respondToAuthChallenge(
-        sessionId,
-        '__dummy__',
-        {
-          signInMethod: 'OTP',
-          action: 'REQUEST',
-          deliveryMedium: 'EMAIL',
-        }
-      );
-
-      strictEqual(challengeParameters?.deliveryMedium, 'EMAIL');
-    });
-    void it('returns an authenticated session for a correct answer.', async () => {
-      const otpChallengeService = new MockChallengeService('correct-answer');
-      const cognito = new MockCognitoCustomAuth(
-        new CustomAuthService(otpChallengeService)
-      );
-      const { sessionId } = await cognito.initiateAuth();
-
-      await cognito.respondToAuthChallenge(sessionId, '__dummy__', {
+  void describe('action = REQUEST', () => {
+    const previousSessions: ChallengeResult[] = [initialSession];
+    void it('starts a new custom challenge', async () => {
+      const event = buildDefineAuthChallengeEvent(previousSessions, {
         signInMethod: 'OTP',
         action: 'REQUEST',
-        deliveryMedium: 'EMAIL',
       });
-
-      const { isAuthenticated } = await cognito.respondToAuthChallenge(
-        sessionId,
-        'correct-answer',
-        {
-          signInMethod: 'OTP',
-          action: 'CONFIRM',
-        }
-      );
-
-      strictEqual(isAuthenticated, true);
+      const { response } = await customAuthService.defineAuthChallenge(event);
+      strictEqual(isCustomChallengeResponse(response), true);
     });
+  });
 
-    void it('does not return an authenticated session for an incorrect answer.', async () => {
-      const otpChallengeService = new MockChallengeService('correct-answer');
-      const cognito = new MockCognitoCustomAuth(
-        new CustomAuthService(otpChallengeService)
-      );
-      const { sessionId } = await cognito.initiateAuth();
+  void describe('action = CONFIRM', () => {
+    const metadata = {
+      signInMethod: 'OTP',
+      action: 'CONFIRM',
+    };
+    void it('returns tokens when the previous challengeResult == true', async () => {
+      const successResult: ChallengeResult = {
+        challengeName: 'CUSTOM_CHALLENGE',
+        challengeResult: true,
+      };
+      const event = buildDefineAuthChallengeEvent([successResult], metadata);
+      const { response } = await customAuthService.defineAuthChallenge(event);
+      strictEqual(isSuccessfulAuthentication(response), true);
+    });
+    void it('fails authentication when the previous challengeResult == false', async () => {
+      const failedResult: ChallengeResult = {
+        challengeName: 'CUSTOM_CHALLENGE',
+        challengeResult: false,
+      };
+      const event = buildDefineAuthChallengeEvent([failedResult], metadata);
+      const { response } = await customAuthService.defineAuthChallenge(event);
+      strictEqual(isFailedAuthentication(response), true);
+    });
+  });
 
-      await cognito.respondToAuthChallenge(sessionId, '__dummy__', {
+  void describe('bad requests', () => {
+    void it('fails authentication for unsupported sign in method', async () => {
+      const metadata = {
+        signInMethod: 'FOO',
+        action: 'CONFIRM',
+      };
+      const event = buildDefineAuthChallengeEvent([initialSession], metadata);
+      const { response } = await customAuthService.defineAuthChallenge(event);
+      strictEqual(isFailedAuthentication(response), true);
+    });
+    void it('fails authentication for unsupported action', async () => {
+      const metadata = {
         signInMethod: 'OTP',
-        action: 'REQUEST',
-        deliveryMedium: 'EMAIL',
-      });
-
-      const { isAuthenticated } = await cognito.respondToAuthChallenge(
-        sessionId,
-        'incorrect-answer',
-        {
-          signInMethod: 'OTP',
-          action: 'CONFIRM',
-        }
-      );
-
-      strictEqual(isAuthenticated, false);
+        action: 'FOO',
+      };
+      const event = buildDefineAuthChallengeEvent([initialSession], metadata);
+      const { response } = await customAuthService.defineAuthChallenge(event);
+      strictEqual(isFailedAuthentication(response), true);
+    });
+    void it('fails authentication for a previous non custom challenge', async () => {
+      const srpSession: ChallengeResult = {
+        challengeName: 'DEVICE_SRP_AUTH', // only 'CUSTOM_CHALLENGE'is supported
+        challengeResult: false,
+      };
+      const event = buildDefineAuthChallengeEvent([srpSession]);
+      const { response } = await customAuthService.defineAuthChallenge(event);
+      strictEqual(isFailedAuthentication(response), true);
     });
   });
 });
 
 /**
- * A stub of Cognito's custom auth implementation / API.
+ * Returns true if the response contains the metadata 'PROVIDE_AUTH_PARAMETERS'.
  *
- * Cognito exposes two APIs for custom auth, and invokes the three handlers
- * based on the arguments provided to those APIs and the responses from the
- * previous invocations of the handlers. This class mimics that logic.
+ * This response informs the client that additional metadata (action & sign in
+ * method) is required to complete the request.
  */
-class MockCognitoCustomAuth {
-  constructor(private customAuthService = new CustomAuthService()) {}
-
-  private sessions: Record<
-    string,
-    {
-      challenges: ChallengeResult[];
-      privateChallengeParameters?: Record<string, string>;
-    }
-  > = {};
-
-  /**
-   * A stub of Cognito's InitiateAuth API for Custom Auth. Creates a new session
-   * and then invokes Define Auth Challenge. If the response from Define Auth
-   * Challenge is CUSTOM_CHALLENGE, Create Auth Challenge is then invoked and
-   * the privateChallengeParameters are stored.
-   * @returns A mock authentication response.
-   */
-  initiateAuth = async (): Promise<AuthResponse> => {
-    const sessionId = randomUUID();
-    this.sessions[sessionId] = { challenges: [] };
-    return this.defineAuthChallenge(sessionId);
-  };
-
-  /**
-   * A stub of Cognito's ResponseToAuthChallenge API for Custom Auth. Looks
-   * up the session from the sessionId and then invokes Verify Auth Challenge
-   * with the sessions privateChallengeParameters. Define Auth Challenge is then
-   * invoked with the response.
-   * @param sessionId - The session identifier.
-   * @param answer - The Answer provided by the client.
-   * @param metadata - Any metadata from the client.
-   * @returns A mock authentication response.
-   */
-  respondToAuthChallenge = async (
-    sessionId: string,
-    answer: string,
-    metadata: PasswordlessClientMetaData
-  ): Promise<AuthResponse> => {
-    const session = this.sessions[sessionId];
-    const event = buildVerifyAuthChallengeResponseEvent(
-      metadata,
-      answer,
-      session.privateChallengeParameters
-    );
-    const { response } = await this.customAuthService.verifyAuthChallenge(
-      event
-    );
-    this.sessions[sessionId].challenges.push({
-      challengeName: 'CUSTOM_CHALLENGE',
-      challengeResult: response.answerCorrect,
-    });
-    return this.defineAuthChallenge(sessionId, metadata);
-  };
-
-  private defineAuthChallenge = async (
-    sessionId: string,
-    metadata?: PasswordlessClientMetaData
-  ): Promise<AuthResponse> => {
-    const event = buildDefineAuthChallengeEvent(
-      this.sessions[sessionId].challenges,
-      metadata
-    );
-    const { response } = await this.customAuthService.defineAuthChallenge(
-      event
-    );
-    if (response.challengeName == 'CUSTOM_CHALLENGE') {
-      const createEvent = buildCreateAuthChallengeEvent(
-        this.sessions[sessionId].challenges,
-        metadata
-      );
-      const { response } = await this.customAuthService.createAuthChallenge(
-        createEvent
-      );
-      this.sessions[sessionId].privateChallengeParameters =
-        response.privateChallengeParameters;
-      return {
-        sessionId,
-        isAuthenticated: false,
-        challengeParameters: response.publicChallengeParameters,
-      };
-    }
-    return {
-      sessionId,
-      isAuthenticated: response.issueTokens,
-    };
-  };
-}
-
-type AuthResponse = {
-  sessionId: string;
-  isAuthenticated: boolean;
-  challengeParameters?: Record<string, string>;
+const containsProvideParametersMetadata = (
+  response: CreateAuthChallengeTriggerEvent['response']
+) => {
+  return response.challengeMetadata === 'PROVIDE_AUTH_PARAMETERS';
 };
 
-class MockChallengeService implements ChallengeService {
-  constructor(private answer: string = '123456') {}
-  createChallenge = async (
-    event: CreateAuthChallengeTriggerEvent
-  ): Promise<CreateAuthChallengeTriggerEvent> => {
-    return {
-      ...event,
-      response: {
-        ...event.response,
-        publicChallengeParameters: {
-          deliveryMedium: 'EMAIL',
-          destination: 'foo@example.com',
-        },
-        privateChallengeParameters: {
-          code: this.answer,
-        },
-      },
-    };
-  };
+void describe('createAuthChallenge', () => {
+  const mockOtpService = new MockChallengeService();
+  const mockMagicLinkService = new MockChallengeService();
+  const customAuthService = new CustomAuthService(
+    mockOtpService,
+    mockMagicLinkService
+  );
 
-  verifyChallenge = async (
-    event: VerifyAuthChallengeResponseTriggerEvent
-  ): Promise<VerifyAuthChallengeResponseTriggerEvent> => {
-    return {
-      ...event,
-      response: {
-        ...event.response,
-        answerCorrect:
-          event.request.challengeAnswer ===
-          event.request.privateChallengeParameters.code,
-      },
+  void describe('no previous session exists', () => {
+    void it('returns PROVIDE_AUTH_PARAMETERS', async () => {
+      const event = buildCreateAuthChallengeEvent();
+      const { response } = await customAuthService.createAuthChallenge(event);
+      strictEqual(containsProvideParametersMetadata(response), true);
+    });
+  });
+
+  void describe('signInMethod = MAGIC_LINK', () => {
+    const mockCreate = mock.method(mockMagicLinkService, 'createChallenge');
+    const metadata = {
+      signInMethod: 'MAGIC_LINK',
+      action: 'REQUEST',
     };
-  };
-}
+    void it('calls the magic link service', async () => {
+      const event = buildCreateAuthChallengeEvent([initialSession], metadata);
+      strictEqual(mockCreate.mock.callCount(), 0);
+      await customAuthService.createAuthChallenge(event);
+      strictEqual(mockCreate.mock.callCount(), 1);
+    });
+  });
+
+  void describe('signInMethod = OTP', () => {
+    const mockCreate = mock.method(mockOtpService, 'createChallenge');
+    const metadata = {
+      signInMethod: 'OTP',
+      action: 'REQUEST',
+    };
+    void it('calls the otp service', async () => {
+      const event = buildCreateAuthChallengeEvent([initialSession], metadata);
+      strictEqual(mockCreate.mock.callCount(), 0);
+      await customAuthService.createAuthChallenge(event);
+      strictEqual(mockCreate.mock.callCount(), 1);
+    });
+  });
+
+  void describe('bad requests', () => {
+    void it('throws an error for an unsupported action', async () => {
+      const event = buildCreateAuthChallengeEvent([initialSession], {
+        signInMethod: 'OTP',
+        action: 'CONFIRM', // confirm is not supported for Create Auth Challenge
+      });
+      await rejects(
+        async () => customAuthService.createAuthChallenge(event),
+        Error('Unsupported action for Create Auth: CONFIRM')
+      );
+    });
+    void it('throws an error for an unsupported sign in method', async () => {
+      const event = buildCreateAuthChallengeEvent([initialSession], {
+        signInMethod: 'FOO',
+        action: 'REQUEST',
+      });
+      await rejects(
+        async () => customAuthService.createAuthChallenge(event),
+        Error('Unrecognized signInMethod: FOO')
+      );
+    });
+  });
+});
+
+void describe('verifyAuthChallenge', () => {
+  const mockOtpService = new MockChallengeService();
+  const mockMagicLinkService = new MockChallengeService();
+  const customAuthService = new CustomAuthService(
+    mockOtpService,
+    mockMagicLinkService
+  );
+
+  void describe('action = request', () => {
+    void it('returns answerCorrect=false', async () => {
+      const event = buildVerifyAuthChallengeResponseEvent({
+        signInMethod: 'OTP',
+        action: 'REQUEST',
+      });
+      const { response } = await customAuthService.verifyAuthChallenge(event);
+      strictEqual(response.answerCorrect, false);
+    });
+  });
+
+  void describe('action = confirm', () => {
+    void describe('signInMethod = MAGIC_LINK', () => {
+      void it('calls magic link service', async () => {
+        const mockVerify = mock.method(mockMagicLinkService, 'verifyChallenge');
+        const event = buildVerifyAuthChallengeResponseEvent({
+          signInMethod: 'MAGIC_LINK',
+          action: 'CONFIRM',
+        });
+        strictEqual(mockVerify.mock.callCount(), 0);
+        await customAuthService.verifyAuthChallenge(event);
+        strictEqual(mockVerify.mock.callCount(), 1);
+      });
+    });
+
+    void describe('signInMethod = OTP', () => {
+      void it('calls otp service', async () => {
+        const mockVerify = mock.method(mockOtpService, 'verifyChallenge');
+        const event = buildVerifyAuthChallengeResponseEvent({
+          signInMethod: 'OTP',
+          action: 'CONFIRM',
+        });
+        strictEqual(mockVerify.mock.callCount(), 0);
+        await customAuthService.verifyAuthChallenge(event);
+        strictEqual(mockVerify.mock.callCount(), 1);
+      });
+    });
+  });
+
+  void describe('bad requests', () => {
+    void it('throws an error for an unsupported action', async () => {
+      const event = buildVerifyAuthChallengeResponseEvent({
+        signInMethod: 'OTP',
+        action: 'FOO',
+      });
+      await rejects(
+        async () => customAuthService.verifyAuthChallenge(event),
+        Error('Unsupported action: FOO')
+      );
+    });
+    void it('throws an error for an unsupported sign in method', async () => {
+      const event = buildVerifyAuthChallengeResponseEvent({
+        signInMethod: 'FOO',
+        action: 'CONFIRM',
+      });
+      await rejects(
+        async () => customAuthService.verifyAuthChallenge(event),
+        Error('Unrecognized signInMethod: FOO')
+      );
+    });
+  });
+});
