@@ -64,7 +64,7 @@ void describe('AmplifyProjectCreator', () => {
 
     assert.equal(
       logMock.mock.calls[4].arguments[0],
-      'All done! \nRun `amplify help` for a list of available commands. \nGet started by running `cd /project/root; amplify sandbox`.'
+      'All done! \nRun `amplify help` for a list of available commands. \nGet started by running `cd ./project/root; amplify sandbox`.'
     );
   });
 });
