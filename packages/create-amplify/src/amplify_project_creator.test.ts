@@ -38,7 +38,7 @@ void describe('AmplifyProjectCreator', () => {
     assert.equal(tsConfigInitializerMock.ensureInitialized.mock.callCount(), 1);
     assert.equal(
       logMock.mock.calls[4].arguments[0],
-      'All done! \nRun `amplify help` for a list of available commands. \nGet started by running `amplify sandbox`.'
+      'All done! \nRun `npx amplify help` for a list of available commands. \nGet started by running `npx amplify sandbox`.'
     );
   });
 
@@ -64,7 +64,7 @@ void describe('AmplifyProjectCreator', () => {
 
     assert.equal(
       logMock.mock.calls[4].arguments[0],
-      'All done! \nRun `amplify help` for a list of available commands. \nGet started by running `cd ./project/root; amplify sandbox`.'
+      'All done! \nRun `npx amplify help` for a list of available commands. \nGet started by running `cd ./project/root; npx amplify sandbox`.'
     );
   });
 });

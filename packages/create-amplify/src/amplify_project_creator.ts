@@ -71,12 +71,12 @@ export class AmplifyProjectCreator {
 
     this.logger.log(
       `All done! 
-Run \`amplify help\` for a list of available commands. 
+Run \`npx amplify help\` for a list of available commands. 
 Get started by running ${
         process.cwd() === this.projectRoot
           ? '`'
           : `\`cd .${this.projectRoot.replace(process.cwd(), '')}; `
-      }amplify sandbox\`.`
+      }npx amplify sandbox\`.`
     );
   };
 }
