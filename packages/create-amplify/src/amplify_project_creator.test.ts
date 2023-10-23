@@ -18,7 +18,8 @@ void describe('AmplifyProjectCreator', () => {
       initialProjectFileGeneratorMock as never,
       npmInitializedEnsurerMock as never,
       tsConfigInitializerMock as never,
-      { log: logMock } as never
+      { log: logMock } as never,
+      '/project/root'
     );
     await amplifyProjectCreator.create();
     assert.equal(
@@ -35,5 +36,9 @@ void describe('AmplifyProjectCreator', () => {
       1
     );
     assert.equal(tsConfigInitializerMock.ensureInitialized.mock.callCount(), 1);
+    assert.equal(
+      logMock.mock.calls[4].arguments[0],
+      'All done! Run `amplify help` for a list of available commands. Get started by running `amplify sandbox` in /project/root.'
+    );
   });
 });

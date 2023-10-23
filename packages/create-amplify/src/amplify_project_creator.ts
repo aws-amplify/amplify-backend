@@ -34,7 +34,8 @@ export class AmplifyProjectCreator {
     private readonly initialProjectFileGenerator: InitialProjectFileGenerator,
     private readonly npmInitializedEnsurer: NpmProjectInitializer,
     private readonly tsConfigInitializer: TsConfigInitializer,
-    private readonly logger: typeof console = console
+    private readonly logger: typeof console = console,
+    private readonly projectRoot: string
   ) {}
 
   /**
@@ -69,7 +70,7 @@ export class AmplifyProjectCreator {
     await this.initialProjectFileGenerator.generateInitialProjectFiles();
 
     this.logger.log(
-      `All done! Run \`amplify help\` for a list of available commands. Get started by running \`amplify sandbox\``
+      `All done! Run \`amplify help\` for a list of available commands. Get started by running \`amplify sandbox\` in ${this.projectRoot}.`
     );
   };
 }
