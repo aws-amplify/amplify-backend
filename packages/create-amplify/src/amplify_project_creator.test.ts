@@ -18,8 +18,7 @@ void describe('AmplifyProjectCreator', () => {
       initialProjectFileGeneratorMock as never,
       npmInitializedEnsurerMock as never,
       tsConfigInitializerMock as never,
-      { log: logMock } as never,
-      '/project/root'
+      { log: logMock } as never
     );
     await amplifyProjectCreator.create();
     assert.equal(

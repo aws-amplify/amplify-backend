@@ -23,12 +23,19 @@ const amplifyProjectCreator = new AmplifyProjectCreator(
   new InitialProjectFileGenerator(projectRoot),
   new NpmProjectInitializer(projectRoot),
   new TsConfigInitializer(projectRoot),
-  console,
-  projectRoot
+  console
 );
 
 try {
   await amplifyProjectCreator.create();
+  console.info(
+    `Run \`amplify help\` for a list of available commands. 
+Get started by running \`${
+      process.cwd() === projectRoot
+        ? ''
+        : `cd  ${projectRoot.replace(process.cwd(), '')}`
+    }; amplify sandbox\`.`
+  );
 } catch (err) {
   console.error(err instanceof Error ? err.message : err);
   process.exitCode = 1;
