@@ -1,4 +1,4 @@
-import { beforeEach, describe, it, mock } from 'node:test';
+import { describe, it, mock } from 'node:test';
 import { PackageJsonReader } from './package_json_reader.js';
 import assert from 'assert';
 
