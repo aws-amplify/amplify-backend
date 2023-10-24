@@ -108,7 +108,12 @@ void describe('StackMetadataBackendOutputRetrievalStrategy', () => {
 
       await assert.rejects(
         retrievalStrategy.fetchBackendOutput(),
-        (err) => err instanceof ZodError
+        (err: any) => {
+          if (err && err.name === 'ZodError') {
+            return true;
+          }
+          return false;
+        }
       );
     });
 
