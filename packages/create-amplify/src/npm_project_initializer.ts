@@ -29,7 +29,7 @@ export class NpmProjectInitializer {
     );
 
     try {
-      await this.execa('npm', ['init', '--yes'], {
+      await this.execa('npm', ['init', 'esm', '--yes'], {
         stdio: 'inherit',
         cwd: this.projectRoot,
       });

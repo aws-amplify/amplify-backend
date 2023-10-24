@@ -36,7 +36,7 @@ void describe('NpmInitializedEnsurer', () => {
     assert.equal(execaMock.mock.callCount(), 1);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments, [
       'npm',
-      ['init', '--yes'],
+      ['init', 'esm', '--yes'],
       { stdio: 'inherit', cwd: '/testProjectRoot' },
     ]);
   });
