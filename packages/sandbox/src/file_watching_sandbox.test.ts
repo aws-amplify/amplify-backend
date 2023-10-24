@@ -294,6 +294,19 @@ void describe('Sandbox using local project name resolver', () => {
     assert.strictEqual(cfnClientSendMock.mock.callCount(), 0);
   });
 
+  void it('calls watcher subscribe with the default "./amplify" if no `dir` specified', async () => {
+    ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
+      executor: sandboxExecutor,
+      cfnClient: cfnClientMock,
+    }));
+    await fileChangeEventCallback(null, [
+      { type: 'update', path: 'foo/test1.ts' },
+    ]);
+
+    // File watcher should be called with right arguments such as dir and excludes
+    assert.strictEqual(subscribeMock.mock.calls[0].arguments[0], './amplify');
+  });
+
   void it('calls BackendDeployer only once when multiple file changes are present', async () => {
     ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
       executor: sandboxExecutor,
