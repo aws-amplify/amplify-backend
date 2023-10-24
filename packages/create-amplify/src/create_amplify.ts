@@ -22,7 +22,8 @@ const amplifyProjectCreator = new AmplifyProjectCreator(
   new ProjectRootValidator(projectRoot),
   new InitialProjectFileGenerator(projectRoot),
   new NpmProjectInitializer(projectRoot),
-  new TsConfigInitializer(projectRoot)
+  new TsConfigInitializer(projectRoot),
+  projectRoot
 );
 
 try {
