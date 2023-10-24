@@ -1,6 +1,6 @@
 import fsp from 'fs/promises';
 import path from 'path';
-import { execa } from 'execa';
+import { execa as _execa } from 'execa';
 
 export type DependencyRule =
   | {
@@ -33,7 +33,8 @@ export class DependenciesValidator {
    */
   constructor(
     private packagePaths: Array<string>,
-    private dependencyRules: Record<string, DependencyRule>
+    private dependencyRules: Record<string, DependencyRule>,
+    private execa = _execa
   ) {}
 
   /**
@@ -56,7 +57,7 @@ export class DependenciesValidator {
     console.log(`Checking ${packageName} dependencies.`);
     const npmListResult = JSON.parse(
       (
-        await execa('npm', ['ls', '--all', '--json'], {
+        await this.execa('npm', ['ls', '--all', '--json'], {
           cwd: packagePath,
         })
       ).stdout.toString()
