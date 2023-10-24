@@ -119,6 +119,15 @@ void describe('Backend', () => {
     assert.equal(backend.resources.testConstructFactory.node.id, 'test-bucket');
   });
 
+  void it('stores attribution metadata in root stack', () => {
+    new Backend({}, rootStack);
+    const rootStackTemplate = Template.fromStack(rootStack);
+    assert.equal(
+      JSON.parse(rootStackTemplate.toJSON().Description).stackType,
+      'root'
+    );
+  });
+
   void describe('getOrCreateStack', () => {
     void it('returns nested stack', () => {
       const backend = new Backend({}, rootStack);
