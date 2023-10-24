@@ -29,7 +29,7 @@ export class NpmProjectInitializer {
     );
 
     try {
-      await this.execa('npm', ['init', 'esm', '--yes'], {
+      await this.execa('npm', ['init', '--yes'], {
         stdio: 'inherit',
         cwd: this.projectRoot,
       });
@@ -37,6 +37,15 @@ export class NpmProjectInitializer {
       throw new Error(
         '`npm init` did not exit successfully. Initialize a valid JavaScript package before continuing.'
       );
+    }
+
+    try {
+      await this.execa('npm', ['pkg', 'set', 'type="module"'], {
+        stdio: 'inherit',
+        cwd: this.projectRoot,
+      });
+    } catch {
+      throw new Error('`npm pkg set type="module"` did not exit successfully.');
     }
 
     if (!this.packageJsonExists()) {
