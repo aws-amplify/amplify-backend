@@ -15,7 +15,7 @@ const deploymentTypeCDKContextKey = 'deployment-type';
  */
 export const storeAttributionMetadata = (
   stack: Stack,
-  type: StackType,
+  stackType: string,
   libraryPackageJsonAbsolutePath: string
 ): void => {
   if (
@@ -26,19 +26,19 @@ export const storeAttributionMetadata = (
     return;
   }
   stack.templateOptions.description = JSON.stringify(
-    getAttributionMetadata(stack, type, libraryPackageJsonAbsolutePath)
+    getAttributionMetadata(stack, stackType, libraryPackageJsonAbsolutePath)
   );
 };
 
 const getAttributionMetadata = (
   stack: Stack,
-  type: StackType,
+  stackType: string,
   libraryPackageJsonAbsolutePath: string
 ): AttributionMetadata => ({
   createdOn: getPlatform(),
   createdBy: getDeploymentEngineType(stack),
   createdWith: getLibraryVersion(libraryPackageJsonAbsolutePath),
-  stackType: type,
+  stackType: stackType,
 });
 
 const getLibraryVersion = (absolutePackageJsonPath: string): string => {
@@ -96,18 +96,11 @@ const getPlatform = (): Platform => {
   }
 };
 
-export type StackType =
-  | 'root'
-  | 'api-AppSync'
-  | 'auth-Cognito'
-  | 'function-Lambda'
-  | 'storage-S3';
-
 export type AttributionMetadata = {
   createdOn: Platform;
   createdBy: DeploymentEngineType;
   createdWith: string;
-  stackType: StackType;
+  stackType: string;
 };
 
 export type DeploymentEngineType =
