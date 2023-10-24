@@ -10,8 +10,6 @@ on:
 
 jobs:
   local_checks_with_latest_dependencies:
-    strategy:
-      fail-fast: false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
@@ -22,3 +20,10 @@ jobs:
           rm package-lock.json
           npm install
           npm run build
+      - name: Check dependencies
+        shell: bash
+        run: |
+          npm run check:dependencies
+      - name: Run unit and integration tests
+        shell: bash
+          npm run test
