@@ -27,7 +27,7 @@ see details: <a href="https://github.com/orgs/nodejs/discussions/47959">https://
 <ul class="tsd-hierarchy">
 <li><span class="target">AmplifyPrompter</span></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/aee0a52/packages/cli-core/src/prompter/amplify_prompts.ts#L8">prompter/amplify_prompts.ts:8</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/675f428/packages/cli-core/src/prompter/amplify_prompts.ts#L8">prompter/amplify_prompts.ts:8</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -39,7 +39,8 @@ see details: <a href="https://github.com/orgs/nodejs/discussions/47959">https://
 </div></section>
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading">Methods</h3>
-<div class="tsd-index-list"><a href="_aws_amplify_cli_core.AmplifyPrompter.html#secretValue" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>secret<wbr/>Value</span></a>
+<div class="tsd-index-list"><a href="_aws_amplify_cli_core.AmplifyPrompter.html#input" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>input</span></a>
+<a href="_aws_amplify_cli_core.AmplifyPrompter.html#secretValue" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>secret<wbr/>Value</span></a>
 <a href="_aws_amplify_cli_core.AmplifyPrompter.html#yesOrNo" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>yes<wbr/>Or<wbr/>No</span></a>
 </div></section></div></details></section></section>
 <section class="tsd-panel-group tsd-member-group">
@@ -52,6 +53,37 @@ see details: <a href="https://github.com/orgs/nodejs/discussions/47959">https://
 <h4 class="tsd-returns-title">Returns <a href="_aws_amplify_cli_core.AmplifyPrompter.html" class="tsd-signature-type tsd-kind-class">AmplifyPrompter</a></h4></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Methods</h2>
+<section class="tsd-panel tsd-member"><a id="input" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>input</span><a href="#input" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="tsd-signature tsd-anchor-link" id="input.input-1"><span class="tsd-kind-call-signature">input</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span><a href="#input.input-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>An input style prompt.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5><span class="tsd-kind-parameter">options</span>: <span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">defaultValue</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">message</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></h5>
+<div class="tsd-comment tsd-typography"><p>for displaying the prompt</p>
+</div>
+<div class="tsd-comment tsd-typography"></div>
+<ul class="tsd-parameters">
+<li class="tsd-parameter">
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-property">default<wbr/>Value</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span></h5>
+<div class="tsd-comment tsd-typography"><p>if user submits without typing anything. Default: &quot;.&quot;</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li>
+<li class="tsd-parameter">
+<h5><span class="tsd-kind-property">message</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></h5>
+<div class="tsd-comment tsd-typography"><p>display for the prompt</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li></ul></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4><p>Promise<string> the user input</p>
+
+<div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/675f428/packages/cli-core/src/prompter/amplify_prompts.ts#L48">prompter/amplify_prompts.ts:48</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="secretValue" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>secret<wbr/>Value</span><a href="#secretValue" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -67,7 +99,7 @@ see details: <a href="https://github.com/orgs/nodejs/discussions/47959">https://
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/aee0a52/packages/cli-core/src/prompter/amplify_prompts.ts#L31">prompter/amplify_prompts.ts:31</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/675f428/packages/cli-core/src/prompter/amplify_prompts.ts#L31">prompter/amplify_prompts.ts:31</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="yesOrNo" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>yes<wbr/>Or<wbr/>No</span><a href="#yesOrNo" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -98,7 +130,7 @@ see details: <a href="https://github.com/orgs/nodejs/discussions/47959">https://
 
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/aee0a52/packages/cli-core/src/prompter/amplify_prompts.ts#L16">prompter/amplify_prompts.ts:16</a></li></ul></aside></li></ul></section></section></div>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/675f428/packages/cli-core/src/prompter/amplify_prompts.ts#L16">prompter/amplify_prompts.ts:16</a></li></ul></aside></li></ul></section></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -119,6 +151,7 @@ see details: <a href="https://github.com/orgs/nodejs/discussions/47959">https://
 <div class="tsd-accordion-details">
 <ul>
 <li><a href="#constructor" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-512"></use></svg><span>constructor</span></a></li>
+<li><a href="#input" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>input</span></a></li>
 <li><a href="#secretValue" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>secret<wbr/>Value</span></a></li>
 <li><a href="#yesOrNo" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>yes<wbr/>Or<wbr/>No</span></a></li></ul></div></details></div>
 <div class="site-menu">
