@@ -84,7 +84,7 @@ void describe('Dependency validator', () => {
     ).validate();
   });
 
-  void it('should discover nested dependencies and de-duplicate', async () => {
+  void it('should discover nested dependency and de-duplicate', async () => {
     // This test uses 'color-name' intentionally.
     // See ./test_resources/npm_ls_output.json.
     // The 'color-name' is nested and appears multiple times in sample output.
