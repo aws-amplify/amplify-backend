@@ -110,7 +110,7 @@ export class SandboxCommand
       args['models-out-dir']
     );
     await sandbox.start({
-      dir: args['dir-to-watch'] || './amplify',
+      dir: args['dir-to-watch'],
       exclude: watchExclusions,
       name: args.name,
       profile: args.profile,
