@@ -56,6 +56,10 @@ export class DependenciesValidator {
     const packageName = await this.getPackageName(packagePath);
     console.log(`Checking ${packageName} dependencies.`);
     const npmListResult = JSON.parse(
+      // We're using 'npm ls' to reveal dependencies because it reveals
+      // all dependencies including optional dependencies.
+      // Alternatives like 'npm explain' do not reveal optional dependencies
+      // if they are not present in the graph.
       (
         await this.execa('npm', ['ls', '--all', '--json'], {
           cwd: packagePath,
