@@ -207,7 +207,6 @@ void describe('Auth construct', () => {
         sms: {
           smsMessage: smsMFAMessageFunction,
         },
-        totp: false,
       },
     });
     const template = Template.fromStack(stack);
