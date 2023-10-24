@@ -104,6 +104,35 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
       );
       await assert.rejects(() => l.generateForms({ models: ['Author'] }));
     });
+    void it('type declaration files are created for each model', async () => {
+      const models = ['Post', 'Author', 'Foo'];
+      const schema = createMockSchema(models);
+      const l = new LocalGraphqlFormGenerator(
+        async () => schema as unknown as GenericDataSchema,
+        {
+          graphqlDir: '../graphql',
+        },
+        (map) => {
+          return new CodegenGraphqlFormGeneratorResult(map);
+        }
+      );
+      const output = await l.generateForms();
+      const fsMock = mock.method(fs, 'open');
+      fsMock.mock.mockImplementation(async () => ({
+        writeFile: async () => undefined,
+        stat: async () => ({}),
+        close: async () => undefined,
+      }));
+      await output.writeToDirectory('./');
+      const writeArgs = fsMock.mock.calls.flatMap((c) => c.arguments[0]);
+      assert(
+        models.every((m) => {
+          return writeArgs.some((arg) =>
+            new RegExp(`${m}(Update|Create)Form.d.ts`).test(arg.toString())
+          );
+        })
+      );
+    });
     void it('when an undefined filter is passed, all models are generated', async () => {
       const models = ['Post', 'Author', 'Foo'];
       const schema = createMockSchema(models);
