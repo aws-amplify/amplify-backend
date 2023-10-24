@@ -43,19 +43,24 @@ export class AmplifySandboxExecutor {
    * Deploys sandbox
    */
   deploy = async (
-    uniqueBackendIdentifier: UniqueBackendIdentifier
+    uniqueBackendIdentifier: UniqueBackendIdentifier,
+    validateAppSourcesProvider: () => boolean
   ): Promise<void> => {
     console.debug('[Sandbox] Executing command `deploy`');
     const secretLastUpdated = await this.getSecretLastUpdated(
       uniqueBackendIdentifier
     );
-    await this.invoke(
-      async () =>
-        await this.backendDeployer.deploy(uniqueBackendIdentifier, {
-          deploymentType: BackendDeploymentType.SANDBOX,
-          secretLastUpdated,
-        })
-    );
+
+    await this.invoke(async () => {
+      // it's important to get information here so that information
+      // doesn't get lost while debouncing
+      const validateAppSources = validateAppSourcesProvider();
+      await this.backendDeployer.deploy(uniqueBackendIdentifier, {
+        deploymentType: BackendDeploymentType.SANDBOX,
+        secretLastUpdated,
+        validateAppSources,
+      });
+    });
   };
 
   /**

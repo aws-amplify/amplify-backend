@@ -1,4 +1,4 @@
-import { confirm, password } from '@inquirer/prompts';
+import { confirm, input, password } from '@inquirer/prompts';
 
 /**
  * Wrapper for prompter library
@@ -36,5 +36,23 @@ export class AmplifyPrompter {
       validate: (val: string) =>
         val && val.length > 0 ? true : 'Cannot be empty',
     });
+  };
+
+  /**
+   * An input style prompt.
+   * @param options for displaying the prompt
+   * @param options.message display for the prompt
+   * @param options.defaultValue if user submits without typing anything. Default: "."
+   * @returns Promise<string> the user input
+   */
+  static input = async (options: {
+    message: string;
+    defaultValue?: string;
+  }): Promise<string> => {
+    const response = await input({
+      message: options.message,
+      default: options.defaultValue ?? '',
+    });
+    return response;
   };
 }

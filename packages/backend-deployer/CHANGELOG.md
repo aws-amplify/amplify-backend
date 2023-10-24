@@ -1,5 +1,11 @@
 # @aws-amplify/backend-deployer
 
+## 0.2.0-alpha.9
+
+### Patch Changes
+
+- fcc7d389: Enable type checking during deployment
+
 ## 0.2.0-alpha.8
 
 ### Patch Changes

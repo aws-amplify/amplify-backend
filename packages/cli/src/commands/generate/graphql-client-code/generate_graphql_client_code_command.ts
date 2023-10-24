@@ -11,9 +11,15 @@ import {
   GenerateApiCodeStatementTarget,
   GenerateApiCodeTypeTarget,
   GenerateGraphqlCodegenOptions,
+  GenerateIntrospectionOptions,
   GenerateModelsOptions,
 } from '@aws-amplify/model-generator';
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
+
+type GenerateOptions =
+  | GenerateGraphqlCodegenOptions
+  | GenerateModelsOptions
+  | GenerateIntrospectionOptions;
 
 export type GenerateGraphqlClientCodeCommandOptions =
   ArgumentsKebabCase<GenerateGraphqlClientCodeCommandOptionsCamelCase>;
@@ -36,6 +42,18 @@ type GenerateGraphqlClientCodeCommandOptionsCamelCase = {
   statementMaxDepth: number | undefined;
   statementTypenameIntrospection: boolean | undefined;
   typeMultipleSwiftFiles: boolean | undefined;
+};
+
+const DEFAULT_TYPE_TARGET_FOR_STATEMENT_TARGET: Record<
+  GenerateApiCodeStatementTarget,
+  GenerateApiCodeTypeTarget | undefined
+> = {
+  [GenerateApiCodeStatementTarget.JAVASCRIPT]: undefined,
+  [GenerateApiCodeStatementTarget.TYPESCRIPT]:
+    GenerateApiCodeTypeTarget.TYPESCRIPT,
+  [GenerateApiCodeStatementTarget.GRAPHQL]: undefined,
+  [GenerateApiCodeStatementTarget.FLOW]: GenerateApiCodeTypeTarget.FLOW,
+  [GenerateApiCodeStatementTarget.ANGULAR]: GenerateApiCodeTypeTarget.ANGULAR,
 };
 
 /**
@@ -65,73 +83,91 @@ export class GenerateGraphqlClientCodeCommand
     this.describe = 'Generates graphql API code';
   }
 
-  private getFormatParams = (
-    format: string,
+  /**
+   * Produce the required input for graphql-codegen calls from the CLI input, applying sane defaults where applicable.
+   * @param args CLI args provided by the customer
+   * @returns the codegen options config
+   */
+  private getGraphqlCodegenFormatParams = (
     args: GenerateGraphqlClientCodeCommandOptions
-  ):
-    | object
-    | Pick<
-        ArgumentsKebabCase<GenerateGraphqlCodegenOptions>,
-        | 'statement-target'
-        | 'type-target'
-        | 'max-depth'
-        | 'multiple-swift-files'
-      >
-    | Pick<
-        ArgumentsKebabCase<GenerateModelsOptions>,
-        'model-target' | 'generate-index-rules'
-      > => {
-    switch (format) {
-      case 'graphql-codegen':
-        return {
-          statementTarget: args['statement-target'] ?? 'javascript',
-          ...('typeTarget' in args ? { typeTarget: args.typeTarget } : {}),
-          ...('statementMaxDepth' in args
-            ? { maxDepth: args.statementMaxDepth }
-            : {}),
-          ...('statementTypenameIntrospection' in args
-            ? { typenameIntrospection: args.statementTypenameIntrospection }
-            : {}),
-          ...('typeMultipleSwiftFiles' in args
-            ? { multipleSwiftFiles: args.typeMultipleSwiftFiles }
-            : {}),
-        };
-      case 'modelgen':
-        return {
-          modelTarget: args['model-target'] ?? 'javascript',
-          ...('modelGenerateIndexRules' in args
-            ? { generateIndexRules: args.modelGenerateIndexRules }
-            : {}),
-          ...('modelEmitAuthProvider' in args
-            ? { emitAuthProvider: args.modelEmitAuthProvider }
-            : {}),
-          ...('modelRespectPrimaryKeyAttributesOnConnectionField' in args
-            ? {
-                respectPrimaryKeyAttributesOnConnectionField:
-                  args.modelRespectPrimaryKeyAttributesOnConnectionField,
-              }
-            : {}),
-          ...('modelGenerateModelsForLazyLoadAndCustomSelectionSet' in args
-            ? {
-                generateModelsForLazyLoadAndCustomSelectionSet:
-                  args.modelGenerateModelsForLazyLoadAndCustomSelectionSet,
-              }
-            : {}),
-          ...('modelAddTimestampFields' in args
-            ? { addTimestampFields: args.modelAddTimestampFields }
-            : {}),
-          ...('modelHandleListNullabilityTransparently' in args
-            ? {
-                handleListNullabilityTransparently:
-                  args.modelHandleListNullabilityTransparently,
-              }
-            : {}),
-        };
-      case 'introspection':
-        return {};
-      default:
-        throw new Error(`Unexpected format ${format} received`);
-    }
+  ): GenerateGraphqlCodegenOptions => {
+    const statementTarget: GenerateApiCodeStatementTarget =
+      args['statement-target'] ?? GenerateApiCodeStatementTarget.TYPESCRIPT;
+    const typeTarget: GenerateApiCodeTypeTarget | undefined =
+      args['type-target'] ??
+      DEFAULT_TYPE_TARGET_FOR_STATEMENT_TARGET[statementTarget];
+    const maxDepth: number | undefined = args['statement-max-depth'];
+    const typeNameIntrospection: boolean | undefined =
+      args['statement-typename-introspection'];
+    const multipleSwiftFiles: boolean | undefined =
+      args['type-multiple-swift-files'];
+
+    return {
+      format: GenerateApiCodeFormat.GRAPHQL_CODEGEN,
+      statementTarget,
+      ...(typeTarget !== undefined ? { typeTarget } : {}),
+      ...(maxDepth !== undefined ? { maxDepth } : {}),
+      ...(typeNameIntrospection !== undefined ? { typeNameIntrospection } : {}),
+      ...(multipleSwiftFiles !== undefined ? { multipleSwiftFiles } : {}),
+    };
+  };
+
+  /**
+   * Produce the required input for modelgen calls from the CLI input, applying sane defaults where applicable.
+   * @param args CLI args provided by the customer
+   * @returns the modelgen options config
+   */
+  private getModelgenFormatParams = (
+    args: GenerateGraphqlClientCodeCommandOptions
+  ): GenerateModelsOptions => {
+    const modelTarget: GenerateApiCodeModelTarget =
+      args['model-target'] ?? GenerateApiCodeModelTarget.TYPESCRIPT;
+    const generateIndexRules: boolean | undefined =
+      args['model-generate-index-rules'];
+    const emitAuthProvider: boolean | undefined =
+      args['model-emit-auth-provider'];
+    const respectPrimaryKeyAttributesOnConnectionField: boolean | undefined =
+      args['model-respect-primary-key-attributes-on-connection-field'];
+    const generateModelsForLazyLoadAndCustomSelectionSet: boolean | undefined =
+      args['model-generate-models-for-lazy-load-and-custom-selection-set'];
+    const addTimestampFields: boolean | undefined =
+      args['model-add-timestamp-fields'];
+    const handleListNullabilityTransparently: boolean | undefined =
+      args['model-handle-list-nullability-transparently'];
+
+    return {
+      format: GenerateApiCodeFormat.MODELGEN,
+      modelTarget,
+      ...(generateIndexRules !== undefined ? { generateIndexRules } : {}),
+      ...(emitAuthProvider !== undefined ? { emitAuthProvider } : {}),
+      ...(respectPrimaryKeyAttributesOnConnectionField !== undefined
+        ? { respectPrimaryKeyAttributesOnConnectionField }
+        : {}),
+      ...(generateModelsForLazyLoadAndCustomSelectionSet !== undefined
+        ? { generateModelsForLazyLoadAndCustomSelectionSet }
+        : {}),
+      ...(addTimestampFields !== undefined ? { addTimestampFields } : {}),
+      ...(handleListNullabilityTransparently !== undefined
+        ? { handleListNullabilityTransparently }
+        : {}),
+    };
+  };
+
+  /**
+   * Produce the introspection schema config shape.
+   * @returns the introspection options config
+   */
+  private getIntrospectionFormatParams = (): GenerateIntrospectionOptions => ({
+    format: GenerateApiCodeFormat.INTROSPECTION,
+  });
+
+  private formatParamBuilders: Record<
+    GenerateApiCodeFormat,
+    (args: GenerateGraphqlClientCodeCommandOptions) => GenerateOptions
+  > = {
+    [GenerateApiCodeFormat.MODELGEN]: this.getModelgenFormatParams,
+    [GenerateApiCodeFormat.GRAPHQL_CODEGEN]: this.getGraphqlCodegenFormatParams,
+    [GenerateApiCodeFormat.INTROSPECTION]: this.getIntrospectionFormatParams,
   };
 
   private getOutDir = (args: GenerateGraphqlClientCodeCommandOptions) => {
@@ -152,12 +188,11 @@ export class GenerateGraphqlClientCodeCommand
       args
     );
     const out = this.getOutDir(args);
-    const format = args.format ?? 'graphql-codegen';
-    const formatParams = this.getFormatParams(format, args);
+    const format = args.format ?? GenerateApiCodeFormat.GRAPHQL_CODEGEN;
+    const formatParams = this.formatParamBuilders[format](args);
 
     const result = await this.generateApiCodeAdapter.invokeGenerateApiCode({
       ...backendIdentifier,
-      format,
       ...formatParams,
     } as unknown as InvokeGenerateApiCodeProps);
 

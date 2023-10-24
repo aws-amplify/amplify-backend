@@ -1,7 +1,7 @@
 {
   "name": "@aws-amplify/auth-construct-alpha",
-  "version": "0.2.0-alpha.13",
-  "type": "module",
+  "version": "0.2.0-alpha.15",
+  "type": "commonjs",
   "publishConfig": {
     "access": "public"
   },
