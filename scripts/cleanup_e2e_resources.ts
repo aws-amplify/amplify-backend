@@ -54,7 +54,7 @@ const listAllStaleTestStacks = async (): Promise<Array<StackSummary>> => {
         NextToken: nextToken,
         StackStatusFilter: Object.keys(StackStatus).filter(
           (status) => status != StackStatus.DELETE_COMPLETE
-        ),
+        ) as Array<StackStatus>,
       })
     );
     nextToken = listStacksResponse.NextToken;
