@@ -26,9 +26,9 @@ export const getProjectRoot = async () => {
     .catch(() => false); // There's no `fsp.exists` method, so we use `stat` instead. See https://github.com/nodejs/node/issues/39960#issuecomment-909444667
   if (!isExistProjectRoot) {
     await logger.debug(
-      `The provided directory (${projectRoot as string}) does not exist.`
+      `The provided directory (${projectRoot}) does not exist.`
     );
-    await logger.debug(`Creating directory ${projectRoot as string}`);
+    await logger.debug(`Creating directory ${projectRoot}`);
     await fsp.mkdir(projectRoot, { recursive: true });
   }
   return projectRoot;
