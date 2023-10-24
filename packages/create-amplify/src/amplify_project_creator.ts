@@ -69,14 +69,15 @@ export class AmplifyProjectCreator {
     this.logger.log('Scaffolding initial project files...');
     await this.initialProjectFileGenerator.generateInitialProjectFiles();
 
+    const cdCommand =
+      process.cwd() === this.projectRoot
+        ? '`'
+        : `\`cd .${this.projectRoot.replace(process.cwd(), '')}; `;
+
     this.logger.log(
       `All done! 
 Run \`npx amplify help\` for a list of available commands. 
-Get started by running ${
-        process.cwd() === this.projectRoot
-          ? '`'
-          : `\`cd .${this.projectRoot.replace(process.cwd(), '')}; `
-      }npx amplify sandbox\`.`
+Get started by running ${cdCommand}npx amplify sandbox\`.`
     );
   };
 }
