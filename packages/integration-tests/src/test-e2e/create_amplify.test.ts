@@ -66,6 +66,11 @@ void describe('create-amplify script', () => {
       const packageJsonObject = JSON.parse(
         await fs.readFile(packageJsonPath, 'utf-8')
       );
+
+      const expectedProjectType =
+        initialState === 'commonjs' ? 'commonjs' : 'module';
+      assert.strictEqual(packageJsonObject.type, expectedProjectType);
+
       assert.deepStrictEqual(
         Object.keys(packageJsonObject.devDependencies).sort(),
         [
@@ -82,6 +87,15 @@ void describe('create-amplify script', () => {
         Object.keys(packageJsonObject.dependencies).sort(),
         ['aws-amplify']
       );
+
+      const tsConfigPath = path.resolve(tempDir, 'tsconfig.json');
+      const tsConfigObject = JSON.parse(
+        await fs.readFile(tsConfigPath, 'utf-8')
+      );
+
+      const expectedModuleType =
+        initialState === 'commonjs' ? 'commonjs' : 'node16';
+      assert.strictEqual(tsConfigObject.module, expectedModuleType);
 
       const pathPrefix = path.join(tempDir, 'amplify');
 
