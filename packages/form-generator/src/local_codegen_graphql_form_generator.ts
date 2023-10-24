@@ -14,6 +14,7 @@ import {
   ScriptKind,
   ScriptTarget,
   UtilTemplateType,
+  getDeclarationFilename,
 } from '@aws-amplify/codegen-ui-react';
 import {
   FormGenerationOptions,
@@ -125,11 +126,20 @@ export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
       formFeatureFlags
     );
     const { componentText, declaration } = renderer.renderComponentInternal();
-    return {
-      componentText,
-      fileName: renderer.fileName,
-      declaration,
-    };
+    const files = [
+      {
+        componentText,
+        fileName: renderer.fileName,
+      },
+    ];
+    if (declaration) {
+      files.push({
+        componentText: declaration,
+        fileName: getDeclarationFilename(renderer.fileName),
+      });
+    }
+
+    return files;
   };
   private filterModelsByName = (
     filteredModelNames: string[],
@@ -262,8 +272,10 @@ export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
     );
     const forms = baseForms.reduce<Record<string, string>>(
       (prev, formSchema) => {
-        const result = this.codegenForm(dataSchema, formSchema);
-        prev[result.fileName] = result.componentText;
+        const results = this.codegenForm(dataSchema, formSchema);
+        results.forEach((result) => {
+          prev[result.fileName] = result.componentText;
+        });
         return prev;
       },
       {}

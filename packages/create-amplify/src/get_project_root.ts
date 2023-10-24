@@ -9,7 +9,7 @@ import { logger } from './logger.js';
 export const getProjectRoot = async () => {
   const useDefault = process.env.npm_config_yes === 'true';
   const defaultProjectRoot = '.';
-  let projectRoot = useDefault
+  let projectRoot: string = useDefault
     ? defaultProjectRoot
     : await AmplifyPrompter.input({
         message: 'Where should we create your project?',
