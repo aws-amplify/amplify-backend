@@ -18,7 +18,7 @@ void describe('Dependency validator', () => {
     execaMock.mock.mockImplementation(() => {
       return {
         stdout: testNpmOutput,
-      } as ExecaChildProcess;
+      } as unknown as ExecaChildProcess;
     });
   });
 
