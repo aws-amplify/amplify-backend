@@ -26,4 +26,5 @@ jobs:
           npm run check:dependencies
       - name: Run unit and integration tests
         shell: bash
+        run: |
           npm run test
