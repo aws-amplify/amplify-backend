@@ -17,6 +17,8 @@ jobs:
           aws-region: us-west-2
       - name: Put metric data
         shell: bash
+        # TODO design what we want to monitor in https://github.com/aws-amplify/samsara-cli/issues/482
+        # This logs a very basic metric that is used primarily for canary workflow monitoring.
         run: |
           aws cloudwatch put-metric-data \
           --metric-name WorkflowCompleted \
