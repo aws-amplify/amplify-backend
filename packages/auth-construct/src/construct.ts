@@ -57,6 +57,9 @@ const MFA_SMS_PLACEHOLDERS = {
   CODE: '{####}',
 };
 
+// Be very careful editing this value. It is the string that is used to attribute stacks to Amplify Auth in BI metrics
+const authStackType = 'auth-Cognito';
+
 /**
  * Amplify Auth CDK Construct
  */
@@ -146,7 +149,7 @@ export class AmplifyAuth
 
     storeAttributionMetadata(
       Stack.of(this),
-      'auth-Cognito',
+      authStackType,
       path.resolve(__dirname, '..', 'package.json')
     );
   }
