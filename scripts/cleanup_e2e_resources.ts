@@ -17,8 +17,18 @@ import {
   ObjectIdentifier,
   S3Client,
 } from '@aws-sdk/client-s3';
+import {
+  CognitoIdentityProviderClient,
+  DeleteUserPoolCommand,
+  ListUserPoolsCommand,
+  ListUserPoolsCommandOutput,
+  UserPoolDescriptionType,
+} from '@aws-sdk/client-cognito-identity-provider';
 
 const cfnClient = new CloudFormationClient({
+  maxAttempts: 5,
+});
+const cognitoClient = new CognitoIdentityProviderClient({
   maxAttempts: 5,
 });
 const s3Client = new S3Client({
@@ -158,6 +168,47 @@ for (const staleBucket of staleBuckets) {
     } catch (e) {
       const errorMessage = e instanceof Error ? e.message : '';
       console.log(`Failed to delete ${bucketName} bucket. ${errorMessage}`);
+    }
+  }
+}
+
+const listStaleCognitoUserPools = async () => {
+  let nextToken: string | undefined = undefined;
+  const userPools: Array<UserPoolDescriptionType> = [];
+  do {
+    const listUserPoolsResponse: ListUserPoolsCommandOutput =
+      await cognitoClient.send(
+        new ListUserPoolsCommand({
+          NextToken: nextToken,
+          MaxResults: 60,
+        })
+      );
+    nextToken = listUserPoolsResponse.NextToken;
+    listUserPoolsResponse.UserPools?.filter((userPool) =>
+      isStale(userPool.CreationDate)
+    ).forEach((item) => {
+      userPools.push(item);
+    });
+  } while (nextToken);
+  return userPools;
+};
+
+const staleUserPools = await listStaleCognitoUserPools();
+
+for (const staleUserPool of staleUserPools) {
+  if (staleUserPool.Name) {
+    try {
+      await cognitoClient.send(
+        new DeleteUserPoolCommand({
+          UserPoolId: staleUserPool.Id,
+        })
+      );
+      console.log(`Successfully deleted ${staleUserPool.Name} user pool`);
+    } catch (e) {
+      const errorMessage = e instanceof Error ? e.message : '';
+      console.log(
+        `Failed to delete ${staleUserPool.Name} user pool. ${errorMessage}`
+      );
     }
   }
 }

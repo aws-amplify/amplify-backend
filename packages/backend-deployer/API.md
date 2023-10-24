@@ -22,6 +22,7 @@ export class BackendDeployerFactory {
 export type DeployProps = {
     deploymentType?: BackendDeploymentType;
     secretLastUpdated?: Date;
+    validateAppSources?: boolean;
 };
 
 // @public (undocumented)

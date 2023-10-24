@@ -1,7 +1,9 @@
 import { afterEach, describe, it } from 'node:test';
 import assert from 'assert';
+import fsp from 'fs/promises';
+import path from 'path';
 import { getProjectRoot } from './get_project_root.js';
-import { AmplifyPrompter } from './amplify_prompts.js';
+import { AmplifyPrompter } from '@aws-amplify/cli-core';
 
 const originalEnv = process.env;
 
@@ -13,7 +15,7 @@ void describe('getProjectRoot', () => {
     process.env.npm_config_yes = 'true';
     const projectRoot = await getProjectRoot();
 
-    assert.equal(projectRoot, '.');
+    assert.equal(projectRoot, process.cwd());
   });
 
   void it('returns the default project root directory if user do not pass anything', async (ctx) => {
@@ -24,15 +26,46 @@ void describe('getProjectRoot', () => {
     );
     const projectRoot = await getProjectRoot();
 
-    assert.equal(projectRoot, '.');
+    assert.equal(projectRoot, process.cwd());
   });
 
   void it('returns the user provided project root directory', async (ctx) => {
     process.env.npm_config_yes = 'false';
-    const userInput = 'test/Root';
+    const userInput = path.resolve('test', 'root');
     ctx.mock.method(AmplifyPrompter, 'input', () => Promise.resolve(userInput));
     const projectRoot = await getProjectRoot();
 
     assert.equal(projectRoot, userInput);
+  });
+
+  void it('creates the project root directory if the user provided absolute path does not exist', async (ctx) => {
+    process.env.npm_config_yes = 'false';
+    const userInput = path.resolve(process.cwd(), 'test', 'root');
+    const fsMkDirSyncMock = ctx.mock.method(fsp, 'mkdir', () => undefined);
+    ctx.mock.method(fsp, 'stat', () => Promise.reject(new Error()));
+    ctx.mock.method(AmplifyPrompter, 'input', () => Promise.resolve(userInput));
+
+    const projectRoot = await getProjectRoot();
+
+    assert.equal(fsMkDirSyncMock.mock.callCount(), 1);
+    assert.equal(fsMkDirSyncMock.mock.calls[0].arguments[0], userInput);
+    assert.equal(projectRoot, userInput);
+  });
+
+  void it('creates the project root directory if the user provided relative path does not exist', async (ctx) => {
+    process.env.npm_config_yes = 'false';
+    const userInput = 'test';
+    const fsMkDirSyncMock = ctx.mock.method(fsp, 'mkdir', () => undefined);
+    ctx.mock.method(fsp, 'stat', () => Promise.reject(new Error()));
+    ctx.mock.method(AmplifyPrompter, 'input', () => Promise.resolve(userInput));
+
+    const projectRoot = await getProjectRoot();
+
+    assert.equal(fsMkDirSyncMock.mock.callCount(), 1);
+    assert.equal(
+      fsMkDirSyncMock.mock.calls[0].arguments[0],
+      path.resolve(userInput)
+    );
+    assert.equal(projectRoot, path.resolve(userInput));
   });
 });

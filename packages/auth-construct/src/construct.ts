@@ -20,9 +20,8 @@ import {
   UserPoolProps,
 } from 'aws-cdk-lib/aws-cognito';
 import { FederatedPrincipal, Role } from 'aws-cdk-lib/aws-iam';
-import { AuthOutput } from '@aws-amplify/backend-output-schemas/auth';
-import { authOutputKey } from '@aws-amplify/backend-output-schemas';
-import { AuthProps, TriggerEvent } from './types.js';
+import { AuthOutput, authOutputKey } from '@aws-amplify/backend-output-schemas';
+import { AuthProps, EmailLoginSettings, TriggerEvent } from './types.js';
 import { DEFAULTS } from './defaults.js';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
@@ -42,6 +41,16 @@ const authProvidersList = {
   google: 'accounts.google.com',
   amazon: 'www.amazon.com',
   apple: 'appleid.apple.com',
+};
+const VERIFICATION_EMAIL_PLACEHOLDERS = {
+  CODE: '{####}',
+  LINK: '{##Verify Email##}',
+};
+const VERIFICATION_SMS_PLACEHOLDERS = {
+  CODE: '{####}',
+};
+const MFA_SMS_PLACEHOLDERS = {
+  CODE: '{####}',
 };
 
 /**
@@ -85,13 +94,25 @@ export class AmplifyAuth
     this.oauthMappings = providerSetupResult.oauthMappings;
 
     // UserPool Client
+    const externalProviders = props.loginWith.externalProviders;
     const userPoolClient = new cognito.UserPoolClient(
       this,
-      'UserPoolWebClient',
+      'UserPoolAppClient',
       {
         userPool: this.userPool,
         authFlows: DEFAULTS.AUTH_FLOWS,
         preventUserExistenceErrors: DEFAULTS.PREVENT_USER_EXISTENCE_ERRORS,
+        oAuth: {
+          ...(externalProviders?.callbackUrls
+            ? { callbackUrls: externalProviders.callbackUrls }
+            : {}),
+          ...(externalProviders?.logoutUrls
+            ? { logoutUrls: externalProviders.logoutUrls }
+            : {}),
+          ...(externalProviders?.scopes
+            ? { scopes: externalProviders.scopes }
+            : {}),
+        },
       }
     );
 
@@ -208,55 +229,45 @@ export class AmplifyAuth
   private getUserPoolProps = (props: AuthProps): UserPoolProps => {
     const emailEnabled = props.loginWith.email ? true : false;
     const phoneEnabled = props.loginWith.phone ? true : false;
-    // check for customization
+    const oneOfEmailOrPhone = emailEnabled || phoneEnabled;
+    if (!oneOfEmailOrPhone) {
+      throw Error('At least one of email or phone must be enabled.');
+    }
     let userVerificationSettings: cognito.UserVerificationConfig = {};
-    if (emailEnabled && typeof props.loginWith.email === 'object') {
+    // extract email settings if settings object is defined
+    if (typeof props.loginWith.email === 'object') {
       const emailSettings = props.loginWith.email;
-      if (
-        emailSettings.verificationEmailBody &&
-        emailSettings.verificationEmailStyle !== 'CONFIRM_WITH_LINK'
-      ) {
-        if (emailSettings.verificationEmailBody.indexOf('{####}') === -1) {
-          throw Error(
-            "Invalid email settings. Property 'emailBody' must contain {####} as a placeholder for the verification code."
-          );
-        }
-      }
-      if (
-        emailSettings.verificationEmailBody &&
-        emailSettings.verificationEmailStyle === 'CONFIRM_WITH_LINK'
-      ) {
-        if (
-          emailSettings.verificationEmailBody.indexOf('{##Verify Email##}') ===
-          -1
-        ) {
-          throw Error(
-            "Invalid email settings. Property 'emailBody' must contain {##Verify Email##} as a placeholder for the verification link."
-          );
-        }
-      }
+      // verify email body and inject the actual template values which cognito uses
+      const emailBody: string | undefined = this.verifyEmailBody(emailSettings);
       userVerificationSettings = {
-        emailBody: emailSettings.verificationEmailBody,
+        emailBody: emailBody,
         emailStyle: this.getEmailVerificationStyle(
           emailSettings.verificationEmailStyle
         ),
         emailSubject: emailSettings.verificationEmailSubject,
       };
     }
-    if (phoneEnabled && typeof props.loginWith.phone === 'object') {
+    // extract phone settings if settings object is defined
+    if (typeof props.loginWith.phone === 'object') {
       const phoneSettings = props.loginWith.phone;
+      let smsMessage: string | undefined;
       if (
         phoneSettings.verificationMessage &&
-        phoneSettings.verificationMessage.indexOf('{####}') === -1
+        typeof phoneSettings.verificationMessage === 'function'
       ) {
         // validate sms message structure
-        throw Error(
-          "Invalid phone settings. Property 'verificationMessage' must contain {####} as a placeholder for the verification code."
+        smsMessage = phoneSettings.verificationMessage(
+          VERIFICATION_SMS_PLACEHOLDERS.CODE
         );
+        if (!smsMessage.includes(VERIFICATION_SMS_PLACEHOLDERS.CODE)) {
+          throw Error(
+            "Invalid phone settings. Property 'verificationMessage' must utilize the 'code' parameter at least once as a placeholder for the verification code."
+          );
+        }
       }
       userVerificationSettings = {
         ...userVerificationSettings,
-        smsMessage: phoneSettings.verificationMessage,
+        smsMessage: smsMessage,
       };
     }
     const userPoolProps: UserPoolProps = {
@@ -297,19 +308,55 @@ export class AmplifyAuth
   };
 
   /**
+   * Verify the email body depending on if 'CODE' or 'LINK' style is used.
+   * This ensures that the template contains the necessary placeholders for Cognito to insert verification codes or links.
+   * @param emailSettings the provided email settings
+   * @returns emailBody
+   */
+  private verifyEmailBody(
+    emailSettings: EmailLoginSettings
+  ): string | undefined {
+    let emailBody: string | undefined;
+    if (
+      emailSettings.verificationEmailBody &&
+      emailSettings.verificationEmailStyle !== 'LINK'
+    ) {
+      emailBody = emailSettings.verificationEmailBody(
+        VERIFICATION_EMAIL_PLACEHOLDERS.CODE
+      );
+      if (!emailBody.includes(VERIFICATION_EMAIL_PLACEHOLDERS.CODE)) {
+        throw Error(
+          "Invalid email settings. Property 'verificationEmailBody' must utilize the 'code' parameter at least once as a placeholder for the verification code."
+        );
+      }
+    }
+    if (
+      emailSettings.verificationEmailBody &&
+      emailSettings.verificationEmailStyle === 'LINK'
+    ) {
+      emailBody = emailSettings.verificationEmailBody(
+        VERIFICATION_EMAIL_PLACEHOLDERS.LINK
+      );
+      if (!emailBody.includes(VERIFICATION_EMAIL_PLACEHOLDERS.LINK)) {
+        throw Error(
+          "Invalid email settings. Property 'verificationEmailBody' must utilize the 'link' parameter at least once as a placeholder for the verification link."
+        );
+      }
+    }
+    return emailBody;
+  }
+
+  /**
    * Get email verification style from user props
    * @param verificationEmailStyle - string value
    * @returns verificationEmailStyle - enum value
    */
   private getEmailVerificationStyle = (
-    verificationEmailStyle:
-      | 'CONFIRM_WITH_CODE'
-      | 'CONFIRM_WITH_LINK'
-      | undefined
+    verificationEmailStyle: 'CODE' | 'LINK' | undefined
   ): cognito.VerificationEmailStyle | undefined => {
-    if (verificationEmailStyle === 'CONFIRM_WITH_CODE') {
+    if (verificationEmailStyle === 'CODE') {
       return cognito.VerificationEmailStyle.CODE;
-    } else if (verificationEmailStyle === 'CONFIRM_WITH_LINK') {
+    } else if (verificationEmailStyle === 'LINK') {
       return cognito.VerificationEmailStyle.LINK;
     }
     return undefined;
@@ -374,10 +421,10 @@ export class AmplifyAuth
     mfa: AuthProps['multifactor']
   ): string | undefined => {
     if (mfa && mfa.enforcementType !== 'OFF' && typeof mfa.sms === 'object') {
-      const message = mfa.sms.smsMessage;
-      if (message.indexOf('{####}') === -1) {
+      const message = mfa.sms.smsMessage(MFA_SMS_PLACEHOLDERS.CODE);
+      if (!message.includes(MFA_SMS_PLACEHOLDERS.CODE)) {
         throw Error(
-          "Invalid MFA settings. Property 'smsMessage' must contain {####} as a placeholder for the verification code."
+          "Invalid MFA settings. Property 'smsMessage' must utilize the 'code' parameter at least once as a placeholder for the verification code."
         );
       }
       return message;

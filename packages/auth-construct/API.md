@@ -5,7 +5,7 @@
 ```ts
 
 import { AmplifyFunction } from '@aws-amplify/plugin-types';
-import { AuthOutput } from '@aws-amplify/backend-output-schemas/auth';
+import { AuthOutput } from '@aws-amplify/backend-output-schemas';
 import { AuthResources } from '@aws-amplify/plugin-types';
 import { aws_cognito } from 'aws-cdk-lib';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
@@ -39,17 +39,17 @@ export type AuthProps = {
 
 // @public
 export type BasicLoginOptions = {
-    email: EmailLogin;
-    phone?: PhoneNumberLogin;
-} | {
     email?: EmailLogin;
-    phone: PhoneNumberLogin;
+    phone?: PhoneNumberLogin;
 };
 
 // @public
-export type EmailLogin = true | {
-    verificationEmailStyle?: 'CONFIRM_WITH_CODE' | 'CONFIRM_WITH_LINK';
-    verificationEmailBody?: string;
+export type EmailLogin = true | EmailLoginSettings;
+
+// @public
+export type EmailLoginSettings = {
+    verificationEmailStyle?: 'CODE' | 'LINK';
+    verificationEmailBody?: (codeOrLink: string) => string;
     verificationEmailSubject?: string;
 };
 
@@ -88,7 +88,7 @@ export type MFA = {
 export type MFASettings = {
     totp: boolean;
     sms: boolean | {
-        smsMessage: string;
+        smsMessage: (code: string) => string;
     };
 };
 
@@ -97,7 +97,7 @@ export type OidcProviderProps = Omit<aws_cognito.UserPoolIdentityProviderOidcPro
 
 // @public
 export type PhoneNumberLogin = true | {
-    verificationMessage?: string;
+    verificationMessage?: (code: string) => string;
 };
 
 // @public
