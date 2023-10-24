@@ -41,7 +41,7 @@ void describe('NpmInitializedEnsurer', () => {
     ]);
     assert.deepStrictEqual(execaMock.mock.calls[1].arguments, [
       'npm',
-      ['pkg', 'set', 'type="module"'],
+      ['pkg', 'set', 'type=module'],
       { stdio: 'inherit', cwd: '/testProjectRoot' },
     ]);
   });

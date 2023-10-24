@@ -40,7 +40,7 @@ export class NpmProjectInitializer {
     }
 
     try {
-      await this.execa('npm', ['pkg', 'set', 'type="module"'], {
+      await this.execa('npm', ['pkg', 'set', 'type=module'], {
         stdio: 'inherit',
         cwd: this.projectRoot,
       });
