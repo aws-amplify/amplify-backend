@@ -6,6 +6,10 @@
 
 // @public
 export class AmplifyPrompter {
+    static input: (options: {
+        message: string;
+        defaultValue?: string;
+    }) => Promise<string>;
     static secretValue: (promptMessage?: string) => Promise<string>;
     static yesOrNo: (options: {
         message: string;
