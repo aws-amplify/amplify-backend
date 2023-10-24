@@ -4,8 +4,12 @@
 
 ```ts
 
+/// <reference types="node" />
+
 import { BackendOutputEntry } from '@aws-amplify/plugin-types';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
+import * as _fs from 'fs';
+import * as _os from 'os';
 import { Stack } from 'aws-cdk-lib';
 
 // @public (undocumented)
@@ -13,8 +17,14 @@ export type AttributionMetadata = {
     createdOn: Platform;
     createdBy: DeploymentEngineType;
     createdWith: string;
-    stackType: StackType;
+    stackType: string;
 };
+
+// @public
+export class AttributionMetadataStorage {
+    constructor(fs?: typeof _fs, os?: typeof _os);
+    storeAttributionMetadata: (stack: Stack, stackType: string, libraryPackageJsonAbsolutePath: string) => void;
+}
 
 // @public (undocumented)
 export type DeploymentEngineType = 'AmplifyPipelineDeploy' | 'AmplifySandbox' | 'AmplifyCDK';
@@ -27,12 +37,6 @@ export class StackMetadataBackendOutputStorageStrategy implements BackendOutputS
     constructor(stack: Stack);
     addBackendOutputEntry: (keyName: string, backendOutputEntry: BackendOutputEntry) => void;
 }
-
-// @public (undocumented)
-export type StackType = 'root' | 'api-AppSync' | 'auth-Cognito' | 'function-Lambda' | 'storage-S3';
-
-// @public
-export const storeAttributionMetadata: (stack: Stack, type: StackType, libraryPackageJsonAbsolutePath: string) => void;
 
 // (No @packageDocumentation comment for this package)
 
