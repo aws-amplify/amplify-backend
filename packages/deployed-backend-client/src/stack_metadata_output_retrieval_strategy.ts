@@ -8,7 +8,7 @@ import {
   BackendOutputRetrievalStrategy,
   MainStackNameResolver,
 } from '@aws-amplify/plugin-types';
-import { backendOutputStackMetadataSchema } from '@aws-amplify/backend-output-schemas/platform';
+import { backendOutputStackMetadataSchema } from '@aws-amplify/backend-output-schemas';
 import {
   BackendOutputClientError,
   BackendOutputClientErrorType,

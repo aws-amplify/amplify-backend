@@ -1,8 +1,10 @@
 import { Construct } from 'constructs';
 import { Bucket, BucketProps } from 'aws-cdk-lib/aws-s3';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
-import { storageOutputKey } from '@aws-amplify/backend-output-schemas';
-import { StorageOutput } from '@aws-amplify/backend-output-schemas/storage';
+import {
+  StorageOutput,
+  storageOutputKey,
+} from '@aws-amplify/backend-output-schemas';
 import { Stack } from 'aws-cdk-lib';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 

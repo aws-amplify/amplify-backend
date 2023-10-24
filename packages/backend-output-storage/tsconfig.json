@@ -1,5 +1,14 @@
 {
   "extends": "../../tsconfig.base.json",
-  "compilerOptions": { "rootDir": "src", "outDir": "lib" },
-  "references": [{ "path": "../backend-output-schemas" }]
+  "compilerOptions": {
+    "target": "ES2018",
+    "module": "commonjs",
+    "moduleResolution": "Node",
+    "rootDir": "src",
+    "outDir": "lib"
+  },
+  "references": [
+    { "path": "../backend-output-schemas" },
+    { "path": "../platform-core" }
+  ]
 }

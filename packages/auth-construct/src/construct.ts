@@ -24,7 +24,11 @@ import { AuthOutput, authOutputKey } from '@aws-amplify/backend-output-schemas';
 import { AuthProps, EmailLoginSettings, TriggerEvent } from './types.js';
 import { DEFAULTS } from './defaults.js';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
-import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
+import {
+  StackMetadataBackendOutputStorageStrategy,
+  storeAttributionMetadata,
+} from '@aws-amplify/backend-output-storage';
+import * as path from 'path';
 
 type DefaultRoles = { auth: Role; unAuth: Role };
 type IdentityProviderSetupResult = {
@@ -139,6 +143,12 @@ export class AmplifyAuth
       },
     };
     this.storeOutput(props.outputStorageStrategy);
+
+    storeAttributionMetadata(
+      Stack.of(this),
+      'auth-Cognito',
+      path.resolve(__dirname, '..', 'package.json')
+    );
   }
 
   /**
