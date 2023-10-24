@@ -1,6 +1,7 @@
 {
   "name": "@aws-amplify/backend-output-storage",
   "version": "0.1.1-alpha.3",
+  "type": "commonjs",
   "publishConfig": {
     "access": "public"
   },

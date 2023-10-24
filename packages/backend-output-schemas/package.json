@@ -1,6 +1,7 @@
 {
   "name": "@aws-amplify/backend-output-schemas",
   "version": "0.2.0-alpha.6",
+  "type": "commonjs",
   "publishConfig": {
     "access": "public"
   },
@@ -9,6 +10,26 @@
       "types": "./lib/index.d.ts",
       "import": "./lib/index.js",
       "require": "./lib/index.js"
+    },
+    "./auth": {
+      "types": "./lib/auth/index.d.ts",
+      "import": "./lib/auth/index.js",
+      "require": "./lib/auth/index.js"
+    },
+    "./graphql": {
+      "types": "./lib/graphql/index.d.ts",
+      "import": "./lib/graphql/index.js",
+      "require": "./lib/graphql/index.js"
+    },
+    "./platform": {
+      "types": "./lib/platform/index.d.ts",
+      "import": "./lib/platform/index.js",
+      "require": "./lib/platform/index.js"
+    },
+    "./storage": {
+      "types": "./lib/storage/index.d.ts",
+      "import": "./lib/storage/index.js",
+      "require": "./lib/storage/index.js"
     }
   },
   "main": "lib/index.js",
