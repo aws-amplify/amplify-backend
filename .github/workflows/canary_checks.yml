@@ -20,5 +20,5 @@ jobs:
         shell: bash
         run: |
           rm package-lock.json
-          npm install
+          npm ci
           npm run build
