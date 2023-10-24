@@ -37,9 +37,6 @@ export type SandboxEventHandlerParams = {
   appName?: string;
   clientConfigOutDir?: string;
   format?: ClientConfigFormat;
-  modelsOutDir: string;
-  uiOutDir: string;
-  modelsFilter?: string[];
 };
 
 export type SandboxEventHandlerCreator = (

@@ -1,9 +1,5 @@
 import { CommandModule } from 'yargs';
-import {
-  SandboxCommand,
-  SandboxCommandOptions,
-  SandboxEventHandlerCreator,
-} from './sandbox_command.js';
+import { SandboxCommand, SandboxCommandOptions } from './sandbox_command.js';
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
 import { SandboxDeleteCommand } from './sandbox-delete/sandbox_delete_command.js';
 import { SandboxIdResolver } from './sandbox_id_resolver.js';
@@ -13,6 +9,7 @@ import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { LocalAppNameResolver } from '../../backend-identifier/local_app_name_resolver.js';
 import { createSandboxSecretCommand } from './sandbox-secret/sandbox_secret_command_factory.js';
 import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
+import { SandboxEventHandlerFactory } from './sandbox_event_handler_factory.js';
 
 /**
  * Creates wired sandbox command.
@@ -33,27 +30,15 @@ export const createSandboxCommand = (): CommandModule<
     const sandboxId = appName ?? (await sandboxIdResolver.resolve());
     return new SandboxBackendIdentifier(sandboxId);
   };
-  const sandboxEventHandlerCreator: SandboxEventHandlerCreator = ({
-    appName,
-    clientConfigOutDir,
-    format,
-  }) => {
-    return {
-      successfulDeployment: [
-        async () => {
-          const backendIdentifier = await getBackendIdentifier(appName);
-          await clientConfigGeneratorAdapter.generateClientConfigToFile(
-            backendIdentifier,
-            clientConfigOutDir,
-            format
-          );
-        },
-      ],
-    };
-  };
+
+  const eventHandlerFactory = new SandboxEventHandlerFactory(
+    clientConfigGeneratorAdapter,
+    getBackendIdentifier
+  );
+
   return new SandboxCommand(
     sandboxFactory,
     [new SandboxDeleteCommand(sandboxFactory), createSandboxSecretCommand()],
-    sandboxEventHandlerCreator
+    eventHandlerFactory.getSandboxEventHandlers
   );
 };
