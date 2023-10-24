@@ -18,9 +18,4 @@ jobs:
     steps:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
       - uses: ./.github/actions/setup_node
-      - name: Install and build without lock file
-        shell: bash
-        run: |
-          rm package-lock.json
-          npm install
-          npm run build
+      - uses: ./.github/actions/build_with_latest_dependencies
