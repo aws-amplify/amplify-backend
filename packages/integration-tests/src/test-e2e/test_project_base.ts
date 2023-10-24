@@ -11,19 +11,12 @@ import {
   CloudFormationClient,
   DeleteStackCommand,
 } from '@aws-sdk/client-cloudformation';
-import { TestProject } from './test_project.js';
 
 /**
  * The base abstract class for test project.
  */
-export abstract class TestProjectBase implements TestProject {
-  abstract setUpDeployEnvironment: (
-    backendId: UniqueBackendIdentifier
-  ) => Promise<void>;
-  abstract clearDeployEnvironment: (
-    backendId: UniqueBackendIdentifier
-  ) => Promise<void>;
-  abstract assertDeployment: () => Promise<void>;
+export abstract class TestProjectBase {
+  abstract assertPostDeployment: () => Promise<void>;
 
   /**
    * The base test project class constructor.
@@ -35,7 +28,10 @@ export abstract class TestProjectBase implements TestProject {
     private readonly cfnClient: CloudFormationClient
   ) {}
 
-  deploy = async (backendIdentifier: UniqueBackendIdentifier) => {
+  /**
+   * Deploy the project.
+   */
+  async deploy(backendIdentifier: UniqueBackendIdentifier) {
     if (backendIdentifier instanceof SandboxBackendIdentifier) {
       await amplifyCli(['sandbox'], this.projectDirPath)
         .do(waitForSandboxDeployment)
@@ -57,9 +53,12 @@ export abstract class TestProjectBase implements TestProject {
         }
       ).run();
     }
-  };
+  }
 
-  tearDown = async (backendIdentifier: UniqueBackendIdentifier) => {
+  /**
+   * Tear down the project.
+   */
+  async tearDown(backendIdentifier: UniqueBackendIdentifier) {
     if (backendIdentifier instanceof SandboxBackendIdentifier) {
       await amplifyCli(['sandbox', 'delete'], this.projectDirPath)
         .do(confirmDeleteSandbox)
@@ -71,5 +70,5 @@ export abstract class TestProjectBase implements TestProject {
         })
       );
     }
-  };
+  }
 }

@@ -1,4 +1,3 @@
-import { TestProject } from './test_project.js';
 import fs from 'fs/promises';
 import { SecretClient } from '@aws-amplify/backend-secret';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
@@ -8,6 +7,12 @@ import { TestProjectBase } from './test_project_base.js';
 import { pathToFileURL } from 'url';
 import assert from 'node:assert';
 import path from 'path';
+
+type TestConstant = {
+  secretNames: {
+    [name: string]: string;
+  };
+};
 
 /**
  * Test project with data, storage, and auth categories.
@@ -44,7 +49,7 @@ export class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     e2eProjectDir: string,
     cfnClient: CloudFormationClient,
     secretClient: SecretClient
-  ): Promise<TestProject> => {
+  ): Promise<DataStorageAuthWithTriggerTestProject> => {
     const { projectName, projectRoot, projectAmplifyDir } =
       await createEmptyAmplifyProject('data-storage-auth', e2eProjectDir);
 
@@ -65,11 +70,28 @@ export class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     return project;
   };
 
+  /**
+   * @inheritdoc
+   */
+  override async deploy(backendIdentifier: UniqueBackendIdentifier) {
+    await this.setUpDeployEnvironment(backendIdentifier);
+    await super.deploy(backendIdentifier);
+  }
+
+  /**
+   * @inheritdoc
+   */
+  override async tearDown(backendIdentifier: UniqueBackendIdentifier) {
+    await super.tearDown(backendIdentifier);
+    await this.clearDeployEnvironment(backendIdentifier);
+  }
+
   setUpDeployEnvironment = async (
     backendId: UniqueBackendIdentifier
   ): Promise<void> => {
-    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-    const { secretNames } = await import(this.sourceProjectConstantFilePath);
+    const { secretNames } = (await import(
+      this.sourceProjectConstantFilePath
+    )) as TestConstant;
     for (const secretField in secretNames) {
       const secretName = secretNames[secretField];
       const secretValue = `${secretName as string}-e2eTestValue`;
@@ -89,7 +111,7 @@ export class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     }
   };
 
-  assertDeployment = async (): Promise<void> => {
+  assertPostDeployment = async (): Promise<void> => {
     const { default: clientConfig } = await import(
       pathToFileURL(
         path.join(this.projectDirPath, 'amplifyconfiguration.js')

@@ -28,12 +28,10 @@ void describe('amplify deploys', async () => {
       [sandboxBackendId, branchBackendId].forEach((backendIdentifier) => {
         void it(`environment - ${backendIdentifier.disambiguator}`, async () => {
           try {
-            await testProject.setUpDeployEnvironment(backendIdentifier);
             await testProject.deploy(backendIdentifier);
-            await testProject.assertDeployment();
+            await testProject.assertPostDeployment();
           } finally {
             await testProject.tearDown(backendIdentifier);
-            await testProject.clearDeployEnvironment(backendIdentifier);
           }
         });
       });
