@@ -1,5 +1,11 @@
 # @aws-amplify/auth-construct-alpha
 
+## 0.2.0-alpha.15
+
+### Patch Changes
+
+- b0b5da94: Migrate Auth construct from ESM to CJS.
+
 ## 0.2.0-alpha.14
 
 ### Patch Changes
