@@ -129,7 +129,7 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
         models.every((m) => {
           return writeArgs.some((arg) =>
             // eslint-disable-next-line no-useless-escape
-            new RegExp(`${m}(Update|Create)Form\.d\.ts`).test(arg.toString())
+            new RegExp(`${m}(Update|Create)Form.d.ts`).test(arg.toString())
           );
         })
       );
