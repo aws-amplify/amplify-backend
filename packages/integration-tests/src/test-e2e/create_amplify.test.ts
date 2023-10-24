@@ -89,13 +89,14 @@ void describe('create-amplify script', () => {
       );
 
       const tsConfigPath = path.resolve(tempDir, 'tsconfig.json');
-      const tsConfigObject = JSON.parse(
-        await fs.readFile(tsConfigPath, 'utf-8')
-      );
+      // Generated tsconfig has comments which makes JSON.parse unhappy.
+      const tsConfigContent = await fs.readFile(tsConfigPath, 'utf-8');
 
       const expectedModuleType =
-        initialState === 'commonjs' ? 'commonjs' : 'node16';
-      assert.strictEqual(tsConfigObject.module, expectedModuleType);
+        initialState === 'commonjs'
+          ? '"module": "commonjs"'
+          : '"module": "node16"';
+      assert.ok(tsConfigContent.includes(expectedModuleType));
 
       const pathPrefix = path.join(tempDir, 'amplify');
 
