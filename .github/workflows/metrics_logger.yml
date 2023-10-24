@@ -22,4 +22,4 @@ jobs:
           --metric-name WorkflowCompleted \
           --namespace GithubWorkflows \
           --value 1 \
-          --dimensions WorkflowName=${{ github.event.workflow.name }},WorkflowConclusion=${{ github.event.workflow_run.conclusion }}
+          --dimensions WorkflowName=${{ github.event.workflow_run.name }},WorkflowConclusion=${{ github.event.workflow_run.conclusion }}
