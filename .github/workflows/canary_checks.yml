@@ -11,6 +11,7 @@ on:
 jobs:
   local_checks_with_latest_dependencies:
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
