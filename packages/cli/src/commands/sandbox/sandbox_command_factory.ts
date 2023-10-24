@@ -1,5 +1,9 @@
 import { CommandModule } from 'yargs';
-import { SandboxCommand, SandboxCommandOptions } from './sandbox_command.js';
+import {
+  SandboxCommand,
+  SandboxCommandOptions,
+  SandboxEventHandlerCreator,
+} from './sandbox_command.js';
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
 import { SandboxDeleteCommand } from './sandbox-delete/sandbox_delete_command.js';
 import { SandboxIdResolver } from './sandbox_id_resolver.js';
@@ -8,8 +12,10 @@ import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { LocalAppNameResolver } from '../../backend-identifier/local_app_name_resolver.js';
 import { createSandboxSecretCommand } from './sandbox-secret/sandbox_secret_command_factory.js';
+import { BackendOutputClientFactory } from '@aws-amplify/deployed-backend-client';
+import { graphqlOutputKey } from '@aws-amplify/backend-output-schemas';
+import { FormGenerationHandler } from '../../form-generation/form_generation_handler.js';
 import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
-import { SandboxEventHandlerFactory } from './sandbox_event_handler_factory.js';
 
 /**
  * Creates wired sandbox command.
@@ -30,15 +36,48 @@ export const createSandboxCommand = (): CommandModule<
     const sandboxId = appName ?? (await sandboxIdResolver.resolve());
     return new SandboxBackendIdentifier(sandboxId);
   };
-
-  const eventHandlerFactory = new SandboxEventHandlerFactory(
-    clientConfigGeneratorAdapter,
-    getBackendIdentifier
-  );
-
+  const formGeneratorHandler = new FormGenerationHandler({
+    credentialProvider,
+  });
+  const sandboxEventHandlerCreator: SandboxEventHandlerCreator = ({
+    appName,
+    clientConfigOutDir,
+    format,
+    modelsOutDir,
+    uiOutDir,
+    modelsFilter,
+  }) => {
+    return {
+      successfulDeployment: [
+        async () => {
+          const backendIdentifier = await getBackendIdentifier(appName);
+          await clientConfigGeneratorAdapter.generateClientConfigToFile(
+            backendIdentifier,
+            clientConfigOutDir,
+            format
+          );
+          const outputClient = BackendOutputClientFactory.getInstance({
+            credentials: credentialProvider,
+          });
+          const output = await outputClient.getOutput(backendIdentifier);
+          const apiUrl =
+            output[graphqlOutputKey]?.payload.amplifyApiModelSchemaS3Uri;
+          if (apiUrl) {
+            await formGeneratorHandler.generate({
+              backendIdentifier,
+              apiUrl,
+              modelsOutDir,
+              uiOutDir,
+              modelsFilter,
+            });
+          }
+        },
+      ],
+    };
+  };
   return new SandboxCommand(
     sandboxFactory,
     [new SandboxDeleteCommand(sandboxFactory), createSandboxSecretCommand()],
-    eventHandlerFactory.getSandboxEventHandlers
+    sandboxEventHandlerCreator
   );
 };

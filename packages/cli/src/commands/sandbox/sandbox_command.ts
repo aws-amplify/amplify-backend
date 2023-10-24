@@ -37,6 +37,9 @@ export type SandboxEventHandlerParams = {
   appName?: string;
   clientConfigOutDir?: string;
   format?: ClientConfigFormat;
+  modelsOutDir: string;
+  uiOutDir: string;
+  modelsFilter?: string[];
 };
 
 export type SandboxEventHandlerCreator = (
@@ -87,6 +90,9 @@ export class SandboxCommand
       appName: args.name,
       format: args.format,
       clientConfigOutDir: args['out-dir'],
+      modelsOutDir: args['models-out-dir'],
+      uiOutDir: args['ui-out-dir'],
+      modelsFilter: args['models-filter'],
     });
     if (eventHandlers) {
       Object.entries(eventHandlers).forEach(([event, handlers]) => {
