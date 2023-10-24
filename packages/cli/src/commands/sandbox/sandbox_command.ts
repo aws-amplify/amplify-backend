@@ -87,9 +87,6 @@ export class SandboxCommand
       appName: args.name,
       format: args.format,
       clientConfigOutDir: args['out-dir'],
-      modelsOutDir: args['models-out-dir'],
-      uiOutDir: args['ui-out-dir'],
-      modelsFilter: args['models-filter'],
     });
     if (eventHandlers) {
       Object.entries(eventHandlers).forEach(([event, handlers]) => {
