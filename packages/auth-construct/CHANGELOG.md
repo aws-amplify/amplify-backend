@@ -1,5 +1,18 @@
 # @aws-amplify/auth-construct-alpha
 
+## 0.2.0-alpha.15
+
+### Patch Changes
+
+- b0b5da94: Migrate Auth construct from ESM to CJS.
+
+## 0.2.0-alpha.14
+
+### Patch Changes
+
+- b10f2a61: Rename UserPoolWebClient to UserPoolAppClient
+- 5f02b83b: Fix issue with additional oauth settings and improve documentation.
+
 ## 0.2.0-alpha.13
 
 ### Patch Changes

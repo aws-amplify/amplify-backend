@@ -22,6 +22,7 @@ import {
   CloudFormationClient,
   DeleteStackCommand,
 } from '@aws-sdk/client-cloudformation';
+import { PredicatedActionBuilder } from '../process-controller/predicated_action_queue_builder.js';
 
 void describe('amplify deploys', () => {
   const e2eProjectDir = getTestDir;
@@ -172,6 +173,60 @@ void describe('amplify deploys', () => {
 
         await testProject.assertions();
       });
+    });
+  });
+
+  void describe('it fails on compilation error', () => {
+    beforeEach(async () => {
+      // any project is fine
+      const testProject = testProjects[0];
+      await fs.cp(testProject.amplifyPath, testAmplifyDir, {
+        recursive: true,
+      });
+
+      // inject failure
+      await fs.appendFile(
+        path.join(testAmplifyDir, 'backend.ts'),
+        "this won't compile"
+      );
+    });
+
+    void it('in sandbox deploy', async () => {
+      await amplifyCli(['sandbox', '--dirToWatch', 'amplify'], testProjectRoot)
+        .do(new PredicatedActionBuilder().waitForLineIncludes('error TS'))
+        .do(
+          new PredicatedActionBuilder().waitForLineIncludes(
+            'Unexpected keyword or identifier'
+          )
+        )
+        .do(interruptSandbox())
+        .do(rejectCleanupSandbox())
+        .run();
+    });
+
+    void it('in pipeline deploy', async () => {
+      await assert.rejects(() =>
+        amplifyCli(
+          [
+            'pipeline-deploy',
+            '--branch',
+            'test-branch',
+            '--app-id',
+            `test-${shortUuid()}`,
+          ],
+          testProjectRoot,
+          {
+            env: { CI: 'true' },
+          }
+        )
+          .do(new PredicatedActionBuilder().waitForLineIncludes('error TS'))
+          .do(
+            new PredicatedActionBuilder().waitForLineIncludes(
+              'Unexpected keyword or identifier'
+            )
+          )
+          .run()
+      );
     });
   });
 });

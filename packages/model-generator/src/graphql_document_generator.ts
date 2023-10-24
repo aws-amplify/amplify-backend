@@ -22,6 +22,7 @@ export class AppSyncGraphqlDocumentGenerator
     language,
     maxDepth,
     typenameIntrospection,
+    relativeTypesPath,
   }: DocumentGenerationParameters) => {
     const schema = await this.fetchSchema();
 
@@ -34,6 +35,7 @@ export class AppSyncGraphqlDocumentGenerator
       target: language,
       maxDepth,
       typenameIntrospection,
+      relativeTypesPath,
     });
 
     return this.resultBuilder(generatedStatements);

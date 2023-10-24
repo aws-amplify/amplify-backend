@@ -20,8 +20,7 @@ import {
   UserPoolProps,
 } from 'aws-cdk-lib/aws-cognito';
 import { FederatedPrincipal, Role } from 'aws-cdk-lib/aws-iam';
-import { AuthOutput } from '@aws-amplify/backend-output-schemas/auth';
-import { authOutputKey } from '@aws-amplify/backend-output-schemas';
+import { AuthOutput, authOutputKey } from '@aws-amplify/backend-output-schemas';
 import { AuthProps, EmailLoginSettings, TriggerEvent } from './types.js';
 import { DEFAULTS } from './defaults.js';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
@@ -95,13 +94,25 @@ export class AmplifyAuth
     this.oauthMappings = providerSetupResult.oauthMappings;
 
     // UserPool Client
+    const externalProviders = props.loginWith.externalProviders;
     const userPoolClient = new cognito.UserPoolClient(
       this,
-      'UserPoolWebClient',
+      'UserPoolAppClient',
       {
         userPool: this.userPool,
         authFlows: DEFAULTS.AUTH_FLOWS,
         preventUserExistenceErrors: DEFAULTS.PREVENT_USER_EXISTENCE_ERRORS,
+        oAuth: {
+          ...(externalProviders?.callbackUrls
+            ? { callbackUrls: externalProviders.callbackUrls }
+            : {}),
+          ...(externalProviders?.logoutUrls
+            ? { logoutUrls: externalProviders.logoutUrls }
+            : {}),
+          ...(externalProviders?.scopes
+            ? { scopes: externalProviders.scopes }
+            : {}),
+        },
       }
     );
 
@@ -218,6 +229,10 @@ export class AmplifyAuth
   private getUserPoolProps = (props: AuthProps): UserPoolProps => {
     const emailEnabled = props.loginWith.email ? true : false;
     const phoneEnabled = props.loginWith.phone ? true : false;
+    const oneOfEmailOrPhone = emailEnabled || phoneEnabled;
+    if (!oneOfEmailOrPhone) {
+      throw Error('At least one of email or phone must be enabled.');
+    }
     let userVerificationSettings: cognito.UserVerificationConfig = {};
     // extract email settings if settings object is defined
     if (typeof props.loginWith.email === 'object') {

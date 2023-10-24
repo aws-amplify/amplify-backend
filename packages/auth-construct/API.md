@@ -5,7 +5,7 @@
 ```ts
 
 import { AmplifyFunction } from '@aws-amplify/plugin-types';
-import { AuthOutput } from '@aws-amplify/backend-output-schemas/auth';
+import { AuthOutput } from '@aws-amplify/backend-output-schemas';
 import { AuthResources } from '@aws-amplify/plugin-types';
 import { aws_cognito } from 'aws-cdk-lib';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
@@ -39,11 +39,8 @@ export type AuthProps = {
 
 // @public
 export type BasicLoginOptions = {
-    email: EmailLogin;
-    phone?: PhoneNumberLogin;
-} | {
     email?: EmailLogin;
-    phone: PhoneNumberLogin;
+    phone?: PhoneNumberLogin;
 };
 
 // @public

@@ -78,7 +78,7 @@
     }
    }
   },
-  "amplifyAuthUserPoolWebClientA385E48A": {
+  "amplifyAuthUserPoolAppClient2626C6F8": {
    "Type": "AWS::Cognito::UserPoolClient",
    "Properties": {
     "AllowedOAuthFlows": [
@@ -151,7 +151,7 @@
     "CognitoIdentityProviders": [
      {
       "ClientId": {
-       "Ref": "amplifyAuthUserPoolWebClientA385E48A"
+       "Ref": "amplifyAuthUserPoolAppClient2626C6F8"
       },
       "ProviderName": {
        "Fn::Join": [
@@ -196,7 +196,7 @@
          },
          ":",
          {
-          "Ref": "amplifyAuthUserPoolWebClientA385E48A"
+          "Ref": "amplifyAuthUserPoolAppClient2626C6F8"
          }
         ]
        ]
@@ -221,7 +221,7 @@
    },
    "DependsOn": [
     "amplifyAuthIdentityPool3FDE84CC",
-    "amplifyAuthUserPoolWebClientA385E48A"
+    "amplifyAuthUserPoolAppClient2626C6F8"
    ]
   }
  },
@@ -236,9 +236,9 @@
     "Ref": "amplifyAuthUserPool4BA7F805"
    }
   },
-  "amplifytestAppIdtestBranchNameauthamplifyAuthUserPoolWebClientEFCFE2AFRef": {
+  "amplifytestAppIdtestBranchNameauthamplifyAuthUserPoolAppClientDDB3608BRef": {
    "Value": {
-    "Ref": "amplifyAuthUserPoolWebClientA385E48A"
+    "Ref": "amplifyAuthUserPoolAppClient2626C6F8"
    }
   },
   "amplifytestAppIdtestBranchNameauthamplifyAuthIdentityPool40350D66Ref": {
