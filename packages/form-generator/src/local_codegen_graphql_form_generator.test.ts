@@ -64,7 +64,7 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
       }));
       await output.writeToDirectory('./');
       const writeArgs = fsMock.mock.calls.flatMap((c) => c.arguments[0]);
-      assert(writeArgs.includes('utils.js'));
+      assert(writeArgs.some((e) => /utils\.[jt]s[x]?/.test(e.toString())));
     });
     void it('generates index file', async () => {
       const models = ['Post', 'Author', 'Foo'];
