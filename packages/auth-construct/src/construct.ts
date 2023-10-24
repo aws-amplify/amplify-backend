@@ -25,8 +25,8 @@ import { AuthProps, EmailLoginSettings, TriggerEvent } from './types.js';
 import { DEFAULTS } from './defaults.js';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import {
+  AttributionMetadataStorage,
   StackMetadataBackendOutputStorageStrategy,
-  storeAttributionMetadata,
 } from '@aws-amplify/backend-output-storage';
 import * as path from 'path';
 
@@ -147,7 +147,7 @@ export class AmplifyAuth
     };
     this.storeOutput(props.outputStorageStrategy);
 
-    storeAttributionMetadata(
+    new AttributionMetadataStorage().storeAttributionMetadata(
       Stack.of(this),
       authStackType,
       path.resolve(__dirname, '..', 'package.json')

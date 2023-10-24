@@ -8,8 +8,8 @@ import {
 import { SingletonConstructContainer } from './engine/singleton_construct_container.js';
 import { ToggleableImportPathVerifier } from './engine/toggleable_import_path_verifier.js';
 import {
+  AttributionMetadataStorage,
   StackMetadataBackendOutputStorageStrategy,
-  storeAttributionMetadata,
 } from '@aws-amplify/backend-output-storage';
 import { createDefaultStack } from './default_stack_factory.js';
 import { getUniqueBackendIdentifier } from './backend_identifier.js';
@@ -40,7 +40,7 @@ export class Backend<T extends Record<string, ConstructFactory<Construct>>> {
    * If no CDK App is specified a new one is created
    */
   constructor(constructFactories: T, stack: Stack = createDefaultStack()) {
-    storeAttributionMetadata(
+    new AttributionMetadataStorage().storeAttributionMetadata(
       stack,
       rootStackTypeIdentifier,
       fileURLToPath(new URL('../package.json', import.meta.url))
