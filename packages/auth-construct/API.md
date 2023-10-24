@@ -33,7 +33,7 @@ export type AuthProps = {
     loginWith: BasicLoginOptions & ExternalProviderProps;
     userAttributes?: StandardAttributes;
     multifactor?: MFA;
-    accountRecovery?: aws_cognito.AccountRecovery;
+    accountRecovery?: 'EMAIL_AND_PHONE_WITHOUT_MFA' | 'PHONE_WITHOUT_MFA_AND_EMAIL' | 'EMAIL_ONLY' | 'PHONE_ONLY_WITHOUT_MFA' | 'PHONE_AND_EMAIL' | 'NONE';
     outputStorageStrategy?: BackendOutputStorageStrategy<AuthOutput>;
 };
 
@@ -81,12 +81,12 @@ export type GoogleProviderProps = Omit<aws_cognito.UserPoolIdentityProviderGoogl
 
 // @public
 export type MFA = {
-    enforcementType: 'OFF' | 'OPTIONAL' | 'REQUIRED';
+    mode: 'OFF' | 'OPTIONAL' | 'REQUIRED';
 } & MFASettings;
 
 // @public
 export type MFASettings = {
-    totp: boolean;
+    totp?: boolean;
     sms: boolean | {
         smsMessage: (code: string) => string;
     };
