@@ -6,4 +6,5 @@ result = result.filter((result) => !result.includes('integration-tests'));
 result.push(
   path.join('packages', 'integration-tests', 'lib', 'test-in-memory')
 );
+result.push('scripts');
 console.log(result.join(' '));
