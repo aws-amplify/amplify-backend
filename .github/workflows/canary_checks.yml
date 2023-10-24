@@ -1,9 +1,6 @@
 name: canary_checks
 
 on:
-  push:
-    branches:
-      - canaries
   schedule:
     - cron: '0 12 * * *' # every day 12:00 UTC
   workflow_dispatch:
