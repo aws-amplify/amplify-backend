@@ -1,0 +1,27 @@
+name: canary_checks
+
+on:
+  schedule:
+    - cron: '0 12 * * *' # every day 12:00 UTC
+  workflow_dispatch:
+
+jobs:
+  local_checks_with_latest_dependencies:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
+      - uses: ./.github/actions/setup_node
+      - name: Install and build without lock file
+        shell: bash
+        run: |
+          rm package-lock.json
+          npm install
+          npm run build
+      - name: Check dependencies
+        shell: bash
+        run: |
+          npm run check:dependencies
+      - name: Run unit and integration tests
+        shell: bash
+        run: |
+          npm run test
