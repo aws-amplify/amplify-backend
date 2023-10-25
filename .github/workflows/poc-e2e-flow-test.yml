@@ -1,0 +1,31 @@
+# Description: This workflow mimic the flow of behaviors when user using Amplify CLI;
+
+name: 'poc-e2e-flow-test'
+
+on:
+  push:
+    branches:
+      - poc/e2e-test
+
+jobs:
+  create-amplify-project:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+        node-version: [18]
+        pkg-manager: [npm, yarn]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout aws-amplify/amplify-cli repo
+        uses: actions/checkout@b4ffde6 # v4.1.1. TODO: try only fetch .github/workflow
+      - name: Setup Node.js
+        uses: actions/setup-node@8f152de #4.0.0
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: ${{ matrix.pkg-manager }}
+      - name: create-amplify-project
+        shell: bash
+        run: |
+          mkdir -p /tmp/amplify-project; cd /tmp/amplify-project
+          npm create amplify@alpha --yes
