@@ -18,7 +18,7 @@ void it('calls the client config adapter on the successfulDeployment event', asy
   await Promise.all(
     eventFactory
       .getSandboxEventHandlers({
-        format: ClientConfigFormat.JS,
+        format: ClientConfigFormat.MJS,
         appName: 'my-app',
         clientConfigOutDir: 'test-out',
       })
@@ -28,6 +28,6 @@ void it('calls the client config adapter on the successfulDeployment event', asy
   assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments, [
     { backendId: 'test', disambiguator: 'sandbox' },
     'test-out',
-    'js',
+    'mjs',
   ]);
 });

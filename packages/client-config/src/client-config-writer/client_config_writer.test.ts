@@ -35,11 +35,11 @@ void describe('client config writer', () => {
     assert.deepEqual(JSON.parse(actualConfig), clientConfig);
   });
 
-  void it('writes js config to target location as default export', async () => {
+  void it('writes mjs config to target location as default export', async () => {
     const targetPath = path.join(
       process.cwd(),
       targetDirectory,
-      'amplifyconfiguration.js'
+      'amplifyconfiguration.mjs'
     );
     await clientConfigWriter.writeClientConfig(clientConfig, targetPath);
 
@@ -48,5 +48,17 @@ void describe('client config writer', () => {
       pathToFileURL(targetPath).toString()
     );
     assert.deepEqual(actualConfig, clientConfig);
+  });
+
+  void it('writes dart config to target location as map object', async () => {
+    const targetPath = path.join(
+      process.cwd(),
+      targetDirectory,
+      'amplifyconfiguration.json'
+    );
+    await clientConfigWriter.writeClientConfig(clientConfig, targetPath);
+
+    const actualConfig = await fs.readFile(targetPath, 'utf-8');
+    assert.deepEqual(actualConfig, JSON.stringify(clientConfig, null, 2));
   });
 });
