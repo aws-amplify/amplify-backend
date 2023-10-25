@@ -229,6 +229,7 @@ void describe('Sandbox using local project name resolver', () => {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: false,
+        cdkOutputPath: './.amplify/artifacts/cdk.out',
       },
     ]);
   });
@@ -257,6 +258,7 @@ void describe('Sandbox using local project name resolver', () => {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
+        cdkOutputPath: './.amplify/artifacts/cdk.out',
       },
     ]);
   });
@@ -275,7 +277,7 @@ void describe('Sandbox using local project name resolver', () => {
     // File watcher should be called with right arguments such as dir and excludes
     assert.strictEqual(subscribeMock.mock.calls[0].arguments[0], 'testDir');
     assert.deepStrictEqual(subscribeMock.mock.calls[0].arguments[2], {
-      ignore: ['cdk.out', 'exclude1', 'exclude2'],
+      ignore: ['./.amplify/artifacts/cdk.out', 'exclude1', 'exclude2'],
     });
 
     // BackendDeployer should be called once
@@ -289,6 +291,7 @@ void describe('Sandbox using local project name resolver', () => {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
+        cdkOutputPath: './.amplify/artifacts/cdk.out',
       },
     ]);
     assert.strictEqual(cfnClientSendMock.mock.callCount(), 0);
@@ -311,6 +314,7 @@ void describe('Sandbox using local project name resolver', () => {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
+        cdkOutputPath: './.amplify/artifacts/cdk.out',
       },
     ]);
   });
@@ -332,6 +336,7 @@ void describe('Sandbox using local project name resolver', () => {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: false,
+        cdkOutputPath: './.amplify/artifacts/cdk.out',
       },
     ]);
   });
@@ -359,6 +364,7 @@ void describe('Sandbox using local project name resolver', () => {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
+        cdkOutputPath: './.amplify/artifacts/cdk.out',
       },
     ]);
   });
@@ -382,6 +388,7 @@ void describe('Sandbox using local project name resolver', () => {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
+        cdkOutputPath: './.amplify/artifacts/cdk.out',
       },
     ]);
     // BackendDeployer should be called with the right params
@@ -391,6 +398,7 @@ void describe('Sandbox using local project name resolver', () => {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
+        cdkOutputPath: './.amplify/artifacts/cdk.out',
       },
     ]);
   });
@@ -429,6 +437,7 @@ void describe('Sandbox using local project name resolver', () => {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
+        cdkOutputPath: './.amplify/artifacts/cdk.out',
       },
     ]);
     // BackendDeployer should be called with the right params
@@ -438,6 +447,7 @@ void describe('Sandbox using local project name resolver', () => {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
+        cdkOutputPath: './.amplify/artifacts/cdk.out',
       },
     ]);
   });
@@ -455,7 +465,10 @@ void describe('Sandbox using local project name resolver', () => {
     // BackendDeployer should be called with the right params
     assert.deepEqual(backendDeployerDestroyMock.mock.calls[0].arguments, [
       new SandboxBackendIdentifier('testSandboxId'),
-      { deploymentType: BackendDeploymentType.SANDBOX },
+      {
+        deploymentType: BackendDeploymentType.SANDBOX,
+        cdkOutputPath: './.amplify/artifacts/cdk.out',
+      },
     ]);
   });
 
@@ -623,6 +636,7 @@ void describe('Sandbox using local project name resolver', () => {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
+        cdkOutputPath: './.amplify/artifacts/cdk.out',
       },
     ]);
   });
@@ -641,7 +655,10 @@ void describe('Sandbox using local project name resolver', () => {
     // BackendDeployer should be called with the right params
     assert.deepEqual(backendDeployerDestroyMock.mock.calls[0].arguments, [
       new SandboxBackendIdentifier('customSandboxName'),
-      { deploymentType: BackendDeploymentType.SANDBOX },
+      {
+        deploymentType: BackendDeploymentType.SANDBOX,
+        cdkOutputPath: './.amplify/artifacts/cdk.out',
+      },
     ]);
   });
 
@@ -670,7 +687,7 @@ void describe('Sandbox using local project name resolver', () => {
     // File watcher should be called with right excludes
     assert.deepStrictEqual(subscribeMock.mock.calls[0].arguments[2], {
       ignore: [
-        'cdk.out',
+        './.amplify/artifacts/cdk.out',
         'patternWithLeadingSlash',
         'patternWithoutLeadingSlash',
         'someFile.js',

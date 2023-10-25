@@ -4,6 +4,8 @@ import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import { BackendDeploymentType } from '@aws-amplify/platform-core';
 import { SecretClient } from '@aws-amplify/backend-secret';
 
+export const CDK_OUTPUT_PATH = './.amplify/artifacts/cdk.out';
+
 /**
  * Execute CDK commands.
  */
@@ -59,6 +61,7 @@ export class AmplifySandboxExecutor {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated,
         validateAppSources,
+        cdkOutputPath: CDK_OUTPUT_PATH,
       });
     });
   };
@@ -74,6 +77,7 @@ export class AmplifySandboxExecutor {
       async () =>
         await this.backendDeployer.destroy(uniqueBackendIdentifier, {
           deploymentType: BackendDeploymentType.SANDBOX,
+          cdkOutputPath: CDK_OUTPUT_PATH,
         })
     );
   };

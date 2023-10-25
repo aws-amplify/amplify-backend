@@ -7,10 +7,12 @@ export type DeployProps = {
   deploymentType?: BackendDeploymentType;
   secretLastUpdated?: Date;
   validateAppSources?: boolean;
+  cdkOutputPath?: string;
 };
 
 export type DestroyProps = {
   deploymentType?: BackendDeploymentType;
+  cdkOutputPath?: string;
 };
 
 /**

@@ -16,6 +16,7 @@ void describe('invokeCDKCommand', () => {
   const sandboxDeployProps: DeployProps = {
     deploymentType: BackendDeploymentType.SANDBOX,
     secretLastUpdated: new Date(12345678),
+    cdkOutputPath: './.amplify/artifacts/cdk.out',
   };
 
   const invoker = new CDKDeployer(new CdkErrorMapper());
@@ -66,7 +67,7 @@ void describe('invokeCDKCommand', () => {
   void it('handles deployProps for sandbox', async () => {
     await invoker.deploy(undefined, sandboxDeployProps);
     assert.strictEqual(execaMock.mock.callCount(), 1);
-    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 12);
+    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 14);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
       'cdk',
       'deploy',
@@ -76,6 +77,8 @@ void describe('invokeCDKCommand', () => {
       '--all',
       '--context',
       'deployment-type=SANDBOX',
+      '--output',
+      './.amplify/artifacts/cdk.out',
       '--hotswap-fallback',
       '--method=direct',
       '--context',
@@ -88,7 +91,7 @@ void describe('invokeCDKCommand', () => {
   void it('handles options and deployProps for sandbox', async () => {
     await invoker.deploy(uniqueBackendIdentifier, sandboxDeployProps);
     assert.strictEqual(execaMock.mock.callCount(), 1);
-    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 14);
+    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 16);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
       'cdk',
       'deploy',
@@ -100,6 +103,8 @@ void describe('invokeCDKCommand', () => {
       'backend-id=123',
       '--context',
       'deployment-type=SANDBOX',
+      '--output',
+      './.amplify/artifacts/cdk.out',
       '--hotswap-fallback',
       '--method=direct',
       '--context',
@@ -112,9 +117,10 @@ void describe('invokeCDKCommand', () => {
   void it('handles destroy for sandbox', async () => {
     await invoker.destroy(uniqueBackendIdentifier, {
       deploymentType: BackendDeploymentType.SANDBOX,
+      cdkOutputPath: './.amplify/artifacts/cdk.out',
     });
     assert.strictEqual(execaMock.mock.callCount(), 1);
-    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 11);
+    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 13);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
       'cdk',
       'destroy',
@@ -126,6 +132,8 @@ void describe('invokeCDKCommand', () => {
       'backend-id=123',
       '--context',
       'deployment-type=SANDBOX',
+      '--output',
+      './.amplify/artifacts/cdk.out',
       '--force',
     ]);
   });

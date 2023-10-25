@@ -54,6 +54,7 @@ export class CDKDeployer implements BackendDeployer {
       InvokableCommand.DEPLOY,
       uniqueBackendIdentifier,
       deployProps?.deploymentType,
+      deployProps?.cdkOutputPath,
       cdkCommandArgs
     );
   };
@@ -69,6 +70,7 @@ export class CDKDeployer implements BackendDeployer {
       InvokableCommand.DESTROY,
       uniqueBackendIdentifier,
       destroyProps?.deploymentType,
+      destroyProps?.cdkOutputPath,
       ['--force']
     );
   };
@@ -89,6 +91,7 @@ export class CDKDeployer implements BackendDeployer {
     invokableCommand: InvokableCommand,
     uniqueBackendIdentifier?: UniqueBackendIdentifier,
     deploymentType?: BackendDeploymentType,
+    cdkOutputPath?: string,
     additionalArguments?: string[]
   ) => {
     // Basic args
@@ -120,6 +123,10 @@ export class CDKDeployer implements BackendDeployer {
 
     if (deploymentType) {
       cdkCommandArgs.push('--context', `deployment-type=${deploymentType}`);
+    }
+
+    if (cdkOutputPath) {
+      cdkCommandArgs.push('--output', cdkOutputPath);
     }
 
     if (additionalArguments) {

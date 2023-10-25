@@ -1,6 +1,6 @@
 import debounce from 'debounce-promise';
 import parcelWatcher, { subscribe } from '@parcel/watcher';
-import { AmplifySandboxExecutor } from './sandbox_executor.js';
+import { AmplifySandboxExecutor, CDK_OUTPUT_PATH } from './sandbox_executor.js';
 import {
   Sandbox,
   SandboxDeleteOptions,
@@ -41,7 +41,7 @@ export const getBootstrapUrl = (region: string) =>
  */
 export class FileWatchingSandbox extends EventEmitter implements Sandbox {
   private watcherSubscription: Awaited<ReturnType<typeof subscribe>>;
-  private outputFilesExcludedFromWatch = ['cdk.out'];
+  private outputFilesExcludedFromWatch = [CDK_OUTPUT_PATH];
   private filesChangesTracker: FilesChangesTracker;
 
   /**
