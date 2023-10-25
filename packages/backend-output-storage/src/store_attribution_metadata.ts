@@ -28,7 +28,8 @@ export class AttributionMetadataStorage {
   storeAttributionMetadata = (
     stack: Stack,
     stackType: string,
-    libraryPackageJsonAbsolutePath: string
+    libraryPackageJsonAbsolutePath: string,
+    additionalMetadata: Record<string, string> = {}
   ): void => {
     if (
       typeof stack.templateOptions.description === 'string' &&
@@ -41,7 +42,8 @@ export class AttributionMetadataStorage {
       this.getAttributionMetadata(
         stack,
         stackType,
-        libraryPackageJsonAbsolutePath
+        libraryPackageJsonAbsolutePath,
+        additionalMetadata
       )
     );
   };
@@ -49,12 +51,14 @@ export class AttributionMetadataStorage {
   private getAttributionMetadata = (
     stack: Stack,
     stackType: string,
-    libraryPackageJsonAbsolutePath: string
+    libraryPackageJsonAbsolutePath: string,
+    additionalMetadata: Record<string, string>
   ): AttributionMetadata => ({
     createdOn: this.getPlatform(),
     createdBy: this.getDeploymentEngineType(stack),
     createdWith: this.getLibraryVersion(libraryPackageJsonAbsolutePath),
     stackType: stackType,
+    metadata: additionalMetadata,
   });
 
   private getLibraryVersion = (absolutePackageJsonPath: string): string => {
@@ -130,6 +134,11 @@ export type AttributionMetadata = {
    * String that identifies what type of stack this metadata is set on
    */
   stackType: string;
+
+  /**
+   * Field where constructs can put additional information for BI tracking
+   */
+  metadata: Record<string, string>;
 };
 
 export type DeploymentEngineType =

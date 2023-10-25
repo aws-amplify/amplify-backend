@@ -117,6 +117,35 @@ void describe('storeAttributionMetadata', () => {
     assert.equal(metadata.createdWith, '12.13.14');
   });
 
+  void it('sets additional metadata in attribution payload', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    new AttributionMetadataStorage(fsMock as never).storeAttributionMetadata(
+      stack,
+      'test',
+      'some/path',
+      { some: 'otherData' }
+    );
+    const attribution: AttributionMetadata = JSON.parse(
+      stack.templateOptions.description || ''
+    );
+    assert.deepStrictEqual(attribution.metadata, { some: 'otherData' });
+  });
+
+  void it('sets empty additional metadata object if none specified', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    new AttributionMetadataStorage(fsMock as never).storeAttributionMetadata(
+      stack,
+      'test',
+      'some/path'
+    );
+    const attribution: AttributionMetadata = JSON.parse(
+      stack.templateOptions.description || ''
+    );
+    assert.deepStrictEqual(attribution.metadata, {});
+  });
+
   const platformTests = [
     { nodePlatform: 'darwin', expectedMetadataPlatform: 'Mac' },
     { nodePlatform: 'win32', expectedMetadataPlatform: 'Windows' },
