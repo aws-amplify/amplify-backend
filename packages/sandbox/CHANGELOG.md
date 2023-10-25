@@ -1,5 +1,16 @@
 # @aws-amplify/sandbox
 
+## 0.2.0-alpha.17
+
+### Patch Changes
+
+- 4664e675: Change default cdk output directory for sandbox environments
+- Updated dependencies [e233eab6]
+- Updated dependencies [5826ad3b]
+- Updated dependencies [4664e675]
+  - @aws-amplify/client-config@0.2.0-alpha.12
+  - @aws-amplify/backend-deployer@0.2.0-alpha.10
+
 ## 0.2.0-alpha.16
 
 ### Patch Changes
