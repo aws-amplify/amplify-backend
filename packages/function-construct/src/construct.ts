@@ -1,6 +1,9 @@
 import { Construct } from 'constructs';
 import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { AmplifyFunction, FunctionResources } from '@aws-amplify/plugin-types';
+import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage';
+import { Stack } from 'aws-cdk-lib';
+import { fileURLToPath } from 'url';
 
 export type AmplifyFunctionProps = {
   absoluteCodePath: string;
@@ -29,5 +32,11 @@ export class AmplifyLambdaFunction
         handler: props.handler || 'index.handler',
       }),
     };
+
+    new AttributionMetadataStorage().storeAttributionMetadata(
+      Stack.of(this),
+      'function-Lambda',
+      fileURLToPath(new URL('../package.json', import.meta.url))
+    );
   }
 }
