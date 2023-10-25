@@ -248,17 +248,6 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     }
 
     if (apiStack) {
-      const schemaFileUri =
-        backendOutput[graphqlOutputKey]?.payload.amplifyApiModelSchemaS3Uri;
-      const modelIntrospectionSchemaUri =
-        backendOutput[graphqlOutputKey]?.payload
-          .amplifyApiModelIntrospectionSchemaS3Uri ||
-        // TODO: Once the introspection schema is in the CFN output, remove the below line and the OR operator above.
-        // GH link: https://github.com/aws-amplify/samsara-cli/issues/395
-        `${
-          schemaFileUri.slice(0, schemaFileUri.lastIndexOf('/')) as string
-        }/model-introspection-schema.json`;
-
       const additionalAuthTypesString =
         backendOutput[graphqlOutputKey]?.payload
           .awsAppsyncAdditionalAuthenticationTypes;
@@ -277,12 +266,8 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
         additionalAuthTypes,
         conflictResolutionMode: backendOutput[graphqlOutputKey]?.payload
           .awsAppsyncConflictResolutionMode as ConflictResolutionMode,
-        graphqlSchema: await this.fetchSchema(schemaFileUri),
         apiId: backendOutput[graphqlOutputKey]?.payload
           .awsAppsyncApiId as string,
-        modelIntrospectionSchema: await this.fetchSchema(
-          modelIntrospectionSchemaUri
-        ),
       };
     }
 
