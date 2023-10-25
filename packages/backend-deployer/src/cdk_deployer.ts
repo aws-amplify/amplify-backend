@@ -78,6 +78,12 @@ export class CDKDeployer implements BackendDeployer {
       'tsc',
       '--noEmit',
       '--skipLibCheck',
+      '--module',
+      'node16',
+      '--moduleResolution',
+      'node16',
+      '--target',
+      'es2022',
       relativeBackendEntryPoint,
     ]);
   };
