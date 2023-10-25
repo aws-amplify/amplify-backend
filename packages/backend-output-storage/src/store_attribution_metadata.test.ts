@@ -124,7 +124,7 @@ void describe('storeAttributionMetadata', () => {
     { nodePlatform: 'android', expectedMetadataPlatform: 'Other' },
   ];
 
-  for (const { nodePlatform, expectedMetadataPlatform } of platformTests) {
+  platformTests.forEach(({ nodePlatform, expectedMetadataPlatform }) => {
     void it(`sets ${expectedMetadataPlatform} platform on ${nodePlatform}`, () => {
       const osMock = {
         platform: mock.fn(() => nodePlatform),
@@ -140,5 +140,5 @@ void describe('storeAttributionMetadata', () => {
       );
       assert.equal(metadata.createdOn, expectedMetadataPlatform);
     });
-  }
+  });
 });

@@ -12,6 +12,9 @@ import {
 } from '@aws-amplify/backend-output-storage';
 import { fileURLToPath } from 'url';
 
+// Be very careful editing this value. It is the string that is used to attribute stacks to Amplify Storage in BI metrics
+const storageStackType = 'storage-S3';
+
 export type AmplifyStorageProps = {
   versioned?: boolean;
   outputStorageStrategy?: BackendOutputStorageStrategy<StorageOutput>;
@@ -40,7 +43,7 @@ export class AmplifyStorage extends Construct {
 
     new AttributionMetadataStorage().storeAttributionMetadata(
       Stack.of(this),
-      'storage-S3',
+      storageStackType,
       fileURLToPath(new URL('../package.json', import.meta.url))
     );
   }

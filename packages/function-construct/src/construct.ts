@@ -5,6 +5,9 @@ import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage'
 import { Stack } from 'aws-cdk-lib';
 import { fileURLToPath } from 'url';
 
+// Be very careful editing this value. It is the string that is used to attribute stacks to Amplify Function in BI metrics
+const functionStackType = 'function-Lambda';
+
 export type AmplifyFunctionProps = {
   absoluteCodePath: string;
   runtime?: Runtime;
@@ -35,7 +38,7 @@ export class AmplifyLambdaFunction
 
     new AttributionMetadataStorage().storeAttributionMetadata(
       Stack.of(this),
-      'function-Lambda',
+      functionStackType,
       fileURLToPath(new URL('../package.json', import.meta.url))
     );
   }
