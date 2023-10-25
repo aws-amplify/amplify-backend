@@ -36,8 +36,7 @@ void describe('create-amplify script', () => {
     await fs.rm(tempDir, { recursive: true });
   });
 
-  type InitialState = 'empty' | 'module' | 'commonjs';
-  const initialStates: Array<InitialState> = ['empty', 'module', 'commonjs'];
+  const initialStates = ['empty', 'module', 'commonjs'] as const;
 
   initialStates.forEach((initialState) => {
     void it(`installs expected packages and scaffolds expected files starting from ${initialState} project`, async () => {

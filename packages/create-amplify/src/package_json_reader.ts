@@ -2,8 +2,8 @@ import { readFile as _readFile } from 'fs/promises';
 import path from 'path';
 
 export type PackageJson = {
-  name: string;
-  version: string;
+  name?: string;
+  version?: string;
   type?: 'module' | 'commonjs';
 };
 
