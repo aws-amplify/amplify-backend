@@ -80,7 +80,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
    */
   start = async (options: SandboxOptions) => {
     this.filesChangesTracker = await createFilesChangesTracker(
-      options.dir ?? process.cwd()
+      options.dir ?? './amplify'
     );
     const bootstrapped = await this.isBootstrapped();
     if (!bootstrapped) {
@@ -133,7 +133,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     });
 
     this.watcherSubscription = await parcelWatcher.subscribe(
-      options.dir ?? process.cwd(),
+      options.dir ?? './amplify',
       async (_, events) => {
         // Log and track file changes.
         await Promise.all(

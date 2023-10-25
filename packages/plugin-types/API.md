@@ -30,8 +30,8 @@ export type AuthCfnResources = {
 export type AuthResources = {
     userPool: IUserPool;
     userPoolClient: IUserPoolClient;
-    authenticatedUserIamRole?: IRole;
-    unauthenticatedUserIamRole?: IRole;
+    authenticatedUserIamRole: IRole;
+    unauthenticatedUserIamRole: IRole;
     cfnResources: AuthCfnResources;
 };
 

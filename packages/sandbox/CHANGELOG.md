@@ -1,5 +1,15 @@
 # @aws-amplify/sandbox
 
+## 0.2.0-alpha.16
+
+### Patch Changes
+
+- 08601278: change sandbox --dir-to-watch to ./amplify directory
+- Updated dependencies [675f4283]
+- Updated dependencies [4d411b67]
+  - @aws-amplify/cli-core@0.1.0-alpha.3
+  - @aws-amplify/deployed-backend-client@0.2.0-alpha.9
+
 ## 0.2.0-alpha.15
 
 ### Patch Changes

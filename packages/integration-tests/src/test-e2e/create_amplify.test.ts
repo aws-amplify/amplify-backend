@@ -36,75 +36,110 @@ void describe('create-amplify script', () => {
     await fs.rm(tempDir, { recursive: true });
   });
 
-  void it('installs expected packages and scaffolds expected files', async () => {
-    // TODO remove alpha tag from command once we are publishing to latest
-    // https://github.com/aws-amplify/samsara-cli/issues/144
-    await execa('npm', ['create', 'amplify@alpha', '--yes'], {
-      cwd: tempDir,
-      stdio: 'inherit',
-    });
-    const packageJsonPath = path.resolve(tempDir, 'package.json');
-    const packageJsonObject = JSON.parse(
-      await fs.readFile(packageJsonPath, 'utf-8')
-    );
-    assert.deepStrictEqual(
-      Object.keys(packageJsonObject.devDependencies).sort(),
-      [
-        '@aws-amplify/amplify-api-next-alpha',
-        '@aws-amplify/backend',
-        '@aws-amplify/backend-auth',
-        '@aws-amplify/backend-cli',
-        '@aws-amplify/backend-graphql',
-        'typescript',
-      ]
-    );
+  const initialStates = ['empty', 'module', 'commonjs'] as const;
 
-    assert.deepStrictEqual(Object.keys(packageJsonObject.dependencies).sort(), [
-      'aws-amplify',
-    ]);
+  initialStates.forEach((initialState) => {
+    void it(`installs expected packages and scaffolds expected files starting from ${initialState} project`, async () => {
+      if (initialState != 'empty') {
+        await fs.writeFile(
+          path.join(tempDir, 'package.json'),
+          JSON.stringify(
+            {
+              name: 'test_name',
+              version: '0.0.1',
+              type: initialState,
+            },
+            null,
+            2
+          )
+        );
+      }
 
-    const pathPrefix = path.join(tempDir, 'amplify');
-
-    const files = await glob(path.join(pathPrefix, '**', '*'), {
-      // eslint-disable-next-line spellcheck/spell-checker
-      nodir: true,
-      windowsPathsNoEscape: true,
-    });
-
-    assert.deepStrictEqual(
-      files.sort(),
-      [
-        path.join('auth', 'resource.ts'),
-        'backend.ts',
-        path.join('data', 'resource.ts'),
-      ].map((suffix) => path.join(pathPrefix, suffix))
-    );
-
-    // assert that project compiles successfully
-    await execa('npx', ['tsc', '--noEmit'], {
-      cwd: tempDir,
-      stdio: 'inherit',
-    });
-
-    // assert that project synthesizes successfully
-    await execa(
-      'npx',
-      [
-        'cdk',
-        'synth',
-        '--context',
-        'backend-id=123',
-        '--context',
-        'deployment-type=SANDBOX',
-        '--app',
-        "'npx tsx amplify/backend.ts'",
-        '--quiet',
-      ],
-      {
+      // TODO remove alpha tag from command once we are publishing to latest
+      // https://github.com/aws-amplify/samsara-cli/issues/144
+      await execa('npm', ['create', 'amplify@alpha', '--yes'], {
         cwd: tempDir,
         stdio: 'inherit',
-      }
-    );
+      });
+      const packageJsonPath = path.resolve(tempDir, 'package.json');
+      const packageJsonObject = JSON.parse(
+        await fs.readFile(packageJsonPath, 'utf-8')
+      );
+
+      const expectedProjectType =
+        initialState === 'commonjs' ? 'commonjs' : 'module';
+      assert.strictEqual(packageJsonObject.type, expectedProjectType);
+
+      assert.deepStrictEqual(
+        Object.keys(packageJsonObject.devDependencies).sort(),
+        [
+          '@aws-amplify/amplify-api-next-alpha',
+          '@aws-amplify/backend',
+          '@aws-amplify/backend-auth',
+          '@aws-amplify/backend-cli',
+          '@aws-amplify/backend-graphql',
+          'typescript',
+        ]
+      );
+
+      assert.deepStrictEqual(
+        Object.keys(packageJsonObject.dependencies).sort(),
+        ['aws-amplify']
+      );
+
+      const tsConfigPath = path.resolve(tempDir, 'tsconfig.json');
+      // Generated tsconfig has comments which makes JSON.parse unhappy.
+      const tsConfigContent = await fs.readFile(tsConfigPath, 'utf-8');
+
+      const expectedModuleType =
+        initialState === 'commonjs'
+          ? '"module": "commonjs"'
+          : '"module": "node16"';
+      assert.ok(tsConfigContent.includes(expectedModuleType));
+
+      const pathPrefix = path.join(tempDir, 'amplify');
+
+      const files = await glob(path.join(pathPrefix, '**', '*'), {
+        // eslint-disable-next-line spellcheck/spell-checker
+        nodir: true,
+        windowsPathsNoEscape: true,
+      });
+
+      assert.deepStrictEqual(
+        files.sort(),
+        [
+          path.join('auth', 'resource.ts'),
+          'backend.ts',
+          path.join('data', 'resource.ts'),
+        ].map((suffix) => path.join(pathPrefix, suffix))
+      );
+
+      // assert that project compiles successfully
+      await execa('npx', ['tsc', '--noEmit'], {
+        cwd: tempDir,
+        stdio: 'inherit',
+      });
+
+      // assert that project synthesizes successfully
+      await execa(
+        'npx',
+        [
+          'cdk',
+          'synth',
+          '--context',
+          'backend-id=123',
+          '--context',
+          'deployment-type=SANDBOX',
+          '--app',
+          "'npx tsx amplify/backend.ts'",
+          '--quiet',
+        ],
+        {
+          cwd: tempDir,
+          stdio: 'inherit',
+        }
+      );
+    });
   });
 
   void it('fails fast if amplify path already exists', async () => {

@@ -1,5 +1,15 @@
 # @aws-amplify/backend-graphql
 
+## 0.2.0-alpha.11
+
+### Patch Changes
+
+- Updated dependencies [18874854]
+- Updated dependencies [883d9da7]
+  - @aws-amplify/plugin-types@0.2.0-alpha.10
+  - @aws-amplify/backend-output-schemas@0.2.0-alpha.7
+  - @aws-amplify/backend-output-storage@0.2.0-alpha.4
+
 ## 0.2.0-alpha.10
 
 ### Patch Changes
