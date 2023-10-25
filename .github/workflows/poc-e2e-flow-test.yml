@@ -24,16 +24,17 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: npm
-      - name: create-amplify-project
+      - name: ${{matrix.pkg-manager}}-create-amplify-project
         if: matrix.pkg-manager != 'yarn1' && matrix.pkg-manager != 'yarn3'
         shell: bash
         run: |
           mkdir -p /tmp/amplify-project; cd /tmp/amplify-project
           npm install -g ${{matrix.pkg-manager}}
           ${{matrix.pkg-manager}} create amplify@alpha --yes
-      - name: create-amplify-project
+      - name: yarn-1-create-amplify-project
         if: matrix.pkg-manager == 'yarn1'
         shell: bash
-        run: |
+        run: | # yarn1 create amplify doesn't work with @ahpha tag
           mkdir -p /tmp/amplify-project; cd /tmp/amplify-project
           yarn create amplify --yes
+          ~/.yarn/bin/create-amplify
