@@ -43,4 +43,4 @@ jobs:
         if: matrix.pkg-manager == 'yarn1'
         shell: bash
         run: |
-          ~/.yarn/bin/create-amplify
+          /usr/local/bin/create-amplify
