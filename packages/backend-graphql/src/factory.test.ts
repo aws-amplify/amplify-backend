@@ -26,7 +26,10 @@ import {
   UserPoolClient,
 } from 'aws-cdk-lib/aws-cognito';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
-import { BackendDeploymentType } from '@aws-amplify/platform-core';
+import {
+  BackendDeploymentType,
+  backendDeploymentTypeKey,
+} from '@aws-amplify/platform-core';
 import { AmplifyGraphqlApi } from '@aws-amplify/graphql-api-construct';
 
 const testSchema = `
@@ -43,7 +46,7 @@ const createStackAndSetContext = (): Stack => {
   const app = new App();
   app.node.setContext('branch-name', 'testEnvName');
   app.node.setContext('backend-id', 'testBackendId');
-  app.node.setContext('deployment-type', BackendDeploymentType.BRANCH);
+  app.node.setContext(backendDeploymentTypeKey, BackendDeploymentType.BRANCH);
   const stack = new Stack(app);
   return stack;
 };

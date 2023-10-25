@@ -1,13 +1,10 @@
 import { Stack } from 'aws-cdk-lib';
 import * as _os from 'os';
-import { BackendDeploymentType } from '@aws-amplify/platform-core';
+import {
+  BackendDeploymentType,
+  backendDeploymentTypeKey,
+} from '@aws-amplify/platform-core';
 import * as _fs from 'fs';
-
-/**
- * This key is a small bit of tight coupling to the backend-engine package which sets this context value
- * However, there is not a suitable place for this value to sit in a shared location at this time and this value alone is not enough to justify another package
- */
-const deploymentTypeCDKContextKey = 'deployment-type';
 
 /**
  * Stores BI metrics information in stack descriptions
@@ -82,7 +79,7 @@ export class AttributionMetadataStorage {
 
   private getDeploymentEngineType = (stack: Stack): DeploymentEngineType => {
     const deploymentType: BackendDeploymentType | undefined =
-      stack.node.tryGetContext(deploymentTypeCDKContextKey);
+      stack.node.tryGetContext(backendDeploymentTypeKey);
 
     if (deploymentType === undefined) {
       // if no deployment type context value is set, assume the construct is being used in a native CDK project
@@ -96,7 +93,7 @@ export class AttributionMetadataStorage {
         return 'AmplifySandbox';
       default:
         throw new Error(
-          `Unknown ${deploymentTypeCDKContextKey} CDK context value "${
+          `Unknown ${backendDeploymentTypeKey} CDK context value "${
             deploymentType as string
           }"`
         );

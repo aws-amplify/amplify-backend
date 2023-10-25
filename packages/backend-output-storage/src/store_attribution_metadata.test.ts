@@ -5,7 +5,10 @@ import {
   AttributionMetadataStorage,
 } from './store_attribution_metadata.js';
 import assert from 'node:assert';
-import { BackendDeploymentType } from '@aws-amplify/platform-core';
+import {
+  BackendDeploymentType,
+  backendDeploymentTypeKey,
+} from '@aws-amplify/platform-core';
 
 void describe('storeAttributionMetadata', () => {
   const existsSyncMock = mock.fn(() => true);
@@ -75,7 +78,10 @@ void describe('storeAttributionMetadata', () => {
   void it('sets pipeline deploy type when BackendDeploymentType is BRANCH', () => {
     const app = new App();
     const stack = new Stack(app);
-    stack.node.setContext('deployment-type', BackendDeploymentType.BRANCH);
+    stack.node.setContext(
+      backendDeploymentTypeKey,
+      BackendDeploymentType.BRANCH
+    );
     new AttributionMetadataStorage(fsMock as never).storeAttributionMetadata(
       stack,
       'test',
@@ -90,7 +96,10 @@ void describe('storeAttributionMetadata', () => {
   void it('sets sandbox deploy type when BackendDeploymentType is SANDBOX', () => {
     const app = new App();
     const stack = new Stack(app);
-    stack.node.setContext('deployment-type', BackendDeploymentType.SANDBOX);
+    stack.node.setContext(
+      backendDeploymentTypeKey,
+      BackendDeploymentType.SANDBOX
+    );
     new AttributionMetadataStorage(fsMock as never).storeAttributionMetadata(
       stack,
       'test',
@@ -105,7 +114,10 @@ void describe('storeAttributionMetadata', () => {
   void it('sets library version', () => {
     const app = new App();
     const stack = new Stack(app);
-    stack.node.setContext('deployment-type', BackendDeploymentType.SANDBOX);
+    stack.node.setContext(
+      backendDeploymentTypeKey,
+      BackendDeploymentType.SANDBOX
+    );
     new AttributionMetadataStorage(fsMock as never).storeAttributionMetadata(
       stack,
       'test',

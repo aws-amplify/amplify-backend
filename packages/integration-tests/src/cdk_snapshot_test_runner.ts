@@ -5,6 +5,7 @@ import * as os from 'os';
 import * as fs from 'fs';
 import { validateCdkOutDir } from './cdk_out_dir_validator.js';
 import { pathToFileURL } from 'url';
+import { backendDeploymentTypeKey } from '@aws-amplify/platform-core';
 
 export type CDKSynthSnapshotTestCase = {
   name: string;
@@ -44,7 +45,7 @@ const runCDKSnapshotTest = ({
     process.env.CDK_CONTEXT_JSON = JSON.stringify({
       'backend-id': 'testAppId',
       'branch-name': 'testBranchName',
-      'deployment-type': 'BRANCH',
+      [backendDeploymentTypeKey]: 'BRANCH',
     });
   });
   afterEach(() => {
