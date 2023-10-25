@@ -18,9 +18,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout aws-amplify/amplify-cli repo
-        uses: actions/checkout@b4ffde6 # v4.1.1. TODO: try only fetch .github/workflow
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1. TODO: try only fetch .github/workflow
       - name: Setup Node.js
-        uses: actions/setup-node@8f152de #4.0.0
+        uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65 #4.0.0
         with:
           node-version: ${{ matrix.node-version }}
           cache: ${{ matrix.pkg-manager }}
