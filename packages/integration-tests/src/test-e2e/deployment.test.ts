@@ -75,6 +75,29 @@ void describe('amplify deploys', () => {
         ]);
       },
     },
+    {
+      name: 'minimalist-project-with-typescript-idioms',
+      amplifyPath: new URL(
+        '../../test-projects/minimalist-project-with-typescript-idioms/amplify',
+        import.meta.url
+      ),
+      updates: [
+        {
+          amplifyPath: new URL(
+            '../../test-projects/data-storage-auth-with-triggers/update-1',
+            import.meta.url
+          ),
+          fileToUpdate: 'data/resource.ts',
+          deploymentThresholdInSeconds: 22,
+        },
+      ],
+      assertions: async () => {
+        const clientConfigStats = await fs.stat(
+          path.join(testProjectRoot, 'amplifyconfiguration.js')
+        );
+        assert.ok(clientConfigStats.isFile());
+      },
+    },
   ];
 
   void describe('sandbox', () => {
