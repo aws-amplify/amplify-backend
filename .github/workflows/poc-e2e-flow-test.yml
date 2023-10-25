@@ -58,6 +58,8 @@ jobs:
         shell: bash
         run: |
           corepack enable
+          echo "yarn set version stable"
           yarn set version stable
+          echo "yarn version $(yarn --version)"
           mkdir -p /tmp/amplify-project; cd /tmp/amplify-project
           yarn create amplify@alpha
