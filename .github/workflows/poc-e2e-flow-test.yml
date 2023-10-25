@@ -14,7 +14,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macOS-latest]
         node-version: [18]
-        pkg-manager: [npm, yarn]
+        pkg-manager: [npm, yarn1, yarn3, pnpm, bun]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout aws-amplify/amplify-cli repo
@@ -25,7 +25,14 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: npm
       - name: create-amplify-project
+        if: matrix.pkg-manager != 'yarn1' && matrix.pkg-manager != 'yarn3'
         shell: bash
         run: |
           mkdir -p /tmp/amplify-project; cd /tmp/amplify-project
           ${{matrix.pkg-manager}} create amplify@alpha --yes
+      - name: create-amplify-project
+        if: matrix.pkg-manager == 'yarn1'
+        shell: bash
+        run: |
+          mkdir -p /tmp/amplify-project; cd /tmp/amplify-project
+          ${{matrix.pkg-manager}} create amplify --yes
