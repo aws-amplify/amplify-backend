@@ -3,7 +3,7 @@ import assert from 'assert';
 import fsp from 'fs/promises';
 import path from 'path';
 import { getProjectRoot } from './get_project_root.js';
-import { AmplifyPrompter } from './amplify_prompts.js';
+import { AmplifyPrompter } from '@aws-amplify/cli-core';
 
 const originalEnv = process.env;
 

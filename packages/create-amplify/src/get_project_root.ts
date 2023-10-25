@@ -1,6 +1,6 @@
 import fsp from 'fs/promises';
 import path from 'path';
-import { AmplifyPrompter } from './amplify_prompts.js';
+import { AmplifyPrompter } from '@aws-amplify/cli-core';
 import { logger } from './logger.js';
 
 /**
@@ -9,7 +9,7 @@ import { logger } from './logger.js';
 export const getProjectRoot = async () => {
   const useDefault = process.env.npm_config_yes === 'true';
   const defaultProjectRoot = '.';
-  let projectRoot = useDefault
+  let projectRoot: string = useDefault
     ? defaultProjectRoot
     : await AmplifyPrompter.input({
         message: 'Where should we create your project?',

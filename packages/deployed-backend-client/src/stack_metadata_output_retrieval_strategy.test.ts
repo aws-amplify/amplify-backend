@@ -6,7 +6,6 @@ import {
 } from '@aws-sdk/client-cloudformation';
 import { StackMetadataBackendOutputRetrievalStrategy } from './stack_metadata_output_retrieval_strategy.js';
 import assert from 'node:assert';
-import { ZodError } from 'zod';
 import { MainStackNameResolver } from '@aws-amplify/plugin-types';
 import {
   authOutputKey,
@@ -108,7 +107,12 @@ void describe('StackMetadataBackendOutputRetrievalStrategy', () => {
 
       await assert.rejects(
         retrievalStrategy.fetchBackendOutput(),
-        (err) => err instanceof ZodError
+        (err: { name: string }) => {
+          if (err && err.name === 'ZodError') {
+            return true;
+          }
+          return false;
+        }
       );
     });
 
