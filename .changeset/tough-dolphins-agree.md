@@ -3,4 +3,4 @@
 '@aws-amplify/sandbox': patch
 ---
 
-Change default cdk output directory for sandbox enviironments
+Change default cdk output directory for sandbox environments
