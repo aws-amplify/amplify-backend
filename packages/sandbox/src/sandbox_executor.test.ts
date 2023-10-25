@@ -83,7 +83,7 @@ void describe('Sandbox executor', () => {
           deploymentType: BackendDeploymentType.SANDBOX,
           secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
           validateAppSources: shouldValidateSources,
-          cdkOutputPath: './.amplify/artifacts/cdk.out',
+          cdkOutputPath: '.amplify/artifacts/cdk.out',
         },
       ]);
     });

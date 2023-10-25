@@ -4,7 +4,7 @@ import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import { BackendDeploymentType } from '@aws-amplify/platform-core';
 import { SecretClient } from '@aws-amplify/backend-secret';
 
-export const CDK_OUTPUT_PATH = './.amplify/artifacts/cdk.out';
+export const CDK_OUTPUT_PATH = '.amplify/artifacts/cdk.out';
 
 /**
  * Execute CDK commands.

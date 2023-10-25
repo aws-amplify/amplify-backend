@@ -16,7 +16,7 @@ void describe('invokeCDKCommand', () => {
   const sandboxDeployProps: DeployProps = {
     deploymentType: BackendDeploymentType.SANDBOX,
     secretLastUpdated: new Date(12345678),
-    cdkOutputPath: './.amplify/artifacts/cdk.out',
+    cdkOutputPath: '.amplify/artifacts/cdk.out',
   };
 
   const invoker = new CDKDeployer(new CdkErrorMapper());
@@ -78,7 +78,7 @@ void describe('invokeCDKCommand', () => {
       '--context',
       'deployment-type=SANDBOX',
       '--output',
-      './.amplify/artifacts/cdk.out',
+      '.amplify/artifacts/cdk.out',
       '--hotswap-fallback',
       '--method=direct',
       '--context',
@@ -104,7 +104,7 @@ void describe('invokeCDKCommand', () => {
       '--context',
       'deployment-type=SANDBOX',
       '--output',
-      './.amplify/artifacts/cdk.out',
+      '.amplify/artifacts/cdk.out',
       '--hotswap-fallback',
       '--method=direct',
       '--context',
@@ -117,7 +117,7 @@ void describe('invokeCDKCommand', () => {
   void it('handles destroy for sandbox', async () => {
     await invoker.destroy(uniqueBackendIdentifier, {
       deploymentType: BackendDeploymentType.SANDBOX,
-      cdkOutputPath: './.amplify/artifacts/cdk.out',
+      cdkOutputPath: '.amplify/artifacts/cdk.out',
     });
     assert.strictEqual(execaMock.mock.callCount(), 1);
     assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 13);
@@ -133,7 +133,7 @@ void describe('invokeCDKCommand', () => {
       '--context',
       'deployment-type=SANDBOX',
       '--output',
-      './.amplify/artifacts/cdk.out',
+      '.amplify/artifacts/cdk.out',
       '--force',
     ]);
   });
