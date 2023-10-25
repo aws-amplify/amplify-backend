@@ -1,5 +1,16 @@
 # @aws-amplify/auth-construct-alpha
 
+## 0.2.0-alpha.16
+
+### Patch Changes
+
+- 18874854: Rename MFA enforcementType to mode. Convert accountRecovery to string union instead of enum. Make totp setting optional. Make auth/unauth roles required properties.
+- Updated dependencies [18874854]
+- Updated dependencies [883d9da7]
+  - @aws-amplify/plugin-types@0.2.0-alpha.10
+  - @aws-amplify/backend-output-schemas@0.2.0-alpha.7
+  - @aws-amplify/backend-output-storage@0.2.0-alpha.4
+
 ## 0.2.0-alpha.15
 
 ### Patch Changes

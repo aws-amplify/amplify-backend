@@ -1,5 +1,26 @@
 # @aws-amplify/backend-cli
 
+## 0.2.0-alpha.12
+
+### Minor Changes
+
+- 3fd21230: Removes event hook that runs formgen after sandbox deployment.
+
+### Patch Changes
+
+- df25ec57: Remove short circuit logic in client config generation event
+- Updated dependencies [1817c55c]
+- Updated dependencies [675f4283]
+- Updated dependencies [08601278]
+- Updated dependencies [aee0a52d]
+- Updated dependencies [4d411b67]
+- Updated dependencies [883d9da7]
+  - @aws-amplify/form-generator@0.2.0-alpha.4
+  - @aws-amplify/cli-core@0.1.0-alpha.3
+  - @aws-amplify/sandbox@0.2.0-alpha.16
+  - @aws-amplify/deployed-backend-client@0.2.0-alpha.9
+  - @aws-amplify/backend-output-schemas@0.2.0-alpha.7
+
 ## 0.2.0-alpha.11
 
 ### Minor Changes
