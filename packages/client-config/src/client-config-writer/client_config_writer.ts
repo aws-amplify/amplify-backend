@@ -17,12 +17,21 @@ export class ClientConfigWriter {
     const fileExtension = path.parse(targetPath).ext;
     switch (fileExtension) {
       case '.ts':
-      case '.js': {
+      case '.mjs': {
         const fileContent = `const amplifyConfig = ${JSON.stringify(
           clientConfig,
           null,
           2
         )}${os.EOL}export default amplifyConfig;${os.EOL}`;
+        await fsp.writeFile(targetPath, fileContent);
+        break;
+      }
+      case '.dart': {
+        const fileContent = `final Map<String, dynamic> amplifyConfig = ${JSON.stringify(
+          clientConfig,
+          null,
+          2
+        )}`;
         await fsp.writeFile(targetPath, fileContent);
         break;
       }

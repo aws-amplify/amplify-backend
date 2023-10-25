@@ -10,7 +10,8 @@ export type ClientConfig = Partial<
 >;
 
 export enum ClientConfigFormat {
-  JS = 'js',
+  MJS = 'mjs',
   JSON = 'json',
   TS = 'ts',
+  DART = 'dart',
 }
