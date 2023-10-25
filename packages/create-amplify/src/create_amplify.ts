@@ -23,7 +23,7 @@ const amplifyProjectCreator = new AmplifyProjectCreator(
   new ProjectRootValidator(projectRoot),
   new InitialProjectFileGenerator(projectRoot),
   new NpmProjectInitializer(projectRoot),
-  new TsConfigInitializer(projectRoot, new PackageJsonReader()),
+  new TsConfigInitializer(projectRoot, new PackageJsonReader(projectRoot)),
   projectRoot
 );
 

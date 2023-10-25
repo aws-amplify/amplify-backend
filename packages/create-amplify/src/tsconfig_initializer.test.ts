@@ -7,7 +7,7 @@ void describe('TsConfigInitializer', () => {
   let packageJsonReader: PackageJsonReader;
 
   beforeEach(() => {
-    packageJsonReader = new PackageJsonReader();
+    packageJsonReader = new PackageJsonReader('/testProjectRoot');
     mock.method(packageJsonReader, 'readPackageJson', () =>
       Promise.resolve({
         name: 'test_name',

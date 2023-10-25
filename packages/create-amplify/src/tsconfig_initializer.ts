@@ -30,9 +30,7 @@ export class TsConfigInitializer {
       'No tsconfig.json file found in the current directory. Running `npx tsc --init`...'
     );
 
-    const packageJson = await this.packageJsonReader.readPackageJson(
-      this.projectRoot
-    );
+    const packageJson = await this.packageJsonReader.readPackageJson();
     const tscArgs = ['tsc', '--init'];
     if (packageJson.type === 'module') {
       tscArgs.push(

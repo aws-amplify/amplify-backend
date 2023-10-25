@@ -18,9 +18,12 @@ void describe('Package JSON reader', () => {
         )
       )
     );
-    const packageJsonReader = new PackageJsonReader(readFileMock as never);
     const testPath = 'test_path';
-    const packageJson = await packageJsonReader.readPackageJson(testPath);
+    const packageJsonReader = new PackageJsonReader(
+      testPath,
+      readFileMock as never
+    );
+    const packageJson = await packageJsonReader.readPackageJson();
     assert.strictEqual(packageJson.name, 'test_name');
     assert.strictEqual(packageJson.version, 'test_version');
     assert.strictEqual(packageJson.type, 'module');
