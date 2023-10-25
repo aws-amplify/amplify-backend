@@ -1,4 +1,5 @@
 {
+ "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyPipelineDeploy\",\"createdWith\":\"0.2.0-alpha.9\",\"stackType\":\"root\"}",
  "Metadata": {
   "AWS::Amplify::Platform": {
    "version": "1",
