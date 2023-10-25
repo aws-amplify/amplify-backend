@@ -57,9 +57,7 @@ jobs:
         if: matrix.pkg-manager == 'yarn3'
         shell: bash
         run: |
-          corepack enable
-          echo "yarn set version stable"
-          yarn set version stable
-          echo "yarn version $(yarn --version)"
           mkdir -p /tmp/amplify-project; cd /tmp/amplify-project
+          echo "yarnPath: .yarn/releases/yarn-3.5.0.cjs" >> .yarnrc.yml
+          echo "yarn version $(yarn --version)"
           yarn create amplify@alpha
