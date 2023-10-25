@@ -1,5 +1,15 @@
 # @aws-amplify/form-generator
 
+## 0.2.0-alpha.4
+
+### Minor Changes
+
+- aee0a52d: use latest version of codegen
+
+### Patch Changes
+
+- 1817c55c: Generate type declaration files for rendered components
+
 ## 0.2.0-alpha.3
 
 ### Patch Changes

@@ -1,5 +1,16 @@
 # @aws-amplify/backend-output-storage
 
+## 0.2.0-alpha.4
+
+### Minor Changes
+
+- 883d9da7: Migrate auth dependencies to CommonJS.
+
+### Patch Changes
+
+- Updated dependencies [883d9da7]
+  - @aws-amplify/backend-output-schemas@0.2.0-alpha.7
+
 ## 0.1.1-alpha.3
 
 ### Patch Changes
