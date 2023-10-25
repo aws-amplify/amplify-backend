@@ -101,6 +101,8 @@ export class CDKDeployer implements BackendDeployer {
       '--app',
       `'npx tsx ${relativeBackendEntryPoint}'`,
       '--all',
+      '--output',
+      '.amplify/artifacts/cdk.out',
     ];
 
     // Add context information if available

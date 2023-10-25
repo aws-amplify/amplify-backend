@@ -41,7 +41,7 @@ export const getBootstrapUrl = (region: string) =>
  */
 export class FileWatchingSandbox extends EventEmitter implements Sandbox {
   private watcherSubscription: Awaited<ReturnType<typeof subscribe>>;
-  private outputFilesExcludedFromWatch = ['cdk.out'];
+  private outputFilesExcludedFromWatch = ['.amplify'];
   private filesChangesTracker: FilesChangesTracker;
 
   /**

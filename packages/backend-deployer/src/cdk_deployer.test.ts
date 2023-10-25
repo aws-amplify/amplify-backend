@@ -34,7 +34,7 @@ void describe('invokeCDKCommand', () => {
   void it('handles no options/args', async () => {
     await invoker.deploy();
     assert.strictEqual(execaMock.mock.callCount(), 1);
-    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 6);
+    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 8);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
       'cdk',
       'deploy',
@@ -42,13 +42,15 @@ void describe('invokeCDKCommand', () => {
       '--app',
       "'npx tsx amplify/backend.ts'",
       '--all',
+      '--output',
+      '.amplify/artifacts/cdk.out',
     ]);
   });
 
   void it('handles options for branch deployments', async () => {
     await invoker.deploy(uniqueBackendIdentifier);
     assert.strictEqual(execaMock.mock.callCount(), 1);
-    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 10);
+    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 12);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
       'cdk',
       'deploy',
@@ -56,6 +58,8 @@ void describe('invokeCDKCommand', () => {
       '--app',
       "'npx tsx amplify/backend.ts'",
       '--all',
+      '--output',
+      '.amplify/artifacts/cdk.out',
       '--context',
       'backend-id=123',
       '--context',
@@ -66,7 +70,7 @@ void describe('invokeCDKCommand', () => {
   void it('handles deployProps for sandbox', async () => {
     await invoker.deploy(undefined, sandboxDeployProps);
     assert.strictEqual(execaMock.mock.callCount(), 1);
-    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 12);
+    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 14);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
       'cdk',
       'deploy',
@@ -74,6 +78,8 @@ void describe('invokeCDKCommand', () => {
       '--app',
       "'npx tsx amplify/backend.ts'",
       '--all',
+      '--output',
+      '.amplify/artifacts/cdk.out',
       '--context',
       'deployment-type=SANDBOX',
       '--hotswap-fallback',
@@ -88,7 +94,7 @@ void describe('invokeCDKCommand', () => {
   void it('handles options and deployProps for sandbox', async () => {
     await invoker.deploy(uniqueBackendIdentifier, sandboxDeployProps);
     assert.strictEqual(execaMock.mock.callCount(), 1);
-    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 14);
+    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 16);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
       'cdk',
       'deploy',
@@ -96,6 +102,8 @@ void describe('invokeCDKCommand', () => {
       '--app',
       "'npx tsx amplify/backend.ts'",
       '--all',
+      '--output',
+      '.amplify/artifacts/cdk.out',
       '--context',
       'backend-id=123',
       '--context',
@@ -114,7 +122,7 @@ void describe('invokeCDKCommand', () => {
       deploymentType: BackendDeploymentType.SANDBOX,
     });
     assert.strictEqual(execaMock.mock.callCount(), 1);
-    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 11);
+    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 13);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
       'cdk',
       'destroy',
@@ -122,6 +130,8 @@ void describe('invokeCDKCommand', () => {
       '--app',
       "'npx tsx amplify/backend.ts'",
       '--all',
+      '--output',
+      '.amplify/artifacts/cdk.out',
       '--context',
       'backend-id=123',
       '--context',
@@ -143,7 +153,7 @@ void describe('invokeCDKCommand', () => {
       '--skipLibCheck',
       'amplify/backend.ts',
     ]);
-    assert.equal(execaMock.mock.calls[1].arguments[1]?.length, 12);
+    assert.equal(execaMock.mock.calls[1].arguments[1]?.length, 14);
     assert.deepStrictEqual(execaMock.mock.calls[1].arguments[1], [
       'cdk',
       'deploy',
@@ -151,6 +161,8 @@ void describe('invokeCDKCommand', () => {
       '--app',
       "'npx tsx amplify/backend.ts'",
       '--all',
+      '--output',
+      '.amplify/artifacts/cdk.out',
       '--context',
       'backend-id=123',
       '--context',
@@ -173,7 +185,7 @@ void describe('invokeCDKCommand', () => {
       '--skipLibCheck',
       'amplify/backend.ts',
     ]);
-    assert.equal(execaMock.mock.calls[1].arguments[1]?.length, 10);
+    assert.equal(execaMock.mock.calls[1].arguments[1]?.length, 12);
     assert.deepStrictEqual(execaMock.mock.calls[1].arguments[1], [
       'cdk',
       'deploy',
@@ -181,6 +193,8 @@ void describe('invokeCDKCommand', () => {
       '--app',
       "'npx tsx amplify/backend.ts'",
       '--all',
+      '--output',
+      '.amplify/artifacts/cdk.out',
       '--context',
       'deployment-type=SANDBOX',
       '--hotswap-fallback',
