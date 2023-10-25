@@ -29,10 +29,11 @@ jobs:
         shell: bash
         run: |
           mkdir -p /tmp/amplify-project; cd /tmp/amplify-project
+          npm install -g ${{matrix.pkg-manager}}
           ${{matrix.pkg-manager}} create amplify@alpha --yes
       - name: create-amplify-project
         if: matrix.pkg-manager == 'yarn1'
         shell: bash
         run: |
           mkdir -p /tmp/amplify-project; cd /tmp/amplify-project
-          ${{matrix.pkg-manager}} create amplify --yes
+          yarn create amplify --yes
