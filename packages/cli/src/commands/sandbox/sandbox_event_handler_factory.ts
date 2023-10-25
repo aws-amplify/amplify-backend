@@ -12,7 +12,7 @@ export class SandboxEventHandlerFactory {
   constructor(
     private clientConfigGeneratorAdapter: ClientConfigGeneratorAdapter,
     private getBackendIdentifier: (
-      appName: string
+      appName?: string
     ) => Promise<SandboxBackendIdentifier>
   ) {}
   getSandboxEventHandlers: SandboxEventHandlerCreator = ({
@@ -23,9 +23,6 @@ export class SandboxEventHandlerFactory {
     return {
       successfulDeployment: [
         async () => {
-          if (!appName) {
-            return;
-          }
           const backendIdentifier = await this.getBackendIdentifier(appName);
           await this.clientConfigGeneratorAdapter.generateClientConfigToFile(
             backendIdentifier,
