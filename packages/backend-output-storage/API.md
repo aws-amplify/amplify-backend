@@ -18,12 +18,13 @@ export type AttributionMetadata = {
     createdBy: DeploymentEngineType;
     createdWith: string;
     stackType: string;
+    metadata: Record<string, string>;
 };
 
 // @public
 export class AttributionMetadataStorage {
     constructor(fs?: typeof _fs, os?: typeof _os);
-    storeAttributionMetadata: (stack: Stack, stackType: string, libraryPackageJsonAbsolutePath: string) => void;
+    storeAttributionMetadata: (stack: Stack, stackType: string, libraryPackageJsonAbsolutePath: string, additionalMetadata?: Record<string, string>) => void;
 }
 
 // @public (undocumented)
