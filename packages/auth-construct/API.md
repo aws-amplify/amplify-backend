@@ -33,7 +33,7 @@ export type AuthProps = {
     loginWith: BasicLoginOptions & ExternalProviderProps;
     userAttributes?: StandardAttributes;
     multifactor?: MFA;
-    accountRecovery?: 'EMAIL_AND_PHONE_WITHOUT_MFA' | 'PHONE_WITHOUT_MFA_AND_EMAIL' | 'EMAIL_ONLY' | 'PHONE_ONLY_WITHOUT_MFA' | 'PHONE_AND_EMAIL' | 'NONE';
+    accountRecovery?: keyof typeof aws_cognito.AccountRecovery;
     outputStorageStrategy?: BackendOutputStorageStrategy<AuthOutput>;
 };
 
