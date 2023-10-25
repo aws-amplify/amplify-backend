@@ -36,6 +36,6 @@ jobs:
         shell: bash
         run: | # yarn1 create amplify doesn't work with @ahpha tag
           mkdir -p /tmp/amplify-project; cd /tmp/amplify-project
-          yarn -v
-          yarn add amplify@alpha
+          echo "yarn version: $(yarn --version)"
+          yarn add amplify
           ~/.yarn/bin/create-amplify
