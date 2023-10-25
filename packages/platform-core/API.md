@@ -16,6 +16,9 @@ export enum BackendDeploymentType {
 }
 
 // @public
+export const backendDeploymentTypeKey = "deployment-type";
+
+// @public
 export class BranchBackendIdentifier extends UniqueBackendIdentifierBase {
     constructor(backendId: BackendId, branchName: string);
     // (undocumented)
