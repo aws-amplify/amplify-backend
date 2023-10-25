@@ -14,6 +14,7 @@
   "codebase",
   "codegen",
   "cognito",
+  "commonjs",
   "ctor",
   "datastore",
   "debounce",
