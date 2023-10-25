@@ -23,13 +23,11 @@ export type DeployProps = {
     deploymentType?: BackendDeploymentType;
     secretLastUpdated?: Date;
     validateAppSources?: boolean;
-    cdkOutputPath?: string;
 };
 
 // @public (undocumented)
 export type DestroyProps = {
     deploymentType?: BackendDeploymentType;
-    cdkOutputPath?: string;
 };
 
 // (No @packageDocumentation comment for this package)

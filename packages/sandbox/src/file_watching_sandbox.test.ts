@@ -229,7 +229,6 @@ void describe('Sandbox using local project name resolver', () => {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: false,
-        cdkOutputPath: '.amplify/artifacts/cdk.out',
       },
     ]);
   });
@@ -258,7 +257,6 @@ void describe('Sandbox using local project name resolver', () => {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
-        cdkOutputPath: '.amplify/artifacts/cdk.out',
       },
     ]);
   });
@@ -291,7 +289,6 @@ void describe('Sandbox using local project name resolver', () => {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
-        cdkOutputPath: '.amplify/artifacts/cdk.out',
       },
     ]);
     assert.strictEqual(cfnClientSendMock.mock.callCount(), 0);
@@ -314,7 +311,6 @@ void describe('Sandbox using local project name resolver', () => {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
-        cdkOutputPath: '.amplify/artifacts/cdk.out',
       },
     ]);
   });
@@ -336,7 +332,6 @@ void describe('Sandbox using local project name resolver', () => {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: false,
-        cdkOutputPath: '.amplify/artifacts/cdk.out',
       },
     ]);
   });
@@ -364,7 +359,6 @@ void describe('Sandbox using local project name resolver', () => {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
-        cdkOutputPath: '.amplify/artifacts/cdk.out',
       },
     ]);
   });
@@ -388,7 +382,6 @@ void describe('Sandbox using local project name resolver', () => {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
-        cdkOutputPath: '.amplify/artifacts/cdk.out',
       },
     ]);
     // BackendDeployer should be called with the right params
@@ -398,7 +391,6 @@ void describe('Sandbox using local project name resolver', () => {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
-        cdkOutputPath: '.amplify/artifacts/cdk.out',
       },
     ]);
   });
@@ -437,7 +429,6 @@ void describe('Sandbox using local project name resolver', () => {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
-        cdkOutputPath: '.amplify/artifacts/cdk.out',
       },
     ]);
     // BackendDeployer should be called with the right params
@@ -447,7 +438,6 @@ void describe('Sandbox using local project name resolver', () => {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
-        cdkOutputPath: '.amplify/artifacts/cdk.out',
       },
     ]);
   });
@@ -467,7 +457,6 @@ void describe('Sandbox using local project name resolver', () => {
       new SandboxBackendIdentifier('testSandboxId'),
       {
         deploymentType: BackendDeploymentType.SANDBOX,
-        cdkOutputPath: '.amplify/artifacts/cdk.out',
       },
     ]);
   });
@@ -636,7 +625,6 @@ void describe('Sandbox using local project name resolver', () => {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
-        cdkOutputPath: '.amplify/artifacts/cdk.out',
       },
     ]);
   });
@@ -657,7 +645,6 @@ void describe('Sandbox using local project name resolver', () => {
       new SandboxBackendIdentifier('customSandboxName'),
       {
         deploymentType: BackendDeploymentType.SANDBOX,
-        cdkOutputPath: '.amplify/artifacts/cdk.out',
       },
     ]);
   });
