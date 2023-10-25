@@ -1,12 +1,12 @@
 {
   "name": "@aws-amplify/integration-tests",
   "private": true,
-  "version": "0.2.0-alpha.6",
+  "version": "0.2.0-alpha.8",
   "type": "module",
   "devDependencies": {
     "@aws-amplify/amplify-api-next-alpha": "^0.3.2",
-    "@aws-amplify/backend": "0.2.0-alpha.8",
-    "@aws-amplify/backend-auth": "0.2.0-alpha.9",
+    "@aws-amplify/backend": "0.2.0-alpha.9",
+    "@aws-amplify/backend-auth": "0.2.0-alpha.12",
     "@aws-amplify/backend-secret": "^0.2.0-alpha.5",
     "@aws-amplify/backend-storage": "0.2.0-alpha.7",
     "@aws-amplify/platform-core": "0.1.1-alpha.1",

@@ -26,6 +26,8 @@ import { DefaultDeployedBackendClient } from './deployed_backend_client.js';
 import { StackIdentifier } from './index.js';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { GetObjectCommand, S3 } from '@aws-sdk/client-s3';
+import { DeployedResourcesEnumerator } from './deployed-backend-client/deployed_resources_enumerator.js';
+import { StackStatusMapper } from './deployed-backend-client/stack_status_mapper.js';
 
 const listStacksMock = {
   NextToken: undefined,
@@ -33,29 +35,39 @@ const listStacksMock = {
     {
       StackName: 'amplify-test-testBranch',
       StackStatus: StackStatus.CREATE_COMPLETE,
+      CreationTime: new Date(0),
     },
     {
       StackName: 'amplify-error-testBranch',
       StackStatus: StackStatus.CREATE_COMPLETE,
+      CreationTime: new Date(0),
     },
     {
       StackName: 'amplify-test-sandbox',
       StackStatus: StackStatus.CREATE_COMPLETE,
+      CreationTime: new Date(0),
+      LastUpdatedTime: new Date(1),
     },
     {
       StackName: 'amplify-test-testBranch-auth',
       StackStatus: StackStatus.CREATE_COMPLETE,
       ParentId: 'testStackId',
+      CreationTime: new Date(0),
+      LastUpdatedTime: new Date(1),
     },
     {
       StackName: 'amplify-test-testBranch-storage',
       StackStatus: StackStatus.CREATE_IN_PROGRESS,
       ParentId: 'testStackId',
+      CreationTime: new Date(0),
+      LastUpdatedTime: new Date(1),
     },
     {
       StackName: 'amplify-test-testBranch-data',
       StackStatus: StackStatus.CREATE_FAILED,
       ParentId: 'testStackId',
+      CreationTime: new Date(0),
+      LastUpdatedTime: new Date(1),
     },
   ],
 };
@@ -111,21 +123,22 @@ const getOutputMockResponse = {
 };
 
 const expectedMetadata = {
-  lastUpdated: undefined,
+  lastUpdated: new Date(0),
   status: BackendDeploymentStatus.DEPLOYED,
+  resources: [],
   authConfiguration: {
     userPoolId: 'testUserPoolId',
-    lastUpdated: undefined,
+    lastUpdated: new Date(1),
     status: BackendDeploymentStatus.DEPLOYED,
   },
   storageConfiguration: {
     s3BucketName: 'testBucketName',
-    lastUpdated: undefined,
+    lastUpdated: new Date(1),
     status: BackendDeploymentStatus.DEPLOYING,
   },
   apiConfiguration: {
     graphqlEndpoint: 'testAwsAppsyncApiEndpoint',
-    lastUpdated: undefined,
+    lastUpdated: new Date(1),
     status: BackendDeploymentStatus.FAILED,
     defaultAuthType: undefined,
     additionalAuthTypes: [],
@@ -199,50 +212,64 @@ void describe('Deployed Backend Client', () => {
 
     cfnClientSendMock.mock.mockImplementation(mockSend);
 
+    const deployedResourcesEnumerator = new DeployedResourcesEnumerator(
+      new StackStatusMapper()
+    );
+    mock.method(deployedResourcesEnumerator, 'listDeployedResources', () => []);
+
     deployedBackendClient = new DefaultDeployedBackendClient(
       mockCfnClient,
       mockS3Client,
-      mockBackendOutputClient
+      mockBackendOutputClient,
+      deployedResourcesEnumerator,
+      new StackStatusMapper()
     );
   });
 
   void it('listSandboxBackendMetadata', async () => {
     const sandboxes = await deployedBackendClient.listSandboxes();
-    assert.deepEqual(sandboxes, {
+    const expectedSandboxes = {
       nextToken: undefined,
       sandboxes: [
         {
           deploymentType: BackendDeploymentType.SANDBOX,
+          backendId: undefined,
           name: 'amplify-test-testBranch',
           status: BackendDeploymentStatus.DEPLOYED,
-          lastUpdated: undefined,
+          lastUpdated: new Date(0),
         },
         {
           deploymentType: BackendDeploymentType.SANDBOX,
+          backendId: new SandboxBackendIdentifier('test'),
           name: 'amplify-test-sandbox',
           status: BackendDeploymentStatus.DEPLOYED,
-          lastUpdated: undefined,
+          lastUpdated: new Date(1),
         },
         {
           deploymentType: BackendDeploymentType.SANDBOX,
+          backendId: undefined,
           name: 'amplify-test-testBranch-auth',
           status: BackendDeploymentStatus.DEPLOYED,
-          lastUpdated: undefined,
+          lastUpdated: new Date(1),
         },
         {
           deploymentType: BackendDeploymentType.SANDBOX,
+          backendId: undefined,
           name: 'amplify-test-testBranch-storage',
           status: BackendDeploymentStatus.DEPLOYING,
-          lastUpdated: undefined,
+          lastUpdated: new Date(1),
         },
         {
           deploymentType: BackendDeploymentType.SANDBOX,
+          backendId: undefined,
           name: 'amplify-test-testBranch-data',
           status: BackendDeploymentStatus.FAILED,
-          lastUpdated: undefined,
+          lastUpdated: new Date(1),
         },
       ],
-    });
+    };
+
+    assert.deepEqual(sandboxes, expectedSandboxes);
   });
 
   void it('deletes a sandbox', async () => {
@@ -280,9 +307,13 @@ void describe('Deployed Backend Client pagination', () => {
   const returnedSandboxes = [
     {
       deploymentType: BackendDeploymentType.SANDBOX,
+      backendId: {
+        backendId: 'test',
+        disambiguator: 'sandbox',
+      },
       name: 'amplify-test-sandbox',
       status: BackendDeploymentStatus.DEPLOYED,
-      lastUpdated: undefined,
+      lastUpdated: new Date(1),
     },
   ];
 
@@ -331,11 +362,17 @@ void describe('Deployed Backend Client pagination', () => {
     };
 
     cfnClientSendMock.mock.mockImplementation(mockSend);
+    const deployedResourcesEnumerator = new DeployedResourcesEnumerator(
+      new StackStatusMapper()
+    );
+    mock.method(deployedResourcesEnumerator, 'listDeployedResources', () => []);
 
     deployedBackendClient = new DefaultDeployedBackendClient(
       mockCfnClient,
       mockS3Client,
-      mockBackendOutputClient
+      mockBackendOutputClient,
+      deployedResourcesEnumerator,
+      new StackStatusMapper()
     );
   });
 

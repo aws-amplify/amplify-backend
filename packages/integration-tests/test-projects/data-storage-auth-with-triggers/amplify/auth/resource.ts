@@ -9,7 +9,7 @@ export const auth = defineAuth({
     externalProviders: {
       google: {
         clientId: secret(secretNames.googleId),
-        clientSecretValue: secret(secretNames.googleSecret),
+        clientSecret: secret(secretNames.googleSecret),
       },
       facebook: {
         clientId: secret(secretNames.facebookId),

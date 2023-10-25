@@ -5,18 +5,29 @@ import {
   confirmDeleteSandbox,
   interruptSandbox,
   rejectCleanupSandbox,
-  waitForSandboxDeployment,
-} from '../process-controller/stdio_interaction_macros.js';
+  waitForSandboxDeploymentToPrintTotalTime,
+} from '../process-controller/predicated_action_macros.js';
+
 import {
   CloudFormationClient,
   DeleteStackCommand,
 } from '@aws-sdk/client-cloudformation';
 
 /**
+ * Keeps test project update info.
+ */
+export type TestProjectUpdate = {
+  sourceFile: URL;
+  projectFile: URL;
+  deployThresholdSec: number;
+};
+
+/**
  * The base abstract class for test project.
  */
 export abstract class TestProjectBase {
   abstract assertPostDeployment: () => Promise<void>;
+  abstract readonly sourceProjectAmplifyDirPath: URL;
 
   /**
    * The base test project class constructor.
@@ -34,9 +45,9 @@ export abstract class TestProjectBase {
   async deploy(backendIdentifier: UniqueBackendIdentifier) {
     if (backendIdentifier instanceof SandboxBackendIdentifier) {
       await amplifyCli(['sandbox'], this.projectDirPath)
-        .do(waitForSandboxDeployment)
-        .do(interruptSandbox)
-        .do(rejectCleanupSandbox)
+        .do(waitForSandboxDeploymentToPrintTotalTime())
+        .do(interruptSandbox())
+        .do(rejectCleanupSandbox())
         .run();
     } else {
       await amplifyCli(
@@ -61,7 +72,7 @@ export abstract class TestProjectBase {
   async tearDown(backendIdentifier: UniqueBackendIdentifier) {
     if (backendIdentifier instanceof SandboxBackendIdentifier) {
       await amplifyCli(['sandbox', 'delete'], this.projectDirPath)
-        .do(confirmDeleteSandbox)
+        .do(confirmDeleteSandbox())
         .run();
     } else {
       await this.cfnClient.send(
@@ -70,5 +81,12 @@ export abstract class TestProjectBase {
         })
       );
     }
+  }
+
+  /**
+   * Gets all project update cases. Override this method if the update (hotswap) test is relevant.
+   */
+  async getUpdates(): Promise<TestProjectUpdate[]> {
+    return [];
   }
 }

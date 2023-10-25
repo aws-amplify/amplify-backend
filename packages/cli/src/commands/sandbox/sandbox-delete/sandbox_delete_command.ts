@@ -1,6 +1,6 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
-import { AmplifyPrompter } from '../../prompter/amplify_prompts.js';
+import { AmplifyPrompter } from '@aws-amplify/cli-core';
 
 /**
  * Command that deletes the sandbox environment.
@@ -70,13 +70,13 @@ export class SandboxDeleteCommand
         .option('exclude', {
           hidden: true,
         })
-        .option('dirToWatch', {
+        .option('dir-to-watch', {
           hidden: true,
         })
         .check((argv) => {
           if (argv.dirToWatch || argv.exclude) {
             throw new Error(
-              `--dirToWatch or --exclude are not valid options for delete`
+              `--dir-to-watch or --exclude are not valid options for delete`
             );
           }
           if (argv.name) {

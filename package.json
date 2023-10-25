@@ -4,8 +4,9 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "build": "tsc --build packages/*",
+    "build": "tsc --build packages/* && tsc --build scripts",
     "check:api": "npm run update:api && tsx scripts/check_api_extract.ts",
+    "check:dependencies": "tsx scripts/check_dependencies.ts",
     "check:tsconfig-refs": "npm run update:tsconfig-refs && tsx scripts/check_no_git_diff.ts",
     "clean": "npm run clean:build && npm run clean:npm-proxy && rimraf --glob node_modules coverage .eslintcache packages/*/temp packages/*/node_modules",
     "clean:build": "rimraf --glob packages/*/lib packages/*/tsconfig.tsbuildinfo",
@@ -49,6 +50,7 @@
   "homepage": "https://github.com/aws-amplify/cli#readme",
   "devDependencies": {
     "@aws-sdk/client-cloudformation": "^3.421.0",
+    "@aws-sdk/client-cognito-identity-provider": "^3.421.0",
     "@aws-sdk/client-s3": "^3.421.0",
     "@changesets/cli": "^2.26.1",
     "@microsoft/api-extractor": "^7.34.4",

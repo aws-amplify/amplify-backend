@@ -2,6 +2,7 @@ import {
   CloudFormationClient,
   DeleteStackCommand,
   ListStacksCommand,
+  ListStacksCommandOutput,
   StackStatus,
   StackSummary,
 } from '@aws-sdk/client-cloudformation';
@@ -12,11 +13,22 @@ import {
   ListBucketsCommand,
   ListObjectVersionsCommand,
   ListObjectsV2Command,
+  ListObjectsV2CommandOutput,
   ObjectIdentifier,
   S3Client,
 } from '@aws-sdk/client-s3';
+import {
+  CognitoIdentityProviderClient,
+  DeleteUserPoolCommand,
+  ListUserPoolsCommand,
+  ListUserPoolsCommandOutput,
+  UserPoolDescriptionType,
+} from '@aws-sdk/client-cognito-identity-provider';
 
 const cfnClient = new CloudFormationClient({
+  maxAttempts: 5,
+});
+const cognitoClient = new CognitoIdentityProviderClient({
   maxAttempts: 5,
 });
 const s3Client = new S3Client({
@@ -33,16 +45,16 @@ const isStale = (creationDate: Date | undefined): boolean | undefined => {
   return now.getTime() - creationDate.getTime() > staleDurationInMilliseconds;
 };
 
-const listAllStaleTestStacks = async (): Array<StackSummary> => {
+const listAllStaleTestStacks = async (): Promise<Array<StackSummary>> => {
   let nextToken: string | undefined = undefined;
   const stackSummaries: Array<StackSummary> = [];
   do {
-    const listStacksResponse = await cfnClient.send(
+    const listStacksResponse: ListStacksCommandOutput = await cfnClient.send(
       new ListStacksCommand({
         NextToken: nextToken,
         StackStatusFilter: Object.keys(StackStatus).filter(
           (status) => status != StackStatus.DELETE_COMPLETE
-        ),
+        ) as Array<StackStatus>,
       })
     );
     nextToken = listStacksResponse.NextToken;
@@ -65,21 +77,22 @@ for (const staleStack of allStaleStacks) {
     try {
       await cfnClient.send(new DeleteStackCommand({ StackName: stackName }));
       console.log(`Successfully kicked off ${stackName} stack deletion`);
-    } catch (e: Error) {
+    } catch (e) {
+      const errorMessage = e instanceof Error ? e.message : '';
       console.log(
-        `Failed to kick off ${stackName} stack deletion. ${e.message as string}`
+        `Failed to kick off ${stackName} stack deletion. ${errorMessage}`
       );
     }
   }
 }
 
-const listStaleS3Buckets = async (): Array<Bucket> => {
+const listStaleS3Buckets = async (): Promise<Array<Bucket>> => {
   const listBucketsResponse = await s3Client.send(new ListBucketsCommand({}));
   return (
     listBucketsResponse.Buckets?.filter(
       (bucket) =>
         isStale(bucket.CreationDate) &&
-        bucket.Name.startsWith(TEST_RESOURCE_PREFIX)
+        bucket.Name?.startsWith(TEST_RESOURCE_PREFIX)
     ) ?? []
   );
 };
@@ -89,7 +102,7 @@ const staleBuckets = await listStaleS3Buckets();
 const emptyAndDeleteS3Bucket = async (bucketName: string): Promise<void> => {
   let nextToken: string | undefined = undefined;
   do {
-    const listObjectsResponse = await s3Client.send(
+    const listObjectsResponse: ListObjectsV2CommandOutput = await s3Client.send(
       new ListObjectsV2Command({
         Bucket: bucketName,
         ContinuationToken: nextToken,
@@ -119,7 +132,7 @@ const emptyAndDeleteS3Bucket = async (bucketName: string): Promise<void> => {
         KeyMarker: nextToken,
       })
     );
-    const objectsToDelete = []
+    const objectsToDelete = ([] as ObjectIdentifier[])
       .concat(
         listVersionsResponse.DeleteMarkers?.map(
           (s3Object) => s3Object as ObjectIdentifier
@@ -152,9 +165,49 @@ for (const staleBucket of staleBuckets) {
     try {
       await emptyAndDeleteS3Bucket(bucketName);
       console.log(`Successfully deleted ${bucketName} bucket`);
-    } catch (e: Error) {
+    } catch (e) {
+      const errorMessage = e instanceof Error ? e.message : '';
+      console.log(`Failed to delete ${bucketName} bucket. ${errorMessage}`);
+    }
+  }
+}
+
+const listStaleCognitoUserPools = async () => {
+  let nextToken: string | undefined = undefined;
+  const userPools: Array<UserPoolDescriptionType> = [];
+  do {
+    const listUserPoolsResponse: ListUserPoolsCommandOutput =
+      await cognitoClient.send(
+        new ListUserPoolsCommand({
+          NextToken: nextToken,
+          MaxResults: 60,
+        })
+      );
+    nextToken = listUserPoolsResponse.NextToken;
+    listUserPoolsResponse.UserPools?.filter((userPool) =>
+      isStale(userPool.CreationDate)
+    ).forEach((item) => {
+      userPools.push(item);
+    });
+  } while (nextToken);
+  return userPools;
+};
+
+const staleUserPools = await listStaleCognitoUserPools();
+
+for (const staleUserPool of staleUserPools) {
+  if (staleUserPool.Name) {
+    try {
+      await cognitoClient.send(
+        new DeleteUserPoolCommand({
+          UserPoolId: staleUserPool.Id,
+        })
+      );
+      console.log(`Successfully deleted ${staleUserPool.Name} user pool`);
+    } catch (e) {
+      const errorMessage = e instanceof Error ? e.message : '';
       console.log(
-        `Failed to delete ${bucketName} bucket. ${e.message as string}`
+        `Failed to delete ${staleUserPool.Name} user pool. ${errorMessage}`
       );
     }
   }

@@ -1,9 +1,13 @@
-import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
+import { Argv, CommandModule } from 'yargs';
 import { ClientConfigFormat } from '@aws-amplify/client-config';
 import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
 import { ClientConfigGeneratorAdapter } from '../../../client-config/client_config_generator_adapter.js';
+import { ArgumentsKebabCase } from '../../../kebab_case.js';
 
-export type GenerateConfigCommandOptions = {
+export type GenerateConfigCommandOptions =
+  ArgumentsKebabCase<GenerateConfigCommandOptionsCamelCase>;
+
+type GenerateConfigCommandOptionsCamelCase = {
   stack: string | undefined;
   appId: string | undefined;
   branch: string | undefined;
@@ -41,16 +45,14 @@ export class GenerateConfigCommand
   /**
    * @inheritDoc
    */
-  handler = async (
-    args: ArgumentsCamelCase<GenerateConfigCommandOptions>
-  ): Promise<void> => {
+  handler = async (args: GenerateConfigCommandOptions): Promise<void> => {
     const backendIdentifier = await this.backendIdentifierResolver.resolve(
       args
     );
 
     await this.clientConfigGenerator.generateClientConfigToFile(
       backendIdentifier,
-      args.outDir,
+      args['out-dir'],
       args.format
     );
   };
@@ -61,13 +63,13 @@ export class GenerateConfigCommand
   builder = (yargs: Argv): Argv<GenerateConfigCommandOptions> => {
     return yargs
       .option('stack', {
-        conflicts: ['appId', 'branch'],
+        conflicts: ['app-id', 'branch'],
         describe: 'A stack name that contains an Amplify backend',
         type: 'string',
         array: false,
         group: 'Stack identifier',
       })
-      .option('appId', {
+      .option('app-id', {
         conflicts: ['stack'],
         describe: 'The Amplify App ID of the project',
         type: 'string',
@@ -88,7 +90,7 @@ export class GenerateConfigCommand
         array: false,
         choices: Object.values(ClientConfigFormat),
       })
-      .option('outDir', {
+      .option('out-dir', {
         describe:
           'A path to directory where config is written. If not provided defaults to current process working directory.',
         type: 'string',

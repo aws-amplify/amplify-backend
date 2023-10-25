@@ -81,6 +81,7 @@
   "sigint",
   "signout",
   "signup",
+  "sms",
   "stderr",
   "stdin",
   "stdout",

@@ -131,7 +131,7 @@ void describe('SSMSecret', () => {
       mock.method(ssmClient, 'getParameter', () =>
         Promise.reject(ssmNotFoundException)
       );
-      const expectedErr = SecretError.fromSSMException(ssmNotFoundException);
+      const expectedErr = SecretError.createInstance(ssmNotFoundException);
       await assert.rejects(
         () => ssmSecretClient.getSecret('', { name: '' }),
         expectedErr
@@ -204,7 +204,7 @@ void describe('SSMSecret', () => {
         Promise.reject(ssmNotFoundException)
       );
       const ssmSecretClient = new SSMSecretClient(ssmClient);
-      const expectedErr = SecretError.fromSSMException(ssmNotFoundException);
+      const expectedErr = SecretError.createInstance(ssmNotFoundException);
       await assert.rejects(
         () => ssmSecretClient.setSecret('', '', ''),
         expectedErr
@@ -251,7 +251,7 @@ void describe('SSMSecret', () => {
         Promise.reject(ssmNotFoundException)
       );
       const ssmSecretClient = new SSMSecretClient(ssmClient);
-      const expectedErr = SecretError.fromSSMException(ssmNotFoundException);
+      const expectedErr = SecretError.createInstance(ssmNotFoundException);
       await assert.rejects(
         () => ssmSecretClient.removeSecret('', ''),
         expectedErr
@@ -373,7 +373,7 @@ void describe('SSMSecret', () => {
         Promise.reject(ssmInternalServerError)
       );
       const ssmSecretClient = new SSMSecretClient(ssmClient);
-      const expectedErr = SecretError.fromSSMException(ssmInternalServerError);
+      const expectedErr = SecretError.createInstance(ssmInternalServerError);
       await assert.rejects(() => ssmSecretClient.listSecrets(''), expectedErr);
     });
   });

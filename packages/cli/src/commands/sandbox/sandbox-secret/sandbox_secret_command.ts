@@ -38,7 +38,7 @@ export class SandboxSecretCommand implements CommandModule<object> {
       yargs
         .command(this.secretSubCommands)
         // Hide inherited options since they are not applicable here.
-        .option('dirToWatch', {
+        .option('dir-to-watch', {
           hidden: true,
         })
         .option('exclude', {

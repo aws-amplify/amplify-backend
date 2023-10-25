@@ -3,8 +3,8 @@ import { SecretClient } from '@aws-amplify/backend-secret';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import { createEmptyAmplifyProject } from '../create_empty_amplify_project.js';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
-import { TestProjectBase } from './test_project_base.js';
-import { pathToFileURL } from 'url';
+import { TestProjectBase, TestProjectUpdate } from './test_project_base.js';
+import { fileURLToPath, pathToFileURL } from 'url';
 import assert from 'node:assert';
 import path from 'path';
 
@@ -18,16 +18,27 @@ type TestConstant = {
  * Test project with data, storage, and auth categories.
  */
 export class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
-  private readonly sourceProjectAmplifyDirSuffix =
-    '../../test-projects/data-storage-auth-with-triggers/amplify';
-  private readonly sourceProjectAmplifyDirPath: URL = new URL(
+  readonly sourceProjectDirPath =
+    '../../test-projects/data-storage-auth-with-triggers';
+
+  readonly sourceProjectAmplifyDirSuffix = `${this.sourceProjectDirPath}/amplify`;
+
+  readonly sourceProjectAmplifyDirPath: URL = new URL(
     this.sourceProjectAmplifyDirSuffix,
     import.meta.url
   );
+
   private readonly sourceProjectConstantFilePath: string = new URL(
     `${this.sourceProjectAmplifyDirSuffix}/constants.ts`,
     import.meta.url
   ).toString();
+
+  private readonly sourceProjectUpdateDirPath: URL = new URL(
+    `${this.sourceProjectDirPath}/update-1`,
+    import.meta.url
+  );
+
+  private readonly dataResourceFileSuffix = 'data/resource.ts';
 
   /**
    * Create a test project instance.
@@ -86,6 +97,28 @@ export class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     await this.clearDeployEnvironment(backendIdentifier);
   }
 
+  /**
+   * @inheritdoc
+   */
+  override async getUpdates(): Promise<TestProjectUpdate[]> {
+    const sourceDataResourceFile = pathToFileURL(
+      path.join(
+        fileURLToPath(this.sourceProjectUpdateDirPath),
+        this.dataResourceFileSuffix
+      )
+    );
+    const dataResourceFile = pathToFileURL(
+      path.join(this.projectAmplifyDirPath, this.dataResourceFileSuffix)
+    );
+    return [
+      {
+        sourceFile: sourceDataResourceFile,
+        projectFile: dataResourceFile,
+        deployThresholdSec: 80,
+      },
+    ];
+  }
+
   setUpDeployEnvironment = async (
     backendId: UniqueBackendIdentifier
   ): Promise<void> => {
@@ -102,8 +135,9 @@ export class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   clearDeployEnvironment = async (
     backendId: UniqueBackendIdentifier
   ): Promise<void> => {
-    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-    const { secretNames } = await import(this.sourceProjectConstantFilePath);
+    const { secretNames } = (await import(
+      this.sourceProjectConstantFilePath
+    )) as TestConstant;
     // clear secrets
     for (const secretField in secretNames) {
       const secretName = secretNames[secretField];
@@ -118,6 +152,7 @@ export class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
       ).toString()
     );
     assert.deepStrictEqual(Object.keys(clientConfig).sort(), [
+      'aws_appsync_additionalAuthenticationTypes',
       'aws_appsync_authenticationType',
       'aws_appsync_graphqlEndpoint',
       'aws_appsync_region',

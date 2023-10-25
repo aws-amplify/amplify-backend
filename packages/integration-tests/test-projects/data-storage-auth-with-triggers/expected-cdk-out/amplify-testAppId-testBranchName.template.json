@@ -32,7 +32,8 @@
     "awsAppsyncApiEndpoint",
     "awsAppsyncAuthenticationType",
     "awsAppsyncRegion",
-    "amplifyApiModelSchemaS3Uri"
+    "amplifyApiModelSchemaS3Uri",
+    "awsAppsyncAdditionalAuthenticationTypes"
    ]
   }
  },
@@ -52,7 +53,7 @@
    "Value": {
     "Fn::GetAtt": [
      "auth179371D7",
-     "Outputs.amplifytestAppIdtestBranchNameauthamplifyAuthUserPoolWebClientEFCFE2AFRef"
+     "Outputs.amplifytestAppIdtestBranchNameauthamplifyAuthUserPoolAppClientDDB3608BRef"
     ]
    }
   },
@@ -146,6 +147,9 @@
      ]
     ]
    }
+  },
+  "awsAppsyncAdditionalAuthenticationTypes": {
+   "Value": "AWS_IAM"
   }
  },
  "Resources": {
@@ -176,7 +180,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/40fb4e1b05067e71c09434072f453baaf5c5fcce7506ec080346e9a5b8a4e23f.json"
+       "/e66008a38717133cbe21bd2303d818145aca90a324d78bd4731828ca314478bd.json"
       ]
      ]
     }
@@ -277,7 +281,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/7f286c07bb6907f128b4ed58dc99eabbce2d3de288131d4ad898c9440c142d4b.json"
+       "/49b3bbf8240dfbf86b23bc95e2e9944c57457328c5d71a9002825809483996f1.json"
       ]
      ]
     }

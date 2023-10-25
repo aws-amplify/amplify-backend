@@ -1,5 +1,39 @@
 # @aws-amplify/auth-construct-alpha
 
+## 0.2.0-alpha.15
+
+### Patch Changes
+
+- b0b5da94: Migrate Auth construct from ESM to CJS.
+
+## 0.2.0-alpha.14
+
+### Patch Changes
+
+- b10f2a61: Rename UserPoolWebClient to UserPoolAppClient
+- 5f02b83b: Fix issue with additional oauth settings and improve documentation.
+
+## 0.2.0-alpha.13
+
+### Patch Changes
+
+- 88fe36a1: Update code and link message templates to be more intuitive.
+
+## 0.2.0-alpha.12
+
+### Patch Changes
+
+- 41ae36e2: Simplify phoneNumber to phone, and make verificationEmailStyle more user friendly.
+- db395e9c: Refactor clientSecretValue to clientSecret in Google provider props.
+
+## 0.2.0-alpha.11
+
+### Patch Changes
+
+- fa75e94b: Remove custom attributes and change userAttributes to UserPool Standard Attributes.
+- ccacd673: Update types for MFA settings.
+- bc419e41: Update naming for social login providers.
+
 ## 0.2.0-alpha.10
 
 ### Patch Changes

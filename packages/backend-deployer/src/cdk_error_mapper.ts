@@ -28,6 +28,12 @@ export class CdkErrorMapper {
         '[SynthError]: Unable to build Amplify backend. Check your backend definition in the `amplify` folder.',
     },
     {
+      errorRegex: /Updates are not allowed for property/,
+      humanReadableError:
+        '[UpdateNotSupported]: The changes that you are trying to apply are not supported.',
+    },
+    {
+      // Note that the order matters, this should be the last as it captures generic CFN error
       errorRegex: /ROLLBACK_(COMPLETE|FAILED)/,
       humanReadableError:
         '[CloudFormationFailure]: The CloudFormation deployment has failed. Find more information in the CloudFormation AWS Console for this stack.',

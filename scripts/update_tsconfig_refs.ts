@@ -65,7 +65,7 @@ const updatePromises = Object.values(repoPackagesInfoRecord).map(
     tsconfig.references = allDeps
       .filter((dep) => dep in repoPackagesInfoRecord)
       .reduce(
-        (accumulator, dep) =>
+        (accumulator: unknown[], dep) =>
           accumulator.concat({
             path: repoPackagesInfoRecord[dep].relativeReferencePath,
           }),
@@ -74,6 +74,9 @@ const updatePromises = Object.values(repoPackagesInfoRecord).map(
 
     // write out the tsconfig file using prettier formatting
     const prettierConfig = await prettier.resolveConfig(tsconfigPath);
+    if (!prettierConfig) {
+      throw new Error(`Prettier config not found for ${tsconfigPath}`);
+    }
     prettierConfig.parser = 'json';
     const formattedTsconfig = prettier.format(
       JSON.stringify(tsconfig),

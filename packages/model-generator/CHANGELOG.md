@@ -1,5 +1,11 @@
 # @aws-amplify/model-generator
 
+## 0.2.0-alpha.6
+
+### Minor Changes
+
+- 56fbcc5f: Generated typescript codegen by default, and add type defaults as well
+
 ## 0.2.0-alpha.5
 
 ### Minor Changes

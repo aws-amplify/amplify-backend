@@ -51,14 +51,14 @@ void describe('generate forms command', () => {
       const modelsOutPath = './my-fake-models-path';
       const commandRunner = new TestCommandRunner(parser);
       await commandRunner.runCommand(
-        `forms --stack my_stack --modelsOutDir ${modelsOutPath}`
+        `forms --stack my_stack --models-out-dir ${modelsOutPath}`
       );
       assert.equal(
         generationMock.mock.calls[0].arguments[0].modelsOutDir,
         modelsOutPath
       );
     });
-    void it('uiOutDir path can be customized', async () => {
+    void it('ui-out-dir path can be customized', async () => {
       const credentialProvider = fromNodeProviderChain();
 
       const backendIdResolver = new BackendIdentifierResolver({
@@ -98,14 +98,14 @@ void describe('generate forms command', () => {
       const uiOutPath = './my-fake-ui-path';
       const commandRunner = new TestCommandRunner(parser);
       await commandRunner.runCommand(
-        `forms --stack my_stack --uiOutDir ${uiOutPath}`
+        `forms --stack my_stack --ui-out-dir ${uiOutPath}`
       );
       assert.equal(
         generationMock.mock.calls[0].arguments[0].uiOutDir,
         uiOutPath
       );
     });
-    void it('./src/ui-components is the default graphql model generation path', async () => {
+    void it('./ui-components is the default graphql model generation path', async () => {
       const credentialProvider = fromNodeProviderChain();
 
       const backendIdResolver = new BackendIdentifierResolver({
@@ -145,10 +145,10 @@ void describe('generate forms command', () => {
       await commandRunner.runCommand('forms --stack my_stack');
       assert.equal(
         generationMock.mock.calls[0].arguments[0].uiOutDir,
-        './src/ui-components'
+        './ui-components'
       );
     });
-    void it('./src/graphql is the default graphql model generation path', async () => {
+    void it('./graphql is the default graphql model generation path', async () => {
       const credentialProvider = fromNodeProviderChain();
 
       const backendIdResolver = new BackendIdentifierResolver({
@@ -188,7 +188,7 @@ void describe('generate forms command', () => {
       await commandRunner.runCommand('forms --stack my_stack');
       assert.equal(
         generationMock.mock.calls[0].arguments[0].modelsOutDir,
-        './src/graphql'
+        './graphql'
       );
     });
   });

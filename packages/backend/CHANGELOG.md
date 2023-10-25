@@ -1,5 +1,13 @@
 # @aws-amplify/backend
 
+## 0.2.0-alpha.9
+
+### Patch Changes
+
+- 755badc2: Upgrade aws-cdk-lib to have cdk custom resource provider run node 18
+- Updated dependencies [915c0325]
+  - @aws-amplify/platform-core@0.1.1-alpha.3
+
 ## 0.2.0-alpha.8
 
 ### Patch Changes

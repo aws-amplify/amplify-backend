@@ -1,8 +1,8 @@
 import { Options, execa } from 'execa';
 import readline from 'readline';
-import { CONTROL_C } from './stdio_interaction_macros.js';
-import { StdioInteractionQueueBuilder } from './stdio_interaction_queue_builder.js';
-
+import { PredicatedActionBuilder } from './predicated_action_queue_builder.js';
+import { ActionType } from './predicated_action.js';
+import { killExecaProcess } from './execa_process_killer.js';
 /**
  * Provides an abstractions for sending and receiving data on stdin/out of a child process
  *
@@ -17,8 +17,8 @@ import { StdioInteractionQueueBuilder } from './stdio_interaction_queue_builder.
  * then send "yes" on stdin of the process
  */
 export class ProcessController {
-  private readonly interactions: StdioInteractionQueueBuilder =
-    new StdioInteractionQueueBuilder();
+  private readonly interactions: PredicatedActionBuilder =
+    new PredicatedActionBuilder();
   /**
    * Initialize a process controller for the specified command and args.
    *
@@ -32,7 +32,7 @@ export class ProcessController {
     private readonly options?: Pick<Options, 'cwd' | 'env'>
   ) {}
 
-  do = (interactions: StdioInteractionQueueBuilder) => {
+  do = (interactions: PredicatedActionBuilder) => {
     this.interactions.append(interactions);
     return this;
   };
@@ -41,13 +41,14 @@ export class ProcessController {
    * Execute the sequence of actions queued on the process
    */
   run = async () => {
-    const interactionQueue = this.interactions.getStdioInteractionQueue();
+    const interactionQueue = this.interactions.getPredicatedActionQueue();
     const execaProcess = execa(this.command, this.args, {
       reject: false,
       ...this.options,
     });
-    const pid = execaProcess.pid;
-    if (typeof pid !== 'number') {
+    let errorThrownFromActions = undefined;
+    let expectKilled = false;
+    if (typeof execaProcess.pid !== 'number') {
       throw new Error('Could not determine child process id');
     }
 
@@ -64,41 +65,46 @@ export class ProcessController {
     }
     const reader = readline.createInterface(execaProcess.stdout);
 
-    let expectKilled = false;
-
     for await (const line of reader) {
       const currentInteraction = interactionQueue[0];
-      if (!currentInteraction?.predicate(line)) {
-        continue;
-      }
-      // if we got here, the line matched the predicate
-      // now we need to send the payload of the action (if any)
-      if (typeof currentInteraction.payload === 'string') {
-        if (currentInteraction.payload === CONTROL_C) {
-          if (process.platform.startsWith('win')) {
-            // Wait X milliseconds before sending kill in hopes of draining the node event queue
-            await new Promise((resolve) => setTimeout(resolve, 1500));
-            // turns out killing child process on Windows is a huge PITA
-            // https://stackoverflow.com/questions/23706055/why-can-i-not-kill-my-child-process-in-nodejs-on-windows
-            // https://github.com/sindresorhus/execa#killsignal-options
-            // eslint-disable-next-line spellcheck/spell-checker
-            await execa('taskkill', ['/pid', `${pid}`, '/f', '/t']);
-          } else {
-            execaProcess.kill('SIGINT');
+      try {
+        // For now we only have one predicate type. If we add more predicate types in the future, we will have to
+        // turn this into a predicate executor (Similar to the switch-case for actions below)
+        if (currentInteraction?.ifThis.predicate(line)) {
+          switch (currentInteraction.then?.actionType) {
+            case ActionType.SEND_INPUT_TO_PROCESS:
+              await currentInteraction.then.action(execaProcess);
+              break;
+            case ActionType.KILL_PROCESS:
+              expectKilled = true;
+              await currentInteraction.then.action(execaProcess);
+              break;
+            case ActionType.UPDATE_FILE_CONTENT:
+              await currentInteraction.then.action();
+              break;
+            case ActionType.ASSERT_ON_PROCESS_OUTPUT:
+              currentInteraction.then.action(line);
+              break;
+            default:
+              break;
           }
-          expectKilled = true;
         } else {
-          execaProcess.stdin?.write(currentInteraction.payload);
+          continue;
         }
+      } catch (error) {
+        await killExecaProcess(execaProcess);
+        execaProcess.stdin?.write('N');
+        errorThrownFromActions = error;
       }
       // advance the queue
       interactionQueue.shift();
     }
 
     const result = await execaProcess;
-    if (expectKilled) {
-      return;
-    } else if (result.failed) {
+
+    if (errorThrownFromActions) {
+      throw errorThrownFromActions;
+    } else if (result.failed && !expectKilled) {
       throw new Error(result.stdout);
     }
   };

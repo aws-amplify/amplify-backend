@@ -1,5 +1,17 @@
 # @aws-amplify/integration-tests
 
+## 0.2.0-alpha.8
+
+### Patch Changes
+
+- b10f2a61: Rename UserPoolWebClient to UserPoolAppClient
+
+## 0.2.0-alpha.7
+
+### Patch Changes
+
+- 7853b00a: Make CLI options kebab case
+
 ## 0.2.0-alpha.6
 
 ### Minor Changes

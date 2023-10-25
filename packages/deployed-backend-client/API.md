@@ -56,6 +56,7 @@ export type BackendMetadata = {
     lastUpdated: Date | undefined;
     deploymentType: BackendDeploymentType;
     status: BackendDeploymentStatus;
+    resources: DeployedBackendResource[];
     apiConfiguration?: {
         status: BackendDeploymentStatus;
         lastUpdated: Date | undefined;
@@ -154,6 +155,16 @@ export type DeployedBackendCredentialsOptions = {
 };
 
 // @public (undocumented)
+export type DeployedBackendResource = {
+    logicalResourceId?: string;
+    lastUpdated?: Date;
+    resourceStatus?: string;
+    resourceStatusReason?: string;
+    resourceType?: string;
+    physicalResourceId?: string;
+};
+
+// @public (undocumented)
 export type ListSandboxesRequest = {
     nextToken?: string;
 };
@@ -169,6 +180,7 @@ export type SandboxMetadata = {
     name: string;
     lastUpdated: Date | undefined;
     status: BackendDeploymentStatus;
+    backendId: SandboxBackendIdentifier | undefined;
 };
 
 // @public (undocumented)

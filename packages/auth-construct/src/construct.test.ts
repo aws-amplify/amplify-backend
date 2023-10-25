@@ -13,10 +13,10 @@ import {
   CfnIdentityPool,
   CfnUserPool,
   CfnUserPoolClient,
+  OAuthScope,
   UserPool,
   UserPoolClient,
   UserPoolIdentityProviderSamlMetadataType,
-  VerificationEmailStyle,
 } from 'aws-cdk-lib/aws-cognito';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
 import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
@@ -98,7 +98,7 @@ void describe('Auth construct', () => {
   void it('creates phone number login mechanism', () => {
     const app = new App();
     const stack = new Stack(app);
-    new AmplifyAuth(stack, 'test', { loginWith: { phoneNumber: true } });
+    new AmplifyAuth(stack, 'test', { loginWith: { phone: true } });
     const template = Template.fromStack(stack);
     template.hasResourceProperties('AWS::Cognito::UserPool', {
       UsernameAttributes: ['phone_number'],
@@ -131,7 +131,7 @@ void describe('Auth construct', () => {
   void it('creates phone login mechanism if settings is empty object', () => {
     const app = new App();
     const stack = new Stack(app);
-    new AmplifyAuth(stack, 'test', { loginWith: { phoneNumber: {} } });
+    new AmplifyAuth(stack, 'test', { loginWith: { phone: {} } });
     const template = Template.fromStack(stack);
     template.hasResourceProperties('AWS::Cognito::UserPool', {
       UsernameAttributes: ['phone_number'],
@@ -139,27 +139,42 @@ void describe('Auth construct', () => {
     });
   });
 
+  void it('throws error login settings do not include at least phone or email', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    assert.throws(
+      () =>
+        new AmplifyAuth(stack, 'test', {
+          loginWith: {},
+        }),
+      {
+        message: 'At least one of email or phone must be enabled.',
+      }
+    );
+  });
+
   void it('creates email login mechanism with specific settings', () => {
     const app = new App();
     const stack = new Stack(app);
-    const customEmailVerificationMessage = 'custom email body {####}';
+    const emailBodyFunction = (code: string) => `custom email body ${code}`;
+    const expectedEmailMessage = 'custom email body {####}';
     const customEmailVerificationSubject = 'custom subject';
     new AmplifyAuth(stack, 'test', {
       loginWith: {
         email: {
-          verificationEmailBody: customEmailVerificationMessage,
-          verificationEmailStyle: VerificationEmailStyle.CODE,
+          verificationEmailBody: emailBodyFunction,
+          verificationEmailStyle: 'CODE',
           verificationEmailSubject: customEmailVerificationSubject,
         },
       },
     });
     const template = Template.fromStack(stack);
     template.hasResourceProperties('AWS::Cognito::UserPool', {
-      EmailVerificationMessage: customEmailVerificationMessage,
+      EmailVerificationMessage: expectedEmailMessage,
       EmailVerificationSubject: customEmailVerificationSubject,
       VerificationMessageTemplate: {
         DefaultEmailOption: 'CONFIRM_WITH_CODE',
-        EmailMessage: customEmailVerificationMessage,
+        EmailMessage: expectedEmailMessage,
         EmailSubject: customEmailVerificationSubject,
         SmsMessage: 'The verification code to your new account is {####}',
       },
@@ -169,64 +184,69 @@ void describe('Auth construct', () => {
   void it('creates email login mechanism with MFA', () => {
     const app = new App();
     const stack = new Stack(app);
-    const customEmailVerificationMessage = 'custom email body {####}';
+    const emailBodyFunction = (code: string) => `custom email body ${code}`;
+    const expectedEmailMessage = 'custom email body {####}';
     const customEmailVerificationSubject = 'custom subject';
-    const smsVerificationMessage = 'the verification code is {####}';
-    const smsAuthenticationMessage = 'SMS MFA code is {####}';
+    const smsVerificationMessageFunction = (code: string) =>
+      `the verification code is ${code}`;
+    const expectedSMSVerificationMessage = 'the verification code is {####}';
+    const smsMFAMessageFunction = (code: string) => `SMS MFA code is ${code}`;
+    const expectedSMSMFAMessage = 'SMS MFA code is {####}';
     new AmplifyAuth(stack, 'test', {
       loginWith: {
         email: {
-          verificationEmailBody: customEmailVerificationMessage,
-          verificationEmailStyle: VerificationEmailStyle.CODE,
+          verificationEmailBody: emailBodyFunction,
+          verificationEmailStyle: 'CODE',
           verificationEmailSubject: customEmailVerificationSubject,
         },
-        phoneNumber: {
-          verificationMessage: smsVerificationMessage,
+        phone: {
+          verificationMessage: smsVerificationMessageFunction,
         },
       },
       multifactor: {
         enforcementType: 'OPTIONAL',
-        sms: true,
-        smsMessage: smsAuthenticationMessage,
+        sms: {
+          smsMessage: smsMFAMessageFunction,
+        },
         totp: false,
       },
     });
     const template = Template.fromStack(stack);
     template.hasResourceProperties('AWS::Cognito::UserPool', {
-      EmailVerificationMessage: customEmailVerificationMessage,
+      EmailVerificationMessage: expectedEmailMessage,
       EmailVerificationSubject: customEmailVerificationSubject,
       VerificationMessageTemplate: {
         DefaultEmailOption: 'CONFIRM_WITH_CODE',
-        EmailMessage: customEmailVerificationMessage,
+        EmailMessage: expectedEmailMessage,
         EmailSubject: customEmailVerificationSubject,
-        SmsMessage: smsVerificationMessage,
+        SmsMessage: expectedSMSVerificationMessage,
       },
       MfaConfiguration: 'OPTIONAL',
       EnabledMfas: ['SMS_MFA'],
-      SmsAuthenticationMessage: smsAuthenticationMessage,
-      SmsVerificationMessage: smsVerificationMessage,
+      SmsAuthenticationMessage: expectedSMSMFAMessage,
+      SmsVerificationMessage: expectedSMSVerificationMessage,
     });
   });
 
   void it('throws error if invalid email verification message for CODE', () => {
     const app = new App();
     const stack = new Stack(app);
-    const customEmailVerificationMessage = 'invalid message without code';
+    const emailBodyFunction = () => 'invalid message without code';
     const customEmailVerificationSubject = 'custom subject';
     assert.throws(
       () =>
         new AmplifyAuth(stack, 'test', {
           loginWith: {
             email: {
-              verificationEmailBody: customEmailVerificationMessage,
-              verificationEmailStyle: VerificationEmailStyle.CODE,
+              verificationEmailBody: emailBodyFunction,
+              verificationEmailStyle: 'CODE',
               verificationEmailSubject: customEmailVerificationSubject,
             },
           },
         }),
       {
         message:
-          "Invalid email settings. Property 'emailBody' must contain {####} as a placeholder for the verification code.",
+          "Invalid email settings. Property 'verificationEmailBody' must utilize the 'code' parameter at least once as a placeholder for the verification code.",
       }
     );
   });
@@ -234,22 +254,22 @@ void describe('Auth construct', () => {
   void it('throws error if invalid email verification message for LINK', () => {
     const app = new App();
     const stack = new Stack(app);
-    const customEmailVerificationMessage = 'invalid message without link';
+    const emailBodyFunction = () => 'invalid message without link';
     const customEmailVerificationSubject = 'custom subject';
     assert.throws(
       () =>
         new AmplifyAuth(stack, 'test', {
           loginWith: {
             email: {
-              verificationEmailBody: customEmailVerificationMessage,
-              verificationEmailStyle: VerificationEmailStyle.LINK,
+              verificationEmailBody: emailBodyFunction,
+              verificationEmailStyle: 'LINK',
               verificationEmailSubject: customEmailVerificationSubject,
             },
           },
         }),
       {
         message:
-          "Invalid email settings. Property 'emailBody' must contain {##Verify Email##} as a placeholder for the verification link.",
+          "Invalid email settings. Property 'verificationEmailBody' must utilize the 'link' parameter at least once as a placeholder for the verification link.",
       }
     );
   });
@@ -257,16 +277,16 @@ void describe('Auth construct', () => {
   void it('does not throw if valid email verification message for LINK', () => {
     const app = new App();
     const stack = new Stack(app);
-    const customEmailVerificationMessage =
-      'valid message {##Verify Email##} with link';
+    const emailBodyFunction = (link: string) =>
+      `valid message ${link} with link`;
     const customEmailVerificationSubject = 'custom subject';
     assert.doesNotThrow(
       () =>
         new AmplifyAuth(stack, 'test', {
           loginWith: {
             email: {
-              verificationEmailBody: customEmailVerificationMessage,
-              verificationEmailStyle: VerificationEmailStyle.LINK,
+              verificationEmailBody: emailBodyFunction,
+              verificationEmailStyle: 'LINK',
               verificationEmailSubject: customEmailVerificationSubject,
             },
           },
@@ -277,19 +297,65 @@ void describe('Auth construct', () => {
   void it('throws error if invalid sms verification message', () => {
     const app = new App();
     const stack = new Stack(app);
-    const customSMSVerificationMessage = 'invalid message without code';
+    const smsVerificationMessageFunction = () => 'invalid message without code';
     assert.throws(
       () =>
         new AmplifyAuth(stack, 'test', {
           loginWith: {
-            phoneNumber: {
-              verificationMessage: customSMSVerificationMessage,
+            phone: {
+              verificationMessage: smsVerificationMessageFunction,
             },
           },
         }),
       {
         message:
-          "Invalid phoneNumber settings. Property 'verificationMessage' must contain {####} as a placeholder for the verification code.",
+          "Invalid phone settings. Property 'verificationMessage' must utilize the 'code' parameter at least once as a placeholder for the verification code.",
+      }
+    );
+  });
+
+  void it('does not throw error if valid MFA message', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const validMFAMessage = (code: string) => `valid MFA message with ${code}`;
+    assert.doesNotThrow(
+      () =>
+        new AmplifyAuth(stack, 'test', {
+          loginWith: {
+            email: true,
+          },
+          multifactor: {
+            enforcementType: 'OPTIONAL',
+            sms: {
+              smsMessage: validMFAMessage,
+            },
+            totp: false,
+          },
+        })
+    );
+  });
+
+  void it('throws error if invalid MFA message', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const invalidMFAMessage = () => 'invalid MFA message without code';
+    assert.throws(
+      () =>
+        new AmplifyAuth(stack, 'test', {
+          loginWith: {
+            email: true,
+          },
+          multifactor: {
+            enforcementType: 'OPTIONAL',
+            sms: {
+              smsMessage: invalidMFAMessage,
+            },
+            totp: false,
+          },
+        }),
+      {
+        message:
+          "Invalid MFA settings. Property 'smsMessage' must utilize the 'code' parameter at least once as a placeholder for the verification code.",
       }
     );
   });
@@ -318,7 +384,7 @@ void describe('Auth construct', () => {
     const app = new App();
     const stack = new Stack(app);
     new AmplifyAuth(stack, 'test', {
-      loginWith: { phoneNumber: true, email: true },
+      loginWith: { phone: true, email: true },
       accountRecovery: AccountRecovery.EMAIL_AND_PHONE_WITHOUT_MFA,
     });
     const template = Template.fromStack(stack);
@@ -343,17 +409,14 @@ void describe('Auth construct', () => {
     const stack = new Stack(app);
     new AmplifyAuth(stack, 'test', {
       loginWith: { email: true },
-      userAttributes: [
-        AmplifyAuth.attribute('address').immutable(),
-        AmplifyAuth.attribute('familyName').required(),
-        AmplifyAuth.customAttribute.string('defaultString'),
-        AmplifyAuth.customAttribute
-          .string('minMaxString')
-          .minLength(0)
-          .maxLength(100),
-        AmplifyAuth.customAttribute.dateTime('birthDateTime'),
-        AmplifyAuth.customAttribute.number('numberMinMax').min(0).max(5),
-      ],
+      userAttributes: {
+        address: {
+          mutable: false,
+        },
+        familyName: {
+          required: true,
+        },
+      },
     });
     const template = Template.fromStack(stack);
     template.hasResourceProperties('AWS::Cognito::UserPool', {
@@ -373,73 +436,8 @@ void describe('Auth construct', () => {
           Name: 'family_name',
           Required: true,
         },
-        {
-          AttributeDataType: 'String',
-          Mutable: true,
-          Name: 'defaultString',
-          StringAttributeConstraints: {},
-        },
-        {
-          AttributeDataType: 'String',
-          Mutable: true,
-          Name: 'minMaxString',
-          StringAttributeConstraints: {
-            MinLength: '0',
-            MaxLength: '100',
-          },
-        },
-        {
-          AttributeDataType: 'DateTime',
-          Mutable: true,
-          Name: 'birthDateTime',
-        },
-        {
-          AttributeDataType: 'Number',
-          Mutable: true,
-          Name: 'numberMinMax',
-          NumberAttributeConstraints: {
-            MaxValue: '5',
-            MinValue: '0',
-          },
-        },
       ],
     });
-  });
-
-  void it('throws if duplicate custom attributes are found', () => {
-    const app = new App();
-    const stack = new Stack(app);
-    assert.throws(
-      () =>
-        new AmplifyAuth(stack, 'test', {
-          loginWith: { email: true },
-          userAttributes: [
-            AmplifyAuth.customAttribute.string('myCustomAttribute'),
-            AmplifyAuth.customAttribute.string('myCustomAttribute'),
-          ],
-        }),
-      {
-        message: `Invalid userAttributes. Duplicate custom attribute name found: myCustomAttribute.`,
-      }
-    );
-  });
-
-  void it('throws if duplicate user attributes are found', () => {
-    const app = new App();
-    const stack = new Stack(app);
-    assert.throws(
-      () =>
-        new AmplifyAuth(stack, 'test', {
-          loginWith: { email: true },
-          userAttributes: [
-            AmplifyAuth.attribute('address').immutable(),
-            AmplifyAuth.attribute('address').required(),
-          ],
-        }),
-      {
-        message: `Invalid userAttributes. Duplicate attribute name found: address.`,
-      }
-    );
   });
 
   void describe('storeOutput', () => {
@@ -466,7 +464,7 @@ void describe('Auth construct', () => {
         authConstruct.node.findChild('IdentityPool') as CfnIdentityPool
       ).ref;
       const expectedWebClientId = (
-        authConstruct.node.findChild('UserPoolWebClient') as UserPoolClient
+        authConstruct.node.findChild('UserPoolAppClient') as UserPoolClient
       ).userPoolClientId;
       const expectedRegion = Stack.of(authConstruct).region;
 
@@ -620,7 +618,7 @@ void describe('Auth construct', () => {
     void it('sets account recovery settings to phone if phone is the only login type', () => {
       const app = new App();
       const stack = new Stack(app);
-      new AmplifyAuth(stack, 'test', { loginWith: { phoneNumber: true } });
+      new AmplifyAuth(stack, 'test', { loginWith: { phone: true } });
       const template = Template.fromStack(stack);
       template.hasResourceProperties('AWS::Cognito::UserPool', {
         AccountRecoverySetting: {
@@ -638,7 +636,7 @@ void describe('Auth construct', () => {
       const app = new App();
       const stack = new Stack(app);
       new AmplifyAuth(stack, 'test', {
-        loginWith: { phoneNumber: true, email: true },
+        loginWith: { phone: true, email: true },
       });
       const template = Template.fromStack(stack);
       template.hasResourceProperties('AWS::Cognito::UserPool', {
@@ -850,8 +848,7 @@ void describe('Auth construct', () => {
           externalProviders: {
             google: {
               clientId: googleClientId,
-              clientSecretValue:
-                SecretValue.unsafePlainText(googleClientSecret),
+              clientSecret: SecretValue.unsafePlainText(googleClientSecret),
             },
           },
         },
@@ -876,12 +873,11 @@ void describe('Auth construct', () => {
       const stack = new Stack(app);
       new AmplifyAuth(stack, 'test', {
         loginWith: {
-          phoneNumber: true,
+          phone: true,
           externalProviders: {
             google: {
               clientId: googleClientId,
-              clientSecretValue:
-                SecretValue.unsafePlainText(googleClientSecret),
+              clientSecret: SecretValue.unsafePlainText(googleClientSecret),
             },
           },
         },
@@ -935,7 +931,7 @@ void describe('Auth construct', () => {
       const stack = new Stack(app);
       new AmplifyAuth(stack, 'test', {
         loginWith: {
-          phoneNumber: true,
+          phone: true,
           externalProviders: {
             facebook: {
               clientId: facebookClientId,
@@ -995,7 +991,7 @@ void describe('Auth construct', () => {
       const stack = new Stack(app);
       new AmplifyAuth(stack, 'test', {
         loginWith: {
-          phoneNumber: true,
+          phone: true,
           externalProviders: {
             signInWithApple: {
               clientId: appleClientId,
@@ -1055,7 +1051,7 @@ void describe('Auth construct', () => {
       const stack = new Stack(app);
       new AmplifyAuth(stack, 'test', {
         loginWith: {
-          phoneNumber: true,
+          phone: true,
           externalProviders: {
             loginWithAmazon: {
               clientId: amazonClientId,
@@ -1110,7 +1106,7 @@ void describe('Auth construct', () => {
       const stack = new Stack(app);
       new AmplifyAuth(stack, 'test', {
         loginWith: {
-          phoneNumber: true,
+          phone: true,
           externalProviders: {
             oidc: {
               clientId: oidcClientId,
@@ -1163,7 +1159,7 @@ void describe('Auth construct', () => {
       const stack = new Stack(app);
       new AmplifyAuth(stack, 'test', {
         loginWith: {
-          phoneNumber: true,
+          phone: true,
           externalProviders: {
             saml: {
               name: samlProviderName,
@@ -1186,18 +1182,56 @@ void describe('Auth construct', () => {
       );
     });
 
+    void it('supports additional oauth settings', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+          externalProviders: {
+            google: {
+              clientId: googleClientId,
+              clientSecret: SecretValue.unsafePlainText(googleClientSecret),
+            },
+            scopes: [OAuthScope.EMAIL, OAuthScope.PROFILE],
+            callbackUrls: ['http://localhost'],
+            logoutUrls: ['http://localhost'],
+          },
+        },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        UsernameAttributes: ['email'],
+        AutoVerifiedAttributes: ['email'],
+      });
+      template.hasResourceProperties(
+        'AWS::Cognito::UserPoolIdentityProvider',
+        ExpectedGoogleIDPProperties
+      );
+      template.hasResourceProperties('AWS::Cognito::IdentityPool', {
+        SupportedLoginProviders: {
+          'accounts.google.com': googleClientId,
+        },
+      });
+      template.hasResourceProperties('AWS::Cognito::UserPoolClient', {
+        PreventUserExistenceErrors: 'ENABLED',
+        CallbackURLs: ['http://localhost'],
+        LogoutURLs: ['http://localhost'],
+        AllowedOAuthScopes: ['email', 'profile', 'openid'],
+      });
+    });
+
     void it('supports all idps and login methods', () => {
       const app = new App();
       const stack = new Stack(app);
       new AmplifyAuth(stack, 'test', {
         loginWith: {
           email: true,
-          phoneNumber: true,
+          phone: true,
           externalProviders: {
             google: {
               clientId: googleClientId,
-              clientSecretValue:
-                SecretValue.unsafePlainText(googleClientSecret),
+              clientSecret: SecretValue.unsafePlainText(googleClientSecret),
             },
             facebook: {
               clientId: facebookClientId,

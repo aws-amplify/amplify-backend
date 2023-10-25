@@ -13,19 +13,22 @@ import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 import fs from 'fs';
 import parseGitIgnore from 'parse-gitignore';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
-import open from 'open';
+import _open from 'open';
 import {
   BackendDeploymentType,
   SandboxBackendIdentifier,
 } from '@aws-amplify/platform-core';
 import { SecretListItem, getSecretClient } from '@aws-amplify/backend-secret';
+import { ClientConfigFormat } from '@aws-amplify/client-config';
+import { Sandbox } from './sandbox.js';
+import { AmplifyPrompter } from '@aws-amplify/cli-core';
+import { fileURLToPath } from 'url';
 
 // Watcher mocks
 const unsubscribeMockFn = mock.fn();
 const subscribeMock = mock.method(watcher, 'subscribe', async () => {
   return { unsubscribe: unsubscribeMockFn };
 });
-let fileChangeEventActualFn: watcher.SubscribeCallback;
 
 const backendDeployer = BackendDeployerFactory.getInstance();
 
@@ -80,7 +83,7 @@ cfnClientSendMock.mock.mockImplementation(() =>
     ],
   })
 );
-const openMock = mock.fn(open, (url: string) => Promise.resolve(url));
+const openMock = mock.fn(_open, (url: string) => Promise.resolve(url));
 
 const testPath = path.join('test', 'location');
 mock.method(fs, 'lstatSync', (path: string) => {
@@ -185,9 +188,8 @@ void describe('Sandbox to check if region is bootstrapped', () => {
 });
 
 void describe('Sandbox using local project name resolver', () => {
-  // class under test
-  let sandboxInstance: FileWatchingSandbox;
-
+  let sandboxInstance: Sandbox;
+  let fileChangeEventCallback: watcher.SubscribeCallback;
   /**
    * For each test we start the sandbox and hence file watcher and get hold of
    * file change event function which tests can simulate by calling as desired.
@@ -195,32 +197,6 @@ void describe('Sandbox using local project name resolver', () => {
   beforeEach(async () => {
     // ensures that .gitignore is set as absent
     mock.method(fs, 'existsSync', () => false);
-    sandboxInstance = new FileWatchingSandbox(
-      'testSandboxId',
-      sandboxExecutor,
-      cfnClientMock
-    );
-    await sandboxInstance.start({
-      dir: 'testDir',
-      exclude: ['exclude1', 'exclude2'],
-    });
-
-    // At this point one deployment should already have been done on sandbox startup
-    assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
-    // and client config generated only once
-
-    if (
-      subscribeMock.mock.calls[0].arguments[1] &&
-      typeof subscribeMock.mock.calls[0].arguments[1] === 'function'
-    ) {
-      fileChangeEventActualFn = subscribeMock.mock.calls[0].arguments[1];
-    }
-
-    // Reset all the calls to avoid extra startup call
-    backendDeployerDestroyMock.mock.resetCalls();
-    backendDeployerDeployMock.mock.resetCalls();
-    cfnClientSendMock.mock.resetCalls();
-    listSecretMock.mock.resetCalls();
   });
 
   afterEach(async () => {
@@ -231,8 +207,68 @@ void describe('Sandbox using local project name resolver', () => {
     await sandboxInstance.stop();
   });
 
+  void it('makes initial deployment without type checking at start if no typescript file is present', async () => {
+    ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox(
+      {
+        executor: sandboxExecutor,
+        cfnClient: cfnClientMock,
+        // imaginary dir does not have any ts files
+        dir: 'testDir',
+        exclude: ['exclude1', 'exclude2'],
+      },
+      false
+    ));
+
+    // BackendDeployer should be called once
+    assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
+
+    // BackendDeployer should be called with the right params
+    assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
+      new SandboxBackendIdentifier('testSandboxId'),
+      {
+        deploymentType: BackendDeploymentType.SANDBOX,
+        secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+        validateAppSources: false,
+      },
+    ]);
+  });
+
+  void it('makes initial deployment with type checking at start if some typescript file is present', async () => {
+    // using this file's dir, mocking a glob search appears to be impossible
+    const testDir = path.dirname(fileURLToPath(new URL(import.meta.url)));
+
+    ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox(
+      {
+        executor: sandboxExecutor,
+        cfnClient: cfnClientMock,
+        dir: testDir,
+        exclude: ['exclude1', 'exclude2'],
+      },
+      false
+    ));
+
+    // BackendDeployer should be called once
+    assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
+
+    // BackendDeployer should be called with the right params
+    assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
+      new SandboxBackendIdentifier('testSandboxId'),
+      {
+        deploymentType: BackendDeploymentType.SANDBOX,
+        secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+        validateAppSources: true,
+      },
+    ]);
+  });
+
   void it('calls BackendDeployer once when a file change is present', async () => {
-    await fileChangeEventActualFn(null, [
+    ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
+      executor: sandboxExecutor,
+      cfnClient: cfnClientMock,
+      dir: 'testDir',
+      exclude: ['exclude1', 'exclude2'],
+    }));
+    await fileChangeEventCallback(null, [
       { type: 'update', path: 'foo/test1.ts' },
     ]);
 
@@ -252,39 +288,118 @@ void describe('Sandbox using local project name resolver', () => {
       {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+        validateAppSources: true,
       },
     ]);
     assert.strictEqual(cfnClientSendMock.mock.callCount(), 0);
   });
 
-  void it('calls BackendDeployer once when multiple file changes are present', async () => {
-    await fileChangeEventActualFn(null, [
+  void it('calls BackendDeployer only once when multiple file changes are present', async () => {
+    ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
+      executor: sandboxExecutor,
+      cfnClient: cfnClientMock,
+    }));
+    await fileChangeEventCallback(null, [
       { type: 'update', path: 'foo/test2.ts' },
       { type: 'create', path: 'foo/test3.ts' },
     ]);
     assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
+    // BackendDeployer should be called with the right params
+    assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
+      new SandboxBackendIdentifier('testSandboxId'),
+      {
+        deploymentType: BackendDeploymentType.SANDBOX,
+        secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+        validateAppSources: true,
+      },
+    ]);
+  });
+
+  void it('skips type checking if no typescript change is detected', async () => {
+    ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
+      executor: sandboxExecutor,
+      cfnClient: cfnClientMock,
+    }));
+    await fileChangeEventCallback(null, [
+      { type: 'update', path: 'foo/test2.txt' },
+      { type: 'create', path: 'foo/test3.txt' },
+    ]);
+    assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
+    // BackendDeployer should be called with the right params
+    assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
+      new SandboxBackendIdentifier('testSandboxId'),
+      {
+        deploymentType: BackendDeploymentType.SANDBOX,
+        secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+        validateAppSources: false,
+      },
+    ]);
   });
 
   void it('calls BackendDeployer once when multiple file changes are within few milliseconds (debounce)', async () => {
+    ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
+      executor: sandboxExecutor,
+      cfnClient: cfnClientMock,
+    }));
     // Not awaiting for this file event to be processed and submitting another one right away
-    fileChangeEventActualFn(null, [{ type: 'update', path: 'foo/test4.ts' }]);
-    await fileChangeEventActualFn(null, [
+    const firstFileChange = fileChangeEventCallback(null, [
       { type: 'update', path: 'foo/test4.ts' },
     ]);
+    // Second file change is non typescript file
+    // so that we assert that ts file change is not lost
+    await fileChangeEventCallback(null, [
+      { type: 'update', path: 'foo/test4.txt' },
+    ]);
+    await firstFileChange;
     assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
+    // BackendDeployer should be called with the right params
+    assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
+      new SandboxBackendIdentifier('testSandboxId'),
+      {
+        deploymentType: BackendDeploymentType.SANDBOX,
+        secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+        validateAppSources: true,
+      },
+    ]);
   });
 
   void it('waits for file changes after completing a deployment and deploys again', async () => {
-    await fileChangeEventActualFn(null, [
+    ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
+      executor: sandboxExecutor,
+      cfnClient: cfnClientMock,
+    }));
+    await fileChangeEventCallback(null, [
       { type: 'update', path: 'foo/test5.ts' },
     ]);
-    await fileChangeEventActualFn(null, [
+    await fileChangeEventCallback(null, [
       { type: 'update', path: 'foo/test6.ts' },
     ]);
     assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 2);
+    // BackendDeployer should be called with the right params
+    assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
+      new SandboxBackendIdentifier('testSandboxId'),
+      {
+        deploymentType: BackendDeploymentType.SANDBOX,
+        secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+        validateAppSources: true,
+      },
+    ]);
+    // BackendDeployer should be called with the right params
+    assert.deepEqual(backendDeployerDeployMock.mock.calls[1].arguments, [
+      new SandboxBackendIdentifier('testSandboxId'),
+      {
+        deploymentType: BackendDeploymentType.SANDBOX,
+        secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+        validateAppSources: true,
+      },
+    ]);
   });
 
-  void it('queues deployment if a file change is detected during an ongoing', async () => {
+  void it('queues deployment if a file change is detected during an ongoing deployment', async () => {
+    ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
+      executor: sandboxExecutor,
+      cfnClient: cfnClientMock,
+    }));
     // Mimic BackendDeployer taking 200 ms.
     backendDeployerDeployMock.mock.mockImplementationOnce(async () => {
       await new Promise((resolve) => setTimeout(resolve, 200));
@@ -292,24 +407,49 @@ void describe('Sandbox using local project name resolver', () => {
     });
 
     // Not awaiting so we can push another file change while deployment is ongoing
-    fileChangeEventActualFn(null, [{ type: 'update', path: 'foo/test7.ts' }]);
+    const firstFileChange = fileChangeEventCallback(null, [
+      { type: 'update', path: 'foo/test7.ts' },
+    ]);
 
     // Get over debounce so that the next deployment is considered valid
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 150));
 
     // second file change while the previous one is 'ongoing'
-    fileChangeEventActualFn(null, [{ type: 'update', path: 'foo/test8.ts' }]);
+    const secondFileChange = fileChangeEventCallback(null, [
+      { type: 'update', path: 'foo/test8.ts' },
+    ]);
 
-    // Wait sufficient time for both deployments to have finished before we count number of BackendDeployer calls.
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await Promise.all([firstFileChange, secondFileChange]);
 
     assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 2);
+    // BackendDeployer should be called with the right params
+    assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
+      new SandboxBackendIdentifier('testSandboxId'),
+      {
+        deploymentType: BackendDeploymentType.SANDBOX,
+        secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+        validateAppSources: true,
+      },
+    ]);
+    // BackendDeployer should be called with the right params
+    assert.deepEqual(backendDeployerDeployMock.mock.calls[1].arguments, [
+      new SandboxBackendIdentifier('testSandboxId'),
+      {
+        deploymentType: BackendDeploymentType.SANDBOX,
+        secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+        validateAppSources: true,
+      },
+    ]);
   });
 
   void it('calls BackendDeployer destroy when delete is called', async () => {
+    ({ sandboxInstance } = await setupAndStartSandbox({
+      executor: sandboxExecutor,
+      cfnClient: cfnClientMock,
+    }));
     await sandboxInstance.delete({});
 
-    // BackendDeployer should be called once
+    // BackendDeployer should be called once to destroy
     assert.strictEqual(backendDeployerDestroyMock.mock.callCount(), 1);
 
     // BackendDeployer should be called with the right params
@@ -320,27 +460,134 @@ void describe('Sandbox using local project name resolver', () => {
   });
 
   void it('handles error thrown by BackendDeployer and does not crash while deploying', async (contextual) => {
+    const mockListener = mock.fn();
+    ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
+      executor: sandboxExecutor,
+      cfnClient: cfnClientMock,
+    }));
+    sandboxInstance.on('successfulDeployment', mockListener);
     const contextualBackendDeployerMock = contextual.mock.method(
       backendDeployer,
       'deploy',
-      () => Promise.reject(new Error('random BackendDeployer error'))
+      () => Promise.reject(new Error('random BackendDeployer error')),
+      { times: 1 }
     );
 
     // This test validates that the first file change didn't crash the sandbox process and the second
     // file change will trigger the BackendDeployer again!
-    fileChangeEventActualFn(null, [{ type: 'update', path: 'foo/test1.ts' }]);
+    const firstFileChange = fileChangeEventCallback(null, [
+      { type: 'update', path: 'foo/test1.ts' },
+    ]);
     // Get over debounce so that the next deployment is considered valid
     await new Promise((resolve) => setTimeout(resolve, 200));
     // second file change
-    fileChangeEventActualFn(null, [{ type: 'update', path: 'foo/test2.ts' }]);
-    // Wait sufficient time for both deployments to have finished before we count number of BackendDeployer calls.
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    const secondFileChange = fileChangeEventCallback(null, [
+      { type: 'update', path: 'foo/test2.ts' },
+    ]);
 
-    // BackendDeployer should have been called twice
-    assert.strictEqual(contextualBackendDeployerMock.mock.callCount(), 2);
+    await Promise.all([firstFileChange, secondFileChange]);
+
+    // contextual backendDeployer should have been called once (throwing error)
+    assert.strictEqual(contextualBackendDeployerMock.mock.callCount(), 1);
+
+    // global backendDeployer should have been called once for the successful change
+    assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
+
+    // of the two file change events, successfulDeployment event should only be fired once
+    assert.strictEqual(mockListener.mock.callCount(), 1);
+  });
+
+  void it('handles UpdateNotSupported error while deploying and offers to reset sandbox and customer says yes', async (contextual) => {
+    ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
+      executor: sandboxExecutor,
+      cfnClient: cfnClientMock,
+    }));
+    const contextualBackendDeployerMock = contextual.mock.method(
+      backendDeployer,
+      'deploy',
+      () =>
+        Promise.reject(
+          new Error('[UpdateNotSupported] random BackendDeployer error')
+        ),
+      { times: 1 } //mock implementation once
+    );
+    // User said yes to reset
+    const promptMock = contextual.mock.method(AmplifyPrompter, 'yesOrNo', () =>
+      Promise.resolve(true)
+    );
+
+    // Execute a change that fails with UpdateNotSupported
+    await fileChangeEventCallback(null, [
+      { type: 'update', path: 'foo/test1.ts' },
+    ]);
+
+    // Assertions
+    // prompt must have been presented to user
+    assert.strictEqual(promptMock.mock.callCount(), 1);
+    assert.strictEqual(
+      promptMock.mock.calls[0].arguments[0]?.message,
+      'Would you like to recreate your sandbox (deleting all user data)?'
+    );
+
+    // reset must have been called, first delete and then start
+    assert.strictEqual(backendDeployerDestroyMock.mock.callCount(), 1);
+    // Contextual BackendDeployer should have been called once (for the unsupported change)
+    assert.strictEqual(contextualBackendDeployerMock.mock.callCount(), 1);
+    // Global BackendDeployer should have been called once (for the reset)
+    assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
+  });
+
+  void it('handles UpdateNotSupported error while deploying and offers to reset sandbox and customer says no, continues running sandbox', async (contextual) => {
+    ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
+      executor: sandboxExecutor,
+      cfnClient: cfnClientMock,
+    }));
+    const contextualBackendDeployerMock = contextual.mock.method(
+      backendDeployer,
+      'deploy',
+      () =>
+        Promise.reject(
+          new Error('[UpdateNotSupported] random BackendDeployer error')
+        ),
+      { times: 1 } //mock implementation once
+    );
+    // User said no to reset
+    const promptMock = contextual.mock.method(AmplifyPrompter, 'yesOrNo', () =>
+      Promise.resolve(false)
+    );
+
+    // Execute a change that fails with UpdateNotSupported
+    await fileChangeEventCallback(null, [
+      { type: 'update', path: 'foo/test1.ts' },
+    ]);
+    // Execute another change that succeeds
+    await fileChangeEventCallback(null, [
+      { type: 'update', path: 'foo/test1.ts' },
+    ]);
+
+    // Assertions
+    // prompt must have been presented to user
+    assert.strictEqual(promptMock.mock.callCount(), 1);
+    assert.strictEqual(
+      promptMock.mock.calls[0].arguments[0]?.message,
+      'Would you like to recreate your sandbox (deleting all user data)?'
+    );
+
+    // reset must not have been called, i.e. delete shouldn't be called
+    assert.strictEqual(backendDeployerDestroyMock.mock.callCount(), 0);
+    // Contextual BackendDeployer should have been called once (for the unsupported change)
+    assert.strictEqual(contextualBackendDeployerMock.mock.callCount(), 1);
+    // Global BackendDeployer should have been called once (for the new change after)
+    assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
   });
 
   void it('handles error thrown by BackendDeployer and terminate while destroying', async (contextual) => {
+    ({ sandboxInstance } = await setupAndStartSandbox({
+      executor: sandboxExecutor,
+      cfnClient: cfnClientMock,
+      dir: 'testDir',
+      exclude: ['exclude1', 'exclude2'],
+    }));
     const contextualBackendDeployerMock = contextual.mock.method(
       backendDeployer,
       'destroy',
@@ -354,77 +601,38 @@ void describe('Sandbox using local project name resolver', () => {
     // BackendDeployer should have been called once
     assert.strictEqual(contextualBackendDeployerMock.mock.callCount(), 1);
   });
-});
 
-void describe('Sandbox with user provided app name', () => {
-  // class under test
-  let sandboxInstance: FileWatchingSandbox;
-
-  /**
-   * For each test we start the sandbox and hence file watcher and get hold of
-   * file change event function which tests can simulate by calling as desired.
-   */
-  beforeEach(async () => {
-    // ensures that .gitignore is set as absent
-    mock.method(fs, 'existsSync', () => false);
-    sandboxInstance = new FileWatchingSandbox(
-      'testSandboxId',
-      sandboxExecutor,
-      cfnClientMock
-    );
-    await sandboxInstance.start({
-      dir: 'testDir',
-      exclude: ['exclude1', 'exclude2'],
+  void it('correctly handles user provided appName while deploying', async () => {
+    ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
+      executor: sandboxExecutor,
+      cfnClient: cfnClientMock,
       name: 'customSandboxName',
-    });
-    if (
-      subscribeMock.mock.calls[0].arguments[1] &&
-      typeof subscribeMock.mock.calls[0].arguments[1] === 'function'
-    ) {
-      fileChangeEventActualFn = subscribeMock.mock.calls[0].arguments[1];
-    }
-
-    // Reset all the calls to avoid extra startup call
-    backendDeployerDestroyMock.mock.resetCalls();
-    backendDeployerDeployMock.mock.resetCalls();
-    cfnClientSendMock.mock.resetCalls();
-    listSecretMock.mock.resetCalls();
-  });
-
-  afterEach(async () => {
-    backendDeployerDestroyMock.mock.resetCalls();
-    backendDeployerDeployMock.mock.resetCalls();
-    subscribeMock.mock.resetCalls();
-    cfnClientSendMock.mock.resetCalls();
-    await sandboxInstance.stop();
-  });
-
-  void it('calls BackendDeployer once when a file change is present and user provided appName', async () => {
-    await fileChangeEventActualFn(null, [
+    }));
+    await fileChangeEventCallback(null, [
       { type: 'update', path: 'foo/test1.ts' },
     ]);
-
-    // File watcher should be called with right arguments such as dir and excludes
-    assert.strictEqual(subscribeMock.mock.calls[0].arguments[0], 'testDir');
-    assert.deepStrictEqual(subscribeMock.mock.calls[0].arguments[2], {
-      ignore: ['cdk.out', 'exclude1', 'exclude2'],
-    });
 
     // BackendDeployer should be called once
     assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
     assert.strictEqual(listSecretMock.mock.callCount(), 1);
 
-    // BackendDeployer should be called with the right params
+    // BackendDeployer should be called with the right app name
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
       new SandboxBackendIdentifier('customSandboxName'),
       {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+        validateAppSources: true,
       },
     ]);
   });
 
-  void it('calls BackendDeployer destroy when delete is called with a user provided sandbox name', async () => {
+  void it('correctly handles user provided appName while destroying', async () => {
+    ({ sandboxInstance } = await setupAndStartSandbox({
+      executor: sandboxExecutor,
+      cfnClient: cfnClientMock,
+      name: 'customSandboxName',
+    }));
     await sandboxInstance.delete({ name: 'customSandboxName' });
 
     // BackendDeployer should be called once
@@ -436,63 +644,10 @@ void describe('Sandbox with user provided app name', () => {
       { deploymentType: BackendDeploymentType.SANDBOX },
     ]);
   });
-});
 
-void describe('Sandbox with absolute output path', () => {
-  // class under test
-  let sandboxInstance: FileWatchingSandbox;
-
-  /**
-   * For each test we start the sandbox and hence file watcher and get hold of
-   * file change event function which tests can simulate by calling as desired.
-   */
-  beforeEach(async () => {
-    // ensures that .gitignore is set as absent
-    mock.method(fs, 'existsSync', () => false);
-    sandboxInstance = new FileWatchingSandbox(
-      'testSandboxId',
-      sandboxExecutor,
-      cfnClientMock
-    );
-    await sandboxInstance.start({
-      dir: 'testDir',
-      exclude: ['exclude1', 'exclude2'],
-      name: 'customSandboxName',
-    });
-    if (
-      subscribeMock.mock.calls[0].arguments[1] &&
-      typeof subscribeMock.mock.calls[0].arguments[1] === 'function'
-    ) {
-      fileChangeEventActualFn = subscribeMock.mock.calls[0].arguments[1];
-    }
-
-    // Reset all the calls to avoid extra startup call
-    backendDeployerDeployMock.mock.resetCalls();
-    backendDeployerDestroyMock.mock.resetCalls();
-    cfnClientSendMock.mock.resetCalls();
-  });
-
-  afterEach(async () => {
-    backendDeployerDeployMock.mock.resetCalls();
-    backendDeployerDestroyMock.mock.resetCalls();
-    subscribeMock.mock.resetCalls();
-    cfnClientSendMock.mock.resetCalls();
-    await sandboxInstance.stop();
-  });
-});
-
-void describe('Sandbox ignoring paths in .gitignore', () => {
-  // class under test
-  let sandboxInstance: FileWatchingSandbox;
-
-  /**
-   * For each test we start the sandbox and hence file watcher and get hold of
-   * file change event function which tests can simulate by calling as desired.
-   */
-  beforeEach(async () => {
-    // setup .gitignore such that parseGitIgnore returns a list of parsed paths
-    mock.method(fs, 'existsSync', () => true);
-    mock.method(parseGitIgnore, 'parse', () => {
+  void it('handles .gitignore files to exclude paths from file watching', async (contextual) => {
+    contextual.mock.method(fs, 'existsSync', () => true);
+    contextual.mock.method(parseGitIgnore, 'parse', () => {
       return {
         patterns: [
           '/patternWithLeadingSlash',
@@ -503,44 +658,16 @@ void describe('Sandbox ignoring paths in .gitignore', () => {
         ],
       };
     });
-    sandboxInstance = new FileWatchingSandbox(
-      'testSandboxId',
-      sandboxExecutor,
-      cfnClientMock
-    );
-    await sandboxInstance.start({
-      dir: 'testDir',
+    ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
+      executor: sandboxExecutor,
+      cfnClient: cfnClientMock,
       exclude: ['customer_exclude1', 'customer_exclude2'],
-      name: 'customSandboxName',
-    });
-    if (
-      subscribeMock.mock.calls[0].arguments[1] &&
-      typeof subscribeMock.mock.calls[0].arguments[1] === 'function'
-    ) {
-      fileChangeEventActualFn = subscribeMock.mock.calls[0].arguments[1];
-    }
-
-    // Reset all the calls to avoid extra startup call
-    backendDeployerDeployMock.mock.resetCalls();
-    backendDeployerDestroyMock.mock.resetCalls();
-    cfnClientSendMock.mock.resetCalls();
-  });
-
-  afterEach(async () => {
-    backendDeployerDeployMock.mock.resetCalls();
-    backendDeployerDestroyMock.mock.resetCalls();
-    subscribeMock.mock.resetCalls();
-    cfnClientSendMock.mock.resetCalls();
-    await sandboxInstance.stop();
-  });
-
-  void it('handles .gitignore files to exclude paths from file watching', async () => {
-    await fileChangeEventActualFn(null, [
+    }));
+    await fileChangeEventCallback(null, [
       { type: 'update', path: 'foo/test1.ts' },
     ]);
 
     // File watcher should be called with right excludes
-    assert.strictEqual(subscribeMock.mock.calls[0].arguments[0], 'testDir');
     assert.deepStrictEqual(subscribeMock.mock.calls[0].arguments[2], {
       ignore: [
         'cdk.out',
@@ -557,20 +684,92 @@ void describe('Sandbox ignoring paths in .gitignore', () => {
     // BackendDeployer should also be called once
     assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
   });
+
   void it('emits the successfulDeployment event after deployment', async () => {
     const mockListener = mock.fn();
-    const mockDeploy = mock.fn();
-    mockDeploy.mock.mockImplementation(async () => null);
-    const executor: AmplifySandboxExecutor = {
-      deploy: mockDeploy,
-    } as unknown as AmplifySandboxExecutor;
-    const sandbox = new FileWatchingSandbox(
-      'my-sandbox',
-      executor,
-      cfnClientMock
-    );
-    sandbox.on('successfulDeployment', mockListener);
-    await sandbox.start({});
+    ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
+      executor: sandboxExecutor,
+      cfnClient: cfnClientMock,
+    }));
+
+    sandboxInstance.on('successfulDeployment', mockListener);
+
+    await fileChangeEventCallback(null, [
+      { type: 'update', path: 'foo/test1.ts' },
+    ]);
+
     assert.equal(mockListener.mock.callCount(), 1);
   });
 });
+
+/**
+ * Create a new sandbox instance to test and extracts the file watcher
+ * event handler after starting the sandbox. This handler can be called
+ * by the tests to simulate file save events.
+ *
+ * Both the instance and the event handler are returned.
+ */
+const setupAndStartSandbox = async (
+  testData: SandboxTestData,
+  resetMocksAfterStart = true
+) => {
+  const sandboxInstance = new FileWatchingSandbox(
+    testData.sandboxId ?? 'testSandboxId',
+    testData.executor,
+    testData.cfnClient,
+    testData.open ?? _open
+  );
+
+  await sandboxInstance.start({
+    dir: testData.dir,
+    exclude: testData.exclude,
+    name: testData.name,
+    format: testData.format,
+    profile: testData.profile,
+  });
+
+  // At this point one deployment should already have been done on sandbox startup
+  assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
+  // and client config generated only once
+
+  /**
+   * For each test we start the sandbox and hence file watcher and get hold of
+   * file change event function which tests can simulate by calling as desired.
+   */
+  let fileChangeEventCallback: watcher.SubscribeCallback;
+  if (
+    subscribeMock.mock.calls[0].arguments[1] &&
+    typeof subscribeMock.mock.calls[0].arguments[1] === 'function'
+  ) {
+    fileChangeEventCallback = subscribeMock.mock.calls[0].arguments[1];
+  } else {
+    throw new Error(
+      'fileChangeEventCallback was not available after starting sandbox'
+    );
+  }
+
+  if (resetMocksAfterStart) {
+    // Reset all the calls to avoid extra startup call
+    backendDeployerDestroyMock.mock.resetCalls();
+    backendDeployerDeployMock.mock.resetCalls();
+    cfnClientSendMock.mock.resetCalls();
+    listSecretMock.mock.resetCalls();
+  }
+
+  return { sandboxInstance, fileChangeEventCallback };
+};
+
+type SandboxTestData = {
+  // To instantiate sandbox
+  sandboxId?: string;
+  executor: AmplifySandboxExecutor;
+  cfnClient: CloudFormationClient;
+  open?: typeof _open;
+
+  // To start sandbox
+  dir?: string;
+  exclude?: string[];
+  name?: string;
+  format?: ClientConfigFormat;
+  profile?: string;
+};

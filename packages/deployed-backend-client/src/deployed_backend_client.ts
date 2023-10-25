@@ -4,7 +4,6 @@ import {
 } from '@aws-amplify/plugin-types';
 import {
   ApiAuthType,
-  BackendDeploymentStatus,
   BackendMetadata,
   ConflictResolutionMode,
   DeployedBackendClient,
@@ -39,6 +38,8 @@ import {
   stackOutputKey,
   storageOutputKey,
 } from '@aws-amplify/backend-output-schemas';
+import { DeployedResourcesEnumerator } from './deployed-backend-client/deployed_resources_enumerator.js';
+import { StackStatusMapper } from './deployed-backend-client/stack_status_mapper.js';
 
 /**
  * Deployment Client
@@ -50,7 +51,9 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
   constructor(
     private readonly cfnClient: CloudFormationClient,
     private readonly s3Client: S3Client,
-    private readonly backendOutputClient: BackendOutputClient
+    private readonly backendOutputClient: BackendOutputClient,
+    private readonly deployedResourcesEnumerator: DeployedResourcesEnumerator,
+    private readonly stackStatusMapper: StackStatusMapper
   ) {}
 
   /**
@@ -73,8 +76,14 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
 
           return {
             name: stackSummary.StackName as string,
-            lastUpdated: stackSummary.LastUpdatedTime,
-            status: this.translateStackStatus(stackSummary.StackStatus),
+            backendId: SandboxBackendIdentifier.tryParse(
+              stackSummary.StackName as string
+            ),
+            lastUpdated:
+              stackSummary.LastUpdatedTime ?? stackSummary.CreationTime,
+            status: this.stackStatusMapper.translateStackStatus(
+              stackSummary.StackStatus
+            ),
             deploymentType,
           };
         });
@@ -160,8 +169,10 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
       new DescribeStacksCommand({ StackName: stackName })
     );
     const stack = stackDescription?.Stacks?.[0];
-    const status = this.translateStackStatus(stack?.StackStatus);
-    const lastUpdated = stack?.LastUpdatedTime;
+    const status = this.stackStatusMapper.translateStackStatus(
+      stack?.StackStatus
+    );
+    const lastUpdated = stack?.LastUpdatedTime ?? stack?.CreationTime;
 
     const stackResources = await this.cfnClient.send(
       new ListStackResourcesCommand({
@@ -209,20 +220,28 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
       lastUpdated,
       status,
       name: stackName,
+      resources: await this.deployedResourcesEnumerator.listDeployedResources(
+        this.cfnClient,
+        stackName
+      ),
     };
 
     if (authStack) {
       backendMetadataObject.authConfiguration = {
-        status: this.translateStackStatus(authStack.StackStatus),
-        lastUpdated: authStack.LastUpdatedTime,
+        status: this.stackStatusMapper.translateStackStatus(
+          authStack.StackStatus
+        ),
+        lastUpdated: authStack.LastUpdatedTime ?? authStack.CreationTime,
         userPoolId: backendOutput[authOutputKey]?.payload.userPoolId as string,
       };
     }
 
     if (storageStack) {
       backendMetadataObject.storageConfiguration = {
-        status: this.translateStackStatus(storageStack.StackStatus),
-        lastUpdated: storageStack.LastUpdatedTime,
+        status: this.stackStatusMapper.translateStackStatus(
+          storageStack.StackStatus
+        ),
+        lastUpdated: storageStack.LastUpdatedTime ?? storageStack.CreationTime,
         s3BucketName: backendOutput[storageOutputKey]?.payload
           .bucketName as string,
       };
@@ -236,10 +255,9 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
           .amplifyApiModelIntrospectionSchemaS3Uri ||
         // TODO: Once the introspection schema is in the CFN output, remove the below line and the OR operator above.
         // GH link: https://github.com/aws-amplify/samsara-cli/issues/395
-        `${schemaFileUri.slice(
-          0,
-          schemaFileUri.lastIndexOf('/')
-        )}/model-introspection-schema.json`;
+        `${
+          schemaFileUri.slice(0, schemaFileUri.lastIndexOf('/')) as string
+        }/model-introspection-schema.json`;
 
       const additionalAuthTypesString =
         backendOutput[graphqlOutputKey]?.payload
@@ -248,8 +266,10 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
         ? (additionalAuthTypesString.split(',') as ApiAuthType[])
         : [];
       backendMetadataObject.apiConfiguration = {
-        status: this.translateStackStatus(apiStack.StackStatus),
-        lastUpdated: apiStack.LastUpdatedTime,
+        status: this.stackStatusMapper.translateStackStatus(
+          apiStack.StackStatus
+        ),
+        lastUpdated: apiStack.LastUpdatedTime ?? apiStack.CreationTime,
         graphqlEndpoint: backendOutput[graphqlOutputKey]?.payload
           .awsAppsyncApiEndpoint as string,
         defaultAuthType: backendOutput[graphqlOutputKey]?.payload
@@ -294,45 +314,5 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     }
 
     return await s3Response.Body?.transformToString();
-  };
-
-  private translateStackStatus = (
-    status: StackStatus | string | undefined
-  ): BackendDeploymentStatus => {
-    switch (status) {
-      case StackStatus.CREATE_COMPLETE:
-      case StackStatus.IMPORT_COMPLETE:
-      case StackStatus.UPDATE_COMPLETE:
-        return BackendDeploymentStatus.DEPLOYED;
-
-      case StackStatus.CREATE_FAILED:
-      case StackStatus.DELETE_FAILED:
-      case StackStatus.IMPORT_ROLLBACK_COMPLETE:
-      case StackStatus.IMPORT_ROLLBACK_FAILED:
-      case StackStatus.ROLLBACK_COMPLETE:
-      case StackStatus.ROLLBACK_FAILED:
-      case StackStatus.UPDATE_ROLLBACK_COMPLETE:
-      case StackStatus.UPDATE_ROLLBACK_FAILED:
-      case StackStatus.UPDATE_FAILED:
-        return BackendDeploymentStatus.FAILED;
-
-      case StackStatus.CREATE_IN_PROGRESS:
-      case StackStatus.DELETE_IN_PROGRESS:
-      case StackStatus.IMPORT_IN_PROGRESS:
-      case StackStatus.IMPORT_ROLLBACK_IN_PROGRESS:
-      case StackStatus.REVIEW_IN_PROGRESS:
-      case StackStatus.ROLLBACK_IN_PROGRESS:
-      case StackStatus.UPDATE_COMPLETE_CLEANUP_IN_PROGRESS:
-      case StackStatus.UPDATE_IN_PROGRESS:
-      case StackStatus.UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS:
-      case StackStatus.UPDATE_ROLLBACK_IN_PROGRESS:
-        return BackendDeploymentStatus.DEPLOYING;
-
-      case StackStatus.DELETE_COMPLETE:
-        return BackendDeploymentStatus.DELETED;
-
-      default:
-        return BackendDeploymentStatus.UNKNOWN;
-    }
   };
 }

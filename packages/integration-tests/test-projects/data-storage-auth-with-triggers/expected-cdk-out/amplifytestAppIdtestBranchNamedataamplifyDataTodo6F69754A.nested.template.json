@@ -429,7 +429,7 @@
        {
         "Ref": "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthunauthenticatedUserRoleF8166590Ref"
        },
-       "/CognitoIdentityCredentials\"))\n$util.toJson({})"
+       "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"identityPoolId\", \"amplifyAuthIdentityPool3FDE84CC\"))\n$util.qr($ctx.stash.put(\"adminRoles\", []))\n$util.toJson({})"
       ]
      ]
     },
@@ -531,7 +531,7 @@
        {
         "Ref": "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthunauthenticatedUserRoleF8166590Ref"
        },
-       "/CognitoIdentityCredentials\"))\n$util.toJson({})"
+       "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"identityPoolId\", \"amplifyAuthIdentityPool3FDE84CC\"))\n$util.qr($ctx.stash.put(\"adminRoles\", []))\n$util.toJson({})"
       ]
      ]
     },
@@ -656,7 +656,7 @@
        {
         "Ref": "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthunauthenticatedUserRoleF8166590Ref"
        },
-       "/CognitoIdentityCredentials\"))\n$util.toJson({})"
+       "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"identityPoolId\", \"amplifyAuthIdentityPool3FDE84CC\"))\n$util.qr($ctx.stash.put(\"adminRoles\", []))\n$util.toJson({})"
       ]
      ]
     },
@@ -781,7 +781,7 @@
        {
         "Ref": "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthunauthenticatedUserRoleF8166590Ref"
        },
-       "/CognitoIdentityCredentials\"))\n$util.toJson({})"
+       "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"identityPoolId\", \"amplifyAuthIdentityPool3FDE84CC\"))\n$util.qr($ctx.stash.put(\"adminRoles\", []))\n$util.toJson({})"
       ]
      ]
     },
@@ -883,7 +883,7 @@
        {
         "Ref": "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthunauthenticatedUserRoleF8166590Ref"
        },
-       "/CognitoIdentityCredentials\"))\n$util.toJson({})"
+       "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"identityPoolId\", \"amplifyAuthIdentityPool3FDE84CC\"))\n$util.qr($ctx.stash.put(\"adminRoles\", []))\n$util.toJson({})"
       ]
      ]
     },
@@ -975,7 +975,7 @@
        {
         "Ref": "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthunauthenticatedUserRoleF8166590Ref"
        },
-       "/CognitoIdentityCredentials\"))\n$util.toJson({})"
+       "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"identityPoolId\", \"amplifyAuthIdentityPool3FDE84CC\"))\n$util.qr($ctx.stash.put(\"adminRoles\", []))\n$util.toJson({})"
       ]
      ]
     },
@@ -1067,7 +1067,7 @@
        {
         "Ref": "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthunauthenticatedUserRoleF8166590Ref"
        },
-       "/CognitoIdentityCredentials\"))\n$util.toJson({})"
+       "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"identityPoolId\", \"amplifyAuthIdentityPool3FDE84CC\"))\n$util.qr($ctx.stash.put(\"adminRoles\", []))\n$util.toJson({})"
       ]
      ]
     },
@@ -1159,7 +1159,7 @@
        {
         "Ref": "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthunauthenticatedUserRoleF8166590Ref"
        },
-       "/CognitoIdentityCredentials\"))\n$util.toJson({})"
+       "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"identityPoolId\", \"amplifyAuthIdentityPool3FDE84CC\"))\n$util.qr($ctx.stash.put(\"adminRoles\", []))\n$util.toJson({})"
       ]
      ]
     },
