@@ -28,4 +28,4 @@ jobs:
         shell: bash
         run: |
           mkdir -p /tmp/amplify-project; cd /tmp/amplify-project
-          npm create amplify@alpha --yes
+          ${{matrix.pkg-manager}} create amplify@alpha --yes
