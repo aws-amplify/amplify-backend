@@ -51,4 +51,4 @@ jobs:
         if: ${{matrix.pkg-manager == 'yarn1' && matrix.os == 'windows-latest'}}
         shell: bash
         run: |
-          C:\npm\prefix\bin\create-amplify
+          C:\\npm\\prefix\\bin\\create-amplify
