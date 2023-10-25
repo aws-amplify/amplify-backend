@@ -35,11 +35,11 @@ export type AuthResources = {
   /**
    * The generated auth role.
    */
-  authenticatedUserIamRole?: IRole;
+  authenticatedUserIamRole: IRole;
   /**
    * The generated unauth role.
    */
-  unauthenticatedUserIamRole?: IRole;
+  unauthenticatedUserIamRole: IRole;
   /**
    * L1 Cfn Resources, for when dipping down a level of abstraction is desirable.
    */

@@ -33,10 +33,15 @@ void describe('NpmInitializedEnsurer', () => {
       execaMock as never
     );
     await npmInitializedEnsurer.ensureInitialized();
-    assert.equal(execaMock.mock.callCount(), 1);
+    assert.equal(execaMock.mock.callCount(), 2);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments, [
       'npm',
       ['init', '--yes'],
+      { stdio: 'inherit', cwd: '/testProjectRoot' },
+    ]);
+    assert.deepStrictEqual(execaMock.mock.calls[1].arguments, [
+      'npm',
+      ['pkg', 'set', 'type=module'],
       { stdio: 'inherit', cwd: '/testProjectRoot' },
     ]);
   });
