@@ -246,13 +246,7 @@ export type AuthProps = {
    * When email and phone login methods are both enabled, email will be the default recovery method.
    * If only email or phone are enabled, they will be the default recovery methods.
    */
-  accountRecovery?:
-    | 'EMAIL_AND_PHONE_WITHOUT_MFA'
-    | 'PHONE_WITHOUT_MFA_AND_EMAIL'
-    | 'EMAIL_ONLY'
-    | 'PHONE_ONLY_WITHOUT_MFA'
-    | 'PHONE_AND_EMAIL'
-    | 'NONE';
+  accountRecovery?: keyof typeof cognito.AccountRecovery;
 
   /**
    * @internal

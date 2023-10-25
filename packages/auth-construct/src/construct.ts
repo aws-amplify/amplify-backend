@@ -422,22 +422,10 @@ export class AmplifyAuth
   private convertAccountRecoveryStringToEnum = (
     method: AuthProps['accountRecovery']
   ): cognito.AccountRecovery | undefined => {
-    switch (method) {
-      case 'EMAIL_AND_PHONE_WITHOUT_MFA':
-        return cognito.AccountRecovery.EMAIL_AND_PHONE_WITHOUT_MFA;
-      case 'PHONE_WITHOUT_MFA_AND_EMAIL':
-        return cognito.AccountRecovery.PHONE_WITHOUT_MFA_AND_EMAIL;
-      case 'EMAIL_ONLY':
-        return cognito.AccountRecovery.EMAIL_ONLY;
-      case 'PHONE_ONLY_WITHOUT_MFA':
-        return cognito.AccountRecovery.PHONE_ONLY_WITHOUT_MFA;
-      case 'PHONE_AND_EMAIL':
-        return cognito.AccountRecovery.PHONE_AND_EMAIL;
-      case 'NONE':
-        return cognito.AccountRecovery.NONE;
-      default:
-        return undefined;
+    if (method !== undefined) {
+      return cognito.AccountRecovery[method];
     }
+    return undefined;
   };
 
   /**
