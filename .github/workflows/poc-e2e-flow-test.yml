@@ -31,11 +31,16 @@ jobs:
           mkdir -p /tmp/amplify-project; cd /tmp/amplify-project
           npm install -g ${{matrix.pkg-manager}}
           ${{matrix.pkg-manager}} create amplify@alpha --yes
-      - name: ${{matrix.pkg-manager}}-create-amplify-project
+      - name: ${{matrix.pkg-manager}}-create-amplify-project-step1-install
+        continue-on-error: true
         if: matrix.pkg-manager == 'yarn1'
         shell: bash
         run: | # yarn1 create amplify doesn't work with @ahpha tag
           mkdir -p /tmp/amplify-project; cd /tmp/amplify-project
           echo "yarn version: $(yarn --version)"
-          yarn add amplify
+          yarn create amplify@alpha
+      - name: ${{matrix.pkg-manager}}-create-amplify-project-step2-setup
+        if: matrix.pkg-manager == 'yarn1'
+        shell: bash
+        run: |
           ~/.yarn/bin/create-amplify
