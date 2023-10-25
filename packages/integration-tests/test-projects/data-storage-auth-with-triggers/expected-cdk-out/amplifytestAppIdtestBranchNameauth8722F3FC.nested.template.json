@@ -62,7 +62,7 @@
      "S3Bucket": {
       "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
      },
-     "S3Key": "0b08b62c0f0e15352dd6705aecf8adf17f964361f48d2c41be92e313488ffb0f.zip"
+     "S3Key": "d735793daa477a9e1ffa43fa066e278ad79b0ca0330a67754281b7c91a2cfc9e.zip"
     },
     "Environment": {
      "Variables": {
@@ -204,7 +204,7 @@
     "backendId": "testAppId",
     "branchName": "testBranchName",
     "secretName": "testAmazonId",
-    "secretLastUpdated": 1697060694744
+    "secretLastUpdated": 1698255169946
    },
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete"
@@ -221,7 +221,7 @@
     "backendId": "testAppId",
     "branchName": "testBranchName",
     "secretName": "testAmazonSecret",
-    "secretLastUpdated": 1697060694745
+    "secretLastUpdated": 1698255169947
    },
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete"
@@ -238,7 +238,7 @@
     "backendId": "testAppId",
     "branchName": "testBranchName",
     "secretName": "testFacebookId",
-    "secretLastUpdated": 1697060694745
+    "secretLastUpdated": 1698255169947
    },
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete"
@@ -255,7 +255,7 @@
     "backendId": "testAppId",
     "branchName": "testBranchName",
     "secretName": "testFacebookSecret",
-    "secretLastUpdated": 1697060694745
+    "secretLastUpdated": 1698255169947
    },
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete"
@@ -272,7 +272,7 @@
     "backendId": "testAppId",
     "branchName": "testBranchName",
     "secretName": "testGoogleId",
-    "secretLastUpdated": 1697060694745
+    "secretLastUpdated": 1698255169947
    },
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete"
@@ -289,7 +289,7 @@
     "backendId": "testAppId",
     "branchName": "testBranchName",
     "secretName": "testGoogleSecret",
-    "secretLastUpdated": 1697060694745
+    "secretLastUpdated": 1698255169947
    },
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete"
@@ -447,7 +447,7 @@
     }
    }
   },
-  "amplifyAuthUserPoolWebClientA385E48A": {
+  "amplifyAuthUserPoolAppClient2626C6F8": {
    "Type": "AWS::Cognito::UserPoolClient",
    "Properties": {
     "AllowedOAuthFlows": [
