@@ -248,8 +248,6 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     }
 
     if (apiStack) {
-      const schemaFileUri =
-        backendOutput[graphqlOutputKey]?.payload.amplifyApiModelSchemaS3Uri;
       const additionalAuthTypesString =
         backendOutput[graphqlOutputKey]?.payload
           .awsAppsyncAdditionalAuthenticationTypes;
@@ -268,7 +266,6 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
         additionalAuthTypes,
         conflictResolutionMode: backendOutput[graphqlOutputKey]?.payload
           .awsAppsyncConflictResolutionMode as ConflictResolutionMode,
-        graphqlSchema: await this.fetchSchema(schemaFileUri),
         apiId: backendOutput[graphqlOutputKey]?.payload
           .awsAppsyncApiId as string,
       };

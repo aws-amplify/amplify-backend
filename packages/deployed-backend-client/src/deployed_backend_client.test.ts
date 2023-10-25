@@ -142,7 +142,6 @@ const expectedMetadata = {
     status: BackendDeploymentStatus.FAILED,
     defaultAuthType: undefined,
     additionalAuthTypes: [],
-    graphqlSchema: 's3://bucketName/model-schema.graphql schema contents!',
     conflictResolutionMode: undefined,
     apiId: 'awsAppsyncApiId',
   },

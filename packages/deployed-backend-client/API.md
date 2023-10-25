@@ -61,7 +61,6 @@ export type BackendMetadata = {
         status: BackendDeploymentStatus;
         lastUpdated: Date | undefined;
         graphqlEndpoint: string;
-        graphqlSchema: string;
         defaultAuthType: ApiAuthType;
         additionalAuthTypes: ApiAuthType[];
         conflictResolutionMode?: ConflictResolutionMode;
