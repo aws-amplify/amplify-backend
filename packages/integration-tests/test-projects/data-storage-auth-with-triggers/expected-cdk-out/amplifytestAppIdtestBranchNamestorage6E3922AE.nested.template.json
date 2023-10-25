@@ -1,4 +1,5 @@
 {
+ "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyPipelineDeploy\",\"createdWith\":\"0.1.1-alpha.8\",\"stackType\":\"storage-S3\"}",
  "Resources": {
   "amplifyStorageamplifyStorageBucketC2F702CD": {
    "Type": "AWS::S3::Bucket",
