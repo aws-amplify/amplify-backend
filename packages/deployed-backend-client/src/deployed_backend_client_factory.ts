@@ -63,7 +63,6 @@ export type BackendMetadata = {
     additionalAuthTypes: ApiAuthType[];
     conflictResolutionMode?: ConflictResolutionMode;
     apiId: string;
-    modelIntrospectionSchema: string;
   };
   authConfiguration?: {
     status: BackendDeploymentStatus;

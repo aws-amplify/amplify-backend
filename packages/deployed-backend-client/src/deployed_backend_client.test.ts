@@ -145,8 +145,6 @@ const expectedMetadata = {
     graphqlSchema: 's3://bucketName/model-schema.graphql schema contents!',
     conflictResolutionMode: undefined,
     apiId: 'awsAppsyncApiId',
-    modelIntrospectionSchema:
-      's3://bucketName/model-introspection-schema.json schema contents!',
   },
 };
 
