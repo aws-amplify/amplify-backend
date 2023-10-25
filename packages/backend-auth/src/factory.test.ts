@@ -21,14 +21,17 @@ import { AmplifyAuth, triggerEvents } from '@aws-amplify/auth-construct-alpha';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 import {
   BackendDeploymentType,
-  backendDeploymentTypeKey,
+  CDKContextKey,
 } from '@aws-amplify/platform-core';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
   app.node.setContext('branch-name', 'testEnvName');
   app.node.setContext('backend-id', 'testBackendId');
-  app.node.setContext(backendDeploymentTypeKey, BackendDeploymentType.BRANCH);
+  app.node.setContext(
+    CDKContextKey.DEPLOYMENT_TYPE,
+    BackendDeploymentType.BRANCH
+  );
   const stack = new Stack(app);
   return stack;
 };

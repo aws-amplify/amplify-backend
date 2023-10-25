@@ -7,7 +7,7 @@ import {
 import assert from 'node:assert';
 import {
   BackendDeploymentType,
-  backendDeploymentTypeKey,
+  CDKContextKey,
 } from '@aws-amplify/platform-core';
 
 void describe('storeAttributionMetadata', () => {
@@ -79,7 +79,7 @@ void describe('storeAttributionMetadata', () => {
     const app = new App();
     const stack = new Stack(app);
     stack.node.setContext(
-      backendDeploymentTypeKey,
+      CDKContextKey.DEPLOYMENT_TYPE,
       BackendDeploymentType.BRANCH
     );
     new AttributionMetadataStorage(fsMock as never).storeAttributionMetadata(
@@ -97,7 +97,7 @@ void describe('storeAttributionMetadata', () => {
     const app = new App();
     const stack = new Stack(app);
     stack.node.setContext(
-      backendDeploymentTypeKey,
+      CDKContextKey.DEPLOYMENT_TYPE,
       BackendDeploymentType.SANDBOX
     );
     new AttributionMetadataStorage(fsMock as never).storeAttributionMetadata(
@@ -115,7 +115,7 @@ void describe('storeAttributionMetadata', () => {
     const app = new App();
     const stack = new Stack(app);
     stack.node.setContext(
-      backendDeploymentTypeKey,
+      CDKContextKey.DEPLOYMENT_TYPE,
       BackendDeploymentType.SANDBOX
     );
     new AttributionMetadataStorage(fsMock as never).storeAttributionMetadata(

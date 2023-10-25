@@ -2,7 +2,7 @@ import { Stack } from 'aws-cdk-lib';
 import * as _os from 'os';
 import {
   BackendDeploymentType,
-  backendDeploymentTypeKey,
+  CDKContextKey,
 } from '@aws-amplify/platform-core';
 import * as _fs from 'fs';
 
@@ -79,7 +79,7 @@ export class AttributionMetadataStorage {
 
   private getDeploymentEngineType = (stack: Stack): DeploymentEngineType => {
     const deploymentType: BackendDeploymentType | undefined =
-      stack.node.tryGetContext(backendDeploymentTypeKey);
+      stack.node.tryGetContext(CDKContextKey.DEPLOYMENT_TYPE);
 
     if (deploymentType === undefined) {
       // if no deployment type context value is set, assume the construct is being used in a native CDK project
@@ -93,7 +93,7 @@ export class AttributionMetadataStorage {
         return 'AmplifySandbox';
       default:
         throw new Error(
-          `Unknown ${backendDeploymentTypeKey} CDK context value "${
+          `Unknown ${CDKContextKey.DEPLOYMENT_TYPE} CDK context value "${
             deploymentType as string
           }"`
         );

@@ -5,7 +5,7 @@ import assert from 'node:assert';
 import { AmplifyStack } from './engine/amplify_stack.js';
 import {
   BackendDeploymentType,
-  backendDeploymentTypeKey,
+  CDKContextKey,
 } from '@aws-amplify/platform-core';
 
 void describe('createDefaultRootStack', () => {
@@ -13,7 +13,10 @@ void describe('createDefaultRootStack', () => {
     const app = new App();
     app.node.setContext('backend-id', 'testBackendId');
     app.node.setContext('branch-name', 'testBranchName');
-    app.node.setContext(backendDeploymentTypeKey, BackendDeploymentType.BRANCH);
+    app.node.setContext(
+      CDKContextKey.DEPLOYMENT_TYPE,
+      BackendDeploymentType.BRANCH
+    );
     const stack = createDefaultStack(app);
     assert.ok(stack instanceof AmplifyStack);
     assert.strictEqual(stack.stackName, 'amplify-testBackendId-testBranchName');
@@ -23,7 +26,7 @@ void describe('createDefaultRootStack', () => {
     const app = new App();
     app.node.setContext('backend-id', 'testBackendId');
     app.node.setContext(
-      backendDeploymentTypeKey,
+      CDKContextKey.DEPLOYMENT_TYPE,
       BackendDeploymentType.SANDBOX
     );
     const stack = createDefaultStack(app);
@@ -34,7 +37,10 @@ void describe('createDefaultRootStack', () => {
   void it('throws if backend-id is missing', () => {
     const app = new App();
     app.node.setContext('branch-name', 'testEnvName');
-    app.node.setContext(backendDeploymentTypeKey, BackendDeploymentType.BRANCH);
+    app.node.setContext(
+      CDKContextKey.DEPLOYMENT_TYPE,
+      BackendDeploymentType.BRANCH
+    );
     assert.throws(() => createDefaultStack(app), {
       message: 'No context value present for backend-id key',
     });
@@ -43,7 +49,10 @@ void describe('createDefaultRootStack', () => {
   void it('throws if branch-name is missing', () => {
     const app = new App();
     app.node.setContext('backend-id', 'testBackendId');
-    app.node.setContext(backendDeploymentTypeKey, BackendDeploymentType.BRANCH);
+    app.node.setContext(
+      CDKContextKey.DEPLOYMENT_TYPE,
+      BackendDeploymentType.BRANCH
+    );
     assert.throws(() => createDefaultStack(app), {
       message: 'No context value present for branch-name key',
     });

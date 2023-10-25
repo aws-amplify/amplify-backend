@@ -9,14 +9,17 @@ import { NestedStackResolver } from './nested_stack_resolver.js';
 import { ConstructContainerEntryGenerator } from '@aws-amplify/plugin-types';
 import {
   BackendDeploymentType,
-  backendDeploymentTypeKey,
+  CDKContextKey,
 } from '@aws-amplify/platform-core';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
   app.node.setContext('branch-name', 'testEnvName');
   app.node.setContext('backend-id', 'testBackendId');
-  app.node.setContext(backendDeploymentTypeKey, BackendDeploymentType.BRANCH);
+  app.node.setContext(
+    CDKContextKey.DEPLOYMENT_TYPE,
+    BackendDeploymentType.BRANCH
+  );
   const stack = new Stack(app);
   return stack;
 };

@@ -4,7 +4,7 @@ import assert from 'node:assert';
 import {
   BackendDeploymentType,
   BranchBackendIdentifier,
-  backendDeploymentTypeKey,
+  CDKContextKey,
 } from '@aws-amplify/platform-core';
 import { DeployProps } from './cdk_deployer_singleton_factory.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
@@ -82,7 +82,7 @@ void describe('invokeCDKCommand', () => {
       '--output',
       '.amplify/artifacts/cdk.out',
       '--context',
-      `${backendDeploymentTypeKey}=SANDBOX`,
+      `${CDKContextKey.DEPLOYMENT_TYPE}=SANDBOX`,
       '--hotswap-fallback',
       '--method=direct',
       '--context',
@@ -108,7 +108,7 @@ void describe('invokeCDKCommand', () => {
       '--context',
       'backend-id=123',
       '--context',
-      `${backendDeploymentTypeKey}=SANDBOX`,
+      `${CDKContextKey.DEPLOYMENT_TYPE}=SANDBOX`,
       '--hotswap-fallback',
       '--method=direct',
       '--context',
@@ -136,7 +136,7 @@ void describe('invokeCDKCommand', () => {
       '--context',
       'backend-id=123',
       '--context',
-      `${backendDeploymentTypeKey}=SANDBOX`,
+      `${CDKContextKey.DEPLOYMENT_TYPE}=SANDBOX`,
       '--force',
     ]);
   });
@@ -169,7 +169,7 @@ void describe('invokeCDKCommand', () => {
       '--context',
       'branch-name=testBranch',
       '--context',
-      `${backendDeploymentTypeKey}=BRANCH`,
+      `${CDKContextKey.DEPLOYMENT_TYPE}=BRANCH`,
     ]);
   });
 
@@ -197,7 +197,7 @@ void describe('invokeCDKCommand', () => {
       '--output',
       '.amplify/artifacts/cdk.out',
       '--context',
-      `${backendDeploymentTypeKey}=SANDBOX`,
+      `${CDKContextKey.DEPLOYMENT_TYPE}=SANDBOX`,
       '--hotswap-fallback',
       '--method=direct',
     ]);
