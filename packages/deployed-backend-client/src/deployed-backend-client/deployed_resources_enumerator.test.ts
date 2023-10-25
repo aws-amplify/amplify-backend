@@ -11,10 +11,14 @@ import {
 } from '../deployed_backend_client_factory.js';
 import { DeployedResourcesEnumerator } from './deployed_resources_enumerator.js';
 import { StackStatusMapper } from './stack_status_mapper.js';
+import { ConsoleLinkGenerator } from './console_link_generator.js';
 
 void describe('listDeployedResources', () => {
+  const consoleLinkGeneratorMock = new ConsoleLinkGenerator();
+  mock.method(consoleLinkGeneratorMock, 'generateLink', () => undefined);
   const deployedResourcesEnumerator = new DeployedResourcesEnumerator(
-    new StackStatusMapper()
+    new StackStatusMapper(),
+    consoleLinkGeneratorMock
   );
   const cfnClientSendMock = mock.fn();
   const mockCfnClient = new CloudFormation();
@@ -143,6 +147,7 @@ void describe('listDeployedResources', () => {
         resourceStatusReason: undefined,
         resourceType: 'AWS::AppSync::API',
         physicalResourceId: 'apiSubStackAppSyncPhysicalResourceId',
+        link: undefined,
       },
       {
         logicalResourceId: 'apiStackUserPoolLogicalResourceId',
@@ -151,6 +156,7 @@ void describe('listDeployedResources', () => {
         resourceStatusReason: undefined,
         resourceType: 'AWS::Cognito::UserPool',
         physicalResourceId: 'apiStackUserPoolPhysicalResourceId',
+        link: undefined,
       },
       {
         logicalResourceId: 'authStackUserPoolLogicalResourceId',
@@ -159,6 +165,7 @@ void describe('listDeployedResources', () => {
         resourceStatusReason: undefined,
         resourceType: 'AWS::Cognito::UserPool',
         physicalResourceId: 'authStackUserPoolPhysicalResourceId',
+        link: undefined,
       },
       {
         logicalResourceId: 'rootStackIamRoleLogicalResourceId',
@@ -167,6 +174,7 @@ void describe('listDeployedResources', () => {
         resourceStatusReason: undefined,
         resourceType: 'AWS::IAM::Role',
         physicalResourceId: 'rootStackIamRolePhysicalResourceId',
+        link: undefined,
       },
     ];
     assert.deepEqual(deployedResources, expectedResources);

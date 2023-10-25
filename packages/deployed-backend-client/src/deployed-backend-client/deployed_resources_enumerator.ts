@@ -6,6 +6,7 @@ import {
 } from '@aws-sdk/client-cloudformation';
 import { DeployedBackendResource } from '../deployed_backend_client_factory.js';
 import { StackStatusMapper } from './stack_status_mapper.js';
+import { ConsoleLinkGenerator } from './console_link_generator.js';
 
 /**
  * Lists deployed resources
@@ -14,7 +15,10 @@ export class DeployedResourcesEnumerator {
   /**
    * Constructs a DeployedResourcesEnumerator
    */
-  constructor(private readonly stackStatusMapper: StackStatusMapper) {}
+  constructor(
+    private readonly stackStatusMapper: StackStatusMapper,
+    private readonly consoleLinkGenerator: ConsoleLinkGenerator
+  ) {}
 
   /**
    * Lists all resources deployed in all nested cfn stacks
@@ -83,6 +87,10 @@ export class DeployedResourcesEnumerator {
         resourceStatusReason: stackResourceSummary.ResourceStatusReason,
         resourceType: stackResourceSummary.ResourceType,
         physicalResourceId: stackResourceSummary.PhysicalResourceId,
+        link: this.consoleLinkGenerator.generateLink(
+          stackResourceSummary,
+          cfnClient.config.region as string
+        ),
       })
     );
 

@@ -28,6 +28,7 @@ import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { GetObjectCommand, S3 } from '@aws-sdk/client-s3';
 import { DeployedResourcesEnumerator } from './deployed-backend-client/deployed_resources_enumerator.js';
 import { StackStatusMapper } from './deployed-backend-client/stack_status_mapper.js';
+import { ConsoleLinkGenerator } from './deployed-backend-client/console_link_generator.js';
 
 const listStacksMock = {
   NextToken: undefined,
@@ -209,8 +210,11 @@ void describe('Deployed Backend Client', () => {
 
     cfnClientSendMock.mock.mockImplementation(mockSend);
 
+    const consoleLinkGeneratorMock = new ConsoleLinkGenerator();
+    mock.method(consoleLinkGeneratorMock, 'generateLink', () => undefined);
     const deployedResourcesEnumerator = new DeployedResourcesEnumerator(
-      new StackStatusMapper()
+      new StackStatusMapper(),
+      consoleLinkGeneratorMock
     );
     mock.method(deployedResourcesEnumerator, 'listDeployedResources', () => []);
 
@@ -359,8 +363,11 @@ void describe('Deployed Backend Client pagination', () => {
     };
 
     cfnClientSendMock.mock.mockImplementation(mockSend);
+    const consoleLinkGeneratorMock = new ConsoleLinkGenerator();
+    mock.method(consoleLinkGeneratorMock, 'generateLink', () => undefined);
     const deployedResourcesEnumerator = new DeployedResourcesEnumerator(
-      new StackStatusMapper()
+      new StackStatusMapper(),
+      consoleLinkGeneratorMock
     );
     mock.method(deployedResourcesEnumerator, 'listDeployedResources', () => []);
 

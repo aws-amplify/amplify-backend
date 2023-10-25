@@ -13,6 +13,7 @@ import {
 import { S3Client } from '@aws-sdk/client-s3';
 import { DeployedResourcesEnumerator } from './deployed-backend-client/deployed_resources_enumerator.js';
 import { StackStatusMapper } from './deployed-backend-client/stack_status_mapper.js';
+import { ConsoleLinkGenerator } from './deployed-backend-client/console_link_generator.js';
 
 export enum ConflictResolutionMode {
   LAMBDA = 'LAMBDA',
@@ -46,6 +47,7 @@ export type DeployedBackendResource = {
   resourceStatusReason?: string;
   resourceType?: string;
   physicalResourceId?: string;
+  link?: string;
 };
 
 export type BackendMetadata = {
@@ -125,8 +127,10 @@ export class DeployedBackendClientFactory {
     options: DeployedBackendClientFactoryOptions
   ): DeployedBackendClient {
     const stackStatusMapper = new StackStatusMapper();
+    const consoleLinkGenerator = new ConsoleLinkGenerator();
     const deployedResourcesEnumerator = new DeployedResourcesEnumerator(
-      stackStatusMapper
+      stackStatusMapper,
+      consoleLinkGenerator
     );
     if ('backendOutputClient' in options && 'cloudFormationClient' in options) {
       return new DefaultDeployedBackendClient(
