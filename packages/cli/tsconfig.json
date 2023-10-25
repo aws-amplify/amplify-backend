@@ -4,6 +4,7 @@
   "references": [
     { "path": "../backend-output-schemas" },
     { "path": "../backend-secret" },
+    { "path": "../cli-core" },
     { "path": "../client-config" },
     { "path": "../deployed-backend-client" },
     { "path": "../form-generator" },

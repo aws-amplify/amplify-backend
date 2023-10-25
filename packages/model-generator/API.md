@@ -18,6 +18,7 @@ export type DocumentGenerationParameters = {
     language: TargetLanguage;
     maxDepth?: number;
     typenameIntrospection?: boolean;
+    relativeTypesPath?: string;
 };
 
 // @public

@@ -26,6 +26,8 @@ import { DefaultDeployedBackendClient } from './deployed_backend_client.js';
 import { StackIdentifier } from './index.js';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { GetObjectCommand, S3 } from '@aws-sdk/client-s3';
+import { DeployedResourcesEnumerator } from './deployed-backend-client/deployed_resources_enumerator.js';
+import { StackStatusMapper } from './deployed-backend-client/stack_status_mapper.js';
 
 const listStacksMock = {
   NextToken: undefined,
@@ -123,6 +125,7 @@ const getOutputMockResponse = {
 const expectedMetadata = {
   lastUpdated: new Date(0),
   status: BackendDeploymentStatus.DEPLOYED,
+  resources: [],
   authConfiguration: {
     userPoolId: 'testUserPoolId',
     lastUpdated: new Date(1),
@@ -139,11 +142,8 @@ const expectedMetadata = {
     status: BackendDeploymentStatus.FAILED,
     defaultAuthType: undefined,
     additionalAuthTypes: [],
-    graphqlSchema: 's3://bucketName/model-schema.graphql schema contents!',
     conflictResolutionMode: undefined,
     apiId: 'awsAppsyncApiId',
-    modelIntrospectionSchema:
-      's3://bucketName/model-introspection-schema.json schema contents!',
   },
 };
 
@@ -209,10 +209,17 @@ void describe('Deployed Backend Client', () => {
 
     cfnClientSendMock.mock.mockImplementation(mockSend);
 
+    const deployedResourcesEnumerator = new DeployedResourcesEnumerator(
+      new StackStatusMapper()
+    );
+    mock.method(deployedResourcesEnumerator, 'listDeployedResources', () => []);
+
     deployedBackendClient = new DefaultDeployedBackendClient(
       mockCfnClient,
       mockS3Client,
-      mockBackendOutputClient
+      mockBackendOutputClient,
+      deployedResourcesEnumerator,
+      new StackStatusMapper()
     );
   });
 
@@ -352,11 +359,17 @@ void describe('Deployed Backend Client pagination', () => {
     };
 
     cfnClientSendMock.mock.mockImplementation(mockSend);
+    const deployedResourcesEnumerator = new DeployedResourcesEnumerator(
+      new StackStatusMapper()
+    );
+    mock.method(deployedResourcesEnumerator, 'listDeployedResources', () => []);
 
     deployedBackendClient = new DefaultDeployedBackendClient(
       mockCfnClient,
       mockS3Client,
-      mockBackendOutputClient
+      mockBackendOutputClient,
+      deployedResourcesEnumerator,
+      new StackStatusMapper()
     );
   });
 

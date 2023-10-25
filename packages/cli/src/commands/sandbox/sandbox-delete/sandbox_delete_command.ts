@@ -1,6 +1,6 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
-import { AmplifyPrompter } from '../../prompter/amplify_prompts.js';
+import { AmplifyPrompter } from '@aws-amplify/cli-core';
 
 /**
  * Command that deletes the sandbox environment.

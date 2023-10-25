@@ -1,5 +1,20 @@
 # @aws-amplify/backend-function
 
+## 0.1.1-alpha.9
+
+### Patch Changes
+
+- Updated dependencies [18874854]
+- Updated dependencies [883d9da7]
+  - @aws-amplify/plugin-types@0.2.0-alpha.10
+  - @aws-amplify/backend-output-storage@0.2.0-alpha.4
+
+## 0.1.1-alpha.8
+
+### Patch Changes
+
+- fcc7d389: Enable type checking during deployment
+
 ## 0.1.1-alpha.7
 
 ### Patch Changes

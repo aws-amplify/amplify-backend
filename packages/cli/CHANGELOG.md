@@ -1,5 +1,69 @@
 # @aws-amplify/backend-cli
 
+## 0.2.0-alpha.12
+
+### Minor Changes
+
+- 3fd21230: Removes event hook that runs formgen after sandbox deployment.
+
+### Patch Changes
+
+- df25ec57: Remove short circuit logic in client config generation event
+- Updated dependencies [1817c55c]
+- Updated dependencies [675f4283]
+- Updated dependencies [08601278]
+- Updated dependencies [aee0a52d]
+- Updated dependencies [4d411b67]
+- Updated dependencies [883d9da7]
+  - @aws-amplify/form-generator@0.2.0-alpha.4
+  - @aws-amplify/cli-core@0.1.0-alpha.3
+  - @aws-amplify/sandbox@0.2.0-alpha.16
+  - @aws-amplify/deployed-backend-client@0.2.0-alpha.9
+  - @aws-amplify/backend-output-schemas@0.2.0-alpha.7
+
+## 0.2.0-alpha.11
+
+### Minor Changes
+
+- 56fbcc5f: Generated typescript codegen by default, and add type defaults as well
+
+### Patch Changes
+
+- Updated dependencies [56fbcc5f]
+  - @aws-amplify/model-generator@0.2.0-alpha.6
+
+## 0.2.0-alpha.10
+
+### Patch Changes
+
+- fcc7d389: Enable type checking during deployment
+- Updated dependencies [fcc7d389]
+  - @aws-amplify/sandbox@0.2.0-alpha.15
+
+## 0.2.0-alpha.9
+
+### Patch Changes
+
+- 915c0325: Offer to reset the sandbox if a non deployable change is detected
+- Updated dependencies [e9c0c9b5]
+- Updated dependencies [915c0325]
+  - @aws-amplify/deployed-backend-client@0.2.0-alpha.8
+  - @aws-amplify/cli-core@0.1.0-alpha.2
+  - @aws-amplify/platform-core@0.1.1-alpha.3
+  - @aws-amplify/sandbox@0.2.0-alpha.14
+
+## 0.2.0-alpha.8
+
+### Minor Changes
+
+- 1a19914d: By default, artifacts render in ./{ui-components,graphql}
+
+### Patch Changes
+
+- Updated dependencies [2bbf3f20]
+  - @aws-amplify/client-config@0.2.0-alpha.11
+  - @aws-amplify/sandbox@0.2.0-alpha.13
+
 ## 0.2.0-alpha.7
 
 ### Patch Changes

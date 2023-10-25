@@ -1,5 +1,22 @@
 # create-amplify
 
+## 0.2.0-alpha.13
+
+### Patch Changes
+
+- 675f4283: Move prompter in create_amplify to cli-core package
+- 8df061e1: Initialize Gen2 project as ESM
+- 5a0df894: change log to instruct user to run command inside the project root
+- Updated dependencies [675f4283]
+  - @aws-amplify/cli-core@0.1.0-alpha.3
+
+## 0.2.0-alpha.12
+
+### Patch Changes
+
+- e45f8525: make directory if the user provided directory doesn't exist
+- b10f2a61: Rename UserPoolWebClient to UserPoolAppClient
+
 ## 0.2.0-alpha.11
 
 ### Patch Changes

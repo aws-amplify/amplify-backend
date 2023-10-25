@@ -1,5 +1,21 @@
 # @aws-amplify/deployed-backend-client
 
+## 0.2.0-alpha.9
+
+### Patch Changes
+
+- 4d411b67: remove model-introspection-schema from backend metadata
+- Updated dependencies [883d9da7]
+  - @aws-amplify/backend-output-schemas@0.2.0-alpha.7
+
+## 0.2.0-alpha.8
+
+### Patch Changes
+
+- e9c0c9b5: add resources to stack metadata response
+- Updated dependencies [915c0325]
+  - @aws-amplify/platform-core@0.1.1-alpha.3
+
 ## 0.2.0-alpha.7
 
 ### Patch Changes

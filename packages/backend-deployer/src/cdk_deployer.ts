@@ -34,6 +34,10 @@ export class CDKDeployer implements BackendDeployer {
     uniqueBackendIdentifier?: UniqueBackendIdentifier,
     deployProps?: DeployProps
   ) => {
+    if (deployProps?.validateAppSources) {
+      await this.invokeTsc();
+    }
+
     const cdkCommandArgs: string[] = [];
     if (deployProps?.deploymentType === BackendDeploymentType.SANDBOX) {
       cdkCommandArgs.push('--hotswap-fallback');
@@ -46,7 +50,7 @@ export class CDKDeployer implements BackendDeployer {
       }
     }
 
-    await this.invoke(
+    await this.invokeCdk(
       InvokableCommand.DEPLOY,
       uniqueBackendIdentifier,
       deployProps?.deploymentType,
@@ -61,7 +65,7 @@ export class CDKDeployer implements BackendDeployer {
     uniqueBackendIdentifier?: UniqueBackendIdentifier,
     destroyProps?: DestroyProps
   ) => {
-    await this.invoke(
+    await this.invokeCdk(
       InvokableCommand.DESTROY,
       uniqueBackendIdentifier,
       destroyProps?.deploymentType,
@@ -69,10 +73,19 @@ export class CDKDeployer implements BackendDeployer {
     );
   };
 
+  private invokeTsc = async () => {
+    await this.executeChildProcess('npx', [
+      'tsc',
+      '--noEmit',
+      '--skipLibCheck',
+      relativeBackendEntryPoint,
+    ]);
+  };
+
   /**
    * Executes a CDK command
    */
-  private invoke = async (
+  private invokeCdk = async (
     invokableCommand: InvokableCommand,
     uniqueBackendIdentifier?: UniqueBackendIdentifier,
     deploymentType?: BackendDeploymentType,
@@ -87,6 +100,9 @@ export class CDKDeployer implements BackendDeployer {
       '--ci',
       '--app',
       `'npx tsx ${relativeBackendEntryPoint}'`,
+      '--all',
+      '--output',
+      '.amplify/artifacts/cdk.out',
     ];
 
     // Add context information if available

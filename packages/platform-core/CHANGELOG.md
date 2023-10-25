@@ -1,5 +1,11 @@
 # @aws-amplify/platform-core
 
+## 0.1.1-alpha.3
+
+### Patch Changes
+
+- 915c0325: Offer to reset the sandbox if a non deployable change is detected
+
 ## 0.1.1-alpha.2
 
 ### Patch Changes

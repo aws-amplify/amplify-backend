@@ -14,6 +14,7 @@ import {
   GenerateApiCodeFormat,
   GenerateApiCodeModelTarget,
   GenerateApiCodeStatementTarget,
+  GenerateApiCodeTypeTarget,
 } from '@aws-amplify/model-generator';
 
 void describe('generate graphql-client-code command', () => {
@@ -54,7 +55,8 @@ void describe('generate graphql-client-code command', () => {
     assert.deepEqual(invokeGenerateApiCodeMock.mock.calls[0].arguments[0], {
       stackName: 'stack_name',
       format: GenerateApiCodeFormat.GRAPHQL_CODEGEN,
-      statementTarget: GenerateApiCodeStatementTarget.JAVASCRIPT,
+      statementTarget: GenerateApiCodeStatementTarget.TYPESCRIPT,
+      typeTarget: GenerateApiCodeTypeTarget.TYPESCRIPT,
     });
     assert.equal(writeToDirectoryMock.mock.callCount(), 1);
     assert.equal(
@@ -70,7 +72,8 @@ void describe('generate graphql-client-code command', () => {
       appName: 'testAppName',
       branchName: 'branch_name',
       format: GenerateApiCodeFormat.GRAPHQL_CODEGEN,
-      statementTarget: GenerateApiCodeStatementTarget.JAVASCRIPT,
+      statementTarget: GenerateApiCodeStatementTarget.TYPESCRIPT,
+      typeTarget: GenerateApiCodeTypeTarget.TYPESCRIPT,
     });
     assert.equal(writeToDirectoryMock.mock.callCount(), 1);
     assert.equal(
@@ -88,7 +91,8 @@ void describe('generate graphql-client-code command', () => {
       backendId: 'app_id',
       disambiguator: 'branch_name',
       format: GenerateApiCodeFormat.GRAPHQL_CODEGEN,
-      statementTarget: GenerateApiCodeStatementTarget.JAVASCRIPT,
+      statementTarget: GenerateApiCodeStatementTarget.TYPESCRIPT,
+      typeTarget: GenerateApiCodeTypeTarget.TYPESCRIPT,
     });
     assert.equal(writeToDirectoryMock.mock.callCount(), 1);
     assert.equal(
@@ -105,7 +109,8 @@ void describe('generate graphql-client-code command', () => {
     assert.deepEqual(invokeGenerateApiCodeMock.mock.calls[0].arguments[0], {
       stackName: 'stack_name',
       format: GenerateApiCodeFormat.GRAPHQL_CODEGEN,
-      statementTarget: GenerateApiCodeStatementTarget.JAVASCRIPT,
+      statementTarget: GenerateApiCodeStatementTarget.TYPESCRIPT,
+      typeTarget: GenerateApiCodeTypeTarget.TYPESCRIPT,
     });
     assert.equal(writeToDirectoryMock.mock.callCount(), 1);
     assert.equal(
@@ -156,7 +161,8 @@ void describe('generate graphql-client-code command', () => {
     assert.deepEqual(invokeGenerateApiCodeMock.mock.calls[0].arguments[0], {
       stackName: 'stack_name',
       format: GenerateApiCodeFormat.GRAPHQL_CODEGEN,
-      statementTarget: GenerateApiCodeStatementTarget.JAVASCRIPT,
+      statementTarget: GenerateApiCodeStatementTarget.TYPESCRIPT,
+      typeTarget: GenerateApiCodeTypeTarget.TYPESCRIPT,
     });
     assert.equal(writeToDirectoryMock.mock.callCount(), 1);
     assert.equal(
@@ -173,7 +179,7 @@ void describe('generate graphql-client-code command', () => {
     assert.deepEqual(invokeGenerateApiCodeMock.mock.calls[0].arguments[0], {
       stackName: 'stack_name',
       format: GenerateApiCodeFormat.MODELGEN,
-      modelTarget: GenerateApiCodeModelTarget.JAVASCRIPT,
+      modelTarget: GenerateApiCodeModelTarget.TYPESCRIPT,
     });
     assert.equal(writeToDirectoryMock.mock.callCount(), 1);
     assert.equal(
@@ -206,7 +212,7 @@ void describe('generate graphql-client-code command', () => {
     assert.deepEqual(invokeGenerateApiCodeMock.mock.calls[0].arguments[0], {
       stackName: 'stack_name',
       format: GenerateApiCodeFormat.MODELGEN,
-      modelTarget: GenerateApiCodeModelTarget.JAVASCRIPT,
+      modelTarget: GenerateApiCodeModelTarget.TYPESCRIPT,
       generateIndexRules: true,
       emitAuthProvider: true,
       generateModelsForLazyLoadAndCustomSelectionSet: false,
@@ -227,8 +233,9 @@ void describe('generate graphql-client-code command', () => {
       stackName: 'stack_name',
       format: GenerateApiCodeFormat.GRAPHQL_CODEGEN,
       statementTarget: GenerateApiCodeStatementTarget.TYPESCRIPT,
+      typeTarget: GenerateApiCodeTypeTarget.TYPESCRIPT,
       maxDepth: 3,
-      typenameIntrospection: true,
+      typeNameIntrospection: true,
     });
     assert.equal(writeToDirectoryMock.mock.callCount(), 1);
     assert.equal(
@@ -237,7 +244,95 @@ void describe('generate graphql-client-code command', () => {
     );
   });
 
-  // Note: after this test, future tests seem to be in a weird state, leaving this at the
+  void it('has no default type target for javascript statement target', async () => {
+    await commandRunner.runCommand(
+      'graphql-client-code --stack stack_name --format graphql-codegen --statement-target javascript'
+    );
+    assert.equal(invokeGenerateApiCodeMock.mock.callCount(), 1);
+    assert.deepEqual(invokeGenerateApiCodeMock.mock.calls[0].arguments[0], {
+      stackName: 'stack_name',
+      format: GenerateApiCodeFormat.GRAPHQL_CODEGEN,
+      statementTarget: GenerateApiCodeStatementTarget.JAVASCRIPT,
+    });
+    assert.equal(writeToDirectoryMock.mock.callCount(), 1);
+    assert.equal(
+      writeToDirectoryMock.mock.calls[0].arguments[0],
+      process.cwd()
+    );
+  });
+
+  void it('has default type target typescript for typescript statement target', async () => {
+    await commandRunner.runCommand(
+      'graphql-client-code --stack stack_name --format graphql-codegen --statement-target typescript'
+    );
+    assert.equal(invokeGenerateApiCodeMock.mock.callCount(), 1);
+    assert.deepEqual(invokeGenerateApiCodeMock.mock.calls[0].arguments[0], {
+      stackName: 'stack_name',
+      format: GenerateApiCodeFormat.GRAPHQL_CODEGEN,
+      statementTarget: GenerateApiCodeStatementTarget.TYPESCRIPT,
+      typeTarget: GenerateApiCodeTypeTarget.TYPESCRIPT,
+    });
+    assert.equal(writeToDirectoryMock.mock.callCount(), 1);
+    assert.equal(
+      writeToDirectoryMock.mock.calls[0].arguments[0],
+      process.cwd()
+    );
+  });
+
+  void it('has default type target flow for flow statement target', async () => {
+    await commandRunner.runCommand(
+      'graphql-client-code --stack stack_name --format graphql-codegen --statement-target flow'
+    );
+    assert.equal(invokeGenerateApiCodeMock.mock.callCount(), 1);
+    assert.deepEqual(invokeGenerateApiCodeMock.mock.calls[0].arguments[0], {
+      stackName: 'stack_name',
+      format: GenerateApiCodeFormat.GRAPHQL_CODEGEN,
+      statementTarget: GenerateApiCodeStatementTarget.FLOW,
+      typeTarget: GenerateApiCodeTypeTarget.FLOW,
+    });
+    assert.equal(writeToDirectoryMock.mock.callCount(), 1);
+    assert.equal(
+      writeToDirectoryMock.mock.calls[0].arguments[0],
+      process.cwd()
+    );
+  });
+
+  void it('has default type target angular for angular statement target', async () => {
+    await commandRunner.runCommand(
+      'graphql-client-code --stack stack_name --format graphql-codegen --statement-target angular'
+    );
+    assert.equal(invokeGenerateApiCodeMock.mock.callCount(), 1);
+    assert.deepEqual(invokeGenerateApiCodeMock.mock.calls[0].arguments[0], {
+      stackName: 'stack_name',
+      format: GenerateApiCodeFormat.GRAPHQL_CODEGEN,
+      statementTarget: GenerateApiCodeStatementTarget.ANGULAR,
+      typeTarget: GenerateApiCodeTypeTarget.ANGULAR,
+    });
+    assert.equal(writeToDirectoryMock.mock.callCount(), 1);
+    assert.equal(
+      writeToDirectoryMock.mock.calls[0].arguments[0],
+      process.cwd()
+    );
+  });
+
+  void it('has no default type target for graphql statement target', async () => {
+    await commandRunner.runCommand(
+      'graphql-client-code --stack stack_name --format graphql-codegen --statement-target graphql'
+    );
+    assert.equal(invokeGenerateApiCodeMock.mock.callCount(), 1);
+    assert.deepEqual(invokeGenerateApiCodeMock.mock.calls[0].arguments[0], {
+      stackName: 'stack_name',
+      format: GenerateApiCodeFormat.GRAPHQL_CODEGEN,
+      statementTarget: GenerateApiCodeStatementTarget.GRAPHQL,
+    });
+    assert.equal(writeToDirectoryMock.mock.callCount(), 1);
+    assert.equal(
+      writeToDirectoryMock.mock.calls[0].arguments[0],
+      process.cwd()
+    );
+  });
+
+  // Note: after this test, future tests seem to be in a weird state, leaving this at the end
   void it('fails if both stack and branch are present', async () => {
     await assert.rejects(
       () =>

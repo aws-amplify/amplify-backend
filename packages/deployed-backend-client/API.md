@@ -56,16 +56,15 @@ export type BackendMetadata = {
     lastUpdated: Date | undefined;
     deploymentType: BackendDeploymentType;
     status: BackendDeploymentStatus;
+    resources: DeployedBackendResource[];
     apiConfiguration?: {
         status: BackendDeploymentStatus;
         lastUpdated: Date | undefined;
         graphqlEndpoint: string;
-        graphqlSchema: string;
         defaultAuthType: ApiAuthType;
         additionalAuthTypes: ApiAuthType[];
         conflictResolutionMode?: ConflictResolutionMode;
         apiId: string;
-        modelIntrospectionSchema: string;
     };
     authConfiguration?: {
         status: BackendDeploymentStatus;
@@ -151,6 +150,16 @@ export type DeployedBackendClientOptions = {
 // @public (undocumented)
 export type DeployedBackendCredentialsOptions = {
     credentials: AwsCredentialIdentityProvider;
+};
+
+// @public (undocumented)
+export type DeployedBackendResource = {
+    logicalResourceId?: string;
+    lastUpdated?: Date;
+    resourceStatus?: string;
+    resourceStatusReason?: string;
+    resourceType?: string;
+    physicalResourceId?: string;
 };
 
 // @public (undocumented)
