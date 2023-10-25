@@ -138,7 +138,7 @@ void describe('generate config command', () => {
     );
   });
 
-  void it('can generate to custom relative path', async () => {
+  void it('can generate config in dart format', async () => {
     await commandRunner.runCommand(
       'config --stack stack_name --out-dir foo/bar --format dart'
     );
