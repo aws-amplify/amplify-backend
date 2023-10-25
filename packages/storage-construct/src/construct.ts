@@ -6,7 +6,11 @@ import {
   storageOutputKey,
 } from '@aws-amplify/backend-output-schemas';
 import { Stack } from 'aws-cdk-lib';
-import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
+import {
+  AttributionMetadataStorage,
+  StackMetadataBackendOutputStorageStrategy,
+} from '@aws-amplify/backend-output-storage';
+import { fileURLToPath } from 'url';
 
 export type AmplifyStorageProps = {
   versioned?: boolean;
@@ -33,6 +37,12 @@ export class AmplifyStorage extends Construct {
     this.bucket = new Bucket(this, `${id}Bucket`, bucketProps);
 
     this.storeOutput(props.outputStorageStrategy);
+
+    new AttributionMetadataStorage().storeAttributionMetadata(
+      Stack.of(this),
+      'storage-S3',
+      fileURLToPath(new URL('../package.json', import.meta.url))
+    );
   }
 
   /**
