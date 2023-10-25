@@ -23,7 +23,7 @@ jobs:
         uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65 #4.0.0
         with:
           node-version: ${{ matrix.node-version }}
-          cache: ${{ matrix.pkg-manager }}
+          cache: npm
       - name: create-amplify-project
         shell: bash
         run: |
