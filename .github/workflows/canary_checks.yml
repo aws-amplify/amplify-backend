@@ -40,7 +40,7 @@ jobs:
         with:
           metric-name: CanaryTestWorkflowExecution
           value: 1
-          dimensions: outcome=failure
+          dimensions: outcome=failure,ref_name=${{ github.ref_name }}
           role-to-assume: ${{ secrets.METRICS_EMITTER_ROLE_ARN }}
           aws-region: us-east-2
   log-success-metric:
@@ -58,6 +58,6 @@ jobs:
         with:
           metric-name: CanaryTestWorkflowExecution
           value: 1
-          dimensions: outcome=success
+          dimensions: outcome=success,ref_name=${{ github.ref_name }}
           role-to-assume: ${{ secrets.METRICS_EMITTER_ROLE_ARN }}
           aws-region: us-east-2
