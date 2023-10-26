@@ -22,6 +22,6 @@
     "@aws-amplify/backend-output-schemas": "^0.2.0-alpha.7"
   },
   "peerDependencies": {
-    "aws-cdk-lib": "^2.100.0"
+    "aws-cdk-lib": "^2.103.0"
   }
 }
