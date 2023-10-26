@@ -1,5 +1,12 @@
 # @aws-amplify/backend-deployer
 
+## 0.2.0-alpha.10
+
+### Patch Changes
+
+- 5826ad3b: chore: update cdk error mapper for case when cognito user attributes cannot be updated
+- 4664e675: Change default cdk output directory for sandbox environments
+
 ## 0.2.0-alpha.9
 
 ### Patch Changes
