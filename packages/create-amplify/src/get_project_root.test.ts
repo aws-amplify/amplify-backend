@@ -2,7 +2,6 @@ import { afterEach, describe, it } from 'node:test';
 import assert from 'assert';
 import fsp from 'fs/promises';
 import path from 'path';
-import yargs from 'yargs';
 import { AmplifyPrompter } from '@aws-amplify/cli-core';
 import { getProjectRoot } from './get_project_root.js';
 
