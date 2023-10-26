@@ -11,10 +11,6 @@ jobs:
     steps:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
       - uses: ./.github/actions/setup_node
-      - name: Install and build without lock file
-        shell: bash
-        run: |
-          exit 1;
   #      - name: Install and build without lock file
   #        shell: bash
   #        run: |
