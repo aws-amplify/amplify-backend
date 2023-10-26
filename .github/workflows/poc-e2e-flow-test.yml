@@ -55,6 +55,11 @@ jobs:
 
       - name: ${{matrix.pkg-manager}}-create-amplify-project-step1-install
         if: matrix.pkg-manager == 'yarn3'
-        uses: borales/actions-yarn@v4
-        with:
-          cmd: create amplify@alpha
+        shell: bash
+        run: |
+          mkdir -p /tmp/amplify-project; cd /tmp/amplify-project
+          corepack enable
+          echo "yarn set version stable"
+          yarn set version stable
+          echo "yarn version $(yarn --version)"
+          yarn create amplify@alpha
