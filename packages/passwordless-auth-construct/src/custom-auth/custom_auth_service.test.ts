@@ -1,11 +1,11 @@
-import { describe, it, mock } from 'node:test';
+import { beforeEach, describe, it, mock } from 'node:test';
 import { rejects, strictEqual } from 'node:assert';
 import { ChallengeResult, ChallengeService } from '../types.js';
 import {
   buildCreateAuthChallengeEvent,
   buildDefineAuthChallengeEvent,
   buildVerifyAuthChallengeResponseEvent,
-} from '../mocks/event.mocks.js';
+} from '../mocks/challenge_events.js';
 import {
   CreateAuthChallengeTriggerEvent,
   DefineAuthChallengeTriggerEvent,
@@ -20,12 +20,9 @@ const initialSession: ChallengeResult = {
   challengeMetadata: 'PROVIDE_AUTH_PARAMETERS',
 };
 
-/**
- * A mock challenge service.
- */
-export class MockChallengeService implements ChallengeService {
-  public readonly signInMethod = 'OTP';
-  createChallenge = async (
+const mockChallengeService: ChallengeService = {
+  signInMethod: 'OTP',
+  createChallenge: async (
     event: CreateAuthChallengeTriggerEvent
   ): Promise<CreateAuthChallengeTriggerEvent> => {
     return {
@@ -41,9 +38,8 @@ export class MockChallengeService implements ChallengeService {
         },
       },
     };
-  };
-
-  verifyChallenge = async (
+  },
+  verifyChallenge: async (
     event: VerifyAuthChallengeResponseTriggerEvent
   ): Promise<VerifyAuthChallengeResponseTriggerEvent> => {
     return {
@@ -55,50 +51,51 @@ export class MockChallengeService implements ChallengeService {
           event.request.privateChallengeParameters.code,
       },
     };
-  };
-}
-
-/**
- * Returns true if the response is a Custom Challenge Response.
- *
- * This results in Cognito invoking Create Auth Challenge.
- */
-const isCustomChallengeResponse = (
-  response: DefineAuthChallengeTriggerEvent['response']
-) => {
-  return (
-    response.challengeName === 'CUSTOM_CHALLENGE' &&
-    response.failAuthentication === false
-  );
-};
-
-/**
- * Returns true if the response a failed authentication response.
- *
- * This results in Cognito returning an error to the client.
- */
-const isFailedAuthentication = (
-  response: DefineAuthChallengeTriggerEvent['response']
-) => {
-  return response.failAuthentication === true && response.issueTokens === false;
-};
-
-/**
- * Returns true if the response a failed authentication response.
- *
- * This results in Cognito issuing tokens to the client.
- */
-const isSuccessfulAuthentication = (
-  response: DefineAuthChallengeTriggerEvent['response']
-) => {
-  return response.failAuthentication === false && response.issueTokens === true;
+  },
 };
 
 const customAuthService = new CustomAuthService({
-  getService: () => new MockChallengeService(),
+  getService: () => mockChallengeService,
 });
 
 void describe('defineAuthChallenge', () => {
+  /**
+   * Returns true if the response is a Custom Challenge Response. This results
+   * in Cognito invoking Create Auth Challenge.
+   */
+  const isCustomChallengeResponse = (
+    response: DefineAuthChallengeTriggerEvent['response']
+  ) => {
+    return (
+      response.challengeName === 'CUSTOM_CHALLENGE' &&
+      response.failAuthentication === false
+    );
+  };
+
+  /**
+   * Returns true if the response a failed authentication response. This
+   * results in Cognito returning an error to the client.
+   */
+  const isFailedAuthentication = (
+    response: DefineAuthChallengeTriggerEvent['response']
+  ) => {
+    return (
+      response.failAuthentication === true && response.issueTokens === false
+    );
+  };
+
+  /**
+   * Returns true if the response a failed authentication response. This
+   * results in Cognito issuing tokens to the client.
+   */
+  const isSuccessfulAuthentication = (
+    response: DefineAuthChallengeTriggerEvent['response']
+  ) => {
+    return (
+      response.failAuthentication === false && response.issueTokens === true
+    );
+  };
+
   void describe('no previous session exists', () => {
     const previousSessions: ChallengeResult[] = [];
     const event = buildDefineAuthChallengeEvent(previousSessions);
@@ -189,11 +186,6 @@ const containsProvideParametersMetadata = (
 };
 
 void describe('createAuthChallenge', () => {
-  const mockChallengeService = new MockChallengeService();
-  const customAuthService = new CustomAuthService({
-    getService: () => mockChallengeService,
-  });
-
   void describe('no previous session exists', () => {
     void it('returns PROVIDE_AUTH_PARAMETERS', async () => {
       const event = buildCreateAuthChallengeEvent();
@@ -241,11 +233,6 @@ void describe('createAuthChallenge', () => {
 });
 
 void describe('verifyAuthChallenge', () => {
-  const mockChallengeService = new MockChallengeService();
-  const customAuthService = new CustomAuthService({
-    getService: () => mockChallengeService,
-  });
-
   void describe('action = request', () => {
     void it('returns answerCorrect=false', async () => {
       const event = buildVerifyAuthChallengeResponseEvent({

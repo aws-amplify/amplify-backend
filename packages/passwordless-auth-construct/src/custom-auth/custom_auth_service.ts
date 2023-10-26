@@ -5,7 +5,7 @@ import {
 } from 'aws-lambda';
 import { logger } from '../logger.js';
 import { PasswordlessAuthChallengeParams, SignInMethod } from '../types.js';
-import { ChallengeServiceFactory } from '../models/challenge_service_factory.js';
+import { ChallengeServiceFactory } from './challenge_service_factory.js';
 
 /**
  * A class containing the Cognito Auth triggers used for Custom Auth.
