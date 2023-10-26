@@ -11,6 +11,7 @@ import {
   DEFAULT_UI_PATH,
 } from '../../form-generation/default_form_generation_output_paths.js';
 import { ArgumentsKebabCase } from '../../kebab_case.js';
+import { fromIni } from '@aws-sdk/credential-provider-ini';
 
 export type SandboxCommandOptions =
   ArgumentsKebabCase<SandboxCommandOptionsCamelCase>;
@@ -67,7 +68,8 @@ export class SandboxCommand
   constructor(
     private readonly sandboxFactory: SandboxSingletonFactory,
     private readonly sandboxSubCommands: CommandModule[],
-    private readonly sandboxEventHandlerCreator?: SandboxEventHandlerCreator
+    private readonly sandboxEventHandlerCreator?: SandboxEventHandlerCreator,
+    private readonly profileCredentialProvider = fromIni
   ) {
     this.command = 'sandbox';
     this.describe = 'Starts sandbox, watch mode for amplify deployments';
@@ -79,6 +81,8 @@ export class SandboxCommand
   handler = async (args: SandboxCommandOptions): Promise<void> => {
     const { profile } = args;
     if (profile) {
+      // check if we can load the profile first
+      await this.profileCredentialProvider({ profile })();
       process.env.AWS_PROFILE = profile;
     }
     const sandbox = await this.sandboxFactory.getInstance();
