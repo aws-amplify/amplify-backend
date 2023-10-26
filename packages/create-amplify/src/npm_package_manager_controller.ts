@@ -15,7 +15,7 @@ export class NpmPackageManagerController implements PackageManagerController {
     private readonly projectRoot: string,
     private readonly execa = _execa
   ) {}
-  private readonly executableName = 'npm';
+  private readonly executableName = process.env.PM || 'npm';
 
   /**
    * Installs the given package names as devDependencies
@@ -24,9 +24,11 @@ export class NpmPackageManagerController implements PackageManagerController {
     packageNames: string[],
     type: DependencyType
   ): Promise<void> => {
-    const args = ['install'].concat(...packageNames);
+    const args = [this.executableName === 'yarn' ? 'add' : 'install'].concat(
+      ...packageNames
+    );
     if (type === 'dev') {
-      args.push('--save-dev');
+      args.push('-D');
     }
     await this.execa(this.executableName, args, {
       stdio: 'inherit',

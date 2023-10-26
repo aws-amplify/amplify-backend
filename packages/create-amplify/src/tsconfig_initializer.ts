@@ -17,6 +17,7 @@ export class TsConfigInitializer {
     private readonly existsSync = _existsSync,
     private readonly execa = _execa
   ) {}
+  private readonly executableName = process.env.PM || 'npx';
 
   /**
    * If tsconfig.json already exists, this is a noop. Otherwise, `npx tsc --init` is executed to create a tsconfig.json file
@@ -27,7 +28,7 @@ export class TsConfigInitializer {
       return;
     }
     this.logger.log(
-      'No tsconfig.json file found in the current directory. Running `npx tsc --init`...'
+      `No tsconfig.json file found in the current directory. Running \`${this.executableName} tsc --init\`...`
     );
 
     const packageJson = await this.packageJsonReader.readPackageJson();
@@ -53,20 +54,20 @@ export class TsConfigInitializer {
     }
 
     try {
-      await this.execa('npx', tscArgs, {
+      await this.execa(this.executableName, tscArgs, {
         stdio: 'inherit',
         cwd: this.projectRoot,
       });
     } catch {
       throw new Error(
-        '`npx tsc --init` did not exit successfully. Initialize a valid TypeScript configuration before continuing.'
+        `\`${this.executableName} tsc --init\` did not exit successfully. Initialize a valid TypeScript configuration before continuing.`
       );
     }
 
     if (!this.tsConfigJsonExists()) {
       // this should only happen if the customer exits out of npx tsc --init before finishing
       throw new Error(
-        'tsconfig.json does not exist after running `npx tsc --init`. Initialize a valid TypeScript configuration before continuing.'
+        `tsconfig.json does not exist after running \`${this.executableName} tsc --init\`. Initialize a valid TypeScript configuration before continuing.`
       );
     }
   };

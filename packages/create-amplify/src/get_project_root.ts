@@ -14,7 +14,6 @@ export const getProjectRoot = async () => {
       default: false,
     },
   }).argv;
-
   const useDefault = process.env.npm_config_yes === 'true' || argv.yes === true;
   const defaultProjectRoot = '.';
   let projectRoot: string = useDefault
