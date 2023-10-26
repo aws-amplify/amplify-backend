@@ -78,7 +78,6 @@ export class DeployedResourcesEnumerator {
         }
       ) ?? [];
 
-    cfnClient.config.credentials;
     const parentDeployedNonStackResources = parentStackNonStackResources.map(
       (stackResourceSummary: StackResourceSummary) => ({
         logicalResourceId: stackResourceSummary.LogicalResourceId,
