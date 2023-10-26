@@ -31,7 +31,7 @@ export class TsConfigInitializer {
     );
 
     const packageJson = await this.packageJsonReader.readPackageJson();
-    const tscArgs = ['tsc', '--init'];
+    const tscArgs = ['tsc', '--init', '--resolveJsonModule', 'true'];
     if (packageJson.type === 'module') {
       tscArgs.push(
         '--module',

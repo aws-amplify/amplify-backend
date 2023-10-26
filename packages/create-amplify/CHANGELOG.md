@@ -1,5 +1,11 @@
 # create-amplify
 
+## 0.2.0-alpha.14
+
+### Patch Changes
+
+- e233eab6: Toggle resolveJsonModule flag when creating tsconfig
+
 ## 0.2.0-alpha.13
 
 ### Patch Changes

@@ -25,7 +25,7 @@ void describe('getClientConfigPath', () => {
     const configPath = await getClientConfigPath();
     assert.equal(
       configPath,
-      path.join(process.cwd(), `${configFileName}.${ClientConfigFormat.JS}`)
+      path.join(process.cwd(), `${configFileName}.${ClientConfigFormat.JSON}`)
     );
   });
 
@@ -36,7 +36,7 @@ void describe('getClientConfigPath', () => {
       path.join(
         process.cwd(),
         testPath,
-        `${configFileName}.${ClientConfigFormat.JS}`
+        `${configFileName}.${ClientConfigFormat.JSON}`
       )
     );
   });
@@ -94,7 +94,7 @@ void describe('getClientConfigPath', () => {
       path.join(
         process.cwd(),
         testPath,
-        `${configFileName}.${ClientConfigFormat.JS}`
+        `${configFileName}.${ClientConfigFormat.JSON}`
       )
     );
   });
