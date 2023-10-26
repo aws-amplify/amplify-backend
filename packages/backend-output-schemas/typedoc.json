@@ -1,8 +1,3 @@
 {
-  "entryPoints": [
-    "src/index.ts",
-    "src/auth/index.ts",
-    "src/data/index.ts",
-    "src/storage/index.ts"
-  ]
+  "entryPoints": ["src/index.ts"]
 }
