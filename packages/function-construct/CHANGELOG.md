@@ -1,5 +1,11 @@
 # @aws-amplify/function-construct-alpha
 
+## 0.1.1-alpha.6
+
+### Patch Changes
+
+- 8f99476e: chore: upgrade aws-cdk to 2.103.0
+
 ## 0.1.1-alpha.5
 
 ### Patch Changes

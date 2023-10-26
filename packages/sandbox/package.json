@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/sandbox",
-  "version": "0.2.0-alpha.17",
+  "version": "0.2.0-alpha.18",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -18,7 +18,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@aws-amplify/backend-deployer": "0.2.0-alpha.10",
+    "@aws-amplify/backend-deployer": "0.2.0-alpha.11",
     "@aws-amplify/backend-secret": "^0.2.0-alpha.4",
     "@aws-amplify/cli-core": "^0.1.0-alpha.3",
     "@aws-amplify/client-config": "0.2.0-alpha.12",
