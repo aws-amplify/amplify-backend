@@ -1,17 +1,17 @@
 import { describe, it, mock } from 'node:test';
 import { rejects, strictEqual } from 'node:assert';
-import { ChallengeResult } from '../types.js';
+import { ChallengeResult, ChallengeService } from '../types.js';
 import {
   buildCreateAuthChallengeEvent,
   buildDefineAuthChallengeEvent,
   buildVerifyAuthChallengeResponseEvent,
-} from './event.mocks.js';
+} from '../mocks/event.mocks.js';
 import {
   CreateAuthChallengeTriggerEvent,
   DefineAuthChallengeTriggerEvent,
+  VerifyAuthChallengeResponseTriggerEvent,
 } from 'aws-lambda';
 import { CustomAuthService } from './custom_auth_service.js';
-import { MockChallengeService } from '../models/challenge_service.mock.js';
 
 // The custom auth session from the initial Cognito InitiateAuth call.
 const initialSession: ChallengeResult = {
@@ -19,6 +19,44 @@ const initialSession: ChallengeResult = {
   challengeResult: false,
   challengeMetadata: 'PROVIDE_AUTH_PARAMETERS',
 };
+
+/**
+ * A mock challenge service.
+ */
+export class MockChallengeService implements ChallengeService {
+  public readonly signInMethod = 'OTP';
+  createChallenge = async (
+    event: CreateAuthChallengeTriggerEvent
+  ): Promise<CreateAuthChallengeTriggerEvent> => {
+    return {
+      ...event,
+      response: {
+        ...event.response,
+        publicChallengeParameters: {
+          deliveryMedium: 'EMAIL',
+          destination: 'foo@example.com',
+        },
+        privateChallengeParameters: {
+          code: 'correct-answer',
+        },
+      },
+    };
+  };
+
+  verifyChallenge = async (
+    event: VerifyAuthChallengeResponseTriggerEvent
+  ): Promise<VerifyAuthChallengeResponseTriggerEvent> => {
+    return {
+      ...event,
+      response: {
+        ...event.response,
+        answerCorrect:
+          event.request.challengeAnswer ===
+          event.request.privateChallengeParameters.code,
+      },
+    };
+  };
+}
 
 /**
  * Returns true if the response is a Custom Challenge Response.

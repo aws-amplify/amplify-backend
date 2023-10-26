@@ -12,3 +12,6 @@
 *.test.d.ts
 
 # This leaves us with including only js and ts declaration files of functional code
+
+# This package has common mocks for use in tests. These are ignored.
+**/mocks/*
