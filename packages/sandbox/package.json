@@ -38,6 +38,6 @@
     "@types/parse-gitignore": "^1.0.0"
   },
   "peerDependencies": {
-    "aws-cdk": "^2.100.0"
+    "aws-cdk": "^2.103.0"
   }
 }
