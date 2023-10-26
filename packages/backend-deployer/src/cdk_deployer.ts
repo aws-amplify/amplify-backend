@@ -38,9 +38,15 @@ export class CDKDeployer implements BackendDeployer {
     await this.invokeTsc(deployProps);
 
     const cdkCommandArgs: string[] = [];
+    // ensures that parameters are not retained automatically (unintentional caching)
+    // see: https://docs.aws.amazon.com/cdk/v2/guide/parameters.html
+    cdkCommandArgs.push('--no-previous-parameters');
     if (deployProps?.deploymentType === BackendDeploymentType.SANDBOX) {
       cdkCommandArgs.push('--hotswap-fallback');
       cdkCommandArgs.push('--method=direct');
+      // do not remove this, constructs use this to adjust deletion/retention strategies
+      cdkCommandArgs.push('--parameters', `isSandbox=true`);
+
       if (deployProps.secretLastUpdated) {
         cdkCommandArgs.push(
           '--context',

@@ -1,5 +1,10 @@
 import { Construct } from 'constructs';
-import { Stack, aws_cognito as cognito } from 'aws-cdk-lib';
+import {
+  CfnParameter,
+  RemovalPolicy,
+  Stack,
+  aws_cognito as cognito,
+} from 'aws-cdk-lib';
 import {
   AmplifyFunction,
   AuthResources,
@@ -82,8 +87,16 @@ export class AmplifyAuth
   ) {
     super(scope, id);
 
+    const isSandbox = new CfnParameter(this, 'isSandbox', {
+      type: 'String',
+      description: 'Whether or not sandbox mode is in use.',
+    }).valueAsString;
+
     // UserPool
-    const userPoolProps: UserPoolProps = this.getUserPoolProps(props);
+    const userPoolProps: UserPoolProps = this.getUserPoolProps(
+      props,
+      isSandbox
+    );
     this.userPool = new cognito.UserPool(this, 'UserPool', userPoolProps);
 
     // UserPool - Identity Providers
@@ -226,7 +239,10 @@ export class AmplifyAuth
   /**
    * Process props into UserPoolProps (set defaults if needed)
    */
-  private getUserPoolProps = (props: AuthProps): UserPoolProps => {
+  private getUserPoolProps = (
+    props: AuthProps,
+    isSandbox: string
+  ): UserPoolProps => {
     const emailEnabled = props.loginWith.email ? true : false;
     const phoneEnabled = props.loginWith.phone ? true : false;
     const oneOfEmailOrPhone = emailEnabled || phoneEnabled;
@@ -303,6 +319,9 @@ export class AmplifyAuth
         phoneEnabled,
         props.accountRecovery
       ),
+      deletionProtection: isSandbox === 'true' ? false : true,
+      removalPolicy:
+        isSandbox === 'true' ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
     };
     return userPoolProps;
   };
