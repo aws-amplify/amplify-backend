@@ -25,3 +25,27 @@ jobs:
         shell: bash
         run: |
           npm run test
+  log-failure-metric:
+    runs-on: ubuntu-latest
+    needs: [local_checks_with_latest_dependencies]
+    if: ${{ failure() }}
+    steps:
+      - name: Log failure
+        uses: aws-amplify/amplify-ui/.github/actions/log-metric@main
+        with:
+          metric-name: CanaryTestWorkflowExecution
+          value: 1
+          role-to-assume: ${{ secrets.METRICS_EMITTER_ROLE_ARN }}
+          aws-region: us-east-2
+  log-success-metric:
+    runs-on: ubuntu-latest
+    needs: [local_checks_with_latest_dependencies]
+    if: ${{ success() }}
+    steps:
+      - name: Log success
+        uses: aws-amplify/amplify-ui/.github/actions/log-metric@main
+        with:
+          metric-name: CanaryTestWorkflowExecution
+          value: 1
+          role-to-assume: ${{ secrets.METRICS_EMITTER_ROLE_ARN }}
+          aws-region: us-east-2
