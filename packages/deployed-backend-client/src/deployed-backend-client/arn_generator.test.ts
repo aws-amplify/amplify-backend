@@ -1,13 +1,14 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { ArnGenerator } from './arn_generator.js';
+import { ResourceStatus } from '@aws-sdk/client-cloudformation';
 
 void describe('console link generator', () => {
   const mockResourceSummaryBase = {
     PhysicalResourceId: 'MOCK_PhysicalResourceId',
     LogicalResourceId:
       'arn:aws:{service}:{region}:{account}:stack/apiStack/{additionalFields}',
-    ResourceStatus: 'CREATE_COMPLETE',
+    ResourceStatus: 'CREATE_COMPLETE' as ResourceStatus,
     ResourceStatusReason: undefined,
     LastUpdatedTimestamp: new Date(1),
   };
