@@ -4,6 +4,7 @@ import { Template } from 'aws-cdk-lib/assertions';
 import { AmplifyLambdaFunction } from './construct.js';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { fileURLToPath } from 'url';
+import assert from 'node:assert';
 
 const testCodePath = fileURLToPath(
   new URL('../test-assets/test-lambda', import.meta.url)
@@ -55,5 +56,19 @@ void describe('AmplifyFunction', () => {
     template.hasResourceProperties('AWS::Lambda::Function', {
       Handler: 'index.handler',
     });
+  });
+
+  void it('stores attribution data in stack', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    new AmplifyLambdaFunction(stack, 'testAuth', {
+      absoluteCodePath: testCodePath,
+    });
+
+    const template = Template.fromStack(stack);
+    assert.equal(
+      JSON.parse(template.toJSON().Description).stackType,
+      'function-Lambda'
+    );
   });
 });

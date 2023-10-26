@@ -24,7 +24,11 @@ import { AuthOutput, authOutputKey } from '@aws-amplify/backend-output-schemas';
 import { AuthProps, EmailLoginSettings, TriggerEvent } from './types.js';
 import { DEFAULTS } from './defaults.js';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
-import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
+import {
+  AttributionMetadataStorage,
+  StackMetadataBackendOutputStorageStrategy,
+} from '@aws-amplify/backend-output-storage';
+import * as path from 'path';
 
 type DefaultRoles = { auth: Role; unAuth: Role };
 type IdentityProviderSetupResult = {
@@ -52,6 +56,9 @@ const VERIFICATION_SMS_PLACEHOLDERS = {
 const MFA_SMS_PLACEHOLDERS = {
   CODE: '{####}',
 };
+
+// Be very careful editing this value. It is the string that is used to attribute stacks to Amplify Auth in BI metrics
+const authStackType = 'auth-Cognito';
 
 /**
  * Amplify Auth CDK Construct
@@ -139,6 +146,12 @@ export class AmplifyAuth
       },
     };
     this.storeOutput(props.outputStorageStrategy);
+
+    new AttributionMetadataStorage().storeAttributionMetadata(
+      Stack.of(this),
+      authStackType,
+      path.resolve(__dirname, '..', 'package.json')
+    );
   }
 
   /**
