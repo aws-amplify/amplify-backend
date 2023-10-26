@@ -93,7 +93,7 @@ void describe('amplify deploys', () => {
       ],
       assertions: async () => {
         const clientConfigStats = await fs.stat(
-          path.join(testProjectRoot, 'amplifyconfiguration.js')
+          path.join(testProjectRoot, 'amplifyconfiguration.json')
         );
         assert.ok(clientConfigStats.isFile());
       },

@@ -146,11 +146,17 @@ void describe('invokeCDKCommand', () => {
       validateAppSources: true,
     });
     assert.strictEqual(execaMock.mock.callCount(), 2);
-    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 4);
+    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 10);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
       'tsc',
       '--noEmit',
       '--skipLibCheck',
+      '--module',
+      'node16',
+      '--moduleResolution',
+      'node16',
+      '--target',
+      'es2022',
       'amplify/backend.ts',
     ]);
     assert.equal(execaMock.mock.calls[1].arguments[1]?.length, 14);
@@ -178,11 +184,17 @@ void describe('invokeCDKCommand', () => {
       validateAppSources: true,
     });
     assert.strictEqual(execaMock.mock.callCount(), 2);
-    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 4);
+    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 10);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
       'tsc',
       '--noEmit',
       '--skipLibCheck',
+      '--module',
+      'node16',
+      '--moduleResolution',
+      'node16',
+      '--target',
+      'es2022',
       'amplify/backend.ts',
     ]);
     assert.equal(execaMock.mock.calls[1].arguments[1]?.length, 12);
