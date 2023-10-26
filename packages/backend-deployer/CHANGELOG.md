@@ -1,5 +1,21 @@
 # @aws-amplify/backend-deployer
 
+## 0.2.0-alpha.11
+
+### Patch Changes
+
+- 8f99476e: chore: upgrade aws-cdk to 2.103.0
+- 991403ec: use modern tsc features at compilation
+- Updated dependencies [8f99476e]
+  - @aws-amplify/plugin-types@0.2.0-alpha.11
+
+## 0.2.0-alpha.10
+
+### Patch Changes
+
+- 5826ad3b: chore: update cdk error mapper for case when cognito user attributes cannot be updated
+- 4664e675: Change default cdk output directory for sandbox environments
+
 ## 0.2.0-alpha.9
 
 ### Patch Changes

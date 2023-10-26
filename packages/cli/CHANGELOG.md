@@ -1,5 +1,23 @@
 # @aws-amplify/backend-cli
 
+## 0.2.0-alpha.14
+
+### Patch Changes
+
+- 7141c188: chore: validate that the profile can vend credentials before moving on
+- Updated dependencies [8f99476e]
+  - @aws-amplify/sandbox@0.2.0-alpha.18
+
+## 0.2.0-alpha.13
+
+### Patch Changes
+
+- e233eab6: make default amplifyconfig format json, change js format to mjs, and add dart format
+- Updated dependencies [e233eab6]
+- Updated dependencies [4664e675]
+  - @aws-amplify/client-config@0.2.0-alpha.12
+  - @aws-amplify/sandbox@0.2.0-alpha.17
+
 ## 0.2.0-alpha.12
 
 ### Minor Changes

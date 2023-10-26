@@ -33,6 +33,15 @@ export class CdkErrorMapper {
         '[UpdateNotSupported]: The changes that you are trying to apply are not supported.',
     },
     {
+      // This error originates from Cognito service when user tries to change UserPool attributes which is not allowed
+      // https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-settings-attributes.html
+      // Remapping to `UpdateNotSupported` will allow sandbox to prompt users for resetting their environment
+      errorRegex:
+        /Invalid AttributeDataType input, consider using the provided AttributeDataType enum/,
+      humanReadableError:
+        '[UpdateNotSupported]: User pool attributes cannot be changed after a user pool has been created.',
+    },
+    {
       // Note that the order matters, this should be the last as it captures generic CFN error
       errorRegex: /ROLLBACK_(COMPLETE|FAILED)/,
       humanReadableError:
