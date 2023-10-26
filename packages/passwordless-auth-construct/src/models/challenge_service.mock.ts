@@ -2,12 +2,13 @@ import {
   CreateAuthChallengeTriggerEvent,
   VerifyAuthChallengeResponseTriggerEvent,
 } from 'aws-lambda';
-import { ChallengeService } from './challenge_service.js';
+import { ChallengeService } from '../types.js';
 
 /**
  * A mock challenge service.
  */
 export class MockChallengeService implements ChallengeService {
+  public readonly signInMethod = 'OTP';
   createChallenge = async (
     event: CreateAuthChallengeTriggerEvent
   ): Promise<CreateAuthChallengeTriggerEvent> => {

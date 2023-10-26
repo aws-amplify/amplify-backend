@@ -56,7 +56,9 @@ const isSuccessfulAuthentication = (
   return response.failAuthentication === false && response.issueTokens === true;
 };
 
-const customAuthService = new CustomAuthService();
+const customAuthService = new CustomAuthService({
+  getService: () => new MockChallengeService(),
+});
 
 void describe('defineAuthChallenge', () => {
   void describe('no previous session exists', () => {
@@ -149,12 +151,10 @@ const containsProvideParametersMetadata = (
 };
 
 void describe('createAuthChallenge', () => {
-  const mockOtpService = new MockChallengeService();
-  const mockMagicLinkService = new MockChallengeService();
-  const customAuthService = new CustomAuthService(
-    mockOtpService,
-    mockMagicLinkService
-  );
+  const mockChallengeService = new MockChallengeService();
+  const customAuthService = new CustomAuthService({
+    getService: () => mockChallengeService,
+  });
 
   void describe('no previous session exists', () => {
     void it('returns PROVIDE_AUTH_PARAMETERS', async () => {
@@ -164,27 +164,13 @@ void describe('createAuthChallenge', () => {
     });
   });
 
-  void describe('signInMethod = MAGIC_LINK', () => {
-    const mockCreate = mock.method(mockMagicLinkService, 'createChallenge');
-    const metadata = {
-      signInMethod: 'MAGIC_LINK',
-      action: 'REQUEST',
-    };
-    void it('calls the magic link service', async () => {
-      const event = buildCreateAuthChallengeEvent([initialSession], metadata);
-      strictEqual(mockCreate.mock.callCount(), 0);
-      await customAuthService.createAuthChallenge(event);
-      strictEqual(mockCreate.mock.callCount(), 1);
-    });
-  });
-
-  void describe('signInMethod = OTP', () => {
-    const mockCreate = mock.method(mockOtpService, 'createChallenge');
+  void describe('action = REQUEST', () => {
+    const mockCreate = mock.method(mockChallengeService, 'createChallenge');
     const metadata = {
       signInMethod: 'OTP',
       action: 'REQUEST',
     };
-    void it('calls the otp service', async () => {
+    void it('calls createAuthChallenge on the challenge service', async () => {
       const event = buildCreateAuthChallengeEvent([initialSession], metadata);
       strictEqual(mockCreate.mock.callCount(), 0);
       await customAuthService.createAuthChallenge(event);
@@ -217,12 +203,10 @@ void describe('createAuthChallenge', () => {
 });
 
 void describe('verifyAuthChallenge', () => {
-  const mockOtpService = new MockChallengeService();
-  const mockMagicLinkService = new MockChallengeService();
-  const customAuthService = new CustomAuthService(
-    mockOtpService,
-    mockMagicLinkService
-  );
+  const mockChallengeService = new MockChallengeService();
+  const customAuthService = new CustomAuthService({
+    getService: () => mockChallengeService,
+  });
 
   void describe('action = request', () => {
     void it('returns answerCorrect=false', async () => {
@@ -236,30 +220,15 @@ void describe('verifyAuthChallenge', () => {
   });
 
   void describe('action = confirm', () => {
-    void describe('signInMethod = MAGIC_LINK', () => {
-      void it('calls magic link service', async () => {
-        const mockVerify = mock.method(mockMagicLinkService, 'verifyChallenge');
-        const event = buildVerifyAuthChallengeResponseEvent({
-          signInMethod: 'MAGIC_LINK',
-          action: 'CONFIRM',
-        });
-        strictEqual(mockVerify.mock.callCount(), 0);
-        await customAuthService.verifyAuthChallenge(event);
-        strictEqual(mockVerify.mock.callCount(), 1);
+    void it('calls verifyAuthChallenge on the challenge service', async () => {
+      const mockVerify = mock.method(mockChallengeService, 'verifyChallenge');
+      const event = buildVerifyAuthChallengeResponseEvent({
+        signInMethod: 'MAGIC_LINK',
+        action: 'CONFIRM',
       });
-    });
-
-    void describe('signInMethod = OTP', () => {
-      void it('calls otp service', async () => {
-        const mockVerify = mock.method(mockOtpService, 'verifyChallenge');
-        const event = buildVerifyAuthChallengeResponseEvent({
-          signInMethod: 'OTP',
-          action: 'CONFIRM',
-        });
-        strictEqual(mockVerify.mock.callCount(), 0);
-        await customAuthService.verifyAuthChallenge(event);
-        strictEqual(mockVerify.mock.callCount(), 1);
-      });
+      strictEqual(mockVerify.mock.callCount(), 0);
+      await customAuthService.verifyAuthChallenge(event);
+      strictEqual(mockVerify.mock.callCount(), 1);
     });
   });
 

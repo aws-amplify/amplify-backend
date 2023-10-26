@@ -4,10 +4,8 @@ import {
   VerifyAuthChallengeResponseTriggerEvent,
 } from 'aws-lambda';
 import { logger } from '../logger.js';
-import { PasswordlessAuthChallengeParams } from '../types.js';
-import { MagicLinkChallengeService } from '../magic-link/magic_link_challenge_service.js';
-import { OtpChallengeService } from '../otp/otp_challenge_service.js';
-import { ChallengeService } from '../models/challenge_service.js';
+import { PasswordlessAuthChallengeParams, SignInMethod } from '../types.js';
+import { ChallengeServiceFactory } from '../models/challenge_service_factory.js';
 
 /**
  * A class containing the Cognito Auth triggers used for Custom Auth.
@@ -15,13 +13,9 @@ import { ChallengeService } from '../models/challenge_service.js';
 export class CustomAuthService {
   /**
    * Creates a new CustomAuthService instance.
-   * @param otpChallengeService - The service to use for OTP.
-   * @param magicLinkChallengeService - The service to use for Magic Link.
+   * @param challengeServiceFactory - A factory for creating challenge services.
    */
-  constructor(
-    private otpChallengeService: ChallengeService = new OtpChallengeService(),
-    private magicLinkChallengeService: ChallengeService = new MagicLinkChallengeService()
-  ) {}
+  constructor(private challengeServiceFactory: ChallengeServiceFactory) {}
 
   /**
    * The Define Auth Challenge lambda handler.
@@ -112,15 +106,11 @@ export class CustomAuthService {
       throw new Error(`Unsupported action for Create Auth: ${action}`);
     }
 
-    if (signInMethod === 'MAGIC_LINK') {
-      return this.magicLinkChallengeService.createChallenge(event);
-    }
+    const method = this.validateSignInMethod(signInMethod);
 
-    if (signInMethod === 'OTP') {
-      return this.otpChallengeService.createChallenge(event);
-    }
-
-    throw new Error(`Unrecognized signInMethod: ${signInMethod}`);
+    return this.challengeServiceFactory
+      .getService(method)
+      .createChallenge(event);
   };
 
   /**
@@ -150,16 +140,24 @@ export class CustomAuthService {
       throw new Error(`Unsupported action: ${action}`);
     }
 
-    if (signInMethod === 'MAGIC_LINK') {
-      return this.magicLinkChallengeService.verifyChallenge(event);
-    }
+    const method = this.validateSignInMethod(signInMethod);
 
-    if (signInMethod === 'OTP') {
-      return this.otpChallengeService.verifyChallenge(event);
-    }
-
-    throw new Error(`Unrecognized signInMethod: ${signInMethod}`);
+    return this.challengeServiceFactory
+      .getService(method)
+      .verifyChallenge(event);
   };
+
+  /**
+   * Validates that the sign in method from the client is supported.
+   * @param signInMethod - The sign in method provided by the client.
+   * @returns A valid sign in method.
+   */
+  private validateSignInMethod(signInMethod: string): SignInMethod {
+    if (signInMethod !== 'MAGIC_LINK' && signInMethod !== 'OTP') {
+      throw new Error(`Unrecognized signInMethod: ${signInMethod}`);
+    }
+    return signInMethod;
+  }
 
   /**
    * Adds metadata to the event to indicate that auth parameters need to be supplied.

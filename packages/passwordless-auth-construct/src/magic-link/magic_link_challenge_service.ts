@@ -2,12 +2,13 @@ import {
   CreateAuthChallengeTriggerEvent,
   VerifyAuthChallengeResponseTriggerEvent,
 } from 'aws-lambda';
-import { ChallengeService } from '../models/challenge_service.js';
+import { ChallengeService } from '../types.js';
 
 /**
  * Magic Link Challenge Service Implementation.
  */
 export class MagicLinkChallengeService implements ChallengeService {
+  public readonly signInMethod = 'MAGIC_LINK';
   public createChallenge = async (
     event: CreateAuthChallengeTriggerEvent
   ): Promise<CreateAuthChallengeTriggerEvent> => {
