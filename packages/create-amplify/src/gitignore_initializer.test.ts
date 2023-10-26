@@ -2,6 +2,7 @@ import { describe, it, mock } from 'node:test';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
 import assert from 'assert';
 import * as path from 'path';
+import * as os from 'os';
 
 void describe('GitIgnoreInitializer', () => {
   void it('creates .gitignore and adds all contents if no .gitignore file exists', async () => {
@@ -27,15 +28,15 @@ void describe('GitIgnoreInitializer', () => {
     );
     assert.deepStrictEqual(fsMock.appendFile.mock.calls[0].arguments, [
       path.join(process.cwd(), 'testProjectRoot', '.gitignore'),
-      'node_modules',
+      `node_modules${os.EOL}`,
     ]);
     assert.deepStrictEqual(fsMock.appendFile.mock.calls[1].arguments, [
       path.join(process.cwd(), 'testProjectRoot', '.gitignore'),
-      '.amplify',
+      `.amplify${os.EOL}`,
     ]);
     assert.deepStrictEqual(fsMock.appendFile.mock.calls[2].arguments, [
       path.join(process.cwd(), 'testProjectRoot', '.gitignore'),
-      'amplifyconfiguration*',
+      `amplifyconfiguration*${os.EOL}`,
     ]);
   });
 
@@ -56,11 +57,11 @@ void describe('GitIgnoreInitializer', () => {
     await gitIgnoreInitializer.ensureInitialized();
     assert.deepStrictEqual(fsMock.appendFile.mock.calls[0].arguments, [
       path.join(process.cwd(), 'testProjectRoot', '.gitignore'),
-      '.amplify',
+      `.amplify${os.EOL}`,
     ]);
     assert.deepStrictEqual(fsMock.appendFile.mock.calls[1].arguments, [
       path.join(process.cwd(), 'testProjectRoot', '.gitignore'),
-      'amplifyconfiguration*',
+      `amplifyconfiguration*${os.EOL}`,
     ]);
   });
 

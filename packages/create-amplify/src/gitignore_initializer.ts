@@ -49,7 +49,7 @@ export class GitIgnoreInitializer {
       try {
         await this.fs.appendFile(
           path.resolve(this.projectRoot, '.gitignore'),
-          file
+          file + os.EOL
         );
       } catch {
         throw new Error(`Failed to add ${file} to .gitignore.`);

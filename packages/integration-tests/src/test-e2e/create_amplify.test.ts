@@ -88,9 +88,9 @@ void describe('create-amplify script', () => {
       );
 
       const gitIgnorePath = path.resolve(tempDir, '.gitignore');
-      const gitIgnoreContent = (
-        await fs.readFile(gitIgnorePath, 'utf-8')
-      ).split(os.EOL);
+      const gitIgnoreContent = (await fs.readFile(gitIgnorePath, 'utf-8'))
+        .split(os.EOL)
+        .filter((s) => s.trim());
       assert.deepStrictEqual(gitIgnoreContent.sort(), [
         '.amplify',
         'amplifyconfiguration*',
