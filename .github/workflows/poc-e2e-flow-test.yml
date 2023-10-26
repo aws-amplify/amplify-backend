@@ -40,7 +40,7 @@ jobs:
         shell: bash
         run: | # yarn1 create amplify doesn't work with @ahpha tag
           mkdir -p /tmp/amplify-project; cd /tmp/amplify-project
-          yarn create amplify@alpha
+          yarn create amplify@alpha --yes
 
       - name: ${{matrix.pkg-manager}}-create-amplify-project-step2-setup-not-win
         if: ${{matrix.pkg-manager == 'yarn1' && matrix.os != 'windows-latest'}}
@@ -51,7 +51,7 @@ jobs:
         if: ${{matrix.pkg-manager == 'yarn1' && matrix.os == 'windows-latest'}}
         shell: bash
         run: |
-          C:\\npm\\prefix\\bin\\create-amplify
+          C:\\npm\\prefix\\bin\\create-amplify --yes
 
       - name: ${{matrix.pkg-manager}}-create-amplify-project-step1-install
         if: matrix.pkg-manager == 'yarn3'
@@ -59,7 +59,7 @@ jobs:
         run: |
           mkdir -p /tmp/amplify-project; cd /tmp/amplify-project
           corepack enable
-          echo "yarn set version berry"
-          yarn set version berry
+          echo "yarn set version stable"
+          yarn set version stable
           echo "yarn version $(yarn --version)"
-          yarn create amplify@alpha
+          yarn create amplify@alpha --yes
