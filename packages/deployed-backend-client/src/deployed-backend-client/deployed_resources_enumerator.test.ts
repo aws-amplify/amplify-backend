@@ -136,7 +136,8 @@ void describe('listDeployedResources', () => {
     const deployedResources =
       await deployedResourcesEnumerator.listDeployedResources(
         mockCfnClient,
-        'testRootStack'
+        'testRootStack',
+        '0000000'
       );
 
     const expectedResources: DeployedBackendResource[] = [

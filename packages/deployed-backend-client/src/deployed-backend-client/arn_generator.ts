@@ -13,7 +13,8 @@ export class ArnGenerator {
    */
   generateArn = (
     stackResourceSummary: StackResourceSummary,
-    region: string
+    region: string,
+    accountId: string
   ): string | undefined => {
     // Supported keys from https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-template-resource-type-ref.html
     const physicalResourceId =
@@ -27,17 +28,17 @@ export class ArnGenerator {
 
     switch (stackResourceSummary.ResourceType) {
       case 'AWS::Cognito::UserPool':
-        return `arn:aws:cognito-idp:${region}::userpool/${physicalResourceId}`;
+        return `arn:aws:cognito-idp:${region}:${accountId}:userpool/${physicalResourceId}`;
       case 'AWS::Cognito::IdentityPool':
-        return `arn:aws:cognito-identity:${region}::identitypool/${physicalResourceId}`;
+        return `arn:aws:cognito-identity:${region}:${accountId}:identitypool/${physicalResourceId}`;
       case 'AWS::IAM::Role':
-        return `arn:aws:iam:${region}::role/${physicalResourceId}`;
+        return `arn:aws:iam:${region}:${accountId}:role/${physicalResourceId}`;
       case 'AWS::DynamoDB::Table':
-        return `arn:aws:dynamodb:${region}::table/${physicalResourceId}`;
+        return `arn:aws:dynamodb:${region}:${accountId}:table/${physicalResourceId}`;
       case 'AWS::S3::Bucket':
         return `arn:aws:s3:::${physicalResourceId}`;
       case 'AWS::Lambda::Function':
-        return `arn:aws:lambda:${region}::function:${physicalResourceId}`;
+        return `arn:aws:lambda:${region}:${accountId}:function:${physicalResourceId}`;
       default:
         break;
     }

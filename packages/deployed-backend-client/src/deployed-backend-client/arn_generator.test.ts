@@ -20,7 +20,8 @@ void describe('arn generator', () => {
         ...mockResourceSummaryBase,
         ResourceType: 'AWS::UNSUPPORTED_RESOURCE::UNSUPPORTED_RESOURCE',
       },
-      'us-east-1'
+      'us-east-1',
+      '000000'
     );
 
     assert.equal(arn, undefined);
@@ -32,14 +33,15 @@ void describe('arn generator', () => {
         ...mockResourceSummaryBase,
         ResourceType: 'AWS::UNSUPPORTED_RESOURCE::UNSUPPORTED_RESOURCE',
         PhysicalResourceId:
-          'arn:aws:unsupported-service:us-east-1::unsupported-resource',
+          'arn:aws:unsupported-service:us-east-1:000000:unsupported-resource',
       },
-      'us-east-1'
+      'us-east-1',
+      '000000'
     );
 
     assert.equal(
       arn,
-      'arn:aws:unsupported-service:us-east-1::unsupported-resource'
+      'arn:aws:unsupported-service:us-east-1:000000:unsupported-resource'
     );
   });
 
@@ -49,12 +51,13 @@ void describe('arn generator', () => {
         ...mockResourceSummaryBase,
         ResourceType: 'AWS::Cognito::UserPool',
       },
-      'us-east-1'
+      'us-east-1',
+      '000000'
     );
 
     assert.equal(
       arn,
-      'arn:aws:cognito-idp:us-east-1::userpool/MOCK_PhysicalResourceId'
+      'arn:aws:cognito-idp:us-east-1:000000:userpool/MOCK_PhysicalResourceId'
     );
   });
 
@@ -64,12 +67,13 @@ void describe('arn generator', () => {
         ...mockResourceSummaryBase,
         ResourceType: 'AWS::Cognito::IdentityPool',
       },
-      'us-east-1'
+      'us-east-1',
+      '000000'
     );
 
     assert.equal(
       arn,
-      'arn:aws:cognito-identity:us-east-1::identitypool/MOCK_PhysicalResourceId'
+      'arn:aws:cognito-identity:us-east-1:000000:identitypool/MOCK_PhysicalResourceId'
     );
   });
 
@@ -79,10 +83,14 @@ void describe('arn generator', () => {
         ...mockResourceSummaryBase,
         ResourceType: 'AWS::IAM::Role',
       },
-      'us-east-1'
+      'us-east-1',
+      '000000'
     );
 
-    assert.equal(arn, 'arn:aws:iam:us-east-1::role/MOCK_PhysicalResourceId');
+    assert.equal(
+      arn,
+      'arn:aws:iam:us-east-1:000000:role/MOCK_PhysicalResourceId'
+    );
   });
 
   void it('generates DynamoDB table arn', async () => {
@@ -91,12 +99,13 @@ void describe('arn generator', () => {
         ...mockResourceSummaryBase,
         ResourceType: 'AWS::DynamoDB::Table',
       },
-      'us-east-1'
+      'us-east-1',
+      '000000'
     );
 
     assert.equal(
       arn,
-      'arn:aws:dynamodb:us-east-1::table/MOCK_PhysicalResourceId'
+      'arn:aws:dynamodb:us-east-1:000000:table/MOCK_PhysicalResourceId'
     );
   });
 
@@ -106,7 +115,8 @@ void describe('arn generator', () => {
         ...mockResourceSummaryBase,
         ResourceType: 'AWS::S3::Bucket',
       },
-      'us-east-1'
+      'us-east-1',
+      '000000'
     );
 
     assert.equal(arn, 'arn:aws:s3:::MOCK_PhysicalResourceId');
@@ -118,12 +128,13 @@ void describe('arn generator', () => {
         ...mockResourceSummaryBase,
         ResourceType: 'AWS::Lambda::Function',
       },
-      'us-east-1'
+      'us-east-1',
+      '000000'
     );
 
     assert.equal(
       arn,
-      'arn:aws:lambda:us-east-1::function:MOCK_PhysicalResourceId'
+      'arn:aws:lambda:us-east-1:000000:function:MOCK_PhysicalResourceId'
     );
   });
 });

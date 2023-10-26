@@ -155,6 +155,10 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     return { stackSummaries: stacks.StackSummaries ?? [], nextToken };
   };
 
+  private tryParseAccountIdFromArn = (arn: string): string | undefined => {
+    return arn ? arn.split(':')?.[4] : undefined;
+  };
+
   private buildBackendMetadata = async (
     stackName: string
   ): Promise<BackendMetadata> => {
@@ -213,6 +217,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
       nestedStack?.StackName?.includes('data')
     );
 
+    const accountId = this.tryParseAccountIdFromArn(stack?.StackId as string);
     const backendMetadataObject: BackendMetadata = {
       deploymentType: backendOutput[stackOutputKey].payload
         .deploymentType as BackendDeploymentType,
@@ -221,7 +226,8 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
       name: stackName,
       resources: await this.deployedResourcesEnumerator.listDeployedResources(
         this.cfnClient,
-        stackName
+        stackName,
+        accountId
       ),
     };
 

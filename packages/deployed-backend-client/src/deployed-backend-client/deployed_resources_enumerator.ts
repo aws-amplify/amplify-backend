@@ -25,7 +25,8 @@ export class DeployedResourcesEnumerator {
    */
   listDeployedResources = async (
     cfnClient: CloudFormationClient,
-    stackName: string
+    stackName: string,
+    accountId: string | undefined
   ): Promise<DeployedBackendResource[]> => {
     const deployedBackendResources: DeployedBackendResource[] = [];
     const stackResourceSummaries: StackResourceSummary[] = [];
@@ -63,7 +64,7 @@ export class DeployedResourcesEnumerator {
         return [];
       }
       // Recursive call to get all the resources from child stacks
-      return this.listDeployedResources(cfnClient, childStackName);
+      return this.listDeployedResources(cfnClient, childStackName, accountId);
     });
     const deployedResourcesPerChildStack = await Promise.all(promises);
     deployedBackendResources.push(...deployedResourcesPerChildStack.flat());
@@ -87,10 +88,15 @@ export class DeployedResourcesEnumerator {
         resourceStatusReason: stackResourceSummary.ResourceStatusReason,
         resourceType: stackResourceSummary.ResourceType,
         physicalResourceId: stackResourceSummary.PhysicalResourceId,
-        arn: this.arnGenerator.generateArn(
-          stackResourceSummary,
-          cfnClient.config.region as string
-        ),
+        // If we do not have the account id, do not generate the arn.
+        // not enough data -> no ARN
+        arn: accountId
+          ? this.arnGenerator.generateArn(
+              stackResourceSummary,
+              cfnClient.config.region as string,
+              accountId
+            )
+          : undefined,
       })
     );
 
