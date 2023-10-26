@@ -38,9 +38,9 @@ jobs:
       - name: Log failure
         uses: ./.github/actions/log-metric
         with:
-          metric-name: CanaryTestWorkflowExecution
+          metric-name: WorkflowExecutionFailure
           value: 1
-          dimensions: outcome=failure,ref_name=${{ github.ref_name }}
+          dimensions: workflow=canary_checks,ref_name=${{ github.ref_name }}
           role-to-assume: ${{ secrets.METRICS_EMITTER_ROLE_ARN }}
           aws-region: us-west-2
   log-success-metric:
@@ -56,8 +56,8 @@ jobs:
       - name: Log success
         uses: ./.github/actions/log-metric
         with:
-          metric-name: CanaryTestWorkflowExecution
-          value: 1
-          dimensions: outcome=success,ref_name=${{ github.ref_name }}
+          metric-name: WorkflowExecutionFailure
+          value: 0
+          dimensions: workflow=canary_checks,ref_name=${{ github.ref_name }}
           role-to-assume: ${{ secrets.METRICS_EMITTER_ROLE_ARN }}
           aws-region: us-west-2
