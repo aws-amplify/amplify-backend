@@ -39,6 +39,7 @@ import {
 } from '@aws-amplify/backend-output-schemas';
 import { DeployedResourcesEnumerator } from './deployed-backend-client/deployed_resources_enumerator.js';
 import { StackStatusMapper } from './deployed-backend-client/stack_status_mapper.js';
+import { AccountIdParser } from './deployed-backend-client/account_id_parser.js';
 
 /**
  * Deployment Client
@@ -52,7 +53,8 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     private readonly s3Client: S3Client,
     private readonly backendOutputClient: BackendOutputClient,
     private readonly deployedResourcesEnumerator: DeployedResourcesEnumerator,
-    private readonly stackStatusMapper: StackStatusMapper
+    private readonly stackStatusMapper: StackStatusMapper,
+    private readonly accountIdParser: AccountIdParser
   ) {}
 
   /**
@@ -155,10 +157,6 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     return { stackSummaries: stacks.StackSummaries ?? [], nextToken };
   };
 
-  private tryParseAccountIdFromArn = (arn: string): string | undefined => {
-    return arn ? arn.split(':')?.[4] : undefined;
-  };
-
   private buildBackendMetadata = async (
     stackName: string
   ): Promise<BackendMetadata> => {
@@ -217,7 +215,8 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
       nestedStack?.StackName?.includes('data')
     );
 
-    const accountId = this.tryParseAccountIdFromArn(stack?.StackId as string);
+    // stack?.StackId is the ARN of the stack
+    const accountId = this.accountIdParser.tryFromArn(stack?.StackId as string);
     const backendMetadataObject: BackendMetadata = {
       deploymentType: backendOutput[stackOutputKey].payload
         .deploymentType as BackendDeploymentType,

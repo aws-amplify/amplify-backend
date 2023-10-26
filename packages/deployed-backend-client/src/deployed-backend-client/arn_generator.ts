@@ -10,12 +10,23 @@ export class ArnGenerator {
 
   /**
    * Generates an AWS Console link to the stack resource
+   * @param stackResourceSummary object including PhysicalResourceId and ResourceType, from CFN DescribeStackResources
+   * @param region the region of the resource
+   * @param accountId If `undefined` is passed here, we do not generate the arn. Not enough data -> no ARN
+   * @returns string if arn can be generated, undefined otherwise
    */
   generateArn = (
-    stackResourceSummary: StackResourceSummary,
+    stackResourceSummary: Pick<
+      StackResourceSummary,
+      'PhysicalResourceId' | 'ResourceType'
+    >,
     region: string,
-    accountId: string
+    accountId: string | undefined
   ): string | undefined => {
+    if (!accountId) {
+      return;
+    }
+
     // Supported keys from https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-template-resource-type-ref.html
     const physicalResourceId =
       stackResourceSummary.PhysicalResourceId as string;

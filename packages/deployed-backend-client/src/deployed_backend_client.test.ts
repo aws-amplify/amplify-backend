@@ -29,6 +29,7 @@ import { GetObjectCommand, S3 } from '@aws-sdk/client-s3';
 import { DeployedResourcesEnumerator } from './deployed-backend-client/deployed_resources_enumerator.js';
 import { StackStatusMapper } from './deployed-backend-client/stack_status_mapper.js';
 import { ArnGenerator } from './deployed-backend-client/arn_generator.js';
+import { AccountIdParser } from './deployed-backend-client/account_id_parser.js';
 
 const listStacksMock = {
   NextToken: undefined,
@@ -211,10 +212,12 @@ void describe('Deployed Backend Client', () => {
     cfnClientSendMock.mock.mockImplementation(mockSend);
 
     const arnGeneratorMock = new ArnGenerator();
+    const accountIdParserMock = new AccountIdParser();
     mock.method(arnGeneratorMock, 'generateArn', () => undefined);
     const deployedResourcesEnumerator = new DeployedResourcesEnumerator(
       new StackStatusMapper(),
-      arnGeneratorMock
+      arnGeneratorMock,
+      accountIdParserMock
     );
     mock.method(deployedResourcesEnumerator, 'listDeployedResources', () => []);
 
@@ -223,7 +226,8 @@ void describe('Deployed Backend Client', () => {
       mockS3Client,
       mockBackendOutputClient,
       deployedResourcesEnumerator,
-      new StackStatusMapper()
+      new StackStatusMapper(),
+      accountIdParserMock
     );
   });
 
@@ -364,10 +368,12 @@ void describe('Deployed Backend Client pagination', () => {
 
     cfnClientSendMock.mock.mockImplementation(mockSend);
     const arnGeneratorMock = new ArnGenerator();
+    const accountIdParserMock = new AccountIdParser();
     mock.method(arnGeneratorMock, 'generateArn', () => undefined);
     const deployedResourcesEnumerator = new DeployedResourcesEnumerator(
       new StackStatusMapper(),
-      arnGeneratorMock
+      arnGeneratorMock,
+      accountIdParserMock
     );
     mock.method(deployedResourcesEnumerator, 'listDeployedResources', () => []);
 
@@ -376,7 +382,8 @@ void describe('Deployed Backend Client pagination', () => {
       mockS3Client,
       mockBackendOutputClient,
       deployedResourcesEnumerator,
-      new StackStatusMapper()
+      new StackStatusMapper(),
+      accountIdParserMock
     );
   });
 

@@ -12,13 +12,16 @@ import {
 import { DeployedResourcesEnumerator } from './deployed_resources_enumerator.js';
 import { StackStatusMapper } from './stack_status_mapper.js';
 import { ArnGenerator } from './arn_generator.js';
+import { AccountIdParser } from './account_id_parser.js';
 
 void describe('listDeployedResources', () => {
   const arnGeneratorMock = new ArnGenerator();
+  const accountIdParserMock = new AccountIdParser();
   mock.method(arnGeneratorMock, 'generateArn', () => undefined);
   const deployedResourcesEnumerator = new DeployedResourcesEnumerator(
     new StackStatusMapper(),
-    arnGeneratorMock
+    arnGeneratorMock,
+    accountIdParserMock
   );
   const cfnClientSendMock = mock.fn();
   const mockCfnClient = new CloudFormation();
