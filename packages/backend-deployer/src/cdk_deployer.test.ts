@@ -8,6 +8,7 @@ import {
 import { DeployProps } from './cdk_deployer_singleton_factory.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import { BackendDeployerEnvironmentVariables } from './environment_variables.js';
 
 void describe('invokeCDKCommand', () => {
   const uniqueBackendIdentifier: UniqueBackendIdentifier =
@@ -146,11 +147,17 @@ void describe('invokeCDKCommand', () => {
       validateAppSources: true,
     });
     assert.strictEqual(execaMock.mock.callCount(), 2);
-    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 4);
+    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 10);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
       'tsc',
       '--noEmit',
       '--skipLibCheck',
+      '--module',
+      'node16',
+      '--moduleResolution',
+      'node16',
+      '--target',
+      'es2022',
       'amplify/backend.ts',
     ]);
     assert.equal(execaMock.mock.calls[1].arguments[1]?.length, 14);
@@ -178,11 +185,17 @@ void describe('invokeCDKCommand', () => {
       validateAppSources: true,
     });
     assert.strictEqual(execaMock.mock.callCount(), 2);
-    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 4);
+    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 10);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
       'tsc',
       '--noEmit',
       '--skipLibCheck',
+      '--module',
+      'node16',
+      '--moduleResolution',
+      'node16',
+      '--target',
+      'es2022',
       'amplify/backend.ts',
     ]);
     assert.equal(execaMock.mock.calls[1].arguments[1]?.length, 12);
@@ -200,6 +213,74 @@ void describe('invokeCDKCommand', () => {
       '--hotswap-fallback',
       '--method=direct',
     ]);
+  });
+
+  void it('overrides enabled type checking for branch deployments', async () => {
+    try {
+      process.env[
+        BackendDeployerEnvironmentVariables.ALWAYS_DISABLE_APP_SOURCES_VALIDATION
+      ] = 'true';
+      await invoker.deploy(uniqueBackendIdentifier, {
+        deploymentType: BackendDeploymentType.BRANCH,
+        validateAppSources: true,
+      });
+      assert.strictEqual(execaMock.mock.callCount(), 1);
+      assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 14);
+      assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
+        'cdk',
+        'deploy',
+        '--ci',
+        '--app',
+        "'npx tsx amplify/backend.ts'",
+        '--all',
+        '--output',
+        '.amplify/artifacts/cdk.out',
+        '--context',
+        'backend-id=123',
+        '--context',
+        'branch-name=testBranch',
+        '--context',
+        'deployment-type=BRANCH',
+      ]);
+    } finally {
+      delete process.env[
+        BackendDeployerEnvironmentVariables
+          .ALWAYS_DISABLE_APP_SOURCES_VALIDATION
+      ];
+    }
+  });
+
+  void it('overrides enabled type checking for sandbox deployments', async () => {
+    try {
+      process.env[
+        BackendDeployerEnvironmentVariables.ALWAYS_DISABLE_APP_SOURCES_VALIDATION
+      ] = 'true';
+      await invoker.deploy(undefined, {
+        deploymentType: BackendDeploymentType.SANDBOX,
+        validateAppSources: true,
+      });
+      assert.strictEqual(execaMock.mock.callCount(), 1);
+      assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 12);
+      assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
+        'cdk',
+        'deploy',
+        '--ci',
+        '--app',
+        "'npx tsx amplify/backend.ts'",
+        '--all',
+        '--output',
+        '.amplify/artifacts/cdk.out',
+        '--context',
+        'deployment-type=SANDBOX',
+        '--hotswap-fallback',
+        '--method=direct',
+      ]);
+    } finally {
+      delete process.env[
+        BackendDeployerEnvironmentVariables
+          .ALWAYS_DISABLE_APP_SOURCES_VALIDATION
+      ];
+    }
   });
 
   void it('returns human readable errors', async () => {
