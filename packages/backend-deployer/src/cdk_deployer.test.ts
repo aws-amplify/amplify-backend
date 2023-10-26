@@ -250,7 +250,7 @@ void describe('invokeCDKCommand', () => {
     }
   });
 
-  void it('enables type checking for sandbox deployments', async () => {
+  void it('overrides enabled type checking for sandbox deployments', async () => {
     try {
       process.env[
         BackendDeployerEnvironmentVariables.ALWAYS_DISABLE_APP_SOURCES_VALIDATION
