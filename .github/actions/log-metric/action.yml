@@ -30,7 +30,7 @@ runs:
       # First trim the input by removing trailing or leading spaces, then removing any new line characters.
       # Then, we do regex test to match against expected input shape. Finally, put metric data using aws cli.
       run: |
-        if [ -n "${{ inputs.dimensions }}" ]
+        if [ -n "${{ inputs.dimensions }}" ]; then
           dimensions_param="--dimensions ${{ inputs.dimensions }}"
         fi
 
