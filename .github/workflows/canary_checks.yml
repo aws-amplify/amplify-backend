@@ -30,6 +30,7 @@ jobs:
     needs: [local_checks_with_latest_dependencies]
     if: ${{ failure() }}
     steps:
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
       - name: Log failure
         uses: ./.github/actions/log-metric
         with:
@@ -43,8 +44,9 @@ jobs:
     needs: [local_checks_with_latest_dependencies]
     if: ${{ success() }}
     steps:
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
       - name: Log success
-        uses: ./.github//actions/log-metric
+        uses: ./.github/actions/log-metric
         with:
           metric-name: CanaryTestWorkflowExecution
           value: 1
