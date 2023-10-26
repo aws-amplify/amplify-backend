@@ -1,5 +1,13 @@
 # @aws-amplify/backend-function
 
+## 0.1.1-alpha.11
+
+### Patch Changes
+
+- Updated dependencies [47456c26]
+  - @aws-amplify/backend-output-storage@0.2.0-alpha.6
+  - @aws-amplify/function-construct-alpha@0.2.0-alpha.7
+
 ## 0.1.1-alpha.10
 
 ### Patch Changes
