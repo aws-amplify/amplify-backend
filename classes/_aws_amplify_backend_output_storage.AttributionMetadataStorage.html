@@ -1,4 +1,4 @@
-<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>versionedStorageOutputSchema | Amplify Toolbox</title><meta name="description" content="Documentation for Amplify Toolbox"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os"</script><header class="tsd-page-toolbar">
+<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>AttributionMetadataStorage | Amplify Toolbox</title><meta name="description" content="Documentation for Amplify Toolbox"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os"</script><header class="tsd-page-toolbar">
 <div class="tsd-toolbar-contents container">
 <div class="table-cell" id="tsd-search" data-base="..">
 <div class="field"><label for="tsd-search-field" class="tsd-widget tsd-toolbar-icon search no-caption"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><use href="#icon-search"></use></svg></label><input type="text" id="tsd-search-field" aria-label="Search"/></div>
@@ -13,13 +13,151 @@
 <div class="tsd-page-title">
 <ul class="tsd-breadcrumb">
 <li><a href="../index.html">Amplify Toolbox</a></li>
-<li><a href="../modules/_aws_amplify_backend_output_schemas.html">@aws-amplify/backend-output-schemas</a></li>
-<li><a href="../modules/_aws_amplify_backend_output_schemas.storage.html">storage</a></li>
-<li><a href="_aws_amplify_backend_output_schemas.storage.versionedStorageOutputSchema.html">versionedStorageOutputSchema</a></li></ul>
-<h1>Variable versionedStorageOutputSchema<code class="tsd-tag ts-flagConst">Const</code> </h1></div>
-<div class="tsd-signature"><span class="tsd-kind-variable">versioned<wbr/>Storage<wbr/>Output<wbr/>Schema</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type ">ZodDiscriminatedUnion</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">&quot;version&quot;</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">[</span><span class="tsd-signature-type ">ZodObject</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">payload</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">ZodObject</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">{ </span><br/><span>        </span><span class="tsd-kind-property">bucketName</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">ZodString</span><span class="tsd-signature-symbol">; </span><br/><span>        </span><span class="tsd-kind-property">storageRegion</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">ZodString</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">&quot;strip&quot;</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type ">ZodTypeAny</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>        </span><span class="tsd-kind-property">bucketName</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span>        </span><span class="tsd-kind-property">storageRegion</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>        </span><span class="tsd-kind-property">bucketName</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span>        </span><span class="tsd-kind-property">storageRegion</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">version</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">ZodLiteral</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">&quot;1&quot;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">&quot;strip&quot;</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type ">ZodTypeAny</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">payload</span><span class="tsd-signature-symbol">: </span>{ bucketName: string; storageRegion: string; }<span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">version</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;1&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">payload</span><span class="tsd-signature-symbol">: </span>{ bucketName: string; storageRegion: string; }<span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">version</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;1&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = ...</span></div><aside class="tsd-sources">
+<li><a href="../modules/_aws_amplify_backend_output_storage.html">@aws-amplify/backend-output-storage</a></li>
+<li><a href="_aws_amplify_backend_output_storage.AttributionMetadataStorage.html">AttributionMetadataStorage</a></li></ul>
+<h1>Class AttributionMetadataStorage</h1></div>
+<section class="tsd-panel tsd-comment">
+<div class="tsd-comment tsd-typography"><p>Stores BI metrics information in stack descriptions</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></section>
+<section class="tsd-panel tsd-hierarchy">
+<h4>Hierarchy</h4>
+<ul class="tsd-hierarchy">
+<li><span class="target">AttributionMetadataStorage</span></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/7c9d3ca/packages/backend-output-schemas/src/storage/index.ts#L4">packages/backend-output-schemas/src/storage/index.ts:4</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/47456c2/packages/backend-output-storage/src/store_attribution_metadata.ts#L12">store_attribution_metadata.ts:12</a></li></ul></aside>
+<section class="tsd-panel-group tsd-index-group">
+<section class="tsd-panel tsd-index-panel">
+<details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
+<h5 class="tsd-index-heading uppercase" role="button" aria-expanded="false" tabIndex=0><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><use href="#icon-chevronSmall"></use></svg> Index</h5></summary>
+<div class="tsd-accordion-details">
+<section class="tsd-index-section">
+<h3 class="tsd-index-heading">Constructors</h3>
+<div class="tsd-index-list"><a href="_aws_amplify_backend_output_storage.AttributionMetadataStorage.html#constructor" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-512"></use></svg><span>constructor</span></a>
+</div></section>
+<section class="tsd-index-section">
+<h3 class="tsd-index-heading">Properties</h3>
+<div class="tsd-index-list"><a href="_aws_amplify_backend_output_storage.AttributionMetadataStorage.html#fs" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>fs</span></a>
+<a href="_aws_amplify_backend_output_storage.AttributionMetadataStorage.html#os" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>os</span></a>
+</div></section>
+<section class="tsd-index-section">
+<h3 class="tsd-index-heading">Methods</h3>
+<div class="tsd-index-list"><a href="_aws_amplify_backend_output_storage.AttributionMetadataStorage.html#getAttributionMetadata" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>get<wbr/>Attribution<wbr/>Metadata</span></a>
+<a href="_aws_amplify_backend_output_storage.AttributionMetadataStorage.html#getDeploymentEngineType" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>get<wbr/>Deployment<wbr/>Engine<wbr/>Type</span></a>
+<a href="_aws_amplify_backend_output_storage.AttributionMetadataStorage.html#getLibraryVersion" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>get<wbr/>Library<wbr/>Version</span></a>
+<a href="_aws_amplify_backend_output_storage.AttributionMetadataStorage.html#getPlatform" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>get<wbr/>Platform</span></a>
+<a href="_aws_amplify_backend_output_storage.AttributionMetadataStorage.html#storeAttributionMetadata" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>store<wbr/>Attribution<wbr/>Metadata</span></a>
+</div></section></div></details></section></section>
+<section class="tsd-panel-group tsd-member-group">
+<h2>Constructors</h2>
+<section class="tsd-panel tsd-member"><a id="constructor" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>constructor</span><a href="#constructor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="tsd-signature tsd-anchor-link" id="constructor.new_AttributionMetadataStorage"><span class="tsd-kind-constructor-signature">new <wbr/>Attribution<wbr/>Metadata<wbr/>Storage</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">fs</span><span class="tsd-signature-symbol">?</span>, <span class="tsd-kind-parameter">os</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_aws_amplify_backend_output_storage.AttributionMetadataStorage.html" class="tsd-signature-type tsd-kind-class">AttributionMetadataStorage</a><a href="#constructor.new_AttributionMetadataStorage" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Constructor with props for injecting test mocks</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5><span class="tsd-kind-parameter">fs</span>: <span class="tsd-signature-type ">__module</span><span class="tsd-signature-symbol"> = _fs</span></h5></li>
+<li>
+<h5><span class="tsd-kind-parameter">os</span>: <span class="tsd-signature-type ">__module</span><span class="tsd-signature-symbol"> = _os</span></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="_aws_amplify_backend_output_storage.AttributionMetadataStorage.html" class="tsd-signature-type tsd-kind-class">AttributionMetadataStorage</a></h4>
+<div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/47456c2/packages/backend-output-storage/src/store_attribution_metadata.ts#L16">store_attribution_metadata.ts:16</a></li></ul></aside></li></ul></section></section>
+<section class="tsd-panel-group tsd-member-group">
+<h2>Properties</h2>
+<section class="tsd-panel tsd-member tsd-is-private"><a id="fs" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <code class="tsd-tag ts-flagReadonly">Readonly</code> <span>fs</span><a href="#fs" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">fs</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type ">__module</span><span class="tsd-signature-symbol"> = _fs</span></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/47456c2/packages/backend-output-storage/src/store_attribution_metadata.ts#L17">store_attribution_metadata.ts:17</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-is-private"><a id="os" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <code class="tsd-tag ts-flagReadonly">Readonly</code> <span>os</span><a href="#os" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">os</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type ">__module</span><span class="tsd-signature-symbol"> = _os</span></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/47456c2/packages/backend-output-storage/src/store_attribution_metadata.ts#L18">store_attribution_metadata.ts:18</a></li></ul></aside></section></section>
+<section class="tsd-panel-group tsd-member-group">
+<h2>Methods</h2>
+<section class="tsd-panel tsd-member tsd-is-private"><a id="getAttributionMetadata" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>get<wbr/>Attribution<wbr/>Metadata</span><a href="#getAttributionMetadata" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-is-private">
+<li class="tsd-signature tsd-anchor-link" id="getAttributionMetadata.getAttributionMetadata-1"><span class="tsd-kind-call-signature">get<wbr/>Attribution<wbr/>Metadata</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">stack</span>, <span class="tsd-kind-parameter">stackType</span>, <span class="tsd-kind-parameter">libraryPackageJsonAbsolutePath</span>, <span class="tsd-kind-parameter">additionalMetadata</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../types/_aws_amplify_backend_output_storage.AttributionMetadata.html" class="tsd-signature-type tsd-kind-type-alias">AttributionMetadata</a><a href="#getAttributionMetadata.getAttributionMetadata-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5><span class="tsd-kind-parameter">stack</span>: <span class="tsd-signature-type ">Stack</span></h5></li>
+<li>
+<h5><span class="tsd-kind-parameter">stackType</span>: <span class="tsd-signature-type">string</span></h5></li>
+<li>
+<h5><span class="tsd-kind-parameter">libraryPackageJsonAbsolutePath</span>: <span class="tsd-signature-type">string</span></h5></li>
+<li>
+<h5><span class="tsd-kind-parameter">additionalMetadata</span>: <span class="tsd-signature-type ">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="../types/_aws_amplify_backend_output_storage.AttributionMetadata.html" class="tsd-signature-type tsd-kind-type-alias">AttributionMetadata</a></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/47456c2/packages/backend-output-storage/src/store_attribution_metadata.ts#L48">store_attribution_metadata.ts:48</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-is-private"><a id="getDeploymentEngineType" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>get<wbr/>Deployment<wbr/>Engine<wbr/>Type</span><a href="#getDeploymentEngineType" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-is-private">
+<li class="tsd-signature tsd-anchor-link" id="getDeploymentEngineType.getDeploymentEngineType-1"><span class="tsd-kind-call-signature">get<wbr/>Deployment<wbr/>Engine<wbr/>Type</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">stack</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../types/_aws_amplify_backend_output_storage.DeploymentEngineType.html" class="tsd-signature-type tsd-kind-type-alias">DeploymentEngineType</a><a href="#getDeploymentEngineType.getDeploymentEngineType-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5><span class="tsd-kind-parameter">stack</span>: <span class="tsd-signature-type ">Stack</span></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="../types/_aws_amplify_backend_output_storage.DeploymentEngineType.html" class="tsd-signature-type tsd-kind-type-alias">DeploymentEngineType</a></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/47456c2/packages/backend-output-storage/src/store_attribution_metadata.ts#L80">store_attribution_metadata.ts:80</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-is-private"><a id="getLibraryVersion" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>get<wbr/>Library<wbr/>Version</span><a href="#getLibraryVersion" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-is-private">
+<li class="tsd-signature tsd-anchor-link" id="getLibraryVersion.getLibraryVersion-1"><span class="tsd-kind-call-signature">get<wbr/>Library<wbr/>Version</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">absolutePackageJsonPath</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><a href="#getLibraryVersion.getLibraryVersion-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5><span class="tsd-kind-parameter">absolutePackageJsonPath</span>: <span class="tsd-signature-type">string</span></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/47456c2/packages/backend-output-storage/src/store_attribution_metadata.ts#L61">store_attribution_metadata.ts:61</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-is-private"><a id="getPlatform" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>get<wbr/>Platform</span><a href="#getPlatform" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-is-private">
+<li class="tsd-signature tsd-anchor-link" id="getPlatform.getPlatform-1"><span class="tsd-kind-call-signature">get<wbr/>Platform</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../types/_aws_amplify_backend_output_storage.Platform.html" class="tsd-signature-type tsd-kind-type-alias">Platform</a><a href="#getPlatform.getPlatform-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-description">
+<h4 class="tsd-returns-title">Returns <a href="../types/_aws_amplify_backend_output_storage.Platform.html" class="tsd-signature-type tsd-kind-type-alias">Platform</a></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/47456c2/packages/backend-output-storage/src/store_attribution_metadata.ts#L103">store_attribution_metadata.ts:103</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member"><a id="storeAttributionMetadata" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>store<wbr/>Attribution<wbr/>Metadata</span><a href="#storeAttributionMetadata" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="tsd-signature tsd-anchor-link" id="storeAttributionMetadata.storeAttributionMetadata-1"><span class="tsd-kind-call-signature">store<wbr/>Attribution<wbr/>Metadata</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">stack</span>, <span class="tsd-kind-parameter">stackType</span>, <span class="tsd-kind-parameter">libraryPackageJsonAbsolutePath</span>, <span class="tsd-kind-parameter">additionalMetadata</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#storeAttributionMetadata.storeAttributionMetadata-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Stores an attribution metadata string in the stack description of the provided stack
+Does nothing if the stack already has a non-empty description</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5><span class="tsd-kind-parameter">stack</span>: <span class="tsd-signature-type ">Stack</span></h5></li>
+<li>
+<h5><span class="tsd-kind-parameter">stackType</span>: <span class="tsd-signature-type">string</span></h5></li>
+<li>
+<h5><span class="tsd-kind-parameter">libraryPackageJsonAbsolutePath</span>: <span class="tsd-signature-type">string</span></h5></li>
+<li>
+<h5><span class="tsd-kind-parameter">additionalMetadata</span>: <span class="tsd-signature-type ">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = {}</span></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+<div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/47456c2/packages/backend-output-storage/src/store_attribution_metadata.ts#L25">store_attribution_metadata.ts:25</a></li></ul></aside></li></ul></section></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -34,7 +172,19 @@
 <li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><use href="#icon-checkbox"></use></svg><span>Inherited</span></label></li>
 <li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-external" name="external"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><use href="#icon-checkbox"></use></svg><span>External</span></label></li></ul></form></div>
 <div class="tsd-theme-toggle">
-<h4 class="uppercase">Theme</h4><select id="tsd-theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div></div>
+<h4 class="uppercase">Theme</h4><select id="tsd-theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div>
+<details open class="tsd-index-accordion tsd-page-navigation"><summary class="tsd-accordion-summary">
+<h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><use href="#icon-chevronDown"></use></svg>On This Page</h3></summary>
+<div class="tsd-accordion-details">
+<ul>
+<li><a href="#constructor" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-512"></use></svg><span>constructor</span></a></li>
+<li><a href="#fs" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>fs</span></a></li>
+<li><a href="#os" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>os</span></a></li>
+<li><a href="#getAttributionMetadata" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>get<wbr/>Attribution<wbr/>Metadata</span></a></li>
+<li><a href="#getDeploymentEngineType" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>get<wbr/>Deployment<wbr/>Engine<wbr/>Type</span></a></li>
+<li><a href="#getLibraryVersion" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>get<wbr/>Library<wbr/>Version</span></a></li>
+<li><a href="#getPlatform" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>get<wbr/>Platform</span></a></li>
+<li><a href="#storeAttributionMetadata" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>store<wbr/>Attribution<wbr/>Metadata</span></a></li></ul></div></details></div>
 <div class="site-menu">
 <nav class="tsd-navigation"><a href="../index.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1"></use></svg><span>Amplify Toolbox</span></a>
 <ul class="tsd-small-nested-navigation" id="tsd-nav-container" data-base="..">
