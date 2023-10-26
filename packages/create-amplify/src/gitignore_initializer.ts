@@ -1,67 +1,72 @@
 import { existsSync as _existsSync } from 'fs';
+import _fs from 'fs/promises';
 import * as path from 'path';
-import { execa as _execa } from 'execa';
+import * as os from 'os';
 
 /**
  * Ensure that the .gitignore file exists with the correct contents in the current working directory
  */
 export class GitIgnoreInitializer {
   /**
-   * injecting console and fs for testing
+   * Injecting fs for testing
    */
   constructor(
     private readonly projectRoot: string,
     private readonly logger: typeof console = console,
     private readonly existsSync = _existsSync,
-    private readonly execa = _execa
+    private readonly fs = _fs
   ) {}
 
   /**
-   * If .gitignore exists, append amplify related items. Otherwise, create with node_modules and amplify related items.
+   * If .gitignore exists, append files to ignore. Otherwise, create .gitignore with files to ignore
    */
   ensureInitialized = async (): Promise<void> => {
-    try {
-      if (!this.gitIgnoreExists()) {
-        // If .gitignore does not exist, create and add node_modules
-        this.logger.log(
-          'No .gitignore file found in the working directory. Running `touch .gitignore`...'
-        );
+    const ignoredFiles = ['node_modules', '.amplify', 'amplifyconfiguration*'];
+    const gitIgnoreContent = await this.getGitIgnoreContent();
 
-        await this.execa('touch', ['.gitignore'], {
-          stdio: 'inherit',
-          cwd: this.projectRoot,
-        });
-
-        await this.ignoreFile('node_modules');
-      }
-
-      await this.ignoreFile('.amplify');
-      await this.ignoreFile('amplifyconfiguration*');
-    } catch {
-      throw new Error(
-        'Failed to create .gitignore file. Initialize a valid .gitignore file before continuing.'
+    // If .gitignore exists, append ignoredFiles that do not exist in contents
+    if (gitIgnoreContent && gitIgnoreContent.length > 0) {
+      const filesToIgnore = ignoredFiles.filter(
+        (file) => !gitIgnoreContent.includes(file)
       );
+      await this.ignoreFiles(filesToIgnore);
+      return;
     }
 
-    if (!this.gitIgnoreExists()) {
-      throw new Error(
-        '.gitignore does not exist after running `touch .gitignore`. Initialize a valid .gitignore file before continuing.'
-      );
+    this.logger.log(
+      'No .gitignore file found in the working directory. Creating .gitignore...'
+    );
+
+    await this.ignoreFiles(ignoredFiles);
+  };
+
+  /**
+   * Add files to .gitignore contents
+   */
+  private ignoreFiles = async (files: string[]): Promise<void> => {
+    // Append to .gitignore in sequence
+    for (const file of files) {
+      try {
+        await this.fs.appendFile(
+          path.resolve(this.projectRoot, '.gitignore'),
+          file
+        );
+      } catch {
+        throw new Error(`Failed to add ${file} to .gitignore.`);
+      }
     }
   };
 
   /**
-   * Add a file to .gitignore contents
+   * If .gitignore does not exist, this is a noop. Otherwise, get contents as an array
    */
-  private ignoreFile = async (fileName: string): Promise<void> => {
-    try {
-      await this.execa('echo', [fileName, '>>', '.gitignore'], {
-        stdio: 'inherit',
-        cwd: this.projectRoot,
-      });
-    } catch {
-      throw new Error(`Failed to add ${fileName} to .gitignore.`);
+  private getGitIgnoreContent = async (): Promise<string[] | undefined> => {
+    if (!this.gitIgnoreExists()) {
+      return;
     }
+
+    const gitIgnorePath = path.resolve(this.projectRoot, '.gitignore');
+    return (await this.fs.readFile(gitIgnorePath, 'utf-8')).split(os.EOL);
   };
 
   /**

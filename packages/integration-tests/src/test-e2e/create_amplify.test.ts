@@ -90,11 +90,11 @@ void describe('create-amplify script', () => {
       const gitIgnorePath = path.resolve(tempDir, '.gitignore');
       const gitIgnoreContent = (
         await fs.readFile(gitIgnorePath, 'utf-8')
-      ).split('\n');
+      ).split(os.EOL);
       assert.deepStrictEqual(gitIgnoreContent.sort(), [
         '.amplify',
         'amplifyconfiguration*',
-        'node_module',
+        'node_modules',
       ]);
 
       // Read tsconfig.json content, remove all comments, and make assertions
