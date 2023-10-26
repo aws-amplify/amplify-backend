@@ -59,4 +59,29 @@ void describe('Logger', () => {
       new RegExp(`\\[DEBUG\\].*: Test log message`)
     );
   });
+
+  void it('logs a debug message in CI mode', async (ctx) => {
+    const mockConsole = {
+      log: ctx.mock.fn(() => undefined),
+    };
+
+    const mockArgs = {
+      debug: false,
+      verbose: false,
+    };
+
+    const mockProcessEnv = { CI: 'true' };
+
+    const mockMinimumLogLevel =
+      mockArgs.debug || mockArgs.verbose || mockProcessEnv.CI === 'true'
+        ? LogLevel.DEBUG
+        : LogLevel.INFO;
+
+    const logger = new Logger(mockConsole as never, mockMinimumLogLevel);
+    await logger.debug('Test log message');
+    assert.match(
+      [...mockConsole.log.mock.calls[0].arguments][0] ?? '',
+      new RegExp(`\\[DEBUG\\].*: Test log message`)
+    );
+  });
 });

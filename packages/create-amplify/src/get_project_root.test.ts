@@ -68,4 +68,18 @@ void describe('getProjectRoot', () => {
     );
     assert.equal(projectRoot, path.resolve(userInput));
   });
+
+  void it('use default options if in CI mode', async (ctx) => {
+    process.env.CI = 'true';
+    const userInput = 'test';
+    const fsMkDirSyncMock = ctx.mock.method(fsp, 'mkdir', () => undefined);
+    ctx.mock.method(fsp, 'stat', () => Promise.reject(new Error()));
+    ctx.mock.method(AmplifyPrompter, 'input', () => Promise.resolve(userInput));
+
+    const projectRoot = await getProjectRoot();
+
+    assert.equal(fsMkDirSyncMock.mock.callCount(), 1);
+    assert.equal(fsMkDirSyncMock.mock.calls[0].arguments[0], process.cwd());
+    assert.equal(projectRoot, process.cwd());
+  });
 });
