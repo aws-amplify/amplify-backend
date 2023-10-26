@@ -7,7 +7,8 @@ import { logger } from './logger.js';
  * Returns the project root directory.
  */
 export const getProjectRoot = async () => {
-  const useDefault = process.env.npm_config_yes === 'true';
+  const useDefault =
+    process.env.npm_config_yes === 'true' || process.env.CI === 'true';
   const defaultProjectRoot = '.';
   let projectRoot: string = useDefault
     ? defaultProjectRoot

@@ -77,7 +77,9 @@ export const argv = await yargs(process.argv.slice(2)).options({
 }).argv;
 
 const minimumLogLevel =
-  argv.debug || argv.verbose ? LogLevel.DEBUG : LogLevel.INFO;
+  argv.debug || argv.verbose || process.env.CI === 'true'
+    ? LogLevel.DEBUG
+    : LogLevel.INFO;
 
 const logger = new Logger(global.console, minimumLogLevel);
 
