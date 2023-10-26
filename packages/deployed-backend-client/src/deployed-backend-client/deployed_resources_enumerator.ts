@@ -6,7 +6,7 @@ import {
 } from '@aws-sdk/client-cloudformation';
 import { DeployedBackendResource } from '../deployed_backend_client_factory.js';
 import { StackStatusMapper } from './stack_status_mapper.js';
-import { ConsoleLinkGenerator } from './console_link_generator.js';
+import { ArnGenerator } from './arn_generator.js';
 
 /**
  * Lists deployed resources
@@ -17,7 +17,7 @@ export class DeployedResourcesEnumerator {
    */
   constructor(
     private readonly stackStatusMapper: StackStatusMapper,
-    private readonly consoleLinkGenerator: ConsoleLinkGenerator
+    private readonly arnGenerator: ArnGenerator
   ) {}
 
   /**
@@ -25,7 +25,8 @@ export class DeployedResourcesEnumerator {
    */
   listDeployedResources = async (
     cfnClient: CloudFormationClient,
-    stackName: string
+    stackName: string,
+    accountId: string
   ): Promise<DeployedBackendResource[]> => {
     const deployedBackendResources: DeployedBackendResource[] = [];
     const stackResourceSummaries: StackResourceSummary[] = [];
@@ -63,7 +64,7 @@ export class DeployedResourcesEnumerator {
         return [];
       }
       // Recursive call to get all the resources from child stacks
-      return this.listDeployedResources(cfnClient, childStackName);
+      return this.listDeployedResources(cfnClient, childStackName, accountId);
     });
     const deployedResourcesPerChildStack = await Promise.all(promises);
     deployedBackendResources.push(...deployedResourcesPerChildStack.flat());
@@ -77,6 +78,7 @@ export class DeployedResourcesEnumerator {
         }
       ) ?? [];
 
+    cfnClient.config.credentials;
     const parentDeployedNonStackResources = parentStackNonStackResources.map(
       (stackResourceSummary: StackResourceSummary) => ({
         logicalResourceId: stackResourceSummary.LogicalResourceId,
@@ -87,9 +89,10 @@ export class DeployedResourcesEnumerator {
         resourceStatusReason: stackResourceSummary.ResourceStatusReason,
         resourceType: stackResourceSummary.ResourceType,
         physicalResourceId: stackResourceSummary.PhysicalResourceId,
-        link: this.consoleLinkGenerator.generateLink(
+        arn: this.arnGenerator.generateArn(
           stackResourceSummary,
-          cfnClient.config.region as string
+          cfnClient.config.region as string,
+          accountId
         ),
       })
     );

@@ -13,7 +13,8 @@ import {
 import { S3Client } from '@aws-sdk/client-s3';
 import { DeployedResourcesEnumerator } from './deployed-backend-client/deployed_resources_enumerator.js';
 import { StackStatusMapper } from './deployed-backend-client/stack_status_mapper.js';
-import { ConsoleLinkGenerator } from './deployed-backend-client/console_link_generator.js';
+import { ArnGenerator } from './deployed-backend-client/arn_generator.js';
+import { STSClient } from '@aws-sdk/client-sts';
 
 export enum ConflictResolutionMode {
   LAMBDA = 'LAMBDA',
@@ -47,7 +48,7 @@ export type DeployedBackendResource = {
   resourceStatusReason?: string;
   resourceType?: string;
   physicalResourceId?: string;
-  link?: string;
+  arn?: string;
 };
 
 export type BackendMetadata = {
@@ -104,6 +105,7 @@ export type DeployedBackendClient = {
 
 export type DeployedBackendClientOptions = {
   s3Client: S3Client;
+  stsClient: STSClient;
   cloudFormationClient: CloudFormationClient;
   backendOutputClient: BackendOutputClient;
 };
@@ -127,15 +129,22 @@ export class DeployedBackendClientFactory {
     options: DeployedBackendClientFactoryOptions
   ): DeployedBackendClient {
     const stackStatusMapper = new StackStatusMapper();
-    const consoleLinkGenerator = new ConsoleLinkGenerator();
+    const arnGenerator = new ArnGenerator();
     const deployedResourcesEnumerator = new DeployedResourcesEnumerator(
       stackStatusMapper,
-      consoleLinkGenerator
+      arnGenerator
     );
-    if ('backendOutputClient' in options && 'cloudFormationClient' in options) {
+
+    if (
+      'backendOutputClient' in options &&
+      'cloudFormationClient' in options &&
+      'stsClient' in options &&
+      's3Client' in options
+    ) {
       return new DefaultDeployedBackendClient(
         options.cloudFormationClient,
         options.s3Client,
+        options.stsClient,
         options.backendOutputClient,
         deployedResourcesEnumerator,
         stackStatusMapper
@@ -144,6 +153,7 @@ export class DeployedBackendClientFactory {
     return new DefaultDeployedBackendClient(
       new CloudFormationClient(options.credentials),
       new S3Client(options.credentials),
+      new STSClient(options.credentials),
       BackendOutputClientFactory.getInstance({
         credentials: options.credentials,
       }),

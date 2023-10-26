@@ -10,6 +10,7 @@ import { BackendDeploymentType } from '@aws-amplify/platform-core';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { S3Client } from '@aws-sdk/client-s3';
 import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
+import { STSClient } from '@aws-sdk/client-sts';
 import { UnifiedBackendOutput } from '@aws-amplify/backend-output-schemas';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
@@ -143,6 +144,7 @@ export type DeployedBackendClientFactoryOptions = DeployedBackendCredentialsOpti
 // @public (undocumented)
 export type DeployedBackendClientOptions = {
     s3Client: S3Client;
+    stsClient: STSClient;
     cloudFormationClient: CloudFormationClient;
     backendOutputClient: BackendOutputClient;
 };
@@ -160,7 +162,7 @@ export type DeployedBackendResource = {
     resourceStatusReason?: string;
     resourceType?: string;
     physicalResourceId?: string;
-    link?: string;
+    arn?: string;
 };
 
 // @public (undocumented)
