@@ -1,0 +1,13 @@
+name: Feature request
+description: Request a feature to help us improve Amplify (Gen 2)
+labels: ['pending-triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this feature request!
+  - type: textarea
+    attributes:
+      label: Description
+      description: |
+        Describe the feature request

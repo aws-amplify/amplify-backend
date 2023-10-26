@@ -1,0 +1,15 @@
+name: Bug Report
+description: Create a report to help us improve Amplify (Gen 2)
+labels: ['pending-triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+  - type: textarea
+    attributes:
+      label: Description
+      description: |
+        Describe the bug
+        How can this bug be reproduced?
+        Please include any code snippets or screenshots that you think would be helpful!
