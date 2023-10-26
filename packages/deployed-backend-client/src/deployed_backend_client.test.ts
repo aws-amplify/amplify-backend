@@ -171,14 +171,6 @@ void describe('Deployed Backend Client', () => {
     };
   });
 
-  const mockStsClient = new STSClient();
-  const stsClientSendMock = mock.fn();
-  stsClientSendMock.mock.mockImplementation(() => {
-    return {
-      Account: '000000',
-    };
-  });
-
   beforeEach(() => {
     getOutputMock.mock.mockImplementation(
       (backendIdentifier: StackIdentifier) => {
@@ -190,7 +182,6 @@ void describe('Deployed Backend Client', () => {
     );
     mock.method(mockCfnClient, 'send', cfnClientSendMock);
     mock.method(mockS3Client, 'send', s3ClientSendMock);
-    mock.method(mockStsClient, 'send', stsClientSendMock);
 
     getOutputMock.mock.resetCalls();
     cfnClientSendMock.mock.resetCalls();
@@ -231,7 +222,6 @@ void describe('Deployed Backend Client', () => {
     deployedBackendClient = new DefaultDeployedBackendClient(
       mockCfnClient,
       mockS3Client,
-      mockStsClient,
       mockBackendOutputClient,
       deployedResourcesEnumerator,
       new StackStatusMapper()
@@ -381,18 +371,10 @@ void describe('Deployed Backend Client pagination', () => {
       arnGeneratorMock
     );
     mock.method(deployedResourcesEnumerator, 'listDeployedResources', () => []);
-    const mockStsClient = new STSClient();
-    const stsClientSendMock = mock.fn();
-    stsClientSendMock.mock.mockImplementation(() => {
-      return {
-        Account: '000000',
-      };
-    });
 
     deployedBackendClient = new DefaultDeployedBackendClient(
       mockCfnClient,
       mockS3Client,
-      mockStsClient,
       mockBackendOutputClient,
       deployedResourcesEnumerator,
       new StackStatusMapper()

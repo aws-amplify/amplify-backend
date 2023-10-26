@@ -14,7 +14,6 @@ import { S3Client } from '@aws-sdk/client-s3';
 import { DeployedResourcesEnumerator } from './deployed-backend-client/deployed_resources_enumerator.js';
 import { StackStatusMapper } from './deployed-backend-client/stack_status_mapper.js';
 import { ArnGenerator } from './deployed-backend-client/arn_generator.js';
-import { STSClient } from '@aws-sdk/client-sts';
 
 export enum ConflictResolutionMode {
   LAMBDA = 'LAMBDA',
@@ -105,7 +104,6 @@ export type DeployedBackendClient = {
 
 export type DeployedBackendClientOptions = {
   s3Client: S3Client;
-  stsClient: STSClient;
   cloudFormationClient: CloudFormationClient;
   backendOutputClient: BackendOutputClient;
 };
@@ -138,13 +136,11 @@ export class DeployedBackendClientFactory {
     if (
       'backendOutputClient' in options &&
       'cloudFormationClient' in options &&
-      'stsClient' in options &&
       's3Client' in options
     ) {
       return new DefaultDeployedBackendClient(
         options.cloudFormationClient,
         options.s3Client,
-        options.stsClient,
         options.backendOutputClient,
         deployedResourcesEnumerator,
         stackStatusMapper
@@ -153,7 +149,6 @@ export class DeployedBackendClientFactory {
     return new DefaultDeployedBackendClient(
       new CloudFormationClient(options.credentials),
       new S3Client(options.credentials),
-      new STSClient(options.credentials),
       BackendOutputClientFactory.getInstance({
         credentials: options.credentials,
       }),

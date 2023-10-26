@@ -32,11 +32,6 @@ import {
 
 import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import {
-  GetCallerIdentityCommand,
-  GetCallerIdentityCommandOutput,
-  STSClient,
-} from '@aws-sdk/client-sts';
-import {
   authOutputKey,
   graphqlOutputKey,
   stackOutputKey,
@@ -55,7 +50,6 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
   constructor(
     private readonly cfnClient: CloudFormationClient,
     private readonly s3Client: S3Client,
-    private readonly stsClient: STSClient,
     private readonly backendOutputClient: BackendOutputClient,
     private readonly deployedResourcesEnumerator: DeployedResourcesEnumerator,
     private readonly stackStatusMapper: StackStatusMapper
@@ -219,9 +213,6 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
       nestedStack?.StackName?.includes('data')
     );
 
-    const callerIdentity: GetCallerIdentityCommandOutput =
-      await this.stsClient.send(new GetCallerIdentityCommand({}));
-    const accountId = callerIdentity.Account as string;
     const backendMetadataObject: BackendMetadata = {
       deploymentType: backendOutput[stackOutputKey].payload
         .deploymentType as BackendDeploymentType,
@@ -230,8 +221,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
       name: stackName,
       resources: await this.deployedResourcesEnumerator.listDeployedResources(
         this.cfnClient,
-        stackName,
-        accountId
+        stackName
       ),
     };
 
