@@ -81,6 +81,7 @@ void describe('amplify deploys', () => {
         '../../test-projects/minimalist-project-with-typescript-idioms/amplify',
         import.meta.url
       ),
+      updates: [],
       assertions: async () => {
         const clientConfigStats = await fs.stat(
           path.join(testProjectRoot, 'amplifyconfiguration.json')
