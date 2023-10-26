@@ -160,6 +160,7 @@ export type DeployedBackendResource = {
     resourceStatusReason?: string;
     resourceType?: string;
     physicalResourceId?: string;
+    arn?: string;
 };
 
 // @public (undocumented)

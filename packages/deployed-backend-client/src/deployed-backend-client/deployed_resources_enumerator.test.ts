@@ -11,10 +11,17 @@ import {
 } from '../deployed_backend_client_factory.js';
 import { DeployedResourcesEnumerator } from './deployed_resources_enumerator.js';
 import { StackStatusMapper } from './stack_status_mapper.js';
+import { ArnGenerator } from './arn_generator.js';
+import { AccountIdParser } from './account_id_parser.js';
 
 void describe('listDeployedResources', () => {
+  const arnGeneratorMock = new ArnGenerator();
+  const accountIdParserMock = new AccountIdParser();
+  mock.method(arnGeneratorMock, 'generateArn', () => undefined);
   const deployedResourcesEnumerator = new DeployedResourcesEnumerator(
-    new StackStatusMapper()
+    new StackStatusMapper(),
+    arnGeneratorMock,
+    accountIdParserMock
   );
   const cfnClientSendMock = mock.fn();
   const mockCfnClient = new CloudFormation();
@@ -132,7 +139,8 @@ void describe('listDeployedResources', () => {
     const deployedResources =
       await deployedResourcesEnumerator.listDeployedResources(
         mockCfnClient,
-        'testRootStack'
+        'testRootStack',
+        '0000000'
       );
 
     const expectedResources: DeployedBackendResource[] = [
@@ -143,6 +151,7 @@ void describe('listDeployedResources', () => {
         resourceStatusReason: undefined,
         resourceType: 'AWS::AppSync::API',
         physicalResourceId: 'apiSubStackAppSyncPhysicalResourceId',
+        arn: undefined,
       },
       {
         logicalResourceId: 'apiStackUserPoolLogicalResourceId',
@@ -151,6 +160,7 @@ void describe('listDeployedResources', () => {
         resourceStatusReason: undefined,
         resourceType: 'AWS::Cognito::UserPool',
         physicalResourceId: 'apiStackUserPoolPhysicalResourceId',
+        arn: undefined,
       },
       {
         logicalResourceId: 'authStackUserPoolLogicalResourceId',
@@ -159,6 +169,7 @@ void describe('listDeployedResources', () => {
         resourceStatusReason: undefined,
         resourceType: 'AWS::Cognito::UserPool',
         physicalResourceId: 'authStackUserPoolPhysicalResourceId',
+        arn: undefined,
       },
       {
         logicalResourceId: 'rootStackIamRoleLogicalResourceId',
@@ -167,6 +178,7 @@ void describe('listDeployedResources', () => {
         resourceStatusReason: undefined,
         resourceType: 'AWS::IAM::Role',
         physicalResourceId: 'rootStackIamRolePhysicalResourceId',
+        arn: undefined,
       },
     ];
     assert.deepEqual(deployedResources, expectedResources);
