@@ -31,7 +31,7 @@ jobs:
     if: ${{ failure() }}
     steps:
       - name: Log failure
-        uses: aws-amplify/amplify-ui/.github/actions/log-metric@main
+        uses: ./.github/actions/log-metric
         with:
           metric-name: CanaryTestWorkflowExecution
           value: 1
@@ -44,7 +44,7 @@ jobs:
     if: ${{ success() }}
     steps:
       - name: Log success
-        uses: aws-amplify/amplify-ui/.github/actions/log-metric@main
+        uses: ./.github//actions/log-metric
         with:
           metric-name: CanaryTestWorkflowExecution
           value: 1
