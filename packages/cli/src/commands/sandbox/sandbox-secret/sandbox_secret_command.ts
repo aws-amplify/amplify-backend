@@ -34,23 +34,6 @@ export class SandboxSecretCommand implements CommandModule<object> {
    * @inheritDoc
    */
   builder = (yargs: Argv): Argv => {
-    return (
-      yargs
-        .command(this.secretSubCommands)
-        // Hide inherited options since they are not applicable here.
-        .option('dir-to-watch', {
-          hidden: true,
-        })
-        .option('exclude', {
-          hidden: true,
-        })
-        .option('name', {
-          hidden: true,
-        })
-        .option('out', {
-          hidden: true,
-        })
-        .help()
-    );
+    return yargs.command(this.secretSubCommands).help();
   };
 }

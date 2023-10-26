@@ -29,7 +29,6 @@ export type SandboxOptions = {
   exclude?: string[];
   name?: string;
   format?: ClientConfigFormat;
-  profile?: string;
 };
 
 export type SandboxDeleteOptions = {
