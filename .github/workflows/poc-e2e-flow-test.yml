@@ -60,6 +60,6 @@ jobs:
           mkdir -p /tmp/amplify-project; cd /tmp/amplify-project
           corepack enable
           echo "yarn set version stable"
-          yarn set version stable
+          yarn set version 3.6.x
           echo "yarn version $(yarn --version)"
           yarn create amplify@alpha
