@@ -69,7 +69,10 @@ export class CustomAuthService {
         return this.issueTokens(event);
       }
       // TODO: Implement retry attempts for OTP.
-      return this.failAuthentication(event, 'challengeResult = false');
+      return this.failAuthentication(
+        event,
+        'The previous challenge result was false. See Verify Auth Challenge for more details.'
+      );
     }
 
     return this.failAuthentication(event, `Unrecognized action: ${action}`);
