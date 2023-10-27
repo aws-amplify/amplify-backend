@@ -87,6 +87,16 @@ void describe('create-amplify script', () => {
         ['aws-amplify']
       );
 
+      const gitIgnorePath = path.resolve(tempDir, '.gitignore');
+      const gitIgnoreContent = (await fs.readFile(gitIgnorePath, 'utf-8'))
+        .split(os.EOL)
+        .filter((s) => s.trim());
+      assert.deepStrictEqual(gitIgnoreContent.sort(), [
+        '.amplify',
+        'amplifyconfiguration*',
+        'node_modules',
+      ]);
+
       // Read tsconfig.json content, remove all comments, and make assertions
       const tsConfigPath = path.resolve(tempDir, 'tsconfig.json');
       const tsConfigContent = (
