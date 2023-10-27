@@ -30,6 +30,42 @@ const customMatchers: Map<ObjectPath, Predicate> = new Map([
     matchHashedJsonFile,
   ],
   [
+    [
+      'Resources',
+      'auth179371D7',
+      'Properties',
+      'TemplateURL',
+      'Fn::Join',
+      1,
+      6,
+    ],
+    matchHashedJsonFile,
+  ],
+  [
+    [
+      'Resources',
+      'function1351588B',
+      'Properties',
+      'TemplateURL',
+      'Fn::Join',
+      1,
+      6,
+    ],
+    matchHashedJsonFile,
+  ],
+  [
+    [
+      'Resources',
+      'storage0EC3F24A',
+      'Properties',
+      'TemplateURL',
+      'Fn::Join',
+      1,
+      6,
+    ],
+    matchHashedJsonFile,
+  ],
+  [
     ['Description'],
     // the description field of the gql template contains a JSON string that includes "createdOn": "Linux|Mac|Windows"
     // this check just verifies that the string is valid JSON because the createdOn value is different for each platform

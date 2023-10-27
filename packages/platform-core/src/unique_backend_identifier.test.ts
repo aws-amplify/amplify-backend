@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
+import { SandboxBackendIdentifier } from './unique_backend_identifier.js';
 
 void describe('parses identifiers from stack names', () => {
   void it('parses Sandbox identifier from stack name', () => {

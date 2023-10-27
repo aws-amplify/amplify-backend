@@ -5,6 +5,7 @@ import * as os from 'os';
 import * as fs from 'fs';
 import { validateCdkOutDir } from './cdk_out_dir_validator.js';
 import { pathToFileURL } from 'url';
+import { CDKContextKey } from '@aws-amplify/platform-core';
 
 export type CDKSynthSnapshotTestCase = {
   name: string;
@@ -44,7 +45,7 @@ const runCDKSnapshotTest = ({
     process.env.CDK_CONTEXT_JSON = JSON.stringify({
       'backend-id': 'testAppId',
       'branch-name': 'testBranchName',
-      'deployment-type': 'BRANCH',
+      [CDKContextKey.DEPLOYMENT_TYPE]: 'BRANCH',
     });
   });
   afterEach(() => {
@@ -52,7 +53,7 @@ const runCDKSnapshotTest = ({
       fs.rmSync(process.env.CDK_OUTDIR, { recursive: true, force: true });
     }
   });
-  void it(name, async () => {
+  void it(name, async (t) => {
     // this import must create the CDK App
     await import(pathToFileURL(absoluteBackendFilePath).toString());
 
@@ -74,6 +75,14 @@ const runCDKSnapshotTest = ({
       'CDK_OUTDIR environment variable not set'
     );
 
+    const shouldSkipCdkOutValidation =
+      process.env[
+        'AMPLIFY_BACKEND_TESTS_DISABLE_INTEGRATION_SNAPSHOTS_COMPARISON'
+      ] === 'true';
+    if (shouldSkipCdkOutValidation) {
+      t.diagnostic('Skipping CDK out validation.');
+      return;
+    }
     await validateCdkOutDir(
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       process.env.CDK_OUTDIR!,

@@ -1,4 +1,5 @@
 {
+ "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyPipelineDeploy\",\"createdWith\":\"0.2.0-alpha.12\",\"stackType\":\"root\",\"metadata\":{}}",
  "Metadata": {
   "AWS::Amplify::Platform": {
    "version": "1",
@@ -153,7 +154,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/33e17f3a864a459b7dcb080b6c6b0cc9e1f16f4d97f97ba4559facc06dcaa1d9.json"
+       "/4e7e031ac266360d0759622543b84cbe694134f4732376fb257c1b326ca745df.json"
       ]
      ]
     }
@@ -180,7 +181,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/830b351eeaed7f75a81c6851d4073d4de7e7beafbf24990a08d6ca1e8a1ab65f.json"
+       "/5f9266e6aa0c9f16ebd40b146de9615ae87db5a2a31e0d1fba7e05363af5ca3d.json"
       ]
      ]
     }
@@ -207,7 +208,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/13ff9c2f3099c7132cd0fa666748654fb1ab433d6203f987474934ed0514839c.json"
+       "/9c379f9e7f3d9d09544627288f84730dbec61005ed89482c82501210ee29cb82.json"
       ]
      ]
     }

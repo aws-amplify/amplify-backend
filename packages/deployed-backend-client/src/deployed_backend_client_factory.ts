@@ -13,6 +13,8 @@ import {
 import { S3Client } from '@aws-sdk/client-s3';
 import { DeployedResourcesEnumerator } from './deployed-backend-client/deployed_resources_enumerator.js';
 import { StackStatusMapper } from './deployed-backend-client/stack_status_mapper.js';
+import { ArnGenerator } from './deployed-backend-client/arn_generator.js';
+import { AccountIdParser } from './deployed-backend-client/account_id_parser.js';
 
 export enum ConflictResolutionMode {
   LAMBDA = 'LAMBDA',
@@ -46,6 +48,7 @@ export type DeployedBackendResource = {
   resourceStatusReason?: string;
   resourceType?: string;
   physicalResourceId?: string;
+  arn?: string;
 };
 
 export type BackendMetadata = {
@@ -125,16 +128,26 @@ export class DeployedBackendClientFactory {
     options: DeployedBackendClientFactoryOptions
   ): DeployedBackendClient {
     const stackStatusMapper = new StackStatusMapper();
+    const arnGenerator = new ArnGenerator();
+    const accountIdParser = new AccountIdParser();
     const deployedResourcesEnumerator = new DeployedResourcesEnumerator(
-      stackStatusMapper
+      stackStatusMapper,
+      arnGenerator,
+      accountIdParser
     );
-    if ('backendOutputClient' in options && 'cloudFormationClient' in options) {
+
+    if (
+      'backendOutputClient' in options &&
+      'cloudFormationClient' in options &&
+      's3Client' in options
+    ) {
       return new DefaultDeployedBackendClient(
         options.cloudFormationClient,
         options.s3Client,
         options.backendOutputClient,
         deployedResourcesEnumerator,
-        stackStatusMapper
+        stackStatusMapper,
+        accountIdParser
       );
     }
     return new DefaultDeployedBackendClient(
@@ -144,7 +157,8 @@ export class DeployedBackendClientFactory {
         credentials: options.credentials,
       }),
       deployedResourcesEnumerator,
-      stackStatusMapper
+      stackStatusMapper,
+      accountIdParser
     );
   }
 }

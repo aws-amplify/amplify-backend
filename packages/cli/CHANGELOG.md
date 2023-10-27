@@ -1,5 +1,13 @@
 # @aws-amplify/backend-cli
 
+## 0.2.0-alpha.14
+
+### Patch Changes
+
+- 7141c188: chore: validate that the profile can vend credentials before moving on
+- Updated dependencies [8f99476e]
+  - @aws-amplify/sandbox@0.2.0-alpha.18
+
 ## 0.2.0-alpha.13
 
 ### Patch Changes

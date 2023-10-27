@@ -6,13 +6,19 @@ import { Backend } from './backend.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
-import { BackendDeploymentType } from '@aws-amplify/platform-core';
+import {
+  BackendDeploymentType,
+  CDKContextKey,
+} from '@aws-amplify/platform-core';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
   app.node.setContext('branch-name', 'testEnvName');
   app.node.setContext('backend-id', 'testBackendId');
-  app.node.setContext('deployment-type', BackendDeploymentType.BRANCH);
+  app.node.setContext(
+    CDKContextKey.DEPLOYMENT_TYPE,
+    BackendDeploymentType.BRANCH
+  );
   const stack = new Stack(app);
   return stack;
 };
@@ -117,6 +123,15 @@ void describe('Backend', () => {
       rootStack
     );
     assert.equal(backend.resources.testConstructFactory.node.id, 'test-bucket');
+  });
+
+  void it('stores attribution metadata in root stack', () => {
+    new Backend({}, rootStack);
+    const rootStackTemplate = Template.fromStack(rootStack);
+    assert.equal(
+      JSON.parse(rootStackTemplate.toJSON().Description).stackType,
+      'root'
+    );
   });
 
   void describe('getOrCreateStack', () => {
