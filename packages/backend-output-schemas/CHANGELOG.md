@@ -1,5 +1,11 @@
 # @aws-amplify/backend-output-schemas
 
+## 0.2.0-alpha.8
+
+### Patch Changes
+
+- 47456c26: Remove ESM features from construct dependency packages and make corresponding updates in consumer packages
+
 ## 0.2.0-alpha.7
 
 ### Minor Changes
