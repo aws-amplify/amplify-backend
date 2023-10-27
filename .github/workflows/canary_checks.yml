@@ -40,7 +40,9 @@ jobs:
         with:
           metric-name: WorkflowExecutionFailure
           value: 1
-          dimensions: workflow=canary_checks,ref_name=${{ github.ref_name }}
+          # github.workflow - workflow name
+          # github.ref_name - branch or tag name
+          dimensions: workflow=${{ github.workflow }},ref_name=${{ github.ref_name }}
           role-to-assume: ${{ secrets.METRICS_EMITTER_ROLE_ARN }}
           aws-region: us-west-2
   log-success-metric:
@@ -58,6 +60,8 @@ jobs:
         with:
           metric-name: WorkflowExecutionFailure
           value: 0
-          dimensions: workflow=canary_checks,ref_name=${{ github.ref_name }}
+          # github.workflow - workflow name
+          # github.ref_name - branch or tag name
+          dimensions: workflow=${{ github.workflow }},ref_name=${{ github.ref_name }}
           role-to-assume: ${{ secrets.METRICS_EMITTER_ROLE_ARN }}
           aws-region: us-west-2
