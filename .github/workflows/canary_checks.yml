@@ -24,6 +24,9 @@ jobs:
       - name: Run unit and integration tests
         shell: bash
         run: |
+          # Integration tests snapshots can change when new construct or CDK version is pulled in
+          # However we still want to run synthesis in these tests to verify that it doesn't fail
+          export AMPLIFY_BACKEND_TESTS_DISABLE_INTEGRATION_SNAPSHOTS_COMPARISON=true
           npm run test
   log-failure-metric:
     runs-on: ubuntu-latest
