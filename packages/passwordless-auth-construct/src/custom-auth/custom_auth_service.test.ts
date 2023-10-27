@@ -1,4 +1,4 @@
-import { beforeEach, describe, it, mock } from 'node:test';
+import { describe, it, mock } from 'node:test';
 import { rejects, strictEqual } from 'node:assert';
 import { ChallengeResult, ChallengeService } from '../types.js';
 import {
