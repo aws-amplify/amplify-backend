@@ -15,7 +15,8 @@ export class NpmPackageManagerController implements PackageManagerController {
     private readonly projectRoot: string,
     private readonly execa = _execa
   ) {}
-  private readonly executableName = process.env.PM || 'npm'; // TODO: replace `process.env.PM` with `getPackageManagerName()` once the test infra is ready.
+  private readonly executableName =
+    process.env.PACKAGE_MANAGER_EXECUTABLE || 'npm'; // TODO: replace `process.env.PACKAGE_MANAGER_EXECUTABLE` with `getPackageManagerName()` once the test infra is ready.
 
   /**
    * Installs the given package names as devDependencies
