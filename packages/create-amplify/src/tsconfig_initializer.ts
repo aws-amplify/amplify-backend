@@ -17,7 +17,7 @@ export class TsConfigInitializer {
     private readonly existsSync = _existsSync,
     private readonly execa = _execa
   ) {}
-  private readonly executableName = process.env.PM || 'npx';
+  private readonly executableName = process.env.PM || 'npx'; // TODO: replace `process.env.PM` with `getPackageManagerName()` once the test infra is ready.
 
   /**
    * If tsconfig.json already exists, this is a noop. Otherwise, `npx tsc --init` is executed to create a tsconfig.json file
