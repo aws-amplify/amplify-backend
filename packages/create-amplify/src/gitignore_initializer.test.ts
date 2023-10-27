@@ -28,19 +28,11 @@ void describe('GitIgnoreInitializer', () => {
     );
     assert.deepStrictEqual(fsMock.appendFile.mock.calls[0].arguments, [
       path.join(process.cwd(), 'testProjectRoot', '.gitignore'),
-      `node_modules${os.EOL}`,
-    ]);
-    assert.deepStrictEqual(fsMock.appendFile.mock.calls[1].arguments, [
-      path.join(process.cwd(), 'testProjectRoot', '.gitignore'),
-      `.amplify${os.EOL}`,
-    ]);
-    assert.deepStrictEqual(fsMock.appendFile.mock.calls[2].arguments, [
-      path.join(process.cwd(), 'testProjectRoot', '.gitignore'),
-      `amplifyconfiguration*${os.EOL}`,
+      `node_modules${os.EOL}.amplify${os.EOL}amplifyconfiguration*${os.EOL}`,
     ]);
   });
 
-  void it('runs commands to add missing contents if .gitignore file exists', async () => {
+  void it('runs commands to add missing contents if .gitignore file exists - no EOL at the end', async () => {
     const logMock = mock.fn();
     const gitIgnoreContent = 'node_modules';
     const existsSyncMock = mock.fn(() => true);
@@ -57,22 +49,17 @@ void describe('GitIgnoreInitializer', () => {
     await gitIgnoreInitializer.ensureInitialized();
     assert.deepStrictEqual(fsMock.appendFile.mock.calls[0].arguments, [
       path.join(process.cwd(), 'testProjectRoot', '.gitignore'),
-      `.amplify${os.EOL}`,
-    ]);
-    assert.deepStrictEqual(fsMock.appendFile.mock.calls[1].arguments, [
-      path.join(process.cwd(), 'testProjectRoot', '.gitignore'),
-      `amplifyconfiguration*${os.EOL}`,
+      `${os.EOL}.amplify${os.EOL}amplifyconfiguration*${os.EOL}`,
     ]);
   });
 
-  void it('throws when failing to add to .gitignore', async () => {
+  void it('runs commands to add missing contents if .gitignore file exists - with EOL at the end', async () => {
     const logMock = mock.fn();
-    const existsSyncMock = mock.fn(() => false);
+    const gitIgnoreContent = `node_modules${os.EOL}`;
+    const existsSyncMock = mock.fn(() => true);
     const fsMock = {
-      appendFile: mock.fn(() => {
-        throw new Error('test error');
-      }),
-      readFile: mock.fn(),
+      appendFile: mock.fn(),
+      readFile: mock.fn(async () => gitIgnoreContent),
     };
     const gitIgnoreInitializer = new GitIgnoreInitializer(
       path.join(process.cwd(), 'testProjectRoot'),
@@ -80,8 +67,10 @@ void describe('GitIgnoreInitializer', () => {
       existsSyncMock,
       fsMock as never
     );
-    await assert.rejects(() => gitIgnoreInitializer.ensureInitialized(), {
-      message: 'Failed to add node_modules to .gitignore.',
-    });
+    await gitIgnoreInitializer.ensureInitialized();
+    assert.deepStrictEqual(fsMock.appendFile.mock.calls[0].arguments, [
+      path.join(process.cwd(), 'testProjectRoot', '.gitignore'),
+      `.amplify${os.EOL}amplifyconfiguration*${os.EOL}`,
+    ]);
   });
 });

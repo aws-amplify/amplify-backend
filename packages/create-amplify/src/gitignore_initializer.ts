@@ -8,7 +8,7 @@ import * as os from 'os';
  */
 export class GitIgnoreInitializer {
   /**
-   * Injecting fs for testing
+   * Injecting console and fs for testing
    */
   constructor(
     private readonly projectRoot: string,
@@ -26,10 +26,15 @@ export class GitIgnoreInitializer {
 
     // If .gitignore exists, append ignoredFiles that do not exist in contents
     if (gitIgnoreContent && gitIgnoreContent.length > 0) {
-      const filesToIgnore = ignoredFiles.filter(
+      const contentToAdd = ignoredFiles.filter(
         (file) => !gitIgnoreContent.includes(file)
       );
-      await this.ignoreFiles(filesToIgnore);
+
+      // Add os.EOL if last line of .gitignore is not have EOL
+      if (gitIgnoreContent.slice(-1)[0] !== '') {
+        contentToAdd.unshift(os.EOL);
+      }
+      await this.ignoreFiles(contentToAdd);
       return;
     }
 
@@ -44,17 +49,26 @@ export class GitIgnoreInitializer {
    * Add files to .gitignore contents
    */
   private ignoreFiles = async (files: string[]): Promise<void> => {
-    // Append to .gitignore in sequence
-    for (const file of files) {
-      try {
-        await this.fs.appendFile(
-          path.resolve(this.projectRoot, '.gitignore'),
-          file + os.EOL
-        );
-      } catch {
-        throw new Error(`Failed to add ${file} to .gitignore.`);
-      }
+    if (files.length === 0) {
+      // all files are already in .gitignore, noop
+      return;
     }
+
+    let content = '';
+
+    files.forEach((file) => {
+      content += file;
+
+      // Add end of line for each file
+      if (file !== os.EOL) {
+        content += os.EOL;
+      }
+    });
+
+    await this.fs.appendFile(
+      path.resolve(this.projectRoot, '.gitignore'),
+      content
+    );
   };
 
   /**
