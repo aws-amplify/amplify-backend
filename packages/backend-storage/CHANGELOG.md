@@ -1,5 +1,14 @@
 # @aws-amplify/backend-storage
 
+## 0.2.0-alpha.10
+
+### Patch Changes
+
+- Updated dependencies [47456c26]
+- Updated dependencies [47456c26]
+  - @aws-amplify/backend-output-storage@0.2.0-alpha.6
+  - @aws-amplify/storage-construct-alpha@0.2.0-alpha.11
+
 ## 0.2.0-alpha.9
 
 ### Patch Changes
