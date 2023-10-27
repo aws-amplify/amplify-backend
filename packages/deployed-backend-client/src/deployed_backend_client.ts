@@ -31,7 +31,6 @@ import {
 } from '@aws-sdk/client-cloudformation';
 
 import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
-
 import {
   authOutputKey,
   graphqlOutputKey,
@@ -40,6 +39,7 @@ import {
 } from '@aws-amplify/backend-output-schemas';
 import { DeployedResourcesEnumerator } from './deployed-backend-client/deployed_resources_enumerator.js';
 import { StackStatusMapper } from './deployed-backend-client/stack_status_mapper.js';
+import { AccountIdParser } from './deployed-backend-client/account_id_parser.js';
 
 /**
  * Deployment Client
@@ -53,7 +53,8 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     private readonly s3Client: S3Client,
     private readonly backendOutputClient: BackendOutputClient,
     private readonly deployedResourcesEnumerator: DeployedResourcesEnumerator,
-    private readonly stackStatusMapper: StackStatusMapper
+    private readonly stackStatusMapper: StackStatusMapper,
+    private readonly accountIdParser: AccountIdParser
   ) {}
 
   /**
@@ -214,6 +215,8 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
       nestedStack?.StackName?.includes('data')
     );
 
+    // stack?.StackId is the ARN of the stack
+    const accountId = this.accountIdParser.tryFromArn(stack?.StackId as string);
     const backendMetadataObject: BackendMetadata = {
       deploymentType: backendOutput[stackOutputKey].payload
         .deploymentType as BackendDeploymentType,
@@ -222,7 +225,8 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
       name: stackName,
       resources: await this.deployedResourcesEnumerator.listDeployedResources(
         this.cfnClient,
-        stackName
+        stackName,
+        accountId
       ),
     };
 

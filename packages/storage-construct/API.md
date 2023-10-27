@@ -6,7 +6,7 @@
 
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
-import { StorageOutput } from '@aws-amplify/backend-output-schemas/storage';
+import { StorageOutput } from '@aws-amplify/backend-output-schemas';
 
 // @public
 export class AmplifyStorage extends Construct {

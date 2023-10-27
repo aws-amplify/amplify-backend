@@ -1,5 +1,23 @@
 # @aws-amplify/backend-output-storage
 
+## 0.2.0-alpha.6
+
+### Minor Changes
+
+- 47456c26: Store attribution metadata in stack descriptions
+
+### Patch Changes
+
+- Updated dependencies [47456c26]
+  - @aws-amplify/backend-output-schemas@0.2.0-alpha.8
+  - @aws-amplify/platform-core@0.1.1-alpha.4
+
+## 0.2.0-alpha.5
+
+### Patch Changes
+
+- 8f99476e: chore: upgrade aws-cdk to 2.103.0
+
 ## 0.2.0-alpha.4
 
 ### Minor Changes

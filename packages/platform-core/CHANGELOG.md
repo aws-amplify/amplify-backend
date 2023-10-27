@@ -1,5 +1,11 @@
 # @aws-amplify/platform-core
 
+## 0.1.1-alpha.4
+
+### Patch Changes
+
+- 47456c26: Remove ESM features from construct dependency packages and make corresponding updates in consumer packages
+
 ## 0.1.1-alpha.3
 
 ### Patch Changes

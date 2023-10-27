@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/backend-output-storage",
-  "version": "0.2.0-alpha.4",
+  "version": "0.2.0-alpha.6",
   "type": "commonjs",
   "publishConfig": {
     "access": "public"
@@ -19,9 +19,10 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@aws-amplify/backend-output-schemas": "^0.2.0-alpha.7"
+    "@aws-amplify/backend-output-schemas": "^0.2.0-alpha.8",
+    "@aws-amplify/platform-core": "^0.1.1-alpha.4"
   },
   "peerDependencies": {
-    "aws-cdk-lib": "^2.100.0"
+    "aws-cdk-lib": "^2.103.0"
   }
 }

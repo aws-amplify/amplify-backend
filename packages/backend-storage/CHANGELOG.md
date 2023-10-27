@@ -1,5 +1,24 @@
 # @aws-amplify/backend-storage
 
+## 0.2.0-alpha.10
+
+### Patch Changes
+
+- Updated dependencies [47456c26]
+- Updated dependencies [47456c26]
+  - @aws-amplify/backend-output-storage@0.2.0-alpha.6
+  - @aws-amplify/storage-construct-alpha@0.2.0-alpha.11
+
+## 0.2.0-alpha.9
+
+### Patch Changes
+
+- 8f99476e: chore: upgrade aws-cdk to 2.103.0
+- Updated dependencies [8f99476e]
+  - @aws-amplify/backend-output-storage@0.2.0-alpha.5
+  - @aws-amplify/storage-construct-alpha@0.1.1-alpha.10
+  - @aws-amplify/plugin-types@0.2.0-alpha.11
+
 ## 0.2.0-alpha.8
 
 ### Patch Changes

@@ -29,6 +29,19 @@ void describe('AmplifyStorage', () => {
       VersioningConfiguration: { Status: 'Enabled' },
     });
   });
+
+  void it('stores attribution data in stack', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    new AmplifyStorage(stack, 'testAuth', {});
+
+    const template = Template.fromStack(stack);
+    assert.equal(
+      JSON.parse(template.toJSON().Description).stackType,
+      'storage-S3'
+    );
+  });
+
   void describe('storeOutput', () => {
     void it('stores output using the provided strategy', () => {
       const app = new App();
