@@ -3,6 +3,7 @@ import { ClientConfigFormat } from '@aws-amplify/client-config';
 import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
 import { ClientConfigGeneratorAdapter } from '../../../client-config/client_config_generator_adapter.js';
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
+import { handleCommandFailure } from '../../../command_failure_handler.js';
 
 export type GenerateConfigCommandOptions =
   ArgumentsKebabCase<GenerateConfigCommandOptionsCamelCase>;
@@ -101,6 +102,10 @@ export class GenerateConfigCommand
           throw new Error('Either --stack or --branch must be provided');
         }
         return true;
+      })
+      .fail((msg, err) => {
+        handleCommandFailure(msg, err, yargs);
+        yargs.exit(1, err);
       });
   };
 }
