@@ -26,6 +26,15 @@ export enum COLOR {
 // @public
 export const color: (colorName: COLOR, message: string) => string;
 
+// @public
+export class Printer {
+    static printANewLine: () => void;
+    // Warning: (ae-forgotten-export) The symbol "RecordValue" needs to be exported by the entry point index.d.ts
+    static printRecord: <T extends Record<string | number, RecordValue>>(object: T) => void;
+    static printRecords: <T extends Record<string | number, RecordValue>>(objects: T[]) => void;
+    static printWithColor: (colorName: COLOR, message: string) => void;
+}
+
 // (No @packageDocumentation comment for this package)
 
 ```

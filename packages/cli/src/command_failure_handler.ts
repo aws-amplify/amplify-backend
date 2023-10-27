@@ -1,7 +1,6 @@
 import { Argv } from 'yargs';
 
-import { COLOR } from '@aws-amplify/cli-core';
-import { Printer } from './commands/printer/printer.js';
+import { COLOR, Printer } from '@aws-amplify/cli-core';
 
 /**
  * Format error output when a command fails by displaying the error message in

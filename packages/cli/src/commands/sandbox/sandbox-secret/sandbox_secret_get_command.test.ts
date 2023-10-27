@@ -9,7 +9,7 @@ import {
   getSecretClient,
 } from '@aws-amplify/backend-secret';
 import { SandboxSecretGetCommand } from './sandbox_secret_get_command.js';
-import { Printer } from '../../printer/printer.js';
+import { Printer } from '@aws-amplify/cli-core';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 const testSecretName = 'testSecretName';

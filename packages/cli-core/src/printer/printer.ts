@@ -1,4 +1,4 @@
-import { COLOR, color } from '@aws-amplify/cli-core';
+import { COLOR, color } from '../colors.js';
 import { EOL } from 'os';
 
 type RecordValue = string | number | string[] | Date;
