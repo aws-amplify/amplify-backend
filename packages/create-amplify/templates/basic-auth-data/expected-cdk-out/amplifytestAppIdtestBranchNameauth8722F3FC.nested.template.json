@@ -1,4 +1,10 @@
 {
+ "Parameters": {
+  "amplifyAuthisSandbox3D7D0329": {
+   "Type": "String",
+   "Description": "Whether or not sandbox mode is in use."
+  }
+ },
  "Resources": {
   "amplifyAuthUserPool4BA7F805": {
    "Type": "AWS::Cognito::UserPool",
@@ -17,6 +23,7 @@
     "AutoVerifiedAttributes": [
      "email"
     ],
+    "DeletionProtection": "ACTIVE",
     "EmailVerificationMessage": "The verification code to your new account is {####}",
     "EmailVerificationSubject": "Verify your new account",
     "Policies": {

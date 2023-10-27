@@ -1,4 +1,13 @@
 {
+ "Parameters": {
+  "amplifyAuthisSandbox3D7D0329": {
+   "Type": "String",
+   "Description": "Whether or not sandbox mode is in use."
+  },
+  "referencetoamplifytestAppIdtestBranchNamefunctionNestedStackfunctionNestedStackResourceE968B293OutputsamplifytestAppIdtestBranchNamefunctiontestFunctestFuncLambdaFunction724FFDF6Arn": {
+   "Type": "String"
+  }
+ },
  "Resources": {
   "amplifyAuthUserPool4BA7F805": {
    "Type": "AWS::Cognito::UserPool",
@@ -17,6 +26,7 @@
     "AutoVerifiedAttributes": [
      "email"
     ],
+    "DeletionProtection": "ACTIVE",
     "EmailVerificationMessage": "The verification code to your new account is {####}",
     "EmailVerificationSubject": "Verify your new account",
     "LambdaConfig": {
@@ -223,11 +233,6 @@
     "amplifyAuthIdentityPool3FDE84CC",
     "amplifyAuthUserPoolAppClient2626C6F8"
    ]
-  }
- },
- "Parameters": {
-  "referencetoamplifytestAppIdtestBranchNamefunctionNestedStackfunctionNestedStackResourceE968B293OutputsamplifytestAppIdtestBranchNamefunctiontestFunctestFuncLambdaFunction724FFDF6Arn": {
-   "Type": "String"
   }
  },
  "Outputs": {
