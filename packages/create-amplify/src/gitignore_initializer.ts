@@ -30,7 +30,7 @@ export class GitIgnoreInitializer {
         (file) => !gitIgnoreContent.includes(file)
       );
 
-      // Add os.EOL if last line of .gitignore is not have EOL
+      // Add os.EOL if last line of .gitignore does not have EOL
       if (gitIgnoreContent.slice(-1)[0] !== '') {
         contentToAdd.unshift(os.EOL);
       }
