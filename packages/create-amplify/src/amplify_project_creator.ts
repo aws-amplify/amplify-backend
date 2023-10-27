@@ -8,15 +8,12 @@ import { TsConfigInitializer } from './tsconfig_initializer.js';
  *
  */
 export class AmplifyProjectCreator {
-  // TODO once we create `aws-amplify-backend` that will be included here
   private readonly defaultDevPackages = [
     '@aws-amplify/backend',
-    '@aws-amplify/backend-graphql',
-    '@aws-amplify/backend-auth',
     '@aws-amplify/backend-cli',
     // TODO after API-Next is GA change to: @aws-amplify/amplify-api-next
     // https://github.com/aws-amplify/samsara-cli/issues/332
-    '@aws-amplify/amplify-api-next-alpha',
+    // this now needs to be changed in the package.json file of @aws-amplify/backend
     'typescript@^5.0.0',
   ];
 

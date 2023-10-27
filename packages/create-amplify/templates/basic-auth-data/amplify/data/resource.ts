@@ -1,5 +1,4 @@
-import { defineData } from '@aws-amplify/backend-graphql';
-import { type ClientSchema, a } from '@aws-amplify/amplify-api-next-alpha';
+import { type ClientSchema, a, defineData } from '@aws-amplify/backend';
 
 const schema = a.schema({
   Todo: a.model({

@@ -1,4 +1,4 @@
-import { defineAuth } from '@aws-amplify/backend-auth';
+import { defineAuth } from '@aws-amplify/backend';
 import { myFunc } from '../function.js';
 
 export const auth = defineAuth({
