@@ -1,5 +1,11 @@
 # @aws-amplify/plugin-types
 
+## 0.2.0-alpha.11
+
+### Patch Changes
+
+- 8f99476e: chore: upgrade aws-cdk to 2.103.0
+
 ## 0.2.0-alpha.10
 
 ### Minor Changes

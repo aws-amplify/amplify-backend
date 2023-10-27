@@ -2,13 +2,13 @@ import { Construct } from 'constructs';
 import {
   BackendDeploymentType,
   BranchBackendIdentifier,
+  CDKContextKey,
   SandboxBackendIdentifier,
 } from '@aws-amplify/platform-core';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 const backendIdCDKContextKey = 'backend-id';
 const branchNameCDKContextKey = 'branch-name';
-const deploymentTypeCDKContextKey = 'deployment-type';
 
 /**
  * Populates a unique backend identifier based on CDK context values.
@@ -24,7 +24,7 @@ export const getUniqueBackendIdentifier = (
   }
 
   const deploymentType: BackendDeploymentType = scope.node.getContext(
-    deploymentTypeCDKContextKey
+    CDKContextKey.DEPLOYMENT_TYPE
   );
   const expectedDeploymentTypeValues = [
     BackendDeploymentType.BRANCH,
@@ -33,7 +33,9 @@ export const getUniqueBackendIdentifier = (
 
   if (!expectedDeploymentTypeValues.includes(deploymentType)) {
     throw new Error(
-      `${deploymentTypeCDKContextKey} CDK context value is not in (${expectedDeploymentTypeValues.join(
+      `${
+        CDKContextKey.DEPLOYMENT_TYPE
+      } CDK context value is not in (${expectedDeploymentTypeValues.join(
         ', '
       )})`
     );

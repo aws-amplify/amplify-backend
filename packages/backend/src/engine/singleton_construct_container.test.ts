@@ -7,13 +7,19 @@ import { Construct } from 'constructs';
 import { Queue } from 'aws-cdk-lib/aws-sqs';
 import { NestedStackResolver } from './nested_stack_resolver.js';
 import { ConstructContainerEntryGenerator } from '@aws-amplify/plugin-types';
-import { BackendDeploymentType } from '@aws-amplify/platform-core';
+import {
+  BackendDeploymentType,
+  CDKContextKey,
+} from '@aws-amplify/platform-core';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
   app.node.setContext('branch-name', 'testEnvName');
   app.node.setContext('backend-id', 'testBackendId');
-  app.node.setContext('deployment-type', BackendDeploymentType.BRANCH);
+  app.node.setContext(
+    CDKContextKey.DEPLOYMENT_TYPE,
+    BackendDeploymentType.BRANCH
+  );
   const stack = new Stack(app);
   return stack;
 };

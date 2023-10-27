@@ -1,5 +1,14 @@
 # @aws-amplify/sandbox
 
+## 0.2.0-alpha.18
+
+### Patch Changes
+
+- 8f99476e: chore: upgrade aws-cdk to 2.103.0
+- Updated dependencies [8f99476e]
+- Updated dependencies [991403ec]
+  - @aws-amplify/backend-deployer@0.2.0-alpha.11
+
 ## 0.2.0-alpha.17
 
 ### Patch Changes

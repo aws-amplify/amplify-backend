@@ -8,6 +8,7 @@ import {
 import { CdkErrorMapper } from './cdk_error_mapper.js';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import { BackendDeploymentType } from '@aws-amplify/platform-core';
+import { BackendDeployerEnvironmentVariables } from './environment_variables.js';
 
 const relativeBackendEntryPoint = 'amplify/backend.ts';
 
@@ -34,9 +35,7 @@ export class CDKDeployer implements BackendDeployer {
     uniqueBackendIdentifier?: UniqueBackendIdentifier,
     deployProps?: DeployProps
   ) => {
-    if (deployProps?.validateAppSources) {
-      await this.invokeTsc();
-    }
+    await this.invokeTsc(deployProps);
 
     const cdkCommandArgs: string[] = [];
     if (deployProps?.deploymentType === BackendDeploymentType.SANDBOX) {
@@ -73,13 +72,30 @@ export class CDKDeployer implements BackendDeployer {
     );
   };
 
-  private invokeTsc = async () => {
-    await this.executeChildProcess('npx', [
-      'tsc',
-      '--noEmit',
-      '--skipLibCheck',
-      relativeBackendEntryPoint,
-    ]);
+  private invokeTsc = async (deployProps?: DeployProps) => {
+    if (
+      process.env[
+        BackendDeployerEnvironmentVariables
+          .ALWAYS_DISABLE_APP_SOURCES_VALIDATION
+      ] === 'true'
+    ) {
+      return;
+    }
+
+    if (deployProps?.validateAppSources) {
+      await this.executeChildProcess('npx', [
+        'tsc',
+        '--noEmit',
+        '--skipLibCheck',
+        '--module',
+        'node16',
+        '--moduleResolution',
+        'node16',
+        '--target',
+        'es2022',
+        relativeBackendEntryPoint,
+      ]);
+    }
   };
 
   /**
