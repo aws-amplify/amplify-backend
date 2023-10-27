@@ -24,9 +24,6 @@ export enum COLOR {
 }
 
 // @public
-export const color: (colorName: COLOR, message: string) => string;
-
-// @public
 export class Printer {
     static printANewLine: () => void;
     static printRecord: <T extends Record<string | number, RecordValue>>(object: T) => void;
