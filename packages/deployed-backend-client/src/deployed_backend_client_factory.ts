@@ -129,11 +129,11 @@ export class DeployedBackendClientFactory {
   ): DeployedBackendClient {
     const stackStatusMapper = new StackStatusMapper();
     const arnGenerator = new ArnGenerator();
-    const accountIdParser = new ArnParser();
+    const arnParser = new ArnParser();
     const deployedResourcesEnumerator = new DeployedResourcesEnumerator(
       stackStatusMapper,
       arnGenerator,
-      accountIdParser
+      arnParser
     );
 
     if (
@@ -147,7 +147,7 @@ export class DeployedBackendClientFactory {
         options.backendOutputClient,
         deployedResourcesEnumerator,
         stackStatusMapper,
-        accountIdParser
+        arnParser
       );
     }
     return new DefaultDeployedBackendClient(
@@ -158,7 +158,7 @@ export class DeployedBackendClientFactory {
       }),
       deployedResourcesEnumerator,
       stackStatusMapper,
-      accountIdParser
+      arnParser
     );
   }
 }

@@ -19,7 +19,7 @@ export class DeployedResourcesEnumerator {
   constructor(
     private readonly stackStatusMapper: StackStatusMapper,
     private readonly arnGenerator: ArnGenerator,
-    private readonly accountIdParser: ArnParser
+    private readonly arnParser: ArnParser
   ) {}
 
   /**
@@ -66,17 +66,13 @@ export class DeployedResourcesEnumerator {
         return [];
       }
 
-      const childStackAccountId =
-        this.accountIdParser.tryAccountIdFromArn(childStackArn);
-      const childStackRegion =
-        this.accountIdParser.tryRegionFromArn(childStackArn);
-
+      const parsedArn = this.arnParser.tryParseArn(childStackArn);
       // Recursive call to get all the resources from child stacks
       return this.listDeployedResources(
         cfnClient,
         childStackName,
-        childStackAccountId,
-        childStackRegion
+        parsedArn.accountId,
+        parsedArn.region
       );
     });
     const deployedResourcesPerChildStack = await Promise.all(promises);

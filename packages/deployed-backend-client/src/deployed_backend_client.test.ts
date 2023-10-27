@@ -212,12 +212,12 @@ void describe('Deployed Backend Client', () => {
     cfnClientSendMock.mock.mockImplementation(mockSend);
 
     const arnGeneratorMock = new ArnGenerator();
-    const accountIdParserMock = new ArnParser();
+    const arnParserMock = new ArnParser();
     mock.method(arnGeneratorMock, 'generateArn', () => undefined);
     const deployedResourcesEnumerator = new DeployedResourcesEnumerator(
       new StackStatusMapper(),
       arnGeneratorMock,
-      accountIdParserMock
+      arnParserMock
     );
     mock.method(deployedResourcesEnumerator, 'listDeployedResources', () => []);
 
@@ -227,7 +227,7 @@ void describe('Deployed Backend Client', () => {
       mockBackendOutputClient,
       deployedResourcesEnumerator,
       new StackStatusMapper(),
-      accountIdParserMock
+      arnParserMock
     );
   });
 
@@ -368,12 +368,12 @@ void describe('Deployed Backend Client pagination', () => {
 
     cfnClientSendMock.mock.mockImplementation(mockSend);
     const arnGeneratorMock = new ArnGenerator();
-    const accountIdParserMock = new ArnParser();
+    const arnParserMock = new ArnParser();
     mock.method(arnGeneratorMock, 'generateArn', () => undefined);
     const deployedResourcesEnumerator = new DeployedResourcesEnumerator(
       new StackStatusMapper(),
       arnGeneratorMock,
-      accountIdParserMock
+      arnParserMock
     );
     mock.method(deployedResourcesEnumerator, 'listDeployedResources', () => []);
 
@@ -383,7 +383,7 @@ void describe('Deployed Backend Client pagination', () => {
       mockBackendOutputClient,
       deployedResourcesEnumerator,
       new StackStatusMapper(),
-      accountIdParserMock
+      arnParserMock
     );
   });
 

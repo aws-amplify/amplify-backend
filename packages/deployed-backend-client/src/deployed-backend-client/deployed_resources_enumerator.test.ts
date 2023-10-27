@@ -16,12 +16,12 @@ import { ArnParser } from './arn_parser.js';
 
 void describe('listDeployedResources', () => {
   const arnGeneratorMock = new ArnGenerator();
-  const accountIdParserMock = new ArnParser();
+  const arnParserMock = new ArnParser();
   mock.method(arnGeneratorMock, 'generateArn', () => undefined);
   const deployedResourcesEnumerator = new DeployedResourcesEnumerator(
     new StackStatusMapper(),
     arnGeneratorMock,
-    accountIdParserMock
+    arnParserMock
   );
   const cfnClientSendMock = mock.fn();
   const mockCfnClient = new CloudFormation();

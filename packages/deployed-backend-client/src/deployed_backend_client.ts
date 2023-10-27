@@ -216,10 +216,9 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     );
 
     // stack?.StackId is the ARN of the stack
-    const accountId = this.arnParser.tryAccountIdFromArn(
+    const { accountId, region } = this.arnParser.tryParseArn(
       stack?.StackId as string
     );
-    const region = this.arnParser.tryRegionFromArn(stack?.StackId as string);
     const backendMetadataObject: BackendMetadata = {
       deploymentType: backendOutput[stackOutputKey].payload
         .deploymentType as BackendDeploymentType,

@@ -1,18 +1,19 @@
+export type ParsedArn = {
+  accountId: string | undefined;
+  region: string | undefined;
+};
+
 /**
- * AccountIdParser
+ * ArnParser
  */
 export class ArnParser {
   /**
-   * Attempts to parse an account id from an ARN
+   * Attempts to parse fields from an ARN
    */
-  tryAccountIdFromArn = (arn: string): string | undefined => {
-    return arn ? arn.split(':')?.[4] : undefined;
-  };
-
-  /**
-   * Attempts to parse a region from an ARN
-   */
-  tryRegionFromArn = (arn: string): string | undefined => {
-    return arn ? arn.split(':')?.[3] : undefined;
+  tryParseArn = (arn: string): ParsedArn => {
+    return {
+      accountId: arn ? arn.split(':')?.[4] : undefined,
+      region: arn ? arn.split(':')?.[3] : undefined,
+    };
   };
 }
