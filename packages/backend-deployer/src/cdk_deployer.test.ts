@@ -35,7 +35,7 @@ void describe('invokeCDKCommand', () => {
   void it('handles no options/args', async () => {
     await invoker.deploy();
     assert.strictEqual(execaMock.mock.callCount(), 1);
-    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 8);
+    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 9);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
       'cdk',
       'deploy',
@@ -45,13 +45,14 @@ void describe('invokeCDKCommand', () => {
       '--all',
       '--output',
       '.amplify/artifacts/cdk.out',
+      '--no-previous-parameters',
     ]);
   });
 
   void it('handles options for branch deployments', async () => {
     await invoker.deploy(uniqueBackendIdentifier);
     assert.strictEqual(execaMock.mock.callCount(), 1);
-    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 12);
+    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 13);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
       'cdk',
       'deploy',
@@ -65,13 +66,14 @@ void describe('invokeCDKCommand', () => {
       'backend-id=123',
       '--context',
       'branch-name=testBranch',
+      '--no-previous-parameters',
     ]);
   });
 
   void it('handles deployProps for sandbox', async () => {
     await invoker.deploy(undefined, sandboxDeployProps);
     assert.strictEqual(execaMock.mock.callCount(), 1);
-    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 14);
+    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 17);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
       'cdk',
       'deploy',
@@ -83,8 +85,11 @@ void describe('invokeCDKCommand', () => {
       '.amplify/artifacts/cdk.out',
       '--context',
       'deployment-type=SANDBOX',
+      '--no-previous-parameters',
       '--hotswap-fallback',
       '--method=direct',
+      '--parameters',
+      `isSandbox=true`,
       '--context',
       `secretLastUpdated=${
         sandboxDeployProps.secretLastUpdated?.getTime() as number
@@ -95,7 +100,7 @@ void describe('invokeCDKCommand', () => {
   void it('handles options and deployProps for sandbox', async () => {
     await invoker.deploy(uniqueBackendIdentifier, sandboxDeployProps);
     assert.strictEqual(execaMock.mock.callCount(), 1);
-    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 16);
+    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 19);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
       'cdk',
       'deploy',
@@ -109,8 +114,11 @@ void describe('invokeCDKCommand', () => {
       'backend-id=123',
       '--context',
       'deployment-type=SANDBOX',
+      '--no-previous-parameters',
       '--hotswap-fallback',
       '--method=direct',
+      '--parameters',
+      `isSandbox=true`,
       '--context',
       `secretLastUpdated=${
         sandboxDeployProps.secretLastUpdated?.getTime() as number
@@ -160,7 +168,7 @@ void describe('invokeCDKCommand', () => {
       'es2022',
       'amplify/backend.ts',
     ]);
-    assert.equal(execaMock.mock.calls[1].arguments[1]?.length, 14);
+    assert.equal(execaMock.mock.calls[1].arguments[1]?.length, 15);
     assert.deepStrictEqual(execaMock.mock.calls[1].arguments[1], [
       'cdk',
       'deploy',
@@ -176,6 +184,7 @@ void describe('invokeCDKCommand', () => {
       'branch-name=testBranch',
       '--context',
       'deployment-type=BRANCH',
+      '--no-previous-parameters',
     ]);
   });
 
@@ -198,7 +207,7 @@ void describe('invokeCDKCommand', () => {
       'es2022',
       'amplify/backend.ts',
     ]);
-    assert.equal(execaMock.mock.calls[1].arguments[1]?.length, 12);
+    assert.equal(execaMock.mock.calls[1].arguments[1]?.length, 15);
     assert.deepStrictEqual(execaMock.mock.calls[1].arguments[1], [
       'cdk',
       'deploy',
@@ -210,8 +219,11 @@ void describe('invokeCDKCommand', () => {
       '.amplify/artifacts/cdk.out',
       '--context',
       'deployment-type=SANDBOX',
+      '--no-previous-parameters',
       '--hotswap-fallback',
       '--method=direct',
+      '--parameters',
+      'isSandbox=true',
     ]);
   });
 
@@ -225,7 +237,7 @@ void describe('invokeCDKCommand', () => {
         validateAppSources: true,
       });
       assert.strictEqual(execaMock.mock.callCount(), 1);
-      assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 14);
+      assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 15);
       assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
         'cdk',
         'deploy',
@@ -241,6 +253,7 @@ void describe('invokeCDKCommand', () => {
         'branch-name=testBranch',
         '--context',
         'deployment-type=BRANCH',
+        '--no-previous-parameters',
       ]);
     } finally {
       delete process.env[
@@ -260,7 +273,7 @@ void describe('invokeCDKCommand', () => {
         validateAppSources: true,
       });
       assert.strictEqual(execaMock.mock.callCount(), 1);
-      assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 12);
+      assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 15);
       assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
         'cdk',
         'deploy',
@@ -272,8 +285,11 @@ void describe('invokeCDKCommand', () => {
         '.amplify/artifacts/cdk.out',
         '--context',
         'deployment-type=SANDBOX',
+        '--no-previous-parameters',
         '--hotswap-fallback',
         '--method=direct',
+        '--parameters',
+        'isSandbox=true',
       ]);
     } finally {
       delete process.env[
