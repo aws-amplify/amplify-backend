@@ -37,6 +37,18 @@ const testErrorMappings = [
     expectedString:
       '[CloudFormationFailure]: The CloudFormation deployment has failed. Find more information in the CloudFormation AWS Console for this stack.',
   },
+  {
+    errorMessage:
+      'CFN error happened: Updates are not allowed for property: some property',
+    expectedString:
+      '[UpdateNotSupported]: The changes that you are trying to apply are not supported.',
+  },
+  {
+    errorMessage:
+      'CFN error happened: Invalid AttributeDataType input, consider using the provided AttributeDataType enum',
+    expectedString:
+      '[UpdateNotSupported]: User pool attributes cannot be changed after a user pool has been created.',
+  },
 ];
 
 void describe('invokeCDKCommand', { concurrency: 1 }, () => {

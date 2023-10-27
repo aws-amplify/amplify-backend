@@ -62,6 +62,8 @@ void describe('TsConfigInitializer', () => {
       [
         'tsc',
         '--init',
+        '--resolveJsonModule',
+        'true',
         '--module',
         'commonjs',
         '--moduleResolution',
@@ -96,6 +98,8 @@ void describe('TsConfigInitializer', () => {
       [
         'tsc',
         '--init',
+        '--resolveJsonModule',
+        'true',
         '--module',
         'node16',
         '--moduleResolution',

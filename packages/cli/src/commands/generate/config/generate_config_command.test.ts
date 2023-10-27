@@ -82,7 +82,7 @@ void describe('generate config command', () => {
 
   void it('generates and writes config for appID and branch', async () => {
     await commandRunner.runCommand(
-      'config --branch branch_name --app-id app_id --out-dir /foo/bar --format js'
+      'config --branch branch_name --app-id app_id --out-dir /foo/bar --format mjs'
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
@@ -96,7 +96,7 @@ void describe('generate config command', () => {
     );
     assert.deepStrictEqual(
       generateClientConfigMock.mock.calls[0].arguments[2],
-      ClientConfigFormat.JS
+      ClientConfigFormat.MJS
     );
   });
 
@@ -121,7 +121,7 @@ void describe('generate config command', () => {
 
   void it('can generate to custom relative path', async () => {
     await commandRunner.runCommand(
-      'config --stack stack_name --out-dir foo/bar --format js'
+      'config --stack stack_name --out-dir foo/bar --format mjs'
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
@@ -134,7 +134,26 @@ void describe('generate config command', () => {
     );
     assert.equal(
       generateClientConfigMock.mock.calls[0].arguments[2],
-      ClientConfigFormat.JS
+      ClientConfigFormat.MJS
+    );
+  });
+
+  void it('can generate config in dart format', async () => {
+    await commandRunner.runCommand(
+      'config --stack stack_name --out-dir foo/bar --format dart'
+    );
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
+    assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
+      stackName: 'stack_name',
+    });
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
+    assert.equal(
+      generateClientConfigMock.mock.calls[0].arguments[1],
+      'foo/bar'
+    );
+    assert.equal(
+      generateClientConfigMock.mock.calls[0].arguments[2],
+      ClientConfigFormat.DART
     );
   });
 

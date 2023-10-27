@@ -11,7 +11,6 @@ import { EventHandler, SandboxCommand } from './sandbox_command.js';
 import { createSandboxCommand } from './sandbox_command_factory.js';
 import { SandboxDeleteCommand } from './sandbox-delete/sandbox_delete_command.js';
 import { Sandbox, SandboxSingletonFactory } from '@aws-amplify/sandbox';
-import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 import { createSandboxSecretCommand } from './sandbox-secret/sandbox_secret_command_factory.js';
 
 void describe('sandbox command factory', () => {
@@ -24,8 +23,7 @@ void describe('sandbox command', () => {
   let commandRunner: TestCommandRunner;
   let sandbox: Sandbox;
   let sandboxStartMock = mock.fn<typeof sandbox.start>();
-  const mockGenerate =
-    mock.fn<ClientConfigGeneratorAdapter['generateClientConfigToFile']>();
+
   const generationMock = mock.fn<EventHandler>();
 
   beforeEach(async () => {
@@ -47,7 +45,6 @@ void describe('sandbox command', () => {
     const parser = yargs().command(sandboxCommand as unknown as CommandModule);
     commandRunner = new TestCommandRunner(parser);
     sandboxStartMock.mock.resetCalls();
-    mockGenerate.mock.resetCalls();
   });
 
   void it('registers a callback on the "successfulDeployment" event', async () => {

@@ -5,6 +5,7 @@ import { createPipelineDeployCommand } from './commands/pipeline-deploy/pipeline
 import { loadSharedConfigFiles } from '@smithy/shared-ini-file-loader';
 import { EOL } from 'os';
 import { createConfigureCommand } from './commands/configure/configure_command_factory.js';
+import { fromIni } from '@aws-sdk/credential-providers';
 
 /**
  * Creates main parser.
@@ -42,6 +43,11 @@ export const createMainParser = (): Argv => {
       }
       // Set aws profile if specified.
       if (argv.profile) {
+        // check if we can load the profile first
+        await fromIni({
+          profile: argv.profile,
+          ignoreCache: true,
+        })();
         process.env.AWS_PROFILE = argv.profile;
       }
     });

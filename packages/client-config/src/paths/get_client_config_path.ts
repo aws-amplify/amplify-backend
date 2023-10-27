@@ -16,7 +16,7 @@ export const getClientConfigPath = async (
 ) => {
   const defaultArgs = {
     out: process.cwd(),
-    format: ClientConfigFormat.JS,
+    format: ClientConfigFormat.JSON,
   };
 
   let targetPath = defaultArgs.out;

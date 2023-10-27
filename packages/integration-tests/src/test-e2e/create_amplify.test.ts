@@ -87,15 +87,18 @@ void describe('create-amplify script', () => {
         ['aws-amplify']
       );
 
+      // Read tsconfig.json content, remove all comments, and make assertions
       const tsConfigPath = path.resolve(tempDir, 'tsconfig.json');
-      // Generated tsconfig has comments which makes JSON.parse unhappy.
-      const tsConfigContent = await fs.readFile(tsConfigPath, 'utf-8');
+      const tsConfigContent = (
+        await fs.readFile(tsConfigPath, 'utf-8')
+      ).replace(/\/\*[\s\S]*?\*\/|([^:]|^)\/\/.*$/gm, '');
+      const tsConfigObject = JSON.parse(tsConfigContent);
 
       const expectedModuleType =
-        initialState === 'commonjs'
-          ? '"module": "commonjs"'
-          : '"module": "node16"';
-      assert.ok(tsConfigContent.includes(expectedModuleType));
+        initialState === 'commonjs' ? 'commonjs' : 'node16';
+
+      assert.equal(tsConfigObject.compilerOptions.module, expectedModuleType);
+      assert.equal(tsConfigObject.compilerOptions.resolveJsonModule, true);
 
       const pathPrefix = path.join(tempDir, 'amplify');
 

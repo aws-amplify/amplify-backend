@@ -55,14 +55,26 @@ void describe('main parser', { concurrency: false }, () => {
   void it('throws if the aws config file is absent', async () => {
     const curConfigFile = process.env.AWS_CONFIG_FILE;
     process.env.AWS_CONFIG_FILE = '/some/invalid/path';
-    await assert.rejects(() => commandRunner.runCommand('--help'));
+    await assert.rejects(
+      () => commandRunner.runCommand('--help'),
+      (err: TestCommandError) => {
+        assert.equal(err.error.name, 'YError');
+        return true;
+      }
+    );
     process.env.AWS_CONFIG_FILE = curConfigFile;
   });
 
   void it('throws if the aws credential file is absent', async () => {
     const curCredFile = process.env.AWS_SHARED_CREDENTIALS_FILE;
     process.env.AWS_SHARED_CREDENTIALS_FILE = '/some/invalid/path';
-    await assert.rejects(() => commandRunner.runCommand('--help'));
+    await assert.rejects(
+      () => commandRunner.runCommand('--help'),
+      (err: TestCommandError) => {
+        assert.equal(err.error.name, 'YError');
+        return true;
+      }
+    );
     process.env.AWS_SHARED_CREDENTIALS_FILE = curCredFile;
   });
 });
