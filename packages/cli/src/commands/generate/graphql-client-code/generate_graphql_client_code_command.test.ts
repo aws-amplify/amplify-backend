@@ -2,10 +2,7 @@ import { beforeEach, describe, it, mock } from 'node:test';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { GenerateGraphqlClientCodeCommand } from './generate_graphql_client_code_command.js';
 import yargs, { CommandModule } from 'yargs';
-import {
-  TestCommandError,
-  TestCommandRunner,
-} from '../../../test-utils/command_runner.js';
+import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
 import path from 'path';
 import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
@@ -334,17 +331,9 @@ void describe('generate graphql-client-code command', () => {
 
   // Note: after this test, future tests seem to be in a weird state, leaving this at the end
   void it('fails if both stack and branch are present', async () => {
-    await assert.rejects(
-      () =>
-        commandRunner.runCommand(
-          'graphql-client-code --stack foo --branch baz'
-        ),
-      (err: TestCommandError) => {
-        assert.equal(err.error.name, 'YError');
-        assert.match(err.error.message, /Arguments .* mutually exclusive/);
-        assert.match(err.output, /Arguments .* are mutually exclusive/);
-        return true;
-      }
+    const output = await commandRunner.runCommand(
+      'graphql-client-code --stack foo --branch baz'
     );
+    assert.match(output, /Arguments .* are mutually exclusive/);
   });
 });

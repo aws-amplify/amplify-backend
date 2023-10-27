@@ -1,9 +1,6 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import yargs, { CommandModule } from 'yargs';
-import {
-  TestCommandError,
-  TestCommandRunner,
-} from '../../../test-utils/command_runner.js';
+import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
 import { SandboxIdResolver } from '../sandbox_id_resolver.js';
 import {
@@ -83,14 +80,7 @@ void describe('sandbox secret get command', () => {
   });
 
   void it('throws error if no secret name argument', async () => {
-    await assert.rejects(
-      () => commandRunner.runCommand('get'),
-      (err: TestCommandError) => {
-        assert.equal(err.error.name, 'YError');
-        assert.match(err.error.message, /Not enough non-option arguments/);
-        assert.match(err.output, /Not enough non-option arguments/);
-        return true;
-      }
-    );
+    const output = await commandRunner.runCommand('get');
+    assert.match(output, /Not enough non-option arguments/);
   });
 });

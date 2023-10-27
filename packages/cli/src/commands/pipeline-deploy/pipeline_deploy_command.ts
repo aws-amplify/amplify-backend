@@ -7,6 +7,7 @@ import {
 } from '@aws-amplify/platform-core';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 import { ArgumentsKebabCase } from '../../kebab_case.js';
+import { handleCommandFailure } from '../../command-failure-handler.js';
 
 export type PipelineDeployCommandOptions =
   ArgumentsKebabCase<PipelineDeployCommandOptionsCamelCase>;
@@ -81,6 +82,10 @@ export class PipelineDeployCommand
         demandOption: true,
         type: 'string',
         array: false,
+      })
+      .fail((msg, err) => {
+        handleCommandFailure(msg, err, yargs);
+        yargs.exit(1, err);
       });
   };
 }

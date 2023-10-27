@@ -1,3 +1,4 @@
+import { COLOR, color } from '@aws-amplify/cli-core';
 import { EOL } from 'os';
 
 type RecordValue = string | number | string[] | Date;
@@ -29,5 +30,19 @@ export class Printer {
     for (const obj of objects) {
       this.printRecord(obj);
     }
+  };
+
+  /**
+   * Prints a given message with colors to console
+   */
+  static printWithColor = (colorName: COLOR, message: string) => {
+    console.log(color(colorName, message));
+  };
+
+  /**
+   * Prints a new line to console
+   */
+  static printANewLine = () => {
+    console.log('\n');
   };
 }

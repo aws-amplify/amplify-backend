@@ -4,6 +4,7 @@ import { SandboxIdResolver } from '../sandbox_id_resolver.js';
 import { Printer } from '../../printer/printer.js';
 import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
+import { handleCommandFailure } from '../../../command-failure-handler.js';
 
 /**
  * Command to get sandbox secret.
@@ -54,7 +55,11 @@ export class SandboxSecretGetCommand
         type: 'string',
         demandOption: true,
       })
-      .help();
+      .help()
+      .fail((msg, err) => {
+        handleCommandFailure(msg, err, yargs);
+        yargs.exit(1, err);
+      });
   };
 }
 

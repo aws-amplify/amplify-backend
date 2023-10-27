@@ -3,6 +3,7 @@ import { SecretClient } from '@aws-amplify/backend-secret';
 import { SandboxIdResolver } from '../sandbox_id_resolver.js';
 import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
+import { handleCommandFailure } from '../../../command-failure-handler.js';
 
 /**
  * Command to remove sandbox secret.
@@ -46,11 +47,16 @@ export class SandboxSecretRemoveCommand
    * @inheritDoc
    */
   builder = (yargs: Argv): Argv<SecretRemoveCommandOptions> => {
-    return yargs.positional('secret-name', {
-      describe: 'Name of the secret to remove',
-      type: 'string',
-      demandOption: true,
-    });
+    return yargs
+      .positional('secret-name', {
+        describe: 'Name of the secret to remove',
+        type: 'string',
+        demandOption: true,
+      })
+      .fail((msg, err) => {
+        handleCommandFailure(msg, err, yargs);
+        yargs.exit(1, err);
+      });
   };
 }
 

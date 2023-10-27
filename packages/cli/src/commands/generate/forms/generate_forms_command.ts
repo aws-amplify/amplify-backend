@@ -8,6 +8,7 @@ import {
 } from '../../../form-generation/default_form_generation_output_paths.js';
 import { FormGenerationHandler } from '../../../form-generation/form_generation_handler.js';
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
+import { handleCommandFailure } from '../../../command-failure-handler.js';
 
 export type GenerateFormsCommandOptions =
   ArgumentsKebabCase<GenerateFormsCommandOptionsCamelCase>;
@@ -137,6 +138,10 @@ export class GenerateFormsCommand
           throw new Error('Either --stack or --branch must be provided');
         }
         return true;
+      })
+      .fail((msg, err) => {
+        handleCommandFailure(msg, err, yargs);
+        yargs.exit(1, err);
       });
   };
 }

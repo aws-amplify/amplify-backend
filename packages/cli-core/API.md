@@ -17,6 +17,15 @@ export class AmplifyPrompter {
     }) => Promise<boolean>;
 }
 
+// @public
+export enum COLOR {
+    // (undocumented)
+    RED = "31m"
+}
+
+// @public
+export const color: (colorName: COLOR, message: string) => string;
+
 // (No @packageDocumentation comment for this package)
 
 ```
