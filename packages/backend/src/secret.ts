@@ -19,8 +19,8 @@ import { BackendSecretFetcherFactory } from './engine/backend-secret/backend_sec
  *              email: {},
  *              externalProviders: {
  *                loginWithAmazon: {
- *                  clientId: secret('AMAZON_CLIENT_ID'),
- *                  clientSecret: secret('AMAZON_CLIENT_SECRET'),
+ *                  clientId: secret('LOGIN_WITH_AMAZON_CLIENT_ID'),
+ *                  clientSecret: secret('LOGIN_WITH_AMAZON_CLIENT_SECRET'),
  *                },
  *               },
  *             },
