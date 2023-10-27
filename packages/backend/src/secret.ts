@@ -12,6 +12,20 @@ import { BackendSecretFetcherFactory } from './engine/backend-secret/backend_sec
  * > amplify sandbox secret set MY_SECRET
  * @example <caption>Using a secret</caption>
  * secret('MY_SECRET')
+ * @example <caption>Using with `defineAuth`</caption>
+ *          ```
+ *          defineAuth({
+ *            loginWith: {
+ *              email: {},
+ *              externalProviders: {
+ *                loginWithAmazon: {
+ *                  clientId: secret('AMAZON_CLIENT_ID'),
+ *                  clientSecret: secret('AMAZON_CLIENT_SECRET'),
+ *                },
+ *               },
+ *             },
+ *           })
+ *          ```
  */
 export const secret = (name: string): BackendSecret => {
   const secretProviderFactory = new BackendSecretFetcherProviderFactory();
