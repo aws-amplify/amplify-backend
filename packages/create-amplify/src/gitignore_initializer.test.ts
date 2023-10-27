@@ -49,7 +49,7 @@ void describe('GitIgnoreInitializer', () => {
     await gitIgnoreInitializer.ensureInitialized();
     assert.deepStrictEqual(fsMock.appendFile.mock.calls[0].arguments, [
       path.join(process.cwd(), 'testProjectRoot', '.gitignore'),
-      `${os.EOL}.amplify${os.EOL}amplifyconfiguration*${os.EOL}`,
+      `${os.EOL}${os.EOL}.amplify${os.EOL}amplifyconfiguration*${os.EOL}`,
     ]);
   });
 

@@ -7,6 +7,7 @@ import * as os from 'os';
  * Ensure that the .gitignore file exists with the correct contents in the current working directory
  */
 export class GitIgnoreInitializer {
+  private readonly gitIgnorePath: string;
   /**
    * Injecting console and fs for testing
    */
@@ -15,26 +16,33 @@ export class GitIgnoreInitializer {
     private readonly logger: typeof console = console,
     private readonly existsSync = _existsSync,
     private readonly fs = _fs
-  ) {}
+  ) {
+    this.gitIgnorePath = path.resolve(this.projectRoot, '.gitignore');
+  }
 
   /**
-   * If .gitignore exists, append files to ignore. Otherwise, create .gitignore with files to ignore
+   * If .gitignore exists, append patterns to ignore. Otherwise, create .gitignore with patterns to ignore
    */
   ensureInitialized = async (): Promise<void> => {
-    const ignoredFiles = ['node_modules', '.amplify', 'amplifyconfiguration*'];
+    const ignorePatterns = [
+      'node_modules',
+      '.amplify',
+      'amplifyconfiguration*',
+    ];
     const gitIgnoreContent = await this.getGitIgnoreContent();
 
-    // If .gitignore exists, append ignoredFiles that do not exist in contents
+    // If .gitignore exists, append ignorePatterns that do not exist in contents
     if (gitIgnoreContent && gitIgnoreContent.length > 0) {
-      const contentToAdd = ignoredFiles.filter(
-        (file) => !gitIgnoreContent.includes(file)
+      const filteredIgnorePatterns = ignorePatterns.filter(
+        (pattern) => !gitIgnoreContent.includes(pattern)
       );
 
       // Add os.EOL if last line of .gitignore does not have EOL
       if (gitIgnoreContent.slice(-1)[0] !== '') {
-        contentToAdd.unshift(os.EOL);
+        filteredIgnorePatterns.unshift(os.EOL);
       }
-      await this.ignoreFiles(contentToAdd);
+
+      await this.addIgnorePatterns(filteredIgnorePatterns);
       return;
     }
 
@@ -42,33 +50,22 @@ export class GitIgnoreInitializer {
       'No .gitignore file found in the working directory. Creating .gitignore...'
     );
 
-    await this.ignoreFiles(ignoredFiles);
+    await this.addIgnorePatterns(ignorePatterns);
   };
 
   /**
-   * Add files to .gitignore contents
+   * Add ignore patterns to .gitignore contents
    */
-  private ignoreFiles = async (files: string[]): Promise<void> => {
-    if (files.length === 0) {
-      // all files are already in .gitignore, noop
+  private addIgnorePatterns = async (patterns: string[]): Promise<void> => {
+    if (patterns.length === 0) {
+      // all patterns are already in .gitignore, noop
       return;
     }
 
-    let content = '';
+    // Add EOL to end of each pattern, additional EOL so .gitignore ends with it
+    const content = patterns.join(os.EOL) + os.EOL;
 
-    files.forEach((file) => {
-      content += file;
-
-      // Add end of line for each file
-      if (file !== os.EOL) {
-        content += os.EOL;
-      }
-    });
-
-    await this.fs.appendFile(
-      path.resolve(this.projectRoot, '.gitignore'),
-      content
-    );
+    await this.fs.appendFile(this.gitIgnorePath, content);
   };
 
   /**
@@ -79,14 +76,13 @@ export class GitIgnoreInitializer {
       return;
     }
 
-    const gitIgnorePath = path.resolve(this.projectRoot, '.gitignore');
-    return (await this.fs.readFile(gitIgnorePath, 'utf-8')).split(os.EOL);
+    return (await this.fs.readFile(this.gitIgnorePath, 'utf-8')).split(os.EOL);
   };
 
   /**
    * Check if a .gitignore file exists in projectRoot
    */
   private gitIgnoreExists = (): boolean => {
-    return this.existsSync(path.resolve(this.projectRoot, '.gitignore'));
+    return this.existsSync(this.gitIgnorePath);
   };
 }
