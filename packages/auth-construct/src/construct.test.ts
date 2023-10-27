@@ -1364,5 +1364,19 @@ void describe('Auth construct', () => {
         },
       });
     });
+
+    void it('stores attribution data in stack', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'testAuth', {
+        loginWith: { email: true },
+      });
+
+      const template = Template.fromStack(stack);
+      assert.equal(
+        JSON.parse(template.toJSON().Description).stackType,
+        'auth-Cognito'
+      );
+    });
   });
 });

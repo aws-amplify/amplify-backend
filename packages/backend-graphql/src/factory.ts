@@ -16,7 +16,7 @@ import {
   IAmplifyGraphqlDefinition,
   UserPoolAuthorizationConfig,
 } from '@aws-amplify/graphql-api-construct';
-import { GraphqlOutput } from '@aws-amplify/backend-output-schemas/graphql';
+import { GraphqlOutput } from '@aws-amplify/backend-output-schemas';
 import * as path from 'path';
 import { DerivedModelSchema } from '@aws-amplify/amplify-api-next-types-alpha';
 

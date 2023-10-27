@@ -1,5 +1,11 @@
 # @aws-amplify/client-config
 
+## 0.2.0-alpha.12
+
+### Minor Changes
+
+- e233eab6: make default amplifyconfig format json, change js format to mjs, and add dart format
+
 ## 0.2.0-alpha.11
 
 ### Patch Changes

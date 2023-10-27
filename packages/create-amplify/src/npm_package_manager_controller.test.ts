@@ -12,7 +12,7 @@ void describe('NpmPackageManagerController', () => {
     await npmPackageManagerController.installDependencies(['testDep'], 'dev');
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments, [
       'npm',
-      ['install', 'testDep', '--save-dev'],
+      ['install', 'testDep', '-D'],
       { cwd: 'testPath', stdio: 'inherit' },
     ]);
   });

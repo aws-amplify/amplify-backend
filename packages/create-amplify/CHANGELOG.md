@@ -1,5 +1,21 @@
 # create-amplify
 
+## 0.2.0-alpha.14
+
+### Patch Changes
+
+- e233eab6: Toggle resolveJsonModule flag when creating tsconfig
+
+## 0.2.0-alpha.13
+
+### Patch Changes
+
+- 675f4283: Move prompter in create_amplify to cli-core package
+- 8df061e1: Initialize Gen2 project as ESM
+- 5a0df894: change log to instruct user to run command inside the project root
+- Updated dependencies [675f4283]
+  - @aws-amplify/cli-core@0.1.0-alpha.3
+
 ## 0.2.0-alpha.12
 
 ### Patch Changes

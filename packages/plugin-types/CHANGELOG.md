@@ -1,5 +1,21 @@
 # @aws-amplify/plugin-types
 
+## 0.2.0-alpha.11
+
+### Patch Changes
+
+- 8f99476e: chore: upgrade aws-cdk to 2.103.0
+
+## 0.2.0-alpha.10
+
+### Minor Changes
+
+- 883d9da7: Migrate auth dependencies to CommonJS.
+
+### Patch Changes
+
+- 18874854: Rename MFA enforcementType to mode. Convert accountRecovery to string union instead of enum. Make totp setting optional. Make auth/unauth roles required properties.
+
 ## 0.2.0-alpha.9
 
 ### Patch Changes

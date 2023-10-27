@@ -23,6 +23,12 @@ export class BranchBackendIdentifier extends UniqueBackendIdentifierBase {
 }
 
 // @public
+export enum CDKContextKey {
+    // (undocumented)
+    DEPLOYMENT_TYPE = "deployment-type"
+}
+
+// @public
 export class SandboxBackendIdentifier extends UniqueBackendIdentifierBase {
     constructor(backendId: BackendId);
     // (undocumented)

@@ -13,7 +13,11 @@ export const createEmptyAmplifyProject = async (
   const testProjectRoot = await fs.mkdtemp(path.join(parentDir, namePrefix));
   await fs.writeFile(
     path.join(testProjectRoot, 'package.json'),
-    JSON.stringify({ name: `${namePrefix}-${shortUuid()}` }, null, 2)
+    JSON.stringify(
+      { name: `${namePrefix}-${shortUuid()}`, type: 'module' },
+      null,
+      2
+    )
   );
 
   const testAmplifyDir = path.join(testProjectRoot, 'amplify');

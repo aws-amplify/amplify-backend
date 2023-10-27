@@ -1,5 +1,23 @@
 # @aws-amplify/deployed-backend-client
 
+## 0.2.0-alpha.10
+
+### Patch Changes
+
+- 47456c26: Remove ESM features from construct dependency packages and make corresponding updates in consumer packages
+- 0b029cb5: add link to supported resource types
+- Updated dependencies [47456c26]
+  - @aws-amplify/backend-output-schemas@0.2.0-alpha.8
+  - @aws-amplify/platform-core@0.1.1-alpha.4
+
+## 0.2.0-alpha.9
+
+### Patch Changes
+
+- 4d411b67: remove model-introspection-schema from backend metadata
+- Updated dependencies [883d9da7]
+  - @aws-amplify/backend-output-schemas@0.2.0-alpha.7
+
 ## 0.2.0-alpha.8
 
 ### Patch Changes

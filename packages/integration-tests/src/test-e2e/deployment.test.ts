@@ -57,12 +57,11 @@ void describe('amplify deploys', () => {
         },
       ],
       assertions: async () => {
-        const { default: clientConfig } = await import(
-          pathToFileURL(
-            path.join(testProjectRoot, 'amplifyconfiguration.js')
-          ).toString()
+        const clientConfig = await fs.readFile(
+          path.join(testProjectRoot, 'amplifyconfiguration.json'),
+          'utf-8'
         );
-        assert.deepStrictEqual(Object.keys(clientConfig).sort(), [
+        assert.deepStrictEqual(Object.keys(JSON.parse(clientConfig)).sort(), [
           'aws_appsync_additionalAuthenticationTypes',
           'aws_appsync_authenticationType',
           'aws_appsync_graphqlEndpoint',
@@ -74,6 +73,20 @@ void describe('amplify deploys', () => {
           'aws_user_pools_web_client_id',
           'modelIntrospection',
         ]);
+      },
+    },
+    {
+      name: 'minimalist-project-with-typescript-idioms',
+      amplifyPath: new URL(
+        '../../test-projects/minimalist-project-with-typescript-idioms/amplify',
+        import.meta.url
+      ),
+      updates: [],
+      assertions: async () => {
+        const clientConfigStats = await fs.stat(
+          path.join(testProjectRoot, 'amplifyconfiguration.json')
+        );
+        assert.ok(clientConfigStats.isFile());
       },
     },
   ];

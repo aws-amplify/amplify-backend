@@ -61,12 +61,10 @@ export type BackendMetadata = {
         status: BackendDeploymentStatus;
         lastUpdated: Date | undefined;
         graphqlEndpoint: string;
-        graphqlSchema: string;
         defaultAuthType: ApiAuthType;
         additionalAuthTypes: ApiAuthType[];
         conflictResolutionMode?: ConflictResolutionMode;
         apiId: string;
-        modelIntrospectionSchema: string;
     };
     authConfiguration?: {
         status: BackendDeploymentStatus;
@@ -162,6 +160,7 @@ export type DeployedBackendResource = {
     resourceStatusReason?: string;
     resourceType?: string;
     physicalResourceId?: string;
+    arn?: string;
 };
 
 // @public (undocumented)
