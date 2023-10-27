@@ -42,7 +42,7 @@ export class Printer {
   /**
    * Prints a new line to console
    */
-  static printANewLine = () => {
-    console.log('\n');
+  static printNewLine = () => {
+    console.log(EOL);
   };
 }

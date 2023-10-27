@@ -25,7 +25,7 @@ export enum COLOR {
 
 // @public
 export class Printer {
-    static printANewLine: () => void;
+    static printNewLine: () => void;
     static printRecord: <T extends Record<string | number, RecordValue>>(object: T) => void;
     static printRecords: <T extends Record<string | number, RecordValue>>(objects: T[]) => void;
     static printWithColor: (colorName: COLOR, message: string) => void;
