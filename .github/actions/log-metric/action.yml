@@ -1,0 +1,41 @@
+name: 'Log Metric'
+description: 'Log data point to a metric with the provided value. If the metric is not there, it will create one.'
+inputs:
+  metric-name:
+    description: 'Metric name, must be alphanumeric string without whitespaces'
+    required: true
+  value:
+    description: 'the value to log to the metric, must be a number'
+    required: true
+  dimensions:
+    description: 'the dimensions associated with the metric in a format key1=value1,key2=value2'
+    required: false
+  role-to-assume:
+    description: 'target AWS account IAM role to assume'
+    required: true
+  aws-region:
+    description: 'target AWS account region'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@04b98b3f9e85f563fb061be8751a0352327246b0 # version 3.0.1
+      with:
+        aws-region: ${{ inputs.aws-region }}
+        role-to-assume: ${{ inputs.role-to-assume }}
+    - name: Put metric data
+      shell: bash
+      # Run bash script to put metric data.
+      # First trim the input by removing trailing or leading spaces, then removing any new line characters.
+      # Then, we do regex test to match against expected input shape. Finally, put metric data using aws cli.
+      run: |
+        if [ -n "${{ inputs.dimensions }}" ]; then
+          dimensions_param="--dimensions ${{ inputs.dimensions }}"
+        fi
+
+        aws cloudwatch put-metric-data --metric-name ${{ inputs.metric-name }} --namespace AmplifyBackendGithub \
+        --value ${{ inputs.value }} $dimensions_param
+      env:
+        metric_name: ${{ inputs.metric-name }}
+        value: ${{ inputs.value }}

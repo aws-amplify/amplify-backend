@@ -17,6 +17,23 @@ export class AmplifyPrompter {
     }) => Promise<boolean>;
 }
 
+// @public
+export enum COLOR {
+    // (undocumented)
+    RED = "31m"
+}
+
+// @public
+export class Printer {
+    static printNewLine: () => void;
+    static printRecord: <T extends Record<string | number, RecordValue>>(object: T) => void;
+    static printRecords: <T extends Record<string | number, RecordValue>>(objects: T[]) => void;
+    static printWithColor: (colorName: COLOR, message: string) => void;
+}
+
+// @public (undocumented)
+export type RecordValue = string | number | string[] | Date;
+
 // (No @packageDocumentation comment for this package)
 
 ```

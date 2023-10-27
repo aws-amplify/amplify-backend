@@ -1,8 +1,5 @@
 import { describe, it } from 'node:test';
-import {
-  TestCommandError,
-  TestCommandRunner,
-} from '../../test-utils/command_runner.js';
+import { TestCommandRunner } from '../../test-utils/command_runner.js';
 import { createGenerateCommand } from './generate_command_factory.js';
 import yargs from 'yargs';
 import assert from 'node:assert';
@@ -27,16 +24,8 @@ void describe('top level generate command', () => {
   });
 
   void it('fails if subcommand is not provided', async () => {
-    await assert.rejects(
-      () => commandRunner.runCommand('generate'),
-      (err: TestCommandError) => {
-        assert.equal(err.error.name, 'YError');
-        assert.match(err.error.message, /Not enough non-option arguments:/);
-        assert.match(err.output, /Commands:/);
-        assert.match(err.output, /Not enough non-option arguments:/);
-        return true;
-      }
-    );
+    const output = await commandRunner.runCommand('generate');
+    assert.match(output, /Not enough non-option arguments/);
   });
 
   void it('should throw if top level command handler is ever called', () => {

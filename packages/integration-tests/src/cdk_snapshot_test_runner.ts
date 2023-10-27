@@ -53,7 +53,7 @@ const runCDKSnapshotTest = ({
       fs.rmSync(process.env.CDK_OUTDIR, { recursive: true, force: true });
     }
   });
-  void it(name, async () => {
+  void it(name, async (t) => {
     // this import must create the CDK App
     await import(pathToFileURL(absoluteBackendFilePath).toString());
 
@@ -75,6 +75,14 @@ const runCDKSnapshotTest = ({
       'CDK_OUTDIR environment variable not set'
     );
 
+    const shouldSkipCdkOutValidation =
+      process.env[
+        'AMPLIFY_BACKEND_TESTS_DISABLE_INTEGRATION_SNAPSHOTS_COMPARISON'
+      ] === 'true';
+    if (shouldSkipCdkOutValidation) {
+      t.diagnostic('Skipping CDK out validation.');
+      return;
+    }
     await validateCdkOutDir(
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       process.env.CDK_OUTDIR!,

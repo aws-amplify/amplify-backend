@@ -3,10 +3,7 @@ import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { GenerateConfigCommand } from './generate_config_command.js';
 import { ClientConfigFormat } from '@aws-amplify/client-config';
 import yargs, { CommandModule } from 'yargs';
-import {
-  TestCommandError,
-  TestCommandRunner,
-} from '../../../test-utils/command_runner.js';
+import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
 import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
 import { ClientConfigGeneratorAdapter } from '../../../client-config/client_config_generator_adapter.js';
@@ -167,14 +164,9 @@ void describe('generate config command', () => {
   });
 
   void it('fails if both stack and branch are present', async () => {
-    await assert.rejects(
-      () => commandRunner.runCommand('config --stack foo --branch baz'),
-      (err: TestCommandError) => {
-        assert.equal(err.error.name, 'YError');
-        assert.match(err.error.message, /Arguments .* mutually exclusive/);
-        assert.match(err.output, /Arguments .* are mutually exclusive/);
-        return true;
-      }
+    const output = await commandRunner.runCommand(
+      'config --stack foo --branch baz'
     );
+    assert.match(output, /Arguments .* mutually exclusive/);
   });
 });

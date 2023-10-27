@@ -1,10 +1,7 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import { AmplifyPrompter } from '@aws-amplify/cli-core';
 import yargs, { CommandModule } from 'yargs';
-import {
-  TestCommandError,
-  TestCommandRunner,
-} from '../../../test-utils/command_runner.js';
+import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
 import { SandboxIdResolver } from '../sandbox_id_resolver.js';
 import { SecretIdentifier, getSecretClient } from '@aws-amplify/backend-secret';
@@ -72,14 +69,7 @@ void describe('sandbox secret set command', () => {
   });
 
   void it('throws error if no secret name argument', async () => {
-    await assert.rejects(
-      () => commandRunner.runCommand('set'),
-      (err: TestCommandError) => {
-        assert.equal(err.error.name, 'YError');
-        assert.match(err.error.message, /Not enough non-option arguments/);
-        assert.match(err.output, /Not enough non-option arguments/);
-        return true;
-      }
-    );
+    const output = await commandRunner.runCommand('set');
+    assert.match(output, /Not enough non-option arguments/);
   });
 });
