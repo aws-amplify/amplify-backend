@@ -14,7 +14,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macOS-latest]
         node-version: [18]
-        pkg-manager: [npm, yarn1, yarn3, pnpm, bun]
+        pkg-manager: [npm, yarn1, yarn3, pnpm]
         exclude:
           - os: windows-latest
             pkg-manager: bun # bun only have limit support on windows

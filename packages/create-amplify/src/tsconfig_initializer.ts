@@ -29,7 +29,9 @@ export class TsConfigInitializer {
       return;
     }
     this.logger.log(
-      `No tsconfig.json file found in the current directory. Running \`${this.executableName} tsc --init\`...`
+      `No tsconfig.json file found in the current directory. Running \`${
+        this.executableName === 'npm' ? 'npx' : this.executableName
+      } tsc --init\`...`
     );
 
     const packageJson = await this.packageJsonReader.readPackageJson();
@@ -61,14 +63,18 @@ export class TsConfigInitializer {
       });
     } catch {
       throw new Error(
-        `\`${this.executableName} tsc --init\` did not exit successfully. Initialize a valid TypeScript configuration before continuing.`
+        `\`${
+          this.executableName === 'npm' ? 'npx' : this.executableName
+        } tsc --init\` did not exit successfully. Initialize a valid TypeScript configuration before continuing.`
       );
     }
 
     if (!this.tsConfigJsonExists()) {
       // this should only happen if the customer exits out of npx tsc --init before finishing
       throw new Error(
-        `tsconfig.json does not exist after running \`${this.executableName} tsc --init\`. Initialize a valid TypeScript configuration before continuing.`
+        `tsconfig.json does not exist after running \`${
+          this.executableName === 'npm' ? 'npx' : this.executableName
+        } tsc --init\`. Initialize a valid TypeScript configuration before continuing.`
       );
     }
   };
