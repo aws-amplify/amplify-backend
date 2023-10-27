@@ -5,7 +5,7 @@ import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
 import { AmplifyPrompter } from '@aws-amplify/cli-core';
 
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
-import { handleCommandFailure } from '../../../command-failure-handler.js';
+import { handleCommandFailure } from '../../../command_failure_handler.js';
 
 /**
  * Command to set sandbox secret.

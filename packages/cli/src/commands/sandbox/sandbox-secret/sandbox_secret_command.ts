@@ -1,5 +1,5 @@
 import { Argv, CommandModule } from 'yargs';
-import { handleCommandFailure } from '../../../command-failure-handler.js';
+import { handleCommandFailure } from '../../../command_failure_handler.js';
 
 /**
  * Root command to manage sandbox secret.

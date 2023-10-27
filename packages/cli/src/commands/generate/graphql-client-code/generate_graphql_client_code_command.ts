@@ -15,7 +15,7 @@ import {
   GenerateModelsOptions,
 } from '@aws-amplify/model-generator';
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
-import { handleCommandFailure } from '../../../command-failure-handler.js';
+import { handleCommandFailure } from '../../../command_failure_handler.js';
 
 type GenerateOptions =
   | GenerateGraphqlCodegenOptions

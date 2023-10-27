@@ -4,7 +4,7 @@ import { SandboxIdResolver } from '../sandbox_id_resolver.js';
 import { Printer } from '../../printer/printer.js';
 import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
-import { handleCommandFailure } from '../../../command-failure-handler.js';
+import { handleCommandFailure } from '../../../command_failure_handler.js';
 
 /**
  * Command to get sandbox secret.

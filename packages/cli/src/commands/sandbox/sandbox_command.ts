@@ -12,7 +12,7 @@ import {
 } from '../../form-generation/default_form_generation_output_paths.js';
 import { ArgumentsKebabCase } from '../../kebab_case.js';
 import { fromIni } from '@aws-sdk/credential-provider-ini';
-import { handleCommandFailure } from '../../command-failure-handler.js';
+import { handleCommandFailure } from '../../command_failure_handler.js';
 
 export type SandboxCommandOptions =
   ArgumentsKebabCase<SandboxCommandOptionsCamelCase>;

@@ -2,7 +2,7 @@ import { Argv, CommandModule } from 'yargs';
 import { GenerateConfigCommand } from './config/generate_config_command.js';
 import { GenerateFormsCommand } from './forms/generate_forms_command.js';
 import { GenerateGraphqlClientCodeCommand } from './graphql-client-code/generate_graphql_client_code_command.js';
-import { handleCommandFailure } from '../../command-failure-handler.js';
+import { handleCommandFailure } from '../../command_failure_handler.js';
 
 /**
  * An entry point for generate command.
