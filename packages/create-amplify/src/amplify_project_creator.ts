@@ -12,9 +12,6 @@ export class AmplifyProjectCreator {
   private readonly defaultDevPackages = [
     '@aws-amplify/backend',
     '@aws-amplify/backend-cli',
-    // TODO after API-Next is GA change to: @aws-amplify/amplify-api-next
-    // https://github.com/aws-amplify/samsara-cli/issues/332
-    // this now needs to be changed in the package.json file of @aws-amplify/backend
     'typescript@^5.0.0',
   ];
 
