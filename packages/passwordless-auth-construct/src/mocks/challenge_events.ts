@@ -3,7 +3,7 @@ import {
   DefineAuthChallengeTriggerEvent,
   VerifyAuthChallengeResponseTriggerEvent,
 } from 'aws-lambda';
-import { ChallengeResult } from '../types.js';
+import { ChallengeResult, PasswordlessClientMetaData } from '../types.js';
 
 const baseEvent = {
   version: '1',
@@ -30,7 +30,7 @@ const baseRequest = {
  */
 export const buildDefineAuthChallengeEvent = (
   previousSessions?: ChallengeResult[],
-  clientMetadata?: Record<string, string>
+  clientMetadata?: PasswordlessClientMetaData | Record<string, string>
 ): DefineAuthChallengeTriggerEvent => {
   return {
     ...baseEvent,
@@ -53,7 +53,7 @@ export const buildDefineAuthChallengeEvent = (
  */
 export const buildCreateAuthChallengeEvent = (
   previousSessions?: ChallengeResult[],
-  clientMetadata?: Record<string, string>
+  clientMetadata?: PasswordlessClientMetaData | Record<string, string>
 ): CreateAuthChallengeTriggerEvent => {
   return {
     ...baseEvent,
@@ -76,7 +76,7 @@ export const buildCreateAuthChallengeEvent = (
  * Creates a mock event for Verify Auth Challenge Response.
  */
 export const buildVerifyAuthChallengeResponseEvent = (
-  clientMetadata: Record<string, string>,
+  clientMetadata: PasswordlessClientMetaData | Record<string, string>,
   answer = '',
   privateChallengeParameters = {}
 ): VerifyAuthChallengeResponseTriggerEvent => {
