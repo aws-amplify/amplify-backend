@@ -1,5 +1,13 @@
 # @aws-amplify/model-generator
 
+## 0.2.0-alpha.7
+
+### Patch Changes
+
+- 47bfb317: fix: generate multiple swift files
+- Updated dependencies [f0ef7c6a]
+  - @aws-amplify/deployed-backend-client@0.2.0-alpha.11
+
 ## 0.2.0-alpha.6
 
 ### Minor Changes

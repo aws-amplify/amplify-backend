@@ -1,5 +1,17 @@
 # @aws-amplify/backend-cli
 
+## 0.2.0-alpha.15
+
+### Patch Changes
+
+- 76ba7929: chore: reformat yargs error display
+- Updated dependencies [f0ef7c6a]
+- Updated dependencies [47bfb317]
+- Updated dependencies [76ba7929]
+  - @aws-amplify/deployed-backend-client@0.2.0-alpha.11
+  - @aws-amplify/model-generator@0.2.0-alpha.7
+  - @aws-amplify/cli-core@0.1.0-alpha.4
+
 ## 0.2.0-alpha.14
 
 ### Patch Changes
