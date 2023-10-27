@@ -70,12 +70,8 @@ void describe('Logger', () => {
       verbose: false,
     };
 
-    const mockProcessEnv = { CI: 'true' };
-
     const mockMinimumLogLevel =
-      mockArgs.debug || mockArgs.verbose || mockProcessEnv.CI === 'true'
-        ? LogLevel.DEBUG
-        : LogLevel.INFO;
+      mockArgs.debug || mockArgs.verbose ? LogLevel.DEBUG : LogLevel.INFO;
 
     const logger = new Logger(mockConsole as never, mockMinimumLogLevel);
     await logger.debug('Test log message');
