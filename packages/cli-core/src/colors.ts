@@ -11,8 +11,8 @@ export enum COLOR {
 
 /**
  * Wraps a given string with a given color.
- * @param colorName from the enum COLOR
- * @param message string to be wrapped in the given color
+ * @param colorName - from the enum COLOR
+ * @param message - string to be wrapped in the given color
  * @returns colored string
  */
 export const color = (colorName: COLOR, message: string) =>

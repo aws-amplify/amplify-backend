@@ -11,11 +11,6 @@ import { COLOR, Printer } from '@aws-amplify/cli-core';
  */
 export const handleCommandFailure = (msg: string, err: Error, yargs: Argv) => {
   Printer.printANewLine();
-  Printer.printWithColor(
-    COLOR.RED,
-    `Command failed with error: ${msg || String(err)}`
-  );
-  Printer.printANewLine();
 
   yargs.showHelp();
 

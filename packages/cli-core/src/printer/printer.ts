@@ -1,7 +1,7 @@
 import { COLOR, color } from '../colors.js';
 import { EOL } from 'os';
 
-type RecordValue = string | number | string[] | Date;
+export type RecordValue = string | number | string[] | Date;
 
 /**
  * The class that pretty prints to the console.
