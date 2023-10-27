@@ -12,11 +12,11 @@ import {
 import { DeployedResourcesEnumerator } from './deployed_resources_enumerator.js';
 import { StackStatusMapper } from './stack_status_mapper.js';
 import { ArnGenerator } from './arn_generator.js';
-import { AccountIdParser } from './account_id_parser.js';
+import { ArnParser } from './arn_parser.js';
 
 void describe('listDeployedResources', () => {
   const arnGeneratorMock = new ArnGenerator();
-  const accountIdParserMock = new AccountIdParser();
+  const accountIdParserMock = new ArnParser();
   mock.method(arnGeneratorMock, 'generateArn', () => undefined);
   const deployedResourcesEnumerator = new DeployedResourcesEnumerator(
     new StackStatusMapper(),
@@ -140,7 +140,8 @@ void describe('listDeployedResources', () => {
       await deployedResourcesEnumerator.listDeployedResources(
         mockCfnClient,
         'testRootStack',
-        '0000000'
+        '0000000',
+        'us-east-1'
       );
 
     const expectedResources: DeployedBackendResource[] = [

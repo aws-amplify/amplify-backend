@@ -39,7 +39,7 @@ import {
 } from '@aws-amplify/backend-output-schemas';
 import { DeployedResourcesEnumerator } from './deployed-backend-client/deployed_resources_enumerator.js';
 import { StackStatusMapper } from './deployed-backend-client/stack_status_mapper.js';
-import { AccountIdParser } from './deployed-backend-client/account_id_parser.js';
+import { ArnParser } from './deployed-backend-client/arn_parser.js';
 
 /**
  * Deployment Client
@@ -54,7 +54,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     private readonly backendOutputClient: BackendOutputClient,
     private readonly deployedResourcesEnumerator: DeployedResourcesEnumerator,
     private readonly stackStatusMapper: StackStatusMapper,
-    private readonly accountIdParser: AccountIdParser
+    private readonly arnParser: ArnParser
   ) {}
 
   /**
@@ -216,7 +216,10 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     );
 
     // stack?.StackId is the ARN of the stack
-    const accountId = this.accountIdParser.tryFromArn(stack?.StackId as string);
+    const accountId = this.arnParser.tryAccountIdFromArn(
+      stack?.StackId as string
+    );
+    const region = this.arnParser.tryRegionFromArn(stack?.StackId as string);
     const backendMetadataObject: BackendMetadata = {
       deploymentType: backendOutput[stackOutputKey].payload
         .deploymentType as BackendDeploymentType,
@@ -226,7 +229,8 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
       resources: await this.deployedResourcesEnumerator.listDeployedResources(
         this.cfnClient,
         stackName,
-        accountId
+        accountId,
+        region
       ),
     };
 

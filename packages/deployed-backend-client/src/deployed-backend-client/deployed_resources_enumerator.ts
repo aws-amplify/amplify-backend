@@ -7,7 +7,7 @@ import {
 import { DeployedBackendResource } from '../deployed_backend_client_factory.js';
 import { StackStatusMapper } from './stack_status_mapper.js';
 import { ArnGenerator } from './arn_generator.js';
-import { AccountIdParser } from './account_id_parser.js';
+import { ArnParser } from './arn_parser.js';
 
 /**
  * Lists deployed resources
@@ -19,7 +19,7 @@ export class DeployedResourcesEnumerator {
   constructor(
     private readonly stackStatusMapper: StackStatusMapper,
     private readonly arnGenerator: ArnGenerator,
-    private readonly accountIdParser: AccountIdParser
+    private readonly accountIdParser: ArnParser
   ) {}
 
   /**
@@ -28,7 +28,8 @@ export class DeployedResourcesEnumerator {
   listDeployedResources = async (
     cfnClient: CloudFormationClient,
     stackName: string,
-    accountId: string | undefined
+    accountId: string | undefined,
+    region: string | undefined
   ): Promise<DeployedBackendResource[]> => {
     const deployedBackendResources: DeployedBackendResource[] = [];
     const stackResourceSummaries: StackResourceSummary[] = [];
@@ -66,12 +67,16 @@ export class DeployedResourcesEnumerator {
       }
 
       const childStackAccountId =
-        this.accountIdParser.tryFromArn(childStackArn);
+        this.accountIdParser.tryAccountIdFromArn(childStackArn);
+      const childStackRegion =
+        this.accountIdParser.tryRegionFromArn(childStackArn);
+
       // Recursive call to get all the resources from child stacks
       return this.listDeployedResources(
         cfnClient,
         childStackName,
-        childStackAccountId
+        childStackAccountId,
+        childStackRegion
       );
     });
     const deployedResourcesPerChildStack = await Promise.all(promises);
@@ -98,7 +103,7 @@ export class DeployedResourcesEnumerator {
         physicalResourceId: stackResourceSummary.PhysicalResourceId,
         arn: this.arnGenerator.generateArn(
           stackResourceSummary,
-          cfnClient.config.region as string,
+          region,
           accountId
         ),
       })

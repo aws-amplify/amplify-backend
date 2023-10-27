@@ -14,7 +14,7 @@ import { S3Client } from '@aws-sdk/client-s3';
 import { DeployedResourcesEnumerator } from './deployed-backend-client/deployed_resources_enumerator.js';
 import { StackStatusMapper } from './deployed-backend-client/stack_status_mapper.js';
 import { ArnGenerator } from './deployed-backend-client/arn_generator.js';
-import { AccountIdParser } from './deployed-backend-client/account_id_parser.js';
+import { ArnParser } from './deployed-backend-client/arn_parser.js';
 
 export enum ConflictResolutionMode {
   LAMBDA = 'LAMBDA',
@@ -129,7 +129,7 @@ export class DeployedBackendClientFactory {
   ): DeployedBackendClient {
     const stackStatusMapper = new StackStatusMapper();
     const arnGenerator = new ArnGenerator();
-    const accountIdParser = new AccountIdParser();
+    const accountIdParser = new ArnParser();
     const deployedResourcesEnumerator = new DeployedResourcesEnumerator(
       stackStatusMapper,
       arnGenerator,

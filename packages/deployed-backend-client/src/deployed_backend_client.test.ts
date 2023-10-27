@@ -29,7 +29,7 @@ import { GetObjectCommand, S3 } from '@aws-sdk/client-s3';
 import { DeployedResourcesEnumerator } from './deployed-backend-client/deployed_resources_enumerator.js';
 import { StackStatusMapper } from './deployed-backend-client/stack_status_mapper.js';
 import { ArnGenerator } from './deployed-backend-client/arn_generator.js';
-import { AccountIdParser } from './deployed-backend-client/account_id_parser.js';
+import { ArnParser } from './deployed-backend-client/arn_parser.js';
 
 const listStacksMock = {
   NextToken: undefined,
@@ -212,7 +212,7 @@ void describe('Deployed Backend Client', () => {
     cfnClientSendMock.mock.mockImplementation(mockSend);
 
     const arnGeneratorMock = new ArnGenerator();
-    const accountIdParserMock = new AccountIdParser();
+    const accountIdParserMock = new ArnParser();
     mock.method(arnGeneratorMock, 'generateArn', () => undefined);
     const deployedResourcesEnumerator = new DeployedResourcesEnumerator(
       new StackStatusMapper(),
@@ -368,7 +368,7 @@ void describe('Deployed Backend Client pagination', () => {
 
     cfnClientSendMock.mock.mockImplementation(mockSend);
     const arnGeneratorMock = new ArnGenerator();
-    const accountIdParserMock = new AccountIdParser();
+    const accountIdParserMock = new ArnParser();
     mock.method(arnGeneratorMock, 'generateArn', () => undefined);
     const deployedResourcesEnumerator = new DeployedResourcesEnumerator(
       new StackStatusMapper(),
