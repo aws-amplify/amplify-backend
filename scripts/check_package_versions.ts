@@ -20,7 +20,7 @@ for (const packagePath of packagePaths) {
   ) as { version: string };
   if (!version.startsWith(expectedVersionPrefix)) {
     throw new Error(
-      `Expected package version to start with "0." but found version ${version} in ${packageJsonPath}.`
+      `Expected package version to start with "${expectedVersionPrefix}" but found version ${version} in ${packageJsonPath}.`
     );
   }
 }
