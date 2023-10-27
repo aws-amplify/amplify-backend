@@ -198,11 +198,15 @@ export type ExternalProviderOptions = {
    */
   scopes?: cognito.OAuthScope[];
   /**
-   * List of allowed redirect URLs for the identity providers.
+   * List of allowed redirect URLs for the identity providers. These are the URLs you use to redirect users after logging in
+   * @example
+   * ['http://localhost:3000/welcome']
    */
   callbackUrls?: string[];
   /**
-   * List of allowed logout URLs for the identity providers.
+   * List of allowed logout URLs for the identity providers. These are the URLs you use to redirect users after logging out
+   * @example
+   * ['http://localhost:3000/come-back-soon']
    */
   logoutUrls?: string[];
 };

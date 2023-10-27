@@ -18,6 +18,10 @@ import { AuthLoginWithFactoryProps } from './types.js';
 import { translateToAuthConstructLoginWith } from './translate_auth_props.js';
 
 export type TriggerConfig = {
+  /**
+   * Specify Amazon Cognito triggers. Triggers are used to customize the functionality of your auth resource.
+   * @see {@link https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-identity-pools-working-with-aws-lambda-triggers.html official Amazon Cognito triggers documentation}
+   */
   triggers?: Partial<
     Record<TriggerEvent, ConstructFactory<ResourceProvider<FunctionResources>>>
   >;
@@ -28,6 +32,33 @@ export type AmplifyAuthFactoryProps = Omit<
   'outputStorageStrategy' | 'loginWith'
 > &
   TriggerConfig & {
+    /**
+     * Specify how you would like users to log in, which can be email, phone, external providers such as LoginWithAmazon, etc.
+     * @example <caption>with Email</caption>
+     *          defineAuth({
+     *            loginWith: {
+     *              email: true,
+     *            },
+     *          })
+     * @example <caption>with Phone</caption>
+     *          defineAuth({
+     *            loginWith: {
+     *              phoneNumber: true,
+     *            },
+     *          })
+     * @example <caption>with an external provider</caption>
+     *          defineAuth({
+     *            loginWith: {
+     *              email: true,
+     *              externalProvider: {
+     *                loginWithAmazon: {
+     *                  clientId: secret('LOGIN_WITH_AMAZON_CLIENT_ID'),
+     *                  clientSecret: secret('LOGIN_WITH_AMAZON_CLIENT_SECRET'),
+     *                },
+     *              },
+     *            },
+     *          })
+     */
     loginWith: AuthLoginWithFactoryProps;
   };
 
@@ -103,7 +134,15 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
 }
 
 /**
- * Creates a factory that implements ConstructFactory<AmplifyAuth & ResourceProvider<AuthResources>>
+ * Define an auth resource. Auth resources use Amazon Cognito under the hood.
+ * @todo link to Amplify (Gen 2) docs
+ * @see {@link https://aws.amazon.com/cognito/ Amazon Cognito documentation}
+ * @example <caption>Sample Usage</caption>
+ *          defineAuth({
+ *            loginWith: {
+ *              email: true,
+ *            },
+ *          })
  */
 export const defineAuth = (
   props: AmplifyAuthFactoryProps
