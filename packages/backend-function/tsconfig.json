@@ -4,7 +4,6 @@
   "references": [
     { "path": "../backend-output-storage" },
     { "path": "../function-construct" },
-    { "path": "../plugin-types" },
-    { "path": "../backend" }
+    { "path": "../plugin-types" }
   ]
 }

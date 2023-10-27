@@ -23,7 +23,7 @@
     "@aws-amplify/plugin-types": "^0.2.0-alpha.11"
   },
   "devDependencies": {
-    "@aws-amplify/backend": "^0.2.0-alpha.12"
+    "@aws-amplify/common-test-stubs": "^0.1.0"
   },
   "peerDependencies": {
     "aws-cdk-lib": "^2.103.0",

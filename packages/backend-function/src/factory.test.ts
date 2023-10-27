@@ -1,10 +1,6 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import { Func } from './factory.js';
 import { App, Stack } from 'aws-cdk-lib';
-import {
-  NestedStackResolver,
-  SingletonConstructContainer,
-} from '@aws-amplify/backend/test-utils';
 import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
 import assert from 'node:assert';
 import { fileURLToPath } from 'url';
@@ -14,6 +10,10 @@ import {
   BackendDeploymentType,
   CDKContextKey,
 } from '@aws-amplify/platform-core';
+import {
+  ConstructContainerStub,
+  StackResolverStub,
+} from '@aws-amplify/common-test-stubs';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
@@ -33,8 +33,8 @@ void describe('AmplifyFunctionFactory', () => {
   beforeEach(() => {
     const stack = createStackAndSetContext();
 
-    const constructContainer = new SingletonConstructContainer(
-      new NestedStackResolver(stack)
+    const constructContainer = new ConstructContainerStub(
+      new StackResolverStub(stack)
     );
 
     const outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(

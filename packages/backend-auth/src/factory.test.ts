@@ -1,10 +1,5 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import { defineAuth } from './factory.js';
-import {
-  NestedStackResolver,
-  SingletonConstructContainer,
-  ToggleableImportPathVerifier,
-} from '@aws-amplify/backend/test-utils';
 import { App, Stack, aws_lambda } from 'aws-cdk-lib';
 import assert from 'node:assert';
 import { Match, Template } from 'aws-cdk-lib/assertions';
@@ -23,6 +18,11 @@ import {
   BackendDeploymentType,
   CDKContextKey,
 } from '@aws-amplify/platform-core';
+import {
+  ConstructContainerStub,
+  ImportPathVerifierStub,
+  StackResolverStub,
+} from '@aws-amplify/common-test-stubs';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
@@ -49,15 +49,15 @@ void describe('AmplifyAuthFactory', () => {
 
     stack = createStackAndSetContext();
 
-    constructContainer = new SingletonConstructContainer(
-      new NestedStackResolver(stack)
+    constructContainer = new ConstructContainerStub(
+      new StackResolverStub(stack)
     );
 
     outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
       stack
     );
 
-    importPathVerifier = new ToggleableImportPathVerifier(false);
+    importPathVerifier = new ImportPathVerifierStub();
   });
 
   void it('returns singleton instance', () => {
