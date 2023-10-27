@@ -55,9 +55,7 @@ void describe('create-amplify script', () => {
         );
       }
 
-      // TODO remove alpha tag from command once we are publishing to latest
-      // https://github.com/aws-amplify/samsara-cli/issues/144
-      await execa('npm', ['create', 'amplify@alpha', '--yes'], {
+      await execa('npm', ['create', 'amplify', '--yes'], {
         cwd: tempDir,
         stdio: 'inherit',
       });
@@ -149,9 +147,7 @@ void describe('create-amplify script', () => {
     const amplifyDirPath = path.join(tempDir, 'amplify');
     await fs.mkdir(amplifyDirPath, { recursive: true });
 
-    // TODO remove alpha tag from command once we are publishing to latest
-    // https://github.com/aws-amplify/samsara-cli/issues/144
-    const result = await execa('npm', ['create', 'amplify@alpha', '--yes'], {
+    const result = await execa('npm', ['create', 'amplify', '--yes'], {
       cwd: tempDir,
       stdio: 'pipe',
       reject: false,
