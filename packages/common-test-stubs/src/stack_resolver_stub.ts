@@ -8,7 +8,7 @@ export type StackResolver = {
 };
 
 /**
- * Vends and caches nested stacks under a provided root stack
+ * Stub implementation of StackResolver. Currently copied from @aws-amplify/backend, but they can evolve independently
  */
 export class StackResolverStub implements StackResolver {
   private readonly stacks: Record<string, Stack> = {};

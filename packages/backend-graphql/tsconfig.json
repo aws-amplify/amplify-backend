@@ -4,6 +4,7 @@
   "references": [
     { "path": "../backend-output-storage" },
     { "path": "../backend-output-schemas" },
-    { "path": "../plugin-types" }
+    { "path": "../plugin-types" },
+    { "path": "../common-test-stubs" }
   ]
 }

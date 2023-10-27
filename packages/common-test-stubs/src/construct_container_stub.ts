@@ -9,7 +9,7 @@ import {
 import { BackendSecretResolverStub } from './backend_secret_resolver_stub.js';
 
 /**
- * Serves as a DI container and shared state store for initializing Amplify constructs
+ * Stub implementation of ConstructContainer. Currently, it is the same as the implementation in @aws-amplify/backend but this doesn't need to be the case moving forward
  */
 export class ConstructContainerStub implements ConstructContainer {
   // uses the CacheEntryGenerator as the map key. The value is what the generator returned the first time it was seen

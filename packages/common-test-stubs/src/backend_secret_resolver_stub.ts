@@ -7,7 +7,7 @@ import { SecretValue } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 
 /**
- * DefaultBackendSecretResolver resolves a backend secret.
+ * Stub implementation of BackendSecretResolver. Currently, it is copied from @aws-amplify/backend, but it does not need to be kept in sync moving forward
  */
 export class BackendSecretResolverStub implements BackendSecretResolver {
   /**
