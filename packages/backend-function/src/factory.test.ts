@@ -13,7 +13,7 @@ import {
 import {
   ConstructContainerStub,
   StackResolverStub,
-} from '@aws-amplify/common-test-stubs';
+} from '@aws-amplify/backend-platform-test-stubs';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();

@@ -30,7 +30,7 @@ import {
   ConstructContainerStub,
   ImportPathVerifierStub,
   StackResolverStub,
-} from '@aws-amplify/common-test-stubs';
+} from '@aws-amplify/backend-platform-test-stubs';
 
 const testSchema = `
   input AMPLIFY {globalAuthRule: AuthRule = { allow: public }} # FOR TESTING ONLY!

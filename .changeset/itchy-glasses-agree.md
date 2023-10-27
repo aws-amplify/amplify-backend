@@ -1,7 +1,7 @@
 ---
 '@aws-amplify/backend': minor
 '@aws-amplify/deployed-backend-client': patch
-'@aws-amplify/common-test-stubs': patch
+'@aws-amplify/backend-platform-test-stubs': patch
 '@aws-amplify/integration-tests': patch
 '@aws-amplify/backend-function': patch
 '@aws-amplify/backend-graphql': patch
