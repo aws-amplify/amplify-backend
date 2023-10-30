@@ -9,15 +9,9 @@ import { GitIgnoreInitializer } from './gitignore_initializer.js';
  *
  */
 export class AmplifyProjectCreator {
-  // TODO once we create `aws-amplify-backend` that will be included here
   private readonly defaultDevPackages = [
     '@aws-amplify/backend',
-    '@aws-amplify/backend-graphql',
-    '@aws-amplify/backend-auth',
     '@aws-amplify/backend-cli',
-    // TODO after API-Next is GA change to: @aws-amplify/amplify-api-next
-    // https://github.com/aws-amplify/samsara-cli/issues/332
-    '@aws-amplify/amplify-api-next-alpha',
     'typescript@^5.0.0',
   ];
 

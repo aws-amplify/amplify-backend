@@ -4,10 +4,18 @@
 
 ```ts
 
+import { a } from '@aws-amplify/amplify-api-next-alpha';
 import { BackendSecret } from '@aws-amplify/plugin-types';
+import { ClientSchema } from '@aws-amplify/amplify-api-next-alpha';
 import { Construct } from 'constructs';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
+import { defineAuth } from '@aws-amplify/backend-auth';
+import { defineData } from '@aws-amplify/backend-graphql';
+import { defineStorage } from '@aws-amplify/backend-storage';
+import { Func } from '@aws-amplify/backend-function';
 import { Stack } from 'aws-cdk-lib';
+
+export { a }
 
 // @public
 export class Backend<T extends Record<string, ConstructFactory<Construct>>> {
@@ -17,6 +25,16 @@ export class Backend<T extends Record<string, ConstructFactory<Construct>>> {
         [K in keyof T]: ReturnType<T[K]['getInstance']>;
     };
 }
+
+export { ClientSchema }
+
+export { defineAuth }
+
+export { defineData }
+
+export { defineStorage }
+
+export { Func }
 
 // @public
 export const secret: (name: string) => BackendSecret;

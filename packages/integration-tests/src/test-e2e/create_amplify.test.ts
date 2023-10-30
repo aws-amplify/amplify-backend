@@ -70,14 +70,7 @@ void describe('create-amplify script', () => {
 
       assert.deepStrictEqual(
         Object.keys(packageJsonObject.devDependencies).sort(),
-        [
-          '@aws-amplify/amplify-api-next-alpha',
-          '@aws-amplify/backend',
-          '@aws-amplify/backend-auth',
-          '@aws-amplify/backend-cli',
-          '@aws-amplify/backend-graphql',
-          'typescript',
-        ]
+        ['@aws-amplify/backend', '@aws-amplify/backend-cli', 'typescript']
       );
 
       assert.deepStrictEqual(
