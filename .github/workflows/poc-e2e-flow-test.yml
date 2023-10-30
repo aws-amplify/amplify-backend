@@ -14,7 +14,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macOS-latest]
         node-version: [18]
-        pkg-manager: [npm, yarn1, yarn3, pnpm]
+        pkg-manager: [npm, yarn1, yarn-stable, pnpm]
         exclude:
           - os: windows-latest
             pkg-manager: bun # bun only have limit support on windows
@@ -31,7 +31,7 @@ jobs:
         shell: bash
         run: npm run install:local && npm run build && npm run vend
       - name: ${{matrix.pkg-manager}}-create-amplify-project
-        if: matrix.pkg-manager != 'yarn1' && matrix.pkg-manager != 'yarn3'
+        if: matrix.pkg-manager != 'yarn-stable'
         shell: bash
         run: |
           mkdir -p /tmp/amplify-project; cd /tmp/amplify-project
@@ -41,29 +41,9 @@ jobs:
           echo "$(${{matrix.pkg-manager}}) config get registry"
           ${{matrix.pkg-manager}} config get registry
           PACKAGE_MANAGER_EXECUTABLE=${{matrix.pkg-manager}} ${{matrix.pkg-manager}} create amplify --yes
-      - name: ${{matrix.pkg-manager}}-create-amplify-project-step1-install
-        continue-on-error: true
-        if: matrix.pkg-manager == 'yarn1'
-        shell: bash
-        run: | # yarn1 create amplify doesn't work with @ahpha tag
-          mkdir -p /tmp/amplify-project; cd /tmp/amplify-project
-          echo "yarn config set registry http://localhost:4873"
-          yarn config set registry http://localhost:4873
-          PACKAGE_MANAGER_EXECUTABLE=yarn yarn create amplify --yes
 
-      - name: yarn1-create-amplify-project-step2-setup-not-win
-        if: ${{matrix.pkg-manager == 'yarn1' && matrix.os != 'windows-latest'}}
-        shell: bash
-        run: |
-          /usr/local/bin/create-amplify
-      - name: yarn1-create-amplify-project-step2-setup-win
-        if: ${{matrix.pkg-manager == 'yarn1' && matrix.os == 'windows-latest'}}
-        shell: bash
-        run: |
-          PACKAGE_MANAGER_EXECUTABLE=yarn C:\\npm\\prefix\\bin\\create-amplify --yes
-
-      - name: yarn3-create-amplify-project-step1-install
-        if: matrix.pkg-manager == 'yarn3'
+      - name: yarn-stable-create-amplify-project-step1-install
+        if: matrix.pkg-manager == 'yarn-stable'
         shell: bash
         run: |
           mkdir -p /tmp/amplify-project; cd /tmp/amplify-project
