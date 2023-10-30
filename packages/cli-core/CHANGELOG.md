@@ -1,5 +1,11 @@
 # @aws-amplify/cli-core
 
+## 0.1.0-alpha.4
+
+### Patch Changes
+
+- 76ba7929: chore: reformat yargs error display
+
 ## 0.1.0-alpha.3
 
 ### Patch Changes

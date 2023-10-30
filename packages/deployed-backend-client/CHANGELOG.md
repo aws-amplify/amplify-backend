@@ -1,5 +1,11 @@
 # @aws-amplify/deployed-backend-client
 
+## 0.2.0-alpha.11
+
+### Patch Changes
+
+- f0ef7c6a: parse region from stack arn
+
 ## 0.2.0-alpha.10
 
 ### Patch Changes

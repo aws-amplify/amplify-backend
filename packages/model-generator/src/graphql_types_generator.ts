@@ -2,6 +2,7 @@ import {
   generateStatements,
   generateTypes,
 } from '@aws-amplify/graphql-generator';
+import { Source } from 'graphql';
 import {
   GenerationResult,
   GraphqlTypesGenerator,
@@ -35,7 +36,9 @@ export class AppSyncGraphqlTypesGenerator implements GraphqlTypesGenerator {
       target: 'graphql',
     });
 
-    const queries = Object.values(generatedStatements).join('\n');
+    const queries = Object.entries(generatedStatements).map(
+      ([filename, contents]) => new Source(contents, filename)
+    );
 
     const generatedTypes = await generateTypes({
       schema,

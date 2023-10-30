@@ -55,9 +55,7 @@ void describe('create-amplify script', () => {
         );
       }
 
-      // TODO remove alpha tag from command once we are publishing to latest
-      // https://github.com/aws-amplify/samsara-cli/issues/144
-      await execa('npm', ['create', 'amplify@alpha', '--yes'], {
+      await execa('npm', ['create', 'amplify', '--yes'], {
         cwd: tempDir,
         stdio: 'inherit',
       });
@@ -72,20 +70,23 @@ void describe('create-amplify script', () => {
 
       assert.deepStrictEqual(
         Object.keys(packageJsonObject.devDependencies).sort(),
-        [
-          '@aws-amplify/amplify-api-next-alpha',
-          '@aws-amplify/backend',
-          '@aws-amplify/backend-auth',
-          '@aws-amplify/backend-cli',
-          '@aws-amplify/backend-graphql',
-          'typescript',
-        ]
+        ['@aws-amplify/backend', '@aws-amplify/backend-cli', 'typescript']
       );
 
       assert.deepStrictEqual(
         Object.keys(packageJsonObject.dependencies).sort(),
         ['aws-amplify']
       );
+
+      const gitIgnorePath = path.resolve(tempDir, '.gitignore');
+      const gitIgnoreContent = (await fs.readFile(gitIgnorePath, 'utf-8'))
+        .split(os.EOL)
+        .filter((s) => s.trim());
+      assert.deepStrictEqual(gitIgnoreContent.sort(), [
+        '.amplify',
+        'amplifyconfiguration*',
+        'node_modules',
+      ]);
 
       // Read tsconfig.json content, remove all comments, and make assertions
       const tsConfigPath = path.resolve(tempDir, 'tsconfig.json');
@@ -149,9 +150,7 @@ void describe('create-amplify script', () => {
     const amplifyDirPath = path.join(tempDir, 'amplify');
     await fs.mkdir(amplifyDirPath, { recursive: true });
 
-    // TODO remove alpha tag from command once we are publishing to latest
-    // https://github.com/aws-amplify/samsara-cli/issues/144
-    const result = await execa('npm', ['create', 'amplify@alpha', '--yes'], {
+    const result = await execa('npm', ['create', 'amplify', '--yes'], {
       cwd: tempDir,
       stdio: 'pipe',
       reject: false,
