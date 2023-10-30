@@ -2,7 +2,7 @@
 
 name: 'poc-e2e-flow-test'
 
-on:
+on: # TODO: need to change the trigger
   push:
     branches:
       - poc/e2e-test
