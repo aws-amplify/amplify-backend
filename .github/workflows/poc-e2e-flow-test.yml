@@ -16,6 +16,8 @@ jobs:
         node-version: [18]
         pkg-manager: [npm, yarn, yarn-stable, pnpm]
     runs-on: ${{ matrix.os }}
+    env:
+      PACKAGE_MANAGER_EXECUTABLE: ${{ matrix.pkg-manager }} # TODO: remove PACKAGE_MANAGER_EXECUTABLE once CLI is able to getPackageManager().
     steps:
       - name: Checkout aws-amplify/amplify-cli repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1. TODO: try only fetch .github/workflow
@@ -37,7 +39,7 @@ jobs:
           ${{matrix.pkg-manager}} config set registry http://localhost:4873
           echo "$(${{matrix.pkg-manager}}) config get registry"
           ${{matrix.pkg-manager}} config get registry
-          PACKAGE_MANAGER_EXECUTABLE=${{matrix.pkg-manager}} ${{matrix.pkg-manager}} create amplify --yes
+          ${{matrix.pkg-manager}} create amplify --yes
 
       - name: yarn-stable-create-amplify-project
         if: matrix.pkg-manager == 'yarn-stable'
@@ -50,4 +52,4 @@ jobs:
           echo "yarn version $(yarn --version)"
           yarn config set unsafeHttpWhitelist localhost
           yarn config set npmRegistryServer http://localhost:4873
-          PACKAGE_MANAGER_EXECUTABLE=yarn yarn create amplify --yes
+          yarn create amplify --yes
