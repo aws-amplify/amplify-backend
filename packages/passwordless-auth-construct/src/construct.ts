@@ -46,7 +46,7 @@ export class AmplifyPasswordlessAuth extends Construct {
       scope,
       `DefineAuthChallenge${id}`,
       {
-        handler: 'defineAuthChallengeHandler',
+        handler: 'defineAuthChallenge',
         ...commonOptions,
       }
     );
@@ -55,7 +55,7 @@ export class AmplifyPasswordlessAuth extends Construct {
       scope,
       `CreateAuthChallenge${id}`,
       {
-        handler: 'createAuthChallengeHandler',
+        handler: 'createAuthChallenge',
         ...commonOptions,
       }
     );
@@ -64,7 +64,7 @@ export class AmplifyPasswordlessAuth extends Construct {
       scope,
       `VerifyAuthChallengeResponse${id}`,
       {
-        handler: 'verifyAuthChallengeHandler',
+        handler: 'verifyAuthChallenge',
         ...commonOptions,
       }
     );

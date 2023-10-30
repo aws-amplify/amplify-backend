@@ -1,4 +1,7 @@
-import { CreateAuthChallengeTriggerEvent } from 'aws-lambda';
+import {
+  CreateAuthChallengeTriggerEvent,
+  VerifyAuthChallengeResponseTriggerEvent,
+} from 'aws-lambda';
 
 /**
  * The client meta data object provided during passwordless auth.
@@ -34,6 +37,22 @@ export type RequestOTPClientMetaData = {
 export type ConfirmOTPClientMetaData = {
   signInMethod: 'OTP';
   action: 'CONFIRM';
+};
+
+export type SignInMethod = PasswordlessClientMetaData['signInMethod'];
+
+/**
+ * A service for creating and verifying challenges of a specific type. For
+ * example, One Time Passwords or Magic Links.
+ */
+export type ChallengeService = {
+  signInMethod: SignInMethod;
+  createChallenge: (
+    event: CreateAuthChallengeTriggerEvent
+  ) => Promise<CreateAuthChallengeTriggerEvent>;
+  verifyChallenge: (
+    event: VerifyAuthChallengeResponseTriggerEvent
+  ) => Promise<VerifyAuthChallengeResponseTriggerEvent>;
 };
 
 export type PasswordlessAuthChallengeParams =
