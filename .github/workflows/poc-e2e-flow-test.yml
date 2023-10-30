@@ -40,7 +40,7 @@ jobs:
           ${{matrix.pkg-manager}} config set registry http://localhost:4873
           echo "$(${{matrix.pkg-manager}}) config get registry"
           ${{matrix.pkg-manager}} config get registry
-          PACKAGE_MANAGER_EXECUTABLE=${{matrix.pkg-manager}} ${{matrix.pkg-manager}} create amplify@alpha -- --yes
+          PACKAGE_MANAGER_EXECUTABLE=${{matrix.pkg-manager}} ${{matrix.pkg-manager}} create amplify --yes
       - name: ${{matrix.pkg-manager}}-create-amplify-project-step1-install
         continue-on-error: true
         if: matrix.pkg-manager == 'yarn1'
@@ -49,7 +49,7 @@ jobs:
           mkdir -p /tmp/amplify-project; cd /tmp/amplify-project
           echo "yarn config set registry http://localhost:4873"
           yarn config set registry http://localhost:4873
-          PACKAGE_MANAGER_EXECUTABLE=yarn yarn create amplify@alpha --yes
+          PACKAGE_MANAGER_EXECUTABLE=yarn yarn create amplify --yes
 
       - name: yarn1-create-amplify-project-step2-setup-not-win
         if: ${{matrix.pkg-manager == 'yarn1' && matrix.os != 'windows-latest'}}
@@ -73,4 +73,4 @@ jobs:
           echo "yarn version $(yarn --version)"
           yarn config set unsafeHttpWhitelist localhost
           yarn config set npmRegistryServer http://localhost:4873
-          PACKAGE_MANAGER_EXECUTABLE=yarn yarn create amplify@alpha --yes
+          PACKAGE_MANAGER_EXECUTABLE=yarn yarn create amplify --yes
