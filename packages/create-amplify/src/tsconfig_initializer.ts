@@ -57,10 +57,14 @@ export class TsConfigInitializer {
     }
 
     try {
-      await this.execa(this.executableName, tscArgs, {
-        stdio: 'inherit',
-        cwd: this.projectRoot,
-      });
+      await this.execa(
+        this.executableName === 'npm' ? 'npx' : this.executableName,
+        tscArgs,
+        {
+          stdio: 'inherit',
+          cwd: this.projectRoot,
+        }
+      );
     } catch {
       throw new Error(
         `\`${
