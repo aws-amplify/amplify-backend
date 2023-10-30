@@ -2,11 +2,6 @@ import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { defineData } from './factory.js';
 import { App, Stack } from 'aws-cdk-lib';
-import {
-  NestedStackResolver,
-  SingletonConstructContainer,
-  ToggleableImportPathVerifier,
-} from '@aws-amplify/backend/test-utils';
 import { Template } from 'aws-cdk-lib/assertions';
 import {
   AuthResources,
@@ -31,6 +26,11 @@ import {
   CDKContextKey,
 } from '@aws-amplify/platform-core';
 import { AmplifyGraphqlApi } from '@aws-amplify/graphql-api-construct';
+import {
+  ConstructContainerStub,
+  ImportPathVerifierStub,
+  StackResolverStub,
+} from '@aws-amplify/backend-platform-test-stubs';
 
 const testSchema = `
   input AMPLIFY {globalAuthRule: AuthRule = { allow: public }} # FOR TESTING ONLY!
@@ -66,8 +66,8 @@ void describe('DataFactory', () => {
     dataFactory = defineData({ schema: testSchema });
     stack = createStackAndSetContext();
 
-    constructContainer = new SingletonConstructContainer(
-      new NestedStackResolver(stack)
+    constructContainer = new ConstructContainerStub(
+      new StackResolverStub(stack)
     );
     const sampleUserPool = new UserPool(stack, 'UserPool');
     constructContainer.registerConstructFactory('AuthResources', {
@@ -100,7 +100,7 @@ void describe('DataFactory', () => {
     outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
       stack
     );
-    importPathVerifier = new ToggleableImportPathVerifier(false);
+    importPathVerifier = new ImportPathVerifierStub();
 
     getInstanceProps = {
       constructContainer,

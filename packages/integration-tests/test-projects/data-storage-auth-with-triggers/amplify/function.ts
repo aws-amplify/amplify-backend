@@ -1,4 +1,4 @@
-import { Func } from '@aws-amplify/backend-function';
+import { Func } from '@aws-amplify/backend';
 
 export const myFunc = Func.fromDir({
   name: 'testFunc',
