@@ -4,6 +4,7 @@
   "references": [
     { "path": "../backend" },
     { "path": "../backend-auth" },
+    { "path": "../backend-secret" },
     { "path": "../backend-storage" },
     { "path": "../platform-core" }
   ],
