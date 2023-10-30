@@ -20,11 +20,7 @@ export const createEmptyAmplifyProject = async (
   const projectName = `${TEST_PROJECT_PREFIX}-${projectDirName}-${shortUuid()}`;
   await fs.writeFile(
     path.join(projectRoot, 'package.json'),
-    JSON.stringify(
-      { name: projectName, type: 'module' },
-      null,
-      2
-    )
+    JSON.stringify({ name: projectName, type: 'module' }, null, 2)
   );
 
   const projectAmplifyDir = path.join(projectRoot, 'amplify');
