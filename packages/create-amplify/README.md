@@ -2,7 +2,7 @@ create-amplify is a package allows the user to create an Amplify project by runn
 
 ## Usage
 
-In a project folder or empty folder, run `npm create amplify@alpha`.
+In a project folder or empty folder, run `npm create amplify`.
 
 ## Dev
 
