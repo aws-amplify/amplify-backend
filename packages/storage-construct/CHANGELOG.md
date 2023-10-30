@@ -1,5 +1,45 @@
 # @aws-amplify/storage-construct-alpha
 
+## 0.2.0
+
+### Minor Changes
+
+- 47456c26: Store attribution metadata in stack descriptions
+
+### Patch Changes
+
+- 0398b8e1: Bump graphql construct to 0.9.0 and remove some interface cruft
+- b2b0c2da: force version bump
+- 7296e9d9: Initial publish
+- 3bda96ff: update methods to use arrow notation
+- 7103735b: cdk lib dependency declaration
+- 36d93e46: add license to package.json
+- 8f99476e: chore: upgrade aws-cdk to 2.103.0
+- 47456c26: Remove ESM features from construct dependency packages and make corresponding updates in consumer packages
+- f75fa531: Refactor OutputStorageStrategy into stateless shared dependency
+- 59f5ea24: chore: upgrade aws-cdk to 2.100.0
+- Updated dependencies [47456c26]
+- Updated dependencies [ac3df080]
+- Updated dependencies [0398b8e1]
+- Updated dependencies [b2b0c2da]
+- Updated dependencies [7296e9d9]
+- Updated dependencies [53779253]
+- Updated dependencies [395c8f0d]
+- Updated dependencies [ce008a2c]
+- Updated dependencies [36d93e46]
+- Updated dependencies [8f99476e]
+- Updated dependencies [47456c26]
+- Updated dependencies [b4f82717]
+- Updated dependencies [05f97b26]
+- Updated dependencies [2525b582]
+- Updated dependencies [f75fa531]
+- Updated dependencies [f6618771]
+- Updated dependencies [f201c94a]
+- Updated dependencies [883d9da7]
+- Updated dependencies [59f5ea24]
+  - @aws-amplify/backend-output-storage@0.2.0
+  - @aws-amplify/backend-output-schemas@0.2.0
+
 ## 0.2.0-alpha.11
 
 ### Minor Changes
