@@ -40,7 +40,7 @@ jobs:
           ${{matrix.pkg-manager}} config set registry http://localhost:4873
           echo "$(${{matrix.pkg-manager}}) config get registry"
           ${{matrix.pkg-manager}} config get registry
-          PACKAGE_MANAGER_EXECUTABLE=${{matrix.pkg-manager}} ${{matrix.pkg-manager}} create amplify@alpha --yes
+          PACKAGE_MANAGER_EXECUTABLE=${{matrix.pkg-manager}} ${{matrix.pkg-manager}} create amplify@alpha -- --yes
       - name: ${{matrix.pkg-manager}}-create-amplify-project-step1-install
         continue-on-error: true
         if: matrix.pkg-manager == 'yarn1'
@@ -51,18 +51,18 @@ jobs:
           yarn config set registry http://localhost:4873
           PACKAGE_MANAGER_EXECUTABLE=yarn yarn create amplify@alpha --yes
 
-      - name: ${{matrix.pkg-manager}}-create-amplify-project-step2-setup-not-win
+      - name: yarn1-create-amplify-project-step2-setup-not-win
         if: ${{matrix.pkg-manager == 'yarn1' && matrix.os != 'windows-latest'}}
         shell: bash
         run: |
           /usr/local/bin/create-amplify
-      - name: ${{matrix.pkg-manager}}-create-amplify-project-step2-setup-win
+      - name: yarn1-create-amplify-project-step2-setup-win
         if: ${{matrix.pkg-manager == 'yarn1' && matrix.os == 'windows-latest'}}
         shell: bash
         run: |
           PACKAGE_MANAGER_EXECUTABLE=yarn C:\\npm\\prefix\\bin\\create-amplify --yes
 
-      - name: ${{matrix.pkg-manager}}-create-amplify-project-step1-install
+      - name: yarn3-create-amplify-project-step1-install
         if: matrix.pkg-manager == 'yarn3'
         shell: bash
         run: |
