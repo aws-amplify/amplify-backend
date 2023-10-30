@@ -39,7 +39,7 @@ jobs:
           ${{matrix.pkg-manager}} config get registry
           PACKAGE_MANAGER_EXECUTABLE=${{matrix.pkg-manager}} ${{matrix.pkg-manager}} create amplify --yes
 
-      - name: yarn-stable-create-amplify-project-step1-install
+      - name: yarn-stable-create-amplify-project
         if: matrix.pkg-manager == 'yarn-stable'
         shell: bash
         run: |
