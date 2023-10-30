@@ -1,4 +1,5 @@
 {
+ "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyPipelineDeploy\",\"createdWith\":\"0.2.0-alpha.12\",\"stackType\":\"root\",\"metadata\":{}}",
  "Metadata": {
   "AWS::Amplify::Platform": {
    "version": "1",
@@ -52,7 +53,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/13ff9c2f3099c7132cd0fa666748654fb1ab433d6203f987474934ed0514839c.json"
+       "/9c379f9e7f3d9d09544627288f84730dbec61005ed89482c82501210ee29cb82.json"
       ]
      ]
     }

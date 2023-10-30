@@ -5,6 +5,6 @@
     { "path": "../auth-construct" },
     { "path": "../backend-output-storage" },
     { "path": "../plugin-types" },
-    { "path": "../backend" }
+    { "path": "../backend-platform-test-stubs" }
   ]
 }

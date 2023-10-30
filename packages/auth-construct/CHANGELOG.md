@@ -1,5 +1,76 @@
 # @aws-amplify/auth-construct-alpha
 
+## 0.2.0
+
+### Minor Changes
+
+- 47456c26: Store attribution metadata in stack descriptions
+- 2ef006f1: Support for email and phone number login has been updated to reflect new type structures. User attributes and verification settings have also been added.
+- 3c36ace9: Implement UserPool trigger config
+- 790c3a60: Add support for account recovery settings.
+- dc22fdf4: Integrate secret to Auth
+- f201c94a: add support for external auth providers
+
+### Patch Changes
+
+- a911292b: Change default behavior of user attributes to mutable.
+- eac939b5: Update types and validation for email and sms.
+- 0398b8e1: Bump graphql construct to 0.9.0 and remove some interface cruft
+- b2b0c2da: force version bump
+- 18874854: Rename MFA enforcementType to mode. Convert accountRecovery to string union instead of enum. Make totp setting optional. Make auth/unauth roles required properties.
+- baa7a905: Move types package from peer deps to deps
+- 7296e9d9: Initial publish
+- fa75e94b: Remove custom attributes and change userAttributes to UserPool Standard Attributes.
+- b0b5da94: Migrate Auth construct from ESM to CJS.
+- 3bda96ff: update methods to use arrow notation
+- 41ae36e2: Simplify phoneNumber to phone, and make verificationEmailStyle more user friendly.
+- 7103735b: cdk lib dependency declaration
+- db395e9c: Refactor clientSecretValue to clientSecret in Google provider props.
+- 395c8f0d: Add identityPoolId to output, and set delete policy on user pool to delete.
+- 3f0790b0: fix identity pool id ref
+- ccacd673: Update types for MFA settings.
+- 3f0790b0: fix cognito idp
+- 36d93e46: add license to package.json
+- 88fe36a1: Update code and link message templates to be more intuitive.
+- 8f99476e: chore: upgrade aws-cdk to 2.103.0
+- b10f2a61: Rename UserPoolWebClient to UserPoolAppClient
+- 47456c26: Remove ESM features from construct dependency packages and make corresponding updates in consumer packages
+- 5f02b83b: Fix issue with additional oauth settings and improve documentation.
+- 740e2dc2: Update types for verification settings.
+- f75fa531: Refactor OutputStorageStrategy into stateless shared dependency
+- bc419e41: Update naming for social login providers.
+- 59f5ea24: chore: upgrade aws-cdk to 2.100.0
+- Updated dependencies [47456c26]
+- Updated dependencies [ac3df080]
+- Updated dependencies [0398b8e1]
+- Updated dependencies [b2b0c2da]
+- Updated dependencies [18874854]
+- Updated dependencies [7296e9d9]
+- Updated dependencies [53779253]
+- Updated dependencies [2ef006f1]
+- Updated dependencies [3bda96ff]
+- Updated dependencies [7103735b]
+- Updated dependencies [3c36ace9]
+- Updated dependencies [395c8f0d]
+- Updated dependencies [ce008a2c]
+- Updated dependencies [36d93e46]
+- Updated dependencies [8f99476e]
+- Updated dependencies [dc22fdf4]
+- Updated dependencies [407a09ff]
+- Updated dependencies [47456c26]
+- Updated dependencies [b4f82717]
+- Updated dependencies [05f97b26]
+- Updated dependencies [2525b582]
+- Updated dependencies [f75fa531]
+- Updated dependencies [f6618771]
+- Updated dependencies [f201c94a]
+- Updated dependencies [512f0778]
+- Updated dependencies [883d9da7]
+- Updated dependencies [59f5ea24]
+  - @aws-amplify/backend-output-storage@0.2.0
+  - @aws-amplify/backend-output-schemas@0.2.0
+  - @aws-amplify/plugin-types@0.2.0
+
 ## 0.2.0-alpha.18
 
 ### Minor Changes
