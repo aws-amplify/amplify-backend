@@ -31,6 +31,14 @@ export class SandboxEventHandlerFactory {
           );
         },
       ],
+      sandboxDeleted: [
+        async () => {
+          await this.clientConfigGeneratorAdapter.deleteClientConfigFile(
+            clientConfigOutDir,
+            format
+          );
+        },
+      ],
     };
   };
 }
