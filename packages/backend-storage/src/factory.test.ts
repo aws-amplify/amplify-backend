@@ -2,11 +2,6 @@ import { beforeEach, describe, it, mock } from 'node:test';
 import { defineStorage } from './factory.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
-import {
-  NestedStackResolver,
-  SingletonConstructContainer,
-  ToggleableImportPathVerifier,
-} from '@aws-amplify/backend/test-utils';
 import assert from 'node:assert';
 import {
   BackendOutputEntry,
@@ -22,6 +17,11 @@ import {
   CDKContextKey,
 } from '@aws-amplify/platform-core';
 import { AmplifyStorage } from '@aws-amplify/storage-construct-alpha';
+import {
+  ConstructContainerStub,
+  ImportPathVerifierStub,
+  StackResolverStub,
+} from '@aws-amplify/backend-platform-test-stubs';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
@@ -46,15 +46,15 @@ void describe('AmplifyStorageFactory', () => {
     storageFactory = defineStorage({});
     const stack = createStackAndSetContext();
 
-    constructContainer = new SingletonConstructContainer(
-      new NestedStackResolver(stack)
+    constructContainer = new ConstructContainerStub(
+      new StackResolverStub(stack)
     );
 
     outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
       stack
     );
 
-    importPathVerifier = new ToggleableImportPathVerifier(false);
+    importPathVerifier = new ImportPathVerifierStub();
 
     getInstanceProps = {
       constructContainer,
@@ -85,7 +85,7 @@ void describe('AmplifyStorageFactory', () => {
         addBackendOutputEntry: storeOutputMock,
       };
 
-    const importPathVerifier = new ToggleableImportPathVerifier(false);
+    const importPathVerifier = new ImportPathVerifierStub();
 
     storageFactory.getInstance({
       outputStorageStrategy,

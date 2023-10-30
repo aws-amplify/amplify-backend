@@ -1,5 +1,13 @@
 # create-amplify
 
+## 0.2.0-alpha.15
+
+### Patch Changes
+
+- 9addd57f: Ensure .gitignore file exists with correct content in create-amplify flow
+- Updated dependencies [76ba7929]
+  - @aws-amplify/cli-core@0.1.0-alpha.4
+
 ## 0.2.0-alpha.14
 
 ### Patch Changes

@@ -1,3 +1,3 @@
-import { defineStorage } from '@aws-amplify/backend-storage';
+import { defineStorage } from '@aws-amplify/backend';
 
 export const storage = defineStorage({});

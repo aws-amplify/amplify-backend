@@ -3,20 +3,15 @@ import { ProjectRootValidator } from './project_root_validator.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
 import { NpmProjectInitializer } from './npm_project_initializer.js';
 import { TsConfigInitializer } from './tsconfig_initializer.js';
+import { GitIgnoreInitializer } from './gitignore_initializer.js';
 
 /**
  *
  */
 export class AmplifyProjectCreator {
-  // TODO once we create `aws-amplify-backend` that will be included here
   private readonly defaultDevPackages = [
     '@aws-amplify/backend',
-    '@aws-amplify/backend-graphql',
-    '@aws-amplify/backend-auth',
     '@aws-amplify/backend-cli',
-    // TODO after API-Next is GA change to: @aws-amplify/amplify-api-next
-    // https://github.com/aws-amplify/samsara-cli/issues/332
-    '@aws-amplify/amplify-api-next-alpha',
     'typescript@^5.0.0',
   ];
 
@@ -34,6 +29,7 @@ export class AmplifyProjectCreator {
     private readonly initialProjectFileGenerator: InitialProjectFileGenerator,
     private readonly npmInitializedEnsurer: NpmProjectInitializer,
     private readonly tsConfigInitializer: TsConfigInitializer,
+    private readonly gitIgnoreInitializer: GitIgnoreInitializer,
     private readonly projectRoot: string,
     private readonly logger: typeof console = console
   ) {}
@@ -65,6 +61,8 @@ export class AmplifyProjectCreator {
     );
 
     await this.tsConfigInitializer.ensureInitialized();
+
+    await this.gitIgnoreInitializer.ensureInitialized();
 
     this.logger.log('Scaffolding initial project files...');
     await this.initialProjectFileGenerator.generateInitialProjectFiles();

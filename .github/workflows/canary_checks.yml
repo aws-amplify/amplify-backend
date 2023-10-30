@@ -2,7 +2,7 @@ name: canary_checks
 
 on:
   schedule:
-    - cron: '0 12 * * *' # every day 12:00 UTC
+    - cron: '0 */1 * * *' # runs every hour
   workflow_dispatch:
 
 jobs:

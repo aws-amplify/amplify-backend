@@ -12,12 +12,14 @@ void describe('AmplifyProjectCreator', () => {
     };
     const npmInitializedEnsurerMock = { ensureInitialized: mock.fn() };
     const tsConfigInitializerMock = { ensureInitialized: mock.fn() };
+    const gitIgnoreInitializerMock = { ensureInitialized: mock.fn() };
     const amplifyProjectCreator = new AmplifyProjectCreator(
       packageManagerControllerMock as never,
       projectRootValidatorMock as never,
       initialProjectFileGeneratorMock as never,
       npmInitializedEnsurerMock as never,
       tsConfigInitializerMock as never,
+      gitIgnoreInitializerMock as never,
       process.cwd(),
       { log: logMock } as never
     );
@@ -51,12 +53,14 @@ void describe('AmplifyProjectCreator', () => {
     };
     const npmInitializedEnsurerMock = { ensureInitialized: mock.fn() };
     const tsConfigInitializerMock = { ensureInitialized: mock.fn() };
+    const gitIgnoreInitializerMock = { ensureInitialized: mock.fn() };
     const amplifyProjectCreator = new AmplifyProjectCreator(
       packageManagerControllerMock as never,
       projectRootValidatorMock as never,
       initialProjectFileGeneratorMock as never,
       npmInitializedEnsurerMock as never,
       tsConfigInitializerMock as never,
+      gitIgnoreInitializerMock as never,
       '/project/root',
       { log: logMock } as never
     );

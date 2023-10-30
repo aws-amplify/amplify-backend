@@ -1,4 +1,4 @@
-import { defineData } from '@aws-amplify/backend-graphql';
+import { defineData } from '@aws-amplify/backend';
 
 const schema = `
   input AMPLIFY {globalAuthRule: AuthRule = { allow: public }} # FOR TESTING ONLY!
