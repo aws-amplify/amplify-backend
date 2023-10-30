@@ -1,5 +1,29 @@
 # @aws-amplify/plugin-types
 
+## 0.2.0
+
+### Minor Changes
+
+- dc22fdf4: Integrate secret to Auth
+- 883d9da7: Migrate auth dependencies to CommonJS.
+
+### Patch Changes
+
+- 0398b8e1: Bump graphql construct to 0.9.0 and remove some interface cruft
+- b2b0c2da: force version bump
+- 18874854: Rename MFA enforcementType to mode. Convert accountRecovery to string union instead of enum. Make totp setting optional. Make auth/unauth roles required properties.
+- 7296e9d9: Initial publish
+- 2ef006f1: Support for email and phone number login has been updated to reflect new type structures. User attributes and verification settings have also been added.
+- 3bda96ff: update methods to use arrow notation
+- 7103735b: cdk lib dependency declaration
+- 3c36ace9: Implement UserPool trigger config
+- 36d93e46: add license to package.json
+- 8f99476e: chore: upgrade aws-cdk to 2.103.0
+- 407a09ff: Implements backend secret feature, include backend secret resolver and the backend-secret pkg.
+- f201c94a: add support for external auth providers
+- 512f0778: move UniqueBackendIdentifier to platform-core package
+- 59f5ea24: chore: upgrade aws-cdk to 2.100.0
+
 ## 0.2.0-alpha.11
 
 ### Patch Changes

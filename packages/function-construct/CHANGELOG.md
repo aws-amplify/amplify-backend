@@ -1,5 +1,30 @@
 # @aws-amplify/function-construct-alpha
 
+## 0.2.0
+
+### Minor Changes
+
+- 47456c26: Store attribution metadata in stack descriptions
+
+### Patch Changes
+
+- b2b0c2da: force version bump
+- 7296e9d9: Initial publish
+- 7103735b: cdk lib dependency declaration
+- 3c36ace9: Implement UserPool trigger config
+- 36d93e46: add license to package.json
+- 8f99476e: chore: upgrade aws-cdk to 2.103.0
+- 59f5ea24: chore: upgrade aws-cdk to 2.100.0
+- Updated dependencies [47456c26]
+- Updated dependencies [ac3df080]
+- Updated dependencies [0398b8e1]
+- Updated dependencies [36d93e46]
+- Updated dependencies [8f99476e]
+- Updated dependencies [f75fa531]
+- Updated dependencies [883d9da7]
+- Updated dependencies [59f5ea24]
+  - @aws-amplify/backend-output-storage@0.2.0
+
 ## 0.2.0-alpha.7
 
 ### Minor Changes

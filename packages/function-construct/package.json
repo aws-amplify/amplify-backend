@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/function-construct-alpha",
-  "version": "0.2.0-alpha.7",
+  "version": "0.2.0",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -18,7 +18,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@aws-amplify/backend-output-storage": "^0.2.0-alpha.6"
+    "@aws-amplify/backend-output-storage": "^0.2.0"
   },
   "peerDependencies": {
     "aws-cdk-lib": "^2.103.0",

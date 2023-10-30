@@ -1,5 +1,133 @@
 # @aws-amplify/backend-cli
 
+## 0.2.0
+
+### Minor Changes
+
+- 348b3783: Added form generation event to sandbox
+- 98b17069: Provides sandbox secret CLI commands
+- 2216d37d: 1. Remove version from the backend secret feature. 2. Use max(secret_last_updated) to trigger secret fetcher.
+- 56fbcc5f: Generated typescript codegen by default, and add type defaults as well
+- 3fd21230: Removes event hook that runs formgen after sandbox deployment.
+- 319e62bb: Add bootstrap detection in sandbox
+- 0b2d50da: Add form generation interface
+- ee3d55fe: Add event handlers for Sandbox
+- 6ec93aed: Add generate graphql-client-code command with mocked implementation
+- 2bd14d48: Adds profile option to sandbox command
+- ac625207: adds pipeline-deploy command
+- 2b18af15: Add model filtering to form generation
+- b4f82717: Create a new deployed-backend-client package that provides a convenient interface for retrieving stack outputs
+- 1a19914d: By default, artifacts render in ./{ui-components,graphql}
+
+### Patch Changes
+
+- e233eab6: make default amplifyconfig format json, change js format to mjs, and add dart format
+- 23fc5b13: Lint fixes
+- 813cdfb0: Extract BackendIdentifierResolver into its own class
+- 7141c188: chore: validate that the profile can vend credentials before moving on
+- c3383926: Run npm init as part of create-amplify if necessary. List aws-cdk as a peerDependency of sandbox. Fix sandbox stack naming and lookup
+- 7853b00a: Make CLI options kebab case
+- b2b0c2da: force version bump
+- ed841e3e: fix: pipeline deploy passes the required parameter to the deployer
+- 7296e9d9: Initial publish
+- 4fd18b12: fix: change 'out' to 'outDir'
+- 75d90a57: add `format` option to sandbox. Rename `out` option to `outDir`.
+- 76ba7929: chore: reformat yargs error display
+- 915c0325: Offer to reset the sandbox if a non deployable change is detected
+- df25ec57: Remove short circuit logic in client config generation event
+- 4f3c1711: update backend-deployer dependency
+- 0765e494: fix(cli): Sanitize app names generated from package json
+- 3bda96ff: update methods to use arrow notation
+- caaf1fee: Add model and form generation outputs to watch exclusions
+- 01320d4b: add `amplify generate config --format` option
+- d84f92c0: make pipeline-deploy cmd generate config
+- bb3bf89a: add backend metadata manager
+- fcc7d389: Enable type checking during deployment
+- 512f0778: move UniqueBackendIdentifier to platform-core package
+- 6ba66d9b: fix: ctrl-c behavior for sandbox
+- Updated dependencies [2bbf3f20]
+- Updated dependencies [f0ef7c6a]
+- Updated dependencies [e233eab6]
+- Updated dependencies [92950f99]
+- Updated dependencies [23fc5b13]
+- Updated dependencies [e9c0c9b5]
+- Updated dependencies [47bfb317]
+- Updated dependencies [ac3df080]
+- Updated dependencies [98b17069]
+- Updated dependencies [c3383926]
+- Updated dependencies [642e8d55]
+- Updated dependencies [c78daa11]
+- Updated dependencies [b2b0c2da]
+- Updated dependencies [a351b261]
+- Updated dependencies [1817c55c]
+- Updated dependencies [2216d37d]
+- Updated dependencies [baa7a905]
+- Updated dependencies [1a87500d]
+- Updated dependencies [b48dae80]
+- Updated dependencies [56fbcc5f]
+- Updated dependencies [7296e9d9]
+- Updated dependencies [53779253]
+- Updated dependencies [5585f473]
+- Updated dependencies [233adaba]
+- Updated dependencies [75d90a57]
+- Updated dependencies [76ba7929]
+- Updated dependencies [915c0325]
+- Updated dependencies [b40d2d7b]
+- Updated dependencies [c5d18967]
+- Updated dependencies [ad73f897]
+- Updated dependencies [675f4283]
+- Updated dependencies [c03a2f8c]
+- Updated dependencies [b40d2d7b]
+- Updated dependencies [3bda96ff]
+- Updated dependencies [319e62bb]
+- Updated dependencies [ee3d55fe]
+- Updated dependencies [7103735b]
+- Updated dependencies [395c8f0d]
+- Updated dependencies [08601278]
+- Updated dependencies [1cefbdd4]
+- Updated dependencies [2bd14d48]
+- Updated dependencies [ce008a2c]
+- Updated dependencies [01320d4b]
+- Updated dependencies [36d93e46]
+- Updated dependencies [ac625207]
+- Updated dependencies [aee0a52d]
+- Updated dependencies [8f99476e]
+- Updated dependencies [4d411b67]
+- Updated dependencies [d1295912]
+- Updated dependencies [f46f69fb]
+- Updated dependencies [b1da9601]
+- Updated dependencies [bb3bf89a]
+- Updated dependencies [2b18af15]
+- Updated dependencies [407a09ff]
+- Updated dependencies [47456c26]
+- Updated dependencies [0b029cb5]
+- Updated dependencies [b4f82717]
+- Updated dependencies [f2394dbe]
+- Updated dependencies [5b9aac15]
+- Updated dependencies [fcc7d389]
+- Updated dependencies [05f97b26]
+- Updated dependencies [d925b097]
+- Updated dependencies [2525b582]
+- Updated dependencies [1a6dd467]
+- Updated dependencies [f75fa531]
+- Updated dependencies [f6618771]
+- Updated dependencies [4664e675]
+- Updated dependencies [f201c94a]
+- Updated dependencies [5c1d9de8]
+- Updated dependencies [512f0778]
+- Updated dependencies [e0e1488b]
+- Updated dependencies [883d9da7]
+- Updated dependencies [59f5ea24]
+  - @aws-amplify/client-config@0.2.0
+  - @aws-amplify/deployed-backend-client@0.2.0
+  - @aws-amplify/model-generator@0.2.0
+  - @aws-amplify/backend-output-schemas@0.2.0
+  - @aws-amplify/backend-secret@0.2.0
+  - @aws-amplify/sandbox@0.2.0
+  - @aws-amplify/form-generator@0.2.0
+  - @aws-amplify/cli-core@0.1.0
+  - @aws-amplify/platform-core@0.1.1
+
 ## 0.2.0-alpha.15
 
 ### Patch Changes
