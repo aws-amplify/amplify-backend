@@ -3,7 +3,7 @@ import { DataStorageAuthWithTriggerTestProject } from './data_storage_auth_with_
 import { getSecretClient } from '@aws-amplify/backend-secret';
 import { createTestDirectory } from '../setup_test_directory.js';
 import { TestProjectBase } from './test_project_base.js';
-import { MinimalWithTypescriptIdiomTestProject } from './minimalist-project-with-typescript-idioms.js';
+import { MinimalWithTypescriptIdiomTestProject } from './minimal_with_typescript_idioms.js';
 
 /**
  * Generates a list of test projects.

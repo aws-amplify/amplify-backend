@@ -5,6 +5,9 @@ import path from "path";
 import { createEmptyAmplifyProject } from "../create_empty_amplify_project.js";
 import { CloudFormationClient } from "@aws-sdk/client-cloudformation";
 
+/**
+ * The minimal test with typescript idioms.
+ */
 export class MinimalWithTypescriptIdiomTestProject extends TestProjectBase {
     readonly sourceProjectDirPath =
     '../../test-projects/minimalist-project-with-typescript-idioms';
@@ -17,8 +20,8 @@ export class MinimalWithTypescriptIdiomTestProject extends TestProjectBase {
   );
 
     /**
-   * Create a test project instance.
-   */
+     * Create a test project instance.
+     */
     constructor(
         name: string,
         projectDirPath: string,
@@ -29,14 +32,14 @@ export class MinimalWithTypescriptIdiomTestProject extends TestProjectBase {
       }
 
     /**
-   * Creates a test project directory and instance.
-   */
+     * Creates a test project directory and instance.
+     */
     static createProject = async (
         e2eProjectDir: string,
         cfnClient: CloudFormationClient,
       ): Promise<MinimalWithTypescriptIdiomTestProject> => {
         const { projectName, projectRoot, projectAmplifyDir } =
-          await createEmptyAmplifyProject('typescript-idioms', e2eProjectDir);
+          await createEmptyAmplifyProject('typescript-idiom', e2eProjectDir);
     
         const project = new MinimalWithTypescriptIdiomTestProject(
           projectName,
