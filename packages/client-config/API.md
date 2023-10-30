@@ -22,9 +22,11 @@ export type ClientConfig = Partial<AuthClientConfig & GraphqlClientConfig & Stor
 // @public (undocumented)
 export enum ClientConfigFormat {
     // (undocumented)
-    JS = "js",
+    DART = "dart",
     // (undocumented)
     JSON = "json",
+    // (undocumented)
+    MJS = "mjs",
     // (undocumented)
     TS = "ts"
 }

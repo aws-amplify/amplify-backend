@@ -11,8 +11,9 @@ import { EventHandler, SandboxCommand } from './sandbox_command.js';
 import { createSandboxCommand } from './sandbox_command_factory.js';
 import { SandboxDeleteCommand } from './sandbox-delete/sandbox_delete_command.js';
 import { Sandbox, SandboxSingletonFactory } from '@aws-amplify/sandbox';
-import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 import { createSandboxSecretCommand } from './sandbox-secret/sandbox_secret_command_factory.js';
+import { FromIniInit } from '@aws-sdk/credential-providers';
+import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 
 void describe('sandbox command factory', () => {
   void it('instantiate a sandbox command correctly', () => {
@@ -24,8 +25,7 @@ void describe('sandbox command', () => {
   let commandRunner: TestCommandRunner;
   let sandbox: Sandbox;
   let sandboxStartMock = mock.fn<typeof sandbox.start>();
-  const mockGenerate =
-    mock.fn<ClientConfigGeneratorAdapter['generateClientConfigToFile']>();
+
   const generationMock = mock.fn<EventHandler>();
 
   beforeEach(async () => {
@@ -47,7 +47,6 @@ void describe('sandbox command', () => {
     const parser = yargs().command(sandboxCommand as unknown as CommandModule);
     commandRunner = new TestCommandRunner(parser);
     sandboxStartMock.mock.resetCalls();
-    mockGenerate.mock.resetCalls();
   });
 
   void it('registers a callback on the "successfulDeployment" event', async () => {
@@ -82,41 +81,22 @@ void describe('sandbox command', () => {
   });
 
   void it('fails if invalid dir-to-watch is provided', async () => {
-    await assert.rejects(
-      () => commandRunner.runCommand('sandbox --dir-to-watch nonExistentDir'),
-      (err: TestCommandError) => {
-        assert.equal(err.error.name, 'Error');
-        assert.equal(
-          err.error.message,
-          '--dir-to-watch nonExistentDir does not exist'
-        );
-        assert.match(
-          err.output,
-          /--dir-to-watch nonExistentDir does not exist/
-        );
-        return true;
-      }
+    const output = await commandRunner.runCommand(
+      'sandbox --dir-to-watch nonExistentDir'
     );
+    assert.match(output, /--dir-to-watch nonExistentDir does not exist/);
   });
 
   void it('fails if a file is provided in the --dir-to-watch flag', async (contextual) => {
     contextual.mock.method(fs, 'statSync', () => ({
       isDirectory: () => false,
     }));
-    await assert.rejects(
-      () => commandRunner.runCommand('sandbox --dir-to-watch existentFile'),
-      (err: TestCommandError) => {
-        assert.equal(err.error.name, 'Error');
-        assert.equal(
-          err.error.message,
-          '--dir-to-watch existentFile is not a valid directory'
-        );
-        assert.match(
-          err.output,
-          /--dir-to-watch existentFile is not a valid directory/
-        );
-        return true;
-      }
+    const output = await commandRunner.runCommand(
+      'sandbox --dir-to-watch existentFile'
+    );
+    assert.match(
+      output,
+      /--dir-to-watch existentFile is not a valid directory/
     );
   });
 
@@ -189,9 +169,49 @@ void describe('sandbox command', () => {
     assert.equal(sandboxDeleteMock.mock.callCount(), 0);
   });
 
-  void it('starts sandbox with user provided AWS profile', async () => {
+  void it('starts sandbox with user provided invalid AWS profile', async () => {
+    await assert.rejects(
+      () => commandRunner.runCommand('sandbox --profile amplify-sandbox'), // profile doesn't exist
+      (err: TestCommandError) => {
+        assert.equal(err.error.name, 'CredentialsProviderError');
+        assert.equal(
+          err.error.message,
+          'Profile amplify-sandbox could not be found or parsed in shared credentials file.'
+        );
+        return true;
+      }
+    );
+    assert.equal(sandboxStartMock.mock.callCount(), 0);
+    assert.strictEqual(process.env.AWS_PROFILE, undefined);
+  });
+
+  void it('starts sandbox with user provided valid AWS profile', async () => {
+    // Mocking SDK's credential provider to not throw error on any profile name
+    const mockCredentialProviderFromIni = mock.fn<
+      (init?: FromIniInit) => AwsCredentialIdentityProvider
+    >(() => {
+      return mock.fn();
+    });
+    const sandboxFactory = new SandboxSingletonFactory(() =>
+      Promise.resolve('testBackendId')
+    );
+    sandbox = await sandboxFactory.getInstance();
+    sandboxStartMock = mock.method(sandbox, 'start', () => Promise.resolve());
+
+    const sandboxCommand = new SandboxCommand(
+      sandboxFactory,
+      [],
+      undefined,
+      mockCredentialProviderFromIni
+    );
+    const parser = yargs().command(sandboxCommand as unknown as CommandModule);
+    commandRunner = new TestCommandRunner(parser);
     await commandRunner.runCommand('sandbox --profile amplify-sandbox');
     assert.equal(sandboxStartMock.mock.callCount(), 1);
     assert.strictEqual(process.env.AWS_PROFILE, 'amplify-sandbox');
+    assert.strictEqual(
+      mockCredentialProviderFromIni.mock.calls[0]?.arguments[0]?.profile,
+      'amplify-sandbox'
+    );
   });
 });

@@ -13,6 +13,8 @@ import {
 import { S3Client } from '@aws-sdk/client-s3';
 import { DeployedResourcesEnumerator } from './deployed-backend-client/deployed_resources_enumerator.js';
 import { StackStatusMapper } from './deployed-backend-client/stack_status_mapper.js';
+import { ArnGenerator } from './deployed-backend-client/arn_generator.js';
+import { ArnParser } from './deployed-backend-client/arn_parser.js';
 
 export enum ConflictResolutionMode {
   LAMBDA = 'LAMBDA',
@@ -46,6 +48,7 @@ export type DeployedBackendResource = {
   resourceStatusReason?: string;
   resourceType?: string;
   physicalResourceId?: string;
+  arn?: string;
 };
 
 export type BackendMetadata = {
@@ -58,12 +61,10 @@ export type BackendMetadata = {
     status: BackendDeploymentStatus;
     lastUpdated: Date | undefined;
     graphqlEndpoint: string;
-    graphqlSchema: string;
     defaultAuthType: ApiAuthType;
     additionalAuthTypes: ApiAuthType[];
     conflictResolutionMode?: ConflictResolutionMode;
     apiId: string;
-    modelIntrospectionSchema: string;
   };
   authConfiguration?: {
     status: BackendDeploymentStatus;
@@ -127,16 +128,26 @@ export class DeployedBackendClientFactory {
     options: DeployedBackendClientFactoryOptions
   ): DeployedBackendClient {
     const stackStatusMapper = new StackStatusMapper();
+    const arnGenerator = new ArnGenerator();
+    const arnParser = new ArnParser();
     const deployedResourcesEnumerator = new DeployedResourcesEnumerator(
-      stackStatusMapper
+      stackStatusMapper,
+      arnGenerator,
+      arnParser
     );
-    if ('backendOutputClient' in options && 'cloudFormationClient' in options) {
+
+    if (
+      'backendOutputClient' in options &&
+      'cloudFormationClient' in options &&
+      's3Client' in options
+    ) {
       return new DefaultDeployedBackendClient(
         options.cloudFormationClient,
         options.s3Client,
         options.backendOutputClient,
         deployedResourcesEnumerator,
-        stackStatusMapper
+        stackStatusMapper,
+        arnParser
       );
     }
     return new DefaultDeployedBackendClient(
@@ -146,7 +157,8 @@ export class DeployedBackendClientFactory {
         credentials: options.credentials,
       }),
       deployedResourcesEnumerator,
-      stackStatusMapper
+      stackStatusMapper,
+      arnParser
     );
   }
 }

@@ -1,5 +1,18 @@
 # @aws-amplify/integration-tests
 
+## 0.2.0-alpha.10
+
+### Patch Changes
+
+- 9addd57f: Ensure .gitignore file exists with correct content in create-amplify flow
+
+## 0.2.0-alpha.9
+
+### Patch Changes
+
+- e233eab6: make default amplifyconfig format json, change js format to mjs, and add dart format
+- e233eab6: Toggle resolveJsonModule flag when creating tsconfig
+
 ## 0.2.0-alpha.8
 
 ### Patch Changes

@@ -275,7 +275,7 @@ void describe('Sandbox using local project name resolver', () => {
     // File watcher should be called with right arguments such as dir and excludes
     assert.strictEqual(subscribeMock.mock.calls[0].arguments[0], 'testDir');
     assert.deepStrictEqual(subscribeMock.mock.calls[0].arguments[2], {
-      ignore: ['cdk.out', 'exclude1', 'exclude2'],
+      ignore: ['.amplify', 'exclude1', 'exclude2'],
     });
 
     // BackendDeployer should be called once
@@ -292,6 +292,19 @@ void describe('Sandbox using local project name resolver', () => {
       },
     ]);
     assert.strictEqual(cfnClientSendMock.mock.callCount(), 0);
+  });
+
+  void it('calls watcher subscribe with the default "./amplify" if no `dir` specified', async () => {
+    ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
+      executor: sandboxExecutor,
+      cfnClient: cfnClientMock,
+    }));
+    await fileChangeEventCallback(null, [
+      { type: 'update', path: 'foo/test1.ts' },
+    ]);
+
+    // File watcher should be called with right arguments such as dir and excludes
+    assert.strictEqual(subscribeMock.mock.calls[0].arguments[0], './amplify');
   });
 
   void it('calls BackendDeployer only once when multiple file changes are present', async () => {
@@ -455,7 +468,9 @@ void describe('Sandbox using local project name resolver', () => {
     // BackendDeployer should be called with the right params
     assert.deepEqual(backendDeployerDestroyMock.mock.calls[0].arguments, [
       new SandboxBackendIdentifier('testSandboxId'),
-      { deploymentType: BackendDeploymentType.SANDBOX },
+      {
+        deploymentType: BackendDeploymentType.SANDBOX,
+      },
     ]);
   });
 
@@ -641,7 +656,9 @@ void describe('Sandbox using local project name resolver', () => {
     // BackendDeployer should be called with the right params
     assert.deepEqual(backendDeployerDestroyMock.mock.calls[0].arguments, [
       new SandboxBackendIdentifier('customSandboxName'),
-      { deploymentType: BackendDeploymentType.SANDBOX },
+      {
+        deploymentType: BackendDeploymentType.SANDBOX,
+      },
     ]);
   });
 
@@ -670,7 +687,7 @@ void describe('Sandbox using local project name resolver', () => {
     // File watcher should be called with right excludes
     assert.deepStrictEqual(subscribeMock.mock.calls[0].arguments[2], {
       ignore: [
-        'cdk.out',
+        '.amplify',
         'patternWithLeadingSlash',
         'patternWithoutLeadingSlash',
         'someFile.js',

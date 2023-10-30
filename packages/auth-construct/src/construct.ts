@@ -24,7 +24,11 @@ import { AuthOutput, authOutputKey } from '@aws-amplify/backend-output-schemas';
 import { AuthProps, EmailLoginSettings, TriggerEvent } from './types.js';
 import { DEFAULTS } from './defaults.js';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
-import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
+import {
+  AttributionMetadataStorage,
+  StackMetadataBackendOutputStorageStrategy,
+} from '@aws-amplify/backend-output-storage';
+import * as path from 'path';
 
 type DefaultRoles = { auth: Role; unAuth: Role };
 type IdentityProviderSetupResult = {
@@ -52,6 +56,9 @@ const VERIFICATION_SMS_PLACEHOLDERS = {
 const MFA_SMS_PLACEHOLDERS = {
   CODE: '{####}',
 };
+
+// Be very careful editing this value. It is the string that is used to attribute stacks to Amplify Auth in BI metrics
+const authStackType = 'auth-Cognito';
 
 /**
  * Amplify Auth CDK Construct
@@ -139,6 +146,12 @@ export class AmplifyAuth
       },
     };
     this.storeOutput(props.outputStorageStrategy);
+
+    new AttributionMetadataStorage().storeAttributionMetadata(
+      Stack.of(this),
+      authStackType,
+      path.resolve(__dirname, '..', 'package.json')
+    );
   }
 
   /**
@@ -288,14 +301,14 @@ export class AmplifyAuth
         ...(props.userAttributes ? props.userAttributes : {}),
       },
       selfSignUpEnabled: DEFAULTS.ALLOW_SELF_SIGN_UP,
-      mfa: this.getMFAEnforcementType(props.multifactor),
+      mfa: this.getMFAMode(props.multifactor),
       mfaMessage: this.getMFAMessage(props.multifactor),
       mfaSecondFactor:
         typeof props.multifactor === 'object' &&
-        props.multifactor.enforcementType !== 'OFF'
+        props.multifactor.mode !== 'OFF'
           ? {
               sms: props.multifactor.sms ? true : false,
-              otp: props.multifactor.totp,
+              otp: props.multifactor.totp ? true : false,
             }
           : undefined,
       accountRecovery: this.getAccountRecoverySetting(
@@ -366,14 +379,17 @@ export class AmplifyAuth
    * Determine the account recovery option based on enabled login methods.
    * @param emailEnabled - is email enabled
    * @param phoneEnabled - is phone enabled
-   * @param accountRecovery - the user provided account recovery setting
-   * @returns account recovery setting
+   * @param accountRecoveryMethodAsString - the user provided account recovery setting
+   * @returns account recovery setting enum value
    */
   private getAccountRecoverySetting = (
     emailEnabled: boolean,
     phoneEnabled: boolean,
-    accountRecovery: AuthProps['accountRecovery']
+    accountRecoveryMethodAsString: AuthProps['accountRecovery']
   ): cognito.AccountRecovery | undefined => {
+    const accountRecovery = this.convertAccountRecoveryStringToEnum(
+      accountRecoveryMethodAsString
+    );
     if (accountRecovery !== undefined) {
       return accountRecovery;
     }
@@ -391,16 +407,14 @@ export class AmplifyAuth
   };
 
   /**
-   * Convert user friendly Mfa type to cognito Mfa type.
+   * Convert user friendly Mfa mode to cognito Mfa type.
    * This eliminates the need for users to import cognito.Mfa.
    * @param mfa - MFA settings
    * @returns cognito MFA enforcement type
    */
-  private getMFAEnforcementType = (
-    mfa: AuthProps['multifactor']
-  ): Mfa | undefined => {
+  private getMFAMode = (mfa: AuthProps['multifactor']): Mfa | undefined => {
     if (mfa) {
-      switch (mfa.enforcementType) {
+      switch (mfa.mode) {
         case 'OFF':
           return Mfa.OFF;
         case 'OPTIONAL':
@@ -413,6 +427,21 @@ export class AmplifyAuth
   };
 
   /**
+   * Convert user friendly account recovery method to cognito AccountRecover enum.
+   * This eliminates the need for users to import cognito.AccountRecovery.
+   * @param method - account recovery method as a string value
+   * @returns cognito.AccountRecovery enum value
+   */
+  private convertAccountRecoveryStringToEnum = (
+    method: AuthProps['accountRecovery']
+  ): cognito.AccountRecovery | undefined => {
+    if (method !== undefined) {
+      return cognito.AccountRecovery[method];
+    }
+    return undefined;
+  };
+
+  /**
    * Extract the MFA message settings and perform validation.
    * @param mfa - MFA settings
    * @returns mfa message
@@ -420,7 +449,7 @@ export class AmplifyAuth
   private getMFAMessage = (
     mfa: AuthProps['multifactor']
   ): string | undefined => {
-    if (mfa && mfa.enforcementType !== 'OFF' && typeof mfa.sms === 'object') {
+    if (mfa && mfa.mode !== 'OFF' && typeof mfa.sms === 'object') {
       const message = mfa.sms.smsMessage(MFA_SMS_PLACEHOLDERS.CODE);
       if (!message.includes(MFA_SMS_PLACEHOLDERS.CODE)) {
         throw Error(

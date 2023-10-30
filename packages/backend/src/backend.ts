@@ -7,7 +7,10 @@ import {
 } from './engine/nested_stack_resolver.js';
 import { SingletonConstructContainer } from './engine/singleton_construct_container.js';
 import { ToggleableImportPathVerifier } from './engine/toggleable_import_path_verifier.js';
-import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
+import {
+  AttributionMetadataStorage,
+  StackMetadataBackendOutputStorageStrategy,
+} from '@aws-amplify/backend-output-storage';
 import { createDefaultStack } from './default_stack_factory.js';
 import { getUniqueBackendIdentifier } from './backend_identifier.js';
 import {
@@ -15,6 +18,10 @@ import {
   SandboxBackendIdentifier,
 } from '@aws-amplify/platform-core';
 import { stackOutputKey } from '@aws-amplify/backend-output-schemas';
+import { fileURLToPath } from 'url';
+
+// Be very careful editing this value. It is the value used in the BI metrics to attribute stacks as Amplify root stacks
+const rootStackTypeIdentifier = 'root';
 
 /**
  * Class that collects and instantiates all the Amplify backend constructs
@@ -33,6 +40,11 @@ export class Backend<T extends Record<string, ConstructFactory<Construct>>> {
    * If no CDK App is specified a new one is created
    */
   constructor(constructFactories: T, stack: Stack = createDefaultStack()) {
+    new AttributionMetadataStorage().storeAttributionMetadata(
+      stack,
+      rootStackTypeIdentifier,
+      fileURLToPath(new URL('../package.json', import.meta.url))
+    );
     this.stackResolver = new NestedStackResolver(stack);
 
     const constructContainer = new SingletonConstructContainer(

@@ -28,6 +28,8 @@ import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { GetObjectCommand, S3 } from '@aws-sdk/client-s3';
 import { DeployedResourcesEnumerator } from './deployed-backend-client/deployed_resources_enumerator.js';
 import { StackStatusMapper } from './deployed-backend-client/stack_status_mapper.js';
+import { ArnGenerator } from './deployed-backend-client/arn_generator.js';
+import { ArnParser } from './deployed-backend-client/arn_parser.js';
 
 const listStacksMock = {
   NextToken: undefined,
@@ -142,11 +144,8 @@ const expectedMetadata = {
     status: BackendDeploymentStatus.FAILED,
     defaultAuthType: undefined,
     additionalAuthTypes: [],
-    graphqlSchema: 's3://bucketName/model-schema.graphql schema contents!',
     conflictResolutionMode: undefined,
     apiId: 'awsAppsyncApiId',
-    modelIntrospectionSchema:
-      's3://bucketName/model-introspection-schema.json schema contents!',
   },
 };
 
@@ -212,8 +211,13 @@ void describe('Deployed Backend Client', () => {
 
     cfnClientSendMock.mock.mockImplementation(mockSend);
 
+    const arnGeneratorMock = new ArnGenerator();
+    const arnParserMock = new ArnParser();
+    mock.method(arnGeneratorMock, 'generateArn', () => undefined);
     const deployedResourcesEnumerator = new DeployedResourcesEnumerator(
-      new StackStatusMapper()
+      new StackStatusMapper(),
+      arnGeneratorMock,
+      arnParserMock
     );
     mock.method(deployedResourcesEnumerator, 'listDeployedResources', () => []);
 
@@ -222,7 +226,8 @@ void describe('Deployed Backend Client', () => {
       mockS3Client,
       mockBackendOutputClient,
       deployedResourcesEnumerator,
-      new StackStatusMapper()
+      new StackStatusMapper(),
+      arnParserMock
     );
   });
 
@@ -362,8 +367,13 @@ void describe('Deployed Backend Client pagination', () => {
     };
 
     cfnClientSendMock.mock.mockImplementation(mockSend);
+    const arnGeneratorMock = new ArnGenerator();
+    const arnParserMock = new ArnParser();
+    mock.method(arnGeneratorMock, 'generateArn', () => undefined);
     const deployedResourcesEnumerator = new DeployedResourcesEnumerator(
-      new StackStatusMapper()
+      new StackStatusMapper(),
+      arnGeneratorMock,
+      arnParserMock
     );
     mock.method(deployedResourcesEnumerator, 'listDeployedResources', () => []);
 
@@ -372,7 +382,8 @@ void describe('Deployed Backend Client pagination', () => {
       mockS3Client,
       mockBackendOutputClient,
       deployedResourcesEnumerator,
-      new StackStatusMapper()
+      new StackStatusMapper(),
+      arnParserMock
     );
   });
 

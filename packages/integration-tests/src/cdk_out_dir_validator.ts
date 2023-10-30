@@ -45,6 +45,30 @@ const customMatchers: Map<ObjectPath, Predicate> = new Map([
   [
     [
       'Resources',
+      'function1351588B',
+      'Properties',
+      'TemplateURL',
+      'Fn::Join',
+      1,
+      6,
+    ],
+    matchHashedJsonFile,
+  ],
+  [
+    [
+      'Resources',
+      'storage0EC3F24A',
+      'Properties',
+      'TemplateURL',
+      'Fn::Join',
+      1,
+      6,
+    ],
+    matchHashedJsonFile,
+  ],
+  [
+    [
+      'Resources',
       'testGoogleIdSecretFetcherResource',
       'Properties',
       'secretLastUpdated',

@@ -7,6 +7,7 @@
     "build": "tsc --build packages/* && tsc --build scripts",
     "check:api": "npm run update:api && tsx scripts/check_api_extract.ts",
     "check:dependencies": "tsx scripts/check_dependencies.ts",
+    "check:package-versions": "tsx scripts/check_package_versions.ts",
     "check:tsconfig-refs": "npm run update:tsconfig-refs && tsx scripts/check_no_git_diff.ts",
     "clean": "npm run clean:build && npm run clean:npm-proxy && rimraf --glob node_modules coverage .eslintcache packages/*/temp packages/*/node_modules",
     "clean:build": "rimraf --glob packages/*/lib packages/*/tsconfig.tsbuildinfo",

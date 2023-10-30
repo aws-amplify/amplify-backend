@@ -9,7 +9,6 @@ import {
   BackendOutputStorageStrategy,
 } from '@aws-amplify/plugin-types';
 import {
-  AccountRecovery,
   CfnIdentityPool,
   CfnUserPool,
   CfnUserPoolClient,
@@ -204,11 +203,10 @@ void describe('Auth construct', () => {
         },
       },
       multifactor: {
-        enforcementType: 'OPTIONAL',
+        mode: 'OPTIONAL',
         sms: {
           smsMessage: smsMFAMessageFunction,
         },
-        totp: false,
       },
     });
     const template = Template.fromStack(stack);
@@ -325,7 +323,7 @@ void describe('Auth construct', () => {
             email: true,
           },
           multifactor: {
-            enforcementType: 'OPTIONAL',
+            mode: 'OPTIONAL',
             sms: {
               smsMessage: validMFAMessage,
             },
@@ -346,7 +344,7 @@ void describe('Auth construct', () => {
             email: true,
           },
           multifactor: {
-            enforcementType: 'OPTIONAL',
+            mode: 'OPTIONAL',
             sms: {
               smsMessage: invalidMFAMessage,
             },
@@ -385,7 +383,7 @@ void describe('Auth construct', () => {
     const stack = new Stack(app);
     new AmplifyAuth(stack, 'test', {
       loginWith: { phone: true, email: true },
-      accountRecovery: AccountRecovery.EMAIL_AND_PHONE_WITHOUT_MFA,
+      accountRecovery: 'EMAIL_AND_PHONE_WITHOUT_MFA',
     });
     const template = Template.fromStack(stack);
     template.hasResourceProperties('AWS::Cognito::UserPool', {
@@ -1365,6 +1363,20 @@ void describe('Auth construct', () => {
           },
         },
       });
+    });
+
+    void it('stores attribution data in stack', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'testAuth', {
+        loginWith: { email: true },
+      });
+
+      const template = Template.fromStack(stack);
+      assert.equal(
+        JSON.parse(template.toJSON().Description).stackType,
+        'auth-Cognito'
+      );
     });
   });
 });

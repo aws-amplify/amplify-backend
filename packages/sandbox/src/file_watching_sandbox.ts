@@ -41,7 +41,7 @@ export const getBootstrapUrl = (region: string) =>
  */
 export class FileWatchingSandbox extends EventEmitter implements Sandbox {
   private watcherSubscription: Awaited<ReturnType<typeof subscribe>>;
-  private outputFilesExcludedFromWatch = ['cdk.out'];
+  private outputFilesExcludedFromWatch = ['.amplify'];
   private filesChangesTracker: FilesChangesTracker;
 
   /**
@@ -80,7 +80,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
    */
   start = async (options: SandboxOptions) => {
     this.filesChangesTracker = await createFilesChangesTracker(
-      options.dir ?? process.cwd()
+      options.dir ?? './amplify'
     );
     const bootstrapped = await this.isBootstrapped();
     if (!bootstrapped) {
@@ -133,7 +133,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     });
 
     this.watcherSubscription = await parcelWatcher.subscribe(
-      options.dir ?? process.cwd(),
+      options.dir ?? './amplify',
       async (_, events) => {
         // Log and track file changes.
         await Promise.all(

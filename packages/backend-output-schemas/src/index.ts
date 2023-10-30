@@ -73,3 +73,9 @@ export const unifiedBackendOutputSchema = z.object({
  * It represents BackendOutput that has been validated against the schema of known output values
  */
 export type UnifiedBackendOutput = z.infer<typeof unifiedBackendOutputSchema>;
+
+/**
+ * ---------- Platform exports ----------
+ */
+
+export * from './platform/index.js';

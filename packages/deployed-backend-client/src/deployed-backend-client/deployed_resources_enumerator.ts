@@ -6,6 +6,8 @@ import {
 } from '@aws-sdk/client-cloudformation';
 import { DeployedBackendResource } from '../deployed_backend_client_factory.js';
 import { StackStatusMapper } from './stack_status_mapper.js';
+import { ArnGenerator } from './arn_generator.js';
+import { ArnParser } from './arn_parser.js';
 
 /**
  * Lists deployed resources
@@ -14,14 +16,20 @@ export class DeployedResourcesEnumerator {
   /**
    * Constructs a DeployedResourcesEnumerator
    */
-  constructor(private readonly stackStatusMapper: StackStatusMapper) {}
+  constructor(
+    private readonly stackStatusMapper: StackStatusMapper,
+    private readonly arnGenerator: ArnGenerator,
+    private readonly arnParser: ArnParser
+  ) {}
 
   /**
    * Lists all resources deployed in all nested cfn stacks
    */
   listDeployedResources = async (
     cfnClient: CloudFormationClient,
-    stackName: string
+    stackName: string,
+    accountId: string | undefined,
+    region: string | undefined
   ): Promise<DeployedBackendResource[]> => {
     const deployedBackendResources: DeployedBackendResource[] = [];
     const stackResourceSummaries: StackResourceSummary[] = [];
@@ -41,7 +49,7 @@ export class DeployedResourcesEnumerator {
       );
     } while (nextToken);
 
-    const childStackNames: (string | undefined)[] =
+    const childStackArns: (string | undefined)[] =
       stackResourceSummaries
         .filter((stackResourceSummary: StackResourceSummary) => {
           return (
@@ -49,17 +57,23 @@ export class DeployedResourcesEnumerator {
           );
         })
         .map((stackResourceSummary: StackResourceSummary) => {
-          // arn:aws:{service}:{region}:{account}:stack/{stackName}/{additionalFields}
-          const arnParts = stackResourceSummary.PhysicalResourceId?.split('/');
-          return arnParts?.[1];
+          return stackResourceSummary.PhysicalResourceId;
         }) ?? [];
 
-    const promises = childStackNames.map((childStackName) => {
-      if (!childStackName) {
+    const promises = childStackArns.map((childStackArn) => {
+      const childStackName = childStackArn?.split('/')?.[1];
+      if (!childStackArn || !childStackName) {
         return [];
       }
+
+      const parsedArn = this.arnParser.tryParseArn(childStackArn);
       // Recursive call to get all the resources from child stacks
-      return this.listDeployedResources(cfnClient, childStackName);
+      return this.listDeployedResources(
+        cfnClient,
+        childStackName,
+        parsedArn.accountId,
+        parsedArn.region
+      );
     });
     const deployedResourcesPerChildStack = await Promise.all(promises);
     deployedBackendResources.push(...deployedResourcesPerChildStack.flat());
@@ -83,6 +97,11 @@ export class DeployedResourcesEnumerator {
         resourceStatusReason: stackResourceSummary.ResourceStatusReason,
         resourceType: stackResourceSummary.ResourceType,
         physicalResourceId: stackResourceSummary.PhysicalResourceId,
+        arn: this.arnGenerator.generateArn(
+          stackResourceSummary,
+          region,
+          accountId
+        ),
       })
     );
 

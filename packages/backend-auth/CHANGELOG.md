@@ -1,5 +1,34 @@
 # @aws-amplify/backend-auth
 
+## 0.2.0-alpha.15
+
+### Patch Changes
+
+- Updated dependencies [47456c26]
+- Updated dependencies [47456c26]
+  - @aws-amplify/backend-output-storage@0.2.0-alpha.6
+  - @aws-amplify/auth-construct-alpha@0.2.0-alpha.18
+
+## 0.2.0-alpha.14
+
+### Patch Changes
+
+- 8f99476e: chore: upgrade aws-cdk to 2.103.0
+- Updated dependencies [8f99476e]
+  - @aws-amplify/backend-output-storage@0.2.0-alpha.5
+  - @aws-amplify/auth-construct-alpha@0.2.0-alpha.17
+  - @aws-amplify/plugin-types@0.2.0-alpha.11
+
+## 0.2.0-alpha.13
+
+### Patch Changes
+
+- Updated dependencies [18874854]
+- Updated dependencies [883d9da7]
+  - @aws-amplify/auth-construct-alpha@0.2.0-alpha.16
+  - @aws-amplify/plugin-types@0.2.0-alpha.10
+  - @aws-amplify/backend-output-storage@0.2.0-alpha.4
+
 ## 0.2.0-alpha.12
 
 ### Patch Changes

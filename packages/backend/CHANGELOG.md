@@ -1,5 +1,35 @@
 # @aws-amplify/backend
 
+## 0.2.0-alpha.12
+
+### Patch Changes
+
+- 47456c26: Remove ESM features from construct dependency packages and make corresponding updates in consumer packages
+- Updated dependencies [47456c26]
+- Updated dependencies [47456c26]
+  - @aws-amplify/backend-output-storage@0.2.0-alpha.6
+  - @aws-amplify/backend-output-schemas@0.2.0-alpha.8
+  - @aws-amplify/platform-core@0.1.1-alpha.4
+
+## 0.2.0-alpha.11
+
+### Patch Changes
+
+- 8f99476e: chore: upgrade aws-cdk to 2.103.0
+- Updated dependencies [8f99476e]
+  - @aws-amplify/backend-output-storage@0.2.0-alpha.5
+  - @aws-amplify/plugin-types@0.2.0-alpha.11
+
+## 0.2.0-alpha.10
+
+### Patch Changes
+
+- Updated dependencies [18874854]
+- Updated dependencies [883d9da7]
+  - @aws-amplify/plugin-types@0.2.0-alpha.10
+  - @aws-amplify/backend-output-schemas@0.2.0-alpha.7
+  - @aws-amplify/backend-output-storage@0.2.0-alpha.4
+
 ## 0.2.0-alpha.9
 
 ### Patch Changes
