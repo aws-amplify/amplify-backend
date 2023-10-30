@@ -101,3 +101,13 @@ export class Backend<T extends Record<string, ConstructFactory<Construct>>> {
     return this.stackResolver.getStackFor(name);
   };
 }
+
+/**
+ * Creates a new Amplify backend instance and returns it
+ * @param constructFactories - list of backend factories such as those created by `defineAuth` or `defineData`
+ */
+export const defineBackend = <
+  T extends Record<string, ConstructFactory<Construct>>
+>(
+  constructFactories: T
+): Backend<T> => new Backend(constructFactories);

@@ -30,6 +30,9 @@ export { ClientSchema }
 
 export { defineAuth }
 
+// @public
+export const defineBackend: <T extends Record<string, ConstructFactory<Construct>>>(constructFactories: T) => Backend<T>;
+
 export { defineData }
 
 export { defineStorage }
