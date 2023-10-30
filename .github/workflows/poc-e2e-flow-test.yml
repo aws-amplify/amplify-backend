@@ -52,4 +52,4 @@ jobs:
           echo "yarn version $(yarn --version)"
           yarn config set unsafeHttpWhitelist localhost
           yarn config set npmRegistryServer http://localhost:4873
-          yarn create amplify --yes
+          PACKAGE_MANAGER_EXECUTABLE=yarn yarn create amplify --yes
