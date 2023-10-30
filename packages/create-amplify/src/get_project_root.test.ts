@@ -2,8 +2,8 @@ import { afterEach, describe, it } from 'node:test';
 import assert from 'assert';
 import fsp from 'fs/promises';
 import path from 'path';
-import { getProjectRoot } from './get_project_root.js';
 import { AmplifyPrompter } from '@aws-amplify/cli-core';
+import { getProjectRoot } from './get_project_root.js';
 
 const originalEnv = process.env;
 
@@ -67,5 +67,20 @@ void describe('getProjectRoot', () => {
       path.resolve(userInput)
     );
     assert.equal(projectRoot, path.resolve(userInput));
+  });
+
+  void it('use default options if `yes`', async (ctx) => {
+    process.env.npm_config_yes = 'false';
+    process.argv = ['node', 'test.js', '--yes'];
+    const userInput = 'test';
+    const fsMkDirSyncMock = ctx.mock.method(fsp, 'mkdir', () => undefined);
+    ctx.mock.method(fsp, 'stat', () => Promise.reject(new Error()));
+    ctx.mock.method(AmplifyPrompter, 'input', () => Promise.resolve(userInput));
+
+    const projectRoot = await getProjectRoot();
+
+    assert.equal(fsMkDirSyncMock.mock.callCount(), 1);
+    assert.equal(fsMkDirSyncMock.mock.calls[0].arguments[0], process.cwd());
+    assert.equal(projectRoot, process.cwd());
   });
 });
