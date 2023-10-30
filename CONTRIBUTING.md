@@ -81,7 +81,7 @@ cd amplify-project-$(date +%Y-%m-%d) # cd into the empty folder
 
 ```sh
 # In the folder created in the previous step
-npm create amplify@alpha
+npm create amplify
 ```
 
 ### Test
