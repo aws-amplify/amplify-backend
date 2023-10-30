@@ -15,10 +15,12 @@ import { createDefaultStack } from './default_stack_factory.js';
 import { getUniqueBackendIdentifier } from './backend_identifier.js';
 import {
   BackendDeploymentType,
+  BranchBackendIdentifier,
   SandboxBackendIdentifier,
 } from '@aws-amplify/platform-core';
 import { stackOutputKey } from '@aws-amplify/backend-output-schemas';
 import { fileURLToPath } from 'url';
+import { AmplifyConsoleLinkerConstruct } from './engine/console-linker/amplify_console_linker_construct.js';
 
 // Be very careful editing this value. It is the value used in the BI metrics to attribute stacks as Amplify root stacks
 const rootStackTypeIdentifier = 'root';
@@ -65,6 +67,10 @@ export class Backend<T extends Record<string, ConstructFactory<Construct>>> {
             : BackendDeploymentType.BRANCH,
       },
     });
+
+    if (uniqueBackendIdentifier instanceof BranchBackendIdentifier) {
+      new AmplifyConsoleLinkerConstruct(stack, uniqueBackendIdentifier);
+    }
 
     const importPathVerifier = new ToggleableImportPathVerifier();
 
