@@ -1,5 +1,11 @@
 # @aws-amplify/integration-tests
 
+## 0.2.0-alpha.10
+
+### Patch Changes
+
+- 9addd57f: Ensure .gitignore file exists with correct content in create-amplify flow
+
 ## 0.2.0-alpha.9
 
 ### Patch Changes

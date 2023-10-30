@@ -79,41 +79,22 @@ void describe('sandbox command', () => {
   });
 
   void it('fails if invalid dir-to-watch is provided', async () => {
-    await assert.rejects(
-      () => commandRunner.runCommand('sandbox --dir-to-watch nonExistentDir'),
-      (err: TestCommandError) => {
-        assert.equal(err.error.name, 'Error');
-        assert.equal(
-          err.error.message,
-          '--dir-to-watch nonExistentDir does not exist'
-        );
-        assert.match(
-          err.output,
-          /--dir-to-watch nonExistentDir does not exist/
-        );
-        return true;
-      }
+    const output = await commandRunner.runCommand(
+      'sandbox --dir-to-watch nonExistentDir'
     );
+    assert.match(output, /--dir-to-watch nonExistentDir does not exist/);
   });
 
   void it('fails if a file is provided in the --dir-to-watch flag', async (contextual) => {
     contextual.mock.method(fs, 'statSync', () => ({
       isDirectory: () => false,
     }));
-    await assert.rejects(
-      () => commandRunner.runCommand('sandbox --dir-to-watch existentFile'),
-      (err: TestCommandError) => {
-        assert.equal(err.error.name, 'Error');
-        assert.equal(
-          err.error.message,
-          '--dir-to-watch existentFile is not a valid directory'
-        );
-        assert.match(
-          err.output,
-          /--dir-to-watch existentFile is not a valid directory/
-        );
-        return true;
-      }
+    const output = await commandRunner.runCommand(
+      'sandbox --dir-to-watch existentFile'
+    );
+    assert.match(
+      output,
+      /--dir-to-watch existentFile is not a valid directory/
     );
   });
 

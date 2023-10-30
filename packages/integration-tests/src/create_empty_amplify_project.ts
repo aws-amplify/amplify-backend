@@ -2,26 +2,29 @@ import fs from 'fs/promises';
 import path from 'path';
 import { shortUuid } from './short_uuid.js';
 
+const TEST_PROJECT_PREFIX = 'test-project';
+
 /**
  * Creates an empty Amplify project directory within the specified parent
  * The project contains an empty `amplify` directory and a package.json file with a name
  */
 export const createEmptyAmplifyProject = async (
-  namePrefix: string,
+  projectDirName: string,
   parentDir: string
-): Promise<{ testProjectRoot: string; testAmplifyDir: string }> => {
-  const testProjectRoot = await fs.mkdtemp(path.join(parentDir, namePrefix));
+): Promise<{
+  projectName: string;
+  projectRoot: string;
+  projectAmplifyDir: string;
+}> => {
+  const projectRoot = await fs.mkdtemp(path.join(parentDir, projectDirName));
+  const projectName = `${TEST_PROJECT_PREFIX}-${projectDirName}-${shortUuid()}`;
   await fs.writeFile(
-    path.join(testProjectRoot, 'package.json'),
-    JSON.stringify(
-      { name: `${namePrefix}-${shortUuid()}`, type: 'module' },
-      null,
-      2
-    )
+    path.join(projectRoot, 'package.json'),
+    JSON.stringify({ name: projectName, type: 'module' }, null, 2)
   );
 
-  const testAmplifyDir = path.join(testProjectRoot, 'amplify');
-  await fs.mkdir(testAmplifyDir);
+  const projectAmplifyDir = path.join(projectRoot, 'amplify');
+  await fs.mkdir(projectAmplifyDir);
 
-  return { testProjectRoot, testAmplifyDir };
+  return { projectName, projectRoot, projectAmplifyDir };
 };

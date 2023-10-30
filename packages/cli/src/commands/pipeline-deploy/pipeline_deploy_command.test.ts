@@ -41,13 +41,8 @@ void describe('deploy command', () => {
   });
 
   void it('fails if required arguments are not supplied', async () => {
-    await assert.rejects(
-      () => getCommandRunner().runCommand('pipeline-deploy'),
-      (err: TestCommandError) => {
-        assert.match(err.output, /Missing required arguments/);
-        return true;
-      }
-    );
+    const output = await getCommandRunner().runCommand('pipeline-deploy');
+    assert.match(output, /Missing required arguments/);
     assert.equal(generateClientConfigMock.mock.callCount(), 0);
   });
 
