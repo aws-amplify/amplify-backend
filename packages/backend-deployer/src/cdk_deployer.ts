@@ -9,8 +9,14 @@ import { CdkErrorMapper } from './cdk_error_mapper.js';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import { BackendDeploymentType } from '@aws-amplify/platform-core';
 import { BackendDeployerEnvironmentVariables } from './environment_variables.js';
+import * as path from 'path';
 
-const relativeBackendEntryPoint = 'amplify/backend.ts';
+const relativeAmplifyBackendDir = 'amplify';
+
+const relativeBackendEntryPoint = path.join(
+  relativeAmplifyBackendDir,
+  'backend.ts'
+);
 
 /**
  * Commands that can be invoked
@@ -87,13 +93,9 @@ export class CDKDeployer implements BackendDeployer {
         'tsc',
         '--noEmit',
         '--skipLibCheck',
-        '--module',
-        'node16',
-        '--moduleResolution',
-        'node16',
-        '--target',
-        'es2022',
-        relativeBackendEntryPoint,
+        // pointing the project arg to the amplify backend directory will use the tsconfig present in that directory
+        '--project',
+        relativeAmplifyBackendDir,
       ]);
     }
   };

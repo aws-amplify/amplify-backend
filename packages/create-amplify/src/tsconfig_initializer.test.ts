@@ -30,48 +30,7 @@ void describe('TsConfigInitializer', () => {
     assert.equal(execaMock.mock.callCount(), 0);
   });
 
-  void it('runs `npx tsc --init` if no tsconfig.json exists for ESM project', async () => {
-    const logMock = mock.fn();
-    const existsSyncMock = mock.fn(
-      () => true,
-      () => false,
-      { times: 1 }
-    );
-    mock.method(packageJsonReader, 'readPackageJson', () =>
-      Promise.resolve({
-        name: 'test_name',
-        version: 'test_version',
-        type: 'commonjs',
-      } as PackageJson)
-    );
-
-    const execaMock = mock.fn();
-    const tsConfigInitializer = new TsConfigInitializer(
-      { log: logMock } as never,
-      existsSyncMock as never,
-      execaMock as never
-    );
-    await tsConfigInitializer.ensureInitialized('/testProjectRoot');
-    assert.equal(execaMock.mock.callCount(), 1);
-    assert.deepStrictEqual(execaMock.mock.calls[0].arguments, [
-      'npx',
-      [
-        'tsc',
-        '--init',
-        '--resolveJsonModule',
-        'true',
-        '--module',
-        'commonjs',
-        '--moduleResolution',
-        'node',
-        '--target',
-        'es2018',
-      ],
-      { stdio: 'inherit', cwd: '/testProjectRoot' },
-    ]);
-  });
-
-  void it('runs `npx tsc --init` if no tsconfig.json exists for CommonJS project', async () => {
+  void it('sets up tsconfig for ESM module if tsconfig does not exist', async () => {
     const logMock = mock.fn();
     const existsSyncMock = mock.fn(
       () => true,

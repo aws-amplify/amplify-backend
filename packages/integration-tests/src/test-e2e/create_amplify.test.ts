@@ -133,7 +133,9 @@ void describe('create-amplify script', () => {
           'tsc',
           '--noEmit',
           '--skipLibCheck',
-          path.join(amplifyPathPrefix, 'backend.ts'),
+          // pointing the project arg to the amplify backend directory will use the tsconfig present in that directory
+          '--project',
+          amplifyPathPrefix,
         ],
         {
           cwd: tempDir,
