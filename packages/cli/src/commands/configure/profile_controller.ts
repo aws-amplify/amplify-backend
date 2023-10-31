@@ -44,15 +44,18 @@ export class ProfileController {
   };
 
   appendAWSConfigFile = async (options: ConfigProfileOptions) => {
-    let configData = EOL;
+    const filePath =
+      process.env.AWS_CONFIG_FILE ?? join(getHomeDir(), '.aws', 'config');
+
+    const fileEndsWithEOL = await this.isFileEndsWithEOL(filePath);
+    let configData = fileEndsWithEOL ? '' : EOL;
+
     configData +=
       options.profile === DEFAULT_PROFILE
         ? `[${options.profile}]${EOL}`
         : `[profile ${options.profile}]${EOL}`;
-    configData += `region = ${options.region}`;
+    configData += `region = ${options.region}${EOL}`;
 
-    const filePath =
-      process.env.AWS_CONFIG_FILE ?? join(getHomeDir(), '.aws', 'config');
     await fs.appendFile(filePath, configData);
 
     // validate after write. It is to ensure this function is compatible with the current AWS format.
@@ -66,13 +69,17 @@ export class ProfileController {
   };
 
   appendAWSCredentialFile = async (options: CredentialProfileOptions) => {
-    let credentialData = `${EOL}[${options.profile}]${EOL}`;
-    credentialData += `aws_access_key_id = ${options.accessKeyId}${EOL}`;
-    credentialData += `aws_secret_access_key = ${options.secretAccessKey}`;
-
     const filePath =
       process.env.AWS_SHARED_CREDENTIALS_FILE ??
       join(getHomeDir(), '.aws', 'credentials');
+
+    const fileEndsWithEOL = await this.isFileEndsWithEOL(filePath);
+    let credentialData = fileEndsWithEOL ? '' : EOL;
+
+    credentialData += `[${options.profile}]${EOL}`;
+    credentialData += `aws_access_key_id = ${options.accessKeyId}${EOL}`;
+    credentialData += `aws_secret_access_key = ${options.secretAccessKey}${EOL}`;
+
     await fs.appendFile(filePath, credentialData);
 
     // validate after write. It is to ensure this function is compatible with the current AWS format.
@@ -87,6 +94,20 @@ export class ProfileController {
       retrievedCredentials.sessionToken
     ) {
       throw new Error(`Failed to configure the AWS credentials file`);
+    }
+  };
+
+  private isFileEndsWithEOL = async (filePath: string): Promise<boolean> => {
+    try {
+      const data = await fs.readFile(filePath, 'utf-8');
+      return data.length > 0 && data[data.length - 1] === EOL;
+    } catch (err) {
+      const error = err as Error;
+      if (error.message.includes('ENOENT')) {
+        // file doesn't exists
+        return true;
+      }
+      throw err;
     }
   };
 }

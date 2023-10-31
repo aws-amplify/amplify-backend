@@ -76,7 +76,7 @@ void describe('configure command', () => {
       AmplifyPrompter,
       'input',
       (options: { message: string; defaultValue?: string }) => {
-        if (options.message.includes('Set the AWS region for this profile')) {
+        if (options.message.includes('Enter the AWS region to use')) {
           return Promise.resolve(testRegion);
         }
         assert.fail(`Do not expect prompt message: '${options.message}'`);
@@ -136,9 +136,7 @@ void describe('configure command', () => {
       (options: { message: string; defaultValue?: string }) => {
         if (options.message.includes('[enter] when complete')) {
           return Promise.resolve('anything');
-        } else if (
-          options.message.includes('Set the AWS region for this profile')
-        ) {
+        } else if (options.message.includes('Enter the AWS region to use')) {
           return Promise.resolve(testRegion);
         }
         assert.fail(`Do not expect prompt message: '${options.message}'`);
