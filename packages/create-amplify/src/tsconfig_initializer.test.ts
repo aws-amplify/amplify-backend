@@ -22,13 +22,11 @@ void describe('TsConfigInitializer', () => {
     const existsSyncMock = mock.fn(() => true);
     const execaMock = mock.fn();
     const tsConfigInitializer = new TsConfigInitializer(
-      '/testProjectRoot',
-      packageJsonReader,
       { log: logMock } as never,
       existsSyncMock,
       execaMock as never
     );
-    await tsConfigInitializer.ensureInitialized();
+    await tsConfigInitializer.ensureInitialized('/testProjectRoot');
     assert.equal(execaMock.mock.callCount(), 0);
   });
 
@@ -49,13 +47,11 @@ void describe('TsConfigInitializer', () => {
 
     const execaMock = mock.fn();
     const tsConfigInitializer = new TsConfigInitializer(
-      '/testProjectRoot',
-      packageJsonReader,
       { log: logMock } as never,
       existsSyncMock as never,
       execaMock as never
     );
-    await tsConfigInitializer.ensureInitialized();
+    await tsConfigInitializer.ensureInitialized('/testProjectRoot');
     assert.equal(execaMock.mock.callCount(), 1);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments, [
       'npx',
@@ -85,13 +81,11 @@ void describe('TsConfigInitializer', () => {
 
     const execaMock = mock.fn();
     const tsConfigInitializer = new TsConfigInitializer(
-      '/testProjectRoot',
-      packageJsonReader,
       { log: logMock } as never,
       existsSyncMock as never,
       execaMock as never
     );
-    await tsConfigInitializer.ensureInitialized();
+    await tsConfigInitializer.ensureInitialized('/testProjectRoot');
     assert.equal(execaMock.mock.callCount(), 1);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments, [
       'npx',
@@ -118,16 +112,17 @@ void describe('TsConfigInitializer', () => {
       throw new Error('test error');
     });
     const tsConfigInitializer = new TsConfigInitializer(
-      '/testProjectRoot',
-      packageJsonReader,
       { log: logMock } as never,
       existsSyncMock,
       execaMock as never
     );
-    await assert.rejects(() => tsConfigInitializer.ensureInitialized(), {
-      message:
-        '`npx tsc --init` did not exit successfully. Initialize a valid TypeScript configuration before continuing.',
-    });
+    await assert.rejects(
+      () => tsConfigInitializer.ensureInitialized('/testProjectRoot'),
+      {
+        message:
+          '`npx tsc --init` did not exit successfully. Initialize a valid TypeScript configuration before continuing.',
+      }
+    );
   });
 
   void it('throws if tsconfig.json does not exist after npx tsc --init', async () => {
@@ -135,15 +130,16 @@ void describe('TsConfigInitializer', () => {
     const existsSyncMock = mock.fn(() => false);
     const execaMock = mock.fn();
     const tsConfigInitializer = new TsConfigInitializer(
-      '/testProjectRoot',
-      packageJsonReader,
       { log: logMock } as never,
       existsSyncMock,
       execaMock as never
     );
-    await assert.rejects(() => tsConfigInitializer.ensureInitialized(), {
-      message:
-        'tsconfig.json does not exist after running `npx tsc --init`. Initialize a valid TypeScript configuration before continuing.',
-    });
+    await assert.rejects(
+      () => tsConfigInitializer.ensureInitialized('/testProjectRoot'),
+      {
+        message:
+          'tsconfig.json does not exist after running `npx tsc --init`. Initialize a valid TypeScript configuration before continuing.',
+      }
+    );
   });
 });

@@ -39,15 +39,6 @@ export class NpmProjectInitializer {
       );
     }
 
-    try {
-      await this.execa('npm', ['pkg', 'set', 'type=module'], {
-        stdio: 'inherit',
-        cwd: this.projectRoot,
-      });
-    } catch {
-      throw new Error('`npm pkg set type="module"` did not exit successfully.');
-    }
-
     if (!this.packageJsonExists()) {
       // this should only happen if the customer exits out of npm init before finishing
       throw new Error(

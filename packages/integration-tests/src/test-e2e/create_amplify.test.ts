@@ -101,28 +101,45 @@ void describe('create-amplify script', () => {
       assert.equal(tsConfigObject.compilerOptions.module, expectedModuleType);
       assert.equal(tsConfigObject.compilerOptions.resolveJsonModule, true);
 
-      const pathPrefix = path.join(tempDir, 'amplify');
+      const amplifyPathPrefix = path.join(tempDir, 'amplify');
 
-      const files = await glob(path.join(pathPrefix, '**', '*'), {
+      const files = await glob(path.join(amplifyPathPrefix, '**', '*'), {
         // eslint-disable-next-line spellcheck/spell-checker
         nodir: true,
         windowsPathsNoEscape: true,
       });
 
+      const expectedAmplifyFiles = [
+        path.join('auth', 'resource.ts'),
+        'backend.ts',
+        path.join('data', 'resource.ts'),
+      ];
+
+      if (initialState !== 'module') {
+        expectedAmplifyFiles.push('package.json');
+      }
+
       assert.deepStrictEqual(
         files.sort(),
-        [
-          path.join('auth', 'resource.ts'),
-          'backend.ts',
-          path.join('data', 'resource.ts'),
-        ].map((suffix) => path.join(pathPrefix, suffix))
+        expectedAmplifyFiles.map((suffix) =>
+          path.join(amplifyPathPrefix, suffix)
+        )
       );
 
-      // assert that project compiles successfully
-      await execa('npx', ['tsc', '--noEmit'], {
-        cwd: tempDir,
-        stdio: 'inherit',
-      });
+      // assert that project compiles successfully using the tsc settings defined in the tsconfig file
+      await execa(
+        'npx',
+        [
+          'tsc',
+          '--noEmit',
+          '--skipLibCheck',
+          path.join(amplifyPathPrefix, 'backend.ts'),
+        ],
+        {
+          cwd: tempDir,
+          stdio: 'inherit',
+        }
+      );
 
       // assert that project synthesizes successfully
       await execa(

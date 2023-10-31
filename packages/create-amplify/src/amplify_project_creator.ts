@@ -2,7 +2,6 @@ import { PackageManagerController } from './package_manager_controller.js';
 import { ProjectRootValidator } from './project_root_validator.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
 import { NpmProjectInitializer } from './npm_project_initializer.js';
-import { TsConfigInitializer } from './tsconfig_initializer.js';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
 
 /**
@@ -28,7 +27,6 @@ export class AmplifyProjectCreator {
     private readonly projectRootValidator: ProjectRootValidator,
     private readonly initialProjectFileGenerator: InitialProjectFileGenerator,
     private readonly npmInitializedEnsurer: NpmProjectInitializer,
-    private readonly tsConfigInitializer: TsConfigInitializer,
     private readonly gitIgnoreInitializer: GitIgnoreInitializer,
     private readonly projectRoot: string,
     private readonly logger: typeof console = console
@@ -60,22 +58,20 @@ export class AmplifyProjectCreator {
       'dev'
     );
 
-    await this.tsConfigInitializer.ensureInitialized();
-
     await this.gitIgnoreInitializer.ensureInitialized();
 
     this.logger.log('Scaffolding initial project files...');
     await this.initialProjectFileGenerator.generateInitialProjectFiles();
 
-    const cdCommand =
-      process.cwd() === this.projectRoot
-        ? '`'
-        : `\`cd .${this.projectRoot.replace(process.cwd(), '')}; `;
+    const relativeProjectRoot = this.projectRoot.replace(process.cwd(), '');
+
+    const maybeCdCommand =
+      process.cwd() === this.projectRoot ? '' : `cd .${relativeProjectRoot}; `;
 
     this.logger.log(
       `All done! 
 Run \`npx amplify help\` for a list of available commands. 
-Get started by running ${cdCommand}npx amplify sandbox\`.`
+Get started by running \`${maybeCdCommand}npx amplify sandbox\`.`
     );
   };
 }
