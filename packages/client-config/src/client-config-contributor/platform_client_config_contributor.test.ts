@@ -1,0 +1,49 @@
+import { describe, it } from 'node:test';
+import assert from 'node:assert';
+import { PlatformClientConfigContributor } from './platform_client_config_contributor.js';
+import {
+  graphqlOutputKey,
+  stackOutputKey,
+} from '@aws-amplify/backend-output-schemas';
+import { BackendDeploymentType } from '@aws-amplify/platform-core';
+
+void describe('PlatformClientConfigContributor', () => {
+  void it('returns an empty object if output has no auth output', () => {
+    const contributor = new PlatformClientConfigContributor();
+    assert.deepStrictEqual(
+      contributor.contribute({
+        [graphqlOutputKey]: {
+          version: '1',
+          payload: {
+            awsAppsyncApiEndpoint: 'testApiEndpoint',
+            awsAppsyncRegion: 'us-east-1',
+            awsAppsyncAuthenticationType: 'API_KEY',
+            awsAppsyncAdditionalAuthenticationTypes: 'API_KEY',
+            awsAppsyncApiKey: 'testApiKey',
+            awsAppsyncApiId: 'testApiId',
+            amplifyApiModelSchemaS3Uri: 'testApiSchemaUri',
+          },
+        },
+      }),
+      {}
+    );
+  });
+
+  void it('returns translated config when output has auth', () => {
+    const contributor = new PlatformClientConfigContributor();
+    assert.deepStrictEqual(
+      contributor.contribute({
+        [stackOutputKey]: {
+          version: '1',
+          payload: {
+            deploymentType: BackendDeploymentType.BRANCH,
+            region: 'us-east-1',
+          },
+        },
+      }),
+      {
+        aws_project_region: 'us-east-1',
+      }
+    );
+  });
+});

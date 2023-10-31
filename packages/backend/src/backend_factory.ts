@@ -67,6 +67,7 @@ export class BackendFactory<
           uniqueBackendIdentifier instanceof SandboxBackendIdentifier
             ? BackendDeploymentType.SANDBOX
             : BackendDeploymentType.BRANCH,
+        region: stack.region,
       },
     });
 
