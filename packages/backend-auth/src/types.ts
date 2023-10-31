@@ -1,9 +1,8 @@
 import {
   AmazonProviderProps,
   AppleProviderProps,
-  BasicLoginOptions,
+  AuthProps,
   ExternalProviderOptions,
-  ExternalProviderProps,
   FacebookProviderProps,
   GoogleProviderProps,
   OidcProviderProps,
@@ -133,17 +132,14 @@ export type ExternalProviderSpecificFactoryProps =
   };
 
 /**
- * External provider properties.
- */
-export type ExternalProviderFactoryProps = Omit<
-  ExternalProviderProps,
-  'externalProviders'
-> & {
-  externalProviders?: ExternalProviderSpecificFactoryProps;
-};
-
-/**
  * Auth factory loginWith attribute.
  */
-export type AuthLoginWithFactoryProps = BasicLoginOptions &
-  ExternalProviderFactoryProps;
+export type AuthLoginWithFactoryProps = Omit<
+  AuthProps['loginWith'],
+  'externalProviders'
+> & {
+  /**
+   * External provider properties.
+   */
+  externalProviders?: ExternalProviderSpecificFactoryProps;
+};

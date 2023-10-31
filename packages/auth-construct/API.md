@@ -30,17 +30,15 @@ export type AppleProviderProps = Omit<aws_cognito.UserPoolIdentityProviderAppleP
 
 // @public
 export type AuthProps = {
-    loginWith: BasicLoginOptions & ExternalProviderProps;
+    loginWith: {
+        email?: EmailLogin;
+        phone?: PhoneNumberLogin;
+        externalProviders?: ExternalProviderOptions;
+    };
     userAttributes?: StandardAttributes;
     multifactor?: MFA;
     accountRecovery?: keyof typeof aws_cognito.AccountRecovery;
     outputStorageStrategy?: BackendOutputStorageStrategy<AuthOutput>;
-};
-
-// @public
-export type BasicLoginOptions = {
-    email?: EmailLogin;
-    phone?: PhoneNumberLogin;
 };
 
 // @public
@@ -64,11 +62,6 @@ export type ExternalProviderOptions = {
     scopes?: aws_cognito.OAuthScope[];
     callbackUrls?: string[];
     logoutUrls?: string[];
-};
-
-// @public
-export type ExternalProviderProps = {
-    externalProviders?: ExternalProviderOptions;
 };
 
 // @public

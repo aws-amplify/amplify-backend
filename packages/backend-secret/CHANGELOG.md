@@ -1,5 +1,46 @@
 # @aws-amplify/backend-secret
 
+## 0.2.0
+
+### Minor Changes
+
+- 98b17069: Provides sandbox secret CLI commands
+- 642e8d55: Remove grantPermission API from backend-secret
+- 2216d37d: 1. Remove version from the backend secret feature. 2. Use max(secret_last_updated) to trigger secret fetcher.
+- 407a09ff: Implements backend secret feature, include backend secret resolver and the backend-secret pkg.
+- f2394dbe: Add secret client config
+
+### Patch Changes
+
+- baa7a905: Move types package from peer deps to deps
+- 7103735b: cdk lib dependency declaration
+- 36d93e46: add license to package.json
+- d1295912: Add Auth external identity provider to e2e test
+- 512f0778: move UniqueBackendIdentifier to platform-core package
+- 59f5ea24: chore: upgrade aws-cdk to 2.100.0
+- Updated dependencies [0398b8e1]
+- Updated dependencies [b2b0c2da]
+- Updated dependencies [18874854]
+- Updated dependencies [7296e9d9]
+- Updated dependencies [915c0325]
+- Updated dependencies [2ef006f1]
+- Updated dependencies [3bda96ff]
+- Updated dependencies [7103735b]
+- Updated dependencies [3c36ace9]
+- Updated dependencies [36d93e46]
+- Updated dependencies [8f99476e]
+- Updated dependencies [dc22fdf4]
+- Updated dependencies [407a09ff]
+- Updated dependencies [47456c26]
+- Updated dependencies [5b9aac15]
+- Updated dependencies [f6618771]
+- Updated dependencies [f201c94a]
+- Updated dependencies [512f0778]
+- Updated dependencies [883d9da7]
+- Updated dependencies [59f5ea24]
+  - @aws-amplify/plugin-types@0.2.0
+  - @aws-amplify/platform-core@0.1.1
+
 ## 0.2.0-alpha.6
 
 ### Minor Changes

@@ -52,7 +52,7 @@ void describe('invokeCDKCommand', () => {
   void it('handles options for branch deployments', async () => {
     await invoker.deploy(uniqueBackendIdentifier);
     assert.strictEqual(execaMock.mock.callCount(), 1);
-    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 12);
+    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 14);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
       'cdk',
       'deploy',
@@ -66,6 +66,8 @@ void describe('invokeCDKCommand', () => {
       'backend-id=123',
       '--context',
       'branch-name=testBranch',
+      '--require-approval',
+      'never',
     ]);
   });
 
@@ -161,7 +163,7 @@ void describe('invokeCDKCommand', () => {
       'es2022',
       'amplify/backend.ts',
     ]);
-    assert.equal(execaMock.mock.calls[1].arguments[1]?.length, 14);
+    assert.equal(execaMock.mock.calls[1].arguments[1]?.length, 16);
     assert.deepStrictEqual(execaMock.mock.calls[1].arguments[1], [
       'cdk',
       'deploy',
@@ -175,6 +177,8 @@ void describe('invokeCDKCommand', () => {
       'backend-id=123',
       '--context',
       'branch-name=testBranch',
+      '--require-approval',
+      'never',
       '--context',
       `${CDKContextKey.DEPLOYMENT_TYPE}=BRANCH`,
     ]);
@@ -226,7 +230,7 @@ void describe('invokeCDKCommand', () => {
         validateAppSources: true,
       });
       assert.strictEqual(execaMock.mock.callCount(), 1);
-      assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 14);
+      assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 16);
       assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
         'cdk',
         'deploy',
@@ -240,6 +244,8 @@ void describe('invokeCDKCommand', () => {
         'backend-id=123',
         '--context',
         'branch-name=testBranch',
+        '--require-approval',
+        'never',
         '--context',
         'deployment-type=BRANCH',
       ]);
