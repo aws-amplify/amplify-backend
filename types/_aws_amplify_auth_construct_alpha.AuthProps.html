@@ -16,7 +16,7 @@
 <li><a href="../modules/_aws_amplify_auth_construct_alpha.html">@aws-amplify/auth-construct-alpha</a></li>
 <li><a href="_aws_amplify_auth_construct_alpha.AuthProps.html">AuthProps</a></li></ul>
 <h1>Type alias AuthProps</h1></div>
-<div class="tsd-signature"><span class="tsd-kind-type-alias">Auth<wbr/>Props</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">accountRecovery</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-symbol">keyof </span><span class="tsd-signature-symbol">typeof </span><span class="tsd-signature-type ">cognito.AccountRecovery</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">loginWith</span><span class="tsd-signature-symbol">: </span><a href="_aws_amplify_auth_construct_alpha.BasicLoginOptions.html" class="tsd-signature-type tsd-kind-type-alias">BasicLoginOptions</a><span class="tsd-signature-symbol"> &amp; </span><a href="_aws_amplify_auth_construct_alpha.ExternalProviderProps.html" class="tsd-signature-type tsd-kind-type-alias">ExternalProviderProps</a><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">multifactor</span><span class="tsd-signature-symbol">?: </span><a href="_aws_amplify_auth_construct_alpha.MFA.html" class="tsd-signature-type tsd-kind-type-alias">MFA</a><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">outputStorageStrategy</span><span class="tsd-signature-symbol">?: </span><a href="_aws_amplify_plugin_types.BackendOutputStorageStrategy.html" class="tsd-signature-type tsd-kind-type-alias">BackendOutputStorageStrategy</a><span class="tsd-signature-symbol">&lt;</span><a href="_aws_amplify_backend_output_schemas.AuthOutput.html" class="tsd-signature-type tsd-kind-type-alias">AuthOutput</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">userAttributes</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type ">StandardAttributes</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></div>
+<div class="tsd-signature"><span class="tsd-kind-type-alias">Auth<wbr/>Props</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">accountRecovery</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-symbol">keyof </span><span class="tsd-signature-symbol">typeof </span><span class="tsd-signature-type ">cognito.AccountRecovery</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">loginWith</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span><br/><span>        </span><span class="tsd-kind-property">email</span><span class="tsd-signature-symbol">?: </span><a href="_aws_amplify_auth_construct_alpha.EmailLogin.html" class="tsd-signature-type tsd-kind-type-alias">EmailLogin</a><span class="tsd-signature-symbol">; </span><br/><span>        </span><span class="tsd-kind-property">externalProviders</span><span class="tsd-signature-symbol">?: </span><a href="_aws_amplify_auth_construct_alpha.ExternalProviderOptions.html" class="tsd-signature-type tsd-kind-type-alias">ExternalProviderOptions</a><span class="tsd-signature-symbol">; </span><br/><span>        </span><span class="tsd-kind-property">phone</span><span class="tsd-signature-symbol">?: </span><a href="_aws_amplify_auth_construct_alpha.PhoneNumberLogin.html" class="tsd-signature-type tsd-kind-type-alias">PhoneNumberLogin</a><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">multifactor</span><span class="tsd-signature-symbol">?: </span><a href="_aws_amplify_auth_construct_alpha.MFA.html" class="tsd-signature-type tsd-kind-type-alias">MFA</a><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">outputStorageStrategy</span><span class="tsd-signature-symbol">?: </span><a href="_aws_amplify_plugin_types.BackendOutputStorageStrategy.html" class="tsd-signature-type tsd-kind-type-alias">BackendOutputStorageStrategy</a><span class="tsd-signature-symbol">&lt;</span><a href="_aws_amplify_backend_output_schemas.AuthOutput.html" class="tsd-signature-type tsd-kind-type-alias">AuthOutput</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">userAttributes</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type ">StandardAttributes</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></div>
 <div class="tsd-comment tsd-typography"><p>Input props for the AmplifyAuth construct</p>
 </div>
 <div class="tsd-type-declaration">
@@ -31,10 +31,30 @@ If only email or phone are enabled, they will be the default recovery methods.</
 </div>
 <div class="tsd-comment tsd-typography"></div></li>
 <li class="tsd-parameter">
-<h5><span class="tsd-kind-property">login<wbr/>With</span><span class="tsd-signature-symbol">: </span><a href="_aws_amplify_auth_construct_alpha.BasicLoginOptions.html" class="tsd-signature-type tsd-kind-type-alias">BasicLoginOptions</a><span class="tsd-signature-symbol"> &amp; </span><a href="_aws_amplify_auth_construct_alpha.ExternalProviderProps.html" class="tsd-signature-type tsd-kind-type-alias">ExternalProviderProps</a></h5>
-<div class="tsd-comment tsd-typography"><p>Specify the allowed login mechanisms</p>
+<h5><span class="tsd-kind-property">login<wbr/>With</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">email</span><span class="tsd-signature-symbol">?: </span><a href="_aws_amplify_auth_construct_alpha.EmailLogin.html" class="tsd-signature-type tsd-kind-type-alias">EmailLogin</a><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">externalProviders</span><span class="tsd-signature-symbol">?: </span><a href="_aws_amplify_auth_construct_alpha.ExternalProviderOptions.html" class="tsd-signature-type tsd-kind-type-alias">ExternalProviderOptions</a><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">phone</span><span class="tsd-signature-symbol">?: </span><a href="_aws_amplify_auth_construct_alpha.PhoneNumberLogin.html" class="tsd-signature-type tsd-kind-type-alias">PhoneNumberLogin</a><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></h5>
+<div class="tsd-comment tsd-typography"><p>Specify how you would like users to log in. You can choose from email, phone, and even external providers such as LoginWithAmazon.</p>
+</div>
+<div class="tsd-comment tsd-typography"></div>
+<ul class="tsd-parameters">
+<li class="tsd-parameter">
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-property">email</span><span class="tsd-signature-symbol">?: </span><a href="_aws_amplify_auth_construct_alpha.EmailLogin.html" class="tsd-signature-type tsd-kind-type-alias">EmailLogin</a></h5>
+<div class="tsd-comment tsd-typography"><p>Email login options.</p>
+<p>If true, email login will be enabled with default settings.
+If settings are provided, email login will be enabled with the specified settings.</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></li>
+<li class="tsd-parameter">
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-property">external<wbr/>Providers</span><span class="tsd-signature-symbol">?: </span><a href="_aws_amplify_auth_construct_alpha.ExternalProviderOptions.html" class="tsd-signature-type tsd-kind-type-alias">ExternalProviderOptions</a></h5>
+<div class="tsd-comment tsd-typography"><p>Configure OAuth, OIDC, and SAML login providers</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li>
+<li class="tsd-parameter">
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-property">phone</span><span class="tsd-signature-symbol">?: </span><a href="_aws_amplify_auth_construct_alpha.PhoneNumberLogin.html" class="tsd-signature-type tsd-kind-type-alias">PhoneNumberLogin</a></h5>
+<div class="tsd-comment tsd-typography"><p>Phone number login options.</p>
+<p>If true, phone number login will be enabled with default settings.
+If settings are provided, phone number login will be enabled with the specified settings.</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li></ul></li>
 <li class="tsd-parameter">
 <h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-property">multifactor</span><span class="tsd-signature-symbol">?: </span><a href="_aws_amplify_auth_construct_alpha.MFA.html" class="tsd-signature-type tsd-kind-type-alias">MFA</a></h5>
 <div class="tsd-comment tsd-typography"><p>Configure whether users can or are required to use MFA to sign in.</p>
@@ -53,7 +73,7 @@ If only email or phone are enabled, they will be the default recovery methods.</
 </div></li></ul></div>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/863dc24/packages/auth-construct/src/types.ts#L228">packages/auth-construct/src/types.ts:228</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/d0119b2/packages/auth-construct/src/types.ts#L198">packages/auth-construct/src/types.ts:198</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
