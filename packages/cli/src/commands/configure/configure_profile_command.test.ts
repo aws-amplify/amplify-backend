@@ -41,7 +41,7 @@ void describe('configure command', () => {
     );
     const mockPrint = contextual.mock.method(Printer, 'print');
 
-    await commandRunner.runCommand(`profile --profile ${testProfile}`);
+    await commandRunner.runCommand(`profile --name ${testProfile}`);
 
     assert.equal(mockProfileExists.mock.callCount(), 1);
     assert.equal(mockPrint.mock.callCount(), 1);
@@ -85,7 +85,7 @@ void describe('configure command', () => {
       () => Promise.resolve(true)
     );
 
-    await commandRunner.runCommand(`profile --profile ${testProfile}`);
+    await commandRunner.runCommand(`profile --name ${testProfile}`);
 
     assert.equal(mockProfileExists.mock.callCount(), 1);
     assert.equal(mockSecretValue.mock.callCount(), 2);
@@ -149,7 +149,7 @@ void describe('configure command', () => {
       () => Promise.resolve(false)
     );
 
-    await commandRunner.runCommand(`profile --profile ${testProfile}`);
+    await commandRunner.runCommand(`profile --name ${testProfile}`);
 
     assert.equal(mockProfileExists.mock.callCount(), 1);
     assert.equal(mockSecretValue.mock.callCount(), 2);

@@ -38,10 +38,11 @@ export class ConfigureProfileCommand
    * @inheritDoc
    */
   handler = async (args: ConfigureProfileCommandOptions): Promise<void> => {
-    const profileExists = await this.profileWriter.profileExists(args.profile);
+    const profileName = args.name;
+    const profileExists = await this.profileWriter.profileExists(profileName);
     if (profileExists) {
       Printer.print(
-        `Profile '${args.profile}' already exists!${EOL}Follow the instructions at ${amplifyInstallUrl} to configure an Amplify IAM User.${EOL}Use "aws configure" to complete the profile setup:${EOL}${awsConfigureUrl}${EOL}`
+        `Profile '${profileName}' already exists!${EOL}Follow the instructions at ${amplifyInstallUrl} to configure an Amplify IAM User.${EOL}Use "aws configure" to complete the profile setup:${EOL}${awsConfigureUrl}${EOL}`
       );
       return;
     }
@@ -68,7 +69,7 @@ export class ConfigureProfileCommand
     );
 
     Printer.print(
-      `This would update/create the AWS Profile '${args.profile}' in your local machine`
+      `This would update/create the AWS Profile '${profileName}' in your local machine`
     );
 
     const region = await AmplifyPrompter.input({
@@ -77,23 +78,23 @@ export class ConfigureProfileCommand
     });
 
     await this.profileWriter.appendAWSConfigFile({
-      profile: args.profile,
+      profile: profileName,
       region,
     });
 
     await this.profileWriter.appendAWSCredentialFile({
-      profile: args.profile,
+      profile: profileName,
       accessKeyId,
       secretAccessKey,
     });
-    Printer.print(`Created profile ${args.profile} successfully!`);
+    Printer.print(`Created profile ${profileName} successfully!`);
   };
 
   /**
    * @inheritDoc
    */
   builder = (yargs: Argv): Argv<ConfigureProfileCommandOptions> => {
-    return yargs.option('profile', {
+    return yargs.option('name', {
       describe: 'An AWS profile name',
       type: 'string',
       array: false,
@@ -106,5 +107,5 @@ export type ConfigureProfileCommandOptions =
   ArgumentsKebabCase<ConfigureProfileCommandOptionsCamelCase>;
 
 type ConfigureProfileCommandOptionsCamelCase = {
-  profile: string;
+  name: string;
 };
