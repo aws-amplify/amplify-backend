@@ -32,6 +32,9 @@ export enum ClientConfigFormat {
 }
 
 // @public
+export const deleteClientConfigFile: (outDir?: string, format?: ClientConfigFormat) => Promise<void>;
+
+// @public
 export const generateClientConfig: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier) => Promise<ClientConfig>;
 
 // @public
