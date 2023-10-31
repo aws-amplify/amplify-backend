@@ -1,7 +1,7 @@
 import path from 'node:path';
 import { after, before, beforeEach, describe, it } from 'node:test';
 import fs from 'fs/promises';
-import { ProfileManager } from './profile_manager.js';
+import { ProfileController } from './profile_controller.js';
 import assert from 'node:assert';
 import { loadSharedConfigFiles } from '@smithy/shared-ini-file-loader';
 
@@ -20,7 +20,7 @@ void describe('profile manager', () => {
   let configFilePath: string;
   let credFilePath: string;
 
-  const profileManager = new ProfileManager();
+  const profileManager = new ProfileController();
 
   before(async () => {
     testDir = await fs.mkdtemp('amplify_cmd_test');

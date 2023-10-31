@@ -5,7 +5,7 @@ import assert from 'node:assert';
 import { ConfigureProfileCommand } from './configure_profile_command.js';
 import { AmplifyPrompter, Printer } from '@aws-amplify/cli-core';
 import { Open } from '../open/open.js';
-import { ProfileManager } from './profile_manager.js';
+import { ProfileController } from './profile_controller.js';
 
 const testAccessKeyId = 'testAccessKeyId';
 const testSecretAccessKey = 'testSecretAccessKey';
@@ -13,19 +13,19 @@ const testProfile = 'testProfile';
 const testRegion = 'testRegion';
 
 void describe('configure command', () => {
-  const profileManager = new ProfileManager();
+  const profileController = new ProfileController();
   const mockProfileAppendConfig = mock.method(
-    profileManager,
+    profileController,
     'appendAWSConfigFile',
     () => Promise.resolve()
   );
   const mockProfileAppendCredential = mock.method(
-    profileManager,
+    profileController,
     'appendAWSCredentialFile',
     () => Promise.resolve()
   );
 
-  const configureCommand = new ConfigureProfileCommand(profileManager);
+  const configureCommand = new ConfigureProfileCommand(profileController);
   const parser = yargs().command(configureCommand as unknown as CommandModule);
 
   const commandRunner = new TestCommandRunner(parser);
@@ -36,7 +36,7 @@ void describe('configure command', () => {
   });
 
   void it('configures a profile with an IAM user', async (contextual) => {
-    const mockProfileExists = mock.method(profileManager, 'profileExists', () =>
+    const mockProfileExists = mock.method(profileController, 'profileExists', () =>
       Promise.resolve(true)
     );
     const mockPrint = contextual.mock.method(Printer, 'print');
@@ -52,7 +52,7 @@ void describe('configure command', () => {
   });
 
   void it('configures a profile with an IAM user', async (contextual) => {
-    const mockProfileExists = mock.method(profileManager, 'profileExists', () =>
+    const mockProfileExists = mock.method(profileController, 'profileExists', () =>
       Promise.resolve(false)
     );
     const mockSecretValue = contextual.mock.method(
@@ -108,7 +108,7 @@ void describe('configure command', () => {
   });
 
   void it('configures a profile without an IAM user', async (contextual) => {
-    const mockProfileExists = mock.method(profileManager, 'profileExists', () =>
+    const mockProfileExists = mock.method(profileController, 'profileExists', () =>
       Promise.resolve(false)
     );
     const mockSecretValue = contextual.mock.method(

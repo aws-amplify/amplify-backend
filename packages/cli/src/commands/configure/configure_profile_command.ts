@@ -4,7 +4,7 @@ import { DEFAULT_PROFILE } from '@smithy/shared-ini-file-loader';
 import { EOL } from 'os';
 import { Open } from '../open/open.js';
 import { ArgumentsKebabCase } from '../../kebab_case.js';
-import { ProfileManager } from './profile_manager.js';
+import { ProfileController } from './profile_controller.js';
 
 const amplifyInstallUrl = 'https://docs.amplify.aws/cli/start/install/';
 const awsConfigureUrl =
@@ -29,7 +29,7 @@ export class ConfigureProfileCommand
   /**
    * Configure profile command.
    */
-  constructor(private profileWriter: ProfileManager) {
+  constructor(private readonly profileController: ProfileController) {
     this.command = 'profile';
     this.describe = 'Configure an AWS Amplify profile';
   }
@@ -39,7 +39,7 @@ export class ConfigureProfileCommand
    */
   handler = async (args: ConfigureProfileCommandOptions): Promise<void> => {
     const profileName = args.name;
-    const profileExists = await this.profileWriter.profileExists(profileName);
+    const profileExists = await this.profileController.profileExists(profileName);
     if (profileExists) {
       Printer.print(
         `Profile '${profileName}' already exists!${EOL}Follow the instructions at ${amplifyInstallUrl} to configure an Amplify IAM User.${EOL}Use "aws configure" to complete the profile setup:${EOL}${awsConfigureUrl}${EOL}`
@@ -68,21 +68,17 @@ export class ConfigureProfileCommand
       'Enter Secret Access Key:'
     );
 
-    Printer.print(
-      `This would update/create the AWS Profile '${profileName}' in your local machine`
-    );
-
     const region = await AmplifyPrompter.input({
       message:
-        'Set the AWS region for this profile (eg us-east-1, us-west-2, etc):',
+        `Enter the AWS region to use with the '${profileName}' profile (eg us-east-1, us-west-2, etc):`,
     });
 
-    await this.profileWriter.appendAWSConfigFile({
+    await this.profileController.appendAWSConfigFile({
       profile: profileName,
       region,
     });
 
-    await this.profileWriter.appendAWSCredentialFile({
+    await this.profileController.appendAWSCredentialFile({
       profile: profileName,
       accessKeyId,
       secretAccessKey,

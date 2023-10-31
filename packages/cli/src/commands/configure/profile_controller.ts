@@ -28,7 +28,7 @@ export type CredentialProfileOptions = {
 /**
  * Manages AWS profiles.
  */
-export class ProfileManager {
+export class ProfileController {
   /**
    * Return true if the provided profile exists in the aws config and/or credential file.
    */
@@ -37,13 +37,8 @@ export class ProfileManager {
       ignoreCache: true,
     });
 
-    if (
-      profileData.configFile?.[profile] ||
-      profileData.credentialsFile?.[profile]
-    ) {
-      return true;
-    }
-    return false;
+    return profileData.configFile?.[profile] !== undefined ||
+    profileData.credentialsFile?.[profile] !== undefined;
   };
 
   appendAWSConfigFile = async (options: ConfigProfileOptions) => {
