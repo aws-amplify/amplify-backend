@@ -8,7 +8,7 @@ import {
 import { BackendDeploymentType } from '@aws-amplify/platform-core';
 
 void describe('PlatformClientConfigContributor', () => {
-  void it('returns an empty object if output has no auth output', () => {
+  void it('returns an empty object if output has no platform output', () => {
     const contributor = new PlatformClientConfigContributor();
     assert.deepStrictEqual(
       contributor.contribute({
@@ -29,7 +29,7 @@ void describe('PlatformClientConfigContributor', () => {
     );
   });
 
-  void it('returns translated config when output has auth', () => {
+  void it('returns translated config when output has platform', () => {
     const contributor = new PlatformClientConfigContributor();
     assert.deepStrictEqual(
       contributor.contribute({

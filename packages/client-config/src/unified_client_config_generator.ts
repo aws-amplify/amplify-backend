@@ -1,8 +1,5 @@
 import { BackendOutput } from '@aws-amplify/plugin-types';
-import {
-  stackOutputKey,
-  unifiedBackendOutputSchema,
-} from '@aws-amplify/backend-output-schemas';
+import { unifiedBackendOutputSchema } from '@aws-amplify/backend-output-schemas';
 import { ClientConfig } from './client-config-types/client_config.js';
 import { ClientConfigContributor } from './client-config-contributor/client_config_contributor.js';
 import { ClientConfigGenerator } from './client_config_generator.js';
