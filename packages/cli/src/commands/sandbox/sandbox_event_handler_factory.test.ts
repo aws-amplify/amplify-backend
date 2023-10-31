@@ -31,3 +31,29 @@ void it('calls the client config adapter on the successfulDeployment event', asy
     'mjs',
   ]);
 });
+
+void it('calls deleteClientConfigFile on client config adapter on the sandboxDeleted event', async () => {
+  const deleteClientConfigFileMock =
+    mock.fn<ClientConfigGeneratorAdapter['deleteClientConfigFile']>();
+  const eventFactory = new SandboxEventHandlerFactory(
+    {
+      deleteClientConfigFile: deleteClientConfigFileMock,
+    } as unknown as ClientConfigGeneratorAdapter,
+    async () => new SandboxBackendIdentifier('test')
+  );
+
+  await Promise.all(
+    eventFactory
+      .getSandboxEventHandlers({
+        format: ClientConfigFormat.MJS,
+        appName: 'my-app',
+        clientConfigOutDir: 'test-out',
+      })
+      .sandboxDeleted.map((e) => e())
+  );
+
+  assert.deepEqual(deleteClientConfigFileMock.mock.calls[0].arguments, [
+    'test-out',
+    'mjs',
+  ]);
+});

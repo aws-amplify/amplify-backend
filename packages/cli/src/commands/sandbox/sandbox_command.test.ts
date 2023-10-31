@@ -26,7 +26,8 @@ void describe('sandbox command', () => {
   let sandbox: Sandbox;
   let sandboxStartMock = mock.fn<typeof sandbox.start>();
 
-  const generationMock = mock.fn<EventHandler>();
+  const clientConfigGenerationMock = mock.fn<EventHandler>();
+  const clientConfigDeletionMock = mock.fn<EventHandler>();
 
   beforeEach(async () => {
     const sandboxFactory = new SandboxSingletonFactory(() =>
@@ -41,7 +42,8 @@ void describe('sandbox command', () => {
       sandboxFactory,
       [sandboxDeleteCommand, createSandboxSecretCommand()],
       () => ({
-        successfulDeployment: [generationMock],
+        successfulDeployment: [clientConfigGenerationMock],
+        sandboxDeleted: [clientConfigDeletionMock],
       })
     );
     const parser = yargs().command(sandboxCommand as unknown as CommandModule);
@@ -53,7 +55,14 @@ void describe('sandbox command', () => {
     const mockOn = mock.method(sandbox, 'on');
     await commandRunner.runCommand('sandbox');
     assert.equal(mockOn.mock.calls[0].arguments[0], 'successfulDeployment');
-    assert.equal(mockOn.mock.calls[0].arguments[1], generationMock);
+    assert.equal(mockOn.mock.calls[0].arguments[1], clientConfigGenerationMock);
+  });
+
+  void it('registers a callback on the "sandboxDeleted" event', async () => {
+    const mockOn = mock.method(sandbox, 'on');
+    await commandRunner.runCommand('sandbox');
+    assert.equal(mockOn.mock.calls[1].arguments[0], 'sandboxDeleted');
+    assert.equal(mockOn.mock.calls[1].arguments[1], clientConfigDeletionMock);
   });
 
   void it('starts sandbox without any additional flags', async () => {

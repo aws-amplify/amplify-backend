@@ -33,6 +33,7 @@ export type EventHandler = () => void;
 
 export type SandboxEventHandlers = {
   successfulDeployment: EventHandler[];
+  sandboxDeleted: EventHandler[];
 };
 
 export type SandboxEventHandlerParams = {
