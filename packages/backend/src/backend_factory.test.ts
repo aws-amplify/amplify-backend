@@ -2,7 +2,7 @@ import { beforeEach, describe, it } from 'node:test';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
-import { CDKBackend } from './backend_factory.js';
+import { BackendFactory } from './backend_factory.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
@@ -41,7 +41,7 @@ void describe('Backend', () => {
       },
     };
 
-    new CDKBackend(
+    new BackendFactory(
       {
         testConstructFactory,
       },
@@ -76,7 +76,7 @@ void describe('Backend', () => {
       },
     };
 
-    new CDKBackend(
+    new BackendFactory(
       {
         testConstructFactory,
       },
@@ -116,7 +116,7 @@ void describe('Backend', () => {
       },
     };
 
-    const backend = new CDKBackend(
+    const backend = new BackendFactory(
       {
         testConstructFactory,
       },
@@ -126,7 +126,7 @@ void describe('Backend', () => {
   });
 
   void it('stores attribution metadata in root stack', () => {
-    new CDKBackend({}, rootStack);
+    new BackendFactory({}, rootStack);
     const rootStackTemplate = Template.fromStack(rootStack);
     assert.equal(
       JSON.parse(rootStackTemplate.toJSON().Description).stackType,
@@ -136,7 +136,7 @@ void describe('Backend', () => {
 
   void describe('getOrCreateStack', () => {
     void it('returns nested stack', () => {
-      const backend = new CDKBackend({}, rootStack);
+      const backend = new BackendFactory({}, rootStack);
       const testStack = backend.getOrCreateStack('testStack');
       assert.strictEqual(rootStack.node.findChild('testStack'), testStack);
     });

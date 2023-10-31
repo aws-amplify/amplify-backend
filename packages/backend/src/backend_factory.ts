@@ -25,10 +25,11 @@ import { Backend } from './backend.js';
 const rootStackTypeIdentifier = 'root';
 
 /**
- * Class that collects and instantiates all the Amplify backend constructs
+ * Factory that collects and instantiates all the Amplify backend constructs
  */
-export class CDKBackend<T extends Record<string, ConstructFactory<Construct>>>
-  implements Backend<T>
+export class BackendFactory<
+  T extends Record<string, ConstructFactory<Construct>>
+> implements Backend<T>
 {
   private readonly stackResolver: StackResolver;
   /**
@@ -113,4 +114,4 @@ export const defineBackend = <
   T extends Record<string, ConstructFactory<Construct>>
 >(
   constructFactories: T
-): Backend<T> => new CDKBackend(constructFactories);
+): Backend<T> => new BackendFactory(constructFactories);
