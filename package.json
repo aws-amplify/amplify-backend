@@ -50,6 +50,7 @@
   },
   "homepage": "https://github.com/aws-amplify/cli#readme",
   "devDependencies": {
+    "@aws-sdk/client-amplify": "^3.438.0",
     "@aws-sdk/client-cloudformation": "^3.421.0",
     "@aws-sdk/client-cognito-identity-provider": "^3.421.0",
     "@aws-sdk/client-s3": "^3.421.0",

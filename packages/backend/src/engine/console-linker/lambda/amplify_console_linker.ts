@@ -71,6 +71,12 @@ export class AmplifyConsoleLinkerCustomResourceEventHandler {
       ...branch,
     };
 
+    if (!updateBranchCommandInput.stage) {
+      // This is a known bug in the service. I.e. branch can be created without stage
+      // but can't be updated without it.
+      updateBranchCommandInput.stage = 'PRODUCTION';
+    }
+
     // Stack id is in ARN format.
     // TODO: do something with this thing.
     console.log(stackId);
