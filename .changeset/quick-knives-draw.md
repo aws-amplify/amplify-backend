@@ -4,4 +4,4 @@
 '@aws-amplify/backend-cli': patch
 ---
 
-Add sandboxDeleted event to remove amplify configuration on deletion
+Add successfulDeletion event to remove amplify configuration on deletion
