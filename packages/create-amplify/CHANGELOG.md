@@ -1,5 +1,44 @@
 # create-amplify
 
+## 0.2.0
+
+### Minor Changes
+
+- c3383926: Run npm init as part of create-amplify if necessary. List aws-cdk as a peerDependency of sandbox. Fix sandbox stack naming and lookup
+- 66190beb: integrate api-next as the default data experience
+- ae9e9f10: Create factory functions for defining category config
+
+### Patch Changes
+
+- a130ba6a: fix data template
+- b2b0c2da: force version bump
+- c0d7c475: fix create amplify artifact compilation
+- 9a1cf731: Execute npm init with --yes flag and split dependencies and dev dependencies when installing packages into the project
+- e233eab6: Toggle resolveJsonModule flag when creating tsconfig
+- 7296e9d9: Initial publish
+- e5870d72: Install alpha package versions
+- c5d18967: Re-export category entry points from @aws-amplify/backend and move shared test classes to new private package
+- 9addd57f: Ensure .gitignore file exists with correct content in create-amplify flow
+- 34c3fd38: Update backend definition file path convention
+- 675f4283: Move prompter in create_amplify to cli-core package
+- 8df061e1: Initialize Gen2 project as ESM
+- 2ef006f1: Support for email and phone number login has been updated to reflect new type structures. User attributes and verification settings have also been added.
+- 3bda96ff: update methods to use arrow notation
+- 0c7d55fb: add prompts to customize the project root and to confirm if to continue installing all the dependencies
+- 395c8f0d: Add identityPoolId to output, and set delete policy on user pool to delete.
+- e45f8525: make directory if the user provided directory doesn't exist
+- 36d93e46: add license to package.json
+- 790c3a60: Add support for account recovery settings.
+- d1295912: Add Auth external identity provider to e2e test
+- b10f2a61: Rename UserPoolWebClient to UserPoolAppClient
+- 5a0df894: change log to instruct user to run command inside the project root
+- f75fa531: Refactor OutputStorageStrategy into stateless shared dependency
+- f6618771: add deployment type to stack outputs
+- Updated dependencies [76ba7929]
+- Updated dependencies [915c0325]
+- Updated dependencies [675f4283]
+  - @aws-amplify/cli-core@0.1.0
+
 ## 0.2.0-alpha.15
 
 ### Patch Changes

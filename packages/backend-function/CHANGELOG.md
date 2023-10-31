@@ -1,5 +1,46 @@
 # @aws-amplify/backend-function
 
+## 0.1.1
+
+### Patch Changes
+
+- b2b0c2da: force version bump
+- baa7a905: Move types package from peer deps to deps
+- 7296e9d9: Initial publish
+- c5d18967: Re-export category entry points from @aws-amplify/backend and move shared test classes to new private package
+- 3bda96ff: update methods to use arrow notation
+- 7103735b: cdk lib dependency declaration
+- 36d93e46: add license to package.json
+- 8f99476e: chore: upgrade aws-cdk to 2.103.0
+- dc22fdf4: Integrate secret to Auth
+- 407a09ff: Implements backend secret feature, include backend secret resolver and the backend-secret pkg.
+- fcc7d389: Enable type checking during deployment
+- f75fa531: Refactor OutputStorageStrategy into stateless shared dependency
+- f6618771: add deployment type to stack outputs
+- 59f5ea24: chore: upgrade aws-cdk to 2.100.0
+- Updated dependencies [47456c26]
+- Updated dependencies [ac3df080]
+- Updated dependencies [0398b8e1]
+- Updated dependencies [b2b0c2da]
+- Updated dependencies [18874854]
+- Updated dependencies [7296e9d9]
+- Updated dependencies [2ef006f1]
+- Updated dependencies [3bda96ff]
+- Updated dependencies [7103735b]
+- Updated dependencies [3c36ace9]
+- Updated dependencies [36d93e46]
+- Updated dependencies [8f99476e]
+- Updated dependencies [dc22fdf4]
+- Updated dependencies [407a09ff]
+- Updated dependencies [f75fa531]
+- Updated dependencies [f201c94a]
+- Updated dependencies [512f0778]
+- Updated dependencies [883d9da7]
+- Updated dependencies [59f5ea24]
+  - @aws-amplify/backend-output-storage@0.2.0
+  - @aws-amplify/function-construct-alpha@0.2.0
+  - @aws-amplify/plugin-types@0.2.0
+
 ## 0.1.1-alpha.11
 
 ### Patch Changes

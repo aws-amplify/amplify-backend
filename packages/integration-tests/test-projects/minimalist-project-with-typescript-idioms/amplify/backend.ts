@@ -1,7 +1,7 @@
-import { Backend } from '@aws-amplify/backend';
+import { defineBackend } from '@aws-amplify/backend';
 import { storage } from './storage/resource.js';
 
-new Backend({
+defineBackend({
   storage,
 });
 

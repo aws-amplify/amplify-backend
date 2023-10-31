@@ -137,7 +137,9 @@ export class CDKDeployer implements BackendDeployer {
       if (deploymentType !== BackendDeploymentType.SANDBOX) {
         cdkCommandArgs.push(
           '--context',
-          `branch-name=${uniqueBackendIdentifier.disambiguator}`
+          `branch-name=${uniqueBackendIdentifier.disambiguator}`,
+          '--require-approval',
+          'never'
         );
       }
     }

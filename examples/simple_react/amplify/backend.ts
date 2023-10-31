@@ -1,8 +1,8 @@
-import { Backend } from '@aws-amplify/backend';
+import { defineBackend } from '@aws-amplify/backend';
 import { auth } from './auth/resource.js';
 import { data } from './data/resource.js';
 
-new Backend({
+defineBackend({
   auth,
   data,
 });
