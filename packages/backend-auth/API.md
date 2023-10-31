@@ -10,10 +10,8 @@ import { AppleProviderProps } from '@aws-amplify/auth-construct-alpha';
 import { AuthProps } from '@aws-amplify/auth-construct-alpha';
 import { AuthResources } from '@aws-amplify/plugin-types';
 import { BackendSecret } from '@aws-amplify/plugin-types';
-import { BasicLoginOptions } from '@aws-amplify/auth-construct-alpha';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { ExternalProviderOptions } from '@aws-amplify/auth-construct-alpha';
-import { ExternalProviderProps } from '@aws-amplify/auth-construct-alpha';
 import { FacebookProviderProps } from '@aws-amplify/auth-construct-alpha';
 import { FunctionResources } from '@aws-amplify/plugin-types';
 import { GoogleProviderProps } from '@aws-amplify/auth-construct-alpha';
@@ -41,15 +39,12 @@ export type AppleProviderFactoryProps = Omit<AppleProviderProps, 'clientId' | 't
 };
 
 // @public
-export type AuthLoginWithFactoryProps = BasicLoginOptions & ExternalProviderFactoryProps;
+export type AuthLoginWithFactoryProps = Omit<AuthProps['loginWith'], 'externalProviders'> & {
+    externalProviders?: ExternalProviderSpecificFactoryProps;
+};
 
 // @public
 export const defineAuth: (props: AmplifyAuthFactoryProps) => ConstructFactory<AmplifyAuth & ResourceProvider<AuthResources>>;
-
-// @public
-export type ExternalProviderFactoryProps = Omit<ExternalProviderProps, 'externalProviders'> & {
-    externalProviders?: ExternalProviderSpecificFactoryProps;
-};
 
 // @public
 export type ExternalProviderGeneralFactoryProps = Omit<ExternalProviderOptions, 'signInWithApple' | 'loginWithAmazon' | 'facebook' | 'oidc' | 'google'>;

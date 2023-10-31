@@ -6,11 +6,7 @@ import {
 import { describe, it } from 'node:test';
 import { AuthLoginWithFactoryProps } from './types.js';
 import { Construct } from 'constructs';
-import {
-  BasicLoginOptions,
-  ExternalProviderProps,
-  PhoneNumberLogin,
-} from '@aws-amplify/auth-construct-alpha';
+import { AuthProps, PhoneNumberLogin } from '@aws-amplify/auth-construct-alpha';
 import { SecretValue } from 'aws-cdk-lib';
 import assert from 'node:assert';
 import { translateToAuthConstructLoginWith } from './translate_auth_props.js';
@@ -91,7 +87,7 @@ void describe('translateToAuthConstructLoginWith', () => {
       backendResolver
     );
 
-    const expected: BasicLoginOptions & ExternalProviderProps = {
+    const expected: AuthProps['loginWith'] = {
       phone,
       externalProviders: {
         google: {
@@ -136,7 +132,7 @@ void describe('translateToAuthConstructLoginWith', () => {
       backendResolver
     );
 
-    const expected: BasicLoginOptions & ExternalProviderProps = {
+    const expected: AuthProps['loginWith'] = {
       phone,
       externalProviders: {
         callbackUrls: callbackUrls,
@@ -155,7 +151,7 @@ void describe('translateToAuthConstructLoginWith', () => {
       backendResolver
     );
 
-    const expected: BasicLoginOptions & ExternalProviderProps = {
+    const expected: AuthProps['loginWith'] = {
       phone,
     };
     assert.deepStrictEqual(translated, expected);

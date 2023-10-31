@@ -1,8 +1,7 @@
 import {
   AmazonProviderProps,
   AppleProviderProps,
-  BasicLoginOptions,
-  ExternalProviderProps,
+  AuthProps,
   FacebookProviderProps,
   GoogleProviderProps,
   OidcProviderProps,
@@ -26,9 +25,9 @@ import {
 export const translateToAuthConstructLoginWith = (
   authFactoryLoginWith: AuthLoginWithFactoryProps,
   backendSecretResolver: BackendSecretResolver
-): BasicLoginOptions & ExternalProviderProps => {
-  const result: BasicLoginOptions & ExternalProviderProps =
-    authFactoryLoginWith as BasicLoginOptions;
+): AuthProps['loginWith'] => {
+  const result: AuthProps['loginWith'] =
+    authFactoryLoginWith as AuthProps['loginWith'];
   if (!authFactoryLoginWith.externalProviders) {
     return result;
   }

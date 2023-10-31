@@ -1,5 +1,5 @@
 {
- "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyPipelineDeploy\",\"createdWith\":\"0.2.0\",\"stackType\":\"auth-Cognito\",\"metadata\":{}}",
+ "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyPipelineDeploy\",\"createdWith\":\"0.2.0-alpha.18\",\"stackType\":\"auth-Cognito\",\"metadata\":{}}",
  "Resources": {
   "SecretFetcherResourceProviderLambdaServiceRole5ABAF823": {
    "Type": "AWS::IAM::Role",
@@ -205,7 +205,7 @@
     "backendId": "testAppId",
     "branchName": "testBranchName",
     "secretName": "testAmazonId",
-    "secretLastUpdated": 1698705118390
+    "secretLastUpdated": 1698712367508
    },
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete"
@@ -222,7 +222,7 @@
     "backendId": "testAppId",
     "branchName": "testBranchName",
     "secretName": "testAmazonSecret",
-    "secretLastUpdated": 1698705118390
+    "secretLastUpdated": 1698712367509
    },
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete"
@@ -239,7 +239,7 @@
     "backendId": "testAppId",
     "branchName": "testBranchName",
     "secretName": "testFacebookId",
-    "secretLastUpdated": 1698705118390
+    "secretLastUpdated": 1698712367509
    },
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete"
@@ -256,7 +256,7 @@
     "backendId": "testAppId",
     "branchName": "testBranchName",
     "secretName": "testFacebookSecret",
-    "secretLastUpdated": 1698705118390
+    "secretLastUpdated": 1698712367509
    },
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete"
@@ -273,7 +273,7 @@
     "backendId": "testAppId",
     "branchName": "testBranchName",
     "secretName": "testGoogleId",
-    "secretLastUpdated": 1698705118390
+    "secretLastUpdated": 1698712367509
    },
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete"
@@ -290,7 +290,7 @@
     "backendId": "testAppId",
     "branchName": "testBranchName",
     "secretName": "testGoogleSecret",
-    "secretLastUpdated": 1698705118390
+    "secretLastUpdated": 1698712367510
    },
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete"

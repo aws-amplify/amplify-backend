@@ -1,6 +1,5 @@
 export {
   AuthProps,
-  BasicLoginOptions,
   EmailLogin,
   EmailLoginSettings,
   GoogleProviderProps,
@@ -10,7 +9,6 @@ export {
   OidcProviderProps,
   SamlProviderProps,
   ExternalProviderOptions,
-  ExternalProviderProps,
   MFA,
   MFASettings,
   PhoneNumberLogin,
