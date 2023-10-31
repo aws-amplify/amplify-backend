@@ -35,12 +35,12 @@ const removeLastEOLCharFromFile = async (filePath: string) => {
   await fs.writeFile(filePath, removeLastEOLData, 'utf-8');
 };
 
-void describe('profile manager', () => {
+void describe('profile controller', () => {
   let testDir: string;
   let configFilePath: string;
   let credFilePath: string;
 
-  const profileManager = new ProfileController();
+  const profileController = new ProfileController();
 
   before(async () => {
     testDir = await fs.mkdtemp('amplify_cmd_test');
@@ -64,7 +64,7 @@ void describe('profile manager', () => {
     });
 
     void it('creates a new config file', async () => {
-      await profileManager.appendAWSConfigFile({
+      await profileController.appendAWSConfigFile({
         profile: testProfile,
         region: testRegion,
       });
@@ -90,7 +90,7 @@ void describe('profile manager', () => {
     });
 
     void it('appends to a config file which ends with EOL', async () => {
-      await profileManager.appendAWSConfigFile({
+      await profileController.appendAWSConfigFile({
         profile: testProfile2,
         region: testRegion2,
       });
@@ -121,7 +121,7 @@ void describe('profile manager', () => {
     void it('appends to a config file which does not end with EOL', async () => {
       await removeLastEOLCharFromFile(process.env.AWS_CONFIG_FILE as string);
 
-      await profileManager.appendAWSConfigFile({
+      await profileController.appendAWSConfigFile({
         profile: testProfile3,
         region: testRegion3,
       });
@@ -163,7 +163,7 @@ void describe('profile manager', () => {
     });
 
     void it('creates a new credential file', async () => {
-      await profileManager.appendAWSCredentialFile({
+      await profileController.appendAWSCredentialFile({
         profile: testProfile,
         accessKeyId: testAccessKeyId,
         secretAccessKey: testSecretAccessKey,
@@ -191,7 +191,7 @@ void describe('profile manager', () => {
     });
 
     void it('appends to a credential file which ends with EOL', async () => {
-      await profileManager.appendAWSCredentialFile({
+      await profileController.appendAWSCredentialFile({
         profile: testProfile2,
         accessKeyId: testAccessKeyId2,
         secretAccessKey: testSecretAccessKey2,
@@ -230,7 +230,7 @@ void describe('profile manager', () => {
         process.env.AWS_SHARED_CREDENTIALS_FILE as string
       );
 
-      await profileManager.appendAWSCredentialFile({
+      await profileController.appendAWSCredentialFile({
         profile: testProfile3,
         accessKeyId: testAccessKeyId3,
         secretAccessKey: testSecretAccessKey3,
@@ -276,50 +276,50 @@ void describe('profile manager', () => {
     });
 
     void it('returns false if absent both config and credential files', async () => {
-      assert.equal(await profileManager.profileExists(testProfile), false);
+      assert.equal(await profileController.profileExists(testProfile), false);
     });
 
     void it('returns false if a profile does not exist in any files', async () => {
-      await profileManager.appendAWSConfigFile({
+      await profileController.appendAWSConfigFile({
         profile: testProfile2,
         region: testRegion2,
       });
-      await profileManager.appendAWSConfigFile({
+      await profileController.appendAWSConfigFile({
         profile: testProfile2,
         region: testRegion2,
       });
-      assert.equal(await profileManager.profileExists(testProfile), false);
+      assert.equal(await profileController.profileExists(testProfile), false);
     });
 
     void it('returns true if a profile exists in a config file', async () => {
-      await profileManager.appendAWSConfigFile({
+      await profileController.appendAWSConfigFile({
         profile: testProfile,
         region: testRegion,
       });
-      assert.equal(await profileManager.profileExists(testProfile), true);
+      assert.equal(await profileController.profileExists(testProfile), true);
     });
 
     void it('returns true if a profile exists in a credential file', async () => {
-      await profileManager.appendAWSCredentialFile({
+      await profileController.appendAWSCredentialFile({
         profile: testProfile,
         accessKeyId: testAccessKeyId,
         secretAccessKey: testSecretAccessKey,
       });
-      assert.equal(await profileManager.profileExists(testProfile), true);
+      assert.equal(await profileController.profileExists(testProfile), true);
     });
 
     void it('returns true if a profile exists in both config and credential files', async () => {
-      await profileManager.appendAWSConfigFile({
+      await profileController.appendAWSConfigFile({
         profile: testProfile,
         region: testRegion,
       });
 
-      await profileManager.appendAWSCredentialFile({
+      await profileController.appendAWSCredentialFile({
         profile: testProfile,
         accessKeyId: testAccessKeyId,
         secretAccessKey: testSecretAccessKey,
       });
-      assert.equal(await profileManager.profileExists(testProfile), true);
+      assert.equal(await profileController.profileExists(testProfile), true);
     });
   });
 });
