@@ -197,11 +197,6 @@
        ],
        "Effect": "Allow",
        "Resource": "arn:aws:amplify:*:*:apps/testAppId/branches/testBranchName"
-      },
-      {
-       "Action": "amplify:CreateBranch",
-       "Effect": "Allow",
-       "Resource": "arn:aws:amplify:*:*:apps/testAppId/branches/"
       }
      ],
      "Version": "2012-10-17"
@@ -393,7 +388,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/828279caac54c5377c0c311fba9dbcfe1ce6aceac2461fa61cc65b676833393e.json"
+       "/7ef667be6b2e1b7504076df8267454685fa5cdc92dfa5136318dc05404b5e9b9.json"
       ]
      ]
     }

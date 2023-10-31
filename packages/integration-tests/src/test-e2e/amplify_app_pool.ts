@@ -147,6 +147,4 @@ const cleanupBranches = async () => {
   }
 };
 
-process.on('beforeExit', () => {
-  void cleanupBranches();
-});
+process.once('beforeExit', () => void cleanupBranches());

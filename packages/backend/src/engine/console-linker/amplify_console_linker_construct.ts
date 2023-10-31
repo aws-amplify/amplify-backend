@@ -54,16 +54,6 @@ export class AmplifyConsoleLinkerConstruct extends Construct {
       })
     );
 
-    linkerLambda.grantPrincipal.addToPrincipalPolicy(
-      new iam.PolicyStatement({
-        effect: iam.Effect.ALLOW,
-        actions: ['amplify:CreateBranch'],
-        resources: [
-          `arn:aws:amplify:*:*:apps/${backendIdentifier.backendId}/branches/`,
-        ],
-      })
-    );
-
     const customResourceProvider = new Provider(
       this,
       'AmplifyConsoleLinkerCustomResourceProvider',

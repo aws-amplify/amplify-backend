@@ -77,11 +77,6 @@
        ],
        "Effect": "Allow",
        "Resource": "arn:aws:amplify:*:*:apps/testAppId/branches/testBranchName"
-      },
-      {
-       "Action": "amplify:CreateBranch",
-       "Effect": "Allow",
-       "Resource": "arn:aws:amplify:*:*:apps/testAppId/branches/"
       }
      ],
      "Version": "2012-10-17"
