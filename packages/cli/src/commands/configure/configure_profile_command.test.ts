@@ -1,14 +1,11 @@
-import { afterEach, beforeEach, describe, it } from 'node:test';
+import { beforeEach, describe, it, mock } from 'node:test';
 import yargs, { CommandModule } from 'yargs';
 import { TestCommandRunner } from '../../test-utils/command_runner.js';
 import assert from 'node:assert';
-import { ConfigureCommand } from './configure_command.js';
-import fs from 'fs/promises';
-import path from 'node:path';
-import { AmplifyPrompter } from '@aws-amplify/cli-core';
-import { loadSharedConfigFiles } from '@smithy/shared-ini-file-loader';
-import { SharedConfigFiles } from '@aws-sdk/types';
+import { ConfigureProfileCommand } from './configure_profile_command.js';
+import { AmplifyPrompter, Printer } from '@aws-amplify/cli-core';
 import { Open } from '../open/open.js';
+import { ProfileManager } from './profile_writer.js';
 
 const testAccessKeyId = 'testAccessKeyId';
 const testSecretAccessKey = 'testSecretAccessKey';
@@ -16,31 +13,48 @@ const testProfile = 'testProfile';
 const testRegion = 'mars-east-200';
 
 void describe('configure command', () => {
-  const configureCommand = new ConfigureCommand();
+  const profileManager = new ProfileManager();
+  const mockProfileAppendConfig = mock.method(
+    profileManager,
+    'appendAWSConfigFile',
+    () => Promise.resolve()
+  );
+  const mockProfileAppendCredential = mock.method(
+    profileManager,
+    'appendAWSCredentialFile',
+    () => Promise.resolve()
+  );
+
+  const configureCommand = new ConfigureProfileCommand(profileManager);
   const parser = yargs().command(configureCommand as unknown as CommandModule);
 
   const commandRunner = new TestCommandRunner(parser);
 
-  let testDir: string;
-
-  const expectedData = `{"configFile":{"${testProfile}":{"region":"${testRegion}"}},"credentialsFile":{"${testProfile}":{"aws_access_key_id":"${testAccessKeyId}","aws_secret_access_key":"${testSecretAccessKey}"}}}`;
-
-  beforeEach(async () => {
-    testDir = await fs.mkdtemp('amplify_cmd_test');
-    const configFilePath = path.join(process.cwd(), testDir, 'config');
-    const credFilePath = path.join(process.cwd(), testDir, 'credentials');
-
-    process.env.AWS_CONFIG_FILE = configFilePath;
-    process.env.AWS_SHARED_CREDENTIALS_FILE = credFilePath;
-  });
-
-  afterEach(async () => {
-    await fs.rm(testDir, { recursive: true, force: true });
-    delete process.env.AWS_CONFIG_FILE;
-    delete process.env.AWS_SHARED_CREDENTIALS_FILE;
+  beforeEach(() => {
+    mockProfileAppendConfig.mock.resetCalls();
+    mockProfileAppendCredential.mock.resetCalls();
   });
 
   void it('configures a profile with an IAM user', async (contextual) => {
+    const mockProfileExists = mock.method(profileManager, 'profileExists', () =>
+      Promise.resolve(true)
+    );
+    const mockPrint = contextual.mock.method(Printer, 'print');
+
+    await commandRunner.runCommand(`profile --profile ${testProfile}`);
+
+    assert.equal(mockProfileExists.mock.callCount(), 1);
+    assert.equal(mockPrint.mock.callCount(), 1);
+    assert.match(
+      mockPrint.mock.calls[0].arguments[0] as string,
+      /already exists!/
+    );
+  });
+
+  void it('configures a profile with an IAM user', async (contextual) => {
+    const mockProfileExists = mock.method(profileManager, 'profileExists', () =>
+      Promise.resolve(false)
+    );
     const mockSecretValue = contextual.mock.method(
       AmplifyPrompter,
       'secretValue',
@@ -58,9 +72,7 @@ void describe('configure command', () => {
       AmplifyPrompter,
       'input',
       (options: { message: string; defaultValue?: string }) => {
-        if (options.message.includes('Profile Name')) {
-          return Promise.resolve(testProfile);
-        } else if (options.message.includes('Enter Region')) {
+        if (options.message.includes('Set the AWS region for this profile')) {
           return Promise.resolve(testRegion);
         }
         assert.fail(`Do not expect prompt message: '${options.message}'`);
@@ -72,19 +84,33 @@ void describe('configure command', () => {
       'yesOrNo',
       () => Promise.resolve(true)
     );
-    await commandRunner.runCommand('configure');
 
-    const data: SharedConfigFiles = await loadSharedConfigFiles({
-      ignoreCache: true,
-    });
+    await commandRunner.runCommand(`profile --profile ${testProfile}`);
 
-    assert.equal(JSON.stringify(data), expectedData);
+    assert.equal(mockProfileExists.mock.callCount(), 1);
     assert.equal(mockSecretValue.mock.callCount(), 2);
-    assert.equal(mockInput.mock.callCount(), 2);
+    assert.equal(mockInput.mock.callCount(), 1);
     assert.equal(mockHasIAMUser.mock.callCount(), 1);
+    assert.equal(mockProfileAppendConfig.mock.callCount(), 1);
+    assert.deepStrictEqual(mockProfileAppendConfig.mock.calls[0].arguments[0], {
+      profile: testProfile,
+      region: testRegion,
+    });
+    assert.equal(mockProfileAppendCredential.mock.callCount(), 1);
+    assert.deepStrictEqual(
+      mockProfileAppendCredential.mock.calls[0].arguments[0],
+      {
+        profile: testProfile,
+        accessKeyId: testAccessKeyId,
+        secretAccessKey: testSecretAccessKey,
+      }
+    );
   });
 
   void it('configures a profile without an IAM user', async (contextual) => {
+    const mockProfileExists = mock.method(profileManager, 'profileExists', () =>
+      Promise.resolve(false)
+    );
     const mockSecretValue = contextual.mock.method(
       AmplifyPrompter,
       'secretValue',
@@ -104,9 +130,9 @@ void describe('configure command', () => {
       (options: { message: string; defaultValue?: string }) => {
         if (options.message.includes('[enter] when complete')) {
           return Promise.resolve('anything');
-        } else if (options.message.includes('Profile Name')) {
-          return Promise.resolve(testProfile);
-        } else if (options.message.includes('Enter Region')) {
+        } else if (
+          options.message.includes('Set the AWS region for this profile')
+        ) {
           return Promise.resolve(testRegion);
         }
         assert.fail(`Do not expect prompt message: '${options.message}'`);
@@ -122,27 +148,36 @@ void describe('configure command', () => {
       'yesOrNo',
       () => Promise.resolve(false)
     );
-    await commandRunner.runCommand('configure');
 
-    const data: SharedConfigFiles = await loadSharedConfigFiles({
-      ignoreCache: true,
-    });
+    await commandRunner.runCommand(`profile --profile ${testProfile}`);
 
-    const expectedData = `{"configFile":{"${testProfile}":{"region":"${testRegion}"}},"credentialsFile":{"${testProfile}":{"aws_access_key_id":"${testAccessKeyId}","aws_secret_access_key":"${testSecretAccessKey}"}}}`;
-
-    assert.equal(JSON.stringify(data), expectedData);
+    assert.equal(mockProfileExists.mock.callCount(), 1);
     assert.equal(mockSecretValue.mock.callCount(), 2);
-    assert.equal(mockInput.mock.callCount(), 3);
+    assert.equal(mockInput.mock.callCount(), 2);
     assert.equal(mockHasIAMUser.mock.callCount(), 1);
     assert.equal(mockOpen.mock.callCount(), 1);
     assert.equal(
       mockOpen.mock.calls[0].arguments[0],
       'https://docs.amplify.aws/cli/start/install/'
     );
+    assert.equal(mockProfileAppendConfig.mock.callCount(), 1);
+    assert.deepStrictEqual(mockProfileAppendConfig.mock.calls[0].arguments[0], {
+      profile: testProfile,
+      region: testRegion,
+    });
+    assert.equal(mockProfileAppendCredential.mock.callCount(), 1);
+    assert.deepStrictEqual(
+      mockProfileAppendCredential.mock.calls[0].arguments[0],
+      {
+        profile: testProfile,
+        accessKeyId: testAccessKeyId,
+        secretAccessKey: testSecretAccessKey,
+      }
+    );
   });
 
   void it('show --help', async () => {
-    const output = await commandRunner.runCommand('configure --help');
+    const output = await commandRunner.runCommand('profile --help');
     assert.match(output, /Configure an AWS Amplify profile/);
   });
 });
