@@ -107,6 +107,7 @@ void describe('create-amplify script', () => {
         'backend.ts',
         path.join('data', 'resource.ts'),
         'package.json',
+        'tsconfig.json',
       ];
 
       assert.deepStrictEqual(
