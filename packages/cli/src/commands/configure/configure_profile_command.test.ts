@@ -10,7 +10,7 @@ import { ProfileManager } from './profile_writer.js';
 const testAccessKeyId = 'testAccessKeyId';
 const testSecretAccessKey = 'testSecretAccessKey';
 const testProfile = 'testProfile';
-const testRegion = 'mars-east-200';
+const testRegion = 'testRegion';
 
 void describe('configure command', () => {
   const profileManager = new ProfileManager();

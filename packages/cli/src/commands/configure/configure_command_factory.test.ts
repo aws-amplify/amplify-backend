@@ -4,7 +4,7 @@ import { TestCommandRunner } from '../../test-utils/command_runner.js';
 import assert from 'node:assert';
 import { createConfigureCommand } from './configure_command_factory.js';
 
-void describe('sandbox secret command factory', () => {
+void describe('configure command factory', () => {
   const configureCmd = createConfigureCommand();
 
   const parser = yargs().command(configureCmd);

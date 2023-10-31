@@ -3,7 +3,7 @@ import { ConfigureProfileCommand } from './configure_profile_command.js';
 import { ProfileManager } from './profile_writer.js';
 import { ConfigureCommand } from './configure_command.js';
 /**
- * Creates pipeline deploy command
+ * Creates a configure command.
  */
 export const createConfigureCommand = (): CommandModule<object> => {
   const profileWriter = new ProfileManager();

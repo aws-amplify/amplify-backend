@@ -33,7 +33,7 @@ export class Printer {
   };
 
   /**
-   * Prints a given message to console.
+   * Prints a given message (with optional color) to console.
    */
   static print = (message: string, colorName?: COLOR) => {
     if (colorName) {
