@@ -36,8 +36,10 @@ void describe('configure command', () => {
   });
 
   void it('configures a profile with an IAM user', async (contextual) => {
-    const mockProfileExists = mock.method(profileController, 'profileExists', () =>
-      Promise.resolve(true)
+    const mockProfileExists = mock.method(
+      profileController,
+      'profileExists',
+      () => Promise.resolve(true)
     );
     const mockPrint = contextual.mock.method(Printer, 'print');
 
@@ -52,8 +54,10 @@ void describe('configure command', () => {
   });
 
   void it('configures a profile with an IAM user', async (contextual) => {
-    const mockProfileExists = mock.method(profileController, 'profileExists', () =>
-      Promise.resolve(false)
+    const mockProfileExists = mock.method(
+      profileController,
+      'profileExists',
+      () => Promise.resolve(false)
     );
     const mockSecretValue = contextual.mock.method(
       AmplifyPrompter,
@@ -108,8 +112,10 @@ void describe('configure command', () => {
   });
 
   void it('configures a profile without an IAM user', async (contextual) => {
-    const mockProfileExists = mock.method(profileController, 'profileExists', () =>
-      Promise.resolve(false)
+    const mockProfileExists = mock.method(
+      profileController,
+      'profileExists',
+      () => Promise.resolve(false)
     );
     const mockSecretValue = contextual.mock.method(
       AmplifyPrompter,

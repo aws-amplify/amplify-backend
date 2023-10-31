@@ -7,7 +7,9 @@ import { ConfigureCommand } from './configure_command.js';
  */
 export const createConfigureCommand = (): CommandModule<object> => {
   const profileController = new ProfileController();
-  const configureProfileCommand = new ConfigureProfileCommand(profileController);
+  const configureProfileCommand = new ConfigureProfileCommand(
+    profileController
+  );
 
   return new ConfigureCommand([
     configureProfileCommand as unknown as CommandModule,

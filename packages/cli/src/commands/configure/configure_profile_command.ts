@@ -39,7 +39,9 @@ export class ConfigureProfileCommand
    */
   handler = async (args: ConfigureProfileCommandOptions): Promise<void> => {
     const profileName = args.name;
-    const profileExists = await this.profileController.profileExists(profileName);
+    const profileExists = await this.profileController.profileExists(
+      profileName
+    );
     if (profileExists) {
       Printer.print(
         `Profile '${profileName}' already exists!${EOL}Follow the instructions at ${amplifyInstallUrl} to configure an Amplify IAM User.${EOL}Use "aws configure" to complete the profile setup:${EOL}${awsConfigureUrl}${EOL}`
@@ -69,8 +71,7 @@ export class ConfigureProfileCommand
     );
 
     const region = await AmplifyPrompter.input({
-      message:
-        `Enter the AWS region to use with the '${profileName}' profile (eg us-east-1, us-west-2, etc):`,
+      message: `Enter the AWS region to use with the '${profileName}' profile (eg us-east-1, us-west-2, etc):`,
     });
 
     await this.profileController.appendAWSConfigFile({

@@ -37,8 +37,10 @@ export class ProfileController {
       ignoreCache: true,
     });
 
-    return profileData.configFile?.[profile] !== undefined ||
-    profileData.credentialsFile?.[profile] !== undefined;
+    return (
+      profileData.configFile?.[profile] !== undefined ||
+      profileData.credentialsFile?.[profile] !== undefined
+    );
   };
 
   appendAWSConfigFile = async (options: ConfigProfileOptions) => {
