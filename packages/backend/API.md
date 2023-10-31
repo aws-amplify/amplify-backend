@@ -18,17 +18,19 @@ import { Stack } from 'aws-cdk-lib';
 export { a }
 
 // @public
-export class Backend<T extends Record<string, ConstructFactory<Construct>>> {
-    constructor(constructFactories: T, stack?: Stack);
+export type Backend<T extends Record<string, ConstructFactory<Construct>>> = {
     getOrCreateStack: (name: string) => Stack;
     readonly resources: {
         [K in keyof T]: ReturnType<T[K]['getInstance']>;
     };
-}
+};
 
 export { ClientSchema }
 
 export { defineAuth }
+
+// @public
+export const defineBackend: <T extends Record<string, ConstructFactory<Construct>>>(constructFactories: T) => Backend<T>;
 
 export { defineData }
 
