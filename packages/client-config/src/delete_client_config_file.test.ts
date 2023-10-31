@@ -9,7 +9,7 @@ import path from 'path';
 void describe('deleteClientConfigFile()', () => {
   void it('deletes file from local file system when called with right arguments', async (context) => {
     // Used in getClientConfig
-    mock.method(fs, 'lstatSync', (path: string) => {
+    mock.method(fs, 'lstatSync', () => {
       return { isFile: () => false, isDir: () => true };
     });
 
