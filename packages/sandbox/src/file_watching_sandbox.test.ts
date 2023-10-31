@@ -742,6 +742,7 @@ const setupAndStartSandbox = async (
     exclude: testData.exclude,
     name: testData.name,
     format: testData.format,
+    profile: testData.profile,
   });
 
   // At this point one deployment should already have been done on sandbox startup

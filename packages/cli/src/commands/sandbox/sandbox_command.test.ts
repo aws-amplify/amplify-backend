@@ -1,7 +1,10 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import { AmplifyPrompter } from '@aws-amplify/cli-core';
 import yargs, { CommandModule } from 'yargs';
-import { TestCommandRunner } from '../../test-utils/command_runner.js';
+import {
+  TestCommandError,
+  TestCommandRunner,
+} from '../../test-utils/command_runner.js';
 import assert from 'node:assert';
 import fs from 'fs';
 import { EventHandler, SandboxCommand } from './sandbox_command.js';
@@ -9,6 +12,8 @@ import { createSandboxCommand } from './sandbox_command_factory.js';
 import { SandboxDeleteCommand } from './sandbox-delete/sandbox_delete_command.js';
 import { Sandbox, SandboxSingletonFactory } from '@aws-amplify/sandbox';
 import { createSandboxSecretCommand } from './sandbox-secret/sandbox_secret_command_factory.js';
+import { FromIniInit } from '@aws-sdk/credential-providers';
+import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 
 void describe('sandbox command factory', () => {
   void it('instantiate a sandbox command correctly', () => {
@@ -162,5 +167,51 @@ void describe('sandbox command', () => {
 
     assert.equal(sandboxStartMock.mock.callCount(), 1);
     assert.equal(sandboxDeleteMock.mock.callCount(), 0);
+  });
+
+  void it('starts sandbox with user provided invalid AWS profile', async () => {
+    await assert.rejects(
+      () => commandRunner.runCommand('sandbox --profile amplify-sandbox'), // profile doesn't exist
+      (err: TestCommandError) => {
+        assert.equal(err.error.name, 'CredentialsProviderError');
+        assert.equal(
+          err.error.message,
+          'Profile amplify-sandbox could not be found or parsed in shared credentials file.'
+        );
+        return true;
+      }
+    );
+    assert.equal(sandboxStartMock.mock.callCount(), 0);
+    assert.strictEqual(process.env.AWS_PROFILE, undefined);
+  });
+
+  void it('starts sandbox with user provided valid AWS profile', async () => {
+    // Mocking SDK's credential provider to not throw error on any profile name
+    const mockCredentialProviderFromIni = mock.fn<
+      (init?: FromIniInit) => AwsCredentialIdentityProvider
+    >(() => {
+      return mock.fn();
+    });
+    const sandboxFactory = new SandboxSingletonFactory(() =>
+      Promise.resolve('testBackendId')
+    );
+    sandbox = await sandboxFactory.getInstance();
+    sandboxStartMock = mock.method(sandbox, 'start', () => Promise.resolve());
+
+    const sandboxCommand = new SandboxCommand(
+      sandboxFactory,
+      [],
+      undefined,
+      mockCredentialProviderFromIni
+    );
+    const parser = yargs().command(sandboxCommand as unknown as CommandModule);
+    commandRunner = new TestCommandRunner(parser);
+    await commandRunner.runCommand('sandbox --profile amplify-sandbox');
+    assert.equal(sandboxStartMock.mock.callCount(), 1);
+    assert.strictEqual(process.env.AWS_PROFILE, 'amplify-sandbox');
+    assert.strictEqual(
+      mockCredentialProviderFromIni.mock.calls[0]?.arguments[0]?.profile,
+      'amplify-sandbox'
+    );
   });
 });
