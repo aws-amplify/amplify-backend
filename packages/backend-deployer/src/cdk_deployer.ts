@@ -13,7 +13,8 @@ import * as path from 'path';
 
 const relativeAmplifyBackendDir = 'amplify';
 
-const relativeBackendEntryPoint = path.join(
+// this path is used as commandline args to child processes which expect unix paths
+const relativeBackendEntryPoint = path.posix.join(
   relativeAmplifyBackendDir,
   'backend.ts'
 );
