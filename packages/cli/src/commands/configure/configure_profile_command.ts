@@ -4,7 +4,7 @@ import { DEFAULT_PROFILE } from '@smithy/shared-ini-file-loader';
 import { EOL } from 'os';
 import { Open } from '../open/open.js';
 import { ArgumentsKebabCase } from '../../kebab_case.js';
-import { ProfileManager } from './profile_writer.js';
+import { ProfileManager } from './profile_manager.js';
 
 const amplifyInstallUrl = 'https://docs.amplify.aws/cli/start/install/';
 const awsConfigureUrl =

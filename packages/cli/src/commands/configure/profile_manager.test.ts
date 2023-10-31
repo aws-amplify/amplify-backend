@@ -1,7 +1,7 @@
 import path from 'node:path';
 import { after, before, beforeEach, describe, it } from 'node:test';
 import fs from 'fs/promises';
-import { ProfileManager } from './profile_writer.js';
+import { ProfileManager } from './profile_manager.js';
 import assert from 'node:assert';
 import { loadSharedConfigFiles } from '@smithy/shared-ini-file-loader';
 

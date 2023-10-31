@@ -5,7 +5,7 @@ import assert from 'node:assert';
 import { ConfigureProfileCommand } from './configure_profile_command.js';
 import { AmplifyPrompter, Printer } from '@aws-amplify/cli-core';
 import { Open } from '../open/open.js';
-import { ProfileManager } from './profile_writer.js';
+import { ProfileManager } from './profile_manager.js';
 
 const testAccessKeyId = 'testAccessKeyId';
 const testSecretAccessKey = 'testSecretAccessKey';
