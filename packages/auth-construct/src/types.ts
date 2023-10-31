@@ -52,26 +52,6 @@ export type PhoneNumberLogin =
        */
       verificationMessage?: (code: string) => string;
     };
-/**
- * Basic login options require at least email or phone number.
- * Additional settings may be configured, such as email messages or sms verification messages.
- */
-export type BasicLoginOptions = {
-  /**
-   * Email login options.
-   *
-   * If true, email login will be enabled with default settings.
-   * If settings are provided, email login will be enabled with the specified settings.
-   */
-  email?: EmailLogin;
-  /**
-   * Phone number login options.
-   *
-   * If true, phone number login will be enabled with default settings.
-   * If settings are provided, phone number login will be enabled with the specified settings.
-   */
-  phone?: PhoneNumberLogin;
-};
 
 /**
  * Configure the MFA types that users can use. Ignored if MFA mode is set to OFF.
@@ -208,16 +188,6 @@ export type ExternalProviderOptions = {
 };
 
 /**
- * External auth provider.
- */
-export type ExternalProviderProps = {
-  /**
-   * Configure OAuth, OIDC, and SAML login providers
-   */
-  externalProviders?: ExternalProviderOptions;
-};
-
-/**
  * Union type of all supported auth trigger events
  */
 export type TriggerEvent = (typeof triggerEvents)[number];
@@ -227,9 +197,28 @@ export type TriggerEvent = (typeof triggerEvents)[number];
  */
 export type AuthProps = {
   /**
-   * Specify the allowed login mechanisms
+   * Specify how you would like users to log in. You can choose from email, phone, and even external providers such as LoginWithAmazon.
    */
-  loginWith: BasicLoginOptions & ExternalProviderProps;
+  loginWith: {
+    /**
+     * Email login options.
+     *
+     * If true, email login will be enabled with default settings.
+     * If settings are provided, email login will be enabled with the specified settings.
+     */
+    email?: EmailLogin;
+    /**
+     * Phone number login options.
+     *
+     * If true, phone number login will be enabled with default settings.
+     * If settings are provided, phone number login will be enabled with the specified settings.
+     */
+    phone?: PhoneNumberLogin;
+    /**
+     * Configure OAuth, OIDC, and SAML login providers
+     */
+    externalProviders?: ExternalProviderOptions;
+  };
   /**
    * The set of attributes that are required for every user in the user pool. Read more on attributes here - https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-settings-attributes.html
    * @default - email/phone will be added as required user attributes if they are included as login methods

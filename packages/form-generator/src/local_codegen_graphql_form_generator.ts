@@ -94,6 +94,7 @@ export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
       module: ModuleKind.ES2020,
       target: ScriptTarget.ES2020,
       script: ScriptKind.JSX,
+      includeUseClientDirective: true,
       renderTypeDeclarations: true,
       apiConfiguration: {
         dataApi: 'GraphQL',
