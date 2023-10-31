@@ -67,16 +67,11 @@ export class SandboxDeleteCommand
         array: false,
       })
       .check((argv) => {
-        if (argv.dirToWatch || argv.exclude) {
-          throw new Error(
-            `--dir-to-watch or --exclude are not valid options for delete`
-          );
-        }
         if (argv.name) {
           const projectNameRegex = /^[a-zA-Z0-9-]{1,15}$/;
           if (!argv.name.match(projectNameRegex)) {
             throw new Error(
-              `--name should match [a-zA-Z0-9-] and less than 15 characters.`
+              `--name should only contain alphanumeric characters and hyphens and be less than 15 characters.`
             );
           }
         }

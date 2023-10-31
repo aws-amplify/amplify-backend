@@ -1,5 +1,6 @@
 import opn from 'open';
 import { ChildProcess } from 'child_process';
+import { Printer } from '@aws-amplify/cli-core';
 
 /**
  * Helper class to open apps (URLs, files, executable). Cross-platform.
@@ -15,15 +16,15 @@ export class Open {
       childProcess.on('error', (e) => this.handleOpenError(e, target));
     } catch (e) {
       this.handleOpenError(e as Error, target);
-      return Promise.resolve();
+      return;
     }
-    return Promise.resolve(childProcess);
+    return childProcess;
   };
 
   static handleOpenError = (err: Error, target: string) => {
-    console.error(`Unable to open ${target}: ${err.message}`);
+    Printer.print(`Unable to open ${target}: ${err.message}`);
     if ('code' in err && err['code'] === 'ENOENT') {
-      console.warn('Have you installed `xdg-utils` on your machine?');
+      Printer.print('Have you installed `xdg-utils` on your machine?');
     }
   };
 }
