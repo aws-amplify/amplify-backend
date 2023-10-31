@@ -64,6 +64,11 @@ export class AmplifyConsoleLinkerCustomResourceEventHandler {
     branchName: string,
     stackId: string | undefined
   ): Promise<void> => {
+    // Stack id is in ARN format.
+    if (stackId && !stackId?.startsWith('arn:')) {
+      throw new Error(`Provided stackId ${stackId} is not in ARN format`);
+    }
+
     const branch: Branch = await this.getBranch(appId, branchName);
     // Populate update command input with existing values, so we don't lose them.
     const updateBranchCommandInput: UpdateBranchCommandInput = {
@@ -77,9 +82,11 @@ export class AmplifyConsoleLinkerCustomResourceEventHandler {
       updateBranchCommandInput.stage = 'PRODUCTION';
     }
 
-    // Stack id is in ARN format.
-    // TODO: do something with this thing.
-    console.log(stackId);
+    // Set or unset stackId
+    if (!updateBranchCommandInput.backend) {
+      updateBranchCommandInput.backend = {};
+    }
+    updateBranchCommandInput.backend.stackArn = stackId;
 
     await this.amplifyClient.send(
       new UpdateBranchCommand(updateBranchCommandInput)

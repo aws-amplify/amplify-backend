@@ -32,6 +32,8 @@ export type TestBranch = {
  * If throws an error if capacity of the pool is exhausted.
  * Branch created by this function is removed at the end of life of current process
  * or if that fails by cleanup script.
+ *
+ * The goal is to minimize Amplify App creation.
  */
 export const getTestBranch = async (): Promise<TestBranch> => {
   const app = await getAppWithCapacity();
