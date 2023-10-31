@@ -718,14 +718,14 @@ void describe('Sandbox using local project name resolver', () => {
     assert.equal(mockListener.mock.callCount(), 1);
   });
 
-  void it('emits the sandboxDeleted event after delete is finished', async () => {
+  void it('emits the successfulDeletion event after delete is finished', async () => {
     const mockListener = mock.fn();
     ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
       executor: sandboxExecutor,
       cfnClient: cfnClientMock,
     }));
 
-    sandboxInstance.on('sandboxDeleted', mockListener);
+    sandboxInstance.on('successfulDeletion', mockListener);
 
     await sandboxInstance.delete({});
 

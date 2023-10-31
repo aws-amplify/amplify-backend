@@ -1,7 +1,6 @@
 import {
   ClientConfig,
   ClientConfigFormat,
-  deleteClientConfigFile,
   generateClientConfig,
   generateClientConfigToFile,
 } from '@aws-amplify/client-config';
@@ -42,15 +41,5 @@ export class ClientConfigGeneratorAdapter {
       outDir,
       format
     );
-  };
-
-  /**
-   * Deletes the client config file from the local file system
-   */
-  deleteClientConfigFile = async (
-    outDir?: string,
-    format?: ClientConfigFormat
-  ): Promise<void> => {
-    await deleteClientConfigFile(outDir, format);
   };
 }
