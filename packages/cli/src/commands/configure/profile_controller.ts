@@ -11,7 +11,7 @@ import { join } from 'path';
 /**
  * Options for the profile configuration.
  */
-export type ConfigProfileOptions = {
+type ConfigProfileOptions = {
   profile: string;
   region: string;
 };
@@ -19,11 +19,16 @@ export type ConfigProfileOptions = {
 /**
  * Options for the profile credential.
  */
-export type CredentialProfileOptions = {
+type CredentialProfileOptions = {
   profile: string;
   accessKeyId: string;
   secretAccessKey: string;
 };
+
+/**
+ * Options for the profile configuration and credential.
+ */
+export type ProfileOptions = ConfigProfileOptions & CredentialProfileOptions;
 
 /**
  * Manages AWS profiles.
@@ -43,7 +48,15 @@ export class ProfileController {
     );
   };
 
-  appendAWSConfigFile = async (options: ConfigProfileOptions) => {
+  /**
+   * Appends a profile to AWS config and credential files.
+   */
+  appendAWSFiles = async (options: ProfileOptions) => {
+    await this.appendAWSConfigFile(options);
+    await this.appendAWSCredentialFile(options);
+  };
+
+  private appendAWSConfigFile = async (options: ConfigProfileOptions) => {
     const filePath =
       process.env.AWS_CONFIG_FILE ?? join(getHomeDir(), '.aws', 'config');
 
@@ -68,7 +81,9 @@ export class ProfileController {
     }
   };
 
-  appendAWSCredentialFile = async (options: CredentialProfileOptions) => {
+  private appendAWSCredentialFile = async (
+    options: CredentialProfileOptions
+  ) => {
     const filePath =
       process.env.AWS_SHARED_CREDENTIALS_FILE ??
       join(getHomeDir(), '.aws', 'credentials');

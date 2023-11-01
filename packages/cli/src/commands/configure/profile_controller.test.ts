@@ -57,42 +57,57 @@ void describe('profile controller', () => {
     delete process.env.AWS_SHARED_CREDENTIALS_FILE;
   });
 
-  void describe('config file', () => {
+  void describe('appendAWSFiles', () => {
     before(async () => {
       await fs.rm(configFilePath, { force: true });
       await fs.rm(credFilePath, { force: true });
     });
 
-    void it('creates a new config file', async () => {
-      await profileController.appendAWSConfigFile({
+    void it('creates new files', async () => {
+      await profileController.appendAWSFiles({
         profile: testProfile,
         region: testRegion,
+        accessKeyId: testAccessKeyId,
+        secretAccessKey: testSecretAccessKey,
       });
 
-      const configData = await loadSharedConfigFiles({
+      const data = await loadSharedConfigFiles({
         ignoreCache: true,
       });
 
-      assert.deepStrictEqual(configData, {
+      assert.deepStrictEqual(data, {
         configFile: {
           testProfile: {
             region: testRegion,
           },
         },
-        credentialsFile: {},
+        credentialsFile: {
+          testProfile: {
+            aws_access_key_id: testAccessKeyId,
+            aws_secret_access_key: testSecretAccessKey,
+          },
+        },
       });
 
-      const textData = await fs.readFile(
+      const configText = await fs.readFile(
         process.env.AWS_CONFIG_FILE as string,
         'utf-8'
       );
-      assert.equal(textData, expectedConfigText);
+      assert.equal(configText, expectedConfigText);
+
+      const credentialText = await fs.readFile(
+        process.env.AWS_SHARED_CREDENTIALS_FILE as string,
+        'utf-8'
+      );
+      assert.equal(credentialText, expectedCredentialText);
     });
 
-    void it('appends to a config file which ends with EOL', async () => {
-      await profileController.appendAWSConfigFile({
+    void it('appends to files which ends with EOL', async () => {
+      await profileController.appendAWSFiles({
         profile: testProfile2,
         region: testRegion2,
+        accessKeyId: testAccessKeyId2,
+        secretAccessKey: testSecretAccessKey2,
       });
 
       const configData = await loadSharedConfigFiles({
@@ -108,22 +123,45 @@ void describe('profile controller', () => {
             region: testRegion2,
           },
         },
-        credentialsFile: {},
+        credentialsFile: {
+          testProfile: {
+            aws_access_key_id: testAccessKeyId,
+            aws_secret_access_key: testSecretAccessKey,
+          },
+          testProfile2: {
+            aws_access_key_id: testAccessKeyId2,
+            aws_secret_access_key: testSecretAccessKey2,
+          },
+        },
       });
 
-      const textData = await fs.readFile(
+      const configText = await fs.readFile(
         process.env.AWS_CONFIG_FILE as string,
         'utf-8'
       );
-      assert.equal(textData, `${expectedConfigText}${expectedConfigText2}`);
+      assert.equal(configText, `${expectedConfigText}${expectedConfigText2}`);
+
+      const credentialText = await fs.readFile(
+        process.env.AWS_SHARED_CREDENTIALS_FILE as string,
+        'utf-8'
+      );
+      assert.equal(
+        credentialText,
+        `${expectedCredentialText}${expectedCredentialText2}`
+      );
     });
 
-    void it('appends to a config file which does not end with EOL', async () => {
+    void it('appends to files which does not end with EOL', async () => {
       await removeLastEOLCharFromFile(process.env.AWS_CONFIG_FILE as string);
+      await removeLastEOLCharFromFile(
+        process.env.AWS_SHARED_CREDENTIALS_FILE as string
+      );
 
-      await profileController.appendAWSConfigFile({
+      await profileController.appendAWSFiles({
         profile: testProfile3,
         region: testRegion3,
+        accessKeyId: testAccessKeyId3,
+        secretAccessKey: testSecretAccessKey3,
       });
 
       const configData = await loadSharedConfigFiles({
@@ -142,106 +180,6 @@ void describe('profile controller', () => {
             region: testRegion3,
           },
         },
-        credentialsFile: {},
-      });
-
-      const textData = await fs.readFile(
-        process.env.AWS_CONFIG_FILE as string,
-        'utf-8'
-      );
-      assert.equal(
-        textData,
-        `${expectedConfigText}${expectedConfigText2}${expectedConfigText3}`
-      );
-    });
-  });
-
-  void describe('credential file', () => {
-    before(async () => {
-      await fs.rm(configFilePath, { force: true });
-      await fs.rm(credFilePath, { force: true });
-    });
-
-    void it('creates a new credential file', async () => {
-      await profileController.appendAWSCredentialFile({
-        profile: testProfile,
-        accessKeyId: testAccessKeyId,
-        secretAccessKey: testSecretAccessKey,
-      });
-
-      const credentialData = await loadSharedConfigFiles({
-        ignoreCache: true,
-      });
-
-      assert.deepStrictEqual(credentialData, {
-        configFile: {},
-        credentialsFile: {
-          testProfile: {
-            aws_access_key_id: testAccessKeyId,
-            aws_secret_access_key: testSecretAccessKey,
-          },
-        },
-      });
-
-      const textData = await fs.readFile(
-        process.env.AWS_SHARED_CREDENTIALS_FILE as string,
-        'utf-8'
-      );
-      assert.equal(textData, expectedCredentialText);
-    });
-
-    void it('appends to a credential file which ends with EOL', async () => {
-      await profileController.appendAWSCredentialFile({
-        profile: testProfile2,
-        accessKeyId: testAccessKeyId2,
-        secretAccessKey: testSecretAccessKey2,
-      });
-
-      const writtenData = await loadSharedConfigFiles({
-        ignoreCache: true,
-      });
-
-      assert.deepStrictEqual(writtenData, {
-        configFile: {},
-        credentialsFile: {
-          testProfile: {
-            aws_access_key_id: testAccessKeyId,
-            aws_secret_access_key: testSecretAccessKey,
-          },
-          testProfile2: {
-            aws_access_key_id: testAccessKeyId2,
-            aws_secret_access_key: testSecretAccessKey2,
-          },
-        },
-      });
-
-      const textData = await fs.readFile(
-        process.env.AWS_SHARED_CREDENTIALS_FILE as string,
-        'utf-8'
-      );
-      assert.equal(
-        textData,
-        `${expectedCredentialText}${expectedCredentialText2}`
-      );
-    });
-
-    void it('appends to a credential file which does not end with EOL', async () => {
-      await removeLastEOLCharFromFile(
-        process.env.AWS_SHARED_CREDENTIALS_FILE as string
-      );
-
-      await profileController.appendAWSCredentialFile({
-        profile: testProfile3,
-        accessKeyId: testAccessKeyId3,
-        secretAccessKey: testSecretAccessKey3,
-      });
-
-      const writtenData = await loadSharedConfigFiles({
-        ignoreCache: true,
-      });
-
-      assert.deepStrictEqual(writtenData, {
-        configFile: {},
         credentialsFile: {
           testProfile: {
             aws_access_key_id: testAccessKeyId,
@@ -258,12 +196,21 @@ void describe('profile controller', () => {
         },
       });
 
-      const textData = await fs.readFile(
+      const configText = await fs.readFile(
+        process.env.AWS_CONFIG_FILE as string,
+        'utf-8'
+      );
+      assert.equal(
+        configText,
+        `${expectedConfigText}${expectedConfigText2}${expectedConfigText3}`
+      );
+
+      const credentialText = await fs.readFile(
         process.env.AWS_SHARED_CREDENTIALS_FILE as string,
         'utf-8'
       );
       assert.equal(
-        textData,
+        credentialText,
         `${expectedCredentialText}${expectedCredentialText2}${expectedCredentialText3}`
       );
     });
@@ -280,45 +227,48 @@ void describe('profile controller', () => {
     });
 
     void it('returns false if a profile does not exist in any files', async () => {
-      await profileController.appendAWSConfigFile({
-        profile: testProfile2,
-        region: testRegion2,
-      });
-      await profileController.appendAWSConfigFile({
-        profile: testProfile2,
-        region: testRegion2,
-      });
+      await fs.writeFile(
+        process.env.AWS_CONFIG_FILE as string,
+        expectedConfigText2,
+        'utf-8'
+      );
+      await fs.writeFile(
+        process.env.AWS_SHARED_CREDENTIALS_FILE as string,
+        expectedCredentialText2,
+        'utf-8'
+      );
       assert.equal(await profileController.profileExists(testProfile), false);
     });
 
     void it('returns true if a profile exists in a config file', async () => {
-      await profileController.appendAWSConfigFile({
-        profile: testProfile,
-        region: testRegion,
-      });
+      await fs.writeFile(
+        process.env.AWS_CONFIG_FILE as string,
+        expectedConfigText,
+        'utf-8'
+      );
       assert.equal(await profileController.profileExists(testProfile), true);
     });
 
     void it('returns true if a profile exists in a credential file', async () => {
-      await profileController.appendAWSCredentialFile({
-        profile: testProfile,
-        accessKeyId: testAccessKeyId,
-        secretAccessKey: testSecretAccessKey,
-      });
+      await fs.writeFile(
+        process.env.AWS_SHARED_CREDENTIALS_FILE as string,
+        expectedCredentialText,
+        'utf-8'
+      );
       assert.equal(await profileController.profileExists(testProfile), true);
     });
 
     void it('returns true if a profile exists in both config and credential files', async () => {
-      await profileController.appendAWSConfigFile({
-        profile: testProfile,
-        region: testRegion,
-      });
-
-      await profileController.appendAWSCredentialFile({
-        profile: testProfile,
-        accessKeyId: testAccessKeyId,
-        secretAccessKey: testSecretAccessKey,
-      });
+      await fs.writeFile(
+        process.env.AWS_CONFIG_FILE as string,
+        `${expectedConfigText}${expectedConfigText2}`,
+        'utf-8'
+      );
+      await fs.writeFile(
+        process.env.AWS_SHARED_CREDENTIALS_FILE as string,
+        `${expectedCredentialText}${expectedCredentialText2}`,
+        'utf-8'
+      );
       assert.equal(await profileController.profileExists(testProfile), true);
     });
   });

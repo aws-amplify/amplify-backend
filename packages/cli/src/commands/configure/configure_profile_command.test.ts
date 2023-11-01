@@ -14,14 +14,9 @@ const testRegion = 'testRegion';
 
 void describe('configure command', () => {
   const profileController = new ProfileController();
-  const mockProfileAppendConfig = mock.method(
+  const mockAppendAWSFiles = mock.method(
     profileController,
-    'appendAWSConfigFile',
-    () => Promise.resolve()
-  );
-  const mockProfileAppendCredential = mock.method(
-    profileController,
-    'appendAWSCredentialFile',
+    'appendAWSFiles',
     () => Promise.resolve()
   );
 
@@ -31,8 +26,7 @@ void describe('configure command', () => {
   const commandRunner = new TestCommandRunner(parser);
 
   beforeEach(() => {
-    mockProfileAppendConfig.mock.resetCalls();
-    mockProfileAppendCredential.mock.resetCalls();
+    mockAppendAWSFiles.mock.resetCalls();
   });
 
   void it('configures a profile with an IAM user', async (contextual) => {
@@ -95,20 +89,13 @@ void describe('configure command', () => {
     assert.equal(mockSecretValue.mock.callCount(), 2);
     assert.equal(mockInput.mock.callCount(), 1);
     assert.equal(mockHasIAMUser.mock.callCount(), 1);
-    assert.equal(mockProfileAppendConfig.mock.callCount(), 1);
-    assert.deepStrictEqual(mockProfileAppendConfig.mock.calls[0].arguments[0], {
+    assert.equal(mockAppendAWSFiles.mock.callCount(), 1);
+    assert.deepStrictEqual(mockAppendAWSFiles.mock.calls[0].arguments[0], {
       profile: testProfile,
       region: testRegion,
+      accessKeyId: testAccessKeyId,
+      secretAccessKey: testSecretAccessKey,
     });
-    assert.equal(mockProfileAppendCredential.mock.callCount(), 1);
-    assert.deepStrictEqual(
-      mockProfileAppendCredential.mock.calls[0].arguments[0],
-      {
-        profile: testProfile,
-        accessKeyId: testAccessKeyId,
-        secretAccessKey: testSecretAccessKey,
-      }
-    );
   });
 
   void it('configures a profile without an IAM user', async (contextual) => {
@@ -164,20 +151,13 @@ void describe('configure command', () => {
       mockOpen.mock.calls[0].arguments[0],
       'https://docs.amplify.aws/cli/start/install/'
     );
-    assert.equal(mockProfileAppendConfig.mock.callCount(), 1);
-    assert.deepStrictEqual(mockProfileAppendConfig.mock.calls[0].arguments[0], {
+    assert.equal(mockAppendAWSFiles.mock.callCount(), 1);
+    assert.deepStrictEqual(mockAppendAWSFiles.mock.calls[0].arguments[0], {
       profile: testProfile,
       region: testRegion,
+      accessKeyId: testAccessKeyId,
+      secretAccessKey: testSecretAccessKey,
     });
-    assert.equal(mockProfileAppendCredential.mock.callCount(), 1);
-    assert.deepStrictEqual(
-      mockProfileAppendCredential.mock.calls[0].arguments[0],
-      {
-        profile: testProfile,
-        accessKeyId: testAccessKeyId,
-        secretAccessKey: testSecretAccessKey,
-      }
-    );
   });
 
   void it('show --help', async () => {
