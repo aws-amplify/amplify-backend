@@ -115,6 +115,7 @@ void describe('create-amplify script', () => {
           path.join('auth', 'resource.ts'),
           'backend.ts',
           path.join('data', 'resource.ts'),
+          'package.json',
         ].map((suffix) => path.join(pathPrefix, suffix))
       );
 
