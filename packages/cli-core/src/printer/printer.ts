@@ -33,10 +33,14 @@ export class Printer {
   };
 
   /**
-   * Prints a given message with colors to console
+   * Prints a given message (with optional color) to console.
    */
-  static printWithColor = (colorName: COLOR, message: string) => {
-    console.log(color(colorName, message));
+  static print = (message: string, colorName?: COLOR) => {
+    if (colorName) {
+      console.log(color(colorName, message));
+    } else {
+      console.log(message);
+    }
   };
 
   /**
