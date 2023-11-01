@@ -115,7 +115,7 @@ export class ProfileController {
   private isFileEndsWithEOL = async (filePath: string): Promise<boolean> => {
     try {
       const data = await fs.readFile(filePath, 'utf-8');
-      return data.length > 0 && data[data.length - 1] === EOL;
+      return data.length > 0 && data.slice(-EOL.length) === EOL;
     } catch (err) {
       const error = err as Error;
       if (error.message.includes('ENOENT')) {

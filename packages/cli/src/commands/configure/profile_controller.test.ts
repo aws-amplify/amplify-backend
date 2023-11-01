@@ -29,9 +29,9 @@ const expectedCredentialText3 = `[${testProfile3}]${EOL}aws_access_key_id = ${te
 
 const removeLastEOLCharFromFile = async (filePath: string) => {
   const textData = await fs.readFile(filePath, 'utf-8');
-  assert.equal(textData[textData.length - 1], EOL);
-  const removeLastEOLData = textData.slice(0, -1);
-  assert.notEqual(removeLastEOLData[removeLastEOLData.length - 1], EOL);
+  assert.equal(textData.slice(-EOL.length), EOL);
+  const removeLastEOLData = textData.slice(0, -EOL.length);
+  assert.notEqual(removeLastEOLData.slice(-EOL.length), EOL);
   await fs.writeFile(filePath, removeLastEOLData, 'utf-8');
 };
 
