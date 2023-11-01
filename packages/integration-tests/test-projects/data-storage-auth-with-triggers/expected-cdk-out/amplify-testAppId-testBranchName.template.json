@@ -1,10 +1,11 @@
 {
- "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyPipelineDeploy\",\"createdWith\":\"0.2.0-alpha.12\",\"stackType\":\"root\",\"metadata\":{}}",
+ "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyPipelineDeploy\",\"createdWith\":\"0.2.0\",\"stackType\":\"root\",\"metadata\":{}}",
  "Metadata": {
   "AWS::Amplify::Platform": {
    "version": "1",
    "stackOutputs": [
-    "deploymentType"
+    "deploymentType",
+    "region"
    ]
   },
   "AWS::Amplify::Auth": {
@@ -41,6 +42,11 @@
  "Outputs": {
   "deploymentType": {
    "Value": "BRANCH"
+  },
+  "region": {
+   "Value": {
+    "Ref": "AWS::Region"
+   }
   },
   "userPoolId": {
    "Value": {
@@ -181,7 +187,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/f0d3060f91da8f5b8062d42780fd3fba7c2b533136e30e7880ac9fc32efdf58c.json"
+       "/b756f0dbcc480453e70d00bc7a282f108df74699709ee69f54ec60c4a2ae0841.json"
       ]
      ]
     }
@@ -208,7 +214,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/5f9266e6aa0c9f16ebd40b146de9615ae87db5a2a31e0d1fba7e05363af5ca3d.json"
+       "/51a06fef64294344ef1f63f74e763b53517a554426b68f175a2f5638d392f778.json"
       ]
      ]
     }
@@ -235,7 +241,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/9c379f9e7f3d9d09544627288f84730dbec61005ed89482c82501210ee29cb82.json"
+       "/53c02c2098ba3b05153be32ac6e3c6697b64b6a1d50653763754086af0047b1c.json"
       ]
      ]
     }
