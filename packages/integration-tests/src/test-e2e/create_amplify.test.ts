@@ -120,10 +120,25 @@ void describe('create-amplify script', () => {
       );
 
       // assert that project compiles successfully
-      await execa('npx', ['tsc', '--noEmit'], {
-        cwd: tempDir,
-        stdio: 'inherit',
-      });
+      await execa(
+        'npx',
+        [
+          'tsc',
+          '--noEmit',
+          '--skipLibCheck',
+          '--module',
+          'node16',
+          '--moduleResolution',
+          'node16',
+          '--target',
+          'es2022',
+          'amplify/backend.ts',
+        ],
+        {
+          cwd: tempDir,
+          stdio: 'inherit',
+        }
+      );
 
       // assert that project synthesizes successfully
       await execa(
