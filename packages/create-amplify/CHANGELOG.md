@@ -1,5 +1,14 @@
 # create-amplify
 
+## 0.2.1
+
+### Patch Changes
+
+- 4e48e4ba: chore: add new defineBackend to better align with other backend factories
+- 25b81098: set type: module in package.json in amplify directory
+- Updated dependencies [ff08a94b]
+  - @aws-amplify/cli-core@0.2.0
+
 ## 0.2.0
 
 ### Minor Changes
