@@ -165,4 +165,16 @@ void describe('DataFactory', () => {
       Name: 'MyTestApiName',
     });
   });
+
+  void it('does not throw if no auth resources are registered', () => {
+    constructContainer = new ConstructContainerStub(
+      new StackResolverStub(stack)
+    );
+    getInstanceProps = {
+      constructContainer,
+      outputStorageStrategy,
+      importPathVerifier,
+    };
+    dataFactory.getInstance(getInstanceProps);
+  });
 });

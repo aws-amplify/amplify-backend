@@ -49,13 +49,16 @@ class DataFactory implements ConstructFactory<AmplifyGraphqlApi> {
       'Amplify Data must be defined in amplify/data/resource.ts'
     );
     if (!this.generator) {
-      const authResourceProviderFactory =
-        props.constructContainer.getConstructFactory<
-          ResourceProvider<AuthResources>
-        >('AuthResources');
-      const authResourceProvider = authResourceProviderFactory
-        ? authResourceProviderFactory.getInstance(props)
-        : undefined;
+      // There doesn't seem to be a great way to check if this exists w/o producing an exception, so we just wrap in a try catch.
+      let authResourceProvider: ResourceProvider<AuthResources> | undefined =
+        undefined;
+      try {
+        authResourceProvider = props.constructContainer
+          .getConstructFactory<ResourceProvider<AuthResources>>('AuthResources')
+          .getInstance(props);
+      } catch (_) {
+        /* No-op */
+      }
       this.generator = new DataGenerator(
         this.props,
         buildConstructFactoryFunctionInstanceProvider(props),
