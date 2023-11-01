@@ -74,7 +74,7 @@ void describe('GitIgnoreInitializer', () => {
     ]);
   });
 
-  void it('handles patterns with /', async () => {
+  void it('handles patterns with leading /', async () => {
     const logMock = mock.fn();
     const gitIgnoreContent = `/node_modules`;
     const existsSyncMock = mock.fn(() => true);
@@ -92,6 +92,77 @@ void describe('GitIgnoreInitializer', () => {
     assert.deepStrictEqual(fsMock.appendFile.mock.calls[0].arguments, [
       path.join(process.cwd(), 'testProjectRoot', '.gitignore'),
       `${os.EOL}${os.EOL}.amplify${os.EOL}amplifyconfiguration*${os.EOL}`,
+    ]);
+  });
+
+  void it('handles patterns with trailing /', async () => {
+    const logMock = mock.fn();
+    const gitIgnoreContent = `node_modules/`;
+    const existsSyncMock = mock.fn(() => true);
+    const fsMock = {
+      appendFile: mock.fn(),
+      readFile: mock.fn(async () => gitIgnoreContent),
+    };
+    const gitIgnoreInitializer = new GitIgnoreInitializer(
+      path.join(process.cwd(), 'testProjectRoot'),
+      { log: logMock } as never,
+      existsSyncMock,
+      fsMock as never
+    );
+    await gitIgnoreInitializer.ensureInitialized();
+    assert.deepStrictEqual(fsMock.appendFile.mock.calls[0].arguments, [
+      path.join(process.cwd(), 'testProjectRoot', '.gitignore'),
+      `${os.EOL}${os.EOL}.amplify${os.EOL}amplifyconfiguration*${os.EOL}`,
+    ]);
+  });
+
+  void it('handles patterns with leading and trailing /', async () => {
+    const logMock = mock.fn();
+    const gitIgnoreContent = `/node_modules/`;
+    const existsSyncMock = mock.fn(() => true);
+    const fsMock = {
+      appendFile: mock.fn(),
+      readFile: mock.fn(async () => gitIgnoreContent),
+    };
+    const gitIgnoreInitializer = new GitIgnoreInitializer(
+      path.join(process.cwd(), 'testProjectRoot'),
+      { log: logMock } as never,
+      existsSyncMock,
+      fsMock as never
+    );
+    await gitIgnoreInitializer.ensureInitialized();
+    assert.deepStrictEqual(fsMock.appendFile.mock.calls[0].arguments, [
+      path.join(process.cwd(), 'testProjectRoot', '.gitignore'),
+      `${os.EOL}${os.EOL}.amplify${os.EOL}amplifyconfiguration*${os.EOL}`,
+    ]);
+  });
+
+  void it('handles patterns with multiple / and space', async () => {
+    const logMock = mock.fn();
+    const gitIgnoreContentArray = [
+      `node_modules /${os.EOL}`,
+      `/ node_modules${os.EOL}`,
+      `/no/de_mo/dul/es/ ${os.EOL}`,
+      `no/de_mo/dul/es/${os.EOL}`,
+      ` /no/de_mo/dul/es${os.EOL}`,
+      '//node_modules',
+    ];
+    const gitIgnoreContent = gitIgnoreContentArray.join('');
+    const existsSyncMock = mock.fn(() => true);
+    const fsMock = {
+      appendFile: mock.fn(),
+      readFile: mock.fn(async () => gitIgnoreContent),
+    };
+    const gitIgnoreInitializer = new GitIgnoreInitializer(
+      path.join(process.cwd(), 'testProjectRoot'),
+      { log: logMock } as never,
+      existsSyncMock,
+      fsMock as never
+    );
+    await gitIgnoreInitializer.ensureInitialized();
+    assert.deepStrictEqual(fsMock.appendFile.mock.calls[0].arguments, [
+      path.join(process.cwd(), 'testProjectRoot', '.gitignore'),
+      `${os.EOL}${os.EOL}node_modules${os.EOL}.amplify${os.EOL}amplifyconfiguration*${os.EOL}`,
     ]);
   });
 });
