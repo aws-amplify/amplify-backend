@@ -7,6 +7,7 @@ import { SandboxDeleteCommand } from './sandbox_delete_command.js';
 import { SandboxCommand } from '../sandbox_command.js';
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
 import { createSandboxSecretCommand } from '../sandbox-secret/sandbox_secret_command_factory.js';
+import { ClientConfigGeneratorAdapter } from '../../../client-config/client_config_generator_adapter.js';
 
 void describe('sandbox delete command', () => {
   let commandRunner: TestCommandRunner;
@@ -21,11 +22,15 @@ void describe('sandbox delete command', () => {
       Promise.resolve()
     ) as never; // couldn't figure out a good way to type the sandboxDeleteMock so that TS was happy here
 
+    const clientConfigGeneratorAdapterMock =
+      {} as unknown as ClientConfigGeneratorAdapter;
+
     const sandboxDeleteCommand = new SandboxDeleteCommand(sandboxFactory);
-    const sandboxCommand = new SandboxCommand(sandboxFactory, [
-      sandboxDeleteCommand,
-      createSandboxSecretCommand(),
-    ]);
+    const sandboxCommand = new SandboxCommand(
+      sandboxFactory,
+      [sandboxDeleteCommand, createSandboxSecretCommand()],
+      clientConfigGeneratorAdapterMock
+    );
     const parser = yargs().command(sandboxCommand as unknown as CommandModule);
     commandRunner = new TestCommandRunner(parser);
     sandboxDeleteMock.mock.resetCalls();
