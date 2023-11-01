@@ -17,7 +17,7 @@ export type AuthClientConfig = {
 };
 
 // @public
-export type ClientConfig = Partial<AuthClientConfig & GraphqlClientConfig & StorageClientConfig>;
+export type ClientConfig = Partial<AuthClientConfig & GraphqlClientConfig & StorageClientConfig & PlatformClientConfig>;
 
 // @public (undocumented)
 export enum ClientConfigFormat {
@@ -49,6 +49,11 @@ export type GraphqlClientConfig = {
     aws_appsync_conflictResolutionMode?: string;
     aws_appsync_apiKey?: string;
     modelIntrospection?: unknown;
+};
+
+// @public (undocumented)
+export type PlatformClientConfig = {
+    aws_project_region: string;
 };
 
 // @public

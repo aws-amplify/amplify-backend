@@ -1,5 +1,12 @@
 # @aws-amplify/integration-tests
 
+## 0.2.1
+
+### Patch Changes
+
+- d0119b25: Flatten loginWith type to improve autocompletion.
+- 4e48e4ba: chore: add new defineBackend to better align with other backend factories
+
 ## 0.2.0
 
 ### Minor Changes

@@ -4,7 +4,8 @@
   "AWS::Amplify::Platform": {
    "version": "1",
    "stackOutputs": [
-    "deploymentType"
+    "deploymentType",
+    "region"
    ]
   },
   "AWS::Amplify::Auth": {
@@ -40,6 +41,11 @@
  "Outputs": {
   "deploymentType": {
    "Value": "BRANCH"
+  },
+  "region": {
+   "Value": {
+    "Ref": "AWS::Region"
+   }
   },
   "userPoolId": {
    "Value": {
