@@ -45,7 +45,10 @@ const convertApiKeyAuthConfigToCDK = ({
  */
 const convertLambdaAuthorizationConfigToCDK = (
   functionInstanceProvider: FunctionInstanceProvider,
-  { function: authFn, timeToLiveInSeconds = DEFAULT_LAMBDA_AUTH_TIME_TO_LIVE_SECONDS }: LambdaAuthorizationConfig
+  {
+    function: authFn,
+    timeToLiveInSeconds = DEFAULT_LAMBDA_AUTH_TIME_TO_LIVE_SECONDS,
+  }: LambdaAuthorizationConfig
 ): CDKLambdaAuthorizationConfig => ({
   function: functionInstanceProvider.provide(authFn),
   ttl: Duration.seconds(timeToLiveInSeconds),

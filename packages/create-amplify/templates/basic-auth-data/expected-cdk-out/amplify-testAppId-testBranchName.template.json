@@ -1,5 +1,5 @@
 {
- "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyPipelineDeploy\",\"createdWith\":\"0.2.0-alpha.12\",\"stackType\":\"root\",\"metadata\":{}}",
+ "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyPipelineDeploy\",\"createdWith\":\"0.2.0\",\"stackType\":\"root\",\"metadata\":{}}",
  "Metadata": {
   "AWS::Amplify::Platform": {
    "version": "1",
@@ -23,8 +23,7 @@
     "awsAppsyncApiEndpoint",
     "awsAppsyncAuthenticationType",
     "awsAppsyncRegion",
-    "amplifyApiModelSchemaS3Uri",
-    "awsAppsyncAdditionalAuthenticationTypes"
+    "amplifyApiModelSchemaS3Uri"
    ]
   }
  },
@@ -101,9 +100,6 @@
      ]
     ]
    }
-  },
-  "awsAppsyncAdditionalAuthenticationTypes": {
-   "Value": "AWS_IAM"
   }
  },
  "Resources": {
@@ -126,7 +122,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/da135a6cd4ce06f28ac11c189e56fa1603036621ff59fb3270df5eaa669be740.json"
+       "/8770c9b9d12938bb3c5da2dd3429fde85b9da5e014da60afb5b7b839569e2226.json"
       ]
      ]
     }
@@ -142,18 +138,6 @@
       "Fn::GetAtt": [
        "auth179371D7",
        "Outputs.amplifytestAppIdtestBranchNameauthamplifyAuthUserPoolC1B04074Ref"
-      ]
-     },
-     "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthauthenticatedUserRole1D3D95F1Ref": {
-      "Fn::GetAtt": [
-       "auth179371D7",
-       "Outputs.amplifytestAppIdtestBranchNameauthamplifyAuthauthenticatedUserRole1D3D95F1Ref"
-      ]
-     },
-     "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthunauthenticatedUserRoleF8166590Ref": {
-      "Fn::GetAtt": [
-       "auth179371D7",
-       "Outputs.amplifytestAppIdtestBranchNameauthamplifyAuthunauthenticatedUserRoleF8166590Ref"
       ]
      }
     },
@@ -173,7 +157,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/16b8df90b9b28b0447de0b67cd1bd8c07c844fc90042e6a86cd3b5c211447cef.json"
+       "/a1acbc95aa4afc16cf6301030db5d654dde50a25eeb7a2bee565ceef7914333a.json"
       ]
      ]
     }
