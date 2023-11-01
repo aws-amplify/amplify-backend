@@ -32,9 +32,7 @@ import {
   StackResolverStub,
 } from '@aws-amplify/backend-platform-test-stubs';
 
-const testSchema = `
-  input AMPLIFY {globalAuthRule: AuthRule = { allow: public }} # FOR TESTING ONLY!
-
+const testSchema = /* GraphQL */ `
   type Todo @model {
     id: ID!
     name: String!

@@ -1,8 +1,6 @@
 import { defineData } from '@aws-amplify/backend-graphql';
 
-const schema = `
-  input AMPLIFY {globalAuthRule: AuthRule = { allow: public }} # FOR TESTING ONLY!
-
+const schema = /* GraphQL */ `
   type Todo @model {
     id: ID!
     name: String!
