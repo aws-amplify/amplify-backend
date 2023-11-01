@@ -76,10 +76,11 @@ export class AmplifyConsoleLinkerCustomResourceEventHandler {
       ...branch,
     };
 
-    if (!updateBranchCommandInput.stage) {
-      // This is a known bug in the service. I.e. branch can be created without stage
-      // but can't be updated without it.
-      updateBranchCommandInput.stage = 'PRODUCTION';
+    // This is a known bug in the service. I.e. branch can be created without stage
+    // but service returns 'NONE' instead of undefined which is not part of
+    // Stage enum...
+    if ((updateBranchCommandInput.stage as string) === 'NONE') {
+      updateBranchCommandInput.stage = undefined;
     }
 
     // Set or unset stackId
