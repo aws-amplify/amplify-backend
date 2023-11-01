@@ -1,5 +1,13 @@
 # @aws-amplify/backend-auth
 
+## 0.2.1
+
+### Patch Changes
+
+- d0119b25: Flatten loginWith type to improve autocompletion.
+- Updated dependencies [d0119b25]
+  - @aws-amplify/auth-construct-alpha@0.2.1
+
 ## 0.2.0
 
 ### Minor Changes
