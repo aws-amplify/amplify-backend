@@ -8,6 +8,7 @@ void describe('InitialProjectFileGenerator', () => {
     const fsMock = {
       mkdir: mock.fn(),
       cp: mock.fn(),
+      writeFile: mock.fn(),
     };
     const initialProjectFileGenerator = new InitialProjectFileGenerator(
       path.join(process.cwd(), 'testDir'),
@@ -24,5 +25,13 @@ void describe('InitialProjectFileGenerator', () => {
       path.join(process.cwd(), 'testDir', 'amplify'),
       { recursive: true },
     ]);
+    assert.equal(
+      fsMock.writeFile.mock.calls[0].arguments[0],
+      path.join(process.cwd(), 'testDir', 'amplify', 'package.json')
+    );
+    assert.deepStrictEqual(
+      JSON.parse(fsMock.writeFile.mock.calls[0].arguments[1]),
+      { type: 'module' }
+    );
   });
 });

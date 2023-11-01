@@ -7,7 +7,7 @@ const configFileName = 'amplifyconfiguration';
 /**
  * Get path to config file
  * @param outDir - path to directory where config is written. If not provided defaults to current process working directory.
- * @param format - The format which the configuration should be exported into. Defaults to js.
+ * @param format - The format which the configuration should be exported into. Defaults to JSON.
  * returns path to config file
  */
 export const getClientConfigPath = async (

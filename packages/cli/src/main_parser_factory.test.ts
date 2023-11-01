@@ -13,7 +13,7 @@ void describe('main parser', { concurrency: false }, () => {
   void it('includes generate command in help output', async () => {
     const output = await commandRunner.runCommand('--help');
     assert.match(output, /Commands:/);
-    assert.match(output, /generate {2}Generates post deployment artifacts/);
+    assert.match(output, /generate\s+Generates post deployment artifacts/);
   });
 
   void it('fails if command is not provided', async () => {
