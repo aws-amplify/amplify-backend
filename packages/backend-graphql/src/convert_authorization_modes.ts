@@ -26,12 +26,15 @@ export type ProvidedAuthResources = {
   identityPoolId?: string;
 };
 
+const DEFAULT_API_KEY_EXPIRATION_DAYS = 7;
+const DEFAULT_LAMBDA_AUTH_TIME_TO_LIVE_SECONDS = 60;
+
 /**
  * Convert to CDK ApiKeyAuthorizationConfig.
  */
 const convertApiKeyAuthConfigToCDK = ({
   description,
-  expiresInDays = 7,
+  expiresInDays = DEFAULT_API_KEY_EXPIRATION_DAYS,
 }: ApiKeyAuthorizationConfig): CDKApiKeyAuthorizationConfig => ({
   description,
   expires: Duration.days(expiresInDays),
@@ -42,7 +45,7 @@ const convertApiKeyAuthConfigToCDK = ({
  */
 const convertLambdaAuthorizationConfigToCDK = (
   functionInstanceProvider: FunctionInstanceProvider,
-  { function: authFn, timeToLiveInSeconds = 60 }: LambdaAuthorizationConfig
+  { function: authFn, timeToLiveInSeconds = DEFAULT_LAMBDA_AUTH_TIME_TO_LIVE_SECONDS }: LambdaAuthorizationConfig
 ): CDKLambdaAuthorizationConfig => ({
   function: functionInstanceProvider.provide(authFn),
   ttl: Duration.seconds(timeToLiveInSeconds),
@@ -67,17 +70,14 @@ const convertOIDCAuthConfigToCDK = ({
 
 /**
  * Compute default auth mode based on availability of auth resources.
+ * Will specify userPool if both user pool is specified, and no auth resources are specified, else rely on override value if needed.
  */
-const computeDefaultAuthorizationMode = ({
-  userPool,
-  authenticatedUserRole,
-  unauthenticatedUserRole,
-  identityPoolId,
-}: ProvidedAuthResources): DefaultAuthorizationMode => {
-  if (userPool) return 'AMAZON_COGNITO_USER_POOLS';
-  if (authenticatedUserRole && unauthenticatedUserRole && identityPoolId)
-    return 'AWS_IAM';
-  return 'API_KEY';
+const computeDefaultAuthorizationMode = (
+  { userPool }: ProvidedAuthResources,
+  authModes: AuthorizationModes | undefined
+): DefaultAuthorizationMode | undefined => {
+  if (userPool && !authModes) return 'AMAZON_COGNITO_USER_POOLS';
+  return;
 };
 
 /**
@@ -116,23 +116,38 @@ const computeIAMAuthFromResource = ({
  * Compute api key auth config from auth resource provider.
  * @returns an api key auth config, if relevant
  */
-const computeApiKeyAuthFromResource = ({
-  userPool,
-  authenticatedUserRole,
-  unauthenticatedUserRole,
-  identityPoolId,
-}: ProvidedAuthResources): CDKApiKeyAuthorizationConfig | undefined => {
+const computeApiKeyAuthFromResource = (
+  {
+    userPool,
+    authenticatedUserRole,
+    unauthenticatedUserRole,
+    identityPoolId,
+  }: ProvidedAuthResources,
+  authModes: AuthorizationModes | undefined
+): CDKApiKeyAuthorizationConfig | undefined => {
   if (
     userPool ||
     authenticatedUserRole ||
     unauthenticatedUserRole ||
-    identityPoolId
+    identityPoolId ||
+    authModes
   ) {
     return;
   }
   return {
-    expires: Duration.days(7),
+    expires: Duration.days(DEFAULT_API_KEY_EXPIRATION_DAYS),
   };
+};
+
+const validateAdminRolesHaveIAMAuthorizationConfig = (
+  adminRoles: IRole[] | undefined,
+  iamConfig: CDKIAMAuthorizationConfig | undefined
+): void => {
+  if (adminRoles && adminRoles.length > 0 && !iamConfig) {
+    throw new Error(
+      'Specifying adminRoleNames requires presence of IAM Authorization config. Either add Auth to the project, or specify an iamConfig in the authorizationModes.'
+    );
+  }
 };
 
 /**
@@ -146,10 +161,10 @@ export const convertAuthorizationModesToCDK = (
 ): CDKAuthorizationModes => {
   const defaultAuthorizationMode =
     authModes?.defaultAuthorizationMode ??
-    computeDefaultAuthorizationMode(authResources);
+    computeDefaultAuthorizationMode(authResources, authModes);
   const apiKeyConfig = authModes?.apiKeyConfig
     ? convertApiKeyAuthConfigToCDK(authModes.apiKeyConfig)
-    : computeApiKeyAuthFromResource(authResources);
+    : computeApiKeyAuthFromResource(authResources, authModes);
   const userPoolConfig =
     authModes?.userPoolConfig ?? computeUserPoolAuthFromResource(authResources);
   const iamConfig =
@@ -168,8 +183,11 @@ export const convertAuthorizationModesToCDK = (
         Role.fromRoleName(scope, `AdminRole${roleName}`, roleName)
       )
     : undefined;
+
+  validateAdminRolesHaveIAMAuthorizationConfig(adminRoles, iamConfig);
+
   return {
-    defaultAuthorizationMode,
+    ...(defaultAuthorizationMode ? { defaultAuthorizationMode } : undefined),
     ...(apiKeyConfig ? { apiKeyConfig } : undefined),
     ...(userPoolConfig ? { userPoolConfig } : undefined),
     ...(iamConfig ? { iamConfig } : undefined),
@@ -177,4 +195,20 @@ export const convertAuthorizationModesToCDK = (
     ...(oidcConfig ? { oidcConfig } : undefined),
     ...(adminRoles ? { adminRoles } : undefined),
   };
+};
+
+/**
+ * Return whether or not the api will use default API_KEY auth due to absence of auth resources and input auth-modes.
+ * @param authResources the generated auth resources in the system
+ * @param authModes the provided auth modes
+ * @returns a boolean indicating whether or not default api key auth will be used.
+ */
+export const isUsingDefaultApiKeyAuth = (
+  authResources: ProvidedAuthResources,
+  authModes: AuthorizationModes | undefined
+): boolean => {
+  return (
+    authModes === undefined &&
+    computeApiKeyAuthFromResource(authResources, authModes) !== undefined
+  );
 };

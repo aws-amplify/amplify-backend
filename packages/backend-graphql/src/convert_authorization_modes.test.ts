@@ -8,6 +8,7 @@ import { AuthorizationModes, FunctionInput } from './types.js';
 import {
   ProvidedAuthResources,
   convertAuthorizationModesToCDK,
+  isUsingDefaultApiKeyAuth,
 } from './convert_authorization_modes.js';
 import { Function, IFunction } from 'aws-cdk-lib/aws-lambda';
 import { FunctionInstanceProvider } from './convert_functions.js';
@@ -25,10 +26,7 @@ void describe('convertAuthorizationModesToCDK', () => {
   void it('defaults to api key if nothing is provided', () => {
     const providedAuthResources: ProvidedAuthResources = {};
 
-    const authModes: AuthorizationModes = {};
-
     const expectedOutput: CDKAuthorizationModes = {
-      defaultAuthorizationMode: 'API_KEY',
       apiKeyConfig: {
         expires: Duration.days(7),
       },
@@ -39,7 +37,7 @@ void describe('convertAuthorizationModesToCDK', () => {
         stack,
         functionInstanceProvider,
         providedAuthResources,
-        authModes
+        undefined
       ),
       expectedOutput
     );
@@ -66,8 +64,6 @@ void describe('convertAuthorizationModesToCDK', () => {
       unauthenticatedUserRole,
     };
 
-    const authModes: AuthorizationModes = {};
-
     const expectedOutput: CDKAuthorizationModes = {
       defaultAuthorizationMode: 'AMAZON_COGNITO_USER_POOLS',
       userPoolConfig: { userPool },
@@ -83,7 +79,7 @@ void describe('convertAuthorizationModesToCDK', () => {
         stack,
         functionInstanceProvider,
         providedAuthResources,
-        authModes
+        undefined
       ),
       expectedOutput
     );
@@ -108,10 +104,7 @@ void describe('convertAuthorizationModesToCDK', () => {
       unauthenticatedUserRole,
     };
 
-    const authModes: AuthorizationModes = {};
-
     const expectedOutput: CDKAuthorizationModes = {
-      defaultAuthorizationMode: 'AWS_IAM',
       iamConfig: {
         identityPoolId,
         authenticatedUserRole,
@@ -124,7 +117,7 @@ void describe('convertAuthorizationModesToCDK', () => {
         stack,
         functionInstanceProvider,
         providedAuthResources,
-        authModes
+        undefined
       ),
       expectedOutput
     );
@@ -152,9 +145,6 @@ void describe('convertAuthorizationModesToCDK', () => {
         oidcIssuerUrl: 'https://test.provider/',
         tokenExpiryFromIssue: Duration.seconds(60),
         tokenExpiryFromAuth: Duration.seconds(90),
-      },
-      apiKeyConfig: {
-        expires: Duration.days(7),
       },
     };
 
@@ -184,7 +174,6 @@ void describe('convertAuthorizationModesToCDK', () => {
     };
 
     const expectedOutput: CDKAuthorizationModes = {
-      defaultAuthorizationMode: 'AMAZON_COGNITO_USER_POOLS',
       userPoolConfig: {
         userPool: userDefinedUserPool,
       },
@@ -240,7 +229,6 @@ void describe('convertAuthorizationModesToCDK', () => {
     };
 
     const expectedOutput: CDKAuthorizationModes = {
-      defaultAuthorizationMode: 'AWS_IAM',
       iamConfig: {
         identityPoolId: userDefinedIdentityPoolId,
         authenticatedUserRole: userDefinedAuthenticatedUserRole,
@@ -270,7 +258,6 @@ void describe('convertAuthorizationModesToCDK', () => {
     };
 
     const expectedOutput: CDKAuthorizationModes = {
-      defaultAuthorizationMode: 'API_KEY',
       apiKeyConfig: {
         description: 'MyApiKey',
         expires: Duration.days(30),
@@ -298,7 +285,6 @@ void describe('convertAuthorizationModesToCDK', () => {
     const providedAuthResources: ProvidedAuthResources = {};
 
     const authModes: AuthorizationModes = {
-      defaultAuthorizationMode: 'AWS_LAMBDA',
       lambdaConfig: {
         function: authFunction,
         timeToLiveInSeconds: 30,
@@ -306,13 +292,9 @@ void describe('convertAuthorizationModesToCDK', () => {
     };
 
     const expectedOutput: CDKAuthorizationModes = {
-      defaultAuthorizationMode: 'AWS_LAMBDA',
       lambdaConfig: {
         function: authFunction,
         ttl: Duration.seconds(30),
-      },
-      apiKeyConfig: {
-        expires: Duration.days(7),
       },
     };
 
@@ -327,17 +309,45 @@ void describe('convertAuthorizationModesToCDK', () => {
     );
   });
 
-  void it('allows for specifying admin roles with an empty list', () => {
+  void it('throws if admin roles are specified and there is no iam auth configured', () => {
     const providedAuthResources: ProvidedAuthResources = {};
+
+    const authModes: AuthorizationModes = {
+      adminRoleNames: ['Admin'],
+    };
+
+    assert.throws(
+      () =>
+        convertAuthorizationModesToCDK(
+          stack,
+          functionInstanceProvider,
+          providedAuthResources,
+          authModes
+        ),
+      /Specifying adminRoleNames requires presence of IAM Authorization config. Either add Auth to the project, or specify an iamConfig in the authorizationModes./
+    );
+  });
+
+  void it('allows for specifying admin roles with an empty list', () => {
+    const identityPoolId = 'TestID';
+    const authenticatedUserRole = Role.fromRoleName(stack, 'Beep', 'Bleep');
+    const unauthenticatedUserRole = Role.fromRoleName(stack, 'Bleep', 'Beep');
+
+    const providedAuthResources: ProvidedAuthResources = {
+      identityPoolId,
+      authenticatedUserRole,
+      unauthenticatedUserRole,
+    };
 
     const authModes: AuthorizationModes = {
       adminRoleNames: [],
     };
 
     const expectedOutput: CDKAuthorizationModes = {
-      defaultAuthorizationMode: 'API_KEY',
-      apiKeyConfig: {
-        expires: Duration.days(7),
+      iamConfig: {
+        identityPoolId,
+        authenticatedUserRole,
+        unauthenticatedUserRole,
       },
       adminRoles: [],
     };
@@ -357,7 +367,11 @@ void describe('convertAuthorizationModesToCDK', () => {
     const convertedOutput = convertAuthorizationModesToCDK(
       stack,
       functionInstanceProvider,
-      {},
+      {
+        identityPoolId: 'testId',
+        authenticatedUserRole: Role.fromRoleName(stack, 'Beep', 'Bleep'),
+        unauthenticatedUserRole: Role.fromRoleName(stack, 'Bleep', 'Beep'),
+      },
       {
         adminRoleNames: ['Admin', 'QA'],
       }
@@ -366,5 +380,20 @@ void describe('convertAuthorizationModesToCDK', () => {
     assert.equal(convertedOutput.adminRoles?.length, 2);
     assert.equal(convertedOutput.adminRoles?.[0].roleName, 'Admin');
     assert.equal(convertedOutput.adminRoles?.[1].roleName, 'QA');
+  });
+});
+
+void describe('isUsingDefaultApiKeyAuth', () => {
+  void it('returns false when auth modes are specified', () => {
+    assert.equal(isUsingDefaultApiKeyAuth({}, { apiKeyConfig: {} }), false);
+  });
+
+  void it('returns false when provided auth resources are present', () => {
+    const userPool = new UserPool(new Stack(), 'MyPool');
+    assert.equal(isUsingDefaultApiKeyAuth({ userPool }, undefined), false);
+  });
+
+  void it('returns true when neither auth modes nor provided are resources are present', () => {
+    assert.equal(isUsingDefaultApiKeyAuth({}, undefined), true);
   });
 });

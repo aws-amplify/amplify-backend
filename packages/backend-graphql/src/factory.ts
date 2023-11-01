@@ -14,6 +14,7 @@ import { DataProps } from './types.js';
 import {
   ProvidedAuthResources,
   convertAuthorizationModesToCDK,
+  isUsingDefaultApiKeyAuth,
 } from './convert_authorization_modes.js';
 import { convertSchemaToCDK } from './convert_schema.js';
 import {
@@ -121,7 +122,10 @@ class DataGenerator implements ConstructContainerEntryGenerator {
         : {}),
       outputStorageStrategy: this.outputStorageStrategy,
       translationBehavior: {
-        sandboxModeEnabled: true,
+        sandboxModeEnabled: isUsingDefaultApiKeyAuth(
+          this.providedAuthResources,
+          this.props.authorizationModes
+        ),
       },
     });
   };
