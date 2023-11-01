@@ -57,7 +57,7 @@ void describe('amplify deploys', async () => {
         `${testProject.name}-${userInfo().username}`
       );
 
-      afterEach(async () => {
+      after(async () => {
         await testProject.tearDown(sandboxBackendIdentifier);
       });
 
