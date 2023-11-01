@@ -38,7 +38,10 @@ export class GitIgnoreInitializer {
       );
 
       // Add os.EOL if last line of .gitignore does not have EOL
-      if (gitIgnoreContent.slice(-1)[0] !== '') {
+      if (
+        gitIgnoreContent.slice(-1)[0] !== '' &&
+        filteredIgnorePatterns.length > 0
+      ) {
         filteredIgnorePatterns.unshift(os.EOL);
       }
 
@@ -62,8 +65,9 @@ export class GitIgnoreInitializer {
       return;
     }
 
-    // Add EOL to end of each pattern, additional EOL so .gitignore ends with it
-    const content = patterns.join(os.EOL) + os.EOL;
+    // Add EOL to end of each pattern, ensure additional content start with EOL and end with EOL
+    const content =
+      (patterns[0] !== os.EOL ? os.EOL : '') + patterns.join(os.EOL) + os.EOL;
 
     await this.fs.appendFile(this.gitIgnorePath, content);
   };
@@ -76,7 +80,9 @@ export class GitIgnoreInitializer {
       return;
     }
 
-    return (await this.fs.readFile(this.gitIgnorePath, 'utf-8')).split(os.EOL);
+    return (await this.fs.readFile(this.gitIgnorePath, 'utf-8'))
+      .split(os.EOL)
+      .map((s) => s.trim().replace('/', ''));
   };
 
   /**
