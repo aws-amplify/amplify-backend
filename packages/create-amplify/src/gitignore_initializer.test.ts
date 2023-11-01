@@ -28,7 +28,7 @@ void describe('GitIgnoreInitializer', () => {
     );
     assert.deepStrictEqual(fsMock.appendFile.mock.calls[0].arguments, [
       path.join(process.cwd(), 'testProjectRoot', '.gitignore'),
-      `${os.EOL}node_modules${os.EOL}.amplify${os.EOL}amplifyconfiguration*${os.EOL}`,
+      `node_modules${os.EOL}.amplify${os.EOL}amplifyconfiguration*${os.EOL}`,
     ]);
   });
 
@@ -70,7 +70,7 @@ void describe('GitIgnoreInitializer', () => {
     await gitIgnoreInitializer.ensureInitialized();
     assert.deepStrictEqual(fsMock.appendFile.mock.calls[0].arguments, [
       path.join(process.cwd(), 'testProjectRoot', '.gitignore'),
-      `${os.EOL}.amplify${os.EOL}amplifyconfiguration*${os.EOL}`,
+      `.amplify${os.EOL}amplifyconfiguration*${os.EOL}`,
     ]);
   });
 

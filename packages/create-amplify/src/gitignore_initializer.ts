@@ -65,9 +65,8 @@ export class GitIgnoreInitializer {
       return;
     }
 
-    // Add EOL to end of each pattern, ensure additional content start with EOL and end with EOL
-    const content =
-      (patterns[0] !== os.EOL ? os.EOL : '') + patterns.join(os.EOL) + os.EOL;
+    // Add EOL to end of each pattern, ensure additional content ends with EOL
+    const content = patterns.join(os.EOL) + os.EOL;
 
     await this.fs.appendFile(this.gitIgnorePath, content);
   };
