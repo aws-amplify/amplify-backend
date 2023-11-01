@@ -55,7 +55,7 @@ export type GraphqlOutput = z.infer<typeof versionedGraphqlOutputSchema>;
 export const graphqlOutputKey = "AWS::Amplify::GraphQL";
 
 // @public
-export const stackOutputKey = "AWS::Amplify::Platform";
+export const platformOutputKey = "AWS::Amplify::Platform";
 
 // @public (undocumented)
 export type StorageOutput = z.infer<typeof versionedStorageOutputSchema>;

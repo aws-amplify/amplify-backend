@@ -1,7 +1,7 @@
 import { ClientConfigContributor } from './client_config_contributor.js';
 import {
   UnifiedBackendOutput,
-  stackOutputKey,
+  platformOutputKey,
 } from '@aws-amplify/backend-output-schemas';
 import { PlatformClientConfig } from '../client-config-types/platform_client_config.js';
 
@@ -15,7 +15,7 @@ export class PlatformClientConfigContributor
    * Given some BackendOutput, contribute the Platform portion of the ClientConfig
    */
   contribute = ({
-    [stackOutputKey]: platformOutput,
+    [platformOutputKey]: platformOutput,
   }: UnifiedBackendOutput): PlatformClientConfig | Record<string, never> => {
     if (platformOutput === undefined) {
       return {};

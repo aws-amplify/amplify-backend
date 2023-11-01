@@ -7,7 +7,7 @@ import {
   UnifiedBackendOutput,
   authOutputKey,
   graphqlOutputKey,
-  stackOutputKey,
+  platformOutputKey,
 } from '@aws-amplify/backend-output-schemas';
 import { ClientConfig } from './client-config-types/client_config.js';
 import { BackendDeploymentType } from '@aws-amplify/platform-core';
@@ -19,7 +19,7 @@ void describe('UnifiedClientConfigGenerator', () => {
   void describe('generateClientConfig', () => {
     void it('transforms backend output into client config', async () => {
       const stubOutput: UnifiedBackendOutput = {
-        [stackOutputKey]: {
+        [platformOutputKey]: {
           version: '1',
           payload: {
             deploymentType: BackendDeploymentType.BRANCH,

@@ -17,7 +17,7 @@ import {
   BackendDeploymentType,
   SandboxBackendIdentifier,
 } from '@aws-amplify/platform-core';
-import { stackOutputKey } from '@aws-amplify/backend-output-schemas';
+import { platformOutputKey } from '@aws-amplify/backend-output-schemas';
 import { fileURLToPath } from 'url';
 import { Backend } from './backend.js';
 
@@ -60,7 +60,7 @@ export class BackendFactory<
     );
 
     const uniqueBackendIdentifier = getUniqueBackendIdentifier(stack);
-    outputStorageStrategy.addBackendOutputEntry(stackOutputKey, {
+    outputStorageStrategy.addBackendOutputEntry(platformOutputKey, {
       version: '1',
       payload: {
         deploymentType:

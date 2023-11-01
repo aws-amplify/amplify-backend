@@ -3,7 +3,7 @@ import assert from 'node:assert';
 import { PlatformClientConfigContributor } from './platform_client_config_contributor.js';
 import {
   graphqlOutputKey,
-  stackOutputKey,
+  platformOutputKey,
 } from '@aws-amplify/backend-output-schemas';
 import { BackendDeploymentType } from '@aws-amplify/platform-core';
 
@@ -33,7 +33,7 @@ void describe('PlatformClientConfigContributor', () => {
     const contributor = new PlatformClientConfigContributor();
     assert.deepStrictEqual(
       contributor.contribute({
-        [stackOutputKey]: {
+        [platformOutputKey]: {
           version: '1',
           payload: {
             deploymentType: BackendDeploymentType.BRANCH,
