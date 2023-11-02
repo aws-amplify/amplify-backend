@@ -47,15 +47,23 @@ class DataFactory implements ConstructFactory<AmplifyGraphqlApi> {
       'Amplify Data must be defined in amplify/data/resource.ts'
     );
     if (!this.generator) {
-      this.generator = new DataGenerator(
-        this.props,
-        constructContainer
+      let authResourceProvider: ResourceProvider<AuthResources> | undefined;
+      // There doesn't seem to be a great way to check if the resource provider exists before invoking getInstance,
+      // so wrapping this in a try-catch to handle the case where this isn't defined.
+      try {
+        authResourceProvider = constructContainer
           .getConstructFactory<ResourceProvider<AuthResources>>('AuthResources')
           .getInstance({
             constructContainer,
             outputStorageStrategy,
             importPathVerifier,
-          }),
+          });
+      } catch (_) {
+        /* No-op */
+      }
+      this.generator = new DataGenerator(
+        this.props,
+        authResourceProvider,
         outputStorageStrategy
       );
     }
@@ -69,7 +77,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
 
   constructor(
     private readonly props: DataProps,
-    private readonly authResources: ResourceProvider<AuthResources>,
+    private readonly authResources: ResourceProvider<AuthResources> | undefined,
     private readonly outputStorageStrategy: BackendOutputStorageStrategy<GraphqlOutput>
   ) {}
 
@@ -78,7 +86,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     let defaultAuthorizationMode: AuthorizationModes['defaultAuthorizationMode'] =
       'AWS_IAM';
     if (
-      this.authResources.resources.authenticatedUserIamRole &&
+      this.authResources?.resources.authenticatedUserIamRole &&
       this.authResources.resources.unauthenticatedUserIamRole &&
       this.authResources.resources.cfnResources.identityPool.logicalId
     ) {
@@ -93,7 +101,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     }
 
     let userPoolConfig: UserPoolAuthorizationConfig | undefined = undefined;
-    if (this.authResources.resources.userPool) {
+    if (this.authResources?.resources.userPool) {
       userPoolConfig = {
         userPool: this.authResources.resources.userPool,
       };
