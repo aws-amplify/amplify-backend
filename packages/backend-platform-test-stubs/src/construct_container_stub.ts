@@ -48,7 +48,7 @@ export class ConstructContainerStub implements ConstructContainer {
 
   /**
    * Gets a ConstructFactory that has previously been registered to a given token.
-   * Returns undefined if no construct factory if found for the specified token.
+   * Returns undefined if no construct factory is found for the specified token.
    *
    * NOTE: The return type of this function cannot be guaranteed at compile time because factories are dynamically registered at runtime
    * The return type of the factory is a contract that must be negotiated by the entity that registers a token and the entity that retrieves a token.
