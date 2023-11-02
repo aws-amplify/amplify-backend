@@ -35,14 +35,12 @@ export class SandboxSecretCommand implements CommandModule<object> {
    * @inheritDoc
    */
   builder = (yargs: Argv): Argv => {
-    return (
-      yargs
-        .command(this.secretSubCommands)
-        .help()
-        .fail((msg, err) => {
-          handleCommandFailure(msg, err, yargs);
-          yargs.exit(1, err);
-        })
-    );
+    return yargs
+      .command(this.secretSubCommands)
+      .help()
+      .fail((msg, err) => {
+        handleCommandFailure(msg, err, yargs);
+        yargs.exit(1, err);
+      });
   };
 }
