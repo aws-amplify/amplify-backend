@@ -4,26 +4,12 @@ import {
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
 } from '@aws-amplify/plugin-types';
-import { FunctionInput } from './types.js';
 
 /**
  * Type used for function provider injection while transforming data props.
  */
 export type FunctionInstanceProvider = {
-  provide: (func: FunctionInput) => IFunction;
-};
-
-/**
- * Determine if the provided union type is an AmplifyFunctionFactory (based on presence of AmplifyFunctionFactory specific methods) and perform type narrowing.
- */
-const isAmplifyFunctionFactory = (
-  func: FunctionInput
-): func is ConstructFactory<AmplifyFunction> => {
-  return (
-    typeof func === 'object' &&
-    'getInstance' in func &&
-    typeof func.getInstance === 'function'
-  );
+  provide: (func: ConstructFactory<AmplifyFunction>) => IFunction;
 };
 
 /**
@@ -32,10 +18,8 @@ const isAmplifyFunctionFactory = (
 export const buildConstructFactoryFunctionInstanceProvider = (
   props: ConstructFactoryGetInstanceProps
 ) => ({
-  provide: (func: FunctionInput): IFunction => {
-    if (!isAmplifyFunctionFactory(func)) return func;
-    return func.getInstance(props).resources.lambda;
-  },
+  provide: (func: ConstructFactory<AmplifyFunction>): IFunction =>
+    func.getInstance(props).resources.lambda,
 });
 
 /**
@@ -43,7 +27,7 @@ export const buildConstructFactoryFunctionInstanceProvider = (
  */
 export const convertFunctionNameMapToCDK = (
   functionInstanceProvider: FunctionInstanceProvider,
-  functions: Record<string, FunctionInput>
+  functions: Record<string, ConstructFactory<AmplifyFunction>>
 ): Record<string, IFunction> =>
   Object.fromEntries(
     Object.entries(functions).map(([functionName, functionInput]) => [
