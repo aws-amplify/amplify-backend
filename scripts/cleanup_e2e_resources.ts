@@ -24,7 +24,20 @@ import {
   ListUserPoolsCommandOutput,
   UserPoolDescriptionType,
 } from '@aws-sdk/client-cognito-identity-provider';
+import {
+  AmplifyClient,
+  App,
+  Branch,
+  DeleteBranchCommand,
+  ListAppsCommand,
+  ListAppsCommandOutput,
+  ListBranchesCommand,
+  ListBranchesCommandOutput,
+} from '@aws-sdk/client-amplify';
 
+const amplifyClient = new AmplifyClient({
+  maxAttempts: 5,
+});
 const cfnClient = new CloudFormationClient({
   maxAttempts: 5,
 });
@@ -210,5 +223,99 @@ for (const staleUserPool of staleUserPools) {
         `Failed to delete ${staleUserPool.Name} user pool. ${errorMessage}`
       );
     }
+  }
+}
+
+const listAllTestAmplifyApps = async (): Promise<Array<App>> => {
+  let nextToken: string | undefined = undefined;
+  const apps: Array<App> = [];
+  do {
+    const listAppsCommandOutput: ListAppsCommandOutput =
+      await amplifyClient.send(
+        new ListAppsCommand({
+          maxResults: 100,
+          nextToken,
+        })
+      );
+    nextToken = listAppsCommandOutput.nextToken;
+    listAppsCommandOutput.apps
+      ?.filter((app: App) => app.name?.startsWith(TEST_RESOURCE_PREFIX))
+      .forEach((app: App) => {
+        apps.push(app);
+      });
+  } while (nextToken);
+  return apps;
+};
+
+const listStaleAmplifyAppBranches = async (
+  appId: string
+): Promise<Array<Branch>> => {
+  let nextToken: string | undefined = undefined;
+  const branches: Array<Branch> = [];
+  do {
+    const listBranchesCommandOutput: ListBranchesCommandOutput =
+      await amplifyClient.send(
+        new ListBranchesCommand({
+          appId,
+          maxResults: 50,
+          nextToken,
+        })
+      );
+    nextToken = listBranchesCommandOutput.nextToken;
+    if (listBranchesCommandOutput.branches) {
+      listBranchesCommandOutput.branches
+        .filter((branch: Branch) => isStale(branch.createTime))
+        .forEach((branch: Branch) => {
+          branches.push(branch);
+        });
+    }
+  } while (nextToken);
+  return branches;
+};
+
+const listAllStaleAmplifyAppBranches = async (): Promise<
+  Array<{
+    appId: string;
+    branchName: string;
+  }>
+> => {
+  const branches: Array<{
+    appId: string;
+    branchName: string;
+  }> = [];
+  const allTestApps = await listAllTestAmplifyApps();
+  for (const testApp of allTestApps) {
+    if (testApp.appId) {
+      const staleAppBranches = await listStaleAmplifyAppBranches(testApp.appId);
+      staleAppBranches.forEach((branch) => {
+        if (testApp.appId && branch.branchName) {
+          branches.push({
+            appId: testApp.appId,
+            branchName: branch.branchName,
+          });
+        }
+      });
+    }
+  }
+  return branches;
+};
+
+const allStaleBranches = await listAllStaleAmplifyAppBranches();
+for (const staleBranch of allStaleBranches) {
+  try {
+    await amplifyClient.send(
+      new DeleteBranchCommand({
+        appId: staleBranch.appId,
+        branchName: staleBranch.branchName,
+      })
+    );
+    console.log(
+      `Successfully deleted ${staleBranch.branchName} branch of app ${staleBranch.appId}`
+    );
+  } catch (e) {
+    const errorMessage = e instanceof Error ? e.message : '';
+    console.log(
+      `Failed to delete ${staleBranch.branchName} branch of app ${staleBranch.appId}. ${errorMessage}`
+    );
   }
 }
