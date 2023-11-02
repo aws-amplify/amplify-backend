@@ -51,7 +51,10 @@ export class BackendFactory<
       rootStackTypeIdentifier,
       fileURLToPath(new URL('../package.json', import.meta.url))
     );
-    this.stackResolver = new NestedStackResolver(stack);
+    this.stackResolver = new NestedStackResolver(
+      stack,
+      new AttributionMetadataStorage()
+    );
 
     const constructContainer = new SingletonConstructContainer(
       this.stackResolver
