@@ -91,10 +91,16 @@ export class AmplifyBranchLinkerCustomResourceEventHandler {
     }
 
     // Set or unset stackId
-    if (!updateBranchCommandInput.backend) {
-      updateBranchCommandInput.backend = {};
+    if (stackId) {
+      if (!updateBranchCommandInput.backend) {
+        updateBranchCommandInput.backend = {};
+      }
+      updateBranchCommandInput.backend.stackArn = stackId;
+    } else {
+      if (updateBranchCommandInput.backend?.stackArn) {
+        delete updateBranchCommandInput.backend.stackArn;
+      }
     }
-    updateBranchCommandInput.backend.stackArn = stackId;
 
     console.info(
       `Sending branch update ${JSON.stringify(updateBranchCommandInput)}`
@@ -112,9 +118,7 @@ export class AmplifyBranchLinkerCustomResourceEventHandler {
       await this.amplifyClient.send(new GetBranchCommand({ appId, branchName }))
     ).branch;
     if (!branch) {
-      throw new Error(
-        `Unable to get or create branch ${branchName} for app ${appId}`
-      );
+      throw new Error(`Unable to get branch ${branchName} for app ${appId}`);
     }
     return branch;
   };
