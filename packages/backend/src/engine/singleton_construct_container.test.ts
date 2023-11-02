@@ -6,7 +6,11 @@ import assert from 'node:assert';
 import { Construct } from 'constructs';
 import { Queue } from 'aws-cdk-lib/aws-sqs';
 import { NestedStackResolver } from './nested_stack_resolver.js';
-import { ConstructContainerEntryGenerator } from '@aws-amplify/plugin-types';
+import {
+  ConstructContainer,
+  ConstructContainerEntryGenerator,
+  ConstructFactory,
+} from '@aws-amplify/plugin-types';
 import {
   BackendDeploymentType,
   CDKContextKey,
@@ -86,6 +90,57 @@ void describe('SingletonConstructContainer', () => {
 
       assert.strictEqual(bucket, cachedBucket);
       assert.strictEqual(queue, cachedQueue);
+    });
+  });
+
+  void describe('construct factory methods', () => {
+    let container: ConstructContainer;
+
+    beforeEach(() => {
+      container = new SingletonConstructContainer(
+        new NestedStackResolver(createStackAndSetContext())
+      );
+    });
+
+    void it('getConstructFactory returns for existing factory', () => {
+      const testFactory: ConstructFactory = {
+        name: 'factory1',
+      } as unknown as ConstructFactory;
+      container.registerConstructFactory('factory1', testFactory);
+      assert.deepStrictEqual(
+        container.getConstructFactory('factory1'),
+        testFactory
+      );
+    });
+
+    void it('getConstructFactory throws for missing factory', () => {
+      const testFactory: ConstructFactory = {
+        name: 'factory1',
+      } as unknown as ConstructFactory;
+      container.registerConstructFactory('factory1', testFactory);
+      assert.throws(
+        () => container.getConstructFactory('factory2'),
+        'No provider factory registered for token factory1'
+      );
+    });
+
+    void it('tryAndGetConstructFactory returns for existing factory', () => {
+      const testFactory: ConstructFactory = {
+        name: 'factory1',
+      } as unknown as ConstructFactory;
+      container.registerConstructFactory('factory1', testFactory);
+      assert.deepStrictEqual(
+        container.tryAndGetConstructFactory('factory1'),
+        testFactory
+      );
+    });
+
+    void it('tryAndGetConstructFactory returns null for missing factory', () => {
+      const testFactory: ConstructFactory = {
+        name: 'factory1',
+      } as unknown as ConstructFactory;
+      container.registerConstructFactory('factory1', testFactory);
+      assert.equal(container.tryAndGetConstructFactory('factory2'), null);
     });
   });
 });

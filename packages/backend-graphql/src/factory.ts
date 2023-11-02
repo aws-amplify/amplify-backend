@@ -47,23 +47,17 @@ class DataFactory implements ConstructFactory<AmplifyGraphqlApi> {
       'Amplify Data must be defined in amplify/data/resource.ts'
     );
     if (!this.generator) {
-      let authResourceProvider: ResourceProvider<AuthResources> | undefined;
-      // There doesn't seem to be a great way to check if the resource provider exists before invoking getInstance,
-      // so wrapping this in a try-catch to handle the case where this isn't defined.
-      try {
-        authResourceProvider = constructContainer
-          .getConstructFactory<ResourceProvider<AuthResources>>('AuthResources')
-          .getInstance({
+      this.generator = new DataGenerator(
+        this.props,
+        constructContainer
+          .tryAndGetConstructFactory<ResourceProvider<AuthResources>>(
+            'AuthResources'
+          )
+          ?.getInstance({
             constructContainer,
             outputStorageStrategy,
             importPathVerifier,
-          });
-      } catch (_) {
-        /* No-op */
-      }
-      this.generator = new DataGenerator(
-        this.props,
-        authResourceProvider,
+          }),
         outputStorageStrategy
       );
     }

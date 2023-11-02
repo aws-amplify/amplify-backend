@@ -63,6 +63,24 @@ export class ConstructContainerStub implements ConstructContainer {
   };
 
   /**
+   * Gets a ConstructFactory that has previously been registered to a given token.
+   * Return null if no factory has been registered.
+   *
+   * NOTE: The return type of this function cannot be guaranteed at compile time because factories are dynamically registered at runtime
+   * The return type of the factory is a contract that must be negotiated by the entity that registers a token and the entity that retrieves a token.
+   *
+   * By convention, tokens should be the name of type T
+   */
+  tryAndGetConstructFactory = <T>(
+    token: string
+  ): ConstructFactory<T> | null => {
+    if (token in this.providerFactoryTokenMap) {
+      return this.providerFactoryTokenMap[token] as ConstructFactory<T>;
+    }
+    return null;
+  };
+
+  /**
    * Register a ConstructFactory to a specified token. This ConstructFactory can be retrieved later using getConstructFactory
    * Throws if the token is already registered to a different factory
    */
