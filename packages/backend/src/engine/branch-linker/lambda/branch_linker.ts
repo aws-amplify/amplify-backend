@@ -46,7 +46,7 @@ export class AmplifyBranchLinkerCustomResourceEventHandler {
         break;
       case 'Delete':
         console.info(
-          `Unsetting stack reference for backendId=${props.backendId},branchName=${props.branchName}`
+          `Un-setting stack reference for backendId=${props.backendId},branchName=${props.branchName}`
         );
         await this.updateOrUnsetStackReference(
           props.backendId,

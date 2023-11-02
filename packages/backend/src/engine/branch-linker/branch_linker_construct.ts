@@ -17,7 +17,7 @@ const linkerLambdaFilePath = path.join(resourcesRoot, 'branch_linker.js');
 /**
  * Type of the backend custom CFN resource.
  */
-const LINKER_RESOURCE_TYPE = `Custom::AmplifyBranchLinkerResource`;
+const LINKER_RESOURCE_TYPE = 'Custom::AmplifyBranchLinkerResource';
 
 /**
  * Adds a custom resources that links and un-links branch deployments
