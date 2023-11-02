@@ -48,18 +48,18 @@ export class SingletonConstructContainer implements ConstructContainer {
 
   /**
    * Gets a ConstructFactory that has previously been registered to a given token.
-   * Throws if no factory has been registered for the token.
+   * Returns undefined if no construct factory is found for the specified token.
    *
    * NOTE: The return type of this function cannot be guaranteed at compile time because factories are dynamically registered at runtime
    * The return type of the factory is a contract that must be negotiated by the entity that registers a token and the entity that retrieves a token.
    *
    * By convention, tokens should be the name of type T
    */
-  getConstructFactory = <T>(token: string): ConstructFactory<T> => {
+  getConstructFactory = <T>(token: string): ConstructFactory<T> | undefined => {
     if (token in this.providerFactoryTokenMap) {
       return this.providerFactoryTokenMap[token] as ConstructFactory<T>;
     }
-    throw new Error(`No provider factory registered for token ${token}`);
+    return;
   };
 
   /**

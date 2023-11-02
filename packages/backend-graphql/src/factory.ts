@@ -51,7 +51,7 @@ class DataFactory implements ConstructFactory<AmplifyGraphqlApi> {
         this.props,
         constructContainer
           .getConstructFactory<ResourceProvider<AuthResources>>('AuthResources')
-          .getInstance({
+          ?.getInstance({
             constructContainer,
             outputStorageStrategy,
             importPathVerifier,
@@ -69,7 +69,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
 
   constructor(
     private readonly props: DataProps,
-    private readonly authResources: ResourceProvider<AuthResources>,
+    private readonly authResources: ResourceProvider<AuthResources> | undefined,
     private readonly outputStorageStrategy: BackendOutputStorageStrategy<GraphqlOutput>
   ) {}
 
@@ -78,7 +78,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     let defaultAuthorizationMode: AuthorizationModes['defaultAuthorizationMode'] =
       'AWS_IAM';
     if (
-      this.authResources.resources.authenticatedUserIamRole &&
+      this.authResources?.resources.authenticatedUserIamRole &&
       this.authResources.resources.unauthenticatedUserIamRole &&
       this.authResources.resources.cfnResources.identityPool.logicalId
     ) {
@@ -93,7 +93,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     }
 
     let userPoolConfig: UserPoolAuthorizationConfig | undefined = undefined;
-    if (this.authResources.resources.userPool) {
+    if (this.authResources?.resources.userPool) {
       userPoolConfig = {
         userPool: this.authResources.resources.userPool,
       };
