@@ -34,7 +34,7 @@ import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import {
   authOutputKey,
   graphqlOutputKey,
-  stackOutputKey,
+  platformOutputKey,
   storageOutputKey,
 } from '@aws-amplify/backend-output-schemas';
 import { DeployedResourcesEnumerator } from './deployed-backend-client/deployed_resources_enumerator.js';
@@ -118,7 +118,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
       const backendOutput: BackendOutput =
         await this.backendOutputClient.getOutput(backendIdentifier);
 
-      return backendOutput[stackOutputKey].payload
+      return backendOutput[platformOutputKey].payload
         .deploymentType as BackendDeploymentType;
     } catch {
       return;
@@ -220,7 +220,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
       stack?.StackId as string
     );
     const backendMetadataObject: BackendMetadata = {
-      deploymentType: backendOutput[stackOutputKey].payload
+      deploymentType: backendOutput[platformOutputKey].payload
         .deploymentType as BackendDeploymentType,
       lastUpdated,
       status,

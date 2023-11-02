@@ -32,13 +32,13 @@ export const createSandboxCommand = (): CommandModule<
   };
 
   const eventHandlerFactory = new SandboxEventHandlerFactory(
-    clientConfigGeneratorAdapter,
     getBackendIdentifier
   );
 
   return new SandboxCommand(
     sandboxFactory,
     [new SandboxDeleteCommand(sandboxFactory), createSandboxSecretCommand()],
+    clientConfigGeneratorAdapter,
     eventHandlerFactory.getSandboxEventHandlers
   );
 };

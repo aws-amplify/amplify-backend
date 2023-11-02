@@ -14,7 +14,7 @@ import { versionedStackOutputSchema } from './stack/index.js';
  * ---------- Auth exports ----------
  */
 
-export const stackOutputKey = 'AWS::Amplify::Platform';
+export const platformOutputKey = 'AWS::Amplify::Platform';
 
 /**
  * re-export the auth output schema
@@ -63,7 +63,7 @@ export const storageOutputKey = 'AWS::Amplify::Storage';
  * As new constructs are added that need to contribute backend output, entries should be added here so that client config generation is aware of these outputs
  */
 export const unifiedBackendOutputSchema = z.object({
-  [stackOutputKey]: versionedStackOutputSchema.optional(),
+  [platformOutputKey]: versionedStackOutputSchema.optional(),
   [authOutputKey]: versionedAuthOutputSchema.optional(),
   [graphqlOutputKey]: versionedGraphqlOutputSchema.optional(),
   [storageOutputKey]: versionedStorageOutputSchema.optional(),

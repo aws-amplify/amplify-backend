@@ -25,5 +25,11 @@ export class InitialProjectFileGenerator {
       targetDir,
       { recursive: true }
     );
+
+    const packageJsonContent = { type: 'module' };
+    await this.fs.writeFile(
+      path.resolve(targetDir, 'package.json'),
+      JSON.stringify(packageJsonContent, null, 2)
+    );
   };
 }
