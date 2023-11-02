@@ -76,6 +76,7 @@ export type BackendSecretResolver = {
 export type ConstructContainer = {
     getOrCompute: (generator: ConstructContainerEntryGenerator) => Construct;
     registerConstructFactory: (token: string, provider: ConstructFactory) => void;
+    tryAndGetConstructFactory: <T>(token: string) => ConstructFactory<T> | null;
     getConstructFactory: <T>(token: string) => ConstructFactory<T>;
 };
 

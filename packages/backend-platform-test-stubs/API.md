@@ -23,6 +23,7 @@ export class ConstructContainerStub implements ConstructContainer {
     getConstructFactory: <T>(token: string) => ConstructFactory<T>;
     getOrCompute: (generator: ConstructContainerEntryGenerator) => Construct;
     registerConstructFactory: (token: string, provider: ConstructFactory) => void;
+    tryAndGetConstructFactory: <T>(token: string) => ConstructFactory<T> | null;
 }
 
 // @public
