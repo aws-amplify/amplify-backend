@@ -1,6 +1,9 @@
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
-import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
-import { AmplifyFunctionFactory } from '@aws-amplify/backend-function';
+import {
+  AmplifyFunction,
+  ConstructFactory,
+  ConstructFactoryGetInstanceProps,
+} from '@aws-amplify/plugin-types';
 import { FunctionInput } from './types.js';
 
 /**
@@ -15,7 +18,7 @@ export type FunctionInstanceProvider = {
  */
 const isAmplifyFunctionFactory = (
   func: FunctionInput
-): func is AmplifyFunctionFactory => {
+): func is ConstructFactory<AmplifyFunction> => {
   return (
     typeof func === 'object' &&
     'getInstance' in func &&

@@ -1,12 +1,12 @@
 import { DerivedModelSchema } from '@aws-amplify/amplify-api-next-types-alpha';
-import { AmplifyFunctionFactory } from '@aws-amplify/backend-function';
 import { AuthorizationModes } from '@aws-amplify/graphql-api-construct';
+import { AmplifyFunction, ConstructFactory } from '@aws-amplify/plugin-types';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
 
 /**
  * Union type representing the possible functions we accept.
  */
-export type FunctionInput = IFunction | AmplifyFunctionFactory;
+export type FunctionInput = IFunction | ConstructFactory<AmplifyFunction>;
 
 /**
  * Schema type definition, can be either a raw Graphql string, or a typed model schema.
