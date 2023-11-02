@@ -6,10 +6,28 @@
 
 import { AmplifyFunctionFactory } from '@aws-amplify/backend-function';
 import { AmplifyGraphqlApi } from '@aws-amplify/graphql-api-construct';
-import { AuthorizationModes } from '@aws-amplify/graphql-api-construct';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { DerivedModelSchema } from '@aws-amplify/amplify-api-next-types-alpha';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
+import { IRole } from 'aws-cdk-lib/aws-iam';
+import { IUserPool } from 'aws-cdk-lib/aws-cognito';
+
+// @public
+export type ApiKeyAuthorizationConfig = {
+    description?: string;
+    expiresInDays?: number;
+};
+
+// @public
+export type AuthorizationModes = {
+    defaultAuthorizationMode?: DefaultAuthorizationMode;
+    apiKeyConfig?: ApiKeyAuthorizationConfig;
+    userPoolConfig?: UserPoolAuthorizationConfig;
+    iamConfig?: IAMAuthorizationConfig;
+    lambdaConfig?: LambdaAuthorizationConfig;
+    oidcConfig?: OIDCAuthorizationConfig;
+    adminRoles?: IRole[];
+};
 
 // @public
 export type DataProps = {
@@ -23,10 +41,40 @@ export type DataProps = {
 export type DataSchema = string | DerivedModelSchema;
 
 // @public
+export type DefaultAuthorizationMode = 'AWS_IAM' | 'AMAZON_COGNITO_USER_POOLS' | 'OPENID_CONNECT' | 'API_KEY' | 'AWS_LAMBDA';
+
+// @public
 export const defineData: (props: DataProps) => ConstructFactory<AmplifyGraphqlApi>;
 
 // @public
 export type FunctionInput = IFunction | AmplifyFunctionFactory;
+
+// @public
+export type IAMAuthorizationConfig = {
+    identityPoolId: string;
+    authenticatedUserRole: IRole;
+    unauthenticatedUserRole: IRole;
+};
+
+// @public
+export type LambdaAuthorizationConfig = {
+    function: FunctionInput;
+    timeToLiveInSeconds?: number;
+};
+
+// @public
+export type OIDCAuthorizationConfig = {
+    oidcProviderName: string;
+    oidcIssuerUrl: string;
+    clientId?: string;
+    tokenExpiryFromAuthInSeconds: number;
+    tokenExpireFromIssueInSeconds: number;
+};
+
+// @public
+export type UserPoolAuthorizationConfig = {
+    userPool: IUserPool;
+};
 
 // (No @packageDocumentation comment for this package)
 

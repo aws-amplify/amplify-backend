@@ -1,7 +1,7 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { defineData } from './factory.js';
-import { App, Duration, NestedStack, Stack } from 'aws-cdk-lib';
+import { App, NestedStack, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import {
   AuthResources,
@@ -173,7 +173,7 @@ void describe('DataFactory', () => {
       schema: testSchema,
       authorizationModes: {
         apiKeyConfig: {
-          expires: Duration.days(7),
+          expiresInDays: 7,
         },
       },
     });
