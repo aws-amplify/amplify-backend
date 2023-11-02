@@ -33,10 +33,14 @@ export class NpmProjectInitializer {
     );
 
     try {
-      await this.execa(this.executableName, ['init', '--yes'], {
-        stdio: 'inherit',
-        cwd: this.projectRoot,
-      });
+      await this.execa(
+        this.executableName,
+        this.executableName === 'pnpm' ? ['init'] : ['init', '--yes'],
+        {
+          stdio: 'inherit',
+          cwd: this.projectRoot,
+        }
+      );
     } catch {
       throw new Error(
         `\`${this.executableName} init\` did not exit successfully. Initialize a valid JavaScript package before continuing.`
