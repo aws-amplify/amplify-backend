@@ -102,7 +102,7 @@ export class BackendFactory<
   /**
    * Returns a CDK stack within the Amplify project that can be used for creating custom resources
    */
-  createStack = (name: string): Stack => {
+  getStack = (name: string): Stack => {
     return this.stackResolver.getStackFor(name);
   };
 }
