@@ -50,9 +50,7 @@ class DataFactory implements ConstructFactory<AmplifyGraphqlApi> {
       this.generator = new DataGenerator(
         this.props,
         constructContainer
-          .tryAndGetConstructFactory<ResourceProvider<AuthResources>>(
-            'AuthResources'
-          )
+          .getConstructFactory<ResourceProvider<AuthResources>>('AuthResources')
           ?.getInstance({
             constructContainer,
             outputStorageStrategy,

@@ -93,8 +93,12 @@ void describe('SingletonConstructContainer', () => {
     });
   });
 
-  void describe('construct factory methods', () => {
+  void describe('getConstructFactory', () => {
     let container: ConstructContainer;
+    const testFactoryToken = 'factory1';
+    const testFactory: ConstructFactory = {
+      name: 'factory1',
+    } as unknown as ConstructFactory;
 
     beforeEach(() => {
       container = new SingletonConstructContainer(
@@ -102,45 +106,19 @@ void describe('SingletonConstructContainer', () => {
       );
     });
 
-    void it('getConstructFactory returns for existing factory', () => {
-      const testFactory: ConstructFactory = {
-        name: 'factory1',
-      } as unknown as ConstructFactory;
-      container.registerConstructFactory('factory1', testFactory);
+    void it('returns for registered factory', () => {
+      container.registerConstructFactory(testFactoryToken, testFactory);
       assert.deepStrictEqual(
-        container.getConstructFactory('factory1'),
+        container.getConstructFactory(testFactoryToken),
         testFactory
       );
     });
 
-    void it('getConstructFactory throws for missing factory', () => {
-      const testFactory: ConstructFactory = {
-        name: 'factory1',
-      } as unknown as ConstructFactory;
-      container.registerConstructFactory('factory1', testFactory);
-      assert.throws(
-        () => container.getConstructFactory('factory2'),
-        'No provider factory registered for token factory1'
-      );
-    });
-
-    void it('tryAndGetConstructFactory returns for existing factory', () => {
-      const testFactory: ConstructFactory = {
-        name: 'factory1',
-      } as unknown as ConstructFactory;
-      container.registerConstructFactory('factory1', testFactory);
+    void it('returns undefined for unregistered factory', () => {
       assert.deepStrictEqual(
-        container.tryAndGetConstructFactory('factory1'),
-        testFactory
+        container.getConstructFactory(testFactoryToken),
+        undefined
       );
-    });
-
-    void it('tryAndGetConstructFactory returns null for missing factory', () => {
-      const testFactory: ConstructFactory = {
-        name: 'factory1',
-      } as unknown as ConstructFactory;
-      container.registerConstructFactory('factory1', testFactory);
-      assert.equal(container.tryAndGetConstructFactory('factory2'), null);
     });
   });
 });
