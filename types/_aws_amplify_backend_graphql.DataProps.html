@@ -16,7 +16,7 @@
 <li><a href="../modules/_aws_amplify_backend_graphql.html">@aws-amplify/backend-graphql</a></li>
 <li><a href="_aws_amplify_backend_graphql.DataProps.html">DataProps</a></li></ul>
 <h1>Type alias DataProps</h1></div>
-<div class="tsd-signature"><span class="tsd-kind-type-alias">Data<wbr/>Props</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">authorizationModes</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type ">AuthorizationModes</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">name</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">schema</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">DerivedModelSchema</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></div>
+<div class="tsd-signature"><span class="tsd-kind-type-alias">Data<wbr/>Props</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">authorizationModes</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type ">AuthorizationModes</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">name</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">schema</span><span class="tsd-signature-symbol">: </span><a href="_aws_amplify_backend_graphql.DataSchema.html" class="tsd-signature-type tsd-kind-type-alias">DataSchema</a><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></div>
 <div class="tsd-comment tsd-typography"><p>Exposed props for Data which are configurable by the end user.</p>
 </div>
 <div class="tsd-type-declaration">
@@ -24,8 +24,7 @@
 <ul class="tsd-parameters">
 <li class="tsd-parameter">
 <h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-property">authorization<wbr/>Modes</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type ">AuthorizationModes</span></h5>
-<div class="tsd-comment tsd-typography"><p>Temporary authZ pass-through into the CDK construct
-<a href="https://github.com/aws-amplify/samsara-cli/issues/370">https://github.com/aws-amplify/samsara-cli/issues/370</a></p>
+<div class="tsd-comment tsd-typography"><p>Override authorization config, which will apply on top of defaults based on availability of auth, etc.</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></li>
 <li class="tsd-parameter">
@@ -34,13 +33,13 @@
 </div>
 <div class="tsd-comment tsd-typography"></div></li>
 <li class="tsd-parameter">
-<h5><span class="tsd-kind-property">schema</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">DerivedModelSchema</span></h5>
+<h5><span class="tsd-kind-property">schema</span><span class="tsd-signature-symbol">: </span><a href="_aws_amplify_backend_graphql.DataSchema.html" class="tsd-signature-type tsd-kind-type-alias">DataSchema</a></h5>
 <div class="tsd-comment tsd-typography"><p>Graphql Schema as a string to be passed into the CDK construct.</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></li></ul></div>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/79a6e09/packages/backend-graphql/src/factory.ts#L26">factory.ts:26</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/aws-amplify/samsara-cli/blob/46e0aad/packages/backend-graphql/src/types.ts#L12">types.ts:12</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
