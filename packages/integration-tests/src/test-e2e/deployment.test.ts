@@ -49,6 +49,7 @@ void describe('amplify deploys', async () => {
         await testProject.deploy(branchBackendIdentifier);
         await testProject.assertPostDeployment();
         // TODO enable these assertions when stackArn round trips from service.
+        // https://github.com/aws-amplify/samsara-cli/issues/554
         // const testBranchDetails = await testBranch.fetchDetails();
         // assert.ok(
         //   testBranchDetails.backend?.stackArn,
