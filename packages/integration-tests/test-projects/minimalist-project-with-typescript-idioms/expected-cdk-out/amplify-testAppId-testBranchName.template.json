@@ -1,10 +1,11 @@
 {
- "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyPipelineDeploy\",\"createdWith\":\"0.2.0-alpha.12\",\"stackType\":\"root\",\"metadata\":{}}",
+ "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyPipelineDeploy\",\"createdWith\":\"0.2.1\",\"stackType\":\"root\",\"metadata\":{}}",
  "Metadata": {
   "AWS::Amplify::Platform": {
    "version": "1",
    "stackOutputs": [
-    "deploymentType"
+    "deploymentType",
+    "region"
    ]
   },
   "AWS::Amplify::Storage": {
@@ -18,6 +19,11 @@
  "Outputs": {
   "deploymentType": {
    "Value": "BRANCH"
+  },
+  "region": {
+   "Value": {
+    "Ref": "AWS::Region"
+   }
   },
   "storageRegion": {
    "Value": {
@@ -53,7 +59,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/9c379f9e7f3d9d09544627288f84730dbec61005ed89482c82501210ee29cb82.json"
+       "/53c02c2098ba3b05153be32ac6e3c6697b64b6a1d50653763754086af0047b1c.json"
       ]
      ]
     }

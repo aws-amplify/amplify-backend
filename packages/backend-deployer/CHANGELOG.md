@@ -1,5 +1,11 @@
 # @aws-amplify/backend-deployer
 
+## 0.2.1
+
+### Patch Changes
+
+- 1c685d10: do not require confirmation at pipeline deploy
+
 ## 0.2.0
 
 ### Minor Changes

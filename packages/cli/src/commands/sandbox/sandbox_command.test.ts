@@ -14,6 +14,7 @@ import { Sandbox, SandboxSingletonFactory } from '@aws-amplify/sandbox';
 import { createSandboxSecretCommand } from './sandbox-secret/sandbox_secret_command_factory.js';
 import { FromIniInit } from '@aws-sdk/credential-providers';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
+import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 
 void describe('sandbox command factory', () => {
   void it('instantiate a sandbox command correctly', () => {
@@ -26,7 +27,12 @@ void describe('sandbox command', () => {
   let sandbox: Sandbox;
   let sandboxStartMock = mock.fn<typeof sandbox.start>();
 
-  const generationMock = mock.fn<EventHandler>();
+  const clientConfigGenerationMock = mock.fn<EventHandler>();
+  const clientConfigDeletionMock = mock.fn<EventHandler>();
+
+  const clientConfigGeneratorAdapterMock = {
+    generateClientConfigToFile: clientConfigGenerationMock,
+  } as unknown as ClientConfigGeneratorAdapter;
 
   beforeEach(async () => {
     const sandboxFactory = new SandboxSingletonFactory(() =>
@@ -40,8 +46,10 @@ void describe('sandbox command', () => {
     const sandboxCommand = new SandboxCommand(
       sandboxFactory,
       [sandboxDeleteCommand, createSandboxSecretCommand()],
+      clientConfigGeneratorAdapterMock,
       () => ({
-        successfulDeployment: [generationMock],
+        successfulDeployment: [clientConfigGenerationMock],
+        successfulDeletion: [clientConfigDeletionMock],
       })
     );
     const parser = yargs().command(sandboxCommand as unknown as CommandModule);
@@ -53,7 +61,14 @@ void describe('sandbox command', () => {
     const mockOn = mock.method(sandbox, 'on');
     await commandRunner.runCommand('sandbox');
     assert.equal(mockOn.mock.calls[0].arguments[0], 'successfulDeployment');
-    assert.equal(mockOn.mock.calls[0].arguments[1], generationMock);
+    assert.equal(mockOn.mock.calls[0].arguments[1], clientConfigGenerationMock);
+  });
+
+  void it('registers a callback on the "successfulDeletion" event', async () => {
+    const mockOn = mock.method(sandbox, 'on');
+    await commandRunner.runCommand('sandbox');
+    assert.equal(mockOn.mock.calls[1].arguments[0], 'successfulDeletion');
+    assert.equal(mockOn.mock.calls[1].arguments[1], clientConfigDeletionMock);
   });
 
   void it('starts sandbox without any additional flags', async () => {
@@ -201,6 +216,7 @@ void describe('sandbox command', () => {
     const sandboxCommand = new SandboxCommand(
       sandboxFactory,
       [],
+      clientConfigGeneratorAdapterMock,
       undefined,
       mockCredentialProviderFromIni
     );

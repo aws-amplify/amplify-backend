@@ -13,6 +13,8 @@ import {
 import { ArgumentsKebabCase } from '../../kebab_case.js';
 import { fromIni } from '@aws-sdk/credential-provider-ini';
 import { handleCommandFailure } from '../../command_failure_handler.js';
+import { ClientConfigLifecycleHandler } from '../../client-config/client_config_lifecycle_handler.js';
+import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 
 export type SandboxCommandOptions =
   ArgumentsKebabCase<SandboxCommandOptionsCamelCase>;
@@ -33,12 +35,12 @@ export type EventHandler = () => void;
 
 export type SandboxEventHandlers = {
   successfulDeployment: EventHandler[];
+  successfulDeletion: EventHandler[];
 };
 
 export type SandboxEventHandlerParams = {
   appName?: string;
-  clientConfigOutDir?: string;
-  format?: ClientConfigFormat;
+  clientConfigLifecycleHandler: ClientConfigLifecycleHandler;
 };
 
 export type SandboxEventHandlerCreator = (
@@ -69,6 +71,7 @@ export class SandboxCommand
   constructor(
     private readonly sandboxFactory: SandboxSingletonFactory,
     private readonly sandboxSubCommands: CommandModule[],
+    private clientConfigGeneratorAdapter: ClientConfigGeneratorAdapter,
     private readonly sandboxEventHandlerCreator?: SandboxEventHandlerCreator,
     private readonly profileCredentialProvider = fromIni
   ) {
@@ -88,10 +91,14 @@ export class SandboxCommand
     }
     const sandbox = await this.sandboxFactory.getInstance();
     this.appName = args.name;
+
+    // attaching event handlers
+    const clientConfigLifecycleHandler = new ClientConfigLifecycleHandler(
+      this.clientConfigGeneratorAdapter
+    );
     const eventHandlers = this.sandboxEventHandlerCreator?.({
       appName: args.name,
-      format: args.format,
-      clientConfigOutDir: args['out-dir'],
+      clientConfigLifecycleHandler,
     });
     if (eventHandlers) {
       Object.entries(eventHandlers).forEach(([event, handlers]) => {

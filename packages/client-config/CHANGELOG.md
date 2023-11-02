@@ -1,5 +1,11 @@
 # @aws-amplify/client-config
 
+## 0.2.1
+
+### Patch Changes
+
+- a216255e: Add successfulDeletion event to remove amplify configuration on deletion
+
 ## 0.2.0
 
 ### Minor Changes

@@ -184,6 +184,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       '[Sandbox] Deleting all the resources in the sandbox environment...'
     );
     await this.executor.destroy(new SandboxBackendIdentifier(sandboxAppId));
+    this.emit('successfulDeletion');
     console.log('[Sandbox] Finished deleting.');
   };
 

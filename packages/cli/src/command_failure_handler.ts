@@ -15,6 +15,6 @@ export const handleCommandFailure = (msg: string, err: Error, yargs: Argv) => {
   yargs.showHelp();
 
   Printer.printNewLine();
-  Printer.printWithColor(COLOR.RED, msg || String(err));
+  Printer.print(msg || String(err), COLOR.RED);
   Printer.printNewLine();
 };

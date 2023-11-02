@@ -55,7 +55,7 @@ export type GraphqlOutput = z.infer<typeof versionedGraphqlOutputSchema>;
 export const graphqlOutputKey = "AWS::Amplify::GraphQL";
 
 // @public
-export const stackOutputKey = "AWS::Amplify::Platform";
+export const platformOutputKey = "AWS::Amplify::Platform";
 
 // @public (undocumented)
 export type StorageOutput = z.infer<typeof versionedStorageOutputSchema>;
@@ -72,20 +72,25 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
         version: z.ZodLiteral<"1">;
         payload: z.ZodObject<{
             deploymentType: z.ZodString;
+            region: z.ZodString;
         }, "strip", z.ZodTypeAny, {
             deploymentType: string;
+            region: string;
         }, {
             deploymentType: string;
+            region: string;
         }>;
     }, "strip", z.ZodTypeAny, {
         version: "1";
         payload: {
             deploymentType: string;
+            region: string;
         };
     }, {
         version: "1";
         payload: {
             deploymentType: string;
+            region: string;
         };
     }>]>>;
     "AWS::Amplify::Auth": z.ZodOptional<z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
@@ -228,6 +233,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
         version: "1";
         payload: {
             deploymentType: string;
+            region: string;
         };
     } | undefined;
     "AWS::Amplify::Auth"?: {
@@ -268,6 +274,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
         version: "1";
         payload: {
             deploymentType: string;
+            region: string;
         };
     } | undefined;
     "AWS::Amplify::Auth"?: {
