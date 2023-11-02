@@ -35,6 +35,9 @@ export class AmplifyBranchLinkerCustomResourceEventHandler {
     switch (event.RequestType) {
       case 'Create':
       case 'Update':
+        console.info(
+          `Setting stack reference for backendId=${props.backendId},branchName=${props.branchName} to ${event.StackId}`
+        );
         await this.updateOrUnsetStackReference(
           props.backendId,
           props.branchName,
@@ -42,6 +45,9 @@ export class AmplifyBranchLinkerCustomResourceEventHandler {
         );
         break;
       case 'Delete':
+        console.info(
+          `Unsetting stack reference for backendId=${props.backendId},branchName=${props.branchName}`
+        );
         await this.updateOrUnsetStackReference(
           props.backendId,
           props.branchName,
@@ -70,6 +76,7 @@ export class AmplifyBranchLinkerCustomResourceEventHandler {
     }
 
     const branch: Branch = await this.getBranch(appId, branchName);
+    console.info(`Received branch details ${JSON.stringify(branch)}`);
     // Populate update command input with existing values, so we don't lose them.
     const updateBranchCommandInput: UpdateBranchCommandInput = {
       appId,
@@ -89,6 +96,9 @@ export class AmplifyBranchLinkerCustomResourceEventHandler {
     }
     updateBranchCommandInput.backend.stackArn = stackId;
 
+    console.info(
+      `Sending branch update ${JSON.stringify(updateBranchCommandInput)}`
+    );
     await this.amplifyClient.send(
       new UpdateBranchCommand(updateBranchCommandInput)
     );
