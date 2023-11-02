@@ -1,5 +1,17 @@
 # @aws-amplify/backend-graphql
 
+## 0.2.1
+
+### Patch Changes
+
+- 457b1662: getConstructFactory no longer throws an error if the factory is not found, and returns undefined instead.
+- 46e0aad6: Update backend-graphql library to start decomposing translation layer from backend definitions into CDK
+- Updated dependencies [79a6e09f]
+- Updated dependencies [457b1662]
+- Updated dependencies [79a6e09f]
+  - @aws-amplify/backend-output-schemas@0.2.1
+  - @aws-amplify/plugin-types@0.3.0
+
 ## 0.2.0
 
 ### Minor Changes
