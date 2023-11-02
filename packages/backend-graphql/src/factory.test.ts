@@ -1,7 +1,7 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { defineData } from './factory.js';
-import { App, Duration, Stack } from 'aws-cdk-lib';
+import { App, Duration, NestedStack, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import {
   AuthResources,
@@ -31,6 +31,8 @@ import {
   ImportPathVerifierStub,
   StackResolverStub,
 } from '@aws-amplify/backend-platform-test-stubs';
+import { Func } from '@aws-amplify/backend-function';
+import path from 'path';
 
 const testSchema = /* GraphQL */ `
   type Todo @model {
@@ -185,5 +187,41 @@ void describe('DataFactory', () => {
       importPathVerifier,
     };
     dataFactory.getInstance(getInstanceProps);
+  });
+
+  void it('accepts functions as inputs to the defineData call', () => {
+    dataFactory = defineData({
+      schema: /* GraphQL */ `
+        type Query {
+          echo(message: String!): String! @function(name: "echo")
+        }
+      `,
+      functions: {
+        echo: Func.fromDir({
+          name: 'EchoFn',
+          codePath: path.join('..', 'test-assets', 'test-lambda'),
+        }),
+      },
+    });
+
+    const dataConstruct = dataFactory.getInstance(getInstanceProps);
+
+    // Validate that the api resources are created for the function
+    assert('FunctionDirectiveStack' in dataConstruct.resources.nestedStacks);
+    const functionDirectiveStackTemplate = Template.fromStack(
+      dataConstruct.resources.nestedStacks.FunctionDirectiveStack
+    );
+    functionDirectiveStackTemplate.hasResourceProperties(
+      'AWS::AppSync::DataSource',
+      {
+        Name: 'EchoLambdaDataSource',
+        Type: 'AWS_LAMBDA',
+      }
+    );
+
+    // Validate that the function is created and attached to a new nested stack
+    const functionStack = stack.node.findChild('function') as NestedStack;
+    const functionStackTemplate = Template.fromStack(functionStack);
+    functionStackTemplate.resourceCountIs('AWS::Lambda::Function', 1);
   });
 });

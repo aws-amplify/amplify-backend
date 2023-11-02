@@ -4,16 +4,19 @@
 
 ```ts
 
+import { AmplifyFunctionFactory } from '@aws-amplify/backend-function';
 import { AmplifyGraphqlApi } from '@aws-amplify/graphql-api-construct';
 import { AuthorizationModes } from '@aws-amplify/graphql-api-construct';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { DerivedModelSchema } from '@aws-amplify/amplify-api-next-types-alpha';
+import { IFunction } from 'aws-cdk-lib/aws-lambda';
 
 // @public
 export type DataProps = {
     schema: DataSchema;
     name?: string;
     authorizationModes?: AuthorizationModes;
+    functions?: Record<string, FunctionInput>;
 };
 
 // @public
@@ -21,6 +24,9 @@ export type DataSchema = string | DerivedModelSchema;
 
 // @public
 export const defineData: (props: DataProps) => ConstructFactory<AmplifyGraphqlApi>;
+
+// @public
+export type FunctionInput = IFunction | AmplifyFunctionFactory;
 
 // (No @packageDocumentation comment for this package)
 

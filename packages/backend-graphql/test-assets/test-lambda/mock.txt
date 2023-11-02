@@ -1,0 +1,2 @@
+To test out creating a lambda we need a directory that simulates the lambda content.
+Obviously this is not a real lambda, but it allows CDK synth to proceed.
