@@ -1,7 +1,7 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { defineData } from './factory.js';
-import { App, Stack } from 'aws-cdk-lib';
+import { App, Duration, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import {
   AuthResources,
@@ -32,9 +32,7 @@ import {
   StackResolverStub,
 } from '@aws-amplify/backend-platform-test-stubs';
 
-const testSchema = `
-  input AMPLIFY {globalAuthRule: AuthRule = { allow: public }} # FOR TESTING ONLY!
-
+const testSchema = /* GraphQL */ `
   type Todo @model {
     id: ID!
     name: String!
@@ -166,5 +164,26 @@ void describe('DataFactory', () => {
     template.hasResourceProperties('AWS::AppSync::GraphQLApi', {
       Name: 'MyTestApiName',
     });
+  });
+
+  void it('does not throw if no auth resources are registered', () => {
+    dataFactory = defineData({
+      schema: testSchema,
+      authorizationModes: {
+        apiKeyConfig: {
+          expires: Duration.days(7),
+        },
+      },
+    });
+
+    constructContainer = new ConstructContainerStub(
+      new StackResolverStub(stack)
+    );
+    getInstanceProps = {
+      constructContainer,
+      outputStorageStrategy,
+      importPathVerifier,
+    };
+    dataFactory.getInstance(getInstanceProps);
   });
 });
