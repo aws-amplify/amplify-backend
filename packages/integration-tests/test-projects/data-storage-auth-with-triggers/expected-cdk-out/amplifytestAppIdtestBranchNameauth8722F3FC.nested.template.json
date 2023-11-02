@@ -205,7 +205,7 @@
     "backendId": "testAppId",
     "branchName": "testBranchName",
     "secretName": "testAmazonId",
-    "secretLastUpdated": 1698951292560
+    "secretLastUpdated": 1698956806531
    },
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete"
@@ -222,7 +222,7 @@
     "backendId": "testAppId",
     "branchName": "testBranchName",
     "secretName": "testAmazonSecret",
-    "secretLastUpdated": 1698951292560
+    "secretLastUpdated": 1698956806532
    },
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete"
@@ -239,7 +239,7 @@
     "backendId": "testAppId",
     "branchName": "testBranchName",
     "secretName": "testFacebookId",
-    "secretLastUpdated": 1698951292560
+    "secretLastUpdated": 1698956806532
    },
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete"
@@ -256,7 +256,7 @@
     "backendId": "testAppId",
     "branchName": "testBranchName",
     "secretName": "testFacebookSecret",
-    "secretLastUpdated": 1698951292561
+    "secretLastUpdated": 1698956806532
    },
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete"
@@ -273,7 +273,7 @@
     "backendId": "testAppId",
     "branchName": "testBranchName",
     "secretName": "testGoogleId",
-    "secretLastUpdated": 1698951292561
+    "secretLastUpdated": 1698956806532
    },
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete"
@@ -290,7 +290,7 @@
     "backendId": "testAppId",
     "branchName": "testBranchName",
     "secretName": "testGoogleSecret",
-    "secretLastUpdated": 1698951292561
+    "secretLastUpdated": 1698956806532
    },
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete"
@@ -354,8 +354,8 @@
      "SmsMessage": "The verification code to your new account is {####}"
     }
    },
-   "UpdateReplacePolicy": "Retain",
-   "DeletionPolicy": "Retain"
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
   },
   "amplifyAuthUserPoolPostConfirmationCognitoE7E727CF": {
    "Type": "AWS::Lambda::Permission",
