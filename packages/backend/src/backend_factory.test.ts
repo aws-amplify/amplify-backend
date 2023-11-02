@@ -134,10 +134,10 @@ void describe('Backend', () => {
     );
   });
 
-  void describe('getOrCreateStack', () => {
+  void describe('createStack', () => {
     void it('returns nested stack', () => {
       const backend = new BackendFactory({}, rootStack);
-      const testStack = backend.getOrCreateStack('testStack');
+      const testStack = backend.createStack('testStack');
       assert.strictEqual(rootStack.node.findChild('testStack'), testStack);
     });
   });
