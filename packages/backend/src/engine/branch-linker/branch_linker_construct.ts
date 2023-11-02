@@ -30,16 +30,12 @@ export class AmplifyBranchLinkerConstruct extends Construct {
   constructor(scope: Construct, backendIdentifier: BranchBackendIdentifier) {
     super(scope, 'AmplifyBranchLinker');
 
-    const linkerLambda = new NodejsFunction(
-      this,
-      `AmplifyBranchLinkerCustomResourceLambda`,
-      {
-        runtime: LambdaRuntime.NODEJS_18_X,
-        timeout: Duration.seconds(10),
-        entry: linkerLambdaFilePath,
-        handler: 'handler',
-      }
-    );
+    const linkerLambda = new NodejsFunction(this, 'CustomResourceLambda', {
+      runtime: LambdaRuntime.NODEJS_18_X,
+      timeout: Duration.seconds(10),
+      entry: linkerLambdaFilePath,
+      handler: 'handler',
+    });
 
     linkerLambda.grantPrincipal.addToPrincipalPolicy(
       new iam.PolicyStatement({
@@ -53,7 +49,7 @@ export class AmplifyBranchLinkerConstruct extends Construct {
 
     const customResourceProvider = new Provider(
       this,
-      'AmplifyBranchLinkerCustomResourceProvider',
+      'CustomResourceProvider',
       {
         onEventHandler: linkerLambda,
       }
@@ -64,7 +60,7 @@ export class AmplifyBranchLinkerConstruct extends Construct {
       branchName: backendIdentifier.disambiguator,
     };
 
-    new CustomResource(this, 'AmplifyBranchLinkerProviderCustomResource', {
+    new CustomResource(this, 'CustomResource', {
       serviceToken: customResourceProvider.serviceToken,
       properties: customResourceProps,
       resourceType: LINKER_RESOURCE_TYPE,
