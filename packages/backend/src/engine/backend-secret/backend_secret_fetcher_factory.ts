@@ -2,6 +2,7 @@ import { Construct } from 'constructs';
 import { BackendSecretFetcherProviderFactory } from './backend_secret_fetcher_provider_factory.js';
 import { CustomResource } from 'aws-cdk-lib';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import { SecretResourceProps } from './lambda/backend_secret_fetcher_types.js';
 
 /**
  * Resource provider ID for the backend secret resource.
@@ -54,12 +55,16 @@ export class BackendSecretFetcherFactory {
     const secretLastUpdated =
       scope.node.tryGetContext('secretLastUpdated') ?? Date.now();
 
+    const customResourceProps: SecretResourceProps = {
+      backendId: backendIdentifier.backendId,
+      branchName: backendIdentifier.disambiguator,
+      secretName: secretName,
+    };
+
     return new CustomResource(scope, secretResourceId, {
       serviceToken: provider.serviceToken,
       properties: {
-        backendId: backendIdentifier.backendId,
-        branchName: backendIdentifier.disambiguator,
-        secretName: secretName,
+        ...customResourceProps,
         secretLastUpdated, // this property is only to trigger resource update event.
       },
       resourceType: SECRET_RESOURCE_TYPE,

@@ -6,7 +6,11 @@ import assert from 'node:assert';
 import { Construct } from 'constructs';
 import { Queue } from 'aws-cdk-lib/aws-sqs';
 import { NestedStackResolver } from './nested_stack_resolver.js';
-import { ConstructContainerEntryGenerator } from '@aws-amplify/plugin-types';
+import {
+  ConstructContainer,
+  ConstructContainerEntryGenerator,
+  ConstructFactory,
+} from '@aws-amplify/plugin-types';
 import {
   BackendDeploymentType,
   CDKContextKey,
@@ -86,6 +90,35 @@ void describe('SingletonConstructContainer', () => {
 
       assert.strictEqual(bucket, cachedBucket);
       assert.strictEqual(queue, cachedQueue);
+    });
+  });
+
+  void describe('getConstructFactory', () => {
+    let container: ConstructContainer;
+    const testFactoryToken = 'factory1';
+    const testFactory: ConstructFactory = {
+      name: 'factory1',
+    } as unknown as ConstructFactory;
+
+    beforeEach(() => {
+      container = new SingletonConstructContainer(
+        new NestedStackResolver(createStackAndSetContext())
+      );
+    });
+
+    void it('returns for registered factory', () => {
+      container.registerConstructFactory(testFactoryToken, testFactory);
+      assert.deepStrictEqual(
+        container.getConstructFactory(testFactoryToken),
+        testFactory
+      );
+    });
+
+    void it('returns undefined for unregistered factory', () => {
+      assert.deepStrictEqual(
+        container.getConstructFactory(testFactoryToken),
+        undefined
+      );
     });
   });
 });

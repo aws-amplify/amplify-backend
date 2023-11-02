@@ -11,14 +11,21 @@ import {
   CDKContextKey,
 } from '@aws-amplify/platform-core';
 
-const createStackAndSetContext = (): Stack => {
+const createStackAndSetContext = (
+  deploymentType: BackendDeploymentType
+): Stack => {
   const app = new App();
-  app.node.setContext('branch-name', 'testEnvName');
-  app.node.setContext('backend-id', 'testBackendId');
-  app.node.setContext(
-    CDKContextKey.DEPLOYMENT_TYPE,
-    BackendDeploymentType.BRANCH
-  );
+  app.node.setContext(CDKContextKey.DEPLOYMENT_TYPE, deploymentType);
+  switch (deploymentType) {
+    case BackendDeploymentType.SANDBOX:
+      app.node.setContext('backend-id', 'app-user');
+      break;
+    case BackendDeploymentType.BRANCH:
+      app.node.setContext('branch-name', 'testEnvName');
+      app.node.setContext('backend-id', 'testBackendId');
+      break;
+  }
+
   const stack = new Stack(app);
   return stack;
 };
@@ -26,7 +33,7 @@ const createStackAndSetContext = (): Stack => {
 void describe('Backend', () => {
   let rootStack: Stack;
   beforeEach(() => {
-    rootStack = createStackAndSetContext();
+    rootStack = createStackAndSetContext(BackendDeploymentType.BRANCH);
   });
 
   void it('initializes constructs in given app', () => {
@@ -132,6 +139,19 @@ void describe('Backend', () => {
       JSON.parse(rootStackTemplate.toJSON().Description).stackType,
       'root'
     );
+  });
+
+  void it('registers branch linker for branch deployments', () => {
+    new BackendFactory({}, rootStack);
+    const rootStackTemplate = Template.fromStack(rootStack);
+    rootStackTemplate.resourceCountIs('Custom::AmplifyBranchLinkerResource', 1);
+  });
+
+  void it('does not register branch linker for sandbox deployments', () => {
+    const rootStack = createStackAndSetContext(BackendDeploymentType.SANDBOX);
+    new BackendFactory({}, rootStack);
+    const rootStackTemplate = Template.fromStack(rootStack);
+    rootStackTemplate.resourceCountIs('Custom::AmplifyBranchLinkerResource', 0);
   });
 
   void describe('getOrCreateStack', () => {
