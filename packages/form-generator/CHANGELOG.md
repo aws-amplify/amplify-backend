@@ -1,5 +1,11 @@
 # @aws-amplify/form-generator
 
+## 0.3.0
+
+### Minor Changes
+
+- 863dc241: Use "use client"; directive in generated React components
+
 ## 0.2.0
 
 ### Minor Changes

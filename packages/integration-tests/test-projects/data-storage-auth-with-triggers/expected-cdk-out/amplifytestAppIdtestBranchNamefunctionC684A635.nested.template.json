@@ -1,5 +1,5 @@
 {
- "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyPipelineDeploy\",\"createdWith\":\"0.2.0-alpha.7\",\"stackType\":\"function-Lambda\",\"metadata\":{}}",
+ "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyPipelineDeploy\",\"createdWith\":\"0.2.0\",\"stackType\":\"function-Lambda\",\"metadata\":{}}",
  "Resources": {
   "testFunctestFuncLambdaFunctionServiceRole09E19D41": {
    "Type": "AWS::IAM::Role",

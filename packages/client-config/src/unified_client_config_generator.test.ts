@@ -7,21 +7,23 @@ import {
   UnifiedBackendOutput,
   authOutputKey,
   graphqlOutputKey,
-  stackOutputKey,
+  platformOutputKey,
 } from '@aws-amplify/backend-output-schemas';
 import { ClientConfig } from './client-config-types/client_config.js';
 import { BackendDeploymentType } from '@aws-amplify/platform-core';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { ModelIntrospectionSchemaAdapter } from './client-config-contributor/model_introspection_schema_adapater.js';
+import { PlatformClientConfigContributor } from './client-config-contributor/platform_client_config_contributor.js';
 
 void describe('UnifiedClientConfigGenerator', () => {
   void describe('generateClientConfig', () => {
     void it('transforms backend output into client config', async () => {
       const stubOutput: UnifiedBackendOutput = {
-        [stackOutputKey]: {
+        [platformOutputKey]: {
           version: '1',
           payload: {
             deploymentType: BackendDeploymentType.BRANCH,
+            region: 'us-east-1',
           },
         },
         [authOutputKey]: {
@@ -58,6 +60,7 @@ void describe('UnifiedClientConfigGenerator', () => {
         () => undefined
       );
       const configContributors = [
+        new PlatformClientConfigContributor(),
         new AuthClientConfigContributor(),
         new GraphqlClientConfigContributor(modelSchemaAdapter),
       ];
@@ -68,6 +71,7 @@ void describe('UnifiedClientConfigGenerator', () => {
       );
       const result = await clientConfigGenerator.generateClientConfig();
       const expectedClientConfig: ClientConfig = {
+        aws_project_region: 'us-east-1',
         aws_user_pools_id: 'testUserPoolId',
         aws_user_pools_web_client_id: 'testWebClientId',
         aws_cognito_region: 'testRegion',

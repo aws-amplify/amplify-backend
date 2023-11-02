@@ -1,10 +1,11 @@
 {
- "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyPipelineDeploy\",\"createdWith\":\"0.2.0-alpha.12\",\"stackType\":\"root\",\"metadata\":{}}",
+ "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyPipelineDeploy\",\"createdWith\":\"0.2.1\",\"stackType\":\"root\",\"metadata\":{}}",
  "Metadata": {
   "AWS::Amplify::Platform": {
    "version": "1",
    "stackOutputs": [
-    "deploymentType"
+    "deploymentType",
+    "region"
    ]
   },
   "AWS::Amplify::Auth": {
@@ -41,6 +42,11 @@
  "Outputs": {
   "deploymentType": {
    "Value": "BRANCH"
+  },
+  "region": {
+   "Value": {
+    "Ref": "AWS::Region"
+   }
   },
   "userPoolId": {
    "Value": {
@@ -154,6 +160,213 @@
   }
  },
  "Resources": {
+  "AmplifyBranchLinkerCustomResourceLambdaServiceRole3DDCBC03": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   }
+  },
+  "AmplifyBranchLinkerCustomResourceLambdaServiceRoleDefaultPolicy86099CA1": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "amplify:GetBranch",
+        "amplify:UpdateBranch"
+       ],
+       "Effect": "Allow",
+       "Resource": "arn:aws:amplify:*:*:apps/testAppId/branches/testBranchName"
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "AmplifyBranchLinkerCustomResourceLambdaServiceRoleDefaultPolicy86099CA1",
+    "Roles": [
+     {
+      "Ref": "AmplifyBranchLinkerCustomResourceLambdaServiceRole3DDCBC03"
+     }
+    ]
+   }
+  },
+  "AmplifyBranchLinkerCustomResourceLambda582AC093": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "2194a3b7d50443cf7f4b1eeb75ed230d4beb1ce0f73ccf994e6d15317c79a378.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1"
+     }
+    },
+    "Handler": "index.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "AmplifyBranchLinkerCustomResourceLambdaServiceRole3DDCBC03",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs18.x",
+    "Timeout": 10
+   },
+   "DependsOn": [
+    "AmplifyBranchLinkerCustomResourceLambdaServiceRoleDefaultPolicy86099CA1",
+    "AmplifyBranchLinkerCustomResourceLambdaServiceRole3DDCBC03"
+   ]
+  },
+  "AmplifyBranchLinkerCustomResourceProviderframeworkonEventServiceRole92A035EB": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   }
+  },
+  "AmplifyBranchLinkerCustomResourceProviderframeworkonEventServiceRoleDefaultPolicy38AAE412": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "lambda:InvokeFunction",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "AmplifyBranchLinkerCustomResourceLambda582AC093",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "AmplifyBranchLinkerCustomResourceLambda582AC093",
+             "Arn"
+            ]
+           },
+           ":*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "AmplifyBranchLinkerCustomResourceProviderframeworkonEventServiceRoleDefaultPolicy38AAE412",
+    "Roles": [
+     {
+      "Ref": "AmplifyBranchLinkerCustomResourceProviderframeworkonEventServiceRole92A035EB"
+     }
+    ]
+   }
+  },
+  "AmplifyBranchLinkerCustomResourceProviderframeworkonEvent3B23F900": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "7382a0addb9f34974a1ea6c6c9b063882af874828f366f5c93b2b7b64db15c94.zip"
+    },
+    "Description": "AWS CDK resource provider framework - onEvent (amplify-testAppId-testBranchName/AmplifyBranchLinker/CustomResourceProvider)",
+    "Environment": {
+     "Variables": {
+      "USER_ON_EVENT_FUNCTION_ARN": {
+       "Fn::GetAtt": [
+        "AmplifyBranchLinkerCustomResourceLambda582AC093",
+        "Arn"
+       ]
+      }
+     }
+    },
+    "Handler": "framework.onEvent",
+    "Role": {
+     "Fn::GetAtt": [
+      "AmplifyBranchLinkerCustomResourceProviderframeworkonEventServiceRole92A035EB",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs18.x",
+    "Timeout": 900
+   },
+   "DependsOn": [
+    "AmplifyBranchLinkerCustomResourceProviderframeworkonEventServiceRoleDefaultPolicy38AAE412",
+    "AmplifyBranchLinkerCustomResourceProviderframeworkonEventServiceRole92A035EB"
+   ]
+  },
+  "AmplifyBranchLinkerCustomResource96E36FC1": {
+   "Type": "Custom::AmplifyBranchLinkerResource",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "AmplifyBranchLinkerCustomResourceProviderframeworkonEvent3B23F900",
+      "Arn"
+     ]
+    },
+    "backendId": "testAppId",
+    "branchName": "testBranchName"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
   "auth179371D7": {
    "Type": "AWS::CloudFormation::Stack",
    "Properties": {
@@ -181,7 +394,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/f0d3060f91da8f5b8062d42780fd3fba7c2b533136e30e7880ac9fc32efdf58c.json"
+       "/bffb1190157cfb84fe69186893f7e380119cc5b0d4680095958149d37f8dfd52.json"
       ]
      ]
     }
@@ -208,7 +421,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/5f9266e6aa0c9f16ebd40b146de9615ae87db5a2a31e0d1fba7e05363af5ca3d.json"
+       "/51a06fef64294344ef1f63f74e763b53517a554426b68f175a2f5638d392f778.json"
       ]
      ]
     }
@@ -235,7 +448,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/9c379f9e7f3d9d09544627288f84730dbec61005ed89482c82501210ee29cb82.json"
+       "/53c02c2098ba3b05153be32ac6e3c6697b64b6a1d50653763754086af0047b1c.json"
       ]
      ]
     }

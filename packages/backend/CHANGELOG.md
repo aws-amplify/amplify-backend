@@ -1,5 +1,13 @@
 # @aws-amplify/backend
 
+## 0.2.1
+
+### Patch Changes
+
+- 4e48e4ba: chore: add new defineBackend to better align with other backend factories
+- Updated dependencies [d0119b25]
+  - @aws-amplify/backend-auth@0.2.1
+
 ## 0.2.0
 
 ### Minor Changes
