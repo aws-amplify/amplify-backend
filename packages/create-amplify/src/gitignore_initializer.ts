@@ -79,15 +79,21 @@ export class GitIgnoreInitializer {
       return;
     }
 
-    return (
-      (await this.fs.readFile(this.gitIgnorePath, 'utf-8'))
-        .split(os.EOL)
-        // Remove for each line of .gitignore to get pattern:
-        // Any number of spaces then leading /
-        // Trailing / and then any number of spaces
-        // For example, "/node_modules/" -> "node_modules" or " /a node_modules/" -> "a node_modules"
-        .map((s) => s.replaceAll(/(^\s*\/)|(\/\s*$)/g, ''))
-    );
+    return (await this.fs.readFile(this.gitIgnorePath, 'utf-8'))
+      .split(os.EOL)
+      .map((s) => {
+        let result = s.trim();
+
+        // Removes leading/trailing /
+        if (result.startsWith('/')) {
+          result = result.slice(1);
+        }
+        if (result.endsWith('/')) {
+          result = result.slice(0, -1);
+        }
+
+        return result;
+      });
   };
 
   /**
