@@ -19,7 +19,7 @@ import {
   updateFileContent,
 } from '../process-controller/predicated_action_macros.js';
 import assert from 'node:assert';
-import { getTestBranch } from './amplify_app_pool.js';
+import { TestBranch, getTestBranch } from './amplify_app_pool.js';
 
 const testProjects = await generateTestProjects(rootTestDir);
 
@@ -31,9 +31,10 @@ void describe('amplify deploys', async () => {
   testProjects.forEach((testProject) => {
     void describe(`branch deploys ${testProject.name}`, () => {
       let branchBackendIdentifier: BranchBackendIdentifier;
+      let testBranch: TestBranch;
 
       beforeEach(async () => {
-        const testBranch = await getTestBranch();
+        testBranch = await getTestBranch();
         branchBackendIdentifier = new BranchBackendIdentifier(
           testBranch.appId,
           testBranch.branchName
@@ -47,6 +48,21 @@ void describe('amplify deploys', async () => {
       void it(`[${testProject.name}] deploys fully`, async () => {
         await testProject.deploy(branchBackendIdentifier);
         await testProject.assertPostDeployment();
+        const testBranchDetails = await testBranch.fetchDetails();
+        assert.ok(
+          testBranchDetails.backend?.stackArn,
+          'branch should have stack associated'
+        );
+        assert.ok(
+          testBranchDetails.backend?.stackArn?.includes(
+            branchBackendIdentifier.backendId
+          )
+        );
+        assert.ok(
+          testBranchDetails.backend?.stackArn?.includes(
+            branchBackendIdentifier.disambiguator
+          )
+        );
       });
     });
   });

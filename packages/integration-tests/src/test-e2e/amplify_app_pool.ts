@@ -5,6 +5,7 @@ import {
   CreateAppCommand,
   CreateBranchCommand,
   DeleteBranchCommand,
+  GetBranchCommand,
   ListAppsCommand,
   ListAppsCommandOutput,
   ListBranchesCommand,
@@ -21,10 +22,36 @@ const testAppPrefix = 'amplify-test-app';
 const testBranchPrefix = 'test-branch';
 const branchesCreated: Array<TestBranch> = [];
 
-export type TestBranch = {
-  appId: string;
-  branchName: string;
-};
+/**
+ * Represents a test branch in Amplify app.
+ */
+export class TestBranch {
+  /**
+   * Creates test branch representation.
+   */
+  constructor(
+    readonly appId: string,
+    readonly branchName: string,
+    private readonly amplifyClient: AmplifyClient
+  ) {}
+
+  fetchDetails = async (): Promise<Branch> => {
+    const branch = (
+      await this.amplifyClient.send(
+        new GetBranchCommand({
+          appId: this.appId,
+          branchName: this.branchName,
+        })
+      )
+    ).branch;
+    if (!branch) {
+      throw new Error(
+        `Failed to retrieve ${this.branchName} branch of app ${this.appId}`
+      );
+    }
+    return branch;
+  };
+}
 
 /**
  * Creates a new branch that can be used in e2e tests.
@@ -46,12 +73,13 @@ export const getTestBranch = async (): Promise<TestBranch> => {
     )
   ).branch;
   if (app.appId && branch?.branchName) {
-    const appAndBranch: TestBranch = {
-      appId: app.appId,
-      branchName: branch.branchName,
-    };
-    branchesCreated.push(appAndBranch);
-    return appAndBranch;
+    const testBranch: TestBranch = new TestBranch(
+      app.appId,
+      branch.branchName,
+      amplifyClient
+    );
+    branchesCreated.push(testBranch);
+    return testBranch;
   }
 
   throw new Error('Unable to create branch');
@@ -130,18 +158,18 @@ const getAppWithCapacity = async (): Promise<App> => {
 };
 
 const cleanupBranches = async () => {
-  for (const appAndBranch of branchesCreated) {
+  for (const testBranch of branchesCreated) {
     try {
       await amplifyClient.send(
         new DeleteBranchCommand({
-          appId: appAndBranch.appId,
-          branchName: appAndBranch.branchName,
+          appId: testBranch.appId,
+          branchName: testBranch.branchName,
         })
       );
     } catch (e) {
       const errorMessage = e instanceof Error ? e.message : '';
       console.log(
-        `Failed to delete ${appAndBranch.branchName} branch of app ${appAndBranch.appId}. ${errorMessage}`
+        `Failed to delete ${testBranch.branchName} branch of app ${testBranch.appId}. ${errorMessage}`
       );
     }
   }
