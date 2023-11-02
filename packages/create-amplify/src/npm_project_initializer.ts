@@ -16,6 +16,9 @@ export class NpmProjectInitializer {
     private readonly execa = _execa
   ) {}
 
+  private readonly executableName =
+    process.env.PACKAGE_MANAGER_EXECUTABLE || 'npm'; // TODO: replace `process.env.PACKAGE_MANAGER_EXECUTABLE` with `getPackageManagerName()` once the test infra is ready.
+
   /**
    * If package.json already exists, this is a noop. Otherwise, `npm init` is executed to create a package.json file
    */
@@ -24,18 +27,23 @@ export class NpmProjectInitializer {
       // if package.json already exists, no need to do anything
       return;
     }
+
     this.logger.log(
-      'No package.json file found in the current directory. Running `npm init`...'
+      `No package.json file found in the current directory. Running \`${this.executableName} init\`...`
     );
 
     try {
-      await this.execa('npm', ['init', '--yes'], {
-        stdio: 'inherit',
-        cwd: this.projectRoot,
-      });
+      await this.execa(
+        this.executableName,
+        this.executableName === 'pnpm' ? ['init'] : ['init', '--yes'],
+        {
+          stdio: 'inherit',
+          cwd: this.projectRoot,
+        }
+      );
     } catch {
       throw new Error(
-        '`npm init` did not exit successfully. Initialize a valid JavaScript package before continuing.'
+        `\`${this.executableName} init\` did not exit successfully. Initialize a valid JavaScript package before continuing.`
       );
     }
 
@@ -51,7 +59,7 @@ export class NpmProjectInitializer {
     if (!this.packageJsonExists()) {
       // this should only happen if the customer exits out of npm init before finishing
       throw new Error(
-        'package.json does not exist after running `npm init`. Initialize a valid JavaScript package before continuing.'
+        `package.json does not exist after running \`${this.executableName} init\`. Initialize a valid JavaScript package before continuing.'`
       );
     }
   };
