@@ -4,7 +4,7 @@
 
 ```ts
 
-import { AmplifyFunctionFactory } from '@aws-amplify/backend-function';
+import { AmplifyFunction } from '@aws-amplify/plugin-types';
 import { AmplifyGraphqlApi } from '@aws-amplify/graphql-api-construct';
 import { AuthorizationModes } from '@aws-amplify/graphql-api-construct';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
@@ -26,7 +26,7 @@ export type DataSchema = string | DerivedModelSchema;
 export const defineData: (props: DataProps) => ConstructFactory<AmplifyGraphqlApi>;
 
 // @public
-export type FunctionInput = IFunction | AmplifyFunctionFactory;
+export type FunctionInput = IFunction | ConstructFactory<AmplifyFunction>;
 
 // (No @packageDocumentation comment for this package)
 
