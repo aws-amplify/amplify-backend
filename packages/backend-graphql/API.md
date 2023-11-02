@@ -11,10 +11,13 @@ import { DerivedModelSchema } from '@aws-amplify/amplify-api-next-types-alpha';
 
 // @public
 export type DataProps = {
-    schema: string | DerivedModelSchema;
+    schema: DataSchema;
     name?: string;
     authorizationModes?: AuthorizationModes;
 };
+
+// @public
+export type DataSchema = string | DerivedModelSchema;
 
 // @public
 export const defineData: (props: DataProps) => ConstructFactory<AmplifyGraphqlApi>;
