@@ -10,12 +10,12 @@ import {
   UpdateBranchCommand,
   UpdateBranchCommandInput,
 } from '@aws-sdk/client-amplify';
-import { AmplifyConsoleLinkerCustomResourceProps } from './amplify_console_linker_types.js';
+import { AmplifyBranchLinkerCustomResourceProps } from './branch_linker_types.js';
 
 /**
  * Handles custom resource events.
  */
-export class AmplifyConsoleLinkerCustomResourceEventHandler {
+export class AmplifyBranchLinkerCustomResourceEventHandler {
   /**
    * Creates the custom resource events handler.
    */
@@ -30,7 +30,7 @@ export class AmplifyConsoleLinkerCustomResourceEventHandler {
       event.RequestType === 'Create' ? randomUUID() : event.PhysicalResourceId;
 
     const props =
-      event.ResourceProperties as unknown as AmplifyConsoleLinkerCustomResourceProps;
+      event.ResourceProperties as unknown as AmplifyBranchLinkerCustomResourceProps;
 
     switch (event.RequestType) {
       case 'Create':
@@ -111,7 +111,7 @@ export class AmplifyConsoleLinkerCustomResourceEventHandler {
 }
 
 const customResourceEventHandler =
-  new AmplifyConsoleLinkerCustomResourceEventHandler(new AmplifyClient());
+  new AmplifyBranchLinkerCustomResourceEventHandler(new AmplifyClient());
 
 /**
  * Entry point for the lambda-backend custom resource to link deployment to branch.
