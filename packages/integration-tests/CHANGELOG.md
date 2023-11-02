@@ -1,5 +1,13 @@
 # @aws-amplify/integration-tests
 
+## 0.2.2
+
+### Patch Changes
+
+- 79a6e09f: Change stackOutputKey to platformOutputKey
+- 93c956ea: Add aws_project_region to e2e test assert
+- 79a6e09f: Add aws_project_region to amplifyconfiguration.json
+
 ## 0.2.1
 
 ### Patch Changes
