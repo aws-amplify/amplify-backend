@@ -4,10 +4,7 @@ import yargs, { CommandModule } from 'yargs';
 import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
 import { SandboxDeleteCommand } from './sandbox_delete_command.js';
-import { SandboxCommand } from '../sandbox_command.js';
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
-import { createSandboxSecretCommand } from '../sandbox-secret/sandbox_secret_command_factory.js';
-import { ClientConfigGeneratorAdapter } from '../../../client-config/client_config_generator_adapter.js';
 
 void describe('sandbox delete command', () => {
   let commandRunner: TestCommandRunner;
@@ -22,17 +19,13 @@ void describe('sandbox delete command', () => {
       Promise.resolve()
     ) as never; // couldn't figure out a good way to type the sandboxDeleteMock so that TS was happy here
 
-    const clientConfigGeneratorAdapterMock =
-      {} as unknown as ClientConfigGeneratorAdapter;
-
     const sandboxDeleteCommand = new SandboxDeleteCommand(sandboxFactory);
-    const sandboxCommand = new SandboxCommand(
-      sandboxFactory,
-      [sandboxDeleteCommand, createSandboxSecretCommand()],
-      clientConfigGeneratorAdapterMock
+
+    const parser = yargs().command(
+      sandboxDeleteCommand as unknown as CommandModule
     );
-    const parser = yargs().command(sandboxCommand as unknown as CommandModule);
     commandRunner = new TestCommandRunner(parser);
+
     sandboxDeleteMock.mock.resetCalls();
   });
 
@@ -40,7 +33,7 @@ void describe('sandbox delete command', () => {
     contextual.mock.method(AmplifyPrompter, 'yesOrNo', () =>
       Promise.resolve(true)
     );
-    await commandRunner.runCommand('sandbox delete');
+    await commandRunner.runCommand('delete');
 
     assert.equal(sandboxDeleteMock.mock.callCount(), 1);
     assert.deepStrictEqual(sandboxDeleteMock.mock.calls[0].arguments[0], {
@@ -52,7 +45,7 @@ void describe('sandbox delete command', () => {
     contextual.mock.method(AmplifyPrompter, 'yesOrNo', () =>
       Promise.resolve(true)
     );
-    await commandRunner.runCommand('sandbox delete --name test-App-Name');
+    await commandRunner.runCommand('delete --name test-App-Name');
 
     assert.equal(sandboxDeleteMock.mock.callCount(), 1);
     assert.deepStrictEqual(sandboxDeleteMock.mock.calls[0].arguments[0], {
@@ -64,18 +57,18 @@ void describe('sandbox delete command', () => {
     contextual.mock.method(AmplifyPrompter, 'yesOrNo', () =>
       Promise.resolve(false)
     );
-    await commandRunner.runCommand('sandbox delete');
+    await commandRunner.runCommand('delete');
 
     assert.equal(sandboxDeleteMock.mock.callCount(), 0);
   });
 
   void it('deletes sandbox without confirming from user if a yes flag is given', async () => {
-    await commandRunner.runCommand('sandbox delete --yes');
+    await commandRunner.runCommand('delete --yes');
     assert.equal(sandboxDeleteMock.mock.callCount(), 1);
   });
 
   void it('shows available options in help output', async () => {
-    const output = await commandRunner.runCommand('sandbox delete --help');
+    const output = await commandRunner.runCommand('delete --help');
     assert.match(output, /--yes/);
     assert.match(output, /--name/);
     assert.doesNotMatch(output, /--exclude/);

@@ -3,6 +3,7 @@ import { GenerateConfigCommand } from './config/generate_config_command.js';
 import { GenerateFormsCommand } from './forms/generate_forms_command.js';
 import { GenerateGraphqlClientCodeCommand } from './graphql-client-code/generate_graphql_client_code_command.js';
 import { handleCommandFailure } from '../../command_failure_handler.js';
+import { profileMiddleWare } from '../../command_middleware.js';
 
 /**
  * An entry point for generate command.
@@ -52,6 +53,12 @@ export class GenerateCommand implements CommandModule {
         .demandCommand()
         .strictCommands()
         .recommendCommands()
+        .option('profile', {
+          describe: 'An AWS profile name.',
+          type: 'string',
+          array: false,
+        })
+        .middleware([profileMiddleWare])
         .fail((msg, err) => {
           handleCommandFailure(msg, err, yargs);
           yargs.exit(1, err);
