@@ -3,6 +3,7 @@ import { App, NestedStack, Stack } from 'aws-cdk-lib';
 import { NestedStackResolver } from './nested_stack_resolver.js';
 import assert from 'node:assert';
 import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage';
+import packageJson from '#package.json';
 
 void describe('NestedStackResolver', () => {
   void describe('getStackFor', () => {
@@ -43,10 +44,11 @@ void describe('NestedStackResolver', () => {
         new AttributionMetadataStorage()
       );
       const customStack = stackResolver.getCustomStack('test1');
-      assert.equal(
-        JSON.parse(customStack.templateOptions.description || '{}')?.stackType,
-        'custom'
+      const attributionMetadata = JSON.parse(
+        customStack.templateOptions.description || '{}'
       );
+      assert.equal(attributionMetadata.stackType, 'custom');
+      assert.equal(attributionMetadata.createdWith, packageJson.version);
     });
 
     void it('returns cached stack for existing name', () => {
