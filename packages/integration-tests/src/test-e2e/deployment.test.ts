@@ -19,7 +19,7 @@ import {
   updateFileContent,
 } from '../process-controller/predicated_action_macros.js';
 import assert from 'node:assert';
-import { TestBranch, getTestBranch } from './amplify_app_pool.js';
+import { TestBranch, amplifyAppPool } from './amplify_app_pool.js';
 
 const testProjects = await generateTestProjects(rootTestDir);
 
@@ -34,7 +34,7 @@ void describe('amplify deploys', async () => {
       let testBranch: TestBranch;
 
       beforeEach(async () => {
-        testBranch = await getTestBranch();
+        testBranch = await amplifyAppPool.createTestBranch();
         branchBackendIdentifier = new BranchBackendIdentifier(
           testBranch.appId,
           testBranch.branchName
@@ -50,7 +50,9 @@ void describe('amplify deploys', async () => {
         await testProject.assertPostDeployment();
         // TODO enable these assertions when stackArn round trips from service.
         // https://github.com/aws-amplify/samsara-cli/issues/554
-        // const testBranchDetails = await testBranch.fetchDetails();
+        // const testBranchDetails = await amplifyAppPool.fetchTestBranchDetails(
+        //   testBranch
+        // );
         // assert.ok(
         //   testBranchDetails.backend?.stackArn,
         //   'branch should have stack associated'
