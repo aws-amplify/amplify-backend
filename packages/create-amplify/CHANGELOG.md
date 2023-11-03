@@ -1,5 +1,13 @@
 # create-amplify
 
+## 0.2.2
+
+### Patch Changes
+
+- 39791e30: Update .gitignore content filtering
+- 79a6e09f: Change stackOutputKey to platformOutputKey
+- 79a6e09f: Add aws_project_region to amplifyconfiguration.json
+
 ## 0.2.1
 
 ### Patch Changes
