@@ -3,7 +3,6 @@ import { handleCommandFailure } from './command_failure_handler.js';
 import { Argv } from 'yargs';
 import { COLOR, Printer } from '@aws-amplify/cli-core';
 import assert from 'node:assert';
-import { EOL } from 'node:os';
 
 void describe('handleCommandFailure', () => {
   void it('prints a message', (contextual) => {
@@ -52,10 +51,6 @@ void describe('handleCommandFailure', () => {
       new Error('User force closed the prompt'),
       {} as unknown as Argv<object>
     );
-    assert.equal(mockPrint.mock.callCount(), 1);
-    assert.equal(
-      mockPrint.mock.calls[0].arguments[0],
-      `The prompt is forced to close...${EOL}`
-    );
+    assert.equal(mockPrint.mock.callCount(), 0);
   });
 });

@@ -1,7 +1,5 @@
 import { Argv } from 'yargs';
-
 import { COLOR, Printer } from '@aws-amplify/cli-core';
-import { EOL } from 'os';
 
 /**
  * Format error output when a command fails by displaying the error message in
@@ -12,7 +10,6 @@ import { EOL } from 'os';
  */
 export const handleCommandFailure = (msg: string, err: Error, yargs: Argv) => {
   if (isUserForceClosePromptError(err)) {
-    Printer.print(`The prompt is forced to close...${EOL}`);
     return;
   }
 
