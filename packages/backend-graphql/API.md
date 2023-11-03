@@ -4,6 +4,7 @@
 
 ```ts
 
+import { AmplifyFunction } from '@aws-amplify/plugin-types';
 import { AmplifyGraphqlApi } from '@aws-amplify/graphql-api-construct';
 import { AuthorizationModes } from '@aws-amplify/graphql-api-construct';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
@@ -14,6 +15,7 @@ export type DataProps = {
     schema: DataSchema;
     name?: string;
     authorizationModes?: AuthorizationModes;
+    functions?: Record<string, ConstructFactory<AmplifyFunction>>;
 };
 
 // @public
