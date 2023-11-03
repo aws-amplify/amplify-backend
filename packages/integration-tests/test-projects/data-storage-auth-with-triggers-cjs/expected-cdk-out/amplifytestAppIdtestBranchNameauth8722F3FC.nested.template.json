@@ -1,5 +1,5 @@
 {
- "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyPipelineDeploy\",\"createdWith\":\"0.2.1\",\"stackType\":\"auth-Cognito\",\"metadata\":{}}",
+ "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyPipelineDeploy\",\"createdWith\":\"0.2.2\",\"stackType\":\"auth-Cognito\",\"metadata\":{}}",
  "Resources": {
   "SecretFetcherResourceProviderLambdaServiceRole5ABAF823": {
    "Type": "AWS::IAM::Role",
@@ -205,7 +205,7 @@
     "backendId": "testAppId",
     "branchName": "testBranchName",
     "secretName": "testAmazonId",
-    "secretLastUpdated": 1699035520939
+    "secretLastUpdated": 123456789
    },
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete"
@@ -222,7 +222,7 @@
     "backendId": "testAppId",
     "branchName": "testBranchName",
     "secretName": "testAmazonSecret",
-    "secretLastUpdated": 1699035520941
+    "secretLastUpdated": 123456789
    },
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete"
@@ -239,7 +239,7 @@
     "backendId": "testAppId",
     "branchName": "testBranchName",
     "secretName": "testFacebookId",
-    "secretLastUpdated": 1699035520942
+    "secretLastUpdated": 123456789
    },
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete"
@@ -256,7 +256,7 @@
     "backendId": "testAppId",
     "branchName": "testBranchName",
     "secretName": "testFacebookSecret",
-    "secretLastUpdated": 1699035520942
+    "secretLastUpdated": 123456789
    },
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete"
@@ -273,7 +273,7 @@
     "backendId": "testAppId",
     "branchName": "testBranchName",
     "secretName": "testGoogleId",
-    "secretLastUpdated": 1699035520942
+    "secretLastUpdated": 123456789
    },
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete"
@@ -290,7 +290,7 @@
     "backendId": "testAppId",
     "branchName": "testBranchName",
     "secretName": "testGoogleSecret",
-    "secretLastUpdated": 1699035520942
+    "secretLastUpdated": 123456789
    },
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete"
@@ -354,8 +354,8 @@
      "SmsMessage": "The verification code to your new account is {####}"
     }
    },
-   "UpdateReplacePolicy": "Retain",
-   "DeletionPolicy": "Retain"
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
   },
   "amplifyAuthUserPoolPostConfirmationCognitoE7E727CF": {
    "Type": "AWS::Lambda::Permission",
