@@ -13,7 +13,7 @@ export type FunctionInstanceProvider = {
 };
 
 /**
- * Function instance provider which the function instance provider to retrieve the underlying IFunction.
+ * Build a function instance provider using the construct factory.
  */
 export const buildConstructFactoryFunctionInstanceProvider = (
   props: ConstructFactoryGetInstanceProps

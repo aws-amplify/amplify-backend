@@ -1,14 +1,19 @@
 import { defineData } from '@aws-amplify/backend';
+import { myFunc } from '../function.js';
 
-const schema = `
-  input AMPLIFY {globalAuthRule: AuthRule = { allow: public }} # FOR TESTING ONLY!
-
-  type Todo @model {
-    id: ID!
-    name: String!
-    description: String
-    otherField: String
-  }
-`;
-
-export const data = defineData({ schema });
+export const data = defineData({
+  schema: /* GraphQL */ `
+    type Todo @model {
+      id: ID!
+      name: String!
+      description: String
+      otherField: String
+    }
+    type Query {
+      reverse(message: String!): String! @function(name: "reverse")
+    }
+  `,
+  functions: {
+    reverse: myFunc,
+  },
+});
