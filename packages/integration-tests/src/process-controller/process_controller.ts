@@ -123,8 +123,9 @@ export const amplifyCli = (
 ): ProcessController => {
   let command: string;
   if (options?.installationType === 'local') {
-    command = 'npx';
-    args = ['amplify'].concat(args);
+    // command = 'npx';
+    // args = ['amplify'].concat(args);
+    command = 'amplify';
   } else {
     command = 'amplify';
   }
