@@ -25,5 +25,5 @@ export const handleCommandFailure = (msg: string, err: Error, yargs: Argv) => {
 };
 
 const isUserForceClosePromptError = (err: Error): boolean => {
-  return err.message.includes('User force closed the prompt');
+  return err?.message.includes('User force closed the prompt');
 };
