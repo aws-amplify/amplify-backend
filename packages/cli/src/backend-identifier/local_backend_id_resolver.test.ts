@@ -1,5 +1,5 @@
 import { describe, it } from 'node:test';
-import { LocalAppNameResolver } from './local_app_name_resolver.js';
+import { LocalBackendIdResolver } from './local_backend_id_resolver.js';
 import assert from 'node:assert';
 
 void describe('LocalAppNameResolver', () => {
@@ -7,7 +7,7 @@ void describe('LocalAppNameResolver', () => {
     const packageJsonLoaderMock = {
       loadCwdPackageJson: async () => ({ name: 'testName' }),
     };
-    const resolver = new LocalAppNameResolver(packageJsonLoaderMock as never);
+    const resolver = new LocalBackendIdResolver(packageJsonLoaderMock as never);
     const result = await resolver.resolve();
     assert.equal(result, 'testName');
   });
@@ -18,7 +18,7 @@ void describe('LocalAppNameResolver', () => {
         name: 'A./.B@cd,_.E, , .f , .Ghi, _@ //, @, Jkl /',
       }),
     };
-    const resolver = new LocalAppNameResolver(packageJsonLoaderMock as never);
+    const resolver = new LocalBackendIdResolver(packageJsonLoaderMock as never);
     const result = await resolver.resolve();
     assert.equal(result, 'A-Bcd-EfGhi---Jkl-');
   });

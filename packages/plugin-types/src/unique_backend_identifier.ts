@@ -16,12 +16,12 @@ export type UniqueBackendIdentifier = {
    * For Amplify branch environments, this is the Amplify app id
    * For sandbox deployments, this is a concatenation of package.json#name and the current local username
    */
-  backendId: BackendId;
+  backendId: Readonly<BackendId>;
   /**
    * For amplify branch deployments, this is the branch name.
    * For sandbox deployments, this is the string literal "sandbox"
    */
-  disambiguator: string;
+  disambiguator: Readonly<string>;
   /**
    * Convert the backend identifier to the corresponding stack name
    */

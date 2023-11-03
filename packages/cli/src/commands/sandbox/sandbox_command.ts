@@ -39,7 +39,7 @@ export type SandboxEventHandlers = {
 };
 
 export type SandboxEventHandlerParams = {
-  appName?: string;
+  sandboxName?: string;
   clientConfigLifecycleHandler: ClientConfigLifecycleHandler;
 };
 
@@ -63,7 +63,7 @@ export class SandboxCommand
    */
   readonly describe: string;
 
-  private appName?: string;
+  private sandboxName?: string;
 
   /**
    * Creates sandbox command.
@@ -90,14 +90,14 @@ export class SandboxCommand
       process.env.AWS_PROFILE = profile;
     }
     const sandbox = await this.sandboxFactory.getInstance();
-    this.appName = args.name;
+    this.sandboxName = args.name;
 
     // attaching event handlers
     const clientConfigLifecycleHandler = new ClientConfigLifecycleHandler(
       this.clientConfigGeneratorAdapter
     );
     const eventHandlers = this.sandboxEventHandlerCreator?.({
-      appName: args.name,
+      sandboxName: this.sandboxName,
       clientConfigLifecycleHandler,
     });
     if (eventHandlers) {
@@ -230,6 +230,6 @@ export class SandboxCommand
     if (answer)
       await (
         await this.sandboxFactory.getInstance()
-      ).delete({ name: this.appName });
+      ).delete({ name: this.sandboxName });
   };
 }

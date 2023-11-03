@@ -24,13 +24,13 @@ void it('calls the client config adapter on the successfulDeployment event', asy
   );
 
   const eventFactory = new SandboxEventHandlerFactory(
-    async () => new SandboxBackendIdentifier('test')
+    async () => new SandboxBackendIdentifier('test', 'name')
   );
 
   await Promise.all(
     eventFactory
       .getSandboxEventHandlers({
-        appName: 'my-app',
+        sandboxName: 'my-app',
         clientConfigLifecycleHandler,
       })
       .successfulDeployment.map((e) => e())
@@ -60,13 +60,13 @@ void it('calls deleteClientConfigFile on client config adapter on the successful
   const fspMock = mock.method(fsp, 'rm', () => Promise.resolve());
 
   const eventFactory = new SandboxEventHandlerFactory(
-    async () => new SandboxBackendIdentifier('test')
+    async () => new SandboxBackendIdentifier('test', 'name')
   );
 
   await Promise.all(
     eventFactory
       .getSandboxEventHandlers({
-        appName: 'my-app',
+        sandboxName: 'my-app',
         clientConfigLifecycleHandler,
       })
       .successfulDeletion.map((e) => e())

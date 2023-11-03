@@ -1,5 +1,5 @@
 import { BackendIdentifier } from '@aws-amplify/deployed-backend-client';
-import { AppNameResolver } from './local_app_name_resolver.js';
+import { BackendIdResolver } from './local_backend_id_resolver.js';
 import { BranchBackendIdentifier } from '@aws-amplify/platform-core';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
@@ -16,7 +16,7 @@ export class BackendIdentifierResolver {
   /**
    * Instantiates BackendIdentifierResolver
    */
-  constructor(private appNameResolver: AppNameResolver) {}
+  constructor(private appNameResolver: BackendIdResolver) {}
   resolve = async (
     args: BackendIdentifierParameters
   ): Promise<BackendIdentifier> => {

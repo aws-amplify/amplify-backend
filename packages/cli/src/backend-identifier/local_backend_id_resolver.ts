@@ -1,13 +1,13 @@
 import { CwdPackageJsonLoader } from '../cwd_package_json_loader.js';
 
-export type AppNameResolver = {
+export type BackendIdResolver = {
   resolve: () => Promise<string>;
 };
 
 /**
  * Reads the local app name from package.json#name in the current directory
  */
-export class LocalAppNameResolver implements AppNameResolver {
+export class LocalBackendIdResolver implements BackendIdResolver {
   /**
    * packageJsonLoader is assigned to an instance member for testing.
    * resolve is bound to this so that it can be passed as a function reference
@@ -21,7 +21,7 @@ export class LocalAppNameResolver implements AppNameResolver {
     const packageJsonName = (await this.packageJsonLoader.loadCwdPackageJson())
       .name;
 
-    // App Names are used in generating stack names where some special symbols are not allowed
+    // backendId becomes part of CFN stack names where some special symbols are not allowed
     return packageJsonName.replace(/[.,@ ]/g, '').replace(/[_/]/g, '-');
   };
 }

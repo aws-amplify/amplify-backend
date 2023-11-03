@@ -48,12 +48,12 @@ void describe('Sandbox executor', () => {
 
   void it('retrieves file change summary once (debounce)', async () => {
     const firstDeployPromise = sandboxExecutor.deploy(
-      new SandboxBackendIdentifier('testSandboxId'),
+      new SandboxBackendIdentifier('testSandboxId', 'testSandboxName'),
       validateAppSourcesProvider
     );
 
     const secondDeployPromise = sandboxExecutor.deploy(
-      new SandboxBackendIdentifier('testSandboxId'),
+      new SandboxBackendIdentifier('testSandboxId', 'testSandboxName'),
       validateAppSourcesProvider
     );
 
@@ -71,14 +71,14 @@ void describe('Sandbox executor', () => {
       );
 
       await sandboxExecutor.deploy(
-        new SandboxBackendIdentifier('testSandboxId'),
+        new SandboxBackendIdentifier('testSandboxId', 'testSandboxName'),
         validateAppSourcesProvider
       );
 
       assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
       // BackendDeployer should be called with the right params
       assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
-        new SandboxBackendIdentifier('testSandboxId'),
+        new SandboxBackendIdentifier('testSandboxId', 'testSandboxName'),
         {
           deploymentType: BackendDeploymentType.SANDBOX,
           secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,

@@ -14,13 +14,15 @@ export class SandboxEventHandlerFactory {
     ) => Promise<SandboxBackendIdentifier>
   ) {}
   getSandboxEventHandlers: SandboxEventHandlerCreator = ({
-    appName,
+    sandboxName,
     clientConfigLifecycleHandler,
   }) => {
     return {
       successfulDeployment: [
         async () => {
-          const backendIdentifier = await this.getBackendIdentifier(appName);
+          const backendIdentifier = await this.getBackendIdentifier(
+            sandboxName
+          );
           await clientConfigLifecycleHandler.generateClientConfigFile(
             backendIdentifier
           );

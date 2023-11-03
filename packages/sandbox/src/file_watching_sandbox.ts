@@ -16,12 +16,12 @@ import {
   CloudFormationClient,
   DescribeStacksCommand,
 } from '@aws-sdk/client-cloudformation';
-import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
 import { AmplifyPrompter } from '@aws-amplify/cli-core';
 import {
   FilesChangesTracker,
   createFilesChangesTracker,
 } from './files_changes_tracker.js';
+import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 export const CDK_BOOTSTRAP_STACK_NAME = 'CDKToolkit';
 export const CDK_BOOTSTRAP_VERSION_KEY = 'BootstrapVersion';
@@ -48,8 +48,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
    * Creates a watcher process for this instance
    */
   constructor(
-    private readonly sandboxId: string,
-    private readonly sandboxName: string,
+    private readonly backendIdSandboxResolver: BackendIdSandboxResolver,
     private readonly executor: AmplifySandboxExecutor,
     private readonly cfnClient: CloudFormationClient,
     private readonly open = _open
@@ -184,10 +183,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       '[Sandbox] Deleting all the resources in the sandbox environment...'
     );
     await this.executor.destroy(
-      new SandboxBackendIdentifier(
-        this.sandboxId,
-        options.name ?? this.sandboxName
-      )
+      await this.backendIdSandboxResolver(options.name)
     );
     this.emit('successfulDeletion');
     console.log('[Sandbox] Finished deleting.');
@@ -208,10 +204,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
   private deploy = async (options: SandboxOptions) => {
     try {
       await this.executor.deploy(
-        new SandboxBackendIdentifier(
-          this.sandboxId,
-          options.name ?? this.sandboxName
-        ),
+        await this.backendIdSandboxResolver(options.name),
         // It's important to pass this as callback so that debounce does
         // not reset tracker prematurely
         this.shouldValidateAppSources
@@ -337,3 +330,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     // else let the sandbox continue so customers can revert their changes
   };
 }
+
+export type BackendIdSandboxResolver = (
+  sandboxName?: string
+) => Promise<UniqueBackendIdentifier>;

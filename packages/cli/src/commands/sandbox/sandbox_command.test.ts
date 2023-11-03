@@ -15,6 +15,7 @@ import { createSandboxSecretCommand } from './sandbox-secret/sandbox_secret_comm
 import { FromIniInit } from '@aws-sdk/credential-providers';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
+import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
 
 void describe('sandbox command factory', () => {
   void it('instantiate a sandbox command correctly', () => {
@@ -36,7 +37,9 @@ void describe('sandbox command', () => {
 
   beforeEach(async () => {
     const sandboxFactory = new SandboxSingletonFactory(() =>
-      Promise.resolve('testBackendId')
+      Promise.resolve(
+        new SandboxBackendIdentifier('testSandboxId', 'testSandboxName')
+      )
     );
     sandbox = await sandboxFactory.getInstance();
 
@@ -208,7 +211,9 @@ void describe('sandbox command', () => {
       return mock.fn();
     });
     const sandboxFactory = new SandboxSingletonFactory(() =>
-      Promise.resolve('testBackendId')
+      Promise.resolve(
+        new SandboxBackendIdentifier('testSandboxId', 'testSandboxName')
+      )
     );
     sandbox = await sandboxFactory.getInstance();
     sandboxStartMock = mock.method(sandbox, 'start', () => Promise.resolve());
