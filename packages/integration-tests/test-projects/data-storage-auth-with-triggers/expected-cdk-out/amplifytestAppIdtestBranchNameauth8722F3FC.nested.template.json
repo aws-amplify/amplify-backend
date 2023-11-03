@@ -1,5 +1,5 @@
 {
- "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyPipelineDeploy\",\"createdWith\":\"0.2.1\",\"stackType\":\"auth-Cognito\",\"metadata\":{}}",
+ "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyPipelineDeploy\",\"createdWith\":\"0.2.2\",\"stackType\":\"auth-Cognito\",\"metadata\":{}}",
  "Resources": {
   "SecretFetcherResourceProviderLambdaServiceRole5ABAF823": {
    "Type": "AWS::IAM::Role",
@@ -205,11 +205,7 @@
     "backendId": "testAppId",
     "branchName": "testBranchName",
     "secretName": "testAmazonId",
-<<<<<<< HEAD
-    "secretLastUpdated": 1698956806531
-=======
     "secretLastUpdated": 123456789
->>>>>>> main
    },
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete"
@@ -226,11 +222,7 @@
     "backendId": "testAppId",
     "branchName": "testBranchName",
     "secretName": "testAmazonSecret",
-<<<<<<< HEAD
-    "secretLastUpdated": 1698956806532
-=======
     "secretLastUpdated": 123456789
->>>>>>> main
    },
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete"
@@ -247,11 +239,7 @@
     "backendId": "testAppId",
     "branchName": "testBranchName",
     "secretName": "testFacebookId",
-<<<<<<< HEAD
-    "secretLastUpdated": 1698956806532
-=======
     "secretLastUpdated": 123456789
->>>>>>> main
    },
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete"
@@ -268,11 +256,7 @@
     "backendId": "testAppId",
     "branchName": "testBranchName",
     "secretName": "testFacebookSecret",
-<<<<<<< HEAD
-    "secretLastUpdated": 1698956806532
-=======
     "secretLastUpdated": 123456789
->>>>>>> main
    },
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete"
@@ -289,11 +273,7 @@
     "backendId": "testAppId",
     "branchName": "testBranchName",
     "secretName": "testGoogleId",
-<<<<<<< HEAD
-    "secretLastUpdated": 1698956806532
-=======
     "secretLastUpdated": 123456789
->>>>>>> main
    },
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete"
@@ -310,11 +290,7 @@
     "backendId": "testAppId",
     "branchName": "testBranchName",
     "secretName": "testGoogleSecret",
-<<<<<<< HEAD
-    "secretLastUpdated": 1698956806532
-=======
     "secretLastUpdated": 123456789
->>>>>>> main
    },
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete"
