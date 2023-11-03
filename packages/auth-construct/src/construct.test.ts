@@ -795,7 +795,7 @@ void describe('Auth construct', () => {
       const app = new App();
       const stack = new Stack(app);
       const auth = new AmplifyAuth(stack, 'test');
-      auth.resources.cfnResources.userPool.addPropertyOverride(
+      auth.resources.cfnResources.userPoolClient.addPropertyOverride(
         'PreventUserExistenceErrors',
         'LEGACY'
       );
