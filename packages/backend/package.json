@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/backend",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -19,15 +19,16 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@aws-amplify/amplify-api-next-alpha": "^0.6.2",
-    "@aws-amplify/backend-auth": "^0.2.1",
-    "@aws-amplify/backend-function": "^0.1.1",
-    "@aws-amplify/backend-graphql": "^0.2.0",
-    "@aws-amplify/backend-output-schemas": "^0.2.0",
+    "@aws-amplify/backend-auth": "^0.2.2",
+    "@aws-amplify/backend-function": "^0.1.2",
+    "@aws-amplify/backend-graphql": "^0.2.1",
+    "@aws-amplify/backend-output-schemas": "^0.2.1",
     "@aws-amplify/backend-output-storage": "^0.2.0",
-    "@aws-amplify/backend-secret": "^0.2.0",
-    "@aws-amplify/backend-storage": "^0.2.0",
-    "@aws-amplify/platform-core": "^0.1.1",
-    "@aws-amplify/plugin-types": "^0.2.0"
+    "@aws-amplify/backend-secret": "^0.2.1",
+    "@aws-amplify/backend-storage": "^0.2.1",
+    "@aws-amplify/platform-core": "^0.1.2",
+    "@aws-amplify/plugin-types": "^0.3.0",
+    "@aws-sdk/client-amplify": "^3.440.0"
   },
   "peerDependencies": {
     "aws-cdk-lib": "~2.103.0",

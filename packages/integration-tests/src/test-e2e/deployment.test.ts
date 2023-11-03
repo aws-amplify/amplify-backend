@@ -1,4 +1,4 @@
-import { after, beforeEach, describe, it } from 'node:test';
+import { after, afterEach, beforeEach, describe, it } from 'node:test';
 import { deleteTestDirectory, rootTestDir } from '../setup_test_directory.js';
 import fs from 'fs/promises';
 import { shortUuid } from '../short_uuid.js';
@@ -19,6 +19,7 @@ import {
   updateFileContent,
 } from '../process-controller/predicated_action_macros.js';
 import assert from 'node:assert';
+import { TestBranch, amplifyAppPool } from './amplify_app_pool.js';
 
 const testProjects = await generateTestProjects(rootTestDir);
 
@@ -29,18 +30,41 @@ void describe('amplify deploys', async () => {
 
   testProjects.forEach((testProject) => {
     void describe(`branch deploys ${testProject.name}`, () => {
-      const branchBackendIdentifier = new BranchBackendIdentifier(
-        `test-${shortUuid()}`,
-        'test-pipeline-branch'
-      );
+      let branchBackendIdentifier: BranchBackendIdentifier;
+      let testBranch: TestBranch;
 
-      after(async () => {
+      beforeEach(async () => {
+        testBranch = await amplifyAppPool.createTestBranch();
+        branchBackendIdentifier = new BranchBackendIdentifier(
+          testBranch.appId,
+          testBranch.branchName
+        );
+      });
+
+      afterEach(async () => {
         await testProject.tearDown(branchBackendIdentifier);
       });
 
-      void it(`[${branchBackendIdentifier.backendId}] deploys fully`, async () => {
+      void it(`[${testProject.name}] deploys fully`, async () => {
         await testProject.deploy(branchBackendIdentifier);
         await testProject.assertPostDeployment();
+        const testBranchDetails = await amplifyAppPool.fetchTestBranchDetails(
+          testBranch
+        );
+        assert.ok(
+          testBranchDetails.backend?.stackArn,
+          'branch should have stack associated'
+        );
+        assert.ok(
+          testBranchDetails.backend?.stackArn?.includes(
+            branchBackendIdentifier.backendId
+          )
+        );
+        assert.ok(
+          testBranchDetails.backend?.stackArn?.includes(
+            branchBackendIdentifier.disambiguator
+          )
+        );
       });
     });
   });
