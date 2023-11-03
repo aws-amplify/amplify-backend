@@ -17,6 +17,10 @@ const matchHashedJsonFile: Predicate = (actual, expected) => {
   );
 };
 
+const nestedStackDescriptions = new Set([
+  'An auto-generated nested stack for the @function directive.',
+]);
+
 const customMatchers: Map<ObjectPath, Predicate> = new Map([
   [
     [
@@ -70,7 +74,10 @@ const customMatchers: Map<ObjectPath, Predicate> = new Map([
     ['Description'],
     // the description field of the gql template contains a JSON string that includes "createdOn": "Linux|Mac|Windows"
     // this check just verifies that the string is valid JSON because the createdOn value is different for each platform
-    (actual) => typeof actual === 'string' && JSON.parse(actual),
+    // Deeply nested stacks may not adhere to this, so we check if the stack description is expected, short-circuiting parse.
+    (actual) =>
+      typeof actual === 'string' &&
+      (nestedStackDescriptions.has(actual) || JSON.parse(actual)),
   ],
 ]);
 

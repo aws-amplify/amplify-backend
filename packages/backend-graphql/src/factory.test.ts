@@ -4,6 +4,7 @@ import { defineData } from './factory.js';
 import { App, Duration, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import {
+  AmplifyFunction,
   AuthResources,
   BackendOutputEntry,
   BackendOutputStorageStrategy,
@@ -20,6 +21,7 @@ import {
   UserPool,
   UserPoolClient,
 } from 'aws-cdk-lib/aws-cognito';
+import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 import {
   BackendDeploymentType,
@@ -185,5 +187,46 @@ void describe('DataFactory', () => {
       importPathVerifier,
     };
     dataFactory.getInstance(getInstanceProps);
+  });
+
+  void it('accepts functions as inputs to the defineData call', () => {
+    const echo: ConstructFactory<AmplifyFunction> = {
+      getInstance: () => ({
+        resources: {
+          lambda: new Function(stack, 'MyEchoFn', {
+            runtime: Runtime.NODEJS_18_X,
+            code: Code.fromInline(
+              'module.handler = async () => console.log("Hello");'
+            ),
+            handler: 'index.handler',
+          }),
+        },
+      }),
+    };
+    dataFactory = defineData({
+      schema: /* GraphQL */ `
+        type Query {
+          echo(message: String!): String! @function(name: "echo")
+        }
+      `,
+      functions: {
+        echo,
+      },
+    });
+
+    const dataConstruct = dataFactory.getInstance(getInstanceProps);
+
+    // Validate that the api resources are created for the function
+    assert('FunctionDirectiveStack' in dataConstruct.resources.nestedStacks);
+    const functionDirectiveStackTemplate = Template.fromStack(
+      dataConstruct.resources.nestedStacks.FunctionDirectiveStack
+    );
+    functionDirectiveStackTemplate.hasResourceProperties(
+      'AWS::AppSync::DataSource',
+      {
+        Name: 'EchoLambdaDataSource',
+        Type: 'AWS_LAMBDA',
+      }
+    );
   });
 });

@@ -421,7 +421,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/51a06fef64294344ef1f63f74e763b53517a554426b68f175a2f5638d392f778.json"
+       "/f67465c0ef9bb8dff967a9efb431ee90f59a626e10abdecd1576e25bbaa0bd0d.json"
       ]
      ]
     }
@@ -477,6 +477,18 @@
        "auth179371D7",
        "Outputs.amplifytestAppIdtestBranchNameauthamplifyAuthunauthenticatedUserRoleF8166590Ref"
       ]
+     },
+     "referencetoamplifytestAppIdtestBranchNamefunctionNestedStackfunctionNestedStackResourceE968B293OutputsamplifytestAppIdtestBranchNamefunctiontestFunctestFuncLambdaFunction724FFDF6Arn": {
+      "Fn::GetAtt": [
+       "function1351588B",
+       "Outputs.amplifytestAppIdtestBranchNamefunctiontestFunctestFuncLambdaFunction724FFDF6Arn"
+      ]
+     },
+     "referencetoamplifytestAppIdtestBranchNamefunctionNestedStackfunctionNestedStackResourceE968B293OutputsamplifytestAppIdtestBranchNamefunctionechoFuncechoFuncLambdaFunction419B1A39Arn": {
+      "Fn::GetAtt": [
+       "function1351588B",
+       "Outputs.amplifytestAppIdtestBranchNamefunctionechoFuncechoFuncLambdaFunction419B1A39Arn"
+      ]
      }
     },
     "TemplateURL": {
@@ -495,7 +507,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/a3aac3b86fdb50e51df5ffaed30fa129b1aa87d7cddae556c3cf64bcb0182bb0.json"
+       "/4afad6f114ee8dceaaafafe36154d11e37e4e9dd090d6da4d823974ded664cd4.json"
       ]
      ]
     }
