@@ -17,6 +17,8 @@ import { Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import {
   CfnIdentityPool,
   CfnIdentityPoolRoleAttachment,
+  CfnUserPool,
+  CfnUserPoolClient,
   UserPool,
   UserPoolClient,
 } from 'aws-cdk-lib/aws-cognito';
@@ -83,6 +85,10 @@ void describe('DataFactory', () => {
             assumedBy: new ServicePrincipal('test.amazon.com'),
           }),
           cfnResources: {
+            userPool: new CfnUserPool(stack, 'CfnUserPool', {}),
+            userPoolClient: new CfnUserPoolClient(stack, 'CfnUserPoolClient', {
+              userPoolId: 'userPool',
+            }),
             identityPool: new CfnIdentityPool(stack, 'identityPool', {
               allowUnauthenticatedIdentities: true,
             }),
