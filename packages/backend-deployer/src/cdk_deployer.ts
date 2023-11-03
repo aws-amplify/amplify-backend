@@ -7,7 +7,10 @@ import {
 } from './cdk_deployer_singleton_factory.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
-import { BackendDeploymentType } from '@aws-amplify/platform-core';
+import {
+  BackendDeploymentType,
+  CDKContextKey,
+} from '@aws-amplify/platform-core';
 import { BackendDeployerEnvironmentVariables } from './environment_variables.js';
 
 const relativeBackendEntryPoint = 'amplify/backend.ts';
@@ -125,9 +128,9 @@ export class CDKDeployer implements BackendDeployer {
     if (uniqueBackendIdentifier) {
       cdkCommandArgs.push(
         '--context',
-        `backend-id=${uniqueBackendIdentifier.backendId}`,
+        `${CDKContextKey.BACKEND_ID}=${uniqueBackendIdentifier.backendId}`,
         '--context',
-        `backend-disambiguator=${uniqueBackendIdentifier.disambiguator}`
+        `${CDKContextKey.BACKEND_DISAMBIGUATOR}=${uniqueBackendIdentifier.disambiguator}`
       );
 
       if (deploymentType !== BackendDeploymentType.SANDBOX) {
@@ -136,7 +139,10 @@ export class CDKDeployer implements BackendDeployer {
     }
 
     if (deploymentType) {
-      cdkCommandArgs.push('--context', `deployment-type=${deploymentType}`);
+      cdkCommandArgs.push(
+        '--context',
+        `${CDKContextKey.DEPLOYMENT_TYPE}=${deploymentType}`
+      );
     }
 
     if (additionalArguments) {

@@ -7,27 +7,26 @@ import {
 } from '@aws-amplify/platform-core';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
-const backendIdCDKContextKey = 'backend-id';
-const disambiguatorCDKContextKey = 'backend-disambiguator';
-
 /**
  * Populates a unique backend identifier based on CDK context values.
  */
 export const getUniqueBackendIdentifier = (
   scope: Construct
 ): UniqueBackendIdentifier => {
-  const backendId = scope.node.getContext(backendIdCDKContextKey);
+  const backendId = scope.node.getContext(CDKContextKey.BACKEND_ID);
   if (typeof backendId !== 'string') {
     throw new Error(
-      `${backendIdCDKContextKey} CDK context value is not a string`
+      `${CDKContextKey.BACKEND_ID} CDK context value is not a string`
     );
   }
 
-  const disambiguator = scope.node.getContext(disambiguatorCDKContextKey);
+  const disambiguator = scope.node.getContext(
+    CDKContextKey.BACKEND_DISAMBIGUATOR
+  );
 
   if (typeof disambiguator !== 'string') {
     throw new Error(
-      `${disambiguatorCDKContextKey} CDK context value is not a string`
+      `${CDKContextKey.BACKEND_DISAMBIGUATOR} CDK context value is not a string`
     );
   }
 

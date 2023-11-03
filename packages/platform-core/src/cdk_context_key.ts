@@ -4,5 +4,7 @@
  * This enum does not currently capture all context keys. We can refactor incrementally as we need to use these keys in multiple places
  */
 export enum CDKContextKey {
+  BACKEND_DISAMBIGUATOR = 'backend-disambiguator',
+  BACKEND_ID = 'backend-id',
   DEPLOYMENT_TYPE = 'deployment-type',
 }
