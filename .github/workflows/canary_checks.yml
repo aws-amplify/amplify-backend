@@ -28,7 +28,7 @@ jobs:
           # However we still want to run synthesis in these tests to verify that it doesn't fail
           export AMPLIFY_BACKEND_TESTS_DISABLE_INTEGRATION_SNAPSHOTS_COMPARISON=true
           npm run test
-  smoke_tests:
+  live_dependency_health_checks:
     runs-on: ubuntu-latest
     permissions:
       # these permissions are required for the configure-aws-credentials action to get a JWT from GitHub
@@ -43,13 +43,14 @@ jobs:
         with:
           role-to-assume: ${{ secrets.E2E_RUNNER_ROLE_ARN }}
           aws-region: us-west-2
-      - name: Run smoke test
+      - name: Run live dependency health checks
         shell: bash
         run: |
-          npm run smoke-tests
+          npm run live-dependency-health-checks
   log-failure-metric:
     runs-on: ubuntu-latest
-    needs: [local_checks_with_latest_dependencies, smoke_tests]
+    needs:
+      [local_checks_with_latest_dependencies, live_dependency_health_checks]
     permissions:
       # these permissions are required for the configure-aws-credentials action to get a JWT from GitHub
       id-token: write
@@ -69,7 +70,8 @@ jobs:
           aws-region: us-west-2
   log-success-metric:
     runs-on: ubuntu-latest
-    needs: [local_checks_with_latest_dependencies, smoke_tests]
+    needs:
+      [local_checks_with_latest_dependencies, live_dependency_health_checks]
     permissions:
       # these permissions are required for the configure-aws-credentials action to get a JWT from GitHub
       id-token: write

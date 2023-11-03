@@ -21,7 +21,7 @@ const cfnClient = new CloudFormationClient();
  *
  * These tests intentionally do not use local npm registry (verdaccio).
  */
-void describe('Smoke Tests', () => {
+void describe('Live dependency health checks', () => {
   let tempDir: string;
   let testBranch: TestBranch;
 
@@ -55,7 +55,7 @@ void describe('Smoke Tests', () => {
     }
   });
 
-  void it('Full e2e flow', async () => {
+  void it('end to end flow with pipeline deployment', async () => {
     await execa('npm', ['create', 'amplify', '--yes'], {
       cwd: tempDir,
       stdio: 'inherit',
