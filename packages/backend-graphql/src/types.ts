@@ -27,7 +27,7 @@ export type DataProps = {
   authorizationModes?: AuthorizationModes;
 
   /**
-   * Functions invokable by the API.
+   * Functions invokable by the API. The specific input type of the function is subject to change or removal.
    */
   functions?: Record<string, ConstructFactory<AmplifyFunction>>;
 };
