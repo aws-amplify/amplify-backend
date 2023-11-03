@@ -33,7 +33,11 @@ jobs:
     steps:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
       - uses: ./.github/actions/setup_node
-      - uses: ./.github/actions/restore_install_cache
+      - name: Install and build
+        shell: bash
+        run: |
+          npm install
+          npm run build
       - run: npm run smoke-tests
   log-failure-metric:
     runs-on: ubuntu-latest
