@@ -1,9 +1,10 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { defineData } from './factory.js';
-import { App, Duration, NestedStack, Stack } from 'aws-cdk-lib';
+import { App, Duration, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import {
+  AmplifyFunction,
   AuthResources,
   BackendOutputEntry,
   BackendOutputStorageStrategy,
@@ -20,6 +21,7 @@ import {
   UserPool,
   UserPoolClient,
 } from 'aws-cdk-lib/aws-cognito';
+import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 import {
   BackendDeploymentType,
@@ -31,8 +33,6 @@ import {
   ImportPathVerifierStub,
   StackResolverStub,
 } from '@aws-amplify/backend-platform-test-stubs';
-import { Func } from '@aws-amplify/backend-function';
-import path from 'path';
 
 const testSchema = /* GraphQL */ `
   type Todo @model {
@@ -190,6 +190,19 @@ void describe('DataFactory', () => {
   });
 
   void it('accepts functions as inputs to the defineData call', () => {
+    const echo: ConstructFactory<AmplifyFunction> = {
+      getInstance: () => ({
+        resources: {
+          lambda: new Function(stack, 'MyEchoFn', {
+            runtime: Runtime.NODEJS_18_X,
+            code: Code.fromInline(
+              'module.handler = async () => console.log("Hello");'
+            ),
+            handler: 'index.handler',
+          }),
+        },
+      }),
+    };
     dataFactory = defineData({
       schema: /* GraphQL */ `
         type Query {
@@ -197,10 +210,7 @@ void describe('DataFactory', () => {
         }
       `,
       functions: {
-        echo: Func.fromDir({
-          name: 'EchoFn',
-          codePath: path.join('..', 'test-assets', 'test-lambda'),
-        }),
+        echo,
       },
     });
 
@@ -218,10 +228,5 @@ void describe('DataFactory', () => {
         Type: 'AWS_LAMBDA',
       }
     );
-
-    // Validate that the function is created and attached to a new nested stack
-    const functionStack = stack.node.findChild('function') as NestedStack;
-    const functionStackTemplate = Template.fromStack(functionStack);
-    functionStackTemplate.resourceCountIs('AWS::Lambda::Function', 1);
   });
 });
