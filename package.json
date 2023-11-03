@@ -25,6 +25,7 @@
     "publish": "tsx scripts/publish.ts",
     "publish:local": "tsx scripts/publish_local.ts",
     "set-script-shell": "npm config set script-shell bash --userconfig ./.npmrc",
+    "smoke-tests": "npm run test:dir packages/integration-tests/lib/test-smoke",
     "start:npm-proxy": "tsx scripts/start_npm_proxy.ts",
     "stop:npm-proxy": "tsx scripts/stop_npm_proxy.ts",
     "test": "npm run test:dir $(tsx scripts/get_unit_test_dir_list.ts)",
