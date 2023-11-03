@@ -22,4 +22,8 @@ export type UniqueBackendIdentifier = {
    * For sandbox deployments, this is the string literal "sandbox"
    */
   disambiguator: string;
+  /**
+   * Convert the backend identifier to the corresponding stack name
+   */
+  toStackName: () => string;
 };
