@@ -20,8 +20,5 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@aws-amplify/plugin-types": "^0.3.0"
-  },
-  "devDependencies": {
-    "@aws-amplify/platform-core": "^0.1.2"
   }
 }
