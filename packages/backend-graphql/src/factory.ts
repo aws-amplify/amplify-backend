@@ -18,6 +18,11 @@ import { GraphqlOutput } from '@aws-amplify/backend-output-schemas';
 import * as path from 'path';
 import { DataProps } from './types.js';
 import { convertSchemaToCDK } from './convert_schema.js';
+import {
+  FunctionInstanceProvider,
+  buildConstructFactoryFunctionInstanceProvider,
+  convertFunctionNameMapToCDK,
+} from './convert_functions.js';
 
 /**
  * Singleton factory for AmplifyGraphqlApi constructs that can be used in Amplify project files
@@ -56,6 +61,11 @@ class DataFactory implements ConstructFactory<AmplifyGraphqlApi> {
             outputStorageStrategy,
             importPathVerifier,
           }),
+        buildConstructFactoryFunctionInstanceProvider({
+          constructContainer,
+          outputStorageStrategy,
+          importPathVerifier,
+        }),
         outputStorageStrategy
       );
     }
@@ -70,6 +80,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
   constructor(
     private readonly props: DataProps,
     private readonly authResources: ResourceProvider<AuthResources> | undefined,
+    private readonly functionInstanceProvider: FunctionInstanceProvider,
     private readonly outputStorageStrategy: BackendOutputStorageStrategy<GraphqlOutput>
   ) {}
 
@@ -109,12 +120,17 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       ...dataAuthorizationModes,
     };
 
-    // TODO inject the construct with the functionNameMap
+    const functionNameMap = convertFunctionNameMapToCDK(
+      this.functionInstanceProvider,
+      this.props.functions ?? {}
+    );
+
     const graphqlConstructProps: AmplifyGraphqlApiProps = {
       apiName: this.props.name,
       definition: convertSchemaToCDK(this.props.schema),
       authorizationModes,
       outputStorageStrategy: this.outputStorageStrategy,
+      functionNameMap,
     };
     return new AmplifyGraphqlApi(
       scope,
