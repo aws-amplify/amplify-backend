@@ -1,4 +1,4 @@
-import { defineData } from '@aws-amplify/backend';
+import { Func, defineData } from '@aws-amplify/backend';
 import { myFunc } from '../function.js';
 
 export const data = defineData({
@@ -11,9 +11,14 @@ export const data = defineData({
     }
     type Query {
       reverse(message: String!): String! @function(name: "reverse")
+      echo(message: String!): String! @function(name: "echo")
     }
   `,
   functions: {
     reverse: myFunc,
+    echo: Func.fromDir({
+      name: 'echoFunc',
+      codePath: './echo',
+    }),
   },
 });
