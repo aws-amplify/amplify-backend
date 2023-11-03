@@ -72,7 +72,8 @@ void describe('amplify deploys', async () => {
   testProjects.forEach((testProject) => {
     void describe(`sandbox deploys ${testProject.name}`, () => {
       const sandboxBackendIdentifier = new SandboxBackendIdentifier(
-        `${testProject.name}-${userInfo().username}`
+        testProject.name,
+        userInfo().username
       );
 
       after(async () => {

@@ -245,7 +245,7 @@ void describe('Deployed Backend Client', () => {
         },
         {
           deploymentType: BackendDeploymentType.SANDBOX,
-          backendId: new SandboxBackendIdentifier('test'),
+          backendId: new SandboxBackendIdentifier('test', 'username'),
           name: 'amplify-test-sandbox',
           status: BackendDeploymentStatus.DEPLOYED,
           lastUpdated: new Date(1),
@@ -279,7 +279,7 @@ void describe('Deployed Backend Client', () => {
 
   void it('deletes a sandbox', async () => {
     await deployedBackendClient.deleteSandbox(
-      new SandboxBackendIdentifier('test')
+      new SandboxBackendIdentifier('test', 'username')
     );
 
     assert.equal(cfnClientSendMock.mock.callCount(), 1);

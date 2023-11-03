@@ -14,10 +14,7 @@ void describe('UniqueBackendIdentifierMainStackNameResolver', () => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const getMainStackNameMock = mock.fn((backendId) => 'testStackName');
       const stackNameResolver =
-        new UniqueBackendIdentifierMainStackNameResolver(
-          testBackendIdentifier,
-          getMainStackNameMock
-        );
+        new UniqueBackendIdentifierMainStackNameResolver(testBackendIdentifier);
 
       const result = await stackNameResolver.resolveMainStackName();
       assert.equal(result, 'testStackName');

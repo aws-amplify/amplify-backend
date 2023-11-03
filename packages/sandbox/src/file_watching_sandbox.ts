@@ -49,6 +49,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
    */
   constructor(
     private readonly sandboxId: string,
+    private readonly sandboxName: string,
     private readonly executor: AmplifySandboxExecutor,
     private readonly cfnClient: CloudFormationClient,
     private readonly open = _open
@@ -179,11 +180,15 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
    * @inheritdoc
    */
   delete = async (options: SandboxDeleteOptions) => {
-    const sandboxAppId = options.name ?? this.sandboxId;
     console.log(
       '[Sandbox] Deleting all the resources in the sandbox environment...'
     );
-    await this.executor.destroy(new SandboxBackendIdentifier(sandboxAppId));
+    await this.executor.destroy(
+      new SandboxBackendIdentifier(
+        this.sandboxId,
+        options.name ?? this.sandboxName
+      )
+    );
     this.emit('successfulDeletion');
     console.log('[Sandbox] Finished deleting.');
   };
@@ -201,10 +206,12 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
   };
 
   private deploy = async (options: SandboxOptions) => {
-    const sandboxAppId = options.name ?? this.sandboxId;
     try {
       await this.executor.deploy(
-        new SandboxBackendIdentifier(sandboxAppId),
+        new SandboxBackendIdentifier(
+          this.sandboxId,
+          options.name ?? this.sandboxName
+        ),
         // It's important to pass this as callback so that debounce does
         // not reset tracker prematurely
         this.shouldValidateAppSources

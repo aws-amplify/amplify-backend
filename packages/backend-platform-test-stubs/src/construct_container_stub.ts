@@ -85,4 +85,5 @@ export class ConstructContainerStub implements ConstructContainer {
 const getUniqueBackendIdentifierStub = (): UniqueBackendIdentifier => ({
   backendId: 'testBackendId',
   disambiguator: 'testEnvName',
+  toStackName: () => 'amplify-test-stack-name',
 });

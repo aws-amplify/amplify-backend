@@ -16,7 +16,6 @@ import {
   SandboxBackendIdentifier,
 } from '@aws-amplify/platform-core';
 import { BackendOutputClient } from './backend_output_client_factory.js';
-import { getMainStackName } from './get_main_stack_name.js';
 import {
   CloudFormationClient,
   DeleteStackCommand,
@@ -131,7 +130,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
   deleteSandbox = async (
     sandboxBackendIdentifier: SandboxBackendIdentifier
   ): Promise<void> => {
-    const stackName = getMainStackName(sandboxBackendIdentifier);
+    const stackName = sandboxBackendIdentifier.toStackName();
     await this.cfnClient.send(new DeleteStackCommand({ StackName: stackName }));
   };
   /**
@@ -140,7 +139,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
   getBackendMetadata = async (
     uniqueBackendIdentifier: UniqueBackendIdentifier
   ): Promise<BackendMetadata> => {
-    const stackName = getMainStackName(uniqueBackendIdentifier);
+    const stackName = uniqueBackendIdentifier.toStackName();
     return this.buildBackendMetadata(stackName);
   };
 

@@ -125,16 +125,13 @@ export class CDKDeployer implements BackendDeployer {
     if (uniqueBackendIdentifier) {
       cdkCommandArgs.push(
         '--context',
-        `backend-id=${uniqueBackendIdentifier.backendId}`
+        `backend-id=${uniqueBackendIdentifier.backendId}`,
+        '--context',
+        `backend-disambiguator=${uniqueBackendIdentifier.disambiguator}`
       );
 
       if (deploymentType !== BackendDeploymentType.SANDBOX) {
-        cdkCommandArgs.push(
-          '--context',
-          `branch-name=${uniqueBackendIdentifier.disambiguator}`,
-          '--require-approval',
-          'never'
-        );
+        cdkCommandArgs.push('--require-approval', 'never');
       }
     }
 
