@@ -1,5 +1,15 @@
 # @aws-amplify/auth-construct-alpha
 
+## 0.2.2
+
+### Patch Changes
+
+- Updated dependencies [79a6e09f]
+- Updated dependencies [457b1662]
+- Updated dependencies [79a6e09f]
+  - @aws-amplify/backend-output-schemas@0.2.1
+  - @aws-amplify/plugin-types@0.3.0
+
 ## 0.2.1
 
 ### Patch Changes

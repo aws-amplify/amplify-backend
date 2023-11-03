@@ -35,6 +35,13 @@ export class AmplifyBranchLinkerConstruct extends Construct {
       timeout: Duration.seconds(10),
       entry: linkerLambdaFilePath,
       handler: 'handler',
+      bundling: {
+        // TODO Remove it when Lambda serves SDK 3.440.0+
+        // https://github.com/aws-amplify/samsara-cli/issues/561
+        // This is added to force bundler to include local version of AWS SDK.
+        // Lambda provided version does not have 'backend.stackArn' yet.
+        externalModules: [],
+      },
     });
 
     linkerLambda.grantPrincipal.addToPrincipalPolicy(

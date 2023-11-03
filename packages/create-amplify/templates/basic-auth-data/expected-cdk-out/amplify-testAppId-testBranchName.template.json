@@ -1,5 +1,5 @@
 {
- "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyPipelineDeploy\",\"createdWith\":\"0.2.1\",\"stackType\":\"root\",\"metadata\":{}}",
+ "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyPipelineDeploy\",\"createdWith\":\"0.3.0\",\"stackType\":\"root\",\"metadata\":{}}",
  "Metadata": {
   "AWS::Amplify::Platform": {
    "version": "1",
@@ -175,7 +175,7 @@
      "S3Bucket": {
       "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
      },
-     "S3Key": "98bdeb476c46210a30ee3b8365a50fd0d1e761f483b4908f725362ba64d23c59.zip"
+     "S3Key": "44297b129c2106d815a7cbbf4dbf576b883a08dfd3a3460852d662973be5c408.zip"
     },
     "Environment": {
      "Variables": {
@@ -339,7 +339,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/dd0f9e49568036eb81ae0ba500ad8d732d7f08813b7a52f62514fd178430881b.json"
+       "/3f3eb35db610dd2e0798bd0e418aadd8a19dc59a258f2aa33a1adfa5fb16cb24.json"
       ]
      ]
     }
@@ -386,7 +386,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/16b8df90b9b28b0447de0b67cd1bd8c07c844fc90042e6a86cd3b5c211447cef.json"
+       "/3c068b2839454dccde6cc1474f20aee26274c831ada658cbe8acd524baff0c24.json"
       ]
      ]
     }

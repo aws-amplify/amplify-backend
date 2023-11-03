@@ -1,5 +1,11 @@
 # @aws-amplify/backend-platform-test-stubs
 
+## 0.2.0
+
+### Minor Changes
+
+- 457b1662: getConstructFactory no longer throws an error if the factory is not found, and returns undefined instead.
+
 ## 0.1.1
 
 ### Patch Changes

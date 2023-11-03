@@ -1,5 +1,5 @@
 {
- "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyPipelineDeploy\",\"createdWith\":\"0.2.1\",\"stackType\":\"root\",\"metadata\":{}}",
+ "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyPipelineDeploy\",\"createdWith\":\"0.3.0\",\"stackType\":\"root\",\"metadata\":{}}",
  "Metadata": {
   "AWS::Amplify::Platform": {
    "version": "1",
@@ -222,7 +222,7 @@
      "S3Bucket": {
       "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
      },
-     "S3Key": "98bdeb476c46210a30ee3b8365a50fd0d1e761f483b4908f725362ba64d23c59.zip"
+     "S3Key": "44297b129c2106d815a7cbbf4dbf576b883a08dfd3a3460852d662973be5c408.zip"
     },
     "Environment": {
      "Variables": {
@@ -421,7 +421,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/51a06fef64294344ef1f63f74e763b53517a554426b68f175a2f5638d392f778.json"
+       "/f67465c0ef9bb8dff967a9efb431ee90f59a626e10abdecd1576e25bbaa0bd0d.json"
       ]
      ]
     }
@@ -477,6 +477,18 @@
        "auth179371D7",
        "Outputs.amplifytestAppIdtestBranchNameauthamplifyAuthunauthenticatedUserRoleF8166590Ref"
       ]
+     },
+     "referencetoamplifytestAppIdtestBranchNamefunctionNestedStackfunctionNestedStackResourceE968B293OutputsamplifytestAppIdtestBranchNamefunctiontestFunctestFuncLambdaFunction724FFDF6Arn": {
+      "Fn::GetAtt": [
+       "function1351588B",
+       "Outputs.amplifytestAppIdtestBranchNamefunctiontestFunctestFuncLambdaFunction724FFDF6Arn"
+      ]
+     },
+     "referencetoamplifytestAppIdtestBranchNamefunctionNestedStackfunctionNestedStackResourceE968B293OutputsamplifytestAppIdtestBranchNamefunctionechoFuncechoFuncLambdaFunction419B1A39Arn": {
+      "Fn::GetAtt": [
+       "function1351588B",
+       "Outputs.amplifytestAppIdtestBranchNamefunctionechoFuncechoFuncLambdaFunction419B1A39Arn"
+      ]
      }
     },
     "TemplateURL": {
@@ -495,7 +507,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/49b3bbf8240dfbf86b23bc95e2e9944c57457328c5d71a9002825809483996f1.json"
+       "/4afad6f114ee8dceaaafafe36154d11e37e4e9dd090d6da4d823974ded664cd4.json"
       ]
      ]
     }

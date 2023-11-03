@@ -48,25 +48,23 @@ void describe('amplify deploys', async () => {
       void it(`[${testProject.name}] deploys fully`, async () => {
         await testProject.deploy(branchBackendIdentifier);
         await testProject.assertPostDeployment();
-        // TODO enable these assertions when stackArn round trips from service.
-        // https://github.com/aws-amplify/samsara-cli/issues/554
-        // const testBranchDetails = await amplifyAppPool.fetchTestBranchDetails(
-        //   testBranch
-        // );
-        // assert.ok(
-        //   testBranchDetails.backend?.stackArn,
-        //   'branch should have stack associated'
-        // );
-        // assert.ok(
-        //   testBranchDetails.backend?.stackArn?.includes(
-        //     branchBackendIdentifier.backendId
-        //   )
-        // );
-        // assert.ok(
-        //   testBranchDetails.backend?.stackArn?.includes(
-        //     branchBackendIdentifier.disambiguator
-        //   )
-        // );
+        const testBranchDetails = await amplifyAppPool.fetchTestBranchDetails(
+          testBranch
+        );
+        assert.ok(
+          testBranchDetails.backend?.stackArn,
+          'branch should have stack associated'
+        );
+        assert.ok(
+          testBranchDetails.backend?.stackArn?.includes(
+            branchBackendIdentifier.backendId
+          )
+        );
+        assert.ok(
+          testBranchDetails.backend?.stackArn?.includes(
+            branchBackendIdentifier.disambiguator
+          )
+        );
       });
     });
   });

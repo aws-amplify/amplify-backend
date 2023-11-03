@@ -1,8 +1,8 @@
 import { DerivedModelSchema } from '@aws-amplify/amplify-api-next-types-alpha';
-import { AmplifyFunctionFactory } from '@aws-amplify/backend-function';
-import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { IUserPool } from 'aws-cdk-lib/aws-cognito';
 import { IRole } from 'aws-cdk-lib/aws-iam';
+import { AuthorizationModes } from '@aws-amplify/graphql-api-construct';
+import { AmplifyFunction, ConstructFactory } from '@aws-amplify/plugin-types';
 
 /**
  * Determine which auth mode is specified as 'default' in the Appsync API, only required if more than one authorization mode is specified.
@@ -148,11 +148,6 @@ export type AuthorizationModes = {
 };
 
 /**
- * Union type representing the possible functions we accept.
- */
-export type FunctionInput = IFunction | AmplifyFunctionFactory;
-
-/**
  * Schema type definition, can be either a raw Graphql string, or a typed model schema.
  */
 export type DataSchema = string | DerivedModelSchema;
@@ -177,7 +172,7 @@ export type DataProps = {
   authorizationModes?: AuthorizationModes;
 
   /**
-   * Functions invokable by the API.
+   * Functions invokable by the API. The specific input type of the function is subject to change or removal.
    */
-  functions?: Record<string, FunctionInput>;
+  functions?: Record<string, ConstructFactory<AmplifyFunction>>;
 };

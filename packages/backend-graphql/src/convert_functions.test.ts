@@ -1,13 +1,14 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { Stack } from 'aws-cdk-lib';
-import { Function, IFunction } from 'aws-cdk-lib/aws-lambda';
+import { Code, Function, IFunction, Runtime } from 'aws-cdk-lib/aws-lambda';
 import {
+  AmplifyFunction,
   BackendOutputEntry,
   BackendOutputStorageStrategy,
   ConstructContainer,
+  ConstructFactory,
 } from '@aws-amplify/plugin-types';
-import { FunctionInput } from './types.js';
 import {
   FunctionInstanceProvider,
   buildConstructFactoryFunctionInstanceProvider,
@@ -18,16 +19,15 @@ import {
   StackResolverStub,
 } from '@aws-amplify/backend-platform-test-stubs';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
-import { Func } from '@aws-amplify/backend-function';
-import path from 'path';
 
 void describe('buildConstructFactoryFunctionInstanceProvider', () => {
+  let stack: Stack;
   let constructContainer: ConstructContainer;
   let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
   let functionInstanceProvider: FunctionInstanceProvider;
 
   beforeEach(() => {
-    const stack = new Stack();
+    stack = new Stack();
     const stackResolverStub = new StackResolverStub(stack);
     constructContainer = new ConstructContainerStub(stackResolverStub);
     outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
@@ -39,29 +39,31 @@ void describe('buildConstructFactoryFunctionInstanceProvider', () => {
     });
   });
 
-  void it('provides for an IFunction', () => {
-    const myFn = Function.fromFunctionName(new Stack(), 'MyFn', 'MyFnName');
-
-    const providedFn = functionInstanceProvider.provide(myFn);
-
-    assert.equal(myFn, providedFn);
-  });
-
   void it('provides for an AmplifyFunctionFactory', async () => {
-    const myFn = Func.fromDir({
-      name: 'MyFn',
-      codePath: path.join('..', 'test-assets', 'test-lambda'),
+    const originalFn = new Function(stack, 'MyFnLambdaFunction', {
+      runtime: Runtime.NODEJS_18_X,
+      code: Code.fromInline(
+        'module.handler = async () => console.log("Hello");'
+      ),
+      handler: 'index.handler',
     });
+    const myFn: ConstructFactory<AmplifyFunction> = {
+      getInstance: () => ({
+        resources: {
+          lambda: originalFn,
+        },
+      }),
+    };
 
-    const providedFn = functionInstanceProvider.provide(myFn);
-
-    assert.equal(providedFn.node.id, 'MyFnLambdaFunction');
+    assert.deepStrictEqual(functionInstanceProvider.provide(myFn), originalFn);
   });
 });
 
 void describe('convertFunctionNameMapToCDK', () => {
   const functionInstanceProvider = {
-    provide: mock.fn((func: FunctionInput) => func as unknown as IFunction),
+    provide: mock.fn(
+      (func: ConstructFactory<AmplifyFunction>) => func as unknown as IFunction
+    ),
   };
 
   void it('can be invoked with empty input', () => {
@@ -76,18 +78,40 @@ void describe('convertFunctionNameMapToCDK', () => {
 
   void it('can be invoked with input entries, and invokes factoryInstanceProvider', () => {
     const stack = new Stack();
-    const echo = Function.fromFunctionName(stack, 'EchoFunc', 'MyEchoFunc');
-    const updateRecord = Function.fromFunctionName(
-      stack,
-      'UpdateFunc',
-      'MyUpdateFunc'
-    );
+    const echoFn = new Function(stack, 'EchoFn', {
+      runtime: Runtime.NODEJS_18_X,
+      code: Code.fromInline(
+        'module.handler = async () => console.log("Hello");'
+      ),
+      handler: 'index.handler',
+    });
+    const echo: ConstructFactory<AmplifyFunction> = {
+      getInstance: () => ({
+        resources: {
+          lambda: echoFn,
+        },
+      }),
+    };
+    const updateFn = new Function(stack, 'UpdateFn', {
+      runtime: Runtime.NODEJS_18_X,
+      code: Code.fromInline(
+        'module.handler = async () => console.log("Hello");'
+      ),
+      handler: 'index.handler',
+    });
+    const update: ConstructFactory<AmplifyFunction> = {
+      getInstance: () => ({
+        resources: {
+          lambda: updateFn,
+        },
+      }),
+    };
 
     const convertedOutput = convertFunctionNameMapToCDK(
       functionInstanceProvider,
       {
         echo,
-        updateRecord,
+        update,
       }
     );
 
@@ -99,7 +123,7 @@ void describe('convertFunctionNameMapToCDK', () => {
     );
     assert.equal(
       functionInstanceProvider.provide.mock.calls[1].arguments[0],
-      updateRecord
+      update
     );
   });
 });

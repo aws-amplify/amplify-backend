@@ -5,7 +5,6 @@ import { createEmptyAmplifyProject } from '../create_empty_amplify_project.js';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { TestProjectBase, TestProjectUpdate } from './test_project_base.js';
 import { fileURLToPath, pathToFileURL } from 'url';
-import assert from 'node:assert';
 import path from 'path';
 
 type TestConstant = {
@@ -150,18 +149,9 @@ export class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
       path.join(this.projectDirPath, 'amplifyconfiguration.json'),
       'utf-8'
     );
-    assert.deepStrictEqual(Object.keys(JSON.parse(clientConfig)).sort(), [
-      'aws_appsync_additionalAuthenticationTypes',
-      'aws_appsync_authenticationType',
-      'aws_appsync_graphqlEndpoint',
-      'aws_appsync_region',
-      'aws_cognito_region',
-      'aws_project_region',
-      'aws_user_files_s3_bucket',
-      'aws_user_files_s3_bucket_region',
-      'aws_user_pools_id',
-      'aws_user_pools_web_client_id',
-      'modelIntrospection',
-    ]);
+    // check that the client config is a valid json object
+    // we're not validating content here because it was causing e2e noise for small updates without providing value
+    // individual components of the client config are tested at the unit / integration level
+    JSON.parse(clientConfig);
   };
 }
