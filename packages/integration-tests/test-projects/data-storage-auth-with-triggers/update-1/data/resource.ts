@@ -17,6 +17,8 @@ export const data = defineData({
   `,
   functions: {
     reverse: myFunc,
+    // Leaving explicit Func invocation here,
+    // ensuring we can use functions not added to `defineBackend`.
     echo: Func.fromDir({
       name: 'echoFunc',
       codePath: './echo',
