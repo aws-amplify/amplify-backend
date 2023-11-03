@@ -26,7 +26,7 @@ void describe('Smoke Tests', () => {
   let testBranch: TestBranch;
 
   before(async () => {
-    // nuke the npx cache to ensure we are installing packages from the npm proxy
+    // nuke the npx cache to ensure we are installing latest versions of packages from the npm
     const { stdout } = await execa('npm', ['config', 'get', 'cache']);
     const npxCacheLocation = path.join(stdout.toString().trim(), '_npx');
 
