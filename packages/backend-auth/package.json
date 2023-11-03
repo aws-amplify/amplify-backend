@@ -23,7 +23,8 @@
     "@aws-amplify/plugin-types": "^0.3.0"
   },
   "devDependencies": {
-    "@aws-amplify/backend-platform-test-stubs": "^0.2.0"
+    "@aws-amplify/backend-platform-test-stubs": "^0.2.0",
+    "@aws-amplify/passwordless-auth-construct-alpha": "^0.0.1-alpha.0"
   },
   "peerDependencies": {
     "aws-cdk-lib": "^2.103.0",
