@@ -10,7 +10,6 @@ import {
 } from '@aws-amplify/plugin-types';
 import {
   CfnIdentityPool,
-  CfnUserPool,
   CfnUserPoolClient,
   OAuthScope,
   UserPool,
