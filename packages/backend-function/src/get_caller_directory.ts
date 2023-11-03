@@ -40,10 +40,9 @@ export const getCallerDirectory = (stackTrace?: string): string => {
   throw unresolvedImportLocationError;
 };
 
-const tryGetUrl = (maybeUrl: string): string | undefined => {
+const tryGetUrl = (maybeUrl: string): URL | undefined => {
   try {
-    new URL(maybeUrl);
-    return maybeUrl;
+    return new URL(maybeUrl);
   } catch {
     return undefined;
   }
