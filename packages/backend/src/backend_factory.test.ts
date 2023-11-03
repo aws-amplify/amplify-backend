@@ -154,10 +154,10 @@ void describe('Backend', () => {
     rootStackTemplate.resourceCountIs('Custom::AmplifyBranchLinkerResource', 0);
   });
 
-  void describe('getOrCreateStack', () => {
+  void describe('getStack', () => {
     void it('returns nested stack', () => {
       const backend = new BackendFactory({}, rootStack);
-      const testStack = backend.getOrCreateStack('testStack');
+      const testStack = backend.getStack('testStack');
       assert.strictEqual(rootStack.node.findChild('testStack'), testStack);
     });
   });
