@@ -29,6 +29,9 @@ export enum CDKContextKey {
 }
 
 // @public
+export const getRelativeBackendEntryPoint: (rootDir?: string) => string;
+
+// @public
 export class SandboxBackendIdentifier extends UniqueBackendIdentifierBase {
     constructor(backendId: BackendId);
     // (undocumented)

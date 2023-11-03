@@ -10,5 +10,7 @@
  * The backend-function package and the backend package do not have a shared dependency where this code could be shared
  * and introducing one just for this regex seems like overkill https://en.wikipedia.org/wiki/Rule_of_three_(computer_programming)
  */
-export const extractFilePathFromStackTraceLine =
-  /\((?<filepath>(\w:)?[^:]*)[:\d]*\)/;
+export const extractFilePathFromStackTraceLine = [
+  /\((?<filepath>(\w:)?[^:]*)[:\d]*\)/,
+  /at (?<filepath>.*\.\w[^:\d]*)[:\d]*/,
+];

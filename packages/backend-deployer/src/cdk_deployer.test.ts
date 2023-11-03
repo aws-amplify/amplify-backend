@@ -20,7 +20,13 @@ void describe('invokeCDKCommand', () => {
     secretLastUpdated: new Date(12345678),
   };
 
-  const invoker = new CDKDeployer(new CdkErrorMapper());
+  // This is needed for `getRelativeBackendEntryPoint` to ensure that backend file exists correctly
+  const getRelativeBackendEntryPointMock = mock.fn(() => 'amplify/backend.ts');
+
+  const invoker = new CDKDeployer(
+    new CdkErrorMapper(),
+    getRelativeBackendEntryPointMock
+  );
   const execaMock = mock.method(invoker, 'executeChildProcess', () =>
     Promise.resolve()
   );

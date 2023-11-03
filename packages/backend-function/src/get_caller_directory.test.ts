@@ -7,28 +7,57 @@ void describe('getCallerDirectory', () => {
     assert.throws(() => getCallerDirectory(undefined));
   });
 
-  void it('throws if stack trace has less than two frames', () => {
-    const tooShortStack = `Error
+  void describe('typescript app', () => {
+    void it('throws if stack trace has less than two frames', () => {
+      const tooShortStack = `Error
     at AmplifyAuthFactory (/Users/alias/sandboxes/install-test/node_modules/@aws-amplify/backend-auth/src/factory.ts:28:24)`;
-    assert.throws(() => getCallerDirectory(tooShortStack));
-  });
+      assert.throws(() => getCallerDirectory(tooShortStack));
+    });
 
-  void it('throws if regex match not found', () => {
-    const malformedStacktrace = `Error
+    void it('throws if regex match not found', () => {
+      const malformedStacktrace = `Error
     at AmplifyAuthFactory some garbage
     at more garbage
     at Object.<anonymous> (/Users/alias/sandboxes/install-test/backend/auth.ts:5:2)`;
-    assert.throws(() => getCallerDirectory(malformedStacktrace));
-  });
+      assert.throws(() => getCallerDirectory(malformedStacktrace));
+    });
 
-  void it('returns path of second stack frame', () => {
-    const validStackTrace = `Error
+    void it('returns path of second stack frame', () => {
+      const validStackTrace = `Error
     at AmplifyAuthFactory (/Users/alias/sandboxes/install-test/node_modules/@aws-amplify/backend-auth/src/factory.ts:28:24)
     at <anonymous> (/Users/alias/sandboxes/install-test/backend/otherName.ts:3:21)
     at Object.<anonymous> (/Users/alias/sandboxes/install-test/backend/auth.ts:5:2)`;
-    assert.strictEqual(
-      getCallerDirectory(validStackTrace),
-      '/Users/alias/sandboxes/install-test/backend'
-    );
+      assert.strictEqual(
+        getCallerDirectory(validStackTrace),
+        '/Users/alias/sandboxes/install-test/backend'
+      );
+    });
+  });
+
+  void describe('javascript app', () => {
+    void it('throws if stack trace has less than two frames', () => {
+      const tooShortStack = `Error
+    at file:///Users/alias/sandboxes/install-test/node_modules/@aws-amplify/backend-auth/src/factory.ts:28:24`;
+      assert.throws(() => getCallerDirectory(tooShortStack));
+    });
+
+    void it('throws if regex match not found', () => {
+      const malformedStacktrace = `Error
+    at AmplifyAuthFactory some garbage
+    at more garbage
+    at file:///Users/alias/sandboxes/install-test/backend/auth.ts:5:2`;
+      assert.throws(() => getCallerDirectory(malformedStacktrace));
+    });
+
+    void it('returns path of second stack frame in unix', () => {
+      const validStackTrace = `Error
+    at file:///Users/alias/sandboxes/install-test/node_modules/@aws-amplify/backend-auth/src/factory.ts:28:24
+    at file:///Users/alias/sandboxes/install-test/backend/otherName.ts:3:21
+    at file:///Users/alias/sandboxes/install-test/backend/auth.ts:5:2`;
+      assert.strictEqual(
+        getCallerDirectory(validStackTrace),
+        '/Users/alias/sandboxes/install-test/backend'
+      );
+    });
   });
 });

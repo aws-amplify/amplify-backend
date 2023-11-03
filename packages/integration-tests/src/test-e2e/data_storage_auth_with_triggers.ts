@@ -19,7 +19,7 @@ type TestConstant = {
  */
 export class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   readonly sourceProjectDirPath =
-    '../../test-projects/data-storage-auth-with-triggers';
+    '../../test-projects/data-storage-auth-with-triggers-ts';
 
   readonly sourceProjectAmplifyDirSuffix = `${this.sourceProjectDirPath}/amplify`;
 

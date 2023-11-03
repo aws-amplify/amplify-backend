@@ -1,6 +1,7 @@
 import path from 'path';
 import * as os from 'os';
 import { extractFilePathFromStackTraceLine } from './extract_file_path_from_stack_trace_line.js';
+import { fileURLToPath } from 'url';
 
 /**
  * Extracts the path of the caller of the code that generated the input stack trace.
@@ -25,9 +26,25 @@ export const getCallerDirectory = (stackTrace?: string): string => {
     throw unresolvedImportLocationError;
   }
   const stackTraceImportLine = stacktraceLines[1]; // the first entry is the file where the error was initialized (our code). The second entry is where the customer called our code which is what we are interested in
-  const match = stackTraceImportLine.match(extractFilePathFromStackTraceLine);
-  if (!match?.groups?.filepath) {
-    throw unresolvedImportLocationError;
+
+  for (const regex of extractFilePathFromStackTraceLine) {
+    const match = stackTraceImportLine.match(regex);
+    if (match?.groups?.filepath) {
+      const fileURL = tryGetUrl(match?.groups?.filepath);
+      const filePath = fileURL
+        ? fileURLToPath(fileURL)
+        : match?.groups?.filepath;
+      return path.dirname(filePath);
+    }
   }
-  return path.dirname(match.groups.filepath);
+  throw unresolvedImportLocationError;
+};
+
+const tryGetUrl = (maybeUrl: string): string | undefined => {
+  try {
+    new URL(maybeUrl);
+    return maybeUrl;
+  } catch {
+    return undefined;
+  }
 };

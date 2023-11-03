@@ -1,5 +1,5 @@
 {
- "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyPipelineDeploy\",\"createdWith\":\"0.2.0\",\"stackType\":\"auth-Cognito\",\"metadata\":{}}",
+ "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyPipelineDeploy\",\"createdWith\":\"0.2.1\",\"stackType\":\"auth-Cognito\",\"metadata\":{}}",
  "Resources": {
   "SecretFetcherResourceProviderLambdaServiceRole5ABAF823": {
    "Type": "AWS::IAM::Role",
@@ -63,7 +63,7 @@
      "S3Bucket": {
       "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
      },
-     "S3Key": "09885012b1241c7620d8631bd18d12f68e1b7461bdb4001722b5b7f96a349618.zip"
+     "S3Key": "c7b560277f473cb32a675f3afe19d13ee5bd6dd994f60d56fc448c43831d4f13.zip"
     },
     "Environment": {
      "Variables": {
@@ -205,7 +205,7 @@
     "backendId": "testAppId",
     "branchName": "testBranchName",
     "secretName": "testAmazonId",
-    "secretLastUpdated": 1698794046691
+    "secretLastUpdated": 1699035522421
    },
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete"
@@ -222,7 +222,7 @@
     "backendId": "testAppId",
     "branchName": "testBranchName",
     "secretName": "testAmazonSecret",
-    "secretLastUpdated": 1698794046691
+    "secretLastUpdated": 1699035522421
    },
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete"
@@ -239,7 +239,7 @@
     "backendId": "testAppId",
     "branchName": "testBranchName",
     "secretName": "testFacebookId",
-    "secretLastUpdated": 1698794046691
+    "secretLastUpdated": 1699035522421
    },
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete"
@@ -256,7 +256,7 @@
     "backendId": "testAppId",
     "branchName": "testBranchName",
     "secretName": "testFacebookSecret",
-    "secretLastUpdated": 1698794046691
+    "secretLastUpdated": 1699035522421
    },
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete"
@@ -273,7 +273,7 @@
     "backendId": "testAppId",
     "branchName": "testBranchName",
     "secretName": "testGoogleId",
-    "secretLastUpdated": 1698794046691
+    "secretLastUpdated": 1699035522422
    },
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete"
@@ -290,7 +290,7 @@
     "backendId": "testAppId",
     "branchName": "testBranchName",
     "secretName": "testGoogleSecret",
-    "secretLastUpdated": 1698794046691
+    "secretLastUpdated": 1699035522422
    },
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete"
