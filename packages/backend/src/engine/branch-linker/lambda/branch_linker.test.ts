@@ -6,6 +6,7 @@ import {
   Branch,
   GetBranchCommand,
   GetBranchCommandOutput,
+  NotFoundException,
   UpdateBranchCommandInput,
 } from '@aws-sdk/client-amplify';
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
@@ -310,6 +311,83 @@ void describe('Branch Linker Lambda Handler', () => {
             error.message,
             `Unable to get branch ${testBranchName} for app ${testBackendId}`
           );
+          return true;
+        }
+      );
+    });
+  });
+
+  void describe('When service throws not found exception', () => {
+    beforeEach(() => {
+      // Simulate that branch is not found
+      amplifyClientSendMock.mock.mockImplementation((command: unknown) => {
+        if (command instanceof GetBranchCommand) {
+          return Promise.reject(
+            new NotFoundException({
+              $metadata: {},
+              message: 'not found',
+            })
+          );
+        }
+        return Promise.resolve();
+      });
+    });
+
+    void it('ignores error while handling delete event', async () => {
+      const relevantEventParts: PartialCloudFormationCustomResourceEvent = {
+        StackId: sampleStackArn,
+        RequestType: 'Delete',
+        ResourceProperties: {
+          ServiceToken: 'test-service-token',
+          ...resourceProperties,
+        },
+      };
+      const event =
+        relevantEventParts as unknown as CloudFormationCustomResourceEvent;
+
+      await handler.handleCustomResourceEvent(event);
+
+      // does not fail and does not call update
+      assert.equal(amplifyClientSendMock.mock.callCount(), 1);
+    });
+
+    void it('fails while handling create event', async () => {
+      const relevantEventParts: PartialCloudFormationCustomResourceEvent = {
+        StackId: sampleStackArn,
+        RequestType: 'Create',
+        ResourceProperties: {
+          ServiceToken: 'test-service-token',
+          ...resourceProperties,
+        },
+      };
+      const event =
+        relevantEventParts as unknown as CloudFormationCustomResourceEvent;
+
+      await assert.rejects(
+        () => handler.handleCustomResourceEvent(event),
+        (error: Error) => {
+          assert.ok(error instanceof NotFoundException);
+          return true;
+        }
+      );
+    });
+
+    void it('fails while handling update event', async () => {
+      const relevantEventParts: PartialCloudFormationCustomResourceEvent = {
+        StackId: sampleStackArn,
+        RequestType: 'Update',
+        ResourceProperties: {
+          ServiceToken: 'test-service-token',
+          ...resourceProperties,
+        },
+      };
+      const event =
+        relevantEventParts as unknown as CloudFormationCustomResourceEvent;
+
+      await assert.rejects(
+        () => handler.handleCustomResourceEvent(event),
+        (error: Error) => {
+          assert.ok(error instanceof NotFoundException);
           return true;
         }
       );

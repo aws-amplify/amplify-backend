@@ -7,6 +7,7 @@ import {
   AmplifyClient,
   Branch,
   GetBranchCommand,
+  NotFoundException,
   UpdateBranchCommand,
   UpdateBranchCommandInput,
 } from '@aws-sdk/client-amplify';
@@ -48,11 +49,21 @@ export class AmplifyBranchLinkerCustomResourceEventHandler {
         console.info(
           `Un-setting stack reference for backendId=${props.backendId},branchName=${props.branchName}`
         );
-        await this.updateOrUnsetStackReference(
-          props.backendId,
-          props.branchName,
-          undefined
-        );
+        try {
+          await this.updateOrUnsetStackReference(
+            props.backendId,
+            props.branchName,
+            undefined
+          );
+        } catch (e) {
+          if (e instanceof NotFoundException) {
+            console.info(
+              `Branch branchName=${props.branchName} of backendId=${props.backendId} was not found while handling delete event`
+            );
+          } else {
+            throw e;
+          }
+        }
         break;
     }
 
