@@ -1,5 +1,5 @@
 import { Construct } from 'constructs';
-import { Stack, aws_cognito as cognito } from 'aws-cdk-lib';
+import { RemovalPolicy, Stack, aws_cognito as cognito } from 'aws-cdk-lib';
 import {
   AmplifyFunction,
   AuthResources,
@@ -316,6 +316,7 @@ export class AmplifyAuth
         phoneEnabled,
         props.accountRecovery
       ),
+      removalPolicy: RemovalPolicy.DESTROY,
     };
     return userPoolProps;
   };

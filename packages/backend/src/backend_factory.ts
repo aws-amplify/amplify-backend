@@ -15,11 +15,13 @@ import { createDefaultStack } from './default_stack_factory.js';
 import { getUniqueBackendIdentifier } from './backend_identifier.js';
 import {
   BackendDeploymentType,
+  BranchBackendIdentifier,
   SandboxBackendIdentifier,
 } from '@aws-amplify/platform-core';
 import { platformOutputKey } from '@aws-amplify/backend-output-schemas';
 import { fileURLToPath } from 'url';
 import { Backend } from './backend.js';
+import { AmplifyBranchLinkerConstruct } from './engine/branch-linker/branch_linker_construct.js';
 
 // Be very careful editing this value. It is the value used in the BI metrics to attribute stacks as Amplify root stacks
 const rootStackTypeIdentifier = 'root';
@@ -71,6 +73,10 @@ export class BackendFactory<
       },
     });
 
+    if (uniqueBackendIdentifier instanceof BranchBackendIdentifier) {
+      new AmplifyBranchLinkerConstruct(stack, uniqueBackendIdentifier);
+    }
+
     const importPathVerifier = new ToggleableImportPathVerifier();
 
     // register providers but don't actually execute anything yet
@@ -100,9 +106,10 @@ export class BackendFactory<
   }
 
   /**
-   * Returns a CDK stack within the Amplify project that can be used for creating custom resources
+   * Returns a CDK stack within the Amplify project that can be used for creating custom resources.
+   * @returns existing stack if provided name has been used or create new one with the provided name
    */
-  getOrCreateStack = (name: string): Stack => {
+  getStack = (name: string): Stack => {
     return this.stackResolver.getStackFor(name);
   };
 }

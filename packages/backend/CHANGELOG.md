@@ -1,5 +1,30 @@
 # @aws-amplify/backend
 
+## 0.3.0
+
+### Minor Changes
+
+- 457b1662: getConstructFactory no longer throws an error if the factory is not found, and returns undefined instead.
+
+### Patch Changes
+
+- 79a6e09f: Change stackOutputKey to platformOutputKey
+- e8a3d179: link branch to app in pipeline deployment
+- 79a6e09f: Add aws_project_region to amplifyconfiguration.json
+- cb861316: bundle AWS SDK in branch linker lambda
+- Updated dependencies [79a6e09f]
+- Updated dependencies [457b1662]
+- Updated dependencies [79a6e09f]
+- Updated dependencies [46e0aad6]
+  - @aws-amplify/backend-output-schemas@0.2.1
+  - @aws-amplify/plugin-types@0.3.0
+  - @aws-amplify/backend-graphql@0.2.1
+  - @aws-amplify/backend-auth@0.2.2
+  - @aws-amplify/backend-function@0.1.2
+  - @aws-amplify/backend-storage@0.2.1
+  - @aws-amplify/backend-secret@0.2.1
+  - @aws-amplify/platform-core@0.1.2
+
 ## 0.2.1
 
 ### Patch Changes
