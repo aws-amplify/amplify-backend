@@ -51,7 +51,10 @@ export class BackendFactory<
       rootStackTypeIdentifier,
       fileURLToPath(new URL('../package.json', import.meta.url))
     );
-    this.stackResolver = new NestedStackResolver(stack);
+    this.stackResolver = new NestedStackResolver(
+      stack,
+      new AttributionMetadataStorage()
+    );
 
     const constructContainer = new SingletonConstructContainer(
       this.stackResolver
@@ -106,10 +109,11 @@ export class BackendFactory<
   }
 
   /**
-   * Returns a CDK stack within the Amplify project that can be used for creating custom resources
+   * Returns a CDK stack within the Amplify project that can be used for creating custom resources.
+   * @returns existing stack if provided name has been used or create new one with the provided name
    */
-  getOrCreateStack = (name: string): Stack => {
-    return this.stackResolver.getStackFor(name);
+  getStack = (name: string): Stack => {
+    return this.stackResolver.getCustomStack(name);
   };
 }
 
