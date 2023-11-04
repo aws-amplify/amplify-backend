@@ -1,7 +1,7 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { defineData } from './factory.js';
-import { App, NestedStack, Stack } from 'aws-cdk-lib';
+import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import {
   AmplifyFunction,
@@ -33,8 +33,6 @@ import {
   ImportPathVerifierStub,
   StackResolverStub,
 } from '@aws-amplify/backend-platform-test-stubs';
-import { Func } from '@aws-amplify/backend-function';
-import path from 'path';
 
 const testSchema = /* GraphQL */ `
   type Todo @model {

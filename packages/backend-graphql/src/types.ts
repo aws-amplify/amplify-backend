@@ -1,7 +1,6 @@
 import { DerivedModelSchema } from '@aws-amplify/amplify-api-next-types-alpha';
 import { IUserPool } from 'aws-cdk-lib/aws-cognito';
 import { IRole } from 'aws-cdk-lib/aws-iam';
-import { AuthorizationModes } from '@aws-amplify/graphql-api-construct';
 import { AmplifyFunction, ConstructFactory } from '@aws-amplify/plugin-types';
 
 /**
@@ -64,9 +63,9 @@ export type IAMAuthorizationConfig = {
  */
 export type LambdaAuthorizationConfig = {
   /**
-   * The authorization lambda function.
+   * The authorization lambda function. The specific input type of the function is subject to change or removal.
    */
-  function: FunctionInput;
+  function: ConstructFactory<AmplifyFunction>;
 
   /**
    * How long the results are cached.

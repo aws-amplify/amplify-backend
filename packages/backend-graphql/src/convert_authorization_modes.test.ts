@@ -4,16 +4,21 @@ import { Duration, Stack } from 'aws-cdk-lib';
 import { UserPool } from 'aws-cdk-lib/aws-cognito';
 import { IRole, Role } from 'aws-cdk-lib/aws-iam';
 import { AuthorizationModes as CDKAuthorizationModes } from '@aws-amplify/graphql-api-construct';
-import { AuthorizationModes, FunctionInput } from './types.js';
+import { AuthorizationModes } from './types.js';
 import {
   ProvidedAuthConfig,
   buildConstructFactoryProvidedAuthConfig,
   convertAuthorizationModesToCDK,
   isUsingDefaultApiKeyAuth,
 } from './convert_authorization_modes.js';
-import { Function, IFunction } from 'aws-cdk-lib/aws-lambda';
+import { Code, Function, IFunction, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { FunctionInstanceProvider } from './convert_functions.js';
-import { AuthResources, ResourceProvider } from '@aws-amplify/plugin-types';
+import {
+  AmplifyFunction,
+  AuthResources,
+  ConstructFactory,
+  ResourceProvider,
+} from '@aws-amplify/plugin-types';
 
 void describe('buildConstructFactoryProvidedAuthConfig', () => {
   void it('returns undefined if authResourceProvider is undefined', () => {
@@ -55,11 +60,13 @@ void describe('convertAuthorizationModesToCDK', () => {
   let unauthenticatedUserRole: IRole;
   let providedAuthConfig: ProvidedAuthConfig;
 
-  const functionInstanceProvider: FunctionInstanceProvider = {
-    provide: (func: FunctionInput): IFunction => func as unknown as IFunction,
-  };
+  let functionInstanceProvider: FunctionInstanceProvider;
 
   void beforeEach(() => {
+    functionInstanceProvider = {
+      provide: (func: ConstructFactory<AmplifyFunction>): IFunction =>
+        func as unknown as IFunction,
+    };
     stack = new Stack();
     userPool = new UserPool(stack, 'TestPool');
     authenticatedUserRole = Role.fromRoleName(stack, 'AuthRole', 'MyAuthRole');
@@ -243,22 +250,34 @@ void describe('convertAuthorizationModesToCDK', () => {
   });
 
   void it('allows for overriding lambda config', () => {
-    const authFunction = Function.fromFunctionName(
-      stack,
-      'ImportedFn',
-      'MyImportedFn'
-    );
+    const authFn = new Function(stack, 'MyAuthFn', {
+      runtime: Runtime.NODEJS_18_X,
+      code: Code.fromInline(
+        'module.handler = async () => console.log("Hello");'
+      ),
+      handler: 'index.handler',
+    });
+    const authFnFactory: ConstructFactory<AmplifyFunction> = {
+      getInstance: () => ({
+        resources: {
+          lambda: authFn,
+        },
+      }),
+    };
+    functionInstanceProvider = {
+      provide: (): IFunction => authFn,
+    };
 
     const authModes: AuthorizationModes = {
       lambdaConfig: {
-        function: authFunction,
+        function: authFnFactory,
         timeToLiveInSeconds: 30,
       },
     };
 
     const expectedOutput: CDKAuthorizationModes = {
       lambdaConfig: {
-        function: authFunction,
+        function: authFn,
         ttl: Duration.seconds(30),
       },
     };

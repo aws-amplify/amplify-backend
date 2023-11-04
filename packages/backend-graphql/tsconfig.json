@@ -5,7 +5,6 @@
     { "path": "../backend-output-storage" },
     { "path": "../backend-output-schemas" },
     { "path": "../plugin-types" },
-    { "path": "../backend-function" },
     { "path": "../backend-platform-test-stubs" }
   ]
 }
