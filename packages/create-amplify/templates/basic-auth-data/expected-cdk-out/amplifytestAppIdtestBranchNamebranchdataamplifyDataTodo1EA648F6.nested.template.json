@@ -37,16 +37,16 @@
    ],
    "Description": "Enable server side encryption powered by KMS."
   },
-  "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId": {
+  "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPIAC6F7A73ApiId": {
    "Type": "String"
   },
-  "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPINONEDS66A16EEBName": {
+  "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPINONEDS83CDD9F0Name": {
    "Type": "String"
   },
-  "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthauthenticatedUserRole1D3D95F1Ref": {
+  "referencetoamplifytestAppIdtestBranchNamebranchauthNestedStackauthNestedStackResourceA6135204OutputsamplifytestAppIdtestBranchNamebranchauthamplifyAuthauthenticatedUserRole37EAADD0Ref": {
    "Type": "String"
   },
-  "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthunauthenticatedUserRoleF8166590Ref": {
+  "referencetoamplifytestAppIdtestBranchNamebranchauthNestedStackauthNestedStackResourceA6135204OutputsamplifytestAppIdtestBranchNamebranchauthamplifyAuthunauthenticatedUserRoleB1D4547BRef": {
    "Type": "String"
   }
  },
@@ -156,7 +156,7 @@
       [
        "Todo-",
        {
-        "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
+        "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPIAC6F7A73ApiId"
        },
        "-NONE"
       ]
@@ -187,7 +187,7 @@
       [
        "TodoIAMRolecfd440-",
        {
-        "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
+        "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPIAC6F7A73ApiId"
        },
        "-NONE"
       ]
@@ -267,7 +267,7 @@
              [
               "Todo-",
               {
-               "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
+               "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPIAC6F7A73ApiId"
               },
               "-NONE"
              ]
@@ -286,7 +286,7 @@
              [
               "Todo-",
               {
-               "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
+               "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPIAC6F7A73ApiId"
               },
               "-NONE"
              ]
@@ -312,7 +312,7 @@
    "Type": "AWS::AppSync::DataSource",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPIAC6F7A73ApiId"
     },
     "DynamoDBConfig": {
      "AwsRegion": {
@@ -339,10 +339,10 @@
    "Type": "AWS::AppSync::FunctionConfiguration",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPIAC6F7A73ApiId"
     },
     "DataSourceName": {
-     "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPINONEDS66A16EEBName"
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPINONEDS83CDD9F0Name"
     },
     "FunctionVersion": "2018-05-29",
     "Name": "QuerygetTodopostAuth0Function",
@@ -356,7 +356,7 @@
    "Type": "AWS::AppSync::FunctionConfiguration",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPIAC6F7A73ApiId"
     },
     "DataSourceName": {
      "Fn::GetAtt": [
@@ -381,7 +381,7 @@
    "Type": "AWS::AppSync::Resolver",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPIAC6F7A73ApiId"
     },
     "FieldName": "getTodo",
     "Kind": "PIPELINE",
@@ -407,7 +407,7 @@
       [
        "$util.qr($ctx.stash.put(\"typeName\", \"Query\"))\n$util.qr($ctx.stash.put(\"fieldName\", \"getTodo\"))\n$util.qr($ctx.stash.put(\"conditions\", []))\n$util.qr($ctx.stash.put(\"metadata\", {}))\n$util.qr($ctx.stash.metadata.put(\"dataSourceType\", \"AMAZON_DYNAMODB\"))\n$util.qr($ctx.stash.metadata.put(\"apiId\", \"",
        {
-        "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
+        "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPIAC6F7A73ApiId"
        },
        "\"))\n$util.qr($ctx.stash.put(\"connectionAttributes\", {}))\n$util.qr($ctx.stash.put(\"tableName\", \"",
        {
@@ -419,7 +419,7 @@
        },
        ":assumed-role/",
        {
-        "Ref": "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthauthenticatedUserRole1D3D95F1Ref"
+        "Ref": "referencetoamplifytestAppIdtestBranchNamebranchauthNestedStackauthNestedStackResourceA6135204OutputsamplifytestAppIdtestBranchNamebranchauthamplifyAuthauthenticatedUserRole37EAADD0Ref"
        },
        "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"unauthRole\", \"arn:aws:sts::",
        {
@@ -427,7 +427,7 @@
        },
        ":assumed-role/",
        {
-        "Ref": "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthunauthenticatedUserRoleF8166590Ref"
+        "Ref": "referencetoamplifytestAppIdtestBranchNamebranchauthNestedStackauthNestedStackResourceA6135204OutputsamplifytestAppIdtestBranchNamebranchauthamplifyAuthunauthenticatedUserRoleB1D4547BRef"
        },
        "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"identityPoolId\", \"amplifyAuthIdentityPool3FDE84CC\"))\n$util.qr($ctx.stash.put(\"adminRoles\", []))\n$util.toJson({})"
       ]
@@ -441,10 +441,10 @@
    "Type": "AWS::AppSync::FunctionConfiguration",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPIAC6F7A73ApiId"
     },
     "DataSourceName": {
-     "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPINONEDS66A16EEBName"
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPINONEDS83CDD9F0Name"
     },
     "FunctionVersion": "2018-05-29",
     "Name": "QuerylistTodospostAuth0Function",
@@ -458,7 +458,7 @@
    "Type": "AWS::AppSync::FunctionConfiguration",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPIAC6F7A73ApiId"
     },
     "DataSourceName": {
      "Fn::GetAtt": [
@@ -483,7 +483,7 @@
    "Type": "AWS::AppSync::Resolver",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPIAC6F7A73ApiId"
     },
     "FieldName": "listTodos",
     "Kind": "PIPELINE",
@@ -509,7 +509,7 @@
       [
        "$util.qr($ctx.stash.put(\"typeName\", \"Query\"))\n$util.qr($ctx.stash.put(\"fieldName\", \"listTodos\"))\n$util.qr($ctx.stash.put(\"conditions\", []))\n$util.qr($ctx.stash.put(\"metadata\", {}))\n$util.qr($ctx.stash.metadata.put(\"dataSourceType\", \"AMAZON_DYNAMODB\"))\n$util.qr($ctx.stash.metadata.put(\"apiId\", \"",
        {
-        "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
+        "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPIAC6F7A73ApiId"
        },
        "\"))\n$util.qr($ctx.stash.put(\"connectionAttributes\", {}))\n$util.qr($ctx.stash.put(\"tableName\", \"",
        {
@@ -521,7 +521,7 @@
        },
        ":assumed-role/",
        {
-        "Ref": "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthauthenticatedUserRole1D3D95F1Ref"
+        "Ref": "referencetoamplifytestAppIdtestBranchNamebranchauthNestedStackauthNestedStackResourceA6135204OutputsamplifytestAppIdtestBranchNamebranchauthamplifyAuthauthenticatedUserRole37EAADD0Ref"
        },
        "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"unauthRole\", \"arn:aws:sts::",
        {
@@ -529,7 +529,7 @@
        },
        ":assumed-role/",
        {
-        "Ref": "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthunauthenticatedUserRoleF8166590Ref"
+        "Ref": "referencetoamplifytestAppIdtestBranchNamebranchauthNestedStackauthNestedStackResourceA6135204OutputsamplifytestAppIdtestBranchNamebranchauthamplifyAuthunauthenticatedUserRoleB1D4547BRef"
        },
        "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"identityPoolId\", \"amplifyAuthIdentityPool3FDE84CC\"))\n$util.qr($ctx.stash.put(\"adminRoles\", []))\n$util.toJson({})"
       ]
@@ -543,10 +543,10 @@
    "Type": "AWS::AppSync::FunctionConfiguration",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPIAC6F7A73ApiId"
     },
     "DataSourceName": {
-     "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPINONEDS66A16EEBName"
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPINONEDS83CDD9F0Name"
     },
     "FunctionVersion": "2018-05-29",
     "Name": "MutationcreateTodoinit0Function",
@@ -560,10 +560,10 @@
    "Type": "AWS::AppSync::FunctionConfiguration",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPIAC6F7A73ApiId"
     },
     "DataSourceName": {
-     "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPINONEDS66A16EEBName"
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPINONEDS83CDD9F0Name"
     },
     "FunctionVersion": "2018-05-29",
     "Name": "MutationcreateTodopostAuth0Function",
@@ -577,7 +577,7 @@
    "Type": "AWS::AppSync::FunctionConfiguration",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPIAC6F7A73ApiId"
     },
     "DataSourceName": {
      "Fn::GetAtt": [
@@ -602,7 +602,7 @@
    "Type": "AWS::AppSync::Resolver",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPIAC6F7A73ApiId"
     },
     "FieldName": "createTodo",
     "Kind": "PIPELINE",
@@ -634,7 +634,7 @@
       [
        "$util.qr($ctx.stash.put(\"typeName\", \"Mutation\"))\n$util.qr($ctx.stash.put(\"fieldName\", \"createTodo\"))\n$util.qr($ctx.stash.put(\"conditions\", []))\n$util.qr($ctx.stash.put(\"metadata\", {}))\n$util.qr($ctx.stash.metadata.put(\"dataSourceType\", \"AMAZON_DYNAMODB\"))\n$util.qr($ctx.stash.metadata.put(\"apiId\", \"",
        {
-        "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
+        "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPIAC6F7A73ApiId"
        },
        "\"))\n$util.qr($ctx.stash.put(\"connectionAttributes\", {}))\n$util.qr($ctx.stash.put(\"tableName\", \"",
        {
@@ -646,7 +646,7 @@
        },
        ":assumed-role/",
        {
-        "Ref": "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthauthenticatedUserRole1D3D95F1Ref"
+        "Ref": "referencetoamplifytestAppIdtestBranchNamebranchauthNestedStackauthNestedStackResourceA6135204OutputsamplifytestAppIdtestBranchNamebranchauthamplifyAuthauthenticatedUserRole37EAADD0Ref"
        },
        "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"unauthRole\", \"arn:aws:sts::",
        {
@@ -654,7 +654,7 @@
        },
        ":assumed-role/",
        {
-        "Ref": "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthunauthenticatedUserRoleF8166590Ref"
+        "Ref": "referencetoamplifytestAppIdtestBranchNamebranchauthNestedStackauthNestedStackResourceA6135204OutputsamplifytestAppIdtestBranchNamebranchauthamplifyAuthunauthenticatedUserRoleB1D4547BRef"
        },
        "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"identityPoolId\", \"amplifyAuthIdentityPool3FDE84CC\"))\n$util.qr($ctx.stash.put(\"adminRoles\", []))\n$util.toJson({})"
       ]
@@ -668,10 +668,10 @@
    "Type": "AWS::AppSync::FunctionConfiguration",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPIAC6F7A73ApiId"
     },
     "DataSourceName": {
-     "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPINONEDS66A16EEBName"
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPINONEDS83CDD9F0Name"
     },
     "FunctionVersion": "2018-05-29",
     "Name": "MutationupdateTodoinit0Function",
@@ -685,10 +685,10 @@
    "Type": "AWS::AppSync::FunctionConfiguration",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPIAC6F7A73ApiId"
     },
     "DataSourceName": {
-     "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPINONEDS66A16EEBName"
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPINONEDS83CDD9F0Name"
     },
     "FunctionVersion": "2018-05-29",
     "Name": "MutationupdateTodopostAuth0Function",
@@ -702,7 +702,7 @@
    "Type": "AWS::AppSync::FunctionConfiguration",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPIAC6F7A73ApiId"
     },
     "DataSourceName": {
      "Fn::GetAtt": [
@@ -727,7 +727,7 @@
    "Type": "AWS::AppSync::Resolver",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPIAC6F7A73ApiId"
     },
     "FieldName": "updateTodo",
     "Kind": "PIPELINE",
@@ -759,7 +759,7 @@
       [
        "$util.qr($ctx.stash.put(\"typeName\", \"Mutation\"))\n$util.qr($ctx.stash.put(\"fieldName\", \"updateTodo\"))\n$util.qr($ctx.stash.put(\"conditions\", []))\n$util.qr($ctx.stash.put(\"metadata\", {}))\n$util.qr($ctx.stash.metadata.put(\"dataSourceType\", \"AMAZON_DYNAMODB\"))\n$util.qr($ctx.stash.metadata.put(\"apiId\", \"",
        {
-        "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
+        "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPIAC6F7A73ApiId"
        },
        "\"))\n$util.qr($ctx.stash.put(\"connectionAttributes\", {}))\n$util.qr($ctx.stash.put(\"tableName\", \"",
        {
@@ -771,7 +771,7 @@
        },
        ":assumed-role/",
        {
-        "Ref": "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthauthenticatedUserRole1D3D95F1Ref"
+        "Ref": "referencetoamplifytestAppIdtestBranchNamebranchauthNestedStackauthNestedStackResourceA6135204OutputsamplifytestAppIdtestBranchNamebranchauthamplifyAuthauthenticatedUserRole37EAADD0Ref"
        },
        "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"unauthRole\", \"arn:aws:sts::",
        {
@@ -779,7 +779,7 @@
        },
        ":assumed-role/",
        {
-        "Ref": "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthunauthenticatedUserRoleF8166590Ref"
+        "Ref": "referencetoamplifytestAppIdtestBranchNamebranchauthNestedStackauthNestedStackResourceA6135204OutputsamplifytestAppIdtestBranchNamebranchauthamplifyAuthunauthenticatedUserRoleB1D4547BRef"
        },
        "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"identityPoolId\", \"amplifyAuthIdentityPool3FDE84CC\"))\n$util.qr($ctx.stash.put(\"adminRoles\", []))\n$util.toJson({})"
       ]
@@ -793,10 +793,10 @@
    "Type": "AWS::AppSync::FunctionConfiguration",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPIAC6F7A73ApiId"
     },
     "DataSourceName": {
-     "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPINONEDS66A16EEBName"
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPINONEDS83CDD9F0Name"
     },
     "FunctionVersion": "2018-05-29",
     "Name": "MutationdeleteTodopostAuth0Function",
@@ -810,7 +810,7 @@
    "Type": "AWS::AppSync::FunctionConfiguration",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPIAC6F7A73ApiId"
     },
     "DataSourceName": {
      "Fn::GetAtt": [
@@ -835,7 +835,7 @@
    "Type": "AWS::AppSync::Resolver",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPIAC6F7A73ApiId"
     },
     "FieldName": "deleteTodo",
     "Kind": "PIPELINE",
@@ -861,7 +861,7 @@
       [
        "$util.qr($ctx.stash.put(\"typeName\", \"Mutation\"))\n$util.qr($ctx.stash.put(\"fieldName\", \"deleteTodo\"))\n$util.qr($ctx.stash.put(\"conditions\", []))\n$util.qr($ctx.stash.put(\"metadata\", {}))\n$util.qr($ctx.stash.metadata.put(\"dataSourceType\", \"AMAZON_DYNAMODB\"))\n$util.qr($ctx.stash.metadata.put(\"apiId\", \"",
        {
-        "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
+        "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPIAC6F7A73ApiId"
        },
        "\"))\n$util.qr($ctx.stash.put(\"connectionAttributes\", {}))\n$util.qr($ctx.stash.put(\"tableName\", \"",
        {
@@ -873,7 +873,7 @@
        },
        ":assumed-role/",
        {
-        "Ref": "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthauthenticatedUserRole1D3D95F1Ref"
+        "Ref": "referencetoamplifytestAppIdtestBranchNamebranchauthNestedStackauthNestedStackResourceA6135204OutputsamplifytestAppIdtestBranchNamebranchauthamplifyAuthauthenticatedUserRole37EAADD0Ref"
        },
        "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"unauthRole\", \"arn:aws:sts::",
        {
@@ -881,7 +881,7 @@
        },
        ":assumed-role/",
        {
-        "Ref": "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthunauthenticatedUserRoleF8166590Ref"
+        "Ref": "referencetoamplifytestAppIdtestBranchNamebranchauthNestedStackauthNestedStackResourceA6135204OutputsamplifytestAppIdtestBranchNamebranchauthamplifyAuthunauthenticatedUserRoleB1D4547BRef"
        },
        "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"identityPoolId\", \"amplifyAuthIdentityPool3FDE84CC\"))\n$util.qr($ctx.stash.put(\"adminRoles\", []))\n$util.toJson({})"
       ]
@@ -895,10 +895,10 @@
    "Type": "AWS::AppSync::FunctionConfiguration",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPIAC6F7A73ApiId"
     },
     "DataSourceName": {
-     "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPINONEDS66A16EEBName"
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPINONEDS83CDD9F0Name"
     },
     "FunctionVersion": "2018-05-29",
     "Name": "SubscriptiononCreateTodopostAuth0Function",
@@ -912,10 +912,10 @@
    "Type": "AWS::AppSync::FunctionConfiguration",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPIAC6F7A73ApiId"
     },
     "DataSourceName": {
-     "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPINONEDS66A16EEBName"
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPINONEDS83CDD9F0Name"
     },
     "FunctionVersion": "2018-05-29",
     "Name": "SubscriptionOnCreateTodoDataResolverFn",
@@ -931,7 +931,7 @@
    "Type": "AWS::AppSync::Resolver",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPIAC6F7A73ApiId"
     },
     "FieldName": "onCreateTodo",
     "Kind": "PIPELINE",
@@ -957,7 +957,7 @@
       [
        "$util.qr($ctx.stash.put(\"typeName\", \"Subscription\"))\n$util.qr($ctx.stash.put(\"fieldName\", \"onCreateTodo\"))\n$util.qr($ctx.stash.put(\"conditions\", []))\n$util.qr($ctx.stash.put(\"metadata\", {}))\n$util.qr($ctx.stash.metadata.put(\"dataSourceType\", \"NONE\"))\n$util.qr($ctx.stash.metadata.put(\"apiId\", \"",
        {
-        "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
+        "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPIAC6F7A73ApiId"
        },
        "\"))\n$util.qr($ctx.stash.put(\"connectionAttributes\", {}))\n\n$util.qr($ctx.stash.put(\"authRole\", \"arn:aws:sts::",
        {
@@ -965,7 +965,7 @@
        },
        ":assumed-role/",
        {
-        "Ref": "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthauthenticatedUserRole1D3D95F1Ref"
+        "Ref": "referencetoamplifytestAppIdtestBranchNamebranchauthNestedStackauthNestedStackResourceA6135204OutputsamplifytestAppIdtestBranchNamebranchauthamplifyAuthauthenticatedUserRole37EAADD0Ref"
        },
        "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"unauthRole\", \"arn:aws:sts::",
        {
@@ -973,7 +973,7 @@
        },
        ":assumed-role/",
        {
-        "Ref": "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthunauthenticatedUserRoleF8166590Ref"
+        "Ref": "referencetoamplifytestAppIdtestBranchNamebranchauthNestedStackauthNestedStackResourceA6135204OutputsamplifytestAppIdtestBranchNamebranchauthamplifyAuthunauthenticatedUserRoleB1D4547BRef"
        },
        "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"identityPoolId\", \"amplifyAuthIdentityPool3FDE84CC\"))\n$util.qr($ctx.stash.put(\"adminRoles\", []))\n$util.toJson({})"
       ]
@@ -987,10 +987,10 @@
    "Type": "AWS::AppSync::FunctionConfiguration",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPIAC6F7A73ApiId"
     },
     "DataSourceName": {
-     "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPINONEDS66A16EEBName"
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPINONEDS83CDD9F0Name"
     },
     "FunctionVersion": "2018-05-29",
     "Name": "SubscriptiononUpdateTodopostAuth0Function",
@@ -1004,10 +1004,10 @@
    "Type": "AWS::AppSync::FunctionConfiguration",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPIAC6F7A73ApiId"
     },
     "DataSourceName": {
-     "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPINONEDS66A16EEBName"
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPINONEDS83CDD9F0Name"
     },
     "FunctionVersion": "2018-05-29",
     "Name": "SubscriptionOnUpdateTodoDataResolverFn",
@@ -1023,7 +1023,7 @@
    "Type": "AWS::AppSync::Resolver",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPIAC6F7A73ApiId"
     },
     "FieldName": "onUpdateTodo",
     "Kind": "PIPELINE",
@@ -1049,7 +1049,7 @@
       [
        "$util.qr($ctx.stash.put(\"typeName\", \"Subscription\"))\n$util.qr($ctx.stash.put(\"fieldName\", \"onUpdateTodo\"))\n$util.qr($ctx.stash.put(\"conditions\", []))\n$util.qr($ctx.stash.put(\"metadata\", {}))\n$util.qr($ctx.stash.metadata.put(\"dataSourceType\", \"NONE\"))\n$util.qr($ctx.stash.metadata.put(\"apiId\", \"",
        {
-        "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
+        "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPIAC6F7A73ApiId"
        },
        "\"))\n$util.qr($ctx.stash.put(\"connectionAttributes\", {}))\n\n$util.qr($ctx.stash.put(\"authRole\", \"arn:aws:sts::",
        {
@@ -1057,7 +1057,7 @@
        },
        ":assumed-role/",
        {
-        "Ref": "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthauthenticatedUserRole1D3D95F1Ref"
+        "Ref": "referencetoamplifytestAppIdtestBranchNamebranchauthNestedStackauthNestedStackResourceA6135204OutputsamplifytestAppIdtestBranchNamebranchauthamplifyAuthauthenticatedUserRole37EAADD0Ref"
        },
        "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"unauthRole\", \"arn:aws:sts::",
        {
@@ -1065,7 +1065,7 @@
        },
        ":assumed-role/",
        {
-        "Ref": "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthunauthenticatedUserRoleF8166590Ref"
+        "Ref": "referencetoamplifytestAppIdtestBranchNamebranchauthNestedStackauthNestedStackResourceA6135204OutputsamplifytestAppIdtestBranchNamebranchauthamplifyAuthunauthenticatedUserRoleB1D4547BRef"
        },
        "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"identityPoolId\", \"amplifyAuthIdentityPool3FDE84CC\"))\n$util.qr($ctx.stash.put(\"adminRoles\", []))\n$util.toJson({})"
       ]
@@ -1079,10 +1079,10 @@
    "Type": "AWS::AppSync::FunctionConfiguration",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPIAC6F7A73ApiId"
     },
     "DataSourceName": {
-     "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPINONEDS66A16EEBName"
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPINONEDS83CDD9F0Name"
     },
     "FunctionVersion": "2018-05-29",
     "Name": "SubscriptiononDeleteTodopostAuth0Function",
@@ -1096,10 +1096,10 @@
    "Type": "AWS::AppSync::FunctionConfiguration",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPIAC6F7A73ApiId"
     },
     "DataSourceName": {
-     "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPINONEDS66A16EEBName"
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPINONEDS83CDD9F0Name"
     },
     "FunctionVersion": "2018-05-29",
     "Name": "SubscriptionOnDeleteTodoDataResolverFn",
@@ -1115,7 +1115,7 @@
    "Type": "AWS::AppSync::Resolver",
    "Properties": {
     "ApiId": {
-     "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPIAC6F7A73ApiId"
     },
     "FieldName": "onDeleteTodo",
     "Kind": "PIPELINE",
@@ -1141,7 +1141,7 @@
       [
        "$util.qr($ctx.stash.put(\"typeName\", \"Subscription\"))\n$util.qr($ctx.stash.put(\"fieldName\", \"onDeleteTodo\"))\n$util.qr($ctx.stash.put(\"conditions\", []))\n$util.qr($ctx.stash.put(\"metadata\", {}))\n$util.qr($ctx.stash.metadata.put(\"dataSourceType\", \"NONE\"))\n$util.qr($ctx.stash.metadata.put(\"apiId\", \"",
        {
-        "Ref": "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId"
+        "Ref": "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPIAC6F7A73ApiId"
        },
        "\"))\n$util.qr($ctx.stash.put(\"connectionAttributes\", {}))\n\n$util.qr($ctx.stash.put(\"authRole\", \"arn:aws:sts::",
        {
@@ -1149,7 +1149,7 @@
        },
        ":assumed-role/",
        {
-        "Ref": "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthauthenticatedUserRole1D3D95F1Ref"
+        "Ref": "referencetoamplifytestAppIdtestBranchNamebranchauthNestedStackauthNestedStackResourceA6135204OutputsamplifytestAppIdtestBranchNamebranchauthamplifyAuthauthenticatedUserRole37EAADD0Ref"
        },
        "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"unauthRole\", \"arn:aws:sts::",
        {
@@ -1157,7 +1157,7 @@
        },
        ":assumed-role/",
        {
-        "Ref": "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthunauthenticatedUserRoleF8166590Ref"
+        "Ref": "referencetoamplifytestAppIdtestBranchNamebranchauthNestedStackauthNestedStackResourceA6135204OutputsamplifytestAppIdtestBranchNamebranchauthamplifyAuthunauthenticatedUserRoleB1D4547BRef"
        },
        "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"identityPoolId\", \"amplifyAuthIdentityPool3FDE84CC\"))\n$util.qr($ctx.stash.put(\"adminRoles\", []))\n$util.toJson({})"
       ]

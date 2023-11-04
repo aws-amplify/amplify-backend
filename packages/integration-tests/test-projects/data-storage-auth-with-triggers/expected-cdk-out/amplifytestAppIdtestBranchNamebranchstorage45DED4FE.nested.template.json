@@ -8,7 +8,7 @@
   }
  },
  "Outputs": {
-  "amplifytestAppIdtestBranchNamestorageamplifyStorageamplifyStorageBucket881B9781Ref": {
+  "amplifytestAppIdtestBranchNamebranchstorageamplifyStorageamplifyStorageBucket029C9F2BRef": {
    "Value": {
     "Ref": "amplifyStorageamplifyStorageBucketC2F702CD"
    }

@@ -72,6 +72,6 @@ void describe('AppNameAndBranchMainStackNameResolver', () => {
       appNameAndBranch
     );
     const result = await resolver.resolveMainStackName();
-    assert.equal(result, 'amplify-testBackendId-testBranch');
+    assert.equal(result, 'amplify-testBackendId-testBranch-branch');
   });
 });

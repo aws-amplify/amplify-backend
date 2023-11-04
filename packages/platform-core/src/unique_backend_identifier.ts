@@ -73,8 +73,8 @@ export class SandboxBackendIdentifier extends UniqueBackendIdentifierBase {
       return;
     }
     if (
-      parts[0] !== amplifyPrefix &&
-      parts[-1] !== SandboxBackendIdentifier.sandboxSuffix
+      parts.at(0) !== amplifyPrefix ||
+      parts.at(-1) !== SandboxBackendIdentifier.sandboxSuffix
     ) {
       return;
     }
@@ -85,7 +85,9 @@ export class SandboxBackendIdentifier extends UniqueBackendIdentifierBase {
     const backendId = remainingParts.slice(0, -1).join('-');
 
     // the disambiguator is the last part
-    const disambiguator = remainingParts[-1];
+    // non-null assertion is safe because parts length was validated at the top of the function
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const disambiguator = remainingParts.at(-1)!;
     return new SandboxBackendIdentifier(backendId, disambiguator);
   }
 }

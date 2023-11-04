@@ -206,27 +206,27 @@
   }
  },
  "Outputs": {
-  "amplifytestAppIdtestBranchNameauthamplifyAuthUserPoolC1B04074Ref": {
+  "amplifytestAppIdtestBranchNamebranchauthamplifyAuthUserPool95054ECERef": {
    "Value": {
     "Ref": "amplifyAuthUserPool4BA7F805"
    }
   },
-  "amplifytestAppIdtestBranchNameauthamplifyAuthUserPoolAppClientDDB3608BRef": {
+  "amplifytestAppIdtestBranchNamebranchauthamplifyAuthUserPoolAppClient08120B30Ref": {
    "Value": {
     "Ref": "amplifyAuthUserPoolAppClient2626C6F8"
    }
   },
-  "amplifytestAppIdtestBranchNameauthamplifyAuthIdentityPool40350D66Ref": {
+  "amplifytestAppIdtestBranchNamebranchauthamplifyAuthIdentityPoolBC246056Ref": {
    "Value": {
     "Ref": "amplifyAuthIdentityPool3FDE84CC"
    }
   },
-  "amplifytestAppIdtestBranchNameauthamplifyAuthauthenticatedUserRole1D3D95F1Ref": {
+  "amplifytestAppIdtestBranchNamebranchauthamplifyAuthauthenticatedUserRole37EAADD0Ref": {
    "Value": {
     "Ref": "amplifyAuthauthenticatedUserRoleD8DA3689"
    }
   },
-  "amplifytestAppIdtestBranchNameauthamplifyAuthunauthenticatedUserRoleF8166590Ref": {
+  "amplifytestAppIdtestBranchNamebranchauthamplifyAuthunauthenticatedUserRoleB1D4547BRef": {
    "Value": {
     "Ref": "amplifyAuthunauthenticatedUserRole2B524D9E"
    }

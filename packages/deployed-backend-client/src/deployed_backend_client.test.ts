@@ -9,7 +9,10 @@ import {
   ListStacksCommandInput,
   StackStatus,
 } from '@aws-sdk/client-cloudformation';
-import { BackendDeploymentStatus } from './deployed_backend_client_factory.js';
+import {
+  BackendDeploymentStatus,
+  ListSandboxesResponse,
+} from './deployed_backend_client_factory.js';
 import {
   authOutputKey,
   graphqlOutputKey,
@@ -30,22 +33,23 @@ import { DeployedResourcesEnumerator } from './deployed-backend-client/deployed_
 import { StackStatusMapper } from './deployed-backend-client/stack_status_mapper.js';
 import { ArnGenerator } from './deployed-backend-client/arn_generator.js';
 import { ArnParser } from './deployed-backend-client/arn_parser.js';
+import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 const listStacksMock = {
   NextToken: undefined,
   StackSummaries: [
     {
-      StackName: 'amplify-test-testBranch',
+      StackName: 'amplify-test-testBranch-branch',
       StackStatus: StackStatus.CREATE_COMPLETE,
       CreationTime: new Date(0),
     },
     {
-      StackName: 'amplify-error-testBranch',
+      StackName: 'amplify-error-testBranch-branch',
       StackStatus: StackStatus.CREATE_COMPLETE,
       CreationTime: new Date(0),
     },
     {
-      StackName: 'amplify-test-sandbox',
+      StackName: 'amplify-test-name-sandbox',
       StackStatus: StackStatus.CREATE_COMPLETE,
       CreationTime: new Date(0),
       LastUpdatedTime: new Date(1),
@@ -174,7 +178,7 @@ void describe('Deployed Backend Client', () => {
   beforeEach(() => {
     getOutputMock.mock.mockImplementation(
       (backendIdentifier: StackIdentifier) => {
-        if (backendIdentifier.stackName === 'amplify-error-testBranch') {
+        if (backendIdentifier.stackName === 'amplify-error-testBranch-branch') {
           throw new Error('Stack template metadata is not a string');
         }
         return getOutputMockResponse;
@@ -239,14 +243,17 @@ void describe('Deployed Backend Client', () => {
         {
           deploymentType: BackendDeploymentType.SANDBOX,
           backendId: undefined,
-          name: 'amplify-test-testBranch',
+          name: 'amplify-test-testBranch-branch',
           status: BackendDeploymentStatus.DEPLOYED,
           lastUpdated: new Date(0),
         },
         {
           deploymentType: BackendDeploymentType.SANDBOX,
-          backendId: new SandboxBackendIdentifier('test', 'username'),
-          name: 'amplify-test-sandbox',
+          backendId: {
+            backendId: 'test',
+            disambiguator: 'name',
+          },
+          name: 'amplify-test-name-sandbox',
           status: BackendDeploymentStatus.DEPLOYED,
           lastUpdated: new Date(1),
         },
@@ -274,7 +281,10 @@ void describe('Deployed Backend Client', () => {
       ],
     };
 
-    assert.deepEqual(sandboxes, expectedSandboxes);
+    assert.deepEqual(
+      replaceBackendIdWithPlainObject(sandboxes),
+      expectedSandboxes
+    );
   });
 
   void it('deletes a sandbox', async () => {
@@ -292,7 +302,7 @@ void describe('Deployed Backend Client', () => {
 
     assert.deepEqual(getMetadataResponse, {
       deploymentType: BackendDeploymentType.SANDBOX,
-      name: 'amplify-test-testBranch',
+      name: 'amplify-test-testBranch-branch',
       ...expectedMetadata,
     });
   });
@@ -314,9 +324,9 @@ void describe('Deployed Backend Client pagination', () => {
       deploymentType: BackendDeploymentType.SANDBOX,
       backendId: {
         backendId: 'test',
-        disambiguator: 'sandbox',
+        disambiguator: 'name',
       },
-      name: 'amplify-test-sandbox',
+      name: 'amplify-test-name-sandbox',
       status: BackendDeploymentStatus.DEPLOYED,
       lastUpdated: new Date(1),
     },
@@ -325,10 +335,10 @@ void describe('Deployed Backend Client pagination', () => {
   beforeEach(() => {
     getOutputMock.mock.mockImplementation(
       (backendIdentifier: StackIdentifier) => {
-        if (backendIdentifier.stackName === 'amplify-error-testBranch') {
+        if (backendIdentifier.stackName === 'amplify-error-testBranch-branch') {
           throw new Error('Stack template metadata is not a string');
         }
-        if (backendIdentifier.stackName !== 'amplify-test-sandbox') {
+        if (backendIdentifier.stackName !== 'amplify-test-name-sandbox') {
           return {
             ...getOutputMockResponse,
             [platformOutputKey]: {
@@ -395,7 +405,7 @@ void describe('Deployed Backend Client pagination', () => {
       };
     });
     const sandboxes = await deployedBackendClient.listSandboxes();
-    assert.deepEqual(sandboxes, {
+    assert.deepEqual(replaceBackendIdWithPlainObject(sandboxes), {
       nextToken: undefined,
       sandboxes: returnedSandboxes,
     });
@@ -415,7 +425,7 @@ void describe('Deployed Backend Client pagination', () => {
       };
     });
     const sandboxes = await deployedBackendClient.listSandboxes();
-    assert.deepEqual(sandboxes, {
+    assert.deepEqual(replaceBackendIdWithPlainObject(sandboxes), {
       nextToken: undefined,
       sandboxes: returnedSandboxes,
     });
@@ -425,7 +435,7 @@ void describe('Deployed Backend Client pagination', () => {
 
   void it('does not paginate listSandboxes when one page contains sandboxes', async () => {
     const sandboxes = await deployedBackendClient.listSandboxes();
-    assert.deepEqual(sandboxes, {
+    assert.deepEqual(replaceBackendIdWithPlainObject(sandboxes), {
       nextToken: undefined,
       sandboxes: returnedSandboxes,
     });
@@ -441,7 +451,7 @@ void describe('Deployed Backend Client pagination', () => {
       };
     });
     const sandboxes = await deployedBackendClient.listSandboxes();
-    assert.deepEqual(sandboxes, {
+    assert.deepEqual(replaceBackendIdWithPlainObject(sandboxes), {
       nextToken: 'abc',
       sandboxes: returnedSandboxes,
     });
@@ -464,7 +474,7 @@ void describe('Deployed Backend Client pagination', () => {
     const sandboxes = await deployedBackendClient.listSandboxes({
       nextToken: 'abc',
     });
-    assert.deepEqual(sandboxes, {
+    assert.deepEqual(replaceBackendIdWithPlainObject(sandboxes), {
       nextToken: undefined,
       sandboxes: returnedSandboxes,
     });
@@ -472,3 +482,25 @@ void describe('Deployed Backend Client pagination', () => {
     assert.equal(listStacksMockFn.mock.callCount(), 1);
   });
 });
+
+const replaceBackendIdWithPlainObject = (
+  listSandboxesResponse: ListSandboxesResponse
+) => {
+  listSandboxesResponse.sandboxes
+    .filter((sandbox) => sandbox.backendId)
+    .forEach(
+      (sandbox) =>
+        // non-null assertion is safe because we filtered out the undefined values above
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        (sandbox.backendId = backendIdToPlainObject(sandbox.backendId!))
+    );
+  return listSandboxesResponse;
+};
+
+const backendIdToPlainObject = (
+  uniqueBackendIdentifier: UniqueBackendIdentifier
+): SandboxBackendIdentifier =>
+  ({
+    backendId: uniqueBackendIdentifier.backendId,
+    disambiguator: uniqueBackendIdentifier.disambiguator,
+  } as unknown as SandboxBackendIdentifier);

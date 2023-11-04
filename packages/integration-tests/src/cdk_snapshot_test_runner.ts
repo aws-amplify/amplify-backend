@@ -43,8 +43,8 @@ const runCDKSnapshotTest = ({
     // see https://github.com/aws/aws-cdk/blob/30596fe96bfba240a70e53ab64a9acbf39e92f77/packages/aws-cdk-lib/cx-api/lib/cxapi.ts#L4-L5
     process.env.CDK_OUTDIR = await createTempCdkOutDirForTest(name);
     process.env.CDK_CONTEXT_JSON = JSON.stringify({
-      'backend-id': 'testAppId',
-      'branch-name': 'testBranchName',
+      [CDKContextKey.BACKEND_ID]: 'testAppId',
+      [CDKContextKey.BACKEND_DISAMBIGUATOR]: 'testBranchName',
       [CDKContextKey.DEPLOYMENT_TYPE]: 'BRANCH',
       secretLastUpdated: 123456789,
     });

@@ -77,14 +77,23 @@ void describe('Sandbox executor', () => {
 
       assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
       // BackendDeployer should be called with the right params
-      assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
-        new SandboxBackendIdentifier('testSandboxId', 'testSandboxName'),
+      assert.deepStrictEqual(
+        backendDeployerDeployMock.mock.calls[0].arguments[0]?.backendId,
+        'testSandboxId'
+      );
+      assert.deepStrictEqual(
+        backendDeployerDeployMock.mock.calls[0].arguments[0]?.disambiguator,
+        'testSandboxName'
+      );
+
+      assert.deepStrictEqual(
+        backendDeployerDeployMock.mock.calls[0].arguments[1],
         {
           deploymentType: BackendDeploymentType.SANDBOX,
           secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
           validateAppSources: shouldValidateSources,
-        },
-      ]);
+        }
+      );
     });
   });
 });

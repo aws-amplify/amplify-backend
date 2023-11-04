@@ -63,7 +63,7 @@
      "S3Bucket": {
       "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
      },
-     "S3Key": "09885012b1241c7620d8631bd18d12f68e1b7461bdb4001722b5b7f96a349618.zip"
+     "S3Key": "ecfef1b4cdec33ef3f198e64a2c55d3dc78d32095ed56e1b62eccac98155c3db.zip"
     },
     "Environment": {
      "Variables": {
@@ -167,7 +167,7 @@
      },
      "S3Key": "7382a0addb9f34974a1ea6c6c9b063882af874828f366f5c93b2b7b64db15c94.zip"
     },
-    "Description": "AWS CDK resource provider framework - onEvent (amplify-testAppId-testBranchName/auth/SecretFetcherResourceProvider)",
+    "Description": "AWS CDK resource provider framework - onEvent (amplify-testAppId-testBranchName-branch/auth/SecretFetcherResourceProvider)",
     "Environment": {
      "Variables": {
       "USER_ON_EVENT_FUNCTION_ARN": {
@@ -316,7 +316,7 @@
     "EmailVerificationSubject": "Verify your new account",
     "LambdaConfig": {
      "PostConfirmation": {
-      "Ref": "referencetoamplifytestAppIdtestBranchNamefunctionNestedStackfunctionNestedStackResourceE968B293OutputsamplifytestAppIdtestBranchNamefunctiontestFunctestFuncLambdaFunction724FFDF6Arn"
+      "Ref": "referencetoamplifytestAppIdtestBranchNamebranchfunctionNestedStackfunctionNestedStackResourceF7454B19OutputsamplifytestAppIdtestBranchNamebranchfunctiontestFunctestFuncLambdaFunction10DE0413Arn"
      }
     },
     "Policies": {
@@ -362,7 +362,7 @@
    "Properties": {
     "Action": "lambda:InvokeFunction",
     "FunctionName": {
-     "Ref": "referencetoamplifytestAppIdtestBranchNamefunctionNestedStackfunctionNestedStackResourceE968B293OutputsamplifytestAppIdtestBranchNamefunctiontestFunctestFuncLambdaFunction724FFDF6Arn"
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranchfunctionNestedStackfunctionNestedStackResourceF7454B19OutputsamplifytestAppIdtestBranchNamebranchfunctiontestFunctestFuncLambdaFunction10DE0413Arn"
     },
     "Principal": "cognito-idp.amazonaws.com",
     "SourceArn": {
@@ -624,27 +624,27 @@
   }
  },
  "Parameters": {
-  "referencetoamplifytestAppIdtestBranchNamefunctionNestedStackfunctionNestedStackResourceE968B293OutputsamplifytestAppIdtestBranchNamefunctiontestFunctestFuncLambdaFunction724FFDF6Arn": {
+  "referencetoamplifytestAppIdtestBranchNamebranchfunctionNestedStackfunctionNestedStackResourceF7454B19OutputsamplifytestAppIdtestBranchNamebranchfunctiontestFunctestFuncLambdaFunction10DE0413Arn": {
    "Type": "String"
   }
  },
  "Outputs": {
-  "amplifytestAppIdtestBranchNameauthamplifyAuthUserPoolC1B04074Ref": {
+  "amplifytestAppIdtestBranchNamebranchauthamplifyAuthUserPool95054ECERef": {
    "Value": {
     "Ref": "amplifyAuthUserPool4BA7F805"
    }
   },
-  "amplifytestAppIdtestBranchNameauthamplifyAuthUserPoolAppClientDDB3608BRef": {
+  "amplifytestAppIdtestBranchNamebranchauthamplifyAuthUserPoolAppClient08120B30Ref": {
    "Value": {
     "Ref": "amplifyAuthUserPoolAppClient2626C6F8"
    }
   },
-  "amplifytestAppIdtestBranchNameauthamplifyAuthIdentityPool40350D66Ref": {
+  "amplifytestAppIdtestBranchNamebranchauthamplifyAuthIdentityPoolBC246056Ref": {
    "Value": {
     "Ref": "amplifyAuthIdentityPool3FDE84CC"
    }
   },
-  "amplifytestAppIdtestBranchNameauthtestAmazonIdSecretFetcherResourceD2E00281secretValue": {
+  "amplifytestAppIdtestBranchNamebranchauthtestAmazonIdSecretFetcherResourceD9422910secretValue": {
    "Value": {
     "Fn::GetAtt": [
      "testAmazonIdSecretFetcherResource",
@@ -652,7 +652,7 @@
     ]
    }
   },
-  "amplifytestAppIdtestBranchNameauthtestFacebookIdSecretFetcherResource5EBFBDA2secretValue": {
+  "amplifytestAppIdtestBranchNamebranchauthtestFacebookIdSecretFetcherResource2E5317F0secretValue": {
    "Value": {
     "Fn::GetAtt": [
      "testFacebookIdSecretFetcherResource",
@@ -660,7 +660,7 @@
     ]
    }
   },
-  "amplifytestAppIdtestBranchNameauthtestGoogleIdSecretFetcherResource307D00F8secretValue": {
+  "amplifytestAppIdtestBranchNamebranchauthtestGoogleIdSecretFetcherResource9CA2F8F1secretValue": {
    "Value": {
     "Fn::GetAtt": [
      "testGoogleIdSecretFetcherResource",
@@ -668,12 +668,12 @@
     ]
    }
   },
-  "amplifytestAppIdtestBranchNameauthamplifyAuthauthenticatedUserRole1D3D95F1Ref": {
+  "amplifytestAppIdtestBranchNamebranchauthamplifyAuthauthenticatedUserRole37EAADD0Ref": {
    "Value": {
     "Ref": "amplifyAuthauthenticatedUserRoleD8DA3689"
    }
   },
-  "amplifytestAppIdtestBranchNameauthamplifyAuthunauthenticatedUserRoleF8166590Ref": {
+  "amplifytestAppIdtestBranchNamebranchauthamplifyAuthunauthenticatedUserRoleB1D4547BRef": {
    "Value": {
     "Ref": "amplifyAuthunauthenticatedUserRole2B524D9E"
    }

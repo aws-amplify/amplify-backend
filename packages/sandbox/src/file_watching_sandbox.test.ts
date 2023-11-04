@@ -224,14 +224,19 @@ void describe('Sandbox using local project name resolver', () => {
     assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
 
     // BackendDeployer should be called with the right params
-    assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
-      new SandboxBackendIdentifier('testSandboxId', 'testSandboxName'),
-      {
-        deploymentType: BackendDeploymentType.SANDBOX,
-        secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
-        validateAppSources: false,
-      },
-    ]);
+    assert.equal(
+      backendDeployerDeployMock.mock.calls[0].arguments[0]?.backendId,
+      'testSandboxId'
+    );
+    assert.equal(
+      backendDeployerDeployMock.mock.calls[0].arguments[0]?.disambiguator,
+      'testSandboxName'
+    );
+    assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments[1], {
+      deploymentType: BackendDeploymentType.SANDBOX,
+      secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+      validateAppSources: false,
+    });
   });
 
   void it('makes initial deployment with type checking at start if some typescript file is present', async () => {
@@ -252,14 +257,19 @@ void describe('Sandbox using local project name resolver', () => {
     assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
 
     // BackendDeployer should be called with the right params
-    assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
-      new SandboxBackendIdentifier('testSandboxId', 'testSandboxName'),
-      {
-        deploymentType: BackendDeploymentType.SANDBOX,
-        secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
-        validateAppSources: true,
-      },
-    ]);
+    assert.equal(
+      backendDeployerDeployMock.mock.calls[0].arguments[0]?.backendId,
+      'testSandboxId'
+    );
+    assert.equal(
+      backendDeployerDeployMock.mock.calls[0].arguments[0]?.disambiguator,
+      'testSandboxName'
+    );
+    assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments[1], {
+      deploymentType: BackendDeploymentType.SANDBOX,
+      secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+      validateAppSources: true,
+    });
   });
 
   void it('calls BackendDeployer once when a file change is present', async () => {
@@ -284,14 +294,19 @@ void describe('Sandbox using local project name resolver', () => {
     assert.strictEqual(listSecretMock.mock.callCount(), 1);
 
     // BackendDeployer should be called with the right params
-    assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
-      new SandboxBackendIdentifier('testSandboxId', 'testSandboxName'),
-      {
-        deploymentType: BackendDeploymentType.SANDBOX,
-        secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
-        validateAppSources: true,
-      },
-    ]);
+    assert.equal(
+      backendDeployerDeployMock.mock.calls[0].arguments[0]?.backendId,
+      'testSandboxId'
+    );
+    assert.equal(
+      backendDeployerDeployMock.mock.calls[0].arguments[0]?.disambiguator,
+      'testSandboxName'
+    );
+    assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments[1], {
+      deploymentType: BackendDeploymentType.SANDBOX,
+      secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+      validateAppSources: true,
+    });
     assert.strictEqual(cfnClientSendMock.mock.callCount(), 0);
   });
 
@@ -319,14 +334,19 @@ void describe('Sandbox using local project name resolver', () => {
     ]);
     assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
     // BackendDeployer should be called with the right params
-    assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
-      new SandboxBackendIdentifier('testSandboxId', 'testSandboxName'),
-      {
-        deploymentType: BackendDeploymentType.SANDBOX,
-        secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
-        validateAppSources: true,
-      },
-    ]);
+    assert.equal(
+      backendDeployerDeployMock.mock.calls[0].arguments[0]?.backendId,
+      'testSandboxId'
+    );
+    assert.equal(
+      backendDeployerDeployMock.mock.calls[0].arguments[0]?.disambiguator,
+      'testSandboxName'
+    );
+    assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments[1], {
+      deploymentType: BackendDeploymentType.SANDBOX,
+      secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+      validateAppSources: true,
+    });
   });
 
   void it('skips type checking if no typescript change is detected', async () => {
@@ -340,14 +360,19 @@ void describe('Sandbox using local project name resolver', () => {
     ]);
     assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
     // BackendDeployer should be called with the right params
-    assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
-      new SandboxBackendIdentifier('testSandboxId', 'testSandboxName'),
-      {
-        deploymentType: BackendDeploymentType.SANDBOX,
-        secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
-        validateAppSources: false,
-      },
-    ]);
+    assert.equal(
+      backendDeployerDeployMock.mock.calls[0].arguments[0]?.backendId,
+      'testSandboxId'
+    );
+    assert.equal(
+      backendDeployerDeployMock.mock.calls[0].arguments[0]?.disambiguator,
+      'testSandboxName'
+    );
+    assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments[1], {
+      deploymentType: BackendDeploymentType.SANDBOX,
+      secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+      validateAppSources: false,
+    });
   });
 
   void it('calls BackendDeployer once when multiple file changes are within few milliseconds (debounce)', async () => {
@@ -367,14 +392,19 @@ void describe('Sandbox using local project name resolver', () => {
     await firstFileChange;
     assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
     // BackendDeployer should be called with the right params
-    assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
-      new SandboxBackendIdentifier('testSandboxId', 'testSandboxName'),
-      {
-        deploymentType: BackendDeploymentType.SANDBOX,
-        secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
-        validateAppSources: true,
-      },
-    ]);
+    assert.equal(
+      backendDeployerDeployMock.mock.calls[0].arguments[0]?.backendId,
+      'testSandboxId'
+    );
+    assert.equal(
+      backendDeployerDeployMock.mock.calls[0].arguments[0]?.disambiguator,
+      'testSandboxName'
+    );
+    assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments[1], {
+      deploymentType: BackendDeploymentType.SANDBOX,
+      secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+      validateAppSources: true,
+    });
   });
 
   void it('waits for file changes after completing a deployment and deploys again', async () => {
@@ -390,23 +420,33 @@ void describe('Sandbox using local project name resolver', () => {
     ]);
     assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 2);
     // BackendDeployer should be called with the right params
-    assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
-      new SandboxBackendIdentifier('testSandboxId', 'testSandboxName'),
-      {
-        deploymentType: BackendDeploymentType.SANDBOX,
-        secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
-        validateAppSources: true,
-      },
-    ]);
+    assert.equal(
+      backendDeployerDeployMock.mock.calls[0].arguments[0]?.backendId,
+      'testSandboxId'
+    );
+    assert.equal(
+      backendDeployerDeployMock.mock.calls[0].arguments[0]?.disambiguator,
+      'testSandboxName'
+    );
+    assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments[1], {
+      deploymentType: BackendDeploymentType.SANDBOX,
+      secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+      validateAppSources: true,
+    });
     // BackendDeployer should be called with the right params
-    assert.deepEqual(backendDeployerDeployMock.mock.calls[1].arguments, [
-      new SandboxBackendIdentifier('testSandboxId', 'testSandboxName'),
-      {
-        deploymentType: BackendDeploymentType.SANDBOX,
-        secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
-        validateAppSources: true,
-      },
-    ]);
+    assert.equal(
+      backendDeployerDeployMock.mock.calls[1].arguments[0]?.backendId,
+      'testSandboxId'
+    );
+    assert.equal(
+      backendDeployerDeployMock.mock.calls[1].arguments[0]?.disambiguator,
+      'testSandboxName'
+    );
+    assert.deepEqual(backendDeployerDeployMock.mock.calls[1].arguments[1], {
+      deploymentType: BackendDeploymentType.SANDBOX,
+      secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+      validateAppSources: true,
+    });
   });
 
   void it('queues deployment if a file change is detected during an ongoing deployment', async () => {
@@ -437,23 +477,33 @@ void describe('Sandbox using local project name resolver', () => {
 
     assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 2);
     // BackendDeployer should be called with the right params
-    assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
-      new SandboxBackendIdentifier('testSandboxId', 'testSandboxName'),
-      {
-        deploymentType: BackendDeploymentType.SANDBOX,
-        secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
-        validateAppSources: true,
-      },
-    ]);
+    assert.equal(
+      backendDeployerDeployMock.mock.calls[0].arguments[0]?.backendId,
+      'testSandboxId'
+    );
+    assert.equal(
+      backendDeployerDeployMock.mock.calls[0].arguments[0]?.disambiguator,
+      'testSandboxName'
+    );
+    assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments[1], {
+      deploymentType: BackendDeploymentType.SANDBOX,
+      secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+      validateAppSources: true,
+    });
     // BackendDeployer should be called with the right params
-    assert.deepEqual(backendDeployerDeployMock.mock.calls[1].arguments, [
-      new SandboxBackendIdentifier('testSandboxId', 'testSandboxName'),
-      {
-        deploymentType: BackendDeploymentType.SANDBOX,
-        secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
-        validateAppSources: true,
-      },
-    ]);
+    assert.equal(
+      backendDeployerDeployMock.mock.calls[1].arguments[0]?.backendId,
+      'testSandboxId'
+    );
+    assert.equal(
+      backendDeployerDeployMock.mock.calls[1].arguments[0]?.disambiguator,
+      'testSandboxName'
+    );
+    assert.deepEqual(backendDeployerDeployMock.mock.calls[1].arguments[1], {
+      deploymentType: BackendDeploymentType.SANDBOX,
+      secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+      validateAppSources: true,
+    });
   });
 
   void it('calls BackendDeployer destroy when delete is called', async () => {
@@ -467,12 +517,17 @@ void describe('Sandbox using local project name resolver', () => {
     assert.strictEqual(backendDeployerDestroyMock.mock.callCount(), 1);
 
     // BackendDeployer should be called with the right params
-    assert.deepEqual(backendDeployerDestroyMock.mock.calls[0].arguments, [
-      new SandboxBackendIdentifier('testSandboxId', 'testSandboxName'),
-      {
-        deploymentType: BackendDeploymentType.SANDBOX,
-      },
-    ]);
+    assert.equal(
+      backendDeployerDestroyMock.mock.calls[0].arguments[0]?.backendId,
+      'testSandboxId'
+    );
+    assert.equal(
+      backendDeployerDestroyMock.mock.calls[0].arguments[0]?.disambiguator,
+      'testSandboxName'
+    );
+    assert.deepEqual(backendDeployerDestroyMock.mock.calls[0].arguments[1], {
+      deploymentType: BackendDeploymentType.SANDBOX,
+    });
   });
 
   void it('handles error thrown by BackendDeployer and does not crash while deploying', async (contextual) => {
@@ -633,14 +688,20 @@ void describe('Sandbox using local project name resolver', () => {
     assert.strictEqual(listSecretMock.mock.callCount(), 1);
 
     // BackendDeployer should be called with the right app name
-    assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
-      new SandboxBackendIdentifier('testSandboxId', 'customSandboxName'),
-      {
-        deploymentType: BackendDeploymentType.SANDBOX,
-        secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
-        validateAppSources: true,
-      },
-    ]);
+    assert.equal(
+      backendDeployerDeployMock.mock.calls[0].arguments[0]?.backendId,
+      'testSandboxId'
+    );
+    assert.equal(
+      backendDeployerDeployMock.mock.calls[0].arguments[0]?.disambiguator,
+      'customSandboxName'
+    );
+
+    assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments[1], {
+      deploymentType: BackendDeploymentType.SANDBOX,
+      secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+      validateAppSources: true,
+    });
   });
 
   void it('correctly handles user provided appName while destroying', async () => {
@@ -655,12 +716,21 @@ void describe('Sandbox using local project name resolver', () => {
     assert.strictEqual(backendDeployerDestroyMock.mock.callCount(), 1);
 
     // BackendDeployer should be called with the right params
-    assert.deepEqual(backendDeployerDestroyMock.mock.calls[0].arguments, [
-      new SandboxBackendIdentifier('testSandboxId', 'customSandboxName'),
+    assert.equal(
+      backendDeployerDestroyMock.mock.calls[0].arguments[0]?.backendId,
+      'testSandboxId'
+    );
+    assert.equal(
+      backendDeployerDestroyMock.mock.calls[0].arguments[0]?.disambiguator,
+      'customSandboxName'
+    );
+
+    assert.deepStrictEqual(
+      backendDeployerDestroyMock.mock.calls[0].arguments[1],
       {
         deploymentType: BackendDeploymentType.SANDBOX,
-      },
-    ]);
+      }
+    );
   });
 
   void it('handles .gitignore files to exclude paths from file watching', async (contextual) => {
@@ -746,10 +816,10 @@ const setupAndStartSandbox = async (
   resetMocksAfterStart = true
 ) => {
   const sandboxInstance = new FileWatchingSandbox(
-    async () =>
+    async (customName) =>
       new SandboxBackendIdentifier(
         'testSandboxId',
-        testData.sandboxName ?? 'testSandboxName'
+        customName ?? testData.sandboxName ?? 'testSandboxName'
       ),
     testData.executor,
     testData.cfnClient,

@@ -1,5 +1,5 @@
 {
- "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyCDK\",\"createdWith\":\"1.1.4\",\"stackType\":\"api-AppSync\"}",
+ "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyCDK\",\"createdWith\":\"1.2.1\",\"stackType\":\"api-AppSync\"}",
  "Resources": {
   "amplifyDataGraphQLAPI42A6FA33": {
    "Type": "AWS::AppSync::GraphQLApi",
@@ -17,7 +17,7 @@
      },
      "DefaultAction": "ALLOW",
      "UserPoolId": {
-      "Ref": "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthUserPoolC1B04074Ref"
+      "Ref": "referencetoamplifytestAppIdtestBranchNamebranchauthNestedStackauthNestedStackResourceA6135204OutputsamplifytestAppIdtestBranchNamebranchauthamplifyAuthUserPool95054ECERef"
      }
     }
    }
@@ -69,23 +69,23 @@
      "DynamoDBEnableServerSideEncryption": {
       "Ref": "DynamoDBEnableServerSideEncryption"
      },
-     "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId": {
+     "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPIAC6F7A73ApiId": {
       "Fn::GetAtt": [
        "amplifyDataGraphQLAPI42A6FA33",
        "ApiId"
       ]
      },
-     "referencetoamplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPINONEDS66A16EEBName": {
+     "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPINONEDS83CDD9F0Name": {
       "Fn::GetAtt": [
        "amplifyDataGraphQLAPINONEDS684BF699",
        "Name"
       ]
      },
-     "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthauthenticatedUserRole1D3D95F1Ref": {
-      "Ref": "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthauthenticatedUserRole1D3D95F1Ref"
+     "referencetoamplifytestAppIdtestBranchNamebranchauthNestedStackauthNestedStackResourceA6135204OutputsamplifytestAppIdtestBranchNamebranchauthamplifyAuthauthenticatedUserRole37EAADD0Ref": {
+      "Ref": "referencetoamplifytestAppIdtestBranchNamebranchauthNestedStackauthNestedStackResourceA6135204OutputsamplifytestAppIdtestBranchNamebranchauthamplifyAuthauthenticatedUserRole37EAADD0Ref"
      },
-     "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthunauthenticatedUserRoleF8166590Ref": {
-      "Ref": "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthunauthenticatedUserRoleF8166590Ref"
+     "referencetoamplifytestAppIdtestBranchNamebranchauthNestedStackauthNestedStackResourceA6135204OutputsamplifytestAppIdtestBranchNamebranchauthamplifyAuthunauthenticatedUserRoleB1D4547BRef": {
+      "Ref": "referencetoamplifytestAppIdtestBranchNamebranchauthNestedStackauthNestedStackResourceA6135204OutputsamplifytestAppIdtestBranchNamebranchauthamplifyAuthunauthenticatedUserRoleB1D4547BRef"
      }
     },
     "TemplateURL": {
@@ -104,7 +104,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/c02ba922c61057da1aa8659d2bf573760e8c1f157b050addbba9ac0d74ebc54c.json"
+       "/e374ff8f696580fc339e1564b3004abbfca24f9a5dc5d51c174a824d32f2df65.json"
       ]
      ]
     }
@@ -124,7 +124,7 @@
       "Value": "true"
      },
      {
-      "Key": "aws-cdk:cr-owned:60a6234f",
+      "Key": "aws-cdk:cr-owned:7ccf9714",
       "Value": "true"
      }
     ]
@@ -500,18 +500,18 @@
    ],
    "Description": "Enable server side encryption powered by KMS."
   },
-  "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthUserPoolC1B04074Ref": {
+  "referencetoamplifytestAppIdtestBranchNamebranchauthNestedStackauthNestedStackResourceA6135204OutputsamplifytestAppIdtestBranchNamebranchauthamplifyAuthUserPool95054ECERef": {
    "Type": "String"
   },
-  "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthauthenticatedUserRole1D3D95F1Ref": {
+  "referencetoamplifytestAppIdtestBranchNamebranchauthNestedStackauthNestedStackResourceA6135204OutputsamplifytestAppIdtestBranchNamebranchauthamplifyAuthauthenticatedUserRole37EAADD0Ref": {
    "Type": "String"
   },
-  "referencetoamplifytestAppIdtestBranchNameauthNestedStackauthNestedStackResource367DE29FOutputsamplifytestAppIdtestBranchNameauthamplifyAuthunauthenticatedUserRoleF8166590Ref": {
+  "referencetoamplifytestAppIdtestBranchNamebranchauthNestedStackauthNestedStackResourceA6135204OutputsamplifytestAppIdtestBranchNamebranchauthamplifyAuthunauthenticatedUserRoleB1D4547BRef": {
    "Type": "String"
   }
  },
  "Outputs": {
-  "amplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03ApiId": {
+  "amplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPIAC6F7A73ApiId": {
    "Value": {
     "Fn::GetAtt": [
      "amplifyDataGraphQLAPI42A6FA33",
@@ -519,7 +519,7 @@
     ]
    }
   },
-  "amplifytestAppIdtestBranchNamedataamplifyDataGraphQLAPI93E95D03GraphQLUrl": {
+  "amplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPIAC6F7A73GraphQLUrl": {
    "Value": {
     "Fn::GetAtt": [
      "amplifyDataGraphQLAPI42A6FA33",
@@ -527,7 +527,7 @@
     ]
    }
   },
-  "amplifytestAppIdtestBranchNamedataamplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsBucket25324612Ref": {
+  "amplifytestAppIdtestBranchNamebranchdataamplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsBucket2FDBF080Ref": {
    "Value": {
     "Ref": "amplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsBucket9CCB4ACA"
    }

@@ -56,7 +56,7 @@
   }
  },
  "Outputs": {
-  "amplifytestAppIdtestBranchNamefunctiontestFunctestFuncLambdaFunction724FFDF6Arn": {
+  "amplifytestAppIdtestBranchNamebranchfunctiontestFunctestFuncLambdaFunction10DE0413Arn": {
    "Value": {
     "Fn::GetAtt": [
      "testFunctestFuncLambdaFunction419C520E",
