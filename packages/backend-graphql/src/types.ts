@@ -1,7 +1,6 @@
 import { DerivedModelSchema } from '@aws-amplify/amplify-api-next-types-alpha';
-import { IUserPool } from 'aws-cdk-lib/aws-cognito';
-import { IRole } from 'aws-cdk-lib/aws-iam';
 import { AmplifyFunction, ConstructFactory } from '@aws-amplify/plugin-types';
+import { IRole } from 'aws-cdk-lib/aws-iam';
 
 /**
  * Determine which auth mode is specified as 'default' in the Appsync API, only required if more than one authorization mode is specified.
@@ -27,35 +26,6 @@ export type ApiKeyAuthorizationConfig = {
    * @default 7
    */
   expiresInDays?: number;
-};
-
-/**
- * Configuration for Cognito UserPool Authorization on the Graphql Api.
- */
-export type UserPoolAuthorizationConfig = {
-  /**
-   * The Cognito User Pool which is used to authenticated JWT tokens, and vends group and user information.
-   */
-  userPool: IUserPool;
-};
-
-/**
- * Configuration for IAM Authorization on the Graphql Api.
- */
-export type IAMAuthorizationConfig = {
-  /**
-   * ID for the Cognito Identity Pool vending auth and unauth roles.
-   * Format: `<region>:<id string>`
-   */
-  identityPoolId: string;
-  /**
-   * Authenticated user role, applies to { provider: iam, allow: private } access.
-   */
-  authenticatedUserRole: IRole;
-  /**
-   * Unauthenticated user role, applies to { provider: iam, allow: public } access.
-   */
-  unauthenticatedUserRole: IRole;
 };
 
 /**
@@ -121,16 +91,6 @@ export type AuthorizationModes = {
   apiKeyConfig?: ApiKeyAuthorizationConfig;
 
   /**
-   * Override user pool config if userPool auth provider is specified in api definition.
-   */
-  userPoolConfig?: UserPoolAuthorizationConfig;
-
-  /**
-   * Override iam config if iam auth provider is specified in the api definition.
-   */
-  iamConfig?: IAMAuthorizationConfig;
-
-  /**
    * Lambda authorization config if function provider is specified in the api definition.
    */
   lambdaConfig?: LambdaAuthorizationConfig;
@@ -141,7 +101,7 @@ export type AuthorizationModes = {
   oidcConfig?: OIDCAuthorizationConfig;
 
   /**
-   * Admin roles which are provided full r/w access to the API.
+   * IAM Roles which are provided full r/w access to the API for models with IAM authorization.
    */
   adminRoles?: IRole[];
 };

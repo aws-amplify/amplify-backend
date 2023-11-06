@@ -162,10 +162,8 @@ export const convertAuthorizationModesToCDK = (
   const apiKeyConfig = authModes?.apiKeyConfig
     ? convertApiKeyAuthConfigToCDK(authModes.apiKeyConfig)
     : computeApiKeyAuthFromResource(authResources, authModes);
-  const userPoolConfig =
-    authModes?.userPoolConfig ?? computeUserPoolAuthFromResource(authResources);
-  const iamConfig =
-    authModes?.iamConfig ?? computeIAMAuthFromResource(authResources);
+  const userPoolConfig = computeUserPoolAuthFromResource(authResources);
+  const iamConfig = computeIAMAuthFromResource(authResources);
   const lambdaConfig = authModes?.lambdaConfig
     ? convertLambdaAuthorizationConfigToCDK(
         functionInstanceProvider,

@@ -59,7 +59,6 @@ void describe('convertAuthorizationModesToCDK', () => {
   let authenticatedUserRole: IRole;
   let unauthenticatedUserRole: IRole;
   let providedAuthConfig: ProvidedAuthConfig;
-
   let functionInstanceProvider: FunctionInstanceProvider;
 
   void beforeEach(() => {
@@ -148,76 +147,6 @@ void describe('convertAuthorizationModesToCDK', () => {
       convertAuthorizationModesToCDK(
         functionInstanceProvider,
         undefined,
-        authModes
-      ),
-      expectedOutput
-    );
-  });
-
-  void it('allows for overriding user pool config', () => {
-    const userDefinedUserPool = new UserPool(stack, 'UserDefinedUserPool');
-
-    const authModes: AuthorizationModes = {
-      userPoolConfig: {
-        userPool: userDefinedUserPool,
-      },
-    };
-
-    const expectedOutput: CDKAuthorizationModes = {
-      userPoolConfig: {
-        userPool: userDefinedUserPool,
-      },
-      iamConfig: {
-        identityPoolId,
-        authenticatedUserRole,
-        unauthenticatedUserRole,
-      },
-    };
-
-    assert.deepStrictEqual(
-      convertAuthorizationModesToCDK(
-        functionInstanceProvider,
-        providedAuthConfig,
-        authModes
-      ),
-      expectedOutput
-    );
-  });
-
-  void it('allows for overriding iam config', () => {
-    const userDefinedIdentityPoolId = 'userDefinedIdentityPool';
-    const userDefinedAuthenticatedUserRole = Role.fromRoleName(
-      stack,
-      'UserDefinedAuthRole',
-      'UserDefinedAuthRoleName'
-    );
-    const userDefinedUnauthenticatedUserRole = Role.fromRoleName(
-      stack,
-      'UserDefinedUnauthRole',
-      'UserDefinedUnauthRoleName'
-    );
-
-    const authModes: AuthorizationModes = {
-      iamConfig: {
-        identityPoolId: userDefinedIdentityPoolId,
-        authenticatedUserRole: userDefinedAuthenticatedUserRole,
-        unauthenticatedUserRole: userDefinedUnauthenticatedUserRole,
-      },
-    };
-
-    const expectedOutput: CDKAuthorizationModes = {
-      userPoolConfig: { userPool },
-      iamConfig: {
-        identityPoolId: userDefinedIdentityPoolId,
-        authenticatedUserRole: userDefinedAuthenticatedUserRole,
-        unauthenticatedUserRole: userDefinedUnauthenticatedUserRole,
-      },
-    };
-
-    assert.deepStrictEqual(
-      convertAuthorizationModesToCDK(
-        functionInstanceProvider,
-        providedAuthConfig,
         authModes
       ),
       expectedOutput

@@ -4,13 +4,11 @@
 
 ```ts
 
-import { AmplifyFunctionFactory } from '@aws-amplify/backend-function';
+import { AmplifyFunction } from '@aws-amplify/plugin-types';
 import { AmplifyGraphqlApi } from '@aws-amplify/graphql-api-construct';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { DerivedModelSchema } from '@aws-amplify/amplify-api-next-types-alpha';
-import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { IRole } from 'aws-cdk-lib/aws-iam';
-import { IUserPool } from 'aws-cdk-lib/aws-cognito';
 
 // @public
 export type ApiKeyAuthorizationConfig = {
@@ -22,8 +20,6 @@ export type ApiKeyAuthorizationConfig = {
 export type AuthorizationModes = {
     defaultAuthorizationMode?: DefaultAuthorizationMode;
     apiKeyConfig?: ApiKeyAuthorizationConfig;
-    userPoolConfig?: UserPoolAuthorizationConfig;
-    iamConfig?: IAMAuthorizationConfig;
     lambdaConfig?: LambdaAuthorizationConfig;
     oidcConfig?: OIDCAuthorizationConfig;
     adminRoles?: IRole[];
@@ -34,7 +30,7 @@ export type DataProps = {
     schema: DataSchema;
     name?: string;
     authorizationModes?: AuthorizationModes;
-    functions?: Record<string, FunctionInput>;
+    functions?: Record<string, ConstructFactory<AmplifyFunction>>;
 };
 
 // @public
@@ -47,18 +43,8 @@ export type DefaultAuthorizationMode = 'AWS_IAM' | 'AMAZON_COGNITO_USER_POOLS' |
 export const defineData: (props: DataProps) => ConstructFactory<AmplifyGraphqlApi>;
 
 // @public
-export type FunctionInput = IFunction | AmplifyFunctionFactory;
-
-// @public
-export type IAMAuthorizationConfig = {
-    identityPoolId: string;
-    authenticatedUserRole: IRole;
-    unauthenticatedUserRole: IRole;
-};
-
-// @public
 export type LambdaAuthorizationConfig = {
-    function: FunctionInput;
+    function: ConstructFactory<AmplifyFunction>;
     timeToLiveInSeconds?: number;
 };
 
@@ -69,11 +55,6 @@ export type OIDCAuthorizationConfig = {
     clientId?: string;
     tokenExpiryFromAuthInSeconds: number;
     tokenExpireFromIssueInSeconds: number;
-};
-
-// @public
-export type UserPoolAuthorizationConfig = {
-    userPool: IUserPool;
 };
 
 // (No @packageDocumentation comment for this package)
