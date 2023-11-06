@@ -10,11 +10,11 @@ import {
   UserPoolAuthorizationConfig as CDKUserPoolAuthorizationConfig,
 } from '@aws-amplify/graphql-api-construct';
 import {
-  ApiKeyAuthorizationConfig,
+  ApiKeyAuthorizationModeProps,
   AuthorizationModes,
   DefaultAuthorizationMode,
-  LambdaAuthorizationConfig,
-  OIDCAuthorizationConfig,
+  LambdaAuthorizationModeProps,
+  OIDCAuthorizationModeProps,
 } from './types.js';
 import { FunctionInstanceProvider } from './convert_functions.js';
 import { AuthResources, ResourceProvider } from '@aws-amplify/plugin-types';
@@ -54,7 +54,7 @@ export const buildConstructFactoryProvidedAuthConfig = (
 const convertApiKeyAuthConfigToCDK = ({
   description,
   expiresInDays = DEFAULT_API_KEY_EXPIRATION_DAYS,
-}: ApiKeyAuthorizationConfig): CDKApiKeyAuthorizationConfig => ({
+}: ApiKeyAuthorizationModeProps): CDKApiKeyAuthorizationConfig => ({
   description,
   expires: Duration.days(expiresInDays),
 });
@@ -67,7 +67,7 @@ const convertLambdaAuthorizationConfigToCDK = (
   {
     function: authFn,
     timeToLiveInSeconds = DEFAULT_LAMBDA_AUTH_TIME_TO_LIVE_SECONDS,
-  }: LambdaAuthorizationConfig
+  }: LambdaAuthorizationModeProps
 ): CDKLambdaAuthorizationConfig => ({
   function: functionInstanceProvider.provide(authFn),
   ttl: Duration.seconds(timeToLiveInSeconds),
@@ -82,7 +82,7 @@ const convertOIDCAuthConfigToCDK = ({
   clientId,
   tokenExpiryFromAuthInSeconds,
   tokenExpireFromIssueInSeconds,
-}: OIDCAuthorizationConfig): CDKOIDCAuthorizationConfig => ({
+}: OIDCAuthorizationModeProps): CDKOIDCAuthorizationConfig => ({
   oidcProviderName,
   oidcIssuerUrl,
   clientId,
@@ -120,13 +120,15 @@ const computeUserPoolAuthFromResource = (
  * @returns an iam auth config, if relevant
  */
 const computeIAMAuthFromResource = (
-  providedAuthConfig: ProvidedAuthConfig | undefined
+  providedAuthConfig: ProvidedAuthConfig | undefined,
+  authModes: AuthorizationModes | undefined
 ): CDKIAMAuthorizationConfig | undefined => {
   if (providedAuthConfig) {
     return {
       authenticatedUserRole: providedAuthConfig.authenticatedUserRole,
       unauthenticatedUserRole: providedAuthConfig.unauthenticatedUserRole,
       identityPoolId: providedAuthConfig.identityPoolId,
+      allowListedRoles: authModes?.allowListedRoleNames ?? [],
     };
   }
   return;
@@ -159,19 +161,19 @@ export const convertAuthorizationModesToCDK = (
   const defaultAuthorizationMode =
     authModes?.defaultAuthorizationMode ??
     computeDefaultAuthorizationMode(authResources, authModes);
-  const apiKeyConfig = authModes?.apiKeyConfig
-    ? convertApiKeyAuthConfigToCDK(authModes.apiKeyConfig)
+  const apiKeyConfig = authModes?.apiKeyAuthorizationMode
+    ? convertApiKeyAuthConfigToCDK(authModes.apiKeyAuthorizationMode)
     : computeApiKeyAuthFromResource(authResources, authModes);
   const userPoolConfig = computeUserPoolAuthFromResource(authResources);
-  const iamConfig = computeIAMAuthFromResource(authResources);
-  const lambdaConfig = authModes?.lambdaConfig
+  const iamConfig = computeIAMAuthFromResource(authResources, authModes);
+  const lambdaConfig = authModes?.lambdaAuthorizationMode
     ? convertLambdaAuthorizationConfigToCDK(
         functionInstanceProvider,
-        authModes.lambdaConfig
+        authModes.lambdaAuthorizationMode
       )
     : undefined;
-  const oidcConfig = authModes?.oidcConfig
-    ? convertOIDCAuthConfigToCDK(authModes.oidcConfig)
+  const oidcConfig = authModes?.oidcAuthorizationMode
+    ? convertOIDCAuthConfigToCDK(authModes.oidcAuthorizationMode)
     : undefined;
 
   return {
@@ -181,9 +183,6 @@ export const convertAuthorizationModesToCDK = (
     ...(iamConfig ? { iamConfig } : undefined),
     ...(lambdaConfig ? { lambdaConfig } : undefined),
     ...(oidcConfig ? { oidcConfig } : undefined),
-    ...(authModes?.adminRoles
-      ? { adminRoles: authModes.adminRoles }
-      : undefined),
   };
 };
 

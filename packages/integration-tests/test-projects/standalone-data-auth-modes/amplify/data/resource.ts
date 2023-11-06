@@ -16,20 +16,20 @@ export const data = defineData({
   `,
   authorizationModes: {
     defaultAuthorizationMode: 'AWS_LAMBDA',
-    lambdaConfig: {
+    lambdaAuthorizationMode: {
       function: Func.fromDir({
         name: 'ApiAuth',
         codePath: 'api-auth',
       }),
       timeToLiveInSeconds: 0,
     },
-    oidcConfig: {
+    oidcAuthorizationMode: {
       oidcProviderName: 'fake-provider',
       oidcIssuerUrl: 'https://fake-provider.fake/',
       tokenExpiryFromAuthInSeconds: 50,
       tokenExpireFromIssueInSeconds: 60,
     },
-    apiKeyConfig: {
+    apiKeyAuthorizationMode: {
       expiresInDays: 30,
     },
   },

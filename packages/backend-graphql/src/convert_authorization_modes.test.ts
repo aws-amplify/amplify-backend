@@ -107,6 +107,7 @@ void describe('convertAuthorizationModesToCDK', () => {
         identityPoolId,
         authenticatedUserRole,
         unauthenticatedUserRole,
+        allowListedRoles: [],
       },
     };
 
@@ -123,7 +124,7 @@ void describe('convertAuthorizationModesToCDK', () => {
   void it('allows for overriding defaultAuthorizationMode and oidc config', () => {
     const authModes: AuthorizationModes = {
       defaultAuthorizationMode: 'OPENID_CONNECT',
-      oidcConfig: {
+      oidcAuthorizationMode: {
         clientId: 'testClient',
         oidcProviderName: 'testProvider',
         oidcIssuerUrl: 'https://test.provider/',
@@ -155,7 +156,7 @@ void describe('convertAuthorizationModesToCDK', () => {
 
   void it('allows for overriding api key config', () => {
     const authModes: AuthorizationModes = {
-      apiKeyConfig: {
+      apiKeyAuthorizationMode: {
         description: 'MyApiKey',
         expiresInDays: 30,
       },
@@ -198,7 +199,7 @@ void describe('convertAuthorizationModesToCDK', () => {
     };
 
     const authModes: AuthorizationModes = {
-      lambdaConfig: {
+      lambdaAuthorizationMode: {
         function: authFnFactory,
         timeToLiveInSeconds: 30,
       },
@@ -221,9 +222,9 @@ void describe('convertAuthorizationModesToCDK', () => {
     );
   });
 
-  void it('allows for specifying admin roles with an empty list', () => {
+  void it('allows for specifying allow listed roles with an empty list', () => {
     const authModes: AuthorizationModes = {
-      adminRoles: [],
+      allowListedRoleNames: [],
     };
 
     const expectedOutput: CDKAuthorizationModes = {
@@ -232,8 +233,8 @@ void describe('convertAuthorizationModesToCDK', () => {
         identityPoolId,
         authenticatedUserRole,
         unauthenticatedUserRole,
+        allowListedRoles: [],
       },
-      adminRoles: [],
     };
 
     assert.deepStrictEqual(
@@ -246,12 +247,9 @@ void describe('convertAuthorizationModesToCDK', () => {
     );
   });
 
-  void it('allows for specifying admin roles with values specified', () => {
+  void it('allows for specifying allow listed roles roles with values specified', () => {
     const authModes: AuthorizationModes = {
-      adminRoles: [
-        Role.fromRoleName(stack, 'AdminRole', 'MyAdminRole'),
-        Role.fromRoleName(stack, 'QA', 'MyQARole'),
-      ],
+      allowListedRoleNames: ['MyAdminRole', 'MyQARole'],
     };
 
     const convertedOutput = convertAuthorizationModesToCDK(
@@ -260,16 +258,19 @@ void describe('convertAuthorizationModesToCDK', () => {
       authModes
     );
 
-    assert.equal(convertedOutput.adminRoles?.length, 2);
-    assert.equal(convertedOutput.adminRoles?.[0].roleName, 'MyAdminRole');
-    assert.equal(convertedOutput.adminRoles?.[1].roleName, 'MyQARole');
+    assert.equal(convertedOutput.iamConfig?.allowListedRoles?.length, 2);
+    assert.equal(
+      convertedOutput.iamConfig?.allowListedRoles?.[0],
+      'MyAdminRole'
+    );
+    assert.equal(convertedOutput.iamConfig?.allowListedRoles?.[1], 'MyQARole');
   });
 });
 
 void describe('isUsingDefaultApiKeyAuth', () => {
   void it('returns false when auth modes are specified', () => {
     assert.equal(
-      isUsingDefaultApiKeyAuth(undefined, { apiKeyConfig: {} }),
+      isUsingDefaultApiKeyAuth(undefined, { apiKeyAuthorizationMode: {} }),
       false
     );
   });

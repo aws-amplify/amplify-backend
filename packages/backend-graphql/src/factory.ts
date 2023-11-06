@@ -88,7 +88,10 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       this.props.authorizationModes
     );
 
-    validateAuthorizationModes(authorizationModes);
+    validateAuthorizationModes(
+      this.props.authorizationModes,
+      authorizationModes
+    );
 
     const sandboxModeEnabled = isUsingDefaultApiKeyAuth(
       this.providedAuthConfig,

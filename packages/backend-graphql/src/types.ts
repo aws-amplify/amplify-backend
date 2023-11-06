@@ -1,6 +1,5 @@
 import { DerivedModelSchema } from '@aws-amplify/amplify-api-next-types-alpha';
 import { AmplifyFunction, ConstructFactory } from '@aws-amplify/plugin-types';
-import { IRole } from 'aws-cdk-lib/aws-iam';
 
 /**
  * Determine which auth mode is specified as 'default' in the Appsync API, only required if more than one authorization mode is specified.
@@ -13,9 +12,9 @@ export type DefaultAuthorizationMode =
   | 'AWS_LAMBDA';
 
 /**
- * Configuration for Api Keys on the Graphql Api.
+ * Props for Api Keys on the Graphql Api.
  */
-export type ApiKeyAuthorizationConfig = {
+export type ApiKeyAuthorizationModeProps = {
   /**
    * Optional description for the Api Key to attach to the Api.
    */
@@ -29,9 +28,9 @@ export type ApiKeyAuthorizationConfig = {
 };
 
 /**
- * Configuration for Custom Lambda authorization on the Graphql Api.
+ * Props for Custom Lambda authorization on the Graphql Api.
  */
-export type LambdaAuthorizationConfig = {
+export type LambdaAuthorizationModeProps = {
   /**
    * The authorization lambda function. The specific input type of the function is subject to change or removal.
    */
@@ -45,9 +44,9 @@ export type LambdaAuthorizationConfig = {
 };
 
 /**
- * Configuration for OpenId Connect Authorization on the Graphql Api.
+ * Props for OpenId Connect Authorization on the Graphql Api.
  */
-export type OIDCAuthorizationConfig = {
+export type OIDCAuthorizationModeProps = {
   /**
    * The issuer for the OIDC configuration.
    */
@@ -88,22 +87,22 @@ export type AuthorizationModes = {
   /**
    * Override API Key config if apiKey auth provider is specified in api definition.
    */
-  apiKeyConfig?: ApiKeyAuthorizationConfig;
+  apiKeyAuthorizationMode?: ApiKeyAuthorizationModeProps;
 
   /**
    * Lambda authorization config if function provider is specified in the api definition.
    */
-  lambdaConfig?: LambdaAuthorizationConfig;
+  lambdaAuthorizationMode?: LambdaAuthorizationModeProps;
 
   /**
    * OIDC authorization config if oidc provider is specified in the api definition.
    */
-  oidcConfig?: OIDCAuthorizationConfig;
+  oidcAuthorizationMode?: OIDCAuthorizationModeProps;
 
   /**
-   * IAM Roles which are provided full r/w access to the API for models with IAM authorization.
+   * IAM Role names which are provided full r/w access to the API for models with IAM authorization.
    */
-  adminRoles?: IRole[];
+  allowListedRoleNames?: string[];
 };
 
 /**

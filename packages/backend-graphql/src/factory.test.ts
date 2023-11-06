@@ -172,7 +172,7 @@ void describe('DataFactory', () => {
     dataFactory = defineData({
       schema: testSchema,
       authorizationModes: {
-        apiKeyConfig: {
+        apiKeyAuthorizationMode: {
           expiresInDays: 7,
         },
       },

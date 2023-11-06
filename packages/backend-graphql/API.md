@@ -8,10 +8,9 @@ import { AmplifyFunction } from '@aws-amplify/plugin-types';
 import { AmplifyGraphqlApi } from '@aws-amplify/graphql-api-construct';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { DerivedModelSchema } from '@aws-amplify/amplify-api-next-types-alpha';
-import { IRole } from 'aws-cdk-lib/aws-iam';
 
 // @public
-export type ApiKeyAuthorizationConfig = {
+export type ApiKeyAuthorizationModeProps = {
     description?: string;
     expiresInDays?: number;
 };
@@ -19,10 +18,10 @@ export type ApiKeyAuthorizationConfig = {
 // @public
 export type AuthorizationModes = {
     defaultAuthorizationMode?: DefaultAuthorizationMode;
-    apiKeyConfig?: ApiKeyAuthorizationConfig;
-    lambdaConfig?: LambdaAuthorizationConfig;
-    oidcConfig?: OIDCAuthorizationConfig;
-    adminRoles?: IRole[];
+    apiKeyAuthorizationMode?: ApiKeyAuthorizationModeProps;
+    lambdaAuthorizationMode?: LambdaAuthorizationModeProps;
+    oidcAuthorizationMode?: OIDCAuthorizationModeProps;
+    allowListedRoleNames?: string[];
 };
 
 // @public
@@ -43,13 +42,13 @@ export type DefaultAuthorizationMode = 'AWS_IAM' | 'AMAZON_COGNITO_USER_POOLS' |
 export const defineData: (props: DataProps) => ConstructFactory<AmplifyGraphqlApi>;
 
 // @public
-export type LambdaAuthorizationConfig = {
+export type LambdaAuthorizationModeProps = {
     function: ConstructFactory<AmplifyFunction>;
     timeToLiveInSeconds?: number;
 };
 
 // @public
-export type OIDCAuthorizationConfig = {
+export type OIDCAuthorizationModeProps = {
     oidcProviderName: string;
     oidcIssuerUrl: string;
     clientId?: string;
