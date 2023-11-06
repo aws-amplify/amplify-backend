@@ -1,5 +1,11 @@
 # @aws-amplify/backend-function
 
+## 0.1.3
+
+### Patch Changes
+
+- 0bd8a3f3: add missing dev deps
+
 ## 0.1.2
 
 ### Patch Changes
