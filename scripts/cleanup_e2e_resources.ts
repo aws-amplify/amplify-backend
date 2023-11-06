@@ -48,7 +48,7 @@ const s3Client = new S3Client({
   maxAttempts: 5,
 });
 const now = new Date();
-const TEST_RESOURCE_PREFIX = 'amplify-test';
+const TEST_RESOURCE_PREFIX = 'amplify-';
 
 const isStale = (creationDate: Date | undefined): boolean | undefined => {
   if (!creationDate) {
