@@ -11,7 +11,7 @@ import {
   ListBranchesCommand,
   ListBranchesCommandOutput,
 } from '@aws-sdk/client-amplify';
-import { shortUuid } from '../short_uuid.js';
+import { shortUuid } from './short_uuid.js';
 
 export type TestBranch = {
   readonly appId: string;

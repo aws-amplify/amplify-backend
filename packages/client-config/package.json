@@ -33,6 +33,7 @@
     "zod": "^3.21.4"
   },
   "devDependencies": {
+    "@aws-amplify/platform-core": "^0.1.2",
     "@aws-sdk/types": "^3.370.0"
   }
 }

@@ -4,6 +4,7 @@
   "references": [
     { "path": "../backend-output-schemas" },
     { "path": "../deployed-backend-client" },
-    { "path": "../model-generator" }
+    { "path": "../model-generator" },
+    { "path": "../platform-core" }
   ]
 }
