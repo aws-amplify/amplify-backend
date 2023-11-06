@@ -1,5 +1,11 @@
 # @aws-amplify/backend-graphql
 
+## 0.3.1
+
+### Patch Changes
+
+- 0bd8a3f3: add missing dev deps
+
 ## 0.3.0
 
 ### Minor Changes

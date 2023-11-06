@@ -1,5 +1,11 @@
 # @aws-amplify/backend-auth
 
+## 0.2.3
+
+### Patch Changes
+
+- 0bd8a3f3: add missing dev deps
+
 ## 0.2.2
 
 ### Patch Changes

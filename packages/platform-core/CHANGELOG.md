@@ -1,5 +1,11 @@
 # @aws-amplify/platform-core
 
+## 0.1.3
+
+### Patch Changes
+
+- 0bd8a3f3: add 'main' entry to package.json
+
 ## 0.1.2
 
 ### Patch Changes
