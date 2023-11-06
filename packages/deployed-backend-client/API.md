@@ -38,6 +38,8 @@ export enum BackendDeploymentStatus {
     // (undocumented)
     DELETED = "DELETED",
     // (undocumented)
+    DELETING = "DELETING",
+    // (undocumented)
     DEPLOYED = "DEPLOYED",
     // (undocumented)
     DEPLOYING = "DEPLOYING",
