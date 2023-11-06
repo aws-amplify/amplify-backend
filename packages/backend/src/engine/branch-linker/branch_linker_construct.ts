@@ -32,6 +32,9 @@ export class AmplifyBranchLinkerConstruct extends Construct {
 
     const environment: Record<string, string> = {};
     if (process.env.AWS_ENDPOINT_URL_AMPLIFY) {
+      // Passing a standard AWS SDK environment variable if present to override
+      // Amplify service endpoint.
+      // See https://docs.aws.amazon.com/sdkref/latest/guide/feature-ss-endpoints.html
       environment.AWS_ENDPOINT_URL_AMPLIFY =
         process.env.AWS_ENDPOINT_URL_AMPLIFY;
     }

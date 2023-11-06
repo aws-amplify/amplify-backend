@@ -76,7 +76,10 @@ export class BackendFactory<
       },
     });
 
-    if (uniqueBackendIdentifier instanceof BranchBackendIdentifier) {
+    const shouldEnableBranchLinker =
+      uniqueBackendIdentifier instanceof BranchBackendIdentifier &&
+      process.env.AMPLIFY_BACKEND_BRANCH_LINKER_ENABLED === 'true';
+    if (shouldEnableBranchLinker) {
       new AmplifyBranchLinkerConstruct(stack, uniqueBackendIdentifier);
     }
 
