@@ -1,5 +1,16 @@
 # @aws-amplify/backend
 
+## 0.3.1
+
+### Patch Changes
+
+- 1ec5c373: store attribution metadata in custom stacks
+- 8cc8ffc6: handle non existing branch gracefully in branch linker on delete event
+- 5b1b2385: updating getOrCreateStack to getStack
+- Updated dependencies [1dd824cb]
+- Updated dependencies [42127d0a]
+  - @aws-amplify/backend-graphql@0.3.0
+
 ## 0.3.0
 
 ### Minor Changes

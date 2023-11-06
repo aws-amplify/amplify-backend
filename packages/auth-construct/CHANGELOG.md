@@ -1,5 +1,11 @@
 # @aws-amplify/auth-construct-alpha
 
+## 0.2.3
+
+### Patch Changes
+
+- ce371dac: Update default user pool deletion to DESTROY.
+
 ## 0.2.2
 
 ### Patch Changes

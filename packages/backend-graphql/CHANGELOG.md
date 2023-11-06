@@ -1,5 +1,15 @@
 # @aws-amplify/backend-graphql
 
+## 0.3.0
+
+### Minor Changes
+
+- 42127d0a: Add support for functions as input to the defineData call.
+
+### Patch Changes
+
+- 1dd824cb: Bump graphql-api construct version
+
 ## 0.2.1
 
 ### Patch Changes
