@@ -1,5 +1,13 @@
 # @aws-amplify/backend-graphql
 
+## 0.3.2
+
+### Patch Changes
+
+- 3bff764b: Expose user pool and client as cfn resources.
+- Updated dependencies [3bff764b]
+  - @aws-amplify/plugin-types@0.3.1
+
 ## 0.3.1
 
 ### Patch Changes
