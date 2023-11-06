@@ -46,7 +46,6 @@ void describe('translateStackStatus', () => {
   void it('translates deploying', async () => {
     const deployingStatuses = [
       StackStatus.CREATE_IN_PROGRESS,
-      StackStatus.DELETE_IN_PROGRESS,
       StackStatus.IMPORT_IN_PROGRESS,
       StackStatus.IMPORT_ROLLBACK_IN_PROGRESS,
       StackStatus.REVIEW_IN_PROGRESS,
@@ -61,6 +60,17 @@ void describe('translateStackStatus', () => {
     );
     const assertion = translated.every(
       (status) => status === BackendDeploymentStatus.DEPLOYING
+    );
+    assert.equal(assertion, true);
+  });
+
+  void it('translates deleting', async () => {
+    const deletedStatuses = [StackStatus.DELETE_IN_PROGRESS];
+    const translated = deletedStatuses.map((status) =>
+      mapper.translateStackStatus(status)
+    );
+    const assertion = translated.every(
+      (status) => status === BackendDeploymentStatus.DELETING
     );
     assert.equal(assertion, true);
   });
