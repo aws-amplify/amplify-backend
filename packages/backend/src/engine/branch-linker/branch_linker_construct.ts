@@ -30,11 +30,17 @@ export class AmplifyBranchLinkerConstruct extends Construct {
   constructor(scope: Construct, backendIdentifier: BranchBackendIdentifier) {
     super(scope, 'AmplifyBranchLinker');
 
+    const environment: Record<string, string> = {};
+    if (process.env.AWS_ENDPOINT_URL_AMPLIFY) {
+      environment.AWS_ENDPOINT_URL_AMPLIFY =
+        process.env.AWS_ENDPOINT_URL_AMPLIFY;
+    }
     const linkerLambda = new NodejsFunction(this, 'CustomResourceLambda', {
       runtime: LambdaRuntime.NODEJS_18_X,
       timeout: Duration.seconds(10),
       entry: linkerLambdaFilePath,
       handler: 'handler',
+      environment,
       bundling: {
         // TODO Remove it when Lambda serves SDK 3.440.0+
         // https://github.com/aws-amplify/samsara-cli/issues/561
