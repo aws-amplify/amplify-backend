@@ -1,5 +1,12 @@
 # @aws-amplify/deployed-backend-client
 
+## 0.2.2
+
+### Patch Changes
+
+- bbb5b657: update sdk client deps
+- 1cdb3ba9: add DELETING backend deployment status
+
 ## 0.2.1
 
 ### Patch Changes
