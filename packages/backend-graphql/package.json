@@ -18,8 +18,9 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
+    "@aws-amplify/amplify-api-next-alpha": "^0.6.2",
     "@aws-amplify/backend-platform-test-stubs": "^0.2.0",
-    "@aws-amplify/amplify-api-next-alpha": "^0.6.2"
+    "@aws-amplify/platform-core": "^0.1.2"
   },
   "peerDependencies": {
     "aws-cdk-lib": "^2.103.0",
