@@ -8,6 +8,7 @@ import path from 'path';
 import { Provider } from 'aws-cdk-lib/custom-resources';
 import { AmplifyBranchLinkerCustomResourceProps } from './lambda/branch_linker_types.js';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import { BackendEnvironmentVariables } from '../../environment_variables.js';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -31,12 +32,12 @@ export class AmplifyBranchLinkerConstruct extends Construct {
     super(scope, 'AmplifyBranchLinker');
 
     const environment: Record<string, string> = {};
-    if (process.env.AWS_ENDPOINT_URL_AMPLIFY) {
+    if (process.env[BackendEnvironmentVariables.AWS_ENDPOINT_URL_AMPLIFY]) {
       // Passing a standard AWS SDK environment variable if present to override
       // Amplify service endpoint.
       // See https://docs.aws.amazon.com/sdkref/latest/guide/feature-ss-endpoints.html
-      environment.AWS_ENDPOINT_URL_AMPLIFY =
-        process.env.AWS_ENDPOINT_URL_AMPLIFY;
+      environment[BackendEnvironmentVariables.AWS_ENDPOINT_URL_AMPLIFY] =
+        process.env[BackendEnvironmentVariables.AWS_ENDPOINT_URL_AMPLIFY];
     }
     const linkerLambda = new NodejsFunction(this, 'CustomResourceLambda', {
       runtime: LambdaRuntime.NODEJS_18_X,

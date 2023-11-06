@@ -10,6 +10,7 @@ import {
   BackendDeploymentType,
   CDKContextKey,
 } from '@aws-amplify/platform-core';
+import { BackendEnvironmentVariables } from './environment_variables.js';
 
 const createStackAndSetContext = (
   deploymentType: BackendDeploymentType
@@ -143,7 +144,9 @@ void describe('Backend', () => {
 
   void it('registers branch linker for branch deployments if enabled', () => {
     try {
-      process.env.AMPLIFY_BACKEND_BRANCH_LINKER_ENABLED = 'true';
+      process.env[
+        BackendEnvironmentVariables.AMPLIFY_BACKEND_BRANCH_LINKER_ENABLED
+      ] = 'true';
       new BackendFactory({}, rootStack);
       const rootStackTemplate = Template.fromStack(rootStack);
       rootStackTemplate.resourceCountIs(
@@ -151,7 +154,9 @@ void describe('Backend', () => {
         1
       );
     } finally {
-      delete process.env.AMPLIFY_BACKEND_BRANCH_LINKER_ENABLED;
+      delete process.env[
+        BackendEnvironmentVariables.AMPLIFY_BACKEND_BRANCH_LINKER_ENABLED
+      ];
     }
   });
 

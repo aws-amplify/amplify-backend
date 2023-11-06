@@ -3,6 +3,7 @@ import { Template } from 'aws-cdk-lib/assertions';
 import { Stack } from 'aws-cdk-lib';
 import { BranchBackendIdentifier } from '@aws-amplify/platform-core';
 import { AmplifyBranchLinkerConstruct } from './branch_linker_construct.js';
+import { BackendEnvironmentVariables } from '../../environment_variables.js';
 
 void describe('Branch Linker Construct', () => {
   const backendId = 'test-backend-id';
@@ -36,7 +37,8 @@ void describe('Branch Linker Construct', () => {
   void it('defines amplify service endpoint url if provided', () => {
     try {
       const customEndpoint = 'https://custom.amplify.endpoint';
-      process.env.AWS_ENDPOINT_URL_AMPLIFY = customEndpoint;
+      process.env[BackendEnvironmentVariables.AWS_ENDPOINT_URL_AMPLIFY] =
+        customEndpoint;
       const stack = new Stack();
       const backendIdentifier = new BranchBackendIdentifier(
         backendId,
@@ -56,7 +58,7 @@ void describe('Branch Linker Construct', () => {
         },
       });
     } finally {
-      delete process.env.AWS_ENDPOINT_URL_AMPLIFY;
+      delete process.env[BackendEnvironmentVariables.AWS_ENDPOINT_URL_AMPLIFY];
     }
   });
 });
