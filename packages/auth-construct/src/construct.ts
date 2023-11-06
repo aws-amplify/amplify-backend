@@ -7,6 +7,8 @@ import {
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import {
+  CfnUserPool,
+  CfnUserPoolClient,
   Mfa,
   UserPool,
   UserPoolClient,
@@ -141,6 +143,10 @@ export class AmplifyAuth
       authenticatedUserIamRole: auth,
       unauthenticatedUserIamRole: unAuth,
       cfnResources: {
+        userPool: this.userPool.node.findChild('Resource') as CfnUserPool,
+        userPoolClient: userPoolClient.node.findChild(
+          'Resource'
+        ) as CfnUserPoolClient,
         identityPool,
         identityPoolRoleAttachment,
       },
