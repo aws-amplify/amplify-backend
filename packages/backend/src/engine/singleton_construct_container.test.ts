@@ -15,6 +15,7 @@ import {
   BackendDeploymentType,
   CDKContextKey,
 } from '@aws-amplify/platform-core';
+import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
@@ -36,7 +37,7 @@ void describe('SingletonConstructContainer', () => {
     });
     void it('calls initializer to create construct instance', () => {
       const container = new SingletonConstructContainer(
-        new NestedStackResolver(stack)
+        new NestedStackResolver(stack, new AttributionMetadataStorage())
       );
       const instance = container.getOrCompute({
         resourceGroupName: 'testGroup',
@@ -49,7 +50,7 @@ void describe('SingletonConstructContainer', () => {
 
     void it('returns cached instance if initializer has been seen before', () => {
       const container = new SingletonConstructContainer(
-        new NestedStackResolver(stack)
+        new NestedStackResolver(stack, new AttributionMetadataStorage())
       );
       const initializer: ConstructContainerEntryGenerator = {
         resourceGroupName: 'testGroup',
@@ -65,7 +66,7 @@ void describe('SingletonConstructContainer', () => {
 
     void it('returns correct cached value for each initializer', () => {
       const container = new SingletonConstructContainer(
-        new NestedStackResolver(stack)
+        new NestedStackResolver(stack, new AttributionMetadataStorage())
       );
       const bucketInitializer: ConstructContainerEntryGenerator = {
         resourceGroupName: 'testGroup',
@@ -102,7 +103,10 @@ void describe('SingletonConstructContainer', () => {
 
     beforeEach(() => {
       container = new SingletonConstructContainer(
-        new NestedStackResolver(createStackAndSetContext())
+        new NestedStackResolver(
+          createStackAndSetContext(),
+          new AttributionMetadataStorage()
+        )
       );
     });
 

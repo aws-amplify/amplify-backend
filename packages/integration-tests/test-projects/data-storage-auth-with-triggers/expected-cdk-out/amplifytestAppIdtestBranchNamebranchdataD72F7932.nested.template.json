@@ -32,7 +32,7 @@
      ]
     },
     "DefinitionS3Location": {
-     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/6449656554023e0ec45392816430f2a15cc7bd3f61ece8e5597df8547f64e766.graphql"
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/b6c317b348fb2ab6f8ccf815387da5005ddbbb4111c3c3bb180de12612d204a8.graphql"
     }
    }
   },
@@ -105,6 +105,56 @@
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
        "/e374ff8f696580fc339e1564b3004abbfca24f9a5dc5d51c174a824d32f2df65.json"
+      ]
+     ]
+    }
+   },
+   "DependsOn": [
+    "amplifyDataGraphQLAPITransformerSchemaFF50A789"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "amplifyDataFunctionDirectiveStackNestedStackFunctionDirectiveStackNestedStackResource1246A302": {
+   "Type": "AWS::CloudFormation::Stack",
+   "Properties": {
+    "Parameters": {
+     "referencetoamplifytestAppIdtestBranchNamebranchfunctionNestedStackfunctionNestedStackResourceF7454B19OutputsamplifytestAppIdtestBranchNamebranchfunctiontestFunctestFuncLambdaFunction10DE0413Arn": {
+      "Ref": "referencetoamplifytestAppIdtestBranchNamebranchfunctionNestedStackfunctionNestedStackResourceF7454B19OutputsamplifytestAppIdtestBranchNamebranchfunctiontestFunctestFuncLambdaFunction10DE0413Arn"
+     },
+     "referencetoamplifytestAppIdtestBranchNamebranchdataamplifyDataGraphQLAPIAC6F7A73ApiId": {
+      "Fn::GetAtt": [
+       "amplifyDataGraphQLAPI42A6FA33",
+       "ApiId"
+      ]
+     },
+     "referencetoamplifytestAppIdtestBranchNamebranchauthNestedStackauthNestedStackResourceA6135204OutputsamplifytestAppIdtestBranchNamebranchauthamplifyAuthauthenticatedUserRole37EAADD0Ref": {
+      "Ref": "referencetoamplifytestAppIdtestBranchNamebranchauthNestedStackauthNestedStackResourceA6135204OutputsamplifytestAppIdtestBranchNamebranchauthamplifyAuthauthenticatedUserRole37EAADD0Ref"
+     },
+     "referencetoamplifytestAppIdtestBranchNamebranchauthNestedStackauthNestedStackResourceA6135204OutputsamplifytestAppIdtestBranchNamebranchauthamplifyAuthunauthenticatedUserRoleB1D4547BRef": {
+      "Ref": "referencetoamplifytestAppIdtestBranchNamebranchauthNestedStackauthNestedStackResourceA6135204OutputsamplifytestAppIdtestBranchNamebranchauthamplifyAuthunauthenticatedUserRoleB1D4547BRef"
+     },
+     "referencetoamplifytestAppIdtestBranchNamebranchfunctionNestedStackfunctionNestedStackResourceF7454B19OutputsamplifytestAppIdtestBranchNamebranchfunctionechoFuncechoFuncLambdaFunction88452C43Arn": {
+      "Ref": "referencetoamplifytestAppIdtestBranchNamebranchfunctionNestedStackfunctionNestedStackResourceF7454B19OutputsamplifytestAppIdtestBranchNamebranchfunctionechoFuncechoFuncLambdaFunction88452C43Arn"
+     }
+    },
+    "TemplateURL": {
+     "Fn::Join": [
+      "",
+      [
+       "https://s3.",
+       {
+        "Ref": "AWS::Region"
+       },
+       ".",
+       {
+        "Ref": "AWS::URLSuffix"
+       },
+       "/",
+       {
+        "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+       },
+       "/dfe78b1b8ac075978301a034a3dd98a4bc204af0ac2a4dec35f59dac25be0422.json"
       ]
      ]
     }
@@ -210,7 +260,7 @@
      "S3Bucket": {
       "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
      },
-     "S3Key": "e2277687077a2abf9ae1af1cc9565e6715e2ebb62f79ec53aa75a1af9298f642.zip"
+     "S3Key": "3fb6287214999ddeafa7cd0e3e58bc5144c8678bb720f3b5e45e8fd32f333eb3.zip"
     },
     "Description": "/opt/awscli/aws"
    }
@@ -230,7 +280,7 @@
      }
     ],
     "SourceObjectKeys": [
-     "a15f89274b38ac4503ad4eb981769e1b8ddc84f7b0c2ffa55220cc2961d68da0.zip"
+     "c4e00a9748af015aa3e316547ca9d69e1158986419b084069f403f5e868bd821.zip"
     ],
     "SourceMarkers": [
      {}
@@ -507,6 +557,12 @@
    "Type": "String"
   },
   "referencetoamplifytestAppIdtestBranchNamebranchauthNestedStackauthNestedStackResourceA6135204OutputsamplifytestAppIdtestBranchNamebranchauthamplifyAuthunauthenticatedUserRoleB1D4547BRef": {
+   "Type": "String"
+  },
+  "referencetoamplifytestAppIdtestBranchNamebranchfunctionNestedStackfunctionNestedStackResourceF7454B19OutputsamplifytestAppIdtestBranchNamebranchfunctiontestFunctestFuncLambdaFunction10DE0413Arn": {
+   "Type": "String"
+  },
+  "referencetoamplifytestAppIdtestBranchNamebranchfunctionNestedStackfunctionNestedStackResourceF7454B19OutputsamplifytestAppIdtestBranchNamebranchfunctionechoFuncechoFuncLambdaFunction88452C43Arn": {
    "Type": "String"
   }
  },

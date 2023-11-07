@@ -19,7 +19,7 @@ import {
   updateFileContent,
 } from '../process-controller/predicated_action_macros.js';
 import assert from 'node:assert';
-import { TestBranch, amplifyAppPool } from './amplify_app_pool.js';
+import { TestBranch, amplifyAppPool } from '../amplify_app_pool.js';
 
 const testProjects = await generateTestProjects(rootTestDir);
 

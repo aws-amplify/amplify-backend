@@ -1,5 +1,29 @@
 # @aws-amplify/backend-graphql
 
+## 0.3.2
+
+### Patch Changes
+
+- 3bff764b: Expose user pool and client as cfn resources.
+- Updated dependencies [3bff764b]
+  - @aws-amplify/plugin-types@0.3.1
+
+## 0.3.1
+
+### Patch Changes
+
+- 0bd8a3f3: add missing dev deps
+
+## 0.3.0
+
+### Minor Changes
+
+- 42127d0a: Add support for functions as input to the defineData call.
+
+### Patch Changes
+
+- 1dd824cb: Bump graphql-api construct version
+
 ## 0.2.1
 
 ### Patch Changes

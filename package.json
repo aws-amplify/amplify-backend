@@ -20,6 +20,7 @@
     "install:local": "npm run set-script-shell && npm install && npm run build && npm run install:local --workspaces --if-present",
     "lint": "eslint --max-warnings 0 . && prettier --check .",
     "lint:fix": "eslint --cache --fix . && prettier --write .",
+    "live-dependency-health-checks": "npm run test:dir packages/integration-tests/lib/test-live-dependency-health-checks",
     "new": "tsx scripts/copy_template.ts",
     "prepare": "husky install",
     "publish": "tsx scripts/publish.ts",

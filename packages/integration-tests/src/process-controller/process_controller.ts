@@ -117,6 +117,19 @@ export const amplifyCli = (
   args: string[] = [],
   dir: string,
   options?: {
+    installationType?: 'global' | 'local';
     env?: Record<string, string>;
   }
-) => new ProcessController('amplify', args, { cwd: dir, env: options?.env });
+): ProcessController => {
+  let command: string;
+  if (options?.installationType === 'local') {
+    command = 'npx';
+    args = ['amplify'].concat(args);
+  } else {
+    command = 'amplify';
+  }
+  return new ProcessController(command, args, {
+    cwd: dir,
+    env: options?.env,
+  });
+};
