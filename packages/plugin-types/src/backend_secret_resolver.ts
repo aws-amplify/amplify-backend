@@ -1,5 +1,5 @@
 import { Construct } from 'constructs';
-import { UniqueBackendIdentifier } from './unique_backend_identifier.js';
+import { UniqueBackendIdentifier } from './backend_identifier_parts.js';
 import { SecretValue } from 'aws-cdk-lib';
 
 export type BackendSecret = {
