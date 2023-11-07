@@ -1,7 +1,6 @@
 import path from 'path';
 import * as os from 'os';
-import { extractFilePathFromStackTraceLineRegexes } from '@aws-amplify/platform-core';
-import { fileURLToPath } from 'url';
+import { FilePathExtractor } from '@aws-amplify/platform-core';
 
 /**
  * Extracts the path of the caller of the code that generated the input stack trace.
@@ -27,25 +26,9 @@ export const getCallerDirectory = (stackTrace?: string): string => {
   }
   const stackTraceImportLine = stacktraceLines[1]; // the first entry is the file where the error was initialized (our code). The second entry is where the customer called our code which is what we are interested in
 
-  for (const regex of extractFilePathFromStackTraceLineRegexes) {
-    const match = stackTraceImportLine.match(regex);
-    if (match?.groups?.filepath) {
-      const filePath = standardizePath(match?.groups?.filepath);
-      return path.dirname(filePath);
-    }
+  const filePath = new FilePathExtractor(stackTraceImportLine).extract();
+  if (filePath) {
+    return path.dirname(filePath);
   }
   throw unresolvedImportLocationError;
-};
-
-// The input can be either a file path or a file URL. If it's a file URL, convert it to the path.
-const standardizePath = (maybeUrl: string): string => {
-  try {
-    const url = new URL(maybeUrl);
-    if (url.protocol === 'file:') {
-      return fileURLToPath(url);
-    }
-    return maybeUrl;
-  } catch {
-    return maybeUrl;
-  }
 };

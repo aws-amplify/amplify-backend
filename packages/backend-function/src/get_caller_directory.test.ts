@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { getCallerDirectory } from './get_caller_directory.js';
-import { fileURLToPath } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 
 void describe('getCallerDirectory', () => {
   void it('throws if stack trace is undefined', () => {
@@ -51,12 +51,15 @@ void describe('getCallerDirectory', () => {
     });
 
     void it('returns path of second stack frame', () => {
-      const someFileUrl = fileURLToPath(new URL('.', import.meta.url));
+      const someFileUrl = pathToFileURL('.');
       const validStackTrace = `Error
     at file:///Users/alias/sandboxes/install-test/node_modules/@aws-amplify/backend-auth/src/factory.ts:28:24
-    at ${someFileUrl}/otherName.ts:3:21
+    at ${someFileUrl.toString()}/otherName.ts:3:21
     at file:///Users/alias/sandboxes/install-test/backend/auth.ts:5:2`;
-      assert.strictEqual(getCallerDirectory(validStackTrace), someFileUrl);
+      assert.strictEqual(
+        getCallerDirectory(validStackTrace),
+        fileURLToPath(someFileUrl)
+      );
     });
   });
 });

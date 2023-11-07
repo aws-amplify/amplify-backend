@@ -9,7 +9,7 @@ import { CdkErrorMapper } from './cdk_error_mapper.js';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import {
   BackendDeploymentType,
-  getRelativeBackendEntryPoint,
+  BackendLocator,
 } from '@aws-amplify/platform-core';
 import { BackendDeployerEnvironmentVariables } from './environment_variables.js';
 
@@ -30,7 +30,7 @@ export class CDKDeployer implements BackendDeployer {
    */
   constructor(
     private readonly cdkErrorMapper: CdkErrorMapper,
-    private readonly relativeBackendEntryPointFetcher = getRelativeBackendEntryPoint
+    private readonly backendLocator = new BackendLocator()
   ) {}
   /**
    * Invokes cdk deploy command
@@ -97,7 +97,7 @@ export class CDKDeployer implements BackendDeployer {
         'node16',
         '--target',
         'es2022',
-        this.relativeBackendEntryPointFetcher(),
+        this.backendLocator.locate(),
       ]);
     }
   };
@@ -119,7 +119,7 @@ export class CDKDeployer implements BackendDeployer {
       // See https://github.com/aws/aws-cdk/issues/7717 for more details.
       '--ci',
       '--app',
-      `'npx tsx ${this.relativeBackendEntryPointFetcher()}'`,
+      `'npx tsx ${this.backendLocator.locate()}'`,
       '--all',
       '--output',
       '.amplify/artifacts/cdk.out',

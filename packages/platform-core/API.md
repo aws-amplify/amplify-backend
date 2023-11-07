@@ -16,6 +16,13 @@ export enum BackendDeploymentType {
 }
 
 // @public
+export class BackendLocator {
+    constructor(rootDir?: string);
+    // (undocumented)
+    locate: () => string;
+}
+
+// @public
 export class BranchBackendIdentifier extends UniqueBackendIdentifierBase {
     constructor(backendId: BackendId, branchName: string);
     // (undocumented)
@@ -29,10 +36,11 @@ export enum CDKContextKey {
 }
 
 // @public
-export const extractFilePathFromStackTraceLineRegexes: RegExp[];
-
-// @public
-export const getRelativeBackendEntryPoint: (rootDir?: string) => string;
+export class FilePathExtractor {
+    constructor(stackTraceLine: string);
+    // (undocumented)
+    extract: () => string | undefined;
+}
 
 // @public
 export class SandboxBackendIdentifier extends UniqueBackendIdentifierBase {
