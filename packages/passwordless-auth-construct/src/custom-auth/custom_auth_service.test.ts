@@ -5,7 +5,7 @@ import {
   buildCreateAuthChallengeEvent,
   buildDefineAuthChallengeEvent,
   buildVerifyAuthChallengeResponseEvent,
-} from '../mocks/challenge_events.js';
+} from '../mocks/challenge_events.mock.js';
 import {
   CreateAuthChallengeTriggerEvent,
   DefineAuthChallengeTriggerEvent,
