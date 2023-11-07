@@ -1,5 +1,14 @@
 # @aws-amplify/backend
 
+## 0.3.2
+
+### Patch Changes
+
+- 4acf0ad9: disable branch linker by default, add environment variables to control its behaviors
+- Updated dependencies [3bff764b]
+  - @aws-amplify/backend-graphql@0.3.2
+  - @aws-amplify/plugin-types@0.3.1
+
 ## 0.3.1
 
 ### Patch Changes

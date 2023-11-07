@@ -8,6 +8,7 @@ import path from 'path';
 import { Provider } from 'aws-cdk-lib/custom-resources';
 import { AmplifyBranchLinkerCustomResourceProps } from './lambda/branch_linker_types.js';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import { BackendEnvironmentVariables } from '../../environment_variables.js';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -30,11 +31,20 @@ export class AmplifyBranchLinkerConstruct extends Construct {
   constructor(scope: Construct, backendIdentifier: BranchBackendIdentifier) {
     super(scope, 'AmplifyBranchLinker');
 
+    const environment: Record<string, string> = {};
+    if (process.env[BackendEnvironmentVariables.AWS_ENDPOINT_URL_AMPLIFY]) {
+      // Passing a standard AWS SDK environment variable if present to override
+      // Amplify service endpoint.
+      // See https://docs.aws.amazon.com/sdkref/latest/guide/feature-ss-endpoints.html
+      environment[BackendEnvironmentVariables.AWS_ENDPOINT_URL_AMPLIFY] =
+        process.env[BackendEnvironmentVariables.AWS_ENDPOINT_URL_AMPLIFY];
+    }
     const linkerLambda = new NodejsFunction(this, 'CustomResourceLambda', {
       runtime: LambdaRuntime.NODEJS_18_X,
       timeout: Duration.seconds(10),
       entry: linkerLambdaFilePath,
       handler: 'handler',
+      environment,
       bundling: {
         // TODO Remove it when Lambda serves SDK 3.440.0+
         // https://github.com/aws-amplify/samsara-cli/issues/561

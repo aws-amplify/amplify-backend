@@ -6,6 +6,8 @@
 
 import { CfnIdentityPool } from 'aws-cdk-lib/aws-cognito';
 import { CfnIdentityPoolRoleAttachment } from 'aws-cdk-lib/aws-cognito';
+import { CfnUserPool } from 'aws-cdk-lib/aws-cognito';
+import { CfnUserPoolClient } from 'aws-cdk-lib/aws-cognito';
 import { Construct } from 'constructs';
 import { Function as Function_2 } from 'aws-cdk-lib/aws-lambda';
 import { IRole } from 'aws-cdk-lib/aws-iam';
@@ -22,6 +24,8 @@ export type AppId = string;
 
 // @public
 export type AuthCfnResources = {
+    userPool: CfnUserPool;
+    userPoolClient: CfnUserPoolClient;
     identityPool: CfnIdentityPool;
     identityPoolRoleAttachment: CfnIdentityPoolRoleAttachment;
 };

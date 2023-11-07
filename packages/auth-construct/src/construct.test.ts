@@ -10,7 +10,6 @@ import {
 } from '@aws-amplify/plugin-types';
 import {
   CfnIdentityPool,
-  CfnUserPool,
   CfnUserPoolClient,
   OAuthScope,
   UserPool,
@@ -703,10 +702,7 @@ void describe('Auth construct', () => {
       const app = new App();
       const stack = new Stack(app);
       const auth = new AmplifyAuth(stack, 'test');
-      const userPoolResource = auth.resources.userPool.node.findChild(
-        'Resource'
-      ) as CfnUserPool;
-      userPoolResource.addPropertyOverride(
+      auth.resources.cfnResources.userPool.addPropertyOverride(
         'UsernameConfiguration.CaseSensitive',
         true
       );
@@ -723,10 +719,7 @@ void describe('Auth construct', () => {
       const auth = new AmplifyAuth(stack, 'test', {
         loginWith: { email: true },
       });
-      const userPoolResource = auth.resources.userPool.node.findChild(
-        'Resource'
-      ) as CfnUserPool;
-      userPoolResource.addPropertyOverride(
+      auth.resources.cfnResources.userPool.addPropertyOverride(
         'UserAttributeUpdateSettings.AttributesRequireVerificationBeforeUpdate',
         []
       );
@@ -743,9 +736,7 @@ void describe('Auth construct', () => {
       const auth = new AmplifyAuth(stack, 'test', {
         loginWith: { email: true },
       });
-      const userPoolResource = auth.resources.userPool.node.findChild(
-        'Resource'
-      ) as CfnUserPool;
+      const userPoolResource = auth.resources.cfnResources.userPool;
       userPoolResource.addPropertyOverride(
         'DeviceConfiguration.ChallengeRequiredOnNewDevice',
         true
@@ -766,9 +757,7 @@ void describe('Auth construct', () => {
       const app = new App();
       const stack = new Stack(app);
       const auth = new AmplifyAuth(stack, 'test');
-      const userPoolResource = auth.resources.userPool.node.findChild(
-        'Resource'
-      ) as CfnUserPool;
+      const userPoolResource = auth.resources.cfnResources.userPool;
       userPoolResource.addPropertyOverride(
         'Policies.PasswordPolicy.MinimumLength',
         10
@@ -806,11 +795,7 @@ void describe('Auth construct', () => {
       const app = new App();
       const stack = new Stack(app);
       const auth = new AmplifyAuth(stack, 'test');
-      const userPoolClientResource =
-        auth.resources.userPoolClient.node.findChild(
-          'Resource'
-        ) as CfnUserPoolClient;
-      userPoolClientResource.addPropertyOverride(
+      auth.resources.cfnResources.userPoolClient.addPropertyOverride(
         'PreventUserExistenceErrors',
         'LEGACY'
       );
