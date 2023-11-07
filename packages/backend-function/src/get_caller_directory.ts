@@ -30,20 +30,22 @@ export const getCallerDirectory = (stackTrace?: string): string => {
   for (const regex of extractFilePathFromStackTraceLine) {
     const match = stackTraceImportLine.match(regex);
     if (match?.groups?.filepath) {
-      const fileURL = tryGetUrl(match?.groups?.filepath);
-      const filePath = fileURL
-        ? fileURLToPath(fileURL)
-        : match?.groups?.filepath;
+      const filePath = standardizePath(match?.groups?.filepath);
       return path.dirname(filePath);
     }
   }
   throw unresolvedImportLocationError;
 };
 
-const tryGetUrl = (maybeUrl: string): URL | undefined => {
+// The input can be either a file path or a file URL. If it's a file URL, convert it to the path.
+const standardizePath = (maybeUrl: string): string => {
   try {
-    return new URL(maybeUrl);
+    const url = new URL(maybeUrl);
+    if (url.protocol === 'file:') {
+      return fileURLToPath(url);
+    }
+    return maybeUrl;
   } catch {
-    return undefined;
+    return maybeUrl;
   }
 };
