@@ -117,6 +117,7 @@
   "toggleable",
   "tokenized",
   "totp",
+  "transactional",
   "tsconfig",
   "tsdoc",
   "tslint",
