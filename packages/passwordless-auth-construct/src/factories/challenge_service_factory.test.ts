@@ -1,5 +1,5 @@
 import { describe, it } from 'node:test';
-import { strictEqual } from 'node:assert';
+import { rejects, strictEqual } from 'node:assert';
 import { ChallengeService } from '../types.js';
 import { ChallengeServiceFactory } from './challenge_service_factory.js';
 
@@ -21,5 +21,12 @@ void describe('ChallengeServiceFactory', () => {
     ]);
     strictEqual(factory.getService('OTP'), otpChallengeService);
     strictEqual(factory.getService('MAGIC_LINK'), magicLinkChallengeService);
+  });
+  void it('getService throws an error if no service is found', async () => {
+    const factory = new ChallengeServiceFactory([]);
+    await rejects(
+      async () => factory.getService('OTP'),
+      Error('No ChallengeService found for: OTP')
+    );
   });
 });
