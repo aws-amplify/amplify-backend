@@ -22,9 +22,13 @@ void it('uses the sandbox id if the default identifier resolver fails', async ()
     resolve: async () => Promise.resolve(appName),
   };
   const username = 'test-user';
-  const sandboxResolver = new SandboxIdResolver(appNameResolver, () => ({
-    username,
-  }));
+  const sandboxResolver = new SandboxIdResolver(
+    appNameResolver,
+    () =>
+      ({
+        username,
+      } as never)
+  );
   const backendIdResolver = new BackendIdentifierResolverWithSandboxFallback(
     appNameResolver,
     sandboxResolver
