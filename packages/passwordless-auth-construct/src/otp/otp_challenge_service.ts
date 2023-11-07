@@ -78,7 +78,7 @@ export class OtpChallengeService implements ChallengeService {
    * @param event - The Verify Auth Challenge event provided by Cognito.
    * @returns VerifyAuthChallengeResponseTriggerEvent with answerCorrect
    */
-  public verifyChallenge = (
+  public verifyChallenge = async (
     event: VerifyAuthChallengeResponseTriggerEvent
   ): Promise<VerifyAuthChallengeResponseTriggerEvent> => {
     const { answer } = this.validateVerifyEvent(event);
@@ -92,7 +92,7 @@ export class OtpChallengeService implements ChallengeService {
     };
 
     logger.debug(JSON.stringify(response, null, 2));
-    return Promise.resolve(response);
+    return response;
   };
 
   /**

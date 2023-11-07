@@ -32,8 +32,6 @@ void describe('OTP Challenge', () => {
   const mockOtpCode = '123456';
   let deliveryServiceFactory: DeliveryServiceFactory;
   let otpChallenge: OtpChallengeService;
-  let smsRequestCreateChallengeEvent: CreateAuthChallengeTriggerEvent;
-  let emailRequestCreateChallengeEvent: CreateAuthChallengeTriggerEvent;
   let smsConfirmVerifyChallengeEvent: VerifyAuthChallengeResponseTriggerEvent;
   let mockSmsService: MockDeliveryService;
   let mockEmailService: MockDeliveryService;
@@ -52,24 +50,6 @@ void describe('OTP Challenge', () => {
     ]);
 
     otpChallenge = new OtpChallengeService(deliveryServiceFactory, otpConfig);
-
-    smsRequestCreateChallengeEvent = buildCreateAuthChallengeEvent(
-      [],
-      requestOtpSmsMetaData,
-      phoneUserAttributes
-    );
-    emailRequestCreateChallengeEvent = buildCreateAuthChallengeEvent(
-      [],
-      requestOtpEmailMetaData,
-      emailUserAttributes
-    );
-    smsConfirmVerifyChallengeEvent = buildVerifyAuthChallengeResponseEvent(
-      confirmOtpMetaData,
-      mockOtpCode,
-      {
-        otpCode: mockOtpCode,
-      }
-    );
   });
 
   void describe('validateCreateEvent()', () => {
@@ -159,6 +139,11 @@ void describe('OTP Challenge', () => {
   void describe('createChallenge()', () => {
     void describe('when SMS', () => {
       void it('should send and attach sms delivery details', async () => {
+        const smsRequestCreateChallengeEvent = buildCreateAuthChallengeEvent(
+          [],
+          requestOtpSmsMetaData,
+          phoneUserAttributes
+        );
         const expectedMessageBody = 'Your verification code is';
         const expectedPhoneNumber = '+15555555555';
         const expectedOtpLength = 6;
@@ -217,6 +202,11 @@ void describe('OTP Challenge', () => {
     });
     void describe('when EMAIL', () => {
       void it('should send and attach email delivery details', async () => {
+        const emailRequestCreateChallengeEvent = buildCreateAuthChallengeEvent(
+          [],
+          requestOtpEmailMetaData,
+          emailUserAttributes
+        );
         const expectedMessageBody = 'Your verification code is';
         const expectedEmail = 'foo@example.com';
         const expectedOtpLength = 6;
@@ -275,6 +265,13 @@ void describe('OTP Challenge', () => {
   });
 
   void describe('verifyChallenge()', () => {
+    smsConfirmVerifyChallengeEvent = buildVerifyAuthChallengeResponseEvent(
+      confirmOtpMetaData,
+      mockOtpCode,
+      {
+        otpCode: mockOtpCode,
+      }
+    );
     void it('should return answerCorrect: true when the OTP code is correct', async () => {
       const result = await otpChallenge.verifyChallenge(
         smsConfirmVerifyChallengeEvent

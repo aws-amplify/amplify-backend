@@ -10,29 +10,40 @@ export class PasswordlessConfig {
    */
   constructor(private env: Record<string, string | undefined>) {}
 
+  private parsedOtpConfig?: OtpConfig;
+
+  private parsedSnsConfig?: SnsServiceConfig;
+
   /**
    * Gets the OTP configuration.
    */
   get otpConfig(): OtpConfig {
-    const { otpLength } = this.env;
-    const MIN_OTP_LENGTH = 6;
-    const parsed = parseInt(otpLength ?? '0');
-    const input = isNaN(parsed) ? 0 : parsed;
-    const length = Math.max(input, MIN_OTP_LENGTH);
+    if (this.parsedOtpConfig === undefined) {
+      const { otpLength } = this.env;
+      const MIN_OTP_LENGTH = 6;
+      const parsed = parseInt(otpLength ?? '0');
+      const input = isNaN(parsed) ? 0 : parsed;
+      const length = Math.max(input, MIN_OTP_LENGTH);
+      this.parsedOtpConfig = {
+        otpLength: length,
+      };
+    }
 
-    return {
-      otpLength: length,
-    };
+    return this.parsedOtpConfig;
   }
 
   /**
    * Gets the SNS configuration.
    */
   get snsConfig(): SnsServiceConfig {
-    const { originationNumber, senderId } = this.env;
-    return {
-      originationNumber,
-      senderId,
-    };
+    if (this.parsedSnsConfig === undefined) {
+      const { originationNumber, senderId } = this.env;
+      this.parsedSnsConfig = {
+        originationNumber,
+        senderId,
+      };
+    }
+
+    return this.parsedSnsConfig;
   }
 }
