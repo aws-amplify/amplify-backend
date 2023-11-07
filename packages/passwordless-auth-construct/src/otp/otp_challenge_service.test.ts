@@ -42,10 +42,10 @@ void describe('OTP Challenge', () => {
       otpLength: 6,
     };
 
-    const deliveryServiceFactory = new DeliveryServiceFactory([
-      mockSmsService,
-      mockEmailService,
-    ]);
+    const deliveryServiceFactory: DeliveryServiceFactory = {
+      getService: (service) =>
+        service === 'SMS' ? mockEmailService : mockSmsService,
+    };
 
     otpChallenge = new OtpChallengeService(deliveryServiceFactory, otpConfig);
   });
