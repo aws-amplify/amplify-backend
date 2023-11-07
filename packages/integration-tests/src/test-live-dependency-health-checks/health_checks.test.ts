@@ -11,6 +11,11 @@ import {
   CloudFormationClient,
   DeleteStackCommand,
 } from '@aws-sdk/client-cloudformation';
+import {
+  interruptSandbox,
+  rejectCleanupSandbox,
+  waitForSandboxDeploymentToPrintTotalTime,
+} from '../process-controller/predicated_action_macros.js';
 
 const cfnClient = new CloudFormationClient();
 
@@ -60,6 +65,14 @@ void describe('Live dependency health checks', () => {
       cwd: tempDir,
       stdio: 'inherit',
     });
+
+    await amplifyCli(['sandbox'], tempDir, {
+      installationType: 'local',
+    })
+      .do(waitForSandboxDeploymentToPrintTotalTime())
+      .do(interruptSandbox())
+      .do(rejectCleanupSandbox())
+      .run();
 
     await amplifyCli(
       [

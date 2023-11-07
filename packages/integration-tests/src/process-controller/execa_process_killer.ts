@@ -1,14 +1,12 @@
-import { ExecaChildProcess, execa } from 'execa';
+import { execa } from 'execa';
+import { PtyProcess } from './process_controller.js';
 
 /**
  * Kills the given process (equivalent of sending CTRL-C)
- * @param processInstance an instance of execa child process
+ * @param processInstance an instance of pty child process
  */
-export const killExecaProcess = async (processInstance: ExecaChildProcess) => {
+export const killExecaProcess = async (processInstance: PtyProcess) => {
   if (process.platform.startsWith('win')) {
-    if (typeof processInstance.pid !== 'number') {
-      throw new Error('Cannot kill the process that does not have pid');
-    }
     // Wait X milliseconds before sending kill in hopes of draining the node event queue
     await new Promise((resolve) => setTimeout(resolve, 1500));
     // turns out killing child process on Windows is a huge PITA

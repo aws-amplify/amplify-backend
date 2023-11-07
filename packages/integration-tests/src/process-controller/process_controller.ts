@@ -1,8 +1,8 @@
-import { Options, execa } from 'execa';
-import readline from 'readline';
+import * as pty from 'node-pty';
 import { PredicatedActionBuilder } from './predicated_action_queue_builder.js';
 import { ActionType } from './predicated_action.js';
 import { killExecaProcess } from './execa_process_killer.js';
+import { EOL } from 'os';
 /**
  * Provides an abstractions for sending and receiving data on stdin/out of a child process
  *
@@ -29,7 +29,7 @@ export class ProcessController {
   constructor(
     private readonly command: string,
     private readonly args: string[] = [],
-    private readonly options?: Pick<Options, 'cwd' | 'env'>
+    private readonly options?: Pick<pty.IPtyForkOptions, 'cwd' | 'env'>
   ) {}
 
   do = (interactions: PredicatedActionBuilder) => {
@@ -42,30 +42,13 @@ export class ProcessController {
    */
   run = async () => {
     const interactionQueue = this.interactions.getPredicatedActionQueue();
-    const execaProcess = execa(this.command, this.args, {
-      reject: false,
+    const ptyProcess = PtyProcess.spawn(this.command, this.args, {
       ...this.options,
     });
     let errorThrownFromActions = undefined;
     let expectKilled = false;
-    if (typeof execaProcess.pid !== 'number') {
-      throw new Error('Could not determine child process id');
-    }
 
-    if (process.stdout) {
-      void execaProcess.pipeStdout?.(process.stdout);
-    }
-
-    if (process.stderr) {
-      void execaProcess.pipeStderr?.(process.stderr);
-    }
-
-    if (!execaProcess.stdout) {
-      throw new Error('Child process does not have stdout stream');
-    }
-    const reader = readline.createInterface(execaProcess.stdout);
-
-    for await (const line of reader) {
+    for await (const line of ptyProcess.output) {
       const currentInteraction = interactionQueue[0];
       try {
         // For now we only have one predicate type. If we add more predicate types in the future, we will have to
@@ -73,11 +56,11 @@ export class ProcessController {
         if (currentInteraction?.ifThis.predicate(line)) {
           switch (currentInteraction.then?.actionType) {
             case ActionType.SEND_INPUT_TO_PROCESS:
-              await currentInteraction.then.action(execaProcess);
+              await currentInteraction.then.action(ptyProcess);
               break;
             case ActionType.KILL_PROCESS:
               expectKilled = true;
-              await currentInteraction.then.action(execaProcess);
+              await currentInteraction.then.action(ptyProcess);
               break;
             case ActionType.UPDATE_FILE_CONTENT:
               await currentInteraction.then.action();
@@ -92,21 +75,131 @@ export class ProcessController {
           continue;
         }
       } catch (error) {
-        await killExecaProcess(execaProcess);
-        execaProcess.stdin?.write('N');
+        await killExecaProcess(ptyProcess);
+        ptyProcess.write('N');
         errorThrownFromActions = error;
       }
       // advance the queue
       interactionQueue.shift();
     }
 
-    const result = await execaProcess;
+    const result = await ptyProcess.processCompletion;
 
     if (errorThrownFromActions) {
       throw errorThrownFromActions;
     } else if (result.failed && !expectKilled) {
-      throw new Error(result.stdout);
+      throw new Error(result.output);
     }
+  };
+}
+
+export type PtyProcessResult = {
+  failed: boolean;
+  output: string;
+};
+
+export class PtyProcessOutput implements AsyncIterableIterator<string> {
+  private hasFinished = false;
+  private currentResolve: ((value: IteratorResult<string>) => void) | undefined;
+  private outputQueue: Array<string> = [];
+  readonly allOutput: Array<string> = [];
+
+  [Symbol.asyncIterator] = (): AsyncIterableIterator<string> => {
+    return this;
+  };
+
+  onData = (data: string) => {
+    this.outputQueue.push(data);
+    this.allOutput.push(data);
+    this.tryConsume();
+  };
+
+  onExit = () => {
+    this.hasFinished = true;
+    this.tryConsume();
+  };
+
+  private tryConsume = () => {
+    if (this.hasFinished && this.outputQueue.length === 0) {
+      if (this.currentResolve) {
+        this.currentResolve({
+          done: true,
+          value: '',
+        });
+        this.currentResolve = undefined;
+      }
+    } else if (this.outputQueue.length > 0) {
+      if (this.currentResolve) {
+        const line = this.outputQueue.shift();
+        if (line) {
+          this.currentResolve({
+            done: false,
+            value: line,
+          });
+          this.currentResolve = undefined;
+        }
+      }
+    }
+  };
+
+  next(): Promise<IteratorResult<string>> {
+    const nextPromise: Promise<IteratorResult<string>> = new Promise(
+      (resolve) => {
+        this.currentResolve = resolve;
+      }
+    );
+    this.tryConsume();
+    return nextPromise;
+  }
+}
+
+export class PtyProcess {
+  static spawn = (
+    command: string,
+    args: Array<string>,
+    options?: pty.IPtyForkOptions
+  ) => {
+    const ptyOptions: pty.IPtyForkOptions = {
+      ...options,
+    };
+    ptyOptions.env = {
+      ...process.env,
+      ...ptyOptions.env,
+    };
+    const ptyProcess = pty.spawn(command, args, ptyOptions);
+    return new PtyProcess(ptyProcess);
+  };
+
+  readonly processCompletion: Promise<PtyProcessResult>;
+  readonly output: PtyProcessOutput;
+  readonly pid: number;
+
+  constructor(private readonly ptyProcess: pty.IPty) {
+    this.pid = ptyProcess.pid;
+    this.output = new PtyProcessOutput();
+    this.processCompletion = new Promise((resolve) => {
+      this.ptyProcess.onExit((exitProps) => {
+        console.log('exitProps');
+        console.log(exitProps);
+        this.output.onExit();
+        resolve({
+          failed: exitProps.exitCode !== 0,
+          output: this.output.allOutput.join(EOL),
+        });
+      });
+    });
+    this.ptyProcess.onData((data) => {
+      process.stdout.write(data);
+      this.output.onData(data);
+    });
+  }
+
+  write = (line: string) => {
+    this.ptyProcess.write(line);
+  };
+
+  kill = (signal: string) => {
+    this.ptyProcess.kill(signal);
   };
 }
 

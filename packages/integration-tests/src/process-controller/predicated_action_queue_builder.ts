@@ -8,6 +8,7 @@ import fs from 'fs/promises';
 
 import { killExecaProcess } from './execa_process_killer.js';
 import { ExecaChildProcess } from 'execa';
+import { PtyProcess } from './process_controller.js';
 
 export const CONTROL_C = '\x03';
 /**
@@ -53,11 +54,11 @@ export class PredicatedActionBuilder {
         str === CONTROL_C
           ? ActionType.KILL_PROCESS
           : ActionType.SEND_INPUT_TO_PROCESS,
-      action: async (execaProcess: ExecaChildProcess) => {
+      action: async (ptyProcess: PtyProcess) => {
         if (str === CONTROL_C) {
-          await killExecaProcess(execaProcess);
+          ptyProcess.write(str);
         } else {
-          execaProcess.stdin?.write(str);
+          ptyProcess.write(str);
         }
       },
     };
