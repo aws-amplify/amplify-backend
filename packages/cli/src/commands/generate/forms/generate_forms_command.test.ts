@@ -7,6 +7,8 @@ import yargs, { CommandModule } from 'yargs';
 import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
 import { FormGenerationHandler } from '../../../form-generation/form_generation_handler.js';
 import { TestCommandRunner } from '../../../test-utils/command_runner.js';
+import { SandboxIdResolver } from '../../sandbox/sandbox_id_resolver.js';
+import { BackendIdentifierResolverWithSandboxFallback } from './backend_identifier_with_sandbox_fallback.js';
 import { GenerateFormsCommand } from './generate_forms_command.js';
 
 void describe('generate forms command', () => {
@@ -191,5 +193,63 @@ void describe('generate forms command', () => {
         './graphql'
       );
     });
+  });
+  void it('if neither branch nor stack are provided, the sandbox id is used by default', async () => {
+    const credentialProvider = fromNodeProviderChain();
+
+    const appNameResolver = {
+      resolve: () => Promise.resolve('testAppName'),
+    };
+
+    const mockedSandboxIdResolver = new SandboxIdResolver(appNameResolver);
+
+    const fakeSandboxId = 'my-fake-app-my-fake-username';
+
+    const sandboxIdResolver = mock.method(mockedSandboxIdResolver, 'resolve');
+    sandboxIdResolver.mock.mockImplementation(() => fakeSandboxId);
+
+    const backendIdResolver = new BackendIdentifierResolverWithSandboxFallback(
+      appNameResolver,
+      mockedSandboxIdResolver
+    );
+    const formGenerationHandler = new FormGenerationHandler({
+      credentialProvider,
+    });
+
+    const fakedBackendOutputClient = BackendOutputClientFactory.getInstance({
+      credentials: credentialProvider,
+    });
+
+    const generateFormsCommand = new GenerateFormsCommand(
+      backendIdResolver,
+      () => fakedBackendOutputClient,
+      formGenerationHandler
+    );
+
+    const generationMock = mock.method(formGenerationHandler, 'generate');
+    generationMock.mock.mockImplementation(async () => undefined);
+    mock
+      .method(fakedBackendOutputClient, 'getOutput')
+      .mock.mockImplementation(async () => ({
+        [graphqlOutputKey]: {
+          payload: {
+            awsAppsyncApiId: 'test_api_id',
+            amplifyApiModelSchemaS3Uri: 'test_schema',
+            awsAppsyncApiEndpoint: 'test_endpoint',
+          },
+        },
+      }));
+    const parser = yargs().command(
+      generateFormsCommand as unknown as CommandModule
+    );
+    const commandRunner = new TestCommandRunner(parser);
+    await commandRunner.runCommand('forms');
+    assert.deepEqual(
+      generationMock.mock.calls[0].arguments[0].backendIdentifier,
+      {
+        backendId: fakeSandboxId,
+        disambiguator: 'sandbox',
+      }
+    );
   });
 });

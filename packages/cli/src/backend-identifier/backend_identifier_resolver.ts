@@ -17,9 +17,10 @@ export class BackendIdentifierResolver {
    * Instantiates BackendIdentifierResolver
    */
   constructor(private appNameResolver: AppNameResolver) {}
-  resolve = async (
-    args: BackendIdentifierParameters
-  ): Promise<BackendIdentifier> => {
+  /**
+   * resolves the backendId
+   */
+  async resolve(args: BackendIdentifierParameters): Promise<BackendIdentifier> {
     if (args.stack) {
       return { stackName: args.stack };
     } else if (args.appId && args.branch) {
@@ -35,5 +36,5 @@ export class BackendIdentifierResolver {
     throw new Error(
       'Unable to resolve BackendIdentifier with provided parameters'
     );
-  };
+  }
 }

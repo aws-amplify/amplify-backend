@@ -6,11 +6,12 @@ import { GenerateFormsCommand } from './forms/generate_forms_command.js';
 import { CwdPackageJsonLoader } from '../../cwd_package_json_loader.js';
 import { GenerateGraphqlClientCodeCommand } from './graphql-client-code/generate_graphql_client_code_command.js';
 import { LocalAppNameResolver } from '../../backend-identifier/local_app_name_resolver.js';
-import { BackendIdentifierResolver } from '../../backend-identifier/backend_identifier_resolver.js';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 import { GenerateApiCodeAdapter } from './graphql-client-code/generate_api_code_adapter.js';
 import { FormGenerationHandler } from '../../form-generation/form_generation_handler.js';
 import { BackendOutputClientFactory } from '@aws-amplify/deployed-backend-client';
+import { BackendIdentifierResolverWithSandboxFallback } from './forms/backend_identifier_with_sandbox_fallback.js';
+import { SandboxIdResolver } from '../sandbox/sandbox_id_resolver.js';
 
 /**
  * Creates wired generate command.
@@ -24,9 +25,11 @@ export const createGenerateCommand = (): CommandModule => {
     new CwdPackageJsonLoader()
   );
 
-  const backendIdentifierResolver = new BackendIdentifierResolver(
-    localAppNameResolver
-  );
+  const backendIdentifierResolver =
+    new BackendIdentifierResolverWithSandboxFallback(
+      localAppNameResolver,
+      new SandboxIdResolver(localAppNameResolver)
+    );
 
   const generateConfigCommand = new GenerateConfigCommand(
     clientConfigGenerator,
