@@ -1,3 +1,4 @@
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import {
   CreateAuthChallengeTriggerEvent,
   VerifyAuthChallengeResponseTriggerEvent,
@@ -31,7 +32,7 @@ export type ConfirmMagicLinkClientMetaData = {
 export type RequestOTPClientMetaData = {
   signInMethod: 'OTP';
   action: 'REQUEST';
-  deliveryMedium: 'SMS' | 'EMAIL';
+  deliveryMedium: DeliveryMedium;
 };
 
 export type ConfirmOTPClientMetaData = {
@@ -55,6 +56,34 @@ export type ChallengeService = {
   ) => Promise<VerifyAuthChallengeResponseTriggerEvent>;
 };
 
+/**
+ * The delivery service interface.
+ */
+export type DeliveryService = {
+  deliveryMedium: DeliveryMedium;
+  /**
+   * Send message via delivery service
+   * @param message the message to send
+   * @param destination the destination of the message
+   */
+  send: (message: string, destination: string) => Promise<void>;
+
+  /**
+   * Mask a destination
+   * Example: +12345678901 => +*********8901
+   * @param destination The destination to mask
+   * @returns The masked destination,
+   */
+  mask: (destination: string) => string;
+
+  /**
+   * Create the message to send
+   * @param secret The secret to include in the message
+   * @returns The message to send
+   */
+  createMessage: (secret: string) => string;
+};
+
 export type PasswordlessAuthChallengeParams =
   | InitiateAuthChallengeParams
   | RespondToAutChallengeParams
@@ -71,17 +100,20 @@ type RespondToAutChallengeParams = {
   codeDeliveryDetails: CodeDeliveryDetails;
 };
 
-type CodeDeliveryDetails = {
+export type CodeDeliveryDetails = {
   attributeName: 'email' | 'phone_number';
-  deliveryMedium: 'EMAIL' | 'SMS';
+  deliveryMedium: DeliveryMedium;
   destination: string;
 };
+
+export type DeliveryMedium = 'SMS' | 'EMAIL';
 
 /**
  * Options for passwordless auth.
  */
 export type PasswordlessAuthProps = {
   magicLink?: MagicLinkAuthOptions;
+  otp?: OtpAuthOptions | boolean;
 };
 
 /**
@@ -91,5 +123,60 @@ export type MagicLinkAuthOptions = {
   fromAddress: string;
 };
 
+/**
+ * Options for OTP Passwordless Auth.
+ */
+export type OtpAuthOptions = {
+  /**
+   * The AWS SNS origination number.
+   * A numeric string that identifies an SMS message sender's phone number.
+   * @default to_come
+   */
+  originationNumber?: string;
+
+  /**
+   * The AWS SNS Sender Id.
+   * The name that appears as the message sender on recipients' devices.
+   * @default to_come
+   */
+  senderId?: string;
+
+  /**
+   * The length of the OTP code.
+   * @default 6 length of the code. Minimum 6.
+   */
+  length?: number;
+};
+
 export type ChallengeResult =
   CreateAuthChallengeTriggerEvent['request']['session']['0'];
+
+export type CustomAuthTriggers = {
+  defineAuthChallenge: NodejsFunction;
+  createAuthChallenge: NodejsFunction;
+  verifyAuthChallengeResponse: NodejsFunction;
+};
+
+/**
+ * SNS Service Configuration.
+ */
+export type SnsServiceConfig = {
+  /**
+   * The origination number to use for SMS messages. Defaults to undefined.
+   */
+  originationNumber?: string;
+  /**
+   * The sender id to use for SMS messages. Defaults to undefined.
+   */
+  senderId?: string;
+};
+
+/**
+ * OTP Configuration.
+ */
+export type OtpConfig = {
+  /**
+   * The length of the OTP code to generate. Must be 6 or greater. Defaults to 6.
+   */
+  otpLength: number;
+};
