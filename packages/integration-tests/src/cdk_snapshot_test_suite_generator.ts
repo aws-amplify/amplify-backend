@@ -1,4 +1,5 @@
 import { CDKSynthSnapshotTestCase } from './cdk_snapshot_test_runner.js';
+import { BackendLocator } from '@aws-amplify/platform-core';
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
@@ -32,11 +33,12 @@ export const fromConventionalDir = (
     .filter((entry) => entry.isDirectory());
   return testDirectories.map((testDirectory) => ({
     name: testDirectory.name,
-    absoluteBackendFilePath: path.join(
+    absoluteBackendFilePath: path.resolve(
       fileURLToPath(rootDir),
       testDirectory.name,
-      'amplify',
-      'backend.ts'
+      new BackendLocator(
+        path.join(fileURLToPath(rootDir), testDirectory.name)
+      ).locate()
     ),
     absoluteExpectedCdkOutDir: path.join(
       fileURLToPath(rootDir),
