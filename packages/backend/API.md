@@ -19,7 +19,7 @@ export { a }
 
 // @public
 export type Backend<T extends Record<string, ConstructFactory<Construct>>> = {
-    getOrCreateStack: (name: string) => Stack;
+    getStack: (name: string) => Stack;
     readonly resources: {
         [K in keyof T]: ReturnType<T[K]['getInstance']>;
     };

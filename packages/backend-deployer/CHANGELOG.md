@@ -1,5 +1,19 @@
 # @aws-amplify/backend-deployer
 
+## 0.2.2
+
+### Patch Changes
+
+- Updated dependencies [457b1662]
+  - @aws-amplify/plugin-types@0.3.0
+  - @aws-amplify/platform-core@0.1.2
+
+## 0.2.1
+
+### Patch Changes
+
+- 1c685d10: do not require confirmation at pipeline deploy
+
 ## 0.2.0
 
 ### Minor Changes

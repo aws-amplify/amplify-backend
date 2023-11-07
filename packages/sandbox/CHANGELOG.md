@@ -1,5 +1,38 @@
 # @aws-amplify/sandbox
 
+## 0.2.3
+
+### Patch Changes
+
+- Updated dependencies [0bd8a3f3]
+- Updated dependencies [0bd8a3f3]
+  - @aws-amplify/client-config@0.2.3
+  - @aws-amplify/platform-core@0.1.3
+
+## 0.2.2
+
+### Patch Changes
+
+- Updated dependencies [79a6e09f]
+- Updated dependencies [79a6e09f]
+  - @aws-amplify/deployed-backend-client@0.2.1
+  - @aws-amplify/client-config@0.2.2
+  - @aws-amplify/backend-deployer@0.2.2
+  - @aws-amplify/backend-secret@0.2.1
+  - @aws-amplify/platform-core@0.1.2
+
+## 0.2.1
+
+### Patch Changes
+
+- a216255e: Add successfulDeletion event to remove amplify configuration on deletion
+- Updated dependencies [ff08a94b]
+- Updated dependencies [a216255e]
+- Updated dependencies [1c685d10]
+  - @aws-amplify/cli-core@0.2.0
+  - @aws-amplify/client-config@0.2.1
+  - @aws-amplify/backend-deployer@0.2.1
+
 ## 0.2.0
 
 ### Minor Changes

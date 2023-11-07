@@ -1,5 +1,17 @@
 # @aws-amplify/plugin-types
 
+## 0.3.1
+
+### Patch Changes
+
+- 3bff764b: Expose user pool and client as cfn resources.
+
+## 0.3.0
+
+### Minor Changes
+
+- 457b1662: getConstructFactory no longer throws an error if the factory is not found, and returns undefined instead.
+
 ## 0.2.0
 
 ### Minor Changes

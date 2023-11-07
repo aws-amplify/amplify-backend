@@ -60,7 +60,7 @@ export abstract class TestProjectBase {
         ],
         this.projectDirPath,
         {
-          env: { CI: 'true' },
+          env: { CI: 'true', AMPLIFY_BACKEND_BRANCH_LINKER_ENABLED: 'true' },
         }
       ).run();
     }

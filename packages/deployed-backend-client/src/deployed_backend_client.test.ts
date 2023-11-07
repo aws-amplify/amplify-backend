@@ -13,7 +13,7 @@ import { BackendDeploymentStatus } from './deployed_backend_client_factory.js';
 import {
   authOutputKey,
   graphqlOutputKey,
-  stackOutputKey,
+  platformOutputKey,
   storageOutputKey,
 } from '@aws-amplify/backend-output-schemas';
 import {
@@ -100,7 +100,7 @@ const listStackResourcesMock = {
 };
 
 const getOutputMockResponse = {
-  [stackOutputKey]: {
+  [platformOutputKey]: {
     payload: {
       deploymentType: 'SANDBOX',
     },
@@ -331,7 +331,7 @@ void describe('Deployed Backend Client pagination', () => {
         if (backendIdentifier.stackName !== 'amplify-test-sandbox') {
           return {
             ...getOutputMockResponse,
-            [stackOutputKey]: {
+            [platformOutputKey]: {
               payload: {
                 deploymentType: 'BRANCH',
               },

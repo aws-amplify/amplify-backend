@@ -1,5 +1,12 @@
 # @aws-amplify/backend-output-schemas
 
+## 0.2.1
+
+### Patch Changes
+
+- 79a6e09f: Change stackOutputKey to platformOutputKey
+- 79a6e09f: Add aws_project_region to amplifyconfiguration.json
+
 ## 0.2.0
 
 ### Minor Changes

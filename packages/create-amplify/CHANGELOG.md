@@ -1,5 +1,22 @@
 # create-amplify
 
+## 0.2.2
+
+### Patch Changes
+
+- 39791e30: Update .gitignore content filtering
+- 79a6e09f: Change stackOutputKey to platformOutputKey
+- 79a6e09f: Add aws_project_region to amplifyconfiguration.json
+
+## 0.2.1
+
+### Patch Changes
+
+- 4e48e4ba: chore: add new defineBackend to better align with other backend factories
+- 25b81098: set type: module in package.json in amplify directory
+- Updated dependencies [ff08a94b]
+  - @aws-amplify/cli-core@0.2.0
+
 ## 0.2.0
 
 ### Minor Changes

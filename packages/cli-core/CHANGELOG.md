@@ -1,5 +1,11 @@
 # @aws-amplify/cli-core
 
+## 0.2.0
+
+### Minor Changes
+
+- ff08a94b: Add 'amplify configure' command.
+
 ## 0.1.0
 
 ### Minor Changes

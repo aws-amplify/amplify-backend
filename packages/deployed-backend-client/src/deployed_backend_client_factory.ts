@@ -87,6 +87,7 @@ export enum BackendDeploymentStatus {
   DEPLOYED = 'DEPLOYED',
   FAILED = 'FAILED',
   DEPLOYING = 'DEPLOYING',
+  DELETING = 'DELETING',
   DELETED = 'DELETED',
   UNKNOWN = 'UNKNOWN',
 }

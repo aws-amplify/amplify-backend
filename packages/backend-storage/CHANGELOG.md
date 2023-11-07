@@ -1,5 +1,18 @@
 # @aws-amplify/backend-storage
 
+## 0.2.2
+
+### Patch Changes
+
+- 0bd8a3f3: add missing dev deps
+
+## 0.2.1
+
+### Patch Changes
+
+- Updated dependencies [457b1662]
+  - @aws-amplify/plugin-types@0.3.0
+
 ## 0.2.0
 
 ### Minor Changes

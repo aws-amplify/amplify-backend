@@ -1,5 +1,28 @@
 # @aws-amplify/backend-cli
 
+## 0.3.1
+
+### Patch Changes
+
+- 4ad1db95: Gracefully handle Crtl+C error during CLI prompting
+
+## 0.3.0
+
+### Minor Changes
+
+- ff08a94b: Add 'amplify configure' command.
+
+### Patch Changes
+
+- a216255e: Add successfulDeletion event to remove amplify configuration on deletion
+- Updated dependencies [ff08a94b]
+- Updated dependencies [863dc241]
+- Updated dependencies [a216255e]
+  - @aws-amplify/cli-core@0.2.0
+  - @aws-amplify/form-generator@0.3.0
+  - @aws-amplify/client-config@0.2.1
+  - @aws-amplify/sandbox@0.2.1
+
 ## 0.2.0
 
 ### Minor Changes

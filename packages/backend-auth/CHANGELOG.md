@@ -1,5 +1,27 @@
 # @aws-amplify/backend-auth
 
+## 0.2.3
+
+### Patch Changes
+
+- 0bd8a3f3: add missing dev deps
+
+## 0.2.2
+
+### Patch Changes
+
+- Updated dependencies [457b1662]
+  - @aws-amplify/plugin-types@0.3.0
+  - @aws-amplify/auth-construct-alpha@0.2.2
+
+## 0.2.1
+
+### Patch Changes
+
+- d0119b25: Flatten loginWith type to improve autocompletion.
+- Updated dependencies [d0119b25]
+  - @aws-amplify/auth-construct-alpha@0.2.1
+
 ## 0.2.0
 
 ### Minor Changes

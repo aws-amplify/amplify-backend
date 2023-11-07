@@ -4,6 +4,7 @@ import { defineData } from './factory.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import {
+  AmplifyFunction,
   AuthResources,
   BackendOutputEntry,
   BackendOutputStorageStrategy,
@@ -17,9 +18,12 @@ import { Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import {
   CfnIdentityPool,
   CfnIdentityPoolRoleAttachment,
+  CfnUserPool,
+  CfnUserPoolClient,
   UserPool,
   UserPoolClient,
 } from 'aws-cdk-lib/aws-cognito';
+import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 import {
   BackendDeploymentType,
@@ -32,9 +36,7 @@ import {
   StackResolverStub,
 } from '@aws-amplify/backend-platform-test-stubs';
 
-const testSchema = `
-  input AMPLIFY {globalAuthRule: AuthRule = { allow: public }} # FOR TESTING ONLY!
-
+const testSchema = /* GraphQL */ `
   type Todo @model {
     id: ID!
     name: String!
@@ -85,6 +87,10 @@ void describe('DataFactory', () => {
             assumedBy: new ServicePrincipal('test.amazon.com'),
           }),
           cfnResources: {
+            userPool: new CfnUserPool(stack, 'CfnUserPool', {}),
+            userPoolClient: new CfnUserPoolClient(stack, 'CfnUserPoolClient', {
+              userPoolId: 'userPool',
+            }),
             identityPool: new CfnIdentityPool(stack, 'identityPool', {
               allowUnauthenticatedIdentities: true,
             }),
@@ -166,5 +172,67 @@ void describe('DataFactory', () => {
     template.hasResourceProperties('AWS::AppSync::GraphQLApi', {
       Name: 'MyTestApiName',
     });
+  });
+
+  void it('does not throw if no auth resources are registered', () => {
+    dataFactory = defineData({
+      schema: testSchema,
+      authorizationModes: {
+        apiKeyAuthorizationMode: {
+          expiresInDays: 7,
+        },
+      },
+    });
+
+    constructContainer = new ConstructContainerStub(
+      new StackResolverStub(stack)
+    );
+    getInstanceProps = {
+      constructContainer,
+      outputStorageStrategy,
+      importPathVerifier,
+    };
+    dataFactory.getInstance(getInstanceProps);
+  });
+
+  void it('accepts functions as inputs to the defineData call', () => {
+    const echo: ConstructFactory<AmplifyFunction> = {
+      getInstance: () => ({
+        resources: {
+          lambda: new Function(stack, 'MyEchoFn', {
+            runtime: Runtime.NODEJS_18_X,
+            code: Code.fromInline(
+              'module.handler = async () => console.log("Hello");'
+            ),
+            handler: 'index.handler',
+          }),
+        },
+      }),
+    };
+    dataFactory = defineData({
+      schema: /* GraphQL */ `
+        type Query {
+          echo(message: String!): String! @function(name: "echo")
+        }
+      `,
+      functions: {
+        echo,
+      },
+    });
+
+    const dataConstruct = dataFactory.getInstance(getInstanceProps);
+
+    // Validate that the api resources are created for the function
+    assert('FunctionDirectiveStack' in dataConstruct.resources.nestedStacks);
+    const functionDirectiveStackTemplate = Template.fromStack(
+      dataConstruct.resources.nestedStacks.FunctionDirectiveStack
+    );
+    functionDirectiveStackTemplate.hasResourceProperties(
+      'AWS::AppSync::DataSource',
+      {
+        Name: 'EchoLambdaDataSource',
+        Type: 'AWS_LAMBDA',
+      }
+    );
   });
 });

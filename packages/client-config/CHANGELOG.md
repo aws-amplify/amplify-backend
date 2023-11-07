@@ -1,5 +1,28 @@
 # @aws-amplify/client-config
 
+## 0.2.3
+
+### Patch Changes
+
+- 0bd8a3f3: add missing dev deps
+
+## 0.2.2
+
+### Patch Changes
+
+- 79a6e09f: Change stackOutputKey to platformOutputKey
+- 79a6e09f: Add aws_project_region to amplifyconfiguration.json
+- Updated dependencies [79a6e09f]
+- Updated dependencies [79a6e09f]
+  - @aws-amplify/deployed-backend-client@0.2.1
+  - @aws-amplify/backend-output-schemas@0.2.1
+
+## 0.2.1
+
+### Patch Changes
+
+- a216255e: Add successfulDeletion event to remove amplify configuration on deletion
+
 ## 0.2.0
 
 ### Minor Changes
