@@ -23,6 +23,10 @@ import { ClientConfigFormat } from '@aws-amplify/client-config';
 import { Sandbox } from './sandbox.js';
 import { AmplifyPrompter } from '@aws-amplify/cli-core';
 import { fileURLToPath } from 'url';
+import {
+  UniqueBackendIdentifier,
+  UniqueBackendIdentifierData,
+} from '@aws-amplify/plugin-types';
 
 // Watcher mocks
 const unsubscribeMockFn = mock.fn();
@@ -224,13 +228,9 @@ void describe('Sandbox using local project name resolver', () => {
     assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
 
     // BackendDeployer should be called with the right params
-    assert.equal(
-      backendDeployerDeployMock.mock.calls[0].arguments[0]?.backendId,
-      'testSandboxId'
-    );
-    assert.equal(
-      backendDeployerDeployMock.mock.calls[0].arguments[0]?.disambiguator,
-      'testSandboxName'
+    assertBackendIdDataEquivalence(
+      backendDeployerDeployMock.mock.calls[0].arguments[0],
+      { backendId: 'testSandboxId', disambiguator: 'testSandboxName' }
     );
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments[1], {
       deploymentType: BackendDeploymentType.SANDBOX,
@@ -257,13 +257,9 @@ void describe('Sandbox using local project name resolver', () => {
     assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
 
     // BackendDeployer should be called with the right params
-    assert.equal(
-      backendDeployerDeployMock.mock.calls[0].arguments[0]?.backendId,
-      'testSandboxId'
-    );
-    assert.equal(
-      backendDeployerDeployMock.mock.calls[0].arguments[0]?.disambiguator,
-      'testSandboxName'
+    assertBackendIdDataEquivalence(
+      backendDeployerDeployMock.mock.calls[0].arguments[0],
+      { backendId: 'testSandboxId', disambiguator: 'testSandboxName' }
     );
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments[1], {
       deploymentType: BackendDeploymentType.SANDBOX,
@@ -294,13 +290,9 @@ void describe('Sandbox using local project name resolver', () => {
     assert.strictEqual(listSecretMock.mock.callCount(), 1);
 
     // BackendDeployer should be called with the right params
-    assert.equal(
-      backendDeployerDeployMock.mock.calls[0].arguments[0]?.backendId,
-      'testSandboxId'
-    );
-    assert.equal(
-      backendDeployerDeployMock.mock.calls[0].arguments[0]?.disambiguator,
-      'testSandboxName'
+    assertBackendIdDataEquivalence(
+      backendDeployerDeployMock.mock.calls[0].arguments[0],
+      { backendId: 'testSandboxId', disambiguator: 'testSandboxName' }
     );
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments[1], {
       deploymentType: BackendDeploymentType.SANDBOX,
@@ -334,13 +326,9 @@ void describe('Sandbox using local project name resolver', () => {
     ]);
     assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
     // BackendDeployer should be called with the right params
-    assert.equal(
-      backendDeployerDeployMock.mock.calls[0].arguments[0]?.backendId,
-      'testSandboxId'
-    );
-    assert.equal(
-      backendDeployerDeployMock.mock.calls[0].arguments[0]?.disambiguator,
-      'testSandboxName'
+    assertBackendIdDataEquivalence(
+      backendDeployerDeployMock.mock.calls[0].arguments[0],
+      { backendId: 'testSandboxId', disambiguator: 'testSandboxName' }
     );
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments[1], {
       deploymentType: BackendDeploymentType.SANDBOX,
@@ -360,13 +348,9 @@ void describe('Sandbox using local project name resolver', () => {
     ]);
     assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
     // BackendDeployer should be called with the right params
-    assert.equal(
-      backendDeployerDeployMock.mock.calls[0].arguments[0]?.backendId,
-      'testSandboxId'
-    );
-    assert.equal(
-      backendDeployerDeployMock.mock.calls[0].arguments[0]?.disambiguator,
-      'testSandboxName'
+    assertBackendIdDataEquivalence(
+      backendDeployerDeployMock.mock.calls[0].arguments[0],
+      { backendId: 'testSandboxId', disambiguator: 'testSandboxName' }
     );
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments[1], {
       deploymentType: BackendDeploymentType.SANDBOX,
@@ -392,13 +376,9 @@ void describe('Sandbox using local project name resolver', () => {
     await firstFileChange;
     assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
     // BackendDeployer should be called with the right params
-    assert.equal(
-      backendDeployerDeployMock.mock.calls[0].arguments[0]?.backendId,
-      'testSandboxId'
-    );
-    assert.equal(
-      backendDeployerDeployMock.mock.calls[0].arguments[0]?.disambiguator,
-      'testSandboxName'
+    assertBackendIdDataEquivalence(
+      backendDeployerDeployMock.mock.calls[0].arguments[0],
+      { backendId: 'testSandboxId', disambiguator: 'testSandboxName' }
     );
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments[1], {
       deploymentType: BackendDeploymentType.SANDBOX,
@@ -420,13 +400,9 @@ void describe('Sandbox using local project name resolver', () => {
     ]);
     assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 2);
     // BackendDeployer should be called with the right params
-    assert.equal(
-      backendDeployerDeployMock.mock.calls[0].arguments[0]?.backendId,
-      'testSandboxId'
-    );
-    assert.equal(
-      backendDeployerDeployMock.mock.calls[0].arguments[0]?.disambiguator,
-      'testSandboxName'
+    assertBackendIdDataEquivalence(
+      backendDeployerDeployMock.mock.calls[0].arguments[0],
+      { backendId: 'testSandboxId', disambiguator: 'testSandboxName' }
     );
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments[1], {
       deploymentType: BackendDeploymentType.SANDBOX,
@@ -434,13 +410,9 @@ void describe('Sandbox using local project name resolver', () => {
       validateAppSources: true,
     });
     // BackendDeployer should be called with the right params
-    assert.equal(
-      backendDeployerDeployMock.mock.calls[1].arguments[0]?.backendId,
-      'testSandboxId'
-    );
-    assert.equal(
-      backendDeployerDeployMock.mock.calls[1].arguments[0]?.disambiguator,
-      'testSandboxName'
+    assertBackendIdDataEquivalence(
+      backendDeployerDeployMock.mock.calls[0].arguments[0],
+      { backendId: 'testSandboxId', disambiguator: 'testSandboxName' }
     );
     assert.deepEqual(backendDeployerDeployMock.mock.calls[1].arguments[1], {
       deploymentType: BackendDeploymentType.SANDBOX,
@@ -477,13 +449,9 @@ void describe('Sandbox using local project name resolver', () => {
 
     assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 2);
     // BackendDeployer should be called with the right params
-    assert.equal(
-      backendDeployerDeployMock.mock.calls[0].arguments[0]?.backendId,
-      'testSandboxId'
-    );
-    assert.equal(
-      backendDeployerDeployMock.mock.calls[0].arguments[0]?.disambiguator,
-      'testSandboxName'
+    assertBackendIdDataEquivalence(
+      backendDeployerDeployMock.mock.calls[0].arguments[0],
+      { backendId: 'testSandboxId', disambiguator: 'testSandboxName' }
     );
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments[1], {
       deploymentType: BackendDeploymentType.SANDBOX,
@@ -491,13 +459,9 @@ void describe('Sandbox using local project name resolver', () => {
       validateAppSources: true,
     });
     // BackendDeployer should be called with the right params
-    assert.equal(
-      backendDeployerDeployMock.mock.calls[1].arguments[0]?.backendId,
-      'testSandboxId'
-    );
-    assert.equal(
-      backendDeployerDeployMock.mock.calls[1].arguments[0]?.disambiguator,
-      'testSandboxName'
+    assertBackendIdDataEquivalence(
+      backendDeployerDeployMock.mock.calls[0].arguments[0],
+      { backendId: 'testSandboxId', disambiguator: 'testSandboxName' }
     );
     assert.deepEqual(backendDeployerDeployMock.mock.calls[1].arguments[1], {
       deploymentType: BackendDeploymentType.SANDBOX,
@@ -517,13 +481,9 @@ void describe('Sandbox using local project name resolver', () => {
     assert.strictEqual(backendDeployerDestroyMock.mock.callCount(), 1);
 
     // BackendDeployer should be called with the right params
-    assert.equal(
-      backendDeployerDestroyMock.mock.calls[0].arguments[0]?.backendId,
-      'testSandboxId'
-    );
-    assert.equal(
-      backendDeployerDestroyMock.mock.calls[0].arguments[0]?.disambiguator,
-      'testSandboxName'
+    assertBackendIdDataEquivalence(
+      backendDeployerDestroyMock.mock.calls[0].arguments[0],
+      { backendId: 'testSandboxId', disambiguator: 'testSandboxName' }
     );
     assert.deepEqual(backendDeployerDestroyMock.mock.calls[0].arguments[1], {
       deploymentType: BackendDeploymentType.SANDBOX,
@@ -716,13 +676,9 @@ void describe('Sandbox using local project name resolver', () => {
     assert.strictEqual(backendDeployerDestroyMock.mock.callCount(), 1);
 
     // BackendDeployer should be called with the right params
-    assert.equal(
-      backendDeployerDestroyMock.mock.calls[0].arguments[0]?.backendId,
-      'testSandboxId'
-    );
-    assert.equal(
-      backendDeployerDestroyMock.mock.calls[0].arguments[0]?.disambiguator,
-      'customSandboxName'
+    assertBackendIdDataEquivalence(
+      backendDeployerDestroyMock.mock.calls[0].arguments[0],
+      { backendId: 'testSandboxId', disambiguator: 'customSandboxName' }
     );
 
     assert.deepStrictEqual(
@@ -878,4 +834,16 @@ type SandboxTestData = {
   name?: string;
   format?: ClientConfigFormat;
   profile?: string;
+};
+
+/**
+ * Asserts that the data fields in actual match the data fields in expected,
+ * ignoring methods that may exist on the objects
+ */
+const assertBackendIdDataEquivalence = (
+  actual: UniqueBackendIdentifier | undefined,
+  expected: UniqueBackendIdentifierData
+) => {
+  assert.equal(actual?.backendId, expected.backendId);
+  assert.equal(actual?.disambiguator, expected.disambiguator);
 };
