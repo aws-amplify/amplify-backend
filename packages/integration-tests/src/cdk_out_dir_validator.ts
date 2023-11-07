@@ -17,6 +17,9 @@ const matchHashedJsonFile: Predicate = (actual, expected) => {
   );
 };
 
+const matchTimestamp: Predicate = (actual, expected) =>
+  typeof actual === 'number' && typeof expected === 'number';
+
 const nestedStackDescriptions = new Set([
   'An auto-generated nested stack for the @function directive.',
 ]);
@@ -69,6 +72,15 @@ const customMatchers: Map<ObjectPath, Predicate> = new Map([
       6,
     ],
     matchHashedJsonFile,
+  ],
+  [
+    [
+      'Resources',
+      'amplifyDataGraphQLAPIDefaultApiKey1C8ED374',
+      'Properties',
+      'Expires',
+    ],
+    matchTimestamp,
   ],
   [
     ['Description'],

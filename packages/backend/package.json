@@ -21,10 +21,10 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@aws-amplify/amplify-api-next-alpha": "^0.6.2",
+    "@aws-amplify/amplify-api-next-alpha": "^0.8.0",
     "@aws-amplify/backend-auth": "^0.2.2",
     "@aws-amplify/backend-function": "^0.1.2",
-    "@aws-amplify/backend-graphql": "^0.3.2",
+    "@aws-amplify/backend-data": "^0.3.2",
     "@aws-amplify/backend-output-schemas": "^0.2.1",
     "@aws-amplify/backend-output-storage": "^0.2.0",
     "@aws-amplify/backend-secret": "^0.2.1",
