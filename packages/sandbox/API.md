@@ -8,6 +8,7 @@
 
 import { ClientConfigFormat } from '@aws-amplify/client-config';
 import EventEmitter from 'events';
+import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 // @public
 export type Sandbox = {
@@ -35,7 +36,8 @@ export type SandboxOptions = {
 
 // @public
 export class SandboxSingletonFactory {
-    constructor(sandboxIdResolver: () => Promise<string>);
+    // Warning: (ae-forgotten-export) The symbol "BackendIdSandboxResolver" needs to be exported by the entry point index.d.ts
+    constructor(sandboxIdResolver: BackendIdSandboxResolver);
     getInstance: () => Promise<Sandbox>;
 }
 

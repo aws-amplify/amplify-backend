@@ -20,9 +20,6 @@ import { Stack } from 'aws-cdk-lib';
 export type AmplifyFunction = ResourceProvider<FunctionResources>;
 
 // @public
-export type AppId = string;
-
-// @public
 export type AuthCfnResources = {
     userPool: CfnUserPool;
     userPoolClient: CfnUserPoolClient;
@@ -39,8 +36,8 @@ export type AuthResources = {
     cfnResources: AuthCfnResources;
 };
 
-// @public (undocumented)
-export type BackendId = AppId | SandboxId;
+// @public
+export type BackendId = string;
 
 // @public (undocumented)
 export type BackendOutput = Record<string, BackendOutputEntry>;
@@ -76,6 +73,9 @@ export type BackendSecretResolver = {
     resolveSecret: (backendSecret: BackendSecret) => SecretValue;
 };
 
+// @public (undocumented)
+export type BranchName = string;
+
 // @public
 export type ConstructContainer = {
     getOrCompute: (generator: ConstructContainerEntryGenerator) => Construct;
@@ -101,6 +101,9 @@ export type ConstructFactoryGetInstanceProps = {
     outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
     importPathVerifier?: ImportPathVerifier;
 };
+
+// @public
+export type Disambiguator = BranchName | SandboxName;
 
 // @public (undocumented)
 export type FunctionResources = {
@@ -130,11 +133,21 @@ export type ResourceProvider<T> = {
 // @public (undocumented)
 export type SandboxId = string;
 
+// @public (undocumented)
+export type SandboxName = string;
+
 // @public
 export type UniqueBackendIdentifier = {
-    backendId: BackendId;
-    disambiguator: string;
+    backendId: Readonly<BackendId>;
+    disambiguator: Readonly<Disambiguator>;
+    toStackName: () => string;
 };
+
+// @public
+export type UniqueBackendIdentifierData = Pick<
+UniqueBackendIdentifier,
+'backendId' | 'disambiguator'
+>;
 
 // (No @packageDocumentation comment for this package)
 

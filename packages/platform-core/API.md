@@ -20,29 +20,44 @@ export class BranchBackendIdentifier extends UniqueBackendIdentifierBase {
     constructor(backendId: BackendId, branchName: string);
     // (undocumented)
     readonly backendId: BackendId;
+    // (undocumented)
+    toStackName: () => string;
 }
 
 // @public
 export enum CDKContextKey {
+    // (undocumented)
+    BACKEND_DISAMBIGUATOR = "backend-disambiguator",
+    // (undocumented)
+    BACKEND_ID = "backend-id",
     // (undocumented)
     DEPLOYMENT_TYPE = "deployment-type"
 }
 
 // @public
 export class SandboxBackendIdentifier extends UniqueBackendIdentifierBase {
-    constructor(backendId: BackendId);
+    constructor(backendId: BackendId, disambiguator: string);
     // (undocumented)
     readonly backendId: BackendId;
+    // (undocumented)
+    readonly disambiguator: string;
+    // (undocumented)
+    toStackName: () => string;
     static tryParse(sandboxName: string): SandboxBackendIdentifier | undefined;
 }
 
 // @public
-export abstract class UniqueBackendIdentifierBase implements UniqueBackendIdentifier {
-    constructor(
+export abstract class UniqueBackendIdentifierBase
+implements UniqueBackendIdentifier
+    {
+    protected constructor(
     backendId: BackendId,
-    disambiguator: string);
+    disambiguator: string
+    );
     readonly backendId: BackendId;
     readonly disambiguator: string;
+    // (undocumented)
+    abstract toStackName: () => string;
 }
 
 // (No @packageDocumentation comment for this package)
