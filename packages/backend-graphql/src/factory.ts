@@ -7,13 +7,7 @@ import {
   ConstructFactoryGetInstanceProps,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
-import {
-  AmplifyGraphqlApi,
-  AmplifyGraphqlApiProps,
-  AuthorizationModes,
-  IAMAuthorizationConfig,
-  UserPoolAuthorizationConfig,
-} from '@aws-amplify/graphql-api-construct';
+import { AmplifyGraphqlApi } from '@aws-amplify/graphql-api-construct';
 import { GraphqlOutput } from '@aws-amplify/backend-output-schemas';
 import * as path from 'path';
 import { DataProps } from './types.js';
@@ -23,6 +17,13 @@ import {
   buildConstructFactoryFunctionInstanceProvider,
   convertFunctionNameMapToCDK,
 } from './convert_functions.js';
+import {
+  ProvidedAuthConfig,
+  buildConstructFactoryProvidedAuthConfig,
+  convertAuthorizationModesToCDK,
+  isUsingDefaultApiKeyAuth,
+} from './convert_authorization_modes.js';
+import { validateAuthorizationModes } from './validate_authorization_modes.js';
 
 /**
  * Singleton factory for AmplifyGraphqlApi constructs that can be used in Amplify project files
@@ -41,11 +42,11 @@ class DataFactory implements ConstructFactory<AmplifyGraphqlApi> {
   /**
    * Gets an instance of the Data construct
    */
-  getInstance = ({
-    constructContainer,
-    outputStorageStrategy,
-    importPathVerifier,
-  }: ConstructFactoryGetInstanceProps): AmplifyGraphqlApi => {
+  getInstance = (
+    props: ConstructFactoryGetInstanceProps
+  ): AmplifyGraphqlApi => {
+    const { constructContainer, outputStorageStrategy, importPathVerifier } =
+      props;
     importPathVerifier?.verify(
       this.importStack,
       path.join('amplify', 'data', 'resource'),
@@ -54,18 +55,14 @@ class DataFactory implements ConstructFactory<AmplifyGraphqlApi> {
     if (!this.generator) {
       this.generator = new DataGenerator(
         this.props,
-        constructContainer
-          .getConstructFactory<ResourceProvider<AuthResources>>('AuthResources')
-          ?.getInstance({
-            constructContainer,
-            outputStorageStrategy,
-            importPathVerifier,
-          }),
-        buildConstructFactoryFunctionInstanceProvider({
-          constructContainer,
-          outputStorageStrategy,
-          importPathVerifier,
-        }),
+        buildConstructFactoryProvidedAuthConfig(
+          props.constructContainer
+            .getConstructFactory<ResourceProvider<AuthResources>>(
+              'AuthResources'
+            )
+            ?.getInstance(props)
+        ),
+        buildConstructFactoryFunctionInstanceProvider(props),
         outputStorageStrategy
       );
     }
@@ -79,64 +76,41 @@ class DataGenerator implements ConstructContainerEntryGenerator {
 
   constructor(
     private readonly props: DataProps,
-    private readonly authResources: ResourceProvider<AuthResources> | undefined,
+    private readonly providedAuthConfig: ProvidedAuthConfig | undefined,
     private readonly functionInstanceProvider: FunctionInstanceProvider,
     private readonly outputStorageStrategy: BackendOutputStorageStrategy<GraphqlOutput>
   ) {}
 
   generateContainerEntry = (scope: Construct) => {
-    let iamConfig: IAMAuthorizationConfig | undefined = undefined;
-    let defaultAuthorizationMode: AuthorizationModes['defaultAuthorizationMode'] =
-      'AWS_IAM';
-    if (
-      this.authResources?.resources.authenticatedUserIamRole &&
-      this.authResources.resources.unauthenticatedUserIamRole &&
-      this.authResources.resources.cfnResources.identityPool.logicalId
-    ) {
-      iamConfig = {
-        authenticatedUserRole:
-          this.authResources.resources.authenticatedUserIamRole,
-        unauthenticatedUserRole:
-          this.authResources.resources.unauthenticatedUserIamRole,
-        identityPoolId:
-          this.authResources.resources.cfnResources.identityPool.logicalId,
-      };
-    }
+    const authorizationModes = convertAuthorizationModesToCDK(
+      this.functionInstanceProvider,
+      this.providedAuthConfig,
+      this.props.authorizationModes
+    );
 
-    let userPoolConfig: UserPoolAuthorizationConfig | undefined = undefined;
-    if (this.authResources?.resources.userPool) {
-      userPoolConfig = {
-        userPool: this.authResources.resources.userPool,
-      };
-      defaultAuthorizationMode = 'AMAZON_COGNITO_USER_POOLS';
-    }
+    validateAuthorizationModes(
+      this.props.authorizationModes,
+      authorizationModes
+    );
 
-    const dataAuthorizationModes = this.props.authorizationModes || {};
-
-    const authorizationModes: AuthorizationModes = {
-      defaultAuthorizationMode,
-      iamConfig,
-      userPoolConfig,
-      ...dataAuthorizationModes,
-    };
+    const sandboxModeEnabled = isUsingDefaultApiKeyAuth(
+      this.providedAuthConfig,
+      this.props.authorizationModes
+    );
 
     const functionNameMap = convertFunctionNameMapToCDK(
       this.functionInstanceProvider,
       this.props.functions ?? {}
     );
 
-    const graphqlConstructProps: AmplifyGraphqlApiProps = {
+    return new AmplifyGraphqlApi(scope, this.defaultName, {
       apiName: this.props.name,
       definition: convertSchemaToCDK(this.props.schema),
       authorizationModes,
       outputStorageStrategy: this.outputStorageStrategy,
       functionNameMap,
-    };
-    return new AmplifyGraphqlApi(
-      scope,
-      this.defaultName,
-      graphqlConstructProps
-    );
+      translationBehavior: { sandboxModeEnabled },
+    });
   };
 }
 

@@ -3,6 +3,7 @@ import path from 'path';
 import assert from 'node:assert';
 import * as fse from 'fs-extra/esm';
 import * as fs from 'fs';
+import * as fsp from 'fs/promises';
 import { ObjectPath, Predicate, assertCustomMatch } from './object_compare.js';
 
 const UPDATE_SNAPSHOTS = process.env.UPDATE_INTEGRATION_SNAPSHOTS === 'true';
@@ -16,6 +17,9 @@ const matchHashedJsonFile: Predicate = (actual, expected) => {
     jsonFileHashRegex.test(expected)
   );
 };
+
+const matchTimestamp: Predicate = (actual, expected) =>
+  typeof actual === 'number' && typeof expected === 'number';
 
 const nestedStackDescriptions = new Set([
   'An auto-generated nested stack for the @function directive.',
@@ -71,6 +75,15 @@ const customMatchers: Map<ObjectPath, Predicate> = new Map([
     matchHashedJsonFile,
   ],
   [
+    [
+      'Resources',
+      'amplifyDataGraphQLAPIDefaultApiKey1C8ED374',
+      'Properties',
+      'Expires',
+    ],
+    matchTimestamp,
+  ],
+  [
     ['Description'],
     // the description field of the gql template contains a JSON string that includes "createdOn": "Linux|Mac|Windows"
     // this check just verifies that the string is valid JSON because the createdOn value is different for each platform
@@ -114,6 +127,8 @@ export const validateCdkOutDir = async (
   const normalizedExpectedPaths = normalize(expectedPaths);
 
   if (UPDATE_SNAPSHOTS) {
+    await fsp.rm(expectedDir, { recursive: true, force: true });
+    await fsp.mkdir(expectedDir, { recursive: true });
     normalizedActualPaths.forEach((actualPath) => {
       const destination = path.resolve(expectedDir, path.basename(actualPath));
       fse.copySync(actualPath, destination);
