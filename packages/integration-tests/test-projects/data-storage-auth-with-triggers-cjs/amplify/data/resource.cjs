@@ -4,7 +4,6 @@ const { Func, defineData } = require('@aws-amplify/backend');
 
 const { myFunc } = require('../function.cjs');
 
-
 const schema = `
   input AMPLIFY {globalAuthRule: AuthRule = { allow: public }} # FOR TESTING ONLY!
 
@@ -18,7 +17,7 @@ const schema = `
   }
 `;
 
-const data = defineData({ 
+const data = defineData({
   schema,
   functions: {
     reverse: myFunc,
@@ -28,7 +27,7 @@ const data = defineData({
       name: 'echoFunc',
       codePath: './echo',
     }),
-  }, 
+  },
 });
 
 module.exports = { data };

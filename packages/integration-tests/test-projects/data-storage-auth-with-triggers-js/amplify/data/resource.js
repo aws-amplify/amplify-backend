@@ -14,7 +14,7 @@ const schema = `
   }
 `;
 
-export const data = defineData({ 
+export const data = defineData({
   schema,
   functions: {
     reverse: myFunc,
@@ -24,5 +24,5 @@ export const data = defineData({
       name: 'echoFunc',
       codePath: './echo',
     }),
-  }, 
+  },
 });
