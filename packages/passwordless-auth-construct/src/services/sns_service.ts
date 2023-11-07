@@ -1,13 +1,6 @@
 import { PublishCommand, SNSClient } from '@aws-sdk/client-sns';
 import { logger } from '../logger.js';
-import {
-  DeliveryMedium,
-  DeliveryService,
-  SignInMethod,
-  SmsConfigOptions,
-  SnsServiceConfig,
-} from '../types.js';
-import { codeOrLinkPlaceholder } from '../constants.js';
+import { DeliveryMedium, DeliveryService, SnsServiceConfig } from '../types.js';
 
 /**
  * SNS service Implementation.
@@ -23,26 +16,21 @@ export class SnsService implements DeliveryService {
    */
   constructor(private snsClient: SNSClient, private config: SnsServiceConfig) {}
 
-  public send = async (
-    secret: string,
-    destination: string,
-    challengeType: SignInMethod
-  ): Promise<void> => {
-    const config = this.getConfig(challengeType);
-    const message = config.message.replace(codeOrLinkPlaceholder, secret);
-
+  public send = async (message: string, destination: string): Promise<void> => {
     // SNS attributes
     const attributes: PublishCommand['input']['MessageAttributes'] = {};
-    if (config.senderId) {
+    if (this.config.senderId && this.config.senderId !== '') {
       attributes['AWS.SNS.SMS.SenderID'] = {
         DataType: 'String',
-        StringValue: config.senderId,
+        StringValue: this.config.senderId,
       };
     }
-    attributes['AWS.MM.SMS.OriginationNumber'] = {
-      DataType: 'String',
-      StringValue: config.originationNumber,
-    };
+    if (this.config.originationNumber && this.config.originationNumber !== '') {
+      attributes['AWS.SNS.SMS.OriginationNumber'] = {
+        DataType: 'String',
+        StringValue: this.config.originationNumber,
+      };
+    }
 
     // SNS Command
     const snsCommand = new PublishCommand({
@@ -62,17 +50,19 @@ export class SnsService implements DeliveryService {
     logger.debug(`SMS sent: ${JSON.stringify(output, null, 2)}`);
   };
 
-  private getConfig = (challengeType: SignInMethod): SmsConfigOptions => {
-    switch (challengeType) {
-      case 'MAGIC_LINK':
-        throw Error('SMS is not supported for magic link');
-      case 'OTP':
-        if (!this.config.otp) {
-          throw Error(
-            'No OTP configuration found. OTP via SMS may be disabled.'
-          );
-        }
-        return this.config.otp;
-    }
+  public mask = (destination: string): string => {
+    const show = destination.length < 8 ? 2 : 4;
+    return `+${new Array(11 - show).fill('*').join('')}${destination.slice(
+      -show
+    )}`;
+  };
+
+  /**
+   * Create SMS message content
+   * @param code The OTP code to send
+   * @returns The SMS content
+   */
+  public createMessage = (code: string): string => {
+    return `Your verification code is: ${code}`;
   };
 }

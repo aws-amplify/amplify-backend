@@ -5,6 +5,7 @@ import {
 } from 'aws-lambda';
 import { ChallengeServiceFactory } from '../factories/challenge_service_factory.js';
 import { logger } from '../logger.js';
+<<<<<<< HEAD
 import {
   CodeDeliveryDetails,
   DeliveryMedium,
@@ -20,6 +21,9 @@ import {
   AdminUpdateUserAttributesCommand,
   CognitoIdentityProviderClient,
 } from '@aws-sdk/client-cognito-identity-provider';
+=======
+import { PasswordlessAuthChallengeParams, SignInMethod } from '../types.js';
+>>>>>>> 0ae1e275f (feat(auth): OTP via SMS implementation  (#333))
 
 /**
  * A class containing the Cognito Auth triggers used for Custom Auth.

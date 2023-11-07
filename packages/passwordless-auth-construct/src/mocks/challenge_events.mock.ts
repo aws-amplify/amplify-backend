@@ -3,10 +3,9 @@ import {
   DefineAuthChallengeTriggerEvent,
   VerifyAuthChallengeResponseTriggerEvent,
 } from 'aws-lambda';
-import { ChallengeResult, PasswordlessClientMetaData } from '../types.js';
-import { CognitoMetadataKeys } from '../constants.js';
+import { ChallengeResult } from '../types.js';
 
-export const baseEvent = {
+const baseEvent = {
   version: '1',
   region: 'us-east-1',
   userPoolId: 'us-east-1_12345678',
@@ -35,45 +34,37 @@ const baseRequest = {
 
 // Client metadata when requesting a magic link.
 export const requestMagicLinkMetaData: PasswordlessClientMetaData = {
-  [CognitoMetadataKeys.SIGN_IN_METHOD]: 'MAGIC_LINK',
-  [CognitoMetadataKeys.ACTION]: 'REQUEST',
-  [CognitoMetadataKeys.DELIVERY_MEDIUM]: 'EMAIL',
-  [CognitoMetadataKeys.REDIRECT_URI]:
-    'https://example.com/sign-in-link/##code##',
+  signInMethod: 'MAGIC_LINK',
+  action: 'REQUEST',
+  deliveryMedium: 'EMAIL',
+  redirectUri: 'https://example.com/sign-in-link/##code##',
 };
 
 // Client metadata when requesting an OTP via email.
 export const requestOtpEmailMetaData: PasswordlessClientMetaData = {
-  [CognitoMetadataKeys.SIGN_IN_METHOD]: 'OTP',
-  [CognitoMetadataKeys.ACTION]: 'REQUEST',
-  [CognitoMetadataKeys.DELIVERY_MEDIUM]: 'EMAIL',
+  signInMethod: 'OTP',
+  action: 'REQUEST',
+  deliveryMedium: 'EMAIL',
 };
 
 // Client metadata when requesting an OTP via SMS.
 export const requestOtpSmsMetaData: PasswordlessClientMetaData = {
-  [CognitoMetadataKeys.SIGN_IN_METHOD]: 'OTP',
-  [CognitoMetadataKeys.ACTION]: 'REQUEST',
-  [CognitoMetadataKeys.DELIVERY_MEDIUM]: 'SMS',
+  signInMethod: 'OTP',
+  action: 'REQUEST',
+  deliveryMedium: 'SMS',
 };
 
 // Client metadata when requesting an OTP via SMS.
 export const confirmOtpMetaData: PasswordlessClientMetaData = {
-  [CognitoMetadataKeys.SIGN_IN_METHOD]: 'OTP',
-  [CognitoMetadataKeys.ACTION]: 'CONFIRM',
-};
-
-// Client metadata when requesting an OTP via SMS.
-export const confirmMagicLinkMetaData: PasswordlessClientMetaData = {
-  [CognitoMetadataKeys.SIGN_IN_METHOD]: 'MAGIC_LINK',
-  [CognitoMetadataKeys.ACTION]: 'CONFIRM',
+  signInMethod: 'OTP',
+  action: 'CONFIRM',
 };
 
 /**
  * Creates a mock event for Define Auth Challenge.
  */
 export const buildDefineAuthChallengeEvent = (
-  previousSessions?: ChallengeResult[],
-  clientMetadata?: PasswordlessClientMetaData | Record<string, string>
+  previousSessions?: [ChallengeResult]
 ): DefineAuthChallengeTriggerEvent => {
   return {
     ...baseEvent,
@@ -81,7 +72,6 @@ export const buildDefineAuthChallengeEvent = (
     request: {
       ...baseRequest,
       session: previousSessions ?? [],
-      clientMetadata: clientMetadata,
     },
     response: {
       challengeName: '',
@@ -95,9 +85,20 @@ export const buildDefineAuthChallengeEvent = (
  * Creates a mock event for Create Auth Challenge.
  */
 export const buildCreateAuthChallengeEvent = (
+<<<<<<< HEAD
   previousSessions?: ChallengeResult[],
   clientMetadata?: PasswordlessClientMetaData | Record<string, string>,
   userAttributes: Record<string, string> = emailUserAttributes
+=======
+<<<<<<<< HEAD:packages/passwordless-auth-construct/src/custom-auth/event.mocks.ts
+  previousSessions?: [ChallengeResult],
+  clientMetadata?: Record<string, string>
+========
+  previousSessions?: ChallengeResult[],
+  clientMetadata?: PasswordlessClientMetaData | Record<string, string>,
+  userAttributes: Record<string, string> = emailUserAttributes
+>>>>>>>> 0ae1e275f (feat(auth): OTP via SMS implementation  (#333)):packages/passwordless-auth-construct/src/mocks/challenge_events.mock.ts
+>>>>>>> 0ae1e275f (feat(auth): OTP via SMS implementation  (#333))
 ): CreateAuthChallengeTriggerEvent => {
   return {
     ...baseEvent,
@@ -121,17 +122,26 @@ export const buildCreateAuthChallengeEvent = (
  * Creates a mock event for Verify Auth Challenge Response.
  */
 export const buildVerifyAuthChallengeResponseEvent = (
+<<<<<<< HEAD
   clientMetadata: PasswordlessClientMetaData | Record<string, string>,
   answer = '',
   privateChallengeParameters = {}
+=======
+  clientMetadata?: Record<string, string>
+>>>>>>> 0ae1e275f (feat(auth): OTP via SMS implementation  (#333))
 ): VerifyAuthChallengeResponseTriggerEvent => {
   return {
     ...baseEvent,
     triggerSource: 'VerifyAuthChallengeResponse_Authentication',
     request: {
       ...baseRequest,
+<<<<<<< HEAD
       privateChallengeParameters: privateChallengeParameters,
       challengeAnswer: answer,
+=======
+      privateChallengeParameters: {},
+      challengeAnswer: 'answer',
+>>>>>>> 0ae1e275f (feat(auth): OTP via SMS implementation  (#333))
       clientMetadata: clientMetadata,
     },
     response: {

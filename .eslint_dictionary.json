@@ -121,6 +121,7 @@
   "tokenized",
   "totp",
   "tsbuildinfo",
+  "transactional",
   "tsconfig",
   "tsdoc",
   "tslint",

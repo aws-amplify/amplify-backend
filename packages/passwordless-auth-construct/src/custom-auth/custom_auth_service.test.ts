@@ -10,7 +10,6 @@ import {
   buildCreateAuthChallengeEvent,
   buildDefineAuthChallengeEvent,
   buildVerifyAuthChallengeResponseEvent,
-  requestOtpSmsMetaData,
 } from '../mocks/challenge_events.mock.js';
 import {
   CreateAuthChallengeTriggerEvent,
