@@ -43,8 +43,8 @@ void describe('OTP Challenge', () => {
     };
 
     const deliveryServiceFactory: DeliveryServiceFactory = {
-      getService: (service) =>
-        service === 'SMS' ? mockEmailService : mockSmsService,
+      getService: (deliveryMedium: DeliveryMedium) =>
+        deliveryMedium === 'SMS' ? mockSmsService : mockEmailService,
     };
 
     otpChallenge = new OtpChallengeService(deliveryServiceFactory, otpConfig);
