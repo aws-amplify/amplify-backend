@@ -9,6 +9,7 @@ import { PasswordlessAuthProps } from './types.js';
 import { AmplifyAuth } from '@aws-amplify/auth-construct-alpha';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
+import { AmplifyOtpAuth } from './otp/construct.js';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -28,8 +29,7 @@ export class AmplifyPasswordlessAuth extends Construct {
   ) {
     super(scope, id);
 
-    // TODO: add check for OTP
-    if (!props.magicLink) {
+    if (!props.magicLink && !props.otp) {
       return;
     }
 
@@ -74,5 +74,19 @@ export class AmplifyPasswordlessAuth extends Construct {
     auth.addTrigger('createAuthChallenge', createAuthChallenge);
 
     auth.addTrigger('verifyAuthChallengeResponse', verifyAuthChallengeResponse);
+
+    // Configure OTP environment
+    if (props.otp) {
+      new AmplifyOtpAuth(
+        scope,
+        `${id}-otp`,
+        {
+          defineAuthChallenge,
+          createAuthChallenge,
+          verifyAuthChallengeResponse,
+        },
+        props.otp
+      );
+    }
   }
 }

@@ -18,8 +18,16 @@ export type MagicLinkAuthOptions = {
 };
 
 // @public
+export type OtpAuthOptions = {
+    originationNumber?: string;
+    senderId?: string;
+    length?: number;
+};
+
+// @public
 export type PasswordlessAuthProps = {
     magicLink?: MagicLinkAuthOptions;
+    otp?: OtpAuthOptions | boolean;
 };
 
 // (No @packageDocumentation comment for this package)

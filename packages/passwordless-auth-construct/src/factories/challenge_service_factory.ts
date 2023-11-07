@@ -2,6 +2,7 @@ import { ChallengeService, SignInMethod } from '../types.js';
 
 /**
  * A factory for creating ChallengeServices.
+ * Determines which ChallengeService to use based on the signInMethod.
  */
 export class ChallengeServiceFactory {
   /**
