@@ -14,7 +14,7 @@ import { ArgumentsKebabCase } from '../../kebab_case.js';
 import { handleCommandFailure } from '../../command_failure_handler.js';
 import { ClientConfigLifecycleHandler } from '../../client-config/client_config_lifecycle_handler.js';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
-import { profileMiddleWare } from '../../command_middleware.js';
+import { CommandMiddleware } from '../../command_middleware.js';
 
 export type SandboxCommandOptions =
   ArgumentsKebabCase<SandboxCommandOptionsCamelCase>;
@@ -72,6 +72,7 @@ export class SandboxCommand
     private readonly sandboxFactory: SandboxSingletonFactory,
     private readonly sandboxSubCommands: CommandModule[],
     private clientConfigGeneratorAdapter: ClientConfigGeneratorAdapter,
+    private commandMiddleware: CommandMiddleware,
     private readonly sandboxEventHandlerCreator?: SandboxEventHandlerCreator
   ) {
     this.command = 'sandbox';
@@ -215,7 +216,7 @@ export class SandboxCommand
           }
           return true;
         })
-        .middleware([profileMiddleWare])
+        .middleware([this.commandMiddleware.handleProfile])
         .fail((msg, err) => {
           handleCommandFailure(msg, err, yargs);
           yargs.exit(1, err);
