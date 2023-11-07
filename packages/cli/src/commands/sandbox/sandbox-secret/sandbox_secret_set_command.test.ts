@@ -7,6 +7,7 @@ import { SandboxIdResolver } from '../sandbox_id_resolver.js';
 import { SecretIdentifier, getSecretClient } from '@aws-amplify/backend-secret';
 import { SandboxSecretSetCommand } from './sandbox_secret_set_command.js';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
 
 const testSecretName = 'testSecretName';
 const testSecretValue = 'testSecretValue';
@@ -16,6 +17,7 @@ const testSecretIdentifier: SecretIdentifier = {
 };
 
 const testBackendId = 'testBackendId';
+const testSandboxName = 'testSandboxName';
 
 void describe('sandbox secret set command', () => {
   const secretClient = getSecretClient();
@@ -25,9 +27,12 @@ void describe('sandbox secret set command', () => {
     (): Promise<SecretIdentifier> => Promise.resolve(testSecretIdentifier)
   );
 
-  const sandboxIdResolver = new SandboxIdResolver({
-    resolve: () => Promise.resolve(testBackendId),
-  });
+  const sandboxIdResolver: SandboxIdResolver = {
+    resolve: () =>
+      Promise.resolve(
+        new SandboxBackendIdentifier(testBackendId, testSandboxName)
+      ),
+  } as SandboxIdResolver;
 
   const sandboxSecretSetCmd = new SandboxSecretSetCommand(
     sandboxIdResolver,
@@ -57,8 +62,8 @@ void describe('sandbox secret set command', () => {
 
     const backendIdentifier = secretSetMock.mock.calls[0]
       .arguments[0] as UniqueBackendIdentifier;
-    assert.match(backendIdentifier.backendId, new RegExp(testBackendId));
-    assert.equal(backendIdentifier.disambiguator, 'sandbox');
+    assert.equal(backendIdentifier.backendId, testBackendId);
+    assert.equal(backendIdentifier.disambiguator, testSandboxName);
     assert.equal(secretSetMock.mock.calls[0].arguments[1], testSecretName);
     assert.equal(secretSetMock.mock.calls[0].arguments[2], testSecretValue);
   });

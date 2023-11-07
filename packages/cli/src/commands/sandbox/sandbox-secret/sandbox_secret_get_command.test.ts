@@ -11,9 +11,12 @@ import {
 import { SandboxSecretGetCommand } from './sandbox_secret_get_command.js';
 import { Printer } from '@aws-amplify/cli-core';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
+import { assertBackendIdDataEquivalence } from '../../../test-utils/assert_backend_id_data_equivalence.js';
 
 const testSecretName = 'testSecretName';
 const testBackendId = 'testBackendId';
+const testSandboxName = 'testSandboxName';
 const testSecretIdentifier: SecretIdentifier = {
   name: testSecretName,
 };
@@ -23,8 +26,6 @@ const testSecret: Secret = {
   value: 'testValue',
 };
 
-const SANDBOX_BRANCH = 'sandbox';
-
 void describe('sandbox secret get command', () => {
   const secretClient = getSecretClient();
   const secretGetMock = mock.method(
@@ -33,9 +34,12 @@ void describe('sandbox secret get command', () => {
     (): Promise<Secret | undefined> => Promise.resolve(testSecret)
   );
 
-  const sandboxIdResolver = new SandboxIdResolver({
-    resolve: () => Promise.resolve(testBackendId),
-  });
+  const sandboxIdResolver: SandboxIdResolver = {
+    resolve: () =>
+      Promise.resolve(
+        new SandboxBackendIdentifier(testBackendId, testSandboxName)
+      ),
+  } as SandboxIdResolver;
 
   const sandboxSecretGetCmd = new SandboxSecretGetCommand(
     sandboxIdResolver,
@@ -58,10 +62,12 @@ void describe('sandbox secret get command', () => {
     await commandRunner.runCommand(`get ${testSecretName}`);
 
     assert.equal(secretGetMock.mock.callCount(), 1);
-    const backendIdentifier = secretGetMock.mock.calls[0]
+    const actualBackendId = secretGetMock.mock.calls[0]
       .arguments[0] as UniqueBackendIdentifier;
-    assert.match(backendIdentifier.backendId, new RegExp(testBackendId));
-    assert.equal(backendIdentifier.disambiguator, SANDBOX_BRANCH);
+    assertBackendIdDataEquivalence(actualBackendId, {
+      backendId: testBackendId,
+      disambiguator: testSandboxName,
+    });
     assert.deepStrictEqual(
       secretGetMock.mock.calls[0].arguments[1],
       testSecretIdentifier

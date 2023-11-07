@@ -13,13 +13,13 @@ export class UniqueBackendIdentifierMainStackNameResolver
    * Initialize with the project environment identifier and an SSMClient
    */
   constructor(
-    private readonly uniqueDeploymentIdentifier: UniqueBackendIdentifier
+    private readonly uniqueBackendIdentifier: UniqueBackendIdentifier
   ) {}
 
   /**
    * Resolve the stack name for this project environment
    */
   resolveMainStackName = async (): Promise<string> => {
-    return this.uniqueDeploymentIdentifier.toStackName();
+    return this.uniqueBackendIdentifier.toStackName();
   };
 }

@@ -8,6 +8,8 @@ import { ClientConfigLifecycleHandler } from '../../client-config/client_config_
 import fs from 'fs';
 import fsp from 'fs/promises';
 import path from 'node:path';
+import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import { assertBackendIdDataEquivalence } from '../../test-utils/assert_backend_id_data_equivalence.js';
 
 void it('calls the client config adapter on the successfulDeployment event', async () => {
   const generateClientConfigMock =
@@ -36,8 +38,12 @@ void it('calls the client config adapter on the successfulDeployment event', asy
       .successfulDeployment.map((e) => e())
   );
 
-  assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments, [
-    { backendId: 'test', disambiguator: 'sandbox' },
+  assertBackendIdDataEquivalence(
+    generateClientConfigMock.mock.calls[0]
+      .arguments[0] as UniqueBackendIdentifier,
+    { backendId: 'test', disambiguator: 'name' }
+  );
+  assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments.slice(1), [
     'test-out',
     'mjs',
   ]);

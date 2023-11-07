@@ -12,8 +12,12 @@ import {
   SecretIdentifier,
   getSecretClient,
 } from '@aws-amplify/backend-secret';
-import { BranchBackendIdentifier } from '@aws-amplify/platform-core';
-import { BackendId, UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import {
+  BackendId,
+  UniqueBackendIdentifier,
+  UniqueBackendIdentifierData,
+} from '@aws-amplify/plugin-types';
+import { assertBackendIdDataEquivalence } from '../../../test-utils/assert_backend_id_data_equivalence.js';
 
 const testBackendId = 'testBackendId';
 const testBranchName = 'testBranchName';
@@ -28,8 +32,10 @@ const testSecret: Secret = {
   value: testSecretValue,
 };
 
-const testBackendIdentifier: UniqueBackendIdentifier =
-  new BranchBackendIdentifier(testBackendId, testBranchName);
+const testBackendIdentifier: UniqueBackendIdentifierData = {
+  backendId: testBackendId,
+  disambiguator: testBranchName,
+};
 
 const customResourceEventCommon = {
   ServiceToken: 'mockServiceToken',
@@ -86,10 +92,14 @@ void describe('handleCreateUpdateEvent', () => {
     assert.equal(val, testSecretValue);
 
     assert.equal(mockGetSecret.mock.callCount(), 1);
-    assert.deepStrictEqual(mockGetSecret.mock.calls[0].arguments, [
-      testBackendIdentifier,
-      testSecretId,
-    ]);
+    assertBackendIdDataEquivalence(
+      mockGetSecret.mock.calls[0].arguments[0] as UniqueBackendIdentifier,
+      testBackendIdentifier
+    );
+    assert.deepStrictEqual(
+      mockGetSecret.mock.calls[0].arguments[1],
+      testSecretId
+    );
   });
 
   void it('throws if receiving server error when getting a branch secret', async () => {
@@ -100,10 +110,14 @@ void describe('handleCreateUpdateEvent', () => {
       handleCreateUpdateEvent(secretHandler, createCfnEvent)
     );
     assert.equal(mockGetSecret.mock.callCount(), 1);
-    assert.deepStrictEqual(mockGetSecret.mock.calls[0].arguments, [
-      testBackendIdentifier,
-      testSecretId,
-    ]);
+    assertBackendIdDataEquivalence(
+      mockGetSecret.mock.calls[0].arguments[0] as UniqueBackendIdentifier,
+      testBackendIdentifier
+    );
+    assert.deepStrictEqual(
+      mockGetSecret.mock.calls[0].arguments[1],
+      testSecretId
+    );
   });
 
   void it('gets a shared backend secret if the branch returns client error', async () => {
@@ -122,10 +136,14 @@ void describe('handleCreateUpdateEvent', () => {
     assert.equal(val, testSecretValue);
 
     assert.equal(mockGetSecret.mock.callCount(), 2);
-    assert.deepStrictEqual(mockGetSecret.mock.calls[0].arguments, [
-      testBackendIdentifier,
-      testSecretId,
-    ]);
+    assertBackendIdDataEquivalence(
+      mockGetSecret.mock.calls[0].arguments[0] as UniqueBackendIdentifier,
+      testBackendIdentifier
+    );
+    assert.deepStrictEqual(
+      mockGetSecret.mock.calls[0].arguments[1],
+      testSecretId
+    );
     assert.deepStrictEqual(mockGetSecret.mock.calls[1].arguments, [
       testBackendId,
       testSecretId,
@@ -147,10 +165,14 @@ void describe('handleCreateUpdateEvent', () => {
     assert.equal(val, testSecretValue);
 
     assert.equal(mockGetSecret.mock.callCount(), 2);
-    assert.deepStrictEqual(mockGetSecret.mock.calls[0].arguments, [
-      testBackendIdentifier,
-      testSecretId,
-    ]);
+    assertBackendIdDataEquivalence(
+      mockGetSecret.mock.calls[0].arguments[0] as UniqueBackendIdentifier,
+      testBackendIdentifier
+    );
+    assert.deepStrictEqual(
+      mockGetSecret.mock.calls[0].arguments[1],
+      testSecretId
+    );
     assert.deepStrictEqual(mockGetSecret.mock.calls[1].arguments, [
       testBackendId,
       testSecretId,
@@ -173,10 +195,14 @@ void describe('handleCreateUpdateEvent', () => {
     );
 
     assert.equal(mockGetSecret.mock.callCount(), 2);
-    assert.deepStrictEqual(mockGetSecret.mock.calls[0].arguments, [
-      testBackendIdentifier,
-      testSecretId,
-    ]);
+    assertBackendIdDataEquivalence(
+      mockGetSecret.mock.calls[0].arguments[0] as UniqueBackendIdentifier,
+      testBackendIdentifier
+    );
+    assert.deepStrictEqual(
+      mockGetSecret.mock.calls[0].arguments[1],
+      testSecretId
+    );
     assert.deepStrictEqual(mockGetSecret.mock.calls[1].arguments, [
       testBackendId,
       testSecretId,

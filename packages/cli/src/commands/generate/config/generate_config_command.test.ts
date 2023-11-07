@@ -7,6 +7,8 @@ import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
 import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
 import { ClientConfigGeneratorAdapter } from '../../../client-config/client_config_generator_adapter.js';
+import { assertBackendIdDataEquivalence } from '../../../test-utils/assert_backend_id_data_equivalence.js';
+import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 void describe('generate config command', () => {
   const clientConfigGeneratorAdapter = new ClientConfigGeneratorAdapter(
@@ -82,10 +84,14 @@ void describe('generate config command', () => {
       'config --branch branch_name --app-id app_id --out-dir /foo/bar --format mjs'
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
-    assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
-      backendId: 'app_id',
-      disambiguator: 'branch_name',
-    });
+    assertBackendIdDataEquivalence(
+      generateClientConfigMock.mock.calls[0]
+        .arguments[0] as UniqueBackendIdentifier,
+      {
+        backendId: 'app_id',
+        disambiguator: 'branch_name',
+      }
+    );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       generateClientConfigMock.mock.calls[0].arguments[1],

@@ -20,7 +20,9 @@ export const isUniqueBackendIdentifier = (
   backendIdentifier: BackendIdentifier
 ): backendIdentifier is UniqueBackendIdentifier => {
   return (
-    'backendId' in backendIdentifier && 'disambiguator' in backendIdentifier
+    'backendId' in backendIdentifier &&
+    'disambiguator' in backendIdentifier &&
+    'toStackName' in backendIdentifier
   );
 };
 /**

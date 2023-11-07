@@ -12,7 +12,10 @@ import {
   GenerateApiCodeModelTarget,
   GenerateApiCodeStatementTarget,
   GenerateApiCodeTypeTarget,
+  GenerateGraphqlCodegenOptions,
 } from '@aws-amplify/model-generator';
+import { assertBackendIdDataEquivalence } from '../../../test-utils/assert_backend_id_data_equivalence.js';
+import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 void describe('generate graphql-client-code command', () => {
   const generateApiCodeAdapter = new GenerateApiCodeAdapter(
@@ -84,13 +87,20 @@ void describe('generate graphql-client-code command', () => {
       'graphql-client-code --branch branch_name --app-id app_id'
     );
     assert.equal(invokeGenerateApiCodeMock.mock.callCount(), 1);
-    assert.deepEqual(invokeGenerateApiCodeMock.mock.calls[0].arguments[0], {
+    const actualArgs = invokeGenerateApiCodeMock.mock.calls[0].arguments[0];
+    assertBackendIdDataEquivalence(actualArgs as UniqueBackendIdentifier, {
       backendId: 'app_id',
       disambiguator: 'branch_name',
-      format: GenerateApiCodeFormat.GRAPHQL_CODEGEN,
-      statementTarget: GenerateApiCodeStatementTarget.TYPESCRIPT,
-      typeTarget: GenerateApiCodeTypeTarget.TYPESCRIPT,
     });
+    assert.equal(actualArgs?.format, GenerateApiCodeFormat.GRAPHQL_CODEGEN);
+    assert.equal(
+      (actualArgs as GenerateGraphqlCodegenOptions)?.statementTarget,
+      GenerateApiCodeStatementTarget.TYPESCRIPT
+    );
+    assert.equal(
+      (actualArgs as GenerateGraphqlCodegenOptions)?.typeTarget,
+      GenerateApiCodeTypeTarget.TYPESCRIPT
+    );
     assert.equal(writeToDirectoryMock.mock.callCount(), 1);
     assert.equal(
       writeToDirectoryMock.mock.calls[0].arguments[0],

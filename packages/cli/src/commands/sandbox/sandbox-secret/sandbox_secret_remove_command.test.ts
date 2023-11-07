@@ -6,9 +6,12 @@ import { SandboxIdResolver } from '../sandbox_id_resolver.js';
 import { getSecretClient } from '@aws-amplify/backend-secret';
 import { SandboxSecretRemoveCommand } from './sandbox_secret_remove_command.js';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
+import { assertBackendIdDataEquivalence } from '../../../test-utils/assert_backend_id_data_equivalence.js';
 
 const testSecretName = 'testSecretName';
 const testBackendId = 'testBackendId';
+const testSandboxName = 'testSandboxName';
 
 void describe('sandbox secret remove command', () => {
   const secretClient = getSecretClient();
@@ -18,9 +21,12 @@ void describe('sandbox secret remove command', () => {
     (): Promise<void> => Promise.resolve()
   );
 
-  const sandboxIdResolver = new SandboxIdResolver({
-    resolve: () => Promise.resolve('testBackendId'),
-  });
+  const sandboxIdResolver: SandboxIdResolver = {
+    resolve: () =>
+      Promise.resolve(
+        new SandboxBackendIdentifier(testBackendId, testSandboxName)
+      ),
+  } as SandboxIdResolver;
 
   const sandboxSecretRemoveCmd = new SandboxSecretRemoveCommand(
     sandboxIdResolver,
@@ -40,10 +46,12 @@ void describe('sandbox secret remove command', () => {
   void it('remove a secret', async () => {
     await commandRunner.runCommand(`remove ${testSecretName}`);
     assert.equal(secretRemoveMock.mock.callCount(), 1);
-    const backendIdentifier = secretRemoveMock.mock.calls[0]
+    const actualBackendId = secretRemoveMock.mock.calls[0]
       .arguments[0] as UniqueBackendIdentifier;
-    assert.match(backendIdentifier.backendId, new RegExp(testBackendId));
-    assert.equal(backendIdentifier.disambiguator, 'sandbox');
+    assertBackendIdDataEquivalence(actualBackendId, {
+      backendId: testBackendId,
+      disambiguator: testSandboxName,
+    });
     assert.equal(secretRemoveMock.mock.calls[0].arguments[1], testSecretName);
   });
 

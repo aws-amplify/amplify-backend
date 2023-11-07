@@ -63,9 +63,9 @@ void describe('invokeCDKCommand', () => {
       '--output',
       '.amplify/artifacts/cdk.out',
       '--context',
-      'backend-id=123',
+      `${CDKContextKey.BACKEND_ID}=123`,
       '--context',
-      'branch-name=testBranch',
+      `${CDKContextKey.BACKEND_DISAMBIGUATOR}=testBranch`,
       '--require-approval',
       'never',
     ]);
@@ -98,7 +98,7 @@ void describe('invokeCDKCommand', () => {
   void it('handles options and deployProps for sandbox', async () => {
     await invoker.deploy(uniqueBackendIdentifier, sandboxDeployProps);
     assert.strictEqual(execaMock.mock.callCount(), 1);
-    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 16);
+    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 18);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
       'cdk',
       'deploy',
@@ -109,7 +109,9 @@ void describe('invokeCDKCommand', () => {
       '--output',
       '.amplify/artifacts/cdk.out',
       '--context',
-      'backend-id=123',
+      `${CDKContextKey.BACKEND_ID}=123`,
+      '--context',
+      `${CDKContextKey.BACKEND_DISAMBIGUATOR}=testBranch`,
       '--context',
       `${CDKContextKey.DEPLOYMENT_TYPE}=SANDBOX`,
       '--hotswap-fallback',
@@ -126,7 +128,7 @@ void describe('invokeCDKCommand', () => {
       deploymentType: BackendDeploymentType.SANDBOX,
     });
     assert.strictEqual(execaMock.mock.callCount(), 1);
-    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 13);
+    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 15);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
       'cdk',
       'destroy',
@@ -137,7 +139,9 @@ void describe('invokeCDKCommand', () => {
       '--output',
       '.amplify/artifacts/cdk.out',
       '--context',
-      'backend-id=123',
+      `${CDKContextKey.BACKEND_ID}=123`,
+      '--context',
+      `${CDKContextKey.BACKEND_DISAMBIGUATOR}=testBranch`,
       '--context',
       `${CDKContextKey.DEPLOYMENT_TYPE}=SANDBOX`,
       '--force',
@@ -174,9 +178,9 @@ void describe('invokeCDKCommand', () => {
       '--output',
       '.amplify/artifacts/cdk.out',
       '--context',
-      'backend-id=123',
+      `${CDKContextKey.BACKEND_ID}=123`,
       '--context',
-      'branch-name=testBranch',
+      `${CDKContextKey.BACKEND_DISAMBIGUATOR}=testBranch`,
       '--require-approval',
       'never',
       '--context',
@@ -241,13 +245,13 @@ void describe('invokeCDKCommand', () => {
         '--output',
         '.amplify/artifacts/cdk.out',
         '--context',
-        'backend-id=123',
+        `${CDKContextKey.BACKEND_ID}=123`,
         '--context',
-        'branch-name=testBranch',
+        `${CDKContextKey.BACKEND_DISAMBIGUATOR}=testBranch`,
         '--require-approval',
         'never',
         '--context',
-        'deployment-type=BRANCH',
+        `${CDKContextKey.DEPLOYMENT_TYPE}=BRANCH`,
       ]);
     } finally {
       delete process.env[
@@ -278,7 +282,7 @@ void describe('invokeCDKCommand', () => {
         '--output',
         '.amplify/artifacts/cdk.out',
         '--context',
-        'deployment-type=SANDBOX',
+        `${CDKContextKey.DEPLOYMENT_TYPE}=SANDBOX`,
         '--hotswap-fallback',
         '--method=direct',
       ]);
