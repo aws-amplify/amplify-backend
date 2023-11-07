@@ -1,5 +1,11 @@
 # @aws-amplify/backend-cli
 
+## 0.3.1
+
+### Patch Changes
+
+- 4ad1db95: Gracefully handle Crtl+C error during CLI prompting
+
 ## 0.3.0
 
 ### Minor Changes

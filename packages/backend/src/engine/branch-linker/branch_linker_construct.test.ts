@@ -3,12 +3,14 @@ import { Template } from 'aws-cdk-lib/assertions';
 import { Stack } from 'aws-cdk-lib';
 import { BranchBackendIdentifier } from '@aws-amplify/platform-core';
 import { AmplifyBranchLinkerConstruct } from './branch_linker_construct.js';
+import { BackendEnvironmentVariables } from '../../environment_variables.js';
 
 void describe('Branch Linker Construct', () => {
+  const backendId = 'test-backend-id';
+  const branchName = 'test-branch-name';
+
   void it('provisions custom resource', () => {
     const stack = new Stack();
-    const backendId = 'test-backend-id';
-    const branchName = 'test-branch-name';
     const backendIdentifier = new BranchBackendIdentifier(
       backendId,
       branchName
@@ -30,5 +32,33 @@ void describe('Branch Linker Construct', () => {
       Runtime: 'nodejs18.x',
       Handler: 'index.handler',
     });
+  });
+
+  void it('defines amplify service endpoint url if provided', () => {
+    try {
+      const customEndpoint = 'https://custom.amplify.endpoint';
+      process.env[BackendEnvironmentVariables.AWS_ENDPOINT_URL_AMPLIFY] =
+        customEndpoint;
+      const stack = new Stack();
+      const backendIdentifier = new BranchBackendIdentifier(
+        backendId,
+        branchName
+      );
+      new AmplifyBranchLinkerConstruct(stack, backendIdentifier);
+
+      const template = Template.fromStack(stack);
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        Runtime: 'nodejs18.x',
+        Handler: 'index.handler',
+        Environment: {
+          Variables: {
+            AWS_ENDPOINT_URL_AMPLIFY: customEndpoint,
+          },
+        },
+      });
+    } finally {
+      delete process.env[BackendEnvironmentVariables.AWS_ENDPOINT_URL_AMPLIFY];
+    }
   });
 });
