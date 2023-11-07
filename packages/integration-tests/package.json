@@ -8,7 +8,7 @@
     "@aws-amplify/backend-auth": "0.2.3",
     "@aws-amplify/backend-secret": "^0.2.1",
     "@aws-amplify/backend-storage": "0.2.2",
-    "@aws-amplify/amplify-api-next-alpha": "^0.3.2",
+    "@aws-amplify/amplify-api-next-alpha": "^0.8.0",
     "@aws-sdk/client-amplify": "^3.440.0",
     "@aws-sdk/client-cloudformation": "^3.421.0",
     "@aws-amplify/platform-core": "^0.1.3",
