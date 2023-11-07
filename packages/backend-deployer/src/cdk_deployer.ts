@@ -30,7 +30,7 @@ export class CDKDeployer implements BackendDeployer {
    */
   constructor(
     private readonly cdkErrorMapper: CdkErrorMapper,
-    private readonly backendLocator = new BackendLocator()
+    private readonly backendLocator: BackendLocator
   ) {}
   /**
    * Invokes cdk deploy command
