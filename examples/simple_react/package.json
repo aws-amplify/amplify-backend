@@ -22,7 +22,7 @@
   "devDependencies": {
     "@aws-amplify/backend": "file:../../packages/backend",
     "@aws-amplify/backend-auth": "file:../../packages/backend-auth",
-    "@aws-amplify/backend-graphql": "file:../../packages/backend-graphql",
+    "@aws-amplify/backend-data": "file:../../packages/backend-data",
     "@aws-amplify/cli": "file:../../packages/cli",
     "@aws-amplify/api": "^5.4.5"
   },

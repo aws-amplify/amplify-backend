@@ -4,7 +4,7 @@
   "references": [
     { "path": "../backend-auth" },
     { "path": "../backend-function" },
-    { "path": "../backend-graphql" },
+    { "path": "../backend-data" },
     { "path": "../backend-output-schemas" },
     { "path": "../backend-output-storage" },
     { "path": "../backend-secret" },
