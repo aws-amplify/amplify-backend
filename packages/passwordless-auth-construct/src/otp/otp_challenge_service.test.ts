@@ -30,9 +30,7 @@ class MockDeliveryService implements DeliveryService {
 
 void describe('OTP Challenge', () => {
   const mockOtpCode = '123456';
-  let deliveryServiceFactory: DeliveryServiceFactory;
   let otpChallenge: OtpChallengeService;
-  let smsConfirmVerifyChallengeEvent: VerifyAuthChallengeResponseTriggerEvent;
   let mockSmsService: MockDeliveryService;
   let mockEmailService: MockDeliveryService;
 
@@ -44,7 +42,7 @@ void describe('OTP Challenge', () => {
       otpLength: 6,
     };
 
-    deliveryServiceFactory = new DeliveryServiceFactory([
+    const deliveryServiceFactory = new DeliveryServiceFactory([
       mockSmsService,
       mockEmailService,
     ]);
@@ -265,13 +263,10 @@ void describe('OTP Challenge', () => {
   });
 
   void describe('verifyChallenge()', () => {
-    smsConfirmVerifyChallengeEvent = buildVerifyAuthChallengeResponseEvent(
-      confirmOtpMetaData,
-      mockOtpCode,
-      {
+    const smsConfirmVerifyChallengeEvent =
+      buildVerifyAuthChallengeResponseEvent(confirmOtpMetaData, mockOtpCode, {
         otpCode: mockOtpCode,
-      }
-    );
+      });
     void it('should return answerCorrect: true when the OTP code is correct', async () => {
       const result = await otpChallenge.verifyChallenge(
         smsConfirmVerifyChallengeEvent
