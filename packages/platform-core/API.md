@@ -29,6 +29,9 @@ export enum CDKContextKey {
 }
 
 // @public
+export const extractFilePathFromStackTraceLineRegexes: RegExp[];
+
+// @public
 export const getRelativeBackendEntryPoint: (rootDir?: string) => string;
 
 // @public

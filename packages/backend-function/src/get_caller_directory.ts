@@ -1,6 +1,6 @@
 import path from 'path';
 import * as os from 'os';
-import { extractFilePathFromStackTraceLine } from './extract_file_path_from_stack_trace_line.js';
+import { extractFilePathFromStackTraceLineRegexes } from '@aws-amplify/platform-core';
 import { fileURLToPath } from 'url';
 
 /**
@@ -27,7 +27,7 @@ export const getCallerDirectory = (stackTrace?: string): string => {
   }
   const stackTraceImportLine = stacktraceLines[1]; // the first entry is the file where the error was initialized (our code). The second entry is where the customer called our code which is what we are interested in
 
-  for (const regex of extractFilePathFromStackTraceLine) {
+  for (const regex of extractFilePathFromStackTraceLineRegexes) {
     const match = stackTraceImportLine.match(regex);
     if (match?.groups?.filepath) {
       const filePath = standardizePath(match?.groups?.filepath);

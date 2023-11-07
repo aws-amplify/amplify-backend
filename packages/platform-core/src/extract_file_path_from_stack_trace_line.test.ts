@@ -1,5 +1,5 @@
 import { describe, it } from 'node:test';
-import { extractFilePathFromStackTraceLine } from './extract_file_path_from_stack_trace_line.js';
+import { extractFilePathFromStackTraceLineRegexes } from './extract_file_path_from_stack_trace_line.js';
 import * as assert from 'assert';
 
 void describe('extractFilePathFromStackTraceLine regex', () => {
@@ -8,7 +8,7 @@ void describe('extractFilePathFromStackTraceLine regex', () => {
     void it('matches absolute unix paths', () => {
       const line =
         '    at SomeSymbol (/Users/alias/some/path/src/fileName.ts:28:24)`;';
-      const result = line.match(extractFilePathFromStackTraceLine[0]);
+      const result = line.match(extractFilePathFromStackTraceLineRegexes[0]);
       assert.equal(
         result?.groups?.filepath,
         '/Users/alias/some/path/src/fileName.ts'
@@ -17,7 +17,7 @@ void describe('extractFilePathFromStackTraceLine regex', () => {
     void it('matches absolute windows paths', () => {
       const line =
         '    at SomeSymbol (C:\\Users\\alias\\some\\path\\src\\fileName.ts:28:24)`;';
-      const result = line.match(extractFilePathFromStackTraceLine[0]);
+      const result = line.match(extractFilePathFromStackTraceLineRegexes[0]);
       assert.equal(
         result?.groups?.filepath,
         'C:\\Users\\alias\\some\\path\\src\\fileName.ts'
@@ -26,7 +26,7 @@ void describe('extractFilePathFromStackTraceLine regex', () => {
     void it('does not match path with colon in middle', () => {
       const line =
         '    at SomeSymbol (/C:\\Users/alias/some/path/src/fileName.ts:28:24)`;';
-      const result = line.match(extractFilePathFromStackTraceLine[0]);
+      const result = line.match(extractFilePathFromStackTraceLineRegexes[0]);
       assert.equal(result, null);
     });
   });
@@ -36,7 +36,7 @@ void describe('extractFilePathFromStackTraceLine regex', () => {
     void it('matches absolute unix paths', () => {
       const line =
         '    at file:///Users//alias//some//path//src//fileName.ts:28:24`;';
-      const result = line.match(extractFilePathFromStackTraceLine[1]);
+      const result = line.match(extractFilePathFromStackTraceLineRegexes[1]);
       assert.equal(
         result?.groups?.filepath,
         'file:///Users//alias//some//path//src//fileName.ts'
@@ -44,11 +44,11 @@ void describe('extractFilePathFromStackTraceLine regex', () => {
     });
     void it('matches absolute windows paths', () => {
       const line =
-        '    at file:\\C:\\Users\\alias\\some\\path\\src\\fileName.ts:28:24`;';
-      const result = line.match(extractFilePathFromStackTraceLine[1]);
+        '    at file:///C:/Users/alias/some/path/src/fileName.ts:28:24';
+      const result = line.match(extractFilePathFromStackTraceLineRegexes[1]);
       assert.equal(
         result?.groups?.filepath,
-        'file:\\C:\\Users\\alias\\some\\path\\src\\fileName.ts'
+        'file:///C:/Users/alias/some/path/src/fileName.ts'
       );
     });
   });

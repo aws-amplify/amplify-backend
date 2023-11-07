@@ -7,7 +7,7 @@ const relativePath = path.join('amplify', 'backend');
 const supportedFileExtensions = ['.js', '.mjs', '.cjs', '.ts'];
 
 /**
- * TODO
+ * Find the backend definition file in the customer app that represents a CDK app.
  */
 export const getRelativeBackendEntryPoint = (
   rootDir: string = process.cwd()
