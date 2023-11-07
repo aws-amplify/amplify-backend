@@ -1,4 +1,4 @@
-# @aws-amplify/backend-graphql
+# @aws-amplify/backend-data
 
 ## 0.3.2
 
