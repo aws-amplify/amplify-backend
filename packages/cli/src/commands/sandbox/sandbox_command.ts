@@ -216,7 +216,7 @@ export class SandboxCommand
           }
           return true;
         })
-        .middleware([this.commandMiddleware.handleProfile])
+        .middleware([this.commandMiddleware.ensureAwsCredentials])
         .fail((msg, err) => {
           handleCommandFailure(msg, err, yargs);
           yargs.exit(1, err);

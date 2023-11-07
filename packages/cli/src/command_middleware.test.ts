@@ -9,7 +9,7 @@ import { ArgumentsCamelCase } from 'yargs';
 
 void describe('commandMiddleware', () => {
   void describe('profile', () => {
-    const profileMiddleware = new CommandMiddleware().handleProfile;
+    const commandMiddleware = new CommandMiddleware();
     const testAccessKeyId = '124';
     const testSecretAccessKey = '667';
     const testProfile = 'profileA';
@@ -28,7 +28,7 @@ void describe('commandMiddleware', () => {
 
       void it('loads credentials', async () => {
         await assert.doesNotReject(() =>
-          profileMiddleware(
+          commandMiddleware.ensureAwsCredentials(
             {} as ArgumentsCamelCase<{ profile: string | undefined }>
           )
         );
@@ -36,7 +36,7 @@ void describe('commandMiddleware', () => {
 
       void it('throws error if a profile is provided and no other credential providers', async () => {
         try {
-          await profileMiddleware({
+          await commandMiddleware.ensureAwsCredentials({
             profile: testProfile,
           } as ArgumentsCamelCase<{ profile: string | undefined }>);
           assert.fail('expect to throw error');
@@ -67,7 +67,7 @@ void describe('commandMiddleware', () => {
 
       void it('throws if missing default profile when no profile input', async () => {
         try {
-          await profileMiddleware(
+          await commandMiddleware.ensureAwsCredentials(
             {} as ArgumentsCamelCase<{ profile: string | undefined }>
           );
           assert.fail('expect to throw error');
@@ -83,7 +83,7 @@ void describe('commandMiddleware', () => {
         const defaultCredData = `[${DEFAULT_PROFILE}]${EOL}aws_access_key_id = 12${EOL}aws_secret_access_key = 23${EOL}`;
         await fs.writeFile(credFilePath, defaultCredData, 'utf-8');
         await assert.doesNotReject(() =>
-          profileMiddleware(
+          commandMiddleware.ensureAwsCredentials(
             {} as ArgumentsCamelCase<{ profile: string | undefined }>
           )
         );
@@ -91,7 +91,7 @@ void describe('commandMiddleware', () => {
 
       void it('throws error if an input profile does not exist in a credential file', async () => {
         try {
-          await profileMiddleware({
+          await commandMiddleware.ensureAwsCredentials({
             profile: 'someInvalidProfile',
           } as ArgumentsCamelCase<{ profile: string | undefined }>);
           assert.fail('expect to throw error');
@@ -108,7 +108,7 @@ void describe('commandMiddleware', () => {
         await fs.writeFile(credFilePath, testProfileCredData, 'utf-8');
 
         await assert.doesNotReject(() =>
-          profileMiddleware({
+          commandMiddleware.ensureAwsCredentials({
             profile: testProfile,
           } as ArgumentsCamelCase<{ profile: string | undefined }>)
         );

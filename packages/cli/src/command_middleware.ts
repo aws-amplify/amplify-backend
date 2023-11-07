@@ -2,15 +2,16 @@ import { ArgumentsCamelCase } from 'yargs';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { EOL } from 'os';
 
-const profileSetupInstruction = `To configure a new Amplify profile, proceed with "amplify configure profile".${EOL}To correct existing profile's credentials, proceed with "aws configure"`;
+const profileSetupInstruction = `To configure a new Amplify profile, use "amplify configure profile".${EOL}To update an existing profile's credentials, use "aws configure"`;
 /**
  * Contains middleware functions.
  */
 export class CommandMiddleware {
   /**
-   * Handles the profile option.
+   * Ensure AWS credentials of the input profile (or 'default' if undefined) are available in the credential provider chain.
+   * If the input profile is defined, the environment variable AWS_PROFILE will be set accordingly.
    */
-  handleProfile = async <T extends { profile: string | undefined }>(
+  ensureAwsCredentials = async <T extends { profile: string | undefined }>(
     argv: ArgumentsCamelCase<T>
   ) => {
     if (argv.profile) {
