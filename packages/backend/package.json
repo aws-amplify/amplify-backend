@@ -21,7 +21,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@aws-amplify/amplify-api-next-alpha": "^0.6.2",
+    "@aws-amplify/amplify-api-next-alpha": "^0.8.0",
     "@aws-amplify/backend-auth": "^0.2.2",
     "@aws-amplify/backend-function": "^0.1.2",
     "@aws-amplify/backend-data": "^0.3.2",
