@@ -222,7 +222,9 @@ export const amplifyCli = (
     command = 'npx';
     args = ['amplify'].concat(args);
   } else {
-    command = 'amplify';
+    // command = 'amplify';
+    command = 'npx';
+    args = ['amplify'].concat(args);
   }
   return new ProcessController(command, args, {
     cwd: dir,
