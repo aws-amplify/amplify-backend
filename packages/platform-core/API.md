@@ -27,11 +27,11 @@ export class BackendLocator {
 // @public
 export enum CDKContextKey {
     // (undocumented)
-    BACKEND_DISAMBIGUATOR = "backend-disambiguator",
+    BACKEND_INSTANCE = "amplify-backend-instance",
     // (undocumented)
-    BACKEND_NAMESPACE = "backend-namespace",
+    BACKEND_NAMESPACE = "amplify-backend-namespace",
     // (undocumented)
-    DEPLOYMENT_TYPE = "deployment-type"
+    DEPLOYMENT_TYPE = "amplify-backend-type"
 }
 
 // @public
