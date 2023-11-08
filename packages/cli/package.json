@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/backend-cli",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "Command line interface for various Amplify tools",
   "bin": {
     "amplify": "lib/amplify.js"
@@ -34,8 +34,8 @@
     "@aws-amplify/deployed-backend-client": "^0.2.0",
     "@aws-amplify/form-generator": "^0.3.0",
     "@aws-amplify/model-generator": "^0.2.0",
-    "@aws-amplify/platform-core": "^0.1.1",
-    "@aws-amplify/sandbox": "^0.2.1",
+    "@aws-amplify/platform-core": "^0.1.4",
+    "@aws-amplify/sandbox": "^0.2.4",
     "@aws-sdk/credential-provider-ini": "^3.360.0",
     "@aws-sdk/credential-providers": "^3.360.0",
     "@smithy/shared-ini-file-loader": "^2.2.2",
