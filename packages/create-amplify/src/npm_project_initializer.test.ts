@@ -9,7 +9,7 @@ void describe('NpmInitializedEnsurer', () => {
     const execaMock = mock.fn();
     const npmInitializedEnsurer = new NpmProjectInitializer(
       '/testProjectRoot',
-      { log: logMock } as never,
+      { debug: logMock } as never,
       existsSyncMock,
       execaMock as never
     );
@@ -28,7 +28,7 @@ void describe('NpmInitializedEnsurer', () => {
     const execaMock = mock.fn();
     const npmInitializedEnsurer = new NpmProjectInitializer(
       '/testProjectRoot',
-      { log: logMock } as never,
+      { debug: logMock } as never,
       existsSyncMock as never,
       execaMock as never
     );
@@ -37,7 +37,7 @@ void describe('NpmInitializedEnsurer', () => {
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments, [
       'npm',
       ['init', '--yes'],
-      { stdio: 'inherit', cwd: '/testProjectRoot' },
+      { stdin: 'inherit', cwd: '/testProjectRoot' },
     ]);
     assert.deepStrictEqual(execaMock.mock.calls[1].arguments, [
       'npm',
@@ -54,7 +54,7 @@ void describe('NpmInitializedEnsurer', () => {
     });
     const npmInitializedEnsurer = new NpmProjectInitializer(
       '/testProjectRoot',
-      { log: logMock } as never,
+      { debug: logMock } as never,
       existsSyncMock,
       execaMock as never
     );
@@ -70,7 +70,7 @@ void describe('NpmInitializedEnsurer', () => {
     const execaMock = mock.fn();
     const npmInitializedEnsurer = new NpmProjectInitializer(
       '/testProjectRoot',
-      { log: logMock } as never,
+      { debug: logMock } as never,
       existsSyncMock,
       execaMock as never
     );

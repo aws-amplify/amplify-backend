@@ -2,6 +2,7 @@ import { existsSync as _existsSync } from 'fs';
 import _fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
+import { Logger } from './logger.js';
 
 /**
  * Ensure that the .gitignore file exists with the correct contents in the current working directory
@@ -13,7 +14,7 @@ export class GitIgnoreInitializer {
    */
   constructor(
     private readonly projectRoot: string,
-    private readonly logger: typeof console = console,
+    private readonly logger: Logger,
     private readonly existsSync = _existsSync,
     private readonly fs = _fs
   ) {
@@ -49,7 +50,7 @@ export class GitIgnoreInitializer {
       return;
     }
 
-    this.logger.log(
+    await this.logger.debug(
       'No .gitignore file found in the working directory. Creating .gitignore...'
     );
 

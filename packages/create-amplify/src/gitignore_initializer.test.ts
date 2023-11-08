@@ -17,7 +17,7 @@ void describe('GitIgnoreInitializer', () => {
     };
     const gitIgnoreInitializer = new GitIgnoreInitializer(
       path.join(process.cwd(), 'testProjectRoot'),
-      { log: logMock } as never,
+      { debug: logMock } as never,
       existsSyncMock,
       fsMock as never
     );
@@ -42,7 +42,7 @@ void describe('GitIgnoreInitializer', () => {
     };
     const gitIgnoreInitializer = new GitIgnoreInitializer(
       path.join(process.cwd(), 'testProjectRoot'),
-      { log: logMock } as never,
+      { debug: logMock } as never,
       existsSyncMock,
       fsMock as never
     );
@@ -63,7 +63,7 @@ void describe('GitIgnoreInitializer', () => {
     };
     const gitIgnoreInitializer = new GitIgnoreInitializer(
       path.join(process.cwd(), 'testProjectRoot'),
-      { log: logMock } as never,
+      { debug: logMock } as never,
       existsSyncMock,
       fsMock as never
     );
@@ -84,7 +84,7 @@ void describe('GitIgnoreInitializer', () => {
     };
     const gitIgnoreInitializer = new GitIgnoreInitializer(
       path.join(process.cwd(), 'testProjectRoot'),
-      { log: logMock } as never,
+      { debug: logMock } as never,
       existsSyncMock,
       fsMock as never
     );
@@ -105,7 +105,7 @@ void describe('GitIgnoreInitializer', () => {
     };
     const gitIgnoreInitializer = new GitIgnoreInitializer(
       path.join(process.cwd(), 'testProjectRoot'),
-      { log: logMock } as never,
+      { debug: logMock } as never,
       existsSyncMock,
       fsMock as never
     );
@@ -126,7 +126,7 @@ void describe('GitIgnoreInitializer', () => {
     };
     const gitIgnoreInitializer = new GitIgnoreInitializer(
       path.join(process.cwd(), 'testProjectRoot'),
-      { log: logMock } as never,
+      { debug: logMock } as never,
       existsSyncMock,
       fsMock as never
     );
@@ -155,7 +155,7 @@ void describe('GitIgnoreInitializer', () => {
     };
     const gitIgnoreInitializer = new GitIgnoreInitializer(
       path.join(process.cwd(), 'testProjectRoot'),
-      { log: logMock } as never,
+      { debug: logMock } as never,
       existsSyncMock,
       fsMock as never
     );

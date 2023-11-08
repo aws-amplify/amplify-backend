@@ -24,7 +24,7 @@ void describe('TsConfigInitializer', () => {
     const tsConfigInitializer = new TsConfigInitializer(
       '/testProjectRoot',
       packageJsonReader,
-      { log: logMock } as never,
+      { debug: logMock } as never,
       existsSyncMock,
       execaMock as never
     );
@@ -51,7 +51,7 @@ void describe('TsConfigInitializer', () => {
     const tsConfigInitializer = new TsConfigInitializer(
       '/testProjectRoot',
       packageJsonReader,
-      { log: logMock } as never,
+      { debug: logMock } as never,
       existsSyncMock as never,
       execaMock as never
     );
@@ -71,7 +71,7 @@ void describe('TsConfigInitializer', () => {
         '--target',
         'es2018',
       ],
-      { stdio: 'inherit', cwd: '/testProjectRoot' },
+      { stdin: 'inherit', cwd: '/testProjectRoot' },
     ]);
   });
 
@@ -87,7 +87,7 @@ void describe('TsConfigInitializer', () => {
     const tsConfigInitializer = new TsConfigInitializer(
       '/testProjectRoot',
       packageJsonReader,
-      { log: logMock } as never,
+      { debug: logMock } as never,
       existsSyncMock as never,
       execaMock as never
     );
@@ -107,7 +107,7 @@ void describe('TsConfigInitializer', () => {
         '--target',
         'es2022',
       ],
-      { stdio: 'inherit', cwd: '/testProjectRoot' },
+      { stdin: 'inherit', cwd: '/testProjectRoot' },
     ]);
   });
 
@@ -120,7 +120,7 @@ void describe('TsConfigInitializer', () => {
     const tsConfigInitializer = new TsConfigInitializer(
       '/testProjectRoot',
       packageJsonReader,
-      { log: logMock } as never,
+      { debug: logMock } as never,
       existsSyncMock,
       execaMock as never
     );
@@ -137,7 +137,7 @@ void describe('TsConfigInitializer', () => {
     const tsConfigInitializer = new TsConfigInitializer(
       '/testProjectRoot',
       packageJsonReader,
-      { log: logMock } as never,
+      { debug: logMock } as never,
       existsSyncMock,
       execaMock as never
     );

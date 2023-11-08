@@ -13,7 +13,7 @@ void describe('NpmPackageManagerController', () => {
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments, [
       'npm',
       ['install', 'testDep', '--save-dev'],
-      { cwd: 'testPath', stdio: 'inherit' },
+      { cwd: 'testPath', stdin: 'inherit' },
     ]);
   });
 
@@ -27,7 +27,7 @@ void describe('NpmPackageManagerController', () => {
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments, [
       'npm',
       ['install', 'testDep'],
-      { cwd: 'testPath', stdio: 'inherit' },
+      { cwd: 'testPath', stdin: 'inherit' },
     ]);
   });
 });

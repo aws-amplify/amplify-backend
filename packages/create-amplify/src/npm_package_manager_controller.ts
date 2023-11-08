@@ -3,6 +3,8 @@ import {
   DependencyType,
   PackageManagerController,
 } from './package_manager_controller.js';
+import { logger } from './logger.js';
+import stream from 'stream';
 
 /**
  *
@@ -28,9 +30,21 @@ export class NpmPackageManagerController implements PackageManagerController {
     if (type === 'dev') {
       args.push('--save-dev');
     }
-    await this.execa(this.executableName, args, {
-      stdio: 'inherit',
+    let aggregatedStdout = '';
+    const aggregatorStream = new stream.Writable();
+    aggregatorStream._write = function (chunk, encoding, done) {
+      aggregatedStdout += chunk;
+      done();
+    };
+
+    const childProcess = this.execa(this.executableName, args, {
+      stdin: 'inherit',
       cwd: this.projectRoot,
     });
+
+    childProcess?.stdout?.pipe(aggregatorStream);
+
+    await childProcess;
+    await logger.debug(aggregatedStdout);
   };
 }

@@ -12,7 +12,7 @@ void describe('Logger', () => {
     assert.equal(mockConsole.log.mock.callCount(), 1);
     assert.match(
       [...mockConsole.log.mock.calls[0].arguments][0] ?? '',
-      new RegExp(`\\[INFO\\].*: Test log message`)
+      new RegExp(`Test log message`)
     );
   });
 

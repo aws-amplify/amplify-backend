@@ -2,6 +2,8 @@ import { existsSync as _existsSync } from 'fs';
 import * as path from 'path';
 import { execa as _execa } from 'execa';
 import { PackageJsonReader } from './package_json_reader.js';
+import { Logger } from './logger.js';
+import stream from 'stream';
 
 /**
  * Ensure that the current working directory is a valid TypeScript project
@@ -13,7 +15,7 @@ export class TsConfigInitializer {
   constructor(
     private readonly projectRoot: string,
     private readonly packageJsonReader: PackageJsonReader,
-    private readonly logger: typeof console = console,
+    private readonly logger: Logger,
     private readonly existsSync = _existsSync,
     private readonly execa = _execa
   ) {}
@@ -26,7 +28,7 @@ export class TsConfigInitializer {
       // if tsconfig.json already exists, no need to do anything
       return;
     }
-    this.logger.log(
+    await this.logger.debug(
       'No tsconfig.json file found in the current directory. Running `npx tsc --init`...'
     );
 
@@ -53,10 +55,23 @@ export class TsConfigInitializer {
     }
 
     try {
-      await this.execa('npx', tscArgs, {
-        stdio: 'inherit',
+      let aggregatedStdout = '';
+      const aggregatorStream = new stream.Writable();
+      aggregatorStream._write = function (chunk, encoding, done) {
+        aggregatedStdout += chunk;
+        done();
+      };
+
+      const childProcess = this.execa('npx', tscArgs, {
+        stdin: 'inherit',
         cwd: this.projectRoot,
       });
+
+      childProcess?.stdout?.pipe(aggregatorStream);
+      childProcess?.stderr?.pipe(aggregatorStream);
+
+      await childProcess;
+      await this.logger.debug(aggregatedStdout);
     } catch {
       throw new Error(
         '`npx tsc --init` did not exit successfully. Initialize a valid TypeScript configuration before continuing.'

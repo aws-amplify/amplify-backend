@@ -1,6 +1,8 @@
 import { existsSync as _existsSync } from 'fs';
 import * as path from 'path';
 import { execa as _execa } from 'execa';
+import { Logger } from './logger.js';
+import stream from 'stream';
 
 /**
  * Ensure that the current working directory is a valid JavaScript project
@@ -11,7 +13,7 @@ export class NpmProjectInitializer {
    */
   constructor(
     private readonly projectRoot: string,
-    private readonly logger: typeof console = console,
+    private readonly logger: Logger,
     private readonly existsSync = _existsSync,
     private readonly execa = _execa
   ) {}
@@ -24,15 +26,27 @@ export class NpmProjectInitializer {
       // if package.json already exists, no need to do anything
       return;
     }
-    this.logger.log(
+    await this.logger.debug(
       'No package.json file found in the current directory. Running `npm init`...'
     );
 
     try {
-      await this.execa('npm', ['init', '--yes'], {
-        stdio: 'inherit',
+      let aggregatedStdout = '';
+      const aggregatorStream = new stream.Writable();
+      aggregatorStream._write = function (chunk, encoding, done) {
+        aggregatedStdout += chunk;
+        done();
+      };
+
+      const childProcess = this.execa('npm', ['init', '--yes'], {
+        stdin: 'inherit',
         cwd: this.projectRoot,
       });
+
+      childProcess?.stdout?.pipe(aggregatorStream);
+
+      await childProcess;
+      await this.logger.debug(aggregatedStdout);
     } catch {
       throw new Error(
         '`npm init` did not exit successfully. Initialize a valid JavaScript package before continuing.'

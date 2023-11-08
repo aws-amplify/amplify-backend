@@ -24,9 +24,10 @@ export class Logger {
       return;
     }
 
-    const logMessage = `[${
-      LogLevel[level]
-    }] ${new Date().toISOString()}: ${message}`;
+    const logMessage =
+      level === LogLevel.DEBUG
+        ? `[${LogLevel[level]}] ${new Date().toISOString()}: ${message}`
+        : message;
     this.console.log(logMessage);
   }
 
