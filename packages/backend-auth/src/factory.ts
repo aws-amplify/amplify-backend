@@ -22,14 +22,14 @@ export type TriggerConfig = {
     Record<TriggerEvent, ConstructFactory<ResourceProvider<FunctionResources>>>
   >;
 };
+type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never;
 
-export type AmplifyAuthFactoryProps = Omit<
-  AuthProps,
-  'outputStorageStrategy' | 'loginWith'
-> &
-  TriggerConfig & {
-    loginWith: AuthLoginWithFactoryProps;
-  };
+export type AmplifyAuthFactoryProps = Expand<
+  Omit<AuthProps, 'outputStorageStrategy' | 'loginWith'> &
+    TriggerConfig & {
+      loginWith: Expand<AuthLoginWithFactoryProps>;
+    }
+>;
 
 /**
  * Singleton factory for AmplifyAuth that can be used in Amplify project files
