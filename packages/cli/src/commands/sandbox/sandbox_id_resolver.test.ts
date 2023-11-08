@@ -15,24 +15,4 @@ void describe('SandboxIdResolver', () => {
     assert.equal(result.namespace, 'testAppName');
     assert.equal(result.instance, 'testUsername');
   });
-  void it('resolve when insanely long appName is given', async () => {
-    const resolver = new SandboxBackendIdPartsResolver(
-      {
-        resolve: () =>
-          Promise.resolve(
-            'InsanelyLongApplicationNameProvidedByCustomer' +
-              'DoNotKnowWhatCustomersAreThinkingWhenChoosingThisGreatBigName'
-          ),
-      },
-      () => ({ username: 'testUsername' } as never)
-    );
-    const resolverRef = resolver.resolve;
-    const result = await resolverRef();
-    assert.equal(
-      result.namespace,
-      'InsanelyLongApplicationNameProvidedByCustomerDoNotKnowWhat' +
-        'CustomersAreThinkingWhenChoosingThisGreat'
-    );
-    assert.equal(result.instance, 'testUsername');
-  });
 });

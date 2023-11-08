@@ -18,10 +18,6 @@ export class LocalNamespaceResolver implements NamespaceResolver {
    * Returns the value of package.json#name from the current working directory
    */
   resolve = async () => {
-    const packageJsonName = (await this.packageJsonLoader.loadCwdPackageJson())
-      .name;
-
-    // backendId becomes part of CFN stack names where some special symbols are not allowed
-    return packageJsonName.replace(/[.,@ ]/g, '').replace(/[_/]/g, '-');
+    return (await this.packageJsonLoader.loadCwdPackageJson()).name;
   };
 }

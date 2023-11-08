@@ -19,11 +19,11 @@ export class SandboxBackendIdPartsResolver {
    */
   resolve = async (): Promise<BackendIdentifierParts> => {
     const namespace = await this.namespaceResolver.resolve();
-    const userName = this.userInfo().username;
+    const instance = this.userInfo().username;
 
     return {
-      namespace: namespace.substring(0, 112 - userName.length - 1),
-      instance: userName,
+      namespace,
+      instance,
       type: 'sandbox',
     };
   };

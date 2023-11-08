@@ -11,15 +11,4 @@ void describe('LocalAppNameResolver', () => {
     const result = await resolver.resolve();
     assert.equal(result, 'testName');
   });
-
-  void it('removes any punctuation or symbols', async () => {
-    const packageJsonLoaderMock = {
-      loadCwdPackageJson: async () => ({
-        name: 'A./.B@cd,_.E, , .f , .Ghi, _@ //, @, Jkl /',
-      }),
-    };
-    const resolver = new LocalNamespaceResolver(packageJsonLoaderMock as never);
-    const result = await resolver.resolve();
-    assert.equal(result, 'A-Bcd-EfGhi---Jkl-');
-  });
 });
