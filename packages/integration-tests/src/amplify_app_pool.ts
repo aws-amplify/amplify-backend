@@ -66,7 +66,7 @@ class DefaultAmplifyAppPool implements AmplifyAppPool {
     const branch = (
       await this.amplifyClient.send(
         new CreateBranchCommand({
-          branchName: `${this.testBranchPrefix}-${shortUuid()}`,
+          branchName: `${this.testBranchPrefix}${shortUuid()}`,
           appId: app.appId,
         })
       )
