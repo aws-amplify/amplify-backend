@@ -1,5 +1,11 @@
 # create-amplify
 
+## 0.2.3
+
+### Patch Changes
+
+- 68dc91e3: chore: support for JS backend apps
+
 ## 0.2.2
 
 ### Patch Changes

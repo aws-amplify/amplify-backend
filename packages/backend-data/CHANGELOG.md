@@ -1,5 +1,16 @@
 # @aws-amplify/backend-data
 
+## 0.4.0
+
+### Minor Changes
+
+- 6be68224: Update authorizationMode config to simplify inputs, and more closely align with final interface
+- 14a18c6e: Rename backend-graphql to backend-data
+
+### Patch Changes
+
+- a126d8df: bump amplify data versions
+
 ## 0.3.2
 
 ### Patch Changes

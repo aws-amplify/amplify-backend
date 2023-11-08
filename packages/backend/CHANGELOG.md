@@ -1,5 +1,20 @@
 # @aws-amplify/backend
 
+## 0.3.3
+
+### Patch Changes
+
+- 14a18c6e: Rename backend-graphql to backend-data
+- 68dc91e3: chore: support for JS backend apps
+- a126d8df: bump amplify data versions
+- Updated dependencies [6be68224]
+- Updated dependencies [14a18c6e]
+- Updated dependencies [68dc91e3]
+- Updated dependencies [a126d8df]
+  - @aws-amplify/backend-data@0.4.0
+  - @aws-amplify/backend-function@0.1.4
+  - @aws-amplify/platform-core@0.1.4
+
 ## 0.3.2
 
 ### Patch Changes
