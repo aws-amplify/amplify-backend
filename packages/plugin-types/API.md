@@ -39,7 +39,7 @@ export type AuthResources = {
     cfnResources: AuthCfnResources;
 };
 
-// @public (undocumented)
+// @public
 export type BackendIdentifierParts = {
     namespace: AppId;
     instance: BranchName;
