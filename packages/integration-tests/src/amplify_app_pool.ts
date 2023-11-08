@@ -32,7 +32,7 @@ class DefaultAmplifyAppPool implements AmplifyAppPool {
   private readonly maxNumberOfAmplifyApps = 20;
   private readonly maxBranchesPerApp = 50;
   private readonly testAppPrefix = 'amplify-test-app';
-  private readonly testBranchPrefix = 'test-branch';
+  private readonly testBranchPrefix = 'testBranch';
   private readonly branchesCreated: Array<TestBranch> = [];
 
   constructor(private readonly amplifyClient: AmplifyClient) {
