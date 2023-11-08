@@ -38,7 +38,11 @@ void it('calls the client config adapter on the successfulDeployment event', asy
   );
 
   assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments, [
-    {},
+    {
+      type: 'sandbox',
+      namespace: 'test',
+      instance: 'name',
+    },
     'test-out',
     'mjs',
   ]);

@@ -49,7 +49,7 @@ void describe('createDefaultRootStack', () => {
       BackendDeploymentType.BRANCH
     );
     assert.throws(() => createDefaultStack(app), {
-      message: 'No context value present for backend-id key',
+      message: 'No context value present for backend-namespace key',
     });
   });
 

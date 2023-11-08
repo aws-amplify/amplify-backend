@@ -66,8 +66,9 @@ void describe('sandbox secret get command', () => {
       .arguments[0] as BackendIdentifierParts;
     assert.deepStrictEqual(secretGetMock.mock.calls[0].arguments, [
       {
-        backendId: testBackendId,
-        disambiguator: testSandboxName,
+        namespace: testBackendId,
+        instance: testSandboxName,
+        type: 'sandbox',
       },
       testSecretIdentifier,
     ]);

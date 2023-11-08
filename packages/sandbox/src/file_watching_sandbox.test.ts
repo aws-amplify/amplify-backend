@@ -637,7 +637,11 @@ void describe('Sandbox using local project name resolver', () => {
 
     // BackendDeployer should be called with the right app name
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
-      testSandboxBackendIdParts,
+      {
+        instance: 'customSandboxName',
+        namespace: 'testSandboxId',
+        type: 'sandbox',
+      },
       {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,

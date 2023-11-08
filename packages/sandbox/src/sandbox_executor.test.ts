@@ -89,7 +89,11 @@ void describe('Sandbox executor', () => {
       assert.deepStrictEqual(
         backendDeployerDeployMock.mock.calls[0].arguments,
         [
-          {},
+          {
+            instance: 'testSandboxName',
+            namespace: 'testSandboxId',
+            type: 'sandbox',
+          },
           {
             deploymentType: BackendDeploymentType.SANDBOX,
             secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,

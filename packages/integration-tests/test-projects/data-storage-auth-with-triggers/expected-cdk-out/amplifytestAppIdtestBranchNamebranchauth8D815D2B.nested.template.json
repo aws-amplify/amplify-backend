@@ -63,7 +63,7 @@
      "S3Bucket": {
       "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
      },
-     "S3Key": "ecfef1b4cdec33ef3f198e64a2c55d3dc78d32095ed56e1b62eccac98155c3db.zip"
+     "S3Key": "809103a57c3faad9d028d422efba56c7d61804b2f1495c14e4bbaacf178f4d66.zip"
     },
     "Environment": {
      "Variables": {
@@ -202,8 +202,8 @@
       "Arn"
      ]
     },
-    "backendId": "testAppId",
-    "branchName": "testBranchName",
+    "namespace": "testAppId",
+    "instance": "testBranchName",
     "secretName": "testAmazonId",
     "secretLastUpdated": 123456789
    },
@@ -219,8 +219,8 @@
       "Arn"
      ]
     },
-    "backendId": "testAppId",
-    "branchName": "testBranchName",
+    "namespace": "testAppId",
+    "instance": "testBranchName",
     "secretName": "testAmazonSecret",
     "secretLastUpdated": 123456789
    },
@@ -236,8 +236,8 @@
       "Arn"
      ]
     },
-    "backendId": "testAppId",
-    "branchName": "testBranchName",
+    "namespace": "testAppId",
+    "instance": "testBranchName",
     "secretName": "testFacebookId",
     "secretLastUpdated": 123456789
    },
@@ -253,8 +253,8 @@
       "Arn"
      ]
     },
-    "backendId": "testAppId",
-    "branchName": "testBranchName",
+    "namespace": "testAppId",
+    "instance": "testBranchName",
     "secretName": "testFacebookSecret",
     "secretLastUpdated": 123456789
    },
@@ -270,8 +270,8 @@
       "Arn"
      ]
     },
-    "backendId": "testAppId",
-    "branchName": "testBranchName",
+    "namespace": "testAppId",
+    "instance": "testBranchName",
     "secretName": "testGoogleId",
     "secretLastUpdated": 123456789
    },
@@ -287,8 +287,8 @@
       "Arn"
      ]
     },
-    "backendId": "testAppId",
-    "branchName": "testBranchName",
+    "namespace": "testAppId",
+    "instance": "testBranchName",
     "secretName": "testGoogleSecret",
     "secretLastUpdated": 123456789
    },

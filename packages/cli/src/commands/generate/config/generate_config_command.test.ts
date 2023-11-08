@@ -83,7 +83,11 @@ void describe('generate config command', () => {
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(generateClientConfigMock.mock.calls[0].arguments, [
-      {},
+      {
+        instance: 'branch_name',
+        namespace: 'app_id',
+        type: 'branch',
+      },
       '/foo/bar',
       ClientConfigFormat.MJS,
     ]);

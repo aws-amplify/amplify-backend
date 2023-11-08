@@ -20,9 +20,9 @@ export const isBackendIdentifierParts = (
   backendIdentifier: DeployedBackendIdentifier
 ): backendIdentifier is BackendIdentifierParts => {
   return (
-    'backendId' in backendIdentifier &&
-    'disambiguator' in backendIdentifier &&
-    'toStackName' in backendIdentifier
+    'namespace' in backendIdentifier &&
+    'instance' in backendIdentifier &&
+    'type' in backendIdentifier
   );
 };
 /**

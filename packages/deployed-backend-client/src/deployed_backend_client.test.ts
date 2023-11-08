@@ -234,7 +234,11 @@ void describe('Deployed Backend Client', () => {
       sandboxes: [
         {
           deploymentType: BackendDeploymentType.SANDBOX,
-          backendId: undefined,
+          backendId: {
+            namespace: 'test',
+            instance: 'testBranch',
+            type: 'branch',
+          },
           name: 'amplify-test-testBranch-branch',
           status: BackendDeploymentStatus.DEPLOYED,
           lastUpdated: new Date(0),
@@ -242,8 +246,9 @@ void describe('Deployed Backend Client', () => {
         {
           deploymentType: BackendDeploymentType.SANDBOX,
           backendId: {
-            backendId: 'test',
-            disambiguator: 'name',
+            namespace: 'test',
+            instance: 'name',
+            type: 'sandbox',
           },
           name: 'amplify-test-name-sandbox',
           status: BackendDeploymentStatus.DEPLOYED,
@@ -315,8 +320,9 @@ void describe('Deployed Backend Client pagination', () => {
     {
       deploymentType: BackendDeploymentType.SANDBOX,
       backendId: {
-        backendId: 'test',
-        disambiguator: 'name',
+        namespace: 'test',
+        instance: 'name',
+        type: 'sandbox',
       },
       name: 'amplify-test-name-sandbox',
       status: BackendDeploymentStatus.DEPLOYED,

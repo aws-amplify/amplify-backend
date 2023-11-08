@@ -22,7 +22,7 @@ export class SandboxBackendIdPartsResolver {
     const userName = this.userInfo().username;
 
     return {
-      namespace,
+      namespace: namespace.substring(0, 112 - userName.length - 1),
       instance: userName,
       type: 'sandbox',
     };

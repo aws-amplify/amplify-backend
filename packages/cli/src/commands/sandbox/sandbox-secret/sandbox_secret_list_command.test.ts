@@ -56,8 +56,9 @@ void describe('sandbox secret list command', () => {
     assert.equal(secretListMock.mock.callCount(), 1);
 
     assert.deepStrictEqual(secretListMock.mock.calls[0].arguments[0], {
-      backendId: testBackendId,
-      disambiguator: testSandboxName,
+      namespace: testBackendId,
+      instance: testSandboxName,
+      type: 'sandbox',
     });
 
     assert.equal(mockPrintRecord.mock.callCount(), 1);

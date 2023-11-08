@@ -46,7 +46,11 @@ void describe('sandbox secret remove command', () => {
     await commandRunner.runCommand(`remove ${testSecretName}`);
     assert.equal(secretRemoveMock.mock.callCount(), 1);
     assert.deepStrictEqual(secretRemoveMock.mock.calls[0].arguments, [
-      {},
+      {
+        type: 'sandbox',
+        namespace: testBackendId,
+        instance: testSandboxName,
+      },
       testSecretName,
     ]);
   });

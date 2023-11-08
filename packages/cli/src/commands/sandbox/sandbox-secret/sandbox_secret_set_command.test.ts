@@ -61,7 +61,11 @@ void describe('sandbox secret set command', () => {
     assert.equal(secretSetMock.mock.callCount(), 1);
 
     assert.deepStrictEqual(secretSetMock.mock.calls[0].arguments, [
-      {},
+      {
+        type: 'sandbox',
+        namespace: testBackendId,
+        instance: testSandboxName,
+      },
       testSecretName,
       testSecretValue,
     ]);
