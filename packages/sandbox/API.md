@@ -6,9 +6,9 @@
 
 /// <reference types="node" />
 
+import { BackendIdentifierParts } from '@aws-amplify/plugin-types';
 import { ClientConfigFormat } from '@aws-amplify/client-config';
 import EventEmitter from 'events';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 // @public
 export type Sandbox = {

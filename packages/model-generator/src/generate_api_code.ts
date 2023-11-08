@@ -12,7 +12,7 @@ import { createGraphqlTypesGenerator } from './create_graphql_types_generator.js
 import { createGraphqlDocumentGenerator } from './create_graphql_document_generator.js';
 import { getOutputFileName } from '@aws-amplify/graphql-types-generator';
 import path from 'path';
-import { BackendIdentifierParts } from '@aws-amplify/plugin-types';
+import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
 
 export enum GenerateApiCodeFormat {
   MODELGEN = 'modelgen',
@@ -78,7 +78,7 @@ export type GenerateOptions =
   | GenerateIntrospectionOptions;
 
 export type GenerateApiCodeProps = GenerateOptions &
-  BackendIdentifierParts & {
+  DeployedBackendIdentifier & {
     credentialProvider: AwsCredentialIdentityProvider;
   };
 
@@ -89,7 +89,7 @@ export const generateApiCode = async (
   props: GenerateApiCodeProps
 ): Promise<GenerationResult> => {
   const { credentialProvider = fromNodeProviderChain() } = props;
-  const backendIdentifier = props as BackendIdentifierParts;
+  const backendIdentifier = props;
   return new ApiCodeGenerator(
     createGraphqlDocumentGenerator({ backendIdentifier, credentialProvider }),
     createGraphqlTypesGenerator({ backendIdentifier, credentialProvider }),

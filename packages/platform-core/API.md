@@ -4,8 +4,7 @@
 
 ```ts
 
-import { BackendId } from '@aws-amplify/plugin-types';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import { BackendIdentifierParts } from '@aws-amplify/plugin-types';
 
 // @public (undocumented)
 export enum BackendDeploymentType {
@@ -16,6 +15,9 @@ export enum BackendDeploymentType {
 }
 
 // @public
+export const backendIdentifierPartsToStackName: (parts: BackendIdentifierParts) => string;
+
+// @public
 export class BackendLocator {
     constructor(rootDir?: string);
     // (undocumented)
@@ -23,20 +25,11 @@ export class BackendLocator {
 }
 
 // @public
-export class BranchBackendIdentifier extends UniqueBackendIdentifierBase {
-    constructor(backendId: BackendId, branchName: string);
-    // (undocumented)
-    readonly backendId: BackendId;
-    // (undocumented)
-    toStackName: () => string;
-}
-
-// @public
 export enum CDKContextKey {
     // (undocumented)
     BACKEND_DISAMBIGUATOR = "backend-disambiguator",
     // (undocumented)
-    BACKEND_ID = "backend-id",
+    BACKEND_NAMESPACE = "backend-namespace",
     // (undocumented)
     DEPLOYMENT_TYPE = "deployment-type"
 }
@@ -49,30 +42,7 @@ export class FilePathExtractor {
 }
 
 // @public
-export class SandboxBackendIdentifier extends UniqueBackendIdentifierBase {
-    constructor(backendId: BackendId, disambiguator: string);
-    // (undocumented)
-    readonly backendId: BackendId;
-    // (undocumented)
-    readonly disambiguator: string;
-    // (undocumented)
-    toStackName: () => string;
-    static tryParse(sandboxName: string): SandboxBackendIdentifier | undefined;
-}
-
-// @public
-export abstract class UniqueBackendIdentifierBase
-implements UniqueBackendIdentifier
-    {
-    protected constructor(
-    backendId: BackendId,
-    disambiguator: string
-    );
-    readonly backendId: BackendId;
-    readonly disambiguator: string;
-    // (undocumented)
-    abstract toStackName: () => string;
-}
+export const stackNameToBackendIdentifierParts: (stackName?: string) => BackendIdentifierParts | undefined;
 
 // (No @packageDocumentation comment for this package)
 

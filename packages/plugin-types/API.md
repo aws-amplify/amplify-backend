@@ -20,6 +20,9 @@ import { Stack } from 'aws-cdk-lib';
 export type AmplifyFunction = ResourceProvider<FunctionResources>;
 
 // @public
+export type AppId = string;
+
+// @public
 export type AuthCfnResources = {
     userPool: CfnUserPool;
     userPoolClient: CfnUserPoolClient;
@@ -36,8 +39,16 @@ export type AuthResources = {
     cfnResources: AuthCfnResources;
 };
 
-// @public
-export type BackendId = string;
+// @public (undocumented)
+export type BackendIdentifierParts = {
+    namespace: AppId;
+    instance: BranchName;
+    type: 'branch';
+} | {
+    namespace: ProjectName;
+    instance: UserName;
+    type: 'sandbox';
+};
 
 // @public (undocumented)
 export type BackendOutput = Record<string, BackendOutputEntry>;
@@ -65,7 +76,7 @@ export type BackendOutputWriter = {
 
 // @public (undocumented)
 export type BackendSecret = {
-    resolve: (scope: Construct, uniqueBackendIdentifier: UniqueBackendIdentifier) => SecretValue;
+    resolve: (scope: Construct, uniqueBackendIdentifier: BackendIdentifierParts) => SecretValue;
 };
 
 // @public (undocumented)
@@ -73,7 +84,7 @@ export type BackendSecretResolver = {
     resolveSecret: (backendSecret: BackendSecret) => SecretValue;
 };
 
-// @public (undocumented)
+// @public
 export type BranchName = string;
 
 // @public
@@ -102,9 +113,6 @@ export type ConstructFactoryGetInstanceProps = {
     importPathVerifier?: ImportPathVerifier;
 };
 
-// @public
-export type Disambiguator = BranchName | SandboxName;
-
 // @public (undocumented)
 export type FunctionResources = {
     lambda: Function_2;
@@ -125,29 +133,16 @@ export type MainStackNameResolver = {
     resolveMainStackName: () => Promise<string>;
 };
 
+// @public (undocumented)
+export type ProjectName = string;
+
 // @public
 export type ResourceProvider<T> = {
     resources: T;
 };
 
 // @public (undocumented)
-export type SandboxId = string;
-
-// @public (undocumented)
-export type SandboxName = string;
-
-// @public
-export type UniqueBackendIdentifier = {
-    backendId: Readonly<BackendId>;
-    disambiguator: Readonly<Disambiguator>;
-    toStackName: () => string;
-};
-
-// @public
-export type UniqueBackendIdentifierData = Pick<
-UniqueBackendIdentifier,
-'backendId' | 'disambiguator'
->;
+export type UserName = string;
 
 // (No @packageDocumentation comment for this package)
 
