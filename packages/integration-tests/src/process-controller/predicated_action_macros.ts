@@ -23,22 +23,36 @@ export const waitForSandboxToBecomeIdle = () =>
 /**
  * Reusable predicated action: Wait for sandbox delete to prompt to delete all the resource and respond with yes
  */
-export const confirmDeleteSandbox = () =>
-  new PredicatedActionBuilder()
+export const confirmDeleteSandbox = () => {
+  let actionBuilder = new PredicatedActionBuilder()
     .waitForLineIncludes(
       'Are you sure you want to delete all the resources in your sandbox environment'
     )
     .sendYes();
+  if (process.platform.includes('win32')) {
+    actionBuilder = actionBuilder
+      .waitForLineIncludes('Terminate batch job (Y/N)?')
+      .sendYes();
+  }
+  return actionBuilder;
+};
 
 /**
  * Reusable predicated action: Wait for sandbox to prompt on quitting to delete all the resource and respond with no
  */
-export const rejectCleanupSandbox = () =>
-  new PredicatedActionBuilder()
+export const rejectCleanupSandbox = () => {
+  let actionBuilder = new PredicatedActionBuilder()
     .waitForLineIncludes(
       'Would you like to delete all the resources in your sandbox environment'
     )
     .sendNo();
+  if (process.platform.includes('win32')) {
+    actionBuilder = actionBuilder
+      .waitForLineIncludes('Terminate batch job (Y/N)?')
+      .sendYes();
+  }
+  return actionBuilder;
+};
 
 /**
  * Reusable predicated action: Wait for sandbox to become idle and then update the
