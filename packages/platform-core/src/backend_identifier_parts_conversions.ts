@@ -14,8 +14,8 @@ const NUM_DASHES = 3;
 export const backendIdentifierPartsToStackName = (
   parts: BackendIdentifierParts
 ): string => {
-  // only take the first 20 chars here to make sure there is room in the stack name for the namespace as well
-  const instance = removeDisallowedChars(parts.instance).slice(0, 20);
+  // only take the first 50 chars here to make sure there is room in the stack name for the namespace as well
+  const instance = removeDisallowedChars(parts.instance).slice(0, 50);
 
   const namespaceMaxLen =
     STACK_NAME_LENGTH_LIMIT -

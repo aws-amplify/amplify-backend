@@ -22,7 +22,10 @@ void describe('backendIdentifierPartsToStackName', () => {
         'InsanelyLongUserNameProvidedByCustomerDoNotKnowWhatCustomersAreThinkingWhenChoosingThisGreatBigName',
       type: 'sandbox',
     });
-    assert.equal(actual, 'amplify-reasonableName-InsanelyLongUserName-sandbox');
+    assert.equal(
+      actual,
+      'amplify-reasonableName-InsanelyLongUserNameProvidedByCustomerDoNotKnowWha-sandbox'
+    );
   });
 
   void it('truncates long namespace names', () => {
@@ -35,6 +38,22 @@ void describe('backendIdentifierPartsToStackName', () => {
     assert.equal(
       actual,
       'amplify-InsanelyLongNameProvidedByCustomerDoNotKnowWhatCustomersAreThinkingWhenChoosingThisGreatBigNameButItIs-userName-sandbox'
+    );
+    assert.ok(actual.length <= 128);
+  });
+
+  void it('truncates long namespace and instance', () => {
+    const actual = backendIdentifierPartsToStackName({
+      namespace:
+        'InsanelyLongNameProvidedByCustomerDoNotKnowWhatCustomersAreThinkingWhenChoosingThisGreatBigNameButItIsStillTheoreticallyPossible',
+      instance:
+        'InsanelyLongUserNameProvidedByCustomerDoNotKnowWhatCustomersAreThinkingWhenChoosingThisGreatBigName',
+
+      type: 'sandbox',
+    });
+    assert.equal(
+      actual,
+      'amplify-InsanelyLongNameProvidedByCustomerDoNotKnowWhatCustomersAreT-InsanelyLongUserNameProvidedByCustomerDoNotKnowWha-sandbox'
     );
     assert.ok(actual.length <= 128);
   });
