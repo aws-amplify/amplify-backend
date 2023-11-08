@@ -13,6 +13,12 @@ export type ProjectName = string;
 export type BranchName = string;
 export type UserName = string;
 
+/**
+ * This tuple defines the constituent parts that are used to construct backend stack names
+ * The stack name becomes what identifies a deployed backend.
+ *
+ * To translate to/from a stack name, use the utility methods in @aws-amplify/platform-core
+ */
 export type BackendIdentifierParts =
   | {
       namespace: AppId;
