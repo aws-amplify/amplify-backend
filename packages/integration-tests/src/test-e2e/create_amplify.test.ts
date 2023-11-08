@@ -6,6 +6,7 @@ import * as os from 'os';
 import { after, afterEach, before, beforeEach, describe, it } from 'node:test';
 import assert from 'assert';
 import { glob } from 'glob';
+import { CDKContextKey } from '@aws-amplify/platform-core';
 
 void describe('create-amplify script', () => {
   before(async () => {
@@ -147,7 +148,7 @@ void describe('create-amplify script', () => {
           'cdk',
           'synth',
           '--context',
-          'backend-id=123',
+          `${CDKContextKey.BACKEND_NAMESPACE}=123`,
           '--context',
           'deployment-type=SANDBOX',
           '--app',

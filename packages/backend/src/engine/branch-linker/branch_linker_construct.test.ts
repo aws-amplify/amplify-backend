@@ -6,13 +6,13 @@ import { BackendEnvironmentVariables } from '../../environment_variables.js';
 import { BackendIdentifierParts } from '@aws-amplify/plugin-types';
 
 void describe('Branch Linker Construct', () => {
-  const backendId = 'test-backend-id';
+  const appId = 'test-app-id';
   const branchName = 'test-branch-name';
 
   void it('provisions custom resource', () => {
     const stack = new Stack();
     const backendIdentifier: BackendIdentifierParts = {
-      namespace: backendId,
+      namespace: appId,
       instance: branchName,
       type: 'branch',
     };
@@ -42,7 +42,7 @@ void describe('Branch Linker Construct', () => {
         customEndpoint;
       const stack = new Stack();
       const backendIdentifier: BackendIdentifierParts = {
-        namespace: backendId,
+        namespace: appId,
         instance: branchName,
         type: 'branch',
       };
