@@ -19,7 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
         # https://github.com/nodejs/node-gyp/issues?q=is%3Aissue+ModuleNotFoundError%3A+No+module+named+%27distutils%27+is%3Aclosed
-      - uses: ./.github/actions/setup-python@v4
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.11'
       - uses: ./.github/actions/setup_node
