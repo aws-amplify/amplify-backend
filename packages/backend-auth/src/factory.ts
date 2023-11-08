@@ -25,7 +25,7 @@ export type TriggerConfig = {
     Record<TriggerEvent, ConstructFactory<ResourceProvider<FunctionResources>>>
   >;
 };
-type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never;
+export type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never;
 
 export type AmplifyAuthFactoryProps = Expand<
   Omit<AuthProps, 'outputStorageStrategy' | 'loginWith'> &

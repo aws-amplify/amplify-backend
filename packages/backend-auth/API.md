@@ -25,8 +25,6 @@ export type AmazonProviderFactoryProps = Omit<AmazonProviderProps, 'clientId' | 
     clientSecret: BackendSecret;
 };
 
-// Warning: (ae-forgotten-export) The symbol "Expand" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
 export type AmplifyAuthFactoryProps = Expand<Omit<AuthProps, 'outputStorageStrategy' | 'loginWith'> & TriggerConfig & {
     loginWith: Expand<AuthLoginWithFactoryProps>;
@@ -47,6 +45,11 @@ export type AuthLoginWithFactoryProps = Omit<AuthProps['loginWith'], 'externalPr
 
 // @public
 export const defineAuth: (props: AmplifyAuthFactoryProps) => ConstructFactory<AmplifyAuth & ResourceProvider<AuthResources>>;
+
+// @public (undocumented)
+export type Expand<T> = T extends infer O ? {
+    [K in keyof O]: O[K];
+} : never;
 
 // @public
 export type ExternalProviderGeneralFactoryProps = Omit<ExternalProviderOptions, 'signInWithApple' | 'loginWithAmazon' | 'facebook' | 'oidc' | 'google'>;
