@@ -87,12 +87,12 @@ void describe('generate graphql-client-code command', () => {
     assert.deepStrictEqual(
       invokeGenerateApiCodeMock.mock.calls[0].arguments[0],
       {
-        format: 'graphql-codegen',
-        instance: 'branch_name',
-        namespace: 'app_id',
-        statementTarget: 'typescript',
         type: 'branch',
-        typeTarget: 'typescript',
+        namespace: 'app_id',
+        instance: 'branch_name',
+        format: GenerateApiCodeFormat.GRAPHQL_CODEGEN,
+        statementTarget: GenerateApiCodeStatementTarget.TYPESCRIPT,
+        typeTarget: GenerateApiCodeTypeTarget.TYPESCRIPT,
       }
     );
     assert.equal(writeToDirectoryMock.mock.callCount(), 1);
