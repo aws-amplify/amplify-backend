@@ -52,49 +52,35 @@ export class SandboxDeleteCommand
    * @inheritDoc
    */
   builder = (yargs: Argv): Argv<SandboxDeleteCommandOptions> => {
-    return (
-      yargs
-        .option('yes', {
-          describe:
-            'Do not ask for confirmation before deleting the sandbox environment',
-          type: 'boolean',
-          array: false,
-          alias: 'y',
-        })
-        .option('name', {
-          describe:
-            'An optional name to distinguish between different sandbox environments. Default is the name in your package.json',
-          type: 'string',
-          array: false,
-        })
-        // kinda hack to "hide" the parent command options from getting displayed in the help
-        .option('exclude', {
-          hidden: true,
-        })
-        .option('dir-to-watch', {
-          hidden: true,
-        })
-        .check((argv) => {
-          if (argv.dirToWatch || argv.exclude) {
+    return yargs
+      .option('yes', {
+        describe:
+          'Do not ask for confirmation before deleting the sandbox environment',
+        type: 'boolean',
+        array: false,
+        alias: 'y',
+      })
+      .option('name', {
+        describe:
+          'An optional name to distinguish between different sandbox environments. Default is the name in your package.json',
+        type: 'string',
+        array: false,
+      })
+      .check((argv) => {
+        if (argv.name) {
+          const projectNameRegex = /^[a-zA-Z0-9-]{1,15}$/;
+          if (!argv.name.match(projectNameRegex)) {
             throw new Error(
-              `--dir-to-watch or --exclude are not valid options for delete`
+              `--name should match [a-zA-Z0-9-] and less than 15 characters.`
             );
           }
-          if (argv.name) {
-            const projectNameRegex = /^[a-zA-Z0-9-]{1,15}$/;
-            if (!argv.name.match(projectNameRegex)) {
-              throw new Error(
-                `--name should match [a-zA-Z0-9-] and less than 15 characters.`
-              );
-            }
-          }
-          return true;
-        })
-        .fail((msg, err) => {
-          handleCommandFailure(msg, err, yargs);
-          yargs.exit(1, err);
-        })
-    );
+        }
+        return true;
+      })
+      .fail((msg, err) => {
+        handleCommandFailure(msg, err, yargs);
+        yargs.exit(1, err);
+      });
   };
 }
 

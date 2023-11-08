@@ -1,0 +1,682 @@
+{
+ "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyPipelineDeploy\",\"createdWith\":\"0.2.4\",\"stackType\":\"auth-Cognito\",\"metadata\":{}}",
+ "Resources": {
+  "SecretFetcherResourceProviderLambdaServiceRole5ABAF823": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   }
+  },
+  "SecretFetcherResourceProviderLambdaServiceRoleDefaultPolicyD52F71CB": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "ssm:GetParameter",
+       "Effect": "Allow",
+       "Resource": [
+        "arn:aws:ssm:*:*:parameter/amplify/testAppId/testBranchName/*",
+        "arn:aws:ssm:*:*:parameter/amplify/shared/testAppId/*"
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "SecretFetcherResourceProviderLambdaServiceRoleDefaultPolicyD52F71CB",
+    "Roles": [
+     {
+      "Ref": "SecretFetcherResourceProviderLambdaServiceRole5ABAF823"
+     }
+    ]
+   }
+  },
+  "SecretFetcherResourceProviderLambda1ECC380E": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "b971ae3bef66c18ea888ed1cd3f2c1e0933485713e63e2589eea06a1cb78ea96.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1"
+     }
+    },
+    "Handler": "index.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "SecretFetcherResourceProviderLambdaServiceRole5ABAF823",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs18.x",
+    "Timeout": 10
+   },
+   "DependsOn": [
+    "SecretFetcherResourceProviderLambdaServiceRoleDefaultPolicyD52F71CB",
+    "SecretFetcherResourceProviderLambdaServiceRole5ABAF823"
+   ]
+  },
+  "SecretFetcherResourceProviderframeworkonEventServiceRoleA7B78041": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   }
+  },
+  "SecretFetcherResourceProviderframeworkonEventServiceRoleDefaultPolicy38F3A916": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "lambda:InvokeFunction",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "SecretFetcherResourceProviderLambda1ECC380E",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "SecretFetcherResourceProviderLambda1ECC380E",
+             "Arn"
+            ]
+           },
+           ":*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "SecretFetcherResourceProviderframeworkonEventServiceRoleDefaultPolicy38F3A916",
+    "Roles": [
+     {
+      "Ref": "SecretFetcherResourceProviderframeworkonEventServiceRoleA7B78041"
+     }
+    ]
+   }
+  },
+  "SecretFetcherResourceProviderframeworkonEvent960CF056": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "7382a0addb9f34974a1ea6c6c9b063882af874828f366f5c93b2b7b64db15c94.zip"
+    },
+    "Description": "AWS CDK resource provider framework - onEvent (amplify-testAppId-testBranchName/auth/SecretFetcherResourceProvider)",
+    "Environment": {
+     "Variables": {
+      "USER_ON_EVENT_FUNCTION_ARN": {
+       "Fn::GetAtt": [
+        "SecretFetcherResourceProviderLambda1ECC380E",
+        "Arn"
+       ]
+      }
+     }
+    },
+    "Handler": "framework.onEvent",
+    "Role": {
+     "Fn::GetAtt": [
+      "SecretFetcherResourceProviderframeworkonEventServiceRoleA7B78041",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs18.x",
+    "Timeout": 900
+   },
+   "DependsOn": [
+    "SecretFetcherResourceProviderframeworkonEventServiceRoleDefaultPolicy38F3A916",
+    "SecretFetcherResourceProviderframeworkonEventServiceRoleA7B78041"
+   ]
+  },
+  "testAmazonIdSecretFetcherResource": {
+   "Type": "Custom::SecretFetcherResource",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "SecretFetcherResourceProviderframeworkonEvent960CF056",
+      "Arn"
+     ]
+    },
+    "backendId": "testAppId",
+    "branchName": "testBranchName",
+    "secretName": "testAmazonId",
+    "secretLastUpdated": 123456789
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "testAmazonSecretSecretFetcherResource": {
+   "Type": "Custom::SecretFetcherResource",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "SecretFetcherResourceProviderframeworkonEvent960CF056",
+      "Arn"
+     ]
+    },
+    "backendId": "testAppId",
+    "branchName": "testBranchName",
+    "secretName": "testAmazonSecret",
+    "secretLastUpdated": 123456789
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "testFacebookIdSecretFetcherResource": {
+   "Type": "Custom::SecretFetcherResource",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "SecretFetcherResourceProviderframeworkonEvent960CF056",
+      "Arn"
+     ]
+    },
+    "backendId": "testAppId",
+    "branchName": "testBranchName",
+    "secretName": "testFacebookId",
+    "secretLastUpdated": 123456789
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "testFacebookSecretSecretFetcherResource": {
+   "Type": "Custom::SecretFetcherResource",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "SecretFetcherResourceProviderframeworkonEvent960CF056",
+      "Arn"
+     ]
+    },
+    "backendId": "testAppId",
+    "branchName": "testBranchName",
+    "secretName": "testFacebookSecret",
+    "secretLastUpdated": 123456789
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "testGoogleIdSecretFetcherResource": {
+   "Type": "Custom::SecretFetcherResource",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "SecretFetcherResourceProviderframeworkonEvent960CF056",
+      "Arn"
+     ]
+    },
+    "backendId": "testAppId",
+    "branchName": "testBranchName",
+    "secretName": "testGoogleId",
+    "secretLastUpdated": 123456789
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "testGoogleSecretSecretFetcherResource": {
+   "Type": "Custom::SecretFetcherResource",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "SecretFetcherResourceProviderframeworkonEvent960CF056",
+      "Arn"
+     ]
+    },
+    "backendId": "testAppId",
+    "branchName": "testBranchName",
+    "secretName": "testGoogleSecret",
+    "secretLastUpdated": 123456789
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "amplifyAuthUserPool4BA7F805": {
+   "Type": "AWS::Cognito::UserPool",
+   "Properties": {
+    "AccountRecoverySetting": {
+     "RecoveryMechanisms": [
+      {
+       "Name": "verified_email",
+       "Priority": 1
+      }
+     ]
+    },
+    "AdminCreateUserConfig": {
+     "AllowAdminCreateUserOnly": false
+    },
+    "AutoVerifiedAttributes": [
+     "email"
+    ],
+    "EmailVerificationMessage": "The verification code to your new account is {####}",
+    "EmailVerificationSubject": "Verify your new account",
+    "LambdaConfig": {
+     "PostConfirmation": {
+      "Ref": "referencetoamplifytestAppIdtestBranchNamefunctionNestedStackfunctionNestedStackResourceE968B293OutputsamplifytestAppIdtestBranchNamefunctiontestFunctestFuncLambdaFunction724FFDF6Arn"
+     }
+    },
+    "Policies": {
+     "PasswordPolicy": {
+      "MinimumLength": 8,
+      "RequireLowercase": true,
+      "RequireNumbers": true,
+      "RequireSymbols": true,
+      "RequireUppercase": true
+     }
+    },
+    "Schema": [
+     {
+      "Mutable": true,
+      "Name": "email",
+      "Required": true
+     }
+    ],
+    "SmsVerificationMessage": "The verification code to your new account is {####}",
+    "UserAttributeUpdateSettings": {
+     "AttributesRequireVerificationBeforeUpdate": [
+      "email"
+     ]
+    },
+    "UsernameAttributes": [
+     "email"
+    ],
+    "UsernameConfiguration": {
+     "CaseSensitive": false
+    },
+    "VerificationMessageTemplate": {
+     "DefaultEmailOption": "CONFIRM_WITH_CODE",
+     "EmailMessage": "The verification code to your new account is {####}",
+     "EmailSubject": "Verify your new account",
+     "SmsMessage": "The verification code to your new account is {####}"
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "amplifyAuthUserPoolPostConfirmationCognitoE7E727CF": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Ref": "referencetoamplifytestAppIdtestBranchNamefunctionNestedStackfunctionNestedStackResourceE968B293OutputsamplifytestAppIdtestBranchNamefunctiontestFunctestFuncLambdaFunction724FFDF6Arn"
+    },
+    "Principal": "cognito-idp.amazonaws.com",
+    "SourceArn": {
+     "Fn::GetAtt": [
+      "amplifyAuthUserPool4BA7F805",
+      "Arn"
+     ]
+    }
+   }
+  },
+  "amplifyAuthGoogleIdPA9736819": {
+   "Type": "AWS::Cognito::UserPoolIdentityProvider",
+   "Properties": {
+    "ProviderDetails": {
+     "client_id": {
+      "Fn::GetAtt": [
+       "testGoogleIdSecretFetcherResource",
+       "secretValue"
+      ]
+     },
+     "client_secret": {
+      "Fn::GetAtt": [
+       "testGoogleSecretSecretFetcherResource",
+       "secretValue"
+      ]
+     },
+     "authorize_scopes": "profile"
+    },
+    "ProviderName": "Google",
+    "ProviderType": "Google",
+    "UserPoolId": {
+     "Ref": "amplifyAuthUserPool4BA7F805"
+    }
+   }
+  },
+  "amplifyAuthFacebookIDP7CB5B5CC": {
+   "Type": "AWS::Cognito::UserPoolIdentityProvider",
+   "Properties": {
+    "ProviderDetails": {
+     "client_id": {
+      "Fn::GetAtt": [
+       "testFacebookIdSecretFetcherResource",
+       "secretValue"
+      ]
+     },
+     "client_secret": {
+      "Fn::GetAtt": [
+       "testFacebookSecretSecretFetcherResource",
+       "secretValue"
+      ]
+     },
+     "authorize_scopes": "public_profile"
+    },
+    "ProviderName": "Facebook",
+    "ProviderType": "Facebook",
+    "UserPoolId": {
+     "Ref": "amplifyAuthUserPool4BA7F805"
+    }
+   }
+  },
+  "amplifyAuthAmazonIDP72414901": {
+   "Type": "AWS::Cognito::UserPoolIdentityProvider",
+   "Properties": {
+    "ProviderDetails": {
+     "client_id": {
+      "Fn::GetAtt": [
+       "testAmazonIdSecretFetcherResource",
+       "secretValue"
+      ]
+     },
+     "client_secret": {
+      "Fn::GetAtt": [
+       "testAmazonSecretSecretFetcherResource",
+       "secretValue"
+      ]
+     },
+     "authorize_scopes": "profile"
+    },
+    "ProviderName": "LoginWithAmazon",
+    "ProviderType": "LoginWithAmazon",
+    "UserPoolId": {
+     "Ref": "amplifyAuthUserPool4BA7F805"
+    }
+   }
+  },
+  "amplifyAuthUserPoolAppClient2626C6F8": {
+   "Type": "AWS::Cognito::UserPoolClient",
+   "Properties": {
+    "AllowedOAuthFlows": [
+     "implicit",
+     "code"
+    ],
+    "AllowedOAuthFlowsUserPoolClient": true,
+    "AllowedOAuthScopes": [
+     "profile",
+     "phone",
+     "email",
+     "openid",
+     "aws.cognito.signin.user.admin"
+    ],
+    "CallbackURLs": [
+     "https://example.com"
+    ],
+    "ExplicitAuthFlows": [
+     "ALLOW_CUSTOM_AUTH",
+     "ALLOW_USER_SRP_AUTH",
+     "ALLOW_REFRESH_TOKEN_AUTH"
+    ],
+    "PreventUserExistenceErrors": "ENABLED",
+    "SupportedIdentityProviders": [
+     {
+      "Ref": "amplifyAuthGoogleIdPA9736819"
+     },
+     {
+      "Ref": "amplifyAuthFacebookIDP7CB5B5CC"
+     },
+     {
+      "Ref": "amplifyAuthAmazonIDP72414901"
+     },
+     "COGNITO"
+    ],
+    "UserPoolId": {
+     "Ref": "amplifyAuthUserPool4BA7F805"
+    }
+   }
+  },
+  "amplifyAuthauthenticatedUserRoleD8DA3689": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Federated": "cognito-identity.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   }
+  },
+  "amplifyAuthunauthenticatedUserRole2B524D9E": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Federated": "cognito-identity.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   }
+  },
+  "amplifyAuthIdentityPool3FDE84CC": {
+   "Type": "AWS::Cognito::IdentityPool",
+   "Properties": {
+    "AllowUnauthenticatedIdentities": true,
+    "CognitoIdentityProviders": [
+     {
+      "ClientId": {
+       "Ref": "amplifyAuthUserPoolAppClient2626C6F8"
+      },
+      "ProviderName": {
+       "Fn::Join": [
+        "",
+        [
+         "cognito-idp.",
+         {
+          "Ref": "AWS::Region"
+         },
+         ".amazonaws.com/",
+         {
+          "Ref": "amplifyAuthUserPool4BA7F805"
+         }
+        ]
+       ]
+      }
+     }
+    ],
+    "SupportedLoginProviders": {
+     "accounts.google.com": {
+      "Fn::GetAtt": [
+       "testGoogleIdSecretFetcherResource",
+       "secretValue"
+      ]
+     },
+     "graph.facebook.com": {
+      "Fn::GetAtt": [
+       "testFacebookIdSecretFetcherResource",
+       "secretValue"
+      ]
+     },
+     "www.amazon.com": {
+      "Fn::GetAtt": [
+       "testAmazonIdSecretFetcherResource",
+       "secretValue"
+      ]
+     }
+    }
+   }
+  },
+  "amplifyAuthIdentityPoolRoleAttachment045F17C8": {
+   "Type": "AWS::Cognito::IdentityPoolRoleAttachment",
+   "Properties": {
+    "IdentityPoolId": {
+     "Ref": "amplifyAuthIdentityPool3FDE84CC"
+    },
+    "RoleMappings": {
+     "UserPoolWebClientRoleMapping": {
+      "AmbiguousRoleResolution": "AuthenticatedRole",
+      "IdentityProvider": {
+       "Fn::Join": [
+        "",
+        [
+         "cognito-idp.",
+         {
+          "Ref": "AWS::Region"
+         },
+         ".amazonaws.com/",
+         {
+          "Ref": "amplifyAuthUserPool4BA7F805"
+         },
+         ":",
+         {
+          "Ref": "amplifyAuthUserPoolAppClient2626C6F8"
+         }
+        ]
+       ]
+      },
+      "Type": "Token"
+     }
+    },
+    "Roles": {
+     "unauthenticated": {
+      "Fn::GetAtt": [
+       "amplifyAuthunauthenticatedUserRole2B524D9E",
+       "Arn"
+      ]
+     },
+     "authenticated": {
+      "Fn::GetAtt": [
+       "amplifyAuthauthenticatedUserRoleD8DA3689",
+       "Arn"
+      ]
+     }
+    }
+   },
+   "DependsOn": [
+    "amplifyAuthIdentityPool3FDE84CC",
+    "amplifyAuthUserPoolAppClient2626C6F8"
+   ]
+  }
+ },
+ "Parameters": {
+  "referencetoamplifytestAppIdtestBranchNamefunctionNestedStackfunctionNestedStackResourceE968B293OutputsamplifytestAppIdtestBranchNamefunctiontestFunctestFuncLambdaFunction724FFDF6Arn": {
+   "Type": "String"
+  }
+ },
+ "Outputs": {
+  "amplifytestAppIdtestBranchNameauthamplifyAuthUserPoolC1B04074Ref": {
+   "Value": {
+    "Ref": "amplifyAuthUserPool4BA7F805"
+   }
+  },
+  "amplifytestAppIdtestBranchNameauthamplifyAuthUserPoolAppClientDDB3608BRef": {
+   "Value": {
+    "Ref": "amplifyAuthUserPoolAppClient2626C6F8"
+   }
+  },
+  "amplifytestAppIdtestBranchNameauthamplifyAuthIdentityPool40350D66Ref": {
+   "Value": {
+    "Ref": "amplifyAuthIdentityPool3FDE84CC"
+   }
+  },
+  "amplifytestAppIdtestBranchNameauthtestAmazonIdSecretFetcherResourceD2E00281secretValue": {
+   "Value": {
+    "Fn::GetAtt": [
+     "testAmazonIdSecretFetcherResource",
+     "secretValue"
+    ]
+   }
+  },
+  "amplifytestAppIdtestBranchNameauthtestFacebookIdSecretFetcherResource5EBFBDA2secretValue": {
+   "Value": {
+    "Fn::GetAtt": [
+     "testFacebookIdSecretFetcherResource",
+     "secretValue"
+    ]
+   }
+  },
+  "amplifytestAppIdtestBranchNameauthtestGoogleIdSecretFetcherResource307D00F8secretValue": {
+   "Value": {
+    "Fn::GetAtt": [
+     "testGoogleIdSecretFetcherResource",
+     "secretValue"
+    ]
+   }
+  },
+  "amplifytestAppIdtestBranchNameauthamplifyAuthauthenticatedUserRole1D3D95F1Ref": {
+   "Value": {
+    "Ref": "amplifyAuthauthenticatedUserRoleD8DA3689"
+   }
+  },
+  "amplifytestAppIdtestBranchNameauthamplifyAuthunauthenticatedUserRoleF8166590Ref": {
+   "Value": {
+    "Ref": "amplifyAuthunauthenticatedUserRole2B524D9E"
+   }
+  }
+ }
+}
