@@ -4,7 +4,7 @@
 '@aws-amplify/backend-output-schemas': minor
 '@aws-amplify/backend-deployer': minor
 '@aws-amplify/backend-function': minor
-'@aws-amplify/backend-graphql': minor
+'@aws-amplify/backend-data': minor
 '@aws-amplify/backend-storage': minor
 '@aws-amplify/auth-construct-alpha': minor
 '@aws-amplify/backend-secret': minor
