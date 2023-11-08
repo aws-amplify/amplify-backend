@@ -1,14 +1,14 @@
 /**
- * Some string type aliases to make the code a bit more self documenting
- * A BackendId can either be an AppId or a SandboxId.
- * A SandboxId is the value of package.json#name in the project's package.json file
+ * These are some utility types to make the namespace field a bit more self-documenting
+ * The namespace in the BackendIdentifierParts can either be an AppId or a ProjectName
+ * ProjectName is the value of package.json#name in the project's package.json file
  */
 export type AppId = string;
 export type ProjectName = string;
 
 /**
- * The disambiguator is either a branch name in the case of branch deployments or the sandbox name for sandbox deployments
- * By default the sandbox name is the username of the current local user
+ * These are some utility types to make the instance field a bit more self-documenting
+ * The instance in the BackendIdentifierParts can either be a BranchName or a UserName
  */
 export type BranchName = string;
 export type UserName = string;
