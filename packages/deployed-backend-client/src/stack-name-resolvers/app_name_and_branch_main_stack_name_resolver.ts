@@ -1,6 +1,6 @@
 import { MainStackNameResolver } from '@aws-amplify/plugin-types';
 import { AmplifyClient, ListAppsCommand } from '@aws-sdk/client-amplify';
-import { BranchBackendIdentifier } from '@aws-amplify/platform-core';
+import { backendIdentifierPartsToStackName } from '@aws-amplify/platform-core';
 
 /**
  * Tuple of Amplify App name and branch
@@ -54,9 +54,10 @@ export class AppNameAndBranchMainStackNameResolver
         `Could not determine appId from app name ${this.appNameAndBranch.appName}. Try using AppId instead.`
       );
     }
-    return new BranchBackendIdentifier(
-      appId,
-      this.appNameAndBranch.branchName
-    ).toStackName();
+    return backendIdentifierPartsToStackName({
+      namespace: appId,
+      instance: this.appNameAndBranch.branchName,
+      type: 'branch',
+    });
   };
 }

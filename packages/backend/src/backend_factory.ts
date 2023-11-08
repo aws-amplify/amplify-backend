@@ -12,12 +12,8 @@ import {
   StackMetadataBackendOutputStorageStrategy,
 } from '@aws-amplify/backend-output-storage';
 import { createDefaultStack } from './default_stack_factory.js';
-import { getUniqueBackendIdentifier } from './backend_identifier.js';
-import {
-  BackendDeploymentType,
-  BranchBackendIdentifier,
-  SandboxBackendIdentifier,
-} from '@aws-amplify/platform-core';
+import { getBackendIdentifierParts } from './backend_identifier.js';
+import { BackendDeploymentType } from '@aws-amplify/platform-core';
 import { platformOutputKey } from '@aws-amplify/backend-output-schemas';
 import { fileURLToPath } from 'url';
 import { Backend } from './backend.js';
@@ -65,12 +61,12 @@ export class BackendFactory<
       stack
     );
 
-    const uniqueBackendIdentifier = getUniqueBackendIdentifier(stack);
+    const backendIdentifierParts = getBackendIdentifierParts(stack);
     outputStorageStrategy.addBackendOutputEntry(platformOutputKey, {
       version: '1',
       payload: {
         deploymentType:
-          uniqueBackendIdentifier instanceof SandboxBackendIdentifier
+          backendIdentifierParts.type === 'sandbox'
             ? BackendDeploymentType.SANDBOX
             : BackendDeploymentType.BRANCH,
         region: stack.region,
@@ -78,12 +74,12 @@ export class BackendFactory<
     });
 
     const shouldEnableBranchLinker =
-      uniqueBackendIdentifier instanceof BranchBackendIdentifier &&
+      backendIdentifierParts.type === 'branch' &&
       process.env[
         BackendEnvironmentVariables.AMPLIFY_BACKEND_BRANCH_LINKER_ENABLED
       ] === 'true';
     if (shouldEnableBranchLinker) {
-      new AmplifyBranchLinkerConstruct(stack, uniqueBackendIdentifier);
+      new AmplifyBranchLinkerConstruct(stack, backendIdentifierParts);
     }
 
     const importPathVerifier = new ToggleableImportPathVerifier();

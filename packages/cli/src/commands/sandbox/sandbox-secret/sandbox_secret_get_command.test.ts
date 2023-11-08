@@ -2,7 +2,7 @@ import { beforeEach, describe, it, mock } from 'node:test';
 import yargs, { CommandModule } from 'yargs';
 import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
-import { SandboxIdResolver } from '../sandbox_id_resolver.js';
+import { SandboxBackendIdPartsResolver } from '../sandbox_id_resolver.js';
 import {
   Secret,
   SecretIdentifier,
@@ -10,9 +10,7 @@ import {
 } from '@aws-amplify/backend-secret';
 import { SandboxSecretGetCommand } from './sandbox_secret_get_command.js';
 import { Printer } from '@aws-amplify/cli-core';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
-import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
-import { assertBackendIdDataEquivalence } from '../../../test-utils/assert_backend_id_data_equivalence.js';
+import { BackendIdentifierParts } from '@aws-amplify/plugin-types';
 
 const testSecretName = 'testSecretName';
 const testBackendId = 'testBackendId';
@@ -34,12 +32,14 @@ void describe('sandbox secret get command', () => {
     (): Promise<Secret | undefined> => Promise.resolve(testSecret)
   );
 
-  const sandboxIdResolver: SandboxIdResolver = {
+  const sandboxIdResolver: SandboxBackendIdPartsResolver = {
     resolve: () =>
-      Promise.resolve(
-        new SandboxBackendIdentifier(testBackendId, testSandboxName)
-      ),
-  } as SandboxIdResolver;
+      Promise.resolve({
+        namespace: testBackendId,
+        instance: testSandboxName,
+        type: 'sandbox',
+      }),
+  } as SandboxBackendIdPartsResolver;
 
   const sandboxSecretGetCmd = new SandboxSecretGetCommand(
     sandboxIdResolver,
@@ -63,15 +63,14 @@ void describe('sandbox secret get command', () => {
 
     assert.equal(secretGetMock.mock.callCount(), 1);
     const actualBackendId = secretGetMock.mock.calls[0]
-      .arguments[0] as UniqueBackendIdentifier;
-    assertBackendIdDataEquivalence(actualBackendId, {
-      backendId: testBackendId,
-      disambiguator: testSandboxName,
-    });
-    assert.deepStrictEqual(
-      secretGetMock.mock.calls[0].arguments[1],
-      testSecretIdentifier
-    );
+      .arguments[0] as BackendIdentifierParts;
+    assert.deepStrictEqual(secretGetMock.mock.calls[0].arguments, [
+      {
+        backendId: testBackendId,
+        disambiguator: testSandboxName,
+      },
+      testSecretIdentifier,
+    ]);
 
     assert.equal(mockPrintRecord.mock.callCount(), 1);
     assert.deepStrictEqual(

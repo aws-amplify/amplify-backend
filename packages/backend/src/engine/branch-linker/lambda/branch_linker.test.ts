@@ -54,7 +54,7 @@ const testBackendId = 'test-backend-id';
 const testBranchName = 'test-branch-name';
 const sampleStackArn = `arn:aws:cloudformation:us-west-2:12345:stack/amplify-${testBackendId}-${testBranchName}-cde/efg`;
 const resourceProperties: AmplifyBranchLinkerCustomResourceProps = {
-  backendId: testBackendId,
+  appId: testBackendId,
   branchName: testBranchName,
 };
 

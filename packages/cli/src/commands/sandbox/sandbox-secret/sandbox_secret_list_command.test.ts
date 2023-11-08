@@ -2,13 +2,10 @@ import { beforeEach, describe, it, mock } from 'node:test';
 import yargs from 'yargs';
 import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
-import { SandboxIdResolver } from '../sandbox_id_resolver.js';
+import { SandboxBackendIdPartsResolver } from '../sandbox_id_resolver.js';
 import { Secret, getSecretClient } from '@aws-amplify/backend-secret';
 import { SandboxSecretListCommand } from './sandbox_secret_list_command.js';
 import { Printer } from '@aws-amplify/cli-core';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
-import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
-import { assertBackendIdDataEquivalence } from '../../../test-utils/assert_backend_id_data_equivalence.js';
 
 const testBackendId = 'testBackendId';
 const testSandboxName = 'testSandboxName';
@@ -31,12 +28,14 @@ void describe('sandbox secret list command', () => {
     'listSecrets',
     (): Promise<Secret[] | undefined> => Promise.resolve(testSecrets)
   );
-  const sandboxIdResolver: SandboxIdResolver = {
+  const sandboxIdResolver: SandboxBackendIdPartsResolver = {
     resolve: () =>
-      Promise.resolve(
-        new SandboxBackendIdentifier(testBackendId, testSandboxName)
-      ),
-  } as SandboxIdResolver;
+      Promise.resolve({
+        namespace: testBackendId,
+        instance: testSandboxName,
+        type: 'sandbox',
+      }),
+  } as SandboxBackendIdPartsResolver;
 
   const sandboxSecretListCmd = new SandboxSecretListCommand(
     sandboxIdResolver,
@@ -56,9 +55,7 @@ void describe('sandbox secret list command', () => {
     await commandRunner.runCommand(`list`);
     assert.equal(secretListMock.mock.callCount(), 1);
 
-    const actualBackendId = secretListMock.mock.calls[0]
-      .arguments[0] as UniqueBackendIdentifier;
-    assertBackendIdDataEquivalence(actualBackendId, {
+    assert.deepStrictEqual(secretListMock.mock.calls[0].arguments[0], {
       backendId: testBackendId,
       disambiguator: testSandboxName,
     });

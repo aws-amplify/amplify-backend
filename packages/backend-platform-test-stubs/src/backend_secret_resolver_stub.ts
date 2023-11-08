@@ -1,7 +1,7 @@
 import {
+  BackendIdentifierParts,
   BackendSecret,
   BackendSecretResolver,
-  UniqueBackendIdentifier,
 } from '@aws-amplify/plugin-types';
 import { SecretValue } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
@@ -15,7 +15,7 @@ export class BackendSecretResolverStub implements BackendSecretResolver {
    */
   constructor(
     private readonly scope: Construct,
-    private readonly uniqueBackendIdentifier: UniqueBackendIdentifier
+    private readonly uniqueBackendIdentifier: BackendIdentifierParts
   ) {}
 
   resolveSecret = (backendSecret: BackendSecret): SecretValue => {

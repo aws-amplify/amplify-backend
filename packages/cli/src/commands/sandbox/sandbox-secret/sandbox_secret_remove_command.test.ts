@@ -2,12 +2,9 @@ import { beforeEach, describe, it, mock } from 'node:test';
 import yargs, { CommandModule } from 'yargs';
 import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
-import { SandboxIdResolver } from '../sandbox_id_resolver.js';
+import { SandboxBackendIdPartsResolver } from '../sandbox_id_resolver.js';
 import { getSecretClient } from '@aws-amplify/backend-secret';
 import { SandboxSecretRemoveCommand } from './sandbox_secret_remove_command.js';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
-import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
-import { assertBackendIdDataEquivalence } from '../../../test-utils/assert_backend_id_data_equivalence.js';
 
 const testSecretName = 'testSecretName';
 const testBackendId = 'testBackendId';
@@ -21,12 +18,14 @@ void describe('sandbox secret remove command', () => {
     (): Promise<void> => Promise.resolve()
   );
 
-  const sandboxIdResolver: SandboxIdResolver = {
+  const sandboxIdResolver: SandboxBackendIdPartsResolver = {
     resolve: () =>
-      Promise.resolve(
-        new SandboxBackendIdentifier(testBackendId, testSandboxName)
-      ),
-  } as SandboxIdResolver;
+      Promise.resolve({
+        namespace: testBackendId,
+        instance: testSandboxName,
+        type: 'sandbox',
+      }),
+  } as SandboxBackendIdPartsResolver;
 
   const sandboxSecretRemoveCmd = new SandboxSecretRemoveCommand(
     sandboxIdResolver,
@@ -46,13 +45,10 @@ void describe('sandbox secret remove command', () => {
   void it('remove a secret', async () => {
     await commandRunner.runCommand(`remove ${testSecretName}`);
     assert.equal(secretRemoveMock.mock.callCount(), 1);
-    const actualBackendId = secretRemoveMock.mock.calls[0]
-      .arguments[0] as UniqueBackendIdentifier;
-    assertBackendIdDataEquivalence(actualBackendId, {
-      backendId: testBackendId,
-      disambiguator: testSandboxName,
-    });
-    assert.equal(secretRemoveMock.mock.calls[0].arguments[1], testSecretName);
+    assert.deepStrictEqual(secretRemoveMock.mock.calls[0].arguments, [
+      {},
+      testSecretName,
+    ]);
   });
 
   void it('show --help', async () => {

@@ -3,10 +3,6 @@ import { deleteTestDirectory, rootTestDir } from '../setup_test_directory.js';
 import fs from 'fs/promises';
 import { shortUuid } from '../short_uuid.js';
 import { generateTestProjects } from './test_project.js';
-import {
-  BranchBackendIdentifier,
-  SandboxBackendIdentifier,
-} from '@aws-amplify/platform-core';
 import { userInfo } from 'os';
 import { PredicatedActionBuilder } from '../process-controller/predicated_action_queue_builder.js';
 import { amplifyCli } from '../process-controller/process_controller.js';
@@ -20,6 +16,7 @@ import {
 } from '../process-controller/predicated_action_macros.js';
 import assert from 'node:assert';
 import { TestBranch, amplifyAppPool } from '../amplify_app_pool.js';
+import { BackendIdentifierParts } from '@aws-amplify/plugin-types';
 
 const testProjects = await generateTestProjects(rootTestDir);
 
@@ -30,15 +27,16 @@ void describe('amplify deploys', async () => {
 
   testProjects.forEach((testProject) => {
     void describe(`branch deploys ${testProject.name}`, () => {
-      let branchBackendIdentifier: BranchBackendIdentifier;
+      let branchBackendIdentifier: BackendIdentifierParts;
       let testBranch: TestBranch;
 
       beforeEach(async () => {
         testBranch = await amplifyAppPool.createTestBranch();
-        branchBackendIdentifier = new BranchBackendIdentifier(
-          testBranch.appId,
-          testBranch.branchName
-        );
+        branchBackendIdentifier = {
+          namespace: testBranch.appId,
+          instance: testBranch.branchName,
+          type: 'branch',
+        };
       });
 
       afterEach(async () => {
@@ -57,12 +55,12 @@ void describe('amplify deploys', async () => {
         );
         assert.ok(
           testBranchDetails.backend?.stackArn?.includes(
-            branchBackendIdentifier.backendId
+            branchBackendIdentifier.namespace
           )
         );
         assert.ok(
           testBranchDetails.backend?.stackArn?.includes(
-            branchBackendIdentifier.disambiguator
+            branchBackendIdentifier.instance
           )
         );
       });
@@ -71,21 +69,22 @@ void describe('amplify deploys', async () => {
 
   testProjects.forEach((testProject) => {
     void describe(`sandbox deploys ${testProject.name}`, () => {
-      const sandboxBackendIdentifier = new SandboxBackendIdentifier(
-        testProject.name,
-        userInfo().username
-      );
+      const sandboxBackendIdentifier: BackendIdentifierParts = {
+        type: 'sandbox',
+        namespace: testProject.name,
+        instance: userInfo().username,
+      };
 
       after(async () => {
         await testProject.tearDown(sandboxBackendIdentifier);
       });
 
-      void it(`[${sandboxBackendIdentifier.backendId}] deploys fully`, async () => {
+      void it(`[${sandboxBackendIdentifier.namespace}] deploys fully`, async () => {
         await testProject.deploy(sandboxBackendIdentifier);
         await testProject.assertPostDeployment();
       });
 
-      void it(`[${sandboxBackendIdentifier.backendId}] hot-swaps a change`, async () => {
+      void it(`[${sandboxBackendIdentifier.namespace}] hot-swaps a change`, async () => {
         const processController = amplifyCli(
           ['sandbox', '--dirToWatch', 'amplify'],
           testProject.projectDirPath

@@ -9,21 +9,14 @@ import {
   ListStacksCommandInput,
   StackStatus,
 } from '@aws-sdk/client-cloudformation';
-import {
-  BackendDeploymentStatus,
-  ListSandboxesResponse,
-} from './deployed_backend_client_factory.js';
+import { BackendDeploymentStatus } from './deployed_backend_client_factory.js';
 import {
   authOutputKey,
   graphqlOutputKey,
   platformOutputKey,
   storageOutputKey,
 } from '@aws-amplify/backend-output-schemas';
-import {
-  BackendDeploymentType,
-  BranchBackendIdentifier,
-  SandboxBackendIdentifier,
-} from '@aws-amplify/platform-core';
+import { BackendDeploymentType } from '@aws-amplify/platform-core';
 import { DefaultBackendOutputClient } from './backend_output_client.js';
 import { DefaultDeployedBackendClient } from './deployed_backend_client.js';
 import { StackIdentifier } from './index.js';
@@ -33,7 +26,6 @@ import { DeployedResourcesEnumerator } from './deployed-backend-client/deployed_
 import { StackStatusMapper } from './deployed-backend-client/stack_status_mapper.js';
 import { ArnGenerator } from './deployed-backend-client/arn_generator.js';
 import { ArnParser } from './deployed-backend-client/arn_parser.js';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 const listStacksMock = {
   NextToken: undefined,
@@ -281,24 +273,24 @@ void describe('Deployed Backend Client', () => {
       ],
     };
 
-    assert.deepEqual(
-      replaceBackendIdWithPlainObject(sandboxes),
-      expectedSandboxes
-    );
+    assert.deepEqual(sandboxes, expectedSandboxes);
   });
 
   void it('deletes a sandbox', async () => {
-    await deployedBackendClient.deleteSandbox(
-      new SandboxBackendIdentifier('test', 'username')
-    );
+    await deployedBackendClient.deleteSandbox({
+      namespace: 'test',
+      instance: 'username',
+    });
 
     assert.equal(cfnClientSendMock.mock.callCount(), 1);
   });
 
   void it('fetches metadata', async () => {
-    const getMetadataResponse = await deployedBackendClient.getBackendMetadata(
-      new BranchBackendIdentifier('test', 'testBranch')
-    );
+    const getMetadataResponse = await deployedBackendClient.getBackendMetadata({
+      namespace: 'test',
+      instance: 'testBranch',
+      type: 'branch',
+    });
 
     assert.deepEqual(getMetadataResponse, {
       deploymentType: BackendDeploymentType.SANDBOX,
@@ -405,7 +397,7 @@ void describe('Deployed Backend Client pagination', () => {
       };
     });
     const sandboxes = await deployedBackendClient.listSandboxes();
-    assert.deepEqual(replaceBackendIdWithPlainObject(sandboxes), {
+    assert.deepEqual(sandboxes, {
       nextToken: undefined,
       sandboxes: returnedSandboxes,
     });
@@ -425,7 +417,7 @@ void describe('Deployed Backend Client pagination', () => {
       };
     });
     const sandboxes = await deployedBackendClient.listSandboxes();
-    assert.deepEqual(replaceBackendIdWithPlainObject(sandboxes), {
+    assert.deepEqual(sandboxes, {
       nextToken: undefined,
       sandboxes: returnedSandboxes,
     });
@@ -435,7 +427,7 @@ void describe('Deployed Backend Client pagination', () => {
 
   void it('does not paginate listSandboxes when one page contains sandboxes', async () => {
     const sandboxes = await deployedBackendClient.listSandboxes();
-    assert.deepEqual(replaceBackendIdWithPlainObject(sandboxes), {
+    assert.deepEqual(sandboxes, {
       nextToken: undefined,
       sandboxes: returnedSandboxes,
     });
@@ -451,7 +443,7 @@ void describe('Deployed Backend Client pagination', () => {
       };
     });
     const sandboxes = await deployedBackendClient.listSandboxes();
-    assert.deepEqual(replaceBackendIdWithPlainObject(sandboxes), {
+    assert.deepEqual(sandboxes, {
       nextToken: 'abc',
       sandboxes: returnedSandboxes,
     });
@@ -474,7 +466,7 @@ void describe('Deployed Backend Client pagination', () => {
     const sandboxes = await deployedBackendClient.listSandboxes({
       nextToken: 'abc',
     });
-    assert.deepEqual(replaceBackendIdWithPlainObject(sandboxes), {
+    assert.deepEqual(sandboxes, {
       nextToken: undefined,
       sandboxes: returnedSandboxes,
     });
@@ -482,25 +474,3 @@ void describe('Deployed Backend Client pagination', () => {
     assert.equal(listStacksMockFn.mock.callCount(), 1);
   });
 });
-
-const replaceBackendIdWithPlainObject = (
-  listSandboxesResponse: ListSandboxesResponse
-) => {
-  listSandboxesResponse.sandboxes
-    .filter((sandbox) => sandbox.backendId)
-    .forEach(
-      (sandbox) =>
-        // non-null assertion is safe because we filtered out the undefined values above
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        (sandbox.backendId = backendIdToPlainObject(sandbox.backendId!))
-    );
-  return listSandboxesResponse;
-};
-
-const backendIdToPlainObject = (
-  uniqueBackendIdentifier: UniqueBackendIdentifier
-): SandboxBackendIdentifier =>
-  ({
-    backendId: uniqueBackendIdentifier.backendId,
-    disambiguator: uniqueBackendIdentifier.disambiguator,
-  } as unknown as SandboxBackendIdentifier);

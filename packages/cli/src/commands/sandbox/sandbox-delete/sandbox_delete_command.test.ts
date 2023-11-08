@@ -8,7 +8,6 @@ import { SandboxCommand } from '../sandbox_command.js';
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
 import { createSandboxSecretCommand } from '../sandbox-secret/sandbox_secret_command_factory.js';
 import { ClientConfigGeneratorAdapter } from '../../../client-config/client_config_generator_adapter.js';
-import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
 
 void describe('sandbox delete command', () => {
   let commandRunner: TestCommandRunner;
@@ -16,9 +15,11 @@ void describe('sandbox delete command', () => {
 
   beforeEach(async () => {
     const sandboxFactory = new SandboxSingletonFactory(() =>
-      Promise.resolve(
-        new SandboxBackendIdentifier('testSandboxId', 'testSandboxName')
-      )
+      Promise.resolve({
+        namespace: 'testSandboxId',
+        instance: 'testSandboxName',
+        type: 'sandbox',
+      })
     );
     const sandbox = await sandboxFactory.getInstance();
     sandboxDeleteMock = mock.method(sandbox, 'delete', () =>

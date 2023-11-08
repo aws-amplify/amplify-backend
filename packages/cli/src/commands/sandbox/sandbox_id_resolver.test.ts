@@ -1,10 +1,10 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { SandboxIdResolver } from './sandbox_id_resolver.js';
+import { SandboxBackendIdPartsResolver } from './sandbox_id_resolver.js';
 
 void describe('SandboxIdResolver', () => {
   void it('resolve can be used as a function reference', async () => {
-    const resolver = new SandboxIdResolver(
+    const resolver = new SandboxBackendIdPartsResolver(
       {
         resolve: () => Promise.resolve('testAppName'),
       },
@@ -12,11 +12,11 @@ void describe('SandboxIdResolver', () => {
     );
     const resolverRef = resolver.resolve;
     const result = await resolverRef();
-    assert.equal(result.backendId, 'testAppName');
-    assert.equal(result.disambiguator, 'testUsername');
+    assert.equal(result.namespace, 'testAppName');
+    assert.equal(result.instance, 'testUsername');
   });
   void it('resolve when insanely long appName is given', async () => {
-    const resolver = new SandboxIdResolver(
+    const resolver = new SandboxBackendIdPartsResolver(
       {
         resolve: () =>
           Promise.resolve(
@@ -29,10 +29,10 @@ void describe('SandboxIdResolver', () => {
     const resolverRef = resolver.resolve;
     const result = await resolverRef();
     assert.equal(
-      result.backendId,
+      result.namespace,
       'InsanelyLongApplicationNameProvidedByCustomerDoNotKnowWhat' +
         'CustomersAreThinkingWhenChoosingThisGreat'
     );
-    assert.equal(result.disambiguator, 'testUsername');
+    assert.equal(result.instance, 'testUsername');
   });
 });

@@ -1,9 +1,9 @@
 import { describe, it } from 'node:test';
 import { Template } from 'aws-cdk-lib/assertions';
 import { Stack } from 'aws-cdk-lib';
-import { BranchBackendIdentifier } from '@aws-amplify/platform-core';
 import { AmplifyBranchLinkerConstruct } from './branch_linker_construct.js';
 import { BackendEnvironmentVariables } from '../../environment_variables.js';
+import { BackendIdentifierParts } from '@aws-amplify/plugin-types';
 
 void describe('Branch Linker Construct', () => {
   const backendId = 'test-backend-id';
@@ -11,10 +11,11 @@ void describe('Branch Linker Construct', () => {
 
   void it('provisions custom resource', () => {
     const stack = new Stack();
-    const backendIdentifier = new BranchBackendIdentifier(
-      backendId,
-      branchName
-    );
+    const backendIdentifier: BackendIdentifierParts = {
+      namespace: backendId,
+      instance: branchName,
+      type: 'branch',
+    };
     new AmplifyBranchLinkerConstruct(stack, backendIdentifier);
 
     const template = Template.fromStack(stack);
@@ -40,10 +41,11 @@ void describe('Branch Linker Construct', () => {
       process.env[BackendEnvironmentVariables.AWS_ENDPOINT_URL_AMPLIFY] =
         customEndpoint;
       const stack = new Stack();
-      const backendIdentifier = new BranchBackendIdentifier(
-        backendId,
-        branchName
-      );
+      const backendIdentifier: BackendIdentifierParts = {
+        namespace: backendId,
+        instance: branchName,
+        type: 'branch',
+      };
       new AmplifyBranchLinkerConstruct(stack, backendIdentifier);
 
       const template = Template.fromStack(stack);

@@ -1,13 +1,13 @@
 import { CwdPackageJsonLoader } from '../cwd_package_json_loader.js';
 
-export type BackendIdResolver = {
+export type NamespaceResolver = {
   resolve: () => Promise<string>;
 };
 
 /**
  * Reads the local app name from package.json#name in the current directory
  */
-export class LocalBackendIdResolver implements BackendIdResolver {
+export class LocalNamespaceResolver implements NamespaceResolver {
   /**
    * packageJsonLoader is assigned to an instance member for testing.
    * resolve is bound to this so that it can be passed as a function reference

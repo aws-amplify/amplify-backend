@@ -21,7 +21,7 @@ import {
   FilesChangesTracker,
   createFilesChangesTracker,
 } from './files_changes_tracker.js';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import { BackendIdentifierParts } from '@aws-amplify/plugin-types';
 
 export const CDK_BOOTSTRAP_STACK_NAME = 'CDKToolkit';
 export const CDK_BOOTSTRAP_VERSION_KEY = 'BootstrapVersion';
@@ -333,4 +333,4 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
 
 export type BackendIdSandboxResolver = (
   sandboxName?: string
-) => Promise<UniqueBackendIdentifier>;
+) => Promise<BackendIdentifierParts>;

@@ -11,7 +11,7 @@ import {
 void describe('createDefaultRootStack', () => {
   void it('creates AmplifyStack with backend ID and branch from CDK context', () => {
     const app = new App();
-    app.node.setContext(CDKContextKey.BACKEND_ID, 'testBackendId');
+    app.node.setContext(CDKContextKey.BACKEND_NAMESPACE, 'testBackendId');
     app.node.setContext(CDKContextKey.BACKEND_DISAMBIGUATOR, 'testBranchName');
     app.node.setContext(
       CDKContextKey.DEPLOYMENT_TYPE,
@@ -27,7 +27,7 @@ void describe('createDefaultRootStack', () => {
 
   void it('creates sandbox AmplifyStack when deployment type is sandbox', () => {
     const app = new App();
-    app.node.setContext(CDKContextKey.BACKEND_ID, 'testProjectName');
+    app.node.setContext(CDKContextKey.BACKEND_NAMESPACE, 'testProjectName');
     app.node.setContext(CDKContextKey.BACKEND_DISAMBIGUATOR, 'testUser');
     app.node.setContext(
       CDKContextKey.DEPLOYMENT_TYPE,
@@ -55,7 +55,7 @@ void describe('createDefaultRootStack', () => {
 
   void it('throws if branch-name is missing', () => {
     const app = new App();
-    app.node.setContext(CDKContextKey.BACKEND_ID, 'testBackendId');
+    app.node.setContext(CDKContextKey.BACKEND_NAMESPACE, 'testBackendId');
     app.node.setContext(
       CDKContextKey.DEPLOYMENT_TYPE,
       BackendDeploymentType.BRANCH
@@ -67,7 +67,7 @@ void describe('createDefaultRootStack', () => {
 
   void it('throws if deployment-type is missing', () => {
     const app = new App();
-    app.node.setContext(CDKContextKey.BACKEND_ID, 'testBackendId');
+    app.node.setContext(CDKContextKey.BACKEND_NAMESPACE, 'testBackendId');
     app.node.setContext(CDKContextKey.BACKEND_DISAMBIGUATOR, 'testEnvName');
     assert.throws(() => createDefaultStack(app), {
       message: 'No context value present for deployment-type key',

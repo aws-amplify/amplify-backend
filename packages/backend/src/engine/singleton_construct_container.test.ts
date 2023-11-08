@@ -20,7 +20,7 @@ import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage'
 const createStackAndSetContext = (): Stack => {
   const app = new App();
   app.node.setContext(CDKContextKey.BACKEND_DISAMBIGUATOR, 'testEnvName');
-  app.node.setContext(CDKContextKey.BACKEND_ID, 'testBackendId');
+  app.node.setContext(CDKContextKey.BACKEND_NAMESPACE, 'testBackendId');
   app.node.setContext(
     CDKContextKey.DEPLOYMENT_TYPE,
     BackendDeploymentType.BRANCH

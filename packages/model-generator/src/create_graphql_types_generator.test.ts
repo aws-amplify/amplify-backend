@@ -1,14 +1,14 @@
 import assert from 'node:assert';
 import { describe, it } from 'node:test';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
-import { BackendIdentifier } from '@aws-amplify/deployed-backend-client';
 import { createGraphqlTypesGenerator } from './create_graphql_types_generator.js';
+import { BackendIdentifierParts } from '@aws-amplify/plugin-types';
 
 void describe('types generator factory', () => {
   void it('throws an error if a null backendIdentifier is passed in', async () => {
     assert.throws(() =>
       createGraphqlTypesGenerator({
-        backendIdentifier: null as unknown as BackendIdentifier,
+        backendIdentifier: null as unknown as BackendIdentifierParts,
         credentialProvider: null as unknown as AwsCredentialIdentityProvider,
       })
     );

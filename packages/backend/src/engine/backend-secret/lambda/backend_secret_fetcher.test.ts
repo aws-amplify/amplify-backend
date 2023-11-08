@@ -12,12 +12,7 @@ import {
   SecretIdentifier,
   getSecretClient,
 } from '@aws-amplify/backend-secret';
-import {
-  BackendId,
-  UniqueBackendIdentifier,
-  UniqueBackendIdentifierData,
-} from '@aws-amplify/plugin-types';
-import { assertBackendIdDataEquivalence } from '../../../test-utils/assert_backend_id_data_equivalence.js';
+import { AppId, BackendIdentifierParts } from '@aws-amplify/plugin-types';
 
 const testBackendId = 'testBackendId';
 const testBranchName = 'testBranchName';
@@ -32,9 +27,10 @@ const testSecret: Secret = {
   value: testSecretValue,
 };
 
-const testBackendIdentifier: UniqueBackendIdentifierData = {
-  backendId: testBackendId,
-  disambiguator: testBranchName,
+const testBackendIdentifier: BackendIdentifierParts = {
+  namespace: testBackendId,
+  instance: testBranchName,
+  type: 'branch',
 };
 
 const customResourceEventCommon = {
@@ -92,14 +88,10 @@ void describe('handleCreateUpdateEvent', () => {
     assert.equal(val, testSecretValue);
 
     assert.equal(mockGetSecret.mock.callCount(), 1);
-    assertBackendIdDataEquivalence(
-      mockGetSecret.mock.calls[0].arguments[0] as UniqueBackendIdentifier,
-      testBackendIdentifier
-    );
-    assert.deepStrictEqual(
-      mockGetSecret.mock.calls[0].arguments[1],
-      testSecretId
-    );
+    assert.deepStrictEqual(mockGetSecret.mock.calls[0].arguments, [
+      testBackendIdentifier,
+      testSecretId,
+    ]);
   });
 
   void it('throws if receiving server error when getting a branch secret', async () => {
@@ -110,21 +102,17 @@ void describe('handleCreateUpdateEvent', () => {
       handleCreateUpdateEvent(secretHandler, createCfnEvent)
     );
     assert.equal(mockGetSecret.mock.callCount(), 1);
-    assertBackendIdDataEquivalence(
-      mockGetSecret.mock.calls[0].arguments[0] as UniqueBackendIdentifier,
-      testBackendIdentifier
-    );
-    assert.deepStrictEqual(
-      mockGetSecret.mock.calls[0].arguments[1],
-      testSecretId
-    );
+    assert.deepStrictEqual(mockGetSecret.mock.calls[0].arguments, [
+      testBackendIdentifier,
+      testSecretId,
+    ]);
   });
 
   void it('gets a shared backend secret if the branch returns client error', async () => {
     const mockGetSecret = mock.method(
       secretHandler,
       'getSecret',
-      (backendIdentifier: UniqueBackendIdentifier | BackendId) => {
+      (backendIdentifier: BackendIdentifierParts | AppId) => {
         if (typeof backendIdentifier === 'object') {
           return Promise.reject(clientErr);
         }
@@ -136,14 +124,10 @@ void describe('handleCreateUpdateEvent', () => {
     assert.equal(val, testSecretValue);
 
     assert.equal(mockGetSecret.mock.callCount(), 2);
-    assertBackendIdDataEquivalence(
-      mockGetSecret.mock.calls[0].arguments[0] as UniqueBackendIdentifier,
-      testBackendIdentifier
-    );
-    assert.deepStrictEqual(
-      mockGetSecret.mock.calls[0].arguments[1],
-      testSecretId
-    );
+    assert.deepStrictEqual(mockGetSecret.mock.calls[0].arguments, [
+      testBackendIdentifier,
+      testSecretId,
+    ]);
     assert.deepStrictEqual(mockGetSecret.mock.calls[1].arguments, [
       testBackendId,
       testSecretId,
@@ -154,7 +138,7 @@ void describe('handleCreateUpdateEvent', () => {
     const mockGetSecret = mock.method(
       secretHandler,
       'getSecret',
-      (backendIdentifier: UniqueBackendIdentifier | BackendId) => {
+      (backendIdentifier: BackendIdentifierParts | AppId) => {
         if (typeof backendIdentifier === 'object') {
           return Promise.resolve(undefined);
         }
@@ -165,14 +149,10 @@ void describe('handleCreateUpdateEvent', () => {
     assert.equal(val, testSecretValue);
 
     assert.equal(mockGetSecret.mock.callCount(), 2);
-    assertBackendIdDataEquivalence(
-      mockGetSecret.mock.calls[0].arguments[0] as UniqueBackendIdentifier,
-      testBackendIdentifier
-    );
-    assert.deepStrictEqual(
-      mockGetSecret.mock.calls[0].arguments[1],
-      testSecretId
-    );
+    assert.deepStrictEqual(mockGetSecret.mock.calls[0].arguments, [
+      testBackendIdentifier,
+      testSecretId,
+    ]);
     assert.deepStrictEqual(mockGetSecret.mock.calls[1].arguments, [
       testBackendId,
       testSecretId,
@@ -183,7 +163,7 @@ void describe('handleCreateUpdateEvent', () => {
     const mockGetSecret = mock.method(
       secretHandler,
       'getSecret',
-      (backendIdentifier: UniqueBackendIdentifier | BackendId) => {
+      (backendIdentifier: BackendIdentifierParts | AppId) => {
         if (typeof backendIdentifier === 'object') {
           return Promise.reject(clientErr);
         }
@@ -195,14 +175,10 @@ void describe('handleCreateUpdateEvent', () => {
     );
 
     assert.equal(mockGetSecret.mock.callCount(), 2);
-    assertBackendIdDataEquivalence(
-      mockGetSecret.mock.calls[0].arguments[0] as UniqueBackendIdentifier,
-      testBackendIdentifier
-    );
-    assert.deepStrictEqual(
-      mockGetSecret.mock.calls[0].arguments[1],
-      testSecretId
-    );
+    assert.deepStrictEqual(mockGetSecret.mock.calls[0].arguments, [
+      testBackendIdentifier,
+      testSecretId,
+    ]);
     assert.deepStrictEqual(mockGetSecret.mock.calls[1].arguments, [
       testBackendId,
       testSecretId,

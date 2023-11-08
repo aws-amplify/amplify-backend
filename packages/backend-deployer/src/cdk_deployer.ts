@@ -6,7 +6,7 @@ import {
   DestroyProps,
 } from './cdk_deployer_singleton_factory.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import { BackendIdentifierParts } from '@aws-amplify/plugin-types';
 import {
   BackendDeploymentType,
   CDKContextKey,
@@ -35,7 +35,7 @@ export class CDKDeployer implements BackendDeployer {
    * Invokes cdk deploy command
    */
   deploy = async (
-    uniqueBackendIdentifier?: UniqueBackendIdentifier,
+    backendIdentifierParts?: BackendIdentifierParts,
     deployProps?: DeployProps
   ) => {
     await this.invokeTsc(deployProps);
@@ -54,7 +54,7 @@ export class CDKDeployer implements BackendDeployer {
 
     await this.invokeCdk(
       InvokableCommand.DEPLOY,
-      uniqueBackendIdentifier,
+      backendIdentifierParts,
       deployProps?.deploymentType,
       cdkCommandArgs
     );
@@ -64,12 +64,12 @@ export class CDKDeployer implements BackendDeployer {
    * Invokes cdk destroy command
    */
   destroy = async (
-    uniqueBackendIdentifier?: UniqueBackendIdentifier,
+    backendIdentifierParts?: BackendIdentifierParts,
     destroyProps?: DestroyProps
   ) => {
     await this.invokeCdk(
       InvokableCommand.DESTROY,
-      uniqueBackendIdentifier,
+      backendIdentifierParts,
       destroyProps?.deploymentType,
       ['--force']
     );
@@ -106,7 +106,7 @@ export class CDKDeployer implements BackendDeployer {
    */
   private invokeCdk = async (
     invokableCommand: InvokableCommand,
-    uniqueBackendIdentifier?: UniqueBackendIdentifier,
+    backendIdentifierParts?: BackendIdentifierParts,
     deploymentType?: BackendDeploymentType,
     additionalArguments?: string[]
   ) => {
@@ -125,12 +125,12 @@ export class CDKDeployer implements BackendDeployer {
     ];
 
     // Add context information if available
-    if (uniqueBackendIdentifier) {
+    if (backendIdentifierParts) {
       cdkCommandArgs.push(
         '--context',
-        `${CDKContextKey.BACKEND_ID}=${uniqueBackendIdentifier.backendId}`,
+        `${CDKContextKey.BACKEND_NAMESPACE}=${backendIdentifierParts.namespace}`,
         '--context',
-        `${CDKContextKey.BACKEND_DISAMBIGUATOR}=${uniqueBackendIdentifier.disambiguator}`
+        `${CDKContextKey.BACKEND_DISAMBIGUATOR}=${backendIdentifierParts.instance}`
       );
 
       if (deploymentType !== BackendDeploymentType.SANDBOX) {

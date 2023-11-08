@@ -5,6 +5,6 @@
  */
 export enum CDKContextKey {
   BACKEND_DISAMBIGUATOR = 'backend-disambiguator',
-  BACKEND_ID = 'backend-id',
+  BACKEND_NAMESPACE = 'backend-namespace',
   DEPLOYMENT_TYPE = 'deployment-type',
 }

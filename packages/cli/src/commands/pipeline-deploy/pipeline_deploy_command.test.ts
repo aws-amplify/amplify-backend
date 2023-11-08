@@ -12,7 +12,6 @@ import {
 import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
-import { assertBackendIdDataEquivalence } from '../../test-utils/assert_backend_id_data_equivalence.js';
 
 void describe('deploy command', () => {
   const credentialProvider = fromNodeProviderChain();
@@ -73,14 +72,13 @@ void describe('deploy command', () => {
       'pipeline-deploy --app-id abc --branch test-branch'
     );
     assert.strictEqual(mockDeploy.mock.callCount(), 1);
-    assertBackendIdDataEquivalence(mockDeploy.mock.calls[0].arguments[0], {
-      backendId: 'abc',
-      disambiguator: 'test-branch',
-    });
-    assert.deepStrictEqual(mockDeploy.mock.calls[0].arguments[1], {
-      deploymentType: 'BRANCH',
-      validateAppSources: true,
-    });
+    assert.deepStrictEqual(mockDeploy.mock.calls[0].arguments, [
+      {},
+      {
+        deploymentType: 'BRANCH',
+        validateAppSources: true,
+      },
+    ]);
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
   });
 });

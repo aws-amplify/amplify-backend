@@ -1,22 +1,20 @@
 import { Construct } from 'constructs';
 import {
   BackendDeploymentType,
-  BranchBackendIdentifier,
   CDKContextKey,
-  SandboxBackendIdentifier,
 } from '@aws-amplify/platform-core';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import { BackendIdentifierParts } from '@aws-amplify/plugin-types';
 
 /**
  * Populates a unique backend identifier based on CDK context values.
  */
-export const getUniqueBackendIdentifier = (
+export const getBackendIdentifierParts = (
   scope: Construct
-): UniqueBackendIdentifier => {
-  const backendId = scope.node.getContext(CDKContextKey.BACKEND_ID);
+): BackendIdentifierParts => {
+  const backendId = scope.node.getContext(CDKContextKey.BACKEND_NAMESPACE);
   if (typeof backendId !== 'string') {
     throw new Error(
-      `${CDKContextKey.BACKEND_ID} CDK context value is not a string`
+      `${CDKContextKey.BACKEND_NAMESPACE} CDK context value is not a string`
     );
   }
 
@@ -49,8 +47,16 @@ export const getUniqueBackendIdentifier = (
   }
 
   if (deploymentType === BackendDeploymentType.SANDBOX) {
-    return new SandboxBackendIdentifier(backendId, disambiguator);
+    return {
+      type: 'sandbox',
+      namespace: backendId,
+      instance: disambiguator,
+    };
   }
 
-  return new BranchBackendIdentifier(backendId, disambiguator);
+  return {
+    type: 'branch',
+    namespace: backendId,
+    instance: disambiguator,
+  };
 };

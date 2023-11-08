@@ -3,10 +3,7 @@ import assert from 'node:assert';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
 import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 import { SecretListItem, getSecretClient } from '@aws-amplify/backend-secret';
-import {
-  BackendDeploymentType,
-  SandboxBackendIdentifier,
-} from '@aws-amplify/platform-core';
+import { BackendDeploymentType } from '@aws-amplify/platform-core';
 
 const backendDeployer = BackendDeployerFactory.getInstance();
 const secretClient = getSecretClient();
@@ -48,12 +45,20 @@ void describe('Sandbox executor', () => {
 
   void it('retrieves file change summary once (debounce)', async () => {
     const firstDeployPromise = sandboxExecutor.deploy(
-      new SandboxBackendIdentifier('testSandboxId', 'testSandboxName'),
+      {
+        namespace: 'testSandboxId',
+        instance: 'testSandboxName',
+        type: 'sandbox',
+      },
       validateAppSourcesProvider
     );
 
     const secondDeployPromise = sandboxExecutor.deploy(
-      new SandboxBackendIdentifier('testSandboxId', 'testSandboxName'),
+      {
+        namespace: 'testSandboxId',
+        instance: 'testSandboxName',
+        type: 'sandbox',
+      },
       validateAppSourcesProvider
     );
 
@@ -71,28 +76,26 @@ void describe('Sandbox executor', () => {
       );
 
       await sandboxExecutor.deploy(
-        new SandboxBackendIdentifier('testSandboxId', 'testSandboxName'),
+        {
+          namespace: 'testSandboxId',
+          instance: 'testSandboxName',
+          type: 'sandbox',
+        },
         validateAppSourcesProvider
       );
 
       assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
       // BackendDeployer should be called with the right params
       assert.deepStrictEqual(
-        backendDeployerDeployMock.mock.calls[0].arguments[0]?.backendId,
-        'testSandboxId'
-      );
-      assert.deepStrictEqual(
-        backendDeployerDeployMock.mock.calls[0].arguments[0]?.disambiguator,
-        'testSandboxName'
-      );
-
-      assert.deepStrictEqual(
-        backendDeployerDeployMock.mock.calls[0].arguments[1],
-        {
-          deploymentType: BackendDeploymentType.SANDBOX,
-          secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
-          validateAppSources: shouldValidateSources,
-        }
+        backendDeployerDeployMock.mock.calls[0].arguments,
+        [
+          {},
+          {
+            deploymentType: BackendDeploymentType.SANDBOX,
+            secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+            validateAppSources: shouldValidateSources,
+          },
+        ]
       );
     });
   });

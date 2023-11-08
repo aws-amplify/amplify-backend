@@ -1,6 +1,6 @@
 import { Argv, CommandModule } from 'yargs';
 import { SecretClient } from '@aws-amplify/backend-secret';
-import { SandboxIdResolver } from '../sandbox_id_resolver.js';
+import { SandboxBackendIdPartsResolver } from '../sandbox_id_resolver.js';
 import { Printer } from '@aws-amplify/cli-core';
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
 import { handleCommandFailure } from '../../../command_failure_handler.js';
@@ -25,7 +25,7 @@ export class SandboxSecretGetCommand
    * Get sandbox secret command.
    */
   constructor(
-    private readonly sandboxIdResolver: SandboxIdResolver,
+    private readonly sandboxIdResolver: SandboxBackendIdPartsResolver,
     private readonly secretClient: SecretClient
   ) {
     this.command = 'get <secretName>';

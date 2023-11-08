@@ -1,6 +1,6 @@
 import {
+  BackendIdentifierParts,
   BackendOutput,
-  UniqueBackendIdentifier,
 } from '@aws-amplify/plugin-types';
 import {
   ApiAuthType,
@@ -13,7 +13,8 @@ import {
 } from './deployed_backend_client_factory.js';
 import {
   BackendDeploymentType,
-  SandboxBackendIdentifier,
+  backendIdentifierPartsToStackName,
+  stackNameToBackendIdentifierParts,
 } from '@aws-amplify/platform-core';
 import { BackendOutputClient } from './backend_output_client_factory.js';
 import {
@@ -76,8 +77,8 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
 
           return {
             name: stackSummary.StackName as string,
-            backendId: SandboxBackendIdentifier.tryParse(
-              stackSummary.StackName as string
+            backendId: stackNameToBackendIdentifierParts(
+              stackSummary.StackName
             ),
             lastUpdated:
               stackSummary.LastUpdatedTime ?? stackSummary.CreationTime,
@@ -128,18 +129,21 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
    * Deletes a sandbox with the specified id
    */
   deleteSandbox = async (
-    sandboxBackendIdentifier: SandboxBackendIdentifier
+    sandboxBackendIdentifierParts: Omit<BackendIdentifierParts, 'type'>
   ): Promise<void> => {
-    const stackName = sandboxBackendIdentifier.toStackName();
+    const stackName = backendIdentifierPartsToStackName({
+      ...sandboxBackendIdentifierParts,
+      type: 'sandbox',
+    });
     await this.cfnClient.send(new DeleteStackCommand({ StackName: stackName }));
   };
   /**
    * Fetches all backend metadata for a specified backend
    */
   getBackendMetadata = async (
-    uniqueBackendIdentifier: UniqueBackendIdentifier
+    backendIdentifierParts: BackendIdentifierParts
   ): Promise<BackendMetadata> => {
-    const stackName = uniqueBackendIdentifier.toStackName();
+    const stackName = backendIdentifierPartsToStackName(backendIdentifierParts);
     return this.buildBackendMetadata(stackName);
   };
 
@@ -159,12 +163,12 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
   private buildBackendMetadata = async (
     stackName: string
   ): Promise<BackendMetadata> => {
-    const backendIdentifier = {
+    const stackBackendIdentifier = {
       stackName,
     };
 
     const backendOutput: BackendOutput =
-      await this.backendOutputClient.getOutput(backendIdentifier);
+      await this.backendOutputClient.getOutput(stackBackendIdentifier);
     const stackDescription = await this.cfnClient.send(
       new DescribeStacksCommand({ StackName: stackName })
     );

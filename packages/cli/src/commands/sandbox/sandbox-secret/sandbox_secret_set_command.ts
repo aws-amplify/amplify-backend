@@ -1,6 +1,6 @@
 import { Argv, CommandModule } from 'yargs';
 import { SecretClient } from '@aws-amplify/backend-secret';
-import { SandboxIdResolver } from '../sandbox_id_resolver.js';
+import { SandboxBackendIdPartsResolver } from '../sandbox_id_resolver.js';
 import { AmplifyPrompter } from '@aws-amplify/cli-core';
 
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
@@ -26,7 +26,7 @@ export class SandboxSecretSetCommand
    * Set sandbox secret command.
    */
   constructor(
-    private readonly sandboxIdResolver: SandboxIdResolver,
+    private readonly sandboxIdResolver: SandboxBackendIdPartsResolver,
     private readonly secretClient: SecretClient
   ) {
     this.command = 'set <secretName>';

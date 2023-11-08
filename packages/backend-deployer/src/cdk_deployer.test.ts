@@ -3,17 +3,19 @@ import { CDKDeployer } from './cdk_deployer.js';
 import assert from 'node:assert';
 import {
   BackendDeploymentType,
-  BranchBackendIdentifier,
   CDKContextKey,
 } from '@aws-amplify/platform-core';
 import { DeployProps } from './cdk_deployer_singleton_factory.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import { BackendIdentifierParts } from '@aws-amplify/plugin-types';
 import { BackendDeployerEnvironmentVariables } from './environment_variables.js';
 
 void describe('invokeCDKCommand', () => {
-  const uniqueBackendIdentifier: UniqueBackendIdentifier =
-    new BranchBackendIdentifier('123', 'testBranch');
+  const backendIdentifierParts: BackendIdentifierParts = {
+    namespace: '123',
+    instance: 'testBranch',
+    type: 'branch',
+  };
 
   const sandboxDeployProps: DeployProps = {
     deploymentType: BackendDeploymentType.SANDBOX,
@@ -50,7 +52,7 @@ void describe('invokeCDKCommand', () => {
   });
 
   void it('handles options for branch deployments', async () => {
-    await invoker.deploy(uniqueBackendIdentifier);
+    await invoker.deploy(backendIdentifierParts);
     assert.strictEqual(execaMock.mock.callCount(), 1);
     assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 14);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
@@ -63,7 +65,7 @@ void describe('invokeCDKCommand', () => {
       '--output',
       '.amplify/artifacts/cdk.out',
       '--context',
-      `${CDKContextKey.BACKEND_ID}=123`,
+      `${CDKContextKey.BACKEND_NAMESPACE}=123`,
       '--context',
       `${CDKContextKey.BACKEND_DISAMBIGUATOR}=testBranch`,
       '--require-approval',
@@ -96,7 +98,7 @@ void describe('invokeCDKCommand', () => {
   });
 
   void it('handles options and deployProps for sandbox', async () => {
-    await invoker.deploy(uniqueBackendIdentifier, sandboxDeployProps);
+    await invoker.deploy(backendIdentifierParts, sandboxDeployProps);
     assert.strictEqual(execaMock.mock.callCount(), 1);
     assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 18);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
@@ -109,7 +111,7 @@ void describe('invokeCDKCommand', () => {
       '--output',
       '.amplify/artifacts/cdk.out',
       '--context',
-      `${CDKContextKey.BACKEND_ID}=123`,
+      `${CDKContextKey.BACKEND_NAMESPACE}=123`,
       '--context',
       `${CDKContextKey.BACKEND_DISAMBIGUATOR}=testBranch`,
       '--context',
@@ -124,7 +126,7 @@ void describe('invokeCDKCommand', () => {
   });
 
   void it('handles destroy for sandbox', async () => {
-    await invoker.destroy(uniqueBackendIdentifier, {
+    await invoker.destroy(backendIdentifierParts, {
       deploymentType: BackendDeploymentType.SANDBOX,
     });
     assert.strictEqual(execaMock.mock.callCount(), 1);
@@ -139,7 +141,7 @@ void describe('invokeCDKCommand', () => {
       '--output',
       '.amplify/artifacts/cdk.out',
       '--context',
-      `${CDKContextKey.BACKEND_ID}=123`,
+      `${CDKContextKey.BACKEND_NAMESPACE}=123`,
       '--context',
       `${CDKContextKey.BACKEND_DISAMBIGUATOR}=testBranch`,
       '--context',
@@ -149,7 +151,7 @@ void describe('invokeCDKCommand', () => {
   });
 
   void it('enables type checking for branch deployments', async () => {
-    await invoker.deploy(uniqueBackendIdentifier, {
+    await invoker.deploy(backendIdentifierParts, {
       deploymentType: BackendDeploymentType.BRANCH,
       validateAppSources: true,
     });
@@ -178,7 +180,7 @@ void describe('invokeCDKCommand', () => {
       '--output',
       '.amplify/artifacts/cdk.out',
       '--context',
-      `${CDKContextKey.BACKEND_ID}=123`,
+      `${CDKContextKey.BACKEND_NAMESPACE}=123`,
       '--context',
       `${CDKContextKey.BACKEND_DISAMBIGUATOR}=testBranch`,
       '--require-approval',
@@ -229,7 +231,7 @@ void describe('invokeCDKCommand', () => {
       process.env[
         BackendDeployerEnvironmentVariables.ALWAYS_DISABLE_APP_SOURCES_VALIDATION
       ] = 'true';
-      await invoker.deploy(uniqueBackendIdentifier, {
+      await invoker.deploy(backendIdentifierParts, {
         deploymentType: BackendDeploymentType.BRANCH,
         validateAppSources: true,
       });
@@ -245,7 +247,7 @@ void describe('invokeCDKCommand', () => {
         '--output',
         '.amplify/artifacts/cdk.out',
         '--context',
-        `${CDKContextKey.BACKEND_ID}=123`,
+        `${CDKContextKey.BACKEND_NAMESPACE}=123`,
         '--context',
         `${CDKContextKey.BACKEND_DISAMBIGUATOR}=testBranch`,
         '--require-approval',
@@ -300,7 +302,7 @@ void describe('invokeCDKCommand', () => {
     });
 
     await assert.rejects(
-      () => invoker.deploy(uniqueBackendIdentifier, sandboxDeployProps),
+      () => invoker.deploy(backendIdentifierParts, sandboxDeployProps),
       (err: Error) => {
         assert.equal(
           err.message,

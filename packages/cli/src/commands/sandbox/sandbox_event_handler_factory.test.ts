@@ -1,5 +1,4 @@
 import { ClientConfigFormat } from '@aws-amplify/client-config';
-import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
 import assert from 'node:assert';
 import { it, mock } from 'node:test';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
@@ -8,8 +7,6 @@ import { ClientConfigLifecycleHandler } from '../../client-config/client_config_
 import fs from 'fs';
 import fsp from 'fs/promises';
 import path from 'node:path';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
-import { assertBackendIdDataEquivalence } from '../../test-utils/assert_backend_id_data_equivalence.js';
 
 void it('calls the client config adapter on the successfulDeployment event', async () => {
   const generateClientConfigMock =
@@ -25,9 +22,11 @@ void it('calls the client config adapter on the successfulDeployment event', asy
     ClientConfigFormat.MJS
   );
 
-  const eventFactory = new SandboxEventHandlerFactory(
-    async () => new SandboxBackendIdentifier('test', 'name')
-  );
+  const eventFactory = new SandboxEventHandlerFactory(async () => ({
+    namespace: 'test',
+    instance: 'name',
+    type: 'sandbox',
+  }));
 
   await Promise.all(
     eventFactory
@@ -38,12 +37,8 @@ void it('calls the client config adapter on the successfulDeployment event', asy
       .successfulDeployment.map((e) => e())
   );
 
-  assertBackendIdDataEquivalence(
-    generateClientConfigMock.mock.calls[0]
-      .arguments[0] as UniqueBackendIdentifier,
-    { backendId: 'test', disambiguator: 'name' }
-  );
-  assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments.slice(1), [
+  assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments, [
+    {},
     'test-out',
     'mjs',
   ]);
@@ -65,9 +60,11 @@ void it('calls deleteClientConfigFile on client config adapter on the successful
 
   const fspMock = mock.method(fsp, 'rm', () => Promise.resolve());
 
-  const eventFactory = new SandboxEventHandlerFactory(
-    async () => new SandboxBackendIdentifier('test', 'name')
-  );
+  const eventFactory = new SandboxEventHandlerFactory(async () => ({
+    namespace: 'test',
+    instance: 'name',
+    type: 'sandbox',
+  }));
 
   await Promise.all(
     eventFactory

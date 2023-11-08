@@ -3,11 +3,9 @@ import { AmplifyPrompter } from '@aws-amplify/cli-core';
 import yargs, { CommandModule } from 'yargs';
 import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
-import { SandboxIdResolver } from '../sandbox_id_resolver.js';
+import { SandboxBackendIdPartsResolver } from '../sandbox_id_resolver.js';
 import { SecretIdentifier, getSecretClient } from '@aws-amplify/backend-secret';
 import { SandboxSecretSetCommand } from './sandbox_secret_set_command.js';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
-import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
 
 const testSecretName = 'testSecretName';
 const testSecretValue = 'testSecretValue';
@@ -27,12 +25,14 @@ void describe('sandbox secret set command', () => {
     (): Promise<SecretIdentifier> => Promise.resolve(testSecretIdentifier)
   );
 
-  const sandboxIdResolver: SandboxIdResolver = {
+  const sandboxIdResolver: SandboxBackendIdPartsResolver = {
     resolve: () =>
-      Promise.resolve(
-        new SandboxBackendIdentifier(testBackendId, testSandboxName)
-      ),
-  } as SandboxIdResolver;
+      Promise.resolve({
+        namespace: testBackendId,
+        instance: testSandboxName,
+        type: 'sandbox',
+      }),
+  } as SandboxBackendIdPartsResolver;
 
   const sandboxSecretSetCmd = new SandboxSecretSetCommand(
     sandboxIdResolver,
@@ -60,12 +60,11 @@ void describe('sandbox secret set command', () => {
     assert.equal(mockSecretValue.mock.callCount(), 1);
     assert.equal(secretSetMock.mock.callCount(), 1);
 
-    const backendIdentifier = secretSetMock.mock.calls[0]
-      .arguments[0] as UniqueBackendIdentifier;
-    assert.equal(backendIdentifier.backendId, testBackendId);
-    assert.equal(backendIdentifier.disambiguator, testSandboxName);
-    assert.equal(secretSetMock.mock.calls[0].arguments[1], testSecretName);
-    assert.equal(secretSetMock.mock.calls[0].arguments[2], testSecretValue);
+    assert.deepStrictEqual(secretSetMock.mock.calls[0].arguments, [
+      {},
+      testSecretName,
+      testSecretValue,
+    ]);
   });
 
   void it('show --help', async () => {

@@ -1,4 +1,4 @@
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import { BackendIdentifierParts } from '@aws-amplify/plugin-types';
 import { CDKDeployer } from './cdk_deployer.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
 import { BackendDeploymentType } from '@aws-amplify/platform-core';
@@ -18,11 +18,11 @@ export type DestroyProps = {
  */
 export type BackendDeployer = {
   deploy: (
-    uniqueBackendIdentifier?: UniqueBackendIdentifier,
+    backendIdentifierParts?: BackendIdentifierParts,
     deployProps?: DeployProps
   ) => Promise<void>;
   destroy: (
-    uniqueBackendIdentifier?: UniqueBackendIdentifier,
+    backendIdentifierParts?: BackendIdentifierParts,
     destroyProps?: DestroyProps
   ) => Promise<void>;
 };
