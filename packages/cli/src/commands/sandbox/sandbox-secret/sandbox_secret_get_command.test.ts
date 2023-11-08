@@ -10,7 +10,6 @@ import {
 } from '@aws-amplify/backend-secret';
 import { SandboxSecretGetCommand } from './sandbox_secret_get_command.js';
 import { Printer } from '@aws-amplify/cli-core';
-import { BackendIdentifierParts } from '@aws-amplify/plugin-types';
 
 const testSecretName = 'testSecretName';
 const testBackendId = 'testBackendId';
@@ -62,8 +61,6 @@ void describe('sandbox secret get command', () => {
     await commandRunner.runCommand(`get ${testSecretName}`);
 
     assert.equal(secretGetMock.mock.callCount(), 1);
-    const actualBackendId = secretGetMock.mock.calls[0]
-      .arguments[0] as BackendIdentifierParts;
     assert.deepStrictEqual(secretGetMock.mock.calls[0].arguments, [
       {
         namespace: testBackendId,
