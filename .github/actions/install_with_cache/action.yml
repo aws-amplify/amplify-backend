@@ -14,4 +14,6 @@ runs:
     # only install if cache miss
     - if: steps.npm-cache.outputs.cache-hit != 'true'
       shell: bash
-      run: npm ci
+      run: |
+        python3 -m pip install packaging
+        npm ci
