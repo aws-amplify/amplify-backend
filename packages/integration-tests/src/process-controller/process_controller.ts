@@ -219,11 +219,19 @@ export const amplifyCli = (
 ): ProcessController => {
   let command: string;
   if (options?.installationType === 'local') {
-    command = 'npx';
+    if (process.platform.includes('win32')) {
+      command = 'npx.cmd';
+    } else {
+      command = 'npx';
+    }
     args = ['amplify'].concat(args);
   } else {
     // command = 'amplify';
-    command = 'npx';
+    if (process.platform.includes('win32')) {
+      command = 'npx.cmd';
+    } else {
+      command = 'npx';
+    }
     args = ['amplify'].concat(args);
   }
   return new ProcessController(command, args, {
