@@ -3,6 +3,7 @@ import { CDKDeployer } from './cdk_deployer.js';
 import assert from 'node:assert';
 import {
   BackendDeploymentType,
+  BackendLocator,
   BranchBackendIdentifier,
   CDKContextKey,
 } from '@aws-amplify/platform-core';
@@ -20,7 +21,11 @@ void describe('invokeCDKCommand', () => {
     secretLastUpdated: new Date(12345678),
   };
 
-  const invoker = new CDKDeployer(new CdkErrorMapper());
+  // This is needed for `getRelativeBackendEntryPoint` to ensure that backend file exists correctly
+  const locateMock = mock.fn(() => 'amplify/backend.ts');
+  const backendLocator = { locate: locateMock } as unknown as BackendLocator;
+
+  const invoker = new CDKDeployer(new CdkErrorMapper(), backendLocator);
   const execaMock = mock.method(invoker, 'executeChildProcess', () =>
     Promise.resolve()
   );

@@ -1,7 +1,10 @@
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import { CDKDeployer } from './cdk_deployer.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
-import { BackendDeploymentType } from '@aws-amplify/platform-core';
+import {
+  BackendDeploymentType,
+  BackendLocator,
+} from '@aws-amplify/platform-core';
 
 export type DeployProps = {
   deploymentType?: BackendDeploymentType;
@@ -38,7 +41,10 @@ export class BackendDeployerFactory {
    */
   static getInstance = (): BackendDeployer => {
     if (!BackendDeployerFactory.instance) {
-      BackendDeployerFactory.instance = new CDKDeployer(new CdkErrorMapper());
+      BackendDeployerFactory.instance = new CDKDeployer(
+        new CdkErrorMapper(),
+        new BackendLocator()
+      );
     }
     return BackendDeployerFactory.instance;
   };
