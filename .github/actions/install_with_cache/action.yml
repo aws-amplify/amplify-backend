@@ -15,5 +15,6 @@ runs:
     - if: steps.npm-cache.outputs.cache-hit != 'true'
       shell: bash
       run: |
+        # https://github.com/nodejs/node-gyp/issues?q=is%3Aissue+ModuleNotFoundError%3A+No+module+named+%27distutils%27+is%3Aclosed
         python3 -m pip install packaging
         npm ci
