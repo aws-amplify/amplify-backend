@@ -6,10 +6,6 @@ import {
   ClientConfigFormat,
   getClientConfigPath,
 } from '@aws-amplify/client-config';
-import {
-  DEFAULT_GRAPHQL_PATH,
-  DEFAULT_UI_PATH,
-} from '../../form-generation/default_form_generation_output_paths.js';
 import { ArgumentsKebabCase } from '../../kebab_case.js';
 import { handleCommandFailure } from '../../command_failure_handler.js';
 import { ClientConfigLifecycleHandler } from '../../client-config/client_config_lifecycle_handler.js';
@@ -26,9 +22,6 @@ type SandboxCommandOptionsCamelCase = {
   format: ClientConfigFormat | undefined;
   outDir: string | undefined;
   profile: string | undefined;
-  modelsOutDir: string;
-  uiOutDir: string;
-  modelsFilter?: string[];
 };
 
 export type EventHandler = () => void;
@@ -104,11 +97,7 @@ export class SandboxCommand
       args['out-dir'],
       args.format
     );
-    watchExclusions.push(
-      clientConfigWritePath,
-      args['ui-out-dir'],
-      args['models-out-dir']
-    );
+    watchExclusions.push(clientConfigWritePath);
     await sandbox.start({
       dir: args['dir-to-watch'],
       exclude: watchExclusions,
@@ -165,29 +154,6 @@ export class SandboxCommand
           describe: 'An AWS profile name.',
           type: 'string',
           array: false,
-        })
-        .option('models-out-dir', {
-          describe: 'A path to directory where generated models are written.',
-          default: DEFAULT_GRAPHQL_PATH,
-          type: 'string',
-          array: false,
-          group: 'Form Generation',
-          global: false,
-        })
-        .option('ui-out-dir', {
-          describe: 'A path to directory where generated forms are written.',
-          default: DEFAULT_UI_PATH,
-          type: 'string',
-          array: false,
-          group: 'Form Generation',
-          global: false,
-        })
-        .option('models', {
-          describe: 'Model name to generate',
-          type: 'string',
-          array: true,
-          group: 'Form Generation',
-          global: false,
         })
         .check((argv) => {
           if (argv['dir-to-watch']) {
