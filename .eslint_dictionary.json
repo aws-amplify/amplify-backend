@@ -81,6 +81,7 @@
   "readdir",
   "readline",
   "readonly",
+  "regexes",
   "renderer",
   "repo",
   "resolvers",

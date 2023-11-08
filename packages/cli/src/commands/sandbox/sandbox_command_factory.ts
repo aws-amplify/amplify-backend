@@ -9,6 +9,7 @@ import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { LocalNamespaceResolver } from '../../backend-identifier/local_namespace_resolver.js';
 import { createSandboxSecretCommand } from './sandbox-secret/sandbox_secret_command_factory.js';
 import { SandboxEventHandlerFactory } from './sandbox_event_handler_factory.js';
+import { CommandMiddleware } from '../../command_middleware.js';
 
 /**
  * Creates wired sandbox command.
@@ -49,10 +50,12 @@ export const createSandboxCommand = (): CommandModule<
     sandboxBackendIdentifierResolver
   );
 
+  const commandMiddleWare = new CommandMiddleware();
   return new SandboxCommand(
     sandboxFactory,
     [new SandboxDeleteCommand(sandboxFactory), createSandboxSecretCommand()],
     clientConfigGeneratorAdapter,
+    commandMiddleWare,
     eventHandlerFactory.getSandboxEventHandlers
   );
 };

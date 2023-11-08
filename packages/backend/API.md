@@ -10,7 +10,7 @@ import { ClientSchema } from '@aws-amplify/amplify-api-next-alpha';
 import { Construct } from 'constructs';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { defineAuth } from '@aws-amplify/backend-auth';
-import { defineData } from '@aws-amplify/backend-graphql';
+import { defineData } from '@aws-amplify/backend-data';
 import { defineStorage } from '@aws-amplify/backend-storage';
 import { Func } from '@aws-amplify/backend-function';
 import { Stack } from 'aws-cdk-lib';
