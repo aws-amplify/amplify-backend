@@ -25,10 +25,12 @@ export type AmazonProviderFactoryProps = Omit<AmazonProviderProps, 'clientId' | 
     clientSecret: BackendSecret;
 };
 
+// Warning: (ae-forgotten-export) The symbol "Expand" needs to be exported by the entry point index.d.ts
+//
 // @public (undocumented)
-export type AmplifyAuthFactoryProps = Omit<AuthProps, 'outputStorageStrategy' | 'loginWith'> & TriggerConfig & {
-    loginWith: AuthLoginWithFactoryProps;
-};
+export type AmplifyAuthFactoryProps = Expand<Omit<AuthProps, 'outputStorageStrategy' | 'loginWith'> & TriggerConfig & {
+    loginWith: Expand<AuthLoginWithFactoryProps>;
+}>;
 
 // @public
 export type AppleProviderFactoryProps = Omit<AppleProviderProps, 'clientId' | 'teamId' | 'keyId' | 'privateKey'> & {
