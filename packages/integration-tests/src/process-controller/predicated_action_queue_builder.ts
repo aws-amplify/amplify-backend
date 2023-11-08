@@ -5,6 +5,7 @@ import {
 } from './predicated_action.js';
 import os from 'os';
 import fs from 'fs/promises';
+import stripAnsi from 'strip-ansi';
 
 import { killExecaProcess } from './execa_process_killer.js';
 import { ExecaChildProcess } from 'execa';
@@ -32,7 +33,10 @@ export class PredicatedActionBuilder {
     this.predicatedActionQueue.push({
       ifThis: {
         predicateType: PredicateType.MATCHES_STRING_PREDICATE,
-        predicate: (line) => line.includes(str),
+        predicate: (line) => {
+          line = stripAnsi(line);
+          return line.includes(str);
+        },
       },
     });
     return this;

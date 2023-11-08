@@ -109,8 +109,11 @@ export class PtyProcessOutput implements AsyncIterableIterator<string> {
   };
 
   onData = (data: string) => {
-    this.outputQueue.push(data);
-    this.allOutput.push(data);
+    const lines = data.split(/\r\n|\r|\n/);
+    for (const line of lines) {
+      this.outputQueue.push(line);
+      this.allOutput.push(line);
+    }
     this.tryConsume();
   };
 
@@ -131,13 +134,13 @@ export class PtyProcessOutput implements AsyncIterableIterator<string> {
     } else if (this.outputQueue.length > 0) {
       if (this.currentResolve) {
         const line = this.outputQueue.shift();
-        if (line) {
+        if (line !== undefined) {
           this.currentResolve({
             done: false,
             value: line,
           });
-          this.currentResolve = undefined;
         }
+        this.currentResolve = undefined;
       }
     }
   };
