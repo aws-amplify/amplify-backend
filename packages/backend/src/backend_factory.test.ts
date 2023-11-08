@@ -20,11 +20,11 @@ const createStackAndSetContext = (
   switch (deploymentType) {
     case BackendDeploymentType.SANDBOX:
       app.node.setContext(CDKContextKey.BACKEND_NAMESPACE, 'projectName');
-      app.node.setContext(CDKContextKey.BACKEND_DISAMBIGUATOR, 'testUser');
+      app.node.setContext(CDKContextKey.BACKEND_INSTANCE, 'testUser');
 
       break;
     case BackendDeploymentType.BRANCH:
-      app.node.setContext(CDKContextKey.BACKEND_DISAMBIGUATOR, 'testEnvName');
+      app.node.setContext(CDKContextKey.BACKEND_INSTANCE, 'testEnvName');
       app.node.setContext(CDKContextKey.BACKEND_NAMESPACE, 'testBackendId');
       break;
   }

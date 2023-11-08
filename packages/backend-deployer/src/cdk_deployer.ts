@@ -132,7 +132,7 @@ export class CDKDeployer implements BackendDeployer {
         '--context',
         `${CDKContextKey.BACKEND_NAMESPACE}=${backendIdentifierParts.namespace}`,
         '--context',
-        `${CDKContextKey.BACKEND_DISAMBIGUATOR}=${backendIdentifierParts.instance}`
+        `${CDKContextKey.BACKEND_INSTANCE}=${backendIdentifierParts.instance}`
       );
 
       if (deploymentType !== BackendDeploymentType.SANDBOX) {

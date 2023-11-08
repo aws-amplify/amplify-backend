@@ -18,13 +18,11 @@ export const getBackendIdentifierParts = (
     );
   }
 
-  const disambiguator = scope.node.getContext(
-    CDKContextKey.BACKEND_DISAMBIGUATOR
-  );
+  const disambiguator = scope.node.getContext(CDKContextKey.BACKEND_INSTANCE);
 
   if (typeof disambiguator !== 'string') {
     throw new Error(
-      `${CDKContextKey.BACKEND_DISAMBIGUATOR} CDK context value is not a string`
+      `${CDKContextKey.BACKEND_INSTANCE} CDK context value is not a string`
     );
   }
 

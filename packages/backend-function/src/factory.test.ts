@@ -17,8 +17,8 @@ import {
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
-  app.node.setContext('branch-name', 'testEnvName');
-  app.node.setContext('backend-id', 'testBackendId');
+  app.node.setContext(CDKContextKey.BACKEND_INSTANCE, 'testEnvName');
+  app.node.setContext(CDKContextKey.BACKEND_NAMESPACE, 'testBackendId');
   app.node.setContext(
     CDKContextKey.DEPLOYMENT_TYPE,
     BackendDeploymentType.BRANCH

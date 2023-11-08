@@ -150,7 +150,7 @@ void describe('create-amplify script', () => {
           '--context',
           `${CDKContextKey.BACKEND_NAMESPACE}=123`,
           '--context',
-          'deployment-type=SANDBOX',
+          `${CDKContextKey.DEPLOYMENT_TYPE}=SANDBOX`,
           '--app',
           "'npx tsx amplify/backend.ts'",
           '--quiet',
