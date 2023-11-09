@@ -137,7 +137,7 @@ void describe('Logger', () => {
 
     assert.equal(mockConsole.log.mock.callCount(), 0);
     assert.equal(mockStdout.write.mock.callCount(), 3);
-    assert.equal(mockWriteEscapeSequence.mock.callCount(), 5);
+    assert.equal(mockWriteEscapeSequence.mock.callCount(), 6);
 
     assert.match(
       [...mockStdout.write.mock.calls[0].arguments][0],

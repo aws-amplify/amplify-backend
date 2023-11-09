@@ -75,6 +75,7 @@ export class Logger {
     clearInterval(this.timer);
     this.writeEscapeSequence(EscapeSequence.CLEAR_LINE);
     this.writeEscapeSequence(EscapeSequence.MOVE_CURSOR_TO_START);
+    this.writeEscapeSequence(EscapeSequence.SHOW_CURSOR);
     this.stdout.write(`${this.animateMessage}...${os.EOL}`);
   }
 
