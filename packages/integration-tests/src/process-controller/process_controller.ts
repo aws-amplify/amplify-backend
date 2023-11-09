@@ -186,7 +186,7 @@ export class PtyProcess {
     };
     const ptyProcess = pty.spawn(command, args, ptyOptions);
     console.log(
-      `Spawned ${ptyProcess.pid.toString()} , ${command} ${args.join(' ')}`
+      `[${ptyProcess.pid.toString()}] Spawned ${command} ${args.join(' ')}`
     );
     return new PtyProcess(ptyProcess);
   };

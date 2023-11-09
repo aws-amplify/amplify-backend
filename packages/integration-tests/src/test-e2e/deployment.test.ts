@@ -20,11 +20,17 @@ import {
 } from '../process-controller/predicated_action_macros.js';
 import assert from 'node:assert';
 import { TestBranch, amplifyAppPool } from '../amplify_app_pool.js';
+import { execa } from 'execa';
 
 const testProjects = await generateTestProjects(rootTestDir);
 
 void describe('amplify deploys', async () => {
   after(async () => {
+    if (process.platform.includes('win32')) {
+      // TODO list processes
+      console.log('Processes still alive');
+      await execa('tasklist', [], { stdio: 'inherit' });
+    }
     await deleteTestDirectory(rootTestDir);
   });
 

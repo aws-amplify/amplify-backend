@@ -6,7 +6,7 @@ import { PtyProcess } from './process_controller.js';
  * @param processInstance an instance of pty child process
  */
 export const killExecaProcess = async (processInstance: PtyProcess) => {
-  console.log(`[pid=${processInstance.pid} killExecaProcess]`);
+  console.log(`[pid=${processInstance.pid}] killExecaProcess]`);
   if (process.platform.startsWith('win')) {
     // Wait X milliseconds before sending kill in hopes of draining the node event queue
     await new Promise((resolve) => setTimeout(resolve, 1500));
