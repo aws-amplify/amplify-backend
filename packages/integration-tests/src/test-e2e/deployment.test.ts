@@ -1,3 +1,4 @@
+import * as wtf from 'wtfnode';
 import { after, afterEach, beforeEach, describe, it } from 'node:test';
 import { deleteTestDirectory, rootTestDir } from '../setup_test_directory.js';
 import fs from 'fs/promises';
@@ -24,6 +25,10 @@ import { execa } from 'execa';
 
 const testProjects = await generateTestProjects(rootTestDir);
 
+process.once('beforeExit', () => {
+  console.log('beforeExit seems to work');
+});
+
 void describe('amplify deploys', async () => {
   after(async () => {
     if (process.platform.includes('win32')) {
@@ -32,6 +37,7 @@ void describe('amplify deploys', async () => {
       await execa('tasklist', [], { stdio: 'inherit' });
     }
     await deleteTestDirectory(rootTestDir);
+    wtf.dump();
   });
 
   testProjects.forEach((testProject) => {
