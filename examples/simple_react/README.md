@@ -5,8 +5,8 @@
 ### Clone repo
 
 ```shell
-git clone git@github.com:aws-amplify/samsara-cli.git
-cd samsara-cli
+git clone git@github.com:aws-amplify/amplify-backend.git
+cd amplify-backend
 ```
 
 ### Build repo

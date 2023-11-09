@@ -1,5 +1,11 @@
 # @aws-amplify/backend-cli
 
+## 0.5.0
+
+### Minor Changes
+
+- ab715666: Remove deprecated sandbox parameters for form generation
+
 ## 0.4.0
 
 ### Minor Changes
