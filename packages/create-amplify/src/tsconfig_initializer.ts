@@ -53,14 +53,14 @@ export class TsConfigInitializer {
       );
     }
 
-    try {
-      let aggregatedStdout = '';
-      const aggregatorStream = new stream.Writable();
-      aggregatorStream._write = function (chunk, encoding, done) {
-        aggregatedStdout += chunk;
-        done();
-      };
+    let aggregatedStdout = '';
+    const aggregatorStream = new stream.Writable();
+    aggregatorStream._write = function (chunk, encoding, done) {
+      aggregatedStdout += chunk;
+      done();
+    };
 
+    try {
       const childProcess = this.execa('npx', tscArgs, {
         stdin: 'inherit',
         cwd: this.projectRoot,
@@ -72,6 +72,7 @@ export class TsConfigInitializer {
       await childProcess;
       logger.debug(aggregatedStdout);
     } catch {
+      logger.debug(aggregatedStdout);
       throw new Error(
         '`npx tsc --init` did not exit successfully. Initialize a valid TypeScript configuration before continuing.'
       );

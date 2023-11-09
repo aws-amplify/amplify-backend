@@ -29,24 +29,26 @@ export class NpmProjectInitializer {
       'No package.json file found in the current directory. Running `npm init`...'
     );
 
-    try {
-      let aggregatedStdout = '';
-      const aggregatorStream = new stream.Writable();
-      aggregatorStream._write = function (chunk, encoding, done) {
-        aggregatedStdout += chunk;
-        done();
-      };
+    let aggregatedStdout = '';
+    const aggregatorStream = new stream.Writable();
+    aggregatorStream._write = function (chunk, encoding, done) {
+      aggregatedStdout += chunk;
+      done();
+    };
 
+    try {
       const childProcess = this.execa('npm', ['init', '--yes'], {
         stdin: 'inherit',
         cwd: this.projectRoot,
       });
 
       childProcess?.stdout?.pipe(aggregatorStream);
+      childProcess?.stderr?.pipe(aggregatorStream);
 
       await childProcess;
       logger.debug(aggregatedStdout);
     } catch {
+      logger.debug(aggregatedStdout);
       throw new Error(
         '`npm init` did not exit successfully. Initialize a valid JavaScript package before continuing.'
       );

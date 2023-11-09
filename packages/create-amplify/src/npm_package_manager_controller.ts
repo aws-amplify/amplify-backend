@@ -30,6 +30,7 @@ export class NpmPackageManagerController implements PackageManagerController {
     if (type === 'dev') {
       args.push('--save-dev');
     }
+
     let aggregatedStdout = '';
     const aggregatorStream = new stream.Writable();
     aggregatorStream._write = function (chunk, encoding, done) {
@@ -37,14 +38,19 @@ export class NpmPackageManagerController implements PackageManagerController {
       done();
     };
 
-    const childProcess = this.execa(this.executableName, args, {
-      stdin: 'inherit',
-      cwd: this.projectRoot,
-    });
+    try {
+      const childProcess = this.execa(this.executableName, args, {
+        stdin: 'inherit',
+        cwd: this.projectRoot,
+      });
 
-    childProcess?.stdout?.pipe(aggregatorStream);
+      childProcess?.stdout?.pipe(aggregatorStream);
+      childProcess?.stderr?.pipe(aggregatorStream);
 
-    await childProcess;
-    logger.debug(aggregatedStdout);
+      await childProcess;
+      logger.debug(aggregatedStdout);
+    } catch {
+      logger.debug(aggregatedStdout);
+    }
   };
 }
