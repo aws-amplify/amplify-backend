@@ -7,6 +7,8 @@ void describe('AmplifyProjectCreator', () => {
     const logMock = {
       log: mock.fn(),
       debug: mock.fn(),
+      startAnimatingEllipsis: mock.fn(),
+      stopAnimatingEllipsis: mock.fn(),
     };
     const packageManagerControllerMock = { installDependencies: mock.fn() };
     const projectRootValidatorMock = { validate: mock.fn() };
@@ -42,7 +44,7 @@ void describe('AmplifyProjectCreator', () => {
     );
     assert.equal(tsConfigInitializerMock.ensureInitialized.mock.callCount(), 1);
     assert.equal(
-      logMock.log.mock.calls[3].arguments[0],
+      logMock.log.mock.calls[1].arguments[0],
       'Welcome to AWS Amplify! \nRun `amplify help` for a list of available commands. \nGet started by running `amplify sandbox`.'
     );
   });
@@ -51,6 +53,8 @@ void describe('AmplifyProjectCreator', () => {
     const logMock = {
       log: mock.fn(),
       debug: mock.fn(),
+      startAnimatingEllipsis: mock.fn(),
+      stopAnimatingEllipsis: mock.fn(),
     };
     const packageManagerControllerMock = { installDependencies: mock.fn() };
     const projectRootValidatorMock = { validate: mock.fn() };
@@ -73,7 +77,7 @@ void describe('AmplifyProjectCreator', () => {
     await amplifyProjectCreator.create();
 
     assert.equal(
-      logMock.log.mock.calls[3].arguments[0],
+      logMock.log.mock.calls[1].arguments[0],
       'Welcome to AWS Amplify! \nRun `amplify help` for a list of available commands. \nGet started by running `cd ./project/root; amplify sandbox`.'
     );
   });

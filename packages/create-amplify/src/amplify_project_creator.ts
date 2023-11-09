@@ -44,7 +44,9 @@ export class AmplifyProjectCreator {
 
     await this.npmInitializedEnsurer.ensureInitialized();
 
-    await this.logger.log(`Installing required dependencies...`);
+    await this.logger.startAnimatingEllipsis(
+      `Installing required dependencies`
+    );
 
     await this.packageManagerController.installDependencies(
       this.defaultProdPackages,
@@ -56,13 +58,17 @@ export class AmplifyProjectCreator {
       'dev'
     );
 
-    await this.logger.log('Creating template files...');
+    await this.logger.stopAnimatingEllipsis();
+
+    await this.logger.startAnimatingEllipsis(`Creating template files`);
 
     await this.tsConfigInitializer.ensureInitialized();
 
     await this.gitIgnoreInitializer.ensureInitialized();
 
     await this.initialProjectFileGenerator.generateInitialProjectFiles();
+
+    await this.logger.stopAnimatingEllipsis();
 
     await this.logger.log('Successfully created a new project!');
 
