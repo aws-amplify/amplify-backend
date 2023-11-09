@@ -47,8 +47,8 @@ export type PhoneNumberLogin =
       /**
        * The message template for the verification SMS sent to the user upon sign up.
        * Use the code parameter in the template where Cognito should insert the verification code.
-       * @default - verificationMessage: (code: string) => `The verification code to your new account is ${code}` if VerificationEmailStyle.CODE is chosen,
-       * not configured if VerificationEmailStyle.LINK is chosen
+       * @default - verificationMessage: If VerificationEmailStyle.CODE is chosen, the verification message template will be `The verification code to your new account is ${code}`.
+       * If VerificationEmailStyle.LINK is chosen, a verification message will not be configured by default.
        */
       verificationMessage?: (code: string) => string;
     };
