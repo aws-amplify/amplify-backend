@@ -79,6 +79,8 @@ export class ProcessController {
           continue;
         }
       } catch (error) {
+        // TODO revisit this
+        ptyProcess.kill('SIGKILL');
         await killExecaProcess(ptyProcess);
         ptyProcess.write('N');
         errorThrownFromActions = error;
@@ -155,8 +157,14 @@ export class PtyProcessOutput implements AsyncIterableIterator<string> {
         this.currentResolve = resolve;
       }
     );
+    // TODO this is hacky for now
+    const timeoutPromise: Promise<IteratorResult<string>> = new Promise(
+      (resolve, reject) => {
+        setTimeout(reject, 5 * 60 * 1000, 'one');
+      }
+    );
     this.tryConsume();
-    return nextPromise;
+    return Promise.race([nextPromise, timeoutPromise]);
   }
 }
 
