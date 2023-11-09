@@ -1,5 +1,18 @@
 # @aws-amplify/integration-tests
 
+## 0.2.4
+
+### Patch Changes
+
+- 8f03cd09: enable branch linker by default
+
+## 0.2.3
+
+### Patch Changes
+
+- 68dc91e3: chore: support for JS backend apps
+- a126d8df: bump amplify data versions
+
 ## 0.2.2
 
 ### Patch Changes

@@ -1,5 +1,23 @@
 # @aws-amplify/backend-cli
 
+## 0.5.0
+
+### Minor Changes
+
+- ab715666: Remove deprecated sandbox parameters for form generation
+
+## 0.4.0
+
+### Minor Changes
+
+- 6ff17d64: Add 'profile' option to applicable commands
+
+### Patch Changes
+
+- Updated dependencies [68dc91e3]
+  - @aws-amplify/platform-core@0.1.4
+  - @aws-amplify/sandbox@0.2.4
+
 ## 0.3.1
 
 ### Patch Changes

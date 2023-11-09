@@ -82,7 +82,7 @@ export class AmplifyFunctionFactory
   /**
    * Create a function by executing a build command that places build artifacts at a specified location
    *
-   * TODO: Investigate long-term function building strategy: https://github.com/aws-amplify/samsara-cli/issues/92
+   * TODO: Investigate long-term function building strategy: https://github.com/aws-amplify/amplify-backend/issues/92
    */
   static build = async (
     props: AmplifyFunctionFactoryBuildProps

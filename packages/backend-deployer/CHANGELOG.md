@@ -1,5 +1,13 @@
 # @aws-amplify/backend-deployer
 
+## 0.2.3
+
+### Patch Changes
+
+- 68dc91e3: chore: support for JS backend apps
+- Updated dependencies [68dc91e3]
+  - @aws-amplify/platform-core@0.1.4
+
 ## 0.2.2
 
 ### Patch Changes
