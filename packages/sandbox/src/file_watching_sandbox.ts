@@ -2,6 +2,7 @@ import debounce from 'debounce-promise';
 import parcelWatcher, { subscribe } from '@parcel/watcher';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
 import {
+  BackendIdSandboxResolver,
   Sandbox,
   SandboxDeleteOptions,
   SandboxEvents,
@@ -21,7 +22,6 @@ import {
   FilesChangesTracker,
   createFilesChangesTracker,
 } from './files_changes_tracker.js';
-import { BackendIdentifier } from '@aws-amplify/plugin-types';
 
 export const CDK_BOOTSTRAP_STACK_NAME = 'CDKToolkit';
 export const CDK_BOOTSTRAP_VERSION_KEY = 'BootstrapVersion';
@@ -330,7 +330,3 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     // else let the sandbox continue so customers can revert their changes
   };
 }
-
-export type BackendIdSandboxResolver = (
-  sandboxName?: string
-) => Promise<BackendIdentifier>;
