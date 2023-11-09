@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import {
   backendIdentifierPartsToStackName,
-  stackNameToBackendIdentifierParts,
+  stackNameToBackendIdentifier,
 } from './backend_identifier_parts_conversions.js';
 import assert from 'node:assert';
 
@@ -68,31 +68,29 @@ void describe('backendIdentifierPartsToStackName', () => {
   });
 });
 
-void describe('stackNameToBackendIdentifierParts', () => {
+void describe('stackNameToBackendIdentifier', () => {
   void it('returns undefined for undefined stack name', () => {
-    const actual = stackNameToBackendIdentifierParts(undefined);
+    const actual = stackNameToBackendIdentifier(undefined);
     assert.equal(actual, undefined);
   });
 
   void it('returns undefined if stack name does not have 4 parts', () => {
-    const actual = stackNameToBackendIdentifierParts('amplify-missing-sandbox');
+    const actual = stackNameToBackendIdentifier('amplify-missing-sandbox');
     assert.equal(actual, undefined);
   });
 
   void it('returns undefined if stack does not start with amplify prefix', () => {
-    const actual = stackNameToBackendIdentifierParts('wrong-name-for-sandbox');
+    const actual = stackNameToBackendIdentifier('wrong-name-for-sandbox');
     assert.equal(actual, undefined);
   });
 
   void it('returns undefined if stack does not end with known type suffix', () => {
-    const actual = stackNameToBackendIdentifierParts(
-      'amplify-wrong-suffix-thing'
-    );
+    const actual = stackNameToBackendIdentifier('amplify-wrong-suffix-thing');
     assert.equal(actual, undefined);
   });
 
   void it('parses valid stack name into parts', () => {
-    const actual = stackNameToBackendIdentifierParts(
+    const actual = stackNameToBackendIdentifier(
       'amplify-reasonableName-userName-sandbox'
     );
     assert.deepStrictEqual(actual, {
@@ -107,7 +105,7 @@ void describe('stackNameToBackendIdentifierParts', () => {
     const actual = backendIdentifierPartsToStackName(
       // the test will fail if this assertion is not valid
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      stackNameToBackendIdentifierParts(validStackName)!
+      stackNameToBackendIdentifier(validStackName)!
     );
     assert.equal(actual, validStackName);
   });

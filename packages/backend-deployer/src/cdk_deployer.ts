@@ -6,7 +6,7 @@ import {
   DestroyProps,
 } from './cdk_deployer_singleton_factory.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
-import { BackendIdentifierParts } from '@aws-amplify/plugin-types';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import {
   BackendDeploymentType,
   BackendLocator,
@@ -37,7 +37,7 @@ export class CDKDeployer implements BackendDeployer {
    * Invokes cdk deploy command
    */
   deploy = async (
-    backendIdentifierParts?: BackendIdentifierParts,
+    backendIdentifierParts?: BackendIdentifier,
     deployProps?: DeployProps
   ) => {
     await this.invokeTsc(deployProps);
@@ -66,7 +66,7 @@ export class CDKDeployer implements BackendDeployer {
    * Invokes cdk destroy command
    */
   destroy = async (
-    backendIdentifierParts?: BackendIdentifierParts,
+    backendIdentifierParts?: BackendIdentifier,
     destroyProps?: DestroyProps
   ) => {
     await this.invokeCdk(
@@ -108,7 +108,7 @@ export class CDKDeployer implements BackendDeployer {
    */
   private invokeCdk = async (
     invokableCommand: InvokableCommand,
-    backendIdentifierParts?: BackendIdentifierParts,
+    backendIdentifierParts?: BackendIdentifier,
     deploymentType?: BackendDeploymentType,
     additionalArguments?: string[]
   ) => {

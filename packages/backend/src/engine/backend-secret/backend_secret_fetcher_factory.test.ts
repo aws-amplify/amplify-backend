@@ -7,7 +7,7 @@ import {
   BackendSecretFetcherFactory,
   SECRET_RESOURCE_PROVIDER_ID,
 } from './backend_secret_fetcher_factory.js';
-import { BackendIdentifierParts } from '@aws-amplify/plugin-types';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
 
 const secretResourceType = 'Custom::SecretFetcherResource';
 const namespace = 'testId';
@@ -15,7 +15,7 @@ const instance = 'testBranch';
 const secretName1 = 'testSecretName1';
 const secretLastUpdated = '1245462';
 const secretName2 = 'testSecretName2';
-const uniqueBackendIdentifier: BackendIdentifierParts = {
+const uniqueBackendIdentifier: BackendIdentifier = {
   namespace,
   instance,
   type: 'branch',

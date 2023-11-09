@@ -20,7 +20,7 @@ import { ClientConfigFormat } from '@aws-amplify/client-config';
 import { Sandbox } from './sandbox.js';
 import { AmplifyPrompter } from '@aws-amplify/cli-core';
 import { fileURLToPath } from 'url';
-import { BackendIdentifierParts } from '@aws-amplify/plugin-types';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
 
 // Watcher mocks
 const unsubscribeMockFn = mock.fn();
@@ -96,7 +96,7 @@ mock.method(fs, 'lstatSync', (path: string) => {
   };
 });
 
-const testSandboxBackendIdParts: BackendIdentifierParts = {
+const testSandboxBackendIdParts: BackendIdentifier = {
   namespace: 'testSandboxId',
   instance: 'testSandboxName',
   type: 'sandbox',

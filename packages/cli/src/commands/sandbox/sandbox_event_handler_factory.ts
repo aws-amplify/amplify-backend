@@ -1,5 +1,5 @@
 import { SandboxEventHandlerCreator } from './sandbox_command.js';
-import { BackendIdentifierParts } from '@aws-amplify/plugin-types';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
 
 /**
  * Coordinates creation of sandbox event handlers
@@ -11,7 +11,7 @@ export class SandboxEventHandlerFactory {
   constructor(
     private readonly getBackendIdentifier: (
       sandboxName?: string
-    ) => Promise<BackendIdentifierParts>
+    ) => Promise<BackendIdentifier>
   ) {}
   getSandboxEventHandlers: SandboxEventHandlerCreator = ({
     sandboxName,

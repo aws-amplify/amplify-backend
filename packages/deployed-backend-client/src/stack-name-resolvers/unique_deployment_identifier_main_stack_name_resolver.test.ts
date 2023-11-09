@@ -1,18 +1,18 @@
 import { describe, it } from 'node:test';
-import { BackendIdentifierPartsMainStackNameResolver } from './unique_deployment_identifier_main_stack_name_resolver.js';
+import { BackendIdentifierMainStackNameResolver } from './unique_deployment_identifier_main_stack_name_resolver.js';
 import assert from 'node:assert';
-import { BackendIdentifierParts } from '@aws-amplify/plugin-types';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
 
-void describe('BackendIdentifierPartsMainStackNameResolver', () => {
+void describe('BackendIdentifierMainStackNameResolver', () => {
   void describe('resolveMainStackName', () => {
-    const backendIdentifierParts: BackendIdentifierParts = {
+    const backendIdentifierParts: BackendIdentifier = {
       namespace: 'testBackendId',
       instance: 'testBranchName',
       type: 'branch',
     };
 
     void it('returns value of getMainStackName', async () => {
-      const stackNameResolver = new BackendIdentifierPartsMainStackNameResolver(
+      const stackNameResolver = new BackendIdentifierMainStackNameResolver(
         backendIdentifierParts
       );
 

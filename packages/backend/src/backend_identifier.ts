@@ -3,14 +3,12 @@ import {
   BackendDeploymentType,
   CDKContextKey,
 } from '@aws-amplify/platform-core';
-import { BackendIdentifierParts } from '@aws-amplify/plugin-types';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
 
 /**
  * Populates a unique backend identifier based on CDK context values.
  */
-export const getBackendIdentifierParts = (
-  scope: Construct
-): BackendIdentifierParts => {
+export const getBackendIdentifier = (scope: Construct): BackendIdentifier => {
   const backendId = scope.node.getContext(CDKContextKey.BACKEND_NAMESPACE);
   if (typeof backendId !== 'string') {
     throw new Error(

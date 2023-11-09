@@ -9,16 +9,16 @@ import {
   PassThroughMainStackNameResolver,
   StackIdentifier,
 } from './stack-name-resolvers/passthrough_main_stack_name_resolver.js';
-import { BackendIdentifierPartsMainStackNameResolver } from './stack-name-resolvers/unique_deployment_identifier_main_stack_name_resolver.js';
+import { BackendIdentifierMainStackNameResolver } from './stack-name-resolvers/unique_deployment_identifier_main_stack_name_resolver.js';
 import { StackMetadataBackendOutputRetrievalStrategy } from './stack_metadata_output_retrieval_strategy.js';
-import { BackendIdentifierParts } from '@aws-amplify/plugin-types';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
 
 /**
- * Asserts that a BackendIdentifier is a BackendIdentifierParts
+ * Asserts that a BackendIdentifier is a BackendIdentifier
  */
-export const isBackendIdentifierParts = (
+export const isBackendIdentifier = (
   backendIdentifier: DeployedBackendIdentifier
-): backendIdentifier is BackendIdentifierParts => {
+): backendIdentifier is BackendIdentifier => {
   return (
     'namespace' in backendIdentifier &&
     'instance' in backendIdentifier &&
@@ -58,10 +58,10 @@ export class BackendOutputFetcherFactory {
         this.cfnClient,
         new PassThroughMainStackNameResolver(backendIdentifier)
       );
-    } else if (isBackendIdentifierParts(backendIdentifier)) {
+    } else if (isBackendIdentifier(backendIdentifier)) {
       return new StackMetadataBackendOutputRetrievalStrategy(
         this.cfnClient,
-        new BackendIdentifierPartsMainStackNameResolver(backendIdentifier)
+        new BackendIdentifierMainStackNameResolver(backendIdentifier)
       );
     }
     return new StackMetadataBackendOutputRetrievalStrategy(

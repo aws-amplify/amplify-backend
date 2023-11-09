@@ -4,13 +4,13 @@ import { CfnTokenBackendSecret } from './backend_secret.js';
 import { App, SecretValue, Stack } from 'aws-cdk-lib';
 import { BackendSecretFetcherProviderFactory } from './backend_secret_fetcher_provider_factory.js';
 import { BackendSecretFetcherFactory } from './backend_secret_fetcher_factory.js';
-import { BackendIdentifierParts } from '@aws-amplify/plugin-types';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
 
 const backendId = 'testId';
 const branchName = 'testBranch';
 const testSecretName = 'testSecretName';
 const testSecretValue = 'testSecretValue';
-const uniqueBackendIdentifier: BackendIdentifierParts = {
+const uniqueBackendIdentifier: BackendIdentifier = {
   namespace: backendId,
   instance: branchName,
   type: 'branch',

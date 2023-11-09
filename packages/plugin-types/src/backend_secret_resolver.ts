@@ -1,5 +1,5 @@
 import { Construct } from 'constructs';
-import { BackendIdentifierParts } from './backend_identifier_parts.js';
+import { BackendIdentifier } from './backend_identifier_parts.js';
 import { SecretValue } from 'aws-cdk-lib';
 
 export type BackendSecret = {
@@ -8,7 +8,7 @@ export type BackendSecret = {
    */
   resolve: (
     scope: Construct,
-    uniqueBackendIdentifier: BackendIdentifierParts
+    uniqueBackendIdentifier: BackendIdentifier
   ) => SecretValue;
 };
 

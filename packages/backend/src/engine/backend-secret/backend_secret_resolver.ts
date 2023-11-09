@@ -1,5 +1,5 @@
 import {
-  BackendIdentifierParts,
+  BackendIdentifier,
   BackendSecret,
   BackendSecretResolver,
 } from '@aws-amplify/plugin-types';
@@ -15,7 +15,7 @@ export class DefaultBackendSecretResolver implements BackendSecretResolver {
    */
   constructor(
     private readonly scope: Construct,
-    private readonly uniqueBackendIdentifier: BackendIdentifierParts
+    private readonly uniqueBackendIdentifier: BackendIdentifier
   ) {}
 
   resolveSecret = (backendSecret: BackendSecret): SecretValue => {

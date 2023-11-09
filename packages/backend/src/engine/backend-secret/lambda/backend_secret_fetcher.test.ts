@@ -12,7 +12,7 @@ import {
   SecretIdentifier,
   getSecretClient,
 } from '@aws-amplify/backend-secret';
-import { AppId, BackendIdentifierParts } from '@aws-amplify/plugin-types';
+import { AppId, BackendIdentifier } from '@aws-amplify/plugin-types';
 
 const testBackendId = 'testBackendId';
 const testBranchName = 'testBranchName';
@@ -27,7 +27,7 @@ const testSecret: Secret = {
   value: testSecretValue,
 };
 
-const testBackendIdentifier: BackendIdentifierParts = {
+const testBackendIdentifier: BackendIdentifier = {
   namespace: testBackendId,
   instance: testBranchName,
   type: 'branch',
@@ -112,7 +112,7 @@ void describe('handleCreateUpdateEvent', () => {
     const mockGetSecret = mock.method(
       secretHandler,
       'getSecret',
-      (backendIdentifier: BackendIdentifierParts | AppId) => {
+      (backendIdentifier: BackendIdentifier | AppId) => {
         if (typeof backendIdentifier === 'object') {
           return Promise.reject(clientErr);
         }
@@ -138,7 +138,7 @@ void describe('handleCreateUpdateEvent', () => {
     const mockGetSecret = mock.method(
       secretHandler,
       'getSecret',
-      (backendIdentifier: BackendIdentifierParts | AppId) => {
+      (backendIdentifier: BackendIdentifier | AppId) => {
         if (typeof backendIdentifier === 'object') {
           return Promise.resolve(undefined);
         }
@@ -163,7 +163,7 @@ void describe('handleCreateUpdateEvent', () => {
     const mockGetSecret = mock.method(
       secretHandler,
       'getSecret',
-      (backendIdentifier: BackendIdentifierParts | AppId) => {
+      (backendIdentifier: BackendIdentifier | AppId) => {
         if (typeof backendIdentifier === 'object') {
           return Promise.reject(clientErr);
         }

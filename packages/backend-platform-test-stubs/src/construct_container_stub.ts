@@ -1,7 +1,7 @@
 import { Construct } from 'constructs';
 import { StackResolver } from './stack_resolver_stub.js';
 import {
-  BackendIdentifierParts,
+  BackendIdentifier,
   ConstructContainer,
   ConstructContainerEntryGenerator,
   ConstructFactory,
@@ -33,7 +33,7 @@ export class ConstructContainerStub implements ConstructContainer {
   getOrCompute = (generator: ConstructContainerEntryGenerator): Construct => {
     if (!this.constructCache.has(generator)) {
       const scope = this.stackResolver.getStackFor(generator.resourceGroupName);
-      const uniqueBackendIdentifier = getBackendIdentifierPartsStub();
+      const uniqueBackendIdentifier = getBackendIdentifierStub();
       const backendSecretResolver = new BackendSecretResolverStub(
         scope,
         uniqueBackendIdentifier
@@ -82,7 +82,7 @@ export class ConstructContainerStub implements ConstructContainer {
   };
 }
 
-const getBackendIdentifierPartsStub = (): BackendIdentifierParts => ({
+const getBackendIdentifierStub = (): BackendIdentifier => ({
   namespace: 'testBackendId',
   instance: 'testEnvName',
   type: 'branch',

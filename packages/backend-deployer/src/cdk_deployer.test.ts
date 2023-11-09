@@ -8,11 +8,11 @@ import {
 } from '@aws-amplify/platform-core';
 import { DeployProps } from './cdk_deployer_singleton_factory.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
-import { BackendIdentifierParts } from '@aws-amplify/plugin-types';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { BackendDeployerEnvironmentVariables } from './environment_variables.js';
 
 void describe('invokeCDKCommand', () => {
-  const backendIdentifierParts: BackendIdentifierParts = {
+  const backendIdentifierParts: BackendIdentifier = {
     namespace: '123',
     instance: 'testBranch',
     type: 'branch',

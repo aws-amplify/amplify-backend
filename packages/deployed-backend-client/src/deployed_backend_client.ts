@@ -1,7 +1,4 @@
-import {
-  BackendIdentifierParts,
-  BackendOutput,
-} from '@aws-amplify/plugin-types';
+import { BackendIdentifier, BackendOutput } from '@aws-amplify/plugin-types';
 import {
   ApiAuthType,
   BackendMetadata,
@@ -14,7 +11,7 @@ import {
 import {
   BackendDeploymentType,
   backendIdentifierPartsToStackName,
-  stackNameToBackendIdentifierParts,
+  stackNameToBackendIdentifier,
 } from '@aws-amplify/platform-core';
 import { BackendOutputClient } from './backend_output_client_factory.js';
 import {
@@ -77,9 +74,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
 
           return {
             name: stackSummary.StackName as string,
-            backendId: stackNameToBackendIdentifierParts(
-              stackSummary.StackName
-            ),
+            backendId: stackNameToBackendIdentifier(stackSummary.StackName),
             lastUpdated:
               stackSummary.LastUpdatedTime ?? stackSummary.CreationTime,
             status: this.stackStatusMapper.translateStackStatus(
@@ -129,10 +124,10 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
    * Deletes a sandbox with the specified id
    */
   deleteSandbox = async (
-    sandboxBackendIdentifierParts: Omit<BackendIdentifierParts, 'type'>
+    sandboxBackendIdentifier: Omit<BackendIdentifier, 'type'>
   ): Promise<void> => {
     const stackName = backendIdentifierPartsToStackName({
-      ...sandboxBackendIdentifierParts,
+      ...sandboxBackendIdentifier,
       type: 'sandbox',
     });
     await this.cfnClient.send(new DeleteStackCommand({ StackName: stackName }));
@@ -141,7 +136,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
    * Fetches all backend metadata for a specified backend
    */
   getBackendMetadata = async (
-    backendIdentifierParts: BackendIdentifierParts
+    backendIdentifierParts: BackendIdentifier
   ): Promise<BackendMetadata> => {
     const stackName = backendIdentifierPartsToStackName(backendIdentifierParts);
     return this.buildBackendMetadata(stackName);

@@ -1,7 +1,7 @@
 import { Construct } from 'constructs';
 import { BackendSecretFetcherProviderFactory } from './backend_secret_fetcher_provider_factory.js';
 import { CustomResource } from 'aws-cdk-lib';
-import { BackendIdentifierParts } from '@aws-amplify/plugin-types';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { SecretResourceProps } from './lambda/backend_secret_fetcher_types.js';
 
 /**
@@ -32,7 +32,7 @@ export class BackendSecretFetcherFactory {
   getOrCreate = (
     scope: Construct,
     secretName: string,
-    backendIdentifier: BackendIdentifierParts
+    backendIdentifier: BackendIdentifier
   ): CustomResource => {
     const secretResourceId = `${secretName}SecretFetcherResource`;
     const existingResource = scope.node.tryFindChild(

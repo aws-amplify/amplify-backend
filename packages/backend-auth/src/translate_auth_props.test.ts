@@ -1,5 +1,5 @@
 import {
-  BackendIdentifierParts,
+  BackendIdentifier,
   BackendSecret,
   BackendSecretResolver,
 } from '@aws-amplify/plugin-types';
@@ -29,7 +29,7 @@ const appleKeyId = 'appleKeyId';
 const applePrivateKey = 'applePrivateKey';
 const callbackUrls = ['a', 'b'];
 
-const testBackendIdentifier: BackendIdentifierParts = {
+const testBackendIdentifier: BackendIdentifier = {
   namespace: 'testBackendId',
   instance: 'testBranchName',
   type: 'branch',

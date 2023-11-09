@@ -1,6 +1,6 @@
 /**
  * These are some utility types to make the namespace field a bit more self-documenting
- * The namespace in the BackendIdentifierParts can either be an AppId or a ProjectName
+ * The namespace in the BackendIdentifier can either be an AppId or a ProjectName
  * ProjectName is the value of package.json#name in the project's package.json file
  */
 export type AppId = string;
@@ -8,7 +8,7 @@ export type ProjectName = string;
 
 /**
  * These are some utility types to make the instance field a bit more self-documenting
- * The instance in the BackendIdentifierParts can either be a BranchName or a UserName
+ * The instance in the BackendIdentifier can either be a BranchName or a UserName
  */
 export type BranchName = string;
 export type UserName = string;
@@ -19,7 +19,7 @@ export type UserName = string;
  *
  * To translate to/from a stack name, use the utility methods in @aws-amplify/platform-core
  */
-export type BackendIdentifierParts =
+export type BackendIdentifier =
   | {
       namespace: AppId;
       instance: BranchName;

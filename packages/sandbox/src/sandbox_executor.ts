@@ -1,6 +1,6 @@
 import debounce from 'debounce-promise';
 import { BackendDeployer } from '@aws-amplify/backend-deployer';
-import { BackendIdentifierParts } from '@aws-amplify/plugin-types';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { BackendDeploymentType } from '@aws-amplify/platform-core';
 import { SecretClient } from '@aws-amplify/backend-secret';
 
@@ -17,7 +17,7 @@ export class AmplifySandboxExecutor {
   ) {}
 
   private getSecretLastUpdated = async (
-    uniqueBackendIdentifier: BackendIdentifierParts
+    uniqueBackendIdentifier: BackendIdentifier
   ): Promise<Date | undefined> => {
     const secrets = await this.secretClient.listSecrets(
       uniqueBackendIdentifier
@@ -43,7 +43,7 @@ export class AmplifySandboxExecutor {
    * Deploys sandbox
    */
   deploy = async (
-    uniqueBackendIdentifier: BackendIdentifierParts,
+    uniqueBackendIdentifier: BackendIdentifier,
     validateAppSourcesProvider: () => boolean
   ): Promise<void> => {
     console.debug('[Sandbox] Executing command `deploy`');
@@ -66,9 +66,7 @@ export class AmplifySandboxExecutor {
   /**
    * Destroy sandbox. Do not swallow errors
    */
-  destroy = (
-    uniqueBackendIdentifier?: BackendIdentifierParts
-  ): Promise<void> => {
+  destroy = (uniqueBackendIdentifier?: BackendIdentifier): Promise<void> => {
     console.debug('[Sandbox] Executing command `destroy`');
     return this.invoke(
       async () =>

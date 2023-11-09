@@ -12,7 +12,7 @@ import {
   StackMetadataBackendOutputStorageStrategy,
 } from '@aws-amplify/backend-output-storage';
 import { createDefaultStack } from './default_stack_factory.js';
-import { getBackendIdentifierParts } from './backend_identifier.js';
+import { getBackendIdentifier } from './backend_identifier.js';
 import { BackendDeploymentType } from '@aws-amplify/platform-core';
 import { platformOutputKey } from '@aws-amplify/backend-output-schemas';
 import { fileURLToPath } from 'url';
@@ -61,7 +61,7 @@ export class BackendFactory<
       stack
     );
 
-    const backendIdentifierParts = getBackendIdentifierParts(stack);
+    const backendIdentifierParts = getBackendIdentifier(stack);
     outputStorageStrategy.addBackendOutputEntry(platformOutputKey, {
       version: '1',
       payload: {

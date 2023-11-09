@@ -8,7 +8,7 @@ import { Provider } from 'aws-cdk-lib/custom-resources';
 import { AmplifyBranchLinkerCustomResourceProps } from './lambda/branch_linker_types.js';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { BackendEnvironmentVariables } from '../../environment_variables.js';
-import { BackendIdentifierParts } from '@aws-amplify/plugin-types';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -28,7 +28,7 @@ export class AmplifyBranchLinkerConstruct extends Construct {
   /**
    * Creates Amplify Console linker construct.
    */
-  constructor(scope: Construct, backendIdentifier: BackendIdentifierParts) {
+  constructor(scope: Construct, backendIdentifier: BackendIdentifier) {
     super(scope, 'AmplifyBranchLinker');
 
     const environment: Record<string, string> = {};

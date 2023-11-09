@@ -1,6 +1,6 @@
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { DefaultDeployedBackendClient } from './deployed_backend_client.js';
-import { BackendIdentifierParts } from '@aws-amplify/plugin-types';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { BackendDeploymentType } from '@aws-amplify/platform-core';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import {
@@ -31,7 +31,7 @@ export type SandboxMetadata = {
   name: string;
   lastUpdated: Date | undefined;
   status: BackendDeploymentStatus;
-  backendId: BackendIdentifierParts | undefined;
+  backendId: BackendIdentifier | undefined;
 };
 
 export type ListSandboxesRequest = {
@@ -94,10 +94,10 @@ export type DeployedBackendClient = {
     listSandboxesRequest?: ListSandboxesRequest
   ) => Promise<ListSandboxesResponse>;
   deleteSandbox: (
-    sandboxBackendIdentifier: Omit<BackendIdentifierParts, 'type'>
+    sandboxBackendIdentifier: Omit<BackendIdentifier, 'type'>
   ) => Promise<void>;
   getBackendMetadata: (
-    backendIdentifierParts: BackendIdentifierParts
+    backendIdentifierParts: BackendIdentifier
   ) => Promise<BackendMetadata>;
 };
 

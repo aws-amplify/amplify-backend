@@ -1,5 +1,5 @@
 import { backendIdentifierPartsToStackName } from '@aws-amplify/platform-core';
-import { BackendIdentifierParts } from '@aws-amplify/plugin-types';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { amplifyCli } from '../process-controller/process_controller.js';
 import {
   confirmDeleteSandbox,
@@ -42,7 +42,7 @@ export abstract class TestProjectBase {
   /**
    * Deploy the project.
    */
-  async deploy(backendIdentifier: BackendIdentifierParts) {
+  async deploy(backendIdentifier: BackendIdentifier) {
     if (backendIdentifier.type === 'sandbox') {
       await amplifyCli(['sandbox'], this.projectDirPath)
         .do(waitForSandboxDeploymentToPrintTotalTime())
@@ -69,7 +69,7 @@ export abstract class TestProjectBase {
   /**
    * Tear down the project.
    */
-  async tearDown(backendIdentifier: BackendIdentifierParts) {
+  async tearDown(backendIdentifier: BackendIdentifier) {
     if (backendIdentifier.type === 'sandbox') {
       await amplifyCli(['sandbox', 'delete'], this.projectDirPath)
         .do(confirmDeleteSandbox())

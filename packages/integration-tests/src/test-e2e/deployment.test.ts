@@ -16,7 +16,7 @@ import {
 } from '../process-controller/predicated_action_macros.js';
 import assert from 'node:assert';
 import { TestBranch, amplifyAppPool } from '../amplify_app_pool.js';
-import { BackendIdentifierParts } from '@aws-amplify/plugin-types';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
 
 const testProjects = await generateTestProjects(rootTestDir);
 
@@ -27,7 +27,7 @@ void describe('amplify deploys', async () => {
 
   testProjects.forEach((testProject) => {
     void describe(`branch deploys ${testProject.name}`, () => {
-      let branchBackendIdentifier: BackendIdentifierParts;
+      let branchBackendIdentifier: BackendIdentifier;
       let testBranch: TestBranch;
 
       beforeEach(async () => {
@@ -69,7 +69,7 @@ void describe('amplify deploys', async () => {
 
   testProjects.forEach((testProject) => {
     void describe(`sandbox deploys ${testProject.name}`, () => {
-      const sandboxBackendIdentifier: BackendIdentifierParts = {
+      const sandboxBackendIdentifier: BackendIdentifier = {
         type: 'sandbox',
         namespace: testProject.name,
         instance: userInfo().username,

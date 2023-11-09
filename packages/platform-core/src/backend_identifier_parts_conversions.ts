@@ -1,18 +1,18 @@
-import { BackendIdentifierParts } from '@aws-amplify/plugin-types';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
 
 const STACK_NAME_LENGTH_LIMIT = 128;
 const AMPLIFY_PREFIX = 'amplify';
 const NUM_DASHES = 3;
 
 /**
- * Serialize BackendIdentifierParts into a CFN stack name.
+ * Serialize BackendIdentifier into a CFN stack name.
  *
  * Note that this is a LOSSY conversion.
- * Some disallowed characters are removed from the BackendIdentifierParts when converting to a stack name and long
+ * Some disallowed characters are removed from the BackendIdentifier when converting to a stack name and long
  * values are truncated to fit in the length constraints
  */
 export const backendIdentifierPartsToStackName = (
-  parts: BackendIdentifierParts
+  parts: BackendIdentifier
 ): string => {
   // only take the first 50 chars here to make sure there is room in the stack name for the namespace as well
   const instance = removeDisallowedChars(parts.instance).slice(0, 50);
@@ -32,14 +32,14 @@ export const backendIdentifierPartsToStackName = (
 };
 
 /**
- * Deserialize a stack name into BackendIdentifierParts.
+ * Deserialize a stack name into BackendIdentifier.
  * This is a loss-less conversion.
  *
- * i.e. `backendIdentifierPartsToStackName(stackNameToBackendIdentifierParts(stackName)) === stackName`
+ * i.e. `backendIdentifierPartsToStackName(stackNameToBackendIdentifier(stackName)) === stackName`
  */
-export const stackNameToBackendIdentifierParts = (
+export const stackNameToBackendIdentifier = (
   stackName?: string
-): BackendIdentifierParts | undefined => {
+): BackendIdentifier | undefined => {
   if (!stackName) {
     return;
   }

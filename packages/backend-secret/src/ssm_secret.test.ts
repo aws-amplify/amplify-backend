@@ -10,7 +10,7 @@ import { SSMSecretClient } from './ssm_secret.js';
 import assert from 'node:assert';
 import { SecretError } from './secret_error.js';
 import { Secret, SecretIdentifier, SecretListItem } from './secret.js';
-import { BackendIdentifierParts } from '@aws-amplify/plugin-types';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
 
 const shared = 'shared';
 const testBackendId = 'testBackendId';
@@ -44,7 +44,7 @@ const testSecret: Secret = {
   lastUpdated: testSecretLastUpdated,
 };
 
-const testBackendIdentifier: BackendIdentifierParts = {
+const testBackendIdentifier: BackendIdentifier = {
   namespace: testBackendId,
   instance: testBranchName,
   type: 'branch',

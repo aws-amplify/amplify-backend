@@ -2,12 +2,12 @@ import { describe, it, mock } from 'node:test';
 import { DefaultBackendSecretResolver } from './backend_secret_resolver.js';
 import { CfnTokenBackendSecret } from './backend_secret.js';
 import { BackendSecretFetcherFactory } from './backend_secret_fetcher_factory.js';
-import { BackendIdentifierParts } from '@aws-amplify/plugin-types';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { App, Stack } from 'aws-cdk-lib';
 import assert from 'node:assert';
 
 void describe('DefaultBackendSecretResolver', () => {
-  const testBackendIdentifier: BackendIdentifierParts = {
+  const testBackendIdentifier: BackendIdentifier = {
     type: 'branch',
     namespace: 'testBackendId',
     instance: 'testBranchName',

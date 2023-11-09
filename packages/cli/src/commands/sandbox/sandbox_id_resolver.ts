@@ -1,6 +1,6 @@
 import { userInfo as _userInfo } from 'os';
 import { NamespaceResolver } from '../../backend-identifier/local_namespace_resolver.js';
-import { BackendIdentifierParts } from '@aws-amplify/plugin-types';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
 
 /**
  * Resolves an ID that can be used to uniquely identify sandbox environments
@@ -17,7 +17,7 @@ export class SandboxBackendIdPartsResolver {
   /**
    * Returns a concatenation of the resolved appName and the current username
    */
-  resolve = async (): Promise<BackendIdentifierParts> => {
+  resolve = async (): Promise<BackendIdentifier> => {
     const namespace = await this.namespaceResolver.resolve();
     const instance = this.userInfo().username;
 
