@@ -1,5 +1,40 @@
 # @aws-amplify/backend
 
+## 0.3.3
+
+### Patch Changes
+
+- 14a18c6e: Rename backend-graphql to backend-data
+- 68dc91e3: chore: support for JS backend apps
+- a126d8df: bump amplify data versions
+- Updated dependencies [6be68224]
+- Updated dependencies [14a18c6e]
+- Updated dependencies [68dc91e3]
+- Updated dependencies [a126d8df]
+  - @aws-amplify/backend-data@0.4.0
+  - @aws-amplify/backend-function@0.1.4
+  - @aws-amplify/platform-core@0.1.4
+
+## 0.3.2
+
+### Patch Changes
+
+- 4acf0ad9: disable branch linker by default, add environment variables to control its behaviors
+- Updated dependencies [3bff764b]
+  - @aws-amplify/backend-graphql@0.3.2
+  - @aws-amplify/plugin-types@0.3.1
+
+## 0.3.1
+
+### Patch Changes
+
+- 1ec5c373: store attribution metadata in custom stacks
+- 8cc8ffc6: handle non existing branch gracefully in branch linker on delete event
+- 5b1b2385: updating getOrCreateStack to getStack
+- Updated dependencies [1dd824cb]
+- Updated dependencies [42127d0a]
+  - @aws-amplify/backend-graphql@0.3.0
+
 ## 0.3.0
 
 ### Minor Changes

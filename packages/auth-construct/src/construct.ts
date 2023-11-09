@@ -1,5 +1,5 @@
 import { Construct } from 'constructs';
-import { Stack, aws_cognito as cognito } from 'aws-cdk-lib';
+import { RemovalPolicy, Stack, aws_cognito as cognito } from 'aws-cdk-lib';
 import {
   AmplifyFunction,
   AuthResources,
@@ -7,6 +7,8 @@ import {
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import {
+  CfnUserPool,
+  CfnUserPoolClient,
   Mfa,
   UserPool,
   UserPoolClient,
@@ -141,6 +143,10 @@ export class AmplifyAuth
       authenticatedUserIamRole: auth,
       unauthenticatedUserIamRole: unAuth,
       cfnResources: {
+        userPool: this.userPool.node.findChild('Resource') as CfnUserPool,
+        userPoolClient: userPoolClient.node.findChild(
+          'Resource'
+        ) as CfnUserPoolClient,
         identityPool,
         identityPoolRoleAttachment,
       },
@@ -316,6 +322,7 @@ export class AmplifyAuth
         phoneEnabled,
         props.accountRecovery
       ),
+      removalPolicy: RemovalPolicy.DESTROY,
     };
     return userPoolProps;
   };

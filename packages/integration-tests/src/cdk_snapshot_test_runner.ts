@@ -46,6 +46,7 @@ const runCDKSnapshotTest = ({
       'backend-id': 'testAppId',
       'branch-name': 'testBranchName',
       [CDKContextKey.DEPLOYMENT_TYPE]: 'BRANCH',
+      secretLastUpdated: 123456789,
     });
   });
   afterEach(() => {

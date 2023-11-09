@@ -22,6 +22,7 @@ import { platformOutputKey } from '@aws-amplify/backend-output-schemas';
 import { fileURLToPath } from 'url';
 import { Backend } from './backend.js';
 import { AmplifyBranchLinkerConstruct } from './engine/branch-linker/branch_linker_construct.js';
+import { BackendEnvironmentVariables } from './environment_variables.js';
 
 // Be very careful editing this value. It is the value used in the BI metrics to attribute stacks as Amplify root stacks
 const rootStackTypeIdentifier = 'root';
@@ -51,7 +52,10 @@ export class BackendFactory<
       rootStackTypeIdentifier,
       fileURLToPath(new URL('../package.json', import.meta.url))
     );
-    this.stackResolver = new NestedStackResolver(stack);
+    this.stackResolver = new NestedStackResolver(
+      stack,
+      new AttributionMetadataStorage()
+    );
 
     const constructContainer = new SingletonConstructContainer(
       this.stackResolver
@@ -73,7 +77,12 @@ export class BackendFactory<
       },
     });
 
-    if (uniqueBackendIdentifier instanceof BranchBackendIdentifier) {
+    const shouldEnableBranchLinker =
+      uniqueBackendIdentifier instanceof BranchBackendIdentifier &&
+      process.env[
+        BackendEnvironmentVariables.AMPLIFY_BACKEND_BRANCH_LINKER_ENABLED
+      ] === 'true';
+    if (shouldEnableBranchLinker) {
       new AmplifyBranchLinkerConstruct(stack, uniqueBackendIdentifier);
     }
 
@@ -106,10 +115,11 @@ export class BackendFactory<
   }
 
   /**
-   * Returns a CDK stack within the Amplify project that can be used for creating custom resources
+   * Returns a CDK stack within the Amplify project that can be used for creating custom resources.
+   * @returns existing stack if provided name has been used or create new one with the provided name
    */
-  getOrCreateStack = (name: string): Stack => {
-    return this.stackResolver.getStackFor(name);
+  getStack = (name: string): Stack => {
+    return this.stackResolver.getCustomStack(name);
   };
 }
 

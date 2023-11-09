@@ -11,6 +11,7 @@ import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_
 import { GenerateApiCodeAdapter } from './graphql-client-code/generate_api_code_adapter.js';
 import { FormGenerationHandler } from '../../form-generation/form_generation_handler.js';
 import { BackendOutputClientFactory } from '@aws-amplify/deployed-backend-client';
+import { CommandMiddleware } from '../../command_middleware.js';
 
 /**
  * Creates wired generate command.
@@ -49,9 +50,12 @@ export const createGenerateCommand = (): CommandModule => {
     backendIdentifierResolver
   );
 
+  const commandMiddleware = new CommandMiddleware();
+
   return new GenerateCommand(
     generateConfigCommand,
     generateFormsCommand,
-    generateGraphqlClientCodeCommand
+    generateGraphqlClientCodeCommand,
+    commandMiddleware
   );
 };

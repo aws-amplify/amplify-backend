@@ -3,6 +3,7 @@ import { GenerateConfigCommand } from './config/generate_config_command.js';
 import { GenerateFormsCommand } from './forms/generate_forms_command.js';
 import { GenerateGraphqlClientCodeCommand } from './graphql-client-code/generate_graphql_client_code_command.js';
 import { handleCommandFailure } from '../../command_failure_handler.js';
+import { CommandMiddleware } from '../../command_middleware.js';
 
 /**
  * An entry point for generate command.
@@ -24,7 +25,8 @@ export class GenerateCommand implements CommandModule {
   constructor(
     private readonly generateConfigCommand: GenerateConfigCommand,
     private readonly generateFormsCommand: GenerateFormsCommand,
-    private readonly generateGraphqlClientCodeCommand: GenerateGraphqlClientCodeCommand
+    private readonly generateGraphqlClientCodeCommand: GenerateGraphqlClientCodeCommand,
+    private readonly commandMiddleware: CommandMiddleware
   ) {
     this.command = 'generate';
     this.describe = 'Generates post deployment artifacts';
@@ -52,6 +54,12 @@ export class GenerateCommand implements CommandModule {
         .demandCommand()
         .strictCommands()
         .recommendCommands()
+        .option('profile', {
+          describe: 'An AWS profile name.',
+          type: 'string',
+          array: false,
+        })
+        .middleware([this.commandMiddleware.ensureAwsCredentials])
         .fail((msg, err) => {
           handleCommandFailure(msg, err, yargs);
           yargs.exit(1, err);

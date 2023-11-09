@@ -6,15 +6,11 @@ import {
   ClientConfigFormat,
   getClientConfigPath,
 } from '@aws-amplify/client-config';
-import {
-  DEFAULT_GRAPHQL_PATH,
-  DEFAULT_UI_PATH,
-} from '../../form-generation/default_form_generation_output_paths.js';
 import { ArgumentsKebabCase } from '../../kebab_case.js';
-import { fromIni } from '@aws-sdk/credential-provider-ini';
 import { handleCommandFailure } from '../../command_failure_handler.js';
 import { ClientConfigLifecycleHandler } from '../../client-config/client_config_lifecycle_handler.js';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
+import { CommandMiddleware } from '../../command_middleware.js';
 
 export type SandboxCommandOptions =
   ArgumentsKebabCase<SandboxCommandOptionsCamelCase>;
@@ -26,9 +22,6 @@ type SandboxCommandOptionsCamelCase = {
   format: ClientConfigFormat | undefined;
   outDir: string | undefined;
   profile: string | undefined;
-  modelsOutDir: string;
-  uiOutDir: string;
-  modelsFilter?: string[];
 };
 
 export type EventHandler = () => void;
@@ -72,8 +65,8 @@ export class SandboxCommand
     private readonly sandboxFactory: SandboxSingletonFactory,
     private readonly sandboxSubCommands: CommandModule[],
     private clientConfigGeneratorAdapter: ClientConfigGeneratorAdapter,
-    private readonly sandboxEventHandlerCreator?: SandboxEventHandlerCreator,
-    private readonly profileCredentialProvider = fromIni
+    private commandMiddleware: CommandMiddleware,
+    private readonly sandboxEventHandlerCreator?: SandboxEventHandlerCreator
   ) {
     this.command = 'sandbox';
     this.describe = 'Starts sandbox, watch mode for amplify deployments';
@@ -83,12 +76,6 @@ export class SandboxCommand
    * @inheritDoc
    */
   handler = async (args: SandboxCommandOptions): Promise<void> => {
-    const { profile } = args;
-    if (profile) {
-      // check if we can load the profile first
-      await this.profileCredentialProvider({ profile })();
-      process.env.AWS_PROFILE = profile;
-    }
     const sandbox = await this.sandboxFactory.getInstance();
     this.appName = args.name;
 
@@ -110,11 +97,7 @@ export class SandboxCommand
       args['out-dir'],
       args.format
     );
-    watchExclusions.push(
-      clientConfigWritePath,
-      args['ui-out-dir'],
-      args['models-out-dir']
-    );
+    watchExclusions.push(clientConfigWritePath);
     await sandbox.start({
       dir: args['dir-to-watch'],
       exclude: watchExclusions,
@@ -137,55 +120,40 @@ export class SandboxCommand
             'Directory to watch for file changes. All subdirectories and files will be included. defaults to the current directory.',
           type: 'string',
           array: false,
+          global: false,
         })
         .option('exclude', {
           describe:
             'An array of paths or glob patterns to ignore. Paths can be relative or absolute and can either be files or directories',
           type: 'string',
           array: true,
+          global: false,
         })
         .option('name', {
           describe:
             'An optional name to distinguish between different sandbox environments. Default is the name in your package.json',
           type: 'string',
           array: false,
+          global: false,
         })
         .option('format', {
           describe: 'Client config output format',
           type: 'string',
           array: false,
           choices: Object.values(ClientConfigFormat),
+          global: false,
         })
         .option('out-dir', {
           describe:
             'A path to directory where config is written. If not provided defaults to current process working directory.',
           type: 'string',
           array: false,
+          global: false,
         })
         .option('profile', {
-          describe: 'An AWS profile name to use for deployment.',
+          describe: 'An AWS profile name.',
           type: 'string',
           array: false,
-        })
-        .option('models-out-dir', {
-          describe: 'A path to directory where generated models are written.',
-          default: DEFAULT_GRAPHQL_PATH,
-          type: 'string',
-          array: false,
-          group: 'Form Generation',
-        })
-        .option('ui-out-dir', {
-          describe: 'A path to directory where generated forms are written.',
-          default: DEFAULT_UI_PATH,
-          type: 'string',
-          array: false,
-          group: 'Form Generation',
-        })
-        .option('models', {
-          describe: 'Model name to generate',
-          type: 'string',
-          array: true,
-          group: 'Form Generation',
         })
         .check((argv) => {
           if (argv['dir-to-watch']) {
@@ -214,6 +182,7 @@ export class SandboxCommand
           }
           return true;
         })
+        .middleware([this.commandMiddleware.ensureAwsCredentials])
         .fail((msg, err) => {
           handleCommandFailure(msg, err, yargs);
           yargs.exit(1, err);

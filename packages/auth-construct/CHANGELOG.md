@@ -1,5 +1,19 @@
 # @aws-amplify/auth-construct-alpha
 
+## 0.2.4
+
+### Patch Changes
+
+- 3bff764b: Expose user pool and client as cfn resources.
+- Updated dependencies [3bff764b]
+  - @aws-amplify/plugin-types@0.3.1
+
+## 0.2.3
+
+### Patch Changes
+
+- ce371dac: Update default user pool deletion to DESTROY.
+
 ## 0.2.2
 
 ### Patch Changes

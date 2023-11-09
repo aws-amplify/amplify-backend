@@ -1,5 +1,22 @@
 # @aws-amplify/sandbox
 
+## 0.2.4
+
+### Patch Changes
+
+- Updated dependencies [68dc91e3]
+  - @aws-amplify/backend-deployer@0.2.3
+  - @aws-amplify/platform-core@0.1.4
+
+## 0.2.3
+
+### Patch Changes
+
+- Updated dependencies [0bd8a3f3]
+- Updated dependencies [0bd8a3f3]
+  - @aws-amplify/client-config@0.2.3
+  - @aws-amplify/platform-core@0.1.3
+
 ## 0.2.2
 
 ### Patch Changes

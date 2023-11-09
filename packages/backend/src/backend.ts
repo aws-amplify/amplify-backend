@@ -4,10 +4,10 @@ import { Stack } from 'aws-cdk-lib';
 
 /**
  * Top level type for instance returned from `defineBackend`. Contains property `resources` for overriding
- * Amplify generated resources and `getOrCreateStack()` for adding custom resources.
+ * Amplify generated resources and `getStack()` for adding custom resources.
  */
 export type Backend<T extends Record<string, ConstructFactory<Construct>>> = {
-  getOrCreateStack: (name: string) => Stack;
+  getStack: (name: string) => Stack;
   readonly resources: {
     [K in keyof T]: ReturnType<T[K]['getInstance']>;
   };
