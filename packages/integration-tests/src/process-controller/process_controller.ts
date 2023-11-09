@@ -117,24 +117,18 @@ export const amplifyCli = (
   args: string[] = [],
   dir: string,
   options?: {
-    installationType?: 'global' | 'local';
     env?: Record<string, string>;
   }
 ): ProcessController => {
-  let command: string;
-  if (options?.installationType === 'local') {
-    // TODO This is a workaround to lookup locally installed binary as seen by npx
-    // We're using binary directly because signals (Ctrl+C) don't propagate
-    // to child processes without TTY emulator.
-    // See: https://github.com/aws-amplify/amplify-backend/issues/582
-    command = execaSync('npx', ['which', 'amplify'], {
-      cwd: dir,
-    }).stdout.trim();
-    if (!command) {
-      throw new Error('Unable to locate amplify binary');
-    }
-  } else {
-    command = 'amplify';
+  // TODO This is a workaround to lookup locally installed binary as seen by npx
+  // We're using binary directly because signals (Ctrl+C) don't propagate
+  // to child processes without TTY emulator.
+  // See: https://github.com/aws-amplify/amplify-backend/issues/582
+  const command = execaSync('npx', ['which', 'amplify'], {
+    cwd: dir,
+  }).stdout.trim();
+  if (!command) {
+    throw new Error('Unable to locate amplify binary');
   }
   return new ProcessController(command, args, {
     cwd: dir,

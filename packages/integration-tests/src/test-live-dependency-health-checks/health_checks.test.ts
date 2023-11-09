@@ -77,7 +77,6 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
         ],
         tempDir,
         {
-          installationType: 'local',
           env: { CI: 'true' },
         }
       ).run();
@@ -105,9 +104,7 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
         stdio: 'inherit',
       });
 
-      await amplifyCli(['sandbox'], tempDir, {
-        installationType: 'local',
-      })
+      await amplifyCli(['sandbox'], tempDir)
         .do(waitForSandboxDeploymentToPrintTotalTime())
         .do(interruptSandbox())
         .do(rejectCleanupSandbox())
@@ -118,9 +115,7 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
       );
       assert.ok(clientConfigStats.isFile());
 
-      await amplifyCli(['sandbox', 'delete'], tempDir, {
-        installationType: 'local',
-      })
+      await amplifyCli(['sandbox', 'delete'], tempDir)
         .do(confirmDeleteSandbox())
         .run();
     });
