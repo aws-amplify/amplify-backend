@@ -151,7 +151,7 @@ void describe('create-amplify script', () => {
           '--context',
           `amplify-backend-name=sandboxName`,
           '--context',
-          `amplify-backend-type=SANDBOX`,
+          `amplify-backend-type=sandbox`,
           '--app',
           "'npx tsx amplify/backend.ts'",
           '--quiet',

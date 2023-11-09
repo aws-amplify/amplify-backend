@@ -100,7 +100,7 @@ const listStackResourcesMock = {
 const getOutputMockResponse = {
   [platformOutputKey]: {
     payload: {
-      deploymentType: 'SANDBOX',
+      deploymentType: 'sandbox',
     },
   },
   [authOutputKey]: {
@@ -354,7 +354,7 @@ void describe('Deployed Backend Client pagination', () => {
             ...getOutputMockResponse,
             [platformOutputKey]: {
               payload: {
-                deploymentType: 'BRANCH',
+                deploymentType: 'branch',
               },
             },
           };

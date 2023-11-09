@@ -79,7 +79,7 @@ void describe('deploy command', () => {
         type: 'branch',
       },
       {
-        deploymentType: 'BRANCH',
+        deploymentType: 'branch',
         validateAppSources: true,
       },
     ]);

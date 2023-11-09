@@ -45,7 +45,7 @@ const runCDKSnapshotTest = ({
     process.env.CDK_CONTEXT_JSON = JSON.stringify({
       [CDKContextKey.BACKEND_NAMESPACE]: 'testAppId',
       [CDKContextKey.BACKEND_NAME]: 'testBranchName',
-      [CDKContextKey.DEPLOYMENT_TYPE]: 'BRANCH',
+      [CDKContextKey.DEPLOYMENT_TYPE]: 'branch',
       secretLastUpdated: 123456789,
     });
   });

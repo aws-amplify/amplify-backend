@@ -88,7 +88,7 @@ void describe('invokeCDKCommand', () => {
       '--output',
       '.amplify/artifacts/cdk.out',
       '--context',
-      `amplify-backend-type=SANDBOX`,
+      `amplify-backend-type=sandbox`,
       '--hotswap-fallback',
       '--method=direct',
       '--context',
@@ -116,7 +116,7 @@ void describe('invokeCDKCommand', () => {
       '--context',
       `amplify-backend-name=testBranch`,
       '--context',
-      `amplify-backend-type=SANDBOX`,
+      `amplify-backend-type=sandbox`,
       '--hotswap-fallback',
       '--method=direct',
       '--context',
@@ -146,7 +146,7 @@ void describe('invokeCDKCommand', () => {
       '--context',
       `amplify-backend-name=testBranch`,
       '--context',
-      `amplify-backend-type=SANDBOX`,
+      `amplify-backend-type=sandbox`,
       '--force',
     ]);
   });
@@ -187,7 +187,7 @@ void describe('invokeCDKCommand', () => {
       '--require-approval',
       'never',
       '--context',
-      `amplify-backend-type=BRANCH`,
+      `amplify-backend-type=branch`,
     ]);
   });
 
@@ -221,7 +221,7 @@ void describe('invokeCDKCommand', () => {
       '--output',
       '.amplify/artifacts/cdk.out',
       '--context',
-      `amplify-backend-type=SANDBOX`,
+      `amplify-backend-type=sandbox`,
       '--hotswap-fallback',
       '--method=direct',
     ]);
@@ -254,7 +254,7 @@ void describe('invokeCDKCommand', () => {
         '--require-approval',
         'never',
         '--context',
-        `amplify-backend-type=BRANCH`,
+        `amplify-backend-type=branch`,
       ]);
     } finally {
       delete process.env[
@@ -285,7 +285,7 @@ void describe('invokeCDKCommand', () => {
         '--output',
         '.amplify/artifacts/cdk.out',
         '--context',
-        `amplify-backend-type=SANDBOX`,
+        `amplify-backend-type=sandbox`,
         '--hotswap-fallback',
         '--method=direct',
       ]);

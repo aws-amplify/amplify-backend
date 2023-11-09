@@ -41,7 +41,7 @@
  },
  "Outputs": {
   "deploymentType": {
-   "Value": "BRANCH"
+   "Value": "branch"
   },
   "region": {
    "Value": {
