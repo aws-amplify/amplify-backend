@@ -3,7 +3,7 @@ import { AmplifyPrompter } from '@aws-amplify/cli-core';
 import yargs, { CommandModule } from 'yargs';
 import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
-import { SandboxBackendIdPartsResolver } from '../sandbox_id_resolver.js';
+import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
 import { SecretIdentifier, getSecretClient } from '@aws-amplify/backend-secret';
 import { SandboxSecretSetCommand } from './sandbox_secret_set_command.js';
 
@@ -25,14 +25,14 @@ void describe('sandbox secret set command', () => {
     (): Promise<SecretIdentifier> => Promise.resolve(testSecretIdentifier)
   );
 
-  const sandboxIdResolver: SandboxBackendIdPartsResolver = {
+  const sandboxIdResolver: SandboxBackendIdResolver = {
     resolve: () =>
       Promise.resolve({
         namespace: testBackendId,
         name: testSandboxName,
         type: 'sandbox',
       }),
-  } as SandboxBackendIdPartsResolver;
+  } as SandboxBackendIdResolver;
 
   const sandboxSecretSetCmd = new SandboxSecretSetCommand(
     sandboxIdResolver,

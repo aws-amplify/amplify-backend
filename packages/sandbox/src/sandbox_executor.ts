@@ -17,11 +17,9 @@ export class AmplifySandboxExecutor {
   ) {}
 
   private getSecretLastUpdated = async (
-    uniqueBackendIdentifier: BackendIdentifier
+    backendId: BackendIdentifier
   ): Promise<Date | undefined> => {
-    const secrets = await this.secretClient.listSecrets(
-      uniqueBackendIdentifier
-    );
+    const secrets = await this.secretClient.listSecrets(backendId);
     let latestTimestamp = -1;
     let secretLastUpdate: Date | undefined;
 
@@ -43,19 +41,17 @@ export class AmplifySandboxExecutor {
    * Deploys sandbox
    */
   deploy = async (
-    uniqueBackendIdentifier: BackendIdentifier,
+    backendId: BackendIdentifier,
     validateAppSourcesProvider: () => boolean
   ): Promise<void> => {
     console.debug('[Sandbox] Executing command `deploy`');
-    const secretLastUpdated = await this.getSecretLastUpdated(
-      uniqueBackendIdentifier
-    );
+    const secretLastUpdated = await this.getSecretLastUpdated(backendId);
 
     await this.invoke(async () => {
       // it's important to get information here so that information
       // doesn't get lost while debouncing
       const validateAppSources = validateAppSourcesProvider();
-      await this.backendDeployer.deploy(uniqueBackendIdentifier, {
+      await this.backendDeployer.deploy(backendId, {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated,
         validateAppSources,
@@ -66,11 +62,11 @@ export class AmplifySandboxExecutor {
   /**
    * Destroy sandbox. Do not swallow errors
    */
-  destroy = (uniqueBackendIdentifier?: BackendIdentifier): Promise<void> => {
+  destroy = (backendId?: BackendIdentifier): Promise<void> => {
     console.debug('[Sandbox] Executing command `destroy`');
     return this.invoke(
       async () =>
-        await this.backendDeployer.destroy(uniqueBackendIdentifier, {
+        await this.backendDeployer.destroy(backendId, {
           deploymentType: BackendDeploymentType.SANDBOX,
         })
     );

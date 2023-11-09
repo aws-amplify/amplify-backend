@@ -2,7 +2,7 @@ import { CommandModule } from 'yargs';
 import { SandboxCommand, SandboxCommandOptions } from './sandbox_command.js';
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
 import { SandboxDeleteCommand } from './sandbox-delete/sandbox_delete_command.js';
-import { SandboxBackendIdPartsResolver } from './sandbox_id_resolver.js';
+import { SandboxBackendIdResolver } from './sandbox_id_resolver.js';
 import { CwdPackageJsonLoader } from '../../cwd_package_json_loader.js';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
@@ -19,7 +19,7 @@ export const createSandboxCommand = (): CommandModule<
   SandboxCommandOptions
 > => {
   const credentialProvider = fromNodeProviderChain();
-  const sandboxBackendIdPartsResolver = new SandboxBackendIdPartsResolver(
+  const sandboxBackendIdPartsResolver = new SandboxBackendIdResolver(
     new LocalNamespaceResolver(new CwdPackageJsonLoader())
   );
 

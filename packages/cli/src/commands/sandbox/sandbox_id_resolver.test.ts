@@ -1,10 +1,10 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { SandboxBackendIdPartsResolver } from './sandbox_id_resolver.js';
+import { SandboxBackendIdResolver } from './sandbox_id_resolver.js';
 
 void describe('SandboxIdResolver', () => {
   void it('resolve can be used as a function reference', async () => {
-    const resolver = new SandboxBackendIdPartsResolver(
+    const resolver = new SandboxBackendIdResolver(
       {
         resolve: () => Promise.resolve('testAppName'),
       },

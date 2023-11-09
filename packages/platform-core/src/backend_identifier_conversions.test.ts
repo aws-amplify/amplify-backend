@@ -1,5 +1,5 @@
 import { describe, it } from 'node:test';
-import { BackendIdentifierConversions } from './backend_identifier_parts_conversions.js';
+import { BackendIdentifierConversions } from './backend_identifier_conversions.js';
 import assert from 'node:assert';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 

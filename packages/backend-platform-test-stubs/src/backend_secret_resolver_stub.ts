@@ -15,10 +15,10 @@ export class BackendSecretResolverStub implements BackendSecretResolver {
    */
   constructor(
     private readonly scope: Construct,
-    private readonly uniqueBackendIdentifier: BackendIdentifier
+    private readonly backendId: BackendIdentifier
   ) {}
 
   resolveSecret = (backendSecret: BackendSecret): SecretValue => {
-    return backendSecret.resolve(this.scope, this.uniqueBackendIdentifier);
+    return backendSecret.resolve(this.scope, this.backendId);
   };
 }

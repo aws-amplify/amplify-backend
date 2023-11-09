@@ -2,7 +2,7 @@ import { beforeEach, describe, it, mock } from 'node:test';
 import yargs, { CommandModule } from 'yargs';
 import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
-import { SandboxBackendIdPartsResolver } from '../sandbox_id_resolver.js';
+import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
 import { getSecretClient } from '@aws-amplify/backend-secret';
 import { SandboxSecretRemoveCommand } from './sandbox_secret_remove_command.js';
 
@@ -18,14 +18,14 @@ void describe('sandbox secret remove command', () => {
     (): Promise<void> => Promise.resolve()
   );
 
-  const sandboxIdResolver: SandboxBackendIdPartsResolver = {
+  const sandboxIdResolver: SandboxBackendIdResolver = {
     resolve: () =>
       Promise.resolve({
         namespace: testBackendId,
         name: testSandboxName,
         type: 'sandbox',
       }),
-  } as SandboxBackendIdPartsResolver;
+  } as SandboxBackendIdResolver;
 
   const sandboxSecretRemoveCmd = new SandboxSecretRemoveCommand(
     sandboxIdResolver,

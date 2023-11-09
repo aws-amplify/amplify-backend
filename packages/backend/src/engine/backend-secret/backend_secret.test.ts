@@ -6,13 +6,13 @@ import { BackendSecretFetcherProviderFactory } from './backend_secret_fetcher_pr
 import { BackendSecretFetcherFactory } from './backend_secret_fetcher_factory.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 
-const backendId = 'testId';
-const branchName = 'testBranch';
+const namespace = 'testId';
+const name = 'testBranch';
 const testSecretName = 'testSecretName';
 const testSecretValue = 'testSecretValue';
-const uniqueBackendIdentifier: BackendIdentifier = {
-  namespace: backendId,
-  name: branchName,
+const backendId: BackendIdentifier = {
+  namespace,
+  name,
   type: 'branch',
 };
 
@@ -30,7 +30,7 @@ void describe('BackendSecret', () => {
     const app = new App();
     const stack = new Stack(app);
     const secret = new CfnTokenBackendSecret(testSecretName, resourceFactory);
-    const val = secret.resolve(stack, uniqueBackendIdentifier);
+    const val = secret.resolve(stack, backendId);
     assert.deepStrictEqual(val, SecretValue.unsafePlainText(testSecretValue));
     assert.deepStrictEqual(mockGetOrCreate.mock.callCount(), 1);
   });

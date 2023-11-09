@@ -9,7 +9,7 @@ import {
   PassThroughMainStackNameResolver,
   StackIdentifier,
 } from './stack-name-resolvers/passthrough_main_stack_name_resolver.js';
-import { BackendIdentifierMainStackNameResolver } from './stack-name-resolvers/unique_deployment_identifier_main_stack_name_resolver.js';
+import { BackendIdentifierMainStackNameResolver } from './stack-name-resolvers/backend_identifier_main_stack_name_resolver.js';
 import { StackMetadataBackendOutputRetrievalStrategy } from './stack_metadata_output_retrieval_strategy.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 

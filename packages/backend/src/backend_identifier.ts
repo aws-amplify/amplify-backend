@@ -6,7 +6,7 @@ import {
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 
 /**
- * Populates a unique backend identifier based on CDK context values.
+ * Populates a backend identifier based on CDK context values.
  */
 export const getBackendIdentifier = (scope: Construct): BackendIdentifier => {
   const backendNamespace = scope.node.getContext(

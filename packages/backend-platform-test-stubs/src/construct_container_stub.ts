@@ -33,10 +33,10 @@ export class ConstructContainerStub implements ConstructContainer {
   getOrCompute = (generator: ConstructContainerEntryGenerator): Construct => {
     if (!this.constructCache.has(generator)) {
       const scope = this.stackResolver.getStackFor(generator.resourceGroupName);
-      const uniqueBackendIdentifier = getBackendIdentifierStub();
+      const backendId = getBackendIdentifierStub();
       const backendSecretResolver = new BackendSecretResolverStub(
         scope,
-        uniqueBackendIdentifier
+        backendId
       );
       this.constructCache.set(
         generator,

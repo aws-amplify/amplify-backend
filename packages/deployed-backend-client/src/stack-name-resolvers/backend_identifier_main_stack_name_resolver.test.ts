@@ -1,5 +1,5 @@
 import { describe, it } from 'node:test';
-import { BackendIdentifierMainStackNameResolver } from './unique_deployment_identifier_main_stack_name_resolver.js';
+import { BackendIdentifierMainStackNameResolver } from './backend_identifier_main_stack_name_resolver.js';
 import assert from 'node:assert';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 

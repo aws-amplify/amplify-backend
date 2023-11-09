@@ -2,7 +2,7 @@ import { beforeEach, describe, it, mock } from 'node:test';
 import yargs from 'yargs';
 import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
-import { SandboxBackendIdPartsResolver } from '../sandbox_id_resolver.js';
+import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
 import { Secret, getSecretClient } from '@aws-amplify/backend-secret';
 import { SandboxSecretListCommand } from './sandbox_secret_list_command.js';
 import { Printer } from '@aws-amplify/cli-core';
@@ -28,14 +28,14 @@ void describe('sandbox secret list command', () => {
     'listSecrets',
     (): Promise<Secret[] | undefined> => Promise.resolve(testSecrets)
   );
-  const sandboxIdResolver: SandboxBackendIdPartsResolver = {
+  const sandboxIdResolver: SandboxBackendIdResolver = {
     resolve: () =>
       Promise.resolve({
         namespace: testBackendId,
         name: testSandboxName,
         type: 'sandbox',
       }),
-  } as SandboxBackendIdPartsResolver;
+  } as SandboxBackendIdResolver;
 
   const sandboxSecretListCmd = new SandboxSecretListCommand(
     sandboxIdResolver,

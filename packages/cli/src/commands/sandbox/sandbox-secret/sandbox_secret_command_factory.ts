@@ -1,7 +1,7 @@
 import { CommandModule } from 'yargs';
 
 import { LocalNamespaceResolver } from '../../../backend-identifier/local_namespace_resolver.js';
-import { SandboxBackendIdPartsResolver } from '../sandbox_id_resolver.js';
+import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
 import { CwdPackageJsonLoader } from '../../../cwd_package_json_loader.js';
 import { SandboxSecretCommand } from './sandbox_secret_command.js';
 import { getSecretClient } from '@aws-amplify/backend-secret';
@@ -14,7 +14,7 @@ import { SandboxSecretListCommand } from './sandbox_secret_list_command.js';
  * Creates sandbox secret commands.
  */
 export const createSandboxSecretCommand = (): CommandModule => {
-  const sandboxIdResolver = new SandboxBackendIdPartsResolver(
+  const sandboxIdResolver = new SandboxBackendIdResolver(
     new LocalNamespaceResolver(new CwdPackageJsonLoader())
   );
 

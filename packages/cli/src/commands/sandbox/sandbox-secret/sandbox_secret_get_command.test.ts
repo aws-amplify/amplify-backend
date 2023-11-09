@@ -2,7 +2,7 @@ import { beforeEach, describe, it, mock } from 'node:test';
 import yargs, { CommandModule } from 'yargs';
 import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
-import { SandboxBackendIdPartsResolver } from '../sandbox_id_resolver.js';
+import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
 import {
   Secret,
   SecretIdentifier,
@@ -31,14 +31,14 @@ void describe('sandbox secret get command', () => {
     (): Promise<Secret | undefined> => Promise.resolve(testSecret)
   );
 
-  const sandboxIdResolver: SandboxBackendIdPartsResolver = {
+  const sandboxIdResolver: SandboxBackendIdResolver = {
     resolve: () =>
       Promise.resolve({
         namespace: testBackendId,
         name: testSandboxName,
         type: 'sandbox',
       }),
-  } as SandboxBackendIdPartsResolver;
+  } as SandboxBackendIdResolver;
 
   const sandboxSecretGetCmd = new SandboxSecretGetCommand(
     sandboxIdResolver,

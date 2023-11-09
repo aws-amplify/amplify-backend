@@ -33,10 +33,10 @@ export class SingletonConstructContainer implements ConstructContainer {
   getOrCompute = (generator: ConstructContainerEntryGenerator): Construct => {
     if (!this.constructCache.has(generator)) {
       const scope = this.stackResolver.getStackFor(generator.resourceGroupName);
-      const uniqueBackendIdentifier = getBackendIdentifier(scope);
+      const backendId = getBackendIdentifier(scope);
       const backendSecretResolver = new DefaultBackendSecretResolver(
         scope,
-        uniqueBackendIdentifier
+        backendId
       );
       this.constructCache.set(
         generator,

@@ -1,6 +1,6 @@
 import { CommandModule } from 'yargs';
 import { SecretClient } from '@aws-amplify/backend-secret';
-import { SandboxBackendIdPartsResolver } from '../sandbox_id_resolver.js';
+import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
 import { Printer } from '@aws-amplify/cli-core';
 
 /**
@@ -21,7 +21,7 @@ export class SandboxSecretListCommand implements CommandModule<object> {
    * List sandbox secret command.
    */
   constructor(
-    private readonly sandboxIdResolver: SandboxBackendIdPartsResolver,
+    private readonly sandboxIdResolver: SandboxBackendIdResolver,
     private readonly secretClient: SecretClient
   ) {
     this.command = 'list';

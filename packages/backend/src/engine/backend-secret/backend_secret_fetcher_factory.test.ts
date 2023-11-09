@@ -15,7 +15,7 @@ const name = 'testBranch';
 const secretName1 = 'testSecretName1';
 const secretLastUpdated = '1245462';
 const secretName2 = 'testSecretName2';
-const uniqueBackendIdentifier: BackendIdentifier = {
+const backendId: BackendIdentifier = {
   namespace,
   name,
   type: 'branch',
@@ -29,8 +29,8 @@ void describe('getOrCreate', () => {
     const app = new App();
     const stack = new Stack(app);
     stack.node.setContext('secretLastUpdated', secretLastUpdated);
-    resourceFactory.getOrCreate(stack, secretName1, uniqueBackendIdentifier);
-    resourceFactory.getOrCreate(stack, secretName2, uniqueBackendIdentifier);
+    resourceFactory.getOrCreate(stack, secretName1, backendId);
+    resourceFactory.getOrCreate(stack, secretName2, backendId);
 
     const template = Template.fromStack(stack);
     template.resourceCountIs(secretResourceType, 2);
@@ -67,8 +67,8 @@ void describe('getOrCreate', () => {
   void it('does not create duplicate resource for the same secret name', () => {
     const app = new App();
     const stack = new Stack(app);
-    resourceFactory.getOrCreate(stack, secretName1, uniqueBackendIdentifier);
-    resourceFactory.getOrCreate(stack, secretName1, uniqueBackendIdentifier);
+    resourceFactory.getOrCreate(stack, secretName1, backendId);
+    resourceFactory.getOrCreate(stack, secretName1, backendId);
 
     const template = Template.fromStack(stack);
     template.resourceCountIs(secretResourceType, 1);

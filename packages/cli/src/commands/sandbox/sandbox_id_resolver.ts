@@ -5,7 +5,7 @@ import { BackendIdentifier } from '@aws-amplify/plugin-types';
 /**
  * Resolves an ID that can be used to uniquely identify sandbox environments
  */
-export class SandboxBackendIdPartsResolver {
+export class SandboxBackendIdResolver {
   /**
    * Initialize with an appName resolver
    */
