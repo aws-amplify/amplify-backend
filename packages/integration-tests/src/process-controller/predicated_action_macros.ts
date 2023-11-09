@@ -32,7 +32,7 @@ export const confirmDeleteSandbox = () => {
   if (process.platform.includes('win32')) {
     actionBuilder = actionBuilder
       .waitForLineIncludes('Terminate batch job (Y/N)?')
-      .sendYes();
+      .sendLine('Y');
   }
   return actionBuilder;
 };
@@ -49,7 +49,7 @@ export const rejectCleanupSandbox = () => {
   if (process.platform.includes('win32')) {
     actionBuilder = actionBuilder
       .waitForLineIncludes('Terminate batch job (Y/N)?')
-      .sendYes();
+      .sendLine('Y');
   }
   return actionBuilder;
 };
