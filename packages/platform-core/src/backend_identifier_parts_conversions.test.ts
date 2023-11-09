@@ -1,13 +1,10 @@
 import { describe, it } from 'node:test';
-import {
-  backendIdentifierPartsToStackName,
-  stackNameToBackendIdentifier,
-} from './backend_identifier_parts_conversions.js';
+import { BackendIdentifierConversions } from './backend_identifier_parts_conversions.js';
 import assert from 'node:assert';
 
-void describe('backendIdentifierPartsToStackName', () => {
+void describe('toStackName', () => {
   void it('removes disallowed chars from namespace and instance', () => {
-    const actual = backendIdentifierPartsToStackName({
+    const actual = BackendIdentifierConversions.toStackName({
       namespace: 't-_e.s,@ t--T@,,     H/I. .S',
       name: 't-_h.i,@ ng',
       type: 'branch',
@@ -16,7 +13,7 @@ void describe('backendIdentifierPartsToStackName', () => {
   });
 
   void it('truncates long instance names', () => {
-    const actual = backendIdentifierPartsToStackName({
+    const actual = BackendIdentifierConversions.toStackName({
       namespace: 'reasonableName',
       name: 'InsanelyLongUserNameProvidedByCustomerDoNotKnowWhatCustomersAreThinkingWhenChoosingThisGreatBigName',
       type: 'sandbox',
@@ -28,7 +25,7 @@ void describe('backendIdentifierPartsToStackName', () => {
   });
 
   void it('truncates long namespace names', () => {
-    const actual = backendIdentifierPartsToStackName({
+    const actual = BackendIdentifierConversions.toStackName({
       namespace:
         'InsanelyLongNameProvidedByCustomerDoNotKnowWhatCustomersAreThinkingWhenChoosingThisGreatBigNameButItIsStillTheoreticallyPossible',
       name: 'userName',
@@ -42,7 +39,7 @@ void describe('backendIdentifierPartsToStackName', () => {
   });
 
   void it('truncates long namespace and instance', () => {
-    const actual = backendIdentifierPartsToStackName({
+    const actual = BackendIdentifierConversions.toStackName({
       namespace:
         'InsanelyLongNameProvidedByCustomerDoNotKnowWhatCustomersAreThinkingWhenChoosingThisGreatBigNameButItIsStillTheoreticallyPossible',
       name: 'InsanelyLongUserNameProvidedByCustomerDoNotKnowWhatCustomersAreThinkingWhenChoosingThisGreatBigName',
@@ -57,7 +54,7 @@ void describe('backendIdentifierPartsToStackName', () => {
   });
 
   void it('passes through values within the constraints', () => {
-    const actual = backendIdentifierPartsToStackName({
+    const actual = BackendIdentifierConversions.toStackName({
       namespace: 'reasonableName',
       name: 'userName',
       type: 'sandbox',
@@ -66,29 +63,35 @@ void describe('backendIdentifierPartsToStackName', () => {
   });
 });
 
-void describe('stackNameToBackendIdentifier', () => {
+void describe('fromStackName', () => {
   void it('returns undefined for undefined stack name', () => {
-    const actual = stackNameToBackendIdentifier(undefined);
+    const actual = BackendIdentifierConversions.fromStackName(undefined);
     assert.equal(actual, undefined);
   });
 
   void it('returns undefined if stack name does not have 4 parts', () => {
-    const actual = stackNameToBackendIdentifier('amplify-missing-sandbox');
+    const actual = BackendIdentifierConversions.fromStackName(
+      'amplify-missing-sandbox'
+    );
     assert.equal(actual, undefined);
   });
 
   void it('returns undefined if stack does not start with amplify prefix', () => {
-    const actual = stackNameToBackendIdentifier('wrong-name-for-sandbox');
+    const actual = BackendIdentifierConversions.fromStackName(
+      'wrong-name-for-sandbox'
+    );
     assert.equal(actual, undefined);
   });
 
   void it('returns undefined if stack does not end with known type suffix', () => {
-    const actual = stackNameToBackendIdentifier('amplify-wrong-suffix-thing');
+    const actual = BackendIdentifierConversions.fromStackName(
+      'amplify-wrong-suffix-thing'
+    );
     assert.equal(actual, undefined);
   });
 
   void it('parses valid stack name into parts', () => {
-    const actual = stackNameToBackendIdentifier(
+    const actual = BackendIdentifierConversions.fromStackName(
       'amplify-reasonableName-userName-sandbox'
     );
     assert.deepStrictEqual(actual, {
@@ -100,10 +103,10 @@ void describe('stackNameToBackendIdentifier', () => {
 
   void it('valid stack name can round-trip back to same stack name', () => {
     const validStackName = 'amplify-reasonableName-userName-sandbox';
-    const actual = backendIdentifierPartsToStackName(
+    const actual = BackendIdentifierConversions.toStackName(
       // the test will fail if this assertion is not valid
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      stackNameToBackendIdentifier(validStackName)!
+      BackendIdentifierConversions.fromStackName(validStackName)!
     );
     assert.equal(actual, validStackName);
   });

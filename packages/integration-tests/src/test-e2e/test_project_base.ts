@@ -1,4 +1,4 @@
-import { backendIdentifierPartsToStackName } from '@aws-amplify/platform-core';
+import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { amplifyCli } from '../process-controller/process_controller.js';
 import {
@@ -77,7 +77,8 @@ export abstract class TestProjectBase {
     } else {
       await this.cfnClient.send(
         new DeleteStackCommand({
-          StackName: backendIdentifierPartsToStackName(backendIdentifier),
+          StackName:
+            BackendIdentifierConversions.toStackName(backendIdentifier),
         })
       );
     }

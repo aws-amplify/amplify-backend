@@ -21,12 +21,14 @@ export type UserName = string;
  */
 export type BackendIdentifier =
   | {
-      namespace: AppId;
-      name: BranchName;
-      type: 'branch';
+      namespace: Readonly<AppId>;
+      name: Readonly<BranchName>;
+      type: Readonly<'branch'>;
+      hash?: Readonly<string>;
     }
   | {
-      namespace: ProjectName;
-      name: UserName;
-      type: 'sandbox';
+      namespace: Readonly<ProjectName>;
+      name: Readonly<UserName>;
+      type: Readonly<'sandbox'>;
+      hash?: Readonly<string>;
     };

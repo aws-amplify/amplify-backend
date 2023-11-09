@@ -10,8 +10,7 @@ import {
 } from './deployed_backend_client_factory.js';
 import {
   BackendDeploymentType,
-  backendIdentifierPartsToStackName,
-  stackNameToBackendIdentifier,
+  BackendIdentifierConversions,
 } from '@aws-amplify/platform-core';
 import { BackendOutputClient } from './backend_output_client_factory.js';
 import {
@@ -74,7 +73,9 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
 
           return {
             name: stackSummary.StackName as string,
-            backendId: stackNameToBackendIdentifier(stackSummary.StackName),
+            backendId: BackendIdentifierConversions.fromStackName(
+              stackSummary.StackName
+            ),
             lastUpdated:
               stackSummary.LastUpdatedTime ?? stackSummary.CreationTime,
             status: this.stackStatusMapper.translateStackStatus(
@@ -126,7 +127,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
   deleteSandbox = async (
     sandboxBackendIdentifier: Omit<BackendIdentifier, 'type'>
   ): Promise<void> => {
-    const stackName = backendIdentifierPartsToStackName({
+    const stackName = BackendIdentifierConversions.toStackName({
       ...sandboxBackendIdentifier,
       type: 'sandbox',
     });
@@ -138,7 +139,9 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
   getBackendMetadata = async (
     backendIdentifierParts: BackendIdentifier
   ): Promise<BackendMetadata> => {
-    const stackName = backendIdentifierPartsToStackName(backendIdentifierParts);
+    const stackName = BackendIdentifierConversions.toStackName(
+      backendIdentifierParts
+    );
     return this.buildBackendMetadata(stackName);
   };
 

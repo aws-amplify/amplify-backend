@@ -2,7 +2,7 @@ import {
   BackendIdentifier,
   MainStackNameResolver,
 } from '@aws-amplify/plugin-types';
-import { backendIdentifierPartsToStackName } from '@aws-amplify/platform-core';
+import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 
 /**
  * Resolves the main stack name for a given project environment
@@ -19,5 +19,5 @@ export class BackendIdentifierMainStackNameResolver
    * Resolve the stack name for this project environment
    */
   resolveMainStackName = async (): Promise<string> =>
-    backendIdentifierPartsToStackName(this.backendIdentifierParts);
+    BackendIdentifierConversions.toStackName(this.backendIdentifierParts);
 }
