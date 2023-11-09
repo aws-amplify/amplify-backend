@@ -40,14 +40,16 @@ export type AuthResources = {
 };
 
 // @public
-export type BackendIdentifierParts = {
-    namespace: AppId;
-    instance: BranchName;
-    type: 'branch';
+export type BackendIdentifier = {
+    namespace: Readonly<AppId>;
+    name: Readonly<BranchName>;
+    type: Readonly<'branch'>;
+    hash?: Readonly<string>;
 } | {
-    namespace: ProjectName;
-    instance: UserName;
-    type: 'sandbox';
+    namespace: Readonly<ProjectName>;
+    name: Readonly<SandboxName>;
+    type: Readonly<'sandbox'>;
+    hash?: Readonly<string>;
 };
 
 // @public (undocumented)
@@ -76,7 +78,7 @@ export type BackendOutputWriter = {
 
 // @public (undocumented)
 export type BackendSecret = {
-    resolve: (scope: Construct, uniqueBackendIdentifier: BackendIdentifierParts) => SecretValue;
+    resolve: (scope: Construct, backendIdentifier: BackendIdentifier) => SecretValue;
 };
 
 // @public (undocumented)
@@ -84,7 +86,7 @@ export type BackendSecretResolver = {
     resolveSecret: (backendSecret: BackendSecret) => SecretValue;
 };
 
-// @public
+// @public (undocumented)
 export type BranchName = string;
 
 // @public
@@ -142,7 +144,7 @@ export type ResourceProvider<T> = {
 };
 
 // @public (undocumented)
-export type UserName = string;
+export type SandboxName = string;
 
 // (No @packageDocumentation comment for this package)
 

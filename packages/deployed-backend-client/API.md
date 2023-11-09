@@ -7,7 +7,7 @@
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { BackendDeploymentType } from '@aws-amplify/platform-core';
-import { BackendIdentifierParts } from '@aws-amplify/plugin-types';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { S3Client } from '@aws-sdk/client-s3';
 import { UnifiedBackendOutput } from '@aws-amplify/backend-output-schemas';
@@ -126,8 +126,8 @@ export enum ConflictResolutionMode {
 // @public (undocumented)
 export type DeployedBackendClient = {
     listSandboxes: (listSandboxesRequest?: ListSandboxesRequest) => Promise<ListSandboxesResponse>;
-    deleteSandbox: (sandboxBackendIdentifier: Omit<BackendIdentifierParts, 'type'>) => Promise<void>;
-    getBackendMetadata: (backendIdentifierParts: BackendIdentifierParts) => Promise<BackendMetadata>;
+    deleteSandbox: (sandboxBackendIdentifier: Omit<BackendIdentifier, 'type'>) => Promise<void>;
+    getBackendMetadata: (backendIdentifierParts: BackendIdentifier) => Promise<BackendMetadata>;
 };
 
 // @public
@@ -151,7 +151,7 @@ export type DeployedBackendCredentialsOptions = {
 };
 
 // @public (undocumented)
-export type DeployedBackendIdentifier = BackendIdentifierParts | StackIdentifier | AppNameAndBranchBackendIdentifier;
+export type DeployedBackendIdentifier = BackendIdentifier | StackIdentifier | AppNameAndBranchBackendIdentifier;
 
 // @public (undocumented)
 export type DeployedBackendResource = {
@@ -180,7 +180,7 @@ export type SandboxMetadata = {
     name: string;
     lastUpdated: Date | undefined;
     status: BackendDeploymentStatus;
-    backendId: BackendIdentifierParts | undefined;
+    backendId: BackendIdentifier | undefined;
 };
 
 // @public (undocumented)

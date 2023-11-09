@@ -6,7 +6,7 @@
 
 import { AppId } from '@aws-amplify/plugin-types';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
-import { BackendIdentifierParts } from '@aws-amplify/plugin-types';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
 
 // @public
 export const getSecretClient: (secretClientOptions?: SecretClientOptions) => SecretClient;
@@ -19,10 +19,10 @@ export type Secret = SecretIdentifier & {
 
 // @public
 export type SecretClient = {
-    getSecret: (backendIdentifier: BackendIdentifierParts | AppId, secretIdentifier: SecretIdentifier) => Promise<Secret>;
-    listSecrets: (backendIdentifier: BackendIdentifierParts | AppId) => Promise<SecretListItem[]>;
-    setSecret: (backendIdentifier: BackendIdentifierParts | AppId, secretName: string, secretValue: string) => Promise<SecretIdentifier>;
-    removeSecret: (backendIdentifier: BackendIdentifierParts | AppId, secretName: string) => Promise<void>;
+    getSecret: (backendIdentifier: BackendIdentifier | AppId, secretIdentifier: SecretIdentifier) => Promise<Secret>;
+    listSecrets: (backendIdentifier: BackendIdentifier | AppId) => Promise<SecretListItem[]>;
+    setSecret: (backendIdentifier: BackendIdentifier | AppId, secretName: string, secretValue: string) => Promise<SecretIdentifier>;
+    removeSecret: (backendIdentifier: BackendIdentifier | AppId, secretName: string) => Promise<void>;
 };
 
 // @public

@@ -6,12 +6,12 @@
 
 /// <reference types="node" />
 
-import { BackendIdentifierParts } from '@aws-amplify/plugin-types';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { ClientConfigFormat } from '@aws-amplify/client-config';
 import EventEmitter from 'events';
 
 // @public (undocumented)
-export type BackendIdSandboxResolver = (sandboxName?: string) => Promise<BackendIdentifierParts>;
+export type BackendIdSandboxResolver = (sandboxName?: string) => Promise<BackendIdentifier>;
 
 // @public
 export type Sandbox = {

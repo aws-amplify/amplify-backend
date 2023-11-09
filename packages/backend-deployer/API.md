@@ -5,12 +5,12 @@
 ```ts
 
 import { BackendDeploymentType } from '@aws-amplify/platform-core';
-import { BackendIdentifierParts } from '@aws-amplify/plugin-types';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
 
 // @public
 export type BackendDeployer = {
-    deploy: (backendIdentifierParts?: BackendIdentifierParts, deployProps?: DeployProps) => Promise<void>;
-    destroy: (backendIdentifierParts?: BackendIdentifierParts, destroyProps?: DestroyProps) => Promise<void>;
+    deploy: (backendIdentifierParts?: BackendIdentifier, deployProps?: DeployProps) => Promise<void>;
+    destroy: (backendIdentifierParts?: BackendIdentifier, destroyProps?: DestroyProps) => Promise<void>;
 };
 
 // @public

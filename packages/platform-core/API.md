@@ -4,7 +4,7 @@
 
 ```ts
 
-import { BackendIdentifierParts } from '@aws-amplify/plugin-types';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
 
 // @public (undocumented)
 export enum BackendDeploymentType {
@@ -15,7 +15,10 @@ export enum BackendDeploymentType {
 }
 
 // @public
-export const backendIdentifierPartsToStackName: (parts: BackendIdentifierParts) => string;
+export class BackendIdentifierConversions {
+    static fromStackName(stackName?: string): BackendIdentifier | undefined;
+    static toStackName(backendId: BackendIdentifier): string;
+}
 
 // @public
 export class BackendLocator {
@@ -27,7 +30,7 @@ export class BackendLocator {
 // @public
 export enum CDKContextKey {
     // (undocumented)
-    BACKEND_INSTANCE = "amplify-backend-instance",
+    BACKEND_NAME = "amplify-backend-name",
     // (undocumented)
     BACKEND_NAMESPACE = "amplify-backend-namespace",
     // (undocumented)
@@ -40,9 +43,6 @@ export class FilePathExtractor {
     // (undocumented)
     extract: () => string | undefined;
 }
-
-// @public
-export const stackNameToBackendIdentifierParts: (stackName?: string) => BackendIdentifierParts | undefined;
 
 // (No @packageDocumentation comment for this package)
 
