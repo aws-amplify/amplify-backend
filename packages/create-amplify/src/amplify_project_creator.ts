@@ -4,7 +4,7 @@ import { InitialProjectFileGenerator } from './initial_project_file_generator.js
 import { NpmProjectInitializer } from './npm_project_initializer.js';
 import { TsConfigInitializer } from './tsconfig_initializer.js';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
-import { Logger } from './logger.js';
+import { logger } from './logger.js';
 
 /**
  *
@@ -31,22 +31,19 @@ export class AmplifyProjectCreator {
     private readonly npmInitializedEnsurer: NpmProjectInitializer,
     private readonly tsConfigInitializer: TsConfigInitializer,
     private readonly gitIgnoreInitializer: GitIgnoreInitializer,
-    private readonly projectRoot: string,
-    private readonly logger: Logger
+    private readonly projectRoot: string
   ) {}
 
   /**
    * Executes the create-amplify workflow
    */
   create = async (): Promise<void> => {
-    await this.logger.debug(`Validating current state of target directory...`);
+    logger.debug(`Validating current state of target directory...`);
     await this.projectRootValidator.validate();
 
     await this.npmInitializedEnsurer.ensureInitialized();
 
-    await this.logger.startAnimatingEllipsis(
-      `Installing required dependencies`
-    );
+    logger.startAnimatingEllipsis(`Installing required dependencies`);
 
     await this.packageManagerController.installDependencies(
       this.defaultProdPackages,
@@ -58,9 +55,9 @@ export class AmplifyProjectCreator {
       'dev'
     );
 
-    await this.logger.stopAnimatingEllipsis();
+    logger.stopAnimatingEllipsis();
 
-    await this.logger.startAnimatingEllipsis(`Creating template files`);
+    logger.startAnimatingEllipsis(`Creating template files`);
 
     await this.tsConfigInitializer.ensureInitialized();
 
@@ -68,16 +65,16 @@ export class AmplifyProjectCreator {
 
     await this.initialProjectFileGenerator.generateInitialProjectFiles();
 
-    await this.logger.stopAnimatingEllipsis();
+    logger.stopAnimatingEllipsis();
 
-    await this.logger.log('Successfully created a new project!');
+    logger.log('Successfully created a new project!');
 
     const cdCommand =
       process.cwd() === this.projectRoot
         ? '`'
         : `\`cd .${this.projectRoot.replace(process.cwd(), '')}; `;
 
-    await this.logger.log(
+    logger.log(
       `Welcome to AWS Amplify! 
 Run \`amplify help\` for a list of available commands. 
 Get started by running ${cdCommand}amplify sandbox\`.`

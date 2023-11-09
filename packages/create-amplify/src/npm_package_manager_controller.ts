@@ -45,6 +45,6 @@ export class NpmPackageManagerController implements PackageManagerController {
     childProcess?.stdout?.pipe(aggregatorStream);
 
     await childProcess;
-    await logger.debug(aggregatedStdout);
+    logger.debug(aggregatedStdout);
   };
 }

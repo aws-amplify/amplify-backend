@@ -2,7 +2,7 @@ import { existsSync as _existsSync } from 'fs';
 import * as path from 'path';
 import { execa as _execa } from 'execa';
 import { PackageJsonReader } from './package_json_reader.js';
-import { Logger } from './logger.js';
+import { logger } from './logger.js';
 import stream from 'stream';
 
 /**
@@ -15,7 +15,6 @@ export class TsConfigInitializer {
   constructor(
     private readonly projectRoot: string,
     private readonly packageJsonReader: PackageJsonReader,
-    private readonly logger: Logger,
     private readonly existsSync = _existsSync,
     private readonly execa = _execa
   ) {}
@@ -28,7 +27,7 @@ export class TsConfigInitializer {
       // if tsconfig.json already exists, no need to do anything
       return;
     }
-    await this.logger.debug(
+    logger.debug(
       'No tsconfig.json file found in the current directory. Running `npx tsc --init`...'
     );
 
@@ -71,7 +70,7 @@ export class TsConfigInitializer {
       childProcess?.stderr?.pipe(aggregatorStream);
 
       await childProcess;
-      await this.logger.debug(aggregatedStdout);
+      logger.debug(aggregatedStdout);
     } catch {
       throw new Error(
         '`npx tsc --init` did not exit successfully. Initialize a valid TypeScript configuration before continuing.'

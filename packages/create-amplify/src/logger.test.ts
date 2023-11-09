@@ -3,67 +3,43 @@ import assert from 'assert';
 import { LogLevel, Logger } from './logger.js';
 
 void describe('Logger', () => {
-  void it('logs a message at INFO level', async (ctx) => {
-    const mockConsole = {
-      log: ctx.mock.fn(() => undefined),
-    };
+  void it('logs a message at INFO level', () => {
     const mockStdout = {
       write: mock.fn(),
     };
-    const logger = new Logger(
-      mockConsole as never,
-      LogLevel.INFO,
-      mockStdout as never
-    );
-    await logger.info('Test log message');
-    assert.equal(mockConsole.log.mock.callCount(), 1);
+    const logger = new Logger(mockStdout as never, LogLevel.INFO);
+    logger.info('Test log message');
+    assert.equal(mockStdout.write.mock.callCount(), 1);
     assert.match(
-      [...mockConsole.log.mock.calls[0].arguments][0] ?? '',
+      [...mockStdout.write.mock.calls[0].arguments][0] ?? '',
       new RegExp(`Test log message`)
     );
   });
 
-  void it('do NOT logs a debug message at INFO level', async (ctx) => {
-    const mockConsole = {
-      log: ctx.mock.fn(() => undefined),
-    };
+  void it('do NOT logs a debug message at INFO level', () => {
     const mockStdout = {
       write: mock.fn(),
     };
-    const logger = new Logger(
-      mockConsole as never,
-      LogLevel.INFO,
-      mockStdout as never
-    );
-    await logger.debug('Test log message');
-    assert.equal(mockConsole.log.mock.callCount(), 0);
+    const logger = new Logger(mockStdout as never, LogLevel.INFO);
+    logger.debug('Test log message');
+    assert.equal(mockStdout.write.mock.callCount(), 0);
   });
 
-  void it('logs a debug message at DEBUG level', async (ctx) => {
-    const mockConsole = {
-      log: ctx.mock.fn(() => undefined),
-    };
+  void it('logs a debug message at DEBUG level', () => {
     const mockStdout = {
       write: mock.fn(),
     };
 
-    const logger = new Logger(
-      mockConsole as never,
-      LogLevel.DEBUG,
-      mockStdout as never
-    );
-    await logger.debug('Test log message');
+    const logger = new Logger(mockStdout as never, LogLevel.DEBUG);
+    logger.debug('Test log message');
 
     assert.match(
-      [...mockConsole.log.mock.calls[0].arguments][0] ?? '',
+      [...mockStdout.write.mock.calls[0].arguments][0] ?? '',
       new RegExp(`\\[DEBUG\\].*: Test log message`)
     );
   });
 
-  void it('logs a debug message when VERBOSE is passed to the arguments', async (ctx) => {
-    const mockConsole = {
-      log: ctx.mock.fn(() => undefined),
-    };
+  void it('logs a debug message when VERBOSE is passed to the arguments', () => {
     const mockStdout = {
       write: mock.fn(),
     };
@@ -76,66 +52,51 @@ void describe('Logger', () => {
     const mockMinimumLogLevel =
       mockArgs.debug || mockArgs.verbose ? LogLevel.DEBUG : LogLevel.INFO;
 
-    const logger = new Logger(
-      mockConsole as never,
-      mockMinimumLogLevel,
-      mockStdout as never
-    );
-    await logger.debug('Test log message');
+    const logger = new Logger(mockStdout as never, mockMinimumLogLevel);
+    logger.debug('Test log message');
     assert.match(
-      [...mockConsole.log.mock.calls[0].arguments][0] ?? '',
+      [...mockStdout.write.mock.calls[0].arguments][0] ?? '',
       new RegExp(`\\[DEBUG\\].*: Test log message`)
     );
   });
 
-  void it('animating ellipsis is a noop in non-TTY terminal and instead logs a message at INFO level', async (ctx) => {
-    const mockConsole = {
-      log: ctx.mock.fn(() => undefined),
-    };
+  void it('animating ellipsis is a noop in non-TTY terminal and instead logs a message at INFO level', () => {
     const mockStdout = {
       write: mock.fn(),
     };
+    const mockLog = mock.fn();
 
-    const logger = new Logger(
-      mockConsole as never,
-      LogLevel.INFO,
-      mockStdout as never
-    );
+    const logger = new Logger(mockStdout as never, LogLevel.INFO);
 
     mock.method(logger, 'isTTY', () => false);
-    await logger.startAnimatingEllipsis('Test log message');
-    await logger.stopAnimatingEllipsis();
+    mock.method(logger, 'log', mockLog);
+    logger.startAnimatingEllipsis('Test log message');
+    logger.stopAnimatingEllipsis();
 
     assert.equal(mockStdout.write.mock.callCount(), 0);
-    assert.equal(mockConsole.log.mock.callCount(), 1);
+    assert.equal(mockLog.mock.callCount(), 1);
     assert.match(
-      [...mockConsole.log.mock.calls[0].arguments][0] ?? '',
-      new RegExp(`Test log message`)
+      [...mockLog.mock.calls[0].arguments][0],
+      new RegExp('Test log message')
     );
+    assert.equal(mockLog.mock.calls[0].arguments[1], LogLevel.INFO);
   });
 
-  void it('start animating ellipsis with message and stops animation in TTY terminal', async (ctx) => {
-    const mockConsole = {
-      log: ctx.mock.fn(() => undefined),
-    };
+  void it('start animating ellipsis with message and stops animation in TTY terminal', async () => {
     const mockStdout = {
       write: mock.fn(),
     };
-
-    const logger = new Logger(
-      mockConsole as never,
-      LogLevel.INFO,
-      mockStdout as never
-    );
     const mockWriteEscapeSequence = mock.fn();
+
+    const logger = new Logger(mockStdout as never, LogLevel.INFO);
+
     mock.method(logger, 'isTTY', () => true);
     mock.method(logger, 'writeEscapeSequence', mockWriteEscapeSequence);
-    await logger.startAnimatingEllipsis('Test log message');
+    logger.startAnimatingEllipsis('Test log message');
     // Wait for default refresh rate plus small delta
     await new Promise((resolve) => setTimeout(resolve, 500 + 10));
-    await logger.stopAnimatingEllipsis();
+    logger.stopAnimatingEllipsis();
 
-    assert.equal(mockConsole.log.mock.callCount(), 0);
     assert.equal(mockStdout.write.mock.callCount(), 3);
     assert.equal(mockWriteEscapeSequence.mock.callCount(), 6);
 

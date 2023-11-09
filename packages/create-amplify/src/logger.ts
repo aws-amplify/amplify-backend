@@ -14,13 +14,12 @@ export class Logger {
 
   /**
    * Creates a new Logger instance. Injecting stdout for testing.
-   * @param console The console to log to.
+   * @param stdout The stream to write logs to.
    * @param minimumLogLevel The minimum log level to log.
    */
   constructor(
-    private readonly console: Console = global.console,
-    private readonly minimumLogLevel: LogLevel = LogLevel.INFO,
-    private readonly stdout = process.stdout
+    private readonly stdout = process.stdout,
+    private readonly minimumLogLevel: LogLevel = LogLevel.INFO
   ) {
     this.refreshRate = 500; // every 0.5 seconds
   }
@@ -28,7 +27,7 @@ export class Logger {
   /**
    * Logs a message to the console.
    */
-  async log(message: string, level: LogLevel = LogLevel.INFO) {
+  log(message: string, level: LogLevel = LogLevel.INFO) {
     const toLogMessage = level <= this.minimumLogLevel;
 
     if (!toLogMessage) {
@@ -36,38 +35,39 @@ export class Logger {
     }
 
     const logMessage =
-      level === LogLevel.DEBUG
+      this.minimumLogLevel === LogLevel.DEBUG
         ? `[${LogLevel[level]}] ${new Date().toISOString()}: ${message}`
         : message;
-    this.console.log(logMessage);
+    this.stdout.write(logMessage + os.EOL);
   }
 
   /**
    * Start animating ellipsis at the end of a log message.
    */
-  async startAnimatingEllipsis(message: string) {
+  startAnimatingEllipsis(message: string) {
     if (!this.isTTY()) {
-      await this.log(message, LogLevel.INFO);
+      this.log(message, LogLevel.INFO);
       return;
     }
 
     this.animateMessage = message;
-    const frames = ['.', '..', '...'];
+    const frameLength = 4; // number of desired dots - 1
     let frameCount = 0;
     this.writeEscapeSequence(EscapeSequence.HIDE_CURSOR);
     this.stdout.write(this.animateMessage);
     this.timer = setInterval(() => {
       this.writeEscapeSequence(EscapeSequence.CLEAR_LINE);
       this.writeEscapeSequence(EscapeSequence.MOVE_CURSOR_TO_START);
-      this.stdout.write(this.animateMessage + frames[frameCount++]);
-      frameCount = frameCount % frames.length;
+      this.stdout.write(
+        this.animateMessage + '.'.repeat(++frameCount % frameLength)
+      );
     }, this.refreshRate);
   }
 
   /**
    * Stops animating ellipsis and replace with a log message.
    */
-  async stopAnimatingEllipsis() {
+  stopAnimatingEllipsis() {
     if (!this.isTTY()) {
       return;
     }
@@ -100,29 +100,29 @@ export class Logger {
   /**
    * Logs an error to the console.
    */
-  async error(message: string) {
-    await this.log(message, LogLevel.ERROR);
+  error(message: string) {
+    this.log(message, LogLevel.ERROR);
   }
 
   /**
    * Logs a warning to the console.
    */
-  async warn(message: string) {
-    await this.log(message, LogLevel.WARNING);
+  warn(message: string) {
+    this.log(message, LogLevel.WARNING);
   }
 
   /**
    * Logs an info message to the console.
    */
-  async info(message: string) {
-    await this.log(message, LogLevel.INFO);
+  info(message: string) {
+    this.log(message, LogLevel.INFO);
   }
 
   /**
    * Logs a debug message to the console.
    */
-  async debug(message: string) {
-    await this.log(message, LogLevel.DEBUG);
+  debug(message: string) {
+    this.log(message, LogLevel.DEBUG);
   }
 }
 
@@ -154,6 +154,6 @@ export const argv = await yargs(process.argv.slice(2)).options({
 const minimumLogLevel =
   argv.debug || argv.verbose ? LogLevel.DEBUG : LogLevel.INFO;
 
-const logger = new Logger(global.console, minimumLogLevel);
+const logger = new Logger(process.stdout, minimumLogLevel);
 
 export { logger };
