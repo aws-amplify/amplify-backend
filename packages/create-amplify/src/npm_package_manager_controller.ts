@@ -27,16 +27,10 @@ export class NpmPackageManagerController implements PackageManagerController {
     type: DependencyType
   ): Promise<void> => {
     const args = ['install'].concat(...packageNames);
-    if (type === 'dev') {
+    const typeDev = type === 'dev';
+    if (typeDev) {
       args.push('--save-dev');
     }
-
-    let aggregatedStdout = '';
-    const aggregatorStream = new stream.Writable();
-    aggregatorStream._write = function (chunk, encoding, done) {
-      aggregatedStdout += chunk;
-      done();
-    };
 
     try {
       const childProcess = this.execa(this.executableName, args, {
@@ -44,13 +38,16 @@ export class NpmPackageManagerController implements PackageManagerController {
         cwd: this.projectRoot,
       });
 
-      childProcess?.stdout?.pipe(aggregatorStream);
-      childProcess?.stderr?.pipe(aggregatorStream);
+      childProcess?.stdout?.on('data', (data) => logger.debug(data));
+      childProcess?.stderr?.on('data', (data) => logger.debug(data));
 
       await childProcess;
-      logger.debug(aggregatedStdout);
     } catch {
-      logger.debug(aggregatedStdout);
+      throw new Error(
+        `\`npm install ${packageNames.join(' ')}${
+          typeDev ? ' --save-dev' : ''
+        }\` did not exit successfully.`
+      );
     }
   };
 }
