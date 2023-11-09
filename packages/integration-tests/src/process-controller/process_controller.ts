@@ -125,8 +125,10 @@ export const amplifyCli = (
   if (options?.installationType === 'local') {
     command = execaSync('npx', ['which', 'amplify'], {
       cwd: dir,
-      stdio: 'inherit',
     }).stdout;
+    if (!command) {
+      throw new Error('Unable to locate amplify binary');
+    }
     console.log(`Using ${command} from npx which amplify`);
   } else {
     command = 'amplify';
