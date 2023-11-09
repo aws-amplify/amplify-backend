@@ -123,7 +123,9 @@ export const amplifyCli = (
 ): ProcessController => {
   let command: string;
   if (options?.installationType === 'local') {
-    command = execaSync('npx', ['which', 'amplify']).stdout;
+    command = execaSync('npx', ['which', 'amplify'], {
+      stdio: 'inherit',
+    }).stdout;
     console.log(`Using ${command} from npx which amplify`);
   } else {
     command = 'amplify';
