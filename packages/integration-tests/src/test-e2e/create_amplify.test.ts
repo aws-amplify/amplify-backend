@@ -176,7 +176,7 @@ void describe('create-amplify script', () => {
       result.stderr
         .toLocaleString()
         .includes(
-          'Either delete this file/directory or initialize the project in a different location'
+          'If you are trying to run an Amplify (Gen 2) command inside an Amplify (Gen 1) project we recommend creating the project in another directory'
         )
     );
   });
