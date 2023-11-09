@@ -50,7 +50,9 @@ export class ProcessController {
 
     for await (const line of ptyProcess.output) {
       const currentInteraction = interactionQueue[0];
-      console.log(`Current interaction: ${currentInteraction.description}`);
+      if (currentInteraction) {
+        console.log(`Current interaction: ${currentInteraction?.description}`);
+      }
       console.log(`Current line: ${line}`);
       try {
         // For now we only have one predicate type. If we add more predicate types in the future, we will have to
