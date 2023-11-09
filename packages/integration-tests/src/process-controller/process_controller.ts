@@ -129,7 +129,7 @@ export const amplifyCli = (
     // See: https://github.com/aws-amplify/amplify-backend/issues/582
     command = execaSync('npx', ['which', 'amplify'], {
       cwd: dir,
-    }).stdout;
+    }).stdout.trim();
     if (!command) {
       throw new Error('Unable to locate amplify binary');
     }
