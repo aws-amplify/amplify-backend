@@ -221,6 +221,7 @@ export class PtyProcess {
   };
 
   kill = (signal: string) => {
+    console.log(`[pid=${this.pid}] kill(${signal})`);
     this.ptyProcess.kill(signal);
   };
 }
