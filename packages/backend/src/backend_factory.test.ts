@@ -6,25 +6,22 @@ import { BackendFactory } from './backend_factory.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
-import {
-  BackendDeploymentType,
-  CDKContextKey,
-} from '@aws-amplify/platform-core';
+import { BackendDeploymentType } from '@aws-amplify/platform-core';
 
 const createStackAndSetContext = (
   deploymentType: BackendDeploymentType
 ): Stack => {
   const app = new App();
-  app.node.setContext(CDKContextKey.DEPLOYMENT_TYPE, deploymentType);
+  app.node.setContext('amplify-backend-type', deploymentType);
   switch (deploymentType) {
     case BackendDeploymentType.SANDBOX:
-      app.node.setContext(CDKContextKey.BACKEND_NAMESPACE, 'projectName');
-      app.node.setContext(CDKContextKey.BACKEND_NAME, 'testUser');
+      app.node.setContext('amplify-backend-namespace', 'projectName');
+      app.node.setContext('amplify-backend-name', 'testUser');
 
       break;
     case BackendDeploymentType.BRANCH:
-      app.node.setContext(CDKContextKey.BACKEND_NAME, 'testEnvName');
-      app.node.setContext(CDKContextKey.BACKEND_NAMESPACE, 'testBackendId');
+      app.node.setContext('amplify-backend-name', 'testEnvName');
+      app.node.setContext('amplify-backend-namespace', 'testBackendId');
       break;
   }
 

@@ -4,7 +4,6 @@ import assert from 'node:assert';
 import {
   BackendDeploymentType,
   BackendLocator,
-  CDKContextKey,
 } from '@aws-amplify/platform-core';
 import { DeployProps } from './cdk_deployer_singleton_factory.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
@@ -70,9 +69,9 @@ void describe('invokeCDKCommand', () => {
       '--output',
       '.amplify/artifacts/cdk.out',
       '--context',
-      `${CDKContextKey.BACKEND_NAMESPACE}=123`,
+      `${'amplify-backend-namespace'}=123`,
       '--context',
-      `${CDKContextKey.BACKEND_NAME}=testBranch`,
+      `${'amplify-backend-name'}=testBranch`,
       '--require-approval',
       'never',
     ]);
@@ -92,7 +91,7 @@ void describe('invokeCDKCommand', () => {
       '--output',
       '.amplify/artifacts/cdk.out',
       '--context',
-      `${CDKContextKey.DEPLOYMENT_TYPE}=SANDBOX`,
+      `${'amplify-backend-type'}=SANDBOX`,
       '--hotswap-fallback',
       '--method=direct',
       '--context',
@@ -116,11 +115,11 @@ void describe('invokeCDKCommand', () => {
       '--output',
       '.amplify/artifacts/cdk.out',
       '--context',
-      `${CDKContextKey.BACKEND_NAMESPACE}=123`,
+      `${'amplify-backend-namespace'}=123`,
       '--context',
-      `${CDKContextKey.BACKEND_NAME}=testBranch`,
+      `${'amplify-backend-name'}=testBranch`,
       '--context',
-      `${CDKContextKey.DEPLOYMENT_TYPE}=SANDBOX`,
+      `${'amplify-backend-type'}=SANDBOX`,
       '--hotswap-fallback',
       '--method=direct',
       '--context',
@@ -146,11 +145,11 @@ void describe('invokeCDKCommand', () => {
       '--output',
       '.amplify/artifacts/cdk.out',
       '--context',
-      `${CDKContextKey.BACKEND_NAMESPACE}=123`,
+      `${'amplify-backend-namespace'}=123`,
       '--context',
-      `${CDKContextKey.BACKEND_NAME}=testBranch`,
+      `${'amplify-backend-name'}=testBranch`,
       '--context',
-      `${CDKContextKey.DEPLOYMENT_TYPE}=SANDBOX`,
+      `${'amplify-backend-type'}=SANDBOX`,
       '--force',
     ]);
   });
@@ -185,13 +184,13 @@ void describe('invokeCDKCommand', () => {
       '--output',
       '.amplify/artifacts/cdk.out',
       '--context',
-      `${CDKContextKey.BACKEND_NAMESPACE}=123`,
+      `${'amplify-backend-namespace'}=123`,
       '--context',
-      `${CDKContextKey.BACKEND_NAME}=testBranch`,
+      `${'amplify-backend-name'}=testBranch`,
       '--require-approval',
       'never',
       '--context',
-      `${CDKContextKey.DEPLOYMENT_TYPE}=BRANCH`,
+      `${'amplify-backend-type'}=BRANCH`,
     ]);
   });
 
@@ -225,7 +224,7 @@ void describe('invokeCDKCommand', () => {
       '--output',
       '.amplify/artifacts/cdk.out',
       '--context',
-      `${CDKContextKey.DEPLOYMENT_TYPE}=SANDBOX`,
+      `${'amplify-backend-type'}=SANDBOX`,
       '--hotswap-fallback',
       '--method=direct',
     ]);
@@ -252,13 +251,13 @@ void describe('invokeCDKCommand', () => {
         '--output',
         '.amplify/artifacts/cdk.out',
         '--context',
-        `${CDKContextKey.BACKEND_NAMESPACE}=123`,
+        `${'amplify-backend-namespace'}=123`,
         '--context',
-        `${CDKContextKey.BACKEND_NAME}=testBranch`,
+        `${'amplify-backend-name'}=testBranch`,
         '--require-approval',
         'never',
         '--context',
-        `${CDKContextKey.DEPLOYMENT_TYPE}=BRANCH`,
+        `${'amplify-backend-type'}=BRANCH`,
       ]);
     } finally {
       delete process.env[
@@ -289,7 +288,7 @@ void describe('invokeCDKCommand', () => {
         '--output',
         '.amplify/artifacts/cdk.out',
         '--context',
-        `${CDKContextKey.DEPLOYMENT_TYPE}=SANDBOX`,
+        `${'amplify-backend-type'}=SANDBOX`,
         '--hotswap-fallback',
         '--method=direct',
       ]);

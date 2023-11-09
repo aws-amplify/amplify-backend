@@ -3,20 +3,14 @@ import { createDefaultStack } from './default_stack_factory.js';
 import { App } from 'aws-cdk-lib';
 import assert from 'node:assert';
 import { AmplifyStack } from './engine/amplify_stack.js';
-import {
-  BackendDeploymentType,
-  CDKContextKey,
-} from '@aws-amplify/platform-core';
+import { BackendDeploymentType } from '@aws-amplify/platform-core';
 
 void describe('createDefaultRootStack', () => {
   void it('creates AmplifyStack with backend ID and branch from CDK context', () => {
     const app = new App();
-    app.node.setContext(CDKContextKey.BACKEND_NAMESPACE, 'testBackendId');
-    app.node.setContext(CDKContextKey.BACKEND_NAME, 'testBranchName');
-    app.node.setContext(
-      CDKContextKey.DEPLOYMENT_TYPE,
-      BackendDeploymentType.BRANCH
-    );
+    app.node.setContext('amplify-backend-namespace', 'testBackendId');
+    app.node.setContext('amplify-backend-name', 'testBranchName');
+    app.node.setContext('amplify-backend-type', BackendDeploymentType.BRANCH);
     const stack = createDefaultStack(app);
     assert.ok(stack instanceof AmplifyStack);
     assert.strictEqual(
@@ -27,12 +21,9 @@ void describe('createDefaultRootStack', () => {
 
   void it('creates sandbox AmplifyStack when deployment type is sandbox', () => {
     const app = new App();
-    app.node.setContext(CDKContextKey.BACKEND_NAMESPACE, 'testProjectName');
-    app.node.setContext(CDKContextKey.BACKEND_NAME, 'testUser');
-    app.node.setContext(
-      CDKContextKey.DEPLOYMENT_TYPE,
-      BackendDeploymentType.SANDBOX
-    );
+    app.node.setContext('amplify-backend-namespace', 'testProjectName');
+    app.node.setContext('amplify-backend-name', 'testUser');
+    app.node.setContext('amplify-backend-type', BackendDeploymentType.SANDBOX);
     const stack = createDefaultStack(app);
     assert.ok(stack instanceof AmplifyStack);
     assert.strictEqual(
@@ -42,36 +33,30 @@ void describe('createDefaultRootStack', () => {
     );
   });
 
-  void it(`throws if ${CDKContextKey.BACKEND_NAMESPACE} is missing`, () => {
+  void it(`throws if ${'amplify-backend-namespace'} is missing`, () => {
     const app = new App();
-    app.node.setContext(CDKContextKey.BACKEND_NAME, 'testEnvName');
-    app.node.setContext(
-      CDKContextKey.DEPLOYMENT_TYPE,
-      BackendDeploymentType.BRANCH
-    );
+    app.node.setContext('amplify-backend-name', 'testEnvName');
+    app.node.setContext('amplify-backend-type', BackendDeploymentType.BRANCH);
     assert.throws(() => createDefaultStack(app), {
-      message: `No context value present for ${CDKContextKey.BACKEND_NAMESPACE} key`,
+      message: `No context value present for ${'amplify-backend-namespace'} key`,
     });
   });
 
-  void it(`throws if ${CDKContextKey.BACKEND_NAME} is missing`, () => {
+  void it(`throws if ${'amplify-backend-name'} is missing`, () => {
     const app = new App();
-    app.node.setContext(CDKContextKey.BACKEND_NAMESPACE, 'testBackendId');
-    app.node.setContext(
-      CDKContextKey.DEPLOYMENT_TYPE,
-      BackendDeploymentType.BRANCH
-    );
+    app.node.setContext('amplify-backend-namespace', 'testBackendId');
+    app.node.setContext('amplify-backend-type', BackendDeploymentType.BRANCH);
     assert.throws(() => createDefaultStack(app), {
-      message: `No context value present for ${CDKContextKey.BACKEND_NAME} key`,
+      message: `No context value present for ${'amplify-backend-name'} key`,
     });
   });
 
-  void it(`throws if ${CDKContextKey.DEPLOYMENT_TYPE} is missing`, () => {
+  void it(`throws if ${'amplify-backend-type'} is missing`, () => {
     const app = new App();
-    app.node.setContext(CDKContextKey.BACKEND_NAMESPACE, 'testBackendId');
-    app.node.setContext(CDKContextKey.BACKEND_NAME, 'testEnvName');
+    app.node.setContext('amplify-backend-namespace', 'testBackendId');
+    app.node.setContext('amplify-backend-name', 'testEnvName');
     assert.throws(() => createDefaultStack(app), {
-      message: `No context value present for ${CDKContextKey.DEPLOYMENT_TYPE} key`,
+      message: `No context value present for ${'amplify-backend-type'} key`,
     });
   });
 });

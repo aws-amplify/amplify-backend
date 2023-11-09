@@ -25,10 +25,7 @@ import {
 } from 'aws-cdk-lib/aws-cognito';
 import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
-import {
-  BackendDeploymentType,
-  CDKContextKey,
-} from '@aws-amplify/platform-core';
+import { BackendDeploymentType } from '@aws-amplify/platform-core';
 import { AmplifyGraphqlApi } from '@aws-amplify/graphql-api-construct';
 import {
   ConstructContainerStub,
@@ -46,12 +43,9 @@ const testSchema = /* GraphQL */ `
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
-  app.node.setContext(CDKContextKey.BACKEND_NAME, 'testEnvName');
-  app.node.setContext(CDKContextKey.BACKEND_NAMESPACE, 'testBackendId');
-  app.node.setContext(
-    CDKContextKey.DEPLOYMENT_TYPE,
-    BackendDeploymentType.BRANCH
-  );
+  app.node.setContext('amplify-backend-name', 'testEnvName');
+  app.node.setContext('amplify-backend-namespace', 'testBackendId');
+  app.node.setContext('amplify-backend-type', BackendDeploymentType.BRANCH);
   const stack = new Stack(app);
   return stack;
 };
