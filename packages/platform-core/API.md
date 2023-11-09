@@ -6,14 +6,6 @@
 
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 
-// @public (undocumented)
-export enum BackendDeploymentType {
-    // (undocumented)
-    BRANCH = "BRANCH",
-    // (undocumented)
-    SANDBOX = "SANDBOX"
-}
-
 // @public
 export class BackendIdentifierConversions {
     static fromStackName(stackName?: string): BackendIdentifier | undefined;

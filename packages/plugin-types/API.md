@@ -43,12 +43,12 @@ export type AuthResources = {
 export type BackendIdentifier = {
     namespace: Readonly<AppId>;
     name: Readonly<BranchName>;
-    type: Readonly<'branch'>;
+    type: Readonly<Extract<DeploymentType, 'branch'>>;
     hash?: Readonly<string>;
 } | {
     namespace: Readonly<ProjectName>;
     name: Readonly<SandboxName>;
-    type: Readonly<'sandbox'>;
+    type: Readonly<Extract<DeploymentType, 'sandbox'>>;
     hash?: Readonly<string>;
 };
 
@@ -114,6 +114,9 @@ export type ConstructFactoryGetInstanceProps = {
     outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
     importPathVerifier?: ImportPathVerifier;
 };
+
+// @public
+export type DeploymentType = 'branch' | 'sandbox';
 
 // @public (undocumented)
 export type FunctionResources = {

@@ -6,9 +6,9 @@
 
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
-import { BackendDeploymentType } from '@aws-amplify/platform-core';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import { DeploymentType } from '@aws-amplify/plugin-types';
 import { S3Client } from '@aws-sdk/client-s3';
 import { UnifiedBackendOutput } from '@aws-amplify/backend-output-schemas';
 
@@ -52,7 +52,7 @@ export enum BackendDeploymentStatus {
 export type BackendMetadata = {
     name: string;
     lastUpdated: Date | undefined;
-    deploymentType: BackendDeploymentType;
+    deploymentType: DeploymentType;
     status: BackendDeploymentStatus;
     resources: DeployedBackendResource[];
     apiConfiguration?: {

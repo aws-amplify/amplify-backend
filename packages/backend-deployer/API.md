@@ -4,8 +4,8 @@
 
 ```ts
 
-import { BackendDeploymentType } from '@aws-amplify/platform-core';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { DeploymentType } from '@aws-amplify/plugin-types';
 
 // @public
 export type BackendDeployer = {
@@ -20,14 +20,14 @@ export class BackendDeployerFactory {
 
 // @public (undocumented)
 export type DeployProps = {
-    deploymentType?: BackendDeploymentType;
+    deploymentType?: DeploymentType;
     secretLastUpdated?: Date;
     validateAppSources?: boolean;
 };
 
 // @public (undocumented)
 export type DestroyProps = {
-    deploymentType?: BackendDeploymentType;
+    deploymentType?: DeploymentType;
 };
 
 // (No @packageDocumentation comment for this package)
