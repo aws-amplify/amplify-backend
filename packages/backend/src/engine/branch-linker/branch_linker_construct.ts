@@ -47,7 +47,7 @@ export class AmplifyBranchLinkerConstruct extends Construct {
       environment,
       bundling: {
         // TODO Remove it when Lambda serves SDK 3.440.0+
-        // https://github.com/aws-amplify/samsara-cli/issues/561
+        // https://github.com/aws-amplify/amplify-backend/issues/561
         // This is added to force bundler to include local version of AWS SDK.
         // Lambda provided version does not have 'backend.stackArn' yet.
         externalModules: [],

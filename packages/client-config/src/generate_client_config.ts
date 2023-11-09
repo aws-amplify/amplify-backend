@@ -10,7 +10,7 @@ import {
 // exposing the ClientConfigGeneratorFactory in the method signature. For this reason, we're turning off coverage for this file
 // All this function should do is construct the factory and delegate to generateClientConfig()
 // TODO this functionality should be tested in an E2E test once we've worked out a strategy to use real AWS credentials in tests
-// https://github.com/aws-amplify/samsara-cli/issues/46
+// https://github.com/aws-amplify/amplify-backend/issues/46
 /* c8 ignore start */
 
 /**
