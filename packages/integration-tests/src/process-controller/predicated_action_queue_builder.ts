@@ -38,6 +38,7 @@ export class PredicatedActionBuilder {
           return line.includes(str);
         },
       },
+      description: `Waiting for line that includes ${str}`,
     });
     return this;
   };

@@ -1,4 +1,4 @@
-import { PtyProcess } from "./process_controller.js";
+import { PtyProcess } from './process_controller.js';
 
 /**
  * Type of actions a user can take with their app.
@@ -59,4 +59,6 @@ export type PredicatedAction = {
    * If we need to do things like send multiple keystrokes in response to a single prompt, we will likely need to expand this to an array of values to send
    */
   then?: Action;
+
+  description: string;
 };
