@@ -150,7 +150,7 @@ void describe('create-amplify script', () => {
           '--context',
           `${CDKContextKey.BACKEND_NAMESPACE}=123`,
           '--context',
-          `${CDKContextKey.BACKEND_INSTANCE}=sandboxName`,
+          `${CDKContextKey.BACKEND_NAME}=sandboxName`,
           '--context',
           `${CDKContextKey.DEPLOYMENT_TYPE}=SANDBOX`,
           '--app',

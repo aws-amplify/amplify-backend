@@ -12,7 +12,7 @@ void describe('createDefaultRootStack', () => {
   void it('creates AmplifyStack with backend ID and branch from CDK context', () => {
     const app = new App();
     app.node.setContext(CDKContextKey.BACKEND_NAMESPACE, 'testBackendId');
-    app.node.setContext(CDKContextKey.BACKEND_INSTANCE, 'testBranchName');
+    app.node.setContext(CDKContextKey.BACKEND_NAME, 'testBranchName');
     app.node.setContext(
       CDKContextKey.DEPLOYMENT_TYPE,
       BackendDeploymentType.BRANCH
@@ -28,7 +28,7 @@ void describe('createDefaultRootStack', () => {
   void it('creates sandbox AmplifyStack when deployment type is sandbox', () => {
     const app = new App();
     app.node.setContext(CDKContextKey.BACKEND_NAMESPACE, 'testProjectName');
-    app.node.setContext(CDKContextKey.BACKEND_INSTANCE, 'testUser');
+    app.node.setContext(CDKContextKey.BACKEND_NAME, 'testUser');
     app.node.setContext(
       CDKContextKey.DEPLOYMENT_TYPE,
       BackendDeploymentType.SANDBOX
@@ -43,7 +43,7 @@ void describe('createDefaultRootStack', () => {
 
   void it(`throws if ${CDKContextKey.BACKEND_NAMESPACE} is missing`, () => {
     const app = new App();
-    app.node.setContext(CDKContextKey.BACKEND_INSTANCE, 'testEnvName');
+    app.node.setContext(CDKContextKey.BACKEND_NAME, 'testEnvName');
     app.node.setContext(
       CDKContextKey.DEPLOYMENT_TYPE,
       BackendDeploymentType.BRANCH
@@ -53,7 +53,7 @@ void describe('createDefaultRootStack', () => {
     });
   });
 
-  void it(`throws if ${CDKContextKey.BACKEND_INSTANCE} is missing`, () => {
+  void it(`throws if ${CDKContextKey.BACKEND_NAME} is missing`, () => {
     const app = new App();
     app.node.setContext(CDKContextKey.BACKEND_NAMESPACE, 'testBackendId');
     app.node.setContext(
@@ -61,14 +61,14 @@ void describe('createDefaultRootStack', () => {
       BackendDeploymentType.BRANCH
     );
     assert.throws(() => createDefaultStack(app), {
-      message: `No context value present for ${CDKContextKey.BACKEND_INSTANCE} key`,
+      message: `No context value present for ${CDKContextKey.BACKEND_NAME} key`,
     });
   });
 
   void it(`throws if ${CDKContextKey.DEPLOYMENT_TYPE} is missing`, () => {
     const app = new App();
     app.node.setContext(CDKContextKey.BACKEND_NAMESPACE, 'testBackendId');
-    app.node.setContext(CDKContextKey.BACKEND_INSTANCE, 'testEnvName');
+    app.node.setContext(CDKContextKey.BACKEND_NAME, 'testEnvName');
     assert.throws(() => createDefaultStack(app), {
       message: `No context value present for ${CDKContextKey.DEPLOYMENT_TYPE} key`,
     });

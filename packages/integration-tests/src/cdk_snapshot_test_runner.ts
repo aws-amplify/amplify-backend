@@ -44,7 +44,7 @@ const runCDKSnapshotTest = ({
     process.env.CDK_OUTDIR = await createTempCdkOutDirForTest(name);
     process.env.CDK_CONTEXT_JSON = JSON.stringify({
       [CDKContextKey.BACKEND_NAMESPACE]: 'testAppId',
-      [CDKContextKey.BACKEND_INSTANCE]: 'testBranchName',
+      [CDKContextKey.BACKEND_NAME]: 'testBranchName',
       [CDKContextKey.DEPLOYMENT_TYPE]: 'BRANCH',
       secretLastUpdated: 123456789,
     });
