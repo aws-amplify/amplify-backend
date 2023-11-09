@@ -137,11 +137,9 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
    * Fetches all backend metadata for a specified backend
    */
   getBackendMetadata = async (
-    backendIdentifierParts: BackendIdentifier
+    backendId: BackendIdentifier
   ): Promise<BackendMetadata> => {
-    const stackName = BackendIdentifierConversions.toStackName(
-      backendIdentifierParts
-    );
+    const stackName = BackendIdentifierConversions.toStackName(backendId);
     return this.buildBackendMetadata(stackName);
   };
 

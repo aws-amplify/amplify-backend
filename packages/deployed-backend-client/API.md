@@ -127,7 +127,7 @@ export enum ConflictResolutionMode {
 export type DeployedBackendClient = {
     listSandboxes: (listSandboxesRequest?: ListSandboxesRequest) => Promise<ListSandboxesResponse>;
     deleteSandbox: (sandboxBackendIdentifier: Omit<BackendIdentifier, 'type'>) => Promise<void>;
-    getBackendMetadata: (backendIdentifierParts: BackendIdentifier) => Promise<BackendMetadata>;
+    getBackendMetadata: (backendId: BackendIdentifier) => Promise<BackendMetadata>;
 };
 
 // @public

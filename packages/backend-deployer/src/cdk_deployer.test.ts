@@ -12,7 +12,7 @@ import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { BackendDeployerEnvironmentVariables } from './environment_variables.js';
 
 void describe('invokeCDKCommand', () => {
-  const backendIdentifierParts: BackendIdentifier = {
+  const backendId: BackendIdentifier = {
     namespace: '123',
     name: 'testBranch',
     type: 'branch',
@@ -57,7 +57,7 @@ void describe('invokeCDKCommand', () => {
   });
 
   void it('handles options for branch deployments', async () => {
-    await invoker.deploy(backendIdentifierParts);
+    await invoker.deploy(backendId);
     assert.strictEqual(execaMock.mock.callCount(), 1);
     assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 14);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
@@ -103,7 +103,7 @@ void describe('invokeCDKCommand', () => {
   });
 
   void it('handles options and deployProps for sandbox', async () => {
-    await invoker.deploy(backendIdentifierParts, sandboxDeployProps);
+    await invoker.deploy(backendId, sandboxDeployProps);
     assert.strictEqual(execaMock.mock.callCount(), 1);
     assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 18);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
@@ -131,7 +131,7 @@ void describe('invokeCDKCommand', () => {
   });
 
   void it('handles destroy for sandbox', async () => {
-    await invoker.destroy(backendIdentifierParts, {
+    await invoker.destroy(backendId, {
       deploymentType: BackendDeploymentType.SANDBOX,
     });
     assert.strictEqual(execaMock.mock.callCount(), 1);
@@ -156,7 +156,7 @@ void describe('invokeCDKCommand', () => {
   });
 
   void it('enables type checking for branch deployments', async () => {
-    await invoker.deploy(backendIdentifierParts, {
+    await invoker.deploy(backendId, {
       deploymentType: BackendDeploymentType.BRANCH,
       validateAppSources: true,
     });
@@ -236,7 +236,7 @@ void describe('invokeCDKCommand', () => {
       process.env[
         BackendDeployerEnvironmentVariables.ALWAYS_DISABLE_APP_SOURCES_VALIDATION
       ] = 'true';
-      await invoker.deploy(backendIdentifierParts, {
+      await invoker.deploy(backendId, {
         deploymentType: BackendDeploymentType.BRANCH,
         validateAppSources: true,
       });
@@ -307,7 +307,7 @@ void describe('invokeCDKCommand', () => {
     });
 
     await assert.rejects(
-      () => invoker.deploy(backendIdentifierParts, sandboxDeployProps),
+      () => invoker.deploy(backendId, sandboxDeployProps),
       (err: Error) => {
         assert.equal(
           err.message,

@@ -54,18 +54,16 @@ export class PipelineDeployCommand
       );
     }
 
-    const backendIdentifierParts: BackendIdentifier = {
+    const backendId: BackendIdentifier = {
       namespace: args['app-id'],
       name: args.branch,
       type: 'branch',
     };
-    await this.backendDeployer.deploy(backendIdentifierParts, {
+    await this.backendDeployer.deploy(backendId, {
       deploymentType: BackendDeploymentType.BRANCH,
       validateAppSources: true,
     });
-    await this.clientConfigGenerator.generateClientConfigToFile(
-      backendIdentifierParts
-    );
+    await this.clientConfigGenerator.generateClientConfigToFile(backendId);
   };
 
   builder = (yargs: Argv): Argv<PipelineDeployCommandOptions> => {

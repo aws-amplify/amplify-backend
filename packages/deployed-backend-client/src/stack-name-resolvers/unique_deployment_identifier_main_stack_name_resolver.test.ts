@@ -5,7 +5,7 @@ import { BackendIdentifier } from '@aws-amplify/plugin-types';
 
 void describe('BackendIdentifierMainStackNameResolver', () => {
   void describe('resolveMainStackName', () => {
-    const backendIdentifierParts: BackendIdentifier = {
+    const backendId: BackendIdentifier = {
       namespace: 'testBackendId',
       name: 'testBranchName',
       type: 'branch',
@@ -13,7 +13,7 @@ void describe('BackendIdentifierMainStackNameResolver', () => {
 
     void it('returns value of getMainStackName', async () => {
       const stackNameResolver = new BackendIdentifierMainStackNameResolver(
-        backendIdentifierParts
+        backendId
       );
 
       const result = await stackNameResolver.resolveMainStackName();

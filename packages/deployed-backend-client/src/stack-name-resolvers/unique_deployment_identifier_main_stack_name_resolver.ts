@@ -13,11 +13,11 @@ export class BackendIdentifierMainStackNameResolver
   /**
    * Initialize with the project environment identifier and an SSMClient
    */
-  constructor(private readonly backendIdentifierParts: BackendIdentifier) {}
+  constructor(private readonly backendId: BackendIdentifier) {}
 
   /**
    * Resolve the stack name for this project environment
    */
   resolveMainStackName = async (): Promise<string> =>
-    BackendIdentifierConversions.toStackName(this.backendIdentifierParts);
+    BackendIdentifierConversions.toStackName(this.backendId);
 }

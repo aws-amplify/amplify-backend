@@ -14,7 +14,7 @@ export class ProjectEnvironmentMainStackCreator implements MainStackCreator {
    */
   constructor(
     private readonly scope: Construct,
-    private readonly backendIdentifierParts: BackendIdentifier
+    private readonly backendId: BackendIdentifier
   ) {}
 
   /**
@@ -24,7 +24,7 @@ export class ProjectEnvironmentMainStackCreator implements MainStackCreator {
     if (this.mainStack === undefined) {
       this.mainStack = new AmplifyStack(
         this.scope,
-        BackendIdentifierConversions.toStackName(this.backendIdentifierParts)
+        BackendIdentifierConversions.toStackName(this.backendId)
       );
     }
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

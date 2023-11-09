@@ -21,11 +21,11 @@ export type DestroyProps = {
  */
 export type BackendDeployer = {
   deploy: (
-    backendIdentifierParts?: BackendIdentifier,
+    backendId?: BackendIdentifier,
     deployProps?: DeployProps
   ) => Promise<void>;
   destroy: (
-    backendIdentifierParts?: BackendIdentifier,
+    backendId?: BackendIdentifier,
     destroyProps?: DestroyProps
   ) => Promise<void>;
 };

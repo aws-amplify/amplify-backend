@@ -9,8 +9,8 @@ import { BackendIdentifier } from '@aws-amplify/plugin-types';
 
 // @public
 export type BackendDeployer = {
-    deploy: (backendIdentifierParts?: BackendIdentifier, deployProps?: DeployProps) => Promise<void>;
-    destroy: (backendIdentifierParts?: BackendIdentifier, destroyProps?: DestroyProps) => Promise<void>;
+    deploy: (backendId?: BackendIdentifier, deployProps?: DeployProps) => Promise<void>;
+    destroy: (backendId?: BackendIdentifier, destroyProps?: DestroyProps) => Promise<void>;
 };
 
 // @public

@@ -36,10 +36,7 @@ export class CDKDeployer implements BackendDeployer {
   /**
    * Invokes cdk deploy command
    */
-  deploy = async (
-    backendIdentifierParts?: BackendIdentifier,
-    deployProps?: DeployProps
-  ) => {
+  deploy = async (backendId?: BackendIdentifier, deployProps?: DeployProps) => {
     await this.invokeTsc(deployProps);
 
     const cdkCommandArgs: string[] = [];
@@ -56,7 +53,7 @@ export class CDKDeployer implements BackendDeployer {
 
     await this.invokeCdk(
       InvokableCommand.DEPLOY,
-      backendIdentifierParts,
+      backendId,
       deployProps?.deploymentType,
       cdkCommandArgs
     );
@@ -66,12 +63,12 @@ export class CDKDeployer implements BackendDeployer {
    * Invokes cdk destroy command
    */
   destroy = async (
-    backendIdentifierParts?: BackendIdentifier,
+    backendId?: BackendIdentifier,
     destroyProps?: DestroyProps
   ) => {
     await this.invokeCdk(
       InvokableCommand.DESTROY,
-      backendIdentifierParts,
+      backendId,
       destroyProps?.deploymentType,
       ['--force']
     );
@@ -108,7 +105,7 @@ export class CDKDeployer implements BackendDeployer {
    */
   private invokeCdk = async (
     invokableCommand: InvokableCommand,
-    backendIdentifierParts?: BackendIdentifier,
+    backendId?: BackendIdentifier,
     deploymentType?: BackendDeploymentType,
     additionalArguments?: string[]
   ) => {
@@ -127,12 +124,12 @@ export class CDKDeployer implements BackendDeployer {
     ];
 
     // Add context information if available
-    if (backendIdentifierParts) {
+    if (backendId) {
       cdkCommandArgs.push(
         '--context',
-        `${CDKContextKey.BACKEND_NAMESPACE}=${backendIdentifierParts.namespace}`,
+        `${CDKContextKey.BACKEND_NAMESPACE}=${backendId.namespace}`,
         '--context',
-        `${CDKContextKey.BACKEND_NAME}=${backendIdentifierParts.name}`
+        `${CDKContextKey.BACKEND_NAME}=${backendId.name}`
       );
 
       if (deploymentType !== BackendDeploymentType.SANDBOX) {

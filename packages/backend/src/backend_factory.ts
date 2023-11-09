@@ -60,22 +60,22 @@ export class BackendFactory<
       stack
     );
 
-    const backendIdentifierParts = getBackendIdentifier(stack);
+    const backendId = getBackendIdentifier(stack);
     outputStorageStrategy.addBackendOutputEntry(platformOutputKey, {
       version: '1',
       payload: {
         deploymentType:
-          backendIdentifierParts.type === 'sandbox'
+          backendId.type === 'sandbox'
             ? BackendDeploymentType.SANDBOX
             : BackendDeploymentType.BRANCH,
         region: stack.region,
       },
     });
 
-    const shouldEnableBranchLinker = backendIdentifierParts.type === 'branch';
+    const shouldEnableBranchLinker = backendId.type === 'branch';
 
     if (shouldEnableBranchLinker) {
-      new AmplifyBranchLinkerConstruct(stack, backendIdentifierParts);
+      new AmplifyBranchLinkerConstruct(stack, backendId);
     }
 
     const importPathVerifier = new ToggleableImportPathVerifier();

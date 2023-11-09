@@ -97,7 +97,7 @@ export type DeployedBackendClient = {
     sandboxBackendIdentifier: Omit<BackendIdentifier, 'type'>
   ) => Promise<void>;
   getBackendMetadata: (
-    backendIdentifierParts: BackendIdentifier
+    backendId: BackendIdentifier
   ) => Promise<BackendMetadata>;
 };
 
