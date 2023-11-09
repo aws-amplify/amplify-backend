@@ -175,8 +175,25 @@ export type ExternalProviderOptions = {
   saml?: SamlProviderProps;
   /**
    * OAuth scopes that will be allowed with the app client.
+   * @example ['PROFILE']
+   *
+   * For details about each scope, see below.
+   *
+   * 'PHONE' - Grants access to the 'phone_number' and 'phone_number_verified' claims.
+   * Automatically includes access to `OAuthScope.OPENID`.
+   *
+   * 'EMAIL' - Grants access to the 'email' and 'email_verified' claims.
+   * Automatically includes access to `OAuthScope.OPENID`.
+   *
+   * 'OPENID' - Returns all user attributes in the ID token that are readable by the client
+   *
+   * 'PROFILE' - Grants access to all user attributes that are readable by the client
+   * Automatically includes access to `OAuthScope.OPENID`.
+   *
+   * 'COGNITO_ADMIN' - Grants access to Amazon Cognito User Pool API operations that require access tokens,
+   * such as UpdateUserAttributes and VerifyUserAttribute.
    */
-  scopes?: cognito.OAuthScope[];
+  scopes?: ('PHONE' | 'EMAIL' | 'OPENID' | 'PROFILE' | 'COGNITO_ADMIN')[];
   /**
    * List of allowed redirect URLs for the identity providers.
    */
@@ -234,6 +251,22 @@ export type AuthProps = {
    * If no setting is provided, a default will be set based on the enabled login methods.
    * When email and phone login methods are both enabled, email will be the default recovery method.
    * If only email or phone are enabled, they will be the default recovery methods.
+   * @example
+   * "EMAIL_ONLY"
+   *
+   * For details about each option, see below.
+   *
+   * 'EMAIL_AND_PHONE_WITHOUT_MFA' - Email if available, otherwise phone, but don’t allow a user to reset their password via phone if they are also using it for MFA
+   *
+   * 'PHONE_WITHOUT_MFA_AND_EMAIL' - Phone if available, otherwise email, but don’t allow a user to reset their password via phone if they are also using it for MFA
+   *
+   * 'EMAIL_ONLY' - Email only
+   *
+   * 'PHONE_ONLY_WITHOUT_MFA' - Phone only, but don’t allow a user to reset their password via phone if they are also using it for MFA
+   *
+   * 'PHONE_AND_EMAIL' - (Not Recommended) Phone if available, otherwise email, and do allow a user to reset their password via phone if they are also using it for MFA.
+   *
+   * 'NONE' - None – users will have to contact an administrator to reset their passwords
    */
   accountRecovery?: keyof typeof cognito.AccountRecovery;
 

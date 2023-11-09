@@ -1188,7 +1188,7 @@ void describe('Auth construct', () => {
               clientId: googleClientId,
               clientSecret: SecretValue.unsafePlainText(googleClientSecret),
             },
-            scopes: [OAuthScope.EMAIL, OAuthScope.PROFILE],
+            scopes: ['EMAIL', 'PROFILE'],
             callbackUrls: ['http://localhost'],
             logoutUrls: ['http://localhost'],
           },
