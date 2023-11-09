@@ -1,4 +1,4 @@
-import { Options, execa } from 'execa';
+import { Options, execa, execaSync } from 'execa';
 import readline from 'readline';
 import { PredicatedActionBuilder } from './predicated_action_queue_builder.js';
 import { ActionType } from './predicated_action.js';
@@ -123,8 +123,8 @@ export const amplifyCli = (
 ): ProcessController => {
   let command: string;
   if (options?.installationType === 'local') {
-    command = 'npx';
-    args = ['amplify'].concat(args);
+    command = execaSync('npx', ['which', 'amplify']).stdout;
+    console.log(`Using ${command} from npx which amplify`);
   } else {
     command = 'amplify';
   }
