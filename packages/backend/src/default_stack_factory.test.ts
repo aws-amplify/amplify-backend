@@ -33,30 +33,30 @@ void describe('createDefaultRootStack', () => {
     );
   });
 
-  void it(`throws if ${'amplify-backend-namespace'} is missing`, () => {
+  void it(`throws if amplify-backend-namespace is missing`, () => {
     const app = new App();
     app.node.setContext('amplify-backend-name', 'testEnvName');
     app.node.setContext('amplify-backend-type', BackendDeploymentType.BRANCH);
     assert.throws(() => createDefaultStack(app), {
-      message: `No context value present for ${'amplify-backend-namespace'} key`,
+      message: `No context value present for amplify-backend-namespace key`,
     });
   });
 
-  void it(`throws if ${'amplify-backend-name'} is missing`, () => {
+  void it(`throws if amplify-backend-name is missing`, () => {
     const app = new App();
     app.node.setContext('amplify-backend-namespace', 'testBackendId');
     app.node.setContext('amplify-backend-type', BackendDeploymentType.BRANCH);
     assert.throws(() => createDefaultStack(app), {
-      message: `No context value present for ${'amplify-backend-name'} key`,
+      message: `No context value present for amplify-backend-name key`,
     });
   });
 
-  void it(`throws if ${'amplify-backend-type'} is missing`, () => {
+  void it(`throws if amplify-backend-type is missing`, () => {
     const app = new App();
     app.node.setContext('amplify-backend-namespace', 'testBackendId');
     app.node.setContext('amplify-backend-name', 'testEnvName');
     assert.throws(() => createDefaultStack(app), {
-      message: `No context value present for ${'amplify-backend-type'} key`,
+      message: `No context value present for amplify-backend-type key`,
     });
   });
 });
