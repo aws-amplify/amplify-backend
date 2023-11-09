@@ -1,10 +1,10 @@
 {
   "name": "@aws-amplify/integration-tests",
   "private": true,
-  "version": "0.2.3",
+  "version": "0.2.4",
   "type": "module",
   "devDependencies": {
-    "@aws-amplify/backend": "0.3.3",
+    "@aws-amplify/backend": "0.3.4",
     "@aws-amplify/backend-auth": "0.2.3",
     "@aws-amplify/backend-secret": "^0.2.1",
     "@aws-amplify/backend-storage": "0.2.2",
