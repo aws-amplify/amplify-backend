@@ -236,7 +236,7 @@ void describe('Deployed Backend Client', () => {
           deploymentType: BackendDeploymentType.SANDBOX,
           backendId: {
             namespace: 'test',
-            instance: 'testBranch',
+            name: 'testBranch',
             type: 'branch',
           },
           name: 'amplify-test-testBranch-branch',
@@ -247,7 +247,7 @@ void describe('Deployed Backend Client', () => {
           deploymentType: BackendDeploymentType.SANDBOX,
           backendId: {
             namespace: 'test',
-            instance: 'name',
+            name: 'name',
             type: 'sandbox',
           },
           name: 'amplify-test-name-sandbox',
@@ -284,7 +284,7 @@ void describe('Deployed Backend Client', () => {
   void it('deletes a sandbox', async () => {
     await deployedBackendClient.deleteSandbox({
       namespace: 'test',
-      instance: 'username',
+      name: 'username',
     });
 
     assert.equal(cfnClientSendMock.mock.callCount(), 1);
@@ -293,7 +293,7 @@ void describe('Deployed Backend Client', () => {
   void it('fetches metadata', async () => {
     const getMetadataResponse = await deployedBackendClient.getBackendMetadata({
       namespace: 'test',
-      instance: 'testBranch',
+      name: 'testBranch',
       type: 'branch',
     });
 
@@ -321,7 +321,7 @@ void describe('Deployed Backend Client pagination', () => {
       deploymentType: BackendDeploymentType.SANDBOX,
       backendId: {
         namespace: 'test',
-        instance: 'name',
+        name: 'name',
         type: 'sandbox',
       },
       name: 'amplify-test-name-sandbox',

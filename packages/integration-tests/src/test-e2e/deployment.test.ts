@@ -34,7 +34,7 @@ void describe('amplify deploys', async () => {
         testBranch = await amplifyAppPool.createTestBranch();
         branchBackendIdentifier = {
           namespace: testBranch.appId,
-          instance: testBranch.branchName,
+          name: testBranch.branchName,
           type: 'branch',
         };
       });
@@ -60,7 +60,7 @@ void describe('amplify deploys', async () => {
         );
         assert.ok(
           testBranchDetails.backend?.stackArn?.includes(
-            branchBackendIdentifier.instance
+            branchBackendIdentifier.name
           )
         );
       });
@@ -72,7 +72,7 @@ void describe('amplify deploys', async () => {
       const sandboxBackendIdentifier: BackendIdentifier = {
         type: 'sandbox',
         namespace: testProject.name,
-        instance: userInfo().username,
+        name: userInfo().username,
       };
 
       after(async () => {

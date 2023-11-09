@@ -35,7 +35,7 @@ export const createSandboxCommand = (): CommandModule<
     }
     return {
       ...sandboxBackendIdParts,
-      instance: sandboxName,
+      name: sandboxName,
     };
   };
 

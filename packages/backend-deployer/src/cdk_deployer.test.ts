@@ -14,7 +14,7 @@ import { BackendDeployerEnvironmentVariables } from './environment_variables.js'
 void describe('invokeCDKCommand', () => {
   const backendIdentifierParts: BackendIdentifier = {
     namespace: '123',
-    instance: 'testBranch',
+    name: 'testBranch',
     type: 'branch',
   };
 

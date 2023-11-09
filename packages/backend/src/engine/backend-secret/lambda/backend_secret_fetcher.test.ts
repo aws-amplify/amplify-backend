@@ -29,7 +29,7 @@ const testSecret: Secret = {
 
 const testBackendIdentifier: BackendIdentifier = {
   namespace: testBackendId,
-  instance: testBranchName,
+  name: testBranchName,
   type: 'branch',
 };
 
@@ -43,7 +43,7 @@ const customResourceEventCommon = {
   ResourceType: 'AWS::CloudFormation::CustomResource',
   ResourceProperties: {
     namespace: testBackendId,
-    instance: testBranchName,
+    name: testBranchName,
     secretName: testSecretName,
     ServiceToken: 'token',
   },

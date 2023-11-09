@@ -29,7 +29,7 @@ void describe('sandbox secret set command', () => {
     resolve: () =>
       Promise.resolve({
         namespace: testBackendId,
-        instance: testSandboxName,
+        name: testSandboxName,
         type: 'sandbox',
       }),
   } as SandboxBackendIdPartsResolver;
@@ -64,7 +64,7 @@ void describe('sandbox secret set command', () => {
       {
         type: 'sandbox',
         namespace: testBackendId,
-        instance: testSandboxName,
+        name: testSandboxName,
       },
       testSecretName,
       testSecretValue,

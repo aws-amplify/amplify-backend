@@ -7,7 +7,7 @@ void describe('BackendIdentifierMainStackNameResolver', () => {
   void describe('resolveMainStackName', () => {
     const backendIdentifierParts: BackendIdentifier = {
       namespace: 'testBackendId',
-      instance: 'testBranchName',
+      name: 'testBranchName',
       type: 'branch',
     };
 

@@ -56,7 +56,7 @@ export class PipelineDeployCommand
 
     const backendIdentifierParts: BackendIdentifier = {
       namespace: args['app-id'],
-      instance: args.branch,
+      name: args.branch,
       type: 'branch',
     };
     await this.backendDeployer.deploy(backendIdentifierParts, {

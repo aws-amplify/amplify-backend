@@ -22,11 +22,11 @@ export type UserName = string;
 export type BackendIdentifier =
   | {
       namespace: AppId;
-      instance: BranchName;
+      name: BranchName;
       type: 'branch';
     }
   | {
       namespace: ProjectName;
-      instance: UserName;
+      name: UserName;
       type: 'sandbox';
     };

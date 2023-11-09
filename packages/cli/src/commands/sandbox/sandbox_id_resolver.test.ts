@@ -13,6 +13,6 @@ void describe('SandboxIdResolver', () => {
     const resolverRef = resolver.resolve;
     const result = await resolverRef();
     assert.equal(result.namespace, 'testAppName');
-    assert.equal(result.instance, 'testUsername');
+    assert.equal(result.name, 'testUsername');
   });
 });

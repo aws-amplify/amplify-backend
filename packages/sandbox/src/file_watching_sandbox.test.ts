@@ -98,7 +98,7 @@ mock.method(fs, 'lstatSync', (path: string) => {
 
 const testSandboxBackendIdParts: BackendIdentifier = {
   namespace: 'testSandboxId',
-  instance: 'testSandboxName',
+  name: 'testSandboxName',
   type: 'sandbox',
 };
 
@@ -638,7 +638,7 @@ void describe('Sandbox using local project name resolver', () => {
     // BackendDeployer should be called with the right app name
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
       {
-        instance: 'customSandboxName',
+        name: 'customSandboxName',
         namespace: 'testSandboxId',
         type: 'sandbox',
       },
@@ -665,7 +665,7 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepEqual(backendDeployerDestroyMock.mock.calls[0].arguments, [
       {
         namespace: 'testSandboxId',
-        instance: 'customSandboxName',
+        name: 'customSandboxName',
         type: 'sandbox',
       },
       {
@@ -759,7 +759,7 @@ const setupAndStartSandbox = async (
   const sandboxInstance = new FileWatchingSandbox(
     async (customName) => ({
       namespace: 'testSandboxId',
-      instance: customName ?? testData.sandboxName ?? 'testSandboxName',
+      name: customName ?? testData.sandboxName ?? 'testSandboxName',
       type: 'sandbox',
     }),
     testData.executor,

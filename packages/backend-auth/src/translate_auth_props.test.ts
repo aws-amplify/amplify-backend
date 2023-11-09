@@ -31,7 +31,7 @@ const callbackUrls = ['a', 'b'];
 
 const testBackendIdentifier: BackendIdentifier = {
   namespace: 'testBackendId',
-  instance: 'testBranchName',
+  name: 'testBranchName',
   type: 'branch',
 };
 

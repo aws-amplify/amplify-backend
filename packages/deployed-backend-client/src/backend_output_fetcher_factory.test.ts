@@ -14,7 +14,7 @@ void describe('Backend Identifiers', () => {
     },
     {
       namespace: 'testBackendId',
-      instance: 'testBranchName',
+      name: 'testBranchName',
       type: 'branch',
     },
     {

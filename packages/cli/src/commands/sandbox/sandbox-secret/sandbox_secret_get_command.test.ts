@@ -35,7 +35,7 @@ void describe('sandbox secret get command', () => {
     resolve: () =>
       Promise.resolve({
         namespace: testBackendId,
-        instance: testSandboxName,
+        name: testSandboxName,
         type: 'sandbox',
       }),
   } as SandboxBackendIdPartsResolver;
@@ -64,7 +64,7 @@ void describe('sandbox secret get command', () => {
     assert.deepStrictEqual(secretGetMock.mock.calls[0].arguments, [
       {
         namespace: testBackendId,
-        instance: testSandboxName,
+        name: testSandboxName,
         type: 'sandbox',
       },
       testSecretIdentifier,

@@ -89,7 +89,7 @@ void describe('generate graphql-client-code command', () => {
       {
         type: 'branch',
         namespace: 'app_id',
-        instance: 'branch_name',
+        name: 'branch_name',
         format: GenerateApiCodeFormat.GRAPHQL_CODEGEN,
         statementTarget: GenerateApiCodeStatementTarget.TYPESCRIPT,
         typeTarget: GenerateApiCodeTypeTarget.TYPESCRIPT,

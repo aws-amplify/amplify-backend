@@ -46,13 +46,13 @@ export const getBackendIdentifier = (scope: Construct): BackendIdentifier => {
     return {
       type: 'sandbox',
       namespace: backendId,
-      instance: disambiguator,
+      name: disambiguator,
     };
   }
 
   return {
     type: 'branch',
     namespace: backendId,
-    instance: disambiguator,
+    name: disambiguator,
   };
 };

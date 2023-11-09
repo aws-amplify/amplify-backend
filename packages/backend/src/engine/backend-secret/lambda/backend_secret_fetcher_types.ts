@@ -1,5 +1,5 @@
 export type SecretResourceProps = {
   namespace: string;
-  instance: string;
+  name: string;
   secretName: string;
 };

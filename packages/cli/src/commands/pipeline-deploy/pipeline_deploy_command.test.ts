@@ -74,7 +74,7 @@ void describe('deploy command', () => {
     assert.strictEqual(mockDeploy.mock.callCount(), 1);
     assert.deepStrictEqual(mockDeploy.mock.calls[0].arguments, [
       {
-        instance: 'test-branch',
+        name: 'test-branch',
         namespace: 'abc',
         type: 'branch',
       },

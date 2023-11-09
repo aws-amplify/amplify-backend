@@ -32,7 +32,7 @@ void describe('sandbox secret list command', () => {
     resolve: () =>
       Promise.resolve({
         namespace: testBackendId,
-        instance: testSandboxName,
+        name: testSandboxName,
         type: 'sandbox',
       }),
   } as SandboxBackendIdPartsResolver;
@@ -57,7 +57,7 @@ void describe('sandbox secret list command', () => {
 
     assert.deepStrictEqual(secretListMock.mock.calls[0].arguments[0], {
       namespace: testBackendId,
-      instance: testSandboxName,
+      name: testSandboxName,
       type: 'sandbox',
     });
 

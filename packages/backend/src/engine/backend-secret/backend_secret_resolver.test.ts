@@ -10,7 +10,7 @@ void describe('DefaultBackendSecretResolver', () => {
   const testBackendIdentifier: BackendIdentifier = {
     type: 'branch',
     namespace: 'testBackendId',
-    instance: 'testBranchName',
+    name: 'testBranchName',
   };
   const app = new App();
   const stack = new Stack(app);

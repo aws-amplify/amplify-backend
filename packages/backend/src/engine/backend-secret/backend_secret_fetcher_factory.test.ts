@@ -17,7 +17,7 @@ const secretLastUpdated = '1245462';
 const secretName2 = 'testSecretName2';
 const uniqueBackendIdentifier: BackendIdentifier = {
   namespace,
-  instance,
+  name: instance,
   type: 'branch',
 };
 

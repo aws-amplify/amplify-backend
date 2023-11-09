@@ -9,7 +9,7 @@ const testProviderId1 = 'testProvider1';
 const testProviderId2 = 'testProvider2';
 const backendIdentifier: BackendIdentifier = {
   namespace: 'testBackendId',
-  instance: 'testBranchName',
+  name: 'testBranchName',
   type: 'branch',
 };
 

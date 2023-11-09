@@ -47,7 +47,7 @@ void describe('Sandbox executor', () => {
     const firstDeployPromise = sandboxExecutor.deploy(
       {
         namespace: 'testSandboxId',
-        instance: 'testSandboxName',
+        name: 'testSandboxName',
         type: 'sandbox',
       },
       validateAppSourcesProvider
@@ -56,7 +56,7 @@ void describe('Sandbox executor', () => {
     const secondDeployPromise = sandboxExecutor.deploy(
       {
         namespace: 'testSandboxId',
-        instance: 'testSandboxName',
+        name: 'testSandboxName',
         type: 'sandbox',
       },
       validateAppSourcesProvider
@@ -78,7 +78,7 @@ void describe('Sandbox executor', () => {
       await sandboxExecutor.deploy(
         {
           namespace: 'testSandboxId',
-          instance: 'testSandboxName',
+          name: 'testSandboxName',
           type: 'sandbox',
         },
         validateAppSourcesProvider
@@ -90,7 +90,7 @@ void describe('Sandbox executor', () => {
         backendDeployerDeployMock.mock.calls[0].arguments,
         [
           {
-            instance: 'testSandboxName',
+            name: 'testSandboxName',
             namespace: 'testSandboxId',
             type: 'sandbox',
           },

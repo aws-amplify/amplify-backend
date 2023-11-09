@@ -12,7 +12,7 @@ const testSecretName = 'testSecretName';
 const testSecretValue = 'testSecretValue';
 const uniqueBackendIdentifier: BackendIdentifier = {
   namespace: backendId,
-  instance: branchName,
+  name: branchName,
   type: 'branch',
 };
 

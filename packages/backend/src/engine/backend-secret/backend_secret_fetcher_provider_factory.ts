@@ -46,7 +46,7 @@ export class BackendSecretFetcherProviderFactory {
         effect: iam.Effect.ALLOW,
         actions: ['ssm:GetParameter'],
         resources: [
-          `arn:aws:ssm:*:*:parameter/amplify/${backendIdentifier.namespace}/${backendIdentifier.instance}/*`,
+          `arn:aws:ssm:*:*:parameter/amplify/${backendIdentifier.namespace}/${backendIdentifier.name}/*`,
           `arn:aws:ssm:*:*:parameter/amplify/shared/${backendIdentifier.namespace}/*`,
         ],
       })

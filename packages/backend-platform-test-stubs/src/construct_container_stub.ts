@@ -84,6 +84,6 @@ export class ConstructContainerStub implements ConstructContainer {
 
 const getBackendIdentifierStub = (): BackendIdentifier => ({
   namespace: 'testBackendId',
-  instance: 'testEnvName',
+  name: 'testEnvName',
   type: 'branch',
 });

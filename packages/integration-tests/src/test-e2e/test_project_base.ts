@@ -54,7 +54,7 @@ export abstract class TestProjectBase {
         [
           'pipeline-deploy',
           '--branch',
-          backendIdentifier.instance,
+          backendIdentifier.name,
           '--appId',
           backendIdentifier.namespace,
         ],

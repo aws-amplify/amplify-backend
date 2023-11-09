@@ -59,7 +59,7 @@ export class AmplifyBranchLinkerConstruct extends Construct {
         effect: iam.Effect.ALLOW,
         actions: ['amplify:GetBranch', 'amplify:UpdateBranch'],
         resources: [
-          `arn:aws:amplify:*:*:apps/${backendIdentifier.namespace}/branches/${backendIdentifier.instance}`,
+          `arn:aws:amplify:*:*:apps/${backendIdentifier.namespace}/branches/${backendIdentifier.name}`,
         ],
       })
     );
@@ -74,7 +74,7 @@ export class AmplifyBranchLinkerConstruct extends Construct {
 
     const customResourceProps: AmplifyBranchLinkerCustomResourceProps = {
       appId: backendIdentifier.namespace,
-      branchName: backendIdentifier.instance,
+      branchName: backendIdentifier.name,
     };
 
     new CustomResource(this, 'CustomResource', {

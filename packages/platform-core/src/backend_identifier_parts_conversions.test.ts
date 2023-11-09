@@ -9,7 +9,7 @@ void describe('backendIdentifierPartsToStackName', () => {
   void it('removes disallowed chars from namespace and instance', () => {
     const actual = backendIdentifierPartsToStackName({
       namespace: 't-_e.s,@ t--T@,,     H/I. .S',
-      instance: 't-_h.i,@ ng',
+      name: 't-_h.i,@ ng',
       type: 'branch',
     });
     assert.equal(actual, 'amplify-testTHIS-thing-branch');
@@ -18,8 +18,7 @@ void describe('backendIdentifierPartsToStackName', () => {
   void it('truncates long instance names', () => {
     const actual = backendIdentifierPartsToStackName({
       namespace: 'reasonableName',
-      instance:
-        'InsanelyLongUserNameProvidedByCustomerDoNotKnowWhatCustomersAreThinkingWhenChoosingThisGreatBigName',
+      name: 'InsanelyLongUserNameProvidedByCustomerDoNotKnowWhatCustomersAreThinkingWhenChoosingThisGreatBigName',
       type: 'sandbox',
     });
     assert.equal(
@@ -32,7 +31,7 @@ void describe('backendIdentifierPartsToStackName', () => {
     const actual = backendIdentifierPartsToStackName({
       namespace:
         'InsanelyLongNameProvidedByCustomerDoNotKnowWhatCustomersAreThinkingWhenChoosingThisGreatBigNameButItIsStillTheoreticallyPossible',
-      instance: 'userName',
+      name: 'userName',
       type: 'sandbox',
     });
     assert.equal(
@@ -46,8 +45,7 @@ void describe('backendIdentifierPartsToStackName', () => {
     const actual = backendIdentifierPartsToStackName({
       namespace:
         'InsanelyLongNameProvidedByCustomerDoNotKnowWhatCustomersAreThinkingWhenChoosingThisGreatBigNameButItIsStillTheoreticallyPossible',
-      instance:
-        'InsanelyLongUserNameProvidedByCustomerDoNotKnowWhatCustomersAreThinkingWhenChoosingThisGreatBigName',
+      name: 'InsanelyLongUserNameProvidedByCustomerDoNotKnowWhatCustomersAreThinkingWhenChoosingThisGreatBigName',
 
       type: 'sandbox',
     });
@@ -61,7 +59,7 @@ void describe('backendIdentifierPartsToStackName', () => {
   void it('passes through values within the constraints', () => {
     const actual = backendIdentifierPartsToStackName({
       namespace: 'reasonableName',
-      instance: 'userName',
+      name: 'userName',
       type: 'sandbox',
     });
     assert.equal(actual, 'amplify-reasonableName-userName-sandbox');
@@ -95,7 +93,7 @@ void describe('stackNameToBackendIdentifier', () => {
     );
     assert.deepStrictEqual(actual, {
       namespace: 'reasonableName',
-      instance: 'userName',
+      name: 'userName',
       type: 'sandbox',
     });
   });

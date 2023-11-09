@@ -23,7 +23,7 @@ export class SSMSecretClient implements SecretClient {
    * Get a branch-specific parameter prefix.
    */
   private getBranchParameterPrefix = (parts: BackendIdentifier): string => {
-    return `/amplify/${parts.namespace}/${parts.instance}`;
+    return `/amplify/${parts.namespace}/${parts.name}`;
   };
 
   /**

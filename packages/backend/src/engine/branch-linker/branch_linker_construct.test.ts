@@ -13,7 +13,7 @@ void describe('Branch Linker Construct', () => {
     const stack = new Stack();
     const backendIdentifier: BackendIdentifier = {
       namespace: appId,
-      instance: branchName,
+      name: branchName,
       type: 'branch',
     };
     new AmplifyBranchLinkerConstruct(stack, backendIdentifier);
@@ -43,7 +43,7 @@ void describe('Branch Linker Construct', () => {
       const stack = new Stack();
       const backendIdentifier: BackendIdentifier = {
         namespace: appId,
-        instance: branchName,
+        name: branchName,
         type: 'branch',
       };
       new AmplifyBranchLinkerConstruct(stack, backendIdentifier);

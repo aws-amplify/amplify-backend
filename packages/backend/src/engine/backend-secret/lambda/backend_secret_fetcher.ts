@@ -55,7 +55,7 @@ export const handleCreateUpdateEvent = async (
     const resp = await secretClient.getSecret(
       {
         namespace: props.namespace,
-        instance: props.instance,
+        name: props.name,
         type: 'branch',
       },
       {
@@ -69,7 +69,7 @@ export const handleCreateUpdateEvent = async (
       throw new Error(
         `Failed to retrieve backend secret '${props.secretName}' for '${
           props.namespace
-        }/${props.instance}'. Reason: ${JSON.stringify(err)}`
+        }/${props.name}'. Reason: ${JSON.stringify(err)}`
       );
     }
   }
@@ -92,7 +92,7 @@ export const handleCreateUpdateEvent = async (
 
   if (!secret) {
     throw new Error(
-      `Unable to find backend secret for backend '${props.namespace}', branch '${props.instance}', name '${props.secretName}'`
+      `Unable to find backend secret for backend '${props.namespace}', branch '${props.name}', name '${props.secretName}'`
     );
   }
 

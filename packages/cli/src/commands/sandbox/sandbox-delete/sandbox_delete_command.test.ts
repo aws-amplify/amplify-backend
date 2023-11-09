@@ -25,7 +25,7 @@ void describe('sandbox delete command', () => {
     const sandboxFactory = new SandboxSingletonFactory(() =>
       Promise.resolve({
         namespace: 'testSandboxId',
-        instance: 'testSandboxName',
+        name: 'testSandboxName',
         type: 'sandbox',
       })
     );

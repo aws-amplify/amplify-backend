@@ -56,7 +56,7 @@ export class AppNameAndBranchMainStackNameResolver
     }
     return backendIdentifierPartsToStackName({
       namespace: appId,
-      instance: this.appNameAndBranch.branchName,
+      name: this.appNameAndBranch.branchName,
       type: 'branch',
     });
   };

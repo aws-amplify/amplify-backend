@@ -23,7 +23,7 @@ export class BackendIdentifierResolver {
     } else if (args.appId && args.branch) {
       return {
         namespace: args.appId,
-        instance: args.branch,
+        name: args.branch,
         type: 'branch',
       };
     } else if (args.branch) {

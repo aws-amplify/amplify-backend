@@ -46,7 +46,7 @@ const testSecret: Secret = {
 
 const testBackendIdentifier: BackendIdentifier = {
   namespace: testBackendId,
-  instance: testBranchName,
+  name: testBranchName,
   type: 'branch',
 };
 
@@ -353,7 +353,7 @@ void describe('SSMSecret', () => {
 
       const secrets = await ssmSecretClient.listSecrets({
         namespace: testBackendId,
-        instance: testBranchName,
+        name: testBranchName,
         type: 'branch',
       });
       assert.deepStrictEqual(

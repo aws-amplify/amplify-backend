@@ -24,7 +24,7 @@ void it('calls the client config adapter on the successfulDeployment event', asy
 
   const eventFactory = new SandboxEventHandlerFactory(async () => ({
     namespace: 'test',
-    instance: 'name',
+    name: 'name',
     type: 'sandbox',
   }));
 
@@ -41,7 +41,7 @@ void it('calls the client config adapter on the successfulDeployment event', asy
     {
       type: 'sandbox',
       namespace: 'test',
-      instance: 'name',
+      name: 'name',
     },
     'test-out',
     'mjs',
@@ -66,7 +66,7 @@ void it('calls deleteClientConfigFile on client config adapter on the successful
 
   const eventFactory = new SandboxEventHandlerFactory(async () => ({
     namespace: 'test',
-    instance: 'name',
+    name: 'name',
     type: 'sandbox',
   }));
 

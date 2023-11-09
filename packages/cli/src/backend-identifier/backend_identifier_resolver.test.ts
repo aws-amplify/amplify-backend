@@ -25,7 +25,7 @@ void describe('BackendIdentifierResolver', () => {
     });
     assert.deepStrictEqual(actual, {
       namespace: 'my-id',
-      instance: 'my-branch',
+      name: 'my-branch',
       type: 'branch',
     });
   });
