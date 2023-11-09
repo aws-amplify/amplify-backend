@@ -1,7 +1,6 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'assert';
-import { EscapeSequence, LogLevel, Logger } from './logger.js';
-import * as os from 'os';
+import { LogLevel, Logger } from './logger.js';
 
 void describe('Logger', () => {
   void it('logs a message at INFO level', async (ctx) => {
