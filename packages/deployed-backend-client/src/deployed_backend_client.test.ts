@@ -27,21 +27,24 @@ import { StackStatusMapper } from './deployed-backend-client/stack_status_mapper
 import { ArnGenerator } from './deployed-backend-client/arn_generator.js';
 import { ArnParser } from './deployed-backend-client/arn_parser.js';
 
+// eslint-disable-next-line spellcheck/spell-checker
+const validTestBranchName = 'amplify-test-testBranch-branch-5c6fa1ef9a';
+
 const listStacksMock = {
   NextToken: undefined,
   StackSummaries: [
     {
-      StackName: 'amplify-test-testBranch-branch',
+      StackName: validTestBranchName,
       StackStatus: StackStatus.CREATE_COMPLETE,
       CreationTime: new Date(0),
     },
     {
-      StackName: 'amplify-error-testBranch-branch',
+      StackName: 'amplify-error-testBranch-branch-testHash',
       StackStatus: StackStatus.CREATE_COMPLETE,
       CreationTime: new Date(0),
     },
     {
-      StackName: 'amplify-test-name-sandbox',
+      StackName: 'amplify-test-name-sandbox-testHash',
       StackStatus: StackStatus.CREATE_COMPLETE,
       CreationTime: new Date(0),
       LastUpdatedTime: new Date(1),
@@ -170,7 +173,10 @@ void describe('Deployed Backend Client', () => {
   beforeEach(() => {
     getOutputMock.mock.mockImplementation(
       (backendIdentifier: StackIdentifier) => {
-        if (backendIdentifier.stackName === 'amplify-error-testBranch-branch') {
+        if (
+          backendIdentifier.stackName ===
+          'amplify-error-testBranch-branch-testHash'
+        ) {
           throw new Error('Stack template metadata is not a string');
         }
         return getOutputMockResponse;
@@ -238,8 +244,9 @@ void describe('Deployed Backend Client', () => {
             namespace: 'test',
             name: 'testBranch',
             type: 'branch',
+            hash: '5c6fa1ef9a',
           },
-          name: 'amplify-test-testBranch-branch',
+          name: validTestBranchName,
           status: BackendDeploymentStatus.DEPLOYED,
           lastUpdated: new Date(0),
         },
@@ -249,8 +256,9 @@ void describe('Deployed Backend Client', () => {
             namespace: 'test',
             name: 'name',
             type: 'sandbox',
+            hash: 'testHash',
           },
-          name: 'amplify-test-name-sandbox',
+          name: 'amplify-test-name-sandbox-testHash',
           status: BackendDeploymentStatus.DEPLOYED,
           lastUpdated: new Date(1),
         },
@@ -299,7 +307,7 @@ void describe('Deployed Backend Client', () => {
 
     assert.deepEqual(getMetadataResponse, {
       deploymentType: BackendDeploymentType.SANDBOX,
-      name: 'amplify-test-testBranch-branch',
+      name: validTestBranchName,
       ...expectedMetadata,
     });
   });
@@ -323,8 +331,9 @@ void describe('Deployed Backend Client pagination', () => {
         namespace: 'test',
         name: 'name',
         type: 'sandbox',
+        hash: 'testHash',
       },
-      name: 'amplify-test-name-sandbox',
+      name: 'amplify-test-name-sandbox-testHash',
       status: BackendDeploymentStatus.DEPLOYED,
       lastUpdated: new Date(1),
     },
@@ -333,10 +342,15 @@ void describe('Deployed Backend Client pagination', () => {
   beforeEach(() => {
     getOutputMock.mock.mockImplementation(
       (backendIdentifier: StackIdentifier) => {
-        if (backendIdentifier.stackName === 'amplify-error-testBranch-branch') {
+        if (
+          backendIdentifier.stackName ===
+          'amplify-error-testBranch-branch-testHash'
+        ) {
           throw new Error('Stack template metadata is not a string');
         }
-        if (backendIdentifier.stackName !== 'amplify-test-name-sandbox') {
+        if (
+          backendIdentifier.stackName !== 'amplify-test-name-sandbox-testHash'
+        ) {
           return {
             ...getOutputMockResponse,
             [platformOutputKey]: {

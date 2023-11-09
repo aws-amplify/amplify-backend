@@ -17,7 +17,10 @@ void describe('BackendIdentifierMainStackNameResolver', () => {
       );
 
       const result = await stackNameResolver.resolveMainStackName();
-      assert.equal(result, 'amplify-testBackendId-testBranchName-branch');
+      assert.equal(
+        result,
+        'amplify-testBackendId-testBranchName-branch-e482a1c36f'
+      );
     });
   });
 });

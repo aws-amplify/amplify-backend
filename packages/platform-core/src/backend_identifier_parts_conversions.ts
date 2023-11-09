@@ -40,13 +40,18 @@ export class BackendIdentifierConversions {
   }
 
   /**
-   * Convert a BackendIdentifier to a stack name
+   * Convert a BackendIdentifier to a stack name.
+   *
+   * !!!DANGER!!!
+   * !!!DO NOT CHANGE THIS UNLESS YOU ARE 100% SURE YOU UNDERSTAND THE CONSEQUENCES!!!
+   *
+   * Changing this method will change how stack names are generated which could be a massive breaking change for existing Amplify stacks.
    */
   static toStackName(backendId: BackendIdentifier): string {
     const hash = getHash(backendId);
 
     // only take the first 50 chars here to make sure there is room in the stack name for the namespace as well
-    const name = removeDisallowedChars(backendId.name).slice(0, 50);
+    const name = sanitizeChars(backendId.name).slice(0, 50);
 
     const namespaceMaxLength =
       STACK_NAME_LENGTH_LIMIT -
@@ -56,7 +61,7 @@ export class BackendIdentifierConversions {
       NUM_DASHES -
       HASH_LENGTH;
 
-    const namespace = removeDisallowedChars(backendId.namespace).slice(
+    const namespace = sanitizeChars(backendId.namespace).slice(
       0,
       namespaceMaxLength - 1
     );
@@ -81,12 +86,12 @@ const getHash = (backendId: BackendIdentifier): string =>
   createHash('sha512')
     .update(backendId.namespace)
     .update(backendId.name)
-    .digest('base64')
+    .digest('hex')
     .slice(0, HASH_LENGTH);
 
 /**
- * Remove all characters that aren't valid in a CFN stack name and remove all dashes as this conflicts with our concatenation convention
+ * Remove all non-alphanumeric characters from the input string
  */
-const removeDisallowedChars = (str: string): string => {
-  return str.replace(/[_/\-.,@ ]/g, '');
+const sanitizeChars = (str: string): string => {
+  return str.replace(/[^A-Za-z0-9]/g, '');
 };

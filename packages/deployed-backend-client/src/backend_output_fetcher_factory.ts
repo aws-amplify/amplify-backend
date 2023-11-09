@@ -21,7 +21,7 @@ export const isBackendIdentifier = (
 ): backendIdentifier is BackendIdentifier => {
   return (
     'namespace' in backendIdentifier &&
-    'instance' in backendIdentifier &&
+    'name' in backendIdentifier &&
     'type' in backendIdentifier
   );
 };

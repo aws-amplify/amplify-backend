@@ -21,7 +21,7 @@ void describe('createDefaultRootStack', () => {
     assert.ok(stack instanceof AmplifyStack);
     assert.strictEqual(
       stack.stackName,
-      'amplify-testBackendId-testBranchName-branch'
+      'amplify-testBackendId-testBranchName-branch-e482a1c36f'
     );
   });
 
@@ -37,7 +37,8 @@ void describe('createDefaultRootStack', () => {
     assert.ok(stack instanceof AmplifyStack);
     assert.strictEqual(
       stack.stackName,
-      'amplify-testProjectName-testUser-sandbox'
+      // eslint-disable-next-line spellcheck/spell-checker
+      'amplify-testProjectName-testUser-sandbox-bf53214cb2'
     );
   });
 

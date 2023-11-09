@@ -11,13 +11,13 @@ import { BackendIdentifier } from '@aws-amplify/plugin-types';
 
 const secretResourceType = 'Custom::SecretFetcherResource';
 const namespace = 'testId';
-const instance = 'testBranch';
+const name = 'testBranch';
 const secretName1 = 'testSecretName1';
 const secretLastUpdated = '1245462';
 const secretName2 = 'testSecretName2';
 const uniqueBackendIdentifier: BackendIdentifier = {
   namespace,
-  name: instance,
+  name,
   type: 'branch',
 };
 
@@ -37,7 +37,7 @@ void describe('getOrCreate', () => {
     let customResources = template.findResources(secretResourceType, {
       Properties: {
         namespace,
-        instance,
+        name,
         secretName: secretName1,
         secretLastUpdated,
       },
@@ -47,7 +47,7 @@ void describe('getOrCreate', () => {
     customResources = template.findResources(secretResourceType, {
       Properties: {
         namespace,
-        instance,
+        name,
         secretName: secretName2,
       },
     });
@@ -77,7 +77,7 @@ void describe('getOrCreate', () => {
 
     const body = customResources[resourceName]['Properties'];
     assert.strictEqual(body['namespace'], namespace);
-    assert.strictEqual(body['instance'], instance);
+    assert.strictEqual(body['name'], name);
     assert.strictEqual(body['secretName'], secretName1);
   });
 });
