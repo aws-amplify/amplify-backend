@@ -1,7 +1,6 @@
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { DefaultDeployedBackendClient } from './deployed_backend_client.js';
-import { BackendIdentifier } from '@aws-amplify/plugin-types';
-import { BackendDeploymentType } from '@aws-amplify/platform-core';
+import { BackendIdentifier, DeploymentType } from '@aws-amplify/plugin-types';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import {
   BackendOutputClient,
@@ -51,7 +50,7 @@ export type DeployedBackendResource = {
 export type BackendMetadata = {
   name: string;
   lastUpdated: Date | undefined;
-  deploymentType: BackendDeploymentType;
+  deploymentType: DeploymentType;
   status: BackendDeploymentStatus;
   resources: DeployedBackendResource[];
   apiConfiguration?: {

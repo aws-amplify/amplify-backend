@@ -3,14 +3,13 @@ import { createDefaultStack } from './default_stack_factory.js';
 import { App } from 'aws-cdk-lib';
 import assert from 'node:assert';
 import { AmplifyStack } from './engine/amplify_stack.js';
-import { BackendDeploymentType } from '@aws-amplify/platform-core';
 
 void describe('createDefaultRootStack', () => {
   void it('creates AmplifyStack with backend ID and branch from CDK context', () => {
     const app = new App();
     app.node.setContext('amplify-backend-namespace', 'testBackendId');
     app.node.setContext('amplify-backend-name', 'testBranchName');
-    app.node.setContext('amplify-backend-type', BackendDeploymentType.BRANCH);
+    app.node.setContext('amplify-backend-type', 'branch');
     const stack = createDefaultStack(app);
     assert.ok(stack instanceof AmplifyStack);
     assert.strictEqual(
@@ -23,7 +22,7 @@ void describe('createDefaultRootStack', () => {
     const app = new App();
     app.node.setContext('amplify-backend-namespace', 'testProjectName');
     app.node.setContext('amplify-backend-name', 'testUser');
-    app.node.setContext('amplify-backend-type', BackendDeploymentType.SANDBOX);
+    app.node.setContext('amplify-backend-type', 'sandbox');
     const stack = createDefaultStack(app);
     assert.ok(stack instanceof AmplifyStack);
     assert.strictEqual(
@@ -36,7 +35,7 @@ void describe('createDefaultRootStack', () => {
   void it(`throws if amplify-backend-namespace is missing`, () => {
     const app = new App();
     app.node.setContext('amplify-backend-name', 'testEnvName');
-    app.node.setContext('amplify-backend-type', BackendDeploymentType.BRANCH);
+    app.node.setContext('amplify-backend-type', 'branch');
     assert.throws(() => createDefaultStack(app), {
       message: `No context value present for amplify-backend-namespace key`,
     });
@@ -45,7 +44,7 @@ void describe('createDefaultRootStack', () => {
   void it(`throws if amplify-backend-name is missing`, () => {
     const app = new App();
     app.node.setContext('amplify-backend-namespace', 'testBackendId');
-    app.node.setContext('amplify-backend-type', BackendDeploymentType.BRANCH);
+    app.node.setContext('amplify-backend-type', 'branch');
     assert.throws(() => createDefaultStack(app), {
       message: `No context value present for amplify-backend-name key`,
     });

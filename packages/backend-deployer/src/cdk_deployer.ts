@@ -6,12 +6,8 @@ import {
   DestroyProps,
 } from './cdk_deployer_singleton_factory.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
-import { BackendIdentifier } from '@aws-amplify/plugin-types';
-import {
-  BackendDeploymentType,
-  BackendLocator,
-  CDKContextKey,
-} from '@aws-amplify/platform-core';
+import { BackendIdentifier, DeploymentType } from '@aws-amplify/plugin-types';
+import { BackendLocator, CDKContextKey } from '@aws-amplify/platform-core';
 import { BackendDeployerEnvironmentVariables } from './environment_variables.js';
 
 /**
@@ -40,7 +36,7 @@ export class CDKDeployer implements BackendDeployer {
     await this.invokeTsc(deployProps);
 
     const cdkCommandArgs: string[] = [];
-    if (deployProps?.deploymentType === BackendDeploymentType.SANDBOX) {
+    if (deployProps?.deploymentType === 'sandbox') {
       cdkCommandArgs.push('--hotswap-fallback');
       cdkCommandArgs.push('--method=direct');
       if (deployProps.secretLastUpdated) {
@@ -106,7 +102,7 @@ export class CDKDeployer implements BackendDeployer {
   private invokeCdk = async (
     invokableCommand: InvokableCommand,
     backendId?: BackendIdentifier,
-    deploymentType?: BackendDeploymentType,
+    deploymentType?: DeploymentType,
     additionalArguments?: string[]
   ) => {
     // Basic args
@@ -132,7 +128,7 @@ export class CDKDeployer implements BackendDeployer {
         `${CDKContextKey.BACKEND_NAME}=${backendId.name}`
       );
 
-      if (deploymentType !== BackendDeploymentType.SANDBOX) {
+      if (deploymentType !== 'sandbox') {
         cdkCommandArgs.push('--require-approval', 'never');
       }
     }

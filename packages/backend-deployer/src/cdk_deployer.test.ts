@@ -1,10 +1,7 @@
 import { after, beforeEach, describe, it, mock } from 'node:test';
 import { CDKDeployer } from './cdk_deployer.js';
 import assert from 'node:assert';
-import {
-  BackendDeploymentType,
-  BackendLocator,
-} from '@aws-amplify/platform-core';
+import { BackendLocator } from '@aws-amplify/platform-core';
 import { DeployProps } from './cdk_deployer_singleton_factory.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
@@ -18,7 +15,7 @@ void describe('invokeCDKCommand', () => {
   };
 
   const sandboxDeployProps: DeployProps = {
-    deploymentType: BackendDeploymentType.SANDBOX,
+    deploymentType: 'sandbox',
     secretLastUpdated: new Date(12345678),
   };
 
@@ -131,7 +128,7 @@ void describe('invokeCDKCommand', () => {
 
   void it('handles destroy for sandbox', async () => {
     await invoker.destroy(backendId, {
-      deploymentType: BackendDeploymentType.SANDBOX,
+      deploymentType: 'sandbox',
     });
     assert.strictEqual(execaMock.mock.callCount(), 1);
     assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 15);
@@ -156,7 +153,7 @@ void describe('invokeCDKCommand', () => {
 
   void it('enables type checking for branch deployments', async () => {
     await invoker.deploy(backendId, {
-      deploymentType: BackendDeploymentType.BRANCH,
+      deploymentType: 'branch',
       validateAppSources: true,
     });
     assert.strictEqual(execaMock.mock.callCount(), 2);
@@ -196,7 +193,7 @@ void describe('invokeCDKCommand', () => {
 
   void it('enables type checking for sandbox deployments', async () => {
     await invoker.deploy(undefined, {
-      deploymentType: BackendDeploymentType.SANDBOX,
+      deploymentType: 'sandbox',
       validateAppSources: true,
     });
     assert.strictEqual(execaMock.mock.callCount(), 2);
@@ -236,7 +233,7 @@ void describe('invokeCDKCommand', () => {
         BackendDeployerEnvironmentVariables.ALWAYS_DISABLE_APP_SOURCES_VALIDATION
       ] = 'true';
       await invoker.deploy(backendId, {
-        deploymentType: BackendDeploymentType.BRANCH,
+        deploymentType: 'branch',
         validateAppSources: true,
       });
       assert.strictEqual(execaMock.mock.callCount(), 1);
@@ -273,7 +270,7 @@ void describe('invokeCDKCommand', () => {
         BackendDeployerEnvironmentVariables.ALWAYS_DISABLE_APP_SOURCES_VALIDATION
       ] = 'true';
       await invoker.deploy(undefined, {
-        deploymentType: BackendDeploymentType.SANDBOX,
+        deploymentType: 'sandbox',
         validateAppSources: true,
       });
       assert.strictEqual(execaMock.mock.callCount(), 1);

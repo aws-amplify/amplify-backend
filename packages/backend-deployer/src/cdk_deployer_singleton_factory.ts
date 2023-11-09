@@ -1,19 +1,16 @@
-import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { BackendIdentifier, DeploymentType } from '@aws-amplify/plugin-types';
 import { CDKDeployer } from './cdk_deployer.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
-import {
-  BackendDeploymentType,
-  BackendLocator,
-} from '@aws-amplify/platform-core';
+import { BackendLocator } from '@aws-amplify/platform-core';
 
 export type DeployProps = {
-  deploymentType?: BackendDeploymentType;
+  deploymentType?: DeploymentType;
   secretLastUpdated?: Date;
   validateAppSources?: boolean;
 };
 
 export type DestroyProps = {
-  deploymentType?: BackendDeploymentType;
+  deploymentType?: DeploymentType;
 };
 
 /**

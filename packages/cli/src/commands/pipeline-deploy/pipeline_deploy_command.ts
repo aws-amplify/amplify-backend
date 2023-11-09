@@ -1,7 +1,6 @@
 import _isCI from 'is-ci';
 import { Argv, CommandModule } from 'yargs';
 import { BackendDeployer } from '@aws-amplify/backend-deployer';
-import { BackendDeploymentType } from '@aws-amplify/platform-core';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 import { ArgumentsKebabCase } from '../../kebab_case.js';
 import { handleCommandFailure } from '../../command_failure_handler.js';
@@ -60,7 +59,7 @@ export class PipelineDeployCommand
       type: 'branch',
     };
     await this.backendDeployer.deploy(backendId, {
-      deploymentType: BackendDeploymentType.BRANCH,
+      deploymentType: 'branch',
       validateAppSources: true,
     });
     await this.clientConfigGenerator.generateClientConfigToFile(backendId);

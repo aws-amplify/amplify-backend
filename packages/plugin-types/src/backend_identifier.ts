@@ -1,3 +1,5 @@
+import { DeploymentType } from './deployment_type';
+
 /**
  * These are some utility types to make the BackendIdentifier a bit more self-documenting
  */
@@ -25,7 +27,7 @@ export type BackendIdentifier =
       /**
        * Const that determines this BackendIdentifier is for a branch backend
        */
-      type: Readonly<'branch'>;
+      type: Readonly<Extract<DeploymentType, 'branch'>>;
       /**
        * Optional hash for consistent stack naming in cases where namespace or name contain characters that can't be serialized into a stack name
        */
@@ -49,7 +51,7 @@ export type BackendIdentifier =
       /**
        * Const that determines this BackendIdentifier is for a sandbox backend
        */
-      type: Readonly<'sandbox'>;
+      type: Readonly<Extract<DeploymentType, 'sandbox'>>;
       /**
        * Optional hash for consistent stack naming in cases where namespace or name contain characters that can't be serialized into a stack name
        */

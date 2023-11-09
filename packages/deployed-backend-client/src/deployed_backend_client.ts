@@ -1,4 +1,8 @@
-import { BackendIdentifier, BackendOutput } from '@aws-amplify/plugin-types';
+import {
+  BackendIdentifier,
+  BackendOutput,
+  DeploymentType,
+} from '@aws-amplify/plugin-types';
 import {
   ApiAuthType,
   BackendMetadata,
@@ -8,10 +12,7 @@ import {
   ListSandboxesResponse,
   SandboxMetadata,
 } from './deployed_backend_client_factory.js';
-import {
-  BackendDeploymentType,
-  BackendIdentifierConversions,
-} from '@aws-amplify/platform-core';
+import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 import { BackendOutputClient } from './backend_output_client_factory.js';
 import {
   CloudFormationClient,
@@ -89,8 +90,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
         stackMetadataPromises
       );
       const filteredMetadata = stackMetadataResolvedPromises.filter(
-        (stackMetadata) =>
-          stackMetadata.deploymentType === BackendDeploymentType.SANDBOX
+        (stackMetadata) => stackMetadata.deploymentType === 'sandbox'
       );
 
       stackMetadata.push(...filteredMetadata);
@@ -105,7 +105,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
 
   private tryGetDeploymentType = async (
     stackSummary: StackSummary
-  ): Promise<BackendDeploymentType | undefined> => {
+  ): Promise<DeploymentType | undefined> => {
     const backendIdentifier = {
       stackName: stackSummary.StackName as string,
     };
@@ -115,7 +115,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
         await this.backendOutputClient.getOutput(backendIdentifier);
 
       return backendOutput[platformOutputKey].payload
-        .deploymentType as BackendDeploymentType;
+        .deploymentType as DeploymentType;
     } catch {
       return;
     }
@@ -220,7 +220,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     );
     const backendMetadataObject: BackendMetadata = {
       deploymentType: backendOutput[platformOutputKey].payload
-        .deploymentType as BackendDeploymentType,
+        .deploymentType as DeploymentType,
       lastUpdated,
       status,
       name: stackName,

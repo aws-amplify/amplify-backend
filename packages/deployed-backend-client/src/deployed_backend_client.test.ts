@@ -16,7 +16,6 @@ import {
   platformOutputKey,
   storageOutputKey,
 } from '@aws-amplify/backend-output-schemas';
-import { BackendDeploymentType } from '@aws-amplify/platform-core';
 import { DefaultBackendOutputClient } from './backend_output_client.js';
 import { DefaultDeployedBackendClient } from './deployed_backend_client.js';
 import { StackIdentifier } from './index.js';
@@ -239,7 +238,7 @@ void describe('Deployed Backend Client', () => {
       nextToken: undefined,
       sandboxes: [
         {
-          deploymentType: BackendDeploymentType.SANDBOX,
+          deploymentType: 'sandbox',
           backendId: {
             namespace: 'test',
             name: 'testBranch',
@@ -251,7 +250,7 @@ void describe('Deployed Backend Client', () => {
           lastUpdated: new Date(0),
         },
         {
-          deploymentType: BackendDeploymentType.SANDBOX,
+          deploymentType: 'sandbox',
           backendId: {
             namespace: 'test',
             name: 'name',
@@ -263,21 +262,21 @@ void describe('Deployed Backend Client', () => {
           lastUpdated: new Date(1),
         },
         {
-          deploymentType: BackendDeploymentType.SANDBOX,
+          deploymentType: 'sandbox',
           backendId: undefined,
           name: 'amplify-test-testBranch-auth',
           status: BackendDeploymentStatus.DEPLOYED,
           lastUpdated: new Date(1),
         },
         {
-          deploymentType: BackendDeploymentType.SANDBOX,
+          deploymentType: 'sandbox',
           backendId: undefined,
           name: 'amplify-test-testBranch-storage',
           status: BackendDeploymentStatus.DEPLOYING,
           lastUpdated: new Date(1),
         },
         {
-          deploymentType: BackendDeploymentType.SANDBOX,
+          deploymentType: 'sandbox',
           backendId: undefined,
           name: 'amplify-test-testBranch-data',
           status: BackendDeploymentStatus.FAILED,
@@ -306,7 +305,7 @@ void describe('Deployed Backend Client', () => {
     });
 
     assert.deepEqual(getMetadataResponse, {
-      deploymentType: BackendDeploymentType.SANDBOX,
+      deploymentType: 'sandbox',
       name: validTestBranchName,
       ...expectedMetadata,
     });
@@ -326,7 +325,7 @@ void describe('Deployed Backend Client pagination', () => {
   const getOutputMock = mock.method(mockBackendOutputClient, 'getOutput');
   const returnedSandboxes = [
     {
-      deploymentType: BackendDeploymentType.SANDBOX,
+      deploymentType: 'sandbox',
       backendId: {
         namespace: 'test',
         name: 'name',

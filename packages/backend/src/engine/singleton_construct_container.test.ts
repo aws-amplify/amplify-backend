@@ -11,14 +11,13 @@ import {
   ConstructContainerEntryGenerator,
   ConstructFactory,
 } from '@aws-amplify/plugin-types';
-import { BackendDeploymentType } from '@aws-amplify/platform-core';
 import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
   app.node.setContext('amplify-backend-name', 'testEnvName');
   app.node.setContext('amplify-backend-namespace', 'testBackendId');
-  app.node.setContext('amplify-backend-type', BackendDeploymentType.BRANCH);
+  app.node.setContext('amplify-backend-type', 'branch');
   const stack = new Stack(app);
   return stack;
 };

@@ -1,9 +1,6 @@
 import { Construct } from 'constructs';
-import {
-  BackendDeploymentType,
-  CDKContextKey,
-} from '@aws-amplify/platform-core';
-import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { CDKContextKey } from '@aws-amplify/platform-core';
+import { BackendIdentifier, DeploymentType } from '@aws-amplify/plugin-types';
 
 /**
  * Populates a backend identifier based on CDK context values.
@@ -26,13 +23,10 @@ export const getBackendIdentifier = (scope: Construct): BackendIdentifier => {
     );
   }
 
-  const deploymentType: BackendDeploymentType = scope.node.getContext(
+  const deploymentType: DeploymentType = scope.node.getContext(
     CDKContextKey.DEPLOYMENT_TYPE
   );
-  const expectedDeploymentTypeValues = [
-    BackendDeploymentType.BRANCH,
-    BackendDeploymentType.SANDBOX,
-  ];
+  const expectedDeploymentTypeValues = ['sandbox', 'branch'];
 
   if (!expectedDeploymentTypeValues.includes(deploymentType)) {
     throw new Error(
@@ -44,16 +38,8 @@ export const getBackendIdentifier = (scope: Construct): BackendIdentifier => {
     );
   }
 
-  if (deploymentType === BackendDeploymentType.SANDBOX) {
-    return {
-      type: 'sandbox',
-      namespace: backendNamespace,
-      name: backendName,
-    };
-  }
-
   return {
-    type: 'branch',
+    type: deploymentType,
     namespace: backendNamespace,
     name: backendName,
   };

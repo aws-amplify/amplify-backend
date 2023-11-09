@@ -13,7 +13,6 @@ import {
 } from '@aws-amplify/backend-output-storage';
 import { createDefaultStack } from './default_stack_factory.js';
 import { getBackendIdentifier } from './backend_identifier.js';
-import { BackendDeploymentType } from '@aws-amplify/platform-core';
 import { platformOutputKey } from '@aws-amplify/backend-output-schemas';
 import { fileURLToPath } from 'url';
 import { Backend } from './backend.js';
@@ -64,10 +63,7 @@ export class BackendFactory<
     outputStorageStrategy.addBackendOutputEntry(platformOutputKey, {
       version: '1',
       payload: {
-        deploymentType:
-          backendId.type === 'sandbox'
-            ? BackendDeploymentType.SANDBOX
-            : BackendDeploymentType.BRANCH,
+        deploymentType: backendId.type,
         region: stack.region,
       },
     });

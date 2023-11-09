@@ -3,7 +3,6 @@ import assert from 'node:assert';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
 import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 import { SecretListItem, getSecretClient } from '@aws-amplify/backend-secret';
-import { BackendDeploymentType } from '@aws-amplify/platform-core';
 
 const backendDeployer = BackendDeployerFactory.getInstance();
 const secretClient = getSecretClient();
@@ -95,7 +94,7 @@ void describe('Sandbox executor', () => {
             type: 'sandbox',
           },
           {
-            deploymentType: BackendDeploymentType.SANDBOX,
+            deploymentType: 'sandbox',
             secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
             validateAppSources: shouldValidateSources,
           },

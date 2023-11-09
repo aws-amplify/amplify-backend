@@ -1,7 +1,6 @@
 import debounce from 'debounce-promise';
 import { BackendDeployer } from '@aws-amplify/backend-deployer';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
-import { BackendDeploymentType } from '@aws-amplify/platform-core';
 import { SecretClient } from '@aws-amplify/backend-secret';
 
 /**
@@ -52,7 +51,7 @@ export class AmplifySandboxExecutor {
       // doesn't get lost while debouncing
       const validateAppSources = validateAppSourcesProvider();
       await this.backendDeployer.deploy(backendId, {
-        deploymentType: BackendDeploymentType.SANDBOX,
+        deploymentType: 'sandbox',
         secretLastUpdated,
         validateAppSources,
       });
@@ -67,7 +66,7 @@ export class AmplifySandboxExecutor {
     return this.invoke(
       async () =>
         await this.backendDeployer.destroy(backendId, {
-          deploymentType: BackendDeploymentType.SANDBOX,
+          deploymentType: 'sandbox',
         })
     );
   };
