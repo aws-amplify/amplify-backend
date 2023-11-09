@@ -1,5 +1,11 @@
 # @aws-amplify/integration-tests
 
+## 0.2.4
+
+### Patch Changes
+
+- 8f03cd09: enable branch linker by default
+
 ## 0.2.3
 
 ### Patch Changes
