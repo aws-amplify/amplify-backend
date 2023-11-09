@@ -51,9 +51,11 @@ export class ProcessController {
     for await (const line of ptyProcess.output) {
       const currentInteraction = interactionQueue[0];
       if (currentInteraction) {
-        console.log(`Current interaction: ${currentInteraction?.description}`);
+        console.log(
+          `[pid=${ptyProcess.pid}] Current interaction: ${currentInteraction?.description}`
+        );
       }
-      console.log(`Current line: ${line}`);
+      console.log(`[pid=${ptyProcess.pid}] Current line: ${line}`);
       try {
         // For now we only have one predicate type. If we add more predicate types in the future, we will have to
         // turn this into a predicate executor (Similar to the switch-case for actions below)
@@ -176,12 +178,16 @@ export class PtyProcess {
   ) => {
     const ptyOptions: pty.IPtyForkOptions = {
       ...options,
+      cols: 160,
     };
     ptyOptions.env = {
       ...process.env,
       ...ptyOptions.env,
     };
     const ptyProcess = pty.spawn(command, args, ptyOptions);
+    console.log(
+      `Spawned ${ptyProcess.pid.toString()} , ${command} ${args.join(' ')}`
+    );
     return new PtyProcess(ptyProcess);
   };
 
@@ -194,8 +200,7 @@ export class PtyProcess {
     this.output = new PtyProcessOutput();
     this.processCompletion = new Promise((resolve) => {
       this.ptyProcess.onExit((exitProps) => {
-        console.log('exitProps');
-        console.log(exitProps);
+        console.log(`[pid=${this.pid}] exitProps ${JSON.stringify(exitProps)}`);
         this.output.onExit();
         resolve({
           failed: exitProps.exitCode !== 0,
@@ -204,7 +209,9 @@ export class PtyProcess {
       });
     });
     this.ptyProcess.onData((data) => {
-      process.stdout.write(data);
+      if (typeof data === 'string') {
+        console.log(`[pid=${this.pid}] onData ${data}`);
+      }
       this.output.onData(data);
     });
   }
