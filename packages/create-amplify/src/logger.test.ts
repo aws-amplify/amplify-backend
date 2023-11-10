@@ -39,27 +39,6 @@ void describe('Logger', () => {
     );
   });
 
-  void it('logs a debug message when VERBOSE is passed to the arguments', () => {
-    const mockStdout = {
-      write: mock.fn(),
-    };
-
-    const mockArgs = {
-      debug: false,
-      verbose: true,
-    };
-
-    const mockMinimumLogLevel =
-      mockArgs.debug || mockArgs.verbose ? LogLevel.DEBUG : LogLevel.INFO;
-
-    const logger = new Logger(mockStdout as never, mockMinimumLogLevel);
-    logger.debug('Test log message');
-    assert.match(
-      [...mockStdout.write.mock.calls[0].arguments][0] ?? '',
-      new RegExp(`\\[DEBUG\\].*: Test log message`)
-    );
-  });
-
   void it('animating ellipsis is a noop in non-TTY terminal and instead logs a message at INFO level', () => {
     const mockStdout = {
       write: mock.fn(),

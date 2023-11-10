@@ -126,7 +126,7 @@ export class Logger {
   }
 }
 
-export enum EscapeSequence {
+enum EscapeSequence {
   CLEAR_LINE = '\x1b[2K',
   MOVE_CURSOR_TO_START = '\x1b[0G',
   SHOW_CURSOR = '\x1b[?25h',
@@ -145,14 +145,9 @@ export const argv = await yargs(process.argv.slice(2)).options({
     type: 'boolean',
     default: false,
   },
-  verbose: {
-    type: 'boolean',
-    default: false,
-  },
 }).argv;
 
-const minimumLogLevel =
-  argv.debug || argv.verbose ? LogLevel.DEBUG : LogLevel.INFO;
+const minimumLogLevel = argv.debug ? LogLevel.DEBUG : LogLevel.INFO;
 
 const logger = new Logger(process.stdout, minimumLogLevel);
 
