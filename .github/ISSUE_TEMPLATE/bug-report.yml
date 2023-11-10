@@ -1,0 +1,30 @@
+name: Bug Report
+description: Create a report to help us improve Amplify (Gen 2)
+labels: ['pending-triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+  - type: textarea
+    id: env
+    attributes:
+      label: Environment information
+      description: |
+        Please copy and paste output of the following command. This will be automatically formatted into code, so no need for backticks.
+        ```bash
+        npx envinfo --system --binaries --npmPackages "@aws-amplify/backend,typescript,aws-cdk,aws-cdk-lib,aws-amplify" --showNotFound
+        ```
+      render: plain text
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: |
+        Describe the bug
+        How can this bug be reproduced?
+        Please include any code snippets or screenshots that you think would be helpful!
+    validations:
+      required: true

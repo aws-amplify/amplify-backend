@@ -23,7 +23,12 @@ import {
 } from 'aws-cdk-lib/aws-cognito';
 import { FederatedPrincipal, Role } from 'aws-cdk-lib/aws-iam';
 import { AuthOutput, authOutputKey } from '@aws-amplify/backend-output-schemas';
-import { AuthProps, EmailLoginSettings, TriggerEvent } from './types.js';
+import {
+  AuthProps,
+  EmailLoginSettings,
+  ExternalProviderOptions,
+  TriggerEvent,
+} from './types.js';
 import { DEFAULTS } from './defaults.js';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import {
@@ -119,7 +124,7 @@ export class AmplifyAuth
             ? { logoutUrls: externalProviders.logoutUrls }
             : {}),
           ...(externalProviders?.scopes
-            ? { scopes: externalProviders.scopes }
+            ? { scopes: this.getOAuthScopes(externalProviders.scopes) }
             : {}),
         },
       }
@@ -143,12 +148,12 @@ export class AmplifyAuth
       authenticatedUserIamRole: auth,
       unauthenticatedUserIamRole: unAuth,
       cfnResources: {
-        userPool: this.userPool.node.findChild('Resource') as CfnUserPool,
-        userPoolClient: userPoolClient.node.findChild(
+        cfnUserPool: this.userPool.node.findChild('Resource') as CfnUserPool,
+        cfnUserPoolClient: userPoolClient.node.findChild(
           'Resource'
         ) as CfnUserPoolClient,
-        identityPool,
-        identityPoolRoleAttachment,
+        cfnIdentityPool: identityPool,
+        cfnIdentityPoolRoleAttachment: identityPoolRoleAttachment,
       },
     };
     this.storeOutput(props.outputStorageStrategy);
@@ -550,6 +555,24 @@ export class AmplifyAuth
   };
 
   /**
+   * Convert scopes from string list to OAuthScopes.
+   * @param scopes - scope list
+   * @returns cognito OAuthScopes
+   */
+  private getOAuthScopes = (
+    scopes: ExternalProviderOptions['scopes']
+  ): cognito.OAuthScope[] => {
+    if (scopes === undefined) {
+      return [];
+    }
+    const result: cognito.OAuthScope[] = [];
+    for (const scope of scopes) {
+      result.push(cognito.OAuthScope[scope]);
+    }
+    return result;
+  };
+
+  /**
    * Stores auth output using the provided strategy
    */
   private storeOutput = (
@@ -560,7 +583,7 @@ export class AmplifyAuth
     const output: AuthOutput['payload'] = {
       userPoolId: this.resources.userPool.userPoolId,
       webClientId: this.resources.userPoolClient.userPoolClientId,
-      identityPoolId: this.resources.cfnResources.identityPool.ref,
+      identityPoolId: this.resources.cfnResources.cfnIdentityPool.ref,
       authRegion: Stack.of(this).region,
     };
     if (this.oauthMappings[authProvidersList.amazon]) {

@@ -80,14 +80,18 @@ void describe('DataFactory', () => {
             assumedBy: new ServicePrincipal('test.amazon.com'),
           }),
           cfnResources: {
-            userPool: new CfnUserPool(stack, 'CfnUserPool', {}),
-            userPoolClient: new CfnUserPoolClient(stack, 'CfnUserPoolClient', {
-              userPoolId: 'userPool',
-            }),
-            identityPool: new CfnIdentityPool(stack, 'identityPool', {
+            cfnUserPool: new CfnUserPool(stack, 'CfnUserPool', {}),
+            cfnUserPoolClient: new CfnUserPoolClient(
+              stack,
+              'CfnUserPoolClient',
+              {
+                userPoolId: 'userPool',
+              }
+            ),
+            cfnIdentityPool: new CfnIdentityPool(stack, 'identityPool', {
               allowUnauthenticatedIdentities: true,
             }),
-            identityPoolRoleAttachment: new CfnIdentityPoolRoleAttachment(
+            cfnIdentityPoolRoleAttachment: new CfnIdentityPoolRoleAttachment(
               stack,
               'identityPoolRoleAttachment',
               { identityPoolId: 'identityPool' }

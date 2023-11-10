@@ -24,10 +24,10 @@ export type AppId = string;
 
 // @public
 export type AuthCfnResources = {
-    userPool: CfnUserPool;
-    userPoolClient: CfnUserPoolClient;
-    identityPool: CfnIdentityPool;
-    identityPoolRoleAttachment: CfnIdentityPoolRoleAttachment;
+    cfnUserPool: CfnUserPool;
+    cfnUserPoolClient: CfnUserPoolClient;
+    cfnIdentityPool: CfnIdentityPool;
+    cfnIdentityPoolRoleAttachment: CfnIdentityPoolRoleAttachment;
 };
 
 // @public

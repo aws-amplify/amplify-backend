@@ -36,7 +36,7 @@ void describe('sandbox command', () => {
   const commandMiddleware = new CommandMiddleware();
   const mockHandleProfile = mock.method(
     commandMiddleware,
-    'ensureAwsCredentials',
+    'ensureAwsCredentialAndRegion',
     () => null
   );
   const sandboxProfile = 'test-sandbox';
