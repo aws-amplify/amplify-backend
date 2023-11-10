@@ -148,12 +148,12 @@ export class AmplifyAuth
       authenticatedUserIamRole: auth,
       unauthenticatedUserIamRole: unAuth,
       cfnResources: {
-        userPool: this.userPool.node.findChild('Resource') as CfnUserPool,
-        userPoolClient: userPoolClient.node.findChild(
+        cfnUserPool: this.userPool.node.findChild('Resource') as CfnUserPool,
+        cfnUserPoolClient: userPoolClient.node.findChild(
           'Resource'
         ) as CfnUserPoolClient,
-        identityPool,
-        identityPoolRoleAttachment,
+        cfnIdentityPool: identityPool,
+        cfnIdentityPoolRoleAttachment: identityPoolRoleAttachment,
       },
     };
     this.storeOutput(props.outputStorageStrategy);
@@ -583,7 +583,7 @@ export class AmplifyAuth
     const output: AuthOutput['payload'] = {
       userPoolId: this.resources.userPool.userPoolId,
       webClientId: this.resources.userPoolClient.userPoolClientId,
-      identityPoolId: this.resources.cfnResources.identityPool.ref,
+      identityPoolId: this.resources.cfnResources.cfnIdentityPool.ref,
       authRegion: Stack.of(this).region,
     };
     if (this.oauthMappings[authProvidersList.amazon]) {
