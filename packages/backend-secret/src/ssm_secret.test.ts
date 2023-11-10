@@ -10,8 +10,7 @@ import { SSMSecretClient } from './ssm_secret.js';
 import assert from 'node:assert';
 import { SecretError } from './secret_error.js';
 import { Secret, SecretIdentifier, SecretListItem } from './secret.js';
-import { BranchBackendIdentifier } from '@aws-amplify/platform-core';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
 
 const shared = 'shared';
 const testBackendId = 'testBackendId';
@@ -45,8 +44,11 @@ const testSecret: Secret = {
   lastUpdated: testSecretLastUpdated,
 };
 
-const testBackendIdentifier: UniqueBackendIdentifier =
-  new BranchBackendIdentifier(testBackendId, testBranchName);
+const testBackendIdentifier: BackendIdentifier = {
+  namespace: testBackendId,
+  name: testBranchName,
+  type: 'branch',
+};
 
 void describe('SSMSecret', () => {
   void describe('getSecret', () => {
@@ -349,9 +351,11 @@ void describe('SSMSecret', () => {
         () => Promise.resolve({} as GetParametersByPathCommandOutput)
       );
 
-      const secrets = await ssmSecretClient.listSecrets(
-        new BranchBackendIdentifier(testBackendId, testBranchName)
-      );
+      const secrets = await ssmSecretClient.listSecrets({
+        namespace: testBackendId,
+        name: testBranchName,
+        type: 'branch',
+      });
       assert.deepStrictEqual(
         mockGetParametersByPath.mock.calls[0].arguments[0],
         {

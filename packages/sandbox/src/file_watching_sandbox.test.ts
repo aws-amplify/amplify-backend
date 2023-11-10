@@ -14,15 +14,12 @@ import fs from 'fs';
 import parseGitIgnore from 'parse-gitignore';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import _open from 'open';
-import {
-  BackendDeploymentType,
-  SandboxBackendIdentifier,
-} from '@aws-amplify/platform-core';
 import { SecretListItem, getSecretClient } from '@aws-amplify/backend-secret';
 import { ClientConfigFormat } from '@aws-amplify/client-config';
 import { Sandbox } from './sandbox.js';
 import { AmplifyPrompter } from '@aws-amplify/cli-core';
 import { fileURLToPath } from 'url';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
 
 // Watcher mocks
 const unsubscribeMockFn = mock.fn();
@@ -98,6 +95,12 @@ mock.method(fs, 'lstatSync', (path: string) => {
   };
 });
 
+const testSandboxBackendId: BackendIdentifier = {
+  namespace: 'testSandboxId',
+  name: 'testSandboxName',
+  type: 'sandbox',
+};
+
 void describe('Sandbox to check if region is bootstrapped', () => {
   // class under test
   let sandboxInstance: FileWatchingSandbox;
@@ -106,7 +109,7 @@ void describe('Sandbox to check if region is bootstrapped', () => {
     // ensures that .gitignore is set as absent
     mock.method(fs, 'existsSync', () => false);
     sandboxInstance = new FileWatchingSandbox(
-      'testSandboxId',
+      async () => testSandboxBackendId,
       sandboxExecutor,
       cfnClientMock,
       openMock as never
@@ -224,9 +227,9 @@ void describe('Sandbox using local project name resolver', () => {
 
     // BackendDeployer should be called with the right params
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
-      new SandboxBackendIdentifier('testSandboxId'),
+      testSandboxBackendId,
       {
-        deploymentType: BackendDeploymentType.SANDBOX,
+        deploymentType: 'sandbox',
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: false,
       },
@@ -252,9 +255,9 @@ void describe('Sandbox using local project name resolver', () => {
 
     // BackendDeployer should be called with the right params
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
-      new SandboxBackendIdentifier('testSandboxId'),
+      testSandboxBackendId,
       {
-        deploymentType: BackendDeploymentType.SANDBOX,
+        deploymentType: 'sandbox',
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
@@ -284,9 +287,9 @@ void describe('Sandbox using local project name resolver', () => {
 
     // BackendDeployer should be called with the right params
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
-      new SandboxBackendIdentifier('testSandboxId'),
+      testSandboxBackendId,
       {
-        deploymentType: BackendDeploymentType.SANDBOX,
+        deploymentType: 'sandbox',
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
@@ -319,9 +322,9 @@ void describe('Sandbox using local project name resolver', () => {
     assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
     // BackendDeployer should be called with the right params
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
-      new SandboxBackendIdentifier('testSandboxId'),
+      testSandboxBackendId,
       {
-        deploymentType: BackendDeploymentType.SANDBOX,
+        deploymentType: 'sandbox',
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
@@ -340,9 +343,9 @@ void describe('Sandbox using local project name resolver', () => {
     assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
     // BackendDeployer should be called with the right params
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
-      new SandboxBackendIdentifier('testSandboxId'),
+      testSandboxBackendId,
       {
-        deploymentType: BackendDeploymentType.SANDBOX,
+        deploymentType: 'sandbox',
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: false,
       },
@@ -367,9 +370,9 @@ void describe('Sandbox using local project name resolver', () => {
     assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
     // BackendDeployer should be called with the right params
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
-      new SandboxBackendIdentifier('testSandboxId'),
+      testSandboxBackendId,
       {
-        deploymentType: BackendDeploymentType.SANDBOX,
+        deploymentType: 'sandbox',
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
@@ -390,18 +393,18 @@ void describe('Sandbox using local project name resolver', () => {
     assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 2);
     // BackendDeployer should be called with the right params
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
-      new SandboxBackendIdentifier('testSandboxId'),
+      testSandboxBackendId,
       {
-        deploymentType: BackendDeploymentType.SANDBOX,
+        deploymentType: 'sandbox',
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
     ]);
     // BackendDeployer should be called with the right params
     assert.deepEqual(backendDeployerDeployMock.mock.calls[1].arguments, [
-      new SandboxBackendIdentifier('testSandboxId'),
+      testSandboxBackendId,
       {
-        deploymentType: BackendDeploymentType.SANDBOX,
+        deploymentType: 'sandbox',
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
@@ -437,18 +440,18 @@ void describe('Sandbox using local project name resolver', () => {
     assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 2);
     // BackendDeployer should be called with the right params
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
-      new SandboxBackendIdentifier('testSandboxId'),
+      testSandboxBackendId,
       {
-        deploymentType: BackendDeploymentType.SANDBOX,
+        deploymentType: 'sandbox',
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
     ]);
     // BackendDeployer should be called with the right params
     assert.deepEqual(backendDeployerDeployMock.mock.calls[1].arguments, [
-      new SandboxBackendIdentifier('testSandboxId'),
+      testSandboxBackendId,
       {
-        deploymentType: BackendDeploymentType.SANDBOX,
+        deploymentType: 'sandbox',
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
@@ -467,9 +470,9 @@ void describe('Sandbox using local project name resolver', () => {
 
     // BackendDeployer should be called with the right params
     assert.deepEqual(backendDeployerDestroyMock.mock.calls[0].arguments, [
-      new SandboxBackendIdentifier('testSandboxId'),
+      testSandboxBackendId,
       {
-        deploymentType: BackendDeploymentType.SANDBOX,
+        deploymentType: 'sandbox',
       },
     ]);
   });
@@ -633,9 +636,13 @@ void describe('Sandbox using local project name resolver', () => {
 
     // BackendDeployer should be called with the right app name
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
-      new SandboxBackendIdentifier('customSandboxName'),
       {
-        deploymentType: BackendDeploymentType.SANDBOX,
+        name: 'customSandboxName',
+        namespace: 'testSandboxId',
+        type: 'sandbox',
+      },
+      {
+        deploymentType: 'sandbox',
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
@@ -655,9 +662,13 @@ void describe('Sandbox using local project name resolver', () => {
 
     // BackendDeployer should be called with the right params
     assert.deepEqual(backendDeployerDestroyMock.mock.calls[0].arguments, [
-      new SandboxBackendIdentifier('customSandboxName'),
       {
-        deploymentType: BackendDeploymentType.SANDBOX,
+        namespace: 'testSandboxId',
+        name: 'customSandboxName',
+        type: 'sandbox',
+      },
+      {
+        deploymentType: 'sandbox',
       },
     ]);
   });
@@ -745,7 +756,11 @@ const setupAndStartSandbox = async (
   resetMocksAfterStart = true
 ) => {
   const sandboxInstance = new FileWatchingSandbox(
-    testData.sandboxId ?? 'testSandboxId',
+    async (customName) => ({
+      namespace: 'testSandboxId',
+      name: customName ?? testData.sandboxName ?? 'testSandboxName',
+      type: 'sandbox',
+    }),
     testData.executor,
     testData.cfnClient,
     testData.open ?? _open
@@ -792,7 +807,7 @@ const setupAndStartSandbox = async (
 
 type SandboxTestData = {
   // To instantiate sandbox
-  sandboxId?: string;
+  sandboxName?: string;
   executor: AmplifySandboxExecutor;
   cfnClient: CloudFormationClient;
   open?: typeof _open;

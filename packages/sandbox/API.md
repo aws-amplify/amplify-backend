@@ -6,8 +6,12 @@
 
 /// <reference types="node" />
 
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { ClientConfigFormat } from '@aws-amplify/client-config';
 import EventEmitter from 'events';
+
+// @public (undocumented)
+export type BackendIdSandboxResolver = (sandboxName?: string) => Promise<BackendIdentifier>;
 
 // @public
 export type Sandbox = {
@@ -35,7 +39,7 @@ export type SandboxOptions = {
 
 // @public
 export class SandboxSingletonFactory {
-    constructor(sandboxIdResolver: () => Promise<string>);
+    constructor(sandboxIdResolver: BackendIdSandboxResolver);
     getInstance: () => Promise<Sandbox>;
 }
 

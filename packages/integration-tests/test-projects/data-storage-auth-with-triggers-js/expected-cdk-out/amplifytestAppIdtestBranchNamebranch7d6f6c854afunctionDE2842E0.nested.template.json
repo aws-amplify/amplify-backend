@@ -1,0 +1,129 @@
+{
+ "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyPipelineDeploy\",\"createdWith\":\"0.2.0\",\"stackType\":\"function-Lambda\",\"metadata\":{}}",
+ "Resources": {
+  "testFunctestFuncLambdaFunctionServiceRole09E19D41": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   }
+  },
+  "testFunctestFuncLambdaFunction419C520E": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "efe12e580179d925ecc56ede6195533f23db3a8e887169b63ecb5cc644193f2b.zip"
+    },
+    "Handler": "index.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "testFunctestFuncLambdaFunctionServiceRole09E19D41",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs18.x"
+   },
+   "DependsOn": [
+    "testFunctestFuncLambdaFunctionServiceRole09E19D41"
+   ]
+  },
+  "echoFuncechoFuncLambdaFunctionServiceRoleE30E6459": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   }
+  },
+  "echoFuncechoFuncLambdaFunction08680056": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "efe12e580179d925ecc56ede6195533f23db3a8e887169b63ecb5cc644193f2b.zip"
+    },
+    "Handler": "index.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "echoFuncechoFuncLambdaFunctionServiceRoleE30E6459",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs18.x"
+   },
+   "DependsOn": [
+    "echoFuncechoFuncLambdaFunctionServiceRoleE30E6459"
+   ]
+  }
+ },
+ "Outputs": {
+  "amplifytestAppIdtestBranchNamebranch7d6f6c854afunctiontestFunctestFuncLambdaFunction675DD8C2Arn": {
+   "Value": {
+    "Fn::GetAtt": [
+     "testFunctestFuncLambdaFunction419C520E",
+     "Arn"
+    ]
+   }
+  },
+  "amplifytestAppIdtestBranchNamebranch7d6f6c854afunctionechoFuncechoFuncLambdaFunctionCC7FF4D5Arn": {
+   "Value": {
+    "Fn::GetAtt": [
+     "echoFuncechoFuncLambdaFunction08680056",
+     "Arn"
+    ]
+   }
+  }
+ }
+}

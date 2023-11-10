@@ -1,7 +1,7 @@
 import {
+  BackendIdentifier,
   BackendSecret,
   BackendSecretResolver,
-  UniqueBackendIdentifier,
 } from '@aws-amplify/plugin-types';
 import { describe, it } from 'node:test';
 import { AuthLoginWithFactoryProps } from './types.js';
@@ -10,7 +10,6 @@ import { AuthProps, PhoneNumberLogin } from '@aws-amplify/auth-construct-alpha';
 import { SecretValue } from 'aws-cdk-lib';
 import assert from 'node:assert';
 import { translateToAuthConstructLoginWith } from './translate_auth_props.js';
-import { BranchBackendIdentifier } from '@aws-amplify/platform-core';
 
 const phone: PhoneNumberLogin = {
   verificationMessage: (code: string) => `text${code}text2`,
@@ -30,8 +29,11 @@ const appleKeyId = 'appleKeyId';
 const applePrivateKey = 'applePrivateKey';
 const callbackUrls = ['a', 'b'];
 
-const testBackendIdentifier: UniqueBackendIdentifier =
-  new BranchBackendIdentifier('testBackendId', 'testBranchName');
+const testBackendIdentifier: BackendIdentifier = {
+  namespace: 'testBackendId',
+  name: 'testBranchName',
+  type: 'branch',
+};
 
 const testStack = {} as Construct;
 

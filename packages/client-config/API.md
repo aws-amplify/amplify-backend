@@ -5,7 +5,7 @@
 ```ts
 
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
-import { BackendIdentifier } from '@aws-amplify/deployed-backend-client';
+import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
 
 // @public
 export type AuthClientConfig = {
@@ -32,10 +32,10 @@ export enum ClientConfigFormat {
 }
 
 // @public
-export const generateClientConfig: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier) => Promise<ClientConfig>;
+export const generateClientConfig: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier) => Promise<ClientConfig>;
 
 // @public
-export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier, outDir?: string, format?: ClientConfigFormat) => Promise<void>;
+export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, outDir?: string, format?: ClientConfigFormat) => Promise<void>;
 
 // @public
 export const getClientConfigPath: (outDir?: string, format?: ClientConfigFormat) => Promise<string>;
