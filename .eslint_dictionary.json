@@ -63,6 +63,7 @@
   "mkdtemp",
   "modelgen",
   "multifactor",
+  "namespace",
   "nodejs",
   "nodenext",
   "npmrc",

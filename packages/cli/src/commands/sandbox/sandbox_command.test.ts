@@ -36,14 +36,18 @@ void describe('sandbox command', () => {
   const commandMiddleware = new CommandMiddleware();
   const mockHandleProfile = mock.method(
     commandMiddleware,
-    'ensureAwsCredentials',
+    'ensureAwsCredentialAndRegion',
     () => null
   );
   const sandboxProfile = 'test-sandbox';
 
   beforeEach(async () => {
     const sandboxFactory = new SandboxSingletonFactory(() =>
-      Promise.resolve('testBackendId')
+      Promise.resolve({
+        namespace: 'testSandboxId',
+        name: 'testSandboxName',
+        type: 'sandbox',
+      })
     );
     sandbox = await sandboxFactory.getInstance();
 
@@ -222,7 +226,11 @@ void describe('sandbox command', () => {
   void it('starts sandbox with user provided valid AWS profile', async () => {
     mockHandleProfile.mock.mockImplementationOnce(() => null);
     const sandboxFactory = new SandboxSingletonFactory(() =>
-      Promise.resolve('testBackendId')
+      Promise.resolve({
+        namespace: 'testSandboxId',
+        name: 'testSandboxName',
+        type: 'sandbox',
+      })
     );
     sandbox = await sandboxFactory.getInstance();
     sandboxStartMock = mock.method(sandbox, 'start', () => Promise.resolve());

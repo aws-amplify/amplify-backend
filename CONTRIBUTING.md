@@ -61,7 +61,7 @@ If you discover a potential security issue in this project we ask that you notif
 You have to publish to local every time after making a change
 
 ```sh
-# In samsara-cli repo
+# In amplify-backend repo
 npm run clean
 npm run install:local
 npm run build
@@ -87,7 +87,7 @@ npm create amplify
 ### Test
 
 ```sh
-# In samsara-cli repo
+# In amplify-backend repo
 npm run build # Have to build every time after making a change before running test
 npm run test:dir packages/create-amplify # Run all test in create-amplify
 npm run test:dir packages/create-amplify/src/<file-name>.test.ts # Run all test in one file. e.g. npm run test:dir packages/create-amplify/src/get_project_root.test.ts

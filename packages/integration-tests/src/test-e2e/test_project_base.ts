@@ -1,5 +1,5 @@
-import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { amplifyCli } from '../process-controller/process_controller.js';
 import {
   confirmDeleteSandbox,
@@ -42,8 +42,8 @@ export abstract class TestProjectBase {
   /**
    * Deploy the project.
    */
-  async deploy(backendIdentifier: UniqueBackendIdentifier) {
-    if (backendIdentifier instanceof SandboxBackendIdentifier) {
+  async deploy(backendIdentifier: BackendIdentifier) {
+    if (backendIdentifier.type === 'sandbox') {
       await amplifyCli(['sandbox'], this.projectDirPath)
         .do(waitForSandboxDeploymentToPrintTotalTime())
         .do(interruptSandbox())
@@ -54,13 +54,13 @@ export abstract class TestProjectBase {
         [
           'pipeline-deploy',
           '--branch',
-          backendIdentifier.disambiguator,
+          backendIdentifier.name,
           '--appId',
-          backendIdentifier.backendId,
+          backendIdentifier.namespace,
         ],
         this.projectDirPath,
         {
-          env: { CI: 'true', AMPLIFY_BACKEND_BRANCH_LINKER_ENABLED: 'true' },
+          env: { CI: 'true' },
         }
       ).run();
     }
@@ -69,15 +69,16 @@ export abstract class TestProjectBase {
   /**
    * Tear down the project.
    */
-  async tearDown(backendIdentifier: UniqueBackendIdentifier) {
-    if (backendIdentifier instanceof SandboxBackendIdentifier) {
+  async tearDown(backendIdentifier: BackendIdentifier) {
+    if (backendIdentifier.type === 'sandbox') {
       await amplifyCli(['sandbox', 'delete'], this.projectDirPath)
         .do(confirmDeleteSandbox())
         .run();
     } else {
       await this.cfnClient.send(
         new DeleteStackCommand({
-          StackName: `amplify-${backendIdentifier.backendId}-${backendIdentifier.disambiguator}`,
+          StackName:
+            BackendIdentifierConversions.toStackName(backendIdentifier),
         })
       );
     }

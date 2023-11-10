@@ -1,6 +1,7 @@
 import {
+  BackendIdentifier,
   BackendOutput,
-  UniqueBackendIdentifier,
+  DeploymentType,
 } from '@aws-amplify/plugin-types';
 import {
   ApiAuthType,
@@ -11,12 +12,8 @@ import {
   ListSandboxesResponse,
   SandboxMetadata,
 } from './deployed_backend_client_factory.js';
-import {
-  BackendDeploymentType,
-  SandboxBackendIdentifier,
-} from '@aws-amplify/platform-core';
+import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 import { BackendOutputClient } from './backend_output_client_factory.js';
-import { getMainStackName } from './get_main_stack_name.js';
 import {
   CloudFormationClient,
   DeleteStackCommand,
@@ -77,8 +74,8 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
 
           return {
             name: stackSummary.StackName as string,
-            backendId: SandboxBackendIdentifier.tryParse(
-              stackSummary.StackName as string
+            backendId: BackendIdentifierConversions.fromStackName(
+              stackSummary.StackName
             ),
             lastUpdated:
               stackSummary.LastUpdatedTime ?? stackSummary.CreationTime,
@@ -93,8 +90,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
         stackMetadataPromises
       );
       const filteredMetadata = stackMetadataResolvedPromises.filter(
-        (stackMetadata) =>
-          stackMetadata.deploymentType === BackendDeploymentType.SANDBOX
+        (stackMetadata) => stackMetadata.deploymentType === 'sandbox'
       );
 
       stackMetadata.push(...filteredMetadata);
@@ -109,7 +105,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
 
   private tryGetDeploymentType = async (
     stackSummary: StackSummary
-  ): Promise<BackendDeploymentType | undefined> => {
+  ): Promise<DeploymentType | undefined> => {
     const backendIdentifier = {
       stackName: stackSummary.StackName as string,
     };
@@ -119,7 +115,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
         await this.backendOutputClient.getOutput(backendIdentifier);
 
       return backendOutput[platformOutputKey].payload
-        .deploymentType as BackendDeploymentType;
+        .deploymentType as DeploymentType;
     } catch {
       return;
     }
@@ -129,18 +125,21 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
    * Deletes a sandbox with the specified id
    */
   deleteSandbox = async (
-    sandboxBackendIdentifier: SandboxBackendIdentifier
+    sandboxBackendIdentifier: Omit<BackendIdentifier, 'type'>
   ): Promise<void> => {
-    const stackName = getMainStackName(sandboxBackendIdentifier);
+    const stackName = BackendIdentifierConversions.toStackName({
+      ...sandboxBackendIdentifier,
+      type: 'sandbox',
+    });
     await this.cfnClient.send(new DeleteStackCommand({ StackName: stackName }));
   };
   /**
    * Fetches all backend metadata for a specified backend
    */
   getBackendMetadata = async (
-    uniqueBackendIdentifier: UniqueBackendIdentifier
+    backendId: BackendIdentifier
   ): Promise<BackendMetadata> => {
-    const stackName = getMainStackName(uniqueBackendIdentifier);
+    const stackName = BackendIdentifierConversions.toStackName(backendId);
     return this.buildBackendMetadata(stackName);
   };
 
@@ -160,12 +159,12 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
   private buildBackendMetadata = async (
     stackName: string
   ): Promise<BackendMetadata> => {
-    const backendIdentifier = {
+    const stackBackendIdentifier = {
       stackName,
     };
 
     const backendOutput: BackendOutput =
-      await this.backendOutputClient.getOutput(backendIdentifier);
+      await this.backendOutputClient.getOutput(stackBackendIdentifier);
     const stackDescription = await this.cfnClient.send(
       new DescribeStacksCommand({ StackName: stackName })
     );
@@ -221,7 +220,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     );
     const backendMetadataObject: BackendMetadata = {
       deploymentType: backendOutput[platformOutputKey].payload
-        .deploymentType as BackendDeploymentType,
+        .deploymentType as DeploymentType,
       lastUpdated,
       status,
       name: stackName,

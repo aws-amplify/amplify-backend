@@ -1,10 +1,10 @@
 import { Construct } from 'constructs';
 import { StackResolver } from './stack_resolver_stub.js';
 import {
+  BackendIdentifier,
   ConstructContainer,
   ConstructContainerEntryGenerator,
   ConstructFactory,
-  UniqueBackendIdentifier,
 } from '@aws-amplify/plugin-types';
 import { BackendSecretResolverStub } from './backend_secret_resolver_stub.js';
 
@@ -33,10 +33,10 @@ export class ConstructContainerStub implements ConstructContainer {
   getOrCompute = (generator: ConstructContainerEntryGenerator): Construct => {
     if (!this.constructCache.has(generator)) {
       const scope = this.stackResolver.getStackFor(generator.resourceGroupName);
-      const uniqueBackendIdentifier = getUniqueBackendIdentifierStub();
+      const backendId = getBackendIdentifierStub();
       const backendSecretResolver = new BackendSecretResolverStub(
         scope,
-        uniqueBackendIdentifier
+        backendId
       );
       this.constructCache.set(
         generator,
@@ -82,7 +82,8 @@ export class ConstructContainerStub implements ConstructContainer {
   };
 }
 
-const getUniqueBackendIdentifierStub = (): UniqueBackendIdentifier => ({
-  backendId: 'testBackendId',
-  disambiguator: 'testEnvName',
+const getBackendIdentifierStub = (): BackendIdentifier => ({
+  namespace: 'testBackendId',
+  name: 'testEnvName',
+  type: 'branch',
 });

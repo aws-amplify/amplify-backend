@@ -2,13 +2,13 @@ import { beforeEach, describe, it, mock } from 'node:test';
 import yargs, { CommandModule } from 'yargs';
 import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
-import { SandboxIdResolver } from '../sandbox_id_resolver.js';
+import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
 import { getSecretClient } from '@aws-amplify/backend-secret';
 import { SandboxSecretRemoveCommand } from './sandbox_secret_remove_command.js';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 
 const testSecretName = 'testSecretName';
 const testBackendId = 'testBackendId';
+const testSandboxName = 'testSandboxName';
 
 void describe('sandbox secret remove command', () => {
   const secretClient = getSecretClient();
@@ -18,9 +18,14 @@ void describe('sandbox secret remove command', () => {
     (): Promise<void> => Promise.resolve()
   );
 
-  const sandboxIdResolver = new SandboxIdResolver({
-    resolve: () => Promise.resolve('testBackendId'),
-  });
+  const sandboxIdResolver: SandboxBackendIdResolver = {
+    resolve: () =>
+      Promise.resolve({
+        namespace: testBackendId,
+        name: testSandboxName,
+        type: 'sandbox',
+      }),
+  } as SandboxBackendIdResolver;
 
   const sandboxSecretRemoveCmd = new SandboxSecretRemoveCommand(
     sandboxIdResolver,
@@ -40,11 +45,14 @@ void describe('sandbox secret remove command', () => {
   void it('remove a secret', async () => {
     await commandRunner.runCommand(`remove ${testSecretName}`);
     assert.equal(secretRemoveMock.mock.callCount(), 1);
-    const backendIdentifier = secretRemoveMock.mock.calls[0]
-      .arguments[0] as UniqueBackendIdentifier;
-    assert.match(backendIdentifier.backendId, new RegExp(testBackendId));
-    assert.equal(backendIdentifier.disambiguator, 'sandbox');
-    assert.equal(secretRemoveMock.mock.calls[0].arguments[1], testSecretName);
+    assert.deepStrictEqual(secretRemoveMock.mock.calls[0].arguments, [
+      {
+        type: 'sandbox',
+        namespace: testBackendId,
+        name: testSandboxName,
+      },
+      testSecretName,
+    ]);
   });
 
   void it('show --help', async () => {

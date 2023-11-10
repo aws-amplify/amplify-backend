@@ -32,7 +32,7 @@ export type SandboxEventHandlers = {
 };
 
 export type SandboxEventHandlerParams = {
-  appName?: string;
+  sandboxName?: string;
   clientConfigLifecycleHandler: ClientConfigLifecycleHandler;
 };
 
@@ -56,7 +56,7 @@ export class SandboxCommand
    */
   readonly describe: string;
 
-  private appName?: string;
+  private sandboxName?: string;
 
   /**
    * Creates sandbox command.
@@ -77,14 +77,14 @@ export class SandboxCommand
    */
   handler = async (args: SandboxCommandOptions): Promise<void> => {
     const sandbox = await this.sandboxFactory.getInstance();
-    this.appName = args.name;
+    this.sandboxName = args.name;
 
     // attaching event handlers
     const clientConfigLifecycleHandler = new ClientConfigLifecycleHandler(
       this.clientConfigGeneratorAdapter
     );
     const eventHandlers = this.sandboxEventHandlerCreator?.({
-      appName: args.name,
+      sandboxName: this.sandboxName,
       clientConfigLifecycleHandler,
     });
     if (eventHandlers) {
@@ -182,7 +182,7 @@ export class SandboxCommand
           }
           return true;
         })
-        .middleware([this.commandMiddleware.ensureAwsCredentials])
+        .middleware([this.commandMiddleware.ensureAwsCredentialAndRegion])
         .fail((msg, err) => {
           handleCommandFailure(msg, err, yargs);
           yargs.exit(1, err);
@@ -199,6 +199,6 @@ export class SandboxCommand
     if (answer)
       await (
         await this.sandboxFactory.getInstance()
-      ).delete({ name: this.appName });
+      ).delete({ name: this.sandboxName });
   };
 }

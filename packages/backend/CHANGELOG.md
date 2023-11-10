@@ -1,5 +1,33 @@
 # @aws-amplify/backend
 
+## 0.4.0
+
+### Minor Changes
+
+- 85a015b7: switch to using data-schema packages
+- 71a63a16: Change stack naming strategy to include deployment type as a suffix
+
+### Patch Changes
+
+- Updated dependencies [85a015b7]
+- Updated dependencies [8181509a]
+- Updated dependencies [71a63a16]
+  - @aws-amplify/backend-data@0.5.0
+  - @aws-amplify/plugin-types@0.4.0
+  - @aws-amplify/backend-output-schemas@0.3.0
+  - @aws-amplify/backend-function@0.2.0
+  - @aws-amplify/backend-storage@0.3.0
+  - @aws-amplify/backend-secret@0.3.0
+  - @aws-amplify/platform-core@0.2.0
+  - @aws-amplify/backend-auth@0.3.0
+  - @aws-amplify/backend-output-storage@0.2.1
+
+## 0.3.4
+
+### Patch Changes
+
+- 8f03cd09: enable branch linker by default
+
 ## 0.3.3
 
 ### Patch Changes

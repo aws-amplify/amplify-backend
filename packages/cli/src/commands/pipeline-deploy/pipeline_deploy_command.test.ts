@@ -10,7 +10,6 @@ import {
   PipelineDeployCommandOptions,
 } from './pipeline_deploy_command.js';
 import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
-import { BranchBackendIdentifier } from '@aws-amplify/platform-core';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 
@@ -73,14 +72,17 @@ void describe('deploy command', () => {
       'pipeline-deploy --app-id abc --branch test-branch'
     );
     assert.strictEqual(mockDeploy.mock.callCount(), 1);
-    assert.deepStrictEqual(
-      mockDeploy.mock.calls[0].arguments[0],
-      new BranchBackendIdentifier('abc', 'test-branch')
-    );
-    assert.deepStrictEqual(mockDeploy.mock.calls[0].arguments[1], {
-      deploymentType: 'BRANCH',
-      validateAppSources: true,
-    });
+    assert.deepStrictEqual(mockDeploy.mock.calls[0].arguments, [
+      {
+        name: 'test-branch',
+        namespace: 'abc',
+        type: 'branch',
+      },
+      {
+        deploymentType: 'branch',
+        validateAppSources: true,
+      },
+    ]);
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
   });
 });

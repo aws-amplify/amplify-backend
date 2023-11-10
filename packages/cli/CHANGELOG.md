@@ -1,5 +1,29 @@
 # @aws-amplify/backend-cli
 
+## 0.6.0
+
+### Minor Changes
+
+- 71a63a16: Change stack naming strategy to include deployment type as a suffix
+
+### Patch Changes
+
+- 316590c0: Validate aws region config. Besides, remove help output from the credential and region validation error.
+- Updated dependencies [71a63a16]
+  - @aws-amplify/deployed-backend-client@0.3.0
+  - @aws-amplify/backend-output-schemas@0.3.0
+  - @aws-amplify/backend-secret@0.3.0
+  - @aws-amplify/client-config@0.3.0
+  - @aws-amplify/platform-core@0.2.0
+  - @aws-amplify/sandbox@0.3.0
+  - @aws-amplify/model-generator@0.2.1
+
+## 0.5.0
+
+### Minor Changes
+
+- ab715666: Remove deprecated sandbox parameters for form generation
+
 ## 0.4.0
 
 ### Minor Changes

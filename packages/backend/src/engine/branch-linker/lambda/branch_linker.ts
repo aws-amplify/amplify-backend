@@ -37,28 +37,28 @@ export class AmplifyBranchLinkerCustomResourceEventHandler {
       case 'Create':
       case 'Update':
         console.info(
-          `Setting stack reference for backendId=${props.backendId},branchName=${props.branchName} to ${event.StackId}`
+          `Setting stack reference for appId=${props.appId},branchName=${props.branchName} to ${event.StackId}`
         );
         await this.updateOrUnsetStackReference(
-          props.backendId,
+          props.appId,
           props.branchName,
           event.StackId
         );
         break;
       case 'Delete':
         console.info(
-          `Un-setting stack reference for backendId=${props.backendId},branchName=${props.branchName}`
+          `Un-setting stack reference for appId=${props.appId},branchName=${props.branchName}`
         );
         try {
           await this.updateOrUnsetStackReference(
-            props.backendId,
+            props.appId,
             props.branchName,
             undefined
           );
         } catch (e) {
           if (e instanceof NotFoundException) {
             console.info(
-              `Branch branchName=${props.branchName} of backendId=${props.backendId} was not found while handling delete event`
+              `Branch branchName=${props.branchName} of appId=${props.appId} was not found while handling delete event`
             );
           } else {
             throw e;
