@@ -1,5 +1,22 @@
 # @aws-amplify/backend-auth
 
+## 0.3.0
+
+### Minor Changes
+
+- 71a63a16: Change stack naming strategy to include deployment type as a suffix
+
+### Patch Changes
+
+- Updated dependencies [f30c438e]
+- Updated dependencies [95818a7a]
+- Updated dependencies [8181509a]
+- Updated dependencies [f30c438e]
+- Updated dependencies [71a63a16]
+  - @aws-amplify/auth-construct-alpha@0.3.0
+  - @aws-amplify/plugin-types@0.4.0
+  - @aws-amplify/backend-output-storage@0.2.1
+
 ## 0.2.3
 
 ### Patch Changes

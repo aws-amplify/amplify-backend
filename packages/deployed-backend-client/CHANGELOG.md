@@ -1,5 +1,17 @@
 # @aws-amplify/deployed-backend-client
 
+## 0.3.0
+
+### Minor Changes
+
+- 71a63a16: Change stack naming strategy to include deployment type as a suffix
+
+### Patch Changes
+
+- Updated dependencies [71a63a16]
+  - @aws-amplify/backend-output-schemas@0.3.0
+  - @aws-amplify/platform-core@0.2.0
+
 ## 0.2.2
 
 ### Patch Changes
