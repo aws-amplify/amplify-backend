@@ -130,12 +130,12 @@ export class AmplifyAuth
       }
     );
 
-    // Auth / UnAuth Roles
-    const { auth, unAuth } = this.setupAuthAndUnAuthRoles();
-
     // Identity Pool
-    const { identityPool, identityPoolRoleAttachment } = this.setupIdentityPool(
-      { auth, unAuth },
+    const {
+      identityPool,
+      identityPoolRoleAttachment,
+      roles: { auth, unAuth },
+    } = this.setupIdentityPool(
       this.userPool,
       userPoolClient,
       providerSetupResult
@@ -169,13 +169,27 @@ export class AmplifyAuth
    * Create Auth/UnAuth Roles
    * @returns DefaultRoles
    */
-  private setupAuthAndUnAuthRoles = (): DefaultRoles => {
+  private setupAuthAndUnAuthRoles = (identityPoolId: string): DefaultRoles => {
     const result: DefaultRoles = {
       auth: new Role(this, 'authenticatedUserRole', {
-        assumedBy: new FederatedPrincipal('cognito-identity.amazonaws.com'),
+        assumedBy: new FederatedPrincipal('cognito-identity.amazonaws.com', {
+          StringEquals: {
+            'cognito-identity.amazonaws.com:aud': identityPoolId,
+          },
+          'ForAnyValue:StringLike': {
+            'cognito-identity.amazonaws.com:amr': 'authenticated',
+          },
+        }),
       }),
       unAuth: new Role(this, 'unauthenticatedUserRole', {
-        assumedBy: new FederatedPrincipal('cognito-identity.amazonaws.com'),
+        assumedBy: new FederatedPrincipal('cognito-identity.amazonaws.com', {
+          StringEquals: {
+            'cognito-identity.amazonaws.com:aud': identityPoolId,
+          },
+          'ForAnyValue:StringLike': {
+            'cognito-identity.amazonaws.com:amr': 'authenticated',
+          },
+        }),
       }),
     };
     return result;
@@ -185,7 +199,6 @@ export class AmplifyAuth
    * Setup Identity Pool with default roles/role mappings, and register providers
    */
   private setupIdentityPool = (
-    roles: DefaultRoles,
     userPool: UserPool,
     userPoolClient: UserPoolClient,
     providerSetupResult: IdentityProviderSetupResult
@@ -195,6 +208,7 @@ export class AmplifyAuth
     const identityPool = new cognito.CfnIdentityPool(this, 'IdentityPool', {
       allowUnauthenticatedIdentities: DEFAULTS.ALLOW_UNAUTHENTICATED_IDENTITIES,
     });
+    const roles = this.setupAuthAndUnAuthRoles(identityPool.ref);
     const identityPoolRoleAttachment =
       new cognito.CfnIdentityPoolRoleAttachment(
         this,
@@ -244,6 +258,7 @@ export class AmplifyAuth
     return {
       identityPool,
       identityPoolRoleAttachment,
+      roles,
     };
   };
 
