@@ -1,7 +1,7 @@
 import { SSMSecretClient } from './ssm_secret.js';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { SSM } from '@aws-sdk/client-ssm';
-import { BackendId, UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import { AppId, BackendIdentifier } from '@aws-amplify/plugin-types';
 
 /**
  * The unique identifier of the secret.
@@ -34,7 +34,7 @@ export type SecretClient = {
    * Get a secret value.
    */
   getSecret: (
-    backendIdentifier: UniqueBackendIdentifier | BackendId,
+    backendIdentifier: BackendIdentifier | AppId,
     secretIdentifier: SecretIdentifier
   ) => Promise<Secret>;
 
@@ -42,14 +42,14 @@ export type SecretClient = {
    * List secrets.
    */
   listSecrets: (
-    backendIdentifier: UniqueBackendIdentifier | BackendId
+    backendIdentifier: BackendIdentifier | AppId
   ) => Promise<SecretListItem[]>;
 
   /**
    * Set a secret.
    */
   setSecret: (
-    backendIdentifier: UniqueBackendIdentifier | BackendId,
+    backendIdentifier: BackendIdentifier | AppId,
     secretName: string,
     secretValue: string
   ) => Promise<SecretIdentifier>;
@@ -58,7 +58,7 @@ export type SecretClient = {
    * Remove a secret.
    */
   removeSecret: (
-    backendIdentifier: UniqueBackendIdentifier | BackendId,
+    backendIdentifier: BackendIdentifier | AppId,
     secretName: string
   ) => Promise<void>;
 };

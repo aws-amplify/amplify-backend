@@ -6,7 +6,7 @@ import * as path from 'path';
 import { Runtime as LambdaRuntime } from 'aws-cdk-lib/aws-lambda';
 import { Provider } from 'aws-cdk-lib/custom-resources';
 import { fileURLToPath } from 'url';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -27,7 +27,7 @@ export class BackendSecretFetcherProviderFactory {
   getOrCreateInstance = (
     scope: Construct,
     providerId: string,
-    backendIdentifier: UniqueBackendIdentifier
+    backendIdentifier: BackendIdentifier
   ) => {
     const provider = scope.node.tryFindChild(providerId) as Provider;
     if (provider) {
@@ -46,8 +46,8 @@ export class BackendSecretFetcherProviderFactory {
         effect: iam.Effect.ALLOW,
         actions: ['ssm:GetParameter'],
         resources: [
-          `arn:aws:ssm:*:*:parameter/amplify/${backendIdentifier.backendId}/${backendIdentifier.disambiguator}/*`,
-          `arn:aws:ssm:*:*:parameter/amplify/shared/${backendIdentifier.backendId}/*`,
+          `arn:aws:ssm:*:*:parameter/amplify/${backendIdentifier.namespace}/${backendIdentifier.name}/*`,
+          `arn:aws:ssm:*:*:parameter/amplify/shared/${backendIdentifier.namespace}/*`,
         ],
       })
     );

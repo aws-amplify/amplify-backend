@@ -1,5 +1,5 @@
 export type SecretResourceProps = {
-  backendId: string;
-  branchName: string;
+  namespace: string;
+  name: string;
   secretName: string;
 };

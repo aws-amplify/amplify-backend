@@ -10,7 +10,6 @@ import {
   platformOutputKey,
 } from '@aws-amplify/backend-output-schemas';
 import { ClientConfig } from './client-config-types/client_config.js';
-import { BackendDeploymentType } from '@aws-amplify/platform-core';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { ModelIntrospectionSchemaAdapter } from './client-config-contributor/model_introspection_schema_adapater.js';
 import { PlatformClientConfigContributor } from './client-config-contributor/platform_client_config_contributor.js';
@@ -22,7 +21,7 @@ void describe('UnifiedClientConfigGenerator', () => {
         [platformOutputKey]: {
           version: '1',
           payload: {
-            deploymentType: BackendDeploymentType.BRANCH,
+            deploymentType: 'branch',
             region: 'us-east-1',
           },
         },

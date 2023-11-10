@@ -1,4 +1,4 @@
 export type AmplifyBranchLinkerCustomResourceProps = {
-  backendId: string;
+  appId: string;
   branchName: string;
 };

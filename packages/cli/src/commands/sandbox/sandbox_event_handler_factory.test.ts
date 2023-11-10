@@ -1,5 +1,4 @@
 import { ClientConfigFormat } from '@aws-amplify/client-config';
-import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
 import assert from 'node:assert';
 import { it, mock } from 'node:test';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
@@ -23,21 +22,27 @@ void it('calls the client config adapter on the successfulDeployment event', asy
     ClientConfigFormat.MJS
   );
 
-  const eventFactory = new SandboxEventHandlerFactory(
-    async () => new SandboxBackendIdentifier('test')
-  );
+  const eventFactory = new SandboxEventHandlerFactory(async () => ({
+    namespace: 'test',
+    name: 'name',
+    type: 'sandbox',
+  }));
 
   await Promise.all(
     eventFactory
       .getSandboxEventHandlers({
-        appName: 'my-app',
+        sandboxName: 'my-app',
         clientConfigLifecycleHandler,
       })
       .successfulDeployment.map((e) => e())
   );
 
   assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments, [
-    { backendId: 'test', disambiguator: 'sandbox' },
+    {
+      type: 'sandbox',
+      namespace: 'test',
+      name: 'name',
+    },
     'test-out',
     'mjs',
   ]);
@@ -59,14 +64,16 @@ void it('calls deleteClientConfigFile on client config adapter on the successful
 
   const fspMock = mock.method(fsp, 'rm', () => Promise.resolve());
 
-  const eventFactory = new SandboxEventHandlerFactory(
-    async () => new SandboxBackendIdentifier('test')
-  );
+  const eventFactory = new SandboxEventHandlerFactory(async () => ({
+    namespace: 'test',
+    name: 'name',
+    type: 'sandbox',
+  }));
 
   await Promise.all(
     eventFactory
       .getSandboxEventHandlers({
-        appName: 'my-app',
+        sandboxName: 'my-app',
         clientConfigLifecycleHandler,
       })
       .successfulDeletion.map((e) => e())

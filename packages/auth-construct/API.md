@@ -59,7 +59,7 @@ export type ExternalProviderOptions = {
     signInWithApple?: AppleProviderProps;
     oidc?: OidcProviderProps;
     saml?: SamlProviderProps;
-    scopes?: aws_cognito.OAuthScope[];
+    scopes?: ('PHONE' | 'EMAIL' | 'OPENID' | 'PROFILE' | 'COGNITO_ADMIN')[];
     callbackUrls?: string[];
     logoutUrls?: string[];
 };

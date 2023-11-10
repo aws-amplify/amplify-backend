@@ -1,11 +1,8 @@
-import {
-  MainStackCreator,
-  UniqueBackendIdentifier,
-} from '@aws-amplify/plugin-types';
+import { BackendIdentifier, MainStackCreator } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
 import { Stack } from 'aws-cdk-lib';
 import { AmplifyStack } from './engine/amplify_stack.js';
-import { getMainStackName } from './get_main_stack_name.js';
+import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 
 /**
  * Creates stacks that are tied to a given project environment via an SSM parameter
@@ -17,7 +14,7 @@ export class ProjectEnvironmentMainStackCreator implements MainStackCreator {
    */
   constructor(
     private readonly scope: Construct,
-    private readonly uniqueDeploymentIdentifier: UniqueBackendIdentifier
+    private readonly backendId: BackendIdentifier
   ) {}
 
   /**
@@ -27,7 +24,7 @@ export class ProjectEnvironmentMainStackCreator implements MainStackCreator {
     if (this.mainStack === undefined) {
       this.mainStack = new AmplifyStack(
         this.scope,
-        getMainStackName(this.uniqueDeploymentIdentifier)
+        BackendIdentifierConversions.toStackName(this.backendId)
       );
     }
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

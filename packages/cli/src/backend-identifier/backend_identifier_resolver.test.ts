@@ -7,22 +7,27 @@ void describe('BackendIdentifierResolver', () => {
     const backendIdResolver = new BackendIdentifierResolver({
       resolve: () => Promise.resolve('testAppName'),
     });
-    assert.deepEqual(await backendIdResolver.resolve({ branch: 'test' }), {
-      appName: 'testAppName',
-      branchName: 'test',
-    });
+    assert.deepStrictEqual(
+      await backendIdResolver.resolve({ branch: 'test' }),
+      {
+        appName: 'testAppName',
+        branchName: 'test',
+      }
+    );
   });
   void it('returns a App Id identifier', async () => {
     const backendIdResolver = new BackendIdentifierResolver({
       resolve: () => Promise.resolve('testAppName'),
     });
-    assert.deepEqual(
-      await backendIdResolver.resolve({ appId: 'my-id', branch: 'my-branch' }),
-      {
-        backendId: 'my-id',
-        disambiguator: 'my-branch',
-      }
-    );
+    const actual = await backendIdResolver.resolve({
+      appId: 'my-id',
+      branch: 'my-branch',
+    });
+    assert.deepStrictEqual(actual, {
+      namespace: 'my-id',
+      name: 'my-branch',
+      type: 'branch',
+    });
   });
   void it('returns a Stack name identifier', async () => {
     const backendIdResolver = new BackendIdentifierResolver({
