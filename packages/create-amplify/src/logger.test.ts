@@ -39,7 +39,7 @@ void describe('Logger', () => {
     );
   });
 
-  void it('animating ellipsis is a noop in non-TTY terminal and instead logs a message at INFO level', () => {
+  void it('animating ellipsis is a noop in non-TTY terminal and instead logs a message at INFO level', async () => {
     const mockStdout = {
       write: mock.fn(),
     };
@@ -49,8 +49,7 @@ void describe('Logger', () => {
 
     mock.method(logger, 'isTTY', () => false);
     mock.method(logger, 'log', mockLog);
-    logger.startAnimatingEllipsis('Test log message');
-    logger.stopAnimatingEllipsis();
+    await logger.withEllipsis('Test log message', () => Promise.resolve());
 
     assert.equal(mockStdout.write.mock.callCount(), 0);
     assert.equal(mockLog.mock.callCount(), 1);
@@ -71,10 +70,10 @@ void describe('Logger', () => {
 
     mock.method(logger, 'isTTY', () => true);
     mock.method(logger, 'writeEscapeSequence', mockWriteEscapeSequence);
-    logger.startAnimatingEllipsis('Test log message');
-    // Wait for default refresh rate plus small delta
-    await new Promise((resolve) => setTimeout(resolve, 500 + 10));
-    logger.stopAnimatingEllipsis();
+    await logger.withEllipsis('Test log message', async () => {
+      // Wait for default refresh rate plus small delta
+      await new Promise((resolve) => setTimeout(resolve, 500 + 10));
+    });
 
     assert.equal(mockStdout.write.mock.callCount(), 3);
     assert.equal(mockWriteEscapeSequence.mock.callCount(), 6);

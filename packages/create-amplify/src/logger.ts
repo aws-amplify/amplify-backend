@@ -5,12 +5,9 @@ import * as os from 'os';
  * A logger that logs messages to the console.
  */
 export class Logger {
-  /**
-   * Properties for ellipsis animation
-   */
+  // Properties for ellipsis animation
   private timer: ReturnType<typeof setTimeout>;
   private refreshRate: number;
-  private animateMessage: string;
 
   /**
    * Creates a new Logger instance. Injecting stdout for testing.
@@ -42,32 +39,38 @@ export class Logger {
   }
 
   /**
+   * Logs a message with animated ellipsis
+   */
+  async withEllipsis(message: string, callback: () => Promise<void>) {
+    this.startAnimatingEllipsis(message);
+    await callback();
+    this.stopAnimatingEllipsis(message);
+  }
+
+  /**
    * Start animating ellipsis at the end of a log message.
    */
-  startAnimatingEllipsis(message: string) {
+  private startAnimatingEllipsis(message: string) {
     if (!this.isTTY()) {
       this.log(message, LogLevel.INFO);
       return;
     }
 
-    this.animateMessage = message;
     const frameLength = 4; // number of desired dots - 1
     let frameCount = 0;
     this.writeEscapeSequence(EscapeSequence.HIDE_CURSOR);
-    this.stdout.write(this.animateMessage);
+    this.stdout.write(message);
     this.timer = setInterval(() => {
       this.writeEscapeSequence(EscapeSequence.CLEAR_LINE);
       this.writeEscapeSequence(EscapeSequence.MOVE_CURSOR_TO_START);
-      this.stdout.write(
-        this.animateMessage + '.'.repeat(++frameCount % frameLength)
-      );
+      this.stdout.write(message + '.'.repeat(++frameCount % frameLength));
     }, this.refreshRate);
   }
 
   /**
    * Stops animating ellipsis and replace with a log message.
    */
-  stopAnimatingEllipsis() {
+  private stopAnimatingEllipsis(message: string) {
     if (!this.isTTY()) {
       return;
     }
@@ -76,7 +79,7 @@ export class Logger {
     this.writeEscapeSequence(EscapeSequence.CLEAR_LINE);
     this.writeEscapeSequence(EscapeSequence.MOVE_CURSOR_TO_START);
     this.writeEscapeSequence(EscapeSequence.SHOW_CURSOR);
-    this.stdout.write(`${this.animateMessage}...${os.EOL}`);
+    this.stdout.write(`${message}...${os.EOL}`);
   }
 
   /**
