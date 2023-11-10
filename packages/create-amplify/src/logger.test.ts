@@ -49,7 +49,7 @@ void describe('Logger', () => {
 
     mock.method(logger, 'isTTY', () => false);
     mock.method(logger, 'log', mockLog);
-    await logger.withEllipsis('Test log message', () => Promise.resolve());
+    await logger.indicateProgress('Test log message', () => Promise.resolve());
 
     assert.equal(mockStdout.write.mock.callCount(), 0);
     assert.equal(mockLog.mock.callCount(), 1);
@@ -70,7 +70,7 @@ void describe('Logger', () => {
 
     mock.method(logger, 'isTTY', () => true);
     mock.method(logger, 'writeEscapeSequence', mockWriteEscapeSequence);
-    await logger.withEllipsis('Test log message', async () => {
+    await logger.indicateProgress('Test log message', async () => {
       // Wait for default refresh rate plus small delta
       await new Promise((resolve) => setTimeout(resolve, 500 + 10));
     });
@@ -102,11 +102,11 @@ void describe('Logger', () => {
 
     mock.method(logger, 'isTTY', () => true);
     mock.method(logger, 'writeEscapeSequence', mockWriteEscapeSequence);
-    await logger.withEllipsis('Test log message', async () => {
-      // call withEllipsis again during first one
+    await logger.indicateProgress('Test log message', async () => {
+      // call indicateProgress again during first one
       await assert.rejects(
         () =>
-          logger.withEllipsis('Another log message', async () => {
+          logger.indicateProgress('Another log message', async () => {
             await new Promise((resolve) => setTimeout(resolve, 500 + 10));
           }),
         {

@@ -12,12 +12,12 @@ export class Logger {
 
   /**
    * Creates a new Logger instance. Injecting stdout for testing.
-   * @param stdout The stream to write logs to.
    * @param minimumLogLevel The minimum log level to log.
+   * @param stdout The stream to write logs to. Injected for testing.
    */
   constructor(
-    private readonly stdout = process.stdout,
-    private readonly minimumLogLevel: LogLevel = LogLevel.INFO
+    private readonly minimumLogLevel: LogLevel = LogLevel.INFO,
+    private readonly stdout = process.stdout
   ) {
     this.refreshRate = 500; // every 0.5 seconds
   }
@@ -42,10 +42,13 @@ export class Logger {
   /**
    * Logs a message with animated ellipsis
    */
-  async withEllipsis(message: string, callback: () => Promise<void>) {
-    this.startAnimatingEllipsis(message);
-    await callback();
-    this.stopAnimatingEllipsis(message);
+  async indicateProgress(message: string, callback: () => Promise<void>) {
+    try {
+      this.startAnimatingEllipsis(message);
+      await callback();
+    } finally {
+      this.stopAnimatingEllipsis(message);
+    }
   }
 
   /**
@@ -161,6 +164,6 @@ export const argv = await yargs(process.argv.slice(2)).options({
 
 const minimumLogLevel = argv.debug ? LogLevel.DEBUG : LogLevel.INFO;
 
-const logger = new Logger(process.stdout, minimumLogLevel);
+const logger = new Logger(minimumLogLevel, process.stdout);
 
 export { logger };
