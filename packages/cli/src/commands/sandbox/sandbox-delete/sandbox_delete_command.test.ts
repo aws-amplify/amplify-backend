@@ -17,7 +17,7 @@ void describe('sandbox delete command', () => {
   const commandMiddleware = new CommandMiddleware();
   const mockHandleProfile = mock.method(
     commandMiddleware,
-    'ensureAwsCredentials',
+    'ensureAwsCredentialAndRegion',
     () => null
   );
 

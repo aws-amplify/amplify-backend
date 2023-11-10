@@ -5,8 +5,8 @@ import { BackendSecretFetcherFactory } from './engine/backend-secret/backend_sec
 
 /**
  * Use a secret from AWS Systems Manager (SSM) Parameter Store
- * @todo add docs link for using secrets https://github.com/aws-amplify/samsara-cli/issues/503
- * @todo add docs link for creating secrets in the console https://github.com/aws-amplify/samsara-cli/issues/503
+ * @todo add docs link for using secrets https://github.com/aws-amplify/amplify-backend/issues/503
+ * @todo add docs link for creating secrets in the console https://github.com/aws-amplify/amplify-backend/issues/503
  * @see {@link https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html AWS documentation for SSM Parameter Store}
  * @example <caption>Creating a sandbox secret with the CLI</caption>
  * > amplify sandbox secret set MY_SECRET
