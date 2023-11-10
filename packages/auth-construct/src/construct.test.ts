@@ -11,7 +11,6 @@ import {
 import {
   CfnIdentityPool,
   CfnUserPoolClient,
-  OAuthScope,
   UserPool,
   UserPoolClient,
   UserPoolIdentityProviderSamlMetadataType,

@@ -256,13 +256,13 @@ export type AuthProps = {
    *
    * For details about each option, see below.
    *
-   * 'EMAIL_AND_PHONE_WITHOUT_MFA' - Email if available, otherwise phone, but don’t allow a user to reset their password via phone if they are also using it for MFA
+   * 'EMAIL_AND_PHONE_WITHOUT_MFA' - Email if available, otherwise phone, but does not allow a user to reset their password via phone if they are also using it for MFA
    *
-   * 'PHONE_WITHOUT_MFA_AND_EMAIL' - Phone if available, otherwise email, but don’t allow a user to reset their password via phone if they are also using it for MFA
+   * 'PHONE_WITHOUT_MFA_AND_EMAIL' - Phone if available, otherwise email, but does not allow a user to reset their password via phone if they are also using it for MFA
    *
    * 'EMAIL_ONLY' - Email only
    *
-   * 'PHONE_ONLY_WITHOUT_MFA' - Phone only, but don’t allow a user to reset their password via phone if they are also using it for MFA
+   * 'PHONE_ONLY_WITHOUT_MFA' - Phone only, but does not allow a user to reset their password via phone if they are also using it for MFA
    *
    * 'PHONE_AND_EMAIL' - (Not Recommended) Phone if available, otherwise email, and do allow a user to reset their password via phone if they are also using it for MFA.
    *
