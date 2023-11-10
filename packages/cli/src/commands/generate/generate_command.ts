@@ -59,7 +59,7 @@ export class GenerateCommand implements CommandModule {
           type: 'string',
           array: false,
         })
-        .middleware([this.commandMiddleware.ensureAwsCredentials])
+        .middleware([this.commandMiddleware.ensureAwsCredentialAndRegion])
         .fail((msg, err) => {
           handleCommandFailure(msg, err, yargs);
           yargs.exit(1, err);

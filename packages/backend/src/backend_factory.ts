@@ -12,17 +12,11 @@ import {
   StackMetadataBackendOutputStorageStrategy,
 } from '@aws-amplify/backend-output-storage';
 import { createDefaultStack } from './default_stack_factory.js';
-import { getUniqueBackendIdentifier } from './backend_identifier.js';
-import {
-  BackendDeploymentType,
-  BranchBackendIdentifier,
-  SandboxBackendIdentifier,
-} from '@aws-amplify/platform-core';
+import { getBackendIdentifier } from './backend_identifier.js';
 import { platformOutputKey } from '@aws-amplify/backend-output-schemas';
 import { fileURLToPath } from 'url';
 import { Backend } from './backend.js';
 import { AmplifyBranchLinkerConstruct } from './engine/branch-linker/branch_linker_construct.js';
-import { BackendEnvironmentVariables } from './environment_variables.js';
 
 // Be very careful editing this value. It is the value used in the BI metrics to attribute stacks as Amplify root stacks
 const rootStackTypeIdentifier = 'root';
@@ -65,25 +59,19 @@ export class BackendFactory<
       stack
     );
 
-    const uniqueBackendIdentifier = getUniqueBackendIdentifier(stack);
+    const backendId = getBackendIdentifier(stack);
     outputStorageStrategy.addBackendOutputEntry(platformOutputKey, {
       version: '1',
       payload: {
-        deploymentType:
-          uniqueBackendIdentifier instanceof SandboxBackendIdentifier
-            ? BackendDeploymentType.SANDBOX
-            : BackendDeploymentType.BRANCH,
+        deploymentType: backendId.type,
         region: stack.region,
       },
     });
 
-    const shouldEnableBranchLinker =
-      uniqueBackendIdentifier instanceof BranchBackendIdentifier &&
-      process.env[
-        BackendEnvironmentVariables.AMPLIFY_BACKEND_BRANCH_LINKER_ENABLED
-      ] === 'true';
+    const shouldEnableBranchLinker = backendId.type === 'branch';
+
     if (shouldEnableBranchLinker) {
-      new AmplifyBranchLinkerConstruct(stack, uniqueBackendIdentifier);
+      new AmplifyBranchLinkerConstruct(stack, backendId);
     }
 
     const importPathVerifier = new ToggleableImportPathVerifier();

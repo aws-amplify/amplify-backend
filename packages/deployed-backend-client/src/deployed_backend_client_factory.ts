@@ -1,10 +1,6 @@
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { DefaultDeployedBackendClient } from './deployed_backend_client.js';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
-import {
-  BackendDeploymentType,
-  SandboxBackendIdentifier,
-} from '@aws-amplify/platform-core';
+import { BackendIdentifier, DeploymentType } from '@aws-amplify/plugin-types';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import {
   BackendOutputClient,
@@ -34,7 +30,7 @@ export type SandboxMetadata = {
   name: string;
   lastUpdated: Date | undefined;
   status: BackendDeploymentStatus;
-  backendId: SandboxBackendIdentifier | undefined;
+  backendId: BackendIdentifier | undefined;
 };
 
 export type ListSandboxesRequest = {
@@ -54,7 +50,7 @@ export type DeployedBackendResource = {
 export type BackendMetadata = {
   name: string;
   lastUpdated: Date | undefined;
-  deploymentType: BackendDeploymentType;
+  deploymentType: DeploymentType;
   status: BackendDeploymentStatus;
   resources: DeployedBackendResource[];
   apiConfiguration?: {
@@ -97,10 +93,10 @@ export type DeployedBackendClient = {
     listSandboxesRequest?: ListSandboxesRequest
   ) => Promise<ListSandboxesResponse>;
   deleteSandbox: (
-    sandboxBackendIdentifier: SandboxBackendIdentifier
+    sandboxBackendIdentifier: Omit<BackendIdentifier, 'type'>
   ) => Promise<void>;
   getBackendMetadata: (
-    backendIdentifier: UniqueBackendIdentifier
+    backendId: BackendIdentifier
   ) => Promise<BackendMetadata>;
 };
 

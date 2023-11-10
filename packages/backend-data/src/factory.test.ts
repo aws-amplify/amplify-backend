@@ -25,10 +25,6 @@ import {
 } from 'aws-cdk-lib/aws-cognito';
 import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
-import {
-  BackendDeploymentType,
-  CDKContextKey,
-} from '@aws-amplify/platform-core';
 import { AmplifyGraphqlApi } from '@aws-amplify/graphql-api-construct';
 import {
   ConstructContainerStub,
@@ -46,12 +42,9 @@ const testSchema = /* GraphQL */ `
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
-  app.node.setContext('branch-name', 'testEnvName');
-  app.node.setContext('backend-id', 'testBackendId');
-  app.node.setContext(
-    CDKContextKey.DEPLOYMENT_TYPE,
-    BackendDeploymentType.BRANCH
-  );
+  app.node.setContext('amplify-backend-name', 'testEnvName');
+  app.node.setContext('amplify-backend-namespace', 'testBackendId');
+  app.node.setContext('amplify-backend-type', 'branch');
   const stack = new Stack(app);
   return stack;
 };
@@ -87,14 +80,18 @@ void describe('DataFactory', () => {
             assumedBy: new ServicePrincipal('test.amazon.com'),
           }),
           cfnResources: {
-            userPool: new CfnUserPool(stack, 'CfnUserPool', {}),
-            userPoolClient: new CfnUserPoolClient(stack, 'CfnUserPoolClient', {
-              userPoolId: 'userPool',
-            }),
-            identityPool: new CfnIdentityPool(stack, 'identityPool', {
+            cfnUserPool: new CfnUserPool(stack, 'CfnUserPool', {}),
+            cfnUserPoolClient: new CfnUserPoolClient(
+              stack,
+              'CfnUserPoolClient',
+              {
+                userPoolId: 'userPool',
+              }
+            ),
+            cfnIdentityPool: new CfnIdentityPool(stack, 'identityPool', {
               allowUnauthenticatedIdentities: true,
             }),
-            identityPoolRoleAttachment: new CfnIdentityPoolRoleAttachment(
+            cfnIdentityPoolRoleAttachment: new CfnIdentityPoolRoleAttachment(
               stack,
               'identityPoolRoleAttachment',
               { identityPoolId: 'identityPool' }

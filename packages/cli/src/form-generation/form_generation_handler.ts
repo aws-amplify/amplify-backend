@@ -1,14 +1,14 @@
 import path from 'path';
 import { createLocalGraphqlFormGenerator } from '@aws-amplify/form-generator';
 import { createGraphqlDocumentGenerator } from '@aws-amplify/model-generator';
-import { BackendIdentifier } from '@aws-amplify/deployed-backend-client';
+import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 
 type FormGenerationParams = {
   modelsOutDir: string;
   uiOutDir: string;
   apiUrl: string;
-  backendIdentifier: BackendIdentifier;
+  backendIdentifier: DeployedBackendIdentifier;
   modelsFilter?: string[];
 };
 type FormGenerationInstanceOptions = {

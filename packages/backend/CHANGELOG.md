@@ -1,5 +1,11 @@
 # @aws-amplify/backend
 
+## 0.3.4
+
+### Patch Changes
+
+- 8f03cd09: enable branch linker by default
+
 ## 0.3.3
 
 ### Patch Changes
