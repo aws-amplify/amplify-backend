@@ -17,7 +17,7 @@ export class AmplifyProjectCreator {
 
   // TODO after API-Next is GA change to: `aws-amplify`
   // https://github.com/aws-amplify/amplify-backend/issues/332
-  private readonly defaultProdPackages = ['aws-amplify@api-v6-models'];
+  private readonly defaultProdPackages = ['aws-amplify@unstable'];
 
   /**
    * Orchestrator for the create-amplify workflow.

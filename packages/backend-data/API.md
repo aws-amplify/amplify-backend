@@ -7,7 +7,7 @@
 import { AmplifyFunction } from '@aws-amplify/plugin-types';
 import { AmplifyGraphqlApi } from '@aws-amplify/graphql-api-construct';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
-import { DerivedModelSchema } from '@aws-amplify/amplify-api-next-types-alpha';
+import { DerivedModelSchema } from '@aws-amplify/data-schema-types';
 
 // @public
 export type ApiKeyAuthorizationModeProps = {
