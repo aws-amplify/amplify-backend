@@ -40,6 +40,7 @@ void describe('commandMiddleware', () => {
         process.env.AWS_ACCESS_KEY_ID = testAccessKeyId;
         process.env.AWS_SECRET_ACCESS_KEY = testSecretAccessKey;
         process.env.AWS_REGION = testRegion;
+        delete process.env.AWS_PROFILE;
       });
 
       afterEach(() => {
