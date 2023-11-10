@@ -80,6 +80,8 @@ export class AmplifyAuth
 
   private readonly userPool: UserPool;
 
+  private readonly computedUserPoolProps: UserPoolProps;
+
   /**
    * Create a new Auth construct with AuthProps.
    * If no props are provided, email login and defaults will be used.
@@ -92,8 +94,12 @@ export class AmplifyAuth
     super(scope, id);
 
     // UserPool
-    const userPoolProps: UserPoolProps = this.getUserPoolProps(props);
-    this.userPool = new cognito.UserPool(this, 'UserPool', userPoolProps);
+    this.computedUserPoolProps = this.getUserPoolProps(props);
+    this.userPool = new cognito.UserPool(
+      this,
+      'UserPool',
+      this.computedUserPoolProps
+    );
 
     // UserPool - Identity Providers
     const providerSetupResult = this.setupIdentityProviders(
@@ -563,6 +569,77 @@ export class AmplifyAuth
       identityPoolId: this.resources.cfnResources.identityPool.ref,
       authRegion: Stack.of(this).region,
     };
+
+    if (this.computedUserPoolProps.signInAliases) {
+      const signupAttributes = [];
+      if (this.computedUserPoolProps.signInAliases.email) {
+        signupAttributes.push('EMAIL');
+      }
+      if (this.computedUserPoolProps.signInAliases.phone) {
+        signupAttributes.push('PHONE_NUMBER');
+      }
+      if (
+        this.computedUserPoolProps.signInAliases.preferredUsername ||
+        this.computedUserPoolProps.signInAliases.username
+      ) {
+        signupAttributes.push('PREFERRED_USERNAME');
+      }
+      if (signupAttributes.length > 0) {
+        output.signupAttributes = signupAttributes.toString();
+      }
+    }
+
+    if (this.computedUserPoolProps.autoVerify) {
+      const verificationMechanisms = [];
+      if (this.computedUserPoolProps.autoVerify.email) {
+        verificationMechanisms.push('EMAIL');
+      }
+      if (this.computedUserPoolProps.autoVerify.phone) {
+        verificationMechanisms.push('PHONE');
+      }
+      if (verificationMechanisms.length > 0) {
+        output.verificationMechanisms = verificationMechanisms.toString();
+      }
+    }
+
+    if (this.computedUserPoolProps.passwordPolicy) {
+      output.passwordPolicyMinLength =
+        this.computedUserPoolProps.passwordPolicy.minLength?.toString();
+
+      const requirements = [];
+      if (this.computedUserPoolProps.passwordPolicy.requireDigits) {
+        requirements.push('Requires Numbers');
+      }
+      if (this.computedUserPoolProps.passwordPolicy.requireLowercase) {
+        requirements.push('Requires Lowercase');
+      }
+      if (this.computedUserPoolProps.passwordPolicy.requireUppercase) {
+        requirements.push('Requires Uppercase');
+      }
+      if (this.computedUserPoolProps.passwordPolicy.requireSymbols) {
+        requirements.push('Requires Symbols');
+      }
+
+      if (requirements.length > 0) {
+        output.passwordPolicyRequirements = requirements.toString();
+      }
+    }
+
+    if (this.computedUserPoolProps.mfa) {
+      output.mfaConfiguration = this.computedUserPoolProps.mfa;
+
+      const mfaTypes = [];
+      if (this.computedUserPoolProps.mfaSecondFactor?.otp) {
+        mfaTypes.push('TOTP');
+      }
+      if (this.computedUserPoolProps.mfaSecondFactor?.sms) {
+        mfaTypes.push('SMS');
+      }
+      if (mfaTypes.length > 0) {
+        output.mfaTypes = mfaTypes.toString();
+      }
+    }
+
     if (this.oauthMappings[authProvidersList.amazon]) {
       output.amazonClientId = this.oauthMappings[authProvidersList.amazon];
     }
@@ -575,6 +652,7 @@ export class AmplifyAuth
     if (this.oauthMappings[authProvidersList.apple]) {
       output.appleClientId = this.oauthMappings[authProvidersList.apple];
     }
+
     outputStorageStrategy.addBackendOutputEntry(authOutputKey, {
       version: '1',
       payload: output,

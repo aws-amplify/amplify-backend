@@ -18,6 +18,7 @@ import {
 } from 'aws-cdk-lib/aws-cognito';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
 import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
+import { DEFAULTS } from './defaults.js';
 
 const googleClientId = 'googleClientId';
 const googleClientSecret = 'googleClientSecret';
@@ -92,6 +93,9 @@ const ExpectedSAMLIDPProperties = {
   ProviderName: samlProviderName,
   ProviderType: 'SAML',
 };
+const defaultPasswordPolicyCharacterRequirements =
+  'Requires Numbers,Requires Lowercase,Requires Uppercase,Requires Symbols';
+
 void describe('Auth construct', () => {
   void it('creates phone number login mechanism', () => {
     const app = new App();
@@ -477,6 +481,11 @@ void describe('Auth construct', () => {
             webClientId: expectedWebClientId,
             identityPoolId: expectedIdentityPoolId,
             authRegion: expectedRegion,
+            passwordPolicyMinLength:
+              DEFAULTS.PASSWORD_POLICY.minLength.toString(),
+            passwordPolicyRequirements:
+              defaultPasswordPolicyCharacterRequirements,
+            signupAttributes: 'EMAIL',
           },
         },
       ]);
@@ -502,6 +511,9 @@ void describe('Auth construct', () => {
               'webClientId',
               'identityPoolId',
               'authRegion',
+              'signupAttributes',
+              'passwordPolicyMinLength',
+              'passwordPolicyRequirements',
             ],
           },
         },
