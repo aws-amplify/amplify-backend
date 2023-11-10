@@ -8,6 +8,7 @@ export class Logger {
   // Properties for ellipsis animation
   private timer: ReturnType<typeof setTimeout>;
   private refreshRate: number;
+  private timerSet: boolean;
 
   /**
    * Creates a new Logger instance. Injecting stdout for testing.
@@ -56,8 +57,15 @@ export class Logger {
       return;
     }
 
+    if (this.timerSet) {
+      throw new Error(
+        'Timer is already set to animate ellipsis, stop the current running timer before starting a new one.'
+      );
+    }
+
     const frameLength = 4; // number of desired dots - 1
     let frameCount = 0;
+    this.timerSet = true;
     this.writeEscapeSequence(EscapeSequence.HIDE_CURSOR);
     this.stdout.write(message);
     this.timer = setInterval(() => {
@@ -76,6 +84,7 @@ export class Logger {
     }
 
     clearInterval(this.timer);
+    this.timerSet = false;
     this.writeEscapeSequence(EscapeSequence.CLEAR_LINE);
     this.writeEscapeSequence(EscapeSequence.MOVE_CURSOR_TO_START);
     this.writeEscapeSequence(EscapeSequence.SHOW_CURSOR);

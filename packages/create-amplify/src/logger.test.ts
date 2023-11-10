@@ -91,4 +91,30 @@ void describe('Logger', () => {
       new RegExp('Test log message...')
     );
   });
+
+  void it('throws if animating another message with ellipsis before old one is done', async () => {
+    const mockStdout = {
+      write: mock.fn(),
+    };
+    const mockWriteEscapeSequence = mock.fn();
+
+    const logger = new Logger(mockStdout as never, LogLevel.INFO);
+
+    mock.method(logger, 'isTTY', () => true);
+    mock.method(logger, 'writeEscapeSequence', mockWriteEscapeSequence);
+    await logger.withEllipsis('Test log message', async () => {
+      // call withEllipsis again during first one
+      await assert.rejects(
+        () =>
+          logger.withEllipsis('Another log message', async () => {
+            await new Promise((resolve) => setTimeout(resolve, 500 + 10));
+          }),
+        {
+          message:
+            'Timer is already set to animate ellipsis, stop the current running timer before starting a new one.',
+        }
+      );
+      await new Promise((resolve) => setTimeout(resolve, 500 + 10));
+    });
+  });
 });
