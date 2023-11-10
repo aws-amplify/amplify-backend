@@ -17,13 +17,17 @@ void describe('sandbox delete command', () => {
   const commandMiddleware = new CommandMiddleware();
   const mockHandleProfile = mock.method(
     commandMiddleware,
-    'ensureAwsCredentials',
+    'ensureAwsCredentialAndRegion',
     () => null
   );
 
   beforeEach(async () => {
     const sandboxFactory = new SandboxSingletonFactory(() =>
-      Promise.resolve('testBackendId')
+      Promise.resolve({
+        namespace: 'testSandboxId',
+        name: 'testSandboxName',
+        type: 'sandbox',
+      })
     );
     const sandbox = await sandboxFactory.getInstance();
     sandboxDeleteMock = mock.method(sandbox, 'delete', () =>

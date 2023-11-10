@@ -12,8 +12,7 @@ import {
   SecretIdentifier,
   getSecretClient,
 } from '@aws-amplify/backend-secret';
-import { BranchBackendIdentifier } from '@aws-amplify/platform-core';
-import { BackendId, UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import { AppId, BackendIdentifier } from '@aws-amplify/plugin-types';
 
 const testBackendId = 'testBackendId';
 const testBranchName = 'testBranchName';
@@ -28,8 +27,11 @@ const testSecret: Secret = {
   value: testSecretValue,
 };
 
-const testBackendIdentifier: UniqueBackendIdentifier =
-  new BranchBackendIdentifier(testBackendId, testBranchName);
+const testBackendIdentifier: BackendIdentifier = {
+  namespace: testBackendId,
+  name: testBranchName,
+  type: 'branch',
+};
 
 const customResourceEventCommon = {
   ServiceToken: 'mockServiceToken',
@@ -40,8 +42,8 @@ const customResourceEventCommon = {
   PhysicalResourceId: 'physicalId',
   ResourceType: 'AWS::CloudFormation::CustomResource',
   ResourceProperties: {
-    backendId: testBackendId,
-    branchName: testBranchName,
+    namespace: testBackendId,
+    name: testBranchName,
     secretName: testSecretName,
     ServiceToken: 'token',
   },
@@ -110,7 +112,7 @@ void describe('handleCreateUpdateEvent', () => {
     const mockGetSecret = mock.method(
       secretHandler,
       'getSecret',
-      (backendIdentifier: UniqueBackendIdentifier | BackendId) => {
+      (backendIdentifier: BackendIdentifier | AppId) => {
         if (typeof backendIdentifier === 'object') {
           return Promise.reject(clientErr);
         }
@@ -136,7 +138,7 @@ void describe('handleCreateUpdateEvent', () => {
     const mockGetSecret = mock.method(
       secretHandler,
       'getSecret',
-      (backendIdentifier: UniqueBackendIdentifier | BackendId) => {
+      (backendIdentifier: BackendIdentifier | AppId) => {
         if (typeof backendIdentifier === 'object') {
           return Promise.resolve(undefined);
         }
@@ -161,7 +163,7 @@ void describe('handleCreateUpdateEvent', () => {
     const mockGetSecret = mock.method(
       secretHandler,
       'getSecret',
-      (backendIdentifier: UniqueBackendIdentifier | BackendId) => {
+      (backendIdentifier: BackendIdentifier | AppId) => {
         if (typeof backendIdentifier === 'object') {
           return Promise.reject(clientErr);
         }

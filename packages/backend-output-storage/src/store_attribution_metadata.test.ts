@@ -5,10 +5,6 @@ import {
   AttributionMetadataStorage,
 } from './store_attribution_metadata.js';
 import assert from 'node:assert';
-import {
-  BackendDeploymentType,
-  CDKContextKey,
-} from '@aws-amplify/platform-core';
 
 void describe('storeAttributionMetadata', () => {
   const existsSyncMock = mock.fn(() => true);
@@ -75,13 +71,10 @@ void describe('storeAttributionMetadata', () => {
     assert.equal(metadata.createdBy, 'AmplifyCDK');
   });
 
-  void it('sets pipeline deploy type when BackendDeploymentType is BRANCH', () => {
+  void it('sets pipeline deploy type when DeploymentType is branch', () => {
     const app = new App();
     const stack = new Stack(app);
-    stack.node.setContext(
-      CDKContextKey.DEPLOYMENT_TYPE,
-      BackendDeploymentType.BRANCH
-    );
+    stack.node.setContext('amplify-backend-type', 'branch');
     new AttributionMetadataStorage(fsMock as never).storeAttributionMetadata(
       stack,
       'test',
@@ -93,13 +86,10 @@ void describe('storeAttributionMetadata', () => {
     assert.equal(metadata.createdBy, 'AmplifyPipelineDeploy');
   });
 
-  void it('sets sandbox deploy type when BackendDeploymentType is SANDBOX', () => {
+  void it('sets sandbox deploy type when DeploymentType is sandbox', () => {
     const app = new App();
     const stack = new Stack(app);
-    stack.node.setContext(
-      CDKContextKey.DEPLOYMENT_TYPE,
-      BackendDeploymentType.SANDBOX
-    );
+    stack.node.setContext('amplify-backend-type', 'sandbox');
     new AttributionMetadataStorage(fsMock as never).storeAttributionMetadata(
       stack,
       'test',
@@ -114,10 +104,7 @@ void describe('storeAttributionMetadata', () => {
   void it('sets library version', () => {
     const app = new App();
     const stack = new Stack(app);
-    stack.node.setContext(
-      CDKContextKey.DEPLOYMENT_TYPE,
-      BackendDeploymentType.SANDBOX
-    );
+    stack.node.setContext('amplify-backend-type', 'sandbox');
     new AttributionMetadataStorage(fsMock as never).storeAttributionMetadata(
       stack,
       'test',

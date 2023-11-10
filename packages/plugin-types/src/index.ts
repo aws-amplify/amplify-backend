@@ -12,4 +12,5 @@ export * from './resource_provider.js';
 export * from './backend_secret_resolver.js';
 export * from './function_resources.js';
 export * from './amplify_function.js';
-export * from './unique_backend_identifier.js';
+export * from './backend_identifier.js';
+export * from './deployment_type.js';

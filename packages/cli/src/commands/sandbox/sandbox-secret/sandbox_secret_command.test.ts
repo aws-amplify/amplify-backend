@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import yargs, { CommandModule } from 'yargs';
 import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
-import { SandboxIdResolver } from '../sandbox_id_resolver.js';
+import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
 import { getSecretClient } from '@aws-amplify/backend-secret';
 import { SandboxSecretCommand } from './sandbox_secret_command.js';
 import { SandboxSecretGetCommand } from './sandbox_secret_get_command.js';
@@ -11,7 +11,7 @@ const testBackendId = 'testBackendId';
 
 void describe('sandbox secret command', () => {
   const secretClient = getSecretClient();
-  const sandboxIdResolver = new SandboxIdResolver({
+  const sandboxIdResolver = new SandboxBackendIdResolver({
     resolve: () => Promise.resolve(testBackendId),
   });
 

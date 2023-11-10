@@ -1,7 +1,6 @@
 import { Argv, CommandModule } from 'yargs';
 import { SecretClient } from '@aws-amplify/backend-secret';
-import { SandboxIdResolver } from '../sandbox_id_resolver.js';
-import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
+import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
 import { handleCommandFailure } from '../../../command_failure_handler.js';
 
@@ -25,7 +24,7 @@ export class SandboxSecretRemoveCommand
    * Remove sandbox secret command.
    */
   constructor(
-    private readonly sandboxIdResolver: SandboxIdResolver,
+    private readonly sandboxIdResolver: SandboxBackendIdResolver,
     private readonly secretClient: SecretClient
   ) {
     this.command = 'remove <secretName>';
@@ -36,9 +35,9 @@ export class SandboxSecretRemoveCommand
    * @inheritDoc
    */
   handler = async (args: SecretRemoveCommandOptions): Promise<void> => {
-    const backendId = await this.sandboxIdResolver.resolve();
+    const sandboxBackendIdentifier = await this.sandboxIdResolver.resolve();
     await this.secretClient.removeSecret(
-      new SandboxBackendIdentifier(backendId),
+      sandboxBackendIdentifier,
       args['secret-name']
     );
   };
