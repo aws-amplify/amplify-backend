@@ -16,19 +16,19 @@ export type AuthCfnResources = {
   /**
    * The generated CfnUserPool L1 resource.
    */
-  userPool: CfnUserPool;
+  cfnUserPool: CfnUserPool;
   /**
    * The generated CfnUserPoolClient L1 resource.
    */
-  userPoolClient: CfnUserPoolClient;
+  cfnUserPoolClient: CfnUserPoolClient;
   /**
    * The generated CfnIdentityPool L1 resource.
    */
-  identityPool: CfnIdentityPool;
+  cfnIdentityPool: CfnIdentityPool;
   /**
    * The generated CfnIdentityPoolRoleAttachment L1 resource.
    */
-  identityPoolRoleAttachment: CfnIdentityPoolRoleAttachment;
+  cfnIdentityPoolRoleAttachment: CfnIdentityPoolRoleAttachment;
 };
 /**
  * Auth L2 and L1 resources.

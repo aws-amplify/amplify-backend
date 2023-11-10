@@ -1,0 +1,27 @@
+name: Feature request
+description: Request a feature to help us improve Amplify (Gen 2)
+labels: ['pending-triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this feature request!
+  - type: textarea
+    id: env
+    attributes:
+      label: Environment information
+      description: |
+        Please copy and paste output of the following command. This will be automatically formatted into code, so no need for backticks.
+        ```bash
+        npx envinfo --system --binaries --npmPackages "@aws-amplify/backend,typescript,aws-cdk,aws-cdk-lib,aws-amplify" --showNotFound
+        ```
+      render: plain text
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Description
+      description: |
+        Describe the feature request
+    validations:
+      required: true
