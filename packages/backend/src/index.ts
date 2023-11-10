@@ -6,9 +6,7 @@ export * from './secret.js';
 
 // data
 export { defineData } from '@aws-amplify/backend-data';
-// TODO after API-Next is GA change to: @aws-amplify/amplify-api-next
-// https://github.com/aws-amplify/samsara-cli/issues/332
-export { type ClientSchema, a } from '@aws-amplify/amplify-api-next-alpha';
+export { type ClientSchema, a } from '@aws-amplify/data-schema';
 
 // auth
 export { defineAuth } from '@aws-amplify/backend-auth';

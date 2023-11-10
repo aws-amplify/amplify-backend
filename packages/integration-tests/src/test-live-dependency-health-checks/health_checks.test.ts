@@ -11,6 +11,12 @@ import {
   CloudFormationClient,
   DeleteStackCommand,
 } from '@aws-sdk/client-cloudformation';
+import {
+  confirmDeleteSandbox,
+  interruptSandbox,
+  rejectCleanupSandbox,
+  waitForSandboxDeploymentToPrintTotalTime,
+} from '../process-controller/predicated_action_macros.js';
 
 const cfnClient = new CloudFormationClient();
 
@@ -21,10 +27,7 @@ const cfnClient = new CloudFormationClient();
  *
  * These tests intentionally do not use local npm registry (verdaccio).
  */
-void describe('Live dependency health checks', () => {
-  let tempDir: string;
-  let testBranch: TestBranch;
-
+void describe('Live dependency health checks', { concurrency: true }, () => {
   before(async () => {
     // nuke the npx cache to ensure we are installing latest versions of packages from the npm
     const { stdout } = await execa('npm', ['config', 'get', 'cache']);
@@ -35,50 +38,86 @@ void describe('Live dependency health checks', () => {
     }
   });
 
-  beforeEach(async () => {
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'test-amplify'));
-    testBranch = await amplifyAppPool.createTestBranch();
-  });
-
-  afterEach(async () => {
-    await fs.rm(tempDir, { recursive: true });
-    const stackName = `amplify-${testBranch.appId}-${testBranch.branchName}`;
-    try {
-      await cfnClient.send(
-        new DeleteStackCommand({
-          StackName: stackName,
-        })
-      );
-    } catch (e) {
-      console.log(`Failed to delete ${stackName}`);
-      console.log(e);
-    }
-  });
-
-  void it('end to end flow with pipeline deployment', async () => {
-    await execa('npm', ['create', 'amplify', '--yes'], {
-      cwd: tempDir,
-      stdio: 'inherit',
+  void describe('pipeline deployment', () => {
+    let tempDir: string;
+    let testBranch: TestBranch;
+    beforeEach(async () => {
+      tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'test-amplify'));
+      testBranch = await amplifyAppPool.createTestBranch();
     });
 
-    await amplifyCli(
-      [
-        'pipeline-deploy',
-        '--branch',
-        testBranch.branchName,
-        '--appId',
-        testBranch.appId,
-      ],
-      tempDir,
-      {
-        installationType: 'local',
-        env: { CI: 'true' },
+    afterEach(async () => {
+      await fs.rm(tempDir, { recursive: true });
+      const stackName = `amplify-${testBranch.appId}-${testBranch.branchName}`;
+      try {
+        await cfnClient.send(
+          new DeleteStackCommand({
+            StackName: stackName,
+          })
+        );
+      } catch (e) {
+        console.log(`Failed to delete ${stackName}`);
+        console.log(e);
       }
-    ).run();
+    });
 
-    const clientConfigStats = await fs.stat(
-      path.join(tempDir, 'amplifyconfiguration.json')
-    );
-    assert.ok(clientConfigStats.isFile());
+    void it('end to end flow', async () => {
+      await execa('npm', ['create', 'amplify', '--yes'], {
+        cwd: tempDir,
+        stdio: 'inherit',
+      });
+
+      await amplifyCli(
+        [
+          'pipeline-deploy',
+          '--branch',
+          testBranch.branchName,
+          '--appId',
+          testBranch.appId,
+        ],
+        tempDir,
+        {
+          env: { CI: 'true' },
+        }
+      ).run();
+
+      const clientConfigStats = await fs.stat(
+        path.join(tempDir, 'amplifyconfiguration.json')
+      );
+      assert.ok(clientConfigStats.isFile());
+    });
+  });
+
+  void describe('sandbox deployment', () => {
+    let tempDir: string;
+    beforeEach(async () => {
+      tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'test-amplify'));
+    });
+
+    afterEach(async () => {
+      await fs.rm(tempDir, { recursive: true });
+    });
+
+    void it('end to end flow', async () => {
+      await execa('npm', ['create', 'amplify', '--yes'], {
+        cwd: tempDir,
+        stdio: 'inherit',
+      });
+
+      await amplifyCli(['sandbox'], tempDir)
+        .do(waitForSandboxDeploymentToPrintTotalTime())
+        .do(interruptSandbox())
+        .do(rejectCleanupSandbox())
+        .run();
+
+      const clientConfigStats = await fs.stat(
+        path.join(tempDir, 'amplifyconfiguration.json')
+      );
+      assert.ok(clientConfigStats.isFile());
+
+      await amplifyCli(['sandbox', 'delete'], tempDir)
+        .do(confirmDeleteSandbox())
+        .run();
+    });
   });
 });

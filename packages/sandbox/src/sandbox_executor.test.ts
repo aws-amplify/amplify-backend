@@ -3,10 +3,6 @@ import assert from 'node:assert';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
 import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 import { SecretListItem, getSecretClient } from '@aws-amplify/backend-secret';
-import {
-  BackendDeploymentType,
-  SandboxBackendIdentifier,
-} from '@aws-amplify/platform-core';
 
 const backendDeployer = BackendDeployerFactory.getInstance();
 const secretClient = getSecretClient();
@@ -48,12 +44,20 @@ void describe('Sandbox executor', () => {
 
   void it('retrieves file change summary once (debounce)', async () => {
     const firstDeployPromise = sandboxExecutor.deploy(
-      new SandboxBackendIdentifier('testSandboxId'),
+      {
+        namespace: 'testSandboxId',
+        name: 'testSandboxName',
+        type: 'sandbox',
+      },
       validateAppSourcesProvider
     );
 
     const secondDeployPromise = sandboxExecutor.deploy(
-      new SandboxBackendIdentifier('testSandboxId'),
+      {
+        namespace: 'testSandboxId',
+        name: 'testSandboxName',
+        type: 'sandbox',
+      },
       validateAppSourcesProvider
     );
 
@@ -71,20 +75,31 @@ void describe('Sandbox executor', () => {
       );
 
       await sandboxExecutor.deploy(
-        new SandboxBackendIdentifier('testSandboxId'),
+        {
+          namespace: 'testSandboxId',
+          name: 'testSandboxName',
+          type: 'sandbox',
+        },
         validateAppSourcesProvider
       );
 
       assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
       // BackendDeployer should be called with the right params
-      assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
-        new SandboxBackendIdentifier('testSandboxId'),
-        {
-          deploymentType: BackendDeploymentType.SANDBOX,
-          secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
-          validateAppSources: shouldValidateSources,
-        },
-      ]);
+      assert.deepStrictEqual(
+        backendDeployerDeployMock.mock.calls[0].arguments,
+        [
+          {
+            name: 'testSandboxName',
+            namespace: 'testSandboxId',
+            type: 'sandbox',
+          },
+          {
+            deploymentType: 'sandbox',
+            secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+            validateAppSources: shouldValidateSources,
+          },
+        ]
+      );
     });
   });
 });

@@ -1,4 +1,4 @@
-import { BackendIdentifier } from '@aws-amplify/deployed-backend-client';
+import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
 import {
   GenerateApiCodeProps,
   GenerateOptions,
@@ -8,7 +8,8 @@ import {
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 
 // For some reason using `omit` is causing type errors, so reconstructing without the credentialProvider.
-export type InvokeGenerateApiCodeProps = GenerateOptions & BackendIdentifier;
+export type InvokeGenerateApiCodeProps = GenerateOptions &
+  DeployedBackendIdentifier;
 
 /**
  * Class to wrap static generateApiCode method to facilitate testing.

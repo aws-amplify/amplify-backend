@@ -6,11 +6,8 @@ import {
   DestroyProps,
 } from './cdk_deployer_singleton_factory.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
-import {
-  BackendDeploymentType,
-  BackendLocator,
-} from '@aws-amplify/platform-core';
+import { BackendIdentifier, DeploymentType } from '@aws-amplify/plugin-types';
+import { BackendLocator, CDKContextKey } from '@aws-amplify/platform-core';
 import { BackendDeployerEnvironmentVariables } from './environment_variables.js';
 
 /**
@@ -35,14 +32,11 @@ export class CDKDeployer implements BackendDeployer {
   /**
    * Invokes cdk deploy command
    */
-  deploy = async (
-    uniqueBackendIdentifier?: UniqueBackendIdentifier,
-    deployProps?: DeployProps
-  ) => {
+  deploy = async (backendId?: BackendIdentifier, deployProps?: DeployProps) => {
     await this.invokeTsc(deployProps);
 
     const cdkCommandArgs: string[] = [];
-    if (deployProps?.deploymentType === BackendDeploymentType.SANDBOX) {
+    if (deployProps?.deploymentType === 'sandbox') {
       cdkCommandArgs.push('--hotswap-fallback');
       cdkCommandArgs.push('--method=direct');
       if (deployProps.secretLastUpdated) {
@@ -55,7 +49,7 @@ export class CDKDeployer implements BackendDeployer {
 
     await this.invokeCdk(
       InvokableCommand.DEPLOY,
-      uniqueBackendIdentifier,
+      backendId,
       deployProps?.deploymentType,
       cdkCommandArgs
     );
@@ -65,12 +59,12 @@ export class CDKDeployer implements BackendDeployer {
    * Invokes cdk destroy command
    */
   destroy = async (
-    uniqueBackendIdentifier?: UniqueBackendIdentifier,
+    backendId?: BackendIdentifier,
     destroyProps?: DestroyProps
   ) => {
     await this.invokeCdk(
       InvokableCommand.DESTROY,
-      uniqueBackendIdentifier,
+      backendId,
       destroyProps?.deploymentType,
       ['--force']
     );
@@ -107,8 +101,8 @@ export class CDKDeployer implements BackendDeployer {
    */
   private invokeCdk = async (
     invokableCommand: InvokableCommand,
-    uniqueBackendIdentifier?: UniqueBackendIdentifier,
-    deploymentType?: BackendDeploymentType,
+    backendId?: BackendIdentifier,
+    deploymentType?: DeploymentType,
     additionalArguments?: string[]
   ) => {
     // Basic args
@@ -126,24 +120,24 @@ export class CDKDeployer implements BackendDeployer {
     ];
 
     // Add context information if available
-    if (uniqueBackendIdentifier) {
+    if (backendId) {
       cdkCommandArgs.push(
         '--context',
-        `backend-id=${uniqueBackendIdentifier.backendId}`
+        `${CDKContextKey.BACKEND_NAMESPACE}=${backendId.namespace}`,
+        '--context',
+        `${CDKContextKey.BACKEND_NAME}=${backendId.name}`
       );
 
-      if (deploymentType !== BackendDeploymentType.SANDBOX) {
-        cdkCommandArgs.push(
-          '--context',
-          `branch-name=${uniqueBackendIdentifier.disambiguator}`,
-          '--require-approval',
-          'never'
-        );
+      if (deploymentType !== 'sandbox') {
+        cdkCommandArgs.push('--require-approval', 'never');
       }
     }
 
     if (deploymentType) {
-      cdkCommandArgs.push('--context', `deployment-type=${deploymentType}`);
+      cdkCommandArgs.push(
+        '--context',
+        `${CDKContextKey.DEPLOYMENT_TYPE}=${deploymentType}`
+      );
     }
 
     if (additionalArguments) {

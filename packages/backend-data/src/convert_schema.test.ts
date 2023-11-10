@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import { convertSchemaToCDK } from './convert_schema.js';
 import assert from 'node:assert';
-import { a } from '@aws-amplify/amplify-api-next-alpha';
+import { a } from '@aws-amplify/data-schema';
 
 const removeWhiteSpaceForComparison = (content: string): string =>
   content.replaceAll(/ |\n/g, '');
@@ -22,7 +22,10 @@ void describe('convertSchemaToCDK', () => {
   void it('generates for a typed schema', () => {
     const expectedGraphqlSchema = /* GraphQL */ `
       type Todo @model {
+        id: ID! @primaryKey
         content: String!
+        createdAt: AWSDateTime!
+        updatedAt: AWSDateTime!
       }
     `;
     const typedSchema = a.schema({

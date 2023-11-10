@@ -5,7 +5,7 @@
 ```ts
 
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
-import { BackendIdentifier } from '@aws-amplify/deployed-backend-client';
+import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
 import { ModelsTarget } from '@aws-amplify/graphql-generator';
 import { StatementsTarget } from '@aws-amplify/graphql-generator';
 import { TypesTarget } from '@aws-amplify/graphql-generator';
@@ -49,7 +49,7 @@ export enum GenerateApiCodeModelTarget {
 }
 
 // @public (undocumented)
-export type GenerateApiCodeProps = GenerateOptions & BackendIdentifier & {
+export type GenerateApiCodeProps = GenerateOptions & DeployedBackendIdentifier & {
     credentialProvider: AwsCredentialIdentityProvider;
 };
 
@@ -139,7 +139,7 @@ export type GraphqlDocumentGenerator = {
 
 // @public (undocumented)
 export type GraphqlDocumentGeneratorFactoryParams = {
-    backendIdentifier: BackendIdentifier;
+    backendIdentifier: DeployedBackendIdentifier;
     credentialProvider: AwsCredentialIdentityProvider;
 };
 

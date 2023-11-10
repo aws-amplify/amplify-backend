@@ -1,6 +1,6 @@
 import fs from 'fs/promises';
 import { SecretClient } from '@aws-amplify/backend-secret';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { createEmptyAmplifyProject } from '../create_empty_amplify_project.js';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { TestProjectBase, TestProjectUpdate } from './test_project_base.js';
@@ -83,7 +83,7 @@ export class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   /**
    * @inheritdoc
    */
-  override async deploy(backendIdentifier: UniqueBackendIdentifier) {
+  override async deploy(backendIdentifier: BackendIdentifier) {
     await this.setUpDeployEnvironment(backendIdentifier);
     await super.deploy(backendIdentifier);
   }
@@ -91,7 +91,7 @@ export class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   /**
    * @inheritdoc
    */
-  override async tearDown(backendIdentifier: UniqueBackendIdentifier) {
+  override async tearDown(backendIdentifier: BackendIdentifier) {
     await super.tearDown(backendIdentifier);
     await this.clearDeployEnvironment(backendIdentifier);
   }
@@ -119,7 +119,7 @@ export class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   }
 
   setUpDeployEnvironment = async (
-    backendId: UniqueBackendIdentifier
+    backendId: BackendIdentifier
   ): Promise<void> => {
     const { secretNames } = (await import(
       this.sourceProjectConstantFilePath
@@ -132,7 +132,7 @@ export class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   };
 
   clearDeployEnvironment = async (
-    backendId: UniqueBackendIdentifier
+    backendId: BackendIdentifier
   ): Promise<void> => {
     const { secretNames } = (await import(
       this.sourceProjectConstantFilePath
