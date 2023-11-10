@@ -118,6 +118,11 @@ export type ConstructFactoryGetInstanceProps = {
 // @public
 export type DeploymentType = 'branch' | 'sandbox';
 
+// @public
+export type Expand<T> = T extends infer O ? {
+    [K in keyof O]: O[K];
+} : never;
+
 // @public (undocumented)
 export type FunctionResources = {
     lambda: Function_2;

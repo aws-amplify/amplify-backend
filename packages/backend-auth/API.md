@@ -11,6 +11,7 @@ import { AuthProps } from '@aws-amplify/auth-construct-alpha';
 import { AuthResources } from '@aws-amplify/plugin-types';
 import { BackendSecret } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
+import { Expand } from '@aws-amplify/plugin-types';
 import { ExternalProviderOptions } from '@aws-amplify/auth-construct-alpha';
 import { FacebookProviderProps } from '@aws-amplify/auth-construct-alpha';
 import { FunctionResources } from '@aws-amplify/plugin-types';
@@ -26,8 +27,8 @@ export type AmazonProviderFactoryProps = Omit<AmazonProviderProps, 'clientId' | 
 };
 
 // @public (undocumented)
-export type AmplifyAuthFactoryProps = Omit<AuthProps, 'outputStorageStrategy' | 'loginWith'> & TriggerConfig & {
-    loginWith: AuthLoginWithFactoryProps;
+export type AmplifyAuthFactoryProps = Expand<Omit<AuthProps, 'outputStorageStrategy' | 'loginWith'>> & TriggerConfig & {
+    loginWith: Expand<AuthLoginWithFactoryProps>;
 };
 
 // @public
@@ -76,7 +77,7 @@ export type OidcProviderFactoryProps = Omit<OidcProviderProps, 'clientId' | 'cli
     clientSecret: BackendSecret;
 };
 
-// @public (undocumented)
+// @public
 export type TriggerConfig = {
     triggers?: Partial<Record<TriggerEvent, ConstructFactory<ResourceProvider<FunctionResources>>>>;
 };
