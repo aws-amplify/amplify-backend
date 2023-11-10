@@ -525,7 +525,7 @@
        "Action": "sts:AssumeRole",
        "Condition": {
         "ForAnyValue:StringLike": {
-         "cognito-identity.amazonaws.com:amr": "authenticated"
+         "cognito-identity.amazonaws.com:amr": "unauthenticated"
         },
         "StringEquals": {
          "cognito-identity.amazonaws.com:aud": {

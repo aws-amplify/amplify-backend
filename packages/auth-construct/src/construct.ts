@@ -187,7 +187,7 @@ export class AmplifyAuth
             'cognito-identity.amazonaws.com:aud': identityPoolId,
           },
           'ForAnyValue:StringLike': {
-            'cognito-identity.amazonaws.com:amr': 'authenticated',
+            'cognito-identity.amazonaws.com:amr': 'unauthenticated',
           },
         }),
       }),
