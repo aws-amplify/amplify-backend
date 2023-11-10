@@ -2,7 +2,7 @@ import { existsSync as _existsSync } from 'fs';
 import * as path from 'path';
 import { execa as _execa } from 'execa';
 import { logger } from './logger.js';
-import stream from 'stream';
+import { executeWithLogger } from './execute_with_logger.js';
 
 /**
  * Ensure that the current working directory is a valid JavaScript project
@@ -29,26 +29,12 @@ export class NpmProjectInitializer {
       'No package.json file found in the current directory. Running `npm init`...'
     );
 
-    let aggregatedStdout = '';
-    const aggregatorStream = new stream.Writable();
-    aggregatorStream._write = function (chunk, encoding, done) {
-      aggregatedStdout += chunk;
-      done();
-    };
-
     try {
-      const childProcess = this.execa('npm', ['init', '--yes'], {
-        stdin: 'inherit',
-        cwd: this.projectRoot,
-      });
-
-      childProcess?.stdout?.pipe(aggregatorStream);
-      childProcess?.stderr?.pipe(aggregatorStream);
-
-      await childProcess;
-      logger.debug(aggregatedStdout);
+      await executeWithLogger(this.execa, this.projectRoot, 'npm', [
+        'init',
+        '--yes',
+      ]);
     } catch {
-      logger.debug(aggregatedStdout);
       throw new Error(
         '`npm init` did not exit successfully. Initialize a valid JavaScript package before continuing.'
       );

@@ -3,7 +3,7 @@ import * as path from 'path';
 import { execa as _execa } from 'execa';
 import { PackageJsonReader } from './package_json_reader.js';
 import { logger } from './logger.js';
-import stream from 'stream';
+import { executeWithLogger } from './execute_with_logger.js';
 
 /**
  * Ensure that the current working directory is a valid TypeScript project
@@ -53,26 +53,9 @@ export class TsConfigInitializer {
       );
     }
 
-    let aggregatedStdout = '';
-    const aggregatorStream = new stream.Writable();
-    aggregatorStream._write = function (chunk, encoding, done) {
-      aggregatedStdout += chunk;
-      done();
-    };
-
     try {
-      const childProcess = this.execa('npx', tscArgs, {
-        stdin: 'inherit',
-        cwd: this.projectRoot,
-      });
-
-      childProcess?.stdout?.pipe(aggregatorStream);
-      childProcess?.stderr?.pipe(aggregatorStream);
-
-      await childProcess;
-      logger.debug(aggregatedStdout);
+      await executeWithLogger(this.execa, this.projectRoot, 'npx', tscArgs);
     } catch {
-      logger.debug(aggregatedStdout);
       throw new Error(
         '`npx tsc --init` did not exit successfully. Initialize a valid TypeScript configuration before continuing.'
       );

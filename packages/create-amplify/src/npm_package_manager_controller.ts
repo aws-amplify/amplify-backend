@@ -4,7 +4,7 @@ import {
   PackageManagerController,
 } from './package_manager_controller.js';
 import { logger } from './logger.js';
-import stream from 'stream';
+import { executeWithLogger } from './execute_with_logger.js';
 
 /**
  *
@@ -33,15 +33,7 @@ export class NpmPackageManagerController implements PackageManagerController {
     }
 
     try {
-      const childProcess = this.execa(this.executableName, args, {
-        stdin: 'inherit',
-        cwd: this.projectRoot,
-      });
-
-      childProcess?.stdout?.on('data', (data) => logger.debug(data));
-      childProcess?.stderr?.on('data', (data) => logger.debug(data));
-
-      await childProcess;
+      await executeWithLogger(this.execa, this.projectRoot, 'npm', args);
     } catch {
       throw new Error(
         `\`npm install ${packageNames.join(' ')}${
