@@ -2,7 +2,7 @@ import { existsSync as _existsSync } from 'fs';
 import * as path from 'path';
 import { execa as _execa } from 'execa';
 import { logger } from './logger.js';
-import { executeWithLogger } from './execute_with_logger.js';
+import { executeWithDebugLogger } from './execute_with_logger.js';
 
 /**
  * Ensure that the current working directory is a valid JavaScript project
@@ -30,10 +30,12 @@ export class NpmProjectInitializer {
     );
 
     try {
-      await executeWithLogger(this.execa, this.projectRoot, 'npm', [
-        'init',
-        '--yes',
-      ]);
+      await executeWithDebugLogger(
+        this.projectRoot,
+        'npm',
+        ['init', '--yes'],
+        this.execa
+      );
     } catch {
       throw new Error(
         '`npm init` did not exit successfully. Initialize a valid JavaScript package before continuing.'

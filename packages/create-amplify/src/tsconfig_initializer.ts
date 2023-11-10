@@ -3,7 +3,7 @@ import * as path from 'path';
 import { execa as _execa } from 'execa';
 import { PackageJsonReader } from './package_json_reader.js';
 import { logger } from './logger.js';
-import { executeWithLogger } from './execute_with_logger.js';
+import { executeWithDebugLogger } from './execute_with_logger.js';
 
 /**
  * Ensure that the current working directory is a valid TypeScript project
@@ -54,7 +54,12 @@ export class TsConfigInitializer {
     }
 
     try {
-      await executeWithLogger(this.execa, this.projectRoot, 'npx', tscArgs);
+      await executeWithDebugLogger(
+        this.projectRoot,
+        'npx',
+        tscArgs,
+        this.execa
+      );
     } catch {
       throw new Error(
         '`npx tsc --init` did not exit successfully. Initialize a valid TypeScript configuration before continuing.'

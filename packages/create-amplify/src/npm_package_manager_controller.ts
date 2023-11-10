@@ -3,7 +3,7 @@ import {
   DependencyType,
   PackageManagerController,
 } from './package_manager_controller.js';
-import { executeWithLogger } from './execute_with_logger.js';
+import { executeWithDebugLogger } from './execute_with_logger.js';
 
 /**
  *
@@ -32,13 +32,9 @@ export class NpmPackageManagerController implements PackageManagerController {
     }
 
     try {
-      await executeWithLogger(this.execa, this.projectRoot, 'npm', args);
+      await executeWithDebugLogger(this.projectRoot, 'npm', args, this.execa);
     } catch {
-      throw new Error(
-        `\`npm install ${packageNames.join(' ')}${
-          typeDev ? ' --save-dev' : ''
-        }\` did not exit successfully.`
-      );
+      throw new Error(`\`npm${args.join(' ')}\` did not exit successfully.`);
     }
   };
 }

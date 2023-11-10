@@ -4,16 +4,15 @@ import { logger } from './logger.js';
 /**
  * Abstracts the execution of a command and pipes outputs/errors to `logger.debug`
  */
-export const executeWithLogger = async (
-  execa = _execa,
-  projectRoot: string,
-  file: string,
-  args?: string[]
+export const executeWithDebugLogger = async (
+  executable: string,
+  args?: string[],
+  execa = _execa
 ) => {
   try {
     const childProcess = execa(file, args, {
       stdin: 'inherit',
-      cwd: projectRoot,
+      cwd: process.cwd(),
     });
 
     childProcess?.stdout?.on('data', (data) => logger.debug(data));
@@ -22,9 +21,9 @@ export const executeWithLogger = async (
     await childProcess;
   } catch {
     throw new Error(
-      `\`${file}${
+      `\`${executable}${
         args ? ' ' + args.join(' ') : ''
-      }\` did not exit successfully.`
+      }\` did not exit successfully. Rerun with --debug for more information.`
     );
   }
 };
