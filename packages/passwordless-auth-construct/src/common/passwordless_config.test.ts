@@ -47,4 +47,25 @@ void describe('PasswordlessConfig', () => {
       deepEqual(snsConfig, env);
     });
   });
+  void describe('sesConfig', () => {
+    void it('should extract config', async () => {
+      const env = { fromAddress: 'foo@bar.com', emailSubject: 'foo' };
+
+      const { sesConfig } = new PasswordlessConfig(env);
+
+      deepEqual(sesConfig, env);
+    });
+
+    void it('should extract nothing when env is empty', async () => {
+      const env = { fromAddress: '', emailSubject: '' };
+      const expected = {
+        fromAddress: '',
+        emailSubject: 'Your verification code',
+      };
+
+      const { sesConfig } = new PasswordlessConfig(env);
+
+      deepEqual(sesConfig, expected);
+    });
+  });
 });

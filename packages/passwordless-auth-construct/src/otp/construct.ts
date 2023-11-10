@@ -30,6 +30,11 @@ export class AmplifyOtpAuth extends Construct {
         // see: https://docs.aws.amazon.com/sns/latest/dg/sns-using-identity-based-policies.html
         notResources: ['arn:aws:sns:*:*:*'],
       }),
+      // SES IAM policy
+      new PolicyStatement({
+        actions: ['ses:SendEmail'],
+        notResources: ['arn:aws:ses:*:*:*'],
+      }),
     ];
 
     for (const value of createAuthChallengePolicy) {
@@ -41,8 +46,9 @@ export class AmplifyOtpAuth extends Construct {
 
     const createAuthChallengeEnvVars = {
       originationNumber: props.originationNumber,
-      senderId: props.senderId,
+      otpFromAddress: props.fromAddress,
       otpLength: props.length?.toString(),
+      senderId: props.senderId,
     };
 
     for (const [key, value] of Object.entries(createAuthChallengeEnvVars)) {

@@ -1,4 +1,4 @@
-import { OtpConfig, SnsServiceConfig } from '../types.js';
+import { OtpConfig, SesServiceConfig, SnsServiceConfig } from '../types.js';
 
 /**
  * Passwordless Configuration.
@@ -13,6 +13,8 @@ export class PasswordlessConfig {
   private parsedOtpConfig?: OtpConfig;
 
   private parsedSnsConfig?: SnsServiceConfig;
+
+  private parsedSesConfig?: SesServiceConfig;
 
   /**
    * Gets the OTP configuration.
@@ -45,5 +47,22 @@ export class PasswordlessConfig {
     }
 
     return this.parsedSnsConfig;
+  }
+
+  /**
+   * Gets the SES configuration.
+   */
+  get sesConfig(): SesServiceConfig {
+    if (this.parsedSesConfig === undefined) {
+      const DEFAULT_SUBJECT = 'Your verification code';
+      const { fromAddress, emailSubject: envSubject } = this.env;
+      const emailSubject = envSubject ? envSubject : DEFAULT_SUBJECT;
+      this.parsedSesConfig = {
+        fromAddress,
+        emailSubject,
+      };
+    }
+
+    return this.parsedSesConfig;
   }
 }
