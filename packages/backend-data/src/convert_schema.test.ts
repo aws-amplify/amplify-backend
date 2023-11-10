@@ -22,7 +22,10 @@ void describe('convertSchemaToCDK', () => {
   void it('generates for a typed schema', () => {
     const expectedGraphqlSchema = /* GraphQL */ `
       type Todo @model {
+        id: ID! @primaryKey
         content: String!
+        createdAt: AWSDateTime!
+        updatedAt: AWSDateTime!
       }
     `;
     const typedSchema = a.schema({
