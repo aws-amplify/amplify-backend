@@ -1,11 +1,19 @@
 import assert from 'node:assert';
-import { after, afterEach, before, beforeEach, describe, it } from 'node:test';
+import { after, before, beforeEach, describe, it } from 'node:test';
 import { CommandMiddleware } from './command_middleware.js';
 import { EOL } from 'node:os';
 import { DEFAULT_PROFILE } from '@smithy/shared-ini-file-loader';
 import fs from 'fs/promises';
 import path from 'path';
 import { ArgumentsCamelCase } from 'yargs';
+
+const restoreEnv = (restoreVal: string | undefined, envVar: string) => {
+  if (restoreVal) {
+    process.env[envVar] = restoreVal;
+    return;
+  }
+  delete process.env[envVar];
+};
 
 void describe('commandMiddleware', () => {
   void describe('ensureAwsCredentialAndRegion', () => {
@@ -19,6 +27,13 @@ void describe('commandMiddleware', () => {
     let credFilePath: string;
     let configFilePath: string;
 
+    const currentProfile = process.env.AWS_PROFILE;
+    const currentConfigFile = process.env.AWS_CONFIG_FILE;
+    const currentCredentialFile = process.env.AWS_SHARED_CREDENTIALS_FILE;
+    const currentAccessKeyId = process.env.AWS_ACCESS_KEY_ID;
+    const currentSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
+    const currentRegion = process.env.AWS_REGION;
+
     before(async () => {
       testDir = await fs.mkdtemp('profile_middleware_test');
       credFilePath = path.join(process.cwd(), testDir, 'credentials');
@@ -29,10 +44,12 @@ void describe('commandMiddleware', () => {
 
     after(async () => {
       await fs.rm(testDir, { recursive: true, force: true });
-      delete process.env.AWS_SHARED_CREDENTIALS_FILE;
-      delete process.env.AWS_CONFIG_FILE;
-      delete process.env.AWS_PROFILE;
-      delete process.env.AWS_REGION;
+      restoreEnv(currentProfile, 'AWS_PROFILE');
+      restoreEnv(currentConfigFile, 'AWS_CONFIG_FILE');
+      restoreEnv(currentCredentialFile, 'AWS_SHARED_CREDENTIALS_FILE');
+      restoreEnv(currentAccessKeyId, 'AWS_ACCESS_KEY_ID');
+      restoreEnv(currentSecretAccessKey, 'AWS_SECRET_ACCESS_KEY');
+      restoreEnv(currentRegion, 'AWS_REGION');
     });
 
     void describe('from environment variables', () => {
@@ -41,13 +58,6 @@ void describe('commandMiddleware', () => {
         process.env.AWS_SECRET_ACCESS_KEY = testSecretAccessKey;
         process.env.AWS_REGION = testRegion;
         delete process.env.AWS_PROFILE;
-      });
-
-      afterEach(() => {
-        delete process.env.AWS_ACCESS_KEY_ID;
-        delete process.env.AWS_SECRET_ACCESS_KEY;
-        delete process.env.AWS_PROFILE;
-        delete process.env.AWS_REGION;
       });
 
       void it('loads credentials', async () => {
@@ -86,10 +96,17 @@ void describe('commandMiddleware', () => {
     });
 
     void describe('from ini file', () => {
+      before(() => {
+        delete process.env.AWS_ACCESS_KEY_ID;
+        delete process.env.AWS_SECRET_ACCESS_KEY;
+        delete process.env.AWS_REGION;
+      });
+
       beforeEach(async () => {
         // clear files
         await fs.writeFile(credFilePath, '', 'utf-8');
         await fs.writeFile(configFilePath, '', 'utf-8');
+        delete process.env.AWS_PROFILE;
       });
 
       const writeProfileCredential = async (
