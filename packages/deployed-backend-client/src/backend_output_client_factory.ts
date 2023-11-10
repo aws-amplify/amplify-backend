@@ -1,5 +1,5 @@
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
-import { BackendIdentifier } from './index.js';
+import { DeployedBackendIdentifier } from './index.js';
 import { DefaultBackendOutputClient } from './backend_output_client.js';
 import { UnifiedBackendOutput } from '@aws-amplify/backend-output-schemas';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
@@ -32,7 +32,7 @@ export class BackendOutputClientError extends Error {
  */
 export type BackendOutputClient = {
   readonly getOutput: (
-    backendIdentifier: BackendIdentifier
+    backendIdentifier: DeployedBackendIdentifier
   ) => Promise<UnifiedBackendOutput>;
 };
 

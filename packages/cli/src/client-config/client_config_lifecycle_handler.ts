@@ -3,7 +3,7 @@ import {
   getClientConfigPath,
 } from '@aws-amplify/client-config';
 import { ClientConfigGeneratorAdapter } from './client_config_generator_adapter.js';
-import { BackendIdentifier } from '@aws-amplify/deployed-backend-client';
+import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
 import fsp from 'fs/promises';
 
 /**
@@ -19,7 +19,9 @@ export class ClientConfigLifecycleHandler {
     private readonly format?: ClientConfigFormat
   ) {}
 
-  generateClientConfigFile = async (backendIdentifier: BackendIdentifier) => {
+  generateClientConfigFile = async (
+    backendIdentifier: DeployedBackendIdentifier
+  ) => {
     await this.clientConfigGeneratorAdapter.generateClientConfigToFile(
       backendIdentifier,
       this.outDir,

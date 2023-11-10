@@ -5,7 +5,7 @@ import {
   ConstructContainerEntryGenerator,
   ConstructFactory,
 } from '@aws-amplify/plugin-types';
-import { getUniqueBackendIdentifier } from '../backend_identifier.js';
+import { getBackendIdentifier } from '../backend_identifier.js';
 import { DefaultBackendSecretResolver } from './backend-secret/backend_secret_resolver.js';
 
 /**
@@ -33,10 +33,10 @@ export class SingletonConstructContainer implements ConstructContainer {
   getOrCompute = (generator: ConstructContainerEntryGenerator): Construct => {
     if (!this.constructCache.has(generator)) {
       const scope = this.stackResolver.getStackFor(generator.resourceGroupName);
-      const uniqueBackendIdentifier = getUniqueBackendIdentifier(scope);
+      const backendId = getBackendIdentifier(scope);
       const backendSecretResolver = new DefaultBackendSecretResolver(
         scope,
-        uniqueBackendIdentifier
+        backendId
       );
       this.constructCache.set(
         generator,

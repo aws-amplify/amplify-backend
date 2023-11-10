@@ -16,11 +16,6 @@ import {
   platformOutputKey,
   storageOutputKey,
 } from '@aws-amplify/backend-output-schemas';
-import {
-  BackendDeploymentType,
-  BranchBackendIdentifier,
-  SandboxBackendIdentifier,
-} from '@aws-amplify/platform-core';
 import { DefaultBackendOutputClient } from './backend_output_client.js';
 import { DefaultDeployedBackendClient } from './deployed_backend_client.js';
 import { StackIdentifier } from './index.js';
@@ -31,21 +26,24 @@ import { StackStatusMapper } from './deployed-backend-client/stack_status_mapper
 import { ArnGenerator } from './deployed-backend-client/arn_generator.js';
 import { ArnParser } from './deployed-backend-client/arn_parser.js';
 
+// eslint-disable-next-line spellcheck/spell-checker
+const validTestBranchName = 'amplify-test-testBranch-branch-5c6fa1ef9a';
+
 const listStacksMock = {
   NextToken: undefined,
   StackSummaries: [
     {
-      StackName: 'amplify-test-testBranch',
+      StackName: validTestBranchName,
       StackStatus: StackStatus.CREATE_COMPLETE,
       CreationTime: new Date(0),
     },
     {
-      StackName: 'amplify-error-testBranch',
+      StackName: 'amplify-error-testBranch-branch-testHash',
       StackStatus: StackStatus.CREATE_COMPLETE,
       CreationTime: new Date(0),
     },
     {
-      StackName: 'amplify-test-sandbox',
+      StackName: 'amplify-test-name-sandbox-testHash',
       StackStatus: StackStatus.CREATE_COMPLETE,
       CreationTime: new Date(0),
       LastUpdatedTime: new Date(1),
@@ -102,7 +100,7 @@ const listStackResourcesMock = {
 const getOutputMockResponse = {
   [platformOutputKey]: {
     payload: {
-      deploymentType: 'SANDBOX',
+      deploymentType: 'sandbox',
     },
   },
   [authOutputKey]: {
@@ -174,7 +172,10 @@ void describe('Deployed Backend Client', () => {
   beforeEach(() => {
     getOutputMock.mock.mockImplementation(
       (backendIdentifier: StackIdentifier) => {
-        if (backendIdentifier.stackName === 'amplify-error-testBranch') {
+        if (
+          backendIdentifier.stackName ===
+          'amplify-error-testBranch-branch-testHash'
+        ) {
           throw new Error('Stack template metadata is not a string');
         }
         return getOutputMockResponse;
@@ -237,35 +238,45 @@ void describe('Deployed Backend Client', () => {
       nextToken: undefined,
       sandboxes: [
         {
-          deploymentType: BackendDeploymentType.SANDBOX,
-          backendId: undefined,
-          name: 'amplify-test-testBranch',
+          deploymentType: 'sandbox',
+          backendId: {
+            namespace: 'test',
+            name: 'testBranch',
+            type: 'branch',
+            hash: '5c6fa1ef9a',
+          },
+          name: validTestBranchName,
           status: BackendDeploymentStatus.DEPLOYED,
           lastUpdated: new Date(0),
         },
         {
-          deploymentType: BackendDeploymentType.SANDBOX,
-          backendId: new SandboxBackendIdentifier('test'),
-          name: 'amplify-test-sandbox',
+          deploymentType: 'sandbox',
+          backendId: {
+            namespace: 'test',
+            name: 'name',
+            type: 'sandbox',
+            hash: 'testHash',
+          },
+          name: 'amplify-test-name-sandbox-testHash',
           status: BackendDeploymentStatus.DEPLOYED,
           lastUpdated: new Date(1),
         },
         {
-          deploymentType: BackendDeploymentType.SANDBOX,
+          deploymentType: 'sandbox',
           backendId: undefined,
           name: 'amplify-test-testBranch-auth',
           status: BackendDeploymentStatus.DEPLOYED,
           lastUpdated: new Date(1),
         },
         {
-          deploymentType: BackendDeploymentType.SANDBOX,
+          deploymentType: 'sandbox',
           backendId: undefined,
           name: 'amplify-test-testBranch-storage',
           status: BackendDeploymentStatus.DEPLOYING,
           lastUpdated: new Date(1),
         },
         {
-          deploymentType: BackendDeploymentType.SANDBOX,
+          deploymentType: 'sandbox',
           backendId: undefined,
           name: 'amplify-test-testBranch-data',
           status: BackendDeploymentStatus.FAILED,
@@ -278,21 +289,24 @@ void describe('Deployed Backend Client', () => {
   });
 
   void it('deletes a sandbox', async () => {
-    await deployedBackendClient.deleteSandbox(
-      new SandboxBackendIdentifier('test')
-    );
+    await deployedBackendClient.deleteSandbox({
+      namespace: 'test',
+      name: 'username',
+    });
 
     assert.equal(cfnClientSendMock.mock.callCount(), 1);
   });
 
   void it('fetches metadata', async () => {
-    const getMetadataResponse = await deployedBackendClient.getBackendMetadata(
-      new BranchBackendIdentifier('test', 'testBranch')
-    );
+    const getMetadataResponse = await deployedBackendClient.getBackendMetadata({
+      namespace: 'test',
+      name: 'testBranch',
+      type: 'branch',
+    });
 
     assert.deepEqual(getMetadataResponse, {
-      deploymentType: BackendDeploymentType.SANDBOX,
-      name: 'amplify-test-testBranch',
+      deploymentType: 'sandbox',
+      name: validTestBranchName,
       ...expectedMetadata,
     });
   });
@@ -311,12 +325,14 @@ void describe('Deployed Backend Client pagination', () => {
   const getOutputMock = mock.method(mockBackendOutputClient, 'getOutput');
   const returnedSandboxes = [
     {
-      deploymentType: BackendDeploymentType.SANDBOX,
+      deploymentType: 'sandbox',
       backendId: {
-        backendId: 'test',
-        disambiguator: 'sandbox',
+        namespace: 'test',
+        name: 'name',
+        type: 'sandbox',
+        hash: 'testHash',
       },
-      name: 'amplify-test-sandbox',
+      name: 'amplify-test-name-sandbox-testHash',
       status: BackendDeploymentStatus.DEPLOYED,
       lastUpdated: new Date(1),
     },
@@ -325,15 +341,20 @@ void describe('Deployed Backend Client pagination', () => {
   beforeEach(() => {
     getOutputMock.mock.mockImplementation(
       (backendIdentifier: StackIdentifier) => {
-        if (backendIdentifier.stackName === 'amplify-error-testBranch') {
+        if (
+          backendIdentifier.stackName ===
+          'amplify-error-testBranch-branch-testHash'
+        ) {
           throw new Error('Stack template metadata is not a string');
         }
-        if (backendIdentifier.stackName !== 'amplify-test-sandbox') {
+        if (
+          backendIdentifier.stackName !== 'amplify-test-name-sandbox-testHash'
+        ) {
           return {
             ...getOutputMockResponse,
             [platformOutputKey]: {
               payload: {
-                deploymentType: 'BRANCH',
+                deploymentType: 'branch',
               },
             },
           };

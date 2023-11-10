@@ -1,4 +1,3 @@
-import { BackendIdentifier } from '@aws-amplify/deployed-backend-client';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import {
@@ -13,6 +12,7 @@ import { createGraphqlTypesGenerator } from './create_graphql_types_generator.js
 import { createGraphqlDocumentGenerator } from './create_graphql_document_generator.js';
 import { getOutputFileName } from '@aws-amplify/graphql-types-generator';
 import path from 'path';
+import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
 
 export enum GenerateApiCodeFormat {
   MODELGEN = 'modelgen',
@@ -78,7 +78,7 @@ export type GenerateOptions =
   | GenerateIntrospectionOptions;
 
 export type GenerateApiCodeProps = GenerateOptions &
-  BackendIdentifier & {
+  DeployedBackendIdentifier & {
     credentialProvider: AwsCredentialIdentityProvider;
   };
 
@@ -89,7 +89,7 @@ export const generateApiCode = async (
   props: GenerateApiCodeProps
 ): Promise<GenerationResult> => {
   const { credentialProvider = fromNodeProviderChain() } = props;
-  const backendIdentifier = props as BackendIdentifier;
+  const backendIdentifier = props;
   return new ApiCodeGenerator(
     createGraphqlDocumentGenerator({ backendIdentifier, credentialProvider }),
     createGraphqlTypesGenerator({ backendIdentifier, credentialProvider }),
@@ -131,7 +131,9 @@ export class ApiCodeGenerator {
       }
       default:
         throw new Error(
-          `${(props as GenerateApiCodeProps).format} is not a supported format.`
+          `${
+            (props as GenerateApiCodeProps).format as string
+          } is not a supported format.`
         );
     }
   }
