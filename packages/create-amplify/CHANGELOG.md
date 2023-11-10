@@ -1,5 +1,16 @@
 # create-amplify
 
+## 0.3.0
+
+### Minor Changes
+
+- 85a015b7: switch to using data-schema packages
+- 71a63a16: Change stack naming strategy to include deployment type as a suffix
+
+### Patch Changes
+
+- 39b3f8dd: update readme
+
 ## 0.2.3
 
 ### Patch Changes

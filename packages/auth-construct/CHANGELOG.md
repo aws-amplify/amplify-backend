@@ -1,5 +1,23 @@
 # @aws-amplify/auth-construct-alpha
 
+## 0.3.0
+
+### Minor Changes
+
+- 71a63a16: Change stack naming strategy to include deployment type as a suffix
+
+### Patch Changes
+
+- f30c438e: Update OAuthScope types to string union.
+- 95818a7a: Add conditions to default unauth and auth role
+- 8181509a: Added a prefix to the auth cfnResources.
+- f30c438e: Update the documentation for phone number 'verificationMessage'.
+- Updated dependencies [8181509a]
+- Updated dependencies [71a63a16]
+  - @aws-amplify/plugin-types@0.4.0
+  - @aws-amplify/backend-output-schemas@0.3.0
+  - @aws-amplify/backend-output-storage@0.2.1
+
 ## 0.2.4
 
 ### Patch Changes
