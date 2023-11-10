@@ -15,8 +15,11 @@ export class NpmPackageManagerController implements PackageManagerController {
     private readonly projectRoot: string,
     private readonly execa = _execa
   ) {}
-  private readonly executableName =
-    process.env.PACKAGE_MANAGER_EXECUTABLE || 'npm'; // TODO: replace `process.env.PACKAGE_MANAGER_EXECUTABLE` with `getPackageManagerName()` once the test infra is ready.
+  private readonly executableName = !process.env.PACKAGE_MANAGER_EXECUTABLE
+    ? 'npm'
+    : process.env.PACKAGE_MANAGER_EXECUTABLE === 'yarn-stable'
+    ? 'yarn'
+    : process.env.PACKAGE_MANAGER_EXECUTABLE; // TODO: replace `process.env.PACKAGE_MANAGER_EXECUTABLE` with `getPackageManagerName()` once the test infra is ready.
 
   /**
    * Installs the given package names as devDependencies

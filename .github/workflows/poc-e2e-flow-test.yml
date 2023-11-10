@@ -5,53 +5,59 @@ name: 'poc-e2e-flow-test'
 on: # TODO: need to change the trigger
   push:
     branches:
-      - poc/e2e-test
+      - poc/e2e-create-amplify
 
 jobs:
-  create-amplify-project:
+  install:
     strategy:
-      fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macOS-latest]
-        node-version: [18]
-        pkg-manager: [npm, yarn, yarn-stable, pnpm]
+        os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
-    env:
-      PACKAGE_MANAGER_EXECUTABLE: ${{ matrix.pkg-manager }} # TODO: remove PACKAGE_MANAGER_EXECUTABLE once CLI is able to getPackageManager().
     steps:
       - name: Checkout aws-amplify/amplify-cli repo
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1. TODO: try only fetch .github/workflow
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       - name: Setup Node.js
-        uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65 #4.0.0
+        uses: ./.github/actions/setup_node
+      - name: Install or Restore Cache
+        uses: ./.github/actions/install_with_cache
+  build:
+    runs-on: ubuntu-latest
+    needs:
+      - install
+    steps:
+      - name: Checkout aws-amplify/amplify-cli repo
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - name: Setup Node.js
+        uses: ./.github/actions/setup_node
+      - name: Build or Restore Build Cache
+        uses: ./.github/actions/build_with_cache
+  run_e2e_tests:
+    strategy:
+      # will finish running other test matrices even if one fails
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        pkg-manager: [npm, yarn, yarn-stable, pnpm]
+    env:
+      ACKAGE_MANAGER_EXECUTABLE: ${{ matrix.pkg-manager }} # TODO: remove PACKAGE_MANAGER_EXECUTABLE once CLI is able to getPackageManager().
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    needs:
+      - build
+    permissions:
+      # these permissions are required for the configure-aws-credentials action to get a JWT from GitHub
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout aws-amplify/amplify-cli repo
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - name: Setup Node.js
+        uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # version 3.8.1
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: npm
-      - name: Local Publish create-amplify
+          node-version: 19
+      - name: Restore Build Cache
+        uses: ./.github/actions/restore_build_cache
+      - name: Run E2E tests with ${{ matrix.pkg-manager }}
         shell: bash
-        run: npm run install:local && npm run build && npm run vend
-      - name: ${{matrix.pkg-manager}}-create-amplify-project
-        if: matrix.pkg-manager != 'yarn-stable'
-        shell: bash
-        run:
-          | # TODO: last step `create amplify` should be replaced by `run e2e`
-          mkdir -p /tmp/amplify-project; cd /tmp/amplify-project
-          npm install -g ${{matrix.pkg-manager}}
-          echo "$(${{matrix.pkg-manager}}) config set registry http://localhost:4873"
-          ${{matrix.pkg-manager}} config set registry http://localhost:4873
-          echo "$(${{matrix.pkg-manager}}) config get registry"
-          ${{matrix.pkg-manager}} config get registry
-          ${{matrix.pkg-manager}} create amplify --yes
-
-      - name: yarn-stable-create-amplify-project
-        if: matrix.pkg-manager == 'yarn-stable'
-        shell: bash
-        run:
-          | # TODO: last step `create amplify` should be replaced by `run e2e`
-          mkdir -p /tmp/amplify-project; cd /tmp/amplify-project
-          corepack enable
-          echo "yarn set version stable"
-          yarn set version stable
-          echo "yarn version $(yarn --version)"
-          yarn config set unsafeHttpWhitelist localhost
-          yarn config set npmRegistryServer http://localhost:4873
-          PACKAGE_MANAGER_EXECUTABLE=yarn yarn create amplify --yes
+        run: |
+          PACKAGE_MANAGER_EXECUTABLE=${{matrix.pkg-manager}} npm run test:dir packages/integration-tests/src/test-e2e/create_amplify.test.ts

@@ -17,8 +17,11 @@ export class TsConfigInitializer {
     private readonly existsSync = _existsSync,
     private readonly execa = _execa
   ) {}
-  private readonly executableName =
-    process.env.PACKAGE_MANAGER_EXECUTABLE || 'npx'; // TODO: replace `process.env.PACKAGE_MANAGER_EXECUTABLE` with `getPackageManagerName()` once the test infra is ready.
+  private readonly executableName = !process.env.PACKAGE_MANAGER_EXECUTABLE
+    ? 'npx'
+    : process.env.PACKAGE_MANAGER_EXECUTABLE === 'yarn-stable'
+    ? 'yarn'
+    : process.env.PACKAGE_MANAGER_EXECUTABLE; // TODO: replace `process.env.PACKAGE_MANAGER_EXECUTABLE` with `getPackageManagerName()` once the test infra is ready.
 
   /**
    * If tsconfig.json already exists, this is a noop. Otherwise, `npx tsc --init` is executed to create a tsconfig.json file

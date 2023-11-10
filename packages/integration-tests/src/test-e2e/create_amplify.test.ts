@@ -7,18 +7,92 @@ import { after, afterEach, before, beforeEach, describe, it } from 'node:test';
 import assert from 'assert';
 import { glob } from 'glob';
 
-void describe('create-amplify script', () => {
-  before(async () => {
-    // start a local npm proxy and publish the current codebase to the proxy
-    await execa('npm', ['run', 'clean:npm-proxy'], { stdio: 'inherit' });
-    await execa('npm', ['run', 'vend'], { stdio: 'inherit' });
+type PackageManagerExecutable = 'npm' | 'yarn' | 'yarn-stable' | 'pnpm';
 
-    // nuke the npx cache to ensure we are installing packages from the npm proxy
+const packageManagerSetup = async (
+  packageManagerExecutable: PackageManagerExecutable,
+  dir: string
+) => {
+  if (packageManagerExecutable === 'npm') {
     const { stdout } = await execa('npm', ['config', 'get', 'cache']);
     const npxCacheLocation = path.join(stdout.toString().trim(), '_npx');
 
     if (existsSync(npxCacheLocation)) {
       await fs.rm(npxCacheLocation, { recursive: true });
+    }
+  } else if (packageManagerExecutable.startsWith('yarn')) {
+    if (packageManagerExecutable === 'yarn-stable') {
+      await execa('yarn', ['add', 'tsx'], {
+        cwd: dir,
+        stdio: 'inherit',
+      });
+      await execa('yarn', ['set', 'version', 'stable'], {
+        cwd: dir,
+        stdio: 'inherit',
+      });
+
+      await execa(
+        'yarn',
+        ['config', 'set', 'npmRegistryServer', 'http://localhost:4873'],
+        { cwd: dir, stdio: 'inherit' }
+      );
+      await execa(
+        'yarn',
+        ['config', 'set', 'unsafeHttpWhitelist', 'localhost'],
+        {
+          cwd: dir,
+          stdio: 'inherit',
+        }
+      );
+    } else {
+      await execa(
+        packageManagerExecutable,
+        ['config', 'set', 'registry', 'http://localhost:4873'],
+        { cwd: dir, stdio: 'inherit' }
+      );
+      await execa(packageManagerExecutable, ['config', 'get', 'registry'], {
+        cwd: dir,
+        stdio: 'inherit',
+      });
+    }
+    await execa(
+      packageManagerExecutable === 'yarn-stable'
+        ? 'yarn'
+        : packageManagerExecutable,
+      ['cache', 'clean']
+    );
+  } else if (packageManagerExecutable === 'pnpm') {
+    await execa(packageManagerExecutable, ['--version'], {
+      stdio: 'inherit',
+    });
+    await execa(
+      packageManagerExecutable,
+      ['config', 'set', 'registry', 'http://localhost:4873'],
+
+      { stdio: 'inherit' }
+    );
+    await execa(packageManagerExecutable, ['config', 'get', 'registry'], {
+      stdio: 'inherit',
+    });
+
+    await execa(packageManagerExecutable, ['store', 'clear']);
+  }
+};
+
+void describe('create-amplify script', () => {
+  const { PACKAGE_MANAGER_EXECUTABLE = 'npm' } = process.env;
+
+  before(async () => {
+    // start a local npm proxy and publish the current codebase to the proxy
+    await execa('npm', ['run', 'clean:npm-proxy'], { stdio: 'inherit' });
+    await execa('npm', ['run', 'vend'], { stdio: 'inherit' });
+
+    if (PACKAGE_MANAGER_EXECUTABLE.startsWith('yarn')) {
+      await execa('npm', ['install', '-g', 'yarn'], { stdio: 'inherit' });
+    } else if (PACKAGE_MANAGER_EXECUTABLE === 'pnpm') {
+      await execa('npm', ['install', '-g', PACKAGE_MANAGER_EXECUTABLE], {
+        stdio: 'inherit',
+      });
     }
   });
 
@@ -28,8 +102,30 @@ void describe('create-amplify script', () => {
   });
 
   let tempDir: string;
+
   beforeEach(async () => {
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'test-create-amplify'));
+    const tempDirPath = await fs.mkdtemp(
+      path.join(os.tmpdir(), 'test-create-amplify')
+    );
+    tempDir = path.join(tempDirPath);
+
+    const { stdout } = await execa(
+      PACKAGE_MANAGER_EXECUTABLE === 'yarn-stable'
+        ? 'yarn'
+        : PACKAGE_MANAGER_EXECUTABLE,
+      ['--version'],
+      {
+        cwd: tempDir,
+      }
+    );
+
+    console.log(`Using ${PACKAGE_MANAGER_EXECUTABLE} version ${stdout}`);
+
+    // nuke the npx cache to ensure we are installing packages from the npm proxy
+    await packageManagerSetup(
+      PACKAGE_MANAGER_EXECUTABLE as PackageManagerExecutable,
+      tempDir
+    );
   });
 
   afterEach(async () => {
@@ -55,10 +151,17 @@ void describe('create-amplify script', () => {
         );
       }
 
-      await execa('npm', ['create', 'amplify', '--yes'], {
-        cwd: tempDir,
-        stdio: 'inherit',
-      });
+      await execa(
+        PACKAGE_MANAGER_EXECUTABLE === 'yarn-stable'
+          ? 'yarn'
+          : PACKAGE_MANAGER_EXECUTABLE,
+        ['create', 'amplify', '--yes'],
+        {
+          cwd: tempDir,
+          stdio: 'inherit',
+        }
+      );
+
       const packageJsonPath = path.resolve(tempDir, 'package.json');
       const packageJsonObject = JSON.parse(
         await fs.readFile(packageJsonPath, 'utf-8')
@@ -121,7 +224,11 @@ void describe('create-amplify script', () => {
 
       // assert that project compiles successfully
       await execa(
-        'npx',
+        PACKAGE_MANAGER_EXECUTABLE === 'npm'
+          ? 'npx'
+          : PACKAGE_MANAGER_EXECUTABLE === 'yarn-stable'
+          ? 'yarn'
+          : PACKAGE_MANAGER_EXECUTABLE,
         [
           'tsc',
           '--noEmit',
@@ -140,9 +247,49 @@ void describe('create-amplify script', () => {
         }
       );
 
+      if (PACKAGE_MANAGER_EXECUTABLE.startsWith('yarn')) {
+        await execa(
+          PACKAGE_MANAGER_EXECUTABLE === 'npm'
+            ? 'npx'
+            : PACKAGE_MANAGER_EXECUTABLE === 'yarn-stable'
+            ? 'yarn'
+            : PACKAGE_MANAGER_EXECUTABLE,
+          ['add', 'aws-cdk', 'aws-cdk-lib', 'constructs'],
+          {
+            cwd: tempDir,
+            stdio: 'inherit',
+          }
+        );
+        if (PACKAGE_MANAGER_EXECUTABLE === 'yarn-stable') {
+          await execa(
+            'yarn',
+            [
+              'add',
+              'tsx',
+              'graphql',
+              'pluralize',
+              'zod',
+              '@aws-amplify/platform-core',
+            ],
+            {
+              cwd: tempDir,
+              stdio: 'inherit',
+            }
+          );
+
+          await execa('node', ['--version'], {
+            cwd: tempDir,
+          });
+        }
+      }
+
       // assert that project synthesizes successfully
       await execa(
-        'npx',
+        PACKAGE_MANAGER_EXECUTABLE === 'npm'
+          ? 'npx'
+          : PACKAGE_MANAGER_EXECUTABLE === 'yarn-stable'
+          ? 'yarn'
+          : PACKAGE_MANAGER_EXECUTABLE,
         [
           'cdk',
           'synth',
@@ -153,7 +300,13 @@ void describe('create-amplify script', () => {
           '--context',
           `amplify-backend-type=sandbox`,
           '--app',
-          "'npx tsx amplify/backend.ts'",
+          `'${
+            PACKAGE_MANAGER_EXECUTABLE === 'npm'
+              ? 'npx'
+              : PACKAGE_MANAGER_EXECUTABLE === 'yarn-stable'
+              ? 'yarn'
+              : PACKAGE_MANAGER_EXECUTABLE
+          } tsx amplify/backend.ts'`,
           '--quiet',
         ],
         {
@@ -168,11 +321,15 @@ void describe('create-amplify script', () => {
     const amplifyDirPath = path.join(tempDir, 'amplify');
     await fs.mkdir(amplifyDirPath, { recursive: true });
 
-    const result = await execa('npm', ['create', 'amplify', '--yes'], {
-      cwd: tempDir,
-      stdio: 'pipe',
-      reject: false,
-    });
+    const result = await execa(
+      PACKAGE_MANAGER_EXECUTABLE,
+      ['create', 'amplify', '--yes'],
+      {
+        cwd: tempDir,
+        stdio: 'pipe',
+        reject: false,
+      }
+    );
     assert.equal(result.exitCode, 1);
     assert.ok(
       result.stderr
