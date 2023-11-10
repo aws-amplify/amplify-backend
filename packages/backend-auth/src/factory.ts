@@ -10,6 +10,7 @@ import {
   ConstructContainerEntryGenerator,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
+  Expand,
   FunctionResources,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
@@ -17,18 +18,23 @@ import * as path from 'path';
 import { AuthLoginWithFactoryProps } from './types.js';
 import { translateToAuthConstructLoginWith } from './translate_auth_props.js';
 
+/**
+ * Configure custom auth triggers
+ */
 export type TriggerConfig = {
   triggers?: Partial<
     Record<TriggerEvent, ConstructFactory<ResourceProvider<FunctionResources>>>
   >;
 };
 
-export type AmplifyAuthFactoryProps = Omit<
-  AuthProps,
-  'outputStorageStrategy' | 'loginWith'
+export type AmplifyAuthFactoryProps = Expand<
+  Omit<AuthProps, 'outputStorageStrategy' | 'loginWith'>
 > &
   TriggerConfig & {
-    loginWith: AuthLoginWithFactoryProps;
+    /**
+     * Specify how you would like users to log in. You can choose from email, phone, and even external providers such as LoginWithAmazon.
+     */
+    loginWith: Expand<AuthLoginWithFactoryProps>;
   };
 
 /**

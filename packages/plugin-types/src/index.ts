@@ -14,3 +14,4 @@ export * from './function_resources.js';
 export * from './amplify_function.js';
 export * from './backend_identifier.js';
 export * from './deployment_type.js';
+export * from './type_expansion.js';
