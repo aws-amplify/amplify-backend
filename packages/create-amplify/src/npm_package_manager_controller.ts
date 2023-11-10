@@ -3,7 +3,6 @@ import {
   DependencyType,
   PackageManagerController,
 } from './package_manager_controller.js';
-import { logger } from './logger.js';
 import { executeWithLogger } from './execute_with_logger.js';
 
 /**
