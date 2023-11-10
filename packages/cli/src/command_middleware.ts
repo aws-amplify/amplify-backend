@@ -3,7 +3,7 @@ import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { EOL } from 'os';
 import { loadConfig } from '@smithy/node-config-provider';
 import { NODE_REGION_CONFIG_OPTIONS } from '@aws-sdk/region-config-resolver';
-import { ProfileError } from './error/profile_error.js';
+import { InvalidCredentialError } from './error/credential_error.js';
 
 export const profileSetupInstruction = `To configure a new Amplify profile, use "amplify configure profile".${EOL}To update an existing profile, use "aws configure"`;
 
@@ -36,7 +36,7 @@ export class CommandMiddleware {
       } else {
         errMsg = `Failed to load default aws credentials.${EOL}Please refer to https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/setting-credentials-node.html.${EOL}${profileSetupInstruction}`;
       }
-      throw new ProfileError(errMsg, { cause: err });
+      throw new InvalidCredentialError(errMsg, { cause: err });
     }
 
     // Check region.
@@ -48,7 +48,7 @@ export class CommandMiddleware {
       const errMsg = `${
         (err as Error).message
       }. Please refer to this page for region setting options:${EOL}https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/setting-region.html${EOL}${profileSetupInstruction}`;
-      throw new ProfileError(errMsg, { cause: err });
+      throw new InvalidCredentialError(errMsg, { cause: err });
     }
   };
 }

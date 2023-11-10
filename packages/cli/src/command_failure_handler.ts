@@ -1,6 +1,6 @@
 import { Argv } from 'yargs';
 import { COLOR, Printer } from '@aws-amplify/cli-core';
-import { ProfileError } from './error/profile_error.js';
+import { InvalidCredentialError } from './error/credential_error.js';
 import { EOL } from 'os';
 
 /**
@@ -15,8 +15,8 @@ export const handleCommandFailure = (msg: string, err: Error, yargs: Argv) => {
     return;
   }
 
-  if (err instanceof ProfileError) {
-    Printer.print(err.message + EOL, COLOR.RED);
+  if (err instanceof InvalidCredentialError) {
+    Printer.print(`${err.message}${EOL}`, COLOR.RED);
     return;
   }
 

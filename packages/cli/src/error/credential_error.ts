@@ -1,9 +1,9 @@
 /**
- * The aws profile error.
+ * The invalid credential error.
  */
-export class ProfileError extends Error {
+export class InvalidCredentialError extends Error {
   /**
-   * Creates a profile error instance.
+   * Creates a credential error instance.
    */
   constructor(
     message: string,

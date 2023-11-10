@@ -3,7 +3,7 @@ import { handleCommandFailure } from './command_failure_handler.js';
 import { Argv } from 'yargs';
 import { COLOR, Printer } from '@aws-amplify/cli-core';
 import assert from 'node:assert';
-import { ProfileError } from './error/profile_error.js';
+import { InvalidCredentialError } from './error/credential_error.js';
 
 void describe('handleCommandFailure', () => {
   void it('prints a message', (contextual) => {
@@ -60,7 +60,7 @@ void describe('handleCommandFailure', () => {
     const mockPrint = contextual.mock.method(Printer, 'print');
     handleCommandFailure(
       '',
-      new ProfileError(errMsg),
+      new InvalidCredentialError(errMsg),
       {} as unknown as Argv<object>
     );
     assert.equal(mockPrint.mock.callCount(), 1);

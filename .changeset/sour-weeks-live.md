@@ -2,4 +2,4 @@
 '@aws-amplify/backend-cli': patch
 ---
 
-Add region validation
+Validate aws region config. Besides, remove help output from the credential and region validation error.
