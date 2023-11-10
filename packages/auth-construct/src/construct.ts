@@ -23,7 +23,12 @@ import {
 } from 'aws-cdk-lib/aws-cognito';
 import { FederatedPrincipal, Role } from 'aws-cdk-lib/aws-iam';
 import { AuthOutput, authOutputKey } from '@aws-amplify/backend-output-schemas';
-import { AuthProps, EmailLoginSettings, TriggerEvent } from './types.js';
+import {
+  AuthProps,
+  EmailLoginSettings,
+  ExternalProviderOptions,
+  TriggerEvent,
+} from './types.js';
 import { DEFAULTS } from './defaults.js';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import {
@@ -119,7 +124,7 @@ export class AmplifyAuth
             ? { logoutUrls: externalProviders.logoutUrls }
             : {}),
           ...(externalProviders?.scopes
-            ? { scopes: externalProviders.scopes }
+            ? { scopes: this.getOAuthScopes(externalProviders.scopes) }
             : {}),
         },
       }
@@ -545,6 +550,24 @@ export class AmplifyAuth
         userPool,
         ...external.saml,
       });
+    }
+    return result;
+  };
+
+  /**
+   * Convert scopes from string list to OAuthScopes.
+   * @param scopes - scope list
+   * @returns cognito OAuthScopes
+   */
+  private getOAuthScopes = (
+    scopes: ExternalProviderOptions['scopes']
+  ): cognito.OAuthScope[] => {
+    if (scopes === undefined) {
+      return [];
+    }
+    const result: cognito.OAuthScope[] = [];
+    for (const scope of scopes) {
+      result.push(cognito.OAuthScope[scope]);
     }
     return result;
   };
