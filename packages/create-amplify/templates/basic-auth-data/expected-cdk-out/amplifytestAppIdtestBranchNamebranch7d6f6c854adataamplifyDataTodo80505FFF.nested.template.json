@@ -335,6 +335,23 @@
     "TodoIAMRole2DA8E66E"
    ]
   },
+  "QuerygetTodopreAuth0FunctionQuerygetTodopreAuth0FunctionAppSyncFunctionFFFAAF80": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854adataamplifyDataGraphQLAPI8E80FACEApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854adataamplifyDataGraphQLAPINONEDS1C56C895Name"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "QuerygetTodopreAuth0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/ffc597e18023b530e6afcbe02cee647d49550fa9e77bd06f1dee09d8b1be8de3.vtl"
+    },
+    "ResponseMappingTemplate": "$util.toJson({})"
+   }
+  },
   "QuerygetTodopostAuth0FunctionQuerygetTodopostAuth0FunctionAppSyncFunction6BE14593": {
    "Type": "AWS::AppSync::FunctionConfiguration",
    "Properties": {
@@ -389,6 +406,12 @@
      "Functions": [
       {
        "Fn::GetAtt": [
+        "QuerygetTodopreAuth0FunctionQuerygetTodopreAuth0FunctionAppSyncFunctionFFFAAF80",
+        "FunctionId"
+       ]
+      },
+      {
+       "Fn::GetAtt": [
         "QuerygetTodopostAuth0FunctionQuerygetTodopostAuth0FunctionAppSyncFunction6BE14593",
         "FunctionId"
        ]
@@ -435,6 +458,23 @@
     },
     "ResponseMappingTemplate": "$util.toJson($ctx.prev.result)",
     "TypeName": "Query"
+   }
+  },
+  "QuerylistTodospreAuth0FunctionQuerylistTodospreAuth0FunctionAppSyncFunctionD066FA43": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854adataamplifyDataGraphQLAPI8E80FACEApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854adataamplifyDataGraphQLAPINONEDS1C56C895Name"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "QuerylistTodospreAuth0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/3e81312d4c75951808eda9fcd5f854c1925c0b819de0939f09c4fe2eebb190b8.vtl"
+    },
+    "ResponseMappingTemplate": "$util.toJson({})"
    }
   },
   "QuerylistTodospostAuth0FunctionQuerylistTodospostAuth0FunctionAppSyncFunction154D8577": {
@@ -489,6 +529,12 @@
     "Kind": "PIPELINE",
     "PipelineConfig": {
      "Functions": [
+      {
+       "Fn::GetAtt": [
+        "QuerylistTodospreAuth0FunctionQuerylistTodospreAuth0FunctionAppSyncFunctionD066FA43",
+        "FunctionId"
+       ]
+      },
       {
        "Fn::GetAtt": [
         "QuerylistTodospostAuth0FunctionQuerylistTodospostAuth0FunctionAppSyncFunction154D8577",
@@ -556,6 +602,23 @@
     "ResponseMappingTemplate": "$util.toJson({})"
    }
   },
+  "MutationcreateTodopreAuth0FunctionMutationcreateTodopreAuth0FunctionAppSyncFunctionFE4AC834": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854adataamplifyDataGraphQLAPI8E80FACEApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854adataamplifyDataGraphQLAPINONEDS1C56C895Name"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "MutationcreateTodopreAuth0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/39fb35c6f8e8573ffe3a63ba867cf543b05af129a104b387a44f03c3d85da0c3.vtl"
+    },
+    "ResponseMappingTemplate": "$util.toJson({})"
+   }
+  },
   "MutationcreateTodopostAuth0FunctionMutationcreateTodopostAuth0FunctionAppSyncFunctionED59EB9F": {
    "Type": "AWS::AppSync::FunctionConfiguration",
    "Properties": {
@@ -611,6 +674,12 @@
       {
        "Fn::GetAtt": [
         "MutationcreateTodoinit0FunctionMutationcreateTodoinit0FunctionAppSyncFunction54DE5B8B",
+        "FunctionId"
+       ]
+      },
+      {
+       "Fn::GetAtt": [
+        "MutationcreateTodopreAuth0FunctionMutationcreateTodopreAuth0FunctionAppSyncFunctionFE4AC834",
         "FunctionId"
        ]
       },
@@ -681,6 +750,23 @@
     "ResponseMappingTemplate": "$util.toJson({})"
    }
   },
+  "MutationupdateTodopreAuth0FunctionMutationupdateTodopreAuth0FunctionAppSyncFunction08B1C77D": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854adataamplifyDataGraphQLAPI8E80FACEApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854adataamplifyDataGraphQLAPINONEDS1C56C895Name"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "MutationupdateTodopreAuth0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/39fb35c6f8e8573ffe3a63ba867cf543b05af129a104b387a44f03c3d85da0c3.vtl"
+    },
+    "ResponseMappingTemplate": "$util.toJson({})"
+   }
+  },
   "MutationupdateTodopostAuth0FunctionMutationupdateTodopostAuth0FunctionAppSyncFunction50C507D7": {
    "Type": "AWS::AppSync::FunctionConfiguration",
    "Properties": {
@@ -741,6 +827,12 @@
       },
       {
        "Fn::GetAtt": [
+        "MutationupdateTodopreAuth0FunctionMutationupdateTodopreAuth0FunctionAppSyncFunction08B1C77D",
+        "FunctionId"
+       ]
+      },
+      {
+       "Fn::GetAtt": [
         "MutationupdateTodopostAuth0FunctionMutationupdateTodopostAuth0FunctionAppSyncFunction50C507D7",
         "FunctionId"
        ]
@@ -787,6 +879,23 @@
     },
     "ResponseMappingTemplate": "$util.toJson($ctx.prev.result)",
     "TypeName": "Mutation"
+   }
+  },
+  "MutationdeleteTodopreAuth0FunctionMutationdeleteTodopreAuth0FunctionAppSyncFunctionDA33468D": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854adataamplifyDataGraphQLAPI8E80FACEApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854adataamplifyDataGraphQLAPINONEDS1C56C895Name"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "MutationdeleteTodopreAuth0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/a2c0f8a4d76f659d130c8a445801845ae9d33e5cc2c5ecd610edc272d4bd46e3.vtl"
+    },
+    "ResponseMappingTemplate": "$util.toJson({})"
    }
   },
   "MutationdeleteTodopostAuth0FunctionMutationdeleteTodopostAuth0FunctionAppSyncFunction483271A2": {
@@ -841,6 +950,12 @@
     "Kind": "PIPELINE",
     "PipelineConfig": {
      "Functions": [
+      {
+       "Fn::GetAtt": [
+        "MutationdeleteTodopreAuth0FunctionMutationdeleteTodopreAuth0FunctionAppSyncFunctionDA33468D",
+        "FunctionId"
+       ]
+      },
       {
        "Fn::GetAtt": [
         "MutationdeleteTodopostAuth0FunctionMutationdeleteTodopostAuth0FunctionAppSyncFunction483271A2",
