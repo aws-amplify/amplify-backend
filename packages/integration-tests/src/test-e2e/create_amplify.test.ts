@@ -83,6 +83,7 @@ void describe('create-amplify script', () => {
         .split(os.EOL)
         .filter((s) => s.trim());
       assert.deepStrictEqual(gitIgnoreContent.sort(), [
+        '# amplify',
         '.amplify',
         'amplifyconfiguration*',
         'node_modules',

@@ -21,6 +21,12 @@ void describe('GitIgnoreInitializer', () => {
       existsSyncMock,
       fsMock as never
     );
+    const expectedGitIgnoreContents = [
+      `# amplify${os.EOL}`,
+      `node_modules${os.EOL}`,
+      `.amplify${os.EOL}`,
+      `amplifyconfiguration*${os.EOL}`,
+    ];
     await gitIgnoreInitializer.ensureInitialized();
     assert.equal(
       logMock.mock.calls[0].arguments[0],
@@ -28,7 +34,7 @@ void describe('GitIgnoreInitializer', () => {
     );
     assert.deepStrictEqual(fsMock.appendFile.mock.calls[0].arguments, [
       path.join(process.cwd(), 'testProjectRoot', '.gitignore'),
-      `node_modules${os.EOL}.amplify${os.EOL}amplifyconfiguration*${os.EOL}`,
+      expectedGitIgnoreContents.join(''),
     ]);
   });
 
@@ -46,10 +52,16 @@ void describe('GitIgnoreInitializer', () => {
       existsSyncMock,
       fsMock as never
     );
+    const expectedGitIgnoreContents = [
+      `${os.EOL}${os.EOL}`,
+      `# amplify${os.EOL}`,
+      `.amplify${os.EOL}`,
+      `amplifyconfiguration*${os.EOL}`,
+    ];
     await gitIgnoreInitializer.ensureInitialized();
     assert.deepStrictEqual(fsMock.appendFile.mock.calls[0].arguments, [
       path.join(process.cwd(), 'testProjectRoot', '.gitignore'),
-      `${os.EOL}${os.EOL}.amplify${os.EOL}amplifyconfiguration*${os.EOL}`,
+      expectedGitIgnoreContents.join(''),
     ]);
   });
 
@@ -67,10 +79,15 @@ void describe('GitIgnoreInitializer', () => {
       existsSyncMock,
       fsMock as never
     );
+    const expectedGitIgnoreContents = [
+      `# amplify${os.EOL}`,
+      `.amplify${os.EOL}`,
+      `amplifyconfiguration*${os.EOL}`,
+    ];
     await gitIgnoreInitializer.ensureInitialized();
     assert.deepStrictEqual(fsMock.appendFile.mock.calls[0].arguments, [
       path.join(process.cwd(), 'testProjectRoot', '.gitignore'),
-      `.amplify${os.EOL}amplifyconfiguration*${os.EOL}`,
+      expectedGitIgnoreContents.join(''),
     ]);
   });
 
@@ -88,10 +105,16 @@ void describe('GitIgnoreInitializer', () => {
       existsSyncMock,
       fsMock as never
     );
+    const expectedGitIgnoreContents = [
+      `${os.EOL}${os.EOL}`,
+      `# amplify${os.EOL}`,
+      `.amplify${os.EOL}`,
+      `amplifyconfiguration*${os.EOL}`,
+    ];
     await gitIgnoreInitializer.ensureInitialized();
     assert.deepStrictEqual(fsMock.appendFile.mock.calls[0].arguments, [
       path.join(process.cwd(), 'testProjectRoot', '.gitignore'),
-      `${os.EOL}${os.EOL}.amplify${os.EOL}amplifyconfiguration*${os.EOL}`,
+      expectedGitIgnoreContents.join(''),
     ]);
   });
 
@@ -109,10 +132,16 @@ void describe('GitIgnoreInitializer', () => {
       existsSyncMock,
       fsMock as never
     );
+    const expectedGitIgnoreContents = [
+      `${os.EOL}${os.EOL}`,
+      `# amplify${os.EOL}`,
+      `.amplify${os.EOL}`,
+      `amplifyconfiguration*${os.EOL}`,
+    ];
     await gitIgnoreInitializer.ensureInitialized();
     assert.deepStrictEqual(fsMock.appendFile.mock.calls[0].arguments, [
       path.join(process.cwd(), 'testProjectRoot', '.gitignore'),
-      `${os.EOL}${os.EOL}.amplify${os.EOL}amplifyconfiguration*${os.EOL}`,
+      expectedGitIgnoreContents.join(''),
     ]);
   });
 
@@ -130,10 +159,16 @@ void describe('GitIgnoreInitializer', () => {
       existsSyncMock,
       fsMock as never
     );
+    const expectedGitIgnoreContents = [
+      `${os.EOL}${os.EOL}`,
+      `# amplify${os.EOL}`,
+      `.amplify${os.EOL}`,
+      `amplifyconfiguration*${os.EOL}`,
+    ];
     await gitIgnoreInitializer.ensureInitialized();
     assert.deepStrictEqual(fsMock.appendFile.mock.calls[0].arguments, [
       path.join(process.cwd(), 'testProjectRoot', '.gitignore'),
-      `${os.EOL}${os.EOL}.amplify${os.EOL}amplifyconfiguration*${os.EOL}`,
+      expectedGitIgnoreContents.join(''),
     ]);
   });
 
@@ -159,10 +194,17 @@ void describe('GitIgnoreInitializer', () => {
       existsSyncMock,
       fsMock as never
     );
+    const expectedGitIgnoreContents = [
+      `${os.EOL}${os.EOL}`,
+      `# amplify${os.EOL}`,
+      `node_modules${os.EOL}`,
+      `.amplify${os.EOL}`,
+      `amplifyconfiguration*${os.EOL}`,
+    ];
     await gitIgnoreInitializer.ensureInitialized();
     assert.deepStrictEqual(fsMock.appendFile.mock.calls[0].arguments, [
       path.join(process.cwd(), 'testProjectRoot', '.gitignore'),
-      `${os.EOL}${os.EOL}node_modules${os.EOL}.amplify${os.EOL}amplifyconfiguration*${os.EOL}`,
+      expectedGitIgnoreContents.join(''),
     ]);
   });
 });

@@ -25,6 +25,7 @@ export class GitIgnoreInitializer {
    */
   ensureInitialized = async (): Promise<void> => {
     const ignorePatterns = [
+      '# amplify',
       'node_modules',
       '.amplify',
       'amplifyconfiguration*',
@@ -39,7 +40,7 @@ export class GitIgnoreInitializer {
 
       // Add os.EOL if last line of .gitignore does not have EOL
       if (
-        gitIgnoreContent.slice(-1)[0] !== '' &&
+        gitIgnoreContent.slice(-1)[0] !== os.EOL &&
         filteredIgnorePatterns.length > 0
       ) {
         filteredIgnorePatterns.unshift(os.EOL);
