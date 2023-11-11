@@ -10,7 +10,7 @@ export const executeWithDebugLogger = async (
   execa = _execa
 ) => {
   try {
-    const childProcess = execa(file, args, {
+    const childProcess = execa(executable, args, {
       stdin: 'inherit',
       cwd: process.cwd(),
     });

@@ -32,7 +32,7 @@ export class NpmPackageManagerController implements PackageManagerController {
     }
 
     try {
-      await executeWithDebugLogger(this.projectRoot, 'npm', args, this.execa);
+      await executeWithDebugLogger('npm', args, this.execa);
     } catch {
       throw new Error(`\`npm${args.join(' ')}\` did not exit successfully.`);
     }

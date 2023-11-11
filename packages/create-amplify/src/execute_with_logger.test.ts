@@ -6,12 +6,7 @@ void describe(() => {
   void it('executes a command with no args', async () => {
     const execaMock = mock.fn();
 
-    await executeWithDebugLogger(
-      '/testProjectRoot',
-      'testCommand',
-      undefined,
-      execaMock as never
-    );
+    await executeWithDebugLogger('testCommand', undefined, execaMock as never);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments, [
       'testCommand',
       undefined,
@@ -23,7 +18,6 @@ void describe(() => {
     const execaMock = mock.fn();
 
     await executeWithDebugLogger(
-      '/testProjectRoot',
       'testCommand',
       ['arg1', 'arg2'],
       execaMock as never
@@ -43,7 +37,6 @@ void describe(() => {
     await assert.rejects(
       () =>
         executeWithDebugLogger(
-          '/testProjectRoot',
           'testCommand',
           ['arg1', 'arg2'],
           execaMock as never

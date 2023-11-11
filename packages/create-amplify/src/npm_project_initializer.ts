@@ -30,12 +30,7 @@ export class NpmProjectInitializer {
     );
 
     try {
-      await executeWithDebugLogger(
-        this.projectRoot,
-        'npm',
-        ['init', '--yes'],
-        this.execa
-      );
+      await executeWithDebugLogger('npm', ['init', '--yes'], this.execa);
     } catch {
       throw new Error(
         '`npm init` did not exit successfully. Initialize a valid JavaScript package before continuing.'

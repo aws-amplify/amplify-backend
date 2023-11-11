@@ -7,7 +7,7 @@ void describe('Logger', () => {
     const mockStdout = {
       write: mock.fn(),
     };
-    const logger = new Logger(mockStdout as never, LogLevel.INFO);
+    const logger = new Logger(LogLevel.INFO, mockStdout as never);
     logger.info('Test log message');
     assert.equal(mockStdout.write.mock.callCount(), 1);
     assert.match(
@@ -20,7 +20,7 @@ void describe('Logger', () => {
     const mockStdout = {
       write: mock.fn(),
     };
-    const logger = new Logger(mockStdout as never, LogLevel.INFO);
+    const logger = new Logger(LogLevel.INFO, mockStdout as never);
     logger.debug('Test log message');
     assert.equal(mockStdout.write.mock.callCount(), 0);
   });
@@ -30,7 +30,7 @@ void describe('Logger', () => {
       write: mock.fn(),
     };
 
-    const logger = new Logger(mockStdout as never, LogLevel.DEBUG);
+    const logger = new Logger(LogLevel.INFO, mockStdout as never);
     logger.debug('Test log message');
 
     assert.match(
@@ -45,7 +45,7 @@ void describe('Logger', () => {
     };
     const mockLog = mock.fn();
 
-    const logger = new Logger(mockStdout as never, LogLevel.INFO);
+    const logger = new Logger(LogLevel.INFO, mockStdout as never);
 
     mock.method(logger, 'isTTY', () => false);
     mock.method(logger, 'log', mockLog);
@@ -66,7 +66,7 @@ void describe('Logger', () => {
     };
     const mockWriteEscapeSequence = mock.fn();
 
-    const logger = new Logger(mockStdout as never, LogLevel.INFO);
+    const logger = new Logger(LogLevel.INFO, mockStdout as never);
 
     mock.method(logger, 'isTTY', () => true);
     mock.method(logger, 'writeEscapeSequence', mockWriteEscapeSequence);
@@ -98,7 +98,7 @@ void describe('Logger', () => {
     };
     const mockWriteEscapeSequence = mock.fn();
 
-    const logger = new Logger(mockStdout as never, LogLevel.INFO);
+    const logger = new Logger(LogLevel.INFO, mockStdout as never);
 
     mock.method(logger, 'isTTY', () => true);
     mock.method(logger, 'writeEscapeSequence', mockWriteEscapeSequence);

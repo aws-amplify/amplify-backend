@@ -54,12 +54,7 @@ export class TsConfigInitializer {
     }
 
     try {
-      await executeWithDebugLogger(
-        this.projectRoot,
-        'npx',
-        tscArgs,
-        this.execa
-      );
+      await executeWithDebugLogger('npx', tscArgs, this.execa);
     } catch {
       throw new Error(
         '`npx tsc --init` did not exit successfully. Initialize a valid TypeScript configuration before continuing.'
