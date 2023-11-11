@@ -53,7 +53,7 @@ void describe('GitIgnoreInitializer', () => {
       fsMock as never
     );
     const expectedGitIgnoreContents = [
-      `${os.EOL}${os.EOL}`,
+      os.EOL + os.EOL,
       `# amplify${os.EOL}`,
       `.amplify${os.EOL}`,
       `amplifyconfiguration*${os.EOL}`,
@@ -80,6 +80,7 @@ void describe('GitIgnoreInitializer', () => {
       fsMock as never
     );
     const expectedGitIgnoreContents = [
+      os.EOL,
       `# amplify${os.EOL}`,
       `.amplify${os.EOL}`,
       `amplifyconfiguration*${os.EOL}`,
