@@ -1,5 +1,5 @@
 import { Func, defineData } from '@aws-amplify/backend';
-import { myFunc } from '../function.js';
+import { myFunc } from '../function';
 
 export const data = defineData({
   schema: /* GraphQL */ `

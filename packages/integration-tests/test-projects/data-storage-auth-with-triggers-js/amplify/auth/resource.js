@@ -1,6 +1,6 @@
 import { defineAuth, secret } from '@aws-amplify/backend';
-import { myFunc } from '../function.js';
-import { secretNames } from '../constants.js';
+import { myFunc } from '../function';
+import { secretNames } from '../constants';
 
 export const auth = defineAuth({
   loginWith: {
