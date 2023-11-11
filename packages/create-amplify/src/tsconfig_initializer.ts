@@ -36,9 +36,9 @@ export class TsConfigInitializer {
     if (packageJson.type === 'module') {
       tscArgs.push(
         '--module',
-        'node16',
+        'es2022',
         '--moduleResolution',
-        'node16',
+        'bundler',
         '--target',
         'es2022'
       );
@@ -47,7 +47,7 @@ export class TsConfigInitializer {
         '--module',
         'commonjs',
         '--moduleResolution',
-        'node',
+        'bundler',
         '--target',
         'es2018'
       );
