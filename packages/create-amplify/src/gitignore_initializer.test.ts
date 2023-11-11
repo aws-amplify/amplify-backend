@@ -7,11 +7,7 @@ import * as os from 'os';
 void describe('GitIgnoreInitializer', () => {
   void it('creates .gitignore and adds all contents if no .gitignore file exists', async () => {
     const logMock = mock.fn();
-    const existsSyncMock = mock.fn(
-      () => true,
-      () => false,
-      { times: 1 }
-    );
+    const existsSyncMock = mock.fn(() => false);
     const fsMock = {
       appendFile: mock.fn(),
     };
