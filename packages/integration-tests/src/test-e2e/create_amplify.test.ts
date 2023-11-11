@@ -13,6 +13,11 @@ const packageManagerSetup = async (
   packageManagerExecutable: PackageManagerExecutable,
   dir: string
 ) => {
+  const execaOptions = {
+    cwd: dir,
+    stdio: 'inherit' as const,
+  };
+
   if (packageManagerExecutable === 'npm') {
     const { stdout } = await execa('npm', ['config', 'get', 'cache']);
     const npxCacheLocation = path.join(stdout.toString().trim(), '_npx');
@@ -22,58 +27,47 @@ const packageManagerSetup = async (
     }
   } else if (packageManagerExecutable.startsWith('yarn')) {
     if (packageManagerExecutable === 'yarn-stable') {
-      await execa('yarn', ['add', 'tsx'], {
-        cwd: dir,
-        stdio: 'inherit',
-      });
-      await execa('yarn', ['set', 'version', 'stable'], {
-        cwd: dir,
-        stdio: 'inherit',
-      });
+      await execa('yarn', ['set', 'version', 'stable'], execaOptions);
+      await execa('npm', ['pkg', 'set', 'type=module'], execaOptions); // `npm pkg set type="module"` only run when package.json does not exist, so we need to run it manually here
 
       await execa(
         'yarn',
         ['config', 'set', 'npmRegistryServer', 'http://localhost:4873'],
-        { cwd: dir, stdio: 'inherit' }
+        execaOptions
       );
       await execa(
         'yarn',
         ['config', 'set', 'unsafeHttpWhitelist', 'localhost'],
-        {
-          cwd: dir,
-          stdio: 'inherit',
-        }
+        execaOptions
       );
     } else {
       await execa(
         packageManagerExecutable,
         ['config', 'set', 'registry', 'http://localhost:4873'],
-        { cwd: dir, stdio: 'inherit' }
+        execaOptions
       );
-      await execa(packageManagerExecutable, ['config', 'get', 'registry'], {
-        cwd: dir,
-        stdio: 'inherit',
-      });
+      await execa(
+        packageManagerExecutable,
+        ['config', 'get', 'registry'],
+        execaOptions
+      );
     }
     await execa(
       packageManagerExecutable === 'yarn-stable'
         ? 'yarn'
         : packageManagerExecutable,
-      ['cache', 'clean']
+      ['cache', 'clean'],
+      execaOptions
     );
   } else if (packageManagerExecutable === 'pnpm') {
-    await execa(packageManagerExecutable, ['--version'], {
-      stdio: 'inherit',
-    });
-    await execa(
-      packageManagerExecutable,
-      ['config', 'set', 'registry', 'http://localhost:4873'],
-
-      { stdio: 'inherit' }
-    );
-    await execa(packageManagerExecutable, ['config', 'get', 'registry'], {
-      stdio: 'inherit',
-    });
+    await execa(packageManagerExecutable, ['--version']);
+    await execa(packageManagerExecutable, [
+      'config',
+      'set',
+      'registry',
+      'http://localhost:4873',
+    ]);
+    await execa(packageManagerExecutable, ['config', 'get', 'registry']);
 
     await execa(packageManagerExecutable, ['store', 'clear']);
   }
@@ -265,6 +259,7 @@ void describe('create-amplify script', () => {
             'yarn',
             [
               'add',
+              '-D',
               'tsx',
               'graphql',
               'pluralize',
@@ -322,7 +317,9 @@ void describe('create-amplify script', () => {
     await fs.mkdir(amplifyDirPath, { recursive: true });
 
     const result = await execa(
-      PACKAGE_MANAGER_EXECUTABLE,
+      PACKAGE_MANAGER_EXECUTABLE === 'yarn-stable'
+        ? 'yarn'
+        : PACKAGE_MANAGER_EXECUTABLE,
       ['create', 'amplify', '--yes'],
       {
         cwd: tempDir,
