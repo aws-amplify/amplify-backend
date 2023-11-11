@@ -3,17 +3,19 @@ import { GitIgnoreInitializer } from './gitignore_initializer.js';
 import assert from 'assert';
 import * as path from 'path';
 import * as os from 'os';
+import { logger } from './logger.js';
 
 void describe('GitIgnoreInitializer', () => {
   void it('creates .gitignore and adds all contents if no .gitignore file exists', async () => {
-    const logMock = mock.fn();
+    const logMock = {
+      debug: mock.fn(),
+    };
     const existsSyncMock = mock.fn(() => false);
     const fsMock = {
       appendFile: mock.fn(),
     };
     const gitIgnoreInitializer = new GitIgnoreInitializer(
       path.join(process.cwd(), 'testProjectRoot'),
-      { log: logMock } as never,
       existsSyncMock,
       fsMock as never
     );
@@ -23,9 +25,10 @@ void describe('GitIgnoreInitializer', () => {
       `.amplify${os.EOL}`,
       `amplifyconfiguration*${os.EOL}`,
     ];
+    mock.method(logger, 'debug', logMock.debug);
     await gitIgnoreInitializer.ensureInitialized();
     assert.equal(
-      logMock.mock.calls[0].arguments[0],
+      logMock.debug.mock.calls[0].arguments[0],
       'No .gitignore file found in the working directory. Creating .gitignore...'
     );
     assert.deepStrictEqual(fsMock.appendFile.mock.calls[0].arguments, [
@@ -35,7 +38,6 @@ void describe('GitIgnoreInitializer', () => {
   });
 
   void it('runs commands to add missing contents if .gitignore file exists - no EOL at the end', async () => {
-    const logMock = mock.fn();
     const gitIgnoreContent = 'node_modules';
     const existsSyncMock = mock.fn(() => true);
     const fsMock = {
@@ -44,7 +46,6 @@ void describe('GitIgnoreInitializer', () => {
     };
     const gitIgnoreInitializer = new GitIgnoreInitializer(
       path.join(process.cwd(), 'testProjectRoot'),
-      { log: logMock } as never,
       existsSyncMock,
       fsMock as never
     );
@@ -62,7 +63,6 @@ void describe('GitIgnoreInitializer', () => {
   });
 
   void it('runs commands to add missing contents if .gitignore file exists - with EOL at the end', async () => {
-    const logMock = mock.fn();
     const gitIgnoreContent = `node_modules${os.EOL}`;
     const existsSyncMock = mock.fn(() => true);
     const fsMock = {
@@ -71,7 +71,6 @@ void describe('GitIgnoreInitializer', () => {
     };
     const gitIgnoreInitializer = new GitIgnoreInitializer(
       path.join(process.cwd(), 'testProjectRoot'),
-      { log: logMock } as never,
       existsSyncMock,
       fsMock as never
     );
@@ -89,7 +88,6 @@ void describe('GitIgnoreInitializer', () => {
   });
 
   void it('handles patterns with leading /', async () => {
-    const logMock = mock.fn();
     const gitIgnoreContent = `/node_modules`;
     const existsSyncMock = mock.fn(() => true);
     const fsMock = {
@@ -98,7 +96,6 @@ void describe('GitIgnoreInitializer', () => {
     };
     const gitIgnoreInitializer = new GitIgnoreInitializer(
       path.join(process.cwd(), 'testProjectRoot'),
-      { log: logMock } as never,
       existsSyncMock,
       fsMock as never
     );
@@ -116,7 +113,6 @@ void describe('GitIgnoreInitializer', () => {
   });
 
   void it('handles patterns with trailing /', async () => {
-    const logMock = mock.fn();
     const gitIgnoreContent = `node_modules/`;
     const existsSyncMock = mock.fn(() => true);
     const fsMock = {
@@ -125,7 +121,6 @@ void describe('GitIgnoreInitializer', () => {
     };
     const gitIgnoreInitializer = new GitIgnoreInitializer(
       path.join(process.cwd(), 'testProjectRoot'),
-      { log: logMock } as never,
       existsSyncMock,
       fsMock as never
     );
@@ -143,7 +138,6 @@ void describe('GitIgnoreInitializer', () => {
   });
 
   void it('handles patterns with leading and trailing /', async () => {
-    const logMock = mock.fn();
     const gitIgnoreContent = `/node_modules/`;
     const existsSyncMock = mock.fn(() => true);
     const fsMock = {
@@ -152,7 +146,6 @@ void describe('GitIgnoreInitializer', () => {
     };
     const gitIgnoreInitializer = new GitIgnoreInitializer(
       path.join(process.cwd(), 'testProjectRoot'),
-      { log: logMock } as never,
       existsSyncMock,
       fsMock as never
     );
@@ -170,7 +163,6 @@ void describe('GitIgnoreInitializer', () => {
   });
 
   void it('handles patterns with multiple / and space', async () => {
-    const logMock = mock.fn();
     const gitIgnoreContentArray = [
       `node_modules /${os.EOL}`,
       `/ node_modules${os.EOL}`,
@@ -187,7 +179,6 @@ void describe('GitIgnoreInitializer', () => {
     };
     const gitIgnoreInitializer = new GitIgnoreInitializer(
       path.join(process.cwd(), 'testProjectRoot'),
-      { log: logMock } as never,
       existsSyncMock,
       fsMock as never
     );
