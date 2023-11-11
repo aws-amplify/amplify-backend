@@ -96,7 +96,7 @@ void describe('create-amplify script', () => {
       const tsConfigObject = JSON.parse(tsConfigContent);
 
       const expectedModuleType =
-        initialState === 'commonjs' ? 'commonjs' : 'node16';
+        initialState === 'commonjs' ? 'commonjs' : 'es2022';
 
       assert.equal(tsConfigObject.compilerOptions.module, expectedModuleType);
       assert.equal(tsConfigObject.compilerOptions.resolveJsonModule, true);
@@ -127,9 +127,9 @@ void describe('create-amplify script', () => {
           '--noEmit',
           '--skipLibCheck',
           '--module',
-          'node16',
+          'es2022',
           '--moduleResolution',
-          'node16',
+          'bundler',
           '--target',
           'es2022',
           'amplify/backend.ts',
