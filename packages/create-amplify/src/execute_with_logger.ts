@@ -5,6 +5,7 @@ import { logger } from './logger.js';
  * Abstracts the execution of a command and pipes outputs/errors to `logger.debug`
  */
 export const executeWithDebugLogger = async (
+  cwd: string,
   executable: string,
   args?: string[],
   execa = _execa
@@ -12,7 +13,7 @@ export const executeWithDebugLogger = async (
   try {
     const childProcess = execa(executable, args, {
       stdin: 'inherit',
-      cwd: process.cwd(),
+      cwd,
     });
 
     childProcess?.stdout?.on('data', (data) => logger.debug(data));

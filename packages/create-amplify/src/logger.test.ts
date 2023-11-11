@@ -30,7 +30,7 @@ void describe('Logger', () => {
       write: mock.fn(),
     };
 
-    const logger = new Logger(LogLevel.INFO, mockStdout as never);
+    const logger = new Logger(LogLevel.DEBUG, mockStdout as never);
     logger.debug('Test log message');
 
     assert.match(
