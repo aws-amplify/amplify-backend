@@ -1,6 +1,8 @@
 import { existsSync as _existsSync } from 'fs';
 import * as path from 'path';
 import { execa as _execa } from 'execa';
+import { logger } from './logger.js';
+import { executeWithDebugLogger } from './execute_with_logger.js';
 
 /**
  * Ensure that the current working directory is a valid JavaScript project
@@ -11,7 +13,6 @@ export class NpmProjectInitializer {
    */
   constructor(
     private readonly projectRoot: string,
-    private readonly logger: typeof console = console,
     private readonly existsSync = _existsSync,
     private readonly execa = _execa
   ) {}
@@ -28,18 +29,16 @@ export class NpmProjectInitializer {
       return;
     }
 
-    this.logger.log(
+    logger.debug(
       `No package.json file found in the current directory. Running \`${this.executableName} init\`...`
     );
 
     try {
-      await this.execa(
+      await executeWithDebugLogger(
+        this.projectRoot,
         this.executableName,
         this.executableName === 'pnpm' ? ['init'] : ['init', '--yes'],
-        {
-          stdio: 'inherit',
-          cwd: this.projectRoot,
-        }
+        this.execa
       );
     } catch {
       throw new Error(
