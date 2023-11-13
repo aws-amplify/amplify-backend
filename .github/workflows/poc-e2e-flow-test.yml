@@ -42,13 +42,13 @@ jobs:
         include:
           - os: ubuntu-latest
             pkg-manager: yarn-stable
-            node-version: 19
+            node-version: 19 # TODO: use Node 20 once https://github.com/yarnpkg/berry/pull/5961 is released
           - os: macos-latest
             pkg-manager: yarn-stable
-            node-version: 19
+            node-version: 19 # TODO: use Node 20 once https://github.com/yarnpkg/berry/pull/5961 is released
           - os: windows-latest
             pkg-manager: yarn-stable
-            node-version: 19
+            node-version: 19 # TODO: use Node 20 once https://github.com/yarnpkg/berry/pull/5961 is released
     env:
       ACKAGE_MANAGER_EXECUTABLE: ${{ matrix.pkg-manager }} # TODO: remove PACKAGE_MANAGER_EXECUTABLE once CLI is able to getPackageManager().
     runs-on: ${{ matrix.os }}
