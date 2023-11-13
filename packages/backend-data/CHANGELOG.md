@@ -1,5 +1,21 @@
 # @aws-amplify/backend-data
 
+## 0.5.0
+
+### Minor Changes
+
+- 85a015b7: switch to using data-schema packages
+- 71a63a16: Change stack naming strategy to include deployment type as a suffix
+
+### Patch Changes
+
+- 8181509a: Added a prefix to the auth cfnResources.
+- Updated dependencies [8181509a]
+- Updated dependencies [71a63a16]
+  - @aws-amplify/plugin-types@0.4.0
+  - @aws-amplify/backend-output-schemas@0.3.0
+  - @aws-amplify/backend-output-storage@0.2.1
+
 ## 0.4.0
 
 ### Minor Changes

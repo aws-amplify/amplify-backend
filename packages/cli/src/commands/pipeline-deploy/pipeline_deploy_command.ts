@@ -1,13 +1,10 @@
 import _isCI from 'is-ci';
 import { Argv, CommandModule } from 'yargs';
 import { BackendDeployer } from '@aws-amplify/backend-deployer';
-import {
-  BackendDeploymentType,
-  BranchBackendIdentifier,
-} from '@aws-amplify/platform-core';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 import { ArgumentsKebabCase } from '../../kebab_case.js';
 import { handleCommandFailure } from '../../command_failure_handler.js';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
 
 export type PipelineDeployCommandOptions =
   ArgumentsKebabCase<PipelineDeployCommandOptionsCamelCase>;
@@ -56,17 +53,16 @@ export class PipelineDeployCommand
       );
     }
 
-    const uniqueBackendIdentifier = new BranchBackendIdentifier(
-      args['app-id'],
-      args.branch
-    );
-    await this.backendDeployer.deploy(uniqueBackendIdentifier, {
-      deploymentType: BackendDeploymentType.BRANCH,
+    const backendId: BackendIdentifier = {
+      namespace: args['app-id'],
+      name: args.branch,
+      type: 'branch',
+    };
+    await this.backendDeployer.deploy(backendId, {
+      deploymentType: 'branch',
       validateAppSources: true,
     });
-    await this.clientConfigGenerator.generateClientConfigToFile(
-      uniqueBackendIdentifier
-    );
+    await this.clientConfigGenerator.generateClientConfigToFile(backendId);
   };
 
   builder = (yargs: Argv): Argv<PipelineDeployCommandOptions> => {

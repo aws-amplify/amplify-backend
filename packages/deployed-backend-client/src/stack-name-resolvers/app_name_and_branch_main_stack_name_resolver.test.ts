@@ -72,6 +72,7 @@ void describe('AppNameAndBranchMainStackNameResolver', () => {
       appNameAndBranch
     );
     const result = await resolver.resolveMainStackName();
-    assert.equal(result, 'amplify-testBackendId-testBranch');
+    // eslint-disable-next-line spellcheck/spell-checker
+    assert.equal(result, 'amplify-testBackendId-testBranch-branch-51627fbc17');
   });
 });

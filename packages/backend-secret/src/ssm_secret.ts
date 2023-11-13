@@ -6,7 +6,7 @@ import {
   SecretIdentifier,
   SecretListItem,
 } from './secret.js';
-import { BackendId, UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import { AppId, BackendIdentifier } from '@aws-amplify/plugin-types';
 
 const SHARED_SECRET = 'shared';
 
@@ -22,17 +22,15 @@ export class SSMSecretClient implements SecretClient {
   /**
    * Get a branch-specific parameter prefix.
    */
-  private getBranchParameterPrefix = (
-    backendIdentifier: UniqueBackendIdentifier
-  ): string => {
-    return `/amplify/${backendIdentifier.backendId}/${backendIdentifier.disambiguator}`;
+  private getBranchParameterPrefix = (parts: BackendIdentifier): string => {
+    return `/amplify/${parts.namespace}/${parts.name}`;
   };
 
   /**
    * Get a branch-specific parameter full path.
    */
   private getBranchParameterFullPath = (
-    backendIdentifier: UniqueBackendIdentifier,
+    backendIdentifier: BackendIdentifier,
     secretName: string
   ): string => {
     return `${this.getBranchParameterPrefix(backendIdentifier)}/${secretName}`;
@@ -41,25 +39,25 @@ export class SSMSecretClient implements SecretClient {
   /**
    * Get a shared parameter prefix.
    */
-  private getSharedParameterPrefix = (backendId: BackendId): string => {
-    return `/amplify/${SHARED_SECRET}/${backendId}`;
+  private getSharedParameterPrefix = (appId: AppId): string => {
+    return `/amplify/${SHARED_SECRET}/${appId}`;
   };
 
   /**
    * Get a shared parameter full path.
    */
   private getSharedParameterFullPath = (
-    backendId: BackendId,
+    appId: AppId,
     secretName: string
   ): string => {
-    return `${this.getSharedParameterPrefix(backendId)}/${secretName}`;
+    return `${this.getSharedParameterPrefix(appId)}/${secretName}`;
   };
 
   /**
    * Get a parameter full path.
    */
   private getParameterFullPath = (
-    backendIdentifier: UniqueBackendIdentifier | BackendId,
+    backendIdentifier: BackendIdentifier | AppId,
     secretName: string
   ): string => {
     if (typeof backendIdentifier === 'object') {
@@ -72,7 +70,7 @@ export class SSMSecretClient implements SecretClient {
    * Get a parameter prefix.
    */
   private getParameterPrefix = (
-    backendIdentifier: UniqueBackendIdentifier | BackendId
+    backendIdentifier: BackendIdentifier | AppId
   ): string => {
     if (typeof backendIdentifier === 'object') {
       return this.getBranchParameterPrefix(backendIdentifier);
@@ -84,7 +82,7 @@ export class SSMSecretClient implements SecretClient {
    * Get a secret from SSM parameter store.
    */
   public getSecret = async (
-    backendIdentifier: UniqueBackendIdentifier | BackendId,
+    backendIdentifier: BackendIdentifier | AppId,
     secretIdentifier: SecretIdentifier
   ): Promise<Secret> => {
     let secret: Secret | undefined;
@@ -124,7 +122,7 @@ export class SSMSecretClient implements SecretClient {
    * List secrets from SSM parameter store.
    */
   public listSecrets = async (
-    backendIdentifier: UniqueBackendIdentifier | BackendId
+    backendIdentifier: BackendIdentifier | AppId
   ): Promise<SecretListItem[]> => {
     const path = this.getParameterPrefix(backendIdentifier);
     const result: SecretListItem[] = [];
@@ -158,7 +156,7 @@ export class SSMSecretClient implements SecretClient {
    * Set a secret in SSM parameter store.
    */
   public setSecret = async (
-    backendIdentifier: UniqueBackendIdentifier | BackendId,
+    backendIdentifier: BackendIdentifier | AppId,
     secretName: string,
     secretValue: string
   ): Promise<SecretIdentifier> => {
@@ -184,7 +182,7 @@ export class SSMSecretClient implements SecretClient {
    * Remove a secret from SSM parameter store.
    */
   public removeSecret = async (
-    backendIdentifier: UniqueBackendIdentifier | BackendId,
+    backendIdentifier: BackendIdentifier | AppId,
     secretName: string
   ) => {
     const name = this.getParameterFullPath(backendIdentifier, secretName);
