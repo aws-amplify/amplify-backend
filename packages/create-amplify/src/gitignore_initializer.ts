@@ -25,6 +25,7 @@ export class GitIgnoreInitializer {
    */
   ensureInitialized = async (): Promise<void> => {
     const ignorePatterns = [
+      '# amplify',
       'node_modules',
       '.amplify',
       'amplifyconfiguration*',
@@ -65,8 +66,11 @@ export class GitIgnoreInitializer {
       return;
     }
 
-    // Add EOL to end of each pattern, ensure additional content ends with EOL
-    const content = patterns.join(os.EOL) + os.EOL;
+    // Add EOL to end of each pattern, ensure additional content begins and ends with EOL
+    const content =
+      (patterns[0] === os.EOL || !this.gitIgnoreExists() ? '' : os.EOL) +
+      patterns.join(os.EOL) +
+      os.EOL;
 
     await this.fs.appendFile(this.gitIgnorePath, content);
   };
