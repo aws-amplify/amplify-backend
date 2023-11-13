@@ -37,7 +37,7 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
       await fs.rm(npxCacheLocation, { recursive: true });
     }
 
-    // Force 'create-amplify' installation in npm cache by executing help command
+    // Force 'create-amplify' installation in npx cache by executing help command
     // before tests run. Otherwise, installing 'create-amplify' concurrently
     // may lead to race conditions and corrupted npx cache.
     await execa('npm', ['create', 'amplify', '--yes', '--', '--help'], {
