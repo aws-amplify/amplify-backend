@@ -1,3 +1,4 @@
+/* eslint-disable spellcheck/spell-checker */
 import { StandardAttributes } from 'aws-cdk-lib/aws-cognito';
 
 // refer: https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-settings-attributes.html
