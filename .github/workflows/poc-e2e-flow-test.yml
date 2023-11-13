@@ -37,11 +37,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        pkg-manager: [npm, yarn, yarn-stable, pnpm]
+        pkg-manager: [npm, yarn, pnpm]
         node-version: [20]
-        exclude:
-          - pkg-manager: yarn-stable
-            node-version: 20
         include:
           - pkg-manager: yarn-stable
             node-version: 19
