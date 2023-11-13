@@ -38,6 +38,13 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         pkg-manager: [npm, yarn, yarn-stable, pnpm]
+        node-version: [20]
+        exclude:
+          - pkg-manager: yarn-stable
+            node-version: 20
+        include:
+          - pkg-manager: yarn-stable
+            node-version: 19
     env:
       ACKAGE_MANAGER_EXECUTABLE: ${{ matrix.pkg-manager }} # TODO: remove PACKAGE_MANAGER_EXECUTABLE once CLI is able to getPackageManager().
     runs-on: ${{ matrix.os }}
@@ -54,7 +61,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # version 3.8.1
         with:
-          node-version: 19
+          node-version: ${{ matrix.node-version }}
       - name: Restore Build Cache
         uses: ./.github/actions/restore_build_cache
       - name: Run E2E tests with ${{ matrix.pkg-manager }}
