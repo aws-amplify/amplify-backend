@@ -86,7 +86,7 @@ export type MFASettings = {
  */
 export type MFA = {
   /**
-   * Configure whether users of this user pool can or are required use MFA to sign in.
+   * Configure whether users of this user pool can or are required use multifactor (MFA) to sign in.
    * @default - 'OFF'
    */
   mode: 'OFF' | 'OPTIONAL' | 'REQUIRED';
