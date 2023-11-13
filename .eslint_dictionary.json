@@ -43,6 +43,7 @@
   "globals",
   "grantable",
   "graphql",
+  "homedir",
   "hotswap",
   "iamv2",
   "identitypool",
@@ -124,6 +125,7 @@
   "versioned",
   "versioning",
   "whoami",
+  "workspace",
   "yaml",
   "yargs"
 ]
