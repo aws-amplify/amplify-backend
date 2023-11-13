@@ -72,20 +72,20 @@
     "Ref": "AWS::Region"
    }
   },
-  "passwordPolicyMinLength": {
-    "Value": "8"
-  },
-  "passwordPolicyRequirements": {
-    "Value": "[\"REQUIRES_NUMBERS\",\"REQUIRES_LOWERCASE\",\"REQUIRES_UPPERCASE\",\"REQUIRES_SYMBOLS\"]"
-  },
   "signupAttributes": {
-    "Value": "[\"EMAIL\"]"
+   "Value": "[\"EMAIL\"]"
   },
   "usernameAttributes": {
-    "Value": "[\"EMAIL\"]"
+   "Value": "[\"EMAIL\"]"
   },
   "verificationMechanisms": {
-    "Value": "[\"EMAIL\"]"
+   "Value": "[\"EMAIL\"]"
+  },
+  "passwordPolicyMinLength": {
+   "Value": "8"
+  },
+  "passwordPolicyRequirements": {
+   "Value": "[\"REQUIRES_NUMBERS\",\"REQUIRES_LOWERCASE\",\"REQUIRES_UPPERCASE\",\"REQUIRES_SYMBOLS\"]"
   },
   "awsAppsyncApiId": {
    "Value": {

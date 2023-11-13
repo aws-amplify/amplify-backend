@@ -27,9 +27,9 @@ export type AmazonProviderFactoryProps = Omit<AmazonProviderProps, 'clientId' | 
 };
 
 // @public (undocumented)
-export type AmplifyAuthFactoryProps = Expand<Omit<AuthProps, 'outputStorageStrategy' | 'loginWith'>> & TriggerConfig & {
+export type AmplifyAuthFactoryProps = Expand<Omit<AuthProps, 'outputStorageStrategy' | 'loginWith'> & TriggerConfig & {
     loginWith: Expand<AuthLoginWithFactoryProps>;
-};
+}>;
 
 // @public
 export type AppleProviderFactoryProps = Omit<AppleProviderProps, 'clientId' | 'teamId' | 'keyId' | 'privateKey'> & {
