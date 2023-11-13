@@ -1,64 +1,97 @@
-import { afterEach, beforeEach, describe, it } from 'node:test';
-import fs from 'fs/promises';
-import { ClientConfigWriter } from './client_config_writer.js';
-import path from 'path';
+import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import { ClientConfig } from '../client-config-types/client_config.js';
-import { pathToFileURL } from 'url';
+import {
+  ClientConfigPathResolver,
+  ClientConfigWriter,
+} from './client_config_writer.js';
+import {
+  ClientConfig,
+  ClientConfigFormat,
+} from '../client-config-types/client_config.js';
+import { ClientConfigFormatter } from './client_config_formatter.js';
+import { randomUUID } from 'crypto';
 
 void describe('client config writer', () => {
-  let targetDirectory: string;
+  const pathResolverMock = mock.fn<ClientConfigPathResolver>();
+  const clientFormatter = new ClientConfigFormatter();
+  const fspMock = {
+    writeFile: mock.fn<(path: string, content: string) => Promise<void>>(() =>
+      Promise.resolve()
+    ),
+  };
+  const clientConfigWriter: ClientConfigWriter = new ClientConfigWriter(
+    pathResolverMock,
+    clientFormatter,
+    fspMock as never
+  );
 
-  beforeEach(async () => {
-    targetDirectory = await fs.mkdtemp('config_writer_test');
-  });
-
-  afterEach(async () => {
-    await fs.rm(targetDirectory, { recursive: true, force: true });
+  beforeEach(() => {
+    fspMock.writeFile.mock.resetCalls();
+    pathResolverMock.mock.resetCalls();
   });
 
   const clientConfig: ClientConfig = {
     aws_user_pools_id: 'something',
   };
 
-  const clientConfigWriter = new ClientConfigWriter();
+  void it('formats and writes config', async () => {
+    const outDir = '/foo/bar';
+    const targetFile = '/foo/bar/baz';
+    const format = ClientConfigFormat.MJS;
+    const formattedContent = randomUUID().toString();
 
-  void it('writes json config to target location as json object', async () => {
-    const targetPath = path.join(
-      process.cwd(),
-      targetDirectory,
-      'amplifyconfiguration.json'
+    pathResolverMock.mock.mockImplementation(() => targetFile);
+    const formatMock = mock.method(
+      clientFormatter,
+      'format',
+      () => formattedContent
     );
-    await clientConfigWriter.writeClientConfig(clientConfig, targetPath);
 
-    const actualConfig = await fs.readFile(targetPath, 'utf-8');
-    assert.deepEqual(JSON.parse(actualConfig), clientConfig);
+    await clientConfigWriter.writeClientConfig(clientConfig, outDir, format);
+
+    assert.strictEqual(pathResolverMock.mock.callCount(), 1);
+    assert.strictEqual(pathResolverMock.mock.calls[0].arguments[0], outDir);
+    assert.strictEqual(pathResolverMock.mock.calls[0].arguments[1], format);
+
+    assert.strictEqual(formatMock.mock.callCount(), 1);
+    assert.strictEqual(formatMock.mock.calls[0].arguments[0], clientConfig);
+    assert.strictEqual(formatMock.mock.calls[0].arguments[1], format);
+
+    assert.strictEqual(fspMock.writeFile.mock.callCount(), 1);
+    assert.strictEqual(
+      fspMock.writeFile.mock.calls[0].arguments[0],
+      targetFile
+    );
+    assert.strictEqual(
+      fspMock.writeFile.mock.calls[0].arguments[1],
+      formattedContent
+    );
   });
 
-  void it('writes mjs config to target location as default export', async () => {
-    const targetPath = path.join(
-      process.cwd(),
-      targetDirectory,
-      'amplifyconfiguration.mjs'
-    );
-    await clientConfigWriter.writeClientConfig(clientConfig, targetPath);
+  void it('formats as json by default', async () => {
+    const outDir = '/foo/bar';
+    const targetFile = '/foo/bar/baz';
+    const formattedContent = randomUUID().toString();
 
-    // importing absolute paths on windows only works by passing through pathToFileURL which prepends `file://` to the path
-    const { default: actualConfig } = await import(
-      pathToFileURL(targetPath).toString()
+    pathResolverMock.mock.mockImplementation(() => targetFile);
+    const formatMock = mock.method(
+      clientFormatter,
+      'format',
+      () => formattedContent
     );
-    assert.deepEqual(actualConfig, clientConfig);
-  });
 
-  void it('writes dart config to target location as map object', async () => {
-    const targetPath = path.join(
-      process.cwd(),
-      targetDirectory,
-      'amplifyconfiguration.json'
+    await clientConfigWriter.writeClientConfig(clientConfig, outDir);
+
+    assert.strictEqual(pathResolverMock.mock.callCount(), 1);
+    assert.strictEqual(
+      pathResolverMock.mock.calls[0].arguments[1],
+      ClientConfigFormat.JSON
     );
-    await clientConfigWriter.writeClientConfig(clientConfig, targetPath);
 
-    const actualConfig = await fs.readFile(targetPath, 'utf-8');
-    assert.deepEqual(actualConfig, JSON.stringify(clientConfig, null, 2));
+    assert.strictEqual(formatMock.mock.callCount(), 1);
+    assert.strictEqual(
+      formatMock.mock.calls[0].arguments[1],
+      ClientConfigFormat.JSON
+    );
   });
 });

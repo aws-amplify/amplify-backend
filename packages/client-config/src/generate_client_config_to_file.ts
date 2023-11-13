@@ -4,6 +4,7 @@ import { ClientConfigWriter } from './client-config-writer/client_config_writer.
 import { ClientConfigFormat } from './client-config-types/client_config.js';
 import { getClientConfigPath } from './paths/index.js';
 import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
+import { ClientConfigFormatter } from './client-config-writer/client_config_formatter.js';
 
 /**
  * Main entry point for generating client config and writing to a file
@@ -14,12 +15,14 @@ export const generateClientConfigToFile = async (
   outDir?: string,
   format?: ClientConfigFormat
 ): Promise<void> => {
-  const clientConfigWriter = new ClientConfigWriter();
+  const clientConfigWriter = new ClientConfigWriter(
+    getClientConfigPath,
+    new ClientConfigFormatter()
+  );
 
   const clientConfig = await generateClientConfig(
     credentialProvider,
     backendIdentifier
   );
-  const targetPath = await getClientConfigPath(outDir, format);
-  await clientConfigWriter.writeClientConfig(clientConfig, targetPath);
+  await clientConfigWriter.writeClientConfig(clientConfig, outDir, format);
 };
