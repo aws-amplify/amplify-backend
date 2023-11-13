@@ -36,6 +36,7 @@ import {
   StackMetadataBackendOutputStorageStrategy,
 } from '@aws-amplify/backend-output-storage';
 import * as path from 'path';
+import { coreAttributeNameMap } from './string_maps.js';
 
 type DefaultRoles = { auth: Role; unAuth: Role };
 type IdentityProviderSetupResult = {
@@ -307,6 +308,10 @@ export class AmplifyAuth
         email: emailEnabled,
       },
       keepOriginal: {
+        email: emailEnabled,
+        phone: phoneEnabled,
+      },
+      autoVerify: {
         email: emailEnabled,
         phone: phoneEnabled,
       },
@@ -593,22 +598,44 @@ export class AmplifyAuth
       authRegion: Stack.of(this).region,
     };
 
+    if (this.computedUserPoolProps.standardAttributes) {
+      const signupAttributes = Object.entries(
+        this.computedUserPoolProps.standardAttributes
+      ).reduce((acc: string[], [attributeName, attribute]) => {
+        if (attribute?.required) {
+          const treatedAttributeName = coreAttributeNameMap.find(
+            ({ standardAttributeName }) =>
+              standardAttributeName === attributeName
+          );
+
+          if (treatedAttributeName) {
+            return [
+              ...acc,
+              treatedAttributeName.userpoolAttributeName.toUpperCase(),
+            ];
+          }
+        }
+        return acc;
+      }, []);
+      output.signupAttributes = JSON.stringify(signupAttributes);
+    }
+
     if (this.computedUserPoolProps.signInAliases) {
-      const signupAttributes = [];
+      const usernameAttributes = [];
       if (this.computedUserPoolProps.signInAliases.email) {
-        signupAttributes.push('EMAIL');
+        usernameAttributes.push('EMAIL');
       }
       if (this.computedUserPoolProps.signInAliases.phone) {
-        signupAttributes.push('PHONE_NUMBER');
+        usernameAttributes.push('PHONE_NUMBER');
       }
       if (
         this.computedUserPoolProps.signInAliases.preferredUsername ||
         this.computedUserPoolProps.signInAliases.username
       ) {
-        signupAttributes.push('PREFERRED_USERNAME');
+        usernameAttributes.push('PREFERRED_USERNAME');
       }
-      if (signupAttributes.length > 0) {
-        output.signupAttributes = signupAttributes.toString();
+      if (usernameAttributes.length > 0) {
+        output.usernameAttributes = JSON.stringify(usernameAttributes);
       }
     }
 
@@ -621,7 +648,7 @@ export class AmplifyAuth
         verificationMechanisms.push('PHONE');
       }
       if (verificationMechanisms.length > 0) {
-        output.verificationMechanisms = verificationMechanisms.toString();
+        output.verificationMechanisms = JSON.stringify(verificationMechanisms);
       }
     }
 
@@ -631,20 +658,20 @@ export class AmplifyAuth
 
       const requirements = [];
       if (this.computedUserPoolProps.passwordPolicy.requireDigits) {
-        requirements.push('Requires Numbers');
+        requirements.push('REQUIRES_NUMBERS');
       }
       if (this.computedUserPoolProps.passwordPolicy.requireLowercase) {
-        requirements.push('Requires Lowercase');
+        requirements.push('REQUIRES_LOWERCASE');
       }
       if (this.computedUserPoolProps.passwordPolicy.requireUppercase) {
-        requirements.push('Requires Uppercase');
+        requirements.push('REQUIRES_UPPERCASE');
       }
       if (this.computedUserPoolProps.passwordPolicy.requireSymbols) {
-        requirements.push('Requires Symbols');
+        requirements.push('REQUIRES_SYMBOLS');
       }
 
       if (requirements.length > 0) {
-        output.passwordPolicyRequirements = requirements.toString();
+        output.passwordPolicyRequirements = JSON.stringify(requirements);
       }
     }
 
@@ -659,7 +686,7 @@ export class AmplifyAuth
         mfaTypes.push('SMS');
       }
       if (mfaTypes.length > 0) {
-        output.mfaTypes = mfaTypes.toString();
+        output.mfaTypes = JSON.stringify(mfaTypes);
       }
     }
 

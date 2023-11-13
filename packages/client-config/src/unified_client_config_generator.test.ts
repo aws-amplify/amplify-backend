@@ -34,12 +34,12 @@ void describe('UnifiedClientConfigGenerator', () => {
             authRegion: 'testRegion',
             passwordPolicyMinLength: '8',
             passwordPolicyRequirements:
-              'Requires Numbers,Requires Lowercase,Requires Uppercase',
-            mfaTypes: 'SMS,TOTP',
+              '["REQUIRES_NUMBERS","REQUIRES_LOWERCASE","REQUIRES_UPPERCASE"]',
+            mfaTypes: '["SMS","TOTP"]',
             mfaConfiguration: 'OPTIONAL',
-            verificationMechanisms: 'EMAIL,PHONE',
-            usernameAttributes: 'EMAIL',
-            signupAttributes: 'EMAIL',
+            verificationMechanisms: '["EMAIL","PHONE"]',
+            usernameAttributes: '["EMAIL"]',
+            signupAttributes: '["EMAIL"]',
           },
         },
         [graphqlOutputKey]: {
@@ -87,9 +87,9 @@ void describe('UnifiedClientConfigGenerator', () => {
         aws_cognito_mfa_types: ['SMS', 'TOTP'],
         aws_cognito_password_protection_settings: {
           passwordPolicyCharacters: [
-            'Requires Numbers',
-            'Requires Lowercase',
-            'Requires Uppercase',
+            'REQUIRES_NUMBERS',
+            'REQUIRES_LOWERCASE',
+            'REQUIRES_UPPERCASE',
           ],
           passwordPolicyMinLength: 8,
         },

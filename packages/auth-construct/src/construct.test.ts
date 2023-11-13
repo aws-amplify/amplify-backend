@@ -1,4 +1,4 @@
-import { describe, it, mock } from 'node:test';
+import { beforeEach, describe, it, mock } from 'node:test';
 import { AmplifyAuth } from './construct.js';
 import { App, SecretValue, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
@@ -93,7 +93,7 @@ const ExpectedSAMLIDPProperties = {
   ProviderType: 'SAML',
 };
 const defaultPasswordPolicyCharacterRequirements =
-  'Requires Numbers,Requires Lowercase,Requires Uppercase,Requires Symbols';
+  '["REQUIRES_NUMBERS","REQUIRES_LOWERCASE","REQUIRES_UPPERCASE","REQUIRES_SYMBOLS"]';
 
 void describe('Auth construct', () => {
   void it('creates phone number login mechanism', () => {
@@ -441,15 +441,21 @@ void describe('Auth construct', () => {
   });
 
   void describe('storeOutput', () => {
-    void it('stores outputs in platform', () => {
-      const app = new App();
-      const stack = new Stack(app);
+    let app: App;
+    let stack: Stack;
+    const storeOutputMock = mock.fn();
+    const stubBackendOutputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry> =
+      {
+        addBackendOutputEntry: storeOutputMock,
+      };
 
-      const storeOutputMock = mock.fn();
-      const stubBackendOutputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry> =
-        {
-          addBackendOutputEntry: storeOutputMock,
-        };
+    void beforeEach(() => {
+      app = new App();
+      stack = new Stack(app);
+      storeOutputMock.mock.resetCalls();
+    });
+
+    void it('stores outputs in platform - minimum config', () => {
       const authConstruct = new AmplifyAuth(stack, 'test', {
         loginWith: {
           email: true,
@@ -484,10 +490,60 @@ void describe('Auth construct', () => {
               DEFAULTS.PASSWORD_POLICY.minLength.toString(),
             passwordPolicyRequirements:
               defaultPasswordPolicyCharacterRequirements,
-            signupAttributes: 'EMAIL',
+            signupAttributes: '["EMAIL"]',
+            verificationMechanisms: '["EMAIL"]',
+            usernameAttributes: '["EMAIL"]',
           },
         },
       ]);
+    });
+
+    void it('multifactor prop updates mfaConfiguration & mfaTypes', () => {
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+        },
+        multifactor: { mode: 'OPTIONAL', sms: true, totp: true },
+        outputStorageStrategy: stubBackendOutputStorageStrategy,
+      });
+      const { payload } = storeOutputMock.mock.calls[0].arguments[1];
+
+      assert.equal(payload.mfaConfiguration, 'OPTIONAL');
+      assert.equal(payload.mfaTypes, '["TOTP","SMS"]');
+    });
+
+    void it('userAttributes prop should update signupAttributes', () => {
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+        },
+        userAttributes: {
+          phoneNumber: { required: true, mutable: true },
+          familyName: { required: false, mutable: true },
+          address: { required: true, mutable: true },
+        },
+        outputStorageStrategy: stubBackendOutputStorageStrategy,
+      });
+      const { payload } = storeOutputMock.mock.calls[0].arguments[1];
+
+      assert.equal(
+        payload.signupAttributes,
+        '["EMAIL","PHONE_NUMBER","ADDRESS"]'
+      );
+    });
+
+    void it('adding loginWith methods should update usernameAttributes & verificationMechanisms', () => {
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+          phone: true,
+        },
+        outputStorageStrategy: stubBackendOutputStorageStrategy,
+      });
+      const { payload } = storeOutputMock.mock.calls[0].arguments[1];
+
+      assert.equal(payload.usernameAttributes, '["EMAIL","PHONE_NUMBER"]');
+      assert.equal(payload.verificationMechanisms, '["EMAIL","PHONE"]');
     });
 
     void it('stores output when no storage strategy is injected', () => {
@@ -511,6 +567,8 @@ void describe('Auth construct', () => {
               'identityPoolId',
               'authRegion',
               'signupAttributes',
+              'usernameAttributes',
+              'verificationMechanisms',
               'passwordPolicyMinLength',
               'passwordPolicyRequirements',
             ],

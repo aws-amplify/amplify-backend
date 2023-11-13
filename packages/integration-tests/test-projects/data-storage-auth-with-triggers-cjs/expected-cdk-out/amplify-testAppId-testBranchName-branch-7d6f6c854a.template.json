@@ -16,6 +16,8 @@
     "identityPoolId",
     "authRegion",
     "signupAttributes",
+    "usernameAttributes",
+    "verificationMechanisms",
     "passwordPolicyMinLength",
     "passwordPolicyRequirements",
     "amazonClientId",
@@ -84,10 +86,16 @@
     "Value": "8"
   },
   "passwordPolicyRequirements": {
-    "Value": "Requires Numbers,Requires Lowercase,Requires Uppercase,Requires Symbols"
+    "Value": "[\"REQUIRES_NUMBERS\",\"REQUIRES_LOWERCASE\",\"REQUIRES_UPPERCASE\",\"REQUIRES_SYMBOLS\"]"
   },
   "signupAttributes": {
-    "Value": "EMAIL"
+    "Value": "[\"EMAIL\"]"
+  },
+  "usernameAttributes": {
+    "Value": "[\"EMAIL\"]"
+  },
+  "verificationMechanisms": {
+    "Value": "[\"EMAIL\"]"
   },
   "amazonClientId": {
    "Value": {

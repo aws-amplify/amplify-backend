@@ -47,11 +47,6 @@ void describe('AuthClientConfigContributor', () => {
         aws_user_pools_web_client_id: 'testWebClientId',
         aws_cognito_region: 'testRegion',
         aws_cognito_identity_pool_id: 'testIdentityPoolId',
-        aws_cognito_mfa_configuration: undefined,
-        aws_cognito_mfa_types: undefined,
-        aws_cognito_signup_attributes: undefined,
-        aws_cognito_username_attributes: undefined,
-        aws_cognito_verification_mechanisms: undefined,
       }
     );
   });
@@ -67,14 +62,14 @@ void describe('AuthClientConfigContributor', () => {
             userPoolId: 'testUserPoolId',
             webClientId: 'testWebClientId',
             authRegion: 'testRegion',
-            passwordPolicyMinLength: '8',
+            passwordPolicyMinLength: '15',
             passwordPolicyRequirements:
-              'Requires Numbers,Requires Lowercase,Requires Uppercase',
-            mfaTypes: 'SMS,TOTP',
+              '["REQUIRES_NUMBERS","REQUIRES_LOWERCASE","REQUIRES_UPPERCASE"]',
+            mfaTypes: '["SMS","TOTP"]',
             mfaConfiguration: 'OPTIONAL',
-            verificationMechanisms: 'EMAIL,PHONE',
-            usernameAttributes: 'EMAIL',
-            signupAttributes: 'EMAIL',
+            verificationMechanisms: '["EMAIL","PHONE"]',
+            usernameAttributes: '["EMAIL"]',
+            signupAttributes: '["EMAIL"]',
           },
         },
       }),
@@ -87,11 +82,11 @@ void describe('AuthClientConfigContributor', () => {
         aws_cognito_mfa_types: ['SMS', 'TOTP'],
         aws_cognito_password_protection_settings: {
           passwordPolicyCharacters: [
-            'Requires Numbers',
-            'Requires Lowercase',
-            'Requires Uppercase',
+            'REQUIRES_NUMBERS',
+            'REQUIRES_LOWERCASE',
+            'REQUIRES_UPPERCASE',
           ],
-          passwordPolicyMinLength: 8,
+          passwordPolicyMinLength: 15,
         },
         aws_cognito_signup_attributes: ['EMAIL'],
         aws_cognito_username_attributes: ['EMAIL'],
