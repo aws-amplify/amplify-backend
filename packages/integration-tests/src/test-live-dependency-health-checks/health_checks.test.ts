@@ -29,13 +29,22 @@ const cfnClient = new CloudFormationClient();
  */
 void describe('Live dependency health checks', { concurrency: true }, () => {
   before(async () => {
-    // nuke the npx cache to ensure we are installing latest versions of packages from the npm
+    // Nuke the npx cache to ensure we are installing latest versions of packages from the npm.
     const { stdout } = await execa('npm', ['config', 'get', 'cache']);
     const npxCacheLocation = path.join(stdout.toString().trim(), '_npx');
 
     if (existsSync(npxCacheLocation)) {
       await fs.rm(npxCacheLocation, { recursive: true });
     }
+
+    // Force 'create-amplify' installation in npx cache by executing help command
+    // before tests run. Otherwise, installing 'create-amplify' concurrently
+    // may lead to race conditions and corrupted npx cache.
+    await execa('npm', ['create', 'amplify', '--yes', '--', '--help'], {
+      // Command must run outside of 'amplify-backend' workspace.
+      cwd: os.homedir(),
+      stdio: 'inherit',
+    });
   });
 
   void describe('pipeline deployment', () => {

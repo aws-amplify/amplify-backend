@@ -15,6 +15,11 @@
     "webClientId",
     "identityPoolId",
     "authRegion",
+    "signupAttributes",
+    "usernameAttributes",
+    "verificationMechanisms",
+    "passwordPolicyMinLength",
+    "passwordPolicyRequirements",
     "amazonClientId",
     "facebookClientId",
     "googleClientId"
@@ -76,6 +81,21 @@
    "Value": {
     "Ref": "AWS::Region"
    }
+  },
+  "passwordPolicyMinLength": {
+    "Value": "8"
+  },
+  "passwordPolicyRequirements": {
+    "Value": "[\"REQUIRES_NUMBERS\",\"REQUIRES_LOWERCASE\",\"REQUIRES_UPPERCASE\",\"REQUIRES_SYMBOLS\"]"
+  },
+  "signupAttributes": {
+    "Value": "[\"EMAIL\"]"
+  },
+  "usernameAttributes": {
+    "Value": "[\"EMAIL\"]"
+  },
+  "verificationMechanisms": {
+    "Value": "[\"EMAIL\"]"
   },
   "amazonClientId": {
    "Value": {
