@@ -31,14 +31,14 @@ export type TriggerConfig = {
 };
 
 export type AmplifyAuthFactoryProps = Expand<
-  Omit<AuthProps, 'outputStorageStrategy' | 'loginWith'>
-> &
-  TriggerConfig & {
-    /**
-     * Specify how you would like users to log in. You can choose from email, phone, and even external providers such as LoginWithAmazon.
-     */
-    loginWith: Expand<AuthLoginWithFactoryProps>;
-  };
+  Omit<AuthProps, 'outputStorageStrategy' | 'loginWith'> &
+    TriggerConfig & {
+      /**
+       * Specify how you would like users to log in. You can choose from email, phone, and even external providers such as LoginWithAmazon.
+       */
+      loginWith: Expand<AuthLoginWithFactoryProps>;
+    }
+>;
 
 /**
  * Singleton factory for AmplifyAuth that can be used in Amplify project files
