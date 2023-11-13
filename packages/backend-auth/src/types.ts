@@ -124,10 +124,25 @@ export type ExternalProviderGeneralFactoryProps = Omit<
  */
 export type ExternalProviderSpecificFactoryProps =
   ExternalProviderGeneralFactoryProps & {
+    /**
+     * SignInWithApple Settings
+     */
     signInWithApple?: AppleProviderFactoryProps;
+    /**
+     * LoginWithAmazon Settings
+     */
     loginWithAmazon?: AmazonProviderFactoryProps;
+    /**
+     * Facebook OAuth Settings
+     */
     facebook?: FacebookProviderFactoryProps;
+    /**
+     * OIDC Settings
+     */
     oidc?: OidcProviderFactoryProps;
+    /**
+     * Google OAuth Settings
+     */
     google?: GoogleProviderFactoryProps;
   };
 
@@ -139,7 +154,7 @@ export type AuthLoginWithFactoryProps = Omit<
   'externalProviders'
 > & {
   /**
-   * External provider properties.
+   * Configure OAuth, OIDC, and SAML login providers
    */
   externalProviders?: ExternalProviderSpecificFactoryProps;
 };

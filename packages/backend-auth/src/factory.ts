@@ -22,6 +22,9 @@ import { translateToAuthConstructLoginWith } from './translate_auth_props.js';
  * Configure custom auth triggers
  */
 export type TriggerConfig = {
+  /**
+   * Configure custom auth triggers
+   */
   triggers?: Partial<
     Record<TriggerEvent, ConstructFactory<ResourceProvider<FunctionResources>>>
   >;
@@ -109,9 +112,10 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
 }
 
 /**
- * Creates a factory that implements ConstructFactory<AmplifyAuth & ResourceProvider<AuthResources>>
+ * Provide the settings that will be used for authentication.
  */
 export const defineAuth = (
   props: AmplifyAuthFactoryProps
 ): ConstructFactory<AmplifyAuth & ResourceProvider<AuthResources>> =>
+  // Creates a factory that implements ConstructFactory<AmplifyAuth & ResourceProvider<AuthResources>>
   new AmplifyAuthFactory(props, new Error().stack);
