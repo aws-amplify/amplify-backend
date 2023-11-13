@@ -41,6 +41,8 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
     // before tests run. Otherwise, installing 'create-amplify' concurrently
     // may lead to race conditions and corrupted npx cache.
     await execa('npm', ['create', 'amplify', '--yes', '--', '--help'], {
+      // Command must run outside of 'amplify-backend' workspace.
+      cwd: os.homedir(),
       stdio: 'inherit',
     });
   });
