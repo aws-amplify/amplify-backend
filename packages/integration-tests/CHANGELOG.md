@@ -1,5 +1,17 @@
 # @aws-amplify/integration-tests
 
+## 0.3.1
+
+### Patch Changes
+
+- fdff69be3: Update error message when running create amplify in an existing amplify project
+
+## 0.3.0
+
+### Minor Changes
+
+- 85a015b7: switch to using data-schema packages
+
 ## 0.2.4
 
 ### Patch Changes

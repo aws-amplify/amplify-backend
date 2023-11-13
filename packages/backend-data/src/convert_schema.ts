@@ -1,4 +1,4 @@
-import { DerivedModelSchema } from '@aws-amplify/amplify-api-next-types-alpha';
+import { DerivedModelSchema } from '@aws-amplify/data-schema-types';
 import {
   AmplifyGraphqlDefinition,
   IAmplifyGraphqlDefinition,

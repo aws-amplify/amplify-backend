@@ -1,5 +1,15 @@
 # @aws-amplify/plugin-types
 
+## 0.4.0
+
+### Minor Changes
+
+- 71a63a16: Change stack naming strategy to include deployment type as a suffix
+
+### Patch Changes
+
+- 8181509a: Added a prefix to the auth cfnResources.
+
 ## 0.3.1
 
 ### Patch Changes
