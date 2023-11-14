@@ -86,7 +86,7 @@ export type MFASettings = {
  */
 export type MFA = {
   /**
-   * Configure whether users of this user pool can or are required use MFA to sign in.
+   * Configure whether users can or are required to use multifactor (MFA) to sign in.
    * @default - 'OFF'
    */
   mode: 'OFF' | 'OPTIONAL' | 'REQUIRED';
@@ -244,7 +244,7 @@ export type AuthProps = {
    */
   userAttributes?: StandardAttributes;
   /**
-   * Configure whether users can or are required to use MFA to sign in.
+   * Configure whether users can or are required to use multifactor (MFA) to sign in.
    */
   multifactor?: MFA;
   /**
