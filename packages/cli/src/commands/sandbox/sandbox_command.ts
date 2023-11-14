@@ -82,7 +82,8 @@ export class SandboxCommand
     // attaching event handlers
     const clientConfigLifecycleHandler = new ClientConfigLifecycleHandler(
       this.clientConfigGeneratorAdapter,
-      args['config-out-dir']
+      args['config-out-dir'],
+      args.format
     );
     const eventHandlers = this.sandboxEventHandlerCreator?.({
       sandboxName: this.sandboxName,
