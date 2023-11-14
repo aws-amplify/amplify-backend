@@ -6,20 +6,22 @@
    "Properties": {
     "AdditionalAuthenticationProviders": [
      {
+      "AuthenticationType": "AMAZON_COGNITO_USER_POOLS",
+      "UserPoolConfig": {
+       "AwsRegion": {
+        "Ref": "AWS::Region"
+       },
+       "UserPoolId": {
+        "Ref": "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854aauthNestedStackauthNestedStackResource462F2942OutputsamplifytestAppIdtestBranchNamebranch7d6f6c854aauthamplifyAuthUserPool70E84902Ref"
+       }
+      }
+     },
+     {
       "AuthenticationType": "AWS_IAM"
      }
     ],
-    "AuthenticationType": "AMAZON_COGNITO_USER_POOLS",
-    "Name": "amplifyData",
-    "UserPoolConfig": {
-     "AwsRegion": {
-      "Ref": "AWS::Region"
-     },
-     "DefaultAction": "ALLOW",
-     "UserPoolId": {
-      "Ref": "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854aauthNestedStackauthNestedStackResource462F2942OutputsamplifytestAppIdtestBranchNamebranch7d6f6c854aauthamplifyAuthUserPool70E84902Ref"
-     }
-    }
+    "AuthenticationType": "API_KEY",
+    "Name": "amplifyData"
    }
   },
   "amplifyDataGraphQLAPITransformerSchemaFF50A789": {
@@ -32,8 +34,20 @@
      ]
     },
     "DefinitionS3Location": {
-     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/6638c3fb6961dd4178098423761805a7119aac7c51bd9e7ea2b3e3d55fb821af.graphql"
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/b39fd31c4a79420ca1ff4200a963cc977a0b12fbb02c44b40eda180de8183fd0.graphql"
     }
+   }
+  },
+  "amplifyDataGraphQLAPIDefaultApiKey1C8ED374": {
+   "Type": "AWS::AppSync::ApiKey",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "amplifyDataGraphQLAPI42A6FA33",
+      "ApiId"
+     ]
+    },
+    "Expires": 1702593039
    }
   },
   "amplifyDataGraphQLAPINONEDS684BF699": {
@@ -104,7 +118,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/bb641f35227d3b07b5e426700820b89a0daa24f7a92c2e3012e01a8f9576fe36.json"
+       "/4ce28a642e3a281cefa280b57838549986889f6dca87de51c499c431ab28b7cf.json"
       ]
      ]
     }
@@ -230,7 +244,7 @@
      }
     ],
     "SourceObjectKeys": [
-     "89dc76f1def2a3d76a64152aa8cb1859d6c166569d4b5e34087bbc9f18606324.zip"
+     "0a5860b7296bf341e26cca1977394af5a65f8ddbb2cc0b6ab0268289b6e9857f.zip"
     ],
     "SourceMarkers": [
      {}
@@ -530,6 +544,14 @@
   "amplifytestAppIdtestBranchNamebranch7d6f6c854adataamplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsBucket01B64A21Ref": {
    "Value": {
     "Ref": "amplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsBucket9CCB4ACA"
+   }
+  },
+  "amplifytestAppIdtestBranchNamebranch7d6f6c854adataamplifyDataGraphQLAPIDefaultApiKey346D40FDApiKey": {
+   "Value": {
+    "Fn::GetAtt": [
+     "amplifyDataGraphQLAPIDefaultApiKey1C8ED374",
+     "ApiKey"
+    ]
    }
   }
  }
