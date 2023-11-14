@@ -105,7 +105,7 @@ void describe('sandbox command', () => {
     assert.match(output, /--dir-to-watch/);
     assert.match(output, /--exclude/);
     assert.match(output, /--format/);
-    assert.match(output, /--out-dir/);
+    assert.match(output, /--config-out-dir/);
     assert.equal(mockHandleProfile.mock.callCount(), 0);
   });
 
@@ -249,6 +249,38 @@ void describe('sandbox command', () => {
     assert.equal(
       mockHandleProfile.mock.calls[0].arguments[0]?.profile,
       sandboxProfile
+    );
+  });
+
+  void it('fails if invalid config-out-dir is provided', async () => {
+    mock.method(fs, 'lstatSync', () => {
+      return {
+        isFile: () => false,
+        isDir: () => false,
+      };
+    });
+    const output = await commandRunner.runCommand(
+      'sandbox --config-out-dir nonExistentDir'
+    );
+    assert.match(output, /--config-out-dir nonExistentDir does not exist/);
+  });
+
+  void it('fails if a file is provided for config-out-dir', async (contextual) => {
+    mock.method(fs, 'lstatSync', () => {
+      return {
+        isFile: () => true,
+        isDir: () => false,
+      };
+    });
+    contextual.mock.method(fs, 'statSync', () => ({
+      isDirectory: () => false,
+    }));
+    const output = await commandRunner.runCommand(
+      'sandbox --config-out-dir existentFile'
+    );
+    assert.match(
+      output,
+      /--config-out-dir existentFile is not a valid directory/
     );
   });
 });

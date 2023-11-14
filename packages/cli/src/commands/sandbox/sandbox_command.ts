@@ -20,7 +20,7 @@ type SandboxCommandOptionsCamelCase = {
   exclude: string[] | undefined;
   name: string | undefined;
   format: ClientConfigFormat | undefined;
-  outDir: string | undefined;
+  configOutDir: string | undefined;
   profile: string | undefined;
 };
 
@@ -81,7 +81,8 @@ export class SandboxCommand
 
     // attaching event handlers
     const clientConfigLifecycleHandler = new ClientConfigLifecycleHandler(
-      this.clientConfigGeneratorAdapter
+      this.clientConfigGeneratorAdapter,
+      args['config-out-dir']
     );
     const eventHandlers = this.sandboxEventHandlerCreator?.({
       sandboxName: this.sandboxName,
@@ -94,7 +95,7 @@ export class SandboxCommand
     }
     const watchExclusions = args.exclude ?? [];
     const clientConfigWritePath = await getClientConfigPath(
-      args['out-dir'],
+      args['config-out-dir'],
       args.format
     );
     watchExclusions.push(clientConfigWritePath);
@@ -143,7 +144,7 @@ export class SandboxCommand
           choices: Object.values(ClientConfigFormat),
           global: false,
         })
-        .option('out-dir', {
+        .option('config-out-dir', {
           describe:
             'A path to directory where config is written. If not provided defaults to current process working directory.',
           type: 'string',
@@ -157,20 +158,10 @@ export class SandboxCommand
         })
         .check((argv) => {
           if (argv['dir-to-watch']) {
-            // make sure it's a real directory
-            let stats;
-            try {
-              stats = fs.statSync(argv['dir-to-watch'], {});
-            } catch (e) {
-              throw new Error(
-                `--dir-to-watch ${argv['dir-to-watch']} does not exist`
-              );
-            }
-            if (!stats.isDirectory()) {
-              throw new Error(
-                `--dir-to-watch ${argv['dir-to-watch']} is not a valid directory`
-              );
-            }
+            this.validateDirectory('dir-to-watch', argv['dir-to-watch']);
+          }
+          if (argv['config-out-dir']) {
+            this.validateDirectory('config-out-dir', argv['config-out-dir']);
           }
           if (argv.name) {
             const projectNameRegex = /^[a-zA-Z0-9-]{1,15}$/;
@@ -200,5 +191,17 @@ export class SandboxCommand
       await (
         await this.sandboxFactory.getInstance()
       ).delete({ name: this.sandboxName });
+  };
+
+  validateDirectory = (option: string, dir: string) => {
+    let stats;
+    try {
+      stats = fs.statSync(dir, {});
+    } catch (e) {
+      throw new Error(`--${option} ${dir} does not exist`);
+    }
+    if (!stats.isDirectory()) {
+      throw new Error(`--${option} ${dir} is not a valid directory`);
+    }
   };
 }
