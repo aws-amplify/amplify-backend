@@ -49,7 +49,7 @@ export class SandboxEventHandlerFactory {
       ],
       failedDeployment: [
         async (...args: unknown[]) => {
-          if (!args || !args[0]) {
+          if (args.length == 0 || !args[0]) {
             return;
           }
           const deployError = args[0] as Error;
