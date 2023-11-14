@@ -26,6 +26,8 @@ export enum ClientConfigFormat {
     // (undocumented)
     JSON = "json",
     // (undocumented)
+    JSON_MOBILE = "json-mobile",
+    // (undocumented)
     MJS = "mjs",
     // (undocumented)
     TS = "ts"

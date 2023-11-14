@@ -9,6 +9,9 @@ import { ClientConfigConverter } from './client_config_converter.js';
  * Formats client config to desired format.
  */
 export class ClientConfigFormatter {
+  /**
+   * Creates new client config formatter.
+   */
   constructor(private readonly configConverter: ClientConfigConverter) {}
 
   format = (clientConfig: ClientConfig, format: ClientConfigFormat): string => {

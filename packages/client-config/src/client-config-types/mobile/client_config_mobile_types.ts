@@ -12,9 +12,9 @@ export type ClientConfigMobileApi = {
       {
         endpointType: 'GraphQL';
         endpoint: string;
-        region: string;
-        authorizationType: string;
-        apiKey?: string;
+        region: string | undefined;
+        authorizationType: string | undefined;
+        apiKey: string | undefined;
       }
     >;
   };
@@ -28,47 +28,29 @@ export type ClientConfigMobileAuth = {
       CredentialsProvider: {
         CognitoIdentity: {
           Default: {
-            PoolId: string;
-            Region: string;
+            PoolId: string | undefined;
+            Region: string | undefined;
           };
         };
       };
       CognitoUserPool: {
         Default: {
-          PoolId: string;
-          AppClientId: string;
-          Region: string;
+          PoolId: string | undefined;
+          AppClientId: string | undefined;
+          Region: string | undefined;
         };
       };
       Auth: {
         Default: {
-          OAuth: {
-            WebDomain: string;
-            AppClientId: string;
-            SignInRedirectURI: string;
-            SignOutRedirectURI: string;
-            Scopes: Array<string>;
-          };
-          authenticationFlowType: string;
-          socialProviders: Array<string>;
-          usernameAttributes: Array<string>;
-          signupAttributes: Array<string>;
-          passwordProtectionSettings: {
-            passwordPolicyMinLength: number;
-            passwordPolicyCharacters: Array<string>;
-          };
-          mfaConfiguration: string;
-          mfaTypes: Array<string>;
-          verificationMechanisms: Array<string>;
+          authenticationFlowType: 'USER_SRP_AUTH';
         };
       };
       AppSync?: {
         Default: {
           ApiUrl: string;
-          Region: string;
-          AuthMode: string;
-          ApiKey?: string;
-          ClientDatabasePrefix: string;
+          Region: string | undefined;
+          AuthMode: string | undefined;
+          ApiKey: string | undefined;
         };
       };
     };
