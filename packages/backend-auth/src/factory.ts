@@ -18,7 +18,7 @@ import * as path from 'path';
 import { AuthLoginWithFactoryProps } from './types.js';
 import { translateToAuthConstructLoginWith } from './translate_auth_props.js';
 
-export type AmplifyAuthFactoryProps = Expand<
+export type AmplifyAuthProps = Expand<
   Omit<AuthProps, 'outputStorageStrategy' | 'loginWith'> & {
     /**
      * Specify how you would like users to log in. You can choose from email, phone, and even external providers such as LoginWithAmazon.
@@ -49,7 +49,7 @@ class AmplifyAuthFactory
    * Set the properties that will be used to initialize AmplifyAuth
    */
   constructor(
-    private readonly props: AmplifyAuthFactoryProps,
+    private readonly props: AmplifyAuthProps,
     private readonly importStack = new Error().stack
   ) {}
 
@@ -77,7 +77,7 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
   private readonly defaultName = 'amplifyAuth';
 
   constructor(
-    private readonly props: AmplifyAuthFactoryProps,
+    private readonly props: AmplifyAuthProps,
     private readonly getInstanceProps: ConstructFactoryGetInstanceProps
   ) {}
 
@@ -111,7 +111,7 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
  * Provide the settings that will be used for authentication.
  */
 export const defineAuth = (
-  props: AmplifyAuthFactoryProps
+  props: AmplifyAuthProps
 ): ConstructFactory<AmplifyAuth & ResourceProvider<AuthResources>> =>
   // Creates a factory that implements ConstructFactory<AmplifyAuth & ResourceProvider<AuthResources>>
   new AmplifyAuthFactory(props, new Error().stack);
