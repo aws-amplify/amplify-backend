@@ -6,7 +6,7 @@ import {
   TestCommandRunner,
 } from '../../test-utils/command_runner.js';
 import assert from 'node:assert';
-import fs from 'fs';
+import fsp from 'fs/promises';
 import { EventHandler, SandboxCommand } from './sandbox_command.js';
 import { createSandboxCommand } from './sandbox_command_factory.js';
 import { SandboxDeleteCommand } from './sandbox-delete/sandbox_delete_command.js';
@@ -115,22 +115,32 @@ void describe('sandbox command', () => {
   });
 
   void it('fails if invalid dir-to-watch is provided', async () => {
-    const output = await commandRunner.runCommand(
-      'sandbox --dir-to-watch nonExistentDir'
+    const dirToWatchError = new Error(
+      '--dir-to-watch nonExistentDir does not exist'
     );
-    assert.match(output, /--dir-to-watch nonExistentDir does not exist/);
+    mock.method(fsp, 'stat', () => Promise.reject(dirToWatchError));
+    await assert.rejects(
+      () => commandRunner.runCommand('sandbox --dir-to-watch nonExistentDir'),
+      (err: TestCommandError) => {
+        assert.equal(err.error.message, dirToWatchError.message);
+        return true;
+      }
+    );
   });
 
   void it('fails if a file is provided in the --dir-to-watch flag', async (contextual) => {
-    contextual.mock.method(fs, 'statSync', () => ({
+    const dirToWatchError = new Error(
+      '--dir-to-watch existentFile is not a valid directory'
+    );
+    contextual.mock.method(fsp, 'stat', () => ({
       isDirectory: () => false,
     }));
-    const output = await commandRunner.runCommand(
-      'sandbox --dir-to-watch existentFile'
-    );
-    assert.match(
-      output,
-      /--dir-to-watch existentFile is not a valid directory/
+    await assert.rejects(
+      () => commandRunner.runCommand('sandbox --dir-to-watch existentFile'),
+      (err: TestCommandError) => {
+        assert.equal(err.error.message, dirToWatchError.message);
+        return true;
+      }
     );
   });
 
@@ -253,34 +263,32 @@ void describe('sandbox command', () => {
   });
 
   void it('fails if invalid config-out-dir is provided', async () => {
-    mock.method(fs, 'lstatSync', () => {
-      return {
-        isFile: () => false,
-        isDir: () => false,
-      };
-    });
-    const output = await commandRunner.runCommand(
-      'sandbox --config-out-dir nonExistentDir'
+    const configOutDirError = new Error(
+      '--config-out-dir nonExistentDir does not exist'
     );
-    assert.match(output, /--config-out-dir nonExistentDir does not exist/);
+    mock.method(fsp, 'stat', () => Promise.reject(configOutDirError));
+    await assert.rejects(
+      () => commandRunner.runCommand('sandbox --config-out-dir nonExistentDir'),
+      (err: TestCommandError) => {
+        assert.equal(err.error.message, configOutDirError.message);
+        return true;
+      }
+    );
   });
 
   void it('fails if a file is provided for config-out-dir', async (contextual) => {
-    mock.method(fs, 'lstatSync', () => {
-      return {
-        isFile: () => true,
-        isDir: () => false,
-      };
-    });
-    contextual.mock.method(fs, 'statSync', () => ({
+    const configOutDirError = new Error(
+      '--config-out-dir existentFile is not a valid directory'
+    );
+    contextual.mock.method(fsp, 'stat', () => ({
       isDirectory: () => false,
     }));
-    const output = await commandRunner.runCommand(
-      'sandbox --config-out-dir existentFile'
-    );
-    assert.match(
-      output,
-      /--config-out-dir existentFile is not a valid directory/
+    await assert.rejects(
+      () => commandRunner.runCommand('sandbox --config-out-dir existentFile'),
+      (err: TestCommandError) => {
+        assert.equal(err.error.message, configOutDirError.message);
+        return true;
+      }
     );
   });
 });

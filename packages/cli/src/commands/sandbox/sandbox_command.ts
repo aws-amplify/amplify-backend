@@ -1,5 +1,5 @@
 import { Argv, CommandModule } from 'yargs';
-import fs from 'fs';
+import fsp from 'fs/promises';
 import { AmplifyPrompter } from '@aws-amplify/cli-core';
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
 import {
@@ -157,12 +157,15 @@ export class SandboxCommand
           type: 'string',
           array: false,
         })
-        .check((argv) => {
+        .check(async (argv) => {
           if (argv['dir-to-watch']) {
-            this.validateDirectory('dir-to-watch', argv['dir-to-watch']);
+            await this.validateDirectory('dir-to-watch', argv['dir-to-watch']);
           }
           if (argv['config-out-dir']) {
-            this.validateDirectory('config-out-dir', argv['config-out-dir']);
+            await this.validateDirectory(
+              'config-out-dir',
+              argv['config-out-dir']
+            );
           }
           if (argv.name) {
             const projectNameRegex = /^[a-zA-Z0-9-]{1,15}$/;
@@ -194,10 +197,10 @@ export class SandboxCommand
       ).delete({ name: this.sandboxName });
   };
 
-  validateDirectory = (option: string, dir: string) => {
+  validateDirectory = async (option: string, dir: string) => {
     let stats;
     try {
-      stats = fs.statSync(dir, {});
+      stats = await fsp.stat(dir, {});
     } catch (e) {
       throw new Error(`--${option} ${dir} does not exist`);
     }
