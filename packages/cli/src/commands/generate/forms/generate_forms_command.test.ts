@@ -2,6 +2,7 @@ import { graphqlOutputKey } from '@aws-amplify/backend-output-schemas';
 import { BackendOutputClientFactory } from '@aws-amplify/deployed-backend-client';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import assert from 'node:assert';
+import path from 'node:path';
 import { describe, it, mock } from 'node:test';
 import yargs, { CommandModule } from 'yargs';
 import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
@@ -54,8 +55,8 @@ void describe('generate forms command', () => {
         `forms --stack my_stack --out-dir ${outPath}`
       );
       assert.equal(
-        generationMock.mock.calls[0].arguments[0].modelsOutDir,
-        `${outPath}/graphql`
+        path.join(generationMock.mock.calls[0].arguments[0].modelsOutDir),
+        path.join(`${outPath}/graphql`)
       );
     });
     void it('out-dir path can be customized', async () => {
