@@ -9,6 +9,8 @@ import { ProfileController } from './profile_controller.js';
 const configureAccountUrl =
   'https://docs.amplify.aws/gen2/start/configure-account';
 
+const profileSetupInstruction = `Follow the instructions at ${configureAccountUrl}${EOL}to configure Amplify IAM user and credentials.${EOL}`;
+
 /**
  * Command to configure AWS Amplify profile.
  */
@@ -43,7 +45,7 @@ export class ConfigureProfileCommand
     );
     if (profileExists) {
       Printer.print(
-        `Profile '${profileName}' already exists!${EOL}Follow the instructions at ${configureAccountUrl} to configure an Amplify IAM user and credentials.${EOL}`
+        `Profile '${profileName}' already exists!${EOL}${profileSetupInstruction}`
       );
       return;
     }
@@ -52,9 +54,7 @@ export class ConfigureProfileCommand
     });
 
     if (!hasIAMUser) {
-      Printer.print(
-        `Follow the instructions at ${configureAccountUrl}${EOL}to configure Amplify IAM user and credentials.${EOL}`
-      );
+      Printer.print(profileSetupInstruction);
 
       await Open.open(configureAccountUrl, { wait: false });
       await AmplifyPrompter.input({
