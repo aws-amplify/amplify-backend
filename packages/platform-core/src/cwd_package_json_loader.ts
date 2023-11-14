@@ -40,7 +40,7 @@ export class CwdPackageJsonLoader {
  *
  * Add additional validation if there are other fields we need to read
  */
-const packageJsonSchema = z.object({
+export const packageJsonSchema = z.object({
   name: z.string(),
 });
 

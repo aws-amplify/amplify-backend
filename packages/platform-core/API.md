@@ -60,10 +60,17 @@ export class LibraryVersionFetcher {
     fetch: (absolutePackageJsonPath: string) => string;
 }
 
-// Warning: (ae-forgotten-export) The symbol "packageJsonSchema" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
 export type PackageJson = z.infer<typeof packageJsonSchema>;
+
+// @public
+export const packageJsonSchema: z.ZodObject<{
+    name: z.ZodString;
+}, "strip", z.ZodTypeAny, {
+    name: string;
+}, {
+    name: string;
+}>;
 
 // @public
 export class UsageDataEmitter {
