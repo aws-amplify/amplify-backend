@@ -1,5 +1,11 @@
 # @aws-amplify/backend-output-schemas
 
+## 0.4.0
+
+### Minor Changes
+
+- 07b0dfc9f: Adding zero-config auth config to amplifyconfiguration.json
+
 ## 0.3.0
 
 ### Minor Changes

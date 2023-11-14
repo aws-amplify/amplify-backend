@@ -1,5 +1,17 @@
 # @aws-amplify/backend-auth
 
+## 0.3.1
+
+### Patch Changes
+
+- cd5feeed0: Expand types for Auth to improve auto completion suggestions.
+- Updated dependencies [65fe3a8fd]
+- Updated dependencies [cd5feeed0]
+- Updated dependencies [07b0dfc9f]
+  - @aws-amplify/plugin-types@0.4.1
+  - @aws-amplify/auth-construct-alpha@0.4.0
+  - @aws-amplify/backend-output-storage@0.2.2
+
 ## 0.3.0
 
 ### Minor Changes
