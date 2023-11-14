@@ -16,6 +16,7 @@ export type ClientConfig = Partial<
 export enum ClientConfigFormat {
   MJS = 'mjs',
   JSON = 'json',
+  JSON_MOBILE = 'json-mobile',
   TS = 'ts',
   DART = 'dart',
 }
