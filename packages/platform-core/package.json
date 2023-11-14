@@ -19,6 +19,9 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@aws-amplify/plugin-types": "^0.3.0"
+    "@aws-amplify/plugin-types": "^0.3.0",
+    "@aws-sdk/client-sts": "3.445.0",
+    "semver": "^7.5.4",
+    "uuid": "9.0.1"
   }
 }

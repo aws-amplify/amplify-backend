@@ -4,6 +4,7 @@ import { CdkErrorMapper } from './cdk_error_mapper.js';
 import {
   BackendDeploymentType,
   BackendLocator,
+  DeploymentTimes,
 } from '@aws-amplify/platform-core';
 
 export type DeployProps = {
@@ -12,8 +13,17 @@ export type DeployProps = {
   validateAppSources?: boolean;
 };
 
+export type DeployResult = {
+  hotswapped?: boolean;
+  deploymentTimes: DeploymentTimes;
+};
+
 export type DestroyProps = {
   deploymentType?: BackendDeploymentType;
+};
+
+export type DestroyResult = {
+  deploymentTimes: DeploymentTimes;
 };
 
 /**
@@ -23,11 +33,11 @@ export type BackendDeployer = {
   deploy: (
     uniqueBackendIdentifier?: UniqueBackendIdentifier,
     deployProps?: DeployProps
-  ) => Promise<void>;
+  ) => Promise<DeployResult>;
   destroy: (
     uniqueBackendIdentifier?: UniqueBackendIdentifier,
     destroyProps?: DestroyProps
-  ) => Promise<void>;
+  ) => Promise<DestroyResult>;
 };
 
 /**

@@ -23,9 +23,14 @@ export class CdkErrorMapper {
     },
     {
       // the backend entry point file is referenced in the stack indicating a problem in customer code
-      errorRegex: /amplify\/backend.ts/,
+      errorRegex: /amplify\/backend/,
       humanReadableError:
         '[SynthError]: Unable to build Amplify backend. Check your backend definition in the `amplify` folder.',
+    },
+    {
+      errorRegex: /SyntaxError:(.*)\n/,
+      humanReadableError:
+        '[SyntaxError]: Unable to build Amplify backend. Check your backend definition in the `amplify` folder.',
     },
     {
       errorRegex: /Updates are not allowed for property/,
@@ -43,7 +48,7 @@ export class CdkErrorMapper {
     },
     {
       // Note that the order matters, this should be the last as it captures generic CFN error
-      errorRegex: /ROLLBACK_(COMPLETE|FAILED)/,
+      errorRegex: /❌ Deployment failed:(.*)\n/,
       humanReadableError:
         '[CloudFormationFailure]: The CloudFormation deployment has failed. Find more information in the CloudFormation AWS Console for this stack.',
     },
@@ -54,8 +59,14 @@ export class CdkErrorMapper {
       knownError.errorRegex.test(error.message)
     );
 
-    return new Error(matchingError?.humanReadableError || error.message, {
-      cause: error,
-    });
+    if (matchingError) {
+      const underlyingMessage = error.message.match(matchingError.errorRegex);
+      error.message =
+        underlyingMessage && underlyingMessage.length == 2
+          ? underlyingMessage[1]
+          : error.message;
+      return new Error(matchingError.humanReadableError, { cause: error });
+    }
+    return error;
   };
 }

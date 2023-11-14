@@ -1,5 +1,9 @@
 import debounce from 'debounce-promise';
-import { BackendDeployer } from '@aws-amplify/backend-deployer';
+import {
+  BackendDeployer,
+  DeployResult,
+  DestroyResult,
+} from '@aws-amplify/backend-deployer';
 import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import { BackendDeploymentType } from '@aws-amplify/platform-core';
 import { SecretClient } from '@aws-amplify/backend-secret';
@@ -45,17 +49,17 @@ export class AmplifySandboxExecutor {
   deploy = async (
     uniqueBackendIdentifier: UniqueBackendIdentifier,
     validateAppSourcesProvider: () => boolean
-  ): Promise<void> => {
+  ): Promise<DeployResult> => {
     console.debug('[Sandbox] Executing command `deploy`');
     const secretLastUpdated = await this.getSecretLastUpdated(
       uniqueBackendIdentifier
     );
 
-    await this.invoke(async () => {
+    return this.invoke(() => {
       // it's important to get information here so that information
       // doesn't get lost while debouncing
       const validateAppSources = validateAppSourcesProvider();
-      await this.backendDeployer.deploy(uniqueBackendIdentifier, {
+      return this.backendDeployer.deploy(uniqueBackendIdentifier, {
         deploymentType: BackendDeploymentType.SANDBOX,
         secretLastUpdated,
         validateAppSources,
@@ -68,13 +72,12 @@ export class AmplifySandboxExecutor {
    */
   destroy = (
     uniqueBackendIdentifier?: UniqueBackendIdentifier
-  ): Promise<void> => {
+  ): Promise<DestroyResult> => {
     console.debug('[Sandbox] Executing command `destroy`');
-    return this.invoke(
-      async () =>
-        await this.backendDeployer.destroy(uniqueBackendIdentifier, {
-          deploymentType: BackendDeploymentType.SANDBOX,
-        })
+    return this.invoke(() =>
+      this.backendDeployer.destroy(uniqueBackendIdentifier, {
+        deploymentType: BackendDeploymentType.SANDBOX,
+      })
     );
   };
 
@@ -83,7 +86,9 @@ export class AmplifySandboxExecutor {
    * Debounce is needed in case multiple duplicate events are received.
    */
   private invoke = debounce(
-    async (callback: () => Promise<void>): Promise<void> => await callback(),
+    async (
+      callback: () => Promise<DeployResult | DestroyResult>
+    ): Promise<DeployResult | DestroyResult> => await callback(),
     100
   );
 }

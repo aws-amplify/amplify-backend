@@ -3,6 +3,7 @@ import * as _os from 'os';
 import {
   BackendDeploymentType,
   CDKContextKey,
+  getLibraryVersion,
 } from '@aws-amplify/platform-core';
 import * as _fs from 'fs';
 
@@ -53,29 +54,10 @@ export class AttributionMetadataStorage {
   ): AttributionMetadata => ({
     createdOn: this.getPlatform(),
     createdBy: this.getDeploymentEngineType(stack),
-    createdWith: this.getLibraryVersion(libraryPackageJsonAbsolutePath),
+    createdWith: getLibraryVersion(libraryPackageJsonAbsolutePath),
     stackType: stackType,
     metadata: additionalMetadata,
   });
-
-  private getLibraryVersion = (absolutePackageJsonPath: string): string => {
-    if (!this.fs.existsSync(absolutePackageJsonPath)) {
-      throw new Error(
-        `Could not find ${absolutePackageJsonPath} to load library version from`
-      );
-    }
-    const packageJsonContents = JSON.parse(
-      // we have to use sync fs methods here because this is part of cdk synth
-      this.fs.readFileSync(absolutePackageJsonPath, 'utf-8')
-    );
-    const libraryVersion = packageJsonContents.version;
-    if (typeof libraryVersion !== 'string') {
-      throw new Error(
-        `Could not parse library version from ${absolutePackageJsonPath}`
-      );
-    }
-    return libraryVersion;
-  };
 
   private getDeploymentEngineType = (stack: Stack): DeploymentEngineType => {
     const deploymentType: BackendDeploymentType | undefined =

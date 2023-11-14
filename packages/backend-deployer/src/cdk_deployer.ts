@@ -10,6 +10,7 @@ import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
 import {
   BackendDeploymentType,
   BackendLocator,
+  DeploymentTimes,
 } from '@aws-amplify/platform-core';
 import { BackendDeployerEnvironmentVariables } from './environment_variables.js';
 
@@ -53,12 +54,17 @@ export class CDKDeployer implements BackendDeployer {
       }
     }
 
-    await this.invokeCdk(
+    const cdkOutput = await this.invokeCdk(
       InvokableCommand.DEPLOY,
       uniqueBackendIdentifier,
       deployProps?.deploymentType,
       cdkCommandArgs
     );
+
+    return {
+      deploymentTimes: this.getDeploymentTimes(cdkOutput),
+      hotswapped: this.deploymentHotswapped(cdkOutput),
+    };
   };
 
   /**
@@ -68,12 +74,15 @@ export class CDKDeployer implements BackendDeployer {
     uniqueBackendIdentifier?: UniqueBackendIdentifier,
     destroyProps?: DestroyProps
   ) => {
-    await this.invokeCdk(
+    const cdkOutput = await this.invokeCdk(
       InvokableCommand.DESTROY,
       uniqueBackendIdentifier,
       destroyProps?.deploymentType,
       ['--force']
     );
+    return {
+      deploymentTimes: this.getDeploymentTimes(cdkOutput),
+    };
   };
 
   private invokeTsc = async (deployProps?: DeployProps) => {
@@ -110,7 +119,7 @@ export class CDKDeployer implements BackendDeployer {
     uniqueBackendIdentifier?: UniqueBackendIdentifier,
     deploymentType?: BackendDeploymentType,
     additionalArguments?: string[]
-  ) => {
+  ): Promise<string> => {
     // Basic args
     const cdkCommandArgs = [
       'cdk',
@@ -151,7 +160,7 @@ export class CDKDeployer implements BackendDeployer {
     }
 
     try {
-      await this.executeChildProcess('npx', cdkCommandArgs);
+      return await this.executeChildProcess('npx', cdkCommandArgs);
     } catch (err) {
       throw this.cdkErrorMapper.getHumanReadableError(err as Error);
     }
@@ -167,23 +176,54 @@ export class CDKDeployer implements BackendDeployer {
     // actionable errors being hidden among the stdout. Moreover execa errors are
     // useless when calling CLIs unless you made execa calling error.
     let aggregatedStderr = '';
-    const aggregatorStream = new stream.Writable();
-    aggregatorStream._write = function (chunk, encoding, done) {
+    let aggregatedStdout = '';
+    const aggregatorStderrStream = new stream.Writable();
+    const aggregatorStdoutStream = new stream.Writable();
+    aggregatorStderrStream._write = function (chunk, encoding, done) {
       aggregatedStderr += chunk;
+      done();
+    };
+    aggregatorStdoutStream._write = function (chunk, encoding, done) {
+      aggregatedStdout += chunk;
       done();
     };
     const childProcess = execa(command, cdkCommandArgs, {
       stdin: 'inherit',
-      stdout: 'inherit',
+      stdout: 'pipe',
       stderr: 'pipe',
     });
-    childProcess.stderr?.pipe(aggregatorStream);
-
+    childProcess.stderr?.pipe(aggregatorStderrStream);
+    childProcess.stdout?.pipe(aggregatorStdoutStream);
+    childProcess.stdout?.pipe(process.stdout);
     try {
       await childProcess;
+      return aggregatedStdout;
     } catch (error) {
       // swallow execa error which is not really helpful, rather throw stderr
       throw new Error(aggregatedStderr);
     }
+  };
+
+  private getDeploymentTimes = (cdkOutput: string) => {
+    const deploymentTimes: DeploymentTimes = {};
+    // the time can be in fractional or whole seconds. 24.3, 24, 24.22 etc.
+    const regexTotalTime = /✨ {2}Total time: (\d*\.*\d*)s.*/;
+    const totalTime = cdkOutput.match(regexTotalTime);
+    if (totalTime && totalTime.length > 1 && !isNaN(+totalTime[1])) {
+      deploymentTimes.totalTime = +totalTime[1];
+    }
+
+    const regexSynthTime = /✨ {2}Synthesis time: (\d*\.*\d*)s/;
+    const synthTime = cdkOutput.match(regexSynthTime);
+    if (synthTime && synthTime.length > 1 && !isNaN(+synthTime[1])) {
+      deploymentTimes.synthesisTime = +synthTime[1];
+    }
+
+    return deploymentTimes;
+  };
+
+  private deploymentHotswapped = (cdkOutput: string) => {
+    const regexTotalTime = /✨.*hotswapped!/;
+    return regexTotalTime.test(cdkOutput);
   };
 }
