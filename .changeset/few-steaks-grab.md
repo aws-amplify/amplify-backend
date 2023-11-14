@@ -1,6 +1,5 @@
 ---
-"@aws-amplify/plugin-types": patch
+'@aws-amplify/plugin-types': patch
 ---
 
 remove unused type
-
