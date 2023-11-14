@@ -71,11 +71,6 @@ export type BackendOutputStorageStrategy<T extends BackendOutputEntry> = {
     addBackendOutputEntry: (keyName: string, backendOutputEntry: T) => void;
 };
 
-// @public
-export type BackendOutputWriter = {
-    storeOutput: (outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>) => void;
-};
-
 // @public (undocumented)
 export type BackendSecret = {
     resolve: (scope: Construct, backendIdentifier: BackendIdentifier) => SecretValue;

@@ -1,5 +1,5 @@
 {
- "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyPipelineDeploy\",\"createdWith\":\"0.3.4\",\"stackType\":\"root\",\"metadata\":{}}",
+ "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyPipelineDeploy\",\"createdWith\":\"0.4.0\",\"stackType\":\"root\",\"metadata\":{}}",
  "Metadata": {
   "AWS::Amplify::Platform": {
    "version": "1",
@@ -82,20 +82,20 @@
     "Ref": "AWS::Region"
    }
   },
-  "passwordPolicyMinLength": {
-    "Value": "8"
-  },
-  "passwordPolicyRequirements": {
-    "Value": "[\"REQUIRES_NUMBERS\",\"REQUIRES_LOWERCASE\",\"REQUIRES_UPPERCASE\",\"REQUIRES_SYMBOLS\"]"
-  },
   "signupAttributes": {
-    "Value": "[\"EMAIL\"]"
+   "Value": "[\"EMAIL\"]"
   },
   "usernameAttributes": {
-    "Value": "[\"EMAIL\"]"
+   "Value": "[\"EMAIL\"]"
   },
   "verificationMechanisms": {
-    "Value": "[\"EMAIL\"]"
+   "Value": "[\"EMAIL\"]"
+  },
+  "passwordPolicyMinLength": {
+   "Value": "8"
+  },
+  "passwordPolicyRequirements": {
+   "Value": "[\"REQUIRES_NUMBERS\",\"REQUIRES_LOWERCASE\",\"REQUIRES_UPPERCASE\",\"REQUIRES_SYMBOLS\"]"
   },
   "amazonClientId": {
    "Value": {
@@ -414,7 +414,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/e09efceecbdc1885fbf20c35ca8ac02cfb3f09d5aea2b91f189f8511ddfdd836.json"
+       "/dc45b71e54502110319cb6355d0ac0ff582d85a7aeb7910d2b3b7bf97abde1ec.json"
       ]
      ]
     }
@@ -468,7 +468,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/6187f6907b2493cc435ff7d925a5ec8fcb18a4be48ec976773515785ed66df11.json"
+       "/1f6f9dbd53e23970f70c1438f33823b2ed8a7e66402d0f4dbf80a45f62b601a2.json"
       ]
      ]
     }
