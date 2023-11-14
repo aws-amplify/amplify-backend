@@ -1,5 +1,5 @@
 {
- "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyPipelineDeploy\",\"createdWith\":\"0.3.4\",\"stackType\":\"root\",\"metadata\":{}}",
+ "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyPipelineDeploy\",\"createdWith\":\"0.4.0\",\"stackType\":\"root\",\"metadata\":{}}",
  "Metadata": {
   "AWS::Amplify::Platform": {
    "version": "1",
@@ -30,6 +30,7 @@
     "awsAppsyncAuthenticationType",
     "awsAppsyncRegion",
     "amplifyApiModelSchemaS3Uri",
+    "awsAppsyncApiKey",
     "awsAppsyncAdditionalAuthenticationTypes"
    ]
   }
@@ -72,20 +73,20 @@
     "Ref": "AWS::Region"
    }
   },
-  "passwordPolicyMinLength": {
-    "Value": "8"
-  },
-  "passwordPolicyRequirements": {
-    "Value": "[\"REQUIRES_NUMBERS\",\"REQUIRES_LOWERCASE\",\"REQUIRES_UPPERCASE\",\"REQUIRES_SYMBOLS\"]"
-  },
   "signupAttributes": {
-    "Value": "[\"EMAIL\"]"
+   "Value": "[\"EMAIL\"]"
   },
   "usernameAttributes": {
-    "Value": "[\"EMAIL\"]"
+   "Value": "[\"EMAIL\"]"
   },
   "verificationMechanisms": {
-    "Value": "[\"EMAIL\"]"
+   "Value": "[\"EMAIL\"]"
+  },
+  "passwordPolicyMinLength": {
+   "Value": "8"
+  },
+  "passwordPolicyRequirements": {
+   "Value": "[\"REQUIRES_NUMBERS\",\"REQUIRES_LOWERCASE\",\"REQUIRES_UPPERCASE\",\"REQUIRES_SYMBOLS\"]"
   },
   "awsAppsyncApiId": {
    "Value": {
@@ -104,7 +105,7 @@
    }
   },
   "awsAppsyncAuthenticationType": {
-   "Value": "AMAZON_COGNITO_USER_POOLS"
+   "Value": "API_KEY"
   },
   "awsAppsyncRegion": {
    "Value": {
@@ -128,8 +129,16 @@
     ]
    }
   },
+  "awsAppsyncApiKey": {
+   "Value": {
+    "Fn::GetAtt": [
+     "data7552DF31",
+     "Outputs.amplifytestAppIdtestBranchNamebranch7d6f6c854adataamplifyDataGraphQLAPIDefaultApiKey346D40FDApiKey"
+    ]
+   }
+  },
   "awsAppsyncAdditionalAuthenticationTypes": {
-   "Value": "AWS_IAM"
+   "Value": "AMAZON_COGNITO_USER_POOLS,AWS_IAM"
   }
  },
  "Resources": {
@@ -359,7 +368,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/a1a829537fddce04651365f48806761962ec201f274a9757801cd7353d69fb20.json"
+       "/d4bc77b70b9a14715fe10c028d40dc02fda3a5af0b4458d582395d49f4f86412.json"
       ]
      ]
     }
@@ -406,7 +415,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/d653461bd77b0a8febba5dfdf91934a181f9f6eb7b4774cbfbe7cfc2e44b4362.json"
+       "/bebe1b734b4216c94b1c53351767d2c5459c97808ca16ef89e2b396f238e0548.json"
       ]
      ]
     }

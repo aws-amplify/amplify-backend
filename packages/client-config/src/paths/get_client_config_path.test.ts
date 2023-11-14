@@ -98,4 +98,34 @@ void describe('getClientConfigPath', () => {
       )
     );
   });
+
+  const expectedFileExtensions = [
+    {
+      format: ClientConfigFormat.MJS,
+      expectedFileExtension: '.mjs',
+    },
+    {
+      format: ClientConfigFormat.TS,
+      expectedFileExtension: '.ts',
+    },
+    {
+      format: ClientConfigFormat.DART,
+      expectedFileExtension: '.dart',
+    },
+    {
+      format: ClientConfigFormat.JSON,
+      expectedFileExtension: '.json',
+    },
+    {
+      format: ClientConfigFormat.JSON_MOBILE,
+      expectedFileExtension: '.json',
+    },
+  ] as const;
+  expectedFileExtensions.forEach((entry) => {
+    void it(`path for ${entry.format} should have ${entry.expectedFileExtension} suffix`, async () => {
+      const configPath = await getClientConfigPath(undefined, entry.format);
+
+      assert.ok(configPath.endsWith(entry.expectedFileExtension));
+    });
+  });
 });

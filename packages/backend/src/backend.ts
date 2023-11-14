@@ -7,7 +7,7 @@ import { Stack } from 'aws-cdk-lib';
  * Amplify generated resources and `getStack()` for adding custom resources.
  */
 export type Backend<T extends Record<string, ConstructFactory<Construct>>> = {
-  getStack: (name: string) => Stack;
+  createStack: (name: string) => Stack;
   readonly resources: {
     [K in keyof T]: ReturnType<T[K]['getInstance']>;
   };

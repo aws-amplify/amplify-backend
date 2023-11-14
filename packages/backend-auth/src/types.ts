@@ -10,6 +10,23 @@ import {
 import { BackendSecret } from '@aws-amplify/plugin-types';
 
 /**
+ * This utility allows us to expand nested types in auto complete prompts.
+ * @example
+ * type OtherType = {
+ *  property1: string;
+ *  property2: number;
+ * }
+ * type SomeType = {
+ *  property2: Expand<OtherType>;
+ * }
+ */
+export type Expand<T> = T extends infer O
+  ? {
+      [K in keyof O]: O[K];
+    }
+  : never;
+
+/**
  * Google provider properties.
  */
 export type GoogleProviderFactoryProps = Omit<
@@ -124,10 +141,25 @@ export type ExternalProviderGeneralFactoryProps = Omit<
  */
 export type ExternalProviderSpecificFactoryProps =
   ExternalProviderGeneralFactoryProps & {
+    /**
+     * SignInWithApple Settings
+     */
     signInWithApple?: AppleProviderFactoryProps;
+    /**
+     * LoginWithAmazon Settings
+     */
     loginWithAmazon?: AmazonProviderFactoryProps;
+    /**
+     * Facebook OAuth Settings
+     */
     facebook?: FacebookProviderFactoryProps;
+    /**
+     * OIDC Settings
+     */
     oidc?: OidcProviderFactoryProps;
+    /**
+     * Google OAuth Settings
+     */
     google?: GoogleProviderFactoryProps;
   };
 
@@ -139,7 +171,7 @@ export type AuthLoginWithFactoryProps = Omit<
   'externalProviders'
 > & {
   /**
-   * External provider properties.
+   * Configure OAuth, OIDC, and SAML login providers
    */
   externalProviders?: ExternalProviderSpecificFactoryProps;
 };
