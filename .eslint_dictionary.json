@@ -107,6 +107,7 @@
   "syncable",
   "timestamps",
   "tmpdir",
+  "todos",
   "toggleable",
   "tokenized",
   "totp",
