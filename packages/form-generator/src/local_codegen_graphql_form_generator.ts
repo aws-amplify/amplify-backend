@@ -98,20 +98,23 @@ export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
       renderTypeDeclarations: true,
       apiConfiguration: {
         dataApi: 'GraphQL',
-        fragmentsFilePath: path.join(
+        fragmentsFilePath: `./${path.join(
           this.renderOptions.graphqlDir,
           'fragments'
-        ),
-        mutationsFilePath: path.join(
+        )}`,
+        mutationsFilePath: `./${path.join(
           this.renderOptions.graphqlDir,
           'mutations'
-        ),
-        queriesFilePath: path.join(this.renderOptions.graphqlDir, 'queries'),
-        subscriptionsFilePath: path.join(
+        )}`,
+        queriesFilePath: `./${path.join(
+          this.renderOptions.graphqlDir,
+          'queries'
+        )}`,
+        subscriptionsFilePath: `./${path.join(
           this.renderOptions.graphqlDir,
           'subscriptions'
-        ),
-        typesFilePath: path.join(this.renderOptions.graphqlDir, 'types'),
+        )}`,
+        typesFilePath: `./${path.join(this.renderOptions.graphqlDir, 'types')}`,
       },
     };
   }
