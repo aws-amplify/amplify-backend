@@ -58,7 +58,7 @@ export class ClientConfigConverter {
               endpoint: clientConfig.aws_appsync_graphqlEndpoint,
               region: clientConfig.aws_appsync_region,
               authorizationType: clientConfig.aws_appsync_authenticationType,
-              apiKey: clientConfig.aws_appsync_region,
+              apiKey: clientConfig.aws_appsync_apiKey,
             },
           },
         },
@@ -71,7 +71,7 @@ export class ClientConfigConverter {
             ApiUrl: clientConfig.aws_appsync_graphqlEndpoint,
             Region: clientConfig.aws_appsync_region,
             AuthMode: clientConfig.aws_appsync_authenticationType,
-            ApiKey: clientConfig.aws_appsync_region,
+            ApiKey: clientConfig.aws_appsync_apiKey,
           },
         };
       }
