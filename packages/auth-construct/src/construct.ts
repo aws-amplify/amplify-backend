@@ -24,7 +24,7 @@ import {
 import { FederatedPrincipal, Role } from 'aws-cdk-lib/aws-iam';
 import { AuthOutput, authOutputKey } from '@aws-amplify/backend-output-schemas';
 import {
-  AuthProps,
+  AuthConstructProps,
   EmailLoginSettings,
   ExternalProviderOptions,
   TriggerEvent,
@@ -95,7 +95,7 @@ export class AmplifyAuth
   constructor(
     scope: Construct,
     id: string,
-    props: AuthProps = DEFAULTS.IF_NO_PROPS_PROVIDED
+    props: AuthConstructProps = DEFAULTS.IF_NO_PROPS_PROVIDED
   ) {
     super(scope, id);
 
@@ -272,7 +272,7 @@ export class AmplifyAuth
   /**
    * Process props into UserPoolProps (set defaults if needed)
    */
-  private getUserPoolProps = (props: AuthProps): UserPoolProps => {
+  private getUserPoolProps = (props: AuthConstructProps): UserPoolProps => {
     const emailEnabled = props.loginWith.email ? true : false;
     const phoneEnabled = props.loginWith.phone ? true : false;
     const oneOfEmailOrPhone = emailEnabled || phoneEnabled;
@@ -423,7 +423,7 @@ export class AmplifyAuth
   private getAccountRecoverySetting = (
     emailEnabled: boolean,
     phoneEnabled: boolean,
-    accountRecoveryMethodAsString: AuthProps['accountRecovery']
+    accountRecoveryMethodAsString: AuthConstructProps['accountRecovery']
   ): cognito.AccountRecovery | undefined => {
     const accountRecovery = this.convertAccountRecoveryStringToEnum(
       accountRecoveryMethodAsString
@@ -450,7 +450,9 @@ export class AmplifyAuth
    * @param mfa - MFA settings
    * @returns cognito MFA enforcement type
    */
-  private getMFAMode = (mfa: AuthProps['multifactor']): Mfa | undefined => {
+  private getMFAMode = (
+    mfa: AuthConstructProps['multifactor']
+  ): Mfa | undefined => {
     if (mfa) {
       switch (mfa.mode) {
         case 'OFF':
@@ -471,7 +473,7 @@ export class AmplifyAuth
    * @returns cognito.AccountRecovery enum value
    */
   private convertAccountRecoveryStringToEnum = (
-    method: AuthProps['accountRecovery']
+    method: AuthConstructProps['accountRecovery']
   ): cognito.AccountRecovery | undefined => {
     if (method !== undefined) {
       return cognito.AccountRecovery[method];
@@ -485,7 +487,7 @@ export class AmplifyAuth
    * @returns mfa message
    */
   private getMFAMessage = (
-    mfa: AuthProps['multifactor']
+    mfa: AuthConstructProps['multifactor']
   ): string | undefined => {
     if (mfa && mfa.mode !== 'OFF' && typeof mfa.sms === 'object') {
       const message = mfa.sms.smsMessage(MFA_SMS_PLACEHOLDERS.CODE);
@@ -504,7 +506,7 @@ export class AmplifyAuth
    */
   private setupIdentityProviders = (
     userPool: UserPool,
-    loginOptions: AuthProps['loginWith']
+    loginOptions: AuthConstructProps['loginWith']
   ): IdentityProviderSetupResult => {
     const result: IdentityProviderSetupResult = {
       oauthMappings: {},

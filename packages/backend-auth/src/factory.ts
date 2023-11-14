@@ -18,26 +18,22 @@ import * as path from 'path';
 import { AuthLoginWithFactoryProps } from './types.js';
 import { translateToAuthConstructLoginWith } from './translate_auth_props.js';
 
-/**
- * Configure custom auth triggers
- */
-export type TriggerConfig = {
-  /**
-   * Configure custom auth triggers
-   */
-  triggers?: Partial<
-    Record<TriggerEvent, ConstructFactory<ResourceProvider<FunctionResources>>>
-  >;
-};
-
 export type AmplifyAuthFactoryProps = Expand<
-  Omit<AuthProps, 'outputStorageStrategy' | 'loginWith'> &
-    TriggerConfig & {
-      /**
-       * Specify how you would like users to log in. You can choose from email, phone, and even external providers such as LoginWithAmazon.
-       */
-      loginWith: Expand<AuthLoginWithFactoryProps>;
-    }
+  Omit<AuthProps, 'outputStorageStrategy' | 'loginWith'> & {
+    /**
+     * Specify how you would like users to log in. You can choose from email, phone, and even external providers such as LoginWithAmazon.
+     */
+    loginWith: Expand<AuthLoginWithFactoryProps>;
+    /**
+     * Configure custom auth triggers
+     */
+    triggers?: Partial<
+      Record<
+        TriggerEvent,
+        ConstructFactory<ResourceProvider<FunctionResources>>
+      >
+    >;
+  }
 >;
 
 /**

@@ -214,7 +214,7 @@ export type TriggerEvent = (typeof triggerEvents)[number];
 /**
  * Input props for the AmplifyAuth construct
  */
-export type AuthProps = {
+export type AuthConstructProps = {
   /**
    * Specify how you would like users to log in. You can choose from email, phone, and even external providers such as LoginWithAmazon.
    */
