@@ -2,137 +2,93 @@ import {
   ConstructContainerEntryGenerator,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
+  FunctionResources,
+  ResourceProvider,
 } from '@aws-amplify/plugin-types';
-import {
-  AmplifyFunctionProps,
-  AmplifyLambdaFunction,
-} from '@aws-amplify/function-construct-alpha';
 import { Construct } from 'constructs';
-import { execaCommand } from 'execa';
-import * as path from 'path';
-import { getCallerDirectory } from './get_caller_directory.js';
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 
-export type AmplifyFunctionFactoryBaseProps = {
+/**
+ * Entry point for defining a function in the Amplify ecosystem
+ */
+export const defineFunction = (props: FunctionFactoryProps) =>
+  new FunctionFactory(props);
+
+export type FunctionFactoryProps = {
   /**
-   * A name for the function that is used to disambiguate it from other functions in the project
+   * A name for the function that is used to disambiguate it from other functions in the project.
+   * Defaults to the directory name in which this function is defined
    */
-  name: string;
+  name?: string;
+  /**
+   * The name of the function from the source code that is executed in the cloud
+   * Defaults to "handler"
+   */
+  handler?: string;
+  /**
+   * The name of the file that contains the handler, relative to the location where `defineFunction` is called
+   * Defaults to "./handler.ts"
+   */
+  relativeSourcePath?: string;
 };
-
-export type AmplifyFunctionFactoryBuildProps = AmplifyFunctionFactoryBaseProps &
-  Omit<AmplifyFunctionProps, 'absoluteCodePath'> & {
-    /**
-     * The command to run that generates built function code.
-     * This command is run from the directory where this factory is called
-     */
-    buildCommand: string;
-    /**
-     * The buildCommand is expected to place build artifacts at this location.
-     * This path can be relative or absolute. If relative, the absolute path is calculated based on the directory where this factory is called
-     */
-    outDir: string;
-  };
-
-export type AmplifyFunctionFactoryFromDirProps =
-  AmplifyFunctionFactoryBaseProps &
-    Omit<AmplifyFunctionProps, 'absoluteCodePath'> & {
-      /**
-       * The location of the pre-built function code.
-       * Can be a directory or a .zip file.
-       * Can be a relative or absolute path. If relative, the absolute path is calculated based on the directory where this factory is called.
-       */
-      codePath: string;
-    };
-
-type AmplifyFunctionFactoryProps = AmplifyFunctionFactoryBaseProps &
-  AmplifyFunctionProps;
 
 /**
  * Create Lambda functions in the context of an Amplify backend definition
  */
-export class AmplifyFunctionFactory
-  implements ConstructFactory<AmplifyLambdaFunction>
-{
-  // execaCommand is assigned to a static prop so that it can be mocked in tests
-  private static commandExecutor = execaCommand;
-
+export class FunctionFactory implements ConstructFactory<AmplifyFunction> {
+  private readonly placeholderDefaultName = 'placeholder-name';
   private generator: ConstructContainerEntryGenerator;
   /**
    * Create a new AmplifyFunctionFactory
    */
-  private constructor(private readonly props: AmplifyFunctionFactoryProps) {}
-
-  /**
-   * Create a function from a directory that contains pre-built code
-   */
-  static fromDir = (
-    props: AmplifyFunctionFactoryFromDirProps
-  ): AmplifyFunctionFactory => {
-    const absoluteCodePath = path.isAbsolute(props.codePath)
-      ? props.codePath
-      : path.resolve(getCallerDirectory(new Error().stack), props.codePath);
-    return new AmplifyFunctionFactory({
-      name: props.name,
-      absoluteCodePath,
-      runtime: props.runtime,
-      handler: props.handler,
-    });
-  };
-
-  /**
-   * Create a function by executing a build command that places build artifacts at a specified location
-   *
-   * TODO: Investigate long-term function building strategy: https://github.com/aws-amplify/amplify-backend/issues/92
-   */
-  static build = async (
-    props: AmplifyFunctionFactoryBuildProps
-  ): Promise<AmplifyFunctionFactory> => {
-    const importPath = getCallerDirectory(new Error().stack);
-
-    await AmplifyFunctionFactory.commandExecutor(props.buildCommand, {
-      cwd: importPath,
-      stdio: 'inherit',
-      shell: 'bash',
-    });
-
-    const absoluteCodePath = path.isAbsolute(props.outDir)
-      ? props.outDir
-      : path.resolve(importPath, props.outDir);
-
-    return new AmplifyFunctionFactory({
-      name: props.name,
-      absoluteCodePath,
-      runtime: props.runtime,
-      handler: props.handler,
-    });
-  };
+  constructor(private readonly props: FunctionFactoryProps) {}
 
   /**
    * Creates an instance of AmplifyFunction within the provided Amplify context
    */
   getInstance = ({
     constructContainer,
-  }: ConstructFactoryGetInstanceProps): AmplifyLambdaFunction => {
+  }: ConstructFactoryGetInstanceProps): AmplifyFunction => {
     if (!this.generator) {
-      this.generator = new AmplifyFunctionGenerator(this.props);
+      this.generator = new FunctionGenerator(this.hydrateDefaults(this.props));
     }
-    return constructContainer.getOrCompute(
-      this.generator
-    ) as AmplifyLambdaFunction;
+    return constructContainer.getOrCompute(this.generator) as AmplifyFunction;
+  };
+
+  private hydrateDefaults = (
+    props: FunctionFactoryProps
+  ): HydratedFunctionProps => {
+    return {
+      name: props.name ?? this.placeholderDefaultName,
+      handler: props.handler ?? 'handler',
+      relativeSourcePath: props.relativeSourcePath ?? './handler.ts',
+    };
   };
 }
 
-class AmplifyFunctionGenerator implements ConstructContainerEntryGenerator {
+type HydratedFunctionProps = Required<FunctionFactoryProps>;
+
+class FunctionGenerator implements ConstructContainerEntryGenerator {
   readonly resourceGroupName = 'function';
 
-  constructor(private readonly props: AmplifyFunctionFactoryProps) {}
+  constructor(private readonly props: HydratedFunctionProps) {}
 
   generateContainerEntry = (scope: Construct) => {
-    return new AmplifyLambdaFunction(scope, this.props.name, this.props);
+    return new AmplifyFunction(scope, this.props.name, this.props);
   };
 }
 
-/**
- * Alias for AmplifyFunctionFactory
- */
-export const Func = AmplifyFunctionFactory;
+class AmplifyFunction
+  extends Construct
+  implements ResourceProvider<FunctionResources>
+{
+  readonly resources: FunctionResources;
+  constructor(scope: Construct, id: string, props: HydratedFunctionProps) {
+    super(scope, id);
+    const lambda = new NodejsFunction(scope, `${id}-lambda`, {
+      handler: props.handler,
+      entry: props.relativeSourcePath,
+    });
+    this.resources.lambda = lambda;
+  }
+}
