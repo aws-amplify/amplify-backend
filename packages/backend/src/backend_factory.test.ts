@@ -150,11 +150,17 @@ void describe('Backend', () => {
     rootStackTemplate.resourceCountIs('Custom::AmplifyBranchLinkerResource', 0);
   });
 
-  void describe('getStack', () => {
+  void describe('createStack', () => {
     void it('returns nested stack', () => {
       const backend = new BackendFactory({}, rootStack);
-      const testStack = backend.getStack('testStack');
+      const testStack = backend.createStack('testStack');
       assert.strictEqual(rootStack.node.findChild('testStack'), testStack);
+    });
+
+    void it('throws if stack has already been created with specified name', () => {
+      const backend = new BackendFactory({}, rootStack);
+      backend.createStack('testStack');
+      assert.throws(() => backend.createStack('testStack'), 'test message');
     });
   });
 });
