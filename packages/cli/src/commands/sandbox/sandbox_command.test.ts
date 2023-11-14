@@ -6,6 +6,7 @@ import {
   TestCommandRunner,
 } from '../../test-utils/command_runner.js';
 import assert from 'node:assert';
+import fs from 'fs';
 import fsp from 'fs/promises';
 import { EventHandler, SandboxCommand } from './sandbox_command.js';
 import { createSandboxCommand } from './sandbox_command_factory.js';
@@ -14,6 +15,7 @@ import { Sandbox, SandboxSingletonFactory } from '@aws-amplify/sandbox';
 import { createSandboxSecretCommand } from './sandbox-secret/sandbox_secret_command_factory.js';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 import { CommandMiddleware } from '../../command_middleware.js';
+import path from 'path';
 
 void describe('sandbox command factory', () => {
   void it('instantiate a sandbox command correctly', () => {
@@ -289,6 +291,26 @@ void describe('sandbox command', () => {
         assert.equal(err.error.message, configOutDirError.message);
         return true;
       }
+    );
+  });
+
+  void it('starts sandbox with provided client config options as watch exclusions', async (contextual) => {
+    mock.method(fs, 'lstatSync', () => {
+      return {
+        isFile: () => false,
+        isDir: () => true,
+      };
+    });
+    contextual.mock.method(fsp, 'stat', () => ({
+      isDirectory: () => true,
+    }));
+    await commandRunner.runCommand(
+      'sandbox --config-out-dir existentDir --config-format ts'
+    );
+    assert.equal(sandboxStartMock.mock.callCount(), 1);
+    assert.deepStrictEqual(
+      sandboxStartMock.mock.calls[0].arguments[0].exclude,
+      [path.join(process.cwd(), 'existentDir', 'amplifyconfiguration.ts')]
     );
   });
 });
