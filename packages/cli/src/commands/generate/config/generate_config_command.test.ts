@@ -135,6 +135,20 @@ void describe('generate config command', () => {
     ]);
   });
 
+  void it('can generate config in json mobile format', async () => {
+    await commandRunner.runCommand(
+      'config --stack stack_name --out-dir foo/bar --format json-mobile'
+    );
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
+    assert.deepStrictEqual(generateClientConfigMock.mock.calls[0].arguments, [
+      {
+        stackName: 'stack_name',
+      },
+      'foo/bar',
+      ClientConfigFormat.JSON_MOBILE,
+    ]);
+  });
+
   void it('shows available options in help output', async () => {
     const output = await commandRunner.runCommand('config --help');
     assert.match(output, /--stack/);

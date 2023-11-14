@@ -1,5 +1,12 @@
 # @aws-amplify/plugin-types
 
+## 0.4.1
+
+### Patch Changes
+
+- 65fe3a8fd: remove unused type
+- cd5feeed0: Expand types for Auth to improve auto completion suggestions.
+
 ## 0.4.0
 
 ### Minor Changes

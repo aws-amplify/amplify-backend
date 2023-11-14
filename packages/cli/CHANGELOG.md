@@ -1,5 +1,19 @@
 # @aws-amplify/backend-cli
 
+## 0.6.1
+
+### Patch Changes
+
+- 957ba93db: Fix a profile middleware unit test
+- 01ebbc497: handle client config formats used in mobile app development
+- Updated dependencies [07b0dfc9f]
+- Updated dependencies [01ebbc497]
+  - @aws-amplify/backend-output-schemas@0.4.0
+  - @aws-amplify/client-config@0.4.0
+  - @aws-amplify/deployed-backend-client@0.3.1
+  - @aws-amplify/model-generator@0.2.2
+  - @aws-amplify/sandbox@0.3.1
+
 ## 0.6.0
 
 ### Minor Changes

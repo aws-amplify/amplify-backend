@@ -1,5 +1,12 @@
 # @aws-amplify/backend-output-storage
 
+## 0.2.2
+
+### Patch Changes
+
+- Updated dependencies [07b0dfc9f]
+  - @aws-amplify/backend-output-schemas@0.4.0
+
 ## 0.2.1
 
 ### Patch Changes

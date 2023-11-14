@@ -1,5 +1,12 @@
 # @aws-amplify/deployed-backend-client
 
+## 0.3.1
+
+### Patch Changes
+
+- Updated dependencies [07b0dfc9f]
+  - @aws-amplify/backend-output-schemas@0.4.0
+
 ## 0.3.0
 
 ### Minor Changes
