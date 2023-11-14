@@ -11,7 +11,6 @@ import { AuthProps } from '@aws-amplify/auth-construct-alpha';
 import { AuthResources } from '@aws-amplify/plugin-types';
 import { BackendSecret } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
-import { Expand } from '@aws-amplify/plugin-types';
 import { ExternalProviderOptions } from '@aws-amplify/auth-construct-alpha';
 import { FacebookProviderProps } from '@aws-amplify/auth-construct-alpha';
 import { FunctionResources } from '@aws-amplify/plugin-types';
@@ -47,6 +46,11 @@ export type AuthLoginWithFactoryProps = Omit<AuthProps['loginWith'], 'externalPr
 
 // @public
 export const defineAuth: (props: AmplifyAuthProps) => ConstructFactory<AmplifyAuth & ResourceProvider<AuthResources>>;
+
+// @public
+export type Expand<T> = T extends infer O ? {
+    [K in keyof O]: O[K];
+} : never;
 
 // @public
 export type ExternalProviderGeneralFactoryProps = Omit<ExternalProviderOptions, 'signInWithApple' | 'loginWithAmazon' | 'facebook' | 'oidc' | 'google'>;
