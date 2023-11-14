@@ -9,6 +9,7 @@ import fs from 'fs';
 import os from 'os';
 import { AccountIdFetcher } from './account_id_fetcher';
 import { DeploymentTimes, UsageData } from './usage_data';
+import isCI from 'is-ci';
 
 void describe('UsageDataEmitter', () => {
   let usageDataEmitter: UsageDataEmitter;
@@ -67,7 +68,7 @@ void describe('UsageDataEmitter', () => {
       totalDuration: 21,
       platformStartup: 5,
     });
-    assert.deepStrictEqual(usageDataSent.isCi, false);
+    assert.deepStrictEqual(usageDataSent.isCi, isCI);
     assert.deepStrictEqual(usageDataSent.osPlatform, os.platform());
     assert.deepStrictEqual(usageDataSent.osRelease, os.release());
     assert.ok(validate(usageDataSent.sessionUuid));
@@ -93,7 +94,7 @@ void describe('UsageDataEmitter', () => {
       plugin: 'Gen2',
     });
     assert.deepStrictEqual(usageDataSent.codePathDurations, {});
-    assert.deepStrictEqual(usageDataSent.isCi, false);
+    assert.deepStrictEqual(usageDataSent.isCi, isCI);
     assert.deepStrictEqual(usageDataSent.osPlatform, os.platform());
     assert.deepStrictEqual(usageDataSent.osRelease, os.release());
     assert.ok(validate(usageDataSent.sessionUuid));
