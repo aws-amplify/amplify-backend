@@ -10,12 +10,11 @@ import {
   ConstructContainerEntryGenerator,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
-  Expand,
   FunctionResources,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import * as path from 'path';
-import { AuthLoginWithFactoryProps } from './types.js';
+import { AuthLoginWithFactoryProps, Expand } from './types.js';
 import { translateToAuthConstructLoginWith } from './translate_auth_props.js';
 
 export type AmplifyAuthProps = Expand<
