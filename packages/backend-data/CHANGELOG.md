@@ -1,5 +1,17 @@
 # @aws-amplify/backend-data
 
+## 0.5.1
+
+### Patch Changes
+
+- bd8b5d1a5: update data/resource template; bump data-schema versions
+- Updated dependencies [65fe3a8fd]
+- Updated dependencies [cd5feeed0]
+- Updated dependencies [07b0dfc9f]
+  - @aws-amplify/plugin-types@0.4.1
+  - @aws-amplify/backend-output-schemas@0.4.0
+  - @aws-amplify/backend-output-storage@0.2.2
+
 ## 0.5.0
 
 ### Minor Changes

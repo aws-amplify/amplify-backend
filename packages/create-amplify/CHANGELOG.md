@@ -1,5 +1,14 @@
 # create-amplify
 
+## 0.3.2
+
+### Patch Changes
+
+- 14d862196: Animate ellipsis for high level create amplify logs
+- 23b369d79: Add amplify comment when writing to gitignore
+- bd8b5d1a5: update data/resource template; bump data-schema versions
+- 14d862196: Hide npm outputs and switch from using console to logger in create amplify
+
 ## 0.3.1
 
 ### Patch Changes
