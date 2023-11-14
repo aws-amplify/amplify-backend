@@ -160,7 +160,9 @@ void describe('Backend', () => {
     void it('throws if stack has already been created with specified name', () => {
       const backend = new BackendFactory({}, rootStack);
       backend.createStack('testStack');
-      assert.throws(() => backend.createStack('testStack'), 'test message');
+      assert.throws(() => backend.createStack('testStack'), {
+        message: 'Custom stack named testStack has already been created',
+      });
     });
   });
 });
