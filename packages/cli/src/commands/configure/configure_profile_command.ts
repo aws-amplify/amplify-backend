@@ -7,7 +7,7 @@ import { ArgumentsKebabCase } from '../../kebab_case.js';
 import { ProfileController } from './profile_controller.js';
 
 const configureAccountUrl =
-  'http://docs.amplify.aws/gen2/start/configure-account';
+  'https://docs.amplify.aws/gen2/start/configure-account';
 
 /**
  * Command to configure AWS Amplify profile.
