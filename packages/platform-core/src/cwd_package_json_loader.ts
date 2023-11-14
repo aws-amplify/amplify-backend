@@ -44,4 +44,4 @@ const packageJsonSchema = z.object({
   name: z.string(),
 });
 
-type PackageJson = z.infer<typeof packageJsonSchema>;
+export type PackageJson = z.infer<typeof packageJsonSchema>;

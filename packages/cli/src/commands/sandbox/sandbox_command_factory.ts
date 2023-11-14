@@ -3,13 +3,18 @@ import { SandboxCommand, SandboxCommandOptions } from './sandbox_command.js';
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
 import { SandboxDeleteCommand } from './sandbox-delete/sandbox_delete_command.js';
 import { SandboxBackendIdResolver } from './sandbox_id_resolver.js';
-import { CwdPackageJsonLoader } from '../../cwd_package_json_loader.js';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { LocalNamespaceResolver } from '../../backend-identifier/local_namespace_resolver.js';
 import { createSandboxSecretCommand } from './sandbox-secret/sandbox_secret_command_factory.js';
+import {
+  CwdPackageJsonLoader,
+  LibraryVersionFetcher,
+  UsageDataEmitter,
+} from '@aws-amplify/platform-core';
 import { SandboxEventHandlerFactory } from './sandbox_event_handler_factory.js';
 import { CommandMiddleware } from '../../command_middleware.js';
+import { fileURLToPath } from 'url';
 
 /**
  * Creates wired sandbox command.
@@ -47,7 +52,12 @@ export const createSandboxCommand = (): CommandModule<
   );
 
   const eventHandlerFactory = new SandboxEventHandlerFactory(
-    sandboxBackendIdentifierResolver
+    sandboxBackendIdentifierResolver,
+    new UsageDataEmitter(
+      new LibraryVersionFetcher().fetch(
+        fileURLToPath(new URL('../../../package.json', import.meta.url))
+      )
+    )
   );
 
   const commandMiddleWare = new CommandMiddleware();

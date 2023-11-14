@@ -1,4 +1,5 @@
 import { ClientConfigFormat } from '@aws-amplify/client-config';
+import { UsageDataEmitter } from '@aws-amplify/platform-core';
 import assert from 'node:assert';
 import { it, mock } from 'node:test';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
@@ -22,11 +23,14 @@ void it('calls the client config adapter on the successfulDeployment event', asy
     ClientConfigFormat.MJS
   );
 
-  const eventFactory = new SandboxEventHandlerFactory(async () => ({
-    namespace: 'test',
-    name: 'name',
-    type: 'sandbox',
-  }));
+  const eventFactory = new SandboxEventHandlerFactory(
+    async () => ({
+      namespace: 'test',
+      name: 'name',
+      type: 'sandbox',
+    }),
+    new UsageDataEmitter('test-version')
+  );
 
   await Promise.all(
     eventFactory
@@ -64,11 +68,14 @@ void it('calls deleteClientConfigFile on client config adapter on the successful
 
   const fspMock = mock.method(fsp, 'rm', () => Promise.resolve());
 
-  const eventFactory = new SandboxEventHandlerFactory(async () => ({
-    namespace: 'test',
-    name: 'name',
-    type: 'sandbox',
-  }));
+  const eventFactory = new SandboxEventHandlerFactory(
+    async () => ({
+      namespace: 'test',
+      name: 'name',
+      type: 'sandbox',
+    }),
+    new UsageDataEmitter('test-version')
+  );
 
   await Promise.all(
     eventFactory

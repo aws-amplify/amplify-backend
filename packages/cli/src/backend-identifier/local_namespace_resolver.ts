@@ -1,4 +1,4 @@
-import { CwdPackageJsonLoader } from '../cwd_package_json_loader.js';
+import { CwdPackageJsonLoader } from '@aws-amplify/platform-core';
 
 export type NamespaceResolver = {
   resolve: () => Promise<string>;

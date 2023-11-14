@@ -19,6 +19,11 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@aws-amplify/plugin-types": "^0.4.0"
+    "@aws-amplify/plugin-types": "^0.4.0",
+    "@aws-sdk/client-sts": "3.445.0",
+    "is-ci": "^3.0.1",
+    "semver": "^7.5.4",
+    "uuid": "9.0.1",
+    "zod": "^3.21.4"
   }
 }

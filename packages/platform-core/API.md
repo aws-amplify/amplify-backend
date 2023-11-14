@@ -4,7 +4,13 @@
 
 ```ts
 
+/// <reference types="node" />
+
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import * as _fs from 'fs';
+import * as _fsp from 'fs/promises';
+import { UrlWithStringQuery } from 'url';
+import { z } from 'zod';
 
 // @public
 export class BackendIdentifierConversions {
@@ -30,10 +36,42 @@ export enum CDKContextKey {
 }
 
 // @public
+export class CwdPackageJsonLoader {
+    constructor(fs?: typeof _fs, fsp?: typeof _fsp);
+    loadCwdPackageJson: () => Promise<PackageJson>;
+}
+
+// @public (undocumented)
+export type DeploymentTimes = {
+    synthesisTime?: number;
+    totalTime?: number;
+};
+
+// @public
 export class FilePathExtractor {
     constructor(stackTraceLine: string);
     // (undocumented)
     extract: () => string | undefined;
+}
+
+// @public
+export class LibraryVersionFetcher {
+    // (undocumented)
+    fetch: (absolutePackageJsonPath: string) => string;
+}
+
+// Warning: (ae-forgotten-export) The symbol "packageJsonSchema" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export type PackageJson = z.infer<typeof packageJsonSchema>;
+
+// @public
+export class UsageDataEmitter {
+    constructor(libraryVersion: string, sessionUuid?: string, url?: UrlWithStringQuery);
+    // (undocumented)
+    emitFailure: (command: string, error: Error) => Promise<void>;
+    // (undocumented)
+    emitSuccess: (command: string, deploymentTimes?: DeploymentTimes, hotswapped?: boolean) => Promise<void>;
 }
 
 // (No @packageDocumentation comment for this package)

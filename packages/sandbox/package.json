@@ -22,20 +22,21 @@
     "@aws-amplify/backend-secret": "^0.3.0",
     "@aws-amplify/cli-core": "^0.2.0",
     "@aws-amplify/client-config": "0.3.0",
+    "@aws-sdk/client-cloudformation": "^3.421.0",
     "@aws-amplify/deployed-backend-client": "^0.3.0",
     "@aws-amplify/platform-core": "^0.2.0",
     "@aws-sdk/credential-providers": "^3.382.0",
     "@aws-sdk/types": "^3.378.0",
-    "@aws-sdk/client-cloudformation": "^3.421.0",
     "@parcel/watcher": "^2.3.0",
-    "glob": "^10.2.7",
     "debounce-promise": "^3.1.2",
-    "parse-gitignore": "^2.0.0",
-    "open": "^9.1.0"
+    "glob": "^10.2.7",
+    "open": "^9.1.0",
+    "parse-gitignore": "^2.0.0"
   },
   "devDependencies": {
     "@types/debounce-promise": "^3.1.6",
-    "@types/parse-gitignore": "^1.0.0"
+    "@types/parse-gitignore": "^1.0.0",
+    "@types/uuid": "^9.0.7"
   },
   "peerDependencies": {
     "aws-cdk": "^2.103.0"
