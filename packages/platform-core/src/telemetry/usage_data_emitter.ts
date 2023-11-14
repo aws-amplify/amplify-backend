@@ -1,12 +1,13 @@
 import { v4 as uuid } from 'uuid';
-import { getAccountId } from './get_account_id.js';
-import { DeploymentTimes, SerializableError, UsageData } from './usage_data.js';
+import { AccountIdFetcher } from './account_id_fetcher.js';
+import { DeploymentTimes, UsageData } from './usage_data.js';
 import os from 'os';
 import https from 'https';
 import { getInstallationUuid } from './get_installation_id.js';
-import { getLatestPayloadVersion } from './version_manager.js';
+import { latestPayloadVersion } from './version_manager.js';
 import { getUrl } from './get_usage_data_url.js';
 import isCI from 'is-ci';
+import { SerializableError } from './serializable_error.js';
 
 /**
  * Entry point for sending usage data metrics
@@ -18,7 +19,8 @@ export class UsageDataEmitter {
   constructor(
     private readonly libraryVersion: string,
     private readonly sessionUuid = uuid(),
-    private readonly url = getUrl()
+    private readonly url = getUrl(),
+    private readonly accountIdFetcher = new AccountIdFetcher()
   ) {}
 
   emitSuccess = async (
@@ -48,7 +50,7 @@ export class UsageDataEmitter {
     hotswapped?: boolean;
   }) => {
     return {
-      accountId: await getAccountId(),
+      accountId: await this.accountIdFetcher.fetch(),
       sessionUuid: this.sessionUuid,
       installationUuid: await getInstallationUuid(),
       amplifyCliVersion: this.libraryVersion,
@@ -60,7 +62,7 @@ export class UsageDataEmitter {
         options.error.cause instanceof Error
           ? new SerializableError(options.error.cause)
           : undefined,
-      payloadVersion: getLatestPayloadVersion(),
+      payloadVersion: latestPayloadVersion,
       osPlatform: os.platform(),
       osRelease: os.release(),
       nodeVersion: process.versions.node,

@@ -7,15 +7,14 @@ const AMPLIFY_CLI_UUID_NAMESPACE = 'e7368840-2eb6-4042-99b4-9d6c2a9370e6'; // A 
 /**
  * Generates a consistent installation Uuid from the cwd + packageJsonName + userName
  */
-export const getInstallationUuid = async () => {
+export const getInstallationUuid = async (
+  namespace: string = AMPLIFY_CLI_UUID_NAMESPACE
+) => {
   const packageJsonName = (
     await new CwdPackageJsonLoader().loadCwdPackageJson()
   ).name;
   const userName = userInfo().username;
   const cwdPath = process.cwd();
 
-  return uuidV5(
-    cwdPath + packageJsonName + userName,
-    AMPLIFY_CLI_UUID_NAMESPACE
-  );
+  return uuidV5(cwdPath + packageJsonName + userName, namespace);
 };

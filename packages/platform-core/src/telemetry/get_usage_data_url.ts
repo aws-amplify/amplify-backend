@@ -1,10 +1,9 @@
 import url, { UrlWithStringQuery } from 'url';
-import { getLatestApiVersion } from './version_manager.js';
+import { latestApiVersion } from './version_manager.js';
 
 let parsedUrl: UrlWithStringQuery;
 
-const version = getLatestApiVersion();
-export const prodUrl = `https://api.cli.amplify.aws/${version}/metrics`;
+const prodUrl = `https://api.cli.amplify.aws/${latestApiVersion}/metrics`;
 
 /**
  *  Usage data tracking service URL
@@ -18,14 +17,13 @@ export const getUrl = (): UrlWithStringQuery => {
 };
 
 const getParsedUrl = (): UrlWithStringQuery => {
-  if (isProduction() && !useBetaUrl()) {
+  if (!useBetaUrl()) {
     return url.parse(prodUrl);
   }
 
   return url.parse(process.env.AMPLIFY_CLI_BETA_USAGE_TRACKING_URL || '');
 };
 
-const isProduction = (): boolean => process.env.CLI_ENV === 'production';
 const useBetaUrl = (): boolean =>
   !!(
     process.env.AMPLIFY_CLI_BETA_USAGE_TRACKING_URL &&

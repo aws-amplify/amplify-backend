@@ -10,6 +10,11 @@ void describe('LibraryVersionFetcher', () => {
     JSON.stringify({ version: '12.13.14' })
   );
 
+  void it('returns the right version', () => {
+    const version = libraryVersionFetcher.fetch('some/path');
+    assert.deepStrictEqual(version, '12.13.14');
+  });
+
   void it('throws if provided package json file cannot be found', () => {
     fsExistsSyncMock.mock.mockImplementationOnce(() => false);
     assert.throws(() => libraryVersionFetcher.fetch('some/path'), {

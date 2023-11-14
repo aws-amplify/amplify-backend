@@ -9,8 +9,16 @@
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import * as _fs from 'fs';
 import * as _fsp from 'fs/promises';
+import { STSClient } from '@aws-sdk/client-sts';
 import { UrlWithStringQuery } from 'url';
 import { z } from 'zod';
+
+// @public
+export class AccountIdFetcher {
+    constructor(stsClient?: STSClient);
+    // (undocumented)
+    fetch: () => Promise<string>;
+}
 
 // @public
 export class BackendIdentifierConversions {
@@ -74,7 +82,7 @@ export const packageJsonSchema: z.ZodObject<{
 
 // @public
 export class UsageDataEmitter {
-    constructor(libraryVersion: string, sessionUuid?: string, url?: UrlWithStringQuery);
+    constructor(libraryVersion: string, sessionUuid?: string, url?: UrlWithStringQuery, accountIdFetcher?: AccountIdFetcher);
     // (undocumented)
     emitFailure: (command: string, error: Error) => Promise<void>;
     // (undocumented)
