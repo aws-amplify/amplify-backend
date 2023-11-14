@@ -13,7 +13,7 @@ import { randomUUID } from 'crypto';
 
 void describe('client config writer', () => {
   const pathResolverMock = mock.fn<ClientConfigPathResolver>();
-  const clientFormatter = new ClientConfigFormatter();
+  const clientFormatter = new ClientConfigFormatter(undefined as never);
   const fspMock = {
     writeFile: mock.fn<(path: string, content: string) => Promise<void>>(() =>
       Promise.resolve()
