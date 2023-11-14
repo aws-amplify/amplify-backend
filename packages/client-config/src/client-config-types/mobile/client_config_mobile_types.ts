@@ -1,5 +1,5 @@
 export type ClientConfigMobile = {
-  UserAgent: 'aws-amplify-cli/2.0';
+  UserAgent: string;
   Version: '1.0';
   api?: ClientConfigMobileApi;
   auth?: ClientConfigMobileAuth;
@@ -23,7 +23,7 @@ export type ClientConfigMobileApi = {
 export type ClientConfigMobileAuth = {
   plugins: {
     awsCognitoAuthPlugin: {
-      UserAgent: 'aws-amplify-cli/2.0';
+      UserAgent: string;
       Version: '1.0';
       CredentialsProvider: {
         CognitoIdentity: {

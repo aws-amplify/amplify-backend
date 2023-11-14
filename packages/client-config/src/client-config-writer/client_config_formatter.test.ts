@@ -22,7 +22,10 @@ void describe('client config formatter', () => {
     UserAgent: 'aws-amplify-cli/2.0',
   };
 
-  const clientConfigConverter = new ClientConfigConverter();
+  const clientConfigConverter = new ClientConfigConverter(
+    undefined as never,
+    undefined as never
+  );
   const clientConfigConverterMock = mock.method(
     clientConfigConverter,
     'convertToMobileConfig',

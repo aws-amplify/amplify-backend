@@ -10,18 +10,27 @@ import {
  */
 export class ClientConfigConverter {
   /**
+   * Creates client config converter
+   */
+  constructor(
+    private readonly packageName: string,
+    private readonly packageVersion: string
+  ) {}
+  /**
    * Converts client config to a shape consumable by mobile libraries.
    */
   convertToMobileConfig = (clientConfig: ClientConfig): ClientConfigMobile => {
+    const userAgent = `${this.packageName}/${this.packageVersion}`;
+
     const mobileConfig: ClientConfigMobile = {
-      UserAgent: 'aws-amplify-cli/2.0',
+      UserAgent: userAgent,
       Version: '1.0',
     };
     if (clientConfig.aws_user_pools_id) {
       const authConfig: ClientConfigMobileAuth = {
         plugins: {
           awsCognitoAuthPlugin: {
-            UserAgent: 'aws-amplify-cli/2.0',
+            UserAgent: userAgent,
             Version: '1.0',
             CognitoUserPool: {
               Default: {
