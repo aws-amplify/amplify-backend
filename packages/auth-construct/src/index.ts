@@ -1,5 +1,5 @@
 export {
-  AuthProps as AuthProps,
+  AuthProps,
   EmailLogin,
   EmailLoginSettings,
   GoogleProviderProps,
