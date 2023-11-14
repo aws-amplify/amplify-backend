@@ -35,7 +35,7 @@ void describe('NestedStackResolver', () => {
       assert.strictEqual(testStack1, testStack2);
     });
   });
-  void describe('getCustomStack', () => {
+  void describe('createCustomStack', () => {
     void it('attaches attribution metadata to stack', () => {
       const app = new App();
       const stack = new Stack(app);
@@ -43,7 +43,7 @@ void describe('NestedStackResolver', () => {
         stack,
         new AttributionMetadataStorage()
       );
-      const customStack = stackResolver.getCustomStack('test1');
+      const customStack = stackResolver.createCustomStack('test1');
       const attributionMetadata = JSON.parse(
         customStack.templateOptions.description || '{}'
       );
@@ -51,17 +51,15 @@ void describe('NestedStackResolver', () => {
       assert.equal(attributionMetadata.createdWith, packageJson.version);
     });
 
-    void it('returns cached stack for existing name', () => {
+    void it('throws if two custom stacks are created with the same name', () => {
       const app = new App();
       const stack = new Stack(app);
       const stackResolver = new NestedStackResolver(
         stack,
         new AttributionMetadataStorage()
       );
-      const testStack1 = stackResolver.getCustomStack('test');
-      const testStack2 = stackResolver.getCustomStack('test');
-
-      assert.strictEqual(testStack1, testStack2);
+      stackResolver.createCustomStack('test');
+      assert.throws(() => stackResolver.createCustomStack('test'));
     });
   });
 });
