@@ -104,7 +104,7 @@ void describe('sandbox command', () => {
     assert.match(output, /--name/);
     assert.match(output, /--dir-to-watch/);
     assert.match(output, /--exclude/);
-    assert.match(output, /--format/);
+    assert.match(output, /--config-format/);
     assert.match(output, /--config-out-dir/);
     assert.equal(mockHandleProfile.mock.callCount(), 0);
   });

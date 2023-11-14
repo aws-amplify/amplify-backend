@@ -19,7 +19,7 @@ type SandboxCommandOptionsCamelCase = {
   dirToWatch: string | undefined;
   exclude: string[] | undefined;
   name: string | undefined;
-  format: ClientConfigFormat | undefined;
+  configFormat: ClientConfigFormat | undefined;
   configOutDir: string | undefined;
   profile: string | undefined;
 };
@@ -83,7 +83,7 @@ export class SandboxCommand
     const clientConfigLifecycleHandler = new ClientConfigLifecycleHandler(
       this.clientConfigGeneratorAdapter,
       args['config-out-dir'],
-      args.format
+      args['config-format']
     );
     const eventHandlers = this.sandboxEventHandlerCreator?.({
       sandboxName: this.sandboxName,
@@ -97,7 +97,7 @@ export class SandboxCommand
     const watchExclusions = args.exclude ?? [];
     const clientConfigWritePath = await getClientConfigPath(
       args['config-out-dir'],
-      args.format
+      args['config-format']
     );
     watchExclusions.push(clientConfigWritePath);
     await sandbox.start({
@@ -138,7 +138,7 @@ export class SandboxCommand
           array: false,
           global: false,
         })
-        .option('format', {
+        .option('config-format', {
           describe: 'Client config output format',
           type: 'string',
           array: false,
