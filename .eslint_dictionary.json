@@ -107,6 +107,7 @@
   "syncable",
   "timestamps",
   "tmpdir",
+  "todos",
   "toggleable",
   "tokenized",
   "totp",
@@ -128,6 +129,5 @@
   "whoami",
   "workspace",
   "yaml",
-  "yargs",
-  "todos"
+  "yargs"
 ]
