@@ -174,7 +174,6 @@ export class CDKDeployer implements BackendDeployer {
     // actionable errors being hidden among the stdout. Moreover execa errors are
     // useless when calling CLIs unless you made execa calling error.
     let aggregatedStderr = '';
-    const aggregatedStdout = '';
     const aggregatorStderrStream = new stream.Writable();
     aggregatorStderrStream._write = function (chunk, encoding, done) {
       aggregatedStderr += chunk;
@@ -192,7 +191,6 @@ export class CDKDeployer implements BackendDeployer {
     childProcess.stdout?.pipe(process.stdout);
     try {
       await childProcess;
-      return aggregatedStdout;
     } catch (error) {
       // swallow execa error which is not really helpful, rather throw stderr
       throw new Error(aggregatedStderr);
