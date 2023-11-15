@@ -51,7 +51,7 @@ export class AttributionMetadataStorage {
     createdOn: this.getPlatform(),
     createdBy: this.getDeploymentEngineType(stack),
     createdWith:
-      this.packageJsonReader.read(libraryPackageJsonAbsolutePath).version ?? '',
+      this.packageJsonReader.read(libraryPackageJsonAbsolutePath).version ?? '', // This shouldn't happen, regardless we shouldn't throw for attribution
     stackType: stackType,
     metadata: additionalMetadata,
   });

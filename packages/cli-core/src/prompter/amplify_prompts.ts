@@ -51,7 +51,7 @@ export class AmplifyPrompter {
   }): Promise<string> => {
     const response = await input({
       message: options.message,
-      default: options.defaultValue ?? '',
+      default: options.defaultValue ?? '', // This shouldn't happen, regardless we shouldn't throw for telemetry
     });
     return response;
   };
