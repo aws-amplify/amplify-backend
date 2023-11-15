@@ -397,12 +397,6 @@
        "auth179371D7",
        "Outputs.amplifytestAppIdtestBranchNamebranch7d6f6c854aauthamplifyAuthunauthenticatedUserRoleF922AD28Ref"
       ]
-     },
-     "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854aauthNestedStackauthNestedStackResource462F2942OutputsamplifytestAppIdtestBranchNamebranch7d6f6c854aauthamplifyAuthIdentityPool7404D50ERef": {
-      "Fn::GetAtt": [
-       "auth179371D7",
-       "Outputs.amplifytestAppIdtestBranchNamebranch7d6f6c854aauthamplifyAuthIdentityPool7404D50ERef"
-      ]
      }
     },
     "TemplateURL": {
@@ -421,7 +415,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/b45fba916ea00e4066fd3ca9aaa82086097a91664fbaf613680b47e6b741673a.json"
+       "/3ff39b14063cc09a49a390eeab3e6935d1874cda0b3211e3c5f89f553f71a280.json"
       ]
      ]
     }
