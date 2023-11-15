@@ -16,8 +16,7 @@
     "awsAppsyncAuthenticationType",
     "awsAppsyncRegion",
     "amplifyApiModelSchemaS3Uri",
-    "awsAppsyncApiKey",
-    "awsAppsyncAdditionalAuthenticationTypes"
+    "awsAppsyncApiKey"
    ]
   }
  },
@@ -47,7 +46,7 @@
    }
   },
   "awsAppsyncAuthenticationType": {
-   "Value": "AWS_LAMBDA"
+   "Value": "API_KEY"
   },
   "awsAppsyncRegion": {
    "Value": {
@@ -78,9 +77,6 @@
      "Outputs.amplifytestAppIdtestBranchNamebranch7d6f6c854adataamplifyDataGraphQLAPIDefaultApiKey346D40FDApiKey"
     ]
    }
-  },
-  "awsAppsyncAdditionalAuthenticationTypes": {
-   "Value": "API_KEY,OPENID_CONNECT"
   }
  },
  "Resources": {
@@ -294,14 +290,6 @@
   "data7552DF31": {
    "Type": "AWS::CloudFormation::Stack",
    "Properties": {
-    "Parameters": {
-     "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionNestedStackfunctionNestedStackResource482C479FOutputsamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionApiAuthApiAuthLambdaFunctionCFF4ED65Arn": {
-      "Fn::GetAtt": [
-       "function1351588B",
-       "Outputs.amplifytestAppIdtestBranchNamebranch7d6f6c854afunctionApiAuthApiAuthLambdaFunctionCFF4ED65Arn"
-      ]
-     }
-    },
     "TemplateURL": {
      "Fn::Join": [
       "",
@@ -318,34 +306,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/7d798d30e51cd1ea1950686bb965e0fb3839b11d9c5e2b659bdc17fb852fcc1a.json"
-      ]
-     ]
-    }
-   },
-   "UpdateReplacePolicy": "Delete",
-   "DeletionPolicy": "Delete"
-  },
-  "function1351588B": {
-   "Type": "AWS::CloudFormation::Stack",
-   "Properties": {
-    "TemplateURL": {
-     "Fn::Join": [
-      "",
-      [
-       "https://s3.",
-       {
-        "Ref": "AWS::Region"
-       },
-       ".",
-       {
-        "Ref": "AWS::URLSuffix"
-       },
-       "/",
-       {
-        "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
-       },
-       "/1d9ba3324a466e898f90197e6412b5464de952663cd0619bbafedc38be06132d.json"
+       "/44cc9d129e953fc61a40ee91f3028a2c7ed8acc94faa7dfd8065ae29f7cd1925.json"
       ]
      ]
     }
