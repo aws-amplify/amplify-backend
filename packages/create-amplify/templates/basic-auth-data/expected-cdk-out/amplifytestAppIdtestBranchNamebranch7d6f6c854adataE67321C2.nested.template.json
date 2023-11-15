@@ -1,5 +1,5 @@
 {
- "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyCDK\",\"createdWith\":\"1.3.0\",\"stackType\":\"api-AppSync\"}",
+ "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyCDK\",\"createdWith\":\"1.4.0\",\"stackType\":\"api-AppSync\",\"metadata\":{}}",
  "Resources": {
   "amplifyDataGraphQLAPI42A6FA33": {
    "Type": "AWS::AppSync::GraphQLApi",
@@ -47,7 +47,7 @@
       "ApiId"
      ]
     },
-    "Expires": 1702593039
+    "Expires": 1702659169
    }
   },
   "amplifyDataGraphQLAPINONEDS684BF699": {
