@@ -1,5 +1,20 @@
 # @aws-amplify/backend-cli
 
+## 0.7.0
+
+### Minor Changes
+
+- fc71c4902: Change the default directory for models in form generation
+
+### Patch Changes
+
+- 79ac13997: client config generation respects sandbox format option
+- 869a84926: Update profile error messages and a profile configure URL.
+- 79ac13997: Rename sandbox format to config-format
+- 79ac13997: Change sandbox out-dir to config-out-dir and client config generation respects config-out-dir option
+- Updated dependencies [fc71c4902]
+  - @aws-amplify/form-generator@0.4.0
+
 ## 0.6.1
 
 ### Patch Changes

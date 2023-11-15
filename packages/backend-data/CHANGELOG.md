@@ -1,5 +1,11 @@
 # @aws-amplify/backend-data
 
+## 0.6.0
+
+### Minor Changes
+
+- 3cda50cb7: Update backend-data to use new data-construct and explicitly specific default ddb strategy.
+
 ## 0.5.1
 
 ### Patch Changes
