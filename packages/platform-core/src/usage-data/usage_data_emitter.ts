@@ -8,11 +8,12 @@ import { latestPayloadVersion } from './constants.js';
 import { getUrl } from './get_usage_data_url.js';
 import isCI from 'is-ci';
 import { SerializableError } from './serializable_error.js';
+import { UsageDataEmitter } from './usage_data_emitter_factory.js';
 
 /**
  * Entry point for sending usage data metrics
  */
-export class DefaultUsageDataEmitter {
+export class DefaultUsageDataEmitter implements UsageDataEmitter {
   /**
    * Constructor for UsageDataEmitter
    */
@@ -45,7 +46,7 @@ export class DefaultUsageDataEmitter {
   };
 
   private getUsageData = async (options: {
-    state: string;
+    state: 'SUCCEEDED' | 'FAILED';
     metrics?: Record<string, number>;
     dimensions?: Record<string, string>;
     error?: Error;

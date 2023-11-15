@@ -11,7 +11,7 @@ export type UsageData = {
   osPlatform: string;
   osRelease: string;
   nodeVersion: string;
-  state: string;
+  state: 'FAILED' | 'SUCCEEDED';
   isCi: boolean;
   accountId: string;
   input: { command: string; plugin: string };
