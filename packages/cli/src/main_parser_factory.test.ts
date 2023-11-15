@@ -5,6 +5,7 @@ import {
   TestCommandRunner,
 } from './test-utils/command_runner.js';
 import { createMainParser } from './main_parser_factory.js';
+import { version } from '#package.json';
 
 void describe('main parser', { concurrency: false }, () => {
   const parser = createMainParser();
@@ -14,6 +15,11 @@ void describe('main parser', { concurrency: false }, () => {
     const output = await commandRunner.runCommand('--help');
     assert.match(output, /Commands:/);
     assert.match(output, /generate\s+Generates post deployment artifacts/);
+  });
+
+  void it('shows version', async () => {
+    const output = await commandRunner.runCommand('--version');
+    assert.match(output, RegExp(version));
   });
 
   void it('fails if command is not provided', async () => {
