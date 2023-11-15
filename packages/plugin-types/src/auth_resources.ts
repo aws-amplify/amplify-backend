@@ -2,6 +2,8 @@ import { IRole } from 'aws-cdk-lib/aws-iam';
 import {
   CfnIdentityPool,
   CfnIdentityPoolRoleAttachment,
+  CfnUserPool,
+  CfnUserPoolClient,
   IUserPool,
   IUserPoolClient,
 } from 'aws-cdk-lib/aws-cognito';
@@ -12,13 +14,21 @@ import {
  */
 export type AuthCfnResources = {
   /**
+   * The generated CfnUserPool L1 resource.
+   */
+  cfnUserPool: CfnUserPool;
+  /**
+   * The generated CfnUserPoolClient L1 resource.
+   */
+  cfnUserPoolClient: CfnUserPoolClient;
+  /**
    * The generated CfnIdentityPool L1 resource.
    */
-  identityPool: CfnIdentityPool;
+  cfnIdentityPool: CfnIdentityPool;
   /**
    * The generated CfnIdentityPoolRoleAttachment L1 resource.
    */
-  identityPoolRoleAttachment: CfnIdentityPoolRoleAttachment;
+  cfnIdentityPoolRoleAttachment: CfnIdentityPoolRoleAttachment;
 };
 /**
  * Auth L2 and L1 resources.

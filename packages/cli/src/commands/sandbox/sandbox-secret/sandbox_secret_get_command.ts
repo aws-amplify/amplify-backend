@@ -1,8 +1,7 @@
 import { Argv, CommandModule } from 'yargs';
 import { SecretClient } from '@aws-amplify/backend-secret';
-import { SandboxIdResolver } from '../sandbox_id_resolver.js';
+import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
 import { Printer } from '@aws-amplify/cli-core';
-import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
 import { handleCommandFailure } from '../../../command_failure_handler.js';
 
@@ -26,7 +25,7 @@ export class SandboxSecretGetCommand
    * Get sandbox secret command.
    */
   constructor(
-    private readonly sandboxIdResolver: SandboxIdResolver,
+    private readonly sandboxIdResolver: SandboxBackendIdResolver,
     private readonly secretClient: SecretClient
   ) {
     this.command = 'get <secretName>';
@@ -37,11 +36,10 @@ export class SandboxSecretGetCommand
    * @inheritDoc
    */
   handler = async (args: SecretGetCommandOptions): Promise<void> => {
-    const backendId = await this.sandboxIdResolver.resolve();
-    const secret = await this.secretClient.getSecret(
-      new SandboxBackendIdentifier(backendId),
-      { name: args['secret-name'] }
-    );
+    const sandboxBackendIdentifier = await this.sandboxIdResolver.resolve();
+    const secret = await this.secretClient.getSecret(sandboxBackendIdentifier, {
+      name: args['secret-name'],
+    });
     Printer.printRecord(secret);
   };
 

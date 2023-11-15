@@ -1,5 +1,41 @@
 # @aws-amplify/deployed-backend-client
 
+## 0.3.1
+
+### Patch Changes
+
+- Updated dependencies [07b0dfc9f]
+  - @aws-amplify/backend-output-schemas@0.4.0
+
+## 0.3.0
+
+### Minor Changes
+
+- 71a63a16: Change stack naming strategy to include deployment type as a suffix
+
+### Patch Changes
+
+- Updated dependencies [71a63a16]
+  - @aws-amplify/backend-output-schemas@0.3.0
+  - @aws-amplify/platform-core@0.2.0
+
+## 0.2.2
+
+### Patch Changes
+
+- bbb5b657: update sdk client deps
+- 1cdb3ba9: add DELETING backend deployment status
+
+## 0.2.1
+
+### Patch Changes
+
+- 79a6e09f: Change stackOutputKey to platformOutputKey
+- Updated dependencies [79a6e09f]
+- Updated dependencies [79a6e09f]
+  - @aws-amplify/backend-output-schemas@0.2.1
+  - @aws-amplify/platform-core@0.1.2
+
 ## 0.2.0
 
 ### Minor Changes

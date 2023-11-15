@@ -7,13 +7,15 @@ import {
 } from '../../test-utils/command_runner.js';
 import assert from 'node:assert';
 import fs from 'fs';
+import fsp from 'fs/promises';
 import { EventHandler, SandboxCommand } from './sandbox_command.js';
 import { createSandboxCommand } from './sandbox_command_factory.js';
 import { SandboxDeleteCommand } from './sandbox-delete/sandbox_delete_command.js';
 import { Sandbox, SandboxSingletonFactory } from '@aws-amplify/sandbox';
 import { createSandboxSecretCommand } from './sandbox-secret/sandbox_secret_command_factory.js';
-import { FromIniInit } from '@aws-sdk/credential-providers';
-import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
+import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
+import { CommandMiddleware } from '../../command_middleware.js';
+import path from 'path';
 
 void describe('sandbox command factory', () => {
   void it('instantiate a sandbox command correctly', () => {
@@ -26,11 +28,28 @@ void describe('sandbox command', () => {
   let sandbox: Sandbox;
   let sandboxStartMock = mock.fn<typeof sandbox.start>();
 
-  const generationMock = mock.fn<EventHandler>();
+  const clientConfigGenerationMock = mock.fn<EventHandler>();
+  const clientConfigDeletionMock = mock.fn<EventHandler>();
+
+  const clientConfigGeneratorAdapterMock = {
+    generateClientConfigToFile: clientConfigGenerationMock,
+  } as unknown as ClientConfigGeneratorAdapter;
+
+  const commandMiddleware = new CommandMiddleware();
+  const mockHandleProfile = mock.method(
+    commandMiddleware,
+    'ensureAwsCredentialAndRegion',
+    () => null
+  );
+  const sandboxProfile = 'test-sandbox';
 
   beforeEach(async () => {
     const sandboxFactory = new SandboxSingletonFactory(() =>
-      Promise.resolve('testBackendId')
+      Promise.resolve({
+        namespace: 'testSandboxId',
+        name: 'testSandboxName',
+        type: 'sandbox',
+      })
     );
     sandbox = await sandboxFactory.getInstance();
 
@@ -40,20 +59,31 @@ void describe('sandbox command', () => {
     const sandboxCommand = new SandboxCommand(
       sandboxFactory,
       [sandboxDeleteCommand, createSandboxSecretCommand()],
+      clientConfigGeneratorAdapterMock,
+      commandMiddleware,
       () => ({
-        successfulDeployment: [generationMock],
+        successfulDeployment: [clientConfigGenerationMock],
+        successfulDeletion: [clientConfigDeletionMock],
       })
     );
     const parser = yargs().command(sandboxCommand as unknown as CommandModule);
     commandRunner = new TestCommandRunner(parser);
     sandboxStartMock.mock.resetCalls();
+    mockHandleProfile.mock.resetCalls();
   });
 
   void it('registers a callback on the "successfulDeployment" event', async () => {
     const mockOn = mock.method(sandbox, 'on');
     await commandRunner.runCommand('sandbox');
     assert.equal(mockOn.mock.calls[0].arguments[0], 'successfulDeployment');
-    assert.equal(mockOn.mock.calls[0].arguments[1], generationMock);
+    assert.equal(mockOn.mock.calls[0].arguments[1], clientConfigGenerationMock);
+  });
+
+  void it('registers a callback on the "successfulDeletion" event', async () => {
+    const mockOn = mock.method(sandbox, 'on');
+    await commandRunner.runCommand('sandbox');
+    assert.equal(mockOn.mock.calls[1].arguments[0], 'successfulDeletion');
+    assert.equal(mockOn.mock.calls[1].arguments[1], clientConfigDeletionMock);
   });
 
   void it('starts sandbox without any additional flags', async () => {
@@ -76,27 +106,43 @@ void describe('sandbox command', () => {
     assert.match(output, /--name/);
     assert.match(output, /--dir-to-watch/);
     assert.match(output, /--exclude/);
-    assert.match(output, /--format/);
-    assert.match(output, /--out-dir/);
+    assert.match(output, /--config-format/);
+    assert.match(output, /--config-out-dir/);
+    assert.equal(mockHandleProfile.mock.callCount(), 0);
+  });
+
+  void it('shows version should not call profile middleware', async () => {
+    void commandRunner.runCommand('sandbox --version');
+    assert.equal(mockHandleProfile.mock.callCount(), 0);
   });
 
   void it('fails if invalid dir-to-watch is provided', async () => {
-    const output = await commandRunner.runCommand(
-      'sandbox --dir-to-watch nonExistentDir'
+    const dirToWatchError = new Error(
+      '--dir-to-watch nonExistentDir does not exist'
     );
-    assert.match(output, /--dir-to-watch nonExistentDir does not exist/);
+    mock.method(fsp, 'stat', () => Promise.reject(dirToWatchError));
+    await assert.rejects(
+      () => commandRunner.runCommand('sandbox --dir-to-watch nonExistentDir'),
+      (err: TestCommandError) => {
+        assert.equal(err.error.message, dirToWatchError.message);
+        return true;
+      }
+    );
   });
 
   void it('fails if a file is provided in the --dir-to-watch flag', async (contextual) => {
-    contextual.mock.method(fs, 'statSync', () => ({
+    const dirToWatchError = new Error(
+      '--dir-to-watch existentFile is not a valid directory'
+    );
+    contextual.mock.method(fsp, 'stat', () => ({
       isDirectory: () => false,
     }));
-    const output = await commandRunner.runCommand(
-      'sandbox --dir-to-watch existentFile'
-    );
-    assert.match(
-      output,
-      /--dir-to-watch existentFile is not a valid directory/
+    await assert.rejects(
+      () => commandRunner.runCommand('sandbox --dir-to-watch existentFile'),
+      (err: TestCommandError) => {
+        assert.equal(err.error.message, dirToWatchError.message);
+        return true;
+      }
     );
   });
 
@@ -170,30 +216,33 @@ void describe('sandbox command', () => {
   });
 
   void it('starts sandbox with user provided invalid AWS profile', async () => {
+    const profileErr = new Error('some profile error');
+    mockHandleProfile.mock.mockImplementationOnce(() => {
+      throw profileErr;
+    });
     await assert.rejects(
-      () => commandRunner.runCommand('sandbox --profile amplify-sandbox'), // profile doesn't exist
+      () => commandRunner.runCommand(`sandbox --profile ${sandboxProfile}`), // profile doesn't exist
       (err: TestCommandError) => {
-        assert.equal(err.error.name, 'CredentialsProviderError');
-        assert.equal(
-          err.error.message,
-          'Profile amplify-sandbox could not be found or parsed in shared credentials file.'
-        );
+        assert.equal(err.error, profileErr);
         return true;
       }
     );
     assert.equal(sandboxStartMock.mock.callCount(), 0);
-    assert.strictEqual(process.env.AWS_PROFILE, undefined);
+    assert.equal(mockHandleProfile.mock.callCount(), 1);
+    assert.equal(
+      mockHandleProfile.mock.calls[0].arguments[0]?.profile,
+      sandboxProfile
+    );
   });
 
   void it('starts sandbox with user provided valid AWS profile', async () => {
-    // Mocking SDK's credential provider to not throw error on any profile name
-    const mockCredentialProviderFromIni = mock.fn<
-      (init?: FromIniInit) => AwsCredentialIdentityProvider
-    >(() => {
-      return mock.fn();
-    });
+    mockHandleProfile.mock.mockImplementationOnce(() => null);
     const sandboxFactory = new SandboxSingletonFactory(() =>
-      Promise.resolve('testBackendId')
+      Promise.resolve({
+        namespace: 'testSandboxId',
+        name: 'testSandboxName',
+        type: 'sandbox',
+      })
     );
     sandbox = await sandboxFactory.getInstance();
     sandboxStartMock = mock.method(sandbox, 'start', () => Promise.resolve());
@@ -201,17 +250,67 @@ void describe('sandbox command', () => {
     const sandboxCommand = new SandboxCommand(
       sandboxFactory,
       [],
-      undefined,
-      mockCredentialProviderFromIni
+      clientConfigGeneratorAdapterMock,
+      commandMiddleware,
+      undefined
     );
     const parser = yargs().command(sandboxCommand as unknown as CommandModule);
     commandRunner = new TestCommandRunner(parser);
-    await commandRunner.runCommand('sandbox --profile amplify-sandbox');
+    await commandRunner.runCommand(`sandbox --profile ${sandboxProfile}`);
     assert.equal(sandboxStartMock.mock.callCount(), 1);
-    assert.strictEqual(process.env.AWS_PROFILE, 'amplify-sandbox');
-    assert.strictEqual(
-      mockCredentialProviderFromIni.mock.calls[0]?.arguments[0]?.profile,
-      'amplify-sandbox'
+    assert.equal(
+      mockHandleProfile.mock.calls[0].arguments[0]?.profile,
+      sandboxProfile
+    );
+  });
+
+  void it('fails if invalid config-out-dir is provided', async () => {
+    const configOutDirError = new Error(
+      '--config-out-dir nonExistentDir does not exist'
+    );
+    mock.method(fsp, 'stat', () => Promise.reject(configOutDirError));
+    await assert.rejects(
+      () => commandRunner.runCommand('sandbox --config-out-dir nonExistentDir'),
+      (err: TestCommandError) => {
+        assert.equal(err.error.message, configOutDirError.message);
+        return true;
+      }
+    );
+  });
+
+  void it('fails if a file is provided for config-out-dir', async (contextual) => {
+    const configOutDirError = new Error(
+      '--config-out-dir existentFile is not a valid directory'
+    );
+    contextual.mock.method(fsp, 'stat', () => ({
+      isDirectory: () => false,
+    }));
+    await assert.rejects(
+      () => commandRunner.runCommand('sandbox --config-out-dir existentFile'),
+      (err: TestCommandError) => {
+        assert.equal(err.error.message, configOutDirError.message);
+        return true;
+      }
+    );
+  });
+
+  void it('starts sandbox with provided client config options as watch exclusions', async (contextual) => {
+    mock.method(fs, 'lstatSync', () => {
+      return {
+        isFile: () => false,
+        isDir: () => true,
+      };
+    });
+    contextual.mock.method(fsp, 'stat', () => ({
+      isDirectory: () => true,
+    }));
+    await commandRunner.runCommand(
+      'sandbox --config-out-dir existentDir --config-format ts'
+    );
+    assert.equal(sandboxStartMock.mock.callCount(), 1);
+    assert.deepStrictEqual(
+      sandboxStartMock.mock.calls[0].arguments[0].exclude,
+      [path.join(process.cwd(), 'existentDir', 'amplifyconfiguration.ts')]
     );
   });
 });

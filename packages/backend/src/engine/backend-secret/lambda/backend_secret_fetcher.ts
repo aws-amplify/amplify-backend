@@ -8,13 +8,7 @@ import {
   getSecretClient,
 } from '@aws-amplify/backend-secret';
 import { randomUUID } from 'node:crypto';
-import { BranchBackendIdentifier } from '@aws-amplify/platform-core';
-
-type SecretResourceProps = {
-  backendId: string;
-  branchName: string;
-  secretName: string;
-};
+import { SecretResourceProps } from './backend_secret_fetcher_types.js';
 
 const secretClient = getSecretClient();
 
@@ -59,7 +53,11 @@ export const handleCreateUpdateEvent = async (
 
   try {
     const resp = await secretClient.getSecret(
-      new BranchBackendIdentifier(props.backendId, props.branchName),
+      {
+        namespace: props.namespace,
+        name: props.name,
+        type: 'branch',
+      },
       {
         name: props.secretName,
       }
@@ -70,8 +68,8 @@ export const handleCreateUpdateEvent = async (
     if (secretErr.httpStatusCode && secretErr.httpStatusCode >= 500) {
       throw new Error(
         `Failed to retrieve backend secret '${props.secretName}' for '${
-          props.backendId
-        }/${props.branchName}'. Reason: ${JSON.stringify(err)}`
+          props.namespace
+        }/${props.name}'. Reason: ${JSON.stringify(err)}`
       );
     }
   }
@@ -79,14 +77,14 @@ export const handleCreateUpdateEvent = async (
   // if the secret is not available in branch path, retrieve it at app-level.
   if (!secret) {
     try {
-      const resp = await secretClient.getSecret(props.backendId, {
+      const resp = await secretClient.getSecret(props.namespace, {
         name: props.secretName,
       });
       secret = resp?.value;
     } catch (err) {
       throw new Error(
         `Failed to retrieve backend secret '${props.secretName}' for '${
-          props.backendId
+          props.namespace
         }'. Reason: ${JSON.stringify(err)}`
       );
     }
@@ -94,7 +92,7 @@ export const handleCreateUpdateEvent = async (
 
   if (!secret) {
     throw new Error(
-      `Unable to find backend secret for backend '${props.backendId}', branch '${props.branchName}', name '${props.secretName}'`
+      `Unable to find backend secret for backend '${props.namespace}', branch '${props.name}', name '${props.secretName}'`
     );
   }
 

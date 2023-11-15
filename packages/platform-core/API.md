@@ -4,45 +4,36 @@
 
 ```ts
 
-import { BackendId } from '@aws-amplify/plugin-types';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
 
-// @public (undocumented)
-export enum BackendDeploymentType {
-    // (undocumented)
-    BRANCH = "BRANCH",
-    // (undocumented)
-    SANDBOX = "SANDBOX"
+// @public
+export class BackendIdentifierConversions {
+    static fromStackName(stackName?: string): BackendIdentifier | undefined;
+    static toStackName(backendId: BackendIdentifier): string;
 }
 
 // @public
-export class BranchBackendIdentifier extends UniqueBackendIdentifierBase {
-    constructor(backendId: BackendId, branchName: string);
+export class BackendLocator {
+    constructor(rootDir?: string);
     // (undocumented)
-    readonly backendId: BackendId;
+    locate: () => string;
 }
 
 // @public
 export enum CDKContextKey {
     // (undocumented)
-    DEPLOYMENT_TYPE = "deployment-type"
-}
-
-// @public
-export class SandboxBackendIdentifier extends UniqueBackendIdentifierBase {
-    constructor(backendId: BackendId);
+    BACKEND_NAME = "amplify-backend-name",
     // (undocumented)
-    readonly backendId: BackendId;
-    static tryParse(sandboxName: string): SandboxBackendIdentifier | undefined;
+    BACKEND_NAMESPACE = "amplify-backend-namespace",
+    // (undocumented)
+    DEPLOYMENT_TYPE = "amplify-backend-type"
 }
 
 // @public
-export abstract class UniqueBackendIdentifierBase implements UniqueBackendIdentifier {
-    constructor(
-    backendId: BackendId,
-    disambiguator: string);
-    readonly backendId: BackendId;
-    readonly disambiguator: string;
+export class FilePathExtractor {
+    constructor(stackTraceLine: string);
+    // (undocumented)
+    extract: () => string | undefined;
 }
 
 // (No @packageDocumentation comment for this package)

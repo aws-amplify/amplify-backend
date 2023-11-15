@@ -1,5 +1,17 @@
 # @aws-amplify/backend-platform-test-stubs
 
+## 0.3.0
+
+### Minor Changes
+
+- 71a63a16: Change stack naming strategy to include deployment type as a suffix
+
+## 0.2.0
+
+### Minor Changes
+
+- 457b1662: getConstructFactory no longer throws an error if the factory is not found, and returns undefined instead.
+
 ## 0.1.1
 
 ### Patch Changes

@@ -1,5 +1,24 @@
 # @aws-amplify/backend-output-schemas
 
+## 0.4.0
+
+### Minor Changes
+
+- 07b0dfc9f: Adding zero-config auth config to amplifyconfiguration.json
+
+## 0.3.0
+
+### Minor Changes
+
+- 71a63a16: Change stack naming strategy to include deployment type as a suffix
+
+## 0.2.1
+
+### Patch Changes
+
+- 79a6e09f: Change stackOutputKey to platformOutputKey
+- 79a6e09f: Add aws_project_region to amplifyconfiguration.json
+
 ## 0.2.0
 
 ### Minor Changes

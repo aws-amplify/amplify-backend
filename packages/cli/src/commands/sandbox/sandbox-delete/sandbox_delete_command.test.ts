@@ -7,28 +7,47 @@ import { SandboxDeleteCommand } from './sandbox_delete_command.js';
 import { SandboxCommand } from '../sandbox_command.js';
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
 import { createSandboxSecretCommand } from '../sandbox-secret/sandbox_secret_command_factory.js';
+import { ClientConfigGeneratorAdapter } from '../../../client-config/client_config_generator_adapter.js';
+import { CommandMiddleware } from '../../../command_middleware.js';
 
 void describe('sandbox delete command', () => {
   let commandRunner: TestCommandRunner;
   let sandboxDeleteMock = mock.fn();
 
+  const commandMiddleware = new CommandMiddleware();
+  const mockHandleProfile = mock.method(
+    commandMiddleware,
+    'ensureAwsCredentialAndRegion',
+    () => null
+  );
+
   beforeEach(async () => {
     const sandboxFactory = new SandboxSingletonFactory(() =>
-      Promise.resolve('testBackendId')
+      Promise.resolve({
+        namespace: 'testSandboxId',
+        name: 'testSandboxName',
+        type: 'sandbox',
+      })
     );
     const sandbox = await sandboxFactory.getInstance();
     sandboxDeleteMock = mock.method(sandbox, 'delete', () =>
       Promise.resolve()
     ) as never; // couldn't figure out a good way to type the sandboxDeleteMock so that TS was happy here
 
+    const clientConfigGeneratorAdapterMock =
+      {} as unknown as ClientConfigGeneratorAdapter;
+
     const sandboxDeleteCommand = new SandboxDeleteCommand(sandboxFactory);
-    const sandboxCommand = new SandboxCommand(sandboxFactory, [
-      sandboxDeleteCommand,
-      createSandboxSecretCommand(),
-    ]);
+    const sandboxCommand = new SandboxCommand(
+      sandboxFactory,
+      [sandboxDeleteCommand, createSandboxSecretCommand()],
+      clientConfigGeneratorAdapterMock,
+      commandMiddleware
+    );
     const parser = yargs().command(sandboxCommand as unknown as CommandModule);
     commandRunner = new TestCommandRunner(parser);
     sandboxDeleteMock.mock.resetCalls();
+    mockHandleProfile.mock.resetCalls();
   });
 
   void it('deletes sandbox after confirming with user', async (contextual) => {
@@ -41,6 +60,11 @@ void describe('sandbox delete command', () => {
     assert.deepStrictEqual(sandboxDeleteMock.mock.calls[0].arguments[0], {
       name: undefined,
     });
+    assert.equal(mockHandleProfile.mock.callCount(), 1);
+    assert.equal(
+      mockHandleProfile.mock.calls[0].arguments[0]?.profile,
+      undefined
+    );
   });
 
   void it('deletes sandbox with user provided name', async (contextual) => {
@@ -75,5 +99,6 @@ void describe('sandbox delete command', () => {
     assert.match(output, /--name/);
     assert.doesNotMatch(output, /--exclude/);
     assert.doesNotMatch(output, /--dir-to-watch/);
+    assert.equal(mockHandleProfile.mock.callCount(), 0);
   });
 });

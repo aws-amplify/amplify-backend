@@ -1,5 +1,32 @@
 # @aws-amplify/backend-storage
 
+## 0.3.0
+
+### Minor Changes
+
+- 71a63a16: Change stack naming strategy to include deployment type as a suffix
+
+### Patch Changes
+
+- Updated dependencies [8181509a]
+- Updated dependencies [71a63a16]
+  - @aws-amplify/plugin-types@0.4.0
+  - @aws-amplify/storage-construct-alpha@0.2.1
+  - @aws-amplify/backend-output-storage@0.2.1
+
+## 0.2.2
+
+### Patch Changes
+
+- 0bd8a3f3: add missing dev deps
+
+## 0.2.1
+
+### Patch Changes
+
+- Updated dependencies [457b1662]
+  - @aws-amplify/plugin-types@0.3.0
+
 ## 0.2.0
 
 ### Minor Changes

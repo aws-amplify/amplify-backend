@@ -1,10 +1,10 @@
 import { Construct } from 'constructs';
 import { StackResolver } from './stack_resolver_stub.js';
 import {
+  BackendIdentifier,
   ConstructContainer,
   ConstructContainerEntryGenerator,
   ConstructFactory,
-  UniqueBackendIdentifier,
 } from '@aws-amplify/plugin-types';
 import { BackendSecretResolverStub } from './backend_secret_resolver_stub.js';
 
@@ -33,10 +33,10 @@ export class ConstructContainerStub implements ConstructContainer {
   getOrCompute = (generator: ConstructContainerEntryGenerator): Construct => {
     if (!this.constructCache.has(generator)) {
       const scope = this.stackResolver.getStackFor(generator.resourceGroupName);
-      const uniqueBackendIdentifier = getUniqueBackendIdentifierStub();
+      const backendId = getBackendIdentifierStub();
       const backendSecretResolver = new BackendSecretResolverStub(
         scope,
-        uniqueBackendIdentifier
+        backendId
       );
       this.constructCache.set(
         generator,
@@ -48,18 +48,18 @@ export class ConstructContainerStub implements ConstructContainer {
 
   /**
    * Gets a ConstructFactory that has previously been registered to a given token.
-   * Throws if no factory has been registered for the token.
+   * Returns undefined if no construct factory is found for the specified token.
    *
    * NOTE: The return type of this function cannot be guaranteed at compile time because factories are dynamically registered at runtime
    * The return type of the factory is a contract that must be negotiated by the entity that registers a token and the entity that retrieves a token.
    *
    * By convention, tokens should be the name of type T
    */
-  getConstructFactory = <T>(token: string): ConstructFactory<T> => {
+  getConstructFactory = <T>(token: string): ConstructFactory<T> | undefined => {
     if (token in this.providerFactoryTokenMap) {
       return this.providerFactoryTokenMap[token] as ConstructFactory<T>;
     }
-    throw new Error(`No provider factory registered for token ${token}`);
+    return;
   };
 
   /**
@@ -82,7 +82,8 @@ export class ConstructContainerStub implements ConstructContainer {
   };
 }
 
-const getUniqueBackendIdentifierStub = (): UniqueBackendIdentifier => ({
-  backendId: 'testBackendId',
-  disambiguator: 'testEnvName',
+const getBackendIdentifierStub = (): BackendIdentifier => ({
+  namespace: 'testBackendId',
+  name: 'testEnvName',
+  type: 'branch',
 });

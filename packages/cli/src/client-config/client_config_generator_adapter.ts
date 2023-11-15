@@ -4,7 +4,7 @@ import {
   generateClientConfig,
   generateClientConfigToFile,
 } from '@aws-amplify/client-config';
-import { BackendIdentifier } from '@aws-amplify/deployed-backend-client';
+import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 
 /**
@@ -21,7 +21,7 @@ export class ClientConfigGeneratorAdapter {
    * Generates the client configuration for a given backend
    */
   generateClientConfig = async (
-    backendIdentifier: BackendIdentifier
+    backendIdentifier: DeployedBackendIdentifier
   ): Promise<ClientConfig> => {
     return generateClientConfig(this.awsCredentialProvider, backendIdentifier);
   };
@@ -31,7 +31,7 @@ export class ClientConfigGeneratorAdapter {
    * @see generateClientConfigToFile for more information.
    */
   generateClientConfigToFile = async (
-    backendIdentifier: BackendIdentifier,
+    backendIdentifier: DeployedBackendIdentifier,
     outDir?: string,
     format?: ClientConfigFormat
   ): Promise<void> => {

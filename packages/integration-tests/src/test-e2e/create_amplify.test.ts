@@ -79,6 +79,7 @@ void describe('create-amplify script', () => {
         .split(os.EOL)
         .filter((s) => s.trim());
       assert.deepStrictEqual(gitIgnoreContent.sort(), [
+        '# amplify',
         '.amplify',
         'amplifyconfiguration*',
         'node_modules',
@@ -112,21 +113,28 @@ void describe('create-amplify script', () => {
 
       assert.deepStrictEqual(
         files.sort(),
-        expectedAmplifyFiles.map((suffix) =>
-          path.join(amplifyPathPrefix, suffix)
-        )
+        [
+          path.join('auth', 'resource.ts'),
+          'backend.ts',
+          path.join('data', 'resource.ts'),
+          'package.json',
+        ].map((suffix) => path.join(pathPrefix, suffix))
       );
 
-      // assert that project compiles successfully using the tsc settings defined in the tsconfig file
+      // assert that project compiles successfully
       await execa(
         'npx',
         [
           'tsc',
           '--noEmit',
           '--skipLibCheck',
-          // pointing the project arg to the amplify backend directory will use the tsconfig present in that directory
-          '--project',
-          amplifyPathPrefix,
+          '--module',
+          'node16',
+          '--moduleResolution',
+          'node16',
+          '--target',
+          'es2022',
+          'amplify/backend.ts',
         ],
         {
           cwd: tempDir,
@@ -141,9 +149,11 @@ void describe('create-amplify script', () => {
           'cdk',
           'synth',
           '--context',
-          'backend-id=123',
+          `amplify-backend-namespace=123`,
           '--context',
-          'deployment-type=SANDBOX',
+          `amplify-backend-name=sandboxName`,
+          '--context',
+          `amplify-backend-type=sandbox`,
           '--app',
           "'npx tsx amplify/backend.ts'",
           '--quiet',
@@ -170,7 +180,7 @@ void describe('create-amplify script', () => {
       result.stderr
         .toLocaleString()
         .includes(
-          'Either delete this file/directory or initialize the project in a different location'
+          'If you are trying to run an Amplify (Gen 2) command inside an Amplify (Gen 1) project we recommend creating the project in another directory'
         )
     );
   });

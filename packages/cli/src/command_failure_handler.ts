@@ -1,6 +1,7 @@
 import { Argv } from 'yargs';
-
 import { COLOR, Printer } from '@aws-amplify/cli-core';
+import { InvalidCredentialError } from './error/credential_error.js';
+import { EOL } from 'os';
 
 /**
  * Format error output when a command fails by displaying the error message in
@@ -10,11 +11,23 @@ import { COLOR, Printer } from '@aws-amplify/cli-core';
  * @param yargs instance of yargs as made available in the builder
  */
 export const handleCommandFailure = (msg: string, err: Error, yargs: Argv) => {
-  Printer.printNewLine();
+  if (isUserForceClosePromptError(err)) {
+    return;
+  }
 
+  if (err instanceof InvalidCredentialError) {
+    Printer.print(`${err.message}${EOL}`, COLOR.RED);
+    return;
+  }
+
+  Printer.printNewLine();
   yargs.showHelp();
 
   Printer.printNewLine();
-  Printer.printWithColor(COLOR.RED, msg || String(err));
+  Printer.print(msg || String(err), COLOR.RED);
   Printer.printNewLine();
+};
+
+const isUserForceClosePromptError = (err: Error): boolean => {
+  return err?.message.includes('User force closed the prompt');
 };

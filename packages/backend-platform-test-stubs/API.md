@@ -20,7 +20,7 @@ export class AmplifyStackStub extends Stack {
 // @public
 export class ConstructContainerStub implements ConstructContainer {
     constructor(stackResolver: StackResolver);
-    getConstructFactory: <T>(token: string) => ConstructFactory<T>;
+    getConstructFactory: <T>(token: string) => ConstructFactory<T> | undefined;
     getOrCompute: (generator: ConstructContainerEntryGenerator) => Construct;
     registerConstructFactory: (token: string, provider: ConstructFactory) => void;
 }

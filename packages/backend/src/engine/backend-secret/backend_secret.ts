@@ -1,7 +1,4 @@
-import {
-  BackendSecret,
-  UniqueBackendIdentifier,
-} from '@aws-amplify/plugin-types';
+import { BackendIdentifier, BackendSecret } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
 import { BackendSecretFetcherFactory } from './backend_secret_fetcher_factory.js';
 import { SecretValue } from 'aws-cdk-lib';
@@ -22,7 +19,7 @@ export class CfnTokenBackendSecret implements BackendSecret {
    */
   resolve = (
     scope: Construct,
-    backendIdentifier: UniqueBackendIdentifier
+    backendIdentifier: BackendIdentifier
   ): SecretValue => {
     const secretResource = this.secretResourceFactory.getOrCreate(
       scope,

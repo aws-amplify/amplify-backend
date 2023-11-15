@@ -12,14 +12,11 @@ import {
   StackMetadataBackendOutputStorageStrategy,
 } from '@aws-amplify/backend-output-storage';
 import { createDefaultStack } from './default_stack_factory.js';
-import { getUniqueBackendIdentifier } from './backend_identifier.js';
-import {
-  BackendDeploymentType,
-  SandboxBackendIdentifier,
-} from '@aws-amplify/platform-core';
-import { stackOutputKey } from '@aws-amplify/backend-output-schemas';
+import { getBackendIdentifier } from './backend_identifier.js';
+import { platformOutputKey } from '@aws-amplify/backend-output-schemas';
 import { fileURLToPath } from 'url';
 import { Backend } from './backend.js';
+import { AmplifyBranchLinkerConstruct } from './engine/branch-linker/branch_linker_construct.js';
 
 // Be very careful editing this value. It is the value used in the BI metrics to attribute stacks as Amplify root stacks
 const rootStackTypeIdentifier = 'root';
@@ -49,7 +46,10 @@ export class BackendFactory<
       rootStackTypeIdentifier,
       fileURLToPath(new URL('../package.json', import.meta.url))
     );
-    this.stackResolver = new NestedStackResolver(stack);
+    this.stackResolver = new NestedStackResolver(
+      stack,
+      new AttributionMetadataStorage()
+    );
 
     const constructContainer = new SingletonConstructContainer(
       this.stackResolver
@@ -59,16 +59,20 @@ export class BackendFactory<
       stack
     );
 
-    const uniqueBackendIdentifier = getUniqueBackendIdentifier(stack);
-    outputStorageStrategy.addBackendOutputEntry(stackOutputKey, {
+    const backendId = getBackendIdentifier(stack);
+    outputStorageStrategy.addBackendOutputEntry(platformOutputKey, {
       version: '1',
       payload: {
-        deploymentType:
-          uniqueBackendIdentifier instanceof SandboxBackendIdentifier
-            ? BackendDeploymentType.SANDBOX
-            : BackendDeploymentType.BRANCH,
+        deploymentType: backendId.type,
+        region: stack.region,
       },
     });
+
+    const shouldEnableBranchLinker = backendId.type === 'branch';
+
+    if (shouldEnableBranchLinker) {
+      new AmplifyBranchLinkerConstruct(stack, backendId);
+    }
 
     const importPathVerifier = new ToggleableImportPathVerifier();
 
@@ -99,10 +103,11 @@ export class BackendFactory<
   }
 
   /**
-   * Returns a CDK stack within the Amplify project that can be used for creating custom resources
+   * Returns a CDK stack within the Amplify project that can be used for creating custom resources.
+   * If a stack has already been created with "name" then an error is thrown.
    */
-  getOrCreateStack = (name: string): Stack => {
-    return this.stackResolver.getStackFor(name);
+  createStack = (name: string): Stack => {
+    return this.stackResolver.createCustomStack(name);
   };
 }
 

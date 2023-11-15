@@ -29,7 +29,6 @@ export class StackStatusMapper {
         return BackendDeploymentStatus.FAILED;
 
       case StackStatus.CREATE_IN_PROGRESS:
-      case StackStatus.DELETE_IN_PROGRESS:
       case StackStatus.IMPORT_IN_PROGRESS:
       case StackStatus.IMPORT_ROLLBACK_IN_PROGRESS:
       case StackStatus.REVIEW_IN_PROGRESS:
@@ -39,6 +38,9 @@ export class StackStatusMapper {
       case StackStatus.UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS:
       case StackStatus.UPDATE_ROLLBACK_IN_PROGRESS:
         return BackendDeploymentStatus.DEPLOYING;
+
+      case StackStatus.DELETE_IN_PROGRESS:
+        return BackendDeploymentStatus.DELETING;
 
       case StackStatus.DELETE_COMPLETE:
         return BackendDeploymentStatus.DELETED;

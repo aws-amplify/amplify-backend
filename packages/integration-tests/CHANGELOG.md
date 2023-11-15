@@ -1,5 +1,52 @@
 # @aws-amplify/integration-tests
 
+## 0.3.2
+
+### Patch Changes
+
+- 23b369d79: Add amplify comment when writing to gitignore
+- bd8b5d1a5: update data/resource template; bump data-schema versions
+
+## 0.3.1
+
+### Patch Changes
+
+- fdff69be3: Update error message when running create amplify in an existing amplify project
+
+## 0.3.0
+
+### Minor Changes
+
+- 85a015b7: switch to using data-schema packages
+
+## 0.2.4
+
+### Patch Changes
+
+- 8f03cd09: enable branch linker by default
+
+## 0.2.3
+
+### Patch Changes
+
+- 68dc91e3: chore: support for JS backend apps
+- a126d8df: bump amplify data versions
+
+## 0.2.2
+
+### Patch Changes
+
+- 79a6e09f: Change stackOutputKey to platformOutputKey
+- 93c956ea: Add aws_project_region to e2e test assert
+- 79a6e09f: Add aws_project_region to amplifyconfiguration.json
+
+## 0.2.1
+
+### Patch Changes
+
+- d0119b25: Flatten loginWith type to improve autocompletion.
+- 4e48e4ba: chore: add new defineBackend to better align with other backend factories
+
 ## 0.2.0
 
 ### Minor Changes

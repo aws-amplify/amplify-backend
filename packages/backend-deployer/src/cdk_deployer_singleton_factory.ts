@@ -1,16 +1,16 @@
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import { BackendIdentifier, DeploymentType } from '@aws-amplify/plugin-types';
 import { CDKDeployer } from './cdk_deployer.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
-import { BackendDeploymentType } from '@aws-amplify/platform-core';
+import { BackendLocator } from '@aws-amplify/platform-core';
 
 export type DeployProps = {
-  deploymentType?: BackendDeploymentType;
+  deploymentType?: DeploymentType;
   secretLastUpdated?: Date;
   validateAppSources?: boolean;
 };
 
 export type DestroyProps = {
-  deploymentType?: BackendDeploymentType;
+  deploymentType?: DeploymentType;
 };
 
 /**
@@ -18,11 +18,11 @@ export type DestroyProps = {
  */
 export type BackendDeployer = {
   deploy: (
-    uniqueBackendIdentifier?: UniqueBackendIdentifier,
+    backendId?: BackendIdentifier,
     deployProps?: DeployProps
   ) => Promise<void>;
   destroy: (
-    uniqueBackendIdentifier?: UniqueBackendIdentifier,
+    backendId?: BackendIdentifier,
     destroyProps?: DestroyProps
   ) => Promise<void>;
 };
@@ -38,7 +38,10 @@ export class BackendDeployerFactory {
    */
   static getInstance = (): BackendDeployer => {
     if (!BackendDeployerFactory.instance) {
-      BackendDeployerFactory.instance = new CDKDeployer(new CdkErrorMapper());
+      BackendDeployerFactory.instance = new CDKDeployer(
+        new CdkErrorMapper(),
+        new BackendLocator()
+      );
     }
     return BackendDeployerFactory.instance;
   };

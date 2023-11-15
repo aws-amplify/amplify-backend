@@ -2,6 +2,7 @@ import { existsSync as _existsSync } from 'fs';
 import _fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
+import { logger } from './logger.js';
 
 /**
  * Ensure that the .gitignore file exists with the correct contents in the current working directory
@@ -13,7 +14,6 @@ export class GitIgnoreInitializer {
    */
   constructor(
     private readonly projectRoot: string,
-    private readonly logger: typeof console = console,
     private readonly existsSync = _existsSync,
     private readonly fs = _fs
   ) {
@@ -25,6 +25,7 @@ export class GitIgnoreInitializer {
    */
   ensureInitialized = async (): Promise<void> => {
     const ignorePatterns = [
+      '# amplify',
       'node_modules',
       '.amplify',
       'amplifyconfiguration*',
@@ -38,7 +39,10 @@ export class GitIgnoreInitializer {
       );
 
       // Add os.EOL if last line of .gitignore does not have EOL
-      if (gitIgnoreContent.slice(-1)[0] !== '') {
+      if (
+        gitIgnoreContent.slice(-1)[0] !== '' &&
+        filteredIgnorePatterns.length > 0
+      ) {
         filteredIgnorePatterns.unshift(os.EOL);
       }
 
@@ -46,7 +50,7 @@ export class GitIgnoreInitializer {
       return;
     }
 
-    this.logger.log(
+    logger.debug(
       'No .gitignore file found in the working directory. Creating .gitignore...'
     );
 
@@ -62,8 +66,11 @@ export class GitIgnoreInitializer {
       return;
     }
 
-    // Add EOL to end of each pattern, additional EOL so .gitignore ends with it
-    const content = patterns.join(os.EOL) + os.EOL;
+    // Add EOL to end of each pattern, ensure additional content begins and ends with EOL
+    const content =
+      (patterns[0] === os.EOL || !this.gitIgnoreExists() ? '' : os.EOL) +
+      patterns.join(os.EOL) +
+      os.EOL;
 
     await this.fs.appendFile(this.gitIgnorePath, content);
   };
@@ -76,7 +83,21 @@ export class GitIgnoreInitializer {
       return;
     }
 
-    return (await this.fs.readFile(this.gitIgnorePath, 'utf-8')).split(os.EOL);
+    return (await this.fs.readFile(this.gitIgnorePath, 'utf-8'))
+      .split(os.EOL)
+      .map((s) => {
+        let result = s.trim();
+
+        // Removes leading/trailing /
+        if (result.startsWith('/')) {
+          result = result.slice(1);
+        }
+        if (result.endsWith('/')) {
+          result = result.slice(0, -1);
+        }
+
+        return result;
+      });
   };
 
   /**

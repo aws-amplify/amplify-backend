@@ -1,7 +1,6 @@
 import { Argv, CommandModule } from 'yargs';
 import { SecretClient } from '@aws-amplify/backend-secret';
-import { SandboxIdResolver } from '../sandbox_id_resolver.js';
-import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
+import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
 import { AmplifyPrompter } from '@aws-amplify/cli-core';
 
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
@@ -27,7 +26,7 @@ export class SandboxSecretSetCommand
    * Set sandbox secret command.
    */
   constructor(
-    private readonly sandboxIdResolver: SandboxIdResolver,
+    private readonly sandboxIdResolver: SandboxBackendIdResolver,
     private readonly secretClient: SecretClient
   ) {
     this.command = 'set <secretName>';
@@ -39,9 +38,8 @@ export class SandboxSecretSetCommand
    */
   handler = async (args: SecretSetCommandOptions): Promise<void> => {
     const secretVal = await AmplifyPrompter.secretValue();
-    const backendId = await this.sandboxIdResolver.resolve();
     await this.secretClient.setSecret(
-      new SandboxBackendIdentifier(backendId),
+      await this.sandboxIdResolver.resolve(),
       args['secret-name'],
       secretVal
     );

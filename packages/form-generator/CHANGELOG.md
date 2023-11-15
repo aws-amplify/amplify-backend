@@ -1,5 +1,17 @@
 # @aws-amplify/form-generator
 
+## 0.4.0
+
+### Minor Changes
+
+- fc71c4902: Change the default directory for models in form generation
+
+## 0.3.0
+
+### Minor Changes
+
+- 863dc241: Use "use client"; directive in generated React components
+
 ## 0.2.0
 
 ### Minor Changes
