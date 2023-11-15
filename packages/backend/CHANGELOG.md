@@ -1,5 +1,12 @@
 # @aws-amplify/backend
 
+## 0.5.1
+
+### Patch Changes
+
+- Updated dependencies [3cda50cb7]
+  - @aws-amplify/backend-data@0.6.0
+
 ## 0.5.0
 
 ### Minor Changes

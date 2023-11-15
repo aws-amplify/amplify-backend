@@ -5,7 +5,7 @@ import { loadConfig } from '@smithy/node-config-provider';
 import { NODE_REGION_CONFIG_OPTIONS } from '@aws-sdk/region-config-resolver';
 import { InvalidCredentialError } from './error/credential_error.js';
 
-export const profileSetupInstruction = `To configure a new Amplify profile, use "amplify configure profile".${EOL}To update an existing profile, use "aws configure"`;
+export const profileSetupInstruction = `To configure a new Amplify profile, use "amplify configure profile".`;
 
 /**
  * Contains middleware functions.
@@ -32,10 +32,15 @@ export class CommandMiddleware {
     } catch (err) {
       let errMsg: string;
       if (argv.profile) {
-        errMsg = `Failed to load aws credentials for profile '${argv.profile}'.${EOL}${profileSetupInstruction}`;
+        errMsg = `Failed to load aws credentials for profile '${
+          argv.profile
+        }': ${(err as Error).message}.${EOL}`;
       } else {
-        errMsg = `Failed to load default aws credentials.${EOL}Please refer to https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/setting-credentials-node.html.${EOL}${profileSetupInstruction}`;
+        errMsg = `Failed to load default aws credentials: ${
+          (err as Error).message
+        }.${EOL}`;
       }
+      errMsg += profileSetupInstruction;
       throw new InvalidCredentialError(errMsg, { cause: err });
     }
 
@@ -45,9 +50,17 @@ export class CommandMiddleware {
         ignoreCache: true,
       })();
     } catch (err) {
-      const errMsg = `${
-        (err as Error).message
-      }. Please refer to this page for region setting options:${EOL}https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/setting-region.html${EOL}${profileSetupInstruction}`;
+      let errMsg: string;
+      if (argv.profile) {
+        errMsg = `Failed to load aws region for profile '${argv.profile}': ${
+          (err as Error).message
+        }.${EOL}`;
+      } else {
+        errMsg = `Failed to load default aws region: ${
+          (err as Error).message
+        }.${EOL}`;
+      }
+      errMsg += profileSetupInstruction;
       throw new InvalidCredentialError(errMsg, { cause: err });
     }
   };

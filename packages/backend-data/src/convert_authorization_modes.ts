@@ -8,7 +8,7 @@ import {
   LambdaAuthorizationConfig as CDKLambdaAuthorizationConfig,
   OIDCAuthorizationConfig as CDKOIDCAuthorizationConfig,
   UserPoolAuthorizationConfig as CDKUserPoolAuthorizationConfig,
-} from '@aws-amplify/graphql-api-construct';
+} from '@aws-amplify/data-construct';
 import {
   ApiKeyAuthorizationModeProps,
   AuthorizationModes,
