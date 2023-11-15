@@ -3,8 +3,9 @@ import stream from 'stream';
 import {
   BackendDeployer,
   DeployProps,
-  DeploymentTimes,
+  DeployResult,
   DestroyProps,
+  DestroyResult,
 } from './cdk_deployer_singleton_factory.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
 import { BackendIdentifier, DeploymentType } from '@aws-amplify/plugin-types';
@@ -48,17 +49,12 @@ export class CDKDeployer implements BackendDeployer {
       }
     }
 
-    const cdkOutput = await this.invokeCdk(
+    return this.invokeCdk(
       InvokableCommand.DEPLOY,
       backendId,
       deployProps?.deploymentType,
       cdkCommandArgs
     );
-
-    return {
-      deploymentTimes: this.getDeploymentTimes(cdkOutput),
-      hotswapped: this.deploymentHotswapped(cdkOutput),
-    };
   };
 
   /**
@@ -68,15 +64,12 @@ export class CDKDeployer implements BackendDeployer {
     backendId?: BackendIdentifier,
     destroyProps?: DestroyProps
   ) => {
-    const cdkOutput = await this.invokeCdk(
+    return this.invokeCdk(
       InvokableCommand.DESTROY,
       backendId,
       destroyProps?.deploymentType,
       ['--force']
     );
-    return {
-      deploymentTimes: this.getDeploymentTimes(cdkOutput),
-    };
   };
 
   private invokeTsc = async (deployProps?: DeployProps) => {
@@ -113,7 +106,7 @@ export class CDKDeployer implements BackendDeployer {
     backendId?: BackendIdentifier,
     deploymentType?: DeploymentType,
     additionalArguments?: string[]
-  ): Promise<string> => {
+  ): Promise<DeployResult | DestroyResult> => {
     // Basic args
     const cdkCommandArgs = [
       'cdk',
@@ -153,8 +146,15 @@ export class CDKDeployer implements BackendDeployer {
       cdkCommandArgs.push(...additionalArguments);
     }
 
+    const cdkOutput = { deploymentTimes: {} };
+
     try {
-      return await this.executeChildProcess('npx', cdkCommandArgs);
+      await this.executeChildProcess(
+        'npx',
+        cdkCommandArgs,
+        this.listenStdoutAndPopulateCDKOutput(cdkOutput)
+      );
+      return cdkOutput;
     } catch (err) {
       throw this.cdkErrorMapper.getHumanReadableError(err as Error);
     }
@@ -164,21 +164,20 @@ export class CDKDeployer implements BackendDeployer {
    * Wrapper for the child process executor. Helps in unit testing as node:test framework
    * doesn't have capabilities to mock exported functions like `execa` as of right now.
    */
-  executeChildProcess = async (command: string, cdkCommandArgs: string[]) => {
+  executeChildProcess = async (
+    command: string,
+    cdkCommandArgs: string[],
+    stdoutListener?: stream.Writable
+  ) => {
     // We let the stdout and stdin inherit and streamed to parent process but pipe
     // the stderr and use it to throw on failure. This is to prevent actual
     // actionable errors being hidden among the stdout. Moreover execa errors are
     // useless when calling CLIs unless you made execa calling error.
     let aggregatedStderr = '';
-    let aggregatedStdout = '';
+    const aggregatedStdout = '';
     const aggregatorStderrStream = new stream.Writable();
-    const aggregatorStdoutStream = new stream.Writable();
     aggregatorStderrStream._write = function (chunk, encoding, done) {
       aggregatedStderr += chunk;
-      done();
-    };
-    aggregatorStdoutStream._write = function (chunk, encoding, done) {
-      aggregatedStdout += chunk;
       done();
     };
     const childProcess = execa(command, cdkCommandArgs, {
@@ -187,7 +186,9 @@ export class CDKDeployer implements BackendDeployer {
       stderr: 'pipe',
     });
     childProcess.stderr?.pipe(aggregatorStderrStream);
-    childProcess.stdout?.pipe(aggregatorStdoutStream);
+    if (stdoutListener) {
+      childProcess.stdout?.pipe(stdoutListener);
+    }
     childProcess.stdout?.pipe(process.stdout);
     try {
       await childProcess;
@@ -198,26 +199,27 @@ export class CDKDeployer implements BackendDeployer {
     }
   };
 
-  private getDeploymentTimes = (cdkOutput: string) => {
-    const deploymentTimes: DeploymentTimes = {};
-    // the time can be in fractional or whole seconds. 24.3, 24, 24.22 etc.
+  private listenStdoutAndPopulateCDKOutput = (
+    output: DeployResult | DestroyResult
+  ) => {
     const regexTotalTime = /✨ {2}Total time: (\d*\.*\d*)s.*/;
-    const totalTime = cdkOutput.match(regexTotalTime);
-    if (totalTime && totalTime.length > 1 && !isNaN(+totalTime[1])) {
-      deploymentTimes.totalTime = +totalTime[1];
-    }
-
     const regexSynthTime = /✨ {2}Synthesis time: (\d*\.*\d*)s/;
-    const synthTime = cdkOutput.match(regexSynthTime);
-    if (synthTime && synthTime.length > 1 && !isNaN(+synthTime[1])) {
-      deploymentTimes.synthesisTime = +synthTime[1];
-    }
-
-    return deploymentTimes;
-  };
-
-  private deploymentHotswapped = (cdkOutput: string) => {
-    const regexTotalTime = /✨.*hotswapped!/;
-    return regexTotalTime.test(cdkOutput);
+    const stdoutStream = new stream.Writable();
+    stdoutStream._write = function (chunk, encoding, done) {
+      const data = Buffer.from(chunk, encoding).toString();
+      if (data.includes('✨')) {
+        // Good chance that it contains timing information
+        const totalTime = data.match(regexTotalTime);
+        if (totalTime && totalTime.length > 1 && !isNaN(+totalTime[1])) {
+          output.deploymentTimes.totalTime = +totalTime[1];
+        }
+        const synthTime = data.match(regexSynthTime);
+        if (synthTime && synthTime.length > 1 && !isNaN(+synthTime[1])) {
+          output.deploymentTimes.synthesisTime = +synthTime[1];
+        }
+      }
+      done();
+    };
+    return stdoutStream;
   };
 }

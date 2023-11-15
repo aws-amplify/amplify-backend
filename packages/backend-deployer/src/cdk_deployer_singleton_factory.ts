@@ -10,7 +10,6 @@ export type DeployProps = {
 };
 
 export type DeployResult = {
-  hotswapped?: boolean;
   deploymentTimes: DeploymentTimes;
 };
 

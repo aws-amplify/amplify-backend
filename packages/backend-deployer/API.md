@@ -33,7 +33,6 @@ export type DeployProps = {
 
 // @public (undocumented)
 export type DeployResult = {
-    hotswapped?: boolean;
     deploymentTimes: DeploymentTimes;
 };
 
