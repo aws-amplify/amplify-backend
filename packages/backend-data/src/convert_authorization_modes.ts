@@ -40,7 +40,7 @@ export const buildConstructFactoryProvidedAuthConfig = (
   return {
     userPool: authResourceProvider.resources.userPool,
     identityPoolId:
-      authResourceProvider.resources.cfnResources.cfnIdentityPool.logicalId,
+      authResourceProvider.resources.cfnResources.cfnIdentityPool.ref,
     authenticatedUserRole:
       authResourceProvider.resources.authenticatedUserIamRole,
     unauthenticatedUserRole:
