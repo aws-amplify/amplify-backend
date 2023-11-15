@@ -57,11 +57,9 @@ export class AmplifyProjectCreator {
     );
 
     await logger.indicateProgress(`Creating template files`, async () => {
-      await this.tsConfigInitializer.ensureInitialized();
       await this.gitIgnoreInitializer.ensureInitialized();
       await this.initialProjectFileGenerator.generateInitialProjectFiles();
     });
-    this.logger.log('Scaffolding initial project files...');
 
     const cdCommand =
       process.cwd() === this.projectRoot

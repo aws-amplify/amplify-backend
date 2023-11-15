@@ -97,6 +97,8 @@ void describe('create-amplify script', () => {
       assert.equal(tsConfigObject.compilerOptions.module, 'node16');
       assert.equal(tsConfigObject.compilerOptions.resolveJsonModule, true);
 
+      const pathPrefix = path.join(tempDir, 'amplify');
+
       const files = await glob(path.join(amplifyPathPrefix, '**', '*'), {
         // eslint-disable-next-line spellcheck/spell-checker
         nodir: true,
@@ -113,12 +115,7 @@ void describe('create-amplify script', () => {
 
       assert.deepStrictEqual(
         files.sort(),
-        [
-          path.join('auth', 'resource.ts'),
-          'backend.ts',
-          path.join('data', 'resource.ts'),
-          'package.json',
-        ].map((suffix) => path.join(pathPrefix, suffix))
+        expectedAmplifyFiles.map((suffix) => path.join(pathPrefix, suffix))
       );
 
       // assert that project compiles successfully

@@ -51,7 +51,7 @@ void describe('TsConfigInitializer', () => {
       existsSyncMock as never,
       execaMock as never
     );
-    await tsConfigInitializer.ensureInitialized();
+    await tsConfigInitializer.ensureInitialized('/testProjectRoot');
     assert.equal(execaMock.mock.callCount(), 1);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments, [
       'npx',
