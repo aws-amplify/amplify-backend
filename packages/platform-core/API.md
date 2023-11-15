@@ -7,11 +7,9 @@
 /// <reference types="node" />
 
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
-import * as _fs from 'fs';
-import * as _fsp from 'fs/promises';
 import { STSClient } from '@aws-sdk/client-sts';
 import { UrlWithStringQuery } from 'url';
-import { z } from 'zod';
+import z from 'zod';
 
 // @public
 export class AccountIdFetcher {
@@ -45,8 +43,11 @@ export enum CDKContextKey {
 
 // @public
 export class CwdPackageJsonLoader {
-    constructor(fs?: typeof _fs, fsp?: typeof _fsp);
-    loadCwdPackageJson: () => Promise<PackageJson>;
+    read(): {
+        name?: string | undefined;
+        version?: string | undefined;
+        type?: "module" | "commonjs" | undefined;
+    };
 }
 
 // @public (undocumented)
@@ -62,22 +63,28 @@ export class FilePathExtractor {
     extract: () => string | undefined;
 }
 
-// @public
-export class LibraryVersionFetcher {
-    // (undocumented)
-    fetch: (absolutePackageJsonPath: string) => string;
-}
-
 // @public (undocumented)
 export type PackageJson = z.infer<typeof packageJsonSchema>;
 
 // @public
+export class PackageJsonReader {
+    // (undocumented)
+    read: (absolutePackageJsonPath: string) => PackageJson;
+}
+
+// @public
 export const packageJsonSchema: z.ZodObject<{
-    name: z.ZodString;
+    name: z.ZodOptional<z.ZodString>;
+    version: z.ZodOptional<z.ZodString>;
+    type: z.ZodOptional<z.ZodUnion<[z.ZodLiteral<"module">, z.ZodLiteral<"commonjs">]>>;
 }, "strip", z.ZodTypeAny, {
-    name: string;
+    name?: string | undefined;
+    version?: string | undefined;
+    type?: "module" | "commonjs" | undefined;
 }, {
-    name: string;
+    name?: string | undefined;
+    version?: string | undefined;
+    type?: "module" | "commonjs" | undefined;
 }>;
 
 // @public

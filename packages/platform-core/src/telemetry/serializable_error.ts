@@ -1,7 +1,7 @@
 import path from 'path';
 
 /**
- * Wrapper around Error for easy serialization for usage metrics
+ * Wrapper around Error for serialization for usage metrics
  */
 export class SerializableError {
   stackTraceRegex =

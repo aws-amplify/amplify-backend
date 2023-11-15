@@ -18,6 +18,8 @@ export class LocalNamespaceResolver implements NamespaceResolver {
    * Returns the value of package.json#name from the current working directory
    */
   resolve = async () => {
-    return (await this.packageJsonLoader.loadCwdPackageJson()).name;
+    const name = this.packageJsonLoader.read().name;
+    if (name) return name;
+    throw new Error('Cannot load name from the package.json');
   };
 }

@@ -5,7 +5,7 @@ import assert from 'node:assert';
 void describe('LocalAppNameResolver', () => {
   void it('returns package.json#name', async () => {
     const packageJsonLoaderMock = {
-      loadCwdPackageJson: async () => ({ name: 'testName' }),
+      read: () => ({ name: 'testName' }),
     };
     const resolver = new LocalNamespaceResolver(packageJsonLoaderMock as never);
     const result = await resolver.resolve();

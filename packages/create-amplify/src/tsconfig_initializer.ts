@@ -1,7 +1,7 @@
 import { existsSync as _existsSync } from 'fs';
 import * as path from 'path';
 import { execa as _execa } from 'execa';
-import { PackageJsonReader } from './package_json_reader.js';
+import { PackageJsonReader } from '@aws-amplify/platform-core';
 import { logger } from './logger.js';
 import { executeWithDebugLogger } from './execute_with_logger.js';
 
@@ -31,7 +31,7 @@ export class TsConfigInitializer {
       'No tsconfig.json file found in the current directory. Running `npx tsc --init`...'
     );
 
-    const packageJson = await this.packageJsonReader.readPackageJson();
+    const packageJson = await this.packageJsonReader.read(this.projectRoot);
     const tscArgs = ['tsc', '--init', '--resolveJsonModule', 'true'];
     if (packageJson.type === 'module') {
       tscArgs.push(

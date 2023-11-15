@@ -1,9 +1,6 @@
 import { Stack } from 'aws-cdk-lib';
 import * as _os from 'os';
-import {
-  CDKContextKey,
-  LibraryVersionFetcher,
-} from '@aws-amplify/platform-core';
+import { CDKContextKey, PackageJsonReader } from '@aws-amplify/platform-core';
 import { DeploymentType } from '@aws-amplify/plugin-types';
 
 /**
@@ -15,7 +12,7 @@ export class AttributionMetadataStorage {
    */
   constructor(
     private readonly os: typeof _os = _os,
-    private readonly libraryVersionFetcher = new LibraryVersionFetcher()
+    private readonly packageJsonReader = new PackageJsonReader()
   ) {}
 
   /**
@@ -53,9 +50,8 @@ export class AttributionMetadataStorage {
   ): AttributionMetadata => ({
     createdOn: this.getPlatform(),
     createdBy: this.getDeploymentEngineType(stack),
-    createdWith: this.libraryVersionFetcher.fetch(
-      libraryPackageJsonAbsolutePath
-    ),
+    createdWith:
+      this.packageJsonReader.read(libraryPackageJsonAbsolutePath).version ?? '',
     stackType: stackType,
     metadata: additionalMetadata,
   });

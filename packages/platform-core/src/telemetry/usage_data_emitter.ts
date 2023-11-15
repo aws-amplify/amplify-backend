@@ -4,7 +4,7 @@ import { DeploymentTimes, UsageData } from './usage_data.js';
 import os from 'os';
 import https from 'https';
 import { getInstallationUuid } from './get_installation_id.js';
-import { latestPayloadVersion } from './version_manager.js';
+import { latestPayloadVersion } from './constants.js';
 import { getUrl } from './get_usage_data_url.js';
 import isCI from 'is-ci';
 import { SerializableError } from './serializable_error.js';

@@ -8,8 +8,8 @@
 
 import { BackendOutputEntry } from '@aws-amplify/plugin-types';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
-import { LibraryVersionFetcher } from '@aws-amplify/platform-core';
 import * as _os from 'os';
+import { PackageJsonReader } from '@aws-amplify/platform-core';
 import { Stack } from 'aws-cdk-lib';
 
 // @public (undocumented)
@@ -23,7 +23,7 @@ export type AttributionMetadata = {
 
 // @public
 export class AttributionMetadataStorage {
-    constructor(os?: typeof _os, libraryVersionFetcher?: LibraryVersionFetcher);
+    constructor(os?: typeof _os, packageJsonReader?: PackageJsonReader);
     storeAttributionMetadata: (stack: Stack, stackType: string, libraryPackageJsonAbsolutePath: string, additionalMetadata?: Record<string, string>) => void;
 }
 

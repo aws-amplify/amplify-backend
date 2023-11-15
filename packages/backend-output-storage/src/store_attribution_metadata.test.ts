@@ -7,13 +7,15 @@ import {
 } from './store_attribution_metadata.js';
 
 import assert from 'node:assert';
-import { LibraryVersionFetcher } from '@aws-amplify/platform-core';
+import { PackageJsonReader } from '@aws-amplify/platform-core';
 
 void describe('storeAttributionMetadata', () => {
-  const libraryVersionFetcherMock = mock.fn(() => '12.13.14');
-  const libraryVersionFetcher = {
-    fetch: libraryVersionFetcherMock,
-  } as LibraryVersionFetcher;
+  const packageJsonReaderMock = mock.fn(() => {
+    return { version: '12.13.14' };
+  });
+  const packageJsonReader = {
+    read: packageJsonReaderMock,
+  } as PackageJsonReader;
 
   void it('does nothing if stack description is already set', () => {
     const app = new App();
@@ -22,7 +24,7 @@ void describe('storeAttributionMetadata', () => {
     stack.templateOptions.description = originalDescription;
     new AttributionMetadataStorage(
       os,
-      libraryVersionFetcher
+      packageJsonReader
     ).storeAttributionMetadata(stack, 'test', 'some/path');
     assert.equal(stack.templateOptions.description, originalDescription);
   });
@@ -32,7 +34,7 @@ void describe('storeAttributionMetadata', () => {
     const stack = new Stack(app);
     new AttributionMetadataStorage(
       os,
-      libraryVersionFetcher
+      packageJsonReader
     ).storeAttributionMetadata(stack, 'test', 'some/path');
     const metadata: AttributionMetadata = JSON.parse(
       stack.templateOptions.description || ''
@@ -46,7 +48,7 @@ void describe('storeAttributionMetadata', () => {
     stack.node.setContext('amplify-backend-type', 'branch');
     new AttributionMetadataStorage(
       os,
-      libraryVersionFetcher
+      packageJsonReader
     ).storeAttributionMetadata(stack, 'test', 'some/path');
     const metadata: AttributionMetadata = JSON.parse(
       stack.templateOptions.description || ''
@@ -60,7 +62,7 @@ void describe('storeAttributionMetadata', () => {
     stack.node.setContext('amplify-backend-type', 'sandbox');
     new AttributionMetadataStorage(
       os,
-      libraryVersionFetcher
+      packageJsonReader
     ).storeAttributionMetadata(stack, 'test', 'some/path');
     const metadata: AttributionMetadata = JSON.parse(
       stack.templateOptions.description || ''
@@ -74,7 +76,7 @@ void describe('storeAttributionMetadata', () => {
     stack.node.setContext('amplify-backend-type', 'sandbox');
     new AttributionMetadataStorage(
       os,
-      libraryVersionFetcher
+      packageJsonReader
     ).storeAttributionMetadata(stack, 'test', 'some/path');
     const metadata: AttributionMetadata = JSON.parse(
       stack.templateOptions.description || ''
@@ -87,7 +89,7 @@ void describe('storeAttributionMetadata', () => {
     const stack = new Stack(app);
     new AttributionMetadataStorage(
       os,
-      libraryVersionFetcher
+      packageJsonReader
     ).storeAttributionMetadata(stack, 'test', 'some/path', {
       some: 'otherData',
     });
@@ -102,7 +104,7 @@ void describe('storeAttributionMetadata', () => {
     const stack = new Stack(app);
     new AttributionMetadataStorage(
       os,
-      libraryVersionFetcher
+      packageJsonReader
     ).storeAttributionMetadata(stack, 'test', 'some/path');
     const attribution: AttributionMetadata = JSON.parse(
       stack.templateOptions.description || ''
@@ -126,7 +128,7 @@ void describe('storeAttributionMetadata', () => {
       const stack = new Stack(app);
       new AttributionMetadataStorage(
         osMock as never,
-        libraryVersionFetcher
+        packageJsonReader
       ).storeAttributionMetadata(stack, 'test', 'some/path');
       const metadata: AttributionMetadata = JSON.parse(
         stack.templateOptions.description || ''

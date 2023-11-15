@@ -9,7 +9,7 @@ import { LocalNamespaceResolver } from '../../backend-identifier/local_namespace
 import { createSandboxSecretCommand } from './sandbox-secret/sandbox_secret_command_factory.js';
 import {
   CwdPackageJsonLoader,
-  LibraryVersionFetcher,
+  PackageJsonReader,
   UsageDataEmitter,
 } from '@aws-amplify/platform-core';
 import { SandboxEventHandlerFactory } from './sandbox_event_handler_factory.js';
@@ -54,9 +54,9 @@ export const createSandboxCommand = (): CommandModule<
   const eventHandlerFactory = new SandboxEventHandlerFactory(
     sandboxBackendIdentifierResolver,
     new UsageDataEmitter(
-      new LibraryVersionFetcher().fetch(
+      new PackageJsonReader().read(
         fileURLToPath(new URL('../../../package.json', import.meta.url))
-      )
+      ).version ?? ''
     )
   );
 
