@@ -30,6 +30,7 @@ jobs:
           npm run test
   live_dependency_health_checks:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       # these permissions are required for the configure-aws-credentials action to get a JWT from GitHub
       id-token: write

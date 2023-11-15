@@ -4,27 +4,7 @@
   "amplifyDataGraphQLAPI42A6FA33": {
    "Type": "AWS::AppSync::GraphQLApi",
    "Properties": {
-    "AdditionalAuthenticationProviders": [
-     {
-      "AuthenticationType": "API_KEY"
-     },
-     {
-      "AuthenticationType": "OPENID_CONNECT",
-      "OpenIDConnectConfig": {
-       "AuthTTL": 50,
-       "IatTTL": 60,
-       "Issuer": "https://fake-provider.fake/"
-      }
-     }
-    ],
-    "AuthenticationType": "AWS_LAMBDA",
-    "LambdaAuthorizerConfig": {
-     "AuthorizerResultTtlInSeconds": 0,
-     "AuthorizerUri": {
-      "Ref": "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionNestedStackfunctionNestedStackResource482C479FOutputsamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionApiAuthApiAuthLambdaFunctionCFF4ED65Arn"
-     },
-     "IdentityValidationExpression": ""
-    },
+    "AuthenticationType": "API_KEY",
     "Name": "amplifyData"
    }
   },
@@ -38,7 +18,7 @@
      ]
     },
     "DefinitionS3Location": {
-     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/78eb7ae54bd7ec301d9187d362c3703f257dba202a996eee5be8e34daab6da2c.graphql"
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/a8641fe7f3d1b191af1863ef36013258b1bfc2dd6925fd5e96a4d7e4da8ff397.graphql"
     }
    }
   },
@@ -51,7 +31,7 @@
       "ApiId"
      ]
     },
-    "Expires": 1702683856
+    "Expires": 1700696648
    }
   },
   "amplifyDataGraphQLAPINONEDS684BF699": {
@@ -116,7 +96,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/65902aeee9119f4103aaefb36ae5d93c0cf18bdfa10863d85db129134ca3052d.json"
+       "/8ac627f2019ef48f92dde30b69f86e762587a898103afb781d4552bee5d9fab4.json"
       ]
      ]
     }
@@ -242,7 +222,7 @@
      }
     ],
     "SourceObjectKeys": [
-     "ad0ad6aaca1bae0a53c638cc684b9b07e7e20b1eb9072e96cc6fcdc8d825c0bc.zip"
+     "91ec9b176ef4ddf3162a347d9075f0dbbf1a7f1202ef2890ba030f5f1c1438a5.zip"
     ],
     "SourceMarkers": [
      {}
@@ -511,9 +491,6 @@
     "false"
    ],
    "Description": "Enable server side encryption powered by KMS."
-  },
-  "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionNestedStackfunctionNestedStackResource482C479FOutputsamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionApiAuthApiAuthLambdaFunctionCFF4ED65Arn": {
-   "Type": "String"
   }
  },
  "Outputs": {
