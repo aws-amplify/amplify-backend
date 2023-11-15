@@ -3,7 +3,7 @@ import assert from 'node:assert';
 import { Duration, Stack } from 'aws-cdk-lib';
 import { UserPool } from 'aws-cdk-lib/aws-cognito';
 import { IRole, Role } from 'aws-cdk-lib/aws-iam';
-import { AuthorizationModes as CDKAuthorizationModes } from '@aws-amplify/graphql-api-construct';
+import { AuthorizationModes as CDKAuthorizationModes } from '@aws-amplify/data-construct';
 import { AuthorizationModes } from './types.js';
 import {
   ProvidedAuthConfig,
