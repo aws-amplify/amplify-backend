@@ -47,7 +47,7 @@
       "ApiId"
      ]
     },
-    "Expires": 1702670481
+    "Expires": 1702674767
    }
   },
   "amplifyDataGraphQLAPINONEDS684BF699": {
@@ -141,6 +141,9 @@
      },
      "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854aauthNestedStackauthNestedStackResource462F2942OutputsamplifytestAppIdtestBranchNamebranch7d6f6c854aauthamplifyAuthunauthenticatedUserRoleF922AD28Ref": {
       "Ref": "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854aauthNestedStackauthNestedStackResource462F2942OutputsamplifytestAppIdtestBranchNamebranch7d6f6c854aauthamplifyAuthunauthenticatedUserRoleF922AD28Ref"
+     },
+     "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854aauthNestedStackauthNestedStackResource462F2942OutputsamplifytestAppIdtestBranchNamebranch7d6f6c854aauthamplifyAuthIdentityPool7404D50ERef": {
+      "Ref": "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854aauthNestedStackauthNestedStackResource462F2942OutputsamplifytestAppIdtestBranchNamebranch7d6f6c854aauthamplifyAuthIdentityPool7404D50ERef"
      }
     },
     "TemplateURL": {
@@ -159,7 +162,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/0486f92cd68716c0ab77f929a944682a7396c1ccf0f07d3c20afc60d1e462a9d.json"
+       "/7feef61ce2e7746b3d7700aa837fa419f347b204061c8e32f444e10623738309.json"
       ]
      ]
     }
@@ -562,6 +565,9 @@
    "Type": "String"
   },
   "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854aauthNestedStackauthNestedStackResource462F2942OutputsamplifytestAppIdtestBranchNamebranch7d6f6c854aauthamplifyAuthunauthenticatedUserRoleF922AD28Ref": {
+   "Type": "String"
+  },
+  "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854aauthNestedStackauthNestedStackResource462F2942OutputsamplifytestAppIdtestBranchNamebranch7d6f6c854aauthamplifyAuthIdentityPool7404D50ERef": {
    "Type": "String"
   }
  },
