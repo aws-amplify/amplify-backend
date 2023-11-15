@@ -4,22 +4,8 @@
   "amplifyDataGraphQLAPI42A6FA33": {
    "Type": "AWS::AppSync::GraphQLApi",
    "Properties": {
-    "AdditionalAuthenticationProviders": [
-     {
-      "AuthenticationType": "AWS_IAM"
-     }
-    ],
-    "AuthenticationType": "AMAZON_COGNITO_USER_POOLS",
-    "Name": "amplifyData",
-    "UserPoolConfig": {
-     "AwsRegion": {
-      "Ref": "AWS::Region"
-     },
-     "DefaultAction": "ALLOW",
-     "UserPoolId": {
-      "Ref": "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854aauthNestedStackauthNestedStackResource462F2942OutputsamplifytestAppIdtestBranchNamebranch7d6f6c854aauthamplifyAuthUserPool70E84902Ref"
-     }
-    }
+    "AuthenticationType": "API_KEY",
+    "Name": "amplifyData"
    }
   },
   "amplifyDataGraphQLAPITransformerSchemaFF50A789": {
@@ -32,8 +18,20 @@
      ]
     },
     "DefinitionS3Location": {
-     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/99a0121692ae701057e9e5fcd49e1757dda243cbc15f92ce512cc25186665ce5.graphql"
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/a8641fe7f3d1b191af1863ef36013258b1bfc2dd6925fd5e96a4d7e4da8ff397.graphql"
     }
+   }
+  },
+  "amplifyDataGraphQLAPIDefaultApiKey1C8ED374": {
+   "Type": "AWS::AppSync::ApiKey",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "amplifyDataGraphQLAPI42A6FA33",
+      "ApiId"
+     ]
+    },
+    "Expires": 1700688447
    }
   },
   "amplifyDataGraphQLAPINONEDS684BF699": {
@@ -121,15 +119,6 @@
        "amplifyDataGraphQLAPINONEDS684BF699",
        "Name"
       ]
-     },
-     "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854aauthNestedStackauthNestedStackResource462F2942OutputsamplifytestAppIdtestBranchNamebranch7d6f6c854aauthamplifyAuthauthenticatedUserRoleF0783640Ref": {
-      "Ref": "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854aauthNestedStackauthNestedStackResource462F2942OutputsamplifytestAppIdtestBranchNamebranch7d6f6c854aauthamplifyAuthauthenticatedUserRoleF0783640Ref"
-     },
-     "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854aauthNestedStackauthNestedStackResource462F2942OutputsamplifytestAppIdtestBranchNamebranch7d6f6c854aauthamplifyAuthunauthenticatedUserRoleF922AD28Ref": {
-      "Ref": "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854aauthNestedStackauthNestedStackResource462F2942OutputsamplifytestAppIdtestBranchNamebranch7d6f6c854aauthamplifyAuthunauthenticatedUserRoleF922AD28Ref"
-     },
-     "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854aauthNestedStackauthNestedStackResource462F2942OutputsamplifytestAppIdtestBranchNamebranch7d6f6c854aauthamplifyAuthIdentityPool7404D50ERef": {
-      "Ref": "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854aauthNestedStackauthNestedStackResource462F2942OutputsamplifytestAppIdtestBranchNamebranch7d6f6c854aauthamplifyAuthIdentityPool7404D50ERef"
      }
     },
     "TemplateURL": {
@@ -148,57 +137,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/4a79ad097bd6f9650cd9e1d0f0fedf6ae9a46465c9f718f30fbed3e2fc459709.json"
-      ]
-     ]
-    }
-   },
-   "DependsOn": [
-    "amplifyDataGraphQLAPITransformerSchemaFF50A789"
-   ],
-   "UpdateReplacePolicy": "Delete",
-   "DeletionPolicy": "Delete"
-  },
-  "amplifyDataFunctionDirectiveStackNestedStackFunctionDirectiveStackNestedStackResource1246A302": {
-   "Type": "AWS::CloudFormation::Stack",
-   "Properties": {
-    "Parameters": {
-     "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionNestedStackfunctionNestedStackResource482C479FOutputsamplifytestAppIdtestBranchNamebranch7d6f6c854afunctiontestFunctestFuncLambdaFunction675DD8C2Arn": {
-      "Ref": "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionNestedStackfunctionNestedStackResource482C479FOutputsamplifytestAppIdtestBranchNamebranch7d6f6c854afunctiontestFunctestFuncLambdaFunction675DD8C2Arn"
-     },
-     "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854adataamplifyDataGraphQLAPI8E80FACEApiId": {
-      "Fn::GetAtt": [
-       "amplifyDataGraphQLAPI42A6FA33",
-       "ApiId"
-      ]
-     },
-     "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854aauthNestedStackauthNestedStackResource462F2942OutputsamplifytestAppIdtestBranchNamebranch7d6f6c854aauthamplifyAuthauthenticatedUserRoleF0783640Ref": {
-      "Ref": "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854aauthNestedStackauthNestedStackResource462F2942OutputsamplifytestAppIdtestBranchNamebranch7d6f6c854aauthamplifyAuthauthenticatedUserRoleF0783640Ref"
-     },
-     "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854aauthNestedStackauthNestedStackResource462F2942OutputsamplifytestAppIdtestBranchNamebranch7d6f6c854aauthamplifyAuthunauthenticatedUserRoleF922AD28Ref": {
-      "Ref": "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854aauthNestedStackauthNestedStackResource462F2942OutputsamplifytestAppIdtestBranchNamebranch7d6f6c854aauthamplifyAuthunauthenticatedUserRoleF922AD28Ref"
-     },
-     "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionNestedStackfunctionNestedStackResource482C479FOutputsamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionechoFuncechoFuncLambdaFunctionCC7FF4D5Arn": {
-      "Ref": "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionNestedStackfunctionNestedStackResource482C479FOutputsamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionechoFuncechoFuncLambdaFunctionCC7FF4D5Arn"
-     }
-    },
-    "TemplateURL": {
-     "Fn::Join": [
-      "",
-      [
-       "https://s3.",
-       {
-        "Ref": "AWS::Region"
-       },
-       ".",
-       {
-        "Ref": "AWS::URLSuffix"
-       },
-       "/",
-       {
-        "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
-       },
-       "/390aa9db25a635decfe8354f0dd4e83f6cfe506d71adfd3998181733a678ed01.json"
+       "/b2592dc0925350164d369b9756628f4e37c379d41cabf3012d22754ae7b343f8.json"
       ]
      ]
     }
@@ -324,7 +263,7 @@
      }
     ],
     "SourceObjectKeys": [
-     "f7466b40815188839731e7f77595dc9bb8b31e0da6b425153a60cd67de6a1d2f.zip"
+     "91ec9b176ef4ddf3162a347d9075f0dbbf1a7f1202ef2890ba030f5f1c1438a5.zip"
     ],
     "SourceMarkers": [
      {}
@@ -593,24 +532,6 @@
     "false"
    ],
    "Description": "Enable server side encryption powered by KMS."
-  },
-  "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854aauthNestedStackauthNestedStackResource462F2942OutputsamplifytestAppIdtestBranchNamebranch7d6f6c854aauthamplifyAuthUserPool70E84902Ref": {
-   "Type": "String"
-  },
-  "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854aauthNestedStackauthNestedStackResource462F2942OutputsamplifytestAppIdtestBranchNamebranch7d6f6c854aauthamplifyAuthauthenticatedUserRoleF0783640Ref": {
-   "Type": "String"
-  },
-  "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854aauthNestedStackauthNestedStackResource462F2942OutputsamplifytestAppIdtestBranchNamebranch7d6f6c854aauthamplifyAuthunauthenticatedUserRoleF922AD28Ref": {
-   "Type": "String"
-  },
-  "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854aauthNestedStackauthNestedStackResource462F2942OutputsamplifytestAppIdtestBranchNamebranch7d6f6c854aauthamplifyAuthIdentityPool7404D50ERef": {
-   "Type": "String"
-  },
-  "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionNestedStackfunctionNestedStackResource482C479FOutputsamplifytestAppIdtestBranchNamebranch7d6f6c854afunctiontestFunctestFuncLambdaFunction675DD8C2Arn": {
-   "Type": "String"
-  },
-  "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionNestedStackfunctionNestedStackResource482C479FOutputsamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionechoFuncechoFuncLambdaFunctionCC7FF4D5Arn": {
-   "Type": "String"
   }
  },
  "Outputs": {
@@ -633,6 +554,14 @@
   "amplifytestAppIdtestBranchNamebranch7d6f6c854adataamplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsBucket01B64A21Ref": {
    "Value": {
     "Ref": "amplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsBucket9CCB4ACA"
+   }
+  },
+  "amplifytestAppIdtestBranchNamebranch7d6f6c854adataamplifyDataGraphQLAPIDefaultApiKey346D40FDApiKey": {
+   "Value": {
+    "Fn::GetAtt": [
+     "amplifyDataGraphQLAPIDefaultApiKey1C8ED374",
+     "ApiKey"
+    ]
    }
   }
  }
