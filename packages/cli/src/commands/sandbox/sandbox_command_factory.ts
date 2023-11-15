@@ -8,7 +8,7 @@ import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { LocalNamespaceResolver } from '../../backend-identifier/local_namespace_resolver.js';
 import { createSandboxSecretCommand } from './sandbox-secret/sandbox_secret_command_factory.js';
 import {
-  CwdPackageJsonLoader,
+  CwdPackageJsonReader,
   PackageJsonReader,
   UsageDataEmitterFactory,
 } from '@aws-amplify/platform-core';
@@ -25,7 +25,7 @@ export const createSandboxCommand = (): CommandModule<
 > => {
   const credentialProvider = fromNodeProviderChain();
   const sandboxBackendIdPartsResolver = new SandboxBackendIdResolver(
-    new LocalNamespaceResolver(new CwdPackageJsonLoader())
+    new LocalNamespaceResolver(new CwdPackageJsonReader())
   );
 
   /**

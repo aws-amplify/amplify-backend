@@ -31,12 +31,8 @@ export enum CDKContextKey {
 }
 
 // @public
-export class CwdPackageJsonLoader {
-    read(): {
-        name?: string | undefined;
-        version?: string | undefined;
-        type?: "module" | "commonjs" | undefined;
-    };
+export class CwdPackageJsonReader {
+    read(): PackageJson;
 }
 
 // @public

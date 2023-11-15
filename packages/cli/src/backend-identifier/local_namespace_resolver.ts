@@ -1,4 +1,4 @@
-import { CwdPackageJsonLoader } from '@aws-amplify/platform-core';
+import { CwdPackageJsonReader } from '@aws-amplify/platform-core';
 
 export type NamespaceResolver = {
   resolve: () => Promise<string>;
@@ -12,7 +12,7 @@ export class LocalNamespaceResolver implements NamespaceResolver {
    * packageJsonLoader is assigned to an instance member for testing.
    * resolve is bound to this so that it can be passed as a function reference
    */
-  constructor(private readonly packageJsonLoader: CwdPackageJsonLoader) {}
+  constructor(private readonly packageJsonLoader: CwdPackageJsonReader) {}
 
   /**
    * Returns the value of package.json#name from the current working directory
