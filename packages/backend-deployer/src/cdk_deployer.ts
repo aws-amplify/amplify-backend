@@ -1,5 +1,6 @@
 import { execa } from 'execa';
 import stream from 'stream';
+import readline from 'readline';
 import {
   BackendDeployer,
   DeployProps,
@@ -146,15 +147,8 @@ export class CDKDeployer implements BackendDeployer {
       cdkCommandArgs.push(...additionalArguments);
     }
 
-    const cdkOutput = { deploymentTimes: {} };
-
     try {
-      await this.executeChildProcess(
-        'npx',
-        cdkCommandArgs,
-        this.listenStdoutAndPopulateCDKOutput(cdkOutput)
-      );
-      return cdkOutput;
+      return await this.executeChildProcess('npx', cdkCommandArgs);
     } catch (err) {
       throw this.cdkErrorMapper.getHumanReadableError(err as Error);
     }
@@ -164,11 +158,7 @@ export class CDKDeployer implements BackendDeployer {
    * Wrapper for the child process executor. Helps in unit testing as node:test framework
    * doesn't have capabilities to mock exported functions like `execa` as of right now.
    */
-  executeChildProcess = async (
-    command: string,
-    cdkCommandArgs: string[],
-    stdoutListener?: (chunk: string) => void
-  ) => {
+  executeChildProcess = async (command: string, cdkCommandArgs: string[]) => {
     // We let the stdout and stdin inherit and streamed to parent process but pipe
     // the stderr and use it to throw on failure. This is to prevent actual
     // actionable errors being hidden among the stdout. Moreover execa errors are
@@ -185,37 +175,41 @@ export class CDKDeployer implements BackendDeployer {
       stderr: 'pipe',
     });
     childProcess.stderr?.pipe(aggregatorStderrStream);
-    if (stdoutListener) {
-      childProcess.stdout?.on('data', stdoutListener);
-    }
     childProcess.stdout?.pipe(process.stdout);
+
+    const cdkOutput = { deploymentTimes: {} };
+    if (childProcess.stdout) {
+      await this.populateCDKOutputFromStdout(cdkOutput, childProcess.stdout);
+    }
+
     try {
       await childProcess;
+      return cdkOutput;
     } catch (error) {
       // swallow execa error which is not really helpful, rather throw stderr
       throw new Error(aggregatedStderr);
     }
   };
 
-  private listenStdoutAndPopulateCDKOutput = (
-    output: DeployResult | DestroyResult
+  private populateCDKOutputFromStdout = async (
+    output: DeployResult | DestroyResult,
+    stdout: stream.Readable
   ) => {
     const regexTotalTime = /✨ {2}Total time: (\d*\.*\d*)s.*/;
     const regexSynthTime = /✨ {2}Synthesis time: (\d*\.*\d*)s/;
-    const listener = (chunk: string) => {
-      const data = Buffer.from(chunk).toString();
-      if (data.includes('✨')) {
+    const reader = readline.createInterface(stdout);
+    for await (const line of reader) {
+      if (line.includes('✨')) {
         // Good chance that it contains timing information
-        const totalTime = data.match(regexTotalTime);
+        const totalTime = line.match(regexTotalTime);
         if (totalTime && totalTime.length > 1 && !isNaN(+totalTime[1])) {
           output.deploymentTimes.totalTime = +totalTime[1];
         }
-        const synthTime = data.match(regexSynthTime);
+        const synthTime = line.match(regexSynthTime);
         if (synthTime && synthTime.length > 1 && !isNaN(+synthTime[1])) {
           output.deploymentTimes.synthesisTime = +synthTime[1];
         }
       }
-    };
-    return listener;
+    }
   };
 }
