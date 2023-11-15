@@ -15,17 +15,13 @@ import { NpmProjectInitializer } from './npm_project_initializer.js';
 import { TsConfigInitializer } from './tsconfig_initializer.js';
 import { getProjectRoot } from './get_project_root.js';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
-import { PackageJsonReader } from './package_json_reader.js';
 
 const projectRoot = await getProjectRoot();
 
 const amplifyProjectCreator = new AmplifyProjectCreator(
   new NpmPackageManagerController(projectRoot),
   new ProjectRootValidator(projectRoot),
-  new InitialProjectFileGenerator(
-    projectRoot,
-    new TsConfigInitializer(projectRoot, new PackageJsonReader(projectRoot))
-  ),
+  new InitialProjectFileGenerator(projectRoot, new TsConfigInitializer()),
   new NpmProjectInitializer(projectRoot),
   new GitIgnoreInitializer(projectRoot),
   projectRoot

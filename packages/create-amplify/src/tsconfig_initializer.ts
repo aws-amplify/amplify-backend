@@ -1,7 +1,6 @@
 import { existsSync as _existsSync } from 'fs';
 import * as path from 'path';
 import { execa as _execa } from 'execa';
-import { PackageJsonReader } from './package_json_reader.js';
 import { logger } from './logger.js';
 import { executeWithDebugLogger } from './execute_with_logger.js';
 
@@ -13,8 +12,6 @@ export class TsConfigInitializer {
    * injecting console and fs for testing
    */
   constructor(
-    private readonly projectRoot: string,
-    private readonly packageJsonReader: PackageJsonReader,
     private readonly existsSync = _existsSync,
     private readonly execa = _execa
   ) {}
@@ -22,8 +19,8 @@ export class TsConfigInitializer {
   /**
    * If tsconfig.json already exists, this is a noop. Otherwise, `npx tsc --init` is executed to create a tsconfig.json file
    */
-  ensureInitialized = async (projectRoot: string): Promise<void> => {
-    if (this.tsConfigJsonExists(projectRoot)) {
+  ensureInitialized = async (targetDir: string): Promise<void> => {
+    if (this.tsConfigJsonExists(targetDir)) {
       // if tsconfig.json already exists, no need to do anything
       return;
     }
@@ -45,19 +42,14 @@ export class TsConfigInitializer {
     ];
 
     try {
-      await executeWithDebugLogger(
-        this.projectRoot,
-        'npx',
-        tscArgs,
-        this.execa
-      );
+      await executeWithDebugLogger(targetDir, 'npx', tscArgs, this.execa);
     } catch {
       throw new Error(
         '`npx tsc --init` did not exit successfully. Initialize a valid TypeScript configuration before continuing.'
       );
     }
 
-    if (!this.tsConfigJsonExists(projectRoot)) {
+    if (!this.tsConfigJsonExists(targetDir)) {
       // this should only happen if the customer exits out of npx tsc --init before finishing
       throw new Error(
         'tsconfig.json does not exist after running `npx tsc --init`. Initialize a valid TypeScript configuration before continuing.'
@@ -66,9 +58,9 @@ export class TsConfigInitializer {
   };
 
   /**
-   * Check if a tsconfig.json file exists in projectRoot
+   * Check if a tsconfig.json file exists in targetDir
    */
-  private tsConfigJsonExists = (projectRoot: string): boolean => {
-    return this.existsSync(path.resolve(projectRoot, 'tsconfig.json'));
+  private tsConfigJsonExists = (targetDir: string): boolean => {
+    return this.existsSync(path.resolve(targetDir, 'tsconfig.json'));
   };
 }
