@@ -2,6 +2,7 @@ import { graphqlOutputKey } from '@aws-amplify/backend-output-schemas';
 import { BackendOutputClientFactory } from '@aws-amplify/deployed-backend-client';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import assert from 'node:assert';
+import path from 'node:path';
 import { describe, it, mock } from 'node:test';
 import yargs, { CommandModule } from 'yargs';
 import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
@@ -11,7 +12,7 @@ import { GenerateFormsCommand } from './generate_forms_command.js';
 
 void describe('generate forms command', () => {
   void describe('form generation validation', () => {
-    void it('modelsOutDir path can be customized', async () => {
+    void it('models are generated in ${out-dir}/graphql', async () => {
       const credentialProvider = fromNodeProviderChain();
 
       const backendIdResolver = new BackendIdentifierResolver({
@@ -48,17 +49,17 @@ void describe('generate forms command', () => {
         generateFormsCommand as unknown as CommandModule
       );
 
-      const modelsOutPath = './my-fake-models-path';
+      const outPath = 'my-fake-models-path';
       const commandRunner = new TestCommandRunner(parser);
       await commandRunner.runCommand(
-        `forms --stack my_stack --models-out-dir ${modelsOutPath}`
+        `forms --stack my_stack --out-dir ${outPath}`
       );
       assert.equal(
-        generationMock.mock.calls[0].arguments[0].modelsOutDir,
-        modelsOutPath
+        path.join(generationMock.mock.calls[0].arguments[0].modelsOutDir),
+        path.join(`${outPath}/graphql`)
       );
     });
-    void it('ui-out-dir path can be customized', async () => {
+    void it('out-dir path can be customized', async () => {
       const credentialProvider = fromNodeProviderChain();
 
       const backendIdResolver = new BackendIdentifierResolver({
@@ -98,7 +99,7 @@ void describe('generate forms command', () => {
       const uiOutPath = './my-fake-ui-path';
       const commandRunner = new TestCommandRunner(parser);
       await commandRunner.runCommand(
-        `forms --stack my_stack --ui-out-dir ${uiOutPath}`
+        `forms --stack my_stack --out-dir ${uiOutPath}`
       );
       assert.equal(
         generationMock.mock.calls[0].arguments[0].uiOutDir,
@@ -146,49 +147,6 @@ void describe('generate forms command', () => {
       assert.equal(
         generationMock.mock.calls[0].arguments[0].uiOutDir,
         './ui-components'
-      );
-    });
-    void it('./graphql is the default graphql model generation path', async () => {
-      const credentialProvider = fromNodeProviderChain();
-
-      const backendIdResolver = new BackendIdentifierResolver({
-        resolve: () => Promise.resolve('testAppName'),
-      });
-      const formGenerationHandler = new FormGenerationHandler({
-        credentialProvider,
-      });
-
-      const fakedBackendOutputClient = BackendOutputClientFactory.getInstance({
-        credentials: credentialProvider,
-      });
-
-      const generateFormsCommand = new GenerateFormsCommand(
-        backendIdResolver,
-        () => fakedBackendOutputClient,
-        formGenerationHandler
-      );
-
-      const generationMock = mock.method(formGenerationHandler, 'generate');
-      generationMock.mock.mockImplementation(async () => undefined);
-      mock
-        .method(fakedBackendOutputClient, 'getOutput')
-        .mock.mockImplementation(async () => ({
-          [graphqlOutputKey]: {
-            payload: {
-              awsAppsyncApiId: 'test_api_id',
-              amplifyApiModelSchemaS3Uri: 'test_schema',
-              awsAppsyncApiEndpoint: 'test_endpoint',
-            },
-          },
-        }));
-      const parser = yargs().command(
-        generateFormsCommand as unknown as CommandModule
-      );
-      const commandRunner = new TestCommandRunner(parser);
-      await commandRunner.runCommand('forms --stack my_stack');
-      assert.equal(
-        generationMock.mock.calls[0].arguments[0].modelsOutDir,
-        './graphql'
       );
     });
   });
