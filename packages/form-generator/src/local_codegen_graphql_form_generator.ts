@@ -86,6 +86,18 @@ export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
     });
     return schemas;
   };
+
+  private renderGraphqlPath = (
+    submodule: 'fragments' | 'mutations' | 'queries' | 'types' | 'subscriptions'
+  ) => {
+    const graphqlPath = `${this.renderOptions.graphqlDir}/${submodule}`;
+    // if the path does not start with a leading ./ or ../, assume that the graphql folder is in the same directory relative to the ui, and prepend a `./`
+    if (graphqlPath.startsWith('.')) {
+      return graphqlPath;
+    }
+    return `./${graphqlPath}`;
+  };
+
   /**
    * Gets the react render config
    */
@@ -98,23 +110,11 @@ export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
       renderTypeDeclarations: true,
       apiConfiguration: {
         dataApi: 'GraphQL',
-        fragmentsFilePath: `./${path.join(
-          this.renderOptions.graphqlDir,
-          'fragments'
-        )}`,
-        mutationsFilePath: `./${path.join(
-          this.renderOptions.graphqlDir,
-          'mutations'
-        )}`,
-        queriesFilePath: `./${path.join(
-          this.renderOptions.graphqlDir,
-          'queries'
-        )}`,
-        subscriptionsFilePath: `./${path.join(
-          this.renderOptions.graphqlDir,
-          'subscriptions'
-        )}`,
-        typesFilePath: `./${path.join(this.renderOptions.graphqlDir, 'types')}`,
+        fragmentsFilePath: this.renderGraphqlPath('fragments'),
+        mutationsFilePath: this.renderGraphqlPath('mutations'),
+        queriesFilePath: this.renderGraphqlPath('queries'),
+        subscriptionsFilePath: this.renderGraphqlPath('subscriptions'),
+        typesFilePath: this.renderGraphqlPath('types'),
       },
     };
   }

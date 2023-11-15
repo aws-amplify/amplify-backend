@@ -66,7 +66,7 @@ export class GenerateFormsCommand
     const apiUrl = output[graphqlOutputKey].payload.amplifyApiModelSchemaS3Uri;
 
     if (!args['out-dir']) {
-      throw new Error('uiOut must be defined');
+      throw new Error('out-dir must be defined');
     }
 
     const outDir = args['out-dir'];
