@@ -1,5 +1,5 @@
 import { ClientConfigFormat } from '@aws-amplify/client-config';
-import { UsageDataEmitter } from '@aws-amplify/platform-core';
+import { UsageDataEmitterFactory } from '@aws-amplify/platform-core';
 import assert from 'node:assert';
 import { it, mock } from 'node:test';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
@@ -29,7 +29,7 @@ void it('calls the client config adapter on the successfulDeployment event', asy
       name: 'name',
       type: 'sandbox',
     }),
-    new UsageDataEmitter('test-version')
+    new UsageDataEmitterFactory().getInstance('test-version')
   );
 
   await Promise.all(
@@ -74,7 +74,7 @@ void it('calls deleteClientConfigFile on client config adapter on the successful
       name: 'name',
       type: 'sandbox',
     }),
-    new UsageDataEmitter('test-version')
+    new UsageDataEmitterFactory().getInstance('test-version')
   );
 
   await Promise.all(

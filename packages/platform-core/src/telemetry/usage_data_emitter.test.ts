@@ -1,6 +1,6 @@
 import { afterEach, describe, mock, test } from 'node:test';
 import assert from 'node:assert';
-import { UsageDataEmitter } from './usage_data_emitter';
+import { DefaultUsageDataEmitter } from './usage_data_emitter';
 import { v4, validate } from 'uuid';
 import url from 'url';
 import https from 'https';
@@ -12,7 +12,7 @@ import { DeploymentTimes, UsageData } from './usage_data';
 import isCI from 'is-ci';
 
 void describe('UsageDataEmitter', () => {
-  let usageDataEmitter: UsageDataEmitter;
+  let usageDataEmitter: DefaultUsageDataEmitter;
 
   const testLibraryVersion = '1.2.3';
   const testURL = url.parse('https://aws.amazon.com/amplify/');
@@ -124,7 +124,7 @@ void describe('UsageDataEmitter', () => {
       });
     });
 
-    usageDataEmitter = new UsageDataEmitter(
+    usageDataEmitter = new DefaultUsageDataEmitter(
       testLibraryVersion,
       v4(),
       testURL,

@@ -10,7 +10,7 @@ import { createSandboxSecretCommand } from './sandbox-secret/sandbox_secret_comm
 import {
   CwdPackageJsonLoader,
   PackageJsonReader,
-  UsageDataEmitter,
+  UsageDataEmitterFactory,
 } from '@aws-amplify/platform-core';
 import { SandboxEventHandlerFactory } from './sandbox_event_handler_factory.js';
 import { CommandMiddleware } from '../../command_middleware.js';
@@ -53,7 +53,7 @@ export const createSandboxCommand = (): CommandModule<
 
   const eventHandlerFactory = new SandboxEventHandlerFactory(
     sandboxBackendIdentifierResolver,
-    new UsageDataEmitter(
+    new UsageDataEmitterFactory().getInstance(
       new PackageJsonReader().read(
         fileURLToPath(new URL('../../../package.json', import.meta.url))
       ).version ?? ''

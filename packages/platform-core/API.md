@@ -4,11 +4,8 @@
 
 ```ts
 
-/// <reference types="node" />
-
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { STSClient } from '@aws-sdk/client-sts';
-import { UrlWithStringQuery } from 'url';
 import z from 'zod';
 
 // @public
@@ -87,13 +84,15 @@ export const packageJsonSchema: z.ZodObject<{
     type?: "module" | "commonjs" | undefined;
 }>;
 
-// @public
-export class UsageDataEmitter {
-    constructor(libraryVersion: string, sessionUuid?: string, url?: UrlWithStringQuery, accountIdFetcher?: AccountIdFetcher);
-    // (undocumented)
-    emitFailure: (command: string, error: Error) => Promise<void>;
-    // (undocumented)
+// @public (undocumented)
+export type UsageDataEmitter = {
     emitSuccess: (command: string, deploymentTimes?: DeploymentTimes, hotswapped?: boolean) => Promise<void>;
+    emitFailure: (command: string, error: Error) => Promise<void>;
+};
+
+// @public
+export class UsageDataEmitterFactory {
+    getInstance: (libraryVersion: string) => UsageDataEmitter;
 }
 
 // (No @packageDocumentation comment for this package)

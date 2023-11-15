@@ -12,7 +12,7 @@ import { SerializableError } from './serializable_error.js';
 /**
  * Entry point for sending usage data metrics
  */
-export class UsageDataEmitter {
+export class DefaultUsageDataEmitter {
   /**
    * Constructor for UsageDataEmitter
    */
