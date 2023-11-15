@@ -167,7 +167,7 @@ export class CDKDeployer implements BackendDeployer {
   executeChildProcess = async (
     command: string,
     cdkCommandArgs: string[],
-    stdoutListener?: stream.Writable
+    stdoutListener?: (chunk: string) => void
   ) => {
     // We let the stdout and stdin inherit and streamed to parent process but pipe
     // the stderr and use it to throw on failure. This is to prevent actual
@@ -186,7 +186,7 @@ export class CDKDeployer implements BackendDeployer {
     });
     childProcess.stderr?.pipe(aggregatorStderrStream);
     if (stdoutListener) {
-      childProcess.stdout?.pipe(stdoutListener);
+      childProcess.stdout?.on('data', stdoutListener);
     }
     childProcess.stdout?.pipe(process.stdout);
     try {
@@ -202,9 +202,8 @@ export class CDKDeployer implements BackendDeployer {
   ) => {
     const regexTotalTime = /✨ {2}Total time: (\d*\.*\d*)s.*/;
     const regexSynthTime = /✨ {2}Synthesis time: (\d*\.*\d*)s/;
-    const stdoutStream = new stream.Writable();
-    stdoutStream._write = function (chunk, encoding, done) {
-      const data = Buffer.from(chunk, encoding).toString();
+    const listener = (chunk: string) => {
+      const data = Buffer.from(chunk).toString();
       if (data.includes('✨')) {
         // Good chance that it contains timing information
         const totalTime = data.match(regexTotalTime);
@@ -216,8 +215,7 @@ export class CDKDeployer implements BackendDeployer {
           output.deploymentTimes.synthesisTime = +synthTime[1];
         }
       }
-      done();
     };
-    return stdoutStream;
+    return listener;
   };
 }
