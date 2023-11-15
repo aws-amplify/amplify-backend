@@ -125,13 +125,9 @@ void describe('create-amplify script', () => {
           'tsc',
           '--noEmit',
           '--skipLibCheck',
-          '--module',
-          'node16',
-          '--moduleResolution',
-          'node16',
-          '--target',
-          'es2022',
-          'amplify/backend.ts',
+          // pointing the project arg to the amplify backend directory will use the tsconfig present in that directory
+          '--project',
+          amplifyPathPrefix,
         ],
         {
           cwd: tempDir,

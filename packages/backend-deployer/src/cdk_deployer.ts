@@ -9,15 +9,8 @@ import { CdkErrorMapper } from './cdk_error_mapper.js';
 import { BackendIdentifier, DeploymentType } from '@aws-amplify/plugin-types';
 import { BackendLocator, CDKContextKey } from '@aws-amplify/platform-core';
 import { BackendDeployerEnvironmentVariables } from './environment_variables.js';
-import * as path from 'path';
 
 const relativeAmplifyBackendDir = 'amplify';
-
-// this path is used as command line args to child processes which expect unix paths
-const relativeBackendEntryPoint = path.posix.join(
-  relativeAmplifyBackendDir,
-  'backend.ts'
-);
 
 /**
  * Commands that can be invoked
