@@ -1,13 +1,14 @@
-import { DeploymentTimes } from './usage_data';
 import { DefaultUsageDataEmitter } from './usage_data_emitter.js';
 
 export type UsageDataEmitter = {
   emitSuccess: (
-    command: string,
-    deploymentTimes?: DeploymentTimes,
-    hotswapped?: boolean
+    metrics?: Record<string, number>,
+    dimensions?: Record<string, string>
   ) => Promise<void>;
-  emitFailure: (command: string, error: Error) => Promise<void>;
+  emitFailure: (
+    error: Error,
+    dimensions?: Record<string, string>
+  ) => Promise<void>;
 };
 
 /**

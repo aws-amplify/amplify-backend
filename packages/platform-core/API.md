@@ -47,12 +47,6 @@ export class CwdPackageJsonLoader {
     };
 }
 
-// @public (undocumented)
-export type DeploymentTimes = {
-    synthesisTime?: number;
-    totalTime?: number;
-};
-
 // @public
 export class FilePathExtractor {
     constructor(stackTraceLine: string);
@@ -86,8 +80,8 @@ export const packageJsonSchema: z.ZodObject<{
 
 // @public (undocumented)
 export type UsageDataEmitter = {
-    emitSuccess: (command: string, deploymentTimes?: DeploymentTimes, hotswapped?: boolean) => Promise<void>;
-    emitFailure: (command: string, error: Error) => Promise<void>;
+    emitSuccess: (metrics?: Record<string, number>, dimensions?: Record<string, string>) => Promise<void>;
+    emitFailure: (error: Error, dimensions?: Record<string, string>) => Promise<void>;
 };
 
 // @public

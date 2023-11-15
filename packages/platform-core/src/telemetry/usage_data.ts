@@ -17,8 +17,3 @@ export type UsageData = {
   input: { command: string; plugin: string };
   codePathDurations: { platformStartup?: number; totalDuration?: number };
 };
-
-export type DeploymentTimes = {
-  synthesisTime?: number;
-  totalTime?: number;
-};

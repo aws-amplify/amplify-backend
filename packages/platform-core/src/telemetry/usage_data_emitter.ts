@@ -1,6 +1,6 @@
 import { v4 as uuid } from 'uuid';
 import { AccountIdFetcher } from './account_id_fetcher.js';
-import { DeploymentTimes, UsageData } from './usage_data.js';
+import { UsageData } from './usage_data.js';
 import os from 'os';
 import https from 'https';
 import { getInstallationUuid } from './get_installation_id.js';
@@ -24,30 +24,31 @@ export class DefaultUsageDataEmitter {
   ) {}
 
   emitSuccess = async (
-    command: string,
-    deploymentTimes?: DeploymentTimes,
-    hotswapped?: boolean
+    metrics?: Record<string, number>,
+    dimensions?: Record<string, string>
   ) => {
     const data = await this.getUsageData({
       state: 'SUCCEEDED',
-      deploymentTimes,
-      hotswapped,
-      command,
+      metrics,
+      dimensions,
     });
     await this.send(data);
   };
 
-  emitFailure = async (command: string, error: Error) => {
-    const data = await this.getUsageData({ state: 'FAILED', error, command });
+  emitFailure = async (error: Error, dimensions?: Record<string, string>) => {
+    const data = await this.getUsageData({
+      state: 'FAILED',
+      error,
+      dimensions,
+    });
     await this.send(data);
   };
 
   private getUsageData = async (options: {
     state: string;
-    command: string;
+    metrics?: Record<string, number>;
+    dimensions?: Record<string, string>;
     error?: Error;
-    deploymentTimes?: DeploymentTimes;
-    hotswapped?: boolean;
   }) => {
     return {
       accountId: await this.accountIdFetcher.fetch(),
@@ -67,15 +68,8 @@ export class DefaultUsageDataEmitter {
       osRelease: os.release(),
       nodeVersion: process.versions.node,
       state: options.state,
-      input: { command: options.command, plugin: 'Gen2' },
-      codePathDurations: {
-        totalDuration: options.deploymentTimes?.totalTime
-          ? Math.round(options.deploymentTimes?.totalTime)
-          : undefined,
-        platformStartup: options.deploymentTimes?.synthesisTime
-          ? Math.round(options.deploymentTimes?.synthesisTime)
-          : undefined,
-      },
+      codePathDurations: this.translateMetricsToUsageData(options.metrics),
+      input: this.translateDimensionsToUsageData(options.dimensions),
       isCi: isCI,
     };
   };
@@ -106,5 +100,32 @@ export class DefaultUsageDataEmitter {
         resolve();
       });
     });
+  };
+
+  private translateMetricsToUsageData = (metrics?: Record<string, number>) => {
+    if (!metrics) return {};
+    let totalDuration, platformStartup;
+    for (const [name, data] of Object.entries(metrics)) {
+      if (name === 'totalTime') {
+        totalDuration = Math.round(data);
+      } else if (name === 'synthesisTime') {
+        platformStartup = Math.round(data);
+      }
+    }
+    return { totalDuration, platformStartup };
+  };
+
+  private translateDimensionsToUsageData = (
+    dimensions?: Record<string, string>
+  ) => {
+    let command = '';
+    if (dimensions) {
+      for (const [name, data] of Object.entries(dimensions)) {
+        if (name === 'command') {
+          command = data;
+        }
+      }
+    }
+    return { command, plugin: 'Gen2' };
   };
 }

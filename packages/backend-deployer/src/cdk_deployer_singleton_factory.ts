@@ -1,7 +1,7 @@
 import { BackendIdentifier, DeploymentType } from '@aws-amplify/plugin-types';
 import { CDKDeployer } from './cdk_deployer.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
-import { BackendLocator, DeploymentTimes } from '@aws-amplify/platform-core';
+import { BackendLocator } from '@aws-amplify/platform-core';
 
 export type DeployProps = {
   deploymentType?: DeploymentType;
@@ -20,6 +20,11 @@ export type DestroyProps = {
 
 export type DestroyResult = {
   deploymentTimes: DeploymentTimes;
+};
+
+export type DeploymentTimes = {
+  synthesisTime?: number;
+  totalTime?: number;
 };
 
 /**

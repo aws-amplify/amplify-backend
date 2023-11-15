@@ -34,9 +34,8 @@ export class SandboxEventHandlerFactory {
             const deployResult = args[0] as DeployResult;
             if (deployResult && deployResult.deploymentTimes) {
               await this.usageDataEmitter.emitSuccess(
-                'Sandbox',
                 deployResult.deploymentTimes,
-                deployResult.hotswapped
+                { command: 'Sandbox' }
               );
             }
           }
@@ -54,7 +53,9 @@ export class SandboxEventHandlerFactory {
           }
           const deployError = args[0] as Error;
           if (deployError && deployError.message) {
-            await this.usageDataEmitter.emitFailure('Sandbox', deployError);
+            await this.usageDataEmitter.emitFailure(deployError, {
+              command: 'Sandbox',
+            });
           }
         },
       ],

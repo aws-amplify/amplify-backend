@@ -8,7 +8,7 @@ import http from 'http';
 import fs from 'fs';
 import os from 'os';
 import { AccountIdFetcher } from './account_id_fetcher';
-import { DeploymentTimes, UsageData } from './usage_data';
+import { UsageData } from './usage_data';
 import isCI from 'is-ci';
 
 void describe('UsageDataEmitter', () => {
@@ -48,7 +48,7 @@ void describe('UsageDataEmitter', () => {
   void test('happy case, emitSuccess generates and send correct usage data', async () => {
     await setupAndInvokeUsageEmitter({
       isSuccess: true,
-      deploymentTimes: { synthesisTime: 5.3, totalTime: 20.6 },
+      metrics: { synthesisTime: 5.3, totalTime: 20.6 },
     });
 
     const usageDataSent: UsageData = JSON.parse(
@@ -116,7 +116,7 @@ void describe('UsageDataEmitter', () => {
   const setupAndInvokeUsageEmitter = async (testData: {
     isSuccess: boolean;
     error?: Error;
-    deploymentTimes?: DeploymentTimes;
+    metrics?: Record<string, number>;
   }) => {
     const reqEndHandlerAttached = new Promise<void>((resolve) => {
       onReqEndMock.mock.mockImplementationOnce(() => {
@@ -133,15 +133,13 @@ void describe('UsageDataEmitter', () => {
 
     let usageDataEmitterPromise;
     if (testData.isSuccess) {
-      usageDataEmitterPromise = usageDataEmitter.emitSuccess(
-        'testCommandName',
-        testData.deploymentTimes
-      );
+      usageDataEmitterPromise = usageDataEmitter.emitSuccess(testData.metrics, {
+        command: 'testCommandName',
+      });
     } else if (testData.error) {
-      usageDataEmitterPromise = usageDataEmitter.emitFailure(
-        'testCommandName',
-        testData.error
-      );
+      usageDataEmitterPromise = usageDataEmitter.emitFailure(testData.error, {
+        command: 'testCommandName',
+      });
     }
 
     await reqEndHandlerAttached;

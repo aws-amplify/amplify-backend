@@ -3,15 +3,12 @@ import stream from 'stream';
 import {
   BackendDeployer,
   DeployProps,
+  DeploymentTimes,
   DestroyProps,
 } from './cdk_deployer_singleton_factory.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
 import { BackendIdentifier, DeploymentType } from '@aws-amplify/plugin-types';
-import {
-  BackendLocator,
-  CDKContextKey,
-  DeploymentTimes,
-} from '@aws-amplify/platform-core';
+import { BackendLocator, CDKContextKey } from '@aws-amplify/platform-core';
 import { BackendDeployerEnvironmentVariables } from './environment_variables.js';
 
 /**

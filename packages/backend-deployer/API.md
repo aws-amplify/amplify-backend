@@ -5,7 +5,6 @@
 ```ts
 
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
-import { DeploymentTimes } from '@aws-amplify/platform-core';
 import { DeploymentType } from '@aws-amplify/plugin-types';
 
 // @public
@@ -18,6 +17,12 @@ export type BackendDeployer = {
 export class BackendDeployerFactory {
     static getInstance: () => BackendDeployer;
 }
+
+// @public (undocumented)
+export type DeploymentTimes = {
+    synthesisTime?: number;
+    totalTime?: number;
+};
 
 // @public (undocumented)
 export type DeployProps = {
