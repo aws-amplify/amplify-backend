@@ -1,5 +1,11 @@
 # @aws-amplify/form-generator
 
+## 0.4.0
+
+### Minor Changes
+
+- fc71c4902: Change the default directory for models in form generation
+
 ## 0.3.0
 
 ### Minor Changes
