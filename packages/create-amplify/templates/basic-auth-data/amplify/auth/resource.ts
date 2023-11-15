@@ -1,8 +1,28 @@
 import { defineAuth } from '@aws-amplify/backend';
 
-/** @see https://docs.amplify.aws/gen2/build-a-backend/auth */
+/**
+ * Define and configure your auth resource
+ * When used alongside data, it is automatically configured as an auth provider for data
+ * @see https://docs.amplify.aws/gen2/build-a-backend/auth
+ */
 export const auth = defineAuth({
   loginWith: {
     email: true,
+    // add social providers
+    externalProviders: {
+      // first, create your secrets using `amplify sandbox secret`
+      // then, import `secret` from `@aws-amplify/backend`
+      // loginWithAmazon: {
+      //   clientId: secret('LOGINWITHAMAZON_CLIENT_ID'),
+      //   clientSecret: secret('LOGINWITHAMAZON_CLIENT_SECRET'),
+      // }
+    },
+  },
+  userAttributes: {
+    // request additional attributes for your app's users
+    // profilePicture: {
+    //   mutable: true,
+    //   required: false,
+    // },
   },
 });
