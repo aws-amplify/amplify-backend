@@ -197,7 +197,7 @@ export class SandboxCommand
       ).delete({ name: this.sandboxName });
   };
 
-  validateDirectory = async (option: string, dir: string) => {
+  private validateDirectory = async (option: string, dir: string) => {
     let stats;
     try {
       stats = await fsp.stat(dir, {});
