@@ -1,5 +1,5 @@
 {
- "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyCDK\",\"createdWith\":\"1.3.0\",\"stackType\":\"api-AppSync\"}",
+ "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyCDK\",\"createdWith\":\"1.4.0\",\"stackType\":\"api-AppSync\",\"metadata\":{}}",
  "Resources": {
   "amplifyDataGraphQLAPI42A6FA33": {
    "Type": "AWS::AppSync::GraphQLApi",
@@ -47,7 +47,7 @@
       "ApiId"
      ]
     },
-    "Expires": 1702651574
+    "Expires": 1702671883
    }
   },
   "amplifyDataGraphQLAPINONEDS684BF699": {
@@ -100,6 +100,9 @@
      },
      "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854aauthNestedStackauthNestedStackResource462F2942OutputsamplifytestAppIdtestBranchNamebranch7d6f6c854aauthamplifyAuthunauthenticatedUserRoleF922AD28Ref": {
       "Ref": "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854aauthNestedStackauthNestedStackResource462F2942OutputsamplifytestAppIdtestBranchNamebranch7d6f6c854aauthamplifyAuthunauthenticatedUserRoleF922AD28Ref"
+     },
+     "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854aauthNestedStackauthNestedStackResource462F2942OutputsamplifytestAppIdtestBranchNamebranch7d6f6c854aauthamplifyAuthIdentityPool7404D50ERef": {
+      "Ref": "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854aauthNestedStackauthNestedStackResource462F2942OutputsamplifytestAppIdtestBranchNamebranch7d6f6c854aauthamplifyAuthIdentityPool7404D50ERef"
      }
     },
     "TemplateURL": {
@@ -118,7 +121,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/4ce28a642e3a281cefa280b57838549986889f6dca87de51c499c431ab28b7cf.json"
+       "/ee42b8a4399f9441d96d64d8a6914641cd6882338283da6ec16b07cd40ce4a2a.json"
       ]
      ]
     }
@@ -521,6 +524,9 @@
    "Type": "String"
   },
   "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854aauthNestedStackauthNestedStackResource462F2942OutputsamplifytestAppIdtestBranchNamebranch7d6f6c854aauthamplifyAuthunauthenticatedUserRoleF922AD28Ref": {
+   "Type": "String"
+  },
+  "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854aauthNestedStackauthNestedStackResource462F2942OutputsamplifytestAppIdtestBranchNamebranch7d6f6c854aauthamplifyAuthIdentityPool7404D50ERef": {
    "Type": "String"
   }
  },

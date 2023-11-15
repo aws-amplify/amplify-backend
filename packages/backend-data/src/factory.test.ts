@@ -25,7 +25,7 @@ import {
 } from 'aws-cdk-lib/aws-cognito';
 import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
-import { AmplifyGraphqlApi } from '@aws-amplify/graphql-api-construct';
+import { AmplifyData } from '@aws-amplify/data-construct';
 import {
   ConstructContainerStub,
   ImportPathVerifierStub,
@@ -54,7 +54,7 @@ void describe('DataFactory', () => {
   let constructContainer: ConstructContainer;
   let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
   let importPathVerifier: ImportPathVerifier;
-  let dataFactory: ConstructFactory<AmplifyGraphqlApi>;
+  let dataFactory: ConstructFactory<AmplifyData>;
   let getInstanceProps: ConstructFactoryGetInstanceProps;
 
   beforeEach(() => {

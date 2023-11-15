@@ -149,7 +149,7 @@ void describe('configure command', () => {
     assert.equal(mockOpen.mock.callCount(), 1);
     assert.equal(
       mockOpen.mock.calls[0].arguments[0],
-      'https://docs.amplify.aws/cli/start/install/'
+      'https://docs.amplify.aws/gen2/start/configure-account'
     );
     assert.equal(mockAppendAWSFiles.mock.callCount(), 1);
     assert.deepStrictEqual(mockAppendAWSFiles.mock.calls[0].arguments[0], {

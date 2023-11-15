@@ -1,5 +1,5 @@
 {
- "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyPipelineDeploy\",\"createdWith\":\"0.5.0\",\"stackType\":\"root\",\"metadata\":{}}",
+ "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyPipelineDeploy\",\"createdWith\":\"0.5.1\",\"stackType\":\"root\",\"metadata\":{}}",
  "Metadata": {
   "AWS::Amplify::Platform": {
    "version": "1",
@@ -397,6 +397,12 @@
        "auth179371D7",
        "Outputs.amplifytestAppIdtestBranchNamebranch7d6f6c854aauthamplifyAuthunauthenticatedUserRoleF922AD28Ref"
       ]
+     },
+     "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854aauthNestedStackauthNestedStackResource462F2942OutputsamplifytestAppIdtestBranchNamebranch7d6f6c854aauthamplifyAuthIdentityPool7404D50ERef": {
+      "Fn::GetAtt": [
+       "auth179371D7",
+       "Outputs.amplifytestAppIdtestBranchNamebranch7d6f6c854aauthamplifyAuthIdentityPool7404D50ERef"
+      ]
      }
     },
     "TemplateURL": {
@@ -415,7 +421,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/fb201d59610b12cc1e195d726ec003e1d95e1e0061bdbf9671af09b7fe93dfb2.json"
+       "/b45fba916ea00e4066fd3ca9aaa82086097a91664fbaf613680b47e6b741673a.json"
       ]
      ]
     }

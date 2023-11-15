@@ -1,5 +1,5 @@
 {
- "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyPipelineDeploy\",\"createdWith\":\"0.5.0\",\"stackType\":\"root\",\"metadata\":{}}",
+ "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyPipelineDeploy\",\"createdWith\":\"0.5.1\",\"stackType\":\"root\",\"metadata\":{}}",
  "Metadata": {
   "AWS::Amplify::Platform": {
    "version": "1",
@@ -498,6 +498,12 @@
        "Outputs.amplifytestAppIdtestBranchNamebranch7d6f6c854aauthamplifyAuthunauthenticatedUserRoleF922AD28Ref"
       ]
      },
+     "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854aauthNestedStackauthNestedStackResource462F2942OutputsamplifytestAppIdtestBranchNamebranch7d6f6c854aauthamplifyAuthIdentityPool7404D50ERef": {
+      "Fn::GetAtt": [
+       "auth179371D7",
+       "Outputs.amplifytestAppIdtestBranchNamebranch7d6f6c854aauthamplifyAuthIdentityPool7404D50ERef"
+      ]
+     },
      "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionNestedStackfunctionNestedStackResource482C479FOutputsamplifytestAppIdtestBranchNamebranch7d6f6c854afunctiontestFunctestFuncLambdaFunction675DD8C2Arn": {
       "Fn::GetAtt": [
        "function1351588B",
@@ -527,7 +533,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/6afdc42f81bc9739b0dd6e4e25ef5ef0152e5f970dad4a7b96926b6ba906b94c.json"
+       "/91617c68109f74d5a0741ff7c892b72894a57cf43dd20987912103b8acf036ac.json"
       ]
      ]
     }
