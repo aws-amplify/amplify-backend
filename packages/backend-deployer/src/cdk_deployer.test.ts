@@ -25,7 +25,7 @@ void describe('invokeCDKCommand', () => {
 
   const invoker = new CDKDeployer(new CdkErrorMapper(), backendLocator);
   const execaMock = mock.method(invoker, 'executeChildProcess', () =>
-    Promise.resolve('some cdk output')
+    Promise.resolve()
   );
 
   beforeEach(() => {

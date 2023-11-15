@@ -5,15 +5,7 @@
 ```ts
 
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
-import { STSClient } from '@aws-sdk/client-sts';
 import z from 'zod';
-
-// @public
-export class AccountIdFetcher {
-    constructor(stsClient?: STSClient);
-    // (undocumented)
-    fetch: () => Promise<string>;
-}
 
 // @public
 export class BackendIdentifierConversions {
