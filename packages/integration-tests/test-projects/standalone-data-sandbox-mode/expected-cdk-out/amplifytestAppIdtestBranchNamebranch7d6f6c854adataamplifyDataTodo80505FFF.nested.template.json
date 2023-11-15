@@ -37,6 +37,9 @@
    ],
    "Description": "Enable server side encryption powered by KMS."
   },
+  "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854adataamplifyDataAmplifyTableManagerNestedStackAmplifyTableManagerNestedStackResource8C0952BCOutputsamplifytestAppIdtestBranchNamebranch7d6f6c854adataamplifyDataAmplifyTableManagerTableD81D951E": {
+   "Type": "String"
+  },
   "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854adataamplifyDataGraphQLAPI8E80FACEApiId": {
    "Type": "String"
   },
@@ -81,42 +84,37 @@
   }
  },
  "Resources": {
-  "TodoTable585F1D6B": {
-   "Type": "AWS::DynamoDB::Table",
+  "TodoTable": {
+   "Type": "Custom::AmplifyDynamoDBTable",
    "Properties": {
-    "AttributeDefinitions": [
-     {
-      "AttributeName": "id",
-      "AttributeType": "S"
-     }
-    ],
-    "BillingMode": {
-     "Fn::If": [
-      "ShouldUsePayPerRequestBilling",
-      "PAY_PER_REQUEST",
-      {
-       "Ref": "AWS::NoValue"
-      }
+    "ServiceToken": {
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854adataamplifyDataAmplifyTableManagerNestedStackAmplifyTableManagerNestedStackResource8C0952BCOutputsamplifytestAppIdtestBranchNamebranch7d6f6c854adataamplifyDataAmplifyTableManagerTableD81D951E"
+    },
+    "tableName": {
+     "Fn::Join": [
+      "",
+      [
+       "Todo-",
+       {
+        "Ref": "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854adataamplifyDataGraphQLAPI8E80FACEApiId"
+       },
+       "-NONE"
+      ]
      ]
     },
-    "KeySchema": [
+    "attributeDefinitions": [
      {
-      "AttributeName": "id",
-      "KeyType": "HASH"
+      "attributeName": "id",
+      "attributeType": "S"
      }
     ],
-    "PointInTimeRecoverySpecification": {
-     "Fn::If": [
-      "ShouldUsePointInTimeRecovery",
-      {
-       "PointInTimeRecoveryEnabled": true
-      },
-      {
-       "Ref": "AWS::NoValue"
-      }
-     ]
-    },
-    "ProvisionedThroughput": {
+    "keySchema": [
+     {
+      "attributeName": "id",
+      "keyType": "HASH"
+     }
+    ],
+    "provisionedThroughput": {
      "Fn::If": [
       "ShouldUsePayPerRequestBilling",
       {
@@ -132,8 +130,8 @@
       }
      ]
     },
-    "SSESpecification": {
-     "SSEEnabled": {
+    "sseSpecification": {
+     "sseEnabled": {
       "Fn::If": [
        "ShouldUseServerSideEncryption",
        true,
@@ -141,19 +139,29 @@
       ]
      }
     },
-    "StreamSpecification": {
-     "StreamViewType": "NEW_AND_OLD_IMAGES"
+    "streamSpecification": {
+     "streamViewType": "NEW_AND_OLD_IMAGES"
     },
-    "TableName": {
-     "Fn::Join": [
-      "",
-      [
-       "Todo-",
-       {
-        "Ref": "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854adataamplifyDataGraphQLAPI8E80FACEApiId"
-       },
-       "-NONE"
-      ]
+    "allowDestructiveGraphqlSchemaUpdates": false,
+    "replaceTableUponGsiUpdate": false,
+    "pointInTimeRecoverySpecification": {
+     "Fn::If": [
+      "ShouldUsePointInTimeRecovery",
+      {
+       "PointInTimeRecoveryEnabled": true
+      },
+      {
+       "Ref": "AWS::NoValue"
+      }
+     ]
+    },
+    "billingMode": {
+     "Fn::If": [
+      "ShouldUsePayPerRequestBilling",
+      "PAY_PER_REQUEST",
+      {
+       "Ref": "AWS::NoValue"
+      }
      ]
     }
    },
@@ -213,8 +221,8 @@
        "Resource": [
         {
          "Fn::GetAtt": [
-          "TodoTable585F1D6B",
-          "Arn"
+          "TodoTable",
+          "TableArn"
          ]
         },
         {
@@ -313,7 +321,30 @@
       "Ref": "AWS::Region"
      },
      "TableName": {
-      "Ref": "TodoTable585F1D6B"
+      "Fn::Select": [
+       1,
+       {
+        "Fn::Split": [
+         "/",
+         {
+          "Fn::Select": [
+           5,
+           {
+            "Fn::Split": [
+             ":",
+             {
+              "Fn::GetAtt": [
+               "TodoTable",
+               "TableArn"
+              ]
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       }
+      ]
      }
     },
     "Name": "TodoTable",
@@ -405,7 +436,30 @@
        },
        "\"))\n$util.qr($ctx.stash.put(\"connectionAttributes\", {}))\n$util.qr($ctx.stash.put(\"tableName\", \"",
        {
-        "Ref": "TodoTable585F1D6B"
+        "Fn::Select": [
+         1,
+         {
+          "Fn::Split": [
+           "/",
+           {
+            "Fn::Select": [
+             5,
+             {
+              "Fn::Split": [
+               ":",
+               {
+                "Fn::GetAtt": [
+                 "TodoTable",
+                 "TableArn"
+                ]
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         }
+        ]
        },
        "\"))\n$util.qr($ctx.stash.put(\"adminRoles\", []))\n$util.toJson({})"
       ]
@@ -491,7 +545,30 @@
        },
        "\"))\n$util.qr($ctx.stash.put(\"connectionAttributes\", {}))\n$util.qr($ctx.stash.put(\"tableName\", \"",
        {
-        "Ref": "TodoTable585F1D6B"
+        "Fn::Select": [
+         1,
+         {
+          "Fn::Split": [
+           "/",
+           {
+            "Fn::Select": [
+             5,
+             {
+              "Fn::Split": [
+               ":",
+               {
+                "Fn::GetAtt": [
+                 "TodoTable",
+                 "TableArn"
+                ]
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         }
+        ]
        },
        "\"))\n$util.qr($ctx.stash.put(\"adminRoles\", []))\n$util.toJson({})"
       ]
@@ -600,7 +677,30 @@
        },
        "\"))\n$util.qr($ctx.stash.put(\"connectionAttributes\", {}))\n$util.qr($ctx.stash.put(\"tableName\", \"",
        {
-        "Ref": "TodoTable585F1D6B"
+        "Fn::Select": [
+         1,
+         {
+          "Fn::Split": [
+           "/",
+           {
+            "Fn::Select": [
+             5,
+             {
+              "Fn::Split": [
+               ":",
+               {
+                "Fn::GetAtt": [
+                 "TodoTable",
+                 "TableArn"
+                ]
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         }
+        ]
        },
        "\"))\n$util.qr($ctx.stash.put(\"adminRoles\", []))\n$util.toJson({})"
       ]
@@ -709,7 +809,30 @@
        },
        "\"))\n$util.qr($ctx.stash.put(\"connectionAttributes\", {}))\n$util.qr($ctx.stash.put(\"tableName\", \"",
        {
-        "Ref": "TodoTable585F1D6B"
+        "Fn::Select": [
+         1,
+         {
+          "Fn::Split": [
+           "/",
+           {
+            "Fn::Select": [
+             5,
+             {
+              "Fn::Split": [
+               ":",
+               {
+                "Fn::GetAtt": [
+                 "TodoTable",
+                 "TableArn"
+                ]
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         }
+        ]
        },
        "\"))\n$util.qr($ctx.stash.put(\"adminRoles\", []))\n$util.toJson({})"
       ]
@@ -795,7 +918,30 @@
        },
        "\"))\n$util.qr($ctx.stash.put(\"connectionAttributes\", {}))\n$util.qr($ctx.stash.put(\"tableName\", \"",
        {
-        "Ref": "TodoTable585F1D6B"
+        "Fn::Select": [
+         1,
+         {
+          "Fn::Split": [
+           "/",
+           {
+            "Fn::Select": [
+             5,
+             {
+              "Fn::Split": [
+               ":",
+               {
+                "Fn::GetAtt": [
+                 "TodoTable",
+                 "TableArn"
+                ]
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         }
+        ]
        },
        "\"))\n$util.qr($ctx.stash.put(\"adminRoles\", []))\n$util.toJson({})"
       ]
@@ -1031,6 +1177,58 @@
     },
     "ResponseMappingTemplate": "$util.toJson($ctx.prev.result)",
     "TypeName": "Subscription"
+   }
+  }
+ },
+ "Outputs": {
+  "GetAttTodoTableStreamArn": {
+   "Description": "Your DynamoDB table StreamArn.",
+   "Value": {
+    "Fn::GetAtt": [
+     "TodoTable",
+     "TableStreamArn"
+    ]
+   },
+   "Export": {
+    "Name": {
+     "Fn::Join": [
+      ":",
+      [
+       {
+        "Ref": "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854adataamplifyDataGraphQLAPI8E80FACEApiId"
+       },
+       "GetAtt:TodoTable:StreamArn"
+      ]
+     ]
+    }
+   }
+  },
+  "GetAttTodoTableName": {
+   "Description": "Your DynamoDB table name.",
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "Todo-",
+      {
+       "Ref": "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854adataamplifyDataGraphQLAPI8E80FACEApiId"
+      },
+      "-NONE"
+     ]
+    ]
+   },
+   "Export": {
+    "Name": {
+     "Fn::Join": [
+      ":",
+      [
+       {
+        "Ref": "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854adataamplifyDataGraphQLAPI8E80FACEApiId"
+       },
+       "GetAtt:TodoTable:Name"
+      ]
+     ]
+    }
    }
   }
  }

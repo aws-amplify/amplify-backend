@@ -27,7 +27,7 @@ export const convertSchemaToCDK = (
   schema: DataSchema
 ): IAmplifyDataDefinition => {
   const dbType = 'DYNAMODB';
-  const provisionStrategy = 'DEFAULT';
+  const provisionStrategy = 'AMPLIFY_TABLE';
 
   if (isModelSchema(schema)) {
     /**
