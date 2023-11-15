@@ -1,4 +1,3 @@
-import path from 'path';
 import { createLocalGraphqlFormGenerator } from '@aws-amplify/form-generator';
 import { createGraphqlDocumentGenerator } from '@aws-amplify/model-generator';
 import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
@@ -34,10 +33,9 @@ export class FormGenerationHandler {
       language: 'typescript',
     });
     await modelsResult.writeToDirectory(modelsOutDir);
-    const relativePath = path.relative(uiOutDir, modelsOutDir);
     const localFormGenerator = createLocalGraphqlFormGenerator({
       introspectionSchemaUrl: apiUrl,
-      graphqlModelDirectoryPath: relativePath,
+      graphqlModelDirectoryPath: './graphql',
     });
     const result = await localFormGenerator.generateForms({
       models: modelsFilter,
