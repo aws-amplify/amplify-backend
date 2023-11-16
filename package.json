@@ -98,5 +98,8 @@
     "*.json": "prettier --write",
     "*.yml": "prettier --write",
     "*.md": "prettier --write"
+  },
+  "resolutions": {
+    "tough-cookie": "4.1.3"
   }
 }
