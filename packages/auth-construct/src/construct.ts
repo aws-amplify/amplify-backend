@@ -1,5 +1,10 @@
 import { Construct } from 'constructs';
-import { RemovalPolicy, Stack, aws_cognito as cognito } from 'aws-cdk-lib';
+import {
+  RemovalPolicy,
+  Stack,
+  aws_cognito,
+  aws_cognito as cognito,
+} from 'aws-cdk-lib';
 import {
   AmplifyFunction,
   AuthResources,
@@ -179,24 +184,32 @@ export class AmplifyAuth
   private setupAuthAndUnAuthRoles = (identityPoolId: string): DefaultRoles => {
     const result: DefaultRoles = {
       auth: new Role(this, 'authenticatedUserRole', {
-        assumedBy: new FederatedPrincipal('cognito-identity.amazonaws.com', {
-          StringEquals: {
-            'cognito-identity.amazonaws.com:aud': identityPoolId,
+        assumedBy: new FederatedPrincipal(
+          'cognito-identity.amazonaws.com',
+          {
+            StringEquals: {
+              'cognito-identity.amazonaws.com:aud': identityPoolId,
+            },
+            'ForAnyValue:StringLike': {
+              'cognito-identity.amazonaws.com:amr': 'authenticated',
+            },
           },
-          'ForAnyValue:StringLike': {
-            'cognito-identity.amazonaws.com:amr': 'authenticated',
-          },
-        }),
+          'sts:AssumeRoleWithWebIdentity'
+        ),
       }),
       unAuth: new Role(this, 'unauthenticatedUserRole', {
-        assumedBy: new FederatedPrincipal('cognito-identity.amazonaws.com', {
-          StringEquals: {
-            'cognito-identity.amazonaws.com:aud': identityPoolId,
+        assumedBy: new FederatedPrincipal(
+          'cognito-identity.amazonaws.com',
+          {
+            StringEquals: {
+              'cognito-identity.amazonaws.com:aud': identityPoolId,
+            },
+            'ForAnyValue:StringLike': {
+              'cognito-identity.amazonaws.com:amr': 'unauthenticated',
+            },
           },
-          'ForAnyValue:StringLike': {
-            'cognito-identity.amazonaws.com:amr': 'unauthenticated',
-          },
-        }),
+          'sts:AssumeRoleWithWebIdentity'
+        ),
       }),
     };
     return result;
