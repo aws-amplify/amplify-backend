@@ -10,11 +10,11 @@ import { CfnUserPool } from 'aws-cdk-lib/aws-cognito';
 import { CfnUserPoolClient } from 'aws-cdk-lib/aws-cognito';
 import { Construct } from 'constructs';
 import { Function as Function_2 } from 'aws-cdk-lib/aws-lambda';
-import { IRole } from 'aws-cdk-lib/aws-iam';
-import { IUserPool } from 'aws-cdk-lib/aws-cognito';
-import { IUserPoolClient } from 'aws-cdk-lib/aws-cognito';
+import { Role } from 'aws-cdk-lib/aws-iam';
 import { SecretValue } from 'aws-cdk-lib';
 import { Stack } from 'aws-cdk-lib';
+import { UserPool } from 'aws-cdk-lib/aws-cognito';
+import { UserPoolClient } from 'aws-cdk-lib/aws-cognito';
 
 // @public (undocumented)
 export type AmplifyFunction = ResourceProvider<FunctionResources>;
@@ -32,10 +32,10 @@ export type AuthCfnResources = {
 
 // @public
 export type AuthResources = {
-    userPool: IUserPool;
-    userPoolClient: IUserPoolClient;
-    authenticatedUserIamRole: IRole;
-    unauthenticatedUserIamRole: IRole;
+    userPool: UserPool;
+    userPoolClient: UserPoolClient;
+    authenticatedUserIamRole: Role;
+    unauthenticatedUserIamRole: Role;
     cfnResources: AuthCfnResources;
 };
 
