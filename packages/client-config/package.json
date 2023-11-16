@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/client-config",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -33,7 +33,7 @@
     "zod": "^3.21.4"
   },
   "devDependencies": {
-    "@aws-amplify/platform-core": "^0.2.0",
+    "@aws-amplify/platform-core": "^0.2.1",
     "@aws-sdk/types": "^3.370.0"
   }
 }

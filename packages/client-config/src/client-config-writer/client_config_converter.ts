@@ -42,7 +42,7 @@ export class ClientConfigConverter {
             CredentialsProvider: {
               CognitoIdentity: {
                 Default: {
-                  PoolId: clientConfig.aws_user_pools_id,
+                  PoolId: clientConfig.aws_cognito_identity_pool_id,
                   Region: clientConfig.aws_cognito_region,
                 },
               },
@@ -50,6 +50,22 @@ export class ClientConfigConverter {
             Auth: {
               Default: {
                 authenticationFlowType: 'USER_SRP_AUTH',
+                mfaConfiguration: clientConfig.aws_cognito_mfa_configuration,
+                mfaTypes: clientConfig.aws_cognito_mfa_types,
+                passwordProtectionSettings: {
+                  passwordPolicyMinLength:
+                    clientConfig.aws_cognito_password_protection_settings
+                      ?.passwordPolicyMinLength,
+                  passwordPolicyCharacters:
+                    clientConfig.aws_cognito_password_protection_settings
+                      ?.passwordPolicyCharacters ?? [],
+                },
+                signupAttributes:
+                  clientConfig.aws_cognito_signup_attributes ?? [],
+                usernameAttributes:
+                  clientConfig.aws_cognito_username_attributes ?? [],
+                verificationMechanisms:
+                  clientConfig.aws_cognito_verification_mechanisms ?? [],
               },
             },
           },

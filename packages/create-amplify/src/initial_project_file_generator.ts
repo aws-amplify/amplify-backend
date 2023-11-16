@@ -1,6 +1,5 @@
 import path from 'path';
 import _fs from 'fs/promises';
-import { PackageJson } from './package_json_reader.js';
 import { executeWithDebugLogger as _executeWithDebugLogger } from './execute_with_logger.js';
 import { execa } from 'execa';
 
@@ -30,7 +29,7 @@ export class InitialProjectFileGenerator {
       { recursive: true }
     );
 
-    const packageJsonContent: PackageJson = { type: 'module' };
+    const packageJsonContent = { type: 'module' };
     await this.fs.writeFile(
       path.resolve(targetDir, 'package.json'),
       JSON.stringify(packageJsonContent, null, 2)

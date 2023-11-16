@@ -24,11 +24,12 @@ type SandboxCommandOptionsCamelCase = {
   profile: string | undefined;
 };
 
-export type EventHandler = () => void;
+export type EventHandler = (...args: unknown[]) => void;
 
 export type SandboxEventHandlers = {
   successfulDeployment: EventHandler[];
   successfulDeletion: EventHandler[];
+  failedDeployment: EventHandler[];
 };
 
 export type SandboxEventHandlerParams = {
