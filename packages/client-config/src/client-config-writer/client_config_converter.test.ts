@@ -18,6 +18,7 @@ void describe('client config converter', () => {
       aws_cognito_region: 'test_cognito_region',
       aws_user_pools_id: 'test_user_pool_id',
       aws_user_pools_web_client_id: 'test_user_pool_app_client_id',
+      aws_cognito_identity_pool_id: 'test_identity_pool_id',
       aws_cognito_signup_attributes: [
         'test_signup_attribute_1',
         'test_signup_attribute_2',
@@ -55,7 +56,7 @@ void describe('client config converter', () => {
             CredentialsProvider: {
               CognitoIdentity: {
                 Default: {
-                  PoolId: 'test_user_pool_id',
+                  PoolId: 'test_identity_pool_id',
                   Region: 'test_cognito_region',
                 },
               },
@@ -127,6 +128,7 @@ void describe('client config converter', () => {
     const clientConfig: ClientConfig = {
       aws_cognito_region: 'test_cognito_region',
       aws_user_pools_id: 'test_user_pool_id',
+      aws_cognito_identity_pool_id: 'test_identity_pool_id',
       aws_user_pools_web_client_id: 'test_user_pool_app_client_id',
       aws_appsync_region: 'test_app_sync_region',
       aws_appsync_graphqlEndpoint: 'https://test_api_endpoint.amazon.com',
@@ -151,7 +153,7 @@ void describe('client config converter', () => {
             CredentialsProvider: {
               CognitoIdentity: {
                 Default: {
-                  PoolId: 'test_user_pool_id',
+                  PoolId: 'test_identity_pool_id',
                   Region: 'test_cognito_region',
                 },
               },

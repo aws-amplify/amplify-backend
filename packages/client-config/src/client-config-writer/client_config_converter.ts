@@ -42,7 +42,7 @@ export class ClientConfigConverter {
             CredentialsProvider: {
               CognitoIdentity: {
                 Default: {
-                  PoolId: clientConfig.aws_user_pools_id,
+                  PoolId: clientConfig.aws_cognito_identity_pool_id,
                   Region: clientConfig.aws_cognito_region,
                 },
               },
