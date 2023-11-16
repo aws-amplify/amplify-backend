@@ -1,4 +1,5 @@
 import fs from 'fs';
+import path from 'path';
 import z from 'zod';
 
 /**
@@ -23,6 +24,15 @@ export class PackageJsonReader {
       );
     }
     return packageJsonSchema.parse(jsonParsedValue);
+  };
+
+  /**
+   * Returns the contents of the package.json file in process.cwd()
+   *
+   * If no package.json file exists, or the content does not pass validation, an error is thrown
+   */
+  readFromCwd = (): PackageJson => {
+    return this.read(path.resolve(process.cwd(), 'package.json'));
   };
 }
 

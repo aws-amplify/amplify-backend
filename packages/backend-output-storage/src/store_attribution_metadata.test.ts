@@ -15,7 +15,7 @@ void describe('storeAttributionMetadata', () => {
   });
   const packageJsonReader = {
     read: packageJsonReaderMock,
-  } as PackageJsonReader;
+  } as unknown as PackageJsonReader;
 
   void it('does nothing if stack description is already set', () => {
     const app = new App();

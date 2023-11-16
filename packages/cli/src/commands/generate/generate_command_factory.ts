@@ -3,7 +3,7 @@ import { GenerateCommand } from './generate_command.js';
 import { GenerateConfigCommand } from './config/generate_config_command.js';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { GenerateFormsCommand } from './forms/generate_forms_command.js';
-import { CwdPackageJsonReader } from '@aws-amplify/platform-core';
+import { PackageJsonReader } from '@aws-amplify/platform-core';
 import { GenerateGraphqlClientCodeCommand } from './graphql-client-code/generate_graphql_client_code_command.js';
 import { LocalNamespaceResolver } from '../../backend-identifier/local_namespace_resolver.js';
 import { BackendIdentifierResolver } from '../../backend-identifier/backend_identifier_resolver.js';
@@ -22,7 +22,7 @@ export const createGenerateCommand = (): CommandModule => {
     credentialProvider
   );
   const localAppNameResolver = new LocalNamespaceResolver(
-    new CwdPackageJsonReader()
+    new PackageJsonReader()
   );
 
   const backendIdentifierResolver = new BackendIdentifierResolver(
