@@ -6,10 +6,10 @@ import path from 'node:path';
 import { describe, it, mock } from 'node:test';
 import yargs, { CommandModule } from 'yargs';
 import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
+import { BackendIdentifierResolverWithFallback } from '../../../backend-identifier/backend_identifier_with_sandbox_fallback.js';
 import { FormGenerationHandler } from '../../../form-generation/form_generation_handler.js';
 import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import { SandboxBackendIdResolver } from '../../sandbox/sandbox_id_resolver.js';
-import { BackendIdentifierResolverWithFallback } from './backend_identifier_with_sandbox_fallback.js';
 import { GenerateFormsCommand } from './generate_forms_command.js';
 
 void describe('generate forms command', () => {
@@ -159,6 +159,8 @@ void describe('generate forms command', () => {
       resolve: () => Promise.resolve('testAppName'),
     };
 
+    const defaultResolver = new BackendIdentifierResolver(appNameResolver);
+
     const mockedSandboxIdResolver = new SandboxBackendIdResolver(
       appNameResolver
     );
@@ -169,7 +171,7 @@ void describe('generate forms command', () => {
     sandboxIdResolver.mock.mockImplementation(() => fakeSandboxId);
 
     const backendIdResolver = new BackendIdentifierResolverWithFallback(
-      appNameResolver,
+      defaultResolver,
       mockedSandboxIdResolver
     );
     const formGenerationHandler = new FormGenerationHandler({

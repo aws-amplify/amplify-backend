@@ -6,6 +6,13 @@ type BackendIdentifierParameters = {
   appId?: string;
   branch?: string;
 };
+
+export type BackendIdentityResolver = {
+  resolve: (
+    args: BackendIdentifierParameters
+  ) => Promise<DeployedBackendIdentifier>;
+};
+
 /**
  * Translates args to BackendIdentifier.
  * Throws if translation can't be made (this should never happen if command validation works correctly).
