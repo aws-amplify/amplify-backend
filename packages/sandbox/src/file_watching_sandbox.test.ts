@@ -713,6 +713,47 @@ void describe('Sandbox using local project name resolver', () => {
     assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
   });
 
+  void it('handles !files in .gitignore and filter them out', async (contextual) => {
+    contextual.mock.method(fs, 'existsSync', () => true);
+    contextual.mock.method(parseGitIgnore, 'parse', () => {
+      return {
+        patterns: [
+          '/patternWithLeadingSlash',
+          'patternWithoutLeadingSlash',
+          'someFile.js',
+          '!patternThatShouldNotBeIncluded',
+          'overlap/',
+          'overlap/file',
+        ],
+      };
+    });
+    ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
+      executor: sandboxExecutor,
+      cfnClient: cfnClientMock,
+      exclude: ['customer_exclude1', 'customer_exclude2'],
+    }));
+    await fileChangeEventCallback(null, [
+      { type: 'update', path: 'foo/test1.ts' },
+    ]);
+
+    // File watcher should be called with right excludes and not include patternThatShouldNotBeIncluded
+    assert.deepStrictEqual(subscribeMock.mock.calls[0].arguments[2], {
+      ignore: [
+        '.amplify',
+        'patternWithLeadingSlash',
+        'patternWithoutLeadingSlash',
+        'someFile.js',
+        'overlap/',
+        'overlap/file',
+        'customer_exclude1',
+        'customer_exclude2',
+      ],
+    });
+
+    // BackendDeployer should also be called once
+    assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
+  });
+
   void it('emits the successfulDeployment event after deployment', async () => {
     const mockListener = mock.fn();
     ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
