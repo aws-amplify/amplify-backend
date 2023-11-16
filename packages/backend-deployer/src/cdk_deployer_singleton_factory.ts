@@ -9,8 +9,21 @@ export type DeployProps = {
   validateAppSources?: boolean;
 };
 
+export type DeployResult = {
+  deploymentTimes: DeploymentTimes;
+};
+
 export type DestroyProps = {
   deploymentType?: DeploymentType;
+};
+
+export type DestroyResult = {
+  deploymentTimes: DeploymentTimes;
+};
+
+export type DeploymentTimes = {
+  synthesisTime?: number;
+  totalTime?: number;
 };
 
 /**
@@ -20,11 +33,11 @@ export type BackendDeployer = {
   deploy: (
     backendId?: BackendIdentifier,
     deployProps?: DeployProps
-  ) => Promise<void>;
+  ) => Promise<DeployResult>;
   destroy: (
     backendId?: BackendIdentifier,
     destroyProps?: DestroyProps
-  ) => Promise<void>;
+  ) => Promise<DestroyResult>;
 };
 
 /**

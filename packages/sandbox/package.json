@@ -28,10 +28,10 @@
     "@aws-sdk/types": "^3.378.0",
     "@aws-sdk/client-cloudformation": "^3.421.0",
     "@parcel/watcher": "^2.3.0",
-    "glob": "^10.2.7",
     "debounce-promise": "^3.1.2",
-    "parse-gitignore": "^2.0.0",
-    "open": "^9.1.0"
+    "glob": "^10.2.7",
+    "open": "^9.1.0",
+    "parse-gitignore": "^2.0.0"
   },
   "devDependencies": {
     "@types/debounce-promise": "^3.1.6",
