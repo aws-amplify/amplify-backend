@@ -1,5 +1,12 @@
 # @aws-amplify/integration-tests
 
+## 0.3.3
+
+### Patch Changes
+
+- 5cc252204: use latest aws-amplify verion in project_creator
+- 70685f36b: Add usage data metrics
+
 ## 0.3.2
 
 ### Patch Changes

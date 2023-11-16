@@ -1,5 +1,14 @@
 # create-amplify
 
+## 0.3.3
+
+### Patch Changes
+
+- 5cc252204: use latest aws-amplify verion in project_creator
+- 70685f36b: Add usage data metrics
+- Updated dependencies [70685f36b]
+  - @aws-amplify/platform-core@0.2.1
+
 ## 0.3.2
 
 ### Patch Changes

@@ -1,5 +1,16 @@
 # @aws-amplify/backend-cli
 
+## 0.7.1
+
+### Patch Changes
+
+- 70685f36b: Add usage data metrics
+- Updated dependencies [70685f36b]
+- Updated dependencies [50934da02]
+  - @aws-amplify/platform-core@0.2.1
+  - @aws-amplify/sandbox@0.3.2
+  - @aws-amplify/client-config@0.4.1
+
 ## 0.7.0
 
 ### Minor Changes

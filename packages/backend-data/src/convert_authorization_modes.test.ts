@@ -38,13 +38,14 @@ void describe('buildConstructFactoryProvidedAuthConfig', () => {
           cfnResources: {
             cfnIdentityPool: {
               logicalId: 'IdentityPoolLogicalId',
+              ref: 'us-fake-1:123123-123123',
             },
           },
         },
       } as unknown as ResourceProvider<AuthResources>),
       {
         userPool: 'ThisIsAUserPool',
-        identityPoolId: 'IdentityPoolLogicalId',
+        identityPoolId: 'us-fake-1:123123-123123',
         authenticatedUserRole: 'ThisIsAnAuthenticatedUserIamRole',
         unauthenticatedUserRole: 'ThisIsAnUnauthenticatedUserIamRole',
       }

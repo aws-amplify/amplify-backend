@@ -1,5 +1,11 @@
 # @aws-amplify/platform-core
 
+## 0.2.1
+
+### Patch Changes
+
+- 70685f36b: Add usage data metrics
+
 ## 0.2.0
 
 ### Minor Changes

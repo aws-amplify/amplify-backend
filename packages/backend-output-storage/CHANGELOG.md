@@ -1,5 +1,13 @@
 # @aws-amplify/backend-output-storage
 
+## 0.2.3
+
+### Patch Changes
+
+- 70685f36b: Add usage data metrics
+- Updated dependencies [70685f36b]
+  - @aws-amplify/platform-core@0.2.1
+
 ## 0.2.2
 
 ### Patch Changes
