@@ -77,7 +77,7 @@ void describe('invokeCDKCommand', () => {
   void it('handles deployProps for sandbox', async () => {
     await invoker.deploy(undefined, sandboxDeployProps);
     assert.strictEqual(execaMock.mock.callCount(), 1);
-    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 14);
+    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 16);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
       'cdk',
       'deploy',
@@ -92,6 +92,8 @@ void describe('invokeCDKCommand', () => {
       '--hotswap-fallback',
       '--method=direct',
       '--context',
+      'amplifySandboxDeploy=true',
+      '--context',
       `secretLastUpdated=${
         sandboxDeployProps.secretLastUpdated?.getTime() as number
       }`,
@@ -101,7 +103,7 @@ void describe('invokeCDKCommand', () => {
   void it('handles options and deployProps for sandbox', async () => {
     await invoker.deploy(backendId, sandboxDeployProps);
     assert.strictEqual(execaMock.mock.callCount(), 1);
-    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 18);
+    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 20);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
       'cdk',
       'deploy',
@@ -119,6 +121,8 @@ void describe('invokeCDKCommand', () => {
       `amplify-backend-type=sandbox`,
       '--hotswap-fallback',
       '--method=direct',
+      '--context',
+      'amplifySandboxDeploy=true',
       '--context',
       `secretLastUpdated=${
         sandboxDeployProps.secretLastUpdated?.getTime() as number
@@ -210,7 +214,7 @@ void describe('invokeCDKCommand', () => {
       'es2022',
       'amplify/backend.ts',
     ]);
-    assert.equal(execaMock.mock.calls[1].arguments[1]?.length, 12);
+    assert.equal(execaMock.mock.calls[1].arguments[1]?.length, 14);
     assert.deepStrictEqual(execaMock.mock.calls[1].arguments[1], [
       'cdk',
       'deploy',
@@ -224,6 +228,8 @@ void describe('invokeCDKCommand', () => {
       `amplify-backend-type=sandbox`,
       '--hotswap-fallback',
       '--method=direct',
+      '--context',
+      'amplifySandboxDeploy=true',
     ]);
   });
 
@@ -274,7 +280,7 @@ void describe('invokeCDKCommand', () => {
         validateAppSources: true,
       });
       assert.strictEqual(execaMock.mock.callCount(), 1);
-      assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 12);
+      assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 14);
       assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
         'cdk',
         'deploy',
@@ -288,6 +294,8 @@ void describe('invokeCDKCommand', () => {
         `amplify-backend-type=sandbox`,
         '--hotswap-fallback',
         '--method=direct',
+        '--context',
+        'amplifySandboxDeploy=true',
       ]);
     } finally {
       delete process.env[

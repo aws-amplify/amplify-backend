@@ -39,6 +39,8 @@ export class CDKDeployer implements BackendDeployer {
     if (deployProps?.deploymentType === 'sandbox') {
       cdkCommandArgs.push('--hotswap-fallback');
       cdkCommandArgs.push('--method=direct');
+      // The context will be consumed by data construct to allow destructive updates and replacing table upon GSI change
+      cdkCommandArgs.push('--context', 'amplifySandboxDeploy=true');
       if (deployProps.secretLastUpdated) {
         cdkCommandArgs.push(
           '--context',
