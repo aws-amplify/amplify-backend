@@ -10,24 +10,21 @@ void describe('LibraryVersionFetcher', () => {
     Promise.resolve(JSON.stringify({ name: 'testAppName' }))
   );
 
-  void it('returns a valid UUID', async () => {
-    const installationUuid = await getInstallationUuid();
+  void it('returns a valid UUID', () => {
+    const installationUuid = getInstallationUuid();
     assert.ok(
       validate(installationUuid),
       `${installationUuid} is not a valid UUID string`
     );
   });
 
-  void it('returns a consistent UUID for repeated calls', async () => {
-    const installationUuid = await getInstallationUuid();
-    assert.deepStrictEqual(installationUuid, await getInstallationUuid());
+  void it('returns a consistent UUID for repeated calls', () => {
+    const installationUuid = getInstallationUuid();
+    assert.deepStrictEqual(installationUuid, getInstallationUuid());
   });
 
-  void it('returns a different UUID for a different namespace', async () => {
-    const installationUuid = await getInstallationUuid();
-    assert.notDeepStrictEqual(
-      installationUuid,
-      await getInstallationUuid(v4())
-    );
+  void it('returns a different UUID for a different namespace', () => {
+    const installationUuid = getInstallationUuid();
+    assert.notDeepStrictEqual(installationUuid, getInstallationUuid(v4()));
   });
 });

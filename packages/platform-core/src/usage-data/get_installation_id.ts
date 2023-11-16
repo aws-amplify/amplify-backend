@@ -12,7 +12,7 @@ export const getInstallationUuid = (
 ) => {
   const packageJsonName = new CwdPackageJsonReader().read().name;
   const userName = userInfo().username;
-  const cwdPath = process.cwd();
+  const modulePath = __dirname;
 
-  return uuidV5(cwdPath + packageJsonName + userName, namespace);
+  return uuidV5(modulePath + packageJsonName + userName, namespace);
 };
