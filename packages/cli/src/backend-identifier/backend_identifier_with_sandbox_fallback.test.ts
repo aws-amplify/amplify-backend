@@ -16,12 +16,12 @@ void it('if backend identifier resolves without error, the resolved id is return
     sandboxResolver
   );
   const resolvedId = await backendIdResolver.resolve({
-    appId: 'hola',
-    branch: 'mundo',
+    appId: 'hello',
+    branch: 'world',
   });
   assert.deepEqual(resolvedId, {
-    namespace: 'hola',
-    name: 'mundo',
+    namespace: 'hello',
+    name: 'world',
     type: 'branch',
   });
 });
