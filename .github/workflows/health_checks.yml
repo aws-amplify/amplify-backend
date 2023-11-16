@@ -72,9 +72,14 @@ jobs:
       # will finish running other test matrices even if one fails
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest-xl, windows-latest]
+        os:
+          [
+            amplify-backend_ubuntu-latest_8-core,
+            macos-latest-xl,
+            amplify-backend_windows-latest_8-core,
+          ]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 40
+    timeout-minutes: 20
     needs:
       - do_include_e2e
       - build
