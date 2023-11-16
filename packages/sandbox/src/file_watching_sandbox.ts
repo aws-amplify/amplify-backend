@@ -251,7 +251,18 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
         .parse(gitIgnoreFilePath)
         .patterns.map((pattern: string) =>
           pattern.startsWith('/') ? pattern.substring(1) : pattern
-        );
+        )
+        .filter((pattern: string) => {
+          if (pattern.startsWith('!')) {
+            console.log(
+              `[Sandbox] Pattern ${pattern} found in .gitignore. "${pattern.substring(
+                1
+              )}" will not be watched if other patterns in .gitignore are excluding it.`
+            );
+            return false;
+          }
+          return true;
+        });
     }
     return [];
   };
