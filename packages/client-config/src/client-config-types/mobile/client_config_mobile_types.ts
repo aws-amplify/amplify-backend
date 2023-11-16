@@ -43,8 +43,10 @@ export type ClientConfigMobileAuth = {
       Auth: {
         Default: {
           authenticationFlowType: 'USER_SRP_AUTH';
+          mfaConfiguration: string | undefined;
+          mfaTypes: Array<string> | undefined;
           passwordProtectionSettings: {
-            passwordPolicyMinLength: number;
+            passwordPolicyMinLength: number | undefined;
             passwordPolicyCharacters: Array<string>;
           };
           signupAttributes: Array<string>;

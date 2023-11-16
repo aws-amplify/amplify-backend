@@ -50,10 +50,12 @@ export class ClientConfigConverter {
             Auth: {
               Default: {
                 authenticationFlowType: 'USER_SRP_AUTH',
+                mfaConfiguration: clientConfig.aws_cognito_mfa_configuration,
+                mfaTypes: clientConfig.aws_cognito_mfa_types,
                 passwordProtectionSettings: {
                   passwordPolicyMinLength:
                     clientConfig.aws_cognito_password_protection_settings
-                      ?.passwordPolicyMinLength ?? 8,
+                      ?.passwordPolicyMinLength,
                   passwordPolicyCharacters:
                     clientConfig.aws_cognito_password_protection_settings
                       ?.passwordPolicyCharacters ?? [],
