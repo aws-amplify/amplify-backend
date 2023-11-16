@@ -19,7 +19,7 @@ void describe('main parser', { concurrency: false }, () => {
 
   void it('shows version', async () => {
     const output = await commandRunner.runCommand('--version');
-    assert.match(output, RegExp(version));
+    assert.equal(output, version);
   });
 
   void it('fails if command is not provided', async () => {
