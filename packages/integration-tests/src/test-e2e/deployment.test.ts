@@ -17,15 +17,18 @@ import {
 import assert from 'node:assert';
 import { TestBranch, amplifyAppPool } from '../amplify_app_pool.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { MinimalWithTypescriptIdiomTestProject } from './minimal_with_typescript_idioms.js';
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 
-const testProjects = await generateTestProjects(rootTestDir);
-
-void describe('amplify deploys', async () => {
+const testProjects1 = await generateTestProjects(rootTestDir);
+const testProjects2 = await generateTestProjects(rootTestDir);
+const testProjects3 = await generateTestProjects(rootTestDir);
+void describe('amplify deploys', { concurrency: true }, async () => {
   after(async () => {
     await deleteTestDirectory(rootTestDir);
   });
 
-  testProjects.forEach((testProject) => {
+  testProjects1.forEach((testProject) => {
     void describe(`branch deploys ${testProject.name}`, () => {
       let branchBackendIdentifier: BackendIdentifier;
       let testBranch: TestBranch;
@@ -67,96 +70,77 @@ void describe('amplify deploys', async () => {
     });
   });
 
-  testProjects.forEach((testProject) => {
-    void describe(`sandbox deploys ${testProject.name}`, () => {
-      const sandboxBackendIdentifier: BackendIdentifier = {
-        type: 'sandbox',
-        namespace: testProject.name,
-        name: userInfo().username,
-      };
+  testProjects2.forEach((testProject) => {
+    void describe(
+      `sandbox deploys ${testProject.name}`,
+      { concurrency: false },
+      () => {
+        const sandboxBackendIdentifier: BackendIdentifier = {
+          type: 'sandbox',
+          namespace: testProject.name,
+          name: userInfo().username,
+        };
 
-      after(async () => {
-        await testProject.tearDown(sandboxBackendIdentifier);
-      });
+        after(async () => {
+          await testProject.tearDown(sandboxBackendIdentifier);
+        });
 
-      void it(`[${sandboxBackendIdentifier.namespace}] deploys fully`, async () => {
-        await testProject.deploy(sandboxBackendIdentifier);
-        await testProject.assertPostDeployment();
-      });
+        void it(`[${sandboxBackendIdentifier.namespace}] deploys fully`, async () => {
+          await testProject.deploy(sandboxBackendIdentifier);
+          await testProject.assertPostDeployment();
+        });
 
-      void it(`[${sandboxBackendIdentifier.namespace}] hot-swaps a change`, async () => {
-        const processController = amplifyCli(
-          ['sandbox', '--dirToWatch', 'amplify'],
-          testProject.projectDirPath
-        );
+        void it(`[${sandboxBackendIdentifier.namespace}] hot-swaps a change`, async () => {
+          const processController = amplifyCli(
+            ['sandbox', '--dirToWatch', 'amplify'],
+            testProject.projectDirPath
+          );
 
-        const updates = await testProject.getUpdates();
-        for (const update of updates) {
-          processController
-            .do(updateFileContent(update.sourceFile, update.projectFile))
-            .do(ensureDeploymentTimeLessThan(update.deployThresholdSec));
-        }
+          const updates = await testProject.getUpdates();
+          for (const update of updates) {
+            processController
+              .do(updateFileContent(update.sourceFile, update.projectFile))
+              .do(ensureDeploymentTimeLessThan(update.deployThresholdSec));
+          }
 
-        // Execute the process.
-        await processController
-          .do(interruptSandbox())
-          .do(rejectCleanupSandbox())
-          .run();
+          // Execute the process.
+          await processController
+            .do(interruptSandbox())
+            .do(rejectCleanupSandbox())
+            .run();
 
-        await testProject.assertPostDeployment();
-      });
-    });
+          await testProject.assertPostDeployment();
+        });
+      }
+    );
   });
 
-  void describe('fails on compilation error', () => {
-    // any project is fine
-    const testProject = testProjects[0];
-    beforeEach(async () => {
-      await fs.cp(
-        testProject.sourceProjectAmplifyDirPath,
-        testProject.projectAmplifyDirPath,
-        {
-          recursive: true,
-        }
-      );
-
-      // inject failure
-      await fs.appendFile(
-        path.join(testProject.projectAmplifyDirPath, 'backend.ts'),
-        "this won't compile"
-      );
-    });
-
-    void it('in sandbox deploy', async () => {
-      await amplifyCli(
-        ['sandbox', '--dirToWatch', 'amplify'],
-        testProject.projectDirPath
-      )
-        .do(new PredicatedActionBuilder().waitForLineIncludes('error TS'))
-        .do(
-          new PredicatedActionBuilder().waitForLineIncludes(
-            'Unexpected keyword or identifier'
-          )
-        )
-        .do(interruptSandbox())
-        .do(rejectCleanupSandbox())
-        .run();
-    });
-
-    void it('in pipeline deploy', async () => {
-      await assert.rejects(() =>
-        amplifyCli(
-          [
-            'pipeline-deploy',
-            '--branch',
-            'test-branch',
-            '--app-id',
-            `test-${shortUuid()}`,
-          ],
-          testProject.projectDirPath,
+  void describe(
+    'fails on compilation error',
+    { concurrency: false },
+    async () => {
+      // any project is fine
+      const testProject = testProjects3[0];
+      beforeEach(async () => {
+        await fs.cp(
+          testProject.sourceProjectAmplifyDirPath,
+          testProject.projectAmplifyDirPath,
           {
-            env: { CI: 'true' },
+            recursive: true,
           }
+        );
+
+        // inject failure
+        await fs.appendFile(
+          path.join(testProject.projectAmplifyDirPath, 'backend.ts'),
+          "this won't compile"
+        );
+      });
+
+      void it('in sandbox deploy', async () => {
+        await amplifyCli(
+          ['sandbox', '--dirToWatch', 'amplify'],
+          testProject.projectDirPath
         )
           .do(new PredicatedActionBuilder().waitForLineIncludes('error TS'))
           .do(
@@ -164,8 +148,35 @@ void describe('amplify deploys', async () => {
               'Unexpected keyword or identifier'
             )
           )
-          .run()
-      );
-    });
-  });
+          .do(interruptSandbox())
+          .do(rejectCleanupSandbox())
+          .run();
+      });
+
+      void it('in pipeline deploy', async () => {
+        await assert.rejects(() =>
+          amplifyCli(
+            [
+              'pipeline-deploy',
+              '--branch',
+              'test-branch',
+              '--app-id',
+              `test-${shortUuid()}`,
+            ],
+            testProject.projectDirPath,
+            {
+              env: { CI: 'true' },
+            }
+          )
+            .do(new PredicatedActionBuilder().waitForLineIncludes('error TS'))
+            .do(
+              new PredicatedActionBuilder().waitForLineIncludes(
+                'Unexpected keyword or identifier'
+              )
+            )
+            .run()
+        );
+      });
+    }
+  );
 });
