@@ -2,7 +2,7 @@ import path from 'path';
 import { Argv, CommandModule } from 'yargs';
 import { BackendOutputClient } from '@aws-amplify/deployed-backend-client';
 import { graphqlOutputKey } from '@aws-amplify/backend-output-schemas';
-import { BackendIdentityResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
+import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
 import { DEFAULT_UI_PATH } from '../../../form-generation/default_form_generation_output_paths.js';
 import { FormGenerationHandler } from '../../../form-generation/form_generation_handler.js';
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
@@ -39,7 +39,7 @@ export class GenerateFormsCommand
    * Creates client config generation command.
    */
   constructor(
-    private readonly backendIdentifierResolver: BackendIdentityResolver,
+    private readonly backendIdentifierResolver: BackendIdentifierResolver,
     private readonly backendOutputClientBuilder: () => BackendOutputClient,
     private readonly formGenerationHandler: FormGenerationHandler
   ) {

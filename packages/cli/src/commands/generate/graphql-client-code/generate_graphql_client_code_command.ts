@@ -1,5 +1,5 @@
 import { Argv, CommandModule } from 'yargs';
-import { BackendIdentityResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
+import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
 import { isAbsolute, resolve } from 'path';
 import {
   GenerateApiCodeAdapter,
@@ -78,7 +78,7 @@ export class GenerateGraphqlClientCodeCommand
    */
   constructor(
     private readonly generateApiCodeAdapter: GenerateApiCodeAdapter,
-    private readonly backendIdentifierResolver: BackendIdentityResolver
+    private readonly backendIdentifierResolver: BackendIdentifierResolver
   ) {
     this.command = 'graphql-client-code';
     this.describe = 'Generates graphql API code';

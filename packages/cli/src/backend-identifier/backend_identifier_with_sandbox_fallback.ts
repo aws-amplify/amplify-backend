@@ -4,7 +4,9 @@ import { BackendIdentifierResolver } from './backend_identifier_resolver.js';
 /**
  * Resolves the backend id when branch or stack is passed as an arg, otherwise returns a sandbox backend identifier
  */
-export class BackendIdentifierResolverWithFallback {
+export class BackendIdentifierResolverWithFallback
+  implements BackendIdentifierResolver
+{
   /**
    * Accepts the sandbox id resolver as a parameter
    */

@@ -7,7 +7,7 @@ type BackendIdentifierParameters = {
   branch?: string;
 };
 
-export type BackendIdentityResolver = {
+export type BackendIdentifierResolver = {
   resolve: (
     args: BackendIdentifierParameters
   ) => Promise<DeployedBackendIdentifier | undefined>;
@@ -17,7 +17,7 @@ export type BackendIdentityResolver = {
  * Translates args to BackendIdentifier.
  * Throws if translation can't be made (this should never happen if command validation works correctly).
  */
-export class BackendIdentifierResolver {
+export class AppBackendIdentifierResolver implements BackendIdentifierResolver {
   /**
    * Instantiates BackendIdentifierResolver
    */

@@ -5,7 +5,7 @@ import yargs, { CommandModule } from 'yargs';
 import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
 import path from 'path';
-import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
+import { AppBackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
 import { GenerateApiCodeAdapter } from './generate_api_code_adapter.js';
 import {
   GenerateApiCodeFormat,
@@ -29,7 +29,7 @@ void describe('generate graphql-client-code command', () => {
       })
   );
 
-  const backendIdentifierResolver = new BackendIdentifierResolver({
+  const backendIdentifierResolver = new AppBackendIdentifierResolver({
     resolve: () => Promise.resolve('testAppName'),
   });
   const generateGraphqlClientCodeCommand = new GenerateGraphqlClientCodeCommand(

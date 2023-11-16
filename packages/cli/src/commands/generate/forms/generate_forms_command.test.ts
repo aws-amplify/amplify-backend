@@ -5,7 +5,7 @@ import assert from 'node:assert';
 import path from 'node:path';
 import { describe, it, mock } from 'node:test';
 import yargs, { CommandModule } from 'yargs';
-import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
+import { AppBackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
 import { BackendIdentifierResolverWithFallback } from '../../../backend-identifier/backend_identifier_with_sandbox_fallback.js';
 import { FormGenerationHandler } from '../../../form-generation/form_generation_handler.js';
 import { TestCommandRunner } from '../../../test-utils/command_runner.js';
@@ -17,7 +17,7 @@ void describe('generate forms command', () => {
     void it('models are generated in ${out-dir}/graphql', async () => {
       const credentialProvider = fromNodeProviderChain();
 
-      const backendIdResolver = new BackendIdentifierResolver({
+      const backendIdResolver = new AppBackendIdentifierResolver({
         resolve: () => Promise.resolve('testAppName'),
       });
       const formGenerationHandler = new FormGenerationHandler({
@@ -64,7 +64,7 @@ void describe('generate forms command', () => {
     void it('out-dir path can be customized', async () => {
       const credentialProvider = fromNodeProviderChain();
 
-      const backendIdResolver = new BackendIdentifierResolver({
+      const backendIdResolver = new AppBackendIdentifierResolver({
         resolve: () => Promise.resolve('testAppName'),
       });
       const formGenerationHandler = new FormGenerationHandler({
@@ -111,7 +111,7 @@ void describe('generate forms command', () => {
     void it('./ui-components is the default graphql model generation path', async () => {
       const credentialProvider = fromNodeProviderChain();
 
-      const backendIdResolver = new BackendIdentifierResolver({
+      const backendIdResolver = new AppBackendIdentifierResolver({
         resolve: () => Promise.resolve('testAppName'),
       });
       const formGenerationHandler = new FormGenerationHandler({
@@ -159,7 +159,7 @@ void describe('generate forms command', () => {
       resolve: () => Promise.resolve('testAppName'),
     };
 
-    const defaultResolver = new BackendIdentifierResolver(appNameResolver);
+    const defaultResolver = new AppBackendIdentifierResolver(appNameResolver);
 
     const mockedSandboxIdResolver = new SandboxBackendIdResolver(
       appNameResolver

@@ -1,6 +1,6 @@
 import { Argv, CommandModule } from 'yargs';
 import { ClientConfigFormat } from '@aws-amplify/client-config';
-import { BackendIdentityResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
+import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
 import { ClientConfigGeneratorAdapter } from '../../../client-config/client_config_generator_adapter.js';
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
 import { handleCommandFailure } from '../../../command_failure_handler.js';
@@ -37,7 +37,7 @@ export class GenerateConfigCommand
    */
   constructor(
     private readonly clientConfigGenerator: ClientConfigGeneratorAdapter,
-    private readonly backendIdentifierResolver: BackendIdentityResolver
+    private readonly backendIdentifierResolver: BackendIdentifierResolver
   ) {
     this.command = 'config';
     this.describe = 'Generates client config';

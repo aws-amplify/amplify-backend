@@ -13,7 +13,7 @@ import { BackendOutputClientFactory } from '@aws-amplify/deployed-backend-client
 import { SandboxBackendIdResolver } from '../sandbox/sandbox_id_resolver.js';
 import { CommandMiddleware } from '../../command_middleware.js';
 import { BackendIdentifierResolverWithFallback } from '../../backend-identifier/backend_identifier_with_sandbox_fallback.js';
-import { BackendIdentifierResolver } from '../../backend-identifier/backend_identifier_resolver.js';
+import { AppBackendIdentifierResolver } from '../../backend-identifier/backend_identifier_resolver.js';
 
 /**
  * Creates wired generate command.
@@ -28,7 +28,7 @@ export const createGenerateCommand = (): CommandModule => {
   );
 
   const backendIdentifierResolver = new BackendIdentifierResolverWithFallback(
-    new BackendIdentifierResolver(namespaceResolver),
+    new AppBackendIdentifierResolver(namespaceResolver),
     new SandboxBackendIdResolver(namespaceResolver)
   );
 
