@@ -1,5 +1,7 @@
 import path from 'path';
 import _fs from 'fs/promises';
+import { executeWithDebugLogger as _executeWithDebugLogger } from './execute_with_logger.js';
+import { execa } from 'execa';
 
 /**
  *
@@ -11,7 +13,8 @@ export class InitialProjectFileGenerator {
    */
   constructor(
     private readonly projectRoot: string,
-    private readonly fs = _fs
+    private readonly fs = _fs,
+    private readonly executeWithDebugLogger = _executeWithDebugLogger
   ) {}
 
   /**
@@ -31,5 +34,24 @@ export class InitialProjectFileGenerator {
       path.resolve(targetDir, 'package.json'),
       JSON.stringify(packageJsonContent, null, 2)
     );
+
+    await this.initializeTsConfig(targetDir);
+  };
+
+  private initializeTsConfig = async (targetDir: string): Promise<void> => {
+    const tscArgs = [
+      'tsc',
+      '--init',
+      '--resolveJsonModule',
+      'true',
+      '--module',
+      'node16',
+      '--moduleResolution',
+      'node16',
+      '--target',
+      'es2022',
+    ];
+
+    await this.executeWithDebugLogger(targetDir, 'npx', tscArgs, execa);
   };
 }

@@ -1,6 +1,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { shortUuid } from './short_uuid.js';
+import { setupDirAsEsmModule } from './test-e2e/setup_dir_as_esm_module.js';
 
 const TEST_PROJECT_PREFIX = 'test-project';
 
@@ -20,11 +21,13 @@ export const createEmptyAmplifyProject = async (
   const projectName = `${TEST_PROJECT_PREFIX}-${projectDirName}-${shortUuid()}`;
   await fs.writeFile(
     path.join(projectRoot, 'package.json'),
-    JSON.stringify({ name: projectName, type: 'module' }, null, 2)
+    JSON.stringify({ name: projectName }, null, 2)
   );
 
   const projectAmplifyDir = path.join(projectRoot, 'amplify');
   await fs.mkdir(projectAmplifyDir);
+
+  await setupDirAsEsmModule(projectAmplifyDir);
 
   return { projectName, projectRoot, projectAmplifyDir };
 };

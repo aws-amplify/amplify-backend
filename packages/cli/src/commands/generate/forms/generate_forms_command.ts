@@ -47,6 +47,10 @@ export class GenerateFormsCommand
     this.describe = 'Generates UI forms';
   }
 
+  getBackendIdentifier = async (args: GenerateFormsCommandOptions) => {
+    return await this.backendIdentifierResolver.resolve(args);
+  };
+
   /**
    * @inheritDoc
    */
@@ -54,6 +58,10 @@ export class GenerateFormsCommand
     const backendIdentifier = await this.backendIdentifierResolver.resolve(
       args
     );
+
+    if (!backendIdentifier) {
+      throw new Error('Could not resolve the backend identifier');
+    }
 
     const backendOutputClient = this.backendOutputClientBuilder();
 
@@ -120,12 +128,6 @@ export class GenerateFormsCommand
         type: 'string',
         array: true,
         group: 'Form Generation',
-      })
-      .check((argv) => {
-        if (!argv.stack && !argv.branch) {
-          throw new Error('Either --stack or --branch must be provided');
-        }
-        return true;
       })
       .fail((msg, err) => {
         handleCommandFailure(msg, err, yargs);

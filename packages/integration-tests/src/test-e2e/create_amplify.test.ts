@@ -80,10 +80,6 @@ void describe(
             await fs.readFile(packageJsonPath, 'utf-8')
           );
 
-          const expectedProjectType =
-            initialState === 'commonjs' ? 'commonjs' : 'module';
-          assert.strictEqual(packageJsonObject.type, expectedProjectType);
-
           assert.deepStrictEqual(
             Object.keys(packageJsonObject.devDependencies).sort(),
             ['@aws-amplify/backend', '@aws-amplify/backend-cli', 'typescript']
@@ -105,38 +101,37 @@ void describe(
             'node_modules',
           ]);
 
+          const amplifyPathPrefix = path.join(tempDir, 'amplify');
+
           // Read tsconfig.json content, remove all comments, and make assertions
-          const tsConfigPath = path.resolve(tempDir, 'tsconfig.json');
+          const tsConfigPath = path.resolve(amplifyPathPrefix, 'tsconfig.json');
           const tsConfigContent = (
             await fs.readFile(tsConfigPath, 'utf-8')
           ).replace(/\/\*[\s\S]*?\*\/|([^:]|^)\/\/.*$/gm, '');
           const tsConfigObject = JSON.parse(tsConfigContent);
 
-          const expectedModuleType =
-            initialState === 'commonjs' ? 'commonjs' : 'node16';
-
-          assert.equal(
-            tsConfigObject.compilerOptions.module,
-            expectedModuleType
-          );
+          assert.equal(tsConfigObject.compilerOptions.module, 'node16');
           assert.equal(tsConfigObject.compilerOptions.resolveJsonModule, true);
 
           const pathPrefix = path.join(tempDir, 'amplify');
 
-          const files = await glob(path.join(pathPrefix, '**', '*'), {
+          const files = await glob(path.join(amplifyPathPrefix, '**', '*'), {
             // eslint-disable-next-line spellcheck/spell-checker
             nodir: true,
             windowsPathsNoEscape: true,
           });
 
+          const expectedAmplifyFiles = [
+            path.join('auth', 'resource.ts'),
+            'backend.ts',
+            path.join('data', 'resource.ts'),
+            'package.json',
+            'tsconfig.json',
+          ];
+
           assert.deepStrictEqual(
             files.sort(),
-            [
-              path.join('auth', 'resource.ts'),
-              'backend.ts',
-              path.join('data', 'resource.ts'),
-              'package.json',
-            ].map((suffix) => path.join(pathPrefix, suffix))
+            expectedAmplifyFiles.map((suffix) => path.join(pathPrefix, suffix))
           );
 
           // assert that project compiles successfully
@@ -146,13 +141,9 @@ void describe(
               'tsc',
               '--noEmit',
               '--skipLibCheck',
-              '--module',
-              'node16',
-              '--moduleResolution',
-              'node16',
-              '--target',
-              'es2022',
-              'amplify/backend.ts',
+              // pointing the project arg to the amplify backend directory will use the tsconfig present in that directory
+              '--project',
+              amplifyPathPrefix,
             ],
             {
               cwd: tempDir,
