@@ -16,9 +16,7 @@ export class AmplifyProjectCreator {
     'typescript@^5.0.0',
   ];
 
-  // TODO after API-Next is GA change to: `aws-amplify`
-  // https://github.com/aws-amplify/amplify-backend/issues/332
-  private readonly defaultProdPackages = ['aws-amplify@unstable'];
+  private readonly defaultProdPackages = ['aws-amplify'];
 
   /**
    * Orchestrator for the create-amplify workflow.
