@@ -11,7 +11,7 @@ import {
 import { CdkErrorMapper } from './cdk_error_mapper.js';
 import { BackendIdentifier, DeploymentType } from '@aws-amplify/plugin-types';
 import { BackendLocator, CDKContextKey } from '@aws-amplify/platform-core';
-import { BackendDeployerEnvironmentVariables } from './environment_variables.js';
+import { dirname } from 'path';
 
 /**
  * Commands that can be invoked
@@ -74,27 +74,14 @@ export class CDKDeployer implements BackendDeployer {
   };
 
   private invokeTsc = async (deployProps?: DeployProps) => {
-    if (
-      process.env[
-        BackendDeployerEnvironmentVariables
-          .ALWAYS_DISABLE_APP_SOURCES_VALIDATION
-      ] === 'true'
-    ) {
-      return;
-    }
-
     if (deployProps?.validateAppSources) {
       await this.executeChildProcess('npx', [
         'tsc',
         '--noEmit',
         '--skipLibCheck',
-        '--module',
-        'node16',
-        '--moduleResolution',
-        'node16',
-        '--target',
-        'es2022',
-        this.backendLocator.locate(),
+        // pointing the project arg to the amplify backend directory will use the tsconfig present in that directory
+        '--project',
+        dirname(this.backendLocator.locate()),
       ]);
     }
   };

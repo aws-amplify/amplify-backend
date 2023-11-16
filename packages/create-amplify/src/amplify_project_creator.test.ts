@@ -17,14 +17,12 @@ void describe('AmplifyProjectCreator', () => {
       generateInitialProjectFiles: mock.fn(),
     };
     const npmInitializedEnsurerMock = { ensureInitialized: mock.fn() };
-    const tsConfigInitializerMock = { ensureInitialized: mock.fn() };
     const gitIgnoreInitializerMock = { ensureInitialized: mock.fn() };
     const amplifyProjectCreator = new AmplifyProjectCreator(
       packageManagerControllerMock as never,
       projectRootValidatorMock as never,
       initialProjectFileGeneratorMock as never,
       npmInitializedEnsurerMock as never,
-      tsConfigInitializerMock as never,
       gitIgnoreInitializerMock as never,
       process.cwd()
     );
@@ -43,7 +41,6 @@ void describe('AmplifyProjectCreator', () => {
       npmInitializedEnsurerMock.ensureInitialized.mock.callCount(),
       1
     );
-    assert.equal(tsConfigInitializerMock.ensureInitialized.mock.callCount(), 1);
     assert.equal(
       logMock.log.mock.calls[4].arguments[0],
       'Welcome to AWS Amplify! \nRun `amplify help` for a list of available commands. \nGet started by running `amplify sandbox`.'
@@ -63,14 +60,12 @@ void describe('AmplifyProjectCreator', () => {
       generateInitialProjectFiles: mock.fn(),
     };
     const npmInitializedEnsurerMock = { ensureInitialized: mock.fn() };
-    const tsConfigInitializerMock = { ensureInitialized: mock.fn() };
     const gitIgnoreInitializerMock = { ensureInitialized: mock.fn() };
     const amplifyProjectCreator = new AmplifyProjectCreator(
       packageManagerControllerMock as never,
       projectRootValidatorMock as never,
       initialProjectFileGeneratorMock as never,
       npmInitializedEnsurerMock as never,
-      tsConfigInitializerMock as never,
       gitIgnoreInitializerMock as never,
       '/project/root'
     );
