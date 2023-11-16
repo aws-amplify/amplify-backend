@@ -24,9 +24,7 @@ export const createGenerateCommand = (): CommandModule => {
     credentialProvider
   );
 
-  const namespaceResolver = new LocalNamespaceResolver(
-    new PackageJsonReader()
-  );
+  const namespaceResolver = new LocalNamespaceResolver(new PackageJsonReader());
 
   const backendIdentifierResolver = new BackendIdentifierResolverWithFallback(
     new AppBackendIdentifierResolver(namespaceResolver),
