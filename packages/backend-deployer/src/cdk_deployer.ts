@@ -1,16 +1,17 @@
 import { execa } from 'execa';
 import stream from 'stream';
+import readline from 'readline';
 import {
   BackendDeployer,
   DeployProps,
+  DeployResult,
   DestroyProps,
+  DestroyResult,
 } from './cdk_deployer_singleton_factory.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
-import { BackendDeploymentType } from '@aws-amplify/platform-core';
+import { BackendIdentifier, DeploymentType } from '@aws-amplify/plugin-types';
+import { BackendLocator, CDKContextKey } from '@aws-amplify/platform-core';
 import { BackendDeployerEnvironmentVariables } from './environment_variables.js';
-
-const relativeBackendEntryPoint = 'amplify/backend.ts';
 
 /**
  * Commands that can be invoked
@@ -27,18 +28,18 @@ export class CDKDeployer implements BackendDeployer {
   /**
    * Instantiates instance of CDKDeployer
    */
-  constructor(private readonly cdkErrorMapper: CdkErrorMapper) {}
+  constructor(
+    private readonly cdkErrorMapper: CdkErrorMapper,
+    private readonly backendLocator: BackendLocator
+  ) {}
   /**
    * Invokes cdk deploy command
    */
-  deploy = async (
-    uniqueBackendIdentifier?: UniqueBackendIdentifier,
-    deployProps?: DeployProps
-  ) => {
+  deploy = async (backendId?: BackendIdentifier, deployProps?: DeployProps) => {
     await this.invokeTsc(deployProps);
 
     const cdkCommandArgs: string[] = [];
-    if (deployProps?.deploymentType === BackendDeploymentType.SANDBOX) {
+    if (deployProps?.deploymentType === 'sandbox') {
       cdkCommandArgs.push('--hotswap-fallback');
       cdkCommandArgs.push('--method=direct');
       if (deployProps.secretLastUpdated) {
@@ -49,9 +50,9 @@ export class CDKDeployer implements BackendDeployer {
       }
     }
 
-    await this.invokeCdk(
+    return this.invokeCdk(
       InvokableCommand.DEPLOY,
-      uniqueBackendIdentifier,
+      backendId,
       deployProps?.deploymentType,
       cdkCommandArgs
     );
@@ -61,12 +62,12 @@ export class CDKDeployer implements BackendDeployer {
    * Invokes cdk destroy command
    */
   destroy = async (
-    uniqueBackendIdentifier?: UniqueBackendIdentifier,
+    backendId?: BackendIdentifier,
     destroyProps?: DestroyProps
   ) => {
-    await this.invokeCdk(
+    return this.invokeCdk(
       InvokableCommand.DESTROY,
-      uniqueBackendIdentifier,
+      backendId,
       destroyProps?.deploymentType,
       ['--force']
     );
@@ -93,7 +94,7 @@ export class CDKDeployer implements BackendDeployer {
         'node16',
         '--target',
         'es2022',
-        relativeBackendEntryPoint,
+        this.backendLocator.locate(),
       ]);
     }
   };
@@ -103,10 +104,10 @@ export class CDKDeployer implements BackendDeployer {
    */
   private invokeCdk = async (
     invokableCommand: InvokableCommand,
-    uniqueBackendIdentifier?: UniqueBackendIdentifier,
-    deploymentType?: BackendDeploymentType,
+    backendId?: BackendIdentifier,
+    deploymentType?: DeploymentType,
     additionalArguments?: string[]
-  ) => {
+  ): Promise<DeployResult | DestroyResult> => {
     // Basic args
     const cdkCommandArgs = [
       'cdk',
@@ -115,31 +116,31 @@ export class CDKDeployer implements BackendDeployer {
       // See https://github.com/aws/aws-cdk/issues/7717 for more details.
       '--ci',
       '--app',
-      `'npx tsx ${relativeBackendEntryPoint}'`,
+      `'npx tsx ${this.backendLocator.locate()}'`,
       '--all',
       '--output',
       '.amplify/artifacts/cdk.out',
     ];
 
     // Add context information if available
-    if (uniqueBackendIdentifier) {
+    if (backendId) {
       cdkCommandArgs.push(
         '--context',
-        `backend-id=${uniqueBackendIdentifier.backendId}`
+        `${CDKContextKey.BACKEND_NAMESPACE}=${backendId.namespace}`,
+        '--context',
+        `${CDKContextKey.BACKEND_NAME}=${backendId.name}`
       );
 
-      if (deploymentType !== BackendDeploymentType.SANDBOX) {
-        cdkCommandArgs.push(
-          '--context',
-          `branch-name=${uniqueBackendIdentifier.disambiguator}`,
-          '--require-approval',
-          'never'
-        );
+      if (deploymentType !== 'sandbox') {
+        cdkCommandArgs.push('--require-approval', 'never');
       }
     }
 
     if (deploymentType) {
-      cdkCommandArgs.push('--context', `deployment-type=${deploymentType}`);
+      cdkCommandArgs.push(
+        '--context',
+        `${CDKContextKey.DEPLOYMENT_TYPE}=${deploymentType}`
+      );
     }
 
     if (additionalArguments) {
@@ -147,7 +148,7 @@ export class CDKDeployer implements BackendDeployer {
     }
 
     try {
-      await this.executeChildProcess('npx', cdkCommandArgs);
+      return await this.executeChildProcess('npx', cdkCommandArgs);
     } catch (err) {
       throw this.cdkErrorMapper.getHumanReadableError(err as Error);
     }
@@ -163,23 +164,52 @@ export class CDKDeployer implements BackendDeployer {
     // actionable errors being hidden among the stdout. Moreover execa errors are
     // useless when calling CLIs unless you made execa calling error.
     let aggregatedStderr = '';
-    const aggregatorStream = new stream.Writable();
-    aggregatorStream._write = function (chunk, encoding, done) {
+    const aggregatorStderrStream = new stream.Writable();
+    aggregatorStderrStream._write = function (chunk, encoding, done) {
       aggregatedStderr += chunk;
       done();
     };
     const childProcess = execa(command, cdkCommandArgs, {
       stdin: 'inherit',
-      stdout: 'inherit',
+      stdout: 'pipe',
       stderr: 'pipe',
     });
-    childProcess.stderr?.pipe(aggregatorStream);
+    childProcess.stderr?.pipe(aggregatorStderrStream);
+    childProcess.stdout?.pipe(process.stdout);
+
+    const cdkOutput = { deploymentTimes: {} };
+    if (childProcess.stdout) {
+      await this.populateCDKOutputFromStdout(cdkOutput, childProcess.stdout);
+    }
 
     try {
       await childProcess;
+      return cdkOutput;
     } catch (error) {
       // swallow execa error which is not really helpful, rather throw stderr
       throw new Error(aggregatedStderr);
+    }
+  };
+
+  private populateCDKOutputFromStdout = async (
+    output: DeployResult | DestroyResult,
+    stdout: stream.Readable
+  ) => {
+    const regexTotalTime = /✨ {2}Total time: (\d*\.*\d*)s.*/;
+    const regexSynthTime = /✨ {2}Synthesis time: (\d*\.*\d*)s/;
+    const reader = readline.createInterface(stdout);
+    for await (const line of reader) {
+      if (line.includes('✨')) {
+        // Good chance that it contains timing information
+        const totalTime = line.match(regexTotalTime);
+        if (totalTime && totalTime.length > 1 && !isNaN(+totalTime[1])) {
+          output.deploymentTimes.totalTime = +totalTime[1];
+        }
+        const synthTime = line.match(regexSynthTime);
+        if (synthTime && synthTime.length > 1 && !isNaN(+synthTime[1])) {
+          output.deploymentTimes.synthesisTime = +synthTime[1];
+        }
+      }
     }
   };
 }

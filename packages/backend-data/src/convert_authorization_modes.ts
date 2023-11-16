@@ -8,7 +8,7 @@ import {
   LambdaAuthorizationConfig as CDKLambdaAuthorizationConfig,
   OIDCAuthorizationConfig as CDKOIDCAuthorizationConfig,
   UserPoolAuthorizationConfig as CDKUserPoolAuthorizationConfig,
-} from '@aws-amplify/graphql-api-construct';
+} from '@aws-amplify/data-construct';
 import {
   ApiKeyAuthorizationModeProps,
   AuthorizationModes,
@@ -40,7 +40,7 @@ export const buildConstructFactoryProvidedAuthConfig = (
   return {
     userPool: authResourceProvider.resources.userPool,
     identityPoolId:
-      authResourceProvider.resources.cfnResources.identityPool.logicalId,
+      authResourceProvider.resources.cfnResources.cfnIdentityPool.ref,
     authenticatedUserRole:
       authResourceProvider.resources.authenticatedUserIamRole,
     unauthenticatedUserRole:

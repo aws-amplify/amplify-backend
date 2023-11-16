@@ -1,7 +1,7 @@
 import assert from 'node:assert';
 import { describe, it } from 'node:test';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
-import { BackendIdentifier } from '@aws-amplify/deployed-backend-client';
+import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
 import {
   createGraphqlModelsFromS3UriGenerator,
   createGraphqlModelsGenerator,
@@ -12,7 +12,7 @@ void describe('models generator factory', () => {
     void it('throws an error if a null backendIdentifier is passed in', async () => {
       assert.throws(() =>
         createGraphqlModelsGenerator({
-          backendIdentifier: null as unknown as BackendIdentifier,
+          backendIdentifier: null as unknown as DeployedBackendIdentifier,
           credentialProvider: null as unknown as AwsCredentialIdentityProvider,
         })
       );

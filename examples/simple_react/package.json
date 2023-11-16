@@ -8,11 +8,11 @@
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
-    "aws-amplify": "^5.3.6",
+    "aws-amplify": "^5.3.12",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-icons": "^4.10.1",
-    "react-scripts": "5.0.1",
+    "react-scripts": "^5.0.1",
     "typescript": "^4.9.5",
     "web-vitals": "^2.1.4"
   },
@@ -20,11 +20,11 @@
     "nth-check": "^2.0.1"
   },
   "devDependencies": {
+    "@aws-amplify/api": "^5.4.6",
     "@aws-amplify/backend": "file:../../packages/backend",
     "@aws-amplify/backend-auth": "file:../../packages/backend-auth",
     "@aws-amplify/backend-data": "file:../../packages/backend-data",
-    "@aws-amplify/cli": "file:../../packages/cli",
-    "@aws-amplify/api": "^5.4.5"
+    "@aws-amplify/cli": "file:../../packages/cli"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -49,5 +49,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "resolutions": {
+    "postcss": "8.4.31"
   }
 }

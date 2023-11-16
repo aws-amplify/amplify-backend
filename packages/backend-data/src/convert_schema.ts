@@ -1,8 +1,8 @@
-import { DerivedModelSchema } from '@aws-amplify/amplify-api-next-types-alpha';
+import { DerivedModelSchema } from '@aws-amplify/data-schema-types';
 import {
-  AmplifyGraphqlDefinition,
-  IAmplifyGraphqlDefinition,
-} from '@aws-amplify/graphql-api-construct';
+  AmplifyDataDefinition,
+  IAmplifyDataDefinition,
+} from '@aws-amplify/data-construct';
 import { DataSchema } from './types.js';
 
 /**
@@ -25,9 +25,33 @@ const isModelSchema = (schema: DataSchema): schema is DerivedModelSchema => {
  */
 export const convertSchemaToCDK = (
   schema: DataSchema
-): IAmplifyGraphqlDefinition => {
+): IAmplifyDataDefinition => {
+  const dbType = 'DYNAMODB';
+  const provisionStrategy = 'AMPLIFY_TABLE';
+
   if (isModelSchema(schema)) {
-    return schema.transform();
+    /**
+     * This is not super obvious, but the IAmplifyDataDefinition interface requires a record of each model type to a
+     * data source strategy (how it should be deployed and managed). Normally this is handled for customers by static
+     * methods on AmplifyDataDefinition, but since the data-schema-types don't produce that today, we use the builder
+     * to generate that argument for us (so it's consistent with a customer using normal Graphql strings), then
+     * apply that value back into the final IAmplifyDataDefinition output for data-schema users.
+     */
+    const generatedModelDataSourceStrategies = AmplifyDataDefinition.fromString(
+      schema.transform().schema,
+      {
+        dbType,
+        provisionStrategy,
+      }
+    ).dataSourceStrategies;
+    return {
+      ...schema.transform(),
+      dataSourceStrategies: generatedModelDataSourceStrategies,
+    };
   }
-  return AmplifyGraphqlDefinition.fromString(schema);
+
+  return AmplifyDataDefinition.fromString(schema, {
+    dbType,
+    provisionStrategy,
+  });
 };

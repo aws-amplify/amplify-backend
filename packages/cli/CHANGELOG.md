@@ -1,5 +1,70 @@
 # @aws-amplify/backend-cli
 
+## 0.7.0
+
+### Minor Changes
+
+- fc71c4902: Change the default directory for models in form generation
+
+### Patch Changes
+
+- 79ac13997: client config generation respects sandbox format option
+- 869a84926: Update profile error messages and a profile configure URL.
+- 79ac13997: Rename sandbox format to config-format
+- 79ac13997: Change sandbox out-dir to config-out-dir and client config generation respects config-out-dir option
+- Updated dependencies [fc71c4902]
+  - @aws-amplify/form-generator@0.4.0
+
+## 0.6.1
+
+### Patch Changes
+
+- 957ba93db: Fix a profile middleware unit test
+- 01ebbc497: handle client config formats used in mobile app development
+- Updated dependencies [07b0dfc9f]
+- Updated dependencies [01ebbc497]
+  - @aws-amplify/backend-output-schemas@0.4.0
+  - @aws-amplify/client-config@0.4.0
+  - @aws-amplify/deployed-backend-client@0.3.1
+  - @aws-amplify/model-generator@0.2.2
+  - @aws-amplify/sandbox@0.3.1
+
+## 0.6.0
+
+### Minor Changes
+
+- 71a63a16: Change stack naming strategy to include deployment type as a suffix
+
+### Patch Changes
+
+- 316590c0: Validate aws region config. Besides, remove help output from the credential and region validation error.
+- Updated dependencies [71a63a16]
+  - @aws-amplify/deployed-backend-client@0.3.0
+  - @aws-amplify/backend-output-schemas@0.3.0
+  - @aws-amplify/backend-secret@0.3.0
+  - @aws-amplify/client-config@0.3.0
+  - @aws-amplify/platform-core@0.2.0
+  - @aws-amplify/sandbox@0.3.0
+  - @aws-amplify/model-generator@0.2.1
+
+## 0.5.0
+
+### Minor Changes
+
+- ab715666: Remove deprecated sandbox parameters for form generation
+
+## 0.4.0
+
+### Minor Changes
+
+- 6ff17d64: Add 'profile' option to applicable commands
+
+### Patch Changes
+
+- Updated dependencies [68dc91e3]
+  - @aws-amplify/platform-core@0.1.4
+  - @aws-amplify/sandbox@0.2.4
+
 ## 0.3.1
 
 ### Patch Changes

@@ -1,5 +1,50 @@
 # @aws-amplify/backend-data
 
+## 0.6.0
+
+### Minor Changes
+
+- 3cda50cb7: Update backend-data to use new data-construct and explicitly specific default ddb strategy.
+
+## 0.5.1
+
+### Patch Changes
+
+- bd8b5d1a5: update data/resource template; bump data-schema versions
+- Updated dependencies [65fe3a8fd]
+- Updated dependencies [cd5feeed0]
+- Updated dependencies [07b0dfc9f]
+  - @aws-amplify/plugin-types@0.4.1
+  - @aws-amplify/backend-output-schemas@0.4.0
+  - @aws-amplify/backend-output-storage@0.2.2
+
+## 0.5.0
+
+### Minor Changes
+
+- 85a015b7: switch to using data-schema packages
+- 71a63a16: Change stack naming strategy to include deployment type as a suffix
+
+### Patch Changes
+
+- 8181509a: Added a prefix to the auth cfnResources.
+- Updated dependencies [8181509a]
+- Updated dependencies [71a63a16]
+  - @aws-amplify/plugin-types@0.4.0
+  - @aws-amplify/backend-output-schemas@0.3.0
+  - @aws-amplify/backend-output-storage@0.2.1
+
+## 0.4.0
+
+### Minor Changes
+
+- 6be68224: Update authorizationMode config to simplify inputs, and more closely align with final interface
+- 14a18c6e: Rename backend-graphql to backend-data
+
+### Patch Changes
+
+- a126d8df: bump amplify data versions
+
 ## 0.3.2
 
 ### Patch Changes

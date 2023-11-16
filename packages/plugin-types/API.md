@@ -24,10 +24,10 @@ export type AppId = string;
 
 // @public
 export type AuthCfnResources = {
-    userPool: CfnUserPool;
-    userPoolClient: CfnUserPoolClient;
-    identityPool: CfnIdentityPool;
-    identityPoolRoleAttachment: CfnIdentityPoolRoleAttachment;
+    cfnUserPool: CfnUserPool;
+    cfnUserPoolClient: CfnUserPoolClient;
+    cfnIdentityPool: CfnIdentityPool;
+    cfnIdentityPoolRoleAttachment: CfnIdentityPoolRoleAttachment;
 };
 
 // @public
@@ -39,8 +39,18 @@ export type AuthResources = {
     cfnResources: AuthCfnResources;
 };
 
-// @public (undocumented)
-export type BackendId = AppId | SandboxId;
+// @public
+export type BackendIdentifier = {
+    namespace: Readonly<AppId>;
+    name: Readonly<BranchName>;
+    type: Readonly<Extract<DeploymentType, 'branch'>>;
+    hash?: Readonly<string>;
+} | {
+    namespace: Readonly<ProjectName>;
+    name: Readonly<SandboxName>;
+    type: Readonly<Extract<DeploymentType, 'sandbox'>>;
+    hash?: Readonly<string>;
+};
 
 // @public (undocumented)
 export type BackendOutput = Record<string, BackendOutputEntry>;
@@ -61,20 +71,18 @@ export type BackendOutputStorageStrategy<T extends BackendOutputEntry> = {
     addBackendOutputEntry: (keyName: string, backendOutputEntry: T) => void;
 };
 
-// @public
-export type BackendOutputWriter = {
-    storeOutput: (outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>) => void;
-};
-
 // @public (undocumented)
 export type BackendSecret = {
-    resolve: (scope: Construct, uniqueBackendIdentifier: UniqueBackendIdentifier) => SecretValue;
+    resolve: (scope: Construct, backendIdentifier: BackendIdentifier) => SecretValue;
 };
 
 // @public (undocumented)
 export type BackendSecretResolver = {
     resolveSecret: (backendSecret: BackendSecret) => SecretValue;
 };
+
+// @public (undocumented)
+export type BranchName = string;
 
 // @public
 export type ConstructContainer = {
@@ -102,6 +110,9 @@ export type ConstructFactoryGetInstanceProps = {
     importPathVerifier?: ImportPathVerifier;
 };
 
+// @public
+export type DeploymentType = 'branch' | 'sandbox';
+
 // @public (undocumented)
 export type FunctionResources = {
     lambda: Function_2;
@@ -122,19 +133,16 @@ export type MainStackNameResolver = {
     resolveMainStackName: () => Promise<string>;
 };
 
+// @public (undocumented)
+export type ProjectName = string;
+
 // @public
 export type ResourceProvider<T> = {
     resources: T;
 };
 
 // @public (undocumented)
-export type SandboxId = string;
-
-// @public
-export type UniqueBackendIdentifier = {
-    backendId: BackendId;
-    disambiguator: string;
-};
+export type SandboxName = string;
 
 // (No @packageDocumentation comment for this package)
 

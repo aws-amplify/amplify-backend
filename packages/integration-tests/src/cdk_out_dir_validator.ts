@@ -3,6 +3,7 @@ import path from 'path';
 import assert from 'node:assert';
 import * as fse from 'fs-extra/esm';
 import * as fs from 'fs';
+import * as fsp from 'fs/promises';
 import { ObjectPath, Predicate, assertCustomMatch } from './object_compare.js';
 
 const UPDATE_SNAPSHOTS = process.env.UPDATE_INTEGRATION_SNAPSHOTS === 'true';
@@ -126,6 +127,8 @@ export const validateCdkOutDir = async (
   const normalizedExpectedPaths = normalize(expectedPaths);
 
   if (UPDATE_SNAPSHOTS) {
+    await fsp.rm(expectedDir, { recursive: true, force: true });
+    await fsp.mkdir(expectedDir, { recursive: true });
     normalizedActualPaths.forEach((actualPath) => {
       const destination = path.resolve(expectedDir, path.basename(actualPath));
       fse.copySync(actualPath, destination);

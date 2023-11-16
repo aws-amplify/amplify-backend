@@ -1,5 +1,37 @@
 # @aws-amplify/integration-tests
 
+## 0.3.2
+
+### Patch Changes
+
+- 23b369d79: Add amplify comment when writing to gitignore
+- bd8b5d1a5: update data/resource template; bump data-schema versions
+
+## 0.3.1
+
+### Patch Changes
+
+- fdff69be3: Update error message when running create amplify in an existing amplify project
+
+## 0.3.0
+
+### Minor Changes
+
+- 85a015b7: switch to using data-schema packages
+
+## 0.2.4
+
+### Patch Changes
+
+- 8f03cd09: enable branch linker by default
+
+## 0.2.3
+
+### Patch Changes
+
+- 68dc91e3: chore: support for JS backend apps
+- a126d8df: bump amplify data versions
+
 ## 0.2.2
 
 ### Patch Changes

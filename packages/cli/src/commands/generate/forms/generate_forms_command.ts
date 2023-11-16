@@ -1,11 +1,9 @@
+import path from 'path';
 import { Argv, CommandModule } from 'yargs';
 import { BackendOutputClient } from '@aws-amplify/deployed-backend-client';
 import { graphqlOutputKey } from '@aws-amplify/backend-output-schemas';
 import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
-import {
-  DEFAULT_GRAPHQL_PATH,
-  DEFAULT_UI_PATH,
-} from '../../../form-generation/default_form_generation_output_paths.js';
+import { DEFAULT_UI_PATH } from '../../../form-generation/default_form_generation_output_paths.js';
 import { FormGenerationHandler } from '../../../form-generation/form_generation_handler.js';
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
 import { handleCommandFailure } from '../../../command_failure_handler.js';
@@ -17,8 +15,7 @@ type GenerateFormsCommandOptionsCamelCase = {
   stack: string | undefined;
   appId: string | undefined;
   branch: string | undefined;
-  uiOutDir: string | undefined;
-  modelsOutDir: string | undefined;
+  outDir: string | undefined;
   models: string[] | undefined;
 };
 
@@ -72,18 +69,16 @@ export class GenerateFormsCommand
 
     const apiUrl = output[graphqlOutputKey].payload.amplifyApiModelSchemaS3Uri;
 
-    if (!args['ui-out-dir']) {
-      throw new Error('uiOut must be defined');
+    if (!args['out-dir']) {
+      throw new Error('out-dir must be defined');
     }
 
-    if (!args['models-out-dir']) {
-      throw new Error('modelsOut must be defined');
-    }
+    const outDir = args['out-dir'];
 
     await this.formGenerationHandler.generate({
-      modelsOutDir: args['models-out-dir'],
+      modelsOutDir: path.join(outDir, 'graphql'),
       backendIdentifier,
-      uiOutDir: args['ui-out-dir'],
+      uiOutDir: outDir,
       apiUrl,
       modelsFilter: args.models,
     });
@@ -117,14 +112,7 @@ export class GenerateFormsCommand
         group: 'Project identifier',
         implies: 'appId',
       })
-      .option('models-out-dir', {
-        describe: 'A path to directory where generated models are written.',
-        default: DEFAULT_GRAPHQL_PATH,
-        type: 'string',
-        array: false,
-        group: 'Form Generation',
-      })
-      .option('ui-out-dir', {
+      .option('out-dir', {
         describe: 'A path to directory where generated forms are written.',
         default: DEFAULT_UI_PATH,
         type: 'string',

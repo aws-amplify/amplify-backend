@@ -83,6 +83,7 @@ void describe('create-amplify script', () => {
         .split(os.EOL)
         .filter((s) => s.trim());
       assert.deepStrictEqual(gitIgnoreContent.sort(), [
+        '# amplify',
         '.amplify',
         'amplifyconfiguration*',
         'node_modules',
@@ -147,9 +148,11 @@ void describe('create-amplify script', () => {
           'cdk',
           'synth',
           '--context',
-          'backend-id=123',
+          `amplify-backend-namespace=123`,
           '--context',
-          'deployment-type=SANDBOX',
+          `amplify-backend-name=sandboxName`,
+          '--context',
+          `amplify-backend-type=sandbox`,
           '--app',
           "'npx tsx amplify/backend.ts'",
           '--quiet',
@@ -176,7 +179,7 @@ void describe('create-amplify script', () => {
       result.stderr
         .toLocaleString()
         .includes(
-          'Either delete this file/directory or initialize the project in a different location'
+          'If you are trying to run an Amplify (Gen 2) command inside an Amplify (Gen 1) project we recommend creating the project in another directory'
         )
     );
   });

@@ -1,5 +1,33 @@
 # @aws-amplify/backend-function
 
+## 0.2.1
+
+### Patch Changes
+
+- Updated dependencies [65fe3a8fd]
+- Updated dependencies [cd5feeed0]
+  - @aws-amplify/plugin-types@0.4.1
+  - @aws-amplify/backend-output-storage@0.2.2
+
+## 0.2.0
+
+### Minor Changes
+
+- 71a63a16: Change stack naming strategy to include deployment type as a suffix
+
+### Patch Changes
+
+- Updated dependencies [8181509a]
+- Updated dependencies [71a63a16]
+  - @aws-amplify/plugin-types@0.4.0
+  - @aws-amplify/backend-output-storage@0.2.1
+
+## 0.1.4
+
+### Patch Changes
+
+- 68dc91e3: chore: support for JS backend apps
+
 ## 0.1.3
 
 ### Patch Changes

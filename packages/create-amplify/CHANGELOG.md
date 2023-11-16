@@ -1,5 +1,37 @@
 # create-amplify
 
+## 0.3.2
+
+### Patch Changes
+
+- 14d862196: Animate ellipsis for high level create amplify logs
+- 23b369d79: Add amplify comment when writing to gitignore
+- bd8b5d1a5: update data/resource template; bump data-schema versions
+- 14d862196: Hide npm outputs and switch from using console to logger in create amplify
+
+## 0.3.1
+
+### Patch Changes
+
+- fdff69be3: Update error message when running create amplify in an existing amplify project
+
+## 0.3.0
+
+### Minor Changes
+
+- 85a015b7: switch to using data-schema packages
+- 71a63a16: Change stack naming strategy to include deployment type as a suffix
+
+### Patch Changes
+
+- 39b3f8dd: update readme
+
+## 0.2.3
+
+### Patch Changes
+
+- 68dc91e3: chore: support for JS backend apps
+
 ## 0.2.2
 
 ### Patch Changes

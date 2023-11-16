@@ -5,7 +5,7 @@
 ```ts
 
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
-import { BackendIdentifier } from '@aws-amplify/deployed-backend-client';
+import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
 
 // @public
 export type AuthClientConfig = {
@@ -14,6 +14,15 @@ export type AuthClientConfig = {
     aws_user_pools_web_client_id?: string;
     aws_cognito_identity_pool_id?: string;
     aws_mandatory_sign_in?: string;
+    aws_cognito_username_attributes?: string[];
+    aws_cognito_signup_attributes?: string[];
+    aws_cognito_mfa_configuration?: string;
+    aws_cognito_mfa_types?: string[];
+    aws_cognito_password_protection_settings?: {
+        passwordPolicyMinLength?: number;
+        passwordPolicyCharacters?: string[];
+    };
+    aws_cognito_verification_mechanisms?: string[];
 };
 
 // @public
@@ -26,16 +35,18 @@ export enum ClientConfigFormat {
     // (undocumented)
     JSON = "json",
     // (undocumented)
+    JSON_MOBILE = "json-mobile",
+    // (undocumented)
     MJS = "mjs",
     // (undocumented)
     TS = "ts"
 }
 
 // @public
-export const generateClientConfig: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier) => Promise<ClientConfig>;
+export const generateClientConfig: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier) => Promise<ClientConfig>;
 
 // @public
-export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: BackendIdentifier, outDir?: string, format?: ClientConfigFormat) => Promise<void>;
+export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, outDir?: string, format?: ClientConfigFormat) => Promise<void>;
 
 // @public
 export const getClientConfigPath: (outDir?: string, format?: ClientConfigFormat) => Promise<string>;

@@ -26,9 +26,10 @@ export type AmazonProviderFactoryProps = Omit<AmazonProviderProps, 'clientId' | 
 };
 
 // @public (undocumented)
-export type AmplifyAuthFactoryProps = Omit<AuthProps, 'outputStorageStrategy' | 'loginWith'> & TriggerConfig & {
-    loginWith: AuthLoginWithFactoryProps;
-};
+export type AmplifyAuthProps = Expand<Omit<AuthProps, 'outputStorageStrategy' | 'loginWith'> & {
+    loginWith: Expand<AuthLoginWithFactoryProps>;
+    triggers?: Partial<Record<TriggerEvent, ConstructFactory<ResourceProvider<FunctionResources>>>>;
+}>;
 
 // @public
 export type AppleProviderFactoryProps = Omit<AppleProviderProps, 'clientId' | 'teamId' | 'keyId' | 'privateKey'> & {
@@ -44,7 +45,12 @@ export type AuthLoginWithFactoryProps = Omit<AuthProps['loginWith'], 'externalPr
 };
 
 // @public
-export const defineAuth: (props: AmplifyAuthFactoryProps) => ConstructFactory<AmplifyAuth & ResourceProvider<AuthResources>>;
+export const defineAuth: (props: AmplifyAuthProps) => ConstructFactory<AmplifyAuth & ResourceProvider<AuthResources>>;
+
+// @public
+export type Expand<T> = T extends infer O ? {
+    [K in keyof O]: O[K];
+} : never;
 
 // @public
 export type ExternalProviderGeneralFactoryProps = Omit<ExternalProviderOptions, 'signInWithApple' | 'loginWithAmazon' | 'facebook' | 'oidc' | 'google'>;
@@ -74,11 +80,6 @@ export type GoogleProviderFactoryProps = Omit<GoogleProviderProps, 'clientId' | 
 export type OidcProviderFactoryProps = Omit<OidcProviderProps, 'clientId' | 'clientSecret'> & {
     clientId: BackendSecret;
     clientSecret: BackendSecret;
-};
-
-// @public (undocumented)
-export type TriggerConfig = {
-    triggers?: Partial<Record<TriggerEvent, ConstructFactory<ResourceProvider<FunctionResources>>>>;
 };
 
 // (No @packageDocumentation comment for this package)

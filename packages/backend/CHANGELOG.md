@@ -1,5 +1,75 @@
 # @aws-amplify/backend
 
+## 0.5.1
+
+### Patch Changes
+
+- Updated dependencies [3cda50cb7]
+  - @aws-amplify/backend-data@0.6.0
+
+## 0.5.0
+
+### Minor Changes
+
+- 07b741dd3: change backend.getStack to backend.createStack
+
+### Patch Changes
+
+- bd8b5d1a5: update data/resource template; bump data-schema versions
+- Updated dependencies [65fe3a8fd]
+- Updated dependencies [cd5feeed0]
+- Updated dependencies [07b0dfc9f]
+- Updated dependencies [bd8b5d1a5]
+  - @aws-amplify/plugin-types@0.4.1
+  - @aws-amplify/backend-auth@0.3.1
+  - @aws-amplify/backend-output-schemas@0.4.0
+  - @aws-amplify/backend-data@0.5.1
+  - @aws-amplify/backend-output-storage@0.2.2
+  - @aws-amplify/backend-function@0.2.1
+
+## 0.4.0
+
+### Minor Changes
+
+- 85a015b7: switch to using data-schema packages
+- 71a63a16: Change stack naming strategy to include deployment type as a suffix
+
+### Patch Changes
+
+- Updated dependencies [85a015b7]
+- Updated dependencies [8181509a]
+- Updated dependencies [71a63a16]
+  - @aws-amplify/backend-data@0.5.0
+  - @aws-amplify/plugin-types@0.4.0
+  - @aws-amplify/backend-output-schemas@0.3.0
+  - @aws-amplify/backend-function@0.2.0
+  - @aws-amplify/backend-storage@0.3.0
+  - @aws-amplify/backend-secret@0.3.0
+  - @aws-amplify/platform-core@0.2.0
+  - @aws-amplify/backend-auth@0.3.0
+  - @aws-amplify/backend-output-storage@0.2.1
+
+## 0.3.4
+
+### Patch Changes
+
+- 8f03cd09: enable branch linker by default
+
+## 0.3.3
+
+### Patch Changes
+
+- 14a18c6e: Rename backend-graphql to backend-data
+- 68dc91e3: chore: support for JS backend apps
+- a126d8df: bump amplify data versions
+- Updated dependencies [6be68224]
+- Updated dependencies [14a18c6e]
+- Updated dependencies [68dc91e3]
+- Updated dependencies [a126d8df]
+  - @aws-amplify/backend-data@0.4.0
+  - @aws-amplify/backend-function@0.1.4
+  - @aws-amplify/platform-core@0.1.4
+
 ## 0.3.2
 
 ### Patch Changes

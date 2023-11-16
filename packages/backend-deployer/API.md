@@ -4,13 +4,13 @@
 
 ```ts
 
-import { BackendDeploymentType } from '@aws-amplify/platform-core';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { DeploymentType } from '@aws-amplify/plugin-types';
 
 // @public
 export type BackendDeployer = {
-    deploy: (uniqueBackendIdentifier?: UniqueBackendIdentifier, deployProps?: DeployProps) => Promise<void>;
-    destroy: (uniqueBackendIdentifier?: UniqueBackendIdentifier, destroyProps?: DestroyProps) => Promise<void>;
+    deploy: (backendId?: BackendIdentifier, deployProps?: DeployProps) => Promise<DeployResult>;
+    destroy: (backendId?: BackendIdentifier, destroyProps?: DestroyProps) => Promise<DestroyResult>;
 };
 
 // @public
@@ -19,15 +19,31 @@ export class BackendDeployerFactory {
 }
 
 // @public (undocumented)
+export type DeploymentTimes = {
+    synthesisTime?: number;
+    totalTime?: number;
+};
+
+// @public (undocumented)
 export type DeployProps = {
-    deploymentType?: BackendDeploymentType;
+    deploymentType?: DeploymentType;
     secretLastUpdated?: Date;
     validateAppSources?: boolean;
 };
 
 // @public (undocumented)
+export type DeployResult = {
+    deploymentTimes: DeploymentTimes;
+};
+
+// @public (undocumented)
 export type DestroyProps = {
-    deploymentType?: BackendDeploymentType;
+    deploymentType?: DeploymentType;
+};
+
+// @public (undocumented)
+export type DestroyResult = {
+    deploymentTimes: DeploymentTimes;
 };
 
 // (No @packageDocumentation comment for this package)

@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import { convertSchemaToCDK } from './convert_schema.js';
 import assert from 'node:assert';
-import { a } from '@aws-amplify/amplify-api-next-alpha';
+import { a } from '@aws-amplify/data-schema';
 
 const removeWhiteSpaceForComparison = (content: string): string =>
   content.replaceAll(/ |\n/g, '');
@@ -16,13 +16,23 @@ void describe('convertSchemaToCDK', () => {
         echo(message: String!): String!
       }
     `;
-    assert.strictEqual(convertSchemaToCDK(graphqlSchema).schema, graphqlSchema);
+    const convertedDefinition = convertSchemaToCDK(graphqlSchema);
+    assert.deepEqual(convertedDefinition.schema, graphqlSchema);
+    assert.deepEqual(convertedDefinition.dataSourceStrategies, {
+      Todo: {
+        dbType: 'DYNAMODB',
+        provisionStrategy: 'AMPLIFY_TABLE',
+      },
+    });
   });
 
   void it('generates for a typed schema', () => {
     const expectedGraphqlSchema = /* GraphQL */ `
       type Todo @model {
+        id: ID! @primaryKey
         content: String!
+        createdAt: AWSDateTime!
+        updatedAt: AWSDateTime!
       }
     `;
     const typedSchema = a.schema({
@@ -30,9 +40,38 @@ void describe('convertSchemaToCDK', () => {
         content: a.string().required(),
       }),
     });
-    assert.strictEqual(
-      removeWhiteSpaceForComparison(convertSchemaToCDK(typedSchema).schema),
+    const convertedDefinition = convertSchemaToCDK(typedSchema);
+    assert.deepEqual(
+      removeWhiteSpaceForComparison(convertedDefinition.schema),
       removeWhiteSpaceForComparison(expectedGraphqlSchema)
     );
+    assert.deepEqual(convertedDefinition.dataSourceStrategies, {
+      Todo: {
+        dbType: 'DYNAMODB',
+        provisionStrategy: 'AMPLIFY_TABLE',
+      },
+    });
+  });
+
+  void it('produces appropriate dataSourceStrategies for a typed schema with multiple models', () => {
+    const typedSchema = a.schema({
+      Todo: a.model({
+        content: a.string().required(),
+      }),
+      Blog: a.model({
+        title: a.string(),
+      }),
+    });
+    const convertedDefinition = convertSchemaToCDK(typedSchema);
+    assert.deepEqual(convertedDefinition.dataSourceStrategies, {
+      Todo: {
+        dbType: 'DYNAMODB',
+        provisionStrategy: 'AMPLIFY_TABLE',
+      },
+      Blog: {
+        dbType: 'DYNAMODB',
+        provisionStrategy: 'AMPLIFY_TABLE',
+      },
+    });
   });
 });
