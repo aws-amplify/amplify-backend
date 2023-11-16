@@ -1,7 +1,7 @@
 import fs from 'fs/promises';
 import { SecretClient } from '@aws-amplify/backend-secret';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
-import { createEmptyAmplifyProject } from '../create_empty_amplify_project.js';
+import { createEmptyAmplifyProject } from './create_empty_amplify_project.js';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { TestProjectBase, TestProjectUpdate } from './test_project_base.js';
 import { fileURLToPath, pathToFileURL } from 'url';

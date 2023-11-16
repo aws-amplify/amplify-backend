@@ -2,7 +2,7 @@ import { TestProjectBase } from './test_project_base.js';
 import fs from 'fs/promises';
 import assert from 'node:assert';
 import path from 'path';
-import { createEmptyAmplifyProject } from '../create_empty_amplify_project.js';
+import { createEmptyAmplifyProject } from './create_empty_amplify_project.js';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { TestProjectCreator } from './test_project_creator.js';
 
@@ -21,7 +21,7 @@ export class MinimalWithTypescriptIdiomTestProjectCreator
 
   createProject = async (e2eProjectDir: string): Promise<TestProjectBase> => {
     const { projectName, projectRoot, projectAmplifyDir } =
-      await createEmptyAmplifyProject('typescript-idiom', e2eProjectDir);
+      await createEmptyAmplifyProject(this.name, e2eProjectDir);
 
     const project = new MinimalWithTypescriptIdiomTestProject(
       projectName,

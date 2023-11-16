@@ -6,7 +6,8 @@ import {
 } from '../setup_test_directory.js';
 import fs from 'fs/promises';
 import { shortUuid } from '../short_uuid.js';
-import { getTestProjectCreators } from './test_project.js';
+import { getTestProjectCreators } from '../test-project-setup/test_project_creator.js';
+import { TestProjectBase } from '../test-project-setup/test_project_base.js';
 import { userInfo } from 'os';
 import { PredicatedActionBuilder } from '../process-controller/predicated_action_queue_builder.js';
 import { amplifyCli } from '../process-controller/process_controller.js';
@@ -21,7 +22,6 @@ import assert from 'node:assert';
 import { TestBranch, amplifyAppPool } from '../amplify_app_pool.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { testConcurrencyLevel } from './test_concurrency.js';
-import { TestProjectBase } from './test_project_base.js';
 
 const testProjectCreators = getTestProjectCreators();
 void describe(
