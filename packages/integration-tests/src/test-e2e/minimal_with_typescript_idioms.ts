@@ -43,7 +43,7 @@ export class MinimalWithTypescriptIdiomTestProjectCreator
 /**
  * The minimal test with typescript idioms.
  */
-export class MinimalWithTypescriptIdiomTestProject extends TestProjectBase {
+class MinimalWithTypescriptIdiomTestProject extends TestProjectBase {
   readonly sourceProjectDirPath =
     '../../test-projects/minimalist-project-with-typescript-idioms';
 

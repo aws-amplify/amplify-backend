@@ -55,7 +55,7 @@ export class DataStorageAuthWithTriggerTestProjectCreator
 /**
  * Test project with data, storage, and auth categories.
  */
-export class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
+class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   readonly sourceProjectDirPath =
     '../../test-projects/data-storage-auth-with-triggers-ts';
 
