@@ -169,6 +169,11 @@ export class CDKDeployer implements BackendDeployer {
       aggregatedStderr += chunk;
       done();
     };
+
+    // Piping the output by default strips off the color. This is a workaround to
+    // preserve the color being piped to parent process. Later we reset it to whatever it was before.
+    const oldForceColorValue = process.env['FORCE_COLOR'];
+    process.env['FORCE_COLOR'] = '1';
     const childProcess = execa(command, cdkCommandArgs, {
       stdin: 'inherit',
       stdout: 'pipe',
@@ -184,6 +189,7 @@ export class CDKDeployer implements BackendDeployer {
 
     try {
       await childProcess;
+      process.env['FORCE_COLOR'] = oldForceColorValue;
       return cdkOutput;
     } catch (error) {
       // swallow execa error which is not really helpful, rather throw stderr
