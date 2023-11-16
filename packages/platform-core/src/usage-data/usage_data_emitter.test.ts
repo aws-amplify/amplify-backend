@@ -25,7 +25,7 @@ void describe('UsageDataEmitter', () => {
     end: onReqEndMock,
   } as unknown as http.ClientRequest;
 
-  // For getInstallationUuid which retrieves it from CwdPackageJsonLoader
+  // For getInstallationUuid which retrieves it from CwdPackageJsonReader
   mock.method(fs, 'existsSync', () => true);
   mock.method(fs, 'readFile', () =>
     Promise.resolve(JSON.stringify({ name: 'testAppName' }))

@@ -4,10 +4,10 @@ import assert from 'node:assert';
 
 void describe('LocalAppNameResolver', () => {
   void it('returns package.json#name', async () => {
-    const packageJsonLoaderMock = {
+    const packageJsonReaderMock = {
       read: () => ({ name: 'testName' }),
     };
-    const resolver = new LocalNamespaceResolver(packageJsonLoaderMock as never);
+    const resolver = new LocalNamespaceResolver(packageJsonReaderMock as never);
     const result = await resolver.resolve();
     assert.equal(result, 'testName');
   });

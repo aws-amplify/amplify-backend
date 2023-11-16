@@ -9,16 +9,16 @@ export type NamespaceResolver = {
  */
 export class LocalNamespaceResolver implements NamespaceResolver {
   /**
-   * packageJsonLoader is assigned to an instance member for testing.
+   * packageJsonReader is assigned to an instance member for testing.
    * resolve is bound to this so that it can be passed as a function reference
    */
-  constructor(private readonly packageJsonLoader: CwdPackageJsonReader) {}
+  constructor(private readonly packageJsonReader: CwdPackageJsonReader) {}
 
   /**
    * Returns the value of package.json#name from the current working directory
    */
   resolve = async () => {
-    const name = this.packageJsonLoader.read().name;
+    const name = this.packageJsonReader.read().name;
     if (name) return name;
     throw new Error('Cannot load name from the package.json');
   };
