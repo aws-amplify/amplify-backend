@@ -1,7 +1,8 @@
-import { describe, it, mock } from 'node:test';
+import { afterEach, describe, it, mock } from 'node:test';
 import { PackageJsonReader } from './package_json_reader.js';
 import fs from 'fs';
 import assert from 'assert';
+import path from 'path';
 
 void describe('Package JSON reader', () => {
   const fsExistsSyncMock = mock.method(fs, 'existsSync', () => true);
@@ -10,11 +11,33 @@ void describe('Package JSON reader', () => {
   );
   const testPath = '/test_path';
   const packageJsonReader = new PackageJsonReader();
-  void it('can read package json', async () => {
+
+  afterEach(() => {
+    fsExistsSyncMock.mock.resetCalls();
+    fsReadFileSync.mock.resetCalls();
+  });
+
+  void it('can read package json from the absolute path', async () => {
     const packageJson = packageJsonReader.read(testPath);
     assert.strictEqual(packageJson.name, 'test_name');
     assert.strictEqual(packageJson.version, '12.13.14');
     assert.strictEqual(packageJson.type, 'module');
+    assert.strictEqual(
+      fsExistsSyncMock.mock.calls[0].arguments[0],
+      '/test_path'
+    );
+    assert.strictEqual(1, fsReadFileSync.mock.callCount());
+  });
+
+  void it('can read package json from the cwd', async () => {
+    const packageJson = packageJsonReader.readFromCwd();
+    assert.strictEqual(packageJson.name, 'test_name');
+    assert.strictEqual(packageJson.version, '12.13.14');
+    assert.strictEqual(packageJson.type, 'module');
+    assert.strictEqual(
+      fsExistsSyncMock.mock.calls[0].arguments[0],
+      path.resolve(process.cwd(), 'package.json')
+    );
     assert.strictEqual(1, fsReadFileSync.mock.callCount());
   });
 
