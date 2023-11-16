@@ -51,6 +51,10 @@ export class GenerateConfigCommand
       args
     );
 
+    if (!backendIdentifier) {
+      throw new Error('Could not resolve the backend identifier');
+    }
+
     await this.clientConfigGenerator.generateClientConfigToFile(
       backendIdentifier,
       args['out-dir'],

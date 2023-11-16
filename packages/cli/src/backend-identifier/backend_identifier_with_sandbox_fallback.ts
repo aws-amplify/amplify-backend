@@ -18,10 +18,9 @@ export class BackendIdentifierResolverWithFallback {
   public resolve = async (
     ...args: Parameters<BackendIdentifierResolver['resolve']>
   ) => {
-    try {
-      return await this.defaultResolver.resolve(...args);
-    } catch (_) {
-      return await this.fallbackResolver.resolve();
-    }
+    return (
+      (await this.defaultResolver.resolve(...args)) ??
+      (await this.fallbackResolver.resolve())
+    );
   };
 }

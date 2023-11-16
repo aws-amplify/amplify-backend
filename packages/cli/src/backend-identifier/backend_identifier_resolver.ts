@@ -10,7 +10,7 @@ type BackendIdentifierParameters = {
 export type BackendIdentityResolver = {
   resolve: (
     args: BackendIdentifierParameters
-  ) => Promise<DeployedBackendIdentifier>;
+  ) => Promise<DeployedBackendIdentifier | undefined>;
 };
 
 /**
@@ -24,7 +24,7 @@ export class BackendIdentifierResolver {
   constructor(private readonly namespaceResolver: NamespaceResolver) {}
   resolve = async (
     args: BackendIdentifierParameters
-  ): Promise<DeployedBackendIdentifier> => {
+  ): Promise<DeployedBackendIdentifier | undefined> => {
     if (args.stack) {
       return { stackName: args.stack };
     } else if (args.appId && args.branch) {
@@ -39,8 +39,6 @@ export class BackendIdentifierResolver {
         branchName: args.branch,
       };
     }
-    throw new Error(
-      'Unable to resolve BackendIdentifier with provided parameters'
-    );
+    return undefined;
   };
 }

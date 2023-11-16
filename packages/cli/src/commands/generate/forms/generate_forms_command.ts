@@ -59,6 +59,10 @@ export class GenerateFormsCommand
       args
     );
 
+    if (!backendIdentifier) {
+      throw new Error('Could not resolve the backend identifier');
+    }
+
     const backendOutputClient = this.backendOutputClientBuilder();
 
     const output = await backendOutputClient.getOutput(backendIdentifier);
