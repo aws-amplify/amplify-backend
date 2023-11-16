@@ -5,7 +5,7 @@ import { ClientConfigFormat } from '@aws-amplify/client-config';
 import yargs, { CommandModule } from 'yargs';
 import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
-import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
+import { AppBackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
 import { ClientConfigGeneratorAdapter } from '../../../client-config/client_config_generator_adapter.js';
 
 void describe('generate config command', () => {
@@ -19,7 +19,7 @@ void describe('generate config command', () => {
     () => Promise.resolve()
   );
 
-  const backendIdResolver = new BackendIdentifierResolver({
+  const backendIdResolver = new AppBackendIdentifierResolver({
     resolve: () => Promise.resolve('testAppName'),
   });
   const generateConfigCommand = new GenerateConfigCommand(

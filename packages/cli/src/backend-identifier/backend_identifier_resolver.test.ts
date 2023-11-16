@@ -1,10 +1,10 @@
 import assert from 'node:assert';
 import { describe, it } from 'node:test';
-import { BackendIdentifierResolver } from './backend_identifier_resolver.js';
+import { AppBackendIdentifierResolver } from './backend_identifier_resolver.js';
 
 void describe('BackendIdentifierResolver', () => {
   void it('returns an App Name and Branch identifier', async () => {
-    const backendIdResolver = new BackendIdentifierResolver({
+    const backendIdResolver = new AppBackendIdentifierResolver({
       resolve: () => Promise.resolve('testAppName'),
     });
     assert.deepStrictEqual(
@@ -16,7 +16,7 @@ void describe('BackendIdentifierResolver', () => {
     );
   });
   void it('returns a App Id identifier', async () => {
-    const backendIdResolver = new BackendIdentifierResolver({
+    const backendIdResolver = new AppBackendIdentifierResolver({
       resolve: () => Promise.resolve('testAppName'),
     });
     const actual = await backendIdResolver.resolve({
@@ -30,7 +30,7 @@ void describe('BackendIdentifierResolver', () => {
     });
   });
   void it('returns a Stack name identifier', async () => {
-    const backendIdResolver = new BackendIdentifierResolver({
+    const backendIdResolver = new AppBackendIdentifierResolver({
       resolve: () => Promise.resolve('testAppName'),
     });
     assert.deepEqual(await backendIdResolver.resolve({ stack: 'my-stack' }), {
