@@ -1,5 +1,8 @@
 import { SandboxBackendIdResolver } from '../commands/sandbox/sandbox_id_resolver.js';
-import { BackendIdentifierResolver } from './backend_identifier_resolver.js';
+import {
+  BackendIdentifierParameters,
+  BackendIdentifierResolver,
+} from './backend_identifier_resolver.js';
 
 /**
  * Resolves the backend id when branch or stack is passed as an arg, otherwise returns a sandbox backend identifier
@@ -17,11 +20,9 @@ export class BackendIdentifierResolverWithFallback
   /**
    * resolves the backend id, falling back to the sandbox id if there is an error
    */
-  public resolve = async (
-    ...args: Parameters<BackendIdentifierResolver['resolve']>
-  ) => {
+  resolve = async (args: BackendIdentifierParameters) => {
     return (
-      (await this.defaultResolver.resolve(...args)) ??
+      (await this.defaultResolver.resolve(args)) ??
       (await this.fallbackResolver.resolve())
     );
   };

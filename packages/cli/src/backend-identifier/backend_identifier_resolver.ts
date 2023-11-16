@@ -1,7 +1,7 @@
 import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
 import { NamespaceResolver } from './local_namespace_resolver.js';
 
-type BackendIdentifierParameters = {
+export type BackendIdentifierParameters = {
   stack?: string;
   appId?: string;
   branch?: string;
