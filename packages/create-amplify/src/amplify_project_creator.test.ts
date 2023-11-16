@@ -42,7 +42,7 @@ void describe('AmplifyProjectCreator', () => {
       1
     );
     assert.equal(
-      logMock.log.mock.calls[3].arguments[0],
+      logMock.log.mock.calls[4].arguments[0],
       'Welcome to AWS Amplify! \nRun `amplify help` for a list of available commands. \nGet started by running `amplify sandbox`.'
     );
   });
@@ -73,7 +73,7 @@ void describe('AmplifyProjectCreator', () => {
     await amplifyProjectCreator.create();
 
     assert.equal(
-      logMock.log.mock.calls[3].arguments[0],
+      logMock.log.mock.calls[4].arguments[0],
       'Welcome to AWS Amplify! \nRun `amplify help` for a list of available commands. \nGet started by running `cd ./project/root; amplify sandbox`.'
     );
   });
