@@ -4,6 +4,41 @@ import assert from 'node:assert';
 import path from 'path';
 import { createEmptyAmplifyProject } from '../create_empty_amplify_project.js';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import { TestProjectCreator } from './test_project_creator.js';
+
+/**
+ * Creates minimal test projects with typescript idioms.
+ */
+export class MinimalWithTypescriptIdiomTestProjectCreator
+  implements TestProjectCreator
+{
+  readonly name = 'typescript-idiom';
+
+  /**
+   * Creates project creator.
+   */
+  constructor(private readonly cfnClient: CloudFormationClient) {}
+
+  createProject = async (e2eProjectDir: string): Promise<TestProjectBase> => {
+    const { projectName, projectRoot, projectAmplifyDir } =
+      await createEmptyAmplifyProject('typescript-idiom', e2eProjectDir);
+
+    const project = new MinimalWithTypescriptIdiomTestProject(
+      projectName,
+      projectRoot,
+      projectAmplifyDir,
+      this.cfnClient
+    );
+    await fs.cp(
+      project.sourceProjectAmplifyDirPath,
+      project.projectAmplifyDirPath,
+      {
+        recursive: true,
+      }
+    );
+    return project;
+  };
+}
 
 /**
  * The minimal test with typescript idioms.
@@ -30,32 +65,6 @@ export class MinimalWithTypescriptIdiomTestProject extends TestProjectBase {
   ) {
     super(name, projectDirPath, projectAmplifyDirPath, cfnClient);
   }
-
-  /**
-   * Creates a test project directory and instance.
-   */
-  static createProject = async (
-    e2eProjectDir: string,
-    cfnClient: CloudFormationClient
-  ): Promise<MinimalWithTypescriptIdiomTestProject> => {
-    const { projectName, projectRoot, projectAmplifyDir } =
-      await createEmptyAmplifyProject('typescript-idiom', e2eProjectDir);
-
-    const project = new MinimalWithTypescriptIdiomTestProject(
-      projectName,
-      projectRoot,
-      projectAmplifyDir,
-      cfnClient
-    );
-    await fs.cp(
-      project.sourceProjectAmplifyDirPath,
-      project.projectAmplifyDirPath,
-      {
-        recursive: true,
-      }
-    );
-    return project;
-  };
 
   assertPostDeployment = async (): Promise<void> => {
     const clientConfigStats = await fs.stat(

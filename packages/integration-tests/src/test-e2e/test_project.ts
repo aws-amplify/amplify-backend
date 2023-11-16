@@ -1,30 +1,19 @@
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
-import { DataStorageAuthWithTriggerTestProject } from './data_storage_auth_with_triggers.js';
+import { DataStorageAuthWithTriggerTestProjectCreator } from './data_storage_auth_with_triggers.js';
 import { getSecretClient } from '@aws-amplify/backend-secret';
-import { createTestDirectory } from '../setup_test_directory.js';
-import { TestProjectBase } from './test_project_base.js';
-import { MinimalWithTypescriptIdiomTestProject } from './minimal_with_typescript_idioms.js';
+import { MinimalWithTypescriptIdiomTestProjectCreator } from './minimal_with_typescript_idioms.js';
+import { TestProjectCreator } from './test_project_creator.js';
 
 /**
  * Generates a list of test projects.
  */
-export const generateTestProjects = async (
-  e2eProjectDir: string
-): Promise<TestProjectBase[]> => {
-  const testProjects: TestProjectBase[] = [];
+export const getTestProjectCreators = (): TestProjectCreator[] => {
+  const testProjectCreators: TestProjectCreator[] = [];
   const cfnClient = new CloudFormationClient();
   const secretClient = getSecretClient();
-  await createTestDirectory(e2eProjectDir);
-  testProjects.push(
-    await DataStorageAuthWithTriggerTestProject.createProject(
-      e2eProjectDir,
-      cfnClient,
-      secretClient
-    ),
-    await MinimalWithTypescriptIdiomTestProject.createProject(
-      e2eProjectDir,
-      cfnClient
-    )
+  testProjectCreators.push(
+    new DataStorageAuthWithTriggerTestProjectCreator(cfnClient, secretClient),
+    new MinimalWithTypescriptIdiomTestProjectCreator(cfnClient)
   );
-  return testProjects;
+  return testProjectCreators;
 };

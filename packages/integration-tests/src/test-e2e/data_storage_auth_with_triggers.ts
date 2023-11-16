@@ -6,12 +6,51 @@ import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { TestProjectBase, TestProjectUpdate } from './test_project_base.js';
 import { fileURLToPath, pathToFileURL } from 'url';
 import path from 'path';
+import { TestProjectCreator } from './test_project_creator.js';
 
 type TestConstant = {
   secretNames: {
     [name: string]: string;
   };
 };
+
+/**
+ * Creates test projects with data, storage, and auth categories.
+ */
+export class DataStorageAuthWithTriggerTestProjectCreator
+  implements TestProjectCreator
+{
+  readonly name = 'data-storage-auth';
+
+  /**
+   * Creates project creator.
+   */
+  constructor(
+    private readonly cfnClient: CloudFormationClient,
+    private readonly secretClient: SecretClient
+  ) {}
+
+  createProject = async (e2eProjectDir: string): Promise<TestProjectBase> => {
+    const { projectName, projectRoot, projectAmplifyDir } =
+      await createEmptyAmplifyProject(this.name, e2eProjectDir);
+
+    const project = new DataStorageAuthWithTriggerTestProject(
+      projectName,
+      projectRoot,
+      projectAmplifyDir,
+      this.cfnClient,
+      this.secretClient
+    );
+    await fs.cp(
+      project.sourceProjectAmplifyDirPath,
+      project.projectAmplifyDirPath,
+      {
+        recursive: true,
+      }
+    );
+    return project;
+  };
+}
 
 /**
  * Test project with data, storage, and auth categories.
@@ -51,34 +90,6 @@ export class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   ) {
     super(name, projectDirPath, projectAmplifyDirPath, cfnClient);
   }
-
-  /**
-   * Creates a test project directory and instance.
-   */
-  static createProject = async (
-    e2eProjectDir: string,
-    cfnClient: CloudFormationClient,
-    secretClient: SecretClient
-  ): Promise<DataStorageAuthWithTriggerTestProject> => {
-    const { projectName, projectRoot, projectAmplifyDir } =
-      await createEmptyAmplifyProject('data-storage-auth', e2eProjectDir);
-
-    const project = new DataStorageAuthWithTriggerTestProject(
-      projectName,
-      projectRoot,
-      projectAmplifyDir,
-      cfnClient,
-      secretClient
-    );
-    await fs.cp(
-      project.sourceProjectAmplifyDirPath,
-      project.projectAmplifyDirPath,
-      {
-        recursive: true,
-      }
-    );
-    return project;
-  };
 
   /**
    * @inheritdoc
