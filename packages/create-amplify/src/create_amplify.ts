@@ -12,7 +12,6 @@ import { ProjectRootValidator } from './project_root_validator.js';
 import { AmplifyProjectCreator } from './amplify_project_creator.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
 import { NpmProjectInitializer } from './npm_project_initializer.js';
-import { TsConfigInitializer } from './tsconfig_initializer.js';
 import { getProjectRoot } from './get_project_root.js';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
 
@@ -21,7 +20,7 @@ const projectRoot = await getProjectRoot();
 const amplifyProjectCreator = new AmplifyProjectCreator(
   new NpmPackageManagerController(projectRoot),
   new ProjectRootValidator(projectRoot),
-  new InitialProjectFileGenerator(projectRoot, new TsConfigInitializer()),
+  new InitialProjectFileGenerator(projectRoot),
   new NpmProjectInitializer(projectRoot),
   new GitIgnoreInitializer(projectRoot),
   projectRoot

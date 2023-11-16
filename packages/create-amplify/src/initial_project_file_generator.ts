@@ -1,7 +1,8 @@
 import path from 'path';
 import _fs from 'fs/promises';
 import { PackageJson } from './package_json_reader.js';
-import { TsConfigInitializer } from './tsconfig_initializer.js';
+import { executeWithDebugLogger as _executeWithDebugLogger } from './execute_with_logger.js';
+import { execa } from 'execa';
 
 /**
  *
@@ -13,8 +14,8 @@ export class InitialProjectFileGenerator {
    */
   constructor(
     private readonly projectRoot: string,
-    private readonly tsConfigInitializer: TsConfigInitializer,
-    private readonly fs = _fs
+    private readonly fs = _fs,
+    private readonly executeWithDebugLogger = _executeWithDebugLogger
   ) {}
 
   /**
@@ -35,8 +36,23 @@ export class InitialProjectFileGenerator {
       JSON.stringify(packageJsonContent, null, 2)
     );
 
-    // there's a bit of tight coupling here because this class sets type: module in the package.json for the directory and tsConfigInitializer create a TS config for ESM
-    // it's not obvious at this point what a better abstraction would be for this, so leaving as-is
-    await this.tsConfigInitializer.ensureInitialized(targetDir);
+    await this.initializeTsConfig(targetDir);
+  };
+
+  private initializeTsConfig = async (targetDir: string): Promise<void> => {
+    const tscArgs = [
+      'tsc',
+      '--init',
+      '--resolveJsonModule',
+      'true',
+      '--module',
+      'node16',
+      '--moduleResolution',
+      'node16',
+      '--target',
+      'es2022',
+    ];
+
+    await this.executeWithDebugLogger(targetDir, 'npx', tscArgs, execa);
   };
 }
