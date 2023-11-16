@@ -56,11 +56,4 @@ export class MinimalWithTypescriptIdiomTestProject extends TestProjectBase {
     );
     return project;
   };
-
-  assertPostDeployment = async (): Promise<void> => {
-    const clientConfigStats = await fs.stat(
-      path.join(this.projectDirPath, 'amplifyconfiguration.json')
-    );
-    assert.ok(clientConfigStats.isFile());
-  };
 }

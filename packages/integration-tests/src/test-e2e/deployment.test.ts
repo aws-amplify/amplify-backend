@@ -13,10 +13,12 @@ import {
   interruptSandbox,
   rejectCleanupSandbox,
   updateFileContent,
+  waitForSandboxDeploymentToPrintTotalTime,
 } from '../process-controller/predicated_action_macros.js';
 import assert from 'node:assert';
 import { TestBranch, amplifyAppPool } from '../amplify_app_pool.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { ClientConfigFormat } from '@aws-amplify/client-config';
 
 const testProjects = await generateTestProjects(rootTestDir);
 
@@ -104,6 +106,53 @@ void describe('amplify deploys', async () => {
           .run();
 
         await testProject.assertPostDeployment();
+      });
+
+      void it(`[${sandboxBackendIdentifier.namespace}] generates client config with provided directory and format`, async () => {
+        const configOutDir = 'temp';
+
+        // create directory for client config
+        const tempPath = path.join(testProject.projectDirPath, configOutDir);
+        await fs.mkdir(tempPath);
+
+        await amplifyCli(
+          [
+            'sandbox',
+            '--config-out-dir',
+            configOutDir,
+            '--config-format',
+            ClientConfigFormat.TS,
+          ],
+          testProject.projectDirPath
+        )
+          .do(waitForSandboxDeploymentToPrintTotalTime())
+          .do(interruptSandbox())
+          .do(rejectCleanupSandbox())
+          .run();
+
+        await testProject.assertPostDeployment(tempPath, ClientConfigFormat.TS);
+
+        // test generating all formats in root directory
+        for (const format of Object.values(ClientConfigFormat)) {
+          await amplifyCli(
+            [
+              'generate',
+              'config',
+              '--app-id',
+              sandboxBackendIdentifier.namespace,
+              '--branch',
+              sandboxBackendIdentifier.name,
+              '--format',
+              format,
+            ],
+            testProject.projectDirPath
+          ).run();
+
+          await testProject.assertPostDeployment(
+            testProject.projectDirPath,
+            format
+          );
+        }
       });
     });
   });

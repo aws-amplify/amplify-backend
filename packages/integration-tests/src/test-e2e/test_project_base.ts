@@ -1,5 +1,6 @@
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { ClientConfigFormat } from '@aws-amplify/client-config';
 import { amplifyCli } from '../process-controller/process_controller.js';
 import {
   confirmDeleteSandbox,
@@ -12,6 +13,9 @@ import {
   CloudFormationClient,
   DeleteStackCommand,
 } from '@aws-sdk/client-cloudformation';
+import fsp from 'fs/promises';
+import path from 'path';
+import assert from 'node:assert';
 
 /**
  * Keeps test project update info.
@@ -26,7 +30,6 @@ export type TestProjectUpdate = {
  * The base abstract class for test project.
  */
 export abstract class TestProjectBase {
-  abstract assertPostDeployment: () => Promise<void>;
   abstract readonly sourceProjectAmplifyDirPath: URL;
 
   /**
@@ -89,5 +92,28 @@ export abstract class TestProjectBase {
    */
   async getUpdates(): Promise<TestProjectUpdate[]> {
     return [];
+  }
+
+  /**
+   * Verify client config file is generated with the provided directory and format
+   */
+  async assertPostDeployment(dir?: string, format?: ClientConfigFormat) {
+    const defaultArgs = {
+      out: this.projectDirPath,
+      format: ClientConfigFormat.JSON,
+    };
+
+    const configFileName = 'amplifyconfiguration';
+    const targetPath = dir ?? defaultArgs.out;
+    const extension = format ?? defaultArgs.format;
+
+    const clientConfigStats = await fsp.stat(
+      path.resolve(targetPath, `${configFileName}.${extension}`)
+    );
+
+    // check that the client config is a file
+    // we're not validating content here because it was causing e2e noise for small updates without providing value
+    // individual components of the client config are tested at the unit / integration level
+    assert.ok(clientConfigStats.isFile());
   }
 }
