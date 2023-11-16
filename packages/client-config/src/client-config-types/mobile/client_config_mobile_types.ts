@@ -43,6 +43,13 @@ export type ClientConfigMobileAuth = {
       Auth: {
         Default: {
           authenticationFlowType: 'USER_SRP_AUTH';
+          passwordProtectionSettings: {
+            passwordPolicyMinLength: number;
+            passwordPolicyCharacters: Array<string>;
+          };
+          signupAttributes: Array<string>;
+          usernameAttributes: Array<string>;
+          verificationMechanisms: Array<string>;
         };
       };
       AppSync?: {

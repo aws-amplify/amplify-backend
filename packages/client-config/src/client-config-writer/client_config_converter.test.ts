@@ -18,6 +18,22 @@ void describe('client config converter', () => {
       aws_cognito_region: 'test_cognito_region',
       aws_user_pools_id: 'test_user_pool_id',
       aws_user_pools_web_client_id: 'test_user_pool_app_client_id',
+      aws_cognito_signup_attributes: [
+        'test_signup_attribute_1',
+        'test_signup_attribute_2',
+      ],
+      aws_cognito_username_attributes: [
+        'test_username_attribute_1',
+        'test_username_attribute_2',
+      ],
+      aws_cognito_password_protection_settings: {
+        passwordPolicyMinLength: 1234,
+        passwordPolicyCharacters: ['a', 'b', 'c'],
+      },
+      aws_cognito_verification_mechanisms: [
+        'test_verification_mechanism_1',
+        'test_verification_mechanism_2',
+      ],
     };
     const expectedMobileConfig: ClientConfigMobile = {
       UserAgent: expectedUserAgent,
@@ -45,6 +61,22 @@ void describe('client config converter', () => {
             Auth: {
               Default: {
                 authenticationFlowType: 'USER_SRP_AUTH',
+                signupAttributes: [
+                  'test_signup_attribute_1',
+                  'test_signup_attribute_2',
+                ],
+                usernameAttributes: [
+                  'test_username_attribute_1',
+                  'test_username_attribute_2',
+                ],
+                passwordProtectionSettings: {
+                  passwordPolicyMinLength: 1234,
+                  passwordPolicyCharacters: ['a', 'b', 'c'],
+                },
+                verificationMechanisms: [
+                  'test_verification_mechanism_1',
+                  'test_verification_mechanism_2',
+                ],
               },
             },
           },
@@ -123,6 +155,13 @@ void describe('client config converter', () => {
             Auth: {
               Default: {
                 authenticationFlowType: 'USER_SRP_AUTH',
+                signupAttributes: [],
+                usernameAttributes: [],
+                passwordProtectionSettings: {
+                  passwordPolicyCharacters: [],
+                  passwordPolicyMinLength: 8,
+                },
+                verificationMechanisms: [],
               },
             },
             AppSync: {
