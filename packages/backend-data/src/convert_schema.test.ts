@@ -21,7 +21,7 @@ void describe('convertSchemaToCDK', () => {
     assert.deepEqual(convertedDefinition.dataSourceStrategies, {
       Todo: {
         dbType: 'DYNAMODB',
-        provisionStrategy: 'DEFAULT',
+        provisionStrategy: 'AMPLIFY_TABLE',
       },
     });
   });
@@ -48,7 +48,7 @@ void describe('convertSchemaToCDK', () => {
     assert.deepEqual(convertedDefinition.dataSourceStrategies, {
       Todo: {
         dbType: 'DYNAMODB',
-        provisionStrategy: 'DEFAULT',
+        provisionStrategy: 'AMPLIFY_TABLE',
       },
     });
   });
@@ -66,11 +66,11 @@ void describe('convertSchemaToCDK', () => {
     assert.deepEqual(convertedDefinition.dataSourceStrategies, {
       Todo: {
         dbType: 'DYNAMODB',
-        provisionStrategy: 'DEFAULT',
+        provisionStrategy: 'AMPLIFY_TABLE',
       },
       Blog: {
         dbType: 'DYNAMODB',
-        provisionStrategy: 'DEFAULT',
+        provisionStrategy: 'AMPLIFY_TABLE',
       },
     });
   });
