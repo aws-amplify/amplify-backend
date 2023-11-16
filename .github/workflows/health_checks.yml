@@ -72,7 +72,7 @@ jobs:
       # will finish running other test matrices even if one fails
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest-large, windows-latest]
+        os: [ubuntu-latest, macos-latest-xl, windows-latest]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 40
     needs:
