@@ -1,5 +1,11 @@
 # @aws-amplify/client-config
 
+## 0.4.1
+
+### Patch Changes
+
+- 50934da02: include additional fields in mobile config generation
+
 ## 0.4.0
 
 ### Minor Changes

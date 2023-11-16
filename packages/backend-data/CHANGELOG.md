@@ -1,5 +1,17 @@
 # @aws-amplify/backend-data
 
+## 0.7.0
+
+### Minor Changes
+
+- 688db7bf8: Update deployment strategy to use amplify tables, and allow drop/replace semantics for sandbox tables
+
+### Patch Changes
+
+- 85bbab431: Use correct reference to identity pool id in IAM auth
+- Updated dependencies [70685f36b]
+  - @aws-amplify/backend-output-storage@0.2.3
+
 ## 0.6.0
 
 ### Minor Changes
