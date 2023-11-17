@@ -115,43 +115,24 @@ void describe('amplify deploys', async () => {
         const tempPath = path.join(testProject.projectDirPath, configOutDir);
         await fs.mkdir(tempPath);
 
-        await amplifyCli(
-          [
-            'sandbox',
-            '--config-out-dir',
-            configOutDir,
-            '--config-format',
-            ClientConfigFormat.TS,
-          ],
-          testProject.projectDirPath
-        )
-          .do(waitForSandboxDeploymentToPrintTotalTime())
-          .do(interruptSandbox())
-          .do(rejectCleanupSandbox())
-          .run();
-
-        await testProject.assertPostDeployment(tempPath, ClientConfigFormat.TS);
-
-        // test generating all formats in root directory
+        // test generating all formats in temp directory
         for (const format of Object.values(ClientConfigFormat)) {
           await amplifyCli(
             [
-              'generate',
-              'config',
-              '--app-id',
-              sandboxBackendIdentifier.namespace,
-              '--branch',
-              sandboxBackendIdentifier.name,
-              '--format',
+              'sandbox',
+              '--config-out-dir',
+              configOutDir,
+              '--config-format',
               format,
             ],
             testProject.projectDirPath
-          ).run();
+          )
+            .do(waitForSandboxDeploymentToPrintTotalTime())
+            .do(interruptSandbox())
+            .do(rejectCleanupSandbox())
+            .run();
 
-          await testProject.assertPostDeployment(
-            testProject.projectDirPath,
-            format
-          );
+          await testProject.assertPostDeployment(tempPath, format);
         }
       });
     });
