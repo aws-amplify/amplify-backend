@@ -26,7 +26,7 @@ export type CdkDefaultAuthorizationMode =
 /**
  * Default auth mode to use in the API, only required if more than one auth mode is specified.
  */
-export type DefineDataAuthConfig =
+type DefineDataAuthConfig =
   | {
       /**
        * Default auth mode to use in the API, only required if more than one auth mode is specified.
