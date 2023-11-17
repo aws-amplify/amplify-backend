@@ -31,6 +31,22 @@ export enum CDKContextKey {
 }
 
 // @public
+export class ConfigController {
+    constructor(projectName?: string, configFileName?: string);
+    clear(): void;
+    // (undocumented)
+    configFilePath: string;
+    // (undocumented)
+    dirPath: string;
+    get<T>(path: string): T;
+    getConfigPath(name: string): string;
+    set(path: string, value: string | boolean | number, writeToFile?: boolean): void;
+    // (undocumented)
+    _store: Record<string, unknown>;
+    write(): void;
+}
+
+// @public
 export class FilePathExtractor {
     constructor(stackTraceLine: string);
     // (undocumented)
@@ -61,6 +77,15 @@ export const packageJsonSchema: z.ZodObject<{
     version?: string | undefined;
     type?: "module" | "commonjs" | undefined;
 }>;
+
+// @public (undocumented)
+export const TELEMETRY_ANONYMOUS_ID = "telemetry.anonymousId";
+
+// @public (undocumented)
+export const TELEMETRY_CONFIG_KEY = "telemetry";
+
+// @public (undocumented)
+export const TELEMETRY_ENABLED_KEY = "telemetry.enabled";
 
 // @public (undocumented)
 export type UsageDataEmitter = {

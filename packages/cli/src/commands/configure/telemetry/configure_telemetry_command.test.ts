@@ -35,8 +35,8 @@ void describe('configure command', () => {
       mockedPrint.mock.calls[0].arguments[0],
       /You have enabled telemetry data collection/
     );
-    assert.equal(configController.get(TELEMETRY_ENABLED_KEY), 'true');
-    assert.equal(
+    assert.strictEqual(configController.get(TELEMETRY_ENABLED_KEY), true);
+    assert.strictEqual(
       configController.get(TELEMETRY_ANONYMOUS_ID),
       'some_random_id'
     );
@@ -49,8 +49,8 @@ void describe('configure command', () => {
       mockedPrint.mock.calls[0].arguments[0],
       /You have disabled telemetry data collection/
     );
-    assert.equal(configController.get(TELEMETRY_ENABLED_KEY), 'false');
-    assert.equal(
+    assert.strictEqual(configController.get(TELEMETRY_ENABLED_KEY), false);
+    assert.strictEqual(
       configController.get(TELEMETRY_ANONYMOUS_ID),
       'some_random_id'
     );
