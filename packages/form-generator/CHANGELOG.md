@@ -1,5 +1,11 @@
 # @aws-amplify/form-generator
 
+## 0.5.0
+
+### Minor Changes
+
+- cc8b66cd9: updates the form renderer to generate amplify js v6 compatible code
+
 ## 0.4.0
 
 ### Minor Changes
