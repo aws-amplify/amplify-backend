@@ -1,6 +1,9 @@
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
-import { ClientConfigFormat } from '@aws-amplify/client-config';
+import {
+  ClientConfigFormat,
+  getClientConfigPath,
+} from '@aws-amplify/client-config';
 import { amplifyCli } from '../process-controller/process_controller.js';
 import {
   confirmDeleteSandbox,
@@ -98,17 +101,8 @@ export abstract class TestProjectBase {
    * Verify client config file is generated with the provided directory and format
    */
   async assertPostDeployment(dir?: string, format?: ClientConfigFormat) {
-    const defaultArgs = {
-      out: this.projectDirPath,
-      format: ClientConfigFormat.JSON,
-    };
-
-    const configFileName = 'amplifyconfiguration';
-    const targetPath = dir ?? defaultArgs.out;
-    const extension = format ?? defaultArgs.format;
-
     const clientConfigStats = await fsp.stat(
-      path.resolve(targetPath, `${configFileName}.${extension}`)
+      await getClientConfigPath(dir ?? this.projectDirPath, format)
     );
 
     // check that the client config is a file
