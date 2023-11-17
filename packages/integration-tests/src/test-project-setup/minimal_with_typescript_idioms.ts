@@ -63,30 +63,4 @@ class MinimalWithTypescriptIdiomTestProject extends TestProjectBase {
   ) {
     super(name, projectDirPath, projectAmplifyDirPath, cfnClient);
   }
-
-  /**
-   * Creates a test project directory and instance.
-   */
-  static createProject = async (
-    e2eProjectDir: string,
-    cfnClient: CloudFormationClient
-  ): Promise<MinimalWithTypescriptIdiomTestProject> => {
-    const { projectName, projectRoot, projectAmplifyDir } =
-      await createEmptyAmplifyProject('typescript-idiom', e2eProjectDir);
-
-    const project = new MinimalWithTypescriptIdiomTestProject(
-      projectName,
-      projectRoot,
-      projectAmplifyDir,
-      cfnClient
-    );
-    await fs.cp(
-      project.sourceProjectAmplifyDirPath,
-      project.projectAmplifyDirPath,
-      {
-        recursive: true,
-      }
-    );
-    return project;
-  };
 }
