@@ -1,7 +1,7 @@
 import fs from 'fs/promises';
 import path from 'path';
-import { shortUuid } from './short_uuid.js';
-import { setupDirAsEsmModule } from './test-e2e/setup_dir_as_esm_module.js';
+import { shortUuid } from '../short_uuid.js';
+import { setupDirAsEsmModule } from './setup_dir_as_esm_module.js';
 
 const TEST_PROJECT_PREFIX = 'test-project';
 

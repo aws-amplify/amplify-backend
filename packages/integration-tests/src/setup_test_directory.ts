@@ -23,6 +23,6 @@ export const createTestDirectory = async (pathName: string | URL) => {
  */
 export const deleteTestDirectory = async (pathName: string | URL) => {
   if (existsSync(pathName)) {
-    await fs.rm(pathName, { recursive: true });
+    await fs.rm(pathName, { recursive: true, force: true });
   }
 };
