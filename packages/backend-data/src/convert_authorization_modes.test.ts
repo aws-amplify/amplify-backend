@@ -124,7 +124,7 @@ void describe('convertAuthorizationModesToCDK', () => {
 
   void it('allows for overriding defaultAuthorizationMode and oidc config', () => {
     const authModes: AuthorizationModes = {
-      defaultAuthorizationMode: 'OPENID_CONNECT',
+      defaultAuthorizationMode: 'oidc',
       oidcAuthorizationMode: {
         clientId: 'testClient',
         oidcProviderName: 'testProvider',

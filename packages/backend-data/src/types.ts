@@ -2,14 +2,14 @@ import { DerivedModelSchema } from '@aws-amplify/data-schema-types';
 import { AmplifyFunction, ConstructFactory } from '@aws-amplify/plugin-types';
 
 /**
- * Determine which auth mode is specified as 'default' in the Appsync API, only required if more than one authorization mode is specified.
+ * Authorization modes used in by client side Amplify represented in camelCase.
  */
 export type DefaultAuthorizationMode =
-  | 'AWS_IAM'
-  | 'AMAZON_COGNITO_USER_POOLS'
-  | 'OPENID_CONNECT'
-  | 'API_KEY'
-  | 'AWS_LAMBDA';
+  | 'iam'
+  | 'userPool'
+  | 'oidc'
+  | 'apiKey'
+  | 'lambda';
 
 /**
  * Props for Api Keys on the Graphql Api.
@@ -83,7 +83,6 @@ export type AuthorizationModes = {
    * Default auth mode to use in the API, only required if more than one auth mode is specified.
    */
   defaultAuthorizationMode?: DefaultAuthorizationMode;
-
   /**
    * Override API Key config if apiKey auth provider is specified in api definition.
    */
