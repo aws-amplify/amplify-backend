@@ -1,5 +1,11 @@
 # @aws-amplify/integration-tests
 
+## 0.3.5
+
+### Patch Changes
+
+- fe2d96f04: run tests in parallel
+
 ## 0.3.4
 
 ### Patch Changes

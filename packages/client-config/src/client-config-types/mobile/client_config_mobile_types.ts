@@ -20,6 +20,14 @@ export type ClientConfigMobileApi = {
   };
 };
 
+export type ClientConfigMobileAppsyncAuth = {
+  ApiUrl: string;
+  Region: string | undefined;
+  AuthMode: string | undefined;
+  ApiKey: string | undefined;
+  ClientDatabasePrefix: string | undefined;
+};
+
 export type ClientConfigMobileAuth = {
   plugins: {
     awsCognitoAuthPlugin: {
@@ -55,13 +63,8 @@ export type ClientConfigMobileAuth = {
         };
       };
       AppSync?: {
-        Default: {
-          ApiUrl: string;
-          Region: string | undefined;
-          AuthMode: string | undefined;
-          ApiKey: string | undefined;
-        };
-      };
+        Default: ClientConfigMobileAppsyncAuth;
+      } & Record<string, ClientConfigMobileAppsyncAuth>;
     };
   };
 };

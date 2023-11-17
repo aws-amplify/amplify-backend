@@ -1,5 +1,11 @@
 # @aws-amplify/client-config
 
+## 0.4.2
+
+### Patch Changes
+
+- c47e03e20: add missing graphql fields to mobile config to support dart libs
+
 ## 0.4.1
 
 ### Patch Changes
