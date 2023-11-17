@@ -1,7 +1,7 @@
 import { UsageDataEmitter } from './usage_data_emitter_factory';
 
 /**
- *
+ * class implementing UsageDataEmitter that does not emit any data.
  */
 export class NoOpUsageDataEmitter implements UsageDataEmitter {
   /**
