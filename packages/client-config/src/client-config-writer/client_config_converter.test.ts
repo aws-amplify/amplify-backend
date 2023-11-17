@@ -134,6 +134,8 @@ void describe('client config converter', () => {
       aws_appsync_graphqlEndpoint: 'https://test_api_endpoint.amazon.com',
       aws_appsync_apiKey: 'test_api_key',
       aws_appsync_authenticationType: 'API_KEY',
+      aws_appsync_additionalAuthenticationTypes:
+        'AMAZON_COGNITO_USER_POOLS,AWS_IAM',
     };
     const expectedMobileConfig: ClientConfigMobile = {
       UserAgent: expectedUserAgent,
@@ -178,6 +180,21 @@ void describe('client config converter', () => {
                 Region: 'test_app_sync_region',
                 AuthMode: 'API_KEY',
                 ApiKey: 'test_api_key',
+                ClientDatabasePrefix: 'data_API_KEY',
+              },
+              data_AWS_IAM: {
+                ApiUrl: 'https://test_api_endpoint.amazon.com',
+                Region: 'test_app_sync_region',
+                AuthMode: 'API_KEY',
+                ApiKey: 'test_api_key',
+                ClientDatabasePrefix: 'data_AWS_IAM',
+              },
+              data_AMAZON_COGNITO_USER_POOLS: {
+                ApiUrl: 'https://test_api_endpoint.amazon.com',
+                Region: 'test_app_sync_region',
+                AuthMode: 'API_KEY',
+                ApiKey: 'test_api_key',
+                ClientDatabasePrefix: 'data_AMAZON_COGNITO_USER_POOLS',
               },
             },
           },

@@ -91,14 +91,34 @@ export class ClientConfigConverter {
       mobileConfig.api = apiConfig;
 
       if (mobileConfig.auth) {
+        let defaultClientDatabasePrefix = undefined;
+        if (clientConfig.aws_appsync_authenticationType) {
+          defaultClientDatabasePrefix = `data_${clientConfig.aws_appsync_authenticationType}`;
+        }
         mobileConfig.auth.plugins.awsCognitoAuthPlugin.AppSync = {
           Default: {
             ApiUrl: clientConfig.aws_appsync_graphqlEndpoint,
             Region: clientConfig.aws_appsync_region,
             AuthMode: clientConfig.aws_appsync_authenticationType,
             ApiKey: clientConfig.aws_appsync_apiKey,
+            ClientDatabasePrefix: defaultClientDatabasePrefix,
           },
         };
+        if (clientConfig.aws_appsync_additionalAuthenticationTypes) {
+          for (const additionalAuthenticationType of clientConfig.aws_appsync_additionalAuthenticationTypes.split(
+            ','
+          )) {
+            mobileConfig.auth.plugins.awsCognitoAuthPlugin.AppSync[
+              `data_${additionalAuthenticationType}`
+            ] = {
+              ApiUrl: clientConfig.aws_appsync_graphqlEndpoint,
+              Region: clientConfig.aws_appsync_region,
+              AuthMode: clientConfig.aws_appsync_authenticationType,
+              ApiKey: clientConfig.aws_appsync_apiKey,
+              ClientDatabasePrefix: `data_${additionalAuthenticationType}`,
+            };
+          }
+        }
       }
     }
     return mobileConfig;
