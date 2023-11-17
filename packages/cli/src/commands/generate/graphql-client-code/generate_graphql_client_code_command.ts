@@ -322,12 +322,6 @@ export class GenerateGraphqlClientCodeCommand
         hidden: true,
       })
       .showHidden('all')
-      .check((argv) => {
-        if (!argv.stack && !argv.branch) {
-          throw new Error('Either --stack or --branch must be provided');
-        }
-        return true;
-      })
       .fail((msg, err) => {
         handleCommandFailure(msg, err, yargs);
         yargs.exit(1, err);
