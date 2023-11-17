@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/backend-cli",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Command line interface for various Amplify tools",
   "bin": {
     "amplify": "lib/amplify.js"
@@ -33,12 +33,12 @@
     "@aws-amplify/backend-output-schemas": "^0.4.0",
     "@aws-amplify/backend-secret": "^0.3.0",
     "@aws-amplify/cli-core": "^0.2.0",
-    "@aws-amplify/client-config": "^0.4.1",
+    "@aws-amplify/client-config": "^0.4.2",
     "@aws-amplify/deployed-backend-client": "^0.3.2",
-    "@aws-amplify/form-generator": "^0.4.0",
+    "@aws-amplify/form-generator": "^0.5.0",
     "@aws-amplify/model-generator": "^0.2.2",
     "@aws-amplify/platform-core": "^0.2.2",
-    "@aws-amplify/sandbox": "^0.3.3",
+    "@aws-amplify/sandbox": "^0.3.4",
     "@aws-sdk/credential-provider-ini": "^3.360.0",
     "@aws-sdk/credential-providers": "^3.360.0",
     "@aws-sdk/region-config-resolver": "^3.433.0",
