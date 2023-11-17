@@ -3,6 +3,7 @@ export {
   ApiKeyAuthorizationModeProps,
   LambdaAuthorizationModeProps,
   OIDCAuthorizationModeProps,
+  DefaultAuthorizationMode,
   AuthorizationModes,
   DataSchema,
   DataProps,

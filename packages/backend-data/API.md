@@ -35,6 +35,11 @@ export type DataProps = {
 // @public
 export type DataSchema = string | DerivedModelSchema;
 
+// Warning: (ae-forgotten-export) The symbol "AuthorizationModeMapping" needs to be exported by the entry point index.d.ts
+//
+// @public
+export type DefaultAuthorizationMode = keyof typeof AuthorizationModeMapping;
+
 // @public
 export const defineData: (props: DataProps) => ConstructFactory<AmplifyData>;
 
@@ -52,10 +57,6 @@ export type OIDCAuthorizationModeProps = {
     tokenExpiryFromAuthInSeconds: number;
     tokenExpireFromIssueInSeconds: number;
 };
-
-// Warnings were encountered during analysis:
-//
-// src/types.ts:91:3 - (ae-forgotten-export) The symbol "DefaultAuthorizationMode" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 
