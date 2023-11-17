@@ -1,5 +1,11 @@
 # @aws-amplify/integration-tests
 
+## 0.3.4
+
+### Patch Changes
+
+- 48c25802d: Auth role policy action is now AssumeRoleWithWebIdentity.
+
 ## 0.3.3
 
 ### Patch Changes

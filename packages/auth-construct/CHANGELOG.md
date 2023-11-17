@@ -1,5 +1,13 @@
 # @aws-amplify/auth-construct-alpha
 
+## 0.4.1
+
+### Patch Changes
+
+- 48c25802d: Auth role policy action is now AssumeRoleWithWebIdentity.
+- Updated dependencies [cb855dfa5]
+  - @aws-amplify/backend-output-storage@0.2.4
+
 ## 0.4.0
 
 ### Minor Changes
