@@ -7,7 +7,7 @@ import { ArgumentsKebabCase } from '../../kebab_case.js';
 import { ProfileController } from './profile_controller.js';
 
 const configureAccountUrl =
-  'https://docs.amplify.aws/gen2/start/configure-account';
+  'https://docs.amplify.aws/gen2/start/account-setup/';
 
 const profileSetupInstruction = `Follow the instructions at ${configureAccountUrl}${EOL}to configure Amplify IAM user and credentials.${EOL}`;
 
