@@ -1,5 +1,11 @@
 # @aws-amplify/platform-core
 
+## 0.2.2
+
+### Patch Changes
+
+- cb855dfa5: chore: refactor packageJsonReader and generate installationIds from hostname
+
 ## 0.2.1
 
 ### Patch Changes

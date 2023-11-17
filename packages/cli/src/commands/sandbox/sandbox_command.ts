@@ -118,6 +118,7 @@ export class SandboxCommand
       yargs
         // Cast to erase options types used in internal sub command implementation. Otherwise, compiler fails here.
         .command(this.sandboxSubCommands)
+        .version(false)
         .option('dir-to-watch', {
           describe:
             'Directory to watch for file changes. All subdirectories and files will be included. defaults to the current directory.',

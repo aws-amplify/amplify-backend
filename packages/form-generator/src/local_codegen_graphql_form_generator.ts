@@ -115,6 +115,10 @@ export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
         subscriptionsFilePath: this.renderGraphqlPath('subscriptions'),
         typesFilePath: this.renderGraphqlPath('types'),
       },
+      dependencies: {
+        // Tell the renderer to generate amplify js v6 compatible code
+        'aws-amplify': '^6.0.0',
+      },
     };
   }
   private createUiBuilderForm = (
