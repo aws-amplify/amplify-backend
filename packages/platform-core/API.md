@@ -31,11 +31,6 @@ export enum CDKContextKey {
 }
 
 // @public
-export class CwdPackageJsonReader {
-    read(): PackageJson;
-}
-
-// @public
 export class FilePathExtractor {
     constructor(stackTraceLine: string);
     // (undocumented)
@@ -49,6 +44,7 @@ export type PackageJson = z.infer<typeof packageJsonSchema>;
 export class PackageJsonReader {
     // (undocumented)
     read: (absolutePackageJsonPath: string) => PackageJson;
+    readFromCwd: () => PackageJson;
 }
 
 // @public

@@ -543,7 +543,7 @@
     "AssumeRolePolicyDocument": {
      "Statement": [
       {
-       "Action": "sts:AssumeRole",
+       "Action": "sts:AssumeRoleWithWebIdentity",
        "Condition": {
         "StringEquals": {
          "cognito-identity.amazonaws.com:aud": {
@@ -570,7 +570,7 @@
     "AssumeRolePolicyDocument": {
      "Statement": [
       {
-       "Action": "sts:AssumeRole",
+       "Action": "sts:AssumeRoleWithWebIdentity",
        "Condition": {
         "StringEquals": {
          "cognito-identity.amazonaws.com:aud": {
