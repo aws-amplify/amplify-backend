@@ -56,7 +56,8 @@ export class PasswordlessConfig {
    */
   get sesConfig(): SesServiceConfig {
     if (this.parsedSesConfig === undefined) {
-      const { fromAddress, emailSubject: envSubject } = this.env;
+      const { otpFromAddress: fromAddress, emailSubject: envSubject } =
+        this.env;
       const emailSubject = envSubject ? envSubject : this.defaultSubject;
       this.parsedSesConfig = {
         fromAddress,

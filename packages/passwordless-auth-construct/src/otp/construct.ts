@@ -1,6 +1,6 @@
 import { Construct } from 'constructs';
 import { CustomAuthTriggers, OtpAuthOptions } from '../types.js';
-import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
+import { Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 
 /**
  * Amplify OTP Construct
@@ -32,8 +32,9 @@ export class AmplifyOtpAuth extends Construct {
       }),
       // SES IAM policy
       new PolicyStatement({
+        effect: Effect.ALLOW,
         actions: ['ses:SendEmail'],
-        notResources: ['arn:aws:ses:*:*:*'],
+        resources: ['*'],
       }),
     ];
 
