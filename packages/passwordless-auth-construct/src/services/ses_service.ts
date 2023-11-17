@@ -17,6 +17,12 @@ export class SesService implements DeliveryService {
   constructor(private sesClient: SESClient, private config: SesServiceConfig) {}
 
   public send = async (message: string, destination: string): Promise<void> => {
+    if (!this.config.fromAddress) {
+      throw new Error(
+        'The `fromAddress` is required for OTP via email! Please set `passwordlessOptions.otp.fromAddress` when defining the Passwordless Construct.'
+      );
+    }
+
     // TODO: Add support for custom email input
     const emailCommand = new SendEmailCommand({
       Destination: { ToAddresses: [destination] },

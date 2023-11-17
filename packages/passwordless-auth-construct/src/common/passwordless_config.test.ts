@@ -40,7 +40,7 @@ void describe('PasswordlessConfig', () => {
     });
 
     void it('should extract nothing when env is empty', async () => {
-      const env = { originationNumber: '', senderId: '' };
+      const env = { originationNumber: undefined, senderId: undefined };
 
       const { snsConfig } = new PasswordlessConfig(env);
 
@@ -57,9 +57,9 @@ void describe('PasswordlessConfig', () => {
     });
 
     void it('should extract nothing when env is empty', async () => {
-      const env = { fromAddress: '', emailSubject: '' };
+      const env = { fromAddress: undefined, emailSubject: undefined };
       const expected = {
-        fromAddress: '',
+        fromAddress: undefined,
         emailSubject: 'Your verification code',
       };
 

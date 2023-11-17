@@ -4,6 +4,9 @@ import { OtpConfig, SesServiceConfig, SnsServiceConfig } from '../types.js';
  * Passwordless Configuration.
  */
 export class PasswordlessConfig {
+  private minOtpLength = 6;
+  private defaultSubject = 'Your verification code';
+
   /**
    * Creates a new instance of the PasswordlessConfig class.
    * @param env The environment variables.
@@ -22,10 +25,9 @@ export class PasswordlessConfig {
   get otpConfig(): OtpConfig {
     if (this.parsedOtpConfig === undefined) {
       const { otpLength } = this.env;
-      const MIN_OTP_LENGTH = 6;
       const parsed = parseInt(otpLength ?? '0');
       const input = isNaN(parsed) ? 0 : parsed;
-      const length = Math.max(input, MIN_OTP_LENGTH);
+      const length = Math.max(input, this.minOtpLength);
       this.parsedOtpConfig = {
         otpLength: length,
       };
@@ -54,9 +56,8 @@ export class PasswordlessConfig {
    */
   get sesConfig(): SesServiceConfig {
     if (this.parsedSesConfig === undefined) {
-      const DEFAULT_SUBJECT = 'Your verification code';
       const { fromAddress, emailSubject: envSubject } = this.env;
-      const emailSubject = envSubject ? envSubject : DEFAULT_SUBJECT;
+      const emailSubject = envSubject ? envSubject : this.defaultSubject;
       this.parsedSesConfig = {
         fromAddress,
         emailSubject,
