@@ -156,10 +156,16 @@ export class CDKDeployer implements BackendDeployer {
       aggregatedStderr += chunk;
       done();
     };
+
     const childProcess = execa(command, cdkCommandArgs, {
       stdin: 'inherit',
       stdout: 'pipe',
       stderr: 'pipe',
+
+      // Piping the output by default strips off the color. This is a workaround to
+      // preserve the color being piped to parent process.
+      extendEnv: true,
+      env: { FORCE_COLOR: '1' },
     });
     childProcess.stderr?.pipe(aggregatorStderrStream);
     childProcess.stdout?.pipe(process.stdout);

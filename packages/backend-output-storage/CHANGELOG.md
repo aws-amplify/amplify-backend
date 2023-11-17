@@ -1,5 +1,13 @@
 # @aws-amplify/backend-output-storage
 
+## 0.2.4
+
+### Patch Changes
+
+- cb855dfa5: chore: refactor packageJsonReader and generate installationIds from hostname
+- Updated dependencies [cb855dfa5]
+  - @aws-amplify/platform-core@0.2.2
+
 ## 0.2.3
 
 ### Patch Changes
