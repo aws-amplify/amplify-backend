@@ -1,94 +1,173 @@
 import { ClientConfigFormat } from '@aws-amplify/client-config';
-import { UsageDataEmitterFactory } from '@aws-amplify/platform-core';
+import { UsageDataEmitter } from '@aws-amplify/platform-core';
 import assert from 'node:assert';
-import { it, mock } from 'node:test';
+import { afterEach, describe, it, mock } from 'node:test';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 import { SandboxEventHandlerFactory } from './sandbox_event_handler_factory.js';
 import { ClientConfigLifecycleHandler } from '../../client-config/client_config_lifecycle_handler.js';
 import fs from 'fs';
 import fsp from 'fs/promises';
 import path from 'node:path';
+import { Printer } from '@aws-amplify/cli-core';
 
-void it('calls the client config adapter on the successfulDeployment event', async () => {
+void describe(() => {
+  // client config mocks
   const generateClientConfigMock =
     mock.fn<ClientConfigGeneratorAdapter['generateClientConfigToFile']>();
-
   const clientConfigGeneratorAdapterMock = {
     generateClientConfigToFile: generateClientConfigMock,
   } as unknown as ClientConfigGeneratorAdapter;
-
   const clientConfigLifecycleHandler = new ClientConfigLifecycleHandler(
     clientConfigGeneratorAdapterMock,
     'test-out',
     ClientConfigFormat.MJS
   );
 
+  // Usage data emitter mocks
+  const emitSuccessMock = mock.fn();
+  const emitFailureMock = mock.fn();
+  const usageDataEmitterMock = {
+    emitSuccess: emitSuccessMock,
+    emitFailure: emitFailureMock,
+  } as unknown as UsageDataEmitter;
+
+  const printerMock = mock.method(Printer, 'print');
+
+  // Class under test
   const eventFactory = new SandboxEventHandlerFactory(
     async () => ({
       namespace: 'test',
       name: 'name',
       type: 'sandbox',
     }),
-    new UsageDataEmitterFactory().getInstance('test-version')
+    usageDataEmitterMock
   );
 
-  await Promise.all(
-    eventFactory
-      .getSandboxEventHandlers({
-        sandboxName: 'my-app',
-        clientConfigLifecycleHandler,
-      })
-      .successfulDeployment.map((e) => e())
-  );
-
-  assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments, [
-    {
-      type: 'sandbox',
-      namespace: 'test',
-      name: 'name',
-    },
-    'test-out',
-    'mjs',
-  ]);
-});
-
-void it('calls deleteClientConfigFile on client config adapter on the successfulDeletion event', async () => {
-  const clientConfigGeneratorAdapterMock =
-    {} as unknown as ClientConfigGeneratorAdapter;
-
-  const clientConfigLifecycleHandler = new ClientConfigLifecycleHandler(
-    clientConfigGeneratorAdapterMock,
-    'test-out',
-    ClientConfigFormat.MJS
-  );
-
-  mock.method(fs, 'lstatSync', () => {
-    return { isFile: () => false, isDir: () => true };
+  afterEach(() => {
+    emitSuccessMock.mock.resetCalls();
+    emitFailureMock.mock.resetCalls();
+    generateClientConfigMock.mock.resetCalls();
   });
 
-  const fspMock = mock.method(fsp, 'rm', () => Promise.resolve());
+  void it('calls the client config adapter and usage emitter on the successfulDeployment event', async () => {
+    await Promise.all(
+      eventFactory
+        .getSandboxEventHandlers({
+          sandboxName: 'my-app',
+          clientConfigLifecycleHandler,
+        })
+        .successfulDeployment.map((e) =>
+          e({ deploymentTimes: { synthesisTime: 2, totalTime: 10 } })
+        )
+    );
 
-  const eventFactory = new SandboxEventHandlerFactory(
-    async () => ({
-      namespace: 'test',
-      name: 'name',
-      type: 'sandbox',
-    }),
-    new UsageDataEmitterFactory().getInstance('test-version')
-  );
+    assert.deepStrictEqual(generateClientConfigMock.mock.calls[0].arguments, [
+      {
+        type: 'sandbox',
+        namespace: 'test',
+        name: 'name',
+      },
+      'test-out',
+      'mjs',
+    ]);
 
-  await Promise.all(
-    eventFactory
-      .getSandboxEventHandlers({
-        sandboxName: 'my-app',
-        clientConfigLifecycleHandler,
-      })
-      .successfulDeletion.map((e) => e())
-  );
+    assert.strictEqual(emitSuccessMock.mock.callCount(), 1);
+    assert.strictEqual(emitFailureMock.mock.callCount(), 0);
+    assert.deepStrictEqual(emitSuccessMock.mock.calls[0].arguments[0], {
+      synthesisTime: 2,
+      totalTime: 10,
+    });
+    assert.deepStrictEqual(emitSuccessMock.mock.calls[0].arguments[1], {
+      command: 'Sandbox',
+    });
+  });
 
-  assert.strictEqual(fspMock.mock.callCount(), 1);
-  assert.deepStrictEqual(
-    fspMock.mock.calls[0].arguments[0],
-    path.join(process.cwd(), 'test-out', 'amplifyconfiguration.mjs')
-  );
+  void it('calls the usage emitter on the failedDeployment event', async () => {
+    const testError = new Error('test message');
+    await Promise.all(
+      eventFactory
+        .getSandboxEventHandlers({
+          sandboxName: 'my-app',
+          clientConfigLifecycleHandler,
+        })
+        .failedDeployment.map((e) => e(testError))
+    );
+
+    assert.deepStrictEqual(generateClientConfigMock.mock.callCount(), 0);
+    assert.strictEqual(emitSuccessMock.mock.callCount(), 0);
+    assert.strictEqual(emitFailureMock.mock.callCount(), 1);
+    assert.deepStrictEqual(
+      emitFailureMock.mock.calls[0].arguments[0],
+      testError
+    );
+    assert.deepStrictEqual(emitFailureMock.mock.calls[0].arguments[1], {
+      command: 'Sandbox',
+    });
+  });
+
+  void it('does not throw when client config adapter fails on the successfulDeployment event', async () => {
+    generateClientConfigMock.mock.mockImplementationOnce(() => {
+      throw new Error('test error message');
+    });
+
+    await Promise.all(
+      eventFactory
+        .getSandboxEventHandlers({
+          sandboxName: 'my-app',
+          clientConfigLifecycleHandler,
+        })
+        .successfulDeployment.map((e) => e())
+    );
+
+    assert.deepStrictEqual(
+      printerMock.mock.calls[0].arguments[0],
+      'Amplify configuration could not be generated/updated.'
+    );
+
+    assert.deepStrictEqual(
+      printerMock.mock.calls[1].arguments[0],
+      'test error message'
+    );
+
+    assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments, [
+      {
+        type: 'sandbox',
+        namespace: 'test',
+        name: 'name',
+      },
+      'test-out',
+      'mjs',
+    ]);
+
+    // No metrics emitted
+    assert.strictEqual(emitSuccessMock.mock.callCount(), 0);
+    assert.strictEqual(emitFailureMock.mock.callCount(), 0);
+  });
+
+  void it('calls deleteClientConfigFile on client config adapter on the successfulDeletion event', async () => {
+    mock.method(fs, 'lstatSync', () => {
+      return { isFile: () => false, isDir: () => true };
+    });
+
+    const fspMock = mock.method(fsp, 'rm', () => Promise.resolve());
+
+    await Promise.all(
+      eventFactory
+        .getSandboxEventHandlers({
+          sandboxName: 'my-app',
+          clientConfigLifecycleHandler,
+        })
+        .successfulDeletion.map((e) => e())
+    );
+
+    assert.strictEqual(fspMock.mock.callCount(), 1);
+    assert.deepStrictEqual(
+      fspMock.mock.calls[0].arguments[0],
+      path.join(process.cwd(), 'test-out', 'amplifyconfiguration.mjs')
+    );
+
+    // No metrics emitted as of now
+    assert.strictEqual(emitSuccessMock.mock.callCount(), 0);
+    assert.strictEqual(emitFailureMock.mock.callCount(), 0);
+  });
 });

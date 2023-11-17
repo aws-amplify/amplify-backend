@@ -2,6 +2,7 @@ import { SandboxEventHandlerCreator } from './sandbox_command.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { UsageDataEmitter } from '@aws-amplify/platform-core';
 import { DeployResult } from '@aws-amplify/backend-deployer';
+import { COLOR, Printer } from '@aws-amplify/cli-core';
 
 /**
  * Coordinates creation of sandbox event handlers
@@ -27,16 +28,29 @@ export class SandboxEventHandlerFactory {
           const backendIdentifier = await this.getBackendIdentifier(
             sandboxName
           );
-          await clientConfigLifecycleHandler.generateClientConfigFile(
-            backendIdentifier
-          );
-          if (args && args[0]) {
-            const deployResult = args[0] as DeployResult;
-            if (deployResult && deployResult.deploymentTimes) {
-              await this.usageDataEmitter.emitSuccess(
-                deployResult.deploymentTimes,
-                { command: 'Sandbox' }
-              );
+          try {
+            await clientConfigLifecycleHandler.generateClientConfigFile(
+              backendIdentifier
+            );
+            if (args && args[0]) {
+              const deployResult = args[0] as DeployResult;
+              if (deployResult && deployResult.deploymentTimes) {
+                await this.usageDataEmitter.emitSuccess(
+                  deployResult.deploymentTimes,
+                  { command: 'Sandbox' }
+                );
+              }
+            }
+          } catch (error) {
+            // Don't crash sandbox if config cannot be generated, but print the error message
+            Printer.print(
+              'Amplify configuration could not be generated/updated.',
+              COLOR.RED
+            );
+            if (error instanceof Error) {
+              Printer.print(error.message, COLOR.RED);
+            } else {
+              Printer.print(JSON.stringify(error, null, 2), COLOR.RED);
             }
           }
         },
