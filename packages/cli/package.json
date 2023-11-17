@@ -9,6 +9,9 @@
   "publishConfig": {
     "access": "public"
   },
+  "imports": {
+    "#package.json": "./package.json"
+  },
   "scripts": {
     "update:api": "api-extractor run --local",
     "install:local": "npm link"
