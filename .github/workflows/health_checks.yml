@@ -82,7 +82,7 @@ jobs:
             amplify-backend_windows-latest_8-core,
           ]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 20
+    timeout-minutes: 25
     needs:
       - do_include_e2e
       - build
