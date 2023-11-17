@@ -17,7 +17,6 @@ import {
   DeleteStackCommand,
 } from '@aws-sdk/client-cloudformation';
 import fsp from 'fs/promises';
-import path from 'path';
 import assert from 'node:assert';
 
 /**
