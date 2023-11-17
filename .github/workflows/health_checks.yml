@@ -14,6 +14,9 @@ jobs:
   install:
     strategy:
       matrix:
+        # Windows install must happen on the same worker size as subsequent jobs.
+        # Larger workers use different drive (C: instead of D:) to check out project and NPM installation
+        # creates file system links that include drive letter.
         os: [ubuntu-latest, macos-latest, amplify-backend_windows-latest_8-core]
     runs-on: ${{ matrix.os }}
     steps:
