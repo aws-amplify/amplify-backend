@@ -127,7 +127,7 @@ void describe(
             await testProject.assertPostDeployment();
           });
 
-          void it(`[${sandboxBackendIdentifier.namespace}] generates client config with provided directory and format`, async () => {
+          void it(`[${testProjectCreator.name}] generates client config with provided directory and format`, async () => {
             const configOutDir = 'temp';
 
             // create directory for client config
