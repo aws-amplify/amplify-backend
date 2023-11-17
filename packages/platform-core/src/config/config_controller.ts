@@ -48,12 +48,12 @@ export class ConfigController {
   /**
    * Gets values from cached config by path.
    */
-  get(path: string) {
+  get<T>(path: string) {
     return path
       .split('.')
       .reduce((acc: Record<string, unknown>, current: string) => {
         return acc?.[current] as Record<string, unknown>;
-      }, this.store);
+      }, this.store) as T;
   }
 
   /**

@@ -1,12 +1,12 @@
+import { Printer } from '@aws-amplify/cli-core';
+import {
+  ConfigController,
+  TELEMETRY_ANONYMOUS_ID,
+  TELEMETRY_ENABLED_KEY,
+} from '@aws-amplify/platform-core';
 import { Argv, CommandModule } from 'yargs';
 import { randomBytes } from 'crypto';
 import { handleCommandFailure } from '../../../command_failure_handler.js';
-import { ConfigController } from './config_controller.js';
-import { Printer } from '@aws-amplify/cli-core';
-
-export const TELEMETRY_ENABLED_KEY = 'telemetry.enabled';
-export const TELEMETRY_ANONYMOUS_ID = 'telemetry.anonymousId';
-export const TELEMETRY_CONFIG_KEY = 'telemetry';
 /**
  * Command to configure AWS Amplify profile.
  */
@@ -45,7 +45,7 @@ export class ConfigureTelemetryCommand implements CommandModule<object> {
   builder = (yargs: Argv) => {
     return yargs
       .command('enable', 'Enable anonymous data collection', {}, () => {
-        this.configController.set(TELEMETRY_ENABLED_KEY, 'true');
+        this.configController.set(TELEMETRY_ENABLED_KEY, true);
         this.configController.set(
           TELEMETRY_ANONYMOUS_ID,
           this.getAnonymousId()
@@ -54,7 +54,7 @@ export class ConfigureTelemetryCommand implements CommandModule<object> {
         Printer.print('You have enabled telemetry data collection');
       })
       .command('disable', 'Disable anonymous data collection', {}, () => {
-        this.configController.set(TELEMETRY_ENABLED_KEY, 'false');
+        this.configController.set(TELEMETRY_ENABLED_KEY, false);
 
         Printer.print('You have disabled telemetry data collection');
       })

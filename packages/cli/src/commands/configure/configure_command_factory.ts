@@ -1,9 +1,9 @@
+import { ConfigController } from '@aws-amplify/platform-core';
 import { CommandModule } from 'yargs';
 import { ConfigureProfileCommand } from './configure_profile_command.js';
 import { ProfileController } from './profile_controller.js';
 import { ConfigureCommand } from './configure_command.js';
 import { ConfigureTelemetryCommand } from './telemetry/configure_telemetry_command.js';
-import { ConfigController } from './telemetry/config_controller.js';
 /**
  * Creates a configure command.
  */

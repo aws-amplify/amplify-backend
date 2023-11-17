@@ -3,12 +3,12 @@ import { beforeEach, describe, it, mock } from 'node:test';
 import yargs, { CommandModule } from 'yargs';
 import assert from 'node:assert';
 import { TestCommandRunner } from '../../../test-utils/command_runner.js';
+import { ConfigureTelemetryCommand } from './configure_telemetry_command.js';
 import {
-  ConfigureTelemetryCommand,
+  ConfigController,
   TELEMETRY_ANONYMOUS_ID,
   TELEMETRY_ENABLED_KEY,
-} from './configure_telemetry_command.js';
-import { ConfigController } from './config_controller.js';
+} from '@aws-amplify/platform-core';
 
 void describe('configure command', () => {
   const configController = new ConfigController();
