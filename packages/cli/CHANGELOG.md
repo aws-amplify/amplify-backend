@@ -1,5 +1,24 @@
 # @aws-amplify/backend-cli
 
+## 0.8.0
+
+### Minor Changes
+
+- dce8a0eb6: Defaults to the sandbox identifier when no branch or stack is passed in the CLI
+
+### Patch Changes
+
+- 4fee488eb: chore: avoid crashing sandbox on failing to retrieve metadata
+- cb855dfa5: chore: refactor packageJsonReader and generate installationIds from hostname
+- d81af85df: `amplify --version` returns correct version.
+  Disable subcommands `--version`.
+- Updated dependencies [4fee488eb]
+- Updated dependencies [730afd8fe]
+- Updated dependencies [cb855dfa5]
+  - @aws-amplify/deployed-backend-client@0.3.2
+  - @aws-amplify/sandbox@0.3.3
+  - @aws-amplify/platform-core@0.2.2
+
 ## 0.7.1
 
 ### Patch Changes

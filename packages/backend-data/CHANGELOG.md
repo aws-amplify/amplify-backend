@@ -1,5 +1,13 @@
 # @aws-amplify/backend-data
 
+## 0.7.1
+
+### Patch Changes
+
+- 0af242db4: Update import to data construct to allow for specific attribution tags
+- Updated dependencies [cb855dfa5]
+  - @aws-amplify/backend-output-storage@0.2.4
+
 ## 0.7.0
 
 ### Minor Changes

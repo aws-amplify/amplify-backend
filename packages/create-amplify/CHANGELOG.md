@@ -1,5 +1,14 @@
 # create-amplify
 
+## 0.3.4
+
+### Patch Changes
+
+- 002954370: Create default tsconfig.json in amplify directory on npx create amplify and run tsc on amplify directory during deployment
+- 48c25802d: Auth role policy action is now AssumeRoleWithWebIdentity.
+- Updated dependencies [cb855dfa5]
+  - @aws-amplify/platform-core@0.2.2
+
 ## 0.3.3
 
 ### Patch Changes
