@@ -77,7 +77,7 @@ jobs:
       matrix:
         os:
           [
-            amplify-backend_ubuntu-latest_8-core,
+            temporary-sizing-testing_ubuntu-latest_4-core,
             macos-latest-xl,
             amplify-backend_windows-latest_8-core,
           ]
