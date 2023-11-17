@@ -4,9 +4,6 @@ import { handleCommandFailure } from '../../../command_failure_handler.js';
 import { ConfigController } from './config_controller.js';
 import { Printer } from '@aws-amplify/cli-core';
 
-const configureAccountUrl =
-  'https://docs.amplify.aws/gen2/start/configure-account';
-
 export const TELEMETRY_ENABLED_KEY = 'telemetry.enabled';
 export const TELEMETRY_ANONYMOUS_ID = 'telemetry.anonymousId';
 export const TELEMETRY_CONFIG_KEY = 'telemetry';

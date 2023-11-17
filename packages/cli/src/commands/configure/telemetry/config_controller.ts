@@ -51,7 +51,7 @@ export class ConfigController {
   get(path: string) {
     return path
       .split('.')
-      .reduce<T>((acc: Record<string, any>, current: string) => {
+      .reduce((acc: Record<string, any>, current: string) => {
         return acc?.[current];
       }, this.store);
   }
