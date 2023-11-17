@@ -10,7 +10,7 @@ import fsp from 'fs/promises';
 import path from 'node:path';
 import { Printer } from '@aws-amplify/cli-core';
 
-void describe(() => {
+void describe('sandbox_event_handler_factory', () => {
   // client config mocks
   const generateClientConfigMock =
     mock.fn<ClientConfigGeneratorAdapter['generateClientConfigToFile']>();
