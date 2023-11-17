@@ -121,7 +121,7 @@ void describe('sandbox_event_handler_factory', () => {
 
     assert.deepStrictEqual(
       printerMock.mock.calls[0].arguments[0],
-      'Amplify configuration could not be generated/updated.'
+      'Amplify configuration could not be generated.'
     );
 
     assert.deepStrictEqual(
