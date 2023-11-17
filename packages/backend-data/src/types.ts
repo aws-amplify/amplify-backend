@@ -2,14 +2,44 @@ import { DerivedModelSchema } from '@aws-amplify/data-schema-types';
 import { AmplifyFunction, ConstructFactory } from '@aws-amplify/plugin-types';
 
 /**
- * Determine which auth mode is specified as 'default' in the Appsync API, only required if more than one authorization mode is specified.
+ * The mapping from the camel case Authorization modes to the CDK Authorization modes
  */
-export type DefaultAuthorizationMode =
-  | 'AWS_IAM'
-  | 'AMAZON_COGNITO_USER_POOLS'
-  | 'OPENID_CONNECT'
-  | 'API_KEY'
-  | 'AWS_LAMBDA';
+export const AuthorizationModeMapping = {
+  iam: 'AWS_IAM',
+  userPool: 'AMAZON_COGNITO_USER_POOLS',
+  oidc: 'OPENID_CONNECT',
+  apiKey: 'API_KEY',
+  lambda: 'AWS_LAMBDA',
+} as const;
+
+/**
+ * Authorization modes used in by client side Amplify represented in camelCase.
+ */
+export type DefaultAuthorizationMode = keyof typeof AuthorizationModeMapping;
+
+/**
+ * Authorization modes used by CDK represented in all capitalized snake case.
+ */
+export type CdkDefaultAuthorizationMode =
+  (typeof AuthorizationModeMapping)[DefaultAuthorizationMode];
+
+/**
+ * Default auth mode to use in the API, only required if more than one auth mode is specified.
+ */
+export type DefineDataAuthConfig =
+  | {
+      /**
+       * Default auth mode to use in the API, only required if more than one auth mode is specified.
+       */
+      defaultAuthorizationMode?: DefaultAuthorizationMode;
+    }
+  | {
+      /**
+       * Default auth mode to use in the API, only required if more than one auth mode is specified.
+       * @deprecated Please migrate to the camelCase equivalent ("iam" | "userPool" | "oidc" | "apiKey" | "lambda")
+       */
+      defaultAuthorizationMode?: CdkDefaultAuthorizationMode;
+    };
 
 /**
  * Props for Api Keys on the Graphql Api.
@@ -80,11 +110,6 @@ export type OIDCAuthorizationModeProps = {
  */
 export type AuthorizationModes = {
   /**
-   * Default auth mode to use in the API, only required if more than one auth mode is specified.
-   */
-  defaultAuthorizationMode?: DefaultAuthorizationMode;
-
-  /**
    * Override API Key config if apiKey auth provider is specified in api definition.
    */
   apiKeyAuthorizationMode?: ApiKeyAuthorizationModeProps;
@@ -103,7 +128,7 @@ export type AuthorizationModes = {
    * IAM Role names which are provided full r/w access to the API for models with IAM authorization.
    */
   allowListedRoleNames?: string[];
-};
+} & DefineDataAuthConfig;
 
 /**
  * Schema type definition, can be either a raw Graphql string, or a typed model schema.

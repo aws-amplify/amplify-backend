@@ -11,7 +11,9 @@ import {
 } from '@aws-amplify/data-construct';
 import {
   ApiKeyAuthorizationModeProps,
+  AuthorizationModeMapping,
   AuthorizationModes,
+  CdkDefaultAuthorizationMode,
   DefaultAuthorizationMode,
   LambdaAuthorizationModeProps,
   OIDCAuthorizationModeProps,
@@ -98,7 +100,7 @@ const computeDefaultAuthorizationMode = (
   providedAuthConfig: ProvidedAuthConfig | undefined,
   authModes: AuthorizationModes | undefined
 ): DefaultAuthorizationMode | undefined => {
-  if (providedAuthConfig && !authModes) return 'AMAZON_COGNITO_USER_POOLS';
+  if (providedAuthConfig && !authModes) return 'userPool';
   return;
 };
 
@@ -150,6 +152,22 @@ const computeApiKeyAuthFromResource = (
   };
 };
 
+const isDefaultAuthorizationMode = (
+  mode: CdkDefaultAuthorizationMode | DefaultAuthorizationMode
+): mode is DefaultAuthorizationMode => {
+  return mode in AuthorizationModeMapping;
+};
+
+const convertAuthorizationModeToCDK = (
+  mode?: CdkDefaultAuthorizationMode | DefaultAuthorizationMode
+): CdkDefaultAuthorizationMode | undefined => {
+  if (!mode) return;
+  if (isDefaultAuthorizationMode(mode)) {
+    return AuthorizationModeMapping[mode];
+  }
+  return mode;
+};
+
 /**
  * Convert to CDK AuthorizationModes.
  */
@@ -161,6 +179,9 @@ export const convertAuthorizationModesToCDK = (
   const defaultAuthorizationMode =
     authModes?.defaultAuthorizationMode ??
     computeDefaultAuthorizationMode(authResources, authModes);
+  const cdkAuthorizationMode = convertAuthorizationModeToCDK(
+    defaultAuthorizationMode
+  );
   const apiKeyConfig = authModes?.apiKeyAuthorizationMode
     ? convertApiKeyAuthConfigToCDK(authModes.apiKeyAuthorizationMode)
     : computeApiKeyAuthFromResource(authResources, authModes);
@@ -177,7 +198,9 @@ export const convertAuthorizationModesToCDK = (
     : undefined;
 
   return {
-    ...(defaultAuthorizationMode ? { defaultAuthorizationMode } : undefined),
+    ...(cdkAuthorizationMode
+      ? { defaultAuthorizationMode: cdkAuthorizationMode }
+      : undefined),
     ...(apiKeyConfig ? { apiKeyConfig } : undefined),
     ...(userPoolConfig ? { userPoolConfig } : undefined),
     ...(iamConfig ? { iamConfig } : undefined),
