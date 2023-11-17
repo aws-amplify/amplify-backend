@@ -77,6 +77,28 @@ void describe(
               branchBackendIdentifier.name
             )
           );
+
+          // test generating all client formats
+          for (const format of Object.values(ClientConfigFormat)) {
+            await amplifyCli(
+              [
+                'generate',
+                'config',
+                '--branch',
+                testBranch.branchName,
+                '--app-id',
+                testBranch.appId,
+                '--format',
+                format,
+              ],
+              testProject.projectDirPath
+            ).run();
+
+            await testProject.assertPostDeployment(
+              testProject.projectDirPath,
+              format
+            );
+          }
         });
       });
     });
@@ -125,37 +147,6 @@ void describe(
               .run();
 
             await testProject.assertPostDeployment();
-          });
-
-          void it(`[${testProjectCreator.name}] generates client config with provided directory and format`, async () => {
-            const configOutDir = 'temp';
-
-            // create directory for client config
-            const tempPath = path.join(
-              testProject.projectDirPath,
-              configOutDir
-            );
-            await fs.mkdir(tempPath);
-
-            // test generating all formats in temp directory
-            for (const format of Object.values(ClientConfigFormat)) {
-              await amplifyCli(
-                [
-                  'sandbox',
-                  '--config-out-dir',
-                  configOutDir,
-                  '--config-format',
-                  format,
-                ],
-                testProject.projectDirPath
-              )
-                .do(waitForSandboxDeploymentToPrintTotalTime())
-                .do(interruptSandbox())
-                .do(rejectCleanupSandbox())
-                .run();
-
-              await testProject.assertPostDeployment(tempPath, format);
-            }
           });
         });
       });
