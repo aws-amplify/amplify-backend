@@ -10,7 +10,7 @@ runs:
         path: |
           node_modules
           packages/**/node_modules
-        key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}-v2
+        key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}
     # only install if cache miss
     - if: steps.npm-cache.outputs.cache-hit != 'true'
       shell: bash
