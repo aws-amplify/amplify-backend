@@ -130,7 +130,7 @@ void describe(
 
     void describe('fails on compilation error', async () => {
       let testProject: TestProjectBase;
-      beforeEach(async () => {
+      before(async () => {
         // any project is fine
         testProject = await testProjectCreators[0].createProject(rootTestDir);
         await fs.cp(
@@ -148,36 +148,11 @@ void describe(
         );
       });
 
-      void it('in sandbox deploy', async () => {
-        await amplifyCli(
-          ['sandbox', '--dirToWatch', 'amplify'],
-          testProject.projectDirPath
-        )
-          .do(new PredicatedActionBuilder().waitForLineIncludes('error TS'))
-          .do(
-            new PredicatedActionBuilder().waitForLineIncludes(
-              'Unexpected keyword or identifier'
-            )
-          )
-          .do(interruptSandbox())
-          .do(rejectCleanupSandbox())
-          .run();
-      });
-
-      void it('in pipeline deploy', async () => {
-        await assert.rejects(() =>
-          amplifyCli(
-            [
-              'pipeline-deploy',
-              '--branch',
-              'test-branch',
-              '--app-id',
-              `test-${shortUuid()}`,
-            ],
-            testProject.projectDirPath,
-            {
-              env: { CI: 'true' },
-            }
+      void describe('in sequence', { concurrency: false }, () => {
+        void it('in sandbox deploy', async () => {
+          await amplifyCli(
+            ['sandbox', '--dirToWatch', 'amplify'],
+            testProject.projectDirPath
           )
             .do(new PredicatedActionBuilder().waitForLineIncludes('error TS'))
             .do(
@@ -185,8 +160,35 @@ void describe(
                 'Unexpected keyword or identifier'
               )
             )
-            .run()
-        );
+            .do(interruptSandbox())
+            .do(rejectCleanupSandbox())
+            .run();
+        });
+
+        void it('in pipeline deploy', async () => {
+          await assert.rejects(() =>
+            amplifyCli(
+              [
+                'pipeline-deploy',
+                '--branch',
+                'test-branch',
+                '--app-id',
+                `test-${shortUuid()}`,
+              ],
+              testProject.projectDirPath,
+              {
+                env: { CI: 'true' },
+              }
+            )
+              .do(new PredicatedActionBuilder().waitForLineIncludes('error TS'))
+              .do(
+                new PredicatedActionBuilder().waitForLineIncludes(
+                  'Unexpected keyword or identifier'
+                )
+              )
+              .run()
+          );
+        });
       });
     });
   }
