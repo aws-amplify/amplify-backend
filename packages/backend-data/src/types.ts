@@ -23,9 +23,6 @@ export type DefaultAuthorizationMode = keyof typeof AuthorizationModeMapping;
 export type CdkDefaultAuthorizationMode =
   (typeof AuthorizationModeMapping)[DefaultAuthorizationMode];
 
-/**
- * Default auth mode to use in the API, only required if more than one auth mode is specified.
- */
 type DefineDataAuthConfig =
   | {
       /**
