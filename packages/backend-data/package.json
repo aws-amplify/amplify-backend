@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/backend-data",
-  "version": "0.7.1",
+  "version": "0.8.0",
   "type": "module",
   "publishConfig": {
     "access": "public"
