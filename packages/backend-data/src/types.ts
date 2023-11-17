@@ -2,20 +2,14 @@ import { DerivedModelSchema } from '@aws-amplify/data-schema-types';
 import { AmplifyFunction, ConstructFactory } from '@aws-amplify/plugin-types';
 
 /**
- * The mapping from the camel case Authorization modes to the CDK Authorization modes
- */
-export const AuthorizationModeMapping = {
-  iam: 'AWS_IAM',
-  userPool: 'AMAZON_COGNITO_USER_POOLS',
-  oidc: 'OPENID_CONNECT',
-  apiKey: 'API_KEY',
-  lambda: 'AWS_LAMBDA',
-} as const;
-
-/**
  * Authorization modes used in by client side Amplify represented in camelCase.
  */
-export type DefaultAuthorizationMode = keyof typeof AuthorizationModeMapping;
+export type DefaultAuthorizationMode =
+  | 'iam'
+  | 'userPool'
+  | 'oidc'
+  | 'apiKey'
+  | 'lambda';
 
 /**
  * Props for Api Keys on the Graphql Api.

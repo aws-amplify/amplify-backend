@@ -11,7 +11,6 @@ import {
 } from '@aws-amplify/data-construct';
 import {
   ApiKeyAuthorizationModeProps,
-  AuthorizationModeMapping,
   AuthorizationModes,
   DefaultAuthorizationMode,
   LambdaAuthorizationModeProps,
@@ -151,9 +150,18 @@ const computeApiKeyAuthFromResource = (
   };
 };
 
+const authorizationModeMapping = {
+  iam: 'AWS_IAM',
+  userPool: 'AMAZON_COGNITO_USER_POOLS',
+  oidc: 'OPENID_CONNECT',
+  apiKey: 'API_KEY',
+  lambda: 'AWS_LAMBDA',
+} as const;
+
 const convertAuthorizationModeToCDK = (mode?: DefaultAuthorizationMode) => {
   if (!mode) return;
-  return AuthorizationModeMapping[mode];
+
+  return authorizationModeMapping[mode];
 };
 
 /**
