@@ -15,6 +15,7 @@ void describe('config controller', () => {
   });
 
   void it('if config has not been cached, read from fs', () => {
+    mockedFsExistsSync.mock.mockImplementationOnce(() => true);
     mockedFsReadFileSync.mock.mockImplementationOnce(function () {
       return {
         toString: function () {

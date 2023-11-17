@@ -51,8 +51,8 @@ export class ConfigController {
   get(path: string) {
     return path
       .split('.')
-      .reduce((acc: Record<string, any>, current: string) => {
-        return acc?.[current];
+      .reduce((acc: Record<string, unknown>, current: string) => {
+        return acc?.[current] as Record<string, unknown>;
       }, this.store);
   }
 
@@ -60,7 +60,7 @@ export class ConfigController {
    * Set value by path & update config file to disk.
    */
   set(path: string, value: string | boolean | number, writeToFile = true) {
-    let current: Record<string, any> = this._store || this.store;
+    let current: Record<string, unknown> = this._store || this.store;
 
     path.split('.').forEach((key, index, keys) => {
       if (index === keys.length - 1) {
@@ -69,7 +69,7 @@ export class ConfigController {
         if (current[key] == null) {
           current[key] = {};
         }
-        current = current[key];
+        current = current[key] as Record<string, unknown>;
       }
     });
 
