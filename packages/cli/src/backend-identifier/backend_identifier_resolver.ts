@@ -1,23 +1,30 @@
 import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
 import { NamespaceResolver } from './local_namespace_resolver.js';
 
-type BackendIdentifierParameters = {
+export type BackendIdentifierParameters = {
   stack?: string;
   appId?: string;
   branch?: string;
 };
+
+export type BackendIdentifierResolver = {
+  resolve: (
+    args: BackendIdentifierParameters
+  ) => Promise<DeployedBackendIdentifier | undefined>;
+};
+
 /**
  * Translates args to BackendIdentifier.
  * Throws if translation can't be made (this should never happen if command validation works correctly).
  */
-export class BackendIdentifierResolver {
+export class AppBackendIdentifierResolver implements BackendIdentifierResolver {
   /**
    * Instantiates BackendIdentifierResolver
    */
   constructor(private readonly namespaceResolver: NamespaceResolver) {}
   resolve = async (
     args: BackendIdentifierParameters
-  ): Promise<DeployedBackendIdentifier> => {
+  ): Promise<DeployedBackendIdentifier | undefined> => {
     if (args.stack) {
       return { stackName: args.stack };
     } else if (args.appId && args.branch) {
@@ -32,8 +39,6 @@ export class BackendIdentifierResolver {
         branchName: args.branch,
       };
     }
-    throw new Error(
-      'Unable to resolve BackendIdentifier with provided parameters'
-    );
+    return undefined;
   };
 }

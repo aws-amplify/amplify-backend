@@ -6,9 +6,10 @@ import { Open } from '../open/open.js';
 import { ArgumentsKebabCase } from '../../kebab_case.js';
 import { ProfileController } from './profile_controller.js';
 
-const amplifyInstallUrl = 'https://docs.amplify.aws/cli/start/install/';
-const awsConfigureUrl =
-  'https://docs.aws.amazon.com/cli/latest/userguide/getting-started-quickstart.html#getting-started-quickstart-new-command';
+const configureAccountUrl =
+  'https://docs.amplify.aws/gen2/start/account-setup/';
+
+const profileSetupInstruction = `Follow the instructions at ${configureAccountUrl}${EOL}to configure Amplify IAM user and credentials.${EOL}`;
 
 /**
  * Command to configure AWS Amplify profile.
@@ -44,7 +45,7 @@ export class ConfigureProfileCommand
     );
     if (profileExists) {
       Printer.print(
-        `Profile '${profileName}' already exists!${EOL}Follow the instructions at ${amplifyInstallUrl} to configure an Amplify IAM User.${EOL}Use "aws configure" to complete the profile setup:${EOL}${awsConfigureUrl}${EOL}`
+        `Profile '${profileName}' already exists!${EOL}${profileSetupInstruction}`
       );
       return;
     }
@@ -53,11 +54,9 @@ export class ConfigureProfileCommand
     });
 
     if (!hasIAMUser) {
-      Printer.print(
-        `Follow the instructions at ${amplifyInstallUrl}${EOL}to configure Amplify IAM user and credentials.${EOL}`
-      );
+      Printer.print(profileSetupInstruction);
 
-      await Open.open(amplifyInstallUrl, { wait: false });
+      await Open.open(configureAccountUrl, { wait: false });
       await AmplifyPrompter.input({
         message: `Hit [enter] when complete`,
       });

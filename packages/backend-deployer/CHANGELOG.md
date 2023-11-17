@@ -1,5 +1,22 @@
 # @aws-amplify/backend-deployer
 
+## 0.3.2
+
+### Patch Changes
+
+- 002954370: Create default tsconfig.json in amplify directory on npx create amplify and run tsc on amplify directory during deployment
+- ad4ff92e3: Force colors to not be stripped off when piping child process stdout
+- Updated dependencies [cb855dfa5]
+  - @aws-amplify/platform-core@0.2.2
+
+## 0.3.1
+
+### Patch Changes
+
+- 70685f36b: Add usage data metrics
+- Updated dependencies [70685f36b]
+  - @aws-amplify/platform-core@0.2.1
+
 ## 0.3.0
 
 ### Minor Changes

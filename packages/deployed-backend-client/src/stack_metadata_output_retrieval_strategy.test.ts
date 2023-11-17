@@ -79,6 +79,47 @@ void describe('StackMetadataBackendOutputRetrievalStrategy', () => {
       });
     });
 
+    void it('throws if stack is still in progress', async () => {
+      const cfnClientMock = {
+        send: mock.fn((command) => {
+          if (command instanceof GetTemplateSummaryCommand) {
+            return {
+              Metadata: JSON.stringify({
+                [authOutputKey]: {
+                  version: '1',
+                  stackOutputs: ['testName1', 'testName2'],
+                },
+              }),
+            };
+          } else if (command instanceof DescribeStacksCommand) {
+            return {
+              Stacks: [
+                {
+                  StackName: 'testStackName',
+                  StackStatus: 'CREATE_IN_PROGRESS',
+                },
+              ],
+            };
+          }
+          assert.fail(`Unknown command ${typeof command}`);
+        }),
+      } as unknown as CloudFormationClient;
+
+      const stackNameResolverMock: MainStackNameResolver = {
+        resolveMainStackName: mock.fn(async () => 'testMainStack'),
+      };
+
+      const retrievalStrategy = new StackMetadataBackendOutputRetrievalStrategy(
+        cfnClientMock,
+        stackNameResolverMock
+      );
+
+      await assert.rejects(retrievalStrategy.fetchBackendOutput(), {
+        message:
+          'testStackName is currently in CREATE_IN_PROGRESS. Metadata will be available after stack completes processing.',
+      });
+    });
+
     void it('throws if metadata fails schema validation', async () => {
       const cfnClientMock = {
         send: mock.fn((command) => {

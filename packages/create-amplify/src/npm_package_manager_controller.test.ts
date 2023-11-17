@@ -13,7 +13,7 @@ void describe('NpmPackageManagerController', () => {
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments, [
       'npm',
       ['install', 'testDep', '--save-dev'],
-      { cwd: 'testPath', stdio: 'inherit' },
+      { cwd: 'testPath', stdin: 'inherit' },
     ]);
   });
 
@@ -27,7 +27,41 @@ void describe('NpmPackageManagerController', () => {
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments, [
       'npm',
       ['install', 'testDep'],
-      { cwd: 'testPath', stdio: 'inherit' },
+      { cwd: 'testPath', stdin: 'inherit' },
     ]);
+  });
+
+  void it('throws when installing dependencies rejects', async () => {
+    const execaMock = mock.fn(() => {
+      throw new Error('test error');
+    });
+    const npmPackageManagerController = new NpmPackageManagerController(
+      'testPath',
+      execaMock as never
+    );
+    await assert.rejects(
+      () =>
+        npmPackageManagerController.installDependencies(['testDep'], 'prod'),
+      {
+        message: `\`npm install testDep\` did not exit successfully.`,
+      }
+    );
+  });
+
+  void it('throws when installing dev dependencies rejects', async () => {
+    const execaMock = mock.fn(() => {
+      throw new Error('test error');
+    });
+    const npmPackageManagerController = new NpmPackageManagerController(
+      'testPath',
+      execaMock as never
+    );
+    await assert.rejects(
+      () =>
+        npmPackageManagerController.installDependencies(['testDevDep'], 'dev'),
+      {
+        message: `\`npm install testDevDep --save-dev\` did not exit successfully.`,
+      }
+    );
   });
 });

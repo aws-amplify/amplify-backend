@@ -1,5 +1,25 @@
 # @aws-amplify/integration-tests
 
+## 0.3.4
+
+### Patch Changes
+
+- 48c25802d: Auth role policy action is now AssumeRoleWithWebIdentity.
+
+## 0.3.3
+
+### Patch Changes
+
+- 5cc252204: use latest aws-amplify verion in project_creator
+- 70685f36b: Add usage data metrics
+
+## 0.3.2
+
+### Patch Changes
+
+- 23b369d79: Add amplify comment when writing to gitignore
+- bd8b5d1a5: update data/resource template; bump data-schema versions
+
 ## 0.3.1
 
 ### Patch Changes

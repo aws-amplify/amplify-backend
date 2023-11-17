@@ -1,14 +1,17 @@
 import { execa } from 'execa';
 import stream from 'stream';
+import readline from 'readline';
 import {
   BackendDeployer,
   DeployProps,
+  DeployResult,
   DestroyProps,
+  DestroyResult,
 } from './cdk_deployer_singleton_factory.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
 import { BackendIdentifier, DeploymentType } from '@aws-amplify/plugin-types';
 import { BackendLocator, CDKContextKey } from '@aws-amplify/platform-core';
-import { BackendDeployerEnvironmentVariables } from './environment_variables.js';
+import { dirname } from 'path';
 
 /**
  * Commands that can be invoked
@@ -47,7 +50,7 @@ export class CDKDeployer implements BackendDeployer {
       }
     }
 
-    await this.invokeCdk(
+    return this.invokeCdk(
       InvokableCommand.DEPLOY,
       backendId,
       deployProps?.deploymentType,
@@ -62,7 +65,7 @@ export class CDKDeployer implements BackendDeployer {
     backendId?: BackendIdentifier,
     destroyProps?: DestroyProps
   ) => {
-    await this.invokeCdk(
+    return this.invokeCdk(
       InvokableCommand.DESTROY,
       backendId,
       destroyProps?.deploymentType,
@@ -71,27 +74,14 @@ export class CDKDeployer implements BackendDeployer {
   };
 
   private invokeTsc = async (deployProps?: DeployProps) => {
-    if (
-      process.env[
-        BackendDeployerEnvironmentVariables
-          .ALWAYS_DISABLE_APP_SOURCES_VALIDATION
-      ] === 'true'
-    ) {
-      return;
-    }
-
     if (deployProps?.validateAppSources) {
       await this.executeChildProcess('npx', [
         'tsc',
         '--noEmit',
         '--skipLibCheck',
-        '--module',
-        'node16',
-        '--moduleResolution',
-        'node16',
-        '--target',
-        'es2022',
-        this.backendLocator.locate(),
+        // pointing the project arg to the amplify backend directory will use the tsconfig present in that directory
+        '--project',
+        dirname(this.backendLocator.locate()),
       ]);
     }
   };
@@ -104,7 +94,7 @@ export class CDKDeployer implements BackendDeployer {
     backendId?: BackendIdentifier,
     deploymentType?: DeploymentType,
     additionalArguments?: string[]
-  ) => {
+  ): Promise<DeployResult | DestroyResult> => {
     // Basic args
     const cdkCommandArgs = [
       'cdk',
@@ -145,7 +135,7 @@ export class CDKDeployer implements BackendDeployer {
     }
 
     try {
-      await this.executeChildProcess('npx', cdkCommandArgs);
+      return await this.executeChildProcess('npx', cdkCommandArgs);
     } catch (err) {
       throw this.cdkErrorMapper.getHumanReadableError(err as Error);
     }
@@ -161,23 +151,58 @@ export class CDKDeployer implements BackendDeployer {
     // actionable errors being hidden among the stdout. Moreover execa errors are
     // useless when calling CLIs unless you made execa calling error.
     let aggregatedStderr = '';
-    const aggregatorStream = new stream.Writable();
-    aggregatorStream._write = function (chunk, encoding, done) {
+    const aggregatorStderrStream = new stream.Writable();
+    aggregatorStderrStream._write = function (chunk, encoding, done) {
       aggregatedStderr += chunk;
       done();
     };
+
     const childProcess = execa(command, cdkCommandArgs, {
       stdin: 'inherit',
-      stdout: 'inherit',
+      stdout: 'pipe',
       stderr: 'pipe',
+
+      // Piping the output by default strips off the color. This is a workaround to
+      // preserve the color being piped to parent process.
+      extendEnv: true,
+      env: { FORCE_COLOR: '1' },
     });
-    childProcess.stderr?.pipe(aggregatorStream);
+    childProcess.stderr?.pipe(aggregatorStderrStream);
+    childProcess.stdout?.pipe(process.stdout);
+
+    const cdkOutput = { deploymentTimes: {} };
+    if (childProcess.stdout) {
+      await this.populateCDKOutputFromStdout(cdkOutput, childProcess.stdout);
+    }
 
     try {
       await childProcess;
+      return cdkOutput;
     } catch (error) {
       // swallow execa error which is not really helpful, rather throw stderr
       throw new Error(aggregatedStderr);
+    }
+  };
+
+  private populateCDKOutputFromStdout = async (
+    output: DeployResult | DestroyResult,
+    stdout: stream.Readable
+  ) => {
+    const regexTotalTime = /✨ {2}Total time: (\d*\.*\d*)s.*/;
+    const regexSynthTime = /✨ {2}Synthesis time: (\d*\.*\d*)s/;
+    const reader = readline.createInterface(stdout);
+    for await (const line of reader) {
+      if (line.includes('✨')) {
+        // Good chance that it contains timing information
+        const totalTime = line.match(regexTotalTime);
+        if (totalTime && totalTime.length > 1 && !isNaN(+totalTime[1])) {
+          output.deploymentTimes.totalTime = +totalTime[1];
+        }
+        const synthTime = line.match(regexSynthTime);
+        if (synthTime && synthTime.length > 1 && !isNaN(+synthTime[1])) {
+          output.deploymentTimes.synthesisTime = +synthTime[1];
+        }
+      }
     }
   };
 }

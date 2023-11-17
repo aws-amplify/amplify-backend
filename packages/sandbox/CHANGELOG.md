@@ -1,5 +1,38 @@
 # @aws-amplify/sandbox
 
+## 0.3.3
+
+### Patch Changes
+
+- 730afd8fe: fix: handling \!pattern in gitignore to avoid excluding everything from watching in sandbox
+- Updated dependencies [002954370]
+- Updated dependencies [4fee488eb]
+- Updated dependencies [ad4ff92e3]
+- Updated dependencies [cb855dfa5]
+  - @aws-amplify/backend-deployer@0.3.2
+  - @aws-amplify/deployed-backend-client@0.3.2
+  - @aws-amplify/platform-core@0.2.2
+
+## 0.3.2
+
+### Patch Changes
+
+- 70685f36b: Add usage data metrics
+- Updated dependencies [70685f36b]
+- Updated dependencies [50934da02]
+  - @aws-amplify/backend-deployer@0.3.1
+  - @aws-amplify/platform-core@0.2.1
+  - @aws-amplify/client-config@0.4.1
+
+## 0.3.1
+
+### Patch Changes
+
+- Updated dependencies [07b0dfc9f]
+- Updated dependencies [01ebbc497]
+  - @aws-amplify/client-config@0.4.0
+  - @aws-amplify/deployed-backend-client@0.3.1
+
 ## 0.3.0
 
 ### Minor Changes

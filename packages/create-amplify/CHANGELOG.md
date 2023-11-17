@@ -1,5 +1,32 @@
 # create-amplify
 
+## 0.3.4
+
+### Patch Changes
+
+- 002954370: Create default tsconfig.json in amplify directory on npx create amplify and run tsc on amplify directory during deployment
+- 48c25802d: Auth role policy action is now AssumeRoleWithWebIdentity.
+- Updated dependencies [cb855dfa5]
+  - @aws-amplify/platform-core@0.2.2
+
+## 0.3.3
+
+### Patch Changes
+
+- 5cc252204: use latest aws-amplify verion in project_creator
+- 70685f36b: Add usage data metrics
+- Updated dependencies [70685f36b]
+  - @aws-amplify/platform-core@0.2.1
+
+## 0.3.2
+
+### Patch Changes
+
+- 14d862196: Animate ellipsis for high level create amplify logs
+- 23b369d79: Add amplify comment when writing to gitignore
+- bd8b5d1a5: update data/resource template; bump data-schema versions
+- 14d862196: Hide npm outputs and switch from using console to logger in create amplify
+
 ## 0.3.1
 
 ### Patch Changes

@@ -1,5 +1,20 @@
 # @aws-amplify/deployed-backend-client
 
+## 0.3.2
+
+### Patch Changes
+
+- 4fee488eb: chore: avoid crashing sandbox on failing to retrieve metadata
+- Updated dependencies [cb855dfa5]
+  - @aws-amplify/platform-core@0.2.2
+
+## 0.3.1
+
+### Patch Changes
+
+- Updated dependencies [07b0dfc9f]
+  - @aws-amplify/backend-output-schemas@0.4.0
+
 ## 0.3.0
 
 ### Minor Changes

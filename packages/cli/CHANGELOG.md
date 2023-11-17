@@ -1,5 +1,64 @@
 # @aws-amplify/backend-cli
 
+## 0.8.0
+
+### Minor Changes
+
+- dce8a0eb6: Defaults to the sandbox identifier when no branch or stack is passed in the CLI
+
+### Patch Changes
+
+- 4fee488eb: chore: avoid crashing sandbox on failing to retrieve metadata
+- cb855dfa5: chore: refactor packageJsonReader and generate installationIds from hostname
+- d81af85df: `amplify --version` returns correct version.
+  Disable subcommands `--version`.
+- Updated dependencies [4fee488eb]
+- Updated dependencies [730afd8fe]
+- Updated dependencies [cb855dfa5]
+  - @aws-amplify/deployed-backend-client@0.3.2
+  - @aws-amplify/sandbox@0.3.3
+  - @aws-amplify/platform-core@0.2.2
+
+## 0.7.1
+
+### Patch Changes
+
+- 70685f36b: Add usage data metrics
+- Updated dependencies [70685f36b]
+- Updated dependencies [50934da02]
+  - @aws-amplify/platform-core@0.2.1
+  - @aws-amplify/sandbox@0.3.2
+  - @aws-amplify/client-config@0.4.1
+
+## 0.7.0
+
+### Minor Changes
+
+- fc71c4902: Change the default directory for models in form generation
+
+### Patch Changes
+
+- 79ac13997: client config generation respects sandbox format option
+- 869a84926: Update profile error messages and a profile configure URL.
+- 79ac13997: Rename sandbox format to config-format
+- 79ac13997: Change sandbox out-dir to config-out-dir and client config generation respects config-out-dir option
+- Updated dependencies [fc71c4902]
+  - @aws-amplify/form-generator@0.4.0
+
+## 0.6.1
+
+### Patch Changes
+
+- 957ba93db: Fix a profile middleware unit test
+- 01ebbc497: handle client config formats used in mobile app development
+- Updated dependencies [07b0dfc9f]
+- Updated dependencies [01ebbc497]
+  - @aws-amplify/backend-output-schemas@0.4.0
+  - @aws-amplify/client-config@0.4.0
+  - @aws-amplify/deployed-backend-client@0.3.1
+  - @aws-amplify/model-generator@0.2.2
+  - @aws-amplify/sandbox@0.3.1
+
 ## 0.6.0
 
 ### Minor Changes

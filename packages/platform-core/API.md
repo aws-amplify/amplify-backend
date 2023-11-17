@@ -5,6 +5,7 @@
 ```ts
 
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import z from 'zod';
 
 // @public
 export class BackendIdentifierConversions {
@@ -34,6 +35,42 @@ export class FilePathExtractor {
     constructor(stackTraceLine: string);
     // (undocumented)
     extract: () => string | undefined;
+}
+
+// @public (undocumented)
+export type PackageJson = z.infer<typeof packageJsonSchema>;
+
+// @public
+export class PackageJsonReader {
+    // (undocumented)
+    read: (absolutePackageJsonPath: string) => PackageJson;
+    readFromCwd: () => PackageJson;
+}
+
+// @public
+export const packageJsonSchema: z.ZodObject<{
+    name: z.ZodOptional<z.ZodString>;
+    version: z.ZodOptional<z.ZodString>;
+    type: z.ZodOptional<z.ZodUnion<[z.ZodLiteral<"module">, z.ZodLiteral<"commonjs">]>>;
+}, "strip", z.ZodTypeAny, {
+    name?: string | undefined;
+    version?: string | undefined;
+    type?: "module" | "commonjs" | undefined;
+}, {
+    name?: string | undefined;
+    version?: string | undefined;
+    type?: "module" | "commonjs" | undefined;
+}>;
+
+// @public (undocumented)
+export type UsageDataEmitter = {
+    emitSuccess: (metrics?: Record<string, number>, dimensions?: Record<string, string>) => Promise<void>;
+    emitFailure: (error: Error, dimensions?: Record<string, string>) => Promise<void>;
+};
+
+// @public
+export class UsageDataEmitterFactory {
+    getInstance: (libraryVersion: string) => UsageDataEmitter;
 }
 
 // (No @packageDocumentation comment for this package)

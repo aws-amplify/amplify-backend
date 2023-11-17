@@ -1,5 +1,45 @@
 # @aws-amplify/backend
 
+## 0.5.2
+
+### Patch Changes
+
+- Updated dependencies [85bbab431]
+- Updated dependencies [688db7bf8]
+- Updated dependencies [70685f36b]
+  - @aws-amplify/backend-data@0.7.0
+  - @aws-amplify/backend-output-storage@0.2.3
+  - @aws-amplify/platform-core@0.2.1
+  - @aws-amplify/backend-auth@0.3.2
+  - @aws-amplify/backend-function@0.2.2
+
+## 0.5.1
+
+### Patch Changes
+
+- Updated dependencies [3cda50cb7]
+  - @aws-amplify/backend-data@0.6.0
+
+## 0.5.0
+
+### Minor Changes
+
+- 07b741dd3: change backend.getStack to backend.createStack
+
+### Patch Changes
+
+- bd8b5d1a5: update data/resource template; bump data-schema versions
+- Updated dependencies [65fe3a8fd]
+- Updated dependencies [cd5feeed0]
+- Updated dependencies [07b0dfc9f]
+- Updated dependencies [bd8b5d1a5]
+  - @aws-amplify/plugin-types@0.4.1
+  - @aws-amplify/backend-auth@0.3.1
+  - @aws-amplify/backend-output-schemas@0.4.0
+  - @aws-amplify/backend-data@0.5.1
+  - @aws-amplify/backend-output-storage@0.2.2
+  - @aws-amplify/backend-function@0.2.1
+
 ## 0.4.0
 
 ### Minor Changes

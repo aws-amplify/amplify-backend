@@ -16,7 +16,14 @@ void describe('convertSchemaToCDK', () => {
         echo(message: String!): String!
       }
     `;
-    assert.strictEqual(convertSchemaToCDK(graphqlSchema).schema, graphqlSchema);
+    const convertedDefinition = convertSchemaToCDK(graphqlSchema);
+    assert.deepEqual(convertedDefinition.schema, graphqlSchema);
+    assert.deepEqual(convertedDefinition.dataSourceStrategies, {
+      Todo: {
+        dbType: 'DYNAMODB',
+        provisionStrategy: 'AMPLIFY_TABLE',
+      },
+    });
   });
 
   void it('generates for a typed schema', () => {
@@ -33,9 +40,38 @@ void describe('convertSchemaToCDK', () => {
         content: a.string().required(),
       }),
     });
-    assert.strictEqual(
-      removeWhiteSpaceForComparison(convertSchemaToCDK(typedSchema).schema),
+    const convertedDefinition = convertSchemaToCDK(typedSchema);
+    assert.deepEqual(
+      removeWhiteSpaceForComparison(convertedDefinition.schema),
       removeWhiteSpaceForComparison(expectedGraphqlSchema)
     );
+    assert.deepEqual(convertedDefinition.dataSourceStrategies, {
+      Todo: {
+        dbType: 'DYNAMODB',
+        provisionStrategy: 'AMPLIFY_TABLE',
+      },
+    });
+  });
+
+  void it('produces appropriate dataSourceStrategies for a typed schema with multiple models', () => {
+    const typedSchema = a.schema({
+      Todo: a.model({
+        content: a.string().required(),
+      }),
+      Blog: a.model({
+        title: a.string(),
+      }),
+    });
+    const convertedDefinition = convertSchemaToCDK(typedSchema);
+    assert.deepEqual(convertedDefinition.dataSourceStrategies, {
+      Todo: {
+        dbType: 'DYNAMODB',
+        provisionStrategy: 'AMPLIFY_TABLE',
+      },
+      Blog: {
+        dbType: 'DYNAMODB',
+        provisionStrategy: 'AMPLIFY_TABLE',
+      },
+    });
   });
 });
