@@ -26,6 +26,7 @@ const isModelSchema = (schema: DataSchema): schema is DerivedModelSchema => {
 export const convertSchemaToCDK = (
   schema: DataSchema
 ): IAmplifyDataDefinition => {
+  // DO NOT EDIT THE FOLLOWING VALUES, UPDATES TO DB TYPE OR STRATEGY WILL RESULT IN DB REPROVISIONING
   const dbType = 'DYNAMODB';
   const provisionStrategy = 'AMPLIFY_TABLE';
 

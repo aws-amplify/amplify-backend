@@ -74,4 +74,22 @@ void describe('convertSchemaToCDK', () => {
       },
     });
   });
+
+  void it('uses the only appropriate dbType and provisioningStrategy', () => {
+    const convertedDefinition = convertSchemaToCDK(
+      'type Todo @model @auth(rules: { allow: public }) { id: ID! }'
+    );
+    assert.equal(
+      Object.values(convertedDefinition.dataSourceStrategies).length,
+      1
+    );
+    assert.deepEqual(
+      Object.values(convertedDefinition.dataSourceStrategies)[0],
+      {
+        dbType: 'DYNAMODB',
+        provisionStrategy: 'AMPLIFY_TABLE',
+      },
+      'dbType should ALWAYS be set to DYNAMODB, and provisionStrategy should ALWAYS be AMPLIFY_TABLE, changing these values will trigger db re-provisioning'
+    );
+  });
 });
