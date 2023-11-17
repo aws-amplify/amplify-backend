@@ -16,13 +16,24 @@ export type ApiKeyAuthorizationModeProps = {
 };
 
 // @public
+export const AuthorizationModeMapping: {
+    readonly iam: "AWS_IAM";
+    readonly userPool: "AMAZON_COGNITO_USER_POOLS";
+    readonly oidc: "OPENID_CONNECT";
+    readonly apiKey: "API_KEY";
+    readonly lambda: "AWS_LAMBDA";
+};
+
+// @public
 export type AuthorizationModes = {
-    defaultAuthorizationMode?: DefaultAuthorizationMode;
     apiKeyAuthorizationMode?: ApiKeyAuthorizationModeProps;
     lambdaAuthorizationMode?: LambdaAuthorizationModeProps;
     oidcAuthorizationMode?: OIDCAuthorizationModeProps;
     allowListedRoleNames?: string[];
-};
+} & DefineDataAuthConfig;
+
+// @public (undocumented)
+export type CdkDefaultAuthorizationMode = (typeof AuthorizationModeMapping)[DefaultAuthorizationMode];
 
 // @public
 export type DataProps = {
@@ -35,11 +46,18 @@ export type DataProps = {
 // @public
 export type DataSchema = string | DerivedModelSchema;
 
-// @public
-export type DefaultAuthorizationMode = 'iam' | 'userPool' | 'oidc' | 'apiKey' | 'lambda';
+// @public (undocumented)
+export type DefaultAuthorizationMode = keyof typeof AuthorizationModeMapping;
 
 // @public
 export const defineData: (props: DataProps) => ConstructFactory<AmplifyData>;
+
+// @public
+export type DefineDataAuthConfig = {
+    defaultAuthorizationMode?: DefaultAuthorizationMode;
+} | {
+    defaultAuthorizationMode?: CdkDefaultAuthorizationMode;
+};
 
 // @public
 export type LambdaAuthorizationModeProps = {
