@@ -18,27 +18,6 @@ export const AuthorizationModeMapping = {
 export type DefaultAuthorizationMode = keyof typeof AuthorizationModeMapping;
 
 /**
- * Authorization modes used by CDK represented in all capitalized snake case.
- */
-export type CdkDefaultAuthorizationMode =
-  (typeof AuthorizationModeMapping)[DefaultAuthorizationMode];
-
-type DefineDataAuthConfig =
-  | {
-      /**
-       * Default auth mode to use in the API, only required if more than one auth mode is specified.
-       */
-      defaultAuthorizationMode?: DefaultAuthorizationMode;
-    }
-  | {
-      /**
-       * Default auth mode to use in the API, only required if more than one auth mode is specified.
-       * @deprecated Please migrate to the camelCase equivalent ("iam" | "userPool" | "oidc" | "apiKey" | "lambda")
-       */
-      defaultAuthorizationMode?: CdkDefaultAuthorizationMode;
-    };
-
-/**
  * Props for Api Keys on the Graphql Api.
  */
 export type ApiKeyAuthorizationModeProps = {
@@ -107,6 +86,10 @@ export type OIDCAuthorizationModeProps = {
  */
 export type AuthorizationModes = {
   /**
+   * Default auth mode to use in the API, only required if more than one auth mode is specified.
+   */
+  defaultAuthorizationMode?: DefaultAuthorizationMode;
+  /**
    * Override API Key config if apiKey auth provider is specified in api definition.
    */
   apiKeyAuthorizationMode?: ApiKeyAuthorizationModeProps;
@@ -125,7 +108,7 @@ export type AuthorizationModes = {
    * IAM Role names which are provided full r/w access to the API for models with IAM authorization.
    */
   allowListedRoleNames?: string[];
-} & DefineDataAuthConfig;
+};
 
 /**
  * Schema type definition, can be either a raw Graphql string, or a typed model schema.

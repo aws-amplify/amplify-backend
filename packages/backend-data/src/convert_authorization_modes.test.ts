@@ -155,39 +155,6 @@ void describe('convertAuthorizationModesToCDK', () => {
     );
   });
 
-  void it('allows for overriding defaultAuthorizationMode using CDK auth naming and oidc config', () => {
-    const authModes: AuthorizationModes = {
-      defaultAuthorizationMode: 'OPENID_CONNECT',
-      oidcAuthorizationMode: {
-        clientId: 'testClient',
-        oidcProviderName: 'testProvider',
-        oidcIssuerUrl: 'https://test.provider/',
-        tokenExpireFromIssueInSeconds: 60,
-        tokenExpiryFromAuthInSeconds: 90,
-      },
-    };
-
-    const expectedOutput: CDKAuthorizationModes = {
-      defaultAuthorizationMode: 'OPENID_CONNECT',
-      oidcConfig: {
-        clientId: 'testClient',
-        oidcProviderName: 'testProvider',
-        oidcIssuerUrl: 'https://test.provider/',
-        tokenExpiryFromIssue: Duration.seconds(60),
-        tokenExpiryFromAuth: Duration.seconds(90),
-      },
-    };
-
-    assert.deepStrictEqual(
-      convertAuthorizationModesToCDK(
-        functionInstanceProvider,
-        undefined,
-        authModes
-      ),
-      expectedOutput
-    );
-  });
-
   void it('allows for overriding api key config', () => {
     const authModes: AuthorizationModes = {
       apiKeyAuthorizationMode: {

@@ -13,7 +13,6 @@ import {
   ApiKeyAuthorizationModeProps,
   AuthorizationModeMapping,
   AuthorizationModes,
-  CdkDefaultAuthorizationMode,
   DefaultAuthorizationMode,
   LambdaAuthorizationModeProps,
   OIDCAuthorizationModeProps,
@@ -152,20 +151,9 @@ const computeApiKeyAuthFromResource = (
   };
 };
 
-const isDefaultAuthorizationMode = (
-  mode: CdkDefaultAuthorizationMode | DefaultAuthorizationMode
-): mode is DefaultAuthorizationMode => {
-  return mode in AuthorizationModeMapping;
-};
-
-const convertAuthorizationModeToCDK = (
-  mode?: CdkDefaultAuthorizationMode | DefaultAuthorizationMode
-): CdkDefaultAuthorizationMode | undefined => {
+const convertAuthorizationModeToCDK = (mode?: DefaultAuthorizationMode) => {
   if (!mode) return;
-  if (isDefaultAuthorizationMode(mode)) {
-    return AuthorizationModeMapping[mode];
-  }
-  return mode;
+  return AuthorizationModeMapping[mode];
 };
 
 /**

@@ -15,15 +15,14 @@ export type ApiKeyAuthorizationModeProps = {
     expiresInDays?: number;
 };
 
-// Warning: (ae-forgotten-export) The symbol "DefineDataAuthConfig" needs to be exported by the entry point index.d.ts
-//
 // @public
 export type AuthorizationModes = {
+    defaultAuthorizationMode?: DefaultAuthorizationMode;
     apiKeyAuthorizationMode?: ApiKeyAuthorizationModeProps;
     lambdaAuthorizationMode?: LambdaAuthorizationModeProps;
     oidcAuthorizationMode?: OIDCAuthorizationModeProps;
     allowListedRoleNames?: string[];
-} & DefineDataAuthConfig;
+};
 
 // @public
 export type DataProps = {
@@ -53,6 +52,10 @@ export type OIDCAuthorizationModeProps = {
     tokenExpiryFromAuthInSeconds: number;
     tokenExpireFromIssueInSeconds: number;
 };
+
+// Warnings were encountered during analysis:
+//
+// src/types.ts:91:3 - (ae-forgotten-export) The symbol "DefaultAuthorizationMode" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 
