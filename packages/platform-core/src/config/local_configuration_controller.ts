@@ -32,10 +32,12 @@ export class LocalConfigurationController implements ConfigurationController {
     }
     try {
       // check if file exists & readable.
-      await fs.access(
+      await fs.open(
         this.configFilePath,
-        fs.constants.F_OK | fs.constants.R_OK
+        fs.constants.F_OK,
+        fs.constants.O_RDWR
       );
+
       const fileContent = await fs.readFile(this.configFilePath, 'utf-8');
       this._store = JSON.parse(fileContent);
     } catch {

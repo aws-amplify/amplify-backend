@@ -30,8 +30,6 @@ export enum CDKContextKey {
     DEPLOYMENT_TYPE = "amplify-backend-type"
 }
 
-// Warning: (ae-forgotten-export) The symbol "ConfigurationControllerFactory" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
 export const configControllerFactory: ConfigurationControllerFactory;
 
@@ -44,11 +42,20 @@ export type ConfigurationController = {
 };
 
 // @public
+export class ConfigurationControllerFactory {
+    constructor();
+    getInstance: (configFileName: LocalConfigurationFileName) => ConfigurationController;
+}
+
+// @public
 export class FilePathExtractor {
     constructor(stackTraceLine: string);
     // (undocumented)
     extract: () => string | undefined;
 }
+
+// @public (undocumented)
+export type LocalConfigurationFileName = 'usage_data_preferences.json';
 
 // @public (undocumented)
 export type PackageJson = z.infer<typeof packageJsonSchema>;
