@@ -93,7 +93,7 @@ void describe(
               testProject.projectDirPath
             ).run();
 
-            await testProject.assertPostDeployment(
+            await testProject.assertClientConfigExists(
               testProject.projectDirPath,
               format
             );

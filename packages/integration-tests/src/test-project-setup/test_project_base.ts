@@ -97,16 +97,23 @@ export abstract class TestProjectBase {
   }
 
   /**
-   * Verify client config file is generated with the provided directory and format
+   * Verify the project after deployment.
    */
-  async assertPostDeployment(dir?: string, format?: ClientConfigFormat) {
+  async assertPostDeployment(): Promise<void> {
+    await this.assertClientConfigExists(
+      this.projectDirPath,
+      ClientConfigFormat.JSON
+    );
+  }
+
+  /**
+   * Verify client config file is generated with the provided directory and format.
+   */
+  async assertClientConfigExists(dir?: string, format?: ClientConfigFormat) {
     const clientConfigStats = await fsp.stat(
       await getClientConfigPath(dir ?? this.projectDirPath, format)
     );
 
-    // check that the client config is a file
-    // we're not validating content here because it was causing e2e noise for small updates without providing value
-    // individual components of the client config are tested at the unit / integration level
     assert.ok(clientConfigStats.isFile());
   }
 }
