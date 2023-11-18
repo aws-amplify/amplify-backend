@@ -16,11 +16,7 @@ void describe('config controller', () => {
 
   void it('if config has not been cached, read from fs', async () => {
     mockedFsReadFile.mock.mockImplementationOnce(function () {
-      return {
-        toString: function () {
-          return '{}';
-        },
-      };
+      return '{"hello": 123}';
     });
     const controller = new LocalConfigurationController();
     const resolvedValue = await controller.get('hello.world');
