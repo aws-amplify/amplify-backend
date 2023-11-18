@@ -18,7 +18,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@aws-amplify/data-schema": "^0.12.5",
+    "@aws-amplify/data-schema": "^0.12.9",
     "@aws-amplify/backend-platform-test-stubs": "^0.3.0",
     "@aws-amplify/platform-core": "^0.2.2"
   },
@@ -31,6 +31,6 @@
     "@aws-amplify/backend-output-schemas": "^0.4.0",
     "@aws-amplify/data-construct": "^1.4.1",
     "@aws-amplify/plugin-types": "^0.4.1",
-    "@aws-amplify/data-schema-types": "^0.6.3"
+    "@aws-amplify/data-schema-types": "^0.6.6"
   }
 }
