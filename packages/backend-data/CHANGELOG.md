@@ -1,5 +1,11 @@
 # @aws-amplify/backend-data
 
+## 0.8.0
+
+### Minor Changes
+
+- f449188cf: fix(@aws-amplify/backend-data) - Align with authorization modes used in the aws-amplify client library
+
 ## 0.7.1
 
 ### Patch Changes

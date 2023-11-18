@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/backend",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -21,10 +21,10 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@aws-amplify/data-schema": "^0.12.5",
+    "@aws-amplify/data-schema": "^0.12.9",
     "@aws-amplify/backend-auth": "^0.3.2",
     "@aws-amplify/backend-function": "^0.2.2",
-    "@aws-amplify/backend-data": "^0.7.0",
+    "@aws-amplify/backend-data": "^0.8.0",
     "@aws-amplify/backend-output-schemas": "^0.4.0",
     "@aws-amplify/backend-output-storage": "^0.2.3",
     "@aws-amplify/backend-secret": "^0.3.0",
