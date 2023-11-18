@@ -36,7 +36,7 @@ export type DataProps = {
 export type DataSchema = string | DerivedModelSchema;
 
 // @public
-export type DefaultAuthorizationMode = 'AWS_IAM' | 'AMAZON_COGNITO_USER_POOLS' | 'OPENID_CONNECT' | 'API_KEY' | 'AWS_LAMBDA';
+export type DefaultAuthorizationMode = 'iam' | 'userPool' | 'oidc' | 'apiKey' | 'lambda';
 
 // @public
 export const defineData: (props: DataProps) => ConstructFactory<AmplifyData>;
