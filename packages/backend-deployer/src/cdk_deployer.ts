@@ -74,16 +74,28 @@ export class CDKDeployer implements BackendDeployer {
   };
 
   private invokeTsc = async (deployProps?: DeployProps) => {
-    if (deployProps?.validateAppSources) {
+    if (!deployProps?.validateAppSources) {
+      return;
+    }
+    try {
       await this.executeChildProcess('npx', [
         'tsc',
-        '--noEmit',
-        '--skipLibCheck',
-        // pointing the project arg to the amplify backend directory will use the tsconfig present in that directory
+        '--showConfig',
         '--project',
         dirname(this.backendLocator.locate()),
       ]);
+    } catch (error) {
+      // If we cannot load ts config, turn off type checking
+      return;
     }
+    await this.executeChildProcess('npx', [
+      'tsc',
+      '--noEmit',
+      '--skipLibCheck',
+      // pointing the project arg to the amplify backend directory will use the tsconfig present in that directory
+      '--project',
+      dirname(this.backendLocator.locate()),
+    ]);
   };
 
   /**
