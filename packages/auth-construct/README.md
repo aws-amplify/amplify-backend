@@ -10,9 +10,7 @@ Note: only a single instance of the `AmplifyAuth` construct can be invoked withi
 
 ### Simple email login with default settings
 
-In this example, we create a simple stack with email login enabled (by default). Deploying this will create a UserPool, UserPoolClient, IdentityPool, and Authenticated/Unauthenticated Roles.
-
-We create a cdk App and Stack for this example. You may be deploying this to a custom stack, but this is purely illustrative for a concise demo.
+In this example, you create a simple stack with email login enabled (by default). Deploying this will create a UserPool, UserPoolClient, IdentityPool, and Authenticated/Unauthenticated Roles.
 
 ```ts
 import { App, Stack } from 'aws-cdk-lib';
@@ -112,7 +110,7 @@ new AmplifyAuth(stack, 'Auth', {
 
 ### Custom user attributes
 
-In this example, we are customizing the set of attributes that are required for every user in the UserPool.
+In this example, you are customizing the set of attributes that are required for every user in the UserPool.
 
 ```ts
 import { App, Stack } from 'aws-cdk-lib';
