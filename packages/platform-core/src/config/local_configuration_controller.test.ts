@@ -6,12 +6,12 @@ import { LocalConfigurationController } from './local_configuration_controller.j
 void describe('config controller', () => {
   const mockedFsReadFile = mock.method(fs, 'readFile');
   const mockedFsWriteFile = mock.method(fs, 'writeFile');
-  const mockedFsAccess = mock.method(fs, 'access');
+  const mockedFsOpen = mock.method(fs, 'open');
 
   beforeEach(() => {
     mockedFsReadFile.mock.resetCalls();
     mockedFsWriteFile.mock.resetCalls();
-    mockedFsAccess.mock.resetCalls();
+    mockedFsOpen.mock.resetCalls();
   });
 
   void it('if config has not been cached, read from fs', async () => {
@@ -21,6 +21,7 @@ void describe('config controller', () => {
     const controller = new LocalConfigurationController();
     const resolvedValue = await controller.get('hello.world');
     assert.strictEqual(resolvedValue, undefined);
+    assert.strictEqual(mockedFsOpen.mock.callCount(), 1);
     assert.strictEqual(mockedFsReadFile.mock.callCount(), 1);
   });
 
@@ -72,14 +73,14 @@ void describe('config controller', () => {
   });
 
   void it('if config has not been cached & config file does not exist, it should init cache, config file, then write to file', async () => {
-    mockedFsAccess.mock.mockImplementationOnce(() => {
+    mockedFsOpen.mock.mockImplementationOnce(() => {
       throw Error('file does not exist');
     });
 
     const controller = new LocalConfigurationController();
     await controller.set('hello.world', true);
 
-    assert.strictEqual(mockedFsAccess.mock.callCount(), 1);
+    assert.strictEqual(mockedFsOpen.mock.callCount(), 1);
     assert.strictEqual(mockedFsReadFile.mock.callCount(), 0);
     assert.strictEqual(mockedFsWriteFile.mock.callCount(), 2);
     assert.deepStrictEqual(controller._store, { hello: { world: true } });
