@@ -1,7 +1,7 @@
 import { UsageDataEmitter } from './usage_data_emitter_factory';
 
 /**
- * class implementing UsageDataEmitter that does not emit any data.
+ * no-op class that implements UsageDataEmitter.
  */
 export class NoOpUsageDataEmitter implements UsageDataEmitter {
   /**
@@ -16,7 +16,7 @@ export class NoOpUsageDataEmitter implements UsageDataEmitter {
    * no-op emitFailure
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  emitFailure(_: Error): Promise<void> {
+  emitFailure(): Promise<void> {
     return Promise.resolve();
   }
 }

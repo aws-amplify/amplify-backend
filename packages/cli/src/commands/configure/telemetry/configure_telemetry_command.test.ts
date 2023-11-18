@@ -5,54 +5,57 @@ import assert from 'node:assert';
 import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import { ConfigureTelemetryCommand } from './configure_telemetry_command.js';
 import {
-  ConfigController,
-  TELEMETRY_ANONYMOUS_ID,
-  TELEMETRY_ENABLED_KEY,
+  USAGE_DATA_TRACKING_ENABLED,
+  configControllerFactory,
 } from '@aws-amplify/platform-core';
 
 void describe('configure command', () => {
-  const configController = new ConfigController();
-  const telemetryCommand = new ConfigureTelemetryCommand(configController);
+  const mockedConfigControllerSet = mock.fn();
+  mock.method(configControllerFactory, 'getInstance', () => ({
+    set: mockedConfigControllerSet,
+  }));
+  const telemetryCommand = new ConfigureTelemetryCommand(
+    configControllerFactory.getInstance('usage_data_preferences.json')
+  );
   const parser = yargs().command(telemetryCommand as unknown as CommandModule);
   const commandRunner = new TestCommandRunner(parser);
 
   const mockedPrint = mock.method(Printer, 'print');
-  const mockedGetAnonymousId = mock.method(
-    telemetryCommand,
-    'getAnonymousId',
-    () => `some_random_id`
-  );
 
   beforeEach(() => {
     mockedPrint.mock.resetCalls();
-    mockedGetAnonymousId.mock.resetCalls();
+    mockedConfigControllerSet.mock.resetCalls();
   });
 
   void it('enable telemetry & updates local config', async () => {
     await commandRunner.runCommand(`telemetry enable`);
-    assert.strictEqual(mockedGetAnonymousId.mock.callCount(), 1);
     assert.match(
       mockedPrint.mock.calls[0].arguments[0],
       /You have enabled telemetry data collection/
     );
-    assert.strictEqual(configController.get(TELEMETRY_ENABLED_KEY), true);
     assert.strictEqual(
-      configController.get(TELEMETRY_ANONYMOUS_ID),
-      'some_random_id'
+      mockedConfigControllerSet.mock.calls[0].arguments[0],
+      USAGE_DATA_TRACKING_ENABLED
+    );
+    assert.strictEqual(
+      mockedConfigControllerSet.mock.calls[0].arguments[1],
+      true
     );
   });
 
   void it('disables telemetry & updates local config', async () => {
     await commandRunner.runCommand(`telemetry disable`);
-    assert.strictEqual(mockedGetAnonymousId.mock.callCount(), 0);
     assert.match(
       mockedPrint.mock.calls[0].arguments[0],
       /You have disabled telemetry data collection/
     );
-    assert.strictEqual(configController.get(TELEMETRY_ENABLED_KEY), false);
     assert.strictEqual(
-      configController.get(TELEMETRY_ANONYMOUS_ID),
-      'some_random_id'
+      mockedConfigControllerSet.mock.calls[0].arguments[0],
+      USAGE_DATA_TRACKING_ENABLED
+    );
+    assert.strictEqual(
+      mockedConfigControllerSet.mock.calls[0].arguments[1],
+      false
     );
   });
 
@@ -62,5 +65,6 @@ void describe('configure command', () => {
       mockedPrint.mock.calls[0].arguments[0],
       /Not enough non-option arguments: got 0, need at least 1/
     );
+    assert.strictEqual(mockedConfigControllerSet.mock.callCount(), 0);
   });
 });

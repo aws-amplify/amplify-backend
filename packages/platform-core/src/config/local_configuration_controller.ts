@@ -1,23 +1,24 @@
 import os from 'os';
 import path from 'path';
-import fs from 'fs';
+import fs from 'fs/promises';
+import { ConfigurationController } from './local_configuration_controller_factory';
 
 /**
  * Used to interact with config file based on OS.
  */
-export class ConfigController {
+export class LocalConfigurationController implements ConfigurationController {
   dirPath: string;
   configFilePath: string;
   _store: Record<string, unknown>;
 
   /**
-   * Initializes common paths to telemetry configs.
+   * Initializes paths to project config dir & config file.
    */
   constructor(
     private readonly projectName = 'amplify',
     private readonly configFileName = 'config.json'
   ) {
-    this.dirPath = this.getConfigPath(this.projectName);
+    this.dirPath = this.getConfigDirPath(this.projectName);
     this.configFilePath = path.join(this.dirPath, this.configFileName);
   }
 
@@ -25,15 +26,18 @@ export class ConfigController {
    * Getter for cached config, retrieves config from disk if not cached already.
    * If the store is not cached & config file does not exist, it will create a blank one.
    */
-  private get store(): Record<string, unknown> {
+  private async store(): Promise<Record<string, unknown>> {
     if (this._store) {
       return this._store;
     }
-    if (fs.existsSync(this.configFilePath)) {
-      this._store = JSON.parse(fs.readFileSync(this.configFilePath).toString());
-    } else {
+    try {
+      // check if file exists & readable.
+      await fs.access(this.configFilePath, fs.constants.R_OK);
+      const fileContent = (await fs.readFile(this.configFilePath)).toString();
+      this._store = JSON.parse(fileContent);
+    } catch {
       this._store = {};
-      this.write();
+      await this.write();
     }
     return this._store;
   }
@@ -42,25 +46,25 @@ export class ConfigController {
    * Creates project directory to store config if it doesn't exist yet.
    */
   private mkConfigDir() {
-    fs.mkdirSync(this.dirPath, { recursive: true });
+    return fs.mkdir(this.dirPath, { recursive: true });
   }
 
   /**
    * Gets values from cached config by path.
    */
-  get<T>(path: string) {
+  async get<T>(path: string) {
     return path
       .split('.')
       .reduce((acc: Record<string, unknown>, current: string) => {
         return acc?.[current] as Record<string, unknown>;
-      }, this.store) as T;
+      }, await this.store()) as T;
   }
 
   /**
    * Set value by path & update config file to disk.
    */
-  set(path: string, value: string | boolean | number, writeToFile = true) {
-    let current: Record<string, unknown> = this._store || this.store;
+  async set(path: string, value: string | boolean | number) {
+    let current: Record<string, unknown> = await this.store();
 
     path.split('.').forEach((key, index, keys) => {
       if (index === keys.length - 1) {
@@ -73,34 +77,32 @@ export class ConfigController {
       }
     });
 
-    if (writeToFile) {
-      this.write();
-    }
+    await this.write();
   }
 
   /**
    * Writes config file to disk if found.
    */
-  write() {
+  async write() {
     // creates project directory if it doesn't exist.
-    this.mkConfigDir();
+    await this.mkConfigDir();
 
     const output = JSON.stringify(this._store ? this._store : {});
-    fs.writeFileSync(this.configFilePath, output);
+    await fs.writeFile(this.configFilePath, output, 'utf8');
   }
 
   /**
    * Reset cached config and delete the config file.
    */
-  clear() {
+  async clear() {
     this._store = {};
-    fs.rmSync(this.configFilePath);
+    await fs.rm(this.configFilePath);
   }
 
   /**
    * Returns the path to config directory depending on OS
    */
-  getConfigPath(name: string): string {
+  private getConfigDirPath(name: string): string {
     const homedir = os.homedir();
 
     const macos = () => path.join(homedir, 'Library', 'Preferences', name);

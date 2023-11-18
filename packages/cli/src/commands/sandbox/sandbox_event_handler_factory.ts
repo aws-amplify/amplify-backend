@@ -15,7 +15,7 @@ export class SandboxEventHandlerFactory {
     private readonly getBackendIdentifier: (
       sandboxName?: string
     ) => Promise<BackendIdentifier>,
-    private readonly usageDataEmitter: UsageDataEmitter
+    private readonly getUsageDataEmitter: () => Promise<UsageDataEmitter>
   ) {}
 
   getSandboxEventHandlers: SandboxEventHandlerCreator = ({
@@ -28,6 +28,7 @@ export class SandboxEventHandlerFactory {
           const backendIdentifier = await this.getBackendIdentifier(
             sandboxName
           );
+          const usageDataEmitter = await this.getUsageDataEmitter();
           try {
             await clientConfigLifecycleHandler.generateClientConfigFile(
               backendIdentifier
@@ -35,7 +36,7 @@ export class SandboxEventHandlerFactory {
             if (args && args[0]) {
               const deployResult = args[0] as DeployResult;
               if (deployResult && deployResult.deploymentTimes) {
-                await this.usageDataEmitter.emitSuccess(
+                await usageDataEmitter.emitSuccess(
                   deployResult.deploymentTimes,
                   { command: 'Sandbox' }
                 );
@@ -68,12 +69,13 @@ export class SandboxEventHandlerFactory {
       ],
       failedDeployment: [
         async (...args: unknown[]) => {
+          const usageDataEmitter = await this.getUsageDataEmitter();
           if (args.length == 0 || !args[0]) {
             return;
           }
           const deployError = args[0] as Error;
           if (deployError && deployError.message) {
-            await this.usageDataEmitter.emitFailure(deployError, {
+            await usageDataEmitter.emitFailure(deployError, {
               command: 'Sandbox',
             });
           }

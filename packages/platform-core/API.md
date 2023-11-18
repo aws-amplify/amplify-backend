@@ -30,21 +30,18 @@ export enum CDKContextKey {
     DEPLOYMENT_TYPE = "amplify-backend-type"
 }
 
-// @public
-export class ConfigController {
-    constructor(projectName?: string, configFileName?: string);
-    clear(): void;
-    // (undocumented)
-    configFilePath: string;
-    // (undocumented)
-    dirPath: string;
-    get<T>(path: string): T;
-    getConfigPath(name: string): string;
-    set(path: string, value: string | boolean | number, writeToFile?: boolean): void;
-    // (undocumented)
-    _store: Record<string, unknown>;
-    write(): void;
-}
+// Warning: (ae-forgotten-export) The symbol "ConfigurationControllerFactory" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export const configControllerFactory: ConfigurationControllerFactory;
+
+// @public (undocumented)
+export type ConfigurationController = {
+    get: <T>(path: string) => Promise<T>;
+    set: (path: string, value: string | boolean | number) => Promise<void>;
+    clear: () => Promise<void>;
+    write: () => Promise<void>;
+};
 
 // @public
 export class FilePathExtractor {
@@ -78,14 +75,8 @@ export const packageJsonSchema: z.ZodObject<{
     type?: "module" | "commonjs" | undefined;
 }>;
 
-// @public (undocumented)
-export const TELEMETRY_ANONYMOUS_ID = "telemetry.anonymousId";
-
-// @public (undocumented)
-export const TELEMETRY_CONFIG_KEY = "telemetry";
-
-// @public (undocumented)
-export const TELEMETRY_ENABLED_KEY = "telemetry.enabled";
+// @public
+export const USAGE_DATA_TRACKING_ENABLED = "telemetry.enabled";
 
 // @public (undocumented)
 export type UsageDataEmitter = {
@@ -95,7 +86,7 @@ export type UsageDataEmitter = {
 
 // @public
 export class UsageDataEmitterFactory {
-    getInstance: (libraryVersion: string) => UsageDataEmitter;
+    getInstance: (libraryVersion: string) => Promise<UsageDataEmitter>;
 }
 
 // (No @packageDocumentation comment for this package)

@@ -1,4 +1,4 @@
-import { ConfigController } from '@aws-amplify/platform-core';
+import { configControllerFactory } from '@aws-amplify/platform-core';
 import { CommandModule } from 'yargs';
 import { ConfigureProfileCommand } from './configure_profile_command.js';
 import { ProfileController } from './profile_controller.js';
@@ -13,7 +13,7 @@ export const createConfigureCommand = (): CommandModule<object> => {
     profileController
   );
   const configureTelemetryCommand = new ConfigureTelemetryCommand(
-    new ConfigController()
+    configControllerFactory.getInstance('usage_data_preferences.json')
   );
 
   return new ConfigureCommand([

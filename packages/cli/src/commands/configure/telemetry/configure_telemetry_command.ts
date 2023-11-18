@@ -1,11 +1,9 @@
 import { Printer } from '@aws-amplify/cli-core';
 import {
-  ConfigController,
-  TELEMETRY_ANONYMOUS_ID,
-  TELEMETRY_ENABLED_KEY,
+  ConfigurationController,
+  USAGE_DATA_TRACKING_ENABLED,
 } from '@aws-amplify/platform-core';
 import { Argv, CommandModule } from 'yargs';
-import { randomBytes } from 'crypto';
 import { handleCommandFailure } from '../../../command_failure_handler.js';
 /**
  * Command to configure AWS Amplify profile.
@@ -24,9 +22,9 @@ export class ConfigureTelemetryCommand implements CommandModule<object> {
   /**
    * Configure profile command.
    */
-  constructor(private readonly configController: ConfigController) {
+  constructor(private readonly configController: ConfigurationController) {
     this.command = 'telemetry';
-    this.describe = 'Configure telemetry participation';
+    this.describe = 'Configure anonymous usage data collection';
   }
 
   /**
@@ -44,17 +42,13 @@ export class ConfigureTelemetryCommand implements CommandModule<object> {
    */
   builder = (yargs: Argv) => {
     return yargs
-      .command('enable', 'Enable anonymous data collection', {}, () => {
-        this.configController.set(TELEMETRY_ENABLED_KEY, true);
-        this.configController.set(
-          TELEMETRY_ANONYMOUS_ID,
-          this.getAnonymousId()
-        );
+      .command('enable', 'Enable anonymous data collection', {}, async () => {
+        await this.configController.set(USAGE_DATA_TRACKING_ENABLED, true);
 
         Printer.print('You have enabled telemetry data collection');
       })
-      .command('disable', 'Disable anonymous data collection', {}, () => {
-        this.configController.set(TELEMETRY_ENABLED_KEY, false);
+      .command('disable', 'Disable anonymous data collection', {}, async () => {
+        await this.configController.set(USAGE_DATA_TRACKING_ENABLED, false);
 
         Printer.print('You have disabled telemetry data collection');
       })
@@ -66,11 +60,4 @@ export class ConfigureTelemetryCommand implements CommandModule<object> {
         yargs.exit(1, err);
       });
   };
-
-  /**
-   * Generates a random id for telemetry.
-   */
-  getAnonymousId(): string {
-    return randomBytes(32).toString('hex');
-  }
 }

@@ -1,5 +1,5 @@
 ---
-'@aws-amplify/backend-cli': minor
+'@aws-amplify/backend-cli': patch
 ---
 
-Added configure telemetry to change telemetry participation
+Added subcommands under configure data tracking preferences

@@ -3,4 +3,4 @@
 '@aws-amplify/backend-cli': patch
 ---
 
-integrate telemetry consent with usage-data-emitter
+integrate usage data tracking consent with usage-data-emitter
