@@ -29,12 +29,6 @@ export class InitialProjectFileGenerator {
       { recursive: true }
     );
 
-    const packageJsonContent = { type: 'module' };
-    await this.fs.writeFile(
-      path.resolve(targetDir, 'package.json'),
-      JSON.stringify(packageJsonContent, null, 2)
-    );
-
     await this.initializeTsConfig(targetDir);
   };
 
@@ -45,9 +39,9 @@ export class InitialProjectFileGenerator {
       '--resolveJsonModule',
       'true',
       '--module',
-      'node16',
+      'es2022',
       '--moduleResolution',
-      'node16',
+      'bundler',
       '--target',
       'es2022',
     ];

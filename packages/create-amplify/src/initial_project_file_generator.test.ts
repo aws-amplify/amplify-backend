@@ -31,14 +31,6 @@ void describe('InitialProjectFileGenerator', () => {
       path.join(process.cwd(), 'testDir', 'amplify'),
       { recursive: true },
     ]);
-    assert.equal(
-      fsMock.writeFile.mock.calls[0].arguments[0],
-      path.join(process.cwd(), 'testDir', 'amplify', 'package.json')
-    );
-    assert.deepStrictEqual(
-      JSON.parse(fsMock.writeFile.mock.calls[0].arguments[1]),
-      { type: 'module' }
-    );
   });
 
   void it('creates default tsconfig file', async () => {
@@ -60,9 +52,9 @@ void describe('InitialProjectFileGenerator', () => {
           '--resolveJsonModule',
           'true',
           '--module',
-          'node16',
+          'es2022',
           '--moduleResolution',
-          'node16',
+          'bundler',
           '--target',
           'es2022',
         ],
