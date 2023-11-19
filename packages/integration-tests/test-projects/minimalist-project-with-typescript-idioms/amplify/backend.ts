@@ -1,5 +1,6 @@
 import { defineBackend } from '@aws-amplify/backend';
-import { storage } from './storage/resource.js';
+// we do not need to use explicit file extensions when using `"moduleResolution": "bundler"`
+import { storage } from './storage/resource';
 
 defineBackend({
   storage,
