@@ -81,6 +81,11 @@ module.exports = {
       },
     ],
     '@typescript-eslint/restrict-template-expressions': 'error',
+    '@typescript-eslint/consistent-type-exports': 'error',
+    '@typescript-eslint/consistent-type-imports': [
+      'error',
+      { fixStyle: 'inline-type-imports' },
+    ],
     '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
     '@shopify/prefer-early-return': 'error',
     'check-file/filename-blocklist': [
@@ -118,6 +123,7 @@ module.exports = {
     'prefer-promise-reject-errors': 'error',
     'promise/prefer-await-to-then': 'error',
     'import/no-extraneous-dependencies': 'error',
+    'import/consistent-type-specifier-style': ['error', 'prefer-inline'],
     'sort-imports': [
       'error',
       {
