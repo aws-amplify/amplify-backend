@@ -43,7 +43,7 @@ void describe('AmplifyProjectCreator', () => {
     );
     assert.equal(
       logMock.log.mock.calls[4].arguments[0],
-      'Welcome to AWS Amplify! \nRun `amplify help` for a list of available commands. \nGet started by running `amplify sandbox`.'
+      'Welcome to AWS Amplify! \nRun `npx amplify help` for a list of available commands. \nGet started by running `npx amplify sandbox`.'
     );
   });
 
@@ -74,7 +74,7 @@ void describe('AmplifyProjectCreator', () => {
 
     assert.equal(
       logMock.log.mock.calls[4].arguments[0],
-      'Welcome to AWS Amplify! \nRun `amplify help` for a list of available commands. \nGet started by running `cd ./project/root; amplify sandbox`.'
+      'Welcome to AWS Amplify! \nRun `npx amplify help` for a list of available commands. \nGet started by running `cd ./project/root; npx amplify sandbox`.'
     );
   });
 });

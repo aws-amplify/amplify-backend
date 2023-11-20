@@ -64,13 +64,13 @@ export class AmplifyProjectCreator {
 
     const cdCommand =
       process.cwd() === this.projectRoot
-        ? '`'
-        : `\`cd .${this.projectRoot.replace(process.cwd(), '')}; `;
+        ? ''
+        : `cd .${this.projectRoot.replace(process.cwd(), '')}; `;
 
     logger.log(
       `Welcome to AWS Amplify! 
-Run \`amplify help\` for a list of available commands. 
-Get started by running ${cdCommand}amplify sandbox\`.`
+Run \`npx amplify help\` for a list of available commands. 
+Get started by running \`${cdCommand}npx amplify sandbox\`.`
     );
   };
 }
