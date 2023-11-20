@@ -7,16 +7,20 @@ void describe('config controller', () => {
   const mockedFsReadFile = mock.method(fs, 'readFile');
   const mockedFsWriteFile = mock.method(fs, 'writeFile');
   const mockedFsOpen = mock.method(fs, 'open');
+  const mockedFdClose = mock.fn();
 
   beforeEach(() => {
     mockedFsReadFile.mock.resetCalls();
     mockedFsWriteFile.mock.resetCalls();
     mockedFsOpen.mock.resetCalls();
+    mockedFdClose.mock.resetCalls();
   });
 
   void it('if config has not been cached, read from fs', async () => {
     mockedFsOpen.mock.mockImplementationOnce(() => {
-      return Promise.resolve();
+      return Promise.resolve({
+        close: mockedFdClose,
+      });
     });
     mockedFsReadFile.mock.mockImplementationOnce(function () {
       return Promise.resolve('{"hello": 123}');
@@ -26,6 +30,7 @@ void describe('config controller', () => {
     assert.strictEqual(resolvedValue, undefined);
     assert.strictEqual(mockedFsOpen.mock.callCount(), 1);
     assert.strictEqual(mockedFsReadFile.mock.callCount(), 1);
+    assert.strictEqual(mockedFdClose.mock.callCount(), 1);
   });
 
   void it('should not throw & return undefined with path points to undefined nested object ', async () => {
