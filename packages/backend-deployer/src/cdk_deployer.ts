@@ -78,12 +78,16 @@ export class CDKDeployer implements BackendDeployer {
       return;
     }
     try {
-      await this.executeChildProcess('npx', [
-        'tsc',
-        '--showConfig',
-        '--project',
-        dirname(this.backendLocator.locate()),
-      ]);
+      await this.executeChildProcess(
+        'npx',
+        [
+          'tsc',
+          '--showConfig',
+          '--project',
+          dirname(this.backendLocator.locate()),
+        ],
+        { printStdout: false }
+      );
     } catch (error) {
       // If we cannot load ts config, turn off type checking
       return;
@@ -157,7 +161,11 @@ export class CDKDeployer implements BackendDeployer {
    * Wrapper for the child process executor. Helps in unit testing as node:test framework
    * doesn't have capabilities to mock exported functions like `execa` as of right now.
    */
-  executeChildProcess = async (command: string, cdkCommandArgs: string[]) => {
+  executeChildProcess = async (
+    command: string,
+    commandArgs: string[],
+    options: { printStdout: boolean } = { printStdout: true }
+  ) => {
     // We let the stdout and stdin inherit and streamed to parent process but pipe
     // the stderr and use it to throw on failure. This is to prevent actual
     // actionable errors being hidden among the stdout. Moreover execa errors are
@@ -169,7 +177,7 @@ export class CDKDeployer implements BackendDeployer {
       done();
     };
 
-    const childProcess = execa(command, cdkCommandArgs, {
+    const childProcess = execa(command, commandArgs, {
       stdin: 'inherit',
       stdout: 'pipe',
       stderr: 'pipe',
@@ -180,7 +188,10 @@ export class CDKDeployer implements BackendDeployer {
       env: { FORCE_COLOR: '1' },
     });
     childProcess.stderr?.pipe(aggregatorStderrStream);
-    childProcess.stdout?.pipe(process.stdout);
+
+    if (options?.printStdout) {
+      childProcess.stdout?.pipe(process.stdout);
+    }
 
     const cdkOutput = { deploymentTimes: {} };
     if (childProcess.stdout) {
