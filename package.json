@@ -84,7 +84,7 @@
     "rimraf": "^5.0.0",
     "tsx": "^3.12.6",
     "typedoc": "^0.25.3",
-    "typescript": "^5.0.4",
+    "typescript": "~5.2.0",
     "verdaccio": "^5.24.1"
   },
   "workspaces": [
