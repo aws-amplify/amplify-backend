@@ -5,6 +5,8 @@ import { NpmProjectInitializer } from './npm_project_initializer.js';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
 import { logger } from './logger.js';
 
+const LEARN_MORE_USAGE_DATA_TRACKING_LINK = `https://docs.amplify.aws/gen2/reference/telemetry`;
+
 /**
  *
  */
@@ -71,6 +73,14 @@ export class AmplifyProjectCreator {
       `Welcome to AWS Amplify! 
 Run \`npx amplify help\` for a list of available commands. 
 Get started by running \`${cdCommand}npx amplify sandbox\`.`
+    );
+
+    logger.log(
+      `Amplify (Gen 2) collects anonymous telemetry data about general usage of the CLI.
+
+Participation is optional, and you may opt-out by using \`amplify configure telemetry disable\`.
+
+To learn more about telemetry, visit ${LEARN_MORE_USAGE_DATA_TRACKING_LINK}`
     );
   };
 }

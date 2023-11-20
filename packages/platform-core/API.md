@@ -30,12 +30,32 @@ export enum CDKContextKey {
     DEPLOYMENT_TYPE = "amplify-backend-type"
 }
 
+// @public (undocumented)
+export const configControllerFactory: ConfigurationControllerFactory;
+
+// @public (undocumented)
+export type ConfigurationController = {
+    get: <T>(path: string) => Promise<T>;
+    set: (path: string, value: string | boolean | number) => Promise<void>;
+    clear: () => Promise<void>;
+    write: () => Promise<void>;
+};
+
+// @public
+export class ConfigurationControllerFactory {
+    constructor();
+    getInstance: (configFileName: LocalConfigurationFileName) => ConfigurationController;
+}
+
 // @public
 export class FilePathExtractor {
     constructor(stackTraceLine: string);
     // (undocumented)
     extract: () => string | undefined;
 }
+
+// @public (undocumented)
+export type LocalConfigurationFileName = 'usage_data_preferences.json';
 
 // @public (undocumented)
 export type PackageJson = z.infer<typeof packageJsonSchema>;
@@ -62,6 +82,9 @@ export const packageJsonSchema: z.ZodObject<{
     type?: "module" | "commonjs" | undefined;
 }>;
 
+// @public
+export const USAGE_DATA_TRACKING_ENABLED = "telemetry.enabled";
+
 // @public (undocumented)
 export type UsageDataEmitter = {
     emitSuccess: (metrics?: Record<string, number>, dimensions?: Record<string, string>) => Promise<void>;
@@ -70,7 +93,7 @@ export type UsageDataEmitter = {
 
 // @public
 export class UsageDataEmitterFactory {
-    getInstance: (libraryVersion: string) => UsageDataEmitter;
+    getInstance: (libraryVersion: string) => Promise<UsageDataEmitter>;
 }
 
 // (No @packageDocumentation comment for this package)
