@@ -262,6 +262,29 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
     ['graphql', './graphql'],
     ['gql/graphql', './gql/graphql'],
   ];
+  void it(`createdAt and updatedAt fields are removed from the generated form`, async () => {
+    const schema = createMockSchema(['Post']);
+    const resultGenerationSpy = mock.fn<ResultBuilder>();
+    resultGenerationSpy.mock.mockImplementation(() => ({
+      writeToDirectory: async () => undefined,
+    }));
+    const l = new LocalGraphqlFormGenerator(
+      async () => schema as unknown as GenericDataSchema,
+      {
+        graphqlDir: './ui-components',
+      },
+      resultGenerationSpy
+    );
+
+    await l.generateForms();
+
+    assert.equal(resultGenerationSpy.mock.callCount(), 1);
+    const componentMap = resultGenerationSpy.mock.calls[0].arguments[0];
+
+    const component = componentMap['PostCreateForm.jsx'];
+    assert.equal(component.includes(`createdAt`), false);
+    assert.equal(component.includes(`updatedAt`), false);
+  });
   for (const [directory, outputDir = directory] of graphqlDirectories) {
     void it(`given the directory ${directory}, the correct import path appears for the mutations in the generated form`, async () => {
       const schema = createMockSchema(['Post']);
