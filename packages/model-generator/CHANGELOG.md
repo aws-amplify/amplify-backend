@@ -1,5 +1,12 @@
 # @aws-amplify/model-generator
 
+## 0.2.3
+
+### Patch Changes
+
+- 8258926a0: Fix creating android model files that have path embedded in it
+  - @aws-amplify/deployed-backend-client@0.3.3
+
 ## 0.2.2
 
 ### Patch Changes
