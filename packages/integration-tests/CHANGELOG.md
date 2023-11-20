@@ -1,5 +1,17 @@
 # @aws-amplify/integration-tests
 
+## 0.3.6
+
+### Patch Changes
+
+- 733518a71: Add e2e testing for config generation
+
+## 0.3.5
+
+### Patch Changes
+
+- fe2d96f04: run tests in parallel
+
 ## 0.3.4
 
 ### Patch Changes

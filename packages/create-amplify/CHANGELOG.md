@@ -1,5 +1,28 @@
 # create-amplify
 
+## 0.3.7
+
+### Patch Changes
+
+- aa9045ea3: add npx to "get started" command in create-amplify
+- 85e619116: Adding message about usage data tracking when creating new project
+- Updated dependencies [aabe5dd61]
+- Updated dependencies [5f336ffbb]
+- Updated dependencies [85e619116]
+  - @aws-amplify/platform-core@0.3.0
+
+## 0.3.6
+
+### Patch Changes
+
+- f449188cf: fix(@aws-amplify/backend-data) - Align with authorization modes used in the aws-amplify client library
+
+## 0.3.5
+
+### Patch Changes
+
+- e15afece7: adds comment in defineAuth template for docs
+
 ## 0.3.4
 
 ### Patch Changes

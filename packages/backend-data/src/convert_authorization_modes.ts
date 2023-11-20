@@ -98,7 +98,7 @@ const computeDefaultAuthorizationMode = (
   providedAuthConfig: ProvidedAuthConfig | undefined,
   authModes: AuthorizationModes | undefined
 ): DefaultAuthorizationMode | undefined => {
-  if (providedAuthConfig && !authModes) return 'AMAZON_COGNITO_USER_POOLS';
+  if (providedAuthConfig && !authModes) return 'userPool';
   return;
 };
 
@@ -150,6 +150,20 @@ const computeApiKeyAuthFromResource = (
   };
 };
 
+const authorizationModeMapping = {
+  iam: 'AWS_IAM',
+  userPool: 'AMAZON_COGNITO_USER_POOLS',
+  oidc: 'OPENID_CONNECT',
+  apiKey: 'API_KEY',
+  lambda: 'AWS_LAMBDA',
+} as const;
+
+const convertAuthorizationModeToCDK = (mode?: DefaultAuthorizationMode) => {
+  if (!mode) return;
+
+  return authorizationModeMapping[mode];
+};
+
 /**
  * Convert to CDK AuthorizationModes.
  */
@@ -161,6 +175,9 @@ export const convertAuthorizationModesToCDK = (
   const defaultAuthorizationMode =
     authModes?.defaultAuthorizationMode ??
     computeDefaultAuthorizationMode(authResources, authModes);
+  const cdkAuthorizationMode = convertAuthorizationModeToCDK(
+    defaultAuthorizationMode
+  );
   const apiKeyConfig = authModes?.apiKeyAuthorizationMode
     ? convertApiKeyAuthConfigToCDK(authModes.apiKeyAuthorizationMode)
     : computeApiKeyAuthFromResource(authResources, authModes);
@@ -177,7 +194,9 @@ export const convertAuthorizationModesToCDK = (
     : undefined;
 
   return {
-    ...(defaultAuthorizationMode ? { defaultAuthorizationMode } : undefined),
+    ...(cdkAuthorizationMode
+      ? { defaultAuthorizationMode: cdkAuthorizationMode }
+      : undefined),
     ...(apiKeyConfig ? { apiKeyConfig } : undefined),
     ...(userPoolConfig ? { userPoolConfig } : undefined),
     ...(iamConfig ? { iamConfig } : undefined),

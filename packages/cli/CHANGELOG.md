@@ -1,5 +1,38 @@
 # @aws-amplify/backend-cli
 
+## 0.9.0
+
+### Minor Changes
+
+- aabe5dd61: Bump to minor version for usage data consent
+
+### Patch Changes
+
+- 590662ae5: Change secret name argument in secret commands to kebab-case
+- 85e619116: Added subcommands under configure data tracking preferences
+- 85e619116: integrate usage data tracking consent with usage-data-emitter
+- Updated dependencies [aabe5dd61]
+- Updated dependencies [5f336ffbb]
+- Updated dependencies [8258926a0]
+- Updated dependencies [85e619116]
+  - @aws-amplify/platform-core@0.3.0
+  - @aws-amplify/model-generator@0.2.3
+  - @aws-amplify/backend-secret@0.3.1
+  - @aws-amplify/deployed-backend-client@0.3.3
+  - @aws-amplify/sandbox@0.3.5
+
+## 0.8.1
+
+### Patch Changes
+
+- f1717d9c9: Remove input validations on generate commands so they fall back to the stack id
+- ef3f5eb50: Update account setup URL
+- Updated dependencies [c47e03e20]
+- Updated dependencies [cc8b66cd9]
+  - @aws-amplify/client-config@0.4.2
+  - @aws-amplify/form-generator@0.5.0
+  - @aws-amplify/sandbox@0.3.4
+
 ## 0.8.0
 
 ### Minor Changes
