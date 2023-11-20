@@ -1,3 +1,16 @@
+<a href="https://aws-amplify.github.io/" target="_blank">
+    <img src="https://docs.amplify.aws/assets/gen2-og.png" alt="AWS Amplify" width="550" >
+</a>
+
+<p>
+  <a href="https://discord.gg/jWVbPfC" target="_blank">
+    <img src="https://img.shields.io/discord/308323056592486420?logo=discord"" alt="Discord Chat" />  
+  </a>
+  <a href="https://www.npmjs.com/package/@aws-amplify/cli">
+    <img src="https://img.shields.io/npm/v/@aws-amplify/cli.svg" />
+  </a>
+</p>
+
 ## Security
 
 See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
