@@ -283,12 +283,12 @@ export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
     >((prev, [key, value]) => {
       const { createdAt, updatedAt, ...fields } = value.fields;
 
-      const newValue = {
+      const valueExcludingTimestampFields = {
         ...value,
         fields,
       };
 
-      prev[key] = newValue;
+      prev[key] = valueExcludingTimestampFields;
 
       return prev;
     }, {});
