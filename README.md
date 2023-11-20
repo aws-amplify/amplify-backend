@@ -4,7 +4,7 @@ This next generation of Amplify’s backend building experience lets you author 
 
 ## Quickstart 
 
-To quickly get started with Amplify Gen 2, please visit [AWS Amplify (Gen 2) Quickstart](https://docs.amplify.aws/gen2/start/quickstart/).
+To quickly get started with Amplify (Gen 2), please visit [AWS Amplify (Gen 2) Quickstart](https://docs.amplify.aws/gen2/start/quickstart/).
 
 ## Manual Installation
 
