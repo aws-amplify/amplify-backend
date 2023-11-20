@@ -264,6 +264,8 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
   ];
   void it(`createdAt and updatedAt fields are removed from the generated form`, async () => {
     const schema = createMockSchema(['Post']);
+    assert('createdAt' in schema.models.Post.fields);
+    assert('updatedAt' in schema.models.Post.fields);
     const resultGenerationSpy = mock.fn<ResultBuilder>();
     resultGenerationSpy.mock.mockImplementation(() => ({
       writeToDirectory: async () => undefined,
@@ -289,8 +291,6 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
     void it(`given the directory ${directory}, the correct import path appears for the mutations in the generated form`, async () => {
       const schema = createMockSchema(['Post']);
 
-      assert('createdAt' in schema.models.Post.fields);
-      assert('updatedAt' in schema.models.Post.fields);
       const resultGenerationSpy = mock.fn<ResultBuilder>();
       resultGenerationSpy.mock.mockImplementation(() => ({
         writeToDirectory: async () => undefined,
