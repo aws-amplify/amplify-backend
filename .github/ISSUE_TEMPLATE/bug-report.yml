@@ -13,7 +13,7 @@ body:
       description: |
         Please copy and paste output of the following command. This will be automatically formatted into code, so no need for backticks.
         ```bash
-        npx envinfo --system --binaries --npmPackages "@aws-amplify/backend,typescript,aws-cdk,aws-cdk-lib,aws-amplify" --showNotFound
+        npx envinfo --system --binaries --npmPackages "@aws-amplify/backend,@aws-amplify/backend-cli,typescript,aws-cdk,aws-cdk-lib,aws-amplify" --showNotFound
         ```
       render: plain text
     validations:
