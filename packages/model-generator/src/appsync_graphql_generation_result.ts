@@ -19,8 +19,9 @@ export class AppsyncGraphqlGenerationResult implements GenerationResult {
     filePath: string,
     contents: string
   ) => {
-    await fs.mkdir(basePath, { recursive: true });
-    await fs.writeFile(path.resolve(path.join(basePath, filePath)), contents);
+    const absFilePath = path.resolve(path.join(basePath, filePath));
+    await fs.mkdir(path.dirname(absFilePath), { recursive: true });
+    await fs.writeFile(absFilePath, contents);
   };
 
   writeToDirectory = async (directoryPath: string) => {
