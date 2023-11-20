@@ -81,7 +81,9 @@ export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
   }): StudioForm[] => {
     const schemas: StudioForm[] = [];
     Object.entries(modelMap).forEach(([name, set]) => {
-      set.forEach((type) => schemas.push(this.getSchema(name, type)));
+      set.forEach((type) => {
+        schemas.push(this.getSchema(name, type));
+      });
     });
     return schemas;
   };
@@ -277,6 +279,22 @@ export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
         name,
       }))
     );
+
+    dataSchema.models = Object.entries(dataSchema.models).reduce<
+      (typeof dataSchema)['models']
+    >((prev, [key, value]) => {
+      const { createdAt, updatedAt, ...fields } = value.fields;
+
+      const newValue = {
+        ...value,
+        fields,
+      };
+
+      prev[key] = newValue;
+
+      return prev;
+    }, {});
+
     const forms = baseForms.reduce<Record<string, string>>(
       (prev, formSchema) => {
         const results = this.codegenForm(dataSchema, formSchema);
