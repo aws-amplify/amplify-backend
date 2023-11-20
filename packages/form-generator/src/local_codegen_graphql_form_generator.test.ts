@@ -20,7 +20,7 @@ const createMockField = (dataType: MockDataType, required = false) => {
   };
 };
 
-const createMockSchema = (fields: string[]) => {
+const createMockSchema = (fields: string[]): GenericDataSchema => {
   const models = fields.reduce(
     (prev, name) => ({
       ...prev,
@@ -41,7 +41,7 @@ const createMockSchema = (fields: string[]) => {
     models,
     nonModels: {},
     enums: {},
-  };
+  } as GenericDataSchema;
 };
 
 void describe('LocalCodegenGraphqlFormGenerator', () => {
@@ -288,6 +288,9 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
   for (const [directory, outputDir = directory] of graphqlDirectories) {
     void it(`given the directory ${directory}, the correct import path appears for the mutations in the generated form`, async () => {
       const schema = createMockSchema(['Post']);
+
+      assert('createdAt' in schema.models.Post.fields);
+      assert('updatedAt' in schema.models.Post.fields);
       const resultGenerationSpy = mock.fn<ResultBuilder>();
       resultGenerationSpy.mock.mockImplementation(() => ({
         writeToDirectory: async () => undefined,
