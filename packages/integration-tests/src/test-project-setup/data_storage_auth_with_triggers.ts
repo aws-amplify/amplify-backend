@@ -154,15 +154,4 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
       await this.secretClient.removeSecret(backendId, secretName);
     }
   };
-
-  assertPostDeployment = async (): Promise<void> => {
-    const clientConfig = await fs.readFile(
-      path.join(this.projectDirPath, 'amplifyconfiguration.json'),
-      'utf-8'
-    );
-    // check that the client config is a valid json object
-    // we're not validating content here because it was causing e2e noise for small updates without providing value
-    // individual components of the client config are tested at the unit / integration level
-    JSON.parse(clientConfig);
-  };
 }
