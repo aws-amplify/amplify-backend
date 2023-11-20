@@ -1,4 +1,7 @@
-import { BackendIdentifier, DeploymentType } from '@aws-amplify/plugin-types';
+import {
+  type BackendIdentifier,
+  type DeploymentType,
+} from '@aws-amplify/plugin-types';
 import { CDKDeployer } from './cdk_deployer.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
 import { BackendLocator } from '@aws-amplify/platform-core';

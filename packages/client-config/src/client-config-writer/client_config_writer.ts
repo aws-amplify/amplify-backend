@@ -1,9 +1,9 @@
 import _fsp from 'fs/promises';
 import {
-  ClientConfig,
+  type ClientConfig,
   ClientConfigFormat,
 } from '../client-config-types/client_config.js';
-import { ClientConfigFormatter } from './client_config_formatter.js';
+import { type ClientConfigFormatter } from './client_config_formatter.js';
 
 export type ClientConfigPathResolver = (
   outDir?: string,

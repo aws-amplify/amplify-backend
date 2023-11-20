@@ -1,8 +1,8 @@
 import { generateStatements } from '@aws-amplify/graphql-generator';
 import {
-  DocumentGenerationParameters,
-  GenerationResult,
-  GraphqlDocumentGenerator,
+  type DocumentGenerationParameters,
+  type GenerationResult,
+  type GraphqlDocumentGenerator,
 } from './model_generator.js';
 
 /**

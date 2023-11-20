@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import { ClientConfigFormatter } from './client_config_formatter.js';
 import {
-  ClientConfig,
+  type ClientConfig,
   ClientConfigFormat,
 } from '../client-config-types/client_config.js';
 import assert from 'node:assert';
@@ -10,7 +10,7 @@ import path from 'path';
 import { pathToFileURL } from 'url';
 import { randomUUID } from 'crypto';
 import { ClientConfigConverter } from './client_config_converter.js';
-import { ClientConfigMobile } from '../client-config-types/mobile/client_config_mobile_types.js';
+import { type ClientConfigMobile } from '../client-config-types/mobile/client_config_mobile_types.js';
 
 void describe('client config formatter', () => {
   const sampleUserPoolId = randomUUID();

@@ -4,15 +4,15 @@ import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
 import {
-  BackendOutputEntry,
-  BackendOutputStorageStrategy,
-  ConstructContainer,
-  ConstructFactory,
-  ConstructFactoryGetInstanceProps,
-  ImportPathVerifier,
+  type BackendOutputEntry,
+  type BackendOutputStorageStrategy,
+  type ConstructContainer,
+  type ConstructFactory,
+  type ConstructFactoryGetInstanceProps,
+  type ImportPathVerifier,
 } from '@aws-amplify/plugin-types';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
-import { AmplifyStorage } from '@aws-amplify/storage-construct-alpha';
+import { type AmplifyStorage } from '@aws-amplify/storage-construct-alpha';
 import {
   ConstructContainerStub,
   ImportPathVerifierStub,

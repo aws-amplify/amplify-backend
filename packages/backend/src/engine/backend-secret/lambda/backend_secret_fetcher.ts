@@ -1,14 +1,14 @@
 import {
-  CloudFormationCustomResourceEvent,
-  CloudFormationCustomResourceSuccessResponse,
+  type CloudFormationCustomResourceEvent,
+  type CloudFormationCustomResourceSuccessResponse,
 } from 'aws-lambda';
 import {
-  SecretClient,
-  SecretError,
+  type SecretClient,
+  type SecretError,
   getSecretClient,
 } from '@aws-amplify/backend-secret';
 import { randomUUID } from 'node:crypto';
-import { SecretResourceProps } from './backend_secret_fetcher_types.js';
+import { type SecretResourceProps } from './backend_secret_fetcher_types.js';
 
 const secretClient = getSecretClient();
 

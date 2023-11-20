@@ -1,4 +1,4 @@
-import { Construct } from 'constructs';
+import { type Construct } from 'constructs';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Duration } from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
@@ -6,7 +6,7 @@ import * as path from 'path';
 import { Runtime as LambdaRuntime } from 'aws-cdk-lib/aws-lambda';
 import { Provider } from 'aws-cdk-lib/custom-resources';
 import { fileURLToPath } from 'url';
-import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { type BackendIdentifier } from '@aws-amplify/plugin-types';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);

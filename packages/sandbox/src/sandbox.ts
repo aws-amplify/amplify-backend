@@ -1,6 +1,6 @@
-import EventEmitter from 'events';
-import { ClientConfigFormat } from '@aws-amplify/client-config';
-import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import type EventEmitter from 'events';
+import { type ClientConfigFormat } from '@aws-amplify/client-config';
+import { type BackendIdentifier } from '@aws-amplify/plugin-types';
 
 /**
  * Interface for Sandbox.

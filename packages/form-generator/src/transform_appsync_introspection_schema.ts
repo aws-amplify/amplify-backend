@@ -1,5 +1,5 @@
 import {
-  GenericDataSchema,
+  type GenericDataSchema,
   getGenericFromDataStore,
 } from '@aws-amplify/codegen-ui';
 import { parse } from 'graphql';

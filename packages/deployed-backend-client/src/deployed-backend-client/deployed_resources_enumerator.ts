@@ -1,13 +1,13 @@
 import {
-  CloudFormationClient,
+  type CloudFormationClient,
   ListStackResourcesCommand,
-  ListStackResourcesCommandOutput,
-  StackResourceSummary,
+  type ListStackResourcesCommandOutput,
+  type StackResourceSummary,
 } from '@aws-sdk/client-cloudformation';
-import { DeployedBackendResource } from '../deployed_backend_client_factory.js';
-import { StackStatusMapper } from './stack_status_mapper.js';
-import { ArnGenerator } from './arn_generator.js';
-import { ArnParser } from './arn_parser.js';
+import { type DeployedBackendResource } from '../deployed_backend_client_factory.js';
+import { type StackStatusMapper } from './stack_status_mapper.js';
+import { type ArnGenerator } from './arn_generator.js';
+import { type ArnParser } from './arn_parser.js';
 
 /**
  * Lists deployed resources

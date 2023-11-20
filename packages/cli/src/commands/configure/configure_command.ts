@@ -1,4 +1,4 @@
-import { Argv, CommandModule } from 'yargs';
+import { type Argv, type CommandModule } from 'yargs';
 import { handleCommandFailure } from '../../command_failure_handler.js';
 
 /**

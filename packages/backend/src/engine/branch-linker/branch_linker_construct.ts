@@ -5,10 +5,10 @@ import { CustomResource, Duration } from 'aws-cdk-lib';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import { Provider } from 'aws-cdk-lib/custom-resources';
-import { AmplifyBranchLinkerCustomResourceProps } from './lambda/branch_linker_types.js';
+import { type AmplifyBranchLinkerCustomResourceProps } from './lambda/branch_linker_types.js';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { BackendEnvironmentVariables } from '../../environment_variables.js';
-import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { type BackendIdentifier } from '@aws-amplify/plugin-types';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);

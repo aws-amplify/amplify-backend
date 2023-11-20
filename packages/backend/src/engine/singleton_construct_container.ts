@@ -1,9 +1,9 @@
-import { Construct } from 'constructs';
-import { StackResolver } from './nested_stack_resolver.js';
+import { type Construct } from 'constructs';
+import { type StackResolver } from './nested_stack_resolver.js';
 import {
-  ConstructContainer,
-  ConstructContainerEntryGenerator,
-  ConstructFactory,
+  type ConstructContainer,
+  type ConstructContainerEntryGenerator,
+  type ConstructFactory,
 } from '@aws-amplify/plugin-types';
 import { getBackendIdentifier } from '../backend_identifier.js';
 import { DefaultBackendSecretResolver } from './backend-secret/backend_secret_resolver.js';

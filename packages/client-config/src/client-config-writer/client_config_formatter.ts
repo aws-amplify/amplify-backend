@@ -1,9 +1,9 @@
 import {
-  ClientConfig,
+  type ClientConfig,
   ClientConfigFormat,
 } from '../client-config-types/client_config.js';
 import os from 'os';
-import { ClientConfigConverter } from './client_config_converter.js';
+import { type ClientConfigConverter } from './client_config_converter.js';
 
 /**
  * Formats client config to desired format.

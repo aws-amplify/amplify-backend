@@ -2,12 +2,12 @@ import { describe, it, mock } from 'node:test';
 import { App, Stack } from 'aws-cdk-lib';
 import * as os from 'os';
 import {
-  AttributionMetadata,
+  type AttributionMetadata,
   AttributionMetadataStorage,
 } from './store_attribution_metadata.js';
 
 import assert from 'node:assert';
-import { PackageJsonReader } from '@aws-amplify/platform-core';
+import { type PackageJsonReader } from '@aws-amplify/platform-core';
 
 void describe('storeAttributionMetadata', () => {
   const packageJsonReaderMock = mock.fn(() => {

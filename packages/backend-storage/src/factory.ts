@@ -1,14 +1,14 @@
-import { Construct } from 'constructs';
+import { type Construct } from 'constructs';
 import {
-  BackendOutputEntry,
-  BackendOutputStorageStrategy,
-  ConstructContainerEntryGenerator,
-  ConstructFactory,
-  ConstructFactoryGetInstanceProps,
+  type BackendOutputEntry,
+  type BackendOutputStorageStrategy,
+  type ConstructContainerEntryGenerator,
+  type ConstructFactory,
+  type ConstructFactoryGetInstanceProps,
 } from '@aws-amplify/plugin-types';
 import {
   AmplifyStorage,
-  AmplifyStorageProps,
+  type AmplifyStorageProps,
 } from '@aws-amplify/storage-construct-alpha';
 import * as path from 'path';
 

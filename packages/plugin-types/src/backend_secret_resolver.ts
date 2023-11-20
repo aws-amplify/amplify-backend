@@ -1,6 +1,6 @@
-import { Construct } from 'constructs';
-import { BackendIdentifier } from './backend_identifier.js';
-import { SecretValue } from 'aws-cdk-lib';
+import { type Construct } from 'constructs';
+import { type BackendIdentifier } from './backend_identifier.js';
+import { type SecretValue } from 'aws-cdk-lib';
 
 export type BackendSecret = {
   /**

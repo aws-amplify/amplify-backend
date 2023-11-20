@@ -1,11 +1,11 @@
-import { IRole } from 'aws-cdk-lib/aws-iam';
+import { type IRole } from 'aws-cdk-lib/aws-iam';
 import {
-  CfnIdentityPool,
-  CfnIdentityPoolRoleAttachment,
-  CfnUserPool,
-  CfnUserPoolClient,
-  IUserPool,
-  IUserPoolClient,
+  type CfnIdentityPool,
+  type CfnIdentityPoolRoleAttachment,
+  type CfnUserPool,
+  type CfnUserPoolClient,
+  type IUserPool,
+  type IUserPoolClient,
 } from 'aws-cdk-lib/aws-cognito';
 
 /**

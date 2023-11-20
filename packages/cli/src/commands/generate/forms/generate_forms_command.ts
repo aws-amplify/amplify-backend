@@ -1,11 +1,11 @@
 import path from 'path';
-import { Argv, CommandModule } from 'yargs';
-import { BackendOutputClient } from '@aws-amplify/deployed-backend-client';
+import { type Argv, type CommandModule } from 'yargs';
+import { type BackendOutputClient } from '@aws-amplify/deployed-backend-client';
 import { graphqlOutputKey } from '@aws-amplify/backend-output-schemas';
-import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
+import { type BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
 import { DEFAULT_UI_PATH } from '../../../form-generation/default_form_generation_output_paths.js';
-import { FormGenerationHandler } from '../../../form-generation/form_generation_handler.js';
-import { ArgumentsKebabCase } from '../../../kebab_case.js';
+import { type FormGenerationHandler } from '../../../form-generation/form_generation_handler.js';
+import { type ArgumentsKebabCase } from '../../../kebab_case.js';
 import { handleCommandFailure } from '../../../command_failure_handler.js';
 
 export type GenerateFormsCommandOptions =

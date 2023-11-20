@@ -1,5 +1,5 @@
 export * from './factory.js';
-export {
+export type {
   ApiKeyAuthorizationModeProps,
   LambdaAuthorizationModeProps,
   OIDCAuthorizationModeProps,

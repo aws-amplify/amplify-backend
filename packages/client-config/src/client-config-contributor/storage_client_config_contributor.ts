@@ -1,9 +1,9 @@
-import { ClientConfigContributor } from './client_config_contributor.js';
+import { type ClientConfigContributor } from './client_config_contributor.js';
 import {
-  UnifiedBackendOutput,
+  type UnifiedBackendOutput,
   storageOutputKey,
 } from '@aws-amplify/backend-output-schemas';
-import { StorageClientConfig } from '../client-config-types/storage_client_config.js';
+import { type StorageClientConfig } from '../client-config-types/storage_client_config.js';
 
 /**
  * Translator for the Storage portion of ClientConfig

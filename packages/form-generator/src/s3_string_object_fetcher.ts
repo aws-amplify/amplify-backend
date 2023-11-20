@@ -1,4 +1,4 @@
-import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { GetObjectCommand, type S3Client } from '@aws-sdk/client-s3';
 
 /**
  * Handles fetching an object from an s3 bucket and parsing the object contents to a string

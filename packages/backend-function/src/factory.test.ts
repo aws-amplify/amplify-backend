@@ -1,7 +1,7 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import { Func } from './factory.js';
 import { App, Stack } from 'aws-cdk-lib';
-import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
+import { type ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
 import assert from 'node:assert';
 import { fileURLToPath } from 'url';
 import * as path from 'path';

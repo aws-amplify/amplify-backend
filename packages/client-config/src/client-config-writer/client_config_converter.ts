@@ -1,8 +1,8 @@
-import { ClientConfig } from '../client-config-types/client_config.js';
+import { type ClientConfig } from '../client-config-types/client_config.js';
 import {
-  ClientConfigMobile,
-  ClientConfigMobileApi,
-  ClientConfigMobileAuth,
+  type ClientConfigMobile,
+  type ClientConfigMobileApi,
+  type ClientConfigMobileAuth,
 } from '../client-config-types/mobile/client_config_mobile_types.js';
 
 /**

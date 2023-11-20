@@ -1,4 +1,4 @@
-import { StackResourceSummary } from '@aws-sdk/client-cloudformation';
+import { type StackResourceSummary } from '@aws-sdk/client-cloudformation';
 
 /**
  * Generates a link to a resource in the AWS Console

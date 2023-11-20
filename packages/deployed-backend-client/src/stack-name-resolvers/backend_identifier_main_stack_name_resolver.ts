@@ -1,6 +1,6 @@
 import {
-  BackendIdentifier,
-  MainStackNameResolver,
+  type BackendIdentifier,
+  type MainStackNameResolver,
 } from '@aws-amplify/plugin-types';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 

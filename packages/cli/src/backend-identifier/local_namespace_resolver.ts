@@ -1,4 +1,4 @@
-import { PackageJsonReader } from '@aws-amplify/platform-core';
+import { type PackageJsonReader } from '@aws-amplify/platform-core';
 
 export type NamespaceResolver = {
   resolve: () => Promise<string>;

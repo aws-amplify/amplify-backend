@@ -2,7 +2,7 @@ import { beforeEach, describe, it, mock } from 'node:test';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { GenerateConfigCommand } from './generate_config_command.js';
 import { ClientConfigFormat } from '@aws-amplify/client-config';
-import yargs, { CommandModule } from 'yargs';
+import yargs, { type CommandModule } from 'yargs';
 import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
 import { AppBackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';

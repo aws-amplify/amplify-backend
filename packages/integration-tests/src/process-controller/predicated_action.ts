@@ -1,4 +1,4 @@
-import { ExecaChildProcess } from 'execa';
+import { type ExecaChildProcess } from 'execa';
 
 /**
  * Type of actions a user can take with their app.

@@ -1,12 +1,15 @@
 import {
-  BackendIdentifier,
-  BackendSecret,
-  BackendSecretResolver,
+  type BackendIdentifier,
+  type BackendSecret,
+  type BackendSecretResolver,
 } from '@aws-amplify/plugin-types';
 import { describe, it } from 'node:test';
-import { AuthLoginWithFactoryProps } from './types.js';
-import { Construct } from 'constructs';
-import { AuthProps, PhoneNumberLogin } from '@aws-amplify/auth-construct-alpha';
+import { type AuthLoginWithFactoryProps } from './types.js';
+import { type Construct } from 'constructs';
+import {
+  type AuthProps,
+  type PhoneNumberLogin,
+} from '@aws-amplify/auth-construct-alpha';
 import { SecretValue } from 'aws-cdk-lib';
 import assert from 'node:assert';
 import { translateToAuthConstructLoginWith } from './translate_auth_props.js';

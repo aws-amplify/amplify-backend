@@ -1,7 +1,7 @@
-import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
-import { DeployedBackendIdentifier } from './index.js';
+import { type AwsCredentialIdentityProvider } from '@aws-sdk/types';
+import { type DeployedBackendIdentifier } from './index.js';
 import { DefaultBackendOutputClient } from './backend_output_client.js';
-import { UnifiedBackendOutput } from '@aws-amplify/backend-output-schemas';
+import { type UnifiedBackendOutput } from '@aws-amplify/backend-output-schemas';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 

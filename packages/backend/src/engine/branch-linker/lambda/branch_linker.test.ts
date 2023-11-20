@@ -3,14 +3,14 @@ import assert from 'node:assert';
 import { AmplifyBranchLinkerCustomResourceEventHandler } from './branch_linker.js';
 import {
   AmplifyClient,
-  Branch,
+  type Branch,
   GetBranchCommand,
-  GetBranchCommandOutput,
+  type GetBranchCommandOutput,
   NotFoundException,
-  UpdateBranchCommandInput,
+  type UpdateBranchCommandInput,
 } from '@aws-sdk/client-amplify';
-import { CloudFormationCustomResourceEvent } from 'aws-lambda';
-import { AmplifyBranchLinkerCustomResourceProps } from './branch_linker_types.js';
+import { type CloudFormationCustomResourceEvent } from 'aws-lambda';
+import { type AmplifyBranchLinkerCustomResourceProps } from './branch_linker_types.js';
 
 const amplifyClient: AmplifyClient = new AmplifyClient();
 

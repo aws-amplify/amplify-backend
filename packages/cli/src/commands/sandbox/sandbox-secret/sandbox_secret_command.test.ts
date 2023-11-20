@@ -1,5 +1,5 @@
 import { describe, it } from 'node:test';
-import yargs, { CommandModule } from 'yargs';
+import yargs, { type CommandModule } from 'yargs';
 import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
 import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';

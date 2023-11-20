@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import {
-  TestCommandError,
+  type TestCommandError,
   TestCommandRunner,
 } from './test-utils/command_runner.js';
 import { createMainParser } from './main_parser_factory.js';

@@ -1,4 +1,4 @@
-import { CfnElement, Stack } from 'aws-cdk-lib';
+import { type CfnElement, Stack } from 'aws-cdk-lib';
 
 /**
  * Test implementation of AmplifyStack. Currently copied from the real implementation of AmplifyStack but the implementations do not need to match going forward

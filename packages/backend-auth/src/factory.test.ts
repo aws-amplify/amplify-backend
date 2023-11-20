@@ -4,15 +4,18 @@ import { App, Stack, aws_lambda } from 'aws-cdk-lib';
 import assert from 'node:assert';
 import { Match, Template } from 'aws-cdk-lib/assertions';
 import {
-  BackendOutputEntry,
-  BackendOutputStorageStrategy,
-  ConstructContainer,
-  ConstructFactory,
-  FunctionResources,
-  ImportPathVerifier,
-  ResourceProvider,
+  type BackendOutputEntry,
+  type BackendOutputStorageStrategy,
+  type ConstructContainer,
+  type ConstructFactory,
+  type FunctionResources,
+  type ImportPathVerifier,
+  type ResourceProvider,
 } from '@aws-amplify/plugin-types';
-import { AmplifyAuth, triggerEvents } from '@aws-amplify/auth-construct-alpha';
+import {
+  type AmplifyAuth,
+  triggerEvents,
+} from '@aws-amplify/auth-construct-alpha';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 import {
   ConstructContainerStub,

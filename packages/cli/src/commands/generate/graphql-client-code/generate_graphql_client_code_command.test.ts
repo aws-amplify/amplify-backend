@@ -1,10 +1,10 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { GenerateGraphqlClientCodeCommand } from './generate_graphql_client_code_command.js';
-import yargs, { CommandModule } from 'yargs';
+import yargs, { type CommandModule } from 'yargs';
 import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
-import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { type BackendIdentifier } from '@aws-amplify/plugin-types';
 import path from 'path';
 import { AppBackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
 import { GenerateApiCodeAdapter } from './generate_api_code_adapter.js';

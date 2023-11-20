@@ -1,10 +1,10 @@
 import {
-  BackendIdentifier,
-  BackendSecret,
-  BackendSecretResolver,
+  type BackendIdentifier,
+  type BackendSecret,
+  type BackendSecretResolver,
 } from '@aws-amplify/plugin-types';
-import { SecretValue } from 'aws-cdk-lib';
-import { Construct } from 'constructs';
+import { type SecretValue } from 'aws-cdk-lib';
+import { type Construct } from 'constructs';
 
 /**
  * DefaultBackendSecretResolver resolves a backend secret.

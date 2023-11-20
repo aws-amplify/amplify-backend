@@ -4,14 +4,14 @@ import {
   ApiCodeGenerator,
   GenerateApiCodeFormat,
   GenerateApiCodeModelTarget,
-  GenerateApiCodeProps,
+  type GenerateApiCodeProps,
   GenerateApiCodeStatementTarget,
   GenerateApiCodeTypeTarget,
 } from './generate_api_code.js';
 import {
-  GraphqlDocumentGenerator,
-  GraphqlModelsGenerator,
-  GraphqlTypesGenerator,
+  type GraphqlDocumentGenerator,
+  type GraphqlModelsGenerator,
+  type GraphqlTypesGenerator,
 } from './model_generator.js';
 
 void describe('generateAPICode', () => {

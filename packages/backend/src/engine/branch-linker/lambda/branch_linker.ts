@@ -1,17 +1,17 @@
 import {
-  CloudFormationCustomResourceEvent,
-  CloudFormationCustomResourceSuccessResponse,
+  type CloudFormationCustomResourceEvent,
+  type CloudFormationCustomResourceSuccessResponse,
 } from 'aws-lambda';
 import { randomUUID } from 'node:crypto';
 import {
   AmplifyClient,
-  Branch,
+  type Branch,
   GetBranchCommand,
   NotFoundException,
   UpdateBranchCommand,
-  UpdateBranchCommandInput,
+  type UpdateBranchCommandInput,
 } from '@aws-sdk/client-amplify';
-import { AmplifyBranchLinkerCustomResourceProps } from './branch_linker_types.js';
+import { type AmplifyBranchLinkerCustomResourceProps } from './branch_linker_types.js';
 
 /**
  * Handles custom resource events.

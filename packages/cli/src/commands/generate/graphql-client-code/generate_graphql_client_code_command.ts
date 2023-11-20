@@ -1,20 +1,20 @@
-import { Argv, CommandModule } from 'yargs';
-import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
+import { type Argv, type CommandModule } from 'yargs';
+import { type BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
 import { isAbsolute, resolve } from 'path';
 import {
-  GenerateApiCodeAdapter,
-  InvokeGenerateApiCodeProps,
+  type GenerateApiCodeAdapter,
+  type InvokeGenerateApiCodeProps,
 } from './generate_api_code_adapter.js';
 import {
   GenerateApiCodeFormat,
   GenerateApiCodeModelTarget,
   GenerateApiCodeStatementTarget,
   GenerateApiCodeTypeTarget,
-  GenerateGraphqlCodegenOptions,
-  GenerateIntrospectionOptions,
-  GenerateModelsOptions,
+  type GenerateGraphqlCodegenOptions,
+  type GenerateIntrospectionOptions,
+  type GenerateModelsOptions,
 } from '@aws-amplify/model-generator';
-import { ArgumentsKebabCase } from '../../../kebab_case.js';
+import { type ArgumentsKebabCase } from '../../../kebab_case.js';
 import { handleCommandFailure } from '../../../command_failure_handler.js';
 
 type GenerateOptions =

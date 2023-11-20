@@ -1,9 +1,9 @@
-import { Construct } from 'constructs';
-import { ConstructFactory } from '@aws-amplify/plugin-types';
-import { Stack } from 'aws-cdk-lib';
+import { type Construct } from 'constructs';
+import { type ConstructFactory } from '@aws-amplify/plugin-types';
+import { type Stack } from 'aws-cdk-lib';
 import {
   NestedStackResolver,
-  StackResolver,
+  type StackResolver,
 } from './engine/nested_stack_resolver.js';
 import { SingletonConstructContainer } from './engine/singleton_construct_container.js';
 import { ToggleableImportPathVerifier } from './engine/toggleable_import_path_verifier.js';
@@ -15,7 +15,7 @@ import { createDefaultStack } from './default_stack_factory.js';
 import { getBackendIdentifier } from './backend_identifier.js';
 import { platformOutputKey } from '@aws-amplify/backend-output-schemas';
 import { fileURLToPath } from 'url';
-import { Backend } from './backend.js';
+import { type Backend } from './backend.js';
 import { AmplifyBranchLinkerConstruct } from './engine/branch-linker/branch_linker_construct.js';
 
 // Be very careful editing this value. It is the value used in the BI metrics to attribute stacks as Amplify root stacks

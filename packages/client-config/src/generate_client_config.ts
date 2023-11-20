@@ -1,9 +1,9 @@
-import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
+import { type AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { ClientConfigGeneratorFactory } from './client_config_generator_factory.js';
-import { ClientConfig } from './client-config-types/client_config.js';
+import { type ClientConfig } from './client-config-types/client_config.js';
 import {
   BackendOutputClientFactory,
-  DeployedBackendIdentifier,
+  type DeployedBackendIdentifier,
 } from '@aws-amplify/deployed-backend-client';
 
 // Because this function is acting as the DI container for this functionality, there is no way to test it without

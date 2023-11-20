@@ -3,8 +3,8 @@ import fs from 'fs/promises';
 import assert from 'node:assert';
 import path from 'path';
 import { createEmptyAmplifyProject } from './create_empty_amplify_project.js';
-import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
-import { TestProjectCreator } from './test_project_creator.js';
+import { type CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import { type TestProjectCreator } from './test_project_creator.js';
 
 /**
  * Creates minimal test projects with typescript idioms.

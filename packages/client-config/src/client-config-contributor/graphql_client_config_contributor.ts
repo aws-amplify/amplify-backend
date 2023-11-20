@@ -1,10 +1,10 @@
-import { ClientConfigContributor } from './client_config_contributor.js';
+import { type ClientConfigContributor } from './client_config_contributor.js';
 import {
-  UnifiedBackendOutput,
+  type UnifiedBackendOutput,
   graphqlOutputKey,
 } from '@aws-amplify/backend-output-schemas';
-import { GraphqlClientConfig } from '../client-config-types/graphql_client_config.js';
-import { ModelIntrospectionSchemaAdapter } from './model_introspection_schema_adapater.js';
+import { type GraphqlClientConfig } from '../client-config-types/graphql_client_config.js';
+import { type ModelIntrospectionSchemaAdapter } from './model_introspection_schema_adapater.js';
 
 /**
  * Translator for the Graphql API portion of ClientConfig

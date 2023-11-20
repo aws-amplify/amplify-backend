@@ -1,11 +1,11 @@
 import {
-  ClientConfig,
-  ClientConfigFormat,
+  type ClientConfig,
+  type ClientConfigFormat,
   generateClientConfig,
   generateClientConfigToFile,
 } from '@aws-amplify/client-config';
-import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
-import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
+import { type DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
+import { type AwsCredentialIdentityProvider } from '@aws-sdk/types';
 
 /**
  * Adapts static generateClientConfigToFile from @aws-amplify/client-config call to make it injectable and testable.

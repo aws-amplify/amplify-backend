@@ -1,6 +1,6 @@
-import { Construct } from 'constructs';
-import { ConstructFactory } from './construct_factory.js';
-import { BackendSecretResolver } from './backend_secret_resolver.js';
+import { type Construct } from 'constructs';
+import { type ConstructFactory } from './construct_factory.js';
+import { type BackendSecretResolver } from './backend_secret_resolver.js';
 
 /**
  * Initializes a CDK Construct in a given scope

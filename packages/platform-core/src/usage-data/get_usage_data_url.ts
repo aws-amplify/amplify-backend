@@ -1,4 +1,4 @@
-import url, { UrlWithStringQuery } from 'url';
+import url, { type UrlWithStringQuery } from 'url';
 import { latestApiVersion } from './constants.js';
 
 let cachedUrl: UrlWithStringQuery;

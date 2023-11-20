@@ -1,9 +1,9 @@
-import { DerivedModelSchema } from '@aws-amplify/data-schema-types';
+import { type DerivedModelSchema } from '@aws-amplify/data-schema-types';
 import {
   AmplifyDataDefinition,
-  IAmplifyDataDefinition,
+  type IAmplifyDataDefinition,
 } from '@aws-amplify/data-construct';
-import { DataSchema } from './types.js';
+import { type DataSchema } from './types.js';
 
 /**
  * Determine if the input schema is a derived model schema, and perform type narrowing.

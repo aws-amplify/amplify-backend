@@ -5,7 +5,7 @@ import { EOL } from 'node:os';
 import { DEFAULT_PROFILE } from '@smithy/shared-ini-file-loader';
 import fs from 'fs/promises';
 import path from 'path';
-import { ArgumentsCamelCase } from 'yargs';
+import { type ArgumentsCamelCase } from 'yargs';
 
 const restoreEnv = (restoreVal: string | undefined, envVar: string) => {
   if (restoreVal) {

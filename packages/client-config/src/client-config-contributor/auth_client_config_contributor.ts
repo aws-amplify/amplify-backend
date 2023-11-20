@@ -1,9 +1,9 @@
-import { ClientConfigContributor } from './client_config_contributor.js';
+import { type ClientConfigContributor } from './client_config_contributor.js';
 import {
-  UnifiedBackendOutput,
+  type UnifiedBackendOutput,
   authOutputKey,
 } from '@aws-amplify/backend-output-schemas';
-import { AuthClientConfig } from '../client-config-types/auth_client_config.js';
+import { type AuthClientConfig } from '../client-config-types/auth_client_config.js';
 
 /**
  * Translator for the Auth portion of ClientConfig

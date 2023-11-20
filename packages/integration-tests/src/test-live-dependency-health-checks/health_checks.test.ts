@@ -4,7 +4,7 @@ import path from 'path';
 import os from 'os';
 import { execa } from 'execa';
 import { amplifyCli } from '../process-controller/process_controller.js';
-import { TestBranch, amplifyAppPool } from '../amplify_app_pool.js';
+import { type TestBranch, amplifyAppPool } from '../amplify_app_pool.js';
 import assert from 'node:assert';
 import { existsSync } from 'fs';
 import {

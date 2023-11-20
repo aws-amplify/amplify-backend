@@ -1,23 +1,26 @@
 import { Duration } from 'aws-cdk-lib';
-import { IUserPool } from 'aws-cdk-lib/aws-cognito';
-import { IRole } from 'aws-cdk-lib/aws-iam';
+import { type IUserPool } from 'aws-cdk-lib/aws-cognito';
+import { type IRole } from 'aws-cdk-lib/aws-iam';
 import {
-  ApiKeyAuthorizationConfig as CDKApiKeyAuthorizationConfig,
-  AuthorizationModes as CDKAuthorizationModes,
-  IAMAuthorizationConfig as CDKIAMAuthorizationConfig,
-  LambdaAuthorizationConfig as CDKLambdaAuthorizationConfig,
-  OIDCAuthorizationConfig as CDKOIDCAuthorizationConfig,
-  UserPoolAuthorizationConfig as CDKUserPoolAuthorizationConfig,
+  type ApiKeyAuthorizationConfig as CDKApiKeyAuthorizationConfig,
+  type AuthorizationModes as CDKAuthorizationModes,
+  type IAMAuthorizationConfig as CDKIAMAuthorizationConfig,
+  type LambdaAuthorizationConfig as CDKLambdaAuthorizationConfig,
+  type OIDCAuthorizationConfig as CDKOIDCAuthorizationConfig,
+  type UserPoolAuthorizationConfig as CDKUserPoolAuthorizationConfig,
 } from '@aws-amplify/data-construct';
 import {
-  ApiKeyAuthorizationModeProps,
-  AuthorizationModes,
-  DefaultAuthorizationMode,
-  LambdaAuthorizationModeProps,
-  OIDCAuthorizationModeProps,
+  type ApiKeyAuthorizationModeProps,
+  type AuthorizationModes,
+  type DefaultAuthorizationMode,
+  type LambdaAuthorizationModeProps,
+  type OIDCAuthorizationModeProps,
 } from './types.js';
-import { FunctionInstanceProvider } from './convert_functions.js';
-import { AuthResources, ResourceProvider } from '@aws-amplify/plugin-types';
+import { type FunctionInstanceProvider } from './convert_functions.js';
+import {
+  type AuthResources,
+  type ResourceProvider,
+} from '@aws-amplify/plugin-types';
 
 const DEFAULT_API_KEY_EXPIRATION_DAYS = 7;
 const DEFAULT_LAMBDA_AUTH_TIME_TO_LIVE_SECONDS = 60;

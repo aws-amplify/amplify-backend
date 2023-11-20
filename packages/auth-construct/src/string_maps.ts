@@ -1,4 +1,4 @@
-import { StandardAttributes } from 'aws-cdk-lib/aws-cognito';
+import { type StandardAttributes } from 'aws-cdk-lib/aws-cognito';
 
 // refer: https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-settings-attributes.html
 const coreAttributeNameMap: {

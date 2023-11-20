@@ -4,7 +4,7 @@ import { CfnTokenBackendSecret } from './backend_secret.js';
 import { App, SecretValue, Stack } from 'aws-cdk-lib';
 import { BackendSecretFetcherProviderFactory } from './backend_secret_fetcher_provider_factory.js';
 import { BackendSecretFetcherFactory } from './backend_secret_fetcher_factory.js';
-import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { type BackendIdentifier } from '@aws-amplify/plugin-types';
 
 const namespace = 'testId';
 const name = 'testBranch';

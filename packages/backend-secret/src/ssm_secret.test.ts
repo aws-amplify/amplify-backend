@@ -1,7 +1,7 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import {
-  GetParameterCommandOutput,
-  GetParametersByPathCommandOutput,
+  type GetParameterCommandOutput,
+  type GetParametersByPathCommandOutput,
   InternalServerError,
   ParameterNotFound,
   SSM,
@@ -9,8 +9,12 @@ import {
 import { SSMSecretClient } from './ssm_secret.js';
 import assert from 'node:assert';
 import { SecretError } from './secret_error.js';
-import { Secret, SecretIdentifier, SecretListItem } from './secret.js';
-import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import {
+  type Secret,
+  type SecretIdentifier,
+  type SecretListItem,
+} from './secret.js';
+import { type BackendIdentifier } from '@aws-amplify/plugin-types';
 
 const shared = 'shared';
 const testBackendId = 'testBackendId';

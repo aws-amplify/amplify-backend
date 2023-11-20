@@ -1,11 +1,11 @@
 import debounce from 'debounce-promise';
-import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { type BackendIdentifier } from '@aws-amplify/plugin-types';
 import {
-  BackendDeployer,
-  DeployResult,
-  DestroyResult,
+  type BackendDeployer,
+  type DeployResult,
+  type DestroyResult,
 } from '@aws-amplify/backend-deployer';
-import { SecretClient } from '@aws-amplify/backend-secret';
+import { type SecretClient } from '@aws-amplify/backend-secret';
 
 /**
  * Execute CDK commands.

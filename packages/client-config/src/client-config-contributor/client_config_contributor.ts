@@ -1,5 +1,5 @@
-import { ClientConfig } from '../client-config-types/client_config.js';
-import { UnifiedBackendOutput } from '@aws-amplify/backend-output-schemas';
+import { type ClientConfig } from '../client-config-types/client_config.js';
+import { type UnifiedBackendOutput } from '@aws-amplify/backend-output-schemas';
 
 export type ClientConfigContributor = {
   contribute: (

@@ -4,7 +4,7 @@ import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import assert from 'node:assert';
 import path from 'node:path';
 import { describe, it, mock } from 'node:test';
-import yargs, { CommandModule } from 'yargs';
+import yargs, { type CommandModule } from 'yargs';
 import { AppBackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
 import { BackendIdentifierResolverWithFallback } from '../../../backend-identifier/backend_identifier_with_sandbox_fallback.js';
 import { FormGenerationHandler } from '../../../form-generation/form_generation_handler.js';

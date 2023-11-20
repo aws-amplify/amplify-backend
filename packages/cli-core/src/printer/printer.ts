@@ -1,4 +1,4 @@
-import { COLOR, color } from '../colors.js';
+import { type COLOR, color } from '../colors.js';
 import { EOL } from 'os';
 
 export type RecordValue = string | number | string[] | Date;

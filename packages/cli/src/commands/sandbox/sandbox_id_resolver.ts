@@ -1,6 +1,6 @@
 import { userInfo as _userInfo } from 'os';
-import { NamespaceResolver } from '../../backend-identifier/local_namespace_resolver.js';
-import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { type NamespaceResolver } from '../../backend-identifier/local_namespace_resolver.js';
+import { type BackendIdentifier } from '@aws-amplify/plugin-types';
 
 /**
  * Resolves an ID that can be used to uniquely identify sandbox environments

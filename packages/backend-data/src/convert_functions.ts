@@ -1,8 +1,8 @@
-import { IFunction } from 'aws-cdk-lib/aws-lambda';
+import { type IFunction } from 'aws-cdk-lib/aws-lambda';
 import {
-  AmplifyFunction,
-  ConstructFactory,
-  ConstructFactoryGetInstanceProps,
+  type AmplifyFunction,
+  type ConstructFactory,
+  type ConstructFactoryGetInstanceProps,
 } from '@aws-amplify/plugin-types';
 
 /**

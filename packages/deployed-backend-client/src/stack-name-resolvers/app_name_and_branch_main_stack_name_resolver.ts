@@ -1,5 +1,5 @@
-import { MainStackNameResolver } from '@aws-amplify/plugin-types';
-import { AmplifyClient, ListAppsCommand } from '@aws-sdk/client-amplify';
+import { type MainStackNameResolver } from '@aws-amplify/plugin-types';
+import { type AmplifyClient, ListAppsCommand } from '@aws-sdk/client-amplify';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 
 /**

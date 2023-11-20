@@ -1,7 +1,7 @@
 import {
-  ModelsTarget,
-  StatementsTarget,
-  TypesTarget,
+  type ModelsTarget,
+  type StatementsTarget,
+  type TypesTarget,
 } from '@aws-amplify/graphql-generator';
 export type TargetLanguage = StatementsTarget;
 

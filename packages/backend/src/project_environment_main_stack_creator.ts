@@ -1,6 +1,9 @@
-import { BackendIdentifier, MainStackCreator } from '@aws-amplify/plugin-types';
-import { Construct } from 'constructs';
-import { Stack } from 'aws-cdk-lib';
+import {
+  type BackendIdentifier,
+  type MainStackCreator,
+} from '@aws-amplify/plugin-types';
+import { type Construct } from 'constructs';
+import { type Stack } from 'aws-cdk-lib';
 import { AmplifyStack } from './engine/amplify_stack.js';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 

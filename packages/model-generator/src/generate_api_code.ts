@@ -1,18 +1,18 @@
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
-import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
+import { type AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import {
-  DocumentGenerationParameters,
-  GenerationResult,
-  GraphqlDocumentGenerator,
-  GraphqlModelsGenerator,
-  GraphqlTypesGenerator,
+  type DocumentGenerationParameters,
+  type GenerationResult,
+  type GraphqlDocumentGenerator,
+  type GraphqlModelsGenerator,
+  type GraphqlTypesGenerator,
 } from './model_generator.js';
 import { createGraphqlModelsGenerator } from './create_graphql_models_generator.js';
 import { createGraphqlTypesGenerator } from './create_graphql_types_generator.js';
 import { createGraphqlDocumentGenerator } from './create_graphql_document_generator.js';
 import { getOutputFileName } from '@aws-amplify/graphql-types-generator';
 import path from 'path';
-import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
+import { type DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
 
 export enum GenerateApiCodeFormat {
   MODELGEN = 'modelgen',

@@ -1,8 +1,8 @@
-import { Argv, CommandModule } from 'yargs';
+import { type Argv, type CommandModule } from 'yargs';
 import { ClientConfigFormat } from '@aws-amplify/client-config';
-import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
-import { ClientConfigGeneratorAdapter } from '../../../client-config/client_config_generator_adapter.js';
-import { ArgumentsKebabCase } from '../../../kebab_case.js';
+import { type BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
+import { type ClientConfigGeneratorAdapter } from '../../../client-config/client_config_generator_adapter.js';
+import { type ArgumentsKebabCase } from '../../../kebab_case.js';
 import { handleCommandFailure } from '../../../command_failure_handler.js';
 
 export type GenerateConfigCommandOptions =

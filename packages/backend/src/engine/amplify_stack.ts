@@ -1,4 +1,4 @@
-import { CfnElement, Stack } from 'aws-cdk-lib';
+import { type CfnElement, Stack } from 'aws-cdk-lib';
 
 /**
  * Amplify-specific Stack implementation to handle cross-cutting concerns for all Amplify stacks

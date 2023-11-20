@@ -1,8 +1,8 @@
-import { PackageManagerController } from './package_manager_controller.js';
-import { ProjectRootValidator } from './project_root_validator.js';
-import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
-import { NpmProjectInitializer } from './npm_project_initializer.js';
-import { GitIgnoreInitializer } from './gitignore_initializer.js';
+import { type PackageManagerController } from './package_manager_controller.js';
+import { type ProjectRootValidator } from './project_root_validator.js';
+import { type InitialProjectFileGenerator } from './initial_project_file_generator.js';
+import { type NpmProjectInitializer } from './npm_project_initializer.js';
+import { type GitIgnoreInitializer } from './gitignore_initializer.js';
 import { logger } from './logger.js';
 
 /**

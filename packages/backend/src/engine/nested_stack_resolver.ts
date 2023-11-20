@@ -1,5 +1,5 @@
-import { NestedStack, Stack } from 'aws-cdk-lib';
-import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage';
+import { NestedStack, type Stack } from 'aws-cdk-lib';
+import { type AttributionMetadataStorage } from '@aws-amplify/backend-output-storage';
 import { fileURLToPath } from 'url';
 
 /**

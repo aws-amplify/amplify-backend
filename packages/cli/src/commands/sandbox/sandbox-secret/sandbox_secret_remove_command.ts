@@ -1,7 +1,7 @@
-import { Argv, CommandModule } from 'yargs';
-import { SecretClient } from '@aws-amplify/backend-secret';
-import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
-import { ArgumentsKebabCase } from '../../../kebab_case.js';
+import { type Argv, type CommandModule } from 'yargs';
+import { type SecretClient } from '@aws-amplify/backend-secret';
+import { type SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
+import { type ArgumentsKebabCase } from '../../../kebab_case.js';
 import { handleCommandFailure } from '../../../command_failure_handler.js';
 
 /**

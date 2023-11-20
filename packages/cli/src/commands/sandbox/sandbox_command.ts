@@ -1,16 +1,16 @@
-import { Argv, CommandModule } from 'yargs';
+import { type Argv, type CommandModule } from 'yargs';
 import fsp from 'fs/promises';
 import { AmplifyPrompter } from '@aws-amplify/cli-core';
-import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
+import { type SandboxSingletonFactory } from '@aws-amplify/sandbox';
 import {
   ClientConfigFormat,
   getClientConfigPath,
 } from '@aws-amplify/client-config';
-import { ArgumentsKebabCase } from '../../kebab_case.js';
+import { type ArgumentsKebabCase } from '../../kebab_case.js';
 import { handleCommandFailure } from '../../command_failure_handler.js';
 import { ClientConfigLifecycleHandler } from '../../client-config/client_config_lifecycle_handler.js';
-import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
-import { CommandMiddleware } from '../../command_middleware.js';
+import { type ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
+import { type CommandMiddleware } from '../../command_middleware.js';
 
 export type SandboxCommandOptions =
   ArgumentsKebabCase<SandboxCommandOptionsCamelCase>;

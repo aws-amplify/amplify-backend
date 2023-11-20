@@ -1,10 +1,10 @@
 import { UnifiedClientConfigGenerator } from './unified_client_config_generator.js';
 import { AuthClientConfigContributor } from './client-config-contributor/auth_client_config_contributor.js';
 import { GraphqlClientConfigContributor } from './client-config-contributor/graphql_client_config_contributor.js';
-import { ClientConfigGenerator } from './client_config_generator.js';
+import { type ClientConfigGenerator } from './client_config_generator.js';
 import { StorageClientConfigContributor } from './client-config-contributor/storage_client_config_contributor.js';
-import { BackendOutput } from '@aws-amplify/plugin-types';
-import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
+import { type BackendOutput } from '@aws-amplify/plugin-types';
+import { type AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { ModelIntrospectionSchemaAdapter } from './client-config-contributor/model_introspection_schema_adapater.js';
 import { PlatformClientConfigContributor } from './client-config-contributor/platform_client_config_contributor.js';
 

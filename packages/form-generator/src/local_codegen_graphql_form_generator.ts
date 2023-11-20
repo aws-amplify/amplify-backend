@@ -1,24 +1,24 @@
 import {
-  FormFeatureFlags,
-  GenericDataSchema,
-  StudioForm,
-  StudioSchema,
+  type FormFeatureFlags,
+  type GenericDataSchema,
+  type StudioForm,
+  type StudioSchema,
 } from '@aws-amplify/codegen-ui';
 import {
   AmplifyFormRenderer,
   ModuleKind,
   ReactIndexStudioTemplateRenderer,
-  ReactRenderConfig,
+  type ReactRenderConfig,
   ReactUtilsStudioTemplateRenderer,
   ScriptKind,
   ScriptTarget,
-  UtilTemplateType,
+  type UtilTemplateType,
   getDeclarationFilename,
 } from '@aws-amplify/codegen-ui-react';
 import {
-  FormGenerationOptions,
-  GraphqlFormGenerator,
-  GraphqlGenerationResult,
+  type FormGenerationOptions,
+  type GraphqlFormGenerator,
+  type GraphqlGenerationResult,
 } from './graphql_form_generator.js';
 
 type FormDef = Set<'create' | 'update'>;

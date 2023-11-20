@@ -4,9 +4,9 @@ import {
 } from '@aws-amplify/graphql-generator';
 import { Source } from 'graphql';
 import {
-  GenerationResult,
-  GraphqlTypesGenerator,
-  TypesGenerationParameters,
+  type GenerationResult,
+  type GraphqlTypesGenerator,
+  type TypesGenerationParameters,
 } from './model_generator.js';
 
 /**

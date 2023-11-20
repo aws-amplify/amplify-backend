@@ -1,4 +1,4 @@
-import { SerializableError } from './serializable_error';
+import { type SerializableError } from './serializable_error';
 
 export type UsageData = {
   sessionUuid: string;

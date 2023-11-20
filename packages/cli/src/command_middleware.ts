@@ -1,4 +1,4 @@
-import { ArgumentsCamelCase } from 'yargs';
+import { type ArgumentsCamelCase } from 'yargs';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { EOL } from 'os';
 import { loadConfig } from '@smithy/node-config-provider';

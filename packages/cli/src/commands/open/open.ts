@@ -1,5 +1,5 @@
 import opn from 'open';
-import { ChildProcess } from 'child_process';
+import { type ChildProcess } from 'child_process';
 import { Printer } from '@aws-amplify/cli-core';
 
 /**

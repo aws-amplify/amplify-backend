@@ -1,5 +1,8 @@
-import { DerivedModelSchema } from '@aws-amplify/data-schema-types';
-import { AmplifyFunction, ConstructFactory } from '@aws-amplify/plugin-types';
+import { type DerivedModelSchema } from '@aws-amplify/data-schema-types';
+import {
+  type AmplifyFunction,
+  type ConstructFactory,
+} from '@aws-amplify/plugin-types';
 
 /**
  * Authorization modes used in by client side Amplify represented in camelCase.

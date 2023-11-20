@@ -1,4 +1,4 @@
-import { DeploymentType } from './deployment_type';
+import { type DeploymentType } from './deployment_type';
 
 /**
  * These are some utility types to make the BackendIdentifier a bit more self-documenting

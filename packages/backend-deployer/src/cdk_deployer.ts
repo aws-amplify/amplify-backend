@@ -2,15 +2,18 @@ import { execa } from 'execa';
 import stream from 'stream';
 import readline from 'readline';
 import {
-  BackendDeployer,
-  DeployProps,
-  DeployResult,
-  DestroyProps,
-  DestroyResult,
+  type BackendDeployer,
+  type DeployProps,
+  type DeployResult,
+  type DestroyProps,
+  type DestroyResult,
 } from './cdk_deployer_singleton_factory.js';
-import { CdkErrorMapper } from './cdk_error_mapper.js';
-import { BackendIdentifier, DeploymentType } from '@aws-amplify/plugin-types';
-import { BackendLocator, CDKContextKey } from '@aws-amplify/platform-core';
+import { type CdkErrorMapper } from './cdk_error_mapper.js';
+import {
+  type BackendIdentifier,
+  type DeploymentType,
+} from '@aws-amplify/plugin-types';
+import { type BackendLocator, CDKContextKey } from '@aws-amplify/platform-core';
 import { dirname } from 'path';
 
 /**

@@ -1,10 +1,10 @@
 import _isCI from 'is-ci';
-import { Argv, CommandModule } from 'yargs';
-import { BackendDeployer } from '@aws-amplify/backend-deployer';
-import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
-import { ArgumentsKebabCase } from '../../kebab_case.js';
+import { type Argv, type CommandModule } from 'yargs';
+import { type BackendDeployer } from '@aws-amplify/backend-deployer';
+import { type ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
+import { type ArgumentsKebabCase } from '../../kebab_case.js';
 import { handleCommandFailure } from '../../command_failure_handler.js';
-import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { type BackendIdentifier } from '@aws-amplify/plugin-types';
 
 export type PipelineDeployCommandOptions =
   ArgumentsKebabCase<PipelineDeployCommandOptionsCamelCase>;

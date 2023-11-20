@@ -1,5 +1,8 @@
-import { CommandModule } from 'yargs';
-import { SandboxCommand, SandboxCommandOptions } from './sandbox_command.js';
+import { type CommandModule } from 'yargs';
+import {
+  SandboxCommand,
+  type SandboxCommandOptions,
+} from './sandbox_command.js';
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
 import { SandboxDeleteCommand } from './sandbox-delete/sandbox_delete_command.js';
 import { SandboxBackendIdResolver } from './sandbox_id_resolver.js';

@@ -1,4 +1,4 @@
-import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { type BackendIdentifier } from '@aws-amplify/plugin-types';
 import { createHash } from 'crypto';
 
 const STACK_NAME_LENGTH_LIMIT = 128;

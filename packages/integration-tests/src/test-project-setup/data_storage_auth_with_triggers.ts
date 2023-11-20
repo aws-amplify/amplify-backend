@@ -1,12 +1,15 @@
 import fs from 'fs/promises';
-import { SecretClient } from '@aws-amplify/backend-secret';
-import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { type SecretClient } from '@aws-amplify/backend-secret';
+import { type BackendIdentifier } from '@aws-amplify/plugin-types';
 import { createEmptyAmplifyProject } from './create_empty_amplify_project.js';
-import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
-import { TestProjectBase, TestProjectUpdate } from './test_project_base.js';
+import { type CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import {
+  TestProjectBase,
+  type TestProjectUpdate,
+} from './test_project_base.js';
 import { fileURLToPath, pathToFileURL } from 'url';
 import path from 'path';
-import { TestProjectCreator } from './test_project_creator.js';
+import { type TestProjectCreator } from './test_project_creator.js';
 
 type TestConstant = {
   secretNames: {

@@ -1,5 +1,5 @@
 import { fileURLToPath } from 'url';
-import yargs, { Argv } from 'yargs';
+import yargs, { type Argv } from 'yargs';
 import { PackageJsonReader } from '@aws-amplify/platform-core';
 import { createGenerateCommand } from './commands/generate/generate_command_factory.js';
 import { createSandboxCommand } from './commands/sandbox/sandbox_command_factory.js';

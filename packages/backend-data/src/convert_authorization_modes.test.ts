@@ -2,22 +2,27 @@ import { beforeEach, describe, it } from 'node:test';
 import assert from 'node:assert';
 import { Duration, Stack } from 'aws-cdk-lib';
 import { UserPool } from 'aws-cdk-lib/aws-cognito';
-import { IRole, Role } from 'aws-cdk-lib/aws-iam';
-import { AuthorizationModes as CDKAuthorizationModes } from '@aws-amplify/data-construct';
-import { AuthorizationModes } from './types.js';
+import { type IRole, Role } from 'aws-cdk-lib/aws-iam';
+import { type AuthorizationModes as CDKAuthorizationModes } from '@aws-amplify/data-construct';
+import { type AuthorizationModes } from './types.js';
 import {
-  ProvidedAuthConfig,
+  type ProvidedAuthConfig,
   buildConstructFactoryProvidedAuthConfig,
   convertAuthorizationModesToCDK,
   isUsingDefaultApiKeyAuth,
 } from './convert_authorization_modes.js';
-import { Code, Function, IFunction, Runtime } from 'aws-cdk-lib/aws-lambda';
-import { FunctionInstanceProvider } from './convert_functions.js';
 import {
-  AmplifyFunction,
-  AuthResources,
-  ConstructFactory,
-  ResourceProvider,
+  Code,
+  Function,
+  type IFunction,
+  Runtime,
+} from 'aws-cdk-lib/aws-lambda';
+import { type FunctionInstanceProvider } from './convert_functions.js';
+import {
+  type AmplifyFunction,
+  type AuthResources,
+  type ConstructFactory,
+  type ResourceProvider,
 } from '@aws-amplify/plugin-types';
 
 void describe('buildConstructFactoryProvidedAuthConfig', () => {

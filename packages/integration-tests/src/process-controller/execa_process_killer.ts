@@ -1,4 +1,4 @@
-import { ExecaChildProcess, execa } from 'execa';
+import { type ExecaChildProcess, execa } from 'execa';
 
 /**
  * Kills the given process (equivalent of sending CTRL-C)

@@ -1,8 +1,8 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { ClientConfigConverter } from './client_config_converter.js';
-import { ClientConfigMobile } from '../client-config-types/mobile/client_config_mobile_types.js';
-import { ClientConfig } from '../client-config-types/client_config.js';
+import { type ClientConfigMobile } from '../client-config-types/mobile/client_config_mobile_types.js';
+import { type ClientConfig } from '../client-config-types/client_config.js';
 
 void describe('client config converter', () => {
   const testPackageName = 'test_package_name';

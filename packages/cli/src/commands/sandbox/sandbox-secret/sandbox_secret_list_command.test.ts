@@ -2,8 +2,8 @@ import { beforeEach, describe, it, mock } from 'node:test';
 import yargs from 'yargs';
 import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
-import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
-import { Secret, getSecretClient } from '@aws-amplify/backend-secret';
+import { type SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
+import { type Secret, getSecretClient } from '@aws-amplify/backend-secret';
 import { SandboxSecretListCommand } from './sandbox_secret_list_command.js';
 import { Printer } from '@aws-amplify/cli-core';
 

@@ -1,9 +1,9 @@
-import { ClientConfigContributor } from './client_config_contributor.js';
+import { type ClientConfigContributor } from './client_config_contributor.js';
 import {
-  UnifiedBackendOutput,
+  type UnifiedBackendOutput,
   platformOutputKey,
 } from '@aws-amplify/backend-output-schemas';
-import { PlatformClientConfig } from '../client-config-types/platform_client_config.js';
+import { type PlatformClientConfig } from '../client-config-types/platform_client_config.js';
 
 /**
  * Translator for the Platform portion of ClientConfig

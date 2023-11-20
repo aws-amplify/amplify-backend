@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { ArnGenerator } from './arn_generator.js';
-import { ResourceStatus } from '@aws-sdk/client-cloudformation';
+import { type ResourceStatus } from '@aws-sdk/client-cloudformation';
 
 void describe('arn generator', () => {
   const mockResourceSummaryBase = {

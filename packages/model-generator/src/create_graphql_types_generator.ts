@@ -1,14 +1,14 @@
 import { AppSyncClient } from '@aws-sdk/client-appsync';
 import {
   BackendOutputClientFactory,
-  DeployedBackendIdentifier,
+  type DeployedBackendIdentifier,
 } from '@aws-amplify/deployed-backend-client';
 import { graphqlOutputKey } from '@aws-amplify/backend-output-schemas';
-import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
+import { type AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { AppsyncGraphqlGenerationResult } from './appsync_graphql_generation_result.js';
 import { AppSyncIntrospectionSchemaFetcher } from './appsync_schema_fetcher.js';
 import { AppSyncGraphqlTypesGenerator } from './graphql_types_generator.js';
-import { GraphqlTypesGenerator } from './model_generator.js';
+import { type GraphqlTypesGenerator } from './model_generator.js';
 
 export type GraphqlTypesGeneratorFactoryParams = {
   backendIdentifier: DeployedBackendIdentifier;

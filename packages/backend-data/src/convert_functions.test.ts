@@ -1,16 +1,21 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { Stack } from 'aws-cdk-lib';
-import { Code, Function, IFunction, Runtime } from 'aws-cdk-lib/aws-lambda';
 import {
-  AmplifyFunction,
-  BackendOutputEntry,
-  BackendOutputStorageStrategy,
-  ConstructContainer,
-  ConstructFactory,
+  Code,
+  Function,
+  type IFunction,
+  Runtime,
+} from 'aws-cdk-lib/aws-lambda';
+import {
+  type AmplifyFunction,
+  type BackendOutputEntry,
+  type BackendOutputStorageStrategy,
+  type ConstructContainer,
+  type ConstructFactory,
 } from '@aws-amplify/plugin-types';
 import {
-  FunctionInstanceProvider,
+  type FunctionInstanceProvider,
   buildConstructFactoryFunctionInstanceProvider,
   convertFunctionNameMapToCDK,
 } from './convert_functions.js';

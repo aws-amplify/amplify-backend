@@ -1,4 +1,4 @@
-import { Options, execa, execaSync } from 'execa';
+import { type Options, execa, execaSync } from 'execa';
 import readline from 'readline';
 import { PredicatedActionBuilder } from './predicated_action_queue_builder.js';
 import { ActionType } from './predicated_action.js';

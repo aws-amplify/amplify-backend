@@ -1,4 +1,4 @@
-import { Stack } from 'aws-cdk-lib';
+import { type Stack } from 'aws-cdk-lib';
 
 /**
  * Interface for objects that can create stacks in a given scope

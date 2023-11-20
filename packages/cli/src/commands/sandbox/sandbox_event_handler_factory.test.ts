@@ -1,8 +1,8 @@
 import { ClientConfigFormat } from '@aws-amplify/client-config';
-import { UsageDataEmitter } from '@aws-amplify/platform-core';
+import { type UsageDataEmitter } from '@aws-amplify/platform-core';
 import assert from 'node:assert';
 import { afterEach, describe, it, mock } from 'node:test';
-import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
+import { type ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 import { SandboxEventHandlerFactory } from './sandbox_event_handler_factory.js';
 import { ClientConfigLifecycleHandler } from '../../client-config/client_config_lifecycle_handler.js';
 import fs from 'fs';

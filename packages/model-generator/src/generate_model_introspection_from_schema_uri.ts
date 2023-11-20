@@ -1,4 +1,4 @@
-import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
+import { type AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { createGraphqlModelsFromS3UriGenerator } from './create_graphql_models_generator.js';
 
 export type GetModelIntrospectionSchemaParams = {

@@ -1,12 +1,12 @@
-import { SSM } from '@aws-sdk/client-ssm';
+import { type SSM } from '@aws-sdk/client-ssm';
 import { SecretError } from './secret_error.js';
 import {
-  Secret,
-  SecretClient,
-  SecretIdentifier,
-  SecretListItem,
+  type Secret,
+  type SecretClient,
+  type SecretIdentifier,
+  type SecretListItem,
 } from './secret.js';
-import { AppId, BackendIdentifier } from '@aws-amplify/plugin-types';
+import { type AppId, type BackendIdentifier } from '@aws-amplify/plugin-types';
 
 const SHARED_SECRET = 'shared';
 

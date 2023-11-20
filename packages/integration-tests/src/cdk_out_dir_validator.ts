@@ -4,7 +4,11 @@ import assert from 'node:assert';
 import * as fse from 'fs-extra/esm';
 import * as fs from 'fs';
 import * as fsp from 'fs/promises';
-import { ObjectPath, Predicate, assertCustomMatch } from './object_compare.js';
+import {
+  type ObjectPath,
+  type Predicate,
+  assertCustomMatch,
+} from './object_compare.js';
 
 const UPDATE_SNAPSHOTS = process.env.UPDATE_INTEGRATION_SNAPSHOTS === 'true';
 

@@ -1,9 +1,9 @@
 import {
-  ClientConfigFormat,
+  type ClientConfigFormat,
   getClientConfigPath,
 } from '@aws-amplify/client-config';
-import { ClientConfigGeneratorAdapter } from './client_config_generator_adapter.js';
-import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
+import { type ClientConfigGeneratorAdapter } from './client_config_generator_adapter.js';
+import { type DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
 import fsp from 'fs/promises';
 
 /**

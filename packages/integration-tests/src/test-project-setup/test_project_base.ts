@@ -1,5 +1,5 @@
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
-import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { type BackendIdentifier } from '@aws-amplify/plugin-types';
 import { amplifyCli } from '../process-controller/process_controller.js';
 import {
   confirmDeleteSandbox,
@@ -9,7 +9,7 @@ import {
 } from '../process-controller/predicated_action_macros.js';
 
 import {
-  CloudFormationClient,
+  type CloudFormationClient,
   DeleteStackCommand,
 } from '@aws-sdk/client-cloudformation';
 

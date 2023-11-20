@@ -1,13 +1,13 @@
 import {
-  ConstructContainerEntryGenerator,
-  ConstructFactory,
-  ConstructFactoryGetInstanceProps,
+  type ConstructContainerEntryGenerator,
+  type ConstructFactory,
+  type ConstructFactoryGetInstanceProps,
 } from '@aws-amplify/plugin-types';
 import {
-  AmplifyFunctionProps,
+  type AmplifyFunctionProps,
   AmplifyLambdaFunction,
 } from '@aws-amplify/function-construct-alpha';
-import { Construct } from 'constructs';
+import { type Construct } from 'constructs';
 import { execaCommand } from 'execa';
 import * as path from 'path';
 import { getCallerDirectory } from './get_caller_directory.js';

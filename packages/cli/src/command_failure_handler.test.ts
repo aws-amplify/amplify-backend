@@ -1,6 +1,6 @@
 import { describe, it, mock } from 'node:test';
 import { handleCommandFailure } from './command_failure_handler.js';
-import { Argv } from 'yargs';
+import { type Argv } from 'yargs';
 import { COLOR, Printer } from '@aws-amplify/cli-core';
 import assert from 'node:assert';
 import { InvalidCredentialError } from './error/credential_error.js';

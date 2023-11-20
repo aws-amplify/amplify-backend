@@ -1,8 +1,8 @@
 import { describe, it, mock } from 'node:test';
 import { DefaultBackendSecretResolver } from './backend_secret_resolver.js';
 import { CfnTokenBackendSecret } from './backend_secret.js';
-import { BackendSecretFetcherFactory } from './backend_secret_fetcher_factory.js';
-import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { type BackendSecretFetcherFactory } from './backend_secret_fetcher_factory.js';
+import { type BackendIdentifier } from '@aws-amplify/plugin-types';
 import { App, Stack } from 'aws-cdk-lib';
 import assert from 'node:assert';
 

@@ -1,24 +1,24 @@
-import { Construct } from 'constructs';
+import { type Construct } from 'constructs';
 import {
-  AuthResources,
-  BackendOutputStorageStrategy,
-  ConstructContainerEntryGenerator,
-  ConstructFactory,
-  ConstructFactoryGetInstanceProps,
-  ResourceProvider,
+  type AuthResources,
+  type BackendOutputStorageStrategy,
+  type ConstructContainerEntryGenerator,
+  type ConstructFactory,
+  type ConstructFactoryGetInstanceProps,
+  type ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import { AmplifyData } from '@aws-amplify/data-construct';
-import { GraphqlOutput } from '@aws-amplify/backend-output-schemas';
+import { type GraphqlOutput } from '@aws-amplify/backend-output-schemas';
 import * as path from 'path';
-import { DataProps } from './types.js';
+import { type DataProps } from './types.js';
 import { convertSchemaToCDK } from './convert_schema.js';
 import {
-  FunctionInstanceProvider,
+  type FunctionInstanceProvider,
   buildConstructFactoryFunctionInstanceProvider,
   convertFunctionNameMapToCDK,
 } from './convert_functions.js';
 import {
-  ProvidedAuthConfig,
+  type ProvidedAuthConfig,
   buildConstructFactoryProvidedAuthConfig,
   convertAuthorizationModesToCDK,
   isUsingDefaultApiKeyAuth,

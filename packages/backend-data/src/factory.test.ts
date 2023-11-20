@@ -4,15 +4,15 @@ import { defineData } from './factory.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import {
-  AmplifyFunction,
-  AuthResources,
-  BackendOutputEntry,
-  BackendOutputStorageStrategy,
-  ConstructContainer,
-  ConstructFactory,
-  ConstructFactoryGetInstanceProps,
-  ImportPathVerifier,
-  ResourceProvider,
+  type AmplifyFunction,
+  type AuthResources,
+  type BackendOutputEntry,
+  type BackendOutputStorageStrategy,
+  type ConstructContainer,
+  type ConstructFactory,
+  type ConstructFactoryGetInstanceProps,
+  type ImportPathVerifier,
+  type ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import { Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import {
@@ -25,7 +25,7 @@ import {
 } from 'aws-cdk-lib/aws-cognito';
 import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
-import { AmplifyData } from '@aws-amplify/data-construct';
+import { type AmplifyData } from '@aws-amplify/data-construct';
 import {
   ConstructContainerStub,
   ImportPathVerifierStub,

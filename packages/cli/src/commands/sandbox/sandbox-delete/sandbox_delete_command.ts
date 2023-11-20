@@ -1,5 +1,5 @@
-import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
-import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
+import { type ArgumentsCamelCase, type Argv, type CommandModule } from 'yargs';
+import { type SandboxSingletonFactory } from '@aws-amplify/sandbox';
 import { AmplifyPrompter } from '@aws-amplify/cli-core';
 import { handleCommandFailure } from '../../../command_failure_handler.js';
 

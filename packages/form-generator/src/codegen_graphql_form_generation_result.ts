@@ -1,6 +1,6 @@
 import path from 'path';
 import fs from 'fs/promises';
-import { GraphqlGenerationResult } from './graphql_form_generator.js';
+import { type GraphqlGenerationResult } from './graphql_form_generator.js';
 
 /**
  * Encapsulates a result from a call to the codegen form generation service

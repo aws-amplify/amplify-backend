@@ -7,7 +7,7 @@ import {
   BackendSecretFetcherFactory,
   SECRET_RESOURCE_PROVIDER_ID,
 } from './backend_secret_fetcher_factory.js';
-import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { type BackendIdentifier } from '@aws-amplify/plugin-types';
 
 const secretResourceType = 'Custom::SecretFetcherResource';
 const namespace = 'testId';

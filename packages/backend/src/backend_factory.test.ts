@@ -1,7 +1,10 @@
 import { beforeEach, describe, it } from 'node:test';
-import { ConstructFactory, DeploymentType } from '@aws-amplify/plugin-types';
+import {
+  type ConstructFactory,
+  type DeploymentType,
+} from '@aws-amplify/plugin-types';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
-import { Construct } from 'constructs';
+import { type Construct } from 'constructs';
 import { BackendFactory } from './backend_factory.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';

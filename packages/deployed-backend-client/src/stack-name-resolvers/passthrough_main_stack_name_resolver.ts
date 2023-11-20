@@ -1,4 +1,4 @@
-import { MainStackNameResolver } from '@aws-amplify/plugin-types';
+import { type MainStackNameResolver } from '@aws-amplify/plugin-types';
 
 export type StackIdentifier = {
   stackName: string;

@@ -4,11 +4,11 @@ import { DefaultUsageDataEmitter } from './usage_data_emitter';
 import { v4, validate } from 'uuid';
 import url from 'url';
 import https from 'https';
-import http from 'http';
+import type http from 'http';
 import fs from 'fs';
 import os from 'os';
-import { AccountIdFetcher } from './account_id_fetcher';
-import { UsageData } from './usage_data';
+import { type AccountIdFetcher } from './account_id_fetcher';
+import { type UsageData } from './usage_data';
 import isCI from 'is-ci';
 
 void describe('UsageDataEmitter', () => {

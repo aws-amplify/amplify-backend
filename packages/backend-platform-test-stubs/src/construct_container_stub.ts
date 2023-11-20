@@ -1,10 +1,10 @@
-import { Construct } from 'constructs';
-import { StackResolver } from './stack_resolver_stub.js';
+import { type Construct } from 'constructs';
+import { type StackResolver } from './stack_resolver_stub.js';
 import {
-  BackendIdentifier,
-  ConstructContainer,
-  ConstructContainerEntryGenerator,
-  ConstructFactory,
+  type BackendIdentifier,
+  type ConstructContainer,
+  type ConstructContainerEntryGenerator,
+  type ConstructFactory,
 } from '@aws-amplify/plugin-types';
 import { BackendSecretResolverStub } from './backend_secret_resolver_stub.js';
 

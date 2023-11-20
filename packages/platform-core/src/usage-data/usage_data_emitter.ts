@@ -1,6 +1,6 @@
 import { v4 as uuid } from 'uuid';
 import { AccountIdFetcher } from './account_id_fetcher.js';
-import { UsageData } from './usage_data.js';
+import { type UsageData } from './usage_data.js';
 import os from 'os';
 import https from 'https';
 import { getInstallationUuid } from './get_installation_id.js';
@@ -8,7 +8,7 @@ import { latestPayloadVersion } from './constants.js';
 import { getUrl } from './get_usage_data_url.js';
 import isCI from 'is-ci';
 import { SerializableError } from './serializable_error.js';
-import { UsageDataEmitter } from './usage_data_emitter_factory.js';
+import { type UsageDataEmitter } from './usage_data_emitter_factory.js';
 
 /**
  * Entry point for sending usage data metrics

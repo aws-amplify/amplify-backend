@@ -1,17 +1,17 @@
-import { AmplifyClient } from '@aws-sdk/client-amplify';
-import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
-import { DeployedBackendIdentifier } from './deployed_backend_identifier.js';
+import { type AmplifyClient } from '@aws-sdk/client-amplify';
+import { type CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import { type DeployedBackendIdentifier } from './deployed_backend_identifier.js';
 import {
-  AppNameAndBranchBackendIdentifier,
+  type AppNameAndBranchBackendIdentifier,
   AppNameAndBranchMainStackNameResolver,
 } from './stack-name-resolvers/app_name_and_branch_main_stack_name_resolver.js';
 import {
   PassThroughMainStackNameResolver,
-  StackIdentifier,
+  type StackIdentifier,
 } from './stack-name-resolvers/passthrough_main_stack_name_resolver.js';
 import { BackendIdentifierMainStackNameResolver } from './stack-name-resolvers/backend_identifier_main_stack_name_resolver.js';
 import { StackMetadataBackendOutputRetrievalStrategy } from './stack_metadata_output_retrieval_strategy.js';
-import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { type BackendIdentifier } from '@aws-amplify/plugin-types';
 
 /**
  * Asserts that a BackendIdentifier is a BackendIdentifier

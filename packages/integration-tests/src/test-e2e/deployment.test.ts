@@ -7,7 +7,7 @@ import {
 import fs from 'fs/promises';
 import { shortUuid } from '../short_uuid.js';
 import { getTestProjectCreators } from '../test-project-setup/test_project_creator.js';
-import { TestProjectBase } from '../test-project-setup/test_project_base.js';
+import { type TestProjectBase } from '../test-project-setup/test_project_base.js';
 import { userInfo } from 'os';
 import { PredicatedActionBuilder } from '../process-controller/predicated_action_queue_builder.js';
 import { amplifyCli } from '../process-controller/process_controller.js';
@@ -19,8 +19,8 @@ import {
   updateFileContent,
 } from '../process-controller/predicated_action_macros.js';
 import assert from 'node:assert';
-import { TestBranch, amplifyAppPool } from '../amplify_app_pool.js';
-import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { type TestBranch, amplifyAppPool } from '../amplify_app_pool.js';
+import { type BackendIdentifier } from '@aws-amplify/plugin-types';
 import { testConcurrencyLevel } from './test_concurrency.js';
 
 const testProjectCreators = getTestProjectCreators();

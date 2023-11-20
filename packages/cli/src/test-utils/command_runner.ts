@@ -1,4 +1,4 @@
-import { Argv } from 'yargs';
+import { type Argv } from 'yargs';
 import { AsyncLocalStorage } from 'node:async_hooks';
 
 class OutputInterceptor {

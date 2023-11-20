@@ -1,7 +1,7 @@
 import assert from 'node:assert';
 import { describe, it } from 'node:test';
-import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
-import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
+import { type AwsCredentialIdentityProvider } from '@aws-sdk/types';
+import { type DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
 import {
   createGraphqlModelsFromS3UriGenerator,
   createGraphqlModelsGenerator,

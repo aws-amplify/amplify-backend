@@ -1,5 +1,5 @@
-import { AuthorizationModes as CDKAuthorizationModes } from '@aws-amplify/data-construct';
-import { AuthorizationModes } from './types.js';
+import { type AuthorizationModes as CDKAuthorizationModes } from '@aws-amplify/data-construct';
+import { type AuthorizationModes } from './types.js';
 
 type AuthorizationModeValidator = (
   inputAuthorizationModes: AuthorizationModes | undefined,

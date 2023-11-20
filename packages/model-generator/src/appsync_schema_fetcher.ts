@@ -1,5 +1,5 @@
 import {
-  AppSyncClient,
+  type AppSyncClient,
   GetIntrospectionSchemaCommand,
 } from '@aws-sdk/client-appsync';
 

@@ -1,7 +1,7 @@
 /**
  * Interface for classes that can fetch outputs for an Amplify backend
  */
-import { BackendOutput } from './backend_output.js';
+import { type BackendOutput } from './backend_output.js';
 
 export type BackendOutputRetrievalStrategy = {
   /**

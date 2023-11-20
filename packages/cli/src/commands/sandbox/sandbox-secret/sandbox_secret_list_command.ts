@@ -1,6 +1,6 @@
-import { CommandModule } from 'yargs';
-import { SecretClient } from '@aws-amplify/backend-secret';
-import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
+import { type CommandModule } from 'yargs';
+import { type SecretClient } from '@aws-amplify/backend-secret';
+import { type SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
 import { Printer } from '@aws-amplify/cli-core';
 
 /**

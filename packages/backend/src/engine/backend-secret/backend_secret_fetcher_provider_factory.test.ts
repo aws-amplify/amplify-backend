@@ -3,7 +3,7 @@ import { describe, it } from 'node:test';
 import { BackendSecretFetcherProviderFactory } from './backend_secret_fetcher_provider_factory.js';
 import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
-import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { type BackendIdentifier } from '@aws-amplify/plugin-types';
 
 const testProviderId1 = 'testProvider1';
 const testProviderId2 = 'testProvider2';

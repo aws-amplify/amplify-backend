@@ -1,9 +1,9 @@
 import { unifiedBackendOutputSchema } from '@aws-amplify/backend-output-schemas';
-import { AmplifyClient } from '@aws-sdk/client-amplify';
-import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import { type AmplifyClient } from '@aws-sdk/client-amplify';
+import { type CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { BackendOutputFetcherFactory } from './backend_output_fetcher_factory.js';
-import { DeployedBackendIdentifier } from './index.js';
-import { BackendOutputClient } from './backend_output_client_factory.js';
+import { type DeployedBackendIdentifier } from './index.js';
+import { type BackendOutputClient } from './backend_output_client_factory.js';
 
 /**
  * Simplifies the retrieval of all backend output values

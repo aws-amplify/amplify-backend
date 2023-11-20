@@ -1,4 +1,4 @@
-import { ImportPathVerifier } from '@aws-amplify/plugin-types';
+import { type ImportPathVerifier } from '@aws-amplify/plugin-types';
 import path from 'path';
 import * as os from 'os';
 import { FilePathExtractor } from '@aws-amplify/platform-core';

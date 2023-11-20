@@ -1,20 +1,20 @@
 import {
-  AmazonProviderProps,
-  AppleProviderProps,
-  AuthProps,
-  FacebookProviderProps,
-  GoogleProviderProps,
-  OidcProviderProps,
+  type AmazonProviderProps,
+  type AppleProviderProps,
+  type AuthProps,
+  type FacebookProviderProps,
+  type GoogleProviderProps,
+  type OidcProviderProps,
 } from '@aws-amplify/auth-construct-alpha';
-import { BackendSecretResolver } from '@aws-amplify/plugin-types';
+import { type BackendSecretResolver } from '@aws-amplify/plugin-types';
 import {
-  AmazonProviderFactoryProps,
-  AppleProviderFactoryProps,
-  AuthLoginWithFactoryProps,
-  ExternalProviderGeneralFactoryProps,
-  FacebookProviderFactoryProps,
-  GoogleProviderFactoryProps,
-  OidcProviderFactoryProps,
+  type AmazonProviderFactoryProps,
+  type AppleProviderFactoryProps,
+  type AuthLoginWithFactoryProps,
+  type ExternalProviderGeneralFactoryProps,
+  type FacebookProviderFactoryProps,
+  type GoogleProviderFactoryProps,
+  type OidcProviderFactoryProps,
 } from './types.js';
 
 /**

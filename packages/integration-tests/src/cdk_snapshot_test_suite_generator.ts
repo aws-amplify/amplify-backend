@@ -1,4 +1,4 @@
-import { CDKSynthSnapshotTestCase } from './cdk_snapshot_test_runner.js';
+import { type CDKSynthSnapshotTestCase } from './cdk_snapshot_test_runner.js';
 import { BackendLocator } from '@aws-amplify/platform-core';
 import * as fs from 'fs';
 import * as path from 'path';

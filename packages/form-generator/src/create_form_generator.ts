@@ -1,6 +1,6 @@
 import { S3Client } from '@aws-sdk/client-s3';
 import { transformIntrospectionSchema } from './transform_appsync_introspection_schema.js';
-import { GraphqlFormGenerator } from './graphql_form_generator.js';
+import { type GraphqlFormGenerator } from './graphql_form_generator.js';
 import { LocalGraphqlFormGenerator } from './local_codegen_graphql_form_generator.js';
 import { S3StringObjectFetcher } from './s3_string_object_fetcher.js';
 import { CodegenGraphqlFormGeneratorResult } from './codegen_graphql_form_generation_result.js';

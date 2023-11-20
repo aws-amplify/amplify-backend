@@ -1,12 +1,12 @@
 import { describe, it, mock } from 'node:test';
 import {
-  CloudFormationClient,
+  type CloudFormationClient,
   DescribeStacksCommand,
   GetTemplateSummaryCommand,
 } from '@aws-sdk/client-cloudformation';
 import { StackMetadataBackendOutputRetrievalStrategy } from './stack_metadata_output_retrieval_strategy.js';
 import assert from 'node:assert';
-import { MainStackNameResolver } from '@aws-amplify/plugin-types';
+import { type MainStackNameResolver } from '@aws-amplify/plugin-types';
 import {
   authOutputKey,
   graphqlOutputKey,

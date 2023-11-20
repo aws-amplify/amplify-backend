@@ -1,8 +1,8 @@
 import {
-  BackendOutputEntry,
-  BackendOutputStorageStrategy,
+  type BackendOutputEntry,
+  type BackendOutputStorageStrategy,
 } from '@aws-amplify/plugin-types';
-import { CfnOutput, Stack } from 'aws-cdk-lib';
+import { CfnOutput, type Stack } from 'aws-cdk-lib';
 
 /**
  * Implementation of BackendOutputStorageStrategy that stores config data in stack metadata and outputs

@@ -1,4 +1,4 @@
-import { AuthProps } from './types.js';
+import { type AuthProps } from './types.js';
 
 /**
  * These are the Amplify provided default values for Auth.

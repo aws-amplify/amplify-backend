@@ -1,15 +1,15 @@
 import {
   AmplifyClient,
-  App,
-  Branch,
+  type App,
+  type Branch,
   CreateAppCommand,
   CreateBranchCommand,
   DeleteBranchCommand,
   GetBranchCommand,
   ListAppsCommand,
-  ListAppsCommandOutput,
+  type ListAppsCommandOutput,
   ListBranchesCommand,
-  ListBranchesCommandOutput,
+  type ListBranchesCommandOutput,
 } from '@aws-sdk/client-amplify';
 import { shortUuid } from './short_uuid.js';
 

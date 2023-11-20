@@ -1,4 +1,4 @@
-import { Function as LambdaFunction } from 'aws-cdk-lib/aws-lambda';
+import { type Function as LambdaFunction } from 'aws-cdk-lib/aws-lambda';
 
 export type FunctionResources = {
   lambda: LambdaFunction;

@@ -3,13 +3,13 @@ import { SingletonConstructContainer } from './singleton_construct_container.js'
 import { App, Stack } from 'aws-cdk-lib';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import assert from 'node:assert';
-import { Construct } from 'constructs';
+import { type Construct } from 'constructs';
 import { Queue } from 'aws-cdk-lib/aws-sqs';
 import { NestedStackResolver } from './nested_stack_resolver.js';
 import {
-  ConstructContainer,
-  ConstructContainerEntryGenerator,
-  ConstructFactory,
+  type ConstructContainer,
+  type ConstructContainerEntryGenerator,
+  type ConstructFactory,
 } from '@aws-amplify/plugin-types';
 import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage';
 

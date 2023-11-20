@@ -4,12 +4,12 @@ import assert from 'node:assert';
 import { AuthClientConfigContributor } from './client-config-contributor/auth_client_config_contributor.js';
 import { GraphqlClientConfigContributor } from './client-config-contributor/graphql_client_config_contributor.js';
 import {
-  UnifiedBackendOutput,
+  type UnifiedBackendOutput,
   authOutputKey,
   graphqlOutputKey,
   platformOutputKey,
 } from '@aws-amplify/backend-output-schemas';
-import { ClientConfig } from './client-config-types/client_config.js';
+import { type ClientConfig } from './client-config-types/client_config.js';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { ModelIntrospectionSchemaAdapter } from './client-config-contributor/model_introspection_schema_adapater.js';
 import { PlatformClientConfigContributor } from './client-config-contributor/platform_client_config_contributor.js';

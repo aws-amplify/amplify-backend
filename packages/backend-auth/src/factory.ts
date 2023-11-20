@@ -1,20 +1,20 @@
 import {
   AmplifyAuth,
-  AuthProps,
-  TriggerEvent,
+  type AuthProps,
+  type TriggerEvent,
 } from '@aws-amplify/auth-construct-alpha';
-import { Construct } from 'constructs';
+import { type Construct } from 'constructs';
 import {
-  AuthResources,
-  BackendSecretResolver,
-  ConstructContainerEntryGenerator,
-  ConstructFactory,
-  ConstructFactoryGetInstanceProps,
-  FunctionResources,
-  ResourceProvider,
+  type AuthResources,
+  type BackendSecretResolver,
+  type ConstructContainerEntryGenerator,
+  type ConstructFactory,
+  type ConstructFactoryGetInstanceProps,
+  type FunctionResources,
+  type ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import * as path from 'path';
-import { AuthLoginWithFactoryProps, Expand } from './types.js';
+import { type AuthLoginWithFactoryProps, type Expand } from './types.js';
 import { translateToAuthConstructLoginWith } from './translate_auth_props.js';
 
 export type AmplifyAuthProps = Expand<

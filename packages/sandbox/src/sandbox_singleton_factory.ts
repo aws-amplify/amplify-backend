@@ -1,5 +1,5 @@
 import { FileWatchingSandbox } from './file_watching_sandbox.js';
-import { BackendIdSandboxResolver, Sandbox } from './sandbox.js';
+import { type BackendIdSandboxResolver, type Sandbox } from './sandbox.js';
 import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';

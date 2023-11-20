@@ -2,17 +2,17 @@ import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { handleCreateUpdateEvent, handler } from './backend_secret_fetcher.js';
 import {
-  CloudFormationCustomResourceEvent,
-  CloudFormationCustomResourceSuccessResponse,
+  type CloudFormationCustomResourceEvent,
+  type CloudFormationCustomResourceSuccessResponse,
 } from 'aws-lambda';
 import {
-  Secret,
-  SecretClient,
+  type Secret,
+  type SecretClient,
   SecretError,
-  SecretIdentifier,
+  type SecretIdentifier,
   getSecretClient,
 } from '@aws-amplify/backend-secret';
-import { AppId, BackendIdentifier } from '@aws-amplify/plugin-types';
+import { type AppId, type BackendIdentifier } from '@aws-amplify/plugin-types';
 
 const testBackendId = 'testBackendId';
 const testBranchName = 'testBranchName';

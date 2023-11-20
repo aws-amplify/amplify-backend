@@ -1,7 +1,7 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import {
-  AppNameAndBranchBackendIdentifier,
+  type AppNameAndBranchBackendIdentifier,
   AppNameAndBranchMainStackNameResolver,
 } from './app_name_and_branch_main_stack_name_resolver.js';
 import assert from 'node:assert';

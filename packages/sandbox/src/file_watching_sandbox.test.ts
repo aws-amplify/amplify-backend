@@ -14,12 +14,15 @@ import fs from 'fs';
 import parseGitIgnore from 'parse-gitignore';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import _open from 'open';
-import { SecretListItem, getSecretClient } from '@aws-amplify/backend-secret';
-import { ClientConfigFormat } from '@aws-amplify/client-config';
-import { Sandbox } from './sandbox.js';
+import {
+  type SecretListItem,
+  getSecretClient,
+} from '@aws-amplify/backend-secret';
+import { type ClientConfigFormat } from '@aws-amplify/client-config';
+import { type Sandbox } from './sandbox.js';
 import { AmplifyPrompter } from '@aws-amplify/cli-core';
 import { fileURLToPath } from 'url';
-import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { type BackendIdentifier } from '@aws-amplify/plugin-types';
 
 // Watcher mocks
 const unsubscribeMockFn = mock.fn();

@@ -1,4 +1,4 @@
-import { CommandModule } from 'yargs';
+import { type CommandModule } from 'yargs';
 import { GenerateCommand } from './generate_command.js';
 import { GenerateConfigCommand } from './config/generate_config_command.js';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';

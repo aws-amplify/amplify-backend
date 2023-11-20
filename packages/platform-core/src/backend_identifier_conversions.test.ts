@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import { BackendIdentifierConversions } from './backend_identifier_conversions.js';
 import assert from 'node:assert';
-import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { type BackendIdentifier } from '@aws-amplify/plugin-types';
 
 void describe('toStackName', () => {
   void it('removes non-alphanumeric chars from namespace and instance', () => {

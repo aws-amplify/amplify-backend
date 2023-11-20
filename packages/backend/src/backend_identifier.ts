@@ -1,6 +1,9 @@
-import { Construct } from 'constructs';
+import { type Construct } from 'constructs';
 import { CDKContextKey } from '@aws-amplify/platform-core';
-import { BackendIdentifier, DeploymentType } from '@aws-amplify/plugin-types';
+import {
+  type BackendIdentifier,
+  type DeploymentType,
+} from '@aws-amplify/plugin-types';
 
 /**
  * Populates a backend identifier based on CDK context values.

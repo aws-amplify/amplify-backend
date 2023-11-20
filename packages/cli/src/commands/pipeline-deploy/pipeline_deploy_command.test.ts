@@ -1,13 +1,13 @@
 import { beforeEach, describe, it, mock } from 'node:test';
-import yargs, { CommandModule } from 'yargs';
+import yargs, { type CommandModule } from 'yargs';
 import {
-  TestCommandError,
+  type TestCommandError,
   TestCommandRunner,
 } from '../../test-utils/command_runner.js';
 import assert from 'node:assert';
 import {
   PipelineDeployCommand,
-  PipelineDeployCommandOptions,
+  type PipelineDeployCommandOptions,
 } from './pipeline_deploy_command.js';
 import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';

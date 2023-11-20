@@ -1,4 +1,4 @@
-import { ImportPathVerifier } from '@aws-amplify/plugin-types';
+import { type ImportPathVerifier } from '@aws-amplify/plugin-types';
 
 /**
  * Stub implementation of ImportPathVerifier

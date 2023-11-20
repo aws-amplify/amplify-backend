@@ -5,7 +5,7 @@ import {
   isBackendIdentifier,
   isStackIdentifier,
 } from './backend_output_fetcher_factory.js';
-import { DeployedBackendIdentifier } from './deployed_backend_identifier.js';
+import { type DeployedBackendIdentifier } from './deployed_backend_identifier.js';
 
 void describe('Backend Identifiers', () => {
   const backendIdentifiers: DeployedBackendIdentifier[] = [

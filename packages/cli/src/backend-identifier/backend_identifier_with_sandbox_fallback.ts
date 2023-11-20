@@ -1,7 +1,7 @@
-import { SandboxBackendIdResolver } from '../commands/sandbox/sandbox_id_resolver.js';
+import { type SandboxBackendIdResolver } from '../commands/sandbox/sandbox_id_resolver.js';
 import {
-  BackendIdentifierParameters,
-  BackendIdentifierResolver,
+  type BackendIdentifierParameters,
+  type BackendIdentifierResolver,
 } from './backend_identifier_resolver.js';
 
 /**

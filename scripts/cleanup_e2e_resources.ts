@@ -2,37 +2,37 @@ import {
   CloudFormationClient,
   DeleteStackCommand,
   ListStacksCommand,
-  ListStacksCommandOutput,
+  type ListStacksCommandOutput,
   StackStatus,
-  StackSummary,
+  type StackSummary,
 } from '@aws-sdk/client-cloudformation';
 import {
-  Bucket,
+  type Bucket,
   DeleteBucketCommand,
   DeleteObjectsCommand,
   ListBucketsCommand,
   ListObjectVersionsCommand,
   ListObjectsV2Command,
-  ListObjectsV2CommandOutput,
-  ObjectIdentifier,
+  type ListObjectsV2CommandOutput,
+  type ObjectIdentifier,
   S3Client,
 } from '@aws-sdk/client-s3';
 import {
   CognitoIdentityProviderClient,
   DeleteUserPoolCommand,
   ListUserPoolsCommand,
-  ListUserPoolsCommandOutput,
-  UserPoolDescriptionType,
+  type ListUserPoolsCommandOutput,
+  type UserPoolDescriptionType,
 } from '@aws-sdk/client-cognito-identity-provider';
 import {
   AmplifyClient,
-  App,
-  Branch,
+  type App,
+  type Branch,
   DeleteBranchCommand,
   ListAppsCommand,
-  ListAppsCommandOutput,
+  type ListAppsCommandOutput,
   ListBranchesCommand,
-  ListBranchesCommandOutput,
+  type ListBranchesCommandOutput,
 } from '@aws-sdk/client-amplify';
 
 const amplifyClient = new AmplifyClient({

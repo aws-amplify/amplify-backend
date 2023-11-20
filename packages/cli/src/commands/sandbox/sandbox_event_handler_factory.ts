@@ -1,7 +1,7 @@
-import { SandboxEventHandlerCreator } from './sandbox_command.js';
-import { BackendIdentifier } from '@aws-amplify/plugin-types';
-import { UsageDataEmitter } from '@aws-amplify/platform-core';
-import { DeployResult } from '@aws-amplify/backend-deployer';
+import { type SandboxEventHandlerCreator } from './sandbox_command.js';
+import { type BackendIdentifier } from '@aws-amplify/plugin-types';
+import { type UsageDataEmitter } from '@aws-amplify/platform-core';
+import { type DeployResult } from '@aws-amplify/backend-deployer';
 import { COLOR, Printer } from '@aws-amplify/cli-core';
 
 /**

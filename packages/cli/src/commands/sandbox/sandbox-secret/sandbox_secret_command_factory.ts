@@ -1,4 +1,4 @@
-import { CommandModule } from 'yargs';
+import { type CommandModule } from 'yargs';
 
 import { LocalNamespaceResolver } from '../../../backend-identifier/local_namespace_resolver.js';
 import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';

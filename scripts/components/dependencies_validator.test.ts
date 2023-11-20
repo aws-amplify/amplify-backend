@@ -1,7 +1,7 @@
 import { before, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { DependenciesValidator } from './dependencies_validator.js';
-import { ExecaChildProcess } from 'execa';
+import { type ExecaChildProcess } from 'execa';
 import fsp from 'fs/promises';
 import { fileURLToPath } from 'url';
 

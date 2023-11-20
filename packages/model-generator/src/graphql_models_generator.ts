@@ -1,8 +1,8 @@
 import { generateModels } from '@aws-amplify/graphql-generator';
 import {
-  GenerationResult,
-  GraphqlModelsGenerator,
-  ModelsGenerationParameters,
+  type GenerationResult,
+  type GraphqlModelsGenerator,
+  type ModelsGenerationParameters,
 } from './model_generator.js';
 import { defaultDirectiveDefinitions } from './default_directive_definitions.js';
 

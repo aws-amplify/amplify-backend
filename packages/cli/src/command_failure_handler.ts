@@ -1,4 +1,4 @@
-import { Argv } from 'yargs';
+import { type Argv } from 'yargs';
 import { COLOR, Printer } from '@aws-amplify/cli-core';
 import { InvalidCredentialError } from './error/credential_error.js';
 import { EOL } from 'os';

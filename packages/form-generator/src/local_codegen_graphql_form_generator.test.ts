@@ -1,11 +1,11 @@
-import { GenericDataSchema } from '@aws-amplify/codegen-ui';
+import { type GenericDataSchema } from '@aws-amplify/codegen-ui';
 import assert from 'assert';
 import { describe, it, mock } from 'node:test';
 import fs from 'fs/promises';
 import { CodegenGraphqlFormGeneratorResult } from './codegen_graphql_form_generation_result.js';
 import {
   LocalGraphqlFormGenerator,
-  ResultBuilder,
+  type ResultBuilder,
 } from './local_codegen_graphql_form_generator.js';
 
 type MockDataType = 'String' | 'ID' | 'AWSDateTime';

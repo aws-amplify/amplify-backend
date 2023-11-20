@@ -1,4 +1,4 @@
-import { NestedStack, Stack } from 'aws-cdk-lib';
+import { NestedStack, type Stack } from 'aws-cdk-lib';
 
 /**
  * Vends stacks for a resource grouping

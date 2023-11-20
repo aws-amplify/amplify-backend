@@ -1,5 +1,5 @@
-import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
-import { NamespaceResolver } from './local_namespace_resolver.js';
+import { type DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
+import { type NamespaceResolver } from './local_namespace_resolver.js';
 
 export type BackendIdentifierParameters = {
   stack?: string;

@@ -1,7 +1,7 @@
-import { AuthClientConfig } from './auth_client_config.js';
-import { GraphqlClientConfig } from './graphql_client_config.js';
-import { PlatformClientConfig } from './platform_client_config.js';
-import { StorageClientConfig } from './storage_client_config.js';
+import { type AuthClientConfig } from './auth_client_config.js';
+import { type GraphqlClientConfig } from './graphql_client_config.js';
+import { type PlatformClientConfig } from './platform_client_config.js';
+import { type StorageClientConfig } from './storage_client_config.js';
 
 /**
  * Merged type of all category client config types

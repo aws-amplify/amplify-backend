@@ -1,4 +1,4 @@
-import { App, Stack } from 'aws-cdk-lib';
+import { App, type Stack } from 'aws-cdk-lib';
 import { ProjectEnvironmentMainStackCreator } from './project_environment_main_stack_creator.js';
 import { getBackendIdentifier } from './backend_identifier.js';
 

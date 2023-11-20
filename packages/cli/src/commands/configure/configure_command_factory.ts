@@ -1,4 +1,4 @@
-import { CommandModule } from 'yargs';
+import { type CommandModule } from 'yargs';
 import { ConfigureProfileCommand } from './configure_profile_command.js';
 import { ProfileController } from './profile_controller.js';
 import { ConfigureCommand } from './configure_command.js';

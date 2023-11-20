@@ -1,6 +1,6 @@
 import assert from 'node:assert';
 import { describe, it, mock } from 'node:test';
-import { AppSyncClient } from '@aws-sdk/client-appsync';
+import { type AppSyncClient } from '@aws-sdk/client-appsync';
 import { AppSyncIntrospectionSchemaFetcher } from './appsync_schema_fetcher.js';
 
 void describe('AppSyncIntrospectionSchemaFetcher', () => {

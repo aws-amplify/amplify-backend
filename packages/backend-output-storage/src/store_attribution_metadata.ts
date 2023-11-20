@@ -1,7 +1,7 @@
-import { Stack } from 'aws-cdk-lib';
+import { type Stack } from 'aws-cdk-lib';
 import * as _os from 'os';
 import { CDKContextKey, PackageJsonReader } from '@aws-amplify/platform-core';
-import { DeploymentType } from '@aws-amplify/plugin-types';
+import { type DeploymentType } from '@aws-amplify/plugin-types';
 
 /**
  * Stores BI metrics information in stack descriptions

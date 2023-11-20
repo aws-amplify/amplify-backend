@@ -3,11 +3,11 @@ import { AmplifyStorage } from './construct.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import {
-  BackendOutputEntry,
-  BackendOutputStorageStrategy,
+  type BackendOutputEntry,
+  type BackendOutputStorageStrategy,
 } from '@aws-amplify/plugin-types';
 import assert from 'node:assert';
-import { Bucket } from 'aws-cdk-lib/aws-s3';
+import { type Bucket } from 'aws-cdk-lib/aws-s3';
 import { storageOutputKey } from '@aws-amplify/backend-output-schemas';
 
 void describe('AmplifyStorage', () => {

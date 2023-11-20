@@ -1,12 +1,12 @@
 import {
-  CloudFormationClient,
+  type CloudFormationClient,
   DescribeStacksCommand,
   GetTemplateSummaryCommand,
 } from '@aws-sdk/client-cloudformation';
 import {
-  BackendOutput,
-  BackendOutputRetrievalStrategy,
-  MainStackNameResolver,
+  type BackendOutput,
+  type BackendOutputRetrievalStrategy,
+  type MainStackNameResolver,
 } from '@aws-amplify/plugin-types';
 import { backendOutputStackMetadataSchema } from '@aws-amplify/backend-output-schemas';
 import {

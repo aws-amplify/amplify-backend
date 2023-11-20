@@ -1,7 +1,7 @@
 import { execa as _execa } from 'execa';
 import {
-  DependencyType,
-  PackageManagerController,
+  type DependencyType,
+  type PackageManagerController,
 } from './package_manager_controller.js';
 import { executeWithDebugLogger } from './execute_with_logger.js';
 

@@ -2,12 +2,12 @@ import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import {
   CloudFormation,
-  ListStackResourcesCommand,
-  StackResourceSummary,
+  type ListStackResourcesCommand,
+  type StackResourceSummary,
 } from '@aws-sdk/client-cloudformation';
 import {
   BackendDeploymentStatus,
-  DeployedBackendResource,
+  type DeployedBackendResource,
 } from '../deployed_backend_client_factory.js';
 import { DeployedResourcesEnumerator } from './deployed_resources_enumerator.js';
 import { StackStatusMapper } from './stack_status_mapper.js';

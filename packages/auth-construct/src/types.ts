@@ -1,8 +1,8 @@
-import { SecretValue, aws_cognito as cognito } from 'aws-cdk-lib';
-import { triggerEvents } from './trigger_events.js';
-import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
-import { AuthOutput } from '@aws-amplify/backend-output-schemas';
-import { StandardAttributes } from 'aws-cdk-lib/aws-cognito';
+import { type SecretValue, type aws_cognito as cognito } from 'aws-cdk-lib';
+import { type triggerEvents } from './trigger_events.js';
+import { type BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
+import { type AuthOutput } from '@aws-amplify/backend-output-schemas';
+import { type StandardAttributes } from 'aws-cdk-lib/aws-cognito';
 
 /**
  * Email login settings object

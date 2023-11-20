@@ -1,9 +1,9 @@
-import { Argv, CommandModule } from 'yargs';
-import { GenerateConfigCommand } from './config/generate_config_command.js';
-import { GenerateFormsCommand } from './forms/generate_forms_command.js';
-import { GenerateGraphqlClientCodeCommand } from './graphql-client-code/generate_graphql_client_code_command.js';
+import { type Argv, type CommandModule } from 'yargs';
+import { type GenerateConfigCommand } from './config/generate_config_command.js';
+import { type GenerateFormsCommand } from './forms/generate_forms_command.js';
+import { type GenerateGraphqlClientCodeCommand } from './graphql-client-code/generate_graphql_client_code_command.js';
 import { handleCommandFailure } from '../../command_failure_handler.js';
-import { CommandMiddleware } from '../../command_middleware.js';
+import { type CommandMiddleware } from '../../command_middleware.js';
 
 /**
  * An entry point for generate command.

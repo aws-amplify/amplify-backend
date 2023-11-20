@@ -1,11 +1,11 @@
-import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
+import { type DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
 import {
-  GenerateApiCodeProps,
-  GenerateOptions,
-  GenerationResult,
+  type GenerateApiCodeProps,
+  type GenerateOptions,
+  type GenerationResult,
   generateApiCode,
 } from '@aws-amplify/model-generator';
-import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
+import { type AwsCredentialIdentityProvider } from '@aws-sdk/types';
 
 // For some reason using `omit` is causing type errors, so reconstructing without the credentialProvider.
 export type InvokeGenerateApiCodeProps = GenerateOptions &

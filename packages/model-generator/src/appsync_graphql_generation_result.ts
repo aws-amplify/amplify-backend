@@ -1,6 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
-import { GenerationResult } from './model_generator.js';
+import { type GenerationResult } from './model_generator.js';
 
 type ClientOperations = Record<string, string>;
 /**

@@ -1,13 +1,13 @@
 import {
-  AmazonProviderProps,
-  AppleProviderProps,
-  AuthProps,
-  ExternalProviderOptions,
-  FacebookProviderProps,
-  GoogleProviderProps,
-  OidcProviderProps,
+  type AmazonProviderProps,
+  type AppleProviderProps,
+  type AuthProps,
+  type ExternalProviderOptions,
+  type FacebookProviderProps,
+  type GoogleProviderProps,
+  type OidcProviderProps,
 } from '@aws-amplify/auth-construct-alpha';
-import { BackendSecret } from '@aws-amplify/plugin-types';
+import { type BackendSecret } from '@aws-amplify/plugin-types';
 
 /**
  * This utility allows us to expand nested types in auto complete prompts.

@@ -1,36 +1,39 @@
 import { Construct } from 'constructs';
 import { RemovalPolicy, Stack, aws_cognito as cognito } from 'aws-cdk-lib';
 import {
-  AmplifyFunction,
-  AuthResources,
-  BackendOutputStorageStrategy,
-  ResourceProvider,
+  type AmplifyFunction,
+  type AuthResources,
+  type BackendOutputStorageStrategy,
+  type ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import {
-  CfnUserPool,
-  CfnUserPoolClient,
+  type CfnUserPool,
+  type CfnUserPoolClient,
   Mfa,
-  UserPool,
-  UserPoolClient,
-  UserPoolIdentityProviderAmazon,
-  UserPoolIdentityProviderApple,
-  UserPoolIdentityProviderFacebook,
-  UserPoolIdentityProviderGoogle,
-  UserPoolIdentityProviderOidc,
-  UserPoolIdentityProviderSaml,
+  type UserPool,
+  type UserPoolClient,
+  type UserPoolIdentityProviderAmazon,
+  type UserPoolIdentityProviderApple,
+  type UserPoolIdentityProviderFacebook,
+  type UserPoolIdentityProviderGoogle,
+  type UserPoolIdentityProviderOidc,
+  type UserPoolIdentityProviderSaml,
   UserPoolOperation,
-  UserPoolProps,
+  type UserPoolProps,
 } from 'aws-cdk-lib/aws-cognito';
 import { FederatedPrincipal, Role } from 'aws-cdk-lib/aws-iam';
-import { AuthOutput, authOutputKey } from '@aws-amplify/backend-output-schemas';
 import {
-  AuthProps,
-  EmailLoginSettings,
-  ExternalProviderOptions,
-  TriggerEvent,
+  type AuthOutput,
+  authOutputKey,
+} from '@aws-amplify/backend-output-schemas';
+import {
+  type AuthProps,
+  type EmailLoginSettings,
+  type ExternalProviderOptions,
+  type TriggerEvent,
 } from './types.js';
 import { DEFAULTS } from './defaults.js';
-import { IFunction } from 'aws-cdk-lib/aws-lambda';
+import { type IFunction } from 'aws-cdk-lib/aws-lambda';
 import {
   AttributionMetadataStorage,
   StackMetadataBackendOutputStorageStrategy,

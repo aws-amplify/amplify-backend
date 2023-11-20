@@ -1,10 +1,13 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import { AmplifyPrompter } from '@aws-amplify/cli-core';
-import yargs, { CommandModule } from 'yargs';
+import yargs, { type CommandModule } from 'yargs';
 import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
-import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
-import { SecretIdentifier, getSecretClient } from '@aws-amplify/backend-secret';
+import { type SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
+import {
+  type SecretIdentifier,
+  getSecretClient,
+} from '@aws-amplify/backend-secret';
 import { SandboxSecretSetCommand } from './sandbox_secret_set_command.js';
 
 const testSecretName = 'testSecretName';

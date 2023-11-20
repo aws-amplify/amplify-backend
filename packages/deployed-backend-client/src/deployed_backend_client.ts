@@ -1,42 +1,42 @@
 import {
-  BackendIdentifier,
-  BackendOutput,
-  DeploymentType,
+  type BackendIdentifier,
+  type BackendOutput,
+  type DeploymentType,
 } from '@aws-amplify/plugin-types';
 import {
-  ApiAuthType,
-  BackendMetadata,
-  ConflictResolutionMode,
-  DeployedBackendClient,
-  ListSandboxesRequest,
-  ListSandboxesResponse,
-  SandboxMetadata,
+  type ApiAuthType,
+  type BackendMetadata,
+  type ConflictResolutionMode,
+  type DeployedBackendClient,
+  type ListSandboxesRequest,
+  type ListSandboxesResponse,
+  type SandboxMetadata,
 } from './deployed_backend_client_factory.js';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
-import { BackendOutputClient } from './backend_output_client_factory.js';
+import { type BackendOutputClient } from './backend_output_client_factory.js';
 import {
-  CloudFormationClient,
+  type CloudFormationClient,
   DeleteStackCommand,
   DescribeStacksCommand,
   ListStackResourcesCommand,
   ListStacksCommand,
-  ListStacksCommandOutput,
-  Stack,
-  StackResourceSummary,
+  type ListStacksCommandOutput,
+  type Stack,
+  type StackResourceSummary,
   StackStatus,
-  StackSummary,
+  type StackSummary,
 } from '@aws-sdk/client-cloudformation';
 
-import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { GetObjectCommand, type S3Client } from '@aws-sdk/client-s3';
 import {
   authOutputKey,
   graphqlOutputKey,
   platformOutputKey,
   storageOutputKey,
 } from '@aws-amplify/backend-output-schemas';
-import { DeployedResourcesEnumerator } from './deployed-backend-client/deployed_resources_enumerator.js';
-import { StackStatusMapper } from './deployed-backend-client/stack_status_mapper.js';
-import { ArnParser } from './deployed-backend-client/arn_parser.js';
+import { type DeployedResourcesEnumerator } from './deployed-backend-client/deployed_resources_enumerator.js';
+import { type StackStatusMapper } from './deployed-backend-client/stack_status_mapper.js';
+import { type ArnParser } from './deployed-backend-client/arn_parser.js';
 
 /**
  * Deployment Client

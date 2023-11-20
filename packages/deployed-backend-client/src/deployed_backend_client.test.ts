@@ -6,7 +6,7 @@ import {
   DescribeStacksCommand,
   ListStackResourcesCommand,
   ListStacksCommand,
-  ListStacksCommandInput,
+  type ListStacksCommandInput,
   StackStatus,
 } from '@aws-sdk/client-cloudformation';
 import { BackendDeploymentStatus } from './deployed_backend_client_factory.js';
@@ -18,9 +18,9 @@ import {
 } from '@aws-amplify/backend-output-schemas';
 import { DefaultBackendOutputClient } from './backend_output_client.js';
 import { DefaultDeployedBackendClient } from './deployed_backend_client.js';
-import { StackIdentifier } from './index.js';
+import { type StackIdentifier } from './index.js';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
-import { GetObjectCommand, S3 } from '@aws-sdk/client-s3';
+import { type GetObjectCommand, S3 } from '@aws-sdk/client-s3';
 import { DeployedResourcesEnumerator } from './deployed-backend-client/deployed_resources_enumerator.js';
 import { StackStatusMapper } from './deployed-backend-client/stack_status_mapper.js';
 import { ArnGenerator } from './deployed-backend-client/arn_generator.js';

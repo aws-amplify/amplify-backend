@@ -4,15 +4,15 @@ import { App, SecretValue, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
 import {
-  AmplifyFunction,
-  BackendOutputEntry,
-  BackendOutputStorageStrategy,
+  type AmplifyFunction,
+  type BackendOutputEntry,
+  type BackendOutputStorageStrategy,
 } from '@aws-amplify/plugin-types';
 import {
-  CfnIdentityPool,
-  CfnUserPoolClient,
-  UserPool,
-  UserPoolClient,
+  type CfnIdentityPool,
+  type CfnUserPoolClient,
+  type UserPool,
+  type UserPoolClient,
   UserPoolIdentityProviderSamlMetadataType,
 } from 'aws-cdk-lib/aws-cognito';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';

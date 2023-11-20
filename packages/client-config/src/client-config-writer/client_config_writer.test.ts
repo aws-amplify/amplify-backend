@@ -1,11 +1,11 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import {
-  ClientConfigPathResolver,
+  type ClientConfigPathResolver,
   ClientConfigWriter,
 } from './client_config_writer.js';
 import {
-  ClientConfig,
+  type ClientConfig,
   ClientConfigFormat,
 } from '../client-config-types/client_config.js';
 import { ClientConfigFormatter } from './client_config_formatter.js';

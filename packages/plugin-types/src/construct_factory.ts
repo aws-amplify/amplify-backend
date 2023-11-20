@@ -1,7 +1,7 @@
-import { ConstructContainer } from './construct_container.js';
-import { BackendOutputStorageStrategy } from './output_storage_strategy.js';
-import { BackendOutputEntry } from './backend_output.js';
-import { ImportPathVerifier } from './import_path_verifier.js';
+import { type ConstructContainer } from './construct_container.js';
+import { type BackendOutputStorageStrategy } from './output_storage_strategy.js';
+import { type BackendOutputEntry } from './backend_output.js';
+import { type ImportPathVerifier } from './import_path_verifier.js';
 
 export type ConstructFactoryGetInstanceProps = {
   constructContainer: ConstructContainer;

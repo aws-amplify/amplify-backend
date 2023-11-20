@@ -1,6 +1,6 @@
-import { ConstructFactory } from '@aws-amplify/plugin-types';
-import { Construct } from 'constructs';
-import { Stack } from 'aws-cdk-lib';
+import { type ConstructFactory } from '@aws-amplify/plugin-types';
+import { type Construct } from 'constructs';
+import { type Stack } from 'aws-cdk-lib';
 
 /**
  * Top level type for instance returned from `defineBackend`. Contains property `resources` for overriding

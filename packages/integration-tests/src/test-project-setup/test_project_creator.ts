@@ -1,4 +1,4 @@
-import { TestProjectBase } from './test_project_base.js';
+import { type TestProjectBase } from './test_project_base.js';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { getSecretClient } from '@aws-amplify/backend-secret';
 import { DataStorageAuthWithTriggerTestProjectCreator } from './data_storage_auth_with_triggers.js';

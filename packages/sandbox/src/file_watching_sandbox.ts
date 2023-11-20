@@ -1,12 +1,12 @@
 import debounce from 'debounce-promise';
-import parcelWatcher, { subscribe } from '@parcel/watcher';
-import { AmplifySandboxExecutor } from './sandbox_executor.js';
+import parcelWatcher, { type subscribe } from '@parcel/watcher';
+import { type AmplifySandboxExecutor } from './sandbox_executor.js';
 import {
-  BackendIdSandboxResolver,
-  Sandbox,
-  SandboxDeleteOptions,
-  SandboxEvents,
-  SandboxOptions,
+  type BackendIdSandboxResolver,
+  type Sandbox,
+  type SandboxDeleteOptions,
+  type SandboxEvents,
+  type SandboxOptions,
 } from './sandbox.js';
 import parseGitIgnore from 'parse-gitignore';
 import path from 'path';
@@ -14,12 +14,12 @@ import fs from 'fs';
 import _open from 'open';
 import EventEmitter from 'events';
 import {
-  CloudFormationClient,
+  type CloudFormationClient,
   DescribeStacksCommand,
 } from '@aws-sdk/client-cloudformation';
 import { AmplifyPrompter } from '@aws-amplify/cli-core';
 import {
-  FilesChangesTracker,
+  type FilesChangesTracker,
   createFilesChangesTracker,
 } from './files_changes_tracker.js';
 

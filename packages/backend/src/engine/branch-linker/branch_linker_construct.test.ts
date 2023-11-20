@@ -3,7 +3,7 @@ import { Template } from 'aws-cdk-lib/assertions';
 import { Stack } from 'aws-cdk-lib';
 import { AmplifyBranchLinkerConstruct } from './branch_linker_construct.js';
 import { BackendEnvironmentVariables } from '../../environment_variables.js';
-import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { type BackendIdentifier } from '@aws-amplify/plugin-types';
 
 void describe('Branch Linker Construct', () => {
   const appId = 'test-app-id';
