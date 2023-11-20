@@ -81,9 +81,7 @@ export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
   }): StudioForm[] => {
     const schemas: StudioForm[] = [];
     Object.entries(modelMap).forEach(([name, set]) => {
-      set.forEach((type) => {
-        schemas.push(this.getSchema(name, type));
-      });
+      set.forEach((type) => schemas.push(this.getSchema(name, type)));
     });
     return schemas;
   };
