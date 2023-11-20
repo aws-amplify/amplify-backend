@@ -18,17 +18,17 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/aws-amplify/cli.git"
+    "url": "https://github.com/aws-amplify/amplify-backend.git"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=18.16.0"
   },
   "author": "AWS Amplify",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/aws-amplify/cli/issues"
+    "url": "https://github.com/aws-amplify/amplify-backend/issues"
   },
-  "homepage": "https://github.com/aws-amplify/cli#readme",
+  "homepage": "https://github.com/aws-amplify/amplify-backend#readme",
   "dependencies": {
     "@aws-amplify/backend-output-schemas": "^0.4.0",
     "@aws-amplify/backend-secret": "^0.3.1",
