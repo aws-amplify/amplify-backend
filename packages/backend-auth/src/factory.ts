@@ -36,6 +36,10 @@ export type AmplifyAuthProps = Expand<
         ConstructFactory<ResourceProvider<FunctionResources>>
       >
     >;
+    /**
+     * Configure passwordless auth
+     */
+    passwordlessOptions?: PasswordlessAuthProps;
   }
 >;
 
