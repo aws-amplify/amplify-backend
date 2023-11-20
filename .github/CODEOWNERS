@@ -1,10 +1,7 @@
 # These owners will be the default owners for everything in
 # the repo. Unless a later match takes precedence.
-*  @edwardfoyle @sobolk @Amplifiyer
-
-# Examples
-/examples @edwardfoyle @sobolk @Amplifiyer @swaminator @renebrandel @wrpeck @abdallahshaban557 @josefaidt
+*  @edwardfoyle @sobolk @Amplifiyer @srquinn21
 
 # API approval - public surface and dependencies.
-**/API.md @edwardfoyle @sobolk @Amplifiyer
-**/package.json @edwardfoyle @sobolk @Amplifiyer
+**/API.md @edwardfoyle @sobolk @Amplifiyer @srquinn21
+**/package.json @edwardfoyle @sobolk @Amplifiyer @srquinn21
