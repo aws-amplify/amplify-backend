@@ -40,6 +40,7 @@ export class LocalConfigurationController implements ConfigurationController {
 
       const fileContent = await fs.readFile(fd, 'utf-8');
       this._store = JSON.parse(fileContent);
+      await fd.close();
     } catch {
       this._store = {};
       await this.write();
