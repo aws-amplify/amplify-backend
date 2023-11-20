@@ -9,6 +9,8 @@ module.exports = {
     'plugin:@typescript-eslint/recommended',
     'plugin:jsdoc/recommended-typescript-error',
     'plugin:promise/recommended',
+    'plugin:import/recommended',
+    'plugin:import/typescript',
     'prettier',
   ],
   overrides: [
@@ -37,6 +39,12 @@ module.exports = {
     'promise',
     '@shopify',
   ],
+  settings: {
+    'import/resolver': {
+      typescript: true,
+      node: true,
+    },
+  },
   rules: {
     '@typescript-eslint/naming-convention': [
       'error',
