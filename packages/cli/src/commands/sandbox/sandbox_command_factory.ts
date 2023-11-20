@@ -50,13 +50,14 @@ export const createSandboxCommand = (): CommandModule<
     credentialProvider
   );
 
+  const libraryVersion =
+    new PackageJsonReader().read(
+      fileURLToPath(new URL('../../../package.json', import.meta.url))
+    ).version ?? '';
+
   const eventHandlerFactory = new SandboxEventHandlerFactory(
     sandboxBackendIdentifierResolver,
-    new UsageDataEmitterFactory().getInstance(
-      new PackageJsonReader().read(
-        fileURLToPath(new URL('../../../package.json', import.meta.url))
-      ).version ?? ''
-    )
+    async () => await new UsageDataEmitterFactory().getInstance(libraryVersion)
   );
 
   const commandMiddleWare = new CommandMiddleware();

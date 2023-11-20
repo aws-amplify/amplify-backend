@@ -1,5 +1,9 @@
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import {
+  ClientConfigFormat,
+  getClientConfigPath,
+} from '@aws-amplify/client-config';
 import { amplifyCli } from '../process-controller/process_controller.js';
 import {
   confirmDeleteSandbox,
@@ -12,6 +16,8 @@ import {
   CloudFormationClient,
   DeleteStackCommand,
 } from '@aws-sdk/client-cloudformation';
+import fsp from 'fs/promises';
+import assert from 'node:assert';
 
 /**
  * Keeps test project update info.
@@ -26,7 +32,6 @@ export type TestProjectUpdate = {
  * The base abstract class for test project.
  */
 export abstract class TestProjectBase {
-  abstract assertPostDeployment: () => Promise<void>;
   abstract readonly sourceProjectAmplifyDirPath: URL;
 
   /**
@@ -89,5 +94,26 @@ export abstract class TestProjectBase {
    */
   async getUpdates(): Promise<TestProjectUpdate[]> {
     return [];
+  }
+
+  /**
+   * Verify the project after deployment.
+   */
+  async assertPostDeployment(): Promise<void> {
+    await this.assertClientConfigExists(
+      this.projectDirPath,
+      ClientConfigFormat.JSON
+    );
+  }
+
+  /**
+   * Verify client config file is generated with the provided directory and format.
+   */
+  async assertClientConfigExists(dir?: string, format?: ClientConfigFormat) {
+    const clientConfigStats = await fsp.stat(
+      await getClientConfigPath(dir ?? this.projectDirPath, format)
+    );
+
+    assert.ok(clientConfigStats.isFile());
   }
 }

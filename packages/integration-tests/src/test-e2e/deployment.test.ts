@@ -21,6 +21,7 @@ import {
 import assert from 'node:assert';
 import { TestBranch, amplifyAppPool } from '../amplify_app_pool.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { ClientConfigFormat } from '@aws-amplify/client-config';
 import { testConcurrencyLevel } from './test_concurrency.js';
 
 const testProjectCreators = getTestProjectCreators();
@@ -75,6 +76,28 @@ void describe(
               branchBackendIdentifier.name
             )
           );
+
+          // test generating all client formats
+          for (const format of Object.values(ClientConfigFormat)) {
+            await amplifyCli(
+              [
+                'generate',
+                'config',
+                '--branch',
+                testBranch.branchName,
+                '--app-id',
+                testBranch.appId,
+                '--format',
+                format,
+              ],
+              testProject.projectDirPath
+            ).run();
+
+            await testProject.assertClientConfigExists(
+              testProject.projectDirPath,
+              format
+            );
+          }
         });
       });
     });

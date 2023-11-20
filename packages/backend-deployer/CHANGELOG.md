@@ -1,5 +1,16 @@
 # @aws-amplify/backend-deployer
 
+## 0.3.3
+
+### Patch Changes
+
+- d0105393d: turn off type checking if amplify/tsconfig.json is not found
+- 7822cee5b: fix: hide tsc --showConfig output since its used for validation only
+- Updated dependencies [aabe5dd61]
+- Updated dependencies [5f336ffbb]
+- Updated dependencies [85e619116]
+  - @aws-amplify/platform-core@0.3.0
+
 ## 0.3.2
 
 ### Patch Changes

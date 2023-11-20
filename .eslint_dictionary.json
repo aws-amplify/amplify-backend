@@ -62,6 +62,7 @@
   "localhost",
   "lsof",
   "lstat",
+  "macos",
   "matchers",
   "mfas",
   "mkdtemp",

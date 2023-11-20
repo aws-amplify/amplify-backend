@@ -1,7 +1,5 @@
 import { TestProjectBase } from './test_project_base.js';
 import fs from 'fs/promises';
-import assert from 'node:assert';
-import path from 'path';
 import { createEmptyAmplifyProject } from './create_empty_amplify_project.js';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { TestProjectCreator } from './test_project_creator.js';
@@ -65,11 +63,4 @@ class MinimalWithTypescriptIdiomTestProject extends TestProjectBase {
   ) {
     super(name, projectDirPath, projectAmplifyDirPath, cfnClient);
   }
-
-  assertPostDeployment = async (): Promise<void> => {
-    const clientConfigStats = await fs.stat(
-      path.join(this.projectDirPath, 'amplifyconfiguration.json')
-    );
-    assert.ok(clientConfigStats.isFile());
-  };
 }

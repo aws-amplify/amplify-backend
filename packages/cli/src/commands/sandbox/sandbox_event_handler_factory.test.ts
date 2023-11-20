@@ -40,7 +40,7 @@ void describe('sandbox_event_handler_factory', () => {
       name: 'name',
       type: 'sandbox',
     }),
-    usageDataEmitterMock
+    async () => usageDataEmitterMock
   );
 
   afterEach(() => {
