@@ -72,7 +72,7 @@ Join the [Discord Server](https://discord.com/invite/amplify).
 
 ## Tutorials
 
-- [Quickstart](https://next-release-gen2.d1j0to8e01vtig.amplifyapp.com/gen2/start/quickstart/)
+- [Quickstart](https://docs.amplify.aws/gen2/start/quickstart/)
 - [Set up Amplify Auth](https://docs.amplify.aws/gen2/build-a-backend/auth/set-up-auth/)
 - [Set up Amplify Data](https://docs.amplify.aws/gen2/build-a-backend/data/set-up-data/)
 
