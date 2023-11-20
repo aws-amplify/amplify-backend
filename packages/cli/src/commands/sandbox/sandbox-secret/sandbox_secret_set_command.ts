@@ -29,7 +29,7 @@ export class SandboxSecretSetCommand
     private readonly sandboxIdResolver: SandboxBackendIdResolver,
     private readonly secretClient: SecretClient
   ) {
-    this.command = 'set <secretName>';
+    this.command = 'set <secret-name>';
     this.describe = 'Set a sandbox secret';
   }
 

@@ -1,5 +1,12 @@
 # @aws-amplify/backend-data
 
+## 0.8.1
+
+### Patch Changes
+
+- a2ed0ae14: Update data-schema version
+  - @aws-amplify/backend-output-storage@0.2.5
+
 ## 0.8.0
 
 ### Minor Changes

@@ -1,5 +1,16 @@
 # @aws-amplify/platform-core
 
+## 0.3.0
+
+### Minor Changes
+
+- aabe5dd61: Bump to minor version for usage data consent
+
+### Patch Changes
+
+- 5f336ffbb: close file handle after reading config
+- 85e619116: integrate usage data tracking consent with usage-data-emitter
+
 ## 0.2.2
 
 ### Patch Changes
