@@ -110,7 +110,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       translationBehavior: {
         sandboxModeEnabled,
         allowDestructiveGraphqlSchemaUpdates:
-          this.props.allowDestructiveGraphqlSchemaUpdates,
+          this.props.allowDestructiveSchemaUpdates,
       },
     });
   };

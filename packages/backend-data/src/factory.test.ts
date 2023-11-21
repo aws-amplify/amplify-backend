@@ -233,7 +233,7 @@ void describe('DataFactory', () => {
     );
   });
 
-  void it('defaults allowDestructiveGraphqlSchemaUpdates to false', () => {
+  void it('defaults allowDestructiveSchemaUpdates to false', () => {
     const dataConstruct = defineData({
       schema:
         'type Todo @model @auth(rules: [{ allow: public }]) { content: String! }',
@@ -253,11 +253,11 @@ void describe('DataFactory', () => {
     });
   });
 
-  void it('passes down false allowDestructiveGraphqlSchemaUpdates option', () => {
+  void it('passes down false allowDestructiveSchemaUpdates option', () => {
     const dataConstruct = defineData({
       schema:
         'type Todo @model @auth(rules: [{ allow: public }]) { content: String! }',
-      allowDestructiveGraphqlSchemaUpdates: false,
+      allowDestructiveSchemaUpdates: false,
       authorizationModes: {
         defaultAuthorizationMode: 'apiKey',
         apiKeyAuthorizationMode: { expiresInDays: 7 },
@@ -274,11 +274,11 @@ void describe('DataFactory', () => {
     });
   });
 
-  void it('passes down true allowDestructiveGraphqlSchemaUpdates option', () => {
+  void it('passes down true allowDestructiveSchemaUpdates option', () => {
     const dataConstruct = defineData({
       schema:
         'type Todo @model @auth(rules: [{ allow: public }]) { content: String! }',
-      allowDestructiveGraphqlSchemaUpdates: true,
+      allowDestructiveSchemaUpdates: true,
       authorizationModes: {
         defaultAuthorizationMode: 'apiKey',
         apiKeyAuthorizationMode: { expiresInDays: 7 },
