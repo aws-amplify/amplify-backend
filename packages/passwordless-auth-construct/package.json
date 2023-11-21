@@ -17,7 +17,7 @@
     "update:api": "api-extractor run --local"
   },
   "dependencies": {
-    "@aws-amplify/backend-auth": "0.3.3",
+    "@aws-amplify/auth-construct-alpha": "0.4.1",
     "@aws-sdk/client-sns": "^3.429.0"
   },
   "devDependencies": {
