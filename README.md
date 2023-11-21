@@ -6,54 +6,8 @@ This next generation of Amplify’s backend building experience lets you author 
 
 To quickly get started with Amplify (Gen 2), please visit [AWS Amplify (Gen 2) Quickstart](https://docs.amplify.aws/gen2/start/quickstart/).
 
-## Manual Installation
-
-First, if your frontend framework of choice doesn't have it already, create your project's `package.json` with `npm init -y`. Then, install the Amplify dependencies for building a backend:
-
 ```bash
-npm add --save-dev @aws-amplify/backend @aws-amplify/backend-cli typescript
-```
-
-Next, create the entrypoint for your backend, `amplify/backend.ts`, with the following content:
-
-```ts
-import { defineBackend } from '@aws-amplify/backend';
-defineBackend({});
-```
-
-Now you can run the following command to create your first backend!
-
-```bash
-npx amplify sandbox
-```
-
-### Define Amplify Auth
-
-You can use `define*` functions to define your resources. For example, you can define authentication:
-
-```ts
-import { defineAuth } from '@aws-amplify/backend';
-
-export const auth = defineAuth({
-  loginWith: {
-    email: true,
-  },
-});
-```
-
-### Define Amplify Data
-
-Define your data resource using the following command:
-
-```ts
-import { a, defineData, type ClientSchema } from '@aws-amplify/backend';
-
-const schema = a.schema({});
-
-export type Schema = ClientSchema<typeof schema>;
-export const data = defineData({
-  schema,
-});
+npm create amplify@latest
 ```
 
 ## Security
