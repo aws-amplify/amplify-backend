@@ -31,7 +31,7 @@ export type AmplifyAuthProps = Expand<Omit<AuthProps, 'outputStorageStrategy' | 
     loginWith: Expand<AuthLoginWithFactoryProps>;
     triggers?: Partial<Record<TriggerEvent, ConstructFactory<ResourceProvider<FunctionResources>>>>;
     passwordlessOptions?: PasswordlessAuthProps;
-};
+}>;
 
 // @public
 export type AppleProviderFactoryProps = Omit<AppleProviderProps, 'clientId' | 'teamId' | 'keyId' | 'privateKey'> & {
