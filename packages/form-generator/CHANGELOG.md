@@ -1,5 +1,11 @@
 # @aws-amplify/form-generator
 
+## 0.6.0
+
+### Minor Changes
+
+- f081c223c: Manually exclude timestamp fields from generated forms
+
 ## 0.5.0
 
 ### Minor Changes
