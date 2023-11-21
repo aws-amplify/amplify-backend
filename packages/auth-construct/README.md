@@ -74,6 +74,7 @@ new AmplifyAuth(stack, 'Auth', {
     externalProviders: {
       google: {
         clientId: 'googleClientId',
+        // see https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.SecretValue.html
         clientSecret: SecretValue.unsafePlainText('googleClientSecret'),
       },
       facebook: {
