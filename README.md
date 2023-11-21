@@ -2,7 +2,7 @@
 
 This next generation of Amplify’s backend building experience lets you author your frontend and backend definition completely with TypeScript, a file convention, and Git branch-based environments, is now available in Preview. To learn more, please visit [AWS Amplify (Gen 2)](https://docs.amplify.aws/gen2/).
 
-## Quickstart 
+## Quickstart
 
 To quickly get started with Amplify (Gen 2), please visit [AWS Amplify (Gen 2) Quickstart](https://docs.amplify.aws/gen2/start/quickstart/).
 
@@ -36,8 +36,8 @@ import { defineAuth } from '@aws-amplify/backend';
 
 export const auth = defineAuth({
   loginWith: {
-    email: true
-  }
+    email: true,
+  },
 });
 ```
 
@@ -52,7 +52,7 @@ const schema = a.schema({});
 
 export type Schema = ClientSchema<typeof schema>;
 export const data = defineData({
-  schema
+  schema,
 });
 ```
 
@@ -68,7 +68,7 @@ opensource-codeofconduct@amazon.com with any additional questions or comments.
 
 ## Community
 
-Join the [Discord Server](https://discord.com/invite/amplify). 
+Join the [Discord Server](https://discord.com/invite/amplify).
 
 ## Tutorials
 
@@ -83,5 +83,3 @@ Thank you for your interest in contributing to our project. Please visit [CONTRI
 ## License
 
 This project is licensed under the Apache-2.0 License.
-
-
