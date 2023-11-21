@@ -135,7 +135,7 @@ export type DataProps = {
 
   /**
    * When enabled, will allow for destructive updates to the schema (e.g. replace on primary key or identifier updates).
-   * It is recommended to only enable this if you plan on making a destructive change, and re-enable in a subsequent deployment.
+   * It is recommended to only enable this if you plan on making a destructive change, and disable it again in a subsequent deployment.
    * @default false
    */
   allowDestructiveSchemaUpdates?: boolean;
