@@ -1,5 +1,13 @@
 # @aws-amplify/backend-cli
 
+## 0.9.1
+
+### Patch Changes
+
+- 43d09b642: fix: update package.json metadata
+- Updated dependencies [f081c223c]
+  - @aws-amplify/form-generator@0.6.0
+
 ## 0.9.0
 
 ### Minor Changes
