@@ -277,6 +277,24 @@ export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
         name,
       }))
     );
+
+    dataSchema.models = Object.entries(dataSchema.models).reduce<
+      (typeof dataSchema)['models']
+    >((prev, [key, value]) => {
+      // Discard createdAt and updatedAt fields
+      /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+      const { createdAt, updatedAt, ...fields } = value.fields;
+
+      const valueExcludingTimestampFields = {
+        ...value,
+        fields,
+      };
+
+      prev[key] = valueExcludingTimestampFields;
+
+      return prev;
+    }, {});
+
     const forms = baseForms.reduce<Record<string, string>>(
       (prev, formSchema) => {
         const results = this.codegenForm(dataSchema, formSchema);
