@@ -107,7 +107,11 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       authorizationModes,
       outputStorageStrategy: this.outputStorageStrategy,
       functionNameMap,
-      translationBehavior: { sandboxModeEnabled },
+      translationBehavior: {
+        sandboxModeEnabled,
+        allowDestructiveGraphqlSchemaUpdates:
+          this.props.allowDestructiveGraphqlSchemaUpdates,
+      },
     });
   };
 }

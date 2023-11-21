@@ -232,4 +232,66 @@ void describe('DataFactory', () => {
       }
     );
   });
+
+  void it('defaults allowDestructiveGraphqlSchemaUpdates to false', () => {
+    const dataConstruct = defineData({
+      schema:
+        'type Todo @model @auth(rules: [{ allow: public }]) { content: String! }',
+      authorizationModes: {
+        defaultAuthorizationMode: 'apiKey',
+        apiKeyAuthorizationMode: { expiresInDays: 7 },
+      },
+    }).getInstance(getInstanceProps);
+
+    // Validate that the api resources are created for the function
+    assert('Todo' in dataConstruct.resources.nestedStacks);
+    const todoStack = Template.fromStack(
+      dataConstruct.resources.nestedStacks.Todo
+    );
+    todoStack.hasResourceProperties('Custom::AmplifyDynamoDBTable', {
+      allowDestructiveGraphqlSchemaUpdates: false,
+    });
+  });
+
+  void it('passes down false allowDestructiveGraphqlSchemaUpdates option', () => {
+    const dataConstruct = defineData({
+      schema:
+        'type Todo @model @auth(rules: [{ allow: public }]) { content: String! }',
+      allowDestructiveGraphqlSchemaUpdates: false,
+      authorizationModes: {
+        defaultAuthorizationMode: 'apiKey',
+        apiKeyAuthorizationMode: { expiresInDays: 7 },
+      },
+    }).getInstance(getInstanceProps);
+
+    // Validate that the api resources are created for the function
+    assert('Todo' in dataConstruct.resources.nestedStacks);
+    const todoStack = Template.fromStack(
+      dataConstruct.resources.nestedStacks.Todo
+    );
+    todoStack.hasResourceProperties('Custom::AmplifyDynamoDBTable', {
+      allowDestructiveGraphqlSchemaUpdates: false,
+    });
+  });
+
+  void it('passes down true allowDestructiveGraphqlSchemaUpdates option', () => {
+    const dataConstruct = defineData({
+      schema:
+        'type Todo @model @auth(rules: [{ allow: public }]) { content: String! }',
+      allowDestructiveGraphqlSchemaUpdates: true,
+      authorizationModes: {
+        defaultAuthorizationMode: 'apiKey',
+        apiKeyAuthorizationMode: { expiresInDays: 7 },
+      },
+    }).getInstance(getInstanceProps);
+
+    // Validate that the api resources are created for the function
+    assert('Todo' in dataConstruct.resources.nestedStacks);
+    const todoStack = Template.fromStack(
+      dataConstruct.resources.nestedStacks.Todo
+    );
+    todoStack.hasResourceProperties('Custom::AmplifyDynamoDBTable', {
+      allowDestructiveGraphqlSchemaUpdates: true,
+    });
+  });
 });

@@ -132,4 +132,11 @@ export type DataProps = {
    * Functions invokable by the API. The specific input type of the function is subject to change or removal.
    */
   functions?: Record<string, ConstructFactory<AmplifyFunction>>;
+
+  /**
+   * When enabled, will allow for destructive updates to the schema (e.g. replace on primary key or identifier updates).
+   * It is recommended to only enable this, if you plan on making a destructive change, and re-enable in a subsequent deployment.
+   * @default false
+   */
+  allowDestructiveGraphqlSchemaUpdates?: boolean;
 };
