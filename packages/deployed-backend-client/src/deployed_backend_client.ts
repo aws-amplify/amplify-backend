@@ -69,6 +69,9 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
         .filter((stackSummary: StackSummary) => {
           return stackSummary.StackStatus !== StackStatus.DELETE_COMPLETE;
         })
+        .filter((stackSummary: StackSummary) => {
+          return this.isSandboxStack(stackSummary.StackName);
+        })
         .map(async (stackSummary: StackSummary) => {
           const deploymentType = await this.tryGetDeploymentType(stackSummary);
 
@@ -101,6 +104,16 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
       sandboxes: stackMetadata,
       nextToken,
     };
+  };
+
+  private isSandboxStack = (stackName: string | undefined): boolean => {
+    const mainStackNamePrefix = 'amplify-';
+    const sandboxStackNamePart = '-sandbox-';
+    return (
+      !!stackName &&
+      stackName.startsWith(mainStackNamePrefix) &&
+      stackName.includes(sandboxStackNamePart)
+    );
   };
 
   private tryGetDeploymentType = async (
