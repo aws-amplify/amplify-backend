@@ -10,6 +10,8 @@ import { AmplifyAuth } from '@aws-amplify/auth-construct-alpha';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import { AmplifyOtpAuth } from './otp/construct.js';
+import { AmplifyMagicLinkAuth } from './magic-link/construct.js';
+import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -75,6 +77,30 @@ export class AmplifyPasswordlessAuth extends Construct {
 
     auth.addTrigger('verifyAuthChallengeResponse', verifyAuthChallengeResponse);
 
+    const emailEnabled = !!props.otp?.email || !!props.magicLink?.email;
+    const smsEnabled = !!props.otp?.sms;
+
+    if (emailEnabled) {
+      createAuthChallenge.addToRolePolicy(
+        new PolicyStatement({
+          actions: ['ses:SendEmail'],
+          notResources: ['arn:aws:ses:*:*:*'],
+        })
+      );
+    }
+
+    if (smsEnabled) {
+      createAuthChallenge.addToRolePolicy(
+        new PolicyStatement({
+          actions: ['sns:publish'],
+          // For SNS, resources only applies to topics. Adding the following notResources
+          // prevents publishing to topics (while still allowing SMS messages to be sent).
+          // see: https://docs.aws.amazon.com/sns/latest/dg/sns-using-identity-based-policies.html
+          notResources: ['arn:aws:sns:*:*:*'],
+        })
+      );
+    }
+
     // Configure OTP environment
     if (props.otp) {
       new AmplifyOtpAuth(
@@ -86,6 +112,20 @@ export class AmplifyPasswordlessAuth extends Construct {
           verifyAuthChallengeResponse,
         },
         props.otp
+      );
+    }
+
+    // Configure Magic Link
+    if (props.magicLink) {
+      new AmplifyMagicLinkAuth(
+        scope,
+        `${id}-magic-link`,
+        {
+          defineAuthChallenge,
+          createAuthChallenge,
+          verifyAuthChallengeResponse,
+        },
+        props.magicLink
       );
     }
   }

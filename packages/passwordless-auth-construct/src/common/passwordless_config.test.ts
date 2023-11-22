@@ -1,13 +1,14 @@
 import { describe, it } from 'node:test';
 import { PasswordlessConfig } from './passwordless_config.js';
-import { deepEqual, equal, strictEqual } from 'node:assert';
+import { equal, strictEqual } from 'node:assert';
+import { Duration } from 'aws-cdk-lib';
 
 void describe('PasswordlessConfig', () => {
   void describe('otpConfig', () => {
     void it('should generate a otpLength when no length is provided', () => {
       const expectedLength = 6;
 
-      const { otpConfig } = new PasswordlessConfig({ optsLength: undefined });
+      const { otpConfig } = new PasswordlessConfig({ optLength: undefined });
 
       strictEqual(otpConfig.otpLength, expectedLength);
     });
@@ -30,43 +31,76 @@ void describe('PasswordlessConfig', () => {
       strictEqual(otpConfig.otpLength, expectedLength);
     });
   });
+  void describe('magicLinkConfig', () => {
+    void it('should generate a expiry of 15 minutes when none is provided', () => {
+      const { magicLinkConfig } = new PasswordlessConfig({
+        magicLinkSecondsUntilExpiry: '',
+      });
+
+      equal(
+        magicLinkConfig.linkDuration.toSeconds(),
+        Duration.minutes(15).toSeconds()
+      );
+    });
+
+    void it('should generate a expiry of 1 hour when expiry is longer than 1 hour', () => {
+      const { magicLinkConfig } = new PasswordlessConfig({
+        magicLinkSecondsUntilExpiry: Duration.hours(2).toSeconds().toString(),
+      });
+
+      equal(
+        magicLinkConfig.linkDuration.toSeconds(),
+        Duration.hours(1).toSeconds()
+      );
+    });
+
+    void it('should use the provided expiry if it is less than 1 hour', () => {
+      const { magicLinkConfig } = new PasswordlessConfig({
+        magicLinkSecondsUntilExpiry: '60',
+      });
+
+      equal(
+        magicLinkConfig.linkDuration.toSeconds(),
+        Duration.minutes(1).toSeconds()
+      );
+    });
+  });
   void describe('snsConfig', () => {
     void it('should extract config', async () => {
-      const env = { originationNumber: '1234567890', senderId: '123456' };
+      const env = { otpOriginationNumber: '1234567890', otpSenderId: '123456' };
 
       const { snsConfig } = new PasswordlessConfig(env);
 
-      deepEqual(snsConfig, env);
+      equal(snsConfig.otp.originationNumber, env.otpOriginationNumber);
+      equal(snsConfig.otp.senderId, env.otpSenderId);
     });
 
     void it('should extract nothing when env is empty', async () => {
-      const env = { originationNumber: undefined, senderId: undefined };
+      const env = { otpOriginationNumber: undefined, otpSenderId: undefined };
 
       const { snsConfig } = new PasswordlessConfig(env);
 
-      deepEqual(snsConfig, env);
+      equal(snsConfig.otp.originationNumber, undefined);
+      equal(snsConfig.otp.senderId, undefined);
     });
   });
   void describe('sesConfig', () => {
     void it('should extract config', async () => {
-      const env = { otpFromAddress: 'foo@bar.com', emailSubject: 'foo' };
+      const env = { otpFromAddress: 'foo@bar.com', otpSubject: 'foo' };
 
       const { sesConfig } = new PasswordlessConfig(env);
 
-      equal(sesConfig.fromAddress, env.otpFromAddress);
-      equal(sesConfig.emailSubject, env.emailSubject);
+      equal(sesConfig.otp.fromAddress, env.otpFromAddress);
+      equal(sesConfig.otp.subject, env.otpSubject);
     });
 
     void it('should extract nothing when env is empty', async () => {
-      const env = { fromAddress: undefined, emailSubject: undefined };
-      const expected = {
-        fromAddress: undefined,
-        emailSubject: 'Your verification code',
-      };
+      const env = { otpFromAddress: undefined, otpSubject: undefined };
 
       const { sesConfig } = new PasswordlessConfig(env);
 
-      deepEqual(sesConfig, expected);
+      equal(sesConfig.otp.subject, 'Your verification code');
+      equal(sesConfig.otp.fromAddress, undefined);
     });
   });
 });

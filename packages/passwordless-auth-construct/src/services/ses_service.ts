@@ -1,6 +1,12 @@
 import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
 import { logger } from '../logger.js';
-import { DeliveryMedium, DeliveryService, SesServiceConfig } from '../types.js';
+import {
+  ChallengeType,
+  DeliveryMedium,
+  DeliveryService,
+  EmailOptions,
+  SesServiceConfig,
+} from '../types.js';
 
 /**
  * SNS service Implementation.
@@ -16,33 +22,32 @@ export class SesService implements DeliveryService {
    */
   constructor(private sesClient: SESClient, private config: SesServiceConfig) {}
 
-  public send = async (message: string, destination: string): Promise<void> => {
-    if (!this.config.fromAddress) {
-      throw new Error(
-        'The `fromAddress` is required for OTP via email! Please set `passwordlessOptions.otp.fromAddress` when defining the Passwordless Construct.'
-      );
-    }
-
-    // TODO: Add support for custom email input
+  public send = async (
+    secret: string,
+    destination: string,
+    challengeType: ChallengeType
+  ): Promise<void> => {
+    const config = this.getConfig(challengeType);
+    const body = config.body?.replace('####', secret);
     const emailCommand = new SendEmailCommand({
       Destination: { ToAddresses: [destination] },
       Message: {
         Body: {
           Html: {
             Charset: 'UTF-8',
-            Data: message,
+            Data: body,
           },
           Text: {
             Charset: 'UTF-8',
-            Data: message,
+            Data: body,
           },
         },
         Subject: {
           Charset: 'UTF-8',
-          Data: this.config.emailSubject,
+          Data: config.subject,
         },
       },
-      Source: this.config.fromAddress,
+      Source: config.fromAddress,
     });
 
     // Send Email via SES
@@ -67,12 +72,12 @@ export class SesService implements DeliveryService {
     return `${start.slice(0, 1)}****${start.slice(-1)}@${maskedDomain}`;
   };
 
-  /**
-   * Create Email content
-   * @param secretCode The OTP code to send
-   * @returns The Email content
-   */
-  public createMessage = (secretCode: string): string => {
-    return `Your verification code is: ${secretCode}`;
+  private getConfig = (challengeType: ChallengeType): EmailOptions => {
+    switch (challengeType) {
+      case 'MAGIC_LINK':
+        return this.config.magicLink;
+      case 'OTP':
+        return this.config.otp;
+    }
   };
 }

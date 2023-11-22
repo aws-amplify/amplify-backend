@@ -23,7 +23,10 @@ void describe('SNS Service', () => {
 
   beforeEach(() => {
     mockSnsClient = new MockSnsClient();
-    snsConfig = {};
+    snsConfig = {
+      otp: {},
+      magicLink: {},
+    };
   });
 
   void describe('send()', () => {
@@ -31,7 +34,7 @@ void describe('SNS Service', () => {
       const senderId = 'stub_sender_id';
       const originationNumber = 'stub_origination_number';
       const phoneNumber = '+15555555555';
-      const message = 'Hello world';
+      const secret = '123456';
 
       const expectedAttributes = {
         MessageAttributes: {
@@ -49,20 +52,24 @@ void describe('SNS Service', () => {
           },
         },
         PhoneNumber: phoneNumber,
-        Message: message,
+        Message: 'your code is 123456',
       };
 
       const sendMock = mock.method(mockSnsClient, 'send');
 
       const snsConfig: SnsServiceConfig = {
-        senderId: senderId,
-        originationNumber: originationNumber,
+        otp: {
+          senderId: senderId,
+          originationNumber: originationNumber,
+          message: 'your code is ####',
+        },
+        magicLink: {},
       };
 
       const mockSmsService = new SnsService(mockSnsClient, snsConfig);
 
       strictEqual(sendMock.mock.callCount(), 0);
-      await mockSmsService.send(message, phoneNumber);
+      await mockSmsService.send(secret, phoneNumber, 'OTP');
       const actualPublishCommand = sendMock.mock.calls[0]
         .arguments[0] as PublishCommand;
       strictEqual(sendMock.mock.callCount(), 1);
@@ -86,18 +93,6 @@ void describe('SNS Service', () => {
       const phoneNumber = '+155555';
       const maskedPhoneNumber = mockSmsService.mask(phoneNumber);
       strictEqual(maskedPhoneNumber, '+*********55');
-    });
-  });
-
-  void describe('createMessage()', () => {
-    beforeEach(() => {
-      snsService = new SnsService(mockSnsClient, snsConfig);
-    });
-    void it('should create a message', () => {
-      const mockSmsService = snsService;
-      const otpCode = '123456';
-      const message = mockSmsService.createMessage(otpCode);
-      strictEqual(message, `Your verification code is: ${otpCode}`);
     });
   });
 });

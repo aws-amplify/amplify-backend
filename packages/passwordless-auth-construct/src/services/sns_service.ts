@@ -1,6 +1,12 @@
 import { PublishCommand, SNSClient } from '@aws-sdk/client-sns';
 import { logger } from '../logger.js';
-import { DeliveryMedium, DeliveryService, SnsServiceConfig } from '../types.js';
+import {
+  ChallengeType,
+  DeliveryMedium,
+  DeliveryService,
+  SmsOptions,
+  SnsServiceConfig,
+} from '../types.js';
 
 /**
  * SNS service Implementation.
@@ -16,19 +22,26 @@ export class SnsService implements DeliveryService {
    */
   constructor(private snsClient: SNSClient, private config: SnsServiceConfig) {}
 
-  public send = async (message: string, destination: string): Promise<void> => {
+  public send = async (
+    secret: string,
+    destination: string,
+    challengeType: ChallengeType
+  ): Promise<void> => {
+    const config = this.getConfig(challengeType);
+    const message = config.message?.replace('####', secret);
+
     // SNS attributes
     const attributes: PublishCommand['input']['MessageAttributes'] = {};
-    if (this.config.senderId && this.config.senderId !== '') {
+    if (config.senderId && config.senderId !== '') {
       attributes['AWS.SNS.SMS.SenderID'] = {
         DataType: 'String',
-        StringValue: this.config.senderId,
+        StringValue: config.senderId,
       };
     }
-    if (this.config.originationNumber && this.config.originationNumber !== '') {
+    if (config.originationNumber && config.originationNumber !== '') {
       attributes['AWS.SNS.SMS.OriginationNumber'] = {
         DataType: 'String',
-        StringValue: this.config.originationNumber,
+        StringValue: config.originationNumber,
       };
     }
 
@@ -57,12 +70,12 @@ export class SnsService implements DeliveryService {
     )}`;
   };
 
-  /**
-   * Create SMS message content
-   * @param code The OTP code to send
-   * @returns The SMS content
-   */
-  public createMessage = (code: string): string => {
-    return `Your verification code is: ${code}`;
+  private getConfig = (challengeType: ChallengeType): Partial<SmsOptions> => {
+    switch (challengeType) {
+      case 'MAGIC_LINK':
+        return this.config.magicLink;
+      case 'OTP':
+        return this.config.otp;
+    }
   };
 }

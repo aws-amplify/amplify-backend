@@ -1,6 +1,5 @@
 import { Construct } from 'constructs';
 import { CustomAuthTriggers, OtpAuthOptions } from '../types.js';
-import { Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 
 /**
  * Amplify OTP Construct
@@ -13,7 +12,7 @@ export class AmplifyOtpAuth extends Construct {
     scope: Construct,
     id: string,
     triggers: CustomAuthTriggers,
-    props: OtpAuthOptions | boolean
+    props: OtpAuthOptions
   ) {
     super(scope, id);
 
@@ -21,35 +20,15 @@ export class AmplifyOtpAuth extends Construct {
       return;
     }
 
-    const createAuthChallengePolicy = [
-      // SNS IAM policy
-      new PolicyStatement({
-        actions: ['sns:publish'],
-        // For SNS, resources only applies to topics. Adding the following notResources
-        // prevents publishing to topics (while still allowing SMS messages to be sent).
-        // see: https://docs.aws.amazon.com/sns/latest/dg/sns-using-identity-based-policies.html
-        notResources: ['arn:aws:sns:*:*:*'],
-      }),
-      // SES IAM policy
-      new PolicyStatement({
-        effect: Effect.ALLOW,
-        actions: ['ses:SendEmail'],
-        resources: ['*'],
-      }),
-    ];
-
-    for (const value of createAuthChallengePolicy) {
-      triggers.createAuthChallenge.addToRolePolicy(value);
-    }
-
     // return with default values if props is a boolean
     if (typeof props === 'boolean') return;
 
     const createAuthChallengeEnvVars = {
-      originationNumber: props.originationNumber,
-      otpFromAddress: props.fromAddress,
+      otpOriginationNumber: props.sms?.originationNumber,
+      otpSenderId: props.sms?.senderId,
+      otpFromAddress:
+        typeof props.email === 'boolean' ? undefined : props.email?.fromAddress,
       otpLength: props.length?.toString(),
-      senderId: props.senderId,
     };
 
     for (const [key, value] of Object.entries(createAuthChallengeEnvVars)) {

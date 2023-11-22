@@ -18,50 +18,24 @@ void describe('Passwordless OTP construct', () => {
 
   new AmplifyPasswordlessAuth(stack, 'test', auth, {
     otp: {
-      originationNumber: mockOriginationNumber,
-      senderId: mockSenderId,
       length: mockOtpLength,
+      sms: {
+        originationNumber: mockOriginationNumber,
+        senderId: mockSenderId,
+      },
     },
   });
   const template = Template.fromStack(stack);
 
   void describe('otp', () => {
-    void describe('policies', () => {
-      void it(`Adds ses & sns policy to createAuthChallenge lambda`, () => {
-        const triggers = template.findResources('AWS::IAM::Policy', {
-          Properties: {
-            PolicyDocument: {
-              Statement: [
-                {
-                  Action: 'sns:publish',
-                  Effect: 'Allow',
-                  NotResource: 'arn:aws:sns:*:*:*',
-                },
-                {
-                  Action: 'ses:SendEmail',
-                  Effect: 'Allow',
-                },
-              ],
-            },
-          },
-        });
-        const key =
-          Object.keys(triggers).find((trigger) =>
-            trigger.startsWith('CreateAuthChallenge')
-          ) ?? '';
-        const trigger = triggers[key];
-        notEqual(trigger, undefined);
-      });
-    });
-
     void describe('environment variables', () => {
       void it(`Adds all options`, () => {
         const triggers = template.findResources('AWS::Lambda::Function', {
           Properties: {
             Environment: {
               Variables: {
-                originationNumber: mockOriginationNumber,
-                senderId: mockSenderId,
+                otpOriginationNumber: mockOriginationNumber,
+                otpSenderId: mockSenderId,
                 otpLength: mockOtpLength.toString(),
               },
             },
