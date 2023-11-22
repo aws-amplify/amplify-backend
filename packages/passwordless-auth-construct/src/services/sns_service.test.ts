@@ -99,5 +99,16 @@ void describe('SNS Service', () => {
       const message = mockSmsService.createMessage(otpCode);
       strictEqual(message, `Your verification code is: ${otpCode}`);
     });
+
+    void it('should create a custom message', () => {
+      const customMessage = 'my custom verification message is';
+      const mockSmsService = new SnsService(mockSnsClient, {
+        ...snsConfig,
+        smsMessage: customMessage,
+      });
+      const otpCode = '123456';
+      const message = mockSmsService.createMessage(otpCode);
+      strictEqual(message, `${customMessage}: ${otpCode}`);
+    });
   });
 });
