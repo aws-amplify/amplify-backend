@@ -124,6 +124,32 @@ export type MagicLinkAuthOptions = {
 };
 
 /**
+ * Options for email user verification
+ */
+type EmailUserVerificationOptions = {
+  emailSubject?: string;
+  emailBody?: string;
+};
+
+/**
+ * Options for SMS user verification
+ */
+type SmsUserVerificationOptions = {
+  smsMessage?: string;
+};
+
+/**
+ * Options for OTP user verification
+ */
+export type OtpUserVerification = EmailUserVerificationOptions &
+  SmsUserVerificationOptions;
+
+/**
+ * Options for magic link user verification
+ */
+export type MagicLinkUserVerification = EmailUserVerificationOptions;
+
+/**
  * Options for OTP Passwordless Auth.
  */
 export type OtpAuthOptions = {
@@ -146,6 +172,13 @@ export type OtpAuthOptions = {
    * @default 6 length of the code. Minimum 6.
    */
   length?: number;
+
+  /**
+   * The user verification options.
+   *
+   * Options used to customize the user verification process.
+   */
+  userVerification?: OtpUserVerification;
 };
 
 export type ChallengeResult =
@@ -169,6 +202,16 @@ export type SnsServiceConfig = {
    * The sender id to use for SMS messages. Defaults to undefined.
    */
   senderId?: string;
+  /**
+   * The custom SMS message to send.
+   * @default 'Your verification code is'.
+   * @example
+   *
+   * ```ts
+   *  smsMessage: 'my custom verification message is'
+   * ```
+   */
+  smsMessage?: string;
 };
 
 /**
