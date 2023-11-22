@@ -22,6 +22,7 @@ export type OtpAuthOptions = {
     originationNumber?: string;
     senderId?: string;
     length?: number;
+    userVerification?: OtpUserVerification;
 };
 
 // @public
@@ -29,6 +30,10 @@ export type PasswordlessAuthProps = {
     magicLink?: MagicLinkAuthOptions;
     otp?: OtpAuthOptions | boolean;
 };
+
+// Warnings were encountered during analysis:
+//
+// src/types.ts:181:3 - (ae-forgotten-export) The symbol "OtpUserVerification" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

@@ -32,7 +32,11 @@ void describe('PasswordlessConfig', () => {
   });
   void describe('snsConfig', () => {
     void it('should extract config', async () => {
-      const env = { originationNumber: '1234567890', senderId: '123456' };
+      const env = {
+        originationNumber: '1234567890',
+        senderId: '123456',
+        smsMessage: 'my custom sms message',
+      };
 
       const { snsConfig } = new PasswordlessConfig(env);
 
@@ -40,7 +44,7 @@ void describe('PasswordlessConfig', () => {
     });
 
     void it('should extract nothing when env is empty', async () => {
-      const env = { originationNumber: '', senderId: '' };
+      const env = { originationNumber: '', senderId: '', smsMessage: '' };
 
       const { snsConfig } = new PasswordlessConfig(env);
 
