@@ -1,5 +1,5 @@
 import debounce from 'debounce-promise';
-import parcelWatcher, { type subscribe } from '@parcel/watcher';
+import { subscribe } from '@parcel/watcher';
 import { type AmplifySandboxExecutor } from './sandbox_executor.js';
 import {
   type BackendIdSandboxResolver,
@@ -8,7 +8,7 @@ import {
   type SandboxEvents,
   type SandboxOptions,
 } from './sandbox.js';
-import parseGitIgnore from 'parse-gitignore';
+import { parse as parseGitIgnore } from 'parse-gitignore';
 import path from 'path';
 import fs from 'fs';
 import _open from 'open';
@@ -132,7 +132,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       this.emitWatching();
     });
 
-    this.watcherSubscription = await parcelWatcher.subscribe(
+    this.watcherSubscription = await subscribe(
       options.dir ?? './amplify',
       async (_, events) => {
         // Log and track file changes.

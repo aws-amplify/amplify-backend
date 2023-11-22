@@ -1,7 +1,7 @@
 import { globSync } from 'glob';
 import * as fs from 'fs';
 import * as path from 'path';
-import prettier from 'prettier';
+import * as prettier from 'prettier';
 
 /*
  * In a monorepo where packages depend on each other, TS needs to know what order to build those packages.

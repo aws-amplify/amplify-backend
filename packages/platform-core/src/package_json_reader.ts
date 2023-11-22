@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import z from 'zod';
+import { z } from 'zod';
 
 /**
  * return the package json
