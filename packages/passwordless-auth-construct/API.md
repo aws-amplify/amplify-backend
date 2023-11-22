@@ -13,6 +13,12 @@ export class AmplifyPasswordlessAuth extends Construct {
 }
 
 // @public
+export type EmailUserVerificationOptions = {
+    emailSubject?: string;
+    emailBody?: string;
+};
+
+// @public
 export type MagicLinkAuthOptions = {
     fromAddress: string;
 };
@@ -25,9 +31,6 @@ export type OtpAuthOptions = {
     userVerification?: OtpUserVerification;
 };
 
-// Warning: (ae-forgotten-export) The symbol "EmailUserVerificationOptions" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "SmsUserVerificationOptions" needs to be exported by the entry point index.d.ts
-//
 // @public
 export type OtpUserVerification = EmailUserVerificationOptions & SmsUserVerificationOptions;
 
@@ -35,6 +38,11 @@ export type OtpUserVerification = EmailUserVerificationOptions & SmsUserVerifica
 export type PasswordlessAuthProps = {
     magicLink?: MagicLinkAuthOptions;
     otp?: OtpAuthOptions | boolean;
+};
+
+// @public
+export type SmsUserVerificationOptions = {
+    smsMessage?: string;
 };
 
 // (No @packageDocumentation comment for this package)

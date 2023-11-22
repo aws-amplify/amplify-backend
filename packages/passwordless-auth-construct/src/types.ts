@@ -126,7 +126,7 @@ export type MagicLinkAuthOptions = {
 /**
  * Options for email user verification
  */
-type EmailUserVerificationOptions = {
+export type EmailUserVerificationOptions = {
   emailSubject?: string;
   emailBody?: string;
 };
@@ -134,7 +134,7 @@ type EmailUserVerificationOptions = {
 /**
  * Options for SMS user verification
  */
-type SmsUserVerificationOptions = {
+export type SmsUserVerificationOptions = {
   smsMessage?: string;
 };
 
