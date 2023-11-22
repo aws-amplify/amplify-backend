@@ -1,5 +1,13 @@
 # create-amplify
 
+## 0.3.8
+
+### Patch Changes
+
+- 5ed51cbd5: Upgrade aws-cdk to 2.110.1
+- Updated dependencies [5ed51cbd5]
+  - @aws-amplify/platform-core@0.3.1
+
 ## 0.3.7
 
 ### Patch Changes

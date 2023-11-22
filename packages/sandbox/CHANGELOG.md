@@ -1,5 +1,14 @@
 # @aws-amplify/sandbox
 
+## 0.3.6
+
+### Patch Changes
+
+- 5ed51cbd5: Upgrade aws-cdk to 2.110.1
+- Updated dependencies [5ed51cbd5]
+  - @aws-amplify/backend-deployer@0.3.4
+  - @aws-amplify/platform-core@0.3.1
+
 ## 0.3.5
 
 ### Patch Changes

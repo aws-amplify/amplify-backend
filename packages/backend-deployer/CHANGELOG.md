@@ -1,5 +1,14 @@
 # @aws-amplify/backend-deployer
 
+## 0.3.4
+
+### Patch Changes
+
+- 5ed51cbd5: Upgrade aws-cdk to 2.110.1
+- Updated dependencies [5ed51cbd5]
+  - @aws-amplify/platform-core@0.3.1
+  - @aws-amplify/plugin-types@0.4.2
+
 ## 0.3.3
 
 ### Patch Changes
