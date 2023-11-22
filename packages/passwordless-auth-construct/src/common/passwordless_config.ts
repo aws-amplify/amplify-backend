@@ -37,10 +37,11 @@ export class PasswordlessConfig {
    */
   get snsConfig(): SnsServiceConfig {
     if (this.parsedSnsConfig === undefined) {
-      const { originationNumber, senderId } = this.env;
+      const { originationNumber, senderId, smsMessage } = this.env;
       this.parsedSnsConfig = {
         originationNumber,
         senderId,
+        smsMessage,
       };
     }
 

@@ -43,10 +43,13 @@ export class AmplifyOtpAuth extends Construct {
       originationNumber: props.originationNumber,
       senderId: props.senderId,
       otpLength: props.length?.toString(),
+      smsMessage: props.userVerification?.smsMessage,
+      emailSubject: props.userVerification?.emailSubject,
+      emailBody: props.userVerification?.emailBody,
     };
 
     for (const [key, value] of Object.entries(createAuthChallengeEnvVars)) {
-      triggers.createAuthChallenge.addEnvironment(key, value ?? '');
+      value && triggers.createAuthChallenge.addEnvironment(key, value);
     }
   }
 }

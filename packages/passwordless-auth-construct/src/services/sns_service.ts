@@ -63,6 +63,8 @@ export class SnsService implements DeliveryService {
    * @returns The SMS content
    */
   public createMessage = (code: string): string => {
-    return `Your verification code is: ${code}`;
+    const defaultMessage = 'Your verification code is';
+    const customMessage = this.config.smsMessage;
+    return `${customMessage ?? defaultMessage}: ${code}`;
   };
 }
