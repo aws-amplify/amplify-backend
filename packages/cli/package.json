@@ -30,6 +30,7 @@
   },
   "homepage": "https://github.com/aws-amplify/cli#readme",
   "dependencies": {
+    "@aws-amplify/backend-deployer": "^0.3.2",
     "@aws-amplify/backend-output-schemas": "^0.4.0",
     "@aws-amplify/backend-secret": "^0.3.0",
     "@aws-amplify/cli-core": "^0.2.0",
