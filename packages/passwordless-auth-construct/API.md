@@ -25,15 +25,17 @@ export type OtpAuthOptions = {
     userVerification?: OtpUserVerification;
 };
 
+// Warning: (ae-forgotten-export) The symbol "EmailUserVerificationOptions" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "SmsUserVerificationOptions" needs to be exported by the entry point index.d.ts
+//
+// @public
+export type OtpUserVerification = EmailUserVerificationOptions & SmsUserVerificationOptions;
+
 // @public
 export type PasswordlessAuthProps = {
     magicLink?: MagicLinkAuthOptions;
     otp?: OtpAuthOptions | boolean;
 };
-
-// Warnings were encountered during analysis:
-//
-// src/types.ts:181:3 - (ae-forgotten-export) The symbol "OtpUserVerification" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 
