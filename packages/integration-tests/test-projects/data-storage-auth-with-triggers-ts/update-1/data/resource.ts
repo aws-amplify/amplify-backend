@@ -1,4 +1,5 @@
 import { Func, defineData } from '@aws-amplify/backend';
+/* eslint-disable-next-line import/no-unresolved */
 import { myFunc } from '../function.js';
 
 export const data = defineData({

@@ -1,3 +1,4 @@
+/* eslint-disable-next-line import/no-unresolved */
 import { defineData } from '@aws-amplify/backend-graphql';
 
 const schema = `
