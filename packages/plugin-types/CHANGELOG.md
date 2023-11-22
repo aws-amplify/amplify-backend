@@ -1,5 +1,11 @@
 # @aws-amplify/plugin-types
 
+## 0.4.2
+
+### Patch Changes
+
+- 5ed51cbd5: Upgrade aws-cdk to 2.110.1
+
 ## 0.4.1
 
 ### Patch Changes

@@ -1,5 +1,12 @@
 # @aws-amplify/integration-tests
 
+## 0.3.7
+
+### Patch Changes
+
+- 5ed51cbd5: Upgrade aws-cdk to 2.110.1
+- 5ed51cbd5: Update data schema for e2e hotswappable test as per the new getting started
+
 ## 0.3.6
 
 ### Patch Changes

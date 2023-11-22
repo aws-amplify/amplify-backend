@@ -1,5 +1,19 @@
 # @aws-amplify/backend
 
+## 0.5.5
+
+### Patch Changes
+
+- 5ed51cbd5: Upgrade aws-cdk to 2.110.1
+- Updated dependencies [5ed51cbd5]
+  - @aws-amplify/backend-output-storage@0.2.6
+  - @aws-amplify/backend-function@0.2.5
+  - @aws-amplify/backend-storage@0.3.1
+  - @aws-amplify/platform-core@0.3.1
+  - @aws-amplify/backend-auth@0.3.5
+  - @aws-amplify/backend-data@0.8.2
+  - @aws-amplify/plugin-types@0.4.2
+
 ## 0.5.4
 
 ### Patch Changes
