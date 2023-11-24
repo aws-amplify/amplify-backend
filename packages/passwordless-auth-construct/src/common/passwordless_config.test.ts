@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import { PasswordlessConfig } from './passwordless_config.js';
-import { deepEqual, strictEqual } from 'node:assert';
+import { deepEqual, equal, strictEqual } from 'node:assert';
 
 void describe('PasswordlessConfig', () => {
   void describe('otpConfig', () => {
@@ -49,11 +49,12 @@ void describe('PasswordlessConfig', () => {
   });
   void describe('sesConfig', () => {
     void it('should extract config', async () => {
-      const env = { fromAddress: 'foo@bar.com', emailSubject: 'foo' };
+      const env = { otpFromAddress: 'foo@bar.com', emailSubject: 'foo' };
 
       const { sesConfig } = new PasswordlessConfig(env);
 
-      deepEqual(sesConfig, env);
+      equal(sesConfig.fromAddress, env.otpFromAddress);
+      equal(sesConfig.emailSubject, env.emailSubject);
     });
 
     void it('should extract nothing when env is empty', async () => {

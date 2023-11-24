@@ -40,7 +40,6 @@ void describe('Passwordless OTP construct', () => {
                 {
                   Action: 'ses:SendEmail',
                   Effect: 'Allow',
-                  NotResource: 'arn:aws:ses:*:*:*',
                 },
               ],
             },
