@@ -1,5 +1,11 @@
 # @aws-amplify/backend-data
 
+## 0.8.3
+
+### Patch Changes
+
+- 308d1729a: Add messaging and test about not updating provision strategy
+
 ## 0.8.2
 
 ### Patch Changes

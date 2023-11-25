@@ -1,5 +1,16 @@
 # @aws-amplify/backend-auth
 
+## 0.4.0
+
+### Minor Changes
+
+- fd0316deb: Add Magic Link and One Time Password Authentication
+
+### Patch Changes
+
+- Updated dependencies [fd0316deb]
+  - @aws-amplify/passwordless-auth-construct-alpha@0.1.0
+
 ## 0.3.5
 
 ### Patch Changes
