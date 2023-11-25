@@ -63,7 +63,7 @@ export class MagicLinkChallengeService implements ChallengeService {
     const fullRedirectUri = signedMagicLink.generateRedirectUri(redirectUri);
 
     // send message
-    await deliveryService.send(fullRedirectUri, destination, 'MAGIC_LINK');
+    await deliveryService.send(fullRedirectUri, destination, this.signInMethod);
 
     // return response with masked email/phone
     const response: CreateAuthChallengeTriggerEvent = {

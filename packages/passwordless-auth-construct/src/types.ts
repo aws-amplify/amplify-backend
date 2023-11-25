@@ -58,8 +58,6 @@ export type ChallengeService = {
   ) => Promise<VerifyAuthChallengeResponseTriggerEvent>;
 };
 
-export type ChallengeType = 'MAGIC_LINK' | 'OTP';
-
 /**
  * The delivery service interface.
  */
@@ -73,7 +71,7 @@ export type DeliveryService = {
   send: (
     message: string,
     destination: string,
-    challengeType: ChallengeType
+    challengeType: SignInMethod
   ) => Promise<void>;
 
   /**

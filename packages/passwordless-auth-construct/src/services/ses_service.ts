@@ -1,11 +1,11 @@
 import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
 import { logger } from '../logger.js';
 import {
-  ChallengeType,
   DeliveryMedium,
   DeliveryService,
   EmailOptions,
   SesServiceConfig,
+  SignInMethod,
 } from '../types.js';
 
 /**
@@ -25,7 +25,7 @@ export class SesService implements DeliveryService {
   public send = async (
     secret: string,
     destination: string,
-    challengeType: ChallengeType
+    challengeType: SignInMethod
   ): Promise<void> => {
     const config = this.getConfig(challengeType);
     const body = config.body?.replace('####', secret);
@@ -72,7 +72,7 @@ export class SesService implements DeliveryService {
     return `${start.slice(0, 1)}****${start.slice(-1)}@${maskedDomain}`;
   };
 
-  private getConfig = (challengeType: ChallengeType): EmailOptions => {
+  private getConfig = (challengeType: SignInMethod): EmailOptions => {
     switch (challengeType) {
       case 'MAGIC_LINK':
         return this.config.magicLink;

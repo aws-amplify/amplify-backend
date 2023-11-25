@@ -1,9 +1,9 @@
 import { PublishCommand, SNSClient } from '@aws-sdk/client-sns';
 import { logger } from '../logger.js';
 import {
-  ChallengeType,
   DeliveryMedium,
   DeliveryService,
+  SignInMethod,
   SmsOptions,
   SnsServiceConfig,
 } from '../types.js';
@@ -25,7 +25,7 @@ export class SnsService implements DeliveryService {
   public send = async (
     secret: string,
     destination: string,
-    challengeType: ChallengeType
+    challengeType: SignInMethod
   ): Promise<void> => {
     const config = this.getConfig(challengeType);
     const message = config.message?.replace('####', secret);
@@ -70,7 +70,7 @@ export class SnsService implements DeliveryService {
     )}`;
   };
 
-  private getConfig = (challengeType: ChallengeType): Partial<SmsOptions> => {
+  private getConfig = (challengeType: SignInMethod): Partial<SmsOptions> => {
     switch (challengeType) {
       case 'MAGIC_LINK':
         return this.config.magicLink;

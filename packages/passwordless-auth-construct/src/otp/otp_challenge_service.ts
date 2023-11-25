@@ -45,7 +45,7 @@ export class OtpChallengeService implements ChallengeService {
 
     const deliveryService =
       this.deliveryServiceFactory.getService(deliveryMedium);
-    await deliveryService.send(otpCode, destination, 'OTP');
+    await deliveryService.send(otpCode, destination, this.signInMethod);
 
     const response: CreateAuthChallengeTriggerEvent = {
       ...event,
