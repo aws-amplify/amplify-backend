@@ -27,7 +27,7 @@ void describe('Passwordless OTP construct', () => {
 
   void describe('otp', () => {
     void describe('policies', () => {
-      void it(`Adds a policy to createAuthChallenge lambda`, () => {
+      void it(`Adds ses & sns policy to createAuthChallenge lambda`, () => {
         const triggers = template.findResources('AWS::IAM::Policy', {
           Properties: {
             PolicyDocument: {
@@ -36,6 +36,10 @@ void describe('Passwordless OTP construct', () => {
                   Action: 'sns:publish',
                   Effect: 'Allow',
                   NotResource: 'arn:aws:sns:*:*:*',
+                },
+                {
+                  Action: 'ses:SendEmail',
+                  Effect: 'Allow',
                 },
               ],
             },
