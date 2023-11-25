@@ -18,7 +18,8 @@
   },
   "dependencies": {
     "@aws-amplify/auth-construct-alpha": "^0.4.2",
-    "@aws-sdk/client-sns": "^3.445.0"
+    "@aws-sdk/client-sns": "^3.445.0",
+    "@aws-sdk/client-ses": "^3.445.0"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.119",
