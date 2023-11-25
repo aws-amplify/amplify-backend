@@ -48,6 +48,7 @@ const signature = new Uint8Array([
  * data for the purpose of testing
  */
 export const publicKey =
+  // eslint-disable-next-line spellcheck/spell-checker
   'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAk1Io16OFvSSGd/BDxa+ccM5lYE9/e72ZB1tOEhmNVj39a2Q5bZU0OZNaBZNKqK6Q4YkXGowI4Hz7eGUSXW7m1KMeLtltv/73E6MbVwn0lAX8FC7KiZCk0enbGeYdz2cwV3dG6Dr3tvWEqC03hCe7NuAtMUh+kfM5mZKgVur9TVUoj6q57dkGj/eUDJgR4/3VCPUKmupiENUzFQsM1Gb6cj+1HTYUFLuZnWNJA3IMyNK/H5JCrWpSGAp7x+HD8KpZ0+BRdIFlkM7t5FizT/IXJUnh61NgBzelD5pbLXFGKXrM2nePd25lHOTij2k2809gFgCLeuc7hxmetaLU/mNePwIDAQAB';
 
 /**

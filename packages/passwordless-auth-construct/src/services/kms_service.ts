@@ -64,14 +64,14 @@ export class KMSService implements SigningService {
     signature: Uint8Array
   ): Promise<boolean> => {
     logger.debug('Downloading KMS public key');
-    this.publicKeys[keyId] =
-      this.publicKeys[keyId] ?? (await this.downloadPublicKey(keyId));
+    const key = this.publicKeys[keyId] ?? (await this.downloadPublicKey(keyId));
+    this.publicKeys[keyId] = key;
     logger.debug('Verifying key signature');
     const verifier = createVerify('RSA-SHA512');
     verifier.update(data);
     return verifier.verify(
       {
-        key: this.publicKeys[keyId]!,
+        key: key,
         padding: constants.RSA_PKCS1_PSS_PADDING,
         saltLength: constants.RSA_PSS_SALTLEN_DIGEST,
       },
@@ -91,6 +91,7 @@ export class KMSService implements SigningService {
     return createPublicKey({
       key: publicKey as Buffer,
       format: 'der',
+      // eslint-disable-next-line spellcheck/spell-checker
       type: 'spki',
     });
   };

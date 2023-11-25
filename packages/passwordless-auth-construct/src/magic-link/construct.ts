@@ -1,6 +1,6 @@
 import { Construct } from 'constructs';
 import { CustomAuthTriggers, MagicLinkAuthOptions } from '../types.js';
-import { Aws, Stack } from 'aws-cdk-lib';
+import { Aws, RemovalPolicy, Stack } from 'aws-cdk-lib';
 import { IKey, Key, KeySpec, KeyUsage } from 'aws-cdk-lib/aws-kms';
 import {
   AccountRootPrincipal,
@@ -67,8 +67,7 @@ export class AmplifyMagicLinkAuth extends Construct {
       keySpec: KeySpec.RSA_2048,
       keyUsage: KeyUsage.SIGN_VERIFY,
       alias: alias,
-      // TODO: Update `removalPolicy` to destroy when in sandbox mode
-      // removalPolicy: RemovalPolicy.DESTROY,
+      removalPolicy: RemovalPolicy.DESTROY,
       policy: new PolicyDocument({
         statements: [
           new PolicyStatement({
@@ -125,8 +124,7 @@ export class AmplifyMagicLinkAuth extends Construct {
         type: AttributeType.BINARY,
       },
       timeToLiveAttribute: 'exp',
-      // TODO: Update `removalPolicy` to destroy when in sandbox mode
-      // removalPolicy: RemovalPolicy.DESTROY,
+      removalPolicy: RemovalPolicy.DESTROY,
     });
     secretsTable.grant(triggers.createAuthChallenge, 'dynamodb:PutItem');
     secretsTable.grant(

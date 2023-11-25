@@ -75,6 +75,7 @@ void describe('KMSService', () => {
     void it('should return false when the incorrect public key is used', async () => {
       // A public key that is known to be incorrect.
       const badPublicKey =
+        // eslint-disable-next-line spellcheck/spell-checker
         'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwa0+/ErkC4rB2X4VSllfbI3vYLvbw9669ZGi82YrpysGDqOnfx5vyDFpd9d8k6VkCTNHnqFVaKzmQyK7TjwZusQkpBgxcesphFaa1slg21nYyh4C/NJoY1b/6+78haxo9/RYNSIIhCnsiv9s0JoLbsFSZH6b/rW9x/U3sLfKj+bLxyViZp2AzjHKdw+mD/NpSmNl2Z+FmAVTVMOWYn/GWd6lNE1vZYfZYi5o2GgSA/syw+6IGuMwc/l0we3/4+8MPVtI/h2aWiE/lmfwZCGD5ZE4L47IO7TcUZvwaxjwEx+E+AtahxdOJ2cQbxNe5Daqpl86O0M2DO67XmF8r/Ol2wIDAQAB';
       const mockClient: KMSClient = new MockKmsGetPublicKeyClient(badPublicKey);
       const service = new KMSService(mockClient, { keyId: keyId });
