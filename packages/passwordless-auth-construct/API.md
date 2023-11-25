@@ -6,6 +6,7 @@
 
 import { AmplifyAuth } from '@aws-amplify/auth-construct-alpha';
 import { Construct } from 'constructs';
+import { Duration } from 'aws-cdk-lib/core';
 
 // @public
 export class AmplifyPasswordlessAuth extends Construct {
@@ -13,23 +14,54 @@ export class AmplifyPasswordlessAuth extends Construct {
 }
 
 // @public
+export type EmailOptions = {
+    fromAddress?: string;
+    subject?: string;
+    body?: string;
+};
+
+// @public
 export type MagicLinkAuthOptions = {
-    fromAddress: string;
+    allowedOrigins: string[];
+    linkDuration?: Duration;
+    email?: MagicLinkEmailOptions | boolean;
+};
+
+// @public
+export type MagicLinkEmailOptions = EmailOptions & {
+    subject?: string;
+    body?: string;
 };
 
 // @public
 export type OtpAuthOptions = {
-    originationNumber?: string;
-    senderId?: string;
-    sesRegion?: string;
-    fromAddress?: string;
     length?: number;
+    sms?: OtpSmsOptions;
+    email?: OtpEmailOptions | boolean;
+};
+
+// @public
+export type OtpEmailOptions = EmailOptions & {
+    subject?: string;
+    body?: string;
+};
+
+// @public
+export type OtpSmsOptions = SmsOptions & {
+    message?: string;
 };
 
 // @public
 export type PasswordlessAuthProps = {
     magicLink?: MagicLinkAuthOptions;
-    otp?: OtpAuthOptions | boolean;
+    otp?: OtpAuthOptions;
+};
+
+// @public
+export type SmsOptions = {
+    originationNumber: string;
+    senderId?: string;
+    message?: string;
 };
 
 // (No @packageDocumentation comment for this package)

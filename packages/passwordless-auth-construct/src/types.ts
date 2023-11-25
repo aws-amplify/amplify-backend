@@ -158,14 +158,19 @@ export type CodeDeliveryDetails = {
 export type DeliveryMedium = 'SMS' | 'EMAIL';
 
 /**
- * Options for passwordless auth.
+ * Options for passwordless authentication.
  */
-
 export type PasswordlessAuthProps = {
   magicLink?: MagicLinkAuthOptions;
   otp?: OtpAuthOptions;
 };
 
+/**
+ * Options for passwordless authentication via Magic Link.
+ *
+ * Passwordless authentication via Magic Link will be disabled if no options
+ * provided.
+ */
 export type MagicLinkAuthOptions = {
   /**
    * The origins that Magic Links can contains.
@@ -186,6 +191,12 @@ export type MagicLinkAuthOptions = {
   email?: MagicLinkEmailOptions | boolean;
 };
 
+/**
+ * Options for passwordless authentication via OTP (One Time Password).
+ *
+ * Passwordless authentication via OTP will be disabled if no options
+ * provided.
+ */
 export type OtpAuthOptions = {
   /**
    * The length of the OTP code.
@@ -197,7 +208,7 @@ export type OtpAuthOptions = {
   /**
    * The SMS options for OTP. SMS will be disabled if this in undefined.
    */
-  sms?: SmsOptions;
+  sms?: OtpSmsOptions;
   /**
    * The Email options for OTP. Email will be disabled if this in undefined.
    * @default false
@@ -205,6 +216,7 @@ export type OtpAuthOptions = {
   email?: OtpEmailOptions | boolean;
 };
 
+/** Generic SMS Options that apply to all challenge types */
 export type SmsOptions = {
   /**
    * The AWS SNS origination number.
@@ -216,7 +228,14 @@ export type SmsOptions = {
    * The name that appears as the message sender on recipients' devices.
    */
   senderId?: string;
+  /**
+   * The message to send to the user.
+   */
+  message?: string;
+};
 
+/** OTP SMS Options */
+export type OtpSmsOptions = SmsOptions & {
   /**
    * The message to send to the user. "####" should be used as a placeholder for
    * the secret.
@@ -225,15 +244,21 @@ export type SmsOptions = {
   message?: string;
 };
 
+/** Generic Email Options that apply to all challenge types */
 export type EmailOptions = {
   /** The from address for SES messages. */
   fromAddress?: string;
-  /** The subject of the email to send to the user. */
+  /**
+   * The subject of the email to send to the user.
+   */
   subject?: string;
-  /** The body of the email to send to the user. */
+  /**
+   * The body of the email to send to the user.
+   */
   body?: string;
 };
 
+/** OTP Email Options */
 export type OtpEmailOptions = EmailOptions & {
   /**
    * The subject of the email to send to the user. "####" should be used as a
@@ -250,6 +275,7 @@ export type OtpEmailOptions = EmailOptions & {
   body?: string;
 };
 
+/** OTP Email Options */
 export type MagicLinkEmailOptions = EmailOptions & {
   /**
    * The subject of the email to send to the user. "####" should be used as a
