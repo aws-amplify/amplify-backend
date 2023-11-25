@@ -91,7 +91,7 @@ void describe('MagicLinkChallengeService', () => {
       strictEqual(mockSend.mock.callCount(), 1);
       strictEqual(mockSave.mock.callCount(), 1);
       const secret = mockSend.mock.calls[0].arguments[0];
-      match(secret, /https:\/\/example.com.*\..*/);
+      match(secret, /^https:\/\/example.com.*\..*$/);
       strictEqual(
         newEvent.response.publicChallengeParameters['deliveryMedium'],
         'EMAIL'
