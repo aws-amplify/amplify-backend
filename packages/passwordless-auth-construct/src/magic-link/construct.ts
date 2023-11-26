@@ -91,6 +91,7 @@ export class AmplifyMagicLinkAuth extends Construct {
     key.addToResourcePolicy(
       new PolicyStatement({
         ...permissions,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         principals: [triggers.createAuthChallenge.role!.grantPrincipal],
       })
     );
