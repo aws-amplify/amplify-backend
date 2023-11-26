@@ -12,6 +12,7 @@ import { fileURLToPath } from 'url';
 import { AmplifyOtpAuth } from './otp/construct.js';
 import { AmplifyMagicLinkAuth } from './magic-link/construct.js';
 import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
+import { Aws } from 'aws-cdk-lib';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -35,9 +36,16 @@ export class AmplifyPasswordlessAuth extends Construct {
       return;
     }
 
+    // default memory allocation for lambda functions
+    const defaultMemorySize = 128;
+
+    // increased memory for create/verify challenge lambdas when magic link is
+    // enabled.
+    const magicLinkMemorySize = 256;
+
     const commonOptions: NodejsFunctionProps = {
       entry: path.join(dirname, 'custom-auth', 'index.js'),
-      runtime: Runtime.NODEJS_18_X,
+      runtime: Runtime.NODEJS_20_X,
       architecture: Architecture.ARM_64,
       bundling: {
         format: OutputFormat.ESM,
@@ -50,6 +58,7 @@ export class AmplifyPasswordlessAuth extends Construct {
       {
         handler: 'defineAuthChallenge',
         ...commonOptions,
+        memorySize: defaultMemorySize,
       }
     );
 
@@ -59,6 +68,7 @@ export class AmplifyPasswordlessAuth extends Construct {
       {
         handler: 'createAuthChallenge',
         ...commonOptions,
+        memorySize: props.magicLink ? magicLinkMemorySize : defaultMemorySize,
       }
     );
 
@@ -68,6 +78,7 @@ export class AmplifyPasswordlessAuth extends Construct {
       {
         handler: 'verifyAuthChallenge',
         ...commonOptions,
+        memorySize: props.magicLink ? magicLinkMemorySize : defaultMemorySize,
       }
     );
 
@@ -84,7 +95,9 @@ export class AmplifyPasswordlessAuth extends Construct {
       createAuthChallenge.addToRolePolicy(
         new PolicyStatement({
           actions: ['ses:SendEmail'],
-          notResources: ['arn:aws:ses:*:*:*'],
+          resources: [
+            `arn:${Aws.PARTITION}:ses:${Aws.REGION}:${Aws.ACCOUNT_ID}:identity/*`,
+          ],
         })
       );
     }

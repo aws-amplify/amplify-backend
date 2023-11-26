@@ -92,7 +92,6 @@ void describe('Passwordless Auth construct', () => {
         {
           Action: 'ses:SendEmail',
           Effect: 'Allow',
-          NotResource: 'arn:aws:ses:*:*:*',
         }
       );
       notEqual(sesResource, undefined);
@@ -123,7 +122,6 @@ void describe('Passwordless Auth construct', () => {
         {
           Action: 'ses:SendEmail',
           Effect: 'Allow',
-          NotResource: 'arn:aws:ses:*:*:*',
         }
       );
       notEqual(sesResource, undefined);
@@ -154,7 +152,6 @@ void describe('Passwordless Auth construct', () => {
         {
           Action: 'ses:SendEmail',
           Effect: 'Allow',
-          NotResource: 'arn:aws:ses:*:*:*',
         }
       );
       equal(sesResource, undefined);
@@ -186,7 +183,6 @@ void describe('Passwordless Auth construct', () => {
         {
           Action: 'ses:SendEmail',
           Effect: 'Allow',
-          NotResource: 'arn:aws:ses:*:*:*',
         }
       );
       notEqual(sesResource, undefined);

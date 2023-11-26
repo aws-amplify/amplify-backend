@@ -36,14 +36,15 @@ export class AmplifyMagicLinkAuth extends Construct {
     const createAuthChallengeEnvVars = {
       magicLinkFromAddress:
         typeof props.email === 'boolean' ? undefined : props.email?.fromAddress,
-      allowedOrigins: props.allowedOrigins.join(','),
-      kmsKeyId: kmsKey.keyId,
-      dynamodbSecretsTableName: secretsTable.tableName,
-      secondsUntilExpiry: props.linkDuration?.toSeconds().toString() ?? '900',
+      magicLinkAllowedOrigins: props.allowedOrigins.join(','),
+      magicLinkKmsKeyId: kmsKey.keyId,
+      magicLinkTableName: secretsTable.tableName,
+      magicLinkSecondsUntilExpiry:
+        props.linkDuration?.toSeconds().toString() ?? '900',
     };
 
     const verifyAuthChallengeResponseEnvVars = {
-      dynamodbSecretsTableName: secretsTable.tableName,
+      magicLinkTableName: secretsTable.tableName,
     };
 
     for (const [key, value] of Object.entries(createAuthChallengeEnvVars)) {
@@ -80,19 +81,21 @@ export class AmplifyMagicLinkAuth extends Construct {
       }),
     });
 
-    triggers.createAuthChallenge.addToRolePolicy(
+    const permissions = {
+      effect: Effect.ALLOW,
+      resources: [
+        `arn:${Aws.PARTITION}:kms:${Aws.REGION}:${Aws.ACCOUNT_ID}:key/*`,
+      ],
+      actions: ['kms:Sign'],
+    };
+    key.addToResourcePolicy(
       new PolicyStatement({
-        effect: Effect.ALLOW,
-        resources: [
-          `arn:${Aws.PARTITION}:kms:${Aws.REGION}:${Aws.ACCOUNT_ID}:key/*`,
-        ],
-        actions: ['kms:Sign'],
-        conditions: {
-          StringLike: {
-            'kms:RequestAlias': alias,
-          },
-        },
+        ...permissions,
+        principals: [triggers.createAuthChallenge.role!.grantPrincipal],
       })
+    );
+    triggers.createAuthChallenge.addToRolePolicy(
+      new PolicyStatement(permissions)
     );
 
     triggers.verifyAuthChallengeResponse.addToRolePolicy(
@@ -102,11 +105,6 @@ export class AmplifyMagicLinkAuth extends Construct {
           `arn:${Aws.PARTITION}:kms:${Aws.REGION}:${Aws.ACCOUNT_ID}:key/*`,
         ],
         actions: ['kms:GetPublicKey'],
-        conditions: {
-          StringLike: {
-            'kms:RequestAlias': alias,
-          },
-        },
       })
     );
     return key;
@@ -121,7 +119,7 @@ export class AmplifyMagicLinkAuth extends Construct {
       billingMode: BillingMode.PAY_PER_REQUEST,
       partitionKey: {
         name: 'userId',
-        type: AttributeType.BINARY,
+        type: AttributeType.STRING,
       },
       timeToLiveAttribute: 'exp',
       removalPolicy: RemovalPolicy.DESTROY,

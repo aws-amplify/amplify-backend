@@ -107,10 +107,13 @@ void describe('AmplifyMagicLinkAuth', () => {
         createAuthChallengeMatch
       );
       equal(envVars['magicLinkFromAddress'], fromAddress);
-      equal(envVars['allowedOrigins'], allowedOrigins[0]);
-      equal(envVars['secondsUntilExpiry'], linkDuration.toSeconds().toString());
-      notEqual(envVars['kmsKeyId'], undefined);
-      notEqual(envVars['dynamodbSecretsTableName'], undefined);
+      equal(envVars['magicLinkAllowedOrigins'], allowedOrigins[0]);
+      equal(
+        envVars['magicLinkSecondsUntilExpiry'],
+        linkDuration.toSeconds().toString()
+      );
+      notEqual(envVars['magicLinkKmsKeyId'], undefined);
+      notEqual(envVars['magicLinkTableName'], undefined);
     });
 
     void it(`should add appropriate environment variables to verifyAuthLambda`, () => {
@@ -119,10 +122,10 @@ void describe('AmplifyMagicLinkAuth', () => {
         verifyAuthChallengeMatch
       );
       equal(envVars['magicLinkFromAddress'], undefined);
-      equal(envVars['allowedOrigins'], undefined);
-      equal(envVars['secondsUntilExpiry'], undefined);
-      equal(envVars['kmsKeyId'], undefined);
-      notEqual(envVars['dynamodbSecretsTableName'], undefined);
+      equal(envVars['magicLinkAllowedOrigins'], undefined);
+      equal(envVars['magicLinkSecondsUntilExpiry'], undefined);
+      equal(envVars['magicLinkKmsKeyId'], undefined);
+      notEqual(envVars['magicLinkTableName'], undefined);
     });
   });
 });
