@@ -31,18 +31,23 @@ export class MagicLinkChallengeService implements ChallengeService {
     private signingService: SigningService,
     private storageService: StorageService<SignedMagicLink>
   ) {}
-  signInMethod: 'MAGIC_LINK';
+  public readonly signInMethod = 'MAGIC_LINK';
 
   public createChallenge = async (
     event: CreateAuthChallengeTriggerEvent
   ): Promise<CreateAuthChallengeTriggerEvent> => {
+    logger.info('Starting Create Challenge for Magic Link');
     // validate redirect URI and delivery details
     const redirectUri = this.validateRedirectUri(event.request);
     const { deliveryMedium, destination } = validateDeliveryCodeDetails(event);
+    logger.debug(
+      `Delivery medium: ${deliveryMedium}, destination: ${destination}`
+    );
     const deliveryService =
       this.deliveryServiceFactory.getService(deliveryMedium);
 
     // create magic link
+    logger.info('Creating Magic Link');
     const userId = event.request.userAttributes.sub;
     const { userName: username, userPoolId } = event;
     const { linkDuration } = this.config;
@@ -54,15 +59,18 @@ export class MagicLinkChallengeService implements ChallengeService {
     const { signatureData } = magicLink;
 
     // sign Magic Link
+    logger.info('Signing Magic Link');
     const { keyId, signature } = await this.signingService.sign(signatureData);
     const signedMagicLink = magicLink.withSignature(signature, keyId);
+    logger.debug(`Signed link with Key ID: ${keyId}`);
 
     // save magic link to dynamo
+    logger.info('Saving Magic Link');
     await this.storageService.save(userId, signedMagicLink);
 
-    const fullRedirectUri = signedMagicLink.generateRedirectUri(redirectUri);
-
     // send message
+    logger.info('Sending Magic Link');
+    const fullRedirectUri = signedMagicLink.generateRedirectUri(redirectUri);
     await deliveryService.send(fullRedirectUri, destination, this.signInMethod);
 
     // return response with masked email/phone
@@ -85,6 +93,7 @@ export class MagicLinkChallengeService implements ChallengeService {
   public verifyChallenge = async (
     event: VerifyAuthChallengeResponseTriggerEvent
   ): Promise<VerifyAuthChallengeResponseTriggerEvent> => {
+    logger.info('Starting Verify Challenge for Magic Link');
     const failChallenge = (reason: string) => {
       logger.info(reason);
       return {
@@ -112,24 +121,28 @@ export class MagicLinkChallengeService implements ChallengeService {
 
     const userId = event.request.userAttributes.sub;
 
+    logger.info('Fetching/Removing Magic Link');
     const removedItem = await this.storageService.remove(userId, magicLink);
     if (!removedItem) {
       return failChallenge('Either no link was found or the link is invalid');
     }
 
+    logger.info('Verifying Magic Link');
     const isValid = await this.signingService.verify(
-      removedItem.key,
+      removedItem.kmsKeyId,
       signatureData,
       signature
     );
 
-    logger.debug(`Magic link is valid: ${JSON.stringify(isValid)}`);
-    return {
+    logger.info(`Magic link is valid: ${JSON.stringify(isValid)}`);
+    const response: VerifyAuthChallengeResponseTriggerEvent = {
       ...event,
       response: {
         answerCorrect: isValid,
       },
     };
+    logger.debug(JSON.stringify(response, null, 2));
+    return response;
   };
 
   private validateRedirectUri = (

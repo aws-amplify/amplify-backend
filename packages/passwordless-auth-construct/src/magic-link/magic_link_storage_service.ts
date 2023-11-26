@@ -59,9 +59,7 @@ export class MagicLinkStorageService
     const { iat, exp } = magicLink;
     const { tableName } = this.storageConfig;
     if (!tableName) {
-      throw Error(
-        'Configuration Error: DynamoDD table, and KMS key must be defined.'
-      );
+      throw Error('Configuration Error: DynamoDD table must be defined.');
     }
     try {
       const response = await this.client.send(
