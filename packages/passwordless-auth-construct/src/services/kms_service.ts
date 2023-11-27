@@ -51,8 +51,7 @@ export class KMSService implements SigningService {
   };
 
   /**
-   * Verifies the signature by downloading the public key from KMS, generating
-   * A signature
+   * Verifies the signature by downloading the public key from KMS.
    * @param keyId - The ID of the KMS key.
    * @param data - The data being signed.
    * @param signature - The signature to verify.
