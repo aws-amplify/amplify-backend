@@ -31,7 +31,7 @@ export type FunctionFactoryProps = {
    * The path to the file that contains the function entry point.
    * If this is a relative path, it is computed relative to the file where this function is defined
    *
-   * Defaults to './handler.ts'
+   * Defaults to './handler.js'
    */
   entry?: string;
 };
@@ -83,9 +83,9 @@ export class FunctionFactory implements ConstructFactory<AmplifyFunction> {
   };
 
   private resolveEntry = () => {
-    // if entry is not set, default to handler.ts
+    // if entry is not set, default to handler.js
     if (!this.props.entry) {
-      return path.join(getCallerDirectory(this.callerStack), 'handler.ts');
+      return path.join(getCallerDirectory(this.callerStack), 'handler.js');
     }
 
     // if entry is absolute use that

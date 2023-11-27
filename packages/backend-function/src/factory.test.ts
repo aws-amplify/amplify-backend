@@ -64,7 +64,7 @@ void describe('AmplifyFunctionFactory', () => {
 
   void it('resolves default name when entry specified', () => {
     const functionFactory = defineFunction({
-      entry: './test-assets/default-lambda/handler.ts',
+      entry: './test-assets/default-lambda/handler.js',
     });
     const lambda = functionFactory.getInstance(getInstanceProps);
     const template = Template.fromStack(Stack.of(lambda));
@@ -80,7 +80,7 @@ void describe('AmplifyFunctionFactory', () => {
 
   void it('uses name and entry that is explicitly specified', () => {
     const functionFactory = defineFunction({
-      entry: './test-assets/default-lambda/handler.ts',
+      entry: './test-assets/default-lambda/handler.js',
       name: 'myCoolLambda',
     });
     const lambda = functionFactory.getInstance(getInstanceProps);

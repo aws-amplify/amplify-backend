@@ -22,7 +22,7 @@ export const data = defineData({
     // ensuring we can use functions not added to `defineBackend`.
     echo: defineFunction({
       name: 'echoFunc',
-      entry: './echo/handler.ts',
+      entry: './echo/handler.js',
     }),
   },
 });
