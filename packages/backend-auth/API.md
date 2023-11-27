@@ -27,6 +27,12 @@ export type AmazonProviderFactoryProps = Omit<AmazonProviderProps, 'clientId' | 
 };
 
 // @public (undocumented)
+export type AmplifyAuthFactoryProps = Omit<AuthProps, 'outputStorageStrategy' | 'loginWith'> & TriggerConfig & {
+    loginWith: AuthLoginWithFactoryProps;
+    passwordlessOptions?: PasswordlessAuthProps;
+};
+
+// @public (undocumented)
 export type AmplifyAuthProps = Expand<Omit<AuthProps, 'outputStorageStrategy' | 'loginWith'> & {
     loginWith: Expand<AuthLoginWithFactoryProps>;
     triggers?: Partial<Record<TriggerEvent, ConstructFactory<ResourceProvider<FunctionResources>>>>;
@@ -82,6 +88,11 @@ export type GoogleProviderFactoryProps = Omit<GoogleProviderProps, 'clientId' | 
 export type OidcProviderFactoryProps = Omit<OidcProviderProps, 'clientId' | 'clientSecret'> & {
     clientId: BackendSecret;
     clientSecret: BackendSecret;
+};
+
+// @public (undocumented)
+export type TriggerConfig = {
+    triggers?: Partial<Record<TriggerEvent, ConstructFactory<ResourceProvider<FunctionResources>>>>;
 };
 
 // (No @packageDocumentation comment for this package)

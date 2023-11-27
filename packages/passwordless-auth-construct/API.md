@@ -27,9 +27,9 @@ export type MagicLinkAuthOptions = {
 export type OtpAuthOptions = {
     originationNumber?: string;
     senderId?: string;
-    length?: number;
     sesRegion?: string;
     fromAddress?: string;
+    length?: number;
     userVerification?: OtpUserVerification;
 };
 
