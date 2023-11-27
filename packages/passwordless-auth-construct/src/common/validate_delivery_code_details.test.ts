@@ -8,7 +8,7 @@ import {
 } from '../mocks/challenge_events.mock.js';
 import { validateDeliveryCodeDetails } from './validate_delivery_code_details.js';
 
-void describe('validateCreateEvent()', () => {
+void describe('validateDeliveryCodeDetails()', () => {
   void it('should throw error if User is not found', async () => {
     const event: CreateAuthChallengeTriggerEvent =
       buildCreateAuthChallengeEvent([], requestOtpSmsMetaData);
