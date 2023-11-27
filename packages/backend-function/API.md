@@ -6,20 +6,11 @@
 
 import { Construct } from 'constructs';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
-import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
 import { FunctionResources } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 
 // @public
-export const defineFunction: (props?: FunctionFactoryProps) => FunctionFactory;
-
-// Warning: (ae-forgotten-export) The symbol "AmplifyFunction" needs to be exported by the entry point index.d.ts
-//
-// @public
-export class FunctionFactory implements ConstructFactory<AmplifyFunction> {
-    constructor(props: FunctionFactoryProps, callerStack?: string | undefined);
-    getInstance: ({ constructContainer, }: ConstructFactoryGetInstanceProps) => AmplifyFunction;
-}
+export const defineFunction: (props?: FunctionFactoryProps) => ConstructFactory<Construct & ResourceProvider<FunctionResources>>;
 
 // @public (undocumented)
 export type FunctionFactoryProps = {

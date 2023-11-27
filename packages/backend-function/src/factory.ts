@@ -13,7 +13,9 @@ import { getCallerDirectory } from './get_caller_directory.js';
 /**
  * Entry point for defining a function in the Amplify ecosystem
  */
-export const defineFunction = (props: FunctionFactoryProps = {}) =>
+export const defineFunction = (
+  props: FunctionFactoryProps = {}
+): ConstructFactory<Construct & ResourceProvider<FunctionResources>> =>
   new FunctionFactory(props, new Error().stack);
 
 export type FunctionFactoryProps = {
@@ -39,7 +41,7 @@ export type FunctionFactoryProps = {
 /**
  * Create Lambda functions in the context of an Amplify backend definition
  */
-export class FunctionFactory implements ConstructFactory<AmplifyFunction> {
+class FunctionFactory implements ConstructFactory<AmplifyFunction> {
   private generator: ConstructContainerEntryGenerator;
   /**
    * Create a new AmplifyFunctionFactory
