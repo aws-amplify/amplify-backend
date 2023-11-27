@@ -183,10 +183,10 @@ export type MagicLinkAuthOptions = {
    */
   linkDuration?: Duration;
   /**
-   * The Email options for Magic Link. Email will be enabled unless if this is false.
+   * The Email options for Magic Link. Email will be enabled unless set to false.
    * @default true
    */
-  email?: MagicLinkEmailOptions | boolean;
+  email?: EmailOptions | boolean;
 };
 
 /**
@@ -204,17 +204,22 @@ export type OtpAuthOptions = {
    */
   length?: number;
   /**
-   * The SMS options for OTP. SMS will be disabled if this in undefined.
+   * The SMS options for One Time Password. One Time Password via SMS will be
+   * disabled unless defined.
    */
-  sms?: OtpSmsOptions;
+  sms?: SmsOptions;
   /**
-   * The Email options for OTP. Email will be disabled if this in undefined.
+   * The Email options for One Time Password.
+   *
+   * One Time Password via email will be disabled unless defined.
+   * One Time Password via email will be enabled with default options when set
+   * to true.
    * @default false
    */
-  email?: OtpEmailOptions | boolean;
+  email?: EmailOptions | boolean;
 };
 
-/** Generic SMS Options that apply to all challenge types */
+/** Options for sending a passwordless challenge via SMS */
 export type SmsOptions = {
   /**
    * The AWS SNS origination number.
@@ -227,65 +232,32 @@ export type SmsOptions = {
    */
   senderId?: string;
   /**
-   * The message to send to the user.
+   * The message to send to the user. "####" should be used as a
+   * placeholder for the generated secret.
+   * @default (One Time Password): "Your verification code is: ####"
    */
   message?: string;
 };
 
-/** OTP SMS Options */
-export type OtpSmsOptions = SmsOptions & {
-  /**
-   * The message to send to the user. "####" should be used as a placeholder for
-   * the secret.
-   * @default "Your verification code is: ####"
-   */
-  message?: string;
-};
-
-/** Generic Email Options that apply to all challenge types */
+/** Options for sending a passwordless challenge via email */
 export type EmailOptions = {
   /** The from address for SES messages. */
   fromAddress?: string;
   /**
    * The subject of the email to send to the user.
+   *
+   * The Default value will depend on the challenge type.
+   * @default (One Time Password): 'Your verification code
+   * @default (Magic Link): 'Your sign-in link'
    */
   subject?: string;
-  /**
-   * The body of the email to send to the user.
-   */
-  body?: string;
-};
-
-/** OTP Email Options */
-export type OtpEmailOptions = EmailOptions & {
-  /**
-   * The subject of the email to send to the user. "####" should be used as a
-   * placeholder for the OTP.
-   * @default 'Your verification code'
-   */
-  subject?: string;
-
   /**
    * The body of the email to send to the user. "####" should be used as a
-   * placeholder for the OTP.
-   * @default 'Your verification code is: ####'
-   */
-  body?: string;
-};
-
-/** OTP Email Options */
-export type MagicLinkEmailOptions = EmailOptions & {
-  /**
-   * The subject of the email to send to the user. "####" should be used as a
-   * placeholder for the Magic Link.
-   * @default 'Your sign-in link'
-   */
-  subject?: string;
-
-  /**
-   * The body of the email to send to the user. "####" should be used as a
-   * placeholder for the Magic link.
-   * @default '<html><body><p>Your sign-in link: <a href="####">sign in</a></p></body></html>'
+   * placeholder for the generated secret.
+   *
+   * The Default value will depend on the challenge type.
+   * @default (One Time Password): 'Your verification code is: ####'
+   * @default (Magic Link): '<html><body><p>Your sign-in link: <a href="####">sign in</a></p></body></html>'
    */
   body?: string;
 };

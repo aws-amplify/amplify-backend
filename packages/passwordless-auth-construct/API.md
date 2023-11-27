@@ -24,31 +24,14 @@ export type EmailOptions = {
 export type MagicLinkAuthOptions = {
     allowedOrigins: string[];
     linkDuration?: Duration;
-    email?: MagicLinkEmailOptions | boolean;
-};
-
-// @public
-export type MagicLinkEmailOptions = EmailOptions & {
-    subject?: string;
-    body?: string;
+    email?: EmailOptions | boolean;
 };
 
 // @public
 export type OtpAuthOptions = {
     length?: number;
-    sms?: OtpSmsOptions;
-    email?: OtpEmailOptions | boolean;
-};
-
-// @public
-export type OtpEmailOptions = EmailOptions & {
-    subject?: string;
-    body?: string;
-};
-
-// @public
-export type OtpSmsOptions = SmsOptions & {
-    message?: string;
+    sms?: SmsOptions;
+    email?: EmailOptions | boolean;
 };
 
 // @public
