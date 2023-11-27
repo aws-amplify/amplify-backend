@@ -4,36 +4,28 @@
 
 ```ts
 
-import { AmplifyFunctionProps } from '@aws-amplify/function-construct-alpha';
-import { AmplifyLambdaFunction } from '@aws-amplify/function-construct-alpha';
+import { Construct } from 'constructs';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
+import { FunctionResources } from '@aws-amplify/plugin-types';
+import { ResourceProvider } from '@aws-amplify/plugin-types';
 
 // @public
-export class AmplifyFunctionFactory implements ConstructFactory<AmplifyLambdaFunction> {
-    static build: (props: AmplifyFunctionFactoryBuildProps) => Promise<AmplifyFunctionFactory>;
-    static fromDir: (props: AmplifyFunctionFactoryFromDirProps) => AmplifyFunctionFactory;
-    getInstance: ({ constructContainer, }: ConstructFactoryGetInstanceProps) => AmplifyLambdaFunction;
+export const defineFunction: (props?: FunctionFactoryProps) => FunctionFactory;
+
+// Warning: (ae-forgotten-export) The symbol "AmplifyFunction" needs to be exported by the entry point index.d.ts
+//
+// @public
+export class FunctionFactory implements ConstructFactory<AmplifyFunction> {
+    constructor(props: FunctionFactoryProps, callerStack?: string | undefined);
+    getInstance: ({ constructContainer, }: ConstructFactoryGetInstanceProps) => AmplifyFunction;
 }
 
 // @public (undocumented)
-export type AmplifyFunctionFactoryBaseProps = {
-    name: string;
+export type FunctionFactoryProps = {
+    name?: string;
+    entry?: string;
 };
-
-// @public (undocumented)
-export type AmplifyFunctionFactoryBuildProps = AmplifyFunctionFactoryBaseProps & Omit<AmplifyFunctionProps, 'absoluteCodePath'> & {
-    buildCommand: string;
-    outDir: string;
-};
-
-// @public (undocumented)
-export type AmplifyFunctionFactoryFromDirProps = AmplifyFunctionFactoryBaseProps & Omit<AmplifyFunctionProps, 'absoluteCodePath'> & {
-    codePath: string;
-};
-
-// @public
-export const Func: typeof AmplifyFunctionFactory;
 
 // (No @packageDocumentation comment for this package)
 
