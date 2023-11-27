@@ -6,6 +6,7 @@
     { "path": "../backend-output-storage" },
     { "path": "../passwordless-auth-construct" },
     { "path": "../plugin-types" },
-    { "path": "../backend-platform-test-stubs" }
+    { "path": "../backend-platform-test-stubs" },
+    { "path": "../platform-core" }
   ]
 }

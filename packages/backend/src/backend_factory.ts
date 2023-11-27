@@ -12,12 +12,7 @@ import {
   StackMetadataBackendOutputStorageStrategy,
 } from '@aws-amplify/backend-output-storage';
 import { createDefaultStack } from './default_stack_factory.js';
-import { getUniqueBackendIdentifier } from './backend_identifier.js';
-import {
-  BackendDeploymentType,
-  BranchBackendIdentifier,
-  SandboxBackendIdentifier,
-} from '@aws-amplify/platform-core';
+import { getBackendIdentifier } from './backend_identifier.js';
 import { platformOutputKey } from '@aws-amplify/backend-output-schemas';
 import { fileURLToPath } from 'url';
 import { Backend } from './backend.js';
@@ -64,20 +59,19 @@ export class BackendFactory<
       stack
     );
 
-    const uniqueBackendIdentifier = getUniqueBackendIdentifier(stack);
+    const backendId = getBackendIdentifier(stack);
     outputStorageStrategy.addBackendOutputEntry(platformOutputKey, {
       version: '1',
       payload: {
-        deploymentType:
-          uniqueBackendIdentifier instanceof SandboxBackendIdentifier
-            ? BackendDeploymentType.SANDBOX
-            : BackendDeploymentType.BRANCH,
+        deploymentType: backendId.type,
         region: stack.region,
       },
     });
 
-    if (uniqueBackendIdentifier instanceof BranchBackendIdentifier) {
-      new AmplifyBranchLinkerConstruct(stack, uniqueBackendIdentifier);
+    const shouldEnableBranchLinker = backendId.type === 'branch';
+
+    if (shouldEnableBranchLinker) {
+      new AmplifyBranchLinkerConstruct(stack, backendId);
     }
 
     const importPathVerifier = new ToggleableImportPathVerifier();
@@ -110,10 +104,10 @@ export class BackendFactory<
 
   /**
    * Returns a CDK stack within the Amplify project that can be used for creating custom resources.
-   * @returns existing stack if provided name has been used or create new one with the provided name
+   * If a stack has already been created with "name" then an error is thrown.
    */
-  getStack = (name: string): Stack => {
-    return this.stackResolver.getCustomStack(name);
+  createStack = (name: string): Stack => {
+    return this.stackResolver.createCustomStack(name);
   };
 }
 

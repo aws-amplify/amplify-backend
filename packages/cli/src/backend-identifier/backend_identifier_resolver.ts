@@ -1,39 +1,44 @@
-import { BackendIdentifier } from '@aws-amplify/deployed-backend-client';
-import { AppNameResolver } from './local_app_name_resolver.js';
-import { BranchBackendIdentifier } from '@aws-amplify/platform-core';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
+import { NamespaceResolver } from './local_namespace_resolver.js';
 
-type BackendIdentifierParameters = {
+export type BackendIdentifierParameters = {
   stack?: string;
   appId?: string;
   branch?: string;
 };
+
+export type BackendIdentifierResolver = {
+  resolve: (
+    args: BackendIdentifierParameters
+  ) => Promise<DeployedBackendIdentifier | undefined>;
+};
+
 /**
  * Translates args to BackendIdentifier.
  * Throws if translation can't be made (this should never happen if command validation works correctly).
  */
-export class BackendIdentifierResolver {
+export class AppBackendIdentifierResolver implements BackendIdentifierResolver {
   /**
    * Instantiates BackendIdentifierResolver
    */
-  constructor(private appNameResolver: AppNameResolver) {}
+  constructor(private readonly namespaceResolver: NamespaceResolver) {}
   resolve = async (
     args: BackendIdentifierParameters
-  ): Promise<BackendIdentifier> => {
+  ): Promise<DeployedBackendIdentifier | undefined> => {
     if (args.stack) {
       return { stackName: args.stack };
     } else if (args.appId && args.branch) {
-      const uniqueBackendIdentifier: UniqueBackendIdentifier =
-        new BranchBackendIdentifier(args.appId, args.branch);
-      return uniqueBackendIdentifier;
+      return {
+        namespace: args.appId,
+        name: args.branch,
+        type: 'branch',
+      };
     } else if (args.branch) {
       return {
-        appName: await this.appNameResolver.resolve(),
+        appName: await this.namespaceResolver.resolve(),
         branchName: args.branch,
       };
     }
-    throw new Error(
-      'Unable to resolve BackendIdentifier with provided parameters'
-    );
+    return undefined;
   };
 }

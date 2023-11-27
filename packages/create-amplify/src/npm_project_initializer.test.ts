@@ -4,12 +4,10 @@ import assert from 'assert';
 
 void describe('NpmInitializedEnsurer', () => {
   void it('does nothing if package.json already exists', async () => {
-    const logMock = mock.fn();
     const existsSyncMock = mock.fn(() => true);
     const execaMock = mock.fn();
     const npmInitializedEnsurer = new NpmProjectInitializer(
       '/testProjectRoot',
-      { log: logMock } as never,
       existsSyncMock,
       execaMock as never
     );
@@ -18,7 +16,6 @@ void describe('NpmInitializedEnsurer', () => {
   });
 
   void it('runs `npm init` if no package.json exists', async () => {
-    const logMock = mock.fn();
     const existsSyncMock = mock.fn(
       () => true,
       () => false,
@@ -28,33 +25,25 @@ void describe('NpmInitializedEnsurer', () => {
     const execaMock = mock.fn();
     const npmInitializedEnsurer = new NpmProjectInitializer(
       '/testProjectRoot',
-      { log: logMock } as never,
       existsSyncMock as never,
       execaMock as never
     );
     await npmInitializedEnsurer.ensureInitialized();
-    assert.equal(execaMock.mock.callCount(), 2);
+    assert.equal(execaMock.mock.callCount(), 1);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments, [
       'npm',
       ['init', '--yes'],
-      { stdio: 'inherit', cwd: '/testProjectRoot' },
-    ]);
-    assert.deepStrictEqual(execaMock.mock.calls[1].arguments, [
-      'npm',
-      ['pkg', 'set', 'type=module'],
-      { stdio: 'inherit', cwd: '/testProjectRoot' },
+      { stdin: 'inherit', cwd: '/testProjectRoot' },
     ]);
   });
 
   void it('throws if npm init rejects', async () => {
-    const logMock = mock.fn();
     const existsSyncMock = mock.fn(() => false);
     const execaMock = mock.fn(() => {
       throw new Error('test error');
     });
     const npmInitializedEnsurer = new NpmProjectInitializer(
       '/testProjectRoot',
-      { log: logMock } as never,
       existsSyncMock,
       execaMock as never
     );
@@ -65,12 +54,10 @@ void describe('NpmInitializedEnsurer', () => {
   });
 
   void it('throws if package.json does not exist after npm init', async () => {
-    const logMock = mock.fn();
     const existsSyncMock = mock.fn(() => false);
     const execaMock = mock.fn();
     const npmInitializedEnsurer = new NpmProjectInitializer(
       '/testProjectRoot',
-      { log: logMock } as never,
       existsSyncMock,
       execaMock as never
     );

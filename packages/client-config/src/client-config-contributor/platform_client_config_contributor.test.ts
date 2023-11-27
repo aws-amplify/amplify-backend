@@ -5,7 +5,6 @@ import {
   graphqlOutputKey,
   platformOutputKey,
 } from '@aws-amplify/backend-output-schemas';
-import { BackendDeploymentType } from '@aws-amplify/platform-core';
 
 void describe('PlatformClientConfigContributor', () => {
   void it('returns an empty object if output has no platform output', () => {
@@ -36,7 +35,7 @@ void describe('PlatformClientConfigContributor', () => {
         [platformOutputKey]: {
           version: '1',
           payload: {
-            deploymentType: BackendDeploymentType.BRANCH,
+            deploymentType: 'branch',
             region: 'us-east-1',
           },
         },

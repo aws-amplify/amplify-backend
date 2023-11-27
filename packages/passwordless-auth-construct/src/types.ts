@@ -156,16 +156,25 @@ export type OtpAuthOptions = {
   /**
    * The AWS SNS origination number.
    * A numeric string that identifies an SMS message sender's phone number.
-   * @default to_come
    */
   originationNumber?: string;
 
   /**
    * The AWS SNS Sender Id.
    * The name that appears as the message sender on recipients' devices.
-   * @default to_come
    */
   senderId?: string;
+
+  /**
+   * The AWS region of the SES topic.
+   */
+  sesRegion?: string;
+
+  /**
+   * The from address for SES messages.
+   * Required for OTP via Email
+   */
+  fromAddress?: string;
 
   /**
    * The length of the OTP code.
@@ -212,6 +221,21 @@ export type SnsServiceConfig = {
    * ```
    */
   smsMessage?: string;
+};
+
+/**
+ * SES Service Configuration.
+ */
+export type SesServiceConfig = {
+  /**
+   * The from address to use for SES messages. Defaults to undefined.
+   */
+  fromAddress?: string;
+
+  /**
+   * The email subject to use for SES messages. Defaults to 'Your verification code'.
+   */
+  emailSubject?: string;
 };
 
 /**

@@ -1,4 +1,3 @@
-import path from 'path';
 import {
   FormFeatureFlags,
   GenericDataSchema,
@@ -86,6 +85,18 @@ export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
     });
     return schemas;
   };
+
+  private renderGraphqlPath = (
+    submodule: 'fragments' | 'mutations' | 'queries' | 'types' | 'subscriptions'
+  ) => {
+    const graphqlPath = `${this.renderOptions.graphqlDir}/${submodule}`;
+    // if the path does not start with a leading ./ or ../, assume that the graphql folder is in the same directory relative to the ui, and prepend a `./`
+    if (graphqlPath.startsWith('.')) {
+      return graphqlPath;
+    }
+    return `./${graphqlPath}`;
+  };
+
   /**
    * Gets the react render config
    */
@@ -98,20 +109,15 @@ export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
       renderTypeDeclarations: true,
       apiConfiguration: {
         dataApi: 'GraphQL',
-        fragmentsFilePath: path.join(
-          this.renderOptions.graphqlDir,
-          'fragments'
-        ),
-        mutationsFilePath: path.join(
-          this.renderOptions.graphqlDir,
-          'mutations'
-        ),
-        queriesFilePath: path.join(this.renderOptions.graphqlDir, 'queries'),
-        subscriptionsFilePath: path.join(
-          this.renderOptions.graphqlDir,
-          'subscriptions'
-        ),
-        typesFilePath: path.join(this.renderOptions.graphqlDir, 'types'),
+        fragmentsFilePath: this.renderGraphqlPath('fragments'),
+        mutationsFilePath: this.renderGraphqlPath('mutations'),
+        queriesFilePath: this.renderGraphqlPath('queries'),
+        subscriptionsFilePath: this.renderGraphqlPath('subscriptions'),
+        typesFilePath: this.renderGraphqlPath('types'),
+      },
+      dependencies: {
+        // Tell the renderer to generate amplify js v6 compatible code
+        'aws-amplify': '^6.0.0',
       },
     };
   }
@@ -271,6 +277,24 @@ export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
         name,
       }))
     );
+
+    dataSchema.models = Object.entries(dataSchema.models).reduce<
+      (typeof dataSchema)['models']
+    >((prev, [key, value]) => {
+      // Discard createdAt and updatedAt fields
+      /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+      const { createdAt, updatedAt, ...fields } = value.fields;
+
+      const valueExcludingTimestampFields = {
+        ...value,
+        fields,
+      };
+
+      prev[key] = valueExcludingTimestampFields;
+
+      return prev;
+    }, {});
+
     const forms = baseForms.reduce<Record<string, string>>(
       (prev, formSchema) => {
         const results = this.codegenForm(dataSchema, formSchema);

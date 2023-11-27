@@ -96,6 +96,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
     "AWS::Amplify::Auth": z.ZodOptional<z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
         version: z.ZodLiteral<"1">;
         payload: z.ZodObject<{
+            authRegion: z.ZodString;
             userPoolId: z.ZodString;
             webClientId: z.ZodString;
             identityPoolId: z.ZodString;
@@ -103,49 +104,83 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             appleClientId: z.ZodOptional<z.ZodString>;
             facebookClientId: z.ZodOptional<z.ZodString>;
             googleClientId: z.ZodOptional<z.ZodString>;
-            authRegion: z.ZodString;
+            usernameAttributes: z.ZodOptional<z.ZodString>;
+            signupAttributes: z.ZodOptional<z.ZodString>;
+            passwordPolicyMinLength: z.ZodOptional<z.ZodString>;
+            passwordPolicyRequirements: z.ZodOptional<z.ZodString>;
+            mfaConfiguration: z.ZodOptional<z.ZodString>;
+            mfaTypes: z.ZodOptional<z.ZodString>;
+            verificationMechanisms: z.ZodOptional<z.ZodString>;
         }, "strip", z.ZodTypeAny, {
+            authRegion: string;
             userPoolId: string;
             webClientId: string;
             identityPoolId: string;
-            authRegion: string;
             amazonClientId?: string | undefined;
             appleClientId?: string | undefined;
             facebookClientId?: string | undefined;
             googleClientId?: string | undefined;
+            usernameAttributes?: string | undefined;
+            signupAttributes?: string | undefined;
+            passwordPolicyMinLength?: string | undefined;
+            passwordPolicyRequirements?: string | undefined;
+            mfaConfiguration?: string | undefined;
+            mfaTypes?: string | undefined;
+            verificationMechanisms?: string | undefined;
         }, {
+            authRegion: string;
             userPoolId: string;
             webClientId: string;
             identityPoolId: string;
-            authRegion: string;
             amazonClientId?: string | undefined;
             appleClientId?: string | undefined;
             facebookClientId?: string | undefined;
             googleClientId?: string | undefined;
+            usernameAttributes?: string | undefined;
+            signupAttributes?: string | undefined;
+            passwordPolicyMinLength?: string | undefined;
+            passwordPolicyRequirements?: string | undefined;
+            mfaConfiguration?: string | undefined;
+            mfaTypes?: string | undefined;
+            verificationMechanisms?: string | undefined;
         }>;
     }, "strip", z.ZodTypeAny, {
         version: "1";
         payload: {
+            authRegion: string;
             userPoolId: string;
             webClientId: string;
             identityPoolId: string;
-            authRegion: string;
             amazonClientId?: string | undefined;
             appleClientId?: string | undefined;
             facebookClientId?: string | undefined;
             googleClientId?: string | undefined;
+            usernameAttributes?: string | undefined;
+            signupAttributes?: string | undefined;
+            passwordPolicyMinLength?: string | undefined;
+            passwordPolicyRequirements?: string | undefined;
+            mfaConfiguration?: string | undefined;
+            mfaTypes?: string | undefined;
+            verificationMechanisms?: string | undefined;
         };
     }, {
         version: "1";
         payload: {
+            authRegion: string;
             userPoolId: string;
             webClientId: string;
             identityPoolId: string;
-            authRegion: string;
             amazonClientId?: string | undefined;
             appleClientId?: string | undefined;
             facebookClientId?: string | undefined;
             googleClientId?: string | undefined;
+            usernameAttributes?: string | undefined;
+            signupAttributes?: string | undefined;
+            passwordPolicyMinLength?: string | undefined;
+            passwordPolicyRequirements?: string | undefined;
+            mfaConfiguration?: string | undefined;
+            mfaTypes?: string | undefined;
+            verificationMechanisms?: string | undefined;
         };
     }>]>>;
     "AWS::Amplify::GraphQL": z.ZodOptional<z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
@@ -239,14 +274,21 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
     "AWS::Amplify::Auth"?: {
         version: "1";
         payload: {
+            authRegion: string;
             userPoolId: string;
             webClientId: string;
             identityPoolId: string;
-            authRegion: string;
             amazonClientId?: string | undefined;
             appleClientId?: string | undefined;
             facebookClientId?: string | undefined;
             googleClientId?: string | undefined;
+            usernameAttributes?: string | undefined;
+            signupAttributes?: string | undefined;
+            passwordPolicyMinLength?: string | undefined;
+            passwordPolicyRequirements?: string | undefined;
+            mfaConfiguration?: string | undefined;
+            mfaTypes?: string | undefined;
+            verificationMechanisms?: string | undefined;
         };
     } | undefined;
     "AWS::Amplify::GraphQL"?: {
@@ -280,14 +322,21 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
     "AWS::Amplify::Auth"?: {
         version: "1";
         payload: {
+            authRegion: string;
             userPoolId: string;
             webClientId: string;
             identityPoolId: string;
-            authRegion: string;
             amazonClientId?: string | undefined;
             appleClientId?: string | undefined;
             facebookClientId?: string | undefined;
             googleClientId?: string | undefined;
+            usernameAttributes?: string | undefined;
+            signupAttributes?: string | undefined;
+            passwordPolicyMinLength?: string | undefined;
+            passwordPolicyRequirements?: string | undefined;
+            mfaConfiguration?: string | undefined;
+            mfaTypes?: string | undefined;
+            verificationMechanisms?: string | undefined;
         };
     } | undefined;
     "AWS::Amplify::GraphQL"?: {
@@ -316,6 +365,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
 export const versionedAuthOutputSchema: z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
     version: z.ZodLiteral<"1">;
     payload: z.ZodObject<{
+        authRegion: z.ZodString;
         userPoolId: z.ZodString;
         webClientId: z.ZodString;
         identityPoolId: z.ZodString;
@@ -323,49 +373,83 @@ export const versionedAuthOutputSchema: z.ZodDiscriminatedUnion<"version", [z.Zo
         appleClientId: z.ZodOptional<z.ZodString>;
         facebookClientId: z.ZodOptional<z.ZodString>;
         googleClientId: z.ZodOptional<z.ZodString>;
-        authRegion: z.ZodString;
+        usernameAttributes: z.ZodOptional<z.ZodString>;
+        signupAttributes: z.ZodOptional<z.ZodString>;
+        passwordPolicyMinLength: z.ZodOptional<z.ZodString>;
+        passwordPolicyRequirements: z.ZodOptional<z.ZodString>;
+        mfaConfiguration: z.ZodOptional<z.ZodString>;
+        mfaTypes: z.ZodOptional<z.ZodString>;
+        verificationMechanisms: z.ZodOptional<z.ZodString>;
     }, "strip", z.ZodTypeAny, {
+        authRegion: string;
         userPoolId: string;
         webClientId: string;
         identityPoolId: string;
-        authRegion: string;
         amazonClientId?: string | undefined;
         appleClientId?: string | undefined;
         facebookClientId?: string | undefined;
         googleClientId?: string | undefined;
+        usernameAttributes?: string | undefined;
+        signupAttributes?: string | undefined;
+        passwordPolicyMinLength?: string | undefined;
+        passwordPolicyRequirements?: string | undefined;
+        mfaConfiguration?: string | undefined;
+        mfaTypes?: string | undefined;
+        verificationMechanisms?: string | undefined;
     }, {
+        authRegion: string;
         userPoolId: string;
         webClientId: string;
         identityPoolId: string;
-        authRegion: string;
         amazonClientId?: string | undefined;
         appleClientId?: string | undefined;
         facebookClientId?: string | undefined;
         googleClientId?: string | undefined;
+        usernameAttributes?: string | undefined;
+        signupAttributes?: string | undefined;
+        passwordPolicyMinLength?: string | undefined;
+        passwordPolicyRequirements?: string | undefined;
+        mfaConfiguration?: string | undefined;
+        mfaTypes?: string | undefined;
+        verificationMechanisms?: string | undefined;
     }>;
 }, "strip", z.ZodTypeAny, {
     version: "1";
     payload: {
+        authRegion: string;
         userPoolId: string;
         webClientId: string;
         identityPoolId: string;
-        authRegion: string;
         amazonClientId?: string | undefined;
         appleClientId?: string | undefined;
         facebookClientId?: string | undefined;
         googleClientId?: string | undefined;
+        usernameAttributes?: string | undefined;
+        signupAttributes?: string | undefined;
+        passwordPolicyMinLength?: string | undefined;
+        passwordPolicyRequirements?: string | undefined;
+        mfaConfiguration?: string | undefined;
+        mfaTypes?: string | undefined;
+        verificationMechanisms?: string | undefined;
     };
 }, {
     version: "1";
     payload: {
+        authRegion: string;
         userPoolId: string;
         webClientId: string;
         identityPoolId: string;
-        authRegion: string;
         amazonClientId?: string | undefined;
         appleClientId?: string | undefined;
         facebookClientId?: string | undefined;
         googleClientId?: string | undefined;
+        usernameAttributes?: string | undefined;
+        signupAttributes?: string | undefined;
+        passwordPolicyMinLength?: string | undefined;
+        passwordPolicyRequirements?: string | undefined;
+        mfaConfiguration?: string | undefined;
+        mfaTypes?: string | undefined;
+        verificationMechanisms?: string | undefined;
     };
 }>]>;
 

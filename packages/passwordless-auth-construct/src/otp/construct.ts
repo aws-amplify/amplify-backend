@@ -1,6 +1,6 @@
 import { Construct } from 'constructs';
 import { CustomAuthTriggers, OtpAuthOptions } from '../types.js';
-import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
+import { Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 
 /**
  * Amplify OTP Construct
@@ -30,6 +30,12 @@ export class AmplifyOtpAuth extends Construct {
         // see: https://docs.aws.amazon.com/sns/latest/dg/sns-using-identity-based-policies.html
         notResources: ['arn:aws:sns:*:*:*'],
       }),
+      // SES IAM policy
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: ['ses:SendEmail'],
+        resources: ['*'],
+      }),
     ];
 
     for (const value of createAuthChallengePolicy) {
@@ -43,6 +49,7 @@ export class AmplifyOtpAuth extends Construct {
       originationNumber: props.originationNumber,
       senderId: props.senderId,
       otpLength: props.length?.toString(),
+      otpFromAddress: props.fromAddress,
       smsMessage: props.userVerification?.smsMessage,
       emailSubject: props.userVerification?.emailSubject,
       emailBody: props.userVerification?.emailBody,

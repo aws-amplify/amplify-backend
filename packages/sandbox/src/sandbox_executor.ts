@@ -1,7 +1,10 @@
 import debounce from 'debounce-promise';
-import { BackendDeployer } from '@aws-amplify/backend-deployer';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
-import { BackendDeploymentType } from '@aws-amplify/platform-core';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import {
+  BackendDeployer,
+  DeployResult,
+  DestroyResult,
+} from '@aws-amplify/backend-deployer';
 import { SecretClient } from '@aws-amplify/backend-secret';
 
 /**
@@ -17,11 +20,9 @@ export class AmplifySandboxExecutor {
   ) {}
 
   private getSecretLastUpdated = async (
-    uniqueBackendIdentifier: UniqueBackendIdentifier
+    backendId: BackendIdentifier
   ): Promise<Date | undefined> => {
-    const secrets = await this.secretClient.listSecrets(
-      uniqueBackendIdentifier
-    );
+    const secrets = await this.secretClient.listSecrets(backendId);
     let latestTimestamp = -1;
     let secretLastUpdate: Date | undefined;
 
@@ -43,20 +44,18 @@ export class AmplifySandboxExecutor {
    * Deploys sandbox
    */
   deploy = async (
-    uniqueBackendIdentifier: UniqueBackendIdentifier,
+    backendId: BackendIdentifier,
     validateAppSourcesProvider: () => boolean
-  ): Promise<void> => {
+  ): Promise<DeployResult> => {
     console.debug('[Sandbox] Executing command `deploy`');
-    const secretLastUpdated = await this.getSecretLastUpdated(
-      uniqueBackendIdentifier
-    );
+    const secretLastUpdated = await this.getSecretLastUpdated(backendId);
 
-    await this.invoke(async () => {
+    return this.invoke(() => {
       // it's important to get information here so that information
       // doesn't get lost while debouncing
       const validateAppSources = validateAppSourcesProvider();
-      await this.backendDeployer.deploy(uniqueBackendIdentifier, {
-        deploymentType: BackendDeploymentType.SANDBOX,
+      return this.backendDeployer.deploy(backendId, {
+        deploymentType: 'sandbox',
         secretLastUpdated,
         validateAppSources,
       });
@@ -66,15 +65,12 @@ export class AmplifySandboxExecutor {
   /**
    * Destroy sandbox. Do not swallow errors
    */
-  destroy = (
-    uniqueBackendIdentifier?: UniqueBackendIdentifier
-  ): Promise<void> => {
+  destroy = (backendId?: BackendIdentifier): Promise<DestroyResult> => {
     console.debug('[Sandbox] Executing command `destroy`');
-    return this.invoke(
-      async () =>
-        await this.backendDeployer.destroy(uniqueBackendIdentifier, {
-          deploymentType: BackendDeploymentType.SANDBOX,
-        })
+    return this.invoke(() =>
+      this.backendDeployer.destroy(backendId, {
+        deploymentType: 'sandbox',
+      })
     );
   };
 
@@ -83,7 +79,9 @@ export class AmplifySandboxExecutor {
    * Debounce is needed in case multiple duplicate events are received.
    */
   private invoke = debounce(
-    async (callback: () => Promise<void>): Promise<void> => await callback(),
+    async (
+      callback: () => Promise<DeployResult | DestroyResult>
+    ): Promise<DeployResult | DestroyResult> => await callback(),
     100
   );
 }

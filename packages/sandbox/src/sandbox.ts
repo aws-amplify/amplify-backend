@@ -1,5 +1,6 @@
 import EventEmitter from 'events';
 import { ClientConfigFormat } from '@aws-amplify/client-config';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
 
 /**
  * Interface for Sandbox.
@@ -22,7 +23,10 @@ export type Sandbox = {
   delete: (options: SandboxDeleteOptions) => Promise<void>;
 } & EventEmitter;
 
-export type SandboxEvents = 'successfulDeployment' | 'successfulDeletion';
+export type SandboxEvents =
+  | 'successfulDeployment'
+  | 'failedDeployment'
+  | 'successfulDeletion';
 
 export type SandboxOptions = {
   dir?: string;
@@ -35,3 +39,6 @@ export type SandboxOptions = {
 export type SandboxDeleteOptions = {
   name?: string;
 };
+export type BackendIdSandboxResolver = (
+  sandboxName?: string
+) => Promise<BackendIdentifier>;

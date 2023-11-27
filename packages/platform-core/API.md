@@ -4,45 +4,96 @@
 
 ```ts
 
-import { BackendId } from '@aws-amplify/plugin-types';
-import { UniqueBackendIdentifier } from '@aws-amplify/plugin-types';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import z from 'zod';
 
-// @public (undocumented)
-export enum BackendDeploymentType {
-    // (undocumented)
-    BRANCH = "BRANCH",
-    // (undocumented)
-    SANDBOX = "SANDBOX"
+// @public
+export class BackendIdentifierConversions {
+    static fromStackName(stackName?: string): BackendIdentifier | undefined;
+    static toStackName(backendId: BackendIdentifier): string;
 }
 
 // @public
-export class BranchBackendIdentifier extends UniqueBackendIdentifierBase {
-    constructor(backendId: BackendId, branchName: string);
+export class BackendLocator {
+    constructor(rootDir?: string);
     // (undocumented)
-    readonly backendId: BackendId;
+    locate: () => string;
 }
 
 // @public
 export enum CDKContextKey {
     // (undocumented)
-    DEPLOYMENT_TYPE = "deployment-type"
-}
-
-// @public
-export class SandboxBackendIdentifier extends UniqueBackendIdentifierBase {
-    constructor(backendId: BackendId);
+    BACKEND_NAME = "amplify-backend-name",
     // (undocumented)
-    readonly backendId: BackendId;
-    static tryParse(sandboxName: string): SandboxBackendIdentifier | undefined;
+    BACKEND_NAMESPACE = "amplify-backend-namespace",
+    // (undocumented)
+    DEPLOYMENT_TYPE = "amplify-backend-type"
+}
+
+// @public (undocumented)
+export const configControllerFactory: ConfigurationControllerFactory;
+
+// @public (undocumented)
+export type ConfigurationController = {
+    get: <T>(path: string) => Promise<T>;
+    set: (path: string, value: string | boolean | number) => Promise<void>;
+    clear: () => Promise<void>;
+    write: () => Promise<void>;
+};
+
+// @public
+export class ConfigurationControllerFactory {
+    constructor();
+    getInstance: (configFileName: LocalConfigurationFileName) => ConfigurationController;
 }
 
 // @public
-export abstract class UniqueBackendIdentifierBase implements UniqueBackendIdentifier {
-    constructor(
-    backendId: BackendId,
-    disambiguator: string);
-    readonly backendId: BackendId;
-    readonly disambiguator: string;
+export class FilePathExtractor {
+    constructor(stackTraceLine: string);
+    // (undocumented)
+    extract: () => string | undefined;
+}
+
+// @public (undocumented)
+export type LocalConfigurationFileName = 'usage_data_preferences.json';
+
+// @public (undocumented)
+export type PackageJson = z.infer<typeof packageJsonSchema>;
+
+// @public
+export class PackageJsonReader {
+    // (undocumented)
+    read: (absolutePackageJsonPath: string) => PackageJson;
+    readFromCwd: () => PackageJson;
+}
+
+// @public
+export const packageJsonSchema: z.ZodObject<{
+    name: z.ZodOptional<z.ZodString>;
+    version: z.ZodOptional<z.ZodString>;
+    type: z.ZodOptional<z.ZodUnion<[z.ZodLiteral<"module">, z.ZodLiteral<"commonjs">]>>;
+}, "strip", z.ZodTypeAny, {
+    name?: string | undefined;
+    version?: string | undefined;
+    type?: "module" | "commonjs" | undefined;
+}, {
+    name?: string | undefined;
+    version?: string | undefined;
+    type?: "module" | "commonjs" | undefined;
+}>;
+
+// @public
+export const USAGE_DATA_TRACKING_ENABLED = "telemetry.enabled";
+
+// @public (undocumented)
+export type UsageDataEmitter = {
+    emitSuccess: (metrics?: Record<string, number>, dimensions?: Record<string, string>) => Promise<void>;
+    emitFailure: (error: Error, dimensions?: Record<string, string>) => Promise<void>;
+};
+
+// @public
+export class UsageDataEmitterFactory {
+    getInstance: (libraryVersion: string) => Promise<UsageDataEmitter>;
 }
 
 // (No @packageDocumentation comment for this package)

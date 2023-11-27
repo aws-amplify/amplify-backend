@@ -50,11 +50,11 @@ type PartialCloudFormationCustomResourceEvent = Pick<
   'StackId' | 'RequestType' | 'ResourceProperties'
 >;
 
-const testBackendId = 'test-backend-id';
+const testAppId = 'test-app-id';
 const testBranchName = 'test-branch-name';
-const sampleStackArn = `arn:aws:cloudformation:us-west-2:12345:stack/amplify-${testBackendId}-${testBranchName}-cde/efg`;
+const sampleStackArn = `arn:aws:cloudformation:us-west-2:12345:stack/amplify-${testAppId}-${testBranchName}-cde/efg`;
 const resourceProperties: AmplifyBranchLinkerCustomResourceProps = {
-  backendId: testBackendId,
+  appId: testAppId,
   branchName: testBranchName,
 };
 
@@ -92,12 +92,12 @@ void describe('Branch Linker Lambda Handler', () => {
 
       assert.equal(amplifyClientSendMock.mock.callCount(), 2);
       assert.deepEqual(amplifyClientSendMock.mock.calls[0].arguments[0].input, {
-        appId: testBackendId,
+        appId: testAppId,
         branchName: testBranchName,
       });
 
       const expectedUpdateBranchInput = {
-        appId: testBackendId,
+        appId: testAppId,
         // it should preserve existing properties
         ...sampleBranch,
         // and set stack arn
@@ -128,12 +128,12 @@ void describe('Branch Linker Lambda Handler', () => {
 
       assert.equal(amplifyClientSendMock.mock.callCount(), 2);
       assert.deepEqual(amplifyClientSendMock.mock.calls[0].arguments[0].input, {
-        appId: testBackendId,
+        appId: testAppId,
         branchName: testBranchName,
       });
 
       const expectedUpdateBranchInput = {
-        appId: testBackendId,
+        appId: testAppId,
         // it should preserve existing properties
         ...sampleBranch,
         // and set stack arn
@@ -211,12 +211,12 @@ void describe('Branch Linker Lambda Handler', () => {
 
       assert.equal(amplifyClientSendMock.mock.callCount(), 2);
       assert.deepEqual(amplifyClientSendMock.mock.calls[0].arguments[0].input, {
-        appId: testBackendId,
+        appId: testAppId,
         branchName: testBranchName,
       });
 
       const expectedUpdateBranchInput = {
-        appId: testBackendId,
+        appId: testAppId,
         // it should preserve existing properties
         ...sampleBranch,
         // and unset stackArn
@@ -309,7 +309,7 @@ void describe('Branch Linker Lambda Handler', () => {
         (error: Error) => {
           assert.strictEqual(
             error.message,
-            `Unable to get branch ${testBranchName} for app ${testBackendId}`
+            `Unable to get branch ${testBranchName} for app ${testAppId}`
           );
           return true;
         }

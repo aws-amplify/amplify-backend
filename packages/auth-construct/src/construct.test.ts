@@ -1,4 +1,4 @@
-import { describe, it, mock } from 'node:test';
+import { beforeEach, describe, it, mock } from 'node:test';
 import { AmplifyAuth } from './construct.js';
 import { App, SecretValue, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
@@ -10,15 +10,14 @@ import {
 } from '@aws-amplify/plugin-types';
 import {
   CfnIdentityPool,
-  CfnUserPool,
   CfnUserPoolClient,
-  OAuthScope,
   UserPool,
   UserPoolClient,
   UserPoolIdentityProviderSamlMetadataType,
 } from 'aws-cdk-lib/aws-cognito';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
 import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
+import { DEFAULTS } from './defaults.js';
 
 const googleClientId = 'googleClientId';
 const googleClientSecret = 'googleClientSecret';
@@ -93,6 +92,9 @@ const ExpectedSAMLIDPProperties = {
   ProviderName: samlProviderName,
   ProviderType: 'SAML',
 };
+const defaultPasswordPolicyCharacterRequirements =
+  '["REQUIRES_NUMBERS","REQUIRES_LOWERCASE","REQUIRES_UPPERCASE","REQUIRES_SYMBOLS"]';
+
 void describe('Auth construct', () => {
   void it('creates phone number login mechanism', () => {
     const app = new App();
@@ -439,15 +441,21 @@ void describe('Auth construct', () => {
   });
 
   void describe('storeOutput', () => {
-    void it('stores outputs in platform', () => {
-      const app = new App();
-      const stack = new Stack(app);
+    let app: App;
+    let stack: Stack;
+    const storeOutputMock = mock.fn();
+    const stubBackendOutputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry> =
+      {
+        addBackendOutputEntry: storeOutputMock,
+      };
 
-      const storeOutputMock = mock.fn();
-      const stubBackendOutputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry> =
-        {
-          addBackendOutputEntry: storeOutputMock,
-        };
+    void beforeEach(() => {
+      app = new App();
+      stack = new Stack(app);
+      storeOutputMock.mock.resetCalls();
+    });
+
+    void it('stores outputs in platform - minimum config', () => {
       const authConstruct = new AmplifyAuth(stack, 'test', {
         loginWith: {
           email: true,
@@ -478,9 +486,64 @@ void describe('Auth construct', () => {
             webClientId: expectedWebClientId,
             identityPoolId: expectedIdentityPoolId,
             authRegion: expectedRegion,
+            passwordPolicyMinLength:
+              DEFAULTS.PASSWORD_POLICY.minLength.toString(),
+            passwordPolicyRequirements:
+              defaultPasswordPolicyCharacterRequirements,
+            signupAttributes: '["EMAIL"]',
+            verificationMechanisms: '["EMAIL"]',
+            usernameAttributes: '["EMAIL"]',
           },
         },
       ]);
+    });
+
+    void it('multifactor prop updates mfaConfiguration & mfaTypes', () => {
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+        },
+        multifactor: { mode: 'OPTIONAL', sms: true, totp: true },
+        outputStorageStrategy: stubBackendOutputStorageStrategy,
+      });
+      const { payload } = storeOutputMock.mock.calls[0].arguments[1];
+
+      assert.equal(payload.mfaConfiguration, 'OPTIONAL');
+      assert.equal(payload.mfaTypes, '["TOTP","SMS"]');
+    });
+
+    void it('userAttributes prop should update signupAttributes', () => {
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+        },
+        userAttributes: {
+          phoneNumber: { required: true, mutable: true },
+          familyName: { required: false, mutable: true },
+          address: { required: true, mutable: true },
+        },
+        outputStorageStrategy: stubBackendOutputStorageStrategy,
+      });
+      const { payload } = storeOutputMock.mock.calls[0].arguments[1];
+
+      assert.equal(
+        payload.signupAttributes,
+        '["EMAIL","PHONE_NUMBER","ADDRESS"]'
+      );
+    });
+
+    void it('adding loginWith methods should update usernameAttributes & verificationMechanisms', () => {
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+          phone: true,
+        },
+        outputStorageStrategy: stubBackendOutputStorageStrategy,
+      });
+      const { payload } = storeOutputMock.mock.calls[0].arguments[1];
+
+      assert.equal(payload.usernameAttributes, '["EMAIL","PHONE_NUMBER"]');
+      assert.equal(payload.verificationMechanisms, '["EMAIL","PHONE"]');
     });
 
     void it('stores output when no storage strategy is injected', () => {
@@ -503,6 +566,11 @@ void describe('Auth construct', () => {
               'webClientId',
               'identityPoolId',
               'authRegion',
+              'signupAttributes',
+              'usernameAttributes',
+              'verificationMechanisms',
+              'passwordPolicyMinLength',
+              'passwordPolicyRequirements',
             ],
           },
         },
@@ -703,10 +771,7 @@ void describe('Auth construct', () => {
       const app = new App();
       const stack = new Stack(app);
       const auth = new AmplifyAuth(stack, 'test');
-      const userPoolResource = auth.resources.userPool.node.findChild(
-        'Resource'
-      ) as CfnUserPool;
-      userPoolResource.addPropertyOverride(
+      auth.resources.cfnResources.cfnUserPool.addPropertyOverride(
         'UsernameConfiguration.CaseSensitive',
         true
       );
@@ -723,10 +788,7 @@ void describe('Auth construct', () => {
       const auth = new AmplifyAuth(stack, 'test', {
         loginWith: { email: true },
       });
-      const userPoolResource = auth.resources.userPool.node.findChild(
-        'Resource'
-      ) as CfnUserPool;
-      userPoolResource.addPropertyOverride(
+      auth.resources.cfnResources.cfnUserPool.addPropertyOverride(
         'UserAttributeUpdateSettings.AttributesRequireVerificationBeforeUpdate',
         []
       );
@@ -743,9 +805,7 @@ void describe('Auth construct', () => {
       const auth = new AmplifyAuth(stack, 'test', {
         loginWith: { email: true },
       });
-      const userPoolResource = auth.resources.userPool.node.findChild(
-        'Resource'
-      ) as CfnUserPool;
+      const userPoolResource = auth.resources.cfnResources.cfnUserPool;
       userPoolResource.addPropertyOverride(
         'DeviceConfiguration.ChallengeRequiredOnNewDevice',
         true
@@ -766,9 +826,7 @@ void describe('Auth construct', () => {
       const app = new App();
       const stack = new Stack(app);
       const auth = new AmplifyAuth(stack, 'test');
-      const userPoolResource = auth.resources.userPool.node.findChild(
-        'Resource'
-      ) as CfnUserPool;
+      const userPoolResource = auth.resources.cfnResources.cfnUserPool;
       userPoolResource.addPropertyOverride(
         'Policies.PasswordPolicy.MinimumLength',
         10
@@ -806,11 +864,7 @@ void describe('Auth construct', () => {
       const app = new App();
       const stack = new Stack(app);
       const auth = new AmplifyAuth(stack, 'test');
-      const userPoolClientResource =
-        auth.resources.userPoolClient.node.findChild(
-          'Resource'
-        ) as CfnUserPoolClient;
-      userPoolClientResource.addPropertyOverride(
+      auth.resources.cfnResources.cfnUserPoolClient.addPropertyOverride(
         'PreventUserExistenceErrors',
         'LEGACY'
       );
@@ -823,7 +877,7 @@ void describe('Auth construct', () => {
       const app = new App();
       const stack = new Stack(app);
       const auth = new AmplifyAuth(stack, 'test');
-      auth.resources.cfnResources.identityPool.addPropertyOverride(
+      auth.resources.cfnResources.cfnIdentityPool.addPropertyOverride(
         'AllowUnauthenticatedIdentities',
         false
       );
@@ -1203,7 +1257,7 @@ void describe('Auth construct', () => {
               clientId: googleClientId,
               clientSecret: SecretValue.unsafePlainText(googleClientSecret),
             },
-            scopes: [OAuthScope.EMAIL, OAuthScope.PROFILE],
+            scopes: ['EMAIL', 'PROFILE'],
             callbackUrls: ['http://localhost'],
             logoutUrls: ['http://localhost'],
           },

@@ -14,7 +14,7 @@ import {
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import * as path from 'path';
-import { AuthLoginWithFactoryProps } from './types.js';
+import { AuthLoginWithFactoryProps, Expand } from './types.js';
 import { translateToAuthConstructLoginWith } from './translate_auth_props.js';
 import {
   AmplifyPasswordlessAuth,
@@ -35,6 +35,27 @@ export type AmplifyAuthFactoryProps = Omit<
     loginWith: AuthLoginWithFactoryProps;
     passwordlessOptions?: PasswordlessAuthProps;
   };
+export type AmplifyAuthProps = Expand<
+  Omit<AuthProps, 'outputStorageStrategy' | 'loginWith'> & {
+    /**
+     * Specify how you would like users to log in. You can choose from email, phone, and even external providers such as LoginWithAmazon.
+     */
+    loginWith: Expand<AuthLoginWithFactoryProps>;
+    /**
+     * Configure custom auth triggers
+     */
+    triggers?: Partial<
+      Record<
+        TriggerEvent,
+        ConstructFactory<ResourceProvider<FunctionResources>>
+      >
+    >;
+    /**
+     * Specify options for passwordless authentication
+     */
+    passwordlessOptions?: PasswordlessAuthProps;
+  }
+>;
 
 /**
  * Singleton factory for AmplifyAuth that can be used in Amplify project files
@@ -49,7 +70,7 @@ class AmplifyAuthFactory
    * Set the properties that will be used to initialize AmplifyAuth
    */
   constructor(
-    private readonly props: AmplifyAuthFactoryProps,
+    private readonly props: AmplifyAuthProps,
     private readonly importStack = new Error().stack
   ) {}
 
@@ -78,7 +99,7 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
   private readonly defaultPasswordlessName = 'amplifyPasswordlessAuth';
 
   constructor(
-    private readonly props: AmplifyAuthFactoryProps,
+    private readonly props: AmplifyAuthProps,
     private readonly getInstanceProps: ConstructFactoryGetInstanceProps
   ) {}
 
@@ -117,9 +138,10 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
 }
 
 /**
- * Creates a factory that implements ConstructFactory<AmplifyAuth & ResourceProvider<AuthResources>>
+ * Provide the settings that will be used for authentication.
  */
 export const defineAuth = (
-  props: AmplifyAuthFactoryProps
+  props: AmplifyAuthProps
 ): ConstructFactory<AmplifyAuth & ResourceProvider<AuthResources>> =>
+  // Creates a factory that implements ConstructFactory<AmplifyAuth & ResourceProvider<AuthResources>>
   new AmplifyAuthFactory(props, new Error().stack);

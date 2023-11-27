@@ -48,13 +48,36 @@ const s3Client = new S3Client({
   maxAttempts: 5,
 });
 const now = new Date();
-const TEST_RESOURCE_PREFIX = 'amplify-test';
+const TEST_RESOURCE_PREFIX = 'amplify-';
+
+/**
+ * Stacks are considered stale after 2 hours.
+ * Other resources are considered stale after 3 hours.
+ *
+ * Stack deletion triggers asynchronous resource deletion while this script is running.
+ * In order to not interfere with normal stack deletion process we defer
+ * direct deletions by additional hour, so that it covers cases where
+ * stack deletion failed or left orphan resources.
+ */
+const stackStaleDurationInMilliseconds = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
+const staleDurationInMilliseconds = 3 * 60 * 60 * 1000; // 3 hours in milliseconds
+
+const isStackStale = (
+  stackSummary: StackSummary | undefined
+): boolean | undefined => {
+  if (!stackSummary?.CreationTime) {
+    return;
+  }
+  return (
+    now.getTime() - stackSummary.CreationTime.getTime() >
+    stackStaleDurationInMilliseconds
+  );
+};
 
 const isStale = (creationDate: Date | undefined): boolean | undefined => {
   if (!creationDate) {
     return;
   }
-  const staleDurationInMilliseconds = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
   return now.getTime() - creationDate.getTime() > staleDurationInMilliseconds;
 };
 
@@ -74,7 +97,7 @@ const listAllStaleTestStacks = async (): Promise<Array<StackSummary>> => {
     listStacksResponse.StackSummaries?.filter(
       (stackSummary) =>
         stackSummary.StackName?.startsWith(TEST_RESOURCE_PREFIX) &&
-        isStale(stackSummary.CreationTime)
+        isStackStale(stackSummary)
     ).forEach((item) => {
       stackSummaries.push(item);
     });

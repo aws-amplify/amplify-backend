@@ -4,8 +4,9 @@ import { GenerateGraphqlClientCodeCommand } from './generate_graphql_client_code
 import yargs, { CommandModule } from 'yargs';
 import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import path from 'path';
-import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
+import { AppBackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
 import { GenerateApiCodeAdapter } from './generate_api_code_adapter.js';
 import {
   GenerateApiCodeFormat,
@@ -13,6 +14,8 @@ import {
   GenerateApiCodeStatementTarget,
   GenerateApiCodeTypeTarget,
 } from '@aws-amplify/model-generator';
+import { SandboxBackendIdResolver } from '../../sandbox/sandbox_id_resolver.js';
+import { BackendIdentifierResolverWithFallback } from '../../../backend-identifier/backend_identifier_with_sandbox_fallback.js';
 
 void describe('generate graphql-client-code command', () => {
   const generateApiCodeAdapter = new GenerateApiCodeAdapter(
@@ -28,10 +31,24 @@ void describe('generate graphql-client-code command', () => {
         writeToDirectory: writeToDirectoryMock,
       })
   );
-
-  const backendIdentifierResolver = new BackendIdentifierResolver({
+  const namespaceResolver = {
     resolve: () => Promise.resolve('testAppName'),
-  });
+  };
+
+  const defaultResolver = new AppBackendIdentifierResolver(namespaceResolver);
+
+  const sandboxIdResolver = new SandboxBackendIdResolver(namespaceResolver);
+  const fakeSandboxId = 'my-fake-app-my-fake-username';
+  const mockedSandboxIdResolver = mock.method(sandboxIdResolver, 'resolve');
+  mockedSandboxIdResolver.mock.mockImplementation(() => ({
+    name: fakeSandboxId,
+  }));
+
+  const backendIdentifierResolver = new BackendIdentifierResolverWithFallback(
+    defaultResolver,
+    sandboxIdResolver
+  );
+
   const generateGraphqlClientCodeCommand = new GenerateGraphqlClientCodeCommand(
     generateApiCodeAdapter,
     backendIdentifierResolver
@@ -46,6 +63,18 @@ void describe('generate graphql-client-code command', () => {
     writeToDirectoryMock.mock.resetCalls();
   });
 
+  void it('uses the sandbox id by default if stack or branch are not provided', async () => {
+    const handlerSpy = mock.method(
+      generateApiCodeAdapter,
+      'invokeGenerateApiCode'
+    );
+    await commandRunner.runCommand('graphql-client-code');
+
+    assert.equal(
+      (handlerSpy.mock.calls[0].arguments[0] as BackendIdentifier).name,
+      fakeSandboxId
+    );
+  });
   void it('generates and writes graphql client code for stack', async () => {
     await commandRunner.runCommand('graphql-client-code --stack stack_name');
     assert.equal(invokeGenerateApiCodeMock.mock.callCount(), 1);
@@ -84,13 +113,17 @@ void describe('generate graphql-client-code command', () => {
       'graphql-client-code --branch branch_name --app-id app_id'
     );
     assert.equal(invokeGenerateApiCodeMock.mock.callCount(), 1);
-    assert.deepEqual(invokeGenerateApiCodeMock.mock.calls[0].arguments[0], {
-      backendId: 'app_id',
-      disambiguator: 'branch_name',
-      format: GenerateApiCodeFormat.GRAPHQL_CODEGEN,
-      statementTarget: GenerateApiCodeStatementTarget.TYPESCRIPT,
-      typeTarget: GenerateApiCodeTypeTarget.TYPESCRIPT,
-    });
+    assert.deepStrictEqual(
+      invokeGenerateApiCodeMock.mock.calls[0].arguments[0],
+      {
+        type: 'branch',
+        namespace: 'app_id',
+        name: 'branch_name',
+        format: GenerateApiCodeFormat.GRAPHQL_CODEGEN,
+        statementTarget: GenerateApiCodeStatementTarget.TYPESCRIPT,
+        typeTarget: GenerateApiCodeTypeTarget.TYPESCRIPT,
+      }
+    );
     assert.equal(writeToDirectoryMock.mock.callCount(), 1);
     assert.equal(
       writeToDirectoryMock.mock.calls[0].arguments[0],

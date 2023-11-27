@@ -1,5 +1,50 @@
 # @aws-amplify/client-config
 
+## 0.4.2
+
+### Patch Changes
+
+- c47e03e20: add missing graphql fields to mobile config to support dart libs
+
+## 0.4.1
+
+### Patch Changes
+
+- 50934da02: include additional fields in mobile config generation
+
+## 0.4.0
+
+### Minor Changes
+
+- 07b0dfc9f: Adding zero-config auth config to amplifyconfiguration.json
+
+### Patch Changes
+
+- 01ebbc497: handle client config formats used in mobile app development
+- Updated dependencies [07b0dfc9f]
+  - @aws-amplify/backend-output-schemas@0.4.0
+  - @aws-amplify/deployed-backend-client@0.3.1
+  - @aws-amplify/model-generator@0.2.2
+
+## 0.3.0
+
+### Minor Changes
+
+- 71a63a16: Change stack naming strategy to include deployment type as a suffix
+
+### Patch Changes
+
+- Updated dependencies [71a63a16]
+  - @aws-amplify/deployed-backend-client@0.3.0
+  - @aws-amplify/backend-output-schemas@0.3.0
+  - @aws-amplify/model-generator@0.2.1
+
+## 0.2.3
+
+### Patch Changes
+
+- 0bd8a3f3: add missing dev deps
+
 ## 0.2.2
 
 ### Patch Changes

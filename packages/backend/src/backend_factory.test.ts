@@ -1,28 +1,24 @@
 import { beforeEach, describe, it } from 'node:test';
-import { ConstructFactory } from '@aws-amplify/plugin-types';
+import { ConstructFactory, DeploymentType } from '@aws-amplify/plugin-types';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import { BackendFactory } from './backend_factory.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
-import {
-  BackendDeploymentType,
-  CDKContextKey,
-} from '@aws-amplify/platform-core';
 
-const createStackAndSetContext = (
-  deploymentType: BackendDeploymentType
-): Stack => {
+const createStackAndSetContext = (deploymentType: DeploymentType): Stack => {
   const app = new App();
-  app.node.setContext(CDKContextKey.DEPLOYMENT_TYPE, deploymentType);
+  app.node.setContext('amplify-backend-type', deploymentType);
   switch (deploymentType) {
-    case BackendDeploymentType.SANDBOX:
-      app.node.setContext('backend-id', 'app-user');
+    case 'sandbox':
+      app.node.setContext('amplify-backend-namespace', 'projectName');
+      app.node.setContext('amplify-backend-name', 'testUser');
+
       break;
-    case BackendDeploymentType.BRANCH:
-      app.node.setContext('branch-name', 'testEnvName');
-      app.node.setContext('backend-id', 'testBackendId');
+    case 'branch':
+      app.node.setContext('amplify-backend-name', 'testEnvName');
+      app.node.setContext('amplify-backend-namespace', 'testBackendId');
       break;
   }
 
@@ -33,7 +29,7 @@ const createStackAndSetContext = (
 void describe('Backend', () => {
   let rootStack: Stack;
   beforeEach(() => {
-    rootStack = createStackAndSetContext(BackendDeploymentType.BRANCH);
+    rootStack = createStackAndSetContext('branch');
   });
 
   void it('initializes constructs in given app', () => {
@@ -148,17 +144,25 @@ void describe('Backend', () => {
   });
 
   void it('does not register branch linker for sandbox deployments', () => {
-    const rootStack = createStackAndSetContext(BackendDeploymentType.SANDBOX);
+    const rootStack = createStackAndSetContext('sandbox');
     new BackendFactory({}, rootStack);
     const rootStackTemplate = Template.fromStack(rootStack);
     rootStackTemplate.resourceCountIs('Custom::AmplifyBranchLinkerResource', 0);
   });
 
-  void describe('getStack', () => {
+  void describe('createStack', () => {
     void it('returns nested stack', () => {
       const backend = new BackendFactory({}, rootStack);
-      const testStack = backend.getStack('testStack');
+      const testStack = backend.createStack('testStack');
       assert.strictEqual(rootStack.node.findChild('testStack'), testStack);
+    });
+
+    void it('throws if stack has already been created with specified name', () => {
+      const backend = new BackendFactory({}, rootStack);
+      backend.createStack('testStack');
+      assert.throws(() => backend.createStack('testStack'), {
+        message: 'Custom stack named testStack has already been created',
+      });
     });
   });
 });

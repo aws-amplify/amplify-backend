@@ -1,5 +1,147 @@
 # @aws-amplify/backend-cli
 
+## 0.9.1
+
+### Patch Changes
+
+- 43d09b642: fix: update package.json metadata
+- Updated dependencies [f081c223c]
+  - @aws-amplify/form-generator@0.6.0
+
+## 0.9.0
+
+### Minor Changes
+
+- aabe5dd61: Bump to minor version for usage data consent
+
+### Patch Changes
+
+- 590662ae5: Change secret name argument in secret commands to kebab-case
+- 85e619116: Added subcommands under configure data tracking preferences
+- 85e619116: integrate usage data tracking consent with usage-data-emitter
+- Updated dependencies [aabe5dd61]
+- Updated dependencies [5f336ffbb]
+- Updated dependencies [8258926a0]
+- Updated dependencies [85e619116]
+  - @aws-amplify/platform-core@0.3.0
+  - @aws-amplify/model-generator@0.2.3
+  - @aws-amplify/backend-secret@0.3.1
+  - @aws-amplify/deployed-backend-client@0.3.3
+  - @aws-amplify/sandbox@0.3.5
+
+## 0.8.1
+
+### Patch Changes
+
+- f1717d9c9: Remove input validations on generate commands so they fall back to the stack id
+- ef3f5eb50: Update account setup URL
+- Updated dependencies [c47e03e20]
+- Updated dependencies [cc8b66cd9]
+  - @aws-amplify/client-config@0.4.2
+  - @aws-amplify/form-generator@0.5.0
+  - @aws-amplify/sandbox@0.3.4
+
+## 0.8.0
+
+### Minor Changes
+
+- dce8a0eb6: Defaults to the sandbox identifier when no branch or stack is passed in the CLI
+
+### Patch Changes
+
+- 4fee488eb: chore: avoid crashing sandbox on failing to retrieve metadata
+- cb855dfa5: chore: refactor packageJsonReader and generate installationIds from hostname
+- d81af85df: `amplify --version` returns correct version.
+  Disable subcommands `--version`.
+- Updated dependencies [4fee488eb]
+- Updated dependencies [730afd8fe]
+- Updated dependencies [cb855dfa5]
+  - @aws-amplify/deployed-backend-client@0.3.2
+  - @aws-amplify/sandbox@0.3.3
+  - @aws-amplify/platform-core@0.2.2
+
+## 0.7.1
+
+### Patch Changes
+
+- 70685f36b: Add usage data metrics
+- Updated dependencies [70685f36b]
+- Updated dependencies [50934da02]
+  - @aws-amplify/platform-core@0.2.1
+  - @aws-amplify/sandbox@0.3.2
+  - @aws-amplify/client-config@0.4.1
+
+## 0.7.0
+
+### Minor Changes
+
+- fc71c4902: Change the default directory for models in form generation
+
+### Patch Changes
+
+- 79ac13997: client config generation respects sandbox format option
+- 869a84926: Update profile error messages and a profile configure URL.
+- 79ac13997: Rename sandbox format to config-format
+- 79ac13997: Change sandbox out-dir to config-out-dir and client config generation respects config-out-dir option
+- Updated dependencies [fc71c4902]
+  - @aws-amplify/form-generator@0.4.0
+
+## 0.6.1
+
+### Patch Changes
+
+- 957ba93db: Fix a profile middleware unit test
+- 01ebbc497: handle client config formats used in mobile app development
+- Updated dependencies [07b0dfc9f]
+- Updated dependencies [01ebbc497]
+  - @aws-amplify/backend-output-schemas@0.4.0
+  - @aws-amplify/client-config@0.4.0
+  - @aws-amplify/deployed-backend-client@0.3.1
+  - @aws-amplify/model-generator@0.2.2
+  - @aws-amplify/sandbox@0.3.1
+
+## 0.6.0
+
+### Minor Changes
+
+- 71a63a16: Change stack naming strategy to include deployment type as a suffix
+
+### Patch Changes
+
+- 316590c0: Validate aws region config. Besides, remove help output from the credential and region validation error.
+- Updated dependencies [71a63a16]
+  - @aws-amplify/deployed-backend-client@0.3.0
+  - @aws-amplify/backend-output-schemas@0.3.0
+  - @aws-amplify/backend-secret@0.3.0
+  - @aws-amplify/client-config@0.3.0
+  - @aws-amplify/platform-core@0.2.0
+  - @aws-amplify/sandbox@0.3.0
+  - @aws-amplify/model-generator@0.2.1
+
+## 0.5.0
+
+### Minor Changes
+
+- ab715666: Remove deprecated sandbox parameters for form generation
+
+## 0.4.0
+
+### Minor Changes
+
+- 6ff17d64: Add 'profile' option to applicable commands
+
+### Patch Changes
+
+- Updated dependencies [68dc91e3]
+  - @aws-amplify/platform-core@0.1.4
+  - @aws-amplify/sandbox@0.2.4
+
+## 0.3.1
+
+### Patch Changes
+
+- 4ad1db95: Gracefully handle Crtl+C error during CLI prompting
+
 ## 0.3.0
 
 ### Minor Changes

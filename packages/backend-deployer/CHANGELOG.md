@@ -1,5 +1,63 @@
 # @aws-amplify/backend-deployer
 
+## 0.3.4
+
+### Patch Changes
+
+- 5ed51cbd5: Upgrade aws-cdk to 2.110.1
+- Updated dependencies [5ed51cbd5]
+  - @aws-amplify/platform-core@0.3.1
+  - @aws-amplify/plugin-types@0.4.2
+
+## 0.3.3
+
+### Patch Changes
+
+- d0105393d: turn off type checking if amplify/tsconfig.json is not found
+- 7822cee5b: fix: hide tsc --showConfig output since its used for validation only
+- Updated dependencies [aabe5dd61]
+- Updated dependencies [5f336ffbb]
+- Updated dependencies [85e619116]
+  - @aws-amplify/platform-core@0.3.0
+
+## 0.3.2
+
+### Patch Changes
+
+- 002954370: Create default tsconfig.json in amplify directory on npx create amplify and run tsc on amplify directory during deployment
+- ad4ff92e3: Force colors to not be stripped off when piping child process stdout
+- Updated dependencies [cb855dfa5]
+  - @aws-amplify/platform-core@0.2.2
+
+## 0.3.1
+
+### Patch Changes
+
+- 70685f36b: Add usage data metrics
+- Updated dependencies [70685f36b]
+  - @aws-amplify/platform-core@0.2.1
+
+## 0.3.0
+
+### Minor Changes
+
+- 71a63a16: Change stack naming strategy to include deployment type as a suffix
+
+### Patch Changes
+
+- Updated dependencies [8181509a]
+- Updated dependencies [71a63a16]
+  - @aws-amplify/plugin-types@0.4.0
+  - @aws-amplify/platform-core@0.2.0
+
+## 0.2.3
+
+### Patch Changes
+
+- 68dc91e3: chore: support for JS backend apps
+- Updated dependencies [68dc91e3]
+  - @aws-amplify/platform-core@0.1.4
+
 ## 0.2.2
 
 ### Patch Changes

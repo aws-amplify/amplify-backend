@@ -1,5 +1,100 @@
 # @aws-amplify/sandbox
 
+## 0.3.6
+
+### Patch Changes
+
+- 5ed51cbd5: Upgrade aws-cdk to 2.110.1
+- Updated dependencies [5ed51cbd5]
+  - @aws-amplify/backend-deployer@0.3.4
+  - @aws-amplify/platform-core@0.3.1
+
+## 0.3.5
+
+### Patch Changes
+
+- Updated dependencies [aabe5dd61]
+- Updated dependencies [d0105393d]
+- Updated dependencies [5f336ffbb]
+- Updated dependencies [7822cee5b]
+- Updated dependencies [85e619116]
+  - @aws-amplify/platform-core@0.3.0
+  - @aws-amplify/backend-deployer@0.3.3
+  - @aws-amplify/backend-secret@0.3.1
+  - @aws-amplify/deployed-backend-client@0.3.3
+
+## 0.3.4
+
+### Patch Changes
+
+- Updated dependencies [c47e03e20]
+  - @aws-amplify/client-config@0.4.2
+
+## 0.3.3
+
+### Patch Changes
+
+- 730afd8fe: fix: handling \!pattern in gitignore to avoid excluding everything from watching in sandbox
+- Updated dependencies [002954370]
+- Updated dependencies [4fee488eb]
+- Updated dependencies [ad4ff92e3]
+- Updated dependencies [cb855dfa5]
+  - @aws-amplify/backend-deployer@0.3.2
+  - @aws-amplify/deployed-backend-client@0.3.2
+  - @aws-amplify/platform-core@0.2.2
+
+## 0.3.2
+
+### Patch Changes
+
+- 70685f36b: Add usage data metrics
+- Updated dependencies [70685f36b]
+- Updated dependencies [50934da02]
+  - @aws-amplify/backend-deployer@0.3.1
+  - @aws-amplify/platform-core@0.2.1
+  - @aws-amplify/client-config@0.4.1
+
+## 0.3.1
+
+### Patch Changes
+
+- Updated dependencies [07b0dfc9f]
+- Updated dependencies [01ebbc497]
+  - @aws-amplify/client-config@0.4.0
+  - @aws-amplify/deployed-backend-client@0.3.1
+
+## 0.3.0
+
+### Minor Changes
+
+- 71a63a16: Change stack naming strategy to include deployment type as a suffix
+
+### Patch Changes
+
+- Updated dependencies [71a63a16]
+  - @aws-amplify/deployed-backend-client@0.3.0
+  - @aws-amplify/backend-deployer@0.3.0
+  - @aws-amplify/backend-secret@0.3.0
+  - @aws-amplify/client-config@0.3.0
+  - @aws-amplify/platform-core@0.2.0
+
+## 0.2.4
+
+### Patch Changes
+
+- Updated dependencies [68dc91e3]
+  - @aws-amplify/backend-deployer@0.2.3
+  - @aws-amplify/platform-core@0.1.4
+
+## 0.2.3
+
+### Patch Changes
+
+- Updated dependencies [0bd8a3f3]
+- Updated dependencies [0bd8a3f3]
+  - @aws-amplify/client-config@0.2.3
+  - @aws-amplify/platform-core@0.1.3
+
 ## 0.2.2
 
 ### Patch Changes

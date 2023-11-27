@@ -2,6 +2,7 @@ import { existsSync as _existsSync } from 'fs';
 import _fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
+import { logger } from './logger.js';
 
 /**
  * Ensure that the .gitignore file exists with the correct contents in the current working directory
@@ -13,7 +14,6 @@ export class GitIgnoreInitializer {
    */
   constructor(
     private readonly projectRoot: string,
-    private readonly logger: typeof console = console,
     private readonly existsSync = _existsSync,
     private readonly fs = _fs
   ) {
@@ -25,6 +25,7 @@ export class GitIgnoreInitializer {
    */
   ensureInitialized = async (): Promise<void> => {
     const ignorePatterns = [
+      '# amplify',
       'node_modules',
       '.amplify',
       'amplifyconfiguration*',
@@ -49,7 +50,7 @@ export class GitIgnoreInitializer {
       return;
     }
 
-    this.logger.log(
+    logger.debug(
       'No .gitignore file found in the working directory. Creating .gitignore...'
     );
 
@@ -65,8 +66,11 @@ export class GitIgnoreInitializer {
       return;
     }
 
-    // Add EOL to end of each pattern, ensure additional content ends with EOL
-    const content = patterns.join(os.EOL) + os.EOL;
+    // Add EOL to end of each pattern, ensure additional content begins and ends with EOL
+    const content =
+      (patterns[0] === os.EOL || !this.gitIgnoreExists() ? '' : os.EOL) +
+      patterns.join(os.EOL) +
+      os.EOL;
 
     await this.fs.appendFile(this.gitIgnorePath, content);
   };

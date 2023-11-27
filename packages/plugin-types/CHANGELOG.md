@@ -1,5 +1,34 @@
 # @aws-amplify/plugin-types
 
+## 0.4.2
+
+### Patch Changes
+
+- 5ed51cbd5: Upgrade aws-cdk to 2.110.1
+
+## 0.4.1
+
+### Patch Changes
+
+- 65fe3a8fd: remove unused type
+- cd5feeed0: Expand types for Auth to improve auto completion suggestions.
+
+## 0.4.0
+
+### Minor Changes
+
+- 71a63a16: Change stack naming strategy to include deployment type as a suffix
+
+### Patch Changes
+
+- 8181509a: Added a prefix to the auth cfnResources.
+
+## 0.3.1
+
+### Patch Changes
+
+- 3bff764b: Expose user pool and client as cfn resources.
+
 ## 0.3.0
 
 ### Minor Changes

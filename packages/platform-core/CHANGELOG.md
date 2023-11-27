@@ -1,5 +1,60 @@
 # @aws-amplify/platform-core
 
+## 0.3.1
+
+### Patch Changes
+
+- 5ed51cbd5: Upgrade aws-cdk to 2.110.1
+- Updated dependencies [5ed51cbd5]
+  - @aws-amplify/plugin-types@0.4.2
+
+## 0.3.0
+
+### Minor Changes
+
+- aabe5dd61: Bump to minor version for usage data consent
+
+### Patch Changes
+
+- 5f336ffbb: close file handle after reading config
+- 85e619116: integrate usage data tracking consent with usage-data-emitter
+
+## 0.2.2
+
+### Patch Changes
+
+- cb855dfa5: chore: refactor packageJsonReader and generate installationIds from hostname
+
+## 0.2.1
+
+### Patch Changes
+
+- 70685f36b: Add usage data metrics
+
+## 0.2.0
+
+### Minor Changes
+
+- 71a63a16: Change stack naming strategy to include deployment type as a suffix
+
+### Patch Changes
+
+- Updated dependencies [8181509a]
+- Updated dependencies [71a63a16]
+  - @aws-amplify/plugin-types@0.4.0
+
+## 0.1.4
+
+### Patch Changes
+
+- 68dc91e3: chore: support for JS backend apps
+
+## 0.1.3
+
+### Patch Changes
+
+- 0bd8a3f3: add 'main' entry to package.json
+
 ## 0.1.2
 
 ### Patch Changes

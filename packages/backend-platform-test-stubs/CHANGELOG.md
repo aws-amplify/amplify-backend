@@ -1,5 +1,17 @@
 # @aws-amplify/backend-platform-test-stubs
 
+## 0.3.1
+
+### Patch Changes
+
+- 5ed51cbd5: Upgrade aws-cdk to 2.110.1
+
+## 0.3.0
+
+### Minor Changes
+
+- 71a63a16: Change stack naming strategy to include deployment type as a suffix
+
 ## 0.2.0
 
 ### Minor Changes

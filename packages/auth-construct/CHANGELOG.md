@@ -1,5 +1,69 @@
 # @aws-amplify/auth-construct-alpha
 
+## 0.4.2
+
+### Patch Changes
+
+- 5ed51cbd5: Upgrade aws-cdk to 2.110.1
+- Updated dependencies [5ed51cbd5]
+  - @aws-amplify/backend-output-storage@0.2.6
+  - @aws-amplify/plugin-types@0.4.2
+
+## 0.4.1
+
+### Patch Changes
+
+- 48c25802d: Auth role policy action is now AssumeRoleWithWebIdentity.
+- Updated dependencies [cb855dfa5]
+  - @aws-amplify/backend-output-storage@0.2.4
+
+## 0.4.0
+
+### Minor Changes
+
+- 07b0dfc9f: Adding zero-config auth config to amplifyconfiguration.json
+
+### Patch Changes
+
+- Updated dependencies [65fe3a8fd]
+- Updated dependencies [cd5feeed0]
+- Updated dependencies [07b0dfc9f]
+  - @aws-amplify/plugin-types@0.4.1
+  - @aws-amplify/backend-output-schemas@0.4.0
+  - @aws-amplify/backend-output-storage@0.2.2
+
+## 0.3.0
+
+### Minor Changes
+
+- 71a63a16: Change stack naming strategy to include deployment type as a suffix
+
+### Patch Changes
+
+- f30c438e: Update OAuthScope types to string union.
+- 95818a7a: Add conditions to default unauth and auth role
+- 8181509a: Added a prefix to the auth cfnResources.
+- f30c438e: Update the documentation for phone number 'verificationMessage'.
+- Updated dependencies [8181509a]
+- Updated dependencies [71a63a16]
+  - @aws-amplify/plugin-types@0.4.0
+  - @aws-amplify/backend-output-schemas@0.3.0
+  - @aws-amplify/backend-output-storage@0.2.1
+
+## 0.2.4
+
+### Patch Changes
+
+- 3bff764b: Expose user pool and client as cfn resources.
+- Updated dependencies [3bff764b]
+  - @aws-amplify/plugin-types@0.3.1
+
+## 0.2.3
+
+### Patch Changes
+
+- ce371dac: Update default user pool deletion to DESTROY.
+
 ## 0.2.2
 
 ### Patch Changes

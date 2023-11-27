@@ -2,6 +2,7 @@ import debounce from 'debounce-promise';
 import parcelWatcher, { subscribe } from '@parcel/watcher';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
 import {
+  BackendIdSandboxResolver,
   Sandbox,
   SandboxDeleteOptions,
   SandboxEvents,
@@ -16,7 +17,6 @@ import {
   CloudFormationClient,
   DescribeStacksCommand,
 } from '@aws-sdk/client-cloudformation';
-import { SandboxBackendIdentifier } from '@aws-amplify/platform-core';
 import { AmplifyPrompter } from '@aws-amplify/cli-core';
 import {
   FilesChangesTracker,
@@ -27,7 +27,7 @@ export const CDK_BOOTSTRAP_STACK_NAME = 'CDKToolkit';
 export const CDK_BOOTSTRAP_VERSION_KEY = 'BootstrapVersion';
 export const CDK_MIN_BOOTSTRAP_VERSION = 6;
 
-// TODO: finalize bootstrap url: https://github.com/aws-amplify/samsara-cli/issues/338
+// TODO: finalize bootstrap url: https://github.com/aws-amplify/amplify-backend/issues/338
 /**
  * Constructs Amplify Console bootstrap URL for a given region
  * @param region AWS region
@@ -48,7 +48,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
    * Creates a watcher process for this instance
    */
   constructor(
-    private readonly sandboxId: string,
+    private readonly backendIdSandboxResolver: BackendIdSandboxResolver,
     private readonly executor: AmplifySandboxExecutor,
     private readonly cfnClient: CloudFormationClient,
     private readonly open = _open
@@ -62,7 +62,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
    * @inheritdoc
    */
   override emit(eventName: SandboxEvents, ...args: unknown[]): boolean {
-    return super.emit(eventName, args);
+    return super.emit(eventName, ...args);
   }
 
   /**
@@ -179,11 +179,12 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
    * @inheritdoc
    */
   delete = async (options: SandboxDeleteOptions) => {
-    const sandboxAppId = options.name ?? this.sandboxId;
     console.log(
       '[Sandbox] Deleting all the resources in the sandbox environment...'
     );
-    await this.executor.destroy(new SandboxBackendIdentifier(sandboxAppId));
+    await this.executor.destroy(
+      await this.backendIdSandboxResolver(options.name)
+    );
     this.emit('successfulDeletion');
     console.log('[Sandbox] Finished deleting.');
   };
@@ -201,19 +202,19 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
   };
 
   private deploy = async (options: SandboxOptions) => {
-    const sandboxAppId = options.name ?? this.sandboxId;
     try {
-      await this.executor.deploy(
-        new SandboxBackendIdentifier(sandboxAppId),
+      const deployResult = await this.executor.deploy(
+        await this.backendIdSandboxResolver(options.name),
         // It's important to pass this as callback so that debounce does
         // not reset tracker prematurely
         this.shouldValidateAppSources
       );
       console.debug('[Sandbox] Running successfulDeployment event handlers');
-      this.emit('successfulDeployment');
+      this.emit('successfulDeployment', deployResult);
     } catch (error) {
       // Print the meaningful message
       console.log(this.getErrorMessage(error));
+      this.emit('failedDeployment', error);
 
       // If the error is because of a non-allowed destructive change such as
       // https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-userpool.html#cfn-cognito-userpool-aliasattributes
@@ -250,7 +251,18 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
         .parse(gitIgnoreFilePath)
         .patterns.map((pattern: string) =>
           pattern.startsWith('/') ? pattern.substring(1) : pattern
-        );
+        )
+        .filter((pattern: string) => {
+          if (pattern.startsWith('!')) {
+            console.log(
+              `[Sandbox] Pattern ${pattern} found in .gitignore. "${pattern.substring(
+                1
+              )}" will not be watched if other patterns in .gitignore are excluding it.`
+            );
+            return false;
+          }
+          return true;
+        });
     }
     return [];
   };

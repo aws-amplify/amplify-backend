@@ -1,5 +1,72 @@
 # @aws-amplify/backend-auth
 
+## 0.3.5
+
+### Patch Changes
+
+- 5ed51cbd5: Upgrade aws-cdk to 2.110.1
+- Updated dependencies [5ed51cbd5]
+  - @aws-amplify/backend-output-storage@0.2.6
+  - @aws-amplify/auth-construct-alpha@0.4.2
+  - @aws-amplify/plugin-types@0.4.2
+
+## 0.3.4
+
+### Patch Changes
+
+- @aws-amplify/backend-output-storage@0.2.5
+
+## 0.3.3
+
+### Patch Changes
+
+- Updated dependencies [48c25802d]
+- Updated dependencies [cb855dfa5]
+  - @aws-amplify/auth-construct-alpha@0.4.1
+  - @aws-amplify/backend-output-storage@0.2.4
+
+## 0.3.2
+
+### Patch Changes
+
+- Updated dependencies [70685f36b]
+  - @aws-amplify/backend-output-storage@0.2.3
+
+## 0.3.1
+
+### Patch Changes
+
+- cd5feeed0: Expand types for Auth to improve auto completion suggestions.
+- Updated dependencies [65fe3a8fd]
+- Updated dependencies [cd5feeed0]
+- Updated dependencies [07b0dfc9f]
+  - @aws-amplify/plugin-types@0.4.1
+  - @aws-amplify/auth-construct-alpha@0.4.0
+  - @aws-amplify/backend-output-storage@0.2.2
+
+## 0.3.0
+
+### Minor Changes
+
+- 71a63a16: Change stack naming strategy to include deployment type as a suffix
+
+### Patch Changes
+
+- Updated dependencies [f30c438e]
+- Updated dependencies [95818a7a]
+- Updated dependencies [8181509a]
+- Updated dependencies [f30c438e]
+- Updated dependencies [71a63a16]
+  - @aws-amplify/auth-construct-alpha@0.3.0
+  - @aws-amplify/plugin-types@0.4.0
+  - @aws-amplify/backend-output-storage@0.2.1
+
+## 0.2.3
+
+### Patch Changes
+
+- 0bd8a3f3: add missing dev deps
+
 ## 0.2.2
 
 ### Patch Changes

@@ -4,13 +4,13 @@
 
 ```ts
 
-import { a } from '@aws-amplify/amplify-api-next-alpha';
+import { a } from '@aws-amplify/data-schema';
 import { BackendSecret } from '@aws-amplify/plugin-types';
-import { ClientSchema } from '@aws-amplify/amplify-api-next-alpha';
+import { ClientSchema } from '@aws-amplify/data-schema';
 import { Construct } from 'constructs';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { defineAuth } from '@aws-amplify/backend-auth';
-import { defineData } from '@aws-amplify/backend-graphql';
+import { defineData } from '@aws-amplify/backend-data';
 import { defineStorage } from '@aws-amplify/backend-storage';
 import { Func } from '@aws-amplify/backend-function';
 import { Stack } from 'aws-cdk-lib';
@@ -19,7 +19,7 @@ export { a }
 
 // @public
 export type Backend<T extends Record<string, ConstructFactory<Construct>>> = {
-    getStack: (name: string) => Stack;
+    createStack: (name: string) => Stack;
     readonly resources: {
         [K in keyof T]: ReturnType<T[K]['getInstance']>;
     };

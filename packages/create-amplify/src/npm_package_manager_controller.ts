@@ -3,6 +3,7 @@ import {
   DependencyType,
   PackageManagerController,
 } from './package_manager_controller.js';
+import { executeWithDebugLogger } from './execute_with_logger.js';
 
 /**
  *
@@ -25,12 +26,15 @@ export class NpmPackageManagerController implements PackageManagerController {
     type: DependencyType
   ): Promise<void> => {
     const args = ['install'].concat(...packageNames);
-    if (type === 'dev') {
+    const typeDev = type === 'dev';
+    if (typeDev) {
       args.push('--save-dev');
     }
-    await this.execa(this.executableName, args, {
-      stdio: 'inherit',
-      cwd: this.projectRoot,
-    });
+
+    try {
+      await executeWithDebugLogger(this.projectRoot, 'npm', args, this.execa);
+    } catch {
+      throw new Error(`\`npm ${args.join(' ')}\` did not exit successfully.`);
+    }
   };
 }

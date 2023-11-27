@@ -1,10 +1,7 @@
 import { Stack } from 'aws-cdk-lib';
 import * as _os from 'os';
-import {
-  BackendDeploymentType,
-  CDKContextKey,
-} from '@aws-amplify/platform-core';
-import * as _fs from 'fs';
+import { CDKContextKey, PackageJsonReader } from '@aws-amplify/platform-core';
+import { DeploymentType } from '@aws-amplify/plugin-types';
 
 /**
  * Stores BI metrics information in stack descriptions
@@ -14,8 +11,8 @@ export class AttributionMetadataStorage {
    * Constructor with props for injecting test mocks
    */
   constructor(
-    private readonly fs: typeof _fs = _fs,
-    private readonly os: typeof _os = _os
+    private readonly os: typeof _os = _os,
+    private readonly packageJsonReader = new PackageJsonReader()
   ) {}
 
   /**
@@ -53,33 +50,16 @@ export class AttributionMetadataStorage {
   ): AttributionMetadata => ({
     createdOn: this.getPlatform(),
     createdBy: this.getDeploymentEngineType(stack),
-    createdWith: this.getLibraryVersion(libraryPackageJsonAbsolutePath),
+    createdWith:
+      this.packageJsonReader.read(libraryPackageJsonAbsolutePath).version ?? '', // This shouldn't happen, regardless we shouldn't throw for attribution
     stackType: stackType,
     metadata: additionalMetadata,
   });
 
-  private getLibraryVersion = (absolutePackageJsonPath: string): string => {
-    if (!this.fs.existsSync(absolutePackageJsonPath)) {
-      throw new Error(
-        `Could not find ${absolutePackageJsonPath} to load library version from`
-      );
-    }
-    const packageJsonContents = JSON.parse(
-      // we have to use sync fs methods here because this is part of cdk synth
-      this.fs.readFileSync(absolutePackageJsonPath, 'utf-8')
-    );
-    const libraryVersion = packageJsonContents.version;
-    if (typeof libraryVersion !== 'string') {
-      throw new Error(
-        `Could not parse library version from ${absolutePackageJsonPath}`
-      );
-    }
-    return libraryVersion;
-  };
-
   private getDeploymentEngineType = (stack: Stack): DeploymentEngineType => {
-    const deploymentType: BackendDeploymentType | undefined =
-      stack.node.tryGetContext(CDKContextKey.DEPLOYMENT_TYPE);
+    const deploymentType: DeploymentType | undefined = stack.node.tryGetContext(
+      CDKContextKey.DEPLOYMENT_TYPE
+    );
 
     if (deploymentType === undefined) {
       // if no deployment type context value is set, assume the construct is being used in a native CDK project
@@ -87,9 +67,9 @@ export class AttributionMetadataStorage {
     }
 
     switch (deploymentType) {
-      case BackendDeploymentType.BRANCH:
+      case 'branch':
         return 'AmplifyPipelineDeploy';
-      case BackendDeploymentType.SANDBOX:
+      case 'sandbox':
         return 'AmplifySandbox';
       default:
         throw new Error(

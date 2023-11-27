@@ -1,20 +1,16 @@
 import { Argv, CommandModule } from 'yargs';
-import fs from 'fs';
+import fsp from 'fs/promises';
 import { AmplifyPrompter } from '@aws-amplify/cli-core';
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
 import {
   ClientConfigFormat,
   getClientConfigPath,
 } from '@aws-amplify/client-config';
-import {
-  DEFAULT_GRAPHQL_PATH,
-  DEFAULT_UI_PATH,
-} from '../../form-generation/default_form_generation_output_paths.js';
 import { ArgumentsKebabCase } from '../../kebab_case.js';
-import { fromIni } from '@aws-sdk/credential-provider-ini';
 import { handleCommandFailure } from '../../command_failure_handler.js';
 import { ClientConfigLifecycleHandler } from '../../client-config/client_config_lifecycle_handler.js';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
+import { CommandMiddleware } from '../../command_middleware.js';
 
 export type SandboxCommandOptions =
   ArgumentsKebabCase<SandboxCommandOptionsCamelCase>;
@@ -23,23 +19,21 @@ type SandboxCommandOptionsCamelCase = {
   dirToWatch: string | undefined;
   exclude: string[] | undefined;
   name: string | undefined;
-  format: ClientConfigFormat | undefined;
-  outDir: string | undefined;
+  configFormat: ClientConfigFormat | undefined;
+  configOutDir: string | undefined;
   profile: string | undefined;
-  modelsOutDir: string;
-  uiOutDir: string;
-  modelsFilter?: string[];
 };
 
-export type EventHandler = () => void;
+export type EventHandler = (...args: unknown[]) => void;
 
 export type SandboxEventHandlers = {
   successfulDeployment: EventHandler[];
   successfulDeletion: EventHandler[];
+  failedDeployment: EventHandler[];
 };
 
 export type SandboxEventHandlerParams = {
-  appName?: string;
+  sandboxName?: string;
   clientConfigLifecycleHandler: ClientConfigLifecycleHandler;
 };
 
@@ -63,7 +57,7 @@ export class SandboxCommand
    */
   readonly describe: string;
 
-  private appName?: string;
+  private sandboxName?: string;
 
   /**
    * Creates sandbox command.
@@ -72,8 +66,8 @@ export class SandboxCommand
     private readonly sandboxFactory: SandboxSingletonFactory,
     private readonly sandboxSubCommands: CommandModule[],
     private clientConfigGeneratorAdapter: ClientConfigGeneratorAdapter,
-    private readonly sandboxEventHandlerCreator?: SandboxEventHandlerCreator,
-    private readonly profileCredentialProvider = fromIni
+    private commandMiddleware: CommandMiddleware,
+    private readonly sandboxEventHandlerCreator?: SandboxEventHandlerCreator
   ) {
     this.command = 'sandbox';
     this.describe = 'Starts sandbox, watch mode for amplify deployments';
@@ -83,21 +77,17 @@ export class SandboxCommand
    * @inheritDoc
    */
   handler = async (args: SandboxCommandOptions): Promise<void> => {
-    const { profile } = args;
-    if (profile) {
-      // check if we can load the profile first
-      await this.profileCredentialProvider({ profile })();
-      process.env.AWS_PROFILE = profile;
-    }
     const sandbox = await this.sandboxFactory.getInstance();
-    this.appName = args.name;
+    this.sandboxName = args.name;
 
     // attaching event handlers
     const clientConfigLifecycleHandler = new ClientConfigLifecycleHandler(
-      this.clientConfigGeneratorAdapter
+      this.clientConfigGeneratorAdapter,
+      args['config-out-dir'],
+      args['config-format']
     );
     const eventHandlers = this.sandboxEventHandlerCreator?.({
-      appName: args.name,
+      sandboxName: this.sandboxName,
       clientConfigLifecycleHandler,
     });
     if (eventHandlers) {
@@ -107,14 +97,10 @@ export class SandboxCommand
     }
     const watchExclusions = args.exclude ?? [];
     const clientConfigWritePath = await getClientConfigPath(
-      args['out-dir'],
-      args.format
+      args['config-out-dir'],
+      args['config-format']
     );
-    watchExclusions.push(
-      clientConfigWritePath,
-      args['ui-out-dir'],
-      args['models-out-dir']
-    );
+    watchExclusions.push(clientConfigWritePath);
     await sandbox.start({
       dir: args['dir-to-watch'],
       exclude: watchExclusions,
@@ -132,77 +118,56 @@ export class SandboxCommand
       yargs
         // Cast to erase options types used in internal sub command implementation. Otherwise, compiler fails here.
         .command(this.sandboxSubCommands)
+        .version(false)
         .option('dir-to-watch', {
           describe:
             'Directory to watch for file changes. All subdirectories and files will be included. defaults to the current directory.',
           type: 'string',
           array: false,
+          global: false,
         })
         .option('exclude', {
           describe:
             'An array of paths or glob patterns to ignore. Paths can be relative or absolute and can either be files or directories',
           type: 'string',
           array: true,
+          global: false,
         })
         .option('name', {
           describe:
             'An optional name to distinguish between different sandbox environments. Default is the name in your package.json',
           type: 'string',
           array: false,
+          global: false,
         })
-        .option('format', {
+        .option('config-format', {
           describe: 'Client config output format',
           type: 'string',
           array: false,
           choices: Object.values(ClientConfigFormat),
+          global: false,
         })
-        .option('out-dir', {
+        .option('config-out-dir', {
           describe:
             'A path to directory where config is written. If not provided defaults to current process working directory.',
           type: 'string',
           array: false,
+          global: false,
         })
         .option('profile', {
-          describe: 'An AWS profile name to use for deployment.',
+          describe: 'An AWS profile name.',
           type: 'string',
           array: false,
         })
-        .option('models-out-dir', {
-          describe: 'A path to directory where generated models are written.',
-          default: DEFAULT_GRAPHQL_PATH,
-          type: 'string',
-          array: false,
-          group: 'Form Generation',
-        })
-        .option('ui-out-dir', {
-          describe: 'A path to directory where generated forms are written.',
-          default: DEFAULT_UI_PATH,
-          type: 'string',
-          array: false,
-          group: 'Form Generation',
-        })
-        .option('models', {
-          describe: 'Model name to generate',
-          type: 'string',
-          array: true,
-          group: 'Form Generation',
-        })
-        .check((argv) => {
+        .check(async (argv) => {
           if (argv['dir-to-watch']) {
-            // make sure it's a real directory
-            let stats;
-            try {
-              stats = fs.statSync(argv['dir-to-watch'], {});
-            } catch (e) {
-              throw new Error(
-                `--dir-to-watch ${argv['dir-to-watch']} does not exist`
-              );
-            }
-            if (!stats.isDirectory()) {
-              throw new Error(
-                `--dir-to-watch ${argv['dir-to-watch']} is not a valid directory`
-              );
-            }
+            await this.validateDirectory('dir-to-watch', argv['dir-to-watch']);
+          }
+          if (argv['config-out-dir']) {
+            await this.validateDirectory(
+              'config-out-dir',
+              argv['config-out-dir']
+            );
           }
           if (argv.name) {
             const projectNameRegex = /^[a-zA-Z0-9-]{1,15}$/;
@@ -214,6 +179,7 @@ export class SandboxCommand
           }
           return true;
         })
+        .middleware([this.commandMiddleware.ensureAwsCredentialAndRegion])
         .fail((msg, err) => {
           handleCommandFailure(msg, err, yargs);
           yargs.exit(1, err);
@@ -230,6 +196,18 @@ export class SandboxCommand
     if (answer)
       await (
         await this.sandboxFactory.getInstance()
-      ).delete({ name: this.appName });
+      ).delete({ name: this.sandboxName });
+  };
+
+  private validateDirectory = async (option: string, dir: string) => {
+    let stats;
+    try {
+      stats = await fsp.stat(dir, {});
+    } catch (e) {
+      throw new Error(`--${option} ${dir} does not exist`);
+    }
+    if (!stats.isDirectory()) {
+      throw new Error(`--${option} ${dir} is not a valid directory`);
+    }
   };
 }

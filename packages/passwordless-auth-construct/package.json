@@ -17,15 +17,16 @@
     "update:api": "api-extractor run --local"
   },
   "dependencies": {
-    "@aws-amplify/auth-construct-alpha": "^0.2.0-alpha.6",
-    "@aws-sdk/client-sns": "^3.429.0"
+    "@aws-amplify/auth-construct-alpha": "^0.4.2",
+    "@aws-sdk/client-sns": "^3.445.0",
+    "@aws-sdk/client-ses": "^3.445.0"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.119",
     "aws-lambda": "^1.0.7"
   },
   "peerDependencies": {
-    "aws-cdk-lib": "^2.103.0",
+    "aws-cdk-lib": "^2.110.1",
     "constructs": "^10.0.0"
   }
 }

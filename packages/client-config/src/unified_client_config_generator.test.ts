@@ -10,7 +10,6 @@ import {
   platformOutputKey,
 } from '@aws-amplify/backend-output-schemas';
 import { ClientConfig } from './client-config-types/client_config.js';
-import { BackendDeploymentType } from '@aws-amplify/platform-core';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { ModelIntrospectionSchemaAdapter } from './client-config-contributor/model_introspection_schema_adapater.js';
 import { PlatformClientConfigContributor } from './client-config-contributor/platform_client_config_contributor.js';
@@ -22,7 +21,7 @@ void describe('UnifiedClientConfigGenerator', () => {
         [platformOutputKey]: {
           version: '1',
           payload: {
-            deploymentType: BackendDeploymentType.BRANCH,
+            deploymentType: 'branch',
             region: 'us-east-1',
           },
         },
@@ -33,6 +32,14 @@ void describe('UnifiedClientConfigGenerator', () => {
             userPoolId: 'testUserPoolId',
             webClientId: 'testWebClientId',
             authRegion: 'testRegion',
+            passwordPolicyMinLength: '8',
+            passwordPolicyRequirements:
+              '["REQUIRES_NUMBERS","REQUIRES_LOWERCASE","REQUIRES_UPPERCASE"]',
+            mfaTypes: '["SMS","TOTP"]',
+            mfaConfiguration: 'OPTIONAL',
+            verificationMechanisms: '["EMAIL","PHONE"]',
+            usernameAttributes: '["EMAIL"]',
+            signupAttributes: '["EMAIL"]',
           },
         },
         [graphqlOutputKey]: {
@@ -75,6 +82,20 @@ void describe('UnifiedClientConfigGenerator', () => {
         aws_user_pools_id: 'testUserPoolId',
         aws_user_pools_web_client_id: 'testWebClientId',
         aws_cognito_region: 'testRegion',
+        aws_cognito_identity_pool_id: 'testIdentityPoolId',
+        aws_cognito_mfa_configuration: 'OPTIONAL',
+        aws_cognito_mfa_types: ['SMS', 'TOTP'],
+        aws_cognito_password_protection_settings: {
+          passwordPolicyCharacters: [
+            'REQUIRES_NUMBERS',
+            'REQUIRES_LOWERCASE',
+            'REQUIRES_UPPERCASE',
+          ],
+          passwordPolicyMinLength: 8,
+        },
+        aws_cognito_signup_attributes: ['EMAIL'],
+        aws_cognito_username_attributes: ['EMAIL'],
+        aws_cognito_verification_mechanisms: ['EMAIL', 'PHONE'],
         aws_appsync_apiKey: 'testApiKey',
         aws_appsync_authenticationType: 'API_KEY',
         aws_appsync_conflictResolutionMode: undefined,
