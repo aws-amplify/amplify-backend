@@ -7,41 +7,47 @@ import {
 } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import * as path from 'path';
+import { getCallerDirectory } from './get_caller_directory.js';
 
 /**
  * Entry point for defining a function in the Amplify ecosystem
  */
-export const defineFunction = (props: FunctionFactoryProps) =>
-  new FunctionFactory(props);
+export const defineFunction = (props: FunctionFactoryProps = {}) =>
+  new FunctionFactory(props, new Error().stack);
 
 export type FunctionFactoryProps = {
   /**
-   * A name for the function that is used to disambiguate it from other functions in the project.
-   * Defaults to the directory name in which this function is defined
+   * A name for the function.
+   * Defaults to the basename of the entry path if specified.
+   * If no entry is specified, defaults to the directory name in which this function is defined.
+   *
+   * Example:
+   * If entry is `./scheduled-db-backup.ts` the name will default to "scheduled-db-backup"
+   * If entry is not set and the function is defined in `amplify/functions/db-backup/resource.ts` the name will default to "db-backup"
    */
   name?: string;
   /**
-   * The name of the function from the source code that is executed in the cloud
-   * Defaults to "handler"
+   * The path to the file that contains the function entry point.
+   * If this is a relative path, it is computed relative to the file where this function is defined
+   *
+   * Defaults to './handler.ts'
    */
-  handler?: string;
-  /**
-   * The name of the file that contains the handler, relative to the location where `defineFunction` is called
-   * Defaults to "./handler.ts"
-   */
-  relativeSourcePath?: string;
+  entry?: string;
 };
 
 /**
  * Create Lambda functions in the context of an Amplify backend definition
  */
 export class FunctionFactory implements ConstructFactory<AmplifyFunction> {
-  private readonly placeholderDefaultName = 'placeholder-name';
   private generator: ConstructContainerEntryGenerator;
   /**
    * Create a new AmplifyFunctionFactory
    */
-  constructor(private readonly props: FunctionFactoryProps) {}
+  constructor(
+    private readonly props: FunctionFactoryProps,
+    private readonly callerStack?: string
+  ) {}
 
   /**
    * Creates an instance of AmplifyFunction within the provided Amplify context
@@ -50,19 +56,45 @@ export class FunctionFactory implements ConstructFactory<AmplifyFunction> {
     constructContainer,
   }: ConstructFactoryGetInstanceProps): AmplifyFunction => {
     if (!this.generator) {
-      this.generator = new FunctionGenerator(this.hydrateDefaults(this.props));
+      this.generator = new FunctionGenerator(this.hydrateDefaults());
     }
     return constructContainer.getOrCompute(this.generator) as AmplifyFunction;
   };
 
-  private hydrateDefaults = (
-    props: FunctionFactoryProps
-  ): HydratedFunctionProps => {
+  private hydrateDefaults = (): HydratedFunctionProps => {
     return {
-      name: props.name ?? this.placeholderDefaultName,
-      handler: props.handler ?? 'handler',
-      relativeSourcePath: props.relativeSourcePath ?? './handler.ts',
+      name: this.resolveName(),
+      entry: this.resolveEntry(),
     };
+  };
+
+  private resolveName = () => {
+    // If name is set explicitly, use that
+    if (this.props.name) {
+      return this.props.name;
+    }
+    // If entry is set, use the basename of the entry path
+    if (this.props.entry) {
+      return path.parse(this.props.entry).name;
+    }
+
+    // Otherwise, use the directory name where the function is defined
+    return path.basename(getCallerDirectory(this.callerStack));
+  };
+
+  private resolveEntry = () => {
+    // if entry is not set, default to handler.ts
+    if (!this.props.entry) {
+      return path.join(getCallerDirectory(this.callerStack), 'handler.ts');
+    }
+
+    // if entry is absolute use that
+    if (path.isAbsolute(this.props.entry)) {
+      return this.props.entry;
+    }
+
+    // if entry is relative, compute with respect to the caller directory
+    return path.join(getCallerDirectory(this.callerStack), this.props.entry);
   };
 }
 
@@ -85,10 +117,10 @@ class AmplifyFunction
   readonly resources: FunctionResources;
   constructor(scope: Construct, id: string, props: HydratedFunctionProps) {
     super(scope, id);
-    const lambda = new NodejsFunction(scope, `${id}-lambda`, {
-      handler: props.handler,
-      entry: props.relativeSourcePath,
-    });
-    this.resources.lambda = lambda;
+    this.resources = {
+      lambda: new NodejsFunction(scope, `${id}-lambda`, {
+        entry: props.entry,
+      }),
+    };
   }
 }
