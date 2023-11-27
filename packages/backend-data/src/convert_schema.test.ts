@@ -16,26 +16,84 @@ void describe('convertSchemaToCDK', () => {
         echo(message: String!): String!
       }
     `;
-    assert.strictEqual(convertSchemaToCDK(graphqlSchema).schema, graphqlSchema);
+    const convertedDefinition = convertSchemaToCDK(graphqlSchema);
+    assert.deepEqual(convertedDefinition.schema, graphqlSchema);
+    assert.deepEqual(convertedDefinition.dataSourceStrategies, {
+      Todo: {
+        dbType: 'DYNAMODB',
+        provisionStrategy: 'AMPLIFY_TABLE',
+      },
+    });
   });
 
   void it('generates for a typed schema', () => {
     const expectedGraphqlSchema = /* GraphQL */ `
-      type Todo @model {
+      type Todo @model @auth(rules: [{ allow: public }]) {
         id: ID! @primaryKey
         content: String!
         createdAt: AWSDateTime!
         updatedAt: AWSDateTime!
       }
     `;
-    const typedSchema = a.schema({
-      Todo: a.model({
-        content: a.string().required(),
-      }),
-    });
-    assert.strictEqual(
-      removeWhiteSpaceForComparison(convertSchemaToCDK(typedSchema).schema),
+    const typedSchema = a
+      .schema({
+        Todo: a.model({
+          content: a.string().required(),
+        }),
+      })
+      .authorization([a.allow.public()]);
+    const convertedDefinition = convertSchemaToCDK(typedSchema);
+    assert.deepEqual(
+      removeWhiteSpaceForComparison(convertedDefinition.schema),
       removeWhiteSpaceForComparison(expectedGraphqlSchema)
+    );
+    assert.deepEqual(convertedDefinition.dataSourceStrategies, {
+      Todo: {
+        dbType: 'DYNAMODB',
+        provisionStrategy: 'AMPLIFY_TABLE',
+      },
+    });
+  });
+
+  void it('produces appropriate dataSourceStrategies for a typed schema with multiple models', () => {
+    const typedSchema = a
+      .schema({
+        Todo: a.model({
+          content: a.string().required(),
+        }),
+        Blog: a.model({
+          title: a.string(),
+        }),
+      })
+      .authorization([a.allow.public()]);
+    const convertedDefinition = convertSchemaToCDK(typedSchema);
+    assert.deepEqual(convertedDefinition.dataSourceStrategies, {
+      Todo: {
+        dbType: 'DYNAMODB',
+        provisionStrategy: 'AMPLIFY_TABLE',
+      },
+      Blog: {
+        dbType: 'DYNAMODB',
+        provisionStrategy: 'AMPLIFY_TABLE',
+      },
+    });
+  });
+
+  void it('uses the only appropriate dbType and provisioningStrategy', () => {
+    const convertedDefinition = convertSchemaToCDK(
+      'type Todo @model @auth(rules: { allow: public }) { id: ID! }'
+    );
+    assert.equal(
+      Object.values(convertedDefinition.dataSourceStrategies).length,
+      1
+    );
+    assert.deepEqual(
+      Object.values(convertedDefinition.dataSourceStrategies)[0],
+      {
+        dbType: 'DYNAMODB',
+        provisionStrategy: 'AMPLIFY_TABLE',
+      },
+      'dbType should ALWAYS be set to DYNAMODB, and provisionStrategy should ALWAYS be AMPLIFY_TABLE, changing these values will trigger db re-provisioning'
     );
   });
 });

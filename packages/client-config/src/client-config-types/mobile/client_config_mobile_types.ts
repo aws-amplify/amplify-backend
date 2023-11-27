@@ -20,6 +20,14 @@ export type ClientConfigMobileApi = {
   };
 };
 
+export type ClientConfigMobileAppsyncAuth = {
+  ApiUrl: string;
+  Region: string | undefined;
+  AuthMode: string | undefined;
+  ApiKey: string | undefined;
+  ClientDatabasePrefix: string | undefined;
+};
+
 export type ClientConfigMobileAuth = {
   plugins: {
     awsCognitoAuthPlugin: {
@@ -43,16 +51,20 @@ export type ClientConfigMobileAuth = {
       Auth: {
         Default: {
           authenticationFlowType: 'USER_SRP_AUTH';
+          mfaConfiguration: string | undefined;
+          mfaTypes: Array<string> | undefined;
+          passwordProtectionSettings: {
+            passwordPolicyMinLength: number | undefined;
+            passwordPolicyCharacters: Array<string>;
+          };
+          signupAttributes: Array<string>;
+          usernameAttributes: Array<string>;
+          verificationMechanisms: Array<string>;
         };
       };
       AppSync?: {
-        Default: {
-          ApiUrl: string;
-          Region: string | undefined;
-          AuthMode: string | undefined;
-          ApiKey: string | undefined;
-        };
-      };
+        Default: ClientConfigMobileAppsyncAuth;
+      } & Record<string, ClientConfigMobileAppsyncAuth>;
     };
   };
 };

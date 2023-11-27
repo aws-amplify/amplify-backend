@@ -1,5 +1,5 @@
 {
- "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyPipelineDeploy\",\"createdWith\":\"0.3.4\",\"stackType\":\"root\",\"metadata\":{}}",
+ "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyPipelineDeploy\",\"createdWith\":\"0.5.4\",\"stackType\":\"root\",\"metadata\":{}}",
  "Metadata": {
   "AWS::Amplify::Platform": {
    "version": "1",
@@ -142,7 +142,7 @@
      "S3Bucket": {
       "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
      },
-     "S3Key": "c5f154e6312b93b44d21e0e9e0f5ba13f4b731c9e38bcb30c6f368f1195c88e2.zip"
+     "S3Key": "747012bf6fea04c81a436d8dfe16db211a8a4df19c15421de44ea7440573b86b.zip"
     },
     "Environment": {
      "Variables": {
@@ -306,7 +306,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/e7ad4ed8465fdc6ad030529e55aa18e67e1b83225330200ff5d0a2d81d4c22a0.json"
+       "/426bd279acc51329d993502bd4f9aad03681287559c6b5c29cf4e4d8571e3f46.json"
       ]
      ]
     }

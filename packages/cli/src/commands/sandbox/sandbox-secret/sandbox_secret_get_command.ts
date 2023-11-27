@@ -28,7 +28,7 @@ export class SandboxSecretGetCommand
     private readonly sandboxIdResolver: SandboxBackendIdResolver,
     private readonly secretClient: SecretClient
   ) {
-    this.command = 'get <secretName>';
+    this.command = 'get <secret-name>';
     this.describe = 'Get a sandbox secret';
   }
 

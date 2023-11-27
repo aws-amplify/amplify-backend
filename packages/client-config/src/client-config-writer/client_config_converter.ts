@@ -42,7 +42,7 @@ export class ClientConfigConverter {
             CredentialsProvider: {
               CognitoIdentity: {
                 Default: {
-                  PoolId: clientConfig.aws_user_pools_id,
+                  PoolId: clientConfig.aws_cognito_identity_pool_id,
                   Region: clientConfig.aws_cognito_region,
                 },
               },
@@ -50,6 +50,22 @@ export class ClientConfigConverter {
             Auth: {
               Default: {
                 authenticationFlowType: 'USER_SRP_AUTH',
+                mfaConfiguration: clientConfig.aws_cognito_mfa_configuration,
+                mfaTypes: clientConfig.aws_cognito_mfa_types,
+                passwordProtectionSettings: {
+                  passwordPolicyMinLength:
+                    clientConfig.aws_cognito_password_protection_settings
+                      ?.passwordPolicyMinLength,
+                  passwordPolicyCharacters:
+                    clientConfig.aws_cognito_password_protection_settings
+                      ?.passwordPolicyCharacters ?? [],
+                },
+                signupAttributes:
+                  clientConfig.aws_cognito_signup_attributes ?? [],
+                usernameAttributes:
+                  clientConfig.aws_cognito_username_attributes ?? [],
+                verificationMechanisms:
+                  clientConfig.aws_cognito_verification_mechanisms ?? [],
               },
             },
           },
@@ -75,14 +91,34 @@ export class ClientConfigConverter {
       mobileConfig.api = apiConfig;
 
       if (mobileConfig.auth) {
+        let defaultClientDatabasePrefix = undefined;
+        if (clientConfig.aws_appsync_authenticationType) {
+          defaultClientDatabasePrefix = `data_${clientConfig.aws_appsync_authenticationType}`;
+        }
         mobileConfig.auth.plugins.awsCognitoAuthPlugin.AppSync = {
           Default: {
             ApiUrl: clientConfig.aws_appsync_graphqlEndpoint,
             Region: clientConfig.aws_appsync_region,
             AuthMode: clientConfig.aws_appsync_authenticationType,
             ApiKey: clientConfig.aws_appsync_apiKey,
+            ClientDatabasePrefix: defaultClientDatabasePrefix,
           },
         };
+        if (clientConfig.aws_appsync_additionalAuthenticationTypes) {
+          for (const additionalAuthenticationType of clientConfig.aws_appsync_additionalAuthenticationTypes.split(
+            ','
+          )) {
+            mobileConfig.auth.plugins.awsCognitoAuthPlugin.AppSync[
+              `data_${additionalAuthenticationType}`
+            ] = {
+              ApiUrl: clientConfig.aws_appsync_graphqlEndpoint,
+              Region: clientConfig.aws_appsync_region,
+              AuthMode: clientConfig.aws_appsync_authenticationType,
+              ApiKey: clientConfig.aws_appsync_apiKey,
+              ClientDatabasePrefix: `data_${additionalAuthenticationType}`,
+            };
+          }
+        }
       }
     }
     return mobileConfig;

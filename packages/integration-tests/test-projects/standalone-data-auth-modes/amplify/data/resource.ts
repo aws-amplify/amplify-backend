@@ -15,7 +15,7 @@ export const data = defineData({
     }
   `,
   authorizationModes: {
-    defaultAuthorizationMode: 'AWS_LAMBDA',
+    defaultAuthorizationMode: 'lambda',
     lambdaAuthorizationMode: {
       function: Func.fromDir({
         name: 'ApiAuth',

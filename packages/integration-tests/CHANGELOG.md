@@ -1,5 +1,44 @@
 # @aws-amplify/integration-tests
 
+## 0.3.7
+
+### Patch Changes
+
+- 5ed51cbd5: Upgrade aws-cdk to 2.110.1
+- 5ed51cbd5: Update data schema for e2e hotswappable test as per the new getting started
+
+## 0.3.6
+
+### Patch Changes
+
+- 733518a71: Add e2e testing for config generation
+
+## 0.3.5
+
+### Patch Changes
+
+- fe2d96f04: run tests in parallel
+
+## 0.3.4
+
+### Patch Changes
+
+- 48c25802d: Auth role policy action is now AssumeRoleWithWebIdentity.
+
+## 0.3.3
+
+### Patch Changes
+
+- 5cc252204: use latest aws-amplify verion in project_creator
+- 70685f36b: Add usage data metrics
+
+## 0.3.2
+
+### Patch Changes
+
+- 23b369d79: Add amplify comment when writing to gitignore
+- bd8b5d1a5: update data/resource template; bump data-schema versions
+
 ## 0.3.1
 
 ### Patch Changes

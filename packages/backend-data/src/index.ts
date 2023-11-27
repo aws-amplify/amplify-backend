@@ -1,2 +1,10 @@
 export * from './factory.js';
-export * from './types.js';
+export {
+  ApiKeyAuthorizationModeProps,
+  LambdaAuthorizationModeProps,
+  OIDCAuthorizationModeProps,
+  DefaultAuthorizationMode,
+  AuthorizationModes,
+  DataSchema,
+  DataProps,
+} from './types.js';

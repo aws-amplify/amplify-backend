@@ -17,14 +17,12 @@ void describe('AmplifyProjectCreator', () => {
       generateInitialProjectFiles: mock.fn(),
     };
     const npmInitializedEnsurerMock = { ensureInitialized: mock.fn() };
-    const tsConfigInitializerMock = { ensureInitialized: mock.fn() };
     const gitIgnoreInitializerMock = { ensureInitialized: mock.fn() };
     const amplifyProjectCreator = new AmplifyProjectCreator(
       packageManagerControllerMock as never,
       projectRootValidatorMock as never,
       initialProjectFileGeneratorMock as never,
       npmInitializedEnsurerMock as never,
-      tsConfigInitializerMock as never,
       gitIgnoreInitializerMock as never,
       process.cwd()
     );
@@ -43,10 +41,13 @@ void describe('AmplifyProjectCreator', () => {
       npmInitializedEnsurerMock.ensureInitialized.mock.callCount(),
       1
     );
-    assert.equal(tsConfigInitializerMock.ensureInitialized.mock.callCount(), 1);
     assert.equal(
       logMock.log.mock.calls[4].arguments[0],
-      'Welcome to AWS Amplify! \nRun `amplify help` for a list of available commands. \nGet started by running `amplify sandbox`.'
+      'Welcome to AWS Amplify! \nRun `npx amplify help` for a list of available commands. \nGet started by running `npx amplify sandbox`.'
+    );
+    assert.equal(
+      logMock.log.mock.calls[5].arguments[0],
+      `Amplify (Gen 2) collects anonymous telemetry data about general usage of the CLI.\n\nParticipation is optional, and you may opt-out by using \`amplify configure telemetry disable\`.\n\nTo learn more about telemetry, visit https://docs.amplify.aws/gen2/reference/telemetry`
     );
   });
 
@@ -63,14 +64,12 @@ void describe('AmplifyProjectCreator', () => {
       generateInitialProjectFiles: mock.fn(),
     };
     const npmInitializedEnsurerMock = { ensureInitialized: mock.fn() };
-    const tsConfigInitializerMock = { ensureInitialized: mock.fn() };
     const gitIgnoreInitializerMock = { ensureInitialized: mock.fn() };
     const amplifyProjectCreator = new AmplifyProjectCreator(
       packageManagerControllerMock as never,
       projectRootValidatorMock as never,
       initialProjectFileGeneratorMock as never,
       npmInitializedEnsurerMock as never,
-      tsConfigInitializerMock as never,
       gitIgnoreInitializerMock as never,
       '/project/root'
     );
@@ -79,7 +78,11 @@ void describe('AmplifyProjectCreator', () => {
 
     assert.equal(
       logMock.log.mock.calls[4].arguments[0],
-      'Welcome to AWS Amplify! \nRun `amplify help` for a list of available commands. \nGet started by running `cd ./project/root; amplify sandbox`.'
+      'Welcome to AWS Amplify! \nRun `npx amplify help` for a list of available commands. \nGet started by running `cd ./project/root; npx amplify sandbox`.'
+    );
+    assert.equal(
+      logMock.log.mock.calls[5].arguments[0],
+      `Amplify (Gen 2) collects anonymous telemetry data about general usage of the CLI.\n\nParticipation is optional, and you may opt-out by using \`amplify configure telemetry disable\`.\n\nTo learn more about telemetry, visit https://docs.amplify.aws/gen2/reference/telemetry`
     );
   });
 });

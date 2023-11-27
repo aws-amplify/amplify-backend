@@ -1,5 +1,63 @@
 # create-amplify
 
+## 0.3.8
+
+### Patch Changes
+
+- 5ed51cbd5: Upgrade aws-cdk to 2.110.1
+- Updated dependencies [5ed51cbd5]
+  - @aws-amplify/platform-core@0.3.1
+
+## 0.3.7
+
+### Patch Changes
+
+- aa9045ea3: add npx to "get started" command in create-amplify
+- 85e619116: Adding message about usage data tracking when creating new project
+- Updated dependencies [aabe5dd61]
+- Updated dependencies [5f336ffbb]
+- Updated dependencies [85e619116]
+  - @aws-amplify/platform-core@0.3.0
+
+## 0.3.6
+
+### Patch Changes
+
+- f449188cf: fix(@aws-amplify/backend-data) - Align with authorization modes used in the aws-amplify client library
+
+## 0.3.5
+
+### Patch Changes
+
+- e15afece7: adds comment in defineAuth template for docs
+
+## 0.3.4
+
+### Patch Changes
+
+- 002954370: Create default tsconfig.json in amplify directory on npx create amplify and run tsc on amplify directory during deployment
+- 48c25802d: Auth role policy action is now AssumeRoleWithWebIdentity.
+- Updated dependencies [cb855dfa5]
+  - @aws-amplify/platform-core@0.2.2
+
+## 0.3.3
+
+### Patch Changes
+
+- 5cc252204: use latest aws-amplify verion in project_creator
+- 70685f36b: Add usage data metrics
+- Updated dependencies [70685f36b]
+  - @aws-amplify/platform-core@0.2.1
+
+## 0.3.2
+
+### Patch Changes
+
+- 14d862196: Animate ellipsis for high level create amplify logs
+- 23b369d79: Add amplify comment when writing to gitignore
+- bd8b5d1a5: update data/resource template; bump data-schema versions
+- 14d862196: Hide npm outputs and switch from using console to logger in create amplify
+
 ## 0.3.1
 
 ### Patch Changes

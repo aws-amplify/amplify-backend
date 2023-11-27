@@ -6,7 +6,8 @@
     { "path": "../backend-auth" },
     { "path": "../backend-secret" },
     { "path": "../backend-storage" },
+    { "path": "../client-config" },
     { "path": "../platform-core" }
   ],
-  "exclude": ["**/node_modules", "**/lib", "test-projects"]
+  "exclude": ["**/node_modules", "**/lib", "src/e2e-tests", "test-projects"]
 }

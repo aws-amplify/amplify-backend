@@ -26,7 +26,7 @@ export type SandboxDeleteOptions = {
 };
 
 // @public (undocumented)
-export type SandboxEvents = 'successfulDeployment' | 'successfulDeletion';
+export type SandboxEvents = 'successfulDeployment' | 'failedDeployment' | 'successfulDeletion';
 
 // @public (undocumented)
 export type SandboxOptions = {

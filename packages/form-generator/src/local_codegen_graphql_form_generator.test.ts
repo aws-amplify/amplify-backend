@@ -3,7 +3,10 @@ import assert from 'assert';
 import { describe, it, mock } from 'node:test';
 import fs from 'fs/promises';
 import { CodegenGraphqlFormGeneratorResult } from './codegen_graphql_form_generation_result.js';
-import { LocalGraphqlFormGenerator } from './local_codegen_graphql_form_generator.js';
+import {
+  LocalGraphqlFormGenerator,
+  ResultBuilder,
+} from './local_codegen_graphql_form_generator.js';
 
 type MockDataType = 'String' | 'ID' | 'AWSDateTime';
 
@@ -17,7 +20,7 @@ const createMockField = (dataType: MockDataType, required = false) => {
   };
 };
 
-const createMockSchema = (fields: string[]) => {
+const createMockSchema = (fields: string[]): GenericDataSchema => {
   const models = fields.reduce(
     (prev, name) => ({
       ...prev,
@@ -38,7 +41,7 @@ const createMockSchema = (fields: string[]) => {
     models,
     nonModels: {},
     enums: {},
-  };
+  } as GenericDataSchema;
 };
 
 void describe('LocalCodegenGraphqlFormGenerator', () => {
@@ -251,4 +254,62 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
     const forms = await l.generateForms();
     assert('writeToDirectory' in forms);
   });
+  const graphqlDirectories = [
+    ['./graphql'],
+    ['../graphql'],
+    ['../my-folder'],
+    ['./my-folder/a-sub-folder'],
+    ['graphql', './graphql'],
+    ['gql/graphql', './gql/graphql'],
+  ];
+  void it(`createdAt and updatedAt fields are removed from the generated form`, async () => {
+    const schema = createMockSchema(['Post']);
+    assert('createdAt' in schema.models.Post.fields);
+    assert('updatedAt' in schema.models.Post.fields);
+    const resultGenerationSpy = mock.fn<ResultBuilder>();
+    resultGenerationSpy.mock.mockImplementation(() => ({
+      writeToDirectory: async () => undefined,
+    }));
+    const l = new LocalGraphqlFormGenerator(
+      async () => schema as unknown as GenericDataSchema,
+      {
+        graphqlDir: './ui-components',
+      },
+      resultGenerationSpy
+    );
+
+    await l.generateForms();
+
+    assert.equal(resultGenerationSpy.mock.callCount(), 1);
+    const componentMap = resultGenerationSpy.mock.calls[0].arguments[0];
+
+    const component = componentMap['PostCreateForm.jsx'];
+    assert.equal(component.includes(`createdAt`), false);
+    assert.equal(component.includes(`updatedAt`), false);
+  });
+  for (const [directory, outputDir = directory] of graphqlDirectories) {
+    void it(`given the directory ${directory}, the correct import path appears for the mutations in the generated form`, async () => {
+      const schema = createMockSchema(['Post']);
+
+      const resultGenerationSpy = mock.fn<ResultBuilder>();
+      resultGenerationSpy.mock.mockImplementation(() => ({
+        writeToDirectory: async () => undefined,
+      }));
+      const l = new LocalGraphqlFormGenerator(
+        async () => schema as unknown as GenericDataSchema,
+        {
+          graphqlDir: directory,
+        },
+        resultGenerationSpy
+      );
+
+      await l.generateForms();
+
+      assert.equal(resultGenerationSpy.mock.callCount(), 1);
+      const componentMap = resultGenerationSpy.mock.calls[0].arguments[0];
+
+      const component = componentMap['PostCreateForm.jsx'];
+      assert(component.includes(`from "${outputDir}/mutations"`));
+    });
+  }
 });

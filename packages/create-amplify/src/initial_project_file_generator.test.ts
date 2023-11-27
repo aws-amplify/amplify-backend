@@ -1,18 +1,24 @@
-import { describe, it, mock } from 'node:test';
+import { beforeEach, describe, it, mock } from 'node:test';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
 import assert from 'assert';
 import * as path from 'path';
 
 void describe('InitialProjectFileGenerator', () => {
+  const fsMock = {
+    mkdir: mock.fn(),
+    cp: mock.fn(),
+    writeFile: mock.fn(),
+  };
+  const executeWithDebugLoggerMock = mock.fn();
+  beforeEach(() => {
+    executeWithDebugLoggerMock.mock.resetCalls();
+  });
+
   void it('creates target directory and copies files', async () => {
-    const fsMock = {
-      mkdir: mock.fn(),
-      cp: mock.fn(),
-      writeFile: mock.fn(),
-    };
     const initialProjectFileGenerator = new InitialProjectFileGenerator(
       path.join(process.cwd(), 'testDir'),
-      fsMock as never
+      fsMock as never,
+      executeWithDebugLoggerMock as never
     );
     await initialProjectFileGenerator.generateInitialProjectFiles();
 
@@ -32,6 +38,35 @@ void describe('InitialProjectFileGenerator', () => {
     assert.deepStrictEqual(
       JSON.parse(fsMock.writeFile.mock.calls[0].arguments[1]),
       { type: 'module' }
+    );
+  });
+
+  void it('creates default tsconfig file', async () => {
+    const initialProjectFileGenerator = new InitialProjectFileGenerator(
+      path.join(process.cwd(), 'testDir'),
+      fsMock as never,
+      executeWithDebugLoggerMock as never
+    );
+    await initialProjectFileGenerator.generateInitialProjectFiles();
+    assert.equal(executeWithDebugLoggerMock.mock.callCount(), 1);
+    assert.deepStrictEqual(
+      executeWithDebugLoggerMock.mock.calls[0].arguments.slice(0, 3),
+      [
+        path.join(process.cwd(), 'testDir', 'amplify'),
+        'npx',
+        [
+          'tsc',
+          '--init',
+          '--resolveJsonModule',
+          'true',
+          '--module',
+          'node16',
+          '--moduleResolution',
+          'node16',
+          '--target',
+          'es2022',
+        ],
+      ]
     );
   });
 });
