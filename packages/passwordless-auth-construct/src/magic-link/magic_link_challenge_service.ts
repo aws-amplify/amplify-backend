@@ -123,13 +123,13 @@ export class MagicLinkChallengeService implements ChallengeService {
 
     logger.info('Fetching/Removing Magic Link');
     const removedItem = await this.storageService.remove(userId, magicLink);
-    if (!removedItem) {
+    if (!removedItem || !removedItem.keyId) {
       return failChallenge('Either no link was found or the link is invalid');
     }
 
     logger.info('Verifying Magic Link');
     const isValid = await this.signingService.verify(
-      removedItem.kmsKeyId,
+      removedItem.keyId,
       signatureData,
       signature
     );

@@ -17,12 +17,11 @@ import {
   DeliveryMedium,
   DeliveryService,
   MagicLinkConfig,
-  RemovedItem,
   SigningService,
   StorageService,
 } from '../types.js';
 import { MagicLinkChallengeService } from './magic_link_challenge_service.js';
-import { MagicLink } from '../models/magic_link.js';
+import { MagicLink, SignedMagicLink } from '../models/magic_link.js';
 import { Duration } from 'aws-cdk-lib';
 
 const kmsKeyId = '1234';
@@ -42,8 +41,8 @@ class MockKmsService implements SigningService {
   public verify = async () => this.isValid;
 }
 
-class MockStorageService implements StorageService<MagicLink> {
-  constructor(private removedItem: RemovedItem) {}
+class MockStorageService implements StorageService<SignedMagicLink> {
+  constructor(private removedItem: Partial<SignedMagicLink> | undefined) {}
   save = async () => Promise.resolve();
   remove = async () => this.removedItem;
 }
@@ -59,12 +58,12 @@ void describe('MagicLinkChallengeService', () => {
   let service: MagicLinkChallengeService;
   let deliveryService: DeliveryService;
   let mockKmsService: SigningService;
-  let mockStorageService: StorageService<MagicLink>;
+  let mockStorageService: StorageService<SignedMagicLink>;
   let deliveryServiceFactory: DeliveryServiceFactory;
 
   void beforeEach(() => {
     mockKmsService = new MockKmsService();
-    mockStorageService = new MockStorageService({});
+    mockStorageService = new MockStorageService({ keyId: kmsKeyId });
     deliveryService = new MockDeliveryService();
     deliveryServiceFactory = {
       getService: () => deliveryService,
@@ -172,6 +171,33 @@ void describe('MagicLinkChallengeService', () => {
 
     void it('should fail authentication if the link is not found in storage', async () => {
       const removedItem = undefined;
+      const deliveryServiceFactory: DeliveryServiceFactory = {
+        getService: () => deliveryService,
+      };
+      service = new MagicLinkChallengeService(
+        deliveryServiceFactory,
+        magicLinkConfig,
+        mockKmsService,
+        new MockStorageService(removedItem)
+      );
+      const magicLink = MagicLink.create(
+        baseEvent.userPoolId,
+        baseEvent.userName,
+        60
+      ).withSignature(mockSignature, kmsKeyId);
+      const event: VerifyAuthChallengeResponseTriggerEvent =
+        buildVerifyAuthChallengeResponseEvent(
+          {
+            ...confirmMagicLinkMetaData,
+          },
+          magicLink.linkFragment
+        );
+      const newEvent = await service.verifyChallenge(event);
+      strictEqual(newEvent.response.answerCorrect, false);
+    });
+
+    void it('should fail authentication if the stored does not have a key ID', async () => {
+      const removedItem = {};
       const deliveryServiceFactory: DeliveryServiceFactory = {
         getService: () => deliveryService,
       };

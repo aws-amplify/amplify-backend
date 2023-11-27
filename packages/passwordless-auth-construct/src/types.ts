@@ -4,7 +4,6 @@ import {
   VerifyAuthChallengeResponseTriggerEvent,
 } from 'aws-lambda';
 import { Duration } from 'aws-cdk-lib/core';
-import { DeleteCommandOutput } from '@aws-sdk/lib-dynamodb';
 
 /**
  * The client meta data object provided during passwordless auth.
@@ -108,8 +107,6 @@ export type SigningService = {
   ) => Promise<boolean>;
 };
 
-export type RemovedItem = DeleteCommandOutput['Attributes'];
-
 /**
  * A service for storing items with conditional removal.
  */
@@ -128,7 +125,7 @@ export type StorageService<T> = {
    * @param expectedItem - The expected item.
    * @returns - The item that was removed
    */
-  remove: (id: string, expectedItem: T) => Promise<RemovedItem>;
+  remove: (id: string, expectedItem: T) => Promise<Partial<T> | undefined>;
 };
 
 export type PasswordlessAuthChallengeParams =

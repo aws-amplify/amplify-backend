@@ -5,11 +5,7 @@ import {
 } from '@aws-sdk/lib-dynamodb';
 import { ConditionalCheckFailedException } from '@aws-sdk/client-dynamodb';
 import { SignedMagicLink } from '../models/magic_link.js';
-import {
-  MagicLinkStorageConfig,
-  RemovedItem,
-  StorageService,
-} from '../types.js';
+import { MagicLinkStorageConfig, StorageService } from '../types.js';
 import { logger } from '../logger.js';
 
 /**
@@ -30,10 +26,7 @@ export class MagicLinkStorageService
     private storageConfig: MagicLinkStorageConfig
   ) {}
 
-  public save = async (
-    userId: string,
-    magicLink: SignedMagicLink
-  ): Promise<void> => {
+  public save = async (userId: string, magicLink: SignedMagicLink) => {
     const { iat, exp, keyId } = magicLink;
     const { tableName } = this.storageConfig;
     if (!tableName) {
@@ -46,16 +39,13 @@ export class MagicLinkStorageService
           userId,
           iat,
           exp,
-          kmsKeyId: keyId,
+          keyId: keyId,
         },
       })
     );
   };
 
-  public remove = async (
-    userId: string,
-    magicLink: SignedMagicLink
-  ): Promise<RemovedItem> => {
+  public remove = async (userId: string, magicLink: SignedMagicLink) => {
     const { iat, exp } = magicLink;
     const { tableName } = this.storageConfig;
     if (!tableName) {
@@ -82,10 +72,10 @@ export class MagicLinkStorageService
         })
       );
       const item = response.Attributes;
-      if (!item?.kmsKeyId || typeof item.kmsKeyId !== 'string') {
-        throw new Error('Failed to determine KMS Key ID');
-      }
-      return item;
+      const { keyId } = item || {};
+      return {
+        keyId,
+      };
     } catch (err) {
       if (err instanceof ConditionalCheckFailedException) {
         logger.error('Attempt to use invalid magic link');
