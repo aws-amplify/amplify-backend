@@ -93,17 +93,21 @@ export class PasswordlessConfig {
       const {
         otpOriginationNumber,
         otpSenderId,
+        otpSmsMessage,
         magicLinkOriginationNumber,
         magicLinkSenderId,
+        magicLinkSmsMessage,
       } = this.env;
       this.parsedSnsConfig = {
         otp: {
           originationNumber: otpOriginationNumber,
           senderId: otpSenderId,
+          message: otpSmsMessage,
         },
         magicLink: {
           originationNumber: magicLinkOriginationNumber,
           senderId: magicLinkSenderId,
+          message: magicLinkSmsMessage,
         },
       };
     }

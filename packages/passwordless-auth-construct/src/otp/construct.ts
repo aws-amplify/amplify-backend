@@ -20,14 +20,15 @@ export class AmplifyOtpAuth extends Construct {
       return;
     }
 
-    // return with default values if props is a boolean
-    if (typeof props === 'boolean') return;
+    const emailProps = typeof props.email === 'boolean' ? {} : props.email;
 
     const createAuthChallengeEnvVars = {
       otpOriginationNumber: props.sms?.originationNumber,
       otpSenderId: props.sms?.senderId,
-      otpFromAddress:
-        typeof props.email === 'boolean' ? undefined : props.email?.fromAddress,
+      otpSmsMessage: props.sms?.message,
+      otpFromAddress: emailProps?.fromAddress,
+      otpSubject: emailProps?.subject,
+      otpBody: emailProps?.body,
       otpLength: props.length?.toString(),
     };
 

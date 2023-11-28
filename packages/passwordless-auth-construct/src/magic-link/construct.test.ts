@@ -14,6 +14,8 @@ const verifyAuthChallengeMatch = new RegExp(/VerifyAuthChallenge/);
 
 void describe('AmplifyMagicLinkAuth', () => {
   const fromAddress = 'info@example.com';
+  const subject = 'test subject';
+  const body = 'test body';
   const allowedOrigins = ['https://example.com'];
   const linkDuration = Duration.minutes(30);
   const app = new App();
@@ -29,6 +31,8 @@ void describe('AmplifyMagicLinkAuth', () => {
       linkDuration,
       email: {
         fromAddress,
+        subject,
+        body,
       },
     },
   });
@@ -107,6 +111,8 @@ void describe('AmplifyMagicLinkAuth', () => {
         createAuthChallengeMatch
       );
       equal(envVars['magicLinkFromAddress'], fromAddress);
+      equal(envVars['magicLinkSubject'], subject);
+      equal(envVars['magicLinkBody'], body);
       equal(envVars['magicLinkAllowedOrigins'], allowedOrigins[0]);
       equal(
         envVars['magicLinkSecondsUntilExpiry'],
@@ -122,6 +128,8 @@ void describe('AmplifyMagicLinkAuth', () => {
         verifyAuthChallengeMatch
       );
       equal(envVars['magicLinkFromAddress'], undefined);
+      equal(envVars['magicLinkSubject'], undefined);
+      equal(envVars['magicLinkBody'], undefined);
       equal(envVars['magicLinkAllowedOrigins'], undefined);
       equal(envVars['magicLinkSecondsUntilExpiry'], undefined);
       equal(envVars['magicLinkKmsKeyId'], undefined);

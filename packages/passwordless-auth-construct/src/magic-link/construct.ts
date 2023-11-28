@@ -33,9 +33,12 @@ export class AmplifyMagicLinkAuth extends Construct {
     const kmsKey = this.createKmsKey(scope, id, triggers);
     const secretsTable = this.createSecretsTable(scope, id, triggers);
 
+    const emailProps = typeof props.email === 'boolean' ? {} : props.email;
+
     const createAuthChallengeEnvVars = {
-      magicLinkFromAddress:
-        typeof props.email === 'boolean' ? undefined : props.email?.fromAddress,
+      magicLinkFromAddress: emailProps?.fromAddress,
+      magicLinkSubject: emailProps?.subject,
+      magicLinkBody: emailProps?.body,
       magicLinkAllowedOrigins: props.allowedOrigins.join(','),
       magicLinkKmsKeyId: kmsKey.keyId,
       magicLinkTableName: secretsTable.tableName,
