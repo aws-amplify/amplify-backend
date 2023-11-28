@@ -85,9 +85,9 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
   };
 
   private resolveEntry = () => {
-    // if entry is not set, default to handler.js
+    // if entry is not set, default to handler.ts
     if (!this.props.entry) {
-      return path.join(getCallerDirectory(this.callerStack), 'handler.js');
+      return path.join(getCallerDirectory(this.callerStack), 'handler.ts');
     }
 
     // if entry is absolute use that
