@@ -36,7 +36,7 @@ export const findDeployedResources = async (
         resource.ResourceType === resourceType &&
         resource.PhysicalResourceId
       ) {
-        resourcePhysicalIds.push(resource.PhysicalResourceId!);
+        resourcePhysicalIds.push(resource.PhysicalResourceId);
       }
     }
   }
