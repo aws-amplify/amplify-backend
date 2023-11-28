@@ -5,44 +5,76 @@ import { CdkErrorMapper } from './cdk_error_mapper.js';
 const testErrorMappings = [
   {
     errorMessage: 'UnknownError',
-    expectedTopLevelErrorMessage: 'UnknownError',
+    expectedTopLevelErrorMessage: 'Error: UnknownError',
+    errorName: 'UnknownFault',
     expectedDownstreamErrorMessage: undefined,
   },
   {
     errorMessage: 'ExpiredToken',
     expectedTopLevelErrorMessage:
-      '[ExpiredToken]: The security token included in the request is invalid.',
+      'The security token included in the request is invalid.',
+    errorName: 'ExpiredTokenError',
     expectedDownstreamErrorMessage: 'ExpiredToken',
   },
   {
     errorMessage: 'Access Denied',
     expectedTopLevelErrorMessage:
-      '[AccessDenied]: The deployment role does not have sufficient permissions to perform this deployment.',
+      'The deployment role does not have sufficient permissions to perform this deployment.',
+    errorName: 'AccessDeniedError',
     expectedDownstreamErrorMessage: 'Access Denied',
+  },
+  {
+    errorMessage: 'ReferenceError: var is not defined\n',
+    expectedTopLevelErrorMessage:
+      'Unable to build Amplify backend. Check your backend definition in the `amplify` folder.',
+    errorName: 'SyntaxError',
+    expectedDownstreamErrorMessage: 'ReferenceError: var is not defined\n',
   },
   {
     errorMessage: 'Has the environment been bootstrapped',
     expectedTopLevelErrorMessage:
-      '[BootstrapFailure]: This AWS account and region has not been bootstrapped. Run `cdk bootstrap aws://{YOUR_ACCOUNT_ID}/{YOUR_REGION}` locally to resolve this.',
+      'This AWS account and region has not been bootstrapped. Run `cdk bootstrap aws://{YOUR_ACCOUNT_ID}/{YOUR_REGION}` locally to resolve this.',
+    errorName: 'BootstrapNotDetectedError',
     expectedDownstreamErrorMessage: 'Has the environment been bootstrapped',
+  },
+  {
+    errorMessage: 'Amplify Backend not found in amplify/backend.ts',
+    expectedTopLevelErrorMessage:
+      'Backend definition could not be found in amplify directory',
+    errorName: 'FileConventionError',
+    expectedDownstreamErrorMessage:
+      'Amplify Backend not found in amplify/backend.ts',
+  },
+  {
+    errorMessage: 'Amplify Auth must be defined in amplify/auth/resource.ts',
+    expectedTopLevelErrorMessage:
+      'File name or path for backend definition are incorrect',
+    errorName: 'FileConventionError',
+    expectedDownstreamErrorMessage:
+      'Amplify Auth must be defined in amplify/auth/resource.ts',
   },
   {
     errorMessage: 'amplify/backend.ts',
     expectedTopLevelErrorMessage:
-      '[SynthError]: Unable to build Amplify backend. Check your backend definition in the `amplify` folder.',
+      'Unable to build Amplify backend. Check your backend definition in the `amplify` folder.',
+    errorName: 'BackendBuildError',
     expectedDownstreamErrorMessage: 'amplify/backend.ts',
   },
   {
-    errorMessage: '❌ Deployment failed: something bad happened\n',
+    errorMessage:
+      'Overall error message had other stuff before ❌ Deployment failed: something bad happened\n and after',
     expectedTopLevelErrorMessage:
-      '[CloudFormationFailure]: The CloudFormation deployment has failed. Find more information in the CloudFormation AWS Console for this stack.',
-    expectedDownstreamErrorMessage: 'something bad happened',
+      'The CloudFormation deployment has failed. Find more information in the CloudFormation AWS Console for this stack.',
+    errorName: 'CloudFormationDeploymentError',
+    expectedDownstreamErrorMessage:
+      '❌ Deployment failed: something bad happened\n',
   },
   {
     errorMessage:
       'CFN error happened: Updates are not allowed for property: some property',
     expectedTopLevelErrorMessage:
-      '[UpdateNotSupported]: The changes that you are trying to apply are not supported.',
+      'The changes that you are trying to apply are not supported.',
+    errorName: 'CFNUpdateNotSupportedError',
     expectedDownstreamErrorMessage:
       'CFN error happened: Updates are not allowed for property: some property',
   },
@@ -50,7 +82,8 @@ const testErrorMappings = [
     errorMessage:
       'CFN error happened: Invalid AttributeDataType input, consider using the provided AttributeDataType enum',
     expectedTopLevelErrorMessage:
-      '[UpdateNotSupported]: User pool attributes cannot be changed after a user pool has been created.',
+      'User pool attributes cannot be changed after a user pool has been created.',
+    errorName: 'CFNUpdateNotSupportedError',
     expectedDownstreamErrorMessage:
       'CFN error happened: Invalid AttributeDataType input, consider using the provided AttributeDataType enum',
   },
@@ -62,16 +95,18 @@ void describe('invokeCDKCommand', { concurrency: 1 }, () => {
     ({
       errorMessage,
       expectedTopLevelErrorMessage,
+      errorName: expectedErrorName,
       expectedDownstreamErrorMessage,
     }) => {
       void it(`handles ${errorMessage} error`, () => {
-        const humanReadableError = cdkErrorMapper.getHumanReadableError(
+        const humanReadableError = cdkErrorMapper.getAmplifyError(
           new Error(errorMessage)
         );
         assert.equal(humanReadableError.message, expectedTopLevelErrorMessage);
+        assert.equal(humanReadableError.name, expectedErrorName);
         expectedDownstreamErrorMessage &&
           assert.equal(
-            (humanReadableError.cause as Error).message,
+            humanReadableError.downstreamError?.message,
             expectedDownstreamErrorMessage
           );
       });

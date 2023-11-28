@@ -1,7 +1,7 @@
 import { after, beforeEach, describe, it, mock } from 'node:test';
 import { CDKDeployer } from './cdk_deployer.js';
 import assert from 'node:assert';
-import { BackendLocator } from '@aws-amplify/platform-core';
+import { AmplifyError, BackendLocator } from '@aws-amplify/platform-core';
 import { DeployProps } from './cdk_deployer_singleton_factory.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
@@ -271,12 +271,13 @@ void describe('invokeCDKCommand', () => {
 
     await assert.rejects(
       () => invoker.deploy(backendId, sandboxDeployProps),
-      (err: Error) => {
+      (err: AmplifyError) => {
         assert.equal(
           err.message,
-          '[AccessDenied]: The deployment role does not have sufficient permissions to perform this deployment.'
+          'The deployment role does not have sufficient permissions to perform this deployment.'
         );
-        assert.equal((err.cause as Error).message, 'Access Denied');
+        assert.equal(err.name, 'AccessDeniedError');
+        assert.equal(err.downstreamError?.message, 'Access Denied');
         return true;
       }
     );

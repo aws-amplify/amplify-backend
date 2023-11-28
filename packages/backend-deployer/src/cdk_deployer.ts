@@ -10,7 +10,11 @@ import {
 } from './cdk_deployer_singleton_factory.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
 import { BackendIdentifier, DeploymentType } from '@aws-amplify/plugin-types';
-import { BackendLocator, CDKContextKey } from '@aws-amplify/platform-core';
+import {
+  AmplifyUserError,
+  BackendLocator,
+  CDKContextKey,
+} from '@aws-amplify/platform-core';
 import { dirname } from 'path';
 
 /**
@@ -92,14 +96,21 @@ export class CDKDeployer implements BackendDeployer {
       // If we cannot load ts config, turn off type checking
       return;
     }
-    await this.executeChildProcess('npx', [
-      'tsc',
-      '--noEmit',
-      '--skipLibCheck',
-      // pointing the project arg to the amplify backend directory will use the tsconfig present in that directory
-      '--project',
-      dirname(this.backendLocator.locate()),
-    ]);
+    try {
+      await this.executeChildProcess('npx', [
+        'tsc',
+        '--noEmit',
+        '--skipLibCheck',
+        // pointing the project arg to the amplify backend directory will use the tsconfig present in that directory
+        '--project',
+        dirname(this.backendLocator.locate()),
+      ]);
+    } catch (err) {
+      throw new AmplifyUserError('SyntaxError', {
+        message:
+          'TypeScript validation check failed, check your backend definition',
+      });
+    }
   };
 
   /**
@@ -111,49 +122,49 @@ export class CDKDeployer implements BackendDeployer {
     deploymentType?: DeploymentType,
     additionalArguments?: string[]
   ): Promise<DeployResult | DestroyResult> => {
-    // Basic args
-    const cdkCommandArgs = [
-      'cdk',
-      invokableCommand.toString(),
-      // This is unfortunate. CDK writes everything to stderr without `--ci` flag and we need to differentiate between the two.
-      // See https://github.com/aws/aws-cdk/issues/7717 for more details.
-      '--ci',
-      '--app',
-      `'npx tsx ${this.backendLocator.locate()}'`,
-      '--all',
-      '--output',
-      '.amplify/artifacts/cdk.out',
-    ];
-
-    // Add context information if available
-    if (backendId) {
-      cdkCommandArgs.push(
-        '--context',
-        `${CDKContextKey.BACKEND_NAMESPACE}=${backendId.namespace}`,
-        '--context',
-        `${CDKContextKey.BACKEND_NAME}=${backendId.name}`
-      );
-
-      if (deploymentType !== 'sandbox') {
-        cdkCommandArgs.push('--require-approval', 'never');
-      }
-    }
-
-    if (deploymentType) {
-      cdkCommandArgs.push(
-        '--context',
-        `${CDKContextKey.DEPLOYMENT_TYPE}=${deploymentType}`
-      );
-    }
-
-    if (additionalArguments) {
-      cdkCommandArgs.push(...additionalArguments);
-    }
-
     try {
+      // Basic args
+      const cdkCommandArgs = [
+        'cdk',
+        invokableCommand.toString(),
+        // This is unfortunate. CDK writes everything to stderr without `--ci` flag and we need to differentiate between the two.
+        // See https://github.com/aws/aws-cdk/issues/7717 for more details.
+        '--ci',
+        '--app',
+        `'npx tsx ${this.backendLocator.locate()}'`,
+        '--all',
+        '--output',
+        '.amplify/artifacts/cdk.out',
+      ];
+
+      // Add context information if available
+      if (backendId) {
+        cdkCommandArgs.push(
+          '--context',
+          `${CDKContextKey.BACKEND_NAMESPACE}=${backendId.namespace}`,
+          '--context',
+          `${CDKContextKey.BACKEND_NAME}=${backendId.name}`
+        );
+
+        if (deploymentType !== 'sandbox') {
+          cdkCommandArgs.push('--require-approval', 'never');
+        }
+      }
+
+      if (deploymentType) {
+        cdkCommandArgs.push(
+          '--context',
+          `${CDKContextKey.DEPLOYMENT_TYPE}=${deploymentType}`
+        );
+      }
+
+      if (additionalArguments) {
+        cdkCommandArgs.push(...additionalArguments);
+      }
+
       return await this.executeChildProcess('npx', cdkCommandArgs);
     } catch (err) {
-      throw this.cdkErrorMapper.getHumanReadableError(err as Error);
+      throw this.cdkErrorMapper.getAmplifyError(err as Error);
     }
   };
 
@@ -202,7 +213,8 @@ export class CDKDeployer implements BackendDeployer {
       await childProcess;
       return cdkOutput;
     } catch (error) {
-      // swallow execa error which is not really helpful, rather throw stderr
+      // swallow execa error which is not really helpful rather throw the entire stderr
+      // for clients to figure out what to do with it.
       throw new Error(aggregatedStderr);
     }
   };

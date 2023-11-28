@@ -9,6 +9,7 @@ import { getUrl } from './get_usage_data_url.js';
 import isCI from 'is-ci';
 import { SerializableError } from './serializable_error.js';
 import { UsageDataEmitter } from './usage_data_emitter_factory.js';
+import { AmplifyError } from '../index.js';
 
 /**
  * Entry point for sending usage data metrics
@@ -36,7 +37,10 @@ export class DefaultUsageDataEmitter implements UsageDataEmitter {
     await this.send(data);
   };
 
-  emitFailure = async (error: Error, dimensions?: Record<string, string>) => {
+  emitFailure = async (
+    error: AmplifyError,
+    dimensions?: Record<string, string>
+  ) => {
     const data = await this.getUsageData({
       state: 'FAILED',
       error,
@@ -49,7 +53,7 @@ export class DefaultUsageDataEmitter implements UsageDataEmitter {
     state: 'SUCCEEDED' | 'FAILED';
     metrics?: Record<string, number>;
     dimensions?: Record<string, string>;
-    error?: Error;
+    error?: AmplifyError;
   }) => {
     return {
       accountId: await this.accountIdFetcher.fetch(),
@@ -60,9 +64,9 @@ export class DefaultUsageDataEmitter implements UsageDataEmitter {
       error: options.error ? new SerializableError(options.error) : undefined,
       downstreamException:
         options.error &&
-        options.error.cause &&
-        options.error.cause instanceof Error
-          ? new SerializableError(options.error.cause)
+        options.error.downstreamError &&
+        options.error.downstreamError instanceof Error
+          ? new SerializableError(options.error.downstreamError)
           : undefined,
       payloadVersion: latestPayloadVersion,
       osPlatform: os.platform(),

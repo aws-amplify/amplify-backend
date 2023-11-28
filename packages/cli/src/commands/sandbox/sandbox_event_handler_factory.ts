@@ -1,6 +1,6 @@
 import { SandboxEventHandlerCreator } from './sandbox_command.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
-import { UsageDataEmitter } from '@aws-amplify/platform-core';
+import { AmplifyError, UsageDataEmitter } from '@aws-amplify/platform-core';
 import { DeployResult } from '@aws-amplify/backend-deployer';
 import { COLOR, Printer } from '@aws-amplify/cli-core';
 
@@ -73,11 +73,18 @@ export class SandboxEventHandlerFactory {
           if (args.length == 0 || !args[0]) {
             return;
           }
-          const deployError = args[0] as Error;
-          if (deployError && deployError.message) {
+          const deployError = args[0];
+          if (deployError && deployError instanceof AmplifyError) {
             await usageDataEmitter.emitFailure(deployError, {
               command: 'Sandbox',
             });
+          } else {
+            await usageDataEmitter.emitFailure(
+              AmplifyError.fromError(deployError),
+              {
+                command: 'Sandbox',
+              }
+            );
           }
         },
       ],

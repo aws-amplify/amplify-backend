@@ -24,6 +24,7 @@ import {
   isUsingDefaultApiKeyAuth,
 } from './convert_authorization_modes.js';
 import { validateAuthorizationModes } from './validate_authorization_modes.js';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 /**
  * Singleton factory for AmplifyGraphqlApi constructs that can be used in Amplify project files
@@ -80,16 +81,44 @@ class DataGenerator implements ConstructContainerEntryGenerator {
   ) {}
 
   generateContainerEntry = (scope: Construct) => {
-    const authorizationModes = convertAuthorizationModesToCDK(
-      this.functionInstanceProvider,
-      this.providedAuthConfig,
-      this.props.authorizationModes
-    );
+    let authorizationModes;
 
-    validateAuthorizationModes(
-      this.props.authorizationModes,
-      authorizationModes
-    );
+    try {
+      authorizationModes = convertAuthorizationModesToCDK(
+        this.functionInstanceProvider,
+        this.providedAuthConfig,
+        this.props.authorizationModes
+      );
+    } catch (error) {
+      throw new AmplifyUserError(
+        'InvalidSchemaAuthError',
+        {
+          message:
+            error instanceof Error
+              ? error.message
+              : 'Cannot covert authorization modes',
+        },
+        error instanceof Error ? error : undefined
+      );
+    }
+
+    try {
+      validateAuthorizationModes(
+        this.props.authorizationModes,
+        authorizationModes
+      );
+    } catch (error) {
+      throw new AmplifyUserError(
+        'InvalidSchemaAuthError',
+        {
+          message:
+            error instanceof Error
+              ? error.message
+              : 'Failed to validate authorization modes',
+        },
+        error instanceof Error ? error : undefined
+      );
+    }
 
     const sandboxModeEnabled = isUsingDefaultApiKeyAuth(
       this.providedAuthConfig,
@@ -101,9 +130,25 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       this.props.functions ?? {}
     );
 
+    let amplifyGraphqlDefinition;
+    try {
+      amplifyGraphqlDefinition = convertSchemaToCDK(this.props.schema);
+    } catch (error) {
+      throw new AmplifyUserError(
+        'InvalidSchemaError',
+        {
+          message:
+            error instanceof Error
+              ? error.message
+              : 'Cannot covert user schema',
+        },
+        error instanceof Error ? error : undefined
+      );
+    }
+
     return new AmplifyData(scope, this.defaultName, {
       apiName: this.props.name,
-      definition: convertSchemaToCDK(this.props.schema),
+      definition: amplifyGraphqlDefinition,
       authorizationModes,
       outputStorageStrategy: this.outputStorageStrategy,
       functionNameMap,

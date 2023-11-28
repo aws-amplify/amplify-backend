@@ -17,11 +17,12 @@ import {
   CloudFormationClient,
   DescribeStacksCommand,
 } from '@aws-sdk/client-cloudformation';
-import { AmplifyPrompter } from '@aws-amplify/cli-core';
+import { AmplifyPrompter, COLOR, Printer } from '@aws-amplify/cli-core';
 import {
   FilesChangesTracker,
   createFilesChangesTracker,
 } from './files_changes_tracker.js';
+import { AmplifyError } from '@aws-amplify/platform-core';
 
 export const CDK_BOOTSTRAP_STACK_NAME = 'CDKToolkit';
 export const CDK_BOOTSTRAP_VERSION_KEY = 'BootstrapVersion';
@@ -212,16 +213,16 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       console.debug('[Sandbox] Running successfulDeployment event handlers');
       this.emit('successfulDeployment', deployResult);
     } catch (error) {
-      // Print the meaningful message
-      console.log(this.getErrorMessage(error));
+      // Print a meaningful message
+      Printer.print(this.getErrorMessage(error), COLOR.RED);
       this.emit('failedDeployment', error);
 
       // If the error is because of a non-allowed destructive change such as
       // https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-userpool.html#cfn-cognito-userpool-aliasattributes
       // offer to recreate the sandbox or revert the change
       if (
-        error instanceof Error &&
-        error.message.includes('UpdateNotSupported')
+        error instanceof AmplifyError &&
+        error.name === 'CFNUpdateNotSupportedError'
       ) {
         await this.handleUnsupportedDestructiveChanges(options);
       }
@@ -318,6 +319,8 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
             ? error.cause.message
             : String(error.cause)
         }`;
+      } else if (error instanceof AmplifyError && error.downstreamError) {
+        message = `${message}\nCaused By: ${error.downstreamError.message}`;
       }
     } else message = String(error);
     return message;

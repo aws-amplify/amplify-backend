@@ -10,6 +10,7 @@ import os from 'os';
 import { AccountIdFetcher } from './account_id_fetcher';
 import { UsageData } from './usage_data';
 import isCI from 'is-ci';
+import { AmplifyError } from '..';
 
 void describe('UsageDataEmitter', () => {
   let usageDataEmitter: DefaultUsageDataEmitter;
@@ -78,7 +79,9 @@ void describe('UsageDataEmitter', () => {
   });
 
   void test('happy case, emitFailure generates and send correct usage data', async () => {
-    const error = new Error('some error message');
+    const error = new AmplifyError('BackendBuildError', 'ERROR', {
+      message: 'some error message',
+    });
     await setupAndInvokeUsageEmitter({ isSuccess: false, error });
 
     const usageDataSent: UsageData = JSON.parse(
@@ -115,7 +118,7 @@ void describe('UsageDataEmitter', () => {
    */
   const setupAndInvokeUsageEmitter = async (testData: {
     isSuccess: boolean;
-    error?: Error;
+    error?: AmplifyError;
     metrics?: Record<string, number>;
   }) => {
     const reqEndHandlerAttached = new Promise<void>((resolve) => {
