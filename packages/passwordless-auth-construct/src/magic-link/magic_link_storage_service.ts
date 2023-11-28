@@ -28,13 +28,9 @@ export class MagicLinkStorageService
 
   public save = async (userId: string, magicLink: SignedMagicLink) => {
     const { iat, exp, keyId } = magicLink;
-    const { tableName } = this.storageConfig;
-    if (!tableName) {
-      throw Error('Configuration Error: DynamoDD table must be defined.');
-    }
     await this.client.send(
       new PutCommand({
-        TableName: tableName,
+        TableName: this.getTableName(),
         Item: {
           userId,
           iat,
@@ -47,14 +43,10 @@ export class MagicLinkStorageService
 
   public remove = async (userId: string, magicLink: SignedMagicLink) => {
     const { iat, exp } = magicLink;
-    const { tableName } = this.storageConfig;
-    if (!tableName) {
-      throw Error('Configuration Error: DynamoDD table must be defined.');
-    }
     try {
       const response = await this.client.send(
         new DeleteCommand({
-          TableName: tableName,
+          TableName: this.getTableName(),
           Key: {
             userId: userId,
           },
@@ -83,5 +75,13 @@ export class MagicLinkStorageService
       }
       throw err;
     }
+  };
+
+  private getTableName = (): string => {
+    const { tableName } = this.storageConfig;
+    if (!tableName) {
+      throw Error('Configuration Error: DynamoDD table must be defined.');
+    }
+    return tableName;
   };
 }

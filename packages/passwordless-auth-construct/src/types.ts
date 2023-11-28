@@ -269,19 +269,34 @@ export type CustomAuthTriggers = {
 };
 
 /**
+ * SmsOptions with params that have default values set as required. This
+ * represents the options that will be defined if this delivery method is
+ * enabled.
+ */
+export type SmsConfigOptions = SmsOptions &
+  Required<Pick<SmsOptions, 'message'>>;
+
+/**
+ * EmailOptions with params that have default values set as required. This
+ * represents the options that will be defined if this delivery method is
+ * enabled.
+ */
+export type EmailConfigOptions = EmailOptions &
+  Required<Pick<EmailOptions, 'subject' | 'body'>>;
+
+/**
  * SNS Service Configuration.
  */
 export type SnsServiceConfig = {
-  otp: Partial<SmsOptions>;
-  magicLink: Partial<SmsOptions>;
+  otp?: SmsConfigOptions;
 };
 
 /**
  * SES Service Configuration.
  */
 export type SesServiceConfig = {
-  otp: Partial<EmailOptions>;
-  magicLink: Partial<EmailOptions>;
+  otp?: EmailConfigOptions;
+  magicLink?: EmailConfigOptions;
 };
 
 /**

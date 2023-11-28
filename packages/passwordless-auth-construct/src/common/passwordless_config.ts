@@ -11,6 +11,7 @@ const defaultMagicLinkExpiry = 60 * 15; // 15 minutes
 const maxMagicLinkExpiry = 60 * 60; // 1 hour
 const defaultOtpSubject = 'Your verification code';
 const defaultOtpBody = 'Your verification code is: ####';
+const defaultOtpMessage = 'Your verification code is ####';
 const defaultMagicLinkSubject = 'Your sign-in link';
 const defaultMagicLinkBody =
   '<html><body><p>Your sign-in link: <a href="####">sign in</a></p></body></html>';
@@ -91,24 +92,22 @@ export class PasswordlessConfig {
   get snsConfig(): SnsServiceConfig {
     if (this.parsedSnsConfig === undefined) {
       const {
+        otpSmsEnabled,
         otpOriginationNumber,
         otpSenderId,
         otpSmsMessage,
-        magicLinkOriginationNumber,
-        magicLinkSenderId,
-        magicLinkSmsMessage,
       } = this.env;
+      const otpEnabled =
+        this.parseBoolean(otpSmsEnabled) && otpOriginationNumber;
+      const otp = otpEnabled
+        ? {
+            originationNumber: otpOriginationNumber,
+            senderId: otpSenderId,
+            message: otpSmsMessage || defaultOtpMessage,
+          }
+        : undefined;
       this.parsedSnsConfig = {
-        otp: {
-          originationNumber: otpOriginationNumber,
-          senderId: otpSenderId,
-          message: otpSmsMessage,
-        },
-        magicLink: {
-          originationNumber: magicLinkOriginationNumber,
-          senderId: magicLinkSenderId,
-          message: magicLinkSmsMessage,
-        },
+        otp,
       };
     }
 
@@ -121,26 +120,43 @@ export class PasswordlessConfig {
   get sesConfig(): SesServiceConfig {
     if (this.parsedSesConfig === undefined) {
       const {
+        otpEmailEnabled,
         otpFromAddress,
         otpSubject,
         otpBody,
+        magicLinkEmailEnabled,
         magicLinkFromAddress,
         magicLinkSubject,
         magicLinkBody,
       } = this.env;
+      const otpEnabled = this.parseBoolean(otpEmailEnabled);
+      const magicLinkEnabled = this.parseBoolean(magicLinkEmailEnabled);
+      const otp = otpEnabled
+        ? {
+            fromAddress: otpFromAddress,
+            subject: otpSubject || defaultOtpSubject,
+            body: otpBody || defaultOtpBody,
+          }
+        : undefined;
+      const magicLink = magicLinkEnabled
+        ? {
+            fromAddress: magicLinkFromAddress,
+            subject: magicLinkSubject || defaultMagicLinkSubject,
+            body: magicLinkBody || defaultMagicLinkBody,
+          }
+        : undefined;
       this.parsedSesConfig = {
-        otp: {
-          fromAddress: otpFromAddress,
-          subject: otpSubject || defaultOtpSubject,
-          body: otpBody || defaultOtpBody,
-        },
-        magicLink: {
-          fromAddress: magicLinkFromAddress,
-          subject: magicLinkSubject || defaultMagicLinkSubject,
-          body: magicLinkBody || defaultMagicLinkBody,
-        },
+        otp: otp,
+        magicLink: magicLink,
       };
     }
     return this.parsedSesConfig;
   }
+
+  private parseBoolean = (value: string | undefined) => {
+    if (value == 'true') {
+      return true;
+    }
+    return false;
+  };
 }

@@ -48,6 +48,8 @@ void describe('Passwordless OTP construct', () => {
           template,
           createAuthChallengeMatch
         );
+        equal(envVars['otpEmailEnabled'], 'true');
+        equal(envVars['otpSmsEnabled'], 'true');
         equal(envVars['otpFromAddress'], fromAddress);
         equal(envVars['otpSubject'], subject);
         equal(envVars['otpBody'], body);

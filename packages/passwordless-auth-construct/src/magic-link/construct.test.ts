@@ -110,6 +110,7 @@ void describe('AmplifyMagicLinkAuth', () => {
         template,
         createAuthChallengeMatch
       );
+      equal(envVars['magicLinkEmailEnabled'], 'true');
       equal(envVars['magicLinkFromAddress'], fromAddress);
       equal(envVars['magicLinkSubject'], subject);
       equal(envVars['magicLinkBody'], body);

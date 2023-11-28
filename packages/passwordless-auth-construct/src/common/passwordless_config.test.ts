@@ -67,40 +67,98 @@ void describe('PasswordlessConfig', () => {
   });
   void describe('snsConfig', () => {
     void it('should extract config', async () => {
-      const env = { otpOriginationNumber: '1234567890', otpSenderId: '123456' };
-
+      const env = {
+        otpSmsEnabled: 'true',
+        otpOriginationNumber: '1234567890',
+        otpSenderId: '123456',
+      };
       const { snsConfig } = new PasswordlessConfig(env);
+      equal(snsConfig.otp?.originationNumber, env.otpOriginationNumber);
+      equal(snsConfig.otp?.senderId, env.otpSenderId);
+    });
 
-      equal(snsConfig.otp.originationNumber, env.otpOriginationNumber);
-      equal(snsConfig.otp.senderId, env.otpSenderId);
+    void it('should extract nothing when otp via SMS is disabled', async () => {
+      const env = { otpSmsEnabled: 'false' };
+      const { snsConfig } = new PasswordlessConfig(env);
+      equal(snsConfig.otp, undefined);
     });
 
     void it('should extract nothing when env is empty', async () => {
-      const env = { otpOriginationNumber: undefined, otpSenderId: undefined };
-
+      const env = {
+        otpSmsEnabled: undefined,
+        otpOriginationNumber: undefined,
+        otpSenderId: undefined,
+      };
       const { snsConfig } = new PasswordlessConfig(env);
-
-      equal(snsConfig.otp.originationNumber, undefined);
-      equal(snsConfig.otp.senderId, undefined);
+      equal(snsConfig.otp, undefined);
     });
   });
+
   void describe('sesConfig', () => {
+    void describe('OTP', () => {
+      void it('should extract config', async () => {
+        const env = {
+          otpEmailEnabled: 'true',
+          otpFromAddress: 'foo@bar.com',
+          otpSubject: 'foo',
+        };
+        const { sesConfig } = new PasswordlessConfig(env);
+        equal(sesConfig.otp?.fromAddress, env.otpFromAddress);
+        equal(sesConfig.otp?.subject, env.otpSubject);
+      });
+
+      void it('should extract nothing when OTP via email is disabled', async () => {
+        const env = {
+          otpEmailEnabled: 'false',
+          otpFromAddress: 'foo@bar.com',
+          otpSubject: 'foo',
+        };
+        const { sesConfig } = new PasswordlessConfig(env);
+        equal(sesConfig.otp, undefined);
+      });
+
+      void it('should extract nothing when env is empty', async () => {
+        const env = {
+          otpEmailEnabled: undefined,
+          otpFromAddress: undefined,
+          otpSubject: undefined,
+        };
+        const { sesConfig } = new PasswordlessConfig(env);
+        equal(sesConfig.otp, undefined);
+      });
+    });
+  });
+
+  void describe('Magic Link', () => {
     void it('should extract config', async () => {
-      const env = { otpFromAddress: 'foo@bar.com', otpSubject: 'foo' };
-
+      const env = {
+        magicLinkEmailEnabled: 'true',
+        magicLinkFromAddress: 'foo@bar.com',
+        magicLinkSubject: 'foo',
+      };
       const { sesConfig } = new PasswordlessConfig(env);
+      equal(sesConfig.magicLink?.fromAddress, env.magicLinkFromAddress);
+      equal(sesConfig.magicLink?.subject, env.magicLinkSubject);
+    });
 
-      equal(sesConfig.otp.fromAddress, env.otpFromAddress);
-      equal(sesConfig.otp.subject, env.otpSubject);
+    void it('should extract nothing when OTP via email is disabled', async () => {
+      const env = {
+        magicLinkEmailEnabled: 'false',
+        magicLinkFromAddress: 'foo@bar.com',
+        magicLinkSubject: 'foo',
+      };
+      const { sesConfig } = new PasswordlessConfig(env);
+      equal(sesConfig.magicLink, undefined);
     });
 
     void it('should extract nothing when env is empty', async () => {
-      const env = { otpFromAddress: undefined, otpSubject: undefined };
-
+      const env = {
+        magicLinkEmailEnabled: undefined,
+        magicLinkFromAddress: undefined,
+        magicLinkSubject: undefined,
+      };
       const { sesConfig } = new PasswordlessConfig(env);
-
-      equal(sesConfig.otp.subject, 'Your verification code');
-      equal(sesConfig.otp.fromAddress, undefined);
+      equal(sesConfig.magicLink, undefined);
     });
   });
 });

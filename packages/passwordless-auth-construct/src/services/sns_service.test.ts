@@ -23,10 +23,7 @@ void describe('SNS Service', () => {
 
   beforeEach(() => {
     mockSnsClient = new MockSnsClient();
-    snsConfig = {
-      otp: {},
-      magicLink: {},
-    };
+    snsConfig = {};
   });
 
   void describe('send()', () => {
@@ -63,7 +60,6 @@ void describe('SNS Service', () => {
           originationNumber: originationNumber,
           message: 'your code is ####',
         },
-        magicLink: {},
       };
 
       const mockSmsService = new SnsService(mockSnsClient, snsConfig);

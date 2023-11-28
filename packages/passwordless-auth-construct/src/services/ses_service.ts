@@ -3,7 +3,7 @@ import { logger } from '../logger.js';
 import {
   DeliveryMedium,
   DeliveryService,
-  EmailOptions,
+  EmailConfigOptions,
   SesServiceConfig,
   SignInMethod,
 } from '../types.js';
@@ -28,7 +28,7 @@ export class SesService implements DeliveryService {
     challengeType: SignInMethod
   ): Promise<void> => {
     const config = this.getConfig(challengeType);
-    const body = config.body?.replace('####', secret);
+    const body = config?.body?.replace('####', secret);
     const emailCommand = new SendEmailCommand({
       Destination: { ToAddresses: [destination] },
       Message: {
@@ -44,10 +44,10 @@ export class SesService implements DeliveryService {
         },
         Subject: {
           Charset: 'UTF-8',
-          Data: config.subject,
+          Data: config?.subject,
         },
       },
-      Source: config.fromAddress,
+      Source: config?.fromAddress,
     });
 
     // Send Email via SES
@@ -72,11 +72,21 @@ export class SesService implements DeliveryService {
     return `${start.slice(0, 1)}****${start.slice(-1)}@${maskedDomain}`;
   };
 
-  private getConfig = (challengeType: SignInMethod): EmailOptions => {
+  private getConfig = (challengeType: SignInMethod): EmailConfigOptions => {
     switch (challengeType) {
       case 'MAGIC_LINK':
+        if (!this.config.magicLink) {
+          throw Error(
+            'No Magic Link configuration found. Magic Link via email may be disabled.'
+          );
+        }
         return this.config.magicLink;
       case 'OTP':
+        if (!this.config.otp) {
+          throw Error(
+            'No OTP configuration found. OTP via email may be disabled.'
+          );
+        }
         return this.config.otp;
     }
   };

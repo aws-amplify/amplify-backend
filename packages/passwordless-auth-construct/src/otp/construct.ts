@@ -23,6 +23,8 @@ export class AmplifyOtpAuth extends Construct {
     const emailProps = typeof props.email === 'boolean' ? {} : props.email;
 
     const createAuthChallengeEnvVars = {
+      otpEmailEnabled: emailProps ? 'true' : 'false',
+      otpSmsEnabled: props.sms?.originationNumber ? 'true' : 'false',
       otpOriginationNumber: props.sms?.originationNumber,
       otpSenderId: props.sms?.senderId,
       otpSmsMessage: props.sms?.message,
@@ -33,7 +35,7 @@ export class AmplifyOtpAuth extends Construct {
     };
 
     for (const [key, value] of Object.entries(createAuthChallengeEnvVars)) {
-      triggers.createAuthChallenge.addEnvironment(key, value ?? '');
+      value && triggers.createAuthChallenge.addEnvironment(key, value);
     }
   }
 }

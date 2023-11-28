@@ -4,7 +4,7 @@ import {
   DeliveryMedium,
   DeliveryService,
   SignInMethod,
-  SmsOptions,
+  SmsConfigOptions,
   SnsServiceConfig,
 } from '../types.js';
 
@@ -28,22 +28,20 @@ export class SnsService implements DeliveryService {
     challengeType: SignInMethod
   ): Promise<void> => {
     const config = this.getConfig(challengeType);
-    const message = config.message?.replace('####', secret);
+    const message = config.message.replace('####', secret);
 
     // SNS attributes
     const attributes: PublishCommand['input']['MessageAttributes'] = {};
-    if (config.senderId && config.senderId !== '') {
+    if (config.senderId) {
       attributes['AWS.SNS.SMS.SenderID'] = {
         DataType: 'String',
         StringValue: config.senderId,
       };
     }
-    if (config.originationNumber && config.originationNumber !== '') {
-      attributes['AWS.SNS.SMS.OriginationNumber'] = {
-        DataType: 'String',
-        StringValue: config.originationNumber,
-      };
-    }
+    attributes['AWS.SNS.SMS.OriginationNumber'] = {
+      DataType: 'String',
+      StringValue: config.originationNumber,
+    };
 
     // SNS Command
     const snsCommand = new PublishCommand({
@@ -70,11 +68,16 @@ export class SnsService implements DeliveryService {
     )}`;
   };
 
-  private getConfig = (challengeType: SignInMethod): Partial<SmsOptions> => {
+  private getConfig = (challengeType: SignInMethod): SmsConfigOptions => {
     switch (challengeType) {
       case 'MAGIC_LINK':
-        return this.config.magicLink;
+        throw Error('SMS is not supported for magic link');
       case 'OTP':
+        if (!this.config.otp) {
+          throw Error(
+            'No OTP configuration found. OTP via SMS may be disabled.'
+          );
+        }
         return this.config.otp;
     }
   };

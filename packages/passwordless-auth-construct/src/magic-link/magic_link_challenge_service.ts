@@ -54,7 +54,7 @@ export class MagicLinkChallengeService implements ChallengeService {
     const magicLink = MagicLink.create(
       userPoolId,
       username,
-      linkDuration?.toSeconds()
+      linkDuration.toSeconds()
     );
     const { signatureData } = magicLink;
 

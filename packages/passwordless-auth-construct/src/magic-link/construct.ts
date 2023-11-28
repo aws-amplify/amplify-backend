@@ -36,6 +36,7 @@ export class AmplifyMagicLinkAuth extends Construct {
     const emailProps = typeof props.email === 'boolean' ? {} : props.email;
 
     const createAuthChallengeEnvVars = {
+      magicLinkEmailEnabled: props.email ? 'true' : 'false',
       magicLinkFromAddress: emailProps?.fromAddress,
       magicLinkSubject: emailProps?.subject,
       magicLinkBody: emailProps?.body,
@@ -51,13 +52,13 @@ export class AmplifyMagicLinkAuth extends Construct {
     };
 
     for (const [key, value] of Object.entries(createAuthChallengeEnvVars)) {
-      triggers.createAuthChallenge.addEnvironment(key, value ?? '');
+      value && triggers.createAuthChallenge.addEnvironment(key, value);
     }
 
     for (const [key, value] of Object.entries(
       verifyAuthChallengeResponseEnvVars
     )) {
-      triggers.verifyAuthChallengeResponse.addEnvironment(key, value);
+      value && triggers.verifyAuthChallengeResponse.addEnvironment(key, value);
     }
   }
 
@@ -91,7 +92,6 @@ export class AmplifyMagicLinkAuth extends Construct {
       ],
       actions: ['kms:Sign'],
     };
-    triggers.createAuthChallenge.role;
     key.addToResourcePolicy(
       new PolicyStatement({
         ...permissions,

@@ -3,6 +3,15 @@ const separator = '.';
 const codePlaceholder = '##code##';
 
 /**
+ * Returns the number of seconds (rounded down) elapsed since
+ * midnight, January 1, 1970 Universal Coordinated Time (UTC).
+ */
+const currentUnixSeconds = () => {
+  const currentMilliseconds = Date.now();
+  return Math.floor(currentMilliseconds / 1000);
+};
+
+/**
  * A class representing the data use in a magic link.
  */
 export class MagicLink {
@@ -32,9 +41,8 @@ export class MagicLink {
     username: string,
     secondsUntilExpiry: number
   ): MagicLink => {
-    const now = Date.now();
-    const exp = Math.floor(now / 1000 + secondsUntilExpiry);
-    const iat = Math.floor(now / 1000);
+    const iat = currentUnixSeconds();
+    const exp = iat + secondsUntilExpiry;
     return new MagicLink(userPoolId, username, iat, exp);
   };
 
@@ -86,7 +94,7 @@ export class MagicLink {
    * Whether or not this link is expired based on the exp.
    */
   get isExpired(): boolean {
-    return this.exp < Date.now() / 1000;
+    return this.exp < currentUnixSeconds();
   }
 }
 

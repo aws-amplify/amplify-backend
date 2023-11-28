@@ -23,10 +23,7 @@ void describe('SES Service', () => {
 
   beforeEach(() => {
     mockSesClient = new MockSesClient();
-    sesConfig = {
-      otp: {},
-      magicLink: {},
-    };
+    sesConfig = {};
   });
 
   void describe('send()', () => {
@@ -67,7 +64,6 @@ void describe('SES Service', () => {
           subject: emailSubject,
           body: emailBody,
         },
-        magicLink: {},
       };
 
       const mockSmsService = new SesService(mockSesClient, sesConfig);
@@ -85,10 +81,14 @@ void describe('SES Service', () => {
       const toAddress = '';
       const message = 'Hello world';
       const emailSubject = 'Passwordless Auth OTP';
+      const emailBody = 'email body';
 
       const sesConfig: SesServiceConfig = {
-        otp: { fromAddress: fromAddress, subject: emailSubject },
-        magicLink: {},
+        otp: {
+          fromAddress: fromAddress,
+          subject: emailSubject,
+          body: emailBody,
+        },
       };
 
       const mockSmsService = new SesService(mockSesClient, sesConfig);
