@@ -69,6 +69,8 @@ void describe('OTP Challenge', () => {
       const sendMock = mock.method(
         mockSmsService,
         'send',
+        // parameters are required to check that the method was called with the
+        // correct arguments.
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         (_param: string, _param2: string) => {
           return;

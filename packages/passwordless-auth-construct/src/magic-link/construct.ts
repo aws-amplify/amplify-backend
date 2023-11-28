@@ -91,9 +91,12 @@ export class AmplifyMagicLinkAuth extends Construct {
       ],
       actions: ['kms:Sign'],
     };
+    triggers.createAuthChallenge.role;
     key.addToResourcePolicy(
       new PolicyStatement({
         ...permissions,
+        // Lambda functions are created with a default unique role. Handling
+        // an undefined role is not needed.
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         principals: [triggers.createAuthChallenge.role!.grantPrincipal],
       })
