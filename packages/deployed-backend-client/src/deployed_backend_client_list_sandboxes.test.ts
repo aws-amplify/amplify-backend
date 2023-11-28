@@ -11,7 +11,11 @@ import { BackendDeploymentStatus } from './deployed_backend_client_factory.js';
 import { platformOutputKey } from '@aws-amplify/backend-output-schemas';
 import { DefaultBackendOutputClient } from './backend_output_client.js';
 import { DefaultDeployedBackendClient } from './deployed_backend_client.js';
-import { StackIdentifier } from './index.js';
+import {
+  BackendOutputClientError,
+  BackendOutputClientErrorType,
+  StackIdentifier,
+} from './index.js';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { S3 } from '@aws-sdk/client-s3';
 import { DeployedResourcesEnumerator } from './deployed-backend-client/deployed_resources_enumerator.js';
@@ -185,6 +189,50 @@ void describe('Deployed Backend Client list sandboxes', () => {
     });
 
     assert.equal(listStacksMockFn.mock.callCount(), 2);
+  });
+
+  void it('paginates listSandboxes when one page contains a stack, but it gets filtered due to not having gen2 outputs', async () => {
+    getOutputMock.mock.mockImplementationOnce(() => {
+      throw new BackendOutputClientError(
+        BackendOutputClientErrorType.METADATA_RETRIEVAL_ERROR,
+        'Test metadata retrieval error'
+      );
+    });
+    listStacksMockFn.mock.mockImplementationOnce(() => {
+      return {
+        StackSummaries: [
+          {
+            StackName: 'amplify-test-name-sandbox-testHash',
+          },
+        ],
+        NextToken: 'abc',
+      };
+    });
+    const sandboxes = await deployedBackendClient.listSandboxes();
+    assert.deepEqual(sandboxes, {
+      nextToken: undefined,
+      sandboxes: returnedSandboxes,
+    });
+
+    assert.equal(listStacksMockFn.mock.callCount(), 2);
+  });
+
+  void it('does not paginate listSandboxes when one page throws an unexpected error fetching gen2 outputs', async () => {
+    getOutputMock.mock.mockImplementationOnce(() => {
+      throw new Error('Unexpected Error!');
+    });
+    listStacksMockFn.mock.mockImplementationOnce(() => {
+      return {
+        StackSummaries: [
+          {
+            StackName: 'amplify-test-name-sandbox-testHash',
+          },
+        ],
+        NextToken: 'abc',
+      };
+    });
+    const listSandboxesPromise = deployedBackendClient.listSandboxes();
+    await assert.rejects(listSandboxesPromise);
   });
 
   void it('includes a nextToken when there are more pages', async () => {
