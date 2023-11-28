@@ -316,7 +316,7 @@
     "EmailVerificationSubject": "Verify your new account",
     "LambdaConfig": {
      "PostConfirmation": {
-      "Ref": "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionNestedStackfunctionNestedStackResource482C479FOutputsamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionhandlerlambda640CAA5DArn"
+      "Ref": "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionNestedStackfunctionNestedStackResource482C479FOutputsamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionspecialTestFunctionlambda0688CD5DArn"
      }
     },
     "Policies": {
@@ -362,7 +362,7 @@
    "Properties": {
     "Action": "lambda:InvokeFunction",
     "FunctionName": {
-     "Ref": "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionNestedStackfunctionNestedStackResource482C479FOutputsamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionhandlerlambda640CAA5DArn"
+     "Ref": "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionNestedStackfunctionNestedStackResource482C479FOutputsamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionspecialTestFunctionlambda0688CD5DArn"
     },
     "Principal": "cognito-idp.amazonaws.com",
     "SourceArn": {
@@ -644,7 +644,7 @@
   }
  },
  "Parameters": {
-  "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionNestedStackfunctionNestedStackResource482C479FOutputsamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionhandlerlambda640CAA5DArn": {
+  "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionNestedStackfunctionNestedStackResource482C479FOutputsamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionspecialTestFunctionlambda0688CD5DArn": {
    "Type": "String"
   }
  },
