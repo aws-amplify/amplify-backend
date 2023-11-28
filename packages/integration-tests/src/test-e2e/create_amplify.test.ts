@@ -12,10 +12,10 @@ type PackageManagerExecutable = 'npm' | 'yarn' | 'yarn-stable' | 'pnpm';
 
 const packageManagerSetup = async (
   packageManagerExecutable: PackageManagerExecutable,
-  dir: string
+  dir?: string
 ) => {
   const execaOptions = {
-    cwd: dir,
+    cwd: dir || os.homedir(),
     stdio: 'inherit' as const,
   };
 
@@ -99,6 +99,11 @@ void describe(
         });
       }
 
+      // nuke the npx cache to ensure we are installing packages from the npm proxy
+      await packageManagerSetup(
+        PACKAGE_MANAGER_EXECUTABLE as PackageManagerExecutable
+      );
+
       // Force 'create-amplify' installation in npx cache by executing help command
       // before tests run. Otherwise, installing 'create-amplify' concurrently
       // may lead to race conditions and corrupted npx cache.
@@ -126,12 +131,6 @@ void describe(
         beforeEach(async () => {
           tempDir = await fs.mkdtemp(
             path.join(os.tmpdir(), 'test-create-amplify')
-          );
-
-          // nuke the npx cache to ensure we are installing packages from the npm proxy
-          await packageManagerSetup(
-            PACKAGE_MANAGER_EXECUTABLE as PackageManagerExecutable,
-            tempDir
           );
         });
 
