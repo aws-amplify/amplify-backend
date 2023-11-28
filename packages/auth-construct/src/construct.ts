@@ -36,6 +36,7 @@ import {
   StackMetadataBackendOutputStorageStrategy,
 } from '@aws-amplify/backend-output-storage';
 import * as path from 'path';
+import { coreAttributeNameMap } from './string_maps.js';
 
 type DefaultRoles = { auth: Role; unAuth: Role };
 type IdentityProviderSetupResult = {
@@ -85,6 +86,8 @@ export class AmplifyAuth
 
   private readonly userPool: UserPool;
 
+  private readonly computedUserPoolProps: UserPoolProps;
+
   /**
    * Create a new Auth construct with AuthProps.
    * If no props are provided, email login and defaults will be used.
@@ -97,8 +100,12 @@ export class AmplifyAuth
     super(scope, id);
 
     // UserPool
-    const userPoolProps: UserPoolProps = this.getUserPoolProps(props);
-    this.userPool = new cognito.UserPool(this, 'UserPool', userPoolProps);
+    this.computedUserPoolProps = this.getUserPoolProps(props);
+    this.userPool = new cognito.UserPool(
+      this,
+      'UserPool',
+      this.computedUserPoolProps
+    );
 
     // UserPool - Identity Providers
     const providerSetupResult = this.setupIdentityProviders(
@@ -172,24 +179,32 @@ export class AmplifyAuth
   private setupAuthAndUnAuthRoles = (identityPoolId: string): DefaultRoles => {
     const result: DefaultRoles = {
       auth: new Role(this, 'authenticatedUserRole', {
-        assumedBy: new FederatedPrincipal('cognito-identity.amazonaws.com', {
-          StringEquals: {
-            'cognito-identity.amazonaws.com:aud': identityPoolId,
+        assumedBy: new FederatedPrincipal(
+          'cognito-identity.amazonaws.com',
+          {
+            StringEquals: {
+              'cognito-identity.amazonaws.com:aud': identityPoolId,
+            },
+            'ForAnyValue:StringLike': {
+              'cognito-identity.amazonaws.com:amr': 'authenticated',
+            },
           },
-          'ForAnyValue:StringLike': {
-            'cognito-identity.amazonaws.com:amr': 'authenticated',
-          },
-        }),
+          'sts:AssumeRoleWithWebIdentity'
+        ),
       }),
       unAuth: new Role(this, 'unauthenticatedUserRole', {
-        assumedBy: new FederatedPrincipal('cognito-identity.amazonaws.com', {
-          StringEquals: {
-            'cognito-identity.amazonaws.com:aud': identityPoolId,
+        assumedBy: new FederatedPrincipal(
+          'cognito-identity.amazonaws.com',
+          {
+            StringEquals: {
+              'cognito-identity.amazonaws.com:aud': identityPoolId,
+            },
+            'ForAnyValue:StringLike': {
+              'cognito-identity.amazonaws.com:amr': 'unauthenticated',
+            },
           },
-          'ForAnyValue:StringLike': {
-            'cognito-identity.amazonaws.com:amr': 'unauthenticated',
-          },
-        }),
+          'sts:AssumeRoleWithWebIdentity'
+        ),
       }),
     };
     return result;
@@ -316,6 +331,10 @@ export class AmplifyAuth
         email: emailEnabled,
       },
       keepOriginal: {
+        email: emailEnabled,
+        phone: phoneEnabled,
+      },
+      autoVerify: {
         email: emailEnabled,
         phone: phoneEnabled,
       },
@@ -601,6 +620,99 @@ export class AmplifyAuth
       identityPoolId: this.resources.cfnResources.cfnIdentityPool.ref,
       authRegion: Stack.of(this).region,
     };
+
+    if (this.computedUserPoolProps.standardAttributes) {
+      const signupAttributes = Object.entries(
+        this.computedUserPoolProps.standardAttributes
+      ).reduce((acc: string[], [attributeName, attribute]) => {
+        if (attribute?.required) {
+          const treatedAttributeName = coreAttributeNameMap.find(
+            ({ standardAttributeName }) =>
+              standardAttributeName === attributeName
+          );
+
+          if (treatedAttributeName) {
+            return [
+              ...acc,
+              treatedAttributeName.userpoolAttributeName.toUpperCase(),
+            ];
+          }
+        }
+        return acc;
+      }, []);
+      output.signupAttributes = JSON.stringify(signupAttributes);
+    }
+
+    if (this.computedUserPoolProps.signInAliases) {
+      const usernameAttributes = [];
+      if (this.computedUserPoolProps.signInAliases.email) {
+        usernameAttributes.push('EMAIL');
+      }
+      if (this.computedUserPoolProps.signInAliases.phone) {
+        usernameAttributes.push('PHONE_NUMBER');
+      }
+      if (
+        this.computedUserPoolProps.signInAliases.preferredUsername ||
+        this.computedUserPoolProps.signInAliases.username
+      ) {
+        usernameAttributes.push('PREFERRED_USERNAME');
+      }
+      if (usernameAttributes.length > 0) {
+        output.usernameAttributes = JSON.stringify(usernameAttributes);
+      }
+    }
+
+    if (this.computedUserPoolProps.autoVerify) {
+      const verificationMechanisms = [];
+      if (this.computedUserPoolProps.autoVerify.email) {
+        verificationMechanisms.push('EMAIL');
+      }
+      if (this.computedUserPoolProps.autoVerify.phone) {
+        verificationMechanisms.push('PHONE');
+      }
+      if (verificationMechanisms.length > 0) {
+        output.verificationMechanisms = JSON.stringify(verificationMechanisms);
+      }
+    }
+
+    if (this.computedUserPoolProps.passwordPolicy) {
+      output.passwordPolicyMinLength =
+        this.computedUserPoolProps.passwordPolicy.minLength?.toString();
+
+      const requirements = [];
+      if (this.computedUserPoolProps.passwordPolicy.requireDigits) {
+        requirements.push('REQUIRES_NUMBERS');
+      }
+      if (this.computedUserPoolProps.passwordPolicy.requireLowercase) {
+        requirements.push('REQUIRES_LOWERCASE');
+      }
+      if (this.computedUserPoolProps.passwordPolicy.requireUppercase) {
+        requirements.push('REQUIRES_UPPERCASE');
+      }
+      if (this.computedUserPoolProps.passwordPolicy.requireSymbols) {
+        requirements.push('REQUIRES_SYMBOLS');
+      }
+
+      if (requirements.length > 0) {
+        output.passwordPolicyRequirements = JSON.stringify(requirements);
+      }
+    }
+
+    if (this.computedUserPoolProps.mfa) {
+      output.mfaConfiguration = this.computedUserPoolProps.mfa;
+
+      const mfaTypes = [];
+      if (this.computedUserPoolProps.mfaSecondFactor?.otp) {
+        mfaTypes.push('TOTP');
+      }
+      if (this.computedUserPoolProps.mfaSecondFactor?.sms) {
+        mfaTypes.push('SMS');
+      }
+      if (mfaTypes.length > 0) {
+        output.mfaTypes = JSON.stringify(mfaTypes);
+      }
+    }
+
     if (this.oauthMappings[authProvidersList.amazon]) {
       output.amazonClientId = this.oauthMappings[authProvidersList.amazon];
     }
@@ -613,6 +725,7 @@ export class AmplifyAuth
     if (this.oauthMappings[authProvidersList.apple]) {
       output.appleClientId = this.oauthMappings[authProvidersList.apple];
     }
+
     outputStorageStrategy.addBackendOutputEntry(authOutputKey, {
       version: '1',
       payload: output,

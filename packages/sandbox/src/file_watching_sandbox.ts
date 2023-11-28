@@ -62,7 +62,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
    * @inheritdoc
    */
   override emit(eventName: SandboxEvents, ...args: unknown[]): boolean {
-    return super.emit(eventName, args);
+    return super.emit(eventName, ...args);
   }
 
   /**
@@ -203,17 +203,18 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
 
   private deploy = async (options: SandboxOptions) => {
     try {
-      await this.executor.deploy(
+      const deployResult = await this.executor.deploy(
         await this.backendIdSandboxResolver(options.name),
         // It's important to pass this as callback so that debounce does
         // not reset tracker prematurely
         this.shouldValidateAppSources
       );
       console.debug('[Sandbox] Running successfulDeployment event handlers');
-      this.emit('successfulDeployment');
+      this.emit('successfulDeployment', deployResult);
     } catch (error) {
       // Print the meaningful message
       console.log(this.getErrorMessage(error));
+      this.emit('failedDeployment', error);
 
       // If the error is because of a non-allowed destructive change such as
       // https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-userpool.html#cfn-cognito-userpool-aliasattributes
@@ -250,7 +251,18 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
         .parse(gitIgnoreFilePath)
         .patterns.map((pattern: string) =>
           pattern.startsWith('/') ? pattern.substring(1) : pattern
-        );
+        )
+        .filter((pattern: string) => {
+          if (pattern.startsWith('!')) {
+            console.log(
+              `[Sandbox] Pattern ${pattern} found in .gitignore. "${pattern.substring(
+                1
+              )}" will not be watched if other patterns in .gitignore are excluding it.`
+            );
+            return false;
+          }
+          return true;
+        });
     }
     return [];
   };

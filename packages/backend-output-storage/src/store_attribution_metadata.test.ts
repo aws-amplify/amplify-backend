@@ -1,70 +1,41 @@
 import { describe, it, mock } from 'node:test';
 import { App, Stack } from 'aws-cdk-lib';
+import * as os from 'os';
 import {
   AttributionMetadata,
   AttributionMetadataStorage,
 } from './store_attribution_metadata.js';
+
 import assert from 'node:assert';
+import { PackageJsonReader } from '@aws-amplify/platform-core';
 
 void describe('storeAttributionMetadata', () => {
-  const existsSyncMock = mock.fn(() => true);
-  const readFileSyncMock = mock.fn(() =>
-    JSON.stringify({ version: '12.13.14' })
-  );
-  const fsMock = {
-    existsSync: existsSyncMock,
-    readFileSync: readFileSyncMock,
-  };
+  const packageJsonReaderMock = mock.fn(() => {
+    return { version: '12.13.14' };
+  });
+  const packageJsonReader = {
+    read: packageJsonReaderMock,
+  } as unknown as PackageJsonReader;
 
   void it('does nothing if stack description is already set', () => {
     const app = new App();
     const stack = new Stack(app);
     const originalDescription = 'description is already set';
     stack.templateOptions.description = originalDescription;
-    new AttributionMetadataStorage().storeAttributionMetadata(
-      stack,
-      'test',
-      'some/path'
-    );
+    new AttributionMetadataStorage(
+      os,
+      packageJsonReader
+    ).storeAttributionMetadata(stack, 'test', 'some/path');
     assert.equal(stack.templateOptions.description, originalDescription);
-  });
-
-  void it('throws if provided package json file cannot be found', () => {
-    const app = new App();
-    const stack = new Stack(app);
-    existsSyncMock.mock.mockImplementationOnce(() => false);
-    assert.throws(
-      () =>
-        new AttributionMetadataStorage(
-          fsMock as never
-        ).storeAttributionMetadata(stack, 'test', 'some/path'),
-      { message: 'Could not find some/path to load library version from' }
-    );
-  });
-
-  void it('throws if provided package json file does not contain a version field', () => {
-    const app = new App();
-    const stack = new Stack(app);
-    readFileSyncMock.mock.mockImplementationOnce(() =>
-      JSON.stringify({ invalid: 'value' })
-    );
-    assert.throws(
-      () =>
-        new AttributionMetadataStorage(
-          fsMock as never
-        ).storeAttributionMetadata(stack, 'test', 'some/path'),
-      { message: 'Could not parse library version from some/path' }
-    );
   });
 
   void it('sets CDK deployment type if no CDK context value specified', () => {
     const app = new App();
     const stack = new Stack(app);
-    new AttributionMetadataStorage(fsMock as never).storeAttributionMetadata(
-      stack,
-      'test',
-      'some/path'
-    );
+    new AttributionMetadataStorage(
+      os,
+      packageJsonReader
+    ).storeAttributionMetadata(stack, 'test', 'some/path');
     const metadata: AttributionMetadata = JSON.parse(
       stack.templateOptions.description || ''
     );
@@ -75,11 +46,10 @@ void describe('storeAttributionMetadata', () => {
     const app = new App();
     const stack = new Stack(app);
     stack.node.setContext('amplify-backend-type', 'branch');
-    new AttributionMetadataStorage(fsMock as never).storeAttributionMetadata(
-      stack,
-      'test',
-      'some/path'
-    );
+    new AttributionMetadataStorage(
+      os,
+      packageJsonReader
+    ).storeAttributionMetadata(stack, 'test', 'some/path');
     const metadata: AttributionMetadata = JSON.parse(
       stack.templateOptions.description || ''
     );
@@ -90,11 +60,10 @@ void describe('storeAttributionMetadata', () => {
     const app = new App();
     const stack = new Stack(app);
     stack.node.setContext('amplify-backend-type', 'sandbox');
-    new AttributionMetadataStorage(fsMock as never).storeAttributionMetadata(
-      stack,
-      'test',
-      'some/path'
-    );
+    new AttributionMetadataStorage(
+      os,
+      packageJsonReader
+    ).storeAttributionMetadata(stack, 'test', 'some/path');
     const metadata: AttributionMetadata = JSON.parse(
       stack.templateOptions.description || ''
     );
@@ -105,11 +74,10 @@ void describe('storeAttributionMetadata', () => {
     const app = new App();
     const stack = new Stack(app);
     stack.node.setContext('amplify-backend-type', 'sandbox');
-    new AttributionMetadataStorage(fsMock as never).storeAttributionMetadata(
-      stack,
-      'test',
-      'some/path'
-    );
+    new AttributionMetadataStorage(
+      os,
+      packageJsonReader
+    ).storeAttributionMetadata(stack, 'test', 'some/path');
     const metadata: AttributionMetadata = JSON.parse(
       stack.templateOptions.description || ''
     );
@@ -119,12 +87,12 @@ void describe('storeAttributionMetadata', () => {
   void it('sets additional metadata in attribution payload', () => {
     const app = new App();
     const stack = new Stack(app);
-    new AttributionMetadataStorage(fsMock as never).storeAttributionMetadata(
-      stack,
-      'test',
-      'some/path',
-      { some: 'otherData' }
-    );
+    new AttributionMetadataStorage(
+      os,
+      packageJsonReader
+    ).storeAttributionMetadata(stack, 'test', 'some/path', {
+      some: 'otherData',
+    });
     const attribution: AttributionMetadata = JSON.parse(
       stack.templateOptions.description || ''
     );
@@ -134,11 +102,10 @@ void describe('storeAttributionMetadata', () => {
   void it('sets empty additional metadata object if none specified', () => {
     const app = new App();
     const stack = new Stack(app);
-    new AttributionMetadataStorage(fsMock as never).storeAttributionMetadata(
-      stack,
-      'test',
-      'some/path'
-    );
+    new AttributionMetadataStorage(
+      os,
+      packageJsonReader
+    ).storeAttributionMetadata(stack, 'test', 'some/path');
     const attribution: AttributionMetadata = JSON.parse(
       stack.templateOptions.description || ''
     );
@@ -160,8 +127,8 @@ void describe('storeAttributionMetadata', () => {
       const app = new App();
       const stack = new Stack(app);
       new AttributionMetadataStorage(
-        fsMock as never,
-        osMock as never
+        osMock as never,
+        packageJsonReader
       ).storeAttributionMetadata(stack, 'test', 'some/path');
       const metadata: AttributionMetadata = JSON.parse(
         stack.templateOptions.description || ''

@@ -7,7 +7,7 @@ import { fileURLToPath } from 'url';
  */
 export type StackResolver = {
   getStackFor: (resourceGroupName: string) => Stack;
-  getCustomStack: (name: string) => Stack;
+  createCustomStack: (name: string) => Stack;
 };
 
 /**
@@ -27,7 +27,10 @@ export class NestedStackResolver implements StackResolver {
   /**
    * Proxy to getStackFor that appends attribution metadata for custom stacks
    */
-  getCustomStack = (name: string): Stack => {
+  createCustomStack = (name: string): Stack => {
+    if (this.stacks[name]) {
+      throw new Error(`Custom stack named ${name} has already been created`);
+    }
     const stack = this.getStackFor(name);
     // this is safe even if stack is cached from an earlier invocation because storeAttributionMetadata is a noop if the stack description already exists
     this.attributionMetadataStorage.storeAttributionMetadata(

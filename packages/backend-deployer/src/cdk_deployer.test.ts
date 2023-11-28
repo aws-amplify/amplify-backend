@@ -5,7 +5,6 @@ import { BackendLocator } from '@aws-amplify/platform-core';
 import { DeployProps } from './cdk_deployer_singleton_factory.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
-import { BackendDeployerEnvironmentVariables } from './environment_variables.js';
 
 void describe('invokeCDKCommand', () => {
   const backendId: BackendIdentifier = {
@@ -156,22 +155,24 @@ void describe('invokeCDKCommand', () => {
       deploymentType: 'branch',
       validateAppSources: true,
     });
-    assert.strictEqual(execaMock.mock.callCount(), 2);
-    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 10);
+    assert.strictEqual(execaMock.mock.callCount(), 3);
+    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 4);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
+      'tsc',
+      '--showConfig',
+      '--project',
+      'amplify',
+    ]);
+    assert.equal(execaMock.mock.calls[1].arguments[1]?.length, 5);
+    assert.deepStrictEqual(execaMock.mock.calls[1].arguments[1], [
       'tsc',
       '--noEmit',
       '--skipLibCheck',
-      '--module',
-      'node16',
-      '--moduleResolution',
-      'node16',
-      '--target',
-      'es2022',
-      'amplify/backend.ts',
+      '--project',
+      'amplify',
     ]);
-    assert.equal(execaMock.mock.calls[1].arguments[1]?.length, 16);
-    assert.deepStrictEqual(execaMock.mock.calls[1].arguments[1], [
+    assert.equal(execaMock.mock.calls[2].arguments[1]?.length, 16);
+    assert.deepStrictEqual(execaMock.mock.calls[2].arguments[1], [
       'cdk',
       'deploy',
       '--ci',
@@ -196,19 +197,55 @@ void describe('invokeCDKCommand', () => {
       deploymentType: 'sandbox',
       validateAppSources: true,
     });
-    assert.strictEqual(execaMock.mock.callCount(), 2);
-    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 10);
+    assert.strictEqual(execaMock.mock.callCount(), 3);
+    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 4);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
+      'tsc',
+      '--showConfig',
+      '--project',
+      'amplify',
+    ]);
+    assert.equal(execaMock.mock.calls[1].arguments[1]?.length, 5);
+    assert.deepStrictEqual(execaMock.mock.calls[1].arguments[1], [
       'tsc',
       '--noEmit',
       '--skipLibCheck',
-      '--module',
-      'node16',
-      '--moduleResolution',
-      'node16',
-      '--target',
-      'es2022',
-      'amplify/backend.ts',
+      '--project',
+      'amplify',
+    ]);
+    assert.equal(execaMock.mock.calls[2].arguments[1]?.length, 12);
+    assert.deepStrictEqual(execaMock.mock.calls[2].arguments[1], [
+      'cdk',
+      'deploy',
+      '--ci',
+      '--app',
+      "'npx tsx amplify/backend.ts'",
+      '--all',
+      '--output',
+      '.amplify/artifacts/cdk.out',
+      '--context',
+      `amplify-backend-type=sandbox`,
+      '--hotswap-fallback',
+      '--method=direct',
+    ]);
+  });
+
+  void it('disables type checking when tsconfig is not present', async () => {
+    // simulate first execa call as throwing error when checking for tsconfig.json
+    execaMock.mock.mockImplementationOnce(() =>
+      Promise.reject(new Error('some error'))
+    );
+    await invoker.deploy(undefined, {
+      deploymentType: 'sandbox',
+      validateAppSources: true,
+    });
+    assert.strictEqual(execaMock.mock.callCount(), 2);
+    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 4);
+    assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
+      'tsc',
+      '--showConfig',
+      '--project',
+      'amplify',
     ]);
     assert.equal(execaMock.mock.calls[1].arguments[1]?.length, 12);
     assert.deepStrictEqual(execaMock.mock.calls[1].arguments[1], [
@@ -225,76 +262,6 @@ void describe('invokeCDKCommand', () => {
       '--hotswap-fallback',
       '--method=direct',
     ]);
-  });
-
-  void it('overrides enabled type checking for branch deployments', async () => {
-    try {
-      process.env[
-        BackendDeployerEnvironmentVariables.ALWAYS_DISABLE_APP_SOURCES_VALIDATION
-      ] = 'true';
-      await invoker.deploy(backendId, {
-        deploymentType: 'branch',
-        validateAppSources: true,
-      });
-      assert.strictEqual(execaMock.mock.callCount(), 1);
-      assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 16);
-      assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
-        'cdk',
-        'deploy',
-        '--ci',
-        '--app',
-        "'npx tsx amplify/backend.ts'",
-        '--all',
-        '--output',
-        '.amplify/artifacts/cdk.out',
-        '--context',
-        `amplify-backend-namespace=123`,
-        '--context',
-        `amplify-backend-name=testBranch`,
-        '--require-approval',
-        'never',
-        '--context',
-        `amplify-backend-type=branch`,
-      ]);
-    } finally {
-      delete process.env[
-        BackendDeployerEnvironmentVariables
-          .ALWAYS_DISABLE_APP_SOURCES_VALIDATION
-      ];
-    }
-  });
-
-  void it('overrides enabled type checking for sandbox deployments', async () => {
-    try {
-      process.env[
-        BackendDeployerEnvironmentVariables.ALWAYS_DISABLE_APP_SOURCES_VALIDATION
-      ] = 'true';
-      await invoker.deploy(undefined, {
-        deploymentType: 'sandbox',
-        validateAppSources: true,
-      });
-      assert.strictEqual(execaMock.mock.callCount(), 1);
-      assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 12);
-      assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
-        'cdk',
-        'deploy',
-        '--ci',
-        '--app',
-        "'npx tsx amplify/backend.ts'",
-        '--all',
-        '--output',
-        '.amplify/artifacts/cdk.out',
-        '--context',
-        `amplify-backend-type=sandbox`,
-        '--hotswap-fallback',
-        '--method=direct',
-      ]);
-    } finally {
-      delete process.env[
-        BackendDeployerEnvironmentVariables
-          .ALWAYS_DISABLE_APP_SOURCES_VALIDATION
-      ];
-    }
   });
 
   void it('returns human readable errors', async () => {

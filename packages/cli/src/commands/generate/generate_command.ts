@@ -45,6 +45,7 @@ export class GenerateCommand implements CommandModule {
   builder = (yargs: Argv): Argv => {
     return (
       yargs
+        .version(false)
         // Cast to erase options types used in internal sub command implementation. Otherwise, compiler fails here.
         .command(this.generateConfigCommand as unknown as CommandModule)
         .command(this.generateFormsCommand as unknown as CommandModule)

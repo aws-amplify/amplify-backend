@@ -3,7 +3,7 @@ import assert from 'node:assert';
 import { Duration, Stack } from 'aws-cdk-lib';
 import { UserPool } from 'aws-cdk-lib/aws-cognito';
 import { IRole, Role } from 'aws-cdk-lib/aws-iam';
-import { AuthorizationModes as CDKAuthorizationModes } from '@aws-amplify/graphql-api-construct';
+import { AuthorizationModes as CDKAuthorizationModes } from '@aws-amplify/data-construct';
 import { AuthorizationModes } from './types.js';
 import {
   ProvidedAuthConfig,
@@ -38,13 +38,14 @@ void describe('buildConstructFactoryProvidedAuthConfig', () => {
           cfnResources: {
             cfnIdentityPool: {
               logicalId: 'IdentityPoolLogicalId',
+              ref: 'us-fake-1:123123-123123',
             },
           },
         },
       } as unknown as ResourceProvider<AuthResources>),
       {
         userPool: 'ThisIsAUserPool',
-        identityPoolId: 'IdentityPoolLogicalId',
+        identityPoolId: 'us-fake-1:123123-123123',
         authenticatedUserRole: 'ThisIsAnAuthenticatedUserIamRole',
         unauthenticatedUserRole: 'ThisIsAnUnauthenticatedUserIamRole',
       }
@@ -123,7 +124,7 @@ void describe('convertAuthorizationModesToCDK', () => {
 
   void it('allows for overriding defaultAuthorizationMode and oidc config', () => {
     const authModes: AuthorizationModes = {
-      defaultAuthorizationMode: 'OPENID_CONNECT',
+      defaultAuthorizationMode: 'oidc',
       oidcAuthorizationMode: {
         clientId: 'testClient',
         oidcProviderName: 'testProvider',
