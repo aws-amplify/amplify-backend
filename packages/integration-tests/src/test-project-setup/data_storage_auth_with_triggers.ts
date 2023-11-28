@@ -149,6 +149,8 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
       'AWS::Lambda::Function'
     );
 
+    console.log(`got lambdas:\n${JSON.stringify(lambdas)}`);
+
     assert.equal(lambdas.length, 1);
     const lambdaName = lambdas[0];
 
