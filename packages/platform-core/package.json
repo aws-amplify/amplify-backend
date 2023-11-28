@@ -19,6 +19,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
+    "@types/is-ci": "^3.0.4",
     "@types/uuid": "9.0.7"
   },
   "dependencies": {
