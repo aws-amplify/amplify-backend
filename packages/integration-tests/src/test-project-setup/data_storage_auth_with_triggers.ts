@@ -149,19 +149,23 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
       'AWS::Lambda::Function'
     );
 
-    console.log(`got lambdas:\n${JSON.stringify(lambdas)}`);
-
-    assert.equal(lambdas.length, 1);
-    const lambdaName = lambdas[0];
+    const projectLambda = lambdas.find((lambdaName) =>
+      lambdaName.includes('specialTestFunction')
+    );
 
     // invoke the lambda
     const response = await this.lambdaClient.send(
-      new InvokeCommand({ FunctionName: lambdaName })
+      new InvokeCommand({ FunctionName: projectLambda })
     );
     const responsePayload = response.Payload?.transformToString();
 
     // check expected response
-    assert.ok(responsePayload && responsePayload.includes('Your uuid is'));
+    assert.ok(
+      responsePayload && responsePayload.includes('Your uuid is'),
+      `Expected lambda payload to include "Your uuid is". Actual payload was ${
+        responsePayload ?? '[undefined]'
+      }`
+    );
   }
 
   private setUpDeployEnvironment = async (
