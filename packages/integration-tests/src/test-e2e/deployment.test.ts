@@ -58,7 +58,7 @@ void describe(
 
         void it(`[${testProjectCreator.name}] deploys fully`, async () => {
           await testProject.deploy(branchBackendIdentifier);
-          await testProject.assertPostDeployment();
+          await testProject.assertPostDeployment(branchBackendIdentifier);
           const testBranchDetails = await amplifyAppPool.fetchTestBranchDetails(
             testBranch
           );
@@ -123,7 +123,7 @@ void describe(
         void describe('in sequence', { concurrency: false }, () => {
           void it(`[${testProjectCreator.name}] deploys fully`, async () => {
             await testProject.deploy(sandboxBackendIdentifier);
-            await testProject.assertPostDeployment();
+            await testProject.assertPostDeployment(sandboxBackendIdentifier);
           });
 
           void it(`[${testProjectCreator.name}] hot-swaps a change`, async () => {
@@ -145,7 +145,7 @@ void describe(
               .do(rejectCleanupSandbox())
               .run();
 
-            await testProject.assertPostDeployment();
+            await testProject.assertPostDeployment(sandboxBackendIdentifier);
           });
         });
       });

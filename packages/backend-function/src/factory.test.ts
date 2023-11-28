@@ -10,6 +10,7 @@ import {
 import { defaultLambda } from './test-assets/default-lambda/resource.js';
 import { Template } from 'aws-cdk-lib/assertions';
 import { defineFunction } from './factory.js';
+import { lambdaWithDependencies } from './test-assets/lambda-with-dependencies/resource.js';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
@@ -93,5 +94,22 @@ void describe('AmplifyFunctionFactory', () => {
       template.findResources('AWS::Lambda::Function')
     )[0];
     assert.ok(lambdaLogicalId.includes('myCoolLambda'));
+  });
+
+  void it('builds lambda with local and 3p dependencies', () => {
+    const lambda = lambdaWithDependencies.getInstance(getInstanceProps);
+    const template = Template.fromStack(Stack.of(lambda));
+    // There isn't a way to check the contents of the bundled lambda using the CDK Template utility
+    // So we just check that the lambda was created properly in the CFN template.
+    // There is an e2e test that validates proper lambda bundling
+    template.resourceCountIs('AWS::Lambda::Function', 1);
+    template.hasResourceProperties('AWS::Lambda::Function', {
+      Handler: 'index.handler',
+    });
+    const lambdaLogicalId = Object.keys(
+      template.findResources('AWS::Lambda::Function')
+    )[0];
+    // eslint-disable-next-line spellcheck/spell-checker
+    assert.ok(lambdaLogicalId.includes('lambdawithdependencies'));
   });
 });

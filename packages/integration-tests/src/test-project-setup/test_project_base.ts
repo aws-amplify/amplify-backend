@@ -41,7 +41,7 @@ export abstract class TestProjectBase {
     readonly name: string,
     readonly projectDirPath: string,
     readonly projectAmplifyDirPath: string,
-    private readonly cfnClient: CloudFormationClient
+    protected readonly cfnClient: CloudFormationClient
   ) {}
 
   /**
@@ -99,7 +99,9 @@ export abstract class TestProjectBase {
   /**
    * Verify the project after deployment.
    */
-  async assertPostDeployment(): Promise<void> {
+  // suppressing because subclass implementations can use backendId
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async assertPostDeployment(backendId: BackendIdentifier): Promise<void> {
     await this.assertClientConfigExists(
       this.projectDirPath,
       ClientConfigFormat.JSON
