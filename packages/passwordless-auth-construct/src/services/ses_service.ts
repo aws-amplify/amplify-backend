@@ -28,7 +28,7 @@ export class SesService implements DeliveryService {
     challengeType: SignInMethod
   ): Promise<void> => {
     const config = this.getConfig(challengeType);
-    const body = config?.body?.replace('####', secret);
+    const body = config.body.replace('####', secret);
     const emailCommand = new SendEmailCommand({
       Destination: { ToAddresses: [destination] },
       Message: {
@@ -44,10 +44,10 @@ export class SesService implements DeliveryService {
         },
         Subject: {
           Charset: 'UTF-8',
-          Data: config?.subject,
+          Data: config.subject,
         },
       },
-      Source: config?.fromAddress,
+      Source: config.fromAddress,
     });
 
     // Send Email via SES
