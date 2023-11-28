@@ -75,33 +75,6 @@ void describe('SES Service', () => {
       strictEqual(sendMock.mock.callCount(), 1);
       deepStrictEqual(actualEmailCommand.input, expectedAttributes);
     });
-
-    void it('should throw an error when fromAddress is not provided', async () => {
-      const fromAddress = undefined;
-      const toAddress = '';
-      const message = 'Hello world';
-      const emailSubject = 'Passwordless Auth OTP';
-      const emailBody = 'email body';
-
-      const sesConfig: SesServiceConfig = {
-        otp: {
-          fromAddress: fromAddress,
-          subject: emailSubject,
-          body: emailBody,
-        },
-      };
-
-      const mockSmsService = new SesService(mockSesClient, sesConfig);
-
-      await mockSmsService
-        .send(message, toAddress, 'OTP')
-        .catch((err) =>
-          strictEqual(
-            err.message,
-            'The `fromAddress` is required for OTP via email! Please set `passwordlessOptions.otp.fromAddress` when defining the Passwordless Construct.'
-          )
-        );
-    });
   });
 
   void describe('mask()', () => {

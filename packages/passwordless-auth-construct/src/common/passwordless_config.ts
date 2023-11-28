@@ -129,8 +129,7 @@ export class PasswordlessConfig {
         magicLinkSubject,
         magicLinkBody,
       } = this.env;
-      const otpEnabled = this.parseBoolean(otpEmailEnabled);
-      const magicLinkEnabled = this.parseBoolean(magicLinkEmailEnabled);
+      const otpEnabled = this.parseBoolean(otpEmailEnabled) && otpFromAddress;
       const otp = otpEnabled
         ? {
             fromAddress: otpFromAddress,
@@ -138,6 +137,8 @@ export class PasswordlessConfig {
             body: otpBody || defaultOtpBody,
           }
         : undefined;
+      const magicLinkEnabled =
+        this.parseBoolean(magicLinkEmailEnabled) && magicLinkFromAddress;
       const magicLink = magicLinkEnabled
         ? {
             fromAddress: magicLinkFromAddress,

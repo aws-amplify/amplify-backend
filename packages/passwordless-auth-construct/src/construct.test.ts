@@ -82,7 +82,7 @@ void describe('Passwordless Auth construct', () => {
     void it('should add ses policy only when OTP is enabled via email only', () => {
       new AmplifyPasswordlessAuth(stack, 'test', auth, {
         otp: {
-          email: true,
+          email: { fromAddress: 'foo@example.com' },
         },
       });
       const template = Template.fromStack(stack);
@@ -111,7 +111,7 @@ void describe('Passwordless Auth construct', () => {
       new AmplifyPasswordlessAuth(stack, 'test', auth, {
         magicLink: {
           allowedOrigins: ['https://example.com'],
-          email: true,
+          email: { fromAddress: 'foo@example.com' },
         },
       });
       const template = Template.fromStack(stack);
@@ -173,7 +173,7 @@ void describe('Passwordless Auth construct', () => {
           sms: {
             originationNumber: mockOriginationNumber,
           },
-          email: true,
+          email: { fromAddress: 'foo@example.com' },
         },
       });
       const template = Template.fromStack(stack);

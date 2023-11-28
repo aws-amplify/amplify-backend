@@ -183,7 +183,7 @@ export type MagicLinkAuthOptions = {
    * The Email options for Magic Link. Email will be enabled unless set to false.
    * @default true
    */
-  email?: EmailOptions | boolean;
+  email?: EmailOptions;
 };
 
 /**
@@ -213,7 +213,7 @@ export type OtpAuthOptions = {
    * to true.
    * @default false
    */
-  email?: EmailOptions | boolean;
+  email?: EmailOptions;
 };
 
 /** Options for sending a passwordless challenge via SMS */
@@ -239,7 +239,7 @@ export type SmsOptions = {
 /** Options for sending a passwordless challenge via email */
 export type EmailOptions = {
   /** The from address for SES messages. */
-  fromAddress?: string;
+  fromAddress: string;
   /**
    * The subject of the email to send to the user.
    *
