@@ -10,5 +10,5 @@ export const getResponse = () => {
     0xd9, 0xeb, 0xae, 0x0b,
   ];
   // eslint-disable-next-line spellcheck/spell-checker
-  uuidStringify(uuidBytes); // '6ec0bd7f-11c0-43da-975e-2a8ad9ebae0b'
+  return uuidStringify(uuidBytes); // '6ec0bd7f-11c0-43da-975e-2a8ad9ebae0b'
 };
