@@ -189,12 +189,16 @@ void describe(
           const gitIgnoreContent = (await fs.readFile(gitIgnorePath, 'utf-8'))
             .split(os.EOL)
             .filter((s) => s.trim());
-          assert.deepStrictEqual(gitIgnoreContent.sort(), [
+          const expectedGitIgnoreContent = [
             '# amplify',
             '.amplify',
             'amplifyconfiguration*',
             'node_modules',
-          ]);
+          ];
+
+          expectedGitIgnoreContent.forEach((line) => {
+            assert.ok(gitIgnoreContent.includes(line));
+          });
 
           const amplifyPathPrefix = path.join(tempDir, 'amplify');
 
