@@ -7,14 +7,19 @@ import { CdkErrorMapper } from './cdk_error_mapper.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 
 void describe('invokeCDKCommand', () => {
-  const backendId: BackendIdentifier = {
+  const branchBackendId: BackendIdentifier = {
     namespace: '123',
     name: 'testBranch',
     type: 'branch',
   };
 
+  const sandboxBackendId: BackendIdentifier = {
+    namespace: 'foo',
+    name: 'bar',
+    type: 'sandbox',
+  };
+
   const sandboxDeployProps: DeployProps = {
-    deploymentType: 'sandbox',
     secretLastUpdated: new Date(12345678),
   };
 
@@ -35,26 +40,10 @@ void describe('invokeCDKCommand', () => {
     execaMock.mock.restore();
   });
 
-  void it('handles no options/args', async () => {
-    await invoker.deploy();
-    assert.strictEqual(execaMock.mock.callCount(), 1);
-    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 8);
-    assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
-      'cdk',
-      'deploy',
-      '--ci',
-      '--app',
-      "'npx tsx amplify/backend.ts'",
-      '--all',
-      '--output',
-      '.amplify/artifacts/cdk.out',
-    ]);
-  });
-
   void it('handles options for branch deployments', async () => {
-    await invoker.deploy(backendId);
+    await invoker.deploy(branchBackendId);
     assert.strictEqual(execaMock.mock.callCount(), 1);
-    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 14);
+    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 16);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
       'cdk',
       'deploy',
@@ -65,40 +54,18 @@ void describe('invokeCDKCommand', () => {
       '--output',
       '.amplify/artifacts/cdk.out',
       '--context',
-      `amplify-backend-namespace=123`,
+      'amplify-backend-namespace=123',
       '--context',
-      `amplify-backend-name=testBranch`,
+      'amplify-backend-name=testBranch',
       '--require-approval',
       'never',
+      '--context',
+      'amplify-backend-type=branch',
     ]);
   });
 
   void it('handles deployProps for sandbox', async () => {
-    await invoker.deploy(undefined, sandboxDeployProps);
-    assert.strictEqual(execaMock.mock.callCount(), 1);
-    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 14);
-    assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
-      'cdk',
-      'deploy',
-      '--ci',
-      '--app',
-      "'npx tsx amplify/backend.ts'",
-      '--all',
-      '--output',
-      '.amplify/artifacts/cdk.out',
-      '--context',
-      `amplify-backend-type=sandbox`,
-      '--hotswap-fallback',
-      '--method=direct',
-      '--context',
-      `secretLastUpdated=${
-        sandboxDeployProps.secretLastUpdated?.getTime() as number
-      }`,
-    ]);
-  });
-
-  void it('handles options and deployProps for sandbox', async () => {
-    await invoker.deploy(backendId, sandboxDeployProps);
+    await invoker.deploy(sandboxBackendId, sandboxDeployProps);
     assert.strictEqual(execaMock.mock.callCount(), 1);
     assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 18);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
@@ -111,9 +78,37 @@ void describe('invokeCDKCommand', () => {
       '--output',
       '.amplify/artifacts/cdk.out',
       '--context',
-      `amplify-backend-namespace=123`,
+      'amplify-backend-namespace=foo',
       '--context',
-      `amplify-backend-name=testBranch`,
+      'amplify-backend-name=bar',
+      '--context',
+      'amplify-backend-type=sandbox',
+      '--hotswap-fallback',
+      '--method=direct',
+      '--context',
+      `secretLastUpdated=${
+        sandboxDeployProps.secretLastUpdated?.getTime() as number
+      }`,
+    ]);
+  });
+
+  void it('handles options and deployProps for sandbox', async () => {
+    await invoker.deploy(sandboxBackendId, sandboxDeployProps);
+    assert.strictEqual(execaMock.mock.callCount(), 1);
+    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 18);
+    assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
+      'cdk',
+      'deploy',
+      '--ci',
+      '--app',
+      "'npx tsx amplify/backend.ts'",
+      '--all',
+      '--output',
+      '.amplify/artifacts/cdk.out',
+      '--context',
+      `amplify-backend-namespace=foo`,
+      '--context',
+      `amplify-backend-name=bar`,
       '--context',
       `amplify-backend-type=sandbox`,
       '--hotswap-fallback',
@@ -126,9 +121,7 @@ void describe('invokeCDKCommand', () => {
   });
 
   void it('handles destroy for sandbox', async () => {
-    await invoker.destroy(backendId, {
-      deploymentType: 'sandbox',
-    });
+    await invoker.destroy(sandboxBackendId);
     assert.strictEqual(execaMock.mock.callCount(), 1);
     assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 15);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
@@ -141,18 +134,17 @@ void describe('invokeCDKCommand', () => {
       '--output',
       '.amplify/artifacts/cdk.out',
       '--context',
-      `amplify-backend-namespace=123`,
+      'amplify-backend-namespace=foo',
       '--context',
-      `amplify-backend-name=testBranch`,
+      'amplify-backend-name=bar',
       '--context',
-      `amplify-backend-type=sandbox`,
+      'amplify-backend-type=sandbox',
       '--force',
     ]);
   });
 
   void it('enables type checking for branch deployments', async () => {
-    await invoker.deploy(backendId, {
-      deploymentType: 'branch',
+    await invoker.deploy(branchBackendId, {
       validateAppSources: true,
     });
     assert.strictEqual(execaMock.mock.callCount(), 3);
@@ -193,8 +185,7 @@ void describe('invokeCDKCommand', () => {
   });
 
   void it('enables type checking for sandbox deployments', async () => {
-    await invoker.deploy(undefined, {
-      deploymentType: 'sandbox',
+    await invoker.deploy(sandboxBackendId, {
       validateAppSources: true,
     });
     assert.strictEqual(execaMock.mock.callCount(), 3);
@@ -213,7 +204,7 @@ void describe('invokeCDKCommand', () => {
       '--project',
       'amplify',
     ]);
-    assert.equal(execaMock.mock.calls[2].arguments[1]?.length, 12);
+    assert.equal(execaMock.mock.calls[2].arguments[1]?.length, 16);
     assert.deepStrictEqual(execaMock.mock.calls[2].arguments[1], [
       'cdk',
       'deploy',
@@ -224,7 +215,11 @@ void describe('invokeCDKCommand', () => {
       '--output',
       '.amplify/artifacts/cdk.out',
       '--context',
-      `amplify-backend-type=sandbox`,
+      'amplify-backend-namespace=foo',
+      '--context',
+      'amplify-backend-name=bar',
+      '--context',
+      'amplify-backend-type=sandbox',
       '--hotswap-fallback',
       '--method=direct',
     ]);
@@ -235,8 +230,7 @@ void describe('invokeCDKCommand', () => {
     execaMock.mock.mockImplementationOnce(() =>
       Promise.reject(new Error('some error'))
     );
-    await invoker.deploy(undefined, {
-      deploymentType: 'sandbox',
+    await invoker.deploy(branchBackendId, {
       validateAppSources: true,
     });
     assert.strictEqual(execaMock.mock.callCount(), 2);
@@ -247,7 +241,7 @@ void describe('invokeCDKCommand', () => {
       '--project',
       'amplify',
     ]);
-    assert.equal(execaMock.mock.calls[1].arguments[1]?.length, 12);
+    assert.equal(execaMock.mock.calls[1].arguments[1]?.length, 16);
     assert.deepStrictEqual(execaMock.mock.calls[1].arguments[1], [
       'cdk',
       'deploy',
@@ -258,9 +252,13 @@ void describe('invokeCDKCommand', () => {
       '--output',
       '.amplify/artifacts/cdk.out',
       '--context',
-      `amplify-backend-type=sandbox`,
-      '--hotswap-fallback',
-      '--method=direct',
+      'amplify-backend-namespace=123',
+      '--context',
+      'amplify-backend-name=testBranch',
+      '--require-approval',
+      'never',
+      '--context',
+      'amplify-backend-type=branch',
     ]);
   });
 
@@ -270,7 +268,7 @@ void describe('invokeCDKCommand', () => {
     });
 
     await assert.rejects(
-      () => invoker.deploy(backendId, sandboxDeployProps),
+      () => invoker.deploy(branchBackendId, sandboxDeployProps),
       (err: Error) => {
         assert.equal(
           err.message,

@@ -59,7 +59,6 @@ export class PipelineDeployCommand
       type: 'branch',
     };
     await this.backendDeployer.deploy(backendId, {
-      deploymentType: 'branch',
       validateAppSources: true,
     });
     await this.clientConfigGenerator.generateClientConfigToFile(backendId);
