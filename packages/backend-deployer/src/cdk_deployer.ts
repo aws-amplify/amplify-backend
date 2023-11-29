@@ -54,7 +54,7 @@ export class CDKDeployer implements BackendDeployer {
       }
     }
 
-    return this.invokeCdk(
+    return this.tryInvokeCdk(
       InvokableCommand.DEPLOY,
       backendId,
       deployProps?.deploymentType,
@@ -69,7 +69,7 @@ export class CDKDeployer implements BackendDeployer {
     backendId?: BackendIdentifier,
     destroyProps?: DestroyProps
   ) => {
-    return this.invokeCdk(
+    return this.tryInvokeCdk(
       InvokableCommand.DESTROY,
       backendId,
       destroyProps?.deploymentType,
@@ -118,6 +118,27 @@ export class CDKDeployer implements BackendDeployer {
   };
 
   /**
+   * calls invokeCDK and wrap it in a try catch
+   */
+  private tryInvokeCdk = async (
+    invokableCommand: InvokableCommand,
+    backendId?: BackendIdentifier,
+    deploymentType?: DeploymentType,
+    additionalArguments?: string[]
+  ): Promise<DeployResult | DestroyResult> => {
+    try {
+      return this.invokeCdk(
+        invokableCommand,
+        backendId,
+        deploymentType,
+        additionalArguments
+      );
+    } catch (err) {
+      throw this.cdkErrorMapper.getAmplifyError(err as Error);
+    }
+  };
+
+  /**
    * Executes a CDK command
    */
   private invokeCdk = async (
@@ -126,50 +147,46 @@ export class CDKDeployer implements BackendDeployer {
     deploymentType?: DeploymentType,
     additionalArguments?: string[]
   ): Promise<DeployResult | DestroyResult> => {
-    try {
-      // Basic args
-      const cdkCommandArgs = [
-        'cdk',
-        invokableCommand.toString(),
-        // This is unfortunate. CDK writes everything to stderr without `--ci` flag and we need to differentiate between the two.
-        // See https://github.com/aws/aws-cdk/issues/7717 for more details.
-        '--ci',
-        '--app',
-        `'npx tsx ${this.backendLocator.locate()}'`,
-        '--all',
-        '--output',
-        '.amplify/artifacts/cdk.out',
-      ];
+    // Basic args
+    const cdkCommandArgs = [
+      'cdk',
+      invokableCommand.toString(),
+      // This is unfortunate. CDK writes everything to stderr without `--ci` flag and we need to differentiate between the two.
+      // See https://github.com/aws/aws-cdk/issues/7717 for more details.
+      '--ci',
+      '--app',
+      `'npx tsx ${this.backendLocator.locate()}'`,
+      '--all',
+      '--output',
+      '.amplify/artifacts/cdk.out',
+    ];
 
-      // Add context information if available
-      if (backendId) {
-        cdkCommandArgs.push(
-          '--context',
-          `${CDKContextKey.BACKEND_NAMESPACE}=${backendId.namespace}`,
-          '--context',
-          `${CDKContextKey.BACKEND_NAME}=${backendId.name}`
-        );
+    // Add context information if available
+    if (backendId) {
+      cdkCommandArgs.push(
+        '--context',
+        `${CDKContextKey.BACKEND_NAMESPACE}=${backendId.namespace}`,
+        '--context',
+        `${CDKContextKey.BACKEND_NAME}=${backendId.name}`
+      );
 
-        if (deploymentType !== 'sandbox') {
-          cdkCommandArgs.push('--require-approval', 'never');
-        }
+      if (deploymentType !== 'sandbox') {
+        cdkCommandArgs.push('--require-approval', 'never');
       }
-
-      if (deploymentType) {
-        cdkCommandArgs.push(
-          '--context',
-          `${CDKContextKey.DEPLOYMENT_TYPE}=${deploymentType}`
-        );
-      }
-
-      if (additionalArguments) {
-        cdkCommandArgs.push(...additionalArguments);
-      }
-
-      return await this.executeChildProcess('npx', cdkCommandArgs);
-    } catch (err) {
-      throw this.cdkErrorMapper.getAmplifyError(err as Error);
     }
+
+    if (deploymentType) {
+      cdkCommandArgs.push(
+        '--context',
+        `${CDKContextKey.DEPLOYMENT_TYPE}=${deploymentType}`
+      );
+    }
+
+    if (additionalArguments) {
+      cdkCommandArgs.push(...additionalArguments);
+    }
+
+    return await this.executeChildProcess('npx', cdkCommandArgs);
   };
 
   /**
