@@ -224,7 +224,9 @@ void describe(
 
           // assert that project compiles successfully
           await execa(
-            'npx',
+            packageManagerExecutable === 'npm'
+              ? 'npx'
+              : packageManagerExecutable,
             [
               'tsc',
               '--noEmit',
@@ -241,7 +243,9 @@ void describe(
 
           // assert that project synthesizes successfully
           await execa(
-            'npx',
+            packageManagerExecutable === 'npm'
+              ? 'npx'
+              : packageManagerExecutable,
             [
               'cdk',
               'synth',
