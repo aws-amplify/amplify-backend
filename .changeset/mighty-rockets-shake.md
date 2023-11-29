@@ -1,7 +1,7 @@
 ---
 'create-amplify': patch
-'@aws-amplify/plugin-types': patch
-'@aws-amplify/backend': patch
+'@aws-amplify/plugin-types': minor
+'@aws-amplify/backend': minor
 ---
 
 Expose new `defineFunction` interface
