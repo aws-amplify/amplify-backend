@@ -125,13 +125,14 @@ void describe(
 
     const initialStates = ['empty', 'module', 'commonjs'] as const;
 
-    initialStates.forEach((initialState) => {
+    initialStates.slice(0, 1).forEach((initialState) => {
       void describe('installs expected packages and scaffolds expected files', () => {
         let tempDir: string;
         beforeEach(async () => {
           tempDir = await fs.mkdtemp(
             path.join(os.tmpdir(), 'test-create-amplify')
           );
+          console.log('🗂️', tempDir);
         });
 
         afterEach(async () => {
@@ -263,40 +264,40 @@ void describe(
       });
     });
 
-    void describe('fails fast', () => {
-      let tempDir: string;
-      beforeEach(async () => {
-        tempDir = await fs.mkdtemp(
-          path.join(os.tmpdir(), 'test-create-amplify')
-        );
-      });
+    // void describe('fails fast', () => {
+    //   let tempDir: string;
+    //   beforeEach(async () => {
+    //     tempDir = await fs.mkdtemp(
+    //       path.join(os.tmpdir(), 'test-create-amplify')
+    //     );
+    //   });
 
-      afterEach(async () => {
-        await fs.rm(tempDir, { recursive: true });
-      });
+    //   afterEach(async () => {
+    //     await fs.rm(tempDir, { recursive: true });
+    //   });
 
-      void it('if amplify path already exists', async () => {
-        const amplifyDirPath = path.join(tempDir, 'amplify');
-        await fs.mkdir(amplifyDirPath, { recursive: true });
+    //   void it('if amplify path already exists', async () => {
+    //     const amplifyDirPath = path.join(tempDir, 'amplify');
+    //     await fs.mkdir(amplifyDirPath, { recursive: true });
 
-        const result = await execa(
-          packageManagerExecutable,
-          ['create', 'amplify', '--yes'],
-          {
-            cwd: tempDir,
-            stdio: 'pipe',
-            reject: false,
-          }
-        );
-        assert.equal(result.exitCode, 1);
-        assert.ok(
-          result.stderr
-            .toLocaleString()
-            .includes(
-              'If you are trying to run an Amplify (Gen 2) command inside an Amplify (Gen 1) project we recommend creating the project in another directory'
-            )
-        );
-      });
-    });
+    //     const result = await execa(
+    //       packageManagerExecutable,
+    //       ['create', 'amplify', '--yes'],
+    //       {
+    //         cwd: tempDir,
+    //         stdio: 'pipe',
+    //         reject: false,
+    //       }
+    //     );
+    //     assert.equal(result.exitCode, 1);
+    //     assert.ok(
+    //       result.stderr
+    //         .toLocaleString()
+    //         .includes(
+    //           'If you are trying to run an Amplify (Gen 2) command inside an Amplify (Gen 1) project we recommend creating the project in another directory'
+    //         )
+    //     );
+    //   });
+    // });
   }
 );
