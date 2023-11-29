@@ -10,10 +10,10 @@ import { FunctionResources } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 
 // @public
-export const defineFunction: (props?: FunctionFactoryProps) => ConstructFactory<Construct & ResourceProvider<FunctionResources>>;
+export const defineFunction: (props?: FunctionProps) => ConstructFactory<Construct & ResourceProvider<FunctionResources>>;
 
 // @public (undocumented)
-export type FunctionFactoryProps = {
+export type FunctionProps = {
     name?: string;
     entry?: string;
 };
