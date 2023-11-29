@@ -1,6 +1,12 @@
 import { PublishCommand, SNSClient } from '@aws-sdk/client-sns';
 import { logger } from '../logger.js';
-import { DeliveryMedium, DeliveryService, SnsServiceConfig } from '../types.js';
+import {
+  DeliveryMedium,
+  DeliveryService,
+  SignInMethod,
+  SmsConfigOptions,
+  SnsServiceConfig,
+} from '../types.js';
 
 /**
  * SNS service Implementation.
@@ -16,21 +22,26 @@ export class SnsService implements DeliveryService {
    */
   constructor(private snsClient: SNSClient, private config: SnsServiceConfig) {}
 
-  public send = async (message: string, destination: string): Promise<void> => {
+  public send = async (
+    secret: string,
+    destination: string,
+    challengeType: SignInMethod
+  ): Promise<void> => {
+    const config = this.getConfig(challengeType);
+    const message = config.message.replace('####', secret);
+
     // SNS attributes
     const attributes: PublishCommand['input']['MessageAttributes'] = {};
-    if (this.config.senderId && this.config.senderId !== '') {
+    if (config.senderId) {
       attributes['AWS.SNS.SMS.SenderID'] = {
         DataType: 'String',
-        StringValue: this.config.senderId,
+        StringValue: config.senderId,
       };
     }
-    if (this.config.originationNumber && this.config.originationNumber !== '') {
-      attributes['AWS.SNS.SMS.OriginationNumber'] = {
-        DataType: 'String',
-        StringValue: this.config.originationNumber,
-      };
-    }
+    attributes['AWS.SNS.SMS.OriginationNumber'] = {
+      DataType: 'String',
+      StringValue: config.originationNumber,
+    };
 
     // SNS Command
     const snsCommand = new PublishCommand({
@@ -57,12 +68,17 @@ export class SnsService implements DeliveryService {
     )}`;
   };
 
-  /**
-   * Create SMS message content
-   * @param code The OTP code to send
-   * @returns The SMS content
-   */
-  public createMessage = (code: string): string => {
-    return `Your verification code is: ${code}`;
+  private getConfig = (challengeType: SignInMethod): SmsConfigOptions => {
+    switch (challengeType) {
+      case 'MAGIC_LINK':
+        throw Error('SMS is not supported for magic link');
+      case 'OTP':
+        if (!this.config.otp) {
+          throw Error(
+            'No OTP configuration found. OTP via SMS may be disabled.'
+          );
+        }
+        return this.config.otp;
+    }
   };
 }

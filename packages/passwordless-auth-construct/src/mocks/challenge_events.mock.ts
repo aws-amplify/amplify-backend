@@ -5,7 +5,7 @@ import {
 } from 'aws-lambda';
 import { ChallengeResult, PasswordlessClientMetaData } from '../types.js';
 
-const baseEvent = {
+export const baseEvent = {
   version: '1',
   region: 'us-east-1',
   userPoolId: 'us-east-1_12345678',
@@ -57,6 +57,12 @@ export const requestOtpSmsMetaData: PasswordlessClientMetaData = {
 // Client metadata when requesting an OTP via SMS.
 export const confirmOtpMetaData: PasswordlessClientMetaData = {
   signInMethod: 'OTP',
+  action: 'CONFIRM',
+};
+
+// Client metadata when requesting an OTP via SMS.
+export const confirmMagicLinkMetaData: PasswordlessClientMetaData = {
+  signInMethod: 'MAGIC_LINK',
   action: 'CONFIRM',
 };
 
