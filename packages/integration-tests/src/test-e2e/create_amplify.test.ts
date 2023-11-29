@@ -207,6 +207,7 @@ void describe(
             // eslint-disable-next-line spellcheck/spell-checker
             nodir: true,
             windowsPathsNoEscape: true,
+            ignore: ['**/node_modules/**', '**/yarn.lock'],
           });
 
           const expectedAmplifyFiles = [
