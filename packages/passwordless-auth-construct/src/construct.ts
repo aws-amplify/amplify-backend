@@ -10,6 +10,9 @@ import { AmplifyAuth } from '@aws-amplify/auth-construct-alpha';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import { AmplifyOtpAuth } from './otp/construct.js';
+import { AmplifyMagicLinkAuth } from './magic-link/construct.js';
+import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
+import { Aws } from 'aws-cdk-lib';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -33,9 +36,16 @@ export class AmplifyPasswordlessAuth extends Construct {
       return;
     }
 
+    // default memory allocation for lambda functions
+    const defaultMemorySize = 128;
+
+    // increased memory for create/verify challenge lambdas when magic link is
+    // enabled.
+    const magicLinkMemorySize = 256;
+
     const commonOptions: NodejsFunctionProps = {
       entry: path.join(dirname, 'custom-auth', 'index.js'),
-      runtime: Runtime.NODEJS_18_X,
+      runtime: Runtime.NODEJS_20_X,
       architecture: Architecture.ARM_64,
       bundling: {
         format: OutputFormat.ESM,
@@ -48,6 +58,7 @@ export class AmplifyPasswordlessAuth extends Construct {
       {
         handler: 'defineAuthChallengeHandler',
         ...commonOptions,
+        memorySize: defaultMemorySize,
       }
     );
 
@@ -57,6 +68,7 @@ export class AmplifyPasswordlessAuth extends Construct {
       {
         handler: 'createAuthChallengeHandler',
         ...commonOptions,
+        memorySize: props.magicLink ? magicLinkMemorySize : defaultMemorySize,
       }
     );
 
@@ -66,6 +78,7 @@ export class AmplifyPasswordlessAuth extends Construct {
       {
         handler: 'verifyAuthChallengeHandler',
         ...commonOptions,
+        memorySize: props.magicLink ? magicLinkMemorySize : defaultMemorySize,
       }
     );
 
@@ -74,6 +87,32 @@ export class AmplifyPasswordlessAuth extends Construct {
     auth.addTrigger('createAuthChallenge', createAuthChallenge);
 
     auth.addTrigger('verifyAuthChallengeResponse', verifyAuthChallengeResponse);
+
+    const emailEnabled = !!props.otp?.email || !!props.magicLink?.email;
+    const smsEnabled = !!props.otp?.sms;
+
+    if (emailEnabled) {
+      createAuthChallenge.addToRolePolicy(
+        new PolicyStatement({
+          actions: ['ses:SendEmail'],
+          resources: [
+            `arn:${Aws.PARTITION}:ses:${Aws.REGION}:${Aws.ACCOUNT_ID}:identity/*`,
+          ],
+        })
+      );
+    }
+
+    if (smsEnabled) {
+      createAuthChallenge.addToRolePolicy(
+        new PolicyStatement({
+          actions: ['sns:publish'],
+          // For SNS, resources only applies to topics. Adding the following notResources
+          // prevents publishing to topics (while still allowing SMS messages to be sent).
+          // see: https://docs.aws.amazon.com/sns/latest/dg/sns-using-identity-based-policies.html
+          notResources: ['arn:aws:sns:*:*:*'],
+        })
+      );
+    }
 
     // Configure OTP environment
     if (props.otp) {
@@ -86,6 +125,20 @@ export class AmplifyPasswordlessAuth extends Construct {
           verifyAuthChallengeResponse,
         },
         props.otp
+      );
+    }
+
+    // Configure Magic Link
+    if (props.magicLink) {
+      new AmplifyMagicLinkAuth(
+        scope,
+        `${id}-magic-link`,
+        {
+          defineAuthChallenge,
+          createAuthChallenge,
+          verifyAuthChallengeResponse,
+        },
+        props.magicLink
       );
     }
   }

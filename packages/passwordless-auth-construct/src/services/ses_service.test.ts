@@ -30,7 +30,7 @@ void describe('SES Service', () => {
       const toAddress = 'baz@bar.com';
       const secret = '123456';
       const emailSubject = 'Passwordless Auth OTP';
-      const emailBody = `your code is: ${codeOrLinkPlaceholder}`;
+      const emailBody = 'your code is: ####';
       const expectedAttributes = {
         Destination: {
           ToAddresses: ['baz@bar.com'],
@@ -72,6 +72,25 @@ void describe('SES Service', () => {
         .arguments[0] as SendEmailCommand;
       strictEqual(sendMock.mock.callCount(), 1);
       deepStrictEqual(actualEmailCommand.input, expectedAttributes);
+    });
+  });
+
+  void describe('mask()', () => {
+    beforeEach(() => {
+      sesService = new SesService(mockSesClient, sesConfig);
+    });
+    void it('should mask email', () => {
+      const mockSmsService = sesService;
+      const email = 'foobar@baz.com';
+      const maskedEmail = mockSmsService.mask(email);
+      strictEqual(maskedEmail, 'f****r@***.***');
+    });
+
+    void it('should mask email with less than 3 digits', () => {
+      const mockSmsService = sesService;
+      const email = 'fo@bar.com';
+      const maskedEmail = mockSmsService.mask(email);
+      strictEqual(maskedEmail, 'f****o@***.***');
     });
   });
 });

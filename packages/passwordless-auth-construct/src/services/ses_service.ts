@@ -7,7 +7,6 @@ import {
   SesServiceConfig,
   SignInMethod,
 } from '../types.js';
-import { codeOrLinkPlaceholder } from '../constants.js';
 
 /**
  * SNS service Implementation.
@@ -29,7 +28,7 @@ export class SesService implements DeliveryService {
     challengeType: SignInMethod
   ): Promise<void> => {
     const config = this.getConfig(challengeType);
-    const body = config.body.replace(codeOrLinkPlaceholder, secret);
+    const body = config.body.replace('####', secret);
     const emailCommand = new SendEmailCommand({
       Destination: { ToAddresses: [destination] },
       Message: {
@@ -54,6 +53,23 @@ export class SesService implements DeliveryService {
     // Send Email via SES
     const output = await this.sesClient.send(emailCommand);
     logger.debug(`SMS sent: ${JSON.stringify(output, null, 2)}`);
+  };
+
+  private getConfig = (challengeType: SignInMethod): EmailConfigOptions => {
+    switch (challengeType) {
+      case 'MAGIC_LINK':
+        if (!this.config.magicLink) {
+          throw Error(
+            'No Magic Link configuration found. Magic Link via email may be disabled.'
+          );
+        }
+
+        return `${d.slice(0, 1)}${new Array(d.length - 2)
+          .fill('*')
+          .join('')}${d.slice(-1)}`;
+      })
+      .join('.');
+    return `${start.slice(0, 1)}****${start.slice(-1)}@${maskedDomain}`;
   };
 
   private getConfig = (challengeType: SignInMethod): EmailConfigOptions => {

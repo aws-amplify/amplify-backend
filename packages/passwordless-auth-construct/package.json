@@ -18,7 +18,12 @@
   },
   "dependencies": {
     "@aws-amplify/auth-construct-alpha": "^0.4.2",
-    "@aws-sdk/client-sns": "^3.429.0"
+    "@aws-sdk/client-cognito-identity-provider": "^3.445.0",
+    "@aws-sdk/client-dynamodb": "^3.445.0",
+    "@aws-sdk/client-kms": "^3.445.0",
+    "@aws-sdk/client-sns": "^3.445.0",
+    "@aws-sdk/client-ses": "^3.445.0",
+    "@aws-sdk/lib-dynamodb": "^3.445.0"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.119",

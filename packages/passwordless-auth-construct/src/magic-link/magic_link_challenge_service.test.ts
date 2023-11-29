@@ -23,7 +23,6 @@ import {
 import { MagicLinkChallengeService } from './magic_link_challenge_service.js';
 import { MagicLink, SignedMagicLink } from '../models/magic_link.js';
 import { Duration } from 'aws-cdk-lib';
-import { CognitoMetadataKeys } from '../constants.js';
 
 const kmsKeyId = '1234';
 const mockSignature = new Uint8Array([1]);
@@ -31,6 +30,7 @@ const mockSignature = new Uint8Array([1]);
 class MockDeliveryService implements DeliveryService {
   deliveryMedium: DeliveryMedium = 'EMAIL';
   send = async () => Promise.resolve();
+  mask = () => '';
 }
 
 class MockKmsService implements SigningService {
@@ -86,11 +86,7 @@ void describe('MagicLinkChallengeService', () => {
         });
       strictEqual(mockSend.mock.callCount(), 0);
       strictEqual(mockSave.mock.callCount(), 0);
-      const newEvent = await service.createChallenge(
-        { deliveryMedium: 'EMAIL', attributeName: 'email' },
-        'foo@example.com',
-        event
-      );
+      const newEvent = await service.createChallenge(event);
       strictEqual(mockSend.mock.callCount(), 1);
       strictEqual(mockSave.mock.callCount(), 1);
       const secret = mockSend.mock.calls[0].arguments[0];
@@ -99,25 +95,16 @@ void describe('MagicLinkChallengeService', () => {
         newEvent.response.publicChallengeParameters['deliveryMedium'],
         'EMAIL'
       );
-      strictEqual(
-        newEvent.response.publicChallengeParameters['nextStep'],
-        'PROVIDE_CHALLENGE_RESPONSE'
-      );
     });
 
     void it('should throw if no redirect URI is provided', async () => {
       const event: CreateAuthChallengeTriggerEvent =
         buildCreateAuthChallengeEvent([], {
           ...requestMagicLinkMetaData,
-          [CognitoMetadataKeys.REDIRECT_URI]: '',
+          redirectUri: '',
         });
       await rejects(
-        async () =>
-          service.createChallenge(
-            { deliveryMedium: 'EMAIL', attributeName: 'email' },
-            'foo@example.com',
-            event
-          ),
+        async () => service.createChallenge(event),
         Error('No redirect URI provided.')
       );
     });
@@ -126,15 +113,10 @@ void describe('MagicLinkChallengeService', () => {
       const event: CreateAuthChallengeTriggerEvent =
         buildCreateAuthChallengeEvent([], {
           ...requestMagicLinkMetaData,
-          [CognitoMetadataKeys.REDIRECT_URI]: 'https://foo.com/',
+          redirectUri: 'https://foo.com/',
         });
       await rejects(
-        async () =>
-          service.createChallenge(
-            { deliveryMedium: 'EMAIL', attributeName: 'email' },
-            'foo@example.com',
-            event
-          ),
+        async () => service.createChallenge(event),
         Error(
           'Invalid redirectUri: https://foo.com not in allowed origins list.'
         )
