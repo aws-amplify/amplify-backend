@@ -5,12 +5,15 @@ import {
   BackendDeployer,
   DeployProps,
   DeployResult,
-  DestroyProps,
   DestroyResult,
 } from './cdk_deployer_singleton_factory.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
-import { BackendIdentifier, DeploymentType } from '@aws-amplify/plugin-types';
-import { BackendLocator, CDKContextKey } from '@aws-amplify/platform-core';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import {
+  AmplifyUserError,
+  BackendLocator,
+  CDKContextKey,
+} from '@aws-amplify/platform-core';
 import { dirname } from 'path';
 
 /**
@@ -35,14 +38,14 @@ export class CDKDeployer implements BackendDeployer {
   /**
    * Invokes cdk deploy command
    */
-  deploy = async (backendId?: BackendIdentifier, deployProps?: DeployProps) => {
+  deploy = async (backendId: BackendIdentifier, deployProps?: DeployProps) => {
     await this.invokeTsc(deployProps);
 
     const cdkCommandArgs: string[] = [];
-    if (deployProps?.deploymentType === 'sandbox') {
+    if (backendId.type === 'sandbox') {
       cdkCommandArgs.push('--hotswap-fallback');
       cdkCommandArgs.push('--method=direct');
-      if (deployProps.secretLastUpdated) {
+      if (deployProps?.secretLastUpdated) {
         cdkCommandArgs.push(
           '--context',
           `secretLastUpdated=${deployProps.secretLastUpdated.getTime()}`
@@ -50,10 +53,9 @@ export class CDKDeployer implements BackendDeployer {
       }
     }
 
-    return this.invokeCdk(
+    return this.tryInvokeCdk(
       InvokableCommand.DEPLOY,
       backendId,
-      deployProps?.deploymentType,
       cdkCommandArgs
     );
   };
@@ -61,16 +63,8 @@ export class CDKDeployer implements BackendDeployer {
   /**
    * Invokes cdk destroy command
    */
-  destroy = async (
-    backendId?: BackendIdentifier,
-    destroyProps?: DestroyProps
-  ) => {
-    return this.invokeCdk(
-      InvokableCommand.DESTROY,
-      backendId,
-      destroyProps?.deploymentType,
-      ['--force']
-    );
+  destroy = async (backendId: BackendIdentifier) => {
+    return this.tryInvokeCdk(InvokableCommand.DESTROY, backendId, ['--force']);
   };
 
   private invokeTsc = async (deployProps?: DeployProps) => {
@@ -92,14 +86,44 @@ export class CDKDeployer implements BackendDeployer {
       // If we cannot load ts config, turn off type checking
       return;
     }
-    await this.executeChildProcess('npx', [
-      'tsc',
-      '--noEmit',
-      '--skipLibCheck',
-      // pointing the project arg to the amplify backend directory will use the tsconfig present in that directory
-      '--project',
-      dirname(this.backendLocator.locate()),
-    ]);
+    try {
+      await this.executeChildProcess('npx', [
+        'tsc',
+        '--noEmit',
+        '--skipLibCheck',
+        // pointing the project arg to the amplify backend directory will use the tsconfig present in that directory
+        '--project',
+        dirname(this.backendLocator.locate()),
+      ]);
+    } catch (err) {
+      throw new AmplifyUserError(
+        'SyntaxError',
+        {
+          message:
+            'TypeScript validation check failed, check your backend definition',
+        },
+        err instanceof Error ? err : undefined
+      );
+    }
+  };
+
+  /**
+   * calls invokeCDK and wrap it in a try catch
+   */
+  private tryInvokeCdk = async (
+    invokableCommand: InvokableCommand,
+    backendId: BackendIdentifier,
+    additionalArguments?: string[]
+  ): Promise<DeployResult | DestroyResult> => {
+    try {
+      return await this.invokeCdk(
+        invokableCommand,
+        backendId,
+        additionalArguments
+      );
+    } catch (err) {
+      throw this.cdkErrorMapper.getAmplifyError(err as Error);
+    }
   };
 
   /**
@@ -107,8 +131,7 @@ export class CDKDeployer implements BackendDeployer {
    */
   private invokeCdk = async (
     invokableCommand: InvokableCommand,
-    backendId?: BackendIdentifier,
-    deploymentType?: DeploymentType,
+    backendId: BackendIdentifier,
     additionalArguments?: string[]
   ): Promise<DeployResult | DestroyResult> => {
     // Basic args
@@ -126,35 +149,27 @@ export class CDKDeployer implements BackendDeployer {
     ];
 
     // Add context information if available
-    if (backendId) {
-      cdkCommandArgs.push(
-        '--context',
-        `${CDKContextKey.BACKEND_NAMESPACE}=${backendId.namespace}`,
-        '--context',
-        `${CDKContextKey.BACKEND_NAME}=${backendId.name}`
-      );
+    cdkCommandArgs.push(
+      '--context',
+      `${CDKContextKey.BACKEND_NAMESPACE}=${backendId.namespace}`,
+      '--context',
+      `${CDKContextKey.BACKEND_NAME}=${backendId.name}`
+    );
 
-      if (deploymentType !== 'sandbox') {
-        cdkCommandArgs.push('--require-approval', 'never');
-      }
+    if (backendId.type !== 'sandbox') {
+      cdkCommandArgs.push('--require-approval', 'never');
     }
 
-    if (deploymentType) {
-      cdkCommandArgs.push(
-        '--context',
-        `${CDKContextKey.DEPLOYMENT_TYPE}=${deploymentType}`
-      );
-    }
+    cdkCommandArgs.push(
+      '--context',
+      `${CDKContextKey.DEPLOYMENT_TYPE}=${backendId.type}`
+    );
 
     if (additionalArguments) {
       cdkCommandArgs.push(...additionalArguments);
     }
 
-    try {
-      return await this.executeChildProcess('npx', cdkCommandArgs);
-    } catch (err) {
-      throw this.cdkErrorMapper.getHumanReadableError(err as Error);
-    }
+    return await this.executeChildProcess('npx', cdkCommandArgs);
   };
 
   /**
@@ -202,7 +217,10 @@ export class CDKDeployer implements BackendDeployer {
       await childProcess;
       return cdkOutput;
     } catch (error) {
-      // swallow execa error which is not really helpful, rather throw stderr
+      // swallow execa error which is most of the time noise (basically child exited with exit code...)
+      // bubbling this up to customers add confusion (Customers don't need to know we are running IPC calls
+      // and their exit codes printed while sandbox continue to run). Hence we explicitly don't pass error in the cause
+      // rather throw the entire stderr for clients to figure out what to do with it.
       throw new Error(aggregatedStderr);
     }
   };

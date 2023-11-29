@@ -1,5 +1,9 @@
 import { ClientConfigFormat } from '@aws-amplify/client-config';
-import { UsageDataEmitter } from '@aws-amplify/platform-core';
+import {
+  AmplifyFault,
+  AmplifyUserError,
+  UsageDataEmitter,
+} from '@aws-amplify/platform-core';
 import assert from 'node:assert';
 import { afterEach, describe, it, mock } from 'node:test';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
@@ -82,8 +86,10 @@ void describe('sandbox_event_handler_factory', () => {
     });
   });
 
-  void it('calls the usage emitter on the failedDeployment event', async () => {
-    const testError = new Error('test message');
+  void it('calls the usage emitter on the failedDeployment event with AmplifyError', async () => {
+    const testError = new AmplifyUserError('BackendBuildError', {
+      message: 'test message',
+    });
     await Promise.all(
       eventFactory
         .getSandboxEventHandlers({
@@ -99,6 +105,49 @@ void describe('sandbox_event_handler_factory', () => {
     assert.deepStrictEqual(
       emitFailureMock.mock.calls[0].arguments[0],
       testError
+    );
+    assert.deepStrictEqual(emitFailureMock.mock.calls[0].arguments[1], {
+      command: 'Sandbox',
+    });
+  });
+
+  void it('calls the usage emitter on the failedDeployment event with generic Error', async () => {
+    const testError = new Error('Some generic error');
+    await Promise.all(
+      eventFactory
+        .getSandboxEventHandlers({
+          sandboxName: 'my-app',
+          clientConfigLifecycleHandler,
+        })
+        .failedDeployment.map((e) => e(testError))
+    );
+
+    assert.deepStrictEqual(generateClientConfigMock.mock.callCount(), 0);
+    assert.strictEqual(emitSuccessMock.mock.callCount(), 0);
+    assert.strictEqual(emitFailureMock.mock.callCount(), 1);
+
+    const expectedError = new AmplifyFault(
+      'UnknownFault',
+      {
+        message: 'Error: Some generic error',
+      },
+      testError
+    );
+    assert.deepStrictEqual(
+      emitFailureMock.mock.calls[0].arguments[0].name,
+      expectedError.name
+    );
+    assert.deepStrictEqual(
+      emitFailureMock.mock.calls[0].arguments[0].message,
+      expectedError.message
+    );
+    assert.deepStrictEqual(
+      emitFailureMock.mock.calls[0].arguments[0].classification,
+      expectedError.classification
+    );
+    assert.deepStrictEqual(
+      emitFailureMock.mock.calls[0].arguments[0].cause.message,
+      expectedError.cause?.message
     );
     assert.deepStrictEqual(emitFailureMock.mock.calls[0].arguments[1], {
       command: 'Sandbox',

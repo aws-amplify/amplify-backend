@@ -306,7 +306,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/bfd3e79279e8eacf3c19316bcf27a272dae370c6b509102aaaad2e4961c1a27d.json"
+       "/553ca6a57a97283020aca125028d777d295440a941623084927d281faea59446.json"
       ]
      ]
     }
