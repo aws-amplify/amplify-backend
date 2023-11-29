@@ -30,8 +30,9 @@ void describe('SES Service', () => {
     void it('should attach SES attributes when provided', async () => {
       const fromAddress = 'foo@bar.com';
       const toAddress = 'baz@bar.com';
-      const message = 'Hello world';
+      const secret = '123456';
       const emailSubject = 'Passwordless Auth OTP';
+      const emailBody = 'your code is: ####';
       const expectedAttributes = {
         Destination: {
           ToAddresses: ['baz@bar.com'],
@@ -40,11 +41,11 @@ void describe('SES Service', () => {
           Body: {
             Html: {
               Charset: 'UTF-8',
-              Data: 'Hello world',
+              Data: 'your code is: 123456',
             },
             Text: {
               Charset: 'UTF-8',
-              Data: 'Hello world',
+              Data: 'your code is: 123456',
             },
           },
           Subject: {
@@ -58,41 +59,21 @@ void describe('SES Service', () => {
       const sendMock = mock.method(mockSesClient, 'send');
 
       const sesConfig: SesServiceConfig = {
-        fromAddress: fromAddress,
-        emailSubject: emailSubject,
+        otp: {
+          fromAddress: fromAddress,
+          subject: emailSubject,
+          body: emailBody,
+        },
       };
 
       const mockSmsService = new SesService(mockSesClient, sesConfig);
 
       strictEqual(sendMock.mock.callCount(), 0);
-      await mockSmsService.send(message, toAddress);
+      await mockSmsService.send(secret, toAddress, 'OTP');
       const actualEmailCommand = sendMock.mock.calls[0]
         .arguments[0] as SendEmailCommand;
       strictEqual(sendMock.mock.callCount(), 1);
       deepStrictEqual(actualEmailCommand.input, expectedAttributes);
-    });
-
-    void it('should throw an error when fromAddress is not provided', async () => {
-      const fromAddress = undefined;
-      const toAddress = '';
-      const message = 'Hello world';
-      const emailSubject = 'Passwordless Auth OTP';
-
-      const sesConfig: SesServiceConfig = {
-        fromAddress: fromAddress,
-        emailSubject: emailSubject,
-      };
-
-      const mockSmsService = new SesService(mockSesClient, sesConfig);
-
-      await mockSmsService
-        .send(message, toAddress)
-        .catch((err) =>
-          strictEqual(
-            err.message,
-            'The `fromAddress` is required for OTP via email! Please set `passwordlessOptions.otp.fromAddress` when defining the Passwordless Construct.'
-          )
-        );
     });
   });
 
@@ -112,18 +93,6 @@ void describe('SES Service', () => {
       const email = 'fo@bar.com';
       const maskedEmail = mockSmsService.mask(email);
       strictEqual(maskedEmail, 'f****o@***.***');
-    });
-  });
-
-  void describe('createMessage()', () => {
-    beforeEach(() => {
-      sesService = new SesService(mockSesClient, sesConfig);
-    });
-    void it('should create a message', () => {
-      const mockSmsService = sesService;
-      const otpCode = '123456';
-      const message = mockSmsService.createMessage(otpCode);
-      strictEqual(message, `Your verification code is: ${otpCode}`);
     });
   });
 });
