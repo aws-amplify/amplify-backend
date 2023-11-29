@@ -33,7 +33,7 @@ export abstract class AmplifyError extends Error {
   ) {
     // If an AmplifyError was already thrown, we must allow it to reach the user.
     // This ensures that resolution steps, and the original error are bubbled up.
-    super(options.message);
+    super(options.message, { cause });
 
     // https://github.com/Microsoft/TypeScript-wiki/blob/main/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
     Object.setPrototypeOf(this, AmplifyError.prototype);
