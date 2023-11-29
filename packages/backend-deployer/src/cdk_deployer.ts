@@ -217,8 +217,10 @@ export class CDKDeployer implements BackendDeployer {
       await childProcess;
       return cdkOutput;
     } catch (error) {
-      // swallow execa error which is not really helpful rather throw the entire stderr
-      // for clients to figure out what to do with it.
+      // swallow execa error which is most of the time noise (basically child exited with exit code...)
+      // bubbling this up to customers add confusion (Customers don't need to know we are running IPC calls
+      // and their exit codes printed while sandbox continue to run)
+      // rather throw the entire stderr for clients to figure out what to do with it.
       throw new Error(aggregatedStderr);
     }
   };
