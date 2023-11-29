@@ -5,11 +5,10 @@ import {
   BackendDeployer,
   DeployProps,
   DeployResult,
-  DestroyProps,
   DestroyResult,
 } from './cdk_deployer_singleton_factory.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
-import { BackendIdentifier, DeploymentType } from '@aws-amplify/plugin-types';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import {
   AmplifyUserError,
   BackendLocator,
@@ -39,14 +38,14 @@ export class CDKDeployer implements BackendDeployer {
   /**
    * Invokes cdk deploy command
    */
-  deploy = async (backendId?: BackendIdentifier, deployProps?: DeployProps) => {
+  deploy = async (backendId: BackendIdentifier, deployProps?: DeployProps) => {
     await this.invokeTsc(deployProps);
 
     const cdkCommandArgs: string[] = [];
-    if (deployProps?.deploymentType === 'sandbox') {
+    if (backendId.type === 'sandbox') {
       cdkCommandArgs.push('--hotswap-fallback');
       cdkCommandArgs.push('--method=direct');
-      if (deployProps.secretLastUpdated) {
+      if (deployProps?.secretLastUpdated) {
         cdkCommandArgs.push(
           '--context',
           `secretLastUpdated=${deployProps.secretLastUpdated.getTime()}`
@@ -57,7 +56,6 @@ export class CDKDeployer implements BackendDeployer {
     return this.tryInvokeCdk(
       InvokableCommand.DEPLOY,
       backendId,
-      deployProps?.deploymentType,
       cdkCommandArgs
     );
   };
@@ -65,16 +63,8 @@ export class CDKDeployer implements BackendDeployer {
   /**
    * Invokes cdk destroy command
    */
-  destroy = async (
-    backendId?: BackendIdentifier,
-    destroyProps?: DestroyProps
-  ) => {
-    return this.tryInvokeCdk(
-      InvokableCommand.DESTROY,
-      backendId,
-      destroyProps?.deploymentType,
-      ['--force']
-    );
+  destroy = async (backendId: BackendIdentifier) => {
+    return this.tryInvokeCdk(InvokableCommand.DESTROY, backendId, ['--force']);
   };
 
   private invokeTsc = async (deployProps?: DeployProps) => {
@@ -122,15 +112,13 @@ export class CDKDeployer implements BackendDeployer {
    */
   private tryInvokeCdk = async (
     invokableCommand: InvokableCommand,
-    backendId?: BackendIdentifier,
-    deploymentType?: DeploymentType,
+    backendId: BackendIdentifier,
     additionalArguments?: string[]
   ): Promise<DeployResult | DestroyResult> => {
     try {
       return await this.invokeCdk(
         invokableCommand,
         backendId,
-        deploymentType,
         additionalArguments
       );
     } catch (err) {
@@ -143,8 +131,7 @@ export class CDKDeployer implements BackendDeployer {
    */
   private invokeCdk = async (
     invokableCommand: InvokableCommand,
-    backendId?: BackendIdentifier,
-    deploymentType?: DeploymentType,
+    backendId: BackendIdentifier,
     additionalArguments?: string[]
   ): Promise<DeployResult | DestroyResult> => {
     // Basic args
@@ -162,25 +149,21 @@ export class CDKDeployer implements BackendDeployer {
     ];
 
     // Add context information if available
-    if (backendId) {
-      cdkCommandArgs.push(
-        '--context',
-        `${CDKContextKey.BACKEND_NAMESPACE}=${backendId.namespace}`,
-        '--context',
-        `${CDKContextKey.BACKEND_NAME}=${backendId.name}`
-      );
+    cdkCommandArgs.push(
+      '--context',
+      `${CDKContextKey.BACKEND_NAMESPACE}=${backendId.namespace}`,
+      '--context',
+      `${CDKContextKey.BACKEND_NAME}=${backendId.name}`
+    );
 
-      if (deploymentType !== 'sandbox') {
-        cdkCommandArgs.push('--require-approval', 'never');
-      }
+    if (backendId.type !== 'sandbox') {
+      cdkCommandArgs.push('--require-approval', 'never');
     }
 
-    if (deploymentType) {
-      cdkCommandArgs.push(
-        '--context',
-        `${CDKContextKey.DEPLOYMENT_TYPE}=${deploymentType}`
-      );
-    }
+    cdkCommandArgs.push(
+      '--context',
+      `${CDKContextKey.DEPLOYMENT_TYPE}=${backendId.type}`
+    );
 
     if (additionalArguments) {
       cdkCommandArgs.push(...additionalArguments);
@@ -236,7 +219,7 @@ export class CDKDeployer implements BackendDeployer {
     } catch (error) {
       // swallow execa error which is most of the time noise (basically child exited with exit code...)
       // bubbling this up to customers add confusion (Customers don't need to know we are running IPC calls
-      // and their exit codes printed while sandbox continue to run)
+      // and their exit codes printed while sandbox continue to run). Hence we explicitly don't pass error in the cause
       // rather throw the entire stderr for clients to figure out what to do with it.
       throw new Error(aggregatedStderr);
     }

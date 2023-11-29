@@ -230,7 +230,6 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
       testSandboxBackendId,
       {
-        deploymentType: 'sandbox',
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: false,
       },
@@ -258,7 +257,6 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
       testSandboxBackendId,
       {
-        deploymentType: 'sandbox',
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
@@ -290,7 +288,6 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
       testSandboxBackendId,
       {
-        deploymentType: 'sandbox',
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
@@ -325,7 +322,6 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
       testSandboxBackendId,
       {
-        deploymentType: 'sandbox',
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
@@ -346,7 +342,6 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
       testSandboxBackendId,
       {
-        deploymentType: 'sandbox',
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: false,
       },
@@ -373,7 +368,6 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
       testSandboxBackendId,
       {
-        deploymentType: 'sandbox',
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
@@ -396,7 +390,6 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
       testSandboxBackendId,
       {
-        deploymentType: 'sandbox',
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
@@ -405,7 +398,6 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepEqual(backendDeployerDeployMock.mock.calls[1].arguments, [
       testSandboxBackendId,
       {
-        deploymentType: 'sandbox',
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
@@ -443,7 +435,6 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
       testSandboxBackendId,
       {
-        deploymentType: 'sandbox',
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
@@ -452,7 +443,6 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepEqual(backendDeployerDeployMock.mock.calls[1].arguments, [
       testSandboxBackendId,
       {
-        deploymentType: 'sandbox',
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
@@ -472,9 +462,6 @@ void describe('Sandbox using local project name resolver', () => {
     // BackendDeployer should be called with the right params
     assert.deepEqual(backendDeployerDestroyMock.mock.calls[0].arguments, [
       testSandboxBackendId,
-      {
-        deploymentType: 'sandbox',
-      },
     ]);
   });
 
@@ -647,7 +634,6 @@ void describe('Sandbox using local project name resolver', () => {
         type: 'sandbox',
       },
       {
-        deploymentType: 'sandbox',
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
@@ -671,9 +657,6 @@ void describe('Sandbox using local project name resolver', () => {
         namespace: 'testSandboxId',
         name: 'customSandboxName',
         type: 'sandbox',
-      },
-      {
-        deploymentType: 'sandbox',
       },
     ]);
   });
