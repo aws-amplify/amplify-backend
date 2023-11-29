@@ -1,6 +1,5 @@
 import { ClientConfigFormat } from '@aws-amplify/client-config';
 import {
-  AmplifyError,
   AmplifyFault,
   AmplifyUserError,
   UsageDataEmitter,

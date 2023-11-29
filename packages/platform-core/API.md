@@ -8,16 +8,16 @@ import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import z from 'zod';
 
 // @public
-export class AmplifyError extends Error {
-    constructor(name: AmplifyErrorType, classification: AmplifyErrorClassification, options: AmplifyErrorOptions, downstreamError?: Error | undefined);
+export abstract class AmplifyError extends Error {
+    constructor(name: AmplifyErrorType, classification: AmplifyErrorClassification, options: AmplifyErrorOptions, cause?: Error | undefined);
+    // (undocumented)
+    readonly cause?: Error | undefined;
     // (undocumented)
     readonly classification: AmplifyErrorClassification;
     // (undocumented)
     readonly code?: string;
     // (undocumented)
     readonly details?: string;
-    // (undocumented)
-    readonly downstreamError?: Error | undefined;
     // (undocumented)
     static fromError: (error: unknown) => AmplifyError;
     // (undocumented)
@@ -51,7 +51,7 @@ export type AmplifyErrorType = AmplifyUserErrorType | AmplifyLibraryFaultType;
 
 // @public
 export class AmplifyFault extends AmplifyError {
-    constructor(name: AmplifyLibraryFaultType, options: AmplifyErrorOptions, downstreamError?: Error);
+    constructor(name: AmplifyLibraryFaultType, options: AmplifyErrorOptions, cause?: Error);
 }
 
 // @public
@@ -59,7 +59,7 @@ export type AmplifyLibraryFaultType = 'UnknownFault';
 
 // @public
 export class AmplifyUserError extends AmplifyError {
-    constructor(name: AmplifyUserErrorType, options: AmplifyErrorOptions, downstreamError?: Error);
+    constructor(name: AmplifyUserErrorType, options: AmplifyErrorOptions, cause?: Error);
 }
 
 // @public
