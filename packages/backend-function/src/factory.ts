@@ -14,11 +14,11 @@ import { getCallerDirectory } from './get_caller_directory.js';
  * Entry point for defining a function in the Amplify ecosystem
  */
 export const defineFunction = (
-  props: FunctionFactoryProps = {}
+  props: FunctionProps = {}
 ): ConstructFactory<Construct & ResourceProvider<FunctionResources>> =>
   new FunctionFactory(props, new Error().stack);
 
-export type FunctionFactoryProps = {
+export type FunctionProps = {
   /**
    * A name for the function.
    * Defaults to the basename of the entry path if specified.
@@ -33,7 +33,7 @@ export type FunctionFactoryProps = {
    * The path to the file that contains the function entry point.
    * If this is a relative path, it is computed relative to the file where this function is defined
    *
-   * Defaults to './handler.js'
+   * Defaults to './handler.ts'
    */
   entry?: string;
 };
@@ -47,7 +47,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
    * Create a new AmplifyFunctionFactory
    */
   constructor(
-    private readonly props: FunctionFactoryProps,
+    private readonly props: FunctionProps,
     private readonly callerStack?: string
   ) {}
 
@@ -100,7 +100,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
   };
 }
 
-type HydratedFunctionProps = Required<FunctionFactoryProps>;
+type HydratedFunctionProps = Required<FunctionProps>;
 
 class FunctionGenerator implements ConstructContainerEntryGenerator {
   readonly resourceGroupName = 'function';

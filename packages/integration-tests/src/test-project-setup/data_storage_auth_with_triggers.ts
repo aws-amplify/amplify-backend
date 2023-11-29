@@ -7,7 +7,7 @@ import { TestProjectBase, TestProjectUpdate } from './test_project_base.js';
 import { fileURLToPath, pathToFileURL } from 'url';
 import path from 'path';
 import { TestProjectCreator } from './test_project_creator.js';
-import { findDeployedResources } from '../find_deployed_resource.js';
+import { DeployedResourcesFinder } from '../find_deployed_resource.js';
 import assert from 'node:assert';
 import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
 
@@ -31,7 +31,8 @@ export class DataStorageAuthWithTriggerTestProjectCreator
   constructor(
     private readonly cfnClient: CloudFormationClient,
     private readonly secretClient: SecretClient,
-    private readonly lambdaClient: LambdaClient
+    private readonly lambdaClient: LambdaClient,
+    private readonly resourceFinder: DeployedResourcesFinder
   ) {}
 
   createProject = async (e2eProjectDir: string): Promise<TestProjectBase> => {
@@ -44,7 +45,8 @@ export class DataStorageAuthWithTriggerTestProjectCreator
       projectAmplifyDir,
       this.cfnClient,
       this.secretClient,
-      this.lambdaClient
+      this.lambdaClient,
+      this.resourceFinder
     );
     await fs.cp(
       project.sourceProjectAmplifyDirPath,
@@ -92,7 +94,8 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     projectAmplifyDirPath: string,
     cfnClient: CloudFormationClient,
     private readonly secretClient: SecretClient,
-    private readonly lambdaClient: LambdaClient
+    private readonly lambdaClient: LambdaClient,
+    private readonly resourceFinder: DeployedResourcesFinder
   ) {
     super(name, projectDirPath, projectAmplifyDirPath, cfnClient);
   }
@@ -143,28 +146,25 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     // Check that deployed lambda is working correctly
 
     // find lambda function
-    const lambdas = await findDeployedResources(
-      this.cfnClient,
+    const lambdas = await this.resourceFinder.find(
       backendId,
-      'AWS::Lambda::Function'
+      'AWS::Lambda::Function',
+      (name) => name.includes('specialTestFunction')
     );
 
-    const projectLambda = lambdas.find((lambdaName) =>
-      lambdaName.includes('specialTestFunction')
-    );
+    assert.equal(lambdas.length, 1);
 
     // invoke the lambda
     const response = await this.lambdaClient.send(
-      new InvokeCommand({ FunctionName: projectLambda })
+      new InvokeCommand({ FunctionName: lambdas[0] })
     );
     const responsePayload = response.Payload?.transformToString();
 
     // check expected response
-    assert.ok(
-      responsePayload && responsePayload.includes('Your uuid is'),
-      `Expected lambda payload to include "Your uuid is". Actual payload was ${
-        responsePayload ?? '[undefined]'
-      }`
+    assert.equal(
+      responsePayload,
+      // eslint-disable-next-line spellcheck/spell-checker
+      'Your uuid is 6ec0bd7f-11c0-43da-975e-2a8ad9ebae0b'
     );
   }
 
