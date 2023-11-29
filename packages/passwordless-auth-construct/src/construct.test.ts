@@ -1,23 +1,28 @@
-import { describe, it } from 'node:test';
+import { beforeEach, describe, it } from 'node:test';
 import { App, Stack } from 'aws-cdk-lib';
 import { Match, Template } from 'aws-cdk-lib/assertions';
 import { AmplifyPasswordlessAuth } from './construct.js';
 import { AmplifyAuth } from '@aws-amplify/auth-construct-alpha';
 import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
-import { throws } from 'node:assert';
+import { equal, notEqual, throws } from 'node:assert';
+import { findPolicyResource } from './mocks/construct.js';
+
+const mockOriginationNumber = '1234567890';
 
 void describe('Passwordless Auth construct', () => {
-  const app = new App();
-  const stack = new Stack(app);
-  const auth = new AmplifyAuth(stack, 'testAuth', {
-    loginWith: { email: true },
-  });
-  new AmplifyPasswordlessAuth(stack, 'test', auth, {
-    magicLink: { fromAddress: 'foo@example.com' },
-  });
-  const template = Template.fromStack(stack);
-
   void describe('Triggers', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const auth = new AmplifyAuth(stack, 'testAuth', {
+      loginWith: { email: true },
+    });
+    new AmplifyPasswordlessAuth(stack, 'test', auth, {
+      magicLink: {
+        allowedOrigins: [],
+        email: { fromAddress: 'foo@example.com' },
+      },
+    });
+    const template = Template.fromStack(stack);
     const triggers = [
       'DefineAuthChallenge',
       'CreateAuthChallenge',
@@ -51,8 +56,146 @@ void describe('Passwordless Auth construct', () => {
     auth.addTrigger('createAuthChallenge', testFunc);
     throws(() => {
       new AmplifyPasswordlessAuth(stack, 'test', auth, {
-        magicLink: { fromAddress: 'foo@example.com' },
+        magicLink: {
+          allowedOrigins: [],
+          email: { fromAddress: 'foo@example.com' },
+        },
       });
+    });
+  });
+
+  void describe('createAuthChallenge ses and sns policies', () => {
+    const createAuthChallengeMatch = new RegExp(/CreateAuthChallenge/);
+
+    let stack: Stack;
+    let auth: AmplifyAuth;
+
+    beforeEach(() => {
+      const app = new App();
+      stack = new Stack(app);
+      const id = 'testAuth';
+      auth = new AmplifyAuth(stack, id, {
+        loginWith: { email: true },
+      });
+    });
+
+    void it('should add ses policy only when OTP is enabled via email only', () => {
+      new AmplifyPasswordlessAuth(stack, 'test', auth, {
+        otp: {
+          email: { fromAddress: 'foo@example.com' },
+        },
+      });
+      const template = Template.fromStack(stack);
+      const sesResource = findPolicyResource(
+        template,
+        createAuthChallengeMatch,
+        {
+          Action: 'ses:SendEmail',
+          Effect: 'Allow',
+        }
+      );
+      notEqual(sesResource, undefined);
+      const snsResource = findPolicyResource(
+        template,
+        createAuthChallengeMatch,
+        {
+          Action: 'sns:publish',
+          Effect: 'Allow',
+          NotResource: 'arn:aws:sns:*:*:*',
+        }
+      );
+      equal(snsResource, undefined);
+    });
+
+    void it('should add ses policy only when Magic Link is enabled via email only', () => {
+      new AmplifyPasswordlessAuth(stack, 'test', auth, {
+        magicLink: {
+          allowedOrigins: ['https://example.com'],
+          email: { fromAddress: 'foo@example.com' },
+        },
+      });
+      const template = Template.fromStack(stack);
+
+      const sesResource = findPolicyResource(
+        template,
+        createAuthChallengeMatch,
+        {
+          Action: 'ses:SendEmail',
+          Effect: 'Allow',
+        }
+      );
+      notEqual(sesResource, undefined);
+      const snsResource = findPolicyResource(
+        template,
+        createAuthChallengeMatch,
+        {
+          Action: 'sns:publish',
+          Effect: 'Allow',
+          NotResource: 'arn:aws:sns:*:*:*',
+        }
+      );
+      equal(snsResource, undefined);
+    });
+
+    void it('should add sns policy only when otp is enabled via SMS only', () => {
+      new AmplifyPasswordlessAuth(stack, 'test', auth, {
+        otp: {
+          sms: {
+            originationNumber: mockOriginationNumber,
+          },
+        },
+      });
+      const template = Template.fromStack(stack);
+      const sesResource = findPolicyResource(
+        template,
+        createAuthChallengeMatch,
+        {
+          Action: 'ses:SendEmail',
+          Effect: 'Allow',
+        }
+      );
+      equal(sesResource, undefined);
+      const snsResource = findPolicyResource(
+        template,
+        createAuthChallengeMatch,
+        {
+          Action: 'sns:publish',
+          Effect: 'Allow',
+          NotResource: 'arn:aws:sns:*:*:*',
+        }
+      );
+      notEqual(snsResource, undefined);
+    });
+
+    void it('should add sns + ses policies when otp is enabled via SMS and Email', () => {
+      new AmplifyPasswordlessAuth(stack, 'test', auth, {
+        otp: {
+          sms: {
+            originationNumber: mockOriginationNumber,
+          },
+          email: { fromAddress: 'foo@example.com' },
+        },
+      });
+      const template = Template.fromStack(stack);
+      const sesResource = findPolicyResource(
+        template,
+        createAuthChallengeMatch,
+        {
+          Action: 'ses:SendEmail',
+          Effect: 'Allow',
+        }
+      );
+      notEqual(sesResource, undefined);
+      const snsResource = findPolicyResource(
+        template,
+        createAuthChallengeMatch,
+        {
+          Action: 'sns:publish',
+          Effect: 'Allow',
+          NotResource: 'arn:aws:sns:*:*:*',
+        }
+      );
+      notEqual(snsResource, undefined);
     });
   });
 });
