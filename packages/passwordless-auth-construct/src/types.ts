@@ -72,14 +72,6 @@ export type DeliveryService = {
     destination: string,
     challengeType: SignInMethod
   ) => Promise<void>;
-
-  /**
-   * Mask a destination
-   * Example: +12345678901 => +*********8901
-   * @param destination The destination to mask
-   * @returns The masked destination,
-   */
-  mask: (destination: string) => string;
 };
 
 /**
@@ -139,15 +131,13 @@ type InitiateAuthChallengeParams = {
   nextStep: 'PROVIDE_AUTH_PARAMETERS'; //
 };
 
-type RespondToAutChallengeParams = {
+type RespondToAutChallengeParams = CodeDeliveryDetails & {
   nextStep: 'PROVIDE_CHALLENGE_RESPONSE';
-  codeDeliveryDetails: CodeDeliveryDetails;
 };
 
 export type CodeDeliveryDetails = {
   attributeName: 'email' | 'phone_number';
   deliveryMedium: DeliveryMedium;
-  destination: string;
 };
 
 export type DeliveryMedium = 'SMS' | 'EMAIL';

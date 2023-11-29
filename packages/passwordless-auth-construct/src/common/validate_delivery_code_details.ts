@@ -9,7 +9,7 @@ import { CodeDeliveryDetails } from '../types.js';
  */
 export const validateDeliveryCodeDetails = (
   event: CreateAuthChallengeTriggerEvent
-): CodeDeliveryDetails => {
+): CodeDeliveryDetails & { destination: string } => {
   const {
     email,
     phone_number: phoneNumber,

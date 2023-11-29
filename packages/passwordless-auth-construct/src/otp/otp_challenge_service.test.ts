@@ -19,7 +19,6 @@ import { OtpChallengeService } from './otp_challenge_service.js';
 class MockDeliveryService implements DeliveryService {
   constructor(public deliveryMedium: DeliveryMedium) {}
   send = async (): Promise<void> => Promise.resolve();
-  mask = (): string => '';
 }
 
 void describe('OTP Challenge', () => {
@@ -76,21 +75,14 @@ void describe('OTP Challenge', () => {
           return;
         }
       );
-      const maskMock = mock.method(
-        mockSmsService,
-        'mask',
-        () => expectedPhoneNumber
-      );
 
       strictEqual(sendMock.mock.callCount(), 0);
-      strictEqual(maskMock.mock.callCount(), 0);
 
       const result = await otpChallenge.createChallenge(
         smsRequestCreateChallengeEvent
       );
 
       strictEqual(sendMock.mock.callCount(), 1);
-      strictEqual(maskMock.mock.callCount(), 1);
 
       const secret = sendMock.mock.calls[0].arguments[0] ?? '';
       const actualPhoneNumber = sendMock.mock.calls[0].arguments[1];
@@ -100,10 +92,6 @@ void describe('OTP Challenge', () => {
       strictEqual(actualPhoneNumber, expectedPhoneNumber);
 
       // Assert that the public and private challenge parameters are set
-      strictEqual(
-        result.response.publicChallengeParameters.destination,
-        expectedPhoneNumber
-      );
       strictEqual(
         result.response.publicChallengeParameters.deliveryMedium,
         'SMS'

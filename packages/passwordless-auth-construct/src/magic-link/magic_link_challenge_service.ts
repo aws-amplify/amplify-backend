@@ -7,6 +7,7 @@ import { logger } from '../logger.js';
 import { MagicLink, SignedMagicLink } from '../models/magic_link.js';
 import {
   ChallengeService,
+  CodeDeliveryDetails,
   MagicLinkConfig,
   SigningService,
   StorageService,
@@ -39,7 +40,8 @@ export class MagicLinkChallengeService implements ChallengeService {
     logger.info('Starting Create Challenge for Magic Link');
     // validate redirect URI and delivery details
     const redirectUri = this.validateRedirectUri(event.request);
-    const { deliveryMedium, destination } = validateDeliveryCodeDetails(event);
+    const { deliveryMedium, destination, attributeName } =
+      validateDeliveryCodeDetails(event);
     logger.debug(
       `Delivery medium: ${deliveryMedium}, destination: ${destination}`
     );
@@ -73,15 +75,19 @@ export class MagicLinkChallengeService implements ChallengeService {
     const fullRedirectUri = signedMagicLink.generateRedirectUri(redirectUri);
     await deliveryService.send(fullRedirectUri, destination, this.signInMethod);
 
-    // return response with masked email/phone
+    const deliveryDetails: CodeDeliveryDetails = {
+      attributeName,
+      deliveryMedium,
+    };
+
+    // return response with info were the code was sent
     const response: CreateAuthChallengeTriggerEvent = {
       ...event,
       response: {
         ...event.response,
         publicChallengeParameters: {
           ...event.response.publicChallengeParameters,
-          destination: deliveryService.mask(destination),
-          deliveryMedium: deliveryMedium,
+          ...deliveryDetails,
         },
       },
     };

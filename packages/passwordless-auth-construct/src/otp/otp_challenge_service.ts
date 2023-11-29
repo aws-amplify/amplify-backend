@@ -6,7 +6,7 @@ import { randomInt } from 'crypto';
 import { DeliveryServiceFactory } from '../factories/delivery_service_factory.js';
 import { logger } from '../logger.js';
 
-import { ChallengeService, OtpConfig } from '../types.js';
+import { ChallengeService, CodeDeliveryDetails, OtpConfig } from '../types.js';
 import { validateDeliveryCodeDetails } from '../common/validate_delivery_code_details.js';
 
 /**
@@ -39,13 +39,19 @@ export class OtpChallengeService implements ChallengeService {
   public createChallenge = async (
     event: CreateAuthChallengeTriggerEvent
   ): Promise<CreateAuthChallengeTriggerEvent> => {
-    const { deliveryMedium, destination } = validateDeliveryCodeDetails(event);
+    const { deliveryMedium, destination, attributeName } =
+      validateDeliveryCodeDetails(event);
 
     const otpCode = this.generateOtpCode();
 
     const deliveryService =
       this.deliveryServiceFactory.getService(deliveryMedium);
     await deliveryService.send(otpCode, destination, this.signInMethod);
+
+    const deliveryDetails: CodeDeliveryDetails = {
+      attributeName,
+      deliveryMedium,
+    };
 
     const response: CreateAuthChallengeTriggerEvent = {
       ...event,
@@ -57,8 +63,7 @@ export class OtpChallengeService implements ChallengeService {
         },
         publicChallengeParameters: {
           ...event.response.publicChallengeParameters,
-          destination: deliveryService.mask(destination),
-          deliveryMedium: deliveryMedium,
+          ...deliveryDetails,
         },
       },
     };

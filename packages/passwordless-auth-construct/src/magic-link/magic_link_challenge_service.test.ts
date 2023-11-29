@@ -30,7 +30,6 @@ const mockSignature = new Uint8Array([1]);
 class MockDeliveryService implements DeliveryService {
   deliveryMedium: DeliveryMedium = 'EMAIL';
   send = async () => Promise.resolve();
-  mask = () => '';
 }
 
 class MockKmsService implements SigningService {
