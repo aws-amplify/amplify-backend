@@ -1,5 +1,10 @@
 import { ClientConfigFormat } from '@aws-amplify/client-config';
-import { AmplifyError, UsageDataEmitter } from '@aws-amplify/platform-core';
+import {
+  AmplifyError,
+  AmplifyFault,
+  AmplifyUserError,
+  UsageDataEmitter,
+} from '@aws-amplify/platform-core';
 import assert from 'node:assert';
 import { afterEach, describe, it, mock } from 'node:test';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
@@ -83,7 +88,7 @@ void describe('sandbox_event_handler_factory', () => {
   });
 
   void it('calls the usage emitter on the failedDeployment event with AmplifyError', async () => {
-    const testError = new AmplifyError('BackendBuildError', 'ERROR', {
+    const testError = new AmplifyUserError('BackendBuildError', {
       message: 'test message',
     });
     await Promise.all(
@@ -122,9 +127,8 @@ void describe('sandbox_event_handler_factory', () => {
     assert.strictEqual(emitSuccessMock.mock.callCount(), 0);
     assert.strictEqual(emitFailureMock.mock.callCount(), 1);
 
-    const expectedError = new AmplifyError(
+    const expectedError = new AmplifyFault(
       'UnknownFault',
-      'FAULT',
       {
         message: 'Error: Some generic error',
       },

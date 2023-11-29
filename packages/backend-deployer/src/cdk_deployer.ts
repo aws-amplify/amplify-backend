@@ -106,10 +106,14 @@ export class CDKDeployer implements BackendDeployer {
         dirname(this.backendLocator.locate()),
       ]);
     } catch (err) {
-      throw new AmplifyUserError('SyntaxError', {
-        message:
-          'TypeScript validation check failed, check your backend definition',
-      });
+      throw new AmplifyUserError(
+        'SyntaxError',
+        {
+          message:
+            'TypeScript validation check failed, check your backend definition',
+        },
+        err instanceof Error ? err : undefined
+      );
     }
   };
 

@@ -277,7 +277,7 @@ void describe('invokeCDKCommand', () => {
           'The deployment role does not have sufficient permissions to perform this deployment.'
         );
         assert.equal(err.name, 'AccessDeniedError');
-        assert.equal(err.downstreamError?.message, 'Access Denied');
+        assert.equal(err.cause?.message, 'Access Denied');
         return true;
       }
     );

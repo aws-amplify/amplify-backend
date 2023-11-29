@@ -64,9 +64,9 @@ export class DefaultUsageDataEmitter implements UsageDataEmitter {
       error: options.error ? new SerializableError(options.error) : undefined,
       downstreamException:
         options.error &&
-        options.error.downstreamError &&
-        options.error.downstreamError instanceof Error
-          ? new SerializableError(options.error.downstreamError)
+        options.error.cause &&
+        options.error.cause instanceof Error
+          ? new SerializableError(options.error.cause)
           : undefined,
       payloadVersion: latestPayloadVersion,
       osPlatform: os.platform(),

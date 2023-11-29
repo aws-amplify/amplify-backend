@@ -2,6 +2,10 @@ import {
   AmplifyError,
   AmplifyErrorClassification,
   AmplifyErrorType,
+  AmplifyFault,
+  AmplifyLibraryFaultType,
+  AmplifyUserError,
+  AmplifyUserErrorType,
 } from '@aws-amplify/platform-core';
 
 /**
@@ -111,12 +115,17 @@ export class CdkErrorMapper {
           ? underlyingMessage[0]
           : error.message;
 
-      return new AmplifyError(
-        matchingError.errorName,
-        matchingError.classification,
-        { message: matchingError.humanReadableErrorMessage },
-        error
-      );
+      return matchingError.classification === 'ERROR'
+        ? new AmplifyUserError(
+            matchingError.errorName as AmplifyUserErrorType,
+            { message: matchingError.humanReadableErrorMessage },
+            error
+          )
+        : new AmplifyFault(
+            matchingError.errorName as AmplifyLibraryFaultType,
+            { message: matchingError.humanReadableErrorMessage },
+            error
+          );
     }
     return AmplifyError.fromError(error);
   };

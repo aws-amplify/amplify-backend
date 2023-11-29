@@ -1,7 +1,9 @@
+import { AmplifyFault, AmplifyUserError } from '.';
+
 /**
  * Base class for all Amplify errors or faults
  */
-export class AmplifyError extends Error {
+export abstract class AmplifyError extends Error {
   public serializedError?: string;
   public readonly message: string;
   public readonly resolution?: string;
@@ -14,24 +16,24 @@ export class AmplifyError extends Error {
    * @param name - a user friendly name for the exception
    * @param classification - LibraryFault or UserError
    * @param options - error stack, resolution steps, details, or help links
-   * @param downstreamError If you are throwing this exception from within a catch block,
+   * @param cause If you are throwing this exception from within a catch block,
    * you must provide the exception that was caught.
    * @example
    * try {
    *  ...
-   * } catch (downstreamError){
-   *    throw new AmplifyError(...,...,downstreamError);
+   * } catch (error){
+   *    throw new AmplifyError(...,...,error);
    * }
    */
   constructor(
     public readonly name: AmplifyErrorType,
     public readonly classification: AmplifyErrorClassification,
     private readonly options: AmplifyErrorOptions,
-    public readonly downstreamError?: Error
+    public readonly cause?: Error
   ) {
     // If an AmplifyError was already thrown, we must allow it to reach the user.
     // This ensures that resolution steps, and the original error are bubbled up.
-    super(options.message);
+    super(options.message, { cause });
 
     // https://github.com/Microsoft/TypeScript-wiki/blob/main/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
     Object.setPrototypeOf(this, AmplifyError.prototype);
@@ -42,8 +44,8 @@ export class AmplifyError extends Error {
     this.code = options.code;
     this.link = options.link;
 
-    if (downstreamError && downstreamError instanceof AmplifyError) {
-      downstreamError.serializedError = undefined;
+    if (cause && cause instanceof AmplifyError) {
+      cause.serializedError = undefined;
     }
     this.serializedError = JSON.stringify(this);
   }
@@ -54,12 +56,17 @@ export class AmplifyError extends Error {
     if (serialized && serialized.length == 2) {
       try {
         const errorObj = JSON.parse(serialized[1]) as AmplifyError;
-        return new AmplifyError(
-          errorObj.name,
-          errorObj.classification,
-          errorObj.options,
-          errorObj.downstreamError
-        );
+        return errorObj.classification === 'ERROR'
+          ? new AmplifyUserError(
+              errorObj.name as AmplifyUserErrorType,
+              errorObj.options,
+              errorObj.cause
+            )
+          : new AmplifyFault(
+              errorObj.name as AmplifyLibraryFaultType,
+              errorObj.options,
+              errorObj.cause
+            );
       } catch (error) {
         // cannot deserialize
       }
@@ -73,9 +80,8 @@ export class AmplifyError extends Error {
         ? `${error.name}: ${error.message}`
         : 'An unknown error happened. Check downstream error';
 
-    return new AmplifyError(
+    return new AmplifyFault(
       'UnknownFault',
-      'FAULT',
       {
         message: errorMessage,
       },

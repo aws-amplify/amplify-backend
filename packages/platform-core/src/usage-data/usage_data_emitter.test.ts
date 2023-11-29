@@ -10,7 +10,7 @@ import os from 'os';
 import { AccountIdFetcher } from './account_id_fetcher';
 import { UsageData } from './usage_data';
 import isCI from 'is-ci';
-import { AmplifyError } from '..';
+import { AmplifyError, AmplifyUserError } from '..';
 
 void describe('UsageDataEmitter', () => {
   let usageDataEmitter: DefaultUsageDataEmitter;
@@ -79,9 +79,13 @@ void describe('UsageDataEmitter', () => {
   });
 
   void test('happy case, emitFailure generates and send correct usage data', async () => {
-    const error = new AmplifyError('BackendBuildError', 'ERROR', {
-      message: 'some error message',
-    });
+    const error = new AmplifyUserError(
+      'BackendBuildError',
+      {
+        message: 'some error message',
+      },
+      new Error('some downstream exception')
+    );
     await setupAndInvokeUsageEmitter({ isSuccess: false, error });
 
     const usageDataSent: UsageData = JSON.parse(
@@ -103,7 +107,9 @@ void describe('UsageDataEmitter', () => {
     assert.ok(validate(usageDataSent.sessionUuid));
     assert.ok(validate(usageDataSent.installationUuid));
     assert.strictEqual(usageDataSent.error?.message, 'some error message');
-    assert.ok(usageDataSent.downstreamException == undefined);
+    assert.ok(
+      usageDataSent.downstreamException?.message == 'some downstream exception'
+    );
   });
 
   /**

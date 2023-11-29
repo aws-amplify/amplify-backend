@@ -106,7 +106,7 @@ void describe('invokeCDKCommand', { concurrency: 1 }, () => {
         assert.equal(humanReadableError.name, expectedErrorName);
         expectedDownstreamErrorMessage &&
           assert.equal(
-            humanReadableError.downstreamError?.message,
+            humanReadableError.cause?.message,
             expectedDownstreamErrorMessage
           );
       });

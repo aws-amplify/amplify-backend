@@ -319,8 +319,6 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
             ? error.cause.message
             : String(error.cause)
         }`;
-      } else if (error instanceof AmplifyError && error.downstreamError) {
-        message = `${message}\nCaused By: ${error.downstreamError.message}`;
       }
     } else message = String(error);
     return message;
