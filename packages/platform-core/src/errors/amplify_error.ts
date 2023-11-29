@@ -47,7 +47,12 @@ export abstract class AmplifyError extends Error {
     if (cause && cause instanceof AmplifyError) {
       cause.serializedError = undefined;
     }
-    this.serializedError = JSON.stringify(this);
+    this.serializedError = JSON.stringify({
+      name,
+      classification,
+      options,
+      cause,
+    });
   }
 
   static fromStderr = (_stderr: string): AmplifyError | undefined => {
@@ -55,18 +60,12 @@ export abstract class AmplifyError extends Error {
     const serialized = _stderr.match(extractionRegex);
     if (serialized && serialized.length == 2) {
       try {
-        const errorObj = JSON.parse(serialized[1]) as AmplifyError;
-        return errorObj.classification === 'ERROR'
-          ? new AmplifyUserError(
-              errorObj.name as AmplifyUserErrorType,
-              errorObj.options,
-              errorObj.cause
-            )
-          : new AmplifyFault(
-              errorObj.name as AmplifyLibraryFaultType,
-              errorObj.options,
-              errorObj.cause
-            );
+        const { name, classification, options, cause } = JSON.parse(
+          serialized[1]
+        );
+        return classification === 'ERROR'
+          ? new AmplifyUserError(name as AmplifyUserErrorType, options, cause)
+          : new AmplifyFault(name as AmplifyLibraryFaultType, options, cause);
       } catch (error) {
         // cannot deserialize
       }
