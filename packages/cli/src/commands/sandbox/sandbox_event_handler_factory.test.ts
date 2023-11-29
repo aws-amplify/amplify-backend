@@ -134,8 +134,20 @@ void describe('sandbox_event_handler_factory', () => {
       testError
     );
     assert.deepStrictEqual(
-      emitFailureMock.mock.calls[0].arguments[0],
-      expectedError
+      emitFailureMock.mock.calls[0].arguments[0].name,
+      expectedError.name
+    );
+    assert.deepStrictEqual(
+      emitFailureMock.mock.calls[0].arguments[0].message,
+      expectedError.message
+    );
+    assert.deepStrictEqual(
+      emitFailureMock.mock.calls[0].arguments[0].classification,
+      expectedError.classification
+    );
+    assert.deepStrictEqual(
+      emitFailureMock.mock.calls[0].arguments[0].cause.message,
+      expectedError.cause?.message
     );
     assert.deepStrictEqual(emitFailureMock.mock.calls[0].arguments[1], {
       command: 'Sandbox',
