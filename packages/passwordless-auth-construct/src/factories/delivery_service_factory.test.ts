@@ -9,13 +9,11 @@ void describe('DeliveryServiceFactory', () => {
       deliveryMedium: 'SMS',
       send: async () => undefined,
       mask: () => '',
-      createMessage: () => '',
     };
     const emailDeliveryService: DeliveryService = {
       deliveryMedium: 'EMAIL',
       send: async () => undefined,
       mask: () => '',
-      createMessage: () => '',
     };
 
     const factory = new DeliveryServiceFactory([
