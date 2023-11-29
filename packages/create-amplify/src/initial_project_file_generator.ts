@@ -58,6 +58,15 @@ export class InitialProjectFileGenerator {
       'es2022',
     ];
 
+    if (this.executableName === 'yarn') {
+      await this.executeWithDebugLogger(
+        targetDir,
+        'yarn',
+        ['add', 'typescript@^5'],
+        execa
+      );
+    }
+
     await this.executeWithDebugLogger(
       targetDir,
       this.executableName === 'npm' ? 'npx' : this.executableName,
