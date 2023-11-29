@@ -158,7 +158,9 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     const response = await this.lambdaClient.send(
       new InvokeCommand({ FunctionName: lambdas[0] })
     );
-    const responsePayload = response.Payload?.transformToString();
+    const responsePayload = JSON.parse(
+      response.Payload?.transformToString() || ''
+    );
 
     // check expected response
     assert.equal(
