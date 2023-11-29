@@ -9,7 +9,11 @@ import {
 } from './cdk_deployer_singleton_factory.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
-import { BackendLocator, CDKContextKey } from '@aws-amplify/platform-core';
+import {
+  AmplifyUserError,
+  BackendLocator,
+  CDKContextKey,
+} from '@aws-amplify/platform-core';
 import { dirname } from 'path';
 
 /**
@@ -49,14 +53,18 @@ export class CDKDeployer implements BackendDeployer {
       }
     }
 
-    return this.invokeCdk(InvokableCommand.DEPLOY, backendId, cdkCommandArgs);
+    return this.tryInvokeCdk(
+      InvokableCommand.DEPLOY,
+      backendId,
+      cdkCommandArgs
+    );
   };
 
   /**
    * Invokes cdk destroy command
    */
   destroy = async (backendId: BackendIdentifier) => {
-    return this.invokeCdk(InvokableCommand.DESTROY, backendId, ['--force']);
+    return this.tryInvokeCdk(InvokableCommand.DESTROY, backendId, ['--force']);
   };
 
   private invokeTsc = async (deployProps?: DeployProps) => {
@@ -78,14 +86,44 @@ export class CDKDeployer implements BackendDeployer {
       // If we cannot load ts config, turn off type checking
       return;
     }
-    await this.executeChildProcess('npx', [
-      'tsc',
-      '--noEmit',
-      '--skipLibCheck',
-      // pointing the project arg to the amplify backend directory will use the tsconfig present in that directory
-      '--project',
-      dirname(this.backendLocator.locate()),
-    ]);
+    try {
+      await this.executeChildProcess('npx', [
+        'tsc',
+        '--noEmit',
+        '--skipLibCheck',
+        // pointing the project arg to the amplify backend directory will use the tsconfig present in that directory
+        '--project',
+        dirname(this.backendLocator.locate()),
+      ]);
+    } catch (err) {
+      throw new AmplifyUserError(
+        'SyntaxError',
+        {
+          message:
+            'TypeScript validation check failed, check your backend definition',
+        },
+        err instanceof Error ? err : undefined
+      );
+    }
+  };
+
+  /**
+   * calls invokeCDK and wrap it in a try catch
+   */
+  private tryInvokeCdk = async (
+    invokableCommand: InvokableCommand,
+    backendId: BackendIdentifier,
+    additionalArguments?: string[]
+  ): Promise<DeployResult | DestroyResult> => {
+    try {
+      return await this.invokeCdk(
+        invokableCommand,
+        backendId,
+        additionalArguments
+      );
+    } catch (err) {
+      throw this.cdkErrorMapper.getAmplifyError(err as Error);
+    }
   };
 
   /**
@@ -131,11 +169,7 @@ export class CDKDeployer implements BackendDeployer {
       cdkCommandArgs.push(...additionalArguments);
     }
 
-    try {
-      return await this.executeChildProcess('npx', cdkCommandArgs);
-    } catch (err) {
-      throw this.cdkErrorMapper.getHumanReadableError(err as Error);
-    }
+    return await this.executeChildProcess('npx', cdkCommandArgs);
   };
 
   /**
@@ -183,7 +217,10 @@ export class CDKDeployer implements BackendDeployer {
       await childProcess;
       return cdkOutput;
     } catch (error) {
-      // swallow execa error which is not really helpful, rather throw stderr
+      // swallow execa error which is most of the time noise (basically child exited with exit code...)
+      // bubbling this up to customers add confusion (Customers don't need to know we are running IPC calls
+      // and their exit codes printed while sandbox continue to run). Hence we explicitly don't pass error in the cause
+      // rather throw the entire stderr for clients to figure out what to do with it.
       throw new Error(aggregatedStderr);
     }
   };

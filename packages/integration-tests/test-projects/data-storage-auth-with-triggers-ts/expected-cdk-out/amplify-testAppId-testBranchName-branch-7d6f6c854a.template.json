@@ -1,5 +1,5 @@
 {
- "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyPipelineDeploy\",\"createdWith\":\"0.5.4\",\"stackType\":\"root\",\"metadata\":{}}",
+ "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyPipelineDeploy\",\"createdWith\":\"0.5.5\",\"stackType\":\"root\",\"metadata\":{}}",
  "Metadata": {
   "AWS::Amplify::Platform": {
    "version": "1",
@@ -423,7 +423,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/5c41ca256392cb9a9c61aa6cedbae9fa9a12c5927d30678087511cbea6557158.json"
+       "/87aeaefe934ca0965957f8dd07a34567bd92cabf3305a2f27bf7d4da171a7b6f.json"
       ]
      ]
     }
@@ -450,7 +450,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/34165810aaf3ae2c8e32368cda1337ca1d9242720102a6e34bc223e4f3f4ac94.json"
+       "/fffd6fccba429f67fbf54e07b891ec22c20a81177a051793869310e6e94b2a73.json"
       ]
      ]
     }
@@ -477,7 +477,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/aae2917f7b6aa1fda37678972818215ed49129160005f03acfa90c29ad5f944f.json"
+       "/0d605cfcd689fb8650f00f193ce7572a75b06a8ccfaebc550876e3be9e352075.json"
       ]
      ]
     }
@@ -536,7 +536,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/8cb0cb7e2fea755b319e74e97fe0b43998c9c837960f4b83af9a7c43f039b86c.json"
+       "/a2923c8e0151bf1cc187b890c02128997bb14abb8009bda4e67e9771b0e30c7a.json"
       ]
      ]
     }

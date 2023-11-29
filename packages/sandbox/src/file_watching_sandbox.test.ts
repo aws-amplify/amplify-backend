@@ -20,6 +20,7 @@ import { Sandbox } from './sandbox.js';
 import { AmplifyPrompter } from '@aws-amplify/cli-core';
 import { fileURLToPath } from 'url';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 // Watcher mocks
 const unsubscribeMockFn = mock.fn();
@@ -512,7 +513,9 @@ void describe('Sandbox using local project name resolver', () => {
       'deploy',
       () =>
         Promise.reject(
-          new Error('[UpdateNotSupported] random BackendDeployer error')
+          new AmplifyUserError('CFNUpdateNotSupportedError', {
+            message: 'some error message',
+          })
         ),
       { times: 1 } //mock implementation once
     );
@@ -552,7 +555,9 @@ void describe('Sandbox using local project name resolver', () => {
       'deploy',
       () =>
         Promise.reject(
-          new Error('[UpdateNotSupported] random BackendDeployer error')
+          new AmplifyUserError('CFNUpdateNotSupportedError', {
+            message: 'some error message',
+          })
         ),
       { times: 1 } //mock implementation once
     );
