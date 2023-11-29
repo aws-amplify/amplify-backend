@@ -127,7 +127,7 @@ export class CDKDeployer implements BackendDeployer {
     additionalArguments?: string[]
   ): Promise<DeployResult | DestroyResult> => {
     try {
-      return this.invokeCdk(
+      return await this.invokeCdk(
         invokableCommand,
         backendId,
         deploymentType,
