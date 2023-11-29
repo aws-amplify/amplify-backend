@@ -109,7 +109,14 @@ void describe(
       // may lead to race conditions and corrupted npx cache.
       await execa(
         packageManagerExecutable,
-        ['create', 'amplify', '--yes', '--', '--help'],
+        [
+          'create',
+          'amplify',
+          ...(PACKAGE_MANAGER_EXECUTABLE === 'yarn-stable'
+            ? []
+            : ['--yes', '--']),
+          '--help',
+        ],
         {
           // Command must run outside of 'amplify-backend' workspace.
           cwd: os.homedir(),

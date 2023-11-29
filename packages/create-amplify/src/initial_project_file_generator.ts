@@ -47,7 +47,7 @@ export class InitialProjectFileGenerator {
         if (err) {
           console.error(`Error creating ${targetDir}/${targetDir}`, err);
         } else {
-          console.log(`${targetDir}/{yarn.lock created successfully.`);
+          console.log(`${targetDir}/yarn.lock created successfully.`);
         }
       });
     }
@@ -68,8 +68,8 @@ export class InitialProjectFileGenerator {
       '--target',
       'es2022',
     ];
-
-    if (this.executableName === 'yarn') {
+    console.log('🦋');
+    if (this.executableName.startsWith('yarn')) {
       await this.executeWithDebugLogger(
         targetDir,
         'yarn',
