@@ -13,7 +13,11 @@ import {
   SandboxMetadata,
 } from './deployed_backend_client_factory.js';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
-import { BackendOutputClient } from './backend_output_client_factory.js';
+import {
+  BackendOutputClient,
+  BackendOutputClientError,
+  BackendOutputClientErrorType,
+} from './backend_output_client_factory.js';
 import {
   CloudFormationClient,
   DeleteStackCommand,
@@ -69,6 +73,9 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
         .filter((stackSummary: StackSummary) => {
           return stackSummary.StackStatus !== StackStatus.DELETE_COMPLETE;
         })
+        .filter((stackSummary: StackSummary) => {
+          return this.isSandboxStack(stackSummary.StackName);
+        })
         .map(async (stackSummary: StackSummary) => {
           const deploymentType = await this.tryGetDeploymentType(stackSummary);
 
@@ -103,6 +110,12 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     };
   };
 
+  private isSandboxStack = (stackName: string | undefined): boolean => {
+    const backendIdentifier =
+      BackendIdentifierConversions.fromStackName(stackName);
+    return backendIdentifier?.type === 'sandbox';
+  };
+
   private tryGetDeploymentType = async (
     stackSummary: StackSummary
   ): Promise<DeploymentType | undefined> => {
@@ -116,8 +129,15 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
 
       return backendOutput[platformOutputKey].payload
         .deploymentType as DeploymentType;
-    } catch {
-      return;
+    } catch (error) {
+      if (
+        (error as BackendOutputClientError).code ===
+        BackendOutputClientErrorType.METADATA_RETRIEVAL_ERROR
+      ) {
+        // Ignore stacks where metadata cannot be retrieved. These are not Amplify stacks, or not compatible with this library.
+        return;
+      }
+      throw error;
     }
   };
 

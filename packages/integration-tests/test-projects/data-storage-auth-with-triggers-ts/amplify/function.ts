@@ -1,6 +1,6 @@
-import { Func } from '@aws-amplify/backend';
+import { defineFunction } from '@aws-amplify/backend';
 
-export const myFunc = Func.fromDir({
-  name: 'testFunc',
-  codePath: './func-src',
+export const myFunc = defineFunction({
+  name: 'specialTestFunction',
+  entry: './func-src/handler.ts',
 });

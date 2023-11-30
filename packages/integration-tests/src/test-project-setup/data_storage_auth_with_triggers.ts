@@ -7,6 +7,9 @@ import { TestProjectBase, TestProjectUpdate } from './test_project_base.js';
 import { fileURLToPath, pathToFileURL } from 'url';
 import path from 'path';
 import { TestProjectCreator } from './test_project_creator.js';
+import { DeployedResourcesFinder } from '../find_deployed_resource.js';
+import assert from 'node:assert';
+import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
 
 type TestConstant = {
   secretNames: {
@@ -27,7 +30,9 @@ export class DataStorageAuthWithTriggerTestProjectCreator
    */
   constructor(
     private readonly cfnClient: CloudFormationClient,
-    private readonly secretClient: SecretClient
+    private readonly secretClient: SecretClient,
+    private readonly lambdaClient: LambdaClient,
+    private readonly resourceFinder: DeployedResourcesFinder
   ) {}
 
   createProject = async (e2eProjectDir: string): Promise<TestProjectBase> => {
@@ -39,7 +44,9 @@ export class DataStorageAuthWithTriggerTestProjectCreator
       projectRoot,
       projectAmplifyDir,
       this.cfnClient,
-      this.secretClient
+      this.secretClient,
+      this.lambdaClient,
+      this.resourceFinder
     );
     await fs.cp(
       project.sourceProjectAmplifyDirPath,
@@ -86,7 +93,9 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     projectDirPath: string,
     projectAmplifyDirPath: string,
     cfnClient: CloudFormationClient,
-    private readonly secretClient: SecretClient
+    private readonly secretClient: SecretClient,
+    private readonly lambdaClient: LambdaClient,
+    private readonly resourceFinder: DeployedResourcesFinder
   ) {
     super(name, projectDirPath, projectAmplifyDirPath, cfnClient);
   }
@@ -129,7 +138,39 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     ];
   }
 
-  setUpDeployEnvironment = async (
+  override async assertPostDeployment(
+    backendId: BackendIdentifier
+  ): Promise<void> {
+    await super.assertPostDeployment(backendId);
+
+    // Check that deployed lambda is working correctly
+
+    // find lambda function
+    const lambdas = await this.resourceFinder.find(
+      backendId,
+      'AWS::Lambda::Function',
+      (name) => name.includes('specialTestFunction')
+    );
+
+    assert.equal(lambdas.length, 1);
+
+    // invoke the lambda
+    const response = await this.lambdaClient.send(
+      new InvokeCommand({ FunctionName: lambdas[0] })
+    );
+    const responsePayload = JSON.parse(
+      response.Payload?.transformToString() || ''
+    );
+
+    // check expected response
+    assert.equal(
+      responsePayload,
+      // eslint-disable-next-line spellcheck/spell-checker
+      'Your uuid is 6ec0bd7f-11c0-43da-975e-2a8ad9ebae0b'
+    );
+  }
+
+  private setUpDeployEnvironment = async (
     backendId: BackendIdentifier
   ): Promise<void> => {
     const { secretNames } = (await import(
@@ -142,7 +183,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     }
   };
 
-  clearDeployEnvironment = async (
+  private clearDeployEnvironment = async (
     backendId: BackendIdentifier
   ): Promise<void> => {
     const { secretNames } = (await import(

@@ -21,7 +21,7 @@
     "LambdaAuthorizerConfig": {
      "AuthorizerResultTtlInSeconds": 0,
      "AuthorizerUri": {
-      "Ref": "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionNestedStackfunctionNestedStackResource482C479FOutputsamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionApiAuthApiAuthLambdaFunctionCFF4ED65Arn"
+      "Ref": "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionNestedStackfunctionNestedStackResource482C479FOutputsamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionlambdaauthorizerlambdaD2057200Arn"
      },
      "IdentityValidationExpression": ""
     },
@@ -51,7 +51,7 @@
       "ApiId"
      ]
     },
-    "Expires": 1703205064
+    "Expires": 1703878640
    }
   },
   "amplifyDataGraphQLAPINONEDS684BF699": {
@@ -553,7 +553,7 @@
    ],
    "Description": "Enable server side encryption powered by KMS."
   },
-  "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionNestedStackfunctionNestedStackResource482C479FOutputsamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionApiAuthApiAuthLambdaFunctionCFF4ED65Arn": {
+  "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionNestedStackfunctionNestedStackResource482C479FOutputsamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionlambdaauthorizerlambdaD2057200Arn": {
    "Type": "String"
   }
  },
