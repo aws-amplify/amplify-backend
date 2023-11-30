@@ -29,7 +29,6 @@ const packageManagerSetup = async (
     }
   } else if (packageManagerExecutable.startsWith('yarn')) {
     if (packageManagerExecutable === 'yarn-stable') {
-      await execa('yarn', ['set', 'version', 'stable'], execaOptions);
       await execa('npm', ['pkg', 'set', 'type=module'], execaOptions); // `npm pkg set type="module"` only run when package.json does not exist, so we need to run it manually here
 
       await execa(
@@ -91,8 +90,15 @@ void describe(
       await execa('npm', ['run', 'vend'], { stdio: 'inherit' });
 
       // install package manager
-      if (PACKAGE_MANAGER_EXECUTABLE.startsWith('yarn')) {
+      if (PACKAGE_MANAGER_EXECUTABLE === 'yarn') {
         await execa('npm', ['install', '-g', 'yarn'], { stdio: 'inherit' });
+      } else if (PACKAGE_MANAGER_EXECUTABLE === 'yarn-stable') {
+        await execa('corepack', ['enable'], {
+          stdio: 'inherit',
+        });
+        await execa('yarn', ['init', '-2'], {
+          stdio: 'inherit',
+        });
       } else if (PACKAGE_MANAGER_EXECUTABLE === 'pnpm') {
         await execa('npm', ['install', '-g', PACKAGE_MANAGER_EXECUTABLE], {
           stdio: 'inherit',
