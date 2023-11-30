@@ -12,3 +12,5 @@ export type Backend<T extends Record<string, ConstructFactory<Construct>>> = {
     [K in keyof T]: ReturnType<T[K]['getInstance']>;
   };
 };
+
+// dummy change in package
