@@ -1,4 +1,4 @@
-import { Func, defineData } from '@aws-amplify/backend';
+import { defineData, defineFunction } from '@aws-amplify/backend';
 import { myFunc } from '../function';
 
 const schema = `
@@ -20,9 +20,9 @@ export const data = defineData({
     reverse: myFunc,
     // Leaving explicit Func invocation here,
     // ensuring we can use functions not added to `defineBackend`.
-    echo: Func.fromDir({
+    echo: defineFunction({
       name: 'echoFunc',
-      codePath: './echo',
+      entry: './echo/handler.js',
     }),
   },
 });

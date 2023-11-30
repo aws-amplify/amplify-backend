@@ -1,4 +1,4 @@
-import { Func, defineData } from '@aws-amplify/backend';
+import { defineData, defineFunction } from '@aws-amplify/backend';
 
 export const data = defineData({
   schema: /* GraphQL */ `
@@ -17,9 +17,9 @@ export const data = defineData({
   authorizationModes: {
     defaultAuthorizationMode: 'lambda',
     lambdaAuthorizationMode: {
-      function: Func.fromDir({
-        name: 'ApiAuth',
-        codePath: 'api-auth',
+      function: defineFunction({
+        // eslint-disable-next-line spellcheck/spell-checker
+        entry: './lambda_authorizer.ts',
       }),
       timeToLiveInSeconds: 0,
     },

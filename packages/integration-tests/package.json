@@ -10,12 +10,14 @@
     "@aws-amplify/backend-storage": "0.3.1",
     "@aws-amplify/client-config": "^0.4.0",
     "@aws-amplify/data-schema": "^0.12.9",
+    "@aws-amplify/platform-core": "^0.3.1",
     "@aws-sdk/client-amplify": "^3.440.0",
     "@aws-sdk/client-cloudformation": "^3.421.0",
-    "@aws-amplify/platform-core": "^0.3.1",
+    "@aws-sdk/client-lambda": "^3.460.0",
     "execa": "^8.0.1",
     "fs-extra": "^11.1.1",
-    "glob": "^10.2.7"
+    "glob": "^10.2.7",
+    "uuid": "^9.0.1"
   },
   "scripts": {
     "update:api": "api-extractor run --local"
