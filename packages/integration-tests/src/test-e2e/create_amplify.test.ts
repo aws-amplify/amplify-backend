@@ -29,7 +29,8 @@ const packageManagerSetup = async (
     }
   } else if (packageManagerExecutable.startsWith('yarn')) {
     if (packageManagerExecutable === 'yarn-stable') {
-      await execa('npm', ['pkg', 'set', 'type=module'], execaOptions); // `npm pkg set type="module"` only run when package.json does not exist, so we need to run it manually here
+      await execa('corepack', ['enable'], execaOptions);
+      await execa('yarn', ['init', '-2'], execaOptions);
 
       await execa(
         'yarn',
@@ -92,13 +93,6 @@ void describe(
       // install package manager
       if (PACKAGE_MANAGER_EXECUTABLE === 'yarn') {
         await execa('npm', ['install', '-g', 'yarn'], { stdio: 'inherit' });
-      } else if (PACKAGE_MANAGER_EXECUTABLE === 'yarn-stable') {
-        await execa('corepack', ['enable'], {
-          stdio: 'inherit',
-        });
-        await execa('yarn', ['init', '-2'], {
-          stdio: 'inherit',
-        });
       } else if (PACKAGE_MANAGER_EXECUTABLE === 'pnpm') {
         await execa('npm', ['install', '-g', PACKAGE_MANAGER_EXECUTABLE], {
           stdio: 'inherit',
@@ -106,9 +100,11 @@ void describe(
       }
 
       // nuke the npx cache to ensure we are installing packages from the npm proxy
-      await packageManagerSetup(
-        PACKAGE_MANAGER_EXECUTABLE as PackageManagerExecutable
-      );
+      if (PACKAGE_MANAGER_EXECUTABLE !== 'yarn-stable') {
+        await packageManagerSetup(
+          PACKAGE_MANAGER_EXECUTABLE as PackageManagerExecutable
+        );
+      }
 
       // Force 'create-amplify' installation in npx cache by executing help command
       // before tests run. Otherwise, installing 'create-amplify' concurrently
@@ -146,6 +142,13 @@ void describe(
             path.join(os.tmpdir(), 'test-create-amplify')
           );
           console.log('🗂️', tempDir);
+
+          if (PACKAGE_MANAGER_EXECUTABLE === 'yarn-stable') {
+            await packageManagerSetup(
+              PACKAGE_MANAGER_EXECUTABLE as PackageManagerExecutable,
+              tempDir
+            );
+          }
         });
 
         afterEach(async () => {
