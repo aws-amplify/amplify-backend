@@ -1,6 +1,6 @@
 'use strict';
 
-const { Func, defineData } = require('@aws-amplify/backend');
+const { defineFunction, defineData } = require('@aws-amplify/backend');
 
 const { myFunc } = require('../function.cjs');
 
@@ -23,9 +23,9 @@ const data = defineData({
     reverse: myFunc,
     // Leaving explicit Func invocation here,
     // ensuring we can use functions not added to `defineBackend`.
-    echo: Func.fromDir({
+    echo: defineFunction({
       name: 'echoFunc',
-      codePath: './echo',
+      entry: './echo/handler.cjs',
     }),
   },
 });

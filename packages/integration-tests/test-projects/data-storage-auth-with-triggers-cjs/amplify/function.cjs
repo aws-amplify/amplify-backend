@@ -1,10 +1,9 @@
 'use strict';
 
-const { Func } = require('@aws-amplify/backend');
+const { defineFunction } = require('@aws-amplify/backend');
 
-const myFunc = Func.fromDir({
-  name: 'testFunc',
-  codePath: './func-src',
+const myFunc = defineFunction({
+  entry: './func-src/handler.cjs',
 });
 
 module.exports = { myFunc };

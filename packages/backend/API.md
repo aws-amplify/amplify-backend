@@ -11,8 +11,8 @@ import { Construct } from 'constructs';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { defineAuth } from '@aws-amplify/backend-auth';
 import { defineData } from '@aws-amplify/backend-data';
+import { defineFunction } from '@aws-amplify/backend-function';
 import { defineStorage } from '@aws-amplify/backend-storage';
-import { Func } from '@aws-amplify/backend-function';
 import { Stack } from 'aws-cdk-lib';
 
 export { a }
@@ -34,9 +34,9 @@ export const defineBackend: <T extends Record<string, ConstructFactory<Construct
 
 export { defineData }
 
-export { defineStorage }
+export { defineFunction }
 
-export { Func }
+export { defineStorage }
 
 // @public
 export const secret: (name: string) => BackendSecret;

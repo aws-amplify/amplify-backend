@@ -3,6 +3,8 @@ import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { getSecretClient } from '@aws-amplify/backend-secret';
 import { DataStorageAuthWithTriggerTestProjectCreator } from './data_storage_auth_with_triggers.js';
 import { MinimalWithTypescriptIdiomTestProjectCreator } from './minimal_with_typescript_idioms.js';
+import { LambdaClient } from '@aws-sdk/client-lambda';
+import { DeployedResourcesFinder } from '../find_deployed_resource.js';
 
 export type TestProjectCreator = {
   readonly name: string;
@@ -15,9 +17,16 @@ export type TestProjectCreator = {
 export const getTestProjectCreators = (): TestProjectCreator[] => {
   const testProjectCreators: TestProjectCreator[] = [];
   const cfnClient = new CloudFormationClient();
+  const lambdaClient = new LambdaClient();
+  const resourceFinder = new DeployedResourcesFinder(cfnClient);
   const secretClient = getSecretClient();
   testProjectCreators.push(
-    new DataStorageAuthWithTriggerTestProjectCreator(cfnClient, secretClient),
+    new DataStorageAuthWithTriggerTestProjectCreator(
+      cfnClient,
+      secretClient,
+      lambdaClient,
+      resourceFinder
+    ),
     new MinimalWithTypescriptIdiomTestProjectCreator(cfnClient)
   );
   return testProjectCreators;
