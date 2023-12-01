@@ -7,5 +7,5 @@
     { "path": "../client-config" },
     { "path": "../platform-core" }
   ],
-  "exclude": ["**/node_modules", "**/lib", "src/e2e-tests"]
+  "exclude": ["**/node_modules", "**/lib"]
 }

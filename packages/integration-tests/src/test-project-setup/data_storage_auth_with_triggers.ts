@@ -58,7 +58,7 @@ export class DataStorageAuthWithTriggerTestProjectCreator
  */
 class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   readonly sourceProjectDirPath =
-    '../test-projects/data-storage-auth-with-triggers-ts';
+    '../../src/test-projects/data-storage-auth-with-triggers-ts';
 
   readonly sourceProjectAmplifyDirSuffix = `${this.sourceProjectDirPath}/amplify`;
 
@@ -181,7 +181,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     backendId: BackendIdentifier
   ): Promise<void> => {
     // clear secrets
-    for (const secretName in this.testSecretNames) {
+    for (const secretName of this.testSecretNames) {
       await this.secretClient.removeSecret(backendId, secretName);
     }
   };

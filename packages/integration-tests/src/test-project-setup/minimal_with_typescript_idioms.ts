@@ -43,7 +43,7 @@ export class MinimalWithTypescriptIdiomTestProjectCreator
  */
 class MinimalWithTypescriptIdiomTestProject extends TestProjectBase {
   readonly sourceProjectDirPath =
-    '../test-projects/minimalist-project-with-typescript-idioms';
+    '../../src/test-projects/minimalist-project-with-typescript-idioms';
 
   readonly sourceProjectAmplifyDirSuffix = `${this.sourceProjectDirPath}/amplify`;
 
