@@ -47,11 +47,7 @@
       "ApiId"
      ]
     },
-<<<<<<< HEAD
-    "Expires": 1704053556
-=======
-    "Expires": 1703878639
->>>>>>> main
+    "Expires": 1704056623
    }
   },
   "amplifyDataGraphQLAPINONEDS684BF699": {
