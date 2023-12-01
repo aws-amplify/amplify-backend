@@ -26,7 +26,7 @@ const schema = a.schema({
     .returns(a.ref('EchoResponse'))
     .authorization([a.allow.private()])
     .function('echo'),
-}) as never;
+}) as never; // Not 100% sure why TS is complaining here. The error I'm getting is "The inferred type of 'schema' references an inaccessible 'unique symbol' type. A type annotation is necessary."
 
 export type Schema = ClientSchema<typeof schema>;
 

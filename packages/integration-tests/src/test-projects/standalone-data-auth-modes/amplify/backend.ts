@@ -1,4 +1,4 @@
 import { defineBackend } from '@aws-amplify/backend';
-import { data } from './data/resource.js';
+import { dataWithoutAuth } from './test_factories.js';
 
-defineBackend({ data });
+defineBackend(dataWithoutAuth);
