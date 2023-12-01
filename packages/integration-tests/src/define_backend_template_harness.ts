@@ -22,9 +22,11 @@ export const assertStableLogicalIds = (
 };
 
 /**
- * Wrapper around `defineBackend` that returns the CDK Stack of each backend resource
+ * Wrapper around `defineBackend` that returns CDK Template objects for each backend resource
+ *
+ * Supplies stable CDK context values to the synth process for deterministic synth output
  */
-export const defineBackendTemplateHarness: DefineBackendStackHarness = <
+export const defineBackendTemplateHarness: DefineBackendTemplateHarness = <
   T extends Record<string, ConstructFactory<Construct>>
 >(
   constructFactories: T
@@ -53,7 +55,7 @@ export const defineBackendTemplateHarness: DefineBackendStackHarness = <
   return result as { [K in keyof T]: Template } & { root: Template };
 };
 
-type DefineBackendStackHarness = <
+type DefineBackendTemplateHarness = <
   T extends Record<string, ConstructFactory<Construct>>
 >(
   constructFactories: T
