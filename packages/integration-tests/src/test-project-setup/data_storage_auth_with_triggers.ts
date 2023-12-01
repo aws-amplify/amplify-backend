@@ -171,7 +171,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   private setUpDeployEnvironment = async (
     backendId: BackendIdentifier
   ): Promise<void> => {
-    for (const secretName in this.testSecretNames) {
+    for (const secretName of this.testSecretNames) {
       const secretValue = `${secretName}-e2eTestValue`;
       await this.secretClient.setSecret(backendId, secretName, secretValue);
     }
