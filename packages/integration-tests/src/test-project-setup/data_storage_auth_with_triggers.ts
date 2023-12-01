@@ -57,6 +57,8 @@ export class DataStorageAuthWithTriggerTestProjectCreator
  * Test project with data, storage, and auth categories.
  */
 class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
+  // Note that this is pointing to the non-transpiled project directory
+  // This allows us to test that we are able to deploy js, cjs, ts, etc without transpiling with tsc first
   readonly sourceProjectDirPath =
     '../../src/test-projects/data-storage-auth-with-triggers-ts';
 
