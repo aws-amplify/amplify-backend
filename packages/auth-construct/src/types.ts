@@ -199,11 +199,11 @@ export type ExternalProviderOptions = {
   /**
    * List of allowed redirect URLs for the identity providers.
    */
-  callbackUrls?: string[];
+  callbackUrls: string[];
   /**
    * List of allowed logout URLs for the identity providers.
    */
-  logoutUrls?: string[];
+  logoutUrls: string[];
 };
 
 /**

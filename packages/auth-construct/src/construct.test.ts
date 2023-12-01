@@ -914,6 +914,8 @@ void describe('Auth construct', () => {
               clientId: googleClientId,
               clientSecret: SecretValue.unsafePlainText(googleClientSecret),
             },
+            callbackUrls: ['https://redirect.com'],
+            logoutUrls: ['https://logout.com'],
           },
         },
       });
@@ -943,6 +945,8 @@ void describe('Auth construct', () => {
               clientId: googleClientId,
               clientSecret: SecretValue.unsafePlainText(googleClientSecret),
             },
+            callbackUrls: ['https://redirect.com'],
+            logoutUrls: ['https://logout.com'],
           },
         },
       });
@@ -972,6 +976,8 @@ void describe('Auth construct', () => {
               clientId: facebookClientId,
               clientSecret: facebookClientSecret,
             },
+            callbackUrls: ['https://redirect.com'],
+            logoutUrls: ['https://logout.com'],
           },
         },
       });
@@ -1001,6 +1007,8 @@ void describe('Auth construct', () => {
               clientId: facebookClientId,
               clientSecret: facebookClientSecret,
             },
+            callbackUrls: ['https://redirect.com'],
+            logoutUrls: ['https://logout.com'],
           },
         },
       });
@@ -1032,6 +1040,8 @@ void describe('Auth construct', () => {
               privateKey: applePrivateKey,
               teamId: appleTeamId,
             },
+            callbackUrls: ['https://redirect.com'],
+            logoutUrls: ['https://logout.com'],
           },
         },
       });
@@ -1063,6 +1073,8 @@ void describe('Auth construct', () => {
               privateKey: applePrivateKey,
               teamId: appleTeamId,
             },
+            callbackUrls: ['https://redirect.com'],
+            logoutUrls: ['https://logout.com'],
           },
         },
       });
@@ -1092,6 +1104,8 @@ void describe('Auth construct', () => {
               clientId: amazonClientId,
               clientSecret: amazonClientSecret,
             },
+            callbackUrls: ['https://redirect.com'],
+            logoutUrls: ['https://logout.com'],
           },
         },
       });
@@ -1121,6 +1135,8 @@ void describe('Auth construct', () => {
               clientId: amazonClientId,
               clientSecret: amazonClientSecret,
             },
+            callbackUrls: ['https://redirect.com'],
+            logoutUrls: ['https://logout.com'],
           },
         },
       });
@@ -1152,6 +1168,8 @@ void describe('Auth construct', () => {
               issuerUrl: oidcIssuerUrl,
               name: oidcProviderName,
             },
+            callbackUrls: ['https://redirect.com'],
+            logoutUrls: ['https://logout.com'],
           },
         },
       });
@@ -1178,6 +1196,8 @@ void describe('Auth construct', () => {
               issuerUrl: oidcIssuerUrl,
               name: oidcProviderName,
             },
+            callbackUrls: ['https://redirect.com'],
+            logoutUrls: ['https://logout.com'],
           },
         },
       });
@@ -1205,6 +1225,8 @@ void describe('Auth construct', () => {
                 metadataType: UserPoolIdentityProviderSamlMetadataType.FILE,
               },
             },
+            callbackUrls: ['https://redirect.com'],
+            logoutUrls: ['https://logout.com'],
           },
         },
       });
@@ -1232,6 +1254,8 @@ void describe('Auth construct', () => {
                 metadataType: UserPoolIdentityProviderSamlMetadataType.FILE,
               },
             },
+            callbackUrls: ['https://redirect.com'],
+            logoutUrls: ['https://logout.com'],
           },
         },
       });
@@ -1324,6 +1348,8 @@ void describe('Auth construct', () => {
                 metadataType: UserPoolIdentityProviderSamlMetadataType.FILE,
               },
             },
+            callbackUrls: ['https://redirect.com'],
+            logoutUrls: ['https://logout.com'],
           },
         },
       });
