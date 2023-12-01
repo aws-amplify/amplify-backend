@@ -22,7 +22,13 @@
     "passwordPolicyRequirements",
     "amazonClientId",
     "facebookClientId",
-    "googleClientId"
+    "googleClientId",
+    "socialProviders",
+    "oauthDomain",
+    "oauthScope",
+    "oauthRedirectSignIn",
+    "oauthRedirectSignOut",
+    "oauthResponseType"
    ]
   },
   "AWS::Amplify::Storage": {
@@ -121,6 +127,35 @@
      "Outputs.amplifytestAppIdtestBranchNamebranch7d6f6c854aauthtestGoogleIdSecretFetcherResource4E726239secretValue"
     ]
    }
+  },
+  "socialProviders": {
+   "Value": "[\"GOOGLE\",\"FACEBOOK\",\"AMAZON\"]"
+  },
+  "oauthDomain": {
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "amplify.auth.",
+      {
+       "Ref": "AWS::Region"
+      },
+      ".amazoncognito.com"
+     ]
+    ]
+   }
+  },
+  "oauthScope": {
+   "Value": "[\"phone\",\"email\",\"openid\",\"profile\",\"aws.cognito.signin.user.admin\"]"
+  },
+  "oauthRedirectSignIn": {
+   "Value": "https://redirect.com"
+  },
+  "oauthRedirectSignOut": {
+   "Value": "https://logout.com"
+  },
+  "oauthResponseType": {
+   "Value": "code"
   },
   "storageRegion": {
    "Value": {
@@ -423,7 +458,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/87aeaefe934ca0965957f8dd07a34567bd92cabf3305a2f27bf7d4da171a7b6f.json"
+       "/c848efbbb5753160fffa53b53c7bfe155151c66fdb5688a1939dad37029a2b73.json"
       ]
      ]
     }
@@ -536,7 +571,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/a2923c8e0151bf1cc187b890c02128997bb14abb8009bda4e67e9771b0e30c7a.json"
+       "/7c3372470c22878892d011b46328c519c2f0765e319032c2562e9505f4cb10c0.json"
       ]
      ]
     }

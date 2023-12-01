@@ -357,6 +357,15 @@
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete"
   },
+  "amplifyAuthUserPoolUserPoolDomain1F688B5B": {
+   "Type": "AWS::Cognito::UserPoolDomain",
+   "Properties": {
+    "Domain": "amplify",
+    "UserPoolId": {
+     "Ref": "amplifyAuthUserPool4BA7F805"
+    }
+   }
+  },
   "amplifyAuthUserPoolPostConfirmationCognitoE7E727CF": {
    "Type": "AWS::Lambda::Permission",
    "Properties": {
@@ -452,24 +461,26 @@
    "Type": "AWS::Cognito::UserPoolClient",
    "Properties": {
     "AllowedOAuthFlows": [
-     "implicit",
      "code"
     ],
     "AllowedOAuthFlowsUserPoolClient": true,
     "AllowedOAuthScopes": [
-     "profile",
      "phone",
      "email",
      "openid",
+     "profile",
      "aws.cognito.signin.user.admin"
     ],
     "CallbackURLs": [
-     "https://example.com"
+     "https://redirect.com"
     ],
     "ExplicitAuthFlows": [
      "ALLOW_CUSTOM_AUTH",
      "ALLOW_USER_SRP_AUTH",
      "ALLOW_REFRESH_TOKEN_AUTH"
+    ],
+    "LogoutURLs": [
+     "https://logout.com"
     ],
     "PreventUserExistenceErrors": "ENABLED",
     "SupportedIdentityProviders": [

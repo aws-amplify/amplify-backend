@@ -20,6 +20,8 @@ const auth = defineAuth({
         clientId: secret(secretNames.amazonId),
         clientSecret: secret(secretNames.amazonSecret),
       },
+      callbackUrls: ['https://redirect.com'],
+      logoutUrls: ['https://logout.com'],
     },
   },
   triggers: {
