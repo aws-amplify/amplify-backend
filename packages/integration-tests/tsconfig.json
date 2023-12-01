@@ -3,9 +3,7 @@
   "compilerOptions": { "rootDir": "src", "outDir": "lib", "allowJs": true },
   "references": [
     { "path": "../backend" },
-    { "path": "../backend-auth" },
     { "path": "../backend-secret" },
-    { "path": "../backend-storage" },
     { "path": "../client-config" },
     { "path": "../platform-core" }
   ],
