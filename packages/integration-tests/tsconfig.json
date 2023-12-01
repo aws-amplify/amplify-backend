@@ -1,6 +1,6 @@
 {
   "extends": "../../tsconfig.base.json",
-  "compilerOptions": { "rootDir": "src", "outDir": "lib" },
+  "compilerOptions": { "rootDir": "src", "outDir": "lib", "allowJs": true },
   "references": [
     { "path": "../backend" },
     { "path": "../backend-auth" },
@@ -9,5 +9,5 @@
     { "path": "../client-config" },
     { "path": "../platform-core" }
   ],
-  "exclude": ["**/node_modules", "**/lib", "src/e2e-tests", "test-projects"]
+  "exclude": ["**/node_modules", "**/lib", "src/e2e-tests"]
 }

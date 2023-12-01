@@ -64,7 +64,7 @@ export class DataStorageAuthWithTriggerTestProjectCreator
  */
 class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   readonly sourceProjectDirPath =
-    '../../test-projects/data-storage-auth-with-triggers-ts';
+    '../test-projects/data-storage-auth-with-triggers-ts';
 
   readonly sourceProjectAmplifyDirSuffix = `${this.sourceProjectDirPath}/amplify`;
 
