@@ -42,8 +42,8 @@ export class MinimalWithTypescriptIdiomTestProjectCreator
  * The minimal test with typescript idioms.
  */
 class MinimalWithTypescriptIdiomTestProject extends TestProjectBase {
-  // Note that this is pointing to the non-transpiled project directory
-  // This allows us to test that we are able to deploy js, cjs, ts, etc without transpiling with tsc first
+  // Note that this is pointing to the non-compiled project directory
+  // This allows us to test that we are able to deploy js, cjs, ts, etc without compiling with tsc first
   readonly sourceProjectDirPath =
     '../../src/test-projects/minimalist-project-with-typescript-idioms';
 
