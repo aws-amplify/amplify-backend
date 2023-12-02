@@ -19,8 +19,5 @@
     "glob": "^10.2.7",
     "uuid": "^9.0.1"
   },
-  "scripts": {
-    "update:api": "api-extractor run --local"
-  },
   "license": "Apache-2.0"
 }
