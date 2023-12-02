@@ -32,7 +32,7 @@ void describe('AmplifyMagicLinkAuth', () => {
       email: {
         fromAddress,
         subject,
-        body,
+        body: () => body,
       },
     },
   });

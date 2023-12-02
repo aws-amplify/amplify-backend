@@ -3,6 +3,7 @@ import { deepStrictEqual, strictEqual } from 'node:assert';
 import { beforeEach, describe, it, mock } from 'node:test';
 import { SnsService } from './sns_service.js';
 import { SnsServiceConfig } from '../types.js';
+import { codeOrLinkPlaceholder } from '../constants.js';
 
 /**
  * A mock SNSClient
@@ -58,7 +59,7 @@ void describe('SNS Service', () => {
         otp: {
           senderId: senderId,
           originationNumber: originationNumber,
-          message: 'your code is ####',
+          message: `your code is ${codeOrLinkPlaceholder}`,
         },
       };
 

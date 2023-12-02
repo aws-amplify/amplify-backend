@@ -156,7 +156,10 @@ export type DeliveryMedium = 'SMS' | 'EMAIL';
  * Options for passwordless authentication.
  */
 export type PasswordlessAuthProps = {
+  /** Options for Magic Link */
   magicLink?: MagicLinkAuthOptions;
+
+  /** Options for One Time Password */
   otp?: OtpAuthOptions;
 };
 
@@ -168,9 +171,9 @@ export type PasswordlessAuthProps = {
  */
 export type MagicLinkAuthOptions = {
   /**
-   * The origins that Magic Links can contains.
-   * If a client request a link that is not in this list, the request will be
-   * rejected.
+   * The origins that Magic Links can redirect to.
+   * If a client requests a redirect URI that has an origin which in not in this
+   * list, the request will be rejected.
    */
   allowedOrigins: string[];
   /**
@@ -180,10 +183,9 @@ export type MagicLinkAuthOptions = {
    */
   linkDuration?: Duration;
   /**
-   * The Email options for Magic Link. Email will be enabled unless set to false.
-   * @default true
+   * The Email options for Magic Link.
    */
-  email?: EmailOptions;
+  email: EmailOptions;
 };
 
 /**
@@ -206,17 +208,16 @@ export type OtpAuthOptions = {
    */
   sms?: SmsOptions;
   /**
-   * The Email options for One Time Password.
-   *
-   * One Time Password via email will be disabled unless defined.
-   * One Time Password via email will be enabled with default options when set
-   * to true.
+   * The Email options for One Time Password. One Time Password via email will
+   * be disabled unless defined.
    * @default false
    */
   email?: EmailOptions;
 };
 
-/** Options for sending a passwordless challenge via SMS */
+/**
+ * Options for sending a passwordless challenge via SMS
+ */
 export type SmsOptions = {
   /**
    * The AWS SNS origination number.
@@ -229,34 +230,40 @@ export type SmsOptions = {
    */
   senderId?: string;
   /**
-   * The message to send to the user. "####" should be used as a
-   * placeholder for the generated secret.
-   * @default (One Time Password): "Your verification code is: ####"
+   * The message to send to the user containing the verification code.
+   * @default
+   * message: (code: string) => `Your verification code is ${code}.`
    */
-  message?: string;
+  message?: (code: string) => string;
 };
 
-/** Options for sending a passwordless challenge via email */
+/**
+ * Options for sending a passwordless challenge via email
+ */
 export type EmailOptions = {
-  /** The from address for SES messages. */
+  /** The address to send emails from. Should be a verified identity in AWS SES */
   fromAddress: string;
   /**
    * The subject of the email to send to the user.
-   *
-   * The Default value will depend on the challenge type.
-   * @default (One Time Password): 'Your verification code
-   * @default (Magic Link): 'Your sign-in link'
+   * @default
+   * One Time Password
+   * 'Your verification code'
+   * @default
+   * Magic Link
+   * 'Your sign-in link'
    */
   subject?: string;
   /**
-   * The body of the email to send to the user. "####" should be used as a
-   * placeholder for the generated secret.
-   *
-   * The Default value will depend on the challenge type.
-   * @default (One Time Password): 'Your verification code is: ####'
-   * @default (Magic Link): '<html><body><p>Your sign-in link: <a href="####">sign in</a></p></body></html>'
+   * The body of the email to send to the user containing either their magic
+   * link or code.
+   * @default
+   * One Time Password
+   * body: (code: string) => `Your verification code is ${code}.`
+   * @default
+   * Magic Link
+   * body: (link: string) => `<html><body><p>Your sign-in link: <a href="${link}">sign in</a></p></body></html>`
    */
-  body?: string;
+  body?: (codeOrLink: string) => string;
 };
 
 export type ChallengeResult =
@@ -273,16 +280,19 @@ export type CustomAuthTriggers = {
  * represents the options that will be defined if this delivery method is
  * enabled.
  */
-export type SmsConfigOptions = SmsOptions &
-  Required<Pick<SmsOptions, 'message'>>;
+export type SmsConfigOptions = Omit<SmsOptions, 'message'> & {
+  message: string;
+};
 
 /**
  * EmailOptions with params that have default values set as required. This
  * represents the options that will be defined if this delivery method is
  * enabled.
  */
-export type EmailConfigOptions = EmailOptions &
-  Required<Pick<EmailOptions, 'subject' | 'body'>>;
+export type EmailConfigOptions = Omit<EmailOptions, 'subject' | 'body'> & {
+  subject: string;
+  body: string;
+};
 
 /**
  * SNS Service Configuration.

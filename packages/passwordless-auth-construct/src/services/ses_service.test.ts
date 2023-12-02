@@ -3,6 +3,7 @@ import { deepStrictEqual, strictEqual } from 'node:assert';
 import { beforeEach, describe, it, mock } from 'node:test';
 import { SesServiceConfig } from '../types.js';
 import { SesService } from './ses_service.js';
+import { codeOrLinkPlaceholder } from '../constants.js';
 
 /**
  * A mock SESClient
@@ -32,7 +33,7 @@ void describe('SES Service', () => {
       const toAddress = 'baz@bar.com';
       const secret = '123456';
       const emailSubject = 'Passwordless Auth OTP';
-      const emailBody = 'your code is: ####';
+      const emailBody = `your code is: ${codeOrLinkPlaceholder}`;
       const expectedAttributes = {
         Destination: {
           ToAddresses: ['baz@bar.com'],

@@ -30,7 +30,7 @@ export type AmazonProviderFactoryProps = Omit<AmazonProviderProps, 'clientId' | 
 export type AmplifyAuthProps = Expand<Omit<AuthProps, 'outputStorageStrategy' | 'loginWith'> & {
     loginWith: Expand<AuthLoginWithFactoryProps>;
     triggers?: Partial<Record<TriggerEvent, ConstructFactory<ResourceProvider<FunctionResources>>>>;
-    passwordlessOptions?: PasswordlessAuthProps;
+    passwordlessAuth?: PasswordlessAuthProps;
 }>;
 
 // @public
