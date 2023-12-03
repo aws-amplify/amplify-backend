@@ -142,7 +142,6 @@ void describe(
           tempDir = await fs.mkdtemp(
             path.join(os.tmpdir(), 'test-create-amplify')
           );
-          console.log('🗂️', tempDir);
 
           if (PACKAGE_MANAGER_EXECUTABLE === 'yarn-stable') {
             await packageManagerSetup(

@@ -68,7 +68,7 @@ export class InitialProjectFileGenerator {
       '--target',
       'es2022',
     ];
-    console.log('🦋');
+
     if (this.executableName.startsWith('yarn')) {
       await this.executeWithDebugLogger(
         targetDir,
