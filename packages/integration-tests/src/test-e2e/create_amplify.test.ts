@@ -42,7 +42,6 @@ const packageManagerSetup = async (
         ['config', 'set', 'unsafeHttpWhitelist', 'localhost'],
         execaOptions
       );
-      await execa('yarn', ['dlx', '@yarnpkg/sdks', 'base'], execaOptions);
     } else {
       await execa(
         packageManagerExecutable,
