@@ -244,6 +244,30 @@ void describe(
             expectedAmplifyFiles.map((suffix) => path.join(pathPrefix, suffix))
           );
 
+          if (PACKAGE_MANAGER_EXECUTABLE === 'yarn-stable') {
+            await execa(
+              'yarn',
+              ['config', 'set', 'nodeLinker', 'node-modules'],
+              {
+                cwd: `${tempDir}/amplify`,
+                stdio: 'inherit',
+              }
+            );
+
+            await fs.appendFile(
+              path.join(tempDir, '.yarnrc.yml'),
+              `pnpIgnorePatterns:\n  - ./nm-packages/**`
+            );
+            await execa('yarn', ['install'], {
+              cwd: tempDir,
+              stdin: 'inherit',
+            });
+            await execa('yarn', ['add', '@aws-amplify/backend'], {
+              cwd: `${tempDir}/amplify`,
+              stdio: 'inherit',
+            });
+          }
+
           // assert that project compiles successfully
           await execa(
             packageManagerExecutable === 'npm'
