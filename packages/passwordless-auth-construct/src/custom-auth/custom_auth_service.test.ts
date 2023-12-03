@@ -1,5 +1,5 @@
 import { describe, it, mock } from 'node:test';
-import { rejects, strictEqual } from 'node:assert';
+import { equal, rejects, strictEqual } from 'node:assert';
 import { ChallengeResult, ChallengeService } from '../types.js';
 import {
   buildCreateAuthChallengeEvent,
@@ -228,6 +228,26 @@ void describe('createAuthChallenge', () => {
         async () => customAuthService.createAuthChallenge(event),
         Error('Unrecognized signInMethod: FOO')
       );
+    });
+  });
+
+  void describe('user not found', () => {
+    void it('returns a response indicating that code or link was sent', async () => {
+      const baseEvent = buildCreateAuthChallengeEvent([initialSession], {
+        signInMethod: 'OTP',
+        action: 'REQUEST',
+        deliveryMedium: 'SMS',
+      });
+      const event = {
+        ...baseEvent,
+        request: {
+          ...baseEvent.request,
+          userNotFound: true,
+        },
+      };
+      const { response } = await customAuthService.createAuthChallenge(event);
+      equal(response.publicChallengeParameters.attributeName, 'phone_number');
+      equal(response.publicChallengeParameters.deliveryMedium, 'SMS');
     });
   });
 });

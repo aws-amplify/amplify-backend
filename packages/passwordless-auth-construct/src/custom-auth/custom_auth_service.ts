@@ -6,6 +6,7 @@ import {
 import { ChallengeServiceFactory } from '../factories/challenge_service_factory.js';
 import { logger } from '../logger.js';
 import { PasswordlessAuthChallengeParams, SignInMethod } from '../types.js';
+import { validateDeliveryCodeDetails } from '../common/validate_challenge_event.js';
 
 /**
  * A class containing the Cognito Auth triggers used for Custom Auth.
@@ -110,6 +111,27 @@ export class CustomAuthService {
     }
 
     const method = this.validateSignInMethod(signInMethod);
+
+    // If the user is not found, return a response as if a user did exist to
+    // prevent user enumeration
+    if (event.request.userNotFound) {
+      logger.info('User not found.');
+      const { deliveryMedium, attributeName } =
+        validateDeliveryCodeDetails(event);
+      const response: CreateAuthChallengeTriggerEvent = {
+        ...event,
+        response: {
+          ...event.response,
+          publicChallengeParameters: {
+            ...event.response.publicChallengeParameters,
+            attributeName,
+            deliveryMedium,
+          },
+        },
+      };
+      logger.debug(JSON.stringify(response, null, 2));
+      return response;
+    }
 
     return this.challengeServiceFactory
       .getService(method)

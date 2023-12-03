@@ -6,7 +6,10 @@ import {
   requestOtpEmailMetaData,
   requestOtpSmsMetaData,
 } from '../mocks/challenge_events.mock.js';
-import { validateDeliveryCodeDetails } from './validate_delivery_code_details.js';
+import {
+  validateDeliveryCodeDetails,
+  validateDestination,
+} from './validate_challenge_event.js';
 
 void describe('validateDeliveryCodeDetails()', () => {
   void it('should succeed if valid data is provided for SMS', async () => {
@@ -18,7 +21,6 @@ void describe('validateDeliveryCodeDetails()', () => {
     const details = validateDeliveryCodeDetails(event);
     equal(details.attributeName, 'phone_number');
     equal(details.deliveryMedium, 'SMS');
-    equal(details.destination, '+15558887890');
   });
 
   void it('should succeed if valid data is provided for email', async () => {
@@ -30,19 +32,6 @@ void describe('validateDeliveryCodeDetails()', () => {
     const details = validateDeliveryCodeDetails(event);
     equal(details.attributeName, 'email');
     equal(details.deliveryMedium, 'EMAIL');
-    equal(details.destination, 'foo@example.com');
-  });
-
-  void it('should throw error if User is not found', async () => {
-    const event: CreateAuthChallengeTriggerEvent =
-      buildCreateAuthChallengeEvent([], requestOtpSmsMetaData);
-
-    event.request.userNotFound = true;
-
-    await rejects(
-      async () => validateDeliveryCodeDetails(event),
-      Error('User not found')
-    );
   });
 
   void it('should throw an error if deliveryMedium is not SMS or EMAIL', async () => {
@@ -54,8 +43,30 @@ void describe('validateDeliveryCodeDetails()', () => {
 
     await rejects(
       async () => validateDeliveryCodeDetails(event),
-      Error('Invalid destination medium')
+      Error('Invalid delivery medium. Only SMS and email are supported.')
     );
+  });
+});
+
+void describe('validateDestination', () => {
+  void it('should succeed if valid data is provided for SMS', async () => {
+    const event: CreateAuthChallengeTriggerEvent =
+      buildCreateAuthChallengeEvent([], requestOtpSmsMetaData, {
+        phone_number: '+15558887890',
+        phone_number_verified: 'true',
+      });
+    const destination = validateDestination('SMS', event);
+    equal(destination, '+15558887890');
+  });
+
+  void it('should succeed if valid data is provided for Email', async () => {
+    const event: CreateAuthChallengeTriggerEvent =
+      buildCreateAuthChallengeEvent([], requestOtpSmsMetaData, {
+        email: 'foo@example.com',
+        email_verified: 'true',
+      });
+    const destination = validateDestination('EMAIL', event);
+    equal(destination, 'foo@example.com');
   });
 
   void it('should throw an error if phone number is not found', async () => {
@@ -63,8 +74,10 @@ void describe('validateDeliveryCodeDetails()', () => {
       buildCreateAuthChallengeEvent([], requestOtpSmsMetaData, {});
 
     await rejects(
-      async () => validateDeliveryCodeDetails(event),
-      Error('Phone number not found')
+      async () => validateDestination('SMS', event),
+      Error(
+        'A code or link was requested to be sent via SMS but the user does not have a verified phone number.'
+      )
     );
   });
 
@@ -76,8 +89,10 @@ void describe('validateDeliveryCodeDetails()', () => {
       });
 
     await rejects(
-      async () => validateDeliveryCodeDetails(event),
-      Error('Phone number is not verified')
+      async () => validateDestination('SMS', event),
+      Error(
+        'A code or link was requested to be sent via SMS but the user does not have a verified phone number.'
+      )
     );
   });
 
@@ -86,8 +101,10 @@ void describe('validateDeliveryCodeDetails()', () => {
       buildCreateAuthChallengeEvent([], requestOtpEmailMetaData, {});
 
     await rejects(
-      async () => validateDeliveryCodeDetails(event),
-      Error('Email not found')
+      async () => validateDestination('EMAIL', event),
+      Error(
+        'A code or link was requested to be sent via email but the user does not have a verified email address.'
+      )
     );
   });
 
@@ -99,8 +116,10 @@ void describe('validateDeliveryCodeDetails()', () => {
       });
 
     await rejects(
-      async () => validateDeliveryCodeDetails(event),
-      Error('Email is not verified')
+      async () => validateDestination('EMAIL', event),
+      Error(
+        'A code or link was requested to be sent via email but the user does not have a verified email address.'
+      )
     );
   });
 });

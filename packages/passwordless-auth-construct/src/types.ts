@@ -128,10 +128,13 @@ export type PasswordlessAuthChallengeParams =
 type EmptyAuthChallengeParams = { [index: string]: never };
 
 type InitiateAuthChallengeParams = {
-  nextStep: 'PROVIDE_AUTH_PARAMETERS'; //
+  nextStep: 'PROVIDE_AUTH_PARAMETERS';
 };
 
-type RespondToAutChallengeParams = CodeDeliveryDetails & {
+type RespondToAutChallengeParams = Pick<
+  CodeDeliveryDetails,
+  'attributeName' | 'deliveryMedium'
+> & {
   nextStep: 'PROVIDE_CHALLENGE_RESPONSE';
 };
 

@@ -13,7 +13,10 @@ import {
   StorageService,
 } from '../types.js';
 import { DeliveryServiceFactory } from '../factories/delivery_service_factory.js';
-import { validateDeliveryCodeDetails } from '../common/validate_delivery_code_details.js';
+import {
+  validateDeliveryCodeDetails,
+  validateDestination,
+} from '../common/validate_challenge_event.js';
 
 /**
  * Magic Link Challenge Service Implementation.
@@ -40,8 +43,9 @@ export class MagicLinkChallengeService implements ChallengeService {
     logger.info('Starting Create Challenge for Magic Link');
     // validate redirect URI and delivery details
     const redirectUri = this.validateRedirectUri(event.request);
-    const { deliveryMedium, destination, attributeName } =
+    const { deliveryMedium, attributeName } =
       validateDeliveryCodeDetails(event);
+    const destination = validateDestination(deliveryMedium, event);
     logger.debug(
       `Delivery medium: ${deliveryMedium}, destination: ${destination}`
     );

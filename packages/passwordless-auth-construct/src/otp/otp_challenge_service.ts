@@ -7,7 +7,10 @@ import { DeliveryServiceFactory } from '../factories/delivery_service_factory.js
 import { logger } from '../logger.js';
 
 import { ChallengeService, CodeDeliveryDetails, OtpConfig } from '../types.js';
-import { validateDeliveryCodeDetails } from '../common/validate_delivery_code_details.js';
+import {
+  validateDeliveryCodeDetails,
+  validateDestination,
+} from '../common/validate_challenge_event.js';
 
 /**
  * OTP Challenge Service Implementation.
@@ -39,8 +42,9 @@ export class OtpChallengeService implements ChallengeService {
   public createChallenge = async (
     event: CreateAuthChallengeTriggerEvent
   ): Promise<CreateAuthChallengeTriggerEvent> => {
-    const { deliveryMedium, destination, attributeName } =
+    const { deliveryMedium, attributeName } =
       validateDeliveryCodeDetails(event);
+    const destination = validateDestination(deliveryMedium, event);
 
     const otpCode = this.generateOtpCode();
 
