@@ -55,23 +55,6 @@ export class SesService implements DeliveryService {
     logger.debug(`SMS sent: ${JSON.stringify(output, null, 2)}`);
   };
 
-  public mask = (destination: string): string => {
-    const [start, end] = destination.split('@');
-    const maskedDomain = end
-      .split('.')
-      .map((d) => {
-        if (d.length <= 3) {
-          return new Array(d.length).fill('*').join('');
-        }
-
-        return `${d.slice(0, 1)}${new Array(d.length - 2)
-          .fill('*')
-          .join('')}${d.slice(-1)}`;
-      })
-      .join('.');
-    return `${start.slice(0, 1)}****${start.slice(-1)}@${maskedDomain}`;
-  };
-
   private getConfig = (challengeType: SignInMethod): EmailConfigOptions => {
     switch (challengeType) {
       case 'MAGIC_LINK':

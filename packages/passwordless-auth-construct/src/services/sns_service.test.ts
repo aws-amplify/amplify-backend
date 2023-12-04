@@ -18,12 +18,9 @@ class MockSnsClient extends SNSClient {
 
 void describe('SNS Service', () => {
   let mockSnsClient: SNSClient;
-  let snsConfig: SnsServiceConfig;
-  let snsService: SnsService;
 
   beforeEach(() => {
     mockSnsClient = new MockSnsClient();
-    snsConfig = {};
   });
 
   void describe('send()', () => {
@@ -70,25 +67,6 @@ void describe('SNS Service', () => {
         .arguments[0] as PublishCommand;
       strictEqual(sendMock.mock.callCount(), 1);
       deepStrictEqual(actualPublishCommand.input, expectedAttributes);
-    });
-  });
-
-  void describe('mask()', () => {
-    beforeEach(() => {
-      snsService = new SnsService(mockSnsClient, snsConfig);
-    });
-    void it('should mask phone numbers', () => {
-      const mockSmsService = snsService;
-      const phoneNumber = '+15555555555';
-      const maskedPhoneNumber = mockSmsService.mask(phoneNumber);
-      strictEqual(maskedPhoneNumber, '+*******5555');
-    });
-
-    void it('should mask phone numbers with less than 8 digits', () => {
-      const mockSmsService = snsService;
-      const phoneNumber = '+155555';
-      const maskedPhoneNumber = mockSmsService.mask(phoneNumber);
-      strictEqual(maskedPhoneNumber, '+*********55');
     });
   });
 });

@@ -30,7 +30,6 @@ const mockSignature = new Uint8Array([1]);
 class MockDeliveryService implements DeliveryService {
   deliveryMedium: DeliveryMedium = 'EMAIL';
   send = async () => Promise.resolve();
-  mask = () => '';
 }
 
 class MockKmsService implements SigningService {
@@ -86,7 +85,11 @@ void describe('MagicLinkChallengeService', () => {
         });
       strictEqual(mockSend.mock.callCount(), 0);
       strictEqual(mockSave.mock.callCount(), 0);
-      const newEvent = await service.createChallenge(event);
+      const newEvent = await service.createChallenge(
+        { deliveryMedium: 'EMAIL', attributeName: 'email' },
+        'foo@example.com',
+        event
+      );
       strictEqual(mockSend.mock.callCount(), 1);
       strictEqual(mockSave.mock.callCount(), 1);
       const secret = mockSend.mock.calls[0].arguments[0];
@@ -104,7 +107,12 @@ void describe('MagicLinkChallengeService', () => {
           redirectUri: '',
         });
       await rejects(
-        async () => service.createChallenge(event),
+        async () =>
+          service.createChallenge(
+            { deliveryMedium: 'EMAIL', attributeName: 'email' },
+            'foo@example.com',
+            event
+          ),
         Error('No redirect URI provided.')
       );
     });
@@ -116,7 +124,12 @@ void describe('MagicLinkChallengeService', () => {
           redirectUri: 'https://foo.com/',
         });
       await rejects(
-        async () => service.createChallenge(event),
+        async () =>
+          service.createChallenge(
+            { deliveryMedium: 'EMAIL', attributeName: 'email' },
+            'foo@example.com',
+            event
+          ),
         Error(
           'Invalid redirectUri: https://foo.com not in allowed origins list.'
         )
