@@ -1,5 +1,0 @@
-{
-  "extends": "../../tsconfig.base.json",
-  "compilerOptions": { "rootDir": "src", "outDir": "lib" },
-  "references": [{ "path": "../backend-output-storage" }]
-}

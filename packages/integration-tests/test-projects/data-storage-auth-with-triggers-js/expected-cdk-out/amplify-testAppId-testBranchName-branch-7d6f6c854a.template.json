@@ -1,5 +1,5 @@
 {
- "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyPipelineDeploy\",\"createdWith\":\"0.3.4\",\"stackType\":\"root\",\"metadata\":{}}",
+ "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyPipelineDeploy\",\"createdWith\":\"0.5.5\",\"stackType\":\"root\",\"metadata\":{}}",
  "Metadata": {
   "AWS::Amplify::Platform": {
    "version": "1",
@@ -15,6 +15,11 @@
     "webClientId",
     "identityPoolId",
     "authRegion",
+    "signupAttributes",
+    "usernameAttributes",
+    "verificationMechanisms",
+    "passwordPolicyMinLength",
+    "passwordPolicyRequirements",
     "amazonClientId",
     "facebookClientId",
     "googleClientId"
@@ -76,6 +81,21 @@
    "Value": {
     "Ref": "AWS::Region"
    }
+  },
+  "signupAttributes": {
+   "Value": "[\"EMAIL\"]"
+  },
+  "usernameAttributes": {
+   "Value": "[\"EMAIL\"]"
+  },
+  "verificationMechanisms": {
+   "Value": "[\"EMAIL\"]"
+  },
+  "passwordPolicyMinLength": {
+   "Value": "8"
+  },
+  "passwordPolicyRequirements": {
+   "Value": "[\"REQUIRES_NUMBERS\",\"REQUIRES_LOWERCASE\",\"REQUIRES_UPPERCASE\",\"REQUIRES_SYMBOLS\"]"
   },
   "amazonClientId": {
    "Value": {
@@ -222,7 +242,7 @@
      "S3Bucket": {
       "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
      },
-     "S3Key": "c5f154e6312b93b44d21e0e9e0f5ba13f4b731c9e38bcb30c6f368f1195c88e2.zip"
+     "S3Key": "747012bf6fea04c81a436d8dfe16db211a8a4df19c15421de44ea7440573b86b.zip"
     },
     "Environment": {
      "Variables": {
@@ -371,10 +391,10 @@
    "Type": "AWS::CloudFormation::Stack",
    "Properties": {
     "Parameters": {
-     "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionNestedStackfunctionNestedStackResource482C479FOutputsamplifytestAppIdtestBranchNamebranch7d6f6c854afunctiontestFunctestFuncLambdaFunction675DD8C2Arn": {
+     "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionNestedStackfunctionNestedStackResource482C479FOutputsamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionhandlerlambda640CAA5DArn": {
       "Fn::GetAtt": [
        "function1351588B",
-       "Outputs.amplifytestAppIdtestBranchNamebranch7d6f6c854afunctiontestFunctestFuncLambdaFunction675DD8C2Arn"
+       "Outputs.amplifytestAppIdtestBranchNamebranch7d6f6c854afunctionhandlerlambda640CAA5DArn"
       ]
      }
     },
@@ -394,7 +414,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/e09efceecbdc1885fbf20c35ca8ac02cfb3f09d5aea2b91f189f8511ddfdd836.json"
+       "/601efeefc2f118029b329879a8fe6e995a9c76c75e5ee99588f1b68113b5436f.json"
       ]
      ]
     }
@@ -421,7 +441,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/34165810aaf3ae2c8e32368cda1337ca1d9242720102a6e34bc223e4f3f4ac94.json"
+       "/88b7b9e3302285f902b495ec40076afd46e24597fd162e22388db86e33f56c22.json"
       ]
      ]
     }
@@ -448,7 +468,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/6187f6907b2493cc435ff7d925a5ec8fcb18a4be48ec976773515785ed66df11.json"
+       "/0d605cfcd689fb8650f00f193ce7572a75b06a8ccfaebc550876e3be9e352075.json"
       ]
      ]
     }
@@ -478,16 +498,22 @@
        "Outputs.amplifytestAppIdtestBranchNamebranch7d6f6c854aauthamplifyAuthunauthenticatedUserRoleF922AD28Ref"
       ]
      },
-     "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionNestedStackfunctionNestedStackResource482C479FOutputsamplifytestAppIdtestBranchNamebranch7d6f6c854afunctiontestFunctestFuncLambdaFunction675DD8C2Arn": {
+     "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854aauthNestedStackauthNestedStackResource462F2942OutputsamplifytestAppIdtestBranchNamebranch7d6f6c854aauthamplifyAuthIdentityPool7404D50ERef": {
       "Fn::GetAtt": [
-       "function1351588B",
-       "Outputs.amplifytestAppIdtestBranchNamebranch7d6f6c854afunctiontestFunctestFuncLambdaFunction675DD8C2Arn"
+       "auth179371D7",
+       "Outputs.amplifytestAppIdtestBranchNamebranch7d6f6c854aauthamplifyAuthIdentityPool7404D50ERef"
       ]
      },
-     "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionNestedStackfunctionNestedStackResource482C479FOutputsamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionechoFuncechoFuncLambdaFunctionCC7FF4D5Arn": {
+     "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionNestedStackfunctionNestedStackResource482C479FOutputsamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionhandlerlambda640CAA5DArn": {
       "Fn::GetAtt": [
        "function1351588B",
-       "Outputs.amplifytestAppIdtestBranchNamebranch7d6f6c854afunctionechoFuncechoFuncLambdaFunctionCC7FF4D5Arn"
+       "Outputs.amplifytestAppIdtestBranchNamebranch7d6f6c854afunctionhandlerlambda640CAA5DArn"
+      ]
+     },
+     "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionNestedStackfunctionNestedStackResource482C479FOutputsamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionechoFunclambda1F2D9982Arn": {
+      "Fn::GetAtt": [
+       "function1351588B",
+       "Outputs.amplifytestAppIdtestBranchNamebranch7d6f6c854afunctionechoFunclambda1F2D9982Arn"
       ]
      }
     },
@@ -507,7 +533,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/6afdc42f81bc9739b0dd6e4e25ef5ef0152e5f970dad4a7b96926b6ba906b94c.json"
+       "/38d65f8333e6b54dd31e1d08c25bfacf5d46103d4d3968f5cc433339bb5213a3.json"
       ]
      ]
     }

@@ -1,5 +1,23 @@
 # @aws-amplify/form-generator
 
+## 0.6.0
+
+### Minor Changes
+
+- f081c223c: Manually exclude timestamp fields from generated forms
+
+## 0.5.0
+
+### Minor Changes
+
+- cc8b66cd9: updates the form renderer to generate amplify js v6 compatible code
+
+## 0.4.0
+
+### Minor Changes
+
+- fc71c4902: Change the default directory for models in form generation
+
 ## 0.3.0
 
 ### Minor Changes

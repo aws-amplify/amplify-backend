@@ -51,6 +51,10 @@ export class GenerateConfigCommand
       args
     );
 
+    if (!backendIdentifier) {
+      throw new Error('Could not resolve the backend identifier');
+    }
+
     await this.clientConfigGenerator.generateClientConfigToFile(
       backendIdentifier,
       args['out-dir'],
@@ -96,12 +100,6 @@ export class GenerateConfigCommand
           'A path to directory where config is written. If not provided defaults to current process working directory.',
         type: 'string',
         array: false,
-      })
-      .check((argv) => {
-        if (!argv.stack && !argv.branch) {
-          throw new Error('Either --stack or --branch must be provided');
-        }
-        return true;
       })
       .fail((msg, err) => {
         handleCommandFailure(msg, err, yargs);

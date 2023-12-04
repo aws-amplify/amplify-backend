@@ -1,15 +1,16 @@
-import { beforeEach, describe, it, mock } from 'node:test';
-import { Func } from './factory.js';
+import { beforeEach, describe, it } from 'node:test';
 import { App, Stack } from 'aws-cdk-lib';
 import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
 import assert from 'node:assert';
-import { fileURLToPath } from 'url';
-import * as path from 'path';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 import {
   ConstructContainerStub,
   StackResolverStub,
 } from '@aws-amplify/backend-platform-test-stubs';
+import { defaultLambda } from './test-assets/default-lambda/resource.js';
+import { Template } from 'aws-cdk-lib/assertions';
+import { defineFunction } from './factory.js';
+import { lambdaWithDependencies } from './test-assets/lambda-with-dependencies/resource.js';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
@@ -41,38 +42,74 @@ void describe('AmplifyFunctionFactory', () => {
   });
 
   void it('creates singleton function instance', () => {
-    const functionFactory = Func.fromDir({
-      name: 'testFunc',
-      codePath: path.join('..', 'test-assets', 'test-lambda'),
-    });
+    const functionFactory = defaultLambda;
     const instance1 = functionFactory.getInstance(getInstanceProps);
     const instance2 = functionFactory.getInstance(getInstanceProps);
     assert.strictEqual(instance1, instance2);
   });
 
-  void it('executes build command from directory where constructor is used', async () => {
-    const commandExecutorMock = mock.fn();
+  void it('resolves default name and entry when no args specified', () => {
+    const functionFactory = defaultLambda;
+    const lambda = functionFactory.getInstance(getInstanceProps);
+    const template = Template.fromStack(Stack.of(lambda));
+    template.resourceCountIs('AWS::Lambda::Function', 1);
+    template.hasResourceProperties('AWS::Lambda::Function', {
+      Handler: 'index.handler',
+    });
+    const lambdaLogicalId = Object.keys(
+      template.findResources('AWS::Lambda::Function')
+    )[0];
+    // eslint-disable-next-line spellcheck/spell-checker
+    assert.ok(lambdaLogicalId.includes('defaultlambda'));
+  });
 
-    // Casting to never is necessary because commandExecutor is a private method.
-    // TS yells that it's not a property on Func even though it is there
-    mock.method(Func, 'commandExecutor' as never, commandExecutorMock);
+  void it('resolves default name when entry specified', () => {
+    const functionFactory = defineFunction({
+      entry: './test-assets/default-lambda/handler.ts',
+    });
+    const lambda = functionFactory.getInstance(getInstanceProps);
+    const template = Template.fromStack(Stack.of(lambda));
+    template.resourceCountIs('AWS::Lambda::Function', 1);
+    template.hasResourceProperties('AWS::Lambda::Function', {
+      Handler: 'index.handler',
+    });
+    const lambdaLogicalId = Object.keys(
+      template.findResources('AWS::Lambda::Function')
+    )[0];
+    assert.ok(lambdaLogicalId.includes('handler'));
+  });
 
-    (
-      await Func.build({
-        name: 'testFunc',
-        outDir: path.join('..', 'test-assets', 'test-lambda'),
-        buildCommand: 'test command',
-      })
-    ).getInstance(getInstanceProps);
+  void it('uses name and entry that is explicitly specified', () => {
+    const functionFactory = defineFunction({
+      entry: './test-assets/default-lambda/handler.ts',
+      name: 'myCoolLambda',
+    });
+    const lambda = functionFactory.getInstance(getInstanceProps);
+    const template = Template.fromStack(Stack.of(lambda));
+    template.resourceCountIs('AWS::Lambda::Function', 1);
+    template.hasResourceProperties('AWS::Lambda::Function', {
+      Handler: 'index.handler',
+    });
+    const lambdaLogicalId = Object.keys(
+      template.findResources('AWS::Lambda::Function')
+    )[0];
+    assert.ok(lambdaLogicalId.includes('myCoolLambda'));
+  });
 
-    assert.strictEqual(commandExecutorMock.mock.callCount(), 1);
-    assert.deepStrictEqual(commandExecutorMock.mock.calls[0].arguments, [
-      'test command',
-      {
-        cwd: fileURLToPath(new URL('../src', import.meta.url)),
-        stdio: 'inherit',
-        shell: 'bash',
-      },
-    ]);
+  void it('builds lambda with local and 3p dependencies', () => {
+    const lambda = lambdaWithDependencies.getInstance(getInstanceProps);
+    const template = Template.fromStack(Stack.of(lambda));
+    // There isn't a way to check the contents of the bundled lambda using the CDK Template utility
+    // So we just check that the lambda was created properly in the CFN template.
+    // There is an e2e test that validates proper lambda bundling
+    template.resourceCountIs('AWS::Lambda::Function', 1);
+    template.hasResourceProperties('AWS::Lambda::Function', {
+      Handler: 'index.handler',
+    });
+    const lambdaLogicalId = Object.keys(
+      template.findResources('AWS::Lambda::Function')
+    )[0];
+    // eslint-disable-next-line spellcheck/spell-checker
+    assert.ok(lambdaLogicalId.includes('lambdawithdependencies'));
   });
 });

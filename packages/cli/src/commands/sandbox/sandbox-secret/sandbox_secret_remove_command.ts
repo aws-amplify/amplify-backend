@@ -27,7 +27,7 @@ export class SandboxSecretRemoveCommand
     private readonly sandboxIdResolver: SandboxBackendIdResolver,
     private readonly secretClient: SecretClient
   ) {
-    this.command = 'remove <secretName>';
+    this.command = 'remove <secret-name>';
     this.describe = 'Remove a sandbox secret';
   }
 

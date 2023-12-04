@@ -17,6 +17,7 @@ import {
   rejectCleanupSandbox,
   waitForSandboxDeploymentToPrintTotalTime,
 } from '../process-controller/predicated_action_macros.js';
+import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 
 const cfnClient = new CloudFormationClient();
 
@@ -29,13 +30,22 @@ const cfnClient = new CloudFormationClient();
  */
 void describe('Live dependency health checks', { concurrency: true }, () => {
   before(async () => {
-    // nuke the npx cache to ensure we are installing latest versions of packages from the npm
+    // Nuke the npx cache to ensure we are installing latest versions of packages from the npm.
     const { stdout } = await execa('npm', ['config', 'get', 'cache']);
     const npxCacheLocation = path.join(stdout.toString().trim(), '_npx');
 
     if (existsSync(npxCacheLocation)) {
       await fs.rm(npxCacheLocation, { recursive: true });
     }
+
+    // Force 'create-amplify' installation in npx cache by executing help command
+    // before tests run. Otherwise, installing 'create-amplify' concurrently
+    // may lead to race conditions and corrupted npx cache.
+    await execa('npm', ['create', 'amplify', '--yes', '--', '--help'], {
+      // Command must run outside of 'amplify-backend' workspace.
+      cwd: os.homedir(),
+      stdio: 'inherit',
+    });
   });
 
   void describe('pipeline deployment', () => {
@@ -48,7 +58,11 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
 
     afterEach(async () => {
       await fs.rm(tempDir, { recursive: true });
-      const stackName = `amplify-${testBranch.appId}-${testBranch.branchName}`;
+      const stackName = BackendIdentifierConversions.toStackName({
+        namespace: testBranch.appId,
+        name: testBranch.branchName,
+        type: 'branch',
+      });
       try {
         await cfnClient.send(
           new DeleteStackCommand({

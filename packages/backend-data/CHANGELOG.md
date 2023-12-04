@@ -1,5 +1,65 @@
 # @aws-amplify/backend-data
 
+## 0.8.2
+
+### Patch Changes
+
+- 5ed51cbd5: Upgrade aws-cdk to 2.110.1
+- Updated dependencies [5ed51cbd5]
+  - @aws-amplify/backend-output-storage@0.2.6
+  - @aws-amplify/plugin-types@0.4.2
+
+## 0.8.1
+
+### Patch Changes
+
+- a2ed0ae14: Update data-schema version
+  - @aws-amplify/backend-output-storage@0.2.5
+
+## 0.8.0
+
+### Minor Changes
+
+- f449188cf: fix(@aws-amplify/backend-data) - Align with authorization modes used in the aws-amplify client library
+
+## 0.7.1
+
+### Patch Changes
+
+- 0af242db4: Update import to data construct to allow for specific attribution tags
+- Updated dependencies [cb855dfa5]
+  - @aws-amplify/backend-output-storage@0.2.4
+
+## 0.7.0
+
+### Minor Changes
+
+- 688db7bf8: Update deployment strategy to use amplify tables, and allow drop/replace semantics for sandbox tables
+
+### Patch Changes
+
+- 85bbab431: Use correct reference to identity pool id in IAM auth
+- Updated dependencies [70685f36b]
+  - @aws-amplify/backend-output-storage@0.2.3
+
+## 0.6.0
+
+### Minor Changes
+
+- 3cda50cb7: Update backend-data to use new data-construct and explicitly specific default ddb strategy.
+
+## 0.5.1
+
+### Patch Changes
+
+- bd8b5d1a5: update data/resource template; bump data-schema versions
+- Updated dependencies [65fe3a8fd]
+- Updated dependencies [cd5feeed0]
+- Updated dependencies [07b0dfc9f]
+  - @aws-amplify/plugin-types@0.4.1
+  - @aws-amplify/backend-output-schemas@0.4.0
+  - @aws-amplify/backend-output-storage@0.2.2
+
 ## 0.5.0
 
 ### Minor Changes

@@ -76,7 +76,10 @@ void describe('commandMiddleware', () => {
           );
           assert.fail('expect to throw error');
         } catch (err) {
-          assert.match((err as Error).message, /region setting options/);
+          assert.match(
+            (err as Error).message,
+            /Failed to load default aws region/
+          );
         }
       });
 
@@ -147,7 +150,10 @@ void describe('commandMiddleware', () => {
           );
           assert.fail('expect to throw error');
         } catch (err) {
-          assert.match((err as Error).message, /region setting options/);
+          assert.match(
+            (err as Error).message,
+            /Failed to load default aws region/
+          );
         }
       });
 
@@ -181,13 +187,13 @@ void describe('commandMiddleware', () => {
 
         try {
           await commandMiddleware.ensureAwsCredentialAndRegion({
-            profile: 'someInvalidProfile',
+            profile: testProfile,
           } as ArgumentsCamelCase<{ profile: string | undefined }>);
           assert.fail('expect to throw error');
         } catch (err) {
           assert.match(
             (err as Error).message,
-            /Failed to load aws credentials for profile/
+            /Failed to load aws region for profile/
           );
         }
       });

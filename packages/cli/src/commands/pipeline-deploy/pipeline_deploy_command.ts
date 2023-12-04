@@ -59,7 +59,6 @@ export class PipelineDeployCommand
       type: 'branch',
     };
     await this.backendDeployer.deploy(backendId, {
-      deploymentType: 'branch',
       validateAppSources: true,
     });
     await this.clientConfigGenerator.generateClientConfigToFile(backendId);
@@ -67,6 +66,7 @@ export class PipelineDeployCommand
 
   builder = (yargs: Argv): Argv<PipelineDeployCommandOptions> => {
     return yargs
+      .version(false)
       .option('branch', {
         describe: 'Name of the git branch being deployed',
         demandOption: true,

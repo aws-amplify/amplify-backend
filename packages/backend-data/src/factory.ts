@@ -7,7 +7,7 @@ import {
   ConstructFactoryGetInstanceProps,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
-import { AmplifyGraphqlApi } from '@aws-amplify/graphql-api-construct';
+import { AmplifyData } from '@aws-amplify/data-construct';
 import { GraphqlOutput } from '@aws-amplify/backend-output-schemas';
 import * as path from 'path';
 import { DataProps } from './types.js';
@@ -24,11 +24,12 @@ import {
   isUsingDefaultApiKeyAuth,
 } from './convert_authorization_modes.js';
 import { validateAuthorizationModes } from './validate_authorization_modes.js';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 /**
  * Singleton factory for AmplifyGraphqlApi constructs that can be used in Amplify project files
  */
-class DataFactory implements ConstructFactory<AmplifyGraphqlApi> {
+class DataFactory implements ConstructFactory<AmplifyData> {
   private generator: ConstructContainerEntryGenerator;
 
   /**
@@ -42,9 +43,7 @@ class DataFactory implements ConstructFactory<AmplifyGraphqlApi> {
   /**
    * Gets an instance of the Data construct
    */
-  getInstance = (
-    props: ConstructFactoryGetInstanceProps
-  ): AmplifyGraphqlApi => {
+  getInstance = (props: ConstructFactoryGetInstanceProps): AmplifyData => {
     const { constructContainer, outputStorageStrategy, importPathVerifier } =
       props;
     importPathVerifier?.verify(
@@ -66,7 +65,7 @@ class DataFactory implements ConstructFactory<AmplifyGraphqlApi> {
         outputStorageStrategy
       );
     }
-    return constructContainer.getOrCompute(this.generator) as AmplifyGraphqlApi;
+    return constructContainer.getOrCompute(this.generator) as AmplifyData;
   };
 }
 
@@ -82,16 +81,44 @@ class DataGenerator implements ConstructContainerEntryGenerator {
   ) {}
 
   generateContainerEntry = (scope: Construct) => {
-    const authorizationModes = convertAuthorizationModesToCDK(
-      this.functionInstanceProvider,
-      this.providedAuthConfig,
-      this.props.authorizationModes
-    );
+    let authorizationModes;
 
-    validateAuthorizationModes(
-      this.props.authorizationModes,
-      authorizationModes
-    );
+    try {
+      authorizationModes = convertAuthorizationModesToCDK(
+        this.functionInstanceProvider,
+        this.providedAuthConfig,
+        this.props.authorizationModes
+      );
+    } catch (error) {
+      throw new AmplifyUserError(
+        'InvalidSchemaAuthError',
+        {
+          message:
+            error instanceof Error
+              ? error.message
+              : 'Cannot covert authorization modes',
+        },
+        error instanceof Error ? error : undefined
+      );
+    }
+
+    try {
+      validateAuthorizationModes(
+        this.props.authorizationModes,
+        authorizationModes
+      );
+    } catch (error) {
+      throw new AmplifyUserError(
+        'InvalidSchemaAuthError',
+        {
+          message:
+            error instanceof Error
+              ? error.message
+              : 'Failed to validate authorization modes',
+        },
+        error instanceof Error ? error : undefined
+      );
+    }
 
     const sandboxModeEnabled = isUsingDefaultApiKeyAuth(
       this.providedAuthConfig,
@@ -103,9 +130,25 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       this.props.functions ?? {}
     );
 
-    return new AmplifyGraphqlApi(scope, this.defaultName, {
+    let amplifyGraphqlDefinition;
+    try {
+      amplifyGraphqlDefinition = convertSchemaToCDK(this.props.schema);
+    } catch (error) {
+      throw new AmplifyUserError(
+        'InvalidSchemaError',
+        {
+          message:
+            error instanceof Error
+              ? error.message
+              : 'Cannot covert user schema',
+        },
+        error instanceof Error ? error : undefined
+      );
+    }
+
+    return new AmplifyData(scope, this.defaultName, {
       apiName: this.props.name,
-      definition: convertSchemaToCDK(this.props.schema),
+      definition: amplifyGraphqlDefinition,
       authorizationModes,
       outputStorageStrategy: this.outputStorageStrategy,
       functionNameMap,
@@ -117,7 +160,5 @@ class DataGenerator implements ConstructContainerEntryGenerator {
 /**
  * Creates a factory that implements ConstructFactory<AmplifyGraphqlApi>
  */
-export const defineData = (
-  props: DataProps
-): ConstructFactory<AmplifyGraphqlApi> =>
+export const defineData = (props: DataProps): ConstructFactory<AmplifyData> =>
   new DataFactory(props, new Error().stack);

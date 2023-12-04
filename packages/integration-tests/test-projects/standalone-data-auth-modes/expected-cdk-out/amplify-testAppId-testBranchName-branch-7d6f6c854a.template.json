@@ -1,5 +1,5 @@
 {
- "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyPipelineDeploy\",\"createdWith\":\"0.3.4\",\"stackType\":\"root\",\"metadata\":{}}",
+ "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"AmplifyPipelineDeploy\",\"createdWith\":\"0.5.5\",\"stackType\":\"root\",\"metadata\":{}}",
  "Metadata": {
   "AWS::Amplify::Platform": {
    "version": "1",
@@ -146,7 +146,7 @@
      "S3Bucket": {
       "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
      },
-     "S3Key": "c5f154e6312b93b44d21e0e9e0f5ba13f4b731c9e38bcb30c6f368f1195c88e2.zip"
+     "S3Key": "747012bf6fea04c81a436d8dfe16db211a8a4df19c15421de44ea7440573b86b.zip"
     },
     "Environment": {
      "Variables": {
@@ -295,10 +295,10 @@
    "Type": "AWS::CloudFormation::Stack",
    "Properties": {
     "Parameters": {
-     "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionNestedStackfunctionNestedStackResource482C479FOutputsamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionApiAuthApiAuthLambdaFunctionCFF4ED65Arn": {
+     "referencetoamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionNestedStackfunctionNestedStackResource482C479FOutputsamplifytestAppIdtestBranchNamebranch7d6f6c854afunctionlambdaauthorizerlambdaD2057200Arn": {
       "Fn::GetAtt": [
        "function1351588B",
-       "Outputs.amplifytestAppIdtestBranchNamebranch7d6f6c854afunctionApiAuthApiAuthLambdaFunctionCFF4ED65Arn"
+       "Outputs.amplifytestAppIdtestBranchNamebranch7d6f6c854afunctionlambdaauthorizerlambdaD2057200Arn"
       ]
      }
     },
@@ -318,7 +318,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/477288b336b51dd42d15a2accd57892ae6358c5394b4356adaf3067df2ee03ee.json"
+       "/d25f871ae362f56389c1ccda0b350546833da108ef4cfc6d416b6e56a20448c2.json"
       ]
      ]
     }
@@ -345,7 +345,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/1d9ba3324a466e898f90197e6412b5464de952663cd0619bbafedc38be06132d.json"
+       "/36a67e80be9b6f698e1b433195eb1b7a8214ca85775562e0f9bffdf3f1b0b358.json"
       ]
      ]
     }

@@ -9,10 +9,12 @@ void describe('AppsyncGraphqlDocumentGenerationResult', () => {
     const writeMock = mock.method(fs, 'writeFile');
     mock.method(fs, 'mkdir').mock.mockImplementation(async () => null);
     writeMock.mock.mockImplementation(async () => null);
-    const files = {
+    const filePathWithDir = path.join('a-third', 'fake-file', '.type');
+    const files: Record<string, string> = {
       'fake-file': 'my \n fake file \n contents',
       'a-second-fake-file': 'ooo you tried to trick me',
     };
+    files[filePathWithDir] = 'another trick, deal with it';
 
     const result = new AppsyncGraphqlGenerationResult(files);
     const directory = './fake-dir';
@@ -21,10 +23,10 @@ void describe('AppsyncGraphqlDocumentGenerationResult', () => {
 
     Object.entries(files).forEach(([fileName, content]) => {
       const resolvedName = path.resolve(path.join(directory, fileName));
-      const call = writeMock.mock.calls.find(
+      const writeCall = writeMock.mock.calls.find(
         ({ arguments: [f] }) => resolvedName === f
       );
-      assert.deepEqual(call?.arguments, [resolvedName, content]);
+      assert.deepEqual(writeCall?.arguments, [resolvedName, content]);
     });
   });
 });

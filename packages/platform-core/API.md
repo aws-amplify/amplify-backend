@@ -5,6 +5,65 @@
 ```ts
 
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import z from 'zod';
+
+// @public
+export abstract class AmplifyError extends Error {
+    constructor(name: AmplifyErrorType, classification: AmplifyErrorClassification, options: AmplifyErrorOptions, cause?: Error | undefined);
+    // (undocumented)
+    readonly cause?: Error | undefined;
+    // (undocumented)
+    readonly classification: AmplifyErrorClassification;
+    // (undocumented)
+    readonly code?: string;
+    // (undocumented)
+    readonly details?: string;
+    // (undocumented)
+    static fromError: (error: unknown) => AmplifyError;
+    // (undocumented)
+    static fromStderr: (_stderr: string) => AmplifyError | undefined;
+    // (undocumented)
+    readonly link?: string;
+    // (undocumented)
+    readonly message: string;
+    // (undocumented)
+    readonly name: AmplifyErrorType;
+    // (undocumented)
+    readonly resolution?: string;
+    // (undocumented)
+    serializedError?: string;
+}
+
+// @public
+export type AmplifyErrorClassification = 'FAULT' | 'ERROR';
+
+// @public
+export type AmplifyErrorOptions = {
+    message: string;
+    details?: string;
+    resolution?: string;
+    link?: string;
+    code?: string;
+};
+
+// @public
+export type AmplifyErrorType = AmplifyUserErrorType | AmplifyLibraryFaultType;
+
+// @public
+export class AmplifyFault extends AmplifyError {
+    constructor(name: AmplifyLibraryFaultType, options: AmplifyErrorOptions, cause?: Error);
+}
+
+// @public
+export type AmplifyLibraryFaultType = 'UnknownFault';
+
+// @public
+export class AmplifyUserError extends AmplifyError {
+    constructor(name: AmplifyUserErrorType, options: AmplifyErrorOptions, cause?: Error);
+}
+
+// @public
+export type AmplifyUserErrorType = 'InvalidSchemaAuthError' | 'InvalidSchemaError' | 'ExpiredTokenError' | 'CloudFormationDeploymentError' | 'CFNUpdateNotSupportedError' | 'SyntaxError' | 'BackendBuildError' | 'BootstrapNotDetectedError' | 'AccessDeniedError' | 'FileConventionError';
 
 // @public
 export class BackendIdentifierConversions {
@@ -29,11 +88,70 @@ export enum CDKContextKey {
     DEPLOYMENT_TYPE = "amplify-backend-type"
 }
 
+// @public (undocumented)
+export const configControllerFactory: ConfigurationControllerFactory;
+
+// @public (undocumented)
+export type ConfigurationController = {
+    get: <T>(path: string) => Promise<T>;
+    set: (path: string, value: string | boolean | number) => Promise<void>;
+    clear: () => Promise<void>;
+    write: () => Promise<void>;
+};
+
+// @public
+export class ConfigurationControllerFactory {
+    constructor();
+    getInstance: (configFileName: LocalConfigurationFileName) => ConfigurationController;
+}
+
 // @public
 export class FilePathExtractor {
     constructor(stackTraceLine: string);
     // (undocumented)
     extract: () => string | undefined;
+}
+
+// @public (undocumented)
+export type LocalConfigurationFileName = 'usage_data_preferences.json';
+
+// @public (undocumented)
+export type PackageJson = z.infer<typeof packageJsonSchema>;
+
+// @public
+export class PackageJsonReader {
+    // (undocumented)
+    read: (absolutePackageJsonPath: string) => PackageJson;
+    readFromCwd: () => PackageJson;
+}
+
+// @public
+export const packageJsonSchema: z.ZodObject<{
+    name: z.ZodOptional<z.ZodString>;
+    version: z.ZodOptional<z.ZodString>;
+    type: z.ZodOptional<z.ZodUnion<[z.ZodLiteral<"module">, z.ZodLiteral<"commonjs">]>>;
+}, "strip", z.ZodTypeAny, {
+    name?: string | undefined;
+    version?: string | undefined;
+    type?: "module" | "commonjs" | undefined;
+}, {
+    name?: string | undefined;
+    version?: string | undefined;
+    type?: "module" | "commonjs" | undefined;
+}>;
+
+// @public
+export const USAGE_DATA_TRACKING_ENABLED = "telemetry.enabled";
+
+// @public (undocumented)
+export type UsageDataEmitter = {
+    emitSuccess: (metrics?: Record<string, number>, dimensions?: Record<string, string>) => Promise<void>;
+    emitFailure: (error: AmplifyError, dimensions?: Record<string, string>) => Promise<void>;
+};
+
+// @public
+export class UsageDataEmitterFactory {
+    getInstance: (libraryVersion: string) => Promise<UsageDataEmitter>;
 }
 
 // (No @packageDocumentation comment for this package)

@@ -36,6 +36,7 @@ export class ConfigureCommand implements CommandModule<object> {
    */
   builder = (yargs: Argv): Argv => {
     return yargs
+      .version(false)
       .command(this.configureSubCommands)
       .help()
       .fail((msg, err) => {

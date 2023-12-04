@@ -1,5 +1,5 @@
 import { Argv, CommandModule } from 'yargs';
-import fs from 'fs';
+import fsp from 'fs/promises';
 import { AmplifyPrompter } from '@aws-amplify/cli-core';
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
 import {
@@ -19,16 +19,17 @@ type SandboxCommandOptionsCamelCase = {
   dirToWatch: string | undefined;
   exclude: string[] | undefined;
   name: string | undefined;
-  format: ClientConfigFormat | undefined;
-  outDir: string | undefined;
+  configFormat: ClientConfigFormat | undefined;
+  configOutDir: string | undefined;
   profile: string | undefined;
 };
 
-export type EventHandler = () => void;
+export type EventHandler = (...args: unknown[]) => void;
 
 export type SandboxEventHandlers = {
   successfulDeployment: EventHandler[];
   successfulDeletion: EventHandler[];
+  failedDeployment: EventHandler[];
 };
 
 export type SandboxEventHandlerParams = {
@@ -81,7 +82,9 @@ export class SandboxCommand
 
     // attaching event handlers
     const clientConfigLifecycleHandler = new ClientConfigLifecycleHandler(
-      this.clientConfigGeneratorAdapter
+      this.clientConfigGeneratorAdapter,
+      args['config-out-dir'],
+      args['config-format']
     );
     const eventHandlers = this.sandboxEventHandlerCreator?.({
       sandboxName: this.sandboxName,
@@ -94,8 +97,8 @@ export class SandboxCommand
     }
     const watchExclusions = args.exclude ?? [];
     const clientConfigWritePath = await getClientConfigPath(
-      args['out-dir'],
-      args.format
+      args['config-out-dir'],
+      args['config-format']
     );
     watchExclusions.push(clientConfigWritePath);
     await sandbox.start({
@@ -115,6 +118,7 @@ export class SandboxCommand
       yargs
         // Cast to erase options types used in internal sub command implementation. Otherwise, compiler fails here.
         .command(this.sandboxSubCommands)
+        .version(false)
         .option('dir-to-watch', {
           describe:
             'Directory to watch for file changes. All subdirectories and files will be included. defaults to the current directory.',
@@ -136,14 +140,14 @@ export class SandboxCommand
           array: false,
           global: false,
         })
-        .option('format', {
+        .option('config-format', {
           describe: 'Client config output format',
           type: 'string',
           array: false,
           choices: Object.values(ClientConfigFormat),
           global: false,
         })
-        .option('out-dir', {
+        .option('config-out-dir', {
           describe:
             'A path to directory where config is written. If not provided defaults to current process working directory.',
           type: 'string',
@@ -155,22 +159,15 @@ export class SandboxCommand
           type: 'string',
           array: false,
         })
-        .check((argv) => {
+        .check(async (argv) => {
           if (argv['dir-to-watch']) {
-            // make sure it's a real directory
-            let stats;
-            try {
-              stats = fs.statSync(argv['dir-to-watch'], {});
-            } catch (e) {
-              throw new Error(
-                `--dir-to-watch ${argv['dir-to-watch']} does not exist`
-              );
-            }
-            if (!stats.isDirectory()) {
-              throw new Error(
-                `--dir-to-watch ${argv['dir-to-watch']} is not a valid directory`
-              );
-            }
+            await this.validateDirectory('dir-to-watch', argv['dir-to-watch']);
+          }
+          if (argv['config-out-dir']) {
+            await this.validateDirectory(
+              'config-out-dir',
+              argv['config-out-dir']
+            );
           }
           if (argv.name) {
             const projectNameRegex = /^[a-zA-Z0-9-]{1,15}$/;
@@ -200,5 +197,17 @@ export class SandboxCommand
       await (
         await this.sandboxFactory.getInstance()
       ).delete({ name: this.sandboxName });
+  };
+
+  private validateDirectory = async (option: string, dir: string) => {
+    let stats;
+    try {
+      stats = await fsp.stat(dir, {});
+    } catch (e) {
+      throw new Error(`--${option} ${dir} does not exist`);
+    }
+    if (!stats.isDirectory()) {
+      throw new Error(`--${option} ${dir} is not a valid directory`);
+    }
   };
 }

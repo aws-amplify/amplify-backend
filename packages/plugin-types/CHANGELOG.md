@@ -1,5 +1,18 @@
 # @aws-amplify/plugin-types
 
+## 0.4.2
+
+### Patch Changes
+
+- 5ed51cbd5: Upgrade aws-cdk to 2.110.1
+
+## 0.4.1
+
+### Patch Changes
+
+- 65fe3a8fd: remove unused type
+- cd5feeed0: Expand types for Auth to improve auto completion suggestions.
+
 ## 0.4.0
 
 ### Minor Changes
