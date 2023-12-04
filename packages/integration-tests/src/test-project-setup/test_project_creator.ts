@@ -5,6 +5,7 @@ import { DataStorageAuthWithTriggerTestProjectCreator } from './data_storage_aut
 import { MinimalWithTypescriptIdiomTestProjectCreator } from './minimal_with_typescript_idioms.js';
 import { LambdaClient } from '@aws-sdk/client-lambda';
 import { DeployedResourcesFinder } from '../find_deployed_resource.js';
+import { fromProcess } from '@aws-sdk/credential-providers';
 
 export type TestProjectCreator = {
   readonly name: string;
@@ -15,11 +16,21 @@ export type TestProjectCreator = {
  * Generates a list of test projects.
  */
 export const getTestProjectCreators = (): TestProjectCreator[] => {
+  // When running in CI/CD, load the e2e tooling credentials from the 'e2e-tooling' profile
+  // When running locally, load credentials using the default credential provider
+  // We load credentials for e2e-tooling from a separate profile so that we can isolate permissions required to run Gen2 commands
+  // vs permissions required to orchestrate test setup, teardown, and assertions.
+  const e2eToolingClientConfig = process.env.CI
+    ? {
+        credentials: fromProcess({ profile: 'e2e-tooling' }),
+      }
+    : {};
   const testProjectCreators: TestProjectCreator[] = [];
-  const cfnClient = new CloudFormationClient();
-  const lambdaClient = new LambdaClient();
+
+  const cfnClient = new CloudFormationClient(e2eToolingClientConfig);
+  const lambdaClient = new LambdaClient(e2eToolingClientConfig);
   const resourceFinder = new DeployedResourcesFinder(cfnClient);
-  const secretClient = getSecretClient();
+  const secretClient = getSecretClient(e2eToolingClientConfig);
   testProjectCreators.push(
     new DataStorageAuthWithTriggerTestProjectCreator(
       cfnClient,
