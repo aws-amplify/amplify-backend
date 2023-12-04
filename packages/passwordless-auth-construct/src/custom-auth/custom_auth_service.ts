@@ -125,7 +125,7 @@ export class CustomAuthService {
     );
 
     // If the user is not found or if the attribute requested for challenge
-    // delivery is not verified, return a fake successful response to prevent \
+    // delivery is not verified, return a fake successful response to prevent
     // user enumeration
     if (event.request.userNotFound || !isVerified) {
       logger.info(
