@@ -134,7 +134,7 @@ void describe(
 
     const initialStates = ['empty', 'module', 'commonjs'] as const;
 
-    initialStates.slice(0, 1).forEach((initialState) => {
+    initialStates.forEach((initialState) => {
       void describe('installs expected packages and scaffolds expected files', () => {
         let tempDir: string;
         beforeEach(async () => {
