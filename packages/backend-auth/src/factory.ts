@@ -39,7 +39,7 @@ export type AmplifyAuthProps = Expand<
     /**
      * Specify options for passwordless authentication
      */
-    passwordlessOptions?: PasswordlessAuthProps;
+    passwordlessAuth?: PasswordlessAuthProps;
   }
 >;
 
@@ -103,12 +103,12 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
     };
 
     const authConstruct = new AmplifyAuth(scope, this.defaultName, authProps);
-    if (this.props.passwordlessOptions) {
+    if (this.props.passwordlessAuth) {
       new AmplifyPasswordlessAuth(
         scope,
         this.defaultPasswordlessName,
         authConstruct,
-        this.props.passwordlessOptions
+        this.props.passwordlessAuth
       );
     }
     Object.entries(this.props.triggers || {}).forEach(

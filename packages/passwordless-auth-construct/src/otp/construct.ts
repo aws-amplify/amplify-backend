@@ -1,5 +1,6 @@
 import { Construct } from 'constructs';
 import { CustomAuthTriggers, OtpAuthOptions } from '../types.js';
+import { codeOrLinkPlaceholder } from '../constants.js';
 
 /**
  * Amplify OTP Construct
@@ -20,15 +21,23 @@ export class AmplifyOtpAuth extends Construct {
       return;
     }
 
+    const otpEmailBody = props.email?.body
+      ? props.email?.body(codeOrLinkPlaceholder)
+      : undefined;
+
+    const otpSmsMessage = props.sms?.message
+      ? props.sms?.message(codeOrLinkPlaceholder)
+      : undefined;
+
     const createAuthChallengeEnvVars = {
       otpEmailEnabled: props.email?.fromAddress ? 'true' : 'false',
       otpSmsEnabled: props.sms?.originationNumber ? 'true' : 'false',
       otpOriginationNumber: props.sms?.originationNumber,
       otpSenderId: props.sms?.senderId,
-      otpSmsMessage: props.sms?.message,
+      otpSmsMessage: otpSmsMessage,
       otpFromAddress: props.email?.fromAddress,
       otpSubject: props.email?.subject,
-      otpBody: props.email?.body,
+      otpBody: otpEmailBody,
       otpLength: props.length?.toString(),
     };
 
