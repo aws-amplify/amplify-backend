@@ -1,10 +1,15 @@
 import { describe, it, mock } from 'node:test';
 import { equal, rejects, strictEqual } from 'node:assert';
-import { ChallengeResult, ChallengeService } from '../types.js';
+import {
+  ChallengeResult,
+  ChallengeService,
+  CodeDeliveryDetails,
+} from '../types.js';
 import {
   buildCreateAuthChallengeEvent,
   buildDefineAuthChallengeEvent,
   buildVerifyAuthChallengeResponseEvent,
+  requestOtpSmsMetaData,
 } from '../mocks/challenge_events.mock.js';
 import {
   CreateAuthChallengeTriggerEvent,
@@ -23,6 +28,8 @@ const initialSession: ChallengeResult = {
 const mockChallengeService: ChallengeService = {
   signInMethod: 'OTP',
   createChallenge: async (
+    deliveryDetails: CodeDeliveryDetails,
+    destination: string,
     event: CreateAuthChallengeTriggerEvent
   ): Promise<CreateAuthChallengeTriggerEvent> => {
     return {
@@ -30,8 +37,8 @@ const mockChallengeService: ChallengeService = {
       response: {
         ...event.response,
         publicChallengeParameters: {
-          deliveryMedium: 'EMAIL',
-          destination: 'foo@example.com',
+          ...deliveryDetails,
+          destination,
         },
         privateChallengeParameters: {
           code: 'correct-answer',
@@ -199,9 +206,18 @@ void describe('createAuthChallenge', () => {
     const metadata = {
       signInMethod: 'OTP',
       action: 'REQUEST',
+      deliveryMedium: 'SMS',
+    };
+    const userAttributes = {
+      phone_number: '+5555557890',
+      phone_number_verified: 'true',
     };
     void it('calls createAuthChallenge on the challenge service', async () => {
-      const event = buildCreateAuthChallengeEvent([initialSession], metadata);
+      const event = buildCreateAuthChallengeEvent(
+        [initialSession],
+        metadata,
+        userAttributes
+      );
       strictEqual(mockCreate.mock.callCount(), 0);
       await customAuthService.createAuthChallenge(event);
       strictEqual(mockCreate.mock.callCount(), 1);
@@ -223,16 +239,29 @@ void describe('createAuthChallenge', () => {
       const event = buildCreateAuthChallengeEvent([initialSession], {
         signInMethod: 'FOO',
         action: 'REQUEST',
+        deliveryMedium: 'SMS',
       });
       await rejects(
         async () => customAuthService.createAuthChallenge(event),
         Error('Unrecognized signInMethod: FOO')
       );
     });
+    void it('should throw an error if deliveryMedium is not SMS or EMAIL', async () => {
+      const event: CreateAuthChallengeTriggerEvent =
+        buildCreateAuthChallengeEvent([initialSession], {
+          ...requestOtpSmsMetaData,
+          deliveryMedium: 'PHONE',
+        });
+
+      await rejects(
+        async () => customAuthService.createAuthChallenge(event),
+        Error('Invalid delivery medium. Only SMS and email are supported.')
+      );
+    });
   });
 
-  void describe('user not found', () => {
-    void it('returns a response indicating that code or link was sent', async () => {
+  void describe('prevents user existence errors when user is not found or email/phone is not verified.', () => {
+    void it('user not found', async () => {
       const baseEvent = buildCreateAuthChallengeEvent([initialSession], {
         signInMethod: 'OTP',
         action: 'REQUEST',
@@ -249,6 +278,62 @@ void describe('createAuthChallenge', () => {
       equal(response.publicChallengeParameters.attributeName, 'phone_number');
       equal(response.publicChallengeParameters.deliveryMedium, 'SMS');
     });
+    void it('no email attribute', async () => {
+      const event = buildCreateAuthChallengeEvent(
+        [initialSession],
+        {
+          signInMethod: 'OTP',
+          action: 'REQUEST',
+          deliveryMedium: 'EMAIL',
+        },
+        {}
+      );
+      const { response } = await customAuthService.createAuthChallenge(event);
+      equal(response.publicChallengeParameters.attributeName, 'email');
+      equal(response.publicChallengeParameters.deliveryMedium, 'EMAIL');
+    });
+    void it('email not verified', async () => {
+      const event = buildCreateAuthChallengeEvent(
+        [initialSession],
+        {
+          signInMethod: 'OTP',
+          action: 'REQUEST',
+          deliveryMedium: 'EMAIL',
+        },
+        { email: 'foo@example.com', email_verified: 'false' }
+      );
+      const { response } = await customAuthService.createAuthChallenge(event);
+      equal(response.publicChallengeParameters.attributeName, 'email');
+      equal(response.publicChallengeParameters.deliveryMedium, 'EMAIL');
+    });
+    void it('no phone attribute', async () => {
+      const event = buildCreateAuthChallengeEvent(
+        [initialSession],
+        {
+          signInMethod: 'OTP',
+          action: 'REQUEST',
+          deliveryMedium: 'SMS',
+        },
+        {}
+      );
+      const { response } = await customAuthService.createAuthChallenge(event);
+      equal(response.publicChallengeParameters.attributeName, 'phone_number');
+      equal(response.publicChallengeParameters.deliveryMedium, 'SMS');
+    });
+    void it('phone not verified', async () => {
+      const event = buildCreateAuthChallengeEvent(
+        [initialSession],
+        {
+          signInMethod: 'OTP',
+          action: 'REQUEST',
+          deliveryMedium: 'SMS',
+        },
+        { phone_number: '+15555557890', phone_number_verified: 'false' }
+      );
+      const { response } = await customAuthService.createAuthChallenge(event);
+      equal(response.publicChallengeParameters.attributeName, 'phone_number');
+      equal(response.publicChallengeParameters.deliveryMedium, 'SMS');
+    });
   });
 });
 
@@ -258,6 +343,7 @@ void describe('verifyAuthChallenge', () => {
       const event = buildVerifyAuthChallengeResponseEvent({
         signInMethod: 'OTP',
         action: 'REQUEST',
+        deliveryMedium: 'SMS',
       });
       const { response } = await customAuthService.verifyAuthChallenge(event);
       strictEqual(response.answerCorrect, false);
@@ -270,6 +356,7 @@ void describe('verifyAuthChallenge', () => {
       const event = buildVerifyAuthChallengeResponseEvent({
         signInMethod: 'MAGIC_LINK',
         action: 'CONFIRM',
+        deliveryMedium: 'EMAIL',
       });
       strictEqual(mockVerify.mock.callCount(), 0);
       await customAuthService.verifyAuthChallenge(event);
@@ -282,6 +369,7 @@ void describe('verifyAuthChallenge', () => {
       const event = buildVerifyAuthChallengeResponseEvent({
         signInMethod: 'OTP',
         action: 'FOO',
+        deliveryMedium: 'SMS',
       });
       await rejects(
         async () => customAuthService.verifyAuthChallenge(event),

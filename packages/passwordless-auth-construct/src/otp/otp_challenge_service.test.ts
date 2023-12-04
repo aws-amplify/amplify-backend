@@ -79,6 +79,8 @@ void describe('OTP Challenge', () => {
       strictEqual(sendMock.mock.callCount(), 0);
 
       const result = await otpChallenge.createChallenge(
+        { deliveryMedium: 'SMS', attributeName: 'phone_number' },
+        expectedPhoneNumber,
         smsRequestCreateChallengeEvent
       );
 

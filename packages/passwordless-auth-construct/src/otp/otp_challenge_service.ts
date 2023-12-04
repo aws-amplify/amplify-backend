@@ -7,10 +7,6 @@ import { DeliveryServiceFactory } from '../factories/delivery_service_factory.js
 import { logger } from '../logger.js';
 
 import { ChallengeService, CodeDeliveryDetails, OtpConfig } from '../types.js';
-import {
-  validateDeliveryCodeDetails,
-  validateDestination,
-} from '../common/validate_challenge_event.js';
 
 /**
  * OTP Challenge Service Implementation.
@@ -30,32 +26,27 @@ export class OtpChallengeService implements ChallengeService {
   /**
    * Create OTP challenge
    * Steps:
-   * 1. Validate Request
-   * 2. Generate OTP code
-   * 3. Send OTP Message
-   * 4. Update event response with OTP code & deliver details
+   * 1. Generate OTP code
+   * 2. Send OTP Message
+   * 3. Update event response with OTP code & deliver details
    *  - privateChallengeParameters: otpCode
-   *  - publicChallengeParameters: destination & deliveryMedium
+   *  - publicChallengeParameters: destination & deliveryMedium'
+   * @param deliveryDetails - The validated deliveryDetails for this challenge.
+   * @param destination - The validated destination for this challenge.
    * @param event - The Create Auth Challenge event provided by Cognito.
    * @returns CreateAuthChallengeTriggerEvent with OTP code & delivery details
    */
   public createChallenge = async (
+    deliveryDetails: CodeDeliveryDetails,
+    destination: string,
     event: CreateAuthChallengeTriggerEvent
   ): Promise<CreateAuthChallengeTriggerEvent> => {
-    const { deliveryMedium, attributeName } =
-      validateDeliveryCodeDetails(event);
-    const destination = validateDestination(deliveryMedium, event);
-
     const otpCode = this.generateOtpCode();
 
-    const deliveryService =
-      this.deliveryServiceFactory.getService(deliveryMedium);
-    await deliveryService.send(otpCode, destination, this.signInMethod);
-
-    const deliveryDetails: CodeDeliveryDetails = {
-      attributeName,
-      deliveryMedium,
-    };
+    const { deliveryMedium } = deliveryDetails;
+    await this.deliveryServiceFactory
+      .getService(deliveryMedium)
+      .send(otpCode, destination, this.signInMethod);
 
     const response: CreateAuthChallengeTriggerEvent = {
       ...event,

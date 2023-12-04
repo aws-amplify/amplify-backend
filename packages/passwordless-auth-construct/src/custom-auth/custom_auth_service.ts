@@ -5,8 +5,12 @@ import {
 } from 'aws-lambda';
 import { ChallengeServiceFactory } from '../factories/challenge_service_factory.js';
 import { logger } from '../logger.js';
-import { PasswordlessAuthChallengeParams, SignInMethod } from '../types.js';
-import { validateDeliveryCodeDetails } from '../common/validate_challenge_event.js';
+import {
+  CodeDeliveryDetails,
+  DeliveryMedium,
+  PasswordlessAuthChallengeParams,
+  SignInMethod,
+} from '../types.js';
 
 /**
  * A class containing the Cognito Auth triggers used for Custom Auth.
@@ -112,12 +116,20 @@ export class CustomAuthService {
 
     const method = this.validateSignInMethod(signInMethod);
 
+    const { deliveryMedium, attributeName } =
+      this.validateDeliveryCodeDetails(event);
+
+    const { isVerified, destination } = this.validateDestination(
+      deliveryMedium,
+      event
+    );
+
     // If the user is not found, return a response as if a user did exist to
     // prevent user enumeration
-    if (event.request.userNotFound) {
-      logger.info('User not found.');
-      const { deliveryMedium, attributeName } =
-        validateDeliveryCodeDetails(event);
+    if (event.request.userNotFound || !isVerified) {
+      logger.info(
+        'User not found or user does not have a verified phone/email.'
+      );
       const response: CreateAuthChallengeTriggerEvent = {
         ...event,
         response: {
@@ -135,7 +147,7 @@ export class CustomAuthService {
 
     return this.challengeServiceFactory
       .getService(method)
-      .createChallenge(event);
+      .createChallenge({ deliveryMedium, attributeName }, destination, event);
   };
 
   /**
@@ -183,6 +195,67 @@ export class CustomAuthService {
     }
     return signInMethod;
   }
+
+  /**
+   * Parses and validates the CodeDeliveryDetails out of the CreateAuthChallengeTriggerEvent.
+   * Verifies that the user, delivery medium, and destination are valid.
+   * @param event - The Create Auth Challenge event provided by Cognito.
+   * @returns CodeDeliveryDetails if valid else throws error
+   */
+  private validateDeliveryCodeDetails = (
+    event: CreateAuthChallengeTriggerEvent
+  ): CodeDeliveryDetails => {
+    const { deliveryMedium } = event.request.clientMetadata as Record<
+      string,
+      string | undefined
+    >;
+
+    if (deliveryMedium !== 'SMS' && deliveryMedium !== 'EMAIL') {
+      throw Error('Invalid delivery medium. Only SMS and email are supported.');
+    }
+
+    const attributeName = deliveryMedium === 'SMS' ? 'phone_number' : 'email';
+
+    return {
+      attributeName,
+      deliveryMedium,
+    };
+  };
+
+  /**
+   * Validates and returns the destination for the code or link.
+   * @param deliveryMedium - The delivery medium for the challenge.
+   * @param event - The Create Auth Challenge event.
+   * @returns An object that contains a boolean indicating if the destination is
+   * verified, and the destination.
+   */
+  private validateDestination = (
+    deliveryMedium: DeliveryMedium,
+    event: CreateAuthChallengeTriggerEvent
+  ):
+    | { isVerified: true; destination: string }
+    | { isVerified: false; destination: undefined } => {
+    const {
+      email,
+      phone_number: phoneNumber,
+      email_verified: emailVerified,
+      phone_number_verified: phoneNumberVerified,
+    } = event.request.userAttributes;
+    if (
+      deliveryMedium === 'SMS' &&
+      (!phoneNumber || phoneNumberVerified !== 'true')
+    ) {
+      return { isVerified: false, destination: undefined };
+    }
+    if (deliveryMedium === 'EMAIL' && (!email || emailVerified !== 'true')) {
+      return { isVerified: false, destination: undefined };
+    }
+
+    return {
+      isVerified: true,
+      destination: deliveryMedium === 'SMS' ? phoneNumber : email,
+    };
+  };
 
   /**
    * Adds metadata to the event to indicate that auth parameters need to be supplied.

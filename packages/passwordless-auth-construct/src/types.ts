@@ -50,6 +50,8 @@ export type SignInMethod = PasswordlessClientMetaData['signInMethod'];
 export type ChallengeService = {
   signInMethod: SignInMethod;
   createChallenge: (
+    deliveryDetails: CodeDeliveryDetails,
+    destination: string,
     event: CreateAuthChallengeTriggerEvent
   ) => Promise<CreateAuthChallengeTriggerEvent>;
   verifyChallenge: (

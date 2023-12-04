@@ -13,10 +13,6 @@ import {
   StorageService,
 } from '../types.js';
 import { DeliveryServiceFactory } from '../factories/delivery_service_factory.js';
-import {
-  validateDeliveryCodeDetails,
-  validateDestination,
-} from '../common/validate_challenge_event.js';
 
 /**
  * Magic Link Challenge Service Implementation.
@@ -38,19 +34,13 @@ export class MagicLinkChallengeService implements ChallengeService {
   public readonly signInMethod = 'MAGIC_LINK';
 
   public createChallenge = async (
+    deliveryDetails: CodeDeliveryDetails,
+    destination: string,
     event: CreateAuthChallengeTriggerEvent
   ): Promise<CreateAuthChallengeTriggerEvent> => {
     logger.info('Starting Create Challenge for Magic Link');
-    // validate redirect URI and delivery details
+    // validate redirect URI
     const redirectUri = this.validateRedirectUri(event.request);
-    const { deliveryMedium, attributeName } =
-      validateDeliveryCodeDetails(event);
-    const destination = validateDestination(deliveryMedium, event);
-    logger.debug(
-      `Delivery medium: ${deliveryMedium}, destination: ${destination}`
-    );
-    const deliveryService =
-      this.deliveryServiceFactory.getService(deliveryMedium);
 
     // create magic link
     logger.info('Creating Magic Link');
@@ -77,12 +67,10 @@ export class MagicLinkChallengeService implements ChallengeService {
     // send message
     logger.info('Sending Magic Link');
     const fullRedirectUri = signedMagicLink.generateRedirectUri(redirectUri);
-    await deliveryService.send(fullRedirectUri, destination, this.signInMethod);
-
-    const deliveryDetails: CodeDeliveryDetails = {
-      attributeName,
-      deliveryMedium,
-    };
+    const { deliveryMedium } = deliveryDetails;
+    await this.deliveryServiceFactory
+      .getService(deliveryMedium)
+      .send(fullRedirectUri, destination, this.signInMethod);
 
     // return response with info were the code was sent
     const response: CreateAuthChallengeTriggerEvent = {
