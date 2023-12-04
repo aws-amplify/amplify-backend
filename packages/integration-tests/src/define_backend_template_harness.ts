@@ -9,7 +9,7 @@ import { Construct } from 'constructs';
 /**
  * Asserts that the provided template has resources of 'resourceType' with the expected logical IDs
  */
-export const assertStableLogicalIds = (
+export const assertExpectedLogicalIds = (
   template: Template,
   resourceType: string,
   expectedLogicalIds: string[]
@@ -22,21 +22,33 @@ export const assertStableLogicalIds = (
 };
 
 /**
- * Wrapper around `defineBackend` that returns CDK Template objects for each backend resource
+ * Synthesizes deterministic `defineBackend` CDK templates for each backend resource
  *
  * Supplies stable CDK context values to the synth process for deterministic synth output
  */
-export const defineBackendTemplateHarness: DefineBackendTemplateHarness = <
+export const synthesizeBackendTemplates: SynthesizeBackendTemplates = <
   T extends Record<string, ConstructFactory<Construct>>
 >(
   constructFactories: T
 ) => {
-  process.env.CDK_CONTEXT_JSON = JSON.stringify({
-    [CDKContextKey.BACKEND_NAMESPACE]: 'testAppId',
-    [CDKContextKey.BACKEND_NAME]: 'testBranchName',
-    [CDKContextKey.DEPLOYMENT_TYPE]: 'branch',
-    secretLastUpdated: 123456789,
-  });
+  try {
+    process.env.CDK_CONTEXT_JSON = JSON.stringify({
+      [CDKContextKey.BACKEND_NAMESPACE]: 'testAppId',
+      [CDKContextKey.BACKEND_NAME]: 'testBranchName',
+      [CDKContextKey.DEPLOYMENT_TYPE]: 'branch',
+      secretLastUpdated: 123456789,
+    });
+    return backendTemplatesCollector(constructFactories);
+  } finally {
+    delete process.env.CDK_CONTEXT_JSON;
+  }
+};
+
+const backendTemplatesCollector: SynthesizeBackendTemplates = <
+  T extends Record<string, ConstructFactory<Construct>>
+>(
+  constructFactories: T
+) => {
   if (Object.keys(constructFactories).length === 0) {
     throw new Error('constructFactories must have at least one entry');
   }
@@ -55,7 +67,7 @@ export const defineBackendTemplateHarness: DefineBackendTemplateHarness = <
   return result as { [K in keyof T]: Template } & { root: Template };
 };
 
-type DefineBackendTemplateHarness = <
+type SynthesizeBackendTemplates = <
   T extends Record<string, ConstructFactory<Construct>>
 >(
   constructFactories: T

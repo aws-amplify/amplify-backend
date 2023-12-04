@@ -1,7 +1,7 @@
 import { dataStorageAuthWithTriggers } from '../test-projects/data-storage-auth-with-triggers-ts/amplify/test_factories.js';
 import {
-  assertStableLogicalIds,
-  defineBackendTemplateHarness,
+  assertExpectedLogicalIds,
+  synthesizeBackendTemplates,
 } from '../define_backend_template_harness.js';
 import { it } from 'node:test';
 import { dataWithoutAuth } from '../test-projects/standalone-data-auth-modes/amplify/test_factories.js';
@@ -15,60 +15,60 @@ import { dataWithoutAuthNoAuthMode } from '../test-projects/standalone-data-sand
  */
 
 void it('data storage auth with triggers', () => {
-  const templates = defineBackendTemplateHarness(dataStorageAuthWithTriggers);
+  const templates = synthesizeBackendTemplates(dataStorageAuthWithTriggers);
 
-  assertStableLogicalIds(templates.root, 'AWS::CloudFormation::Stack', [
+  assertExpectedLogicalIds(templates.root, 'AWS::CloudFormation::Stack', [
     'auth179371D7',
     'data7552DF31',
     'function1351588B',
     'storage0EC3F24A',
   ]);
 
-  assertStableLogicalIds(templates.auth, 'AWS::Cognito::UserPool', [
+  assertExpectedLogicalIds(templates.auth, 'AWS::Cognito::UserPool', [
     'amplifyAuthUserPool4BA7F805',
   ]);
 
-  assertStableLogicalIds(templates.data, 'AWS::AppSync::GraphQLApi', [
+  assertExpectedLogicalIds(templates.data, 'AWS::AppSync::GraphQLApi', [
     'amplifyDataGraphQLAPI42A6FA33',
   ]);
-  assertStableLogicalIds(templates.data, 'AWS::CloudFormation::Stack', [
+  assertExpectedLogicalIds(templates.data, 'AWS::CloudFormation::Stack', [
     'amplifyDataAmplifyTableManagerNestedStackAmplifyTableManagerNestedStackResource86290833',
     'amplifyDataFunctionDirectiveStackNestedStackFunctionDirectiveStackNestedStackResource1246A302',
     'amplifyDataTodoNestedStackTodoNestedStackResource551CEA56',
   ]);
 
-  assertStableLogicalIds(templates.storage, 'AWS::S3::Bucket', [
+  assertExpectedLogicalIds(templates.storage, 'AWS::S3::Bucket', [
     // eslint-disable-next-line spellcheck/spell-checker
     'amplifyStorageamplifyStorageBucketC2F702CD',
   ]);
 });
 
 void it('data without auth with lambda auth mode', () => {
-  const templates = defineBackendTemplateHarness(dataWithoutAuth);
+  const templates = synthesizeBackendTemplates(dataWithoutAuth);
 
-  assertStableLogicalIds(templates.root, 'AWS::CloudFormation::Stack', [
+  assertExpectedLogicalIds(templates.root, 'AWS::CloudFormation::Stack', [
     'data7552DF31',
     'function1351588B',
   ]);
-  assertStableLogicalIds(templates.data, 'AWS::AppSync::GraphQLApi', [
+  assertExpectedLogicalIds(templates.data, 'AWS::AppSync::GraphQLApi', [
     'amplifyDataGraphQLAPI42A6FA33',
   ]);
-  assertStableLogicalIds(templates.data, 'AWS::CloudFormation::Stack', [
+  assertExpectedLogicalIds(templates.data, 'AWS::CloudFormation::Stack', [
     'amplifyDataAmplifyTableManagerNestedStackAmplifyTableManagerNestedStackResource86290833',
     'amplifyDataTodoNestedStackTodoNestedStackResource551CEA56',
   ]);
 });
 
 void it('data without auth with default auth mode', () => {
-  const templates = defineBackendTemplateHarness(dataWithoutAuthNoAuthMode);
+  const templates = synthesizeBackendTemplates(dataWithoutAuthNoAuthMode);
 
-  assertStableLogicalIds(templates.root, 'AWS::CloudFormation::Stack', [
+  assertExpectedLogicalIds(templates.root, 'AWS::CloudFormation::Stack', [
     'data7552DF31',
   ]);
-  assertStableLogicalIds(templates.data, 'AWS::AppSync::GraphQLApi', [
+  assertExpectedLogicalIds(templates.data, 'AWS::AppSync::GraphQLApi', [
     'amplifyDataGraphQLAPI42A6FA33',
   ]);
-  assertStableLogicalIds(templates.data, 'AWS::CloudFormation::Stack', [
+  assertExpectedLogicalIds(templates.data, 'AWS::CloudFormation::Stack', [
     'amplifyDataAmplifyTableManagerNestedStackAmplifyTableManagerNestedStackResource86290833',
     'amplifyDataTodoNestedStackTodoNestedStackResource551CEA56',
   ]);
