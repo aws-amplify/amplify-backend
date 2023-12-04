@@ -7,12 +7,12 @@ import { logger } from '../logger.js';
 import { MagicLink, SignedMagicLink } from '../models/magic_link.js';
 import {
   ChallengeService,
+  CodeDeliveryDetails,
   MagicLinkConfig,
   SigningService,
   StorageService,
 } from '../types.js';
 import { DeliveryServiceFactory } from '../factories/delivery_service_factory.js';
-import { validateDeliveryCodeDetails } from '../common/validate_delivery_code_details.js';
 
 /**
  * Magic Link Challenge Service Implementation.
@@ -33,20 +33,27 @@ export class MagicLinkChallengeService implements ChallengeService {
   ) {}
   public readonly signInMethod = 'MAGIC_LINK';
 
+  /**
+   * Create Magic Link challenge
+   * Steps:
+   * 1. Validate redirect URI
+   * 2. Generate and sign magic link
+   * 3. Save magic link to storage
+   * 3. Send Message
+   * 4. Return new event response with delivery details
+   * @param deliveryDetails - The validated deliveryDetails for this challenge.
+   * @param destination - The validated destination for this challenge.
+   * @param event - The Create Auth Challenge event provided by Cognito.
+   * @returns CreateAuthChallengeTriggerEvent with delivery details
+   */
   public createChallenge = async (
+    deliveryDetails: CodeDeliveryDetails,
+    destination: string,
     event: CreateAuthChallengeTriggerEvent
   ): Promise<CreateAuthChallengeTriggerEvent> => {
     logger.info('Starting Create Challenge for Magic Link');
-    // validate redirect URI and delivery details
     const redirectUri = this.validateRedirectUri(event.request);
-    const { deliveryMedium, destination } = validateDeliveryCodeDetails(event);
-    logger.debug(
-      `Delivery medium: ${deliveryMedium}, destination: ${destination}`
-    );
-    const deliveryService =
-      this.deliveryServiceFactory.getService(deliveryMedium);
 
-    // create magic link
     logger.info('Creating Magic Link');
     const userId = event.request.userAttributes.sub;
     const { userName: username, userPoolId } = event;
@@ -58,30 +65,28 @@ export class MagicLinkChallengeService implements ChallengeService {
     );
     const { signatureData } = magicLink;
 
-    // sign Magic Link
     logger.info('Signing Magic Link');
     const { keyId, signature } = await this.signingService.sign(signatureData);
     const signedMagicLink = magicLink.withSignature(signature, keyId);
     logger.debug(`Signed link with Key ID: ${keyId}`);
 
-    // save magic link to dynamo
     logger.info('Saving Magic Link');
     await this.storageService.save(userId, signedMagicLink);
 
-    // send message
     logger.info('Sending Magic Link');
     const fullRedirectUri = signedMagicLink.generateRedirectUri(redirectUri);
-    await deliveryService.send(fullRedirectUri, destination, this.signInMethod);
+    const { deliveryMedium } = deliveryDetails;
+    await this.deliveryServiceFactory
+      .getService(deliveryMedium)
+      .send(fullRedirectUri, destination, this.signInMethod);
 
-    // return response with masked email/phone
     const response: CreateAuthChallengeTriggerEvent = {
       ...event,
       response: {
         ...event.response,
         publicChallengeParameters: {
           ...event.response.publicChallengeParameters,
-          destination: deliveryService.mask(destination),
-          deliveryMedium: deliveryMedium,
+          ...deliveryDetails,
         },
       },
     };
@@ -90,6 +95,18 @@ export class MagicLinkChallengeService implements ChallengeService {
     return response;
   };
 
+  /**
+   * Verify Magic Link challenge answer
+   *
+   * Steps:
+   * 1. Create a magic link from the provided secret
+   * 2. Validate the username and expiration of the provided link
+   * 3. Fetch/remove magic link from storage
+   * 4. Verify link signature
+   * 3. Return response based on signature verification
+   * @param event - The Verify Auth Challenge event provided by Cognito.
+   * @returns VerifyAuthChallengeResponseTriggerEvent with answerCorrect
+   */
   public verifyChallenge = async (
     event: VerifyAuthChallengeResponseTriggerEvent
   ): Promise<VerifyAuthChallengeResponseTriggerEvent> => {

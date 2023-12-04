@@ -6,8 +6,7 @@ import { randomInt } from 'crypto';
 import { DeliveryServiceFactory } from '../factories/delivery_service_factory.js';
 import { logger } from '../logger.js';
 
-import { ChallengeService, OtpConfig } from '../types.js';
-import { validateDeliveryCodeDetails } from '../common/validate_delivery_code_details.js';
+import { ChallengeService, CodeDeliveryDetails, OtpConfig } from '../types.js';
 
 /**
  * OTP Challenge Service Implementation.
@@ -27,25 +26,25 @@ export class OtpChallengeService implements ChallengeService {
   /**
    * Create OTP challenge
    * Steps:
-   * 1. Validate Request
-   * 2. Generate OTP code
-   * 3. Send OTP Message
-   * 4. Update event response with OTP code & deliver details
-   *  - privateChallengeParameters: otpCode
-   *  - publicChallengeParameters: destination & deliveryMedium
+   * 1. Generate OTP code
+   * 2. Send OTP Message
+   * 3. Return new event response with OTP code & delivery details
+   * @param deliveryDetails - The validated deliveryDetails for this challenge.
+   * @param destination - The validated destination for this challenge.
    * @param event - The Create Auth Challenge event provided by Cognito.
    * @returns CreateAuthChallengeTriggerEvent with OTP code & delivery details
    */
   public createChallenge = async (
+    deliveryDetails: CodeDeliveryDetails,
+    destination: string,
     event: CreateAuthChallengeTriggerEvent
   ): Promise<CreateAuthChallengeTriggerEvent> => {
-    const { deliveryMedium, destination } = validateDeliveryCodeDetails(event);
-
     const otpCode = this.generateOtpCode();
 
-    const deliveryService =
-      this.deliveryServiceFactory.getService(deliveryMedium);
-    await deliveryService.send(otpCode, destination, this.signInMethod);
+    const { deliveryMedium } = deliveryDetails;
+    await this.deliveryServiceFactory
+      .getService(deliveryMedium)
+      .send(otpCode, destination, this.signInMethod);
 
     const response: CreateAuthChallengeTriggerEvent = {
       ...event,
@@ -57,8 +56,7 @@ export class OtpChallengeService implements ChallengeService {
         },
         publicChallengeParameters: {
           ...event.response.publicChallengeParameters,
-          destination: deliveryService.mask(destination),
-          deliveryMedium: deliveryMedium,
+          ...deliveryDetails,
         },
       },
     };
