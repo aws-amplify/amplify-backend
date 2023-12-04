@@ -4,6 +4,12 @@ import {
   VerifyAuthChallengeResponseTriggerEvent,
 } from 'aws-lambda';
 import { ChallengeResult, PasswordlessClientMetaData } from '../types.js';
+import {
+  actionMetadataKey,
+  deliveryMediumMetadataKey,
+  redirectUriMetadataKey,
+  signInMethodMetadataKey,
+} from '../constants.js';
 
 export const baseEvent = {
   version: '1',
@@ -34,36 +40,36 @@ const baseRequest = {
 
 // Client metadata when requesting a magic link.
 export const requestMagicLinkMetaData: PasswordlessClientMetaData = {
-  signInMethod: 'MAGIC_LINK',
-  action: 'REQUEST',
-  deliveryMedium: 'EMAIL',
-  redirectUri: 'https://example.com/sign-in-link/##code##',
+  [signInMethodMetadataKey]: 'MAGIC_LINK',
+  [actionMetadataKey]: 'REQUEST',
+  [deliveryMediumMetadataKey]: 'EMAIL',
+  [redirectUriMetadataKey]: 'https://example.com/sign-in-link/##code##',
 };
 
 // Client metadata when requesting an OTP via email.
 export const requestOtpEmailMetaData: PasswordlessClientMetaData = {
-  signInMethod: 'OTP',
-  action: 'REQUEST',
-  deliveryMedium: 'EMAIL',
+  [signInMethodMetadataKey]: 'OTP',
+  [actionMetadataKey]: 'REQUEST',
+  [deliveryMediumMetadataKey]: 'EMAIL',
 };
 
 // Client metadata when requesting an OTP via SMS.
 export const requestOtpSmsMetaData: PasswordlessClientMetaData = {
-  signInMethod: 'OTP',
-  action: 'REQUEST',
-  deliveryMedium: 'SMS',
+  [signInMethodMetadataKey]: 'OTP',
+  [actionMetadataKey]: 'REQUEST',
+  [deliveryMediumMetadataKey]: 'SMS',
 };
 
 // Client metadata when requesting an OTP via SMS.
 export const confirmOtpMetaData: PasswordlessClientMetaData = {
-  signInMethod: 'OTP',
-  action: 'CONFIRM',
+  [signInMethodMetadataKey]: 'OTP',
+  [actionMetadataKey]: 'CONFIRM',
 };
 
 // Client metadata when requesting an OTP via SMS.
 export const confirmMagicLinkMetaData: PasswordlessClientMetaData = {
-  signInMethod: 'MAGIC_LINK',
-  action: 'CONFIRM',
+  [signInMethodMetadataKey]: 'MAGIC_LINK',
+  [actionMetadataKey]: 'CONFIRM',
 };
 
 /**

@@ -6,6 +6,11 @@ import {
   CodeDeliveryDetails,
 } from '../types.js';
 import {
+  actionMetadataKey,
+  deliveryMediumMetadataKey,
+  signInMethodMetadataKey,
+} from '../constants.js';
+import {
   buildCreateAuthChallengeEvent,
   buildDefineAuthChallengeEvent,
   buildVerifyAuthChallengeResponseEvent,
@@ -116,8 +121,8 @@ void describe('defineAuthChallenge', () => {
     const previousSessions: ChallengeResult[] = [initialSession];
     void it('starts a new custom challenge', async () => {
       const event = buildDefineAuthChallengeEvent(previousSessions, {
-        signInMethod: 'OTP',
-        action: 'REQUEST',
+        [signInMethodMetadataKey]: 'OTP',
+        [actionMetadataKey]: 'REQUEST',
       });
       const { response } = await customAuthService.defineAuthChallenge(event);
       strictEqual(isCustomChallengeResponse(response), true);
@@ -126,8 +131,8 @@ void describe('defineAuthChallenge', () => {
 
   void describe('action = CONFIRM', () => {
     const metadata = {
-      signInMethod: 'OTP',
-      action: 'CONFIRM',
+      [signInMethodMetadataKey]: 'OTP',
+      [actionMetadataKey]: 'CONFIRM',
     };
     void it('returns tokens when the previous challengeResult == true', async () => {
       const successResult: ChallengeResult = {
@@ -152,8 +157,8 @@ void describe('defineAuthChallenge', () => {
   void describe('bad requests', () => {
     void it('fails authentication for unsupported sign in method', async () => {
       const metadata = {
-        signInMethod: 'FOO',
-        action: 'CONFIRM',
+        [signInMethodMetadataKey]: 'FOO',
+        [actionMetadataKey]: 'CONFIRM',
       };
       const event = buildDefineAuthChallengeEvent([initialSession], metadata);
       const { response } = await customAuthService.defineAuthChallenge(event);
@@ -161,8 +166,8 @@ void describe('defineAuthChallenge', () => {
     });
     void it('fails authentication for unsupported action', async () => {
       const metadata = {
-        signInMethod: 'OTP',
-        action: 'FOO',
+        [signInMethodMetadataKey]: 'OTP',
+        [actionMetadataKey]: 'FOO',
       };
       const event = buildDefineAuthChallengeEvent([initialSession], metadata);
       const { response } = await customAuthService.defineAuthChallenge(event);
@@ -204,9 +209,9 @@ void describe('createAuthChallenge', () => {
   void describe('action = REQUEST', () => {
     const mockCreate = mock.method(mockChallengeService, 'createChallenge');
     const metadata = {
-      signInMethod: 'OTP',
-      action: 'REQUEST',
-      deliveryMedium: 'SMS',
+      [signInMethodMetadataKey]: 'OTP',
+      [actionMetadataKey]: 'REQUEST',
+      [deliveryMediumMetadataKey]: 'SMS',
     };
     const userAttributes = {
       phone_number: '+5555557890',
@@ -227,8 +232,8 @@ void describe('createAuthChallenge', () => {
   void describe('bad requests', () => {
     void it('throws an error for an unsupported action', async () => {
       const event = buildCreateAuthChallengeEvent([initialSession], {
-        signInMethod: 'OTP',
-        action: 'CONFIRM', // confirm is not supported for Create Auth Challenge
+        [signInMethodMetadataKey]: 'OTP',
+        [actionMetadataKey]: 'CONFIRM', // confirm is not supported for Create Auth Challenge
       });
       await rejects(
         async () => customAuthService.createAuthChallenge(event),
@@ -237,9 +242,9 @@ void describe('createAuthChallenge', () => {
     });
     void it('throws an error for an unsupported sign in method', async () => {
       const event = buildCreateAuthChallengeEvent([initialSession], {
-        signInMethod: 'FOO',
-        action: 'REQUEST',
-        deliveryMedium: 'SMS',
+        [signInMethodMetadataKey]: 'FOO',
+        [actionMetadataKey]: 'REQUEST',
+        [deliveryMediumMetadataKey]: 'SMS',
       });
       await rejects(
         async () => customAuthService.createAuthChallenge(event),
@@ -250,7 +255,7 @@ void describe('createAuthChallenge', () => {
       const event: CreateAuthChallengeTriggerEvent =
         buildCreateAuthChallengeEvent([initialSession], {
           ...requestOtpSmsMetaData,
-          deliveryMedium: 'PHONE',
+          [deliveryMediumMetadataKey]: 'PHONE',
         });
 
       await rejects(
@@ -263,9 +268,9 @@ void describe('createAuthChallenge', () => {
   void describe('prevents user existence errors when user is not found or email/phone is not verified.', () => {
     void it('user not found', async () => {
       const baseEvent = buildCreateAuthChallengeEvent([initialSession], {
-        signInMethod: 'OTP',
-        action: 'REQUEST',
-        deliveryMedium: 'SMS',
+        [signInMethodMetadataKey]: 'OTP',
+        [actionMetadataKey]: 'REQUEST',
+        [deliveryMediumMetadataKey]: 'SMS',
       });
       const event = {
         ...baseEvent,
@@ -282,9 +287,9 @@ void describe('createAuthChallenge', () => {
       const event = buildCreateAuthChallengeEvent(
         [initialSession],
         {
-          signInMethod: 'OTP',
-          action: 'REQUEST',
-          deliveryMedium: 'EMAIL',
+          [signInMethodMetadataKey]: 'OTP',
+          [actionMetadataKey]: 'REQUEST',
+          [deliveryMediumMetadataKey]: 'EMAIL',
         },
         {}
       );
@@ -296,9 +301,9 @@ void describe('createAuthChallenge', () => {
       const event = buildCreateAuthChallengeEvent(
         [initialSession],
         {
-          signInMethod: 'OTP',
-          action: 'REQUEST',
-          deliveryMedium: 'EMAIL',
+          [signInMethodMetadataKey]: 'OTP',
+          [actionMetadataKey]: 'REQUEST',
+          [deliveryMediumMetadataKey]: 'EMAIL',
         },
         { email: 'foo@example.com', email_verified: 'false' }
       );
@@ -310,9 +315,9 @@ void describe('createAuthChallenge', () => {
       const event = buildCreateAuthChallengeEvent(
         [initialSession],
         {
-          signInMethod: 'OTP',
-          action: 'REQUEST',
-          deliveryMedium: 'SMS',
+          [signInMethodMetadataKey]: 'OTP',
+          [actionMetadataKey]: 'REQUEST',
+          [deliveryMediumMetadataKey]: 'SMS',
         },
         {}
       );
@@ -324,9 +329,9 @@ void describe('createAuthChallenge', () => {
       const event = buildCreateAuthChallengeEvent(
         [initialSession],
         {
-          signInMethod: 'OTP',
-          action: 'REQUEST',
-          deliveryMedium: 'SMS',
+          [signInMethodMetadataKey]: 'OTP',
+          [actionMetadataKey]: 'REQUEST',
+          [deliveryMediumMetadataKey]: 'SMS',
         },
         { phone_number: '+15555557890', phone_number_verified: 'false' }
       );
@@ -341,9 +346,9 @@ void describe('verifyAuthChallenge', () => {
   void describe('action = request', () => {
     void it('returns answerCorrect=false', async () => {
       const event = buildVerifyAuthChallengeResponseEvent({
-        signInMethod: 'OTP',
-        action: 'REQUEST',
-        deliveryMedium: 'SMS',
+        [signInMethodMetadataKey]: 'OTP',
+        [actionMetadataKey]: 'REQUEST',
+        [deliveryMediumMetadataKey]: 'SMS',
       });
       const { response } = await customAuthService.verifyAuthChallenge(event);
       strictEqual(response.answerCorrect, false);
@@ -354,9 +359,9 @@ void describe('verifyAuthChallenge', () => {
     void it('calls verifyAuthChallenge on the challenge service', async () => {
       const mockVerify = mock.method(mockChallengeService, 'verifyChallenge');
       const event = buildVerifyAuthChallengeResponseEvent({
-        signInMethod: 'MAGIC_LINK',
-        action: 'CONFIRM',
-        deliveryMedium: 'EMAIL',
+        [signInMethodMetadataKey]: 'MAGIC_LINK',
+        [actionMetadataKey]: 'CONFIRM',
+        [deliveryMediumMetadataKey]: 'EMAIL',
       });
       strictEqual(mockVerify.mock.callCount(), 0);
       await customAuthService.verifyAuthChallenge(event);
@@ -367,9 +372,9 @@ void describe('verifyAuthChallenge', () => {
   void describe('bad requests', () => {
     void it('throws an error for an unsupported action', async () => {
       const event = buildVerifyAuthChallengeResponseEvent({
-        signInMethod: 'OTP',
-        action: 'FOO',
-        deliveryMedium: 'SMS',
+        [signInMethodMetadataKey]: 'OTP',
+        [actionMetadataKey]: 'FOO',
+        [deliveryMediumMetadataKey]: 'SMS',
       });
       await rejects(
         async () => customAuthService.verifyAuthChallenge(event),
@@ -378,8 +383,8 @@ void describe('verifyAuthChallenge', () => {
     });
     void it('throws an error for an unsupported sign in method', async () => {
       const event = buildVerifyAuthChallengeResponseEvent({
-        signInMethod: 'FOO',
-        action: 'CONFIRM',
+        [signInMethodMetadataKey]: 'FOO',
+        [actionMetadataKey]: 'CONFIRM',
       });
       await rejects(
         async () => customAuthService.verifyAuthChallenge(event),

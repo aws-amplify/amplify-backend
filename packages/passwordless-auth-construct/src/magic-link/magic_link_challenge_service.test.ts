@@ -23,6 +23,7 @@ import {
 import { MagicLinkChallengeService } from './magic_link_challenge_service.js';
 import { MagicLink, SignedMagicLink } from '../models/magic_link.js';
 import { Duration } from 'aws-cdk-lib';
+import { redirectUriMetadataKey } from '../constants.js';
 
 const kmsKeyId = '1234';
 const mockSignature = new Uint8Array([1]);
@@ -104,7 +105,7 @@ void describe('MagicLinkChallengeService', () => {
       const event: CreateAuthChallengeTriggerEvent =
         buildCreateAuthChallengeEvent([], {
           ...requestMagicLinkMetaData,
-          redirectUri: '',
+          [redirectUriMetadataKey]: '',
         });
       await rejects(
         async () =>
@@ -121,7 +122,7 @@ void describe('MagicLinkChallengeService', () => {
       const event: CreateAuthChallengeTriggerEvent =
         buildCreateAuthChallengeEvent([], {
           ...requestMagicLinkMetaData,
-          redirectUri: 'https://foo.com/',
+          [redirectUriMetadataKey]: 'https://foo.com/',
         });
       await rejects(
         async () =>

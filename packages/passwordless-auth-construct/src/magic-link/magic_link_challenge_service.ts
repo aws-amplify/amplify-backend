@@ -13,6 +13,7 @@ import {
   StorageService,
 } from '../types.js';
 import { DeliveryServiceFactory } from '../factories/delivery_service_factory.js';
+import { redirectUriMetadataKey } from '../constants.js';
 
 /**
  * Magic Link Challenge Service Implementation.
@@ -166,7 +167,8 @@ export class MagicLinkChallengeService implements ChallengeService {
     request: CreateAuthChallengeTriggerEvent['request']
   ): string => {
     const { allowedOrigins } = this.config;
-    const redirectUri = request.clientMetadata?.redirectUri;
+    const clientMetadata = request.clientMetadata || {};
+    const redirectUri = clientMetadata[redirectUriMetadataKey];
     if (!redirectUri) {
       throw new Error('No redirect URI provided.');
     }
