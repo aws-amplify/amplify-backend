@@ -39,6 +39,7 @@ import {
 } from '@aws-amplify/backend-output-storage';
 import * as path from 'path';
 import { coreAttributeNameMap } from './string_maps.js';
+import { randomUUID } from 'crypto';
 
 type DefaultRoles = { auth: Role; unAuth: Role };
 type IdentityProviderSetupResult = {
@@ -129,7 +130,9 @@ export class AmplifyAuth
 
     // configure a cognito domain if external providers are configured
     // also - make sure oauth urls are configured
-    this.domainPrefix = 'amplify';
+    this.domainPrefix = `amplify${
+      randomUUID().split('-').at(-1) ?? 'abcd1234'
+    }`;
     if (this.providerSetupResult.providersList.length > 0) {
       this.userPool.addDomain('UserPoolDomain', {
         cognitoDomain: { domainPrefix: this.domainPrefix },
