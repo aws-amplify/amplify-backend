@@ -103,6 +103,7 @@ jobs:
           aws-region: us-west-2
           output-credentials: true # places the credentials in the GH context object rather than setting env vars
         # the AWS credentials action does not have an option to configure a profile, so this manually configures one
+        # TODO remove this why is GH not picking up changes?
         run: |
           aws configure set aws_access_key_id ${{ steps.credentials.outputs.aws-access-key-id }} --profile e2e-tooling
           aws configure set aws_secret_access_key ${{ steps.credentials.outputs.aws-secret-access-key }} --profile e2e-tooling
