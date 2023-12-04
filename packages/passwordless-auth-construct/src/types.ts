@@ -53,6 +53,9 @@ export type SignInMethod =
 export type ChallengeService = {
   signInMethod: SignInMethod;
   maxAttempts: number;
+  validateCreateAuthChallengeEvent?: (
+    event: CreateAuthChallengeTriggerEvent
+  ) => void;
   createChallenge: (
     deliveryDetails: CodeDeliveryDetails,
     destination: string,

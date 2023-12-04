@@ -139,6 +139,14 @@ export class CustomAuthService {
       event
     );
 
+    const challengeService = this.challengeServiceFactory.getService(method);
+
+    // ensure event is valid before checking for user existence to prevent
+    // returning an error that would reveal user existence.
+    if (challengeService.validateCreateAuthChallengeEvent) {
+      challengeService.validateCreateAuthChallengeEvent(event);
+    }
+
     // If the user is not found or if the attribute requested for challenge
     // delivery is not verified, return a fake successful response to prevent
     // user enumeration
@@ -161,9 +169,11 @@ export class CustomAuthService {
       return response;
     }
 
-    return this.challengeServiceFactory
-      .getService(method)
-      .createChallenge({ deliveryMedium, attributeName }, destination, event);
+    return challengeService.createChallenge(
+      { deliveryMedium, attributeName },
+      destination,
+      event
+    );
   };
 
   /**

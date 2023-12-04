@@ -36,6 +36,17 @@ export class MagicLinkChallengeService implements ChallengeService {
   public readonly maxAttempts = 1;
 
   /**
+   * Validates that the event has any Magic Link specific data. An exception is
+   * thrown if the event is not valid.
+   * @param event - The Create Auth Challenge event.
+   */
+  public validateCreateAuthChallengeEvent = (
+    event: CreateAuthChallengeTriggerEvent
+  ): void => {
+    this.validateRedirectUri(event.request);
+  };
+
+  /**
    * Create Magic Link challenge
    * Steps:
    * 1. Validate redirect URI

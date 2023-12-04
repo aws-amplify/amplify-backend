@@ -233,12 +233,13 @@ void describe('createAuthChallenge', () => {
       [CognitoMetadataKeys.SIGN_IN_METHOD]: 'OTP',
       [CognitoMetadataKeys.ACTION]: 'REQUEST',
       [CognitoMetadataKeys.DELIVERY_MEDIUM]: 'SMS',
+      requiredMetadata: 'foo',
     };
     const userAttributes = {
       phone_number: '+5555557890',
       phone_number_verified: 'true',
     };
-    void it('calls createAuthChallenge on the challenge service', async () => {
+    void it('calls createAuthChallenge on the challenge service if event is valid', async () => {
       const event = buildCreateAuthChallengeEvent(
         [initialSession],
         metadata,
@@ -247,6 +248,33 @@ void describe('createAuthChallenge', () => {
       strictEqual(mockCreate.mock.callCount(), 0);
       await customAuthService.createAuthChallenge(event);
       strictEqual(mockCreate.mock.callCount(), 1);
+    });
+    void it('throws an error if validateCreateAuthChallengeEvent throws', async () => {
+      const challengeService: ChallengeService = {
+        ...mockChallengeService,
+        validateCreateAuthChallengeEvent: (event) => {
+          if (!event.request.clientMetadata?.requiredMetadata) {
+            throw new Error('missing required metadata.');
+          }
+        },
+      };
+      const customAuthService = new CustomAuthService({
+        getService: () => challengeService,
+      });
+      const metadata = {
+        signInMethod: 'OTP',
+        action: 'REQUEST',
+        deliveryMedium: 'SMS',
+      };
+      const event = buildCreateAuthChallengeEvent(
+        [initialSession],
+        metadata,
+        userAttributes
+      );
+      await rejects(
+        async () => customAuthService.createAuthChallenge(event),
+        Error('missing required metadata.')
+      );
     });
   });
 
