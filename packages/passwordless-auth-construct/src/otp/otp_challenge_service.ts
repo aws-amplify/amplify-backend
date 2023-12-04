@@ -28,9 +28,7 @@ export class OtpChallengeService implements ChallengeService {
    * Steps:
    * 1. Generate OTP code
    * 2. Send OTP Message
-   * 3. Update event response with OTP code & deliver details
-   *  - privateChallengeParameters: otpCode
-   *  - publicChallengeParameters: destination & deliveryMedium'
+   * 3. Return new event response with OTP code & delivery details
    * @param deliveryDetails - The validated deliveryDetails for this challenge.
    * @param destination - The validated destination for this challenge.
    * @param event - The Create Auth Challenge event provided by Cognito.

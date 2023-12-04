@@ -33,16 +33,27 @@ export class MagicLinkChallengeService implements ChallengeService {
   ) {}
   public readonly signInMethod = 'MAGIC_LINK';
 
+  /**
+   * Create Magic Link challenge
+   * Steps:
+   * 1. Validate redirect URI
+   * 2. Generate and sign magic link
+   * 3. Save magic link to storage
+   * 3. Send Message
+   * 4. Return new event response with delivery details
+   * @param deliveryDetails - The validated deliveryDetails for this challenge.
+   * @param destination - The validated destination for this challenge.
+   * @param event - The Create Auth Challenge event provided by Cognito.
+   * @returns CreateAuthChallengeTriggerEvent with delivery details
+   */
   public createChallenge = async (
     deliveryDetails: CodeDeliveryDetails,
     destination: string,
     event: CreateAuthChallengeTriggerEvent
   ): Promise<CreateAuthChallengeTriggerEvent> => {
     logger.info('Starting Create Challenge for Magic Link');
-    // validate redirect URI
     const redirectUri = this.validateRedirectUri(event.request);
 
-    // create magic link
     logger.info('Creating Magic Link');
     const userId = event.request.userAttributes.sub;
     const { userName: username, userPoolId } = event;
@@ -54,17 +65,14 @@ export class MagicLinkChallengeService implements ChallengeService {
     );
     const { signatureData } = magicLink;
 
-    // sign Magic Link
     logger.info('Signing Magic Link');
     const { keyId, signature } = await this.signingService.sign(signatureData);
     const signedMagicLink = magicLink.withSignature(signature, keyId);
     logger.debug(`Signed link with Key ID: ${keyId}`);
 
-    // save magic link to dynamo
     logger.info('Saving Magic Link');
     await this.storageService.save(userId, signedMagicLink);
 
-    // send message
     logger.info('Sending Magic Link');
     const fullRedirectUri = signedMagicLink.generateRedirectUri(redirectUri);
     const { deliveryMedium } = deliveryDetails;
@@ -72,7 +80,6 @@ export class MagicLinkChallengeService implements ChallengeService {
       .getService(deliveryMedium)
       .send(fullRedirectUri, destination, this.signInMethod);
 
-    // return response with info were the code was sent
     const response: CreateAuthChallengeTriggerEvent = {
       ...event,
       response: {
@@ -88,6 +95,18 @@ export class MagicLinkChallengeService implements ChallengeService {
     return response;
   };
 
+  /**
+   * Verify Magic Link challenge answer
+   *
+   * Steps:
+   * 1. Create a magic link from the provided secret
+   * 2. Validate the username and expiration of the provided link
+   * 3. Fetch/remove magic link from storage
+   * 4. Verify link signature
+   * 3. Return response based on signature verification
+   * @param event - The Verify Auth Challenge event provided by Cognito.
+   * @returns VerifyAuthChallengeResponseTriggerEvent with answerCorrect
+   */
   public verifyChallenge = async (
     event: VerifyAuthChallengeResponseTriggerEvent
   ): Promise<VerifyAuthChallengeResponseTriggerEvent> => {
