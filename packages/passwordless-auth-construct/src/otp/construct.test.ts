@@ -30,12 +30,12 @@ void describe('Passwordless OTP construct', () => {
       sms: {
         originationNumber: mockOriginationNumber,
         senderId: mockSenderId,
-        message,
+        message: () => message,
       },
       email: {
         fromAddress,
         subject,
-        body,
+        body: () => body,
       },
     },
   });

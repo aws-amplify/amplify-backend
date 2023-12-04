@@ -7,6 +7,7 @@ import {
   SesServiceConfig,
   SignInMethod,
 } from '../types.js';
+import { codeOrLinkPlaceholder } from '../constants.js';
 
 /**
  * SNS service Implementation.
@@ -28,7 +29,7 @@ export class SesService implements DeliveryService {
     challengeType: SignInMethod
   ): Promise<void> => {
     const config = this.getConfig(challengeType);
-    const body = config.body.replace('####', secret);
+    const body = config.body.replace(codeOrLinkPlaceholder, secret);
     const emailCommand = new SendEmailCommand({
       Destination: { ToAddresses: [destination] },
       Message: {
