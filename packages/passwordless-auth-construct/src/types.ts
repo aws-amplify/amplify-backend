@@ -50,6 +50,8 @@ export type SignInMethod = PasswordlessClientMetaData['signInMethod'];
 export type ChallengeService = {
   signInMethod: SignInMethod;
   createChallenge: (
+    deliveryDetails: CodeDeliveryDetails,
+    destination: string,
     event: CreateAuthChallengeTriggerEvent
   ) => Promise<CreateAuthChallengeTriggerEvent>;
   verifyChallenge: (
@@ -72,14 +74,6 @@ export type DeliveryService = {
     destination: string,
     challengeType: SignInMethod
   ) => Promise<void>;
-
-  /**
-   * Mask a destination
-   * Example: +12345678901 => +*********8901
-   * @param destination The destination to mask
-   * @returns The masked destination,
-   */
-  mask: (destination: string) => string;
 };
 
 /**
@@ -136,18 +130,19 @@ export type PasswordlessAuthChallengeParams =
 type EmptyAuthChallengeParams = { [index: string]: never };
 
 type InitiateAuthChallengeParams = {
-  nextStep: 'PROVIDE_AUTH_PARAMETERS'; //
+  nextStep: 'PROVIDE_AUTH_PARAMETERS';
 };
 
-type RespondToAutChallengeParams = {
+type RespondToAutChallengeParams = Pick<
+  CodeDeliveryDetails,
+  'attributeName' | 'deliveryMedium'
+> & {
   nextStep: 'PROVIDE_CHALLENGE_RESPONSE';
-  codeDeliveryDetails: CodeDeliveryDetails;
 };
 
 export type CodeDeliveryDetails = {
   attributeName: 'email' | 'phone_number';
   deliveryMedium: DeliveryMedium;
-  destination: string;
 };
 
 export type DeliveryMedium = 'SMS' | 'EMAIL';

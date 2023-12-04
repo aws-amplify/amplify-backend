@@ -61,13 +61,6 @@ export class SnsService implements DeliveryService {
     logger.debug(`SMS sent: ${JSON.stringify(output, null, 2)}`);
   };
 
-  public mask = (destination: string): string => {
-    const show = destination.length < 8 ? 2 : 4;
-    return `+${new Array(11 - show).fill('*').join('')}${destination.slice(
-      -show
-    )}`;
-  };
-
   private getConfig = (challengeType: SignInMethod): SmsConfigOptions => {
     switch (challengeType) {
       case 'MAGIC_LINK':

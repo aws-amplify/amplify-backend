@@ -18,12 +18,9 @@ class MockSesClient extends SESClient {
 
 void describe('SES Service', () => {
   let mockSesClient: SESClient;
-  let sesConfig: SesServiceConfig;
-  let sesService: SesService;
 
   beforeEach(() => {
     mockSesClient = new MockSesClient();
-    sesConfig = {};
   });
 
   void describe('send()', () => {
@@ -74,25 +71,6 @@ void describe('SES Service', () => {
         .arguments[0] as SendEmailCommand;
       strictEqual(sendMock.mock.callCount(), 1);
       deepStrictEqual(actualEmailCommand.input, expectedAttributes);
-    });
-  });
-
-  void describe('mask()', () => {
-    beforeEach(() => {
-      sesService = new SesService(mockSesClient, sesConfig);
-    });
-    void it('should mask email', () => {
-      const mockSmsService = sesService;
-      const email = 'foobar@baz.com';
-      const maskedEmail = mockSmsService.mask(email);
-      strictEqual(maskedEmail, 'f****r@***.***');
-    });
-
-    void it('should mask email with less than 3 digits', () => {
-      const mockSmsService = sesService;
-      const email = 'fo@bar.com';
-      const maskedEmail = mockSmsService.mask(email);
-      strictEqual(maskedEmail, 'f****o@***.***');
     });
   });
 });
