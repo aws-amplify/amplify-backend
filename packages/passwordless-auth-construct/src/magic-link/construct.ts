@@ -9,6 +9,7 @@ import {
   PolicyStatement,
 } from 'aws-cdk-lib/aws-iam';
 import { AttributeType, BillingMode, Table } from 'aws-cdk-lib/aws-dynamodb';
+import { codeOrLinkPlaceholder } from '../constants.js';
 
 /**
  * Amplify Auth CDK Construct
@@ -33,11 +34,15 @@ export class AmplifyMagicLinkAuth extends Construct {
     const kmsKey = this.createKmsKey(scope, id, triggers);
     const secretsTable = this.createSecretsTable(scope, id, triggers);
 
+    const magicLinkBody = props.email?.body
+      ? props.email?.body(codeOrLinkPlaceholder)
+      : undefined;
+
     const createAuthChallengeEnvVars = {
       magicLinkEmailEnabled: props.email ? 'true' : 'false',
       magicLinkFromAddress: props.email?.fromAddress,
       magicLinkSubject: props.email?.subject,
-      magicLinkBody: props.email?.body,
+      magicLinkBody: magicLinkBody,
       magicLinkAllowedOrigins: props.allowedOrigins.join(','),
       magicLinkKmsKeyId: kmsKey.keyId,
       magicLinkTableName: secretsTable.tableName,

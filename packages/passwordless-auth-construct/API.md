@@ -17,14 +17,14 @@ export class AmplifyPasswordlessAuth extends Construct {
 export type EmailOptions = {
     fromAddress: string;
     subject?: string;
-    body?: string;
+    body?: (codeOrLink: string) => string;
 };
 
 // @public
 export type MagicLinkAuthOptions = {
     allowedOrigins: string[];
     linkDuration?: Duration;
-    email?: EmailOptions;
+    email: EmailOptions;
 };
 
 // @public
@@ -44,7 +44,7 @@ export type PasswordlessAuthProps = {
 export type SmsOptions = {
     originationNumber: string;
     senderId?: string;
-    message?: string;
+    message?: (code: string) => string;
 };
 
 // (No @packageDocumentation comment for this package)

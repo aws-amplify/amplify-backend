@@ -5,16 +5,16 @@ import {
   SesServiceConfig,
   SnsServiceConfig,
 } from '../types.js';
+import { codeOrLinkPlaceholder } from '../constants.js';
 
 const minOtpLength = 6;
 const defaultMagicLinkExpiry = 60 * 15; // 15 minutes
 const maxMagicLinkExpiry = 60 * 60; // 1 hour
 const defaultOtpSubject = 'Your verification code';
-const defaultOtpBody = 'Your verification code is: ####';
-const defaultOtpMessage = 'Your verification code is ####';
+const defaultOtpBody = `Your verification code is: ${codeOrLinkPlaceholder}`;
+const defaultOtpMessage = `Your verification code is ${codeOrLinkPlaceholder}`;
 const defaultMagicLinkSubject = 'Your sign-in link';
-const defaultMagicLinkBody =
-  '<html><body><p>Your sign-in link: <a href="####">sign in</a></p></body></html>';
+const defaultMagicLinkBody = `<html><body><p>Your sign-in link: <a href="${codeOrLinkPlaceholder}">sign in</a></p></body></html>`;
 
 /**
  * Passwordless Configuration.

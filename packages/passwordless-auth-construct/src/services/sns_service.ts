@@ -7,6 +7,7 @@ import {
   SmsConfigOptions,
   SnsServiceConfig,
 } from '../types.js';
+import { codeOrLinkPlaceholder } from '../constants.js';
 
 /**
  * SNS service Implementation.
@@ -28,7 +29,7 @@ export class SnsService implements DeliveryService {
     challengeType: SignInMethod
   ): Promise<void> => {
     const config = this.getConfig(challengeType);
-    const message = config.message.replace('####', secret);
+    const message = config.message.replace(codeOrLinkPlaceholder, secret);
 
     // SNS attributes
     const attributes: PublishCommand['input']['MessageAttributes'] = {};
