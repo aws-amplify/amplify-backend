@@ -17,6 +17,7 @@ import {
   rejectCleanupSandbox,
   waitForSandboxDeploymentToPrintTotalTime,
 } from '../process-controller/predicated_action_macros.js';
+import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 
 const cfnClient = new CloudFormationClient();
 
@@ -57,7 +58,11 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
 
     afterEach(async () => {
       await fs.rm(tempDir, { recursive: true });
-      const stackName = `amplify-${testBranch.appId}-${testBranch.branchName}`;
+      const stackName = BackendIdentifierConversions.toStackName({
+        namespace: testBranch.appId,
+        name: testBranch.branchName,
+        type: 'branch',
+      });
       try {
         await cfnClient.send(
           new DeleteStackCommand({
