@@ -124,8 +124,9 @@ export class CustomAuthService {
       event
     );
 
-    // If the user is not found, return a response as if a user did exist to
-    // prevent user enumeration
+    // If the user is not found or if the attribute requested for challenge
+    // delivery is not verified, return a fake successful response to prevent \
+    // user enumeration
     if (event.request.userNotFound || !isVerified) {
       logger.info(
         'User not found or user does not have a verified phone/email.'
