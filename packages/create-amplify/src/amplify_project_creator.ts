@@ -14,9 +14,7 @@ export class AmplifyProjectCreator {
   private readonly defaultDevPackages = [
     '@aws-amplify/backend',
     '@aws-amplify/backend-cli',
-    ...(process.env.PACKAGE_MANAGER_EXECUTABLE?.startsWith('yarn')
-      ? []
-      : ['typescript@^5.0.0']), // For yarn, we install typescript at generateInitialProjectFiles();
+    'typescript@^5.0.0', // TODO: remove this line for yarn since it's installed in amplify/
   ];
 
   private readonly defaultProdPackages = ['aws-amplify'];
