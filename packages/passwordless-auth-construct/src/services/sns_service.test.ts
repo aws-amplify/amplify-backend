@@ -41,7 +41,7 @@ void describe('SNS Service', () => {
             DataType: 'String',
             StringValue: senderId,
           },
-          'AWS.SNS.SMS.OriginationNumber': {
+          'AWS.MM.SMS.OriginationNumber': {
             DataType: 'String',
             StringValue: originationNumber,
           },
