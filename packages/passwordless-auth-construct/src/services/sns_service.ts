@@ -39,7 +39,7 @@ export class SnsService implements DeliveryService {
         StringValue: config.senderId,
       };
     }
-    attributes['AWS.SNS.SMS.OriginationNumber'] = {
+    attributes['AWS.MM.SMS.OriginationNumber'] = {
       DataType: 'String',
       StringValue: config.originationNumber,
     };
