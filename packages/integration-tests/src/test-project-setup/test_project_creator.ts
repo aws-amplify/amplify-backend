@@ -5,14 +5,7 @@ import { DataStorageAuthWithTriggerTestProjectCreator } from './data_storage_aut
 import { MinimalWithTypescriptIdiomTestProjectCreator } from './minimal_with_typescript_idioms.js';
 import { LambdaClient } from '@aws-sdk/client-lambda';
 import { DeployedResourcesFinder } from '../find_deployed_resource.js';
-import { fromIni } from '@aws-sdk/credential-providers';
-import { loadSharedConfigFiles } from '@smithy/shared-ini-file-loader';
-
-const E2E_TOOLING_PROFILE = 'e2e-tooling';
-
-const E2E_TOOLING_REGION = process.env.CI
-  ? (await loadSharedConfigFiles()).configFile?.[E2E_TOOLING_PROFILE]?.region
-  : undefined;
+import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
 
 export type TestProjectCreator = {
   readonly name: string;
@@ -23,16 +16,6 @@ export type TestProjectCreator = {
  * Generates a list of test projects.
  */
 export const getTestProjectCreators = (): TestProjectCreator[] => {
-  // When running in CI/CD, load the e2e tooling credentials from the 'e2e-tooling' profile
-  // When running locally, load credentials using the default credential provider
-  // We load credentials for e2e-tooling from a separate profile so that we can isolate permissions required to run Gen2 commands
-  // vs permissions required to orchestrate test setup, teardown, and assertions.
-  const e2eToolingClientConfig = process.env.CI
-    ? {
-        credentials: fromIni({ profile: E2E_TOOLING_PROFILE }),
-        region: E2E_TOOLING_REGION,
-      }
-    : {};
   const testProjectCreators: TestProjectCreator[] = [];
 
   const cfnClient = new CloudFormationClient(e2eToolingClientConfig);
