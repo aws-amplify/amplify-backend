@@ -5,7 +5,7 @@ import { DataStorageAuthWithTriggerTestProjectCreator } from './data_storage_aut
 import { MinimalWithTypescriptIdiomTestProjectCreator } from './minimal_with_typescript_idioms.js';
 import { LambdaClient } from '@aws-sdk/client-lambda';
 import { DeployedResourcesFinder } from '../find_deployed_resource.js';
-import { fromProcess } from '@aws-sdk/credential-providers';
+import { fromIni } from '@aws-sdk/credential-providers';
 
 export type TestProjectCreator = {
   readonly name: string;
@@ -22,7 +22,7 @@ export const getTestProjectCreators = (): TestProjectCreator[] => {
   // vs permissions required to orchestrate test setup, teardown, and assertions.
   const e2eToolingClientConfig = process.env.CI
     ? {
-        credentials: fromProcess({ profile: 'e2e-tooling' }),
+        credentials: fromIni({ profile: 'e2e-tooling' }),
       }
     : {};
   const testProjectCreators: TestProjectCreator[] = [];
