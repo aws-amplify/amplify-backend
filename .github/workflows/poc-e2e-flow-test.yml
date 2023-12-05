@@ -43,7 +43,7 @@ jobs:
         pkg-manager: [npm, yarn, yarn-stable, pnpm]
         node-version: [20]
     env:
-      ACKAGE_MANAGER_EXECUTABLE: ${{ matrix.pkg-manager }} # TODO: remove PACKAGE_MANAGER_EXECUTABLE once CLI is able to getPackageManager().
+      PACKAGE_MANAGER_EXECUTABLE: ${{ matrix.pkg-manager }} # TODO: remove PACKAGE_MANAGER_EXECUTABLE once CLI is able to getPackageManager().
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
     needs:
