@@ -1,5 +1,12 @@
 # @aws-amplify/auth-construct-alpha
 
+## 0.4.3
+
+### Patch Changes
+
+- Updated dependencies [c6c39d04c]
+  - @aws-amplify/plugin-types@0.5.0
+
 ## 0.4.2
 
 ### Patch Changes
