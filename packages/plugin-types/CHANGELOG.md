@@ -1,5 +1,11 @@
 # @aws-amplify/plugin-types
 
+## 0.5.0
+
+### Minor Changes
+
+- c6c39d04c: Expose new `defineFunction` interface
+
 ## 0.4.2
 
 ### Patch Changes
