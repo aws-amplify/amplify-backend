@@ -55,7 +55,6 @@ export class AmplifySandboxExecutor {
       // doesn't get lost while debouncing
       const validateAppSources = validateAppSourcesProvider();
       return this.backendDeployer.deploy(backendId, {
-        deploymentType: 'sandbox',
         secretLastUpdated,
         validateAppSources,
       });
@@ -65,13 +64,9 @@ export class AmplifySandboxExecutor {
   /**
    * Destroy sandbox. Do not swallow errors
    */
-  destroy = (backendId?: BackendIdentifier): Promise<DestroyResult> => {
+  destroy = (backendId: BackendIdentifier): Promise<DestroyResult> => {
     console.debug('[Sandbox] Executing command `destroy`');
-    return this.invoke(() =>
-      this.backendDeployer.destroy(backendId, {
-        deploymentType: 'sandbox',
-      })
-    );
+    return this.invoke(() => this.backendDeployer.destroy(backendId));
   };
 
   /**

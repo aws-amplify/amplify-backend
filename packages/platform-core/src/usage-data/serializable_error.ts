@@ -4,9 +4,9 @@ import path from 'path';
  * Wrapper around Error for serialization for usage metrics
  */
 export class SerializableError {
-  stackTraceRegex =
+  private stackTraceRegex =
     /^\s*at (?:((?:\[object object\])?[^\\/]+(?: \[as \S+\])?) )?\(?(.*?):(\d+)(?::(\d+))?\)?\s*$/i;
-  arnRegex =
+  private arnRegex =
     /arn:[a-z0-9][-.a-z0-9]{0,62}:[A-Za-z0-9][A-Za-z0-9_/.-]{0,62}:[A-Za-z0-9_/.-]{0,63}:[A-Za-z0-9_/.-]{0,63}:[A-Za-z0-9][A-Za-z0-9:_/+=,@.-]{0,1023}/g;
 
   name: string;
@@ -19,7 +19,9 @@ export class SerializableError {
    */
   constructor(error: Error) {
     this.name =
-      'code' in error ? this.sanitize(error.code as string) : error.name;
+      'code' in error && error.code
+        ? this.sanitize(error.code as string)
+        : error.name;
     this.message = this.sanitize(error.message);
     this.details =
       'details' in error ? this.sanitize(error.details as string) : undefined;

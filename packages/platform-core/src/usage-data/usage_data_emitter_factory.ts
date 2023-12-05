@@ -2,6 +2,7 @@ import { configControllerFactory } from '../config/local_configuration_controlle
 import { NoOpUsageDataEmitter } from './noop_usage_data_emitter.js';
 import { DefaultUsageDataEmitter } from './usage_data_emitter.js';
 import { USAGE_DATA_TRACKING_ENABLED } from './constants.js';
+import { AmplifyError } from '../index.js';
 
 export type UsageDataEmitter = {
   emitSuccess: (
@@ -9,7 +10,7 @@ export type UsageDataEmitter = {
     dimensions?: Record<string, string>
   ) => Promise<void>;
   emitFailure: (
-    error: Error,
+    error: AmplifyError,
     dimensions?: Record<string, string>
   ) => Promise<void>;
 };
@@ -22,7 +23,7 @@ export class UsageDataEmitterFactory {
    * Creates UsageDataEmitter for a given library version, usage data tracking preferences
    */
   getInstance = async (libraryVersion: string): Promise<UsageDataEmitter> => {
-    const configController = await configControllerFactory.getInstance(
+    const configController = configControllerFactory.getInstance(
       'usage_data_preferences.json'
     );
 

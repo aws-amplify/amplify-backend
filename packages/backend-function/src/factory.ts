@@ -2,137 +2,127 @@ import {
   ConstructContainerEntryGenerator,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
+  FunctionResources,
+  ResourceProvider,
 } from '@aws-amplify/plugin-types';
-import {
-  AmplifyFunctionProps,
-  AmplifyLambdaFunction,
-} from '@aws-amplify/function-construct-alpha';
 import { Construct } from 'constructs';
-import { execaCommand } from 'execa';
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as path from 'path';
 import { getCallerDirectory } from './get_caller_directory.js';
 
-export type AmplifyFunctionFactoryBaseProps = {
+/**
+ * Entry point for defining a function in the Amplify ecosystem
+ */
+export const defineFunction = (
+  props: FunctionProps = {}
+): ConstructFactory<Construct & ResourceProvider<FunctionResources>> =>
+  new FunctionFactory(props, new Error().stack);
+
+export type FunctionProps = {
   /**
-   * A name for the function that is used to disambiguate it from other functions in the project
+   * A name for the function.
+   * Defaults to the basename of the entry path if specified.
+   * If no entry is specified, defaults to the directory name in which this function is defined.
+   *
+   * Example:
+   * If entry is `./scheduled-db-backup.ts` the name will default to "scheduled-db-backup"
+   * If entry is not set and the function is defined in `amplify/functions/db-backup/resource.ts` the name will default to "db-backup"
    */
-  name: string;
+  name?: string;
+  /**
+   * The path to the file that contains the function entry point.
+   * If this is a relative path, it is computed relative to the file where this function is defined
+   *
+   * Defaults to './handler.ts'
+   */
+  entry?: string;
 };
-
-export type AmplifyFunctionFactoryBuildProps = AmplifyFunctionFactoryBaseProps &
-  Omit<AmplifyFunctionProps, 'absoluteCodePath'> & {
-    /**
-     * The command to run that generates built function code.
-     * This command is run from the directory where this factory is called
-     */
-    buildCommand: string;
-    /**
-     * The buildCommand is expected to place build artifacts at this location.
-     * This path can be relative or absolute. If relative, the absolute path is calculated based on the directory where this factory is called
-     */
-    outDir: string;
-  };
-
-export type AmplifyFunctionFactoryFromDirProps =
-  AmplifyFunctionFactoryBaseProps &
-    Omit<AmplifyFunctionProps, 'absoluteCodePath'> & {
-      /**
-       * The location of the pre-built function code.
-       * Can be a directory or a .zip file.
-       * Can be a relative or absolute path. If relative, the absolute path is calculated based on the directory where this factory is called.
-       */
-      codePath: string;
-    };
-
-type AmplifyFunctionFactoryProps = AmplifyFunctionFactoryBaseProps &
-  AmplifyFunctionProps;
 
 /**
  * Create Lambda functions in the context of an Amplify backend definition
  */
-export class AmplifyFunctionFactory
-  implements ConstructFactory<AmplifyLambdaFunction>
-{
-  // execaCommand is assigned to a static prop so that it can be mocked in tests
-  private static commandExecutor = execaCommand;
-
+class FunctionFactory implements ConstructFactory<AmplifyFunction> {
   private generator: ConstructContainerEntryGenerator;
   /**
    * Create a new AmplifyFunctionFactory
    */
-  private constructor(private readonly props: AmplifyFunctionFactoryProps) {}
-
-  /**
-   * Create a function from a directory that contains pre-built code
-   */
-  static fromDir = (
-    props: AmplifyFunctionFactoryFromDirProps
-  ): AmplifyFunctionFactory => {
-    const absoluteCodePath = path.isAbsolute(props.codePath)
-      ? props.codePath
-      : path.resolve(getCallerDirectory(new Error().stack), props.codePath);
-    return new AmplifyFunctionFactory({
-      name: props.name,
-      absoluteCodePath,
-      runtime: props.runtime,
-      handler: props.handler,
-    });
-  };
-
-  /**
-   * Create a function by executing a build command that places build artifacts at a specified location
-   *
-   * TODO: Investigate long-term function building strategy: https://github.com/aws-amplify/amplify-backend/issues/92
-   */
-  static build = async (
-    props: AmplifyFunctionFactoryBuildProps
-  ): Promise<AmplifyFunctionFactory> => {
-    const importPath = getCallerDirectory(new Error().stack);
-
-    await AmplifyFunctionFactory.commandExecutor(props.buildCommand, {
-      cwd: importPath,
-      stdio: 'inherit',
-      shell: 'bash',
-    });
-
-    const absoluteCodePath = path.isAbsolute(props.outDir)
-      ? props.outDir
-      : path.resolve(importPath, props.outDir);
-
-    return new AmplifyFunctionFactory({
-      name: props.name,
-      absoluteCodePath,
-      runtime: props.runtime,
-      handler: props.handler,
-    });
-  };
+  constructor(
+    private readonly props: FunctionProps,
+    private readonly callerStack?: string
+  ) {}
 
   /**
    * Creates an instance of AmplifyFunction within the provided Amplify context
    */
   getInstance = ({
     constructContainer,
-  }: ConstructFactoryGetInstanceProps): AmplifyLambdaFunction => {
+  }: ConstructFactoryGetInstanceProps): AmplifyFunction => {
     if (!this.generator) {
-      this.generator = new AmplifyFunctionGenerator(this.props);
+      this.generator = new FunctionGenerator(this.hydrateDefaults());
     }
-    return constructContainer.getOrCompute(
-      this.generator
-    ) as AmplifyLambdaFunction;
+    return constructContainer.getOrCompute(this.generator) as AmplifyFunction;
+  };
+
+  private hydrateDefaults = (): HydratedFunctionProps => {
+    return {
+      name: this.resolveName(),
+      entry: this.resolveEntry(),
+    };
+  };
+
+  private resolveName = () => {
+    // If name is set explicitly, use that
+    if (this.props.name) {
+      return this.props.name;
+    }
+    // If entry is set, use the basename of the entry path
+    if (this.props.entry) {
+      return path.parse(this.props.entry).name;
+    }
+
+    // Otherwise, use the directory name where the function is defined
+    return path.basename(getCallerDirectory(this.callerStack));
+  };
+
+  private resolveEntry = () => {
+    // if entry is not set, default to handler.ts
+    if (!this.props.entry) {
+      return path.join(getCallerDirectory(this.callerStack), 'handler.ts');
+    }
+
+    // if entry is absolute use that
+    if (path.isAbsolute(this.props.entry)) {
+      return this.props.entry;
+    }
+
+    // if entry is relative, compute with respect to the caller directory
+    return path.join(getCallerDirectory(this.callerStack), this.props.entry);
   };
 }
 
-class AmplifyFunctionGenerator implements ConstructContainerEntryGenerator {
+type HydratedFunctionProps = Required<FunctionProps>;
+
+class FunctionGenerator implements ConstructContainerEntryGenerator {
   readonly resourceGroupName = 'function';
 
-  constructor(private readonly props: AmplifyFunctionFactoryProps) {}
+  constructor(private readonly props: HydratedFunctionProps) {}
 
   generateContainerEntry = (scope: Construct) => {
-    return new AmplifyLambdaFunction(scope, this.props.name, this.props);
+    return new AmplifyFunction(scope, this.props.name, this.props);
   };
 }
 
-/**
- * Alias for AmplifyFunctionFactory
- */
-export const Func = AmplifyFunctionFactory;
+class AmplifyFunction
+  extends Construct
+  implements ResourceProvider<FunctionResources>
+{
+  readonly resources: FunctionResources;
+  constructor(scope: Construct, id: string, props: HydratedFunctionProps) {
+    super(scope, id);
+    this.resources = {
+      lambda: new NodejsFunction(scope, `${id}-lambda`, {
+        entry: props.entry,
+      }),
+    };
+  }
+}

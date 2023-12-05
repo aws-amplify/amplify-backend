@@ -1,41 +1,79 @@
+import {
+  AmplifyError,
+  AmplifyErrorClassification,
+  AmplifyErrorType,
+  AmplifyFault,
+  AmplifyLibraryFaultType,
+  AmplifyUserError,
+  AmplifyUserErrorType,
+} from '@aws-amplify/platform-core';
+
 /**
  * Transforms CDK error messages to human readable ones
  */
 export class CdkErrorMapper {
   private knownErrors: Array<{
     errorRegex: RegExp;
-    humanReadableError: string;
+    humanReadableErrorMessage: string;
+    errorName: AmplifyErrorType;
+    classification: AmplifyErrorClassification;
   }> = [
     {
       errorRegex: /ExpiredToken/,
-      humanReadableError:
-        '[ExpiredToken]: The security token included in the request is invalid.',
+      humanReadableErrorMessage:
+        'The security token included in the request is invalid.',
+      errorName: 'ExpiredTokenError',
+      classification: 'ERROR',
     },
     {
       errorRegex: /Access Denied/,
-      humanReadableError:
-        '[AccessDenied]: The deployment role does not have sufficient permissions to perform this deployment.',
+      humanReadableErrorMessage:
+        'The deployment role does not have sufficient permissions to perform this deployment.',
+      errorName: 'AccessDeniedError',
+      classification: 'ERROR',
     },
     {
       errorRegex: /Has the environment been bootstrapped/,
-      humanReadableError:
-        '[BootstrapFailure]: This AWS account and region has not been bootstrapped. Run `cdk bootstrap aws://{YOUR_ACCOUNT_ID}/{YOUR_REGION}` locally to resolve this.',
+      humanReadableErrorMessage:
+        'This AWS account and region has not been bootstrapped. Run `cdk bootstrap aws://{YOUR_ACCOUNT_ID}/{YOUR_REGION}` locally to resolve this.',
+      errorName: 'BootstrapNotDetectedError',
+      classification: 'ERROR',
+    },
+    {
+      errorRegex: /(SyntaxError|ReferenceError):(.*)\n/,
+      humanReadableErrorMessage:
+        'Unable to build Amplify backend. Check your backend definition in the `amplify` folder.',
+      errorName: 'SyntaxError',
+      classification: 'ERROR',
+    },
+    {
+      errorRegex: /Amplify Backend not found in/,
+      humanReadableErrorMessage:
+        'Backend definition could not be found in amplify directory',
+      errorName: 'FileConventionError',
+      classification: 'ERROR',
+    },
+    {
+      errorRegex: /Amplify (.*) must be defined in (.*)/,
+      humanReadableErrorMessage:
+        'File name or path for backend definition are incorrect',
+      errorName: 'FileConventionError',
+      classification: 'ERROR',
     },
     {
       // the backend entry point file is referenced in the stack indicating a problem in customer code
       errorRegex: /amplify\/backend/,
-      humanReadableError:
-        '[SynthError]: Unable to build Amplify backend. Check your backend definition in the `amplify` folder.',
-    },
-    {
-      errorRegex: /SyntaxError:(.*)\n/,
-      humanReadableError:
-        '[SyntaxError]: Unable to build Amplify backend. Check your backend definition in the `amplify` folder.',
+      humanReadableErrorMessage:
+        'Unable to build Amplify backend. Check your backend definition in the `amplify` folder.',
+      errorName: 'BackendBuildError',
+      classification: 'ERROR',
     },
     {
       errorRegex: /Updates are not allowed for property/,
-      humanReadableError:
-        '[UpdateNotSupported]: The changes that you are trying to apply are not supported.',
+      humanReadableErrorMessage:
+        'The changes that you are trying to apply are not supported.',
+      errorName: 'CFNUpdateNotSupportedError',
+      classification: 'ERROR',
     },
     {
       // This error originates from Cognito service when user tries to change UserPool attributes which is not allowed
@@ -43,30 +81,52 @@ export class CdkErrorMapper {
       // Remapping to `UpdateNotSupported` will allow sandbox to prompt users for resetting their environment
       errorRegex:
         /Invalid AttributeDataType input, consider using the provided AttributeDataType enum/,
-      humanReadableError:
-        '[UpdateNotSupported]: User pool attributes cannot be changed after a user pool has been created.',
+      humanReadableErrorMessage:
+        'User pool attributes cannot be changed after a user pool has been created.',
+      errorName: 'CFNUpdateNotSupportedError',
+      classification: 'ERROR',
     },
     {
       // Note that the order matters, this should be the last as it captures generic CFN error
       errorRegex: /❌ Deployment failed: (.*)\n/,
-      humanReadableError:
-        '[CloudFormationFailure]: The CloudFormation deployment has failed. Find more information in the CloudFormation AWS Console for this stack.',
+      humanReadableErrorMessage:
+        'The CloudFormation deployment has failed. Find more information in the CloudFormation AWS Console for this stack.',
+      errorName: 'CloudFormationDeploymentError',
+      classification: 'ERROR',
     },
   ];
 
-  getHumanReadableError = (error: Error): Error => {
+  getAmplifyError = (error: Error): AmplifyError => {
+    // Check if there was an Amplify error thrown during child process execution
+    const amplifyError = AmplifyError.fromStderr(error.message);
+    if (amplifyError) {
+      return amplifyError;
+    }
+
     const matchingError = this.knownErrors.find((knownError) =>
       knownError.errorRegex.test(error.message)
     );
 
     if (matchingError) {
+      // Extract meaningful contextual information if available
       const underlyingMessage = error.message.match(matchingError.errorRegex);
       error.message =
-        underlyingMessage && underlyingMessage.length == 2
-          ? underlyingMessage[1]
+        underlyingMessage && underlyingMessage.length > 1
+          ? underlyingMessage[0]
           : error.message;
-      return new Error(matchingError.humanReadableError, { cause: error });
+
+      return matchingError.classification === 'ERROR'
+        ? new AmplifyUserError(
+            matchingError.errorName as AmplifyUserErrorType,
+            { message: matchingError.humanReadableErrorMessage },
+            error
+          )
+        : new AmplifyFault(
+            matchingError.errorName as AmplifyLibraryFaultType,
+            { message: matchingError.humanReadableErrorMessage },
+            error
+          );
     }
-    return error;
+    return AmplifyError.fromError(error);
   };
 }

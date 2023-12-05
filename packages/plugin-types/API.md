@@ -9,7 +9,7 @@ import { CfnIdentityPoolRoleAttachment } from 'aws-cdk-lib/aws-cognito';
 import { CfnUserPool } from 'aws-cdk-lib/aws-cognito';
 import { CfnUserPoolClient } from 'aws-cdk-lib/aws-cognito';
 import { Construct } from 'constructs';
-import { Function as Function_2 } from 'aws-cdk-lib/aws-lambda';
+import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { IRole } from 'aws-cdk-lib/aws-iam';
 import { IUserPool } from 'aws-cdk-lib/aws-cognito';
 import { IUserPoolClient } from 'aws-cdk-lib/aws-cognito';
@@ -115,7 +115,7 @@ export type DeploymentType = 'branch' | 'sandbox';
 
 // @public (undocumented)
 export type FunctionResources = {
-    lambda: Function_2;
+    lambda: IFunction;
 };
 
 // @public

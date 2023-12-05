@@ -20,6 +20,7 @@ import { Sandbox } from './sandbox.js';
 import { AmplifyPrompter } from '@aws-amplify/cli-core';
 import { fileURLToPath } from 'url';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 // Watcher mocks
 const unsubscribeMockFn = mock.fn();
@@ -229,7 +230,6 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
       testSandboxBackendId,
       {
-        deploymentType: 'sandbox',
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: false,
       },
@@ -257,7 +257,6 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
       testSandboxBackendId,
       {
-        deploymentType: 'sandbox',
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
@@ -289,7 +288,6 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
       testSandboxBackendId,
       {
-        deploymentType: 'sandbox',
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
@@ -324,7 +322,6 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
       testSandboxBackendId,
       {
-        deploymentType: 'sandbox',
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
@@ -345,7 +342,6 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
       testSandboxBackendId,
       {
-        deploymentType: 'sandbox',
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: false,
       },
@@ -372,7 +368,6 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
       testSandboxBackendId,
       {
-        deploymentType: 'sandbox',
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
@@ -395,7 +390,6 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
       testSandboxBackendId,
       {
-        deploymentType: 'sandbox',
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
@@ -404,7 +398,6 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepEqual(backendDeployerDeployMock.mock.calls[1].arguments, [
       testSandboxBackendId,
       {
-        deploymentType: 'sandbox',
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
@@ -442,7 +435,6 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
       testSandboxBackendId,
       {
-        deploymentType: 'sandbox',
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
@@ -451,7 +443,6 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepEqual(backendDeployerDeployMock.mock.calls[1].arguments, [
       testSandboxBackendId,
       {
-        deploymentType: 'sandbox',
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
@@ -471,9 +462,6 @@ void describe('Sandbox using local project name resolver', () => {
     // BackendDeployer should be called with the right params
     assert.deepEqual(backendDeployerDestroyMock.mock.calls[0].arguments, [
       testSandboxBackendId,
-      {
-        deploymentType: 'sandbox',
-      },
     ]);
   });
 
@@ -525,7 +513,9 @@ void describe('Sandbox using local project name resolver', () => {
       'deploy',
       () =>
         Promise.reject(
-          new Error('[UpdateNotSupported] random BackendDeployer error')
+          new AmplifyUserError('CFNUpdateNotSupportedError', {
+            message: 'some error message',
+          })
         ),
       { times: 1 } //mock implementation once
     );
@@ -565,7 +555,9 @@ void describe('Sandbox using local project name resolver', () => {
       'deploy',
       () =>
         Promise.reject(
-          new Error('[UpdateNotSupported] random BackendDeployer error')
+          new AmplifyUserError('CFNUpdateNotSupportedError', {
+            message: 'some error message',
+          })
         ),
       { times: 1 } //mock implementation once
     );
@@ -642,7 +634,6 @@ void describe('Sandbox using local project name resolver', () => {
         type: 'sandbox',
       },
       {
-        deploymentType: 'sandbox',
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
@@ -666,9 +657,6 @@ void describe('Sandbox using local project name resolver', () => {
         namespace: 'testSandboxId',
         name: 'customSandboxName',
         type: 'sandbox',
-      },
-      {
-        deploymentType: 'sandbox',
       },
     ]);
   });

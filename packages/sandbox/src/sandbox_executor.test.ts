@@ -94,7 +94,6 @@ void describe('Sandbox executor', () => {
             type: 'sandbox',
           },
           {
-            deploymentType: 'sandbox',
             secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
             validateAppSources: shouldValidateSources,
           },

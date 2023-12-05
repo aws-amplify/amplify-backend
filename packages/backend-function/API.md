@@ -4,36 +4,19 @@
 
 ```ts
 
-import { AmplifyFunctionProps } from '@aws-amplify/function-construct-alpha';
-import { AmplifyLambdaFunction } from '@aws-amplify/function-construct-alpha';
+import { Construct } from 'constructs';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
-import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
+import { FunctionResources } from '@aws-amplify/plugin-types';
+import { ResourceProvider } from '@aws-amplify/plugin-types';
 
 // @public
-export class AmplifyFunctionFactory implements ConstructFactory<AmplifyLambdaFunction> {
-    static build: (props: AmplifyFunctionFactoryBuildProps) => Promise<AmplifyFunctionFactory>;
-    static fromDir: (props: AmplifyFunctionFactoryFromDirProps) => AmplifyFunctionFactory;
-    getInstance: ({ constructContainer, }: ConstructFactoryGetInstanceProps) => AmplifyLambdaFunction;
-}
+export const defineFunction: (props?: FunctionProps) => ConstructFactory<Construct & ResourceProvider<FunctionResources>>;
 
 // @public (undocumented)
-export type AmplifyFunctionFactoryBaseProps = {
-    name: string;
+export type FunctionProps = {
+    name?: string;
+    entry?: string;
 };
-
-// @public (undocumented)
-export type AmplifyFunctionFactoryBuildProps = AmplifyFunctionFactoryBaseProps & Omit<AmplifyFunctionProps, 'absoluteCodePath'> & {
-    buildCommand: string;
-    outDir: string;
-};
-
-// @public (undocumented)
-export type AmplifyFunctionFactoryFromDirProps = AmplifyFunctionFactoryBaseProps & Omit<AmplifyFunctionProps, 'absoluteCodePath'> & {
-    codePath: string;
-};
-
-// @public
-export const Func: typeof AmplifyFunctionFactory;
 
 // (No @packageDocumentation comment for this package)
 
