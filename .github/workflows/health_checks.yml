@@ -107,7 +107,7 @@ jobs:
           aws configure set aws_access_key_id ${{ steps.credentials.outputs.aws-access-key-id }} --profile e2e-tooling
           aws configure set aws_secret_access_key ${{ steps.credentials.outputs.aws-secret-access-key }} --profile e2e-tooling
           aws configure set aws_session_token ${{ steps.credentials.outputs.aws-session-token }} --profile e2e-tooling
-          aws configure set region ${{ steps.credentials.outputs.aws-region }} --profile e2e-tooling
+          aws configure set region us-west-2 --profile e2e-tooling
       - name: Configure test execution credentials
         uses: aws-actions/configure-aws-credentials@04b98b3f9e85f563fb061be8751a0352327246b0 # version 3.0.1
         with:
