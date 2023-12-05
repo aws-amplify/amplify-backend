@@ -11,11 +11,7 @@ import {
   PasswordlessAuthChallengeParams,
   SignInMethod,
 } from '../types.js';
-import {
-  actionMetadataKey,
-  deliveryMediumMetadataKey,
-  signInMethodMetadataKey,
-} from '../constants.js';
+import { CognitoMetadataKeys } from '../constants.js';
 
 /**
  * A class containing the Cognito Auth triggers used for Custom Auth.
@@ -57,8 +53,8 @@ export class CustomAuthService {
     }
 
     const clientMetadata = event.request.clientMetadata || {};
-    const action = clientMetadata[actionMetadataKey];
-    const signInMethod = clientMetadata[signInMethodMetadataKey];
+    const action = clientMetadata[CognitoMetadataKeys.ACTION];
+    const signInMethod = clientMetadata[CognitoMetadataKeys.SIGN_IN_METHOD];
     logger.info(`Requested signInMethod: ${signInMethod} and action ${action}`);
 
     if (signInMethod !== 'MAGIC_LINK' && signInMethod !== 'OTP') {
@@ -115,8 +111,8 @@ export class CustomAuthService {
     }
 
     const clientMetadata = event.request.clientMetadata || {};
-    const action = clientMetadata[actionMetadataKey];
-    const signInMethod = clientMetadata[signInMethodMetadataKey];
+    const action = clientMetadata[CognitoMetadataKeys.ACTION];
+    const signInMethod = clientMetadata[CognitoMetadataKeys.SIGN_IN_METHOD];
     logger.info(`Requested signInMethod: ${signInMethod} and action ${action}`);
 
     if (action != 'REQUEST') {
@@ -172,8 +168,8 @@ export class CustomAuthService {
   ): Promise<VerifyAuthChallengeResponseTriggerEvent> => {
     logger.debug(JSON.stringify(event, null, 2));
     const clientMetadata = event.request.clientMetadata || {};
-    const action = clientMetadata[actionMetadataKey];
-    const signInMethod = clientMetadata[signInMethodMetadataKey];
+    const action = clientMetadata[CognitoMetadataKeys.ACTION];
+    const signInMethod = clientMetadata[CognitoMetadataKeys.SIGN_IN_METHOD];
     logger.info(`Requested signInMethod: ${signInMethod} and action ${action}`);
 
     // If the client is requesting a new challenge, return the event. This will
@@ -218,7 +214,7 @@ export class CustomAuthService {
     event: CreateAuthChallengeTriggerEvent
   ): CodeDeliveryDetails => {
     const clientMetadata = event.request.clientMetadata || {};
-    const deliveryMedium = clientMetadata[deliveryMediumMetadataKey];
+    const deliveryMedium = clientMetadata[CognitoMetadataKeys.DELIVERY_MEDIUM];
 
     if (deliveryMedium !== 'SMS' && deliveryMedium !== 'EMAIL') {
       throw Error('Invalid delivery medium. Only SMS and email are supported.');

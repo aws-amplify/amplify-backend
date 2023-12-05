@@ -4,12 +4,7 @@ import {
   VerifyAuthChallengeResponseTriggerEvent,
 } from 'aws-lambda';
 import { ChallengeResult, PasswordlessClientMetaData } from '../types.js';
-import {
-  actionMetadataKey,
-  deliveryMediumMetadataKey,
-  redirectUriMetadataKey,
-  signInMethodMetadataKey,
-} from '../constants.js';
+import { CognitoMetadataKeys } from '../constants.js';
 
 export const baseEvent = {
   version: '1',
@@ -40,36 +35,37 @@ const baseRequest = {
 
 // Client metadata when requesting a magic link.
 export const requestMagicLinkMetaData: PasswordlessClientMetaData = {
-  [signInMethodMetadataKey]: 'MAGIC_LINK',
-  [actionMetadataKey]: 'REQUEST',
-  [deliveryMediumMetadataKey]: 'EMAIL',
-  [redirectUriMetadataKey]: 'https://example.com/sign-in-link/##code##',
+  [CognitoMetadataKeys.SIGN_IN_METHOD]: 'MAGIC_LINK',
+  [CognitoMetadataKeys.ACTION]: 'REQUEST',
+  [CognitoMetadataKeys.DELIVERY_MEDIUM]: 'EMAIL',
+  [CognitoMetadataKeys.REDIRECT_URI]:
+    'https://example.com/sign-in-link/##code##',
 };
 
 // Client metadata when requesting an OTP via email.
 export const requestOtpEmailMetaData: PasswordlessClientMetaData = {
-  [signInMethodMetadataKey]: 'OTP',
-  [actionMetadataKey]: 'REQUEST',
-  [deliveryMediumMetadataKey]: 'EMAIL',
+  [CognitoMetadataKeys.SIGN_IN_METHOD]: 'OTP',
+  [CognitoMetadataKeys.ACTION]: 'REQUEST',
+  [CognitoMetadataKeys.DELIVERY_MEDIUM]: 'EMAIL',
 };
 
 // Client metadata when requesting an OTP via SMS.
 export const requestOtpSmsMetaData: PasswordlessClientMetaData = {
-  [signInMethodMetadataKey]: 'OTP',
-  [actionMetadataKey]: 'REQUEST',
-  [deliveryMediumMetadataKey]: 'SMS',
+  [CognitoMetadataKeys.SIGN_IN_METHOD]: 'OTP',
+  [CognitoMetadataKeys.ACTION]: 'REQUEST',
+  [CognitoMetadataKeys.DELIVERY_MEDIUM]: 'SMS',
 };
 
 // Client metadata when requesting an OTP via SMS.
 export const confirmOtpMetaData: PasswordlessClientMetaData = {
-  [signInMethodMetadataKey]: 'OTP',
-  [actionMetadataKey]: 'CONFIRM',
+  [CognitoMetadataKeys.SIGN_IN_METHOD]: 'OTP',
+  [CognitoMetadataKeys.ACTION]: 'CONFIRM',
 };
 
 // Client metadata when requesting an OTP via SMS.
 export const confirmMagicLinkMetaData: PasswordlessClientMetaData = {
-  [signInMethodMetadataKey]: 'MAGIC_LINK',
-  [actionMetadataKey]: 'CONFIRM',
+  [CognitoMetadataKeys.SIGN_IN_METHOD]: 'MAGIC_LINK',
+  [CognitoMetadataKeys.ACTION]: 'CONFIRM',
 };
 
 /**

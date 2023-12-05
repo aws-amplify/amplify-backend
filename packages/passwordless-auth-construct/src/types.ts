@@ -4,12 +4,7 @@ import {
   VerifyAuthChallengeResponseTriggerEvent,
 } from 'aws-lambda';
 import { Duration } from 'aws-cdk-lib/core';
-import {
-  actionMetadataKey,
-  deliveryMediumMetadataKey,
-  redirectUriMetadataKey,
-  signInMethodMetadataKey,
-} from './constants.js';
+import { CognitoMetadataKeys } from './constants.js';
 
 /**
  * The client meta data object provided during passwordless auth.
@@ -21,35 +16,35 @@ export type PasswordlessClientMetaData =
   | ConfirmOTPClientMetaData;
 
 export type RequestMagicLinkClientMetaData = {
-  [signInMethodMetadataKey]: 'MAGIC_LINK';
-  [actionMetadataKey]: 'REQUEST';
-  [deliveryMediumMetadataKey]: 'EMAIL';
+  [CognitoMetadataKeys.SIGN_IN_METHOD]: 'MAGIC_LINK';
+  [CognitoMetadataKeys.ACTION]: 'REQUEST';
+  [CognitoMetadataKeys.DELIVERY_MEDIUM]: 'EMAIL';
 
   /**
    * A redirect URL with a code placeholder. For example: 'https://example.com/signin?code=##code##'
    */
-  [redirectUriMetadataKey]: string;
+  [CognitoMetadataKeys.REDIRECT_URI]: string;
 };
 
 export type ConfirmMagicLinkClientMetaData = {
-  [signInMethodMetadataKey]: 'MAGIC_LINK';
-  [actionMetadataKey]: 'CONFIRM';
+  [CognitoMetadataKeys.SIGN_IN_METHOD]: 'MAGIC_LINK';
+  [CognitoMetadataKeys.ACTION]: 'CONFIRM';
 };
 
 export type RequestOTPClientMetaData = {
-  [signInMethodMetadataKey]: 'OTP';
-  [actionMetadataKey]: 'REQUEST';
-  [deliveryMediumMetadataKey]: DeliveryMedium;
+  [CognitoMetadataKeys.SIGN_IN_METHOD]: 'OTP';
+  [CognitoMetadataKeys.ACTION]: 'REQUEST';
+  [CognitoMetadataKeys.DELIVERY_MEDIUM]: DeliveryMedium;
 };
 
 export type ConfirmOTPClientMetaData = {
-  [signInMethodMetadataKey]: 'OTP';
-  [actionMetadataKey]: 'CONFIRM';
+  [CognitoMetadataKeys.SIGN_IN_METHOD]: 'OTP';
+  [CognitoMetadataKeys.ACTION]: 'CONFIRM';
 };
 
 export type DeliveryMedium = 'SMS' | 'EMAIL';
 export type SignInMethod =
-  PasswordlessClientMetaData[typeof signInMethodMetadataKey];
+  PasswordlessClientMetaData[CognitoMetadataKeys.SIGN_IN_METHOD];
 
 /**
  * A service for creating and verifying challenges of a specific type. For
