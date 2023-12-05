@@ -334,6 +334,13 @@ void describe('create-amplify script', { concurrency }, () => {
     let tempDir: string;
     beforeEach(async () => {
       tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'test-create-amplify'));
+
+      if (PACKAGE_MANAGER_EXECUTABLE === 'yarn-stable') {
+        await packageManagerSetup(
+          PACKAGE_MANAGER_EXECUTABLE as PackageManagerExecutable,
+          tempDir
+        );
+      }
     });
 
     afterEach(async () => {
