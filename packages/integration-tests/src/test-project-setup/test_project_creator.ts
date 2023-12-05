@@ -6,6 +6,13 @@ import { MinimalWithTypescriptIdiomTestProjectCreator } from './minimal_with_typ
 import { LambdaClient } from '@aws-sdk/client-lambda';
 import { DeployedResourcesFinder } from '../find_deployed_resource.js';
 import { fromIni } from '@aws-sdk/credential-providers';
+import { loadSharedConfigFiles } from '@smithy/shared-ini-file-loader';
+
+const E2E_TOOLING_PROFILE = 'e2e-tooling';
+
+const E2E_TOOLING_REGION = process.env.CI
+  ? (await loadSharedConfigFiles()).configFile?.[E2E_TOOLING_PROFILE]?.region
+  : undefined;
 
 export type TestProjectCreator = {
   readonly name: string;
@@ -22,7 +29,8 @@ export const getTestProjectCreators = (): TestProjectCreator[] => {
   // vs permissions required to orchestrate test setup, teardown, and assertions.
   const e2eToolingClientConfig = process.env.CI
     ? {
-        credentials: fromIni({ profile: 'e2e-tooling' }),
+        credentials: fromIni({ profile: E2E_TOOLING_PROFILE }),
+        region: E2E_TOOLING_REGION,
       }
     : {};
   const testProjectCreators: TestProjectCreator[] = [];
