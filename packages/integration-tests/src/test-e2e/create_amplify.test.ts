@@ -8,7 +8,7 @@ import assert from 'assert';
 import { glob } from 'glob';
 import { testConcurrencyLevel } from './test_concurrency.js';
 
-type PackageManagerExecutable = 'npm' | 'yarn' | 'yarn-stable' | 'pnpm';
+type PackageManagerExecutable = 'npm' | 'yarn-classic' | 'yarn-modern' | 'pnpm';
 
 const concurrency = process.env.PACKAGE_MANAGER_EXECUTABLE?.startsWith('yarn')
   ? 1
@@ -32,7 +32,7 @@ const packageManagerSetup = async (
       await fs.rm(npxCacheLocation, { recursive: true });
     }
   } else if (packageManagerExecutable.startsWith('yarn')) {
-    if (packageManagerExecutable === 'yarn-stable') {
+    if (packageManagerExecutable === 'yarn-modern') {
       await execa('corepack', ['enable'], execaOptions);
       await execa('yarn', ['init', '-2'], execaOptions);
 
@@ -48,23 +48,13 @@ const packageManagerSetup = async (
       );
     } else {
       await execa(
-        packageManagerExecutable,
+        'yarn',
         ['config', 'set', 'registry', 'http://localhost:4873'],
         execaOptions
       );
-      await execa(
-        packageManagerExecutable,
-        ['config', 'get', 'registry'],
-        execaOptions
-      );
+      await execa('yarn', ['config', 'get', 'registry'], execaOptions);
     }
-    await execa(
-      packageManagerExecutable === 'yarn-stable'
-        ? 'yarn'
-        : packageManagerExecutable,
-      ['cache', 'clean'],
-      execaOptions
-    );
+    await execa('yarn', ['cache', 'clean'], execaOptions);
   } else if (packageManagerExecutable === 'pnpm') {
     await execa(packageManagerExecutable, ['--version']);
     await execa(packageManagerExecutable, [
@@ -81,10 +71,9 @@ const packageManagerSetup = async (
 
 void describe('create-amplify script', { concurrency }, () => {
   const { PACKAGE_MANAGER_EXECUTABLE = 'npm' } = process.env;
-  const packageManagerExecutable =
-    PACKAGE_MANAGER_EXECUTABLE === 'yarn-stable'
-      ? 'yarn'
-      : PACKAGE_MANAGER_EXECUTABLE;
+  const packageManagerExecutable = PACKAGE_MANAGER_EXECUTABLE.startsWith('yarn')
+    ? 'yarn'
+    : PACKAGE_MANAGER_EXECUTABLE;
 
   before(async () => {
     // start a local npm proxy and publish the current codebase to the proxy
@@ -92,7 +81,7 @@ void describe('create-amplify script', { concurrency }, () => {
     await execa('npm', ['run', 'vend'], { stdio: 'inherit' });
 
     // install package manager
-    if (PACKAGE_MANAGER_EXECUTABLE === 'yarn') {
+    if (PACKAGE_MANAGER_EXECUTABLE === 'yarn-classic') {
       await execa('npm', ['install', '-g', 'yarn'], { stdio: 'inherit' });
     } else if (PACKAGE_MANAGER_EXECUTABLE === 'pnpm') {
       await execa('npm', ['install', '-g', PACKAGE_MANAGER_EXECUTABLE], {
@@ -101,7 +90,7 @@ void describe('create-amplify script', { concurrency }, () => {
     }
 
     // nuke the npx cache to ensure we are installing packages from the npm proxy
-    if (PACKAGE_MANAGER_EXECUTABLE !== 'yarn-stable') {
+    if (PACKAGE_MANAGER_EXECUTABLE !== 'yarn-modern') {
       await packageManagerSetup(
         PACKAGE_MANAGER_EXECUTABLE as PackageManagerExecutable
       );
@@ -115,7 +104,7 @@ void describe('create-amplify script', { concurrency }, () => {
       [
         'create',
         'amplify',
-        ...(PACKAGE_MANAGER_EXECUTABLE === 'yarn-stable'
+        ...(PACKAGE_MANAGER_EXECUTABLE === 'yarn-modern'
           ? []
           : ['--yes', '--']),
         '--help',
@@ -143,7 +132,7 @@ void describe('create-amplify script', { concurrency }, () => {
           path.join(os.tmpdir(), 'test-create-amplify')
         );
 
-        if (PACKAGE_MANAGER_EXECUTABLE === 'yarn-stable') {
+        if (PACKAGE_MANAGER_EXECUTABLE === 'yarn-modern') {
           await packageManagerSetup(
             PACKAGE_MANAGER_EXECUTABLE as PackageManagerExecutable,
             tempDir
@@ -239,7 +228,7 @@ void describe('create-amplify script', { concurrency }, () => {
           expectedAmplifyFiles.map((suffix) => path.join(pathPrefix, suffix))
         );
 
-        if (PACKAGE_MANAGER_EXECUTABLE === 'yarn-stable') {
+        if (PACKAGE_MANAGER_EXECUTABLE === 'yarn-modern') {
           await execa('yarn', ['config', 'set', 'nodeLinker', 'node-modules'], {
             cwd: `${tempDir}/amplify`,
             stdio: 'inherit',
@@ -261,7 +250,11 @@ void describe('create-amplify script', { concurrency }, () => {
 
         // assert that project compiles successfully
         await execa(
-          packageManagerExecutable === 'npm' ? 'npx' : packageManagerExecutable,
+          packageManagerExecutable === 'npm'
+            ? 'npx'
+            : packageManagerExecutable.startsWith('yarn')
+            ? 'yarn'
+            : packageManagerExecutable,
           [
             'tsc',
             '--noEmit',
@@ -281,7 +274,7 @@ void describe('create-amplify script', { concurrency }, () => {
             cwd: tempDir,
             stdio: 'inherit',
           });
-          if (PACKAGE_MANAGER_EXECUTABLE === 'yarn-stable') {
+          if (PACKAGE_MANAGER_EXECUTABLE === 'yarn-modern') {
             await execa(
               'yarn',
               [
@@ -335,7 +328,7 @@ void describe('create-amplify script', { concurrency }, () => {
     beforeEach(async () => {
       tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'test-create-amplify'));
 
-      if (PACKAGE_MANAGER_EXECUTABLE === 'yarn-stable') {
+      if (PACKAGE_MANAGER_EXECUTABLE === 'yarn-modern') {
         await packageManagerSetup(
           PACKAGE_MANAGER_EXECUTABLE as PackageManagerExecutable,
           tempDir

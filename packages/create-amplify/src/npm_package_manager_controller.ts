@@ -18,7 +18,7 @@ export class NpmPackageManagerController implements PackageManagerController {
   ) {}
   private readonly executableName = !process.env.PACKAGE_MANAGER_EXECUTABLE
     ? 'npm'
-    : process.env.PACKAGE_MANAGER_EXECUTABLE === 'yarn-stable'
+    : process.env.PACKAGE_MANAGER_EXECUTABLE.startsWith('yarn')
     ? 'yarn'
     : process.env.PACKAGE_MANAGER_EXECUTABLE; // TODO: replace `process.env.PACKAGE_MANAGER_EXECUTABLE` with `getPackageManagerName()` once the test infra is ready.
 
@@ -29,9 +29,9 @@ export class NpmPackageManagerController implements PackageManagerController {
     packageNames: string[],
     type: DependencyType
   ): Promise<void> => {
-    const args = [this.executableName === 'yarn' ? 'add' : 'install'].concat(
-      ...packageNames
-    );
+    const args = [
+      this.executableName.startsWith('yarn') ? 'add' : 'install',
+    ].concat(...packageNames);
     if (type === 'dev') {
       args.push('-D');
     }
