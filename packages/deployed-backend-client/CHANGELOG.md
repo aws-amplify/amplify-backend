@@ -1,5 +1,13 @@
 # @aws-amplify/deployed-backend-client
 
+## 0.3.4
+
+### Patch Changes
+
+- d2c3baa7e: filter non-sandbox stacks
+- Updated dependencies [db775ad6e]
+  - @aws-amplify/platform-core@0.3.2
+
 ## 0.3.3
 
 ### Patch Changes

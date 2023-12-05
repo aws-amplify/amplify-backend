@@ -1,5 +1,14 @@
 # create-amplify
 
+## 0.3.9
+
+### Patch Changes
+
+- db775ad6e: Refactor error handling, introduce two new AmplifyErrors
+- c6c39d04c: Expose new `defineFunction` interface
+- Updated dependencies [db775ad6e]
+  - @aws-amplify/platform-core@0.3.2
+
 ## 0.3.8
 
 ### Patch Changes

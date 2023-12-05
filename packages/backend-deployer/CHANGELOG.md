@@ -1,5 +1,19 @@
 # @aws-amplify/backend-deployer
 
+## 0.4.0
+
+### Minor Changes
+
+- cd672baca: require backend identifier in deployer, remove redundant deploymentType parameter
+
+### Patch Changes
+
+- db775ad6e: Refactor error handling, introduce two new AmplifyErrors
+- Updated dependencies [db775ad6e]
+- Updated dependencies [c6c39d04c]
+  - @aws-amplify/platform-core@0.3.2
+  - @aws-amplify/plugin-types@0.5.0
+
 ## 0.3.4
 
 ### Patch Changes

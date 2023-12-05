@@ -1,5 +1,12 @@
 # @aws-amplify/integration-tests
 
+## 0.3.8
+
+### Patch Changes
+
+- ae0819a96: match aws-cdk-lib versions
+- db775ad6e: Refactor error handling, introduce two new AmplifyErrors
+
 ## 0.3.7
 
 ### Patch Changes

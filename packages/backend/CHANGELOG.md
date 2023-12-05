@@ -1,5 +1,26 @@
 # @aws-amplify/backend
 
+## 0.6.0
+
+### Minor Changes
+
+- c6c39d04c: Expose new `defineFunction` interface
+
+### Patch Changes
+
+- 5aca60c97: add link to docs in secrets jsdoc
+- Updated dependencies [db775ad6e]
+- Updated dependencies [c6c39d04c]
+- Updated dependencies [c6c39d04c]
+- Updated dependencies [308d1729a]
+  - @aws-amplify/platform-core@0.3.2
+  - @aws-amplify/backend-data@0.8.3
+  - @aws-amplify/backend-function@0.3.0
+  - @aws-amplify/plugin-types@0.5.0
+  - @aws-amplify/backend-auth@0.3.6
+  - @aws-amplify/backend-secret@0.3.2
+  - @aws-amplify/backend-storage@0.3.2
+
 ## 0.5.5
 
 ### Patch Changes
