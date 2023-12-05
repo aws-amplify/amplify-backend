@@ -8,7 +8,7 @@ export const auth = defineAuth({
     // originationNumber and fromAddress values are placeholders
     // until we find a solution to add them to work with CI.
     otp: {
-      sms: { originationNumber: '+18888747169' },
+      sms: { originationNumber: '+18888888888' },
       email: {
         fromAddress: 'dummy@email.com',
       },
