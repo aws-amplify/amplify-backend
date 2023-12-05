@@ -5,6 +5,8 @@ import { DataStorageAuthWithTriggerTestProjectCreator } from './data_storage_aut
 import { MinimalWithTypescriptIdiomTestProjectCreator } from './minimal_with_typescript_idioms.js';
 import { LambdaClient } from '@aws-sdk/client-lambda';
 import { DeployedResourcesFinder } from '../find_deployed_resource.js';
+import { CognitoIdentityProviderClient } from '@aws-sdk/client-cognito-identity-provider';
+import { PasswordlessAuthTestProjectCreator } from './passwordless_auth.js';
 
 export type TestProjectCreator = {
   readonly name: string;
@@ -20,6 +22,7 @@ export const getTestProjectCreators = (): TestProjectCreator[] => {
   const lambdaClient = new LambdaClient();
   const resourceFinder = new DeployedResourcesFinder(cfnClient);
   const secretClient = getSecretClient();
+  const cognitoIdentityProviderClient = new CognitoIdentityProviderClient();
   testProjectCreators.push(
     new DataStorageAuthWithTriggerTestProjectCreator(
       cfnClient,
@@ -27,7 +30,12 @@ export const getTestProjectCreators = (): TestProjectCreator[] => {
       lambdaClient,
       resourceFinder
     ),
-    new MinimalWithTypescriptIdiomTestProjectCreator(cfnClient)
+    new MinimalWithTypescriptIdiomTestProjectCreator(cfnClient),
+    new PasswordlessAuthTestProjectCreator(
+      cfnClient,
+      cognitoIdentityProviderClient,
+      resourceFinder
+    )
   );
   return testProjectCreators;
 };
