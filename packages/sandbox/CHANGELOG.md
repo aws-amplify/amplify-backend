@@ -1,5 +1,19 @@
 # @aws-amplify/sandbox
 
+## 0.3.7
+
+### Patch Changes
+
+- db775ad6e: Refactor error handling, introduce two new AmplifyErrors
+- cd672baca: require backend identifier in deployer, remove redundant deploymentType parameter
+- Updated dependencies [db775ad6e]
+- Updated dependencies [cd672baca]
+- Updated dependencies [d2c3baa7e]
+  - @aws-amplify/backend-deployer@0.4.0
+  - @aws-amplify/platform-core@0.3.2
+  - @aws-amplify/deployed-backend-client@0.3.4
+  - @aws-amplify/backend-secret@0.3.2
+
 ## 0.3.6
 
 ### Patch Changes
