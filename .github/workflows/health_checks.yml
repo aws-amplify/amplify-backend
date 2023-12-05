@@ -111,7 +111,9 @@ jobs:
       - name: Configure test execution credentials
         uses: aws-actions/configure-aws-credentials@04b98b3f9e85f563fb061be8751a0352327246b0 # version 3.0.1
         with:
-          role-to-assume: ${{ secrets.E2E_RUNNER_ROLE_ARN }}
+          # TODO follow up PR to switch this back after merge
+          # (can't do it before merge without impacting other e2e runs)
+          role-to-assume: ${{ secrets.E2E_RUNNER_ROLE_ARN_NEW }}
           aws-region: us-west-2
       - name: Run E2E tests
         run: npm run e2e
