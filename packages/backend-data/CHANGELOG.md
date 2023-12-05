@@ -1,5 +1,14 @@
 # @aws-amplify/backend-data
 
+## 0.8.3
+
+### Patch Changes
+
+- db775ad6e: Refactor error handling, introduce two new AmplifyErrors
+- 308d1729a: Add messaging and test about not updating provision strategy
+- Updated dependencies [c6c39d04c]
+  - @aws-amplify/plugin-types@0.5.0
+
 ## 0.8.2
 
 ### Patch Changes

@@ -1,5 +1,13 @@
 # @aws-amplify/platform-core
 
+## 0.3.2
+
+### Patch Changes
+
+- db775ad6e: Refactor error handling, introduce two new AmplifyErrors
+- Updated dependencies [c6c39d04c]
+  - @aws-amplify/plugin-types@0.5.0
+
 ## 0.3.1
 
 ### Patch Changes

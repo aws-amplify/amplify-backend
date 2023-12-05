@@ -1,5 +1,16 @@
 # @aws-amplify/backend-function
 
+## 0.3.0
+
+### Minor Changes
+
+- c6c39d04c: Initial implementation of new 'defineFunction' entry point
+
+### Patch Changes
+
+- Updated dependencies [c6c39d04c]
+  - @aws-amplify/plugin-types@0.5.0
+
 ## 0.2.5
 
 ### Patch Changes
