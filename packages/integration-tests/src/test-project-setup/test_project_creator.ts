@@ -15,7 +15,6 @@ export type TestProjectCreator = {
 /**
  * Generates a list of test projects.
  */
-// dummy commit to unstick GH actions
 export const getTestProjectCreators = (): TestProjectCreator[] => {
   const testProjectCreators: TestProjectCreator[] = [];
 
