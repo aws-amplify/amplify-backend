@@ -123,30 +123,42 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
   };
 
   private resolveTimeout = () => {
+    const timeoutMin = 1;
     const timeoutMax = 60 * 15; // 15 minutes in seconds
+    const timeoutDefault = 3;
     if (!this.props.timeoutSeconds) {
-      return 3;
+      return timeoutDefault;
     }
 
     if (
-      !isWholeNumberBetweenInclusive(this.props.timeoutSeconds, 1, timeoutMax)
+      !isWholeNumberBetweenInclusive(
+        this.props.timeoutSeconds,
+        timeoutMin,
+        timeoutMax
+      )
     ) {
       throw new Error(
-        `timeoutSeconds must be a whole number between 1 and ${timeoutMax} inclusive`
+        `timeoutSeconds must be a whole number between ${timeoutMin} and ${timeoutMax} inclusive`
       );
     }
     return this.props.timeoutSeconds;
   };
 
   private resolveMemory = () => {
+    const memoryMin = 128;
+    const memoryMax = 10240;
+    const memoryDefault = memoryMin;
     if (!this.props.memoryMB) {
-      return 128;
+      return memoryDefault;
     }
-    if (!isWholeNumberBetweenInclusive(this.props.memoryMB, 128, 10240)) {
+    if (
+      !isWholeNumberBetweenInclusive(this.props.memoryMB, memoryMin, memoryMax)
+    ) {
       throw new Error(
-        `memoryMB must be a whole number between 128 and 10240 inclusive`
+        `memoryMB must be a whole number between ${memoryMin} and ${memoryMax} inclusive`
       );
     }
+    return this.props.memoryMB;
   };
 }
 
