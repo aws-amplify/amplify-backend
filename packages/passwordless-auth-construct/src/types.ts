@@ -4,6 +4,7 @@ import {
   VerifyAuthChallengeResponseTriggerEvent,
 } from 'aws-lambda';
 import { Duration } from 'aws-cdk-lib/core';
+import { CognitoMetadataKeys } from './constants.js';
 
 /**
  * The client meta data object provided during passwordless auth.
@@ -15,33 +16,35 @@ export type PasswordlessClientMetaData =
   | ConfirmOTPClientMetaData;
 
 export type RequestMagicLinkClientMetaData = {
-  signInMethod: 'MAGIC_LINK';
-  action: 'REQUEST';
-  deliveryMedium: 'EMAIL';
+  [CognitoMetadataKeys.SIGN_IN_METHOD]: 'MAGIC_LINK';
+  [CognitoMetadataKeys.ACTION]: 'REQUEST';
+  [CognitoMetadataKeys.DELIVERY_MEDIUM]: 'EMAIL';
 
   /**
    * A redirect URL with a code placeholder. For example: 'https://example.com/signin?code=##code##'
    */
-  redirectUri: string;
+  [CognitoMetadataKeys.REDIRECT_URI]: string;
 };
 
 export type ConfirmMagicLinkClientMetaData = {
-  signInMethod: 'MAGIC_LINK';
-  action: 'CONFIRM';
+  [CognitoMetadataKeys.SIGN_IN_METHOD]: 'MAGIC_LINK';
+  [CognitoMetadataKeys.ACTION]: 'CONFIRM';
 };
 
 export type RequestOTPClientMetaData = {
-  signInMethod: 'OTP';
-  action: 'REQUEST';
-  deliveryMedium: DeliveryMedium;
+  [CognitoMetadataKeys.SIGN_IN_METHOD]: 'OTP';
+  [CognitoMetadataKeys.ACTION]: 'REQUEST';
+  [CognitoMetadataKeys.DELIVERY_MEDIUM]: DeliveryMedium;
 };
 
 export type ConfirmOTPClientMetaData = {
-  signInMethod: 'OTP';
-  action: 'CONFIRM';
+  [CognitoMetadataKeys.SIGN_IN_METHOD]: 'OTP';
+  [CognitoMetadataKeys.ACTION]: 'CONFIRM';
 };
 
-export type SignInMethod = PasswordlessClientMetaData['signInMethod'];
+export type DeliveryMedium = 'SMS' | 'EMAIL';
+export type SignInMethod =
+  PasswordlessClientMetaData[CognitoMetadataKeys.SIGN_IN_METHOD];
 
 /**
  * A service for creating and verifying challenges of a specific type. For
@@ -144,8 +147,6 @@ export type CodeDeliveryDetails = {
   attributeName: 'email' | 'phone_number';
   deliveryMedium: DeliveryMedium;
 };
-
-export type DeliveryMedium = 'SMS' | 'EMAIL';
 
 /**
  * Options for passwordless authentication.

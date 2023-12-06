@@ -11,6 +11,7 @@ import {
   PasswordlessAuthChallengeParams,
   SignInMethod,
 } from '../types.js';
+import { CognitoMetadataKeys } from '../constants.js';
 
 /**
  * A class containing the Cognito Auth triggers used for Custom Auth.
@@ -51,7 +52,9 @@ export class CustomAuthService {
       return this.failAuthentication(event, 'Expected CUSTOM_CHALLENGE');
     }
 
-    const { action, signInMethod } = event.request.clientMetadata ?? {};
+    const clientMetadata = event.request.clientMetadata || {};
+    const action = clientMetadata[CognitoMetadataKeys.ACTION];
+    const signInMethod = clientMetadata[CognitoMetadataKeys.SIGN_IN_METHOD];
     logger.info(`Requested signInMethod: ${signInMethod} and action ${action}`);
 
     if (signInMethod !== 'MAGIC_LINK' && signInMethod !== 'OTP') {
@@ -107,7 +110,9 @@ export class CustomAuthService {
       return this.provideAuthParameters(event);
     }
 
-    const { action, signInMethod } = event.request.clientMetadata ?? {};
+    const clientMetadata = event.request.clientMetadata || {};
+    const action = clientMetadata[CognitoMetadataKeys.ACTION];
+    const signInMethod = clientMetadata[CognitoMetadataKeys.SIGN_IN_METHOD];
     logger.info(`Requested signInMethod: ${signInMethod} and action ${action}`);
 
     if (action != 'REQUEST') {
@@ -162,7 +167,9 @@ export class CustomAuthService {
     event: VerifyAuthChallengeResponseTriggerEvent
   ): Promise<VerifyAuthChallengeResponseTriggerEvent> => {
     logger.debug(JSON.stringify(event, null, 2));
-    const { action, signInMethod } = event.request.clientMetadata ?? {};
+    const clientMetadata = event.request.clientMetadata || {};
+    const action = clientMetadata[CognitoMetadataKeys.ACTION];
+    const signInMethod = clientMetadata[CognitoMetadataKeys.SIGN_IN_METHOD];
     logger.info(`Requested signInMethod: ${signInMethod} and action ${action}`);
 
     // If the client is requesting a new challenge, return the event. This will
@@ -190,9 +197,9 @@ export class CustomAuthService {
    * @param signInMethod - The sign in method provided by the client.
    * @returns A valid sign in method.
    */
-  private validateSignInMethod(signInMethod: string): SignInMethod {
+  private validateSignInMethod(signInMethod?: string): SignInMethod {
     if (signInMethod !== 'MAGIC_LINK' && signInMethod !== 'OTP') {
-      throw new Error(`Unrecognized signInMethod: ${signInMethod}`);
+      throw new Error(`Unrecognized signInMethod: ${signInMethod || 'Null'}`);
     }
     return signInMethod;
   }
@@ -206,10 +213,8 @@ export class CustomAuthService {
   private validateDeliveryCodeDetails = (
     event: CreateAuthChallengeTriggerEvent
   ): CodeDeliveryDetails => {
-    const { deliveryMedium } = event.request.clientMetadata as Record<
-      string,
-      string | undefined
-    >;
+    const clientMetadata = event.request.clientMetadata || {};
+    const deliveryMedium = clientMetadata[CognitoMetadataKeys.DELIVERY_MEDIUM];
 
     if (deliveryMedium !== 'SMS' && deliveryMedium !== 'EMAIL') {
       throw Error('Invalid delivery medium. Only SMS and email are supported.');
