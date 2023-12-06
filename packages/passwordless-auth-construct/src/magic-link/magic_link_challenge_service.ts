@@ -86,6 +86,7 @@ export class MagicLinkChallengeService implements ChallengeService {
       response: {
         ...event.response,
         publicChallengeParameters: {
+          nextStep: 'PROVIDE_CHALLENGE_RESPONSE',
           ...event.response.publicChallengeParameters,
           ...deliveryDetails,
         },
