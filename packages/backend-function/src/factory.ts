@@ -9,6 +9,7 @@ import { Construct } from 'constructs';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as path from 'path';
 import { getCallerDirectory } from './get_caller_directory.js';
+import { Duration } from 'aws-cdk-lib';
 
 /**
  * Entry point for defining a function in the Amplify ecosystem
@@ -36,6 +37,25 @@ export type FunctionProps = {
    * Defaults to './handler.ts'
    */
   entry?: string;
+
+  /**
+   * An amount of time between 1 second and 15 minutes.
+   * Must be a whole number
+   * Default is 3 seconds
+   */
+  timeoutSeconds?: number;
+
+  /**
+   * An amount of memory (RAM) to allocate to the function between 128 and 10240 MB
+   * Must be a whole number.
+   * Default is 128MB
+   */
+  memoryMB?: number;
+
+  /**
+   * Environment variables that will be available during the function execution
+   */
+  env?: Record<string, string>;
 };
 
 /**
@@ -67,6 +87,9 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
     return {
       name: this.resolveName(),
       entry: this.resolveEntry(),
+      timeoutSeconds: this.resolveTimeout(),
+      memoryMB: this.resolveMemory(),
+      env: this.props.env ?? {},
     };
   };
 
@@ -98,6 +121,33 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
     // if entry is relative, compute with respect to the caller directory
     return path.join(getCallerDirectory(this.callerStack), this.props.entry);
   };
+
+  private resolveTimeout = () => {
+    const timeoutMax = 60 * 15; // 15 minutes in seconds
+    if (!this.props.timeoutSeconds) {
+      return 3;
+    }
+
+    if (
+      !isWholeNumberBetweenInclusive(this.props.timeoutSeconds, 1, timeoutMax)
+    ) {
+      throw new Error(
+        `timeoutSeconds must be a whole number between 1 and ${timeoutMax} inclusive`
+      );
+    }
+    return this.props.timeoutSeconds;
+  };
+
+  private resolveMemory = () => {
+    if (!this.props.memoryMB) {
+      return 128;
+    }
+    if (!isWholeNumberBetweenInclusive(this.props.memoryMB, 128, 10240)) {
+      throw new Error(
+        `memoryMB must be a whole number between 128 and 10240 inclusive`
+      );
+    }
+  };
 }
 
 type HydratedFunctionProps = Required<FunctionProps>;
@@ -122,7 +172,16 @@ class AmplifyFunction
     this.resources = {
       lambda: new NodejsFunction(scope, `${id}-lambda`, {
         entry: props.entry,
+        environment: props.env as { [key: string]: string }, // for some reason TS can't figure out that this is the same as Record<string, string>
+        timeout: Duration.seconds(props.timeoutSeconds),
+        memorySize: props.memoryMB,
       }),
     };
   }
 }
+
+const isWholeNumberBetweenInclusive = (
+  test: number,
+  min: number,
+  max: number
+) => min <= test && test <= max && test % 1 === 0;
