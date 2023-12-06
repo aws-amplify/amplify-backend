@@ -5,6 +5,7 @@ import {
   ChallengeService,
   CodeDeliveryDetails,
 } from '../types.js';
+import { CognitoMetadataKeys } from '../constants.js';
 import {
   buildCreateAuthChallengeEvent,
   buildDefineAuthChallengeEvent,
@@ -116,8 +117,8 @@ void describe('defineAuthChallenge', () => {
     const previousSessions: ChallengeResult[] = [initialSession];
     void it('starts a new custom challenge', async () => {
       const event = buildDefineAuthChallengeEvent(previousSessions, {
-        signInMethod: 'OTP',
-        action: 'REQUEST',
+        [CognitoMetadataKeys.SIGN_IN_METHOD]: 'OTP',
+        [CognitoMetadataKeys.ACTION]: 'REQUEST',
       });
       const { response } = await customAuthService.defineAuthChallenge(event);
       strictEqual(isCustomChallengeResponse(response), true);
@@ -126,8 +127,8 @@ void describe('defineAuthChallenge', () => {
 
   void describe('action = CONFIRM', () => {
     const metadata = {
-      signInMethod: 'OTP',
-      action: 'CONFIRM',
+      [CognitoMetadataKeys.SIGN_IN_METHOD]: 'OTP',
+      [CognitoMetadataKeys.ACTION]: 'CONFIRM',
     };
     void it('returns tokens when the previous challengeResult == true', async () => {
       const successResult: ChallengeResult = {
@@ -152,8 +153,8 @@ void describe('defineAuthChallenge', () => {
   void describe('bad requests', () => {
     void it('fails authentication for unsupported sign in method', async () => {
       const metadata = {
-        signInMethod: 'FOO',
-        action: 'CONFIRM',
+        [CognitoMetadataKeys.SIGN_IN_METHOD]: 'FOO',
+        [CognitoMetadataKeys.ACTION]: 'CONFIRM',
       };
       const event = buildDefineAuthChallengeEvent([initialSession], metadata);
       const { response } = await customAuthService.defineAuthChallenge(event);
@@ -161,8 +162,8 @@ void describe('defineAuthChallenge', () => {
     });
     void it('fails authentication for unsupported action', async () => {
       const metadata = {
-        signInMethod: 'OTP',
-        action: 'FOO',
+        [CognitoMetadataKeys.SIGN_IN_METHOD]: 'OTP',
+        [CognitoMetadataKeys.ACTION]: 'FOO',
       };
       const event = buildDefineAuthChallengeEvent([initialSession], metadata);
       const { response } = await customAuthService.defineAuthChallenge(event);
@@ -204,9 +205,9 @@ void describe('createAuthChallenge', () => {
   void describe('action = REQUEST', () => {
     const mockCreate = mock.method(mockChallengeService, 'createChallenge');
     const metadata = {
-      signInMethod: 'OTP',
-      action: 'REQUEST',
-      deliveryMedium: 'SMS',
+      [CognitoMetadataKeys.SIGN_IN_METHOD]: 'OTP',
+      [CognitoMetadataKeys.ACTION]: 'REQUEST',
+      [CognitoMetadataKeys.DELIVERY_MEDIUM]: 'SMS',
     };
     const userAttributes = {
       phone_number: '+5555557890',
@@ -227,8 +228,8 @@ void describe('createAuthChallenge', () => {
   void describe('bad requests', () => {
     void it('throws an error for an unsupported action', async () => {
       const event = buildCreateAuthChallengeEvent([initialSession], {
-        signInMethod: 'OTP',
-        action: 'CONFIRM', // confirm is not supported for Create Auth Challenge
+        [CognitoMetadataKeys.SIGN_IN_METHOD]: 'OTP',
+        [CognitoMetadataKeys.ACTION]: 'CONFIRM', // confirm is not supported for Create Auth Challenge
       });
       await rejects(
         async () => customAuthService.createAuthChallenge(event),
@@ -237,9 +238,9 @@ void describe('createAuthChallenge', () => {
     });
     void it('throws an error for an unsupported sign in method', async () => {
       const event = buildCreateAuthChallengeEvent([initialSession], {
-        signInMethod: 'FOO',
-        action: 'REQUEST',
-        deliveryMedium: 'SMS',
+        [CognitoMetadataKeys.SIGN_IN_METHOD]: 'FOO',
+        [CognitoMetadataKeys.ACTION]: 'REQUEST',
+        [CognitoMetadataKeys.DELIVERY_MEDIUM]: 'SMS',
       });
       await rejects(
         async () => customAuthService.createAuthChallenge(event),
@@ -250,7 +251,7 @@ void describe('createAuthChallenge', () => {
       const event: CreateAuthChallengeTriggerEvent =
         buildCreateAuthChallengeEvent([initialSession], {
           ...requestOtpSmsMetaData,
-          deliveryMedium: 'PHONE',
+          [CognitoMetadataKeys.DELIVERY_MEDIUM]: 'PHONE',
         });
 
       await rejects(
@@ -263,9 +264,9 @@ void describe('createAuthChallenge', () => {
   void describe('prevents user existence errors when user is not found or email/phone is not verified.', () => {
     void it('user not found', async () => {
       const baseEvent = buildCreateAuthChallengeEvent([initialSession], {
-        signInMethod: 'OTP',
-        action: 'REQUEST',
-        deliveryMedium: 'SMS',
+        [CognitoMetadataKeys.SIGN_IN_METHOD]: 'OTP',
+        [CognitoMetadataKeys.ACTION]: 'REQUEST',
+        [CognitoMetadataKeys.DELIVERY_MEDIUM]: 'SMS',
       });
       const event = {
         ...baseEvent,
@@ -282,9 +283,9 @@ void describe('createAuthChallenge', () => {
       const event = buildCreateAuthChallengeEvent(
         [initialSession],
         {
-          signInMethod: 'OTP',
-          action: 'REQUEST',
-          deliveryMedium: 'EMAIL',
+          [CognitoMetadataKeys.SIGN_IN_METHOD]: 'OTP',
+          [CognitoMetadataKeys.ACTION]: 'REQUEST',
+          [CognitoMetadataKeys.DELIVERY_MEDIUM]: 'EMAIL',
         },
         {}
       );
@@ -296,9 +297,9 @@ void describe('createAuthChallenge', () => {
       const event = buildCreateAuthChallengeEvent(
         [initialSession],
         {
-          signInMethod: 'OTP',
-          action: 'REQUEST',
-          deliveryMedium: 'EMAIL',
+          [CognitoMetadataKeys.SIGN_IN_METHOD]: 'OTP',
+          [CognitoMetadataKeys.ACTION]: 'REQUEST',
+          [CognitoMetadataKeys.DELIVERY_MEDIUM]: 'EMAIL',
         },
         { email: 'foo@example.com', email_verified: 'false' }
       );
@@ -310,9 +311,9 @@ void describe('createAuthChallenge', () => {
       const event = buildCreateAuthChallengeEvent(
         [initialSession],
         {
-          signInMethod: 'OTP',
-          action: 'REQUEST',
-          deliveryMedium: 'SMS',
+          [CognitoMetadataKeys.SIGN_IN_METHOD]: 'OTP',
+          [CognitoMetadataKeys.ACTION]: 'REQUEST',
+          [CognitoMetadataKeys.DELIVERY_MEDIUM]: 'SMS',
         },
         {}
       );
@@ -324,9 +325,9 @@ void describe('createAuthChallenge', () => {
       const event = buildCreateAuthChallengeEvent(
         [initialSession],
         {
-          signInMethod: 'OTP',
-          action: 'REQUEST',
-          deliveryMedium: 'SMS',
+          [CognitoMetadataKeys.SIGN_IN_METHOD]: 'OTP',
+          [CognitoMetadataKeys.ACTION]: 'REQUEST',
+          [CognitoMetadataKeys.DELIVERY_MEDIUM]: 'SMS',
         },
         { phone_number: '+15555557890', phone_number_verified: 'false' }
       );
@@ -341,9 +342,9 @@ void describe('verifyAuthChallenge', () => {
   void describe('action = request', () => {
     void it('returns answerCorrect=false', async () => {
       const event = buildVerifyAuthChallengeResponseEvent({
-        signInMethod: 'OTP',
-        action: 'REQUEST',
-        deliveryMedium: 'SMS',
+        [CognitoMetadataKeys.SIGN_IN_METHOD]: 'OTP',
+        [CognitoMetadataKeys.ACTION]: 'REQUEST',
+        [CognitoMetadataKeys.DELIVERY_MEDIUM]: 'SMS',
       });
       const { response } = await customAuthService.verifyAuthChallenge(event);
       strictEqual(response.answerCorrect, false);
@@ -354,9 +355,9 @@ void describe('verifyAuthChallenge', () => {
     void it('calls verifyAuthChallenge on the challenge service', async () => {
       const mockVerify = mock.method(mockChallengeService, 'verifyChallenge');
       const event = buildVerifyAuthChallengeResponseEvent({
-        signInMethod: 'MAGIC_LINK',
-        action: 'CONFIRM',
-        deliveryMedium: 'EMAIL',
+        [CognitoMetadataKeys.SIGN_IN_METHOD]: 'MAGIC_LINK',
+        [CognitoMetadataKeys.ACTION]: 'CONFIRM',
+        [CognitoMetadataKeys.DELIVERY_MEDIUM]: 'EMAIL',
       });
       strictEqual(mockVerify.mock.callCount(), 0);
       await customAuthService.verifyAuthChallenge(event);
@@ -367,9 +368,9 @@ void describe('verifyAuthChallenge', () => {
   void describe('bad requests', () => {
     void it('throws an error for an unsupported action', async () => {
       const event = buildVerifyAuthChallengeResponseEvent({
-        signInMethod: 'OTP',
-        action: 'FOO',
-        deliveryMedium: 'SMS',
+        [CognitoMetadataKeys.SIGN_IN_METHOD]: 'OTP',
+        [CognitoMetadataKeys.ACTION]: 'FOO',
+        [CognitoMetadataKeys.DELIVERY_MEDIUM]: 'SMS',
       });
       await rejects(
         async () => customAuthService.verifyAuthChallenge(event),
@@ -378,8 +379,8 @@ void describe('verifyAuthChallenge', () => {
     });
     void it('throws an error for an unsupported sign in method', async () => {
       const event = buildVerifyAuthChallengeResponseEvent({
-        signInMethod: 'FOO',
-        action: 'CONFIRM',
+        [CognitoMetadataKeys.SIGN_IN_METHOD]: 'FOO',
+        [CognitoMetadataKeys.ACTION]: 'CONFIRM',
       });
       await rejects(
         async () => customAuthService.verifyAuthChallenge(event),
