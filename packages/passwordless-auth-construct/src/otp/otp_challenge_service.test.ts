@@ -98,6 +98,10 @@ void describe('OTP Challenge', () => {
         result.response.publicChallengeParameters.deliveryMedium,
         'SMS'
       );
+      strictEqual(
+        result.response.publicChallengeParameters['nextStep'],
+        'PROVIDE_CHALLENGE_RESPONSE'
+      );
       const actualCode = result.response.privateChallengeParameters.otpCode;
       strictEqual(actualCode.length, expectedOtpLength);
       // code is string of numbers
