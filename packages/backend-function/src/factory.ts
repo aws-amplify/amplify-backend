@@ -39,21 +39,21 @@ export type FunctionProps = {
   entry?: string;
 
   /**
-   * An amount of time between 1 second and 15 minutes.
-   * Must be a whole number
-   * Default is 3 seconds
+   * An amount of time in seconds between 1 second and 15 minutes.
+   * Must be a whole number.
+   * Default is 3 seconds.
    */
   timeoutSeconds?: number;
 
   /**
-   * An amount of memory (RAM) to allocate to the function between 128 and 10240 MB
+   * An amount of memory (RAM) to allocate to the function between 128 and 10240 MB.
    * Must be a whole number.
-   * Default is 128MB
+   * Default is 128MB.
    */
   memoryMB?: number;
 
   /**
-   * Environment variables that will be available during the function execution
+   * Environment variables that will be available during function execution
    */
   env?: Record<string, string>;
 };
