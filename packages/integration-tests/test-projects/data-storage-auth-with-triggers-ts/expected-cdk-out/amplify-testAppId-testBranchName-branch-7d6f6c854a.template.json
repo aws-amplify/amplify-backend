@@ -136,7 +136,7 @@
     "Fn::Join": [
      "",
      [
-      "amplify.auth.",
+      ".auth.",
       {
        "Ref": "AWS::Region"
       },
@@ -458,7 +458,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/8078251cea303fe569ca0194fe96ff9140a3daf7208cabf49be3702a56c15d25.json"
+       "/a789990b19e5e967f499bc73beba9f844383b990777bbed7b085936a9d3d411e.json"
       ]
      ]
     }
@@ -571,7 +571,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/93c7a99779ecf573020f544fb3feeb6eb76aca96cfa146aa72ad25be2549da18.json"
+       "/84351d133db3e178608db0c78227b2709ed69445affb15fa60b35fcb7a5b5af8.json"
       ]
      ]
     }

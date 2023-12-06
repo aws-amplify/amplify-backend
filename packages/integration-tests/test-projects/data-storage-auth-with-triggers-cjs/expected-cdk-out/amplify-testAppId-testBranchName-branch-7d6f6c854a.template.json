@@ -135,7 +135,7 @@
     "Fn::Join": [
      "",
      [
-      "amplify.auth.",
+      ".auth.",
       {
        "Ref": "AWS::Region"
       },
@@ -449,7 +449,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/f9cf2eb2304b1dff6a279ae422e2aba98a242b43476036f339535918f7e38d74.json"
+       "/cebb7c6b32c68464089f1e675e3311ede21e4aab3af785cc09399cd6be3a06c6.json"
       ]
      ]
     }

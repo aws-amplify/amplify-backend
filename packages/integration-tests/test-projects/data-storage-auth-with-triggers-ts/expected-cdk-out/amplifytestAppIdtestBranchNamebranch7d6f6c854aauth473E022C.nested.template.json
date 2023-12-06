@@ -357,15 +357,6 @@
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete"
   },
-  "amplifyAuthUserPoolUserPoolDomain1F688B5B": {
-   "Type": "AWS::Cognito::UserPoolDomain",
-   "Properties": {
-    "Domain": "amplify",
-    "UserPoolId": {
-     "Ref": "amplifyAuthUserPool4BA7F805"
-    }
-   }
-  },
   "amplifyAuthUserPoolPostConfirmationCognitoE7E727CF": {
    "Type": "AWS::Lambda::Permission",
    "Properties": {
