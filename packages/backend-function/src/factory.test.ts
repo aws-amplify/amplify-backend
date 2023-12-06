@@ -112,4 +112,128 @@ void describe('AmplifyFunctionFactory', () => {
     // eslint-disable-next-line spellcheck/spell-checker
     assert.ok(lambdaLogicalId.includes('lambdawithdependencies'));
   });
+
+  void describe('timeout property', () => {
+    void it('sets valid timeout', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        timeoutSeconds: 10,
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(Stack.of(lambda));
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        Timeout: 10,
+      });
+    });
+
+    void it('throws on timeout below 1 second', () => {
+      assert.throws(
+        () =>
+          defineFunction({
+            entry: './test-assets/default-lambda/handler.ts',
+            timeoutSeconds: 0,
+          }).getInstance(getInstanceProps),
+        new Error(
+          'timeoutSeconds must be a whole number between 1 and 900 inclusive'
+        )
+      );
+    });
+
+    void it('throws on timeout above 15 minutes', () => {
+      assert.throws(
+        () =>
+          defineFunction({
+            entry: './test-assets/default-lambda/handler.ts',
+            timeoutSeconds: 901,
+          }).getInstance(getInstanceProps),
+        new Error(
+          'timeoutSeconds must be a whole number between 1 and 900 inclusive'
+        )
+      );
+    });
+
+    void it('throws on fractional timeout', () => {
+      assert.throws(
+        () =>
+          defineFunction({
+            entry: './test-assets/default-lambda/handler.ts',
+            timeoutSeconds: 10.5,
+          }).getInstance(getInstanceProps),
+        new Error(
+          'timeoutSeconds must be a whole number between 1 and 900 inclusive'
+        )
+      );
+    });
+  });
+
+  void describe('memory property', () => {
+    void it('sets valid memory', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        memoryMB: 234,
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(Stack.of(lambda));
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        MemorySize: 234,
+      });
+    });
+
+    void it('throws on memory below 128 MB', () => {
+      assert.throws(
+        () =>
+          defineFunction({
+            entry: './test-assets/default-lambda/handler.ts',
+            memoryMB: 127,
+          }).getInstance(getInstanceProps),
+        new Error(
+          'memoryMB must be a whole number between 128 and 10240 inclusive'
+        )
+      );
+    });
+
+    void it('throws on memory above 10240 MB', () => {
+      assert.throws(
+        () =>
+          defineFunction({
+            entry: './test-assets/default-lambda/handler.ts',
+            memoryMB: 10241,
+          }).getInstance(getInstanceProps),
+        new Error(
+          'memoryMB must be a whole number between 128 and 10240 inclusive'
+        )
+      );
+    });
+
+    void it('throws on fractional memory', () => {
+      assert.throws(
+        () =>
+          defineFunction({
+            entry: './test-assets/default-lambda/handler.ts',
+            memoryMB: 256.2,
+          }).getInstance(getInstanceProps),
+        new Error(
+          'memoryMB must be a whole number between 128 and 10240 inclusive'
+        )
+      );
+    });
+  });
+
+  void it('sets environment variables', () => {
+    const lambda = defineFunction({
+      entry: './test-assets/default-lambda/handler.ts',
+      env: {
+        TEST_VAR: 'testValue',
+      },
+    }).getInstance(getInstanceProps);
+    const template = Template.fromStack(Stack.of(lambda));
+
+    template.hasResourceProperties('AWS::Lambda::Function', {
+      Environment: {
+        Variables: {
+          TEST_VAR: 'testValue',
+        },
+      },
+    });
+  });
 });

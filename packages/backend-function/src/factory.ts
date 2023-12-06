@@ -126,7 +126,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
     const timeoutMin = 1;
     const timeoutMax = 60 * 15; // 15 minutes in seconds
     const timeoutDefault = 3;
-    if (!this.props.timeoutSeconds) {
+    if (this.props.timeoutSeconds === undefined) {
       return timeoutDefault;
     }
 
@@ -148,7 +148,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
     const memoryMin = 128;
     const memoryMax = 10240;
     const memoryDefault = memoryMin;
-    if (!this.props.memoryMB) {
+    if (this.props.memoryMB === undefined) {
       return memoryDefault;
     }
     if (
