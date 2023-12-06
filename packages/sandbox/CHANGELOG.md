@@ -1,5 +1,12 @@
 # @aws-amplify/sandbox
 
+## 0.3.8
+
+### Patch Changes
+
+- Updated dependencies [54c5329c9]
+  - @aws-amplify/backend-deployer@0.4.1
+
 ## 0.3.7
 
 ### Patch Changes
