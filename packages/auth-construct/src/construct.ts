@@ -128,12 +128,11 @@ export class AmplifyAuth
       props.loginWith
     );
 
-    // configure a cognito domain if external providers are configured
-    // also - make sure oauth urls are configured
-    this.domainPrefix = `amplify${
-      randomUUID().split('-').at(-1) ?? 'abcd1234'
-    }`;
-    if (this.providerSetupResult.providersList.length > 0) {
+    this.domainPrefix = props.loginWith.externalProviders?.domainPrefix ?? '';
+    if (
+      this.providerSetupResult.providersList.length > 0 &&
+      this.domainPrefix
+    ) {
       this.userPool.addDomain('UserPoolDomain', {
         cognitoDomain: { domainPrefix: this.domainPrefix },
       });
