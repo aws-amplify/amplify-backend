@@ -55,6 +55,7 @@ export class OtpChallengeService implements ChallengeService {
           otpCode: otpCode,
         },
         publicChallengeParameters: {
+          nextStep: 'PROVIDE_CHALLENGE_RESPONSE',
           ...event.response.publicChallengeParameters,
           ...deliveryDetails,
         },

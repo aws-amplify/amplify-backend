@@ -99,6 +99,10 @@ void describe('MagicLinkChallengeService', () => {
         newEvent.response.publicChallengeParameters['deliveryMedium'],
         'EMAIL'
       );
+      strictEqual(
+        newEvent.response.publicChallengeParameters['nextStep'],
+        'PROVIDE_CHALLENGE_RESPONSE'
+      );
     });
 
     void it('should throw if no redirect URI is provided', async () => {
