@@ -11,12 +11,6 @@ import { DeployedResourcesFinder } from '../find_deployed_resource.js';
 import assert from 'node:assert';
 import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
 
-type TestConstant = {
-  secretNames: {
-    [name: string]: string;
-  };
-};
-
 /**
  * Creates test projects with data, storage, and auth categories.
  */
@@ -63,8 +57,10 @@ export class DataStorageAuthWithTriggerTestProjectCreator
  * Test project with data, storage, and auth categories.
  */
 class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
+  // Note that this is pointing to the non-compiled project directory
+  // This allows us to test that we are able to deploy js, cjs, ts, etc without compiling with tsc first
   readonly sourceProjectDirPath =
-    '../../test-projects/data-storage-auth-with-triggers-ts';
+    '../../src/test-projects/data-storage-auth-with-triggers-ts';
 
   readonly sourceProjectAmplifyDirSuffix = `${this.sourceProjectDirPath}/amplify`;
 
@@ -73,17 +69,21 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     import.meta.url
   );
 
-  private readonly sourceProjectConstantFilePath: string = new URL(
-    `${this.sourceProjectAmplifyDirSuffix}/constants.ts`,
-    import.meta.url
-  ).toString();
-
   private readonly sourceProjectUpdateDirPath: URL = new URL(
     `${this.sourceProjectDirPath}/update-1`,
     import.meta.url
   );
 
   private readonly dataResourceFileSuffix = 'data/resource.ts';
+
+  private readonly testSecretNames = [
+    'googleId',
+    'googleSecret',
+    'facebookId',
+    'facebookSecret',
+    'amazonId',
+    'amazonSecret',
+  ];
 
   /**
    * Create a test project instance.
@@ -133,7 +133,10 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
       {
         sourceFile: sourceDataResourceFile,
         projectFile: dataResourceFile,
-        deployThresholdSec: 30,
+        deployThresholdSec: {
+          onWindows: 40,
+          onOther: 30,
+        },
       },
     ];
   }
@@ -173,12 +176,8 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   private setUpDeployEnvironment = async (
     backendId: BackendIdentifier
   ): Promise<void> => {
-    const { secretNames } = (await import(
-      this.sourceProjectConstantFilePath
-    )) as TestConstant;
-    for (const secretField in secretNames) {
-      const secretName = secretNames[secretField];
-      const secretValue = `${secretName as string}-e2eTestValue`;
+    for (const secretName of this.testSecretNames) {
+      const secretValue = `${secretName}-e2eTestValue`;
       await this.secretClient.setSecret(backendId, secretName, secretValue);
     }
   };
@@ -186,12 +185,8 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   private clearDeployEnvironment = async (
     backendId: BackendIdentifier
   ): Promise<void> => {
-    const { secretNames } = (await import(
-      this.sourceProjectConstantFilePath
-    )) as TestConstant;
     // clear secrets
-    for (const secretField in secretNames) {
-      const secretName = secretNames[secretField];
+    for (const secretName of this.testSecretNames) {
       await this.secretClient.removeSecret(backendId, secretName);
     }
   };

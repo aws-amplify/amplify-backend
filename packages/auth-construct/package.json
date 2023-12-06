@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/auth-construct-alpha",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "type": "commonjs",
   "publishConfig": {
     "access": "public"
@@ -20,7 +20,7 @@
   "dependencies": {
     "@aws-amplify/backend-output-schemas": "^0.4.0",
     "@aws-amplify/backend-output-storage": "^0.2.6",
-    "@aws-amplify/plugin-types": "^0.4.2"
+    "@aws-amplify/plugin-types": "^0.5.0"
   },
   "peerDependencies": {
     "aws-cdk-lib": "^2.110.1",
