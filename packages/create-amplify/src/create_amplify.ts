@@ -17,6 +17,12 @@ import { GitIgnoreInitializer } from './gitignore_initializer.js';
 
 const projectRoot = await getProjectRoot();
 
+const getPackageManager = () => {
+  return 'npm';
+};
+
+const packageManager = getPackageManager();
+
 const amplifyProjectCreator = new AmplifyProjectCreator(
   new NpmPackageManagerController(projectRoot),
   new ProjectRootValidator(projectRoot),
