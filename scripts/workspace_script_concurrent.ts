@@ -9,6 +9,7 @@ import { createHash } from 'crypto';
 // https://github.com/npm/feedback/discussions/781
 
 // this script also uses tsconfig.tsbuildinfo hashes to determine if a package has changes before running the script in that package
+// if a package does not have a tsconfig.tsbuildinfo file, or if it hashes to a different value than the last time this script ran, then the script is run in that package
 
 const cacheFile = new URL(
   './workspace_script_concurrent_cache.json',
