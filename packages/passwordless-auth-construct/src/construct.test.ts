@@ -67,6 +67,37 @@ void describe('Passwordless Auth construct', () => {
   void describe('createAuthChallenge ses and sns policies', () => {
     const createAuthChallengeMatch = new RegExp(/CreateAuthChallenge/);
 
+    const sesPolicy = {
+      Action: 'ses:SendEmail',
+      Effect: 'Allow',
+      Resource: {
+        'Fn::Join': [
+          '',
+          [
+            'arn:',
+            {
+              Ref: 'AWS::Partition',
+            },
+            ':ses:',
+            {
+              Ref: 'AWS::Region',
+            },
+            ':',
+            {
+              Ref: 'AWS::AccountId',
+            },
+            ':identity/example.com',
+          ],
+        ],
+      },
+    };
+
+    const snsPolicy = {
+      Action: 'sns:publish',
+      Effect: 'Allow',
+      NotResource: 'arn:aws:sns:*:*:*',
+    };
+
     let stack: Stack;
     let auth: AmplifyAuth;
 
@@ -89,20 +120,13 @@ void describe('Passwordless Auth construct', () => {
       const sesResource = findPolicyResource(
         template,
         createAuthChallengeMatch,
-        {
-          Action: 'ses:SendEmail',
-          Effect: 'Allow',
-        }
+        sesPolicy
       );
       notEqual(sesResource, undefined);
       const snsResource = findPolicyResource(
         template,
         createAuthChallengeMatch,
-        {
-          Action: 'sns:publish',
-          Effect: 'Allow',
-          NotResource: 'arn:aws:sns:*:*:*',
-        }
+        snsPolicy
       );
       equal(snsResource, undefined);
     });
@@ -119,20 +143,13 @@ void describe('Passwordless Auth construct', () => {
       const sesResource = findPolicyResource(
         template,
         createAuthChallengeMatch,
-        {
-          Action: 'ses:SendEmail',
-          Effect: 'Allow',
-        }
+        sesPolicy
       );
       notEqual(sesResource, undefined);
       const snsResource = findPolicyResource(
         template,
         createAuthChallengeMatch,
-        {
-          Action: 'sns:publish',
-          Effect: 'Allow',
-          NotResource: 'arn:aws:sns:*:*:*',
-        }
+        snsPolicy
       );
       equal(snsResource, undefined);
     });
@@ -149,20 +166,13 @@ void describe('Passwordless Auth construct', () => {
       const sesResource = findPolicyResource(
         template,
         createAuthChallengeMatch,
-        {
-          Action: 'ses:SendEmail',
-          Effect: 'Allow',
-        }
+        sesPolicy
       );
       equal(sesResource, undefined);
       const snsResource = findPolicyResource(
         template,
         createAuthChallengeMatch,
-        {
-          Action: 'sns:publish',
-          Effect: 'Allow',
-          NotResource: 'arn:aws:sns:*:*:*',
-        }
+        snsPolicy
       );
       notEqual(snsResource, undefined);
     });
@@ -180,20 +190,13 @@ void describe('Passwordless Auth construct', () => {
       const sesResource = findPolicyResource(
         template,
         createAuthChallengeMatch,
-        {
-          Action: 'ses:SendEmail',
-          Effect: 'Allow',
-        }
+        sesPolicy
       );
       notEqual(sesResource, undefined);
       const snsResource = findPolicyResource(
         template,
         createAuthChallengeMatch,
-        {
-          Action: 'sns:publish',
-          Effect: 'Allow',
-          NotResource: 'arn:aws:sns:*:*:*',
-        }
+        snsPolicy
       );
       notEqual(snsResource, undefined);
     });
