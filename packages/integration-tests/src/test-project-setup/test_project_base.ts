@@ -19,13 +19,23 @@ import {
 import fsp from 'fs/promises';
 import assert from 'node:assert';
 
+export type PlatformDeploymentThresholds = {
+  onWindows: number;
+  onOther: number;
+};
+
 /**
  * Keeps test project update info.
  */
 export type TestProjectUpdate = {
   sourceFile: URL;
   projectFile: URL;
-  deployThresholdSec: number;
+  /**
+   * Define a threshold for the hotswap deployment time
+   * Windows has a separate threshold because it is consistently slower than other platforms
+   * https://github.com/microsoft/Windows-Dev-Performance/issues/17
+   */
+  deployThresholdSec: PlatformDeploymentThresholds;
 };
 
 /**
