@@ -21,7 +21,7 @@
     "@aws-amplify/platform-core": "^0.3.2",
     "@aws-amplify/plugin-types": "^0.5.0",
     "execa": "^7.2.0",
-    "tsx": "^3.12.6"
+    "tsx": "^4.6.1"
   },
   "peerDependencies": {
     "aws-cdk": "^2.110.1",
