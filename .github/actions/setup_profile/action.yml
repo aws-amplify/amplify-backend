@@ -1,0 +1,29 @@
+name: setup_profile
+description: Use the AWS credentials GH action and the AWS CLI to set up an AWS profile on the worker
+inputs:
+  profile-name:
+    description: 'The name of the AWS profile that credentials should be placed in'
+    required: true
+  role-to-assume:
+    description: 'The role whose credentials will be placed in the given profile'
+    required: true
+  aws-region:
+    description: 'The region that will be configured for the profile'
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Fetch credentials
+      id: credentials
+      uses: aws-actions/configure-aws-credentials@04b98b3f9e85f563fb061be8751a0352327246b0 # version 3.0.1
+      with:
+        role-to-assume: ${{ inputs.role-to-assume }}
+        aws-region: ${{ inputs.aws-region }}
+        output-credentials: true # places the credentials in the GH context object rather than setting env vars
+      # the AWS credentials action does not have an option to configure a profile, so this manually configures one
+    - shell: bash
+      run: |
+        aws configure set aws_access_key_id ${{ steps.credentials.outputs.aws-access-key-id }} --profile ${{ inputs.profile-name }}
+        aws configure set aws_secret_access_key ${{ steps.credentials.outputs.aws-secret-access-key }} --profile ${{ inputs.profile-name }}
+        aws configure set aws_session_token ${{ steps.credentials.outputs.aws-session-token }} --profile ${{ inputs.profile-name }}
+        aws configure set region us-west-2 --profile ${{ inputs.profile-name }}

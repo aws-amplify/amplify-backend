@@ -1,5 +1,11 @@
 # @aws-amplify/backend-deployer
 
+## 0.4.1
+
+### Patch Changes
+
+- 54c5329c9: Update tsx version
+
 ## 0.4.0
 
 ### Minor Changes

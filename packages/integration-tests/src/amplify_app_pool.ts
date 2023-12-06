@@ -12,6 +12,7 @@ import {
   ListBranchesCommandOutput,
 } from '@aws-sdk/client-amplify';
 import { shortUuid } from './short_uuid.js';
+import { e2eToolingClientConfig } from './e2e_tooling_client_config.js';
 
 export type TestBranch = {
   readonly appId: string;
@@ -176,6 +177,7 @@ class DefaultAmplifyAppPool implements AmplifyAppPool {
 
 export const amplifyAppPool: AmplifyAppPool = new DefaultAmplifyAppPool(
   new AmplifyClient({
+    ...e2eToolingClientConfig,
     maxAttempts: 5,
   })
 );
