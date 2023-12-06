@@ -13,7 +13,6 @@ import {
   OAuthScope,
   UserPool,
   UserPoolClient,
-  UserPoolDomain,
   UserPoolIdentityProviderAmazon,
   UserPoolIdentityProviderApple,
   UserPoolIdentityProviderFacebook,
@@ -39,7 +38,6 @@ import {
 } from '@aws-amplify/backend-output-storage';
 import * as path from 'path';
 import { coreAttributeNameMap } from './string_maps.js';
-import { randomUUID } from 'crypto';
 
 type DefaultRoles = { auth: Role; unAuth: Role };
 type IdentityProviderSetupResult = {
