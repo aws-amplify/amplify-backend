@@ -1,4 +1,5 @@
 import { PredicatedActionBuilder } from './predicated_action_queue_builder.js';
+import { PlatformDeploymentThresholds } from '../test-project-setup/test_project_base.js';
 
 /**
  * Convenience predicated actions that can be used to build up more complex CLI flows.
@@ -57,8 +58,12 @@ export const interruptSandbox = () => waitForSandboxToBecomeIdle().sendCtrlC();
  * Reusable predicated action: Wait for sandbox to finish deployment and assert that the deployment time is less
  * than the threshold.
  */
-export const ensureDeploymentTimeLessThan = (seconds: number) => {
+export const ensureDeploymentTimeLessThan = (
+  platformThresholds: PlatformDeploymentThresholds
+) => {
   return waitForSandboxDeploymentToPrintTotalTime().ensureDeploymentTimeLessThan(
-    seconds
+    process.platform.startsWith('win')
+      ? platformThresholds.onWindows
+      : platformThresholds.onOther
   );
 };
