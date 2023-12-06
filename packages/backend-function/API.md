@@ -16,6 +16,9 @@ export const defineFunction: (props?: FunctionProps) => ConstructFactory<Constru
 export type FunctionProps = {
     name?: string;
     entry?: string;
+    timeoutSeconds?: number;
+    memoryMB?: number;
+    env?: Record<string, string>;
 };
 
 // (No @packageDocumentation comment for this package)
