@@ -5,8 +5,7 @@ import { DataStorageAuthWithTriggerTestProjectCreator } from './data_storage_aut
 import { MinimalWithTypescriptIdiomTestProjectCreator } from './minimal_with_typescript_idioms.js';
 import { LambdaClient } from '@aws-sdk/client-lambda';
 import { DeployedResourcesFinder } from '../find_deployed_resource.js';
-import { CognitoIdentityProviderClient } from '@aws-sdk/client-cognito-identity-provider';
-import { PasswordlessAuthTestProjectCreator } from './passwordless_auth.js';
+import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
 
 export type TestProjectCreator = {
   readonly name: string;
@@ -18,11 +17,11 @@ export type TestProjectCreator = {
  */
 export const getTestProjectCreators = (): TestProjectCreator[] => {
   const testProjectCreators: TestProjectCreator[] = [];
-  const cfnClient = new CloudFormationClient();
-  const lambdaClient = new LambdaClient();
+
+  const cfnClient = new CloudFormationClient(e2eToolingClientConfig);
+  const lambdaClient = new LambdaClient(e2eToolingClientConfig);
   const resourceFinder = new DeployedResourcesFinder(cfnClient);
-  const secretClient = getSecretClient();
-  const cognitoIdentityProviderClient = new CognitoIdentityProviderClient();
+  const secretClient = getSecretClient(e2eToolingClientConfig);
   testProjectCreators.push(
     new DataStorageAuthWithTriggerTestProjectCreator(
       cfnClient,
