@@ -116,6 +116,7 @@
   "toggleable",
   "tokenized",
   "totp",
+  "tsbuildinfo",
   "tsconfig",
   "tsdoc",
   "tslint",

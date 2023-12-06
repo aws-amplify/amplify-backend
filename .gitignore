@@ -14,3 +14,4 @@ verdaccio-cache
 verdaccio-logs.txt
 cdk.out/
 e2e-tests
+workspace_script_concurrent_cache.json

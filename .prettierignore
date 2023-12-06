@@ -11,3 +11,4 @@ expected-cdk-out
 .changeset/pre.json
 examples/simple_react/cdk.out
 examples/simple_react/src/amplifyconfiguration.js
+workspace_script_concurrent_cache.json
