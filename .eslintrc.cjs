@@ -18,6 +18,11 @@ module.exports = {
       rules: {
         'spellcheck/spell-checker': 'off',
       },
+      // Api tests can have unused symbols
+      files: ['api.test.ts'],
+      rules: {
+        '@typescript-eslint/no-unused-vars': 'off',
+      },
     },
   ],
   parser: '@typescript-eslint/parser',
