@@ -15,7 +15,7 @@ import {
 /**
  * This section makes minimal usage of public API, i.e. uses only required fields and parameters.
  */
-const minimalApiUsage = async () => {
+const minApiUsage = async () => {
   const authClientConfig: AuthClientConfig = {
     aws_cognito_region: '',
   };
@@ -55,7 +55,7 @@ const minimalApiUsage = async () => {
 /**
  * This section makes maximum usage of public API, i.e. uses all fields and parameters.
  */
-const maximumApiUsage = async () => {
+const maxApiUsage = async () => {
   const authClientConfig: AuthClientConfig = {
     aws_cognito_identity_pool_id: '',
     aws_cognito_mfa_configuration: '',

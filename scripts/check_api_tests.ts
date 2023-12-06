@@ -3,12 +3,24 @@ import { existsSync } from 'fs';
 import * as fsp from 'fs/promises';
 import ts from 'typescript';
 
-type SymbolIdentifier = {
+type ApiSymbol = {
   readonly name: string;
   readonly parentName: string | undefined;
   readonly node: ts.Identifier;
 };
 
+type ExpectedApiSymbol = ApiSymbol & {
+  readonly isOptional: boolean | undefined;
+};
+
+type TestUsageApiSymbol = ApiSymbol & {
+  readonly usageSection: 'minApiUsage' | 'maxApiUsage';
+};
+
+/**
+ * This class validates that API.md if exists has corresponding 'src/api.test.ts' file
+ * and that symbols defined in API.md have adequate coverage.
+ */
 class ApiTestValidator {
   private readonly apiReportFilePath: string;
   private readonly apiTestFilePath: string;
@@ -30,7 +42,7 @@ class ApiTestValidator {
     }
 
     const apiAST = await this.readAPIReportAsAST();
-    const expectedApiIdentifiers: Array<SymbolIdentifier> = [];
+    const expectedApiIdentifiers: Array<ExpectedApiSymbol> = [];
     this.collectSymbolIdentifiersRecursively(
       apiAST,
       expectedApiIdentifiers,
@@ -45,52 +57,83 @@ class ApiTestValidator {
       ts.ScriptKind.TS
     );
 
-    const identifiersUsedInTest: Array<SymbolIdentifier> = [];
+    const identifiersUsedInTest: Array<TestUsageApiSymbol> = [];
     this.collectSymbolIdentifiersRecursively(
       apiTestAST,
       identifiersUsedInTest,
       this.testUsageApiIdentifierFactory
     );
 
+    if (!identifiersUsedInTest.find((item) => item.name === 'minApiUsage')) {
+      throw new Error(
+        `${this.apiTestFilePath} must have 'minApiUsage' section.`
+      );
+    }
+
+    if (!identifiersUsedInTest.find((item) => item.name === 'maxApiUsage')) {
+      throw new Error(
+        `${this.apiTestFilePath} must have 'maxApiUsage' section.`
+      );
+    }
+
     for (const expectedApiIdentifier of expectedApiIdentifiers) {
-      if (
-        !identifiersUsedInTest.find(
-          (item) =>
-            item.name === expectedApiIdentifier.name &&
-            item.parentName === expectedApiIdentifier.parentName
-        )
-      ) {
+      const matchedIdentifiersUsedInTest = identifiersUsedInTest.filter(
+        (item) =>
+          item.name === expectedApiIdentifier.name &&
+          item.parentName === expectedApiIdentifier.parentName
+      );
+      if (matchedIdentifiersUsedInTest.length === 0) {
         throw new Error(
           `API identifier ${expectedApiIdentifier.name} of ${
             expectedApiIdentifier.parentName ?? 'unknown parent'
           } is not used in ${this.apiTestFilePath}`
         );
+      } else {
+        if (expectedApiIdentifier.isOptional) {
+          for (const matchedIdentifierUsedInTest of matchedIdentifiersUsedInTest) {
+            if (matchedIdentifierUsedInTest.usageSection === 'minApiUsage') {
+              throw new Error(
+                `${matchedIdentifierUsedInTest.name} is optional and must not be used in minApiUsage section`
+              );
+            }
+          }
+        }
       }
     }
   };
 
   private expectedApiIdentifierFactory = (
     node: ts.Identifier
-  ): SymbolIdentifier => {
-    let nodeKindToLookFor: ts.SyntaxKind | undefined;
-    switch (node.parent.kind) {
-      case ts.SyntaxKind.Parameter:
-        nodeKindToLookFor = ts.SyntaxKind.VariableDeclaration;
-        break;
-      case ts.SyntaxKind.PropertySignature:
-        nodeKindToLookFor = ts.SyntaxKind.TypeAliasDeclaration;
-        break;
-      case ts.SyntaxKind.EnumMember:
-        nodeKindToLookFor = ts.SyntaxKind.EnumDeclaration;
-        break;
-      default:
-        nodeKindToLookFor = undefined;
+  ): ExpectedApiSymbol => {
+    let apiParentNodeKindToLookFor: ts.SyntaxKind | undefined;
+    let isOptional: boolean | undefined;
+    const name = node.getText();
+    if (node.parent.kind === ts.SyntaxKind.Parameter) {
+      apiParentNodeKindToLookFor = ts.SyntaxKind.VariableDeclaration;
+      const parameterDeclaration = node.parent as ts.ParameterDeclaration;
+      if (
+        parameterDeclaration.questionToken ||
+        parameterDeclaration.initializer
+      ) {
+        isOptional = true;
+      }
+    } else if (node.parent.kind === ts.SyntaxKind.PropertySignature) {
+      apiParentNodeKindToLookFor = ts.SyntaxKind.TypeAliasDeclaration;
+      const propertySignature = node.parent as ts.PropertySignature;
+      if (
+        propertySignature.questionToken ||
+        propertySignature.type?.getText().includes('undefined')
+      ) {
+        isOptional = true;
+      }
+    } else if (node.parent.kind === ts.SyntaxKind.EnumMember) {
+      apiParentNodeKindToLookFor = ts.SyntaxKind.EnumDeclaration;
     }
 
     let parentName: string | undefined;
-    if (nodeKindToLookFor) {
+    if (apiParentNodeKindToLookFor) {
       let parent: ts.Node = node.parent;
-      while (parent.kind !== nodeKindToLookFor) {
+      while (parent.kind !== apiParentNodeKindToLookFor) {
         parent = parent.parent;
       }
 
@@ -115,33 +158,33 @@ class ApiTestValidator {
       }
     }
 
-    return { name: node.getText(), parentName, node };
+    return { name, parentName, node, isOptional };
   };
 
   private testUsageApiIdentifierFactory = (
     node: ts.Identifier
-  ): SymbolIdentifier => {
-    let nodeKindToLookFor: ts.SyntaxKind | undefined;
+  ): TestUsageApiSymbol => {
+    let apiParentNodeKindToLookFor: ts.SyntaxKind | undefined;
     const name = node.getText();
     switch (node.parent.kind) {
       case ts.SyntaxKind.CallExpression:
-        nodeKindToLookFor = ts.SyntaxKind.CallExpression;
+        apiParentNodeKindToLookFor = ts.SyntaxKind.CallExpression;
         break;
       case ts.SyntaxKind.PropertyAssignment:
-        nodeKindToLookFor = ts.SyntaxKind.VariableDeclaration;
+        apiParentNodeKindToLookFor = ts.SyntaxKind.VariableDeclaration;
         break;
       case ts.SyntaxKind.PropertyAccessExpression:
-        nodeKindToLookFor = ts.SyntaxKind.PropertyAccessExpression;
+        apiParentNodeKindToLookFor = ts.SyntaxKind.PropertyAccessExpression;
         break;
       default:
-        nodeKindToLookFor = undefined;
+        apiParentNodeKindToLookFor = undefined;
     }
 
     let parentName: string | undefined;
     let parentExpected = true;
-    if (nodeKindToLookFor) {
+    if (apiParentNodeKindToLookFor) {
       let parent: ts.Node = node.parent;
-      while (parent.kind !== nodeKindToLookFor) {
+      while (parent.kind !== apiParentNodeKindToLookFor) {
         parent = parent.parent;
       }
 
@@ -174,13 +217,32 @@ class ApiTestValidator {
       }
     }
 
-    return { name, parentName, node };
+    let parent: ts.Node = node.parent;
+    let usageSection: 'minApiUsage' | 'maxApiUsage' | undefined;
+    while (parent) {
+      if (parent.kind == ts.SyntaxKind.VariableDeclaration) {
+        const parentName = (parent as ts.VariableDeclaration).name.getText();
+        if (parentName === 'minApiUsage') {
+          usageSection = 'minApiUsage';
+        } else if (parentName === 'maxApiUsage') {
+          usageSection = 'maxApiUsage';
+        }
+      }
+
+      parent = parent.parent;
+    }
+
+    if (!usageSection) {
+      throw new Error('Unable to find usage section');
+    }
+
+    return { name, parentName, node, usageSection };
   };
 
   private collectSymbolIdentifiersRecursively = (
     node: ts.Node,
-    accumulator: Array<SymbolIdentifier>,
-    symbolIdentifierFactory: (node: ts.Identifier) => SymbolIdentifier
+    accumulator: Array<ApiSymbol>,
+    symbolIdentifierFactory: (node: ts.Identifier) => ApiSymbol
   ) => {
     if (node.kind === ts.SyntaxKind.Identifier) {
       const name = node.getText();
