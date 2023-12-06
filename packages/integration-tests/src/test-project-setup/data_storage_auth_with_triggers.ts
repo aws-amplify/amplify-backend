@@ -133,9 +133,10 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
       {
         sourceFile: sourceDataResourceFile,
         projectFile: dataResourceFile,
-        // windows is consistently slower than other platforms
-        // https://github.com/microsoft/Windows-Dev-Performance/issues/17
-        deployThresholdSec: process.platform.startsWith('win') ? 40 : 30,
+        deployThresholdSec: {
+          onWindows: 40,
+          onOther: 30,
+        },
       },
     ];
   }
