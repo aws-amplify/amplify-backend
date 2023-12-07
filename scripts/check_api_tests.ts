@@ -6,7 +6,6 @@ import { glob } from 'glob';
 
 type ApiSymbol = {
   readonly name: string;
-  readonly parentName: string | undefined;
   readonly node: ts.Identifier;
 };
 
@@ -344,7 +343,7 @@ class ApiTestValidator {
       throw new Error('Description is missing');
     }
 
-    return { name, parentName, node, isOptional, usagePredicate, description };
+    return { name, node, isOptional, usagePredicate, description };
   };
 
   private testUsageApiIdentifierFactory = (
@@ -370,7 +369,7 @@ class ApiTestValidator {
       throw new Error('Unable to find usage section');
     }
 
-    return { name, parentName: undefined, node, usageSection };
+    return { name, node, usageSection };
   };
 
   private tryFindParentNode = (
