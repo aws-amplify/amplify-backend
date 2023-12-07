@@ -116,57 +116,27 @@ class ApiTestValidator {
     ) {
       // Skip built in types
       return undefined;
-    } else if (node.parent.kind === ts.SyntaxKind.Parameter) {
-      const parent = this.findParentNode(
-        node,
-        ts.SyntaxKind.VariableDeclaration,
-        ts.SyntaxKind.Constructor
-      );
-      switch (parent.kind) {
-        case ts.SyntaxKind.VariableDeclaration:
-          parentName = (parent as ts.VariableDeclaration).name.getText();
-          description = `Parameter ${name} of function ${parentName} must be used`;
-          usagePredicate = (testUsageSymbol): boolean => {
-            if (
-              testUsageSymbol.node.parent.kind === ts.SyntaxKind.CallExpression
-            ) {
-              const callExpression = testUsageSymbol.node
-                .parent as ts.CallExpression;
-              const isFunctionNameMatching =
-                callExpression.expression.getText() === parentName;
-              const isUsingArgument =
-                callExpression.arguments.find(
-                  (arg) => arg.getText() === name
-                ) !== undefined;
-              return isFunctionNameMatching && isUsingArgument;
-            }
-            return false;
-          };
-          break;
-        case ts.SyntaxKind.Constructor:
-          parentName = (
-            parent as ts.ConstructorDeclaration
-          ).parent.name?.getText();
-          if (!parentName) {
-            throw new Error('Class name not found');
-          }
-          description = `Parameter ${name} of ${parentName}'s constructor must be used`;
-          usagePredicate = (testUsageSymbol): boolean => {
-            if (
-              testUsageSymbol.node.parent.kind === ts.SyntaxKind.NewExpression
-            ) {
-              return (
-                (
-                  testUsageSymbol.node.parent as ts.NewExpression
-                ).expression.getText() === parentName
-              );
-            }
-            return false;
-          };
-          break;
-        default:
-          throw new Error('Unexpected parent');
+    } else if (
+      node.parent.kind === ts.SyntaxKind.Parameter &&
+      node.parent.parent.kind === ts.SyntaxKind.Constructor
+    ) {
+      parentName = (
+        node.parent.parent as ts.ConstructorDeclaration
+      ).parent.name?.getText();
+      if (!parentName) {
+        throw new Error('Class name not found');
       }
+      description = `Parameter ${name} of ${parentName}'s constructor must be used`;
+      usagePredicate = (testUsageSymbol): boolean => {
+        if (testUsageSymbol.node.parent.kind === ts.SyntaxKind.NewExpression) {
+          return (
+            (
+              testUsageSymbol.node.parent as ts.NewExpression
+            ).expression.getText() === parentName
+          );
+        }
+        return false;
+      };
       const parameterDeclaration = node.parent as ts.ParameterDeclaration;
       if (
         parameterDeclaration.questionToken ||
@@ -174,7 +144,193 @@ class ApiTestValidator {
       ) {
         isOptional = true;
       }
-    } else if (node.parent.kind === ts.SyntaxKind.PropertySignature) {
+    } else if (
+      node.parent.kind === ts.SyntaxKind.PropertyDeclaration &&
+      node.parent.parent.kind === ts.SyntaxKind.ClassDeclaration &&
+      (node.parent as ts.PropertyDeclaration).type?.kind ===
+        ts.SyntaxKind.FunctionType
+    ) {
+      parentName = (node.parent.parent as ts.ClassDeclaration).name?.getText();
+      if (!parentName) {
+        throw new Error('Cannot find parent name');
+      }
+      description = `Method ${name} of class ${parentName} must be used`;
+      const parentNameLocal = parentName;
+      usagePredicate = (testUsageSymbol): boolean => {
+        if (
+          testUsageSymbol.node.parent.kind ===
+            ts.SyntaxKind.PropertyAccessExpression &&
+          testUsageSymbol.node.parent.parent.kind ===
+            ts.SyntaxKind.CallExpression
+        ) {
+          const propertyAccessExpression = testUsageSymbol.node
+            .parent as ts.PropertyAccessExpression;
+          const expectedLHS = `${parentNameLocal
+            ?.substring(0, 1)
+            .toLowerCase()}${parentNameLocal?.substring(1)}`;
+          return (
+            propertyAccessExpression.expression.getText() === expectedLHS &&
+            propertyAccessExpression.name.getText() === name
+          );
+        }
+        return false;
+      };
+    } else if (
+      node.parent.kind === ts.SyntaxKind.Parameter &&
+      node.parent.parent.kind === ts.SyntaxKind.FunctionType &&
+      node.parent.parent.parent.kind === ts.SyntaxKind.TypeAliasDeclaration
+    ) {
+      parentName = (
+        node.parent.parent.parent as ts.TypeAliasDeclaration
+      ).name.getText();
+      description = `Parameter ${name} of function type ${parentName} must be used`;
+      const parameterIndex = (
+        node.parent.parent as ts.FunctionTypeNode
+      ).parameters.indexOf(node.parent as ts.ParameterDeclaration);
+      usagePredicate = (testUsageSymbol): boolean => {
+        if (
+          testUsageSymbol.node.parent.kind === ts.SyntaxKind.Parameter &&
+          testUsageSymbol.node.parent.parent.kind ===
+            ts.SyntaxKind.ArrowFunction &&
+          testUsageSymbol.node.parent.parent.parent.kind ===
+            ts.SyntaxKind.VariableDeclaration &&
+          (
+            testUsageSymbol.node.parent.parent.parent as ts.VariableDeclaration
+          ).type?.getText() === parentName
+        ) {
+          return (
+            parameterIndex <
+            (testUsageSymbol.node.parent.parent as ts.ArrowFunction).parameters
+              .length
+          );
+        }
+        return false;
+      };
+      const parameterDeclaration = node.parent as ts.ParameterDeclaration;
+      if (
+        parameterDeclaration.questionToken ||
+        parameterDeclaration.initializer
+      ) {
+        isOptional = true;
+      }
+    } else if (
+      node.parent.kind === ts.SyntaxKind.Parameter &&
+      node.parent.parent.kind === ts.SyntaxKind.FunctionType &&
+      node.parent.parent.parent.kind === ts.SyntaxKind.PropertySignature
+    ) {
+      const parent = this.findParentNode(
+        node,
+        ts.SyntaxKind.TypeAliasDeclaration
+      );
+      parentName = (parent as ts.TypeAliasDeclaration).name.getText();
+      const functionName = (
+        node.parent.parent.parent as ts.PropertySignature
+      ).name.getText();
+      description = `Parameter ${name} of function ${functionName} of type ${parentName} must be used`;
+      if (!parentName) {
+        throw new Error('Cannot find parent name');
+      }
+      const parentNameLocal = parentName;
+      const parameterIndex = (
+        node.parent.parent as ts.FunctionTypeNode
+      ).parameters.indexOf(node.parent as ts.ParameterDeclaration);
+      usagePredicate = (testUsageSymbol): boolean => {
+        if (
+          testUsageSymbol.node.parent.kind ===
+            ts.SyntaxKind.PropertyAccessExpression &&
+          testUsageSymbol.node.parent.parent.kind ===
+            ts.SyntaxKind.CallExpression
+        ) {
+          const callExpression = testUsageSymbol.node.parent
+            .parent as ts.CallExpression;
+          const propertyAccessExpression = testUsageSymbol.node
+            .parent as ts.PropertyAccessExpression;
+          const expectedLHS = `${parentNameLocal
+            ?.substring(0, 1)
+            .toLowerCase()}${parentNameLocal?.substring(1)}`;
+          return (
+            propertyAccessExpression.expression.getText() === expectedLHS &&
+            propertyAccessExpression.name.getText() === functionName &&
+            parameterIndex < callExpression.arguments.length
+          );
+        }
+        return false;
+      };
+      const parameterDeclaration = node.parent as ts.ParameterDeclaration;
+      if (
+        parameterDeclaration.questionToken ||
+        parameterDeclaration.initializer
+      ) {
+        isOptional = true;
+      }
+    } else if (
+      node.parent.kind === ts.SyntaxKind.Parameter &&
+      node.parent.parent.kind === ts.SyntaxKind.FunctionType &&
+      node.parent.parent.parent.kind === ts.SyntaxKind.VariableDeclaration
+    ) {
+      parentName = (
+        node.parent.parent.parent as ts.VariableDeclaration
+      ).name.getText();
+      description = `Parameter ${name} of function ${parentName} must be used`;
+      usagePredicate = (testUsageSymbol): boolean => {
+        if (testUsageSymbol.node.parent.kind === ts.SyntaxKind.CallExpression) {
+          const callExpression = testUsageSymbol.node
+            .parent as ts.CallExpression;
+          const isFunctionNameMatching =
+            callExpression.expression.getText() === parentName;
+          const isUsingArgument =
+            callExpression.arguments.find((arg) => arg.getText() === name) !==
+            undefined;
+          return isFunctionNameMatching && isUsingArgument;
+        }
+        return false;
+      };
+      const parameterDeclaration = node.parent as ts.ParameterDeclaration;
+      if (
+        parameterDeclaration.questionToken ||
+        parameterDeclaration.initializer
+      ) {
+        isOptional = true;
+      }
+    } else if (
+      node.parent.kind === ts.SyntaxKind.PropertySignature &&
+      (node.parent as ts.PropertySignature).type?.kind ===
+        ts.SyntaxKind.FunctionType
+    ) {
+      const parent = this.findParentNode(
+        node,
+        ts.SyntaxKind.TypeAliasDeclaration
+      );
+      parentName = (parent as ts.TypeAliasDeclaration).name.getText();
+      description = `Method ${name} of type ${parentName} must be used`;
+      if (!parentName) {
+        throw new Error('Cannot find parent name');
+      }
+      const parentNameLocal = parentName;
+      usagePredicate = (testUsageSymbol): boolean => {
+        if (
+          testUsageSymbol.node.parent.kind ===
+            ts.SyntaxKind.PropertyAccessExpression &&
+          testUsageSymbol.node.parent.parent.kind ===
+            ts.SyntaxKind.CallExpression
+        ) {
+          const propertyAccessExpression = testUsageSymbol.node
+            .parent as ts.PropertyAccessExpression;
+          const expectedLHS = `${parentNameLocal
+            ?.substring(0, 1)
+            .toLowerCase()}${parentNameLocal?.substring(1)}`;
+          return (
+            propertyAccessExpression.expression.getText() === expectedLHS &&
+            propertyAccessExpression.name.getText() === name
+          );
+        }
+        return false;
+      };
+    } else if (
+      node.parent.kind === ts.SyntaxKind.PropertySignature &&
+      (node.parent as ts.PropertySignature).type?.kind !==
+        ts.SyntaxKind.FunctionType
+    ) {
       const parent = this.findParentNode(
         node,
         ts.SyntaxKind.TypeAliasDeclaration
@@ -408,8 +564,11 @@ class ApiTestValidator {
   ) => {
     if (node.kind === ts.SyntaxKind.Identifier) {
       const isUsedInImports =
-        this.tryFindParentNode(node, ts.SyntaxKind.ImportSpecifier) !==
-        undefined;
+        this.tryFindParentNode(
+          node,
+          ts.SyntaxKind.ImportSpecifier,
+          ts.SyntaxKind.ImportClause
+        ) !== undefined;
       if (!isUsedInImports) {
         const item = symbolIdentifierFactory(node as ts.Identifier);
         if (item) {
@@ -450,9 +609,9 @@ class ApiTestValidator {
 }
 
 let allPackages = await glob('packages/*');
-allPackages = allPackages.slice(0, 1);
+allPackages = allPackages.slice(0, 2);
 allPackages.unshift('packages/client-config');
-// allPackages = ['packages/storage-construct'];
+//allPackages = ['packages/sandbox'];
 for (const pkg of allPackages) {
   console.log(`Validating api tests of ${pkg}`);
   const validator = new ApiTestValidator(pkg);
