@@ -1,7 +1,7 @@
-import { PackageManagerController } from './package_manager_controller.js';
+import { PackageManagerControllerType } from './package_manager_controller.js';
 import { ProjectRootValidator } from './project_root_validator.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
-import { NpmProjectInitializer } from './npm_project_initializer.js';
+import { ProjectInitializer } from './project_initializer.js';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
 import { logger } from './logger.js';
 
@@ -26,10 +26,10 @@ export class AmplifyProjectCreator {
    * Delegates out to other classes that handle parts of the getting started experience
    */
   constructor(
-    private readonly packageManagerController: PackageManagerController,
+    private readonly packageManagerController: PackageManagerControllerType,
     private readonly projectRootValidator: ProjectRootValidator,
     private readonly initialProjectFileGenerator: InitialProjectFileGenerator,
-    private readonly npmInitializedEnsurer: NpmProjectInitializer,
+    private readonly initializedEnsurer: ProjectInitializer,
     private readonly gitIgnoreInitializer: GitIgnoreInitializer,
     private readonly projectRoot: string
   ) {}
@@ -41,7 +41,7 @@ export class AmplifyProjectCreator {
     logger.debug(`Validating current state of target directory...`);
     await this.projectRootValidator.validate();
 
-    await this.npmInitializedEnsurer.ensureInitialized();
+    await this.initializedEnsurer.ensureInitialized();
 
     await logger.indicateProgress(
       `Installing required dependencies`,

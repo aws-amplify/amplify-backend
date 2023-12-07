@@ -1,11 +1,11 @@
 import { describe, it, mock } from 'node:test';
-import { NpmPackageManagerController } from './npm_package_manager_controller.js';
+import { PackageManagerController } from './package_manager_controller.js';
 import assert from 'assert';
 
-void describe('NpmPackageManagerController', () => {
+void describe('PackageManagerController', () => {
   void it('executes expected dev dependency install command', async () => {
     const execaMock = mock.fn();
-    const npmPackageManagerController = new NpmPackageManagerController(
+    const npmPackageManagerController = new PackageManagerController(
       'testPath',
       execaMock as never
     );
@@ -19,7 +19,7 @@ void describe('NpmPackageManagerController', () => {
 
   void it('executes expected prod dependency install command', async () => {
     const execaMock = mock.fn();
-    const npmPackageManagerController = new NpmPackageManagerController(
+    const npmPackageManagerController = new PackageManagerController(
       'testPath',
       execaMock as never
     );
@@ -35,7 +35,7 @@ void describe('NpmPackageManagerController', () => {
     const execaMock = mock.fn(() => {
       throw new Error('test error');
     });
-    const npmPackageManagerController = new NpmPackageManagerController(
+    const npmPackageManagerController = new PackageManagerController(
       'testPath',
       execaMock as never
     );
@@ -52,7 +52,7 @@ void describe('NpmPackageManagerController', () => {
     const execaMock = mock.fn(() => {
       throw new Error('test error');
     });
-    const npmPackageManagerController = new NpmPackageManagerController(
+    const npmPackageManagerController = new PackageManagerController(
       'testPath',
       execaMock as never
     );

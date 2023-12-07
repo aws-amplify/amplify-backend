@@ -8,7 +8,7 @@ import { type PackageManager } from './amplify_project_creator.js';
 /**
  * Ensure that the current working directory is a valid JavaScript project
  */
-export class NpmProjectInitializer {
+export class ProjectInitializer {
   /**
    * injecting console and fs for testing
    */

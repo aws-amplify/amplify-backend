@@ -7,14 +7,14 @@
   If customers have a cached version of the create-amplify package, they might execute that cached version even after we publish features and fixes to the package on npm.
  */
 
-import { NpmPackageManagerController } from './npm_package_manager_controller.js';
+import { PackageManagerController } from './package_manager_controller.js';
 import { ProjectRootValidator } from './project_root_validator.js';
 import {
   AmplifyProjectCreator,
   type PackageManager,
 } from './amplify_project_creator.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
-import { NpmProjectInitializer } from './npm_project_initializer.js';
+import { ProjectInitializer } from './project_initializer.js';
 import { getProjectRoot } from './get_project_root.js';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
 import { logger } from './logger.js';
@@ -46,10 +46,10 @@ const getPackageManager: () => PackageManager = () => {
 const packageManager = getPackageManager();
 
 const amplifyProjectCreator = new AmplifyProjectCreator(
-  new NpmPackageManagerController(projectRoot, packageManager),
+  new PackageManagerController(projectRoot, packageManager),
   new ProjectRootValidator(projectRoot),
   new InitialProjectFileGenerator(projectRoot, packageManager),
-  new NpmProjectInitializer(projectRoot, packageManager),
+  new ProjectInitializer(projectRoot, packageManager),
   new GitIgnoreInitializer(projectRoot),
   projectRoot
 );

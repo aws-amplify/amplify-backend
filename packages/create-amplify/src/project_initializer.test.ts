@@ -1,12 +1,12 @@
 import { describe, it, mock } from 'node:test';
-import { NpmProjectInitializer } from './npm_project_initializer.js';
+import { ProjectInitializer } from './project_initializer.js';
 import assert from 'assert';
 
-void describe('NpmInitializedEnsurer', () => {
+void describe('InitializedEnsurer', () => {
   void it('does nothing if package.json already exists', async () => {
     const existsSyncMock = mock.fn(() => true);
     const execaMock = mock.fn();
-    const npmInitializedEnsurer = new NpmProjectInitializer(
+    const npmInitializedEnsurer = new ProjectInitializer(
       '/testProjectRoot',
       'npm',
       existsSyncMock,
@@ -24,7 +24,7 @@ void describe('NpmInitializedEnsurer', () => {
     );
 
     const execaMock = mock.fn();
-    const npmInitializedEnsurer = new NpmProjectInitializer(
+    const npmInitializedEnsurer = new ProjectInitializer(
       '/testProjectRoot',
       existsSyncMock as never,
       execaMock as never
@@ -43,7 +43,7 @@ void describe('NpmInitializedEnsurer', () => {
     const execaMock = mock.fn(() => {
       throw new Error('test error');
     });
-    const npmInitializedEnsurer = new NpmProjectInitializer(
+    const npmInitializedEnsurer = new ProjectInitializer(
       '/testProjectRoot',
       'npm',
       existsSyncMock,
@@ -58,7 +58,7 @@ void describe('NpmInitializedEnsurer', () => {
   void it('throws if package.json does not exist after npm init', async () => {
     const existsSyncMock = mock.fn(() => false);
     const execaMock = mock.fn();
-    const npmInitializedEnsurer = new NpmProjectInitializer(
+    const npmInitializedEnsurer = new ProjectInitializer(
       '/testProjectRoot',
       'npm',
       existsSyncMock,
