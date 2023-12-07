@@ -2,6 +2,7 @@ import path from 'path';
 import { existsSync } from 'fs';
 import * as fsp from 'fs/promises';
 import ts from 'typescript';
+import { glob } from 'glob';
 
 type ApiSymbol = {
   readonly name: string;
@@ -9,8 +10,14 @@ type ApiSymbol = {
   readonly node: ts.Identifier;
 };
 
+type ExpectedApiSymbolUsagePredicate = (
+  testUsageSymbol: TestUsageApiSymbol
+) => boolean;
+
 type ExpectedApiSymbol = ApiSymbol & {
   readonly isOptional: boolean | undefined;
+  readonly description: string;
+  readonly usagePredicate: ExpectedApiSymbolUsagePredicate;
 };
 
 type TestUsageApiSymbol = ApiSymbol & {
@@ -78,16 +85,10 @@ class ApiTestValidator {
 
     for (const expectedApiIdentifier of expectedApiIdentifiers) {
       const matchedIdentifiersUsedInTest = identifiersUsedInTest.filter(
-        (item) =>
-          item.name === expectedApiIdentifier.name &&
-          item.parentName === expectedApiIdentifier.parentName
+        (item) => expectedApiIdentifier.usagePredicate(item)
       );
       if (matchedIdentifiersUsedInTest.length === 0) {
-        throw new Error(
-          `API identifier ${expectedApiIdentifier.name} of ${
-            expectedApiIdentifier.parentName ?? 'unknown parent'
-          } is not used in ${this.apiTestFilePath}`
-        );
+        throw new Error(expectedApiIdentifier.description);
       } else {
         if (expectedApiIdentifier.isOptional) {
           for (const matchedIdentifierUsedInTest of matchedIdentifiersUsedInTest) {
@@ -104,12 +105,41 @@ class ApiTestValidator {
 
   private expectedApiIdentifierFactory = (
     node: ts.Identifier
-  ): ExpectedApiSymbol => {
-    let apiParentNodeKindToLookFor: ts.SyntaxKind | undefined;
+  ): ExpectedApiSymbol | undefined => {
     let isOptional: boolean | undefined;
     const name = node.getText();
-    if (node.parent.kind === ts.SyntaxKind.Parameter) {
-      apiParentNodeKindToLookFor = ts.SyntaxKind.VariableDeclaration;
+    let usagePredicate: ExpectedApiSymbolUsagePredicate | undefined;
+    let parentName: string | undefined;
+    let description: string | undefined;
+    if (
+      node.parent.kind === ts.SyntaxKind.TypeReference &&
+      ['Partial', 'Promise'].includes(name)
+    ) {
+      // Skip built in types
+      return undefined;
+    } else if (node.parent.kind === ts.SyntaxKind.Parameter) {
+      const parent = this.findParentNode(
+        node,
+        ts.SyntaxKind.VariableDeclaration,
+        ts.SyntaxKind.Constructor
+      );
+      switch (parent.kind) {
+        case ts.SyntaxKind.VariableDeclaration:
+          parentName = (parent as ts.VariableDeclaration).name.getText();
+          description = `Parameter ${name} of function ${parentName} must be used`;
+          break;
+        case ts.SyntaxKind.Constructor:
+          parentName = (
+            parent as ts.ConstructorDeclaration
+          ).parent.name?.getText();
+          if (!parentName) {
+            throw new Error('Class name not found');
+          }
+          description = `Parameter ${name} of ${parentName}'s constructor must be used`;
+          break;
+        default:
+          throw new Error('Unexpected parent');
+      }
       const parameterDeclaration = node.parent as ts.ParameterDeclaration;
       if (
         parameterDeclaration.questionToken ||
@@ -118,7 +148,12 @@ class ApiTestValidator {
         isOptional = true;
       }
     } else if (node.parent.kind === ts.SyntaxKind.PropertySignature) {
-      apiParentNodeKindToLookFor = ts.SyntaxKind.TypeAliasDeclaration;
+      const parent = this.findParentNode(
+        node,
+        ts.SyntaxKind.TypeAliasDeclaration
+      );
+      parentName = (parent as ts.TypeAliasDeclaration).name.getText();
+      description = `Property ${name} of type ${parentName} must be used`;
       const propertySignature = node.parent as ts.PropertySignature;
       if (
         propertySignature.questionToken ||
@@ -127,38 +162,60 @@ class ApiTestValidator {
         isOptional = true;
       }
     } else if (node.parent.kind === ts.SyntaxKind.EnumMember) {
-      apiParentNodeKindToLookFor = ts.SyntaxKind.EnumDeclaration;
-    }
-
-    let parentName: string | undefined;
-    if (apiParentNodeKindToLookFor) {
-      let parent: ts.Node = node.parent;
-      while (parent.kind !== apiParentNodeKindToLookFor) {
-        parent = parent.parent;
-      }
-
-      switch (parent.kind) {
-        case ts.SyntaxKind.TypeAliasDeclaration:
-          parentName = (parent as ts.TypeAliasDeclaration).name.getText();
-          break;
-        case ts.SyntaxKind.VariableDeclaration:
-          parentName = (parent as ts.VariableDeclaration).name.getText();
-          break;
-        case ts.SyntaxKind.EnumDeclaration:
-          parentName = (parent as ts.EnumDeclaration).name.getText();
-          break;
-        default:
-          throw new Error('Unexpected parent type');
-      }
-
+      const parent = this.findParentNode(node, ts.SyntaxKind.EnumDeclaration);
+      parentName = (parent as ts.EnumDeclaration).name.getText();
+      description = `Member ${name} of enum ${parentName} must be used`;
+    } else if (
+      node.parent.kind === ts.SyntaxKind.ExpressionWithTypeArguments &&
+      node.parent.parent.kind === ts.SyntaxKind.HeritageClause
+    ) {
+      parentName = (
+        node.parent.parent.parent as ts.ClassDeclaration
+      ).name?.getText();
       if (!parentName) {
-        throw new Error(
-          `Expected to find parent of ${node.getText()}, but found none`
-        );
+        throw new Error('Class name not found');
       }
+      description = `Class ${parentName} must be assignable to ${name}`;
+    } else if (
+      node.parent.kind === ts.SyntaxKind.TypeReference &&
+      (
+        [
+          ts.SyntaxKind.IntersectionType,
+          ts.SyntaxKind.Parameter,
+        ] as Array<ts.SyntaxKind>
+      ).includes(node.parent.parent.kind)
+    ) {
+      // Skip type algebra, parameter type declaration, etc.
+      return undefined;
+    } else if (
+      node.parent.kind === ts.SyntaxKind.TypeAliasDeclaration ||
+      node.parent.kind === ts.SyntaxKind.TypeReference
+    ) {
+      description = `Type ${name} must be used`;
+    } else if (node.parent.kind === ts.SyntaxKind.ClassDeclaration) {
+      description = `Class ${name} must be used`;
+    } else if (node.parent.kind === ts.SyntaxKind.EnumDeclaration) {
+      description = `Enum ${name} must be used`;
+    } else if (node.parent.kind === ts.SyntaxKind.VariableDeclaration) {
+      description = `Variable/function ${name} must be used`;
+    } else {
+      throw new Error(`Unknown symbol encountered ${name}`);
     }
 
-    return { name, parentName, node, isOptional };
+    if (!usagePredicate) {
+      usagePredicate = (testUsageSymbol: TestUsageApiSymbol): boolean => {
+        return (
+          testUsageSymbol.name === name &&
+          testUsageSymbol.parentName === parentName
+        );
+      };
+    }
+
+    if (!description) {
+      throw new Error('Description is missing');
+    }
+
+    return { name, parentName, node, isOptional, usagePredicate, description };
   };
 
   private testUsageApiIdentifierFactory = (
@@ -183,10 +240,7 @@ class ApiTestValidator {
     let parentName: string | undefined;
     let parentExpected = true;
     if (apiParentNodeKindToLookFor) {
-      let parent: ts.Node = node.parent;
-      while (parent.kind !== apiParentNodeKindToLookFor) {
-        parent = parent.parent;
-      }
+      const parent = this.findParentNode(node, apiParentNodeKindToLookFor);
 
       switch (parent.kind) {
         case ts.SyntaxKind.CallExpression:
@@ -239,18 +293,49 @@ class ApiTestValidator {
     return { name, parentName, node, usageSection };
   };
 
+  private tryFindParentNode = (
+    node: ts.Node,
+    ...possibleParentSyntaxKinds: ts.SyntaxKind[]
+  ): ts.Node | undefined => {
+    let parent: ts.Node | undefined = node.parent;
+    const possibleParentSyntaxKindsSet: Set<ts.SyntaxKind> = new Set(
+      possibleParentSyntaxKinds
+    );
+    while (parent && !possibleParentSyntaxKindsSet.has(parent.kind)) {
+      parent = parent.parent;
+    }
+
+    return parent;
+  };
+
+  private findParentNode = (
+    node: ts.Node,
+    ...possibleParentSyntaxKinds: ts.SyntaxKind[]
+  ): ts.Node => {
+    const parent: ts.Node | undefined = this.tryFindParentNode(
+      node,
+      ...possibleParentSyntaxKinds
+    );
+    if (!parent) {
+      throw new Error('Parent not found');
+    }
+    return parent;
+  };
+
   private collectSymbolIdentifiersRecursively = (
     node: ts.Node,
     accumulator: Array<ApiSymbol>,
-    symbolIdentifierFactory: (node: ts.Identifier) => ApiSymbol
+    symbolIdentifierFactory: (node: ts.Identifier) => ApiSymbol | undefined
   ) => {
     if (node.kind === ts.SyntaxKind.Identifier) {
-      const name = node.getText();
-      const isTSBuiltIn = ['Partial', 'Promise'].includes(name);
-      const isIrrelevantUsage =
-        node.parent && node.parent.kind === ts.SyntaxKind.ImportSpecifier;
-      if (!isTSBuiltIn && !isIrrelevantUsage) {
-        accumulator.push(symbolIdentifierFactory(node as ts.Identifier));
+      const isUsedInImports =
+        this.tryFindParentNode(node, ts.SyntaxKind.ImportSpecifier) !==
+        undefined;
+      if (!isUsedInImports) {
+        const item = symbolIdentifierFactory(node as ts.Identifier);
+        if (item) {
+          accumulator.push(item);
+        }
       }
     }
 
@@ -285,8 +370,9 @@ class ApiTestValidator {
   };
 }
 
-//const allPackages = await glob('packages/*');
-const allPackages = ['packages/client-config'];
+let allPackages = await glob('packages/*');
+allPackages = allPackages.slice(0, 0);
+allPackages.unshift('packages/client-config');
 for (const pkg of allPackages) {
   console.log(`Validating api tests of ${pkg}`);
   const validator = new ApiTestValidator(pkg);
