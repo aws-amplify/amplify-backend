@@ -18,7 +18,7 @@ export type FunctionProps = {
     entry?: string;
     timeoutSeconds?: number;
     memoryMB?: number;
-    env?: Record<string, string>;
+    environment?: Record<string, string>;
 };
 
 // (No @packageDocumentation comment for this package)
