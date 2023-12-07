@@ -55,7 +55,7 @@ export type FunctionProps = {
   /**
    * Environment variables that will be available during function execution
    */
-  env?: Record<string, string>;
+  environment?: Record<string, string>;
 };
 
 /**
@@ -89,7 +89,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
       entry: this.resolveEntry(),
       timeoutSeconds: this.resolveTimeout(),
       memoryMB: this.resolveMemory(),
-      env: this.props.env ?? {},
+      environment: this.props.environment ?? {},
     };
   };
 
@@ -184,7 +184,7 @@ class AmplifyFunction
     this.resources = {
       lambda: new NodejsFunction(scope, `${id}-lambda`, {
         entry: props.entry,
-        environment: props.env as { [key: string]: string }, // for some reason TS can't figure out that this is the same as Record<string, string>
+        environment: props.environment as { [key: string]: string }, // for some reason TS can't figure out that this is the same as Record<string, string>
         timeout: Duration.seconds(props.timeoutSeconds),
         memorySize: props.memoryMB,
       }),

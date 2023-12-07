@@ -222,7 +222,7 @@ void describe('AmplifyFunctionFactory', () => {
   void it('sets environment variables', () => {
     const lambda = defineFunction({
       entry: './test-assets/default-lambda/handler.ts',
-      env: {
+      environment: {
         TEST_VAR: 'testValue',
       },
     }).getInstance(getInstanceProps);
