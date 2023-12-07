@@ -39,10 +39,16 @@ jobs:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/build_with_cache
-      - name: Configure AWS Credentials
+      - name: Configure test tooling credentials
+        uses: ./.github/actions/setup_profile
+        with:
+          role-to-assume: ${{ secrets.E2E_TOOLING_ROLE_ARN }}
+          aws-region: us-west-2
+          profile-name: e2e-tooling
+      - name: Configure test execution credentials
         uses: aws-actions/configure-aws-credentials@04b98b3f9e85f563fb061be8751a0352327246b0 # version 3.0.1
         with:
-          role-to-assume: ${{ secrets.E2E_RUNNER_ROLE_ARN }}
+          role-to-assume: ${{ secrets.E2E_RUNNER_ROLE_ARN_NEW }}
           aws-region: us-west-2
       - name: Run live dependency health checks
         shell: bash
