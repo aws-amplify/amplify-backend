@@ -8,14 +8,13 @@ import { createHash } from 'crypto';
 // Until npm supports concurrent workspace command execution, this can be used to run commands concurrently
 // https://github.com/npm/feedback/discussions/781
 
-// this script also uses tsconfig.tsbuildinfo hashes to determine if a package has changes before running the script in that package
-// if a package does not have a tsconfig.tsbuildinfo file, or if it hashes to a different value than the last time this script ran, then the script is run in that package
+// this script also uses tsconfig.tsbuildinfo hashes to determine if a package has changes before running the input command in that package
+// if a package does not have a tsconfig.tsbuildinfo file, or if it hashes to a different value than the last time the command ran, then the command is run in that package
 
-/* file that stores tsconfig.tsbuildinfo hahses for each package for each command
-    structure is
+/* The structure of the cache file is:
     {
       command-with-args: {
-        packages/path: tsbuildinfo hash
+        packages/path: 'tsconfig.tsbuildinfo hash'
       }
     }
  */
