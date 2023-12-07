@@ -19,7 +19,7 @@ import { createHash } from 'crypto';
     }
  */
 const cacheFile = new URL(
-  './workspace_script_concurrent_cache.json',
+  './concurrent_workspace_script_cache.json',
   import.meta.url
 );
 

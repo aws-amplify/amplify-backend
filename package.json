@@ -32,7 +32,7 @@
     "test:coverage:generate": "NODE_V8_COVERAGE=coverage/ npm run test",
     "test:coverage:threshold": "c8 npm run test",
     "test:dir": "tsx --test --test-reporter spec",
-    "update:api": "tsx scripts/workspace_script_concurrent.ts update:api --if-present",
+    "update:api": "tsx scripts/concurrent_workspace_script.ts update:api --if-present",
     "update:tsconfig-refs": "tsx scripts/update_tsconfig_refs.ts",
     "vend": "npm run start:npm-proxy && npm run publish:local",
     "watch": "npm run build -- --watch"
