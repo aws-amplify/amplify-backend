@@ -9,12 +9,12 @@
 
 import { PackageManagerController } from './package_manager_controller.js';
 import { ProjectRootValidator } from './project_root_validator.js';
+import { AmplifyProjectCreator } from './amplify_project_creator.js';
 import {
-  AmplifyProjectCreator,
   type PackageManager,
   type PackageManagerName,
   packageManagers,
-} from './amplify_project_creator.js';
+} from './package_manager.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
 import { ProjectInitializer } from './project_initializer.js';
 import { getProjectRoot } from './get_project_root.js';

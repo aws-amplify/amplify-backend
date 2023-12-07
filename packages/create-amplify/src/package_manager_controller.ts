@@ -1,6 +1,6 @@
 import { execa as _execa } from 'execa';
 import { executeWithDebugLogger } from './execute_with_logger.js';
-import { type PackageManager } from './amplify_project_creator.js';
+import { type PackageManager } from './package_manager.js';
 
 export type DependencyType = 'dev' | 'prod';
 

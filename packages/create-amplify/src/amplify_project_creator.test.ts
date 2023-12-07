@@ -1,9 +1,7 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'assert';
-import {
-  AmplifyProjectCreator,
-  packageManagers,
-} from './amplify_project_creator.js';
+import { AmplifyProjectCreator } from './amplify_project_creator.js';
+import { packageManagers } from './package_manager.js';
 import { logger } from './logger.js';
 
 void describe('AmplifyProjectCreator', () => {
