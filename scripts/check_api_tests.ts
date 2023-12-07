@@ -127,6 +127,22 @@ class ApiTestValidator {
         case ts.SyntaxKind.VariableDeclaration:
           parentName = (parent as ts.VariableDeclaration).name.getText();
           description = `Parameter ${name} of function ${parentName} must be used`;
+          usagePredicate = (testUsageSymbol): boolean => {
+            if (
+              testUsageSymbol.node.parent.kind === ts.SyntaxKind.CallExpression
+            ) {
+              const callExpression = testUsageSymbol.node
+                .parent as ts.CallExpression;
+              const isFunctionNameMatching =
+                callExpression.expression.getText() === parentName;
+              const isUsingArgument =
+                callExpression.arguments.find(
+                  (arg) => arg.getText() === name
+                ) !== undefined;
+              return isFunctionNameMatching && isUsingArgument;
+            }
+            return false;
+          };
           break;
         case ts.SyntaxKind.Constructor:
           parentName = (
@@ -166,6 +182,28 @@ class ApiTestValidator {
       );
       parentName = (parent as ts.TypeAliasDeclaration).name.getText();
       description = `Property ${name} of type ${parentName} must be used`;
+      usagePredicate = (testUsageSymbol): boolean => {
+        if (
+          testUsageSymbol.name === name &&
+          (testUsageSymbol.node.parent.kind ===
+            ts.SyntaxKind.PropertyAssignment ||
+            testUsageSymbol.node.parent.kind ===
+              ts.SyntaxKind.ShorthandPropertyAssignment)
+        ) {
+          const parentVariableDeclaration = this.tryFindParentNode(
+            testUsageSymbol.node,
+            ts.SyntaxKind.VariableDeclaration
+          );
+          if (parentVariableDeclaration) {
+            return (
+              (
+                parentVariableDeclaration as ts.VariableDeclaration
+              ).type?.getText() === parentName
+            );
+          }
+        }
+        return false;
+      };
       const propertySignature = node.parent as ts.PropertySignature;
       if (
         propertySignature.questionToken ||
@@ -177,6 +215,21 @@ class ApiTestValidator {
       const parent = this.findParentNode(node, ts.SyntaxKind.EnumDeclaration);
       parentName = (parent as ts.EnumDeclaration).name.getText();
       description = `Member ${name} of enum ${parentName} must be used`;
+      usagePredicate = (testUsageSymbol): boolean => {
+        if (
+          testUsageSymbol.name === name &&
+          testUsageSymbol.node.parent.kind ===
+            ts.SyntaxKind.PropertyAccessExpression
+        ) {
+          const propertyAccessExpression = testUsageSymbol.node
+            .parent as ts.PropertyAccessExpression;
+          return (
+            propertyAccessExpression.name.getText() === name &&
+            propertyAccessExpression.expression.getText() === parentName
+          );
+        }
+        return false;
+      };
     } else if (
       node.parent.kind === ts.SyntaxKind.ExpressionWithTypeArguments &&
       node.parent.parent.kind === ts.SyntaxKind.HeritageClause
@@ -215,33 +268,76 @@ class ApiTestValidator {
         [
           ts.SyntaxKind.IntersectionType,
           ts.SyntaxKind.Parameter,
+          ts.SyntaxKind.PropertySignature,
+          ts.SyntaxKind.TypeReference,
         ] as Array<ts.SyntaxKind>
       ).includes(node.parent.parent.kind)
     ) {
-      // Skip type algebra, parameter type declaration, etc.
+      // Skip type algebra, parameter type declaration, property type declaration, etc.
       return undefined;
     } else if (
       node.parent.kind === ts.SyntaxKind.TypeAliasDeclaration ||
       node.parent.kind === ts.SyntaxKind.TypeReference
     ) {
       description = `Type ${name} must be used`;
+      usagePredicate = (testUsageSymbol): boolean => {
+        if (
+          testUsageSymbol.node.parent.kind === ts.SyntaxKind.VariableDeclaration
+        ) {
+          return (
+            (
+              testUsageSymbol.node.parent as ts.VariableDeclaration
+            ).type?.getText() === name
+          );
+        }
+        return false;
+      };
     } else if (node.parent.kind === ts.SyntaxKind.ClassDeclaration) {
       description = `Class ${name} must be used`;
+      usagePredicate = (testUsageSymbol): boolean => {
+        if (testUsageSymbol.node.parent.kind === ts.SyntaxKind.NewExpression) {
+          return (
+            (
+              testUsageSymbol.node.parent as ts.NewExpression
+            ).expression.getText() === name
+          );
+        }
+        return false;
+      };
     } else if (node.parent.kind === ts.SyntaxKind.EnumDeclaration) {
       description = `Enum ${name} must be used`;
+      usagePredicate = (testUsageSymbol): boolean => {
+        if (
+          testUsageSymbol.name === name &&
+          testUsageSymbol.node.parent.kind ===
+            ts.SyntaxKind.PropertyAccessExpression
+        ) {
+          return (
+            (
+              testUsageSymbol.node.parent as ts.PropertyAccessExpression
+            ).expression.getText() === name
+          );
+        }
+        return false;
+      };
     } else if (node.parent.kind === ts.SyntaxKind.VariableDeclaration) {
-      description = `Variable/function ${name} must be used`;
+      description = `Function ${name} must be used`;
+      usagePredicate = (testUsageSymbol): boolean => {
+        if (testUsageSymbol.node.parent.kind === ts.SyntaxKind.CallExpression) {
+          return (
+            (
+              testUsageSymbol.node.parent as ts.CallExpression
+            ).expression.getText() === name
+          );
+        }
+        return false;
+      };
     } else {
       throw new Error(`Unknown symbol encountered ${name}`);
     }
 
     if (!usagePredicate) {
-      usagePredicate = (testUsageSymbol: TestUsageApiSymbol): boolean => {
-        return (
-          testUsageSymbol.name === name &&
-          testUsageSymbol.parentName === parentName
-        );
-      };
+      throw new Error('Usage predicate is missing');
     }
 
     if (!description) {
@@ -407,6 +503,7 @@ class ApiTestValidator {
 let allPackages = await glob('packages/*');
 allPackages = allPackages.slice(0, 1);
 allPackages.unshift('packages/client-config');
+// allPackages = ['packages/storage-construct'];
 for (const pkg of allPackages) {
   console.log(`Validating api tests of ${pkg}`);
   const validator = new ApiTestValidator(pkg);
