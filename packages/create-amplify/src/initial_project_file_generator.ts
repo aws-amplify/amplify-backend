@@ -15,7 +15,7 @@ export class InitialProjectFileGenerator {
    */
   constructor(
     private readonly projectRoot: string,
-    private readonly packageManagerExecutable: PackageManager,
+    private readonly packageManager: PackageManager,
     private readonly fs = _fs,
     private readonly executeWithDebugLogger = _executeWithDebugLogger
   ) {}
@@ -38,7 +38,7 @@ export class InitialProjectFileGenerator {
       JSON.stringify(packageJsonContent, null, 2)
     );
 
-    if (this.packageManagerExecutable === 'yarn-modern') {
+    if (this.packageManager.name === 'yarn-modern') {
       fs.writeFile(path.resolve(targetDir, 'yarn.lock'), '', (err) => {
         if (err) {
           console.error(`Error creating ${targetDir}/${targetDir}`, err);
@@ -65,13 +65,7 @@ export class InitialProjectFileGenerator {
       'es2022',
     ];
 
-    const executableName = !this.packageManagerExecutable
-      ? 'npm'
-      : this.packageManagerExecutable.startsWith('yarn')
-      ? 'yarn'
-      : this.packageManagerExecutable;
-
-    if (executableName.startsWith('yarn')) {
+    if (this.packageManager.executable === 'yarn') {
       await this.executeWithDebugLogger(
         targetDir,
         'yarn',
@@ -82,7 +76,7 @@ export class InitialProjectFileGenerator {
 
     await this.executeWithDebugLogger(
       targetDir,
-      executableName === 'npm' ? 'npx' : executableName,
+      this.packageManager.binaryRunner,
       tscArgs,
       execa
     );

@@ -20,7 +20,7 @@ export class PackageManagerController implements PackageManagerControllerType {
    */
   constructor(
     private readonly projectRoot: string,
-    private readonly packageManagerExecutable: PackageManager,
+    private readonly packageManager: PackageManager,
     private readonly execa = _execa
   ) {}
 
@@ -31,13 +31,7 @@ export class PackageManagerController implements PackageManagerControllerType {
     packageNames: string[],
     type: DependencyType
   ): Promise<void> => {
-    const executableName = !this.packageManagerExecutable
-      ? 'npm'
-      : this.packageManagerExecutable.startsWith('yarn')
-      ? 'yarn'
-      : this.packageManagerExecutable;
-
-    const args = [executableName.startsWith('yarn') ? 'add' : 'install'].concat(
+    const args = [`${this.packageManager.installCommand}`].concat(
       ...packageNames
     );
     if (type === 'dev') {
@@ -47,13 +41,15 @@ export class PackageManagerController implements PackageManagerControllerType {
     try {
       await executeWithDebugLogger(
         this.projectRoot,
-        executableName,
+        this.packageManager.executable,
         args,
         this.execa
       );
     } catch {
       throw new Error(
-        `\`${executableName} ${args.join(' ')}\` did not exit successfully.`
+        `\`${this.packageManager.executable} ${args.join(
+          ' '
+        )}\` did not exit successfully.`
       );
     }
   };

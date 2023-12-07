@@ -1,6 +1,9 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'assert';
-import { AmplifyProjectCreator } from './amplify_project_creator.js';
+import {
+  AmplifyProjectCreator,
+  packageManagers,
+} from './amplify_project_creator.js';
 import { logger } from './logger.js';
 
 void describe('AmplifyProjectCreator', () => {
@@ -25,7 +28,7 @@ void describe('AmplifyProjectCreator', () => {
       npmInitializedEnsurerMock as never,
       gitIgnoreInitializerMock as never,
       process.cwd(),
-      'npm'
+      packageManagers['npm']
     );
     mock.method(logger, 'log', logMock.log);
     await amplifyProjectCreator.create();
@@ -73,7 +76,7 @@ void describe('AmplifyProjectCreator', () => {
       npmInitializedEnsurerMock as never,
       gitIgnoreInitializerMock as never,
       '/project/root',
-      'npm'
+      packageManagers['npm']
     );
     mock.method(logger, 'log', logMock.log);
     await amplifyProjectCreator.create();

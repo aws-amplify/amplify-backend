@@ -1,6 +1,7 @@
 import { describe, it, mock } from 'node:test';
 import { ProjectInitializer } from './project_initializer.js';
 import assert from 'assert';
+import { packageManagers } from './amplify_project_creator.js';
 
 void describe('InitializedEnsurer', () => {
   void it('does nothing if package.json already exists', async () => {
@@ -8,7 +9,7 @@ void describe('InitializedEnsurer', () => {
     const execaMock = mock.fn();
     const npmInitializedEnsurer = new ProjectInitializer(
       '/testProjectRoot',
-      'npm',
+      packageManagers['npm'],
       existsSyncMock,
       execaMock as never
     );
@@ -32,7 +33,7 @@ void describe('InitializedEnsurer', () => {
     await npmInitializedEnsurer.ensureInitialized();
     assert.equal(execaMock.mock.callCount(), 1);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments, [
-      'npm',
+      packageManagers['npm'],
       ['init', '--yes'],
       { stdin: 'inherit', cwd: '/testProjectRoot' },
     ]);
@@ -45,7 +46,7 @@ void describe('InitializedEnsurer', () => {
     });
     const npmInitializedEnsurer = new ProjectInitializer(
       '/testProjectRoot',
-      'npm',
+      packageManagers['npm'],
       existsSyncMock,
       execaMock as never
     );
@@ -60,7 +61,7 @@ void describe('InitializedEnsurer', () => {
     const execaMock = mock.fn();
     const npmInitializedEnsurer = new ProjectInitializer(
       '/testProjectRoot',
-      'npm',
+      packageManagers['npm'],
       existsSyncMock,
       execaMock as never
     );

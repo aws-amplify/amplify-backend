@@ -7,7 +7,62 @@ import { logger } from './logger.js';
 
 const LEARN_MORE_USAGE_DATA_TRACKING_LINK = `https://docs.amplify.aws/gen2/reference/telemetry`;
 
-export type PackageManager = 'npm' | 'yarn-classic' | 'yarn-modern' | 'pnpm';
+export type PackageManagerName =
+  | 'npm'
+  | 'yarn-classic'
+  | 'yarn-modern'
+  | 'pnpm';
+type PackageManagerExecutable = 'npm' | 'yarn' | 'pnpm';
+type PackageManagerBinaryRunner = 'npx' | 'yarn' | 'pnpm';
+type PackageManagerInstallCommand = 'install' | 'add';
+type PackageManagerLockFile =
+  | 'package-lock.json'
+  | 'yarn.lock'
+  | 'pnpm-lock.yaml';
+type PackageManagerInitDefault = ['init', '--yes'] | ['init'];
+export type PackageManager = {
+  name: PackageManagerName;
+  executable: PackageManagerExecutable;
+  binaryRunner: PackageManagerBinaryRunner;
+  installCommand: PackageManagerInstallCommand;
+  lockFile: PackageManagerLockFile;
+  initDefault: PackageManagerInitDefault;
+};
+export type PackageManagers = { [key in PackageManagerName]: PackageManager };
+export const packageManagers: PackageManagers = {
+  npm: {
+    name: 'npm',
+    executable: 'npm',
+    binaryRunner: 'npx',
+    installCommand: 'install',
+    lockFile: 'package-lock.json',
+    initDefault: ['init', '--yes'],
+  },
+  'yarn-classic': {
+    name: 'yarn-classic',
+    executable: 'yarn',
+    binaryRunner: 'yarn',
+    installCommand: 'add',
+    lockFile: 'yarn.lock',
+    initDefault: ['init', '--yes'],
+  },
+  'yarn-modern': {
+    name: 'yarn-modern',
+    executable: 'yarn',
+    binaryRunner: 'yarn',
+    installCommand: 'add',
+    lockFile: 'yarn.lock',
+    initDefault: ['init', '--yes'],
+  },
+  pnpm: {
+    name: 'pnpm',
+    executable: 'pnpm',
+    binaryRunner: 'pnpm',
+    installCommand: 'add',
+    lockFile: 'pnpm-lock.yaml',
+    initDefault: ['init'],
+  },
+};
 
 /**
  *
@@ -72,17 +127,10 @@ export class AmplifyProjectCreator {
         ? ''
         : `cd .${this.projectRoot.replace(process.cwd(), '')}; `;
 
-    const executable =
-      this.packageManager === 'npm'
-        ? 'npx'
-        : this.packageManager.startsWith('yarn')
-        ? 'yarn'
-        : this.packageManager;
-
     logger.log(
       `Welcome to AWS Amplify! 
-Run \`${executable} amplify help\` for a list of available commands. 
-Get started by running \`${cdCommand}${executable} amplify sandbox\`.`
+Run \`${this.packageManager.binaryRunner} amplify help\` for a list of available commands. 
+Get started by running \`${cdCommand}${this.packageManager.binaryRunner} amplify sandbox\`.`
     );
 
     logger.log(

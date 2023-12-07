@@ -14,7 +14,7 @@ export class ProjectInitializer {
    */
   constructor(
     private readonly projectRoot: string,
-    private readonly packageManagerExecutable: PackageManager,
+    private readonly packageManager: PackageManager,
     private readonly existsSync = _existsSync,
     private readonly execa = _execa
   ) {}
@@ -28,33 +28,27 @@ export class ProjectInitializer {
       return;
     }
 
-    const executableName = !this.packageManagerExecutable
-      ? 'npm'
-      : this.packageManagerExecutable.startsWith('yarn')
-      ? 'yarn'
-      : this.packageManagerExecutable;
-
     logger.debug(
-      `No package.json file found in the current directory. Running \`${executableName} init\`...`
+      `No package.json file found in the current directory. Running \`${this.packageManager.executable} init\`...`
     );
 
     try {
       await executeWithDebugLogger(
         this.projectRoot,
-        executableName,
-        executableName === 'pnpm' ? ['init'] : ['init', '--yes'],
+        this.packageManager.executable,
+        this.packageManager.initDefault,
         this.execa
       );
     } catch {
       throw new Error(
-        `\`${executableName} init\` did not exit successfully. Initialize a valid JavaScript package before continuing.`
+        `\`${this.packageManager.executable} init\` did not exit successfully. Initialize a valid JavaScript package before continuing.`
       );
     }
 
     if (!this.packageJsonExists()) {
       // this should only happen if the customer exits out of npm init before finishing
       throw new Error(
-        `package.json does not exist after running \`${executableName} init\`. Initialize a valid JavaScript package before continuing.'`
+        `package.json does not exist after running \`${this.packageManager.executable} init\`. Initialize a valid JavaScript package before continuing.'`
       );
     }
   };
