@@ -41,6 +41,7 @@ const runPromises = packagePaths.map(async (packagePath) => {
     await runInDir(packagePath);
   }
   hashCache[packagePath] = packageTsBuildInfoHash;
+  return undefined;
 });
 
 await Promise.all(runPromises);
