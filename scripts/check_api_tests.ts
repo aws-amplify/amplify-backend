@@ -136,6 +136,18 @@ class ApiTestValidator {
             throw new Error('Class name not found');
           }
           description = `Parameter ${name} of ${parentName}'s constructor must be used`;
+          usagePredicate = (testUsageSymbol): boolean => {
+            if (
+              testUsageSymbol.node.parent.kind === ts.SyntaxKind.NewExpression
+            ) {
+              return (
+                (
+                  testUsageSymbol.node.parent as ts.NewExpression
+                ).expression.getText() === parentName
+              );
+            }
+            return false;
+          };
           break;
         default:
           throw new Error('Unexpected parent');
@@ -176,6 +188,27 @@ class ApiTestValidator {
         throw new Error('Class name not found');
       }
       description = `Class ${parentName} must be assignable to ${name}`;
+      usagePredicate = (testUsageSymbol): boolean => {
+        if (
+          testUsageSymbol.node.parent.kind === ts.SyntaxKind.VariableDeclaration
+        ) {
+          const variableDeclaration = testUsageSymbol.node
+            .parent as ts.VariableDeclaration;
+          const isDeclaringSuperType =
+            variableDeclaration.type?.getText() === name;
+          const isInitializerCallingConstructor =
+            variableDeclaration.initializer?.kind ===
+            ts.SyntaxKind.NewExpression;
+          if (isDeclaringSuperType && isInitializerCallingConstructor) {
+            return (
+              (
+                variableDeclaration.initializer as ts.NewExpression
+              ).expression.getText() === parentName
+            );
+          }
+        }
+        return false;
+      };
     } else if (
       node.parent.kind === ts.SyntaxKind.TypeReference &&
       (
@@ -228,6 +261,7 @@ class ApiTestValidator {
         apiParentNodeKindToLookFor = ts.SyntaxKind.CallExpression;
         break;
       case ts.SyntaxKind.PropertyAssignment:
+      case ts.SyntaxKind.ShorthandPropertyAssignment:
         apiParentNodeKindToLookFor = ts.SyntaxKind.VariableDeclaration;
         break;
       case ts.SyntaxKind.PropertyAccessExpression:
@@ -371,7 +405,7 @@ class ApiTestValidator {
 }
 
 let allPackages = await glob('packages/*');
-allPackages = allPackages.slice(0, 0);
+allPackages = allPackages.slice(0, 1);
 allPackages.unshift('packages/client-config');
 for (const pkg of allPackages) {
   console.log(`Validating api tests of ${pkg}`);

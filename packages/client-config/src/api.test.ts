@@ -15,7 +15,10 @@ import {
 /**
  * This section makes minimal usage of public API, i.e. uses only required fields and parameters.
  */
-const minApiUsage = async () => {
+const minApiUsage = async (
+  credentialProvider: AwsCredentialIdentityProvider,
+  backendIdentifier: DeployedBackendIdentifier
+) => {
   const authClientConfig: AuthClientConfig = {
     aws_cognito_region: '',
   };
@@ -35,14 +38,9 @@ const minApiUsage = async () => {
 
   await getClientConfigPath();
 
-  const credentialProvider: AwsCredentialIdentityProvider | undefined =
-    undefined;
-  const backendIdentifier: DeployedBackendIdentifier | undefined = undefined;
-  if (credentialProvider && backendIdentifier) {
-    await generateClientConfigToFile(credentialProvider, backendIdentifier);
+  await generateClientConfigToFile(credentialProvider, backendIdentifier);
 
-    await generateClientConfig(credentialProvider, backendIdentifier);
-  }
+  await generateClientConfig(credentialProvider, backendIdentifier);
 
   let clientConfigFormat: ClientConfigFormat;
   clientConfigFormat = ClientConfigFormat.TS;
@@ -55,7 +53,10 @@ const minApiUsage = async () => {
 /**
  * This section makes maximum usage of public API, i.e. uses all fields and parameters.
  */
-const maxApiUsage = async () => {
+const maxApiUsage = async (
+  credentialProvider: AwsCredentialIdentityProvider,
+  backendIdentifier: DeployedBackendIdentifier
+) => {
   const authClientConfig: AuthClientConfig = {
     aws_cognito_identity_pool_id: '',
     aws_cognito_mfa_configuration: '',
@@ -83,20 +84,15 @@ const maxApiUsage = async () => {
     modelIntrospection: '',
   };
 
-  const credentialProvider: AwsCredentialIdentityProvider | undefined =
-    undefined;
-  const backendIdentifier: DeployedBackendIdentifier | undefined = undefined;
-  if (credentialProvider && backendIdentifier) {
-    const outDir: string | undefined = undefined;
-    const format: ClientConfigFormat | undefined = undefined;
+  const outDir: string | undefined = undefined;
+  const format: ClientConfigFormat | undefined = undefined;
 
-    await generateClientConfigToFile(
-      credentialProvider,
-      backendIdentifier,
-      outDir,
-      format
-    );
+  await generateClientConfigToFile(
+    credentialProvider,
+    backendIdentifier,
+    outDir,
+    format
+  );
 
-    await getClientConfigPath(outDir, format);
-  }
+  await getClientConfigPath(outDir, format);
 };
