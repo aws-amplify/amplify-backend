@@ -220,6 +220,7 @@ jobs:
         with:
           languages: javascript
           queries: +security-and-quality
+          config-file: ./.github/codeql/codeql-config.yml
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@e4262713b504983e61c7728f5452be240d9385a7 # version 2.14.3
         with:

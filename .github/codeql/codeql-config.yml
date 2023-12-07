@@ -1,0 +1,2 @@
+paths-ignore:
+  - packages/**/src/api.test.ts
