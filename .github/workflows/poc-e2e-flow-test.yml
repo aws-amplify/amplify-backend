@@ -6,7 +6,9 @@ on: # TODO: need to change the trigger
   push:
     branches:
       - poc/package-manager-support
-      - poc/pms-create-amplify
+  pull_request:
+    branches:
+      - poc/package-manager-support
 
 jobs:
   install:
