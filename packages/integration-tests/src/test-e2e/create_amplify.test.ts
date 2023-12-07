@@ -65,7 +65,7 @@ const packageManagerSetup = async (
     ]);
     await execa(packageManagerExecutable, ['config', 'get', 'registry']);
 
-    await execa(packageManagerExecutable, ['store', 'clear']);
+    await execa(packageManagerExecutable, ['store', 'prune']);
   }
 };
 
