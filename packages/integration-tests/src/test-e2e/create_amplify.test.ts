@@ -64,8 +64,6 @@ const packageManagerSetup = async (
       'http://localhost:4873',
     ]);
     await execa(packageManagerExecutable, ['config', 'get', 'registry']);
-
-    await execa(packageManagerExecutable, ['store', 'prune']);
   }
 };
 
