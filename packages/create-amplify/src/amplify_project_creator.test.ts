@@ -24,7 +24,8 @@ void describe('AmplifyProjectCreator', () => {
       initialProjectFileGeneratorMock as never,
       npmInitializedEnsurerMock as never,
       gitIgnoreInitializerMock as never,
-      process.cwd()
+      process.cwd(),
+      'npm'
     );
     mock.method(logger, 'log', logMock.log);
     await amplifyProjectCreator.create();
@@ -71,7 +72,8 @@ void describe('AmplifyProjectCreator', () => {
       initialProjectFileGeneratorMock as never,
       npmInitializedEnsurerMock as never,
       gitIgnoreInitializerMock as never,
-      '/project/root'
+      '/project/root',
+      'npm'
     );
     mock.method(logger, 'log', logMock.log);
     await amplifyProjectCreator.create();

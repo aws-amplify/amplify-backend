@@ -31,7 +31,8 @@ export class AmplifyProjectCreator {
     private readonly initialProjectFileGenerator: InitialProjectFileGenerator,
     private readonly initializedEnsurer: ProjectInitializer,
     private readonly gitIgnoreInitializer: GitIgnoreInitializer,
-    private readonly projectRoot: string
+    private readonly projectRoot: string,
+    private readonly packageManager: PackageManager
   ) {}
 
   /**
@@ -71,10 +72,17 @@ export class AmplifyProjectCreator {
         ? ''
         : `cd .${this.projectRoot.replace(process.cwd(), '')}; `;
 
+    const executable =
+      this.packageManager === 'npm'
+        ? 'npx'
+        : this.packageManager.startsWith('yarn')
+        ? 'yarn'
+        : this.packageManager;
+
     logger.log(
       `Welcome to AWS Amplify! 
-Run \`npx amplify help\` for a list of available commands. 
-Get started by running \`${cdCommand}npx amplify sandbox\`.`
+Run \`${executable} amplify help\` for a list of available commands. 
+Get started by running \`${cdCommand}${executable} amplify sandbox\`.`
     );
 
     logger.log(

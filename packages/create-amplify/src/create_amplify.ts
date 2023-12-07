@@ -51,7 +51,8 @@ const amplifyProjectCreator = new AmplifyProjectCreator(
   new InitialProjectFileGenerator(projectRoot, packageManager),
   new ProjectInitializer(projectRoot, packageManager),
   new GitIgnoreInitializer(projectRoot),
-  projectRoot
+  projectRoot,
+  packageManager
 );
 
 try {
