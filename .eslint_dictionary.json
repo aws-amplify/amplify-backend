@@ -120,7 +120,7 @@
   "toggleable",
   "tokenized",
   "totp",
-  "transactional",
+  "tsbuildinfo",
   "tsconfig",
   "tsdoc",
   "tslint",
