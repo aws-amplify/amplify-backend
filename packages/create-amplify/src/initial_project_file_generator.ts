@@ -3,6 +3,7 @@ import fs from 'fs';
 import _fs from 'fs/promises';
 import { executeWithDebugLogger as _executeWithDebugLogger } from './execute_with_logger.js';
 import { execa } from 'execa';
+import { type PackageManager } from './amplify_project_creator.js';
 
 /**
  *
@@ -14,15 +15,10 @@ export class InitialProjectFileGenerator {
    */
   constructor(
     private readonly projectRoot: string,
+    private readonly packageManagerExecutable: PackageManager,
     private readonly fs = _fs,
     private readonly executeWithDebugLogger = _executeWithDebugLogger
   ) {}
-
-  private readonly executableName = !process.env.PACKAGE_MANAGER_EXECUTABLE
-    ? 'npm'
-    : process.env.PACKAGE_MANAGER_EXECUTABLE.startsWith('yarn')
-    ? 'yarn'
-    : process.env.PACKAGE_MANAGER_EXECUTABLE; // TODO: replace `process.env.PACKAGE_MANAGER_EXECUTABLE` with `getPackageManagerName()` once the test infra is ready.
 
   /**
    * Copies the template directory to an amplify folder within the projectRoot
@@ -42,7 +38,7 @@ export class InitialProjectFileGenerator {
       JSON.stringify(packageJsonContent, null, 2)
     );
 
-    if (process.env.PACKAGE_MANAGER_EXECUTABLE === 'yarn-modern') {
+    if (this.packageManagerExecutable === 'yarn-modern') {
       fs.writeFile(path.resolve(targetDir, 'yarn.lock'), '', (err) => {
         if (err) {
           console.error(`Error creating ${targetDir}/${targetDir}`, err);
@@ -69,7 +65,13 @@ export class InitialProjectFileGenerator {
       'es2022',
     ];
 
-    if (this.executableName.startsWith('yarn')) {
+    const executableName = !this.packageManagerExecutable
+      ? 'npm'
+      : this.packageManagerExecutable.startsWith('yarn')
+      ? 'yarn'
+      : this.packageManagerExecutable;
+
+    if (executableName.startsWith('yarn')) {
       await this.executeWithDebugLogger(
         targetDir,
         'yarn',
@@ -80,11 +82,7 @@ export class InitialProjectFileGenerator {
 
     await this.executeWithDebugLogger(
       targetDir,
-      this.executableName === 'npm'
-        ? 'npx'
-        : this.executableName.startsWith('yarn')
-        ? 'yarn'
-        : this.executableName,
+      executableName === 'npm' ? 'npx' : executableName,
       tscArgs,
       execa
     );

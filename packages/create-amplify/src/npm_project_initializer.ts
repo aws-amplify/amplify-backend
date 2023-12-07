@@ -3,6 +3,7 @@ import * as path from 'path';
 import { execa as _execa } from 'execa';
 import { logger } from './logger.js';
 import { executeWithDebugLogger } from './execute_with_logger.js';
+import { type PackageManager } from './amplify_project_creator.js';
 
 /**
  * Ensure that the current working directory is a valid JavaScript project
@@ -13,15 +14,10 @@ export class NpmProjectInitializer {
    */
   constructor(
     private readonly projectRoot: string,
+    private readonly packageManagerExecutable: PackageManager,
     private readonly existsSync = _existsSync,
     private readonly execa = _execa
   ) {}
-
-  private readonly executableName = !process.env.PACKAGE_MANAGER_EXECUTABLE
-    ? 'npm'
-    : process.env.PACKAGE_MANAGER_EXECUTABLE.startsWith('yarn')
-    ? 'yarn'
-    : process.env.PACKAGE_MANAGER_EXECUTABLE; // TODO: replace `process.env.PACKAGE_MANAGER_EXECUTABLE` with `getPackageManagerName()` once the test infra is ready.
 
   /**
    * If package.json already exists, this is a noop. Otherwise, `npm init` is executed to create a package.json file
@@ -32,27 +28,33 @@ export class NpmProjectInitializer {
       return;
     }
 
+    const executableName = !this.packageManagerExecutable
+      ? 'npm'
+      : this.packageManagerExecutable.startsWith('yarn')
+      ? 'yarn'
+      : this.packageManagerExecutable;
+
     logger.debug(
-      `No package.json file found in the current directory. Running \`${this.executableName} init\`...`
+      `No package.json file found in the current directory. Running \`${executableName} init\`...`
     );
 
     try {
       await executeWithDebugLogger(
         this.projectRoot,
-        this.executableName,
-        this.executableName === 'pnpm' ? ['init'] : ['init', '--yes'],
+        executableName,
+        executableName === 'pnpm' ? ['init'] : ['init', '--yes'],
         this.execa
       );
     } catch {
       throw new Error(
-        `\`${this.executableName} init\` did not exit successfully. Initialize a valid JavaScript package before continuing.`
+        `\`${executableName} init\` did not exit successfully. Initialize a valid JavaScript package before continuing.`
       );
     }
 
     if (!this.packageJsonExists()) {
       // this should only happen if the customer exits out of npm init before finishing
       throw new Error(
-        `package.json does not exist after running \`${this.executableName} init\`. Initialize a valid JavaScript package before continuing.'`
+        `package.json does not exist after running \`${executableName} init\`. Initialize a valid JavaScript package before continuing.'`
       );
     }
   };

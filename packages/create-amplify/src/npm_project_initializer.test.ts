@@ -8,6 +8,7 @@ void describe('NpmInitializedEnsurer', () => {
     const execaMock = mock.fn();
     const npmInitializedEnsurer = new NpmProjectInitializer(
       '/testProjectRoot',
+      'npm',
       existsSyncMock,
       execaMock as never
     );
@@ -44,6 +45,7 @@ void describe('NpmInitializedEnsurer', () => {
     });
     const npmInitializedEnsurer = new NpmProjectInitializer(
       '/testProjectRoot',
+      'npm',
       existsSyncMock,
       execaMock as never
     );
@@ -58,6 +60,7 @@ void describe('NpmInitializedEnsurer', () => {
     const execaMock = mock.fn();
     const npmInitializedEnsurer = new NpmProjectInitializer(
       '/testProjectRoot',
+      'npm',
       existsSyncMock,
       execaMock as never
     );

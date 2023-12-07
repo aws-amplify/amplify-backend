@@ -7,6 +7,8 @@ import { logger } from './logger.js';
 
 const LEARN_MORE_USAGE_DATA_TRACKING_LINK = `https://docs.amplify.aws/gen2/reference/telemetry`;
 
+export type PackageManager = 'npm' | 'yarn-classic' | 'yarn-modern' | 'pnpm';
+
 /**
  *
  */

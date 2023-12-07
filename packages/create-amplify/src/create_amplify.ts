@@ -9,25 +9,47 @@
 
 import { NpmPackageManagerController } from './npm_package_manager_controller.js';
 import { ProjectRootValidator } from './project_root_validator.js';
-import { AmplifyProjectCreator } from './amplify_project_creator.js';
+import {
+  AmplifyProjectCreator,
+  type PackageManager,
+} from './amplify_project_creator.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
 import { NpmProjectInitializer } from './npm_project_initializer.js';
 import { getProjectRoot } from './get_project_root.js';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
+import { logger } from './logger.js';
 
 const projectRoot = await getProjectRoot();
 
-const getPackageManager = () => {
-  return 'npm';
+const getPackageManager: () => PackageManager = () => {
+  if (!process.env.npm_config_user_agent) {
+    logger.warn('Could not determine package manager, defaulting to npm');
+    return 'npm';
+  }
+
+  const userAgent = process.env.npm_config_user_agent;
+  const packageManagerAndVersion = userAgent.split(' ')[0];
+  const packageManager = packageManagerAndVersion.split('/')[0];
+
+  if (packageManager === 'yarn') {
+    const yarnMajorVersion = packageManagerAndVersion
+      .split('/')[1]
+      .split('.')[0];
+    return `${packageManager}-${
+      yarnMajorVersion === '1' ? 'classic' : 'modern'
+    }`;
+  }
+
+  return packageManager as PackageManager;
 };
 
 const packageManager = getPackageManager();
 
 const amplifyProjectCreator = new AmplifyProjectCreator(
-  new NpmPackageManagerController(projectRoot),
+  new NpmPackageManagerController(projectRoot, packageManager),
   new ProjectRootValidator(projectRoot),
-  new InitialProjectFileGenerator(projectRoot),
-  new NpmProjectInitializer(projectRoot),
+  new InitialProjectFileGenerator(projectRoot, packageManager),
+  new NpmProjectInitializer(projectRoot, packageManager),
   new GitIgnoreInitializer(projectRoot),
   projectRoot
 );

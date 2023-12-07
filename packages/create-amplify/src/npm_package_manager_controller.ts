@@ -4,6 +4,7 @@ import {
   PackageManagerController,
 } from './package_manager_controller.js';
 import { executeWithDebugLogger } from './execute_with_logger.js';
+import { type PackageManager } from './amplify_project_creator.js';
 
 /**
  *
@@ -14,13 +15,9 @@ export class NpmPackageManagerController implements PackageManagerController {
    */
   constructor(
     private readonly projectRoot: string,
+    private readonly packageManagerExecutable: PackageManager,
     private readonly execa = _execa
   ) {}
-  private readonly executableName = !process.env.PACKAGE_MANAGER_EXECUTABLE
-    ? 'npm'
-    : process.env.PACKAGE_MANAGER_EXECUTABLE.startsWith('yarn')
-    ? 'yarn'
-    : process.env.PACKAGE_MANAGER_EXECUTABLE; // TODO: replace `process.env.PACKAGE_MANAGER_EXECUTABLE` with `getPackageManagerName()` once the test infra is ready.
 
   /**
    * Installs the given package names as devDependencies
@@ -29,9 +26,15 @@ export class NpmPackageManagerController implements PackageManagerController {
     packageNames: string[],
     type: DependencyType
   ): Promise<void> => {
-    const args = [
-      this.executableName.startsWith('yarn') ? 'add' : 'install',
-    ].concat(...packageNames);
+    const executableName = !this.packageManagerExecutable
+      ? 'npm'
+      : this.packageManagerExecutable.startsWith('yarn')
+      ? 'yarn'
+      : this.packageManagerExecutable;
+
+    const args = [executableName.startsWith('yarn') ? 'add' : 'install'].concat(
+      ...packageNames
+    );
     if (type === 'dev') {
       args.push('-D');
     }
@@ -39,15 +42,13 @@ export class NpmPackageManagerController implements PackageManagerController {
     try {
       await executeWithDebugLogger(
         this.projectRoot,
-        this.executableName,
+        executableName,
         args,
         this.execa
       );
     } catch {
       throw new Error(
-        `\`${this.executableName} ${args.join(
-          ' '
-        )}\` did not exit successfully.`
+        `\`${executableName} ${args.join(' ')}\` did not exit successfully.`
       );
     }
   };
