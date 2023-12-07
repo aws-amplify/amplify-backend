@@ -350,57 +350,7 @@ class ApiTestValidator {
   private testUsageApiIdentifierFactory = (
     node: ts.Identifier
   ): TestUsageApiSymbol => {
-    let apiParentNodeKindToLookFor: ts.SyntaxKind | undefined;
     const name = node.getText();
-    switch (node.parent.kind) {
-      case ts.SyntaxKind.CallExpression:
-        apiParentNodeKindToLookFor = ts.SyntaxKind.CallExpression;
-        break;
-      case ts.SyntaxKind.PropertyAssignment:
-      case ts.SyntaxKind.ShorthandPropertyAssignment:
-        apiParentNodeKindToLookFor = ts.SyntaxKind.VariableDeclaration;
-        break;
-      case ts.SyntaxKind.PropertyAccessExpression:
-        apiParentNodeKindToLookFor = ts.SyntaxKind.PropertyAccessExpression;
-        break;
-      default:
-        apiParentNodeKindToLookFor = undefined;
-    }
-
-    let parentName: string | undefined;
-    let parentExpected = true;
-    if (apiParentNodeKindToLookFor) {
-      const parent = this.findParentNode(node, apiParentNodeKindToLookFor);
-
-      switch (parent.kind) {
-        case ts.SyntaxKind.CallExpression:
-          parentName = (parent as ts.CallExpression).expression.getText();
-          if (parentName === name) {
-            // call expression is parent node for both parameters and method name
-            // in case we're inspecting method name we reset parent
-            parentName = undefined;
-            parentExpected = false;
-          }
-          break;
-        case ts.SyntaxKind.VariableDeclaration:
-          parentName = (parent as ts.VariableDeclaration).type?.getText();
-          break;
-        case ts.SyntaxKind.PropertyAccessExpression:
-          parentName = (
-            parent as ts.PropertyAccessExpression
-          ).expression.getText();
-          break;
-        default:
-          throw new Error('Unexpected parent type');
-      }
-
-      if (parentExpected && !parentName) {
-        throw new Error(
-          `Expected to find parent of ${node.getText()}, but found none`
-        );
-      }
-    }
-
     let parent: ts.Node = node.parent;
     let usageSection: 'minApiUsage' | 'maxApiUsage' | undefined;
     while (parent) {
@@ -420,7 +370,7 @@ class ApiTestValidator {
       throw new Error('Unable to find usage section');
     }
 
-    return { name, parentName, node, usageSection };
+    return { name, parentName: undefined, node, usageSection };
   };
 
   private tryFindParentNode = (
