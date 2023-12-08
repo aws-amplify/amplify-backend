@@ -56,9 +56,18 @@ jobs:
         with:
           path: base-branch-content
           ref: ${{ github.event.pull_request.base.sha }}
-      - run: |
-          ls -ltr
-          tree -L 2
+      - name: Build pull request
+        run: |
+          cd pull-request-content
+          npm install
+          npm run build
+          npm run update:versions
+          npx changeset version
+      - name: Build base branch
+        run: |
+          cd base-branch-content
+          npm install
+          npm run build
   do_include_e2e:
     runs-on: ubuntu-latest
     permissions:
