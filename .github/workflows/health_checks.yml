@@ -43,6 +43,16 @@ jobs:
       - uses: ./.github/actions/restore_build_cache
       - run: npm run set-script-shell
       - run: npm run test:coverage:threshold
+  test_scripts:
+    needs:
+      - build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
+      - uses: ./.github/actions/setup_node
+      - uses: ./.github/actions/restore_build_cache
+      - run: npm run set-script-shell
+      - run: npm run test:scripts
   check_api_changes:
     if: github.event_name == 'pull_request'
     needs:
