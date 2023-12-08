@@ -776,9 +776,11 @@ export class AmplifyAuth
       );
       // if any providers were defined, we must expose the oauth settings to the output
       if (this.oAuthSettings) {
-        output.oauthDomain = `${this.domainPrefix}.auth.${
-          Stack.of(this).region
-        }.amazoncognito.com`;
+        output.oauthDomain = this.domainPrefix
+          ? `${this.domainPrefix}.auth.${
+              Stack.of(this).region
+            }.amazoncognito.com`
+          : '';
         output.oauthScope = JSON.stringify(
           this.oAuthSettings.scopes?.map((s) => s.scopeName) ?? []
         );
