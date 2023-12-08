@@ -16,9 +16,8 @@ export class ApiUsageGenerator {
    */
   constructor(
     private readonly targetPath: string,
-    private readonly projectName: string,
-    private readonly dependencyName: string,
-    private readonly apiReportPath: string
+    private readonly latestPackageName: string,
+    private readonly baselineApiReportPath: string
   ) {}
 
   generate = async () => {
@@ -58,19 +57,23 @@ export class ApiUsageGenerator {
       const typeAliasDeclaration = node as ts.TypeAliasDeclaration;
       const typeName = typeAliasDeclaration.name.getText();
       const constName = this.toLowerCamelCase(typeName);
+      const genericTypeParametersDeclaration =
+        this.createGenericTypeParametersDeclaration(
+          typeAliasDeclaration.typeParameters
+        );
       const genericTypeParameters = this.createGenericTypeParametersStatement(
         typeAliasDeclaration.typeParameters
       );
       const baselineTypeName = `${typeName}Baseline`;
       const functionParameterName = `${constName}FunctionParameter`;
       // declare type with same content under different name.
-      let usageStatement = `type ${baselineTypeName} = ${typeAliasDeclaration.type.getText()}${EOL}`;
+      let usageStatement = `type ${baselineTypeName}${genericTypeParametersDeclaration} = ${typeAliasDeclaration.type.getText()}${EOL}`;
       // add statement that checks if old type can be assigned to new type.
-      usageStatement += `const ${typeName}UsageFunction = (${functionParameterName}: ${baselineTypeName}) => {${EOL}`;
-      usageStatement += `    const ${constName}: ${typeName} = ${functionParameterName};${EOL}`;
+      usageStatement += `const ${typeName}UsageFunction = (${functionParameterName}: ${baselineTypeName}${genericTypeParameters}) => {${EOL}`;
+      usageStatement += `    const ${constName}: ${typeName}${genericTypeParameters} = ${functionParameterName};${EOL}`;
       usageStatement += `}${EOL}`;
       return {
-        importStatement: `import { ${typeName} } from '${this.dependencyName}';`,
+        importStatement: `import { ${typeName} } from '${this.latestPackageName}';`,
         usageStatement,
       };
     } else if (node.kind === ts.SyntaxKind.EnumDeclaration) {
@@ -82,12 +85,45 @@ export class ApiUsageGenerator {
         usageStatement += `${varName} = ${enumName}.${enumMember.name.getText()};${EOL}`;
       }
       return {
-        importStatement: `import { ${enumName} } from '${this.dependencyName}';`,
+        importStatement: `import { ${enumName} } from '${this.latestPackageName}';`,
         usageStatement,
+      };
+    } else if (node.kind === ts.SyntaxKind.ClassDeclaration) {
+      const classDeclaration = node as ts.ClassDeclaration;
+      const className = classDeclaration.name?.getText();
+      if (!className) {
+        throw new Error('Class name is missing');
+      }
+      // TODO only emit import to satisfy symbols potentially using this symbol
+      // until we figure out how to generate usage snippets
+      return {
+        importStatement: `import { ${className} } from '${this.latestPackageName}';`,
+      };
+    } else if (node.kind === ts.SyntaxKind.VariableStatement) {
+      const variableStatement = node as ts.VariableStatement;
+      if (variableStatement.declarationList.declarations.length != 1) {
+        throw new Error('Unexpected variable declarations count');
+      }
+      const variableName =
+        variableStatement.declarationList.declarations[0].name.getText();
+      // TODO only emit import to satisfy symbols potentially using this symbol
+      // until we figure out how to generate usage snippets
+      return {
+        importStatement: `import { ${variableName} } from '${this.latestPackageName}';`,
       };
     }
 
     return undefined;
+  };
+
+  private createGenericTypeParametersDeclaration = (
+    typeParameters?: ts.NodeArray<ts.TypeParameterDeclaration>
+  ): string => {
+    if (!typeParameters || typeParameters.length === 0) {
+      return '';
+    }
+
+    return `<${typeParameters.map((item) => item.getText()).join(', ')}>`;
   };
 
   private createGenericTypeParametersStatement = (
@@ -120,7 +156,10 @@ export class ApiUsageGenerator {
   private readAPIReportAsAST = async (): Promise<ts.SourceFile> => {
     const codeSnippetStartToken = '```ts';
     const codeSnippetEndToken = '```';
-    const apiReportContent = await fsp.readFile(this.apiReportPath, 'utf-8');
+    const apiReportContent = await fsp.readFile(
+      this.baselineApiReportPath,
+      'utf-8'
+    );
     const apiReportTypeScriptContent = apiReportContent.substring(
       apiReportContent.indexOf(codeSnippetStartToken) +
         codeSnippetStartToken.length,

@@ -3,46 +3,78 @@ import fsp from 'fs/promises';
 import { execa } from 'execa';
 import { ApiUsageGenerator } from './api_usage_generator.js';
 
+type PackageJson = {
+  name: string;
+  version: string;
+  private?: boolean;
+  dependencies?: Record<string, string>;
+  peerDependencies?: Record<string, string>;
+};
+
 /**
  * Validates changes between two versions of a package.
+ *
+ * The validation procedure involves:
+ * 1. Test TypeScript project is created
+ * 2. Test project depends on latest version of package under test and it's dependencies and peer dependencies
+ * 3. Usage snippets are generated in test project using baseline API.md file (this should come from version we compare to)
+ * 4. Test project is compiled to detect potential breaks.
  */
 export class ApiChangesValidator {
-  private readonly projectPath: string;
+  private readonly testProjectPath: string;
+  private readonly latestPackageDirectoryName: string;
+
   /**
    * creates api changes validator
    */
   constructor(
-    private readonly packageName: string,
-    private readonly baselinePackageApiReportPath: string,
     private readonly latestPackagePath: string,
-    private readonly workingDirectory: string
+    private readonly baselinePackageApiReportPath: string,
+    private readonly workingDirectory: string,
+    private readonly latestPackageDependencyDeclarationStrategy:
+      | 'npmRegistry'
+      | 'npmLocalLink' = 'npmRegistry'
   ) {
-    this.projectPath = path.join(workingDirectory, this.packageName);
+    this.latestPackageDirectoryName = path.basename(latestPackagePath);
+    this.testProjectPath = path.join(
+      workingDirectory,
+      this.latestPackageDirectoryName
+    );
   }
 
   validate = async (): Promise<void> => {
-    await fsp.rm(this.projectPath, { recursive: true, force: true });
-    await fsp.mkdir(this.projectPath, { recursive: true });
-    await this.createTestProject();
+    await fsp.rm(this.testProjectPath, { recursive: true, force: true });
+    await fsp.mkdir(this.testProjectPath, { recursive: true });
+    const latestPackageJson = await this.readLatestPackageJson();
+    if (latestPackageJson.private) {
+      console.log(
+        `Skipping ${latestPackageJson.name} because it's private and not published to NPM`
+      );
+      return;
+    }
+    await this.createTestProject(latestPackageJson);
     await execa('npx', ['tsc', '--build'], {
-      cwd: this.projectPath,
+      cwd: this.testProjectPath,
       stdio: 'inherit',
     });
   };
 
-  private createTestProject = async () => {
-    const dependencies: Record<string, string> = {};
-    dependencies[
-      `${this.packageName}-latest`
-    ] = `file://${this.latestPackagePath}`;
-    dependencies['typescript'] = '^5.0.0';
-
-    // Add latest dependencies and peer dependencies as public API might use them
+  private readLatestPackageJson = async (): Promise<PackageJson> => {
     const latestPackageJsonContent = await fsp.readFile(
       path.join(this.latestPackagePath, 'package.json'),
       'utf-8'
     );
-    const latestPackageJson = JSON.parse(latestPackageJsonContent);
+    return JSON.parse(latestPackageJsonContent);
+  };
+
+  private createTestProject = async (latestPackageJson: PackageJson) => {
+    const dependencies: Record<string, string> = {};
+    if (this.latestPackageDependencyDeclarationStrategy === 'npmRegistry') {
+      dependencies[latestPackageJson.name] = latestPackageJson.version;
+    }
+    dependencies['typescript'] = '^5.0.0';
+    dependencies['@types/node'] = '^18.15.11';
+    // Add the latest dependencies and peer dependencies as public API might use them
     if (latestPackageJson.dependencies) {
       for (const dependencyKey of Object.keys(latestPackageJson.dependencies)) {
         dependencies[dependencyKey] =
@@ -59,21 +91,25 @@ export class ApiChangesValidator {
     }
 
     const packageJsonContent = {
-      name: `api-changes-validation-${this.packageName}`,
+      name: `api-changes-validation-${this.latestPackageDirectoryName}`,
       type: 'module',
       dependencies,
     };
     await fsp.writeFile(
-      path.join(this.projectPath, 'package.json'),
+      path.join(this.testProjectPath, 'package.json'),
       JSON.stringify(packageJsonContent, null, 2)
     );
     await new ApiUsageGenerator(
-      path.join(this.projectPath, 'index.ts'),
-      this.packageName,
-      `${this.packageName}-latest`,
+      path.join(this.testProjectPath, 'index.ts'),
+      latestPackageJson.name,
       this.baselinePackageApiReportPath
     ).generate();
-    await execa('npm', ['install'], { cwd: this.projectPath });
+    await execa('npm', ['install'], { cwd: this.testProjectPath });
+    if (this.latestPackageDependencyDeclarationStrategy === 'npmLocalLink') {
+      await execa('npm', ['link', this.latestPackagePath], {
+        cwd: this.testProjectPath,
+      });
+    }
     const tscArgs = [
       'tsc',
       '--init',
@@ -87,6 +123,6 @@ export class ApiChangesValidator {
       'es2022',
       '--noEmit',
     ];
-    await execa('npx', tscArgs, { cwd: this.projectPath });
+    await execa('npx', tscArgs, { cwd: this.testProjectPath });
   };
 }

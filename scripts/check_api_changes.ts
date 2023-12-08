@@ -7,8 +7,7 @@ import { fileURLToPath } from 'url';
 // extract the command args that should be run in each package
 const runArgs = process.argv.slice(2);
 
-let baselineRepositoryPath = runArgs[0];
-let workingDirectory = runArgs[1];
+let [baselineRepositoryPath, workingDirectory] = runArgs;
 
 if (!baselineRepositoryPath || !workingDirectory) {
   throw new Error(
@@ -34,7 +33,7 @@ console.log(
 );
 
 const packagePaths = (await glob(`${latestRepositoryPath}/packages/*`)).filter(
-  (item) => item.endsWith('client-config')
+  (item) => true || item.endsWith('plugin-types')
 );
 for (const packagePath of packagePaths) {
   const packageName = path.basename(packagePath);
@@ -53,9 +52,8 @@ for (const packagePath of packagePaths) {
 
   console.log(`Validating API changes of ${packageName}`);
   await new ApiChangesValidator(
-    packageName,
-    baselinePackageApiReportPath,
     packagePath,
+    baselinePackageApiReportPath,
     workingDirectory
   ).validate();
 }
