@@ -157,6 +157,9 @@ export type PasswordlessAuthProps = {
 
   /** Options for One Time Password */
   otp?: OtpAuthOptions;
+
+  /** Sign Up Without Password */
+  signUpNoPassword?: boolean;
 };
 
 /**

@@ -13,6 +13,7 @@ import { AmplifyOtpAuth } from './otp/construct.js';
 import { AmplifyMagicLinkAuth } from './magic-link/construct.js';
 import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { Aws } from 'aws-cdk-lib';
+import { AmplifySignUpPasswordless } from './sign-up/construct.js';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -140,6 +141,18 @@ export class AmplifyPasswordlessAuth extends Construct {
         },
         props.magicLink
       );
+    }
+
+    // Configure Sign Up without password
+    if (props.signUpNoPassword) {
+      new AmplifySignUpPasswordless(
+        scope, `${id}-signup-passwordless`, 
+        { 
+          defineAuthChallenge,
+          createAuthChallenge,
+          verifyAuthChallengeResponse
+        },
+        auth.resources.userPool)
     }
   }
 }
