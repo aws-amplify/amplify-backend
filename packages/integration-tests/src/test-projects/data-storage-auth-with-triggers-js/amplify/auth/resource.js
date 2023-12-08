@@ -18,7 +18,7 @@ export const auth = defineAuth({
         clientSecret: secret('amazonSecret'),
       },
       callbackUrls: ['https://redirect.com'],
-      logoutUrls: ['https://logout.com']
+      logoutUrls: ['https://logout.com'],
     },
   },
   triggers: {
