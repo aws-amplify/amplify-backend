@@ -1,5 +1,9 @@
 import { beforeEach, describe, it } from 'node:test';
-import { ConstructFactory, DeploymentType } from '@aws-amplify/plugin-types';
+import {
+  ConstructFactory,
+  DeploymentType,
+  ResourceProvider,
+} from '@aws-amplify/plugin-types';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import { BackendFactory } from './backend_factory.js';
@@ -33,14 +37,18 @@ void describe('Backend', () => {
   });
 
   void it('initializes constructs in given app', () => {
-    const testConstructFactory: ConstructFactory<Bucket> = {
-      getInstance({ constructContainer }): Bucket {
+    const testConstructFactory: ConstructFactory<TestResourceProvider> = {
+      getInstance: ({ constructContainer }) => {
         return constructContainer.getOrCompute({
           resourceGroupName: 'test',
-          generateContainerEntry(scope: Construct): Bucket {
-            return new Bucket(scope, 'test-bucket');
+          generateContainerEntry: (scope) => {
+            return {
+              resources: {
+                bucket: new Bucket(scope, 'test-bucket'),
+              },
+            };
           },
-        }) as Bucket;
+        }) as TestResourceProvider;
       },
     };
 
@@ -61,11 +69,11 @@ void describe('Backend', () => {
   });
 
   void it('registers construct outputs in root stack', () => {
-    const testConstructFactory: ConstructFactory<Bucket> = {
-      getInstance({ constructContainer, outputStorageStrategy }): Bucket {
+    const testConstructFactory: ConstructFactory<TestResourceProvider> = {
+      getInstance: ({ constructContainer, outputStorageStrategy }) => {
         return constructContainer.getOrCompute({
           resourceGroupName: 'test',
-          generateContainerEntry(scope: Construct): Bucket {
+          generateContainerEntry: (scope: Construct) => {
             const bucket = new Bucket(scope, 'test-bucket');
             outputStorageStrategy.addBackendOutputEntry('TestStorageOutput', {
               version: '1',
@@ -73,9 +81,13 @@ void describe('Backend', () => {
                 bucketName: bucket.bucketName,
               },
             });
-            return bucket;
+            return {
+              resources: {
+                bucket,
+              },
+            };
           },
-        }) as Bucket;
+        }) as TestResourceProvider;
       },
     };
 
@@ -99,11 +111,11 @@ void describe('Backend', () => {
   });
 
   void it('exposes created constructs under resources', () => {
-    const testConstructFactory: ConstructFactory<Bucket> = {
-      getInstance({ constructContainer, outputStorageStrategy }): Bucket {
+    const testConstructFactory: ConstructFactory<TestResourceProvider> = {
+      getInstance: ({ constructContainer, outputStorageStrategy }) => {
         return constructContainer.getOrCompute({
           resourceGroupName: 'test',
-          generateContainerEntry(scope: Construct): Bucket {
+          generateContainerEntry: (scope: Construct) => {
             const bucket = new Bucket(scope, 'test-bucket', {
               bucketName: 'test-bucket-name',
             });
@@ -113,9 +125,13 @@ void describe('Backend', () => {
                 bucketName: bucket.bucketName,
               },
             });
-            return bucket;
+            return {
+              resources: {
+                bucket,
+              },
+            };
           },
-        }) as Bucket;
+        }) as TestResourceProvider;
       },
     };
 
@@ -125,7 +141,10 @@ void describe('Backend', () => {
       },
       rootStack
     );
-    assert.equal(backend.resources.testConstructFactory.node.id, 'test-bucket');
+    assert.equal(
+      backend.resources.testConstructFactory.bucket.node.id,
+      'test-bucket'
+    );
   });
 
   void it('stores attribution metadata in root stack', () => {
@@ -166,3 +185,5 @@ void describe('Backend', () => {
     });
   });
 });
+
+type TestResourceProvider = ResourceProvider<{ bucket: Bucket }>;
