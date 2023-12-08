@@ -11,6 +11,7 @@ If you want to contribute to the project, this document is a great way to get fa
 # Project Tenets
 
 Tenets are preferences for one way of doing things where the alternative is not necessarily _bad_, but we have chosen to do it a certain way because we think it is more consistent/maintainable/readable/etc.
+Tenets are also not dogma. In some situations it makes sense to do something that goes against a tenet.
 
 1. Composition > inheritance
 2. Dependency injection > importing implementations
@@ -18,7 +19,7 @@ Tenets are preferences for one way of doing things where the alternative is not 
 4. Copying once > refactoring
 5. Refactoring > copying twice
 6. Convention > configuration
-7. Compile time failures > runtime failures
+7. Compile-time failures > runtime failures
 8. Simple code > clever code
 9. Writing small utilities > pulling in dependencies
 
