@@ -48,7 +48,7 @@ jobs:
       - name: Configure test execution credentials
         uses: aws-actions/configure-aws-credentials@04b98b3f9e85f563fb061be8751a0352327246b0 # version 3.0.1
         with:
-          role-to-assume: ${{ secrets.E2E_RUNNER_ROLE_ARN_NEW }}
+          role-to-assume: ${{ secrets.E2E_RUNNER_ROLE_ARN }}
           aws-region: us-west-2
       - name: Run live dependency health checks
         shell: bash
