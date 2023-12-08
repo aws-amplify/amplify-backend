@@ -53,6 +53,8 @@ const backendTemplatesCollector: SynthesizeBackendTemplates = <
     throw new Error('constructFactories must have at least one entry');
   }
   const backend = defineBackend(constructFactories);
+
+  // find some construct in the backend to compute the root stack from (doesn't matter what construct it is)
   const firstResourceProvider = backend[Object.keys(constructFactories)[0]];
   const firstConstruct = Object.values(firstResourceProvider).find(
     (value) => value instanceof Construct
@@ -63,6 +65,7 @@ const backendTemplatesCollector: SynthesizeBackendTemplates = <
   } as Partial<{ [K in keyof T]: Template }> & { root: Template };
 
   for (const [key, resourceRecord] of Object.entries(backend)) {
+    // skip over the methods that we add on to the backend object
     if (key === 'createStack') {
       continue;
     }

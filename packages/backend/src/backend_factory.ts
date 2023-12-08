@@ -14,8 +14,9 @@ import { createDefaultStack } from './default_stack_factory.js';
 import { getBackendIdentifier } from './backend_identifier.js';
 import { platformOutputKey } from '@aws-amplify/backend-output-schemas';
 import { fileURLToPath } from 'url';
-import { Backend } from './backend.js';
+import { Backend, BackendInput } from './backend.js';
 import { AmplifyBranchLinkerConstruct } from './engine/branch-linker/branch_linker_construct.js';
+import { defineFunction } from '@aws-amplify/backend-function';
 
 // Be very careful editing this value. It is the value used in the BI metrics to attribute stacks as Amplify root stacks
 const rootStackTypeIdentifier = 'root';
@@ -113,9 +114,7 @@ export class BackendFactory<
  * Creates a new Amplify backend instance and returns it
  * @param constructFactories - list of backend factories such as those created by `defineAuth` or `defineData`
  */
-export const defineBackend = <
-  T extends Record<string, ConstructFactory<ResourceProvider>>
->(
+export const defineBackend = <T extends BackendInput>(
   constructFactories: T
 ): Backend<T> => {
   const backend = new BackendFactory(constructFactories);
