@@ -43,6 +43,22 @@ jobs:
       - uses: ./.github/actions/restore_build_cache
       - run: npm run set-script-shell
       - run: npm run test:coverage:threshold
+  check_api_changes:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout pull request ref
+        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
+        with:
+          path: pull-request-content
+      - name: Checkout base branch
+        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
+        with:
+          path: base-branch-content
+          ref: ${{ github.event.pull_request.base.sha }}
+      - run: |
+          ls -ltr
+          tree -L 2
   do_include_e2e:
     runs-on: ubuntu-latest
     permissions:
