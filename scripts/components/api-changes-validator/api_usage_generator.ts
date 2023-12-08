@@ -47,6 +47,9 @@ export class ApiUsageGenerator {
     const ignoredNodes: Array<ts.SyntaxKind> = [
       // TODO figure out how to handle re-exported symbols
       ts.SyntaxKind.ExportDeclaration,
+      // TODO classes will need different testing strategy
+      // due to https://github.com/microsoft/TypeScript/issues/53558
+      ts.SyntaxKind.ClassDeclaration,
     ];
     if (ignoredNodes.includes(node.kind)) {
       return undefined;
@@ -75,20 +78,6 @@ export class ApiUsageGenerator {
       return {
         importStatement: `import { ${enumName} } from '${this.dependencyName}';`,
         usageStatement: `export const ${constName}: ${enumName} | undefined = undefined;`,
-      };
-    } else if (node.kind === ts.SyntaxKind.ClassDeclaration) {
-      const classDeclaration = node as ts.ClassDeclaration;
-      const className = classDeclaration.name?.getText();
-      if (!className) {
-        throw new Error('Class name is missing');
-      }
-      const constName = this.toLowerCamelCase(className);
-      const genericTypeParameters = this.createGenericTypeParametersStatement(
-        classDeclaration.typeParameters
-      );
-      return {
-        importStatement: `import { ${className} } from '${this.dependencyName}';`,
-        usageStatement: `export const ${constName}: ${className}${genericTypeParameters} | undefined = undefined;`,
       };
     } else if (node.kind === ts.SyntaxKind.VariableStatement) {
       const variableStatement = node as ts.VariableStatement;
