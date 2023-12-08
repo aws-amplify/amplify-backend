@@ -18,18 +18,13 @@ import { Stack } from 'aws-cdk-lib';
 export { a }
 
 // @public
-export type Backend<T extends Record<string, ConstructFactory<ResourceProvider>>> = BackendHelpers & {
+export type Backend<T extends DefineBackendProps> = BackendBase & {
     [K in keyof T]: ReturnType<T[K]['getInstance']>['resources'];
 };
 
 // @public (undocumented)
-export type BackendHelpers = {
+export type BackendBase = {
     createStack: (name: string) => Stack;
-};
-
-// @public (undocumented)
-export type BackendInput = Record<string, ConstructFactory<ResourceProvider>> & {
-    [K in keyof BackendHelpers]?: never;
 };
 
 export { ClientSchema }
@@ -37,7 +32,12 @@ export { ClientSchema }
 export { defineAuth }
 
 // @public
-export const defineBackend: <T extends BackendInput>(constructFactories: T) => Backend<T>;
+export const defineBackend: <T extends DefineBackendProps>(constructFactories: T) => Backend<T>;
+
+// @public (undocumented)
+export type DefineBackendProps = Record<string, ConstructFactory<ResourceProvider>> & {
+    [K in keyof BackendBase]?: never;
+};
 
 export { defineData }
 
