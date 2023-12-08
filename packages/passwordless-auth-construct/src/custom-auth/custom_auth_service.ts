@@ -13,6 +13,7 @@ import {
   SignInMethod,
 } from '../types.js';
 import { CognitoMetadataKeys } from '../constants.js';
+import { AdminUpdateUserAttributesCommand, CognitoIdentityProviderClient } from '@aws-sdk/client-cognito-identity-provider';
 
 /**
  * A class containing the Cognito Auth triggers used for Custom Auth.
@@ -22,7 +23,7 @@ export class CustomAuthService {
    * Creates a new CustomAuthService instance.
    * @param challengeServiceFactory - A factory for creating challenge services.
    */
-  constructor(private challengeServiceFactory: ChallengeServiceFactory) {}
+  constructor(private challengeServiceFactory: ChallengeServiceFactory) { }
 
   /**
    * The Define Auth Challenge lambda handler.
@@ -149,7 +150,7 @@ export class CustomAuthService {
     // If the user is not found or if the attribute requested for challenge
     // delivery is not verified, return a fake successful response to prevent
     // user enumeration
-    if (event.request.userNotFound || !isVerified) {
+    if (event.request.userNotFound) {
       logger.info(
         'User not found or user does not have a verified phone/email.'
       );
@@ -259,6 +260,26 @@ export class CustomAuthService {
       throw new Error(`Unrecognized signInMethod: ${signInMethod || 'Null'}`);
     }
     return signInMethod;
+  }
+
+  private async markAttributeAsVerified(
+    { username, deliveryMedium, region, userPoolId }:
+      { username: string, deliveryMedium: string, userPoolId: string, region: string }
+  ) {
+    const attributeName = deliveryMedium === 'SMS' ? "phone_number_verified" : "email_verified";
+    const attributeVerified = {
+      Name: attributeName,
+      Value: "true"
+    };
+
+    const client = new CognitoIdentityProviderClient({ region });
+    const command = new AdminUpdateUserAttributesCommand({
+      UserPoolId: userPoolId,
+      Username: username,
+      UserAttributes: [attributeVerified],
+    })
+
+    await client.send(command);
   }
 
   /**

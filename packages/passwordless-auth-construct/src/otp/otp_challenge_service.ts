@@ -94,6 +94,7 @@ export class OtpChallengeService implements ChallengeService {
         privateChallengeParameters: {
           ...event.response.privateChallengeParameters,
           otpCode: otpCode,
+          deliveryMedium
         },
         publicChallengeParameters: publicChallengeParameters,
       },

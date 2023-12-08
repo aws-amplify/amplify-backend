@@ -165,6 +165,9 @@ export type DeliveryMedium = 'SMS' | 'EMAIL';
 export type PasswordlessAuthProps = {
   magicLink?: MagicLinkAuthOptions;
   otp?: OtpAuthOptions;
+
+  /** Sign Up Without Password */
+  signUpNoPassword?: boolean;
 };
 
 /**
