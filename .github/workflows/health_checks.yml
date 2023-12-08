@@ -61,6 +61,9 @@ jobs:
           cd pull-request-content
           npm install
           npm run build
+          # tsc caches module resolution by package name and version
+          # in api changes check we link same packages with different versions to single project
+          # therefore we bump versions of all packages to bypass the cache
           npm run update:versions
           npx changeset version
       - name: Build base branch
@@ -68,6 +71,14 @@ jobs:
           cd base-branch-content
           npm install
           npm run build
+      - name: Check API changes
+        run: |
+          cd base-branch-content
+          baselinePath=$(pwd)
+          cd ..
+          cd pull-request-content
+          latestPath=$(pwd)
+          npx tsx scripts/check_api_changes.ts $latestPath $baselinePath
   do_include_e2e:
     runs-on: ubuntu-latest
     permissions:
