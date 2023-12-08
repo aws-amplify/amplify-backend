@@ -8,10 +8,11 @@ const runArgs = process.argv.slice(2);
 
 const latestRepositoryPath = runArgs[0];
 const baselineRepositoryPath = runArgs[1];
+const workingDirectory = runArgs[2];
 
-if (!latestRepositoryPath || !baselineRepositoryPath) {
+if (!latestRepositoryPath || !baselineRepositoryPath || !workingDirectory) {
   throw new Error(
-    'Usage: tsx scripts/check_api_changes.ts <latestRepositoryPath> <baselineRepositoryPath>'
+    'Usage: tsx scripts/check_api_changes.ts <latestRepositoryPath> <baselineRepositoryPath> <workingDirectory>'
   );
 }
 
@@ -51,6 +52,7 @@ for (const baselinePackagePath of baselinePackagePaths) {
   await new ApiChangesValidator(
     baselinePackageName,
     baselinePackagePath,
-    latestPackagePath
+    latestPackagePath,
+    workingDirectory
   ).validate();
 }

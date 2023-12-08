@@ -13,13 +13,15 @@ import { ApiUsageGenerator } from './api_usage_generator.js';
 export class ApiChangesValidator {
   private readonly baselinePackageApiReportPath: string;
   private readonly latestPackageApiReportPath: string;
+  private readonly projectPath: string;
   /**
    * creates api changes validator
    */
   constructor(
     private readonly packageName: string,
     private readonly baselinePackagePath: string,
-    private readonly latestPackagePath: string
+    private readonly latestPackagePath: string,
+    private readonly workingDirectory: string
   ) {
     this.baselinePackageApiReportPath = path.join(
       baselinePackagePath,
@@ -32,33 +34,20 @@ export class ApiChangesValidator {
     if (!existsSync(this.latestPackageApiReportPath)) {
       throw new Error(`${latestPackagePath} does not have API.md report`);
     }
+    this.projectPath = path.join(workingDirectory, this.packageName);
   }
 
   validate = async (): Promise<void> => {
-    let tempDir;
-    try {
-      // TODO use temp dir
-      tempDir = await fsp.mkdtemp(`api-changes-validation-${this.packageName}`);
-      // tempDir = path.join(
-      //   '/Users/sobkamil/playground/api-validation-projects',
-      //   this.packageName
-      // );
-      // await fsp.rm(tempDir, { recursive: true, force: true });
-      // await fsp.mkdir(tempDir, { recursive: true });
-      await this.createTestProject(tempDir);
-      await execa('npx', ['tsc', '--build'], {
-        cwd: tempDir,
-        stdio: 'inherit',
-      });
-    } finally {
-      if (tempDir) {
-        // TODO enable this
-        await fsp.rm(tempDir, { recursive: true, force: true });
-      }
-    }
+    await fsp.rm(this.projectPath, { recursive: true, force: true });
+    await fsp.mkdir(this.projectPath, { recursive: true });
+    await this.createTestProject();
+    await execa('npx', ['tsc', '--build'], {
+      cwd: this.projectPath,
+      stdio: 'inherit',
+    });
   };
 
-  private createTestProject = async (projectPath: string) => {
+  private createTestProject = async () => {
     const dependencies: Record<string, string> = {};
     dependencies[
       `${this.packageName}-baseline`
@@ -73,10 +62,10 @@ export class ApiChangesValidator {
       dependencies,
     };
     await fsp.writeFile(
-      path.join(projectPath, 'package.json'),
+      path.join(this.projectPath, 'package.json'),
       JSON.stringify(packageJsonContent, null, 2)
     );
-    await execa('npm', ['install'], { cwd: projectPath });
+    await execa('npm', ['install'], { cwd: this.projectPath });
     const tscArgs = [
       'tsc',
       '--init',
@@ -90,21 +79,21 @@ export class ApiChangesValidator {
       'es2022',
       '--noEmit',
     ];
-    await execa('npx', tscArgs, { cwd: projectPath });
+    await execa('npx', tscArgs, { cwd: this.projectPath });
     await new ApiUsageGenerator(
-      path.join(projectPath, 'latest_usage.ts'),
+      path.join(this.projectPath, 'latest_usage.ts'),
       this.packageName,
       `${this.packageName}-latest`,
       this.latestPackageApiReportPath
     ).generate();
     await new ApiUsageGenerator(
-      path.join(projectPath, 'baseline_usage.ts'),
+      path.join(this.projectPath, 'baseline_usage.ts'),
       this.packageName,
       `${this.packageName}-baseline`,
       this.baselinePackageApiReportPath
     ).generate();
     await new IndexFileRenderer(
-      projectPath,
+      this.projectPath,
       './latest_usage.js',
       './baseline_usage.js'
     ).render();

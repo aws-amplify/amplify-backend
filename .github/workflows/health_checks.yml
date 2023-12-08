@@ -73,12 +73,16 @@ jobs:
           npm run build
       - name: Check API changes
         run: |
+          mkdir api-validation-projects
+          cd api-validation-projects
+          workingDirectory=$(pwd)
+          cd ..
           cd base-branch-content
           baselinePath=$(pwd)
           cd ..
           cd pull-request-content
           latestPath=$(pwd)
-          npx tsx scripts/check_api_changes.ts $latestPath $baselinePath
+          npx tsx scripts/check_api_changes.ts $latestPath $baselinePath $workingDirectory
   do_include_e2e:
     runs-on: ubuntu-latest
     permissions:
