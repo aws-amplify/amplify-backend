@@ -67,6 +67,8 @@ jobs:
           npm run update:versions
           npx changeset version
           # publish local packages since test projects may reference them.
+          git config --global user.email "does+not+matter@amazon.com"
+          git config --global user.name "Pipeline"
           git commit -a -m "version increment" --no-verify
           npm run vend
       - name: Build base branch
