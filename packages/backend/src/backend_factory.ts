@@ -16,7 +16,6 @@ import { platformOutputKey } from '@aws-amplify/backend-output-schemas';
 import { fileURLToPath } from 'url';
 import { Backend, BackendInput } from './backend.js';
 import { AmplifyBranchLinkerConstruct } from './engine/branch-linker/branch_linker_construct.js';
-import { defineFunction } from '@aws-amplify/backend-function';
 
 // Be very careful editing this value. It is the value used in the BI metrics to attribute stacks as Amplify root stacks
 const rootStackTypeIdentifier = 'root';
