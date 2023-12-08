@@ -1,5 +1,5 @@
 import fsp from 'fs/promises';
-import ts, { NodeArray, TypeParameterDeclaration } from 'typescript';
+import ts from 'typescript';
 import { EOL } from 'os';
 
 type Statements = {
