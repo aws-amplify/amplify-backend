@@ -1,5 +1,5 @@
 import fsp from 'fs/promises';
-import ts from 'typescript';
+import ts, { NodeArray, TypeParameterDeclaration } from 'typescript';
 import { EOL } from 'os';
 
 type Statements = {
@@ -46,6 +46,8 @@ export class ApiUsageGenerator {
   ): Statements | undefined => {
     const ignoredNodes: Array<ts.SyntaxKind> = [
       ts.SyntaxKind.ImportDeclaration,
+      // TODO figure out how to handle re-exported symbols
+      ts.SyntaxKind.ExportDeclaration,
     ];
     if (ignoredNodes.includes(node.kind)) {
       return undefined;
@@ -53,9 +55,12 @@ export class ApiUsageGenerator {
       const typeAliasDeclaration = node as ts.TypeAliasDeclaration;
       const typeName = typeAliasDeclaration.name.getText();
       const constName = this.toLowerCamelCase(typeName);
+      const genericTypeParameters = this.createGenericTypeParametersStatement(
+        typeAliasDeclaration.typeParameters
+      );
       return {
         importStatement: `import { ${typeName} } from '${this.dependencyName}';`,
-        usageStatement: `export const ${constName}: ${typeName} | undefined = undefined;`,
+        usageStatement: `export const ${constName}: ${typeName}${genericTypeParameters} | undefined = undefined;`,
       };
     } else if (node.kind === ts.SyntaxKind.EnumDeclaration) {
       const enumDeclaration = node as ts.EnumDeclaration;
@@ -72,9 +77,12 @@ export class ApiUsageGenerator {
         throw new Error('Class name is missing');
       }
       const constName = this.toLowerCamelCase(className);
+      const genericTypeParameters = this.createGenericTypeParametersStatement(
+        classDeclaration.typeParameters
+      );
       return {
         importStatement: `import { ${className} } from '${this.dependencyName}';`,
-        usageStatement: `export const ${constName}: ${className} | undefined = undefined;`,
+        usageStatement: `export const ${constName}: ${className}${genericTypeParameters} | undefined = undefined;`,
       };
     } else if (node.kind === ts.SyntaxKind.VariableStatement) {
       const variableStatement = node as ts.VariableStatement;
@@ -90,6 +98,29 @@ export class ApiUsageGenerator {
     }
 
     throw new Error(`Unrecognized node ${node.kind}`);
+  };
+
+  private createGenericTypeParametersStatement = (
+    typeParameters?: ts.NodeArray<ts.TypeParameterDeclaration>
+  ): string => {
+    if (!typeParameters || typeParameters.length === 0) {
+      return '';
+    }
+    const parametersWithoutDefaults = typeParameters.filter(
+      (parameter) => !parameter.default
+    );
+    if (parametersWithoutDefaults.length === 0) {
+      return '';
+    }
+    const statements: Array<string> = [];
+    for (const typeParameter of parametersWithoutDefaults) {
+      if (typeParameter.constraint) {
+        statements.push(typeParameter.constraint.getText());
+      } else {
+        statements.push('string');
+      }
+    }
+    return `<${statements.join(', ')}>`;
   };
 
   private toLowerCamelCase = (name: string): string => {
