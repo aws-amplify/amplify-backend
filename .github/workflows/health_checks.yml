@@ -64,17 +64,7 @@ jobs:
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_build_cache
       - name: Publish all packages locally
-        run: |
-          # tsc caches module resolution by package name and version
-          # in api changes check we link same packages with different versions to single project
-          # therefore we bump versions of all packages to bypass the cache
-          npm run update:versions
-          npx changeset version
-          # publish local packages since test projects may reference them.
-          git config --global user.email "does+not+matter@amazon.com"
-          git config --global user.name "Pipeline"
-          git commit -a -m "version increment" --no-verify
-          npm run vend
+        run: npm run vend
       - name: Checkout base branch
         uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
         with:
