@@ -8,24 +8,16 @@ import { ApiUsageGenerator } from './api_usage_generator.js';
  * Validates changes between two versions of a package.
  */
 export class ApiChangesValidator {
-  private readonly baselinePackageApiReportPath: string;
   private readonly projectPath: string;
   /**
    * creates api changes validator
    */
   constructor(
     private readonly packageName: string,
-    private readonly baselinePackagePath: string,
+    private readonly baselinePackageApiReportPath: string,
     private readonly latestPackagePath: string,
     private readonly workingDirectory: string
   ) {
-    this.baselinePackageApiReportPath = path.join(
-      baselinePackagePath,
-      'API.md'
-    );
-    if (!existsSync(this.baselinePackageApiReportPath)) {
-      throw new Error(`${baselinePackagePath} does not have API.md report`);
-    }
     this.projectPath = path.join(workingDirectory, this.packageName);
   }
 
@@ -41,9 +33,6 @@ export class ApiChangesValidator {
 
   private createTestProject = async () => {
     const dependencies: Record<string, string> = {};
-    dependencies[
-      `${this.packageName}-baseline`
-    ] = `file://${this.baselinePackagePath}`;
     dependencies[
       `${this.packageName}-latest`
     ] = `file://${this.latestPackagePath}`;
@@ -79,6 +68,12 @@ export class ApiChangesValidator {
       path.join(this.projectPath, 'package.json'),
       JSON.stringify(packageJsonContent, null, 2)
     );
+    await new ApiUsageGenerator(
+      path.join(this.projectPath, 'index.ts'),
+      this.packageName,
+      `${this.packageName}-latest`,
+      this.baselinePackageApiReportPath
+    ).generate();
     await execa('npm', ['install'], { cwd: this.projectPath });
     const tscArgs = [
       'tsc',
@@ -94,11 +89,5 @@ export class ApiChangesValidator {
       '--noEmit',
     ];
     await execa('npx', tscArgs, { cwd: this.projectPath });
-    await new ApiUsageGenerator(
-      path.join(this.projectPath, 'index.ts'),
-      this.packageName,
-      `${this.packageName}`,
-      this.baselinePackageApiReportPath
-    ).generate();
   };
 }

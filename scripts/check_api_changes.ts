@@ -20,34 +20,29 @@ console.log(
   `Validating API changes between latest ${latestRepositoryPath} and baseline ${baselineRepositoryPath}`
 );
 
-const baselinePackagePaths = (
-  await glob(`${baselineRepositoryPath}/packages/*`)
-).filter((item) => item.endsWith('client-config'));
-for (const baselinePackagePath of baselinePackagePaths) {
-  const baselinePackageName = path.basename(baselinePackagePath);
+const packagePaths = (await glob(`${latestRepositoryPath}/packages/*`)).filter(
+  (item) => item.endsWith('client-config')
+);
+for (const packagePath of packagePaths) {
+  const packageName = path.basename(packagePath);
+  const baselinePackagePath = path.join(
+    baselineRepositoryPath,
+    'packages',
+    packageName
+  );
   const baselinePackageApiReportPath = path.join(baselinePackagePath, 'API.md');
   if (!existsSync(baselinePackageApiReportPath)) {
     console.log(
-      `Skipping ${baselinePackageName} as it does not have API.md file`
+      `Skipping ${packageName} as it does not have baseline API.md file`
     );
     continue;
   }
-  const latestPackagePath = path.join(
-    latestRepositoryPath,
-    'packages',
-    baselinePackageName
-  );
-  if (!existsSync(latestPackagePath)) {
-    throw new Error(
-      `${baselinePackageName} does not exist in latest repository`
-    );
-  }
 
-  console.log(`Validating API changes of ${baselinePackageName}`);
+  console.log(`Validating API changes of ${packageName}`);
   await new ApiChangesValidator(
-    baselinePackageName,
-    baselinePackagePath,
-    latestPackagePath,
+    packageName,
+    baselinePackageApiReportPath,
+    packagePath,
     workingDirectory
   ).validate();
 }

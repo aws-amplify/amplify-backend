@@ -3,8 +3,8 @@ import ts from 'typescript';
 import { EOL } from 'os';
 
 type Statements = {
-  importStatement: string;
-  usageStatement: string;
+  importStatement?: string;
+  usageStatement?: string;
 };
 
 /**
@@ -30,8 +30,12 @@ export class ApiUsageGenerator {
     for (const statement of apiAST.statements) {
       const statementsForNode = this.generateStatementsForNode(statement);
       if (statementsForNode) {
-        importStatements.push(statementsForNode.importStatement);
-        usageStatements.push(statementsForNode.usageStatement);
+        if (statementsForNode.importStatement) {
+          importStatements.push(statementsForNode.importStatement);
+        }
+        if (statementsForNode.usageStatement) {
+          usageStatements.push(statementsForNode.usageStatement);
+        }
       }
     }
 
@@ -44,21 +48,11 @@ export class ApiUsageGenerator {
   private generateStatementsForNode = (
     node: ts.Node
   ): Statements | undefined => {
-    const ignoredNodes: Array<ts.SyntaxKind> = [
-      // TODO figure out how to handle re-exported symbols
-      ts.SyntaxKind.ExportDeclaration,
-      // TODO classes will need different testing strategy
-      // due to https://github.com/microsoft/TypeScript/issues/53558
-      ts.SyntaxKind.ClassDeclaration,
-    ];
-    if (ignoredNodes.includes(node.kind)) {
-      return undefined;
-    } else if (node.kind === ts.SyntaxKind.ImportDeclaration) {
+    if (node.kind === ts.SyntaxKind.ImportDeclaration) {
       // Imports in API.md reference types from dependencies used in public API symbols.
-      // Therefore we can just copy them as is.
+      // Therefore, we can just copy them as is.
       return {
         importStatement: node.getText(),
-        usageStatement: '',
       };
     } else if (node.kind === ts.SyntaxKind.TypeAliasDeclaration) {
       const typeAliasDeclaration = node as ts.TypeAliasDeclaration;
@@ -67,32 +61,33 @@ export class ApiUsageGenerator {
       const genericTypeParameters = this.createGenericTypeParametersStatement(
         typeAliasDeclaration.typeParameters
       );
+      const baselineTypeName = `${typeName}Baseline`;
+      const functionParameterName = `${constName}FunctionParameter`;
+      // declare type with same content under different name.
+      let usageStatement = `type ${baselineTypeName} = ${typeAliasDeclaration.type.getText()}${EOL}`;
+      // add statement that checks if old type can be assigned to new type.
+      usageStatement += `const ${typeName}UsageFunction = (${functionParameterName}: ${baselineTypeName}) => {${EOL}`;
+      usageStatement += `    const ${constName}: ${typeName} = ${functionParameterName};${EOL}`;
+      usageStatement += `}${EOL}`;
       return {
         importStatement: `import { ${typeName} } from '${this.dependencyName}';`,
-        usageStatement: `export const ${constName}: ${typeName}${genericTypeParameters} | undefined = undefined;`,
+        usageStatement,
       };
     } else if (node.kind === ts.SyntaxKind.EnumDeclaration) {
       const enumDeclaration = node as ts.EnumDeclaration;
       const enumName = enumDeclaration.name.getText();
-      const constName = this.toLowerCamelCase(enumName);
+      const varName = `${this.toLowerCamelCase(enumName)}UsageVariable`;
+      let usageStatement = `let ${varName}: ${enumName};${EOL}`;
+      for (const enumMember of enumDeclaration.members) {
+        usageStatement += `${varName} = ${enumName}.${enumMember.name.getText()};${EOL}`;
+      }
       return {
         importStatement: `import { ${enumName} } from '${this.dependencyName}';`,
-        usageStatement: `export const ${constName}: ${enumName} | undefined = undefined;`,
-      };
-    } else if (node.kind === ts.SyntaxKind.VariableStatement) {
-      const variableStatement = node as ts.VariableStatement;
-      if (variableStatement.declarationList.declarations.length != 1) {
-        throw new Error('Unexpected variable declarations count');
-      }
-      const variableName =
-        variableStatement.declarationList.declarations[0].name.getText();
-      return {
-        importStatement: `import { ${variableName} } from '${this.dependencyName}';`,
-        usageStatement: `export const ${variableName}Usage: typeof ${variableName} | undefined = undefined;`,
+        usageStatement,
       };
     }
 
-    throw new Error(`Unrecognized node ${node.kind}`);
+    return undefined;
   };
 
   private createGenericTypeParametersStatement = (
