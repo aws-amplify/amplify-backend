@@ -20,9 +20,7 @@ console.log(
   `Validating API changes between latest ${latestRepositoryPath} and baseline ${baselineRepositoryPath}`
 );
 
-const baselinePackagePaths = (
-  await glob(`${baselineRepositoryPath}/packages/*`)
-).filter((path) => path.endsWith('/backend')); // TODO handle backend
+const baselinePackagePaths = await glob(`${baselineRepositoryPath}/packages/*`);
 for (const baselinePackagePath of baselinePackagePaths) {
   const baselinePackageName = path.basename(baselinePackagePath);
   const baselinePackageApiReportPath = path.join(baselinePackagePath, 'API.md');
