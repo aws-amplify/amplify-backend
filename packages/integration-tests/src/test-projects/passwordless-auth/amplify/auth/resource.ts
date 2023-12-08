@@ -4,6 +4,9 @@ export const auth = defineAuth({
   loginWith: {
     email: true,
   },
+  userAttributes: {
+    email: { required: true },
+  },
   passwordlessAuth: {
     // originationNumber and fromAddress values are placeholders
     // until we find a solution to add them to work with CI.
@@ -14,7 +17,7 @@ export const auth = defineAuth({
       },
     },
     magicLink: {
-      allowedOrigins: ['http://localhost:3000/'],
+      allowedOrigins: ['https://example.com/magic-link/##code##'],
       email: { fromAddress: 'dummy@email.com' },
     },
   },
