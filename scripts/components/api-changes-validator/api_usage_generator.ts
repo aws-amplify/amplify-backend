@@ -8,9 +8,9 @@ type Statements = {
 };
 
 /**
- * Generates types usage using API.md definition.
+ * Generates API usage using API.md definition.
  */
-export class TypesUsageGenerator {
+export class ApiUsageGenerator {
   /**
    * Creates generator.
    */
@@ -44,7 +44,16 @@ export class TypesUsageGenerator {
   private generateStatementsForNode = (
     node: ts.Node
   ): Statements | undefined => {
-    if (node.kind === ts.SyntaxKind.ImportDeclaration) {
+    const ignoredNodes: Array<ts.SyntaxKind> = [
+      // TODO figure out how to handle re-exported symbols
+      ts.SyntaxKind.ExportDeclaration,
+      // TODO classes will need different testing strategy
+      // due to https://github.com/microsoft/TypeScript/issues/53558
+      ts.SyntaxKind.ClassDeclaration,
+    ];
+    if (ignoredNodes.includes(node.kind)) {
+      return undefined;
+    } else if (node.kind === ts.SyntaxKind.ImportDeclaration) {
       // Imports in API.md reference types from dependencies used in public API symbols.
       // Therefore we can just copy them as is.
       return {
@@ -70,9 +79,20 @@ export class TypesUsageGenerator {
         importStatement: `import { ${enumName} } from '${this.dependencyName}';`,
         usageStatement: `export const ${constName}: ${enumName} | undefined = undefined;`,
       };
+    } else if (node.kind === ts.SyntaxKind.VariableStatement) {
+      const variableStatement = node as ts.VariableStatement;
+      if (variableStatement.declarationList.declarations.length != 1) {
+        throw new Error('Unexpected variable declarations count');
+      }
+      const variableName =
+        variableStatement.declarationList.declarations[0].name.getText();
+      return {
+        importStatement: `import { ${variableName} } from '${this.dependencyName}';`,
+        usageStatement: `export const ${variableName}Usage: typeof ${variableName} | undefined = undefined;`,
+      };
     }
 
-    return undefined;
+    throw new Error(`Unrecognized node ${node.kind}`);
   };
 
   private createGenericTypeParametersStatement = (

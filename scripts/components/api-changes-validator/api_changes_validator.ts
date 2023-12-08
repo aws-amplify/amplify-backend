@@ -3,7 +3,7 @@ import { existsSync } from 'fs';
 import fsp from 'fs/promises';
 import { execa } from 'execa';
 import { IndexFileRenderer } from './index_file_renderer.js';
-import { TypesUsageGenerator } from './types_usage_generator.js';
+import { ApiUsageGenerator } from './api_usage_generator.js';
 
 /**
  * Validates changes between two versions of a package.
@@ -102,22 +102,22 @@ export class ApiChangesValidator {
       '--noEmit',
     ];
     await execa('npx', tscArgs, { cwd: this.projectPath });
-    await new TypesUsageGenerator(
-      path.join(this.projectPath, 'latest_types_usage.ts'),
+    await new ApiUsageGenerator(
+      path.join(this.projectPath, 'latest_usage.ts'),
       this.packageName,
       `${this.packageName}-latest`,
       this.latestPackageApiReportPath
     ).generate();
-    await new TypesUsageGenerator(
-      path.join(this.projectPath, 'baseline_types_usage.ts'),
+    await new ApiUsageGenerator(
+      path.join(this.projectPath, 'baseline_usage.ts'),
       this.packageName,
       `${this.packageName}-baseline`,
       this.baselinePackageApiReportPath
     ).generate();
     await new IndexFileRenderer(
       this.projectPath,
-      './latest_types_usage.js',
-      './baseline_types_usage.js'
+      './latest_usage.js',
+      './baseline_usage.js'
     ).render();
   };
 }
