@@ -73,14 +73,7 @@ jobs:
       - name: Check API changes
         run: |
           mkdir api-validation-projects
-          cd api-validation-projects
-          workingDirectory=$(pwd)
-          cd ..
-          cd base-branch-content
-          baselinePath=$(pwd)
-          cd ..
-          latestPath=$(pwd)
-          npx tsx scripts/check_api_changes.ts $latestPath $baselinePath $workingDirectory
+          npx tsx scripts/check_api_changes.ts base-branch-content api-validation-projects
   do_include_e2e:
     runs-on: ubuntu-latest
     permissions:

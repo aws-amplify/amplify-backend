@@ -2,19 +2,32 @@ import { glob } from 'glob';
 import path from 'path';
 import { existsSync } from 'fs';
 import { ApiChangesValidator } from './components/api-changes-validator/api_changes_validator.js';
+import { fileURLToPath } from 'url';
 
 // extract the command args that should be run in each package
 const runArgs = process.argv.slice(2);
 
-const latestRepositoryPath = runArgs[0];
-const baselineRepositoryPath = runArgs[1];
-const workingDirectory = runArgs[2];
+let baselineRepositoryPath = runArgs[0];
+let workingDirectory = runArgs[1];
 
-if (!latestRepositoryPath || !baselineRepositoryPath || !workingDirectory) {
+if (!baselineRepositoryPath || !workingDirectory) {
   throw new Error(
-    'Usage: tsx scripts/check_api_changes.ts <latestRepositoryPath> <baselineRepositoryPath> <workingDirectory>'
+    'Usage: tsx scripts/check_api_changes.ts <baselineRepositoryPath> <workingDirectory>'
   );
 }
+
+if (!path.isAbsolute(baselineRepositoryPath)) {
+  baselineRepositoryPath = path.resolve(baselineRepositoryPath);
+}
+
+if (!path.isAbsolute(workingDirectory)) {
+  workingDirectory = path.resolve(workingDirectory);
+}
+
+const latestRepositoryPath = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '..'
+);
 
 console.log(
   `Validating API changes between latest ${latestRepositoryPath} and baseline ${baselineRepositoryPath}`

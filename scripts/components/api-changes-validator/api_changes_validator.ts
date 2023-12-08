@@ -1,5 +1,4 @@
 import path from 'path';
-import { existsSync } from 'fs';
 import fsp from 'fs/promises';
 import { execa } from 'execa';
 import { ApiUsageGenerator } from './api_usage_generator.js';
