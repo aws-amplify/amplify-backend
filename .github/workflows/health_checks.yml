@@ -67,8 +67,7 @@ jobs:
           npm run update:versions
           npx changeset version
           # publish local packages since test projects may reference them.
-          git add *
-          git commit -m "version increment"
+          git commit -a -m "version increment" --no-verify
           npm run vend
       - name: Build base branch
         run: |
