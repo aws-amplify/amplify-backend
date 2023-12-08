@@ -4,10 +4,11 @@
 
 ```ts
 
-import { AmplifyData } from '@aws-amplify/data-construct';
+import { AmplifyDataResources } from '@aws-amplify/data-construct';
 import { AmplifyFunction } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { DerivedModelSchema } from '@aws-amplify/data-schema-types';
+import { ResourceProvider } from '@aws-amplify/plugin-types';
 
 // @public
 export type ApiKeyAuthorizationModeProps = {
@@ -39,7 +40,7 @@ export type DataSchema = string | DerivedModelSchema;
 export type DefaultAuthorizationMode = 'iam' | 'userPool' | 'oidc' | 'apiKey' | 'lambda';
 
 // @public
-export const defineData: (props: DataProps) => ConstructFactory<AmplifyData>;
+export const defineData: (props: DataProps) => ConstructFactory<ResourceProvider<AmplifyDataResources>>;
 
 // @public
 export type LambdaAuthorizationModeProps = {

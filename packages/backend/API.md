@@ -7,22 +7,21 @@
 import { a } from '@aws-amplify/data-schema';
 import { BackendSecret } from '@aws-amplify/plugin-types';
 import { ClientSchema } from '@aws-amplify/data-schema';
-import { Construct } from 'constructs';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { defineAuth } from '@aws-amplify/backend-auth';
 import { defineData } from '@aws-amplify/backend-data';
 import { defineFunction } from '@aws-amplify/backend-function';
 import { defineStorage } from '@aws-amplify/backend-storage';
+import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
 
 export { a }
 
 // @public
-export type Backend<T extends Record<string, ConstructFactory<Construct>>> = {
+export type Backend<T extends Record<string, ConstructFactory<ResourceProvider>>> = {
     createStack: (name: string) => Stack;
-    readonly resources: {
-        [K in keyof T]: ReturnType<T[K]['getInstance']>;
-    };
+} & {
+    [K in keyof T]: ReturnType<T[K]['getInstance']>['resources'];
 };
 
 export { ClientSchema }
@@ -30,7 +29,7 @@ export { ClientSchema }
 export { defineAuth }
 
 // @public
-export const defineBackend: <T extends Record<string, ConstructFactory<Construct>>>(constructFactories: T) => Backend<T>;
+export const defineBackend: <T extends Record<string, ConstructFactory<ResourceProvider>>>(constructFactories: T) => Backend<T>;
 
 export { defineData }
 
