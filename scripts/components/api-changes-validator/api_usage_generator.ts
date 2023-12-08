@@ -45,12 +45,18 @@ export class ApiUsageGenerator {
     node: ts.Node
   ): Statements | undefined => {
     const ignoredNodes: Array<ts.SyntaxKind> = [
-      ts.SyntaxKind.ImportDeclaration,
       // TODO figure out how to handle re-exported symbols
       ts.SyntaxKind.ExportDeclaration,
     ];
     if (ignoredNodes.includes(node.kind)) {
       return undefined;
+    } else if (node.kind === ts.SyntaxKind.ImportDeclaration) {
+      // Imports in API.md reference types from dependencies used in public API symbols.
+      // Therefore we can just copy them as is.
+      return {
+        importStatement: node.getText(),
+        usageStatement: '',
+      };
     } else if (node.kind === ts.SyntaxKind.TypeAliasDeclaration) {
       const typeAliasDeclaration = node as ts.TypeAliasDeclaration;
       const typeName = typeAliasDeclaration.name.getText();

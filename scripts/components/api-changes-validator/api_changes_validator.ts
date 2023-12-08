@@ -56,6 +56,28 @@ export class ApiChangesValidator {
       `${this.packageName}-latest`
     ] = `file://${this.latestPackagePath}`;
     dependencies['typescript'] = '^5.0.0';
+
+    // Add latest dependencies and peer dependencies as public API might use them
+    const latestPackageJsonContent = await fsp.readFile(
+      path.join(this.latestPackagePath, 'package.json'),
+      'utf-8'
+    );
+    const latestPackageJson = JSON.parse(latestPackageJsonContent);
+    if (latestPackageJson.dependencies) {
+      for (const dependencyKey of Object.keys(latestPackageJson.dependencies)) {
+        dependencies[dependencyKey] =
+          latestPackageJson.dependencies[dependencyKey];
+      }
+    }
+    if (latestPackageJson.peerDependencies) {
+      for (const dependencyKey of Object.keys(
+        latestPackageJson.peerDependencies
+      )) {
+        dependencies[dependencyKey] =
+          latestPackageJson.peerDependencies[dependencyKey];
+      }
+    }
+
     const packageJsonContent = {
       name: `api-changes-validation-${this.packageName}`,
       type: 'module',

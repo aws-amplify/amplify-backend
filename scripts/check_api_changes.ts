@@ -22,7 +22,7 @@ console.log(
 
 const baselinePackagePaths = (
   await glob(`${baselineRepositoryPath}/packages/*`)
-).filter((path) => !path.endsWith('/backend')); // TODO handle backend
+).filter((path) => path.endsWith('/backend')); // TODO handle backend
 for (const baselinePackagePath of baselinePackagePaths) {
   const baselinePackageName = path.basename(baselinePackagePath);
   const baselinePackageApiReportPath = path.join(baselinePackagePath, 'API.md');
