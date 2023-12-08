@@ -66,6 +66,10 @@ jobs:
           # therefore we bump versions of all packages to bypass the cache
           npm run update:versions
           npx changeset version
+          # publish local packages since test projects may reference them.
+          git add *
+          git commit -m "version increment"
+          npm run vend
       - name: Build base branch
         run: |
           cd base-branch-content
