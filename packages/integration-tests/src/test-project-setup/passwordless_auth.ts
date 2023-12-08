@@ -54,7 +54,7 @@ export class PasswordlessAuthTestProjectCreator implements TestProjectCreator {
 /**
  * Test project with passwordless auth.
  */
-export class PasswordlessAuthTestProject extends TestProjectBase {
+class PasswordlessAuthTestProject extends TestProjectBase {
   readonly sourceProjectDirPath = '../../src/test-projects/passwordless-auth';
 
   readonly sourceProjectAmplifyDirSuffix = `${this.sourceProjectDirPath}/amplify`;
