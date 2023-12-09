@@ -13,8 +13,12 @@ import {
   SignInMethod,
 } from '../types.js';
 import { CognitoMetadataKeys } from '../constants.js';
-import { AdminUpdateUserAttributesCommand, CognitoIdentityProviderClient } from '@aws-sdk/client-cognito-identity-provider';
+import {
+  AdminUpdateUserAttributesCommand,
+  CognitoIdentityProviderClient,
+} from '@aws-sdk/client-cognito-identity-provider';
 
+const PASSWORDLESS_SIGNUP_ATTR_NAME = 'custom:_passwordless_signup';
 /**
  * A class containing the Cognito Auth triggers used for Custom Auth.
  */
@@ -23,7 +27,7 @@ export class CustomAuthService {
    * Creates a new CustomAuthService instance.
    * @param challengeServiceFactory - A factory for creating challenge services.
    */
-  constructor(private challengeServiceFactory: ChallengeServiceFactory) { }
+  constructor(private challengeServiceFactory: ChallengeServiceFactory) {}
 
   /**
    * The Define Auth Challenge lambda handler.
@@ -150,32 +154,38 @@ export class CustomAuthService {
     // If the user is not found or if the attribute requested for challenge
     // delivery is not verified, return a fake successful response to prevent
     // user enumeration
-    if (event.request.userNotFound) {
-      logger.info(
-        'User not found or user does not have a verified phone/email.'
+
+    const validUser =
+      !event.request.userNotFound && (isVerified || isPasswordlessSignUp);
+
+    // If the user is found and if the attribute requested for challenge
+    // delivery is verified or if the user was created via passwordless sign up
+    if (validUser) {
+      return challengeService.createChallenge(
+        { deliveryMedium, attributeName },
+        destination,
+        event
       );
-      const publicChallengeParameters: RespondToAutChallengeParams = {
-        nextStep: 'PROVIDE_CHALLENGE_RESPONSE',
-        ...event.response.publicChallengeParameters,
-        attributeName,
-        deliveryMedium,
-      };
-      const response: CreateAuthChallengeTriggerEvent = {
-        ...event,
-        response: {
-          ...event.response,
-          publicChallengeParameters,
-        },
-      };
-      logger.debug(JSON.stringify(response, null, 2));
-      return response;
     }
 
-    return challengeService.createChallenge(
-      { deliveryMedium, attributeName },
-      destination,
-      event
+    logger.info(
+      'User not found or user does not have a verified phone/email.'
     );
+    const publicChallengeParameters: RespondToAutChallengeParams = {
+      nextStep: 'PROVIDE_CHALLENGE_RESPONSE',
+      ...event.response.publicChallengeParameters,
+      attributeName,
+      deliveryMedium,
+    };
+    const response: CreateAuthChallengeTriggerEvent = {
+      ...event,
+      response: {
+        ...event.response,
+        publicChallengeParameters,
+      },
+    };
+    logger.debug(JSON.stringify(response, null, 2));
+    return response;
   };
 
   /**
@@ -262,24 +272,33 @@ export class CustomAuthService {
     return signInMethod;
   }
 
+  /**
+   * Update user on Cognito UserPool by mark attribute as verified
+   * @param username - The username to be verify the attribute
+   * @param attributeName - The attribute that is going to be mark as verified
+   * @param region - The UserPool region
+   * @param userPoolId - The UserPool ID
+   */
   private async markAttributeAsVerified(
-    { username, deliveryMedium, region, userPoolId }:
-      { username: string, deliveryMedium: string, userPoolId: string, region: string }
+    username: string,
+    attributeName: 'phone_number_verified' | 'email_verified',
+    region: string,
+    userPoolId: string
   ) {
-    const attributeName = deliveryMedium === 'SMS' ? "phone_number_verified" : "email_verified";
     const attributeVerified = {
       Name: attributeName,
-      Value: "true"
+      Value: 'true',
     };
 
     const client = new CognitoIdentityProviderClient({ region });
-    const command = new AdminUpdateUserAttributesCommand({
+
+    const updateAttrCommand = new AdminUpdateUserAttributesCommand({
       UserPoolId: userPoolId,
       Username: username,
       UserAttributes: [attributeVerified],
-    })
+    });
 
-    await client.send(command);
+    await client.send(updateAttrCommand);
   }
 
   /**
