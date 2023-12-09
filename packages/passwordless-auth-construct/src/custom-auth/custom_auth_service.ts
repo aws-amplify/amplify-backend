@@ -12,8 +12,12 @@ import {
   SignInMethod,
 } from '../types.js';
 import { CognitoMetadataKeys } from '../constants.js';
-import { AdminUpdateUserAttributesCommand, CognitoIdentityProviderClient } from '@aws-sdk/client-cognito-identity-provider';
+import {
+  AdminUpdateUserAttributesCommand,
+  CognitoIdentityProviderClient,
+} from '@aws-sdk/client-cognito-identity-provider';
 
+const PASSWORDLESS_SIGNUP_ATTR_NAME = 'custom:_passwordless_signup';
 /**
  * A class containing the Cognito Auth triggers used for Custom Auth.
  */
@@ -22,7 +26,7 @@ export class CustomAuthService {
    * Creates a new CustomAuthService instance.
    * @param challengeServiceFactory - A factory for creating challenge services.
    */
-  constructor(private challengeServiceFactory: ChallengeServiceFactory) { }
+  constructor(private challengeServiceFactory: ChallengeServiceFactory) {}
 
   /**
    * The Define Auth Challenge lambda handler.
@@ -125,36 +129,36 @@ export class CustomAuthService {
     const { deliveryMedium, attributeName } =
       this.validateDeliveryCodeDetails(event);
 
-    const { isVerified, destination } = this.validateDestination(
-      deliveryMedium,
-      event
-    );
+    const { destination, isPasswordlessSignUp, isVerified } =
+      this.validateDestination(deliveryMedium, event);
 
-    // If the user is not found or if the attribute requested for challenge
-    // delivery is not verified, return a fake successful response to prevent
-    // user enumeration
-    if (event.request.userNotFound) {
-      logger.info(
-        'User not found or user does not have a verified phone/email.'
-      );
-      const response: CreateAuthChallengeTriggerEvent = {
-        ...event,
-        response: {
-          ...event.response,
-          publicChallengeParameters: {
-            ...event.response.publicChallengeParameters,
-            attributeName,
-            deliveryMedium,
-          },
-        },
-      };
-      logger.debug(JSON.stringify(response, null, 2));
-      return response;
+    const validUser =
+      !event.request.userNotFound && (isVerified || isPasswordlessSignUp);
+
+    // If the user is found and if the attribute requested for challenge
+    // delivery is verified or if the user was created via passwordless sign up
+    if (validUser) {
+      return this.challengeServiceFactory
+        .getService(method)
+        .createChallenge({ deliveryMedium, attributeName }, destination, event);
     }
 
-    return this.challengeServiceFactory
-      .getService(method)
-      .createChallenge({ deliveryMedium, attributeName }, destination, event);
+    // return a fake successful response to prevent
+    // user enumeration
+    logger.info('User not found or user does not have a verified phone/email.');
+    const response: CreateAuthChallengeTriggerEvent = {
+      ...event,
+      response: {
+        ...event.response,
+        publicChallengeParameters: {
+          ...event.response.publicChallengeParameters,
+          attributeName,
+          deliveryMedium,
+        },
+      },
+    };
+    logger.debug(JSON.stringify(response, null, 2));
+    return response;
   };
 
   /**
@@ -193,15 +197,30 @@ export class CustomAuthService {
       .verifyChallenge(event);
 
     const answerCorrect = (await verifyResult).response.answerCorrect;
-    logger.debug(`Answer is correct: ${answerCorrect}`);
-    
-    if (answerCorrect) {
-      await this.markAttributeAsVerified({
-        username: event.userName,
-        userPoolId: event.userPoolId,
-        region: event.region,
-        deliveryMedium: event.request.privateChallengeParameters.deliveryMedium
-      })
+    logger.debug(`Answer is correct: ${answerCorrect ? 'true' : 'false'}`);
+
+    const userCreatedByPasswordlessSignUp =
+      event.request.userAttributes[PASSWORDLESS_SIGNUP_ATTR_NAME] === 'true';
+    const attributeName =
+      event.request.privateChallengeParameters.deliveryMedium === 'SMS'
+        ? 'phone_number_verified'
+        : 'email_verified';
+    const attributeVerified =
+      event.request.userAttributes[attributeName] === 'true';
+
+    // Only update verified attribute the first time
+    if (
+      answerCorrect &&
+      userCreatedByPasswordlessSignUp &&
+      !attributeVerified
+    ) {
+      logger.debug(`Updating user attribute to verified: ${attributeName}`);
+      await this.markAttributeAsVerified(
+        event.userName,
+        attributeName,
+        event.region,
+        event.userPoolId
+      );
     }
 
     return verifyResult;
@@ -219,24 +238,33 @@ export class CustomAuthService {
     return signInMethod;
   }
 
+  /**
+   * Update user on Cognito UserPool by mark attribute as verified
+   * @param username - The username to be verify the attribute
+   * @param attributeName - The attribute that is going to be mark as verified
+   * @param region - The UserPool region
+   * @param userPoolId - The UserPool ID
+   */
   private async markAttributeAsVerified(
-    { username, deliveryMedium, region, userPoolId }:
-      { username: string, deliveryMedium: string, userPoolId: string, region: string }
+    username: string,
+    attributeName: 'phone_number_verified' | 'email_verified',
+    region: string,
+    userPoolId: string
   ) {
-    const attributeName = deliveryMedium === 'SMS' ? "phone_number_verified" : "email_verified";
     const attributeVerified = {
       Name: attributeName,
-      Value: "true"
+      Value: 'true',
     };
 
     const client = new CognitoIdentityProviderClient({ region });
-    const command = new AdminUpdateUserAttributesCommand({
+
+    const updateAttrCommand = new AdminUpdateUserAttributesCommand({
       UserPoolId: userPoolId,
       Username: username,
       UserAttributes: [attributeVerified],
-    })
+    });
 
-    await client.send(command);
+    await client.send(updateAttrCommand);
   }
 
   /**
@@ -273,24 +301,36 @@ export class CustomAuthService {
   private validateDestination = (
     deliveryMedium: DeliveryMedium,
     event: CreateAuthChallengeTriggerEvent
-  ): { isVerified: boolean; destination: string } => {
+  ): {
+    isPasswordlessSignUp: boolean;
+    isVerified: boolean;
+    destination: string;
+  } => {
     const {
       email,
       phone_number: phoneNumber,
       email_verified: emailVerified,
       phone_number_verified: phoneNumberVerified,
+      [PASSWORDLESS_SIGNUP_ATTR_NAME]: passwordlessSignUp,
     } = event.request.userAttributes;
+
+    const isPasswordlessSignUp = passwordlessSignUp === 'true';
     if (
       deliveryMedium === 'SMS' &&
       (!phoneNumber || phoneNumberVerified !== 'true')
     ) {
-      return { isVerified: false, destination: phoneNumber };
+      return {
+        isPasswordlessSignUp,
+        isVerified: false,
+        destination: phoneNumber,
+      };
     }
     if (deliveryMedium === 'EMAIL' && (!email || emailVerified !== 'true')) {
-      return { isVerified: false, destination: email };
+      return { isPasswordlessSignUp, isVerified: false, destination: email };
     }
 
     return {
+      isPasswordlessSignUp,
       isVerified: true,
       destination: deliveryMedium === 'SMS' ? phoneNumber : email,
     };

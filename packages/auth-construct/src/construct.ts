@@ -114,6 +114,16 @@ export class AmplifyAuth
     );
     this.oauthMappings = providerSetupResult.oauthMappings;
 
+    const standardAttributes =
+      new cognito.ClientAttributes().withStandardAttributes(
+        Object.keys(this.computedUserPoolProps.standardAttributes ?? {}).reduce(
+          (acc, curr) => ({ ...acc, [curr]: true }),
+          {}
+        )
+      );
+    const clientReadAttributes = standardAttributes;
+    const clientWriteAttributes = standardAttributes;
+
     // UserPool Client
     const externalProviders = props.loginWith.externalProviders;
     const userPoolClient = new cognito.UserPoolClient(
@@ -134,6 +144,8 @@ export class AmplifyAuth
             ? { scopes: this.getOAuthScopes(externalProviders.scopes) }
             : {}),
         },
+        readAttributes: clientReadAttributes,
+        writeAttributes: clientWriteAttributes,
       }
     );
 
@@ -345,6 +357,9 @@ export class AmplifyAuth
         phoneNumber: DEFAULTS.IS_REQUIRED_ATTRIBUTE.phoneNumber(phoneEnabled),
         ...(props.userAttributes ? props.userAttributes : {}),
       },
+      customAttributes: {
+        _passwordless_signup: new cognito.BooleanAttribute({ mutable: false }),
+      }, // TODO: include only if passwordlessSignUp is enabled (ENV)
       selfSignUpEnabled: DEFAULTS.ALLOW_SELF_SIGN_UP,
       mfa: this.getMFAMode(props.multifactor),
       mfaMessage: this.getMFAMessage(props.multifactor),
