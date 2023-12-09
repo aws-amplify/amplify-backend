@@ -110,7 +110,11 @@ void describe(
           ).replace(/\/\*[\s\S]*?\*\/|([^:]|^)\/\/.*$/gm, '');
           const tsConfigObject = JSON.parse(tsConfigContent);
 
-          assert.equal(tsConfigObject.compilerOptions.module, 'node16');
+          assert.equal(tsConfigObject.compilerOptions.module, 'es2022');
+          assert.equal(
+            tsConfigObject.compilerOptions.moduleResolution,
+            'bundler'
+          );
           assert.equal(tsConfigObject.compilerOptions.resolveJsonModule, true);
 
           const pathPrefix = path.join(tempDir, 'amplify');
