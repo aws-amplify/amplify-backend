@@ -11,6 +11,7 @@ import { defaultLambda } from './test-assets/default-lambda/resource.js';
 import { Template } from 'aws-cdk-lib/assertions';
 import { defineFunction } from './factory.js';
 import { lambdaWithDependencies } from './test-assets/lambda-with-dependencies/resource.js';
+import { Runtime } from 'aws-cdk-lib/aws-lambda';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
@@ -234,6 +235,75 @@ void describe('AmplifyFunctionFactory', () => {
           TEST_VAR: 'testValue',
         },
       },
+    });
+  });
+
+  void describe('runtime property', () => {
+    void it('sets valid runtime', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        runtime: 16,
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(Stack.of(lambda));
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        Runtime: Runtime.NODEJS_16_X.name,
+      });
+    });
+
+    void it('defaults to latest runtime', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(Stack.of(lambda));
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        Runtime: Runtime.NODEJS_LATEST.name,
+      });
+    });
+
+    void it('throws on deprecated runtime', () => {
+      assert.throws(
+        () =>
+          defineFunction({
+            entry: './test-assets/default-lambda/handler.ts',
+            runtime: 14,
+          }).getInstance(getInstanceProps),
+        new Error('runtime must be one of the following: 16, 18, 20')
+      );
+    });
+
+    void it('throws on invalid runtime', () => {
+      assert.throws(
+        () =>
+          defineFunction({
+            entry: './test-assets/default-lambda/handler.ts',
+            runtime: 100,
+          }).getInstance(getInstanceProps),
+        new Error('runtime must be one of the following: 16, 18, 20')
+      );
+    });
+
+    void it('throws on non-whole runtime number', () => {
+      assert.throws(
+        () =>
+          defineFunction({
+            entry: './test-assets/default-lambda/handler.ts',
+            runtime: 18.2,
+          }).getInstance(getInstanceProps),
+        new Error('runtime must be one of the following: 16, 18, 20')
+      );
+    });
+
+    void it('throws on negative runtime number', () => {
+      assert.throws(
+        () =>
+          defineFunction({
+            entry: './test-assets/default-lambda/handler.ts',
+            runtime: -18,
+          }).getInstance(getInstanceProps),
+        new Error('runtime must be one of the following: 16, 18, 20')
+      );
     });
   });
 });

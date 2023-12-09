@@ -10,6 +10,7 @@ import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as path from 'path';
 import { getCallerDirectory } from './get_caller_directory.js';
 import { Duration } from 'aws-cdk-lib';
+import { Runtime } from 'aws-cdk-lib/aws-lambda';
 
 /**
  * Entry point for defining a function in the Amplify ecosystem
@@ -56,6 +57,13 @@ export type FunctionProps = {
    * Environment variables that will be available during function execution
    */
   environment?: Record<string, string>;
+
+  /**
+   * Node runtime version for the lambda environment.
+   *
+   * Defaults to the latest NodeJS version
+   */
+  runtime?: number;
 };
 
 /**
@@ -90,6 +98,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
       timeoutSeconds: this.resolveTimeout(),
       memoryMB: this.resolveMemory(),
       environment: this.props.environment ?? {},
+      runtime: this.resolveRuntime(),
     };
   };
 
@@ -160,6 +169,30 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
     }
     return this.props.memoryMB;
   };
+
+  private resolveRuntime = () => {
+    const runtimeDefault = parseInt(
+      Runtime.NODEJS_LATEST.toString().replace(/[^0-9]/g, '')
+    );
+
+    // if runtime is not set, default to latest LTS
+    if (!this.props.runtime) {
+      return runtimeDefault;
+    }
+
+    if (
+      this.props.runtime % 2 !== 0 ||
+      !(this.props.runtime in validNodeRuntime)
+    ) {
+      throw new Error(
+        `runtime must be one of the following: ${Object.keys(
+          validNodeRuntime
+        ).join(', ')}`
+      );
+    }
+
+    return this.props.runtime;
+  };
 }
 
 type HydratedFunctionProps = Required<FunctionProps>;
@@ -187,6 +220,7 @@ class AmplifyFunction
         environment: props.environment as { [key: string]: string }, // for some reason TS can't figure out that this is the same as Record<string, string>
         timeout: Duration.seconds(props.timeoutSeconds),
         memorySize: props.memoryMB,
+        runtime: getRuntime(props.runtime),
       }),
     };
   }
@@ -197,3 +231,13 @@ const isWholeNumberBetweenInclusive = (
   min: number,
   max: number
 ) => min <= test && test <= max && test % 1 === 0;
+
+const validNodeRuntime: Record<number, Runtime> = {
+  16: Runtime.NODEJS_16_X,
+  18: Runtime.NODEJS_18_X,
+  20: Runtime.NODEJS_20_X,
+};
+
+const getRuntime = (version: number): Runtime => {
+  return validNodeRuntime[version];
+};
