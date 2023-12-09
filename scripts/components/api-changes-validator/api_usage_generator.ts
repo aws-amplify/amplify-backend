@@ -1,11 +1,14 @@
 import fsp from 'fs/promises';
 import ts from 'typescript';
 import { EOL } from 'os';
-
-type Statements = {
-  importStatement?: string;
-  usageStatement?: string;
-};
+import { UsageStatements } from './types.js';
+import {
+  ClassUsageStatementsGenerator,
+  EnumUsageStatementsGenerator,
+  ImportUsageStatementsGenerator,
+  TypeUsageStatementsGenerator,
+  VariableUsageStatementsGenerator,
+} from './usage_statements_generators.js';
 
 /**
  * Generates API usage using API.md definition.
@@ -46,111 +49,38 @@ export class ApiUsageGenerator {
 
   private generateStatementsForNode = (
     node: ts.Node
-  ): Statements | undefined => {
+  ): UsageStatements | undefined => {
     if (node.kind === ts.SyntaxKind.ImportDeclaration) {
-      // Imports in API.md reference types from dependencies used in public API symbols.
-      // Therefore, we can just copy them as is.
-      return {
-        importStatement: node.getText(),
-      };
+      return new ImportUsageStatementsGenerator(
+        node as ts.ImportDeclaration
+      ).generate();
     } else if (node.kind === ts.SyntaxKind.TypeAliasDeclaration) {
-      const typeAliasDeclaration = node as ts.TypeAliasDeclaration;
-      const typeName = typeAliasDeclaration.name.getText();
-      const constName = this.toLowerCamelCase(typeName);
-      const genericTypeParametersDeclaration =
-        this.createGenericTypeParametersDeclaration(
-          typeAliasDeclaration.typeParameters
-        );
-      const genericTypeParameters = this.createGenericTypeParametersStatement(
-        typeAliasDeclaration.typeParameters
-      );
-      const baselineTypeName = `${typeName}Baseline`;
-      const functionParameterName = `${constName}FunctionParameter`;
-      // declare type with same content under different name.
-      let usageStatement = `type ${baselineTypeName}${genericTypeParametersDeclaration} = ${typeAliasDeclaration.type.getText()}${EOL}`;
-      // add statement that checks if old type can be assigned to new type.
-      usageStatement += `const ${typeName}UsageFunction = (${functionParameterName}: ${baselineTypeName}${genericTypeParameters}) => {${EOL}`;
-      usageStatement += `    const ${constName}: ${typeName}${genericTypeParameters} = ${functionParameterName};${EOL}`;
-      usageStatement += `}${EOL}`;
-      return {
-        importStatement: `import { ${typeName} } from '${this.latestPackageName}';`,
-        usageStatement,
-      };
+      return new TypeUsageStatementsGenerator(
+        node as ts.TypeAliasDeclaration,
+        this.latestPackageName
+      ).generate();
     } else if (node.kind === ts.SyntaxKind.EnumDeclaration) {
-      const enumDeclaration = node as ts.EnumDeclaration;
-      const enumName = enumDeclaration.name.getText();
-      const varName = `${this.toLowerCamelCase(enumName)}UsageVariable`;
-      let usageStatement = `let ${varName}: ${enumName};${EOL}`;
-      for (const enumMember of enumDeclaration.members) {
-        usageStatement += `${varName} = ${enumName}.${enumMember.name.getText()};${EOL}`;
-      }
-      return {
-        importStatement: `import { ${enumName} } from '${this.latestPackageName}';`,
-        usageStatement,
-      };
+      return new EnumUsageStatementsGenerator(
+        node as ts.EnumDeclaration,
+        this.latestPackageName
+      ).generate();
     } else if (node.kind === ts.SyntaxKind.ClassDeclaration) {
-      const classDeclaration = node as ts.ClassDeclaration;
-      const className = classDeclaration.name?.getText();
-      if (!className) {
-        throw new Error('Class name is missing');
-      }
-      // TODO only emit import to satisfy symbols potentially using this symbol
-      // until we figure out how to generate usage snippets
-      return {
-        importStatement: `import { ${className} } from '${this.latestPackageName}';`,
-      };
+      return new ClassUsageStatementsGenerator(
+        node as ts.ClassDeclaration,
+        this.latestPackageName
+      ).generate();
     } else if (node.kind === ts.SyntaxKind.VariableStatement) {
-      const variableStatement = node as ts.VariableStatement;
-      if (variableStatement.declarationList.declarations.length != 1) {
-        throw new Error('Unexpected variable declarations count');
-      }
-      const variableName =
-        variableStatement.declarationList.declarations[0].name.getText();
-      // TODO only emit import to satisfy symbols potentially using this symbol
-      // until we figure out how to generate usage snippets
-      return {
-        importStatement: `import { ${variableName} } from '${this.latestPackageName}';`,
-      };
+      return new VariableUsageStatementsGenerator(
+        node as ts.VariableStatement,
+        this.latestPackageName
+      ).generate();
     }
+
+    console.log(
+      `Warning: usage generator encountered unrecognized syntax kind ${node.kind}`
+    );
 
     return undefined;
-  };
-
-  private createGenericTypeParametersDeclaration = (
-    typeParameters?: ts.NodeArray<ts.TypeParameterDeclaration>
-  ): string => {
-    if (!typeParameters || typeParameters.length === 0) {
-      return '';
-    }
-
-    return `<${typeParameters.map((item) => item.getText()).join(', ')}>`;
-  };
-
-  private createGenericTypeParametersStatement = (
-    typeParameters?: ts.NodeArray<ts.TypeParameterDeclaration>
-  ): string => {
-    if (!typeParameters || typeParameters.length === 0) {
-      return '';
-    }
-    const parametersWithoutDefaults = typeParameters.filter(
-      (parameter) => !parameter.default
-    );
-    if (parametersWithoutDefaults.length === 0) {
-      return '';
-    }
-    const statements: Array<string> = [];
-    for (const typeParameter of parametersWithoutDefaults) {
-      if (typeParameter.constraint) {
-        statements.push(typeParameter.constraint.getText());
-      } else {
-        statements.push('string');
-      }
-    }
-    return `<${statements.join(', ')}>`;
-  };
-
-  private toLowerCamelCase = (name: string): string => {
-    return `${name?.substring(0, 1).toLowerCase()}${name?.substring(1)}`;
   };
 
   private readAPIReportAsAST = async (): Promise<ts.SourceFile> => {
