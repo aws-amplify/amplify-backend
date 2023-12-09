@@ -32,28 +32,33 @@ console.log(
   `Validating API changes between latest ${latestRepositoryPath} and baseline ${baselineRepositoryPath}`
 );
 
-const packagePaths = (await glob(`${latestRepositoryPath}/packages/*`)).filter(
-  (item) => true || item.endsWith('plugin-types')
-);
-for (const packagePath of packagePaths) {
-  const packageName = path.basename(packagePath);
-  const baselinePackagePath = path.join(
-    baselineRepositoryPath,
-    'packages',
-    packageName
-  );
-  const baselinePackageApiReportPath = path.join(baselinePackagePath, 'API.md');
-  if (!existsSync(baselinePackageApiReportPath)) {
-    console.log(
-      `Skipping ${packageName} as it does not have baseline API.md file`
-    );
-    continue;
-  }
+const packagePaths = await glob(`${latestRepositoryPath}/packages/*`);
 
-  console.log(`Validating API changes of ${packageName}`);
-  await new ApiChangesValidator(
-    packagePath,
-    baselinePackageApiReportPath,
-    workingDirectory
-  ).validate();
-}
+await Promise.all(
+  packagePaths.map(async (packagePath) => {
+    const packageName = path.basename(packagePath);
+    const baselinePackagePath = path.join(
+      baselineRepositoryPath,
+      'packages',
+      packageName
+    );
+    const baselinePackageApiReportPath = path.join(
+      baselinePackagePath,
+      'API.md'
+    );
+    if (!existsSync(baselinePackageApiReportPath)) {
+      console.log(
+        `Skipping ${packageName} as it does not have baseline API.md file`
+      );
+      return;
+    }
+
+    console.log(`Validating API changes of ${packageName}`);
+    await new ApiChangesValidator(
+      packagePath,
+      baselinePackageApiReportPath,
+      workingDirectory
+    ).validate();
+    console.log(`Validation of ${packageName} completed successfully`);
+  })
+);
