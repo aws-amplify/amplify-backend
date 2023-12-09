@@ -5,7 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const testResourcesPath = fileURLToPath(
-  new URL('./test_resources', import.meta.url)
+  new URL('./test-resources', import.meta.url)
 );
 
 void describe('Package lock validator', () => {

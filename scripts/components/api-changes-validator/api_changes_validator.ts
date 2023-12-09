@@ -2,6 +2,7 @@ import path from 'path';
 import fsp from 'fs/promises';
 import { execa } from 'execa';
 import { ApiUsageGenerator } from './api_usage_generator.js';
+import { EOL } from 'os';
 
 type PackageJson = {
   name: string;
@@ -53,10 +54,18 @@ export class ApiChangesValidator {
       return;
     }
     await this.createTestProject(latestPackageJson);
-    await execa('npx', ['tsc', '--build'], {
+    const compilationResult = await execa('npx', ['tsc', '--build'], {
       cwd: this.testProjectPath,
-      stdio: 'inherit',
+      all: true,
+      reject: false,
     });
+    if (compilationResult.exitCode !== 0) {
+      throw new Error(
+        `Validation of ${
+          latestPackageJson.name
+        } failed, compiler output:${EOL}${compilationResult.all ?? ''}`
+      );
+    }
   };
 
   private readLatestPackageJson = async (): Promise<PackageJson> => {
