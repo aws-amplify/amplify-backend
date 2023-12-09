@@ -1,4 +1,3 @@
-import fsp from 'fs/promises';
 import ts from 'typescript';
 import { EOL } from 'os';
 import { UsageStatements } from './types.js';
@@ -8,7 +7,7 @@ import {
   ImportUsageStatementsGenerator,
   TypeUsageStatementsGenerator,
   VariableUsageStatementsGenerator,
-} from './usage_statements_generators.js';
+} from './api_usage_statements_generators.js';
 
 /**
  * Generates API usage using API.md definition.
@@ -18,18 +17,16 @@ export class ApiUsageGenerator {
    * Creates generator.
    */
   constructor(
-    private readonly targetPath: string,
     private readonly latestPackageName: string,
-    private readonly baselineApiReportPath: string
+    private readonly apiReportAST: ts.SourceFile
   ) {}
 
-  generate = async () => {
-    const apiAST = await this.readAPIReportAsAST();
+  generate = async (): Promise<string> => {
     const importStatements: Array<string> = [];
     const usageStatements: Array<string> = [];
 
     // go over top level statements and generate usage for them
-    for (const statement of apiAST.statements) {
+    for (const statement of this.apiReportAST.statements) {
       const statementsForNode = this.generateStatementsForNode(statement);
       if (statementsForNode) {
         if (statementsForNode.importStatement) {
@@ -41,10 +38,9 @@ export class ApiUsageGenerator {
       }
     }
 
-    const content = `${importStatements.join(
+    return `${importStatements.join(EOL)}${EOL}${EOL}${usageStatements.join(
       EOL
-    )}${EOL}${EOL}${usageStatements.join(EOL)}${EOL}`;
-    await fsp.writeFile(this.targetPath, content);
+    )}${EOL}`;
   };
 
   private generateStatementsForNode = (
@@ -81,26 +77,5 @@ export class ApiUsageGenerator {
     );
 
     return undefined;
-  };
-
-  private readAPIReportAsAST = async (): Promise<ts.SourceFile> => {
-    const codeSnippetStartToken = '```ts';
-    const codeSnippetEndToken = '```';
-    const apiReportContent = await fsp.readFile(
-      this.baselineApiReportPath,
-      'utf-8'
-    );
-    const apiReportTypeScriptContent = apiReportContent.substring(
-      apiReportContent.indexOf(codeSnippetStartToken) +
-        codeSnippetStartToken.length,
-      apiReportContent.lastIndexOf(codeSnippetEndToken)
-    );
-    return ts.createSourceFile(
-      'API.md',
-      apiReportTypeScriptContent,
-      ts.ScriptTarget.ES2022,
-      true,
-      ts.ScriptKind.TS
-    );
   };
 }

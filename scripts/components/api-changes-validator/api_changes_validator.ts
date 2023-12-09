@@ -3,6 +3,7 @@ import fsp from 'fs/promises';
 import { execa } from 'execa';
 import { ApiUsageGenerator } from './api_usage_generator.js';
 import { EOL } from 'os';
+import { ApiReportParser } from './api_report_parser.js';
 
 type PackageJson = {
   name: string;
@@ -108,11 +109,16 @@ export class ApiChangesValidator {
       path.join(this.testProjectPath, 'package.json'),
       JSON.stringify(packageJsonContent, null, 2)
     );
-    await new ApiUsageGenerator(
-      path.join(this.testProjectPath, 'index.ts'),
+    const apiReportContent = await fsp.readFile(
+      this.baselinePackageApiReportPath,
+      'utf-8'
+    );
+    const apiReportAST = ApiReportParser.parse(apiReportContent);
+    const usage = await new ApiUsageGenerator(
       latestPackageJson.name,
-      this.baselinePackageApiReportPath
+      apiReportAST
     ).generate();
+    await fsp.writeFile(path.join(this.testProjectPath, 'index.ts'), usage);
     await execa('npm', ['install'], { cwd: this.testProjectPath });
     if (this.latestPackageDependencyDeclarationStrategy === 'npmLocalLink') {
       await execa('npm', ['link', this.latestPackagePath], {
