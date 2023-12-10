@@ -21,7 +21,7 @@ export class ApiUsageGenerator {
     private readonly apiReportAST: ts.SourceFile
   ) {}
 
-  generate = async (): Promise<string> => {
+  generate = (): string => {
     const importStatements: Array<string> = [];
     const usageStatements: Array<string> = [];
 

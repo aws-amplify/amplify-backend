@@ -114,7 +114,7 @@ export class ApiChangesValidator {
       'utf-8'
     );
     const apiReportAST = ApiReportParser.parse(apiReportContent);
-    const usage = await new ApiUsageGenerator(
+    const usage = new ApiUsageGenerator(
       latestPackageJson.name,
       apiReportAST
     ).generate();
