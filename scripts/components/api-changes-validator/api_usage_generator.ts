@@ -17,7 +17,7 @@ export class ApiUsageGenerator {
    * Creates generator.
    */
   constructor(
-    private readonly latestPackageName: string,
+    private readonly packageName: string,
     private readonly apiReportAST: ts.SourceFile
   ) {}
 
@@ -53,22 +53,22 @@ export class ApiUsageGenerator {
     } else if (node.kind === ts.SyntaxKind.TypeAliasDeclaration) {
       return new TypeUsageStatementsGenerator(
         node as ts.TypeAliasDeclaration,
-        this.latestPackageName
+        this.packageName
       ).generate();
     } else if (node.kind === ts.SyntaxKind.EnumDeclaration) {
       return new EnumUsageStatementsGenerator(
         node as ts.EnumDeclaration,
-        this.latestPackageName
+        this.packageName
       ).generate();
     } else if (node.kind === ts.SyntaxKind.ClassDeclaration) {
       return new ClassUsageStatementsGenerator(
         node as ts.ClassDeclaration,
-        this.latestPackageName
+        this.packageName
       ).generate();
     } else if (node.kind === ts.SyntaxKind.VariableStatement) {
       return new VariableUsageStatementsGenerator(
         node as ts.VariableStatement,
-        this.latestPackageName
+        this.packageName
       ).generate();
     }
 
