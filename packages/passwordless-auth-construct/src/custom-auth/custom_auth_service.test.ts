@@ -251,18 +251,6 @@ void describe('createAuthChallenge', () => {
   });
 
   void describe('bad requests', () => {
-    void it('throws an error for an unsupported confirm action when using MAGIC_LINK', async () => {
-      const event = buildCreateAuthChallengeEvent([initialSession], {
-        [CognitoMetadataKeys.SIGN_IN_METHOD]: 'MAGIC_LINK',
-        [CognitoMetadataKeys.ACTION]: 'CONFIRM', // confirm is not supported for Magic link Create Auth Challenge
-      });
-      await rejects(
-        async () => customAuthService.createAuthChallenge(event),
-        Error(
-          'Unsupported signInMethod: MAGIC_LINK with action CONFIRM for Create Auth'
-        )
-      );
-    });
     void it('throws an error for an unsupported action', async () => {
       const event = buildCreateAuthChallengeEvent([initialSession], {
         [CognitoMetadataKeys.SIGN_IN_METHOD]: 'OTP',

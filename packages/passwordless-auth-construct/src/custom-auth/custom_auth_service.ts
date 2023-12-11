@@ -126,11 +126,9 @@ export class CustomAuthService {
 
     const clientMetadata = event.request.clientMetadata || {};
     const signInMethod = clientMetadata[CognitoMetadataKeys.SIGN_IN_METHOD];
+    const signInAction = clientMetadata[CognitoMetadataKeys.ACTION];
     const method = this.validateSignInMethod(signInMethod);
-    const action = this.validateAction(
-      signInMethod,
-      clientMetadata[CognitoMetadataKeys.ACTION]
-    );
+    const action = this.validateAction(signInAction);
     logger.info(`Requested signInMethod: ${signInMethod} and action ${action}`);
 
     const { deliveryMedium, attributeName } =
@@ -218,24 +216,13 @@ export class CustomAuthService {
 
   /**
    * Validates that the action from the client is supported.
-   * @param signInMethod - The sign in method provided by the client.
    * @param action - The action provided by the client.
    * @returns A valid action.
    */
-  private validateAction(
-    signInMethod: string,
-    action?: string
-  ): 'REQUEST' | 'CONFIRM' {
+  private validateAction(action?: string): 'REQUEST' | 'CONFIRM' {
     if (action !== 'REQUEST' && action !== 'CONFIRM') {
       throw new Error(
         `Unsupported action for Create Auth: ${action || 'Null'}`
-      );
-    }
-
-    // If the action is CONFIRM, the sign in method must be OTP.
-    if (action === 'CONFIRM' && signInMethod !== 'OTP') {
-      throw new Error(
-        `Unsupported signInMethod: ${signInMethod} with action CONFIRM for Create Auth`
       );
     }
 
