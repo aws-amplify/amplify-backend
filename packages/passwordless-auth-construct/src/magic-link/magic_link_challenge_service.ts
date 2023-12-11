@@ -32,6 +32,7 @@ export class MagicLinkChallengeService implements ChallengeService {
     private storageService: StorageService<SignedMagicLink>
   ) {}
   public readonly signInMethod = 'MAGIC_LINK';
+  public readonly maxAttempts = 1;
 
   public createChallenge = async (
     deliveryDetails: CodeDeliveryDetails,

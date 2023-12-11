@@ -6,8 +6,13 @@ import { randomInt } from 'crypto';
 import { DeliveryServiceFactory } from '../factories/delivery_service_factory.js';
 import { logger } from '../logger.js';
 
-import { ChallengeService, OtpConfig } from '../types.js';
-import { validateDeliveryCodeDetails } from '../common/validate_delivery_code_details.js';
+import {
+  ChallengeService,
+  CodeDeliveryDetails,
+  OtpConfig,
+  PasswordlessErrorCodes,
+} from '../types.js';
+import { StringMap } from 'aws-lambda/trigger/cognito-user-pool-trigger/_common.js';
 
 /**
  * OTP Challenge Service Implementation.
@@ -23,16 +28,17 @@ export class OtpChallengeService implements ChallengeService {
     private config: OtpConfig
   ) {}
   public readonly signInMethod = 'OTP';
+  public readonly maxAttempts = 3;
 
   /**
    * Create OTP challenge
    * Steps:
-   * 1. Validate Request
-   * 2. Generate OTP code
-   * 3. Send OTP Message
-   * 4. Update event response with OTP code & deliver details
-   *  - privateChallengeParameters: otpCode
-   *  - publicChallengeParameters: destination & deliveryMedium
+   * 1. Generate OTP code
+   *   1a. If previous OTP code exists, use that instead
+   * 2. Send OTP Message
+   * 3. Return new event response with OTP code & delivery details
+   * @param deliveryDetails - The validated deliveryDetails for this challenge.
+   * @param destination - The validated destination for this challenge.
    * @param event - The Create Auth Challenge event provided by Cognito.
    * @returns CreateAuthChallengeTriggerEvent with OTP code & delivery details
    */
@@ -41,31 +47,61 @@ export class OtpChallengeService implements ChallengeService {
     destination: string,
     event: CreateAuthChallengeTriggerEvent
   ): Promise<CreateAuthChallengeTriggerEvent> => {
-    const { deliveryMedium, destination } = validateDeliveryCodeDetails(event);
+    const otpCodeMetaDataKey = 'OTP_CODE';
+    const previousChallenge = event.request.session.slice(-1)[0];
+    const previousSecretCode: string | undefined =
+      previousChallenge.challengeMetadata?.includes(otpCodeMetaDataKey)
+        ? JSON.parse(previousChallenge.challengeMetadata)[otpCodeMetaDataKey]
+        : undefined;
 
-    const otpCode = this.generateOtpCode();
+    const otpCode = previousSecretCode ?? this.generateOtpCode();
 
-    const deliveryService =
-      this.deliveryServiceFactory.getService(deliveryMedium);
-    await deliveryService.send(otpCode, destination, this.signInMethod);
+    const { deliveryMedium } = deliveryDetails;
+
+    if (!previousSecretCode) {
+      logger.debug(`Sending OTP code...`);
+      await this.deliveryServiceFactory
+        .getService(deliveryMedium)
+        .send(otpCode, destination, this.signInMethod);
+    }
+
+    const challengeMetadata = JSON.stringify({
+      [otpCodeMetaDataKey]: otpCode,
+      deliveryMedium: deliveryMedium,
+    });
+
+    let publicChallengeParameters: StringMap = {
+      nextStep: 'PROVIDE_CHALLENGE_RESPONSE',
+      ...event.response.publicChallengeParameters,
+      ...deliveryDetails,
+    };
+
+    // If previous OTP code exists, then this is a retry
+    // Add error code to publicChallengeParameters
+    if (previousSecretCode) {
+      logger.debug(`Using previous OTP code...`);
+      publicChallengeParameters = {
+        ...publicChallengeParameters,
+        errorCode: PasswordlessErrorCodes.CODE_MISMATCH_EXCEPTION,
+      };
+    }
 
     const response: CreateAuthChallengeTriggerEvent = {
       ...event,
       response: {
         ...event.response,
+        challengeMetadata: challengeMetadata,
         privateChallengeParameters: {
           ...event.response.privateChallengeParameters,
           otpCode: otpCode,
         },
-        publicChallengeParameters: {
-          ...event.response.publicChallengeParameters,
-          destination: deliveryService.mask(destination),
-          deliveryMedium: deliveryMedium,
-        },
+        publicChallengeParameters: publicChallengeParameters,
       },
     };
 
-    logger.debug(JSON.stringify(response, null, 2));
+    logger.debug(
+      `create challenge response: ${JSON.stringify(response, null, 2)}`
+    );
     return response;
   };
 
@@ -92,7 +128,9 @@ export class OtpChallengeService implements ChallengeService {
       },
     };
 
-    logger.debug(JSON.stringify(response, null, 2));
+    logger.debug(
+      `verify challenge response: ${JSON.stringify(response, null, 2)}`
+    );
     return response;
   };
 
@@ -100,7 +138,7 @@ export class OtpChallengeService implements ChallengeService {
    * Generate OTP code
    * @returns randomly generated OTP code
    */
-  protected generateOtpCode(): string {
+  private generateOtpCode(): string {
     return [...new Array<unknown>(this.config.otpLength)]
       .map(() => randomInt(0, 9))
       .join('');

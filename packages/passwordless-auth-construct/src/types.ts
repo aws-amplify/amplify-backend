@@ -49,6 +49,7 @@ export type SignInMethod = PasswordlessClientMetaData['signInMethod'];
  */
 export type ChallengeService = {
   signInMethod: SignInMethod;
+  maxAttempts: number;
   createChallenge: (
     event: CreateAuthChallengeTriggerEvent
   ) => Promise<CreateAuthChallengeTriggerEvent>;
@@ -141,7 +142,7 @@ type InitiateAuthChallengeParams = {
 
 type RespondToAutChallengeParams = {
   nextStep: 'PROVIDE_CHALLENGE_RESPONSE';
-  codeDeliveryDetails: CodeDeliveryDetails;
+  errorCode: PasswordlessErrorCodes;
 };
 
 export type CodeDeliveryDetails = {
@@ -329,3 +330,7 @@ export type KmsConfig = {
   /** KMS Key ID to use for generating Magic Links (signatures) */
   keyId?: string;
 };
+
+export enum PasswordlessErrorCodes {
+  CODE_MISMATCH_EXCEPTION = 'CodeMismatchException',
+}
