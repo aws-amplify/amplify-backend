@@ -10,7 +10,7 @@ import { fileURLToPath } from 'url';
  *
  * In order to debug this check locally:
  * 1. Checkout content of your PR
- * 2. Build and publish packages locally, i.e. 'npm run vend'
+ * 2. Build and publish packages locally, i.e. 'npm run build && npm run vend'
  * 3. Checkout content of your PR's base branch
  * 4. Create a directory where test projects are going to be generated
  * 5. Run 'tsx scripts/check_api_changes.ts <baselineBranchPath> <workingDirectory>'
