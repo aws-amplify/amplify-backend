@@ -7,7 +7,7 @@ import { logger } from './logger.js';
 export const executeWithDebugLogger = async (
   cwd: string,
   executable: string,
-  args?: string[],
+  args?: string[] | Readonly<string[]>,
   execa = _execa
 ) => {
   try {

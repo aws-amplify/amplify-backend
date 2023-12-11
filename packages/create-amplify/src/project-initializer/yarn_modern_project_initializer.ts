@@ -36,7 +36,7 @@ export class YarnModernProjectInitializer {
       await executeWithDebugLogger(
         this.projectRoot,
         this.packageManager.executable,
-        this.packageManager.initDefault,
+        this.packageManager.initDefault as string[],
         this.execa
       );
     } catch {

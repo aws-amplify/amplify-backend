@@ -23,7 +23,7 @@ type PackageManagerLockFile =
   | 'package-lock.json'
   | 'yarn.lock'
   | 'pnpm-lock.yaml';
-type PackageManagerInitDefault = ['init', '--yes'] | ['init'];
+type PackageManagerInitDefault = Readonly<string[]>;
 export type PackageManager = {
   name: PackageManagerName;
   executable: PackageManagerExecutable;
