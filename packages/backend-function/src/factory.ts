@@ -61,7 +61,7 @@ export type FunctionProps = {
   /**
    * Node runtime version for the lambda environment.
    *
-   * Defaults to the latest NodeJS version
+   * Defaults to the oldest NodeJS LTS version. See https://nodejs.org/en/about/previous-releases
    */
   runtime?: NodeVersion;
 };
@@ -173,7 +173,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
   private resolveRuntime = () => {
     const runtimeDefault = 18;
 
-    // if runtime is not set, default to latest LTS
+    // if runtime is not set, default to the oldest LTS
     if (!this.props.runtime) {
       return runtimeDefault;
     }
