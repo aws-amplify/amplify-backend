@@ -1,0 +1,2 @@
+# CDK template uses 'lib' folder for stack definitions, unignore it in this folder.
+!lib

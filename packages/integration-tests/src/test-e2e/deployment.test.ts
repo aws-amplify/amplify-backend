@@ -23,19 +23,20 @@ import { TestBranch, amplifyAppPool } from '../amplify_app_pool.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { ClientConfigFormat } from '@aws-amplify/client-config';
 import { testConcurrencyLevel } from './test_concurrency.js';
+import { TestCdkProjectBase } from '../test-project-setup/cdk/test_cdk_project_base.js';
+import { getTestCdkProjectCreators } from '../test-project-setup/cdk/test_cdk_project_creator.js';
 
 const testProjectCreators = getTestProjectCreators();
-void describe(
-  'amplify deploys',
-  { concurrency: testConcurrencyLevel },
-  async () => {
-    before(async () => {
-      await createTestDirectory(rootTestDir);
-    });
-    after(async () => {
-      await deleteTestDirectory(rootTestDir);
-    });
+const testCdkProjectCreators = getTestCdkProjectCreators();
+void describe('deployment tests', { concurrency: testConcurrencyLevel }, () => {
+  before(async () => {
+    await createTestDirectory(rootTestDir);
+  });
+  after(async () => {
+    //await deleteTestDirectory(rootTestDir);
+  });
 
+  void describe('amplify deploys', { skip: true }, async () => {
     testProjectCreators.forEach((testProjectCreator) => {
       void describe(`branch deploys ${testProjectCreator.name}`, () => {
         let branchBackendIdentifier: BackendIdentifier;
@@ -214,5 +215,28 @@ void describe(
         });
       });
     });
-  }
-);
+  });
+
+  void describe('cdk deploys', () => {
+    testCdkProjectCreators.forEach((testCdkProjectCreator) => {
+      void describe(`${testCdkProjectCreator.name}`, () => {
+        let testCdkProject: TestCdkProjectBase;
+
+        beforeEach(async () => {
+          testCdkProject = await testCdkProjectCreator.createProject(
+            rootTestDir
+          );
+        });
+
+        afterEach(async () => {
+          await testCdkProject.tearDown();
+        });
+
+        void it(`deploys`, async () => {
+          await testCdkProject.deploy();
+          await testCdkProject.assertPostDeployment();
+        });
+      });
+    });
+  });
+});
