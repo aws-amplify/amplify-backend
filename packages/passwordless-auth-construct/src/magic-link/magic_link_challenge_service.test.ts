@@ -81,7 +81,7 @@ void describe('MagicLinkChallengeService', () => {
       const event: CreateAuthChallengeTriggerEvent =
         buildCreateAuthChallengeEvent([], {
           ...requestMagicLinkMetaData,
-          redirectUri: '',
+          [CognitoMetadataKeys.REDIRECT_URI]: '',
         });
       await rejects(
         async () => service.validateCreateAuthChallengeEvent(event),
@@ -93,7 +93,7 @@ void describe('MagicLinkChallengeService', () => {
       const event: CreateAuthChallengeTriggerEvent =
         buildCreateAuthChallengeEvent([], {
           ...requestMagicLinkMetaData,
-          redirectUri: 'https://foo.com/',
+          [CognitoMetadataKeys.REDIRECT_URI]: 'https://foo.com/',
         });
       await rejects(
         async () => service.validateCreateAuthChallengeEvent(event),

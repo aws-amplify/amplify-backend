@@ -259,9 +259,9 @@ void describe('createAuthChallenge', () => {
         getService: () => challengeService,
       });
       const metadata = {
-        signInMethod: 'OTP',
-        action: 'REQUEST',
-        deliveryMedium: 'SMS',
+        [CognitoMetadataKeys.SIGN_IN_METHOD]: 'OTP',
+        [CognitoMetadataKeys.ACTION]: 'REQUEST',
+        [CognitoMetadataKeys.DELIVERY_MEDIUM]: 'SMS',
       };
       const event = buildCreateAuthChallengeEvent(
         [initialSession],
