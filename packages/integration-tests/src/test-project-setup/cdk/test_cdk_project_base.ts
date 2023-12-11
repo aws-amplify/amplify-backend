@@ -1,24 +1,28 @@
 import { cdkCli } from '../../process-controller/process_controller.js';
-import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
-import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { shortUuid } from '../../short_uuid.js';
 
 /**
  * The base abstract class for test cdk project.
  */
 export abstract class TestCdkProjectBase {
+  readonly stackName: string;
+
   /**
    * The base test project class constructor.
    */
-  constructor(
-    readonly name: string,
-    readonly projectDirPath: string,
-    protected readonly cfnClient: CloudFormationClient
-  ) {}
+  constructor(readonly name: string, readonly projectDirPath: string) {
+    this.stackName = `test-cdk-stack-${shortUuid()}`;
+  }
 
   deploy = async () => {
     await cdkCli(
-      ['deploy', '--require-approval', 'never'],
-      this.projectDirPath
+      ['deploy', this.stackName, '--require-approval', 'never'],
+      this.projectDirPath,
+      {
+        env: {
+          TEST_STACK_NAME: this.stackName,
+        },
+      }
     ).run();
   };
 

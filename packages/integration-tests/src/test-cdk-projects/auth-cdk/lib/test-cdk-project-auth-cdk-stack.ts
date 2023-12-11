@@ -1,10 +1,12 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { AmplifyAuth, AuthProps } from '@aws-amplify/auth-construct-alpha';
+import * as process from 'process';
 
 export class TestCdkProjectAuthCdkStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
-    super(scope, id, props);
+    // Inject stack name from env to 1. know reference without lookup 2. ensure uniqueness.
+    super(scope, process.env.TEST_STACK_NAME, props);
 
     const authProps: AuthProps = {
       loginWith: {
@@ -25,6 +27,6 @@ export class TestCdkProjectAuthCdkStack extends cdk.Stack {
         email: { required: true },
       },
     };
-    new AmplifyAuth(scope, 'test-auth', authProps);
+    new AmplifyAuth(this, 'test-auth', authProps);
   }
 }

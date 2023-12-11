@@ -23,13 +23,31 @@ export class DeployedResourcesFinder {
    * @param resourceType The CFN resource type to look for. Eg "AWS::Lambda::Function" or "AWS::IAM::Role"
    * @param physicalNamePredicate Optional predicate to filter physical names of resources matching resourceType
    */
-  find = async (
+  findByBackendIdentifier = async (
     backendId: BackendIdentifier,
     resourceType: string,
     physicalNamePredicate: StringPredicate = () => true // match all resources of "resourceType" by default
   ): Promise<string[]> => {
     const stackName = BackendIdentifierConversions.toStackName(backendId);
+    return await this.findByStackName(
+      stackName,
+      resourceType,
+      physicalNamePredicate
+    );
+  };
 
+  /**
+   * Find resources of type "resourceType" within the stack defined by "backendId"
+   * Optionally, filter physical names by a predicate
+   * @param stackName The CFN stack name
+   * @param resourceType The CFN resource type to look for. Eg "AWS::Lambda::Function" or "AWS::IAM::Role"
+   * @param physicalNamePredicate Optional predicate to filter physical names of resources matching resourceType
+   */
+  findByStackName = async (
+    stackName: string,
+    resourceType: string,
+    physicalNamePredicate: StringPredicate = () => true // match all resources of "resourceType" by default
+  ): Promise<string[]> => {
     const queue = [stackName];
 
     const resourcePhysicalIds: string[] = [];

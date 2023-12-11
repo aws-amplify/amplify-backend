@@ -4,6 +4,7 @@ import { TestCdkProjectBase } from './test_cdk_project_base.js';
 import { AuthTestCdkProjectCreator } from './auth_cdk_project.js';
 import { fileURLToPath } from 'url';
 import path from 'path';
+import { DeployedResourcesFinder } from '../../find_deployed_resource.js';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 export const testCdkProjectsSourceRoot = path.resolve(
@@ -25,6 +26,7 @@ export const getTestCdkProjectCreators = (): TestCdkProjectCreator[] => {
   const testProjectCreators: TestCdkProjectCreator[] = [];
 
   const cfnClient = new CloudFormationClient(e2eToolingClientConfig);
-  testProjectCreators.push(new AuthTestCdkProjectCreator(cfnClient));
+  const resourceFinder = new DeployedResourcesFinder(cfnClient);
+  testProjectCreators.push(new AuthTestCdkProjectCreator(resourceFinder));
   return testProjectCreators;
 };

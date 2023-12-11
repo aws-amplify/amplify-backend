@@ -33,10 +33,10 @@ void describe('deployment tests', { concurrency: testConcurrencyLevel }, () => {
     await createTestDirectory(rootTestDir);
   });
   after(async () => {
-    //await deleteTestDirectory(rootTestDir);
+    await deleteTestDirectory(rootTestDir);
   });
 
-  void describe('amplify deploys', { skip: true }, async () => {
+  void describe('amplify deploys', async () => {
     testProjectCreators.forEach((testProjectCreator) => {
       void describe(`branch deploys ${testProjectCreator.name}`, () => {
         let branchBackendIdentifier: BackendIdentifier;
