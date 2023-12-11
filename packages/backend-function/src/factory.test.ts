@@ -251,14 +251,14 @@ void describe('AmplifyFunctionFactory', () => {
       });
     });
 
-    void it('defaults to latest runtime', () => {
+    void it('defaults to oldest runtime', () => {
       const lambda = defineFunction({
         entry: './test-assets/default-lambda/handler.ts',
       }).getInstance(getInstanceProps);
       const template = Template.fromStack(Stack.of(lambda));
 
       template.hasResourceProperties('AWS::Lambda::Function', {
-        Runtime: Runtime.NODEJS_LATEST.name,
+        Runtime: Runtime.NODEJS_18_X.name,
       });
     });
 
