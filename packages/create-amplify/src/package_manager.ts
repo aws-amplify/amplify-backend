@@ -1,3 +1,16 @@
+import {
+  NpmProjectInitializer,
+  PnpmProjectInitializer,
+  YarnClassicProjectInitializer,
+  YarnModernProjectInitializer,
+} from './project-initializer/index.js';
+import {
+  NpmPackageManagerController,
+  PnpmPackageManagerController,
+  YarnClassicPackageManagerController,
+  YarnModernPackageManagerController,
+} from './package-manager-controller/index.js';
+
 export type PackageManagerName =
   | 'npm'
   | 'yarn-classic'
@@ -18,6 +31,16 @@ export type PackageManager = {
   installCommand: PackageManagerInstallCommand;
   lockFile: PackageManagerLockFile;
   initDefault: PackageManagerInitDefault;
+  projectInitializer:
+    | typeof NpmProjectInitializer
+    | typeof YarnClassicProjectInitializer
+    | typeof YarnModernProjectInitializer
+    | typeof PnpmProjectInitializer;
+  packageManagerController:
+    | typeof NpmPackageManagerController
+    | typeof YarnClassicPackageManagerController
+    | typeof YarnModernPackageManagerController
+    | typeof PnpmPackageManagerController;
 };
 export type PackageManagers = {
   [key in PackageManagerName]: PackageManager;
@@ -30,6 +53,8 @@ export const packageManagers: PackageManagers = {
     installCommand: 'install',
     lockFile: 'package-lock.json',
     initDefault: ['init', '--yes'],
+    projectInitializer: NpmProjectInitializer,
+    packageManagerController: NpmPackageManagerController,
   },
   'yarn-classic': {
     name: 'yarn-classic',
@@ -38,6 +63,8 @@ export const packageManagers: PackageManagers = {
     installCommand: 'add',
     lockFile: 'yarn.lock',
     initDefault: ['init', '--yes'],
+    projectInitializer: YarnClassicProjectInitializer,
+    packageManagerController: YarnClassicPackageManagerController,
   },
   'yarn-modern': {
     name: 'yarn-modern',
@@ -46,6 +73,8 @@ export const packageManagers: PackageManagers = {
     installCommand: 'add',
     lockFile: 'yarn.lock',
     initDefault: ['init', '--yes'],
+    projectInitializer: YarnModernProjectInitializer,
+    packageManagerController: YarnModernPackageManagerController,
   },
   pnpm: {
     name: 'pnpm',
@@ -54,5 +83,7 @@ export const packageManagers: PackageManagers = {
     installCommand: 'add',
     lockFile: 'pnpm-lock.yaml',
     initDefault: ['init'],
+    projectInitializer: PnpmProjectInitializer,
+    packageManagerController: PnpmPackageManagerController,
   },
-};
+} as const;

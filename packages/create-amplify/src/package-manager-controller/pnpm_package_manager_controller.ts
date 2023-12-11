@@ -1,22 +1,17 @@
 import { execa as _execa } from 'execa';
-import { executeWithDebugLogger } from './execute_with_logger.js';
-import { type PackageManager } from './package_manager.js';
-
-export type DependencyType = 'dev' | 'prod';
-
-export type PackageManagerControllerType = {
-  installDependencies: (
-    packageNames: string[],
-    type: DependencyType
-  ) => Promise<void>;
-};
+import { executeWithDebugLogger } from '../execute_with_logger.js';
+import { type PackageManager } from '../package_manager.js';
+import {
+  DependencyType,
+  PackageManagerController,
+} from './package_manager_controller.js';
 
 /**
  *
  */
-export class PackageManagerController implements PackageManagerControllerType {
+export class PnpmPackageManagerController implements PackageManagerController {
   /**
-   * Abstraction around npm commands that are needed to initialize a project and install dependencies
+   * Abstraction around pnpm commands that are needed to initialize a project and install dependencies
    */
   constructor(
     private readonly projectRoot: string,

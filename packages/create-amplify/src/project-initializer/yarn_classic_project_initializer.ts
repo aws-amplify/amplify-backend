@@ -1,14 +1,14 @@
 import { existsSync as _existsSync } from 'fs';
 import * as path from 'path';
 import { execa as _execa } from 'execa';
-import { logger } from './logger.js';
-import { executeWithDebugLogger } from './execute_with_logger.js';
-import { type PackageManager } from './package_manager.js';
+import { logger } from '../logger.js';
+import { executeWithDebugLogger } from '../execute_with_logger.js';
+import { type PackageManager } from '../package_manager.js';
 
 /**
  * Ensure that the current working directory is a valid JavaScript project
  */
-export class ProjectInitializer {
+export class YarnClassicProjectInitializer {
   /**
    * injecting console and fs for testing
    */
@@ -20,7 +20,7 @@ export class ProjectInitializer {
   ) {}
 
   /**
-   * If package.json already exists, this is a noop. Otherwise, `npm init` is executed to create a package.json file
+   * If package.json already exists, this is a noop. Otherwise, `yarn init` is executed to create a package.json file
    */
   ensureInitialized = async (): Promise<void> => {
     if (this.packageJsonExists()) {
@@ -46,7 +46,7 @@ export class ProjectInitializer {
     }
 
     if (!this.packageJsonExists()) {
-      // this should only happen if the customer exits out of npm init before finishing
+      // this should only happen if the customer exits out of `yarn init` before finishing
       throw new Error(
         `package.json does not exist after running \`${this.packageManager.executable} init\`. Initialize a valid JavaScript package before continuing.'`
       );

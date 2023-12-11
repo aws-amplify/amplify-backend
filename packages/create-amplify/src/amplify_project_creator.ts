@@ -1,10 +1,13 @@
-import { PackageManagerControllerType } from './package_manager_controller.js';
+import { PackageManagerController } from './package-manager-controller/package_manager_controller.js';
 import { ProjectRootValidator } from './project_root_validator.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
-import { ProjectInitializer } from './project_initializer.js';
+import { NpmProjectInitializer } from './project-initializer/npm_project_initializer.js';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
 import { logger } from './logger.js';
 import { PackageManager } from './package_manager.js';
+import { YarnClassicProjectInitializer } from './project-initializer/yarn_classic_project_initializer.js';
+import { YarnModernProjectInitializer } from './project-initializer/yarn_modern_project_initializer.js';
+import { PnpmProjectInitializer } from './project-initializer/pnpm_project_initializer.js';
 
 const LEARN_MORE_USAGE_DATA_TRACKING_LINK = `https://docs.amplify.aws/gen2/reference/telemetry`;
 
@@ -25,10 +28,14 @@ export class AmplifyProjectCreator {
    * Delegates out to other classes that handle parts of the getting started experience
    */
   constructor(
-    private readonly packageManagerController: PackageManagerControllerType,
+    private readonly packageManagerController: PackageManagerController,
     private readonly projectRootValidator: ProjectRootValidator,
     private readonly initialProjectFileGenerator: InitialProjectFileGenerator,
-    private readonly initializedEnsurer: ProjectInitializer,
+    private readonly initializedEnsurer:
+      | NpmProjectInitializer
+      | YarnClassicProjectInitializer
+      | YarnModernProjectInitializer
+      | PnpmProjectInitializer,
     private readonly gitIgnoreInitializer: GitIgnoreInitializer,
     private readonly projectRoot: string,
     private readonly packageManager: PackageManager

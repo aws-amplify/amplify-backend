@@ -82,6 +82,7 @@
   "passthrough",
   "pathname",
   "pipelined",
+  "pnpm",
   "posix",
   "readdir",
   "readline",
