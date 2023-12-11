@@ -19,7 +19,11 @@ export type FunctionProps = {
     timeoutSeconds?: number;
     memoryMB?: number;
     environment?: Record<string, string>;
+    runtime?: NodeVersion;
 };
+
+// @public (undocumented)
+export type NodeVersion = 16 | 18 | 20;
 
 // (No @packageDocumentation comment for this package)
 
