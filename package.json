@@ -35,7 +35,6 @@
     "test:scripts": "npm run test:dir $(glob --cwd=scripts --absolute  **/*.test.ts)",
     "update:api": "tsx scripts/concurrent_workspace_script.ts update:api --if-present",
     "update:tsconfig-refs": "tsx scripts/update_tsconfig_refs.ts",
-    "update:versions": "tsx scripts/update_versions.ts",
     "vend": "npm run start:npm-proxy && npm run publish:local",
     "watch": "npm run build -- --watch"
   },
