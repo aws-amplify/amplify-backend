@@ -140,12 +140,12 @@ type InitiateAuthChallengeParams = {
   nextStep: 'PROVIDE_AUTH_PARAMETERS';
 };
 
-type RespondToAutChallengeParams = Pick<
+export type RespondToAutChallengeParams = Pick<
   CodeDeliveryDetails,
   'attributeName' | 'deliveryMedium'
 > & {
   nextStep: 'PROVIDE_CHALLENGE_RESPONSE';
-  errorCode: PasswordlessErrorCodes;
+  errorCode?: PasswordlessErrorCodes;
 };
 
 export type CodeDeliveryDetails = {

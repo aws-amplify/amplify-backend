@@ -9,6 +9,7 @@ import {
   ChallengeService,
   CodeDeliveryDetails,
   MagicLinkConfig,
+  RespondToAutChallengeParams,
   SigningService,
   StorageService,
 } from '../types.js';
@@ -93,15 +94,17 @@ export class MagicLinkChallengeService implements ChallengeService {
       .getService(deliveryMedium)
       .send(fullRedirectUri, destination, this.signInMethod);
 
+    const publicChallengeParameters: RespondToAutChallengeParams = {
+      nextStep: 'PROVIDE_CHALLENGE_RESPONSE',
+      ...event.response.publicChallengeParameters,
+      ...deliveryDetails,
+    };
+
     const response: CreateAuthChallengeTriggerEvent = {
       ...event,
       response: {
         ...event.response,
-        publicChallengeParameters: {
-          nextStep: 'PROVIDE_CHALLENGE_RESPONSE',
-          ...event.response.publicChallengeParameters,
-          ...deliveryDetails,
-        },
+        publicChallengeParameters,
       },
     };
 

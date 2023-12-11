@@ -9,6 +9,7 @@ import {
   CodeDeliveryDetails,
   DeliveryMedium,
   PasswordlessAuthChallengeParams,
+  RespondToAutChallengeParams,
   SignInMethod,
 } from '../types.js';
 import { CognitoMetadataKeys } from '../constants.js';
@@ -154,15 +155,17 @@ export class CustomAuthService {
       logger.info(
         'User not found or user does not have a verified phone/email.'
       );
+      const publicChallengeParameters: RespondToAutChallengeParams = {
+        nextStep: 'PROVIDE_CHALLENGE_RESPONSE',
+        ...event.response.publicChallengeParameters,
+        attributeName,
+        deliveryMedium,
+      };
       const response: CreateAuthChallengeTriggerEvent = {
         ...event,
         response: {
           ...event.response,
-          publicChallengeParameters: {
-            ...event.response.publicChallengeParameters,
-            attributeName,
-            deliveryMedium,
-          },
+          publicChallengeParameters,
         },
       };
       logger.debug(JSON.stringify(response, null, 2));
