@@ -7,7 +7,7 @@ import {
   ConstructFactoryGetInstanceProps,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
-import { AmplifyData } from '@aws-amplify/data-construct';
+import { AmplifyData, AmplifyDataResources } from '@aws-amplify/data-construct';
 import { GraphqlOutput } from '@aws-amplify/backend-output-schemas';
 import * as path from 'path';
 import { DataProps } from './types.js';
@@ -29,7 +29,9 @@ import { AmplifyUserError } from '@aws-amplify/platform-core';
 /**
  * Singleton factory for AmplifyGraphqlApi constructs that can be used in Amplify project files
  */
-class DataFactory implements ConstructFactory<AmplifyData> {
+class DataFactory
+  implements ConstructFactory<ResourceProvider<AmplifyDataResources>>
+{
   private generator: ConstructContainerEntryGenerator;
 
   /**
@@ -160,5 +162,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
 /**
  * Creates a factory that implements ConstructFactory<AmplifyGraphqlApi>
  */
-export const defineData = (props: DataProps): ConstructFactory<AmplifyData> =>
+export const defineData = (
+  props: DataProps
+): ConstructFactory<ResourceProvider<AmplifyDataResources>> =>
   new DataFactory(props, new Error().stack);
