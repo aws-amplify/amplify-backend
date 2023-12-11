@@ -7,11 +7,13 @@ void describe('ChallengeServiceFactory', () => {
   void it('getService returns the correct service', () => {
     const otpChallengeService: ChallengeService = {
       signInMethod: 'OTP',
+      maxAttempts: 1,
       createChallenge: async (_, __, event) => event,
       verifyChallenge: async (event) => event,
     };
     const magicLinkChallengeService: ChallengeService = {
       signInMethod: 'MAGIC_LINK',
+      maxAttempts: 1,
       createChallenge: async (_, __, event) => event,
       verifyChallenge: async (event) => event,
     };

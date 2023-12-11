@@ -28,6 +28,7 @@ const initialSession: ChallengeResult = {
 
 const mockChallengeService: ChallengeService = {
   signInMethod: 'OTP',
+  maxAttempts: 1,
   createChallenge: async (
     deliveryDetails: CodeDeliveryDetails,
     destination: string,
@@ -130,21 +131,45 @@ void describe('defineAuthChallenge', () => {
       [CognitoMetadataKeys.SIGN_IN_METHOD]: 'OTP',
       [CognitoMetadataKeys.ACTION]: 'CONFIRM',
     };
+    const successResult: ChallengeResult = {
+      challengeName: 'CUSTOM_CHALLENGE',
+      challengeResult: true,
+    };
+    const failedResult: ChallengeResult = {
+      challengeName: 'CUSTOM_CHALLENGE',
+      challengeResult: false,
+    };
     void it('returns tokens when the previous challengeResult == true', async () => {
-      const successResult: ChallengeResult = {
-        challengeName: 'CUSTOM_CHALLENGE',
-        challengeResult: true,
-      };
       const event = buildDefineAuthChallengeEvent([successResult], metadata);
       const { response } = await customAuthService.defineAuthChallenge(event);
       strictEqual(isSuccessfulAuthentication(response), true);
     });
-    void it('fails authentication when the previous challengeResult == false', async () => {
+    void it('it returns tokens up to three attempts', async () => {
       const failedResult: ChallengeResult = {
         challengeName: 'CUSTOM_CHALLENGE',
         challengeResult: false,
       };
-      const event = buildDefineAuthChallengeEvent([failedResult], metadata);
+      const twoAttemptsEvent = buildDefineAuthChallengeEvent(
+        [failedResult, successResult],
+        metadata
+      );
+      const { response: twoAttemptsResponse } =
+        await customAuthService.defineAuthChallenge(twoAttemptsEvent);
+      strictEqual(isSuccessfulAuthentication(twoAttemptsResponse), true);
+
+      const threeAttemptsEvent = buildDefineAuthChallengeEvent(
+        [failedResult, failedResult, successResult],
+        metadata
+      );
+      const { response: threeAttemptsResponse } =
+        await customAuthService.defineAuthChallenge(threeAttemptsEvent);
+      strictEqual(isSuccessfulAuthentication(threeAttemptsResponse), true);
+    });
+    void it('fails authentication after three challengeResult == false results', async () => {
+      const event = buildDefineAuthChallengeEvent(
+        [failedResult, failedResult, failedResult],
+        metadata
+      );
       const { response } = await customAuthService.defineAuthChallenge(event);
       strictEqual(isFailedAuthentication(response), true);
     });
@@ -229,11 +254,11 @@ void describe('createAuthChallenge', () => {
     void it('throws an error for an unsupported action', async () => {
       const event = buildCreateAuthChallengeEvent([initialSession], {
         [CognitoMetadataKeys.SIGN_IN_METHOD]: 'OTP',
-        [CognitoMetadataKeys.ACTION]: 'CONFIRM', // confirm is not supported for Create Auth Challenge
+        [CognitoMetadataKeys.ACTION]: 'FOO',
       });
       await rejects(
         async () => customAuthService.createAuthChallenge(event),
-        Error('Unsupported action for Create Auth: CONFIRM')
+        Error('Unsupported action for Create Auth: FOO')
       );
     });
     void it('throws an error for an unsupported sign in method', async () => {
@@ -248,15 +273,18 @@ void describe('createAuthChallenge', () => {
       );
     });
     void it('should throw an error if deliveryMedium is not SMS or EMAIL', async () => {
+      const fakeDeliveryMedium = 'PHONE';
       const event: CreateAuthChallengeTriggerEvent =
         buildCreateAuthChallengeEvent([initialSession], {
           ...requestOtpSmsMetaData,
-          [CognitoMetadataKeys.DELIVERY_MEDIUM]: 'PHONE',
+          [CognitoMetadataKeys.DELIVERY_MEDIUM]: fakeDeliveryMedium,
         });
 
       await rejects(
         async () => customAuthService.createAuthChallenge(event),
-        Error('Invalid delivery medium. Only SMS and email are supported.')
+        Error(
+          `Invalid delivery medium: ${fakeDeliveryMedium}. Only SMS and email are supported.`
+        )
       );
     });
   });

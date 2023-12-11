@@ -55,7 +55,10 @@ export class CustomAuthService {
     const clientMetadata = event.request.clientMetadata || {};
     const action = clientMetadata[CognitoMetadataKeys.ACTION];
     const signInMethod = clientMetadata[CognitoMetadataKeys.SIGN_IN_METHOD];
-    logger.info(`Requested signInMethod: ${signInMethod} and action ${action}`);
+    const attempts = this.countAttempts(event);
+    logger.info(
+      `Requested signInMethod: ${signInMethod},  action: ${action}, attempt: ${attempts}`
+    );
 
     if (signInMethod !== 'MAGIC_LINK' && signInMethod !== 'OTP') {
       return this.failAuthentication(
@@ -69,17 +72,28 @@ export class CustomAuthService {
       return this.customChallenge(event);
     }
 
-    // If the client is confirming a challenge, issue tokens or fail auth based on
+    // If the client is confirming a challenge, issue tokens, allow retry, or fail auth based on
     // the last response, which is from Verify Auth Challenge.
     if (action === 'CONFIRM') {
       const lastResponse = previousSessions.slice(-1)[0];
       if (lastResponse.challengeResult === true) {
         return this.issueTokens(event);
       }
-      // TODO: Implement retry attempts for OTP.
+
+      // Check the number of failed attempts allowed.
+      if (
+        attempts <
+        this.challengeServiceFactory.getService(signInMethod).maxAttempts
+      ) {
+        // If the number of attempts is less than 3, return a custom challenge (restart sign in flow).
+        logger.info('Challenge failed, retrying ...');
+        return this.customChallenge(event);
+      }
+
+      // If the number of attempts is 3 or more, fail authentication.
       return this.failAuthentication(
         event,
-        'The previous challenge result was false. See Verify Auth Challenge for more details.'
+        'Reached the maximum number of incorrect challenge attempts.'
       );
     }
 
@@ -111,15 +125,11 @@ export class CustomAuthService {
     }
 
     const clientMetadata = event.request.clientMetadata || {};
-    const action = clientMetadata[CognitoMetadataKeys.ACTION];
     const signInMethod = clientMetadata[CognitoMetadataKeys.SIGN_IN_METHOD];
-    logger.info(`Requested signInMethod: ${signInMethod} and action ${action}`);
-
-    if (action != 'REQUEST') {
-      throw new Error(`Unsupported action for Create Auth: ${action}`);
-    }
-
+    const signInAction = clientMetadata[CognitoMetadataKeys.ACTION];
     const method = this.validateSignInMethod(signInMethod);
+    const action = this.validateAction(signInAction);
+    logger.info(`Requested signInMethod: ${signInMethod} and action ${action}`);
 
     const { deliveryMedium, attributeName } =
       this.validateDeliveryCodeDetails(event);
@@ -205,6 +215,21 @@ export class CustomAuthService {
   }
 
   /**
+   * Validates that the action from the client is supported.
+   * @param action - The action provided by the client.
+   * @returns A valid action.
+   */
+  private validateAction(action?: string): 'REQUEST' | 'CONFIRM' {
+    if (action !== 'REQUEST' && action !== 'CONFIRM') {
+      throw new Error(
+        `Unsupported action for Create Auth: ${action || 'Null'}`
+      );
+    }
+
+    return action;
+  }
+
+  /**
    * Parses and validates the CodeDeliveryDetails out of the CreateAuthChallengeTriggerEvent.
    * Verifies that the user, delivery medium, and destination are valid.
    * @param event - The Create Auth Challenge event provided by Cognito.
@@ -213,11 +238,20 @@ export class CustomAuthService {
   private validateDeliveryCodeDetails = (
     event: CreateAuthChallengeTriggerEvent
   ): CodeDeliveryDetails => {
+    const previousChallenge = event.request.session.slice(-1)[0];
+    const previousDeliveryMedium: string | undefined =
+      previousChallenge.challengeMetadata?.includes('deliveryMedium')
+        ? JSON.parse(previousChallenge.challengeMetadata).deliveryMedium
+        : undefined;
     const clientMetadata = event.request.clientMetadata || {};
-    const deliveryMedium = clientMetadata[CognitoMetadataKeys.DELIVERY_MEDIUM];
+    const deliveryMedium =
+      clientMetadata[CognitoMetadataKeys.DELIVERY_MEDIUM] ??
+      previousDeliveryMedium;
 
     if (deliveryMedium !== 'SMS' && deliveryMedium !== 'EMAIL') {
-      throw Error('Invalid delivery medium. Only SMS and email are supported.');
+      throw Error(
+        `Invalid delivery medium: ${deliveryMedium}. Only SMS and email are supported.`
+      );
     }
 
     const attributeName = deliveryMedium === 'SMS' ? 'phone_number' : 'email';
@@ -339,4 +373,15 @@ export class CustomAuthService {
       },
     };
   };
+
+  /**
+   * Counts the number of submission attempts in the event.
+   * @param event - The lambda event.
+   * @returns the number of attempts.
+   */
+  private countAttempts(event: DefineAuthChallengeTriggerEvent) {
+    return event.request.session.filter(
+      (entry) => !entry.challengeMetadata?.includes('PROVIDE_AUTH_PARAMETERS')
+    ).length;
+  }
 }

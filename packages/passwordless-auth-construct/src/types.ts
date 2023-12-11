@@ -52,6 +52,7 @@ export type SignInMethod =
  */
 export type ChallengeService = {
   signInMethod: SignInMethod;
+  maxAttempts: number;
   createChallenge: (
     deliveryDetails: CodeDeliveryDetails,
     destination: string,
@@ -141,6 +142,7 @@ type RespondToAutChallengeParams = Pick<
   'attributeName' | 'deliveryMedium'
 > & {
   nextStep: 'PROVIDE_CHALLENGE_RESPONSE';
+  errorCode: PasswordlessErrorCodes;
 };
 
 export type CodeDeliveryDetails = {
@@ -333,3 +335,7 @@ export type KmsConfig = {
   /** KMS Key ID to use for generating Magic Links (signatures) */
   keyId?: string;
 };
+
+export enum PasswordlessErrorCodes {
+  CODE_MISMATCH_EXCEPTION = 'CodeMismatchException',
+}
