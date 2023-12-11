@@ -63,7 +63,7 @@ export type FunctionProps = {
    *
    * Defaults to the latest NodeJS version
    */
-  runtime?: number;
+  runtime?: NodeVersion;
 };
 
 /**
@@ -171,22 +171,17 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
   };
 
   private resolveRuntime = () => {
-    const runtimeDefault = parseInt(
-      Runtime.NODEJS_LATEST.toString().replace(/[^0-9]/g, '')
-    );
+    const runtimeDefault = 18;
 
     // if runtime is not set, default to latest LTS
     if (!this.props.runtime) {
       return runtimeDefault;
     }
 
-    if (
-      this.props.runtime % 2 !== 0 ||
-      !(this.props.runtime in validNodeRuntime)
-    ) {
+    if (!(this.props.runtime in nodeVersionMap)) {
       throw new Error(
         `runtime must be one of the following: ${Object.keys(
-          validNodeRuntime
+          nodeVersionMap
         ).join(', ')}`
       );
     }
@@ -220,7 +215,7 @@ class AmplifyFunction
         environment: props.environment as { [key: string]: string }, // for some reason TS can't figure out that this is the same as Record<string, string>
         timeout: Duration.seconds(props.timeoutSeconds),
         memorySize: props.memoryMB,
-        runtime: getRuntime(props.runtime),
+        runtime: nodeVersionMap[props.runtime],
       }),
     };
   }
@@ -232,12 +227,10 @@ const isWholeNumberBetweenInclusive = (
   max: number
 ) => min <= test && test <= max && test % 1 === 0;
 
-const validNodeRuntime: Record<number, Runtime> = {
+export type NodeVersion = 16 | 18 | 20;
+
+const nodeVersionMap: Record<NodeVersion, Runtime> = {
   16: Runtime.NODEJS_16_X,
   18: Runtime.NODEJS_18_X,
   20: Runtime.NODEJS_20_X,
-};
-
-const getRuntime = (version: number): Runtime => {
-  return validNodeRuntime[version];
 };
