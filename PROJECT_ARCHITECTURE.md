@@ -61,7 +61,7 @@ Within the `packages` directory are each of the packages that we publish to npm 
 
 The following diagram has a basic dependency graph of the package structure. This graph does not contain every package and dependency in the repo but it gives a general idea of the structure.
 
-![Simple dependency graph](/markdown-assets/simple-dependency-graph.png)
+![Simple dependency graph](markdown-assets/simple-dependency-graph.png)
 
 At the root, the customer project declares a dependency on `@aws-amplify/cli` and `@aws-amplify/backend`. The cli package depends on several packages for handling various subcommands.
 
@@ -87,10 +87,10 @@ At the highest level, there are four processes at play when running Gen2 local t
 
 The following diagram shows the relationship between these high-level components:
 
-![High level overview](/markdown-assets/high-level-arch.png)
+![High level overview](markdown-assets/high-level-arch.png)
 
 Another level deeper, we can look at the components that make up the Amplify command line process and the Amplify part of the CDK Synth Process. aws-cdk and CloudFormation are external dependencies so we won't go into their specifics here.
-![Component diagram](/markdown-assets/component-diagram.png)
+![Component diagram](markdown-assets/component-diagram.png)
 
 When executing an Amplify Gen2 CLI command (lets say `npx amplify sandbox`), this first goes to the yargs command parser to figure out what command was run. Yargs delegates to the specific command class which can perform additional command validation and then further delegates to a library that performs the actual logic of the command. In the case of sandbox, we have the `@aws-amplify/sandbox` package that exposes a programmatic interface for controlling the sandbox lifecycle.
 
