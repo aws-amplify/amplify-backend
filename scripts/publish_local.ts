@@ -10,9 +10,8 @@ const isCleanWorkingTree = async (): Promise<boolean> => {
 const isCleanTree = await isCleanWorkingTree();
 if (!isCleanTree) {
   const gitStatus = (await execa('git', ['status'], { all: true })).all ?? '';
-  const gitDiff = (await execa('git', ['diff'], { all: true })).all ?? '';
   throw new Error(
-    `Detected a dirty working tree. Commit or stash changes before publishing a snapshot.${EOL}Git status:${EOL}${gitStatus}${EOL}Git diff:${EOL}${gitDiff}`
+    `Detected a dirty working tree. Commit or stash changes before publishing a snapshot.${EOL}Git status:${EOL}${gitStatus}${EOL}`
   );
 }
 
