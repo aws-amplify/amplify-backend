@@ -1,0 +1,7 @@
+{
+  "rules": {
+    "check-file/filename-naming-convention": "off",
+    "jsdoc/require-jsdoc": "off",
+    "unicorn/filename-case": "off"
+  }
+}
