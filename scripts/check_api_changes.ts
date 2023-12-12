@@ -4,6 +4,7 @@ import { existsSync } from 'fs';
 import { ApiChangesValidator } from './components/api-changes-validator/api_changes_validator.js';
 import { fileURLToPath } from 'url';
 import { runLocalPublish } from './components/local_publish_runner.js';
+import { execa } from 'execa';
 
 /**
  * This scripts checks whether current (aka latest) repository content
@@ -47,6 +48,10 @@ console.log(
 
 const packagePaths = await glob(`${latestRepositoryPath}/packages/*`);
 
+await execa('npm', ['run', 'vend'], {
+  stdio: 'inherit',
+  cwd: latestRepositoryPath,
+});
 await runLocalPublish(async () => {
   await Promise.all(
     packagePaths.map(async (packagePath) => {
