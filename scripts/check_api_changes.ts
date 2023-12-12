@@ -48,7 +48,7 @@ console.log(
 
 const packagePaths = await glob(`${latestRepositoryPath}/packages/*`);
 
-await execa('npm', ['run', 'vend'], {
+await execa('npm', ['run', 'start:npm-proxy'], {
   stdio: 'inherit',
   cwd: latestRepositoryPath,
 });
