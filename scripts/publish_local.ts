@@ -2,15 +2,21 @@ import { execa } from 'execa';
 import { runPublish } from './publish_runner.js';
 import * as path from 'path';
 
-const isCleanWorkingTree = async (): Promise<boolean> => {
-  const buffer = await execa('git', ['status', '--porcelain']);
-  return !buffer.stdout.trim();
-};
-const isCleanTree = await isCleanWorkingTree();
-if (!isCleanTree) {
-  throw new Error(
-    `Detected a dirty working tree. Commit or stash changes before publishing a snapshot`
-  );
+const runArgs = process.argv.slice(2);
+
+const keepGitDiff = runArgs.find((arg) => arg === '--keepGitDiff');
+
+if (!keepGitDiff) {
+  const isCleanWorkingTree = async (): Promise<boolean> => {
+    const buffer = await execa('git', ['status', '--porcelain']);
+    return !buffer.stdout.trim();
+  };
+  const isCleanTree = await isCleanWorkingTree();
+  if (!isCleanTree) {
+    throw new Error(
+      `Detected a dirty working tree. Commit or stash changes before publishing a snapshot`
+    );
+  }
 }
 
 // this command will write staged changesets into changelog files and update versions
@@ -24,15 +30,17 @@ await runPublish({
   useLocalRegistry: true,
 });
 
-// this is safe because the script ensures the working tree is clean before starting
-await execa('git', ['reset', '--hard']);
+if (!keepGitDiff) {
+  // this is safe because the script ensures the working tree is clean before starting
+  await execa('git', ['reset', '--hard']);
 
-// if any packages have not been published yet, this script will produce a new changelog file
-// this is not cleaned up by git reset because the file is not tracked by git yet
-// this command cleans up those changelog files
-await execa('git', [
-  'clean',
-  '-f',
-  '--',
-  path.join('packages', '**', 'CHANGELOG.md'),
-]);
+  // if any packages have not been published yet, this script will produce a new changelog file
+  // this is not cleaned up by git reset because the file is not tracked by git yet
+  // this command cleans up those changelog files
+  await execa('git', [
+    'clean',
+    '-f',
+    '--',
+    path.join('packages', '**', 'CHANGELOG.md'),
+  ]);
+}

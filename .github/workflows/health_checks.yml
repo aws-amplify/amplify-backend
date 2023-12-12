@@ -65,7 +65,10 @@ jobs:
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_build_cache
       - name: Publish packages locally
-        run: npm run vend
+        run: |
+          npm run start:npm-proxy
+          # keep git diff with version increment to make sure test projects resolve right version
+          npm run publish:local -- --keepGitDiff
       - name: Checkout base branch
         uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
         with:
