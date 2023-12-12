@@ -8,6 +8,7 @@ import { MagicLink, SignedMagicLink } from '../models/magic_link.js';
 import {
   ChallengeService,
   MagicLinkConfig,
+  RespondToAutChallengeParams,
   SigningService,
   StorageService,
 } from '../types.js';
@@ -34,6 +35,30 @@ export class MagicLinkChallengeService implements ChallengeService {
   public readonly signInMethod = 'MAGIC_LINK';
   public readonly maxAttempts = 1;
 
+  /**
+   * Validates that the event has any Magic Link specific data. An exception is
+   * thrown if the event is not valid.
+   * @param event - The Create Auth Challenge event.
+   */
+  public validateCreateAuthChallengeEvent = (
+    event: CreateAuthChallengeTriggerEvent
+  ): void => {
+    this.validateRedirectUri(event.request);
+  };
+
+  /**
+   * Create Magic Link challenge
+   * Steps:
+   * 1. Validate redirect URI
+   * 2. Generate and sign magic link
+   * 3. Save magic link to storage
+   * 3. Send Message
+   * 4. Return new event response with delivery details
+   * @param deliveryDetails - The validated deliveryDetails for this challenge.
+   * @param destination - The validated destination for this challenge.
+   * @param event - The Create Auth Challenge event provided by Cognito.
+   * @returns CreateAuthChallengeTriggerEvent with delivery details
+   */
   public createChallenge = async (
     deliveryDetails: CodeDeliveryDetails,
     destination: string,
@@ -76,16 +101,17 @@ export class MagicLinkChallengeService implements ChallengeService {
     const fullRedirectUri = signedMagicLink.generateRedirectUri(redirectUri);
     await deliveryService.send(fullRedirectUri, destination, this.signInMethod);
 
-    // return response with masked email/phone
+    const publicChallengeParameters: RespondToAutChallengeParams = {
+      nextStep: 'PROVIDE_CHALLENGE_RESPONSE',
+      ...event.response.publicChallengeParameters,
+      ...deliveryDetails,
+    };
+
     const response: CreateAuthChallengeTriggerEvent = {
       ...event,
       response: {
         ...event.response,
-        publicChallengeParameters: {
-          ...event.response.publicChallengeParameters,
-          destination: deliveryService.mask(destination),
-          deliveryMedium: deliveryMedium,
-        },
+        publicChallengeParameters,
       },
     };
 

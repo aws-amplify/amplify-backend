@@ -5,7 +5,14 @@ import {
 } from 'aws-lambda';
 import { ChallengeServiceFactory } from '../factories/challenge_service_factory.js';
 import { logger } from '../logger.js';
-import { PasswordlessAuthChallengeParams, SignInMethod } from '../types.js';
+import {
+  CodeDeliveryDetails,
+  DeliveryMedium,
+  PasswordlessAuthChallengeParams,
+  RespondToAutChallengeParams,
+  SignInMethod,
+} from '../types.js';
+import { CognitoMetadataKeys } from '../constants.js';
 
 /**
  * A class containing the Cognito Auth triggers used for Custom Auth.
@@ -131,33 +138,43 @@ export class CustomAuthService {
     const { destination, isFirstSignInAttempt, isVerified } =
       this.validateDestination(deliveryMedium, event);
 
-    const validUser =
-      !event.request.userNotFound && (isVerified || isFirstSignInAttempt);
+    const challengeService = this.challengeServiceFactory.getService(method);
 
-    // If the user is found and if the attribute requested for challenge
-    // delivery is verified or if the user was created via passwordless sign up (first sign in attempt)
-    if (validUser) {
-      return this.challengeServiceFactory
-        .getService(method)
-        .createChallenge({ deliveryMedium, attributeName }, destination, event);
+    // ensure event is valid before checking for user existence to prevent
+    // returning an error that would reveal user existence.
+    if (challengeService.validateCreateAuthChallengeEvent) {
+      challengeService.validateCreateAuthChallengeEvent(event);
     }
 
-    // return a fake successful response to prevent
+    // If the user is not found or if the attribute requested for challenge
+    // delivery is not verified, return a fake successful response to prevent
     // user enumeration
-    logger.info('User not found or user does not have a verified phone/email.');
-    const response: CreateAuthChallengeTriggerEvent = {
-      ...event,
-      response: {
-        ...event.response,
-        publicChallengeParameters: {
-          ...event.response.publicChallengeParameters,
-          attributeName,
-          deliveryMedium,
+    if (event.request.userNotFound || !isVerified) {
+      logger.info(
+        'User not found or user does not have a verified phone/email.'
+      );
+      const publicChallengeParameters: RespondToAutChallengeParams = {
+        nextStep: 'PROVIDE_CHALLENGE_RESPONSE',
+        ...event.response.publicChallengeParameters,
+        attributeName,
+        deliveryMedium,
+      };
+      const response: CreateAuthChallengeTriggerEvent = {
+        ...event,
+        response: {
+          ...event.response,
+          publicChallengeParameters,
         },
-      },
-    };
-    logger.debug(JSON.stringify(response, null, 2));
-    return response;
+      };
+      logger.debug(JSON.stringify(response, null, 2));
+      return response;
+    }
+
+    return challengeService.createChallenge(
+      { deliveryMedium, attributeName },
+      destination,
+      event
+    );
   };
 
   /**

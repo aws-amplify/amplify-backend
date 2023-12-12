@@ -50,6 +50,9 @@ export type SignInMethod = PasswordlessClientMetaData['signInMethod'];
 export type ChallengeService = {
   signInMethod: SignInMethod;
   maxAttempts: number;
+  validateCreateAuthChallengeEvent?: (
+    event: CreateAuthChallengeTriggerEvent
+  ) => void;
   createChallenge: (
     event: CreateAuthChallengeTriggerEvent
   ) => Promise<CreateAuthChallengeTriggerEvent>;
@@ -140,9 +143,12 @@ type InitiateAuthChallengeParams = {
   nextStep: 'PROVIDE_AUTH_PARAMETERS'; //
 };
 
-type RespondToAutChallengeParams = {
+export type RespondToAutChallengeParams = Pick<
+  CodeDeliveryDetails,
+  'attributeName' | 'deliveryMedium'
+> & {
   nextStep: 'PROVIDE_CHALLENGE_RESPONSE';
-  errorCode: PasswordlessErrorCodes;
+  errorCode?: PasswordlessErrorCodes;
 };
 
 export type CodeDeliveryDetails = {

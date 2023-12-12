@@ -76,6 +76,34 @@ void describe('MagicLinkChallengeService', () => {
     );
   });
 
+  void describe('validateCreateAuthChallengeEvent()', () => {
+    void it('should throw if no redirect URI is provided', async () => {
+      const event: CreateAuthChallengeTriggerEvent =
+        buildCreateAuthChallengeEvent([], {
+          ...requestMagicLinkMetaData,
+          [CognitoMetadataKeys.REDIRECT_URI]: '',
+        });
+      await rejects(
+        async () => service.validateCreateAuthChallengeEvent(event),
+        Error('No redirect URI provided.')
+      );
+    });
+
+    void it('should throw if the redirect URI is not in the allow list', async () => {
+      const event: CreateAuthChallengeTriggerEvent =
+        buildCreateAuthChallengeEvent([], {
+          ...requestMagicLinkMetaData,
+          [CognitoMetadataKeys.REDIRECT_URI]: 'https://foo.com/',
+        });
+      await rejects(
+        async () => service.validateCreateAuthChallengeEvent(event),
+        Error(
+          'Invalid redirectUri: https://foo.com not in allowed origins list.'
+        )
+      );
+    });
+  });
+
   void describe('createChallenge()', () => {
     void it('should send a message, store the link, and return and event with correct params', async () => {
       const mockSend = mock.method(deliveryService, 'send');
