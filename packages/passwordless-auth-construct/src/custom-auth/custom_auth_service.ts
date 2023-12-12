@@ -12,13 +12,16 @@ import {
   RespondToAutChallengeParams,
   SignInMethod,
 } from '../types.js';
-import { CognitoMetadataKeys } from '../constants.js';
 import {
+  CognitoMetadataKeys,
+  PASSWORDLESS_SIGN_UP_ATTR_NAME,
+} from '../constants.js';
+import {
+  AdminDeleteUserAttributesCommand,
   AdminUpdateUserAttributesCommand,
   CognitoIdentityProviderClient,
 } from '@aws-sdk/client-cognito-identity-provider';
 
-const PASSWORDLESS_SIGNUP_ATTR_NAME = 'custom:_passwordless_signup';
 /**
  * A class containing the Cognito Auth triggers used for Custom Auth.
  */
@@ -156,10 +159,10 @@ export class CustomAuthService {
     // user enumeration
 
     const validUser =
-      !event.request.userNotFound && (isVerified || isPasswordlessSignUp);
+      !event.request.userNotFound && (isVerified || isFirstSignInAttempt);
 
     // If the user is found and if the attribute requested for challenge
-    // delivery is verified or if the user was created via passwordless sign up
+    // delivery is verified or if the user was created via passwordless sign up (first sign in attempt)
     if (validUser) {
       return challengeService.createChallenge(
         { deliveryMedium, attributeName },
@@ -279,7 +282,7 @@ export class CustomAuthService {
    * @param region - The UserPool region
    * @param userPoolId - The UserPool ID
    */
-  private async markAttributeAsVerified(
+  private async markAsVerifiedAndDeletePasswordlessAttribute(
     username: string,
     attributeName: 'phone_number_verified' | 'email_verified',
     region: string,
@@ -299,6 +302,14 @@ export class CustomAuthService {
     });
 
     await client.send(updateAttrCommand);
+
+    const deleteAttrCommand = new AdminDeleteUserAttributesCommand({
+      UserPoolId: userPoolId,
+      Username: username,
+      UserAttributeNames: [PASSWORDLESS_SIGN_UP_ATTR_NAME],
+    });
+
+    await client.send(deleteAttrCommand);
   }
 
   /**

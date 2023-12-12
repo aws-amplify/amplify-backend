@@ -1,5 +1,4 @@
 import { Construct } from 'constructs';
-import { CustomAuthTriggers } from '../types.js';
 import {
   NodejsFunction,
   NodejsFunctionProps,
