@@ -6,7 +6,7 @@ This document is NOT meant to be documentation on how to use Amplify Gen2. For t
 This is a living document that will (hopefully) be updated as the project evolves. If you spot something that is incorrect, please open a pull request with an update! And if you are working on a change that will impact the correctness of this document, please include a corresponding change here.
 
 The audience for this doc is anyone that wants a deeper understanding of how the packages in the `amplify-backend` repo work and what design decisions we have made.
-If you want to contribute to the project, this document is a great way to get familiarized with what's going on in the codebase (setting up your dev environment and poking around is another great way).
+If you want to contribute to the project, this document is a great way to get familiarized with what's going on in the codebase. Setting up your dev environment and poking around is another great way! For that see the [Contributing guide](/CONTRIBUTING.md).
 
 # Project Tenets
 
