@@ -9,6 +9,7 @@ import {
   CodeDeliveryDetails,
   DeliveryMedium,
   PasswordlessAuthChallengeParams,
+  RespondToAutChallengeParams,
   SignInMethod,
 } from '../types.js';
 import { CognitoMetadataKeys } from '../constants.js';
@@ -139,6 +140,14 @@ export class CustomAuthService {
       event
     );
 
+    const challengeService = this.challengeServiceFactory.getService(method);
+
+    // ensure event is valid before checking for user existence to prevent
+    // returning an error that would reveal user existence.
+    if (challengeService.validateCreateAuthChallengeEvent) {
+      challengeService.validateCreateAuthChallengeEvent(event);
+    }
+
     // If the user is not found or if the attribute requested for challenge
     // delivery is not verified, return a fake successful response to prevent
     // user enumeration
@@ -146,24 +155,28 @@ export class CustomAuthService {
       logger.info(
         'User not found or user does not have a verified phone/email.'
       );
+      const publicChallengeParameters: RespondToAutChallengeParams = {
+        nextStep: 'PROVIDE_CHALLENGE_RESPONSE',
+        ...event.response.publicChallengeParameters,
+        attributeName,
+        deliveryMedium,
+      };
       const response: CreateAuthChallengeTriggerEvent = {
         ...event,
         response: {
           ...event.response,
-          publicChallengeParameters: {
-            ...event.response.publicChallengeParameters,
-            attributeName,
-            deliveryMedium,
-          },
+          publicChallengeParameters,
         },
       };
       logger.debug(JSON.stringify(response, null, 2));
       return response;
     }
 
-    return this.challengeServiceFactory
-      .getService(method)
-      .createChallenge({ deliveryMedium, attributeName }, destination, event);
+    return challengeService.createChallenge(
+      { deliveryMedium, attributeName },
+      destination,
+      event
+    );
   };
 
   /**

@@ -9,6 +9,7 @@ import {
   ChallengeService,
   CodeDeliveryDetails,
   MagicLinkConfig,
+  RespondToAutChallengeParams,
   SigningService,
   StorageService,
 } from '../types.js';
@@ -34,6 +35,17 @@ export class MagicLinkChallengeService implements ChallengeService {
   ) {}
   public readonly signInMethod = 'MAGIC_LINK';
   public readonly maxAttempts = 1;
+
+  /**
+   * Validates that the event has any Magic Link specific data. An exception is
+   * thrown if the event is not valid.
+   * @param event - The Create Auth Challenge event.
+   */
+  public validateCreateAuthChallengeEvent = (
+    event: CreateAuthChallengeTriggerEvent
+  ): void => {
+    this.validateRedirectUri(event.request);
+  };
 
   /**
    * Create Magic Link challenge
@@ -82,15 +94,17 @@ export class MagicLinkChallengeService implements ChallengeService {
       .getService(deliveryMedium)
       .send(fullRedirectUri, destination, this.signInMethod);
 
+    const publicChallengeParameters: RespondToAutChallengeParams = {
+      nextStep: 'PROVIDE_CHALLENGE_RESPONSE',
+      ...event.response.publicChallengeParameters,
+      ...deliveryDetails,
+    };
+
     const response: CreateAuthChallengeTriggerEvent = {
       ...event,
       response: {
         ...event.response,
-        publicChallengeParameters: {
-          nextStep: 'PROVIDE_CHALLENGE_RESPONSE',
-          ...event.response.publicChallengeParameters,
-          ...deliveryDetails,
-        },
+        publicChallengeParameters,
       },
     };
 
