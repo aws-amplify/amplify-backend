@@ -218,7 +218,7 @@ export class ClassUsageStatementsGenerator implements UsageStatementsGenerator {
 /**
  * Generates usage of a variable/const/arrow function
  *
- * TODO this only emits import to satisfy symbols potentially using this variable until we figure out how to generate usage snippets
+ * TODO this handles functions for now, add variable/const
  */
 export class VariableUsageStatementsGenerator
   implements UsageStatementsGenerator
@@ -246,8 +246,6 @@ export class VariableUsageStatementsGenerator
       ).generate().usageStatement;
     }
 
-    // TODO only emit import to satisfy symbols potentially using this symbol
-    // until we figure out how to generate usage snippets
     return {
       importStatement: `import { ${variableName} } from '${this.packageName}';`,
       usageStatement,
@@ -256,7 +254,7 @@ export class VariableUsageStatementsGenerator
 }
 
 /**
- * Generates usage of a callable statement
+ * Generates usage of a callable statement, e.g. function call.
  */
 export class CallableUsageStatementsGenerator
   implements UsageStatementsGenerator
@@ -270,9 +268,88 @@ export class CallableUsageStatementsGenerator
     private readonly usageFunctionName: string
   ) {}
   generate = (): UsageStatements => {
-    let usageStatement = `const ${this.usageFunctionName} = () => {${EOL}`;
+    const usageFunctionParameterDeclaration =
+      new CallableParameterDeclarationUsageStatementsGenerator(
+        this.functionType.parameters
+      ).generate().usageStatement ?? '';
+    const usageFunctionGenericParametersDeclaration =
+      new GenericTypeParameterDeclarationUsageStatementsGenerator(
+        this.functionType.typeParameters
+      ).generate().usageStatement ?? '';
+    let returnValueAssignmentTarget = '';
+    if (this.functionType.type.kind !== ts.SyntaxKind.VoidKeyword) {
+      returnValueAssignmentTarget = `const returnValue: ${this.functionType.type.getText()} = `;
+    }
+    const minParameterUsage =
+      new CallableParameterUsageStatementsGenerator(
+        this.functionType.parameters,
+        'min'
+      ).generate().usageStatement ?? '';
+    const maxParameterUsage =
+      new CallableParameterUsageStatementsGenerator(
+        this.functionType.parameters,
+        'max'
+      ).generate().usageStatement ?? '';
+    let usageStatement = `const ${this.usageFunctionName} = ${usageFunctionGenericParametersDeclaration}(${usageFunctionParameterDeclaration}) => {${EOL}`;
+    usageStatement += `    ${returnValueAssignmentTarget}${this.callableSymbol}(${minParameterUsage});${EOL}`;
+    usageStatement += `    ${this.callableSymbol}(${maxParameterUsage});${EOL}`;
     usageStatement += `}${EOL}`;
     return { usageStatement };
+  };
+}
+/**
+ * Generates a parameter declaration.
+ */
+export class CallableParameterDeclarationUsageStatementsGenerator
+  implements UsageStatementsGenerator
+{
+  /**
+   * @inheritDoc
+   */
+  constructor(
+    private readonly parameters: ts.NodeArray<ts.ParameterDeclaration>
+  ) {}
+  generate = (): UsageStatements => {
+    const usageStatement = this.parameters
+      .map((parameter) => parameter.getText())
+      .join(', ');
+    return {
+      usageStatement,
+    };
+  };
+}
+
+/**
+ * Generates usage of a callable statement
+ */
+export class CallableParameterUsageStatementsGenerator
+  implements UsageStatementsGenerator
+{
+  /**
+   * @inheritDoc
+   */
+  constructor(
+    private readonly parameters: ts.NodeArray<ts.ParameterDeclaration>,
+    private readonly strategy: 'min' | 'max'
+  ) {}
+  generate = (): UsageStatements => {
+    const usageStatement = this.parameters
+      .filter((parameter) => {
+        switch (this.strategy) {
+          case 'min':
+            return (
+              parameter.questionToken === undefined &&
+              parameter.initializer === undefined
+            );
+          case 'max':
+            return true;
+        }
+      })
+      .map((parameter) => parameter.name.getText())
+      .join(', ');
+    return {
+      usageStatement,
+    };
   };
 }
 
