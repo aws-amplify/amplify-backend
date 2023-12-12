@@ -124,7 +124,6 @@ void describe('Api usage generator', () => {
         'samplePackageName',
         apiReportAST
       ).generate();
-      console.log(apiUsage);
       assert.strictEqual(apiUsage.trim(), testCase.expectedApiUsage.trim());
     });
   }
