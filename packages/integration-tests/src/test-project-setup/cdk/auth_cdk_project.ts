@@ -34,7 +34,7 @@ export class AuthTestCdkProjectCreator implements TestCdkProjectCreator {
       testCdkProjectsSourceRoot,
       this.name
     );
-    await fs.cp(sourceProjectDirPath, projectRoot, {
+    await fs.cp(sourceProjectDirPath, path.join(projectRoot, 'lib'), {
       recursive: true,
     });
 
