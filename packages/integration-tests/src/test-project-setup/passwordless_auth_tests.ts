@@ -9,7 +9,7 @@ import assert from 'node:assert';
 type PasswordlessAuthTest = {
   readonly name: string;
   run: () => Promise<void>;
-}
+};
 
 /**
  * Sign in with magic link test
@@ -47,7 +47,8 @@ export class SignInWithMagicLink implements PasswordlessAuthTest {
       this.userPoolClientId,
       this.cognitoIdentityProvider
     );
-    assert.equal(res.$metadata.httpStatusCode, 200);
+    const nextStep = res.ChallengeParameters?.nextStep;
+    assert.equal(nextStep, 'PROVIDE_CHALLENGE_RESPONSE');
   }
 }
 /**
@@ -84,12 +85,13 @@ export class SignInWithMagicLinkWithUnverifiedAttribute
       this.userPoolId,
       this.cognitoIdentityProvider
     );
-    await assert.rejects(
-      startMagicLinkFlow(
-        user.User?.Username ?? this.username,
-        this.userPoolClientId,
-        this.cognitoIdentityProvider
-      )
+
+    const res = await startMagicLinkFlow(
+      user.User?.Username ?? this.username,
+      this.userPoolClientId,
+      this.cognitoIdentityProvider
     );
+    const nextStep = res.ChallengeParameters?.nextStep;
+    assert.notEqual(nextStep, 'PROVIDE_CHALLENGE_RESPONSE');
   }
 }
