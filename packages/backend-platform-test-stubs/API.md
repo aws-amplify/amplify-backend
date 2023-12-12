@@ -5,11 +5,11 @@
 ```ts
 
 import { CfnElement } from 'aws-cdk-lib';
+import { Construct } from 'constructs';
 import { ConstructContainer } from '@aws-amplify/plugin-types';
 import { ConstructContainerEntryGenerator } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { ImportPathVerifier } from '@aws-amplify/plugin-types';
-import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
 
 // @public
@@ -20,8 +20,8 @@ export class AmplifyStackStub extends Stack {
 // @public
 export class ConstructContainerStub implements ConstructContainer {
     constructor(stackResolver: StackResolver);
-    getConstructFactory: <T extends ResourceProvider>(token: string) => ConstructFactory<T> | undefined;
-    getOrCompute: (generator: ConstructContainerEntryGenerator) => ResourceProvider;
+    getConstructFactory: <T>(token: string) => ConstructFactory<T> | undefined;
+    getOrCompute: (generator: ConstructContainerEntryGenerator) => Construct;
     registerConstructFactory: (token: string, provider: ConstructFactory) => void;
 }
 
