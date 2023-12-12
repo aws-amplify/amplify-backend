@@ -234,13 +234,45 @@ export class VariableUsageStatementsGenerator
     if (this.variableStatement.declarationList.declarations.length != 1) {
       throw new Error('Unexpected variable declarations count');
     }
-    const variableName =
-      this.variableStatement.declarationList.declarations[0].name.getText();
+    const variableDeclaration =
+      this.variableStatement.declarationList.declarations[0];
+    const variableName = variableDeclaration.name.getText();
+    let usageStatement: string | undefined;
+    if (variableDeclaration.type?.kind === ts.SyntaxKind.FunctionType) {
+      usageStatement = new CallableUsageStatementsGenerator(
+        variableDeclaration.type as ts.FunctionTypeNode,
+        variableName,
+        `${variableName}UsageFunction`
+      ).generate().usageStatement;
+    }
+
     // TODO only emit import to satisfy symbols potentially using this symbol
     // until we figure out how to generate usage snippets
     return {
       importStatement: `import { ${variableName} } from '${this.packageName}';`,
+      usageStatement,
     };
+  };
+}
+
+/**
+ * Generates usage of a callable statement
+ */
+export class CallableUsageStatementsGenerator
+  implements UsageStatementsGenerator
+{
+  /**
+   * @inheritDoc
+   */
+  constructor(
+    private readonly functionType: ts.FunctionTypeNode,
+    private readonly callableSymbol: string,
+    private readonly usageFunctionName: string
+  ) {}
+  generate = (): UsageStatements => {
+    let usageStatement = `const ${this.usageFunctionName} = () => {${EOL}`;
+    usageStatement += `}${EOL}`;
+    return { usageStatement };
   };
 }
 

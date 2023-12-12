@@ -53,13 +53,20 @@ import { SomeType } from 'some-package';
     `,
   },
   {
-    description: 'generates const/function usage',
+    description: 'generates const usage',
     apiReportCode: `
 export const someConst: string;
-export const someFunction: () => void;
     `,
     expectedApiUsage: `
 import { someConst } from 'samplePackageName';
+    `,
+  },
+  {
+    description: 'generates arrow function usage',
+    apiReportCode: `
+export const someFunction: () => void;
+    `,
+    expectedApiUsage: `
 import { someFunction } from 'samplePackageName';
     `,
   },
