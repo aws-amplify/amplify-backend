@@ -35,19 +35,11 @@ export class YarnClassicPackageManagerController
       args.push('-D');
     }
 
-    try {
-      await executeWithDebugLogger(
-        this.projectRoot,
-        this.packageManager.executable,
-        args,
-        this.execa
-      );
-    } catch {
-      throw new Error(
-        `\`${this.packageManager.executable} ${args.join(
-          ' '
-        )}\` did not exit successfully.`
-      );
-    }
+    await executeWithDebugLogger(
+      this.projectRoot,
+      this.packageManager.executable,
+      args,
+      this.execa
+    );
   };
 }
