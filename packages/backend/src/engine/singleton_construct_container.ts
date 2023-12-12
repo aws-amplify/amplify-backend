@@ -1,9 +1,9 @@
-import { Construct } from 'constructs';
 import { StackResolver } from './nested_stack_resolver.js';
 import {
   ConstructContainer,
   ConstructContainerEntryGenerator,
   ConstructFactory,
+  ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import { getBackendIdentifier } from '../backend_identifier.js';
 import { DefaultBackendSecretResolver } from './backend-secret/backend_secret_resolver.js';
@@ -13,9 +13,9 @@ import { DefaultBackendSecretResolver } from './backend-secret/backend_secret_re
  */
 export class SingletonConstructContainer implements ConstructContainer {
   // uses the CacheEntryGenerator as the map key. The value is what the generator returned the first time it was seen
-  private readonly constructCache: Map<
+  private readonly providerCache: Map<
     ConstructContainerEntryGenerator,
-    Construct
+    ResourceProvider
   > = new Map();
 
   private readonly providerFactoryTokenMap: Record<string, ConstructFactory> =
@@ -30,20 +30,24 @@ export class SingletonConstructContainer implements ConstructContainer {
    * If generator has been seen before, the cached Construct instance is returned
    * Otherwise, the generator is called and the value is cached and returned
    */
-  getOrCompute = (generator: ConstructContainerEntryGenerator): Construct => {
-    if (!this.constructCache.has(generator)) {
+  getOrCompute = (
+    generator: ConstructContainerEntryGenerator
+  ): ResourceProvider => {
+    if (!this.providerCache.has(generator)) {
       const scope = this.stackResolver.getStackFor(generator.resourceGroupName);
       const backendId = getBackendIdentifier(scope);
       const backendSecretResolver = new DefaultBackendSecretResolver(
         scope,
         backendId
       );
-      this.constructCache.set(
+      this.providerCache.set(
         generator,
         generator.generateContainerEntry(scope, backendSecretResolver)
       );
     }
-    return this.constructCache.get(generator) as Construct;
+    // safe because we set if it doesn't exist above
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return this.providerCache.get(generator)!;
   };
 
   /**
@@ -55,7 +59,9 @@ export class SingletonConstructContainer implements ConstructContainer {
    *
    * By convention, tokens should be the name of type T
    */
-  getConstructFactory = <T>(token: string): ConstructFactory<T> | undefined => {
+  getConstructFactory = <T extends ResourceProvider>(
+    token: string
+  ): ConstructFactory<T> | undefined => {
     if (token in this.providerFactoryTokenMap) {
       return this.providerFactoryTokenMap[token] as ConstructFactory<T>;
     }

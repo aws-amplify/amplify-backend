@@ -6,17 +6,26 @@
 
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
+import { IBucket } from 'aws-cdk-lib/aws-s3';
+import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { StorageOutput } from '@aws-amplify/backend-output-schemas';
 
 // @public
-export class AmplifyStorage extends Construct {
+export class AmplifyStorage extends Construct implements ResourceProvider<StorageResources> {
     constructor(scope: Construct, id: string, props: AmplifyStorageProps);
+    // (undocumented)
+    readonly resources: StorageResources;
 }
 
 // @public (undocumented)
 export type AmplifyStorageProps = {
     versioned?: boolean;
     outputStorageStrategy?: BackendOutputStorageStrategy<StorageOutput>;
+};
+
+// @public (undocumented)
+export type StorageResources = {
+    bucket: IBucket;
 };
 
 // (No @packageDocumentation comment for this package)
