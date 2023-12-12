@@ -216,9 +216,10 @@ export class ClassUsageStatementsGenerator implements UsageStatementsGenerator {
 }
 
 /**
- * Generates usage of a variable/const/arrow function
+ * Generates usage of a variable/const/arrow function declared as top level export
+ * , i.e. 'const someConst = ...`;
  *
- * TODO this handles functions for now, add variable/const
+ * TODO this handles functions for now, add variable/const.
  */
 export class VariableUsageStatementsGenerator
   implements UsageStatementsGenerator
@@ -254,7 +255,20 @@ export class VariableUsageStatementsGenerator
 }
 
 /**
- * Generates usage of a callable statement, e.g. function call.
+ * Generates usage of a callable statement like function, constructor, class method.
+ *
+ * For example for function defined as:
+ *
+ * export const someFunction: (param1: string, param2?: number) => string;
+ *
+ * it generates the following
+ *
+ * import { someFunction } from 'samplePackageName';
+ *
+ * const someFunctionUsageFunction = (param1: string, param2?: number) => {
+ *     const returnValue: string = someFunction(param1);
+ *     someFunction(param1, param2);
+ * }
  */
 export class CallableUsageStatementsGenerator
   implements UsageStatementsGenerator
@@ -298,7 +312,11 @@ export class CallableUsageStatementsGenerator
   };
 }
 /**
- * Generates a parameter declaration.
+ * Generates a parameter declaration for a callable statement.
+ *
+ * For example when generating function usage statement:
+ * const someFunctionUsageFunction = (<code from this generator goes here>) => {
+ * }
  */
 export class CallableParameterDeclarationUsageStatementsGenerator
   implements UsageStatementsGenerator
@@ -320,7 +338,13 @@ export class CallableParameterDeclarationUsageStatementsGenerator
 }
 
 /**
- * Generates usage of a callable statement
+ * Generates parameter usage of a callable statement.
+ *
+ * For example in function usage statement:
+ * const someFunctionUsageFunction = (param1: string, param2?: number) => {
+ *     const returnValue: string = someFunction(<code from this generator goes here>);
+ *     someFunction(<code from this generator goes here>);
+ * }
  */
 export class CallableParameterUsageStatementsGenerator
   implements UsageStatementsGenerator
