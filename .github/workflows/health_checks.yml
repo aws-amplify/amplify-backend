@@ -64,17 +64,15 @@ jobs:
         uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_build_cache
-      - name: Publish packages locally
-        run: npm run vend
       - name: Checkout base branch
         uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
         with:
-          path: base-branch-content
+          path: api-validation-temp-dir/base-branch-content
           ref: ${{ github.event.pull_request.base.sha }}
       - name: Check API changes
         run: |
-          mkdir api-validation-projects
-          npx tsx scripts/check_api_changes.ts base-branch-content api-validation-projects
+          mkdir api-validation-temp-dir/api-validation-projects
+          npx tsx scripts/check_api_changes.ts api-validation-temp-dir/base-branch-content api-validation-projects
   do_include_e2e:
     runs-on: ubuntu-latest
     permissions:

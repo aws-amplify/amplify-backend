@@ -3,6 +3,7 @@ import path from 'path';
 import { existsSync } from 'fs';
 import { ApiChangesValidator } from './components/api-changes-validator/api_changes_validator.js';
 import { fileURLToPath } from 'url';
+import { runLocalPublish } from './components/local_publish_runner.js';
 
 /**
  * This scripts checks whether current (aka latest) repository content
@@ -46,31 +47,33 @@ console.log(
 
 const packagePaths = await glob(`${latestRepositoryPath}/packages/*`);
 
-await Promise.all(
-  packagePaths.map(async (packagePath) => {
-    const packageName = path.basename(packagePath);
-    const baselinePackagePath = path.join(
-      baselineRepositoryPath,
-      'packages',
-      packageName
-    );
-    const baselinePackageApiReportPath = path.join(
-      baselinePackagePath,
-      'API.md'
-    );
-    if (!existsSync(baselinePackageApiReportPath)) {
-      console.log(
-        `Skipping ${packageName} as it does not have baseline API.md file`
+await runLocalPublish(async () => {
+  await Promise.all(
+    packagePaths.map(async (packagePath) => {
+      const packageName = path.basename(packagePath);
+      const baselinePackagePath = path.join(
+        baselineRepositoryPath,
+        'packages',
+        packageName
       );
-      return;
-    }
+      const baselinePackageApiReportPath = path.join(
+        baselinePackagePath,
+        'API.md'
+      );
+      if (!existsSync(baselinePackageApiReportPath)) {
+        console.log(
+          `Skipping ${packageName} as it does not have baseline API.md file`
+        );
+        return;
+      }
 
-    console.log(`Validating API changes of ${packageName}`);
-    await new ApiChangesValidator(
-      packagePath,
-      baselinePackageApiReportPath,
-      workingDirectory
-    ).validate();
-    console.log(`Validation of ${packageName} completed successfully`);
-  })
-);
+      console.log(`Validating API changes of ${packageName}`);
+      await new ApiChangesValidator(
+        packagePath,
+        baselinePackageApiReportPath,
+        workingDirectory
+      ).validate();
+      console.log(`Validation of ${packageName} completed successfully`);
+    })
+  );
+});

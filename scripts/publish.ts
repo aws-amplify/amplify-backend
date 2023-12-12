@@ -1,3 +1,3 @@
-import { runPublish } from './publish_runner.js';
+import { runPublish } from './components/publish_runner.js';
 
 await runPublish();
