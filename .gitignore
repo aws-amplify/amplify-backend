@@ -10,6 +10,7 @@ tsconfig.tsbuildinfo
 .nvmrc
 .npmrc
 .DS_Store
+.vscode
 verdaccio-cache
 verdaccio-logs.txt
 cdk.out/

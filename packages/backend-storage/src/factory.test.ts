@@ -10,14 +10,15 @@ import {
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
   ImportPathVerifier,
+  ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
-import { AmplifyStorage } from '@aws-amplify/storage-construct-alpha';
 import {
   ConstructContainerStub,
   ImportPathVerifierStub,
   StackResolverStub,
 } from '@aws-amplify/backend-platform-test-stubs';
+import { StorageResources } from './construct.js';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
@@ -29,7 +30,7 @@ const createStackAndSetContext = (): Stack => {
 };
 
 void describe('AmplifyStorageFactory', () => {
-  let storageFactory: ConstructFactory<AmplifyStorage>;
+  let storageFactory: ConstructFactory<ResourceProvider<StorageResources>>;
   let constructContainer: ConstructContainer;
   let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
   let importPathVerifier: ImportPathVerifier;
@@ -65,7 +66,9 @@ void describe('AmplifyStorageFactory', () => {
   void it('adds construct to stack', () => {
     const storageConstruct = storageFactory.getInstance(getInstanceProps);
 
-    const template = Template.fromStack(Stack.of(storageConstruct));
+    const template = Template.fromStack(
+      Stack.of(storageConstruct.resources.bucket)
+    );
 
     template.resourceCountIs('AWS::S3::Bucket', 1);
   });
