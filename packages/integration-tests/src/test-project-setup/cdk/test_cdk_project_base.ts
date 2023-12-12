@@ -11,7 +11,7 @@ export abstract class TestCdkProjectBase {
    * The base test project class constructor.
    */
   constructor(readonly name: string, readonly projectDirPath: string) {
-    this.stackName = `test-cdk-stack-${shortUuid()}`;
+    this.stackName = `amplify-test-cdk-stack-${shortUuid()}`;
   }
 
   deploy = async () => {
