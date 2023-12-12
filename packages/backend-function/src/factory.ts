@@ -10,6 +10,7 @@ import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as path from 'path';
 import { getCallerDirectory } from './get_caller_directory.js';
 import { Duration } from 'aws-cdk-lib';
+import { Runtime } from 'aws-cdk-lib/aws-lambda';
 
 /**
  * Entry point for defining a function in the Amplify ecosystem
@@ -56,6 +57,13 @@ export type FunctionProps = {
    * Environment variables that will be available during function execution
    */
   environment?: Record<string, string>;
+
+  /**
+   * Node runtime version for the lambda environment.
+   *
+   * Defaults to the oldest NodeJS LTS version. See https://nodejs.org/en/about/previous-releases
+   */
+  runtime?: NodeVersion;
 };
 
 /**
@@ -90,6 +98,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
       timeoutSeconds: this.resolveTimeout(),
       memoryMB: this.resolveMemory(),
       environment: this.props.environment ?? {},
+      runtime: this.resolveRuntime(),
     };
   };
 
@@ -160,6 +169,25 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
     }
     return this.props.memoryMB;
   };
+
+  private resolveRuntime = () => {
+    const runtimeDefault = 18;
+
+    // if runtime is not set, default to the oldest LTS
+    if (!this.props.runtime) {
+      return runtimeDefault;
+    }
+
+    if (!(this.props.runtime in nodeVersionMap)) {
+      throw new Error(
+        `runtime must be one of the following: ${Object.keys(
+          nodeVersionMap
+        ).join(', ')}`
+      );
+    }
+
+    return this.props.runtime;
+  };
 }
 
 type HydratedFunctionProps = Required<FunctionProps>;
@@ -187,6 +215,7 @@ class AmplifyFunction
         environment: props.environment as { [key: string]: string }, // for some reason TS can't figure out that this is the same as Record<string, string>
         timeout: Duration.seconds(props.timeoutSeconds),
         memorySize: props.memoryMB,
+        runtime: nodeVersionMap[props.runtime],
       }),
     };
   }
@@ -197,3 +226,11 @@ const isWholeNumberBetweenInclusive = (
   min: number,
   max: number
 ) => min <= test && test <= max && test % 1 === 0;
+
+export type NodeVersion = 16 | 18 | 20;
+
+const nodeVersionMap: Record<NodeVersion, Runtime> = {
+  16: Runtime.NODEJS_16_X,
+  18: Runtime.NODEJS_18_X,
+  20: Runtime.NODEJS_20_X,
+};

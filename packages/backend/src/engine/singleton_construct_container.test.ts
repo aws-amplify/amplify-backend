@@ -1,15 +1,15 @@
 import { beforeEach, describe, it } from 'node:test';
 import { SingletonConstructContainer } from './singleton_construct_container.js';
 import { App, Stack } from 'aws-cdk-lib';
-import { Bucket } from 'aws-cdk-lib/aws-s3';
+import { Bucket, IBucket } from 'aws-cdk-lib/aws-s3';
 import assert from 'node:assert';
-import { Construct } from 'constructs';
-import { Queue } from 'aws-cdk-lib/aws-sqs';
+import { IQueue, Queue } from 'aws-cdk-lib/aws-sqs';
 import { NestedStackResolver } from './nested_stack_resolver.js';
 import {
   ConstructContainer,
   ConstructContainerEntryGenerator,
   ConstructFactory,
+  ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage';
 
@@ -28,17 +28,19 @@ void describe('SingletonConstructContainer', () => {
     beforeEach(() => {
       stack = createStackAndSetContext();
     });
-    void it('calls initializer to create construct instance', () => {
+    void it('calls initializer to create resource instance', () => {
       const container = new SingletonConstructContainer(
         new NestedStackResolver(stack, new AttributionMetadataStorage())
       );
       const instance = container.getOrCompute({
         resourceGroupName: 'testGroup',
-        generateContainerEntry(scope: Construct): Construct {
-          return new Bucket(scope, 'testBucket');
-        },
-      });
-      assert.equal(instance instanceof Bucket, true);
+        generateContainerEntry: (scope) => ({
+          resources: {
+            bucket: new Bucket(scope, 'testBucket'),
+          },
+        }),
+      }) as ResourceProvider<{ bucket: IBucket }>;
+      assert.equal(instance.resources.bucket instanceof Bucket, true);
     });
 
     void it('returns cached instance if initializer has been seen before', () => {
@@ -47,9 +49,11 @@ void describe('SingletonConstructContainer', () => {
       );
       const initializer: ConstructContainerEntryGenerator = {
         resourceGroupName: 'testGroup',
-        generateContainerEntry(scope: Construct): Bucket {
-          return new Bucket(scope, 'testBucket');
-        },
+        generateContainerEntry: (scope) => ({
+          resources: {
+            bucket: new Bucket(scope, 'testBucket'),
+          },
+        }),
       };
       const instance1 = container.getOrCompute(initializer);
       const instance2 = container.getOrCompute(initializer);
@@ -61,29 +65,41 @@ void describe('SingletonConstructContainer', () => {
       const container = new SingletonConstructContainer(
         new NestedStackResolver(stack, new AttributionMetadataStorage())
       );
-      const bucketInitializer: ConstructContainerEntryGenerator = {
+      const bucketInitializer: ConstructContainerEntryGenerator<{
+        bucket: IBucket;
+      }> = {
         resourceGroupName: 'testGroup',
-        generateContainerEntry(scope: Construct): Bucket {
-          return new Bucket(scope, 'testBucket');
-        },
+        generateContainerEntry: (scope) => ({
+          resources: {
+            bucket: new Bucket(scope, 'testBucket'),
+          },
+        }),
       };
-      const queueInitializer: ConstructContainerEntryGenerator = {
+      const queueInitializer: ConstructContainerEntryGenerator<{
+        queue: IQueue;
+      }> = {
         resourceGroupName: 'testGroup',
-        generateContainerEntry(scope: Construct): Queue {
-          return new Queue(scope, 'testQueue');
-        },
+        generateContainerEntry: (scope) => ({
+          resources: {
+            queue: new Queue(scope, 'testQueue'),
+          },
+        }),
       };
-      const bucket = container.getOrCompute(bucketInitializer);
-      const queue = container.getOrCompute(queueInitializer);
+      const bucketResources = container.getOrCompute(
+        bucketInitializer
+      ) as ResourceProvider<{ bucket: IBucket }>;
+      const queueResources = container.getOrCompute(
+        queueInitializer
+      ) as ResourceProvider<{ queue: IQueue }>;
 
-      const cachedBucket = container.getOrCompute(bucketInitializer);
-      const cachedQueue = container.getOrCompute(queueInitializer);
+      const cachedBucketResources = container.getOrCompute(bucketInitializer);
+      const cachedQueueResources = container.getOrCompute(queueInitializer);
 
-      assert.equal(bucket instanceof Bucket, true);
-      assert.equal(queue instanceof Queue, true);
+      assert.equal(bucketResources.resources.bucket instanceof Bucket, true);
+      assert.equal(queueResources.resources.queue instanceof Queue, true);
 
-      assert.strictEqual(bucket, cachedBucket);
-      assert.strictEqual(queue, cachedQueue);
+      assert.deepStrictEqual(bucketResources, cachedBucketResources);
+      assert.deepStrictEqual(queueResources, cachedQueueResources);
     });
   });
 

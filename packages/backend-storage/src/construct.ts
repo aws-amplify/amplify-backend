@@ -1,6 +1,9 @@
 import { Construct } from 'constructs';
-import { Bucket, BucketProps } from 'aws-cdk-lib/aws-s3';
-import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
+import { Bucket, BucketProps, IBucket } from 'aws-cdk-lib/aws-s3';
+import {
+  BackendOutputStorageStrategy,
+  ResourceProvider,
+} from '@aws-amplify/plugin-types';
 import {
   StorageOutput,
   storageOutputKey,
@@ -20,13 +23,20 @@ export type AmplifyStorageProps = {
   outputStorageStrategy?: BackendOutputStorageStrategy<StorageOutput>;
 };
 
+export type StorageResources = {
+  bucket: IBucket;
+};
+
 /**
  * Amplify Storage CDK Construct
  *
  * Currently just a thin wrapper around an S3 bucket
  */
-export class AmplifyStorage extends Construct {
-  private readonly bucket: Bucket;
+export class AmplifyStorage
+  extends Construct
+  implements ResourceProvider<StorageResources>
+{
+  readonly resources: StorageResources;
   /**
    * Create a new AmplifyStorage instance
    */
@@ -37,7 +47,9 @@ export class AmplifyStorage extends Construct {
       versioned: props.versioned || false,
     };
 
-    this.bucket = new Bucket(this, `${id}Bucket`, bucketProps);
+    this.resources = {
+      bucket: new Bucket(this, `${id}Bucket`, bucketProps),
+    };
 
     this.storeOutput(props.outputStorageStrategy);
 
@@ -60,7 +72,7 @@ export class AmplifyStorage extends Construct {
       version: '1',
       payload: {
         storageRegion: Stack.of(this).region,
-        bucketName: this.bucket.bucketName,
+        bucketName: this.resources.bucket.bucketName,
       },
     });
   };
