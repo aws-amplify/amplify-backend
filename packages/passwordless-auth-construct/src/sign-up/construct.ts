@@ -1,5 +1,4 @@
 import { Construct } from 'constructs';
-import { CustomAuthTriggers } from '../types.js';
 import {
   NodejsFunction,
   NodejsFunctionProps,
@@ -64,22 +63,31 @@ export class AmplifySignUpPasswordless extends Construct {
 
     api.root.addMethod('PUT', putCreateUserIntegration);
 
-    const createUserPolicy = new Policy(this, `CreateUserPolicy${id}`, {});
-    createUserFunction.role!.attachInlinePolicy(createUserPolicy);
-    const createUserPolicyStatement = new PolicyStatement();
-    createUserPolicyStatement.addActions('cognito-idp:AdminCreateUser');
-    createUserPolicyStatement.addResources(userPool.userPoolArn);
-    createUserPolicyStatement.effect = Effect.ALLOW;
-    createUserPolicy.addStatements(createUserPolicyStatement);
-
-    const updateUserPolicy = new Policy(this, `UpdateUserPolicy${id}`, {});
-    const updateUserPolicyStatement = new PolicyStatement();
-    updateUserPolicyStatement.addActions(
-      'cognito-idp:AdminUpdateUserAttributes'
+    createUserFunction.role!.attachInlinePolicy(
+      new Policy(this, `CreateUserPolicy${id}`, {
+        statements: [
+          new PolicyStatement({
+            actions: ['cognito-idp:AdminCreateUser'],
+            resources: [userPool.userPoolArn],
+            effect: Effect.ALLOW,
+          }),
+        ],
+      })
     );
-    updateUserPolicyStatement.addResources(userPool.userPoolArn);
-    updateUserPolicyStatement.effect = Effect.ALLOW;
-    updateUserPolicy.addStatements(updateUserPolicyStatement);
-    verifyAuthChallengeResponse.role!.attachInlinePolicy(updateUserPolicy);
+
+    verifyAuthChallengeResponse.role!.attachInlinePolicy(
+      new Policy(this, `UpdateUserPolicy${id}`, {
+        statements: [
+          new PolicyStatement({
+            actions: [
+              'cognito-idp:AdminUpdateUserAttributes',
+              'cognito-idp:AdminDeleteUserAttributes',
+            ],
+            resources: [userPool.userPoolArn],
+            effect: Effect.ALLOW,
+          }),
+        ],
+      })
+    );
   }
 }

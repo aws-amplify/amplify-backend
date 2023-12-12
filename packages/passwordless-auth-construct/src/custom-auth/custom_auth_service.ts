@@ -11,13 +11,16 @@ import {
   PasswordlessAuthChallengeParams,
   SignInMethod,
 } from '../types.js';
-import { CognitoMetadataKeys } from '../constants.js';
 import {
+  CognitoMetadataKeys,
+  PASSWORDLESS_SIGN_UP_ATTR_NAME,
+} from '../constants.js';
+import {
+  AdminDeleteUserAttributesCommand,
   AdminUpdateUserAttributesCommand,
   CognitoIdentityProviderClient,
 } from '@aws-sdk/client-cognito-identity-provider';
 
-const PASSWORDLESS_SIGNUP_ATTR_NAME = 'custom:_passwordless_signup';
 /**
  * A class containing the Cognito Auth triggers used for Custom Auth.
  */
@@ -129,14 +132,14 @@ export class CustomAuthService {
     const { deliveryMedium, attributeName } =
       this.validateDeliveryCodeDetails(event);
 
-    const { destination, isPasswordlessSignUp, isVerified } =
+    const { destination, isFirstSignInAttempt, isVerified } =
       this.validateDestination(deliveryMedium, event);
 
     const validUser =
-      !event.request.userNotFound && (isVerified || isPasswordlessSignUp);
+      !event.request.userNotFound && (isVerified || isFirstSignInAttempt);
 
     // If the user is found and if the attribute requested for challenge
-    // delivery is verified or if the user was created via passwordless sign up
+    // delivery is verified or if the user was created via passwordless sign up (first sign in attempt)
     if (validUser) {
       return this.challengeServiceFactory
         .getService(method)
@@ -199,29 +202,36 @@ export class CustomAuthService {
     const answerCorrect = (await verifyResult).response.answerCorrect;
     logger.debug(`Answer is correct: ${answerCorrect ? 'true' : 'false'}`);
 
-    const userCreatedByPasswordlessSignUp =
-      event.request.userAttributes[PASSWORDLESS_SIGNUP_ATTR_NAME] === 'true';
-    const attributeName =
-      event.request.privateChallengeParameters.deliveryMedium === 'SMS'
-        ? 'phone_number_verified'
-        : 'email_verified';
-    const attributeVerified =
-      event.request.userAttributes[attributeName] === 'true';
+    try {
+      const passwordlessConfiguration =
+        event.request.userAttributes[PASSWORDLESS_SIGN_UP_ATTR_NAME] &&
+        JSON.parse(
+          event.request.userAttributes[PASSWORDLESS_SIGN_UP_ATTR_NAME]
+        );
 
-    // Only update verified attribute the first time
-    if (
-      answerCorrect &&
-      userCreatedByPasswordlessSignUp &&
-      !attributeVerified
-    ) {
-      logger.debug(`Updating user attribute to verified: ${attributeName}`);
-      await this.markAttributeAsVerified(
-        event.userName,
-        attributeName,
-        event.region,
-        event.userPoolId
-      );
+      if (passwordlessConfiguration.allowSignInAttempt) {
+        const attributeName =
+          passwordlessConfiguration.deliveryMedium === 'SMS'
+            ? 'phone_number_verified'
+            : 'email_verified';
+
+        const attributeVerified =
+          event.request.userAttributes[attributeName] === 'true';
+        // Only update verified attribute the first time
+        if (answerCorrect && !attributeVerified) {
+          logger.debug(`Updating user attribute to verified: ${attributeName}`);
+          await this.markAsVerifiedAndDeletePasswordlessAttribute(
+            event.userName,
+            attributeName,
+            event.region,
+            event.userPoolId
+          );
+        }
+      }
+    } catch (_err) {
+      // best effor to parse passwordless_sign_up attribute
     }
+    event.request.userAttributes[PASSWORDLESS_SIGN_UP_ATTR_NAME] === 'true';
 
     return verifyResult;
   };
@@ -245,7 +255,7 @@ export class CustomAuthService {
    * @param region - The UserPool region
    * @param userPoolId - The UserPool ID
    */
-  private async markAttributeAsVerified(
+  private async markAsVerifiedAndDeletePasswordlessAttribute(
     username: string,
     attributeName: 'phone_number_verified' | 'email_verified',
     region: string,
@@ -265,6 +275,14 @@ export class CustomAuthService {
     });
 
     await client.send(updateAttrCommand);
+
+    const deleteAttrCommand = new AdminDeleteUserAttributesCommand({
+      UserPoolId: userPoolId,
+      Username: username,
+      UserAttributeNames: [PASSWORDLESS_SIGN_UP_ATTR_NAME],
+    });
+
+    await client.send(deleteAttrCommand);
   }
 
   /**
@@ -302,7 +320,7 @@ export class CustomAuthService {
     deliveryMedium: DeliveryMedium,
     event: CreateAuthChallengeTriggerEvent
   ): {
-    isPasswordlessSignUp: boolean;
+    isFirstSignInAttempt: boolean;
     isVerified: boolean;
     destination: string;
   } => {
@@ -311,26 +329,42 @@ export class CustomAuthService {
       phone_number: phoneNumber,
       email_verified: emailVerified,
       phone_number_verified: phoneNumberVerified,
-      [PASSWORDLESS_SIGNUP_ATTR_NAME]: passwordlessSignUp,
+      [PASSWORDLESS_SIGN_UP_ATTR_NAME]: passwordlessSignUp,
     } = event.request.userAttributes;
 
-    const isPasswordlessSignUp = passwordlessSignUp === 'true';
+    let isFirstSignInAttempt = false;
+    try {
+      const passwordlessConfiguration = JSON.parse(passwordlessSignUp);
+      if (
+        passwordlessConfiguration.allowSignInAttempt &&
+        passwordlessConfiguration.deliveryMedium === deliveryMedium
+      ) {
+        isFirstSignInAttempt = true;
+      }
+    } catch (_err) {
+      // best effort to parse passwordless_sign_up attribute if the user was created via passwordless sign up
+    }
+
     if (
       deliveryMedium === 'SMS' &&
       (!phoneNumber || phoneNumberVerified !== 'true')
     ) {
       return {
-        isPasswordlessSignUp,
+        isFirstSignInAttempt,
         isVerified: false,
         destination: phoneNumber,
       };
     }
     if (deliveryMedium === 'EMAIL' && (!email || emailVerified !== 'true')) {
-      return { isPasswordlessSignUp, isVerified: false, destination: email };
+      return {
+        isFirstSignInAttempt: isFirstSignInAttempt,
+        isVerified: false,
+        destination: email,
+      };
     }
 
     return {
-      isPasswordlessSignUp,
+      isFirstSignInAttempt,
       isVerified: true,
       destination: deliveryMedium === 'SMS' ? phoneNumber : email,
     };

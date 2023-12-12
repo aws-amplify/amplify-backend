@@ -358,7 +358,7 @@ export class AmplifyAuth
         ...(props.userAttributes ? props.userAttributes : {}),
       },
       customAttributes: {
-        _passwordless_signup: new cognito.BooleanAttribute({ mutable: false }),
+        passwordless_sign_up: new cognito.StringAttribute({ mutable: true }), // amplify-backend/packages/passwordless-auth-construct/src/constants.ts
       }, // TODO: include only if passwordlessSignUp is enabled (ENV)
       selfSignUpEnabled: DEFAULTS.ALLOW_SELF_SIGN_UP,
       mfa: this.getMFAMode(props.multifactor),

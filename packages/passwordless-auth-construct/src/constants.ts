@@ -20,3 +20,5 @@ export enum CognitoMetadataKeys {
   REDIRECT_URI = 'Amplify.Passwordless.redirectUri',
   SIGN_IN_METHOD = 'Amplify.Passwordless.signInMethod',
 }
+
+export const PASSWORDLESS_SIGN_UP_ATTR_NAME = 'custom:passwordless_sign_up';
