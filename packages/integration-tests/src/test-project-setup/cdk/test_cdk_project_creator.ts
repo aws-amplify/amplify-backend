@@ -11,6 +11,8 @@ export const testCdkProjectsSourceRoot = path.resolve(
   dirname,
   '..',
   '..',
+  '..',
+  'src',
   'test-cdk-projects'
 );
 
