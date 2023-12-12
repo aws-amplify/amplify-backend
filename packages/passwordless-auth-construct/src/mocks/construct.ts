@@ -11,7 +11,7 @@ import { Match, Template } from 'aws-cdk-lib/assertions';
 export const findPolicyResource = (
   template: Template,
   resourceNameLike: RegExp,
-  policy: Record<string, string>
+  policy: Record<string, Parameters<typeof Match.objectLike>[0]['policy']>
 ): ReturnType<Template['findResources']>[0] | undefined => {
   const resources = template.findResources('AWS::IAM::Policy', {
     Properties: {
