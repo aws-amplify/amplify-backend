@@ -1,11 +1,11 @@
 {
-  "name": "enum-break-remove-enum-member",
+  "name": "@aws-amplify/enum-break-remove-enum-member",
   "type": "module",
   "exports": {
     ".": {
-      "types": "./lib/index.d.ts",
       "import": "./lib/index.js",
-      "require": "./lib/index.js"
+      "require": "./lib/index.js",
+      "types": "./lib/index.d.ts"
     }
   },
   "types": "lib/index.d.ts"

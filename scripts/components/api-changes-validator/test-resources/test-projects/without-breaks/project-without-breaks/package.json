@@ -1,11 +1,11 @@
 {
-  "name": "project-without-breaks",
+  "name": "@aws-amplify/project-without-breaks",
   "type": "module",
   "exports": {
     ".": {
-      "types": "./lib/index.d.ts",
       "import": "./lib/index.js",
-      "require": "./lib/index.js"
+      "require": "./lib/index.js",
+      "types": "./lib/index.d.ts"
     }
   },
   "types": "lib/index.d.ts"

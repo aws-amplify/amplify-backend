@@ -1,11 +1,11 @@
 {
-  "name": "type-break-make-property-mandatory",
+  "name": "@aws-amplify/type-break-make-property-mandatory",
   "type": "module",
   "exports": {
     ".": {
-      "types": "./lib/index.d.ts",
       "import": "./lib/index.js",
-      "require": "./lib/index.js"
+      "require": "./lib/index.js",
+      "types": "./lib/index.d.ts"
     }
   },
   "types": "lib/index.d.ts"

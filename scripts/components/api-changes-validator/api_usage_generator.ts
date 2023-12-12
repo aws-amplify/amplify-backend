@@ -46,36 +46,37 @@ export class ApiUsageGenerator {
   private generateStatementsForNode = (
     node: ts.Node
   ): UsageStatements | undefined => {
-    if (node.kind === ts.SyntaxKind.ImportDeclaration) {
-      return new ImportUsageStatementsGenerator(
-        node as ts.ImportDeclaration
-      ).generate();
-    } else if (node.kind === ts.SyntaxKind.TypeAliasDeclaration) {
-      return new TypeUsageStatementsGenerator(
-        node as ts.TypeAliasDeclaration,
-        this.packageName
-      ).generate();
-    } else if (node.kind === ts.SyntaxKind.EnumDeclaration) {
-      return new EnumUsageStatementsGenerator(
-        node as ts.EnumDeclaration,
-        this.packageName
-      ).generate();
-    } else if (node.kind === ts.SyntaxKind.ClassDeclaration) {
-      return new ClassUsageStatementsGenerator(
-        node as ts.ClassDeclaration,
-        this.packageName
-      ).generate();
-    } else if (node.kind === ts.SyntaxKind.VariableStatement) {
-      return new VariableUsageStatementsGenerator(
-        node as ts.VariableStatement,
-        this.packageName
-      ).generate();
+    switch (node.kind) {
+      case ts.SyntaxKind.ImportDeclaration:
+        return new ImportUsageStatementsGenerator(
+          node as ts.ImportDeclaration
+        ).generate();
+      case ts.SyntaxKind.TypeAliasDeclaration:
+        return new TypeUsageStatementsGenerator(
+          node as ts.TypeAliasDeclaration,
+          this.packageName
+        ).generate();
+      case ts.SyntaxKind.EnumDeclaration:
+        return new EnumUsageStatementsGenerator(
+          node as ts.EnumDeclaration,
+          this.packageName
+        ).generate();
+      case ts.SyntaxKind.ClassDeclaration:
+        return new ClassUsageStatementsGenerator(
+          node as ts.ClassDeclaration,
+          this.packageName
+        ).generate();
+      case ts.SyntaxKind.VariableStatement:
+        return new VariableUsageStatementsGenerator(
+          node as ts.VariableStatement,
+          this.packageName
+        ).generate();
+      default:
+        console.log(
+          `Warning: usage generator encountered unrecognized syntax kind ${node.kind}`
+        );
+
+        return undefined;
     }
-
-    console.log(
-      `Warning: usage generator encountered unrecognized syntax kind ${node.kind}`
-    );
-
-    return undefined;
   };
 }
