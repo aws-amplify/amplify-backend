@@ -65,6 +65,10 @@ jobs:
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_build_cache
       - name: Publish packages locally
+        # We have to publish before checking out base branch because that makes local git repo 'dirty'.
+        # On the other hand if we separate both checkouts, i.e. put them in separate directories,
+        # then we wouldn't benefit from build cache, as we would have to change location of where pull request
+        # content is (GitHub won't let us checkout to ../base-branch-content).
         run: npm run vend
       - name: Checkout base branch
         uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
@@ -73,6 +77,8 @@ jobs:
           ref: ${{ github.event.pull_request.base.sha }}
       - name: Check API changes
         run: |
+          # We have to start proxy again in new shell session
+          npm run start:npm-proxy
           mkdir api-validation-projects
           npx tsx scripts/check_api_changes.ts base-branch-content api-validation-projects
   do_include_e2e:
