@@ -1,6 +1,7 @@
 import { execa } from 'execa';
 import { runPublish } from './publish_runner.js';
 import * as path from 'path';
+import { EOL } from 'os';
 
 const isCleanWorkingTree = async (): Promise<boolean> => {
   const buffer = await execa('git', ['status', '--porcelain']);
@@ -8,8 +9,9 @@ const isCleanWorkingTree = async (): Promise<boolean> => {
 };
 const isCleanTree = await isCleanWorkingTree();
 if (!isCleanTree) {
+  const gitStatus = (await execa('git', ['status'], { all: true })).all ?? '';
   throw new Error(
-    `Detected a dirty working tree. Commit or stash changes before publishing a snapshot`
+    `Detected a dirty working tree. Commit or stash changes before publishing a snapshot.${EOL}Git status:${EOL}${gitStatus}`
   );
 }
 
