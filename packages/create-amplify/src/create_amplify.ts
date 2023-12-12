@@ -12,8 +12,10 @@ import { AmplifyProjectCreator } from './amplify_project_creator.js';
 import {
   type PackageManager,
   type PackageManagerName,
-  packageManagers,
-} from './package_manager.js';
+  getPackageManagerFactory,
+  packageManagerControllerFactory,
+} from './package-manager-controller/index.js';
+import { projectInitializerFactory } from './project-initializer/index.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
 import { getProjectRoot } from './get_project_root.js';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
@@ -24,7 +26,7 @@ const projectRoot = await getProjectRoot();
 const getPackageManager: () => PackageManager = () => {
   if (!process.env.npm_config_user_agent) {
     logger.warn('Could not determine package manager, defaulting to npm');
-    return packageManagers['npm'];
+    return getPackageManagerFactory('npm');
   }
 
   const userAgent = process.env.npm_config_user_agent;
@@ -38,28 +40,20 @@ const getPackageManager: () => PackageManager = () => {
     const yarnName: PackageManagerName = `${packageManagerName}-${
       yarnMajorVersion === '1' ? 'classic' : 'modern'
     }`;
-    return packageManagers[yarnName];
-  } else if (
-    Object.getOwnPropertyDescriptor(packageManagers, packageManagerName)
-  ) {
-    return packageManagers[packageManagerName as PackageManagerName];
+    return getPackageManagerFactory(yarnName);
   }
-  return packageManagers['npm'];
+  return getPackageManagerFactory(packageManagerName as PackageManagerName);
 };
 
 const packageManager = getPackageManager();
+const PackageController = packageManagerControllerFactory(packageManager.name);
+const ProjectInitializer = projectInitializerFactory(packageManager.name);
 
 const amplifyProjectCreator = new AmplifyProjectCreator(
-  new packageManagers[packageManager.name].packageManagerController(
-    projectRoot,
-    packageManager
-  ),
+  new PackageController(projectRoot, packageManager),
   new ProjectRootValidator(projectRoot),
   new InitialProjectFileGenerator(projectRoot, packageManager),
-  new packageManagers[packageManager.name].projectInitializer(
-    projectRoot,
-    packageManager
-  ),
+  new ProjectInitializer(projectRoot, packageManager),
   new GitIgnoreInitializer(projectRoot),
   projectRoot,
   packageManager

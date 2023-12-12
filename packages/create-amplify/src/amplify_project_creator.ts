@@ -1,10 +1,10 @@
-import { PackageManagerController } from './package-manager-controller/package_manager_controller.js';
+import { PackageManagerController } from './package-manager-controller/package_manager_controller_factory.js';
 import { ProjectRootValidator } from './project_root_validator.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
 import { NpmProjectInitializer } from './project-initializer/npm_project_initializer.js';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
 import { logger } from './logger.js';
-import { PackageManager } from './package_manager.js';
+import { PackageManager } from './package-manager-controller/package_manager.js';
 import { YarnClassicProjectInitializer } from './project-initializer/yarn_classic_project_initializer.js';
 import { YarnModernProjectInitializer } from './project-initializer/yarn_modern_project_initializer.js';
 import { PnpmProjectInitializer } from './project-initializer/pnpm_project_initializer.js';

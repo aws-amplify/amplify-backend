@@ -3,7 +3,7 @@ import * as path from 'path';
 import { execa as _execa } from 'execa';
 import { logger } from '../logger.js';
 import { executeWithDebugLogger } from '../execute_with_logger.js';
-import { type PackageManager } from '../package_manager.js';
+import { type PackageManager } from '../package-manager-controller/package_manager.js';
 
 /**
  * Ensure that the current working directory is a valid JavaScript project

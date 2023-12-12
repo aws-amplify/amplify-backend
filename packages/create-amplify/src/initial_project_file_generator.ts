@@ -3,7 +3,7 @@ import fs from 'fs';
 import _fs from 'fs/promises';
 import { executeWithDebugLogger as _executeWithDebugLogger } from './execute_with_logger.js';
 import { execa } from 'execa';
-import { type PackageManager } from './package_manager.js';
+import { type PackageManager } from './package-manager-controller/package_manager.js';
 
 /**
  *
