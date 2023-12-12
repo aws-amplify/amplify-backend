@@ -72,7 +72,7 @@ jobs:
       - name: Check API changes
         run: |
           mkdir api-validation-temp-dir/api-validation-projects
-          npx tsx scripts/check_api_changes.ts api-validation-temp-dir/base-branch-content api-validation-projects
+          npx tsx scripts/check_api_changes.ts api-validation-temp-dir/base-branch-content api-validation-temp-dir/api-validation-projects
   do_include_e2e:
     runs-on: ubuntu-latest
     permissions:
