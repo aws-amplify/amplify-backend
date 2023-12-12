@@ -92,12 +92,27 @@ export class AmplifyPasswordlessAuth extends Construct {
     const smsEnabled = !!props.otp?.sms;
 
     if (emailEnabled) {
+      const emails = [
+        props.otp?.email?.fromAddress,
+        props.magicLink?.email.fromAddress,
+      ]
+        .filter(uniqueFilter)
+        .filter(isStringFilter);
+
+      const resources = emails.map((email) => {
+        const domain = email.split('@')[1];
+        return `arn:${Aws.PARTITION}:ses:${Aws.REGION}:${Aws.ACCOUNT_ID}:identity/${domain}`;
+      });
+
       createAuthChallenge.addToRolePolicy(
         new PolicyStatement({
           actions: ['ses:SendEmail'],
-          resources: [
-            `arn:${Aws.PARTITION}:ses:${Aws.REGION}:${Aws.ACCOUNT_ID}:identity/*`,
-          ],
+          resources: resources,
+          conditions: {
+            StringLike: {
+              'ses:FromAddress': emails,
+            },
+          },
         })
       );
     }
@@ -143,3 +158,10 @@ export class AmplifyPasswordlessAuth extends Construct {
     }
   }
 }
+
+const uniqueFilter = <T>(value: T, index: number, self: T[]) => {
+  return self.indexOf(value) === index;
+};
+
+const isStringFilter = (item: string | undefined): item is string =>
+  item != undefined;
