@@ -62,54 +62,57 @@ Within the `packages` directory are each of the packages that we publish to npm 
 
 ```mermaid
 sequenceDiagram
+autonumber
 activate backend.ts
-backend.ts->ResourceFactory:define resource definition
+backend.ts->>ResourceFactory:define resource definition
 activate ResourceFactory
-backend.ts->BackendFactory:defineBackend(resourceFactories)
+backend.ts->>BackendFactory:defineBackend(resourceFactories)
 activate BackendFactory
-
-BackendFactory->BackendFactory:Initialize components
+BackendFactory->>ConstructContainer: Initialize
 activate ConstructContainer
+BackendFactory->>ImportPathVerifier: Initialize
 activate ImportPathVerifier
+BackendFactory->>BackendSecretResolver: Initialize
 activate BackendSecretResolver
+BackendFactory->>OutputStorageStrategy: Initialize
 activate OutputStorageStrategy
-BackendFactory->BackendFactory:Resolve BackendIdentifier from CDK context
+BackendFactory->>BackendFactory:Resolve BackendIdentifier from CDK context
 alt if branch backend
-BackendFactory->BackendFactory:Add BranchLinker custom resource to root stack
+BackendFactory->>BackendFactory:Add BranchLinker custom resource to root stack
 end
 loop for each resource factory in the backend constructor
-BackendFactory->ConstructContainer:Register resource providers to token strings
+BackendFactory->>ConstructContainer:Register resource providers to token strings
 end
 loop for each resource factory in the backend constructor
-BackendFactory->ResourceFactory:getInstance(constructContainer, outputStorageStrategy, importPathVerifier)
-opt
-ResourceFactory->ResourceFactory:Resolve import path
-ResourceFactory->ImportPathVerifier:Verify import path
+BackendFactory->>ResourceFactory:getInstance(constructContainer, outputStorageStrategy, importPathVerifier)
+opt if resource definition is restricted to a certain file name
+ResourceFactory->>ResourceFactory:Resolve import path
+ResourceFactory->>ImportPathVerifier:Verify import path
 end
 opt get other project resources that this resource needs (eg data needs auth UserPool)
-ResourceFactory->ConstructContainer:Get resource factory registered to a token
-ConstructContainer-->ResourceFactory:resourceFactory instance
-ResourceFactory->ResourceFactory:resourceFactory.getInstance()
+ResourceFactory->>ConstructContainer:Get resource factory registered to a token
+ConstructContainer-->>ResourceFactory:resourceFactory instance
+ResourceFactory->>ResourceFactory:resourceFactory.getInstance()
 note right of ResourceFactory: This is essentially a tree traversal over dependent ResourceFactories
 end
-ResourceFactory->ConstructGenerator:Initialize generator for this resource factory
+ResourceFactory->>ConstructGenerator:Initialize generator for this resource factory
 activate ConstructGenerator
-ResourceFactory->ConstructContainer:getOrCompute(constructGenerator)
+ResourceFactory->>ConstructContainer:getOrCompute(constructGenerator)
 opt if container cache miss
-ConstructContainer->ConstructGenerator:generateContainerEntry(CDK scope, secretResolver)
+ConstructContainer->>ConstructGenerator:generateContainerEntry(CDK scope, secretResolver)
 opt if resources have secret values in config
-ConstructGenerator->BackendSecretResolver: resolve secret tokens
-BackendSecretResolver->BackendSecretResolver: place secret resolver custom resource in stack
-BackendSecretResolver-->ConstructGenerator:return secret CDK token
+ConstructGenerator->>BackendSecretResolver: resolve secret tokens
+BackendSecretResolver->>BackendSecretResolver: place secret resolver custom resource in stack
+BackendSecretResolver-->>ConstructGenerator:return secret CDK token
 end
-ConstructGenerator->ConstructGenerator:Configure CDK L1/2 constructs
-ConstructGenerator->OutputStorageStrategy: Store output needed for client config
-OutputStorageStrategy->OutputStorageStrategy: set stack metadata and outputs
-ConstructGenerator-->ConstructContainer: initialized CDK construct
-ConstructContainer->ConstructContainer: cache CDK construct
+ConstructGenerator->>ConstructGenerator:Configure CDK L1/2 constructs
+ConstructGenerator->>OutputStorageStrategy: Store output needed for client config
+OutputStorageStrategy->>OutputStorageStrategy: set stack metadata and outputs
+ConstructGenerator-->>ConstructContainer: initialized CDK construct
+ConstructContainer->>ConstructContainer: cache CDK construct
 end
-ConstructContainer-->ResourceFactory:Construct instance
-ResourceFactory-->BackendFactory:Construct instance
+ConstructContainer-->>ResourceFactory:Construct instance
+ResourceFactory-->>BackendFactory:Construct instance
 deactivate ResourceFactory
 deactivate ConstructContainer
 deactivate ImportPathVerifier
@@ -117,8 +120,9 @@ deactivate ConstructGenerator
 deactivate BackendSecretResolver
 deactivate OutputStorageStrategy
 end
-BackendFactory->BackendFactory:Compose all resource instances into Backend object
-BackendFactory-->backend.ts: return backend object
+BackendFactory->>BackendFactory:Compose all resource instances into Backend object
+BackendFactory-->>backend.ts: return backend object
 deactivate BackendFactory
-backend.ts->backend.ts: apply customer-defined overrides and custom resources
+backend.ts->>backend.ts: apply customer-defined overrides and custom resources
+
 ```
