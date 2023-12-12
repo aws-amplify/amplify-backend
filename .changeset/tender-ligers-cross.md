@@ -1,5 +1,4 @@
 ---
-'@aws-amplify/storage-construct-alpha': minor
 '@aws-amplify/backend-data': minor
 '@aws-amplify/plugin-types': minor
 '@aws-amplify/backend': minor
