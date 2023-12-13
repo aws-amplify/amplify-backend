@@ -7,6 +7,7 @@ import {
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import { BackendSecretResolverStub } from './backend_secret_resolver_stub.js';
+import { Construct } from 'constructs';
 
 /**
  * Stub implementation of ConstructContainer. Currently, it is the same as the implementation in @aws-amplify/backend but this doesn't need to be the case moving forward
@@ -15,7 +16,7 @@ export class ConstructContainerStub implements ConstructContainer {
   // uses the CacheEntryGenerator as the map key. The value is what the generator returned the first time it was seen
   private readonly providerCache: Map<
     ConstructContainerEntryGenerator,
-    ResourceProvider
+    ResourceProvider & Construct
   > = new Map();
 
   private readonly providerFactoryTokenMap: Record<string, ConstructFactory> =
@@ -32,7 +33,7 @@ export class ConstructContainerStub implements ConstructContainer {
    */
   getOrCompute = (
     generator: ConstructContainerEntryGenerator
-  ): ResourceProvider => {
+  ): ResourceProvider & Construct => {
     if (!this.providerCache.has(generator)) {
       const scope = this.stackResolver.getStackFor(generator.resourceGroupName);
       const backendId = getBackendIdentifierStub();

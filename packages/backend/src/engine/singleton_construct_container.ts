@@ -7,15 +7,16 @@ import {
 } from '@aws-amplify/plugin-types';
 import { getBackendIdentifier } from '../backend_identifier.js';
 import { DefaultBackendSecretResolver } from './backend-secret/backend_secret_resolver.js';
+import { Construct } from 'constructs';
 
 /**
  * Serves as a DI container and shared state store for initializing Amplify constructs
  */
 export class SingletonConstructContainer implements ConstructContainer {
   // uses the CacheEntryGenerator as the map key. The value is what the generator returned the first time it was seen
-  private readonly providerCache: Map<
+  private readonly constructCache: Map<
     ConstructContainerEntryGenerator,
-    ResourceProvider
+    ResourceProvider & Construct
   > = new Map();
 
   private readonly providerFactoryTokenMap: Record<string, ConstructFactory> =
@@ -32,22 +33,22 @@ export class SingletonConstructContainer implements ConstructContainer {
    */
   getOrCompute = (
     generator: ConstructContainerEntryGenerator
-  ): ResourceProvider => {
-    if (!this.providerCache.has(generator)) {
+  ): ResourceProvider & Construct => {
+    if (!this.constructCache.has(generator)) {
       const scope = this.stackResolver.getStackFor(generator.resourceGroupName);
       const backendId = getBackendIdentifier(scope);
       const backendSecretResolver = new DefaultBackendSecretResolver(
         scope,
         backendId
       );
-      this.providerCache.set(
+      this.constructCache.set(
         generator,
         generator.generateContainerEntry(scope, backendSecretResolver)
       );
     }
     // safe because we set if it doesn't exist above
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    return this.providerCache.get(generator)!;
+    return this.constructCache.get(generator)!;
   };
 
   /**

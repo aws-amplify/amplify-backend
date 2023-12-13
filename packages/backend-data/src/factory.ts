@@ -164,5 +164,5 @@ class DataGenerator implements ConstructContainerEntryGenerator {
  */
 export const defineData = (
   props: DataProps
-): ConstructFactory<ResourceProvider<AmplifyDataResources>> =>
+): ConstructFactory<ResourceProvider<AmplifyDataResources> & Construct> =>
   new DataFactory(props, new Error().stack);
