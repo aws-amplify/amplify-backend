@@ -1,12 +1,17 @@
 import fs from 'fs/promises';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
-import { TestProjectBase } from './test_project_base.js';
-import { TestProjectCreator } from './test_project_creator.js';
+import { TestProjectBase } from '../test_project_base.js';
+import { TestProjectCreator } from '../test_project_creator.js';
 import { CognitoIdentityProviderClient } from '@aws-sdk/client-cognito-identity-provider';
-import { createEmptyAmplifyProject } from './create_empty_amplify_project.js';
+import { createEmptyAmplifyProject } from '../create_empty_amplify_project.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
-import { DeployedResourcesFinder } from '../find_deployed_resource.js';
+import { DeployedResourcesFinder } from '../../find_deployed_resource.js';
 import assert from 'node:assert';
+import {
+  SignInWithMagicLink,
+  SignInWithMagicLinkWithUnverifiedAttribute,
+} from './passwordless_auth_tests.js';
+import { getUsername } from './passwordless_auth_resources.js';
 
 /**
  * Creates test projects with passwordless auth.
@@ -50,7 +55,8 @@ export class PasswordlessAuthTestProjectCreator implements TestProjectCreator {
  * Test project with passwordless auth.
  */
 class PasswordlessAuthTestProject extends TestProjectBase {
-  readonly sourceProjectDirPath = '../../src/test-projects/passwordless-auth';
+  readonly sourceProjectDirPath =
+    '../../../src/test-projects/passwordless-auth';
 
   readonly sourceProjectAmplifyDirSuffix = `${this.sourceProjectDirPath}/amplify`;
 
@@ -73,10 +79,22 @@ class PasswordlessAuthTestProject extends TestProjectBase {
     super(name, projectDirPath, projectAmplifyDirPath, cfnClient);
   }
 
+  /**
+   * @inheritdoc
+   */
   override async assertPostDeployment(
     backendId: BackendIdentifier
   ): Promise<void> {
     await super.assertPostDeployment(backendId);
+    await this.assertPasswordlessAuth(backendId);
+  }
+
+  /**
+   * creates assertions for passwordless auth
+   */
+  private async assertPasswordlessAuth(
+    backendId: BackendIdentifier
+  ): Promise<void> {
     const userPoolClientId = (
       await this.resourceFinder.find(backendId, 'AWS::Cognito::UserPoolClient')
     )[0];
@@ -84,9 +102,30 @@ class PasswordlessAuthTestProject extends TestProjectBase {
       await this.resourceFinder.find(backendId, 'AWS::Cognito::UserPool')
     )[0];
 
-    assert.notEqual(userPoolClientId, NaN);
-    assert.notEqual(userPoolId, NaN);
+    assert.ok(userPoolClientId);
+    assert.ok(userPoolId);
 
-    // TODO: define tests assertions bellow
+    const passwordlessAuthAssertions = [
+      new SignInWithMagicLink(
+        this.cognitoIdentityProviderClient,
+        userPoolId,
+        userPoolClientId,
+        getUsername()
+      ).run(),
+      new SignInWithMagicLinkWithUnverifiedAttribute(
+        this.cognitoIdentityProviderClient,
+        userPoolId,
+        userPoolClientId,
+        getUsername()
+      ).run(),
+    ];
+
+    const assertions = await Promise.allSettled(passwordlessAuthAssertions);
+    assertions.forEach((assertion) => {
+      if (assertion.status === 'rejected') {
+        console.error(assertion.reason);
+      }
+      assert.equal(assertion.status, 'fulfilled');
+    });
   }
 }
