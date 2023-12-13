@@ -14,7 +14,7 @@ export const auth = defineAuth({
       },
     },
     magicLink: {
-      allowedOrigins: ['http://localhost:3000/'],
+      allowedOrigins: ['https://example.com/magic-link/##code##'],
       email: { fromAddress: 'dummy@email.com' },
     },
   },

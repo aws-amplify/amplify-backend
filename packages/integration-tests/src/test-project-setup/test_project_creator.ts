@@ -7,7 +7,7 @@ import { LambdaClient } from '@aws-sdk/client-lambda';
 import { DeployedResourcesFinder } from '../find_deployed_resource.js';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
 import { CognitoIdentityProviderClient } from '@aws-sdk/client-cognito-identity-provider';
-import { PasswordlessAuthTestProjectCreator } from './passwordless_auth.js';
+import { PasswordlessAuthTestProjectCreator } from './passwordless-auth/passwordless_auth.js';
 
 export type TestProjectCreator = {
   readonly name: string;
