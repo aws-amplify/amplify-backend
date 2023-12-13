@@ -95,7 +95,7 @@ export class BackendFactory<
             importPathVerifier,
           }
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ).resources as any;
+        ) as any;
       }
     );
   }
