@@ -1,11 +1,11 @@
 import fs from 'fs/promises';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
-import { TestProjectBase } from './test_project_base.js';
-import { TestProjectCreator } from './test_project_creator.js';
+import { TestProjectBase } from '../test_project_base.js';
+import { TestProjectCreator } from '../test_project_creator.js';
 import { CognitoIdentityProviderClient } from '@aws-sdk/client-cognito-identity-provider';
-import { createEmptyAmplifyProject } from './create_empty_amplify_project.js';
+import { createEmptyAmplifyProject } from '../create_empty_amplify_project.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
-import { DeployedResourcesFinder } from '../find_deployed_resource.js';
+import { DeployedResourcesFinder } from '../../find_deployed_resource.js';
 import assert from 'node:assert';
 import {
   SignInWithMagicLink,
@@ -55,7 +55,8 @@ export class PasswordlessAuthTestProjectCreator implements TestProjectCreator {
  * Test project with passwordless auth.
  */
 class PasswordlessAuthTestProject extends TestProjectBase {
-  readonly sourceProjectDirPath = '../../src/test-projects/passwordless-auth';
+  readonly sourceProjectDirPath =
+    '../../../src/test-projects/passwordless-auth';
 
   readonly sourceProjectAmplifyDirSuffix = `${this.sourceProjectDirPath}/amplify`;
 
@@ -121,6 +122,9 @@ class PasswordlessAuthTestProject extends TestProjectBase {
 
     const assertions = await Promise.allSettled(passwordlessAuthAssertions);
     assertions.forEach((assertion) => {
+      if (assertion.status === 'rejected') {
+        console.error(assertion.reason);
+      }
       assert.equal(assertion.status, 'fulfilled');
     });
   }

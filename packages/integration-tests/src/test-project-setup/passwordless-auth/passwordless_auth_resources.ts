@@ -7,13 +7,13 @@ import {
   RespondToAuthChallengeCommandInput,
   RespondToAuthChallengeCommandOutput,
 } from '@aws-sdk/client-cognito-identity-provider';
-import { shortUuid } from '../short_uuid.js';
+import { shortUuid } from '../../short_uuid.js';
 
 /**
  * Generate a username
  */
 export const getUsername = (): string => {
-  return String(`dummy_${shortUuid()}@email.com`);
+  return String(`dummy_${shortUuid()}@amazon.com`);
 };
 
 /**
