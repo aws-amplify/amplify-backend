@@ -216,9 +216,10 @@ export class ClassUsageStatementsGenerator implements UsageStatementsGenerator {
 }
 
 /**
- * Generates usage of a variable/const/arrow function
+ * Generates usage of a variable/const/arrow function declared as top level export
+ * , i.e. 'const someConst = ...`;
  *
- * TODO this only emits import to satisfy symbols potentially using this variable until we figure out how to generate usage snippets
+ * TODO this handles functions for now, add variable/const.
  */
 export class VariableUsageStatementsGenerator
   implements UsageStatementsGenerator
@@ -234,12 +235,144 @@ export class VariableUsageStatementsGenerator
     if (this.variableStatement.declarationList.declarations.length != 1) {
       throw new Error('Unexpected variable declarations count');
     }
-    const variableName =
-      this.variableStatement.declarationList.declarations[0].name.getText();
-    // TODO only emit import to satisfy symbols potentially using this symbol
-    // until we figure out how to generate usage snippets
+    const variableDeclaration =
+      this.variableStatement.declarationList.declarations[0];
+    const variableName = variableDeclaration.name.getText();
+    let usageStatement: string | undefined;
+    if (variableDeclaration.type?.kind === ts.SyntaxKind.FunctionType) {
+      usageStatement = new CallableUsageStatementsGenerator(
+        variableDeclaration.type as ts.FunctionTypeNode,
+        variableName,
+        `${variableName}UsageFunction`
+      ).generate().usageStatement;
+    }
+
     return {
       importStatement: `import { ${variableName} } from '${this.packageName}';`,
+      usageStatement,
+    };
+  };
+}
+
+/**
+ * Generates usage of a callable statement like function, constructor, class method.
+ *
+ * For example for function defined as:
+ *
+ * export const someFunction: (param1: string, param2?: number) => string;
+ *
+ * it generates the following
+ *
+ * import { someFunction } from 'samplePackageName';
+ *
+ * const someFunctionUsageFunction = (param1: string, param2?: number) => {
+ *     const returnValue: string = someFunction(param1);
+ *     someFunction(param1, param2);
+ * }
+ */
+export class CallableUsageStatementsGenerator
+  implements UsageStatementsGenerator
+{
+  /**
+   * @inheritDoc
+   */
+  constructor(
+    private readonly functionType: ts.FunctionTypeNode,
+    private readonly callableSymbol: string,
+    private readonly usageFunctionName: string
+  ) {}
+  generate = (): UsageStatements => {
+    const usageFunctionParameterDeclaration =
+      new CallableParameterDeclarationUsageStatementsGenerator(
+        this.functionType.parameters
+      ).generate().usageStatement ?? '';
+    const usageFunctionGenericParametersDeclaration =
+      new GenericTypeParameterDeclarationUsageStatementsGenerator(
+        this.functionType.typeParameters
+      ).generate().usageStatement ?? '';
+    let returnValueAssignmentTarget = '';
+    if (this.functionType.type.kind !== ts.SyntaxKind.VoidKeyword) {
+      returnValueAssignmentTarget = `const returnValue: ${this.functionType.type.getText()} = `;
+    }
+    const minParameterUsage =
+      new CallableParameterUsageStatementsGenerator(
+        this.functionType.parameters,
+        'min'
+      ).generate().usageStatement ?? '';
+    const maxParameterUsage =
+      new CallableParameterUsageStatementsGenerator(
+        this.functionType.parameters,
+        'max'
+      ).generate().usageStatement ?? '';
+    let usageStatement = `const ${this.usageFunctionName} = ${usageFunctionGenericParametersDeclaration}(${usageFunctionParameterDeclaration}) => {${EOL}`;
+    usageStatement += `    ${returnValueAssignmentTarget}${this.callableSymbol}(${minParameterUsage});${EOL}`;
+    usageStatement += `    ${this.callableSymbol}(${maxParameterUsage});${EOL}`;
+    usageStatement += `}${EOL}`;
+    return { usageStatement };
+  };
+}
+/**
+ * Generates a parameter declaration for a callable statement.
+ *
+ * For example when generating function usage statement:
+ * const someFunctionUsageFunction = (<code from this generator goes here>) => {
+ * }
+ */
+export class CallableParameterDeclarationUsageStatementsGenerator
+  implements UsageStatementsGenerator
+{
+  /**
+   * @inheritDoc
+   */
+  constructor(
+    private readonly parameters: ts.NodeArray<ts.ParameterDeclaration>
+  ) {}
+  generate = (): UsageStatements => {
+    const usageStatement = this.parameters
+      .map((parameter) => parameter.getText())
+      .join(', ');
+    return {
+      usageStatement,
+    };
+  };
+}
+
+/**
+ * Generates parameter usage of a callable statement.
+ *
+ * For example in function usage statement:
+ * const someFunctionUsageFunction = (param1: string, param2?: number) => {
+ *     const returnValue: string = someFunction(<code from this generator goes here>);
+ *     someFunction(<code from this generator goes here>);
+ * }
+ */
+export class CallableParameterUsageStatementsGenerator
+  implements UsageStatementsGenerator
+{
+  /**
+   * @inheritDoc
+   */
+  constructor(
+    private readonly parameters: ts.NodeArray<ts.ParameterDeclaration>,
+    private readonly strategy: 'min' | 'max'
+  ) {}
+  generate = (): UsageStatements => {
+    const usageStatement = this.parameters
+      .filter((parameter) => {
+        switch (this.strategy) {
+          case 'min':
+            return (
+              parameter.questionToken === undefined &&
+              parameter.initializer === undefined
+            );
+          case 'max':
+            return true;
+        }
+      })
+      .map((parameter) => parameter.name.getText())
+      .join(', ');
+    return {
+      usageStatement,
     };
   };
 }

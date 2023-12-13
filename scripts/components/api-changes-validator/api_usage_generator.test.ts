@@ -53,14 +53,47 @@ import { SomeType } from 'some-package';
     `,
   },
   {
-    description: 'generates const/function usage',
+    description: 'generates const usage',
     apiReportCode: `
 export const someConst: string;
-export const someFunction: () => void;
     `,
     expectedApiUsage: `
 import { someConst } from 'samplePackageName';
-import { someFunction } from 'samplePackageName';
+    `,
+  },
+  {
+    description: 'generates arrow function usage',
+    apiReportCode: `
+export const someFunction1: () => void;
+export const someFunction2: (param1: string, param2?: number) => string;
+export const someFunction3: (param1: string, param2: number = 1) => string;
+export const someFunction4: <T1, T2, T3>(param1: T1, param2?: T2) => Promise<T3>;
+    `,
+    expectedApiUsage: `
+import { someFunction1 } from 'samplePackageName';
+import { someFunction2 } from 'samplePackageName';
+import { someFunction3 } from 'samplePackageName';
+import { someFunction4 } from 'samplePackageName';
+
+const someFunction1UsageFunction = () => {
+    someFunction1();
+    someFunction1();
+}
+
+const someFunction2UsageFunction = (param1: string, param2?: number) => {
+    const returnValue: string = someFunction2(param1);
+    someFunction2(param1, param2);
+}
+
+const someFunction3UsageFunction = (param1: string, param2: number = 1) => {
+    const returnValue: string = someFunction3(param1);
+    someFunction3(param1, param2);
+}
+
+const someFunction4UsageFunction = <T1, T2, T3>(param1: T1, param2?: T2) => {
+    const returnValue: Promise<T3> = someFunction4(param1);
+    someFunction4(param1, param2);
+}
     `,
   },
   {
