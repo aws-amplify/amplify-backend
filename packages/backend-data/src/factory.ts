@@ -162,7 +162,5 @@ class DataGenerator implements ConstructContainerEntryGenerator {
 /**
  * Creates a factory that implements ConstructFactory<AmplifyGraphqlApi>
  */
-export const defineData = (
-  props: DataProps
-): ConstructFactory<ResourceProvider<AmplifyDataResources> & Construct> =>
+export const defineData = (props: DataProps): ConstructFactory<AmplifyData> =>
   new DataFactory(props, new Error().stack);
