@@ -5,6 +5,13 @@ import { YarnClassicProjectInitializer } from './yarn_classic_project_initialize
 import { YarnModernProjectInitializer } from './yarn_modern_project_initializer.js';
 
 /**
+ *
+ */
+export abstract class ProjectInitializer {
+  abstract ensureInitialized: () => Promise<void>;
+}
+
+/**
  * projectInitializerFactory
  */
 export const projectInitializerFactory = (

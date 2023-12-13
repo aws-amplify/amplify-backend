@@ -1,4 +1,9 @@
-import { type PackageManagerName } from './package_manager.js';
+import { execa as _execa } from 'execa';
+import {
+  type PackageManagerName,
+  type PackageManagerProps,
+  type PackageManagers,
+} from './package_manager.js';
 import { NpmPackageManagerController } from './npm_package_manager_controller.js';
 import { PnpmPackageManagerController } from './pnpm_package_manager_controller.js';
 import { YarnClassicPackageManagerController } from './yarn_classic_package_manager_controller.js';
@@ -6,12 +11,15 @@ import { YarnModernPackageManagerController } from './yarn_modern_package_manage
 
 export type DependencyType = 'dev' | 'prod';
 
-export type PackageManagerController = {
-  installDependencies: (
+/**
+ *
+ */
+export abstract class PackageManagerController {
+  abstract installDependencies: (
     packageNames: string[],
     type: DependencyType
   ) => Promise<void>;
-};
+}
 
 /**
  * packageManagerControllerFactory creates PackageManagerController for the Package Manager

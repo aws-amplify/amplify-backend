@@ -10,9 +10,9 @@
 import { ProjectRootValidator } from './project_root_validator.js';
 import { AmplifyProjectCreator } from './amplify_project_creator.js';
 import {
-  type PackageManager,
+  PackageManagerBase,
   type PackageManagerName,
-  getPackageManagerFactory,
+  type PackageManagerProps,
   packageManagerControllerFactory,
 } from './package-manager-controller/index.js';
 import { projectInitializerFactory } from './project-initializer/index.js';
@@ -23,10 +23,11 @@ import { logger } from './logger.js';
 
 const projectRoot = await getProjectRoot();
 
-const getPackageManager: () => PackageManager = () => {
+const getPackageManager: () => PackageManagerProps = () => {
+  const getPackageManagerConfig = new PackageManagerBase().getPackageManager;
   if (!process.env.npm_config_user_agent) {
     logger.warn('Could not determine package manager, defaulting to npm');
-    return getPackageManagerFactory('npm');
+    return getPackageManagerConfig('npm');
   }
 
   const userAgent = process.env.npm_config_user_agent;
@@ -40,9 +41,9 @@ const getPackageManager: () => PackageManager = () => {
     const yarnName: PackageManagerName = `${packageManagerName}-${
       yarnMajorVersion === '1' ? 'classic' : 'modern'
     }`;
-    return getPackageManagerFactory(yarnName);
+    return getPackageManagerConfig(yarnName);
   }
-  return getPackageManagerFactory(packageManagerName as PackageManagerName);
+  return getPackageManagerConfig(packageManagerName as PackageManagerName);
 };
 
 const packageManager = getPackageManager();

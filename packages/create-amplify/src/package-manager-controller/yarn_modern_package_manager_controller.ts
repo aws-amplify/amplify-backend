@@ -1,6 +1,6 @@
 import { execa as _execa } from 'execa';
 import { executeWithDebugLogger } from '../execute_with_logger.js';
-import { type PackageManager } from './package_manager.js';
+import { type PackageManagerProps } from './package_manager.js';
 import {
   DependencyType,
   PackageManagerController,
@@ -17,7 +17,7 @@ export class YarnModernPackageManagerController
    */
   constructor(
     private readonly projectRoot: string,
-    private readonly packageManager: PackageManager,
+    private readonly packageManager: PackageManagerProps,
     private readonly execa = _execa
   ) {}
 

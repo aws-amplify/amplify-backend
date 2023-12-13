@@ -3,18 +3,19 @@ import * as path from 'path';
 import { execa as _execa } from 'execa';
 import { logger } from '../logger.js';
 import { executeWithDebugLogger } from '../execute_with_logger.js';
-import { type PackageManager } from '../package-manager-controller/package_manager.js';
+import { type PackageManagerProps } from '../package-manager-controller/package_manager.js';
+import { ProjectInitializer } from './project_initializer_factory.js';
 
 /**
  * Ensure that the current working directory is a valid JavaScript project
  */
-export class NpmProjectInitializer {
+export class NpmProjectInitializer implements ProjectInitializer {
   /**
    * injecting console and fs for testing
    */
   constructor(
     private readonly projectRoot: string,
-    private readonly packageManager: PackageManager,
+    private readonly packageManager: PackageManagerProps,
     private readonly existsSync = _existsSync,
     private readonly execa = _execa
   ) {}

@@ -11,7 +11,7 @@ type PackageManagerLockFile =
   | 'yarn.lock'
   | 'pnpm-lock.yaml';
 type PackageManagerInitDefault = Readonly<string[]>;
-export type PackageManager = {
+export type PackageManagerProps = {
   name: PackageManagerName;
   executable: PackageManagerExecutable;
   binaryRunner: PackageManagerBinaryRunner;
@@ -19,17 +19,16 @@ export type PackageManager = {
   lockFile: PackageManagerLockFile;
   initDefault: PackageManagerInitDefault;
 };
+
 export type PackageManagers = {
-  [key in PackageManagerName]: PackageManager;
+  [key in PackageManagerName]: PackageManagerProps;
 };
 
 /**
- * getPackageManager config
+ *
  */
-export const getPackageManagerFactory = (
-  packageManagerName: PackageManagerName
-) => {
-  const packageManagers: PackageManagers = {
+export class PackageManagerBase {
+  private packageManagers: PackageManagers = {
     npm: {
       name: 'npm',
       executable: 'npm',
@@ -62,13 +61,17 @@ export const getPackageManagerFactory = (
       lockFile: 'pnpm-lock.yaml',
       initDefault: ['init'],
     },
-  } as const;
+  };
 
-  if (!packageManagers[packageManagerName]) {
+  /**
+   * getPackageManager
+   */
+  getPackageManager(packageManagerName: PackageManagerName) {
+    if (this.packageManagers[packageManagerName]) {
+      return this.packageManagers[packageManagerName];
+    }
     throw new Error(
       `${packageManagerName} is not a supported package manager.`
     );
   }
-
-  return packageManagers[packageManagerName];
-};
+}
