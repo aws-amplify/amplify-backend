@@ -25,10 +25,10 @@ export type TestCdkProjectCreator = {
  * Generates a list of test cdk projects.
  */
 export const getTestCdkProjectCreators = (): TestCdkProjectCreator[] => {
-  const testProjectCreators: TestCdkProjectCreator[] = [];
+  const testCdkProjectCreators: TestCdkProjectCreator[] = [];
 
   const cfnClient = new CloudFormationClient(e2eToolingClientConfig);
   const resourceFinder = new DeployedResourcesFinder(cfnClient);
-  testProjectCreators.push(new AuthTestCdkProjectCreator(resourceFinder));
-  return testProjectCreators;
+  testCdkProjectCreators.push(new AuthTestCdkProjectCreator(resourceFinder));
+  return testCdkProjectCreators;
 };
