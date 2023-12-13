@@ -5,6 +5,7 @@
 ```ts
 
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
+import { Construct } from 'constructs';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { IBucket } from 'aws-cdk-lib/aws-s3';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
@@ -20,7 +21,7 @@ export type AmplifyStorageProps = {
 };
 
 // @public
-export const defineStorage: (props: AmplifyStorageProps) => ConstructFactory<ResourceProvider<StorageResources>>;
+export const defineStorage: (props: AmplifyStorageProps) => ConstructFactory<ResourceProvider<StorageResources> & Construct>;
 
 // @public (undocumented)
 export type StorageResources = {

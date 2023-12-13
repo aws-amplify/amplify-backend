@@ -6,6 +6,7 @@
 
 import { AmplifyDataResources } from '@aws-amplify/data-construct';
 import { AmplifyFunction } from '@aws-amplify/plugin-types';
+import { Construct } from 'constructs';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { DerivedModelSchema } from '@aws-amplify/data-schema-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
@@ -40,7 +41,7 @@ export type DataSchema = string | DerivedModelSchema;
 export type DefaultAuthorizationMode = 'iam' | 'userPool' | 'oidc' | 'apiKey' | 'lambda';
 
 // @public
-export const defineData: (props: DataProps) => ConstructFactory<ResourceProvider<AmplifyDataResources>>;
+export const defineData: (props: DataProps) => ConstructFactory<ResourceProvider<AmplifyDataResources> & Construct>;
 
 // @public
 export type LambdaAuthorizationModeProps = {
