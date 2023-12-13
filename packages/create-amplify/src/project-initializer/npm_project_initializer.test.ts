@@ -4,13 +4,13 @@ import assert from 'assert';
 import { PackageManagerBase } from '../package-manager-controller/index.js';
 
 void describe('InitializedEnsurer', () => {
-  const getPackageManagerConfig = new PackageManagerBase().getPackageManager;
+  const packageManager = new PackageManagerBase();
   void it('does nothing if package.json already exists', async () => {
     const existsSyncMock = mock.fn(() => true);
     const execaMock = mock.fn();
     const npmInitializedEnsurer = new NpmProjectInitializer(
       '/testProjectRoot',
-      getPackageManagerConfig('npm'),
+      packageManager.getPackageManager('npm'),
       existsSyncMock,
       execaMock as never
     );
@@ -34,7 +34,7 @@ void describe('InitializedEnsurer', () => {
     await npmInitializedEnsurer.ensureInitialized();
     assert.equal(execaMock.mock.callCount(), 1);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments, [
-      getPackageManagerConfig('npm'),
+      packageManager.getPackageManager('npm'),
       ['init', '--yes'],
       { stdin: 'inherit', cwd: '/testProjectRoot' },
     ]);
@@ -47,7 +47,7 @@ void describe('InitializedEnsurer', () => {
     });
     const npmInitializedEnsurer = new NpmProjectInitializer(
       '/testProjectRoot',
-      getPackageManagerConfig('npm'),
+      packageManager.getPackageManager('npm'),
       existsSyncMock,
       execaMock as never
     );
@@ -62,7 +62,7 @@ void describe('InitializedEnsurer', () => {
     const execaMock = mock.fn();
     const npmInitializedEnsurer = new NpmProjectInitializer(
       '/testProjectRoot',
-      getPackageManagerConfig('npm'),
+      packageManager.getPackageManager('npm'),
       existsSyncMock,
       execaMock as never
     );

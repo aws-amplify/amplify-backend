@@ -24,10 +24,10 @@ import { logger } from './logger.js';
 const projectRoot = await getProjectRoot();
 
 const getPackageManager: () => PackageManagerProps = () => {
-  const getPackageManagerConfig = new PackageManagerBase().getPackageManager;
+  const packageManager = new PackageManagerBase();
   if (!process.env.npm_config_user_agent) {
     logger.warn('Could not determine package manager, defaulting to npm');
-    return getPackageManagerConfig('npm');
+    return packageManager.getPackageManager('npm');
   }
 
   const userAgent = process.env.npm_config_user_agent;
@@ -41,9 +41,11 @@ const getPackageManager: () => PackageManagerProps = () => {
     const yarnName: PackageManagerName = `${packageManagerName}-${
       yarnMajorVersion === '1' ? 'classic' : 'modern'
     }`;
-    return getPackageManagerConfig(yarnName);
+    return packageManager.getPackageManager(yarnName);
   }
-  return getPackageManagerConfig(packageManagerName as PackageManagerName);
+  return packageManager.getPackageManager(
+    packageManagerName as PackageManagerName
+  );
 };
 
 const packageManager = getPackageManager();
