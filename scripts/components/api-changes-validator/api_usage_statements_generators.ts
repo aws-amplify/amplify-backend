@@ -47,7 +47,7 @@ export class GenericTypeParameterDeclarationUsageStatementsGenerator
  *
  * Example:
  * type SomeType<T> = {};
- * const someFunction(param: SomeType<here goes output from this generator>);
+ * const someFunction = <T1, T2>(param: SomeType<here goes output from this generator>) => {...};
  *
  * Note: this generator generates minimal required usage at this time.
  */
@@ -70,21 +70,11 @@ export class GenericTypeParameterUsageStatementsGenerator
     if (!this.typeParameters || this.typeParameters.length === 0) {
       return {};
     }
-    const parametersWithoutDefaults = this.typeParameters.filter(
-      (parameter) => !parameter.default
-    );
-    if (parametersWithoutDefaults.length === 0) {
-      return {};
-    }
-    const statements: Array<string> = [];
-    for (const typeParameter of parametersWithoutDefaults) {
-      if (typeParameter.constraint) {
-        statements.push(typeParameter.constraint.getText());
-      } else {
-        statements.push('string');
-      }
-    }
-    return { usageStatement: `<${statements.join(', ')}>` };
+    return {
+      usageStatement: `<${this.typeParameters
+        .map((item) => item.name.getText())
+        .join(', ')}>`,
+    };
   };
 }
 
@@ -147,7 +137,9 @@ export class TypeUsageStatementsGenerator implements UsageStatementsGenerator {
     // declare type with same content under different name.
     let usageStatement = `type ${baselineTypeName}${genericTypeParametersDeclaration} = ${this.typeAliasDeclaration.type.getText()}${EOL}`;
     // add statement that checks if old type can be assigned to new type.
-    usageStatement += `const ${typeName}UsageFunction = (${functionParameterName}: ${baselineTypeName}${genericTypeParameters}) => {${EOL}`;
+    usageStatement += `const ${toLowerCamelCase(
+      typeName
+    )}UsageFunction = ${genericTypeParametersDeclaration}(${functionParameterName}: ${baselineTypeName}${genericTypeParameters}) => {${EOL}`;
     usageStatement += `    const ${constName}: ${typeName}${genericTypeParameters} = ${functionParameterName};${EOL}`;
     usageStatement += `}${EOL}`;
     return {
@@ -191,9 +183,13 @@ export class EnumUsageStatementsGenerator implements UsageStatementsGenerator {
 }
 
 /**
- * Generates usage of a class
+ * Generates usage of a class.
+ * Classes can be inherently incompatible in assignments
+ * if they have private members, see https://github.com/microsoft/TypeScript/issues/53558.
+ * Therefore strategy for classes is different. Instead of testing assignability
+ * like we do for types we generate usage of it's members.
  *
- * TODO this only emits import to satisfy symbols potentially using this class until we figure out how to generate usage snippets
+ * TODO This covers properties and methods now, we should cover constructor and inheritance
  */
 export class ClassUsageStatementsGenerator implements UsageStatementsGenerator {
   /**
@@ -209,9 +205,95 @@ export class ClassUsageStatementsGenerator implements UsageStatementsGenerator {
       throw new Error('Class name is missing');
     }
 
+    let usageStatement = '';
+    for (const classMember of this.classDeclaration.members) {
+      switch (classMember.kind) {
+        case ts.SyntaxKind.PropertyDeclaration:
+          usageStatement +=
+            new ClassPropertyUsageStatementsGenerator(
+              this.classDeclaration,
+              classMember as ts.PropertyDeclaration
+            ).generate().usageStatement ?? '';
+          break;
+        default:
+          console.log(
+            `Warning: class usage generator encountered unrecognized member kind ${classMember.kind}`
+          );
+      }
+    }
+
+    if (usageStatement) {
+      usageStatement += EOL;
+    }
+
     return {
       importStatement: `import { ${className} } from '${this.packageName}';`,
+      usageStatement,
     };
+  };
+}
+
+/**
+ * Generates usage patterns for class properties which can be either fields or methods,
+ * static or instance scope.
+ *
+ * Generated code consists of:
+ * 1. outer function which role is to provide parameter reference of class type
+ * 2. inner statement which might be either:
+ *    - attempt to read property and assign its value to local const.
+ *    - attempt to call method, which is wrapped in inner function that provides parameters for the method call.
+ */
+class ClassPropertyUsageStatementsGenerator
+  implements UsageStatementsGenerator
+{
+  constructor(
+    private readonly classDeclaration: ts.ClassDeclaration,
+    private readonly propertyDeclaration: ts.PropertyDeclaration
+  ) {}
+  generate = (): UsageStatements => {
+    const className = this.classDeclaration.name?.getText();
+    if (!className) {
+      throw new Error('Class name is missing');
+    }
+    const memberName = this.propertyDeclaration.name.getText();
+    const isStatic = this.propertyDeclaration.modifiers?.find(
+      (modifier) => modifier.kind === ts.SyntaxKind.StaticKeyword
+    );
+    const outerUsageFunctionName = toLowerCamelCase(
+      `${className}${toPascalCase(memberName)}UsageOuterFunction`
+    );
+    const outerUsageFunctionParameterName = `${outerUsageFunctionName}Parameter`;
+    const genericTypeParametersDeclaration =
+      new GenericTypeParameterDeclarationUsageStatementsGenerator(
+        this.classDeclaration.typeParameters
+      ).generate().usageStatement ?? '';
+    const genericTypeParameters =
+      new GenericTypeParameterUsageStatementsGenerator(
+        this.classDeclaration.typeParameters
+      ).generate().usageStatement ?? '';
+
+    let innerUsageStatement = '';
+    const callableSymbol = isStatic
+      ? `${className}.${memberName}`
+      : `${outerUsageFunctionParameterName}.${memberName}`;
+    if (this.propertyDeclaration.type?.kind === ts.SyntaxKind.FunctionType) {
+      innerUsageStatement =
+        new CallableUsageStatementsGenerator(
+          this.propertyDeclaration.type as ts.FunctionTypeNode,
+          callableSymbol,
+          `${className}${toPascalCase(memberName)}UsageInnerFunction`
+        ).generate().usageStatement ?? '';
+    } else {
+      innerUsageStatement = `const propertyValue: ${
+        this.propertyDeclaration.type?.getText() ?? ''
+      } = ${callableSymbol};${EOL}`;
+    }
+
+    let usageStatement = '';
+    usageStatement += `const ${outerUsageFunctionName} = ${genericTypeParametersDeclaration}(${outerUsageFunctionParameterName}: ${className}${genericTypeParameters}) => {${EOL}`;
+    usageStatement += `${addIndentation(innerUsageStatement)}${EOL}`;
+    usageStatement += `}${EOL}`;
+    return { usageStatement };
   };
 }
 
@@ -245,6 +327,10 @@ export class VariableUsageStatementsGenerator
         variableName,
         `${variableName}UsageFunction`
       ).generate().usageStatement;
+    }
+
+    if (usageStatement) {
+      usageStatement += EOL;
     }
 
     return {
@@ -307,7 +393,7 @@ export class CallableUsageStatementsGenerator
     let usageStatement = `const ${this.usageFunctionName} = ${usageFunctionGenericParametersDeclaration}(${usageFunctionParameterDeclaration}) => {${EOL}`;
     usageStatement += `    ${returnValueAssignmentTarget}${this.callableSymbol}(${minParameterUsage});${EOL}`;
     usageStatement += `    ${this.callableSymbol}(${maxParameterUsage});${EOL}`;
-    usageStatement += `}${EOL}`;
+    usageStatement += `}`;
     return { usageStatement };
   };
 }
@@ -379,4 +465,15 @@ export class CallableParameterUsageStatementsGenerator
 
 const toLowerCamelCase = (name: string): string => {
   return `${name?.substring(0, 1).toLowerCase()}${name?.substring(1)}`;
+};
+
+const toPascalCase = (name: string): string => {
+  return `${name?.substring(0, 1).toUpperCase()}${name?.substring(1)}`;
+};
+
+const addIndentation = (snippet: string): string => {
+  return snippet
+    .split(EOL)
+    .map((line) => `    ${line}`)
+    .join(EOL);
 };
