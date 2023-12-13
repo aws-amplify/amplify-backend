@@ -16,18 +16,23 @@ export abstract class TestCdkProjectBase {
 
   deploy = async () => {
     await cdkCli(
-      ['deploy', this.stackName, '--require-approval', 'never'],
-      this.projectDirPath,
-      {
-        env: {
-          TEST_STACK_NAME: this.stackName,
-        },
-      }
+      [
+        'deploy',
+        this.stackName,
+        '--require-approval',
+        'never',
+        '--context',
+        `test-stack-name=${this.stackName}`,
+      ],
+      this.projectDirPath
     ).run();
   };
 
   tearDown = async () => {
-    await cdkCli(['destroy', '--force'], this.projectDirPath).run();
+    await cdkCli(
+      ['destroy', '--force', '--context', `test-stack-name=${this.stackName}`],
+      this.projectDirPath
+    ).run();
   };
 
   abstract assertPostDeployment(): Promise<void>;
