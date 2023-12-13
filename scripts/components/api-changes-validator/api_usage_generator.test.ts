@@ -122,6 +122,7 @@ export class SomeClass3 {
 }
 export class SomeClass4 {
     someProperty: string;
+    someOptionalProperty?: string;
 }
 export class SomeClass5 {
     static someStaticMethod: (param1: string, param2?: string) => string;
@@ -162,7 +163,9 @@ const someClass3SomeMethodUsageOuterFunction = (someClass3SomeMethodUsageOuterFu
 
 const someClass4SomePropertyUsageOuterFunction = (someClass4SomePropertyUsageOuterFunctionParameter: SomeClass4) => {
     const propertyValue: string = someClass4SomePropertyUsageOuterFunctionParameter.someProperty;
-    
+}
+const someClass4SomeOptionalPropertyUsageOuterFunction = (someClass4SomeOptionalPropertyUsageOuterFunctionParameter: SomeClass4) => {
+    const propertyValue: string | undefined = someClass4SomeOptionalPropertyUsageOuterFunctionParameter.someOptionalProperty;
 }
 
 
@@ -176,7 +179,6 @@ const someClass5SomeStaticMethodUsageOuterFunction = (someClass5SomeStaticMethod
 
 const someClass6SomeStaticPropertyUsageOuterFunction = (someClass6SomeStaticPropertyUsageOuterFunctionParameter: SomeClass6) => {
     const propertyValue: string = SomeClass6.someStaticProperty;
-    
 }
 
 
@@ -188,7 +190,6 @@ const someClass7SomeMethodUsageOuterFunction = <T1, T2, T3, T4, T5, T6>(someClas
 }
 const someClass7SomePropertyUsageOuterFunction = <T1, T2, T3, T4, T5, T6>(someClass7SomePropertyUsageOuterFunctionParameter: SomeClass7<T1, T2, T3, T4, T5, T6>) => {
     const propertyValue: T6 = someClass7SomePropertyUsageOuterFunctionParameter.someProperty;
-    
 }
 
 
@@ -200,7 +201,6 @@ const someAbstractClassSomeMethodUsageOuterFunction = (someAbstractClassSomeMeth
 }
 const someAbstractClassSomePropertyUsageOuterFunction = (someAbstractClassSomePropertyUsageOuterFunctionParameter: SomeAbstractClass) => {
     const propertyValue: string = someAbstractClassSomePropertyUsageOuterFunctionParameter.someProperty;
-    
 }
 const someAbstractClassSomeStaticMethodUsageOuterFunction = (someAbstractClassSomeStaticMethodUsageOuterFunctionParameter: SomeAbstractClass) => {
     const SomeAbstractClassSomeStaticMethodUsageInnerFunction = (param1: string, param2?: string) => {
@@ -210,7 +210,6 @@ const someAbstractClassSomeStaticMethodUsageOuterFunction = (someAbstractClassSo
 }
 const someAbstractClassSomeStaticPropertyUsageOuterFunction = (someAbstractClassSomeStaticPropertyUsageOuterFunctionParameter: SomeAbstractClass) => {
     const propertyValue: string = SomeAbstractClass.someStaticProperty;
-    
 }
     `,
   },

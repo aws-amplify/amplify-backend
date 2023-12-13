@@ -26,6 +26,7 @@ export class SampleClass3 {
 }
 export class SampleClass4 {
   someProperty: string;
+  someOptionalProperty?: string;
 }
 export class SampleClass5 {
   static someStaticMethod = (param1: string, param2?: string): string => {

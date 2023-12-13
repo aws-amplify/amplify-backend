@@ -284,9 +284,12 @@ class ClassPropertyUsageStatementsGenerator
           `${className}${toPascalCase(memberName)}UsageInnerFunction`
         ).generate().usageStatement ?? '';
     } else {
-      innerUsageStatement = `const propertyValue: ${
-        this.propertyDeclaration.type?.getText() ?? ''
-      } = ${callableSymbol};${EOL}`;
+      let propertyType = `${this.propertyDeclaration.type?.getText() ?? ''}`;
+      if (this.propertyDeclaration.questionToken) {
+        // it's fine to append duplicate ' | undefined' if type already has it.
+        propertyType += ' | undefined';
+      }
+      innerUsageStatement = `const propertyValue: ${propertyType} = ${callableSymbol};`;
     }
 
     let usageStatement = '';
