@@ -5,9 +5,6 @@
 </ol>
 <a id="md:in-memory-integration-tests" class="tsd-anchor"></a><h1><a href="#md:in-memory-integration-tests">In memory integration tests</a></h1><p>To run these tests execute <code>npm run test</code> from repository root (they run together with unit tests)
 or <code>npm run test:dir packages/integration-tests/lib/test-in-memory</code> (to run them in isolation).</p>
-<p>These tests compare snapshots of CDK assembly. These snapshots may change if constructs or CDK version
-is changed (e.g. package-lock.json is updated). In order to update snapshots run <code>npm run update:integration-snapshots</code>
-from repository root.</p>
 <p>CDK assembly snapshot comparison can be disabled by setting environment variable
 <code>AMPLIFY_BACKEND_TESTS_DISABLE_INTEGRATION_SNAPSHOTS_COMPARISON</code> to <code>true</code>.
 This is useful in case dependency version updates are part of testing scenario (e.g. canary tests).</p>
