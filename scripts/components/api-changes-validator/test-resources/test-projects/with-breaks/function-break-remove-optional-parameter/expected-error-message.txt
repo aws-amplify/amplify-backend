@@ -1,1 +1,1 @@
-index.ts(5,28): error TS2554: Expected 1 arguments, but got 2.
+index.ts(5,26): error TS2554: Expected 1 arguments, but got 2.

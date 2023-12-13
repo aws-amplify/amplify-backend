@@ -137,10 +137,11 @@ export class TypeUsageStatementsGenerator implements UsageStatementsGenerator {
     // declare type with same content under different name.
     let usageStatement = `type ${baselineTypeName}${genericTypeParametersDeclaration} = ${this.typeAliasDeclaration.type.getText()}${EOL}`;
     // add statement that checks if old type can be assigned to new type.
+    const assignmentStatement = `const ${constName}: ${typeName}${genericTypeParameters} = ${functionParameterName};`;
     usageStatement += `const ${toLowerCamelCase(
       typeName
     )}UsageFunction = ${genericTypeParametersDeclaration}(${functionParameterName}: ${baselineTypeName}${genericTypeParameters}) => {${EOL}`;
-    usageStatement += `    const ${constName}: ${typeName}${genericTypeParameters} = ${functionParameterName};${EOL}`;
+    usageStatement += `${indent(assignmentStatement)}${EOL}`;
     usageStatement += `}${EOL}`;
     return {
       importStatement: `import { ${typeName} } from '${this.packageName}';`,
@@ -294,7 +295,7 @@ class ClassPropertyUsageStatementsGenerator
 
     let usageStatement = '';
     usageStatement += `const ${outerUsageFunctionName} = ${genericTypeParametersDeclaration}(${outerUsageFunctionParameterName}: ${className}${genericTypeParameters}) => {${EOL}`;
-    usageStatement += `${addIndentation(innerUsageStatement)}${EOL}`;
+    usageStatement += `${indent(innerUsageStatement)}${EOL}`;
     usageStatement += `}${EOL}`;
     return { usageStatement };
   };
@@ -393,9 +394,11 @@ export class CallableUsageStatementsGenerator
         this.functionType.parameters,
         'max'
       ).generate().usageStatement ?? '';
+    const minParameterCallWithReturnValue = `${returnValueAssignmentTarget}${this.callableSymbol}(${minParameterUsage});`;
+    const maxParameterCall = `${this.callableSymbol}(${maxParameterUsage});`;
     let usageStatement = `const ${this.usageFunctionName} = ${usageFunctionGenericParametersDeclaration}(${usageFunctionParameterDeclaration}) => {${EOL}`;
-    usageStatement += `    ${returnValueAssignmentTarget}${this.callableSymbol}(${minParameterUsage});${EOL}`;
-    usageStatement += `    ${this.callableSymbol}(${maxParameterUsage});${EOL}`;
+    usageStatement += `${indent(minParameterCallWithReturnValue)}${EOL}`;
+    usageStatement += `${indent(maxParameterCall)}${EOL}`;
     usageStatement += `}`;
     return { usageStatement };
   };
@@ -474,9 +477,9 @@ const toPascalCase = (name: string): string => {
   return `${name?.substring(0, 1).toUpperCase()}${name?.substring(1)}`;
 };
 
-const addIndentation = (snippet: string): string => {
+const indent = (snippet: string): string => {
   return snippet
     .split(EOL)
-    .map((line) => `    ${line}`)
+    .map((line) => `  ${line}`)
     .join(EOL);
 };
