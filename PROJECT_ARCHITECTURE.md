@@ -71,7 +71,7 @@ The delination between the packages in the "Command line process" and "Synth pro
 
 # Component design
 
-Becuase Amplify Gen2 _is_ a CDK app orchestration layer, you should have a solid understanding of how CDK works before continuing on. You should understand how the CDK CLI (aws-cdk) invokes the CDK App which is synthesized into CloudAssembly. Then how aws-cdk reads and uploads CloudAssembly assets and templates on deploy to S3 and CloudFormation. Some reading material here includes:
+Becuase Amplify Gen2 _is_ a CDK app, you should have a solid understanding of how CDK works before continuing on. You should understand how the CDK CLI (aws-cdk) invokes the CDK App which is synthesized into CloudAssembly. Then how `aws-cdk` reads and uploads CloudAssembly assets and templates during deployment to S3 and CloudFormation. Some reading material here includes:
 
 - https://docs.aws.amazon.com/cdk/v2/guide/apps.html
 - https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.cx_api.CloudAssembly.html
