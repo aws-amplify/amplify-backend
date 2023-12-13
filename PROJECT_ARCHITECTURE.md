@@ -1,7 +1,7 @@
 # Context
 
 This document outlines the architecture of the code in this repo. It goes into some detail on the abstractions that we have, what their intent is and how they interact with each other.
-This document is NOT meant to be documentation on how to use Amplify Gen2. For that, see docs.amplify.aws/gen2
+This document is NOT meant to be documentation on how to use Amplify Gen2. For that, see [https://docs.amplify.aws/gen2/](https://docs.amplify.aws/gen2/)
 
 This is a living document that will (hopefully) be updated as the project evolves. If you spot something that is incorrect, please open a pull request with an update! And if you are working on a change that will impact the correctness of this document, please include a corresponding change here.
 
