@@ -1,0 +1,12 @@
+index.ts(6,77): error TS2554: Expected 1 arguments, but got 2.
+index.ts(11,85): error TS2551: Property 'someMethod2' does not exist on type 'SomeClass'. Did you mean 'someMethod1'?
+index.ts(12,57): error TS2551: Property 'someMethod2' does not exist on type 'SomeClass'. Did you mean 'someMethod1'?
+index.ts(17,15): error TS2322: Type 'number' is not assignable to type 'string'.
+index.ts(22,11): error TS2322: Type 'number' is not assignable to type 'string'.
+index.ts(26,85): error TS2551: Property 'someProperty2' does not exist on type 'SomeClass'. Did you mean 'someProperty1'?
+index.ts(32,45): error TS2554: Expected 1 arguments, but got 2.
+index.ts(37,47): error TS2551: Property 'someStaticMethod2' does not exist on type 'typeof SomeClass'. Did you mean 'someStaticMethod1'?
+index.ts(38,19): error TS2551: Property 'someStaticMethod2' does not exist on type 'typeof SomeClass'. Did you mean 'someStaticMethod1'?
+index.ts(43,15): error TS2322: Type 'boolean' is not assignable to type 'string'.
+index.ts(48,11): error TS2322: Type 'boolean' is not assignable to type 'string'.
+index.ts(52,45): error TS2551: Property 'someStaticProperty2' does not exist on type 'typeof SomeClass'. Did you mean 'someStaticProperty1'?
