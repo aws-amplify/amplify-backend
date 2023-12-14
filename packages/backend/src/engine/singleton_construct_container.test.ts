@@ -35,12 +35,11 @@ void describe('SingletonConstructContainer', () => {
       );
       const instance = container.getOrCompute({
         resourceGroupName: 'testGroup',
-        generateContainerEntry: (scope) =>
-          ({
-            resources: {
-              bucket: new Bucket(scope, 'testBucket'),
-            },
-          } as unknown as Construct & ResourceProvider<{ bucket: IBucket }>),
+        generateContainerEntry: (scope) => ({
+          resources: {
+            bucket: new Bucket(scope, 'testBucket'),
+          },
+        }),
       }) as ResourceProvider<{ bucket: IBucket }>;
       assert.equal(instance.resources.bucket instanceof Bucket, true);
     });
@@ -51,12 +50,11 @@ void describe('SingletonConstructContainer', () => {
       );
       const initializer: ConstructContainerEntryGenerator = {
         resourceGroupName: 'testGroup',
-        generateContainerEntry: (scope) =>
-          ({
-            resources: {
-              bucket: new Bucket(scope, 'testBucket'),
-            },
-          } as unknown as Construct & ResourceProvider<{ bucket: IBucket }>),
+        generateContainerEntry: (scope) => ({
+          resources: {
+            bucket: new Bucket(scope, 'testBucket'),
+          },
+        }),
       };
       const instance1 = container.getOrCompute(initializer);
       const instance2 = container.getOrCompute(initializer);
@@ -72,23 +70,21 @@ void describe('SingletonConstructContainer', () => {
         bucket: IBucket;
       }> = {
         resourceGroupName: 'testGroup',
-        generateContainerEntry: (scope) =>
-          ({
-            resources: {
-              bucket: new Bucket(scope, 'testBucket'),
-            },
-          } as unknown as Construct & ResourceProvider<{ bucket: IBucket }>),
+        generateContainerEntry: (scope) => ({
+          resources: {
+            bucket: new Bucket(scope, 'testBucket'),
+          },
+        }),
       };
       const queueInitializer: ConstructContainerEntryGenerator<{
         queue: IQueue;
       }> = {
         resourceGroupName: 'testGroup',
-        generateContainerEntry: (scope) =>
-          ({
-            resources: {
-              queue: new Queue(scope, 'testQueue'),
-            },
-          } as unknown as Construct & ResourceProvider<{ queue: IQueue }>),
+        generateContainerEntry: (scope) => ({
+          resources: {
+            queue: new Queue(scope, 'testQueue'),
+          },
+        }),
       };
       const bucketResources = container.getOrCompute(
         bucketInitializer

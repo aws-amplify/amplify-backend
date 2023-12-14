@@ -7,7 +7,6 @@ import {
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import { BackendSecretResolverStub } from './backend_secret_resolver_stub.js';
-import { Construct } from 'constructs';
 
 /**
  * Stub implementation of ConstructContainer. Currently, it is the same as the implementation in @aws-amplify/backend but this doesn't need to be the case moving forward
