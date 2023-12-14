@@ -47,7 +47,7 @@ console.log(
 
 const packagePaths = await glob(`${latestRepositoryPath}/packages/*`);
 
-await Promise.all(
+const validationResults = await Promise.allSettled(
   packagePaths.map(async (packagePath) => {
     const packageName = path.basename(packagePath);
     const baselinePackagePath = path.join(
@@ -75,3 +75,14 @@ await Promise.all(
     console.log(`Validation of ${packageName} completed successfully`);
   })
 );
+
+const errors: Array<Error> = [];
+validationResults.forEach((result) => {
+  if (result.status === 'rejected') {
+    errors.push(result.reason);
+  }
+});
+
+if (errors.length > 0) {
+  throw new AggregateError(errors, 'There are validation failures');
+}
