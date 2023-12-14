@@ -9,57 +9,26 @@
 
 import { ProjectRootValidator } from './project_root_validator.js';
 import { AmplifyProjectCreator } from './amplify_project_creator.js';
-import {
-  PackageManagerBase,
-  type PackageManagerName,
-  type PackageManagerProps,
-  packageManagerControllerFactory,
-} from './package-manager-controller/index.js';
-import { projectInitializerFactory } from './project-initializer/index.js';
+import { PackageManagerControllerFactory } from './package-manager-controller/index.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
 import { getProjectRoot } from './get_project_root.js';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
-import { logger } from './logger.js';
 
 const projectRoot = await getProjectRoot();
 
-const getPackageManager: () => PackageManagerProps = () => {
-  const packageManager = new PackageManagerBase();
-  if (!process.env.npm_config_user_agent) {
-    logger.warn('Could not determine package manager, defaulting to npm');
-    return packageManager.getPackageManager('npm');
-  }
-
-  const userAgent = process.env.npm_config_user_agent;
-  const packageManagerAndVersion = userAgent.split(' ')[0];
-  const packageManagerName = packageManagerAndVersion.split('/')[0];
-
-  if (packageManagerName === 'yarn') {
-    const yarnMajorVersion = packageManagerAndVersion
-      .split('/')[1]
-      .split('.')[0];
-    const yarnName: PackageManagerName = `${packageManagerName}-${
-      yarnMajorVersion === '1' ? 'classic' : 'modern'
-    }`;
-    return packageManager.getPackageManager(yarnName);
-  }
-  return packageManager.getPackageManager(
-    packageManagerName as PackageManagerName
-  );
-};
-
-const packageManager = getPackageManager();
-const PackageController = packageManagerControllerFactory(packageManager.name);
-const ProjectInitializer = projectInitializerFactory(packageManager.name);
+const packageManager = new PackageManagerControllerFactory();
 
 const amplifyProjectCreator = new AmplifyProjectCreator(
-  new PackageController(projectRoot, packageManager),
+  packageManager.getPackageManagerController(projectRoot),
   new ProjectRootValidator(projectRoot),
-  new InitialProjectFileGenerator(projectRoot, packageManager),
-  new ProjectInitializer(projectRoot, packageManager),
+  new InitialProjectFileGenerator(
+    projectRoot,
+    packageManager.getPackageManager()
+  ),
+  packageManager.getProjectInitializer(projectRoot),
   new GitIgnoreInitializer(projectRoot),
   projectRoot,
-  packageManager
+  packageManager.getPackageManager()
 );
 
 try {

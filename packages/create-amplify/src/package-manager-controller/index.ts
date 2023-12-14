@@ -1,4 +1,4 @@
-export { packageManagerControllerFactory } from './package_manager_controller_factory.js';
+export { PackageManagerControllerFactory } from './package_manager_controller_factory.js';
 export {
   PackageManagerProps,
   PackageManagerName,

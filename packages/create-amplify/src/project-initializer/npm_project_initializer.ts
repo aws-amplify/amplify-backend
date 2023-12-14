@@ -1,24 +1,20 @@
 import { existsSync as _existsSync } from 'fs';
 import * as path from 'path';
-import { execa as _execa } from 'execa';
 import { logger } from '../logger.js';
 import { executeWithDebugLogger } from '../execute_with_logger.js';
-import { type PackageManagerProps } from '../package-manager-controller/package_manager.js';
-import { ProjectInitializer } from './project_initializer_factory.js';
+import { NpmPackageManagerController } from '../package-manager-controller/npm_package_manager_controller.js';
 
 /**
  * Ensure that the current working directory is a valid JavaScript project
  */
-export class NpmProjectInitializer implements ProjectInitializer {
+export class NpmProjectInitializer extends NpmPackageManagerController {
+  private readonly existsSync = _existsSync;
   /**
    * injecting console and fs for testing
    */
-  constructor(
-    private readonly projectRoot: string,
-    private readonly packageManager: PackageManagerProps,
-    private readonly existsSync = _existsSync,
-    private readonly execa = _execa
-  ) {}
+  constructor(protected readonly projectRoot: string) {
+    super(projectRoot);
+  }
 
   /**
    * If package.json already exists, this is a noop. Otherwise, `npm init` is executed to create a package.json file

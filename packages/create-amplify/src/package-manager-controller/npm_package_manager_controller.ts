@@ -10,14 +10,20 @@ import {
  *
  */
 export class NpmPackageManagerController implements PackageManagerController {
+  protected readonly execa = _execa;
+  protected readonly packageManager: PackageManagerProps = {
+    name: 'npm',
+    executable: 'npm',
+    binaryRunner: 'npx',
+    installCommand: 'install',
+    lockFile: 'package-lock.json',
+    initDefault: ['init', '--yes'],
+  };
+
   /**
    * Abstraction around npm commands that are needed to initialize a project and install dependencies
    */
-  constructor(
-    private readonly projectRoot: string,
-    private readonly packageManager: PackageManagerProps,
-    private readonly execa = _execa
-  ) {}
+  constructor(protected readonly projectRoot: string) {}
 
   /**
    * Installs the given package names as devDependencies

@@ -6,8 +6,7 @@ void describe('PackageManagerController', () => {
   void it('executes expected dev dependency install command', async () => {
     const execaMock = mock.fn();
     const npmPackageManagerController = new NpmPackageManagerController(
-      'testPath',
-      execaMock as never
+      'testPath'
     );
     await npmPackageManagerController.installDependencies(['testDep'], 'dev');
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments, [
@@ -20,8 +19,7 @@ void describe('PackageManagerController', () => {
   void it('executes expected prod dependency install command', async () => {
     const execaMock = mock.fn();
     const npmPackageManagerController = new NpmPackageManagerController(
-      'testPath',
-      execaMock as never
+      'testPath'
     );
     await npmPackageManagerController.installDependencies(['testDep'], 'prod');
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments, [
@@ -36,8 +34,7 @@ void describe('PackageManagerController', () => {
       throw new Error('test error');
     });
     const npmPackageManagerController = new NpmPackageManagerController(
-      'testPath',
-      execaMock as never
+      'testPath'
     );
     await assert.rejects(
       () =>
@@ -53,8 +50,7 @@ void describe('PackageManagerController', () => {
       throw new Error('test error');
     });
     const npmPackageManagerController = new NpmPackageManagerController(
-      'testPath',
-      execaMock as never
+      'testPath'
     );
     await assert.rejects(
       () =>

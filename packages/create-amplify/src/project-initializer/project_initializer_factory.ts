@@ -3,11 +3,17 @@ import { NpmProjectInitializer } from './npm_project_initializer.js';
 import { PnpmProjectInitializer } from './pnpm_project_initializer.js';
 import { YarnClassicProjectInitializer } from './yarn_classic_project_initializer.js';
 import { YarnModernProjectInitializer } from './yarn_modern_project_initializer.js';
+import { NpmPackageManagerController } from '../package-manager-controller/npm_package_manager_controller.js';
 
 /**
  *
  */
 export abstract class ProjectInitializer {
+  /**
+   * constructor
+   */
+  constructor(protected readonly projectRoot: string) {}
+
   abstract ensureInitialized: () => Promise<void>;
 }
 
