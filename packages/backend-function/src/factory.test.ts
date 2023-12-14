@@ -52,7 +52,7 @@ void describe('AmplifyFunctionFactory', () => {
   void it('resolves default name and entry when no args specified', () => {
     const functionFactory = defaultLambda;
     const lambda = functionFactory.getInstance(getInstanceProps);
-    const template = Template.fromStack(Stack.of(lambda));
+    const template = Template.fromStack(Stack.of(lambda.resources.lambda));
     template.resourceCountIs('AWS::Lambda::Function', 1);
     template.hasResourceProperties('AWS::Lambda::Function', {
       Handler: 'index.handler',
@@ -69,7 +69,7 @@ void describe('AmplifyFunctionFactory', () => {
       entry: './test-assets/default-lambda/handler.ts',
     });
     const lambda = functionFactory.getInstance(getInstanceProps);
-    const template = Template.fromStack(Stack.of(lambda));
+    const template = Template.fromStack(Stack.of(lambda.resources.lambda));
     template.resourceCountIs('AWS::Lambda::Function', 1);
     template.hasResourceProperties('AWS::Lambda::Function', {
       Handler: 'index.handler',
@@ -86,7 +86,7 @@ void describe('AmplifyFunctionFactory', () => {
       name: 'myCoolLambda',
     });
     const lambda = functionFactory.getInstance(getInstanceProps);
-    const template = Template.fromStack(Stack.of(lambda));
+    const template = Template.fromStack(Stack.of(lambda.resources.lambda));
     template.resourceCountIs('AWS::Lambda::Function', 1);
     template.hasResourceProperties('AWS::Lambda::Function', {
       Handler: 'index.handler',
@@ -99,7 +99,7 @@ void describe('AmplifyFunctionFactory', () => {
 
   void it('builds lambda with local and 3p dependencies', () => {
     const lambda = lambdaWithDependencies.getInstance(getInstanceProps);
-    const template = Template.fromStack(Stack.of(lambda));
+    const template = Template.fromStack(Stack.of(lambda.resources.lambda));
     // There isn't a way to check the contents of the bundled lambda using the CDK Template utility
     // So we just check that the lambda was created properly in the CFN template.
     // There is an e2e test that validates proper lambda bundling
@@ -120,7 +120,7 @@ void describe('AmplifyFunctionFactory', () => {
         entry: './test-assets/default-lambda/handler.ts',
         timeoutSeconds: 10,
       }).getInstance(getInstanceProps);
-      const template = Template.fromStack(Stack.of(lambda));
+      const template = Template.fromStack(Stack.of(lambda.resources.lambda));
 
       template.hasResourceProperties('AWS::Lambda::Function', {
         Timeout: 10,
@@ -173,7 +173,7 @@ void describe('AmplifyFunctionFactory', () => {
         entry: './test-assets/default-lambda/handler.ts',
         memoryMB: 234,
       }).getInstance(getInstanceProps);
-      const template = Template.fromStack(Stack.of(lambda));
+      const template = Template.fromStack(Stack.of(lambda.resources.lambda));
 
       template.hasResourceProperties('AWS::Lambda::Function', {
         MemorySize: 234,
@@ -227,7 +227,7 @@ void describe('AmplifyFunctionFactory', () => {
         TEST_VAR: 'testValue',
       },
     }).getInstance(getInstanceProps);
-    const template = Template.fromStack(Stack.of(lambda));
+    const template = Template.fromStack(Stack.of(lambda.resources.lambda));
 
     template.hasResourceProperties('AWS::Lambda::Function', {
       Environment: {
@@ -244,7 +244,7 @@ void describe('AmplifyFunctionFactory', () => {
         entry: './test-assets/default-lambda/handler.ts',
         runtime: 16,
       }).getInstance(getInstanceProps);
-      const template = Template.fromStack(Stack.of(lambda));
+      const template = Template.fromStack(Stack.of(lambda.resources.lambda));
 
       template.hasResourceProperties('AWS::Lambda::Function', {
         Runtime: Runtime.NODEJS_16_X.name,
@@ -255,7 +255,7 @@ void describe('AmplifyFunctionFactory', () => {
       const lambda = defineFunction({
         entry: './test-assets/default-lambda/handler.ts',
       }).getInstance(getInstanceProps);
-      const template = Template.fromStack(Stack.of(lambda));
+      const template = Template.fromStack(Stack.of(lambda.resources.lambda));
 
       template.hasResourceProperties('AWS::Lambda::Function', {
         Runtime: Runtime.NODEJS_18_X.name,

@@ -17,7 +17,7 @@ import { Runtime } from 'aws-cdk-lib/aws-lambda';
  */
 export const defineFunction = (
   props: FunctionProps = {}
-): ConstructFactory<Construct & ResourceProvider<FunctionResources>> =>
+): ConstructFactory<ResourceProvider<FunctionResources>> =>
   new FunctionFactory(props, new Error().stack);
 
 export type FunctionProps = {

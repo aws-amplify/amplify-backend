@@ -56,9 +56,10 @@ const backendTemplatesCollector: SynthesizeBackendTemplates = <
 
   // find some construct in the backend to compute the root stack from (doesn't matter what construct it is)
   const firstResourceProvider = backend[Object.keys(constructFactories)[0]];
-  const firstConstruct = Object.values(firstResourceProvider).find(
+  const firstConstruct = Object.values(firstResourceProvider.resources).find(
     (value) => value instanceof Construct
   );
+
   const result = {
     // need to go up two levels to get the root stack
     root: Template.fromStack(Stack.of(firstConstruct).node.scope as Stack),
@@ -66,11 +67,11 @@ const backendTemplatesCollector: SynthesizeBackendTemplates = <
 
   for (const [key, resourceRecord] of Object.entries(backend)) {
     // skip over the methods that we add on to the backend object
-    if (key === 'createStack') {
+    if (typeof resourceRecord === 'function') {
       continue;
     }
     // find some construct in the resources exposed by the resourceRecord
-    const firstConstruct = Object.values(resourceRecord).find(
+    const firstConstruct = Object.values(resourceRecord.resources).find(
       (value) => value instanceof Construct
     );
     result[key as keyof T] = Template.fromStack(

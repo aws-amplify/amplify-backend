@@ -32,7 +32,7 @@ export class BackendFactory<
    * Used for overriding properties of underlying CDK constructs or to reference in custom CDK code
    */
   readonly resources: {
-    [K in keyof T]: ReturnType<T[K]['getInstance']>['resources'];
+    [K in keyof T]: ReturnType<T[K]['getInstance']>;
   };
   /**
    * Initialize an Amplify backend with the given construct factories and in the given CDK App.
@@ -95,7 +95,7 @@ export class BackendFactory<
             importPathVerifier,
           }
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ).resources as any;
+        ) as any;
       }
     );
   }

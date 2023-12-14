@@ -17,5 +17,5 @@ export type DefineBackendProps = Record<
  * It also has dynamic properties based on the resources passed into `defineBackend`
  */
 export type Backend<T extends DefineBackendProps> = BackendBase & {
-  [K in keyof T]: ReturnType<T[K]['getInstance']>['resources'];
+  [K in keyof T]: ReturnType<T[K]['getInstance']>;
 };

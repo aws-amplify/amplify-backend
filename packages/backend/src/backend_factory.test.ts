@@ -142,7 +142,7 @@ void describe('Backend', () => {
       rootStack
     );
     assert.equal(
-      backend.resources.testConstructFactory.bucket.node.id,
+      backend.resources.testConstructFactory.resources.bucket.node.id,
       'test-bucket'
     );
   });
