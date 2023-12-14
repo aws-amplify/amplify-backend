@@ -19,7 +19,7 @@ import { fileURLToPath } from 'url';
 const storageStackType = 'storage-S3';
 
 export type AmplifyStorageProps = {
-  versioned?: boolean;
+  versioned: boolean;
   outputStorageStrategy?: BackendOutputStorageStrategy<StorageOutput>;
 };
 

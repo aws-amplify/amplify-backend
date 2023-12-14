@@ -14,7 +14,7 @@ void describe('AmplifyStorage', () => {
   void it('creates a bucket', () => {
     const app = new App();
     const stack = new Stack(app);
-    new AmplifyStorage(stack, 'test', {});
+    new AmplifyStorage(stack, 'test', { versioned: true });
     const template = Template.fromStack(stack);
     template.resourceCountIs('AWS::S3::Bucket', 1);
   });
@@ -33,7 +33,7 @@ void describe('AmplifyStorage', () => {
   void it('stores attribution data in stack', () => {
     const app = new App();
     const stack = new Stack(app);
-    new AmplifyStorage(stack, 'testAuth', {});
+    new AmplifyStorage(stack, 'testAuth', { versioned: true });
 
     const template = Template.fromStack(stack);
     assert.equal(
@@ -54,6 +54,7 @@ void describe('AmplifyStorage', () => {
         };
 
       const storageConstruct = new AmplifyStorage(stack, 'test', {
+        versioned: true,
         outputStorageStrategy: storageStrategy,
       });
 
@@ -80,7 +81,7 @@ void describe('AmplifyStorage', () => {
       const app = new App();
       const stack = new Stack(app);
 
-      new AmplifyStorage(stack, 'test', {});
+      new AmplifyStorage(stack, 'test', { versioned: true });
       const template = Template.fromStack(stack);
       template.templateMatches({
         Metadata: {
