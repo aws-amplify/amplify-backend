@@ -16,19 +16,17 @@ import { GitIgnoreInitializer } from './gitignore_initializer.js';
 
 const projectRoot = await getProjectRoot();
 
-const packageManager = new PackageManagerControllerFactory();
+const packageManagerController = new PackageManagerControllerFactory();
+const packageManager = packageManagerController.getPackageManager();
 
 const amplifyProjectCreator = new AmplifyProjectCreator(
-  packageManager.getPackageManagerController(projectRoot),
+  packageManagerController.getPackageManagerController(projectRoot),
   new ProjectRootValidator(projectRoot),
-  new InitialProjectFileGenerator(
-    projectRoot,
-    packageManager.getPackageManager()
-  ),
-  packageManager.getProjectInitializer(projectRoot),
+  new InitialProjectFileGenerator(projectRoot, packageManager),
+  packageManagerController.getProjectInitializer(projectRoot),
   new GitIgnoreInitializer(projectRoot),
   projectRoot,
-  packageManager.getPackageManager()
+  packageManager
 );
 
 try {

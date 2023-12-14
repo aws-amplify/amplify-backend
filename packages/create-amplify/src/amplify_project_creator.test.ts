@@ -1,11 +1,12 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'assert';
 import { AmplifyProjectCreator } from './amplify_project_creator.js';
-import { PackageManagerBase } from './package-manager-controller/index.js';
+import { PackageManagerControllerFactory } from './package-manager-controller/index.js';
 import { logger } from './logger.js';
 
 void describe('AmplifyProjectCreator', () => {
-  const packageManager = new PackageManagerBase();
+  const packageManagerController = new PackageManagerControllerFactory();
+  const packageManager = packageManagerController.getPackageManager();
   void it('create project if passing `--yes` or `-y` to `npm create`', async () => {
     const logMock = {
       log: mock.fn(),
@@ -27,7 +28,7 @@ void describe('AmplifyProjectCreator', () => {
       npmInitializedEnsurerMock as never,
       gitIgnoreInitializerMock as never,
       process.cwd(),
-      packageManager.getPackageManager('npm')
+      packageManager
     );
     mock.method(logger, 'log', logMock.log);
     await amplifyProjectCreator.create();
@@ -75,7 +76,7 @@ void describe('AmplifyProjectCreator', () => {
       npmInitializedEnsurerMock as never,
       gitIgnoreInitializerMock as never,
       '/project/root',
-      packageManager.getPackageManager('npm')
+      packageManager
     );
     mock.method(logger, 'log', logMock.log);
     await amplifyProjectCreator.create();

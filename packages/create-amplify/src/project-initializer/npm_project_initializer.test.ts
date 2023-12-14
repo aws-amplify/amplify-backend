@@ -1,10 +1,11 @@
 import { describe, it, mock } from 'node:test';
 import { NpmProjectInitializer } from './npm_project_initializer.js';
 import assert from 'assert';
-import { PackageManagerBase } from '../package-manager-controller/index.js';
+import { PackageManagerControllerFactory } from '../package-manager-controller/index.js';
 
 void describe('InitializedEnsurer', () => {
-  const packageManager = new PackageManagerBase();
+  const packageManagerController = new PackageManagerControllerFactory();
+  const packageManager = packageManagerController.getPackageManager();
   void it('does nothing if package.json already exists', async () => {
     const execaMock = mock.fn();
     const npmInitializedEnsurer = new NpmProjectInitializer(
@@ -24,7 +25,7 @@ void describe('InitializedEnsurer', () => {
     await npmInitializedEnsurer.ensureInitialized();
     assert.equal(execaMock.mock.callCount(), 1);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments, [
-      packageManager.getPackageManager('npm'),
+      packageManager,
       ['init', '--yes'],
       { stdin: 'inherit', cwd: '/testProjectRoot' },
     ]);
