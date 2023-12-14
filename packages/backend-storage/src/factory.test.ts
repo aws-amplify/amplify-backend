@@ -37,7 +37,7 @@ void describe('AmplifyStorageFactory', () => {
   let getInstanceProps: ConstructFactoryGetInstanceProps;
 
   beforeEach(() => {
-    storageFactory = defineStorage({ versioned: true });
+    storageFactory = defineStorage({});
     const stack = createStackAndSetContext();
 
     constructContainer = new ConstructContainerStub(
