@@ -7,7 +7,6 @@ import {
 } from '@aws-amplify/plugin-types';
 import { getBackendIdentifier } from '../backend_identifier.js';
 import { DefaultBackendSecretResolver } from './backend-secret/backend_secret_resolver.js';
-import { Construct } from 'constructs';
 
 /**
  * Serves as a DI container and shared state store for initializing Amplify constructs

@@ -12,7 +12,6 @@ import {
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage';
-import { Construct } from 'constructs';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
