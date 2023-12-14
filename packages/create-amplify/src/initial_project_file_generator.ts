@@ -3,7 +3,7 @@ import fs from 'fs';
 import _fs from 'fs/promises';
 import { executeWithDebugLogger as _executeWithDebugLogger } from './execute_with_logger.js';
 import { execa } from 'execa';
-import { type PackageManagerProps } from './package-manager-controller/package_manager.js';
+import { PackageManagerProps } from './package-manager-controller/index.js';
 
 /**
  *
@@ -15,7 +15,7 @@ export class InitialProjectFileGenerator {
    */
   constructor(
     private readonly projectRoot: string,
-    private readonly packageManager: PackageManagerProps,
+    private readonly packageManagerProps: PackageManagerProps,
     private readonly fs = _fs,
     private readonly executeWithDebugLogger = _executeWithDebugLogger
   ) {}
@@ -38,7 +38,7 @@ export class InitialProjectFileGenerator {
       JSON.stringify(packageJsonContent, null, 2)
     );
 
-    if (this.packageManager.name === 'yarn-modern') {
+    if (this.packageManagerProps.name === 'yarn-modern') {
       fs.writeFile(path.resolve(targetDir, 'yarn.lock'), '', (err) => {
         if (err) {
           console.error(`Error creating ${targetDir}/${targetDir}`, err);
@@ -65,7 +65,7 @@ export class InitialProjectFileGenerator {
       'es2022',
     ];
 
-    if (this.packageManager.executable === 'yarn') {
+    if (this.packageManagerProps.executable === 'yarn') {
       await this.executeWithDebugLogger(
         targetDir,
         'yarn',
@@ -76,7 +76,7 @@ export class InitialProjectFileGenerator {
 
     await this.executeWithDebugLogger(
       targetDir,
-      this.packageManager.binaryRunner,
+      this.packageManagerProps.binaryRunner,
       tscArgs,
       execa
     );

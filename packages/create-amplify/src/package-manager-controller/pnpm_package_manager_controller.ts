@@ -1,10 +1,10 @@
 import { existsSync as _existsSync } from 'fs';
 import { execa as _execa } from 'execa';
 import { executeWithDebugLogger } from '../execute_with_logger.js';
-import { type PackageManagerProps } from './package_manager.js';
 import {
   DependencyType,
   PackageManagerController,
+  type PackageManagerProps,
 } from './package_manager_controller_factory.js';
 
 /**
@@ -12,7 +12,7 @@ import {
  */
 export class PnpmPackageManagerController implements PackageManagerController {
   protected readonly execa = _execa;
-  protected readonly packageManager: PackageManagerProps = {
+  protected readonly packageManagerProps: PackageManagerProps = {
     name: 'pnpm',
     executable: 'pnpm',
     binaryRunner: 'pnpm',
@@ -33,7 +33,7 @@ export class PnpmPackageManagerController implements PackageManagerController {
     packageNames: string[],
     type: DependencyType
   ): Promise<void> => {
-    const args = [`${this.packageManager.installCommand}`].concat(
+    const args = [`${this.packageManagerProps.installCommand}`].concat(
       ...packageNames
     );
     if (type === 'dev') {
@@ -42,7 +42,7 @@ export class PnpmPackageManagerController implements PackageManagerController {
 
     await executeWithDebugLogger(
       this.projectRoot,
-      this.packageManager.executable,
+      this.packageManagerProps.executable,
       args,
       this.execa
     );

@@ -1,10 +1,6 @@
 import { existsSync as _existsSync } from 'fs';
 import { execa as _execa } from 'execa';
 import * as path from 'path';
-import {
-  type PackageManagerName,
-  type PackageManagers,
-} from './package_manager.js';
 import { logger } from '../logger.js';
 import { NpmPackageManagerController } from './npm_package_manager_controller.js';
 import { PnpmPackageManagerController } from './pnpm_package_manager_controller.js';
@@ -18,6 +14,27 @@ import {
 } from '../project-initializer/index.js';
 
 export type DependencyType = 'dev' | 'prod';
+type PackageManagerName = 'npm' | 'yarn-classic' | 'yarn-modern' | 'pnpm';
+type PackageManagerExecutable = 'npm' | 'yarn' | 'pnpm';
+type PackageManagerBinaryRunner = 'npx' | 'yarn' | 'pnpm';
+type PackageManagerInstallCommand = 'install' | 'add';
+type PackageManagerLockFile =
+  | 'package-lock.json'
+  | 'yarn.lock'
+  | 'pnpm-lock.yaml';
+type PackageManagerInitDefault = Readonly<string[]>;
+export type PackageManagerProps = {
+  name: PackageManagerName;
+  executable: PackageManagerExecutable;
+  binaryRunner: PackageManagerBinaryRunner;
+  installCommand: PackageManagerInstallCommand;
+  lockFile: PackageManagerLockFile;
+  initDefault: PackageManagerInitDefault;
+};
+
+type PackageManagers = {
+  [key in PackageManagerName]: PackageManagerProps;
+};
 
 /**
  *
