@@ -11,7 +11,7 @@ export class YarnClassicProjectInitializer extends YarnClassicPackageManagerCont
    */
   constructor(
     protected readonly projectRoot: string,
-    private readonly packageJsonExists: boolean
+    private readonly packageJsonExists: (projectRoot: string) => boolean
   ) {
     super(projectRoot);
   }
@@ -20,7 +20,7 @@ export class YarnClassicProjectInitializer extends YarnClassicPackageManagerCont
    * If package.json already exists, this is a noop. Otherwise, `yarn init` is executed to create a package.json file
    */
   ensureInitialized = async (): Promise<void> => {
-    if (this.packageJsonExists) {
+    if (this.packageJsonExists(this.projectRoot)) {
       // if package.json already exists, no need to do anything
       return;
     }
@@ -42,7 +42,7 @@ export class YarnClassicProjectInitializer extends YarnClassicPackageManagerCont
       );
     }
 
-    if (!this.packageJsonExists) {
+    if (!this.packageJsonExists(this.projectRoot)) {
       // this should only happen if the customer exits out of `yarn init` before finishing
       throw new Error(
         `package.json does not exist after running \`${this.packageManager.executable} init\`. Initialize a valid JavaScript package before continuing.'`

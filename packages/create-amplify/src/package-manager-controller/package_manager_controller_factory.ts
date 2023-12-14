@@ -134,21 +134,24 @@ export class PackageManagerControllerFactory {
     } else if (this.packageManagerName !== this.getPackageManager().name) {
       throw new Error("There's a conflicts of the package manager name.");
     }
-    const packageJsonExists = this.packageJsonExists(projectRoot);
+
     switch (this.packageManagerName) {
       case 'npm':
-        return new NpmProjectInitializer(projectRoot, packageJsonExists);
+        return new NpmProjectInitializer(projectRoot, this.packageJsonExists);
       case 'pnpm':
-        return new PnpmProjectInitializer(projectRoot, packageJsonExists);
+        return new PnpmProjectInitializer(projectRoot, this.packageJsonExists);
       case 'yarn-classic':
         return new YarnClassicProjectInitializer(
           projectRoot,
-          packageJsonExists
+          this.packageJsonExists
         );
       case 'yarn-modern':
-        return new YarnModernProjectInitializer(projectRoot, packageJsonExists);
+        return new YarnModernProjectInitializer(
+          projectRoot,
+          this.packageJsonExists
+        );
       default:
-        return new NpmProjectInitializer(projectRoot, packageJsonExists);
+        return new NpmProjectInitializer(projectRoot, this.packageJsonExists);
     }
   }
 }

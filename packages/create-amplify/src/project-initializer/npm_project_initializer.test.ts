@@ -8,9 +8,10 @@ void describe('InitializedEnsurer', () => {
   const packageManager = packageManagerController.getPackageManager();
   void it('does nothing if package.json already exists', async () => {
     const execaMock = mock.fn();
+    const packageJsonExists = mock.fn(() => true);
     const npmInitializedEnsurer = new NpmProjectInitializer(
       '/testProjectRoot',
-      true
+      packageJsonExists
     );
     await npmInitializedEnsurer.ensureInitialized();
     assert.equal(execaMock.mock.callCount(), 0);
@@ -18,9 +19,10 @@ void describe('InitializedEnsurer', () => {
 
   void it('runs `npm init` if no package.json exists', async () => {
     const execaMock = mock.fn();
+    const packageJsonExists = mock.fn(() => false);
     const npmInitializedEnsurer = new NpmProjectInitializer(
       '/testProjectRoot',
-      false
+      packageJsonExists
     );
     await npmInitializedEnsurer.ensureInitialized();
     assert.equal(execaMock.mock.callCount(), 1);
@@ -32,9 +34,10 @@ void describe('InitializedEnsurer', () => {
   });
 
   void it('throws if npm init rejects', async () => {
+    const packageJsonExists = mock.fn(() => true);
     const npmInitializedEnsurer = new NpmProjectInitializer(
       '/testProjectRoot',
-      true
+      packageJsonExists
     );
     await assert.rejects(() => npmInitializedEnsurer.ensureInitialized(), {
       message:
@@ -43,9 +46,10 @@ void describe('InitializedEnsurer', () => {
   });
 
   void it('throws if package.json does not exist after npm init', async () => {
+    const packageJsonExists = mock.fn(() => true);
     const npmInitializedEnsurer = new NpmProjectInitializer(
       '/testProjectRoot',
-      true
+      packageJsonExists
     );
     await assert.rejects(() => npmInitializedEnsurer.ensureInitialized(), {
       message:
