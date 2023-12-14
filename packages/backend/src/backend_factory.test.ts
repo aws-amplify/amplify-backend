@@ -46,7 +46,7 @@ void describe('Backend', () => {
               resources: {
                 bucket: new Bucket(scope, 'test-bucket'),
               },
-            } as TestResourceProvider;
+            };
           },
         }) as TestResourceProvider;
       },
@@ -85,7 +85,7 @@ void describe('Backend', () => {
               resources: {
                 bucket,
               },
-            } as TestResourceProvider;
+            };
           },
         }) as TestResourceProvider;
       },
@@ -129,7 +129,7 @@ void describe('Backend', () => {
               resources: {
                 bucket,
               },
-            } as TestResourceProvider;
+            };
           },
         }) as TestResourceProvider;
       },
@@ -186,4 +186,4 @@ void describe('Backend', () => {
   });
 });
 
-type TestResourceProvider = ResourceProvider<{ bucket: Bucket }> & Construct;
+type TestResourceProvider = ResourceProvider<{ bucket: Bucket }>;

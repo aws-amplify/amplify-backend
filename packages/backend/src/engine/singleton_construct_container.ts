@@ -14,9 +14,9 @@ import { Construct } from 'constructs';
  */
 export class SingletonConstructContainer implements ConstructContainer {
   // uses the CacheEntryGenerator as the map key. The value is what the generator returned the first time it was seen
-  private readonly constructCache: Map<
+  private readonly providerCache: Map<
     ConstructContainerEntryGenerator,
-    ResourceProvider & Construct
+    ResourceProvider
   > = new Map();
 
   private readonly providerFactoryTokenMap: Record<string, ConstructFactory> =
@@ -33,22 +33,22 @@ export class SingletonConstructContainer implements ConstructContainer {
    */
   getOrCompute = (
     generator: ConstructContainerEntryGenerator
-  ): ResourceProvider & Construct => {
-    if (!this.constructCache.has(generator)) {
+  ): ResourceProvider => {
+    if (!this.providerCache.has(generator)) {
       const scope = this.stackResolver.getStackFor(generator.resourceGroupName);
       const backendId = getBackendIdentifier(scope);
       const backendSecretResolver = new DefaultBackendSecretResolver(
         scope,
         backendId
       );
-      this.constructCache.set(
+      this.providerCache.set(
         generator,
         generator.generateContainerEntry(scope, backendSecretResolver)
       );
     }
     // safe because we set if it doesn't exist above
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    return this.constructCache.get(generator)!;
+    return this.providerCache.get(generator)!;
   };
 
   /**

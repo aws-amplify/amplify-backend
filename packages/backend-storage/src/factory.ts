@@ -80,5 +80,5 @@ class AmplifyStorageGenerator implements ConstructContainerEntryGenerator {
  */
 export const defineStorage = (
   props: AmplifyStorageProps
-): ConstructFactory<ResourceProvider<StorageResources> & Construct> =>
+): ConstructFactory<ResourceProvider<StorageResources>> =>
   new AmplifyStorageFactory(props, new Error().stack);

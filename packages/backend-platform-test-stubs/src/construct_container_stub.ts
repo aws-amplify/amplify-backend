@@ -16,7 +16,7 @@ export class ConstructContainerStub implements ConstructContainer {
   // uses the CacheEntryGenerator as the map key. The value is what the generator returned the first time it was seen
   private readonly providerCache: Map<
     ConstructContainerEntryGenerator,
-    ResourceProvider & Construct
+    ResourceProvider
   > = new Map();
 
   private readonly providerFactoryTokenMap: Record<string, ConstructFactory> =
@@ -33,7 +33,7 @@ export class ConstructContainerStub implements ConstructContainer {
    */
   getOrCompute = (
     generator: ConstructContainerEntryGenerator
-  ): ResourceProvider & Construct => {
+  ): ResourceProvider => {
     if (!this.providerCache.has(generator)) {
       const scope = this.stackResolver.getStackFor(generator.resourceGroupName);
       const backendId = getBackendIdentifierStub();

@@ -19,7 +19,7 @@ export type ConstructContainerEntryGenerator<T extends object = object> = {
   generateContainerEntry: (
     scope: Construct,
     backendSecretResolver: BackendSecretResolver
-  ) => ResourceProvider<T> & Construct;
+  ) => ResourceProvider<T>;
 };
 
 /**
@@ -28,7 +28,7 @@ export type ConstructContainerEntryGenerator<T extends object = object> = {
 export type ConstructContainer = {
   getOrCompute: (
     generator: ConstructContainerEntryGenerator
-  ) => ResourceProvider & Construct;
+  ) => ResourceProvider;
   registerConstructFactory: (token: string, provider: ConstructFactory) => void;
   getConstructFactory: <T extends ResourceProvider>(
     token: string

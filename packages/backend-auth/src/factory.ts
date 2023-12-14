@@ -5,7 +5,6 @@ import {
 } from '@aws-amplify/auth-construct-alpha';
 import { Construct } from 'constructs';
 import {
-  AuthResources,
   BackendSecretResolver,
   ConstructContainerEntryGenerator,
   ConstructFactory,
@@ -38,9 +37,7 @@ export type AmplifyAuthProps = Expand<
 /**
  * Singleton factory for AmplifyAuth that can be used in Amplify project files
  */
-class AmplifyAuthFactory
-  implements ConstructFactory<AmplifyAuth & ResourceProvider<AuthResources>>
-{
+class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth> {
   readonly provides = 'AuthResources';
   private generator: ConstructContainerEntryGenerator;
 
@@ -111,6 +108,5 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
  */
 export const defineAuth = (
   props: AmplifyAuthProps
-): ConstructFactory<AmplifyAuth & ResourceProvider<AuthResources>> =>
-  // Creates a factory that implements ConstructFactory<AmplifyAuth & ResourceProvider<AuthResources>>
+): ConstructFactory<AmplifyAuth> =>
   new AmplifyAuthFactory(props, new Error().stack);

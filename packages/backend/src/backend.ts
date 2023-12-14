@@ -1,6 +1,5 @@
 import { ConstructFactory, ResourceProvider } from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
-import { Construct } from 'constructs';
 
 export type BackendBase = {
   createStack: (name: string) => Stack;
@@ -9,7 +8,7 @@ export type BackendBase = {
 // Type that allows construct factories to be defined using any keys except those used in BackendHelpers
 export type DefineBackendProps = Record<
   string,
-  ConstructFactory<ResourceProvider & Construct>
+  ConstructFactory<ResourceProvider>
 > & { [K in keyof BackendBase]?: never };
 
 /**

@@ -4,13 +4,12 @@
 
 ```ts
 
-import { Construct } from 'constructs';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { FunctionResources } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 
 // @public
-export const defineFunction: (props?: FunctionProps) => ConstructFactory<Construct & ResourceProvider<FunctionResources>>;
+export const defineFunction: (props?: FunctionProps) => ConstructFactory<ResourceProvider<FunctionResources>>;
 
 // @public (undocumented)
 export type FunctionProps = {

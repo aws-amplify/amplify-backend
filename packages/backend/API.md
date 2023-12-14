@@ -7,7 +7,6 @@
 import { a } from '@aws-amplify/data-schema';
 import { BackendSecret } from '@aws-amplify/plugin-types';
 import { ClientSchema } from '@aws-amplify/data-schema';
-import { Construct } from 'constructs';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { defineAuth } from '@aws-amplify/backend-auth';
 import { defineData } from '@aws-amplify/backend-data';
@@ -36,7 +35,7 @@ export { defineAuth }
 export const defineBackend: <T extends DefineBackendProps>(constructFactories: T) => Backend<T>;
 
 // @public (undocumented)
-export type DefineBackendProps = Record<string, ConstructFactory<ResourceProvider & Construct>> & {
+export type DefineBackendProps = Record<string, ConstructFactory<ResourceProvider>> & {
     [K in keyof BackendBase]?: never;
 };
 

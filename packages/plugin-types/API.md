@@ -86,7 +86,7 @@ export type BranchName = string;
 
 // @public
 export type ConstructContainer = {
-    getOrCompute: (generator: ConstructContainerEntryGenerator) => ResourceProvider & Construct;
+    getOrCompute: (generator: ConstructContainerEntryGenerator) => ResourceProvider;
     registerConstructFactory: (token: string, provider: ConstructFactory) => void;
     getConstructFactory: <T extends ResourceProvider>(token: string) => ConstructFactory<T> | undefined;
 };
@@ -94,7 +94,7 @@ export type ConstructContainer = {
 // @public
 export type ConstructContainerEntryGenerator<T extends object = object> = {
     resourceGroupName: string;
-    generateContainerEntry: (scope: Construct, backendSecretResolver: BackendSecretResolver) => ResourceProvider<T> & Construct;
+    generateContainerEntry: (scope: Construct, backendSecretResolver: BackendSecretResolver) => ResourceProvider<T>;
 };
 
 // @public
