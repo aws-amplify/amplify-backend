@@ -97,7 +97,7 @@ export class AmplifyAuth
 
   private readonly computedUserPoolProps: UserPoolProps;
 
-  private readonly domainPrefix: string;
+  private readonly domainPrefix: string | undefined;
 
   private readonly oAuthSettings: cognito.OAuthSettings | undefined;
 
@@ -126,7 +126,7 @@ export class AmplifyAuth
       props.loginWith
     );
 
-    this.domainPrefix = props.loginWith.externalProviders?.domainPrefix ?? '';
+    this.domainPrefix = props.loginWith.externalProviders?.domainPrefix;
     if (
       this.providerSetupResult.providersList.length > 0 &&
       this.domainPrefix
