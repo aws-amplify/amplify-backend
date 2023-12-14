@@ -7,14 +7,20 @@ void describe('InitializedEnsurer', () => {
   const packageManager = new PackageManagerBase();
   void it('does nothing if package.json already exists', async () => {
     const execaMock = mock.fn();
-    const npmInitializedEnsurer = new NpmProjectInitializer('/testProjectRoot');
+    const npmInitializedEnsurer = new NpmProjectInitializer(
+      '/testProjectRoot',
+      true
+    );
     await npmInitializedEnsurer.ensureInitialized();
     assert.equal(execaMock.mock.callCount(), 0);
   });
 
   void it('runs `npm init` if no package.json exists', async () => {
     const execaMock = mock.fn();
-    const npmInitializedEnsurer = new NpmProjectInitializer('/testProjectRoot');
+    const npmInitializedEnsurer = new NpmProjectInitializer(
+      '/testProjectRoot',
+      false
+    );
     await npmInitializedEnsurer.ensureInitialized();
     assert.equal(execaMock.mock.callCount(), 1);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments, [
@@ -25,7 +31,10 @@ void describe('InitializedEnsurer', () => {
   });
 
   void it('throws if npm init rejects', async () => {
-    const npmInitializedEnsurer = new NpmProjectInitializer('/testProjectRoot');
+    const npmInitializedEnsurer = new NpmProjectInitializer(
+      '/testProjectRoot',
+      true
+    );
     await assert.rejects(() => npmInitializedEnsurer.ensureInitialized(), {
       message:
         '`npm init` did not exit successfully. Initialize a valid JavaScript package before continuing.',
@@ -33,7 +42,10 @@ void describe('InitializedEnsurer', () => {
   });
 
   void it('throws if package.json does not exist after npm init', async () => {
-    const npmInitializedEnsurer = new NpmProjectInitializer('/testProjectRoot');
+    const npmInitializedEnsurer = new NpmProjectInitializer(
+      '/testProjectRoot',
+      true
+    );
     await assert.rejects(() => npmInitializedEnsurer.ensureInitialized(), {
       message:
         'package.json does not exist after running `npm init`. Initialize a valid JavaScript package before continuing.',

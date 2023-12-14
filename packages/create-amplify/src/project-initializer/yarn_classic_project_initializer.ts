@@ -1,5 +1,3 @@
-import { existsSync as _existsSync } from 'fs';
-import * as path from 'path';
 import { logger } from '../logger.js';
 import { executeWithDebugLogger } from '../execute_with_logger.js';
 import { YarnClassicPackageManagerController } from '../package-manager-controller/yarn_classic_package_manager_controller.js';
@@ -8,11 +6,13 @@ import { YarnClassicPackageManagerController } from '../package-manager-controll
  * Ensure that the current working directory is a valid JavaScript project
  */
 export class YarnClassicProjectInitializer extends YarnClassicPackageManagerController {
-  private readonly existsSync = _existsSync;
   /**
    * injecting console and fs for testing
    */
-  constructor(protected readonly projectRoot: string) {
+  constructor(
+    protected readonly projectRoot: string,
+    private readonly packageJsonExists: boolean
+  ) {
     super(projectRoot);
   }
 
@@ -20,7 +20,7 @@ export class YarnClassicProjectInitializer extends YarnClassicPackageManagerCont
    * If package.json already exists, this is a noop. Otherwise, `yarn init` is executed to create a package.json file
    */
   ensureInitialized = async (): Promise<void> => {
-    if (this.packageJsonExists()) {
+    if (this.packageJsonExists) {
       // if package.json already exists, no need to do anything
       return;
     }
@@ -42,18 +42,11 @@ export class YarnClassicProjectInitializer extends YarnClassicPackageManagerCont
       );
     }
 
-    if (!this.packageJsonExists()) {
+    if (!this.packageJsonExists) {
       // this should only happen if the customer exits out of `yarn init` before finishing
       throw new Error(
         `package.json does not exist after running \`${this.packageManager.executable} init\`. Initialize a valid JavaScript package before continuing.'`
       );
     }
-  };
-
-  /**
-   * Check if a package.json file exists in projectRoot
-   */
-  private packageJsonExists = (): boolean => {
-    return this.existsSync(path.resolve(this.projectRoot, 'package.json'));
   };
 }

@@ -1,3 +1,6 @@
+import { existsSync as _existsSync } from 'fs';
+import { execa as _execa } from 'execa';
+import * as path from 'path';
 import {
   type PackageManagerName,
   type PackageManagers,
@@ -7,10 +10,12 @@ import { NpmPackageManagerController } from './npm_package_manager_controller.js
 import { PnpmPackageManagerController } from './pnpm_package_manager_controller.js';
 import { YarnClassicPackageManagerController } from './yarn_classic_package_manager_controller.js';
 import { YarnModernPackageManagerController } from './yarn_modern_package_manager_controller.js';
-import { NpmProjectInitializer } from '../project-initializer/npm_project_initializer.js';
-import { PnpmProjectInitializer } from '../project-initializer/pnpm_project_initializer.js';
-import { YarnClassicProjectInitializer } from '../project-initializer/yarn_classic_project_initializer.js';
-import { YarnModernProjectInitializer } from '../project-initializer/yarn_modern_project_initializer.js';
+import {
+  NpmProjectInitializer,
+  PnpmProjectInitializer,
+  YarnClassicProjectInitializer,
+  YarnModernProjectInitializer,
+} from '../project-initializer/index.js';
 
 export type DependencyType = 'dev' | 'prod';
 
@@ -28,6 +33,7 @@ export abstract class PackageManagerController {
  * packageManagerControllerFactory
  */
 export class PackageManagerControllerFactory {
+  private readonly existsSync = _existsSync;
   packageManagerName: PackageManagerName;
   private readonly packageManagers: PackageManagers = {
     npm: {
@@ -62,6 +68,13 @@ export class PackageManagerControllerFactory {
       lockFile: 'pnpm-lock.yaml',
       initDefault: ['init'],
     },
+  };
+
+  /**
+   * Check if a package.json file exists in projectRoot
+   */
+  protected packageJsonExists = (projectRoot: string): boolean => {
+    return this.existsSync(path.resolve(projectRoot, 'package.json'));
   };
 
   /**
@@ -121,17 +134,21 @@ export class PackageManagerControllerFactory {
     } else if (this.packageManagerName !== this.getPackageManager().name) {
       throw new Error("There's a conflicts of the package manager name.");
     }
+    const packageJsonExists = this.packageJsonExists(projectRoot);
     switch (this.packageManagerName) {
       case 'npm':
-        return new NpmProjectInitializer(projectRoot);
+        return new NpmProjectInitializer(projectRoot, packageJsonExists);
       case 'pnpm':
-        return new PnpmProjectInitializer(projectRoot);
+        return new PnpmProjectInitializer(projectRoot, packageJsonExists);
       case 'yarn-classic':
-        return new YarnClassicProjectInitializer(projectRoot);
+        return new YarnClassicProjectInitializer(
+          projectRoot,
+          packageJsonExists
+        );
       case 'yarn-modern':
-        return new YarnModernProjectInitializer(projectRoot);
+        return new YarnModernProjectInitializer(projectRoot, packageJsonExists);
       default:
-        return new NpmProjectInitializer(projectRoot);
+        return new NpmProjectInitializer(projectRoot, packageJsonExists);
     }
   }
 }
