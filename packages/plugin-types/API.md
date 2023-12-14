@@ -86,19 +86,19 @@ export type BranchName = string;
 
 // @public
 export type ConstructContainer = {
-    getOrCompute: (generator: ConstructContainerEntryGenerator) => Construct;
+    getOrCompute: (generator: ConstructContainerEntryGenerator) => ResourceProvider;
     registerConstructFactory: (token: string, provider: ConstructFactory) => void;
-    getConstructFactory: <T>(token: string) => ConstructFactory<T> | undefined;
+    getConstructFactory: <T extends ResourceProvider>(token: string) => ConstructFactory<T> | undefined;
 };
 
 // @public
-export type ConstructContainerEntryGenerator = {
+export type ConstructContainerEntryGenerator<T extends object = object> = {
     resourceGroupName: string;
-    generateContainerEntry: (scope: Construct, backendSecretResolver: BackendSecretResolver) => Construct;
+    generateContainerEntry: (scope: Construct, backendSecretResolver: BackendSecretResolver) => ResourceProvider<T>;
 };
 
 // @public
-export type ConstructFactory<T = unknown> = {
+export type ConstructFactory<T extends ResourceProvider = ResourceProvider> = {
     readonly provides?: string;
     getInstance: (props: ConstructFactoryGetInstanceProps) => T;
 };
@@ -137,7 +137,7 @@ export type MainStackNameResolver = {
 export type ProjectName = string;
 
 // @public
-export type ResourceProvider<T> = {
+export type ResourceProvider<T extends object = object> = {
     resources: T;
 };
 

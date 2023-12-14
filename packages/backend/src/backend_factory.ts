@@ -1,5 +1,4 @@
-import { Construct } from 'constructs';
-import { ConstructFactory } from '@aws-amplify/plugin-types';
+import { ConstructFactory, ResourceProvider } from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
 import {
   NestedStackResolver,
@@ -15,7 +14,7 @@ import { createDefaultStack } from './default_stack_factory.js';
 import { getBackendIdentifier } from './backend_identifier.js';
 import { platformOutputKey } from '@aws-amplify/backend-output-schemas';
 import { fileURLToPath } from 'url';
-import { Backend } from './backend.js';
+import { Backend, DefineBackendProps } from './backend.js';
 import { AmplifyBranchLinkerConstruct } from './engine/branch-linker/branch_linker_construct.js';
 
 // Be very careful editing this value. It is the value used in the BI metrics to attribute stacks as Amplify root stacks
@@ -25,9 +24,8 @@ const rootStackTypeIdentifier = 'root';
  * Factory that collects and instantiates all the Amplify backend constructs
  */
 export class BackendFactory<
-  T extends Record<string, ConstructFactory<Construct>>
-> implements Backend<T>
-{
+  T extends Record<string, ConstructFactory<ResourceProvider>>
+> {
   private readonly stackResolver: StackResolver;
   /**
    * These are the resolved CDK constructs that are created by the inputs to the constructor
@@ -115,8 +113,12 @@ export class BackendFactory<
  * Creates a new Amplify backend instance and returns it
  * @param constructFactories - list of backend factories such as those created by `defineAuth` or `defineData`
  */
-export const defineBackend = <
-  T extends Record<string, ConstructFactory<Construct>>
->(
+export const defineBackend = <T extends DefineBackendProps>(
   constructFactories: T
-): Backend<T> => new BackendFactory(constructFactories);
+): Backend<T> => {
+  const backend = new BackendFactory(constructFactories);
+  return {
+    ...backend.resources,
+    createStack: backend.createStack,
+  };
+};

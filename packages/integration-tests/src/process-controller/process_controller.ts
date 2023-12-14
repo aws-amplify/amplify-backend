@@ -135,3 +135,27 @@ export const amplifyCli = (
     env: options?.env,
   });
 };
+
+/**
+ * Factory function that returns a ProcessController for the CDK CLI
+ */
+export const cdkCli = (
+  args: string[] = [],
+  dir: string,
+  options?: {
+    env?: Record<string, string>;
+  }
+): ProcessController => {
+  // We're using binary directly because cdk init doesn't seem to work.
+  // See: https://github.com/aws/aws-cdk/issues/1694 (workaround from there didn't work).
+  const command = execaSync('npx', ['which', 'cdk'], {
+    cwd: dir,
+  }).stdout.trim();
+  if (!command) {
+    throw new Error('Unable to locate cdk binary');
+  }
+  return new ProcessController(command, args, {
+    cwd: dir,
+    env: options?.env,
+  });
+};
