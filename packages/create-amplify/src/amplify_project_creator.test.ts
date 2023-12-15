@@ -5,8 +5,6 @@ import { PackageManagerControllerFactory } from './package-manager-controller/in
 import { logger } from './logger.js';
 
 void describe('AmplifyProjectCreator', () => {
-  const packageManagerController = new PackageManagerControllerFactory();
-  const packageManager = packageManagerController.getPackageManager();
   void it('create project if passing `--yes` or `-y` to `npm create`', async () => {
     const logMock = {
       log: mock.fn(),
@@ -27,8 +25,7 @@ void describe('AmplifyProjectCreator', () => {
       initialProjectFileGeneratorMock as never,
       npmInitializedEnsurerMock as never,
       gitIgnoreInitializerMock as never,
-      process.cwd(),
-      packageManager
+      process.cwd()
     );
     mock.method(logger, 'log', logMock.log);
     await amplifyProjectCreator.create();
@@ -75,8 +72,7 @@ void describe('AmplifyProjectCreator', () => {
       initialProjectFileGeneratorMock as never,
       npmInitializedEnsurerMock as never,
       gitIgnoreInitializerMock as never,
-      '/project/root',
-      packageManager
+      '/project/root'
     );
     mock.method(logger, 'log', logMock.log);
     await amplifyProjectCreator.create();

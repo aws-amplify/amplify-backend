@@ -3,7 +3,6 @@ import { executeWithDebugLogger } from '../execute_with_logger.js';
 import {
   DependencyType,
   PackageManagerController,
-  type PackageManagerProps,
 } from './package_manager_controller_factory.js';
 
 /**
@@ -13,7 +12,7 @@ export class YarnModernPackageManagerController
   implements PackageManagerController
 {
   protected readonly execa = _execa;
-  protected readonly packageManagerProps: PackageManagerProps = {
+  protected readonly packageManagerProps = {
     name: 'yarn-modern',
     executable: 'yarn',
     binaryRunner: 'yarn',
@@ -47,4 +46,6 @@ export class YarnModernPackageManagerController
       this.execa
     );
   };
+
+  getPackageManagerProps = () => this.packageManagerProps;
 }

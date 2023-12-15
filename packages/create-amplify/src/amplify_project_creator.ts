@@ -1,7 +1,4 @@
-import {
-  PackageManagerController,
-  type PackageManagerProps,
-} from './package-manager-controller/package_manager_controller_factory.js';
+import { PackageManagerController } from './package-manager-controller/package_manager_controller_factory.js';
 import { ProjectRootValidator } from './project_root_validator.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
@@ -32,8 +29,7 @@ export class AmplifyProjectCreator {
     private readonly initialProjectFileGenerator: InitialProjectFileGenerator,
     private readonly initializedEnsurer: ProjectInitializer,
     private readonly gitIgnoreInitializer: GitIgnoreInitializer,
-    private readonly projectRoot: string,
-    private readonly packageManagerProps: PackageManagerProps
+    private readonly projectRoot: string
   ) {}
 
   /**
@@ -75,8 +71,12 @@ export class AmplifyProjectCreator {
 
     logger.log(
       `Welcome to AWS Amplify! 
-Run \`${this.packageManagerProps.binaryRunner} amplify help\` for a list of available commands. 
-Get started by running \`${cdCommand}${this.packageManagerProps.binaryRunner} amplify sandbox\`.`
+Run \`${
+        this.packageManagerController.getPackageManagerProps().binaryRunner
+      } amplify help\` for a list of available commands. 
+Get started by running \`${cdCommand}${
+        this.packageManagerController.getPackageManagerProps().binaryRunner
+      } amplify sandbox\`.`
     );
 
     logger.log(

@@ -3,7 +3,6 @@ import { executeWithDebugLogger } from '../execute_with_logger.js';
 import {
   DependencyType,
   PackageManagerController,
-  type PackageManagerProps,
 } from './package_manager_controller_factory.js';
 
 /**
@@ -11,7 +10,7 @@ import {
  */
 export class NpmPackageManagerController implements PackageManagerController {
   protected readonly execa = _execa;
-  protected readonly packageManagerProps: PackageManagerProps = {
+  protected readonly packageManagerProps = {
     name: 'npm',
     executable: 'npm',
     binaryRunner: 'npx',
@@ -46,4 +45,6 @@ export class NpmPackageManagerController implements PackageManagerController {
       this.execa
     );
   };
+
+  getPackageManagerProps = () => this.packageManagerProps;
 }

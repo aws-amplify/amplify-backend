@@ -5,7 +5,7 @@ import { PackageManagerControllerFactory } from '../package-manager-controller/i
 
 void describe('InitializedEnsurer', () => {
   const packageManagerController = new PackageManagerControllerFactory();
-  const packageManager = packageManagerController.getPackageManager();
+  const packageManager = packageManagerController.getPackageManagerName();
   void it('does nothing if package.json already exists', async () => {
     const execaMock = mock.fn();
     const packageJsonExists = mock.fn(() => true);

@@ -14,27 +14,6 @@ import {
 } from '../project-initializer/index.js';
 
 export type DependencyType = 'dev' | 'prod';
-type PackageManagerName = 'npm' | 'yarn-classic' | 'yarn-modern' | 'pnpm';
-type PackageManagerExecutable = 'npm' | 'yarn' | 'pnpm';
-type PackageManagerBinaryRunner = 'npx' | 'yarn' | 'pnpm';
-type PackageManagerInstallCommand = 'install' | 'add';
-type PackageManagerLockFile =
-  | 'package-lock.json'
-  | 'yarn.lock'
-  | 'pnpm-lock.yaml';
-type PackageManagerInitDefault = Readonly<string[]>;
-export type PackageManagerProps = {
-  name: PackageManagerName;
-  executable: PackageManagerExecutable;
-  binaryRunner: PackageManagerBinaryRunner;
-  installCommand: PackageManagerInstallCommand;
-  lockFile: PackageManagerLockFile;
-  initDefault: PackageManagerInitDefault;
-};
-
-type PackageManagers = {
-  [key in PackageManagerName]: PackageManagerProps;
-};
 
 /**
  *
@@ -44,6 +23,14 @@ export abstract class PackageManagerController {
     packageNames: string[],
     type: DependencyType
   ) => Promise<void>;
+  abstract getPackageManagerProps: () => {
+    name: string;
+    executable: string;
+    binaryRunner: string;
+    installCommand: string;
+    lockFile: string;
+    initDefault: string[];
+  };
 }
 
 /**
@@ -51,41 +38,6 @@ export abstract class PackageManagerController {
  */
 export class PackageManagerControllerFactory {
   private readonly existsSync = _existsSync;
-  packageManagerName: PackageManagerName;
-  private readonly packageManagers: PackageManagers = {
-    npm: {
-      name: 'npm',
-      executable: 'npm',
-      binaryRunner: 'npx',
-      installCommand: 'install',
-      lockFile: 'package-lock.json',
-      initDefault: ['init', '--yes'],
-    },
-    'yarn-classic': {
-      name: 'yarn-classic',
-      executable: 'yarn',
-      binaryRunner: 'yarn',
-      installCommand: 'add',
-      lockFile: 'yarn.lock',
-      initDefault: ['init', '--yes'],
-    },
-    'yarn-modern': {
-      name: 'yarn-modern',
-      executable: 'yarn',
-      binaryRunner: 'yarn',
-      installCommand: 'add',
-      lockFile: 'yarn.lock',
-      initDefault: ['init', '--yes'],
-    },
-    pnpm: {
-      name: 'pnpm',
-      executable: 'pnpm',
-      binaryRunner: 'pnpm',
-      installCommand: 'add',
-      lockFile: 'pnpm-lock.yaml',
-      initDefault: ['init'],
-    },
-  };
 
   /**
    * Check if a package.json file exists in projectRoot
@@ -97,10 +49,10 @@ export class PackageManagerControllerFactory {
   /**
    * getPackageManager
    */
-  getPackageManager() {
+  getPackageManagerName() {
     if (!process.env.npm_config_user_agent) {
       logger.warn('Could not determine package manager, defaulting to npm');
-      return this.packageManagers['npm'];
+      return 'npm';
     }
 
     const userAgent = process.env.npm_config_user_agent;
@@ -111,24 +63,20 @@ export class PackageManagerControllerFactory {
       const yarnMajorVersion = packageManagerAndVersion
         .split('/')[1]
         .split('.')[0];
-      const yarnName: PackageManagerName = `${packageManagerName}-${
+      const yarnName = `${packageManagerName}-${
         yarnMajorVersion === '1' ? 'classic' : 'modern'
       }`;
-      return this.packageManagers[yarnName];
+      return yarnName;
     }
-    return this.packageManagers[packageManagerName as PackageManagerName];
+    return packageManagerName;
   }
 
   /**
    * getPackageManagerController
    */
   getPackageManagerController(projectRoot: string) {
-    if (!this.packageManagerName) {
-      this.packageManagerName = this.getPackageManager().name;
-    } else if (this.packageManagerName !== this.getPackageManager().name) {
-      throw new Error("There's a conflicts of the package manager name.");
-    }
-    switch (this.packageManagerName) {
+    const packageManagerName = this.getPackageManagerName();
+    switch (packageManagerName) {
       case 'npm':
         return new NpmPackageManagerController(projectRoot);
       case 'pnpm':
@@ -146,13 +94,8 @@ export class PackageManagerControllerFactory {
    * getProjectInitializer
    */
   getProjectInitializer(projectRoot: string) {
-    if (!this.packageManagerName) {
-      this.packageManagerName = this.getPackageManager().name;
-    } else if (this.packageManagerName !== this.getPackageManager().name) {
-      throw new Error("There's a conflicts of the package manager name.");
-    }
-
-    switch (this.packageManagerName) {
+    const packageManagerName = this.getPackageManagerName();
+    switch (packageManagerName) {
       case 'npm':
         return new NpmProjectInitializer(projectRoot, this.packageJsonExists);
       case 'pnpm':
