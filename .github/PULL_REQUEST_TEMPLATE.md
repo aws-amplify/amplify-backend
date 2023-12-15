@@ -28,7 +28,7 @@ Describe how changes in this PR have been validated. This may include added or u
 
 For changes to test infra, or non-functional changes, tests are not always required. Instead, you should call out _why_ you think tests are not required here.
 
-If changes affect a GitHub workflow that is not included in the PR checks, include a link to a passing test run of the workflow.
+If changes affect a GitHub workflow that is not included in the PR checks, include a link to a passing test run of the modified workflow.
 --->
 
 ## Checklist
