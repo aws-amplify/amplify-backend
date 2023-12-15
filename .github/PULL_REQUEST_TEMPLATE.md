@@ -29,3 +29,5 @@ Feel free to publish a draft PR before these items are complete.
 [] If this PR requires a change to the [Project Architecture README](../PROJECT_ARCHITECTURE.md), I have included that update in this PR
 [] If this PR requires a docs update, I have linked to that docs PR in this PR description
 [] If this PR modifies E2E tests or makes changes to resource provisioning, I have run the PR checks with the `run-e2e` label set
+
+By submitting this pull request, I confirm that my contribution is made under the terms of the Apache 2.0 license.
