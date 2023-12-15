@@ -10,6 +10,7 @@ import { Architecture, Runtime } from 'aws-cdk-lib/aws-lambda';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import { IUserPool } from 'aws-cdk-lib/aws-cognito';
 import { Effect, Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
+import { CfnOutput } from 'aws-cdk-lib';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -66,6 +67,7 @@ export class AmplifySignUpPasswordless extends Construct {
 
     api.root.addMethod('PUT', putCreateUserIntegration);
 
+    new CfnOutput(this, 'apiUrl', { value: api.url });
     createUserFunction.role!.attachInlinePolicy(
       new Policy(this, `CreateUserPolicy${id}`, {
         statements: [
