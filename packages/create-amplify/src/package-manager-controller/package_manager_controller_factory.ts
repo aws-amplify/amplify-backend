@@ -40,6 +40,14 @@ export class PackageManagerControllerFactory {
   private readonly existsSync = _existsSync;
 
   /**
+   * constructor
+   */
+  constructor(
+    private readonly projectRoot: string,
+    private readonly userAgent: string | undefined
+  ) {}
+
+  /**
    * Check if a package.json file exists in projectRoot
    */
   protected packageJsonExists = (projectRoot: string): boolean => {
@@ -49,14 +57,13 @@ export class PackageManagerControllerFactory {
   /**
    * getPackageManager
    */
-  getPackageManagerName() {
-    if (!process.env.npm_config_user_agent) {
+  private getPackageManagerName() {
+    if (!this.userAgent) {
       logger.warn('Could not determine package manager, defaulting to npm');
       return 'npm';
     }
 
-    const userAgent = process.env.npm_config_user_agent;
-    const packageManagerAndVersion = userAgent.split(' ')[0];
+    const packageManagerAndVersion = this.userAgent.split(' ')[0];
     const packageManagerName = packageManagerAndVersion.split('/')[0];
 
     if (packageManagerName === 'yarn') {
@@ -74,44 +81,53 @@ export class PackageManagerControllerFactory {
   /**
    * getPackageManagerController
    */
-  getPackageManagerController(projectRoot: string) {
+  getPackageManagerController() {
     const packageManagerName = this.getPackageManagerName();
     switch (packageManagerName) {
       case 'npm':
-        return new NpmPackageManagerController(projectRoot);
+        return new NpmPackageManagerController(this.projectRoot);
       case 'pnpm':
-        return new PnpmPackageManagerController(projectRoot);
+        return new PnpmPackageManagerController(this.projectRoot);
       case 'yarn-classic':
-        return new YarnClassicPackageManagerController(projectRoot);
+        return new YarnClassicPackageManagerController(this.projectRoot);
       case 'yarn-modern':
-        return new YarnModernPackageManagerController(projectRoot);
+        return new YarnModernPackageManagerController(this.projectRoot);
       default:
-        return new NpmPackageManagerController(projectRoot);
+        return new NpmPackageManagerController(this.projectRoot);
     }
   }
 
   /**
    * getProjectInitializer
    */
-  getProjectInitializer(projectRoot: string) {
+  getProjectInitializer() {
     const packageManagerName = this.getPackageManagerName();
     switch (packageManagerName) {
       case 'npm':
-        return new NpmProjectInitializer(projectRoot, this.packageJsonExists);
+        return new NpmProjectInitializer(
+          this.projectRoot,
+          this.packageJsonExists
+        );
       case 'pnpm':
-        return new PnpmProjectInitializer(projectRoot, this.packageJsonExists);
+        return new PnpmProjectInitializer(
+          this.projectRoot,
+          this.packageJsonExists
+        );
       case 'yarn-classic':
         return new YarnClassicProjectInitializer(
-          projectRoot,
+          this.projectRoot,
           this.packageJsonExists
         );
       case 'yarn-modern':
         return new YarnModernProjectInitializer(
-          projectRoot,
+          this.projectRoot,
           this.packageJsonExists
         );
       default:
-        return new NpmProjectInitializer(projectRoot, this.packageJsonExists);
+        return new NpmProjectInitializer(
+          this.projectRoot,
+          this.packageJsonExists
+        );
     }
   }
 }

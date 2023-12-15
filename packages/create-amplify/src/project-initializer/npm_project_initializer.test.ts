@@ -4,8 +4,13 @@ import assert from 'assert';
 import { PackageManagerControllerFactory } from '../package-manager-controller/index.js';
 
 void describe('InitializedEnsurer', () => {
-  const packageManagerController = new PackageManagerControllerFactory();
-  const packageManager = packageManagerController.getPackageManagerName();
+  // eslint-disable-next-line spellcheck/spell-checker
+  const packageManagerControllerFactory = new PackageManagerControllerFactory(
+    '/testProjectRoot',
+    'npm/9.6.7 node/v18.17.0 darwin arm64 workspaces/false'
+  );
+  const packageManagerController =
+    packageManagerControllerFactory.getPackageManagerController();
   void it('does nothing if package.json already exists', async () => {
     const execaMock = mock.fn();
     const packageJsonExists = mock.fn(() => true);
@@ -27,7 +32,7 @@ void describe('InitializedEnsurer', () => {
     await npmInitializedEnsurer.ensureInitialized();
     assert.equal(execaMock.mock.callCount(), 1);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments, [
-      packageManager,
+      packageManagerController.getPackageManagerProps().binaryRunner,
       ['init', '--yes'],
       { stdin: 'inherit', cwd: '/testProjectRoot' },
     ]);

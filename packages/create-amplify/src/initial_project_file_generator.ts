@@ -21,7 +21,7 @@ export class InitialProjectFileGenerator {
     private readonly executeWithDebugLogger = _executeWithDebugLogger
   ) {
     this.packageManagerProps = this.packageManagerController
-      .getPackageManagerController(this.projectRoot)
+      .getPackageManagerController()
       .getPackageManagerProps();
   }
 
