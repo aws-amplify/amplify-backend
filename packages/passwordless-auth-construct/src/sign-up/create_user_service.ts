@@ -89,7 +89,10 @@ export const createUser = async (
 
     return {
       statusCode: 200,
-      body: 'SUCCESS',
+      body: JSON.stringify({}),
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+      },
     };
   } catch (err) {
     return {

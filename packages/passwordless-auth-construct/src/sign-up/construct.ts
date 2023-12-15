@@ -52,6 +52,9 @@ export class AmplifySignUpPasswordless extends Construct {
     const api = new apigateway.RestApi(this, `CreateUserApi${id}`, {
       restApiName: 'Create User service',
       description: 'This service creates users.',
+      defaultCorsPreflightOptions: {
+        allowOrigins: apigateway.Cors.ALL_ORIGINS,
+      },
     });
 
     const putCreateUserIntegration = new apigateway.LambdaIntegration(
