@@ -27,6 +27,8 @@ Summarize the changes introduced in this PR. This is a good place to call out cr
 Describe how changes in this PR have been validated. This may include added or updated unit, integration and/or E2E tests, test workflow runs, or manual verification. If manual verification is the only way changes in this PR have been validated, you will need to write some automated tests before this PR is ready to merge.
 
 For changes to test infra, or non-functional changes, tests are not always required. Instead, you should call out _why_ you think tests are not required here.
+
+If changes affect a GitHub workflow that is not included in the PR checks, include a link to a passing test run of the workflow.
 --->
 
 ## Checklist
