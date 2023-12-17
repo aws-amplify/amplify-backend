@@ -1,10 +1,11 @@
-import { type PackageManagerController } from './package-manager-controller/index.js';
+import { PackageManagerController } from './package-manager-controller/package_manager_controller_factory.js';
 import { ProjectRootValidator } from './project_root_validator.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
 import { logger } from './logger.js';
 
 const LEARN_MORE_USAGE_DATA_TRACKING_LINK = `https://docs.amplify.aws/gen2/reference/telemetry`;
+type ProjectInitializer = { ensureInitialized: () => Promise<void> };
 
 /**
  *

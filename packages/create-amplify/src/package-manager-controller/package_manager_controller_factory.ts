@@ -13,11 +13,22 @@ export type DependencyType = 'dev' | 'prod';
 /**
  *
  */
-export type PackageManagerController =
-  | NpmPackageManagerController
-  | PnpmPackageManagerController
-  | YarnClassicPackageManagerController
-  | YarnModernPackageManagerController;
+export abstract class PackageManagerController {
+  abstract installDependencies: (
+    packageNames: string[],
+    type: DependencyType
+  ) => Promise<void>;
+  abstract getPackageManagerProps: () => {
+    // TODO: remove this method
+    name: string;
+    executable: string;
+    binaryRunner: string;
+    installCommand: string;
+    lockFile: string;
+    initDefault: string[];
+  };
+  abstract ensureInitialized: () => Promise<void>;
+}
 
 /**
  * packageManagerControllerFactory
@@ -29,7 +40,7 @@ export class PackageManagerControllerFactory {
    * constructor
    */
   constructor(
-    protected readonly projectRoot: string,
+    private readonly projectRoot: string,
     private readonly userAgent: string | undefined
   ) {}
 
@@ -73,22 +84,22 @@ export class PackageManagerControllerFactory {
       case 'npm':
         return new NpmPackageManagerController(
           this.projectRoot,
-          this.userAgent
+          this.initializeProject
         );
       case 'pnpm':
         return new PnpmPackageManagerController(
           this.projectRoot,
-          this.userAgent
+          this.initializeProject
         );
       case 'yarn-classic':
         return new YarnClassicPackageManagerController(
           this.projectRoot,
-          this.userAgent
+          this.initializeProject
         );
       case 'yarn-modern':
         return new YarnModernPackageManagerController(
           this.projectRoot,
-          this.userAgent
+          this.initializeProject
         );
       default:
         throw new Error(
