@@ -1,5 +1,5 @@
 import { beforeEach, describe, it, mock } from 'node:test';
-import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
+import { PackageManagerControllerFactory } from './package-manager-controller/index.js';
 import assert from 'assert';
 import * as path from 'path';
 
@@ -15,12 +15,13 @@ void describe('InitialProjectFileGenerator', () => {
   });
 
   void it('creates target directory and copies files', async () => {
-    const initialProjectFileGenerator = new InitialProjectFileGenerator(
-      path.join(process.cwd(), 'testDir'),
-      fsMock as never,
-      executeWithDebugLoggerMock as never
+    const packageManagerControllerFactory = new PackageManagerControllerFactory(
+      './',
+      'npm/9.6.7 node/v18.17.0 darwin arm64 workspaces/false'
     );
-    await initialProjectFileGenerator.generateInitialProjectFiles();
+    const packageManagerController =
+      packageManagerControllerFactory.getPackageManagerController();
+    await packageManagerController.initializeAmplifyFolder();
 
     assert.deepStrictEqual(fsMock.mkdir.mock.calls[0].arguments, [
       path.join(process.cwd(), 'testDir', 'amplify'),
@@ -42,12 +43,13 @@ void describe('InitialProjectFileGenerator', () => {
   });
 
   void it('creates default tsconfig file', async () => {
-    const initialProjectFileGenerator = new InitialProjectFileGenerator(
-      path.join(process.cwd(), 'testDir'),
-      fsMock as never,
-      executeWithDebugLoggerMock as never
+    const packageManagerControllerFactory = new PackageManagerControllerFactory(
+      './',
+      'npm/9.6.7 node/v18.17.0 darwin arm64 workspaces/false'
     );
-    await initialProjectFileGenerator.generateInitialProjectFiles();
+    const packageManagerController =
+      packageManagerControllerFactory.getPackageManagerController();
+    await packageManagerController.initializeAmplifyFolder();
     assert.equal(executeWithDebugLoggerMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       executeWithDebugLoggerMock.mock.calls[0].arguments.slice(0, 3),
