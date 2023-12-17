@@ -57,6 +57,12 @@ export class YarnModernPackageManagerController
     );
   };
 
+  generateInitialProjectFiles = async () => {
+    await this.packageManagerControllerFactory.generateInitialProjectFiles(
+      this.packageManagerProps
+    );
+  };
+
   initializeAmplifyFolder = async () => {
     await this.packageManagerControllerFactory.initializeProject(
       this.packageManagerProps

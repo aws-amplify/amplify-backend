@@ -4,7 +4,6 @@ import { GitIgnoreInitializer } from './gitignore_initializer.js';
 import { logger } from './logger.js';
 
 const LEARN_MORE_USAGE_DATA_TRACKING_LINK = `https://docs.amplify.aws/gen2/reference/telemetry`;
-type ProjectInitializer = { ensureInitialized: () => Promise<void> };
 
 /**
  *
@@ -56,7 +55,7 @@ export class AmplifyProjectCreator {
     await logger.indicateProgress(`Creating template files`, async () => {
       await this.gitIgnoreInitializer.ensureInitialized();
 
-      await this.packageManagerController.initializeAmplifyFolder();
+      await this.packageManagerController.generateInitialProjectFiles();
     });
 
     logger.log('Successfully created a new project!');

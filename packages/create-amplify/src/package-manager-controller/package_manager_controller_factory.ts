@@ -29,6 +29,7 @@ export abstract class PackageManagerController {
     initDefault: string[];
   };
   abstract ensureInitialized: () => Promise<void>;
+  abstract generateInitialProjectFiles: () => Promise<void>;
   abstract initializeAmplifyFolder: () => Promise<void>;
 }
 

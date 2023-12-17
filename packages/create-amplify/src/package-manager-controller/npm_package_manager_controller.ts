@@ -56,6 +56,12 @@ export class NpmPackageManagerController implements PackageManagerController {
     );
   };
 
+  generateInitialProjectFiles = async () => {
+    await this.packageManagerControllerFactory.generateInitialProjectFiles(
+      this.packageManagerProps
+    );
+  };
+
   initializeAmplifyFolder = async () => {
     await this.packageManagerControllerFactory.initializeProject(
       this.packageManagerProps
