@@ -3,15 +3,13 @@ import { execa as _execa } from 'execa';
 import { executeWithDebugLogger } from '../execute_with_logger.js';
 import {
   DependencyType,
-  PackageManagerController,
+  PackageManagerControllerFactory,
 } from './package_manager_controller_factory.js';
 
 /**
  *
  */
-export class YarnClassicPackageManagerController
-  implements PackageManagerController
-{
+export class YarnClassicPackageManagerController extends PackageManagerControllerFactory {
   private readonly execa = _execa;
   private readonly packageManagerProps = {
     name: 'yarn-classic',
@@ -21,17 +19,6 @@ export class YarnClassicPackageManagerController
     lockFile: 'yarn.lock',
     initDefault: ['init', '--yes'],
   };
-
-  /**
-   * Abstraction around yarn classic commands that are needed to initialize a project and install dependencies
-   */
-  constructor(
-    private readonly projectRoot: string,
-    private readonly initializeProject: (packageManagerProps: {
-      executable: string;
-      initDefault: string[];
-    }) => Promise<void>
-  ) {}
 
   /**
    * Installs the given package names as devDependencies

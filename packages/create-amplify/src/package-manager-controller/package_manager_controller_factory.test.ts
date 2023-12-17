@@ -5,12 +5,9 @@ import assert from 'assert';
 void describe('PackageManagerController', () => {
   void it('executes expected dev dependency install command', async () => {
     const execaMock = mock.fn();
-    const initializeProjectMock = mock.fn(async () => {
-      return;
-    });
     const npmPackageManagerController = new NpmPackageManagerController(
       'testPath',
-      initializeProjectMock
+      'npm/9.6.7 node/v18.17.0 darwin arm64 workspaces/false'
     );
     await npmPackageManagerController.installDependencies(['testDep'], 'dev');
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments, [
@@ -22,12 +19,9 @@ void describe('PackageManagerController', () => {
 
   void it('executes expected prod dependency install command', async () => {
     const execaMock = mock.fn();
-    const initializeProjectMock = mock.fn(async () => {
-      return;
-    });
     const npmPackageManagerController = new NpmPackageManagerController(
       'testPath',
-      initializeProjectMock
+      'npm/9.6.7 node/v18.17.0 darwin arm64 workspaces/false'
     );
     await npmPackageManagerController.installDependencies(['testDep'], 'prod');
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments, [
@@ -38,12 +32,9 @@ void describe('PackageManagerController', () => {
   });
 
   void it('throws when installing dependencies rejects', async () => {
-    const initializeProjectMock = mock.fn(async () => {
-      return;
-    });
     const npmPackageManagerController = new NpmPackageManagerController(
       'testPath',
-      initializeProjectMock
+      'npm/9.6.7 node/v18.17.0 darwin arm64 workspaces/false'
     );
     await assert.rejects(
       () =>
@@ -55,12 +46,9 @@ void describe('PackageManagerController', () => {
   });
 
   void it('throws when installing dev dependencies rejects', async () => {
-    const initializeProjectMock = mock.fn(async () => {
-      return;
-    });
     const npmPackageManagerController = new NpmPackageManagerController(
       'testPath',
-      initializeProjectMock
+      'npm/9.6.7 node/v18.17.0 darwin arm64 workspaces/false'
     );
     await assert.rejects(
       () =>

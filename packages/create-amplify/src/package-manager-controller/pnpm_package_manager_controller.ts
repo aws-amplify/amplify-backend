@@ -3,13 +3,13 @@ import { execa as _execa } from 'execa';
 import { executeWithDebugLogger } from '../execute_with_logger.js';
 import {
   DependencyType,
-  PackageManagerController,
+  PackageManagerControllerFactory,
 } from './package_manager_controller_factory.js';
 
 /**
  *
  */
-export class PnpmPackageManagerController implements PackageManagerController {
+export class PnpmPackageManagerController extends PackageManagerControllerFactory {
   private readonly execa = _execa;
   private readonly packageManagerProps = {
     name: 'pnpm',
@@ -19,17 +19,6 @@ export class PnpmPackageManagerController implements PackageManagerController {
     lockFile: 'pnpm-lock.yaml',
     initDefault: ['init'],
   };
-
-  /**
-   * Abstraction around pnpm commands that are needed to initialize a project and install dependencies
-   */
-  constructor(
-    private readonly projectRoot: string,
-    private readonly initializeProject: (packageManagerProps: {
-      executable: string;
-      initDefault: string[];
-    }) => Promise<void>
-  ) {}
 
   /**
    * Installs the given package names as devDependencies
