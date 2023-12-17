@@ -9,8 +9,8 @@ import {
  *
  */
 export class NpmPackageManagerController implements PackageManagerController {
-  protected readonly execa = _execa;
-  protected readonly packageManagerProps = {
+  private readonly execa = _execa;
+  private readonly packageManagerProps = {
     name: 'npm',
     executable: 'npm',
     binaryRunner: 'npx',
@@ -22,7 +22,13 @@ export class NpmPackageManagerController implements PackageManagerController {
   /**
    * Abstraction around npm commands that are needed to initialize a project and install dependencies
    */
-  constructor(protected readonly projectRoot: string) {}
+  constructor(
+    private readonly projectRoot: string,
+    private readonly initializeProject: (packageManagerProps: {
+      executable: string;
+      initDefault: string[];
+    }) => Promise<void>
+  ) {}
 
   /**
    * Installs the given package names as devDependencies
@@ -44,6 +50,10 @@ export class NpmPackageManagerController implements PackageManagerController {
       args,
       this.execa
     );
+  };
+
+  ensureInitialized = async () => {
+    await this.initializeProject(this.packageManagerProps);
   };
 
   getPackageManagerProps = () => this.packageManagerProps;

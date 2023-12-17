@@ -25,7 +25,6 @@ const amplifyProjectCreator = new AmplifyProjectCreator(
   packageManagerControllerFactory.getPackageManagerController(),
   new ProjectRootValidator(projectRoot),
   new InitialProjectFileGenerator(projectRoot, packageManagerControllerFactory),
-  packageManagerControllerFactory.getProjectInitializer(),
   new GitIgnoreInitializer(projectRoot),
   projectRoot
 );

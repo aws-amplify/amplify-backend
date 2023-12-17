@@ -2,16 +2,11 @@ import { existsSync as _existsSync } from 'fs';
 import { execa as _execa } from 'execa';
 import * as path from 'path';
 import { logger } from '../logger.js';
+import { executeWithDebugLogger } from '../execute_with_logger.js';
 import { NpmPackageManagerController } from './npm_package_manager_controller.js';
 import { PnpmPackageManagerController } from './pnpm_package_manager_controller.js';
 import { YarnClassicPackageManagerController } from './yarn_classic_package_manager_controller.js';
 import { YarnModernPackageManagerController } from './yarn_modern_package_manager_controller.js';
-import {
-  NpmProjectInitializer,
-  PnpmProjectInitializer,
-  YarnClassicProjectInitializer,
-  YarnModernProjectInitializer,
-} from '../project-initializer/index.js';
 
 export type DependencyType = 'dev' | 'prod';
 
@@ -24,6 +19,7 @@ export abstract class PackageManagerController {
     type: DependencyType
   ) => Promise<void>;
   abstract getPackageManagerProps: () => {
+    // TODO: remove this method
     name: string;
     executable: string;
     binaryRunner: string;
@@ -31,6 +27,7 @@ export abstract class PackageManagerController {
     lockFile: string;
     initDefault: string[];
   };
+  abstract ensureInitialized: () => Promise<void>;
 }
 
 /**
@@ -85,49 +82,66 @@ export class PackageManagerControllerFactory {
     const packageManagerName = this.getPackageManagerName();
     switch (packageManagerName) {
       case 'npm':
-        return new NpmPackageManagerController(this.projectRoot);
+        return new NpmPackageManagerController(
+          this.projectRoot,
+          this.initializeProject
+        );
       case 'pnpm':
-        return new PnpmPackageManagerController(this.projectRoot);
+        return new PnpmPackageManagerController(
+          this.projectRoot,
+          this.initializeProject
+        );
       case 'yarn-classic':
-        return new YarnClassicPackageManagerController(this.projectRoot);
+        return new YarnClassicPackageManagerController(
+          this.projectRoot,
+          this.initializeProject
+        );
       case 'yarn-modern':
-        return new YarnModernPackageManagerController(this.projectRoot);
+        return new YarnModernPackageManagerController(
+          this.projectRoot,
+          this.initializeProject
+        );
       default:
-        return new NpmPackageManagerController(this.projectRoot);
+        throw new Error(
+          `Package Manager ${packageManagerName} is not supported.`
+        );
     }
   }
 
   /**
-   * getProjectInitializer
+   * initializeProject
    */
-  getProjectInitializer() {
-    const packageManagerName = this.getPackageManagerName();
-    switch (packageManagerName) {
-      case 'npm':
-        return new NpmProjectInitializer(
-          this.projectRoot,
-          this.packageJsonExists
-        );
-      case 'pnpm':
-        return new PnpmProjectInitializer(
-          this.projectRoot,
-          this.packageJsonExists
-        );
-      case 'yarn-classic':
-        return new YarnClassicProjectInitializer(
-          this.projectRoot,
-          this.packageJsonExists
-        );
-      case 'yarn-modern':
-        return new YarnModernProjectInitializer(
-          this.projectRoot,
-          this.packageJsonExists
-        );
-      default:
-        return new NpmProjectInitializer(
-          this.projectRoot,
-          this.packageJsonExists
-        );
+  async initializeProject(packageManagerProps: {
+    executable: string;
+    initDefault: string[];
+  }) {
+    if (this.packageJsonExists(this.projectRoot)) {
+      // if package.json already exists, no need to do anything
+      return;
+    }
+
+    logger.debug(
+      `No package.json file found in the current directory. Running \`${packageManagerProps.executable} init\`...`
+    );
+
+    try {
+      await executeWithDebugLogger(
+        this.projectRoot,
+        packageManagerProps.executable,
+        packageManagerProps.initDefault,
+        _execa
+      );
+    } catch {
+      throw new Error(
+        `\`${packageManagerProps.executable} init\` did not exit successfully. Initialize a valid JavaScript package before continuing.`
+      );
+    }
+
+    if (!this.packageJsonExists(this.projectRoot)) {
+      // this should only happen if the customer exits out of npm init before finishing
+      throw new Error(
+        `package.json does not exist after running \`${packageManagerProps.executable} init\`. Initialize a valid JavaScript package before continuing.'`
+      );
     }
   }
 }

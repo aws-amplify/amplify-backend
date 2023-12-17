@@ -27,7 +27,6 @@ export class AmplifyProjectCreator {
     private readonly packageManagerController: PackageManagerController,
     private readonly projectRootValidator: ProjectRootValidator,
     private readonly initialProjectFileGenerator: InitialProjectFileGenerator,
-    private readonly initializedEnsurer: ProjectInitializer,
     private readonly gitIgnoreInitializer: GitIgnoreInitializer,
     private readonly projectRoot: string
   ) {}
@@ -39,7 +38,7 @@ export class AmplifyProjectCreator {
     logger.debug(`Validating current state of target directory...`);
     await this.projectRootValidator.validate();
 
-    await this.initializedEnsurer.ensureInitialized();
+    await this.packageManagerController.ensureInitialized();
 
     await logger.indicateProgress(
       `Installing required dependencies`,

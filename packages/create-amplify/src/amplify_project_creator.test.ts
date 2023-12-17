@@ -17,13 +17,11 @@ void describe('AmplifyProjectCreator', () => {
     const initialProjectFileGeneratorMock = {
       generateInitialProjectFiles: mock.fn(),
     };
-    const npmInitializedEnsurerMock = { ensureInitialized: mock.fn() };
     const gitIgnoreInitializerMock = { ensureInitialized: mock.fn() };
     const amplifyProjectCreator = new AmplifyProjectCreator(
       packageManagerControllerMock as never,
       projectRootValidatorMock as never,
       initialProjectFileGeneratorMock as never,
-      npmInitializedEnsurerMock as never,
       gitIgnoreInitializerMock as never,
       process.cwd()
     );
@@ -36,10 +34,6 @@ void describe('AmplifyProjectCreator', () => {
     assert.equal(projectRootValidatorMock.validate.mock.callCount(), 1);
     assert.equal(
       initialProjectFileGeneratorMock.generateInitialProjectFiles.mock.callCount(),
-      1
-    );
-    assert.equal(
-      npmInitializedEnsurerMock.ensureInitialized.mock.callCount(),
       1
     );
     assert.equal(
@@ -64,13 +58,11 @@ void describe('AmplifyProjectCreator', () => {
     const initialProjectFileGeneratorMock = {
       generateInitialProjectFiles: mock.fn(),
     };
-    const npmInitializedEnsurerMock = { ensureInitialized: mock.fn() };
     const gitIgnoreInitializerMock = { ensureInitialized: mock.fn() };
     const amplifyProjectCreator = new AmplifyProjectCreator(
       packageManagerControllerMock as never,
       projectRootValidatorMock as never,
       initialProjectFileGeneratorMock as never,
-      npmInitializedEnsurerMock as never,
       gitIgnoreInitializerMock as never,
       '/project/root'
     );
