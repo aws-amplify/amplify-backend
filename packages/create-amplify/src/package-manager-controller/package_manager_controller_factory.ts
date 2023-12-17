@@ -195,7 +195,7 @@ export class PackageManagerControllerFactory {
     const targetDir = path.resolve(this.projectRoot, 'amplify');
     await this.fsp.mkdir(targetDir, { recursive: true });
     await this.fsp.cp(
-      new URL('../templates/basic-auth-data/amplify', import.meta.url),
+      new URL('../../templates/basic-auth-data/amplify', import.meta.url),
       targetDir,
       { recursive: true }
     );
