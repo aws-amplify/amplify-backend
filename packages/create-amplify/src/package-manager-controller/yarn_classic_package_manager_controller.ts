@@ -4,6 +4,7 @@ import { executeWithDebugLogger } from '../execute_with_logger.js';
 import {
   DependencyType,
   PackageManagerController,
+  PackageManagerControllerFactory,
 } from './package_manager_controller_factory.js';
 
 /**
@@ -27,10 +28,7 @@ export class YarnClassicPackageManagerController
    */
   constructor(
     private readonly projectRoot: string,
-    private readonly initializeProject: (packageManagerProps: {
-      executable: string;
-      initDefault: string[];
-    }) => Promise<void>
+    private readonly packageManagerControllerFactory: PackageManagerControllerFactory
   ) {}
 
   /**
@@ -56,7 +54,9 @@ export class YarnClassicPackageManagerController
   };
 
   ensureInitialized = async () => {
-    await this.initializeProject(this.packageManagerProps);
+    await this.packageManagerControllerFactory.initializeProject(
+      this.packageManagerProps
+    );
   };
 
   getPackageManagerProps = () => this.packageManagerProps;

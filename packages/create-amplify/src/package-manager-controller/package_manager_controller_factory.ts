@@ -84,22 +84,22 @@ export class PackageManagerControllerFactory {
       case 'npm':
         return new NpmPackageManagerController(
           this.projectRoot,
-          this.initializeProject
+          new PackageManagerControllerFactory(this.projectRoot, this.userAgent)
         );
       case 'pnpm':
         return new PnpmPackageManagerController(
           this.projectRoot,
-          this.initializeProject
+          new PackageManagerControllerFactory(this.projectRoot, this.userAgent)
         );
       case 'yarn-classic':
         return new YarnClassicPackageManagerController(
           this.projectRoot,
-          this.initializeProject
+          new PackageManagerControllerFactory(this.projectRoot, this.userAgent)
         );
       case 'yarn-modern':
         return new YarnModernPackageManagerController(
           this.projectRoot,
-          this.initializeProject
+          new PackageManagerControllerFactory(this.projectRoot, this.userAgent)
         );
       default:
         throw new Error(
