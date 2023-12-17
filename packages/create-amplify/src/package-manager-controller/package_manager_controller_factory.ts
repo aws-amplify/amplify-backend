@@ -1,8 +1,9 @@
 import { existsSync as _existsSync } from 'fs';
+import fsp from 'fs/promises';
 import { execa as _execa } from 'execa';
 import * as path from 'path';
 import { logger } from '../logger.js';
-import { executeWithDebugLogger } from '../execute_with_logger.js';
+import { executeWithDebugLogger as _executeWithDebugLogger } from '../execute_with_logger.js';
 import { NpmPackageManagerController } from './npm_package_manager_controller.js';
 import { PnpmPackageManagerController } from './pnpm_package_manager_controller.js';
 import { YarnClassicPackageManagerController } from './yarn_classic_package_manager_controller.js';
@@ -28,13 +29,17 @@ export abstract class PackageManagerController {
     initDefault: string[];
   };
   abstract ensureInitialized: () => Promise<void>;
+  abstract initializeAmplifyFolder: () => Promise<void>;
 }
 
 /**
  * packageManagerControllerFactory
  */
 export class PackageManagerControllerFactory {
+  private readonly fsp = fsp;
   private readonly existsSync = _existsSync;
+  private readonly executeWithDebugLogger = _executeWithDebugLogger;
+  private readonly execa = _execa;
 
   /**
    * constructor
@@ -44,10 +49,44 @@ export class PackageManagerControllerFactory {
     private readonly userAgent: string | undefined
   ) {}
 
+  private initializeTsConfig = async (
+    targetDir: string,
+    packageManagerProps: { name: string; binaryRunner: string }
+  ): Promise<void> => {
+    const tscArgs = [
+      'tsc',
+      '--init',
+      '--resolveJsonModule',
+      'true',
+      '--module',
+      'node16',
+      '--moduleResolution',
+      'node16',
+      '--target',
+      'es2022',
+    ];
+
+    if (packageManagerProps.name.startsWith('yarn')) {
+      await this.executeWithDebugLogger(
+        targetDir,
+        'yarn',
+        ['add', 'typescript@^5'],
+        this.execa
+      );
+    }
+
+    await this.executeWithDebugLogger(
+      targetDir,
+      packageManagerProps.binaryRunner,
+      tscArgs,
+      this.execa
+    );
+  };
+
   /**
    * Check if a package.json file exists in projectRoot
    */
-  protected packageJsonExists = (projectRoot: string): boolean => {
+  private packageJsonExists = (projectRoot: string): boolean => {
     return this.existsSync(path.resolve(projectRoot, 'package.json'));
   };
 
@@ -125,11 +164,11 @@ export class PackageManagerControllerFactory {
     );
 
     try {
-      await executeWithDebugLogger(
+      await this.executeWithDebugLogger(
         this.projectRoot,
         packageManagerProps.executable,
         packageManagerProps.initDefault,
-        _execa
+        this.execa
       );
     } catch {
       throw new Error(
@@ -144,4 +183,37 @@ export class PackageManagerControllerFactory {
       );
     }
   }
+
+  /**
+   * Copies the template directory to an amplify folder within the projectRoot
+   */
+  generateInitialProjectFiles = async (packageManagerProps: {
+    name: string;
+    binaryRunner: string;
+  }): Promise<void> => {
+    const targetDir = path.resolve(this.projectRoot, 'amplify');
+    await this.fsp.mkdir(targetDir, { recursive: true });
+    await this.fsp.cp(
+      new URL('../templates/basic-auth-data/amplify', import.meta.url),
+      targetDir,
+      { recursive: true }
+    );
+
+    const packageJsonContent = { type: 'module' };
+    await this.fsp.writeFile(
+      path.resolve(targetDir, 'package.json'),
+      JSON.stringify(packageJsonContent, null, 2)
+    );
+
+    if (packageManagerProps.name === 'yarn-modern') {
+      try {
+        await this.fsp.writeFile(path.resolve(targetDir, 'yarn.lock'), '');
+        console.log(`${targetDir}/yarn.lock created successfully.`);
+      } catch (error) {
+        console.error(`Error creating ${targetDir}/${targetDir}`, error);
+      }
+    }
+
+    await this.initializeTsConfig(targetDir, packageManagerProps);
+  };
 }

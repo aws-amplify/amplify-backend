@@ -1,6 +1,6 @@
 import path from 'path';
 import fs from 'fs';
-import _fs from 'fs/promises';
+import fsp from 'fs/promises';
 import { executeWithDebugLogger as _executeWithDebugLogger } from './execute_with_logger.js';
 import { execa } from 'execa';
 import { PackageManagerControllerFactory } from './package-manager-controller/index.js';
@@ -17,7 +17,7 @@ export class InitialProjectFileGenerator {
   constructor(
     private readonly projectRoot: string,
     private readonly packageManagerController: PackageManagerControllerFactory,
-    private readonly fs = _fs,
+    private readonly fs = fsp,
     private readonly executeWithDebugLogger = _executeWithDebugLogger
   ) {
     this.packageManagerProps = this.packageManagerController

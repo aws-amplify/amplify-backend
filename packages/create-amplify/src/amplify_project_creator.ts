@@ -26,7 +26,6 @@ export class AmplifyProjectCreator {
   constructor(
     private readonly packageManagerController: PackageManagerController,
     private readonly projectRootValidator: ProjectRootValidator,
-    private readonly initialProjectFileGenerator: InitialProjectFileGenerator,
     private readonly gitIgnoreInitializer: GitIgnoreInitializer,
     private readonly projectRoot: string
   ) {}
@@ -58,7 +57,7 @@ export class AmplifyProjectCreator {
     await logger.indicateProgress(`Creating template files`, async () => {
       await this.gitIgnoreInitializer.ensureInitialized();
 
-      await this.initialProjectFileGenerator.generateInitialProjectFiles();
+      await this.packageManagerController.initializeAmplifyFolder();
     });
 
     logger.log('Successfully created a new project!');

@@ -1,7 +1,6 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'assert';
 import { AmplifyProjectCreator } from './amplify_project_creator.js';
-import { PackageManagerControllerFactory } from './package-manager-controller/index.js';
 import { logger } from './logger.js';
 
 void describe('AmplifyProjectCreator', () => {
@@ -21,7 +20,6 @@ void describe('AmplifyProjectCreator', () => {
     const amplifyProjectCreator = new AmplifyProjectCreator(
       packageManagerControllerMock as never,
       projectRootValidatorMock as never,
-      initialProjectFileGeneratorMock as never,
       gitIgnoreInitializerMock as never,
       process.cwd()
     );
@@ -55,14 +53,10 @@ void describe('AmplifyProjectCreator', () => {
     };
     const packageManagerControllerMock = { installDependencies: mock.fn() };
     const projectRootValidatorMock = { validate: mock.fn() };
-    const initialProjectFileGeneratorMock = {
-      generateInitialProjectFiles: mock.fn(),
-    };
     const gitIgnoreInitializerMock = { ensureInitialized: mock.fn() };
     const amplifyProjectCreator = new AmplifyProjectCreator(
       packageManagerControllerMock as never,
       projectRootValidatorMock as never,
-      initialProjectFileGeneratorMock as never,
       gitIgnoreInitializerMock as never,
       '/project/root'
     );

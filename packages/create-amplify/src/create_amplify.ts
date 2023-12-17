@@ -24,7 +24,6 @@ const packageManagerControllerFactory = new PackageManagerControllerFactory(
 const amplifyProjectCreator = new AmplifyProjectCreator(
   packageManagerControllerFactory.getPackageManagerController(),
   new ProjectRootValidator(projectRoot),
-  new InitialProjectFileGenerator(projectRoot, packageManagerControllerFactory),
   new GitIgnoreInitializer(projectRoot),
   projectRoot
 );

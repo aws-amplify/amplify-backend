@@ -59,5 +59,11 @@ export class YarnClassicPackageManagerController
     );
   };
 
+  initializeAmplifyFolder = async () => {
+    await this.packageManagerControllerFactory.initializeProject(
+      this.packageManagerProps
+    );
+  };
+
   getPackageManagerProps = () => this.packageManagerProps;
 }
