@@ -13,6 +13,7 @@ import { AmplifyOtpAuth } from './otp/construct.js';
 import { AmplifyMagicLinkAuth } from './magic-link/construct.js';
 import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { Aws } from 'aws-cdk-lib';
+import { AmplifySignUpPasswordless } from './sign-up/construct.js';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -20,6 +21,10 @@ const dirname = path.dirname(filename);
  * Amplify Auth CDK Construct
  */
 export class AmplifyPasswordlessAuth extends Construct {
+  /**
+   * VerifyAuthChallengeResponse lambda function, used on unit tests
+   */
+  readonly verifyAuthChallengeResponse: NodejsFunction;
   /**
    * Create a new Auth construct with AuthProps.
    * If no props are provided, email login and defaults will be used.
@@ -72,7 +77,7 @@ export class AmplifyPasswordlessAuth extends Construct {
       }
     );
 
-    const verifyAuthChallengeResponse = new NodejsFunction(
+    this.verifyAuthChallengeResponse = new NodejsFunction(
       scope,
       `VerifyAuthChallengeResponse${id}`,
       {
@@ -86,7 +91,10 @@ export class AmplifyPasswordlessAuth extends Construct {
 
     auth.addTrigger('createAuthChallenge', createAuthChallenge);
 
-    auth.addTrigger('verifyAuthChallengeResponse', verifyAuthChallengeResponse);
+    auth.addTrigger(
+      'verifyAuthChallengeResponse',
+      this.verifyAuthChallengeResponse
+    );
 
     const emailEnabled = !!props.otp?.email || !!props.magicLink?.email;
     const smsEnabled = !!props.otp?.sms;
@@ -137,7 +145,7 @@ export class AmplifyPasswordlessAuth extends Construct {
         {
           defineAuthChallenge,
           createAuthChallenge,
-          verifyAuthChallengeResponse,
+          verifyAuthChallengeResponse: this.verifyAuthChallengeResponse,
         },
         props.otp
       );
@@ -151,9 +159,19 @@ export class AmplifyPasswordlessAuth extends Construct {
         {
           defineAuthChallenge,
           createAuthChallenge,
-          verifyAuthChallengeResponse,
+          verifyAuthChallengeResponse: this.verifyAuthChallengeResponse,
         },
         props.magicLink
+      );
+    }
+
+    // Configure Sign Up without password
+    if (props.signUpNoPassword) {
+      new AmplifySignUpPasswordless(
+        scope,
+        `${id}-signup-passwordless`,
+        this.verifyAuthChallengeResponse,
+        auth.resources.userPool
       );
     }
   }

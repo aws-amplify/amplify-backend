@@ -7,10 +7,12 @@
 import { AmplifyAuth } from '@aws-amplify/auth-construct-alpha';
 import { Construct } from 'constructs';
 import { Duration } from 'aws-cdk-lib/core';
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 
 // @public
 export class AmplifyPasswordlessAuth extends Construct {
     constructor(scope: Construct, id: string, auth: AmplifyAuth, props: PasswordlessAuthProps);
+    readonly verifyAuthChallengeResponse: NodejsFunction;
 }
 
 // @public
@@ -38,6 +40,7 @@ export type OtpAuthOptions = {
 export type PasswordlessAuthProps = {
     magicLink?: MagicLinkAuthOptions;
     otp?: OtpAuthOptions;
+    signUpNoPassword?: boolean;
 };
 
 // @public
