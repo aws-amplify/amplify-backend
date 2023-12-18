@@ -42,7 +42,7 @@ export class PackageManagerControllerFactory {
     private readonly userAgent: string | undefined
   ) {}
 
-  private initializeTsConfig = async (
+  initializeTsConfig = async (
     targetDir: string,
     packageManagerProps: { name: string; binaryRunner: string }
   ): Promise<void> => {
@@ -197,15 +197,6 @@ export class PackageManagerControllerFactory {
       path.resolve(targetDir, 'package.json'),
       JSON.stringify(packageJsonContent, null, 2)
     );
-
-    if (packageManagerProps.name === 'yarn-modern') {
-      try {
-        await this.fsp.writeFile(path.resolve(targetDir, 'yarn.lock'), '');
-        console.log(`${targetDir}/yarn.lock created successfully.`);
-      } catch (error) {
-        console.error(`Error creating ${targetDir}/${targetDir}`, error);
-      }
-    }
 
     await this.initializeTsConfig(targetDir, packageManagerProps);
   };

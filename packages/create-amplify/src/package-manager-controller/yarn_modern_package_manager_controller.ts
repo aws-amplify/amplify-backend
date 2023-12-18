@@ -1,4 +1,6 @@
 import { execa as _execa } from 'execa';
+import fsp from 'fs/promises';
+import * as path from 'path';
 import { executeWithDebugLogger } from '../execute_with_logger.js';
 import {
   DependencyType,
@@ -12,6 +14,7 @@ import {
 export class YarnModernPackageManagerController
   implements PackageManagerController
 {
+  private readonly fsp = fsp;
   private readonly execa = _execa;
   private readonly packageManagerProps = {
     name: 'yarn-modern',
@@ -69,7 +72,29 @@ Get started by running \`${cdCommand}${this.packageManagerProps.binaryRunner} am
   };
 
   generateInitialProjectFiles = async () => {
-    await this.packageManagerControllerFactory.generateInitialProjectFiles(
+    const targetDir = path.resolve(this.projectRoot, 'amplify');
+    await this.fsp.mkdir(targetDir, { recursive: true });
+    await this.fsp.cp(
+      new URL('../../templates/basic-auth-data/amplify', import.meta.url),
+      targetDir,
+      { recursive: true }
+    );
+
+    const packageJsonContent = { type: 'module' };
+    await this.fsp.writeFile(
+      path.resolve(targetDir, 'package.json'),
+      JSON.stringify(packageJsonContent, null, 2)
+    );
+
+    try {
+      await this.fsp.writeFile(path.resolve(targetDir, 'yarn.lock'), '');
+      console.log(`${targetDir}/yarn.lock created successfully.`);
+    } catch (error) {
+      console.error(`Error creating ${targetDir}/${targetDir}`, error);
+    }
+
+    await this.packageManagerControllerFactory.initializeTsConfig(
+      targetDir,
       this.packageManagerProps
     );
   };
