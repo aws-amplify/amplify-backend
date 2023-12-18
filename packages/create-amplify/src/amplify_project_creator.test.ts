@@ -20,8 +20,7 @@ void describe('AmplifyProjectCreator', () => {
     const amplifyProjectCreator = new AmplifyProjectCreator(
       packageManagerControllerMock as never,
       projectRootValidatorMock as never,
-      gitIgnoreInitializerMock as never,
-      process.cwd()
+      gitIgnoreInitializerMock as never
     );
     mock.method(logger, 'log', logMock.log);
     await amplifyProjectCreator.create();
@@ -57,8 +56,7 @@ void describe('AmplifyProjectCreator', () => {
     const amplifyProjectCreator = new AmplifyProjectCreator(
       packageManagerControllerMock as never,
       projectRootValidatorMock as never,
-      gitIgnoreInitializerMock as never,
-      '/project/root'
+      gitIgnoreInitializerMock as never
     );
     mock.method(logger, 'log', logMock.log);
     await amplifyProjectCreator.create();

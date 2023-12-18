@@ -23,8 +23,7 @@ const packageManagerControllerFactory = new PackageManagerControllerFactory(
 const amplifyProjectCreator = new AmplifyProjectCreator(
   packageManagerControllerFactory.getPackageManagerController(),
   new ProjectRootValidator(projectRoot),
-  new GitIgnoreInitializer(projectRoot),
-  projectRoot
+  new GitIgnoreInitializer(projectRoot)
 );
 
 try {

@@ -24,8 +24,7 @@ export class AmplifyProjectCreator {
   constructor(
     private readonly packageManagerController: PackageManagerController,
     private readonly projectRootValidator: ProjectRootValidator,
-    private readonly gitIgnoreInitializer: GitIgnoreInitializer,
-    private readonly projectRoot: string
+    private readonly gitIgnoreInitializer: GitIgnoreInitializer
   ) {}
 
   /**
