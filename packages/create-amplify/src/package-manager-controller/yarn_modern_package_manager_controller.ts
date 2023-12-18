@@ -1,6 +1,4 @@
 import { execa as _execa } from 'execa';
-import fsp from 'fs/promises';
-import * as path from 'path';
 import { executeWithDebugLogger } from '../execute_with_logger.js';
 import {
   DependencyType,
@@ -14,7 +12,6 @@ import {
 export class YarnModernPackageManagerController
   implements PackageManagerController
 {
-  private readonly fsp = fsp;
   private readonly execa = _execa;
   private readonly packageManagerProps = {
     name: 'yarn-modern',
@@ -31,18 +28,6 @@ export class YarnModernPackageManagerController
     private readonly projectRoot: string,
     private readonly packageManagerControllerFactory: PackageManagerControllerFactory
   ) {}
-
-  /**
-   * createLockFile
-   */
-  private async createLockFile(targetDir: string) {
-    try {
-      await this.fsp.writeFile(path.resolve(targetDir, 'yarn.lock'), '');
-      console.log(`${targetDir}/yarn.lock created successfully.`);
-    } catch (error) {
-      console.error(`Error creating ${targetDir}/${targetDir}`, error);
-    }
-  }
 
   /**
    * Installs the given package names as devDependencies
@@ -85,8 +70,7 @@ Get started by running \`${cdCommand}${this.packageManagerProps.binaryRunner} am
 
   generateInitialProjectFiles = async () => {
     await this.packageManagerControllerFactory.generateInitialProjectFiles(
-      this.packageManagerProps,
-      this.createLockFile
+      this.packageManagerProps
     );
   };
 
