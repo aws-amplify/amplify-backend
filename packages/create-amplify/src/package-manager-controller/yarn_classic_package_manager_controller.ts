@@ -59,6 +59,17 @@ export class YarnClassicPackageManagerController
     );
   };
 
+  getWelcomeMessage = () => {
+    const cdCommand =
+      process.cwd() === this.projectRoot
+        ? ''
+        : `cd .${this.projectRoot.replace(process.cwd(), '')}; `;
+
+    return `Welcome to AWS Amplify! 
+Run \`${this.packageManagerProps.binaryRunner} amplify help\` for a list of available commands. 
+Get started by running \`${cdCommand}${this.packageManagerProps.binaryRunner} amplify sandbox\`.`;
+  };
+
   generateInitialProjectFiles = async () => {
     await this.packageManagerControllerFactory.generateInitialProjectFiles(
       this.packageManagerProps
@@ -70,6 +81,4 @@ export class YarnClassicPackageManagerController
       this.packageManagerProps
     );
   };
-
-  getPackageManagerProps = () => this.packageManagerProps;
 }

@@ -60,20 +60,7 @@ export class AmplifyProjectCreator {
 
     logger.log('Successfully created a new project!');
 
-    const cdCommand =
-      process.cwd() === this.projectRoot
-        ? ''
-        : `cd .${this.projectRoot.replace(process.cwd(), '')}; `;
-
-    logger.log(
-      `Welcome to AWS Amplify! 
-Run \`${
-        this.packageManagerController.getPackageManagerProps().binaryRunner
-      } amplify help\` for a list of available commands. 
-Get started by running \`${cdCommand}${
-        this.packageManagerController.getPackageManagerProps().binaryRunner
-      } amplify sandbox\`.`
-    );
+    logger.log(this.packageManagerController.getWelcomeMessage());
 
     logger.log(
       `Amplify (Gen 2) collects anonymous telemetry data about general usage of the CLI.

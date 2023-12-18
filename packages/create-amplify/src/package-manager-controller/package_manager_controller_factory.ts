@@ -19,16 +19,8 @@ export abstract class PackageManagerController {
     packageNames: string[],
     type: DependencyType
   ) => Promise<void>;
-  abstract getPackageManagerProps: () => {
-    // TODO: remove this method
-    name: string;
-    executable: string;
-    binaryRunner: string;
-    installCommand: string;
-    lockFile: string;
-    initDefault: string[];
-  };
   abstract ensureInitialized: () => Promise<void>;
+  abstract getWelcomeMessage: () => string;
   abstract generateInitialProjectFiles: () => Promise<void>;
   abstract initializeAmplifyFolder: () => Promise<void>;
 }
