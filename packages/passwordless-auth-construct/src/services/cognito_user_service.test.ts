@@ -1,6 +1,5 @@
 import {
   AdminCreateUserCommandInput,
-  AdminDeleteUserAttributesCommand,
   AdminDeleteUserAttributesCommandInput,
   AdminUpdateUserAttributesCommandInput,
   CognitoIdentityProviderClient,
@@ -13,7 +12,7 @@ import { deepStrictEqual, rejects, strictEqual } from 'node:assert';
  * A mock client for issuing send command successful
  */
 class MockCognitoClient extends CognitoIdentityProviderClient {
-  send(command: unknown, options?: unknown, cb?: unknown): Promise<void> {
+  send(_command: unknown, _options?: unknown, _cb?: unknown): Promise<void> {
     return Promise.resolve();
   }
 }
@@ -22,7 +21,7 @@ class MockCognitoClient extends CognitoIdentityProviderClient {
  * A mock client for issuing failing send command
  */
 class MockCognitoClientFail extends CognitoIdentityProviderClient {
-  send(command: unknown, options?: unknown, cb?: unknown): Promise<void> {
+  send(_command: unknown, _options?: unknown, _cb?: unknown): Promise<void> {
     return Promise.reject(new Error('error'));
   }
 }

@@ -19,12 +19,10 @@ import { logger } from '../logger.js';
  */
 export class CognitoUserService implements UserService {
   /**
-   * Creates anew Cognito User constructor
+   * Creates a new Cognito User constructor
    * @param client CognitoIdentityProviderClient Cognito client
    */
-  constructor(private client: CognitoIdentityProviderClient) {
-    this.client = client;
-  }
+  constructor(private client: CognitoIdentityProviderClient) {}
 
   /**
    * Update user and mark attribute as verified
