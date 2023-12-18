@@ -1,12 +1,6 @@
-// ../amplify-backend/packages/passwordless-auth-construct/lib/sign-up/createUserService.js
-
-import {
-  AdminCreateUserCommand,
-  CognitoIdentityProviderClient,
-} from '@aws-sdk/client-cognito-identity-provider';
+import { CognitoIdentityProviderClient } from '@aws-sdk/client-cognito-identity-provider';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { PASSWORDLESS_SIGN_UP_ATTR_NAME } from '../constants.js';
-
+import { CognitoUserService } from '../services/cognito_user_service.js';
 /**
  * The Create User for Passwordless SignUp lambda handler
  * @param event - The event provided by ApiGateway for the request
@@ -31,59 +25,23 @@ export const createUser = async (
       };
     }
 
-    // this is the format for Cognito UserPool API, eslint doesnt like it otherwise
-    // eslint-disable-next-line
-    const userAttributes: Array<{ Name: string; Value: string }> = [];
-    const passwordlessConfiguration: {
-      allowSignInAttempt: boolean;
-      deliveryMedium?: 'SMS' | 'EMAIL';
-    } = {
-      allowSignInAttempt: false,
-      deliveryMedium: undefined,
-    };
-
-    if (params.email) {
-      userAttributes.push({
-        Name: 'email',
-        Value: params.email,
-      });
-      passwordlessConfiguration.allowSignInAttempt = true;
-      passwordlessConfiguration.deliveryMedium = 'EMAIL';
-    }
-
-    if (params.phone_number) {
-      userAttributes.push({
-        Name: 'phone_number',
-        Value: params.phone_number,
-      });
-
-      passwordlessConfiguration.allowSignInAttempt = true;
-      passwordlessConfiguration.deliveryMedium = 'SMS';
-    }
-
-    // TODO: what happens if both are included, which one should be valid?
-
-    if (passwordlessConfiguration.allowSignInAttempt) {
-      userAttributes.push({
-        Name: PASSWORDLESS_SIGN_UP_ATTR_NAME,
-        Value: JSON.stringify(passwordlessConfiguration),
-      });
-    }
-
     const client = new CognitoIdentityProviderClient({ region: params.region });
-    const command = new AdminCreateUserCommand({
-      Username: params.username,
-      UserPoolId: params.userPoolId,
-      UserAttributes: userAttributes,
-      MessageAction: 'SUPPRESS',
-    });
 
     try {
-      await client.send(command);
+      const cognitoCreateUserService = new CognitoUserService(client);
+      await cognitoCreateUserService.createUser({
+        username: params.username,
+        userPoolId: params.userPoolId,
+        email: params.email,
+        phone_number: params.phone_number,
+      });
     } catch (err) {
       return {
         statusCode: 400,
-        body: 'User already exists',
+        body: (err as Error).message,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+        },
       };
     }
 

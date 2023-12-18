@@ -3,11 +3,7 @@ import {
   DefineAuthChallengeTriggerEvent,
   VerifyAuthChallengeResponseTriggerEvent,
 } from 'aws-lambda';
-import {
-  AdminDeleteUserAttributesCommand,
-  AdminUpdateUserAttributesCommand,
-  CognitoIdentityProviderClient,
-} from '@aws-sdk/client-cognito-identity-provider';
+import { CognitoIdentityProviderClient } from '@aws-sdk/client-cognito-identity-provider';
 import { ChallengeServiceFactory } from '../factories/challenge_service_factory.js';
 import { logger } from '../logger.js';
 import {
@@ -21,6 +17,7 @@ import {
   CognitoMetadataKeys,
   PASSWORDLESS_SIGN_UP_ATTR_NAME,
 } from '../constants.js';
+import { CognitoUserService } from '../services/cognito_user_service.js';
 
 /**
  * A class containing the Cognito Auth triggers used for Custom Auth.
@@ -243,12 +240,16 @@ export class CustomAuthService {
           event.request.userAttributes[attributeName] === 'true';
         // Only update verified attribute the first time
         if (answerCorrect && !attributeVerified) {
+          const cognitoUserService = new CognitoUserService(
+            new CognitoIdentityProviderClient({ region: event.region })
+          );
           logger.debug(`Updating user attribute to verified: ${attributeName}`);
-          await this.markAsVerifiedAndDeletePasswordlessAttribute(
-            event.userName,
-            attributeName,
-            event.region,
-            event.userPoolId
+          await cognitoUserService.markAsVerifiedAndDeletePasswordlessAttribute(
+            {
+              username: event.userName,
+              attributeName,
+              userPoolId: event.userPoolId,
+            }
           );
         }
       }
@@ -467,42 +468,5 @@ export class CustomAuthService {
     return event.request.session.filter(
       (entry) => !entry.challengeMetadata?.includes('PROVIDE_AUTH_PARAMETERS')
     ).length;
-  }
-
-  /**
-   * Update user on Cognito UserPool by mark attribute as verified
-   * @param username - The username to be verify the attribute
-   * @param attributeName - The attribute that is going to be mark as verified
-   * @param region - The UserPool region
-   * @param userPoolId - The UserPool ID
-   */
-  private async markAsVerifiedAndDeletePasswordlessAttribute(
-    username: string,
-    attributeName: 'phone_number_verified' | 'email_verified',
-    region: string,
-    userPoolId: string
-  ) {
-    const attributeVerified = {
-      Name: attributeName,
-      Value: 'true',
-    };
-
-    const client = new CognitoIdentityProviderClient({ region });
-
-    const updateAttrCommand = new AdminUpdateUserAttributesCommand({
-      UserPoolId: userPoolId,
-      Username: username,
-      UserAttributes: [attributeVerified],
-    });
-
-    await client.send(updateAttrCommand);
-
-    const deleteAttrCommand = new AdminDeleteUserAttributesCommand({
-      UserPoolId: userPoolId,
-      Username: username,
-      UserAttributeNames: [PASSWORDLESS_SIGN_UP_ATTR_NAME],
-    });
-
-    await client.send(deleteAttrCommand);
   }
 }

@@ -345,3 +345,38 @@ export type KmsConfig = {
 export enum PasswordlessErrorCodes {
   CODE_MISMATCH_EXCEPTION = 'CodeMismatchException',
 }
+
+export type CreateUserParams = {
+  userPoolId: string;
+  username: string;
+  // this is the format for Cognito UserPool API, eslint doesnt like it otherwise
+  // eslint-disable-next-line
+  phone_number?: string;
+  email?: string;
+};
+
+export type MarkVerifiedAndDeletePasswordlessParams = {
+  username: string;
+  attributeName: 'phone_number_verified' | 'email_verified';
+  userPoolId: string;
+};
+
+export type UserService = {
+  /**
+   * Create User
+   * @param username - The username to be verify the attribute
+   * @param email - The attribute that is going to used as email (optional)
+   * @param phone_number - The attribute that is going to used as phone number (optional)
+   * @param userPoolId - The UserPool ID
+   */
+  createUser: (params: CreateUserParams) => Promise<void>;
+  /**
+   * Update user and mark attribute as verified
+   * @param username - The username to be verify the attribute
+   * @param attributeName - The attribute that is going to be mark as verified
+   * @param userPoolId - The UserPool ID
+   */
+  markAsVerifiedAndDeletePasswordlessAttribute: (
+    params: MarkVerifiedAndDeletePasswordlessParams
+  ) => Promise<void>;
+};
