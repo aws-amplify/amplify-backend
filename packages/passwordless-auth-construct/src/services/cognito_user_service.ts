@@ -66,11 +66,11 @@ export class CognitoUserService implements UserService {
    * @param params.userPoolId - The UserPool ID
    */
   async createUser(params: CreateUserParams): Promise<void> {
-    // this is the format for Cognito UserPool API, eslint doesnt like it otherwise
+    // this is the format for Cognito UserPool API, eslint not happy otherwise
     // eslint-disable-next-line
     const { userPoolId, username, email, phone_number } = params;
 
-    // this is the format for Cognito UserPool API, eslint doesnt like it otherwise
+    // this is the format for Cognito UserPool API, eslint not happy otherwise
     // eslint-disable-next-line
     const userAttributes: Array<{ Name: string; Value: string }> = [];
     const passwordlessConfiguration: {

@@ -253,7 +253,7 @@ export class CustomAuthService {
         }
       }
     } catch (_err) {
-      // best effor to parse passwordless_sign_up attribute
+      // best effort to parse passwordless_sign_up attribute
     }
 
     return verifyResult;
