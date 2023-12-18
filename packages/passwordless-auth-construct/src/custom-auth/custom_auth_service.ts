@@ -151,35 +151,37 @@ export class CustomAuthService {
       challengeService.validateCreateAuthChallengeEvent(event);
     }
 
+    // If the user is found and if the attribute requested for challenge
+    // delivery is verified or if the user was created via passwordless sign up (first sign in attempt)
     const validUser =
       !event.request.userNotFound && (isVerified || isFirstSignInAttempt);
 
-    // If the user is found and if the attribute requested for challenge
-    // delivery is verified or if the user was created via passwordless sign up (first sign in attempt)
-    if (validUser) {
-      return challengeService.createChallenge(
-        { deliveryMedium, attributeName },
-        destination,
-        event
+    if (!validUser) {
+      logger.info(
+        'User not found or user does not have a verified phone/email.'
       );
+      const publicChallengeParameters: RespondToAutChallengeParams = {
+        nextStep: 'PROVIDE_CHALLENGE_RESPONSE',
+        ...event.response.publicChallengeParameters,
+        attributeName,
+        deliveryMedium,
+      };
+      const response: CreateAuthChallengeTriggerEvent = {
+        ...event,
+        response: {
+          ...event.response,
+          publicChallengeParameters,
+        },
+      };
+      logger.debug(JSON.stringify(response, null, 2));
+      return response;
     }
 
-    logger.info('User not found or user does not have a verified phone/email.');
-    const publicChallengeParameters: RespondToAutChallengeParams = {
-      nextStep: 'PROVIDE_CHALLENGE_RESPONSE',
-      ...event.response.publicChallengeParameters,
-      attributeName,
-      deliveryMedium,
-    };
-    const response: CreateAuthChallengeTriggerEvent = {
-      ...event,
-      response: {
-        ...event.response,
-        publicChallengeParameters,
-      },
-    };
-    logger.debug(JSON.stringify(response, null, 2));
-    return response;
+    return challengeService.createChallenge(
+      { deliveryMedium, attributeName },
+      destination,
+      event
+    );
   };
 
   /**
