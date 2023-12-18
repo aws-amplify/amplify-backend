@@ -1,13 +1,14 @@
-import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { AppId, BackendIdentifier } from '@aws-amplify/plugin-types';
 import { createHash } from 'crypto';
 
 const STACK_NAME_LENGTH_LIMIT = 128;
 const AMPLIFY_PREFIX = 'amplify';
 const HASH_LENGTH = 10;
 const NUM_DASHES = 4;
+const SHARED_SECRET = 'shared';
 
 /**
- * Provides static methods for converting BackendIdentifier to/from a stack name string
+ * Provides static methods for converting BackendIdentifier to/from a stack name or parameter path string
  */
 export class BackendIdentifierConversions {
   /**
@@ -68,6 +69,29 @@ export class BackendIdentifierConversions {
 
     return ['amplify', namespace, name, backendId.type, hash].join('-');
   }
+
+  /**
+   * Convert a BackendIdentifier to a parameter prefix.
+   */
+  static toParameterPrefix(backendId: BackendIdentifier | AppId): string {
+    if (typeof backendId === 'object') {
+      return getBranchParameterPrefix(backendId);
+    }
+    return getSharedParameterPrefix(backendId);
+  }
+
+  /**
+   * Convert a BackendIdentifier to a parameter full path
+   */
+  static toParameterFullPath(
+    backendId: BackendIdentifier | AppId,
+    secretName: string
+  ): string {
+    if (typeof backendId === 'object') {
+      return getBranchParameterFullPath(backendId, secretName);
+    }
+    return getSharedParameterFullPath(backendId, secretName);
+  }
 }
 
 /**
@@ -94,4 +118,38 @@ const getHash = (backendId: BackendIdentifier): string =>
  */
 const sanitizeChars = (str: string): string => {
   return str.replace(/[^A-Za-z0-9]/g, '');
+};
+
+/**
+ * Get a branch-specific parameter prefix.
+ */
+const getBranchParameterPrefix = (parts: BackendIdentifier): string => {
+  return `/amplify/${parts.namespace}/${parts.name}`;
+};
+
+/**
+ * Get a branch-specific parameter full path.
+ */
+const getBranchParameterFullPath = (
+  backendIdentifier: BackendIdentifier,
+  secretName: string
+): string => {
+  return `${getBranchParameterPrefix(backendIdentifier)}/${secretName}`;
+};
+
+/**
+ * Get a shared parameter prefix.
+ */
+const getSharedParameterPrefix = (appId: AppId): string => {
+  return `/amplify/${SHARED_SECRET}/${appId}`;
+};
+
+/**
+ * Get a shared parameter full path.
+ */
+const getSharedParameterFullPath = (
+  appId: AppId,
+  secretName: string
+): string => {
+  return `${getSharedParameterPrefix(appId)}/${secretName}`;
 };
