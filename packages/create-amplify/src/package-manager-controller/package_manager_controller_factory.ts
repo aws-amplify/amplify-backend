@@ -188,10 +188,13 @@ export class PackageManagerControllerFactory {
   /**
    * Copies the template directory to an amplify folder within the projectRoot
    */
-  generateInitialProjectFiles = async (packageManagerProps: {
-    name: string;
-    binaryRunner: string;
-  }): Promise<void> => {
+  generateInitialProjectFiles = async (
+    packageManagerProps: {
+      name: string;
+      binaryRunner: string;
+    },
+    operate?: (param: string) => Promise<void>
+  ): Promise<void> => {
     const targetDir = path.resolve(this.projectRoot, 'amplify');
     await this.fsp.mkdir(targetDir, { recursive: true });
     await this.fsp.cp(
@@ -206,15 +209,10 @@ export class PackageManagerControllerFactory {
       JSON.stringify(packageJsonContent, null, 2)
     );
 
-    if (packageManagerProps.name === 'yarn-modern') {
-      try {
-        await this.fsp.writeFile(path.resolve(targetDir, 'yarn.lock'), '');
-        console.log(`${targetDir}/yarn.lock created successfully.`);
-      } catch (error) {
-        console.error(`Error creating ${targetDir}/${targetDir}`, error);
-      }
-    }
-
     await this.initializeTsConfig(targetDir, packageManagerProps);
+
+    if (operate) {
+      await operate(targetDir);
+    }
   };
 }
