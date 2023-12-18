@@ -255,7 +255,6 @@ export class CustomAuthService {
     } catch (_err) {
       // best effor to parse passwordless_sign_up attribute
     }
-    event.request.userAttributes[PASSWORDLESS_SIGN_UP_ATTR_NAME] === 'true';
 
     return verifyResult;
   };
