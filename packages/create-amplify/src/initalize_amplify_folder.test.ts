@@ -1,5 +1,5 @@
 import { beforeEach, describe, it, mock } from 'node:test';
-import { PackageManagerControllerFactory } from './package-manager-controller/index.js';
+import { PackageManagerControllerFactory } from './package-manager-controller/package_manager_controller_factory.js';
 import assert from 'assert';
 import * as path from 'path';
 

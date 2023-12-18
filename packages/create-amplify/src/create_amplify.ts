@@ -9,7 +9,7 @@
 
 import { ProjectRootValidator } from './project_root_validator.js';
 import { AmplifyProjectCreator } from './amplify_project_creator.js';
-import { PackageManagerControllerFactory } from './package-manager-controller/index.js';
+import { PackageManagerControllerFactory } from './package-manager-controller/package_manager_controller_factory.js';
 import { getProjectRoot } from './get_project_root.js';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
 
