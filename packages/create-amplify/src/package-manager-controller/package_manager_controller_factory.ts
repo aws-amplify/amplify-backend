@@ -19,6 +19,7 @@ export abstract class PackageManagerController {
     packageNames: string[],
     type: DependencyType
   ) => Promise<void>;
+  abstract ensureInitialized: () => Promise<void>;
   abstract getWelcomeMessage: () => string;
   abstract generateInitialProjectFiles: () => Promise<void>;
   abstract initializeAmplifyFolder: () => Promise<void>;

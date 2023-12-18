@@ -51,6 +51,12 @@ export class PnpmPackageManagerController implements PackageManagerController {
     );
   };
 
+  ensureInitialized = async () => {
+    await this.packageManagerControllerFactory.initializeProject(
+      this.packageManagerProps
+    );
+  };
+
   getWelcomeMessage = () => {
     const cdCommand =
       process.cwd() === this.projectRoot

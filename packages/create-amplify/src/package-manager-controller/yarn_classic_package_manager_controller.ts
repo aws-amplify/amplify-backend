@@ -53,6 +53,12 @@ export class YarnClassicPackageManagerController
     );
   };
 
+  ensureInitialized = async () => {
+    await this.packageManagerControllerFactory.initializeProject(
+      this.packageManagerProps
+    );
+  };
+
   getWelcomeMessage = () => {
     const cdCommand =
       process.cwd() === this.projectRoot
