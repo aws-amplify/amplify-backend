@@ -62,7 +62,7 @@ void describe('Cognito User Service - Create User', async () => {
       };
 
       const actualCreateUserCommand = sendMock.mock.calls[0].arguments[0]
-        .input as unknown as AdminCreateUserCommandInput;
+        .input as AdminCreateUserCommandInput;
 
       strictEqual(sendMock.mock.callCount(), 1);
       deepStrictEqual(actualCreateUserCommand, expectedAttributes);
@@ -97,7 +97,7 @@ void describe('Cognito User Service - Create User', async () => {
       };
 
       const actualCreateUserCommand = sendMock.mock.calls[0].arguments[0]
-        .input as unknown as AdminCreateUserCommandInput;
+        .input as AdminCreateUserCommandInput;
 
       strictEqual(sendMock.mock.callCount(), 1);
       deepStrictEqual(actualCreateUserCommand, expectedAttributes);
@@ -165,9 +165,9 @@ void describe('Cognito User service - Mark attribute as verified', async () => {
 
     strictEqual(sendMock.mock.callCount(), 2);
     const actualUpdateUserCommandInput = sendMock.mock.calls[0].arguments[0]
-      .input as unknown as AdminUpdateUserAttributesCommandInput;
+      .input as AdminUpdateUserAttributesCommandInput;
     const actualDeleteAttributeCommandInput = sendMock.mock.calls[1]
-      .arguments[0].input as unknown as AdminDeleteUserAttributesCommandInput;
+      .arguments[0].input as AdminDeleteUserAttributesCommandInput;
 
     deepStrictEqual(actualUpdateUserCommandInput, expectedUpdateUserAttributes);
     deepStrictEqual(
@@ -208,9 +208,9 @@ void describe('Cognito User service - Mark attribute as verified', async () => {
 
     strictEqual(sendMock.mock.callCount(), 2);
     const actualUpdateUserCommandInput = sendMock.mock.calls[0].arguments[0]
-      .input as unknown as AdminUpdateUserAttributesCommandInput;
+      .input as AdminUpdateUserAttributesCommandInput;
     const actualDeleteAttributeCommandInput = sendMock.mock.calls[1]
-      .arguments[0].input as unknown as AdminDeleteUserAttributesCommandInput;
+      .arguments[0].input as AdminDeleteUserAttributesCommandInput;
 
     deepStrictEqual(actualUpdateUserCommandInput, expectedUpdateUserAttributes);
     deepStrictEqual(
