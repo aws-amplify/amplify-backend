@@ -52,10 +52,4 @@ export class PnpmPackageManagerController extends PackageManagerController {
 Run \`${this.binaryRunner} amplify help\` for a list of available commands. 
 Get started by running \`${cdCommand}${this.binaryRunner} amplify sandbox\`.`;
   };
-
-  generateInitialProjectFiles = async () => {
-    await this.packageManagerControllerFactory.generateInitialProjectFiles(
-      this.packageManagerProps
-    );
-  };
 }

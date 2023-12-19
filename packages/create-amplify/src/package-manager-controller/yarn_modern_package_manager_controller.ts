@@ -53,32 +53,4 @@ export class YarnModernPackageManagerController extends PackageManagerController
 Run \`${this.binaryRunner} amplify help\` for a list of available commands. 
 Get started by running \`${cdCommand}${this.binaryRunner} amplify sandbox\`.`;
   };
-
-  generateInitialProjectFiles = async () => {
-    const targetDir = path.resolve(this.projectRoot, 'amplify');
-    await this.fsp.mkdir(targetDir, { recursive: true });
-    await this.fsp.cp(
-      new URL('../../templates/basic-auth-data/amplify', import.meta.url),
-      targetDir,
-      { recursive: true }
-    );
-
-    const packageJsonContent = { type: 'module' };
-    await this.fsp.writeFile(
-      path.resolve(targetDir, 'package.json'),
-      JSON.stringify(packageJsonContent, null, 2)
-    );
-
-    try {
-      await this.fsp.writeFile(path.resolve(targetDir, 'yarn.lock'), '');
-      console.log(`${targetDir}/yarn.lock created successfully.`);
-    } catch (error) {
-      console.error(`Error creating ${targetDir}/${targetDir}`, error);
-    }
-
-    await this.packageManagerControllerFactory.initializeTsConfig(
-      targetDir,
-      this.packageManagerProps
-    );
-  };
 }

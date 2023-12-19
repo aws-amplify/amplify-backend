@@ -4,6 +4,7 @@ import { execa as _execa } from 'execa';
 import * as path from 'path';
 import { logger } from '../logger.js';
 import { executeWithDebugLogger as _executeWithDebugLogger } from '../execute_with_logger.js';
+import { InitialProjectFileGenerator } from '../initial_project_file_generator.js';
 import { NpmPackageManagerController } from './npm_package_manager_controller.js';
 import { PnpmPackageManagerController } from './pnpm_package_manager_controller.js';
 import { YarnClassicPackageManagerController } from './yarn_classic_package_manager_controller.js';
@@ -30,7 +31,13 @@ export abstract class PackageManagerController {
     type: DependencyType
   ) => Promise<void>;
   abstract getWelcomeMessage: () => string;
-  abstract generateInitialProjectFiles: () => Promise<void>;
+
+  /**
+   * generateInitialProjectFiles
+   */
+  generateInitialProjectFiles() {
+    return new InitialProjectFileGenerator(this.projectRoot);
+  }
 
   /**
    * initializeProject
@@ -168,28 +175,4 @@ export class PackageManagerControllerFactory {
         );
     }
   }
-
-  /**
-   * Copies the template directory to an amplify folder within the projectRoot
-   */
-  generateInitialProjectFiles = async (packageManagerProps: {
-    name: string;
-    binaryRunner: string;
-  }): Promise<void> => {
-    const targetDir = path.resolve(this.projectRoot, 'amplify');
-    await this.fsp.mkdir(targetDir, { recursive: true });
-    await this.fsp.cp(
-      new URL('../../templates/basic-auth-data/amplify', import.meta.url),
-      targetDir,
-      { recursive: true }
-    );
-
-    const packageJsonContent = { type: 'module' };
-    await this.fsp.writeFile(
-      path.resolve(targetDir, 'package.json'),
-      JSON.stringify(packageJsonContent, null, 2)
-    );
-
-    await this.initializeTsConfig(targetDir, packageManagerProps);
-  };
 }
