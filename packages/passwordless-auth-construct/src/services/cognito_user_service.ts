@@ -19,16 +19,11 @@ import { logger } from '../logger.js';
  * A service for interacting with Cognito User Poo
  */
 export class CognitoUserService implements UserService {
-  cognitoClient: CognitoIdentityProviderClient;
   /**
    * Creates a new Cognito User constructor
    * @param cognitoClient - CognitoIdentity client (optional)
    */
-  constructor(cognitoClient?: CognitoIdentityProviderClient) {
-    if (cognitoClient) {
-      this.cognitoClient = cognitoClient;
-    }
-  }
+  constructor(private cognitoClient: CognitoIdentityProviderClient) {}
 
   /**
    * Update user and mark attribute as verified
@@ -47,16 +42,13 @@ export class CognitoUserService implements UserService {
       Value: 'true',
     };
 
-    const client =
-      this.cognitoClient || new CognitoIdentityProviderClient({ region });
-
     const updateAttrCommand = new AdminUpdateUserAttributesCommand({
       UserPoolId: userPoolId,
       Username: username,
       UserAttributes: [attributeVerified],
     });
 
-    await client.send(updateAttrCommand);
+    await this.cognitoClient.send(updateAttrCommand);
 
     const deleteAttrCommand = new AdminDeleteUserAttributesCommand({
       UserPoolId: userPoolId,
@@ -64,7 +56,7 @@ export class CognitoUserService implements UserService {
       UserAttributeNames: [PASSWORDLESS_SIGN_UP_ATTR_NAME],
     });
 
-    await client.send(deleteAttrCommand);
+    await this.cognitoClient.send(deleteAttrCommand);
   }
 
   /**
@@ -128,10 +120,7 @@ export class CognitoUserService implements UserService {
     });
 
     try {
-      const client =
-        this.cognitoClient || new CognitoIdentityProviderClient({ region });
-
-      await client.send(command);
+      await this.cognitoClient.send(command);
       return;
     } catch (err) {
       logger.debug(err);

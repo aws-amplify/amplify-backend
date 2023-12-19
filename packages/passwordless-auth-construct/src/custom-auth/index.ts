@@ -14,6 +14,7 @@ import { MagicLinkStorageService } from '../magic-link/magic_link_storage_servic
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { CognitoUserService } from '../services/cognito_user_service.js';
+import { CognitoIdentityProviderClient } from '@aws-sdk/client-cognito-identity-provider';
 
 const { otpConfig, magicLinkConfig, snsConfig, sesConfig } =
   new PasswordlessConfig(process.env);
@@ -50,7 +51,9 @@ const challengeServiceFactory = new ChallengeServiceFactory([
   magicLinkChallengeService,
 ]);
 
-const cognitoUserService = new CognitoUserService();
+const cognitoUserService = new CognitoUserService(
+  new CognitoIdentityProviderClient()
+);
 
 export const { defineAuthChallenge, createAuthChallenge, verifyAuthChallenge } =
   new CustomAuthService(challengeServiceFactory, cognitoUserService);

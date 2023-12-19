@@ -1,5 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { CognitoUserService } from '../services/cognito_user_service.js';
+import { CognitoIdentityProviderClient } from '@aws-sdk/client-cognito-identity-provider';
 /**
  * The Create User for Passwordless SignUp lambda handler
  * @param event - The event provided by ApiGateway for the request
@@ -25,7 +26,9 @@ export const createUser = async (
     }
 
     try {
-      const cognitoCreateUserService = new CognitoUserService();
+      const cognitoCreateUserService = new CognitoUserService(
+        new CognitoIdentityProviderClient()
+      );
       await cognitoCreateUserService.createUser({
         username: params.username,
         userPoolId: params.userPoolId,

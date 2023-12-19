@@ -36,7 +36,7 @@ export class AmplifySignUpPasswordless extends Construct {
     const defaultMemorySize = 128;
 
     const commonOptions: NodejsFunctionProps = {
-      entry: path.join(dirname, '.', 'create_user_service.js'),
+      entry: path.join(dirname, '.', 'create_user_handler.js'),
       runtime: Runtime.NODEJS_20_X,
       architecture: Architecture.ARM_64,
       bundling: {
@@ -69,35 +69,33 @@ export class AmplifySignUpPasswordless extends Construct {
 
     new CfnOutput(this, 'apiUrl', { value: api.url });
 
-    if (createUserFunction.role) {
-      createUserFunction.role.attachInlinePolicy(
-        new Policy(this, `CreateUserPolicy${id}`, {
-          statements: [
-            new PolicyStatement({
-              actions: ['cognito-idp:AdminCreateUser'],
-              resources: [userPool.userPoolArn],
-              effect: Effect.ALLOW,
-            }),
-          ],
-        })
-      );
-    }
+    // According to cdk docs there always is a default role https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_lambda-readme.html#execution-role
+    createUserFunction.role!.attachInlinePolicy(
+      new Policy(this, `CreateUserPolicy${id}`, {
+        statements: [
+          new PolicyStatement({
+            actions: ['cognito-idp:AdminCreateUser'],
+            resources: [userPool.userPoolArn],
+            effect: Effect.ALLOW,
+          }),
+        ],
+      })
+    );
 
-    if (verifyAuthChallengeResponse.role) {
-      verifyAuthChallengeResponse.role.attachInlinePolicy(
-        new Policy(this, `UpdateUserPolicy${id}`, {
-          statements: [
-            new PolicyStatement({
-              actions: [
-                'cognito-idp:AdminUpdateUserAttributes',
-                'cognito-idp:AdminDeleteUserAttributes',
-              ],
-              resources: [userPool.userPoolArn],
-              effect: Effect.ALLOW,
-            }),
-          ],
-        })
-      );
-    }
+    // According to cdk docs there always is a default role https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_lambda-readme.html#execution-role
+    verifyAuthChallengeResponse.role!.attachInlinePolicy(
+      new Policy(this, `UpdateUserPolicy${id}`, {
+        statements: [
+          new PolicyStatement({
+            actions: [
+              'cognito-idp:AdminUpdateUserAttributes',
+              'cognito-idp:AdminDeleteUserAttributes',
+            ],
+            resources: [userPool.userPoolArn],
+            effect: Effect.ALLOW,
+          }),
+        ],
+      })
+    );
   }
 }
