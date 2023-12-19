@@ -21,7 +21,7 @@ void describe('InitialProjectFileGenerator', () => {
     );
     const packageManagerController =
       packageManagerControllerFactory.getPackageManagerController();
-    await packageManagerController.initializeAmplifyFolder();
+    await packageManagerController.initializeProject();
 
     assert.deepStrictEqual(fsMock.mkdir.mock.calls[0].arguments, [
       path.join(process.cwd(), 'testDir', 'amplify'),
@@ -49,7 +49,7 @@ void describe('InitialProjectFileGenerator', () => {
     );
     const packageManagerController =
       packageManagerControllerFactory.getPackageManagerController();
-    await packageManagerController.initializeAmplifyFolder();
+    await packageManagerController.initializeProject();
     assert.equal(executeWithDebugLoggerMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       executeWithDebugLoggerMock.mock.calls[0].arguments.slice(0, 3),

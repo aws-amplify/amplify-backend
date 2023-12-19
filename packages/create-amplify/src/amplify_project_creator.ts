@@ -34,7 +34,7 @@ export class AmplifyProjectCreator {
     logger.debug(`Validating current state of target directory...`);
     await this.projectRootValidator.validate();
 
-    await this.packageManagerController.initializeAmplifyFolder();
+    await this.packageManagerController.initializeProject();
 
     await logger.indicateProgress(
       `Installing required dependencies`,

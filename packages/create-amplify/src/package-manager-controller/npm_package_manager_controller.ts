@@ -9,24 +9,17 @@ import {
 /**
  *
  */
-export class NpmPackageManagerController implements PackageManagerController {
-  private readonly execa = _execa;
-  private readonly packageManagerProps = {
-    name: 'npm',
-    executable: 'npm',
-    binaryRunner: 'npx',
-    installCommand: 'install',
-    lockFile: 'package-lock.json',
-    initDefault: ['init', '--yes'],
-  };
-
+export class NpmPackageManagerController extends PackageManagerController {
   /**
    * Abstraction around npm commands that are needed to initialize a project and install dependencies
    */
-  constructor(
-    private readonly projectRoot: string,
-    private readonly packageManagerControllerFactory: PackageManagerControllerFactory
-  ) {}
+  constructor() {
+    super();
+    this.executable = 'npm';
+    this.binaryRunner = 'npx';
+    this.installCommand = 'install';
+    this.initDefault = ['init', '--yes'];
+  }
 
   /**
    * Installs the given package names as devDependencies
@@ -35,16 +28,14 @@ export class NpmPackageManagerController implements PackageManagerController {
     packageNames: string[],
     type: DependencyType
   ): Promise<void> => {
-    const args = [`${this.packageManagerProps.installCommand}`].concat(
-      ...packageNames
-    );
+    const args = [`${this.installCommand}`].concat(...packageNames);
     if (type === 'dev') {
       args.push('-D');
     }
 
     await executeWithDebugLogger(
       this.projectRoot,
-      this.packageManagerProps.executable,
+      this.executable,
       args,
       this.execa
     );
@@ -57,18 +48,12 @@ export class NpmPackageManagerController implements PackageManagerController {
         : `cd .${this.projectRoot.replace(process.cwd(), '')}; `;
 
     return `Welcome to AWS Amplify! 
-Run \`${this.packageManagerProps.binaryRunner} amplify help\` for a list of available commands. 
-Get started by running \`${cdCommand}${this.packageManagerProps.binaryRunner} amplify sandbox\`.`;
+Run \`${this.binaryRunner} amplify help\` for a list of available commands. 
+Get started by running \`${cdCommand}${this.binaryRunner} amplify sandbox\`.`;
   };
 
   generateInitialProjectFiles = async () => {
     await this.packageManagerControllerFactory.generateInitialProjectFiles(
-      this.packageManagerProps
-    );
-  };
-
-  initializeAmplifyFolder = async () => {
-    await this.packageManagerControllerFactory.initializeProject(
       this.packageManagerProps
     );
   };
