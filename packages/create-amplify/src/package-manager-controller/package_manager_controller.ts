@@ -24,11 +24,36 @@ export class PackageManagerController {
    */
   constructor(readonly projectRoot: string) {}
 
-  installDependencies: (
+  /**
+   * Installs the given package names as devDependencies
+   */
+  installDependencies = async (
     packageNames: string[],
     type: DependencyType
-  ) => Promise<void>;
-  getWelcomeMessage: () => string;
+  ): Promise<void> => {
+    const args = [`${this.installCommand}`].concat(...packageNames);
+    if (type === 'dev') {
+      args.push('-D');
+    }
+
+    await this.executeWithDebugLogger(
+      this.projectRoot,
+      this.executable,
+      args,
+      this.execa
+    );
+  };
+
+  getWelcomeMessage = () => {
+    const cdCommand =
+      process.cwd() === this.projectRoot
+        ? ''
+        : `cd .${this.projectRoot.replace(process.cwd(), '')}; `;
+
+    return `Welcome to AWS Amplify! 
+Run \`${this.binaryRunner} amplify help\` for a list of available commands. 
+Get started by running \`${cdCommand}${this.binaryRunner} amplify sandbox\`.`;
+  };
 
   /**
    * generateInitialProjectFiles
