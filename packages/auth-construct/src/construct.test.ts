@@ -1493,6 +1493,29 @@ void describe('Auth construct', () => {
       );
     });
 
+    void it('throws an error if domainPrefix is configured without any external providers', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      assert.throws(
+        () =>
+          new AmplifyAuth(stack, 'test', {
+            loginWith: {
+              email: true,
+              externalProviders: {
+                scopes: ['EMAIL', 'PROFILE'],
+                callbackUrls: [],
+                logoutUrls: ['http://localhost'],
+                domainPrefix: 'https://localhost',
+              },
+            },
+          }),
+        {
+          message:
+            'You cannot configure a domain prefix if there are no external providers configured.',
+        }
+      );
+    });
+
     void it('supports all idps and login methods', () => {
       const app = new App();
       const stack = new Stack(app);

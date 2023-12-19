@@ -129,12 +129,19 @@ export class AmplifyAuth
 
     this.domainPrefix = props.loginWith.externalProviders?.domainPrefix;
     if (
-      this.providerSetupResult.providersList.length > 0 &&
-      this.domainPrefix
+      this.domainPrefix &&
+      this.providerSetupResult.providersList.length > 0
     ) {
       this.userPool.addDomain('UserPoolDomain', {
         cognitoDomain: { domainPrefix: this.domainPrefix },
       });
+    } else if (
+      this.domainPrefix &&
+      this.providerSetupResult.providersList.length === 0
+    ) {
+      throw new Error(
+        'You cannot configure a domain prefix if there are no external providers configured.'
+      );
     }
 
     // if oauth is enabled, prepare the oauth settings for the UserPool client
