@@ -1,5 +1,4 @@
 import path from 'path';
-import fs from 'fs';
 import _fs from 'fs/promises';
 import { executeWithDebugLogger as _executeWithDebugLogger } from './execute_with_logger.js';
 import { execa } from 'execa';
@@ -14,6 +13,7 @@ export class InitialProjectFileGenerator {
    */
   constructor(
     private readonly projectRoot: string,
+    private readonly addLockFile?: (targetDir: string) => void,
     private readonly fs = _fs,
     private readonly executeWithDebugLogger = _executeWithDebugLogger
   ) {}
@@ -42,14 +42,8 @@ export class InitialProjectFileGenerator {
       JSON.stringify(packageJsonContent, null, 2)
     );
 
-    if (process.env.PACKAGE_MANAGER_EXECUTABLE === 'yarn-modern') {
-      fs.writeFile(path.resolve(targetDir, 'yarn.lock'), '', (err) => {
-        if (err) {
-          console.error(`Error creating ${targetDir}/${targetDir}`, err);
-        } else {
-          console.log(`${targetDir}/yarn.lock created successfully.`);
-        }
-      });
+    if (this.addLockFile) {
+      this.addLockFile(targetDir);
     }
 
     await this.initializeTsConfig(targetDir);
