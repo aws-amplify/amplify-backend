@@ -4,15 +4,28 @@
 
 ```ts
 
-import { AmplifyStorage } from '@aws-amplify/storage-construct-alpha';
-import { AmplifyStorageProps } from '@aws-amplify/storage-construct-alpha';
+import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
+import { IBucket } from 'aws-cdk-lib/aws-s3';
+import { ResourceProvider } from '@aws-amplify/plugin-types';
+import { StorageOutput } from '@aws-amplify/backend-output-schemas';
 
 // @public (undocumented)
 export type AmplifyStorageFactoryProps = Omit<AmplifyStorageProps, 'outputStorageStrategy'>;
 
+// @public (undocumented)
+export type AmplifyStorageProps = {
+    versioned?: boolean;
+    outputStorageStrategy?: BackendOutputStorageStrategy<StorageOutput>;
+};
+
 // @public
-export const defineStorage: (props: AmplifyStorageProps) => ConstructFactory<AmplifyStorage>;
+export const defineStorage: (props: AmplifyStorageProps) => ConstructFactory<ResourceProvider<StorageResources>>;
+
+// @public (undocumented)
+export type StorageResources = {
+    bucket: IBucket;
+};
 
 // (No @packageDocumentation comment for this package)
 

@@ -38,6 +38,11 @@ To send us a pull request, please:
 GitHub provides additional document on [forking a repository](https://help.github.com/articles/fork-a-repo/) and
 [creating a pull request](https://help.github.com/articles/creating-a-pull-request/).
 
+## Project architecture
+
+Understanding the structure of the current codebase is a great first step to knowing where to implement a change. Check out the [Project Architecture README](./PROJECT_ARCHITECTURE.md) for information on how the repo is structured.
+Also check out the README files in the root of each package directory for a brief description of the intent of that package.
+
 ## Finding contributions to work on
 
 Looking at the existing issues is a great way to find something to contribute on. As our projects, by default, use the default GitHub issue labels (enhancement/bug/duplicate/help wanted/invalid/question/wontfix), looking at any 'help wanted' issues is a great place to start.

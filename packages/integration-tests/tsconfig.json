@@ -2,6 +2,7 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": { "rootDir": "src", "outDir": "lib", "allowJs": true },
   "references": [
+    { "path": "../auth-construct" },
     { "path": "../backend" },
     { "path": "../backend-secret" },
     { "path": "../client-config" },

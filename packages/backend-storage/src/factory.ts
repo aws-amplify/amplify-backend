@@ -5,12 +5,14 @@ import {
   ConstructContainerEntryGenerator,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
+  ResourceProvider,
 } from '@aws-amplify/plugin-types';
+import * as path from 'path';
 import {
   AmplifyStorage,
   AmplifyStorageProps,
-} from '@aws-amplify/storage-construct-alpha';
-import * as path from 'path';
+  StorageResources,
+} from './construct.js';
 
 export type AmplifyStorageFactoryProps = Omit<
   AmplifyStorageProps,
@@ -20,7 +22,9 @@ export type AmplifyStorageFactoryProps = Omit<
 /**
  * Singleton factory for a Storage bucket that can be used in `resource.ts` files
  */
-class AmplifyStorageFactory implements ConstructFactory<AmplifyStorage> {
+class AmplifyStorageFactory
+  implements ConstructFactory<ResourceProvider<StorageResources>>
+{
   private generator: ConstructContainerEntryGenerator;
 
   /**
@@ -76,5 +80,5 @@ class AmplifyStorageGenerator implements ConstructContainerEntryGenerator {
  */
 export const defineStorage = (
   props: AmplifyStorageProps
-): ConstructFactory<AmplifyStorage> =>
+): ConstructFactory<ResourceProvider<StorageResources>> =>
   new AmplifyStorageFactory(props, new Error().stack);

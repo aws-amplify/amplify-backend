@@ -1,0 +1,4 @@
+index.ts(8,9): error TS2322: Type 'SampleTypeBaseline' is not assignable to type 'SampleType'.
+  Types of property 'anotherProperty' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.

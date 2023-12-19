@@ -10,7 +10,9 @@ tsconfig.tsbuildinfo
 .nvmrc
 .npmrc
 .DS_Store
+.vscode
 verdaccio-cache
 verdaccio-logs.txt
 cdk.out/
 e2e-tests
+concurrent_workspace_script_cache.json

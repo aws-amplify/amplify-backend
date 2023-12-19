@@ -8,7 +8,6 @@ import { AmazonProviderProps } from '@aws-amplify/auth-construct-alpha';
 import { AmplifyAuth } from '@aws-amplify/auth-construct-alpha';
 import { AppleProviderProps } from '@aws-amplify/auth-construct-alpha';
 import { AuthProps } from '@aws-amplify/auth-construct-alpha';
-import { AuthResources } from '@aws-amplify/plugin-types';
 import { BackendSecret } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { ExternalProviderOptions } from '@aws-amplify/auth-construct-alpha';
@@ -45,7 +44,7 @@ export type AuthLoginWithFactoryProps = Omit<AuthProps['loginWith'], 'externalPr
 };
 
 // @public
-export const defineAuth: (props: AmplifyAuthProps) => ConstructFactory<AmplifyAuth & ResourceProvider<AuthResources>>;
+export const defineAuth: (props: AmplifyAuthProps) => ConstructFactory<AmplifyAuth>;
 
 // @public
 export type Expand<T> = T extends infer O ? {

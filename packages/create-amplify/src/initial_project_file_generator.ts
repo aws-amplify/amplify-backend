@@ -62,9 +62,9 @@ export class InitialProjectFileGenerator {
       '--resolveJsonModule',
       'true',
       '--module',
-      'node16',
+      'es2022',
       '--moduleResolution',
-      'node16',
+      'bundler',
       '--target',
       'es2022',
     ];
