@@ -25,15 +25,14 @@ export const createUser = async (
       };
     }
 
-    const client = new CognitoIdentityProviderClient({ region: params.region });
-
     try {
-      const cognitoCreateUserService = new CognitoUserService(client);
+      const cognitoCreateUserService = new CognitoUserService();
       await cognitoCreateUserService.createUser({
         username: params.username,
         userPoolId: params.userPoolId,
         email: params.email,
         phone_number: params.phone_number,
+        region: params.region,
       });
     } catch (err) {
       return {

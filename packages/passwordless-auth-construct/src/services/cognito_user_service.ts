@@ -5,6 +5,7 @@ import {
   AdminDeleteUserAttributesCommand,
   AdminUpdateUserAttributesCommand,
   CognitoIdentityProviderClient,
+  DeliveryMediumType,
 } from '@aws-sdk/client-cognito-identity-provider';
 import { PASSWORDLESS_SIGN_UP_ATTR_NAME } from '../constants.js';
 import {
@@ -18,27 +19,36 @@ import { logger } from '../logger.js';
  * A service for interacting with Cognito User Poo
  */
 export class CognitoUserService implements UserService {
+  cognitoClient: CognitoIdentityProviderClient;
   /**
    * Creates a new Cognito User constructor
-   * @param client CognitoIdentityProviderClient Cognito client
+   * @param cognitoClient - CognitoIdentity client (optional)
    */
-  constructor(private client: CognitoIdentityProviderClient) {}
+  constructor(cognitoClient?: CognitoIdentityProviderClient) {
+    if (cognitoClient) {
+      this.cognitoClient = cognitoClient;
+    }
+  }
 
   /**
    * Update user and mark attribute as verified
-   * @param params - markAsVerifiedAndDeletePasswordlessAttribute parameters
+   * @param params - MarkAsVerifiedAndDeletePasswordlessAttribute parameters
    * @param params.username - Username
    * @param params.attributeName - User attribute to be verified
    * @param params.userPoolId - UserPool ID
+   * @param params.region - UserPool region
    */
   async markAsVerifiedAndDeletePasswordlessAttribute(
     params: MarkVerifiedAndDeletePasswordlessParams
   ) {
-    const { username, attributeName, userPoolId } = params;
+    const { username, attributeName, userPoolId, region } = params;
     const attributeVerified = {
       Name: attributeName,
       Value: 'true',
     };
+
+    const client =
+      this.cognitoClient || new CognitoIdentityProviderClient({ region });
 
     const updateAttrCommand = new AdminUpdateUserAttributesCommand({
       UserPoolId: userPoolId,
@@ -46,7 +56,7 @@ export class CognitoUserService implements UserService {
       UserAttributes: [attributeVerified],
     });
 
-    await this.client.send(updateAttrCommand);
+    await client.send(updateAttrCommand);
 
     const deleteAttrCommand = new AdminDeleteUserAttributesCommand({
       UserPoolId: userPoolId,
@@ -54,7 +64,7 @@ export class CognitoUserService implements UserService {
       UserAttributeNames: [PASSWORDLESS_SIGN_UP_ATTR_NAME],
     });
 
-    await this.client.send(deleteAttrCommand);
+    await client.send(deleteAttrCommand);
   }
 
   /**
@@ -64,11 +74,12 @@ export class CognitoUserService implements UserService {
    * @param params.email - The attribute that is going to used as email (optional)
    * @param params.phone_number - The attribute that is going to used as phone number (optional)
    * @param params.userPoolId - The UserPool ID
+   * @param params.region - The UserPool region
    */
   async createUser(params: CreateUserParams): Promise<void> {
     // this is the format for Cognito UserPool API, eslint not happy otherwise
     // eslint-disable-next-line
-    const { userPoolId, username, email, phone_number } = params;
+    const { userPoolId, username, email, phone_number, region } = params;
 
     // this is the format for Cognito UserPool API, eslint not happy otherwise
     // eslint-disable-next-line
@@ -87,7 +98,7 @@ export class CognitoUserService implements UserService {
         Value: email,
       });
       passwordlessConfiguration.allowSignInAttempt = true;
-      passwordlessConfiguration.deliveryMedium = 'EMAIL';
+      passwordlessConfiguration.deliveryMedium = DeliveryMediumType.EMAIL;
     }
 
     if (phone_number) {
@@ -97,7 +108,7 @@ export class CognitoUserService implements UserService {
       });
 
       passwordlessConfiguration.allowSignInAttempt = true;
-      passwordlessConfiguration.deliveryMedium = 'SMS';
+      passwordlessConfiguration.deliveryMedium = DeliveryMediumType.SMS;
     }
 
     // TODO: what happens if both are included, which one should be valid?
@@ -117,7 +128,10 @@ export class CognitoUserService implements UserService {
     });
 
     try {
-      await this.client.send(command);
+      const client =
+        this.cognitoClient || new CognitoIdentityProviderClient({ region });
+
+      await client.send(command);
       return;
     } catch (err) {
       logger.debug(err);

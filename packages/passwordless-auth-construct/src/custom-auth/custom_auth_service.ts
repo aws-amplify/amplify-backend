@@ -12,6 +12,7 @@ import {
   PasswordlessAuthChallengeParams,
   RespondToAutChallengeParams,
   SignInMethod,
+  UserService,
 } from '../types.js';
 import {
   CognitoMetadataKeys,
@@ -26,8 +27,12 @@ export class CustomAuthService {
   /**
    * Creates a new CustomAuthService instance.
    * @param challengeServiceFactory - A factory for creating challenge services.
+   * @param userService - A service to be used with Cognito User Pools operations
    */
-  constructor(private challengeServiceFactory: ChallengeServiceFactory) {}
+  constructor(
+    private challengeServiceFactory: ChallengeServiceFactory,
+    private userService: UserService
+  ) {}
 
   /**
    * The Define Auth Challenge lambda handler.
@@ -239,17 +244,13 @@ export class CustomAuthService {
           event.request.userAttributes[attributeName] === 'true';
         // Only update verified attribute the first time
         if (answerCorrect && !attributeVerified) {
-          const cognitoUserService = new CognitoUserService(
-            new CognitoIdentityProviderClient({ region: event.region })
-          );
           logger.debug(`Updating user attribute to verified: ${attributeName}`);
-          await cognitoUserService.markAsVerifiedAndDeletePasswordlessAttribute(
-            {
-              username: event.userName,
-              attributeName,
-              userPoolId: event.userPoolId,
-            }
-          );
+          await this.userService.markAsVerifiedAndDeletePasswordlessAttribute({
+            username: event.userName,
+            attributeName,
+            userPoolId: event.userPoolId,
+            region: event.region,
+          });
         }
       }
     } catch (_err) {
