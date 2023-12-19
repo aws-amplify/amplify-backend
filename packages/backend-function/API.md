@@ -4,6 +4,7 @@
 
 ```ts
 
+import { BackendSecret } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { FunctionResources } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
@@ -17,7 +18,7 @@ export type FunctionProps = {
     entry?: string;
     timeoutSeconds?: number;
     memoryMB?: number;
-    environment?: Record<string, string>;
+    environment?: Record<string, string | BackendSecret>;
     runtime?: NodeVersion;
 };
 

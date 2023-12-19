@@ -4,6 +4,7 @@
 
 ```ts
 
+import { AppId } from '@aws-amplify/plugin-types';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import z from 'zod';
 
@@ -68,6 +69,8 @@ export type AmplifyUserErrorType = 'InvalidSchemaAuthError' | 'InvalidSchemaErro
 // @public
 export class BackendIdentifierConversions {
     static fromStackName(stackName?: string): BackendIdentifier | undefined;
+    static toParameterFullPath(backendId: BackendIdentifier | AppId, secretName: string): string;
+    static toParameterPrefix(backendId: BackendIdentifier | AppId): string;
     static toStackName(backendId: BackendIdentifier): string;
 }
 

@@ -74,11 +74,13 @@ export type BackendOutputStorageStrategy<T extends BackendOutputEntry> = {
 // @public (undocumented)
 export type BackendSecret = {
     resolve: (scope: Construct, backendIdentifier: BackendIdentifier) => SecretValue;
+    resolveToPath?: (backendIdentifier: BackendIdentifier) => string;
 };
 
 // @public (undocumented)
 export type BackendSecretResolver = {
     resolveSecret: (backendSecret: BackendSecret) => SecretValue;
+    resolveToPath?: (backendSecret: BackendSecret) => string;
 };
 
 // @public (undocumented)
