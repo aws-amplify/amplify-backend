@@ -68,7 +68,7 @@ void describe('Cognito User Service - Create User', async () => {
       deepStrictEqual(actualCreateUserCommand, expectedAttributes);
     });
 
-    void it('should return successful for user created with email', async () => {
+    void it('should return successful for user created with phone', async () => {
       const sendMock = mock.method(mockCognitoClient, 'send');
 
       strictEqual(sendMock.mock.callCount(), 0);
