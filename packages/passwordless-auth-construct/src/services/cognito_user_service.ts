@@ -31,12 +31,11 @@ export class CognitoUserService implements UserService {
    * @param params.username - Username
    * @param params.attributeName - User attribute to be verified
    * @param params.userPoolId - UserPool ID
-   * @param params.region - UserPool region
    */
   async markAsVerifiedAndDeletePasswordlessAttribute(
     params: MarkVerifiedAndDeletePasswordlessParams
   ) {
-    const { username, attributeName, userPoolId, region } = params;
+    const { username, attributeName, userPoolId } = params;
     const attributeVerified = {
       Name: attributeName,
       Value: 'true',
@@ -66,12 +65,11 @@ export class CognitoUserService implements UserService {
    * @param params.email - The attribute that is going to used as email (optional)
    * @param params.phone_number - The attribute that is going to used as phone number (optional)
    * @param params.userPoolId - The UserPool ID
-   * @param params.region - The UserPool region
    */
   async createUser(params: CreateUserParams): Promise<void> {
     // this is the format for Cognito UserPool API, eslint not happy otherwise
     // eslint-disable-next-line
-    const { userPoolId, username, email, phone_number, region } = params;
+    const { userPoolId, username, email, phone_number } = params;
 
     // this is the format for Cognito UserPool API, eslint not happy otherwise
     // eslint-disable-next-line

@@ -353,14 +353,12 @@ export type CreateUserParams = {
   // eslint-disable-next-line
   phone_number?: string;
   email?: string;
-  region: string;
 };
 
 export type MarkVerifiedAndDeletePasswordlessParams = {
   username: string;
   attributeName: 'phone_number_verified' | 'email_verified';
   userPoolId: string;
-  region: string;
 };
 
 export type UserService = {

@@ -42,7 +42,6 @@ void describe('Cognito User Service - Create User', async () => {
         username: 'username',
         userPoolId: 'userPoolId',
         email: 'username@amazon.com',
-        region: 'us-west-2',
       });
 
       const expectedAttributes = {
@@ -77,7 +76,6 @@ void describe('Cognito User Service - Create User', async () => {
         username: 'username',
         userPoolId: 'userPoolId',
         phone_number: '+11111111111',
-        region: 'us-west-2',
       });
 
       const expectedAttributes = {
@@ -119,7 +117,6 @@ void describe('Cognito User Service - Create User', async () => {
           username: 'username',
           userPoolId: 'userPoolId',
           phone_number: '+11111111111',
-          region: 'us-west-2',
         });
       }, Error('User already exists'));
       strictEqual(sendMock.mock.callCount(), 1);
@@ -144,7 +141,6 @@ void describe('Cognito User service - Mark attribute as verified', async () => {
       username: 'username',
       attributeName: 'phone_number_verified',
       userPoolId: 'userPoolId',
-      region: 'us-west-2',
     });
 
     const expectedUpdateUserAttributes = {
@@ -187,7 +183,6 @@ void describe('Cognito User service - Mark attribute as verified', async () => {
       username: 'username',
       attributeName: 'email_verified',
       userPoolId: 'userPoolId',
-      region: 'us-west-2',
     });
 
     const expectedUpdateUserAttributes = {

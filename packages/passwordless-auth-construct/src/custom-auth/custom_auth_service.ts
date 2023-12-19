@@ -247,7 +247,6 @@ export class CustomAuthService {
             username: event.userName,
             attributeName,
             userPoolId: event.userPoolId,
-            region: event.region,
           });
         }
       }

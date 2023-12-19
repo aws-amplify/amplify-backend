@@ -16,7 +16,6 @@ export const createUser = async (
       !params ||
       (!params.email && !params.phone_number) ||
       !params.userPoolId ||
-      !params.region ||
       !params.username
     ) {
       return {
@@ -34,7 +33,6 @@ export const createUser = async (
         userPoolId: params.userPoolId,
         email: params.email,
         phone_number: params.phone_number,
-        region: params.region,
       });
     } catch (err) {
       return {
