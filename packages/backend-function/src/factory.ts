@@ -1,4 +1,6 @@
 import {
+  BackendSecret,
+  BackendSecretResolver,
   ConstructContainerEntryGenerator,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
@@ -56,7 +58,7 @@ export type FunctionProps = {
   /**
    * Environment variables that will be available during function execution
    */
-  environment?: Record<string, string>;
+  environment?: Record<string, string | BackendSecret>;
 
   /**
    * Node runtime version for the lambda environment.
@@ -197,8 +199,18 @@ class FunctionGenerator implements ConstructContainerEntryGenerator {
 
   constructor(private readonly props: HydratedFunctionProps) {}
 
-  generateContainerEntry = (scope: Construct) => {
-    return new AmplifyFunction(scope, this.props.name, this.props);
+  generateContainerEntry = (
+    scope: Construct,
+    backendSecretResolver: BackendSecretResolver
+  ) => {
+    const functionProps: HydratedFunctionProps = {
+      ...this.props,
+      environment: translateToEnvironmentSecretPath(
+        this.props.environment,
+        backendSecretResolver
+      ),
+    };
+    return new AmplifyFunction(scope, this.props.name, functionProps);
   };
 }
 
@@ -233,4 +245,21 @@ const nodeVersionMap: Record<NodeVersion, Runtime> = {
   16: Runtime.NODEJS_16_X,
   18: Runtime.NODEJS_18_X,
   20: Runtime.NODEJS_20_X,
+};
+
+const translateToEnvironmentSecretPath = (
+  functionEnvironmentProp: HydratedFunctionProps['environment'],
+  backendSecretResolver: BackendSecretResolver
+): HydratedFunctionProps['environment'] => {
+  const result = functionEnvironmentProp;
+
+  for (const [key, value] of Object.entries(result)) {
+    if (typeof value !== 'string') {
+      result[`${key}_PATH`] =
+        backendSecretResolver.resolveToPath?.(value) ?? '';
+      result[key] = '<value will be resolved during runtime>';
+    }
+  }
+
+  return result;
 };
