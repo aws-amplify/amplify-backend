@@ -9,10 +9,6 @@ import { DependencyType } from './package_manager_controller_factory.js';
 /**
  *
  */
-
-/**
- *
- */
 export class PackageManagerController {
   protected executable: string;
   protected binaryRunner: string;
