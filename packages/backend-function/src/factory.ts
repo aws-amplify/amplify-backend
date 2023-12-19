@@ -255,8 +255,7 @@ const translateToEnvironmentSecretPath = (
 
   for (const [key, value] of Object.entries(result)) {
     if (typeof value !== 'string') {
-      result[`${key}_PATH`] =
-        backendSecretResolver.resolveToPath?.(value) ?? '';
+      result[`${key}_PATH`] = backendSecretResolver.resolveToPath(value);
       result[key] = '<value will be resolved during runtime>';
     }
   }

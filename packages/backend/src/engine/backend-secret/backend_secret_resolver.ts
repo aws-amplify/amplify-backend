@@ -21,4 +21,8 @@ export class DefaultBackendSecretResolver implements BackendSecretResolver {
   resolveSecret = (backendSecret: BackendSecret): SecretValue => {
     return backendSecret.resolve(this.scope, this.backendId);
   };
+
+  resolveToPath = (backendSecret: BackendSecret): string => {
+    return backendSecret.resolveToPath(this.backendId);
+  };
 }
