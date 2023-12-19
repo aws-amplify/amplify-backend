@@ -1,10 +1,6 @@
-import { existsSync as _existsSync } from 'fs';
-import fsp from 'fs/promises';
 import { execa as _execa } from 'execa';
-import * as path from 'path';
 import { logger } from '../logger.js';
 import { executeWithDebugLogger as _executeWithDebugLogger } from '../execute_with_logger.js';
-import { InitialProjectFileGenerator } from '../initial_project_file_generator.js';
 import { NpmPackageManagerController } from './npm_package_manager_controller.js';
 import { PnpmPackageManagerController } from './pnpm_package_manager_controller.js';
 import { YarnClassicPackageManagerController } from './yarn_classic_package_manager_controller.js';
@@ -13,79 +9,9 @@ import { YarnModernPackageManagerController } from './yarn_modern_package_manage
 export type DependencyType = 'dev' | 'prod';
 
 /**
- *
- */
-export abstract class PackageManagerController {
-  protected projectRoot: string;
-  protected executable: string;
-  protected binaryRunner: string;
-  protected initDefault: string[];
-  protected installCommand: string;
-  protected readonly execa = _execa;
-
-  private readonly executeWithDebugLogger = _executeWithDebugLogger;
-  private readonly existsSync = _existsSync;
-
-  abstract installDependencies: (
-    packageNames: string[],
-    type: DependencyType
-  ) => Promise<void>;
-  abstract getWelcomeMessage: () => string;
-
-  /**
-   * generateInitialProjectFiles
-   */
-  generateInitialProjectFiles() {
-    return new InitialProjectFileGenerator(this.projectRoot);
-  }
-
-  /**
-   * initializeProject
-   */
-  async initializeProject() {
-    if (this.packageJsonExists(this.projectRoot)) {
-      // if package.json already exists, no need to do anything
-      return;
-    }
-
-    logger.debug(
-      `No package.json file found in the current directory. Running \`${this.executable} init\`...`
-    );
-
-    try {
-      await this.executeWithDebugLogger(
-        this.projectRoot,
-        this.executable,
-        this.initDefault,
-        this.execa
-      );
-    } catch {
-      throw new Error(
-        `\`${this.executable} init\` did not exit successfully. Initialize a valid JavaScript package before continuing.`
-      );
-    }
-
-    if (!this.packageJsonExists(this.projectRoot)) {
-      // this should only happen if the customer exits out of npm init before finishing
-      throw new Error(
-        `package.json does not exist after running \`${this.executable} init\`. Initialize a valid JavaScript package before continuing.'`
-      );
-    }
-  }
-
-  /**
-   * Check if a package.json file exists in projectRoot
-   */
-  private packageJsonExists = (projectRoot: string): boolean => {
-    return this.existsSync(path.resolve(projectRoot, 'package.json'));
-  };
-}
-
-/**
  * packageManagerControllerFactory
  */
 export class PackageManagerControllerFactory {
-  private readonly fsp = fsp;
   private readonly executeWithDebugLogger = _executeWithDebugLogger;
   private readonly execa = _execa;
 
@@ -162,13 +88,13 @@ export class PackageManagerControllerFactory {
     const packageManagerName = this.getPackageManagerName();
     switch (packageManagerName) {
       case 'npm':
-        return new NpmPackageManagerController();
+        return new NpmPackageManagerController(this.projectRoot);
       case 'pnpm':
-        return new PnpmPackageManagerController();
+        return new PnpmPackageManagerController(this.projectRoot);
       case 'yarn-classic':
-        return new YarnClassicPackageManagerController();
+        return new YarnClassicPackageManagerController(this.projectRoot);
       case 'yarn-modern':
-        return new YarnModernPackageManagerController();
+        return new YarnModernPackageManagerController(this.projectRoot);
       default:
         throw new Error(
           `Package Manager ${packageManagerName} is not supported.`

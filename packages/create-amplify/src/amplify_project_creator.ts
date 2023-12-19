@@ -1,4 +1,4 @@
-import { PackageManagerController } from './package-manager-controller/package_manager_controller_factory.js';
+import { PackageManagerController } from './package-manager-controller/package_manager_controller.js';
 import { ProjectRootValidator } from './project_root_validator.js';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
 import { logger } from './logger.js';
