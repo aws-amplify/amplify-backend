@@ -17,6 +17,7 @@ import {
   CognitoMetadataKeys,
   PASSWORDLESS_SIGN_UP_ATTR_NAME,
 } from '../constants.js';
+import { DeliveryMediumType } from '@aws-sdk/client-cognito-identity-provider';
 
 /**
  * A class containing the Cognito Auth triggers used for Custom Auth.
@@ -225,33 +226,38 @@ export class CustomAuthService {
     const answerCorrect = (await verifyResult).response.answerCorrect;
     logger.debug(`Answer is correct: ${answerCorrect ? 'true' : 'false'}`);
 
+    let passwordlessConfiguration: Record<string, string> | undefined;
+
     try {
-      const passwordlessConfiguration =
+      passwordlessConfiguration =
         event.request.userAttributes[PASSWORDLESS_SIGN_UP_ATTR_NAME] &&
         JSON.parse(
           event.request.userAttributes[PASSWORDLESS_SIGN_UP_ATTR_NAME]
         );
-
-      if (passwordlessConfiguration.allowSignInAttempt) {
-        const attributeName =
-          passwordlessConfiguration.deliveryMedium === 'SMS'
-            ? 'phone_number_verified'
-            : 'email_verified';
-
-        const attributeVerified =
-          event.request.userAttributes[attributeName] === 'true';
-        // Only update verified attribute the first time
-        if (answerCorrect && !attributeVerified) {
-          logger.debug(`Updating user attribute to verified: ${attributeName}`);
-          await this.userService.markAsVerifiedAndDeletePasswordlessAttribute({
-            username: event.userName,
-            attributeName,
-            userPoolId: event.userPoolId,
-          });
-        }
-      }
     } catch (_err) {
       // best effort to parse passwordless_sign_up attribute
+    }
+
+    if (!passwordlessConfiguration?.allowSignInAttempt || !answerCorrect) {
+      return verifyResult;
+    }
+
+    const attributeName =
+      passwordlessConfiguration.deliveryMedium === DeliveryMediumType.SMS
+        ? 'phone_number_verified'
+        : 'email_verified';
+
+    const attributeVerified =
+      event.request.userAttributes[attributeName] === 'true';
+
+    // Only update verified attribute the first time
+    if (answerCorrect && !attributeVerified) {
+      logger.debug(`Updating user attribute to verified: ${attributeName}`);
+      await this.userService.markAsVerifiedAndDeletePasswordlessAttribute({
+        username: event.userName,
+        attributeName,
+        userPoolId: event.userPoolId,
+      });
     }
 
     return verifyResult;
