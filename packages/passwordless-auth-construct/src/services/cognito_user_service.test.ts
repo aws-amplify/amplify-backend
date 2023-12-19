@@ -12,7 +12,7 @@ import { CognitoUserService } from './cognito_user_service.js';
  * A mock client for issuing send command successful
  */
 class MockCognitoClient extends CognitoIdentityProviderClient {
-  send(_command: unknown, _options?: unknown, _cb?: unknown): Promise<void> {
+  send(): Promise<void> {
     return Promise.resolve();
   }
 }
@@ -21,7 +21,7 @@ class MockCognitoClient extends CognitoIdentityProviderClient {
  * A mock client for issuing failing send command
  */
 class MockCognitoClientFail extends CognitoIdentityProviderClient {
-  send(_command: unknown, _options?: unknown, _cb?: unknown): Promise<void> {
+  send(): Promise<void> {
     return Promise.reject(new Error('error'));
   }
 }

@@ -349,7 +349,7 @@ export enum PasswordlessErrorCodes {
 export type CreateUserParams = {
   userPoolId: string;
   username: string;
-  // this is the format for Cognito UserPool API, eslint doesnt like it otherwise
+  // this is the format for Cognito UserPool API, eslint not happy otherwise
   // eslint-disable-next-line
   phone_number?: string;
   email?: string;

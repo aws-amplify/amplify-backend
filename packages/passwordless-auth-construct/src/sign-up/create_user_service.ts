@@ -1,4 +1,3 @@
-import { CognitoIdentityProviderClient } from '@aws-sdk/client-cognito-identity-provider';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { CognitoUserService } from '../services/cognito_user_service.js';
 /**

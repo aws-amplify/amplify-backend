@@ -3,7 +3,6 @@ import {
   DefineAuthChallengeTriggerEvent,
   VerifyAuthChallengeResponseTriggerEvent,
 } from 'aws-lambda';
-import { CognitoIdentityProviderClient } from '@aws-sdk/client-cognito-identity-provider';
 import { ChallengeServiceFactory } from '../factories/challenge_service_factory.js';
 import { logger } from '../logger.js';
 import {
@@ -18,7 +17,6 @@ import {
   CognitoMetadataKeys,
   PASSWORDLESS_SIGN_UP_ATTR_NAME,
 } from '../constants.js';
-import { CognitoUserService } from '../services/cognito_user_service.js';
 
 /**
  * A class containing the Cognito Auth triggers used for Custom Auth.

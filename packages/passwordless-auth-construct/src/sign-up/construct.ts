@@ -69,31 +69,35 @@ export class AmplifySignUpPasswordless extends Construct {
 
     new CfnOutput(this, 'apiUrl', { value: api.url });
 
-    createUserFunction.role!.attachInlinePolicy(
-      new Policy(this, `CreateUserPolicy${id}`, {
-        statements: [
-          new PolicyStatement({
-            actions: ['cognito-idp:AdminCreateUser'],
-            resources: [userPool.userPoolArn],
-            effect: Effect.ALLOW,
-          }),
-        ],
-      })
-    );
+    if (createUserFunction.role) {
+      createUserFunction.role.attachInlinePolicy(
+        new Policy(this, `CreateUserPolicy${id}`, {
+          statements: [
+            new PolicyStatement({
+              actions: ['cognito-idp:AdminCreateUser'],
+              resources: [userPool.userPoolArn],
+              effect: Effect.ALLOW,
+            }),
+          ],
+        })
+      );
+    }
 
-    verifyAuthChallengeResponse.role!.attachInlinePolicy(
-      new Policy(this, `UpdateUserPolicy${id}`, {
-        statements: [
-          new PolicyStatement({
-            actions: [
-              'cognito-idp:AdminUpdateUserAttributes',
-              'cognito-idp:AdminDeleteUserAttributes',
-            ],
-            resources: [userPool.userPoolArn],
-            effect: Effect.ALLOW,
-          }),
-        ],
-      })
-    );
+    if (verifyAuthChallengeResponse.role) {
+      verifyAuthChallengeResponse.role.attachInlinePolicy(
+        new Policy(this, `UpdateUserPolicy${id}`, {
+          statements: [
+            new PolicyStatement({
+              actions: [
+                'cognito-idp:AdminUpdateUserAttributes',
+                'cognito-idp:AdminDeleteUserAttributes',
+              ],
+              resources: [userPool.userPoolArn],
+              effect: Effect.ALLOW,
+            }),
+          ],
+        })
+      );
+    }
   }
 }

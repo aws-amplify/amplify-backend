@@ -25,17 +25,8 @@ import { CognitoIdentityProviderClient } from '@aws-sdk/client-cognito-identity-
  * A mock client for issuing send command successful
  */
 class MockCognitoClient extends CognitoIdentityProviderClient {
-  send(_command: unknown, _options?: unknown, _cb?: unknown): Promise<void> {
+  send(): Promise<void> {
     return Promise.resolve();
-  }
-}
-
-/**
- * A mock client for issuing failing send command
- */
-class MockCognitoClientFail extends CognitoIdentityProviderClient {
-  send(_command: unknown, _options?: unknown, _cb?: unknown): Promise<void> {
-    return Promise.reject(new Error('error'));
   }
 }
 
