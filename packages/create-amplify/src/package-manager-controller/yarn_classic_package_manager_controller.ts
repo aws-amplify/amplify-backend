@@ -24,6 +24,7 @@ export class YarnClassicPackageManagerController extends PackageManagerControlle
   generateInitialProjectFiles = async () => {
     const initialProjectFileGenerator = new InitialProjectFileGenerator(
       this.projectRoot,
+      this.initializeTsConfig,
       undefined,
       this.addTypescript
     );

@@ -60,7 +60,8 @@ Get started by running \`${cdCommand}${this.binaryRunner} amplify sandbox\`.`;
    */
   generateInitialProjectFiles = async () => {
     const initialProjectFileGenerator = new InitialProjectFileGenerator(
-      this.projectRoot
+      this.projectRoot,
+      this.initializeTsConfig
     );
     await initialProjectFileGenerator.generateInitialProjectFiles();
   };
@@ -97,6 +98,28 @@ Get started by running \`${cdCommand}${this.binaryRunner} amplify sandbox\`.`;
         `package.json does not exist after running \`${this.executable} init\`. Initialize a valid JavaScript package before continuing.'`
       );
     }
+  };
+
+  initializeTsConfig = async (targetDir: string): Promise<void> => {
+    const tscArgs = [
+      'tsc',
+      '--init',
+      '--resolveJsonModule',
+      'true',
+      '--module',
+      'es2022',
+      '--moduleResolution',
+      'bundler',
+      '--target',
+      'es2022',
+    ];
+
+    await this.executeWithDebugLogger(
+      targetDir,
+      this.binaryRunner,
+      tscArgs,
+      this.execa
+    );
   };
 
   /**

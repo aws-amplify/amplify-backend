@@ -13,10 +13,10 @@ export class InitialProjectFileGenerator {
    */
   constructor(
     private readonly projectRoot: string,
+    private readonly initializeTsConfig: (targetDir: string) => Promise<void>,
     private readonly addLockFile?: (targetDir: string) => void,
     private readonly addTypescript?: (targetDir: string) => Promise<void>,
-    private readonly fs = _fs,
-    private readonly executeWithDebugLogger = _executeWithDebugLogger
+    private readonly fs = _fs
   ) {}
 
   private readonly executableName = !process.env.PACKAGE_MANAGER_EXECUTABLE
@@ -52,31 +52,5 @@ export class InitialProjectFileGenerator {
     }
 
     await this.initializeTsConfig(targetDir);
-  };
-
-  private initializeTsConfig = async (targetDir: string): Promise<void> => {
-    const tscArgs = [
-      'tsc',
-      '--init',
-      '--resolveJsonModule',
-      'true',
-      '--module',
-      'es2022',
-      '--moduleResolution',
-      'bundler',
-      '--target',
-      'es2022',
-    ];
-
-    await this.executeWithDebugLogger(
-      targetDir,
-      this.executableName === 'npm'
-        ? 'npx'
-        : this.executableName.startsWith('yarn')
-        ? 'yarn'
-        : this.executableName,
-      tscArgs,
-      execa
-    );
   };
 }
