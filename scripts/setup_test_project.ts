@@ -19,10 +19,26 @@ const createAmplifyTemplateLocation = new URL(
   '../packages/create-amplify/templates/basic-auth-data',
   import.meta.url
 );
+
+// copy getting started project template
 await fsp.cp(createAmplifyTemplateLocation, testProjectDir, {
   recursive: true,
 });
 
+// create minimal package.json
+const packageJson = {
+  name: projectName,
+  type: 'module',
+};
+
+const packageJsonPath = path.join(
+  fileURLToPath(testProjectDir),
+  'package.json'
+);
+
+await fsp.writeFile(packageJsonPath, JSON.stringify(packageJson, null, 2));
+
+// create minimal tsconfig.json
 const tsConfig = {
   extends: '../../../tsconfig.base.json',
   compilerOptions: {

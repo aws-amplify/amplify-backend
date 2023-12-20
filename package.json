@@ -25,7 +25,7 @@
     "publish": "tsx scripts/publish.ts",
     "publish:local": "tsx scripts/publish_local.ts",
     "set-script-shell": "npm config set script-shell bash --userconfig ./.npmrc",
-    "setup:local": "npm run set-script-shell && npm install && npm run build",
+    "setup:local": "npm run set-script-shell && npm install && npm run build && npm link ./packages/cli ./packages/create-amplify",
     "setup:test-project": "tsx scripts/setup_test_project.ts",
     "start:npm-proxy": "tsx scripts/start_npm_proxy.ts",
     "stop:npm-proxy": "tsx scripts/stop_npm_proxy.ts",
