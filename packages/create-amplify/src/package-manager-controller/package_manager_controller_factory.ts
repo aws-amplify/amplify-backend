@@ -26,16 +26,11 @@ export class PackageManagerControllerFactory {
    */
   private getPackageManagerName() {
     const packageManagerAndVersion = this.userAgent.split(' ')[0];
-    const packageManagerName = packageManagerAndVersion.split('/')[0];
+    const [packageManagerName, packageManagerVersion] = packageManagerAndVersion.split('/');
 
     if (packageManagerName === 'yarn') {
-      const yarnMajorVersion = packageManagerAndVersion
-        .split('/')[1]
-        .split('.')[0];
-      const yarnName = `${packageManagerName}-${
-        yarnMajorVersion === '1' ? 'classic' : 'modern'
-      }`;
-      return yarnName;
+      const yarnMajorVersion = packageManagerVersion.split('.')[0];
+      return `yarn-${yarnMajorVersion === '1' ? 'classic' : 'modern'}`;
     }
     return packageManagerName;
   }
