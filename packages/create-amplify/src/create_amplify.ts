@@ -12,6 +12,8 @@ import { AmplifyProjectCreator } from './amplify_project_creator.js';
 import { PackageManagerControllerFactory } from './package-manager-controller/package_manager_controller_factory.js';
 import { getProjectRoot } from './get_project_root.js';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
+import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
+import { type PackageManagerControllerType } from './package-manager-controller/package_manager_controller.js';
 
 const projectRoot = await getProjectRoot();
 
@@ -19,11 +21,17 @@ const packageManagerControllerFactory = new PackageManagerControllerFactory(
   projectRoot,
   process.env.npm_config_user_agent || 'npm'
 );
+const packageManagerController =
+  packageManagerControllerFactory.getPackageManagerController();
 
 const amplifyProjectCreator = new AmplifyProjectCreator(
-  packageManagerControllerFactory.getPackageManagerController(),
+  packageManagerController,
   new ProjectRootValidator(projectRoot),
-  new GitIgnoreInitializer(projectRoot)
+  new GitIgnoreInitializer(projectRoot),
+  new InitialProjectFileGenerator(
+    projectRoot,
+    packageManagerController as PackageManagerControllerType
+  )
 );
 
 try {

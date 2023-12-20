@@ -20,7 +20,8 @@ void describe('AmplifyProjectCreator', () => {
     const amplifyProjectCreator = new AmplifyProjectCreator(
       packageManagerControllerMock as never,
       projectRootValidatorMock as never,
-      gitIgnoreInitializerMock as never
+      gitIgnoreInitializerMock as never,
+      initialProjectFileGeneratorMock as never
     );
     mock.method(logger, 'log', logMock.log);
     await amplifyProjectCreator.create();
@@ -53,10 +54,14 @@ void describe('AmplifyProjectCreator', () => {
     const packageManagerControllerMock = { installDependencies: mock.fn() };
     const projectRootValidatorMock = { validate: mock.fn() };
     const gitIgnoreInitializerMock = { ensureInitialized: mock.fn() };
+    const initialProjectFileGeneratorMock = {
+      generateInitialProjectFiles: mock.fn(),
+    };
     const amplifyProjectCreator = new AmplifyProjectCreator(
       packageManagerControllerMock as never,
       projectRootValidatorMock as never,
-      gitIgnoreInitializerMock as never
+      gitIgnoreInitializerMock as never,
+      initialProjectFileGeneratorMock as never
     );
     mock.method(logger, 'log', logMock.log);
     await amplifyProjectCreator.create();

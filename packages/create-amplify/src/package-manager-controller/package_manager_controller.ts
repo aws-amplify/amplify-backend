@@ -1,10 +1,20 @@
 import { existsSync as _existsSync } from 'fs';
+import _fsp from 'fs/promises';
 import { execa as _execa } from 'execa';
-import * as path from 'path';
+import * as _path from 'path';
 import { logger } from '../logger.js';
 import { executeWithDebugLogger as _executeWithDebugLogger } from '../execute_with_logger.js';
-import { InitialProjectFileGenerator } from '../initial_project_file_generator.js';
 import { DependencyType } from './package_manager_controller_factory.js';
+import { NpmPackageManagerController } from './npm_package_manager_controller.js';
+import { PnpmPackageManagerController } from './pnpm_package_manager_controller.js';
+import { YarnClassicPackageManagerController } from './yarn_classic_package_manager_controller.js';
+import { YarnModernPackageManagerController } from './yarn_modern_package_manager_controller.js';
+
+export type PackageManagerControllerType = PackageManagerController &
+  NpmPackageManagerController &
+  PnpmPackageManagerController &
+  YarnClassicPackageManagerController &
+  YarnModernPackageManagerController;
 
 /**
  * PackageManagerController is an abstraction around package manager commands that are needed to initialize a project and install dependencies
@@ -14,6 +24,8 @@ export abstract class PackageManagerController {
   protected binaryRunner: string;
   protected initDefault: string[];
   protected installCommand: string;
+  protected readonly fsp = _fsp;
+  protected readonly path = _path;
   protected readonly execa = _execa;
   protected readonly executeWithDebugLogger = _executeWithDebugLogger;
 
@@ -53,17 +65,6 @@ export abstract class PackageManagerController {
     return `Welcome to AWS Amplify! 
 Run \`${this.binaryRunner} amplify help\` for a list of available commands. 
 Get started by running \`${cdCommand}${this.binaryRunner} amplify sandbox\`.`;
-  };
-
-  /**
-   * generateInitialProjectFiles - generates initial project files
-   */
-  generateInitialProjectFiles = async () => {
-    const initialProjectFileGenerator = new InitialProjectFileGenerator(
-      this.projectRoot,
-      this.initializeTsConfig
-    );
-    await initialProjectFileGenerator.generateInitialProjectFiles();
   };
 
   /**
@@ -126,6 +127,6 @@ Get started by running \`${cdCommand}${this.binaryRunner} amplify sandbox\`.`;
    * Check if a package.json file exists in projectRoot
    */
   private packageJsonExists = (projectRoot: string): boolean => {
-    return this.existsSync(path.resolve(projectRoot, 'package.json'));
+    return this.existsSync(this.path.resolve(projectRoot, 'package.json'));
   };
 }

@@ -2,6 +2,7 @@ import { PackageManagerController } from './package-manager-controller/package_m
 import { ProjectRootValidator } from './project_root_validator.js';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
 import { logger } from './logger.js';
+import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
 
 const LEARN_MORE_USAGE_DATA_TRACKING_LINK = `https://docs.amplify.aws/gen2/reference/telemetry`;
 
@@ -24,7 +25,8 @@ export class AmplifyProjectCreator {
   constructor(
     private readonly packageManagerController: PackageManagerController,
     private readonly projectRootValidator: ProjectRootValidator,
-    private readonly gitIgnoreInitializer: GitIgnoreInitializer
+    private readonly gitIgnoreInitializer: GitIgnoreInitializer,
+    private readonly initialProjectFileGenerator: InitialProjectFileGenerator
   ) {}
 
   /**
@@ -54,7 +56,7 @@ export class AmplifyProjectCreator {
     await logger.indicateProgress(`Creating template files`, async () => {
       await this.gitIgnoreInitializer.ensureInitialized();
 
-      await this.packageManagerController.generateInitialProjectFiles();
+      await this.initialProjectFileGenerator.generateInitialProjectFiles();
     });
 
     logger.log('Successfully created a new project!');

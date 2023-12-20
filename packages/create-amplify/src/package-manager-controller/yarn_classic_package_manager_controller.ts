@@ -1,7 +1,6 @@
 import { existsSync as _existsSync } from 'fs';
 import { execa as _execa } from 'execa';
 import { PackageManagerController } from './package_manager_controller.js';
-import { InitialProjectFileGenerator } from '../initial_project_file_generator.js';
 
 /**
  *
@@ -19,23 +18,10 @@ export class YarnClassicPackageManagerController extends PackageManagerControlle
   }
 
   /**
-   * generateInitialProjectFiles - generates initial project files
-   */
-  generateInitialProjectFiles = async () => {
-    const initialProjectFileGenerator = new InitialProjectFileGenerator(
-      this.projectRoot,
-      this.initializeTsConfig,
-      undefined,
-      this.addTypescript
-    );
-    await initialProjectFileGenerator.generateInitialProjectFiles();
-  };
-
-  /**
    * addLockFile - adds a yarn.lock file to the project root for yarn v2+
    */
 
-  private addTypescript = async (targetDir: string) => {
+  addTypescript = async (targetDir: string) => {
     await this.executeWithDebugLogger(
       targetDir,
       'yarn',
