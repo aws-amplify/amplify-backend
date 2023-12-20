@@ -1,5 +1,4 @@
 import { execa as _execa } from 'execa';
-import { logger } from '../logger.js';
 import { executeWithDebugLogger as _executeWithDebugLogger } from '../execute_with_logger.js';
 import { NpmPackageManagerController } from './npm_package_manager_controller.js';
 import { PnpmPackageManagerController } from './pnpm_package_manager_controller.js';
@@ -9,7 +8,7 @@ import { YarnModernPackageManagerController } from './yarn_modern_package_manage
 export type DependencyType = 'dev' | 'prod';
 
 /**
- * packageManagerControllerFactory
+ * packageManagerControllerFactory is an abstraction around package manager commands that are needed to initialize a project and install dependencies
  */
 export class PackageManagerControllerFactory {
   private readonly executeWithDebugLogger = _executeWithDebugLogger;
@@ -17,55 +16,18 @@ export class PackageManagerControllerFactory {
 
   /**
    * constructor
+   * @param projectRoot - the root directory of the project
+   * @param userAgent - the user agent of the package manager
    */
   constructor(
     private readonly projectRoot: string,
-    private readonly userAgent: string | undefined
+    private readonly userAgent: string
   ) {}
 
-  initializeTsConfig = async (
-    targetDir: string,
-    packageManagerProps: { name: string; binaryRunner: string }
-  ): Promise<void> => {
-    const tscArgs = [
-      'tsc',
-      '--init',
-      '--resolveJsonModule',
-      'true',
-      '--module',
-      'node16',
-      '--moduleResolution',
-      'node16',
-      '--target',
-      'es2022',
-    ];
-
-    if (packageManagerProps.name.startsWith('yarn')) {
-      await this.executeWithDebugLogger(
-        targetDir,
-        'yarn',
-        ['add', 'typescript@^5'],
-        this.execa
-      );
-    }
-
-    await this.executeWithDebugLogger(
-      targetDir,
-      packageManagerProps.binaryRunner,
-      tscArgs,
-      this.execa
-    );
-  };
-
   /**
-   * getPackageManager
+   * getPackageManagerName - returns the name of the package manager
    */
   private getPackageManagerName() {
-    if (!this.userAgent) {
-      logger.warn('Could not determine package manager, defaulting to npm');
-      return 'npm';
-    }
-
     const packageManagerAndVersion = this.userAgent.split(' ')[0];
     const packageManagerName = packageManagerAndVersion.split('/')[0];
 
@@ -82,7 +44,7 @@ export class PackageManagerControllerFactory {
   }
 
   /**
-   * getPackageManagerController
+   * getPackageManagerController - returns the package manager controller for each package manager
    */
   getPackageManagerController() {
     const packageManagerName = this.getPackageManagerName();

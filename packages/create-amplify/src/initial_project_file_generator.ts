@@ -4,7 +4,7 @@ import { executeWithDebugLogger as _executeWithDebugLogger } from './execute_wit
 import { execa } from 'execa';
 
 /**
- *
+ * InitialProjectFileGenerator is responsible for copying getting started template to a new project directory
  */
 export class InitialProjectFileGenerator {
   /**

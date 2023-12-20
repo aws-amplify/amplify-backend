@@ -7,9 +7,9 @@ import { InitialProjectFileGenerator } from '../initial_project_file_generator.j
 import { DependencyType } from './package_manager_controller_factory.js';
 
 /**
- *
+ * PackageManagerController is an abstraction around package manager commands that are needed to initialize a project and install dependencies
  */
-export class PackageManagerController {
+export abstract class PackageManagerController {
   protected executable: string;
   protected binaryRunner: string;
   protected initDefault: string[];
@@ -20,12 +20,12 @@ export class PackageManagerController {
   private readonly existsSync = _existsSync;
 
   /**
-   * constructor
+   * constructor - sets the project root
    */
   constructor(readonly projectRoot: string) {}
 
   /**
-   * Installs the given package names as devDependencies
+   * installDependencies - installs dependencies in the project root
    */
   installDependencies = async (
     packageNames: string[],
@@ -56,19 +56,19 @@ Get started by running \`${cdCommand}${this.binaryRunner} amplify sandbox\`.`;
   };
 
   /**
-   * generateInitialProjectFiles
+   * generateInitialProjectFiles - generates initial project files
    */
-  async generateInitialProjectFiles() {
+  generateInitialProjectFiles = async () => {
     const initialProjectFileGenerator = new InitialProjectFileGenerator(
       this.projectRoot
     );
     await initialProjectFileGenerator.generateInitialProjectFiles();
-  }
+  };
 
   /**
-   * initializeProject
+   * initializeProject - initializes a project in the project root by checking the package.json file
    */
-  async initializeProject() {
+  initializeProject = async () => {
     if (this.packageJsonExists(this.projectRoot)) {
       // if package.json already exists, no need to do anything
       return;
@@ -97,7 +97,7 @@ Get started by running \`${cdCommand}${this.binaryRunner} amplify sandbox\`.`;
         `package.json does not exist after running \`${this.executable} init\`. Initialize a valid JavaScript package before continuing.'`
       );
     }
-  }
+  };
 
   /**
    * Check if a package.json file exists in projectRoot

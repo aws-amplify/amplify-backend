@@ -17,7 +17,7 @@ const projectRoot = await getProjectRoot();
 
 const packageManagerControllerFactory = new PackageManagerControllerFactory(
   projectRoot,
-  process.env.npm_config_user_agent
+  process.env.npm_config_user_agent || 'npm'
 );
 
 const amplifyProjectCreator = new AmplifyProjectCreator(
