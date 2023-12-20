@@ -19,8 +19,6 @@ export class TestCdkProjectAuthCdkStack extends cdk.Stack {
             clientId: '123',
             clientSecret: '123',
           },
-          logoutUrls: ['https://logout.com'],
-          callbackUrls: ['https://redirect.com'],
         },
       },
       userAttributes: {

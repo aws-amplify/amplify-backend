@@ -13,21 +13,12 @@ export const authOutputSchema = z.object({
     facebookClientId: z.optional(z.string()),
     googleClientId: z.optional(z.string()),
 
-    usernameAttributes: z.string().optional(), // JSON array as string
-    signupAttributes: z.string().optional(), // JSON array as string
+    usernameAttributes: z.string().optional(),
+    signupAttributes: z.string().optional(),
     passwordPolicyMinLength: z.string().optional(),
-    passwordPolicyRequirements: z.string().optional(), // JSON array as string
+    passwordPolicyRequirements: z.string().optional(),
     mfaConfiguration: z.string().optional(),
-    mfaTypes: z.string().optional(), // JSON array as string
-    verificationMechanisms: z.string().optional(), // JSON array as string
-
-    socialProviders: z.string().optional(), // JSON array as string
-
-    oauthDomain: z.string().optional(),
-    oauthScope: z.string().optional(), // JSON array as string
-    oauthRedirectSignIn: z.string().optional(),
-    oauthRedirectSignOut: z.string().optional(),
-    oauthClientId: z.string().optional(),
-    oauthResponseType: z.string().optional(),
+    mfaTypes: z.string().optional(),
+    verificationMechanisms: z.string().optional(),
   }),
 });

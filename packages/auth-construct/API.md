@@ -60,9 +60,8 @@ export type ExternalProviderOptions = {
     oidc?: OidcProviderProps;
     saml?: SamlProviderProps;
     scopes?: ('PHONE' | 'EMAIL' | 'OPENID' | 'PROFILE' | 'COGNITO_ADMIN')[];
-    callbackUrls: string[];
-    domainPrefix?: string;
-    logoutUrls: string[];
+    callbackUrls?: string[];
+    logoutUrls?: string[];
 };
 
 // @public
