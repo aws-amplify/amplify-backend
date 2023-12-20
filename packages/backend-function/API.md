@@ -4,19 +4,25 @@
 
 ```ts
 
-import { Construct } from 'constructs';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { FunctionResources } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 
 // @public
-export const defineFunction: (props?: FunctionProps) => ConstructFactory<Construct & ResourceProvider<FunctionResources>>;
+export const defineFunction: (props?: FunctionProps) => ConstructFactory<ResourceProvider<FunctionResources>>;
 
 // @public (undocumented)
 export type FunctionProps = {
     name?: string;
     entry?: string;
+    timeoutSeconds?: number;
+    memoryMB?: number;
+    environment?: Record<string, string>;
+    runtime?: NodeVersion;
 };
+
+// @public (undocumented)
+export type NodeVersion = 16 | 18 | 20;
 
 // (No @packageDocumentation comment for this package)
 

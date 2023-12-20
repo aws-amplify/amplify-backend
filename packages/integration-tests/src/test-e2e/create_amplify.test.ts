@@ -67,7 +67,7 @@ const packageManagerSetup = async (
   }
 };
 
-void describe('create-amplify script', { concurrency }, () => {
+void describe('create-amplify script', { concurrency: concurrency }, () => {
   const { PACKAGE_MANAGER_EXECUTABLE = 'npm' } = process.env;
   const packageManagerExecutable = PACKAGE_MANAGER_EXECUTABLE.startsWith('yarn')
     ? 'yarn'
@@ -158,7 +158,7 @@ void describe('create-amplify script', { concurrency }, () => {
           );
         }
 
-        await execa(packageManagerExecutable, ['create', 'amplify', '--yes'], {
+        await execa('npm', ['create', 'amplify', '--yes'], {
           cwd: tempDir,
           stdio: 'inherit',
         });
@@ -201,7 +201,11 @@ void describe('create-amplify script', { concurrency }, () => {
         ).replace(/\/\*[\s\S]*?\*\/|([^:]|^)\/\/.*$/gm, '');
         const tsConfigObject = JSON.parse(tsConfigContent);
 
-        assert.equal(tsConfigObject.compilerOptions.module, 'node16');
+        assert.equal(tsConfigObject.compilerOptions.module, 'es2022');
+        assert.equal(
+          tsConfigObject.compilerOptions.moduleResolution,
+          'bundler'
+        );
         assert.equal(tsConfigObject.compilerOptions.resolveJsonModule, true);
 
         const pathPrefix = path.join(tempDir, 'amplify');

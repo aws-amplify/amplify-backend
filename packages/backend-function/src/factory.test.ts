@@ -9,8 +9,9 @@ import {
 } from '@aws-amplify/backend-platform-test-stubs';
 import { defaultLambda } from './test-assets/default-lambda/resource.js';
 import { Template } from 'aws-cdk-lib/assertions';
-import { defineFunction } from './factory.js';
+import { NodeVersion, defineFunction } from './factory.js';
 import { lambdaWithDependencies } from './test-assets/lambda-with-dependencies/resource.js';
+import { Runtime } from 'aws-cdk-lib/aws-lambda';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
@@ -51,7 +52,7 @@ void describe('AmplifyFunctionFactory', () => {
   void it('resolves default name and entry when no args specified', () => {
     const functionFactory = defaultLambda;
     const lambda = functionFactory.getInstance(getInstanceProps);
-    const template = Template.fromStack(Stack.of(lambda));
+    const template = Template.fromStack(Stack.of(lambda.resources.lambda));
     template.resourceCountIs('AWS::Lambda::Function', 1);
     template.hasResourceProperties('AWS::Lambda::Function', {
       Handler: 'index.handler',
@@ -68,7 +69,7 @@ void describe('AmplifyFunctionFactory', () => {
       entry: './test-assets/default-lambda/handler.ts',
     });
     const lambda = functionFactory.getInstance(getInstanceProps);
-    const template = Template.fromStack(Stack.of(lambda));
+    const template = Template.fromStack(Stack.of(lambda.resources.lambda));
     template.resourceCountIs('AWS::Lambda::Function', 1);
     template.hasResourceProperties('AWS::Lambda::Function', {
       Handler: 'index.handler',
@@ -85,7 +86,7 @@ void describe('AmplifyFunctionFactory', () => {
       name: 'myCoolLambda',
     });
     const lambda = functionFactory.getInstance(getInstanceProps);
-    const template = Template.fromStack(Stack.of(lambda));
+    const template = Template.fromStack(Stack.of(lambda.resources.lambda));
     template.resourceCountIs('AWS::Lambda::Function', 1);
     template.hasResourceProperties('AWS::Lambda::Function', {
       Handler: 'index.handler',
@@ -98,7 +99,7 @@ void describe('AmplifyFunctionFactory', () => {
 
   void it('builds lambda with local and 3p dependencies', () => {
     const lambda = lambdaWithDependencies.getInstance(getInstanceProps);
-    const template = Template.fromStack(Stack.of(lambda));
+    const template = Template.fromStack(Stack.of(lambda.resources.lambda));
     // There isn't a way to check the contents of the bundled lambda using the CDK Template utility
     // So we just check that the lambda was created properly in the CFN template.
     // There is an e2e test that validates proper lambda bundling
@@ -111,5 +112,165 @@ void describe('AmplifyFunctionFactory', () => {
     )[0];
     // eslint-disable-next-line spellcheck/spell-checker
     assert.ok(lambdaLogicalId.includes('lambdawithdependencies'));
+  });
+
+  void describe('timeout property', () => {
+    void it('sets valid timeout', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        timeoutSeconds: 10,
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        Timeout: 10,
+      });
+    });
+
+    void it('throws on timeout below 1 second', () => {
+      assert.throws(
+        () =>
+          defineFunction({
+            entry: './test-assets/default-lambda/handler.ts',
+            timeoutSeconds: 0,
+          }).getInstance(getInstanceProps),
+        new Error(
+          'timeoutSeconds must be a whole number between 1 and 900 inclusive'
+        )
+      );
+    });
+
+    void it('throws on timeout above 15 minutes', () => {
+      assert.throws(
+        () =>
+          defineFunction({
+            entry: './test-assets/default-lambda/handler.ts',
+            timeoutSeconds: 901,
+          }).getInstance(getInstanceProps),
+        new Error(
+          'timeoutSeconds must be a whole number between 1 and 900 inclusive'
+        )
+      );
+    });
+
+    void it('throws on fractional timeout', () => {
+      assert.throws(
+        () =>
+          defineFunction({
+            entry: './test-assets/default-lambda/handler.ts',
+            timeoutSeconds: 10.5,
+          }).getInstance(getInstanceProps),
+        new Error(
+          'timeoutSeconds must be a whole number between 1 and 900 inclusive'
+        )
+      );
+    });
+  });
+
+  void describe('memory property', () => {
+    void it('sets valid memory', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        memoryMB: 234,
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        MemorySize: 234,
+      });
+    });
+
+    void it('throws on memory below 128 MB', () => {
+      assert.throws(
+        () =>
+          defineFunction({
+            entry: './test-assets/default-lambda/handler.ts',
+            memoryMB: 127,
+          }).getInstance(getInstanceProps),
+        new Error(
+          'memoryMB must be a whole number between 128 and 10240 inclusive'
+        )
+      );
+    });
+
+    void it('throws on memory above 10240 MB', () => {
+      assert.throws(
+        () =>
+          defineFunction({
+            entry: './test-assets/default-lambda/handler.ts',
+            memoryMB: 10241,
+          }).getInstance(getInstanceProps),
+        new Error(
+          'memoryMB must be a whole number between 128 and 10240 inclusive'
+        )
+      );
+    });
+
+    void it('throws on fractional memory', () => {
+      assert.throws(
+        () =>
+          defineFunction({
+            entry: './test-assets/default-lambda/handler.ts',
+            memoryMB: 256.2,
+          }).getInstance(getInstanceProps),
+        new Error(
+          'memoryMB must be a whole number between 128 and 10240 inclusive'
+        )
+      );
+    });
+  });
+
+  void it('sets environment variables', () => {
+    const lambda = defineFunction({
+      entry: './test-assets/default-lambda/handler.ts',
+      environment: {
+        TEST_VAR: 'testValue',
+      },
+    }).getInstance(getInstanceProps);
+    const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+
+    template.hasResourceProperties('AWS::Lambda::Function', {
+      Environment: {
+        Variables: {
+          TEST_VAR: 'testValue',
+        },
+      },
+    });
+  });
+
+  void describe('runtime property', () => {
+    void it('sets valid runtime', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        runtime: 16,
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        Runtime: Runtime.NODEJS_16_X.name,
+      });
+    });
+
+    void it('defaults to oldest runtime', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        Runtime: Runtime.NODEJS_18_X.name,
+      });
+    });
+
+    void it('throws on invalid runtime', () => {
+      assert.throws(
+        () =>
+          defineFunction({
+            entry: './test-assets/default-lambda/handler.ts',
+            runtime: 14 as NodeVersion,
+          }).getInstance(getInstanceProps),
+        new Error('runtime must be one of the following: 16, 18, 20')
+      );
+    });
   });
 });

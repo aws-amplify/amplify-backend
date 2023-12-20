@@ -10,7 +10,7 @@ void describe('Dependency validator', () => {
 
   before(async () => {
     const testNpmOutputFilePath = fileURLToPath(
-      new URL('./test_resources/npm_ls_output.json', import.meta.url)
+      new URL('./test-resources/npm_ls_output.json', import.meta.url)
     );
     const testNpmOutput = (
       await fsp.readFile(testNpmOutputFilePath)
@@ -86,7 +86,7 @@ void describe('Dependency validator', () => {
 
   void it('should discover nested dependency and de-duplicate', async () => {
     // This test uses 'color-name' intentionally.
-    // See ./test_resources/npm_ls_output.json.
+    // See ./test-resources/npm_ls_output.json.
     // The 'color-name' is nested and appears multiple times in sample output.
     await assert.rejects(
       () =>

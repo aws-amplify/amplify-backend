@@ -3,7 +3,7 @@ import assert from 'node:assert';
 import { CDKContextKey } from '@aws-amplify/platform-core';
 import { defineBackend } from '@aws-amplify/backend';
 import { Stack } from 'aws-cdk-lib';
-import { ConstructFactory } from '@aws-amplify/plugin-types';
+import { ConstructFactory, ResourceProvider } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
 
 /**
@@ -27,7 +27,7 @@ export const assertExpectedLogicalIds = (
  * Supplies stable CDK context values to the synth process for deterministic synth output
  */
 export const synthesizeBackendTemplates: SynthesizeBackendTemplates = <
-  T extends Record<string, ConstructFactory<Construct>>
+  T extends Record<string, ConstructFactory<ResourceProvider>>
 >(
   constructFactories: T
 ) => {
@@ -45,7 +45,7 @@ export const synthesizeBackendTemplates: SynthesizeBackendTemplates = <
 };
 
 const backendTemplatesCollector: SynthesizeBackendTemplates = <
-  T extends Record<string, ConstructFactory<Construct>>
+  T extends Record<string, ConstructFactory<ResourceProvider>>
 >(
   constructFactories: T
 ) => {
@@ -53,22 +53,36 @@ const backendTemplatesCollector: SynthesizeBackendTemplates = <
     throw new Error('constructFactories must have at least one entry');
   }
   const backend = defineBackend(constructFactories);
+
+  // find some construct in the backend to compute the root stack from (doesn't matter what construct it is)
+  const firstResourceProvider = backend[Object.keys(constructFactories)[0]];
+  const firstConstruct = Object.values(firstResourceProvider.resources).find(
+    (value) => value instanceof Construct
+  );
+
   const result = {
     // need to go up two levels to get the root stack
-    root: Template.fromStack(
-      Stack.of(backend.resources[Object.keys(constructFactories)[0]]).node
-        .scope as Stack
-    ),
+    root: Template.fromStack(Stack.of(firstConstruct).node.scope as Stack),
   } as Partial<{ [K in keyof T]: Template }> & { root: Template };
 
-  for (const [name, construct] of Object.entries(backend.resources)) {
-    result[name as keyof T] = Template.fromStack(Stack.of(construct)) as never; // TS can't figure out which "K in keyof T" "name" corresponds to here but this assignment is safe
+  for (const [key, resourceRecord] of Object.entries(backend)) {
+    // skip over the methods that we add on to the backend object
+    if (typeof resourceRecord === 'function') {
+      continue;
+    }
+    // find some construct in the resources exposed by the resourceRecord
+    const firstConstruct = Object.values(resourceRecord.resources).find(
+      (value) => value instanceof Construct
+    );
+    result[key as keyof T] = Template.fromStack(
+      Stack.of(firstConstruct)
+    ) as never; // TS can't figure out which "K in keyof T" "name" corresponds to here but this assignment is safe
   }
   return result as { [K in keyof T]: Template } & { root: Template };
 };
 
 type SynthesizeBackendTemplates = <
-  T extends Record<string, ConstructFactory<Construct>>
+  T extends Record<string, ConstructFactory<ResourceProvider>>
 >(
   constructFactories: T
 ) => { [K in keyof T]: Template } & { root: Template };

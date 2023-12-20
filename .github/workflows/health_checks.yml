@@ -43,6 +43,41 @@ jobs:
       - uses: ./.github/actions/restore_build_cache
       - run: npm run set-script-shell
       - run: npm run test:coverage:threshold
+  test_scripts:
+    needs:
+      - build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
+      - uses: ./.github/actions/setup_node
+      - uses: ./.github/actions/restore_build_cache
+      - run: |
+          npm run set-script-shell
+          npm run test:scripts
+  check_api_changes:
+    if: github.event_name == 'pull_request'
+    needs:
+      - build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout pull request ref
+        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
+      - uses: ./.github/actions/setup_node
+      - uses: ./.github/actions/restore_build_cache
+      - name: Publish packages locally
+        run: |
+          npm run start:npm-proxy
+          # keep git diff with version increment to make sure test projects resolve right version
+          npm run publish:local -- --keepGitDiff
+      - name: Checkout base branch
+        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
+        with:
+          path: base-branch-content
+          ref: ${{ github.event.pull_request.base.sha }}
+      - name: Check API changes
+        run: |
+          mkdir api-validation-projects
+          npx tsx scripts/check_api_changes.ts base-branch-content api-validation-projects
   do_include_e2e:
     runs-on: ubuntu-latest
     permissions:
@@ -104,9 +139,7 @@ jobs:
       - name: Configure test execution credentials
         uses: aws-actions/configure-aws-credentials@04b98b3f9e85f563fb061be8751a0352327246b0 # version 3.0.1
         with:
-          # TODO follow up PR to switch this back after merge
-          # (can't do it before merge without impacting other e2e runs)
-          role-to-assume: ${{ secrets.E2E_RUNNER_ROLE_ARN_NEW }}
+          role-to-assume: ${{ secrets.E2E_RUNNER_ROLE_ARN }}
           aws-region: us-west-2
       - name: Run E2E tests
         run: npm run e2e

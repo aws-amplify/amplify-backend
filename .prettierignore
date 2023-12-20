@@ -9,5 +9,5 @@ API.md
 verdaccio-cache
 expected-cdk-out
 .changeset/pre.json
-examples/simple_react/cdk.out
-examples/simple_react/src/amplifyconfiguration.js
+concurrent_workspace_script_cache.json
+scripts/components/api-changes-validator/test-resources/working-directory

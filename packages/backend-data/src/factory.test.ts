@@ -25,12 +25,12 @@ import {
 } from 'aws-cdk-lib/aws-cognito';
 import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
-import { AmplifyData } from '@aws-amplify/data-construct';
 import {
   ConstructContainerStub,
   ImportPathVerifierStub,
   StackResolverStub,
 } from '@aws-amplify/backend-platform-test-stubs';
+import { AmplifyDataResources } from '@aws-amplify/data-construct';
 
 const testSchema = /* GraphQL */ `
   type Todo @model {
@@ -54,7 +54,7 @@ void describe('DataFactory', () => {
   let constructContainer: ConstructContainer;
   let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
   let importPathVerifier: ImportPathVerifier;
-  let dataFactory: ConstructFactory<AmplifyData>;
+  let dataFactory: ConstructFactory<ResourceProvider<AmplifyDataResources>>;
   let getInstanceProps: ConstructFactoryGetInstanceProps;
 
   beforeEach(() => {
@@ -121,7 +121,9 @@ void describe('DataFactory', () => {
 
   void it('adds construct to stack', () => {
     const dataConstruct = dataFactory.getInstance(getInstanceProps);
-    const template = Template.fromStack(Stack.of(dataConstruct));
+    const template = Template.fromStack(
+      Stack.of(dataConstruct.resources.graphqlApi)
+    );
     template.resourceCountIs('AWS::AppSync::GraphQLApi', 1);
   });
 
@@ -151,7 +153,9 @@ void describe('DataFactory', () => {
 
   void it('sets a default api name if none is specified', () => {
     const dataConstruct = dataFactory.getInstance(getInstanceProps);
-    const template = Template.fromStack(Stack.of(dataConstruct));
+    const template = Template.fromStack(
+      Stack.of(dataConstruct.resources.graphqlApi)
+    );
     template.resourceCountIs('AWS::AppSync::GraphQLApi', 1);
     template.hasResourceProperties('AWS::AppSync::GraphQLApi', {
       Name: 'amplifyData',
@@ -164,7 +168,9 @@ void describe('DataFactory', () => {
       name: 'MyTestApiName',
     });
     const dataConstruct = dataFactory.getInstance(getInstanceProps);
-    const template = Template.fromStack(Stack.of(dataConstruct));
+    const template = Template.fromStack(
+      Stack.of(dataConstruct.resources.graphqlApi)
+    );
     template.resourceCountIs('AWS::AppSync::GraphQLApi', 1);
     template.hasResourceProperties('AWS::AppSync::GraphQLApi', {
       Name: 'MyTestApiName',

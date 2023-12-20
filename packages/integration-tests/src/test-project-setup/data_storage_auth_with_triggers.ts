@@ -149,7 +149,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     // Check that deployed lambda is working correctly
 
     // find lambda function
-    const lambdas = await this.resourceFinder.find(
+    const lambdas = await this.resourceFinder.findByBackendIdentifier(
       backendId,
       'AWS::Lambda::Function',
       (name) => name.includes('specialTestFunction')
