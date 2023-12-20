@@ -199,11 +199,19 @@ export type ExternalProviderOptions = {
   /**
    * List of allowed redirect URLs for the identity providers.
    */
-  callbackUrls?: string[];
+  callbackUrls: string[];
+  /**
+   * You must provide a unique domain prefix for the Hosted UI that Cognito will use for external login providers.
+   * If you do not provide a domain prefix, it will not be configured, and some external login flows will not work.
+   *
+   * NOTE: If you need to update this in the future, you must first unset it, then deploy the change to remove the domain
+   * from the UserPool. After the domain has been removed, you can then provide a new value, and perform another deployment.
+   */
+  domainPrefix?: string;
   /**
    * List of allowed logout URLs for the identity providers.
    */
-  logoutUrls?: string[];
+  logoutUrls: string[];
 };
 
 /**

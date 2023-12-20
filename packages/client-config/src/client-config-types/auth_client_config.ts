@@ -18,4 +18,15 @@ export type AuthClientConfig = {
     passwordPolicyCharacters?: string[];
   };
   aws_cognito_verification_mechanisms?: string[];
+
+  aws_cognito_social_providers?: string[];
+
+  oauth?: {
+    domain?: string;
+    scope?: string[];
+    redirectSignIn?: string;
+    redirectSignOut?: string;
+    clientId?: string;
+    responseType?: string;
+  };
 };
