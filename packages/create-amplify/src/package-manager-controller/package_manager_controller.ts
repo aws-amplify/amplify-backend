@@ -15,8 +15,8 @@ export abstract class PackageManagerController {
   protected initDefault: string[];
   protected installCommand: string;
   protected readonly execa = _execa;
+  protected readonly executeWithDebugLogger = _executeWithDebugLogger;
 
-  private readonly executeWithDebugLogger = _executeWithDebugLogger;
   private readonly existsSync = _existsSync;
 
   /**

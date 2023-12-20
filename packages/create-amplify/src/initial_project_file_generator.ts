@@ -14,6 +14,7 @@ export class InitialProjectFileGenerator {
   constructor(
     private readonly projectRoot: string,
     private readonly addLockFile?: (targetDir: string) => void,
+    private readonly addTypescript?: (targetDir: string) => Promise<void>,
     private readonly fs = _fs,
     private readonly executeWithDebugLogger = _executeWithDebugLogger
   ) {}
@@ -46,6 +47,10 @@ export class InitialProjectFileGenerator {
       this.addLockFile(targetDir);
     }
 
+    if (this.addTypescript) {
+      await this.addTypescript(targetDir);
+    }
+
     await this.initializeTsConfig(targetDir);
   };
 
@@ -62,15 +67,6 @@ export class InitialProjectFileGenerator {
       '--target',
       'es2022',
     ];
-
-    if (this.executableName.startsWith('yarn')) {
-      await this.executeWithDebugLogger(
-        targetDir,
-        'yarn',
-        ['add', 'typescript@^5'],
-        execa
-      );
-    }
 
     await this.executeWithDebugLogger(
       targetDir,

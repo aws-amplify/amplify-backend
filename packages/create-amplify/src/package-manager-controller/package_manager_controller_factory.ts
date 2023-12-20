@@ -11,9 +11,6 @@ export type DependencyType = 'dev' | 'prod';
  * packageManagerControllerFactory is an abstraction around package manager commands that are needed to initialize a project and install dependencies
  */
 export class PackageManagerControllerFactory {
-  private readonly executeWithDebugLogger = _executeWithDebugLogger;
-  private readonly execa = _execa;
-
   /**
    * constructor
    * @param projectRoot - the root directory of the project

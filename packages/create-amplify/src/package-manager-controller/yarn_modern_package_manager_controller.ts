@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { logger } from '../logger.js';
+import { executeWithDebugLogger as _executeWithDebugLogger } from '../execute_with_logger.js';
 import { PackageManagerController } from './package_manager_controller.js';
 import { InitialProjectFileGenerator } from '../initial_project_file_generator.js';
 
@@ -25,7 +26,8 @@ export class YarnModernPackageManagerController extends PackageManagerController
   generateInitialProjectFiles = async () => {
     const initialProjectFileGenerator = new InitialProjectFileGenerator(
       this.projectRoot,
-      this.addLockFile
+      this.addLockFile,
+      this.addTypescript
     );
     await initialProjectFileGenerator.generateInitialProjectFiles();
   };
@@ -41,5 +43,14 @@ export class YarnModernPackageManagerController extends PackageManagerController
         logger.info(`${targetDir}/yarn.lock created successfully.`);
       }
     });
+  };
+
+  private addTypescript = async (targetDir: string) => {
+    await this.executeWithDebugLogger(
+      targetDir,
+      'yarn',
+      ['add', 'typescript@^5'],
+      this.execa
+    );
   };
 }
