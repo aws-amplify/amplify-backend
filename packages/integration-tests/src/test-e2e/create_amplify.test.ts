@@ -158,7 +158,7 @@ void describe('create-amplify script', { concurrency: concurrency }, () => {
           );
         }
 
-        await execa('npm', ['create', 'amplify', '--yes'], {
+        await execa(packageManagerExecutable, ['create', 'amplify', '--yes'], {
           cwd: tempDir,
           stdio: 'inherit',
         });
