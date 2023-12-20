@@ -12,7 +12,6 @@
     "create-amplify": "./lib/create_amplify.js"
   },
   "scripts": {
-    "install:local": "npm link",
     "update:api": "api-extractor run --local"
   },
   "license": "Apache-2.0",
