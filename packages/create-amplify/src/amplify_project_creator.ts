@@ -61,7 +61,18 @@ export class AmplifyProjectCreator {
 
     logger.log('Successfully created a new project!');
 
-    logger.log(this.packageManagerController.getWelcomeMessage());
+    const cdPreamble =
+      process.cwd() === this.packageManagerController.projectRoot
+        ? ''
+        : `Navigate to your project directory using
+'cd .${this.packageManagerController.projectRoot.replace(process.cwd(), '')}'.
+Then get started with the following commands:
+`;
+
+    logger.log(`Welcome to AWS Amplify!
+${cdPreamble}
+${this.packageManagerController.getWelcomeMessage()}
+`);
 
     logger.log(
       `Amplify (Gen 2) collects anonymous telemetry data about general usage of the CLI.

@@ -56,16 +56,9 @@ export abstract class PackageManagerController {
     );
   };
 
-  getWelcomeMessage = () => {
-    const cdCommand =
-      process.cwd() === this.projectRoot
-        ? ''
-        : `cd .${this.projectRoot.replace(process.cwd(), '')}; `;
-
-    return `Welcome to AWS Amplify! 
-Run \`${this.binaryRunner} amplify help\` for a list of available commands. 
-Get started by running \`${cdCommand}${this.binaryRunner} amplify sandbox\`.`;
-  };
+  getWelcomeMessage = () =>
+    `Run \`${this.binaryRunner} amplify help\` for a list of available commands. 
+Get started by running \`${this.binaryRunner} amplify sandbox\`.`;
 
   /**
    * initializeProject - initializes a project in the project root by checking the package.json file
