@@ -3,7 +3,7 @@ import { execa as _execa } from 'execa';
 import { PackageManagerController } from './package_manager_controller.js';
 
 /**
- *
+ * YarnClassicPackageManagerController is an abstraction around yarn classic commands that are needed to initialize a project and install dependencies
  */
 export class YarnClassicPackageManagerController extends PackageManagerController {
   /**

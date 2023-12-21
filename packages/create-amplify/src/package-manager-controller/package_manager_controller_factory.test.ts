@@ -24,7 +24,6 @@ void describe('packageManagerControllerFactory', () => {
 
       const packageManagerController =
         packageManagerControllerFactory.getPackageManagerController() as PackageManagerControllerType;
-      /* tslint:disable-next-line */
       assert.match(packageManagerController.executable, /npm/);
       assert.match(packageManagerController.binaryRunner, /npx/);
       assert.equal(packageManagerController.addTypescript, undefined);
