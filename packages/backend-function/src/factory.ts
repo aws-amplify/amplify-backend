@@ -8,11 +8,12 @@ import {
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
-import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as path from 'path';
 import { getCallerDirectory } from './get_caller_directory.js';
-import { Duration } from 'aws-cdk-lib';
+import { Duration, Stack } from 'aws-cdk-lib';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
+import * as iam from 'aws-cdk-lib/aws-iam';
 
 /**
  * Entry point for defining a function in the Amplify ecosystem
@@ -221,14 +222,43 @@ class AmplifyFunction
   readonly resources: FunctionResources;
   constructor(scope: Construct, id: string, props: HydratedFunctionProps) {
     super(scope, id);
+    const functionLambda = new NodejsFunction(scope, `${id}-lambda`, {
+      entry: props.entry,
+      environment: props.environment as { [key: string]: string }, // for some reason TS can't figure out that this is the same as Record<string, string>
+      timeout: Duration.seconds(props.timeoutSeconds),
+      memorySize: props.memoryMB,
+      runtime: nodeVersionMap[props.runtime],
+      bundling: {
+        // Added '\' to the end of each line for readability here
+        // eslint-disable-next-line spellcheck/spell-checker
+        banner: `import { SSM } from '@aws-sdk/client-ssm'; const client = new SSM();\
+        const envArray = ${JSON.stringify(Object.keys(props.environment))};\
+        const response = await client.getParameters({ Names: envArray.map(a => process.env[a]), WithDecryption: true });\
+        for (const parameter of response.Parameters) {\
+          for (const envName of envArray) {\
+            if (parameter.Name === process.env[envName]) {\
+              process.env[envName.replace('_PATH', '')] = parameter.Value;\
+            }\
+          }\
+        }`,
+        format: OutputFormat.ESM,
+      },
+    });
+
+    functionLambda.grantPrincipal.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['ssm:GetParameters'],
+        resources: [
+          `arn:aws:ssm:${Stack.of(scope).region}:${
+            Stack.of(scope).account
+          }:parameter/*`,
+        ],
+      })
+    );
+
     this.resources = {
-      lambda: new NodejsFunction(scope, `${id}-lambda`, {
-        entry: props.entry,
-        environment: props.environment as { [key: string]: string }, // for some reason TS can't figure out that this is the same as Record<string, string>
-        timeout: Duration.seconds(props.timeoutSeconds),
-        memorySize: props.memoryMB,
-        runtime: nodeVersionMap[props.runtime],
-      }),
+      lambda: functionLambda,
     };
   }
 }
@@ -247,6 +277,9 @@ const nodeVersionMap: Record<NodeVersion, Runtime> = {
   20: Runtime.NODEJS_20_X,
 };
 
+const secretPathSuffix = '_PATH';
+const secretPlaceholderText = '<value will be resolved during runtime>';
+
 const translateToEnvironmentSecretPath = (
   functionEnvironmentProp: HydratedFunctionProps['environment'],
   backendSecretResolver: BackendSecretResolver
@@ -255,8 +288,9 @@ const translateToEnvironmentSecretPath = (
 
   for (const [key, value] of Object.entries(result)) {
     if (typeof value !== 'string') {
-      result[`${key}_PATH`] = backendSecretResolver.resolveToPath(value);
-      result[key] = '<value will be resolved during runtime>';
+      result[key + secretPathSuffix] =
+        backendSecretResolver.resolveToPath(value);
+      result[key] = secretPlaceholderText;
     }
   }
 
