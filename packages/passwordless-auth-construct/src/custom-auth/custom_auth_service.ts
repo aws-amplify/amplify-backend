@@ -224,7 +224,7 @@ export class CustomAuthService {
       .verifyChallenge(event);
 
     const answerCorrect = (await verifyResult).response.answerCorrect;
-    logger.debug(`Answer is correct: ${answerCorrect ? 'true' : 'false'}`);
+    logger.debug(`Challenge response is ${answerCorrect ? 'correct' : 'incorrect'}`);
 
     let passwordlessConfiguration: Record<string, string> | undefined;
 
