@@ -1,6 +1,11 @@
 import { beforeEach, describe, it } from 'node:test';
-import { App, Stack } from 'aws-cdk-lib';
-import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
+import { App, SecretValue, Stack } from 'aws-cdk-lib';
+import {
+  BackendIdentifier,
+  BackendSecret,
+  BackendSecretResolver,
+  ConstructFactoryGetInstanceProps,
+} from '@aws-amplify/plugin-types';
 import assert from 'node:assert';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 import {
@@ -12,6 +17,8 @@ import { Template } from 'aws-cdk-lib/assertions';
 import { NodeVersion, defineFunction } from './factory.js';
 import { lambdaWithDependencies } from './test-assets/lambda-with-dependencies/resource.js';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
+import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
+import { Construct } from 'constructs';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
@@ -21,6 +28,36 @@ const createStackAndSetContext = (): Stack => {
   const stack = new Stack(app);
   return stack;
 };
+
+const testBackendIdentifier: BackendIdentifier = {
+  namespace: 'testBackendId',
+  name: 'testBranchName',
+  type: 'branch',
+};
+
+class TestBackendSecret implements BackendSecret {
+  constructor(private readonly secretName: string) {}
+  resolve = (): SecretValue => {
+    return SecretValue.unsafePlainText(this.secretName);
+  };
+  resolveToPath = (): string => {
+    return BackendIdentifierConversions.toParameterFullPath(
+      testBackendIdentifier,
+      this.secretName
+    );
+  };
+}
+
+const testStack = {} as Construct;
+
+class TestBackendSecretResolver implements BackendSecretResolver {
+  resolveSecret = (backendSecret: BackendSecret): SecretValue => {
+    return backendSecret.resolve(testStack, testBackendIdentifier);
+  };
+  resolveToPath = (backendSecret: BackendSecret): string => {
+    return backendSecret.resolveToPath(testBackendIdentifier);
+  };
+}
 
 void describe('AmplifyFunctionFactory', () => {
   let getInstanceProps: ConstructFactoryGetInstanceProps;
@@ -220,21 +257,46 @@ void describe('AmplifyFunctionFactory', () => {
     });
   });
 
-  void it('sets environment variables', () => {
-    const lambda = defineFunction({
-      entry: './test-assets/default-lambda/handler.ts',
-      environment: {
-        TEST_VAR: 'testValue',
-      },
-    }).getInstance(getInstanceProps);
-    const template = Template.fromStack(Stack.of(lambda.resources.lambda));
-
-    template.hasResourceProperties('AWS::Lambda::Function', {
-      Environment: {
-        Variables: {
+  void describe('environment property', () => {
+    void it('sets environment variables', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        environment: {
           TEST_VAR: 'testValue',
         },
-      },
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        Environment: {
+          Variables: {
+            TEST_VAR: 'testValue',
+          },
+        },
+      });
+    });
+
+    void it('sets environment variables with secret path and placeholder text', () => {
+      const testSecret = new TestBackendSecret('secretValue');
+      const backendResolver = new TestBackendSecretResolver();
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        environment: {
+          TEST_VAR: 'testValue',
+          TEST_SECRET: testSecret,
+        },
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        Environment: {
+          Variables: {
+            TEST_VAR: 'testValue',
+            TEST_SECRET: '<value will be resolved during runtime>',
+            TEST_SECRET_PATH: backendResolver.resolveToPath(testSecret),
+          },
+        },
+      });
     });
   });
 
