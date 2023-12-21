@@ -26,6 +26,7 @@ await fsp.cp(createAmplifyTemplateLocation, testProjectDir, {
 });
 
 // create minimal package.json
+// if you want to test out changes in a commonjs package, change the "type" field in the package.json of the test project after it is created
 const packageJson = {
   name: projectName,
   type: 'module',
