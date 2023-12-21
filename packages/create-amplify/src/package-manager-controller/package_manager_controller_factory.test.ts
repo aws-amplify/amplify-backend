@@ -1,6 +1,15 @@
 import { describe, it } from 'node:test';
 import assert from 'assert';
 import { PackageManagerControllerFactory } from './package_manager_controller_factory.js';
+import { type PackageManagerController } from './package_manager_controller.js';
+
+type PackageManagerControllerType = PackageManagerController & {
+  executable: string;
+  binaryRunner: string;
+  addTypescript?: boolean;
+  addLockFile?: boolean;
+  installCommand?: string;
+};
 
 void describe('packageManagerControllerFactory', () => {
   const packageRoot = '/path/to/project';
@@ -14,7 +23,8 @@ void describe('packageManagerControllerFactory', () => {
         );
 
       const packageManagerController =
-        packageManagerControllerFactory.getPackageManagerController();
+        packageManagerControllerFactory.getPackageManagerController() as PackageManagerControllerType;
+      /* tslint:disable-next-line */
       assert.match(packageManagerController.executable, /npm/);
       assert.match(packageManagerController.binaryRunner, /npx/);
       assert.equal(packageManagerController.addTypescript, undefined);
@@ -29,7 +39,7 @@ void describe('packageManagerControllerFactory', () => {
         );
 
       const packageManagerController =
-        packageManagerControllerFactory.getPackageManagerController();
+        packageManagerControllerFactory.getPackageManagerController() as PackageManagerControllerType;
       assert.match(packageManagerController.executable, /pnpm/);
       assert.match(packageManagerController.binaryRunner, /pnpm/);
       assert.equal(packageManagerController.addTypescript, undefined);
@@ -44,7 +54,7 @@ void describe('packageManagerControllerFactory', () => {
         );
 
       const packageManagerController =
-        packageManagerControllerFactory.getPackageManagerController();
+        packageManagerControllerFactory.getPackageManagerController() as PackageManagerControllerType;
       assert.match(packageManagerController.executable, /yarn/);
       assert.match(packageManagerController.installCommand, /add/);
       assert.ok(packageManagerController.addTypescript);
@@ -59,7 +69,7 @@ void describe('packageManagerControllerFactory', () => {
         );
 
       const packageManagerController =
-        packageManagerControllerFactory.getPackageManagerController();
+        packageManagerControllerFactory.getPackageManagerController() as PackageManagerControllerType;
       assert.match(packageManagerController.executable, /yarn/);
       assert.match(packageManagerController.installCommand, /add/);
       assert.ok(packageManagerController.addLockFile);
