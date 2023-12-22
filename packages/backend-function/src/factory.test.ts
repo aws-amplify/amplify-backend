@@ -16,7 +16,7 @@ import { Template } from 'aws-cdk-lib/assertions';
 import { NodeVersion, defineFunction } from './factory.js';
 import { lambdaWithDependencies } from './test-assets/lambda-with-dependencies/resource.js';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
-import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
+import { ParameterPathConversions } from '@aws-amplify/platform-core';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
@@ -39,7 +39,7 @@ class TestBackendSecret implements BackendSecret {
     return SecretValue.unsafePlainText(this.secretName);
   };
   resolveToPath = (): string => {
-    return BackendIdentifierConversions.toParameterFullPath(
+    return ParameterPathConversions.toParameterFullPath(
       testBackendIdentifier,
       this.secretName
     );

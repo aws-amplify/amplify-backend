@@ -3,4 +3,4 @@
 '@aws-amplify/platform-core': patch
 ---
 
-Move parameter path methods to BackendIdentifierConversions
+Move parameter path methods to ParameterPathConversions

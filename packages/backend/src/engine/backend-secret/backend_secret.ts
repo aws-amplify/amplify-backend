@@ -2,7 +2,7 @@ import { BackendIdentifier, BackendSecret } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
 import { BackendSecretFetcherFactory } from './backend_secret_fetcher_factory.js';
 import { SecretValue } from 'aws-cdk-lib';
-import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
+import { ParameterPathConversions } from '@aws-amplify/platform-core';
 
 /**
  * Resolves a backend secret to a CFN token via a lambda-backed CFN custom resource.
@@ -36,7 +36,7 @@ export class CfnTokenBackendSecret implements BackendSecret {
    * Resolve to the secret path
    */
   resolveToPath = (backendIdentifier: BackendIdentifier): string => {
-    return BackendIdentifierConversions.toParameterFullPath(
+    return ParameterPathConversions.toParameterFullPath(
       backendIdentifier,
       this.name
     );

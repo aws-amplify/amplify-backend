@@ -7,7 +7,7 @@ import {
   SecretListItem,
 } from './secret.js';
 import { AppId, BackendIdentifier } from '@aws-amplify/plugin-types';
-import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
+import { ParameterPathConversions } from '@aws-amplify/platform-core';
 
 /**
  * This class implements Amplify Secret using SSM parameter store.
@@ -26,7 +26,7 @@ export class SSMSecretClient implements SecretClient {
     secretIdentifier: SecretIdentifier
   ): Promise<Secret> => {
     let secret: Secret | undefined;
-    const name: string = BackendIdentifierConversions.toParameterFullPath(
+    const name: string = ParameterPathConversions.toParameterFullPath(
       backendIdentifier,
       secretIdentifier.name
     );
@@ -64,8 +64,7 @@ export class SSMSecretClient implements SecretClient {
   public listSecrets = async (
     backendIdentifier: BackendIdentifier | AppId
   ): Promise<SecretListItem[]> => {
-    const path =
-      BackendIdentifierConversions.toParameterPrefix(backendIdentifier);
+    const path = ParameterPathConversions.toParameterPrefix(backendIdentifier);
     const result: SecretListItem[] = [];
 
     try {
@@ -101,7 +100,7 @@ export class SSMSecretClient implements SecretClient {
     secretName: string,
     secretValue: string
   ): Promise<SecretIdentifier> => {
-    const name = BackendIdentifierConversions.toParameterFullPath(
+    const name = ParameterPathConversions.toParameterFullPath(
       backendIdentifier,
       secretName
     );
@@ -129,7 +128,7 @@ export class SSMSecretClient implements SecretClient {
     backendIdentifier: BackendIdentifier | AppId,
     secretName: string
   ) => {
-    const name = BackendIdentifierConversions.toParameterFullPath(
+    const name = ParameterPathConversions.toParameterFullPath(
       backendIdentifier,
       secretName
     );

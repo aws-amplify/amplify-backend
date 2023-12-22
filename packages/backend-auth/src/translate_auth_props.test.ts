@@ -10,7 +10,7 @@ import { AuthProps, PhoneNumberLogin } from '@aws-amplify/auth-construct-alpha';
 import { SecretValue } from 'aws-cdk-lib';
 import assert from 'node:assert';
 import { translateToAuthConstructLoginWith } from './translate_auth_props.js';
-import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
+import { ParameterPathConversions } from '@aws-amplify/platform-core';
 
 const phone: PhoneNumberLogin = {
   verificationMessage: (code: string) => `text${code}text2`,
@@ -44,7 +44,7 @@ class TestBackendSecret implements BackendSecret {
     return SecretValue.unsafePlainText(this.secretName);
   };
   resolveToPath = (): string => {
-    return BackendIdentifierConversions.toParameterFullPath(
+    return ParameterPathConversions.toParameterFullPath(
       testBackendIdentifier,
       this.secretName
     );
