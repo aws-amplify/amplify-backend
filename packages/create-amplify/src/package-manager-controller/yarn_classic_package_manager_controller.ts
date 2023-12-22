@@ -17,11 +17,15 @@ export class YarnClassicPackageManagerController extends PackageManagerControlle
     this.initDefault = ['init', '--yes'];
   }
 
-  /**
-   * addLockFile - adds a yarn.lock file to the project root for yarn v2+
-   */
+  initializeTsConfig = async (targetDir: string) => {
+    await this.addTypescript(targetDir);
+    await this.initializeTsConfig(targetDir);
+  };
 
-  addTypescript = async (targetDir: string) => {
+  /**
+   * initializeTsConfig - initializes a tsconfig.json file in the project root
+   */
+  private addTypescript = async (targetDir: string) => {
     await this.executeWithDebugLogger(
       targetDir,
       'yarn',

@@ -18,10 +18,16 @@ export class YarnModernPackageManagerController extends PackageManagerController
     this.initDefault = ['init', '--yes'];
   }
 
+  initializeTsConfig = async (targetDir: string) => {
+    await this.addLockFile(targetDir);
+    await this.addTypescript(targetDir);
+    await this.initializeTsConfig(targetDir);
+  };
+
   /**
    * addLockFile - adds a yarn.lock file to the project root for yarn v2+
    */
-  addLockFile = (targetDir: string) => {
+  private addLockFile = (targetDir: string) => {
     fs.writeFile(this.path.resolve(targetDir, 'yarn.lock'), '', (err) => {
       if (err) {
         logger.error(`Error creating ${targetDir}/yarn.lock ${err.message}}`);
@@ -31,7 +37,10 @@ export class YarnModernPackageManagerController extends PackageManagerController
     });
   };
 
-  addTypescript = async (targetDir: string) => {
+  /**
+   * initializeTsConfig - initializes a tsconfig.json file in the project root
+   */
+  private addTypescript = async (targetDir: string) => {
     await this.executeWithDebugLogger(
       targetDir,
       'yarn',

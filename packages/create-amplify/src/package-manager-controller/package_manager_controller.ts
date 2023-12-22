@@ -5,16 +5,6 @@ import * as _path from 'path';
 import { logger } from '../logger.js';
 import { executeWithDebugLogger as _executeWithDebugLogger } from '../execute_with_logger.js';
 import { DependencyType } from './package_manager_controller_factory.js';
-import { NpmPackageManagerController } from './npm_package_manager_controller.js';
-import { PnpmPackageManagerController } from './pnpm_package_manager_controller.js';
-import { YarnClassicPackageManagerController } from './yarn_classic_package_manager_controller.js';
-import { YarnModernPackageManagerController } from './yarn_modern_package_manager_controller.js';
-
-export type PackageManagerControllerType = PackageManagerController &
-  NpmPackageManagerController &
-  PnpmPackageManagerController &
-  YarnClassicPackageManagerController &
-  YarnModernPackageManagerController;
 
 /**
  * PackageManagerController is an abstraction around package manager commands that are needed to initialize a project and install dependencies

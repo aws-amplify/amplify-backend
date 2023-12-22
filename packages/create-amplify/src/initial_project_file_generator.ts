@@ -1,7 +1,7 @@
 import _path from 'path';
 import _fsp from 'fs/promises';
 import { executeWithDebugLogger as _executeWithDebugLogger } from './execute_with_logger.js';
-import { type PackageManagerControllerType } from './package-manager-controller/package_manager_controller.js';
+import { type PackageManagerController } from './package-manager-controller/package_manager_controller.js';
 
 /**
  * InitialProjectFileGenerator is responsible for copying getting started template to a new project directory
@@ -13,7 +13,7 @@ export class InitialProjectFileGenerator {
    */
   constructor(
     private readonly projectRoot: string,
-    private readonly packageManagerController: PackageManagerControllerType,
+    private readonly packageManagerController: PackageManagerController,
     private readonly fsp = _fsp,
     private readonly path = _path
   ) {}
@@ -35,14 +35,6 @@ export class InitialProjectFileGenerator {
       this.path.resolve(targetDir, 'package.json'),
       JSON.stringify(packageJsonContent, null, 2)
     );
-
-    if (this.packageManagerController.addLockFile) {
-      this.packageManagerController.addLockFile(targetDir);
-    }
-
-    if (this.packageManagerController.addTypescript) {
-      await this.packageManagerController.addTypescript(targetDir);
-    }
 
     await this.packageManagerController.initializeTsConfig(targetDir);
   };
