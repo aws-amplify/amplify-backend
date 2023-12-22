@@ -206,7 +206,7 @@ class FunctionGenerator implements ConstructContainerEntryGenerator {
   ) => {
     const functionProps: HydratedFunctionProps = {
       ...this.props,
-      environment: translateToEnvironmentSecretPath(
+      environment: translateEnvironmentProp(
         this.props.environment,
         backendSecretResolver
       ),
@@ -280,17 +280,19 @@ const nodeVersionMap: Record<NodeVersion, Runtime> = {
 const secretPathSuffix = '_PATH';
 const secretPlaceholderText = '<value will be resolved during runtime>';
 
-const translateToEnvironmentSecretPath = (
+const translateEnvironmentProp = (
   functionEnvironmentProp: HydratedFunctionProps['environment'],
   backendSecretResolver: BackendSecretResolver
-): HydratedFunctionProps['environment'] => {
-  const result = functionEnvironmentProp;
+): Record<string, string> => {
+  const result: Record<string, string> = {};
 
-  for (const [key, value] of Object.entries(result)) {
+  for (const [key, value] of Object.entries(functionEnvironmentProp)) {
     if (typeof value !== 'string') {
       result[key + secretPathSuffix] =
         backendSecretResolver.resolveToPath(value);
       result[key] = secretPlaceholderText;
+    } else {
+      result[key] = value;
     }
   }
 
