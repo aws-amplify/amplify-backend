@@ -3,7 +3,7 @@ import { Match, Template } from 'aws-cdk-lib/assertions';
 import { App, Stack } from 'aws-cdk-lib';
 import { AmplifyAuth } from '@aws-amplify/auth-construct-alpha';
 import { AmplifyPasswordlessAuth } from '../construct.js';
-import { AmplifySignUpPasswordless } from './construct.js';
+import { AmplifyPasswordlessSignUp } from './construct.js';
 
 void describe('Passwordless Sign Up', () => {
   void test('Enable passwordless sign up', () => {
@@ -19,12 +19,12 @@ void describe('Passwordless Sign Up', () => {
       },
     });
 
-    new AmplifySignUpPasswordless(
-      stack,
-      `signup-passwordless`,
-      authPasswordless.verifyAuthChallengeResponse,
-      auth.resources.userPool
-    );
+    new AmplifyPasswordlessSignUp(stack, `signup-passwordless`, {
+      userPool: auth.resources.userPool,
+      // eslint-disable-next-line  @typescript-eslint/no-non-null-assertion
+      verifyAuthChallengeResponseExecutionRole:
+        authPasswordless.verifyAuthChallengeResponse.role!,
+    });
 
     const template = Template.fromStack(stack);
     template.hasResourceProperties('AWS::ApiGateway::RestApi', {

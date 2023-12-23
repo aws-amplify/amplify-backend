@@ -5,6 +5,8 @@ import {
 } from 'aws-lambda';
 import { Duration } from 'aws-cdk-lib/core';
 import { CognitoMetadataKeys } from './constants.js';
+import { IUserPool } from 'aws-cdk-lib/aws-cognito';
+import { IRole } from 'aws-cdk-lib/aws-iam';
 
 /**
  * The client meta data object provided during passwordless auth.
@@ -164,7 +166,7 @@ export type PasswordlessAuthProps = {
   otp?: OtpAuthOptions;
 
   /** Sign Up Without Password */
-  signUpNoPassword?: boolean;
+  passwordlessSignUp?: boolean;
 };
 
 /**
@@ -349,9 +351,7 @@ export enum PasswordlessErrorCodes {
 export type CreateUserParams = {
   userPoolId: string;
   username: string;
-  // this is the format for Cognito UserPool API, eslint not happy otherwise
-  // eslint-disable-next-line
-  phone_number?: string;
+  phoneNumber?: string;
   email?: string;
 };
 
@@ -362,21 +362,13 @@ export type MarkVerifiedAndDeletePasswordlessParams = {
 };
 
 export type UserService = {
-  /**
-   * Create User
-   * @param username - The username to be verify the attribute
-   * @param email - The attribute that is going to used as email (optional)
-   * @param phone_number - The attribute that is going to used as phone number (optional)
-   * @param userPoolId - The UserPool ID
-   */
   createUser: (params: CreateUserParams) => Promise<void>;
-  /**
-   * Update user and mark attribute as verified
-   * @param username - The username to be verify the attribute
-   * @param attributeName - The attribute that is going to be mark as verified
-   * @param userPoolId - The UserPool ID
-   */
   markAsVerifiedAndDeletePasswordlessAttribute: (
     params: MarkVerifiedAndDeletePasswordlessParams
   ) => Promise<void>;
+};
+
+export type PasswordlessSignUpProps = {
+  verifyAuthChallengeResponseExecutionRole: IRole;
+  userPool: IUserPool;
 };

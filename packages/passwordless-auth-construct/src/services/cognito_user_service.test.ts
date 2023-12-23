@@ -75,7 +75,7 @@ void describe('Cognito User Service - Create User', async () => {
       await new CognitoUserService(mockCognitoClient).createUser({
         username: 'username',
         userPoolId: 'userPoolId',
-        phone_number: '+11111111111',
+        phoneNumber: '+11111111111',
       });
 
       const expectedAttributes = {
@@ -116,7 +116,7 @@ void describe('Cognito User Service - Create User', async () => {
         await new CognitoUserService(mockCognitoClient).createUser({
           username: 'username',
           userPoolId: 'userPoolId',
-          phone_number: '+11111111111',
+          phoneNumber: '+11111111111',
         });
       }, Error('User already exists'));
       strictEqual(sendMock.mock.callCount(), 1);

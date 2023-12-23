@@ -13,7 +13,7 @@ import { AmplifyOtpAuth } from './otp/construct.js';
 import { AmplifyMagicLinkAuth } from './magic-link/construct.js';
 import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { Aws } from 'aws-cdk-lib';
-import { AmplifySignUpPasswordless } from './sign-up/construct.js';
+import { AmplifyPasswordlessSignUp } from './sign-up/construct.js';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -166,13 +166,14 @@ export class AmplifyPasswordlessAuth extends Construct {
     }
 
     // Configure Sign Up without password
-    if (props.signUpNoPassword) {
-      new AmplifySignUpPasswordless(
-        scope,
-        `${id}-signup-passwordless`,
-        this.verifyAuthChallengeResponse,
-        auth.resources.userPool
-      );
+    if (props.passwordlessSignUp) {
+      new AmplifyPasswordlessSignUp(scope, `${id}-signup-passwordless`, {
+        userPool: auth.resources.userPool,
+        // According to cdk docs there always is a default role https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_lambda-readme.html#execution-role
+        // eslint-disable-next-line  @typescript-eslint/no-non-null-assertion
+        verifyAuthChallengeResponseExecutionRole:
+          this.verifyAuthChallengeResponse.role!,
+      });
     }
   }
 }

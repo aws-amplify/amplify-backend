@@ -219,12 +219,14 @@ export class CustomAuthService {
 
     const method = this.validateSignInMethod(signInMethod);
 
-    const verifyResult = this.challengeServiceFactory
+    const verifyResult = await this.challengeServiceFactory
       .getService(method)
       .verifyChallenge(event);
 
-    const answerCorrect = (await verifyResult).response.answerCorrect;
-    logger.debug(`Challenge response is ${answerCorrect ? 'correct' : 'incorrect'}`);
+    const answerCorrect = verifyResult.response.answerCorrect;
+    logger.debug(
+      `Challenge response is ${answerCorrect ? 'correct' : 'incorrect'}`
+    );
 
     let passwordlessConfiguration: Record<string, string> | undefined;
 

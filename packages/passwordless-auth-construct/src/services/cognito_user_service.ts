@@ -1,5 +1,3 @@
-// ../amplify-backend/packages/passwordless-auth-construct/lib/sign-up/createUserService.js
-
 import {
   AdminCreateUserCommand,
   AdminDeleteUserAttributesCommand,
@@ -61,18 +59,17 @@ export class CognitoUserService implements UserService {
   /**
    * Create User
    * @param params - Create User parameter
-   * @param params.username - The username to be verify the attribute
-   * @param params.email - The attribute that is going to used as email (optional)
-   * @param params.phone_number - The attribute that is going to used as phone number (optional)
+   * @param params.username - The username attribute
+   * @param params.email - The attribute that is going to be used as an email (optional)
+   * @param params.phoneNumber - The attribute that is going to used be as a phone number (optional)
    * @param params.userPoolId - The UserPool ID
    */
   async createUser(params: CreateUserParams): Promise<void> {
-    // this is the format for Cognito UserPool API, eslint not happy otherwise
-    // eslint-disable-next-line
-    const { userPoolId, username, email, phone_number } = params;
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    const { userPoolId, username, email, phoneNumber } = params;
 
     // this is the format for Cognito UserPool API, eslint not happy otherwise
-    // eslint-disable-next-line
+    // eslint-disable-next-line  @typescript-eslint/naming-convention
     const userAttributes: Array<{ Name: string; Value: string }> = [];
     const passwordlessConfiguration: {
       allowSignInAttempt: boolean;
@@ -91,10 +88,10 @@ export class CognitoUserService implements UserService {
       passwordlessConfiguration.deliveryMedium = DeliveryMediumType.EMAIL;
     }
 
-    if (phone_number) {
+    if (phoneNumber) {
       userAttributes.push({
         Name: 'phone_number',
-        Value: phone_number,
+        Value: phoneNumber,
       });
 
       passwordlessConfiguration.allowSignInAttempt = true;
@@ -119,7 +116,6 @@ export class CognitoUserService implements UserService {
 
     try {
       await this.cognitoClient.send(command);
-      return;
     } catch (err) {
       logger.debug(err);
       throw new Error('User already exists');

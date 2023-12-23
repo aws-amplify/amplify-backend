@@ -1,16 +1,12 @@
 import { Construct } from 'constructs';
-import {
-  NodejsFunction,
-  NodejsFunctionProps,
-  OutputFormat,
-} from 'aws-cdk-lib/aws-lambda-nodejs';
+import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import { Architecture, Runtime } from 'aws-cdk-lib/aws-lambda';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
-import { IUserPool } from 'aws-cdk-lib/aws-cognito';
 import { Effect, Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { CfnOutput } from 'aws-cdk-lib';
+import { PasswordlessSignUpProps } from '../types.js';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -18,7 +14,7 @@ const dirname = path.dirname(filename);
 /**
  * Amplify SignUp Passwordless construct
  */
-export class AmplifySignUpPasswordless extends Construct {
+export class AmplifyPasswordlessSignUp extends Construct {
   /**
    * Create a new SignUp Passwordless construct
    * verifyAuthChallengeResponse function is needed in order to attach policy
@@ -27,27 +23,18 @@ export class AmplifySignUpPasswordless extends Construct {
   constructor(
     scope: Construct,
     id: string,
-    verifyAuthChallengeResponse: NodejsFunction,
-    userPool: IUserPool
+    passwordlessSignUpProps: PasswordlessSignUpProps
   ) {
     super(scope, id);
 
-    // default memory allocation for lambda functions
-    const defaultMemorySize = 128;
-
-    const commonOptions: NodejsFunctionProps = {
-      entry: path.join(dirname, '.', 'create_user_handler.js'),
+    const createUserFunction = new NodejsFunction(scope, `CreateUser${id}`, {
+      handler: 'createUser',
+      entry: path.join(dirname, 'create_user_handler.js'),
       runtime: Runtime.NODEJS_20_X,
       architecture: Architecture.ARM_64,
       bundling: {
         format: OutputFormat.ESM,
       },
-    };
-
-    const createUserFunction = new NodejsFunction(scope, `CreateUser${id}`, {
-      handler: 'createUser',
-      ...commonOptions,
-      memorySize: defaultMemorySize,
     });
 
     const api = new apigateway.RestApi(this, `CreateUserApi${id}`, {
@@ -67,25 +54,23 @@ export class AmplifySignUpPasswordless extends Construct {
 
     api.root.addMethod('PUT', putCreateUserIntegration);
 
+    // TODO: expose this on the external stack
     new CfnOutput(this, 'apiUrl', { value: api.url });
 
-    // According to cdk docs there always is a default role https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_lambda-readme.html#execution-role
     // eslint-disable-next-line  @typescript-eslint/no-non-null-assertion
     createUserFunction.role!.attachInlinePolicy(
       new Policy(this, `CreateUserPolicy${id}`, {
         statements: [
           new PolicyStatement({
             actions: ['cognito-idp:AdminCreateUser'],
-            resources: [userPool.userPoolArn],
+            resources: [passwordlessSignUpProps.userPool.userPoolArn],
             effect: Effect.ALLOW,
           }),
         ],
       })
     );
 
-    // According to cdk docs there always is a default role https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_lambda-readme.html#execution-role
-    // eslint-disable-next-line  @typescript-eslint/no-non-null-assertion
-    verifyAuthChallengeResponse.role!.attachInlinePolicy(
+    passwordlessSignUpProps.verifyAuthChallengeResponseExecutionRole.attachInlinePolicy(
       new Policy(this, `UpdateUserPolicy${id}`, {
         statements: [
           new PolicyStatement({
@@ -93,7 +78,7 @@ export class AmplifySignUpPasswordless extends Construct {
               'cognito-idp:AdminUpdateUserAttributes',
               'cognito-idp:AdminDeleteUserAttributes',
             ],
-            resources: [userPool.userPoolArn],
+            resources: [passwordlessSignUpProps.userPool.userPoolArn],
             effect: Effect.ALLOW,
           }),
         ],

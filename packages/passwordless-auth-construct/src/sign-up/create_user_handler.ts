@@ -1,6 +1,12 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { CognitoUserService } from '../services/cognito_user_service.js';
 import { CognitoIdentityProviderClient } from '@aws-sdk/client-cognito-identity-provider';
+import { CognitoUserService } from '../services/cognito_user_service.js';
+import { logger } from '../logger.js';
+
+const cognitoCreateUserService = new CognitoUserService(
+  new CognitoIdentityProviderClient()
+);
+
 /**
  * The Create User for Passwordless SignUp lambda handler
  * @param event - The event provided by ApiGateway for the request
@@ -18,26 +24,39 @@ export const createUser = async (
       !params.userPoolId ||
       !params.username
     ) {
+      const missedParameters: string[] = [];
+
+      if (!params.userPoolId) {
+        missedParameters.push('userPoolId');
+      }
+
+      if (!params.username) {
+        missedParameters.push('username');
+      }
+
+      if (!params.email && !params.phone_number) {
+        missedParameters.push('email or phone_number');
+      }
+
       return {
         statusCode: 400,
-        body: 'Missing parameters',
+        body: `Missing parameters: ${missedParameters.join(',')}`,
       };
     }
 
     try {
-      const cognitoCreateUserService = new CognitoUserService(
-        new CognitoIdentityProviderClient()
-      );
       await cognitoCreateUserService.createUser({
         username: params.username,
         userPoolId: params.userPoolId,
         email: params.email,
-        phone_number: params.phone_number,
+        phoneNumber: params.phone_number,
       });
     } catch (err) {
+      logger.debug(err);
+
       return {
-        statusCode: 400,
-        body: (err as Error).message,
+        statusCode: 500,
+        body: JSON.stringify((err as Error).message),
         headers: {
           'Access-Control-Allow-Origin': '*',
         },
@@ -52,6 +71,8 @@ export const createUser = async (
       },
     };
   } catch (err) {
+    logger.debug(err);
+
     return {
       statusCode: 400,
       body: 'Invalid parameters',
