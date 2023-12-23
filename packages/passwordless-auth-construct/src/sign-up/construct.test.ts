@@ -19,11 +19,14 @@ void describe('Passwordless Sign Up', () => {
       },
     });
 
+    const verifyChallenge = authPasswordless.verifyAuthChallengeResponse;
+
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const verifyExecutionRole = verifyChallenge.role!;
+
     new AmplifyPasswordlessSignUp(stack, `signup-passwordless`, {
       userPool: auth.resources.userPool,
-      // eslint-disable-next-line  @typescript-eslint/no-non-null-assertion
-      verifyAuthChallengeResponseExecutionRole:
-        authPasswordless.verifyAuthChallengeResponse.role!,
+      verifyExecutionRole,
     });
 
     const template = Template.fromStack(stack);

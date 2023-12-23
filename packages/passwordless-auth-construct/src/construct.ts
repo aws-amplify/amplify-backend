@@ -169,9 +169,9 @@ export class AmplifyPasswordlessAuth extends Construct {
     if (props.passwordlessSignUp) {
       new AmplifyPasswordlessSignUp(scope, `${id}-signup-passwordless`, {
         userPool: auth.resources.userPool,
-        // According to cdk docs there always is a default role https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_lambda-readme.html#execution-role
-        // eslint-disable-next-line  @typescript-eslint/no-non-null-assertion
-        verifyAuthChallengeResponseExecutionRole:
+        verifyExecutionRole:
+          // According to cdk docs there always is a default role https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_lambda-readme.html#execution-role
+          // eslint-disable-next-line  @typescript-eslint/no-non-null-assertion
           this.verifyAuthChallengeResponse.role!,
       });
     }

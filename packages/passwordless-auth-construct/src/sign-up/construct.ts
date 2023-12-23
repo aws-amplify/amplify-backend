@@ -70,7 +70,7 @@ export class AmplifyPasswordlessSignUp extends Construct {
       })
     );
 
-    passwordlessSignUpProps.verifyAuthChallengeResponseExecutionRole.attachInlinePolicy(
+    passwordlessSignUpProps.verifyExecutionRole.attachInlinePolicy(
       new Policy(this, `UpdateUserPolicy${id}`, {
         statements: [
           new PolicyStatement({

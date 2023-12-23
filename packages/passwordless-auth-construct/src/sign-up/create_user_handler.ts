@@ -15,61 +15,15 @@ const cognitoCreateUserService = new CognitoUserService(
 export const createUser = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
+  let params: {
+    userPoolId?: string;
+    email?: string;
+    phoneNumber?: string;
+    username?: string;
+  } = {};
+
   try {
-    const params = event && event.body && JSON.parse(event.body);
-
-    if (
-      !params ||
-      (!params.email && !params.phone_number) ||
-      !params.userPoolId ||
-      !params.username
-    ) {
-      const missedParameters: string[] = [];
-
-      if (!params.userPoolId) {
-        missedParameters.push('userPoolId');
-      }
-
-      if (!params.username) {
-        missedParameters.push('username');
-      }
-
-      if (!params.email && !params.phone_number) {
-        missedParameters.push('email or phone_number');
-      }
-
-      return {
-        statusCode: 400,
-        body: `Missing parameters: ${missedParameters.join(',')}`,
-      };
-    }
-
-    try {
-      await cognitoCreateUserService.createUser({
-        username: params.username,
-        userPoolId: params.userPoolId,
-        email: params.email,
-        phoneNumber: params.phone_number,
-      });
-    } catch (err) {
-      logger.debug(err);
-
-      return {
-        statusCode: 500,
-        body: JSON.stringify((err as Error).message),
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-        },
-      };
-    }
-
-    return {
-      statusCode: 200,
-      body: JSON.stringify({}),
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-      },
-    };
+    params = event && event.body && JSON.parse(event.body);
   } catch (err) {
     logger.debug(err);
 
@@ -78,4 +32,59 @@ export const createUser = async (
       body: 'Invalid parameters',
     };
   }
+
+  if (
+    !params ||
+    (!params.email && !params.phoneNumber) ||
+    !params.userPoolId ||
+    !params.username
+  ) {
+    const missedParameters: string[] = [];
+
+    if (!params.userPoolId) {
+      missedParameters.push('userPoolId');
+    }
+
+    if (!params.username) {
+      missedParameters.push('username');
+    }
+
+    if (!params.email && !params.phoneNumber) {
+      missedParameters.push('email or phoneNumber');
+    }
+
+    return {
+      statusCode: 400,
+      body: JSON.stringify({
+        error: `Missing parameters: ${missedParameters.join(',')}`,
+      }),
+    };
+  }
+
+  try {
+    await cognitoCreateUserService.createUser({
+      username: params.username,
+      userPoolId: params.userPoolId,
+      email: params.email,
+      phoneNumber: params.phoneNumber,
+    });
+  } catch (err) {
+    logger.debug(err);
+
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: (err as Error).message }),
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+      },
+    };
+  }
+
+  return {
+    statusCode: 200,
+    body: JSON.stringify({}),
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+    },
+  };
 };

@@ -369,6 +369,6 @@ export type UserService = {
 };
 
 export type PasswordlessSignUpProps = {
-  verifyAuthChallengeResponseExecutionRole: IRole;
+  verifyExecutionRole: IRole;
   userPool: IUserPool;
 };
