@@ -1,4 +1,4 @@
-import { afterEach, describe, it } from 'node:test';
+import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import assert from 'assert';
 import fsp from 'fs/promises';
 import path from 'path';
@@ -8,6 +8,13 @@ import { AmplifyPrompter } from '@aws-amplify/cli-core';
 const originalEnv = process.env;
 
 void describe('getProjectRoot', () => {
+  const fsMkDirSyncMock = mock.method(fsp, 'mkdir', () => undefined);
+  mock.method(fsp, 'stat', () => Promise.reject(new Error()));
+
+  beforeEach(() => {
+    fsMkDirSyncMock.mock.resetCalls();
+  });
+
   afterEach(() => {
     process.env = originalEnv;
   });
@@ -18,10 +25,10 @@ void describe('getProjectRoot', () => {
     assert.equal(projectRoot, process.cwd());
   });
 
-  void it('returns the default project root directory if user do not pass anything', async (ctx) => {
+  void it('returns the default project root directory if user do not pass anything', async () => {
     process.env.npm_config_yes = 'false';
     const defaultProjectRoot = '.';
-    ctx.mock.method(AmplifyPrompter, 'input', () =>
+    mock.method(AmplifyPrompter, 'input', () =>
       Promise.resolve(defaultProjectRoot)
     );
     const projectRoot = await getProjectRoot();
@@ -29,21 +36,19 @@ void describe('getProjectRoot', () => {
     assert.equal(projectRoot, process.cwd());
   });
 
-  void it('returns the user provided project root directory', async (ctx) => {
+  void it('returns the user provided project root directory', async () => {
     process.env.npm_config_yes = 'false';
     const userInput = path.resolve('test', 'root');
-    ctx.mock.method(AmplifyPrompter, 'input', () => Promise.resolve(userInput));
+    mock.method(AmplifyPrompter, 'input', () => Promise.resolve(userInput));
     const projectRoot = await getProjectRoot();
 
     assert.equal(projectRoot, userInput);
   });
 
-  void it('creates the project root directory if the user provided absolute path does not exist', async (ctx) => {
+  void it('creates the project root directory if the user provided absolute path does not exist', async () => {
     process.env.npm_config_yes = 'false';
     const userInput = path.resolve(process.cwd(), 'test', 'root');
-    const fsMkDirSyncMock = ctx.mock.method(fsp, 'mkdir', () => undefined);
-    ctx.mock.method(fsp, 'stat', () => Promise.reject(new Error()));
-    ctx.mock.method(AmplifyPrompter, 'input', () => Promise.resolve(userInput));
+    mock.method(AmplifyPrompter, 'input', () => Promise.resolve(userInput));
 
     const projectRoot = await getProjectRoot();
 
@@ -52,12 +57,10 @@ void describe('getProjectRoot', () => {
     assert.equal(projectRoot, userInput);
   });
 
-  void it('creates the project root directory if the user provided relative path does not exist', async (ctx) => {
+  void it('creates the project root directory if the user provided relative path does not exist', async () => {
     process.env.npm_config_yes = 'false';
     const userInput = 'test';
-    const fsMkDirSyncMock = ctx.mock.method(fsp, 'mkdir', () => undefined);
-    ctx.mock.method(fsp, 'stat', () => Promise.reject(new Error()));
-    ctx.mock.method(AmplifyPrompter, 'input', () => Promise.resolve(userInput));
+    mock.method(AmplifyPrompter, 'input', () => Promise.resolve(userInput));
 
     const projectRoot = await getProjectRoot();
 
