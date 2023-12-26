@@ -46,6 +46,9 @@ export abstract class PackageManagerController {
     );
   };
 
+  /**
+   * getWelcomeMessage - returns a welcome message for the customer
+   */
   getWelcomeMessage = () =>
     `Run \`${this.binaryRunner} amplify help\` for a list of available commands. 
 Get started by running \`${this.binaryRunner} amplify sandbox\`.`;
@@ -84,7 +87,10 @@ Get started by running \`${this.binaryRunner} amplify sandbox\`.`;
     }
   };
 
-  initializeTsConfig = async (targetDir: string): Promise<void> => {
+  /**
+   * initializeTsConfig - initializes a tsconfig.json file in the project root
+   */
+  async initializeTsConfig(targetDir: string) {
     const tscArgs = [
       'tsc',
       '--init',
@@ -104,7 +110,7 @@ Get started by running \`${this.binaryRunner} amplify sandbox\`.`;
       tscArgs,
       this.execa
     );
-  };
+  }
 
   /**
    * Check if a package.json file exists in projectRoot

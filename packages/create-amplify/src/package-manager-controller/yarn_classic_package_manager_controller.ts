@@ -19,7 +19,7 @@ export class YarnClassicPackageManagerController extends PackageManagerControlle
 
   initializeTsConfig = async (targetDir: string) => {
     await this.addTypescript(targetDir);
-    await this.initializeTsConfig(targetDir);
+    await super.initializeTsConfig(targetDir);
   };
 
   /**
