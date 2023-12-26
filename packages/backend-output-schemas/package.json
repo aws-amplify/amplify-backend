@@ -19,7 +19,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@aws-amplify/plugin-types": "0.5.0"
+    "@aws-amplify/plugin-types": "0.6.0"
   },
   "peerDependencies": {
     "zod": "^3.21.4"

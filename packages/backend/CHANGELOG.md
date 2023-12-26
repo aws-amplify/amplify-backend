@@ -1,5 +1,28 @@
 # @aws-amplify/backend
 
+## 0.7.0
+
+### Minor Changes
+
+- 6714cd69c: Reinstate accessing all properties on backend construct objects
+- fd6516c8b: Rework Backend platform type to allow accessing CDK constructs using backend.<name>.<constructName> rather than backend.resources.<name>.resources.<constructName>
+
+### Patch Changes
+
+- a6b51fc73: Remove excessive logging from branch linker.
+- Updated dependencies [3b4fbbdc1]
+- Updated dependencies [6714cd69c]
+- Updated dependencies [2ab4b3149]
+- Updated dependencies [b4e0a00a9]
+- Updated dependencies [fd6516c8b]
+  - @aws-amplify/backend-storage@0.4.0
+  - @aws-amplify/backend-data@0.9.0
+  - @aws-amplify/plugin-types@0.6.0
+  - @aws-amplify/backend-function@0.4.0
+  - @aws-amplify/backend-auth@0.3.7
+  - @aws-amplify/backend-secret@0.3.3
+  - @aws-amplify/platform-core@0.3.3
+
 ## 0.6.0
 
 ### Minor Changes
