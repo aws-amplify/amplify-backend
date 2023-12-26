@@ -69,8 +69,6 @@ export type AmplifyUserErrorType = 'InvalidSchemaAuthError' | 'InvalidSchemaErro
 // @public
 export class BackendIdentifierConversions {
     static fromStackName(stackName?: string): BackendIdentifier | undefined;
-    static toParameterFullPath(backendId: BackendIdentifier | AppId, secretName: string): string;
-    static toParameterPrefix(backendId: BackendIdentifier | AppId): string;
     static toStackName(backendId: BackendIdentifier): string;
 }
 
@@ -142,6 +140,12 @@ export const packageJsonSchema: z.ZodObject<{
     version?: string | undefined;
     type?: "module" | "commonjs" | undefined;
 }>;
+
+// @public
+export class ParameterPathConversions {
+    static toParameterFullPath(backendId: BackendIdentifier | AppId, secretName: string): string;
+    static toParameterPrefix(backendId: BackendIdentifier | AppId): string;
+}
 
 // @public
 export const USAGE_DATA_TRACKING_ENABLED = "telemetry.enabled";
