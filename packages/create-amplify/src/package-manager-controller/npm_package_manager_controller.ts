@@ -1,3 +1,8 @@
+import { existsSync as _existsSync } from 'fs';
+import _fsp from 'fs/promises';
+import { execa as _execa } from 'execa';
+import * as _path from 'path';
+import { executeWithDebugLogger as _executeWithDebugLogger } from '../execute_with_logger.js';
 import { PackageManagerController } from './package_manager_controller.js';
 
 /**
@@ -7,11 +12,25 @@ export class NpmPackageManagerController extends PackageManagerController {
   /**
    * constructor
    */
-  constructor(readonly projectRoot: string) {
-    super(projectRoot);
-    this.executable = 'npm';
-    this.binaryRunner = 'npx';
-    this.installCommand = 'install';
-    this.initDefault = ['init', '--yes'];
+  constructor(
+    readonly projectRoot: string,
+    protected readonly fsp = _fsp,
+    protected readonly path = _path,
+    protected readonly execa = _execa,
+    protected readonly executeWithDebugLogger = _executeWithDebugLogger,
+    protected readonly existsSync = _existsSync
+  ) {
+    super(
+      projectRoot,
+      'npm',
+      'npx',
+      ['init', '--yes', '--debugger'],
+      'install',
+      fsp,
+      path,
+      execa,
+      executeWithDebugLogger,
+      existsSync
+    );
   }
 }

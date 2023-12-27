@@ -10,21 +10,21 @@ import { DependencyType } from './package_manager_controller_factory.js';
  * PackageManagerController is an abstraction around package manager commands that are needed to initialize a project and install dependencies
  */
 export abstract class PackageManagerController {
-  protected executable: string;
-  protected binaryRunner: string;
-  protected initDefault: string[];
-  protected installCommand: string;
-  protected readonly fsp = _fsp;
-  protected readonly path = _path;
-  protected readonly execa = _execa;
-  protected readonly executeWithDebugLogger = _executeWithDebugLogger;
-
-  private readonly existsSync = _existsSync;
-
   /**
    * constructor - sets the project root
    */
-  constructor(readonly projectRoot: string) {}
+  constructor(
+    readonly projectRoot: string,
+    protected executable: string,
+    protected binaryRunner: string,
+    protected initDefault: string[],
+    protected installCommand: string,
+    protected readonly fsp = _fsp,
+    protected readonly path = _path,
+    protected readonly execa = _execa,
+    protected readonly executeWithDebugLogger = _executeWithDebugLogger,
+    protected readonly existsSync = _existsSync
+  ) {}
 
   /**
    * installDependencies - installs dependencies in the project root
