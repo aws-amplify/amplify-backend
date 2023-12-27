@@ -1,5 +1,13 @@
 # @aws-amplify/sandbox
 
+## 0.3.9
+
+### Patch Changes
+
+- @aws-amplify/backend-deployer@0.4.2
+- @aws-amplify/backend-secret@0.3.3
+- @aws-amplify/platform-core@0.3.3
+
 ## 0.3.8
 
 ### Patch Changes

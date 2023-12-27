@@ -1,5 +1,18 @@
 # @aws-amplify/backend-storage
 
+## 0.4.0
+
+### Minor Changes
+
+- 6714cd69c: Reinstate accessing all properties on backend construct objects
+
+### Patch Changes
+
+- 3b4fbbdc1: Move storage construct to be internal to backend-storage and modify api types to not expose implementation details
+- Updated dependencies [6714cd69c]
+- Updated dependencies [fd6516c8b]
+  - @aws-amplify/plugin-types@0.6.0
+
 ## 0.3.2
 
 ### Patch Changes

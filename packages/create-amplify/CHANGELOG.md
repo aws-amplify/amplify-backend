@@ -1,5 +1,12 @@
 # create-amplify
 
+## 0.3.10
+
+### Patch Changes
+
+- 32c5156fe: generate new projects with tsconfig moduleResolution = bundler and remove '.js' extension from relative imports
+  - @aws-amplify/platform-core@0.3.3
+
 ## 0.3.9
 
 ### Patch Changes

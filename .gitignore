@@ -4,6 +4,9 @@ lib
 node_modules
 temp
 tsconfig.tsbuildinfo
+test-projects/*
+!test-projects/README.md
+!test-projects/.eslintrc.json
 
 .idea
 .eslintcache

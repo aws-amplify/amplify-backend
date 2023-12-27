@@ -1,5 +1,18 @@
 # @aws-amplify/backend-function
 
+## 0.4.0
+
+### Minor Changes
+
+- 2ab4b3149: Add runtime to defineFunction
+- b4e0a00a9: Add timeout, memory and environment variables to defineFunction
+
+### Patch Changes
+
+- Updated dependencies [6714cd69c]
+- Updated dependencies [fd6516c8b]
+  - @aws-amplify/plugin-types@0.6.0
+
 ## 0.3.0
 
 ### Minor Changes
