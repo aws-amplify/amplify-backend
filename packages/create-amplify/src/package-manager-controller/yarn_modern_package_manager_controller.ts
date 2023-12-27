@@ -1,4 +1,3 @@
-import fs, { existsSync as _existsSync } from 'fs';
 import _fsp from 'fs/promises';
 import { execa as _execa } from 'execa';
 import * as _path from 'path';
@@ -44,14 +43,16 @@ export class YarnModernPackageManagerController extends PackageManagerController
   /**
    * addLockFile - adds a yarn.lock file to the project root for yarn v2+
    */
-  private addLockFile = (targetDir: string) => {
-    fs.writeFile(this.path.resolve(targetDir, 'yarn.lock'), '', (err) => {
-      if (err) {
-        logger.error(`Error creating ${targetDir}/yarn.lock ${err.message}}`);
-      } else {
-        logger.info(`${targetDir}/yarn.lock created successfully.`);
+  private addLockFile = async (targetDir: string) => {
+    try {
+      await this.fsp.writeFile(this.path.resolve(targetDir, 'yarn.lock'), '');
+    } catch (error) {
+      if (typeof error === 'string') {
+        logger.error(`Error creating ${targetDir}/yarn.lock ${error}}`);
+      } else if (error instanceof Error) {
+        logger.error(`Error creating ${targetDir}/yarn.lock ${error.message}}`);
       }
-    });
+    }
   };
 
   /**
