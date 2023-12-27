@@ -1,31 +1,36 @@
 import fsp from 'fs/promises';
 import path from 'path';
-import { describe, it, mock } from 'node:test';
+import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'assert';
 import { execa } from 'execa';
 import { NpmPackageManagerController } from './npm_package_manager_controller.js';
 
 void describe('NpmPackageManagerController', () => {
-  void describe('installDependencies', () => {
-    void it('runs npm install with the correct arguments', async () => {
-      const existsSyncMock = mock.fn(() => true);
-      const fspMock = mock.fn(() => Promise.resolve()) as unknown as typeof fsp;
-      const pathMock = {
-        resolve: mock.fn(),
-      } as unknown as typeof path;
-      const execaMock = mock.fn(() =>
-        Promise.resolve()
-      ) as unknown as typeof execa;
-      const executeWithDebugLoggerMock = mock.fn(() => Promise.resolve());
-      const npmPackageManagerController = new NpmPackageManagerController(
-        '/testProjectRoot',
-        fspMock,
-        pathMock,
-        execaMock,
-        executeWithDebugLoggerMock,
-        existsSyncMock
-      );
+  const fspMock = mock.fn(() => Promise.resolve());
+  const pathMock = {
+    resolve: mock.fn(),
+  };
+  const execaMock = mock.fn(() => Promise.resolve());
+  const executeWithDebugLoggerMock = mock.fn(() => Promise.resolve());
 
+  beforeEach(() => {
+    fspMock.mock.resetCalls();
+    pathMock.resolve.mock.resetCalls();
+    execaMock.mock.resetCalls();
+    executeWithDebugLoggerMock.mock.resetCalls();
+  });
+
+  void describe('installDependencies', () => {
+    const existsSyncMock = mock.fn(() => true);
+    const npmPackageManagerController = new NpmPackageManagerController(
+      '/testProjectRoot',
+      fspMock as unknown as typeof fsp,
+      pathMock as unknown as typeof path,
+      execaMock as unknown as typeof execa,
+      executeWithDebugLoggerMock,
+      existsSyncMock
+    );
+    void it('runs npm install with the correct arguments', async () => {
       await npmPackageManagerController.installDependencies(
         ['testPackage1', 'testPackage2'],
         'dev'
@@ -40,24 +45,6 @@ void describe('NpmPackageManagerController', () => {
     });
 
     void it('runs npm install with the correct arguments for prod dependencies', async () => {
-      const existsSyncMock = mock.fn(() => true);
-      const fspMock = mock.fn(() => Promise.resolve()) as unknown as typeof fsp;
-      const pathMock = {
-        resolve: mock.fn(),
-      } as unknown as typeof path;
-      const execaMock = mock.fn(() =>
-        Promise.resolve()
-      ) as unknown as typeof execa;
-      const executeWithDebugLoggerMock = mock.fn(() => Promise.resolve());
-      const npmPackageManagerController = new NpmPackageManagerController(
-        '/testProjectRoot',
-        fspMock,
-        pathMock,
-        execaMock,
-        executeWithDebugLoggerMock,
-        existsSyncMock
-      );
-
       await npmPackageManagerController.installDependencies(
         ['testPackage1', 'testPackage2'],
         'prod'
@@ -75,19 +62,11 @@ void describe('NpmPackageManagerController', () => {
   void describe('getWelcomeMessage', () => {
     void it('returns the correct welcome message', () => {
       const existsSyncMock = mock.fn(() => true);
-      const fspMock = mock.fn(() => Promise.resolve()) as unknown as typeof fsp;
-      const pathMock = {
-        resolve: mock.fn(),
-      } as unknown as typeof path;
-      const execaMock = mock.fn(() =>
-        Promise.resolve()
-      ) as unknown as typeof execa;
-      const executeWithDebugLoggerMock = mock.fn(() => Promise.resolve());
       const npmPackageManagerController = new NpmPackageManagerController(
         '/testProjectRoot',
-        fspMock,
-        pathMock,
-        execaMock,
+        fspMock as unknown as typeof fsp,
+        pathMock as unknown as typeof path,
+        execaMock as unknown as typeof execa,
         executeWithDebugLoggerMock,
         existsSyncMock
       );
@@ -106,19 +85,11 @@ void describe('NpmPackageManagerController', () => {
         existsSyncMockValue = !existsSyncMockValue;
         return existsSyncMockValue;
       });
-      const fspMock = mock.fn(() => Promise.resolve()) as unknown as typeof fsp;
-      const pathMock = {
-        resolve: mock.fn(),
-      } as unknown as typeof path;
-      const execaMock = mock.fn(() =>
-        Promise.resolve()
-      ) as unknown as typeof execa;
-      const executeWithDebugLoggerMock = mock.fn(() => Promise.resolve());
       const npmPackageManagerController = new NpmPackageManagerController(
         '/testProjectRoot',
-        fspMock,
-        pathMock,
-        execaMock,
+        fspMock as unknown as typeof fsp,
+        pathMock as unknown as typeof path,
+        execaMock as unknown as typeof execa,
         executeWithDebugLoggerMock,
         existsSyncMock
       );
@@ -134,19 +105,11 @@ void describe('NpmPackageManagerController', () => {
         existsSyncMockValue = !existsSyncMockValue;
         return existsSyncMockValue;
       });
-      const fspMock = mock.fn(() => Promise.resolve()) as unknown as typeof fsp;
-      const pathMock = {
-        resolve: mock.fn(),
-      } as unknown as typeof path;
-      const execaMock = mock.fn(() =>
-        Promise.resolve()
-      ) as unknown as typeof execa;
-      const executeWithDebugLoggerMock = mock.fn(() => Promise.resolve());
       const npmPackageManagerController = new NpmPackageManagerController(
         '/testProjectRoot',
-        fspMock,
-        pathMock,
-        execaMock,
+        fspMock as unknown as typeof fsp,
+        pathMock as unknown as typeof path,
+        execaMock as unknown as typeof execa,
         executeWithDebugLoggerMock,
         existsSyncMock
       );
@@ -160,23 +123,14 @@ void describe('NpmPackageManagerController', () => {
   void describe('initializeTsConfig', () => {
     void it('initialize tsconfig.json', async () => {
       const existsSyncMock = mock.fn(() => true);
-      const fspMock = mock.fn(() => Promise.resolve()) as unknown as typeof fsp;
-      const pathMock = {
-        resolve: mock.fn(),
-      } as unknown as typeof path;
-      const execaMock = mock.fn(() =>
-        Promise.resolve()
-      ) as unknown as typeof execa;
-      const executeWithDebugLoggerMock = mock.fn(() => Promise.resolve());
       const npmPackageManagerController = new NpmPackageManagerController(
         '/testProjectRoot',
-        fspMock,
-        pathMock,
-        execaMock,
+        fspMock as unknown as typeof fsp,
+        pathMock as unknown as typeof path,
+        execaMock as unknown as typeof execa,
         executeWithDebugLoggerMock,
         existsSyncMock
       );
-
       await npmPackageManagerController.initializeTsConfig('./amplify');
       assert.equal(executeWithDebugLoggerMock.mock.callCount(), 1);
     });
