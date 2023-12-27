@@ -2,6 +2,7 @@ import fsp from 'fs/promises';
 import path from 'path';
 import { describe, it, mock } from 'node:test';
 import assert from 'assert';
+import { execa } from 'execa';
 import { NpmPackageManagerController } from './npm_package_manager_controller.js';
 
 void describe('NpmPackageManagerController', () => {
@@ -12,7 +13,9 @@ void describe('NpmPackageManagerController', () => {
       const pathMock = {
         resolve: mock.fn(),
       } as unknown as typeof path;
-      const execaMock = mock.fn(() => Promise.resolve());
+      const execaMock = mock.fn(() =>
+        Promise.resolve()
+      ) as unknown as typeof execa;
       const executeWithDebugLoggerMock = mock.fn(() => Promise.resolve());
       const npmPackageManagerController = new NpmPackageManagerController(
         '/testProjectRoot',
@@ -42,7 +45,9 @@ void describe('NpmPackageManagerController', () => {
       const pathMock = {
         resolve: mock.fn(),
       } as unknown as typeof path;
-      const execaMock = mock.fn(() => Promise.resolve());
+      const execaMock = mock.fn(() =>
+        Promise.resolve()
+      ) as unknown as typeof execa;
       const executeWithDebugLoggerMock = mock.fn(() => Promise.resolve());
       const npmPackageManagerController = new NpmPackageManagerController(
         '/testProjectRoot',
@@ -74,7 +79,9 @@ void describe('NpmPackageManagerController', () => {
       const pathMock = {
         resolve: mock.fn(),
       } as unknown as typeof path;
-      const execaMock = mock.fn(() => Promise.resolve());
+      const execaMock = mock.fn(() =>
+        Promise.resolve()
+      ) as unknown as typeof execa;
       const executeWithDebugLoggerMock = mock.fn(() => Promise.resolve());
       const npmPackageManagerController = new NpmPackageManagerController(
         '/testProjectRoot',
@@ -103,7 +110,9 @@ void describe('NpmPackageManagerController', () => {
       const pathMock = {
         resolve: mock.fn(),
       } as unknown as typeof path;
-      const execaMock = mock.fn(() => Promise.resolve());
+      const execaMock = mock.fn(() =>
+        Promise.resolve()
+      ) as unknown as typeof execa;
       const executeWithDebugLoggerMock = mock.fn(() => Promise.resolve());
       const npmPackageManagerController = new NpmPackageManagerController(
         '/testProjectRoot',
@@ -129,7 +138,9 @@ void describe('NpmPackageManagerController', () => {
       const pathMock = {
         resolve: mock.fn(),
       } as unknown as typeof path;
-      const execaMock = mock.fn(() => Promise.resolve());
+      const execaMock = mock.fn(() =>
+        Promise.resolve()
+      ) as unknown as typeof execa;
       const executeWithDebugLoggerMock = mock.fn(() => Promise.resolve());
       const npmPackageManagerController = new NpmPackageManagerController(
         '/testProjectRoot',
@@ -153,7 +164,9 @@ void describe('NpmPackageManagerController', () => {
       const pathMock = {
         resolve: mock.fn(),
       } as unknown as typeof path;
-      const execaMock = mock.fn(() => Promise.resolve());
+      const execaMock = mock.fn(() =>
+        Promise.resolve()
+      ) as unknown as typeof execa;
       const executeWithDebugLoggerMock = mock.fn(() => Promise.resolve());
       const npmPackageManagerController = new NpmPackageManagerController(
         '/testProjectRoot',
