@@ -11,20 +11,23 @@ void describe('AmplifyProjectCreator', () => {
       startAnimatingEllipsis: mock.fn(),
       stopAnimatingEllipsis: mock.fn(),
     };
-    const packageManagerControllerMock = { installDependencies: mock.fn() };
+    const packageManagerControllerMock = {
+      installDependencies: mock.fn(),
+      initializeProject: mock.fn(),
+      getWelcomeMessage: mock.fn(() => '`npx amplify help`'),
+      initializeTsConfig: mock.fn(),
+      projectRoot: '/testProjectRoot',
+    };
     const projectRootValidatorMock = { validate: mock.fn() };
     const initialProjectFileGeneratorMock = {
       generateInitialProjectFiles: mock.fn(),
     };
-    const npmInitializedEnsurerMock = { ensureInitialized: mock.fn() };
     const gitIgnoreInitializerMock = { ensureInitialized: mock.fn() };
     const amplifyProjectCreator = new AmplifyProjectCreator(
       packageManagerControllerMock as never,
       projectRootValidatorMock as never,
-      initialProjectFileGeneratorMock as never,
-      npmInitializedEnsurerMock as never,
       gitIgnoreInitializerMock as never,
-      process.cwd()
+      initialProjectFileGeneratorMock as never
     );
     mock.method(logger, 'log', logMock.log);
     await amplifyProjectCreator.create();
@@ -38,12 +41,8 @@ void describe('AmplifyProjectCreator', () => {
       1
     );
     assert.equal(
-      npmInitializedEnsurerMock.ensureInitialized.mock.callCount(),
-      1
-    );
-    assert.equal(
       logMock.log.mock.calls[4].arguments[0],
-      'Welcome to AWS Amplify! \nRun `npx amplify help` for a list of available commands. \nGet started by running `npx amplify sandbox`.'
+      "Welcome to AWS Amplify!\nNavigate to your project directory using\n'cd ./testProjectRoot'.\nThen get started with the following commands:\n\n`npx amplify help`\n"
     );
     assert.equal(
       logMock.log.mock.calls[5].arguments[0],
@@ -58,27 +57,30 @@ void describe('AmplifyProjectCreator', () => {
       startAnimatingEllipsis: mock.fn(),
       stopAnimatingEllipsis: mock.fn(),
     };
-    const packageManagerControllerMock = { installDependencies: mock.fn() };
+    const packageManagerControllerMock = {
+      installDependencies: mock.fn(),
+      initializeProject: mock.fn(),
+      getWelcomeMessage: mock.fn(() => '`npx amplify help`'),
+      initializeTsConfig: mock.fn(),
+      projectRoot: '/testProjectRoot',
+    };
     const projectRootValidatorMock = { validate: mock.fn() };
+    const gitIgnoreInitializerMock = { ensureInitialized: mock.fn() };
     const initialProjectFileGeneratorMock = {
       generateInitialProjectFiles: mock.fn(),
     };
-    const npmInitializedEnsurerMock = { ensureInitialized: mock.fn() };
-    const gitIgnoreInitializerMock = { ensureInitialized: mock.fn() };
     const amplifyProjectCreator = new AmplifyProjectCreator(
       packageManagerControllerMock as never,
       projectRootValidatorMock as never,
-      initialProjectFileGeneratorMock as never,
-      npmInitializedEnsurerMock as never,
       gitIgnoreInitializerMock as never,
-      '/project/root'
+      initialProjectFileGeneratorMock as never
     );
     mock.method(logger, 'log', logMock.log);
     await amplifyProjectCreator.create();
 
     assert.equal(
       logMock.log.mock.calls[4].arguments[0],
-      'Welcome to AWS Amplify! \nRun `npx amplify help` for a list of available commands. \nGet started by running `cd ./project/root; npx amplify sandbox`.'
+      "Welcome to AWS Amplify!\nNavigate to your project directory using\n'cd ./testProjectRoot'.\nThen get started with the following commands:\n\n`npx amplify help`\n"
     );
     assert.equal(
       logMock.log.mock.calls[5].arguments[0],

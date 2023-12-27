@@ -48,6 +48,7 @@ void describe('InitialProjectFileGenerator', () => {
       executeWithDebugLoggerMock as never
     );
     await initialProjectFileGenerator.generateInitialProjectFiles();
+
     assert.equal(executeWithDebugLoggerMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       executeWithDebugLoggerMock.mock.calls[0].arguments.slice(0, 3),

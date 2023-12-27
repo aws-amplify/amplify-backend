@@ -7,23 +7,32 @@
   If customers have a cached version of the create-amplify package, they might execute that cached version even after we publish features and fixes to the package on npm.
  */
 
-import { NpmPackageManagerController } from './npm_package_manager_controller.js';
 import { ProjectRootValidator } from './project_root_validator.js';
 import { AmplifyProjectCreator } from './amplify_project_creator.js';
-import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
-import { NpmProjectInitializer } from './npm_project_initializer.js';
+import { PackageManagerControllerFactory } from './package-manager-controller/package_manager_controller_factory.js';
 import { getProjectRoot } from './get_project_root.js';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
+import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
 
 const projectRoot = await getProjectRoot();
 
+if (process.env.npm_config_user_agent === undefined) {
+  throw new Error('npm_config_user_agent is undefined');
+}
+
+const packageManagerControllerFactory = new PackageManagerControllerFactory(
+  projectRoot,
+  process.env.npm_config_user_agent
+);
+
+const packageManagerController =
+  packageManagerControllerFactory.getPackageManagerController();
+
 const amplifyProjectCreator = new AmplifyProjectCreator(
-  new NpmPackageManagerController(projectRoot),
+  packageManagerController,
   new ProjectRootValidator(projectRoot),
-  new InitialProjectFileGenerator(projectRoot),
-  new NpmProjectInitializer(projectRoot),
   new GitIgnoreInitializer(projectRoot),
-  projectRoot
+  new InitialProjectFileGenerator(projectRoot, packageManagerController)
 );
 
 try {

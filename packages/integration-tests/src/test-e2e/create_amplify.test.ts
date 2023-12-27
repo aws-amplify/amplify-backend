@@ -1,5 +1,5 @@
 import { execa } from 'execa';
-import * as fs from 'fs/promises';
+import * as fsp from 'fs/promises';
 import { existsSync } from 'fs';
 import * as path from 'path';
 import * as os from 'os';
@@ -29,7 +29,7 @@ const packageManagerSetup = async (
     const npxCacheLocation = path.join(stdout.toString().trim(), '_npx');
 
     if (existsSync(npxCacheLocation)) {
-      await fs.rm(npxCacheLocation, { recursive: true });
+      await fsp.rm(npxCacheLocation, { recursive: true });
     }
   } else if (packageManagerExecutable.startsWith('yarn')) {
     if (packageManagerExecutable === 'yarn-modern') {
@@ -64,8 +64,6 @@ const packageManagerSetup = async (
       'http://localhost:4873',
     ]);
     await execa(packageManagerExecutable, ['config', 'get', 'registry']);
-
-    await execa(packageManagerExecutable, ['store', 'clear']);
   }
 };
 
@@ -128,7 +126,7 @@ void describe('create-amplify script', { concurrency: concurrency }, () => {
     void describe('installs expected packages and scaffolds expected files', () => {
       let tempDir: string;
       beforeEach(async () => {
-        tempDir = await fs.mkdtemp(
+        tempDir = await fsp.mkdtemp(
           path.join(os.tmpdir(), 'test-create-amplify')
         );
 
@@ -141,12 +139,12 @@ void describe('create-amplify script', { concurrency: concurrency }, () => {
       });
 
       afterEach(async () => {
-        await fs.rm(tempDir, { recursive: true });
+        await fsp.rm(tempDir, { recursive: true });
       });
 
       void it(`starting from ${initialState} project`, async () => {
         if (initialState != 'empty') {
-          await fs.writeFile(
+          await fsp.writeFile(
             path.join(tempDir, 'package.json'),
             JSON.stringify(
               {
@@ -160,13 +158,13 @@ void describe('create-amplify script', { concurrency: concurrency }, () => {
           );
         }
 
-        await execa('npm', ['create', 'amplify', '--yes'], {
+        await execa(packageManagerExecutable, ['create', 'amplify', '--yes'], {
           cwd: tempDir,
           stdio: 'inherit',
         });
         const packageJsonPath = path.resolve(tempDir, 'package.json');
         const packageJsonObject = JSON.parse(
-          await fs.readFile(packageJsonPath, 'utf-8')
+          await fsp.readFile(packageJsonPath, 'utf-8')
         );
 
         assert.deepStrictEqual(
@@ -180,7 +178,7 @@ void describe('create-amplify script', { concurrency: concurrency }, () => {
         );
 
         const gitIgnorePath = path.resolve(tempDir, '.gitignore');
-        const gitIgnoreContent = (await fs.readFile(gitIgnorePath, 'utf-8'))
+        const gitIgnoreContent = (await fsp.readFile(gitIgnorePath, 'utf-8'))
           .split(os.EOL)
           .filter((s) => s.trim());
         const expectedGitIgnoreContent = [
@@ -199,7 +197,7 @@ void describe('create-amplify script', { concurrency: concurrency }, () => {
         // Read tsconfig.json content, remove all comments, and make assertions
         const tsConfigPath = path.resolve(amplifyPathPrefix, 'tsconfig.json');
         const tsConfigContent = (
-          await fs.readFile(tsConfigPath, 'utf-8')
+          await fsp.readFile(tsConfigPath, 'utf-8')
         ).replace(/\/\*[\s\S]*?\*\/|([^:]|^)\/\/.*$/gm, '');
         const tsConfigObject = JSON.parse(tsConfigContent);
 
@@ -238,7 +236,7 @@ void describe('create-amplify script', { concurrency: concurrency }, () => {
             stdio: 'inherit',
           });
 
-          await fs.appendFile(
+          await fsp.appendFile(
             path.join(tempDir, '.yarnrc.yml'),
             `pnpIgnorePatterns:\n  - ./nm-packages/**`
           );
@@ -330,7 +328,9 @@ void describe('create-amplify script', { concurrency: concurrency }, () => {
   void describe('fails fast', () => {
     let tempDir: string;
     beforeEach(async () => {
-      tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'test-create-amplify'));
+      tempDir = await fsp.mkdtemp(
+        path.join(os.tmpdir(), 'test-create-amplify')
+      );
 
       if (PACKAGE_MANAGER_EXECUTABLE === 'yarn-modern') {
         await packageManagerSetup(
@@ -341,12 +341,12 @@ void describe('create-amplify script', { concurrency: concurrency }, () => {
     });
 
     afterEach(async () => {
-      await fs.rm(tempDir, { recursive: true });
+      await fsp.rm(tempDir, { recursive: true });
     });
 
     void it('if amplify path already exists', async () => {
       const amplifyDirPath = path.join(tempDir, 'amplify');
-      await fs.mkdir(amplifyDirPath, { recursive: true });
+      await fsp.mkdir(amplifyDirPath, { recursive: true });
 
       const result = await execa(
         packageManagerExecutable,

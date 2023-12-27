@@ -1,9 +1,8 @@
-import { PackageManagerController } from './package_manager_controller.js';
+import { PackageManagerController } from './package-manager-controller/package_manager_controller.js';
 import { ProjectRootValidator } from './project_root_validator.js';
-import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
-import { NpmProjectInitializer } from './npm_project_initializer.js';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
 import { logger } from './logger.js';
+import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
 
 const LEARN_MORE_USAGE_DATA_TRACKING_LINK = `https://docs.amplify.aws/gen2/reference/telemetry`;
 
@@ -26,10 +25,8 @@ export class AmplifyProjectCreator {
   constructor(
     private readonly packageManagerController: PackageManagerController,
     private readonly projectRootValidator: ProjectRootValidator,
-    private readonly initialProjectFileGenerator: InitialProjectFileGenerator,
-    private readonly npmInitializedEnsurer: NpmProjectInitializer,
     private readonly gitIgnoreInitializer: GitIgnoreInitializer,
-    private readonly projectRoot: string
+    private readonly initialProjectFileGenerator: InitialProjectFileGenerator
   ) {}
 
   /**
@@ -39,7 +36,7 @@ export class AmplifyProjectCreator {
     logger.debug(`Validating current state of target directory...`);
     await this.projectRootValidator.validate();
 
-    await this.npmInitializedEnsurer.ensureInitialized();
+    await this.packageManagerController.initializeProject();
 
     await logger.indicateProgress(
       `Installing required dependencies`,
@@ -64,16 +61,18 @@ export class AmplifyProjectCreator {
 
     logger.log('Successfully created a new project!');
 
-    const cdCommand =
-      process.cwd() === this.projectRoot
+    const cdPreamble =
+      process.cwd() === this.packageManagerController.projectRoot
         ? ''
-        : `cd .${this.projectRoot.replace(process.cwd(), '')}; `;
+        : `Navigate to your project directory using
+'cd .${this.packageManagerController.projectRoot.replace(process.cwd(), '')}'.
+Then get started with the following commands:
+`;
 
-    logger.log(
-      `Welcome to AWS Amplify! 
-Run \`npx amplify help\` for a list of available commands. 
-Get started by running \`${cdCommand}npx amplify sandbox\`.`
-    );
+    logger.log(`Welcome to AWS Amplify!
+${cdPreamble}
+${this.packageManagerController.getWelcomeMessage()}
+`);
 
     logger.log(
       `Amplify (Gen 2) collects anonymous telemetry data about general usage of the CLI.
