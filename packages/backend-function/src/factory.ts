@@ -230,8 +230,12 @@ class AmplifyFunction
       SECRET_PATH_ENV_VARS: process.env.SECRET_PATH_ENV_VARS,
     };
 
+    const ext = import.meta.url.split('.').pop();
     const bannerCodeFile = fileURLToPath(
-      new URL('./resolve_secret_banner.ts', import.meta.url)
+      new URL(
+        `./resolve_secret_banner.${ext === 'ts' ? 'ts' : 'js'}`,
+        import.meta.url
+      )
     );
     const bannerCode = fs
       .readFileSync(bannerCodeFile, 'utf-8')
