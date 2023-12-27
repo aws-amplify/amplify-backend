@@ -1,5 +1,14 @@
 # @aws-amplify/auth-construct-alpha
 
+## 0.4.4
+
+### Patch Changes
+
+- fed9fddbb: Fixes bug with ARN construction when configuring SAML/OIDC
+- Updated dependencies [6714cd69c]
+- Updated dependencies [fd6516c8b]
+  - @aws-amplify/plugin-types@0.6.0
+
 ## 0.4.3
 
 ### Patch Changes

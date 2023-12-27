@@ -1,5 +1,18 @@
 # @aws-amplify/backend-data
 
+## 0.9.0
+
+### Minor Changes
+
+- 6714cd69c: Reinstate accessing all properties on backend construct objects
+- fd6516c8b: Rework Backend platform type to allow accessing CDK constructs using backend.<name>.<constructName> rather than backend.resources.<name>.resources.<constructName>
+
+### Patch Changes
+
+- Updated dependencies [6714cd69c]
+- Updated dependencies [fd6516c8b]
+  - @aws-amplify/plugin-types@0.6.0
+
 ## 0.8.3
 
 ### Patch Changes
