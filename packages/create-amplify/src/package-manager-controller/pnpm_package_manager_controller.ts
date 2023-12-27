@@ -24,7 +24,7 @@ export class PnpmPackageManagerController extends PackageManagerController {
       projectRoot,
       'pnpm',
       'pnpm',
-      ['init', '--yes', '--debugger'],
+      ['init'],
       'install',
       fsp,
       path,

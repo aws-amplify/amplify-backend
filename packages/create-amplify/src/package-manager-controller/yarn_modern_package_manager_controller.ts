@@ -25,7 +25,7 @@ export class YarnModernPackageManagerController extends PackageManagerController
       projectRoot,
       'yarn',
       'yarn',
-      ['init', '--yes', '--verbose'],
+      ['init', '--yes'],
       'add',
       fsp,
       path,

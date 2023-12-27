@@ -24,7 +24,7 @@ export class NpmPackageManagerController extends PackageManagerController {
       projectRoot,
       'npm',
       'npx',
-      ['init', '--yes', '--debugger'],
+      ['init', '--yes'],
       'install',
       fsp,
       path,
