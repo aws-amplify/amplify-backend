@@ -16,6 +16,7 @@ import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import fs from 'fs';
 import os from 'os';
+import { fileURLToPath } from 'url';
 
 /**
  * Entry point for defining a function in the Amplify ecosystem
@@ -229,9 +230,8 @@ class AmplifyFunction
       SECRET_PATH_ENV_VARS: process.env.SECRET_PATH_ENV_VARS,
     };
 
-    const bannerCodeFile = new URL(
-      './resolve_secret_banner.js',
-      import.meta.url
+    const bannerCodeFile = fileURLToPath(
+      new URL('./resolve_secret_banner.ts', import.meta.url)
     );
     const bannerCode = fs
       .readFileSync(bannerCodeFile, 'utf-8')
@@ -256,13 +256,15 @@ class AmplifyFunction
         }:parameter${path}`
     );
 
-    functionLambda.grantPrincipal.addToPrincipalPolicy(
-      new iam.PolicyStatement({
-        effect: iam.Effect.ALLOW,
-        actions: ['ssm:GetParameters'],
-        resources: resourceArns,
-      })
-    );
+    if (resourceArns.length > 0) {
+      functionLambda.grantPrincipal.addToPrincipalPolicy(
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          actions: ['ssm:GetParameters'],
+          resources: resourceArns,
+        })
+      );
+    }
 
     this.resources = {
       lambda: functionLambda,
