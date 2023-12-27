@@ -14,6 +14,8 @@ import { getCallerDirectory } from './get_caller_directory.js';
 import { Duration, Stack } from 'aws-cdk-lib';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import fs from 'fs';
+import os from 'os';
 
 /**
  * Entry point for defining a function in the Amplify ecosystem
@@ -222,38 +224,43 @@ class AmplifyFunction
   readonly resources: FunctionResources;
   constructor(scope: Construct, id: string, props: HydratedFunctionProps) {
     super(scope, id);
+    const envVars = {
+      ...props.environment,
+      SECRET_PATH_ENV_VARS: process.env.SECRET_PATH_ENV_VARS,
+    };
+
+    const bannerCodeFile = new URL(
+      './resolve_secret_banner.js',
+      import.meta.url
+    );
+    const bannerCode = fs
+      .readFileSync(bannerCodeFile, 'utf-8')
+      .replaceAll(os.EOL, '');
+
     const functionLambda = new NodejsFunction(scope, `${id}-lambda`, {
       entry: props.entry,
-      environment: props.environment as { [key: string]: string }, // for some reason TS can't figure out that this is the same as Record<string, string>
+      environment: envVars as { [key: string]: string }, // for some reason TS can't figure out that this is the same as Record<string, string>
       timeout: Duration.seconds(props.timeoutSeconds),
       memorySize: props.memoryMB,
       runtime: nodeVersionMap[props.runtime],
       bundling: {
-        // Added '\' to the end of each line for readability here
-        // eslint-disable-next-line spellcheck/spell-checker
-        banner: `import { SSM } from '@aws-sdk/client-ssm'; const client = new SSM();\
-        const envArray = ${JSON.stringify(Object.keys(props.environment))};\
-        const response = await client.getParameters({ Names: envArray.map(a => process.env[a]), WithDecryption: true });\
-        for (const parameter of response.Parameters) {\
-          for (const envName of envArray) {\
-            if (parameter.Name === process.env[envName]) {\
-              process.env[envName.replace('_PATH', '')] = parameter.Value;\
-            }\
-          }\
-        }`,
+        banner: bannerCode,
         format: OutputFormat.ESM,
       },
     });
+
+    const resourceArns = secretPaths.map(
+      (path) =>
+        `arn:aws:ssm:${Stack.of(scope).region}:${
+          Stack.of(scope).account
+        }:parameter${path}`
+    );
 
     functionLambda.grantPrincipal.addToPrincipalPolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
         actions: ['ssm:GetParameters'],
-        resources: [
-          `arn:aws:ssm:${Stack.of(scope).region}:${
-            Stack.of(scope).account
-          }:parameter/*`,
-        ],
+        resources: resourceArns,
       })
     );
 
@@ -279,22 +286,28 @@ const nodeVersionMap: Record<NodeVersion, Runtime> = {
 
 const secretPathSuffix = '_PATH';
 const secretPlaceholderText = '<value will be resolved during runtime>';
+const secretPaths: string[] = [];
 
 const translateEnvironmentProp = (
   functionEnvironmentProp: HydratedFunctionProps['environment'],
   backendSecretResolver: BackendSecretResolver
 ): Record<string, string> => {
   const result: Record<string, string> = {};
+  const secretPathEnvVars = [];
 
   for (const [key, value] of Object.entries(functionEnvironmentProp)) {
     if (typeof value !== 'string') {
-      result[key + secretPathSuffix] =
-        backendSecretResolver.resolveToPath(value);
+      const secretPath = backendSecretResolver.resolveToPath(value);
+      result[key + secretPathSuffix] = secretPath;
       result[key] = secretPlaceholderText;
+      secretPathEnvVars.push(key + secretPathSuffix);
+      secretPaths.push(secretPath);
     } else {
       result[key] = value;
     }
   }
+
+  process.env.SECRET_PATH_ENV_VARS = secretPathEnvVars.join(',');
 
   return result;
 };

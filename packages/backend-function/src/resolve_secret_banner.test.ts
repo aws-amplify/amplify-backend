@@ -1,0 +1,42 @@
+import { SSM } from '@aws-sdk/client-ssm';
+import { after, describe, it, mock } from 'node:test';
+import { resolveSecretBanner } from './resolve_secret_banner.js';
+import assert from 'node:assert';
+
+void describe('resolveSecretBanner', () => {
+  const originalEnv = process.env;
+  const client = new SSM();
+
+  // reset process.env after test suite to ensure there are no side effects
+  after(() => {
+    process.env = originalEnv;
+  });
+
+  void it('noop if there are no secret path env vars', async () => {
+    delete process.env.SECRET_PATH_ENV_VARS;
+    const mockGetParameters = mock.method(client, 'getParameters', mock.fn());
+    await resolveSecretBanner(client);
+    assert.equal(mockGetParameters.mock.callCount(), 0);
+  });
+
+  void it('resolves secret and sets secret value to secret env var', async () => {
+    const envName = 'TEST_SECRET_PATH';
+    const secretPath = '/test/path';
+    const secretValue = 'secretValue';
+    process.env[envName] = secretPath;
+    process.env.SECRET_PATH_ENV_VARS = envName;
+    const mockGetParameters = mock.method(client, 'getParameters', () =>
+      Promise.resolve({
+        Parameters: [
+          {
+            Name: secretPath,
+            Value: secretValue,
+          },
+        ],
+      })
+    );
+    await resolveSecretBanner(client);
+    assert.equal(mockGetParameters.mock.callCount(), 1);
+    assert.equal(process.env[envName.replace('_PATH', '')], secretValue);
+  });
+});
