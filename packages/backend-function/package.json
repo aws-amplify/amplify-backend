@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/backend-function",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -19,12 +19,12 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@aws-amplify/backend-output-storage": "0.2.6",
-    "@aws-amplify/plugin-types": "^0.5.0",
+    "@aws-amplify/plugin-types": "^0.6.0",
     "execa": "^7.1.1"
   },
   "devDependencies": {
     "@aws-amplify/backend-platform-test-stubs": "^0.3.1",
-    "@aws-amplify/platform-core": "^0.3.2",
+    "@aws-amplify/platform-core": "^0.3.3",
     "uuid": "^9.0.1"
   },
   "peerDependencies": {
