@@ -229,21 +229,21 @@ class AmplifyFunction
       ...props.environment,
       SECRET_PATH_ENV_VARS: process.env.SECRET_PATH_ENV_VARS,
     };
-    let bannerCode: string | undefined;
+    let bannerCode;
     const hasSecrets = secretPaths.length > 0;
 
-    if (hasSecrets) {
-      const ext = import.meta.url.split('.').pop();
-      const bannerCodeFile = fileURLToPath(
-        new URL(
-          `./resolve_secret_banner.${ext === 'ts' ? 'ts' : 'js'}`,
-          import.meta.url
-        )
-      );
-      bannerCode = fs
-        .readFileSync(bannerCodeFile, 'utf-8')
-        .replaceAll(os.EOL, '');
-    }
+    // if (hasSecrets) {
+    //   const ext = import.meta.url.split('.').pop();
+    //   const bannerCodeFile = fileURLToPath(
+    //     new URL(
+    //       `./resolve_secret_banner.${ext === 'ts' ? 'ts' : 'js'}`,
+    //       import.meta.url
+    //     )
+    //   );
+    //   bannerCode = fs
+    //     .readFileSync(bannerCodeFile, 'utf-8')
+    //     .replaceAll(os.EOL, '');
+    // }
 
     const functionLambda = new NodejsFunction(scope, `${id}-lambda`, {
       entry: props.entry,
