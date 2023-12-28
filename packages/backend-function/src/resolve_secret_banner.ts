@@ -13,15 +13,15 @@ export const resolveSecretBanner = async (client: SSM = ssmClient) => {
       WithDecryption: true,
     });
 
-    if (response.Parameters && response.Parameters?.length > 0) {
-      for (const parameter of response.Parameters) {
-        for (const envName of envArray) {
-          if (parameter.Name === process.env[envName]) {
-            process.env[envName.replace('_PATH', '')] = parameter.Value;
-          }
-        }
-      }
-    }
+    // if (response.Parameters && response.Parameters?.length > 0) {
+    //   for (const parameter of response.Parameters) {
+    //     for (const envName of envArray) {
+    //       if (parameter.Name === process.env[envName]) {
+    //         process.env[envName.replace('_PATH', '')] = parameter.Value;
+    //       }
+    //     }
+    //   }
+    // }
   }
 };
 
