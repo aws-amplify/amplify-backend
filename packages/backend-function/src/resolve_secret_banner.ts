@@ -8,11 +8,10 @@ const ssmClient = new SSM();
 export const resolveSecretBanner = async (client: SSM = ssmClient) => {
   const envArray = process.env.SECRET_PATH_ENV_VARS?.split(',');
   if (envArray) {
-    const response = await client.getParameters({
-      Names: envArray.map((a) => process.env[a] ?? ''),
-      WithDecryption: true,
-    });
-
+    // const response = await client.getParameters({
+    //   Names: envArray.map((a) => process.env[a] ?? ''),
+    //   WithDecryption: true,
+    // });
     // if (response.Parameters && response.Parameters?.length > 0) {
     //   for (const parameter of response.Parameters) {
     //     for (const envName of envArray) {
