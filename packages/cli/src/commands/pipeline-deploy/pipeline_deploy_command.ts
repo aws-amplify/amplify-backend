@@ -19,7 +19,8 @@ type PipelineDeployCommandOptionsCamelCase = {
  * An entry point for deploy command.
  */
 export class PipelineDeployCommand
-  implements CommandModule<object, PipelineDeployCommandOptions> {
+  implements CommandModule<object, PipelineDeployCommandOptions>
+{
   /**
    * @inheritDoc
    */
@@ -61,7 +62,10 @@ export class PipelineDeployCommand
     await this.backendDeployer.deploy(backendId, {
       validateAppSources: true,
     });
-    await this.clientConfigGenerator.generateClientConfigToFile(backendId, args['out-dir']);
+    await this.clientConfigGenerator.generateClientConfigToFile(
+      backendId,
+      args['out-dir']
+    );
   };
 
   builder = (yargs: Argv): Argv<PipelineDeployCommandOptions> => {
@@ -80,7 +84,8 @@ export class PipelineDeployCommand
         array: false,
       })
       .option('out-dir', {
-        describe: 'A path to directory where config is written. If not provided defaults to current process working directory.',
+        describe:
+          'A path to directory where config is written. If not provided defaults to current process working directory.',
         type: 'string',
         array: false,
       })
