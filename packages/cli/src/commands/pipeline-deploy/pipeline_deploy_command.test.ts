@@ -85,7 +85,7 @@ void describe('deploy command', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
   });
 
-  void it('allows --out-dir argument', async () => {
+  void it('allows --config-out-dir argument', async () => {
     const mockDeploy = mock.method(
       BackendDeployerFactory.getInstance(),
       'deploy',
