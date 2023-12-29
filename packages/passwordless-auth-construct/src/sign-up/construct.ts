@@ -57,6 +57,7 @@ export class AmplifyPasswordlessSignUp extends Construct {
     // TODO: expose this on the external stack
     new CfnOutput(this, 'apiUrl', { value: api.url });
 
+    // According to cdk docs there always is a default role https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_lambda-readme.html#execution-role
     // eslint-disable-next-line  @typescript-eslint/no-non-null-assertion
     createUserFunction.role!.attachInlinePolicy(
       new Policy(this, `CreateUserPolicy${id}`, {
