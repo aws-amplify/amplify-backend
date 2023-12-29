@@ -236,8 +236,17 @@ export class CustomAuthService {
         JSON.parse(
           event.request.userAttributes[PASSWORDLESS_SIGN_UP_ATTR_NAME]
         );
-    } catch (_err) {
+    } catch (err) {
       // best effort to parse passwordless_sign_up attribute
+      if (err instanceof SyntaxError) {
+        // user attribute has incorrect value
+        logger.error(
+          `User attribute ${PASSWORDLESS_SIGN_UP_ATTR_NAME} has invalid value`
+        );
+      } else {
+        // this should not happen
+        throw err;
+      }
     }
 
     if (!passwordlessConfiguration?.allowSignInAttempt || !answerCorrect) {
@@ -350,15 +359,25 @@ export class CustomAuthService {
 
     let isFirstSignInAttempt = false;
     try {
-      const passwordlessConfiguration = JSON.parse(passwordlessSignUp);
+      const passwordlessConfiguration =
+        passwordlessSignUp && JSON.parse(passwordlessSignUp);
       if (
-        passwordlessConfiguration.allowSignInAttempt &&
-        passwordlessConfiguration.deliveryMedium === deliveryMedium
+        passwordlessConfiguration?.allowSignInAttempt &&
+        passwordlessConfiguration?.deliveryMedium === deliveryMedium
       ) {
         isFirstSignInAttempt = true;
       }
-    } catch (_err) {
+    } catch (err) {
       // best effort to parse passwordless_sign_up attribute if the user was created via passwordless sign up
+      if (err instanceof SyntaxError) {
+        // user attribute has incorrect value
+        logger.error(
+          `User attribute ${PASSWORDLESS_SIGN_UP_ATTR_NAME} has invalid value`
+        );
+      } else {
+        // this should not happen
+        throw err;
+      }
     }
 
     if (
