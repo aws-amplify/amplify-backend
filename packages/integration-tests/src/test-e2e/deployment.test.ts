@@ -54,7 +54,7 @@ void describe('deployment tests', { concurrency: testConcurrencyLevel }, () => {
         });
 
         afterEach(async () => {
-          await testProject.tearDown(branchBackendIdentifier);
+          // await testProject.tearDown(branchBackendIdentifier);
         });
 
         void it(`[${testProjectCreator.name}] deploys fully`, async () => {
