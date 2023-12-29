@@ -12,14 +12,14 @@ export type PipelineDeployCommandOptions =
 type PipelineDeployCommandOptionsCamelCase = {
   branch: string;
   appId: string;
+  outDir?: string;
 };
 
 /**
  * An entry point for deploy command.
  */
 export class PipelineDeployCommand
-  implements CommandModule<object, PipelineDeployCommandOptions>
-{
+  implements CommandModule<object, PipelineDeployCommandOptions> {
   /**
    * @inheritDoc
    */
@@ -61,7 +61,7 @@ export class PipelineDeployCommand
     await this.backendDeployer.deploy(backendId, {
       validateAppSources: true,
     });
-    await this.clientConfigGenerator.generateClientConfigToFile(backendId);
+    await this.clientConfigGenerator.generateClientConfigToFile(backendId, args['out-dir']);
   };
 
   builder = (yargs: Argv): Argv<PipelineDeployCommandOptions> => {
@@ -76,6 +76,11 @@ export class PipelineDeployCommand
       .option('app-id', {
         describe: 'The app id of the target Amplify app',
         demandOption: true,
+        type: 'string',
+        array: false,
+      })
+      .option('out-dir', {
+        describe: 'A path to directory where config is written. If not provided defaults to current process working directory.',
         type: 'string',
         array: false,
       })
