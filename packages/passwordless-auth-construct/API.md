@@ -38,7 +38,7 @@ export type OtpAuthOptions = {
 export type PasswordlessAuthProps = {
     magicLink?: MagicLinkAuthOptions;
     otp?: OtpAuthOptions;
-    passwordlessSignUp?: boolean;
+    signUpEnabled?: boolean;
 };
 
 // @public

@@ -118,7 +118,7 @@ void describe('Cognito User Service - Create User', async () => {
           userPoolId: 'userPoolId',
           phoneNumber: '+11111111111',
         });
-      }, Error('User already exists'));
+      }, Error('error'));
       strictEqual(sendMock.mock.callCount(), 1);
     });
   });

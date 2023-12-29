@@ -159,7 +159,7 @@ export class AmplifyPasswordlessAuth extends Construct {
     }
 
     // Configure Sign Up without password
-    if (props.passwordlessSignUp) {
+    if (props.signUpEnabled) {
       new AmplifyPasswordlessSignUp(scope, `${id}-signup-passwordless`, {
         userPool: auth.resources.userPool,
         verifyExecutionRole:

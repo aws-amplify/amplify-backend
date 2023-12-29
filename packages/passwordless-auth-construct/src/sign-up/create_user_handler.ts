@@ -2,6 +2,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { CognitoIdentityProviderClient } from '@aws-sdk/client-cognito-identity-provider';
 import { CognitoUserService } from '../services/cognito_user_service.js';
 import { logger } from '../logger.js';
+import { CognitoError } from '../types.js';
 
 const cognitoCreateUserService = new CognitoUserService(
   new CognitoIdentityProviderClient()
@@ -71,9 +72,19 @@ export const createUser = async (
   } catch (err) {
     logger.debug(err);
 
+    if (isUserAlreadyExistsError(err)) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: 'User already exists' }),
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+        },
+      };
+    }
+
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: (err as Error).message }),
+      body: JSON.stringify({ error: 'Internal server error' }),
       headers: {
         'Access-Control-Allow-Origin': '*',
       },
@@ -87,4 +98,12 @@ export const createUser = async (
       'Access-Control-Allow-Origin': '*',
     },
   };
+};
+
+const isUserAlreadyExistsError = (error: unknown): boolean => {
+  if (error && (error as CognitoError).__type === 'UsernameExistsException') {
+    return true;
+  }
+
+  return false;
 };

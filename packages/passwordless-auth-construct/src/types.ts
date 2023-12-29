@@ -166,7 +166,7 @@ export type PasswordlessAuthProps = {
   otp?: OtpAuthOptions;
 
   /** Sign Up Without Password */
-  passwordlessSignUp?: boolean;
+  signUpEnabled?: boolean;
 };
 
 /**
@@ -376,3 +376,9 @@ export type PasswordlessSignUpProps = {
 // this is the format for Cognito UserPool API, eslint not happy otherwise
 // eslint-disable-next-line  @typescript-eslint/naming-convention
 export type CognitoUserAttribute = { Name: string; Value: string };
+
+export type CognitoError = {
+  // this is the format for Cognito UserPool API, eslint not happy otherwise
+  // eslint-disable-next-line  @typescript-eslint/naming-convention
+  __type?: string;
+};

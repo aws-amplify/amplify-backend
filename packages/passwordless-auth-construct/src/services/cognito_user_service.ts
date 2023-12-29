@@ -13,7 +13,7 @@ import {
   MarkVerifiedAndDeletePasswordlessParams,
   UserService,
 } from '../types.js';
-import { logger } from '../logger.js';
+
 /**
  * A service for interacting with Cognito User Poo
  */
@@ -112,11 +112,6 @@ export class CognitoUserService implements UserService {
       MessageAction: 'SUPPRESS',
     });
 
-    try {
-      await this.cognitoClient.send(command);
-    } catch (err) {
-      logger.debug(err);
-      throw new Error('User already exists');
-    }
+    await this.cognitoClient.send(command);
   }
 }
