@@ -92,7 +92,7 @@ void describe('deploy command', () => {
       () => Promise.resolve()
     );
     await getCommandRunner(true).runCommand(
-      'pipeline-deploy --app-id abc --branch test-branch --out-dir src'
+      'pipeline-deploy --app-id abc --branch test-branch --config-out-dir src'
     );
     assert.strictEqual(mockDeploy.mock.callCount(), 1);
     assert.deepStrictEqual(mockDeploy.mock.calls[0].arguments, [

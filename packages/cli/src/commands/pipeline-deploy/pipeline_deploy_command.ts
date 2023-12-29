@@ -12,7 +12,7 @@ export type PipelineDeployCommandOptions =
 type PipelineDeployCommandOptionsCamelCase = {
   branch: string;
   appId: string;
-  outDir?: string;
+  configOutDir?: string;
 };
 
 /**
@@ -64,7 +64,7 @@ export class PipelineDeployCommand
     });
     await this.clientConfigGenerator.generateClientConfigToFile(
       backendId,
-      args['out-dir']
+      args['config-out-dir']
     );
   };
 
@@ -83,7 +83,7 @@ export class PipelineDeployCommand
         type: 'string',
         array: false,
       })
-      .option('out-dir', {
+      .option('config-out-dir', {
         describe:
           'A path to directory where config is written. If not provided defaults to current process working directory.',
         type: 'string',
