@@ -243,6 +243,7 @@ class AmplifyFunction
       bannerCode = fs
         .readFileSync(bannerCodeFile, 'utf-8')
         .replaceAll(os.EOL, '');
+      bannerCode += 'await resolveSecretBanner(new SSM())';
     }
 
     const functionLambda = new NodejsFunction(scope, `${id}-lambda`, {
