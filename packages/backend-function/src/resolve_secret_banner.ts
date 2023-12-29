@@ -5,7 +5,7 @@
 /**
  * The body of this function will be used to resolve secrets for Lambda functions
  */
-export const resolveSecretBanner = async () => {
+export const resolveSecretBanner = async (client: any = undefined) => {
   const envArray = process.env.SECRET_PATH_ENV_VARS?.split(',');
   // if (envArray) {
   //   const response = await client.getParameters({
