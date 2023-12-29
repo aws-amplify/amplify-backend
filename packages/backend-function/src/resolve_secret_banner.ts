@@ -1,6 +1,6 @@
 import { SSM } from '@aws-sdk/client-ssm';
 
-// const ssmClient = new SSM();
+const ssmClient = new SSM();
 
 /**
  * The body of this function will be used to resolve secrets for Lambda functions
