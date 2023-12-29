@@ -22,10 +22,6 @@ const dirname = path.dirname(filename);
  */
 export class AmplifyPasswordlessAuth extends Construct {
   /**
-   * VerifyAuthChallengeResponse lambda function, used on unit tests
-   */
-  readonly verifyAuthChallengeResponse: NodejsFunction;
-  /**
    * Create a new Auth construct with AuthProps.
    * If no props are provided, email login and defaults will be used.
    */
@@ -77,7 +73,7 @@ export class AmplifyPasswordlessAuth extends Construct {
       }
     );
 
-    this.verifyAuthChallengeResponse = new NodejsFunction(
+    const verifyAuthChallengeResponse = new NodejsFunction(
       scope,
       `VerifyAuthChallengeResponse${id}`,
       {
@@ -91,10 +87,7 @@ export class AmplifyPasswordlessAuth extends Construct {
 
     auth.addTrigger('createAuthChallenge', createAuthChallenge);
 
-    auth.addTrigger(
-      'verifyAuthChallengeResponse',
-      this.verifyAuthChallengeResponse
-    );
+    auth.addTrigger('verifyAuthChallengeResponse', verifyAuthChallengeResponse);
 
     const emailEnabled = !!props.otp?.email || !!props.magicLink?.email;
     const smsEnabled = !!props.otp?.sms;
@@ -145,7 +138,7 @@ export class AmplifyPasswordlessAuth extends Construct {
         {
           defineAuthChallenge,
           createAuthChallenge,
-          verifyAuthChallengeResponse: this.verifyAuthChallengeResponse,
+          verifyAuthChallengeResponse: verifyAuthChallengeResponse,
         },
         props.otp
       );
@@ -159,7 +152,7 @@ export class AmplifyPasswordlessAuth extends Construct {
         {
           defineAuthChallenge,
           createAuthChallenge,
-          verifyAuthChallengeResponse: this.verifyAuthChallengeResponse,
+          verifyAuthChallengeResponse: verifyAuthChallengeResponse,
         },
         props.magicLink
       );
@@ -172,7 +165,7 @@ export class AmplifyPasswordlessAuth extends Construct {
         verifyExecutionRole:
           // According to cdk docs there always is a default role https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_lambda-readme.html#execution-role
           // eslint-disable-next-line  @typescript-eslint/no-non-null-assertion
-          this.verifyAuthChallengeResponse.role!,
+          verifyAuthChallengeResponse.role!,
       });
     }
   }

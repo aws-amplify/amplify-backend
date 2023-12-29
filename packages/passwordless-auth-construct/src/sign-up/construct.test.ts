@@ -4,6 +4,13 @@ import { App, Stack } from 'aws-cdk-lib';
 import { AmplifyAuth } from '@aws-amplify/auth-construct-alpha';
 import { AmplifyPasswordlessAuth } from '../construct.js';
 import { AmplifyPasswordlessSignUp } from './construct.js';
+import {
+  IRole,
+  PrincipalBase,
+  PrincipalPolicyFragment,
+  Role,
+  ServicePrincipal,
+} from 'aws-cdk-lib/aws-iam';
 
 void describe('Passwordless Sign Up', () => {
   void test('Enable passwordless sign up', () => {
@@ -12,17 +19,17 @@ void describe('Passwordless Sign Up', () => {
     const auth = new AmplifyAuth(stack, 'testAuth', {
       loginWith: { email: true },
     });
-    const authPasswordless = new AmplifyPasswordlessAuth(stack, 'test', auth, {
+
+    new AmplifyPasswordlessAuth(stack, 'test', auth, {
       magicLink: {
         allowedOrigins: [],
         email: { fromAddress: 'foo@example.com' },
       },
     });
 
-    const verifyChallenge = authPasswordless.verifyAuthChallengeResponse;
-
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const verifyExecutionRole = verifyChallenge.role!;
+    const verifyExecutionRole: IRole = new Role(stack, 'role', {
+      assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
+    });
 
     new AmplifyPasswordlessSignUp(stack, `signup-passwordless`, {
       userPool: auth.resources.userPool,
