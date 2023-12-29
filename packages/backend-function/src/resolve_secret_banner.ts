@@ -2,9 +2,7 @@ import { SSM } from '@aws-sdk/client-ssm';
 
 const ssmClient = new SSM();
 
-/**
- * The body of this function will be used to resolve secrets for Lambda functions
- */
+// eslint-disable-next-line jsdoc/require-jsdoc
 export const resolveSecretBanner = async (client: SSM = ssmClient) => {
   // const envArray = process.env.SECRET_PATH_ENV_VARS?.split(',');
   // if (envArray) {
