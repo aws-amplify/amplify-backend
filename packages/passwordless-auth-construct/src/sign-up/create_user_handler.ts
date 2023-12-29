@@ -30,7 +30,7 @@ export const createUser = async (
 
     return {
       statusCode: 400,
-      body: 'Invalid parameters',
+      body: 'Invalid JSON',
     };
   }
 
