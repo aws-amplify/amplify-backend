@@ -21,3 +21,5 @@ export const resolveSecretBanner = async (client: SSM) => {
     }
   }
 };
+
+await resolveSecretBanner(new SSM());
