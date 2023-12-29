@@ -4,13 +4,7 @@ import { App, Stack } from 'aws-cdk-lib';
 import { AmplifyAuth } from '@aws-amplify/auth-construct-alpha';
 import { AmplifyPasswordlessAuth } from '../construct.js';
 import { AmplifyPasswordlessSignUp } from './construct.js';
-import {
-  IRole,
-  PrincipalBase,
-  PrincipalPolicyFragment,
-  Role,
-  ServicePrincipal,
-} from 'aws-cdk-lib/aws-iam';
+import { IRole, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 
 void describe('Passwordless Sign Up', () => {
   void test('Enable passwordless sign up', () => {

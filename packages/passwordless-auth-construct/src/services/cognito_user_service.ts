@@ -7,6 +7,7 @@ import {
 } from '@aws-sdk/client-cognito-identity-provider';
 import { PASSWORDLESS_SIGN_UP_ATTR_NAME } from '../constants.js';
 import {
+  CognitoUserAttribute,
   CreateUserParams,
   DeliveryMedium,
   MarkVerifiedAndDeletePasswordlessParams,
@@ -65,12 +66,9 @@ export class CognitoUserService implements UserService {
    * @param params.userPoolId - The UserPool ID
    */
   async createUser(params: CreateUserParams): Promise<void> {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     const { userPoolId, username, email, phoneNumber } = params;
 
-    // this is the format for Cognito UserPool API, eslint not happy otherwise
-    // eslint-disable-next-line  @typescript-eslint/naming-convention
-    const userAttributes: Array<{ Name: string; Value: string }> = [];
+    const userAttributes: Array<CognitoUserAttribute> = [];
     const passwordlessConfiguration: {
       allowSignInAttempt: boolean;
       deliveryMedium?: DeliveryMedium;

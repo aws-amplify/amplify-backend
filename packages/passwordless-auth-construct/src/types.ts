@@ -372,3 +372,7 @@ export type PasswordlessSignUpProps = {
   verifyExecutionRole: IRole;
   userPool: IUserPool;
 };
+
+// this is the format for Cognito UserPool API, eslint not happy otherwise
+// eslint-disable-next-line  @typescript-eslint/naming-convention
+export type CognitoUserAttribute = { Name: string; Value: string };
