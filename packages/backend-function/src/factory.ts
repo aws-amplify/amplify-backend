@@ -242,7 +242,8 @@ class AmplifyFunction
       );
       bannerCode = fs
         .readFileSync(bannerCodeFile, 'utf-8')
-        .replaceAll(os.EOL, '');
+        .replaceAll('\n', '')
+        .replaceAll('\r', '');
     }
 
     const functionLambda = new NodejsFunction(scope, `${id}-lambda`, {
