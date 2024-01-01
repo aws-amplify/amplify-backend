@@ -16,6 +16,10 @@ export const getProjectRoot = async () => {
         defaultValue: defaultProjectRoot,
       });
 
+  if (projectRoot != defaultProjectRoot && projectRoot.startsWith('/')) {
+    projectRoot = projectRoot.substring(1);
+  }
+
   projectRoot = path.isAbsolute(projectRoot)
     ? projectRoot
     : path.resolve(process.cwd(), projectRoot);
