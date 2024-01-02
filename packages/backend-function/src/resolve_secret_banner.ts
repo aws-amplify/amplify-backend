@@ -1,9 +1,12 @@
+/* This code replaces placeholder text in environment variables for secrets with values fetched from SSM, this is a noop if there are no secrets */
 import { SSM } from '@aws-sdk/client-ssm';
 
 /**
  * The body of this function will be used to resolve secrets for Lambda functions
  */
-export const resolveSecretBanner = async (client?: SSM) => {
+export const internalAmplifyFunctionBannerResolveSecrets = async (
+  client?: SSM
+) => {
   if (!client) {
     client = new SSM();
   }
@@ -32,4 +35,4 @@ export const resolveSecretBanner = async (client?: SSM) => {
   }
 };
 
-await resolveSecretBanner();
+await internalAmplifyFunctionBannerResolveSecrets();
