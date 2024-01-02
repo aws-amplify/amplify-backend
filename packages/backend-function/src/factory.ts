@@ -206,14 +206,12 @@ class FunctionGenerator implements ConstructContainerEntryGenerator {
     scope: Construct,
     backendSecretResolver: BackendSecretResolver
   ) => {
-    const functionProps: HydratedFunctionProps = {
-      ...this.props,
-      environment: translateEnvironmentProp(
-        this.props.environment,
-        backendSecretResolver
-      ),
-    };
-    return new AmplifyFunction(scope, this.props.name, functionProps);
+    return new AmplifyFunction(
+      scope,
+      this.props.name,
+      this.props,
+      backendSecretResolver
+    );
   };
 }
 
@@ -222,23 +220,33 @@ class AmplifyFunction
   implements ResourceProvider<FunctionResources>
 {
   readonly resources: FunctionResources;
-  constructor(scope: Construct, id: string, props: HydratedFunctionProps) {
+  constructor(
+    scope: Construct,
+    id: string,
+    props: HydratedFunctionProps,
+    backendSecretResolver: BackendSecretResolver
+  ) {
     super(scope, id);
-    let bannerCode;
-    const hasSecrets = secretPaths.length > 0;
+    const functionEnvironmentTranslator = new FunctionEnvironmentTranslator(
+      scope,
+      props['environment'],
+      backendSecretResolver
+    );
+    const environmentRecord =
+      functionEnvironmentTranslator.getEnvironmentRecord();
+    const secretPolicyStatement =
+      functionEnvironmentTranslator.getSecretPolicyStatement();
 
-    if (hasSecrets) {
-      const require = createRequire(import.meta.url);
-      const bannerCodeFile = require.resolve('./resolve_secret_banner');
-      bannerCode = fs
-        .readFileSync(bannerCodeFile, 'utf-8')
-        .replaceAll('\n', '')
-        .replaceAll('\r', '');
-    }
+    const require = createRequire(import.meta.url);
+    const bannerCodeFile = require.resolve('./resolve_secret_banner');
+    const bannerCode = fs
+      .readFileSync(bannerCodeFile, 'utf-8')
+      .replaceAll('\n', '')
+      .replaceAll('\r', '');
 
     const functionLambda = new NodejsFunction(scope, `${id}-lambda`, {
       entry: props.entry,
-      environment: props.environment as { [key: string]: string }, // for some reason TS can't figure out that this is the same as Record<string, string>
+      environment: environmentRecord as { [key: string]: string }, // for some reason TS can't figure out that this is the same as Record<string, string>
       timeout: Duration.seconds(props.timeoutSeconds),
       memorySize: props.memoryMB,
       runtime: nodeVersionMap[props.runtime],
@@ -248,21 +256,8 @@ class AmplifyFunction
       },
     });
 
-    if (hasSecrets) {
-      const resourceArns = secretPaths.map(
-        (path) =>
-          `arn:aws:ssm:${Stack.of(scope).region}:${
-            Stack.of(scope).account
-          }:parameter${path}`
-      );
-
-      functionLambda.grantPrincipal.addToPrincipalPolicy(
-        new iam.PolicyStatement({
-          effect: iam.Effect.ALLOW,
-          actions: ['ssm:GetParameters'],
-          resources: resourceArns,
-        })
-      );
+    if (secretPolicyStatement) {
+      functionLambda.grantPrincipal.addToPrincipalPolicy(secretPolicyStatement);
     }
 
     this.resources = {
@@ -285,36 +280,59 @@ const nodeVersionMap: Record<NodeVersion, Runtime> = {
   20: Runtime.NODEJS_20_X,
 };
 
-const secretPaths: string[] = [];
+class FunctionEnvironmentTranslator {
+  private secretPaths: string[] = [];
+  private environmentRecord: Record<string, string> = {};
 
-const translateEnvironmentProp = (
-  functionEnvironmentProp: HydratedFunctionProps['environment'],
-  backendSecretResolver: BackendSecretResolver
-): Record<string, string> => {
-  const secretPlaceholderText = '<value will be resolved during runtime>';
-  const amplifySecretPaths = 'AMPLIFY_SECRET_PATHS';
-  const secretPathEnvVars: Record<string, string> = {};
-  const result: Record<string, string> = {};
+  constructor(
+    private readonly scope: Construct,
+    private readonly functionEnvironmentProp: HydratedFunctionProps['environment'],
+    private readonly backendSecretResolver: BackendSecretResolver
+  ) {
+    const secretPlaceholderText = '<value will be resolved during runtime>';
+    const amplifySecretPaths = 'AMPLIFY_SECRET_PATHS';
+    const secretPathEnvVars: Record<string, string> = {};
 
-  for (const [key, value] of Object.entries(functionEnvironmentProp)) {
-    if (typeof value !== 'string') {
-      const secretPath = backendSecretResolver.resolvePath(value);
-      result[key] = secretPlaceholderText;
-      secretPathEnvVars[key] = secretPath;
-      secretPaths.push(secretPath);
-    } else {
+    for (const [key, value] of Object.entries(this.functionEnvironmentProp)) {
       if (key === amplifySecretPaths) {
         throw new Error(
           `${amplifySecretPaths} is a reserved environment variable name`
         );
       }
-      result[key] = value;
+      if (typeof value !== 'string') {
+        const secretPath = this.backendSecretResolver.resolvePath(value);
+        this.environmentRecord[key] = secretPlaceholderText;
+        secretPathEnvVars[key] = secretPath;
+        this.secretPaths.push(secretPath);
+      } else {
+        this.environmentRecord[key] = value;
+      }
     }
+
+    this.environmentRecord[amplifySecretPaths] =
+      JSON.stringify(secretPathEnvVars);
   }
 
-  if (secretPaths.length > 0) {
-    result[amplifySecretPaths] = JSON.stringify(secretPathEnvVars);
-  }
+  getEnvironmentRecord = () => {
+    return this.environmentRecord;
+  };
 
-  return result;
-};
+  getSecretPolicyStatement = (): iam.PolicyStatement | undefined => {
+    if (this.secretPaths.length === 0) {
+      return;
+    }
+
+    const resourceArns = this.secretPaths.map(
+      (path) =>
+        `arn:aws:ssm:${Stack.of(this.scope).region}:${
+          Stack.of(this.scope).account
+        }:parameter${path}`
+    );
+
+    return new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: ['ssm:GetParameters'],
+      resources: resourceArns,
+    });
+  };
+}

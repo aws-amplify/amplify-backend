@@ -1,4 +1,4 @@
-/* This code replaces placeholder text in environment variables for secrets with values fetched from SSM, this is a noop if there are no secrets */
+/* The code in this line replaces placeholder text in environment variables for secrets with values fetched from SSM, this is a noop if there are no secrets */
 import { SSM } from '@aws-sdk/client-ssm';
 
 /**
