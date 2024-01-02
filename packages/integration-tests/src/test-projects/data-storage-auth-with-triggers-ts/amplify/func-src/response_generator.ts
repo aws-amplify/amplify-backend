@@ -10,7 +10,7 @@ export const getResponse = () => {
     0xd9, 0xeb, 0xae, 0x0b,
   ];
   return `Your uuid is ${uuidStringify(
-    uuidBytes
     // eslint-disable-next-line spellcheck/spell-checker
-  )}. TEST_SECRET env var value is ${process.env.TEST_SECRET ?? ''}.`; // '6ec0bd7f-11c0-43da-975e-2a8ad9ebae0b'
+    uuidBytes // '6ec0bd7f-11c0-43da-975e-2a8ad9ebae0b'
+  )}. TEST_SECRET env var value is ${process.env.TEST_SECRET ?? ''}.`;
 };
