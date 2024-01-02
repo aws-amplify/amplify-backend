@@ -15,7 +15,7 @@ import { Duration, Stack } from 'aws-cdk-lib';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import fs from 'fs';
-import { fileURLToPath } from 'url';
+import { createRequire } from 'module';
 
 /**
  * Entry point for defining a function in the Amplify ecosystem
@@ -224,21 +224,12 @@ class AmplifyFunction
   readonly resources: FunctionResources;
   constructor(scope: Construct, id: string, props: HydratedFunctionProps) {
     super(scope, id);
-    const envVars = {
-      ...props.environment,
-      SECRET_PATH_ENV_VARS: process.env.SECRET_PATH_ENV_VARS,
-    };
     let bannerCode;
     const hasSecrets = secretPaths.length > 0;
 
     if (hasSecrets) {
-      const ext = import.meta.url.split('.').pop();
-      const bannerCodeFile = fileURLToPath(
-        new URL(
-          `./resolve_secret_banner.${ext === 'ts' ? 'ts' : 'js'}`,
-          import.meta.url
-        )
-      );
+      const require = createRequire(import.meta.url);
+      const bannerCodeFile = require.resolve('./resolve_secret_banner');
       bannerCode = fs
         .readFileSync(bannerCodeFile, 'utf-8')
         .replaceAll('\n', '')
@@ -247,7 +238,7 @@ class AmplifyFunction
 
     const functionLambda = new NodejsFunction(scope, `${id}-lambda`, {
       entry: props.entry,
-      environment: envVars as { [key: string]: string }, // for some reason TS can't figure out that this is the same as Record<string, string>
+      environment: props.environment as { [key: string]: string }, // for some reason TS can't figure out that this is the same as Record<string, string>
       timeout: Duration.seconds(props.timeoutSeconds),
       memorySize: props.memoryMB,
       runtime: nodeVersionMap[props.runtime],
@@ -294,30 +285,36 @@ const nodeVersionMap: Record<NodeVersion, Runtime> = {
   20: Runtime.NODEJS_20_X,
 };
 
-const secretPathSuffix = '_PATH';
-const secretPlaceholderText = '<value will be resolved during runtime>';
 const secretPaths: string[] = [];
 
 const translateEnvironmentProp = (
   functionEnvironmentProp: HydratedFunctionProps['environment'],
   backendSecretResolver: BackendSecretResolver
 ): Record<string, string> => {
+  const secretPlaceholderText = '<value will be resolved during runtime>';
+  const amplifySecretPaths = 'AMPLIFY_SECRET_PATHS';
+  const secretPathEnvVars: Record<string, string> = {};
   const result: Record<string, string> = {};
-  const secretPathEnvVars = [];
 
   for (const [key, value] of Object.entries(functionEnvironmentProp)) {
     if (typeof value !== 'string') {
       const secretPath = backendSecretResolver.resolvePath(value);
-      result[key + secretPathSuffix] = secretPath;
       result[key] = secretPlaceholderText;
-      secretPathEnvVars.push(key + secretPathSuffix);
+      secretPathEnvVars[key] = secretPath;
       secretPaths.push(secretPath);
     } else {
+      if (key === amplifySecretPaths) {
+        throw new Error(
+          `${amplifySecretPaths} is a reserved environment variable name`
+        );
+      }
       result[key] = value;
     }
   }
 
-  process.env.SECRET_PATH_ENV_VARS = secretPathEnvVars.join(',');
+  if (secretPaths.length > 0) {
+    result[amplifySecretPaths] = JSON.stringify(secretPathEnvVars);
+  }
 
   return result;
 };

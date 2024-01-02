@@ -279,11 +279,27 @@ void describe('AmplifyFunctionFactory', () => {
           Variables: {
             TEST_VAR: 'testValue',
             TEST_SECRET: '<value will be resolved during runtime>',
-            TEST_SECRET_PATH:
-              '/amplify/testBackendId/testBranchName/secretValue',
+            AMPLIFY_SECRET_PATHS: JSON.stringify({
+              TEST_SECRET: '/amplify/testBackendId/testBranchName/secretValue',
+            }),
           },
         },
       });
+    });
+
+    void it('throws when setting reserved environment variable', () => {
+      assert.throws(
+        () =>
+          defineFunction({
+            entry: './test-assets/default-lambda/handler.ts',
+            environment: {
+              AMPLIFY_SECRET_PATHS: 'testValue',
+            },
+          }).getInstance(getInstanceProps),
+        new Error(
+          'AMPLIFY_SECRET_PATHS is a reserved environment variable name'
+        )
+      );
     });
   });
 

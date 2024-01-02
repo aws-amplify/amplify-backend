@@ -13,18 +13,19 @@ void describe('resolveSecretBanner', () => {
   });
 
   void it('noop if there are no secret path env vars', async () => {
-    delete process.env.SECRET_PATH_ENV_VARS;
+    delete process.env.AMPLIFY_SECRET_PATHS;
     const mockGetParameters = mock.method(client, 'getParameters', mock.fn());
     await resolveSecretBanner(client);
     assert.equal(mockGetParameters.mock.callCount(), 0);
   });
 
   void it('resolves secret and sets secret value to secret env var', async () => {
-    const envName = 'TEST_SECRET_PATH';
+    const envName = 'TEST_SECRET';
     const secretPath = '/test/path';
     const secretValue = 'secretValue';
-    process.env[envName] = secretPath;
-    process.env.SECRET_PATH_ENV_VARS = envName;
+    process.env.AMPLIFY_SECRET_PATHS = JSON.stringify({
+      [envName]: secretPath,
+    });
     const mockGetParameters = mock.method(client, 'getParameters', () =>
       Promise.resolve({
         Parameters: [
@@ -37,6 +38,6 @@ void describe('resolveSecretBanner', () => {
     );
     await resolveSecretBanner(client);
     assert.equal(mockGetParameters.mock.callCount(), 1);
-    assert.equal(process.env[envName.replace('_PATH', '')], secretValue);
+    assert.equal(process.env[envName], secretValue);
   });
 });

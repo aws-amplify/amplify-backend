@@ -7,17 +7,20 @@ export const resolveSecretBanner = async (client?: SSM) => {
   if (!client) {
     client = new SSM();
   }
-  const envArray = process.env.SECRET_PATH_ENV_VARS?.split(',');
-  if (envArray) {
+  const envPathObj: Record<string, string> = JSON.parse(
+    process.env.AMPLIFY_SECRET_PATHS ?? '{}'
+  );
+  const paths = Object.values(envPathObj);
+  if (paths.length > 0) {
     const response = await client.getParameters({
-      Names: envArray.map((a) => process.env[a] ?? ''),
+      Names: paths,
       WithDecryption: true,
     });
     if (response.Parameters && response.Parameters?.length > 0) {
       for (const parameter of response.Parameters) {
-        for (const envName of envArray) {
-          if (parameter.Name === process.env[envName]) {
-            process.env[envName.replace('_PATH', '')] = parameter.Value;
+        for (const [env, path] of Object.entries(envPathObj)) {
+          if (parameter.Name === path) {
+            process.env[env] = parameter.Value;
           }
         }
       }
