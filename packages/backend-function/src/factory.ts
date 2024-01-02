@@ -307,7 +307,7 @@ const translateEnvironmentProp = (
 
   for (const [key, value] of Object.entries(functionEnvironmentProp)) {
     if (typeof value !== 'string') {
-      const secretPath = backendSecretResolver.resolveToPath(value);
+      const secretPath = backendSecretResolver.resolvePath(value);
       result[key + secretPathSuffix] = secretPath;
       result[key] = secretPlaceholderText;
       secretPathEnvVars.push(key + secretPathSuffix);

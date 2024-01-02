@@ -35,7 +35,7 @@ export class CfnTokenBackendSecret implements BackendSecret {
   /**
    * Resolve to the secret path
    */
-  resolveToPath = (backendIdentifier: BackendIdentifier): string => {
+  resolvePath = (backendIdentifier: BackendIdentifier): string => {
     return ParameterPathConversions.toParameterFullPath(
       backendIdentifier,
       this.name
