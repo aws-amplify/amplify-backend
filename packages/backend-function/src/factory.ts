@@ -242,7 +242,8 @@ class AmplifyFunction
     const bannerCode = fs
       .readFileSync(bannerCodeFile, 'utf-8')
       .replaceAll('\n', '')
-      .replaceAll('\r', '');
+      .replaceAll('\r', '')
+      .split('//#')[0]; // remove source map
 
     const functionLambda = new NodejsFunction(scope, `${id}-lambda`, {
       entry: props.entry,
