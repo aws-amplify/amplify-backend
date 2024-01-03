@@ -4,6 +4,6 @@ export const myFunc = defineFunction({
   name: 'specialTestFunction',
   entry: './func-src/handler.ts',
   environment: {
-    TEST_SECRET: secret('testSecret'),
+    TEST_SECRET: secret('amazonSecret'),
   },
 });
