@@ -345,7 +345,7 @@ void describe('AmplifyFunctionFactory', () => {
       const endDate = new Date('2025-03-30');
       const currentDate = new Date();
 
-      assert.equal(endDate > currentDate, true);
+      assert.ok(endDate > currentDate);
     });
   });
 });
