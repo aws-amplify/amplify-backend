@@ -20,6 +20,6 @@ void describe('configure command factory', () => {
 
   void it('throws error if no verb subcommand', async () => {
     const output = await commandRunner.runCommand('configure');
-    assert.match(output, /Not enough non-option arguments/);
+    assert.ok(output.includes('Not enough non-option arguments'));
   });
 });

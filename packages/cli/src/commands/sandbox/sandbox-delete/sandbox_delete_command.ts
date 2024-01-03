@@ -1,7 +1,6 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
 import { AmplifyPrompter } from '@aws-amplify/cli-core';
-import { handleCommandFailure } from '../../../command_failure_handler.js';
 
 /**
  * Command that deletes the sandbox environment.
@@ -76,10 +75,6 @@ export class SandboxDeleteCommand
           }
         }
         return true;
-      })
-      .fail((msg, err) => {
-        handleCommandFailure(msg, err, yargs);
-        yargs.exit(1, err);
       });
   };
 }

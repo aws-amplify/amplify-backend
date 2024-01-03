@@ -1,5 +1,7 @@
 import { Argv } from 'yargs';
 import { AsyncLocalStorage } from 'node:async_hooks';
+import { mock } from 'node:test';
+import { generateCommandFailureHandler } from '../command_failure_handler.js';
 
 class OutputInterceptor {
   private output = '';
@@ -60,7 +62,11 @@ export class TestCommandRunner {
       // Override script name to avoid long test file names
       .scriptName('amplify')
       // Make sure we don't exit process on error or --help
-      .exitProcess(false);
+      .exitProcess(false)
+      // attach the failure handler
+      // this is necessary because we may be testing a subcommand that doesn't have the top-level failure handler attached
+      // eventually we may want to have a separate "testFailureHandler" if we need additional tooling here
+      .fail(generateCommandFailureHandler(parser));
   }
 
   /**
@@ -82,6 +88,8 @@ export class TestCommandRunner {
       // in potentially concurrent environment.
       await asyncLocalStorage.run(interceptor, async () => {
         await this.parser.parseAsync(args);
+        // TODO update this -- resetting exit code so that tests don't fail if command fails
+        process.exitCode = 0;
       });
       return interceptor.getOutput();
     } catch (err) {

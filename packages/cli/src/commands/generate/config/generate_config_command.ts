@@ -3,7 +3,7 @@ import { ClientConfigFormat } from '@aws-amplify/client-config';
 import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
 import { ClientConfigGeneratorAdapter } from '../../../client-config/client_config_generator_adapter.js';
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
-import { handleCommandFailure } from '../../../command_failure_handler.js';
+import { InvalidCredentialError } from '../../../error/credential_error.js';
 
 export type GenerateConfigCommandOptions =
   ArgumentsKebabCase<GenerateConfigCommandOptionsCamelCase>;
@@ -100,10 +100,6 @@ export class GenerateConfigCommand
           'A path to directory where config is written. If not provided defaults to current process working directory.',
         type: 'string',
         array: false,
-      })
-      .fail((msg, err) => {
-        handleCommandFailure(msg, err, yargs);
-        yargs.exit(1, err);
       });
   };
 }

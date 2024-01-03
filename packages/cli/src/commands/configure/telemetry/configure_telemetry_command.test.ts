@@ -61,9 +61,10 @@ void describe('configure command', () => {
 
   void it('if subcommand is not defined, it should list of subcommands and demandCommand', async () => {
     await commandRunner.runCommand(`telemetry`);
-    assert.match(
-      mockedPrint.mock.calls[0].arguments[0],
-      /Not enough non-option arguments: got 0, need at least 1/
+    assert.ok(
+      mockedPrint.mock.calls[0].arguments[0].includes(
+        'Not enough non-option arguments: got 0, need at least 1'
+      )
     );
     assert.strictEqual(mockedConfigControllerSet.mock.callCount(), 0);
   });

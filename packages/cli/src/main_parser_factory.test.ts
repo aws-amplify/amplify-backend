@@ -22,16 +22,9 @@ void describe('main parser', { concurrency: false }, () => {
     assert.equal(output, `${version}\n`);
   });
 
-  void it('fails if command is not provided', async () => {
-    await assert.rejects(
-      () => commandRunner.runCommand(''),
-      (err: TestCommandError) => {
-        assert.equal(err.error.name, 'YError');
-        assert.match(err.error.message, /Not enough non-option arguments:/);
-        assert.match(err.output, /Commands:/);
-        assert.match(err.output, /Not enough non-option arguments:/);
-        return true;
-      }
-    );
+  void it('prints help if command is not provided', async () => {
+    const output = await commandRunner.runCommand('');
+    assert.match(output, /Commands:/);
+    assert.match(output, /Not enough non-option arguments:/);
   });
 });
