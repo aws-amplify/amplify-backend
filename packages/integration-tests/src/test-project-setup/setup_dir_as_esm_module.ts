@@ -25,6 +25,11 @@ export const setupDirAsEsmModule = async (absoluteDirPath: string) => {
     'es2022',
   ];
 
+  await execa('npm', ['install', 'typescript'], {
+    stdio: 'inherit',
+    cwd: absoluteDirPath,
+  });
+
   await execa('npx', tscArgs, {
     stdio: 'inherit',
     cwd: absoluteDirPath,
