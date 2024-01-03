@@ -1,12 +1,13 @@
 import { existsSync } from 'fs';
 import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
+import * as os from 'os';
 
 /**
  * Root test directory.
  */
 export const rootTestDir = fileURLToPath(
-  new URL('./e2e-tests', import.meta.url)
+  new URL(`${os.tmpdir()}/e2e-tests`, import.meta.url)
 );
 
 /**
