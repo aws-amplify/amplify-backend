@@ -1,5 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
+import { execa } from 'execa';
 import { shortUuid } from '../short_uuid.js';
 import { setupDirAsEsmModule } from './setup_dir_as_esm_module.js';
 
@@ -28,6 +29,11 @@ export const createEmptyAmplifyProject = async (
   await fs.mkdir(projectAmplifyDir);
 
   await setupDirAsEsmModule(projectAmplifyDir);
+
+  await execa('npm', ['install', '@aws-amplify/backend'], {
+    stdio: 'inherit',
+    cwd: projectRoot,
+  });
 
   return { projectName, projectRoot, projectAmplifyDir };
 };
