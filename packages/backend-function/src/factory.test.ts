@@ -339,10 +339,10 @@ void describe('AmplifyFunctionFactory', () => {
     });
 
     void it('throws when the oldest maintained Node LTS reaches end of life', () => {
-      // Date when the oldest Node LTS maintenance ends according to https://github.com/nodejs/release#release-schedule.
-      // Once this test fails, update endDate to the end date of the next Node LTS version.
-      // After updating the date, next would be updating the default function runtime in factory.ts
-      const endDate = new Date('2025-04-30');
+      // A month before the date when the oldest Node LTS maintenance ends according to https://github.com/nodejs/release#release-schedule.
+      // Once this test fails, update endDate to a month before the end date of the next Node LTS version.
+      // After updating the date, next would be updating the default function runtime in factory.ts.
+      const endDate = new Date('2025-03-30');
       const currentDate = new Date();
 
       assert.equal(endDate > currentDate, true);
