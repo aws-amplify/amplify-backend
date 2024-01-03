@@ -28,6 +28,7 @@ const appleTeamId = 'appleTeamId';
 const appleKeyId = 'appleKeyId';
 const applePrivateKey = 'applePrivateKey';
 const callbackUrls = ['a', 'b'];
+const logoutUrls = ['a', 'b'];
 
 const testBackendIdentifier: BackendIdentifier = {
   namespace: 'testBackendId',
@@ -81,6 +82,7 @@ void describe('translateToAuthConstructLoginWith', () => {
           privateKey: new TestBackendSecret(applePrivateKey),
         },
         callbackUrls: callbackUrls,
+        logoutUrls: logoutUrls,
       },
     };
 
@@ -116,6 +118,7 @@ void describe('translateToAuthConstructLoginWith', () => {
           privateKey: applePrivateKey,
         },
         callbackUrls: callbackUrls,
+        logoutUrls: logoutUrls,
       },
     };
     assert.deepStrictEqual(translated, expected);
@@ -126,6 +129,7 @@ void describe('translateToAuthConstructLoginWith', () => {
       phone,
       externalProviders: {
         callbackUrls: callbackUrls,
+        logoutUrls: logoutUrls,
       },
     };
 
@@ -138,6 +142,7 @@ void describe('translateToAuthConstructLoginWith', () => {
       phone,
       externalProviders: {
         callbackUrls: callbackUrls,
+        logoutUrls: logoutUrls,
       },
     };
     assert.deepStrictEqual(translated, expected);
