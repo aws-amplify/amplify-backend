@@ -30,10 +30,14 @@ export const createEmptyAmplifyProject = async (
 
   await setupDirAsEsmModule(projectAmplifyDir);
 
-  await execa('npm', ['install', '@aws-amplify/backend'], {
-    stdio: 'inherit',
-    cwd: projectRoot,
-  });
+  await execa(
+    'npm',
+    ['install', '-D', '@aws-amplify/backend', '@aws-amplify/backend-cli'],
+    {
+      stdio: 'inherit',
+      cwd: projectRoot,
+    }
+  );
 
   return { projectName, projectRoot, projectAmplifyDir };
 };
