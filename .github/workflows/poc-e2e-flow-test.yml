@@ -76,4 +76,5 @@ jobs:
       - name: Run E2E tests with ${{ matrix.pkg-manager }}
         shell: bash
         run: |
-          PACKAGE_MANAGER_EXECUTABLE=${{matrix.pkg-manager}} npm run e2e
+          PACKAGE_MANAGER_EXECUTABLE=${{matrix.pkg-manager}} npm run test:dir packages/integration-tests/src/test-e2e/create_amplify.test.ts
+          PACKAGE_MANAGER_EXECUTABLE=${{matrix.pkg-manager}} npm run test:dir packages/integration-tests/src/test-e2e/deployment.test.ts
