@@ -32,7 +32,14 @@ export const createEmptyAmplifyProject = async (
 
   await execa(
     'npm',
-    ['install', '-D', '@aws-amplify/backend', '@aws-amplify/backend-cli'],
+    [
+      'install',
+      '-D',
+      '@aws-amplify/backend',
+      '@aws-amplify/backend-cli',
+      '@aws-amplify/auth-construct-alpha',
+      '@aws-amplify/backend-deployer',
+    ],
     {
       stdio: 'inherit',
       cwd: projectRoot,
