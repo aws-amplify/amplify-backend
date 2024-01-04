@@ -1,22 +1,19 @@
 import { existsSync } from 'fs';
-import fs from 'fs/promises';
+import fsp from 'fs/promises';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import * as os from 'os';
 
 /**
  * Root test directory.
  */
-export const rootTestDir = path.resolve(
-  fileURLToPath(new URL(`${os.tmpdir()}/e2e-tests`, import.meta.url))
-);
+export const rootTestDir = path.join(os.tmpdir(), 'e2e-tests');
 
 /**
  * Creates a test directory.
  */
 export const createTestDirectory = async (pathName: string | URL) => {
   if (!existsSync(pathName)) {
-    await fs.mkdir(pathName, { recursive: true });
+    await fsp.mkdir(pathName, { recursive: true });
   }
 };
 
@@ -25,6 +22,6 @@ export const createTestDirectory = async (pathName: string | URL) => {
  */
 export const deleteTestDirectory = async (pathName: string | URL) => {
   if (existsSync(pathName)) {
-    await fs.rm(pathName, { recursive: true, force: true });
+    await fsp.rm(pathName, { recursive: true, force: true });
   }
 };
