@@ -8,16 +8,19 @@ import { Argv } from 'yargs';
  */
 export const attachUnhandledExceptionListeners = (): void => {
   process.on('unhandledRejection', (reason) => {
+    process.exitCode = 1;
     if (reason instanceof Error) {
       handleError(reason);
     } else if (typeof reason === 'string') {
       handleError(new Error(reason));
     } else {
-      throw new Error(`Cannot handle rejection of type ${typeof reason}`);
+      // This should never happen unless something truly strange has happened
+      Printer.print(`Cannot handle rejection of type [${typeof reason}]`);
     }
   });
 
   process.on('uncaughtException', (error) => {
+    process.exitCode = 1;
     handleError(error);
   });
 };
@@ -59,8 +62,6 @@ const handleError = (
   printMessagePreamble?: () => void,
   message?: string
 ) => {
-  process.exitCode = 1;
-
   if (isUserForceClosePromptError(error)) {
     return;
   }

@@ -88,8 +88,6 @@ export class TestCommandRunner {
       // in potentially concurrent environment.
       await asyncLocalStorage.run(interceptor, async () => {
         await this.parser.parseAsync(args);
-        // TODO update this -- resetting exit code so that tests don't fail if command fails
-        process.exitCode = 0;
       });
       return interceptor.getOutput();
     } catch (err) {
