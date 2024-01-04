@@ -1,11 +1,11 @@
 import { afterEach, describe, it, mock } from 'node:test';
-import { generateCommandFailureHandler } from './command_failure_handler.js';
+import { generateCommandFailureHandler } from './error_handler.js';
 import { Argv } from 'yargs';
 import { COLOR, Printer } from '@aws-amplify/cli-core';
 import assert from 'node:assert';
 import { InvalidCredentialError } from './error/credential_error.js';
 
-void describe('handleCommandFailure', { concurrency: 1 }, () => {
+void describe('generateCommandFailureHandler', { concurrency: 1 }, () => {
   afterEach(() => {
     expectProcessExitCode1AndReset();
   });
@@ -79,6 +79,24 @@ void describe('handleCommandFailure', { concurrency: 1 }, () => {
     assert.equal(mockExit.mock.callCount(), 1);
     assert.match(mockPrint.mock.calls[0].arguments[0], new RegExp(errMsg));
     assert.equal(mockPrint.mock.calls[0].arguments[1], COLOR.RED);
+  });
+});
+
+void describe('attachUnhandledExceptionListeners', () => {
+  void it('handles rejected errors', () => {
+    /* TODO */
+  });
+
+  void it('handles rejected strings', () => {
+    /* TODO */
+  });
+
+  void it('throws on rejected unknown objects', () => {
+    /* TODO */
+  });
+
+  void it('handles uncaught errors', () => {
+    /* TODO */
   });
 });
 

@@ -5,7 +5,7 @@ import { createGenerateCommand } from './commands/generate/generate_command_fact
 import { createSandboxCommand } from './commands/sandbox/sandbox_command_factory.js';
 import { createPipelineDeployCommand } from './commands/pipeline-deploy/pipeline_deploy_command_factory.js';
 import { createConfigureCommand } from './commands/configure/configure_command_factory.js';
-import { generateCommandFailureHandler } from './command_failure_handler.js';
+import { generateCommandFailureHandler } from './error_handler.js';
 
 /**
  * Creates main parser.

@@ -14,12 +14,12 @@ void describe('sandbox secret command factory', () => {
     const output = await commandRunner.runCommand('secret --help');
     assert.match(output, /Manage sandbox secret/);
     ['secret set', 'secret remove', 'secret get ', 'secret list'].forEach(
-      (cmd) => assert.ok(output.includes(cmd))
+      (cmd) => assert.match(output, new RegExp(cmd))
     );
   });
 
   void it('throws error if no verb subcommand', async () => {
     const output = await commandRunner.runCommand('secret');
-    assert.ok(output.includes('Not enough non-option arguments'));
+    assert.match(output, /Not enough non-option arguments/);
   });
 });

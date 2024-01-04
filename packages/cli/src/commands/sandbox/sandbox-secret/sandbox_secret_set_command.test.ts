@@ -73,11 +73,11 @@ void describe('sandbox secret set command', () => {
 
   void it('show --help', async () => {
     const output = await commandRunner.runCommand('set --help');
-    assert.ok(output.includes('Set a sandbox secret'));
+    assert.match(output, /Set a sandbox secret/);
   });
 
   void it('throws error if no secret name argument', async () => {
     const output = await commandRunner.runCommand('set');
-    assert.ok(output.includes('Not enough non-option arguments'));
+    assert.match(output, /Not enough non-option arguments/);
   });
 });
