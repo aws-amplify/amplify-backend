@@ -8,8 +8,7 @@ import * as os from 'os';
  * Root test directory.
  */
 export const rootTestDir = path.resolve(
-  `${os.tmpdir()}/e2e-tests`,
-  fileURLToPath(new URL(import.meta.url))
+  fileURLToPath(new URL(`${os.tmpdir()}/e2e-tests`, import.meta.url))
 );
 
 /**
