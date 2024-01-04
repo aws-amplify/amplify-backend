@@ -1,6 +1,10 @@
 import { beforeEach, describe, it } from 'node:test';
-import { App, Stack } from 'aws-cdk-lib';
-import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
+import { App, SecretValue, Stack } from 'aws-cdk-lib';
+import {
+  BackendIdentifier,
+  BackendSecret,
+  ConstructFactoryGetInstanceProps,
+} from '@aws-amplify/plugin-types';
 import assert from 'node:assert';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 import {
@@ -12,6 +16,7 @@ import { Template } from 'aws-cdk-lib/assertions';
 import { NodeVersion, defineFunction } from './factory.js';
 import { lambdaWithDependencies } from './test-assets/lambda-with-dependencies/resource.js';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
+import { ParameterPathConversions } from '@aws-amplify/platform-core';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
@@ -21,6 +26,25 @@ const createStackAndSetContext = (): Stack => {
   const stack = new Stack(app);
   return stack;
 };
+
+const testBackendIdentifier: BackendIdentifier = {
+  namespace: 'testBackendId',
+  name: 'testBranchName',
+  type: 'branch',
+};
+
+class TestBackendSecret implements BackendSecret {
+  constructor(private readonly secretName: string) {}
+  resolve = (): SecretValue => {
+    return SecretValue.unsafePlainText(this.secretName);
+  };
+  resolvePath = (): string => {
+    return ParameterPathConversions.toParameterFullPath(
+      testBackendIdentifier,
+      this.secretName
+    );
+  };
+}
 
 void describe('AmplifyFunctionFactory', () => {
   let getInstanceProps: ConstructFactoryGetInstanceProps;
@@ -220,21 +244,62 @@ void describe('AmplifyFunctionFactory', () => {
     });
   });
 
-  void it('sets environment variables', () => {
-    const lambda = defineFunction({
-      entry: './test-assets/default-lambda/handler.ts',
-      environment: {
-        TEST_VAR: 'testValue',
-      },
-    }).getInstance(getInstanceProps);
-    const template = Template.fromStack(Stack.of(lambda.resources.lambda));
-
-    template.hasResourceProperties('AWS::Lambda::Function', {
-      Environment: {
-        Variables: {
+  void describe('environment property', () => {
+    void it('sets environment variables', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        environment: {
           TEST_VAR: 'testValue',
         },
-      },
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        Environment: {
+          Variables: {
+            TEST_VAR: 'testValue',
+          },
+        },
+      });
+    });
+
+    void it('sets environment variables with secret path and placeholder text', () => {
+      const testSecret = new TestBackendSecret('secretValue');
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        environment: {
+          TEST_VAR: 'testValue',
+          TEST_SECRET: testSecret,
+        },
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        Environment: {
+          Variables: {
+            TEST_VAR: 'testValue',
+            TEST_SECRET: '<value will be resolved during runtime>',
+            AMPLIFY_SECRET_PATHS: JSON.stringify({
+              TEST_SECRET: '/amplify/testBackendId/testBranchName/secretValue',
+            }),
+          },
+        },
+      });
+    });
+
+    void it('throws when setting reserved environment variable', () => {
+      assert.throws(
+        () =>
+          defineFunction({
+            entry: './test-assets/default-lambda/handler.ts',
+            environment: {
+              AMPLIFY_SECRET_PATHS: 'testValue',
+            },
+          }).getInstance(getInstanceProps),
+        new Error(
+          'AMPLIFY_SECRET_PATHS is a reserved environment variable name'
+        )
+      );
     });
   });
 
@@ -271,6 +336,16 @@ void describe('AmplifyFunctionFactory', () => {
           }).getInstance(getInstanceProps),
         new Error('runtime must be one of the following: 16, 18, 20')
       );
+    });
+
+    void it('throws when the oldest maintained Node LTS reaches end of life', () => {
+      // A month before the date when the oldest Node LTS maintenance ends according to https://github.com/nodejs/release#release-schedule.
+      // Once this test fails, update endDate to a month before the end date of the next Node LTS version.
+      // After updating the date, next would be updating the default function runtime in factory.ts.
+      const endDate = new Date('2025-03-30');
+      const currentDate = new Date();
+
+      assert.ok(endDate > currentDate);
     });
   });
 });
