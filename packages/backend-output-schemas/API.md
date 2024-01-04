@@ -111,6 +111,13 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             mfaConfiguration: z.ZodOptional<z.ZodString>;
             mfaTypes: z.ZodOptional<z.ZodString>;
             verificationMechanisms: z.ZodOptional<z.ZodString>;
+            socialProviders: z.ZodOptional<z.ZodString>;
+            oauthDomain: z.ZodOptional<z.ZodString>;
+            oauthScope: z.ZodOptional<z.ZodString>;
+            oauthRedirectSignIn: z.ZodOptional<z.ZodString>;
+            oauthRedirectSignOut: z.ZodOptional<z.ZodString>;
+            oauthClientId: z.ZodOptional<z.ZodString>;
+            oauthResponseType: z.ZodOptional<z.ZodString>;
         }, "strip", z.ZodTypeAny, {
             authRegion: string;
             userPoolId: string;
@@ -127,6 +134,13 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             mfaConfiguration?: string | undefined;
             mfaTypes?: string | undefined;
             verificationMechanisms?: string | undefined;
+            socialProviders?: string | undefined;
+            oauthDomain?: string | undefined;
+            oauthScope?: string | undefined;
+            oauthRedirectSignIn?: string | undefined;
+            oauthRedirectSignOut?: string | undefined;
+            oauthClientId?: string | undefined;
+            oauthResponseType?: string | undefined;
         }, {
             authRegion: string;
             userPoolId: string;
@@ -143,6 +157,13 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             mfaConfiguration?: string | undefined;
             mfaTypes?: string | undefined;
             verificationMechanisms?: string | undefined;
+            socialProviders?: string | undefined;
+            oauthDomain?: string | undefined;
+            oauthScope?: string | undefined;
+            oauthRedirectSignIn?: string | undefined;
+            oauthRedirectSignOut?: string | undefined;
+            oauthClientId?: string | undefined;
+            oauthResponseType?: string | undefined;
         }>;
     }, "strip", z.ZodTypeAny, {
         version: "1";
@@ -162,6 +183,13 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             mfaConfiguration?: string | undefined;
             mfaTypes?: string | undefined;
             verificationMechanisms?: string | undefined;
+            socialProviders?: string | undefined;
+            oauthDomain?: string | undefined;
+            oauthScope?: string | undefined;
+            oauthRedirectSignIn?: string | undefined;
+            oauthRedirectSignOut?: string | undefined;
+            oauthClientId?: string | undefined;
+            oauthResponseType?: string | undefined;
         };
     }, {
         version: "1";
@@ -181,6 +209,13 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             mfaConfiguration?: string | undefined;
             mfaTypes?: string | undefined;
             verificationMechanisms?: string | undefined;
+            socialProviders?: string | undefined;
+            oauthDomain?: string | undefined;
+            oauthScope?: string | undefined;
+            oauthRedirectSignIn?: string | undefined;
+            oauthRedirectSignOut?: string | undefined;
+            oauthClientId?: string | undefined;
+            oauthResponseType?: string | undefined;
         };
     }>]>>;
     "AWS::Amplify::GraphQL": z.ZodOptional<z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
@@ -289,6 +324,13 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             mfaConfiguration?: string | undefined;
             mfaTypes?: string | undefined;
             verificationMechanisms?: string | undefined;
+            socialProviders?: string | undefined;
+            oauthDomain?: string | undefined;
+            oauthScope?: string | undefined;
+            oauthRedirectSignIn?: string | undefined;
+            oauthRedirectSignOut?: string | undefined;
+            oauthClientId?: string | undefined;
+            oauthResponseType?: string | undefined;
         };
     } | undefined;
     "AWS::Amplify::GraphQL"?: {
@@ -337,6 +379,13 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             mfaConfiguration?: string | undefined;
             mfaTypes?: string | undefined;
             verificationMechanisms?: string | undefined;
+            socialProviders?: string | undefined;
+            oauthDomain?: string | undefined;
+            oauthScope?: string | undefined;
+            oauthRedirectSignIn?: string | undefined;
+            oauthRedirectSignOut?: string | undefined;
+            oauthClientId?: string | undefined;
+            oauthResponseType?: string | undefined;
         };
     } | undefined;
     "AWS::Amplify::GraphQL"?: {
@@ -380,6 +429,13 @@ export const versionedAuthOutputSchema: z.ZodDiscriminatedUnion<"version", [z.Zo
         mfaConfiguration: z.ZodOptional<z.ZodString>;
         mfaTypes: z.ZodOptional<z.ZodString>;
         verificationMechanisms: z.ZodOptional<z.ZodString>;
+        socialProviders: z.ZodOptional<z.ZodString>;
+        oauthDomain: z.ZodOptional<z.ZodString>;
+        oauthScope: z.ZodOptional<z.ZodString>;
+        oauthRedirectSignIn: z.ZodOptional<z.ZodString>;
+        oauthRedirectSignOut: z.ZodOptional<z.ZodString>;
+        oauthClientId: z.ZodOptional<z.ZodString>;
+        oauthResponseType: z.ZodOptional<z.ZodString>;
     }, "strip", z.ZodTypeAny, {
         authRegion: string;
         userPoolId: string;
@@ -396,6 +452,13 @@ export const versionedAuthOutputSchema: z.ZodDiscriminatedUnion<"version", [z.Zo
         mfaConfiguration?: string | undefined;
         mfaTypes?: string | undefined;
         verificationMechanisms?: string | undefined;
+        socialProviders?: string | undefined;
+        oauthDomain?: string | undefined;
+        oauthScope?: string | undefined;
+        oauthRedirectSignIn?: string | undefined;
+        oauthRedirectSignOut?: string | undefined;
+        oauthClientId?: string | undefined;
+        oauthResponseType?: string | undefined;
     }, {
         authRegion: string;
         userPoolId: string;
@@ -412,6 +475,13 @@ export const versionedAuthOutputSchema: z.ZodDiscriminatedUnion<"version", [z.Zo
         mfaConfiguration?: string | undefined;
         mfaTypes?: string | undefined;
         verificationMechanisms?: string | undefined;
+        socialProviders?: string | undefined;
+        oauthDomain?: string | undefined;
+        oauthScope?: string | undefined;
+        oauthRedirectSignIn?: string | undefined;
+        oauthRedirectSignOut?: string | undefined;
+        oauthClientId?: string | undefined;
+        oauthResponseType?: string | undefined;
     }>;
 }, "strip", z.ZodTypeAny, {
     version: "1";
@@ -431,6 +501,13 @@ export const versionedAuthOutputSchema: z.ZodDiscriminatedUnion<"version", [z.Zo
         mfaConfiguration?: string | undefined;
         mfaTypes?: string | undefined;
         verificationMechanisms?: string | undefined;
+        socialProviders?: string | undefined;
+        oauthDomain?: string | undefined;
+        oauthScope?: string | undefined;
+        oauthRedirectSignIn?: string | undefined;
+        oauthRedirectSignOut?: string | undefined;
+        oauthClientId?: string | undefined;
+        oauthResponseType?: string | undefined;
     };
 }, {
     version: "1";
@@ -450,6 +527,13 @@ export const versionedAuthOutputSchema: z.ZodDiscriminatedUnion<"version", [z.Zo
         mfaConfiguration?: string | undefined;
         mfaTypes?: string | undefined;
         verificationMechanisms?: string | undefined;
+        socialProviders?: string | undefined;
+        oauthDomain?: string | undefined;
+        oauthScope?: string | undefined;
+        oauthRedirectSignIn?: string | undefined;
+        oauthRedirectSignOut?: string | undefined;
+        oauthClientId?: string | undefined;
+        oauthResponseType?: string | undefined;
     };
 }>]>;
 

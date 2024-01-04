@@ -498,6 +498,66 @@ void describe('Auth construct', () => {
       ]);
     });
 
+    void it('stores outputs in platform - oauth config', () => {
+      const authConstruct = new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+          externalProviders: {
+            google: {
+              clientId: googleClientId,
+              clientSecret: SecretValue.unsafePlainText(googleClientSecret),
+            },
+            scopes: ['EMAIL', 'PROFILE'],
+            callbackUrls: ['http://callback.com'],
+            logoutUrls: ['http://logout.com'],
+            domainPrefix: 'test-prefix',
+          },
+        },
+        outputStorageStrategy: stubBackendOutputStorageStrategy,
+      });
+
+      const expectedUserPoolId = (
+        authConstruct.node.findChild('UserPool') as UserPool
+      ).userPoolId;
+      const expectedIdentityPoolId = (
+        authConstruct.node.findChild('IdentityPool') as CfnIdentityPool
+      ).ref;
+      const expectedWebClientId = (
+        authConstruct.node.findChild('UserPoolAppClient') as UserPoolClient
+      ).userPoolClientId;
+      const expectedRegion = Stack.of(authConstruct).region;
+
+      const storeOutputArgs = storeOutputMock.mock.calls[0].arguments;
+      assert.equal(storeOutputArgs.length, 2);
+
+      assert.deepStrictEqual(storeOutputArgs, [
+        authOutputKey,
+        {
+          version: '1',
+          payload: {
+            userPoolId: expectedUserPoolId,
+            webClientId: expectedWebClientId,
+            identityPoolId: expectedIdentityPoolId,
+            authRegion: expectedRegion,
+            passwordPolicyMinLength:
+              DEFAULTS.PASSWORD_POLICY.minLength.toString(),
+            passwordPolicyRequirements:
+              defaultPasswordPolicyCharacterRequirements,
+            signupAttributes: '["EMAIL"]',
+            verificationMechanisms: '["EMAIL"]',
+            usernameAttributes: '["EMAIL"]',
+            googleClientId: 'googleClientId',
+            oauthDomain: `test-prefix.auth.${expectedRegion}.amazoncognito.com`,
+            oauthScope: '["email","profile"]',
+            oauthRedirectSignIn: 'http://callback.com',
+            oauthRedirectSignOut: 'http://logout.com',
+            oauthResponseType: 'code',
+            socialProviders: '["GOOGLE"]',
+          },
+        },
+      ]);
+    });
+
     void it('multifactor prop updates mfaConfiguration & mfaTypes', () => {
       new AmplifyAuth(stack, 'test', {
         loginWith: {
@@ -914,6 +974,8 @@ void describe('Auth construct', () => {
               clientId: googleClientId,
               clientSecret: SecretValue.unsafePlainText(googleClientSecret),
             },
+            callbackUrls: ['https://redirect.com'],
+            logoutUrls: ['https://logout.com'],
           },
         },
       });
@@ -943,6 +1005,8 @@ void describe('Auth construct', () => {
               clientId: googleClientId,
               clientSecret: SecretValue.unsafePlainText(googleClientSecret),
             },
+            callbackUrls: ['https://redirect.com'],
+            logoutUrls: ['https://logout.com'],
           },
         },
       });
@@ -972,6 +1036,8 @@ void describe('Auth construct', () => {
               clientId: facebookClientId,
               clientSecret: facebookClientSecret,
             },
+            callbackUrls: ['https://redirect.com'],
+            logoutUrls: ['https://logout.com'],
           },
         },
       });
@@ -1001,6 +1067,8 @@ void describe('Auth construct', () => {
               clientId: facebookClientId,
               clientSecret: facebookClientSecret,
             },
+            callbackUrls: ['https://redirect.com'],
+            logoutUrls: ['https://logout.com'],
           },
         },
       });
@@ -1032,6 +1100,8 @@ void describe('Auth construct', () => {
               privateKey: applePrivateKey,
               teamId: appleTeamId,
             },
+            callbackUrls: ['https://redirect.com'],
+            logoutUrls: ['https://logout.com'],
           },
         },
       });
@@ -1063,6 +1133,8 @@ void describe('Auth construct', () => {
               privateKey: applePrivateKey,
               teamId: appleTeamId,
             },
+            callbackUrls: ['https://redirect.com'],
+            logoutUrls: ['https://logout.com'],
           },
         },
       });
@@ -1092,6 +1164,8 @@ void describe('Auth construct', () => {
               clientId: amazonClientId,
               clientSecret: amazonClientSecret,
             },
+            callbackUrls: ['https://redirect.com'],
+            logoutUrls: ['https://logout.com'],
           },
         },
       });
@@ -1121,6 +1195,8 @@ void describe('Auth construct', () => {
               clientId: amazonClientId,
               clientSecret: amazonClientSecret,
             },
+            callbackUrls: ['https://redirect.com'],
+            logoutUrls: ['https://logout.com'],
           },
         },
       });
@@ -1152,6 +1228,8 @@ void describe('Auth construct', () => {
               issuerUrl: oidcIssuerUrl,
               name: oidcProviderName,
             },
+            callbackUrls: ['https://redirect.com'],
+            logoutUrls: ['https://logout.com'],
           },
         },
       });
@@ -1197,6 +1275,8 @@ void describe('Auth construct', () => {
               issuerUrl: oidcIssuerUrl,
               name: oidcProviderName,
             },
+            callbackUrls: ['https://redirect.com'],
+            logoutUrls: ['https://logout.com'],
           },
         },
       });
@@ -1243,6 +1323,8 @@ void describe('Auth construct', () => {
                 metadataType: UserPoolIdentityProviderSamlMetadataType.FILE,
               },
             },
+            callbackUrls: ['https://redirect.com'],
+            logoutUrls: ['https://logout.com'],
           },
         },
       });
@@ -1287,6 +1369,8 @@ void describe('Auth construct', () => {
                 metadataType: UserPoolIdentityProviderSamlMetadataType.FILE,
               },
             },
+            callbackUrls: ['https://redirect.com'],
+            logoutUrls: ['https://logout.com'],
           },
         },
       });
@@ -1357,6 +1441,81 @@ void describe('Auth construct', () => {
       });
     });
 
+    void it('throws an error if callbackUrls are not specified with external login providers', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      assert.throws(
+        () =>
+          new AmplifyAuth(stack, 'test', {
+            loginWith: {
+              email: true,
+              externalProviders: {
+                google: {
+                  clientId: googleClientId,
+                  clientSecret: SecretValue.unsafePlainText(googleClientSecret),
+                },
+                scopes: ['EMAIL', 'PROFILE'],
+                callbackUrls: [],
+                logoutUrls: ['http://localhost'],
+              },
+            },
+          }),
+        {
+          message:
+            'You must define callbackUrls when configuring external login providers.',
+        }
+      );
+    });
+
+    void it('throws an error if logoutUrls are not specified with external login providers', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      assert.throws(
+        () =>
+          new AmplifyAuth(stack, 'test', {
+            loginWith: {
+              email: true,
+              externalProviders: {
+                google: {
+                  clientId: googleClientId,
+                  clientSecret: SecretValue.unsafePlainText(googleClientSecret),
+                },
+                scopes: ['EMAIL', 'PROFILE'],
+                callbackUrls: ['http://redirect.com'],
+                logoutUrls: [],
+              },
+            },
+          }),
+        {
+          message:
+            'You must define logoutUrls when configuring external login providers.',
+        }
+      );
+    });
+
+    void it('throws an error if domainPrefix is configured without any external providers', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      assert.throws(
+        () =>
+          new AmplifyAuth(stack, 'test', {
+            loginWith: {
+              email: true,
+              externalProviders: {
+                scopes: ['EMAIL', 'PROFILE'],
+                callbackUrls: [],
+                logoutUrls: ['http://localhost'],
+                domainPrefix: 'https://localhost',
+              },
+            },
+          }),
+        {
+          message:
+            'You cannot configure a domain prefix if there are no external providers configured.',
+        }
+      );
+    });
+
     void it('supports all idps and login methods', () => {
       const app = new App();
       const stack = new Stack(app);
@@ -1396,6 +1555,8 @@ void describe('Auth construct', () => {
                 metadataType: UserPoolIdentityProviderSamlMetadataType.FILE,
               },
             },
+            callbackUrls: ['https://redirect.com'],
+            logoutUrls: ['https://logout.com'],
           },
         },
       });

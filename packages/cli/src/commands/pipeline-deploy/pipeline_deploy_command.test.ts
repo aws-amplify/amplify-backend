@@ -84,4 +84,35 @@ void describe('deploy command', () => {
     ]);
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
   });
+
+  void it('allows --config-out-dir argument', async () => {
+    const mockDeploy = mock.method(
+      BackendDeployerFactory.getInstance(),
+      'deploy',
+      () => Promise.resolve()
+    );
+    await getCommandRunner(true).runCommand(
+      'pipeline-deploy --app-id abc --branch test-branch --config-out-dir src'
+    );
+    assert.strictEqual(mockDeploy.mock.callCount(), 1);
+    assert.deepStrictEqual(mockDeploy.mock.calls[0].arguments, [
+      {
+        name: 'test-branch',
+        namespace: 'abc',
+        type: 'branch',
+      },
+      {
+        validateAppSources: true,
+      },
+    ]);
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
+    assert.deepStrictEqual(generateClientConfigMock.mock.calls[0].arguments, [
+      {
+        name: 'test-branch',
+        namespace: 'abc',
+        type: 'branch',
+      },
+      'src',
+    ]);
+  });
 });
