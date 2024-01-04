@@ -6,7 +6,6 @@ import { BackendIdentifierResolver } from '../../../backend-identifier/backend_i
 import { DEFAULT_UI_PATH } from '../../../form-generation/default_form_generation_output_paths.js';
 import { FormGenerationHandler } from '../../../form-generation/form_generation_handler.js';
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
-import { handleCommandFailure } from '../../../command_failure_handler.js';
 
 export type GenerateFormsCommandOptions =
   ArgumentsKebabCase<GenerateFormsCommandOptionsCamelCase>;
@@ -128,10 +127,6 @@ export class GenerateFormsCommand
         type: 'string',
         array: true,
         group: 'Form Generation',
-      })
-      .fail((msg, err) => {
-        handleCommandFailure(msg, err, yargs);
-        yargs.exit(1, err);
       });
   };
 }

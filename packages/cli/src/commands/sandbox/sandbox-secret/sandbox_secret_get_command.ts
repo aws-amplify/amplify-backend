@@ -3,7 +3,6 @@ import { SecretClient } from '@aws-amplify/backend-secret';
 import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
 import { Printer } from '@aws-amplify/cli-core';
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
-import { handleCommandFailure } from '../../../command_failure_handler.js';
 
 /**
  * Command to get sandbox secret.
@@ -53,11 +52,7 @@ export class SandboxSecretGetCommand
         type: 'string',
         demandOption: true,
       })
-      .help()
-      .fail((msg, err) => {
-        handleCommandFailure(msg, err, yargs);
-        yargs.exit(1, err);
-      });
+      .help();
   };
 }
 
