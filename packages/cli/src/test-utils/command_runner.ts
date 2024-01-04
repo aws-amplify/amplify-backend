@@ -1,6 +1,5 @@
 import { Argv } from 'yargs';
 import { AsyncLocalStorage } from 'node:async_hooks';
-import { mock } from 'node:test';
 import { generateCommandFailureHandler } from '../error_handler.js';
 
 class OutputInterceptor {
