@@ -39,6 +39,9 @@ export const createEmptyAmplifyProject = async (
       '@aws-amplify/backend-cli',
       '@aws-amplify/auth-construct-alpha',
       '@aws-amplify/backend-deployer',
+      ...(projectDirName === 'data-storage-auth'
+        ? ['uuid', '@types/uuid']
+        : []),
     ],
     {
       stdio: 'inherit',
