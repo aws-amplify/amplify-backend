@@ -3,10 +3,15 @@ import { InvalidCredentialError } from './error/credential_error.js';
 import { EOL } from 'os';
 import { Argv } from 'yargs';
 
+let hasAttachUnhandledExceptionListenersBeenCalled = false;
+
 /**
  * Attaches process listeners to handle unhandled exceptions and rejections
  */
 export const attachUnhandledExceptionListeners = (): void => {
+  if (hasAttachUnhandledExceptionListenersBeenCalled) {
+    return;
+  }
   process.on('unhandledRejection', (reason) => {
     process.exitCode = 1;
     if (reason instanceof Error) {
@@ -14,8 +19,11 @@ export const attachUnhandledExceptionListeners = (): void => {
     } else if (typeof reason === 'string') {
       handleError(new Error(reason));
     } else {
-      // This should never happen unless something truly strange has happened
-      Printer.print(`Cannot handle rejection of type [${typeof reason}]`);
+      handleError(
+        new Error(`Unhandled rejection of type [${typeof reason}]`, {
+          cause: reason,
+        })
+      );
     }
   });
 
@@ -23,6 +31,7 @@ export const attachUnhandledExceptionListeners = (): void => {
     process.exitCode = 1;
     handleError(error);
   });
+  hasAttachUnhandledExceptionListenersBeenCalled = true;
 };
 
 /**
@@ -55,13 +64,18 @@ export const generateCommandFailureHandler = (
 };
 
 /**
- * Root level error handling for uncaught errors during CLI command execution
+ * Error handling for uncaught errors during CLI command execution.
+ *
+ * This should be the one and only place where we handle unexpected errors.
+ * This includes console logging, debug logging, metrics recording, etc.
+ * (Note that we don't do all of those things yet, but this is where they should go)
  */
 const handleError = (
   error: Error,
   printMessagePreamble?: () => void,
   message?: string
 ) => {
+  // If yargs threw an error because the customer force-closed a prompt (ie Ctrl+C during a prompt) then the intent to exit the process is clear
   if (isUserForceClosePromptError(error)) {
     return;
   }

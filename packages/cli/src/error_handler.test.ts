@@ -1,12 +1,4 @@
-import {
-  after,
-  afterEach,
-  before,
-  beforeEach,
-  describe,
-  it,
-  mock,
-} from 'node:test';
+import { after, before, beforeEach, describe, it, mock } from 'node:test';
 import {
   attachUnhandledExceptionListeners,
   generateCommandFailureHandler,
@@ -92,10 +84,6 @@ void describe('attachUnhandledExceptionListeners', { concurrency: 1 }, () => {
     mockPrint.mock.resetCalls();
   });
 
-  afterEach(() => {
-    expectProcessExitCode1AndReset();
-  });
-
   after(() => {
     // remove the exception listeners that were added during setup
     process.listeners('unhandledRejection').pop();
@@ -111,6 +99,7 @@ void describe('attachUnhandledExceptionListeners', { concurrency: 1 }, () => {
         call.arguments[0].includes('test error')
       ) >= 0
     );
+    expectProcessExitCode1AndReset();
   });
 
   void it('handles rejected strings', () => {
@@ -123,17 +112,22 @@ void describe('attachUnhandledExceptionListeners', { concurrency: 1 }, () => {
         call.arguments[0].includes('test error')
       ) >= 0
     );
+    expectProcessExitCode1AndReset();
   });
 
-  void it('prints on rejected unknown objects', () => {
+  void it('handles rejected symbols of other types', () => {
     process.listeners('unhandledRejection').at(-1)?.(
       { something: 'weird' },
       Promise.resolve()
     );
-    assert.equal(
-      mockPrint.mock.calls[0].arguments[0],
-      'Cannot handle rejection of type [object]'
+    assert.ok(
+      mockPrint.mock.calls.findIndex((call) =>
+        call.arguments[0].includes(
+          'Error: Unhandled rejection of type [object]'
+        )
+      ) >= 0
     );
+    expectProcessExitCode1AndReset();
   });
 
   void it('handles uncaught errors', () => {
@@ -145,6 +139,28 @@ void describe('attachUnhandledExceptionListeners', { concurrency: 1 }, () => {
       mockPrint.mock.calls.findIndex((call) =>
         call.arguments[0].includes('test error')
       ) >= 0
+    );
+    expectProcessExitCode1AndReset();
+  });
+
+  void it('does nothing when called multiple times', () => {
+    // note the first call happened in the before() setup
+
+    const unhandledRejectionListenerCount =
+      process.listenerCount('unhandledRejection');
+    const uncaughtExceptionListenerCount =
+      process.listenerCount('uncaughtException');
+
+    attachUnhandledExceptionListeners();
+    attachUnhandledExceptionListeners();
+
+    assert.equal(
+      process.listenerCount('unhandledRejection'),
+      unhandledRejectionListenerCount
+    );
+    assert.equal(
+      process.listenerCount('uncaughtException'),
+      uncaughtExceptionListenerCount
     );
   });
 });
