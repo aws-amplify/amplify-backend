@@ -10,8 +10,14 @@ export type BackendSecret = {
     scope: Construct,
     backendIdentifier: BackendIdentifier
   ) => SecretValue;
+
+  /**
+   * Resolves the given secret to its path
+   */
+  resolvePath: (backendIdentifier: BackendIdentifier) => string;
 };
 
 export type BackendSecretResolver = {
   resolveSecret: (backendSecret: BackendSecret) => SecretValue;
+  resolvePath: (backendSecret: BackendSecret) => string;
 };
