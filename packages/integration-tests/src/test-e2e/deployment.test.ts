@@ -217,26 +217,26 @@ void describe('deployment tests', { concurrency: testConcurrencyLevel }, () => {
     });
   });
 
-  // void describe('cdk deploys', () => {
-  //   testCdkProjectCreators.forEach((testCdkProjectCreator) => {
-  //     void describe(`${testCdkProjectCreator.name}`, () => {
-  //       let testCdkProject: TestCdkProjectBase;
+  void describe('cdk deploys', () => {
+    testCdkProjectCreators.forEach((testCdkProjectCreator) => {
+      void describe(`${testCdkProjectCreator.name}`, () => {
+        let testCdkProject: TestCdkProjectBase;
 
-  //       beforeEach(async () => {
-  //         testCdkProject = await testCdkProjectCreator.createProject(
-  //           rootTestDir
-  //         );
-  //       });
+        beforeEach(async () => {
+          testCdkProject = await testCdkProjectCreator.createProject(
+            rootTestDir
+          );
+        });
 
-  //       afterEach(async () => {
-  //         await testCdkProject.tearDown();
-  //       });
+        afterEach(async () => {
+          await testCdkProject.tearDown();
+        });
 
-  //       void it(`deploys`, async () => {
-  //         await testCdkProject.deploy();
-  //         await testCdkProject.assertPostDeployment();
-  //       });
-  //     });
-  //   });
-  // });
+        void it(`deploys`, async () => {
+          await testCdkProject.deploy();
+          await testCdkProject.assertPostDeployment();
+        });
+      });
+    });
+  });
 });

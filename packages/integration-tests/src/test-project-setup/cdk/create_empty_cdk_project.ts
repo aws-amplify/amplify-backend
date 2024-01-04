@@ -1,5 +1,6 @@
 import fsp from 'fs/promises';
 import path from 'path';
+import { execa } from 'execa';
 import { cdkCli } from '../../process-controller/process_controller.js';
 import { existsSync } from 'fs';
 
@@ -23,6 +24,11 @@ export const createEmptyCdkProject = async (
   await fsp.mkdir(projectRoot);
 
   await cdkCli(['init', 'app', '--language', 'typescript'], projectRoot).run();
+
+  await execa('npm', ['install', '-D', '@aws-amplify/auth-construct-alpha'], {
+    stdio: 'inherit',
+    cwd: projectRoot,
+  });
 
   return { projectName, projectRoot };
 };
