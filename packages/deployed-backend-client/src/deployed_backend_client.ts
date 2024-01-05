@@ -59,6 +59,28 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
   ) {}
 
   /**
+   * Deletes a sandbox with the specified id
+   */
+  deleteSandbox = async (
+    sandboxBackendIdentifier: Omit<BackendIdentifier, 'type'>
+  ): Promise<void> => {
+    const stackName = BackendIdentifierConversions.toStackName({
+      ...sandboxBackendIdentifier,
+      type: 'sandbox',
+    });
+    await this.cfnClient.send(new DeleteStackCommand({ StackName: stackName }));
+  };
+  /**
+   * Fetches all backend metadata for a specified backend
+   */
+  getBackendMetadata = async (
+    backendId: BackendIdentifier
+  ): Promise<BackendMetadata> => {
+    const stackName = BackendIdentifierConversions.toStackName(backendId);
+    return this.buildBackendMetadata(stackName);
+  };
+
+  /**
    * Returns Amplify Sandboxes for the account and region. The number of sandboxes returned can vary
    */
   listSandboxes = async (
@@ -139,28 +161,6 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
       }
       throw error;
     }
-  };
-
-  /**
-   * Deletes a sandbox with the specified id
-   */
-  deleteSandbox = async (
-    sandboxBackendIdentifier: Omit<BackendIdentifier, 'type'>
-  ): Promise<void> => {
-    const stackName = BackendIdentifierConversions.toStackName({
-      ...sandboxBackendIdentifier,
-      type: 'sandbox',
-    });
-    await this.cfnClient.send(new DeleteStackCommand({ StackName: stackName }));
-  };
-  /**
-   * Fetches all backend metadata for a specified backend
-   */
-  getBackendMetadata = async (
-    backendId: BackendIdentifier
-  ): Promise<BackendMetadata> => {
-    const stackName = BackendIdentifierConversions.toStackName(backendId);
-    return this.buildBackendMetadata(stackName);
   };
 
   private listStacks = async (

@@ -24,6 +24,16 @@ export class SecretError extends Error {
   }
 
   /**
+   * Creates a secret error from an underlying cause.
+   */
+  static createInstance = (cause: Error): SecretError => {
+    if (cause instanceof SSMServiceException) {
+      return SecretError.fromSSMException(cause);
+    }
+    return new SecretError(cause.message, { cause });
+  };
+
+  /**
    * Creates a secret error from an SSM exception.
    */
   private static fromSSMException = (
@@ -35,15 +45,5 @@ export class SecretError extends Error {
       cause: ssmException,
       httpStatusCode: ssmException.$metadata.httpStatusCode,
     });
-  };
-
-  /**
-   * Creates a secret error from an underlying cause.
-   */
-  static createInstance = (cause: Error): SecretError => {
-    if (cause instanceof SSMServiceException) {
-      return SecretError.fromSSMException(cause);
-    }
-    return new SecretError(cause.message, { cause });
   };
 }

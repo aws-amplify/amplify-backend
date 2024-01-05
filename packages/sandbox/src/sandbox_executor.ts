@@ -12,33 +12,23 @@ import { SecretClient } from '@aws-amplify/backend-secret';
  */
 export class AmplifySandboxExecutor {
   /**
+   * Function that invokes the callback with debounce.
+   * Debounce is needed in case multiple duplicate events are received.
+   */
+  private invoke = debounce(
+    async (
+      callback: () => Promise<DeployResult | DestroyResult>
+    ): Promise<DeployResult | DestroyResult> => await callback(),
+    100
+  );
+
+  /**
    * Creates an AmplifySandboxExecutor instance
    */
   constructor(
     private readonly backendDeployer: BackendDeployer,
     private readonly secretClient: SecretClient
   ) {}
-
-  private getSecretLastUpdated = async (
-    backendId: BackendIdentifier
-  ): Promise<Date | undefined> => {
-    const secrets = await this.secretClient.listSecrets(backendId);
-    let latestTimestamp = -1;
-    let secretLastUpdate: Date | undefined;
-
-    secrets.forEach((secret) => {
-      if (!secret.lastUpdated) {
-        return;
-      }
-      const curTimeStamp = secret.lastUpdated.getTime();
-      if (curTimeStamp > 0 && curTimeStamp > latestTimestamp) {
-        latestTimestamp = curTimeStamp;
-        secretLastUpdate = secret.lastUpdated;
-      }
-    });
-
-    return secretLastUpdate;
-  };
 
   /**
    * Deploys sandbox
@@ -69,14 +59,24 @@ export class AmplifySandboxExecutor {
     return this.invoke(() => this.backendDeployer.destroy(backendId));
   };
 
-  /**
-   * Function that invokes the callback with debounce.
-   * Debounce is needed in case multiple duplicate events are received.
-   */
-  private invoke = debounce(
-    async (
-      callback: () => Promise<DeployResult | DestroyResult>
-    ): Promise<DeployResult | DestroyResult> => await callback(),
-    100
-  );
+  private getSecretLastUpdated = async (
+    backendId: BackendIdentifier
+  ): Promise<Date | undefined> => {
+    const secrets = await this.secretClient.listSecrets(backendId);
+    let latestTimestamp = -1;
+    let secretLastUpdate: Date | undefined;
+
+    secrets.forEach((secret) => {
+      if (!secret.lastUpdated) {
+        return;
+      }
+      const curTimeStamp = secret.lastUpdated.getTime();
+      if (curTimeStamp > 0 && curTimeStamp > latestTimestamp) {
+        latestTimestamp = curTimeStamp;
+        secretLastUpdate = secret.lastUpdated;
+      }
+    });
+
+    return secretLastUpdate;
+  };
 }

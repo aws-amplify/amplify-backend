@@ -67,6 +67,59 @@ export class CDKDeployer implements BackendDeployer {
     return this.tryInvokeCdk(InvokableCommand.DESTROY, backendId, ['--force']);
   };
 
+  /**
+   * Wrapper for the child process executor. Helps in unit testing as node:test framework
+   * doesn't have capabilities to mock exported functions like `execa` as of right now.
+   */
+  executeChildProcess = async (
+    command: string,
+    commandArgs: string[],
+    options: { printStdout: boolean } = { printStdout: true }
+  ) => {
+    // We let the stdout and stdin inherit and streamed to parent process but pipe
+    // the stderr and use it to throw on failure. This is to prevent actual
+    // actionable errors being hidden among the stdout. Moreover execa errors are
+    // useless when calling CLIs unless you made execa calling error.
+    let aggregatedStderr = '';
+    const aggregatorStderrStream = new stream.Writable();
+    aggregatorStderrStream._write = function (chunk, encoding, done) {
+      aggregatedStderr += chunk;
+      done();
+    };
+
+    const childProcess = execa(command, commandArgs, {
+      stdin: 'inherit',
+      stdout: 'pipe',
+      stderr: 'pipe',
+
+      // Piping the output by default strips off the color. This is a workaround to
+      // preserve the color being piped to parent process.
+      extendEnv: true,
+      env: { FORCE_COLOR: '1' },
+    });
+    childProcess.stderr?.pipe(aggregatorStderrStream);
+
+    if (options?.printStdout) {
+      childProcess.stdout?.pipe(process.stdout);
+    }
+
+    const cdkOutput = { deploymentTimes: {} };
+    if (childProcess.stdout) {
+      await this.populateCDKOutputFromStdout(cdkOutput, childProcess.stdout);
+    }
+
+    try {
+      await childProcess;
+      return cdkOutput;
+    } catch (error) {
+      // swallow execa error which is most of the time noise (basically child exited with exit code...)
+      // bubbling this up to customers add confusion (Customers don't need to know we are running IPC calls
+      // and their exit codes printed while sandbox continue to run). Hence we explicitly don't pass error in the cause
+      // rather throw the entire stderr for clients to figure out what to do with it.
+      throw new Error(aggregatedStderr);
+    }
+  };
+
   private invokeTsc = async (deployProps?: DeployProps) => {
     if (!deployProps?.validateAppSources) {
       return;
@@ -170,59 +223,6 @@ export class CDKDeployer implements BackendDeployer {
     }
 
     return await this.executeChildProcess('npx', cdkCommandArgs);
-  };
-
-  /**
-   * Wrapper for the child process executor. Helps in unit testing as node:test framework
-   * doesn't have capabilities to mock exported functions like `execa` as of right now.
-   */
-  executeChildProcess = async (
-    command: string,
-    commandArgs: string[],
-    options: { printStdout: boolean } = { printStdout: true }
-  ) => {
-    // We let the stdout and stdin inherit and streamed to parent process but pipe
-    // the stderr and use it to throw on failure. This is to prevent actual
-    // actionable errors being hidden among the stdout. Moreover execa errors are
-    // useless when calling CLIs unless you made execa calling error.
-    let aggregatedStderr = '';
-    const aggregatorStderrStream = new stream.Writable();
-    aggregatorStderrStream._write = function (chunk, encoding, done) {
-      aggregatedStderr += chunk;
-      done();
-    };
-
-    const childProcess = execa(command, commandArgs, {
-      stdin: 'inherit',
-      stdout: 'pipe',
-      stderr: 'pipe',
-
-      // Piping the output by default strips off the color. This is a workaround to
-      // preserve the color being piped to parent process.
-      extendEnv: true,
-      env: { FORCE_COLOR: '1' },
-    });
-    childProcess.stderr?.pipe(aggregatorStderrStream);
-
-    if (options?.printStdout) {
-      childProcess.stdout?.pipe(process.stdout);
-    }
-
-    const cdkOutput = { deploymentTimes: {} };
-    if (childProcess.stdout) {
-      await this.populateCDKOutputFromStdout(cdkOutput, childProcess.stdout);
-    }
-
-    try {
-      await childProcess;
-      return cdkOutput;
-    } catch (error) {
-      // swallow execa error which is most of the time noise (basically child exited with exit code...)
-      // bubbling this up to customers add confusion (Customers don't need to know we are running IPC calls
-      // and their exit codes printed while sandbox continue to run). Hence we explicitly don't pass error in the cause
-      // rather throw the entire stderr for clients to figure out what to do with it.
-      throw new Error(aggregatedStderr);
-    }
   };
 
   private populateCDKOutputFromStdout = async (
