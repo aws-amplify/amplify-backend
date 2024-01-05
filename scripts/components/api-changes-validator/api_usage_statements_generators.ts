@@ -319,6 +319,16 @@ class ClassConstructorUsageStatementsGenerator
     private readonly constructorDeclaration: ts.ConstructorDeclaration
   ) {}
 
+  generate = (): UsageStatements => {
+    const isAbstract = this.classDeclaration.modifiers?.find(
+      (modifier) => modifier.kind === ts.SyntaxKind.AbstractKeyword
+    );
+    if (isAbstract) {
+      return this.generateAbstractClassConstructorUsage();
+    }
+    return this.generateConcreteClassConstructorUsage();
+  };
+
   /**
    * Generates usage patterns of concrete class constructor.
    * Generated snippets attempt to invoke constructor with min and max parameters.
@@ -402,16 +412,6 @@ class ClassConstructorUsageStatementsGenerator
     usageStatement += `${indent('}')}${EOL}`;
     usageStatement += `}${EOL}`;
     return { usageStatement };
-  };
-
-  generate = (): UsageStatements => {
-    const isAbstract = this.classDeclaration.modifiers?.find(
-      (modifier) => modifier.kind === ts.SyntaxKind.AbstractKeyword
-    );
-    if (isAbstract) {
-      return this.generateAbstractClassConstructorUsage();
-    }
-    return this.generateConcreteClassConstructorUsage();
   };
 }
 
