@@ -1,4 +1,7 @@
-import { PackageJsonReader } from '@aws-amplify/platform-core';
+import {
+  AmplifyUserError,
+  PackageJsonReader,
+} from '@aws-amplify/platform-core';
 
 export type NamespaceResolver = {
   resolve: () => Promise<string>;
@@ -20,6 +23,10 @@ export class LocalNamespaceResolver implements NamespaceResolver {
   resolve = async () => {
     const name = this.packageJsonReader.readFromCwd().name;
     if (name) return name;
-    throw new Error('Cannot load name from the package.json');
+    throw new AmplifyUserError('InvalidPackageJsonError', {
+      message: 'Cannot load name from the package.json',
+      resolution:
+        'Ensure you are running amplify commands in root of your project (i.e. in the parent of the `amplify` directory). Also ensure that your root package.json file has a "name" field.',
+    });
   };
 }

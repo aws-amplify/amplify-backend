@@ -1,5 +1,21 @@
 # @aws-amplify/auth-construct-alpha
 
+## 0.5.0
+
+### Minor Changes
+
+- 6a1c252e1: Expose domainPrefix as an input property to the Auth construct.
+
+### Patch Changes
+
+- 6a1c252e1: Cognito domains are now created by default, and oauth settings are exported to frontend config.
+- Updated dependencies [e5da97e37]
+- Updated dependencies [6a1c252e1]
+- Updated dependencies [6a1c252e1]
+  - @aws-amplify/plugin-types@0.7.0
+  - @aws-amplify/backend-output-schemas@0.5.0
+  - @aws-amplify/backend-output-storage@0.2.7
+
 ## 0.4.4
 
 ### Patch Changes

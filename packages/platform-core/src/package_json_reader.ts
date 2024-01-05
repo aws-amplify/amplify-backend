@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import z from 'zod';
+import { AmplifyUserError } from './errors';
 
 /**
  * return the package json
@@ -19,8 +20,13 @@ export class PackageJsonReader {
         fs.readFileSync(absolutePackageJsonPath, 'utf-8')
       );
     } catch (err) {
-      throw new Error(
-        `Could not JSON.parse the contents of ${absolutePackageJsonPath}`
+      throw new AmplifyUserError(
+        'InvalidPackageJsonError',
+        {
+          message: `Could not parse the contents of ${absolutePackageJsonPath}`,
+          resolution: `Ensure that ${absolutePackageJsonPath} exists and is a valid JSON file`,
+        },
+        err as Error
       );
     }
     return packageJsonSchema.parse(jsonParsedValue);
