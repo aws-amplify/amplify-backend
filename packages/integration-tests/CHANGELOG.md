@@ -1,5 +1,15 @@
 # @aws-amplify/integration-tests
 
+## 0.4.0
+
+### Minor Changes
+
+- 6a1c252e1: Expose domainPrefix as an input property to the Auth construct.
+
+### Patch Changes
+
+- 6a1c252e1: Cognito domains are now created by default, and oauth settings are exported to frontend config.
+
 ## 0.3.8
 
 ### Patch Changes

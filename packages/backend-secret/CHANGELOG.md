@@ -1,5 +1,16 @@
 # @aws-amplify/backend-secret
 
+## 0.3.4
+
+### Patch Changes
+
+- e5da97e37: Move parameter path methods to ParameterPathConversions
+- Updated dependencies [8688aa00f]
+- Updated dependencies [e5da97e37]
+- Updated dependencies [e5da97e37]
+  - @aws-amplify/platform-core@0.3.4
+  - @aws-amplify/plugin-types@0.7.0
+
 ## 0.3.3
 
 ### Patch Changes
