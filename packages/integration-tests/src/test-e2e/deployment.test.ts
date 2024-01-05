@@ -1,5 +1,4 @@
 import { after, afterEach, before, beforeEach, describe, it } from 'node:test';
-import { execa } from 'execa';
 import {
   createTestDirectory,
   deleteTestDirectory,
@@ -9,7 +8,7 @@ import fs from 'fs/promises';
 import { shortUuid } from '../short_uuid.js';
 import { getTestProjectCreators } from '../test-project-setup/test_project_creator.js';
 import { TestProjectBase } from '../test-project-setup/test_project_base.js';
-import { homedir, userInfo } from 'os';
+import { userInfo } from 'os';
 import { PredicatedActionBuilder } from '../process-controller/predicated_action_queue_builder.js';
 import { amplifyCli } from '../process-controller/process_controller.js';
 import path from 'path';
