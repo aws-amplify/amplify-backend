@@ -12,7 +12,7 @@ export class ParameterPathConversions {
    */
   static toParameterPrefix(backendId: BackendIdentifier | AppId): string {
     if (typeof backendId === 'object') {
-      return getBranchParameterPrefix(backendId);
+      return getBackendParameterPrefix(backendId);
     }
     return getSharedParameterPrefix(backendId);
   }
@@ -25,7 +25,7 @@ export class ParameterPathConversions {
     secretName: string
   ): string {
     if (typeof backendId === 'object') {
-      return getBranchParameterFullPath(backendId, secretName);
+      return getBackendParameterFullPath(backendId, secretName);
     }
     return getSharedParameterFullPath(backendId, secretName);
   }
@@ -34,7 +34,7 @@ export class ParameterPathConversions {
 /**
  * Get a branch-specific parameter prefix.
  */
-const getBranchParameterPrefix = (parts: BackendIdentifier): string => {
+const getBackendParameterPrefix = (parts: BackendIdentifier): string => {
   // round trip the backend id through the stack name conversion to ensure we are applying the same sanitization to SSM paths
   const sanitizedBackendId = BackendIdentifierConversions.fromStackName(
     BackendIdentifierConversions.toStackName(parts)
@@ -51,11 +51,11 @@ const getBranchParameterPrefix = (parts: BackendIdentifier): string => {
 /**
  * Get a branch-specific parameter full path.
  */
-const getBranchParameterFullPath = (
+const getBackendParameterFullPath = (
   backendIdentifier: BackendIdentifier,
   secretName: string
 ): string => {
-  return `${getBranchParameterPrefix(backendIdentifier)}/${secretName}`;
+  return `${getBackendParameterPrefix(backendIdentifier)}/${secretName}`;
 };
 
 /**
