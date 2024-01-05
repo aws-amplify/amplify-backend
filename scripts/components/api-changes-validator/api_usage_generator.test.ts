@@ -130,17 +130,20 @@ export class SomeClass5 {
 export class SomeClass6 {
   static someStaticProperty: string;
 }
-export class SomeClass7<T1, T2, T3, T4, T5, T6> {
+export class SomeClass7<T1 extends SomeClass1, T2, T3, T4, T5, T6> {
   constructor(param1: T1, param2?: T2);
   someMethod: (param1: T3, param2?: T4) => T5;
   someProperty: T6;
 }
-export abstract class SomeAbstractClass {
+export abstract class SomeAbstractClass1 {
   constructor(param1: string, param2?: string);
   someMethod: (param1: string, param2?: string) => string;
   someProperty: string;
   static someStaticMethod: (param1: string, param2?: string) => string;
   static someStaticProperty: string;
+}
+export abstract class SomeAbstractClass2<T1 extends SomeClass1, T2, T3, T4, T5, T6> {
+  constructor(param1: T1, param2?: T2);
 }
     `,
     expectedApiUsage: `
@@ -151,7 +154,14 @@ import { SomeClass4 } from 'samplePackageName';
 import { SomeClass5 } from 'samplePackageName';
 import { SomeClass6 } from 'samplePackageName';
 import { SomeClass7 } from 'samplePackageName';
-import { SomeAbstractClass } from 'samplePackageName';
+import { SomeAbstractClass1 } from 'samplePackageName';
+import { SomeAbstractClass2 } from 'samplePackageName';
+
+const someClass2ConstructorUsageFunction = (param1: string, param2?: string) => {
+  new SomeClass2(param1);
+  new SomeClass2(param1, param2);
+}
+
 
 const someClass3SomeMethodUsageOuterFunction = (someClass3SomeMethodUsageOuterFunctionParameter: SomeClass3) => {
   const SomeClass3SomeMethodUsageInnerFunction = (param1: string, param2?: string) => {
@@ -182,34 +192,50 @@ const someClass6SomeStaticPropertyUsageOuterFunction = (someClass6SomeStaticProp
 }
 
 
-const someClass7SomeMethodUsageOuterFunction = <T1, T2, T3, T4, T5, T6>(someClass7SomeMethodUsageOuterFunctionParameter: SomeClass7<T1, T2, T3, T4, T5, T6>) => {
+const someClass7ConstructorUsageFunction = <T1 extends SomeClass1, T2, T3, T4, T5, T6>(param1: T1, param2?: T2) => {
+  new SomeClass7<T1, T2, T3, T4, T5, T6>(param1);
+  new SomeClass7<T1, T2, T3, T4, T5, T6>(param1, param2);
+}
+const someClass7SomeMethodUsageOuterFunction = <T1 extends SomeClass1, T2, T3, T4, T5, T6>(someClass7SomeMethodUsageOuterFunctionParameter: SomeClass7<T1, T2, T3, T4, T5, T6>) => {
   const SomeClass7SomeMethodUsageInnerFunction = (param1: T3, param2?: T4) => {
     const returnValue: T5 = someClass7SomeMethodUsageOuterFunctionParameter.someMethod(param1);
     someClass7SomeMethodUsageOuterFunctionParameter.someMethod(param1, param2);
   }
 }
-const someClass7SomePropertyUsageOuterFunction = <T1, T2, T3, T4, T5, T6>(someClass7SomePropertyUsageOuterFunctionParameter: SomeClass7<T1, T2, T3, T4, T5, T6>) => {
+const someClass7SomePropertyUsageOuterFunction = <T1 extends SomeClass1, T2, T3, T4, T5, T6>(someClass7SomePropertyUsageOuterFunctionParameter: SomeClass7<T1, T2, T3, T4, T5, T6>) => {
   const propertyValue: T6 = someClass7SomePropertyUsageOuterFunctionParameter.someProperty;
 }
 
 
-const someAbstractClassSomeMethodUsageOuterFunction = (someAbstractClassSomeMethodUsageOuterFunctionParameter: SomeAbstractClass) => {
-  const SomeAbstractClassSomeMethodUsageInnerFunction = (param1: string, param2?: string) => {
-    const returnValue: string = someAbstractClassSomeMethodUsageOuterFunctionParameter.someMethod(param1);
-    someAbstractClassSomeMethodUsageOuterFunctionParameter.someMethod(param1, param2);
+class SomeAbstractClass1DerivedUsageClass extends SomeAbstractClass1{
+  constructor(param1: string, param2?: string) {
+    super(param1, param2);
   }
 }
-const someAbstractClassSomePropertyUsageOuterFunction = (someAbstractClassSomePropertyUsageOuterFunctionParameter: SomeAbstractClass) => {
-  const propertyValue: string = someAbstractClassSomePropertyUsageOuterFunctionParameter.someProperty;
-}
-const someAbstractClassSomeStaticMethodUsageOuterFunction = (someAbstractClassSomeStaticMethodUsageOuterFunctionParameter: SomeAbstractClass) => {
-  const SomeAbstractClassSomeStaticMethodUsageInnerFunction = (param1: string, param2?: string) => {
-    const returnValue: string = SomeAbstractClass.someStaticMethod(param1);
-    SomeAbstractClass.someStaticMethod(param1, param2);
+const someAbstractClass1SomeMethodUsageOuterFunction = (someAbstractClass1SomeMethodUsageOuterFunctionParameter: SomeAbstractClass1) => {
+  const SomeAbstractClass1SomeMethodUsageInnerFunction = (param1: string, param2?: string) => {
+    const returnValue: string = someAbstractClass1SomeMethodUsageOuterFunctionParameter.someMethod(param1);
+    someAbstractClass1SomeMethodUsageOuterFunctionParameter.someMethod(param1, param2);
   }
 }
-const someAbstractClassSomeStaticPropertyUsageOuterFunction = (someAbstractClassSomeStaticPropertyUsageOuterFunctionParameter: SomeAbstractClass) => {
-  const propertyValue: string = SomeAbstractClass.someStaticProperty;
+const someAbstractClass1SomePropertyUsageOuterFunction = (someAbstractClass1SomePropertyUsageOuterFunctionParameter: SomeAbstractClass1) => {
+  const propertyValue: string = someAbstractClass1SomePropertyUsageOuterFunctionParameter.someProperty;
+}
+const someAbstractClass1SomeStaticMethodUsageOuterFunction = (someAbstractClass1SomeStaticMethodUsageOuterFunctionParameter: SomeAbstractClass1) => {
+  const SomeAbstractClass1SomeStaticMethodUsageInnerFunction = (param1: string, param2?: string) => {
+    const returnValue: string = SomeAbstractClass1.someStaticMethod(param1);
+    SomeAbstractClass1.someStaticMethod(param1, param2);
+  }
+}
+const someAbstractClass1SomeStaticPropertyUsageOuterFunction = (someAbstractClass1SomeStaticPropertyUsageOuterFunctionParameter: SomeAbstractClass1) => {
+  const propertyValue: string = SomeAbstractClass1.someStaticProperty;
+}
+
+
+class SomeAbstractClass2DerivedUsageClass<T1 extends SomeClass1, T2, T3, T4, T5, T6> extends SomeAbstractClass2<T1, T2, T3, T4, T5, T6>{
+  constructor(param1: T1, param2?: T2) {
+    super(param1, param2);
+  }
 }
     `,
   },

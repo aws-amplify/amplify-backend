@@ -36,12 +36,15 @@ export class SampleClass7<T1, T2, T3, T4, T5, T6> {
   someMethod: (param1: T3, param2?: T4) => T5;
   someProperty: T6;
 }
-export abstract class SomeAbstractClass {
+export abstract class SomeAbstractClass1 {
   constructor(param1: string, param2?: string);
   someMethod: (param1: string, param2?: string) => string;
   someProperty: string;
   static someStaticMethod: (param1: string, param2?: string) => string;
   static someStaticProperty: string;
+}
+export abstract class SomeAbstractClass2<T1, T2, T3, T4, T5, T6> {
+  constructor(param1: T1, param2?: T2);
 }
 
 export const someFunction1: () => void;
