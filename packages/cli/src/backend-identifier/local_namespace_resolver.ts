@@ -26,7 +26,7 @@ export class LocalNamespaceResolver implements NamespaceResolver {
     throw new AmplifyUserError('InvalidPackageJsonError', {
       message: 'Cannot load name from the package.json',
       resolution:
-        'In order to resolve this error check if your are running command in root of your project (i.e. not in amplify directory) and if package.json has name property',
+        'Ensure you are running amplify commands in root of your project (i.e. in the parent of the `amplify` directory). Also ensure that your root package.json file has a "name" field.',
     });
   };
 }
