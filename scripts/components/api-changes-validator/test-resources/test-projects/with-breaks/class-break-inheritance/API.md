@@ -12,7 +12,6 @@ export abstract class SomeAbstractClass {
   someMethod1: (param1: string, param2?: string) => string;
 }
 
-// remove all inheritance here
 export class SomeClass
   extends SomeAbstractClass
   implements SomeType1, SomeType2
