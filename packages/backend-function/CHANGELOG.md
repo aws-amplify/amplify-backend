@@ -1,5 +1,18 @@
 # @aws-amplify/backend-function
 
+## 0.5.0
+
+### Minor Changes
+
+- e5da97e37: Implement function secret access
+
+### Patch Changes
+
+- c885ff22d: Add unit test to know when oldest Node LTS changes to update default function runtime
+- Updated dependencies [e5da97e37]
+  - @aws-amplify/plugin-types@0.7.0
+  - @aws-amplify/backend-output-storage@0.2.7
+
 ## 0.4.0
 
 ### Minor Changes

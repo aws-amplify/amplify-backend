@@ -45,7 +45,7 @@ export class SampleClass7<T1, T2, T3, T4, T5, T6> {
   };
   someProperty: T6;
 }
-export abstract class SomeAbstractClass {
+export abstract class SomeAbstractClass1 {
   protected constructor(param1: string, param2?: string) {
     throw new Error();
   }
@@ -57,6 +57,11 @@ export abstract class SomeAbstractClass {
     throw new Error();
   };
   static someStaticProperty: string;
+}
+export abstract class SomeAbstractClass2<T1, T2, T3, T4, T5, T6> {
+  protected constructor(param1: T1, param2?: T2) {
+    throw new Error();
+  }
 }
 
 export const someFunction1 = (): void => {
