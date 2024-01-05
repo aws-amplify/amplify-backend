@@ -216,6 +216,13 @@ export class ClassUsageStatementsGenerator implements UsageStatementsGenerator {
               classMember as ts.PropertyDeclaration
             ).generate().usageStatement ?? '';
           break;
+        case ts.SyntaxKind.Constructor:
+          usageStatement +=
+            new ClassConstructorUsageStatementsGenerator(
+              this.classDeclaration,
+              classMember as ts.ConstructorDeclaration
+            ).generate().usageStatement ?? '';
+          break;
         default:
           console.log(
             `Warning: class usage generator encountered unrecognized member kind ${classMember.kind}`
@@ -298,6 +305,113 @@ class ClassPropertyUsageStatementsGenerator
     usageStatement += `${indent(innerUsageStatement)}${EOL}`;
     usageStatement += `}${EOL}`;
     return { usageStatement };
+  };
+}
+
+/**
+ * Generates usage snippets for class constructor.
+ */
+class ClassConstructorUsageStatementsGenerator
+  implements UsageStatementsGenerator
+{
+  constructor(
+    private readonly classDeclaration: ts.ClassDeclaration,
+    private readonly constructorDeclaration: ts.ConstructorDeclaration
+  ) {}
+
+  /**
+   * Generates usage patterns of concrete class constructor.
+   * Generated snippets attempt to invoke constructor with min and max parameters.
+   * Enclosing usage function is used to deliver parameters for constructor call.
+   */
+  private generateConcreteClassConstructorUsage = (): UsageStatements => {
+    const className = this.classDeclaration.name?.getText();
+    if (!className) {
+      throw new Error('Class name is missing');
+    }
+    const usageFunctionName = toLowerCamelCase(
+      `${className}ConstructorUsageFunction`
+    );
+    const usageFunctionParameterDeclaration =
+      new CallableParameterDeclarationUsageStatementsGenerator(
+        this.constructorDeclaration.parameters
+      ).generate().usageStatement ?? '';
+    const usageFunctionGenericParametersDeclaration =
+      new GenericTypeParameterDeclarationUsageStatementsGenerator(
+        this.classDeclaration.typeParameters
+      ).generate().usageStatement ?? '';
+    const minParameterUsage =
+      new CallableParameterUsageStatementsGenerator(
+        this.constructorDeclaration.parameters,
+        'min'
+      ).generate().usageStatement ?? '';
+    const maxParameterUsage =
+      new CallableParameterUsageStatementsGenerator(
+        this.constructorDeclaration.parameters,
+        'max'
+      ).generate().usageStatement ?? '';
+    const genericTypeParameters =
+      new GenericTypeParameterUsageStatementsGenerator(
+        this.classDeclaration.typeParameters
+      ).generate().usageStatement ?? '';
+    const callableSymbol = `new ${className}${genericTypeParameters}`;
+    const minParameterCallWithReturnValue = `${callableSymbol}(${minParameterUsage});`;
+    const maxParameterCall = `${callableSymbol}(${maxParameterUsage});`;
+
+    let usageStatement = `const ${usageFunctionName} = ${usageFunctionGenericParametersDeclaration}(${usageFunctionParameterDeclaration}) => {${EOL}`;
+    usageStatement += `${indent(minParameterCallWithReturnValue)}${EOL}`;
+    usageStatement += `${indent(maxParameterCall)}${EOL}`;
+    usageStatement += `}${EOL}`;
+    return { usageStatement };
+  };
+
+  /**
+   * Generates usage snippets for abstract class constructor.
+   * Generated snippets have an attempt to derive from abstract class
+   * and call it's constructor via super() call with matching list of parameters.
+   */
+  private generateAbstractClassConstructorUsage = (): UsageStatements => {
+    const className = this.classDeclaration.name?.getText();
+    if (!className) {
+      throw new Error('Class name is missing');
+    }
+    const derivedClassConstructorParameterUsage =
+      new CallableParameterUsageStatementsGenerator(
+        this.constructorDeclaration.parameters,
+        // exploring just max is fine as abstract and derived class ctor
+        // signatures match
+        'max'
+      ).generate().usageStatement ?? '';
+    const derivedClassGenericParametersDeclaration =
+      new GenericTypeParameterDeclarationUsageStatementsGenerator(
+        this.classDeclaration.typeParameters
+      ).generate().usageStatement ?? '';
+    const genericTypeParameters =
+      new GenericTypeParameterUsageStatementsGenerator(
+        this.classDeclaration.typeParameters
+      ).generate().usageStatement ?? '';
+    const derivedClassName = `${className}DerivedUsageClass`;
+    const constructorDeclaration = this.constructorDeclaration
+      .getText()
+      // Strip trailing ';' as we want to define body.
+      .replace(';', '');
+    const superConstructorCall = `super(${derivedClassConstructorParameterUsage});`;
+    let usageStatement = `class ${derivedClassName}${derivedClassGenericParametersDeclaration} extends ${className}${genericTypeParameters}{${EOL}`;
+    usageStatement += `${indent(constructorDeclaration)} {${EOL}`;
+    usageStatement += `${indent(indent(superConstructorCall))}${EOL}`;
+    usageStatement += `${indent('}')}${EOL}`;
+    usageStatement += `}${EOL}`;
+    return { usageStatement };
+  };
+
+  generate = (): UsageStatements => {
+    const isAbstract = this.classDeclaration.modifiers?.find(
+      (modifier) => modifier.kind === ts.SyntaxKind.AbstractKeyword
+    );
+    if (isAbstract) {
+      return this.generateAbstractClassConstructorUsage();
+    }
+    return this.generateConcreteClassConstructorUsage();
   };
 }
 
