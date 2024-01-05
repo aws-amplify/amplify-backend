@@ -15,11 +15,22 @@ export class MinimalWithTypescriptIdiomTestProjectCreator
   /**
    * Creates project creator.
    */
-  constructor(private readonly cfnClient: CloudFormationClient) {}
+  constructor(
+    private readonly cfnClient: CloudFormationClient,
+    private readonly packageManagerProps: {
+      executable: string;
+      installCommand: string;
+      name: string;
+    }
+  ) {}
 
   createProject = async (e2eProjectDir: string): Promise<TestProjectBase> => {
     const { projectName, projectRoot, projectAmplifyDir } =
-      await createEmptyAmplifyProject(this.name, e2eProjectDir);
+      await createEmptyAmplifyProject(
+        this.name,
+        e2eProjectDir,
+        this.packageManagerProps
+      );
 
     const project = new MinimalWithTypescriptIdiomTestProject(
       projectName,

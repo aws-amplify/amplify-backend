@@ -12,7 +12,12 @@ const TEST_PROJECT_PREFIX = 'test-project';
  */
 export const createEmptyAmplifyProject = async (
   projectDirName: string,
-  parentDir: string
+  parentDir: string,
+  packageManagerProps: {
+    executable: string;
+    installCommand: string;
+    name: string;
+  }
 ): Promise<{
   projectName: string;
   projectRoot: string;
@@ -31,9 +36,9 @@ export const createEmptyAmplifyProject = async (
   await setupDirAsEsmModule(projectAmplifyDir);
 
   await execa(
-    'npm',
+    packageManagerProps?.executable ?? 'npm',
     [
-      'install',
+      packageManagerProps?.installCommand ?? 'install',
       '-D',
       '@aws-amplify/backend',
       '@aws-amplify/backend-cli',

@@ -6,6 +6,7 @@ import { MinimalWithTypescriptIdiomTestProjectCreator } from './minimal_with_typ
 import { LambdaClient } from '@aws-sdk/client-lambda';
 import { DeployedResourcesFinder } from '../find_deployed_resource.js';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
+import { getPackageManagerProps } from './get_package_manager.js';
 
 export type TestProjectCreator = {
   readonly name: string;
@@ -22,14 +23,19 @@ export const getTestProjectCreators = (): TestProjectCreator[] => {
   const lambdaClient = new LambdaClient(e2eToolingClientConfig);
   const resourceFinder = new DeployedResourcesFinder(cfnClient);
   const secretClient = getSecretClient(e2eToolingClientConfig);
+  const packageManagerProps = getPackageManagerProps();
   testProjectCreators.push(
     new DataStorageAuthWithTriggerTestProjectCreator(
       cfnClient,
       secretClient,
       lambdaClient,
-      resourceFinder
+      resourceFinder,
+      packageManagerProps
     ),
-    new MinimalWithTypescriptIdiomTestProjectCreator(cfnClient)
+    new MinimalWithTypescriptIdiomTestProjectCreator(
+      cfnClient,
+      packageManagerProps
+    )
   );
   return testProjectCreators;
 };
