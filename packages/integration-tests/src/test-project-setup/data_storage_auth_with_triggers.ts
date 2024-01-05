@@ -169,7 +169,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     assert.equal(
       responsePayload,
       // eslint-disable-next-line spellcheck/spell-checker
-      'Your uuid is 6ec0bd7f-11c0-43da-975e-2a8ad9ebae0b'
+      'Your uuid is 6ec0bd7f-11c0-43da-975e-2a8ad9ebae0b. TEST_SECRET env var value is amazonSecret-e2eTestValue.'
     );
   }
 

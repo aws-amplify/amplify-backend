@@ -31,8 +31,8 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
 
     const authClientConfig: AuthClientConfig | Record<string, never> = {
       aws_user_pools_id: authOutput.payload.userPoolId,
-      aws_user_pools_web_client_id: authOutput.payload.webClientId,
       aws_cognito_region: authOutput.payload.authRegion,
+      aws_user_pools_web_client_id: authOutput.payload.webClientId,
       aws_cognito_identity_pool_id: authOutput.payload.identityPoolId,
     };
 
@@ -73,6 +73,31 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
         'passwordPolicyCharacters',
         authOutput.payload.passwordPolicyRequirements
       );
+    }
+
+    if (authOutput.payload.socialProviders) {
+      parseAndAssignObject(
+        authClientConfig,
+        'aws_cognito_social_providers',
+        authOutput.payload.socialProviders
+      );
+    }
+
+    if (authOutput.payload.oauthDomain) {
+      authClientConfig.oauth = {};
+      authClientConfig.oauth.domain = authOutput.payload.oauthDomain;
+      parseAndAssignObject(
+        authClientConfig.oauth,
+        'scope',
+        authOutput.payload.oauthScope
+      );
+      authClientConfig.oauth.redirectSignIn =
+        authOutput.payload.oauthRedirectSignIn;
+      authClientConfig.oauth.redirectSignOut =
+        authOutput.payload.oauthRedirectSignOut;
+      authClientConfig.oauth.clientId = authOutput.payload.oauthClientId;
+      authClientConfig.oauth.responseType =
+        authOutput.payload.oauthResponseType;
     }
     return authClientConfig;
   };

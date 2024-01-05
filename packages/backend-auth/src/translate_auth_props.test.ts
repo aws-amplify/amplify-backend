@@ -10,6 +10,7 @@ import { AuthProps, PhoneNumberLogin } from '@aws-amplify/auth-construct-alpha';
 import { SecretValue } from 'aws-cdk-lib';
 import assert from 'node:assert';
 import { translateToAuthConstructLoginWith } from './translate_auth_props.js';
+import { ParameterPathConversions } from '@aws-amplify/platform-core';
 
 const phone: PhoneNumberLogin = {
   verificationMessage: (code: string) => `text${code}text2`,
@@ -28,6 +29,7 @@ const appleTeamId = 'appleTeamId';
 const appleKeyId = 'appleKeyId';
 const applePrivateKey = 'applePrivateKey';
 const callbackUrls = ['a', 'b'];
+const logoutUrls = ['a', 'b'];
 
 const testBackendIdentifier: BackendIdentifier = {
   namespace: 'testBackendId',
@@ -42,11 +44,20 @@ class TestBackendSecret implements BackendSecret {
   resolve = (): SecretValue => {
     return SecretValue.unsafePlainText(this.secretName);
   };
+  resolvePath = (): string => {
+    return ParameterPathConversions.toParameterFullPath(
+      testBackendIdentifier,
+      this.secretName
+    );
+  };
 }
 
 class TestBackendSecretResolver implements BackendSecretResolver {
   resolveSecret = (backendSecret: BackendSecret): SecretValue => {
     return backendSecret.resolve(testStack, testBackendIdentifier);
+  };
+  resolvePath = (backendSecret: BackendSecret): string => {
+    return backendSecret.resolvePath(testBackendIdentifier);
   };
 }
 
@@ -81,6 +92,7 @@ void describe('translateToAuthConstructLoginWith', () => {
           privateKey: new TestBackendSecret(applePrivateKey),
         },
         callbackUrls: callbackUrls,
+        logoutUrls: logoutUrls,
       },
     };
 
@@ -116,6 +128,7 @@ void describe('translateToAuthConstructLoginWith', () => {
           privateKey: applePrivateKey,
         },
         callbackUrls: callbackUrls,
+        logoutUrls: logoutUrls,
       },
     };
     assert.deepStrictEqual(translated, expected);
@@ -126,6 +139,7 @@ void describe('translateToAuthConstructLoginWith', () => {
       phone,
       externalProviders: {
         callbackUrls: callbackUrls,
+        logoutUrls: logoutUrls,
       },
     };
 
@@ -138,6 +152,7 @@ void describe('translateToAuthConstructLoginWith', () => {
       phone,
       externalProviders: {
         callbackUrls: callbackUrls,
+        logoutUrls: logoutUrls,
       },
     };
     assert.deepStrictEqual(translated, expected);

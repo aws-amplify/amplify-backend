@@ -1,5 +1,4 @@
 import { Argv, CommandModule } from 'yargs';
-import { handleCommandFailure } from '../../command_failure_handler.js';
 
 /**
  * Root command to configure Amplify.
@@ -35,13 +34,6 @@ export class ConfigureCommand implements CommandModule<object> {
    * @inheritDoc
    */
   builder = (yargs: Argv): Argv => {
-    return yargs
-      .version(false)
-      .command(this.configureSubCommands)
-      .help()
-      .fail((msg, err) => {
-        handleCommandFailure(msg, err, yargs);
-        yargs.exit(1, err);
-      });
+    return yargs.version(false).command(this.configureSubCommands).help();
   };
 }

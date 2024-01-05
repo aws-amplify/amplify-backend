@@ -1,4 +1,6 @@
 import {
+  BackendSecret,
+  BackendSecretResolver,
   ConstructContainerEntryGenerator,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
@@ -6,11 +8,14 @@ import {
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
-import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as path from 'path';
 import { getCallerDirectory } from './get_caller_directory.js';
-import { Duration } from 'aws-cdk-lib';
+import { Duration, Stack } from 'aws-cdk-lib';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import fs from 'fs';
+import { createRequire } from 'module';
 
 /**
  * Entry point for defining a function in the Amplify ecosystem
@@ -56,7 +61,7 @@ export type FunctionProps = {
   /**
    * Environment variables that will be available during function execution
    */
-  environment?: Record<string, string>;
+  environment?: Record<string, string | BackendSecret>;
 
   /**
    * Node runtime version for the lambda environment.
@@ -197,8 +202,16 @@ class FunctionGenerator implements ConstructContainerEntryGenerator {
 
   constructor(private readonly props: HydratedFunctionProps) {}
 
-  generateContainerEntry = (scope: Construct) => {
-    return new AmplifyFunction(scope, this.props.name, this.props);
+  generateContainerEntry = (
+    scope: Construct,
+    backendSecretResolver: BackendSecretResolver
+  ) => {
+    return new AmplifyFunction(
+      scope,
+      this.props.name,
+      this.props,
+      backendSecretResolver
+    );
   };
 }
 
@@ -207,16 +220,49 @@ class AmplifyFunction
   implements ResourceProvider<FunctionResources>
 {
   readonly resources: FunctionResources;
-  constructor(scope: Construct, id: string, props: HydratedFunctionProps) {
+  constructor(
+    scope: Construct,
+    id: string,
+    props: HydratedFunctionProps,
+    backendSecretResolver: BackendSecretResolver
+  ) {
     super(scope, id);
+    const functionEnvironmentTranslator = new FunctionEnvironmentTranslator(
+      scope,
+      props['environment'],
+      backendSecretResolver
+    );
+    const environmentRecord =
+      functionEnvironmentTranslator.getEnvironmentRecord();
+    const secretPolicyStatement =
+      functionEnvironmentTranslator.getSecretPolicyStatement();
+
+    const require = createRequire(import.meta.url);
+    const bannerCodeFile = require.resolve('./resolve_secret_banner');
+    const bannerCode = fs
+      .readFileSync(bannerCodeFile, 'utf-8')
+      .replaceAll('\n', '')
+      .replaceAll('\r', '')
+      .split('//#')[0]; // remove source map
+
+    const functionLambda = new NodejsFunction(scope, `${id}-lambda`, {
+      entry: props.entry,
+      environment: environmentRecord as { [key: string]: string }, // for some reason TS can't figure out that this is the same as Record<string, string>
+      timeout: Duration.seconds(props.timeoutSeconds),
+      memorySize: props.memoryMB,
+      runtime: nodeVersionMap[props.runtime],
+      bundling: {
+        banner: bannerCode,
+        format: OutputFormat.ESM,
+      },
+    });
+
+    if (secretPolicyStatement) {
+      functionLambda.grantPrincipal.addToPrincipalPolicy(secretPolicyStatement);
+    }
+
     this.resources = {
-      lambda: new NodejsFunction(scope, `${id}-lambda`, {
-        entry: props.entry,
-        environment: props.environment as { [key: string]: string }, // for some reason TS can't figure out that this is the same as Record<string, string>
-        timeout: Duration.seconds(props.timeoutSeconds),
-        memorySize: props.memoryMB,
-        runtime: nodeVersionMap[props.runtime],
-      }),
+      lambda: functionLambda,
     };
   }
 }
@@ -234,3 +280,60 @@ const nodeVersionMap: Record<NodeVersion, Runtime> = {
   18: Runtime.NODEJS_18_X,
   20: Runtime.NODEJS_20_X,
 };
+
+class FunctionEnvironmentTranslator {
+  private secretPaths: string[] = [];
+  private environmentRecord: Record<string, string> = {};
+
+  constructor(
+    private readonly scope: Construct,
+    private readonly functionEnvironmentProp: HydratedFunctionProps['environment'],
+    private readonly backendSecretResolver: BackendSecretResolver
+  ) {
+    const secretPlaceholderText = '<value will be resolved during runtime>';
+    const amplifySecretPaths = 'AMPLIFY_SECRET_PATHS';
+    const secretPathEnvVars: Record<string, string> = {};
+
+    for (const [key, value] of Object.entries(this.functionEnvironmentProp)) {
+      if (key === amplifySecretPaths) {
+        throw new Error(
+          `${amplifySecretPaths} is a reserved environment variable name`
+        );
+      }
+      if (typeof value !== 'string') {
+        const secretPath = this.backendSecretResolver.resolvePath(value);
+        this.environmentRecord[key] = secretPlaceholderText;
+        secretPathEnvVars[key] = secretPath;
+        this.secretPaths.push(secretPath);
+      } else {
+        this.environmentRecord[key] = value;
+      }
+    }
+
+    this.environmentRecord[amplifySecretPaths] =
+      JSON.stringify(secretPathEnvVars);
+  }
+
+  getEnvironmentRecord = () => {
+    return this.environmentRecord;
+  };
+
+  getSecretPolicyStatement = (): iam.PolicyStatement | undefined => {
+    if (this.secretPaths.length === 0) {
+      return;
+    }
+
+    const resourceArns = this.secretPaths.map(
+      (path) =>
+        `arn:aws:ssm:${Stack.of(this.scope).region}:${
+          Stack.of(this.scope).account
+        }:parameter${path}`
+    );
+
+    return new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: ['ssm:GetParameters'],
+      resources: resourceArns,
+    });
+  };
+}

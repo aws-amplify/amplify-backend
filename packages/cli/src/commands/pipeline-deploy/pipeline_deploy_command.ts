@@ -3,7 +3,6 @@ import { Argv, CommandModule } from 'yargs';
 import { BackendDeployer } from '@aws-amplify/backend-deployer';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 import { ArgumentsKebabCase } from '../../kebab_case.js';
-import { handleCommandFailure } from '../../command_failure_handler.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 
 export type PipelineDeployCommandOptions =
@@ -12,6 +11,7 @@ export type PipelineDeployCommandOptions =
 type PipelineDeployCommandOptionsCamelCase = {
   branch: string;
   appId: string;
+  configOutDir?: string;
 };
 
 /**
@@ -61,7 +61,10 @@ export class PipelineDeployCommand
     await this.backendDeployer.deploy(backendId, {
       validateAppSources: true,
     });
-    await this.clientConfigGenerator.generateClientConfigToFile(backendId);
+    await this.clientConfigGenerator.generateClientConfigToFile(
+      backendId,
+      args['config-out-dir']
+    );
   };
 
   builder = (yargs: Argv): Argv<PipelineDeployCommandOptions> => {
@@ -79,9 +82,11 @@ export class PipelineDeployCommand
         type: 'string',
         array: false,
       })
-      .fail((msg, err) => {
-        handleCommandFailure(msg, err, yargs);
-        yargs.exit(1, err);
+      .option('config-out-dir', {
+        describe:
+          'A path to directory where config is written. If not provided defaults to current process working directory.',
+        type: 'string',
+        array: false,
       });
   };
 }
