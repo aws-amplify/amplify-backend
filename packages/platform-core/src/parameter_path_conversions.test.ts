@@ -9,7 +9,7 @@ void describe('toParameterPrefix', () => {
       name: 'userName',
       type: 'sandbox',
     });
-    assert.equal(actual, '/amplify/reasonableName/userName');
+    assert.equal(actual, '/amplify/reasonableName/userName-sandbox-99c4c0494a');
   });
 
   void it('passes through values for shared parameter', () => {
@@ -24,7 +24,7 @@ void describe('toParameterPrefix', () => {
       type: 'branch',
     });
     // eslint-disable-next-line spellcheck/spell-checker
-    assert.equal(actual, 'amplify/testTHIS/thing123-branch-70899a9dd1');
+    assert.equal(actual, '/amplify/testTHIS/thing123-branch-70899a9dd1');
   });
 
   void it('truncates long name', () => {
@@ -35,7 +35,7 @@ void describe('toParameterPrefix', () => {
     });
     assert.equal(
       actual,
-      'amplify/reasonableName/InsanelyLongUserNameProvidedByCustomerDoNotKnowWha-sandbox-25ed708259'
+      '/amplify/reasonableName/InsanelyLongUserNameProvidedByCustomerDoNotKnowWha-sandbox-25ed708259'
     );
   });
 
@@ -48,7 +48,7 @@ void describe('toParameterPrefix', () => {
     });
     assert.equal(
       actual,
-      'amplify/InsanelyLongNamespaceProvidedByCustomerDoNotKnowWhatCustomersAreThinkingWhenChoosingThisGre/userName-sandbox-119c592989'
+      '/amplify/InsanelyLongNamespaceProvidedByCustomerDoNotKnowWhatCustomersAreThinkingWhenChoosingThisGre/userName-sandbox-119c592989'
     );
     assert.ok(actual.length <= 128);
   });
@@ -64,7 +64,7 @@ void describe('toParameterPrefix', () => {
     assert.equal(
       actual,
       // eslint-disable-next-line spellcheck/spell-checker
-      'amplify/InsanelyLongNameProvidedByCustomerDoNotKnowWhatCu/InsanelyLongUserNameProvidedByCustomerDoNotKnowWha-sandbox-4abbed907b'
+      '/amplify/InsanelyLongNameProvidedByCustomerDoNotKnowWhatCu/InsanelyLongUserNameProvidedByCustomerDoNotKnowWha-sandbox-4abbed907b'
     );
     assert.ok(actual.length <= 128);
   });
@@ -76,7 +76,7 @@ void describe('toParameterPrefix', () => {
       type: 'sandbox',
       hash: 'testHash',
     });
-    assert.equal(actual, 'amplify/reasonableName/userName-sandbox-testHash');
+    assert.equal(actual, '/amplify/reasonableName/userName-sandbox-testHash');
   });
 });
 
@@ -90,7 +90,10 @@ void describe('toParameterFullPath', () => {
       },
       'secretName'
     );
-    assert.equal(actual, '/amplify/reasonableName/userName/secretName');
+    assert.equal(
+      actual,
+      '/amplify/reasonableName/userName-sandbox-99c4c0494a/secretName'
+    );
   });
 
   void it('passes through values for shared parameter', () => {
