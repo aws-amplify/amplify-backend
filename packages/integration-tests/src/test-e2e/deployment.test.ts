@@ -31,13 +31,9 @@ const testProjectCreators = getTestProjectCreators();
 const testCdkProjectCreators = getTestCdkProjectCreators();
 void describe('deployment tests', { concurrency: testConcurrencyLevel }, () => {
   before(async () => {
-    // start a local npm proxy and publish the current codebase to the proxy
-    await execa('npm', ['run', 'clean:npm-proxy'], { stdio: 'inherit' });
-    await execa('npm', ['run', 'vend'], { stdio: 'inherit' });
     await createTestDirectory(rootTestDir);
   });
   after(async () => {
-    await execa('npm', ['run', 'stop:npm-proxy'], { stdio: 'inherit' });
     await deleteTestDirectory(rootTestDir);
   });
 

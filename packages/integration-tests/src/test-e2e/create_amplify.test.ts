@@ -115,11 +115,6 @@ void describe('create-amplify script', { concurrency: concurrency }, () => {
     );
   });
 
-  after(async () => {
-    // stop the npm proxy
-    await execa('npm', ['run', 'stop:npm-proxy'], { stdio: 'inherit' });
-  });
-
   const initialStates = ['empty', 'module', 'commonjs'] as const;
 
   initialStates.forEach((initialState) => {
