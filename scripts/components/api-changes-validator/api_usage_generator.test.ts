@@ -239,6 +239,43 @@ class SomeAbstractClass2DerivedUsageClass<T1 extends SomeClass1, T2, T3, T4, T5,
 }
     `,
   },
+  {
+    description: 'generates class inheritance usage',
+    apiReportCode: `
+export type SomeType1 = {
+};
+export type SomeType2<T1, T2> = {
+};
+export abstract class SomeAbstractClass<T1, T2> {
+}
+export class SomeClass<T1, T2, T3, T4> extends SomeAbstractClass<T1, T2> implements SomeType1, SomeType2<T3, T4>{
+}
+    `,
+    expectedApiUsage: `
+import { SomeType1 } from 'samplePackageName';
+import { SomeType2 } from 'samplePackageName';
+import { SomeAbstractClass } from 'samplePackageName';
+import { SomeClass } from 'samplePackageName';
+
+type SomeType1Baseline = {
+}
+const someType1UsageFunction = (someType1FunctionParameter: SomeType1Baseline) => {
+  const someType1: SomeType1 = someType1FunctionParameter;
+}
+
+type SomeType2Baseline<T1, T2> = {
+}
+const someType2UsageFunction = <T1, T2>(someType2FunctionParameter: SomeType2Baseline<T1, T2>) => {
+  const someType2: SomeType2<T1, T2> = someType2FunctionParameter;
+}
+
+const someClassHeritageUsageFunction = <T1, T2, T3, T4>(someClassHeritageUsageFunctionParameter: SomeClass<T1, T2, T3, T4>) => {
+  const superTypeUsageConst0: SomeAbstractClass<T1, T2> = someClassHeritageUsageFunctionParameter;
+  const superTypeUsageConst1: SomeType1 = someClassHeritageUsageFunctionParameter;
+  const superTypeUsageConst2: SomeType2<T3, T4> = someClassHeritageUsageFunctionParameter;
+}
+    `,
+  },
 ];
 
 const nestInMarkdownCodeBlock = (apiReportCode: string) => {

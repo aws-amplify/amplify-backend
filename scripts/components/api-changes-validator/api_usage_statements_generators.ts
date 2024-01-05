@@ -189,8 +189,6 @@ export class EnumUsageStatementsGenerator implements UsageStatementsGenerator {
  * if they have private members, see https://github.com/microsoft/TypeScript/issues/53558.
  * Therefore strategy for classes is different. Instead of testing assignability
  * like we do for types we generate usage of it's members.
- *
- * TODO This covers properties and methods now, we should cover constructor and inheritance
  */
 export class ClassUsageStatementsGenerator implements UsageStatementsGenerator {
   /**
@@ -228,6 +226,14 @@ export class ClassUsageStatementsGenerator implements UsageStatementsGenerator {
             `Warning: class usage generator encountered unrecognized member kind ${classMember.kind}`
           );
       }
+    }
+
+    if (this.classDeclaration.heritageClauses) {
+      usageStatement +=
+        new ClassHeritageUsageStatementsGenerator(
+          this.classDeclaration,
+          this.classDeclaration.heritageClauses
+        ).generate().usageStatement ?? '';
     }
 
     if (usageStatement) {
@@ -410,6 +416,53 @@ class ClassConstructorUsageStatementsGenerator
     usageStatement += `${indent(constructorDeclaration)} {${EOL}`;
     usageStatement += `${indent(indent(superConstructorCall))}${EOL}`;
     usageStatement += `${indent('}')}${EOL}`;
+    usageStatement += `}${EOL}`;
+    return { usageStatement };
+  };
+}
+
+/**
+ * Generates usage snippets for class heritage.
+ * Generated snippets attempt to use a reference typed with class (provided via usage function parameter)
+ * and assign it to local constant that is typed with super type from extend or implement clauses.
+ */
+class ClassHeritageUsageStatementsGenerator
+  implements UsageStatementsGenerator
+{
+  constructor(
+    private readonly classDeclaration: ts.ClassDeclaration,
+    private readonly heritageClauses: ts.NodeArray<ts.HeritageClause>
+  ) {}
+
+  generate = (): UsageStatements => {
+    const className = this.classDeclaration.name?.getText();
+    if (!className) {
+      throw new Error('Class name is missing');
+    }
+    const usageFunctionName = toLowerCamelCase(
+      `${className}HeritageUsageFunction`
+    );
+    const usageFunctionParameterName = `${usageFunctionName}Parameter`;
+    const genericTypeParametersDeclaration =
+      new GenericTypeParameterDeclarationUsageStatementsGenerator(
+        this.classDeclaration.typeParameters
+      ).generate().usageStatement ?? '';
+    const genericTypeParameters =
+      new GenericTypeParameterUsageStatementsGenerator(
+        this.classDeclaration.typeParameters
+      ).generate().usageStatement ?? '';
+
+    const superTypeUsageStatements = this.heritageClauses
+      .flatMap((clause) => clause.types)
+      .map((superType, index) => {
+        return `const superTypeUsageConst${index}: ${superType.getText()} = ${usageFunctionParameterName};`;
+      });
+
+    let usageStatement = '';
+    usageStatement += `const ${usageFunctionName} = ${genericTypeParametersDeclaration}(${usageFunctionParameterName}: ${className}${genericTypeParameters}) => {${EOL}`;
+    for (const superTypeUsageStatement of superTypeUsageStatements) {
+      usageStatement += `${indent(superTypeUsageStatement)}${EOL}`;
+    }
     usageStatement += `}${EOL}`;
     return { usageStatement };
   };
