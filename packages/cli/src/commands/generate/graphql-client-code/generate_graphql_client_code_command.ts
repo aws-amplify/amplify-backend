@@ -15,7 +15,6 @@ import {
   GenerateModelsOptions,
 } from '@aws-amplify/model-generator';
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
-import { handleCommandFailure } from '../../../command_failure_handler.js';
 
 type GenerateOptions =
   | GenerateGraphqlCodegenOptions
@@ -321,10 +320,6 @@ export class GenerateGraphqlClientCodeCommand
         array: false,
         hidden: true,
       })
-      .showHidden('all')
-      .fail((msg, err) => {
-        handleCommandFailure(msg, err, yargs);
-        yargs.exit(1, err);
-      });
+      .showHidden('all');
   };
 }

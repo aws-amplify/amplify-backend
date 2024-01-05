@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 
 import { hideBin } from 'yargs/helpers';
-import * as process from 'process';
 import { createMainParser } from './main_parser_factory.js';
+import { attachUnhandledExceptionListeners } from './error_handler.js';
+
+attachUnhandledExceptionListeners();
 
 const parser = createMainParser();
 
