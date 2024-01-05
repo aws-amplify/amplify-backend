@@ -1,5 +1,5 @@
-export type SecretResourceProps = {
-  namespace: string;
-  name: string;
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
+
+export type SecretResourceProps = Omit<BackendIdentifier, 'hash'> & {
   secretName: string;
 };

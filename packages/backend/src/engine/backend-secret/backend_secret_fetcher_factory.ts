@@ -58,6 +58,7 @@ export class BackendSecretFetcherFactory {
     const customResourceProps: SecretResourceProps = {
       namespace: backendIdentifier.namespace,
       name: backendIdentifier.name,
+      type: backendIdentifier.type,
       secretName: secretName,
     };
 
