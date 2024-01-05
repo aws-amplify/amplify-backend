@@ -1,5 +1,14 @@
 # @aws-amplify/platform-core
 
+## 0.3.4
+
+### Patch Changes
+
+- 8688aa00f: Classify package json parsing errors as user errors
+- e5da97e37: Move parameter path methods to ParameterPathConversions
+- Updated dependencies [e5da97e37]
+  - @aws-amplify/plugin-types@0.7.0
+
 ## 0.3.3
 
 ### Patch Changes

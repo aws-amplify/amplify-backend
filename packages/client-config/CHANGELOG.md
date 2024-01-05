@@ -1,5 +1,20 @@
 # @aws-amplify/client-config
 
+## 0.5.0
+
+### Minor Changes
+
+- 6a1c252e1: Expose domainPrefix as an input property to the Auth construct.
+
+### Patch Changes
+
+- 6a1c252e1: Cognito domains are now created by default, and oauth settings are exported to frontend config.
+- Updated dependencies [6a1c252e1]
+- Updated dependencies [6a1c252e1]
+  - @aws-amplify/backend-output-schemas@0.5.0
+  - @aws-amplify/deployed-backend-client@0.3.5
+  - @aws-amplify/model-generator@0.2.4
+
 ## 0.4.2
 
 ### Patch Changes
