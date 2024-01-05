@@ -4,7 +4,6 @@ import {
   USAGE_DATA_TRACKING_ENABLED,
 } from '@aws-amplify/platform-core';
 import { Argv, CommandModule } from 'yargs';
-import { handleCommandFailure } from '../../../command_failure_handler.js';
 /**
  * Command to configure AWS Amplify profile.
  */
@@ -54,10 +53,6 @@ export class ConfigureTelemetryCommand implements CommandModule<object> {
       })
       .demandCommand()
       .strictCommands()
-      .recommendCommands()
-      .fail((msg, err) => {
-        handleCommandFailure(msg, err, yargs);
-        yargs.exit(1, err);
-      });
+      .recommendCommands();
   };
 }

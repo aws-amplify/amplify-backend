@@ -1,5 +1,6 @@
 import { Argv } from 'yargs';
 import { AsyncLocalStorage } from 'node:async_hooks';
+import { generateCommandFailureHandler } from '../error_handler.js';
 
 class OutputInterceptor {
   private output = '';
@@ -60,7 +61,11 @@ export class TestCommandRunner {
       // Override script name to avoid long test file names
       .scriptName('amplify')
       // Make sure we don't exit process on error or --help
-      .exitProcess(false);
+      .exitProcess(false)
+      // attach the failure handler
+      // this is necessary because we may be testing a subcommand that doesn't have the top-level failure handler attached
+      // eventually we may want to have a separate "testFailureHandler" if we need additional tooling here
+      .fail(generateCommandFailureHandler(parser));
   }
 
   /**
