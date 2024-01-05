@@ -51,7 +51,7 @@ void describe('Package JSON reader', () => {
   void it('throws when package json is not parse-able', async () => {
     fsReadFileSync.mock.mockImplementationOnce(() => 'not json content');
     assert.throws(() => packageJsonReader.read(testPath), {
-      message: 'Could not JSON.parse the contents of /test_path',
+      message: 'Could not parse the contents of /test_path',
     });
   });
 });

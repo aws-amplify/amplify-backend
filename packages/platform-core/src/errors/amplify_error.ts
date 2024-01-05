@@ -116,6 +116,7 @@ export type AmplifyErrorType = AmplifyUserErrorType | AmplifyLibraryFaultType;
  * Amplify error types
  */
 export type AmplifyUserErrorType =
+  | 'InvalidPackageJsonError'
   | 'InvalidSchemaAuthError'
   | 'InvalidSchemaError'
   | 'ExpiredTokenError'
