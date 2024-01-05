@@ -1,4 +1,5 @@
 import { after, afterEach, before, beforeEach, describe, it } from 'node:test';
+import { execa } from 'execa';
 import {
   createTestDirectory,
   deleteTestDirectory,
@@ -8,7 +9,7 @@ import fs from 'fs/promises';
 import { shortUuid } from '../short_uuid.js';
 import { getTestProjectCreators } from '../test-project-setup/test_project_creator.js';
 import { TestProjectBase } from '../test-project-setup/test_project_base.js';
-import { userInfo } from 'os';
+import { homedir, userInfo } from 'os';
 import { PredicatedActionBuilder } from '../process-controller/predicated_action_queue_builder.js';
 import { amplifyCli } from '../process-controller/process_controller.js';
 import path from 'path';
@@ -30,9 +31,13 @@ const testProjectCreators = getTestProjectCreators();
 const testCdkProjectCreators = getTestCdkProjectCreators();
 void describe('deployment tests', { concurrency: testConcurrencyLevel }, () => {
   before(async () => {
+    // start a local npm proxy and publish the current codebase to the proxy
+    await execa('npm', ['run', 'clean:npm-proxy'], { stdio: 'inherit' });
+    await execa('npm', ['run', 'vend'], { stdio: 'inherit' });
     await createTestDirectory(rootTestDir);
   });
   after(async () => {
+    await execa('npm', ['run', 'stop:npm-proxy'], { stdio: 'inherit' });
     await deleteTestDirectory(rootTestDir);
   });
 
