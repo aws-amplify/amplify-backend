@@ -15,10 +15,10 @@ export abstract class PackageManagerController {
    */
   constructor(
     readonly projectRoot: string,
-    protected executable: string,
-    protected binaryRunner: string,
-    protected initDefault: string[],
-    protected installCommand: string,
+    protected readonly executable: string,
+    protected readonly binaryRunner: string,
+    protected readonly initDefault: string[],
+    protected readonly installCommand: string,
     protected readonly fsp = _fsp,
     protected readonly path = _path,
     protected readonly execa = _execa,
