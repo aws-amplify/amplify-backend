@@ -1,4 +1,5 @@
 import { AppId, BackendIdentifier } from '@aws-amplify/plugin-types';
+import { BackendIdentifierConversions } from './backend_identifier_conversions.js';
 
 const SHARED_SECRET = 'shared';
 
@@ -34,7 +35,17 @@ export class ParameterPathConversions {
  * Get a branch-specific parameter prefix.
  */
 const getBranchParameterPrefix = (parts: BackendIdentifier): string => {
-  return `/amplify/${parts.namespace}/${parts.name}`;
+  // round trip the backend id through the stack name conversion to ensure we are applying the same sanitization to SSM paths
+  const sanitizedBackendId = BackendIdentifierConversions.fromStackName(
+    BackendIdentifierConversions.toStackName(parts)
+  );
+  if (!sanitizedBackendId || !sanitizedBackendId.hash) {
+    // this *should* never happen
+    throw new Error(
+      `Could not sanitize the backendId to construct the parameter path`
+    );
+  }
+  return `/amplify/${sanitizedBackendId.namespace}/${sanitizedBackendId.name}-${sanitizedBackendId.type}-${sanitizedBackendId.hash}`;
 };
 
 /**
