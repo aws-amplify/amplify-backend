@@ -57,20 +57,30 @@ void describe('getProjectRoot', () => {
     assert.equal(projectRoot, userInput);
   });
 
+  void it('creates the project root directory if the user provided absolute path does not exist and define outside of current dir.', async () => {
+    process.env.npm_config_yes = 'false';
+    const userInput = '/test';
+    mock.method(AmplifyPrompter, 'input', () => Promise.resolve(userInput));
+
+    const projectRoot = await getProjectRoot();
+
+    assert.equal(fsMkDirSyncMock.mock.callCount(), 1);
+    assert.equal(fsMkDirSyncMock.mock.calls[0].arguments[0], userInput);
+    assert.equal(projectRoot, userInput);
+  });
+
   void it('creates the project root directory if the user provided relative path does not exist', async () => {
     process.env.npm_config_yes = 'false';
-    const userInputs = ['test', '/test', '/tests/test'];
-    userInputs.map(async (userInput: string) => {
-      mock.method(AmplifyPrompter, 'input', () => Promise.resolve(userInput));
+    const userInput = 'test';
+    mock.method(AmplifyPrompter, 'input', () => Promise.resolve(userInput));
 
-      const projectRoot = await getProjectRoot();
+    const projectRoot = await getProjectRoot();
 
-      assert.equal(fsMkDirSyncMock.mock.callCount(), 1);
-      assert.equal(
-        fsMkDirSyncMock.mock.calls[0].arguments[0],
-        path.resolve(userInput)
-      );
-      assert.equal(projectRoot, path.resolve(userInput));
-    });
+    assert.equal(fsMkDirSyncMock.mock.callCount(), 1);
+    assert.equal(
+      fsMkDirSyncMock.mock.calls[0].arguments[0],
+      path.resolve(userInput)
+    );
+    assert.equal(projectRoot, path.resolve(userInput));
   });
 });

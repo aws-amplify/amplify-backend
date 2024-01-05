@@ -16,10 +16,6 @@ export const getProjectRoot = async () => {
         defaultValue: defaultProjectRoot,
       });
 
-  if (projectRoot != defaultProjectRoot && projectRoot.startsWith('/')) {
-    projectRoot = projectRoot.substring(1);
-  }
-
   projectRoot = path.isAbsolute(projectRoot)
     ? projectRoot
     : path.resolve(process.cwd(), projectRoot);
@@ -31,7 +27,13 @@ export const getProjectRoot = async () => {
   if (!isExistProjectRoot) {
     logger.debug(`The provided directory (${projectRoot}) does not exist.`);
     logger.debug(`Creating directory ${projectRoot}`);
-    await fsp.mkdir(projectRoot, { recursive: true });
+    try {
+      await fsp.mkdir(projectRoot, { recursive: true });
+    } catch (e) {
+      await fsp.mkdir(path.join(process.cwd(), projectRoot), {
+        recursive: true,
+      });
+    }
   }
   return projectRoot;
 };
