@@ -24,7 +24,7 @@ export class PackageJsonReader {
         'InvalidPackageJsonError',
         {
           message: `Could not parse the contents of ${absolutePackageJsonPath}`,
-          resolution: `Check if ${absolutePackageJsonPath} exists and is a valid JSON file`,
+          resolution: `Ensure that ${absolutePackageJsonPath} exists and is a valid JSON file`,
         },
         err as Error
       );
