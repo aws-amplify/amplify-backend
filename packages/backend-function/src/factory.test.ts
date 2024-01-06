@@ -44,6 +44,9 @@ class TestBackendSecret implements BackendSecret {
       this.secretName
     );
   };
+  getSecretName = (): string => {
+    return this.secretName;
+  };
 }
 
 void describe('AmplifyFunctionFactory', () => {

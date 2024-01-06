@@ -41,4 +41,11 @@ export class CfnTokenBackendSecret implements BackendSecret {
       this.name
     );
   };
+
+  /**
+   * Get the name of the secret
+   */
+  getSecretName = (): string => {
+    return this.name;
+  };
 }

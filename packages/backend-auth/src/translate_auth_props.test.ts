@@ -50,6 +50,9 @@ class TestBackendSecret implements BackendSecret {
       this.secretName
     );
   };
+  getSecretName = (): string => {
+    return this.secretName;
+  };
 }
 
 class TestBackendSecretResolver implements BackendSecretResolver {
