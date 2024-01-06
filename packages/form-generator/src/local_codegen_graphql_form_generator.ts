@@ -40,6 +40,13 @@ export type SchemaFetcher = () => Promise<GenericDataSchema>;
  * Generates GraphQL-compatible forms in React by directly leveraging @aws-amplify/codegen-ui-react
  */
 export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
+  private static defaultConfig = {
+    module: ModuleKind.ES2020,
+    target: ScriptTarget.ES2020,
+    script: ScriptKind.JSX,
+    renderTypeDeclarations: true,
+  };
+
   /**
    * Instantiates a LocalGraphqlFormGenerator for a provided schema
    */
@@ -48,6 +55,91 @@ export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
     private renderOptions: RenderOptions,
     private resultBuilder: ResultBuilder
   ) {}
+
+  /**
+   * Gets the react render config
+   */
+  private get config(): ReactRenderConfig {
+    return {
+      module: ModuleKind.ES2020,
+      target: ScriptTarget.ES2020,
+      script: ScriptKind.JSX,
+      includeUseClientDirective: true,
+      renderTypeDeclarations: true,
+      apiConfiguration: {
+        dataApi: 'GraphQL',
+        fragmentsFilePath: this.renderGraphqlPath('fragments'),
+        mutationsFilePath: this.renderGraphqlPath('mutations'),
+        queriesFilePath: this.renderGraphqlPath('queries'),
+        subscriptionsFilePath: this.renderGraphqlPath('subscriptions'),
+        typesFilePath: this.renderGraphqlPath('types'),
+      },
+      dependencies: {
+        // Tell the renderer to generate amplify js v6 compatible code
+        'aws-amplify': '^6.0.0',
+      },
+    };
+  }
+
+  generateIndexFile = (schemas: { name: string }[]) => {
+    const { componentText, fileName } = this.createIndexFile(
+      schemas as StudioSchema[]
+    );
+    return {
+      schemaName: 'AmplifyStudioIndexFile',
+      componentText,
+      fileName,
+      declaration: undefined,
+      error: undefined,
+    };
+  };
+
+  generateForms = async (
+    options?: FormGenerationOptions
+  ): Promise<GraphqlGenerationResult> => {
+    const dataSchema = await this.schemaFetcher();
+    const filteredModels = this.getFilteredModels(dataSchema, options?.models);
+    const filteredSchema = this.transformModelListToMap(filteredModels);
+    const utilFile = this.generateUtilFile();
+    const baseForms = this.generateBaseForms(filteredSchema);
+    const indexFile = this.generateIndexFile(
+      baseForms.map(({ name }) => ({
+        name,
+      }))
+    );
+
+    dataSchema.models = Object.entries(dataSchema.models).reduce<
+      (typeof dataSchema)['models']
+    >((prev, [key, value]) => {
+      // Discard createdAt and updatedAt fields
+      /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+      const { createdAt, updatedAt, ...fields } = value.fields;
+
+      const valueExcludingTimestampFields = {
+        ...value,
+        fields,
+      };
+
+      prev[key] = valueExcludingTimestampFields;
+
+      return prev;
+    }, {});
+
+    const forms = baseForms.reduce<Record<string, string>>(
+      (prev, formSchema) => {
+        const results = this.codegenForm(dataSchema, formSchema);
+        results.forEach((result) => {
+          prev[result.fileName] = result.componentText;
+        });
+        return prev;
+      },
+      {}
+    );
+    forms[utilFile.fileName] = utilFile.componentText;
+    forms[indexFile.fileName] = indexFile.componentText;
+    return this.resultBuilder(forms);
+  };
+
   /**
    * reduces the dataSchema to a map of models
    */
@@ -97,30 +189,6 @@ export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
     return `./${graphqlPath}`;
   };
 
-  /**
-   * Gets the react render config
-   */
-  private get config(): ReactRenderConfig {
-    return {
-      module: ModuleKind.ES2020,
-      target: ScriptTarget.ES2020,
-      script: ScriptKind.JSX,
-      includeUseClientDirective: true,
-      renderTypeDeclarations: true,
-      apiConfiguration: {
-        dataApi: 'GraphQL',
-        fragmentsFilePath: this.renderGraphqlPath('fragments'),
-        mutationsFilePath: this.renderGraphqlPath('mutations'),
-        queriesFilePath: this.renderGraphqlPath('queries'),
-        subscriptionsFilePath: this.renderGraphqlPath('subscriptions'),
-        typesFilePath: this.renderGraphqlPath('types'),
-      },
-      dependencies: {
-        // Tell the renderer to generate amplify js v6 compatible code
-        'aws-amplify': '^6.0.0',
-      },
-    };
-  }
   private createUiBuilderForm = (
     schema: StudioForm,
     dataSchema?: GenericDataSchema,
@@ -201,12 +269,7 @@ export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
       {}
     );
   };
-  private static defaultConfig = {
-    module: ModuleKind.ES2020,
-    target: ScriptTarget.ES2020,
-    script: ScriptKind.JSX,
-    renderTypeDeclarations: true,
-  };
+
   private createUtilFile = (utils: UtilTemplateType[]) => {
     const renderer = new ReactUtilsStudioTemplateRenderer(
       utils,
@@ -249,64 +312,5 @@ export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
       componentText,
       fileName: renderer.fileName,
     };
-  };
-
-  generateIndexFile = (schemas: { name: string }[]) => {
-    const { componentText, fileName } = this.createIndexFile(
-      schemas as StudioSchema[]
-    );
-    return {
-      schemaName: 'AmplifyStudioIndexFile',
-      componentText,
-      fileName,
-      declaration: undefined,
-      error: undefined,
-    };
-  };
-
-  generateForms = async (
-    options?: FormGenerationOptions
-  ): Promise<GraphqlGenerationResult> => {
-    const dataSchema = await this.schemaFetcher();
-    const filteredModels = this.getFilteredModels(dataSchema, options?.models);
-    const filteredSchema = this.transformModelListToMap(filteredModels);
-    const utilFile = this.generateUtilFile();
-    const baseForms = this.generateBaseForms(filteredSchema);
-    const indexFile = this.generateIndexFile(
-      baseForms.map(({ name }) => ({
-        name,
-      }))
-    );
-
-    dataSchema.models = Object.entries(dataSchema.models).reduce<
-      (typeof dataSchema)['models']
-    >((prev, [key, value]) => {
-      // Discard createdAt and updatedAt fields
-      /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-      const { createdAt, updatedAt, ...fields } = value.fields;
-
-      const valueExcludingTimestampFields = {
-        ...value,
-        fields,
-      };
-
-      prev[key] = valueExcludingTimestampFields;
-
-      return prev;
-    }, {});
-
-    const forms = baseForms.reduce<Record<string, string>>(
-      (prev, formSchema) => {
-        const results = this.codegenForm(dataSchema, formSchema);
-        results.forEach((result) => {
-          prev[result.fileName] = result.componentText;
-        });
-        return prev;
-      },
-      {}
-    );
-    forms[utilFile.fileName] = utilFile.componentText;
-    forms[indexFile.fileName] = indexFile.componentText;
-    return this.resultBuilder(forms);
   };
 }

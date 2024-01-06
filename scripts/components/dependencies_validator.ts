@@ -38,6 +38,30 @@ export class DependenciesValidator {
   ) {}
 
   /**
+   * Validates whether all packages conform to dependency rules.
+   * Throws if violation is found.
+   */
+  async validate() {
+    const violations: Array<DependencyViolation> = (
+      await Promise.all(
+        this.packagePaths.map((packagePath) =>
+          this.checkPackageDependencies(packagePath)
+        )
+      )
+    ).flat();
+
+    if (violations.length > 0) {
+      const errorMessage = violations
+        .map(
+          (violation) =>
+            `Package ${violation.packageName} must not have ${violation.dependencyName} anywhere in dependency graph`
+        )
+        .join('\n');
+      throw new Error(errorMessage);
+    }
+  }
+
+  /**
    * Reads a name from package.json located at package path.
    */
   private async getPackageName(packagePath: string): Promise<string> {
@@ -112,29 +136,5 @@ export class DependenciesValidator {
     }
 
     return dependencies;
-  }
-
-  /**
-   * Validates whether all packages conform to dependency rules.
-   * Throws if violation is found.
-   */
-  async validate() {
-    const violations: Array<DependencyViolation> = (
-      await Promise.all(
-        this.packagePaths.map((packagePath) =>
-          this.checkPackageDependencies(packagePath)
-        )
-      )
-    ).flat();
-
-    if (violations.length > 0) {
-      const errorMessage = violations
-        .map(
-          (violation) =>
-            `Package ${violation.packageName} must not have ${violation.dependencyName} anywhere in dependency graph`
-        )
-        .join('\n');
-      throw new Error(errorMessage);
-    }
   }
 }

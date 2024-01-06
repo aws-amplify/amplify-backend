@@ -83,6 +83,7 @@ module.exports = {
     ],
     '@typescript-eslint/restrict-template-expressions': 'error',
     '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
+    '@typescript-eslint/member-ordering': 'error',
     '@shopify/prefer-early-return': 'error',
     'check-file/filename-blocklist': [
       'error',

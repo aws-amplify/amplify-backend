@@ -4,10 +4,6 @@ import { StackResourceSummary } from '@aws-sdk/client-cloudformation';
  * Generates a link to a resource in the AWS Console
  */
 export class ArnGenerator {
-  private isArn = (potentialArn: string) => {
-    return potentialArn.startsWith('arn:');
-  };
-
   /**
    * Generates an AWS Console link to the stack resource
    * @param stackResourceSummary object including PhysicalResourceId and ResourceType, from CFN DescribeStackResources
@@ -55,5 +51,9 @@ export class ArnGenerator {
     }
 
     return;
+  };
+
+  private isArn = (potentialArn: string) => {
+    return potentialArn.startsWith('arn:');
   };
 }

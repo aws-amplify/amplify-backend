@@ -218,6 +218,26 @@ export class AmplifyAuth
   }
 
   /**
+   * Attach a Lambda function trigger handler to the UserPool in this construct
+   * @param event - The trigger event operation
+   * @param handler - The function that will handle the event
+   */
+  addTrigger = (
+    event: TriggerEvent,
+    handler: IFunction | AmplifyFunction
+  ): void => {
+    if ('resources' in handler) {
+      this.userPool.addTrigger(
+        UserPoolOperation.of(event),
+        handler.resources.lambda
+      );
+    } else {
+      // handler is an IFunction
+      this.userPool.addTrigger(UserPoolOperation.of(event), handler);
+    }
+  };
+
+  /**
    * Create Auth/UnAuth Roles
    * @returns DefaultRoles
    */
@@ -812,25 +832,5 @@ export class AmplifyAuth
       version: '1',
       payload: output,
     });
-  };
-
-  /**
-   * Attach a Lambda function trigger handler to the UserPool in this construct
-   * @param event - The trigger event operation
-   * @param handler - The function that will handle the event
-   */
-  addTrigger = (
-    event: TriggerEvent,
-    handler: IFunction | AmplifyFunction
-  ): void => {
-    if ('resources' in handler) {
-      this.userPool.addTrigger(
-        UserPoolOperation.of(event),
-        handler.resources.lambda
-      );
-    } else {
-      // handler is an IFunction
-      this.userPool.addTrigger(UserPoolOperation.of(event), handler);
-    }
   };
 }
