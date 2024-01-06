@@ -64,6 +64,18 @@ export abstract class SomeAbstractClass2<T1, T2, T3, T4, T5, T6> {
   }
 }
 
+export class SomeDerivedClass1
+  extends SomeAbstractClass1
+  implements SampleType {}
+
+export class SomeDerivedClass2<T1, T2 extends SampleType, T3, T4, T5, T6>
+  extends SomeAbstractClass2<T1, T2, T3, T4, T5, T6>
+  implements SampleTypeWithTypeParam<T1, T2>
+{
+  anotherProperty: T2;
+  someProperty: T1;
+}
+
 export const someFunction1 = (): void => {
   throw new Error();
 };
