@@ -230,7 +230,7 @@ export class ClassUsageStatementsGenerator implements UsageStatementsGenerator {
 
     if (this.classDeclaration.heritageClauses) {
       usageStatement +=
-        new ClassHeritageUsageStatementsGenerator(
+        new ClassInheritanceUsageStatementsGenerator(
           this.classDeclaration,
           this.classDeclaration.heritageClauses
         ).generate().usageStatement ?? '';
@@ -422,11 +422,11 @@ class ClassConstructorUsageStatementsGenerator
 }
 
 /**
- * Generates usage snippets for class heritage.
+ * Generates usage snippets for class inheritance.
  * Generated snippets attempt to use a reference typed with class (provided via usage function parameter)
  * and assign it to local constant that is typed with super type from extend or implement clauses.
  */
-class ClassHeritageUsageStatementsGenerator
+class ClassInheritanceUsageStatementsGenerator
   implements UsageStatementsGenerator
 {
   constructor(
@@ -440,7 +440,7 @@ class ClassHeritageUsageStatementsGenerator
       throw new Error('Class name is missing');
     }
     const usageFunctionName = toLowerCamelCase(
-      `${className}HeritageUsageFunction`
+      `${className}InheritanceUsageFunction`
     );
     const usageFunctionParameterName = `${usageFunctionName}Parameter`;
     const genericTypeParametersDeclaration =

@@ -269,10 +269,10 @@ const someType2UsageFunction = <T1, T2>(someType2FunctionParameter: SomeType2Bas
   const someType2: SomeType2<T1, T2> = someType2FunctionParameter;
 }
 
-const someClassHeritageUsageFunction = <T1, T2, T3, T4>(someClassHeritageUsageFunctionParameter: SomeClass<T1, T2, T3, T4>) => {
-  const superTypeUsageConst0: SomeAbstractClass<T1, T2> = someClassHeritageUsageFunctionParameter;
-  const superTypeUsageConst1: SomeType1 = someClassHeritageUsageFunctionParameter;
-  const superTypeUsageConst2: SomeType2<T3, T4> = someClassHeritageUsageFunctionParameter;
+const someClassInheritanceUsageFunction = <T1, T2, T3, T4>(someClassInheritanceUsageFunctionParameter: SomeClass<T1, T2, T3, T4>) => {
+  const superTypeUsageConst0: SomeAbstractClass<T1, T2> = someClassInheritanceUsageFunctionParameter;
+  const superTypeUsageConst1: SomeType1 = someClassInheritanceUsageFunctionParameter;
+  const superTypeUsageConst2: SomeType2<T3, T4> = someClassInheritanceUsageFunctionParameter;
 }
     `,
   },
