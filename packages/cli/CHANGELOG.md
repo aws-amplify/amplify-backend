@@ -1,5 +1,24 @@
 # @aws-amplify/backend-cli
 
+## 0.9.3
+
+### Patch Changes
+
+- 8688aa00f: Classify package json parsing errors as user errors
+- 74846bd26: gracefully handle errors that occur during a process event handler
+- 8d0b999ad: add --config-out-dir to pipeline-deploy command
+- Updated dependencies [8688aa00f]
+- Updated dependencies [6a1c252e1]
+- Updated dependencies [6a1c252e1]
+- Updated dependencies [e5da97e37]
+  - @aws-amplify/platform-core@0.3.4
+  - @aws-amplify/backend-output-schemas@0.5.0
+  - @aws-amplify/client-config@0.5.0
+  - @aws-amplify/backend-secret@0.3.4
+  - @aws-amplify/deployed-backend-client@0.3.5
+  - @aws-amplify/model-generator@0.2.4
+  - @aws-amplify/sandbox@0.3.10
+
 ## 0.9.2
 
 ### Patch Changes

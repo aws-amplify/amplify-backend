@@ -1,5 +1,16 @@
 # @aws-amplify/backend-data
 
+## 0.9.1
+
+### Patch Changes
+
+- Updated dependencies [e5da97e37]
+- Updated dependencies [6a1c252e1]
+- Updated dependencies [6a1c252e1]
+  - @aws-amplify/plugin-types@0.7.0
+  - @aws-amplify/backend-output-schemas@0.5.0
+  - @aws-amplify/backend-output-storage@0.2.7
+
 ## 0.9.0
 
 ### Minor Changes

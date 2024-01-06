@@ -42,6 +42,21 @@ export class PackageLockValidator {
    */
   constructor(private packageLockPath: string) {}
 
+  validate = async (): Promise<void> => {
+    const packageLockContent = JSON.parse(
+      await fsp.readFile(this.packageLockPath, 'utf-8')
+    );
+    const validationResults = this.walkTree(packageLockContent, '$root');
+    const violations = validationResults.filter(
+      (validationResults) => validationResults.status === 'fail'
+    );
+    if (violations.length > 0) {
+      throw new Error(
+        violations.map((violation) => violation.failureMessage).join(EOL)
+      );
+    }
+  };
+
   /**
    * Walks the tree and validates nodes.
    * @returns array of validation results.
@@ -64,20 +79,5 @@ export class PackageLockValidator {
       }
     }
     return validationResults;
-  };
-
-  validate = async (): Promise<void> => {
-    const packageLockContent = JSON.parse(
-      await fsp.readFile(this.packageLockPath, 'utf-8')
-    );
-    const validationResults = this.walkTree(packageLockContent, '$root');
-    const violations = validationResults.filter(
-      (validationResults) => validationResults.status === 'fail'
-    );
-    if (violations.length > 0) {
-      throw new Error(
-        violations.map((violation) => violation.failureMessage).join(EOL)
-      );
-    }
   };
 }

@@ -9,13 +9,6 @@ export class S3StringObjectFetcher {
    */
   constructor(private readonly s3Client: S3Client) {}
 
-  private parseS3Uri = (uri: string): { bucket: string; key: string } => {
-    const { hostname, pathname } = new URL(uri);
-    return {
-      bucket: hostname,
-      key: pathname.replace('/', ''),
-    };
-  };
   /**
    * Fetches an s3 object and converts its contents to a string
    */
@@ -29,5 +22,13 @@ export class S3StringObjectFetcher {
       throw new Error('Error on parsing output schema');
     }
     return schema;
+  };
+
+  private parseS3Uri = (uri: string): { bucket: string; key: string } => {
+    const { hostname, pathname } = new URL(uri);
+    return {
+      bucket: hostname,
+      key: pathname.replace('/', ''),
+    };
   };
 }

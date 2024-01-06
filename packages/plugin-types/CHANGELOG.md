@@ -1,5 +1,11 @@
 # @aws-amplify/plugin-types
 
+## 0.7.0
+
+### Minor Changes
+
+- e5da97e37: Implement function secret access
+
 ## 0.6.0
 
 ### Minor Changes

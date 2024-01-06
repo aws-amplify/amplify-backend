@@ -280,7 +280,8 @@ void describe('AmplifyFunctionFactory', () => {
             TEST_VAR: 'testValue',
             TEST_SECRET: '<value will be resolved during runtime>',
             AMPLIFY_SECRET_PATHS: JSON.stringify({
-              TEST_SECRET: '/amplify/testBackendId/testBranchName/secretValue',
+              TEST_SECRET:
+                '/amplify/testBackendId/testBranchName-branch-e482a1c36f/secretValue',
             }),
           },
         },

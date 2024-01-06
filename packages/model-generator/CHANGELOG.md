@@ -1,5 +1,14 @@
 # @aws-amplify/model-generator
 
+## 0.2.4
+
+### Patch Changes
+
+- Updated dependencies [6a1c252e1]
+- Updated dependencies [6a1c252e1]
+  - @aws-amplify/backend-output-schemas@0.5.0
+  - @aws-amplify/deployed-backend-client@0.3.5
+
 ## 0.2.3
 
 ### Patch Changes

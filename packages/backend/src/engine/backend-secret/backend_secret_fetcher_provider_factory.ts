@@ -7,6 +7,7 @@ import { Runtime as LambdaRuntime } from 'aws-cdk-lib/aws-lambda';
 import { Provider } from 'aws-cdk-lib/custom-resources';
 import { fileURLToPath } from 'url';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { ParameterPathConversions } from '@aws-amplify/platform-core';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -41,13 +42,19 @@ export class BackendSecretFetcherProviderFactory {
       handler: 'handler',
     });
 
+    const backendParameterPrefix =
+      ParameterPathConversions.toParameterPrefix(backendIdentifier);
+    const sharedParameterPrefix = ParameterPathConversions.toParameterPrefix(
+      backendIdentifier.namespace
+    );
+
     secretLambda.grantPrincipal.addToPrincipalPolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
         actions: ['ssm:GetParameter'],
         resources: [
-          `arn:aws:ssm:*:*:parameter/amplify/${backendIdentifier.namespace}/${backendIdentifier.name}/*`,
-          `arn:aws:ssm:*:*:parameter/amplify/shared/${backendIdentifier.namespace}/*`,
+          `arn:aws:ssm:*:*:parameter${backendParameterPrefix}/*`,
+          `arn:aws:ssm:*:*:parameter${sharedParameterPrefix}/*`,
         ],
       })
     );

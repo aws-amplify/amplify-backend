@@ -16,7 +16,6 @@ export class NpmPackageManagerController implements PackageManagerController {
     private readonly projectRoot: string,
     private readonly execa = _execa
   ) {}
-  private readonly executableName = 'npm';
 
   /**
    * Installs the given package names as devDependencies

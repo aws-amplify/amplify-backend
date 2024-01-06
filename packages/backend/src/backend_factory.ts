@@ -26,7 +26,6 @@ const rootStackTypeIdentifier = 'root';
 export class BackendFactory<
   T extends Record<string, ConstructFactory<ResourceProvider>>
 > {
-  private readonly stackResolver: StackResolver;
   /**
    * These are the resolved CDK constructs that are created by the inputs to the constructor
    * Used for overriding properties of underlying CDK constructs or to reference in custom CDK code
@@ -34,6 +33,8 @@ export class BackendFactory<
   readonly resources: {
     [K in keyof T]: ReturnType<T[K]['getInstance']>;
   };
+
+  private readonly stackResolver: StackResolver;
   /**
    * Initialize an Amplify backend with the given construct factories and in the given CDK App.
    * If no CDK App is specified a new one is created

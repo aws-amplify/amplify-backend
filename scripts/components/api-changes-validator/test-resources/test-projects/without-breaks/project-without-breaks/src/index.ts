@@ -37,26 +37,43 @@ export class SampleClass6 {
   static someStaticProperty: string;
 }
 export class SampleClass7<T1, T2, T3, T4, T5, T6> {
+  someProperty: T6;
   constructor(param1: T1, param2?: T2) {
     throw new Error();
   }
   someMethod = (param1: T3, param2?: T4): T5 => {
     throw new Error();
   };
-  someProperty: T6;
 }
-export abstract class SomeAbstractClass {
+export abstract class SomeAbstractClass1 {
+  static someStaticProperty: string;
+  someProperty: string;
   protected constructor(param1: string, param2?: string) {
     throw new Error();
   }
-  someMethod = (param1: string, param2?: string): string => {
-    throw new Error();
-  };
-  someProperty: string;
   static someStaticMethod = (param1: string, param2?: string): string => {
     throw new Error();
   };
-  static someStaticProperty: string;
+  someMethod = (param1: string, param2?: string): string => {
+    throw new Error();
+  };
+}
+export abstract class SomeAbstractClass2<T1, T2, T3, T4, T5, T6> {
+  protected constructor(param1: T1, param2?: T2) {
+    throw new Error();
+  }
+}
+
+export class SomeDerivedClass1
+  extends SomeAbstractClass1
+  implements SampleType {}
+
+export class SomeDerivedClass2<T1, T2 extends SampleType, T3, T4, T5, T6>
+  extends SomeAbstractClass2<T1, T2, T3, T4, T5, T6>
+  implements SampleTypeWithTypeParam<T1, T2>
+{
+  anotherProperty: T2;
+  someProperty: T1;
 }
 
 export const someFunction1 = (): void => {
