@@ -2,6 +2,7 @@ import fsp from 'fs/promises';
 import path from 'path';
 import { AmplifyPrompter } from '@aws-amplify/cli-core';
 import { logger } from './logger.js';
+import * as process from 'process';
 
 /**
  * Returns the project root directory.
@@ -29,10 +30,13 @@ export const getProjectRoot = async () => {
     logger.debug(`Creating directory ${projectRoot}`);
     try {
       await fsp.mkdir(projectRoot, { recursive: true });
-    } catch (e) {
-      await fsp.mkdir(path.join(process.cwd(), projectRoot), {
-        recursive: true,
-      });
+    } catch (err) {
+      if (path.isAbsolute(projectRoot)) {
+        logger.warn(
+          `Failed to create directory at ${projectRoot}. Ensure this is the correct path and you have write permissions to this location.`
+        );
+      }
+      throw err;
     }
   }
   return projectRoot;
