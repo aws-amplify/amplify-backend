@@ -77,7 +77,7 @@ export class ProfileController {
         : `[profile ${options.profile}]${EOL}`;
     configData += `region = ${options.region}${EOL}`;
 
-    await fs.appendFile(filePath, configData, { mode: '666' });
+    await fs.appendFile(filePath, configData, { mode: '600' });
 
     // validate after write. It is to ensure this function is compatible with the current AWS format.
     const profileData = await loadSharedConfigFiles({

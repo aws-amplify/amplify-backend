@@ -301,6 +301,7 @@ const assertFilePermissionsAreOwnerReadWriteOnly = async (filePath: string) => {
   assert.ok(
     // bit-wise mask that tests for owner RW of the file
     // unfortunately there does not appear to be a better way to test this using node built-ins
-    credentialFileStats.mode & (fs.constants.S_IRUSR | fs.constants.S_IWUSR)
+    credentialFileStats.mode ===
+      (fs.constants.S_IFREG | fs.constants.S_IRUSR | fs.constants.S_IWUSR)
   );
 };
