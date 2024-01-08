@@ -57,14 +57,14 @@ void describe('profile controller', () => {
     delete process.env.AWS_SHARED_CREDENTIALS_FILE;
   });
 
-  void describe('appendAWSFiles', () => {
+  void describe('createOrAppendAWSFiles', () => {
     before(async () => {
       await fs.rm(configFilePath, { force: true });
       await fs.rm(credFilePath, { force: true });
     });
 
     void it('creates new files', async () => {
-      await profileController.appendAWSFiles({
+      await profileController.createOrAppendAWSFiles({
         profile: testProfile,
         region: testRegion,
         accessKeyId: testAccessKeyId,
@@ -100,10 +100,13 @@ void describe('profile controller', () => {
         'utf-8'
       );
       assert.equal(credentialText, expectedCredentialText);
+
+      await assertFilePermissionsAreOwnerReadWriteOnly(configFilePath);
+      await assertFilePermissionsAreOwnerReadWriteOnly(credFilePath);
     });
 
     void it('appends to files which ends with EOL', async () => {
-      await profileController.appendAWSFiles({
+      await profileController.createOrAppendAWSFiles({
         profile: testProfile2,
         region: testRegion2,
         accessKeyId: testAccessKeyId2,
@@ -157,7 +160,7 @@ void describe('profile controller', () => {
         process.env.AWS_SHARED_CREDENTIALS_FILE as string
       );
 
-      await profileController.appendAWSFiles({
+      await profileController.createOrAppendAWSFiles({
         profile: testProfile3,
         region: testRegion3,
         accessKeyId: testAccessKeyId3,
@@ -220,7 +223,7 @@ void describe('profile controller', () => {
       await fs.rm(testDir, { recursive: true, force: true });
 
       // assert that this doesn't throw
-      await profileController.appendAWSFiles({
+      await profileController.createOrAppendAWSFiles({
         profile: testProfile,
         region: testRegion,
         accessKeyId: testAccessKeyId,
@@ -292,3 +295,12 @@ void describe('profile controller', () => {
     });
   });
 });
+
+const assertFilePermissionsAreOwnerReadWriteOnly = async (filePath: string) => {
+  const credentialFileStats = await fs.stat(filePath);
+  assert.ok(
+    // bit-wise mask that tests for owner RW of the file
+    // unfortunately there does not appear to be a better way to test this using node built-ins
+    credentialFileStats.mode & (fs.constants.S_IRUSR | fs.constants.S_IWUSR)
+  );
+};

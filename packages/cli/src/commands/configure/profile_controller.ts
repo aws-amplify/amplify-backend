@@ -52,12 +52,14 @@ export class ProfileController {
   /**
    * Appends a profile to AWS config and credential files.
    */
-  appendAWSFiles = async (options: ProfileOptions) => {
-    await this.appendAWSConfigFile(options);
-    await this.appendAWSCredentialFile(options);
+  createOrAppendAWSFiles = async (options: ProfileOptions) => {
+    await this.createOrAppendAWSConfigFile(options);
+    await this.createOrAppendAWSCredentialFile(options);
   };
 
-  private appendAWSConfigFile = async (options: ConfigProfileOptions) => {
+  private createOrAppendAWSConfigFile = async (
+    options: ConfigProfileOptions
+  ) => {
     const filePath =
       process.env.AWS_CONFIG_FILE ?? path.join(getHomeDir(), '.aws', 'config');
 
@@ -75,7 +77,7 @@ export class ProfileController {
         : `[profile ${options.profile}]${EOL}`;
     configData += `region = ${options.region}${EOL}`;
 
-    await fs.appendFile(filePath, configData);
+    await fs.appendFile(filePath, configData, { mode: '666' });
 
     // validate after write. It is to ensure this function is compatible with the current AWS format.
     const profileData = await loadSharedConfigFiles({
@@ -87,7 +89,7 @@ export class ProfileController {
     }
   };
 
-  private appendAWSCredentialFile = async (
+  private createOrAppendAWSCredentialFile = async (
     options: CredentialProfileOptions
   ) => {
     const filePath =
@@ -106,7 +108,7 @@ export class ProfileController {
     credentialData += `aws_access_key_id = ${options.accessKeyId}${EOL}`;
     credentialData += `aws_secret_access_key = ${options.secretAccessKey}${EOL}`;
 
-    await fs.appendFile(filePath, credentialData);
+    await fs.appendFile(filePath, credentialData, { mode: '600' });
 
     // validate after write. It is to ensure this function is compatible with the current AWS format.
     const provider = fromIni({
