@@ -286,6 +286,9 @@ void describe('AmplifyFunctionFactory', () => {
               TEST_SECRET:
                 '/amplify/testBackendId/testBranchName-branch-e482a1c36f/secretValue',
             }),
+            AMPLIFY_SHARED_SECRET_PATHS: JSON.stringify({
+              TEST_SECRET: '/amplify/shared/testBackendId/secretValue',
+            }),
           },
         },
       });
@@ -301,7 +304,7 @@ void describe('AmplifyFunctionFactory', () => {
             },
           }).getInstance(getInstanceProps),
         new Error(
-          'AMPLIFY_SECRET_PATHS is a reserved environment variable name'
+          'AMPLIFY_SECRET_PATHS and AMPLIFY_SHARED_SECRET_PATHS are reserved environment variable names'
         )
       );
     });

@@ -6,4 +6,4 @@
 '@aws-amplify/backend': patch
 ---
 
-Enhance functions to resolve shared secrets
+Enhance functions to fallback to resolve shared secrets
