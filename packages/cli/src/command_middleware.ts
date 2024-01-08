@@ -5,7 +5,7 @@ import { loadConfig } from '@smithy/node-config-provider';
 import { NODE_REGION_CONFIG_OPTIONS } from '@aws-sdk/region-config-resolver';
 import { InvalidCredentialError } from './error/credential_error.js';
 
-export const profileSetupInstruction = `To configure a new Amplify profile, use "amplify configure profile".`;
+export const profileSetupInstruction = `To configure a new Amplify profile, use "npx amplify configure profile".`;
 
 /**
  * Contains middleware functions.
