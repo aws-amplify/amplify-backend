@@ -56,7 +56,7 @@ export const handleCreateUpdateEvent = async (
       {
         namespace: props.namespace,
         name: props.name,
-        type: 'branch',
+        type: props.type,
       },
       {
         name: props.secretName,
@@ -74,7 +74,7 @@ export const handleCreateUpdateEvent = async (
     }
   }
 
-  // if the secret is not available in branch path, retrieve it at app-level.
+  // if the secret is not available in branch path, try retrieving it at the app-level.
   if (!secret) {
     try {
       const resp = await secretClient.getSecret(props.namespace, {

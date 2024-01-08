@@ -4,7 +4,7 @@ import assert from 'node:assert';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 
 void describe('toStackName', () => {
-  void it('removes non-alphanumeric chars from namespace and instance', () => {
+  void it('removes non-alphanumeric chars from namespace and name', () => {
     const actual = BackendIdentifierConversions.toStackName({
       namespace: 't-_e.s,@ t--T@,,  !@#$%^&*(){}:":<>?/|\\[]   H/I. .S',
       name: 't-_h.i,@ ng1-&&%2@@3-   _',

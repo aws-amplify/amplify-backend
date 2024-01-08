@@ -23,41 +23,6 @@ export class LocalConfigurationController implements ConfigurationController {
   }
 
   /**
-   * Getter for cached config, retrieves config from disk if not cached already.
-   * If the store is not cached & config file does not exist, it will create a blank one.
-   */
-  private async store(): Promise<Record<string, unknown>> {
-    if (this._store) {
-      return this._store;
-    }
-    // check if file exists & readable.
-    let fd;
-
-    try {
-      fd = await fs.open(
-        this.configFilePath,
-        fs.constants.F_OK,
-        fs.constants.O_RDWR
-      );
-      const fileContent = await fs.readFile(fd, 'utf-8');
-      this._store = JSON.parse(fileContent);
-    } catch {
-      this._store = {};
-      await this.write();
-    } finally {
-      await fd?.close();
-    }
-    return this._store;
-  }
-
-  /**
-   * Creates project directory to store config if it doesn't exist yet.
-   */
-  private mkConfigDir() {
-    return fs.mkdir(this.dirPath, { recursive: true });
-  }
-
-  /**
    * Gets values from cached config by path.
    */
   async get<T>(path: string) {
@@ -105,6 +70,41 @@ export class LocalConfigurationController implements ConfigurationController {
   async clear() {
     this._store = {};
     await fs.rm(this.configFilePath);
+  }
+
+  /**
+   * Getter for cached config, retrieves config from disk if not cached already.
+   * If the store is not cached & config file does not exist, it will create a blank one.
+   */
+  private async store(): Promise<Record<string, unknown>> {
+    if (this._store) {
+      return this._store;
+    }
+    // check if file exists & readable.
+    let fd;
+
+    try {
+      fd = await fs.open(
+        this.configFilePath,
+        fs.constants.F_OK,
+        fs.constants.O_RDWR
+      );
+      const fileContent = await fs.readFile(fd, 'utf-8');
+      this._store = JSON.parse(fileContent);
+    } catch {
+      this._store = {};
+      await this.write();
+    } finally {
+      await fd?.close();
+    }
+    return this._store;
+  }
+
+  /**
+   * Creates project directory to store config if it doesn't exist yet.
+   */
+  private mkConfigDir() {
+    return fs.mkdir(this.dirPath, { recursive: true });
   }
 
   /**

@@ -6,7 +6,8 @@ import {
 import { fromIni } from '@aws-sdk/credential-providers';
 import { EOL } from 'os';
 import fs from 'fs/promises';
-import { join } from 'path';
+import path from 'path';
+import { existsSync } from 'fs';
 
 /**
  * Options for the profile configuration.
@@ -51,14 +52,21 @@ export class ProfileController {
   /**
    * Appends a profile to AWS config and credential files.
    */
-  appendAWSFiles = async (options: ProfileOptions) => {
-    await this.appendAWSConfigFile(options);
-    await this.appendAWSCredentialFile(options);
+  createOrAppendAWSFiles = async (options: ProfileOptions) => {
+    await this.createOrAppendAWSConfigFile(options);
+    await this.createOrAppendAWSCredentialFile(options);
   };
 
-  private appendAWSConfigFile = async (options: ConfigProfileOptions) => {
+  private createOrAppendAWSConfigFile = async (
+    options: ConfigProfileOptions
+  ) => {
     const filePath =
-      process.env.AWS_CONFIG_FILE ?? join(getHomeDir(), '.aws', 'config');
+      process.env.AWS_CONFIG_FILE ?? path.join(getHomeDir(), '.aws', 'config');
+
+    const dirName = path.dirname(filePath);
+    if (!existsSync(dirName)) {
+      await fs.mkdir(dirName, { recursive: true });
+    }
 
     const fileEndsWithEOL = await this.isFileEndsWithEOL(filePath);
     let configData = fileEndsWithEOL ? '' : EOL;
@@ -69,7 +77,7 @@ export class ProfileController {
         : `[profile ${options.profile}]${EOL}`;
     configData += `region = ${options.region}${EOL}`;
 
-    await fs.appendFile(filePath, configData);
+    await fs.appendFile(filePath, configData, { mode: '600' });
 
     // validate after write. It is to ensure this function is compatible with the current AWS format.
     const profileData = await loadSharedConfigFiles({
@@ -81,12 +89,17 @@ export class ProfileController {
     }
   };
 
-  private appendAWSCredentialFile = async (
+  private createOrAppendAWSCredentialFile = async (
     options: CredentialProfileOptions
   ) => {
     const filePath =
       process.env.AWS_SHARED_CREDENTIALS_FILE ??
-      join(getHomeDir(), '.aws', 'credentials');
+      path.join(getHomeDir(), '.aws', 'credentials');
+
+    const dirName = path.dirname(filePath);
+    if (!existsSync(dirName)) {
+      await fs.mkdir(dirName, { recursive: true });
+    }
 
     const fileEndsWithEOL = await this.isFileEndsWithEOL(filePath);
     let credentialData = fileEndsWithEOL ? '' : EOL;
@@ -95,7 +108,7 @@ export class ProfileController {
     credentialData += `aws_access_key_id = ${options.accessKeyId}${EOL}`;
     credentialData += `aws_secret_access_key = ${options.secretAccessKey}${EOL}`;
 
-    await fs.appendFile(filePath, credentialData);
+    await fs.appendFile(filePath, credentialData, { mode: '600' });
 
     // validate after write. It is to ensure this function is compatible with the current AWS format.
     const provider = fromIni({

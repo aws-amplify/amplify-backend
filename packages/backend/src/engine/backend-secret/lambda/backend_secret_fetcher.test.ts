@@ -42,8 +42,7 @@ const customResourceEventCommon = {
   PhysicalResourceId: 'physicalId',
   ResourceType: 'AWS::CloudFormation::CustomResource',
   ResourceProperties: {
-    namespace: testBackendId,
-    name: testBranchName,
+    ...testBackendIdentifier,
     secretName: testSecretName,
     ServiceToken: 'token',
   },

@@ -14,16 +14,6 @@ export class AppsyncGraphqlGenerationResult implements GenerationResult {
    */
   constructor(private operations: ClientOperations) {}
 
-  private writeSchemaToFile = async (
-    basePath: string,
-    filePath: string,
-    contents: string
-  ) => {
-    const absFilePath = path.resolve(path.join(basePath, filePath));
-    await fs.mkdir(path.dirname(absFilePath), { recursive: true });
-    await fs.writeFile(absFilePath, contents);
-  };
-
   writeToDirectory = async (directoryPath: string) => {
     await Promise.all(
       Object.entries(this.operations).map(async ([fileName, content]) => {
@@ -34,5 +24,15 @@ export class AppsyncGraphqlGenerationResult implements GenerationResult {
 
   getResults = async (): Promise<Record<string, string>> => {
     return this.operations;
+  };
+
+  private writeSchemaToFile = async (
+    basePath: string,
+    filePath: string,
+    contents: string
+  ) => {
+    const absFilePath = path.resolve(path.join(basePath, filePath));
+    await fs.mkdir(path.dirname(absFilePath), { recursive: true });
+    await fs.writeFile(absFilePath, contents);
   };
 }

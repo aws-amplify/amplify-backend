@@ -47,6 +47,18 @@ export abstract class SomeAbstractClass2<T1, T2, T3, T4, T5, T6> {
   constructor(param1: T1, param2?: T2);
 }
 
+export class SomeDerivedClass1
+  extends SomeAbstractClass1
+  implements SampleType {}
+
+export class SomeDerivedClass2<T1, T2 extends SampleType, T3, T4, T5, T6>
+  extends SomeAbstractClass2<T1, T2, T3, T4, T5, T6>
+  implements SampleTypeWithTypeParam<T1, T2>
+{
+  anotherProperty: T2;
+  someProperty: T1;
+}
+
 export const someFunction1: () => void;
 export const someFunction2: (param1: string, param2?: number) => string;
 export const someFunction3: (param1: string, param2: number = 1) => string;

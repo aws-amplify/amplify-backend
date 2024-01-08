@@ -1,4 +1,5 @@
 import { AppId, BackendIdentifier } from '@aws-amplify/plugin-types';
+import { BackendIdentifierConversions } from './backend_identifier_conversions.js';
 
 const SHARED_SECRET = 'shared';
 
@@ -11,7 +12,7 @@ export class ParameterPathConversions {
    */
   static toParameterPrefix(backendId: BackendIdentifier | AppId): string {
     if (typeof backendId === 'object') {
-      return getBranchParameterPrefix(backendId);
+      return getBackendParameterPrefix(backendId);
     }
     return getSharedParameterPrefix(backendId);
   }
@@ -24,7 +25,7 @@ export class ParameterPathConversions {
     secretName: string
   ): string {
     if (typeof backendId === 'object') {
-      return getBranchParameterFullPath(backendId, secretName);
+      return getBackendParameterFullPath(backendId, secretName);
     }
     return getSharedParameterFullPath(backendId, secretName);
   }
@@ -33,18 +34,28 @@ export class ParameterPathConversions {
 /**
  * Get a branch-specific parameter prefix.
  */
-const getBranchParameterPrefix = (parts: BackendIdentifier): string => {
-  return `/amplify/${parts.namespace}/${parts.name}`;
+const getBackendParameterPrefix = (parts: BackendIdentifier): string => {
+  // round trip the backend id through the stack name conversion to ensure we are applying the same sanitization to SSM paths
+  const sanitizedBackendId = BackendIdentifierConversions.fromStackName(
+    BackendIdentifierConversions.toStackName(parts)
+  );
+  if (!sanitizedBackendId || !sanitizedBackendId.hash) {
+    // this *should* never happen
+    throw new Error(
+      `Could not sanitize the backendId to construct the parameter path`
+    );
+  }
+  return `/amplify/${sanitizedBackendId.namespace}/${sanitizedBackendId.name}-${sanitizedBackendId.type}-${sanitizedBackendId.hash}`;
 };
 
 /**
  * Get a branch-specific parameter full path.
  */
-const getBranchParameterFullPath = (
+const getBackendParameterFullPath = (
   backendIdentifier: BackendIdentifier,
   secretName: string
 ): string => {
-  return `${getBranchParameterPrefix(backendIdentifier)}/${secretName}`;
+  return `${getBackendParameterPrefix(backendIdentifier)}/${secretName}`;
 };
 
 /**
