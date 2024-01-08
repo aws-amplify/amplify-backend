@@ -16,7 +16,7 @@ void describe('configure command', () => {
   const profileController = new ProfileController();
   const mockAppendAWSFiles = mock.method(
     profileController,
-    'appendAWSFiles',
+    'createOrAppendAWSFiles',
     () => Promise.resolve()
   );
 
