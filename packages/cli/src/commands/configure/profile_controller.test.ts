@@ -297,6 +297,11 @@ void describe('profile controller', () => {
 });
 
 const assertFilePermissionsAreOwnerReadWriteOnly = async (filePath: string) => {
+  if (process.platform.startsWith('win')) {
+    // no good way to check for these permissions on windows.
+    // We check on unix systems and trust node to duplicate the behavior on Windows
+    return;
+  }
   const credentialFileStats = await fs.stat(filePath);
   assert.ok(
     // bit-wise mask that tests for owner RW of the file
