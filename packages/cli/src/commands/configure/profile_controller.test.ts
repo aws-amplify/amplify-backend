@@ -214,6 +214,25 @@ void describe('profile controller', () => {
         `${expectedCredentialText}${expectedCredentialText2}${expectedCredentialText3}`
       );
     });
+
+    void it('creates directory if does not exist', async () => {
+      // delete directory
+      await fs.rm(testDir, { recursive: true, force: true });
+
+      // assert that this doesn't throw
+      await profileController.appendAWSFiles({
+        profile: testProfile,
+        region: testRegion,
+        accessKeyId: testAccessKeyId,
+        secretAccessKey: testSecretAccessKey,
+      });
+
+      const data = await loadSharedConfigFiles({
+        ignoreCache: true,
+      });
+
+      assert.ok(data);
+    });
   });
 
   void describe('profile exists', () => {

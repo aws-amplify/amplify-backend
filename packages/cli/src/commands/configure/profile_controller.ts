@@ -6,7 +6,8 @@ import {
 import { fromIni } from '@aws-sdk/credential-providers';
 import { EOL } from 'os';
 import fs from 'fs/promises';
-import { join } from 'path';
+import path from 'path';
+import { existsSync } from 'fs';
 
 /**
  * Options for the profile configuration.
@@ -58,7 +59,12 @@ export class ProfileController {
 
   private appendAWSConfigFile = async (options: ConfigProfileOptions) => {
     const filePath =
-      process.env.AWS_CONFIG_FILE ?? join(getHomeDir(), '.aws', 'config');
+      process.env.AWS_CONFIG_FILE ?? path.join(getHomeDir(), '.aws', 'config');
+
+    const dirName = path.dirname(filePath);
+    if (!existsSync(dirName)) {
+      await fs.mkdir(dirName, { recursive: true });
+    }
 
     const fileEndsWithEOL = await this.isFileEndsWithEOL(filePath);
     let configData = fileEndsWithEOL ? '' : EOL;
@@ -86,7 +92,12 @@ export class ProfileController {
   ) => {
     const filePath =
       process.env.AWS_SHARED_CREDENTIALS_FILE ??
-      join(getHomeDir(), '.aws', 'credentials');
+      path.join(getHomeDir(), '.aws', 'credentials');
+
+    const dirName = path.dirname(filePath);
+    if (!existsSync(dirName)) {
+      await fs.mkdir(dirName, { recursive: true });
+    }
 
     const fileEndsWithEOL = await this.isFileEndsWithEOL(filePath);
     let credentialData = fileEndsWithEOL ? '' : EOL;
