@@ -38,14 +38,17 @@ class TestBackendSecret implements BackendSecret {
   resolve = (): SecretValue => {
     return SecretValue.unsafePlainText(this.secretName);
   };
-  resolvePath = (): string => {
-    return ParameterPathConversions.toParameterFullPath(
-      testBackendIdentifier,
-      this.secretName
-    );
-  };
-  getSecretName = (): string => {
-    return this.secretName;
+  resolvePath = (): Record<string, string> => {
+    return {
+      branchSecretPath: ParameterPathConversions.toParameterFullPath(
+        testBackendIdentifier,
+        this.secretName
+      ),
+      sharedSecretPath: ParameterPathConversions.toParameterFullPath(
+        testBackendIdentifier.namespace,
+        this.secretName
+      ),
+    };
   };
 }
 
@@ -283,11 +286,11 @@ void describe('AmplifyFunctionFactory', () => {
             TEST_VAR: 'testValue',
             TEST_SECRET: '<value will be resolved during runtime>',
             AMPLIFY_SECRET_PATHS: JSON.stringify({
-              TEST_SECRET:
-                '/amplify/testBackendId/testBranchName-branch-e482a1c36f/secretValue',
-            }),
-            AMPLIFY_SHARED_SECRET_PATHS: JSON.stringify({
-              TEST_SECRET: '/amplify/shared/testBackendId/secretValue',
+              '/amplify/testBackendId/testBranchName-branch-e482a1c36f/secretValue':
+                {
+                  name: 'TEST_SECRET',
+                  sharedPath: '/amplify/shared/testBackendId/secretValue',
+                },
             }),
           },
         },
@@ -304,7 +307,7 @@ void describe('AmplifyFunctionFactory', () => {
             },
           }).getInstance(getInstanceProps),
         new Error(
-          'AMPLIFY_SECRET_PATHS and AMPLIFY_SHARED_SECRET_PATHS are reserved environment variable names'
+          'AMPLIFY_SECRET_PATHS is a reserved environment variable name'
         )
       );
     });

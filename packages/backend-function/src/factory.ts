@@ -16,10 +16,6 @@ import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import fs from 'fs';
 import { createRequire } from 'module';
-import {
-  CDKContextKey,
-  ParameterPathConversions,
-} from '@aws-amplify/platform-core';
 
 /**
  * Entry point for defining a function in the Amplify ecosystem
@@ -296,29 +292,22 @@ class FunctionEnvironmentTranslator {
   ) {
     const secretPlaceholderText = '<value will be resolved during runtime>';
     const amplifySecretPaths = 'AMPLIFY_SECRET_PATHS';
-    const amplifySharedSecretPaths = 'AMPLIFY_SHARED_SECRET_PATHS';
-    const secretPathEnvVars: Record<string, string> = {};
-    const sharedSecretPathEnvVars: Record<string, string> = {};
+    const secretPathEnvVars: Record<string, Record<string, string>> = {};
 
     for (const [key, value] of Object.entries(this.functionEnvironmentProp)) {
-      if (key === amplifySecretPaths || key === amplifySharedSecretPaths) {
+      if (key === amplifySecretPaths) {
         throw new Error(
-          `${amplifySecretPaths} and ${amplifySharedSecretPaths} are reserved environment variable names`
+          `${amplifySecretPaths} is a reserved environment variable name`
         );
       }
       if (typeof value !== 'string') {
-        const branchSecretPath = this.backendSecretResolver.resolvePath(value);
-        const namespace = scope.node.getContext(
-          CDKContextKey.BACKEND_NAMESPACE
-        );
-        const sharedSecretPath = ParameterPathConversions.toParameterFullPath(
-          namespace,
-          value.getSecretName()
-        );
-
+        const { branchSecretPath, sharedSecretPath } =
+          this.backendSecretResolver.resolvePath(value);
         this.environmentRecord[key] = secretPlaceholderText;
-        secretPathEnvVars[key] = branchSecretPath;
-        sharedSecretPathEnvVars[key] = sharedSecretPath;
+        secretPathEnvVars[branchSecretPath] = {
+          name: key,
+          sharedPath: sharedSecretPath,
+        };
         this.secretPaths.push(branchSecretPath, sharedSecretPath);
       } else {
         this.environmentRecord[key] = value;
@@ -327,9 +316,6 @@ class FunctionEnvironmentTranslator {
 
     this.environmentRecord[amplifySecretPaths] =
       JSON.stringify(secretPathEnvVars);
-    this.environmentRecord[amplifySharedSecretPaths] = JSON.stringify(
-      sharedSecretPathEnvVars
-    );
   }
 
   getEnvironmentRecord = () => {

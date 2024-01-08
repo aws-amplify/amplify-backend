@@ -44,14 +44,17 @@ class TestBackendSecret implements BackendSecret {
   resolve = (): SecretValue => {
     return SecretValue.unsafePlainText(this.secretName);
   };
-  resolvePath = (): string => {
-    return ParameterPathConversions.toParameterFullPath(
-      testBackendIdentifier,
-      this.secretName
-    );
-  };
-  getSecretName = (): string => {
-    return this.secretName;
+  resolvePath = (): Record<string, string> => {
+    return {
+      branchSecretPath: ParameterPathConversions.toParameterFullPath(
+        testBackendIdentifier,
+        this.secretName
+      ),
+      sharedSecretPath: ParameterPathConversions.toParameterFullPath(
+        testBackendIdentifier.namespace,
+        this.secretName
+      ),
+    };
   };
 }
 
@@ -59,7 +62,7 @@ class TestBackendSecretResolver implements BackendSecretResolver {
   resolveSecret = (backendSecret: BackendSecret): SecretValue => {
     return backendSecret.resolve(testStack, testBackendIdentifier);
   };
-  resolvePath = (backendSecret: BackendSecret): string => {
+  resolvePath = (backendSecret: BackendSecret): Record<string, string> => {
     return backendSecret.resolvePath(testBackendIdentifier);
   };
 }

@@ -35,17 +35,18 @@ export class CfnTokenBackendSecret implements BackendSecret {
   /**
    * Resolve to the secret path
    */
-  resolvePath = (backendIdentifier: BackendIdentifier): string => {
-    return ParameterPathConversions.toParameterFullPath(
-      backendIdentifier,
-      this.name
-    );
-  };
-
-  /**
-   * Get the name of the secret
-   */
-  getSecretName = (): string => {
-    return this.name;
+  resolvePath = (
+    backendIdentifier: BackendIdentifier
+  ): Record<string, string> => {
+    return {
+      branchSecretPath: ParameterPathConversions.toParameterFullPath(
+        backendIdentifier,
+        this.name
+      ),
+      sharedSecretPath: ParameterPathConversions.toParameterFullPath(
+        backendIdentifier.namespace,
+        this.name
+      ),
+    };
   };
 }
