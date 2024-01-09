@@ -16,6 +16,8 @@
 '@aws-amplify/backend': patch
 '@aws-amplify/sandbox': patch
 '@aws-amplify/backend-cli': patch
+'@aws-amplify/backend-storage': patch
+'@aws-amplify/backend-output-storage': patch
 ---
 
 Implement consistent dependency declaration check. Bumped dependencies where necessary.
