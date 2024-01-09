@@ -1,5 +1,12 @@
 # create-amplify
 
+## 0.4.1
+
+### Patch Changes
+
+- Updated dependencies [5678ab4d4]
+  - @aws-amplify/platform-core@0.4.0
+
 ## 0.4.0
 
 ### Minor Changes
