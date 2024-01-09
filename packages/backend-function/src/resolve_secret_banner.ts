@@ -29,7 +29,12 @@ export const internalAmplifyFunctionBannerResolveSecrets = async (
     if (response.Parameters && response.Parameters.length > 0) {
       for (const parameter of response.Parameters) {
         if (parameter.Name) {
-          const envName = envPathObject[parameter.Name]?.name;
+          const envKey = Object.keys(envPathObject).find(
+            (key) => envPathObject[key].sharedPath === parameter.Name
+          );
+          const envName = envKey
+            ? envPathObject[envKey].name
+            : envPathObject[parameter.Name]?.name;
           process.env[envName] = parameter.Value;
         }
       }
