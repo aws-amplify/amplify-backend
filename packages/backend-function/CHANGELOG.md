@@ -1,5 +1,13 @@
 # @aws-amplify/backend-function
 
+## 0.6.1
+
+### Patch Changes
+
+- 04f067837: Implement consistent dependency declaration check. Bumped dependencies where necessary.
+- Updated dependencies [04f067837]
+  - @aws-amplify/backend-output-storage@0.2.9
+
 ## 0.6.0
 
 ### Minor Changes

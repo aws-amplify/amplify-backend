@@ -1,5 +1,24 @@
 # @aws-amplify/backend
 
+## 0.10.0
+
+### Minor Changes
+
+- 43740488a: Move pinning of CDK version from @aws-amplify/backend to customer's project
+
+### Patch Changes
+
+- 04f067837: Implement consistent dependency declaration check. Bumped dependencies where necessary.
+- Updated dependencies [04f067837]
+  - @aws-amplify/backend-output-schemas@0.5.1
+  - @aws-amplify/backend-function@0.6.1
+  - @aws-amplify/backend-secret@0.4.1
+  - @aws-amplify/platform-core@0.4.1
+  - @aws-amplify/backend-auth@0.4.2
+  - @aws-amplify/backend-data@0.9.3
+  - @aws-amplify/backend-storage@0.4.2
+  - @aws-amplify/backend-output-storage@0.2.9
+
 ## 0.9.0
 
 ### Minor Changes
