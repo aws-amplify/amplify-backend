@@ -20,10 +20,10 @@
   "dependencies": {
     "@aws-amplify/backend-output-schemas": "^0.5.0",
     "@aws-amplify/platform-core": "^0.4.0",
-    "@aws-sdk/client-amplify": "^3.329.0",
-    "@aws-sdk/client-cloudformation": "^3.329.0",
-    "@aws-sdk/client-s3": "^3.329.0",
-    "@aws-sdk/types": "^3.413.0",
+    "@aws-sdk/client-amplify": "^3.465.0",
+    "@aws-sdk/client-cloudformation": "^3.465.0",
+    "@aws-sdk/client-s3": "^3.465.0",
+    "@aws-sdk/types": "^3.465.0",
     "zod": "^3.22.2"
   }
 }
