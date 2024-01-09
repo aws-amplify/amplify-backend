@@ -17,6 +17,7 @@ export class AmplifyProjectCreator {
     // TODO figure out how do we manage CDK version here as part of https://github.com/aws-amplify/amplify-backend/issues/392
     'aws-cdk@2.110.1',
     'aws-cdk-lib@2.110.1',
+    'constructs@^10.0.0',
     'typescript@^5.0.0',
   ];
 
