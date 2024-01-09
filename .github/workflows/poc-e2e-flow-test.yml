@@ -6,6 +6,7 @@ on: # TODO: need to change the trigger
   push:
     branches:
       - poc/package-manager-support
+      - poc/pms-deploy-v2
   pull_request:
     branches:
       - poc/package-manager-support
@@ -61,7 +62,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - name: Restore Build Cache
         uses: ./.github/actions/restore_build_cache
-      - name: Run E2E tests with ${{ matrix.pkg-manager }}
+      - name: Run E2E flow tests with ${{ matrix.pkg-manager }}
         shell: bash
         run: |
-          PACKAGE_MANAGER_EXECUTABLE=${{matrix.pkg-manager}} npm run test:dir packages/integration-tests/src/test-e2e/create_amplify.test.ts
+          PACKAGE_MANAGER_EXECUTABLE=${{matrix.pkg-manager}} npm run test:dir packages/integration-tests/src/e2e-flow/e2e_flow.test.ts
