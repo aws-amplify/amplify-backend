@@ -87,6 +87,7 @@ void describe(
               '@aws-amplify/backend-cli',
               'aws-cdk',
               'aws-cdk-lib',
+              'constructs',
               'typescript',
             ]
           );
