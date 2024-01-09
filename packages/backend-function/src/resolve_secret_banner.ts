@@ -29,7 +29,7 @@ export const internalAmplifyFunctionBannerResolveSecrets = async (
     if (response.Parameters && response.Parameters.length > 0) {
       for (const parameter of response.Parameters) {
         if (parameter.Name) {
-          const envName = envPathObject[parameter.Name].name;
+          const envName = envPathObject[parameter.Name]?.name;
           process.env[envName] = parameter.Value;
         }
       }
@@ -44,7 +44,7 @@ export const internalAmplifyFunctionBannerResolveSecrets = async (
     .map((invalidParam) => envPathObject[invalidParam].sharedPath)
     .filter((sharedParam) => !!sharedParam);
 
-  if (sharedPaths) {
+  if (sharedPaths.length > 0) {
     await resolveSecrets(sharedPaths);
   }
 };
