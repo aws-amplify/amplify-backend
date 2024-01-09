@@ -20,9 +20,9 @@
   "dependencies": {
     "@aws-amplify/plugin-types": "^0.7.0",
     "@aws-amplify/platform-core": "^0.4.0",
-    "@aws-sdk/client-ssm": "^3.398.0"
+    "@aws-sdk/client-ssm": "^3.465.0"
   },
   "devDependencies": {
-    "@aws-sdk/types": "^3.370.0"
+    "@aws-sdk/types": "^3.465.0"
   }
 }

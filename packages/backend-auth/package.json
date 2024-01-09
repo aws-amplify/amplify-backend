@@ -19,7 +19,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@aws-amplify/auth-construct-alpha": "^0.5.0",
-    "@aws-amplify/backend-output-storage": "0.2.8",
+    "@aws-amplify/backend-output-storage": "^0.2.8",
     "@aws-amplify/plugin-types": "^0.7.0"
   },
   "devDependencies": {

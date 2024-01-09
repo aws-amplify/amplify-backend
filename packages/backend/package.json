@@ -31,7 +31,7 @@
     "@aws-amplify/backend-storage": "^0.4.1",
     "@aws-amplify/platform-core": "^0.4.0",
     "@aws-amplify/plugin-types": "^0.7.0",
-    "@aws-sdk/client-amplify": "^3.440.0"
+    "@aws-sdk/client-amplify": "^3.465.0"
   },
   "peerDependencies": {
     "aws-cdk-lib": "^2.110.1",
