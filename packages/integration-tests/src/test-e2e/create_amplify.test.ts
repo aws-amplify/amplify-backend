@@ -82,7 +82,13 @@ void describe(
 
           assert.deepStrictEqual(
             Object.keys(packageJsonObject.devDependencies).sort(),
-            ['@aws-amplify/backend', '@aws-amplify/backend-cli', 'typescript']
+            [
+              '@aws-amplify/backend',
+              '@aws-amplify/backend-cli',
+              'aws-cdk',
+              'aws-cdk-lib',
+              'typescript',
+            ]
           );
 
           assert.deepStrictEqual(
