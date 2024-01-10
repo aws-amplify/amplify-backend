@@ -74,19 +74,13 @@ export type BackendOutputStorageStrategy<T extends BackendOutputEntry> = {
 // @public (undocumented)
 export type BackendSecret = {
     resolve: (scope: Construct, backendIdentifier: BackendIdentifier) => SecretValue;
-    resolvePath: (backendIdentifier: BackendIdentifier) => {
-        branchSecretPath: string;
-        sharedSecretPath: string;
-    };
+    resolvePath: (backendIdentifier: BackendIdentifier) => ResolvePathResponse;
 };
 
 // @public (undocumented)
 export type BackendSecretResolver = {
     resolveSecret: (backendSecret: BackendSecret) => SecretValue;
-    resolvePath: (backendSecret: BackendSecret) => {
-        branchSecretPath: string;
-        sharedSecretPath: string;
-    };
+    resolvePath: (backendSecret: BackendSecret) => ResolvePathResponse;
 };
 
 // @public (undocumented)
@@ -143,6 +137,12 @@ export type MainStackNameResolver = {
 
 // @public (undocumented)
 export type ProjectName = string;
+
+// @public (undocumented)
+export type ResolvePathResponse = {
+    branchSecretPath: string;
+    sharedSecretPath: string;
+};
 
 // @public
 export type ResourceProvider<T extends object = object> = {

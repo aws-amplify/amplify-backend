@@ -6,7 +6,7 @@ import type { AmplifySecretPaths } from './function_env_translator.js';
  * The body of this function will be used to resolve secrets for Lambda functions
  */
 export const internalAmplifyFunctionBannerResolveSecrets = async (
-  client?: SSM
+  client = new SSM()
 ) => {
   const envPathObject: AmplifySecretPaths = JSON.parse(
     process.env.AMPLIFY_SECRET_PATHS ?? '{}'
@@ -18,10 +18,6 @@ export const internalAmplifyFunctionBannerResolveSecrets = async (
   }
 
   const resolveSecrets = async (paths: string[]) => {
-    if (!client) {
-      client = new SSM();
-    }
-
     const response = await client.getParameters({
       Names: paths,
       WithDecryption: true,

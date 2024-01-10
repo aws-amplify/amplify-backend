@@ -5,6 +5,7 @@ import {
   BackendIdentifier,
   BackendSecret,
   BackendSecretResolver,
+  ResolvePathResponse,
 } from '@aws-amplify/plugin-types';
 import { SecretValue } from 'aws-cdk-lib';
 import assert from 'node:assert';
@@ -22,9 +23,7 @@ class TestBackendSecretResolver implements BackendSecretResolver {
   resolveSecret = (backendSecret: BackendSecret): SecretValue => {
     return backendSecret.resolve(testStack, testBackendIdentifier);
   };
-  resolvePath = (
-    backendSecret: BackendSecret
-  ): { branchSecretPath: string; sharedSecretPath: string } => {
+  resolvePath = (backendSecret: BackendSecret): ResolvePathResponse => {
     return backendSecret.resolvePath(testBackendIdentifier);
   };
 }
@@ -34,7 +33,7 @@ class TestBackendSecret implements BackendSecret {
   resolve = (): SecretValue => {
     return SecretValue.unsafePlainText(this.secretName);
   };
-  resolvePath = (): { branchSecretPath: string; sharedSecretPath: string } => {
+  resolvePath = (): ResolvePathResponse => {
     return {
       branchSecretPath: ParameterPathConversions.toParameterFullPath(
         testBackendIdentifier,
