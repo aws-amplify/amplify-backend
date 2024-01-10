@@ -12,6 +12,10 @@ import {
   DeleteStackCommand,
 } from '@aws-sdk/client-cloudformation';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
+import {
+  ClientConfigFormat,
+  getClientConfigPath,
+} from '@aws-amplify/client-config';
 import { amplifyCli } from '../process-controller/process_controller.js';
 import { TestBranch, amplifyAppPool } from '../amplify_app_pool.js';
 import { testConcurrencyLevel } from '../test-e2e/test_concurrency.js';
@@ -336,6 +340,60 @@ void describe('amplify', { concurrency: concurrency }, () => {
             cwd: tempDir,
             stdio: 'inherit',
           }
+        );
+
+        const cfnClient = new CloudFormationClient(e2eToolingClientConfig);
+        const testBranch = await amplifyAppPool.createTestBranch();
+        const branchBackendIdentifier: BackendIdentifier = {
+          namespace: testBranch.appId,
+          name: testBranch.branchName,
+          type: 'branch',
+        };
+
+        await amplifyCli(
+          [
+            'pipeline-deploy',
+            '--branch',
+            branchBackendIdentifier.name,
+            '--appId',
+            branchBackendIdentifier.namespace,
+          ],
+          tempDir,
+          {
+            env: { CI: 'true' },
+          }
+        ).run();
+
+        const clientConfigStats = await fsp.stat(
+          await getClientConfigPath(tempDir)
+        );
+
+        assert.ok(clientConfigStats.isFile());
+
+        const testBranchDetails = await amplifyAppPool.fetchTestBranchDetails(
+          testBranch
+        );
+        assert.ok(
+          testBranchDetails.backend?.stackArn,
+          'branch should have stack associated'
+        );
+        assert.ok(
+          testBranchDetails.backend?.stackArn?.includes(
+            branchBackendIdentifier.namespace
+          )
+        );
+        assert.ok(
+          testBranchDetails.backend?.stackArn?.includes(
+            branchBackendIdentifier.name
+          )
+        );
+
+        await cfnClient.send(
+          new DeleteStackCommand({
+            StackName: BackendIdentifierConversions.toStackName(
+              branchBackendIdentifier
+            ),
+          })
         );
 
         // if (index === 1) {
