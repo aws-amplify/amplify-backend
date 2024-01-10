@@ -1,10 +1,6 @@
 import { beforeEach, describe, it } from 'node:test';
-import { App, SecretValue, Stack } from 'aws-cdk-lib';
-import {
-  BackendIdentifier,
-  BackendSecret,
-  ConstructFactoryGetInstanceProps,
-} from '@aws-amplify/plugin-types';
+import { App, Stack } from 'aws-cdk-lib';
+import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
 import assert from 'node:assert';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 import {
@@ -16,7 +12,6 @@ import { Template } from 'aws-cdk-lib/assertions';
 import { NodeVersion, defineFunction } from './factory.js';
 import { lambdaWithDependencies } from './test-assets/lambda-with-dependencies/resource.js';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
-import { ParameterPathConversions } from '@aws-amplify/platform-core';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
@@ -26,31 +21,6 @@ const createStackAndSetContext = (): Stack => {
   const stack = new Stack(app);
   return stack;
 };
-
-const testBackendIdentifier: BackendIdentifier = {
-  namespace: 'testBackendId',
-  name: 'testBranchName',
-  type: 'branch',
-};
-
-class TestBackendSecret implements BackendSecret {
-  constructor(private readonly secretName: string) {}
-  resolve = (): SecretValue => {
-    return SecretValue.unsafePlainText(this.secretName);
-  };
-  resolvePath = (): { branchSecretPath: string; sharedSecretPath: string } => {
-    return {
-      branchSecretPath: ParameterPathConversions.toParameterFullPath(
-        testBackendIdentifier,
-        this.secretName
-      ),
-      sharedSecretPath: ParameterPathConversions.toParameterFullPath(
-        testBackendIdentifier.namespace,
-        this.secretName
-      ),
-    };
-  };
-}
 
 void describe('AmplifyFunctionFactory', () => {
   let getInstanceProps: ConstructFactoryGetInstanceProps;
