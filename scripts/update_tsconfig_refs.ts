@@ -2,6 +2,7 @@ import { globSync } from 'glob';
 import * as fs from 'fs';
 import * as path from 'path';
 import prettier from 'prettier';
+import { readPackageJson } from './components/package-json/package_json.js';
 
 /*
  * In a monorepo where packages depend on each other, TS needs to know what order to build those packages.
@@ -14,7 +15,7 @@ import prettier from 'prettier';
  */
 
 type PackageInfo = {
-  packageJsonPath: string;
+  packagePath: string;
   packageJson: Record<string, unknown>;
   tsconfigPath: string;
   tsconfig: Record<string, unknown>;
@@ -26,9 +27,8 @@ const packagePaths = globSync('./packages/*');
 // First collect information about all the packages in the repo
 const repoPackagesInfoRecord: Record<string, PackageInfo> = {};
 
-packagePaths.forEach((packagePath) => {
-  const packageJsonPath = path.resolve(packagePath, 'package.json');
-  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+for (const packagePath of packagePaths) {
+  const packageJson = await readPackageJson(packagePath);
   const tsconfigPath = path.resolve(packagePath, 'tsconfig.json');
   const packageDirName = packagePath.split(path.sep).reverse()[0];
   const relativeReferencePath = path.posix.join('..', packageDirName);
@@ -41,13 +41,13 @@ packagePaths.forEach((packagePath) => {
   }
 
   repoPackagesInfoRecord[packageJson.name] = {
-    packageJsonPath,
+    packagePath,
     packageJson,
     tsconfigPath,
     tsconfig: tsconfigObject,
     relativeReferencePath,
   };
-});
+}
 
 // Iterate over all the packages
 const updatePromises = Object.values(repoPackagesInfoRecord).map(

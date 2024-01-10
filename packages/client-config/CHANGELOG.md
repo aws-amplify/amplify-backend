@@ -1,5 +1,15 @@
 # @aws-amplify/client-config
 
+## 0.5.1
+
+### Patch Changes
+
+- 04f067837: Implement consistent dependency declaration check. Bumped dependencies where necessary.
+- Updated dependencies [04f067837]
+  - @aws-amplify/deployed-backend-client@0.3.7
+  - @aws-amplify/backend-output-schemas@0.5.1
+  - @aws-amplify/model-generator@0.2.5
+
 ## 0.5.0
 
 ### Minor Changes

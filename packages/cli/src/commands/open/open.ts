@@ -1,4 +1,4 @@
-import opn from 'open';
+import opn, { Options } from 'open';
 import { ChildProcess } from 'child_process';
 import { Printer } from '@aws-amplify/cli-core';
 
@@ -8,7 +8,7 @@ import { Printer } from '@aws-amplify/cli-core';
 export class Open {
   static open = async (
     target: string,
-    options: opn.Options
+    options: Options
   ): Promise<ChildProcess | void> => {
     let childProcess: ChildProcess;
     try {

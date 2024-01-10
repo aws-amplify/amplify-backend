@@ -4,6 +4,7 @@ import { DependenciesValidator } from './dependencies_validator.js';
 import { ExecaChildProcess } from 'execa';
 import fsp from 'fs/promises';
 import { fileURLToPath } from 'url';
+import { glob } from 'glob';
 
 void describe('Dependency validator', () => {
   const execaMock = mock.fn();
@@ -105,6 +106,32 @@ void describe('Dependency validator', () => {
           err.message,
           'Package @aws-amplify/backend-cli must not have color-name anywhere in dependency graph'
         );
+        return true;
+      }
+    );
+  });
+
+  void it('can detect inconsistent dependency declarations', async () => {
+    await assert.rejects(
+      async () => {
+        const packagePaths = await glob(
+          'scripts/components/test-resources/dependency-version-consistency-test-packages/*'
+        );
+        await new DependenciesValidator(
+          packagePaths,
+          {},
+          execaMock as never
+        ).validate();
+      },
+      (err: Error) => {
+        assert.ok(
+          err.message.includes('is declared using inconsistent versions')
+        );
+        assert.ok(err.message.includes('glob'));
+        assert.ok(err.message.includes('zod'));
+        assert.ok(err.message.includes('yargs'));
+        assert.ok(err.message.includes('package1'));
+        assert.ok(err.message.includes('package2'));
         return true;
       }
     );
