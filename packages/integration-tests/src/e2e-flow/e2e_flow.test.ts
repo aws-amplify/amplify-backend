@@ -12,7 +12,11 @@ import {
   DeleteStackCommand,
 } from '@aws-sdk/client-cloudformation';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
-import { getClientConfigPath } from '@aws-amplify/client-config';
+import {
+  ClientConfigFormat,
+  getClientConfigPath,
+} from '@aws-amplify/client-config';
+import { amplifyCli } from '../process-controller/process_controller.js';
 import { TestBranch, amplifyAppPool } from '../amplify_app_pool.js';
 import { testConcurrencyLevel } from '../test-e2e/test_concurrency.js';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
@@ -355,18 +359,19 @@ void describe('amplify', { concurrency: concurrency }, () => {
           }
         );
 
-        await execa(
-          packageManagerExecutable === 'npm' ? 'npx' : packageManagerExecutable,
+        await amplifyCli(
           [
-            'amplify',
             'pipeline-deploy',
             '--branch',
             branchBackendIdentifier.name,
             '--appId',
             branchBackendIdentifier.namespace,
           ],
-          { cwd: tempDir, stdio: 'inherit', env: { CI: 'true' } }
-        );
+          tempDir,
+          {
+            env: { CI: 'true' },
+          }
+        ).run();
 
         const clientConfigStats = await fsp.stat(
           await getClientConfigPath(tempDir)
