@@ -6,13 +6,14 @@ import {
 import semver from 'semver';
 
 /**
- * This scripts sets baseline dependency versions in packages in the workspace.
+ * This scripts sets baseline dependency versions in packages in the workspace for allow listed packages.
  * Baseline versions are defined as minimum version that matches dependency version declaration.
- * For example baseline version for '^1.4.2` is '1.4.2'
  *
  * This script updates content of 'package.json' files. These changes are needed for testing
  * and shouldn't be committed to the repo.
  */
+
+const targetDependencyNames = new Set(['aws-cdk', 'aws-cdk-lib']);
 
 const setBaselineDependencyVersions = async (
   packagePath: string
@@ -31,12 +32,14 @@ const setBaselineDependencyVersions = async (
 
   for (const dependencyManifest of dependencyManifests) {
     for (const dependencyName of Object.keys(dependencyManifest)) {
-      const version = dependencyManifest[dependencyName];
-      const baselineVersion = semver.minVersion(version)?.version;
-      if (!baselineVersion) {
-        throw new Error(`Unable to find min version for ${version}`);
+      if (targetDependencyNames.has(dependencyName)) {
+        const version = dependencyManifest[dependencyName];
+        const baselineVersion = semver.minVersion(version)?.version;
+        if (!baselineVersion) {
+          throw new Error(`Unable to find min version for ${version}`);
+        }
+        dependencyManifest[dependencyName] = baselineVersion;
       }
-      dependencyManifest[dependencyName] = baselineVersion;
     }
   }
 
