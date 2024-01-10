@@ -178,7 +178,14 @@ void describe('amplify', { concurrency: concurrency }, () => {
 
         assert.deepStrictEqual(
           Object.keys(packageJsonObject.devDependencies).sort(),
-          ['@aws-amplify/backend', '@aws-amplify/backend-cli', 'typescript']
+          [
+            '@aws-amplify/backend',
+            '@aws-amplify/backend-cli',
+            'aws-cdk',
+            'aws-cdk-lib',
+            'constructs',
+            'typescript',
+          ]
         );
 
         assert.deepStrictEqual(
