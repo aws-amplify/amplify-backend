@@ -4,14 +4,11 @@ import { execa } from 'execa';
 import { ApiUsageGenerator } from './api_usage_generator.js';
 import { EOL } from 'os';
 import { ApiReportParser } from './api_report_parser.js';
-
-type PackageJson = {
-  name: string;
-  version: string;
-  private?: boolean;
-  dependencies?: Record<string, string>;
-  peerDependencies?: Record<string, string>;
-};
+import {
+  PackageJson,
+  readPackageJson,
+  writePackageJson,
+} from '../package-json/package_json.js';
 
 /**
  * Validates changes between two versions of a package.
@@ -47,7 +44,7 @@ export class ApiChangesValidator {
   validate = async (): Promise<void> => {
     await fsp.rm(this.testProjectPath, { recursive: true, force: true });
     await fsp.mkdir(this.testProjectPath, { recursive: true });
-    const latestPackageJson = await this.readLatestPackageJson();
+    const latestPackageJson = await readPackageJson(this.latestPackagePath);
     if (latestPackageJson.private) {
       console.log(
         `Skipping ${latestPackageJson.name} because it's private and not published to NPM`
@@ -67,14 +64,6 @@ export class ApiChangesValidator {
         } failed, compiler output:${EOL}${compilationResult.all ?? ''}`
       );
     }
-  };
-
-  private readLatestPackageJson = async (): Promise<PackageJson> => {
-    const latestPackageJsonContent = await fsp.readFile(
-      path.join(this.latestPackagePath, 'package.json'),
-      'utf-8'
-    );
-    return JSON.parse(latestPackageJsonContent);
   };
 
   private createTestProject = async (latestPackageJson: PackageJson) => {
@@ -102,13 +91,11 @@ export class ApiChangesValidator {
 
     const packageJsonContent = {
       name: `api-changes-validation-${this.latestPackageDirectoryName}`,
+      version: '1.0.0',
       type: 'module',
       dependencies,
     };
-    await fsp.writeFile(
-      path.join(this.testProjectPath, 'package.json'),
-      JSON.stringify(packageJsonContent, null, 2)
-    );
+    await writePackageJson(this.testProjectPath, packageJsonContent);
     const apiReportContent = await fsp.readFile(
       this.baselinePackageApiReportPath,
       'utf-8'
