@@ -22,7 +22,9 @@ export class DefaultBackendSecretResolver implements BackendSecretResolver {
     return backendSecret.resolve(this.scope, this.backendId);
   };
 
-  resolvePath = (backendSecret: BackendSecret): Record<string, string> => {
+  resolvePath = (
+    backendSecret: BackendSecret
+  ): { branchSecretPath: string; sharedSecretPath: string } => {
     return backendSecret.resolvePath(this.backendId);
   };
 }

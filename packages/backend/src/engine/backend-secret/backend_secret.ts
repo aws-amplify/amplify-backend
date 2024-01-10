@@ -37,7 +37,7 @@ export class CfnTokenBackendSecret implements BackendSecret {
    */
   resolvePath = (
     backendIdentifier: BackendIdentifier
-  ): Record<string, string> => {
+  ): { branchSecretPath: string; sharedSecretPath: string } => {
     return {
       branchSecretPath: ParameterPathConversions.toParameterFullPath(
         backendIdentifier,

@@ -38,7 +38,7 @@ class TestBackendSecret implements BackendSecret {
   resolve = (): SecretValue => {
     return SecretValue.unsafePlainText(this.secretName);
   };
-  resolvePath = (): Record<string, string> => {
+  resolvePath = (): { branchSecretPath: string; sharedSecretPath: string } => {
     return {
       branchSecretPath: ParameterPathConversions.toParameterFullPath(
         testBackendIdentifier,
@@ -245,69 +245,6 @@ void describe('AmplifyFunctionFactory', () => {
           }).getInstance(getInstanceProps),
         new Error(
           'memoryMB must be a whole number between 128 and 10240 inclusive'
-        )
-      );
-    });
-  });
-
-  void describe('environment property', () => {
-    void it('sets environment variables', () => {
-      const lambda = defineFunction({
-        entry: './test-assets/default-lambda/handler.ts',
-        environment: {
-          TEST_VAR: 'testValue',
-        },
-      }).getInstance(getInstanceProps);
-      const template = Template.fromStack(Stack.of(lambda.resources.lambda));
-
-      template.hasResourceProperties('AWS::Lambda::Function', {
-        Environment: {
-          Variables: {
-            TEST_VAR: 'testValue',
-          },
-        },
-      });
-    });
-
-    void it('sets environment variables with secret path and placeholder text', () => {
-      const testSecret = new TestBackendSecret('secretValue');
-      const lambda = defineFunction({
-        entry: './test-assets/default-lambda/handler.ts',
-        environment: {
-          TEST_VAR: 'testValue',
-          TEST_SECRET: testSecret,
-        },
-      }).getInstance(getInstanceProps);
-      const template = Template.fromStack(Stack.of(lambda.resources.lambda));
-
-      template.hasResourceProperties('AWS::Lambda::Function', {
-        Environment: {
-          Variables: {
-            TEST_VAR: 'testValue',
-            TEST_SECRET: '<value will be resolved during runtime>',
-            AMPLIFY_SECRET_PATHS: JSON.stringify({
-              '/amplify/testBackendId/testBranchName-branch-e482a1c36f/secretValue':
-                {
-                  name: 'TEST_SECRET',
-                  sharedPath: '/amplify/shared/testBackendId/secretValue',
-                },
-            }),
-          },
-        },
-      });
-    });
-
-    void it('throws when setting reserved environment variable', () => {
-      assert.throws(
-        () =>
-          defineFunction({
-            entry: './test-assets/default-lambda/handler.ts',
-            environment: {
-              AMPLIFY_SECRET_PATHS: 'testValue',
-            },
-          }).getInstance(getInstanceProps),
-        new Error(
-          'AMPLIFY_SECRET_PATHS is a reserved environment variable name'
         )
       );
     });

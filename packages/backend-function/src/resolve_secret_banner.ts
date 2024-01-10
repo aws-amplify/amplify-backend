@@ -1,5 +1,6 @@
 /* The code in this line replaces placeholder text in environment variables for secrets with values fetched from SSM, this is a noop if there are no secrets */
 import { SSM } from '@aws-sdk/client-ssm';
+import type { AmplifySecretPaths } from './function_env_translator.js';
 
 /**
  * The body of this function will be used to resolve secrets for Lambda functions
@@ -7,7 +8,7 @@ import { SSM } from '@aws-sdk/client-ssm';
 export const internalAmplifyFunctionBannerResolveSecrets = async (
   client?: SSM
 ) => {
-  const envPathObject: Record<string, Record<string, string>> = JSON.parse(
+  const envPathObject: AmplifySecretPaths = JSON.parse(
     process.env.AMPLIFY_SECRET_PATHS ?? '{}'
   );
   const paths = Object.keys(envPathObject);
