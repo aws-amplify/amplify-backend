@@ -70,7 +70,7 @@ jobs:
       - name: Run unit and integration tests
         run: |
           npm run set-script-shell
-          npm run test:scripts
+          npm run test
   check_api_changes:
     if: github.event_name == 'pull_request'
     needs:
