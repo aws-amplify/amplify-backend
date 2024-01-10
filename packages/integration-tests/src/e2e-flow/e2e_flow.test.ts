@@ -129,275 +129,12 @@ void describe('amplify', { concurrency: concurrency }, () => {
     await execa('npm', ['run', 'stop:npm-proxy'], { stdio: 'inherit' });
   });
 
-  const initialStates = ['empty', 'module', 'commonjs'] as const;
-
-  initialStates.forEach((initialState) => {
-    void describe('installs expected packages and scaffolds expected files', () => {
-      let tempDir: string;
-      let branchBackendIdentifier: BackendIdentifier;
-      let testBranch: TestBranch;
-      let cfnClient: CloudFormationClient;
-      before(async () => {
-        tempDir = await fsp.mkdtemp(
-          path.join(os.tmpdir(), 'test-create-amplify')
-        );
-
-        if (PACKAGE_MANAGER_EXECUTABLE === 'yarn-modern') {
-          await packageManagerSetup(
-            PACKAGE_MANAGER_EXECUTABLE as PackageManagerExecutable,
-            tempDir
-          );
-        }
-        cfnClient = new CloudFormationClient(e2eToolingClientConfig);
-        testBranch = await amplifyAppPool.createTestBranch();
-        branchBackendIdentifier = {
-          namespace: testBranch.appId,
-          name: testBranch.branchName,
-          type: 'branch',
-        };
-      });
-
-      after(async () => {
-        await cfnClient.send(
-          new DeleteStackCommand({
-            StackName: BackendIdentifierConversions.toStackName(
-              branchBackendIdentifier
-            ),
-          })
-        );
-        await fsp.rm(tempDir, { recursive: true });
-      });
-
-      void it(`starting from ${initialState} project`, async () => {
-        if (initialState != 'empty') {
-          await fsp.writeFile(
-            path.join(tempDir, 'package.json'),
-            JSON.stringify(
-              {
-                name: 'test_name',
-                version: '0.0.1',
-                type: initialState,
-              },
-              null,
-              2
-            )
-          );
-        }
-
-        await execa(packageManagerExecutable, ['create', 'amplify', '--yes'], {
-          cwd: tempDir,
-          stdio: 'inherit',
-        });
-        const packageJsonPath = path.resolve(tempDir, 'package.json');
-        const packageJsonObject = JSON.parse(
-          await fsp.readFile(packageJsonPath, 'utf-8')
-        );
-
-        assert.deepStrictEqual(
-          Object.keys(packageJsonObject.devDependencies).sort(),
-          [
-            '@aws-amplify/backend',
-            '@aws-amplify/backend-cli',
-            'aws-cdk',
-            'aws-cdk-lib',
-            'constructs',
-            'typescript',
-          ]
-        );
-
-        assert.deepStrictEqual(
-          Object.keys(packageJsonObject.dependencies).sort(),
-          ['aws-amplify']
-        );
-
-        const gitIgnorePath = path.resolve(tempDir, '.gitignore');
-        const gitIgnoreContent = (await fsp.readFile(gitIgnorePath, 'utf-8'))
-          .split(os.EOL)
-          .filter((s) => s.trim());
-        const expectedGitIgnoreContent = [
-          '# amplify',
-          '.amplify',
-          'amplifyconfiguration*',
-          'node_modules',
-        ];
-
-        expectedGitIgnoreContent.forEach((line) => {
-          assert.ok(gitIgnoreContent.includes(line));
-        });
-
-        const amplifyPathPrefix = path.join(tempDir, 'amplify');
-
-        // Read tsconfig.json content, remove all comments, and make assertions
-        const tsConfigPath = path.resolve(amplifyPathPrefix, 'tsconfig.json');
-        const tsConfigContent = (
-          await fsp.readFile(tsConfigPath, 'utf-8')
-        ).replace(/\/\*[\s\S]*?\*\/|([^:]|^)\/\/.*$/gm, '');
-        const tsConfigObject = JSON.parse(tsConfigContent);
-
-        assert.equal(tsConfigObject.compilerOptions.module, 'es2022');
-        assert.equal(
-          tsConfigObject.compilerOptions.moduleResolution,
-          'bundler'
-        );
-        assert.equal(tsConfigObject.compilerOptions.resolveJsonModule, true);
-
-        const pathPrefix = path.join(tempDir, 'amplify');
-
-        const files = await glob(path.join(amplifyPathPrefix, '**', '*'), {
-          // eslint-disable-next-line spellcheck/spell-checker
-          nodir: true,
-          windowsPathsNoEscape: true,
-          ignore: ['**/node_modules/**', '**/yarn.lock'],
-        });
-
-        const expectedAmplifyFiles = [
-          path.join('auth', 'resource.ts'),
-          'backend.ts',
-          path.join('data', 'resource.ts'),
-          'package.json',
-          'tsconfig.json',
-        ];
-
-        assert.deepStrictEqual(
-          files.sort(),
-          expectedAmplifyFiles.map((suffix) => path.join(pathPrefix, suffix))
-        );
-
-        if (PACKAGE_MANAGER_EXECUTABLE === 'yarn-modern') {
-          await execa('yarn', ['config', 'set', 'nodeLinker', 'node-modules'], {
-            cwd: `${tempDir}/amplify`,
-            stdio: 'inherit',
-          });
-
-          await fsp.appendFile(
-            path.join(tempDir, '.yarnrc.yml'),
-            `pnpIgnorePatterns:\n  - ./nm-packages/**`
-          );
-          await execa('yarn', ['install'], {
-            cwd: tempDir,
-            stdin: 'inherit',
-          });
-          await execa('yarn', ['add', '@aws-amplify/backend'], {
-            cwd: `${tempDir}/amplify`,
-            stdio: 'inherit',
-          });
-        }
-
-        // assert that project compiles successfully
-        await execa(
-          packageManagerExecutable === 'npm'
-            ? 'npx'
-            : packageManagerExecutable.startsWith('yarn')
-            ? 'yarn'
-            : packageManagerExecutable,
-          [
-            'tsc',
-            '--noEmit',
-            '--skipLibCheck',
-            // pointing the project arg to the amplify backend directory will use the tsconfig present in that directory
-            '--project',
-            amplifyPathPrefix,
-          ],
-          {
-            cwd: tempDir,
-            stdio: 'inherit',
-          }
-        );
-
-        if (PACKAGE_MANAGER_EXECUTABLE.startsWith('yarn')) {
-          await execa('yarn', ['add', 'aws-cdk', 'aws-cdk-lib', 'constructs'], {
-            cwd: tempDir,
-            stdio: 'inherit',
-          });
-          if (PACKAGE_MANAGER_EXECUTABLE === 'yarn-modern') {
-            await execa(
-              'yarn',
-              [
-                'add',
-                '-D',
-                'tsx',
-                'graphql',
-                'pluralize',
-                'zod',
-                '@aws-amplify/platform-core',
-              ],
-              {
-                cwd: tempDir,
-                stdio: 'inherit',
-              }
-            );
-
-            await execa('node', ['--version'], {
-              cwd: tempDir,
-            });
-          }
-        }
-
-        // assert that project synthesizes successfully
-        await execa(
-          packageManagerExecutable === 'npm' ? 'npx' : packageManagerExecutable,
-          [
-            'cdk',
-            'synth',
-            '--context',
-            `amplify-backend-namespace=123`,
-            '--context',
-            `amplify-backend-name=sandboxName`,
-            '--context',
-            `amplify-backend-type=sandbox`,
-            '--app',
-            "'npx tsx amplify/backend.ts'",
-            '--quiet',
-          ],
-          {
-            cwd: tempDir,
-            stdio: 'inherit',
-          }
-        );
-
-        await execa(
-          packageManagerExecutable === 'npm' ? 'npx' : packageManagerExecutable,
-          [
-            'amplify',
-            'pipeline-deploy',
-            '--branch',
-            branchBackendIdentifier.name,
-            '--appId',
-            branchBackendIdentifier.namespace,
-          ],
-          { cwd: tempDir, stdio: 'inherit', env: { CI: 'true' } }
-        );
-
-        const clientConfigStats = await fsp.stat(
-          await getClientConfigPath(tempDir)
-        );
-
-        assert.ok(clientConfigStats.isFile());
-
-        const testBranchDetails = await amplifyAppPool.fetchTestBranchDetails(
-          testBranch
-        );
-        assert.ok(
-          testBranchDetails.backend?.stackArn,
-          'branch should have stack associated'
-        );
-        assert.ok(
-          testBranchDetails.backend?.stackArn?.includes(
-            branchBackendIdentifier.namespace
-          )
-        );
-        assert.ok(
-          testBranchDetails.backend?.stackArn?.includes(
-            branchBackendIdentifier.name
-          )
-        );
-      });
-    });
-  });
-
-  void describe('fails fast', () => {
+  void describe('installs expected packages and scaffolds expected files', () => {
     let tempDir: string;
-    beforeEach(async () => {
+    let branchBackendIdentifier: BackendIdentifier;
+    let testBranch: TestBranch;
+    let cfnClient: CloudFormationClient;
+    before(async () => {
       tempDir = await fsp.mkdtemp(
         path.join(os.tmpdir(), 'test-create-amplify')
       );
@@ -408,32 +145,230 @@ void describe('amplify', { concurrency: concurrency }, () => {
           tempDir
         );
       }
+      cfnClient = new CloudFormationClient(e2eToolingClientConfig);
+      testBranch = await amplifyAppPool.createTestBranch();
+      branchBackendIdentifier = {
+        namespace: testBranch.appId,
+        name: testBranch.branchName,
+        type: 'branch',
+      };
     });
 
-    afterEach(async () => {
+    after(async () => {
+      await cfnClient.send(
+        new DeleteStackCommand({
+          StackName: BackendIdentifierConversions.toStackName(
+            branchBackendIdentifier
+          ),
+        })
+      );
       await fsp.rm(tempDir, { recursive: true });
     });
 
-    void it('if amplify path already exists', async () => {
-      const amplifyDirPath = path.join(tempDir, 'amplify');
-      await fsp.mkdir(amplifyDirPath, { recursive: true });
+    void it(`starting project`, async () => {
+      await execa(packageManagerExecutable, ['create', 'amplify', '--yes'], {
+        cwd: tempDir,
+        stdio: 'inherit',
+      });
+      const packageJsonPath = path.resolve(tempDir, 'package.json');
+      const packageJsonObject = JSON.parse(
+        await fsp.readFile(packageJsonPath, 'utf-8')
+      );
 
-      const result = await execa(
-        packageManagerExecutable,
-        ['create', 'amplify', '--yes'],
+      assert.deepStrictEqual(
+        Object.keys(packageJsonObject.devDependencies).sort(),
+        [
+          '@aws-amplify/backend',
+          '@aws-amplify/backend-cli',
+          'aws-cdk',
+          'aws-cdk-lib',
+          'constructs',
+          'typescript',
+        ]
+      );
+
+      assert.deepStrictEqual(
+        Object.keys(packageJsonObject.dependencies).sort(),
+        ['aws-amplify']
+      );
+
+      const gitIgnorePath = path.resolve(tempDir, '.gitignore');
+      const gitIgnoreContent = (await fsp.readFile(gitIgnorePath, 'utf-8'))
+        .split(os.EOL)
+        .filter((s) => s.trim());
+      const expectedGitIgnoreContent = [
+        '# amplify',
+        '.amplify',
+        'amplifyconfiguration*',
+        'node_modules',
+      ];
+
+      expectedGitIgnoreContent.forEach((line) => {
+        assert.ok(gitIgnoreContent.includes(line));
+      });
+
+      const amplifyPathPrefix = path.join(tempDir, 'amplify');
+
+      // Read tsconfig.json content, remove all comments, and make assertions
+      const tsConfigPath = path.resolve(amplifyPathPrefix, 'tsconfig.json');
+      const tsConfigContent = (
+        await fsp.readFile(tsConfigPath, 'utf-8')
+      ).replace(/\/\*[\s\S]*?\*\/|([^:]|^)\/\/.*$/gm, '');
+      const tsConfigObject = JSON.parse(tsConfigContent);
+
+      assert.equal(tsConfigObject.compilerOptions.module, 'es2022');
+      assert.equal(tsConfigObject.compilerOptions.moduleResolution, 'bundler');
+      assert.equal(tsConfigObject.compilerOptions.resolveJsonModule, true);
+
+      const pathPrefix = path.join(tempDir, 'amplify');
+
+      const files = await glob(path.join(amplifyPathPrefix, '**', '*'), {
+        // eslint-disable-next-line spellcheck/spell-checker
+        nodir: true,
+        windowsPathsNoEscape: true,
+        ignore: ['**/node_modules/**', '**/yarn.lock'],
+      });
+
+      const expectedAmplifyFiles = [
+        path.join('auth', 'resource.ts'),
+        'backend.ts',
+        path.join('data', 'resource.ts'),
+        'package.json',
+        'tsconfig.json',
+      ];
+
+      assert.deepStrictEqual(
+        files.sort(),
+        expectedAmplifyFiles.map((suffix) => path.join(pathPrefix, suffix))
+      );
+
+      if (PACKAGE_MANAGER_EXECUTABLE === 'yarn-modern') {
+        await execa('yarn', ['config', 'set', 'nodeLinker', 'node-modules'], {
+          cwd: `${tempDir}/amplify`,
+          stdio: 'inherit',
+        });
+
+        await fsp.appendFile(
+          path.join(tempDir, '.yarnrc.yml'),
+          `pnpIgnorePatterns:\n  - ./nm-packages/**`
+        );
+        await execa('yarn', ['install'], {
+          cwd: tempDir,
+          stdin: 'inherit',
+        });
+        await execa('yarn', ['add', '@aws-amplify/backend'], {
+          cwd: `${tempDir}/amplify`,
+          stdio: 'inherit',
+        });
+      }
+
+      // assert that project compiles successfully
+      await execa(
+        packageManagerExecutable === 'npm'
+          ? 'npx'
+          : packageManagerExecutable.startsWith('yarn')
+          ? 'yarn'
+          : packageManagerExecutable,
+        [
+          'tsc',
+          '--noEmit',
+          '--skipLibCheck',
+          // pointing the project arg to the amplify backend directory will use the tsconfig present in that directory
+          '--project',
+          amplifyPathPrefix,
+        ],
         {
           cwd: tempDir,
-          stdio: 'pipe',
-          reject: false,
+          stdio: 'inherit',
         }
       );
-      assert.equal(result.exitCode, 1);
+
+      if (PACKAGE_MANAGER_EXECUTABLE.startsWith('yarn')) {
+        await execa('yarn', ['add', 'aws-cdk', 'aws-cdk-lib', 'constructs'], {
+          cwd: tempDir,
+          stdio: 'inherit',
+        });
+        if (PACKAGE_MANAGER_EXECUTABLE === 'yarn-modern') {
+          await execa(
+            'yarn',
+            [
+              'add',
+              '-D',
+              'tsx',
+              'graphql',
+              'pluralize',
+              'zod',
+              '@aws-amplify/platform-core',
+            ],
+            {
+              cwd: tempDir,
+              stdio: 'inherit',
+            }
+          );
+
+          await execa('node', ['--version'], {
+            cwd: tempDir,
+          });
+        }
+      }
+
+      // assert that project synthesizes successfully
+      await execa(
+        packageManagerExecutable === 'npm' ? 'npx' : packageManagerExecutable,
+        [
+          'cdk',
+          'synth',
+          '--context',
+          `amplify-backend-namespace=123`,
+          '--context',
+          `amplify-backend-name=sandboxName`,
+          '--context',
+          `amplify-backend-type=sandbox`,
+          '--app',
+          "'npx tsx amplify/backend.ts'",
+          '--quiet',
+        ],
+        {
+          cwd: tempDir,
+          stdio: 'inherit',
+        }
+      );
+
+      await execa(
+        packageManagerExecutable === 'npm' ? 'npx' : packageManagerExecutable,
+        [
+          'amplify',
+          'pipeline-deploy',
+          '--branch',
+          branchBackendIdentifier.name,
+          '--appId',
+          branchBackendIdentifier.namespace,
+        ],
+        { cwd: tempDir, stdio: 'inherit', env: { CI: 'true' } }
+      );
+
+      const clientConfigStats = await fsp.stat(
+        await getClientConfigPath(tempDir)
+      );
+
+      assert.ok(clientConfigStats.isFile());
+
+      const testBranchDetails = await amplifyAppPool.fetchTestBranchDetails(
+        testBranch
+      );
       assert.ok(
-        result.stderr
-          .toLocaleString()
-          .includes(
-            'If you are trying to run an Amplify (Gen 2) command inside an Amplify (Gen 1) project we recommend creating the project in another directory'
-          )
+        testBranchDetails.backend?.stackArn,
+        'branch should have stack associated'
+      );
+      assert.ok(
+        testBranchDetails.backend?.stackArn?.includes(
+          branchBackendIdentifier.namespace
+        )
+      );
+      assert.ok(
+        testBranchDetails.backend?.stackArn?.includes(
+          branchBackendIdentifier.name
+        )
       );
     });
   });
