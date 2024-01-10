@@ -135,9 +135,12 @@ void describe('amplify', { concurrency: concurrency }, () => {
 
   const initialStates = ['empty', 'module', 'commonjs'] as const;
 
-  initialStates.forEach((initialState, index) => {
+  initialStates.forEach((initialState) => {
     void describe('installs expected packages and scaffolds expected files', () => {
       let tempDir: string;
+      let branchBackendIdentifier: BackendIdentifier;
+      let testBranch: TestBranch;
+      let cfnClient: CloudFormationClient;
       before(async () => {
         tempDir = await fsp.mkdtemp(
           path.join(os.tmpdir(), 'test-create-amplify')
@@ -149,9 +152,23 @@ void describe('amplify', { concurrency: concurrency }, () => {
             tempDir
           );
         }
+        cfnClient = new CloudFormationClient(e2eToolingClientConfig);
+        testBranch = await amplifyAppPool.createTestBranch();
+        branchBackendIdentifier = {
+          namespace: testBranch.appId,
+          name: testBranch.branchName,
+          type: 'branch',
+        };
       });
 
       after(async () => {
+        await cfnClient.send(
+          new DeleteStackCommand({
+            StackName: BackendIdentifierConversions.toStackName(
+              branchBackendIdentifier
+            ),
+          })
+        );
         await fsp.rm(tempDir, { recursive: true });
       });
 
@@ -342,14 +359,6 @@ void describe('amplify', { concurrency: concurrency }, () => {
           }
         );
 
-        const cfnClient = new CloudFormationClient(e2eToolingClientConfig);
-        const testBranch = await amplifyAppPool.createTestBranch();
-        const branchBackendIdentifier: BackendIdentifier = {
-          namespace: testBranch.appId,
-          name: testBranch.branchName,
-          type: 'branch',
-        };
-
         await amplifyCli(
           [
             'pipeline-deploy',
@@ -387,83 +396,6 @@ void describe('amplify', { concurrency: concurrency }, () => {
             branchBackendIdentifier.name
           )
         );
-
-        await cfnClient.send(
-          new DeleteStackCommand({
-            StackName: BackendIdentifierConversions.toStackName(
-              branchBackendIdentifier
-            ),
-          })
-        );
-
-        // if (index === 1) {
-        //   void describe('amplify deploys', async () => {
-        //     void describe(`branch deploys project`, () => {
-        //       let branchBackendIdentifier: BackendIdentifier;
-        //       let testBranch: TestBranch;
-        //       let cfnClient: CloudFormationClient;
-
-        //       before(async () => {
-        //         cfnClient = new CloudFormationClient(e2eToolingClientConfig);
-        //         testBranch = await amplifyAppPool.createTestBranch();
-        //         branchBackendIdentifier = {
-        //           namespace: testBranch.appId,
-        //           name: testBranch.branchName,
-        //           type: 'branch',
-        //         };
-        //       });
-
-        //       after(async () => {
-        //         await cfnClient.send(
-        //           new DeleteStackCommand({
-        //             StackName: BackendIdentifierConversions.toStackName(
-        //               branchBackendIdentifier
-        //             ),
-        //           })
-        //         );
-        //       });
-
-        //       void it(`project deploys fully`, async () => {
-        //         await amplifyCli(
-        //           [
-        //             'pipeline-deploy',
-        //             '--branch',
-        //             branchBackendIdentifier.name,
-        //             '--appId',
-        //             branchBackendIdentifier.namespace,
-        //           ],
-        //           tempDir,
-        //           {
-        //             env: { CI: 'true' },
-        //           }
-        //         ).run();
-
-        //         // const clientConfigStats = await fsp.stat(
-        //         //   await getClientConfigPath(tempDir)
-        //         // );
-
-        //         // assert.ok(clientConfigStats.isFile());
-
-        //         // const testBranchDetails =
-        //         //   await amplifyAppPool.fetchTestBranchDetails(testBranch);
-        //         // assert.ok(
-        //         //   testBranchDetails.backend?.stackArn,
-        //         //   'branch should have stack associated'
-        //         // );
-        //         // assert.ok(
-        //         //   testBranchDetails.backend?.stackArn?.includes(
-        //         //     branchBackendIdentifier.namespace
-        //         //   )
-        //         // );
-        //         // assert.ok(
-        //         //   testBranchDetails.backend?.stackArn?.includes(
-        //         //     branchBackendIdentifier.name
-        //         //   )
-        //         // );
-        //       });
-        //     });
-        //   });
-        // }
       });
     });
   });
