@@ -65,9 +65,9 @@ jobs:
       - name: Pin some dependencies to nearest patch and rebuild
         run: |
           npx tsx scripts/set_baseline_dependency_versions.ts
+          npm install
           # print out diff for auditing or troubleshooting
           git diff
-          npm install
           npm run build
       - name: Run unit and integration tests
         run: |
