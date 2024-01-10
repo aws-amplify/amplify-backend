@@ -1,5 +1,21 @@
 # create-amplify
 
+## 0.4.2
+
+### Patch Changes
+
+- 43740488a: Move pinning of CDK version from @aws-amplify/backend to customer's project
+- 04f067837: Implement consistent dependency declaration check. Bumped dependencies where necessary.
+- Updated dependencies [04f067837]
+  - @aws-amplify/platform-core@0.4.1
+
+## 0.4.1
+
+### Patch Changes
+
+- Updated dependencies [5678ab4d4]
+  - @aws-amplify/platform-core@0.4.0
+
 ## 0.4.0
 
 ### Minor Changes

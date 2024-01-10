@@ -1,5 +1,34 @@
 # @aws-amplify/backend-cli
 
+## 0.9.5
+
+### Patch Changes
+
+- 04f067837: Implement consistent dependency declaration check. Bumped dependencies where necessary.
+- Updated dependencies [04f067837]
+  - @aws-amplify/deployed-backend-client@0.3.7
+  - @aws-amplify/backend-output-schemas@0.5.1
+  - @aws-amplify/model-generator@0.2.5
+  - @aws-amplify/backend-secret@0.4.1
+  - @aws-amplify/form-generator@0.6.1
+  - @aws-amplify/client-config@0.5.1
+  - @aws-amplify/platform-core@0.4.1
+  - @aws-amplify/sandbox@0.3.12
+
+## 0.9.4
+
+### Patch Changes
+
+- 7f7191375: Create directory if does not exists when configuring profile
+- 8d31af7c4: Create ~/.aws/config and ~/.aws/credentials files using owner read/write only. This is consistent with how the AWS CLI configures these files.
+- 23b1f36e0: added npx prefix to profile setup command instructions
+- Updated dependencies [5678ab4d4]
+- Updated dependencies [5678ab4d4]
+  - @aws-amplify/platform-core@0.4.0
+  - @aws-amplify/backend-secret@0.4.0
+  - @aws-amplify/deployed-backend-client@0.3.6
+  - @aws-amplify/sandbox@0.3.11
+
 ## 0.9.3
 
 ### Patch Changes
