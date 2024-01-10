@@ -83,6 +83,7 @@
     "lint-staged": "^13.2.1",
     "prettier": "^2.8.7",
     "rimraf": "^5.0.0",
+    "semver": "^7.5.4",
     "tsx": "^4.6.1",
     "typedoc": "^0.25.3",
     "typescript": "~5.2.0",
