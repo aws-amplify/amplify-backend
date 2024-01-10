@@ -73,7 +73,7 @@ export class ConfigureProfileCommand
       message: `Enter the AWS region to use with the '${profileName}' profile (eg us-east-1, us-west-2, etc):`,
     });
 
-    await this.profileController.appendAWSFiles({
+    await this.profileController.createOrAppendAWSFiles({
       profile: profileName,
       region,
       accessKeyId,

@@ -1,5 +1,19 @@
 # @aws-amplify/backend-cli
 
+## 0.9.4
+
+### Patch Changes
+
+- 7f7191375: Create directory if does not exists when configuring profile
+- 8d31af7c4: Create ~/.aws/config and ~/.aws/credentials files using owner read/write only. This is consistent with how the AWS CLI configures these files.
+- 23b1f36e0: added npx prefix to profile setup command instructions
+- Updated dependencies [5678ab4d4]
+- Updated dependencies [5678ab4d4]
+  - @aws-amplify/platform-core@0.4.0
+  - @aws-amplify/backend-secret@0.4.0
+  - @aws-amplify/deployed-backend-client@0.3.6
+  - @aws-amplify/sandbox@0.3.11
+
 ## 0.9.3
 
 ### Patch Changes

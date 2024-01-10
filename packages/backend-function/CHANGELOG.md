@@ -1,5 +1,15 @@
 # @aws-amplify/backend-function
 
+## 0.6.0
+
+### Minor Changes
+
+- 5678ab4d4: Consume parameter resolution changes from @aws-amplify/platform-core
+
+### Patch Changes
+
+- @aws-amplify/backend-output-storage@0.2.8
+
 ## 0.5.0
 
 ### Minor Changes

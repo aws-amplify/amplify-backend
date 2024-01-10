@@ -1,5 +1,11 @@
 # @aws-amplify/backend-auth
 
+## 0.4.1
+
+### Patch Changes
+
+- @aws-amplify/backend-output-storage@0.2.8
+
 ## 0.4.0
 
 ### Minor Changes
