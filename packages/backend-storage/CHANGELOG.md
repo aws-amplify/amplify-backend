@@ -1,5 +1,14 @@
 # @aws-amplify/backend-storage
 
+## 0.4.2
+
+### Patch Changes
+
+- 04f067837: Implement consistent dependency declaration check. Bumped dependencies where necessary.
+- Updated dependencies [04f067837]
+  - @aws-amplify/backend-output-schemas@0.5.1
+  - @aws-amplify/backend-output-storage@0.2.9
+
 ## 0.4.1
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/platform-core",
-  "version": "0.3.4",
+  "version": "0.4.1",
   "type": "commonjs",
   "publishConfig": {
     "access": "public"
@@ -26,7 +26,7 @@
     "@aws-amplify/plugin-types": "^0.7.0",
     "@aws-sdk/client-sts": "3.445.0",
     "is-ci": "^3.0.1",
-    "uuid": "9.0.1",
-    "zod": "^3.21.4"
+    "uuid": "^9.0.1",
+    "zod": "^3.22.2"
   }
 }

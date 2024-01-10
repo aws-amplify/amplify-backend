@@ -1,5 +1,24 @@
 # @aws-amplify/backend-secret
 
+## 0.4.1
+
+### Patch Changes
+
+- 04f067837: Implement consistent dependency declaration check. Bumped dependencies where necessary.
+- Updated dependencies [04f067837]
+  - @aws-amplify/platform-core@0.4.1
+
+## 0.4.0
+
+### Minor Changes
+
+- 5678ab4d4: Consume parameter resolution changes from @aws-amplify/platform-core
+
+### Patch Changes
+
+- Updated dependencies [5678ab4d4]
+  - @aws-amplify/platform-core@0.4.0
+
 ## 0.3.4
 
 ### Patch Changes
