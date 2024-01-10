@@ -154,7 +154,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       functionNameMap,
       translationBehavior: {
         sandboxModeEnabled,
-        allowDestructiveGraphqlSchemaUpdates: sandboxModeEnabled,
+        allowDestructiveGraphqlSchemaUpdates: true,
       },
     });
   };
