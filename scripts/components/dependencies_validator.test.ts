@@ -36,6 +36,7 @@ void describe('Dependency validator', () => {
               denyAll: true,
             },
           },
+          [],
           execaMock as never
         ).validate(),
       (err: Error) => {
@@ -59,6 +60,7 @@ void describe('Dependency validator', () => {
               allowList: ['non-existent-package'],
             },
           },
+          [],
           execaMock as never
         ).validate(),
       (err: Error) => {
@@ -81,6 +83,7 @@ void describe('Dependency validator', () => {
           allowList: ['@aws-amplify/backend-cli'],
         },
       },
+      [],
       execaMock as never
     ).validate();
   });
@@ -98,6 +101,7 @@ void describe('Dependency validator', () => {
               denyAll: true,
             },
           },
+          [],
           execaMock as never
         ).validate(),
       (err: Error) => {
@@ -120,6 +124,7 @@ void describe('Dependency validator', () => {
         await new DependenciesValidator(
           packagePaths,
           {},
+          [],
           execaMock as never
         ).validate();
       },
@@ -132,6 +137,30 @@ void describe('Dependency validator', () => {
         assert.ok(err.message.includes('yargs'));
         assert.ok(err.message.includes('package1'));
         assert.ok(err.message.includes('package2'));
+        return true;
+      }
+    );
+  });
+
+  void it('can detect inconsistent dependency declarations of linked dependencies', async () => {
+    await assert.rejects(
+      async () => {
+        const packagePaths = await glob(
+          'scripts/components/test-resources/dependency-linked-version-consistency-test-packages/*'
+        );
+        await new DependenciesValidator(
+          packagePaths,
+          {},
+          [['aws-cdk', 'aws-cdk-lib']],
+          execaMock as never
+        ).validate();
+      },
+      (err: Error) => {
+        assert.ok(
+          err.message.includes('should be declared using same version')
+        );
+        assert.ok(err.message.includes('aws-cdk'));
+        assert.ok(err.message.includes('aws-cdk-lib'));
         return true;
       }
     );

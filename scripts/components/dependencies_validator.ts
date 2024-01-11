@@ -23,17 +23,27 @@ type DependencyViolation = {
 };
 
 /**
- * Validates dependencies. Inspects each path, enumerates all dependencies
+ * Validates dependencies.
+ *
+ * Inspects each path, enumerates all dependencies
  * using 'npm ls --all --json', i.e. direct and transitive, and validates them
  * against the rules.
+ *
+ * Inspects dependency version declarations in package json files
+ * in order to assert consistency.
  */
 export class DependenciesValidator {
   /**
    * Creates dependency validator
+   * @param packagePaths paths of packages to validate
+   * @param dependencyRules dependency exclusion and inclusion rules
+   * @param linkedDependencies dependencies that should be versioned with the same version
+   * @param execa in order to inject execa mock in tests
    */
   constructor(
     private packagePaths: Array<string>,
     private dependencyRules: Record<string, DependencyRule>,
+    private linkedDependencies: Array<Array<string>>,
     private execa = _execa
   ) {}
 
@@ -102,6 +112,25 @@ export class DependenciesValidator {
           `Dependency ${dependencyName} is declared using inconsistent versions ${JSON.stringify(
             dependencyVersionUsage.allDeclarations
           )}`
+        );
+      }
+    }
+    for (const linkedDependencySpec of this.linkedDependencies) {
+      const allLinkedVersions: Set<string> = new Set();
+      for (const dependencyName of linkedDependencySpec) {
+        const dependencyVersionUsage = dependencyVersionsUsages[dependencyName];
+        dependencyVersionUsage.allVersions.forEach((version) =>
+          allLinkedVersions.add(version)
+        );
+      }
+
+      if (allLinkedVersions.size > 1) {
+        errors.push(
+          `Dependencies ${linkedDependencySpec.join(
+            ','
+          )} should be declared using same version, versions found ${Array.from(
+            allLinkedVersions
+          ).join(',')}`
         );
       }
     }
