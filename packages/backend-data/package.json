@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/backend-data",
-  "version": "0.9.3",
+  "version": "0.9.4",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -19,18 +19,18 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@aws-amplify/data-schema": "^0.12.9",
-    "@aws-amplify/backend-platform-test-stubs": "^0.3.1",
-    "@aws-amplify/platform-core": "^0.4.1"
+    "@aws-amplify/backend-platform-test-stubs": "^0.3.2",
+    "@aws-amplify/platform-core": "^0.4.2"
   },
   "peerDependencies": {
     "aws-cdk-lib": "^2.110.1",
     "constructs": "^10.0.0"
   },
   "dependencies": {
-    "@aws-amplify/backend-output-storage": "^0.2.9",
+    "@aws-amplify/backend-output-storage": "^0.2.10",
     "@aws-amplify/backend-output-schemas": "^0.5.1",
     "@aws-amplify/data-construct": "^1.4.1",
-    "@aws-amplify/plugin-types": "^0.7.0",
+    "@aws-amplify/plugin-types": "^0.7.1",
     "@aws-amplify/data-schema-types": "^0.6.6"
   }
 }
