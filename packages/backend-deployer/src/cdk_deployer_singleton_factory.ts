@@ -43,9 +43,14 @@ export class BackendDeployerFactory {
    */
   static getInstance = (): BackendDeployer => {
     if (!BackendDeployerFactory.instance) {
+      const { PACKAGE_MANAGER_EXECUTABLE = 'npm' } = process.env;
+      const packageManager = PACKAGE_MANAGER_EXECUTABLE.startsWith('yarn')
+        ? 'yarn'
+        : PACKAGE_MANAGER_EXECUTABLE;
       BackendDeployerFactory.instance = new CDKDeployer(
         new CdkErrorMapper(),
-        new BackendLocator()
+        new BackendLocator(),
+        packageManager
       );
     }
     return BackendDeployerFactory.instance;
