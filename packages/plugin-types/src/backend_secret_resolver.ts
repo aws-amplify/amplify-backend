@@ -14,10 +14,15 @@ export type BackendSecret = {
   /**
    * Resolves the given secret to its path
    */
-  resolvePath: (backendIdentifier: BackendIdentifier) => string;
+  resolvePath: (backendIdentifier: BackendIdentifier) => ResolvePathResult;
 };
 
 export type BackendSecretResolver = {
   resolveSecret: (backendSecret: BackendSecret) => SecretValue;
-  resolvePath: (backendSecret: BackendSecret) => string;
+  resolvePath: (backendSecret: BackendSecret) => ResolvePathResult;
+};
+
+export type ResolvePathResult = {
+  branchSecretPath: string;
+  sharedSecretPath: string;
 };
