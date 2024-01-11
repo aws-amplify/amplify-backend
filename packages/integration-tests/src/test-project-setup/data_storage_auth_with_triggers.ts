@@ -85,6 +85,8 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     'amazonSecret',
   ];
 
+  private readonly testSharedSecretNames = ['amplifySharedSecret'];
+
   /**
    * Create a test project instance.
    */
@@ -169,7 +171,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     assert.equal(
       responsePayload,
       // eslint-disable-next-line spellcheck/spell-checker
-      'Your uuid is 6ec0bd7f-11c0-43da-975e-2a8ad9ebae0b. TEST_SECRET env var value is amazonSecret-e2eTestValue.'
+      'Your uuid is 6ec0bd7f-11c0-43da-975e-2a8ad9ebae0b. TEST_SECRET env var value is amazonSecret-e2eTestValue. TEST_SHARED_SECRET env var value is amplifySharedSecret-e2eTestSharedValue.'
     );
   }
 
@@ -180,6 +182,14 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
       const secretValue = `${secretName}-e2eTestValue`;
       await this.secretClient.setSecret(backendId, secretName, secretValue);
     }
+    for (const sharedSecretName of this.testSharedSecretNames) {
+      const secretValue = `${sharedSecretName}-e2eTestSharedValue`;
+      await this.secretClient.setSecret(
+        backendId.namespace,
+        sharedSecretName,
+        secretValue
+      );
+    }
   };
 
   private clearDeployEnvironment = async (
@@ -188,6 +198,12 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     // clear secrets
     for (const secretName of this.testSecretNames) {
       await this.secretClient.removeSecret(backendId, secretName);
+    }
+    for (const sharedSecretName of this.testSharedSecretNames) {
+      await this.secretClient.removeSecret(
+        backendId.namespace,
+        sharedSecretName
+      );
     }
   };
 }
