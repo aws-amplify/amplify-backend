@@ -40,31 +40,24 @@ export enum EscapeSequence {
 // @public (undocumented)
 export enum LogLevel {
     // (undocumented)
-    DEBUG = 3,
+    DEBUG = 1,
     // (undocumented)
-    ERROR = 0,
-    // (undocumented)
-    INFO = 2,
-    // (undocumented)
-    WARNING = 1
+    INFO = 0
 }
 
 // @public
 export class Printer {
-    constructor(minimumLogLevel: LogLevel, stdout?: NodeJS.WriteStream & {
-        fd: 1;
-    });
     static debug(message: string): void;
-    static error(message: string): void;
     static indicateProgress(message: string, callback: () => Promise<void>): Promise<void>;
     static info(message: string): void;
     static log(message: string, level?: LogLevel, eol?: boolean): void;
+    static make(minimumLogLevel?: LogLevel, writeStream?: NodeJS.WriteStream & {
+        fd: 1;
+    }): Printer;
     static print: (message: string, colorName?: COLOR) => void;
     static printNewLine: () => void;
     static printRecord: <T extends Record<string | number, RecordValue>>(object: T) => void;
     static printRecords: <T extends Record<string | number, RecordValue>>(objects: T[]) => void;
-    static warn(message: string): void;
-    static writeEscapeSequence(action: EscapeSequence): void;
 }
 
 // @public (undocumented)

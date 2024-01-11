@@ -9,6 +9,8 @@ export type RecordValue = string | number | string[] | Date;
  */
 export class Printer {
   private static instance: Printer;
+  private static minimumLogLevel: LogLevel;
+  private static writeStream: NodeJS.WriteStream;
 
   // Properties for ellipsis animation
   private timer: ReturnType<typeof setTimeout>;
@@ -16,19 +18,28 @@ export class Printer {
   private timerSet: boolean;
 
   /**
-   * returns static instance
+   * Instantiates Printer class with default configs.
    */
-  constructor(
-    private readonly minimumLogLevel: LogLevel,
-    private readonly stdout = process.stdout
+  private constructor(
+    minimumLogLevel: LogLevel,
+    writeStream: NodeJS.WriteStream
   ) {
-    if (Printer.instance) {
-      return Printer.instance;
-    }
+    Printer.minimumLogLevel = minimumLogLevel;
+    Printer.writeStream = writeStream;
+    this.refreshRate = 500;
+  }
 
-    // set default properties.
-    Printer.instance = this;
-    Printer.instance.refreshRate = 500;
+  /**
+   * returns static singleton.
+   */
+  static make(
+    minimumLogLevel: LogLevel = LogLevel.INFO,
+    writeStream = process.stdout
+  ) {
+    if (this.instance === undefined) {
+      this.instance = new Printer(minimumLogLevel, writeStream);
+    }
+    return this.instance;
   }
 
   /**
@@ -42,7 +53,7 @@ export class Printer {
     entries.forEach(([key, val]) => {
       message = message.concat(` ${key}: ${val as string}${EOL}`);
     });
-    Printer.instance.stdout.write(message);
+    this.writeStream.write(message);
   };
 
   /**
@@ -61,9 +72,9 @@ export class Printer {
    */
   static print = (message: string, colorName?: COLOR) => {
     if (colorName) {
-      Printer.instance.stdout.write(color(colorName, message));
+      this.writeStream.write(color(colorName, message));
     } else {
-      Printer.instance.stdout.write(message);
+      this.writeStream.write(message);
     }
   };
 
@@ -75,10 +86,10 @@ export class Printer {
     callback: () => Promise<void>
   ) {
     try {
-      Printer.instance.startAnimatingEllipsis(message);
+      this.instance.startAnimatingEllipsis(message);
       await callback();
     } finally {
-      Printer.instance.stopAnimatingEllipsis(message);
+      this.instance.stopAnimatingEllipsis(message);
     }
   }
 
@@ -86,54 +97,28 @@ export class Printer {
    * Prints a new line to console
    */
   static printNewLine = () => {
-    Printer.instance.stdout.write(EOL);
+    this.writeStream.write(EOL);
   };
-
-  /**
-   * Writes escape sequence to stdout
-   */
-  static writeEscapeSequence(action: EscapeSequence) {
-    if (!Printer.instance.isTTY()) {
-      return;
-    }
-
-    Printer.instance.stdout.write(action);
-  }
 
   /**
    * Logs a message to the console.
    */
   static log(message: string, level: LogLevel = LogLevel.INFO, eol = true) {
-    // console.log(Printer.instance);
-    const toLogMessage = level <= Printer.instance.minimumLogLevel;
+    const toLogMessage = level <= this.minimumLogLevel;
 
     if (!toLogMessage) {
       return;
     }
 
     const logMessage =
-      Printer.instance.minimumLogLevel === LogLevel.DEBUG
+      this.minimumLogLevel === LogLevel.DEBUG
         ? `[${LogLevel[level]}] ${new Date().toISOString()}: ${message}`
         : message;
-    Printer.instance.stdout.write(logMessage);
+    this.writeStream.write(logMessage);
 
     if (eol) {
-      Printer.printNewLine();
+      this.printNewLine();
     }
-  }
-
-  /**
-   * Logs an error to the console.
-   */
-  static error(message: string) {
-    this.log(message, LogLevel.ERROR);
-  }
-
-  /**
-   * Logs a warning to the console.
-   */
-  static warn(message: string) {
-    this.log(message, LogLevel.WARNING);
   }
 
   /**
@@ -159,7 +144,7 @@ export class Printer {
       return;
     }
 
-    if (Printer.instance.timerSet) {
+    if (this.timerSet) {
       throw new Error(
         'Timer is already set to animate ellipsis, stop the current running timer before starting a new one.'
       );
@@ -167,16 +152,16 @@ export class Printer {
 
     const frameLength = 4; // number of desired dots - 1
     let frameCount = 0;
-    Printer.instance.timerSet = true;
-    Printer.writeEscapeSequence(EscapeSequence.HIDE_CURSOR);
-    Printer.instance.stdout.write(message);
-    Printer.instance.timer = setInterval(() => {
-      Printer.writeEscapeSequence(EscapeSequence.CLEAR_LINE);
-      Printer.writeEscapeSequence(EscapeSequence.MOVE_CURSOR_TO_START);
-      Printer.instance.stdout.write(
+    this.timerSet = true;
+    this.writeEscapeSequence(EscapeSequence.HIDE_CURSOR);
+    Printer.writeStream.write(message);
+    this.timer = setInterval(() => {
+      this.writeEscapeSequence(EscapeSequence.CLEAR_LINE);
+      this.writeEscapeSequence(EscapeSequence.MOVE_CURSOR_TO_START);
+      Printer.writeStream.write(
         message + '.'.repeat(++frameCount % frameLength)
       );
-    }, Printer.instance.refreshRate);
+    }, this.refreshRate);
   }
 
   /**
@@ -187,25 +172,34 @@ export class Printer {
       return;
     }
 
-    clearInterval(Printer.instance.timer);
-    Printer.instance.timerSet = false;
-    Printer.writeEscapeSequence(EscapeSequence.CLEAR_LINE);
-    Printer.writeEscapeSequence(EscapeSequence.MOVE_CURSOR_TO_START);
-    Printer.writeEscapeSequence(EscapeSequence.SHOW_CURSOR);
-    Printer.instance.stdout.write(`${message}...${EOL}`);
+    clearInterval(this.timer);
+    this.timerSet = false;
+    this.writeEscapeSequence(EscapeSequence.CLEAR_LINE);
+    this.writeEscapeSequence(EscapeSequence.MOVE_CURSOR_TO_START);
+    this.writeEscapeSequence(EscapeSequence.SHOW_CURSOR);
+    Printer.writeStream.write(`${message}...${EOL}`);
+  }
+
+  /**
+   * Writes escape sequence to stdout
+   */
+  private writeEscapeSequence(action: EscapeSequence) {
+    if (!this.isTTY()) {
+      return;
+    }
+
+    Printer.writeStream.write(action);
   }
 
   /**
    * Checks if the environment is TTY
    */
   private isTTY() {
-    return Printer.instance.stdout.isTTY;
+    return Printer.writeStream.isTTY;
   }
 }
 
 export enum LogLevel {
-  ERROR,
-  WARNING,
   INFO,
   DEBUG,
 }
@@ -226,6 +220,4 @@ const argv = await yargs(process.argv.slice(2)).options({
 
 const minimumLogLevel = argv.debug ? LogLevel.DEBUG : LogLevel.INFO;
 
-const instance = new Printer(minimumLogLevel);
-
-export default instance;
+Printer.make(minimumLogLevel);
