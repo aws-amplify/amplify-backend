@@ -1,4 +1,3 @@
-import yargs from 'yargs';
 import { COLOR, color } from '../colors.js';
 import { EOL } from 'os';
 
@@ -211,13 +210,8 @@ export enum EscapeSequence {
   HIDE_CURSOR = '\x1b[?25l',
 }
 
-const argv = await yargs(process.argv.slice(2)).options({
-  debug: {
-    type: 'boolean',
-    default: false,
-  },
-}).argv;
-
-const minimumLogLevel = argv.debug ? LogLevel.DEBUG : LogLevel.INFO;
+const minimumLogLevel = process.argv.includes('--debug')
+  ? LogLevel.DEBUG
+  : LogLevel.INFO;
 
 Printer.make(minimumLogLevel);
