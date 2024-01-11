@@ -54,7 +54,8 @@ export class AmplifyPasswordlessSignUp extends Construct {
 
     api.root.addMethod('PUT', putCreateUserIntegration);
 
-    // TODO: expose this on the external stack
+    // TODO expose this on the external stack
+    // https://github.com/aws-amplify/amplify-backend/issues/912
     new CfnOutput(this, 'apiUrl', { value: api.url });
 
     // According to cdk docs there always is a default role https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_lambda-readme.html#execution-role

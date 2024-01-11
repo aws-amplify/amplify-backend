@@ -351,6 +351,8 @@ export class AmplifyAuth
         ...(props.userAttributes ? props.userAttributes : {}),
       },
       customAttributes: {
+        // TODO confirm this attribute before release
+        // https://github.com/aws-amplify/amplify-backend/issues/911
         passwordless_sign_up: new cognito.StringAttribute({ mutable: true }),
       },
       selfSignUpEnabled: DEFAULTS.ALLOW_SELF_SIGN_UP,
