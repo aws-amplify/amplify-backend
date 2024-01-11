@@ -26,6 +26,18 @@ export enum COLOR {
 }
 
 // @public (undocumented)
+export enum EscapeSequence {
+    // (undocumented)
+    CLEAR_LINE = "\u001B[2K",
+    // (undocumented)
+    HIDE_CURSOR = "\u001B[?25l",
+    // (undocumented)
+    MOVE_CURSOR_TO_START = "\u001B[0G",
+    // (undocumented)
+    SHOW_CURSOR = "\u001B[?25h"
+}
+
+// @public (undocumented)
 export enum LogLevel {
     // (undocumented)
     DEBUG = 3,
