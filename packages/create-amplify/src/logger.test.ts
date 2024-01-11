@@ -132,7 +132,7 @@ void describe('Logger', () => {
     const spinnerMessages = ['Message 1', 'Message 2'];
     const successMessage = 'Success Message';
 
-    const actions = spinnerMessages.map((message) => async () => {
+    const actions = spinnerMessages.map(() => async () => {
       await new Promise((resolve) => setTimeout(resolve, 500));
     });
 
@@ -179,7 +179,7 @@ void describe('Logger', () => {
     const spinnerMessages = ['Message 1', 'Message 2'];
     const successMessage = 'Success Message';
 
-    const actions = spinnerMessages.map((message) => async () => {
+    const actions = spinnerMessages.map(() => async () => {
       await new Promise((resolve) => setTimeout(resolve, 500));
     });
 
