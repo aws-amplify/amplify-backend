@@ -10,6 +10,7 @@ import { TestProjectCreator } from './test_project_creator.js';
 import { DeployedResourcesFinder } from '../find_deployed_resource.js';
 import assert from 'node:assert';
 import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
+import { shortUuid } from '../short_uuid.js';
 
 /**
  * Creates test projects with data, storage, and auth categories.
@@ -85,7 +86,9 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     'amazonSecret',
   ];
 
-  private readonly testSharedSecretNames = ['amplifySharedSecret'];
+  private readonly testSharedSecretNames = [
+    process.env.AMPLIFY_SHARED_SECRET_NAME as string,
+  ];
 
   /**
    * Create a test project instance.
@@ -100,6 +103,8 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     private readonly resourceFinder: DeployedResourcesFinder
   ) {
     super(name, projectDirPath, projectAmplifyDirPath, cfnClient);
+    process.env.AMPLIFY_SHARED_SECRET_NAME =
+      'amplifySharedSecret' + shortUuid();
   }
 
   /**
@@ -171,7 +176,9 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     assert.equal(
       responsePayload,
       // eslint-disable-next-line spellcheck/spell-checker
-      'Your uuid is 6ec0bd7f-11c0-43da-975e-2a8ad9ebae0b. TEST_SECRET env var value is amazonSecret-e2eTestValue. TEST_SHARED_SECRET env var value is amplifySharedSecret-e2eTestSharedValue.'
+      `Your uuid is 6ec0bd7f-11c0-43da-975e-2a8ad9ebae0b. TEST_SECRET env var value is amazonSecret-e2eTestValue. TEST_SHARED_SECRET env var value is ${
+        process.env.AMPLIFY_SHARED_SECRET_NAME as string
+      }-e2eTestSharedValue.`
     );
   }
 
