@@ -6,7 +6,7 @@ import {
 import semver from 'semver';
 
 /**
- * This scripts sets baseline dependency versions in packages in the workspace for allow listed packages.
+ * This script sets baseline dependency versions in packages in the workspace for allow listed packages.
  * Baseline versions are defined as minimum version that matches dependency version declaration.
  *
  * This script updates content of 'package.json' files. These changes are needed for testing
