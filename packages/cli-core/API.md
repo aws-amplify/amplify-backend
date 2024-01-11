@@ -4,6 +4,8 @@
 
 ```ts
 
+/// <reference types="node" />
+
 // @public
 export class AmplifyPrompter {
     static input: (options: {
@@ -23,12 +25,35 @@ export enum COLOR {
     RED = "31m"
 }
 
+// @public (undocumented)
+export enum LogLevel {
+    // (undocumented)
+    DEBUG = 3,
+    // (undocumented)
+    ERROR = 0,
+    // (undocumented)
+    INFO = 2,
+    // (undocumented)
+    WARNING = 1
+}
+
 // @public
 export class Printer {
+    constructor(minimumLogLevel: LogLevel, stdout?: NodeJS.WriteStream & {
+        fd: 1;
+    });
+    static debug(message: string): void;
+    static error(message: string): void;
+    static indicateProgress(message: string, callback: () => Promise<void>): Promise<void>;
+    static info(message: string): void;
+    static log(message: string, level?: LogLevel, eol?: boolean): void;
     static print: (message: string, colorName?: COLOR) => void;
     static printNewLine: () => void;
     static printRecord: <T extends Record<string | number, RecordValue>>(object: T) => void;
     static printRecords: <T extends Record<string | number, RecordValue>>(objects: T[]) => void;
+    static warn(message: string): void;
+    // Warning: (ae-forgotten-export) The symbol "EscapeSequence" needs to be exported by the entry point index.d.ts
+    static writeEscapeSequence(action: EscapeSequence): void;
 }
 
 // @public (undocumented)
