@@ -2,4 +2,4 @@
 'create-amplify': patch
 ---
 
-Parametrize CDK version in create amplify flow
+Use latest CDKv2 version in create amplify flow
