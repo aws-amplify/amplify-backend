@@ -14,8 +14,10 @@ import { InitialProjectFileGenerator } from './initial_project_file_generator.js
 import { NpmProjectInitializer } from './npm_project_initializer.js';
 import { getProjectRoot } from './get_project_root.js';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
+import { processArguments } from './process_arguments.js';
 
 const projectRoot = await getProjectRoot();
+const cdkVersion = processArguments.cdkVersion;
 
 const amplifyProjectCreator = new AmplifyProjectCreator(
   new NpmPackageManagerController(projectRoot),
@@ -23,7 +25,8 @@ const amplifyProjectCreator = new AmplifyProjectCreator(
   new InitialProjectFileGenerator(projectRoot),
   new NpmProjectInitializer(projectRoot),
   new GitIgnoreInitializer(projectRoot),
-  projectRoot
+  projectRoot,
+  cdkVersion
 );
 
 try {

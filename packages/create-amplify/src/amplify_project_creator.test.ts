@@ -18,13 +18,15 @@ void describe('AmplifyProjectCreator', () => {
     };
     const npmInitializedEnsurerMock = { ensureInitialized: mock.fn() };
     const gitIgnoreInitializerMock = { ensureInitialized: mock.fn() };
+    const cdkVersion = '2.3.4';
     const amplifyProjectCreator = new AmplifyProjectCreator(
       packageManagerControllerMock as never,
       projectRootValidatorMock as never,
       initialProjectFileGeneratorMock as never,
       npmInitializedEnsurerMock as never,
       gitIgnoreInitializerMock as never,
-      process.cwd()
+      process.cwd(),
+      cdkVersion
     );
     mock.method(logger, 'log', logMock.log);
     await amplifyProjectCreator.create();
@@ -32,6 +34,10 @@ void describe('AmplifyProjectCreator', () => {
       packageManagerControllerMock.installDependencies.mock.callCount(),
       2
     );
+    const actualDevDependencies = packageManagerControllerMock
+      .installDependencies.mock.calls[1].arguments[0] as Array<string>;
+    assert.ok(actualDevDependencies.includes(`aws-cdk-lib@${cdkVersion}`));
+    assert.ok(actualDevDependencies.includes(`aws-cdk@${cdkVersion}`));
     assert.equal(projectRootValidatorMock.validate.mock.callCount(), 1);
     assert.equal(
       initialProjectFileGeneratorMock.generateInitialProjectFiles.mock.callCount(),
@@ -71,7 +77,8 @@ void describe('AmplifyProjectCreator', () => {
       initialProjectFileGeneratorMock as never,
       npmInitializedEnsurerMock as never,
       gitIgnoreInitializerMock as never,
-      '/project/root'
+      '/project/root',
+      '2.3.4'
     );
     mock.method(logger, 'log', logMock.log);
     await amplifyProjectCreator.create();
