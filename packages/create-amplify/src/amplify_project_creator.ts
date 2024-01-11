@@ -11,6 +11,16 @@ const LEARN_MORE_USAGE_DATA_TRACKING_LINK = `https://docs.amplify.aws/gen2/refer
  *
  */
 export class AmplifyProjectCreator {
+  private readonly defaultDevPackages = [
+    '@aws-amplify/backend',
+    '@aws-amplify/backend-cli',
+    // TODO figure out how do we manage CDK version here as part of https://github.com/aws-amplify/amplify-backend/issues/392
+    'aws-cdk@2.110.1',
+    'aws-cdk-lib@2.110.1',
+    'constructs@^10.0.0',
+    'typescript@^5.0.0',
+  ];
+
   private readonly defaultProdPackages = ['aws-amplify'];
 
   /**
@@ -23,23 +33,8 @@ export class AmplifyProjectCreator {
     private readonly initialProjectFileGenerator: InitialProjectFileGenerator,
     private readonly npmInitializedEnsurer: NpmProjectInitializer,
     private readonly gitIgnoreInitializer: GitIgnoreInitializer,
-    private readonly projectRoot: string,
-    private readonly cdkVersion: string
+    private readonly projectRoot: string
   ) {}
-
-  /**
-   * Gets default dev dependencies.
-   */
-  private get defaultDevPackages() {
-    return [
-      '@aws-amplify/backend',
-      '@aws-amplify/backend-cli',
-      `aws-cdk@${this.cdkVersion}`,
-      `aws-cdk-lib@${this.cdkVersion}`,
-      'constructs@^10.0.0',
-      'typescript@^5.0.0',
-    ];
-  }
 
   /**
    * Executes the create-amplify workflow

@@ -1,5 +1,5 @@
+import yargs from 'yargs';
 import * as os from 'os';
-import { processArguments } from './process_arguments.js';
 
 /**
  * A logger that logs messages to the console.
@@ -155,7 +155,14 @@ export enum LogLevel {
   DEBUG,
 }
 
-const minimumLogLevel = processArguments.debug ? LogLevel.DEBUG : LogLevel.INFO;
+export const argv = await yargs(process.argv.slice(2)).options({
+  debug: {
+    type: 'boolean',
+    default: false,
+  },
+}).argv;
+
+const minimumLogLevel = argv.debug ? LogLevel.DEBUG : LogLevel.INFO;
 
 const logger = new Logger(minimumLogLevel, process.stdout);
 
