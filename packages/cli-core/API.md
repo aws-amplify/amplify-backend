@@ -52,7 +52,6 @@ export class Printer {
     static printRecord: <T extends Record<string | number, RecordValue>>(object: T) => void;
     static printRecords: <T extends Record<string | number, RecordValue>>(objects: T[]) => void;
     static warn(message: string): void;
-    // Warning: (ae-forgotten-export) The symbol "EscapeSequence" needs to be exported by the entry point index.d.ts
     static writeEscapeSequence(action: EscapeSequence): void;
 }
 
