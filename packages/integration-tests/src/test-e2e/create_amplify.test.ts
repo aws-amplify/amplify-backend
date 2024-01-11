@@ -80,21 +80,26 @@ void describe(
             );
           }
 
+          await execa('npm', ['create', 'amplify', '--yes'], {
+            cwd: tempDir,
+            stdio: 'inherit',
+          });
+
+          // Override CDK installation with baseline version
           await execa(
             'npm',
             [
-              'create',
-              'amplify',
-              '--yes',
-              '--',
-              '--cdk-version',
-              baselineCdkVersion,
+              'install',
+              '--save-dev',
+              `aws-cdk@${baselineCdkVersion}`,
+              `aws-cdk-lib@${baselineCdkVersion}`,
             ],
             {
               cwd: tempDir,
               stdio: 'inherit',
             }
           );
+
           const packageJsonPath = path.resolve(tempDir, 'package.json');
           const packageJsonObject = JSON.parse(
             await fs.readFile(packageJsonPath, 'utf-8')
