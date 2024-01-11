@@ -1,7 +1,26 @@
+import kleur from 'kleur';
 import { describe, it, mock } from 'node:test';
 import assert from 'assert';
 import { AmplifyProjectCreator } from './amplify_project_creator.js';
 import { logger } from './logger.js';
+
+const expectedLogCalls = [
+  '\nInstalling devDependencies:',
+  kleur.blue('- @aws-amplify/backend'),
+  kleur.blue('- @aws-amplify/backend-cli'),
+  kleur.blue('- aws-cdk@2.110.1'),
+  kleur.blue('- aws-cdk-lib@2.110.1'),
+  kleur.blue('- constructs@^10.0.0'),
+  kleur.blue('- typescript@^5.0.0'),
+  '\nInstalling dependencies:',
+  kleur.blue('- aws-amplify'),
+  '\n',
+  'Installing devDependencies',
+  'Installing dependencies',
+  'Creating template files',
+  kleur.green().bold('Successfully created a new project!\n'),
+  kleur.cyan('Welcome to AWS Amplify!\n'),
+];
 
 void describe('AmplifyProjectCreator', () => {
   void it('create project if passing `--yes` or `-y` to `npm create`', async () => {
@@ -41,13 +60,33 @@ void describe('AmplifyProjectCreator', () => {
       npmInitializedEnsurerMock.ensureInitialized.mock.callCount(),
       1
     );
+
+    for (let i = 0; i < expectedLogCalls.length; i++) {
+      assert.equal(
+        logMock.log.mock.calls[i + 1].arguments[0],
+        expectedLogCalls[i]
+      );
+    }
+
     assert.equal(
-      logMock.log.mock.calls[4].arguments[0],
-      'Welcome to AWS Amplify! \nRun `npx amplify help` for a list of available commands. \nGet started by running `npx amplify sandbox`.'
+      logMock.log.mock.calls[16].arguments[0],
+      `- Get started with your project by running ${kleur
+        .yellow()
+        .bold('npx amplify sandbox')}.\n- Run ${kleur
+        .yellow()
+        .bold('npx amplify help')} for a list of available commands.`
     );
     assert.equal(
-      logMock.log.mock.calls[5].arguments[0],
-      `Amplify (Gen 2) collects anonymous telemetry data about general usage of the CLI.\n\nParticipation is optional, and you may opt-out by using \`amplify configure telemetry disable\`.\n\nTo learn more about telemetry, visit https://docs.amplify.aws/gen2/reference/telemetry`
+      logMock.log.mock.calls[17].arguments[0],
+      kleur.dim(
+        `\nAmplify (Gen 2) collects anonymous telemetry data about general usage of the CLI.\nParticipation is optional, and you may opt-out by using ${kleur
+          .yellow()
+          .bold(
+            'amplify configure telemetry disable'
+          )}.\nTo learn more about telemetry, visit ${kleur.blue(
+          'https://docs.amplify.aws/gen2/reference/telemetry'
+        )}\n`
+      )
     );
   });
 
@@ -77,12 +116,16 @@ void describe('AmplifyProjectCreator', () => {
     await amplifyProjectCreator.create();
 
     assert.equal(
-      logMock.log.mock.calls[4].arguments[0],
-      'Welcome to AWS Amplify! \nRun `npx amplify help` for a list of available commands. \nGet started by running `cd ./project/root; npx amplify sandbox`.'
-    );
-    assert.equal(
-      logMock.log.mock.calls[5].arguments[0],
-      `Amplify (Gen 2) collects anonymous telemetry data about general usage of the CLI.\n\nParticipation is optional, and you may opt-out by using \`amplify configure telemetry disable\`.\n\nTo learn more about telemetry, visit https://docs.amplify.aws/gen2/reference/telemetry`
+      logMock.log.mock.calls[16].arguments[0],
+      `Change directory by running ${kleur
+        .yellow()
+        .bold(
+          'cd ./project/root'
+        )} and then:\n- Get started with your project by running ${kleur
+        .yellow()
+        .bold('npx amplify sandbox')}.\n- Run ${kleur
+        .yellow()
+        .bold('npx amplify help')} for a list of available commands.`
     );
   });
 });

@@ -117,4 +117,90 @@ void describe('Logger', () => {
       await new Promise((resolve) => setTimeout(resolve, 500 + 10));
     });
   });
+
+  void it('start animating spinner with message and stops animation in TTY terminal', async () => {
+    const mockStdout = {
+      write: mock.fn(),
+    };
+    const mockWriteEscapeSequence = mock.fn();
+
+    const logger = new Logger(LogLevel.INFO, mockStdout as never);
+
+    mock.method(logger, 'isTTY', () => true);
+    mock.method(logger, 'writeEscapeSequence', mockWriteEscapeSequence);
+
+    const spinnerMessages = ['Message 1', 'Message 2'];
+    const successMessage = 'Success Message';
+
+    const actions = spinnerMessages.map((message) => async () => {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    });
+
+    await logger.indicateSpinnerProgress(
+      actions,
+      spinnerMessages,
+      successMessage
+    );
+
+    assert.equal(mockStdout.write.mock.callCount(), 4);
+
+    assert.match(
+      [...mockStdout.write.mock.calls[0].arguments][0],
+      new RegExp(`Message 1`)
+    );
+
+    assert.match(
+      [...mockStdout.write.mock.calls[1].arguments][0],
+      new RegExp(`Message 1 [^\\s]*`)
+    );
+
+    assert.match(
+      [...mockStdout.write.mock.calls[2].arguments][0],
+      new RegExp(`Message 2`)
+    );
+
+    assert.match(
+      [...mockStdout.write.mock.calls[3].arguments][0],
+      new RegExp(`Success Message ✔`)
+    );
+  });
+
+  void it('animating spinner is a noop in non-TTY terminal and instead logs a message at INFO level', async () => {
+    const mockStdout = {
+      write: mock.fn(),
+    };
+    const mockLog = mock.fn();
+
+    const logger = new Logger(LogLevel.INFO, mockStdout as never);
+
+    mock.method(logger, 'isTTY', () => false);
+    mock.method(logger, 'log', mockLog);
+
+    const spinnerMessages = ['Message 1', 'Message 2'];
+    const successMessage = 'Success Message';
+
+    const actions = spinnerMessages.map((message) => async () => {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    });
+
+    await logger.indicateSpinnerProgress(
+      actions,
+      spinnerMessages,
+      successMessage
+    );
+
+    assert.equal(mockStdout.write.mock.callCount(), 0);
+    assert.equal(mockLog.mock.callCount(), 2);
+
+    assert.match(
+      [...mockLog.mock.calls[0].arguments][0],
+      new RegExp('Message 1')
+    );
+    assert.match(
+      [...mockLog.mock.calls[1].arguments][0],
+      new RegExp('Message 2')
+    );
+    assert.equal(mockLog.mock.calls[0].arguments[1], LogLevel.INFO);
+    assert.equal(mockLog.mock.calls[1].arguments[1], LogLevel.INFO);
+  });
 });

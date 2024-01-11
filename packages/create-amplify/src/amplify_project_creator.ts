@@ -1,3 +1,4 @@
+import kleur from 'kleur';
 import { PackageManagerController } from './package_manager_controller.js';
 import { ProjectRootValidator } from './project_root_validator.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
@@ -5,7 +6,9 @@ import { NpmProjectInitializer } from './npm_project_initializer.js';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
 import { logger } from './logger.js';
 
-const LEARN_MORE_USAGE_DATA_TRACKING_LINK = `https://docs.amplify.aws/gen2/reference/telemetry`;
+const LEARN_MORE_USAGE_DATA_TRACKING_LINK = kleur.blue(
+  `https://docs.amplify.aws/gen2/reference/telemetry`
+);
 
 /**
  *
@@ -40,51 +43,83 @@ export class AmplifyProjectCreator {
    * Executes the create-amplify workflow
    */
   create = async (): Promise<void> => {
-    logger.debug(`Validating current state of target directory...`);
+    logger.debug(kleur.dim(`Validating current state of target directory...`));
     await this.projectRootValidator.validate();
 
     await this.npmInitializedEnsurer.ensureInitialized();
 
-    await logger.indicateProgress(
-      `Installing required dependencies`,
-      async () => {
-        await this.packageManagerController.installDependencies(
-          this.defaultProdPackages,
-          'prod'
-        );
-
-        await this.packageManagerController.installDependencies(
-          this.defaultDevPackages,
-          'dev'
-        );
-      }
-    );
-
-    await logger.indicateProgress(`Creating template files`, async () => {
-      await this.gitIgnoreInitializer.ensureInitialized();
-
-      await this.initialProjectFileGenerator.generateInitialProjectFiles();
+    logger.log('\nInstalling devDependencies:');
+    this.defaultDevPackages.forEach((dep) => {
+      logger.log(kleur.blue(`- ${dep}`));
     });
 
-    logger.log('Successfully created a new project!');
+    logger.log('\nInstalling dependencies:');
+    this.defaultProdPackages.forEach((dep) => {
+      logger.log(kleur.blue(`- ${dep}`));
+    });
+
+    logger.log('\n');
+    await logger.indicateSpinnerProgress(
+      [
+        async () =>
+          this.packageManagerController.installDependencies(
+            this.defaultDevPackages,
+            'dev'
+          ),
+        async () =>
+          this.packageManagerController.installDependencies(
+            this.defaultProdPackages,
+            'prod'
+          ),
+      ],
+      ['Installing devDependencies', 'Installing dependencies'],
+      'Dependencies installed'
+    );
+
+    await logger.indicateSpinnerProgress(
+      [
+        async () => {
+          await this.gitIgnoreInitializer.ensureInitialized();
+          await this.initialProjectFileGenerator.generateInitialProjectFiles();
+        },
+      ],
+      ['Creating template files'],
+      'Template files created'
+    );
+
+    logger.log(kleur.green().bold('Successfully created a new project!\n'));
 
     const cdCommand =
       process.cwd() === this.projectRoot
-        ? ''
-        : `cd .${this.projectRoot.replace(process.cwd(), '')}; `;
+        ? null
+        : `Change directory by running ${kleur
+            .yellow()
+            .bold(
+              'cd .' + this.projectRoot.replace(process.cwd(), '') + ''
+            )} and then:`;
+
+    logger.log(kleur.cyan('Welcome to AWS Amplify!\n'));
+
+    const instructionSteps = [
+      cdCommand,
+      `- Get started with your project by running ${kleur
+        .yellow()
+        .bold('npx amplify sandbox')}.`,
+      `- Run ${kleur
+        .yellow()
+        .bold('npx amplify help')} for a list of available commands.`,
+    ]
+      .filter(Boolean)
+      .join('\n');
+
+    logger.log(instructionSteps);
 
     logger.log(
-      `Welcome to AWS Amplify! 
-Run \`npx amplify help\` for a list of available commands. 
-Get started by running \`${cdCommand}npx amplify sandbox\`.`
-    );
-
-    logger.log(
-      `Amplify (Gen 2) collects anonymous telemetry data about general usage of the CLI.
-
-Participation is optional, and you may opt-out by using \`amplify configure telemetry disable\`.
-
-To learn more about telemetry, visit ${LEARN_MORE_USAGE_DATA_TRACKING_LINK}`
+      kleur.dim(`\nAmplify (Gen 2) collects anonymous telemetry data about general usage of the CLI.
+Participation is optional, and you may opt-out by using ${kleur
+        .yellow()
+        .bold('amplify configure telemetry disable')}.
+To learn more about telemetry, visit ${LEARN_MORE_USAGE_DATA_TRACKING_LINK}\n`)
     );
   };
 }

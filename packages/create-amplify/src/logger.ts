@@ -1,4 +1,5 @@
 import yargs from 'yargs';
+import kleur from 'kleur';
 import * as os from 'os';
 
 /**
@@ -9,6 +10,23 @@ export class Logger {
   private timer: ReturnType<typeof setTimeout>;
   private refreshRate: number;
   private timerSet: boolean;
+
+  /**
+   * Spinner frames
+   */
+  private spinnerFrames = [
+    kleur.red('⠋'),
+    kleur.yellow('⠙'),
+    kleur.green('⠹'),
+    kleur.cyan('⠸'),
+    kleur.blue('⠼'),
+    kleur.magenta('⠴'),
+    kleur.red('⠦'),
+    kleur.yellow('⠧'),
+    kleur.green('⠇'),
+    kleur.cyan('⠏'),
+  ];
+  private currentSpinnerMessage = '';
 
   /**
    * Creates a new Logger instance. Injecting stdout for testing.
@@ -98,6 +116,30 @@ export class Logger {
   }
 
   /**
+   * Logs a message with animated spinner
+   */
+  async indicateSpinnerProgress(
+    actions: (() => Promise<void>)[],
+    messages: string[],
+    successMessage: string
+  ) {
+    try {
+      for (let i = 0; i < actions.length; i++) {
+        if (i === 0) {
+          this.startAnimatingSpinner(messages[i]);
+        } else {
+          this.updateSpinnerMessage(messages[i]);
+        }
+        await actions[i]();
+      }
+      this.stopAnimatingSpinner(successMessage);
+    } catch (error) {
+      this.stopAnimatingSpinner('An error occurred');
+      throw error;
+    }
+  }
+
+  /**
    * Start animating ellipsis at the end of a log message.
    */
   private startAnimatingEllipsis(message: string) {
@@ -138,6 +180,62 @@ export class Logger {
     this.writeEscapeSequence(EscapeSequence.MOVE_CURSOR_TO_START);
     this.writeEscapeSequence(EscapeSequence.SHOW_CURSOR);
     this.stdout.write(`${message}...${os.EOL}`);
+  }
+
+  /**
+   * Start animating spinner at the end of a log message.
+   */
+  private startAnimatingSpinner(message: string) {
+    this.currentSpinnerMessage = message;
+    if (!this.isTTY()) {
+      this.log(message, LogLevel.INFO);
+      return;
+    }
+
+    if (this.timerSet) {
+      throw new Error(
+        'Timer is already set to animate spinner, stop the current running timer before starting a new one.'
+      );
+    }
+
+    let frameIndex = 0;
+    this.timerSet = true;
+    this.writeEscapeSequence(EscapeSequence.HIDE_CURSOR);
+    this.stdout.write(message);
+    this.timer = setInterval(() => {
+      this.writeEscapeSequence(EscapeSequence.CLEAR_LINE);
+      this.writeEscapeSequence(EscapeSequence.MOVE_CURSOR_TO_START);
+      const frame = this.spinnerFrames[frameIndex];
+      this.stdout.write(`${this.currentSpinnerMessage} ${frame}`);
+      frameIndex = (frameIndex + 1) % this.spinnerFrames.length;
+    }, this.refreshRate);
+  }
+
+  /**
+   * Updates the message on the animated spinner
+   */
+  private updateSpinnerMessage(message: string) {
+    if (!this.timerSet) {
+      this.startAnimatingSpinner(message);
+    } else {
+      this.currentSpinnerMessage = message;
+    }
+  }
+
+  /**
+   * Stops animating spinner and replace with a log message.
+   */
+  private stopAnimatingSpinner(message: string) {
+    if (!this.isTTY()) {
+      return;
+    }
+
+    clearInterval(this.timer);
+    this.timerSet = false;
+    this.writeEscapeSequence(EscapeSequence.CLEAR_LINE);
+    this.writeEscapeSequence(EscapeSequence.MOVE_CURSOR_TO_START);
+    this.writeEscapeSequence(EscapeSequence.SHOW_CURSOR);
+    this.stdout.write(`${message} ✔${os.EOL}`);
   }
 }
 
