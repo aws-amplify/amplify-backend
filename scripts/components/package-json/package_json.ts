@@ -31,5 +31,8 @@ export const writePackageJson = async (
   packageJson: PackageJson
 ): Promise<void> => {
   const packageJsonPath = path.join(packageDirectoryPath, 'package.json');
-  await fsp.writeFile(packageJsonPath, JSON.stringify(packageJson, null, 2));
+  await fsp.writeFile(
+    packageJsonPath,
+    `${JSON.stringify(packageJson, null, 2)}\n`
+  );
 };
