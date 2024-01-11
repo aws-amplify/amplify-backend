@@ -10,7 +10,6 @@ import { TestProjectCreator } from './test_project_creator.js';
 import { DeployedResourcesFinder } from '../find_deployed_resource.js';
 import assert from 'node:assert';
 import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
-import { shortUuid } from '../short_uuid.js';
 
 /**
  * Creates test projects with data, storage, and auth categories.
