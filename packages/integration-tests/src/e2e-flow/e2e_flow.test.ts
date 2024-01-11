@@ -55,6 +55,9 @@ const packageManagerSetup = async (
         ['config', 'set', 'unsafeHttpWhitelist', 'localhost'],
         execaOptions
       );
+      await execa('yarn', ['config', 'set', 'nodeLinker', 'node-modules'], {
+        execaOptions,
+      });
     } else {
       await execa(
         'yarn',
