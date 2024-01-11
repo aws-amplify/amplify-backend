@@ -339,6 +339,13 @@ void describe('amplify', { concurrency: concurrency }, () => {
         }
       );
 
+      if (PACKAGE_MANAGER_EXECUTABLE === 'yarn-modern') {
+        await execa('yarn', ['add', 'esbuild'], {
+          cwd: tempDir,
+          stdio: 'inherit',
+        });
+      }
+
       await execa(
         packageManagerExecutable === 'npm' ? 'npx' : packageManagerExecutable,
         [
