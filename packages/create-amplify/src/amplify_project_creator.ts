@@ -1,9 +1,9 @@
+import { Printer } from '@aws-amplify/cli-core';
 import { PackageManagerController } from './package_manager_controller.js';
 import { ProjectRootValidator } from './project_root_validator.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
 import { NpmProjectInitializer } from './npm_project_initializer.js';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
-import { logger } from './logger.js';
 
 const LEARN_MORE_USAGE_DATA_TRACKING_LINK = `https://docs.amplify.aws/gen2/reference/telemetry`;
 
@@ -40,12 +40,12 @@ export class AmplifyProjectCreator {
    * Executes the create-amplify workflow
    */
   create = async (): Promise<void> => {
-    logger.debug(`Validating current state of target directory...`);
+    Printer.debug(`Validating current state of target directory...`);
     await this.projectRootValidator.validate();
 
     await this.npmInitializedEnsurer.ensureInitialized();
 
-    await logger.indicateProgress(
+    await Printer.indicateProgress(
       `Installing required dependencies`,
       async () => {
         await this.packageManagerController.installDependencies(
@@ -60,26 +60,26 @@ export class AmplifyProjectCreator {
       }
     );
 
-    await logger.indicateProgress(`Creating template files`, async () => {
+    await Printer.indicateProgress(`Creating template files`, async () => {
       await this.gitIgnoreInitializer.ensureInitialized();
 
       await this.initialProjectFileGenerator.generateInitialProjectFiles();
     });
 
-    logger.log('Successfully created a new project!');
+    Printer.log('Successfully created a new project!');
 
     const cdCommand =
       process.cwd() === this.projectRoot
         ? ''
         : `cd .${this.projectRoot.replace(process.cwd(), '')}; `;
 
-    logger.log(
+    Printer.log(
       `Welcome to AWS Amplify! 
 Run \`npx amplify help\` for a list of available commands. 
 Get started by running \`${cdCommand}npx amplify sandbox\`.`
     );
 
-    logger.log(
+    Printer.log(
       `Amplify (Gen 2) collects anonymous telemetry data about general usage of the CLI.
 
 Participation is optional, and you may opt-out by using \`amplify configure telemetry disable\`.

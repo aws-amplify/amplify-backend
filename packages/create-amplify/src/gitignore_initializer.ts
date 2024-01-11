@@ -2,7 +2,7 @@ import { existsSync as _existsSync } from 'fs';
 import _fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
-import { logger } from './logger.js';
+import { Printer } from '@aws-amplify/cli-core';
 
 /**
  * Ensure that the .gitignore file exists with the correct contents in the current working directory
@@ -50,7 +50,7 @@ export class GitIgnoreInitializer {
       return;
     }
 
-    logger.debug(
+    Printer.debug(
       'No .gitignore file found in the working directory. Creating .gitignore...'
     );
 

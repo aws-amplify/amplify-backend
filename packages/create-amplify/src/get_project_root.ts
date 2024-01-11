@@ -1,7 +1,6 @@
 import fsp from 'fs/promises';
 import path from 'path';
-import { AmplifyPrompter } from '@aws-amplify/cli-core';
-import { logger } from './logger.js';
+import { AmplifyPrompter, Printer } from '@aws-amplify/cli-core';
 
 /**
  * Returns the project root directory.
@@ -25,8 +24,8 @@ export const getProjectRoot = async () => {
     .then(() => true)
     .catch(() => false); // There's no `fsp.exists` method, so we use `stat` instead. See https://github.com/nodejs/node/issues/39960#issuecomment-909444667
   if (!isExistProjectRoot) {
-    logger.debug(`The provided directory (${projectRoot}) does not exist.`);
-    logger.debug(`Creating directory ${projectRoot}`);
+    Printer.debug(`The provided directory (${projectRoot}) does not exist.`);
+    Printer.debug(`Creating directory ${projectRoot}`);
     await fsp.mkdir(projectRoot, { recursive: true });
   }
   return projectRoot;

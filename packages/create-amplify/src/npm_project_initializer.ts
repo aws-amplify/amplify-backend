@@ -1,8 +1,8 @@
 import { existsSync as _existsSync } from 'fs';
 import * as path from 'path';
 import { execa as _execa } from 'execa';
-import { logger } from './logger.js';
 import { executeWithDebugLogger } from './execute_with_logger.js';
+import { Printer } from '@aws-amplify/cli-core';
 
 /**
  * Ensure that the current working directory is a valid JavaScript project
@@ -25,7 +25,7 @@ export class NpmProjectInitializer {
       // if package.json already exists, no need to do anything
       return;
     }
-    logger.debug(
+    Printer.debug(
       'No package.json file found in the current directory. Running `npm init`...'
     );
 

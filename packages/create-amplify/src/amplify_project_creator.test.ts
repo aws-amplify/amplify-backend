@@ -1,7 +1,7 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'assert';
 import { AmplifyProjectCreator } from './amplify_project_creator.js';
-import { logger } from './logger.js';
+import { Printer } from '@aws-amplify/cli-core';
 
 void describe('AmplifyProjectCreator', () => {
   void it('create project if passing `--yes` or `-y` to `npm create`', async () => {
@@ -26,7 +26,7 @@ void describe('AmplifyProjectCreator', () => {
       gitIgnoreInitializerMock as never,
       process.cwd()
     );
-    mock.method(logger, 'log', logMock.log);
+    mock.method(Printer, 'log', logMock.log);
     await amplifyProjectCreator.create();
     assert.equal(
       packageManagerControllerMock.installDependencies.mock.callCount(),
@@ -73,7 +73,7 @@ void describe('AmplifyProjectCreator', () => {
       gitIgnoreInitializerMock as never,
       '/project/root'
     );
-    mock.method(logger, 'log', logMock.log);
+    mock.method(Printer, 'log', logMock.log);
     await amplifyProjectCreator.create();
 
     assert.equal(

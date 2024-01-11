@@ -3,7 +3,7 @@ import { GitIgnoreInitializer } from './gitignore_initializer.js';
 import assert from 'assert';
 import * as path from 'path';
 import * as os from 'os';
-import { logger } from './logger.js';
+import { Printer } from '@aws-amplify/cli-core';
 
 void describe('GitIgnoreInitializer', () => {
   void it('creates .gitignore and adds all contents if no .gitignore file exists', async () => {
@@ -25,7 +25,7 @@ void describe('GitIgnoreInitializer', () => {
       `.amplify${os.EOL}`,
       `amplifyconfiguration*${os.EOL}`,
     ];
-    mock.method(logger, 'debug', logMock.debug);
+    mock.method(Printer, 'debug', logMock.debug);
     await gitIgnoreInitializer.ensureInitialized();
     assert.equal(
       logMock.debug.mock.calls[0].arguments[0],
