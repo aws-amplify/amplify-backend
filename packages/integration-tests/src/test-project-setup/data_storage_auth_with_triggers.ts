@@ -86,9 +86,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     'amazonSecret',
   ];
 
-  private readonly testSharedSecretNames = [
-    process.env.AMPLIFY_SHARED_SECRET_NAME as string,
-  ];
+  private readonly testSharedSecretNames: string[] = [];
 
   /**
    * Create a test project instance.
@@ -103,8 +101,6 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     private readonly resourceFinder: DeployedResourcesFinder
   ) {
     super(name, projectDirPath, projectAmplifyDirPath, cfnClient);
-    process.env.AMPLIFY_SHARED_SECRET_NAME =
-      'amplifySharedSecret' + shortUuid();
   }
 
   /**
@@ -185,6 +181,9 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   private setUpDeployEnvironment = async (
     backendId: BackendIdentifier
   ): Promise<void> => {
+    process.env.AMPLIFY_SHARED_SECRET_NAME =
+      'amplifySharedSecret' + shortUuid();
+    this.testSharedSecretNames.push(process.env.AMPLIFY_SHARED_SECRET_NAME);
     for (const secretName of this.testSecretNames) {
       const secretValue = `${secretName}-e2eTestValue`;
       await this.secretClient.setSecret(backendId, secretName, secretValue);
@@ -202,6 +201,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   private clearDeployEnvironment = async (
     backendId: BackendIdentifier
   ): Promise<void> => {
+    delete process.env.AMPLIFY_SHARED_SECRET_NAME;
     // clear secrets
     for (const secretName of this.testSecretNames) {
       await this.secretClient.removeSecret(backendId, secretName);
