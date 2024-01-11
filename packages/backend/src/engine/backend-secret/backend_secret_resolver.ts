@@ -2,7 +2,7 @@ import {
   BackendIdentifier,
   BackendSecret,
   BackendSecretResolver,
-  ResolvePathResponse,
+  ResolvePathResult,
 } from '@aws-amplify/plugin-types';
 import { SecretValue } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
@@ -23,7 +23,7 @@ export class DefaultBackendSecretResolver implements BackendSecretResolver {
     return backendSecret.resolve(this.scope, this.backendId);
   };
 
-  resolvePath = (backendSecret: BackendSecret): ResolvePathResponse => {
+  resolvePath = (backendSecret: BackendSecret): ResolvePathResult => {
     return backendSecret.resolvePath(this.backendId);
   };
 }

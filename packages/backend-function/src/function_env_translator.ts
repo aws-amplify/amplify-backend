@@ -57,11 +57,10 @@ export class FunctionEnvironmentTranslator {
       return;
     }
 
+    const stack = Stack.of(this.scope);
+
     const resourceArns = this.secretPaths.map(
-      (path) =>
-        `arn:aws:ssm:${Stack.of(this.scope).region}:${
-          Stack.of(this.scope).account
-        }:parameter${path}`
+      (path) => `arn:aws:ssm:${stack.region}:${stack.account}:parameter${path}`
     );
 
     return new iam.PolicyStatement({

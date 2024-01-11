@@ -1,7 +1,7 @@
 import {
   BackendIdentifier,
   BackendSecret,
-  ResolvePathResponse,
+  ResolvePathResult,
 } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
 import { BackendSecretFetcherFactory } from './backend_secret_fetcher_factory.js';
@@ -39,7 +39,7 @@ export class CfnTokenBackendSecret implements BackendSecret {
   /**
    * Resolve to the secret path
    */
-  resolvePath = (backendIdentifier: BackendIdentifier): ResolvePathResponse => {
+  resolvePath = (backendIdentifier: BackendIdentifier): ResolvePathResult => {
     return {
       branchSecretPath: ParameterPathConversions.toParameterFullPath(
         backendIdentifier,
