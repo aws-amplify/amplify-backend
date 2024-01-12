@@ -85,7 +85,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     'amazonSecret',
   ];
 
-  private readonly testSharedSecretNames: string[] = [];
+  private testSharedSecretNames: string[] = [];
 
   /**
    * Create a test project instance.
