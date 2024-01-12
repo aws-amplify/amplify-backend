@@ -1,13 +1,5 @@
 {
   "extends": "../../tsconfig.base.json",
-  "compilerOptions": {
-    "target": "ES2018",
-    "module": "Node16",
-    "moduleResolution": "Node16",
-    "lib": ["DOM", "ESnext"],
-    "rootDir": "src",
-    "outDir": "lib",
-    "allowJs": true
-  },
+  "compilerOptions": { "rootDir": "src", "outDir": "lib", "allowJs": true },
   "references": []
 }
