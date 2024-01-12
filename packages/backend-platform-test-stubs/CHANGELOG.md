@@ -1,5 +1,11 @@
 # @aws-amplify/backend-platform-test-stubs
 
+## 0.3.2
+
+### Patch Changes
+
+- d087313e9: Enhance functions to fallback to resolve shared secrets
+
 ## 0.3.1
 
 ### Patch Changes

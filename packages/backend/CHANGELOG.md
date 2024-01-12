@@ -1,5 +1,20 @@
 # @aws-amplify/backend
 
+## 0.10.1
+
+### Patch Changes
+
+- d087313e9: Enhance functions to fallback to resolve shared secrets
+- Updated dependencies [d087313e9]
+  - @aws-amplify/backend-function@0.6.2
+  - @aws-amplify/backend-auth@0.4.3
+  - @aws-amplify/plugin-types@0.7.1
+  - @aws-amplify/backend-data@0.9.4
+  - @aws-amplify/backend-storage@0.4.3
+  - @aws-amplify/backend-secret@0.4.2
+  - @aws-amplify/platform-core@0.4.2
+  - @aws-amplify/backend-output-storage@0.2.10
+
 ## 0.10.0
 
 ### Minor Changes

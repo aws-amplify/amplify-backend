@@ -1,5 +1,12 @@
 # create-amplify
 
+## 0.4.3
+
+### Patch Changes
+
+- 981bd4423: Use latest CDKv2 version in create amplify flow
+  - @aws-amplify/platform-core@0.4.2
+
 ## 0.4.2
 
 ### Patch Changes
