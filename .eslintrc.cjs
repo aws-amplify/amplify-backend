@@ -7,6 +7,7 @@ module.exports = {
   extends: [
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
+    'plugin:amplify-backend-rules/recommended',
     'plugin:jsdoc/recommended-typescript-error',
     'plugin:promise/recommended',
     'prettier',
@@ -86,7 +87,6 @@ module.exports = {
     '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
     '@typescript-eslint/member-ordering': 'error',
     '@shopify/prefer-early-return': 'error',
-    'amplify-backend-rules/no-empty-catch': 'error',
     'check-file/filename-blocklist': [
       'error',
       {
