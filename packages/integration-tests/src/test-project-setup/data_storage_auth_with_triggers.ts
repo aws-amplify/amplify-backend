@@ -106,8 +106,8 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
    * @inheritdoc
    */
   override async deploy(backendIdentifier: BackendIdentifier) {
-    await super.deploy(backendIdentifier);
     await this.setUpDeployEnvironment(backendIdentifier);
+    await super.deploy(backendIdentifier);
   }
 
   /**
