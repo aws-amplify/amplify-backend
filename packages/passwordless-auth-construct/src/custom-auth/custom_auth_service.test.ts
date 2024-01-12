@@ -18,6 +18,17 @@ import {
   VerifyAuthChallengeResponseTriggerEvent,
 } from 'aws-lambda';
 import { CustomAuthService } from './custom_auth_service.js';
+import { CognitoUserService } from '../services/cognito_user_service.js';
+import { CognitoIdentityProviderClient } from '@aws-sdk/client-cognito-identity-provider';
+
+/**
+ * A mock client for issuing send command successful
+ */
+class MockCognitoClient extends CognitoIdentityProviderClient {
+  send(): Promise<void> {
+    return Promise.resolve();
+  }
+}
 
 // The custom auth session from the initial Cognito InitiateAuth call.
 const initialSession: ChallengeResult = {
@@ -63,9 +74,12 @@ const mockChallengeService: ChallengeService = {
   },
 };
 
-const customAuthService = new CustomAuthService({
-  getService: () => mockChallengeService,
-});
+const customAuthService = new CustomAuthService(
+  {
+    getService: () => mockChallengeService,
+  },
+  new CognitoUserService(new MockCognitoClient())
+);
 
 void describe('defineAuthChallenge', () => {
   /**
@@ -255,9 +269,12 @@ void describe('createAuthChallenge', () => {
           throw new Error('missing required metadata.');
         },
       };
-      const customAuthService = new CustomAuthService({
-        getService: () => challengeService,
-      });
+      const customAuthService = new CustomAuthService(
+        {
+          getService: () => challengeService,
+        },
+        new CognitoUserService(new MockCognitoClient())
+      );
       const metadata = {
         [CognitoMetadataKeys.SIGN_IN_METHOD]: 'OTP',
         [CognitoMetadataKeys.ACTION]: 'REQUEST',

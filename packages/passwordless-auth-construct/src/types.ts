@@ -5,6 +5,8 @@ import {
 } from 'aws-lambda';
 import { Duration } from 'aws-cdk-lib/core';
 import { CognitoMetadataKeys } from './constants.js';
+import { IUserPool } from 'aws-cdk-lib/aws-cognito';
+import { IRole } from 'aws-cdk-lib/aws-iam';
 
 /**
  * The client meta data object provided during passwordless auth.
@@ -162,6 +164,9 @@ export type PasswordlessAuthProps = {
 
   /** Options for One Time Password */
   otp?: OtpAuthOptions;
+
+  /** Sign Up Without Password */
+  signUpEnabled?: boolean;
 };
 
 /**
@@ -342,3 +347,38 @@ export type KmsConfig = {
 export enum PasswordlessErrorCodes {
   CODE_MISMATCH_EXCEPTION = 'CodeMismatchException',
 }
+
+export type CreateUserParams = {
+  userPoolId: string;
+  username: string;
+  phoneNumber?: string;
+  email?: string;
+};
+
+export type MarkVerifiedAndDeletePasswordlessParams = {
+  username: string;
+  attributeName: 'phone_number_verified' | 'email_verified';
+  userPoolId: string;
+};
+
+export type UserService = {
+  createUser: (params: CreateUserParams) => Promise<void>;
+  markAsVerifiedAndDeletePasswordlessAttribute: (
+    params: MarkVerifiedAndDeletePasswordlessParams
+  ) => Promise<void>;
+};
+
+export type PasswordlessSignUpProps = {
+  verifyExecutionRole: IRole;
+  userPool: IUserPool;
+};
+
+// this is the format for Cognito UserPool API, eslint not happy otherwise
+// eslint-disable-next-line  @typescript-eslint/naming-convention
+export type CognitoUserAttribute = { Name: string; Value: string };
+
+export type CognitoError = {
+  // this is the format for Cognito UserPool API, eslint not happy otherwise
+  // eslint-disable-next-line  @typescript-eslint/naming-convention
+  __type?: string;
+};

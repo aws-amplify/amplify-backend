@@ -376,6 +376,11 @@ void describe('Auth construct', () => {
           Name: 'email',
           Required: true,
         },
+        {
+          AttributeDataType: 'String',
+          Mutable: true,
+          Name: 'passwordless_sign_up',
+        },
       ],
     });
   });
@@ -435,6 +440,11 @@ void describe('Auth construct', () => {
           Mutable: true,
           Name: 'family_name',
           Required: true,
+        },
+        {
+          AttributeDataType: 'String',
+          Mutable: true,
+          Name: 'passwordless_sign_up',
         },
       ],
     });
