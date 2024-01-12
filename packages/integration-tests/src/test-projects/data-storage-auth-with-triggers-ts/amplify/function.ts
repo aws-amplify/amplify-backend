@@ -1,4 +1,5 @@
 import { defineFunction, secret } from '@aws-amplify/backend';
+import * as process from 'process';
 
 export const myFunc = defineFunction({
   name: 'specialTestFunction',
