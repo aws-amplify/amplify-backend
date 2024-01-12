@@ -29,6 +29,7 @@ module.exports = {
   },
   plugins: [
     '@typescript-eslint',
+    'amplify-backend-rules',
     'unicorn',
     'jsdoc',
     'import',
@@ -85,6 +86,7 @@ module.exports = {
     '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
     '@typescript-eslint/member-ordering': 'error',
     '@shopify/prefer-early-return': 'error',
+    'amplify-backend-rules/no-empty-catch': 'error',
     'check-file/filename-blocklist': [
       'error',
       {
