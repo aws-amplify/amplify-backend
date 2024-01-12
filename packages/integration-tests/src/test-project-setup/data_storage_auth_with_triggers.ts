@@ -10,7 +10,6 @@ import { TestProjectCreator } from './test_project_creator.js';
 import { DeployedResourcesFinder } from '../find_deployed_resource.js';
 import assert from 'node:assert';
 import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
-import * as process from 'process';
 
 /**
  * Creates test projects with data, storage, and auth categories.
@@ -101,9 +100,6 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     private readonly resourceFinder: DeployedResourcesFinder
   ) {
     super(name, projectDirPath, projectAmplifyDirPath, cfnClient);
-    this.testSharedSecretNames.push(
-      process.env.AMPLIFY_SHARED_SECRET_NAME as string
-    );
   }
 
   /**
@@ -183,6 +179,9 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   private setUpDeployEnvironment = async (
     backendId: BackendIdentifier
   ): Promise<void> => {
+    this.testSharedSecretNames.push(
+      process.env.AMPLIFY_SHARED_SECRET_NAME as string
+    );
     for (const secretName of this.testSecretNames) {
       const secretValue = `${secretName}-e2eTestValue`;
       await this.secretClient.setSecret(backendId, secretName, secretValue);
