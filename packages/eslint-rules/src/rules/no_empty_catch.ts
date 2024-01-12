@@ -24,7 +24,7 @@ export const rule = ESLintUtils.RuleCreator.withoutDocs({
   },
   meta: {
     docs: {
-      description: 'Catch block should contain error handling logic.',
+      description: 'Catch block should contain error-handling logic.',
     },
     messages: {
       noEmptyCatch: 'Catch block must not be empty.',
