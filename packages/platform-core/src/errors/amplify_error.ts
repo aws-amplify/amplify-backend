@@ -68,6 +68,7 @@ export abstract class AmplifyError extends Error {
           : new AmplifyFault(name as AmplifyLibraryFaultType, options, cause);
       } catch (error) {
         // cannot deserialize
+        return undefined;
       }
     }
     return undefined;

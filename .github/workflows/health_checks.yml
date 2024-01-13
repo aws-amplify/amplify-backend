@@ -54,17 +54,38 @@ jobs:
       - run: |
           npm run set-script-shell
           npm run test:scripts
+  test_with_baseline_dependencies:
+    needs:
+      - install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
+      - uses: ./.github/actions/setup_node
+      - uses: ./.github/actions/restore_install_cache
+      - name: Pin some dependencies to nearest patch and rebuild
+        run: |
+          npx tsx scripts/set_baseline_dependency_versions.ts
+          npm install
+          # print out diff for auditing or troubleshooting
+          git diff
+          npm run build
+      - name: Run unit and integration tests
+        run: |
+          npm run set-script-shell
+          npm run test
   check_api_changes:
     if: github.event_name == 'pull_request'
     needs:
       - build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout pull request ref
         uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_build_cache
       - name: Publish packages locally
+        timeout-minutes: 2
         run: |
           npm run start:npm-proxy
           # keep git diff with version increment to make sure test projects resolve right version

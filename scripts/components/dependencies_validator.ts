@@ -1,7 +1,6 @@
-import fsp from 'fs/promises';
-import path from 'path';
 import { execa as _execa } from 'execa';
 import { EOL } from 'os';
+import { readPackageJson } from './package-json/package_json.js';
 
 export type DependencyRule =
   | {
@@ -23,25 +22,28 @@ type DependencyViolation = {
   dependencyName: string;
 };
 
-type PackageJson = {
-  name: string;
-  dependencies?: Record<string, string>;
-  devDependencies?: Record<string, string>;
-  peerDependencies?: Record<string, string>;
-};
-
 /**
- * Validates dependencies. Inspects each path, enumerates all dependencies
+ * Validates dependencies.
+ *
+ * Inspects each path, enumerates all dependencies
  * using 'npm ls --all --json', i.e. direct and transitive, and validates them
  * against the rules.
+ *
+ * Inspects dependency version declarations in package json files
+ * in order to assert consistency.
  */
 export class DependenciesValidator {
   /**
    * Creates dependency validator
+   * @param packagePaths paths of packages to validate
+   * @param dependencyRules dependency exclusion and inclusion rules
+   * @param linkedDependencies dependencies that should be versioned with the same version
+   * @param execa in order to inject execa mock in tests
    */
   constructor(
     private packagePaths: Array<string>,
     private dependencyRules: Record<string, DependencyRule>,
+    private linkedDependencies: Array<Array<string>>,
     private execa = _execa
   ) {}
 
@@ -60,7 +62,7 @@ export class DependenciesValidator {
   private async validateDependencyVersionsConsistency(): Promise<void> {
     console.log('Checking dependency versions consistency');
     const packageJsons = await Promise.all(
-      this.packagePaths.map((packagePath) => this.getPackageJson(packagePath))
+      this.packagePaths.map((packagePath) => readPackageJson(packagePath))
     );
 
     type DependencyVersionsUsage = {
@@ -113,6 +115,25 @@ export class DependenciesValidator {
         );
       }
     }
+    for (const linkedDependencySpec of this.linkedDependencies) {
+      const allLinkedVersions: Set<string> = new Set();
+      for (const dependencyName of linkedDependencySpec) {
+        const dependencyVersionUsage = dependencyVersionsUsages[dependencyName];
+        dependencyVersionUsage.allVersions.forEach((version) =>
+          allLinkedVersions.add(version)
+        );
+      }
+
+      if (allLinkedVersions.size > 1) {
+        errors.push(
+          `Dependencies ${linkedDependencySpec.join(
+            ','
+          )} should be declared using same version, versions found ${Array.from(
+            allLinkedVersions
+          ).join(',')}`
+        );
+      }
+    }
     if (errors.length > 0) {
       throw new Error(errors.join(EOL));
     }
@@ -143,22 +164,13 @@ export class DependenciesValidator {
   }
 
   /**
-   * Reads a name from package.json located at package path.
-   */
-  private async getPackageJson(packagePath: string): Promise<PackageJson> {
-    return JSON.parse(
-      (await fsp.readFile(path.join(packagePath, 'package.json'))).toString()
-    ) as PackageJson;
-  }
-
-  /**
    * Checks dependencies of a package located at packagePath against
    * provided rules.
    */
   private async checkPackageDependencies(
     packagePath: string
   ): Promise<Array<DependencyViolation>> {
-    const packageName = (await this.getPackageJson(packagePath)).name;
+    const packageName = (await readPackageJson(packagePath)).name;
     console.log(`Checking ${packageName} dependencies.`);
     const npmListResult = JSON.parse(
       // We're using 'npm ls' to reveal dependencies because it reveals

@@ -1,15 +1,15 @@
 {
   "name": "@aws-amplify/integration-tests",
   "private": true,
-  "version": "0.4.1",
+  "version": "0.4.2",
   "type": "module",
   "devDependencies": {
-    "@aws-amplify/auth-construct-alpha": "^0.5.1",
-    "@aws-amplify/backend": "^0.10.0",
-    "@aws-amplify/backend-secret": "^0.4.1",
-    "@aws-amplify/client-config": "^0.5.1",
+    "@aws-amplify/auth-construct-alpha": "^0.5.2",
+    "@aws-amplify/backend": "^0.10.1",
+    "@aws-amplify/backend-secret": "^0.4.2",
+    "@aws-amplify/client-config": "^0.5.2",
     "@aws-amplify/data-schema": "^0.12.9",
-    "@aws-amplify/platform-core": "^0.4.1",
+    "@aws-amplify/platform-core": "^0.4.2",
     "@aws-sdk/client-amplify": "^3.465.0",
     "@aws-sdk/client-cloudformation": "^3.465.0",
     "@aws-sdk/client-lambda": "^3.465.0",
@@ -20,6 +20,7 @@
     "execa": "^8.0.1",
     "fs-extra": "^11.1.1",
     "glob": "^10.2.7",
+    "semver": "^7.5.4",
     "uuid": "^9.0.1"
   },
   "license": "Apache-2.0"

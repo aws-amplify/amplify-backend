@@ -11,11 +11,12 @@ import { Construct } from 'constructs';
 import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as path from 'path';
 import { getCallerDirectory } from './get_caller_directory.js';
-import { Duration, Stack } from 'aws-cdk-lib';
+import { Duration } from 'aws-cdk-lib';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
-import * as iam from 'aws-cdk-lib/aws-iam';
+
 import fs from 'fs';
 import { createRequire } from 'module';
+import { FunctionEnvironmentTranslator } from './function_env_translator.js';
 
 /**
  * Entry point for defining a function in the Amplify ecosystem
@@ -280,60 +281,3 @@ const nodeVersionMap: Record<NodeVersion, Runtime> = {
   18: Runtime.NODEJS_18_X,
   20: Runtime.NODEJS_20_X,
 };
-
-class FunctionEnvironmentTranslator {
-  private secretPaths: string[] = [];
-  private environmentRecord: Record<string, string> = {};
-
-  constructor(
-    private readonly scope: Construct,
-    private readonly functionEnvironmentProp: HydratedFunctionProps['environment'],
-    private readonly backendSecretResolver: BackendSecretResolver
-  ) {
-    const secretPlaceholderText = '<value will be resolved during runtime>';
-    const amplifySecretPaths = 'AMPLIFY_SECRET_PATHS';
-    const secretPathEnvVars: Record<string, string> = {};
-
-    for (const [key, value] of Object.entries(this.functionEnvironmentProp)) {
-      if (key === amplifySecretPaths) {
-        throw new Error(
-          `${amplifySecretPaths} is a reserved environment variable name`
-        );
-      }
-      if (typeof value !== 'string') {
-        const secretPath = this.backendSecretResolver.resolvePath(value);
-        this.environmentRecord[key] = secretPlaceholderText;
-        secretPathEnvVars[key] = secretPath;
-        this.secretPaths.push(secretPath);
-      } else {
-        this.environmentRecord[key] = value;
-      }
-    }
-
-    this.environmentRecord[amplifySecretPaths] =
-      JSON.stringify(secretPathEnvVars);
-  }
-
-  getEnvironmentRecord = () => {
-    return this.environmentRecord;
-  };
-
-  getSecretPolicyStatement = (): iam.PolicyStatement | undefined => {
-    if (this.secretPaths.length === 0) {
-      return;
-    }
-
-    const resourceArns = this.secretPaths.map(
-      (path) =>
-        `arn:aws:ssm:${Stack.of(this.scope).region}:${
-          Stack.of(this.scope).account
-        }:parameter${path}`
-    );
-
-    return new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
-      actions: ['ssm:GetParameters'],
-      resources: resourceArns,
-    });
-  };
-}
