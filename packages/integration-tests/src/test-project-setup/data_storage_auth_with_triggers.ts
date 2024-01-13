@@ -10,7 +10,7 @@ import { TestProjectCreator } from './test_project_creator.js';
 import { DeployedResourcesFinder } from '../find_deployed_resource.js';
 import assert from 'node:assert';
 import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
-import { shortUuid } from '../short_uuid.js';
+import { createSharedSecretEnvObject } from '../shared_secret.js';
 
 /**
  * Creates test projects with data, storage, and auth categories.
@@ -103,16 +103,24 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     private readonly resourceFinder: DeployedResourcesFinder
   ) {
     super(name, projectDirPath, projectAmplifyDirPath, cfnClient);
-    const amplifySharedSecretName = 'amplifySharedSecret' + shortUuid();
-    this.sharedSecretsEnv['AMPLIFY_SHARED_SECRET_NAME'] =
-      amplifySharedSecretName;
-    this.testSharedSecretNames.push(amplifySharedSecretName);
   }
 
   /**
    * @inheritdoc
    */
-  override async deploy(backendIdentifier: BackendIdentifier) {
+  override async deploy(
+    backendIdentifier: BackendIdentifier,
+    environment?: Record<string, string>
+  ) {
+    if (environment && Object.keys(environment).length > 0) {
+      this.sharedSecretsEnv = { ...this.sharedSecretsEnv, ...environment };
+      this.testSharedSecretNames.push(...Object.values(environment));
+    } else {
+      this.sharedSecretsEnv = createSharedSecretEnvObject();
+      this.testSharedSecretNames.push(
+        this.sharedSecretsEnv['AMPLIFY_SHARED_SECRET_NAME']
+      );
+    }
     await this.setUpDeployEnvironment(backendIdentifier);
     await super.deploy(backendIdentifier, this.sharedSecretsEnv);
   }
