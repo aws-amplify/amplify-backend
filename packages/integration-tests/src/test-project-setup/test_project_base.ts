@@ -18,7 +18,6 @@ import {
 } from '@aws-sdk/client-cloudformation';
 import fsp from 'fs/promises';
 import assert from 'node:assert';
-import { shortUuid } from '../short_uuid.js';
 
 export type PlatformDeploymentThresholds = {
   onWindows: number;
