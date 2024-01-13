@@ -10,6 +10,7 @@ import { TestProjectCreator } from './test_project_creator.js';
 import { DeployedResourcesFinder } from '../find_deployed_resource.js';
 import assert from 'node:assert';
 import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
+import { shortUuid } from '../short_uuid.js';
 
 /**
  * Creates test projects with data, storage, and auth categories.
@@ -87,6 +88,8 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
 
   private testSharedSecretNames: string[] = [];
 
+  private sharedSecretsEnv: Record<string, string> = {};
+
   /**
    * Create a test project instance.
    */
@@ -100,6 +103,10 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     private readonly resourceFinder: DeployedResourcesFinder
   ) {
     super(name, projectDirPath, projectAmplifyDirPath, cfnClient);
+    const amplifySharedSecretName = 'amplifySharedSecret' + shortUuid();
+    this.sharedSecretsEnv['AMPLIFY_SHARED_SECRET_NAME'] =
+      amplifySharedSecretName;
+    this.testSharedSecretNames.push(amplifySharedSecretName);
   }
 
   /**
@@ -107,7 +114,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
    */
   override async deploy(backendIdentifier: BackendIdentifier) {
     await this.setUpDeployEnvironment(backendIdentifier);
-    await super.deploy(backendIdentifier);
+    await super.deploy(backendIdentifier, this.sharedSecretsEnv);
   }
 
   /**
@@ -170,18 +177,13 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     assert.equal(
       responsePayload,
       // eslint-disable-next-line spellcheck/spell-checker
-      `Your uuid is 6ec0bd7f-11c0-43da-975e-2a8ad9ebae0b. TEST_SECRET env var value is amazonSecret-e2eTestValue. TEST_SHARED_SECRET env var value is ${
-        process.env.AMPLIFY_SHARED_SECRET_NAME as string
-      }-e2eTestSharedValue.`
+      `Your uuid is 6ec0bd7f-11c0-43da-975e-2a8ad9ebae0b. TEST_SECRET env var value is amazonSecret-e2eTestValue. TEST_SHARED_SECRET env var value is ${this.sharedSecretsEnv['AMPLIFY_SHARED_SECRET_NAME']}-e2eTestSharedValue.`
     );
   }
 
   private setUpDeployEnvironment = async (
     backendId: BackendIdentifier
   ): Promise<void> => {
-    this.testSharedSecretNames.push(
-      process.env.AMPLIFY_SHARED_SECRET_NAME as string
-    );
     for (const secretName of this.testSecretNames) {
       const secretValue = `${secretName}-e2eTestValue`;
       await this.secretClient.setSecret(backendId, secretName, secretValue);

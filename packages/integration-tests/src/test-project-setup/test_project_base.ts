@@ -58,12 +58,13 @@ export abstract class TestProjectBase {
   /**
    * Deploy the project.
    */
-  async deploy(backendIdentifier: BackendIdentifier) {
+  async deploy(
+    backendIdentifier: BackendIdentifier,
+    environment?: Record<string, string>
+  ) {
     if (backendIdentifier.type === 'sandbox') {
       await amplifyCli(['sandbox'], this.projectDirPath, {
-        env: {
-          AMPLIFY_SHARED_SECRET_NAME: 'amplifySharedSecret' + shortUuid(),
-        },
+        env: environment,
       })
         .do(waitForSandboxDeploymentToPrintTotalTime())
         .do(interruptSandbox())
@@ -82,7 +83,7 @@ export abstract class TestProjectBase {
         {
           env: {
             CI: 'true',
-            AMPLIFY_SHARED_SECRET_NAME: 'amplifySharedSecret' + shortUuid(),
+            ...environment,
           },
         }
       ).run();
