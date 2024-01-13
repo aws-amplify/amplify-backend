@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/platform-core",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "type": "commonjs",
   "publishConfig": {
     "access": "public"
@@ -23,7 +23,7 @@
     "@types/uuid": "9.0.7"
   },
   "dependencies": {
-    "@aws-amplify/plugin-types": "^0.7.0",
+    "@aws-amplify/plugin-types": "^0.7.1",
     "@aws-sdk/client-sts": "3.445.0",
     "is-ci": "^3.0.1",
     "uuid": "^9.0.1",

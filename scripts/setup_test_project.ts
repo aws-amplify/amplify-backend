@@ -1,6 +1,10 @@
 import * as fsp from 'fs/promises';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
+import {
+  PackageJson,
+  writePackageJson,
+} from './components/package-json/package_json.js';
 
 const projectName = process.argv[2];
 if (!projectName) {
@@ -27,17 +31,13 @@ await fsp.cp(createAmplifyTemplateLocation, testProjectDir, {
 
 // create minimal package.json
 // if you want to test out changes in a commonjs package, change the "type" field in the package.json of the test project after it is created
-const packageJson = {
+const packageJson: PackageJson = {
   name: projectName,
+  version: '1.0.0',
   type: 'module',
 };
 
-const packageJsonPath = path.join(
-  fileURLToPath(testProjectDir),
-  'package.json'
-);
-
-await fsp.writeFile(packageJsonPath, JSON.stringify(packageJson, null, 2));
+await writePackageJson(fileURLToPath(testProjectDir), packageJson);
 
 // create minimal tsconfig.json
 const tsConfig = {

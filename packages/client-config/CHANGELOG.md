@@ -1,5 +1,12 @@
 # @aws-amplify/client-config
 
+## 0.5.2
+
+### Patch Changes
+
+- @aws-amplify/deployed-backend-client@0.3.8
+- @aws-amplify/model-generator@0.2.6
+
 ## 0.5.1
 
 ### Patch Changes
