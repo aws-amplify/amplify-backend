@@ -241,34 +241,34 @@ void describe('amplify', { concurrency: concurrency }, () => {
         }
       );
 
-      // if (PACKAGE_MANAGER_EXECUTABLE.startsWith('yarn')) {
-      //   await execa('yarn', ['add', 'aws-cdk', 'aws-cdk-lib', 'constructs'], {
-      //     cwd: tempDir,
-      //     stdio: 'inherit',
-      //   });
-      //   if (PACKAGE_MANAGER_EXECUTABLE === 'yarn-modern') {
-      //     await execa(
-      //       'yarn',
-      //       [
-      //         'add',
-      //         '-D',
-      //         'tsx',
-      //         'graphql',
-      //         'pluralize',
-      //         'zod',
-      //         '@aws-amplify/platform-core',
-      //       ],
-      //       {
-      //         cwd: tempDir,
-      //         stdio: 'inherit',
-      //       }
-      //     );
+      if (PACKAGE_MANAGER_EXECUTABLE.startsWith('yarn')) {
+        await execa('yarn', ['add', 'aws-cdk', 'aws-cdk-lib', 'constructs'], {
+          cwd: tempDir,
+          stdio: 'inherit',
+        });
+        if (PACKAGE_MANAGER_EXECUTABLE === 'yarn-modern') {
+          await execa(
+            'yarn',
+            [
+              'add',
+              '-D',
+              'tsx',
+              'graphql',
+              'pluralize',
+              'zod',
+              '@aws-amplify/platform-core',
+            ],
+            {
+              cwd: tempDir,
+              stdio: 'inherit',
+            }
+          );
 
-      //     await execa('node', ['--version'], {
-      //       cwd: tempDir,
-      //     });
-      //   }
-      // }
+          await execa('node', ['--version'], {
+            cwd: tempDir,
+          });
+        }
+      }
 
       // // assert that project synthesizes successfully
       // await execa(
