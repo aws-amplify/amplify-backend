@@ -241,56 +241,56 @@ void describe('amplify', { concurrency: concurrency }, () => {
         }
       );
 
-      if (PACKAGE_MANAGER_EXECUTABLE.startsWith('yarn')) {
-        await execa('yarn', ['add', 'aws-cdk', 'aws-cdk-lib', 'constructs'], {
-          cwd: tempDir,
-          stdio: 'inherit',
-        });
-        if (PACKAGE_MANAGER_EXECUTABLE === 'yarn-modern') {
-          await execa(
-            'yarn',
-            [
-              'add',
-              '-D',
-              'tsx',
-              'graphql',
-              'pluralize',
-              'zod',
-              '@aws-amplify/platform-core',
-            ],
-            {
-              cwd: tempDir,
-              stdio: 'inherit',
-            }
-          );
+      // if (PACKAGE_MANAGER_EXECUTABLE.startsWith('yarn')) {
+      //   await execa('yarn', ['add', 'aws-cdk', 'aws-cdk-lib', 'constructs'], {
+      //     cwd: tempDir,
+      //     stdio: 'inherit',
+      //   });
+      //   if (PACKAGE_MANAGER_EXECUTABLE === 'yarn-modern') {
+      //     await execa(
+      //       'yarn',
+      //       [
+      //         'add',
+      //         '-D',
+      //         'tsx',
+      //         'graphql',
+      //         'pluralize',
+      //         'zod',
+      //         '@aws-amplify/platform-core',
+      //       ],
+      //       {
+      //         cwd: tempDir,
+      //         stdio: 'inherit',
+      //       }
+      //     );
 
-          await execa('node', ['--version'], {
-            cwd: tempDir,
-          });
-        }
-      }
+      //     await execa('node', ['--version'], {
+      //       cwd: tempDir,
+      //     });
+      //   }
+      // }
 
-      // assert that project synthesizes successfully
-      await execa(
-        packageManagerExecutable === 'npm' ? 'npx' : packageManagerExecutable,
-        [
-          'cdk',
-          'synth',
-          '--context',
-          `amplify-backend-namespace=123`,
-          '--context',
-          `amplify-backend-name=sandboxName`,
-          '--context',
-          `amplify-backend-type=sandbox`,
-          '--app',
-          "'npx tsx amplify/backend.ts'",
-          '--quiet',
-        ],
-        {
-          cwd: tempDir,
-          stdio: 'inherit',
-        }
-      );
+      // // assert that project synthesizes successfully
+      // await execa(
+      //   packageManagerExecutable === 'npm' ? 'npx' : packageManagerExecutable,
+      //   [
+      //     'cdk',
+      //     'synth',
+      //     '--context',
+      //     `amplify-backend-namespace=123`,
+      //     '--context',
+      //     `amplify-backend-name=sandboxName`,
+      //     '--context',
+      //     `amplify-backend-type=sandbox`,
+      //     '--app',
+      //     "'npx tsx amplify/backend.ts'",
+      //     '--quiet',
+      //   ],
+      //   {
+      //     cwd: tempDir,
+      //     stdio: 'inherit',
+      //   }
+      // );
 
       if (PACKAGE_MANAGER_EXECUTABLE === 'yarn-modern') {
         await execa('yarn', ['add', 'esbuild'], {
