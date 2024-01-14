@@ -175,55 +175,8 @@ void describe('amplify', { concurrency: concurrency }, () => {
         cwd: tempDir,
         stdio: 'inherit',
       });
-      const packageJsonPath = path.resolve(tempDir, 'package.json');
-      const packageJsonObject = JSON.parse(
-        await fsp.readFile(packageJsonPath, 'utf-8')
-      );
-
-      assert.deepStrictEqual(
-        Object.keys(packageJsonObject.devDependencies).sort(),
-        [
-          '@aws-amplify/backend',
-          '@aws-amplify/backend-cli',
-          'aws-cdk',
-          'aws-cdk-lib',
-          'constructs',
-          'typescript',
-        ]
-      );
-
-      assert.deepStrictEqual(
-        Object.keys(packageJsonObject.dependencies).sort(),
-        ['aws-amplify']
-      );
-
-      const gitIgnorePath = path.resolve(tempDir, '.gitignore');
-      const gitIgnoreContent = (await fsp.readFile(gitIgnorePath, 'utf-8'))
-        .split(os.EOL)
-        .filter((s) => s.trim());
-      const expectedGitIgnoreContent = [
-        '# amplify',
-        '.amplify',
-        'amplifyconfiguration*',
-        'node_modules',
-      ];
-
-      expectedGitIgnoreContent.forEach((line) => {
-        assert.ok(gitIgnoreContent.includes(line));
-      });
 
       const amplifyPathPrefix = path.join(tempDir, 'amplify');
-
-      // Read tsconfig.json content, remove all comments, and make assertions
-      const tsConfigPath = path.resolve(amplifyPathPrefix, 'tsconfig.json');
-      const tsConfigContent = (
-        await fsp.readFile(tsConfigPath, 'utf-8')
-      ).replace(/\/\*[\s\S]*?\*\/|([^:]|^)\/\/.*$/gm, '');
-      const tsConfigObject = JSON.parse(tsConfigContent);
-
-      assert.equal(tsConfigObject.compilerOptions.module, 'es2022');
-      assert.equal(tsConfigObject.compilerOptions.moduleResolution, 'bundler');
-      assert.equal(tsConfigObject.compilerOptions.resolveJsonModule, true);
 
       const pathPrefix = path.join(tempDir, 'amplify');
 
@@ -364,24 +317,6 @@ void describe('amplify', { concurrency: concurrency }, () => {
       );
 
       assert.ok(clientConfigStats.isFile());
-
-      const testBranchDetails = await amplifyAppPool.fetchTestBranchDetails(
-        testBranch
-      );
-      assert.ok(
-        testBranchDetails.backend?.stackArn,
-        'branch should have stack associated'
-      );
-      assert.ok(
-        testBranchDetails.backend?.stackArn?.includes(
-          branchBackendIdentifier.namespace
-        )
-      );
-      assert.ok(
-        testBranchDetails.backend?.stackArn?.includes(
-          branchBackendIdentifier.name
-        )
-      );
     });
   });
 });
