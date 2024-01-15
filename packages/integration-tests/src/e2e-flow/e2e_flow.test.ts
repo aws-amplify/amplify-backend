@@ -107,26 +107,6 @@ void describe('amplify', { concurrency: concurrency }, () => {
         PACKAGE_MANAGER_EXECUTABLE as PackageManagerExecutable
       );
     }
-
-    // Force 'create-amplify' installation in npx cache by executing help command
-    // before tests run. Otherwise, installing 'create-amplify' concurrently
-    // may lead to race conditions and corrupted npx cache.
-    await execa(
-      packageManagerExecutable,
-      [
-        'create',
-        'amplify',
-        ...(PACKAGE_MANAGER_EXECUTABLE === 'yarn-modern'
-          ? []
-          : ['--yes', '--']),
-        '--help',
-      ],
-      {
-        // Command must run outside of 'amplify-backend' workspace.
-        cwd: os.homedir(),
-        stdio: 'inherit',
-      }
-    );
   });
 
   after(async () => {
@@ -269,28 +249,6 @@ void describe('amplify', { concurrency: concurrency }, () => {
           });
         }
       }
-
-      // // assert that project synthesizes successfully
-      // await execa(
-      //   packageManagerExecutable === 'npm' ? 'npx' : packageManagerExecutable,
-      //   [
-      //     'cdk',
-      //     'synth',
-      //     '--context',
-      //     `amplify-backend-namespace=123`,
-      //     '--context',
-      //     `amplify-backend-name=sandboxName`,
-      //     '--context',
-      //     `amplify-backend-type=sandbox`,
-      //     '--app',
-      //     "'npx tsx amplify/backend.ts'",
-      //     '--quiet',
-      //   ],
-      //   {
-      //     cwd: tempDir,
-      //     stdio: 'inherit',
-      //   }
-      // );
 
       if (PACKAGE_MANAGER_EXECUTABLE === 'yarn-modern') {
         await execa('yarn', ['add', 'esbuild'], {
