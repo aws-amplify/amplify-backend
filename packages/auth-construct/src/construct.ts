@@ -642,11 +642,6 @@ export class AmplifyAuth
         {
           userPool,
           ...external.signInWithApple,
-          attributeMapping: {
-            email: {
-              attributeName: 'email',
-            },
-          },
         }
       );
       result.oauthMappings[authProvidersList.apple] =
