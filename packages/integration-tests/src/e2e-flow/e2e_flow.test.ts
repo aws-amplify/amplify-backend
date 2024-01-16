@@ -91,9 +91,11 @@ const setupPackageManager = async (
       );
       await execa('yarn', ['config', 'get', 'registry'], execaOptions);
     }
-    await execa('yarn', ['add', 'aws-cdk', 'aws-cdk-lib', 'constructs'], {
-      execaOptions,
-    });
+    await execa(
+      'yarn',
+      ['add', 'aws-cdk', 'aws-cdk-lib', 'constructs'],
+      execaOptions
+    );
     await execa('yarn', ['cache', 'clean'], execaOptions);
   } else if (packageManager === 'pnpm') {
     await execa('npm', ['install', '-g', packageManager], {
