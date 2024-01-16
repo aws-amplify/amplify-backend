@@ -65,6 +65,23 @@ const setupPackageManager = async (
         ['config', 'set', 'nodeLinker', 'node-modules'],
         execaOptions
       );
+
+      await execa(
+        'yarn',
+        [
+          'add',
+          '-D',
+          'tsx',
+          'graphql',
+          'pluralize',
+          'zod',
+          '@aws-amplify/platform-core',
+          'esbuild',
+        ],
+        execaOptions
+      );
+
+      await execa('node', ['--version'], execaOptions);
     } else {
       await execa('npm', ['install', '-g', 'yarn'], { stdio: 'inherit' });
       await execa(
@@ -74,6 +91,9 @@ const setupPackageManager = async (
       );
       await execa('yarn', ['config', 'get', 'registry'], execaOptions);
     }
+    await execa('yarn', ['add', 'aws-cdk', 'aws-cdk-lib', 'constructs'], {
+      execaOptions,
+    });
     await execa('yarn', ['cache', 'clean'], execaOptions);
   } else if (packageManager === 'pnpm') {
     await execa('npm', ['install', '-g', packageManager], {
@@ -199,36 +219,6 @@ void describe('installs expected packages and scaffolds expected files', async (
         stdio: 'inherit',
       }
     );
-
-    if (packageManager.startsWith('yarn')) {
-      await execa('yarn', ['add', 'aws-cdk', 'aws-cdk-lib', 'constructs'], {
-        cwd: tempDir,
-        stdio: 'inherit',
-      });
-      if (packageManager === 'yarn-modern') {
-        await execa(
-          'yarn',
-          [
-            'add',
-            '-D',
-            'tsx',
-            'graphql',
-            'pluralize',
-            'zod',
-            '@aws-amplify/platform-core',
-            'esbuild',
-          ],
-          {
-            cwd: tempDir,
-            stdio: 'inherit',
-          }
-        );
-
-        await execa('node', ['--version'], {
-          cwd: tempDir,
-        });
-      }
-    }
 
     await execa(
       packageManagerExecutable,
