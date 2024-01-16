@@ -501,6 +501,7 @@ void describe('Auth construct', () => {
             signupAttributes: '["EMAIL"]',
             verificationMechanisms: '["EMAIL"]',
             usernameAttributes: '["EMAIL"]',
+            allowUnauthenticatedIdentities: 'true',
           },
         },
       ]);
@@ -561,6 +562,7 @@ void describe('Auth construct', () => {
             oauthRedirectSignOut: 'http://logout.com',
             oauthResponseType: 'code',
             socialProviders: '["GOOGLE"]',
+            allowUnauthenticatedIdentities: 'true',
           },
         },
       ]);
@@ -634,6 +636,7 @@ void describe('Auth construct', () => {
               'webClientId',
               'identityPoolId',
               'authRegion',
+              'allowUnauthenticatedIdentities',
               'signupAttributes',
               'usernameAttributes',
               'verificationMechanisms',

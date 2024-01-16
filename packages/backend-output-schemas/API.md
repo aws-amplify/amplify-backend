@@ -104,6 +104,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             appleClientId: z.ZodOptional<z.ZodString>;
             facebookClientId: z.ZodOptional<z.ZodString>;
             googleClientId: z.ZodOptional<z.ZodString>;
+            allowUnauthenticatedIdentities: z.ZodString;
             usernameAttributes: z.ZodOptional<z.ZodString>;
             signupAttributes: z.ZodOptional<z.ZodString>;
             passwordPolicyMinLength: z.ZodOptional<z.ZodString>;
@@ -123,6 +124,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             userPoolId: string;
             webClientId: string;
             identityPoolId: string;
+            allowUnauthenticatedIdentities: string;
             amazonClientId?: string | undefined;
             appleClientId?: string | undefined;
             facebookClientId?: string | undefined;
@@ -146,6 +148,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             userPoolId: string;
             webClientId: string;
             identityPoolId: string;
+            allowUnauthenticatedIdentities: string;
             amazonClientId?: string | undefined;
             appleClientId?: string | undefined;
             facebookClientId?: string | undefined;
@@ -172,6 +175,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             userPoolId: string;
             webClientId: string;
             identityPoolId: string;
+            allowUnauthenticatedIdentities: string;
             amazonClientId?: string | undefined;
             appleClientId?: string | undefined;
             facebookClientId?: string | undefined;
@@ -198,6 +202,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             userPoolId: string;
             webClientId: string;
             identityPoolId: string;
+            allowUnauthenticatedIdentities: string;
             amazonClientId?: string | undefined;
             appleClientId?: string | undefined;
             facebookClientId?: string | undefined;
@@ -313,6 +318,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             userPoolId: string;
             webClientId: string;
             identityPoolId: string;
+            allowUnauthenticatedIdentities: string;
             amazonClientId?: string | undefined;
             appleClientId?: string | undefined;
             facebookClientId?: string | undefined;
@@ -368,6 +374,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             userPoolId: string;
             webClientId: string;
             identityPoolId: string;
+            allowUnauthenticatedIdentities: string;
             amazonClientId?: string | undefined;
             appleClientId?: string | undefined;
             facebookClientId?: string | undefined;
@@ -422,6 +429,7 @@ export const versionedAuthOutputSchema: z.ZodDiscriminatedUnion<"version", [z.Zo
         appleClientId: z.ZodOptional<z.ZodString>;
         facebookClientId: z.ZodOptional<z.ZodString>;
         googleClientId: z.ZodOptional<z.ZodString>;
+        allowUnauthenticatedIdentities: z.ZodString;
         usernameAttributes: z.ZodOptional<z.ZodString>;
         signupAttributes: z.ZodOptional<z.ZodString>;
         passwordPolicyMinLength: z.ZodOptional<z.ZodString>;
@@ -441,6 +449,7 @@ export const versionedAuthOutputSchema: z.ZodDiscriminatedUnion<"version", [z.Zo
         userPoolId: string;
         webClientId: string;
         identityPoolId: string;
+        allowUnauthenticatedIdentities: string;
         amazonClientId?: string | undefined;
         appleClientId?: string | undefined;
         facebookClientId?: string | undefined;
@@ -464,6 +473,7 @@ export const versionedAuthOutputSchema: z.ZodDiscriminatedUnion<"version", [z.Zo
         userPoolId: string;
         webClientId: string;
         identityPoolId: string;
+        allowUnauthenticatedIdentities: string;
         amazonClientId?: string | undefined;
         appleClientId?: string | undefined;
         facebookClientId?: string | undefined;
@@ -490,6 +500,7 @@ export const versionedAuthOutputSchema: z.ZodDiscriminatedUnion<"version", [z.Zo
         userPoolId: string;
         webClientId: string;
         identityPoolId: string;
+        allowUnauthenticatedIdentities: string;
         amazonClientId?: string | undefined;
         appleClientId?: string | undefined;
         facebookClientId?: string | undefined;
@@ -516,6 +527,7 @@ export const versionedAuthOutputSchema: z.ZodDiscriminatedUnion<"version", [z.Zo
         userPoolId: string;
         webClientId: string;
         identityPoolId: string;
+        allowUnauthenticatedIdentities: string;
         amazonClientId?: string | undefined;
         appleClientId?: string | undefined;
         facebookClientId?: string | undefined;

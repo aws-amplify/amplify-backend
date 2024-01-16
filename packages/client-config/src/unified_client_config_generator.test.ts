@@ -40,6 +40,7 @@ void describe('UnifiedClientConfigGenerator', () => {
             verificationMechanisms: '["EMAIL","PHONE"]',
             usernameAttributes: '["EMAIL"]',
             signupAttributes: '["EMAIL"]',
+            allowUnauthenticatedIdentities: 'true',
           },
         },
         [graphqlOutputKey]: {
