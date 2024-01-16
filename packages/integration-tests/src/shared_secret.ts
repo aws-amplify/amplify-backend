@@ -13,6 +13,8 @@ const createAmplifySharedSecretName = (): string => {
 export const createSharedSecretEnvObject = (): Record<string, string> => {
   const sharedSecretName = createAmplifySharedSecretName();
   return {
-    AMPLIFY_SHARED_SECRET_NAME: sharedSecretName,
+    amplifySharedSecretNameKey: sharedSecretName,
   };
 };
+
+export const amplifySharedSecretNameKey = 'AMPLIFY_SHARED_SECRET_NAME';

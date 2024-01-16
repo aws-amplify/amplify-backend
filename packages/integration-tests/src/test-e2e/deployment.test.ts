@@ -25,7 +25,6 @@ import { ClientConfigFormat } from '@aws-amplify/client-config';
 import { testConcurrencyLevel } from './test_concurrency.js';
 import { TestCdkProjectBase } from '../test-project-setup/cdk/test_cdk_project_base.js';
 import { getTestCdkProjectCreators } from '../test-project-setup/cdk/test_cdk_project_creator.js';
-import { createSharedSecretEnvObject } from '../shared_secret.js';
 
 const testProjectCreators = getTestProjectCreators();
 const testCdkProjectCreators = getTestCdkProjectCreators();
@@ -123,22 +122,15 @@ void describe('deployment tests', { concurrency: testConcurrencyLevel }, () => {
         });
 
         void describe('in sequence', { concurrency: false }, () => {
-          const sharedSecretsEnv = createSharedSecretEnvObject();
           void it(`[${testProjectCreator.name}] deploys fully`, async () => {
-            await testProject.deploy(
-              sandboxBackendIdentifier,
-              sharedSecretsEnv
-            );
+            await testProject.deploy(sandboxBackendIdentifier);
             await testProject.assertPostDeployment(sandboxBackendIdentifier);
           });
 
           void it(`[${testProjectCreator.name}] hot-swaps a change`, async () => {
             const processController = amplifyCli(
               ['sandbox', '--dirToWatch', 'amplify'],
-              testProject.projectDirPath,
-              {
-                env: sharedSecretsEnv,
-              }
+              testProject.projectDirPath
             );
 
             const updates = await testProject.getUpdates();
