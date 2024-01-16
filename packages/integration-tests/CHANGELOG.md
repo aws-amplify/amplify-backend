@@ -1,5 +1,11 @@
 # @aws-amplify/integration-tests
 
+## 0.4.2
+
+### Patch Changes
+
+- d087313e9: Enhance functions to fallback to resolve shared secrets
+
 ## 0.4.1
 
 ### Patch Changes

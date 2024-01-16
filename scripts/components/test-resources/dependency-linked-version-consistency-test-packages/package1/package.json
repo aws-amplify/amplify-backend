@@ -1,0 +1,6 @@
+{
+  "name": "package1",
+  "dependencies": {
+    "aws-cdk-lib": "^2.117.0"
+  }
+}

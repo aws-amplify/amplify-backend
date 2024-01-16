@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/backend-auth",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -18,13 +18,13 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@aws-amplify/auth-construct-alpha": "^0.5.1",
-    "@aws-amplify/backend-output-storage": "^0.2.9",
-    "@aws-amplify/plugin-types": "^0.7.0"
+    "@aws-amplify/auth-construct-alpha": "^0.5.2",
+    "@aws-amplify/backend-output-storage": "^0.2.10",
+    "@aws-amplify/plugin-types": "^0.7.1"
   },
   "devDependencies": {
-    "@aws-amplify/backend-platform-test-stubs": "^0.3.1",
-    "@aws-amplify/platform-core": "^0.4.1"
+    "@aws-amplify/backend-platform-test-stubs": "^0.3.2",
+    "@aws-amplify/platform-core": "^0.4.2"
   },
   "peerDependencies": {
     "aws-cdk-lib": "^2.110.1",
