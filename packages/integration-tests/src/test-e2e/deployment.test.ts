@@ -119,7 +119,7 @@ void describe('deployment tests', { concurrency: testConcurrencyLevel }, () => {
         });
 
         after(async () => {
-          // await testProject.tearDown(sandboxBackendIdentifier);
+          await testProject.tearDown(sandboxBackendIdentifier);
         });
 
         void describe('in sequence', { concurrency: false }, () => {
