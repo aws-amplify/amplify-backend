@@ -93,19 +93,19 @@ const setupPackageManager = async (
 };
 
 void describe('installs expected packages and scaffolds expected files', async () => {
-  let tempDir: string;
   let branchBackendIdentifier: BackendIdentifier;
   let testBranch: TestBranch;
   let cfnClient: CloudFormationClient;
+  const tempDir = await fsp.mkdtemp(
+    path.join(os.tmpdir(), 'test-create-amplify')
+  );
   const { packageManagerExecutable, packageManager } =
-    await setupPackageManager(os.homedir());
+    await setupPackageManager(tempDir);
 
   before(async () => {
     // start a local npm proxy and publish the current codebase to the proxy
     await execa('npm', ['run', 'clean:npm-proxy'], { stdio: 'inherit' });
     await execa('npm', ['run', 'vend'], { stdio: 'inherit' });
-
-    tempDir = await fsp.mkdtemp(path.join(os.tmpdir(), 'test-create-amplify'));
 
     cfnClient = new CloudFormationClient(e2eToolingClientConfig);
     testBranch = await amplifyAppPool.createTestBranch();
@@ -130,10 +130,14 @@ void describe('installs expected packages and scaffolds expected files', async (
   });
 
   void it(`starting project`, async () => {
-    await execa(packageManager, ['create', 'amplify', '--yes'], {
-      cwd: tempDir,
-      stdio: 'inherit',
-    });
+    await execa(
+      packageManager.startsWith('yarn') ? 'yarn' : packageManager,
+      ['create', 'amplify', '--yes'],
+      {
+        cwd: tempDir,
+        stdio: 'inherit',
+      }
+    );
 
     const amplifyPathPrefix = path.join(tempDir, 'amplify');
 
