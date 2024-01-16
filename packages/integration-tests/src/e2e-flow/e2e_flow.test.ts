@@ -16,18 +16,28 @@ import { getClientConfigPath } from '@aws-amplify/client-config';
 import { TestBranch, amplifyAppPool } from '../amplify_app_pool.js';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
 
-type PackageManagerExecutable = 'npm' | 'yarn-classic' | 'yarn-modern' | 'pnpm';
+type PackageManager = 'npm' | 'yarn-classic' | 'yarn-modern' | 'pnpm';
+type PackageManagerExecutable = 'npx' | 'yarn' | 'pnpm';
 
-const packageManagerSetup = async (
-  packageManagerExecutable: PackageManagerExecutable,
-  dir?: string
-) => {
+const setupPackageManager = async (
+  dir: string
+): Promise<{
+  packageManager: PackageManager;
+  packageManagerExecutable: PackageManagerExecutable;
+}> => {
+  const packageManager = (process.env.PACKAGE_MANAGER_EXECUTABLE ??
+    'npm') as PackageManager;
+  const packageManagerExecutable = packageManager.startsWith('yarn')
+    ? 'yarn'
+    : packageManager === 'npm'
+    ? 'npx'
+    : (packageManager as PackageManagerExecutable);
   const execaOptions = {
-    cwd: dir || os.homedir(),
+    cwd: packageManager === 'yarn-modern' ? dir : os.homedir(),
     stdio: 'inherit' as const,
   };
 
-  if (packageManagerExecutable === 'npm') {
+  if (packageManager === 'npm') {
     // nuke the npx cache to ensure we are installing packages from the npm proxy
     const { stdout } = await execa('npm', ['config', 'get', 'cache']);
     const npxCacheLocation = path.join(stdout.toString().trim(), '_npx');
@@ -35,8 +45,8 @@ const packageManagerSetup = async (
     if (existsSync(npxCacheLocation)) {
       await fsp.rm(npxCacheLocation, { recursive: true });
     }
-  } else if (packageManagerExecutable.startsWith('yarn')) {
-    if (packageManagerExecutable === 'yarn-modern') {
+  } else if (packageManager.startsWith('yarn')) {
+    if (packageManager === 'yarn-modern') {
       await execa('corepack', ['enable'], execaOptions);
       await execa('yarn', ['init', '-2'], execaOptions);
 
@@ -56,6 +66,7 @@ const packageManagerSetup = async (
         execaOptions
       );
     } else {
+      await execa('npm', ['install', '-g', 'yarn'], { stdio: 'inherit' });
       await execa(
         'yarn',
         ['config', 'set', 'registry', 'http://localhost:4873'],
@@ -64,47 +75,37 @@ const packageManagerSetup = async (
       await execa('yarn', ['config', 'get', 'registry'], execaOptions);
     }
     await execa('yarn', ['cache', 'clean'], execaOptions);
-  } else if (packageManagerExecutable === 'pnpm') {
-    await execa(packageManagerExecutable, ['--version']);
-    await execa(packageManagerExecutable, [
+  } else if (packageManager === 'pnpm') {
+    await execa('npm', ['install', '-g', packageManager], {
+      stdio: 'inherit',
+    });
+    await execa(packageManager, ['--version']);
+    await execa(packageManager, [
       'config',
       'set',
       'registry',
       'http://localhost:4873',
     ]);
-    await execa(packageManagerExecutable, ['config', 'get', 'registry']);
+    await execa(packageManager, ['config', 'get', 'registry']);
   }
+
+  return { packageManagerExecutable, packageManager };
 };
 
-void describe('installs expected packages and scaffolds expected files', () => {
-  const { PACKAGE_MANAGER_EXECUTABLE = 'npm' } = process.env;
-  const packageManagerExecutable = PACKAGE_MANAGER_EXECUTABLE.startsWith('yarn')
-    ? 'yarn'
-    : PACKAGE_MANAGER_EXECUTABLE;
+void describe('installs expected packages and scaffolds expected files', async () => {
   let tempDir: string;
   let branchBackendIdentifier: BackendIdentifier;
   let testBranch: TestBranch;
   let cfnClient: CloudFormationClient;
+  const { packageManagerExecutable, packageManager } =
+    await setupPackageManager(os.homedir());
+
   before(async () => {
     // start a local npm proxy and publish the current codebase to the proxy
     await execa('npm', ['run', 'clean:npm-proxy'], { stdio: 'inherit' });
     await execa('npm', ['run', 'vend'], { stdio: 'inherit' });
 
-    // install package manager
-    if (PACKAGE_MANAGER_EXECUTABLE === 'yarn-classic') {
-      await execa('npm', ['install', '-g', 'yarn'], { stdio: 'inherit' });
-    } else if (PACKAGE_MANAGER_EXECUTABLE === 'pnpm') {
-      await execa('npm', ['install', '-g', PACKAGE_MANAGER_EXECUTABLE], {
-        stdio: 'inherit',
-      });
-    }
-
     tempDir = await fsp.mkdtemp(path.join(os.tmpdir(), 'test-create-amplify'));
-
-    await packageManagerSetup(
-      PACKAGE_MANAGER_EXECUTABLE as PackageManagerExecutable,
-      tempDir
-    );
 
     cfnClient = new CloudFormationClient(e2eToolingClientConfig);
     testBranch = await amplifyAppPool.createTestBranch();
@@ -129,7 +130,7 @@ void describe('installs expected packages and scaffolds expected files', () => {
   });
 
   void it(`starting project`, async () => {
-    await execa(packageManagerExecutable, ['create', 'amplify', '--yes'], {
+    await execa(packageManager, ['create', 'amplify', '--yes'], {
       cwd: tempDir,
       stdio: 'inherit',
     });
@@ -158,7 +159,7 @@ void describe('installs expected packages and scaffolds expected files', () => {
       expectedAmplifyFiles.map((suffix) => path.join(pathPrefix, suffix))
     );
 
-    if (PACKAGE_MANAGER_EXECUTABLE === 'yarn-modern') {
+    if (packageManager === 'yarn-modern') {
       await execa('yarn', ['config', 'set', 'nodeLinker', 'node-modules'], {
         cwd: `${tempDir}/amplify`,
         stdio: 'inherit',
@@ -180,11 +181,7 @@ void describe('installs expected packages and scaffolds expected files', () => {
 
     // assert that project compiles successfully
     await execa(
-      packageManagerExecutable === 'npm'
-        ? 'npx'
-        : packageManagerExecutable.startsWith('yarn')
-        ? 'yarn'
-        : packageManagerExecutable,
+      packageManagerExecutable,
       [
         'tsc',
         '--noEmit',
@@ -199,12 +196,12 @@ void describe('installs expected packages and scaffolds expected files', () => {
       }
     );
 
-    if (PACKAGE_MANAGER_EXECUTABLE.startsWith('yarn')) {
+    if (packageManager.startsWith('yarn')) {
       await execa('yarn', ['add', 'aws-cdk', 'aws-cdk-lib', 'constructs'], {
         cwd: tempDir,
         stdio: 'inherit',
       });
-      if (PACKAGE_MANAGER_EXECUTABLE === 'yarn-modern') {
+      if (packageManager === 'yarn-modern') {
         await execa(
           'yarn',
           [
@@ -215,6 +212,7 @@ void describe('installs expected packages and scaffolds expected files', () => {
             'pluralize',
             'zod',
             '@aws-amplify/platform-core',
+            'esbuild',
           ],
           {
             cwd: tempDir,
@@ -228,15 +226,8 @@ void describe('installs expected packages and scaffolds expected files', () => {
       }
     }
 
-    if (PACKAGE_MANAGER_EXECUTABLE === 'yarn-modern') {
-      await execa('yarn', ['add', 'esbuild'], {
-        cwd: tempDir,
-        stdio: 'inherit',
-      });
-    }
-
     await execa(
-      packageManagerExecutable === 'npm' ? 'npx' : packageManagerExecutable,
+      packageManagerExecutable,
       [
         'amplify',
         'pipeline-deploy',
