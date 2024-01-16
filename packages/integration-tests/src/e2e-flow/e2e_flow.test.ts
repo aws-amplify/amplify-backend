@@ -99,21 +99,12 @@ void describe('installs expected packages and scaffolds expected files', () => {
       });
     }
 
-    // nuke the npx cache to ensure we are installing packages from the npm proxy
-    if (PACKAGE_MANAGER_EXECUTABLE !== 'yarn-modern') {
-      await packageManagerSetup(
-        PACKAGE_MANAGER_EXECUTABLE as PackageManagerExecutable
-      );
-    }
-
     tempDir = await fsp.mkdtemp(path.join(os.tmpdir(), 'test-create-amplify'));
 
-    if (PACKAGE_MANAGER_EXECUTABLE === 'yarn-modern') {
-      await packageManagerSetup(
-        PACKAGE_MANAGER_EXECUTABLE as PackageManagerExecutable,
-        tempDir
-      );
-    }
+    await packageManagerSetup(
+      PACKAGE_MANAGER_EXECUTABLE as PackageManagerExecutable,
+      tempDir
+    );
 
     cfnClient = new CloudFormationClient(e2eToolingClientConfig);
     testBranch = await amplifyAppPool.createTestBranch();
