@@ -22,20 +22,6 @@ export class PackageManagerControllerFactory {
   ) {}
 
   /**
-   * getPackageManagerName - returns the name of the package manager
-   */
-  private getPackageManagerName() {
-    const packageManagerAndVersion = this.userAgent.split(' ')[0];
-    const [packageManagerName, packageManagerVersion] = packageManagerAndVersion.split('/');
-
-    if (packageManagerName === 'yarn') {
-      const yarnMajorVersion = packageManagerVersion.split('.')[0];
-      return `yarn-${yarnMajorVersion === '1' ? 'classic' : 'modern'}`;
-    }
-    return packageManagerName;
-  }
-
-  /**
    * getPackageManagerController - returns the package manager controller for each package manager
    */
   getPackageManagerController() {
@@ -54,5 +40,20 @@ export class PackageManagerControllerFactory {
           `Package Manager ${packageManagerName} is not supported.`
         );
     }
+  }
+
+  /**
+   * getPackageManagerName - returns the name of the package manager
+   */
+  private getPackageManagerName() {
+    const packageManagerAndVersion = this.userAgent.split(' ')[0];
+    const [packageManagerName, packageManagerVersion] =
+      packageManagerAndVersion.split('/');
+
+    if (packageManagerName === 'yarn') {
+      const yarnMajorVersion = packageManagerVersion.split('.')[0];
+      return `yarn-${yarnMajorVersion === '1' ? 'classic' : 'modern'}`;
+    }
+    return packageManagerName;
   }
 }
