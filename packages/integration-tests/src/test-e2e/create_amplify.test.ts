@@ -161,7 +161,6 @@ void describe(
           const pathPrefix = path.join(tempDir, 'amplify');
 
           const files = await glob(path.join(amplifyPathPrefix, '**', '*'), {
-            // eslint-disable-next-line spellcheck/spell-checker
             nodir: true,
             windowsPathsNoEscape: true,
           });

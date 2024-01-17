@@ -144,7 +144,6 @@ void describe('installs expected packages and scaffolds expected files', async (
     const pathPrefix = path.join(tempDir, 'amplify');
 
     const files = await glob(path.join(amplifyPathPrefix, '**', '*'), {
-      // eslint-disable-next-line spellcheck/spell-checker
       nodir: true,
       windowsPathsNoEscape: true,
       ignore: ['**/node_modules/**', '**/yarn.lock'],
