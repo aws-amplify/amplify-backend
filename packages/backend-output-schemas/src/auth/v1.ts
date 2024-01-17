@@ -13,7 +13,7 @@ export const authOutputSchema = z.object({
     facebookClientId: z.optional(z.string()),
     googleClientId: z.optional(z.string()),
 
-    allowUnauthenticatedIdentities: z.string(), // boolean as string 'true' | 'false'
+    allowUnauthenticatedIdentities: z.optional(z.string()), // boolean as string 'true' | 'false'
 
     usernameAttributes: z.string().optional(), // JSON array as string
     signupAttributes: z.string().optional(), // JSON array as string
