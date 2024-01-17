@@ -2,7 +2,7 @@ import { execa } from 'execa';
 import * as fsp from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
-import { after, before, describe, it } from 'node:test';
+import { afterEach, beforeEach, describe, it } from 'node:test';
 import assert from 'assert';
 import { glob } from 'glob';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
@@ -20,13 +20,16 @@ void describe('installs expected packages and scaffolds expected files', async (
   let branchBackendIdentifier: BackendIdentifier;
   let testBranch: TestBranch;
   let cfnClient: CloudFormationClient;
-  const tempDir = await fsp.mkdtemp(
-    path.join(os.tmpdir(), 'test-create-amplify')
-  );
-  const { packageManagerExecutable, packageManager } =
-    await setupPackageManager(tempDir);
+  let tempDir: string;
+  let packageManagerExecutable: string;
+  let packageManager: string;
 
-  before(async () => {
+  beforeEach(async () => {
+    tempDir = await fsp.mkdtemp(path.join(os.tmpdir(), 'test-create-amplify'));
+    const packageManagerInfo = await setupPackageManager(tempDir);
+    packageManagerExecutable = packageManagerInfo.packageManagerExecutable;
+    packageManager = packageManagerInfo.packageManager;
+
     // start a local npm proxy and publish the current codebase to the proxy
     await execa('npm', ['run', 'clean:npm-proxy'], { stdio: 'inherit' });
     await execa('npm', ['run', 'vend'], { stdio: 'inherit' });
@@ -40,7 +43,7 @@ void describe('installs expected packages and scaffolds expected files', async (
     };
   });
 
-  after(async () => {
+  afterEach(async () => {
     await cfnClient.send(
       new DeleteStackCommand({
         StackName: BackendIdentifierConversions.toStackName(
