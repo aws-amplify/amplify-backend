@@ -126,34 +126,28 @@ void describe('installs expected packages and scaffolds expected files', async (
       }
     );
 
-    if (packageManager.startsWith('yarn')) {
-      await execa('yarn', ['add', 'aws-cdk', 'aws-cdk-lib', 'constructs'], {
-        cwd: tempDir,
-        stdio: 'inherit',
-      });
-      if (packageManager === 'yarn-modern') {
-        await execa(
-          'yarn',
-          [
-            'add',
-            '-D',
-            'tsx',
-            'graphql',
-            'pluralize',
-            'zod',
-            '@aws-amplify/platform-core',
-            'esbuild',
-          ],
-          {
-            cwd: tempDir,
-            stdio: 'inherit',
-          }
-        );
-
-        await execa('node', ['--version'], {
+    if (packageManager === 'yarn-modern') {
+      await execa(
+        'yarn',
+        [
+          'add',
+          '-D',
+          'tsx',
+          'graphql',
+          'pluralize',
+          'zod',
+          '@aws-amplify/platform-core',
+          'esbuild',
+        ],
+        {
           cwd: tempDir,
-        });
-      }
+          stdio: 'inherit',
+        }
+      );
+
+      await execa('node', ['--version'], {
+        cwd: tempDir,
+      });
     }
 
     await execa(
