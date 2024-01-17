@@ -89,26 +89,6 @@ void describe('installs expected packages and scaffolds expected files', async (
       expectedAmplifyFiles.map((suffix) => path.join(pathPrefix, suffix))
     );
 
-    if (packageManager === 'yarn-modern') {
-      await execa('yarn', ['config', 'set', 'nodeLinker', 'node-modules'], {
-        cwd: `${tempDir}/amplify`,
-        stdio: 'inherit',
-      });
-
-      await fsp.appendFile(
-        path.join(tempDir, '.yarnrc.yml'),
-        `pnpIgnorePatterns:\n  - ./nm-packages/**`
-      );
-      await execa('yarn', ['install'], {
-        cwd: tempDir,
-        stdin: 'inherit',
-      });
-      await execa('yarn', ['add', '@aws-amplify/backend'], {
-        cwd: `${tempDir}/amplify`,
-        stdio: 'inherit',
-      });
-    }
-
     // assert that project compiles successfully
     await execa(
       packageManagerExecutable,
@@ -127,26 +107,9 @@ void describe('installs expected packages and scaffolds expected files', async (
     );
 
     if (packageManager === 'yarn-modern') {
-      await execa(
-        'yarn',
-        [
-          'add',
-          '-D',
-          'tsx',
-          'graphql',
-          'pluralize',
-          'zod',
-          '@aws-amplify/platform-core',
-          'esbuild',
-        ],
-        {
-          cwd: tempDir,
-          stdio: 'inherit',
-        }
-      );
-
-      await execa('node', ['--version'], {
+      await execa('yarn', ['add', '-D', 'tsx', 'esbuild'], {
         cwd: tempDir,
+        stdio: 'inherit',
       });
     }
 
