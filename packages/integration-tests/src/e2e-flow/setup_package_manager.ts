@@ -15,7 +15,7 @@ export const setupPackageManager = async (
   packageManager: PackageManager;
   packageManagerExecutable: PackageManagerExecutable;
 }> => {
-  const packageManager = (process.env.PACKAGE_MANAGER_EXECUTABLE ??
+  const packageManager = (process.env.PACKAGE_MANAGER ??
     'npm') as PackageManager;
   const packageManagerExecutable = packageManager.startsWith('yarn')
     ? 'yarn'

@@ -43,7 +43,7 @@ jobs:
         pkg-manager: [npm, yarn-classic, yarn-modern, pnpm]
         node-version: [20]
     env:
-      PACKAGE_MANAGER_EXECUTABLE: ${{ matrix.pkg-manager }} # TODO: remove PACKAGE_MANAGER_EXECUTABLE once CLI is able to getPackageManager().
+      PACKAGE_MANAGER: ${{ matrix.pkg-manager }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
     needs:
@@ -75,4 +75,4 @@ jobs:
       - name: Run E2E flow tests with ${{ matrix.pkg-manager }}
         shell: bash
         run: |
-          PACKAGE_MANAGER_EXECUTABLE=${{matrix.pkg-manager}} npm run test:dir packages/integration-tests/src/e2e-flow/e2e_flow.test.ts
+          PACKAGE_MANAGER=${{matrix.pkg-manager}} npm run test:dir packages/integration-tests/src/e2e-flow/e2e_flow.test.ts
