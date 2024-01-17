@@ -127,7 +127,7 @@ export class CDKDeployer implements BackendDeployer {
     }
     try {
       await this.executeChildProcess(
-        this.packageManager === 'npm' ? 'npx' : this.packageManager,
+        this.packageManager === 'npm' ? 'npx' : this.packageManager, // TODO: once the e2e flow test is complete, we need to refactor this to use a ctor
         [
           'tsc',
           '--showConfig',
@@ -142,7 +142,7 @@ export class CDKDeployer implements BackendDeployer {
     }
     try {
       await this.executeChildProcess(
-        this.packageManager === 'npm' ? 'npx' : this.packageManager,
+        this.packageManager === 'npm' ? 'npx' : this.packageManager, // TODO: once the e2e flow test is complete, we need to refactor this to use a ctor
         [
           'tsc',
           '--noEmit',
@@ -200,7 +200,7 @@ export class CDKDeployer implements BackendDeployer {
       '--ci',
       '--app',
       `'${
-        this.packageManager === 'npm' ? 'npx' : this.packageManager
+        this.packageManager === 'npm' ? 'npx' : this.packageManager // TODO: once the e2e flow test is complete, we need to refactor this to use a ctor
       } tsx ${this.backendLocator.locate()}'`,
       '--all',
       '--output',
@@ -229,7 +229,7 @@ export class CDKDeployer implements BackendDeployer {
     }
 
     return await this.executeChildProcess(
-      this.packageManager === 'npm' ? 'npx' : this.packageManager,
+      this.packageManager === 'npm' ? 'npx' : this.packageManager, // TODO: once the e2e flow test is complete, we need to refactor this to use a ctor
       cdkCommandArgs
     );
   };
