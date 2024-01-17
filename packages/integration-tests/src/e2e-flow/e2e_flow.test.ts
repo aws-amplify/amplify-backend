@@ -230,12 +230,6 @@ void describe('installs expected packages and scaffolds expected files', async (
       }
     }
 
-    if (packageManager === 'pnpm') {
-      await execa('pnpm', ['add', '@aws-sdk/credential-providers'], {
-        cwd: tempDir,
-      });
-    }
-
     await execa(
       packageManagerExecutable,
       [
