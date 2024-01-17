@@ -12,7 +12,7 @@ import assert from 'node:assert';
 import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
 import {
   amplifySharedSecretNameKey,
-  createSharedSecretEnvObject,
+  createAmplifySharedSecretName,
 } from '../shared_secret.js';
 
 /**
@@ -113,12 +113,18 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
    */
   override async deploy(
     backendIdentifier: BackendIdentifier,
-    environment?: Record<string, string>
+    environment: Record<string, string> = {}
   ) {
-    this.sharedSecretsEnv = environment ?? createSharedSecretEnvObject();
-    this.testSharedSecretNames.push(
-      this.sharedSecretsEnv[amplifySharedSecretNameKey]
-    );
+    const amplifySharedSecret = createAmplifySharedSecretName();
+    const sharedSecretEnvObject = {
+      [amplifySharedSecretNameKey]: createAmplifySharedSecretName(),
+    };
+
+    this.sharedSecretsEnv =
+      amplifySharedSecretNameKey in environment
+        ? environment
+        : sharedSecretEnvObject;
+    this.testSharedSecretNames.push(amplifySharedSecret);
     await this.setUpDeployEnvironment(backendIdentifier);
     await super.deploy(backendIdentifier, this.sharedSecretsEnv);
   }

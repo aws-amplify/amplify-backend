@@ -25,7 +25,10 @@ import { ClientConfigFormat } from '@aws-amplify/client-config';
 import { testConcurrencyLevel } from './test_concurrency.js';
 import { TestCdkProjectBase } from '../test-project-setup/cdk/test_cdk_project_base.js';
 import { getTestCdkProjectCreators } from '../test-project-setup/cdk/test_cdk_project_creator.js';
-import { createSharedSecretEnvObject } from '../shared_secret.js';
+import {
+  amplifySharedSecretNameKey,
+  createAmplifySharedSecretName,
+} from '../shared_secret.js';
 
 const testProjectCreators = getTestProjectCreators();
 const testCdkProjectCreators = getTestCdkProjectCreators();
@@ -123,7 +126,9 @@ void describe('deployment tests', { concurrency: testConcurrencyLevel }, () => {
         });
 
         void describe('in sequence', { concurrency: false }, () => {
-          const sharedSecretsEnv = createSharedSecretEnvObject();
+          const sharedSecretsEnv = {
+            [amplifySharedSecretNameKey]: createAmplifySharedSecretName(),
+          };
           void it(`[${testProjectCreator.name}] deploys fully`, async () => {
             await testProject.deploy(
               sandboxBackendIdentifier,
