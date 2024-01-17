@@ -709,7 +709,7 @@ export class AmplifyAuth
       authRegion: Stack.of(this).region,
       allowUnauthenticatedIdentities:
         this.resources.cfnResources.cfnIdentityPool
-          .allowUnauthenticatedIdentities == true
+          .allowUnauthenticatedIdentities === true
           ? 'true'
           : 'false',
     };
