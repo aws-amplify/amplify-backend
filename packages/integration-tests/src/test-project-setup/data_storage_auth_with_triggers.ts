@@ -89,9 +89,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     'amazonSecret',
   ];
 
-  private testSharedSecretNames: string[] = [];
-
-  private sharedSecretsEnv: Record<string, string> = {};
+  private amplifySharedSecret: string;
 
   /**
    * Create a test project instance.
@@ -115,18 +113,15 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     backendIdentifier: BackendIdentifier,
     environment: Record<string, string> = {}
   ) {
-    const amplifySharedSecret = createAmplifySharedSecretName();
-    const sharedSecretEnvObject = {
-      [amplifySharedSecretNameKey]: createAmplifySharedSecretName(),
-    };
-
-    this.sharedSecretsEnv =
+    this.amplifySharedSecret =
       amplifySharedSecretNameKey in environment
-        ? environment
-        : sharedSecretEnvObject;
-    this.testSharedSecretNames.push(amplifySharedSecret);
+        ? environment[amplifySharedSecretNameKey]
+        : createAmplifySharedSecretName();
+    const sharedSecretEnvObject = {
+      [amplifySharedSecretNameKey]: this.amplifySharedSecret,
+    };
     await this.setUpDeployEnvironment(backendIdentifier);
-    await super.deploy(backendIdentifier, this.sharedSecretsEnv);
+    await super.deploy(backendIdentifier, sharedSecretEnvObject);
   }
 
   /**
@@ -189,7 +184,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     assert.equal(
       responsePayload,
       // eslint-disable-next-line spellcheck/spell-checker
-      `Your uuid is 6ec0bd7f-11c0-43da-975e-2a8ad9ebae0b. TEST_SECRET env var value is amazonSecret-e2eTestValue. TEST_SHARED_SECRET env var value is ${this.sharedSecretsEnv[amplifySharedSecretNameKey]}-e2eTestSharedValue.`
+      `Your uuid is 6ec0bd7f-11c0-43da-975e-2a8ad9ebae0b. TEST_SECRET env var value is amazonSecret-e2eTestValue. TEST_SHARED_SECRET env var value is ${this.amplifySharedSecret}-e2eTestSharedValue.`
     );
   }
 
@@ -200,14 +195,12 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
       const secretValue = `${secretName}-e2eTestValue`;
       await this.secretClient.setSecret(backendId, secretName, secretValue);
     }
-    for (const sharedSecretName of this.testSharedSecretNames) {
-      const secretValue = `${sharedSecretName}-e2eTestSharedValue`;
-      await this.secretClient.setSecret(
-        backendId.namespace,
-        sharedSecretName,
-        secretValue
-      );
-    }
+    const secretValue = `${this.amplifySharedSecret}-e2eTestSharedValue`;
+    await this.secretClient.setSecret(
+      backendId.namespace,
+      this.amplifySharedSecret,
+      secretValue
+    );
   };
 
   private clearDeployEnvironment = async (
@@ -217,11 +210,9 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     for (const secretName of this.testSecretNames) {
       await this.secretClient.removeSecret(backendId, secretName);
     }
-    for (const sharedSecretName of this.testSharedSecretNames) {
-      await this.secretClient.removeSecret(
-        backendId.namespace,
-        sharedSecretName
-      );
-    }
+    await this.secretClient.removeSecret(
+      backendId.namespace,
+      this.amplifySharedSecret
+    );
   };
 }
