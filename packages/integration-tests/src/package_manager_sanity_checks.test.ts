@@ -12,8 +12,8 @@ import {
 } from '@aws-sdk/client-cloudformation';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 import { getClientConfigPath } from '@aws-amplify/client-config';
-import { TestBranch, amplifyAppPool } from '../amplify_app_pool.js';
-import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
+import { TestBranch, amplifyAppPool } from './amplify_app_pool.js';
+import { e2eToolingClientConfig } from './e2e_tooling_client_config.js';
 import {
   type PackageManager,
   type PackageManagerExecutable,
@@ -22,7 +22,11 @@ import {
 import {
   runPackageManager,
   runWithPackageManager,
-} from '../process-controller/process_controller.js';
+} from './process-controller/process_controller.js';
+
+/**
+ * TODO: This test will be refactored to use the test from health-checks.test.ts and run with different package managers.
+ */
 
 void describe('create-amplify and pipeline deploy', async () => {
   let branchBackendIdentifier: BackendIdentifier;

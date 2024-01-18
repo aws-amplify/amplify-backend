@@ -6,7 +6,7 @@ import { killExecaProcess } from './execa_process_killer.js';
 import {
   type PackageManager,
   type PackageManagerExecutable,
-} from '../e2e-flow/setup_package_manager.js';
+} from '../setup_package_manager.js';
 
 /**
  * Provides an abstractions for sending and receiving data on stdin/out of a child process
