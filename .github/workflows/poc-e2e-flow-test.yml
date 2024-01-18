@@ -42,9 +42,6 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         pkg-manager: [npm, yarn-classic, yarn-modern, pnpm]
         node-version: [20]
-        exclude:
-          - os: windows-latest
-            pkg-manager: pnpm
     env:
       PACKAGE_MANAGER: ${{ matrix.pkg-manager }}
     runs-on: ${{ matrix.os }}

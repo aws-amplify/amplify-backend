@@ -5,7 +5,6 @@ import * as _path from 'path';
 import { logger } from '../logger.js';
 import { executeWithDebugLogger as _executeWithDebugLogger } from '../execute_with_logger.js';
 import { PackageManagerController } from './package_manager_controller.js';
-import { DependencyType } from './package_manager_controller_factory.js';
 
 /**
  * YarnModernPackageManagerController is an abstraction around yarn modern (yarn v2+) commands that are needed to initialize a project and install dependencies
@@ -36,14 +35,6 @@ export class YarnModernPackageManagerController extends PackageManagerController
     );
   }
 
-  installDependencies: (
-    packageNames: string[],
-    type: DependencyType
-  ) => Promise<void> = async () => {
-    await this.addDependencies(this.projectRoot);
-    await super.installDependencies([], 'dev');
-  };
-
   initializeTsConfig = async (targetDir: string) => {
     await this.addLockFile(targetDir);
     await this.addTypescript(targetDir);
@@ -73,15 +64,6 @@ export class YarnModernPackageManagerController extends PackageManagerController
       targetDir,
       'yarn',
       ['add', 'typescript@^5'],
-      this.execa
-    );
-  };
-
-  private addDependencies = async (targetDir: string) => {
-    await this.executeWithDebugLogger(
-      targetDir,
-      'yarn',
-      ['add', '-D', 'tsx', 'esbuild'],
       this.execa
     );
   };
