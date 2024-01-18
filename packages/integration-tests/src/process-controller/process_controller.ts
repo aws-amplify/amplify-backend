@@ -166,9 +166,9 @@ export const cdkCli = (
 };
 
 /**
- *  packageManagerExecute - Factory function that returns a ProcessController for the specified package manager
+ *  runWithPackageManager - Factory function that returns a ProcessController for the specified package manager
  */
-export const packageManagerExecute = (
+export const runWithPackageManager = (
   packageManager: PackageManager,
   args: string[] = [],
   dir: string,
@@ -176,16 +176,6 @@ export const packageManagerExecute = (
     env?: Record<string, string>;
   }
 ): ProcessController => {
-  const packageManagerExecutable = packageManager.startsWith('yarn')
-    ? 'yarn'
-    : packageManager;
-  const command = execaSync('npx', ['which', packageManagerExecutable], {
-    cwd: dir,
-  }).stdout.trim();
-  if (!command) {
-    throw new Error('Unable to locate packageManager binary');
-  }
-
   let packageManagerBinary: PackageManagerExecutable;
   switch (packageManager) {
     case 'npm':
@@ -211,9 +201,9 @@ export const packageManagerExecute = (
 };
 
 /**
- * packageManagerCli - Factory function that returns a ProcessController for the specified package manager
+ * runPackageManager - Factory function that returns a ProcessController for the specified package manager
  */
-export const packageManagerCli = (
+export const runPackageManager = (
   packageManager: PackageManager,
   args: string[] = [],
   dir: string,
@@ -224,12 +214,6 @@ export const packageManagerCli = (
   const packageManagerExecutable = packageManager.startsWith('yarn')
     ? 'yarn'
     : packageManager;
-  const command = execaSync('npx', ['which', packageManagerExecutable], {
-    cwd: dir,
-  }).stdout.trim();
-  if (!command) {
-    throw new Error('Unable to locate packageManager binary');
-  }
 
   return new ProcessController(packageManagerExecutable, args, {
     cwd: dir,

@@ -20,8 +20,8 @@ import {
   setupPackageManager,
 } from './setup_package_manager.js';
 import {
-  packageManagerCli,
-  packageManagerExecute,
+  runPackageManager,
+  runWithPackageManager,
 } from '../process-controller/process_controller.js';
 
 void describe('create-amplify and pipeline deploy', async () => {
@@ -65,7 +65,7 @@ void describe('create-amplify and pipeline deploy', async () => {
   });
 
   void it('creates new project and deploy them without an error', async () => {
-    await packageManagerCli(
+    await runPackageManager(
       packageManager,
       ['create', 'amplify', '--yes'],
       tempDir
@@ -92,7 +92,7 @@ void describe('create-amplify and pipeline deploy', async () => {
       expectedAmplifyFiles.map((suffix) => path.join(pathPrefix, suffix))
     );
 
-    await packageManagerExecute(
+    await runWithPackageManager(
       packageManager,
       [
         'amplify',

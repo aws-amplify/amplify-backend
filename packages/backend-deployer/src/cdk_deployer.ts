@@ -36,6 +36,8 @@ export class CDKDeployer implements BackendDeployer {
     private readonly backendLocator: BackendLocator,
     private readonly packageManager: string
   ) {
+    // TODO: use PackageManagerController to get the executable.
+    // But first, we need to move the PackageManagerController to platform-core.
     this.packageManager =
       this.packageManager === 'npm' ? 'npx' : this.packageManager;
   }
