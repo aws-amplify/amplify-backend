@@ -1,8 +1,8 @@
 ---
-'create-amplify': patch
-'@aws-amplify/cli-core': patch
-'@aws-amplify/sandbox': patch
-'@aws-amplify/backend-cli': patch
+'create-amplify': minor
+'@aws-amplify/cli-core': minor
+'@aws-amplify/sandbox': minor
+'@aws-amplify/backend-cli': minor
 ---
 
-convert static Printer to singleton
+Refactor Printer class & deprecate Logger
