@@ -1,4 +1,3 @@
-import { Printer } from '@aws-amplify/cli-core';
 import {
   ConfigurationController,
   USAGE_DATA_TRACKING_ENABLED,

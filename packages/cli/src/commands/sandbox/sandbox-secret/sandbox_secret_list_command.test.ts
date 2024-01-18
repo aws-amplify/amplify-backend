@@ -5,7 +5,6 @@ import assert from 'node:assert';
 import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
 import { Secret, getSecretClient } from '@aws-amplify/backend-secret';
 import { SandboxSecretListCommand } from './sandbox_secret_list_command.js';
-import { Printer } from '@aws-amplify/cli-core';
 import { printer } from '../../../printer.js';
 
 const testBackendId = 'testBackendId';
