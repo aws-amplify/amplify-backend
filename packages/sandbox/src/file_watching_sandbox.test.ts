@@ -17,7 +17,7 @@ import _open from 'open';
 import { SecretListItem, getSecretClient } from '@aws-amplify/backend-secret';
 import { ClientConfigFormat } from '@aws-amplify/client-config';
 import { Sandbox } from './sandbox.js';
-import { AmplifyPrompter, LogLevel, Printer } from '@aws-amplify/cli-core';
+import { AmplifyPrompter, Printer } from '@aws-amplify/cli-core';
 import { fileURLToPath } from 'url';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
@@ -50,6 +50,7 @@ const listSecretMock = mock.method(secretClient, 'listSecrets', () =>
 );
 const printer = {
   log: mock.fn(),
+  print: mock.fn(),
 };
 
 const sandboxExecutor = new AmplifySandboxExecutor(
