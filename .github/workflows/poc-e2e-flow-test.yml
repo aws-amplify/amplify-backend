@@ -78,4 +78,4 @@ jobs:
       - name: Run E2E flow tests with ${{ matrix.pkg-manager }}
         shell: bash
         run: |
-          PACKAGE_MANAGER=${{matrix.pkg-manager}} npm run test:dir packages/integration-tests/src/e2e-flow/e2e_flow.test.ts
+          PACKAGE_MANAGER=${{matrix.pkg-manager}} npm run test:dir packages/integration-tests/src/package_manager_sanity_checks.test.ts
