@@ -28,11 +28,11 @@ export enum COLOR {
 // @public (undocumented)
 export enum LogLevel {
     // (undocumented)
-    DEBUG = 1,
+    DEBUG = 2,
     // (undocumented)
-    ERROR = 2,
+    ERROR = 0,
     // (undocumented)
-    INFO = 0
+    INFO = 1
 }
 
 // @public
