@@ -95,7 +95,7 @@ export const setupPackageManager = async (
       break;
 
     case 'pnpm':
-      await initializePnpm(packageManager);
+      await initializePnpm();
       break;
 
     case 'yarn-classic':
