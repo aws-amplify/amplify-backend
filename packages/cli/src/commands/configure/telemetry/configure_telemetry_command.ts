@@ -4,6 +4,7 @@ import {
   USAGE_DATA_TRACKING_ENABLED,
 } from '@aws-amplify/platform-core';
 import { Argv, CommandModule } from 'yargs';
+import { printer } from '../../../printer.js';
 /**
  * Command to configure AWS Amplify profile.
  */
@@ -43,13 +44,11 @@ export class ConfigureTelemetryCommand implements CommandModule<object> {
     return yargs
       .command('enable', 'Enable anonymous data collection', {}, async () => {
         await this.configController.set(USAGE_DATA_TRACKING_ENABLED, true);
-
-        Printer.print('You have enabled telemetry data collection');
+        printer.log('You have enabled telemetry data collection');
       })
       .command('disable', 'Disable anonymous data collection', {}, async () => {
         await this.configController.set(USAGE_DATA_TRACKING_ENABLED, false);
-
-        Printer.print('You have disabled telemetry data collection');
+        printer.log('You have disabled telemetry data collection');
       })
       .demandCommand()
       .strictCommands()

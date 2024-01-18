@@ -1,5 +1,6 @@
 import { Argv } from 'yargs';
 import { AsyncLocalStorage } from 'node:async_hooks';
+import { LogLevel, Printer } from '@aws-amplify/cli-core';
 import { generateCommandFailureHandler } from '../error_handler.js';
 
 class OutputInterceptor {

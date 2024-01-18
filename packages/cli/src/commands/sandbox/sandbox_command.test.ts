@@ -16,6 +16,7 @@ import { createSandboxSecretCommand } from './sandbox-secret/sandbox_secret_comm
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 import { CommandMiddleware } from '../../command_middleware.js';
 import path from 'path';
+import { printer } from '../../printer.js';
 
 void describe('sandbox command factory', () => {
   void it('instantiate a sandbox command correctly', () => {
@@ -44,12 +45,14 @@ void describe('sandbox command', () => {
   const sandboxProfile = 'test-sandbox';
 
   beforeEach(async () => {
-    const sandboxFactory = new SandboxSingletonFactory(() =>
-      Promise.resolve({
-        namespace: 'testSandboxId',
-        name: 'testSandboxName',
-        type: 'sandbox',
-      })
+    const sandboxFactory = new SandboxSingletonFactory(
+      () =>
+        Promise.resolve({
+          namespace: 'testSandboxId',
+          name: 'testSandboxName',
+          type: 'sandbox',
+        }),
+      printer
     );
     sandbox = await sandboxFactory.getInstance();
 
@@ -238,12 +241,14 @@ void describe('sandbox command', () => {
 
   void it('starts sandbox with user provided valid AWS profile', async () => {
     mockHandleProfile.mock.mockImplementationOnce(() => null);
-    const sandboxFactory = new SandboxSingletonFactory(() =>
-      Promise.resolve({
-        namespace: 'testSandboxId',
-        name: 'testSandboxName',
-        type: 'sandbox',
-      })
+    const sandboxFactory = new SandboxSingletonFactory(
+      () =>
+        Promise.resolve({
+          namespace: 'testSandboxId',
+          name: 'testSandboxName',
+          type: 'sandbox',
+        }),
+      printer
     );
     sandbox = await sandboxFactory.getInstance();
     sandboxStartMock = mock.method(sandbox, 'start', () => Promise.resolve());

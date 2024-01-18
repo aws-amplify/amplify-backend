@@ -14,8 +14,13 @@ import { InitialProjectFileGenerator } from './initial_project_file_generator.js
 import { NpmProjectInitializer } from './npm_project_initializer.js';
 import { getProjectRoot } from './get_project_root.js';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
+import { LogLevel, Printer } from '@aws-amplify/cli-core';
 
 const projectRoot = await getProjectRoot();
+const logLevel = process.argv.includes('--debug')
+  ? LogLevel.DEBUG
+  : LogLevel.INFO;
+const printer = new Printer(logLevel);
 
 const amplifyProjectCreator = new AmplifyProjectCreator(
   new NpmPackageManagerController(projectRoot),
@@ -23,12 +28,16 @@ const amplifyProjectCreator = new AmplifyProjectCreator(
   new InitialProjectFileGenerator(projectRoot),
   new NpmProjectInitializer(projectRoot),
   new GitIgnoreInitializer(projectRoot),
-  projectRoot
+  projectRoot,
+  printer
 );
 
 try {
   await amplifyProjectCreator.create();
 } catch (err) {
-  console.error(err instanceof Error ? err.message : err);
+  printer.log(
+    (err instanceof Error ? err.message : err) as string,
+    LogLevel.ERROR
+  );
   process.exitCode = 1;
 }

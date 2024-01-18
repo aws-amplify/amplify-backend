@@ -1,8 +1,15 @@
-import { describe, it, mock } from 'node:test';
+import test, { describe, it, mock } from 'node:test';
 import { NpmProjectInitializer } from './npm_project_initializer.js';
 import assert from 'assert';
+import { printer } from './printer.js';
 
 void describe('NpmInitializedEnsurer', () => {
+  const logMock = mock.method(printer, 'log');
+
+  test.beforeEach(() => {
+    logMock.mock.resetCalls();
+  });
+
   void it('does nothing if package.json already exists', async () => {
     const existsSyncMock = mock.fn(() => true);
     const execaMock = mock.fn();

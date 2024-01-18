@@ -1,5 +1,6 @@
-import { COLOR, Printer } from '@aws-amplify/cli-core';
+import { COLOR } from '@aws-amplify/cli-core';
 import { InvalidCredentialError } from './error/credential_error.js';
+import { printer } from './printer.js';
 import { EOL } from 'os';
 import { Argv } from 'yargs';
 
@@ -52,9 +53,9 @@ export const generateCommandFailureHandler = (
    */
   const handleCommandFailure = (message: string, error?: Error) => {
     const printHelp = () => {
-      Printer.printNewLine();
+      printer.printNewLine();
       parser.showHelp();
-      Printer.printNewLine();
+      printer.printNewLine();
     };
 
     handleError(error, printHelp, message);
@@ -81,16 +82,16 @@ const handleError = (
   }
 
   if (error instanceof InvalidCredentialError) {
-    Printer.print(`${error.message}${EOL}`, COLOR.RED);
+    printer.print(`${error.message}${EOL}`, COLOR.RED);
     return;
   }
 
   printMessagePreamble?.();
-  Printer.print(message || String(error), COLOR.RED);
+  printer.print(message || String(error), COLOR.RED);
   if (errorHasCauseMessage(error)) {
-    Printer.print(error.cause.message, COLOR.RED);
+    printer.print(error.cause.message, COLOR.RED);
   }
-  Printer.printNewLine();
+  printer.printNewLine();
 };
 
 const isUserForceClosePromptError = (err?: Error): boolean => {

@@ -3,9 +3,10 @@ import yargs, { CommandModule } from 'yargs';
 import { TestCommandRunner } from '../../test-utils/command_runner.js';
 import assert from 'node:assert';
 import { ConfigureProfileCommand } from './configure_profile_command.js';
-import { AmplifyPrompter, Printer } from '@aws-amplify/cli-core';
+import { AmplifyPrompter } from '@aws-amplify/cli-core';
 import { Open } from '../open/open.js';
 import { ProfileController } from './profile_controller.js';
+import { printer } from '../../printer.js';
 
 const testAccessKeyId = 'testAccessKeyId';
 const testSecretAccessKey = 'testSecretAccessKey';
@@ -35,7 +36,7 @@ void describe('configure command', () => {
       'profileExists',
       () => Promise.resolve(true)
     );
-    const mockPrint = contextual.mock.method(Printer, 'print');
+    const mockPrint = contextual.mock.method(printer, 'print');
 
     await commandRunner.runCommand(`profile --name ${testProfile}`);
 

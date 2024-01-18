@@ -6,6 +6,7 @@ import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
 import { Secret, getSecretClient } from '@aws-amplify/backend-secret';
 import { SandboxSecretListCommand } from './sandbox_secret_list_command.js';
 import { Printer } from '@aws-amplify/cli-core';
+import { printer } from '../../../printer.js';
 
 const testBackendId = 'testBackendId';
 const testSandboxName = 'testSandboxName';
@@ -20,6 +21,7 @@ const testSecrets: Secret[] = [
     value: 'val2',
   },
 ];
+const printRecordMock = mock.method(printer, 'printRecord');
 
 void describe('sandbox secret list command', () => {
   const secretClient = getSecretClient();
@@ -47,11 +49,10 @@ void describe('sandbox secret list command', () => {
 
   beforeEach(async () => {
     secretListMock.mock.resetCalls();
+    printRecordMock.mock.resetCalls();
   });
 
-  void it('list secrets', async (contextual) => {
-    const mockPrintRecord = contextual.mock.method(Printer, 'printRecord');
-
+  void it('list secrets', async () => {
     await commandRunner.runCommand(`list`);
     assert.equal(secretListMock.mock.callCount(), 1);
 
@@ -61,8 +62,8 @@ void describe('sandbox secret list command', () => {
       type: 'sandbox',
     });
 
-    assert.equal(mockPrintRecord.mock.callCount(), 1);
-    assert.deepStrictEqual(mockPrintRecord.mock.calls[0].arguments[0], {
+    assert.equal(printRecordMock.mock.callCount(), 1);
+    assert.deepStrictEqual(printRecordMock.mock.calls[0].arguments[0], {
       names: testSecrets.map((s) => s.name),
     });
   });

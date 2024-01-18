@@ -1,6 +1,7 @@
 import { fileURLToPath } from 'url';
 import yargs, { Argv } from 'yargs';
 import { PackageJsonReader } from '@aws-amplify/platform-core';
+import { LogLevel, Printer } from '@aws-amplify/cli-core';
 import { createGenerateCommand } from './commands/generate/generate_command_factory.js';
 import { createSandboxCommand } from './commands/sandbox/sandbox_command_factory.js';
 import { createPipelineDeployCommand } from './commands/pipeline-deploy/pipeline_deploy_command_factory.js';

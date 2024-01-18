@@ -6,6 +6,7 @@ import {
   DestroyResult,
 } from '@aws-amplify/backend-deployer';
 import { SecretClient } from '@aws-amplify/backend-secret';
+import { LogLevel, Printer } from '@aws-amplify/cli-core';
 
 /**
  * Execute CDK commands.
@@ -27,7 +28,8 @@ export class AmplifySandboxExecutor {
    */
   constructor(
     private readonly backendDeployer: BackendDeployer,
-    private readonly secretClient: SecretClient
+    private readonly secretClient: SecretClient,
+    private readonly printer: Printer
   ) {}
 
   /**
@@ -37,7 +39,7 @@ export class AmplifySandboxExecutor {
     backendId: BackendIdentifier,
     validateAppSourcesProvider: () => boolean
   ): Promise<DeployResult> => {
-    console.debug('[Sandbox] Executing command `deploy`');
+    this.printer.log('[Sandbox] Executing command `deploy`', LogLevel.DEBUG);
     const secretLastUpdated = await this.getSecretLastUpdated(backendId);
 
     return this.invoke(() => {
@@ -55,7 +57,7 @@ export class AmplifySandboxExecutor {
    * Destroy sandbox. Do not swallow errors
    */
   destroy = (backendId: BackendIdentifier): Promise<DestroyResult> => {
-    console.debug('[Sandbox] Executing command `destroy`');
+    this.printer.log('[Sandbox] Executing command `destroy`', LogLevel.DEBUG);
     return this.invoke(() => this.backendDeployer.destroy(backendId));
   };
 

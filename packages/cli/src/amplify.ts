@@ -6,6 +6,6 @@ import { attachUnhandledExceptionListeners } from './error_handler.js';
 
 attachUnhandledExceptionListeners();
 
-const parser = createMainParser();
+const parser = await createMainParser();
 
 await parser.parseAsync(hideBin(process.argv));

@@ -17,7 +17,7 @@ import _open from 'open';
 import { SecretListItem, getSecretClient } from '@aws-amplify/backend-secret';
 import { ClientConfigFormat } from '@aws-amplify/client-config';
 import { Sandbox } from './sandbox.js';
-import { AmplifyPrompter } from '@aws-amplify/cli-core';
+import { AmplifyPrompter, LogLevel, Printer } from '@aws-amplify/cli-core';
 import { fileURLToPath } from 'url';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
@@ -48,10 +48,14 @@ const listSecretMock = mock.method(secretClient, 'listSecrets', () =>
     newlyUpdatedSecretItem,
   ])
 );
+const printer = {
+  log: mock.fn(),
+};
 
 const sandboxExecutor = new AmplifySandboxExecutor(
   backendDeployer,
-  secretClient
+  secretClient,
+  printer as unknown as Printer
 );
 
 const backendDeployerDeployMock = mock.method(backendDeployer, 'deploy', () =>
@@ -113,6 +117,7 @@ void describe('Sandbox to check if region is bootstrapped', () => {
       async () => testSandboxBackendId,
       sandboxExecutor,
       cfnClientMock,
+      printer as unknown as Printer,
       openMock as never
     );
 
@@ -792,6 +797,7 @@ const setupAndStartSandbox = async (
     }),
     testData.executor,
     testData.cfnClient,
+    printer as unknown as Printer,
     testData.open ?? _open
   );
 

@@ -1,6 +1,6 @@
 import opn, { Options } from 'open';
 import { ChildProcess } from 'child_process';
-import { Printer } from '@aws-amplify/cli-core';
+import { printer } from '../../printer.js';
 
 /**
  * Helper class to open apps (URLs, files, executable). Cross-platform.
@@ -22,9 +22,9 @@ export class Open {
   };
 
   static handleOpenError = (err: Error, target: string) => {
-    Printer.print(`Unable to open ${target}: ${err.message}`);
+    printer.log(`Unable to open ${target}: ${err.message}`);
     if ('code' in err && err['code'] === 'ENOENT') {
-      Printer.print('Have you installed `xdg-utils` on your machine?');
+      printer.log('Have you installed `xdg-utils` on your machine?');
     }
   };
 }

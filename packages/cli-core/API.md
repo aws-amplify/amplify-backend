@@ -4,8 +4,6 @@
 
 ```ts
 
-/// <reference types="node" />
-
 // @public
 export class AmplifyPrompter {
     static input: (options: {
@@ -25,35 +23,8 @@ export enum COLOR {
     RED = "31m"
 }
 
-// @public (undocumented)
-export enum EscapeSequence {
-    // (undocumented)
-    CLEAR_LINE = "\u001B[2K",
-    // (undocumented)
-    HIDE_CURSOR = "\u001B[?25l",
-    // (undocumented)
-    MOVE_CURSOR_TO_START = "\u001B[0G",
-    // (undocumented)
-    SHOW_CURSOR = "\u001B[?25h"
-}
-
-// @public (undocumented)
-export enum LogLevel {
-    // (undocumented)
-    DEBUG = 1,
-    // (undocumented)
-    INFO = 0
-}
-
 // @public
 export class Printer {
-    static debug(message: string): void;
-    static indicateProgress(message: string, callback: () => Promise<void>): Promise<void>;
-    static info(message: string): void;
-    static log(message: string, level?: LogLevel, eol?: boolean): void;
-    static make(minimumLogLevel?: LogLevel, writeStream?: NodeJS.WriteStream & {
-        fd: 1;
-    }): Printer;
     static print: (message: string, colorName?: COLOR) => void;
     static printNewLine: () => void;
     static printRecord: <T extends Record<string | number, RecordValue>>(object: T) => void;

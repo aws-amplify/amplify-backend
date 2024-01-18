@@ -21,7 +21,7 @@ void describe('Printer', () => {
   });
 
   void it('log should print message followed by new line', () => {
-    Printer.log('hello world');
+    new Printer(LogLevel.INFO).log('hello world');
     assert.strictEqual(mockedWrite.mock.callCount(), 2);
     assert.match(
       mockedWrite.mock.calls[0].arguments[0].toString(),
@@ -31,7 +31,7 @@ void describe('Printer', () => {
   });
 
   void it('log should print message without new line', () => {
-    Printer.log('hello world', LogLevel.INFO, false);
+    new Printer(LogLevel.INFO).log('hello world', LogLevel.INFO, false);
     assert.strictEqual(mockedWrite.mock.callCount(), 1);
     assert.match(
       mockedWrite.mock.calls[0].arguments[0].toString(),
@@ -40,13 +40,28 @@ void describe('Printer', () => {
   });
 
   void it('log should not print debug logs by default', () => {
-    Printer.log('hello world', LogLevel.DEBUG);
+    new Printer(LogLevel.INFO).log('hello world', LogLevel.DEBUG);
+    assert.strictEqual(mockedWrite.mock.callCount(), 0);
+  });
+
+  void it('log should print debug logs when printer is configured with minimum log level >= DEBUG', () => {
+    new Printer(LogLevel.DEBUG).log('hello world', LogLevel.DEBUG);
+    assert.strictEqual(mockedWrite.mock.callCount(), 2);
+    assert.match(
+      mockedWrite.mock.calls[0].arguments[0].toString(),
+      /hello world/
+    );
+    assert.match(mockedWrite.mock.calls[1].arguments[0].toString(), /\n/);
+  });
+
+  void it('log should not print debug logs by default', () => {
+    new Printer(LogLevel.INFO).log('hello world', LogLevel.DEBUG);
     assert.strictEqual(mockedWrite.mock.callCount(), 0);
   });
 
   void it('indicateProgress logs message & animates ellipsis if on TTY', async () => {
     process.stdout.isTTY = true;
-    await Printer.indicateProgress(
+    await new Printer(LogLevel.INFO).indicateProgress(
       'loading a long list',
       () => new Promise((resolve) => setTimeout(resolve, 3000))
     );
@@ -64,7 +79,7 @@ void describe('Printer', () => {
 
   void it('indicateProgress does not animates ellipsis if not TTY & prints log message once', async () => {
     process.stdout.isTTY = false;
-    await Printer.indicateProgress(
+    await new Printer(LogLevel.INFO).indicateProgress(
       'loading a long list',
       () => new Promise((resolve) => setTimeout(resolve, 1500))
     );

@@ -1,4 +1,4 @@
-import { Printer } from '@aws-amplify/cli-core';
+import { LogLevel, Printer } from '@aws-amplify/cli-core';
 import { PackageManagerController } from './package_manager_controller.js';
 import { ProjectRootValidator } from './project_root_validator.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
@@ -32,19 +32,23 @@ export class AmplifyProjectCreator {
     private readonly initialProjectFileGenerator: InitialProjectFileGenerator,
     private readonly npmInitializedEnsurer: NpmProjectInitializer,
     private readonly gitIgnoreInitializer: GitIgnoreInitializer,
-    private readonly projectRoot: string
+    private readonly projectRoot: string,
+    private readonly printer: Printer
   ) {}
 
   /**
    * Executes the create-amplify workflow
    */
   create = async (): Promise<void> => {
-    Printer.debug(`Validating current state of target directory...`);
+    this.printer.log(
+      `Validating current state of target directory...`,
+      LogLevel.DEBUG
+    );
     await this.projectRootValidator.validate();
 
     await this.npmInitializedEnsurer.ensureInitialized();
 
-    await Printer.indicateProgress(
+    await this.printer.indicateProgress(
       `Installing required dependencies`,
       async () => {
         await this.packageManagerController.installDependencies(
@@ -59,26 +63,26 @@ export class AmplifyProjectCreator {
       }
     );
 
-    await Printer.indicateProgress(`Creating template files`, async () => {
+    await this.printer.indicateProgress(`Creating template files`, async () => {
       await this.gitIgnoreInitializer.ensureInitialized();
 
       await this.initialProjectFileGenerator.generateInitialProjectFiles();
     });
 
-    Printer.log('Successfully created a new project!');
+    this.printer.log('Successfully created a new project!');
 
     const cdCommand =
       process.cwd() === this.projectRoot
         ? ''
         : `cd .${this.projectRoot.replace(process.cwd(), '')}; `;
 
-    Printer.log(
+    this.printer.log(
       `Welcome to AWS Amplify! 
 Run \`npx amplify help\` for a list of available commands. 
 Get started by running \`${cdCommand}npx amplify sandbox\`.`
     );
 
-    Printer.log(
+    this.printer.log(
       `Amplify (Gen 2) collects anonymous telemetry data about general usage of the CLI.
 
 Participation is optional, and you may opt-out by using \`amplify configure telemetry disable\`.

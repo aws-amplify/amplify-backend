@@ -1,4 +1,5 @@
 import { configControllerFactory } from '@aws-amplify/platform-core';
+import { Printer } from '@aws-amplify/cli-core';
 import { CommandModule } from 'yargs';
 import { ConfigureProfileCommand } from './configure_profile_command.js';
 import { ProfileController } from './profile_controller.js';

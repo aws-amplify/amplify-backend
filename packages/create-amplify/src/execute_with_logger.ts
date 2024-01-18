@@ -1,5 +1,6 @@
-import { Printer } from '@aws-amplify/cli-core';
+import { LogLevel } from '@aws-amplify/cli-core';
 import { execa as _execa } from 'execa';
+import { printer } from './printer.js';
 
 /**
  * Abstracts the execution of a command and pipes outputs/errors to `Printer.debug`
@@ -16,8 +17,12 @@ export const executeWithDebugLogger = async (
       cwd,
     });
 
-    childProcess?.stdout?.on('data', (data: string) => Printer.debug(data));
-    childProcess?.stderr?.on('data', (data: string) => Printer.debug(data));
+    childProcess?.stdout?.on('data', (data: string) =>
+      printer.log(data, LogLevel.DEBUG)
+    );
+    childProcess?.stderr?.on('data', (data: string) =>
+      printer.log(data, LogLevel.DEBUG)
+    );
 
     await childProcess;
   } catch {
