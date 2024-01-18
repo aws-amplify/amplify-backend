@@ -19,6 +19,7 @@ import {
   UserPoolIdentityProviderGoogle,
   UserPoolIdentityProviderOidc,
   UserPoolIdentityProviderSaml,
+  UserPoolIdentityProviderSamlMetadataType,
   UserPoolOperation,
   UserPoolProps,
 } from 'aws-cdk-lib/aws-cognito';
@@ -655,9 +656,20 @@ export class AmplifyAuth
       result.providersList.push('OIDC');
     }
     if (external.saml) {
+      const saml = external.saml;
       result.saml = new cognito.UserPoolIdentityProviderSaml(this, 'SamlIDP', {
         userPool,
-        ...external.saml,
+        attributeMapping: saml.attributeMapping,
+        identifiers: saml.identifiers,
+        idpSignout: saml.idpSignout,
+        metadata: {
+          metadataContent: saml.metadata.metadataContent,
+          metadataType:
+            saml.metadata.metadataType === 'FILE'
+              ? UserPoolIdentityProviderSamlMetadataType.FILE
+              : UserPoolIdentityProviderSamlMetadataType.URL,
+        },
+        name: saml.name,
       });
       result.providersList.push('SAML');
     }
@@ -695,8 +707,12 @@ export class AmplifyAuth
       webClientId: this.resources.userPoolClient.userPoolClientId,
       identityPoolId: this.resources.cfnResources.cfnIdentityPool.ref,
       authRegion: Stack.of(this).region,
+      allowUnauthenticatedIdentities:
+        this.resources.cfnResources.cfnIdentityPool
+          .allowUnauthenticatedIdentities === true
+          ? 'true'
+          : 'false',
     };
-
     if (this.computedUserPoolProps.standardAttributes) {
       const signupAttributes = Object.entries(
         this.computedUserPoolProps.standardAttributes

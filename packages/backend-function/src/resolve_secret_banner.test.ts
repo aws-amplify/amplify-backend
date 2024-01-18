@@ -24,7 +24,10 @@ void describe('resolveSecretBanner', () => {
     const secretPath = '/test/path';
     const secretValue = 'secretValue';
     process.env.AMPLIFY_SECRET_PATHS = JSON.stringify({
-      [envName]: secretPath,
+      [secretPath]: {
+        name: envName,
+        sharedSecretPath: '/test/shared/path',
+      },
     });
     const mockGetParameters = mock.method(client, 'getParameters', () =>
       Promise.resolve({

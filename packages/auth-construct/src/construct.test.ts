@@ -13,7 +13,6 @@ import {
   CfnUserPoolClient,
   UserPool,
   UserPoolClient,
-  UserPoolIdentityProviderSamlMetadataType,
 } from 'aws-cdk-lib/aws-cognito';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
 import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
@@ -88,6 +87,15 @@ const ExpectedSAMLIDPProperties = {
   ProviderDetails: {
     IDPSignout: false,
     MetadataFile: samlMetadataContent,
+  },
+  ProviderName: samlProviderName,
+  ProviderType: 'SAML',
+};
+const samlMetadataUrl = 'https://localhost:3000';
+const ExpectedSAMLIDPViaURLProperties = {
+  ProviderDetails: {
+    IDPSignout: false,
+    MetadataURL: samlMetadataUrl,
   },
   ProviderName: samlProviderName,
   ProviderType: 'SAML',
@@ -493,6 +501,7 @@ void describe('Auth construct', () => {
             signupAttributes: '["EMAIL"]',
             verificationMechanisms: '["EMAIL"]',
             usernameAttributes: '["EMAIL"]',
+            allowUnauthenticatedIdentities: 'true',
           },
         },
       ]);
@@ -553,6 +562,7 @@ void describe('Auth construct', () => {
             oauthRedirectSignOut: 'http://logout.com',
             oauthResponseType: 'code',
             socialProviders: '["GOOGLE"]',
+            allowUnauthenticatedIdentities: 'true',
           },
         },
       ]);
@@ -626,6 +636,7 @@ void describe('Auth construct', () => {
               'webClientId',
               'identityPoolId',
               'authRegion',
+              'allowUnauthenticatedIdentities',
               'signupAttributes',
               'usernameAttributes',
               'verificationMechanisms',
@@ -1320,7 +1331,7 @@ void describe('Auth construct', () => {
               name: samlProviderName,
               metadata: {
                 metadataContent: samlMetadataContent,
-                metadataType: UserPoolIdentityProviderSamlMetadataType.FILE,
+                metadataType: 'FILE',
               },
             },
             callbackUrls: ['https://redirect.com'],
@@ -1366,7 +1377,7 @@ void describe('Auth construct', () => {
               name: samlProviderName,
               metadata: {
                 metadataContent: samlMetadataContent,
-                metadataType: UserPoolIdentityProviderSamlMetadataType.FILE,
+                metadataType: 'FILE',
               },
             },
             callbackUrls: ['https://redirect.com'],
@@ -1382,6 +1393,52 @@ void describe('Auth construct', () => {
       template.hasResourceProperties(
         'AWS::Cognito::UserPoolIdentityProvider',
         ExpectedSAMLIDPProperties
+      );
+      template.hasResourceProperties('AWS::Cognito::IdentityPool', {
+        SamlProviderARNs: [
+          Match.objectEquals({
+            'Fn::Join': [
+              '',
+              [
+                'arn:aws:iam:',
+                { Ref: 'AWS::Region' },
+                ':',
+                { Ref: 'AWS::AccountId' },
+                ':saml-provider/',
+                { Ref: 'testSamlIDP7B98F3F4' },
+              ],
+            ],
+          }),
+        ],
+      });
+    });
+    void it('supports saml via URL and email', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+          externalProviders: {
+            saml: {
+              name: samlProviderName,
+              metadata: {
+                metadataContent: samlMetadataUrl,
+                metadataType: 'URL',
+              },
+            },
+            callbackUrls: ['https://redirect.com'],
+            logoutUrls: ['https://logout.com'],
+          },
+        },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        UsernameAttributes: ['email'],
+        AutoVerifiedAttributes: ['email'],
+      });
+      template.hasResourceProperties(
+        'AWS::Cognito::UserPoolIdentityProvider',
+        ExpectedSAMLIDPViaURLProperties
       );
       template.hasResourceProperties('AWS::Cognito::IdentityPool', {
         SamlProviderARNs: [
@@ -1552,7 +1609,7 @@ void describe('Auth construct', () => {
               name: samlProviderName,
               metadata: {
                 metadataContent: samlMetadataContent,
-                metadataType: UserPoolIdentityProviderSamlMetadataType.FILE,
+                metadataType: 'FILE',
               },
             },
             callbackUrls: ['https://redirect.com'],

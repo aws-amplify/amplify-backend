@@ -57,9 +57,14 @@ export abstract class TestProjectBase {
   /**
    * Deploy the project.
    */
-  async deploy(backendIdentifier: BackendIdentifier) {
+  async deploy(
+    backendIdentifier: BackendIdentifier,
+    environment?: Record<string, string>
+  ) {
     if (backendIdentifier.type === 'sandbox') {
-      await amplifyCli(['sandbox'], this.projectDirPath)
+      await amplifyCli(['sandbox'], this.projectDirPath, {
+        env: environment,
+      })
         .do(waitForSandboxDeploymentToPrintTotalTime())
         .do(interruptSandbox())
         .do(rejectCleanupSandbox())
@@ -75,7 +80,10 @@ export abstract class TestProjectBase {
         ],
         this.projectDirPath,
         {
-          env: { CI: 'true' },
+          env: {
+            CI: 'true',
+            ...environment,
+          },
         }
       ).run();
     }

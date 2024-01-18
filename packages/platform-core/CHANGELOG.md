@@ -1,5 +1,18 @@
 # @aws-amplify/platform-core
 
+## 0.4.3
+
+### Patch Changes
+
+- 0809ad36d: fix empty catch block
+
+## 0.4.2
+
+### Patch Changes
+
+- Updated dependencies [d087313e9]
+  - @aws-amplify/plugin-types@0.7.1
+
 ## 0.4.1
 
 ### Patch Changes
