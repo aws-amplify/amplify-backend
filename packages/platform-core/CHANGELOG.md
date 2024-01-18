@@ -1,5 +1,11 @@
 # @aws-amplify/platform-core
 
+## 0.4.3
+
+### Patch Changes
+
+- 0809ad36d: fix empty catch block
+
 ## 0.4.2
 
 ### Patch Changes
