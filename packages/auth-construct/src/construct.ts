@@ -602,7 +602,11 @@ export class AmplifyAuth
           userPool,
           clientId: googleProps.clientId,
           clientSecretValue: googleProps.clientSecret,
-          attributeMapping: googleProps.attributeMapping,
+          attributeMapping: googleProps.attributeMapping ?? {
+            email: {
+              attributeName: 'email',
+            },
+          },
           scopes: googleProps.scopes,
         }
       );
@@ -616,6 +620,11 @@ export class AmplifyAuth
         {
           userPool,
           ...external.facebook,
+          attributeMapping: external.facebook.attributeMapping ?? {
+            email: {
+              attributeName: 'email',
+            },
+          },
         }
       );
       result.oauthMappings[authProvidersList.facebook] =
@@ -629,6 +638,11 @@ export class AmplifyAuth
         {
           userPool,
           ...external.loginWithAmazon,
+          attributeMapping: external.loginWithAmazon.attributeMapping ?? {
+            email: {
+              attributeName: 'email',
+            },
+          },
         }
       );
       result.oauthMappings[authProvidersList.amazon] =
@@ -642,6 +656,11 @@ export class AmplifyAuth
         {
           userPool,
           ...external.signInWithApple,
+          attributeMapping: external.signInWithApple.attributeMapping ?? {
+            email: {
+              attributeName: 'email',
+            },
+          },
         }
       );
       result.oauthMappings[authProvidersList.apple] =
@@ -652,6 +671,11 @@ export class AmplifyAuth
       result.oidc = new cognito.UserPoolIdentityProviderOidc(this, 'OidcIDP', {
         userPool,
         ...external.oidc,
+        attributeMapping: external.oidc.attributeMapping ?? {
+          email: {
+            attributeName: 'email',
+          },
+        },
       });
       result.providersList.push('OIDC');
     }
