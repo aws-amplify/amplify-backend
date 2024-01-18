@@ -161,9 +161,9 @@ export class Printer {
 }
 
 export enum LogLevel {
+  ERROR,
   INFO,
   DEBUG,
-  ERROR,
 }
 
 enum EscapeSequence {
