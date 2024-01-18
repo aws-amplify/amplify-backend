@@ -176,7 +176,10 @@ export const packageManagerExecute = (
     env?: Record<string, string>;
   }
 ): ProcessController => {
-  const command = execaSync('npx', ['which', packageManager], {
+  const packageManagerExecutable = packageManager.startsWith('yarn')
+    ? 'yarn'
+    : packageManager;
+  const command = execaSync('npx', ['which', packageManagerExecutable], {
     cwd: dir,
   }).stdout.trim();
   if (!command) {
@@ -218,15 +221,15 @@ export const packageManagerCli = (
     env?: Record<string, string>;
   }
 ): ProcessController => {
-  const command = execaSync('npx', ['which', packageManager], {
+  const packageManagerExecutable = packageManager.startsWith('yarn')
+    ? 'yarn'
+    : packageManager;
+  const command = execaSync('npx', ['which', packageManagerExecutable], {
     cwd: dir,
   }).stdout.trim();
   if (!command) {
     throw new Error('Unable to locate packageManager binary');
   }
-  const packageManagerExecutable = packageManager.startsWith('yarn')
-    ? 'yarn'
-    : packageManager;
 
   return new ProcessController(packageManagerExecutable, args, {
     cwd: dir,
