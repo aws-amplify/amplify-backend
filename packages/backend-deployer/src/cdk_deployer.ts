@@ -35,7 +35,10 @@ export class CDKDeployer implements BackendDeployer {
     private readonly cdkErrorMapper: CdkErrorMapper,
     private readonly backendLocator: BackendLocator,
     private readonly packageManager: string
-  ) {}
+  ) {
+    this.packageManager =
+      this.packageManager === 'npm' ? 'npx' : this.packageManager;
+  }
   /**
    * Invokes cdk deploy command
    */
@@ -127,7 +130,7 @@ export class CDKDeployer implements BackendDeployer {
     }
     try {
       await this.executeChildProcess(
-        this.packageManager === 'npm' ? 'npx' : this.packageManager, // TODO: once the e2e flow test is complete, we need to refactor this to use a ctor
+        this.packageManager,
         [
           'tsc',
           '--showConfig',
@@ -141,17 +144,14 @@ export class CDKDeployer implements BackendDeployer {
       return;
     }
     try {
-      await this.executeChildProcess(
-        this.packageManager === 'npm' ? 'npx' : this.packageManager, // TODO: once the e2e flow test is complete, we need to refactor this to use a ctor
-        [
-          'tsc',
-          '--noEmit',
-          '--skipLibCheck',
-          // pointing the project arg to the amplify backend directory will use the tsconfig present in that directory
-          '--project',
-          dirname(this.backendLocator.locate()),
-        ]
-      );
+      await this.executeChildProcess(this.packageManager, [
+        'tsc',
+        '--noEmit',
+        '--skipLibCheck',
+        // pointing the project arg to the amplify backend directory will use the tsconfig present in that directory
+        '--project',
+        dirname(this.backendLocator.locate()),
+      ]);
     } catch (err) {
       throw new AmplifyUserError(
         'SyntaxError',
@@ -199,9 +199,7 @@ export class CDKDeployer implements BackendDeployer {
       // See https://github.com/aws/aws-cdk/issues/7717 for more details.
       '--ci',
       '--app',
-      `'${
-        this.packageManager === 'npm' ? 'npx' : this.packageManager // TODO: once the e2e flow test is complete, we need to refactor this to use a ctor
-      } tsx ${this.backendLocator.locate()}'`,
+      `'${this.packageManager} tsx ${this.backendLocator.locate()}'`,
       '--all',
       '--output',
       '.amplify/artifacts/cdk.out',
@@ -228,10 +226,7 @@ export class CDKDeployer implements BackendDeployer {
       cdkCommandArgs.push(...additionalArguments);
     }
 
-    return await this.executeChildProcess(
-      this.packageManager === 'npm' ? 'npx' : this.packageManager, // TODO: once the e2e flow test is complete, we need to refactor this to use a ctor
-      cdkCommandArgs
-    );
+    return await this.executeChildProcess(this.packageManager, cdkCommandArgs);
   };
 
   private populateCDKOutputFromStdout = async (
