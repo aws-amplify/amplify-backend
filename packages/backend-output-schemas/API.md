@@ -104,6 +104,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             appleClientId: z.ZodOptional<z.ZodString>;
             facebookClientId: z.ZodOptional<z.ZodString>;
             googleClientId: z.ZodOptional<z.ZodString>;
+            allowUnauthenticatedIdentities: z.ZodOptional<z.ZodString>;
             usernameAttributes: z.ZodOptional<z.ZodString>;
             signupAttributes: z.ZodOptional<z.ZodString>;
             passwordPolicyMinLength: z.ZodOptional<z.ZodString>;
@@ -113,7 +114,9 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             verificationMechanisms: z.ZodOptional<z.ZodString>;
             socialProviders: z.ZodOptional<z.ZodString>;
             oauthDomain: z.ZodOptional<z.ZodString>;
-            oauthScope: z.ZodOptional<z.ZodString>;
+            oauthScope: z.ZodOptional<z.ZodString>; /**
+            * re-export the storage output schema
+            */
             oauthRedirectSignIn: z.ZodOptional<z.ZodString>;
             oauthRedirectSignOut: z.ZodOptional<z.ZodString>;
             oauthClientId: z.ZodOptional<z.ZodString>;
@@ -127,6 +130,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             appleClientId?: string | undefined;
             facebookClientId?: string | undefined;
             googleClientId?: string | undefined;
+            allowUnauthenticatedIdentities?: string | undefined;
             usernameAttributes?: string | undefined;
             signupAttributes?: string | undefined;
             passwordPolicyMinLength?: string | undefined;
@@ -150,6 +154,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             appleClientId?: string | undefined;
             facebookClientId?: string | undefined;
             googleClientId?: string | undefined;
+            allowUnauthenticatedIdentities?: string | undefined;
             usernameAttributes?: string | undefined;
             signupAttributes?: string | undefined;
             passwordPolicyMinLength?: string | undefined;
@@ -176,6 +181,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             appleClientId?: string | undefined;
             facebookClientId?: string | undefined;
             googleClientId?: string | undefined;
+            allowUnauthenticatedIdentities?: string | undefined;
             usernameAttributes?: string | undefined;
             signupAttributes?: string | undefined;
             passwordPolicyMinLength?: string | undefined;
@@ -202,6 +208,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             appleClientId?: string | undefined;
             facebookClientId?: string | undefined;
             googleClientId?: string | undefined;
+            allowUnauthenticatedIdentities?: string | undefined;
             usernameAttributes?: string | undefined;
             signupAttributes?: string | undefined;
             passwordPolicyMinLength?: string | undefined;
@@ -317,6 +324,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             appleClientId?: string | undefined;
             facebookClientId?: string | undefined;
             googleClientId?: string | undefined;
+            allowUnauthenticatedIdentities?: string | undefined;
             usernameAttributes?: string | undefined;
             signupAttributes?: string | undefined;
             passwordPolicyMinLength?: string | undefined;
@@ -372,6 +380,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             appleClientId?: string | undefined;
             facebookClientId?: string | undefined;
             googleClientId?: string | undefined;
+            allowUnauthenticatedIdentities?: string | undefined;
             usernameAttributes?: string | undefined;
             signupAttributes?: string | undefined;
             passwordPolicyMinLength?: string | undefined;
@@ -422,6 +431,7 @@ export const versionedAuthOutputSchema: z.ZodDiscriminatedUnion<"version", [z.Zo
         appleClientId: z.ZodOptional<z.ZodString>;
         facebookClientId: z.ZodOptional<z.ZodString>;
         googleClientId: z.ZodOptional<z.ZodString>;
+        allowUnauthenticatedIdentities: z.ZodOptional<z.ZodString>;
         usernameAttributes: z.ZodOptional<z.ZodString>;
         signupAttributes: z.ZodOptional<z.ZodString>;
         passwordPolicyMinLength: z.ZodOptional<z.ZodString>;
@@ -445,6 +455,7 @@ export const versionedAuthOutputSchema: z.ZodDiscriminatedUnion<"version", [z.Zo
         appleClientId?: string | undefined;
         facebookClientId?: string | undefined;
         googleClientId?: string | undefined;
+        allowUnauthenticatedIdentities?: string | undefined;
         usernameAttributes?: string | undefined;
         signupAttributes?: string | undefined;
         passwordPolicyMinLength?: string | undefined;
@@ -468,6 +479,7 @@ export const versionedAuthOutputSchema: z.ZodDiscriminatedUnion<"version", [z.Zo
         appleClientId?: string | undefined;
         facebookClientId?: string | undefined;
         googleClientId?: string | undefined;
+        allowUnauthenticatedIdentities?: string | undefined;
         usernameAttributes?: string | undefined;
         signupAttributes?: string | undefined;
         passwordPolicyMinLength?: string | undefined;
@@ -494,6 +506,7 @@ export const versionedAuthOutputSchema: z.ZodDiscriminatedUnion<"version", [z.Zo
         appleClientId?: string | undefined;
         facebookClientId?: string | undefined;
         googleClientId?: string | undefined;
+        allowUnauthenticatedIdentities?: string | undefined;
         usernameAttributes?: string | undefined;
         signupAttributes?: string | undefined;
         passwordPolicyMinLength?: string | undefined;
@@ -520,6 +533,7 @@ export const versionedAuthOutputSchema: z.ZodDiscriminatedUnion<"version", [z.Zo
         appleClientId?: string | undefined;
         facebookClientId?: string | undefined;
         googleClientId?: string | undefined;
+        allowUnauthenticatedIdentities?: string | undefined;
         usernameAttributes?: string | undefined;
         signupAttributes?: string | undefined;
         passwordPolicyMinLength?: string | undefined;

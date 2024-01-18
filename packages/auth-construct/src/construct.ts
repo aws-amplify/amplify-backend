@@ -707,8 +707,12 @@ export class AmplifyAuth
       webClientId: this.resources.userPoolClient.userPoolClientId,
       identityPoolId: this.resources.cfnResources.cfnIdentityPool.ref,
       authRegion: Stack.of(this).region,
+      allowUnauthenticatedIdentities:
+        this.resources.cfnResources.cfnIdentityPool
+          .allowUnauthenticatedIdentities === true
+          ? 'true'
+          : 'false',
     };
-
     if (this.computedUserPoolProps.standardAttributes) {
       const signupAttributes = Object.entries(
         this.computedUserPoolProps.standardAttributes
