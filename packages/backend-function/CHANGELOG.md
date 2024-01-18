@@ -1,5 +1,11 @@
 # @aws-amplify/backend-function
 
+## 0.6.3
+
+### Patch Changes
+
+- @aws-amplify/backend-output-storage@0.2.11
+
 ## 0.6.2
 
 ### Patch Changes
