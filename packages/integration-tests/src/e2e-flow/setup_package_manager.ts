@@ -79,11 +79,7 @@ export const setupPackageManager = async (
 }> => {
   const packageManager = (process.env.PACKAGE_MANAGER ??
     'npm') as PackageManager;
-  const packageManagerExecutable = packageManager.startsWith('yarn')
-    ? 'yarn'
-    : packageManager === 'npm'
-    ? 'npx'
-    : (packageManager as PackageManagerExecutable);
+  let packageManagerExecutable: PackageManagerExecutable;
   const execaOptions = {
     cwd: os.homedir(),
     stdio: 'inherit' as const,
@@ -91,24 +87,28 @@ export const setupPackageManager = async (
 
   switch (packageManager) {
     case 'npm':
+      packageManagerExecutable = 'npx';
       await initializeNpm();
       break;
 
     case 'pnpm':
+      packageManagerExecutable = 'pnpm';
       await initializePnpm();
       break;
 
     case 'yarn-classic':
+      packageManagerExecutable = 'yarn';
       await initializeYarnClassic(execaOptions);
       break;
 
     case 'yarn-modern':
+      packageManagerExecutable = 'yarn';
       execaOptions.cwd = dir;
       await initializeYarnModern(execaOptions);
       break;
 
     default:
-      break;
+      throw new Error(`Unknown package manager: ${packageManager as string}`);
   }
 
   return { packageManagerExecutable, packageManager };

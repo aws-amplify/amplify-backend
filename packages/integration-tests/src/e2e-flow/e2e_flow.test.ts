@@ -66,11 +66,9 @@ void describe('create-amplify and pipeline deploy', async () => {
       }
     );
 
-    const amplifyPathPrefix = path.join(tempDir, 'amplify');
-
     const pathPrefix = path.join(tempDir, 'amplify');
 
-    const files = await glob(path.join(amplifyPathPrefix, '**', '*'), {
+    const files = await glob(path.join(pathPrefix, '**', '*'), {
       nodir: true,
       windowsPathsNoEscape: true,
       ignore: ['**/node_modules/**', '**/yarn.lock'],
