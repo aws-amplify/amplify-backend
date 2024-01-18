@@ -87,14 +87,6 @@ void describe('create-amplify and pipeline deploy', async () => {
       expectedAmplifyFiles.map((suffix) => path.join(pathPrefix, suffix))
     );
 
-    // TODO: may need to move this to create-amplify
-    if (packageManager === 'yarn-modern') {
-      await execa('yarn', ['add', '-D', 'tsx', 'esbuild'], {
-        cwd: tempDir,
-        stdio: 'inherit',
-      });
-    }
-
     await execa(
       packageManagerExecutable,
       [

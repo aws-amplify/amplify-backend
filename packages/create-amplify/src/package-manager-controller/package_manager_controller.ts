@@ -29,10 +29,10 @@ export abstract class PackageManagerController {
   /**
    * installDependencies - installs dependencies in the project root
    */
-  installDependencies = async (
+  async installDependencies(
     packageNames: string[],
     type: DependencyType
-  ): Promise<void> => {
+  ): Promise<void> {
     const args = [`${this.installCommand}`].concat(...packageNames);
     if (type === 'dev') {
       args.push('-D');
@@ -44,7 +44,7 @@ export abstract class PackageManagerController {
       args,
       this.execa
     );
-  };
+  }
 
   /**
    * getWelcomeMessage - returns a welcome message for the customer

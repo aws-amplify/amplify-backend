@@ -40,7 +40,7 @@ export class YarnClassicPackageManagerController extends PackageManagerControlle
   };
 
   /**
-   * initializeTsConfig - initializes a tsconfig.json file in the project root
+   * addTypescript - initializes a tsconfig.json file in the project root
    */
   private addTypescript = async (targetDir: string) => {
     await this.executeWithDebugLogger(
