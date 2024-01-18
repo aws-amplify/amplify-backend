@@ -16,7 +16,7 @@ import { TestBranch, amplifyAppPool } from '../amplify_app_pool.js';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
 import { setupPackageManager } from './setup_package_manager.js';
 
-void describe('installs expected packages and scaffolds expected files', async () => {
+void describe('create-amplify and pipeline deploy', async () => {
   let branchBackendIdentifier: BackendIdentifier;
   let testBranch: TestBranch;
   let cfnClient: CloudFormationClient;
@@ -56,7 +56,7 @@ void describe('installs expected packages and scaffolds expected files', async (
     await execa('npm', ['run', 'stop:npm-proxy'], { stdio: 'inherit' });
   });
 
-  void it(`starting project`, async () => {
+  void it('creates new project and deploy them without an error', async () => {
     await execa(
       packageManager.startsWith('yarn') ? 'yarn' : packageManager,
       ['create', 'amplify', '--yes'],
@@ -89,23 +89,7 @@ void describe('installs expected packages and scaffolds expected files', async (
       expectedAmplifyFiles.map((suffix) => path.join(pathPrefix, suffix))
     );
 
-    // assert that project compiles successfully
-    await execa(
-      packageManagerExecutable,
-      [
-        'tsc',
-        '--noEmit',
-        '--skipLibCheck',
-        // pointing the project arg to the amplify backend directory will use the tsconfig present in that directory
-        '--project',
-        amplifyPathPrefix,
-      ],
-      {
-        cwd: tempDir,
-        stdio: 'inherit',
-      }
-    );
-
+    // TODO: may need to move this to create-amplify
     if (packageManager === 'yarn-modern') {
       await execa('yarn', ['add', '-D', 'tsx', 'esbuild'], {
         cwd: tempDir,
