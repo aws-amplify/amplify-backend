@@ -14,15 +14,23 @@ import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 import { getClientConfigPath } from '@aws-amplify/client-config';
 import { TestBranch, amplifyAppPool } from '../amplify_app_pool.js';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
-import { setupPackageManager } from './setup_package_manager.js';
+import {
+  type PackageManager,
+  type PackageManagerExecutable,
+  setupPackageManager,
+} from './setup_package_manager.js';
+import {
+  packageManagerCli,
+  packageManagerExecute,
+} from '../process-controller/process_controller.js';
 
 void describe('create-amplify and pipeline deploy', async () => {
   let branchBackendIdentifier: BackendIdentifier;
   let testBranch: TestBranch;
   let cfnClient: CloudFormationClient;
   let tempDir: string;
-  let packageManagerExecutable: string;
-  let packageManager: string;
+  let packageManagerExecutable: PackageManagerExecutable;
+  let packageManager: PackageManager;
 
   beforeEach(async () => {
     tempDir = await fsp.mkdtemp(path.join(os.tmpdir(), 'test-create-amplify'));
@@ -57,14 +65,11 @@ void describe('create-amplify and pipeline deploy', async () => {
   });
 
   void it('creates new project and deploy them without an error', async () => {
-    await execa(
-      packageManager.startsWith('yarn') ? 'yarn' : packageManager,
+    await packageManagerCli(
+      packageManager,
       ['create', 'amplify', '--yes'],
-      {
-        cwd: tempDir,
-        stdio: 'inherit',
-      }
-    );
+      tempDir
+    ).run();
 
     const pathPrefix = path.join(tempDir, 'amplify');
 
@@ -87,8 +92,8 @@ void describe('create-amplify and pipeline deploy', async () => {
       expectedAmplifyFiles.map((suffix) => path.join(pathPrefix, suffix))
     );
 
-    await execa(
-      packageManagerExecutable,
+    await packageManagerExecute(
+      packageManager,
       [
         'amplify',
         'pipeline-deploy',
@@ -97,8 +102,9 @@ void describe('create-amplify and pipeline deploy', async () => {
         '--appId',
         branchBackendIdentifier.namespace,
       ],
-      { cwd: tempDir, stdio: 'inherit', env: { CI: 'true' } }
-    );
+      tempDir,
+      { env: { CI: 'true' } }
+    ).run();
 
     const clientConfigStats = await fsp.stat(
       await getClientConfigPath(tempDir)

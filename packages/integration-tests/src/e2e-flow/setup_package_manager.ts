@@ -7,8 +7,8 @@ import * as os from 'os';
 const customRegistry = 'http://localhost:4873';
 
 // TODO: refactor into `type PackageManagerInitializer` and have sub-types with a factory.
-type PackageManager = 'npm' | 'yarn-classic' | 'yarn-modern' | 'pnpm';
-type PackageManagerExecutable = 'npx' | 'yarn' | 'pnpm';
+export type PackageManager = 'npm' | 'yarn-classic' | 'yarn-modern' | 'pnpm';
+export type PackageManagerExecutable = 'npx' | 'yarn' | 'pnpm';
 
 const initializeNpm = async () => {
   const { stdout } = await execa('npm', ['config', 'get', 'cache']);

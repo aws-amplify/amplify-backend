@@ -3,6 +3,11 @@ import readline from 'readline';
 import { PredicatedActionBuilder } from './predicated_action_queue_builder.js';
 import { ActionType } from './predicated_action.js';
 import { killExecaProcess } from './execa_process_killer.js';
+import {
+  type PackageManager,
+  type PackageManagerExecutable,
+} from '../e2e-flow/setup_package_manager.js';
+
 /**
  * Provides an abstractions for sending and receiving data on stdin/out of a child process
  *
@@ -155,6 +160,75 @@ export const cdkCli = (
     throw new Error('Unable to locate cdk binary');
   }
   return new ProcessController(command, args, {
+    cwd: dir,
+    env: options?.env,
+  });
+};
+
+/**
+ *  packageManagerExecute - Factory function that returns a ProcessController for the specified package manager
+ */
+export const packageManagerExecute = (
+  packageManager: PackageManager,
+  args: string[] = [],
+  dir: string,
+  options?: {
+    env?: Record<string, string>;
+  }
+): ProcessController => {
+  const command = execaSync('npx', ['which', packageManager], {
+    cwd: dir,
+  }).stdout.trim();
+  if (!command) {
+    throw new Error('Unable to locate packageManager binary');
+  }
+
+  let packageManagerBinary: PackageManagerExecutable;
+  switch (packageManager) {
+    case 'npm':
+      packageManagerBinary = 'npx';
+      break;
+
+    case 'pnpm':
+      packageManagerBinary = 'pnpm';
+      break;
+
+    case 'yarn-classic':
+    case 'yarn-modern':
+      packageManagerBinary = 'yarn';
+      break;
+
+    default:
+      throw new Error(`Unknown package manager: ${packageManager as string}`);
+  }
+  return new ProcessController(packageManagerBinary, args, {
+    cwd: dir,
+    env: options?.env,
+  });
+};
+
+/**
+ * packageManagerCli - Factory function that returns a ProcessController for the specified package manager
+ */
+export const packageManagerCli = (
+  packageManager: PackageManager,
+  args: string[] = [],
+  dir: string,
+  options?: {
+    env?: Record<string, string>;
+  }
+): ProcessController => {
+  const command = execaSync('npx', ['which', packageManager], {
+    cwd: dir,
+  }).stdout.trim();
+  if (!command) {
+    throw new Error('Unable to locate packageManager binary');
+  }
+  const packageManagerExecutable = packageManager.startsWith('yarn')
+    ? 'yarn'
+    : packageManager;
+
+  return new ProcessController(packageManagerExecutable, args, {
     cwd: dir,
     env: options?.env,
   });
