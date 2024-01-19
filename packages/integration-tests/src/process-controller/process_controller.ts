@@ -166,7 +166,7 @@ export const cdkCli = (
 };
 
 /**
- *  runWithPackageManager - Factory function that returns a ProcessController for the specified package manager
+ *  runWithPackageManager - Factory function that returns a ProcessController for the specified package manager's binary runner
  */
 export const runWithPackageManager = (
   packageManager: PackageManager,
@@ -201,7 +201,7 @@ export const runWithPackageManager = (
 };
 
 /**
- * runPackageManager - Factory function that returns a ProcessController for the specified package manager
+ * runPackageManager - Factory function that returns a ProcessController for the specified package manager's executable
  */
 export const runPackageManager = (
   packageManager: PackageManager,
