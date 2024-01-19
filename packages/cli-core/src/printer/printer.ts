@@ -17,7 +17,8 @@ export class Printer {
    */
   constructor(
     private readonly minimumLogLevel: LogLevel,
-    private readonly writeStream: NodeJS.WriteStream = process.stdout
+    private readonly stdout: NodeJS.WriteStream = process.stdout,
+    private readonly stderr: NodeJS.WriteStream = process.stderr
   ) {
     this.refreshRate = 500;
   }
@@ -33,7 +34,7 @@ export class Printer {
     entries.forEach(([key, val]) => {
       message = message.concat(` ${key}: ${val as string}${EOL}`);
     });
-    this.writeStream.write(message);
+    this.stdout.write(message);
   };
 
   /**
@@ -52,9 +53,9 @@ export class Printer {
    */
   print = (message: string, colorName?: COLOR) => {
     if (colorName) {
-      this.writeStream.write(color(colorName, message));
+      this.stdout.write(color(colorName, message));
     } else {
-      this.writeStream.write(message);
+      this.stdout.write(message);
     }
   };
 
@@ -74,7 +75,7 @@ export class Printer {
    * Prints a new line to console
    */
   printNewLine = () => {
-    this.writeStream.write(EOL);
+    this.stdout.write(EOL);
   };
 
   /**
@@ -91,7 +92,12 @@ export class Printer {
       this.minimumLogLevel === LogLevel.DEBUG
         ? `[${LogLevel[level]}] ${new Date().toISOString()}: ${message}`
         : message;
-    this.writeStream.write(logMessage);
+
+    if (level === LogLevel.ERROR) {
+      this.stderr.write(logMessage);
+    } else {
+      this.stdout.write(logMessage);
+    }
 
     if (eol) {
       this.printNewLine();
@@ -117,11 +123,11 @@ export class Printer {
     let frameCount = 0;
     this.timerSet = true;
     this.writeEscapeSequence(EscapeSequence.HIDE_CURSOR);
-    this.writeStream.write(message);
+    this.stdout.write(message);
     this.timer = setInterval(() => {
       this.writeEscapeSequence(EscapeSequence.CLEAR_LINE);
       this.writeEscapeSequence(EscapeSequence.MOVE_CURSOR_TO_START);
-      this.writeStream.write(message + '.'.repeat(++frameCount % frameLength));
+      this.stdout.write(message + '.'.repeat(++frameCount % frameLength));
     }, this.refreshRate);
   }
 
@@ -138,7 +144,7 @@ export class Printer {
     this.writeEscapeSequence(EscapeSequence.CLEAR_LINE);
     this.writeEscapeSequence(EscapeSequence.MOVE_CURSOR_TO_START);
     this.writeEscapeSequence(EscapeSequence.SHOW_CURSOR);
-    this.writeStream.write(`${message}...${EOL}`);
+    this.stdout.write(`${message}...${EOL}`);
   }
 
   /**
@@ -149,14 +155,14 @@ export class Printer {
       return;
     }
 
-    this.writeStream.write(action);
+    this.stdout.write(action);
   }
 
   /**
    * Checks if the environment is TTY
    */
   private isTTY() {
-    return this.writeStream.isTTY;
+    return this.stdout.isTTY;
   }
 }
 
