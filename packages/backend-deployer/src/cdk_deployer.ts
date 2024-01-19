@@ -33,8 +33,14 @@ export class CDKDeployer implements BackendDeployer {
    */
   constructor(
     private readonly cdkErrorMapper: CdkErrorMapper,
-    private readonly backendLocator: BackendLocator
-  ) {}
+    private readonly backendLocator: BackendLocator,
+    private readonly packageManager: string
+  ) {
+    // TODO: use PackageManagerController to get the executable.
+    // But first, we need to move the PackageManagerController to platform-core.
+    this.packageManager =
+      this.packageManager === 'npm' ? 'npx' : this.packageManager;
+  }
   /**
    * Invokes cdk deploy command
    */
@@ -126,7 +132,7 @@ export class CDKDeployer implements BackendDeployer {
     }
     try {
       await this.executeChildProcess(
-        'npx',
+        this.packageManager,
         [
           'tsc',
           '--showConfig',
@@ -140,7 +146,7 @@ export class CDKDeployer implements BackendDeployer {
       return;
     }
     try {
-      await this.executeChildProcess('npx', [
+      await this.executeChildProcess(this.packageManager, [
         'tsc',
         '--noEmit',
         '--skipLibCheck',
@@ -195,7 +201,7 @@ export class CDKDeployer implements BackendDeployer {
       // See https://github.com/aws/aws-cdk/issues/7717 for more details.
       '--ci',
       '--app',
-      `'npx tsx ${this.backendLocator.locate()}'`,
+      `'${this.packageManager} tsx ${this.backendLocator.locate()}'`,
       '--all',
       '--output',
       '.amplify/artifacts/cdk.out',
@@ -222,7 +228,7 @@ export class CDKDeployer implements BackendDeployer {
       cdkCommandArgs.push(...additionalArguments);
     }
 
-    return await this.executeChildProcess('npx', cdkCommandArgs);
+    return await this.executeChildProcess(this.packageManager, cdkCommandArgs);
   };
 
   private populateCDKOutputFromStdout = async (

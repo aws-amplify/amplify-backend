@@ -43,9 +43,15 @@ export class BackendDeployerFactory {
    */
   static getInstance = (): BackendDeployer => {
     if (!BackendDeployerFactory.instance) {
+      // TODO: once the e2e flow test is complete, we need to refactor this to detect the package manager. Similar as what we did in create-amplify.
+      const { PACKAGE_MANAGER = 'npm' } = process.env;
+      const packageManager = PACKAGE_MANAGER.startsWith('yarn')
+        ? 'yarn'
+        : PACKAGE_MANAGER;
       BackendDeployerFactory.instance = new CDKDeployer(
         new CdkErrorMapper(),
-        new BackendLocator()
+        new BackendLocator(),
+        packageManager
       );
     }
     return BackendDeployerFactory.instance;

@@ -15,10 +15,10 @@ export abstract class PackageManagerController {
    */
   constructor(
     readonly projectRoot: string,
-    protected executable: string,
-    protected binaryRunner: string,
-    protected initDefault: string[],
-    protected installCommand: string,
+    protected readonly executable: string,
+    protected readonly binaryRunner: string,
+    protected readonly initDefault: string[],
+    protected readonly installCommand: string,
     protected readonly fsp = _fsp,
     protected readonly path = _path,
     protected readonly execa = _execa,
@@ -29,10 +29,10 @@ export abstract class PackageManagerController {
   /**
    * installDependencies - installs dependencies in the project root
    */
-  installDependencies = async (
+  async installDependencies(
     packageNames: string[],
     type: DependencyType
-  ): Promise<void> => {
+  ): Promise<void> {
     const args = [`${this.installCommand}`].concat(...packageNames);
     if (type === 'dev') {
       args.push('-D');
@@ -44,7 +44,7 @@ export abstract class PackageManagerController {
       args,
       this.execa
     );
-  };
+  }
 
   /**
    * getWelcomeMessage - returns a welcome message for the customer

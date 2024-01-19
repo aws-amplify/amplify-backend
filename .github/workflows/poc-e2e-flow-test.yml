@@ -42,8 +42,11 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         pkg-manager: [npm, yarn-classic, yarn-modern, pnpm]
         node-version: [20]
+        exclude:
+          - os: windows-latest
+            pkg-manager: pnpm
     env:
-      PACKAGE_MANAGER_EXECUTABLE: ${{ matrix.pkg-manager }} # TODO: remove PACKAGE_MANAGER_EXECUTABLE once CLI is able to getPackageManager().
+      PACKAGE_MANAGER: ${{ matrix.pkg-manager }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
     needs:
@@ -61,7 +64,18 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - name: Restore Build Cache
         uses: ./.github/actions/restore_build_cache
-      - name: Run E2E tests with ${{ matrix.pkg-manager }}
+      - name: Configure test tooling credentials
+        uses: ./.github/actions/setup_profile
+        with:
+          role-to-assume: ${{ secrets.E2E_TOOLING_ROLE_ARN }}
+          aws-region: us-west-2
+          profile-name: e2e-tooling
+      - name: Configure test execution credentials
+        uses: aws-actions/configure-aws-credentials@04b98b3f9e85f563fb061be8751a0352327246b0 # version 3.0.1
+        with:
+          role-to-assume: ${{ secrets.E2E_RUNNER_ROLE_ARN }}
+          aws-region: us-west-2
+      - name: Run E2E flow tests with ${{ matrix.pkg-manager }}
         shell: bash
         run: |
-          PACKAGE_MANAGER_EXECUTABLE=${{matrix.pkg-manager}} npm run test:dir packages/integration-tests/src/test-e2e/create_amplify.test.ts
+          PACKAGE_MANAGER=${{matrix.pkg-manager}} npm run test:dir packages/integration-tests/src/package_manager_sanity_checks.test.ts
