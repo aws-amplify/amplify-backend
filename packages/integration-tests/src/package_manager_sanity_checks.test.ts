@@ -2,7 +2,7 @@ import { execa } from 'execa';
 import * as fsp from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
-import { afterEach, beforeEach, describe, it } from 'node:test';
+import { after, afterEach, before, beforeEach, describe, it } from 'node:test';
 import assert from 'assert';
 import { glob } from 'glob';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
@@ -28,7 +28,7 @@ import {
  * TODO: This test will be refactored to use the test from health-checks.test.ts and run with different package managers.
  */
 
-void describe('create-amplify and pipeline deploy', async () => {
+void describe('getting started happy path', async () => {
   let branchBackendIdentifier: BackendIdentifier;
   let testBranch: TestBranch;
   let cfnClient: CloudFormationClient;
@@ -36,15 +36,22 @@ void describe('create-amplify and pipeline deploy', async () => {
   let packageManagerExecutable: PackageManagerExecutable;
   let packageManager: PackageManager;
 
+  before(async () => {
+    // start a local npm proxy and publish the current codebase to the proxy
+    await execa('npm', ['run', 'clean:npm-proxy'], { stdio: 'inherit' });
+    await execa('npm', ['run', 'vend'], { stdio: 'inherit' });
+  });
+
+  after(async () => {
+    // stop the npm proxy
+    await execa('npm', ['run', 'stop:npm-proxy'], { stdio: 'inherit' });
+  });
+
   beforeEach(async () => {
     tempDir = await fsp.mkdtemp(path.join(os.tmpdir(), 'test-create-amplify'));
     const packageManagerInfo = await setupPackageManager(tempDir);
     packageManagerExecutable = packageManagerInfo.packageManagerExecutable;
     packageManager = packageManagerInfo.packageManager;
-
-    // start a local npm proxy and publish the current codebase to the proxy
-    await execa('npm', ['run', 'clean:npm-proxy'], { stdio: 'inherit' });
-    await execa('npm', ['run', 'vend'], { stdio: 'inherit' });
 
     cfnClient = new CloudFormationClient(e2eToolingClientConfig);
     testBranch = await amplifyAppPool.createTestBranch();
@@ -64,8 +71,6 @@ void describe('create-amplify and pipeline deploy', async () => {
       })
     );
     await fsp.rm(tempDir, { recursive: true });
-    // stop the npm proxy
-    await execa('npm', ['run', 'stop:npm-proxy'], { stdio: 'inherit' });
   });
 
   void it('creates new project and deploy them without an error', async () => {
