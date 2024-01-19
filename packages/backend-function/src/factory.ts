@@ -14,8 +14,6 @@ import { getCallerDirectory } from './get_caller_directory.js';
 import { Duration } from 'aws-cdk-lib';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 
-import fs from 'fs';
-import { createRequire } from 'module';
 import { FunctionEnvironmentTranslator } from './function_env_translator.js';
 
 /**
@@ -238,13 +236,13 @@ class AmplifyFunction
     const secretPolicyStatement =
       functionEnvironmentTranslator.getSecretPolicyStatement();
 
-    const require = createRequire(import.meta.url);
-    const bannerCodeFile = require.resolve('./resolve_secret_banner');
-    const bannerCode = fs
-      .readFileSync(bannerCodeFile, 'utf-8')
-      .replaceAll('\n', '')
-      .replaceAll('\r', '')
-      .split('//#')[0]; // remove source map
+    const bannerCode = [
+      `/* The code in this line replaces placeholder text in environment variables for secrets with values fetched from SSM, this is a noop if there are no secrets */`,
+      // import is done this way because bundled resolve secret banner code is in cjs format
+      `import internalAmplifyFunctionBannerResolveSecretsPackage from './resolve_secret_banner.js';`,
+      `const { internalAmplifyFunctionBannerResolveSecrets } = internalAmplifyFunctionBannerResolveSecretsPackage;`,
+      `await internalAmplifyFunctionBannerResolveSecrets();`,
+    ].join('');
 
     const functionLambda = new NodejsFunction(scope, `${id}-lambda`, {
       entry: props.entry,
@@ -254,6 +252,24 @@ class AmplifyFunction
       runtime: nodeVersionMap[props.runtime],
       bundling: {
         banner: bannerCode,
+        commandHooks: {
+          beforeBundling: (inputDir: string, outputDir: string): string[] => {
+            const esbuildArgs = [
+              `${inputDir}/packages/backend-function/src/resolve_secret_banner.ts`,
+              `--bundle`,
+              `--outdir=${outputDir}`,
+              `--platform=node`,
+            ];
+            const esbuildCommand = ['esbuild', ...esbuildArgs].join(' ');
+
+            return [esbuildCommand];
+          },
+          // afterBundling and beforeInstall are required for commandHooks but we want them to be noop
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          afterBundling: (inputDir: string, outputDir: string): string[] => [],
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          beforeInstall: (inputDir: string, outputDir: string): string[] => [],
+        },
         format: OutputFormat.ESM,
       },
     });
