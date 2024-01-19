@@ -4,7 +4,7 @@ import { TestCommandRunner } from './test-utils/command_runner.js';
 import { createMainParser } from './main_parser_factory.js';
 import { version } from '#package.json';
 
-void describe('main parser', { concurrency: false }, async () => {
+void describe('main parser', { concurrency: false }, () => {
   const parser = createMainParser();
   const commandRunner = new TestCommandRunner(parser);
 
