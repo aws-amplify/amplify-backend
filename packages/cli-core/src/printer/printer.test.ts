@@ -1,4 +1,4 @@
-import test, { describe, it, mock } from 'node:test';
+import { after, before, beforeEach, describe, it, mock } from 'node:test';
 import assert from 'assert';
 import { LogLevel, Printer } from './printer.js';
 
@@ -6,17 +6,17 @@ void describe('Printer', () => {
   const mockedWrite = mock.method(process.stdout, 'write');
   let originalWrite: typeof process.stdout.write;
 
-  test.before(() => {
+  before(() => {
     originalWrite = process.stdout.write;
     process.stdout.write = mockedWrite;
   });
 
-  test.after(() => {
+  after(() => {
     // restore write function after all tests.
     process.stdout.write = originalWrite;
   });
 
-  test.beforeEach(() => {
+  beforeEach(() => {
     mockedWrite.mock.resetCalls();
   });
 

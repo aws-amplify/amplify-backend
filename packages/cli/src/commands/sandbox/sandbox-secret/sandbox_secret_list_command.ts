@@ -37,8 +37,10 @@ export class SandboxSecretListCommand implements CommandModule<object> {
       sandboxBackendIdentifier
     );
 
-    printer.printRecord({
-      names: secretIds.map((secretId) => secretId.name),
-    });
+    printer.printRecords([
+      {
+        names: secretIds.map((secretId) => secretId.name),
+      },
+    ]);
   };
 }

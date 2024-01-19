@@ -14,13 +14,10 @@ import { InitialProjectFileGenerator } from './initial_project_file_generator.js
 import { NpmProjectInitializer } from './npm_project_initializer.js';
 import { getProjectRoot } from './get_project_root.js';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
-import { LogLevel, Printer } from '@aws-amplify/cli-core';
+import { LogLevel } from '@aws-amplify/cli-core';
+import { printer } from './printer.js';
 
 const projectRoot = await getProjectRoot();
-const logLevel = process.argv.includes('--debug')
-  ? LogLevel.DEBUG
-  : LogLevel.INFO;
-const printer = new Printer(logLevel);
 
 const amplifyProjectCreator = new AmplifyProjectCreator(
   new NpmPackageManagerController(projectRoot),

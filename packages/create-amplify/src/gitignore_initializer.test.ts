@@ -1,4 +1,4 @@
-import test, { describe, it, mock } from 'node:test';
+import { beforeEach, describe, it, mock } from 'node:test';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
 import assert from 'assert';
 import * as path from 'path';
@@ -8,7 +8,7 @@ import { printer } from './printer.js';
 void describe('GitIgnoreInitializer', () => {
   const logMock = mock.method(printer, 'log');
 
-  test.beforeEach(() => {
+  beforeEach(() => {
     logMock.mock.resetCalls();
   });
 

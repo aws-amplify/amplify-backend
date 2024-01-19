@@ -1,4 +1,4 @@
-import test, { describe, it, mock } from 'node:test';
+import { beforeEach, describe, it, mock } from 'node:test';
 import { NpmProjectInitializer } from './npm_project_initializer.js';
 import assert from 'assert';
 import { printer } from './printer.js';
@@ -6,7 +6,7 @@ import { printer } from './printer.js';
 void describe('NpmInitializedEnsurer', () => {
   const logMock = mock.method(printer, 'log');
 
-  test.beforeEach(() => {
+  beforeEach(() => {
     logMock.mock.resetCalls();
   });
 

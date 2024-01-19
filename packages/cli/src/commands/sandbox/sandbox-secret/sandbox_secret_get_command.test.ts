@@ -11,7 +11,7 @@ import {
 import { SandboxSecretGetCommand } from './sandbox_secret_get_command.js';
 import { printer } from '../../../printer.js';
 
-const printRecordMock = mock.method(printer, 'printRecord');
+const printRecordsMock = mock.method(printer, 'printRecords');
 
 const testSecretName = 'testSecretName';
 const testBackendId = 'testBackendId';
@@ -55,7 +55,7 @@ void describe('sandbox secret get command', () => {
 
   beforeEach(async () => {
     secretGetMock.mock.resetCalls();
-    printRecordMock.mock.resetCalls();
+    printRecordsMock.mock.resetCalls();
   });
 
   void it('gets a secret', async () => {
@@ -71,11 +71,10 @@ void describe('sandbox secret get command', () => {
       testSecretIdentifier,
     ]);
 
-    assert.equal(printRecordMock.mock.callCount(), 1);
-    assert.deepStrictEqual(
-      printRecordMock.mock.calls[0].arguments[0],
-      testSecret
-    );
+    assert.equal(printRecordsMock.mock.callCount(), 1);
+    assert.deepStrictEqual(printRecordsMock.mock.calls[0].arguments[0], [
+      testSecret,
+    ]);
   });
 
   void it('show --help', async () => {

@@ -4,12 +4,11 @@ import { EOL } from 'os';
 export type RecordValue = string | number | string[] | Date;
 
 /**
- * The class that pretty prints to the console.
+ * The class that pretty prints to the output stream.
  */
 export class Printer {
   // Properties for ellipsis animation
   private timer: ReturnType<typeof setTimeout>;
-  private refreshRate: number;
   private timerSet: boolean;
 
   /**
@@ -18,27 +17,12 @@ export class Printer {
   constructor(
     private readonly minimumLogLevel: LogLevel,
     private readonly stdout: NodeJS.WriteStream = process.stdout,
-    private readonly stderr: NodeJS.WriteStream = process.stderr
-  ) {
-    this.refreshRate = 500;
-  }
+    private readonly stderr: NodeJS.WriteStream = process.stderr,
+    private readonly refreshRate: number = 500
+  ) {}
 
   /**
-   * Print an object/record to console.
-   */
-  printRecord = <T extends Record<string | number, RecordValue>>(
-    object: T
-  ): void => {
-    let message = '';
-    const entries = Object.entries(object);
-    entries.forEach(([key, val]) => {
-      message = message.concat(` ${key}: ${val as string}${EOL}`);
-    });
-    this.stdout.write(message);
-  };
-
-  /**
-   * Prints an array of objects/records to console.
+   * Prints an array of objects/records to output stream.
    */
   printRecords = <T extends Record<string | number, RecordValue>>(
     objects: T[]
@@ -49,7 +33,7 @@ export class Printer {
   };
 
   /**
-   * Prints a given message (with optional color) to console.
+   * Prints a given message (with optional color) to output stream.
    */
   print = (message: string, colorName?: COLOR) => {
     if (colorName) {
@@ -72,19 +56,19 @@ export class Printer {
   }
 
   /**
-   * Prints a new line to console
+   * Prints a new line to output stream
    */
   printNewLine = () => {
     this.stdout.write(EOL);
   };
 
   /**
-   * Logs a message to the console.
+   * Logs a message to the output stream.
    */
   log(message: string, level: LogLevel = LogLevel.INFO, eol = true) {
-    const toLogMessage = level <= this.minimumLogLevel;
+    const doLogMessage = level <= this.minimumLogLevel;
 
-    if (!toLogMessage) {
+    if (!doLogMessage) {
       return;
     }
 
@@ -103,6 +87,20 @@ export class Printer {
       this.printNewLine();
     }
   }
+
+  /**
+   * Print an object/record to output stream.
+   */
+  private printRecord = <T extends Record<string | number, RecordValue>>(
+    object: T
+  ): void => {
+    let message = '';
+    const entries = Object.entries(object);
+    entries.forEach(([key, val]) => {
+      message = message.concat(` ${key}: ${val as string}${EOL}`);
+    });
+    this.stdout.write(message);
+  };
 
   /**
    * Start animating ellipsis at the end of a log message.
@@ -167,9 +165,9 @@ export class Printer {
 }
 
 export enum LogLevel {
-  ERROR,
-  INFO,
-  DEBUG,
+  ERROR = 0,
+  INFO = 1,
+  DEBUG = 2,
 }
 
 enum EscapeSequence {
