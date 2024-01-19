@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/backend-output-schemas",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "type": "commonjs",
   "publishConfig": {
     "access": "public"

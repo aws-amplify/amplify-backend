@@ -39,6 +39,31 @@ void describe('AuthClientConfigContributor', () => {
             userPoolId: 'testUserPoolId',
             webClientId: 'testWebClientId',
             authRegion: 'testRegion',
+            allowUnauthenticatedIdentities: 'true',
+          },
+        },
+      }),
+      {
+        aws_user_pools_id: 'testUserPoolId',
+        aws_user_pools_web_client_id: 'testWebClientId',
+        aws_cognito_region: 'testRegion',
+        aws_cognito_identity_pool_id: 'testIdentityPoolId',
+        allowUnauthenticatedIdentities: 'true',
+      }
+    );
+  });
+
+  void it('returns translated config without requiring allowUnauthenticatedIdentities', () => {
+    const contributor = new AuthClientConfigContributor();
+    assert.deepStrictEqual(
+      contributor.contribute({
+        [authOutputKey]: {
+          version: '1',
+          payload: {
+            identityPoolId: 'testIdentityPoolId',
+            userPoolId: 'testUserPoolId',
+            webClientId: 'testWebClientId',
+            authRegion: 'testRegion',
           },
         },
       }),
@@ -70,6 +95,7 @@ void describe('AuthClientConfigContributor', () => {
             verificationMechanisms: '["EMAIL","PHONE"]',
             usernameAttributes: '["EMAIL"]',
             signupAttributes: '["EMAIL"]',
+            allowUnauthenticatedIdentities: 'true',
           },
         },
       }),
@@ -91,6 +117,7 @@ void describe('AuthClientConfigContributor', () => {
         aws_cognito_signup_attributes: ['EMAIL'],
         aws_cognito_username_attributes: ['EMAIL'],
         aws_cognito_verification_mechanisms: ['EMAIL', 'PHONE'],
+        allowUnauthenticatedIdentities: 'true',
       }
     );
   });
