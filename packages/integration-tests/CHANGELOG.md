@@ -1,5 +1,11 @@
 # @aws-amplify/integration-tests
 
+## 0.4.3
+
+### Patch Changes
+
+- 6a001bfe8: Make shared secret names unique for e2e tests
+
 ## 0.4.2
 
 ### Patch Changes

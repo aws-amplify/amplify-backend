@@ -1,5 +1,21 @@
 # @aws-amplify/backend-cli
 
+## 0.9.7
+
+### Patch Changes
+
+- f8112b6f3: If present, print error.cause.message in top-level error handler. This gives customers more debugging information when the error cause rather than the error contains the root cause of the issue.
+- Updated dependencies [0809ad36d]
+- Updated dependencies [618a2ea71]
+  - @aws-amplify/platform-core@0.4.3
+  - @aws-amplify/backend-output-schemas@0.5.2
+  - @aws-amplify/client-config@0.5.3
+  - @aws-amplify/backend-deployer@0.4.7
+  - @aws-amplify/backend-secret@0.4.3
+  - @aws-amplify/deployed-backend-client@0.3.9
+  - @aws-amplify/sandbox@0.3.14
+  - @aws-amplify/model-generator@0.2.7
+
 ## 0.9.6
 
 ### Patch Changes
