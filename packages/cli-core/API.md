@@ -37,7 +37,7 @@ export enum LogLevel {
 
 // @public
 export class Printer {
-    constructor(minimumLogLevel: LogLevel, writeStream?: NodeJS.WriteStream);
+    constructor(minimumLogLevel: LogLevel, stdout?: NodeJS.WriteStream, stderr?: NodeJS.WriteStream);
     indicateProgress(message: string, callback: () => Promise<void>): Promise<void>;
     log(message: string, level?: LogLevel, eol?: boolean): void;
     print: (message: string, colorName?: COLOR) => void;
