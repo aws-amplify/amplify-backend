@@ -584,6 +584,11 @@ export class AmplifyAuth
     userPool: UserPool,
     loginOptions: AuthProps['loginWith']
   ): IdentityProviderSetupResult => {
+    /**
+     * If email is enabled, and is the only required attribute, we are able to
+     * automatically map the email attribute from external providers, excluding SAML.
+     */
+    const shouldMapEmailAttributes = loginOptions.email && !loginOptions.phone;
     const result: IdentityProviderSetupResult = {
       oauthMappings: {},
       providersList: [],
@@ -602,11 +607,14 @@ export class AmplifyAuth
           userPool,
           clientId: googleProps.clientId,
           clientSecretValue: googleProps.clientSecret,
-          attributeMapping: googleProps.attributeMapping ?? {
-            email: {
-              attributeName: 'email',
-            },
-          },
+          attributeMapping:
+            googleProps.attributeMapping ?? shouldMapEmailAttributes
+              ? {
+                  email: {
+                    attributeName: 'email',
+                  },
+                }
+              : undefined,
           scopes: googleProps.scopes,
         }
       );
@@ -620,11 +628,14 @@ export class AmplifyAuth
         {
           userPool,
           ...external.facebook,
-          attributeMapping: external.facebook.attributeMapping ?? {
-            email: {
-              attributeName: 'email',
-            },
-          },
+          attributeMapping:
+            external.facebook.attributeMapping ?? shouldMapEmailAttributes
+              ? {
+                  email: {
+                    attributeName: 'email',
+                  },
+                }
+              : undefined,
         }
       );
       result.oauthMappings[authProvidersList.facebook] =
@@ -638,11 +649,15 @@ export class AmplifyAuth
         {
           userPool,
           ...external.loginWithAmazon,
-          attributeMapping: external.loginWithAmazon.attributeMapping ?? {
-            email: {
-              attributeName: 'email',
-            },
-          },
+          attributeMapping:
+            external.loginWithAmazon.attributeMapping ??
+            shouldMapEmailAttributes
+              ? {
+                  email: {
+                    attributeName: 'email',
+                  },
+                }
+              : undefined,
         }
       );
       result.oauthMappings[authProvidersList.amazon] =
@@ -656,11 +671,15 @@ export class AmplifyAuth
         {
           userPool,
           ...external.signInWithApple,
-          attributeMapping: external.signInWithApple.attributeMapping ?? {
-            email: {
-              attributeName: 'email',
-            },
-          },
+          attributeMapping:
+            external.signInWithApple.attributeMapping ??
+            shouldMapEmailAttributes
+              ? {
+                  email: {
+                    attributeName: 'email',
+                  },
+                }
+              : undefined,
         }
       );
       result.oauthMappings[authProvidersList.apple] =
@@ -671,11 +690,14 @@ export class AmplifyAuth
       result.oidc = new cognito.UserPoolIdentityProviderOidc(this, 'OidcIDP', {
         userPool,
         ...external.oidc,
-        attributeMapping: external.oidc.attributeMapping ?? {
-          email: {
-            attributeName: 'email',
-          },
-        },
+        attributeMapping:
+          external.oidc.attributeMapping ?? shouldMapEmailAttributes
+            ? {
+                email: {
+                  attributeName: 'email',
+                },
+              }
+            : undefined,
       });
       result.providersList.push('OIDC');
     }
