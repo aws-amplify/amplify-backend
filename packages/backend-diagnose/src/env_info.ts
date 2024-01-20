@@ -58,7 +58,7 @@ export const getEnvInfo = async (): Promise<EnvInfo> => {
 
 /**
  * Format environment information.
- * @param info The environment information.
+ * @param info - The environment information.
  * @returns The formatted environment information.
  */
 export const formatEnvInfo = (info: EnvInfo) => {
