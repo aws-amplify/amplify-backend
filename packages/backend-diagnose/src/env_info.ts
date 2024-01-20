@@ -17,7 +17,7 @@ type EnvInfoNpmPackage =
   | string;
 
 // write this manually given types are not available
-type EnvInfo = {
+export type EnvInfo = {
   System: {
     OS: string;
     CPU: string;
