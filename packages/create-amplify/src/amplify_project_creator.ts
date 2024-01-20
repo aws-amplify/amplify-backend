@@ -1,9 +1,10 @@
-import { LogLevel, Printer } from '@aws-amplify/cli-core';
+import { LogLevel } from '@aws-amplify/cli-core';
 import { PackageManagerController } from './package_manager_controller.js';
 import { ProjectRootValidator } from './project_root_validator.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
 import { NpmProjectInitializer } from './npm_project_initializer.js';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
+import { printer } from './printer.js';
 
 const LEARN_MORE_USAGE_DATA_TRACKING_LINK = `https://docs.amplify.aws/gen2/reference/telemetry`;
 
@@ -32,15 +33,14 @@ export class AmplifyProjectCreator {
     private readonly initialProjectFileGenerator: InitialProjectFileGenerator,
     private readonly npmInitializedEnsurer: NpmProjectInitializer,
     private readonly gitIgnoreInitializer: GitIgnoreInitializer,
-    private readonly projectRoot: string,
-    private readonly printer: Printer
+    private readonly projectRoot: string
   ) {}
 
   /**
    * Executes the create-amplify workflow
    */
   create = async (): Promise<void> => {
-    this.printer.log(
+    printer.log(
       `Validating current state of target directory...`,
       LogLevel.DEBUG
     );
@@ -48,7 +48,7 @@ export class AmplifyProjectCreator {
 
     await this.npmInitializedEnsurer.ensureInitialized();
 
-    await this.printer.indicateProgress(
+    await printer.indicateProgress(
       `Installing required dependencies`,
       async () => {
         await this.packageManagerController.installDependencies(
@@ -63,26 +63,26 @@ export class AmplifyProjectCreator {
       }
     );
 
-    await this.printer.indicateProgress(`Creating template files`, async () => {
+    await printer.indicateProgress(`Creating template files`, async () => {
       await this.gitIgnoreInitializer.ensureInitialized();
 
       await this.initialProjectFileGenerator.generateInitialProjectFiles();
     });
 
-    this.printer.log('Successfully created a new project!');
+    printer.log('Successfully created a new project!');
 
     const cdCommand =
       process.cwd() === this.projectRoot
         ? ''
         : `cd .${this.projectRoot.replace(process.cwd(), '')}; `;
 
-    this.printer.log(
+    printer.log(
       `Welcome to AWS Amplify! 
 Run \`npx amplify help\` for a list of available commands. 
 Get started by running \`${cdCommand}npx amplify sandbox\`.`
     );
 
-    this.printer.log(
+    printer.log(
       `Amplify (Gen 2) collects anonymous telemetry data about general usage of the CLI.
 
 Participation is optional, and you may opt-out by using \`amplify configure telemetry disable\`.

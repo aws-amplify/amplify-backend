@@ -62,11 +62,9 @@ void describe('sandbox secret list command', () => {
     });
 
     assert.equal(printRecordsMock.mock.callCount(), 1);
-    assert.deepStrictEqual(printRecordsMock.mock.calls[0].arguments[0], [
-      {
-        names: testSecrets.map((s) => s.name),
-      },
-    ]);
+    assert.deepStrictEqual(printRecordsMock.mock.calls[0].arguments[0], {
+      names: testSecrets.map((s) => s.name),
+    });
   });
 
   void it('show --help', async () => {

@@ -25,7 +25,7 @@ export class Printer {
    * Prints an array of objects/records to output stream.
    */
   printRecords = <T extends Record<string | number, RecordValue>>(
-    objects: T[]
+    ...objects: T[]
   ): void => {
     for (const obj of objects) {
       this.printRecord(obj);

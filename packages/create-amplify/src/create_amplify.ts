@@ -25,8 +25,7 @@ const amplifyProjectCreator = new AmplifyProjectCreator(
   new InitialProjectFileGenerator(projectRoot),
   new NpmProjectInitializer(projectRoot),
   new GitIgnoreInitializer(projectRoot),
-  projectRoot,
-  printer
+  projectRoot
 );
 
 try {

@@ -42,7 +42,7 @@ export class Printer {
     log(message: string, level?: LogLevel, eol?: boolean): void;
     print: (message: string, colorName?: COLOR) => void;
     printNewLine: () => void;
-    printRecords: <T extends Record<string | number, RecordValue>>(objects: T[]) => void;
+    printRecords: <T extends Record<string | number, RecordValue>>(...objects: T[]) => void;
 }
 
 // @public (undocumented)

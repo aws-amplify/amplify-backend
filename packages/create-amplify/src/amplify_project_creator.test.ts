@@ -26,8 +26,7 @@ void describe('AmplifyProjectCreator', () => {
       initialProjectFileGeneratorMock as never,
       npmInitializedEnsurerMock as never,
       gitIgnoreInitializerMock as never,
-      process.cwd(),
-      printer
+      process.cwd()
     );
     await amplifyProjectCreator.create();
     assert.equal(
@@ -67,8 +66,7 @@ void describe('AmplifyProjectCreator', () => {
       initialProjectFileGeneratorMock as never,
       npmInitializedEnsurerMock as never,
       gitIgnoreInitializerMock as never,
-      '/project/root',
-      printer
+      '/project/root'
     );
     await amplifyProjectCreator.create();
 

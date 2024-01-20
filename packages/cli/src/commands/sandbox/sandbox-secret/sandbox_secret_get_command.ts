@@ -39,7 +39,7 @@ export class SandboxSecretGetCommand
     const secret = await this.secretClient.getSecret(sandboxBackendIdentifier, {
       name: args['secret-name'],
     });
-    printer.printRecords([secret]);
+    printer.printRecords(secret);
   };
 
   /**
