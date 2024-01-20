@@ -3,9 +3,9 @@ import { execa as _execa } from 'execa';
 import { indent } from './indent.js';
 
 /**
- * Get CDK information
- * @todo replace with programmatic CDK usage
- * @todo replace npx with PackageManager
+ * Format CDK information.
+ * @param execa - The execa to run the cdk command.
+ * @returns The cdk doctor output.
  */
 export const getCdkInfo = async (execa = _execa): Promise<string> => {
   const cdkDoctorArgs: string[] = ['cdk', 'doctor', '--', ' --no-color'];
