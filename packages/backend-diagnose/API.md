@@ -23,6 +23,18 @@ export type EnvInfo = {
     npmPackages: Record<string, EnvInfoNpmPackage>;
 };
 
+// @public (undocumented)
+export type EnvInfoBinary = {
+    version: string;
+    path: string;
+};
+
+// @public (undocumented)
+export type EnvInfoNpmPackage = {
+    wanted: string;
+    installed: string;
+} | string;
+
 // @public
 export const formatCdkInfo: (info: string) => string;
 
@@ -34,11 +46,6 @@ export const getCdkInfo: (execa?: typeof execa) => Promise<string>;
 
 // @public
 export const getEnvInfo: () => Promise<EnvInfo>;
-
-// Warnings were encountered during analysis:
-//
-// src/env_info.ts:25:5 - (ae-forgotten-export) The symbol "EnvInfoBinary" needs to be exported by the entry point index.d.ts
-// src/env_info.ts:33:3 - (ae-forgotten-export) The symbol "EnvInfoNpmPackage" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 
