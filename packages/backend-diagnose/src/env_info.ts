@@ -4,12 +4,12 @@ import { execa as _execa } from 'execa';
 import envinfo from 'envinfo';
 import { indent } from './indent.js';
 
-type EnvInfoBinary = {
+export type EnvInfoBinary = {
   version: string;
   path: string;
 };
 
-type EnvInfoNpmPackage =
+export type EnvInfoNpmPackage =
   | {
       wanted: string;
       installed: string;
