@@ -1,3 +1,4 @@
+import * as os from 'node:os';
 import * as assert from 'node:assert';
 import * as test from 'node:test';
 import { formatEnvInfo, getEnvInfo } from './env_info.js';
@@ -52,20 +53,24 @@ void test.describe('Env Info', () => {
   });
 
   void test.it('formats info', () => {
-    const expected = `
-System:
-  CPU: ${mockValue.System.CPU}
-  Memory: ${mockValue.System.Memory}
-  OS: ${mockValue.System.OS}
-  Shell: ${mockValue.System.Shell.path}
-Binaries:
-  Node: ${mockValue.Binaries.Node.version} - ${mockValue.Binaries.Node.path}
-  npm: ${mockValue.Binaries.npm.version} - ${mockValue.Binaries.npm.path}
-  pnpm: ${mockValue.Binaries.pnpm.version} - ${mockValue.Binaries.pnpm.path}
-  Yarn: ${mockValue.Binaries.Yarn.version} - ${mockValue.Binaries.Yarn.path}
-NPM Packages:
-  fake: ${(mockValue.npmPackages.fake as Record<string, string>).installed}
-`.trim();
+    const expectedLines = [
+      'System:',
+      `  CPU: ${mockValue.System.CPU}`,
+      `  Memory: ${mockValue.System.Memory}`,
+      `  OS: ${mockValue.System.OS}`,
+      `  Shell: ${mockValue.System.Shell.path}`,
+      'Binaries:',
+      `  Node: ${mockValue.Binaries.Node.version} - ${mockValue.Binaries.Node.path}`,
+      `  npm: ${mockValue.Binaries.npm.version} - ${mockValue.Binaries.npm.path}`,
+      `  pnpm: ${mockValue.Binaries.pnpm.version} - ${mockValue.Binaries.pnpm.path}`,
+      `  Yarn: ${mockValue.Binaries.Yarn.version} - ${mockValue.Binaries.Yarn.path}`,
+      'NPM Packages:',
+      `  fake: ${
+        (mockValue.npmPackages.fake as Record<string, string>).installed
+      }`,
+    ];
+
+    const expected = expectedLines.join(os.EOL);
 
     const result = formatEnvInfo(mockValue);
     assert.strictEqual<string>(result, expected);

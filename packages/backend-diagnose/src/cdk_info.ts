@@ -50,11 +50,6 @@ export const formatCdkInfo = (info: string) => {
       formattedLine = indent(formattedLine);
     } else if (formattedLine.startsWith('- ')) {
       formattedLine = indent(formattedLine.substring(2));
-    } else if (
-      formattedLine.includes('AWS environment variables') ||
-      formattedLine.includes('CDK environment variables')
-    ) {
-      formattedLine = formattedLine.replace(':', ':');
     }
 
     return formattedLine;
@@ -62,5 +57,5 @@ export const formatCdkInfo = (info: string) => {
 
   return formattedLines
     .filter((line) => line !== null && !line.startsWith('CDK Version'))
-    .join('\n');
+    .join(os.EOL);
 };

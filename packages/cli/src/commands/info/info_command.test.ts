@@ -1,4 +1,4 @@
-import { beforeEach, describe, it, mock } from 'node:test';
+import { describe, it } from 'node:test';
 import { createInfoCommand } from './info_command_factory.js';
 import { InfoCommand } from './info_command.js';
 import { TestCommandRunner } from '../../test-utils/command_runner.js';
