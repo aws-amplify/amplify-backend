@@ -1,0 +1,28 @@
+{
+  "name": "@aws-amplify/backend-diagnose",
+  "version": "0.1.0",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "import": "./lib/index.js",
+      "require": "./lib/index.js"
+    }
+  },
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "update:api": "api-extractor run --local"
+  },
+  "license": "Apache-2.0",
+  "dependencies": {
+    "execa": "^8.0.1",
+    "envinfo": "^7.11.0"
+  },
+  "devDependencies": {
+    "@types/envinfo": "^7.8.3",
+    "@types/node": "^20.11.5"
+  }
+}
