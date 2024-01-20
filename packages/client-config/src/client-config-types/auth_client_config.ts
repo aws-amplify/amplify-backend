@@ -21,6 +21,8 @@ export type AuthClientConfig = {
 
   aws_cognito_social_providers?: string[];
 
+  allowUnauthenticatedIdentities?: string;
+
   oauth?: {
     domain?: string;
     scope?: string[];
