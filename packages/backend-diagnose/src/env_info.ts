@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as os from 'node:os';
-import { execa as _execa } from 'execa';
 import envinfo from 'envinfo';
 import { indent } from './indent.js';
 
