@@ -19,6 +19,7 @@ import {
   setupPackageManager,
 } from './setup_package_manager.js';
 import {
+  amplifyCli,
   runPackageManager,
   runWithPackageManager,
 } from './process-controller/process_controller.js';
@@ -85,18 +86,18 @@ void describe('getting started happy path', async () => {
       tempDir
     ).run();
 
-    await runWithPackageManager(
-      packageManager,
+    await amplifyCli(
       [
-        'amplify',
         'pipeline-deploy',
         '--branch',
-        branchBackendIdentifier.name,
+        testBranch.branchName,
         '--appId',
-        branchBackendIdentifier.namespace,
+        testBranch.appId,
       ],
       tempDir,
-      { env: { CI: 'true' } }
+      {
+        env: { CI: 'true' },
+      }
     ).run();
 
     const clientConfigStats = await fsp.stat(
@@ -108,12 +109,12 @@ void describe('getting started happy path', async () => {
 
   void it('creates new project and run sandbox without an error', async () => {
     await runPackageManager(
-      packageManager,
+      'npm',
       ['create', 'amplify', '--yes'],
       tempDir
     ).run();
 
-    await runWithPackageManager(packageManager, ['amplify', 'sandbox'], tempDir)
+    await amplifyCli(['sandbox'], tempDir)
       .do(waitForSandboxDeploymentToPrintTotalTime())
       .do(interruptSandbox())
       .do(rejectCleanupSandbox())
@@ -125,11 +126,7 @@ void describe('getting started happy path', async () => {
 
     assert.ok(clientConfigStats.isFile());
 
-    await runWithPackageManager(
-      packageManager,
-      ['amplify', 'sandbox', 'delete'],
-      tempDir
-    )
+    await amplifyCli(['sandbox', 'delete'], tempDir)
       .do(confirmDeleteSandbox())
       .run();
   });

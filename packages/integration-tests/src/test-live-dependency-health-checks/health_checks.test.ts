@@ -126,7 +126,7 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
         tempDir
       ).run();
 
-      await runWithPackageManager('npm', ['amplify', 'sandbox'], tempDir)
+      await amplifyCli(['sandbox'], tempDir)
         .do(waitForSandboxDeploymentToPrintTotalTime())
         .do(interruptSandbox())
         .do(rejectCleanupSandbox())
@@ -138,11 +138,7 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
 
       assert.ok(clientConfigStats.isFile());
 
-      await runWithPackageManager(
-        'npm',
-        ['amplify', 'sandbox', 'delete'],
-        tempDir
-      )
+      await amplifyCli(['sandbox', 'delete'], tempDir)
         .do(confirmDeleteSandbox())
         .run();
     });
