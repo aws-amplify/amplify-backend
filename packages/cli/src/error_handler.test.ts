@@ -4,13 +4,14 @@ import {
   generateCommandFailureHandler,
 } from './error_handler.js';
 import { Argv } from 'yargs';
-import { COLOR, Printer } from '@aws-amplify/cli-core';
+import { COLOR } from '@aws-amplify/cli-core';
 import assert from 'node:assert';
 import { InvalidCredentialError } from './error/credential_error.js';
+import { printer } from './printer.js';
+
+const mockPrint = mock.method(printer, 'print');
 
 void describe('generateCommandFailureHandler', () => {
-  const mockPrint = mock.method(Printer, 'print');
-
   const mockShowHelp = mock.fn();
   const mockExit = mock.fn();
 
@@ -89,8 +90,6 @@ void describe('generateCommandFailureHandler', () => {
 });
 
 void describe('attachUnhandledExceptionListeners', { concurrency: 1 }, () => {
-  const mockPrint = mock.method(Printer, 'print');
-
   before(() => {
     attachUnhandledExceptionListeners();
   });
