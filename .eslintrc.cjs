@@ -10,6 +10,8 @@ module.exports = {
     'plugin:amplify-backend-rules/recommended',
     'plugin:jsdoc/recommended-typescript-error',
     'plugin:promise/recommended',
+    'plugin:import/recommended',
+    'plugin:import/typescript',
     'prettier',
   ],
   overrides: [
@@ -41,6 +43,11 @@ module.exports = {
     '@shopify',
   ],
   rules: {
+    '@typescript-eslint/consistent-type-exports': 'error',
+    '@typescript-eslint/consistent-type-imports': [
+      'error',
+      { fixStyle: 'inline-type-imports' },
+    ],
     '@typescript-eslint/naming-convention': [
       'error',
       {
@@ -157,6 +164,7 @@ module.exports = {
     ],
     'jsdoc/require-param': 'off',
     'jsdoc/require-returns': 'off',
+    'import/consistent-type-specifier-style': ['error', 'prefer-inline'],
     'spellcheck/spell-checker': [
       'warn',
       {
@@ -169,5 +177,11 @@ module.exports = {
         minLength: 4,
       },
     ],
+  },
+  settings: {
+    'import/resolver': {
+      typescript: true,
+      node: true,
+    },
   },
 };
