@@ -1,8 +1,9 @@
 import { afterEach, before, beforeEach, describe, it } from 'node:test';
-import fs from 'fs/promises';
+import fsp from 'fs/promises';
 import path from 'path';
 import os from 'os';
 import { execa } from 'execa';
+import { getClientConfigPath } from '@aws-amplify/client-config';
 import { amplifyCli } from '../process-controller/process_controller.js';
 import { TestBranch, amplifyAppPool } from '../amplify_app_pool.js';
 import assert from 'node:assert';
@@ -19,6 +20,10 @@ import {
 } from '../process-controller/predicated_action_macros.js';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
+import {
+  runPackageManager,
+  runWithPackageManager,
+} from './../process-controller/process_controller.js';
 
 const cfnClient = new CloudFormationClient(e2eToolingClientConfig);
 
@@ -36,7 +41,7 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
     const npxCacheLocation = path.join(stdout.toString().trim(), '_npx');
 
     if (existsSync(npxCacheLocation)) {
-      await fs.rm(npxCacheLocation, { recursive: true });
+      await fsp.rm(npxCacheLocation, { recursive: true });
     }
 
     // Force 'create-amplify' installation in npx cache by executing help command
@@ -53,12 +58,12 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
     let tempDir: string;
     let testBranch: TestBranch;
     beforeEach(async () => {
-      tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'test-amplify'));
+      tempDir = await fsp.mkdtemp(path.join(os.tmpdir(), 'test-amplify'));
       testBranch = await amplifyAppPool.createTestBranch();
     });
 
     afterEach(async () => {
-      await fs.rm(tempDir, { recursive: true });
+      await fsp.rm(tempDir, { recursive: true });
       const stackName = BackendIdentifierConversions.toStackName({
         namespace: testBranch.appId,
         name: testBranch.branchName,
@@ -77,11 +82,11 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
     });
 
     void it('end to end flow', async () => {
-      await execa('npm', ['create', 'amplify', '--yes'], {
-        cwd: tempDir,
-        stdio: 'inherit',
-      });
-
+      await runPackageManager(
+        'npm',
+        ['create', 'amplify', '--yes'],
+        tempDir
+      ).run();
       await amplifyCli(
         [
           'pipeline-deploy',
@@ -96,9 +101,10 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
         }
       ).run();
 
-      const clientConfigStats = await fs.stat(
-        path.join(tempDir, 'amplifyconfiguration.json')
+      const clientConfigStats = await fsp.stat(
+        await getClientConfigPath(tempDir)
       );
+
       assert.ok(clientConfigStats.isFile());
     });
   });
@@ -106,31 +112,37 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
   void describe('sandbox deployment', () => {
     let tempDir: string;
     beforeEach(async () => {
-      tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'test-amplify'));
+      tempDir = await fsp.mkdtemp(path.join(os.tmpdir(), 'test-amplify'));
     });
 
     afterEach(async () => {
-      await fs.rm(tempDir, { recursive: true });
+      await fsp.rm(tempDir, { recursive: true });
     });
 
     void it('end to end flow', async () => {
-      await execa('npm', ['create', 'amplify', '--yes'], {
-        cwd: tempDir,
-        stdio: 'inherit',
-      });
+      await runPackageManager(
+        'npm',
+        ['create', 'amplify', '--yes'],
+        tempDir
+      ).run();
 
-      await amplifyCli(['sandbox'], tempDir)
+      await runWithPackageManager('npm', ['amplify', 'sandbox'], tempDir)
         .do(waitForSandboxDeploymentToPrintTotalTime())
         .do(interruptSandbox())
         .do(rejectCleanupSandbox())
         .run();
 
-      const clientConfigStats = await fs.stat(
-        path.join(tempDir, 'amplifyconfiguration.json')
+      const clientConfigStats = await fsp.stat(
+        await getClientConfigPath(tempDir)
       );
+
       assert.ok(clientConfigStats.isFile());
 
-      await amplifyCli(['sandbox', 'delete'], tempDir)
+      await runWithPackageManager(
+        'npm',
+        ['amplify', 'sandbox', 'delete'],
+        tempDir
+      )
         .do(confirmDeleteSandbox())
         .run();
     });

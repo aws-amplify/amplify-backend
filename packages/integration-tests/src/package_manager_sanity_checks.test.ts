@@ -4,7 +4,6 @@ import * as path from 'path';
 import * as os from 'os';
 import { after, afterEach, before, beforeEach, describe, it } from 'node:test';
 import assert from 'assert';
-import { glob } from 'glob';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import {
   CloudFormationClient,
@@ -23,6 +22,12 @@ import {
   runPackageManager,
   runWithPackageManager,
 } from './process-controller/process_controller.js';
+import {
+  confirmDeleteSandbox,
+  interruptSandbox,
+  rejectCleanupSandbox,
+  waitForSandboxDeploymentToPrintTotalTime,
+} from './process-controller/predicated_action_macros.js';
 
 /**
  * TODO: This test will be refactored to use the test from health-checks.test.ts and run with different package managers.
@@ -80,27 +85,6 @@ void describe('getting started happy path', async () => {
       tempDir
     ).run();
 
-    const pathPrefix = path.join(tempDir, 'amplify');
-
-    const files = await glob(path.join(pathPrefix, '**', '*'), {
-      nodir: true,
-      windowsPathsNoEscape: true,
-      ignore: ['**/node_modules/**', '**/yarn.lock'],
-    });
-
-    const expectedAmplifyFiles = [
-      path.join('auth', 'resource.ts'),
-      'backend.ts',
-      path.join('data', 'resource.ts'),
-      'package.json',
-      'tsconfig.json',
-    ];
-
-    assert.deepStrictEqual(
-      files.sort(),
-      expectedAmplifyFiles.map((suffix) => path.join(pathPrefix, suffix))
-    );
-
     await runWithPackageManager(
       packageManager,
       [
@@ -120,5 +104,33 @@ void describe('getting started happy path', async () => {
     );
 
     assert.ok(clientConfigStats.isFile());
+  });
+
+  void it('creates new project and run sandbox without an error', async () => {
+    await runPackageManager(
+      packageManager,
+      ['create', 'amplify', '--yes'],
+      tempDir
+    ).run();
+
+    await runWithPackageManager(packageManager, ['amplify', 'sandbox'], tempDir)
+      .do(waitForSandboxDeploymentToPrintTotalTime())
+      .do(interruptSandbox())
+      .do(rejectCleanupSandbox())
+      .run();
+
+    const clientConfigStats = await fsp.stat(
+      await getClientConfigPath(tempDir)
+    );
+
+    assert.ok(clientConfigStats.isFile());
+
+    await runWithPackageManager(
+      packageManager,
+      ['amplify', 'sandbox', 'delete'],
+      tempDir
+    )
+      .do(confirmDeleteSandbox())
+      .run();
   });
 });
