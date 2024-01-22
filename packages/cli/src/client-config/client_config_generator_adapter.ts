@@ -33,13 +33,15 @@ export class ClientConfigGeneratorAdapter {
   generateClientConfigToFile = async (
     backendIdentifier: DeployedBackendIdentifier,
     outDir?: string,
-    format?: ClientConfigFormat
+    format?: ClientConfigFormat,
+    logCallback?: (filePath: string) => void
   ): Promise<void> => {
     await generateClientConfigToFile(
       this.awsCredentialProvider,
       backendIdentifier,
       outDir,
-      format
+      format,
+      logCallback
     );
   };
 }

@@ -1,5 +1,8 @@
 export type GraphqlGenerationResult = {
-  writeToDirectory: (directoryPath: string) => Promise<void>;
+  writeToDirectory: (
+    directoryPath: string,
+    logCallback?: (filePath: string) => void
+  ) => Promise<void>;
 };
 export type FormGenerationOptions = {
   models?: string[];

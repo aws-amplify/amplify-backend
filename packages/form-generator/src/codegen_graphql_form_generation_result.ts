@@ -15,7 +15,10 @@ export class CodegenGraphqlFormGeneratorResult
   /**
    * writes the components to a given directory
    */
-  writeToDirectory = async (directoryPath: string) => {
+  writeToDirectory = async (
+    directoryPath: string,
+    logCallback?: (filePath: string) => void
+  ) => {
     try {
       await fs.stat(directoryPath);
     } catch (e) {
@@ -25,9 +28,13 @@ export class CodegenGraphqlFormGeneratorResult
       this.fileNameComponentMap
     )) {
       if (content) {
-        const fd = await fs.open(path.join(directoryPath, fileName), 'w+');
+        const filePath = path.join(directoryPath, fileName);
+        const fd = await fs.open(filePath, 'w+');
         try {
           await fd.writeFile(content);
+          if (logCallback) {
+            return logCallback(filePath);
+          }
         } finally {
           await fd.close();
         }

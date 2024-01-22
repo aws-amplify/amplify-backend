@@ -12,7 +12,10 @@ export type DocumentGenerationParameters = {
   relativeTypesPath?: string;
 };
 export type GenerationResult = {
-  writeToDirectory: (directoryPath: string) => Promise<void>;
+  writeToDirectory: (
+    directoryPath: string,
+    logCallback?: (filePath: string) => void
+  ) => Promise<void>;
   getResults: () => Promise<Record<string, string>>;
 };
 

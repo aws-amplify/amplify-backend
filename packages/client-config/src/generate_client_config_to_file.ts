@@ -16,7 +16,8 @@ export const generateClientConfigToFile = async (
   credentialProvider: AwsCredentialIdentityProvider,
   backendIdentifier: DeployedBackendIdentifier,
   outDir?: string,
-  format?: ClientConfigFormat
+  format?: ClientConfigFormat,
+  logCallback?: (filePath: string) => void
 ): Promise<void> => {
   const packageJson = await readPackageJson();
 
@@ -31,7 +32,12 @@ export const generateClientConfigToFile = async (
     credentialProvider,
     backendIdentifier
   );
-  await clientConfigWriter.writeClientConfig(clientConfig, outDir, format);
+  await clientConfigWriter.writeClientConfig(
+    clientConfig,
+    outDir,
+    format,
+    logCallback
+  );
 };
 
 const readPackageJson = async (): Promise<{
