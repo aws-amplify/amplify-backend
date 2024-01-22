@@ -1655,6 +1655,163 @@ void describe('Auth construct', () => {
         },
       });
     });
+
+    void it('automatically maps email attributes for external providers excluding SAML', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+          externalProviders: {
+            google: {
+              clientId: googleClientId,
+              clientSecret: SecretValue.unsafePlainText(googleClientSecret),
+            },
+            facebook: {
+              clientId: facebookClientId,
+              clientSecret: facebookClientSecret,
+            },
+            signInWithApple: {
+              clientId: appleClientId,
+              keyId: appleKeyId,
+              privateKey: applePrivateKey,
+              teamId: appleTeamId,
+            },
+            loginWithAmazon: {
+              clientId: amazonClientId,
+              clientSecret: amazonClientSecret,
+            },
+            oidc: {
+              clientId: oidcClientId,
+              clientSecret: oidcClientSecret,
+              issuerUrl: oidcIssuerUrl,
+              name: oidcProviderName,
+            },
+            callbackUrls: ['https://redirect.com'],
+            logoutUrls: ['https://logout.com'],
+          },
+        },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        UsernameAttributes: ['email'],
+        AutoVerifiedAttributes: ['email'],
+      });
+      const expectedAutoMappedAttributes = {
+        AttributeMapping: {
+          // 'email' is a standardized claim for oauth and oidc IDPS
+          // so we can map it to cognito's 'email' claim
+          email: 'email',
+        },
+      };
+      template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
+        ...ExpectedAmazonIDPProperties,
+        ...expectedAutoMappedAttributes,
+      });
+      template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
+        ...ExpectedAppleIDPProperties,
+        ...expectedAutoMappedAttributes,
+      });
+      template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
+        ...ExpectedFacebookIDPProperties,
+        ...expectedAutoMappedAttributes,
+      });
+      template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
+        ...ExpectedGoogleIDPProperties,
+        ...expectedAutoMappedAttributes,
+      });
+      template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
+        ...ExpectedOidcIDPProperties,
+        ...expectedAutoMappedAttributes,
+      });
+      template.hasResourceProperties('AWS::Cognito::IdentityPool', {
+        SupportedLoginProviders: {
+          'www.amazon.com': amazonClientId,
+          'accounts.google.com': googleClientId,
+          'appleid.apple.com': appleClientId,
+          'graph.facebook.com': facebookClientId,
+        },
+      });
+    });
+  });
+
+  void it('does not automatically map email attributes if phone is also enabled', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    new AmplifyAuth(stack, 'test', {
+      loginWith: {
+        email: true,
+        phone: true, // this makes phone_number a required attribute
+        externalProviders: {
+          google: {
+            clientId: googleClientId,
+            clientSecret: SecretValue.unsafePlainText(googleClientSecret),
+          },
+          facebook: {
+            clientId: facebookClientId,
+            clientSecret: facebookClientSecret,
+          },
+          signInWithApple: {
+            clientId: appleClientId,
+            keyId: appleKeyId,
+            privateKey: applePrivateKey,
+            teamId: appleTeamId,
+          },
+          loginWithAmazon: {
+            clientId: amazonClientId,
+            clientSecret: amazonClientSecret,
+          },
+          oidc: {
+            clientId: oidcClientId,
+            clientSecret: oidcClientSecret,
+            issuerUrl: oidcIssuerUrl,
+            name: oidcProviderName,
+          },
+          callbackUrls: ['https://redirect.com'],
+          logoutUrls: ['https://logout.com'],
+        },
+      },
+    });
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      UsernameAttributes: ['email', 'phone_number'],
+      AutoVerifiedAttributes: ['email', 'phone_number'],
+    });
+    const mappingThatShouldNotExist = {
+      AttributeMapping: {
+        email: 'email',
+      },
+    };
+    assert.throws(() => {
+      template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
+        ...ExpectedAmazonIDPProperties,
+        ...mappingThatShouldNotExist,
+      });
+    });
+    assert.throws(() => {
+      template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
+        ...ExpectedAppleIDPProperties,
+        ...mappingThatShouldNotExist,
+      });
+    });
+    assert.throws(() => {
+      template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
+        ...ExpectedFacebookIDPProperties,
+        ...mappingThatShouldNotExist,
+      });
+    });
+    assert.throws(() => {
+      template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
+        ...ExpectedGoogleIDPProperties,
+        ...mappingThatShouldNotExist,
+      });
+    });
+    assert.throws(() => {
+      template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
+        ...ExpectedOidcIDPProperties,
+        ...mappingThatShouldNotExist,
+      });
+    });
   });
 
   void describe('addTrigger', () => {
