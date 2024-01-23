@@ -1,7 +1,6 @@
 import _path from 'path';
 import _fsp from 'fs/promises';
-import { executeWithDebugLogger as _executeWithDebugLogger } from './execute_with_logger.js';
-import { type PackageManagerController } from './package-manager-controller/package_manager_controller.js';
+import { type PackageManagerController } from '@aws-amplify/cli-core';
 
 /**
  * InitialProjectFileGenerator is responsible for copying getting started template to a new project directory

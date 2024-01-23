@@ -1,6 +1,6 @@
 import { LogLevel } from '@aws-amplify/cli-core';
 import { execa as _execa } from 'execa';
-import { printer } from './printer.js';
+import { printer } from '../printer.js';
 
 /**
  * Abstracts the execution of a command and pipes outputs/errors to `Printer.debug`

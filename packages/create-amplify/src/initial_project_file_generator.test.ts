@@ -17,8 +17,7 @@ void describe('InitialProjectFileGenerator', () => {
   void it('creates target directory and copies files', async () => {
     const initialProjectFileGenerator = new InitialProjectFileGenerator(
       path.join(process.cwd(), 'testDir'),
-      fsMock as never,
-      executeWithDebugLoggerMock as never
+      fsMock as never
     );
     await initialProjectFileGenerator.generateInitialProjectFiles();
 
@@ -44,8 +43,7 @@ void describe('InitialProjectFileGenerator', () => {
   void it('creates default tsconfig file', async () => {
     const initialProjectFileGenerator = new InitialProjectFileGenerator(
       path.join(process.cwd(), 'testDir'),
-      fsMock as never,
-      executeWithDebugLoggerMock as never
+      fsMock as never
     );
     await initialProjectFileGenerator.generateInitialProjectFiles();
 

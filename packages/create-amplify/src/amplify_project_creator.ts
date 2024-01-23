@@ -1,5 +1,4 @@
-import { PackageManagerController } from './package-manager-controller/package_manager_controller.js';
-import { LogLevel } from '@aws-amplify/cli-core';
+import { LogLevel, PackageManagerController } from '@aws-amplify/cli-core';
 import { ProjectRootValidator } from './project_root_validator.js';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
@@ -72,14 +71,19 @@ export class AmplifyProjectCreator {
       process.cwd() === this.packageManagerController.projectRoot
         ? ''
         : `Navigate to your project directory using
-'cd .${this.packageManagerController.projectRoot.replace(process.cwd(), '')}'.
+'cd .${
+            this.packageManagerController.projectRoot.replace(
+              process.cwd(),
+              ''
+            ) as string
+          }'.
 Then get started with the following commands:
 `;
 
     printer.log(
       `Welcome to AWS Amplify! 
 ${cdPreamble}
-${this.packageManagerController.getWelcomeMessage()}`
+${this.packageManagerController.getWelcomeMessage() as string}`
     );
 
     printer.log(

@@ -1,5 +1,3 @@
-import { execa as _execa } from 'execa';
-import { executeWithDebugLogger as _executeWithDebugLogger } from '../execute_with_logger.js';
 import { NpmPackageManagerController } from './npm_package_manager_controller.js';
 import { PnpmPackageManagerController } from './pnpm_package_manager_controller.js';
 import { YarnClassicPackageManagerController } from './yarn_classic_package_manager_controller.js';
