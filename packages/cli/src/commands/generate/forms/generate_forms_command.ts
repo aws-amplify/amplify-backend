@@ -6,7 +6,6 @@ import { BackendIdentifierResolver } from '../../../backend-identifier/backend_i
 import { DEFAULT_UI_PATH } from '../../../form-generation/default_form_generation_output_paths.js';
 import { FormGenerationHandler } from '../../../form-generation/form_generation_handler.js';
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
-import { printer } from '../../../printer.js';
 
 export type GenerateFormsCommandOptions =
   ArgumentsKebabCase<GenerateFormsCommandOptionsCamelCase>;
