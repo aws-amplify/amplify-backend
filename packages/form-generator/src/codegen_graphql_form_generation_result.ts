@@ -17,7 +17,8 @@ export class CodegenGraphqlFormGeneratorResult
    */
   writeToDirectory = async (
     directoryPath: string,
-    logCallback?: (filePath: string) => void
+    // TODO: update this type when Printer interface gets defined in platform-core.
+    log?: (message: string) => void
   ) => {
     try {
       await fs.stat(directoryPath);
@@ -32,7 +33,7 @@ export class CodegenGraphqlFormGeneratorResult
         const fd = await fs.open(filePath, 'w+');
         try {
           await fd.writeFile(content);
-          return logCallback?.(filePath);
+          log?.(`File written: ./${path.relative(process.cwd(), filePath)}`);
         } finally {
           await fd.close();
         }

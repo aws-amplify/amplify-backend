@@ -1,3 +1,4 @@
+import { Printer } from '@aws-amplify/cli-core';
 import {
   ClientConfig,
   ClientConfigFormat,
@@ -34,14 +35,14 @@ export class ClientConfigGeneratorAdapter {
     backendIdentifier: DeployedBackendIdentifier,
     outDir?: string,
     format?: ClientConfigFormat,
-    logCallback?: (filePath: string) => void
+    log?: Printer['log']
   ): Promise<void> => {
     await generateClientConfigToFile(
       this.awsCredentialProvider,
       backendIdentifier,
       outDir,
       format,
-      logCallback
+      log
     );
   };
 }

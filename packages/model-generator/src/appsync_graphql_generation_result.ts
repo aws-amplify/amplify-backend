@@ -16,13 +16,16 @@ export class AppsyncGraphqlGenerationResult implements GenerationResult {
 
   writeToDirectory = async (
     directoryPath: string,
-    logCallback?: (filePath: string) => void
+    // TODO: update this type when Printer interface gets defined in platform-core.
+    log?: (message: string) => void
   ) => {
     await Promise.all(
       Object.entries(this.operations).map(async ([fileName, content]) => {
         await this.writeSchemaToFile(directoryPath, fileName, content).then(
           (filePath: string) => {
-            return logCallback?.(filePath);
+            return log?.(
+              `File written: ./${path.relative(process.cwd(), filePath)}`
+            );
           }
         );
       })

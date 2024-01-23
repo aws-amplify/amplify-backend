@@ -85,11 +85,7 @@ export class GenerateFormsCommand
       uiOutDir: outDir,
       apiUrl,
       modelsFilter: args.models,
-      logCallback: (filePath: string) => {
-        printer.log(
-          `File written: ./${path.relative(process.cwd(), filePath)}`
-        );
-      },
+      log: printer.log,
     });
   };
 

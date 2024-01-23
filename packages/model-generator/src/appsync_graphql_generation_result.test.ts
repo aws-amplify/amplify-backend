@@ -7,7 +7,7 @@ import assert from 'assert';
 void describe('AppsyncGraphqlDocumentGenerationResult', () => {
   void it('writes a map of files to disk', async () => {
     const writeFileMock = mock.method(fs, 'writeFile');
-    const logCallbackMock = mock.fn();
+    const logMock = mock.fn();
     mock.method(fs, 'mkdir').mock.mockImplementation(async () => null);
     writeFileMock.mock.mockImplementation(async () => null);
     const filePathWithDir = path.join('a-third', 'fake-file', '.type');
@@ -20,20 +20,21 @@ void describe('AppsyncGraphqlDocumentGenerationResult', () => {
     const result = new AppsyncGraphqlGenerationResult(files);
     const directory = './fake-dir';
 
-    await result.writeToDirectory(directory, (filePath) =>
-      logCallbackMock(filePath)
-    );
+    await result.writeToDirectory(directory, (message) => logMock(message));
 
     Object.entries(files).forEach(([fileName, content]) => {
       const resolvedName = path.resolve(path.join(directory, fileName));
       const writeFileCall = writeFileMock.mock.calls.find(
         ({ arguments: [f] }) => resolvedName === f
       );
-      const logCallbackCall = logCallbackMock.mock.calls.find(
-        ({ arguments: [filePath] }) => resolvedName === filePath
+      const logCall = logMock.mock.calls.find(({ arguments: [message] }) =>
+        message.includes(path.join(directory, fileName))
       );
       assert.deepEqual(writeFileCall?.arguments, [resolvedName, content]);
-      assert.notEqual(logCallbackCall, undefined);
+      assert.match(
+        logCall?.arguments[0],
+        new RegExp(`^File written: ./${path.join(directory, fileName)}`)
+      );
     });
   });
 });

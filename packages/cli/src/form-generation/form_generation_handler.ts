@@ -2,6 +2,7 @@ import { createLocalGraphqlFormGenerator } from '@aws-amplify/form-generator';
 import { createGraphqlDocumentGenerator } from '@aws-amplify/model-generator';
 import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
+import { Printer } from '@aws-amplify/cli-core';
 
 type FormGenerationParams = {
   modelsOutDir: string;
@@ -9,7 +10,7 @@ type FormGenerationParams = {
   apiUrl: string;
   backendIdentifier: DeployedBackendIdentifier;
   modelsFilter?: string[];
-  logCallback?: (filePath: string) => void;
+  log?: Printer['log'];
 };
 type FormGenerationInstanceOptions = {
   credentialProvider: AwsCredentialIdentityProvider;
@@ -29,7 +30,7 @@ export class FormGenerationHandler {
       uiOutDir,
       apiUrl,
       modelsFilter,
-      logCallback,
+      log,
     } = params;
     const { credentialProvider } = this.formGenParams;
     const graphqlClientGenerator = createGraphqlDocumentGenerator({
@@ -39,7 +40,7 @@ export class FormGenerationHandler {
     const modelsResult = await graphqlClientGenerator.generateModels({
       language: 'typescript',
     });
-    await modelsResult.writeToDirectory(modelsOutDir, logCallback);
+    await modelsResult.writeToDirectory(modelsOutDir, log);
     const localFormGenerator = createLocalGraphqlFormGenerator({
       introspectionSchemaUrl: apiUrl,
       graphqlModelDirectoryPath: './graphql',
@@ -47,6 +48,6 @@ export class FormGenerationHandler {
     const result = await localFormGenerator.generateForms({
       models: modelsFilter,
     });
-    await result.writeToDirectory(uiOutDir, logCallback);
+    await result.writeToDirectory(uiOutDir, log);
   };
 }

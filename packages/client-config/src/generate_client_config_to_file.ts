@@ -17,7 +17,8 @@ export const generateClientConfigToFile = async (
   backendIdentifier: DeployedBackendIdentifier,
   outDir?: string,
   format?: ClientConfigFormat,
-  logCallback?: (filePath: string) => void
+  // TODO: update this type when Printer interface gets defined in platform-core.
+  log?: (message: string) => void
 ): Promise<void> => {
   const packageJson = await readPackageJson();
 
@@ -32,12 +33,7 @@ export const generateClientConfigToFile = async (
     credentialProvider,
     backendIdentifier
   );
-  await clientConfigWriter.writeClientConfig(
-    clientConfig,
-    outDir,
-    format,
-    logCallback
-  );
+  await clientConfigWriter.writeClientConfig(clientConfig, outDir, format, log);
 };
 
 const readPackageJson = async (): Promise<{

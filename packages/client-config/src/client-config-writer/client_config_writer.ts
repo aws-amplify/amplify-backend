@@ -1,4 +1,5 @@
 import _fsp from 'fs/promises';
+import path from 'path';
 import {
   ClientConfig,
   ClientConfigFormat,
@@ -29,11 +30,12 @@ export class ClientConfigWriter {
     clientConfig: ClientConfig,
     outDir?: string,
     format: ClientConfigFormat = ClientConfigFormat.JSON,
-    logFilePath?: (path: string) => void
+    // TODO: update this type when Printer interface gets defined in platform-core.
+    log?: (message: string) => void
   ): Promise<void> => {
     const targetPath = await this.pathResolver(outDir, format);
     const fileContent = this.formatter.format(clientConfig, format);
     await this.fsp.writeFile(targetPath, fileContent);
-    logFilePath?.(targetPath);
+    log?.(`File written: ./${path.relative(process.cwd(), targetPath)}`);
   };
 }
