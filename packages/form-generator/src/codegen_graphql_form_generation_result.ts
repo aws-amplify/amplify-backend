@@ -32,9 +32,7 @@ export class CodegenGraphqlFormGeneratorResult
         const fd = await fs.open(filePath, 'w+');
         try {
           await fd.writeFile(content);
-          if (logCallback) {
-            return logCallback(filePath);
-          }
+          return logCallback?.(filePath);
         } finally {
           await fd.close();
         }
