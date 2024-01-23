@@ -34,8 +34,6 @@ export class ClientConfigWriter {
     const targetPath = await this.pathResolver(outDir, format);
     const fileContent = this.formatter.format(clientConfig, format);
     await this.fsp.writeFile(targetPath, fileContent);
-    if (logFilePath) {
-      logFilePath(targetPath);
-    }
+    logFilePath?.(targetPath)
   };
 }
