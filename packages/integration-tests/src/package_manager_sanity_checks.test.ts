@@ -3,43 +3,25 @@ import * as fsp from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
 import { after, afterEach, before, beforeEach, describe, it } from 'node:test';
-import assert from 'assert';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import {
   CloudFormationClient,
   DeleteStackCommand,
 } from '@aws-sdk/client-cloudformation';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
-import { getClientConfigPath } from '@aws-amplify/client-config';
 import { TestBranch, amplifyAppPool } from './amplify_app_pool.js';
 import { e2eToolingClientConfig } from './e2e_tooling_client_config.js';
 import {
   type PackageManager,
-  type PackageManagerExecutable,
   setupPackageManager,
 } from './setup_package_manager.js';
-import {
-  amplifyCli,
-  runPackageManager,
-  runWithPackageManager,
-} from './process-controller/process_controller.js';
-import {
-  confirmDeleteSandbox,
-  interruptSandbox,
-  rejectCleanupSandbox,
-  waitForSandboxDeploymentToPrintTotalTime,
-} from './process-controller/predicated_action_macros.js';
-
-/**
- * TODO: This test will be refactored to use the test from health-checks.test.ts and run with different package managers.
- */
+import { deployE2eFlow, sandboxE2eFlow } from './reusable-tests/index.js';
 
 void describe('getting started happy path', async () => {
   let branchBackendIdentifier: BackendIdentifier;
   let testBranch: TestBranch;
   let cfnClient: CloudFormationClient;
   let tempDir: string;
-  let packageManagerExecutable: PackageManagerExecutable;
   let packageManager: PackageManager;
 
   before(async () => {
@@ -56,7 +38,6 @@ void describe('getting started happy path', async () => {
   beforeEach(async () => {
     tempDir = await fsp.mkdtemp(path.join(os.tmpdir(), 'test-create-amplify'));
     const packageManagerInfo = await setupPackageManager(tempDir);
-    packageManagerExecutable = packageManagerInfo.packageManagerExecutable;
     packageManager = packageManagerInfo.packageManager;
 
     cfnClient = new CloudFormationClient(e2eToolingClientConfig);
@@ -80,54 +61,10 @@ void describe('getting started happy path', async () => {
   });
 
   void it('creates new project and deploy them without an error', async () => {
-    await runPackageManager(
-      packageManager,
-      ['create', 'amplify', '--yes'],
-      tempDir
-    ).run();
-
-    await amplifyCli(
-      [
-        'pipeline-deploy',
-        '--branch',
-        testBranch.branchName,
-        '--appId',
-        testBranch.appId,
-      ],
-      tempDir,
-      {
-        env: { CI: 'true' },
-      }
-    ).run();
-
-    const clientConfigStats = await fsp.stat(
-      await getClientConfigPath(tempDir)
-    );
-
-    assert.ok(clientConfigStats.isFile());
+    await deployE2eFlow(packageManager, tempDir, testBranch);
   });
 
   void it('creates new project and run sandbox without an error', async () => {
-    await runPackageManager(
-      'npm',
-      ['create', 'amplify', '--yes'],
-      tempDir
-    ).run();
-
-    await amplifyCli(['sandbox'], tempDir)
-      .do(waitForSandboxDeploymentToPrintTotalTime())
-      .do(interruptSandbox())
-      .do(rejectCleanupSandbox())
-      .run();
-
-    const clientConfigStats = await fsp.stat(
-      await getClientConfigPath(tempDir)
-    );
-
-    assert.ok(clientConfigStats.isFile());
-
-    await amplifyCli(['sandbox', 'delete'], tempDir)
-      .do(confirmDeleteSandbox())
-      .run();
+    await sandboxE2eFlow(packageManager, tempDir);
   });
 });

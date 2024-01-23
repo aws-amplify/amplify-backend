@@ -3,27 +3,15 @@ import fsp from 'fs/promises';
 import path from 'path';
 import os from 'os';
 import { execa } from 'execa';
-import { getClientConfigPath } from '@aws-amplify/client-config';
-import { amplifyCli } from '../process-controller/process_controller.js';
 import { TestBranch, amplifyAppPool } from '../amplify_app_pool.js';
-import assert from 'node:assert';
 import { existsSync } from 'fs';
 import {
   CloudFormationClient,
   DeleteStackCommand,
 } from '@aws-sdk/client-cloudformation';
-import {
-  confirmDeleteSandbox,
-  interruptSandbox,
-  rejectCleanupSandbox,
-  waitForSandboxDeploymentToPrintTotalTime,
-} from '../process-controller/predicated_action_macros.js';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
-import {
-  runPackageManager,
-  runWithPackageManager,
-} from './../process-controller/process_controller.js';
+import { deployE2eFlow, sandboxE2eFlow } from '../reusable-tests/index.js';
 
 const cfnClient = new CloudFormationClient(e2eToolingClientConfig);
 
@@ -82,30 +70,7 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
     });
 
     void it('end to end flow', async () => {
-      await runPackageManager(
-        'npm',
-        ['create', 'amplify', '--yes'],
-        tempDir
-      ).run();
-      await amplifyCli(
-        [
-          'pipeline-deploy',
-          '--branch',
-          testBranch.branchName,
-          '--appId',
-          testBranch.appId,
-        ],
-        tempDir,
-        {
-          env: { CI: 'true' },
-        }
-      ).run();
-
-      const clientConfigStats = await fsp.stat(
-        await getClientConfigPath(tempDir)
-      );
-
-      assert.ok(clientConfigStats.isFile());
+      await deployE2eFlow('npm', tempDir, testBranch);
     });
   });
 
@@ -120,27 +85,7 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
     });
 
     void it('end to end flow', async () => {
-      await runPackageManager(
-        'npm',
-        ['create', 'amplify', '--yes'],
-        tempDir
-      ).run();
-
-      await amplifyCli(['sandbox'], tempDir)
-        .do(waitForSandboxDeploymentToPrintTotalTime())
-        .do(interruptSandbox())
-        .do(rejectCleanupSandbox())
-        .run();
-
-      const clientConfigStats = await fsp.stat(
-        await getClientConfigPath(tempDir)
-      );
-
-      assert.ok(clientConfigStats.isFile());
-
-      await amplifyCli(['sandbox', 'delete'], tempDir)
-        .do(confirmDeleteSandbox())
-        .run();
+      await sandboxE2eFlow('npm', tempDir);
     });
   });
 });
