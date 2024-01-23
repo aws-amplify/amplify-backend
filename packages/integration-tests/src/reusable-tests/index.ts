@@ -1,2 +1,2 @@
-export { deployE2eFlow } from './deploy_e2e_flow.js';
-export { sandboxE2eFlow } from './sandbox_e2e_flow.js';
+export { createAmplifyAndPipelineDeploy } from './create_and_pipeline_deploy.js';
+export { createAmplifyAndSandbox } from './create_amplify_and_sandbox.js';

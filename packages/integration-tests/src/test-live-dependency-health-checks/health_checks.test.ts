@@ -11,7 +11,10 @@ import {
 } from '@aws-sdk/client-cloudformation';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
-import { deployE2eFlow, sandboxE2eFlow } from '../reusable-tests/index.js';
+import {
+  createAmplifyAndPipelineDeploy,
+  createAmplifyAndSandbox,
+} from '../reusable-tests/index.js';
 
 const cfnClient = new CloudFormationClient(e2eToolingClientConfig);
 
@@ -70,7 +73,7 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
     });
 
     void it('end to end flow', async () => {
-      await deployE2eFlow('npm', tempDir, testBranch);
+      await createAmplifyAndPipelineDeploy('npm', tempDir, testBranch);
     });
   });
 
@@ -85,7 +88,7 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
     });
 
     void it('end to end flow', async () => {
-      await sandboxE2eFlow('npm', tempDir);
+      await createAmplifyAndSandbox('npm', tempDir);
     });
   });
 });

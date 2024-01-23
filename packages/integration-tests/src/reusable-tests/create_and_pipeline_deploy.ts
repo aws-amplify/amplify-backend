@@ -1,24 +1,20 @@
 import * as fsp from 'fs/promises';
 import assert from 'assert';
 import { getClientConfigPath } from '@aws-amplify/client-config';
+import { TestBranch } from '../amplify_app_pool.js';
 import { type PackageManager } from '../setup_package_manager.js';
 import {
   amplifyCli,
   runPackageManager,
 } from '../process-controller/process_controller.js';
-import {
-  confirmDeleteSandbox,
-  interruptSandbox,
-  rejectCleanupSandbox,
-  waitForSandboxDeploymentToPrintTotalTime,
-} from '../process-controller/predicated_action_macros.js';
 
 /**
- * Deploy a sandbox and verify that it deploys without an error
+ * Deploy a pipeline and verify that it deploys without an error
  */
-export const sandboxE2eFlow = async (
+export const createAmplifyAndPipelineDeploy = async (
   packageManager: PackageManager,
-  tempDir: string
+  tempDir: string,
+  testBranch: TestBranch
 ) => {
   await runPackageManager(
     packageManager,
@@ -26,17 +22,21 @@ export const sandboxE2eFlow = async (
     tempDir
   ).run();
 
-  await amplifyCli(['sandbox'], tempDir)
-    .do(waitForSandboxDeploymentToPrintTotalTime())
-    .do(interruptSandbox())
-    .do(rejectCleanupSandbox())
-    .run();
+  await amplifyCli(
+    [
+      'pipeline-deploy',
+      '--branch',
+      testBranch.branchName,
+      '--appId',
+      testBranch.appId,
+    ],
+    tempDir,
+    {
+      env: { CI: 'true' },
+    }
+  ).run();
 
   const clientConfigStats = await fsp.stat(await getClientConfigPath(tempDir));
 
   assert.ok(clientConfigStats.isFile());
-
-  await amplifyCli(['sandbox', 'delete'], tempDir)
-    .do(confirmDeleteSandbox())
-    .run();
 };

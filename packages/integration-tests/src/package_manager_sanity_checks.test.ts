@@ -15,7 +15,7 @@ import {
   type PackageManager,
   setupPackageManager,
 } from './setup_package_manager.js';
-import { deployE2eFlow, sandboxE2eFlow } from './reusable-tests/index.js';
+import { createAmplifyAndPipelineDeploy } from './reusable-tests/index.js';
 
 void describe('getting started happy path', async () => {
   let branchBackendIdentifier: BackendIdentifier;
@@ -61,10 +61,6 @@ void describe('getting started happy path', async () => {
   });
 
   void it('creates new project and deploy them without an error', async () => {
-    await deployE2eFlow(packageManager, tempDir, testBranch);
-  });
-
-  void it('creates new project and run sandbox without an error', async () => {
-    await sandboxE2eFlow(packageManager, tempDir);
+    await createAmplifyAndPipelineDeploy(packageManager, tempDir, testBranch);
   });
 });
