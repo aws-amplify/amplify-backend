@@ -1,8 +1,9 @@
 import { PackageManagerController } from './package-manager-controller/package_manager_controller.js';
+import { LogLevel } from '@aws-amplify/cli-core';
 import { ProjectRootValidator } from './project_root_validator.js';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
-import { logger } from './logger.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
+import { printer } from './printer.js';
 
 const LEARN_MORE_USAGE_DATA_TRACKING_LINK = `https://docs.amplify.aws/gen2/reference/telemetry`;
 
@@ -36,12 +37,15 @@ export class AmplifyProjectCreator {
    * Executes the create-amplify workflow
    */
   create = async (): Promise<void> => {
-    logger.debug(`Validating current state of target directory...`);
+    printer.log(
+      `Validating current state of target directory...`,
+      LogLevel.DEBUG
+    );
     await this.projectRootValidator.validate();
 
     await this.packageManagerController.initializeProject();
 
-    await logger.indicateProgress(
+    await printer.indicateProgress(
       `Installing required dependencies`,
       async () => {
         await this.packageManagerController.installDependencies(
@@ -56,13 +60,13 @@ export class AmplifyProjectCreator {
       }
     );
 
-    await logger.indicateProgress(`Creating template files`, async () => {
+    await printer.indicateProgress(`Creating template files`, async () => {
       await this.gitIgnoreInitializer.ensureInitialized();
 
       await this.initialProjectFileGenerator.generateInitialProjectFiles();
     });
 
-    logger.log('Successfully created a new project!');
+    printer.log('Successfully created a new project!');
 
     const cdPreamble =
       process.cwd() === this.packageManagerController.projectRoot
@@ -72,12 +76,13 @@ export class AmplifyProjectCreator {
 Then get started with the following commands:
 `;
 
-    logger.log(`Welcome to AWS Amplify!
+    printer.log(
+      `Welcome to AWS Amplify! 
 ${cdPreamble}
-${this.packageManagerController.getWelcomeMessage()}
-`);
+${this.packageManagerController.getWelcomeMessage()}`
+    );
 
-    logger.log(
+    printer.log(
       `Amplify (Gen 2) collects anonymous telemetry data about general usage of the CLI.
 
 Participation is optional, and you may opt-out by using \`amplify configure telemetry disable\`.

@@ -12,7 +12,7 @@ import { ClientConfigLifecycleHandler } from '../../client-config/client_config_
 import fs from 'fs';
 import fsp from 'fs/promises';
 import path from 'node:path';
-import { Printer } from '@aws-amplify/cli-core';
+import { printer } from '../../printer.js';
 
 void describe('sandbox_event_handler_factory', () => {
   // client config mocks
@@ -35,7 +35,7 @@ void describe('sandbox_event_handler_factory', () => {
     emitFailure: emitFailureMock,
   } as unknown as UsageDataEmitter;
 
-  const printerMock = mock.method(Printer, 'print');
+  const printMock = mock.method(printer, 'print');
 
   // Class under test
   const eventFactory = new SandboxEventHandlerFactory(
@@ -169,12 +169,12 @@ void describe('sandbox_event_handler_factory', () => {
     );
 
     assert.deepStrictEqual(
-      printerMock.mock.calls[0].arguments[0],
+      printMock.mock.calls[0].arguments[0],
       'Amplify configuration could not be generated.'
     );
 
     assert.deepStrictEqual(
-      printerMock.mock.calls[1].arguments[0],
+      printMock.mock.calls[1].arguments[0],
       'test error message'
     );
 

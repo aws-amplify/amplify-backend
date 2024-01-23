@@ -2,7 +2,8 @@ import { SandboxEventHandlerCreator } from './sandbox_command.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { AmplifyError, UsageDataEmitter } from '@aws-amplify/platform-core';
 import { DeployResult } from '@aws-amplify/backend-deployer';
-import { COLOR, Printer } from '@aws-amplify/cli-core';
+import { COLOR } from '@aws-amplify/cli-core';
+import { printer } from '../../printer.js';
 
 /**
  * Coordinates creation of sandbox event handlers
@@ -44,19 +45,19 @@ export class SandboxEventHandlerFactory {
             }
           } catch (error) {
             // Don't crash sandbox if config cannot be generated, but print the error message
-            Printer.print(
+            printer.print(
               'Amplify configuration could not be generated.',
               COLOR.RED
             );
             if (error instanceof Error) {
-              Printer.print(error.message, COLOR.RED);
+              printer.print(error.message, COLOR.RED);
             } else {
               try {
-                Printer.print(JSON.stringify(error, null, 2), COLOR.RED);
+                printer.print(JSON.stringify(error, null, 2), COLOR.RED);
               } catch {
                 // fallback in case there's an error stringify the error
                 // like with circular references.
-                Printer.print('Unknown error', COLOR.RED);
+                printer.print('Unknown error', COLOR.RED);
               }
             }
           }
