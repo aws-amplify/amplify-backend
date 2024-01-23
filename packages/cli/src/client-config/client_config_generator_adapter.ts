@@ -1,4 +1,3 @@
-import { Printer } from '@aws-amplify/cli-core';
 import {
   ClientConfig,
   ClientConfigFormat,
@@ -7,6 +6,7 @@ import {
 } from '@aws-amplify/client-config';
 import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
+import { printer } from '../printer.js';
 
 /**
  * Adapts static generateClientConfigToFile from @aws-amplify/client-config call to make it injectable and testable.
@@ -34,15 +34,14 @@ export class ClientConfigGeneratorAdapter {
   generateClientConfigToFile = async (
     backendIdentifier: DeployedBackendIdentifier,
     outDir?: string,
-    format?: ClientConfigFormat,
-    log?: Printer['log']
+    format?: ClientConfigFormat
   ): Promise<void> => {
     await generateClientConfigToFile(
       this.awsCredentialProvider,
       backendIdentifier,
       outDir,
       format,
-      log
+      (message) => printer.log(message)
     );
   };
 }

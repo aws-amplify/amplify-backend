@@ -85,7 +85,6 @@ export class GenerateFormsCommand
       uiOutDir: outDir,
       apiUrl,
       modelsFilter: args.models,
-      log: printer.log,
     });
   };
 

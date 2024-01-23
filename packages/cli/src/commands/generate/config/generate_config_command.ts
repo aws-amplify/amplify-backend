@@ -59,8 +59,7 @@ export class GenerateConfigCommand
     await this.clientConfigGenerator.generateClientConfigToFile(
       backendIdentifier,
       args['out-dir'],
-      args.format,
-      printer.log
+      args.format
     );
   };
 
