@@ -4,11 +4,17 @@ import { AmplifySandboxExecutor } from './sandbox_executor.js';
 import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 import { SecretListItem, getSecretClient } from '@aws-amplify/backend-secret';
 
+const logMock = mock.fn();
+const mockedPrinter = {
+  log: mock.fn(),
+};
+
 const backendDeployer = BackendDeployerFactory.getInstance();
 const secretClient = getSecretClient();
 const sandboxExecutor = new AmplifySandboxExecutor(
   backendDeployer,
-  secretClient
+  secretClient,
+  mockedPrinter as never
 );
 
 const newlyUpdatedSecretItem: SecretListItem = {
@@ -40,6 +46,7 @@ void describe('Sandbox executor', () => {
     backendDeployerDeployMock.mock.resetCalls();
     validateAppSourcesProvider.mock.resetCalls();
     listSecretMock.mock.resetCalls();
+    logMock.mock.resetCalls();
   });
 
   void it('retrieves file change summary once (debounce)', async () => {

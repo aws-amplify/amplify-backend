@@ -9,7 +9,9 @@ import {
   getSecretClient,
 } from '@aws-amplify/backend-secret';
 import { SandboxSecretGetCommand } from './sandbox_secret_get_command.js';
-import { Printer } from '@aws-amplify/cli-core';
+import { printer } from '../../../printer.js';
+
+const printRecordsMock = mock.method(printer, 'printRecords');
 
 const testSecretName = 'testSecretName';
 const testBackendId = 'testBackendId';
@@ -53,11 +55,10 @@ void describe('sandbox secret get command', () => {
 
   beforeEach(async () => {
     secretGetMock.mock.resetCalls();
+    printRecordsMock.mock.resetCalls();
   });
 
-  void it('gets a secret', async (contextual) => {
-    const mockPrintRecord = contextual.mock.method(Printer, 'printRecord');
-
+  void it('gets a secret', async () => {
     await commandRunner.runCommand(`get ${testSecretName}`);
 
     assert.equal(secretGetMock.mock.callCount(), 1);
@@ -70,9 +71,9 @@ void describe('sandbox secret get command', () => {
       testSecretIdentifier,
     ]);
 
-    assert.equal(mockPrintRecord.mock.callCount(), 1);
+    assert.equal(printRecordsMock.mock.callCount(), 1);
     assert.deepStrictEqual(
-      mockPrintRecord.mock.calls[0].arguments[0],
+      printRecordsMock.mock.calls[0].arguments[0],
       testSecret
     );
   });
