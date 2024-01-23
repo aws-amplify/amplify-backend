@@ -1,15 +1,18 @@
-import { describe, it, mock } from 'node:test';
+import { beforeEach, describe, it, mock } from 'node:test';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
 import assert from 'assert';
 import * as path from 'path';
 import * as os from 'os';
-import { logger } from './logger.js';
+import { printer } from './printer.js';
 
 void describe('GitIgnoreInitializer', () => {
+  const logMock = mock.method(printer, 'log');
+
+  beforeEach(() => {
+    logMock.mock.resetCalls();
+  });
+
   void it('creates .gitignore and adds all contents if no .gitignore file exists', async () => {
-    const logMock = {
-      debug: mock.fn(),
-    };
     const existsSyncMock = mock.fn(() => false);
     const fsMock = {
       appendFile: mock.fn(),
@@ -25,10 +28,9 @@ void describe('GitIgnoreInitializer', () => {
       `.amplify${os.EOL}`,
       `amplifyconfiguration*${os.EOL}`,
     ];
-    mock.method(logger, 'debug', logMock.debug);
     await gitIgnoreInitializer.ensureInitialized();
     assert.equal(
-      logMock.debug.mock.calls[0].arguments[0],
+      logMock.mock.calls[0].arguments[0],
       'No .gitignore file found in the working directory. Creating .gitignore...'
     );
     assert.deepStrictEqual(fsMock.appendFile.mock.calls[0].arguments, [
