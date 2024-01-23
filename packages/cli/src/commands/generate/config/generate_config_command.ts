@@ -60,11 +60,7 @@ export class GenerateConfigCommand
       backendIdentifier,
       args['out-dir'],
       args.format,
-      (filePath: string) => {
-        printer.log(
-          `File written: ./${path.relative(process.cwd(), filePath)}`
-        );
-      }
+      printer.log
     );
   };
 
