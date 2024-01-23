@@ -59,6 +59,10 @@ export class SomeDerivedClass2<T1, T2 extends SampleType, T3, T4, T5, T6>
   someProperty: T1;
 }
 
+export class SomeClassWithTemplateMethodAndVarArg {
+  someTemplateMethodWithVarArg: <T extends Record<string | number, string>>(...objects: T[]) => void;
+}
+
 export const someFunction1: () => void;
 export const someFunction2: (param1: string, param2?: number) => string;
 export const someFunction3: (param1: string, param2: number = 1) => string;

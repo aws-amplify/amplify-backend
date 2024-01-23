@@ -37,7 +37,7 @@ void describe('Api changes validator', { concurrency: true }, () => {
   });
 
   after(async () => {
-    await fsp.rm(workingDirectory, { recursive: true, force: true });
+    // await fsp.rm(workingDirectory, { recursive: true, force: true });
   });
 
   for (const testProject of testProjectsWithBreaks) {
