@@ -2,6 +2,7 @@ import { existsSync as _existsSync } from 'fs';
 import _fsp from 'fs/promises';
 import { execa as _execa } from 'execa';
 import * as _path from 'path';
+import { LogLevel } from '@aws-amplify/cli-core';
 import { printer } from '../printer.js';
 import { executeWithDebugLogger as _executeWithDebugLogger } from '../execute_with_logger.js';
 import { DependencyType } from './package_manager_controller_factory.js';
@@ -63,7 +64,8 @@ Get started by running \`${this.binaryRunner} amplify sandbox\`.`;
     }
 
     printer.log(
-      `No package.json file found in the current directory. Running \`${this.executable} init\`...`
+      `No package.json file found in the current directory. Running \`${this.executable} init\`...`,
+      LogLevel.DEBUG
     );
 
     try {
