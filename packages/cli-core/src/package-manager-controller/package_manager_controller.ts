@@ -122,9 +122,19 @@ Get started by running \`${this.binaryRunner} amplify sandbox\`.`;
     dir: string,
     options?: {
       env?: Record<string, string>;
+      stdin?: 'inherit' | 'pipe' | 'ignore';
+      stdout?: 'inherit' | 'pipe' | 'ignore';
+      stderr?: 'inherit' | 'pipe' | 'ignore';
+      extendEnv?: boolean;
     }
   ) {
-    await this.executeWithDebugLogger(dir, this.binaryRunner, args, this.execa);
+    return await this.executeWithDebugLogger(
+      dir,
+      this.binaryRunner,
+      args,
+      this.execa,
+      options
+    );
   }
 
   /**

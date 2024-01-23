@@ -9,12 +9,14 @@ export const executeWithDebugLogger = async (
   cwd: string,
   executable: string,
   args?: Readonly<string[]>,
-  execa = _execa
+  execa = _execa,
+  options?: { env?: Record<string, string> }
 ) => {
   try {
     const childProcess = execa(executable, args, {
       stdin: 'inherit',
       cwd,
+      ...options,
     });
 
     childProcess?.stdout?.on('data', (data: string) =>
@@ -24,7 +26,7 @@ export const executeWithDebugLogger = async (
       printer.log(data, LogLevel.DEBUG)
     );
 
-    await childProcess;
+    return await childProcess;
   } catch {
     throw new Error(
       `\`${executable}${
