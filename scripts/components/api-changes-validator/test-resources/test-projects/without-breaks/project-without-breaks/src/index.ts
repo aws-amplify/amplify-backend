@@ -99,6 +99,9 @@ export const someFunction4 = <T1, T2, T3>(
 ): Promise<T3> => {
   throw new Error();
 };
+export const someFunction5 = (param1: string, ...param2: number[]): string => {
+  throw new Error();
+};
 
 export type SampleTypeUsingClass = {
   sampleMethod: (param: SampleClass1) => void;
