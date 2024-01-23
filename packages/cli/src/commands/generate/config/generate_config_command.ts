@@ -3,8 +3,6 @@ import { ClientConfigFormat } from '@aws-amplify/client-config';
 import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
 import { ClientConfigGeneratorAdapter } from '../../../client-config/client_config_generator_adapter.js';
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
-import { printer } from '../../../printer.js';
-import path from 'path';
 
 export type GenerateConfigCommandOptions =
   ArgumentsKebabCase<GenerateConfigCommandOptionsCamelCase>;
