@@ -108,20 +108,16 @@ void describe('generate config command', () => {
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
-      generateClientConfigMock.mock.calls[0].arguments[0],
-      {
-        namespace: 'app_id',
-        name: 'branch_name',
-        type: 'branch',
-      }
-    );
-    assert.strictEqual(
-      generateClientConfigMock.mock.calls[0].arguments[1],
-      '/foo/bar'
-    );
-    assert.strictEqual(
-      generateClientConfigMock.mock.calls[0].arguments[2],
-      ClientConfigFormat.MJS
+      generateClientConfigMock.mock.calls[0].arguments.splice(0, 3),
+      [
+        {
+          name: 'branch_name',
+          namespace: 'app_id',
+          type: 'branch',
+        },
+        '/foo/bar',
+        ClientConfigFormat.MJS,
+      ]
     );
   });
 
@@ -131,16 +127,14 @@ void describe('generate config command', () => {
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
-      generateClientConfigMock.mock.calls[0].arguments[0],
-      { stackName: 'stack_name' }
-    );
-    assert.strictEqual(
-      generateClientConfigMock.mock.calls[0].arguments[1],
-      '/foo/bar'
-    );
-    assert.strictEqual(
-      generateClientConfigMock.mock.calls[0].arguments[2],
-      ClientConfigFormat.TS
+      generateClientConfigMock.mock.calls[0].arguments.splice(0, 3),
+      [
+        {
+          stackName: 'stack_name',
+        },
+        '/foo/bar',
+        ClientConfigFormat.TS,
+      ]
     );
   });
 
@@ -150,16 +144,14 @@ void describe('generate config command', () => {
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
-      generateClientConfigMock.mock.calls[0].arguments[0],
-      { stackName: 'stack_name' }
-    );
-    assert.strictEqual(
-      generateClientConfigMock.mock.calls[0].arguments[1],
-      'foo/bar'
-    );
-    assert.strictEqual(
-      generateClientConfigMock.mock.calls[0].arguments[2],
-      ClientConfigFormat.MJS
+      generateClientConfigMock.mock.calls[0].arguments.splice(0, 3),
+      [
+        {
+          stackName: 'stack_name',
+        },
+        'foo/bar',
+        ClientConfigFormat.MJS,
+      ]
     );
   });
 
@@ -169,16 +161,14 @@ void describe('generate config command', () => {
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
-      generateClientConfigMock.mock.calls[0].arguments[0],
-      { stackName: 'stack_name' }
-    );
-    assert.strictEqual(
-      generateClientConfigMock.mock.calls[0].arguments[1],
-      'foo/bar'
-    );
-    assert.strictEqual(
-      generateClientConfigMock.mock.calls[0].arguments[2],
-      ClientConfigFormat.DART
+      generateClientConfigMock.mock.calls[0].arguments.splice(0, 3),
+      [
+        {
+          stackName: 'stack_name',
+        },
+        'foo/bar',
+        ClientConfigFormat.DART,
+      ]
     );
   });
 
@@ -188,16 +178,14 @@ void describe('generate config command', () => {
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
-      generateClientConfigMock.mock.calls[0].arguments[0],
-      { stackName: 'stack_name' }
-    );
-    assert.strictEqual(
-      generateClientConfigMock.mock.calls[0].arguments[1],
-      'foo/bar'
-    );
-    assert.strictEqual(
-      generateClientConfigMock.mock.calls[0].arguments[2],
-      ClientConfigFormat.JSON_MOBILE
+      generateClientConfigMock.mock.calls[0].arguments.splice(0, 3),
+      [
+        {
+          stackName: 'stack_name',
+        },
+        'foo/bar',
+        ClientConfigFormat.JSON_MOBILE,
+      ]
     );
   });
 
