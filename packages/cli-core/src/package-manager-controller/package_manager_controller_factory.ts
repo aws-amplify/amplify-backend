@@ -12,12 +12,8 @@ export class PackageManagerControllerFactory {
   /**
    * constructor
    * @param projectRoot - the root directory of the project
-   * @param userAgent - the user agent of the package manager
    */
-  constructor(
-    private readonly projectRoot: string,
-    private readonly userAgent: string
-  ) {}
+  constructor(private readonly projectRoot: string) {}
 
   /**
    * getPackageManagerController - returns the package manager controller for each package manager
@@ -44,7 +40,11 @@ export class PackageManagerControllerFactory {
    * getPackageManagerName - returns the name of the package manager
    */
   private getPackageManagerName() {
-    const packageManagerAndVersion = this.userAgent.split(' ')[0];
+    const userAgent = process.env.npm_config_user_agent;
+    if (userAgent === undefined) {
+      throw new Error('npm_config_user_agent is undefined');
+    }
+    const packageManagerAndVersion = userAgent.split(' ')[0];
     const [packageManagerName, packageManagerVersion] =
       packageManagerAndVersion.split('/');
 

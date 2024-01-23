@@ -115,6 +115,19 @@ Get started by running \`${this.binaryRunner} amplify sandbox\`.`;
   }
 
   /**
+   * runWithPackageManager - Factory function that runs a command with the specified package manager's binary runner
+   */
+  async runWithPackageManager(
+    args: string[] = [],
+    dir: string,
+    options?: {
+      env?: Record<string, string>;
+    }
+  ) {
+    await this.executeWithDebugLogger(dir, this.binaryRunner, args, this.execa);
+  }
+
+  /**
    * Check if a package.json file exists in projectRoot
    */
   private packageJsonExists = (projectRoot: string): boolean => {

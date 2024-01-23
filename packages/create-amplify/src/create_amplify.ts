@@ -20,13 +20,8 @@ import { printer } from './printer.js';
 
 const projectRoot = await getProjectRoot();
 
-if (process.env.npm_config_user_agent === undefined) {
-  throw new Error('npm_config_user_agent is undefined');
-}
-
 const packageManagerControllerFactory = new PackageManagerControllerFactory(
-  projectRoot,
-  process.env.npm_config_user_agent
+  projectRoot
 );
 
 const packageManagerController =
