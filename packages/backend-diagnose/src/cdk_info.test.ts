@@ -3,6 +3,7 @@ import * as test from 'node:test';
 
 import { formatCdkInfo, getCdkInfo } from './cdk_info.js';
 import { execa } from 'execa';
+import { Printer } from '@aws-amplify/cli-core';
 
 void test.describe('CDK Info', () => {
   const mockValue: Awaited<ReturnType<typeof getCdkInfo>> = `
@@ -40,8 +41,9 @@ CDK environment variables:
   CDK_DISABLE_VERSION_CHECK = true
 `.trim();
 
+    Printer.print(mockValue);
     const result = formatCdkInfo(mockValue);
-
+    Printer.print(result);
     assert.strictEqual<string>(result, expected);
   });
 });

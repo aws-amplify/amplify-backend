@@ -39,6 +39,9 @@ export const formatCdkInfo = (info: string) => {
   const lines = info.split(os.EOL);
   const formattedLines = lines.map((line) => {
     let formattedLine = line.replace(/[^\x20-\x7E]/g, '').trim();
+    if (formattedLine === '') {
+      throw new Error('Unexpected empty line');
+    }
     const containsSensitiveInfo = sensitiveKeys.some((key) =>
       formattedLine.includes(key)
     );
