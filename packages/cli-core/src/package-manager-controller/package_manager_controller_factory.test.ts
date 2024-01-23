@@ -34,7 +34,7 @@ void describe('packageManagerControllerFactory', () => {
     for (const testCase of testCases) {
       void it(`should return the correct package manager controller for ${testCase.name}`, () => {
         const packageManagerControllerFactory =
-          new PackageManagerControllerFactory(packageRoot, testCase.userAgent);
+          new PackageManagerControllerFactory(packageRoot);
 
         const packageManagerController =
           packageManagerControllerFactory.getPackageManagerController();
@@ -46,7 +46,7 @@ void describe('packageManagerControllerFactory', () => {
 
     void it('should throw an error for unsupported package managers', () => {
       const packageManagerControllerFactory =
-        new PackageManagerControllerFactory(packageRoot, 'unsupported');
+        new PackageManagerControllerFactory(packageRoot);
       assert.throws(
         () => packageManagerControllerFactory.getPackageManagerController(),
         Error,
