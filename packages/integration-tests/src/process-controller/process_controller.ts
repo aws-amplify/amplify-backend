@@ -3,7 +3,10 @@ import readline from 'readline';
 import { PredicatedActionBuilder } from './predicated_action_queue_builder.js';
 import { ActionType } from './predicated_action.js';
 import { killExecaProcess } from './execa_process_killer.js';
-import { type PackageManager } from '../setup_package_manager.js';
+import {
+  type PackageManager,
+  type PackageManagerExecutable,
+} from '../setup_package_manager.js';
 
 /**
  * Provides an abstractions for sending and receiving data on stdin/out of a child process
@@ -178,6 +181,41 @@ export const runPackageManager = (
     : packageManager;
 
   return new ProcessController(packageManagerExecutable, args, {
+    cwd: dir,
+    env: options?.env,
+  });
+};
+
+/**
+ *  runWithPackageManager - Factory function that returns a ProcessController for the specified package manager's binary runner
+ */
+export const runWithPackageManager = (
+  packageManager: PackageManager,
+  args: string[] = [],
+  dir: string,
+  options?: {
+    env?: Record<string, string>;
+  }
+): ProcessController => {
+  let packageManagerBinary: PackageManagerExecutable;
+  switch (packageManager) {
+    case 'npm':
+      packageManagerBinary = 'npx';
+      break;
+
+    case 'pnpm':
+      packageManagerBinary = 'pnpm';
+      break;
+
+    case 'yarn-classic':
+    case 'yarn-modern':
+      packageManagerBinary = 'yarn';
+      break;
+
+    default:
+      throw new Error(`Unknown package manager: ${packageManager as string}`);
+  }
+  return new ProcessController(packageManagerBinary, args, {
     cwd: dir,
     env: options?.env,
   });

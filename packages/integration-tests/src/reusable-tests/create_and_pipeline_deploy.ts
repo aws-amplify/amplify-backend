@@ -4,8 +4,8 @@ import { getClientConfigPath } from '@aws-amplify/client-config';
 import { TestBranch } from '../amplify_app_pool.js';
 import { type PackageManager } from '../setup_package_manager.js';
 import {
-  amplifyCli,
   runPackageManager,
+  runWithPackageManager,
 } from '../process-controller/process_controller.js';
 
 /**
@@ -22,7 +22,8 @@ export const createAmplifyAndPipelineDeploy = async (
     tempDir
   ).run();
 
-  await amplifyCli(
+  await runWithPackageManager(
+    packageManager,
     [
       'pipeline-deploy',
       '--branch',
