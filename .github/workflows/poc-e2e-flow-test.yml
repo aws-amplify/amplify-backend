@@ -6,7 +6,6 @@ on: # TODO: need to change the trigger
   push:
     branches:
       - poc/package-manager-support
-      - poc/pms-use-health-check
   pull_request:
     branches:
       - poc/package-manager-support
