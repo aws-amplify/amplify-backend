@@ -7,6 +7,7 @@ import {
   LocalGraphqlFormGenerator,
   ResultBuilder,
 } from './local_codegen_graphql_form_generator.js';
+import path from 'path';
 
 type MockDataType = 'String' | 'ID' | 'AWSDateTime';
 
@@ -111,7 +112,7 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
       );
       assert(
         logArgs.some((logMessage) =>
-          new RegExp(`^File written: ./index.js$`).test(logMessage)
+          new RegExp('^File written: index.js$').test(logMessage)
         )
       );
     });
@@ -159,7 +160,7 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
             new RegExp(`${m}(Update|Create)Form.d.ts`).test(arg.toString())
           );
           const didLogMessage = logMessages.some((logMessage) =>
-            new RegExp(`^File written: ./${m}(Update|Create)Form.d.ts$`).test(
+            new RegExp(`^File written: ${m}(Update|Create)Form.d.ts$`).test(
               logMessage.toString()
             )
           );
