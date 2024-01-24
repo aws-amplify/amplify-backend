@@ -7,7 +7,6 @@ import {
   LocalGraphqlFormGenerator,
   ResultBuilder,
 } from './local_codegen_graphql_form_generator.js';
-import path from 'path';
 
 type MockDataType = 'String' | 'ID' | 'AWSDateTime';
 
