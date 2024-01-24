@@ -1,8 +1,9 @@
 import {
+  AppendableBackendOutputEntry,
   BackendOutputEntry,
   BackendOutputStorageStrategy,
 } from '@aws-amplify/plugin-types';
-import { CfnOutput, Stack } from 'aws-cdk-lib';
+import { CfnOutput, Lazy, Stack } from 'aws-cdk-lib';
 
 /**
  * Implementation of BackendOutputStorageStrategy that stores config data in stack metadata and outputs
@@ -35,5 +36,30 @@ export class StackMetadataBackendOutputStorageStrategy
       version: backendOutputEntry.version,
       stackOutputs: Object.keys(backendOutputEntry.payload),
     });
+  };
+
+  // TODO this should be pushed to interface as well.
+  addAppendableBackendOutputEntry = (
+    keyName: string
+  ): AppendableBackendOutputEntry => {
+    const outputs: Record<string, string> = {};
+    this.stack.addMetadata(keyName, {
+      // TODO we should have some discriminator to distinguish dynamic entry from typed one
+      version: '1',
+      stackOutputs: Lazy.list({
+        produce: () => {
+          return Object.keys(outputs);
+        },
+      }),
+    });
+    return {
+      appendOutput: (key: string, value: string) => {
+        if (key in outputs) {
+          throw new Error(`Output ${key} is already defined`);
+        }
+        outputs[key] = value;
+        new CfnOutput(this.stack, key, { value });
+      }
+    }
   };
 }

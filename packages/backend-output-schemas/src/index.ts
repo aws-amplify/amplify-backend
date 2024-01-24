@@ -67,6 +67,10 @@ export const unifiedBackendOutputSchema = z.object({
   [authOutputKey]: versionedAuthOutputSchema.optional(),
   [graphqlOutputKey]: versionedGraphqlOutputSchema.optional(),
   [storageOutputKey]: versionedStorageOutputSchema.optional(),
+  ['AWS::Amplify::Custom']: z.object({
+    version: z.literal('1'),
+    payload: z.record(z.string(), z.string()),
+  }).optional(),
 });
 /**
  * This type is a subset of the BackendOutput type that is exposed by the platform.

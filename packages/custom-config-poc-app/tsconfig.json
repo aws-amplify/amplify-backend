@@ -12,10 +12,9 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
-    "paths": {
-      "@/*": ["./*"]
-    }
+    "paths": { "@/*": ["./*"] }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules", "amplify"]
+  "exclude": ["node_modules", "amplify"],
+  "references": [{ "path": "../backend" }, { "path": "../cli" }]
 }

@@ -1,4 +1,4 @@
-import { ConstructFactory, ResourceProvider } from '@aws-amplify/plugin-types';
+import { AppendableBackendOutputEntry, ConstructFactory, ResourceProvider } from "@aws-amplify/plugin-types";
 import { Stack } from 'aws-cdk-lib';
 import {
   NestedStackResolver,
@@ -35,6 +35,9 @@ export class BackendFactory<
   };
 
   private readonly stackResolver: StackResolver;
+  private readonly outputStorageStrategy: StackMetadataBackendOutputStorageStrategy;
+  private customOutputsEntry: AppendableBackendOutputEntry | undefined;
+
   /**
    * Initialize an Amplify backend with the given construct factories and in the given CDK App.
    * If no CDK App is specified a new one is created
@@ -54,12 +57,12 @@ export class BackendFactory<
       this.stackResolver
     );
 
-    const outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
+    this.outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
       stack
     );
 
     const backendId = getBackendIdentifier(stack);
-    outputStorageStrategy.addBackendOutputEntry(platformOutputKey, {
+    this.outputStorageStrategy.addBackendOutputEntry(platformOutputKey, {
       version: '1',
       payload: {
         deploymentType: backendId.type,
@@ -92,7 +95,7 @@ export class BackendFactory<
         this.resources[resourceName as keyof T] = constructFactory.getInstance(
           {
             constructContainer,
-            outputStorageStrategy,
+            outputStorageStrategy: this.outputStorageStrategy,
             importPathVerifier,
           }
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -108,6 +111,27 @@ export class BackendFactory<
   createStack = (name: string): Stack => {
     return this.stackResolver.createCustomStack(name);
   };
+
+  setCustomOutput = (key: string, value: string): void => {
+
+    /*
+    Looks like this must be in certain format.
+    From attempt to use non-alpha numeric characters with this.outputStorageStrategy.addBackendOutputEntry() in early prototype.
+
+    The CloudFormation deployment has failed. Find more information in the CloudFormation AWS Console for this stack.
+    Caused By: ❌ Deployment failed: Error [ValidationError]: Template format error: Outputs name 'amplify-custom-myApiUrl-value' is non alphanumeric.
+     */
+
+
+    if(!this.customOutputsEntry) {
+      this.customOutputsEntry = this.outputStorageStrategy.addAppendableBackendOutputEntry('AWS::Amplify::Custom');
+    }
+
+    // TODO how do we do custom namespacing ??
+    const outputData = JSON.stringify({ value: value});
+    console.log(outputData);
+    this.customOutputsEntry.appendOutput(`amplifycustom${key}`, outputData);
+  }
 }
 
 /**
@@ -121,5 +145,6 @@ export const defineBackend = <T extends DefineBackendProps>(
   return {
     ...backend.resources,
     createStack: backend.createStack,
+    setCustomOutput: backend.setCustomOutput,
   };
 };

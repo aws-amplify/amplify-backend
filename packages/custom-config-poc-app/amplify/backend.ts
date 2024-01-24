@@ -7,6 +7,7 @@ import {
   RestApi,
   UsagePlan,
 } from 'aws-cdk-lib/aws-apigateway';
+import * as process from "process";
 
 const backend = defineBackend({
   myFunc,
@@ -34,8 +35,13 @@ api.root.addMethod('GET', lambdaIntegration, {
   apiKeyRequired: true,
 });
 
+const apiKeyValue = process.env.CUSTOM_CONFIG_POC_APP_API_KEY;
+if (!apiKeyValue) {
+  throw new Error('API Key must be provided in CUSTOM_CONFIG_POC_APP_API_KEY env var');
+}
+
 const apiKey = api.addApiKey('TestRestApiKey', {
-  value: 'REDACTED',
+  value: apiKeyValue,
 });
 
 const usagePlan = new UsagePlan(stack, 'UsagePlan', {
@@ -49,3 +55,6 @@ const usagePlan = new UsagePlan(stack, 'UsagePlan', {
 });
 
 usagePlan.addApiKey(apiKey);
+
+backend.setCustomOutput('myApiUrl', api.url);
+backend.setCustomOutput('myApiKey', apiKeyValue);

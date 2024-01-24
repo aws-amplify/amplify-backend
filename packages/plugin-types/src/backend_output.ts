@@ -6,3 +6,7 @@ export type BackendOutputEntry<
 };
 
 export type BackendOutput = Record<string, BackendOutputEntry>;
+
+export type AppendableBackendOutputEntry = {
+  appendOutput: (key: string, value: string) => void;
+}

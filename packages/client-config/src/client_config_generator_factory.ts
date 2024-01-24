@@ -7,6 +7,7 @@ import { BackendOutput } from '@aws-amplify/plugin-types';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { ModelIntrospectionSchemaAdapter } from './client-config-contributor/model_introspection_schema_adapater.js';
 import { PlatformClientConfigContributor } from './client-config-contributor/platform_client_config_contributor.js';
+import { CustomClientConfigContributor } from "./client-config-contributor/custom_client_config_contributor.js";
 
 /**
  * Creates ClientConfigGenerators given different backend identifiers
@@ -32,6 +33,7 @@ export class ClientConfigGeneratorFactory {
       new AuthClientConfigContributor(),
       new GraphqlClientConfigContributor(modelSchemaAdapter),
       new StorageClientConfigContributor(),
+      new CustomClientConfigContributor(),
     ]);
   };
 }

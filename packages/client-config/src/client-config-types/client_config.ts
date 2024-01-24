@@ -3,6 +3,10 @@ import { GraphqlClientConfig } from './graphql_client_config.js';
 import { PlatformClientConfig } from './platform_client_config.js';
 import { StorageClientConfig } from './storage_client_config.js';
 
+export type CustomClientConfig = {
+  custom: Record<string, string>
+};
+
 /**
  * Merged type of all category client config types
  */
@@ -10,7 +14,8 @@ export type ClientConfig = Partial<
   AuthClientConfig &
     GraphqlClientConfig &
     StorageClientConfig &
-    PlatformClientConfig
+    PlatformClientConfig &
+    CustomClientConfig
 >;
 
 export enum ClientConfigFormat {

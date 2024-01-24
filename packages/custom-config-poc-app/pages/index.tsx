@@ -3,17 +3,18 @@ import Image from "next/image";
 import { Inter } from "next/font/google";
 import styles from "@/styles/Home.module.css";
 import { useState, useEffect } from 'react'
+import config from '../amplifyconfiguration.json';
 
 const inter = Inter({ subsets: ["latin"] });
 
 export default function Home() {
-  const [data, setData] = useState(null)
+  const [data, setData] = useState<string | null>(null)
   const [isLoading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch('REDACTED', {
+    fetch(config.custom.myApiUrl, {
       headers: {
-       'x-api-key' : 'REDACTED'
+       'x-api-key' : config.custom.myApiKey
       }
     })
       .then((res) => res.text())

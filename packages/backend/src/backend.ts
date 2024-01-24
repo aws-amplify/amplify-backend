@@ -3,6 +3,7 @@ import { Stack } from 'aws-cdk-lib';
 
 export type BackendBase = {
   createStack: (name: string) => Stack;
+  setCustomOutput: (key: string, value: string) => void;
 };
 
 // Type that allows construct factories to be defined using any keys except those used in BackendHelpers

@@ -1,4 +1,4 @@
-import { BackendOutputEntry } from './backend_output.js';
+import { AppendableBackendOutputEntry, BackendOutputEntry } from "./backend_output.js";
 
 /**
  * Type for an object that collects output data from constructs
