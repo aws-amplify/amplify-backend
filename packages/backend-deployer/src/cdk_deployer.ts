@@ -1,4 +1,3 @@
-import { execa } from 'execa';
 import stream from 'stream';
 import readline from 'readline';
 import {
@@ -8,6 +7,7 @@ import {
   DestroyResult,
 } from './cdk_deployer_singleton_factory.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
+import { PackageManagerControllerFactory } from '@aws-amplify/cli-core';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import {
   AmplifyUserError,
@@ -28,18 +28,22 @@ enum InvokableCommand {
  * Invokes CDK command via execa
  */
 export class CDKDeployer implements BackendDeployer {
+  private readonly packageManagerControllerFactory: PackageManagerControllerFactory;
+  private readonly packageManagerController: ReturnType<
+    PackageManagerControllerFactory['getPackageManagerController']
+  >;
   /**
    * Instantiates instance of CDKDeployer
    */
   constructor(
     private readonly cdkErrorMapper: CdkErrorMapper,
-    private readonly backendLocator: BackendLocator,
-    private readonly packageManager: string
+    private readonly backendLocator: BackendLocator
   ) {
-    // TODO: use PackageManagerController to get the executable.
-    // But first, we need to move the PackageManagerController to platform-core.
-    this.packageManager =
-      this.packageManager === 'npm' ? 'npx' : this.packageManager;
+    this.packageManagerControllerFactory = new PackageManagerControllerFactory(
+      './'
+    );
+    this.packageManagerController =
+      this.packageManagerControllerFactory.getPackageManagerController();
   }
   /**
    * Invokes cdk deploy command
@@ -77,8 +81,7 @@ export class CDKDeployer implements BackendDeployer {
    * Wrapper for the child process executor. Helps in unit testing as node:test framework
    * doesn't have capabilities to mock exported functions like `execa` as of right now.
    */
-  executeChildProcess = async (
-    command: string,
+  executeChildProcessWithPackageManager = async (
     commandArgs: string[],
     options: { printStdout: boolean } = { printStdout: true }
   ) => {
@@ -93,16 +96,20 @@ export class CDKDeployer implements BackendDeployer {
       done();
     };
 
-    const childProcess = execa(command, commandArgs, {
-      stdin: 'inherit',
-      stdout: 'pipe',
-      stderr: 'pipe',
+    const childProcess = this.packageManagerController.runWithPackageManager(
+      commandArgs,
+      dirname(this.backendLocator.locate()),
+      {
+        stdin: 'inherit',
+        stdout: 'pipe',
+        stderr: 'pipe',
+        // Piping the output by default strips off the color. This is a workaround to
+        // preserve the color being piped to parent process.
+        extendEnv: true,
+        env: { FORCE_COLOR: '1' },
+      }
+    );
 
-      // Piping the output by default strips off the color. This is a workaround to
-      // preserve the color being piped to parent process.
-      extendEnv: true,
-      env: { FORCE_COLOR: '1' },
-    });
     childProcess.stderr?.pipe(aggregatorStderrStream);
 
     if (options?.printStdout) {
@@ -131,8 +138,7 @@ export class CDKDeployer implements BackendDeployer {
       return;
     }
     try {
-      await this.executeChildProcess(
-        this.packageManager,
+      await this.executeChildProcessWithPackageManager(
         [
           'tsc',
           '--showConfig',
@@ -146,7 +152,7 @@ export class CDKDeployer implements BackendDeployer {
       return;
     }
     try {
-      await this.executeChildProcess(this.packageManager, [
+      await this.executeChildProcessWithPackageManager([
         'tsc',
         '--noEmit',
         '--skipLibCheck',
@@ -193,19 +199,11 @@ export class CDKDeployer implements BackendDeployer {
     backendId: BackendIdentifier,
     additionalArguments?: string[]
   ): Promise<DeployResult | DestroyResult> => {
-    // Basic args
-    const cdkCommandArgs = [
-      'cdk',
-      invokableCommand.toString(),
-      // This is unfortunate. CDK writes everything to stderr without `--ci` flag and we need to differentiate between the two.
-      // See https://github.com/aws/aws-cdk/issues/7717 for more details.
-      '--ci',
-      '--app',
-      `'${this.packageManager} tsx ${this.backendLocator.locate()}'`,
-      '--all',
-      '--output',
-      '.amplify/artifacts/cdk.out',
-    ];
+    const cdkCommandArgs =
+      this.packageManagerController.getPackageManagerCommandArgs(
+        invokableCommand,
+        this.backendLocator
+      );
 
     // Add context information if available
     cdkCommandArgs.push(
@@ -228,7 +226,7 @@ export class CDKDeployer implements BackendDeployer {
       cdkCommandArgs.push(...additionalArguments);
     }
 
-    return await this.executeChildProcess(this.packageManager, cdkCommandArgs);
+    return await this.executeChildProcessWithPackageManager(cdkCommandArgs);
   };
 
   private populateCDKOutputFromStdout = async (
