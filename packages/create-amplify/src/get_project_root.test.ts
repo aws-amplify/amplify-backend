@@ -71,4 +71,20 @@ void describe('getProjectRoot', () => {
     );
     assert.equal(projectRoot, path.resolve(userInput));
   });
+
+  void it('raised error mkdir if the user provided absolute path does not exist', async () => {
+    process.env.npm_config_yes = 'false';
+    const userInput = '/test';
+    mock.method(AmplifyPrompter, 'input', () => Promise.resolve(userInput));
+    const fsMkDirSyncMock = mock.method(fsp, 'mkdir', () =>
+      Promise.reject(new Error())
+    );
+    try {
+      await fsp.mkdir(userInput, { recursive: true });
+    } catch (err) {
+      if (path.isAbsolute(userInput)) {
+        assert.equal(fsMkDirSyncMock.mock.callCount(), 1);
+      }
+    }
+  });
 });
