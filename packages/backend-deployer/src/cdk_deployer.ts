@@ -7,7 +7,7 @@ import {
   DestroyResult,
 } from './cdk_deployer_singleton_factory.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
-import { PackageManagerControllerFactory } from '@aws-amplify/cli-core';
+import { type PackageManagerControllerFactory } from '@aws-amplify/cli-core';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import {
   AmplifyUserError,
@@ -28,7 +28,6 @@ enum InvokableCommand {
  * Invokes CDK command via execa
  */
 export class CDKDeployer implements BackendDeployer {
-  private readonly packageManagerControllerFactory: PackageManagerControllerFactory;
   private readonly packageManagerController: ReturnType<
     PackageManagerControllerFactory['getPackageManagerController']
   >;
@@ -37,11 +36,9 @@ export class CDKDeployer implements BackendDeployer {
    */
   constructor(
     private readonly cdkErrorMapper: CdkErrorMapper,
-    private readonly backendLocator: BackendLocator
+    private readonly backendLocator: BackendLocator,
+    private readonly packageManagerControllerFactory: PackageManagerControllerFactory
   ) {
-    this.packageManagerControllerFactory = new PackageManagerControllerFactory(
-      './'
-    );
     this.packageManagerController =
       this.packageManagerControllerFactory.getPackageManagerController();
   }
@@ -96,20 +93,19 @@ export class CDKDeployer implements BackendDeployer {
       done();
     };
 
-    const childProcess =
-      await this.packageManagerController.runWithPackageManager(
-        commandArgs,
-        dirname(this.backendLocator.locate()),
-        {
-          stdin: 'inherit',
-          stdout: 'pipe',
-          stderr: 'pipe',
-          // Piping the output by default strips off the color. This is a workaround to
-          // preserve the color being piped to parent process.
-          extendEnv: true,
-          env: { FORCE_COLOR: '1' },
-        }
-      );
+    const childProcess = this.packageManagerController.runWithPackageManager(
+      commandArgs,
+      dirname(this.backendLocator.locate()),
+      {
+        stdin: 'inherit',
+        stdout: 'pipe',
+        stderr: 'pipe',
+        // Piping the output by default strips off the color. This is a workaround to
+        // preserve the color being piped to parent process.
+        extendEnv: true,
+        env: { FORCE_COLOR: '1' },
+      }
+    );
 
     childProcess.stderr?.pipe(aggregatorStderrStream);
 
