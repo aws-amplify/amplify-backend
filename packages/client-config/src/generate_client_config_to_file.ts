@@ -16,7 +16,9 @@ export const generateClientConfigToFile = async (
   credentialProvider: AwsCredentialIdentityProvider,
   backendIdentifier: DeployedBackendIdentifier,
   outDir?: string,
-  format?: ClientConfigFormat
+  format?: ClientConfigFormat,
+  // TODO: update this type when Printer interface gets defined in platform-core.
+  log?: (message: string) => void
 ): Promise<void> => {
   const packageJson = await readPackageJson();
 
@@ -31,7 +33,7 @@ export const generateClientConfigToFile = async (
     credentialProvider,
     backendIdentifier
   );
-  await clientConfigWriter.writeClientConfig(clientConfig, outDir, format);
+  await clientConfigWriter.writeClientConfig(clientConfig, outDir, format, log);
 };
 
 const readPackageJson = async (): Promise<{

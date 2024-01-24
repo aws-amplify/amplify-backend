@@ -65,9 +65,22 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
         stat: async () => ({}),
         close: async () => undefined,
       }));
-      await output.writeToDirectory('./');
+      const mockLog = mock.fn();
+      await output.writeToDirectory('./', (message) => mockLog(message));
       const writeArgs = fsMock.mock.calls.flatMap((c) => c.arguments[0]);
-      assert(writeArgs.some((e) => /utils\.[jt]s[x]?/.test(e.toString())));
+      const utilFSWriteArgs = writeArgs.filter((e) =>
+        /utils\.[jt]s[x]?/.test(e.toString())
+      );
+
+      assert(utilFSWriteArgs.length > 0);
+
+      utilFSWriteArgs.forEach((fileName) => {
+        assert(
+          mockLog.mock.calls.some(({ arguments: [logMessage] }) =>
+            new RegExp(`^File written: ${fileName as string}$`).test(logMessage)
+          )
+        );
+      });
     });
     void it('generates index file', async () => {
       const models = ['Post', 'Author', 'Foo'];
@@ -88,9 +101,19 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
         stat: async () => ({}),
         close: async () => undefined,
       }));
-      await output.writeToDirectory('./');
+      const mockLog = mock.fn();
+      await output.writeToDirectory('./', (message) => mockLog(message));
       const writeArgs = fsMock.mock.calls.flatMap((c) => c.arguments[0]);
       assert(writeArgs.includes('index.js'));
+
+      const logArgs: string[] = mockLog.mock.calls.flatMap(
+        (c) => c.arguments[0]
+      );
+      assert(
+        logArgs.some((logMessage) =>
+          new RegExp('^File written: index.js$').test(logMessage)
+        )
+      );
     });
   });
   void describe('filtering', () => {
@@ -126,13 +149,21 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
         stat: async () => ({}),
         close: async () => undefined,
       }));
-      await output.writeToDirectory('./');
+      const mockLog = mock.fn();
+      await output.writeToDirectory('./', (message) => mockLog(message));
       const writeArgs = fsMock.mock.calls.flatMap((c) => c.arguments[0]);
+      const logMessages = mockLog.mock.calls.flatMap((c) => c.arguments[0]);
       assert(
         models.every((m) => {
-          return writeArgs.some((arg) =>
+          const didWriteFile = writeArgs.some((arg) =>
             new RegExp(`${m}(Update|Create)Form.d.ts`).test(arg.toString())
           );
+          const didLogMessage = logMessages.some((logMessage) =>
+            new RegExp(`^File written: ${m}(Update|Create)Form.d.ts$`).test(
+              logMessage.toString()
+            )
+          );
+          return didWriteFile && didLogMessage;
         })
       );
     });
