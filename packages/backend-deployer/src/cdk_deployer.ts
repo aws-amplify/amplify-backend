@@ -96,19 +96,20 @@ export class CDKDeployer implements BackendDeployer {
       done();
     };
 
-    const childProcess = this.packageManagerController.runWithPackageManager(
-      commandArgs,
-      dirname(this.backendLocator.locate()),
-      {
-        stdin: 'inherit',
-        stdout: 'pipe',
-        stderr: 'pipe',
-        // Piping the output by default strips off the color. This is a workaround to
-        // preserve the color being piped to parent process.
-        extendEnv: true,
-        env: { FORCE_COLOR: '1' },
-      }
-    );
+    const childProcess =
+      await this.packageManagerController.runWithPackageManager(
+        commandArgs,
+        dirname(this.backendLocator.locate()),
+        {
+          stdin: 'inherit',
+          stdout: 'pipe',
+          stderr: 'pipe',
+          // Piping the output by default strips off the color. This is a workaround to
+          // preserve the color being piped to parent process.
+          extendEnv: true,
+          env: { FORCE_COLOR: '1' },
+        }
+      );
 
     childProcess.stderr?.pipe(aggregatorStderrStream);
 
