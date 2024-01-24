@@ -31,14 +31,12 @@ void describe('AppsyncGraphqlDocumentGenerationResult', () => {
         message.includes(path.join(directory, fileName))
       );
       assert.deepEqual(writeFileCall?.arguments, [resolvedName, content]);
-      assert.match(
+      assert.strictEqual(
         logCall?.arguments[0],
-        new RegExp(
-          `^File written: ${path.relative(
-            '.',
-            path.resolve(path.join(directory, fileName))
-          )}$`
-        )
+        `File written: ${path.relative(
+          '.',
+          path.resolve(path.join(directory, fileName))
+        )}`
       );
     });
   });
