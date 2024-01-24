@@ -5,7 +5,7 @@ import { printer } from '../printer.js';
 /**
  * Abstracts the execution of a command and pipes outputs/errors to `Printer.debug`
  */
-export const executeWithDebugLogger = async (
+export const executeWithDebugLogger = (
   cwd: string,
   executable: string,
   args?: Readonly<string[]>,
@@ -26,7 +26,7 @@ export const executeWithDebugLogger = async (
       printer.log(data, LogLevel.DEBUG)
     );
 
-    return await childProcess;
+    return childProcess;
   } catch {
     throw new Error(
       `\`${executable}${
