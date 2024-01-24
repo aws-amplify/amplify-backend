@@ -1,0 +1,31 @@
+{
+  "name": "custom-config-poc-app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "react": "^18",
+    "react-dom": "^18",
+    "next": "14.1.0"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.131",
+    "@types/node": "^18.0.0",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "@aws-amplify/backend": "^0.10.2",
+    "@aws-amplify/backend-cli": "^0.9.7",
+    "aws-cdk": "^2.122.0",
+    "aws-cdk-lib": "^2.122.0",
+    "constructs": "^10.3.0",
+    "typescript": "^5.3.3"
+  }
+}
