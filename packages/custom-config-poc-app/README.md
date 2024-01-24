@@ -7,6 +7,7 @@ To use after checkout:
 # start in repo root
 npm install && npm run build
 cd packages/custom-config-poc-app
+export CUSTOM_CONFIG_POC_APP_API_KEY=<provide some random value>
 npx amplify sandbox
 
 # in separate shell
