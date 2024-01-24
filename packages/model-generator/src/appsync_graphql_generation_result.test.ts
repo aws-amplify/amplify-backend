@@ -36,7 +36,7 @@ void describe('AppsyncGraphqlDocumentGenerationResult', () => {
         new RegExp(
           `^File written: ${path.relative(
             '.',
-            path.join(directory, fileName)
+            path.resolve(path.join(directory, fileName))
           )}$`
         )
       );
