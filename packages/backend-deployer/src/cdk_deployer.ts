@@ -95,7 +95,7 @@ export class CDKDeployer implements BackendDeployer {
 
     const childProcess = this.packageManagerController.runWithPackageManager(
       commandArgs,
-      dirname(this.backendLocator.locate()),
+      './',
       {
         stdin: 'inherit',
         stdout: 'pipe',
