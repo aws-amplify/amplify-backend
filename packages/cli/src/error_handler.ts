@@ -1,5 +1,6 @@
-import { COLOR, Printer } from '@aws-amplify/cli-core';
+import { COLOR } from '@aws-amplify/cli-core';
 import { InvalidCredentialError } from './error/credential_error.js';
+import { printer } from './printer.js';
 import { EOL } from 'os';
 import { Argv } from 'yargs';
 
@@ -50,15 +51,15 @@ export const generateCommandFailureHandler = (
    * @param message error message set by the yargs:check validations
    * @param error error thrown by yargs handler
    */
-  const handleCommandFailure = (message: string, error: Error) => {
+  const handleCommandFailure = (message: string, error?: Error) => {
     const printHelp = () => {
-      Printer.printNewLine();
+      printer.printNewLine();
       parser.showHelp();
-      Printer.printNewLine();
+      printer.printNewLine();
     };
 
     handleError(error, printHelp, message);
-    parser.exit(1, error);
+    parser.exit(1, error || new Error(message));
   };
   return handleCommandFailure;
 };
@@ -71,7 +72,7 @@ export const generateCommandFailureHandler = (
  * (Note that we don't do all of those things yet, but this is where they should go)
  */
 const handleError = (
-  error: Error,
+  error?: Error,
   printMessagePreamble?: () => void,
   message?: string
 ) => {
@@ -81,15 +82,29 @@ const handleError = (
   }
 
   if (error instanceof InvalidCredentialError) {
-    Printer.print(`${error.message}${EOL}`, COLOR.RED);
+    printer.print(`${error.message}${EOL}`, COLOR.RED);
     return;
   }
 
   printMessagePreamble?.();
-  Printer.print(message || String(error), COLOR.RED);
-  Printer.printNewLine();
+  printer.print(message || String(error), COLOR.RED);
+  if (errorHasCauseMessage(error)) {
+    printer.print(error.cause.message, COLOR.RED);
+  }
+  printer.printNewLine();
 };
 
-const isUserForceClosePromptError = (err: Error): boolean => {
-  return err?.message.includes('User force closed the prompt');
+const isUserForceClosePromptError = (err?: Error): boolean => {
+  return !!err && err?.message.includes('User force closed the prompt');
+};
+
+const errorHasCauseMessage = (
+  error?: Error
+): error is Error & { cause: { message: string } } => {
+  return (
+    typeof error?.cause === 'object' &&
+    !!error.cause &&
+    'message' in error.cause &&
+    typeof error.cause.message === 'string'
+  );
 };

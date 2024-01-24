@@ -19,6 +19,7 @@ import {
   UserPoolIdentityProviderGoogle,
   UserPoolIdentityProviderOidc,
   UserPoolIdentityProviderSaml,
+  UserPoolIdentityProviderSamlMetadataType,
   UserPoolOperation,
   UserPoolProps,
 } from 'aws-cdk-lib/aws-cognito';
@@ -583,6 +584,11 @@ export class AmplifyAuth
     userPool: UserPool,
     loginOptions: AuthProps['loginWith']
   ): IdentityProviderSetupResult => {
+    /**
+     * If email is enabled, and is the only required attribute, we are able to
+     * automatically map the email attribute from external providers, excluding SAML.
+     */
+    const shouldMapEmailAttributes = loginOptions.email && !loginOptions.phone;
     const result: IdentityProviderSetupResult = {
       oauthMappings: {},
       providersList: [],
@@ -601,7 +607,14 @@ export class AmplifyAuth
           userPool,
           clientId: googleProps.clientId,
           clientSecretValue: googleProps.clientSecret,
-          attributeMapping: googleProps.attributeMapping,
+          attributeMapping:
+            googleProps.attributeMapping ?? shouldMapEmailAttributes
+              ? {
+                  email: {
+                    attributeName: 'email',
+                  },
+                }
+              : undefined,
           scopes: googleProps.scopes,
         }
       );
@@ -615,6 +628,14 @@ export class AmplifyAuth
         {
           userPool,
           ...external.facebook,
+          attributeMapping:
+            external.facebook.attributeMapping ?? shouldMapEmailAttributes
+              ? {
+                  email: {
+                    attributeName: 'email',
+                  },
+                }
+              : undefined,
         }
       );
       result.oauthMappings[authProvidersList.facebook] =
@@ -628,6 +649,15 @@ export class AmplifyAuth
         {
           userPool,
           ...external.loginWithAmazon,
+          attributeMapping:
+            external.loginWithAmazon.attributeMapping ??
+            shouldMapEmailAttributes
+              ? {
+                  email: {
+                    attributeName: 'email',
+                  },
+                }
+              : undefined,
         }
       );
       result.oauthMappings[authProvidersList.amazon] =
@@ -641,6 +671,15 @@ export class AmplifyAuth
         {
           userPool,
           ...external.signInWithApple,
+          attributeMapping:
+            external.signInWithApple.attributeMapping ??
+            shouldMapEmailAttributes
+              ? {
+                  email: {
+                    attributeName: 'email',
+                  },
+                }
+              : undefined,
         }
       );
       result.oauthMappings[authProvidersList.apple] =
@@ -651,13 +690,32 @@ export class AmplifyAuth
       result.oidc = new cognito.UserPoolIdentityProviderOidc(this, 'OidcIDP', {
         userPool,
         ...external.oidc,
+        attributeMapping:
+          external.oidc.attributeMapping ?? shouldMapEmailAttributes
+            ? {
+                email: {
+                  attributeName: 'email',
+                },
+              }
+            : undefined,
       });
       result.providersList.push('OIDC');
     }
     if (external.saml) {
+      const saml = external.saml;
       result.saml = new cognito.UserPoolIdentityProviderSaml(this, 'SamlIDP', {
         userPool,
-        ...external.saml,
+        attributeMapping: saml.attributeMapping,
+        identifiers: saml.identifiers,
+        idpSignout: saml.idpSignout,
+        metadata: {
+          metadataContent: saml.metadata.metadataContent,
+          metadataType:
+            saml.metadata.metadataType === 'FILE'
+              ? UserPoolIdentityProviderSamlMetadataType.FILE
+              : UserPoolIdentityProviderSamlMetadataType.URL,
+        },
+        name: saml.name,
       });
       result.providersList.push('SAML');
     }
@@ -695,8 +753,12 @@ export class AmplifyAuth
       webClientId: this.resources.userPoolClient.userPoolClientId,
       identityPoolId: this.resources.cfnResources.cfnIdentityPool.ref,
       authRegion: Stack.of(this).region,
+      allowUnauthenticatedIdentities:
+        this.resources.cfnResources.cfnIdentityPool
+          .allowUnauthenticatedIdentities === true
+          ? 'true'
+          : 'false',
     };
-
     if (this.computedUserPoolProps.standardAttributes) {
       const signupAttributes = Object.entries(
         this.computedUserPoolProps.standardAttributes

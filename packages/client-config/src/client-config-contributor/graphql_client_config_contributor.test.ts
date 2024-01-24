@@ -28,6 +28,7 @@ void describe('GraphqlClientConfigContributor', () => {
           userPoolId: 'stuff',
           authRegion: 'testRegion ',
           webClientId: 'clientId',
+          allowUnauthenticatedIdentities: 'true',
         },
       },
     });

@@ -81,12 +81,14 @@ export const someFunction1: () => void;
 export const someFunction2: (param1: string, param2?: number) => string;
 export const someFunction3: (param1: string, param2: number = 1) => string;
 export const someFunction4: <T1, T2, T3>(param1: T1, param2?: T2) => Promise<T3>;
+export const someFunction5: (param1: string, ...param2: number) => string;
     `,
     expectedApiUsage: `
 import { someFunction1 } from 'samplePackageName';
 import { someFunction2 } from 'samplePackageName';
 import { someFunction3 } from 'samplePackageName';
 import { someFunction4 } from 'samplePackageName';
+import { someFunction5 } from 'samplePackageName';
 
 const someFunction1UsageFunction = () => {
   someFunction1();
@@ -106,6 +108,11 @@ const someFunction3UsageFunction = (param1: string, param2: number = 1) => {
 const someFunction4UsageFunction = <T1, T2, T3>(param1: T1, param2?: T2) => {
   const returnValue: Promise<T3> = someFunction4(param1);
   someFunction4(param1, param2);
+}
+
+const someFunction5UsageFunction = (param1: string, ...param2: number) => {
+  const returnValue: string = someFunction5(param1, ...param2);
+  someFunction5(param1, ...param2);
 }
     `,
   },
@@ -135,6 +142,9 @@ export class SomeClass7<T1 extends SomeClass1, T2, T3, T4, T5, T6> {
   someMethod: (param1: T3, param2?: T4) => T5;
   someProperty: T6;
 }
+export class SomeClass8 {
+  someMethod: (param1: string, ...param2: string) => string;
+}
 export abstract class SomeAbstractClass1 {
   constructor(param1: string, param2?: string);
   someMethod: (param1: string, param2?: string) => string;
@@ -154,6 +164,7 @@ import { SomeClass4 } from 'samplePackageName';
 import { SomeClass5 } from 'samplePackageName';
 import { SomeClass6 } from 'samplePackageName';
 import { SomeClass7 } from 'samplePackageName';
+import { SomeClass8 } from 'samplePackageName';
 import { SomeAbstractClass1 } from 'samplePackageName';
 import { SomeAbstractClass2 } from 'samplePackageName';
 
@@ -204,6 +215,14 @@ const someClass7SomeMethodUsageOuterFunction = <T1 extends SomeClass1, T2, T3, T
 }
 const someClass7SomePropertyUsageOuterFunction = <T1 extends SomeClass1, T2, T3, T4, T5, T6>(someClass7SomePropertyUsageOuterFunctionParameter: SomeClass7<T1, T2, T3, T4, T5, T6>) => {
   const propertyValue: T6 = someClass7SomePropertyUsageOuterFunctionParameter.someProperty;
+}
+
+
+const someClass8SomeMethodUsageOuterFunction = (someClass8SomeMethodUsageOuterFunctionParameter: SomeClass8) => {
+  const SomeClass8SomeMethodUsageInnerFunction = (param1: string, ...param2: string) => {
+    const returnValue: string = someClass8SomeMethodUsageOuterFunctionParameter.someMethod(param1, ...param2);
+    someClass8SomeMethodUsageOuterFunctionParameter.someMethod(param1, ...param2);
+  }
 }
 
 

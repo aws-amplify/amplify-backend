@@ -1,5 +1,32 @@
 # @aws-amplify/auth-construct-alpha
 
+## 0.5.3
+
+### Patch Changes
+
+- 618a2ea71: Add allowUnauthenticatedIdentities to config output.
+- f70611df3: Updated SAML metadata types to simplify imports.
+- Updated dependencies [618a2ea71]
+  - @aws-amplify/backend-output-schemas@0.5.2
+  - @aws-amplify/backend-output-storage@0.2.11
+
+## 0.5.2
+
+### Patch Changes
+
+- Updated dependencies [d087313e9]
+  - @aws-amplify/plugin-types@0.7.1
+  - @aws-amplify/backend-output-storage@0.2.10
+
+## 0.5.1
+
+### Patch Changes
+
+- 04f067837: Implement consistent dependency declaration check. Bumped dependencies where necessary.
+- Updated dependencies [04f067837]
+  - @aws-amplify/backend-output-schemas@0.5.1
+  - @aws-amplify/backend-output-storage@0.2.9
+
 ## 0.5.0
 
 ### Minor Changes

@@ -1,8 +1,7 @@
 import fsp from 'fs/promises';
 import path from 'path';
-import { AmplifyPrompter } from '@aws-amplify/cli-core';
-import { logger } from './logger.js';
-import * as process from 'process';
+import { AmplifyPrompter, LogLevel } from '@aws-amplify/cli-core';
+import { printer } from './printer.js';
 
 /**
  * Returns the project root directory.
@@ -26,18 +25,27 @@ export const getProjectRoot = async () => {
     .then(() => true)
     .catch(() => false); // There's no `fsp.exists` method, so we use `stat` instead. See https://github.com/nodejs/node/issues/39960#issuecomment-909444667
   if (!isExistProjectRoot) {
-    logger.debug(`The provided directory (${projectRoot}) does not exist.`);
-    logger.debug(`Creating directory ${projectRoot}`);
-    try {
-      await fsp.mkdir(projectRoot, { recursive: true });
-    } catch (err) {
-      if (path.isAbsolute(projectRoot)) {
-        logger.warn(
-          `Failed to create directory at ${projectRoot}. Ensure this is the correct path and you have write permissions to this location.`
-        );
-      }
-      throw err;
-    }
+    // <<<<<<< HEAD
+    //     logger.debug(`The provided directory (${projectRoot}) does not exist.`);
+    //     logger.debug(`Creating directory ${projectRoot}`);
+    //     try {
+    //       await fsp.mkdir(projectRoot, { recursive: true });
+    //     } catch (err) {
+    //       if (path.isAbsolute(projectRoot)) {
+    //         logger.warn(
+    //           `Failed to create directory at ${projectRoot}. Ensure this is the correct path and you have write permissions to this location.`
+    //         );
+    //       }
+    //       throw err;
+    //     }
+    // =======
+    printer.log(
+      `The provided directory (${projectRoot}) does not exist.`,
+      LogLevel.DEBUG
+    );
+    printer.log(`Creating directory ${projectRoot}`, LogLevel.DEBUG);
+    await fsp.mkdir(projectRoot, { recursive: true });
+    // >>>>>>> main
   }
   return projectRoot;
 };

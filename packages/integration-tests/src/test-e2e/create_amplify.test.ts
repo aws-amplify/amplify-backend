@@ -7,11 +7,14 @@ import { after, afterEach, before, beforeEach, describe, it } from 'node:test';
 import assert from 'assert';
 import { glob } from 'glob';
 import { testConcurrencyLevel } from './test_concurrency.js';
+import { findBaselineCdkVersion } from '../cdk_version_finder.js';
 
 void describe(
   'create-amplify script',
   { concurrency: testConcurrencyLevel },
   () => {
+    let baselineCdkVersion: string;
+
     before(async () => {
       // start a local npm proxy and publish the current codebase to the proxy
       await execa('npm', ['run', 'clean:npm-proxy'], { stdio: 'inherit' });
@@ -33,6 +36,12 @@ void describe(
         cwd: os.homedir(),
         stdio: 'inherit',
       });
+
+      // Prefixing with ~. Otherwise, npm is going to install desired version but
+      // declare dependency with ^ in package json. So just in case removing that
+      // ambiguity.
+      // Testing with latest CDK is covered in canary checks.
+      baselineCdkVersion = `~${await findBaselineCdkVersion()}`;
     });
 
     after(async () => {
@@ -75,6 +84,22 @@ void describe(
             cwd: tempDir,
             stdio: 'inherit',
           });
+
+          // Override CDK installation with baseline version
+          await execa(
+            'npm',
+            [
+              'install',
+              '--save-dev',
+              `aws-cdk@${baselineCdkVersion}`,
+              `aws-cdk-lib@${baselineCdkVersion}`,
+            ],
+            {
+              cwd: tempDir,
+              stdio: 'inherit',
+            }
+          );
+
           const packageJsonPath = path.resolve(tempDir, 'package.json');
           const packageJsonObject = JSON.parse(
             await fs.readFile(packageJsonPath, 'utf-8')
@@ -82,7 +107,23 @@ void describe(
 
           assert.deepStrictEqual(
             Object.keys(packageJsonObject.devDependencies).sort(),
-            ['@aws-amplify/backend', '@aws-amplify/backend-cli', 'typescript']
+            [
+              '@aws-amplify/backend',
+              '@aws-amplify/backend-cli',
+              'aws-cdk',
+              'aws-cdk-lib',
+              'constructs',
+              'typescript',
+            ]
+          );
+
+          assert.strictEqual(
+            packageJsonObject.devDependencies['aws-cdk'],
+            baselineCdkVersion
+          );
+          assert.strictEqual(
+            packageJsonObject.devDependencies['aws-cdk-lib'],
+            baselineCdkVersion
           );
 
           assert.deepStrictEqual(

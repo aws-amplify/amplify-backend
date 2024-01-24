@@ -2,6 +2,7 @@ import {
   BackendIdentifier,
   BackendSecret,
   BackendSecretResolver,
+  ResolvePathResult,
 } from '@aws-amplify/plugin-types';
 import { describe, it } from 'node:test';
 import { AuthLoginWithFactoryProps } from './types.js';
@@ -44,11 +45,17 @@ class TestBackendSecret implements BackendSecret {
   resolve = (): SecretValue => {
     return SecretValue.unsafePlainText(this.secretName);
   };
-  resolvePath = (): string => {
-    return ParameterPathConversions.toParameterFullPath(
-      testBackendIdentifier,
-      this.secretName
-    );
+  resolvePath = (): ResolvePathResult => {
+    return {
+      branchSecretPath: ParameterPathConversions.toParameterFullPath(
+        testBackendIdentifier,
+        this.secretName
+      ),
+      sharedSecretPath: ParameterPathConversions.toParameterFullPath(
+        testBackendIdentifier.namespace,
+        this.secretName
+      ),
+    };
   };
 }
 
@@ -56,7 +63,7 @@ class TestBackendSecretResolver implements BackendSecretResolver {
   resolveSecret = (backendSecret: BackendSecret): SecretValue => {
     return backendSecret.resolve(testStack, testBackendIdentifier);
   };
-  resolvePath = (backendSecret: BackendSecret): string => {
+  resolvePath = (backendSecret: BackendSecret): ResolvePathResult => {
     return backendSecret.resolvePath(testBackendIdentifier);
   };
 }

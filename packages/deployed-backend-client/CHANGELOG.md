@@ -1,5 +1,36 @@
 # @aws-amplify/deployed-backend-client
 
+## 0.3.9
+
+### Patch Changes
+
+- Updated dependencies [0809ad36d]
+- Updated dependencies [618a2ea71]
+  - @aws-amplify/platform-core@0.4.3
+  - @aws-amplify/backend-output-schemas@0.5.2
+
+## 0.3.8
+
+### Patch Changes
+
+- @aws-amplify/platform-core@0.4.2
+
+## 0.3.7
+
+### Patch Changes
+
+- 04f067837: Implement consistent dependency declaration check. Bumped dependencies where necessary.
+- Updated dependencies [04f067837]
+  - @aws-amplify/backend-output-schemas@0.5.1
+  - @aws-amplify/platform-core@0.4.1
+
+## 0.3.6
+
+### Patch Changes
+
+- Updated dependencies [5678ab4d4]
+  - @aws-amplify/platform-core@0.4.0
+
 ## 0.3.5
 
 ### Patch Changes

@@ -4,6 +4,7 @@ import { DependenciesValidator } from './dependencies_validator.js';
 import { ExecaChildProcess } from 'execa';
 import fsp from 'fs/promises';
 import { fileURLToPath } from 'url';
+import { glob } from 'glob';
 
 void describe('Dependency validator', () => {
   const execaMock = mock.fn();
@@ -35,6 +36,7 @@ void describe('Dependency validator', () => {
               denyAll: true,
             },
           },
+          [],
           execaMock as never
         ).validate(),
       (err: Error) => {
@@ -58,6 +60,7 @@ void describe('Dependency validator', () => {
               allowList: ['non-existent-package'],
             },
           },
+          [],
           execaMock as never
         ).validate(),
       (err: Error) => {
@@ -80,6 +83,7 @@ void describe('Dependency validator', () => {
           allowList: ['@aws-amplify/backend-cli'],
         },
       },
+      [],
       execaMock as never
     ).validate();
   });
@@ -97,6 +101,7 @@ void describe('Dependency validator', () => {
               denyAll: true,
             },
           },
+          [],
           execaMock as never
         ).validate(),
       (err: Error) => {
@@ -105,6 +110,57 @@ void describe('Dependency validator', () => {
           err.message,
           'Package @aws-amplify/backend-cli must not have color-name anywhere in dependency graph'
         );
+        return true;
+      }
+    );
+  });
+
+  void it('can detect inconsistent dependency declarations', async () => {
+    await assert.rejects(
+      async () => {
+        const packagePaths = await glob(
+          'scripts/components/test-resources/dependency-version-consistency-test-packages/*'
+        );
+        await new DependenciesValidator(
+          packagePaths,
+          {},
+          [],
+          execaMock as never
+        ).validate();
+      },
+      (err: Error) => {
+        assert.ok(
+          err.message.includes('is declared using inconsistent versions')
+        );
+        assert.ok(err.message.includes('glob'));
+        assert.ok(err.message.includes('zod'));
+        assert.ok(err.message.includes('yargs'));
+        assert.ok(err.message.includes('package1'));
+        assert.ok(err.message.includes('package2'));
+        return true;
+      }
+    );
+  });
+
+  void it('can detect inconsistent dependency declarations of linked dependencies', async () => {
+    await assert.rejects(
+      async () => {
+        const packagePaths = await glob(
+          'scripts/components/test-resources/dependency-linked-version-consistency-test-packages/*'
+        );
+        await new DependenciesValidator(
+          packagePaths,
+          {},
+          [['aws-cdk', 'aws-cdk-lib']],
+          execaMock as never
+        ).validate();
+      },
+      (err: Error) => {
+        assert.ok(
+          err.message.includes('should be declared using same version')
+        );
+        assert.ok(err.message.includes('aws-cdk'));
+        assert.ok(err.message.includes('aws-cdk-lib'));
         return true;
       }
     );

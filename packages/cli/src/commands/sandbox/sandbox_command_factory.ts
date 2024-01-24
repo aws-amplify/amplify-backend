@@ -1,4 +1,5 @@
 import { CommandModule } from 'yargs';
+import { fileURLToPath } from 'url';
 import { SandboxCommand, SandboxCommandOptions } from './sandbox_command.js';
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
 import { SandboxDeleteCommand } from './sandbox-delete/sandbox_delete_command.js';
@@ -13,7 +14,7 @@ import {
 } from '@aws-amplify/platform-core';
 import { SandboxEventHandlerFactory } from './sandbox_event_handler_factory.js';
 import { CommandMiddleware } from '../../command_middleware.js';
-import { fileURLToPath } from 'url';
+import { printer } from '../../printer.js';
 
 /**
  * Creates wired sandbox command.
@@ -44,7 +45,8 @@ export const createSandboxCommand = (): CommandModule<
   };
 
   const sandboxFactory = new SandboxSingletonFactory(
-    sandboxBackendIdentifierResolver
+    sandboxBackendIdentifierResolver,
+    printer
   );
   const clientConfigGeneratorAdapter = new ClientConfigGeneratorAdapter(
     credentialProvider

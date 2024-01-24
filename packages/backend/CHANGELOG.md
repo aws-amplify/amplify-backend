@@ -1,5 +1,71 @@
 # @aws-amplify/backend
 
+## 0.10.2
+
+### Patch Changes
+
+- Updated dependencies [0809ad36d]
+- Updated dependencies [618a2ea71]
+  - @aws-amplify/platform-core@0.4.3
+  - @aws-amplify/backend-output-schemas@0.5.2
+  - @aws-amplify/backend-auth@0.4.4
+  - @aws-amplify/backend-data@0.9.5
+  - @aws-amplify/backend-function@0.6.3
+  - @aws-amplify/backend-output-storage@0.2.11
+  - @aws-amplify/backend-secret@0.4.3
+  - @aws-amplify/backend-storage@0.4.4
+
+## 0.10.1
+
+### Patch Changes
+
+- d087313e9: Enhance functions to fallback to resolve shared secrets
+- Updated dependencies [d087313e9]
+  - @aws-amplify/backend-function@0.6.2
+  - @aws-amplify/backend-auth@0.4.3
+  - @aws-amplify/plugin-types@0.7.1
+  - @aws-amplify/backend-data@0.9.4
+  - @aws-amplify/backend-storage@0.4.3
+  - @aws-amplify/backend-secret@0.4.2
+  - @aws-amplify/platform-core@0.4.2
+  - @aws-amplify/backend-output-storage@0.2.10
+
+## 0.10.0
+
+### Minor Changes
+
+- 43740488a: Move pinning of CDK version from @aws-amplify/backend to customer's project
+
+### Patch Changes
+
+- 04f067837: Implement consistent dependency declaration check. Bumped dependencies where necessary.
+- Updated dependencies [04f067837]
+  - @aws-amplify/backend-output-schemas@0.5.1
+  - @aws-amplify/backend-function@0.6.1
+  - @aws-amplify/backend-secret@0.4.1
+  - @aws-amplify/platform-core@0.4.1
+  - @aws-amplify/backend-auth@0.4.2
+  - @aws-amplify/backend-data@0.9.3
+  - @aws-amplify/backend-storage@0.4.2
+  - @aws-amplify/backend-output-storage@0.2.9
+
+## 0.9.0
+
+### Minor Changes
+
+- 5678ab4d4: Consume parameter resolution changes from @aws-amplify/platform-core
+
+### Patch Changes
+
+- Updated dependencies [5678ab4d4]
+- Updated dependencies [5678ab4d4]
+  - @aws-amplify/platform-core@0.4.0
+  - @aws-amplify/backend-function@0.6.0
+  - @aws-amplify/backend-secret@0.4.0
+  - @aws-amplify/backend-auth@0.4.1
+  - @aws-amplify/backend-data@0.9.2
+  - @aws-amplify/backend-output-storage@0.2.8
+
 ## 0.8.0
 
 ### Minor Changes

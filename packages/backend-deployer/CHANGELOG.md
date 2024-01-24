@@ -1,5 +1,35 @@
 # @aws-amplify/backend-deployer
 
+## 0.4.7
+
+### Patch Changes
+
+- Updated dependencies [0809ad36d]
+  - @aws-amplify/platform-core@0.4.3
+
+## 0.4.6
+
+### Patch Changes
+
+- Updated dependencies [d087313e9]
+  - @aws-amplify/plugin-types@0.7.1
+  - @aws-amplify/platform-core@0.4.2
+
+## 0.4.5
+
+### Patch Changes
+
+- 04f067837: Implement consistent dependency declaration check. Bumped dependencies where necessary.
+- Updated dependencies [04f067837]
+  - @aws-amplify/platform-core@0.4.1
+
+## 0.4.4
+
+### Patch Changes
+
+- Updated dependencies [5678ab4d4]
+  - @aws-amplify/platform-core@0.4.0
+
 ## 0.4.3
 
 ### Patch Changes

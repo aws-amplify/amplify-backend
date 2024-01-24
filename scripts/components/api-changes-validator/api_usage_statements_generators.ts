@@ -628,7 +628,13 @@ export class CallableParameterUsageStatementsGenerator
             return true;
         }
       })
-      .map((parameter) => parameter.name.getText())
+      .map((parameter) => {
+        if (parameter.dotDotDotToken) {
+          // expand var arg
+          return `...${parameter.name.getText()}`;
+        }
+        return parameter.name.getText();
+      })
       .join(', ');
     return {
       usageStatement,

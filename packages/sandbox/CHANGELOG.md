@@ -1,5 +1,50 @@
 # @aws-amplify/sandbox
 
+## 0.3.14
+
+### Patch Changes
+
+- Updated dependencies [0809ad36d]
+- Updated dependencies [618a2ea71]
+  - @aws-amplify/platform-core@0.4.3
+  - @aws-amplify/client-config@0.5.3
+  - @aws-amplify/backend-deployer@0.4.7
+  - @aws-amplify/backend-secret@0.4.3
+  - @aws-amplify/deployed-backend-client@0.3.9
+
+## 0.3.13
+
+### Patch Changes
+
+- @aws-amplify/backend-deployer@0.4.6
+- @aws-amplify/backend-secret@0.4.2
+- @aws-amplify/platform-core@0.4.2
+- @aws-amplify/client-config@0.5.2
+- @aws-amplify/deployed-backend-client@0.3.8
+
+## 0.3.12
+
+### Patch Changes
+
+- 04f067837: Implement consistent dependency declaration check. Bumped dependencies where necessary.
+- Updated dependencies [04f067837]
+  - @aws-amplify/deployed-backend-client@0.3.7
+  - @aws-amplify/backend-deployer@0.4.5
+  - @aws-amplify/backend-secret@0.4.1
+  - @aws-amplify/client-config@0.5.1
+  - @aws-amplify/platform-core@0.4.1
+
+## 0.3.11
+
+### Patch Changes
+
+- Updated dependencies [5678ab4d4]
+- Updated dependencies [5678ab4d4]
+  - @aws-amplify/platform-core@0.4.0
+  - @aws-amplify/backend-secret@0.4.0
+  - @aws-amplify/backend-deployer@0.4.4
+  - @aws-amplify/deployed-backend-client@0.3.6
+
 ## 0.3.10
 
 ### Patch Changes

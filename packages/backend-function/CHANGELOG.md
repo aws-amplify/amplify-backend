@@ -1,5 +1,38 @@
 # @aws-amplify/backend-function
 
+## 0.6.3
+
+### Patch Changes
+
+- @aws-amplify/backend-output-storage@0.2.11
+
+## 0.6.2
+
+### Patch Changes
+
+- d087313e9: Enhance functions to fallback to resolve shared secrets
+- Updated dependencies [d087313e9]
+  - @aws-amplify/plugin-types@0.7.1
+  - @aws-amplify/backend-output-storage@0.2.10
+
+## 0.6.1
+
+### Patch Changes
+
+- 04f067837: Implement consistent dependency declaration check. Bumped dependencies where necessary.
+- Updated dependencies [04f067837]
+  - @aws-amplify/backend-output-storage@0.2.9
+
+## 0.6.0
+
+### Minor Changes
+
+- 5678ab4d4: Consume parameter resolution changes from @aws-amplify/platform-core
+
+### Patch Changes
+
+- @aws-amplify/backend-output-storage@0.2.8
+
 ## 0.5.0
 
 ### Minor Changes

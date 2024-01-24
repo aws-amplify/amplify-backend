@@ -10,6 +10,10 @@ import { TestProjectCreator } from './test_project_creator.js';
 import { DeployedResourcesFinder } from '../find_deployed_resource.js';
 import assert from 'node:assert';
 import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
+import {
+  amplifySharedSecretNameKey,
+  createAmplifySharedSecretName,
+} from '../shared_secret.js';
 
 /**
  * Creates test projects with data, storage, and auth categories.
@@ -85,6 +89,8 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     'amazonSecret',
   ];
 
+  private amplifySharedSecret: string;
+
   /**
    * Create a test project instance.
    */
@@ -103,9 +109,19 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   /**
    * @inheritdoc
    */
-  override async deploy(backendIdentifier: BackendIdentifier) {
+  override async deploy(
+    backendIdentifier: BackendIdentifier,
+    environment: Record<string, string> = {}
+  ) {
+    this.amplifySharedSecret =
+      amplifySharedSecretNameKey in environment
+        ? environment[amplifySharedSecretNameKey]
+        : createAmplifySharedSecretName();
+    const sharedSecretEnvObject = {
+      [amplifySharedSecretNameKey]: this.amplifySharedSecret,
+    };
     await this.setUpDeployEnvironment(backendIdentifier);
-    await super.deploy(backendIdentifier);
+    await super.deploy(backendIdentifier, sharedSecretEnvObject);
   }
 
   /**
@@ -145,7 +161,6 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     backendId: BackendIdentifier
   ): Promise<void> {
     await super.assertPostDeployment(backendId);
-
     // Check that deployed lambda is working correctly
 
     // find lambda function
@@ -169,7 +184,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     assert.equal(
       responsePayload,
       // eslint-disable-next-line spellcheck/spell-checker
-      'Your uuid is 6ec0bd7f-11c0-43da-975e-2a8ad9ebae0b. TEST_SECRET env var value is amazonSecret-e2eTestValue.'
+      `Your uuid is 6ec0bd7f-11c0-43da-975e-2a8ad9ebae0b. TEST_SECRET env var value is amazonSecret-e2eTestValue. TEST_SHARED_SECRET env var value is ${this.amplifySharedSecret}-e2eTestSharedValue.`
     );
   }
 
@@ -180,6 +195,12 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
       const secretValue = `${secretName}-e2eTestValue`;
       await this.secretClient.setSecret(backendId, secretName, secretValue);
     }
+    const secretValue = `${this.amplifySharedSecret}-e2eTestSharedValue`;
+    await this.secretClient.setSecret(
+      backendId.namespace,
+      this.amplifySharedSecret,
+      secretValue
+    );
   };
 
   private clearDeployEnvironment = async (
@@ -189,5 +210,9 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     for (const secretName of this.testSecretNames) {
       await this.secretClient.removeSecret(backendId, secretName);
     }
+    await this.secretClient.removeSecret(
+      backendId.namespace,
+      this.amplifySharedSecret
+    );
   };
 }

@@ -18,8 +18,9 @@ import {
   waitForSandboxDeploymentToPrintTotalTime,
 } from '../process-controller/predicated_action_macros.js';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
+import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
 
-const cfnClient = new CloudFormationClient();
+const cfnClient = new CloudFormationClient(e2eToolingClientConfig);
 
 /**
  * These tests primary focus is a validation than our released artifacts

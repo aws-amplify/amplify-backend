@@ -1,5 +1,63 @@
 # @aws-amplify/backend-cli
 
+## 0.9.7
+
+### Patch Changes
+
+- f8112b6f3: If present, print error.cause.message in top-level error handler. This gives customers more debugging information when the error cause rather than the error contains the root cause of the issue.
+- Updated dependencies [0809ad36d]
+- Updated dependencies [618a2ea71]
+  - @aws-amplify/platform-core@0.4.3
+  - @aws-amplify/backend-output-schemas@0.5.2
+  - @aws-amplify/client-config@0.5.3
+  - @aws-amplify/backend-deployer@0.4.7
+  - @aws-amplify/backend-secret@0.4.3
+  - @aws-amplify/deployed-backend-client@0.3.9
+  - @aws-amplify/sandbox@0.3.14
+  - @aws-amplify/model-generator@0.2.7
+
+## 0.9.6
+
+### Patch Changes
+
+- a06caf599: add @aws-amplify/backend-deployer as a dependency to @aws-amplify/cli
+  - @aws-amplify/backend-deployer@0.4.6
+  - @aws-amplify/backend-secret@0.4.2
+  - @aws-amplify/platform-core@0.4.2
+  - @aws-amplify/sandbox@0.3.13
+  - @aws-amplify/client-config@0.5.2
+  - @aws-amplify/deployed-backend-client@0.3.8
+  - @aws-amplify/model-generator@0.2.6
+
+## 0.9.5
+
+### Patch Changes
+
+- 04f067837: Implement consistent dependency declaration check. Bumped dependencies where necessary.
+- Updated dependencies [04f067837]
+  - @aws-amplify/deployed-backend-client@0.3.7
+  - @aws-amplify/backend-output-schemas@0.5.1
+  - @aws-amplify/model-generator@0.2.5
+  - @aws-amplify/backend-secret@0.4.1
+  - @aws-amplify/form-generator@0.6.1
+  - @aws-amplify/client-config@0.5.1
+  - @aws-amplify/platform-core@0.4.1
+  - @aws-amplify/sandbox@0.3.12
+
+## 0.9.4
+
+### Patch Changes
+
+- 7f7191375: Create directory if does not exists when configuring profile
+- 8d31af7c4: Create ~/.aws/config and ~/.aws/credentials files using owner read/write only. This is consistent with how the AWS CLI configures these files.
+- 23b1f36e0: added npx prefix to profile setup command instructions
+- Updated dependencies [5678ab4d4]
+- Updated dependencies [5678ab4d4]
+  - @aws-amplify/platform-core@0.4.0
+  - @aws-amplify/backend-secret@0.4.0
+  - @aws-amplify/deployed-backend-client@0.3.6
+  - @aws-amplify/sandbox@0.3.11
+
 ## 0.9.3
 
 ### Patch Changes

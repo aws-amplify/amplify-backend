@@ -1,5 +1,32 @@
 # @aws-amplify/client-config
 
+## 0.5.3
+
+### Patch Changes
+
+- 618a2ea71: Add allowUnauthenticatedIdentities to config output.
+- Updated dependencies [618a2ea71]
+  - @aws-amplify/backend-output-schemas@0.5.2
+  - @aws-amplify/deployed-backend-client@0.3.9
+  - @aws-amplify/model-generator@0.2.7
+
+## 0.5.2
+
+### Patch Changes
+
+- @aws-amplify/deployed-backend-client@0.3.8
+- @aws-amplify/model-generator@0.2.6
+
+## 0.5.1
+
+### Patch Changes
+
+- 04f067837: Implement consistent dependency declaration check. Bumped dependencies where necessary.
+- Updated dependencies [04f067837]
+  - @aws-amplify/deployed-backend-client@0.3.7
+  - @aws-amplify/backend-output-schemas@0.5.1
+  - @aws-amplify/model-generator@0.2.5
+
 ## 0.5.0
 
 ### Minor Changes

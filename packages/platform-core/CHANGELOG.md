@@ -1,5 +1,34 @@
 # @aws-amplify/platform-core
 
+## 0.4.3
+
+### Patch Changes
+
+- 0809ad36d: fix empty catch block
+
+## 0.4.2
+
+### Patch Changes
+
+- Updated dependencies [d087313e9]
+  - @aws-amplify/plugin-types@0.7.1
+
+## 0.4.1
+
+### Patch Changes
+
+- 04f067837: Implement consistent dependency declaration check. Bumped dependencies where necessary.
+
+## 0.4.0
+
+### Minor Changes
+
+- 5678ab4d4: Sanitize invalid characters when constructing SSM parameter paths.
+  Uses the same convention that is used for sanitizing stack names.
+
+  **NOTE:** Any secrets created before this change will no longer be found.
+  Recreate sandbox secrets using `npx amplify sandbox secret set` and recreate branch secrets in the Amplify console.
+
 ## 0.3.4
 
 ### Patch Changes

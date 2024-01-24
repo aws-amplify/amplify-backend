@@ -1,5 +1,17 @@
 # @aws-amplify/backend-output-schemas
 
+## 0.5.2
+
+### Patch Changes
+
+- 618a2ea71: Add allowUnauthenticatedIdentities to config output.
+
+## 0.5.1
+
+### Patch Changes
+
+- 04f067837: Implement consistent dependency declaration check. Bumped dependencies where necessary.
+
 ## 0.5.0
 
 ### Minor Changes
