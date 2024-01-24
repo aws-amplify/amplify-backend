@@ -4,6 +4,7 @@ import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'assert';
 import { execa } from 'execa';
 import { NpmPackageManagerController } from './npm_package_manager_controller.js';
+import { executeWithDebugLogger } from './execute_with_logger.js';
 
 void describe('NpmPackageManagerController', () => {
   const fspMock = mock.fn(() => Promise.resolve());
@@ -27,7 +28,7 @@ void describe('NpmPackageManagerController', () => {
       fspMock as unknown as typeof fsp,
       pathMock as unknown as typeof path,
       execaMock as unknown as typeof execa,
-      executeWithDebugLoggerMock,
+      executeWithDebugLoggerMock as unknown as typeof executeWithDebugLogger,
       existsSyncMock
     );
     void it('runs npm install with the correct arguments', async () => {
@@ -67,7 +68,7 @@ void describe('NpmPackageManagerController', () => {
         fspMock as unknown as typeof fsp,
         pathMock as unknown as typeof path,
         execaMock as unknown as typeof execa,
-        executeWithDebugLoggerMock,
+        executeWithDebugLoggerMock as unknown as typeof executeWithDebugLogger,
         existsSyncMock
       );
 
@@ -90,7 +91,7 @@ void describe('NpmPackageManagerController', () => {
         fspMock as unknown as typeof fsp,
         pathMock as unknown as typeof path,
         execaMock as unknown as typeof execa,
-        executeWithDebugLoggerMock,
+        executeWithDebugLoggerMock as unknown as typeof executeWithDebugLogger,
         existsSyncMock
       );
 
@@ -110,7 +111,7 @@ void describe('NpmPackageManagerController', () => {
         fspMock as unknown as typeof fsp,
         pathMock as unknown as typeof path,
         execaMock as unknown as typeof execa,
-        executeWithDebugLoggerMock,
+        executeWithDebugLoggerMock as unknown as typeof executeWithDebugLogger,
         existsSyncMock
       );
 
@@ -128,7 +129,7 @@ void describe('NpmPackageManagerController', () => {
         fspMock as unknown as typeof fsp,
         pathMock as unknown as typeof path,
         execaMock as unknown as typeof execa,
-        executeWithDebugLoggerMock,
+        executeWithDebugLoggerMock as unknown as typeof executeWithDebugLogger,
         existsSyncMock
       );
       await npmPackageManagerController.initializeTsConfig('./amplify');

@@ -18,6 +18,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
+    "@aws-amplify/platform-core": "^0.4.3",
     "@inquirer/prompts": "^3.0.0",
     "execa": "^8.0.1"
   }

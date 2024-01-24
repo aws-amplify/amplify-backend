@@ -5,6 +5,7 @@ import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'assert';
 import { execa } from 'execa';
 import { YarnModernPackageManagerController } from './yarn_modern_package_manager_controller.js';
+import { executeWithDebugLogger } from './execute_with_logger.js';
 
 void describe('YarnModernPackageManagerController', () => {
   const fspMock = mock.fn(() => Promise.resolve());
@@ -29,7 +30,7 @@ void describe('YarnModernPackageManagerController', () => {
         fspMock as unknown as typeof fsp,
         pathMock as unknown as typeof path,
         execaMock as unknown as typeof execa,
-        executeWithDebugLoggerMock,
+        executeWithDebugLoggerMock as unknown as typeof executeWithDebugLogger,
         existsSyncMock
       );
     void it('runs yarn add with the correct arguments', async () => {
@@ -70,7 +71,7 @@ void describe('YarnModernPackageManagerController', () => {
           fspMock as unknown as typeof fsp,
           pathMock as unknown as typeof path,
           execaMock as unknown as typeof execa,
-          executeWithDebugLoggerMock,
+          executeWithDebugLoggerMock as unknown as typeof executeWithDebugLogger,
           existsSyncMock
         );
 
@@ -94,7 +95,7 @@ void describe('YarnModernPackageManagerController', () => {
           fspMock as unknown as typeof fsp,
           pathMock as unknown as typeof path,
           execaMock as unknown as typeof execa,
-          executeWithDebugLoggerMock,
+          executeWithDebugLoggerMock as unknown as typeof executeWithDebugLogger,
           existsSyncMock
         );
 
@@ -115,7 +116,7 @@ void describe('YarnModernPackageManagerController', () => {
           fspMock as unknown as typeof fsp,
           pathMock as unknown as typeof path,
           execaMock as unknown as typeof execa,
-          executeWithDebugLoggerMock,
+          executeWithDebugLoggerMock as unknown as typeof executeWithDebugLogger,
           existsSyncMock
         );
 
@@ -134,7 +135,7 @@ void describe('YarnModernPackageManagerController', () => {
           fspMock as unknown as typeof fsp,
           pathMock as unknown as typeof path,
           execaMock as unknown as typeof execa,
-          executeWithDebugLoggerMock,
+          executeWithDebugLoggerMock as unknown as typeof executeWithDebugLogger,
           existsSyncMock
         );
       const writeFileMock = mock.fn(() => Promise.resolve());

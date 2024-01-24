@@ -2,10 +2,16 @@ import { existsSync as _existsSync } from 'fs';
 import _fsp from 'fs/promises';
 import { execa as _execa } from 'execa';
 import * as _path from 'path';
+import { BackendLocator } from '@aws-amplify/platform-core';
 import { LogLevel } from '../printer/printer.js';
 import { printer } from '../printer.js';
 import { executeWithDebugLogger as _executeWithDebugLogger } from './execute_with_logger.js';
 import { DependencyType } from './package_manager_controller_factory.js';
+
+enum InvokableCommand {
+  DEPLOY = 'deploy',
+  DESTROY = 'destroy',
+}
 
 /**
  * PackageManagerController is an abstraction around package manager commands that are needed to initialize a project and install dependencies
@@ -136,6 +142,22 @@ Get started by running \`${this.binaryRunner} amplify sandbox\`.`;
       options
     );
   }
+
+  getPackageManagerCommandArgs = (
+    invokableCommand: InvokableCommand,
+    backendLocator: BackendLocator
+  ) => [
+    'cdk',
+    invokableCommand.toString(),
+    // This is unfortunate. CDK writes everything to stderr without `--ci` flag and we need to differentiate between the two.
+    // See https://github.com/aws/aws-cdk/issues/7717 for more details.
+    '--ci',
+    '--app',
+    `'${this.binaryRunner} tsx ${backendLocator.locate()}'`,
+    '--all',
+    '--output',
+    '.amplify/artifacts/cdk.out',
+  ];
 
   /**
    * Check if a package.json file exists in projectRoot
