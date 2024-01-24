@@ -4,11 +4,13 @@ import { Inter } from "next/font/google";
 import styles from "@/styles/Home.module.css";
 import { useState, useEffect } from 'react'
 import config from '../amplifyconfiguration.json';
+import { getCurrentUser } from 'aws-amplify/auth';
 
 const inter = Inter({ subsets: ["latin"] });
 
 export default function Home() {
   const [data, setData] = useState<string | null>(null)
+  const [userId, setUserId] = useState<string | null>(null)
   const [isLoading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -24,6 +26,12 @@ export default function Home() {
       })
   }, [])
 
+  useEffect(() => {
+    getCurrentUser().then(user => {
+      setUserId(user.userId);
+    })
+  }, [])
+
   if (isLoading)   return (
     <>
       <Head>
@@ -35,6 +43,7 @@ export default function Home() {
       <main className={`${styles.main} ${inter.className}`}>
         <div className={styles.description}>
           <p>Hello, Amplify 👋</p>
+          <p>Hello {userId}</p>
           <p>Loading...</p>
         </div>
       </main>
@@ -52,6 +61,7 @@ export default function Home() {
       <main className={`${styles.main} ${inter.className}`}>
         <div className={styles.description}>
           <p>Hello, Amplify 👋</p>
+          <p>Hello {userId}</p>
           <p>{data}</p>
         </div>
       </main>

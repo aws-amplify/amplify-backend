@@ -8,8 +8,10 @@ import {
   UsagePlan,
 } from 'aws-cdk-lib/aws-apigateway';
 import * as process from "process";
+import { auth } from "./auth/resource";
 
 const backend = defineBackend({
+  auth,
   myFunc,
 });
 
