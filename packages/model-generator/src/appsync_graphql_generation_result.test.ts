@@ -33,7 +33,7 @@ void describe('AppsyncGraphqlDocumentGenerationResult', () => {
       assert.deepEqual(writeFileCall?.arguments, [resolvedName, content]);
       assert.match(
         logCall?.arguments[0],
-        new RegExp(`^File written: ./${path.join(directory, fileName)}`)
+        new RegExp(`^File written: ${path.join(directory, fileName)}$`)
       );
     });
   });

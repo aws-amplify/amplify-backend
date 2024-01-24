@@ -77,9 +77,7 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
       utilFSWriteArgs.forEach((fileName) => {
         assert(
           mockLog.mock.calls.some(({ arguments: [logMessage] }) =>
-            new RegExp(`^File written: ./${fileName as string}`).test(
-              logMessage
-            )
+            new RegExp(`^File written: ${fileName as string}$`).test(logMessage)
           )
         );
       });
@@ -113,7 +111,7 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
       );
       assert(
         logArgs.some((logMessage) =>
-          new RegExp(`^File written: ./index.js`).test(logMessage)
+          new RegExp(`^File written: ./index.js$`).test(logMessage)
         )
       );
     });
@@ -161,7 +159,7 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
             new RegExp(`${m}(Update|Create)Form.d.ts`).test(arg.toString())
           );
           const didLogMessage = logMessages.some((logMessage) =>
-            new RegExp(`^File written: ./${m}(Update|Create)Form.d.ts`).test(
+            new RegExp(`^File written: ./${m}(Update|Create)Form.d.ts$`).test(
               logMessage.toString()
             )
           );
