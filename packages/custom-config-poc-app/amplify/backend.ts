@@ -3,9 +3,9 @@ import { myFunc } from './function';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as process from 'process';
 import { auth } from './auth/resource';
-import * as locationAlpha from '@aws-cdk/aws-location-alpha';
 import * as location from 'aws-cdk-lib/aws-location';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import { PlaceIndex } from "@aws-cdk/aws-location-alpha";
 
 const backend = defineBackend({
   auth,
@@ -111,6 +111,33 @@ backend.setCustomOutput('myTestMapStyle', testMapStyle, {
     {
       clientConfigFormat: 'json',
       path: ['geo', 'amazon_location_service', 'maps', 'items', testMap.mapName, 'style']
+    }
+  ]
+});
+
+const placeIndex = new PlaceIndex(locationStack, 'TestPlaceIndex');
+new iam.Policy(locationStack, 'myTestPlaceIndexPolicy', {
+  policyName: 'myTestPlaceIndexPolicy',
+  roles: [backend.auth.resources.authenticatedUserIamRole],
+  statements: [
+    new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: ['geo:SearchPlaceIndexForPosition', 'geo:SearchPlaceIndexForText', 'geo:SearchPlaceIndexForSuggestions', 'geo:GetPlace'],
+      resources: [placeIndex.placeIndexArn],
+    }),
+  ]
+});
+
+backend.setCustomOutput('myTestSearchIndex', placeIndex.placeIndexName, {
+  clientConfigDestinations: [
+    {
+      clientConfigFormat: 'json',
+      path: ['geo', 'amazon_location_service', 'search_indices', 'default']
+    },
+    {
+      clientConfigFormat: 'json',
+      // TODO how do we handle arrays ? Should we use json path syntax ?
+      path: ['geo', 'amazon_location_service', 'search_indices', 'items[]']
     }
   ]
 });

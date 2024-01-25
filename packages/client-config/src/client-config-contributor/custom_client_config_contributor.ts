@@ -38,8 +38,10 @@ export class CustomClientConfigContributor implements ClientConfigContributor {
       const customOutputOptions: CustomOutputOptions | undefined = customOutputData.options;
 
       if (customOutputOptions){
+        // TODO should this be in addition to placing value in custom.X section or should these be XOR ?
         customOutputOptions.clientConfigDestinations?.forEach(clientConfigDestination => {
           let currentRef: Record<string, unknown> = result;
+          let currentArrayRef: Array<unknown> | undefined = undefined;
           for (let i = 0 ; i < clientConfigDestination.path.length - 1; i++) {
             const pathSegment = clientConfigDestination.path[i];
             if (!currentRef[pathSegment]) {
@@ -48,7 +50,13 @@ export class CustomClientConfigContributor implements ClientConfigContributor {
             currentRef = currentRef[pathSegment] as Record<string, unknown>;
           }
           const lastPathSegment = clientConfigDestination.path[clientConfigDestination.path.length - 1];
-          currentRef[lastPathSegment] = customOutputData.value;
+          // TODO this is a hack
+          // figure out how do we deal with arrays.
+          if (lastPathSegment.endsWith('[]')) {
+            currentRef[lastPathSegment.replace('[]', '')] = [customOutputData.value];
+          }else {
+            currentRef[lastPathSegment] = customOutputData.value;
+          }
         });
       }
     });

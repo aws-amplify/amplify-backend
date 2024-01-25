@@ -5,7 +5,7 @@ import styles from "@/styles/Home.module.css";
 import { useState, useEffect } from 'react'
 import config from '../amplifyconfiguration.json';
 import { getCurrentUser } from 'aws-amplify/auth';
-import { MapView } from '@aws-amplify/ui-react-geo';
+import { MapView, LocationSearch } from '@aws-amplify/ui-react-geo';
 import '@aws-amplify/ui-react-geo/styles.css';
 
 const inter = Inter({ subsets: ["latin"] });
@@ -72,6 +72,7 @@ export default function Home() {
             longitude: -122.3348765399794,
             zoom: 14,
           }}>
+            <LocationSearch position="top-left" />
           </MapView>
         </div>
       </main>
