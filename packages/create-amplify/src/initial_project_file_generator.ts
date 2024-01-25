@@ -1,6 +1,6 @@
 import _path from 'path';
 import _fsp from 'fs/promises';
-import { type PackageManagerController } from '@aws-amplify/cli-core';
+// import { type PackageManagerController } from '@aws-amplify/cli-core';
 
 /**
  * InitialProjectFileGenerator is responsible for copying getting started template to a new project directory
@@ -12,7 +12,7 @@ export class InitialProjectFileGenerator {
    */
   constructor(
     private readonly projectRoot: string,
-    private readonly packageManagerController: PackageManagerController,
+    private readonly packageManagerController: any,
     private readonly fsp = _fsp,
     private readonly path = _path
   ) {}

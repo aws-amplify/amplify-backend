@@ -1,4 +1,4 @@
-import { LogLevel, PackageManagerController } from '@aws-amplify/cli-core';
+import { LogLevel } from '@aws-amplify/cli-core';
 import { ProjectRootValidator } from './project_root_validator.js';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
@@ -26,7 +26,7 @@ export class AmplifyProjectCreator {
    * Delegates out to other classes that handle parts of the getting started experience
    */
   constructor(
-    private readonly packageManagerController: PackageManagerController,
+    private readonly packageManagerController: any,
     private readonly projectRootValidator: ProjectRootValidator,
     private readonly gitIgnoreInitializer: GitIgnoreInitializer,
     private readonly initialProjectFileGenerator: InitialProjectFileGenerator

@@ -36,14 +36,6 @@ export enum COLOR {
 export type DependencyType = 'dev' | 'prod';
 
 // @public (undocumented)
-export enum InvokableCommand {
-    // (undocumented)
-    DEPLOY = "deploy",
-    // (undocumented)
-    DESTROY = "destroy"
-}
-
-// @public (undocumented)
 export enum LogLevel {
     // (undocumented)
     DEBUG = 2,
@@ -54,93 +46,9 @@ export enum LogLevel {
 }
 
 // @public
-export class NpmPackageManagerController extends PackageManagerController {
-    constructor(projectRoot: string, fsp?: typeof _fsp, path?: _path.PlatformPath, execa?: typeof execa, executeWithDebugLogger?: (cwd: string, executable: string, args?: readonly string[] | undefined, execa?: typeof execa, options?: {
-        env?: Record<string, string> | undefined;
-    } | undefined) => ExecaChildProcess<string>, existsSync?: typeof existsSync);
-    // (undocumented)
-    protected readonly execa: typeof execa;
-    // (undocumented)
-    protected readonly executeWithDebugLogger: (cwd: string, executable: string, args?: readonly string[] | undefined, execa?: typeof execa, options?: {
-        env?: Record<string, string> | undefined;
-    } | undefined) => ExecaChildProcess<string>;
-    // (undocumented)
-    protected readonly existsSync: typeof existsSync;
-    // (undocumented)
-    protected readonly fsp: typeof _fsp;
-    // (undocumented)
-    protected readonly path: _path.PlatformPath;
-    // (undocumented)
-    readonly projectRoot: string;
-}
-
-// @public
-export abstract class PackageManagerController {
-    constructor(projectRoot: string, executable: string, binaryRunner: string, initDefault: string[], installCommand: string, fsp?: typeof _fsp, path?: _path.PlatformPath, execa?: typeof execa, executeWithDebugLogger?: (cwd: string, executable: string, args?: readonly string[] | undefined, execa?: typeof execa, options?: {
-        env?: Record<string, string> | undefined;
-    } | undefined) => ExecaChildProcess<string>, existsSync?: typeof existsSync);
-    // (undocumented)
-    protected readonly binaryRunner: string;
-    // (undocumented)
-    protected readonly execa: typeof execa;
-    // (undocumented)
-    protected readonly executable: string;
-    // (undocumented)
-    protected readonly executeWithDebugLogger: (cwd: string, executable: string, args?: readonly string[] | undefined, execa?: typeof execa, options?: {
-        env?: Record<string, string> | undefined;
-    } | undefined) => ExecaChildProcess<string>;
-    // (undocumented)
-    protected readonly existsSync: typeof existsSync;
-    // (undocumented)
-    protected readonly fsp: typeof _fsp;
-    // (undocumented)
-    getPackageManagerCommandArgs: (invokableCommand: InvokableCommand, backendLocator: BackendLocator) => string[];
-    getWelcomeMessage: () => string;
-    // (undocumented)
-    protected readonly initDefault: string[];
-    initializeProject: () => Promise<void>;
-    initializeTsConfig(targetDir: string): Promise<void>;
-    // (undocumented)
-    protected readonly installCommand: string;
-    installDependencies(packageNames: string[], type: DependencyType): Promise<void>;
-    // (undocumented)
-    protected readonly path: _path.PlatformPath;
-    // (undocumented)
-    readonly projectRoot: string;
-    runWithPackageManager(args: string[] | undefined, dir: string, options?: {
-        env?: Record<string, string>;
-        stdin?: 'inherit' | 'pipe' | 'ignore';
-        stdout?: 'inherit' | 'pipe' | 'ignore';
-        stderr?: 'inherit' | 'pipe' | 'ignore';
-        extendEnv?: boolean;
-    }): ExecaChildProcess<string>;
-}
-
-// @public
 export class PackageManagerControllerFactory {
     constructor(projectRoot: string);
-    getPackageManagerController(): NpmPackageManagerController | PnpmPackageManagerController | YarnClassicPackageManagerController | YarnModernPackageManagerController;
-}
-
-// @public
-export class PnpmPackageManagerController extends PackageManagerController {
-    constructor(projectRoot: string, fsp?: typeof _fsp, path?: _path.PlatformPath, execa?: typeof execa, executeWithDebugLogger?: (cwd: string, executable: string, args?: readonly string[] | undefined, execa?: typeof execa, options?: {
-        env?: Record<string, string> | undefined;
-    } | undefined) => ExecaChildProcess<string>, existsSync?: typeof existsSync);
-    // (undocumented)
-    protected readonly execa: typeof execa;
-    // (undocumented)
-    protected readonly executeWithDebugLogger: (cwd: string, executable: string, args?: readonly string[] | undefined, execa?: typeof execa, options?: {
-        env?: Record<string, string> | undefined;
-    } | undefined) => ExecaChildProcess<string>;
-    // (undocumented)
-    protected readonly existsSync: typeof existsSync;
-    // (undocumented)
-    protected readonly fsp: typeof _fsp;
-    // (undocumented)
-    protected readonly path: _path.PlatformPath;
-    // (undocumented)
-    readonly projectRoot: string;
+    getPackageManagerController(): PackageManagerController;
 }
 
 // @public
@@ -155,54 +63,6 @@ export class Printer {
 
 // @public (undocumented)
 export type RecordValue = string | number | string[] | Date;
-
-// @public
-export class YarnClassicPackageManagerController extends PackageManagerController {
-    constructor(projectRoot: string, fsp?: typeof _fsp, path?: _path.PlatformPath, execa?: typeof execa, executeWithDebugLogger?: (cwd: string, executable: string, args?: readonly string[] | undefined, execa?: typeof execa, options?: {
-        env?: Record<string, string> | undefined;
-    } | undefined) => ExecaChildProcess<string>, existsSync?: typeof existsSync);
-    // (undocumented)
-    protected readonly execa: typeof execa;
-    // (undocumented)
-    protected readonly executeWithDebugLogger: (cwd: string, executable: string, args?: readonly string[] | undefined, execa?: typeof execa, options?: {
-        env?: Record<string, string> | undefined;
-    } | undefined) => ExecaChildProcess<string>;
-    // (undocumented)
-    protected readonly existsSync: typeof existsSync;
-    // (undocumented)
-    protected readonly fsp: typeof _fsp;
-    // (undocumented)
-    initializeTsConfig: (targetDir: string) => Promise<void>;
-    // (undocumented)
-    protected readonly path: _path.PlatformPath;
-    // (undocumented)
-    readonly projectRoot: string;
-}
-
-// @public
-export class YarnModernPackageManagerController extends PackageManagerController {
-    constructor(projectRoot: string, fsp?: typeof _fsp, path?: _path.PlatformPath, execa?: typeof execa, executeWithDebugLogger?: (cwd: string, executable: string, args?: readonly string[] | undefined, execa?: typeof execa, options?: {
-        env?: Record<string, string> | undefined;
-    } | undefined) => ExecaChildProcess<string>, existsSync?: typeof existsSync);
-    // (undocumented)
-    protected readonly execa: typeof execa;
-    // (undocumented)
-    protected readonly executeWithDebugLogger: (cwd: string, executable: string, args?: readonly string[] | undefined, execa?: typeof execa, options?: {
-        env?: Record<string, string> | undefined;
-    } | undefined) => ExecaChildProcess<string>;
-    // (undocumented)
-    protected readonly existsSync: typeof existsSync;
-    // (undocumented)
-    protected readonly fsp: typeof _fsp;
-    // (undocumented)
-    initializeTsConfig: (targetDir: string) => Promise<void>;
-    // (undocumented)
-    installDependencies: (packageNames: string[], type: DependencyType) => Promise<void>;
-    // (undocumented)
-    protected readonly path: _path.PlatformPath;
-    // (undocumented)
-    readonly projectRoot: string;
-}
 
 // (No @packageDocumentation comment for this package)
 
