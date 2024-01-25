@@ -16,7 +16,9 @@
     "react-dom": "^18",
     "next": "14.1.0",
     "aws-amplify": "^6.0.13",
-    "@aws-amplify/ui-react": "^6.1.2"
+    "@aws-amplify/geo": "^3.0.13",
+    "@aws-amplify/ui-react": "^6.1.2",
+    "@aws-amplify/ui-react-geo": "^2.0.8"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.131",
@@ -25,6 +27,7 @@
     "@types/react-dom": "^18",
     "@aws-amplify/backend": "^0.10.2",
     "@aws-amplify/backend-cli": "^0.9.7",
+    "@aws-cdk/aws-location-alpha": "^2.123.0-alpha.0",
     "aws-cdk": "^2.122.0",
     "aws-cdk-lib": "^2.122.0",
     "constructs": "^10.3.0",

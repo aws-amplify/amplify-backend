@@ -3,8 +3,31 @@ import { Stack } from 'aws-cdk-lib';
 
 export type BackendBase = {
   createStack: (name: string) => Stack;
-  setCustomOutput: (key: string, value: string) => void;
+  setCustomOutput: (key: string, value: string, options?: CustomOutputOptions) => void;
 };
+
+export type ClientConfigDestination = {
+  // TODO
+  // should the type be ClientConfigFormat from client config (lift to platform types?)
+  // or should we just cover JS format here and rely on JS -> Mobile/others transformation in client config package ?
+  // the generateClientConfig returns ClientConfig type which is JS.
+  // the generateClientConfigToFile maps JS ClientConfig into other formats
+  // Problems:
+  // - if we just cover JS format here then mobile developers would need to understand JS format
+  //   and we'd have to cover mappings for mobile platforms for all known 1st party keys
+  // - if we give flexibility to define path per platform then what do we do with  ClientConfig and generateClientConfig?
+  //   on the other hand we won't have to provide ClientConfig -> platform mappings for 1st party components like geo.
+  // Best if we unified client config first...
+  // But then... when we unify client config then clientConfigFormat doesn't make any sense and we'd have to deprecate it.
+  //
+  // For the purpose of prototype I'm going to ignore clientConfigFormat and assume it just covers JS schema and we map.
+  clientConfigFormat: string;
+  path: Array<string>;
+}
+
+export type CustomOutputOptions = {
+  clientConfigDestinations?: Array<ClientConfigDestination>
+}
 
 // Type that allows construct factories to be defined using any keys except those used in BackendHelpers
 export type DefineBackendProps = Record<

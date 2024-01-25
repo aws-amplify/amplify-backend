@@ -5,6 +5,8 @@ import styles from "@/styles/Home.module.css";
 import { useState, useEffect } from 'react'
 import config from '../amplifyconfiguration.json';
 import { getCurrentUser } from 'aws-amplify/auth';
+import { MapView } from '@aws-amplify/ui-react-geo';
+import '@aws-amplify/ui-react-geo/styles.css';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -63,6 +65,14 @@ export default function Home() {
           <p>Hello, Amplify 👋</p>
           <p>Hello {userId}</p>
           <p>{data}</p>
+        </div>
+        <div>
+          <MapView initialViewState={{
+            latitude: 37.8,
+            longitude: -122.4,
+            zoom: 14,
+          }}>
+          </MapView>
         </div>
       </main>
     </>

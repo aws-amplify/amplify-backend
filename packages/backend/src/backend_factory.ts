@@ -1,4 +1,8 @@
-import { AppendableBackendOutputEntry, ConstructFactory, ResourceProvider } from "@aws-amplify/plugin-types";
+import {
+  AppendableBackendOutputEntry,
+  ConstructFactory,
+  ResourceProvider,
+} from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
 import {
   NestedStackResolver,
@@ -14,7 +18,7 @@ import { createDefaultStack } from './default_stack_factory.js';
 import { getBackendIdentifier } from './backend_identifier.js';
 import { platformOutputKey } from '@aws-amplify/backend-output-schemas';
 import { fileURLToPath } from 'url';
-import { Backend, DefineBackendProps } from './backend.js';
+import { Backend, CustomOutputOptions, DefineBackendProps } from './backend.js';
 import { AmplifyBranchLinkerConstruct } from './engine/branch-linker/branch_linker_construct.js';
 
 // Be very careful editing this value. It is the value used in the BI metrics to attribute stacks as Amplify root stacks
@@ -112,8 +116,11 @@ export class BackendFactory<
     return this.stackResolver.createCustomStack(name);
   };
 
-  setCustomOutput = (key: string, value: string): void => {
-
+  setCustomOutput = (
+    key: string,
+    value: string,
+    options?: CustomOutputOptions
+  ): void => {
     /*
     Looks like this must be in certain format.
     From attempt to use non-alpha numeric characters with this.outputStorageStrategy.addBackendOutputEntry() in early prototype.
@@ -122,16 +129,18 @@ export class BackendFactory<
     Caused By: ❌ Deployment failed: Error [ValidationError]: Template format error: Outputs name 'amplify-custom-myApiUrl-value' is non alphanumeric.
      */
 
-
-    if(!this.customOutputsEntry) {
-      this.customOutputsEntry = this.outputStorageStrategy.addAppendableBackendOutputEntry('AWS::Amplify::Custom');
+    if (!this.customOutputsEntry) {
+      this.customOutputsEntry =
+        this.outputStorageStrategy.addAppendableBackendOutputEntry(
+          'AWS::Amplify::Custom'
+        );
     }
 
-    // TODO how do we do custom namespacing ??
-    const outputData = JSON.stringify({ value: value});
+    const outputData = JSON.stringify({ value: value, options });
     console.log(outputData);
+    // TODO how do we do custom namespacing ??
     this.customOutputsEntry.appendOutput(`amplifycustom${key}`, outputData);
-  }
+  };
 }
 
 /**
