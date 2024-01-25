@@ -68,8 +68,8 @@ export default function Home() {
         </div>
         <div>
           <MapView initialViewState={{
-            latitude: 37.8,
-            longitude: -122.4,
+            latitude: 47.61539971119491,
+            longitude: -122.3348765399794,
             zoom: 14,
           }}>
           </MapView>

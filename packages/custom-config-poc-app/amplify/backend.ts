@@ -68,7 +68,7 @@ backend.setCustomOutput('myApiKey', apiKeyValue);
 
 const locationStack = backend.createStack('Location');
 
-const testMapStyle = 'VectorEsriStreets';
+const testMapStyle = 'VectorEsriNavigation';
 const testMap = new location.CfnMap(locationStack, 'TestMap', {
   mapName: 'myTestMap',
   configuration: {
