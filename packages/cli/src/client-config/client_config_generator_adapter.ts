@@ -6,6 +6,7 @@ import {
 } from '@aws-amplify/client-config';
 import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
+import { printer } from '../printer.js';
 
 /**
  * Adapts static generateClientConfigToFile from @aws-amplify/client-config call to make it injectable and testable.
@@ -39,7 +40,8 @@ export class ClientConfigGeneratorAdapter {
       this.awsCredentialProvider,
       backendIdentifier,
       outDir,
-      format
+      format,
+      (message) => printer.log(message)
     );
   };
 }

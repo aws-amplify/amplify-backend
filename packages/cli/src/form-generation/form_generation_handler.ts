@@ -2,6 +2,7 @@ import { createLocalGraphqlFormGenerator } from '@aws-amplify/form-generator';
 import { createGraphqlDocumentGenerator } from '@aws-amplify/model-generator';
 import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
+import { printer } from '../printer.js';
 
 type FormGenerationParams = {
   modelsOutDir: string;
@@ -32,7 +33,9 @@ export class FormGenerationHandler {
     const modelsResult = await graphqlClientGenerator.generateModels({
       language: 'typescript',
     });
-    await modelsResult.writeToDirectory(modelsOutDir);
+    await modelsResult.writeToDirectory(modelsOutDir, (message) =>
+      printer.log(message)
+    );
     const localFormGenerator = createLocalGraphqlFormGenerator({
       introspectionSchemaUrl: apiUrl,
       graphqlModelDirectoryPath: './graphql',
@@ -40,6 +43,6 @@ export class FormGenerationHandler {
     const result = await localFormGenerator.generateForms({
       models: modelsFilter,
     });
-    await result.writeToDirectory(uiOutDir);
+    await result.writeToDirectory(uiOutDir, (message) => printer.log(message));
   };
 }
