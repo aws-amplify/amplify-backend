@@ -5,7 +5,7 @@ import * as process from 'process';
 import { auth } from './auth/resource';
 import * as location from 'aws-cdk-lib/aws-location';
 import * as iam from 'aws-cdk-lib/aws-iam';
-import { PlaceIndex } from "@aws-cdk/aws-location-alpha";
+import { PlaceIndex } from '@aws-cdk/aws-location-alpha';
 
 const backend = defineBackend({
   auth,
@@ -72,8 +72,8 @@ const testMapStyle = 'VectorEsriNavigation';
 const testMap = new location.CfnMap(locationStack, 'TestMap', {
   mapName: 'myTestMap',
   configuration: {
-    style: testMapStyle
-  }
+    style: testMapStyle,
+  },
 });
 
 new iam.Policy(locationStack, 'myTestMapPolicy', {
@@ -82,10 +82,15 @@ new iam.Policy(locationStack, 'myTestMapPolicy', {
   statements: [
     new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
-      actions: ['geo:GetMapStyleDescriptor', 'geo:GetMapGlyphs', 'geo:GetMapSprites', 'geo:GetMapTile'],
+      actions: [
+        'geo:GetMapStyleDescriptor',
+        'geo:GetMapGlyphs',
+        'geo:GetMapSprites',
+        'geo:GetMapTile',
+      ],
       resources: [testMap.attrArn],
     }),
-  ]
+  ],
 });
 
 backend.setCustomOutput('myTestMapRegion', locationStack.region, {
@@ -94,25 +99,32 @@ backend.setCustomOutput('myTestMapRegion', locationStack.region, {
       // TODO figure out if we really need per client config type here
       // See comments in packages/backend/src/backend.ts
       clientConfigFormat: 'json',
-      path: ['geo', 'amazon_location_service', 'region']
-    }
-  ]
+      path: ['geo', 'amazon_location_service', 'region'],
+    },
+  ],
 });
 backend.setCustomOutput('myTestMapName', testMap.mapName, {
   clientConfigDestinations: [
     {
       clientConfigFormat: 'json',
-      path: ['geo', 'amazon_location_service', 'maps', 'default']
-    }
-  ]
+      path: ['geo', 'amazon_location_service', 'maps', 'default'],
+    },
+  ],
 });
 backend.setCustomOutput('myTestMapStyle', testMapStyle, {
   clientConfigDestinations: [
     {
       clientConfigFormat: 'json',
-      path: ['geo', 'amazon_location_service', 'maps', 'items', testMap.mapName, 'style']
-    }
-  ]
+      path: [
+        'geo',
+        'amazon_location_service',
+        'maps',
+        'items',
+        testMap.mapName,
+        'style',
+      ],
+    },
+  ],
 });
 
 const placeIndex = new PlaceIndex(locationStack, 'TestPlaceIndex');
@@ -122,24 +134,61 @@ new iam.Policy(locationStack, 'myTestPlaceIndexPolicy', {
   statements: [
     new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
-      actions: ['geo:SearchPlaceIndexForPosition', 'geo:SearchPlaceIndexForText', 'geo:SearchPlaceIndexForSuggestions', 'geo:GetPlace'],
+      actions: [
+        'geo:SearchPlaceIndexForPosition',
+        'geo:SearchPlaceIndexForText',
+        'geo:SearchPlaceIndexForSuggestions',
+        'geo:GetPlace',
+      ],
       resources: [placeIndex.placeIndexArn],
     }),
-  ]
+  ],
 });
 
 backend.setCustomOutput('myTestSearchIndex', placeIndex.placeIndexName, {
   clientConfigDestinations: [
     {
       clientConfigFormat: 'json',
-      path: ['geo', 'amazon_location_service', 'search_indices', 'default']
+      path: ['geo', 'amazon_location_service', 'search_indices', 'default'],
     },
     {
       clientConfigFormat: 'json',
       // TODO how do we handle arrays ? Should we use json path syntax ?
-      path: ['geo', 'amazon_location_service', 'search_indices', 'items[]']
-    }
-  ]
+      path: ['geo', 'amazon_location_service', 'search_indices', 'items[]'],
+    },
+  ],
 });
 
 // ####### Geo End #######
+
+// ####### Alternative proposal Start #####
+
+// TODO this takes current JS form, but should really take unified config
+backend.addToClientConfig({
+  custom: {
+    myApiUrl: api.url,
+    myApiKey: apiKeyValue,
+  },
+  // TODO this is commented out because is not defined in schema.
+  // "geo": {
+  //   "amazon_location_service": {
+  //     "region": locationStack.region,
+  //     "maps": {
+  //       "default": testMap.mapName,
+  //       "items": {
+  //         `${testMap.mapName}`: {
+  //           "style": "VectorEsriNavigation"
+  //         }
+  //       }
+  //     },
+  //     "search_indices": {
+  //       "default": placeIndex.placeIndexName,
+  //       "items": [
+  //         placeIndex.placeIndexName
+  //       ]
+  //     }
+  //   }
+  // }
+});
+
+// ####### Alternative proposal End #####

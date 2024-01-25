@@ -20,6 +20,7 @@ import { platformOutputKey } from '@aws-amplify/backend-output-schemas';
 import { fileURLToPath } from 'url';
 import { Backend, CustomOutputOptions, DefineBackendProps } from './backend.js';
 import { AmplifyBranchLinkerConstruct } from './engine/branch-linker/branch_linker_construct.js';
+import { ClientConfig } from "@aws-amplify/client-config";
 
 // Be very careful editing this value. It is the value used in the BI metrics to attribute stacks as Amplify root stacks
 const rootStackTypeIdentifier = 'root';
@@ -155,5 +156,18 @@ export const defineBackend = <T extends DefineBackendProps>(
     ...backend.resources,
     createStack: backend.createStack,
     setCustomOutput: backend.setCustomOutput,
+    addToClientConfig: (clientConfigPart: Partial<ClientConfig>) => {
+      // TODO This is alternative proposal
+      // NO-OP for now but the idea is that we allow to put a partial of client config schema
+      // into some output
+      // and just merge it with client config at read.
+
+      // This likely could use client config unification.
+      // I.e. backend def -> unified client config partial to outputs -> deployment ->
+      // -> outputs -> read unified client config -> map to js/ts/dart/whatever.
+
+      // Should we start crafting unified schema nad return it from generateClientConfig API ?
+      // and map to old/v6 formats in generateClientConfigToFile ?
+    }
   };
 };
