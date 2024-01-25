@@ -8,7 +8,7 @@ import { printer } from '../printer.js';
 import { executeWithDebugLogger as _executeWithDebugLogger } from './execute_with_logger.js';
 import { DependencyType } from './package_manager_controller_factory.js';
 
-enum InvokableCommand {
+export enum InvokableCommand {
   DEPLOY = 'deploy',
   DESTROY = 'destroy',
 }
