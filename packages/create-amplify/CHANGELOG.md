@@ -1,5 +1,16 @@
 # create-amplify
 
+## 0.5.0
+
+### Minor Changes
+
+- fb07bafce: Refactor Printer class & deprecate Logger
+
+### Patch Changes
+
+- Updated dependencies [fb07bafce]
+  - @aws-amplify/cli-core@0.3.0
+
 ## 0.4.4
 
 ### Patch Changes
