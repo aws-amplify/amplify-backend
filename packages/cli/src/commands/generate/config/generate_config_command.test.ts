@@ -107,15 +107,18 @@ void describe('generate config command', () => {
       'config --branch branch_name --app-id app_id --out-dir /foo/bar --format mjs'
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
-    assert.deepStrictEqual(generateClientConfigMock.mock.calls[0].arguments, [
-      {
-        name: 'branch_name',
-        namespace: 'app_id',
-        type: 'branch',
-      },
-      '/foo/bar',
-      ClientConfigFormat.MJS,
-    ]);
+    assert.deepStrictEqual(
+      generateClientConfigMock.mock.calls[0].arguments.splice(0, 3),
+      [
+        {
+          name: 'branch_name',
+          namespace: 'app_id',
+          type: 'branch',
+        },
+        '/foo/bar',
+        ClientConfigFormat.MJS,
+      ]
+    );
   });
 
   void it('can generate to custom absolute path', async () => {
@@ -123,13 +126,16 @@ void describe('generate config command', () => {
       'config --stack stack_name --out-dir /foo/bar --format ts'
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
-    assert.deepStrictEqual(generateClientConfigMock.mock.calls[0].arguments, [
-      {
-        stackName: 'stack_name',
-      },
-      '/foo/bar',
-      ClientConfigFormat.TS,
-    ]);
+    assert.deepStrictEqual(
+      generateClientConfigMock.mock.calls[0].arguments.splice(0, 3),
+      [
+        {
+          stackName: 'stack_name',
+        },
+        '/foo/bar',
+        ClientConfigFormat.TS,
+      ]
+    );
   });
 
   void it('can generate to custom relative path', async () => {
@@ -137,13 +143,16 @@ void describe('generate config command', () => {
       'config --stack stack_name --out-dir foo/bar --format mjs'
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
-    assert.deepStrictEqual(generateClientConfigMock.mock.calls[0].arguments, [
-      {
-        stackName: 'stack_name',
-      },
-      'foo/bar',
-      ClientConfigFormat.MJS,
-    ]);
+    assert.deepStrictEqual(
+      generateClientConfigMock.mock.calls[0].arguments.splice(0, 3),
+      [
+        {
+          stackName: 'stack_name',
+        },
+        'foo/bar',
+        ClientConfigFormat.MJS,
+      ]
+    );
   });
 
   void it('can generate config in dart format', async () => {
@@ -151,13 +160,16 @@ void describe('generate config command', () => {
       'config --stack stack_name --out-dir foo/bar --format dart'
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
-    assert.deepStrictEqual(generateClientConfigMock.mock.calls[0].arguments, [
-      {
-        stackName: 'stack_name',
-      },
-      'foo/bar',
-      ClientConfigFormat.DART,
-    ]);
+    assert.deepStrictEqual(
+      generateClientConfigMock.mock.calls[0].arguments.splice(0, 3),
+      [
+        {
+          stackName: 'stack_name',
+        },
+        'foo/bar',
+        ClientConfigFormat.DART,
+      ]
+    );
   });
 
   void it('can generate config in json mobile format', async () => {
@@ -165,13 +177,16 @@ void describe('generate config command', () => {
       'config --stack stack_name --out-dir foo/bar --format json-mobile'
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
-    assert.deepStrictEqual(generateClientConfigMock.mock.calls[0].arguments, [
-      {
-        stackName: 'stack_name',
-      },
-      'foo/bar',
-      ClientConfigFormat.JSON_MOBILE,
-    ]);
+    assert.deepStrictEqual(
+      generateClientConfigMock.mock.calls[0].arguments.splice(0, 3),
+      [
+        {
+          stackName: 'stack_name',
+        },
+        'foo/bar',
+        ClientConfigFormat.JSON_MOBILE,
+      ]
+    );
   });
 
   void it('shows available options in help output', async () => {

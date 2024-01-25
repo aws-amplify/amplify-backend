@@ -119,7 +119,7 @@ export type GenerateOptions = GenerateGraphqlCodegenOptions | GenerateModelsOpti
 
 // @public (undocumented)
 export type GenerationResult = {
-    writeToDirectory: (directoryPath: string) => Promise<void>;
+    writeToDirectory: (directoryPath: string, log?: (message: string) => void) => Promise<void>;
     getResults: () => Promise<Record<string, string>>;
 };
 
