@@ -44,6 +44,7 @@
     "@aws-sdk/region-config-resolver": "^3.465.0",
     "@smithy/node-config-provider": "^2.1.3",
     "@smithy/shared-ini-file-loader": "^2.2.5",
+    "envinfo": "^7.11.0",
     "execa": "^8.0.1",
     "is-ci": "^3.0.1",
     "open": "^9.1.0",
