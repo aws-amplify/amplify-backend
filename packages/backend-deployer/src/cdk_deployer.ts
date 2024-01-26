@@ -196,11 +196,20 @@ export class CDKDeployer implements BackendDeployer {
     backendId: BackendIdentifier,
     additionalArguments?: string[]
   ): Promise<DeployResult | DestroyResult> => {
-    const cdkCommandArgs =
-      this.packageManagerController.getPackageManagerCommandArgs(
-        invokableCommand,
-        this.backendLocator
-      );
+    // Basic args
+    const cdkCommandArgs = [
+      'cdk',
+      invokableCommand.toString(),
+      // This is unfortunate. CDK writes everything to stderr without `--ci` flag and we need to differentiate between the two.
+      // See https://github.com/aws/aws-cdk/issues/7717 for more details.
+      '--ci',
+      '--app',
+      // TODO: replace npx to dynamic package manager
+      `'npx tsx ${this.backendLocator.locate()}'`,
+      '--all',
+      '--output',
+      '.amplify/artifacts/cdk.out',
+    ];
 
     // Add context information if available
     cdkCommandArgs.push(

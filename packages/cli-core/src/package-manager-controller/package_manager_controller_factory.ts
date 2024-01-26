@@ -1,3 +1,4 @@
+import { type PackageManagerController } from '@aws-amplify/plugin-types';
 import { NpmPackageManagerController } from './npm_package_manager_controller.js';
 import { PnpmPackageManagerController } from './pnpm_package_manager_controller.js';
 import { YarnClassicPackageManagerController } from './yarn_classic_package_manager_controller.js';
@@ -18,7 +19,7 @@ export class PackageManagerControllerFactory {
   /**
    * getPackageManagerController - returns the package manager controller for each package manager
    */
-  getPackageManagerController() {
+  getPackageManagerController(): PackageManagerController {
     const packageManagerName = this.getPackageManagerName();
     switch (packageManagerName) {
       case 'npm':

@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'assert';
 import { PackageManagerControllerFactory } from './package_manager_controller_factory.js';
-import { PackageManagerController } from './package_manager_controller.js';
+import { PackageManagerControllerBase } from './package_manager_controller.js';
 import { NpmPackageManagerController } from './npm_package_manager_controller.js';
 
 void describe('packageManagerControllerFactory', () => {
@@ -17,17 +17,17 @@ void describe('packageManagerControllerFactory', () => {
       {
         name: 'pnpm',
         userAgent: 'pnpm/5.0.0 node/v15.0.0 darwin x64',
-        expectedInstanceof: PackageManagerController,
+        expectedInstanceof: PackageManagerControllerBase,
       },
       {
         name: 'yarn classic',
         userAgent: 'yarn/1.22.21 node/v15.0.0 darwin x64',
-        expectedInstanceof: PackageManagerController,
+        expectedInstanceof: PackageManagerControllerBase,
       },
       {
         name: 'yarn modern',
         userAgent: 'yarn/4.0.1 node/v15.0.0 darwin x64',
-        expectedInstanceof: PackageManagerController,
+        expectedInstanceof: PackageManagerControllerBase,
       },
     ];
 

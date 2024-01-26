@@ -3,6 +3,7 @@ import _fsp from 'fs/promises';
 import { ExecaChildProcess, execa as _execa } from 'execa';
 import * as _path from 'path';
 import { BackendLocator } from '@aws-amplify/platform-core';
+import { type PackageManagerController } from '@aws-amplify/plugin-types';
 import { LogLevel } from '../printer/printer.js';
 import { printer } from '../printer.js';
 import { executeWithDebugLogger as _executeWithDebugLogger } from './execute_with_logger.js';
@@ -16,7 +17,9 @@ export enum InvokableCommand {
 /**
  * PackageManagerController is an abstraction around package manager commands that are needed to initialize a project and install dependencies
  */
-export abstract class PackageManagerController {
+export abstract class PackageManagerControllerBase
+  implements PackageManagerController
+{
   /**
    * constructor - sets the project root
    */

@@ -5,32 +5,14 @@
  */
 import { type ExecaChildProcess } from 'execa';
 
-// TODO: This is a temporary workaround to get the types to compile.
-// We need to figure out if we need to move this type from platform-core to plugin-types
-/**
- * BackendLocator is an abstraction around locating the backend directory
- */
-export class BackendLocator {
-  locate: () => string;
-  /**
-   * constructor
-   */
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  constructor(rootDir?: string) {}
-}
-
 export enum InvokableCommand {
   DEPLOY = 'deploy',
   DESTROY = 'destroy',
 }
 
-type DependencyType = 'dev' | 'prod';
+export type DependencyType = 'dev' | 'prod';
 
 export type PackageManagerController = {
-  getPackageManagerCommandArgs: (
-    invokableCommand: InvokableCommand,
-    backendLocator: BackendLocator
-  ) => string[];
   getWelcomeMessage: () => string;
   initializeProject: () => Promise<void>;
   initializeTsConfig: (targetDir: string) => Promise<void>;

@@ -3,12 +3,12 @@ import _fsp from 'fs/promises';
 import { execa as _execa } from 'execa';
 import * as _path from 'path';
 import { executeWithDebugLogger as _executeWithDebugLogger } from './execute_with_logger.js';
-import { PackageManagerController } from './package_manager_controller.js';
+import { PackageManagerControllerBase } from './package_manager_controller.js';
 
 /**
  * YarnClassicPackageManagerController is an abstraction around yarn classic commands that are needed to initialize a project and install dependencies
  */
-export class YarnClassicPackageManagerController extends PackageManagerController {
+export class YarnClassicPackageManagerController extends PackageManagerControllerBase {
   /**
    * Abstraction around yarn classic commands that are needed to initialize a project and install dependencies
    */

@@ -6,12 +6,7 @@
 
 /// <reference types="node" />
 
-import { BackendLocator } from '@aws-amplify/platform-core';
-import { execa } from 'execa';
-import { ExecaChildProcess } from 'execa';
-import { existsSync } from 'fs';
-import _fsp from 'fs/promises';
-import * as _path from 'path';
+import { PackageManagerController } from '@aws-amplify/plugin-types';
 
 // @public
 export class AmplifyPrompter {

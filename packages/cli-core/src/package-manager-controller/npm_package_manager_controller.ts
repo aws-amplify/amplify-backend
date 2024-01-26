@@ -3,12 +3,12 @@ import _fsp from 'fs/promises';
 import { execa as _execa } from 'execa';
 import * as _path from 'path';
 import { executeWithDebugLogger as _executeWithDebugLogger } from './execute_with_logger.js';
-import { PackageManagerController } from './package_manager_controller.js';
+import { PackageManagerControllerBase } from './package_manager_controller.js';
 
 /**
  * NpmPackageManagerController is an abstraction around npm commands that are needed to initialize a project and install dependencies
  */
-export class NpmPackageManagerController extends PackageManagerController {
+export class NpmPackageManagerController extends PackageManagerControllerBase {
   /**
    * constructor
    */

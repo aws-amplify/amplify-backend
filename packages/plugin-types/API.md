@@ -9,6 +9,7 @@ import { CfnIdentityPoolRoleAttachment } from 'aws-cdk-lib/aws-cognito';
 import { CfnUserPool } from 'aws-cdk-lib/aws-cognito';
 import { CfnUserPoolClient } from 'aws-cdk-lib/aws-cognito';
 import { Construct } from 'constructs';
+import { ExecaChildProcess } from 'execa';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { IRole } from 'aws-cdk-lib/aws-iam';
 import { IUserPool } from 'aws-cdk-lib/aws-cognito';
@@ -112,6 +113,9 @@ export type ConstructFactoryGetInstanceProps = {
     importPathVerifier?: ImportPathVerifier;
 };
 
+// @public (undocumented)
+export type DependencyType = 'dev' | 'prod';
+
 // @public
 export type DeploymentType = 'branch' | 'sandbox';
 
@@ -125,6 +129,14 @@ export type ImportPathVerifier = {
     verify: (importStack: string | undefined, expectedImportingFile: string, errorMessage: string) => void;
 };
 
+// @public (undocumented)
+export enum InvokableCommand {
+    // (undocumented)
+    DEPLOY = "deploy",
+    // (undocumented)
+    DESTROY = "destroy"
+}
+
 // @public
 export type MainStackCreator = {
     getOrCreateMainStack: () => Stack;
@@ -133,6 +145,21 @@ export type MainStackCreator = {
 // @public
 export type MainStackNameResolver = {
     resolveMainStackName: () => Promise<string>;
+};
+
+// @public (undocumented)
+export type PackageManagerController = {
+    getWelcomeMessage: () => string;
+    initializeProject: () => Promise<void>;
+    initializeTsConfig: (targetDir: string) => Promise<void>;
+    installDependencies: (packageNames: string[], type: DependencyType) => Promise<void>;
+    runWithPackageManager: (args: string[] | undefined, dir: string, options?: {
+        env?: Record<string, string>;
+        stdin?: 'inherit' | 'pipe' | 'ignore';
+        stdout?: 'inherit' | 'pipe' | 'ignore';
+        stderr?: 'inherit' | 'pipe' | 'ignore';
+        extendEnv?: boolean;
+    }) => ExecaChildProcess<string>;
 };
 
 // @public (undocumented)

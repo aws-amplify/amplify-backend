@@ -5,13 +5,13 @@ import * as _path from 'path';
 import { LogLevel } from '@aws-amplify/cli-core';
 import { printer } from '../printer.js';
 import { executeWithDebugLogger as _executeWithDebugLogger } from './execute_with_logger.js';
-import { PackageManagerController } from './package_manager_controller.js';
+import { PackageManagerControllerBase } from './package_manager_controller.js';
 import { DependencyType } from './package_manager_controller_factory.js';
 
 /**
  * YarnModernPackageManagerController is an abstraction around yarn modern (yarn v2+) commands that are needed to initialize a project and install dependencies
  */
-export class YarnModernPackageManagerController extends PackageManagerController {
+export class YarnModernPackageManagerController extends PackageManagerControllerBase {
   /**
    * constructor
    */
