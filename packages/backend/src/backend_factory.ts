@@ -20,7 +20,7 @@ import { platformOutputKey } from '@aws-amplify/backend-output-schemas';
 import { fileURLToPath } from 'url';
 import { Backend, CustomOutputOptions, DefineBackendProps } from './backend.js';
 import { AmplifyBranchLinkerConstruct } from './engine/branch-linker/branch_linker_construct.js';
-import { ClientConfig } from "@aws-amplify/client-config";
+import { ClientConfig } from '@aws-amplify/client-config';
 
 // Be very careful editing this value. It is the value used in the BI metrics to attribute stacks as Amplify root stacks
 const rootStackTypeIdentifier = 'root';
@@ -42,6 +42,10 @@ export class BackendFactory<
   private readonly stackResolver: StackResolver;
   private readonly outputStorageStrategy: StackMetadataBackendOutputStorageStrategy;
   private customOutputsEntry: AppendableBackendOutputEntry | undefined;
+  private customOutputsAlternativeEntryCount = 0;
+  private customOutputsEntryAlternative:
+    | AppendableBackendOutputEntry
+    | undefined;
 
   /**
    * Initialize an Amplify backend with the given construct factories and in the given CDK App.
@@ -142,6 +146,25 @@ export class BackendFactory<
     // TODO how do we do custom namespacing ??
     this.customOutputsEntry.appendOutput(`amplifycustom${key}`, outputData);
   };
+
+  addToClientConfig = (clientConfigPart: Partial<ClientConfig>) => {
+    // Lets see if this can work.
+    // This implementation doesn't do much, it just tries to see if we can serialize cdk tokens.
+
+    if (!this.customOutputsEntryAlternative) {
+      this.customOutputsEntryAlternative =
+        this.outputStorageStrategy.addAppendableBackendOutputEntry(
+          'AWS::Amplify::Custom::Alternative'
+        );
+    }
+
+    const outputData = JSON.stringify(clientConfigPart);
+    this.customOutputsEntryAlternative.appendOutput(
+      `alternativeCustomApproach${this.customOutputsAlternativeEntryCount}`,
+      outputData
+    );
+    this.customOutputsAlternativeEntryCount++;
+  };
 }
 
 /**
@@ -168,6 +191,8 @@ export const defineBackend = <T extends DefineBackendProps>(
 
       // Should we start crafting unified schema nad return it from generateClientConfig API ?
       // and map to old/v6 formats in generateClientConfigToFile ?
-    }
+
+      backend.addToClientConfig(clientConfigPart);
+    },
   };
 };
