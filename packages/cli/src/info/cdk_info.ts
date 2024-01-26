@@ -1,4 +1,3 @@
-import * as os from 'node:os';
 import { execa as _execa } from 'execa';
 import { indent } from './indent.js';
 
