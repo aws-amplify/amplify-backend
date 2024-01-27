@@ -8,6 +8,7 @@ import { type ExecaChildProcess } from 'execa';
 export type DependencyType = 'dev' | 'prod';
 
 export type PackageManagerController = {
+  projectRoot: string;
   getWelcomeMessage: () => string;
   initializeProject: () => Promise<void>;
   initializeTsConfig: (targetDir: string) => Promise<void>;

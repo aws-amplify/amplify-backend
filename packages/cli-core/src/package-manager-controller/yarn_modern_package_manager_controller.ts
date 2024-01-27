@@ -5,7 +5,7 @@ import * as _path from 'path';
 import { LogLevel } from '@aws-amplify/cli-core';
 import { printer } from '../printer.js';
 import { executeWithDebugLogger as _executeWithDebugLogger } from './execute_with_logger.js';
-import { PackageManagerControllerBase } from './package_manager_controller.js';
+import { PackageManagerControllerBase } from './package_manager_controller_base.js';
 import { DependencyType } from './package_manager_controller_factory.js';
 
 /**

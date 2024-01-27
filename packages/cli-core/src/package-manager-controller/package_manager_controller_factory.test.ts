@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'assert';
 import { PackageManagerControllerFactory } from './package_manager_controller_factory.js';
-import { PackageManagerControllerBase } from './package_manager_controller.js';
+import { PackageManagerControllerBase } from './package_manager_controller_base.js';
 import { NpmPackageManagerController } from './npm_package_manager_controller.js';
 
 void describe('packageManagerControllerFactory', () => {
