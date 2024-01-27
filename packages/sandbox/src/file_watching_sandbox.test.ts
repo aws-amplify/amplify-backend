@@ -28,7 +28,8 @@ const subscribeMock = mock.method(watcher, 'subscribe', async () => {
   return { unsubscribe: unsubscribeMockFn };
 });
 
-const backendDeployer = BackendDeployerFactory.getInstance();
+const backendDeployerFactory = new BackendDeployerFactory();
+const backendDeployer = backendDeployerFactory.getInstance();
 
 const secretClient = getSecretClient();
 const newlyUpdatedSecretItem: SecretListItem = {

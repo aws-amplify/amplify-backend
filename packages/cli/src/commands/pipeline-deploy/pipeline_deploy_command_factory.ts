@@ -19,6 +19,7 @@ export const createPipelineDeployCommand = (): CommandModule<
   const clientConfigGenerator = new ClientConfigGeneratorAdapter(
     credentialProvider
   );
-  const backendDeployer = BackendDeployerFactory.getInstance();
+  const backendDeployerFactory = new BackendDeployerFactory();
+  const backendDeployer = backendDeployerFactory.getInstance();
   return new PipelineDeployCommand(clientConfigGenerator, backendDeployer);
 };

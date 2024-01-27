@@ -8,8 +8,8 @@ const logMock = mock.fn();
 const mockedPrinter = {
   log: mock.fn(),
 };
-
-const backendDeployer = BackendDeployerFactory.getInstance();
+const backendDeployerFactory = new BackendDeployerFactory();
+const backendDeployer = backendDeployerFactory.getInstance();
 const secretClient = getSecretClient();
 const sandboxExecutor = new AmplifySandboxExecutor(
   backendDeployer,

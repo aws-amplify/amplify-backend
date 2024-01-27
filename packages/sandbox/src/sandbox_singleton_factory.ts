@@ -24,10 +24,11 @@ export class SandboxSingletonFactory {
    */
   getInstance = async (): Promise<Sandbox> => {
     if (!this.instance) {
+      const backendDeployerFactory = new BackendDeployerFactory();
       this.instance = new FileWatchingSandbox(
         this.sandboxIdResolver,
         new AmplifySandboxExecutor(
-          BackendDeployerFactory.getInstance(),
+          backendDeployerFactory.getInstance(),
           getSecretClient(),
           this.printer
         ),

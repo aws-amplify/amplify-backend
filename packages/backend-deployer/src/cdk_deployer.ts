@@ -7,8 +7,10 @@ import {
   DestroyResult,
 } from './cdk_deployer_singleton_factory.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
-import { type PackageManagerControllerFactory } from '@aws-amplify/cli-core';
-import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import {
+  BackendIdentifier,
+  type PackageManagerController,
+} from '@aws-amplify/plugin-types';
 import {
   AmplifyUserError,
   BackendLocator,
@@ -28,20 +30,14 @@ enum InvokableCommand {
  * Invokes CDK command via execa
  */
 export class CDKDeployer implements BackendDeployer {
-  private readonly packageManagerController: ReturnType<
-    PackageManagerControllerFactory['getPackageManagerController']
-  >;
   /**
    * Instantiates instance of CDKDeployer
    */
   constructor(
     private readonly cdkErrorMapper: CdkErrorMapper,
     private readonly backendLocator: BackendLocator,
-    private readonly packageManagerControllerFactory: PackageManagerControllerFactory
-  ) {
-    this.packageManagerController =
-      this.packageManagerControllerFactory.getPackageManagerController();
-  }
+    private readonly packageManagerController: PackageManagerController
+  ) {}
   /**
    * Invokes cdk deploy command
    */

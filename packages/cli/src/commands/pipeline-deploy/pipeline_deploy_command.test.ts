@@ -25,7 +25,8 @@ void describe('deploy command', () => {
   );
 
   const getCommandRunner = (isCI = false) => {
-    const backendDeployer = BackendDeployerFactory.getInstance();
+    const backendDeployerFactory = new BackendDeployerFactory();
+    const backendDeployer = backendDeployerFactory.getInstance();
     const deployCommand = new PipelineDeployCommand(
       clientConfigGenerator,
       backendDeployer,
@@ -63,8 +64,9 @@ void describe('deploy command', () => {
   });
 
   void it('executes backend deployer in CI environments', async () => {
+    const backendDeployerFactory = new BackendDeployerFactory();
     const mockDeploy = mock.method(
-      BackendDeployerFactory.getInstance(),
+      backendDeployerFactory.getInstance(),
       'deploy',
       () => Promise.resolve()
     );
@@ -86,8 +88,9 @@ void describe('deploy command', () => {
   });
 
   void it('allows --config-out-dir argument', async () => {
+    const backendDeployerFactory = new BackendDeployerFactory();
     const mockDeploy = mock.method(
-      BackendDeployerFactory.getInstance(),
+      backendDeployerFactory.getInstance(),
       'deploy',
       () => Promise.resolve()
     );

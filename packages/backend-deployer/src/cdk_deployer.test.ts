@@ -28,10 +28,13 @@ void describe('invokeCDKCommand', () => {
   const locateMock = mock.fn(() => 'amplify/backend.ts');
   const backendLocator = { locate: locateMock } as unknown as BackendLocator;
 
+  const packageManagerControllerFactory = new PackageManagerControllerFactory(
+    './'
+  );
   const invoker = new CDKDeployer(
     new CdkErrorMapper(),
     backendLocator,
-    new PackageManagerControllerFactory('./')
+    packageManagerControllerFactory.getPackageManagerController()
   );
   const execaMock = mock.method(
     invoker,

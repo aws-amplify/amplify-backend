@@ -5,6 +5,7 @@
 ```ts
 
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { PackageManagerController } from '@aws-amplify/plugin-types';
 
 // @public
 export type BackendDeployer = {
@@ -14,7 +15,8 @@ export type BackendDeployer = {
 
 // @public
 export class BackendDeployerFactory {
-    static getInstance: () => BackendDeployer;
+    constructor(packageManagerController?: PackageManagerController);
+    getInstance(): BackendDeployer;
 }
 
 // @public (undocumented)
