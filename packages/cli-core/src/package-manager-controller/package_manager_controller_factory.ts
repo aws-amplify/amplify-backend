@@ -14,7 +14,7 @@ export class PackageManagerControllerFactory {
    * constructor
    * @param projectRoot - the root directory of the project
    */
-  constructor(private readonly projectRoot: string) {}
+  constructor(private readonly projectRoot: string = './') {}
 
   /**
    * getPackageManagerController - returns the package manager controller for each package manager

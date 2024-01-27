@@ -36,9 +36,7 @@ export type BackendDeployer = {
   destroy: (backendId: BackendIdentifier) => Promise<DestroyResult>;
 };
 
-const packageManagerControllerFactory = new PackageManagerControllerFactory(
-  './'
-);
+const packageManagerControllerFactory = new PackageManagerControllerFactory();
 
 /**
  * Factory to create a backend deployer

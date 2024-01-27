@@ -18,7 +18,7 @@ export abstract class PackageManagerControllerBase
    * constructor - sets the project root
    */
   constructor(
-    readonly projectRoot: string,
+    readonly projectRoot: string = './',
     protected readonly executable: string,
     protected readonly binaryRunner: string,
     protected readonly initDefault: string[],
