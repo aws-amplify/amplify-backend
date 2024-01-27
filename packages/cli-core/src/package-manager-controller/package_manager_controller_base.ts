@@ -1,6 +1,6 @@
 import { existsSync as _existsSync } from 'fs';
 import _fsp from 'fs/promises';
-import { ExecaChildProcess, execa as _execa } from 'execa';
+import { ExecaChildProcess, type Options, execa as _execa } from 'execa';
 import * as _path from 'path';
 import { type PackageManagerController } from '@aws-amplify/plugin-types';
 import { LogLevel } from '../printer/printer.js';
@@ -123,13 +123,7 @@ Get started by running \`${this.binaryRunner} amplify sandbox\`.`;
   runWithPackageManager(
     args: string[] = [],
     dir: string,
-    options?: {
-      env?: Record<string, string>;
-      stdin?: 'inherit' | 'pipe' | 'ignore';
-      stdout?: 'inherit' | 'pipe' | 'ignore';
-      stderr?: 'inherit' | 'pipe' | 'ignore';
-      extendEnv?: boolean;
-    }
+    options?: Options
   ): ExecaChildProcess<string> {
     return this.executeWithDebugLogger(
       dir,
