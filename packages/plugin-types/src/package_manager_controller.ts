@@ -5,11 +5,6 @@
  */
 import { type ExecaChildProcess } from 'execa';
 
-export enum InvokableCommand {
-  DEPLOY = 'deploy',
-  DESTROY = 'destroy',
-}
-
 export type DependencyType = 'dev' | 'prod';
 
 export type PackageManagerController = {

@@ -129,14 +129,6 @@ export type ImportPathVerifier = {
     verify: (importStack: string | undefined, expectedImportingFile: string, errorMessage: string) => void;
 };
 
-// @public (undocumented)
-export enum InvokableCommand {
-    // (undocumented)
-    DEPLOY = "deploy",
-    // (undocumented)
-    DESTROY = "destroy"
-}
-
 // @public
 export type MainStackCreator = {
     getOrCreateMainStack: () => Stack;
