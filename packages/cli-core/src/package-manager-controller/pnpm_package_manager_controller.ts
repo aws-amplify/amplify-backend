@@ -2,7 +2,7 @@ import _fsp from 'fs/promises';
 import * as _path from 'path';
 import { existsSync as _existsSync } from 'fs';
 import { execa as _execa } from 'execa';
-import { executeWithDebugLogger as _executeWithDebugLogger } from './execute_with_logger.js';
+import { executeWithDebugLogger as _executeWithDebugLogger } from './execute_with_debugger_logger.js';
 import { PackageManagerControllerBase } from './package_manager_controller_base.js';
 
 /**

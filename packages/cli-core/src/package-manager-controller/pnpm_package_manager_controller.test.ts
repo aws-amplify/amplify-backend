@@ -4,7 +4,7 @@ import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'assert';
 import { execa } from 'execa';
 import { PnpmPackageManagerController } from './pnpm_package_manager_controller.js';
-import { executeWithDebugLogger } from './execute_with_logger.js';
+import { executeWithDebugLogger } from './execute_with_debugger_logger.js';
 
 void describe('PnpmPackageManagerController', () => {
   const fspMock = mock.fn(() => Promise.resolve());

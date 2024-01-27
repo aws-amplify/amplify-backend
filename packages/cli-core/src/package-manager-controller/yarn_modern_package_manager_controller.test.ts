@@ -5,7 +5,7 @@ import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'assert';
 import { execa } from 'execa';
 import { YarnModernPackageManagerController } from './yarn_modern_package_manager_controller.js';
-import { executeWithDebugLogger } from './execute_with_logger.js';
+import { executeWithDebugLogger } from './execute_with_debugger_logger.js';
 
 void describe('YarnModernPackageManagerController', () => {
   const fspMock = mock.fn(() => Promise.resolve());
