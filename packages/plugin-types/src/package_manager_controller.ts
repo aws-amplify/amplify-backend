@@ -5,8 +5,6 @@
  */
 import { type ExecaChildProcess } from 'execa';
 
-export type DependencyType = 'dev' | 'prod';
-
 export type PackageManagerController = {
   projectRoot: string;
   getWelcomeMessage: () => string;
@@ -14,7 +12,7 @@ export type PackageManagerController = {
   initializeTsConfig: (targetDir: string) => Promise<void>;
   installDependencies: (
     packageNames: string[],
-    type: DependencyType
+    type: 'dev' | 'prod'
   ) => Promise<void>;
   runWithPackageManager: (
     args: string[] | undefined,

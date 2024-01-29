@@ -4,8 +4,6 @@ import { PnpmPackageManagerController } from './pnpm_package_manager_controller.
 import { YarnClassicPackageManagerController } from './yarn_classic_package_manager_controller.js';
 import { YarnModernPackageManagerController } from './yarn_modern_package_manager_controller.js';
 
-export type DependencyType = 'dev' | 'prod';
-
 /**
  * packageManagerControllerFactory is an abstraction around package manager commands that are needed to initialize a project and install dependencies
  */

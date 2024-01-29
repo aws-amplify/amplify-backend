@@ -28,9 +28,6 @@ export enum COLOR {
 }
 
 // @public (undocumented)
-export type DependencyType = 'dev' | 'prod';
-
-// @public (undocumented)
 export enum LogLevel {
     // (undocumented)
     DEBUG = 2,

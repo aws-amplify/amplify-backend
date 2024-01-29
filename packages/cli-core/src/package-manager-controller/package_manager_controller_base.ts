@@ -6,7 +6,6 @@ import { type PackageManagerController } from '@aws-amplify/plugin-types';
 import { LogLevel } from '../printer/printer.js';
 import { printer } from '../printer.js';
 import { executeWithDebugLogger as _executeWithDebugLogger } from './execute_with_debugger_logger.js';
-import { DependencyType } from './package_manager_controller_factory.js';
 
 /**
  * PackageManagerController is an abstraction around package manager commands that are needed to initialize a project and install dependencies
@@ -35,7 +34,7 @@ export abstract class PackageManagerControllerBase
    */
   async installDependencies(
     packageNames: string[],
-    type: DependencyType
+    type: 'dev' | 'prod'
   ): Promise<void> {
     const args = [`${this.installCommand}`].concat(...packageNames);
     if (type === 'dev') {

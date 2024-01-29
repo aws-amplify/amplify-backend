@@ -113,9 +113,6 @@ export type ConstructFactoryGetInstanceProps = {
     importPathVerifier?: ImportPathVerifier;
 };
 
-// @public (undocumented)
-export type DependencyType = 'dev' | 'prod';
-
 // @public
 export type DeploymentType = 'branch' | 'sandbox';
 
@@ -145,7 +142,7 @@ export type PackageManagerController = {
     getWelcomeMessage: () => string;
     initializeProject: () => Promise<void>;
     initializeTsConfig: (targetDir: string) => Promise<void>;
-    installDependencies: (packageNames: string[], type: DependencyType) => Promise<void>;
+    installDependencies: (packageNames: string[], type: 'dev' | 'prod') => Promise<void>;
     runWithPackageManager: (args: string[] | undefined, dir: string, options?: {
         env?: Record<string, string>;
         stdin?: 'inherit' | 'pipe' | 'ignore';

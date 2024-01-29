@@ -6,7 +6,6 @@ import { LogLevel } from '@aws-amplify/cli-core';
 import { printer } from '../printer.js';
 import { executeWithDebugLogger as _executeWithDebugLogger } from './execute_with_debugger_logger.js';
 import { PackageManagerControllerBase } from './package_manager_controller_base.js';
-import { DependencyType } from './package_manager_controller_factory.js';
 
 /**
  * YarnModernPackageManagerController is an abstraction around yarn modern (yarn v2+) commands that are needed to initialize a project and install dependencies
@@ -39,7 +38,7 @@ export class YarnModernPackageManagerController extends PackageManagerController
 
   installDependencies: (
     packageNames: string[],
-    type: DependencyType
+    type: 'dev' | 'prod'
   ) => Promise<void> = async (packageNames, type) => {
     await this.addDependencies(this.projectRoot);
     await super.installDependencies(packageNames, type);
