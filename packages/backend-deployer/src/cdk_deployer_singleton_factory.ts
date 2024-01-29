@@ -5,7 +5,6 @@ import {
 import { CDKDeployer } from './cdk_deployer.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
 import { BackendLocator } from '@aws-amplify/platform-core';
-import { PackageManagerControllerFactory } from '@aws-amplify/cli-core';
 
 export type DeployProps = {
   secretLastUpdated?: Date;
@@ -36,8 +35,6 @@ export type BackendDeployer = {
   destroy: (backendId: BackendIdentifier) => Promise<DestroyResult>;
 };
 
-const packageManagerControllerFactory = new PackageManagerControllerFactory();
-
 /**
  * Factory to create a backend deployer
  */
@@ -48,7 +45,7 @@ export class BackendDeployerFactory {
    * constructor - sets the packageManagerController
    */
   constructor(
-    private readonly packageManagerController = packageManagerControllerFactory.getPackageManagerController()
+    private readonly packageManagerController: PackageManagerController
   ) {}
 
   /**
