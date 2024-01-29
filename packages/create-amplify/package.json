@@ -1,6 +1,6 @@
 {
   "name": "create-amplify",
-  "version": "0.4.4",
+  "version": "0.5.0",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -16,7 +16,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@aws-amplify/cli-core": "^0.2.0",
+    "@aws-amplify/cli-core": "^0.3.0",
     "@aws-amplify/platform-core": "^0.4.3",
     "execa": "^8.0.1",
     "yargs": "^17.7.2"

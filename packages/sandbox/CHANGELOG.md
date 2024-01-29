@@ -1,5 +1,18 @@
 # @aws-amplify/sandbox
 
+## 0.4.0
+
+### Minor Changes
+
+- fb07bafce: Refactor Printer class & deprecate Logger
+
+### Patch Changes
+
+- Updated dependencies [4c1485aa4]
+- Updated dependencies [fb07bafce]
+  - @aws-amplify/client-config@0.6.0
+  - @aws-amplify/cli-core@0.3.0
+
 ## 0.3.14
 
 ### Patch Changes

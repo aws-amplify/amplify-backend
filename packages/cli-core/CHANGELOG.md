@@ -1,5 +1,11 @@
 # @aws-amplify/cli-core
 
+## 0.3.0
+
+### Minor Changes
+
+- fb07bafce: Refactor Printer class & deprecate Logger
+
 ## 0.2.0
 
 ### Minor Changes
