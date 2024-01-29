@@ -165,7 +165,7 @@ backend.setCustomOutput('myTestSearchIndex', placeIndex.placeIndexName, {
 // ####### Alternative proposal Start #####
 
 // TODO this takes current JS form, but should really take unified config
-backend.addToClientConfig({
+backend.setOutput({
   custom: {
     myApiUrl: api.url,
     myApiKey: apiKeyValue,

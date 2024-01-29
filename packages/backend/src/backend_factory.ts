@@ -147,7 +147,7 @@ export class BackendFactory<
     this.customOutputsEntry.appendOutput(`amplifycustom${key}`, outputData);
   };
 
-  addToClientConfig = (clientConfigPart: Partial<ClientConfig>) => {
+  setOutput = (clientConfigPart: Partial<ClientConfig>) => {
     // Lets see if this can work.
     // This implementation doesn't do much, it just tries to see if we can serialize cdk tokens.
 
@@ -179,7 +179,7 @@ export const defineBackend = <T extends DefineBackendProps>(
     ...backend.resources,
     createStack: backend.createStack,
     setCustomOutput: backend.setCustomOutput,
-    addToClientConfig: (clientConfigPart: Partial<ClientConfig>) => {
+    setOutput: (clientConfigPart: Partial<ClientConfig>) => {
       // TODO This is alternative proposal
       // NO-OP for now but the idea is that we allow to put a partial of client config schema
       // into some output
@@ -192,7 +192,7 @@ export const defineBackend = <T extends DefineBackendProps>(
       // Should we start crafting unified schema nad return it from generateClientConfig API ?
       // and map to old/v6 formats in generateClientConfigToFile ?
 
-      backend.addToClientConfig(clientConfigPart);
+      backend.setOutput(clientConfigPart);
     },
   };
 };
