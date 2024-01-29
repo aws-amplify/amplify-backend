@@ -9,7 +9,9 @@ const logMock = mock.fn();
 const mockedPrinter = {
   log: mock.fn(),
 };
-const packageManagerControllerFactory = new PackageManagerControllerFactory();
+const packageManagerControllerFactory = new PackageManagerControllerFactory(
+  process.cwd()
+);
 const backendDeployerFactory = new BackendDeployerFactory(
   packageManagerControllerFactory.getPackageManagerController()
 );

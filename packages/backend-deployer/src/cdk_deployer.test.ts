@@ -28,7 +28,9 @@ void describe('invokeCDKCommand', () => {
   const locateMock = mock.fn(() => 'amplify/backend.ts');
   const backendLocator = { locate: locateMock } as unknown as BackendLocator;
 
-  const packageManagerControllerFactory = new PackageManagerControllerFactory();
+  const packageManagerControllerFactory = new PackageManagerControllerFactory(
+    process.cwd()
+  );
   const invoker = new CDKDeployer(
     new CdkErrorMapper(),
     backendLocator,

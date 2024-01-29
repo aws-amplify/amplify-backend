@@ -31,7 +31,9 @@ const unsubscribeMockFn = mock.fn();
 const subscribeMock = mock.method(watcher, 'subscribe', async () => {
   return { unsubscribe: unsubscribeMockFn };
 });
-const packageManagerControllerFactory = new PackageManagerControllerFactory();
+const packageManagerControllerFactory = new PackageManagerControllerFactory(
+  process.cwd()
+);
 const backendDeployerFactory = new BackendDeployerFactory(
   packageManagerControllerFactory.getPackageManagerController()
 );

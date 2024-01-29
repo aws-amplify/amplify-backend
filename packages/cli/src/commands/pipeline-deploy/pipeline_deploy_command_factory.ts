@@ -20,7 +20,9 @@ export const createPipelineDeployCommand = (): CommandModule<
   const clientConfigGenerator = new ClientConfigGeneratorAdapter(
     credentialProvider
   );
-  const packageManagerControllerFactory = new PackageManagerControllerFactory();
+  const packageManagerControllerFactory = new PackageManagerControllerFactory(
+    process.cwd()
+  );
   const backendDeployerFactory = new BackendDeployerFactory(
     packageManagerControllerFactory.getPackageManagerController()
   );

@@ -39,7 +39,7 @@ export enum LogLevel {
 
 // @public
 export class PackageManagerControllerFactory {
-    constructor(projectRoot?: string);
+    constructor(projectRoot: string);
     getPackageManagerController(): PackageManagerController;
 }
 

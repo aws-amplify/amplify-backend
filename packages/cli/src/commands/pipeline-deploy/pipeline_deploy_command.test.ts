@@ -24,7 +24,9 @@ void describe('deploy command', () => {
     'generateClientConfigToFile',
     () => Promise.resolve()
   );
-  const packageManagerControllerFactory = new PackageManagerControllerFactory();
+  const packageManagerControllerFactory = new PackageManagerControllerFactory(
+    process.cwd()
+  );
   const getCommandRunner = (isCI = false) => {
     const backendDeployerFactory = new BackendDeployerFactory(
       packageManagerControllerFactory.getPackageManagerController()
