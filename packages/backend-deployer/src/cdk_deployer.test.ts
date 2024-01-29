@@ -34,10 +34,8 @@ void describe('invokeCDKCommand', () => {
     backendLocator,
     packageManagerControllerFactory.getPackageManagerController()
   );
-  const execaMock = mock.method(
-    invoker,
-    'executeChildProcessWithPackageManager',
-    () => Promise.resolve()
+  const execaMock = mock.method(invoker, 'executeCommand', () =>
+    Promise.resolve()
   );
 
   beforeEach(() => {
@@ -271,7 +269,7 @@ void describe('invokeCDKCommand', () => {
   });
 
   void it('returns human readable errors', async () => {
-    mock.method(invoker, 'executeChildProcessWithPackageManager', () => {
+    mock.method(invoker, 'executeCommand', () => {
       throw new Error('Access Denied');
     });
 

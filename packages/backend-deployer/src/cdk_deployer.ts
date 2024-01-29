@@ -74,7 +74,7 @@ export class CDKDeployer implements BackendDeployer {
    * Wrapper for the child process executor. Helps in unit testing as node:test framework
    * doesn't have capabilities to mock exported functions like `execa` as of right now.
    */
-  executeChildProcessWithPackageManager = async (
+  executeCommand = async (
     commandArgs: string[],
     options: { printStdout: boolean } = { printStdout: true }
   ) => {
@@ -131,7 +131,7 @@ export class CDKDeployer implements BackendDeployer {
       return;
     }
     try {
-      await this.executeChildProcessWithPackageManager(
+      await this.executeCommand(
         [
           'tsc',
           '--showConfig',
@@ -145,7 +145,7 @@ export class CDKDeployer implements BackendDeployer {
       return;
     }
     try {
-      await this.executeChildProcessWithPackageManager([
+      await this.executeCommand([
         'tsc',
         '--noEmit',
         '--skipLibCheck',
@@ -228,7 +228,7 @@ export class CDKDeployer implements BackendDeployer {
       cdkCommandArgs.push(...additionalArguments);
     }
 
-    return await this.executeChildProcessWithPackageManager(cdkCommandArgs);
+    return await this.executeCommand(cdkCommandArgs);
   };
 
   private populateCDKOutputFromStdout = async (
