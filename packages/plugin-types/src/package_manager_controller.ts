@@ -3,7 +3,7 @@
  * execa v8 doesn't support commonjs, so we need to use the types from v5
  * https://github.com/sindresorhus/execa/issues/489#issuecomment-1109983390
  */
-import { type ExecaChildProcess, type Options } from 'execa';
+import { type ExecaChildProcess } from 'execa';
 
 export type DependencyType = 'dev' | 'prod';
 
@@ -19,6 +19,12 @@ export type PackageManagerController = {
   runWithPackageManager: (
     args: string[] | undefined,
     dir: string,
-    options?: Options
+    options?: {
+      env?: Record<string, string>;
+      stdin?: 'inherit' | 'pipe' | 'ignore';
+      stdout?: 'inherit' | 'pipe' | 'ignore';
+      stderr?: 'inherit' | 'pipe' | 'ignore';
+      extendEnv?: boolean;
+    }
   ) => ExecaChildProcess<string>;
 };

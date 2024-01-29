@@ -172,7 +172,9 @@ export const runWithPackageManager = (
   packageManager: PackageManager,
   args: string[] = [],
   dir: string,
-  options?: Options
+  options?: {
+    env?: Record<string, string>;
+  }
 ): ProcessController => {
   let packageManagerBinary: PackageManagerExecutable;
   switch (packageManager) {
