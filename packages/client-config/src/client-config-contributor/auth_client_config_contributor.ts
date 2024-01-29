@@ -87,21 +87,24 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
       );
     }
 
-    authClientConfig.oauth = {};
-    if (authOutput.payload.oauthDomain) {
-      authClientConfig.oauth.domain = authOutput.payload.oauthDomain;
+    if (authOutput.payload.oauthClientId) {
+      authClientConfig.oauth = {};
+      if (authOutput.payload.oauthDomain) {
+        authClientConfig.oauth.domain = authOutput.payload.oauthDomain;
+      }
+      parseAndAssignObject(
+        authClientConfig.oauth,
+        'scope',
+        authOutput.payload.oauthScope
+      );
+      authClientConfig.oauth.redirectSignIn =
+        authOutput.payload.oauthRedirectSignIn;
+      authClientConfig.oauth.redirectSignOut =
+        authOutput.payload.oauthRedirectSignOut;
+      authClientConfig.oauth.clientId = authOutput.payload.oauthClientId;
+      authClientConfig.oauth.responseType =
+        authOutput.payload.oauthResponseType;
     }
-    parseAndAssignObject(
-      authClientConfig.oauth,
-      'scope',
-      authOutput.payload.oauthScope
-    );
-    authClientConfig.oauth.redirectSignIn =
-      authOutput.payload.oauthRedirectSignIn;
-    authClientConfig.oauth.redirectSignOut =
-      authOutput.payload.oauthRedirectSignOut;
-    authClientConfig.oauth.clientId = authOutput.payload.oauthClientId;
-    authClientConfig.oauth.responseType = authOutput.payload.oauthResponseType;
     return authClientConfig;
   };
 }
