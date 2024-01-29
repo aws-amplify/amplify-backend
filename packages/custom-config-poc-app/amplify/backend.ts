@@ -6,6 +6,7 @@ import { auth } from './auth/resource';
 import * as location from 'aws-cdk-lib/aws-location';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { PlaceIndex } from '@aws-cdk/aws-location-alpha';
+import { CfnOutput } from 'aws-cdk-lib';
 
 const backend = defineBackend({
   auth,
@@ -192,3 +193,27 @@ backend.addToClientConfig({
 });
 
 // ####### Alternative proposal End #####
+
+// ####### How big can this be Start ######
+
+// $ ll amplifyconfiguration.json
+// -rw-r--r--  1 REDACTED  1607 Jan 29 08:43 amplifyconfiguration.json
+// A size of simple config is 1607
+
+const veryLongOutput = 'a'.repeat(450000);
+new CfnOutput(locationStack, 'howbigcanoutputbe', {
+  value: veryLongOutput,
+});
+
+// Adding more outputs results in
+// Currently in UPDATE_ROLLBACK_IN_PROGRESS with reason: Outputs exceeded limit. A CloudFormation error message from handling the stack's outputs
+// So the limit seems to be around 450000 characters
+
+// client config from create-amplify template has 3342 bytes.
+
+// const veryLongOutput2 = 'a'.repeat(450000);
+// new CfnOutput(locationStack, 'howbigcanoutputbe2', {
+//   value: veryLongOutput2,
+// });
+
+// ####### How big can this be End ######
