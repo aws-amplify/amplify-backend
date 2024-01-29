@@ -15,7 +15,7 @@ export type BackendDeployer = {
 
 // @public
 export class BackendDeployerFactory {
-    constructor(packageManagerController?: PackageManagerController);
+    constructor(packageManagerController: PackageManagerController);
     getInstance(): BackendDeployer;
 }
 

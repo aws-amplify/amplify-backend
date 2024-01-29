@@ -2,13 +2,17 @@ import { afterEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
 import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
+import { PackageManagerControllerFactory } from '@aws-amplify/cli-core';
 import { SecretListItem, getSecretClient } from '@aws-amplify/backend-secret';
 
 const logMock = mock.fn();
 const mockedPrinter = {
   log: mock.fn(),
 };
-const backendDeployerFactory = new BackendDeployerFactory();
+const packageManagerControllerFactory = new PackageManagerControllerFactory();
+const backendDeployerFactory = new BackendDeployerFactory(
+  packageManagerControllerFactory.getPackageManagerController()
+);
 const backendDeployer = backendDeployerFactory.getInstance();
 const secretClient = getSecretClient();
 const sandboxExecutor = new AmplifySandboxExecutor(

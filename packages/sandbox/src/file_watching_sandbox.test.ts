@@ -17,7 +17,11 @@ import _open from 'open';
 import { SecretListItem, getSecretClient } from '@aws-amplify/backend-secret';
 import { ClientConfigFormat } from '@aws-amplify/client-config';
 import { Sandbox } from './sandbox.js';
-import { AmplifyPrompter, Printer } from '@aws-amplify/cli-core';
+import {
+  AmplifyPrompter,
+  PackageManagerControllerFactory,
+  Printer,
+} from '@aws-amplify/cli-core';
 import { fileURLToPath } from 'url';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
@@ -27,8 +31,10 @@ const unsubscribeMockFn = mock.fn();
 const subscribeMock = mock.method(watcher, 'subscribe', async () => {
   return { unsubscribe: unsubscribeMockFn };
 });
-
-const backendDeployerFactory = new BackendDeployerFactory();
+const packageManagerControllerFactory = new PackageManagerControllerFactory();
+const backendDeployerFactory = new BackendDeployerFactory(
+  packageManagerControllerFactory.getPackageManagerController()
+);
 const backendDeployer = backendDeployerFactory.getInstance();
 
 const secretClient = getSecretClient();

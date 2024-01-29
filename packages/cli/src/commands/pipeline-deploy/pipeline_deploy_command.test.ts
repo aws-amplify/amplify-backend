@@ -11,6 +11,7 @@ import {
 } from './pipeline_deploy_command.js';
 import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
+import { PackageManagerControllerFactory } from '@aws-amplify/cli-core';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 
 void describe('deploy command', () => {
@@ -23,9 +24,11 @@ void describe('deploy command', () => {
     'generateClientConfigToFile',
     () => Promise.resolve()
   );
-
+  const packageManagerControllerFactory = new PackageManagerControllerFactory();
   const getCommandRunner = (isCI = false) => {
-    const backendDeployerFactory = new BackendDeployerFactory();
+    const backendDeployerFactory = new BackendDeployerFactory(
+      packageManagerControllerFactory.getPackageManagerController()
+    );
     const backendDeployer = backendDeployerFactory.getInstance();
     const deployCommand = new PipelineDeployCommand(
       clientConfigGenerator,
@@ -64,7 +67,9 @@ void describe('deploy command', () => {
   });
 
   void it('executes backend deployer in CI environments', async () => {
-    const backendDeployerFactory = new BackendDeployerFactory();
+    const backendDeployerFactory = new BackendDeployerFactory(
+      packageManagerControllerFactory.getPackageManagerController()
+    );
     const mockDeploy = mock.method(
       backendDeployerFactory.getInstance(),
       'deploy',
@@ -88,7 +93,9 @@ void describe('deploy command', () => {
   });
 
   void it('allows --config-out-dir argument', async () => {
-    const backendDeployerFactory = new BackendDeployerFactory();
+    const backendDeployerFactory = new BackendDeployerFactory(
+      packageManagerControllerFactory.getPackageManagerController()
+    );
     const mockDeploy = mock.method(
       backendDeployerFactory.getInstance(),
       'deploy',
