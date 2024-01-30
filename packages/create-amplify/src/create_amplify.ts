@@ -29,6 +29,7 @@ const packageManagerController =
   packageManagerControllerFactory.getPackageManagerController();
 
 const amplifyProjectCreator = new AmplifyProjectCreator(
+  projectRoot,
   packageManagerController,
   new ProjectRootValidator(projectRoot),
   new GitIgnoreInitializer(projectRoot),

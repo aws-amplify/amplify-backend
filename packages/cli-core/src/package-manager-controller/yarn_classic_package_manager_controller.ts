@@ -13,7 +13,7 @@ export class YarnClassicPackageManagerController extends PackageManagerControlle
    * Abstraction around yarn classic commands that are needed to initialize a project and install dependencies
    */
   constructor(
-    readonly projectRoot: string,
+    protected readonly projectRoot: string,
     protected readonly fsp = _fsp,
     protected readonly path = _path,
     protected readonly execa = _execa,

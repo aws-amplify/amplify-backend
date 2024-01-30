@@ -13,7 +13,7 @@ export class NpmPackageManagerController extends PackageManagerControllerBase {
    * constructor
    */
   constructor(
-    readonly projectRoot: string,
+    protected readonly projectRoot: string,
     protected readonly fsp = _fsp,
     protected readonly path = _path,
     protected readonly execa = _execa,

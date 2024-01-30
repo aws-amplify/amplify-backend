@@ -27,6 +27,7 @@ export class AmplifyProjectCreator {
    * Delegates out to other classes that handle parts of the getting started experience
    */
   constructor(
+    private readonly projectRoot: string,
     private readonly packageManagerController: PackageManagerController,
     private readonly projectRootValidator: ProjectRootValidator,
     private readonly gitIgnoreInitializer: GitIgnoreInitializer,
@@ -69,10 +70,10 @@ export class AmplifyProjectCreator {
     printer.log('Successfully created a new project!');
 
     const cdPreamble =
-      process.cwd() === this.packageManagerController.projectRoot
+      process.cwd() === this.projectRoot
         ? ''
         : `Navigate to your project directory using
-'cd .${this.packageManagerController.projectRoot.replace(process.cwd(), '')}'.
+'cd .${this.projectRoot.replace(process.cwd(), '')}'.
 Then get started with the following commands:
 `;
 

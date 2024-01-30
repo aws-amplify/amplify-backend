@@ -14,7 +14,7 @@ export class YarnModernPackageManagerController extends PackageManagerController
    * constructor
    */
   constructor(
-    readonly projectRoot: string,
+    protected readonly projectRoot: string,
     private readonly printer: Printer,
     protected readonly fsp = _fsp,
     protected readonly path = _path,

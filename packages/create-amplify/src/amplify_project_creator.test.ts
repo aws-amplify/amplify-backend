@@ -32,6 +32,7 @@ void describe('AmplifyProjectCreator', () => {
     };
     const gitIgnoreInitializerMock = { ensureInitialized: mock.fn() };
     const amplifyProjectCreator = new AmplifyProjectCreator(
+      'testProjectRoot',
       packageManagerControllerMock as never,
       projectRootValidatorMock as never,
       gitIgnoreInitializerMock as never,
@@ -77,6 +78,7 @@ void describe('AmplifyProjectCreator', () => {
       generateInitialProjectFiles: mock.fn(),
     };
     const amplifyProjectCreator = new AmplifyProjectCreator(
+      'testProjectRoot',
       packageManagerControllerMock as never,
       projectRootValidatorMock as never,
       gitIgnoreInitializerMock as never,

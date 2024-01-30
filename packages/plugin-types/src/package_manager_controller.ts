@@ -6,7 +6,6 @@
 import { type ExecaChildProcess, type Options } from 'execa';
 
 export type PackageManagerController = {
-  projectRoot: string;
   getWelcomeMessage: () => string;
   initializeProject: () => Promise<void>;
   initializeTsConfig: (targetDir: string) => Promise<void>;
