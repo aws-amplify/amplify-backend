@@ -13,7 +13,7 @@ export class YarnClassicPackageManagerController extends PackageManagerControlle
    * Abstraction around yarn classic commands that are needed to initialize a project and install dependencies
    */
   constructor(
-    protected readonly projectRoot: string,
+    protected readonly cwd: string,
     protected readonly fsp = _fsp,
     protected readonly path = _path,
     protected readonly execa = _execa,
@@ -21,7 +21,7 @@ export class YarnClassicPackageManagerController extends PackageManagerControlle
     protected readonly existsSync = _existsSync
   ) {
     super(
-      projectRoot,
+      cwd,
       'yarn',
       'yarn',
       ['init', '--yes'],

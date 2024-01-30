@@ -17,7 +17,7 @@ export abstract class PackageManagerControllerBase
    * constructor - sets the project root
    */
   constructor(
-    protected readonly projectRoot: string,
+    protected readonly cwd: string,
     protected readonly executable: string,
     protected readonly binaryRunner: string,
     protected readonly initDefault: string[],
@@ -42,7 +42,7 @@ export abstract class PackageManagerControllerBase
     }
 
     await this.executeWithDebugLogger(
-      this.projectRoot,
+      this.cwd,
       this.executable,
       args,
       this.execa
@@ -60,7 +60,7 @@ Get started by running \`${this.binaryRunner} amplify sandbox\`.`;
    * initializeProject - initializes a project in the project root by checking the package.json file
    */
   initializeProject = async () => {
-    if (this.packageJsonExists(this.projectRoot)) {
+    if (this.packageJsonExists(this.cwd)) {
       // if package.json already exists, no need to do anything
       return;
     }
@@ -72,7 +72,7 @@ Get started by running \`${this.binaryRunner} amplify sandbox\`.`;
 
     try {
       await this.executeWithDebugLogger(
-        this.projectRoot,
+        this.cwd,
         this.executable,
         this.initDefault,
         this.execa
@@ -83,7 +83,7 @@ Get started by running \`${this.binaryRunner} amplify sandbox\`.`;
       );
     }
 
-    if (!this.packageJsonExists(this.projectRoot)) {
+    if (!this.packageJsonExists(this.cwd)) {
       // this should only happen if the customer exits out of npm init before finishing
       throw new Error(
         `package.json does not exist after running \`${this.executable} init\`. Initialize a valid JavaScript package before continuing.'`

@@ -14,7 +14,7 @@ export class YarnModernPackageManagerController extends PackageManagerController
    * constructor
    */
   constructor(
-    protected readonly projectRoot: string,
+    protected readonly cwd: string,
     private readonly printer: Printer,
     protected readonly fsp = _fsp,
     protected readonly path = _path,
@@ -23,7 +23,7 @@ export class YarnModernPackageManagerController extends PackageManagerController
     protected readonly existsSync = _existsSync
   ) {
     super(
-      projectRoot,
+      cwd,
       'yarn',
       'yarn',
       ['init', '--yes'],
@@ -40,7 +40,7 @@ export class YarnModernPackageManagerController extends PackageManagerController
     packageNames: string[],
     type: 'dev' | 'prod'
   ) => Promise<void> = async (packageNames, type) => {
-    await this.addDependencies(this.projectRoot);
+    await this.addDependencies(this.cwd);
     await super.installDependencies(packageNames, type);
   };
 

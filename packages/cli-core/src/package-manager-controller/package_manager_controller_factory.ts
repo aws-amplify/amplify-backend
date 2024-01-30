@@ -11,10 +11,10 @@ import { YarnModernPackageManagerController } from './yarn_modern_package_manage
 export class PackageManagerControllerFactory {
   /**
    * constructor
-   * @param projectRoot - the root directory of the project
+   * @param cwd - the root directory of the project
    */
   constructor(
-    private readonly projectRoot: string,
+    private readonly cwd: string,
     private readonly printer: Printer
   ) {}
 
@@ -25,16 +25,13 @@ export class PackageManagerControllerFactory {
     const packageManagerName = this.getPackageManagerName();
     switch (packageManagerName) {
       case 'npm':
-        return new NpmPackageManagerController(this.projectRoot);
+        return new NpmPackageManagerController(this.cwd);
       case 'pnpm':
-        return new PnpmPackageManagerController(this.projectRoot);
+        return new PnpmPackageManagerController(this.cwd);
       case 'yarn-classic':
-        return new YarnClassicPackageManagerController(this.projectRoot);
+        return new YarnClassicPackageManagerController(this.cwd);
       case 'yarn-modern':
-        return new YarnModernPackageManagerController(
-          this.projectRoot,
-          this.printer
-        );
+        return new YarnModernPackageManagerController(this.cwd, this.printer);
       default:
         throw new Error(
           `Package Manager ${packageManagerName} is not supported.`
