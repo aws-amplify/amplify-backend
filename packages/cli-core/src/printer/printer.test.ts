@@ -93,4 +93,28 @@ void describe('Printer', () => {
     assert.strictEqual(logMessages.length, 1);
     assert.match(logMessages[0], /loading a long list/);
   });
+
+  void it('format should indent the message with the specified number of spaces', () => {
+    const printer = new Printer(LogLevel.INFO);
+    const message = 'Hello\nWorld';
+    const expectedOutput = '  Hello\n  World';
+    const actualOutput = printer.format(message, 2);
+    assert.strictEqual(actualOutput, expectedOutput);
+  });
+
+  void it('format should not indent the message if the indent value is 0', () => {
+    const printer = new Printer(LogLevel.INFO);
+    const message = 'Hello\nWorld';
+    const expectedOutput = 'Hello\nWorld';
+    const actualOutput = printer.format(message, 0);
+    assert.strictEqual(actualOutput, expectedOutput);
+  });
+
+  void it('format should return the same message if the indent value is negative', () => {
+    const printer = new Printer(LogLevel.INFO);
+    const message = 'Hello\nWorld';
+    const expectedOutput = 'Hello\nWorld';
+    const actualOutput = printer.format(message, -2);
+    assert.strictEqual(actualOutput, expectedOutput);
+  });
 });

@@ -1,6 +1,6 @@
 import * as os from 'node:os';
 import envinfo from 'envinfo';
-import { indent } from './indent.js';
+import { printer } from '../printer.js';
 import { EnvInfo } from './env_info_types.js';
 
 /**
@@ -40,24 +40,24 @@ export class EnvironmentInfoProvider {
       'System:',
       ...Object.entries(info.System).map(([part, details]) => {
         if (typeof details !== 'string') {
-          return indent(`${part}: ${details.path}`);
+          return printer.format(`${part}: ${details.path}`, 2);
         }
-        return indent(`${part}: ${details}`);
+        return printer.format(`${part}: ${details}`, 2);
       }),
     ];
     const binaries = [
       'Binaries:',
       ...Object.entries(info.Binaries).map(([name, binary]) => {
-        return indent(`${name}: ${binary.version} - ${binary.path}`);
+        return printer.format(`${name}: ${binary.version} - ${binary.path}`, 2);
       }),
     ];
     const npmPackages = [
       'NPM Packages:',
       ...Object.entries(info.npmPackages).map(([name, details]) => {
         if (typeof details !== 'string') {
-          return indent(`${name}: ${details.installed}`);
+          return printer.format(`${name}: ${details.installed}`, 2);
         }
-        return indent(`${name}: ${details}`);
+        return printer.format(`${name}: ${details}`, 2);
       }),
     ];
 

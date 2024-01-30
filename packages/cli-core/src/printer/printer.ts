@@ -44,6 +44,20 @@ export class Printer {
   };
 
   /**
+   * Adds indentation to the given line.
+   */
+  format = (message: string, indent: number) => {
+    if (indent < 0) {
+      return message;
+    }
+    const spaces = ' '.repeat(indent);
+    return message
+      .split('\n')
+      .map((line) => `${spaces}${line}`)
+      .join('\n');
+  };
+
+  /**
    * Logs a message with animated ellipsis
    */
   async indicateProgress(message: string, callback: () => Promise<void>) {

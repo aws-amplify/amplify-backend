@@ -1,5 +1,5 @@
 import { execa as _execa } from 'execa';
-import { indent } from './indent.js';
+import { printer } from '../printer.js';
 
 /**
  * Provides information about CDK.
@@ -48,9 +48,9 @@ export class CdkInfoProvider {
         formattedLine.startsWith('AWS_') ||
         formattedLine.startsWith('CDK_')
       ) {
-        formattedLine = indent(formattedLine);
+        formattedLine = printer.format(formattedLine, 2);
       } else if (formattedLine.startsWith('- ')) {
-        formattedLine = indent(formattedLine.substring(2));
+        formattedLine = printer.format(formattedLine.substring(2), 2);
       }
 
       return formattedLine;

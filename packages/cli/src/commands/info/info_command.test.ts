@@ -1,3 +1,4 @@
+import * as os from 'node:os';
 import { describe, it, mock } from 'node:test';
 import { createInfoCommand } from './info_command_factory.js';
 import { InfoCommand } from './info_command.js';
@@ -94,7 +95,7 @@ void describe('info command run', () => {
     assert.equal(mockPrinter.mock.callCount(), 1);
     assert.strictEqual(
       mockPrinter.mock.calls[0].arguments[0],
-      `${environmentInfoMockValue}\n${cdkMockValue}`
+      `${environmentInfoMockValue}${os.EOL}${cdkMockValue}`
     );
   });
 });
