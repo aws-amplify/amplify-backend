@@ -1,4 +1,7 @@
-import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import {
+  BackendIdentifier,
+  type PackageManagerController,
+} from '@aws-amplify/plugin-types';
 import { CDKDeployer } from './cdk_deployer.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
 import { BackendLocator } from '@aws-amplify/platform-core';
@@ -39,21 +42,23 @@ export class BackendDeployerFactory {
   private static instance: BackendDeployer | undefined;
 
   /**
+   * constructor - sets the packageManagerController
+   */
+  constructor(
+    private readonly packageManagerController: PackageManagerController
+  ) {}
+
+  /**
    * Returns a single instance of BackendDeployer
    */
-  static getInstance = (): BackendDeployer => {
+  getInstance(): BackendDeployer {
     if (!BackendDeployerFactory.instance) {
-      // TODO: once the e2e flow test is complete, we need to refactor this to detect the package manager. Similar as what we did in create-amplify.
-      const { PACKAGE_MANAGER = 'npm' } = process.env;
-      const packageManager = PACKAGE_MANAGER.startsWith('yarn')
-        ? 'yarn'
-        : PACKAGE_MANAGER;
       BackendDeployerFactory.instance = new CDKDeployer(
         new CdkErrorMapper(),
         new BackendLocator(),
-        packageManager
+        this.packageManagerController
       );
     }
     return BackendDeployerFactory.instance;
-  };
+  }
 }

@@ -11,6 +11,11 @@ import {
 } from './pipeline_deploy_command.js';
 import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
+import {
+  LogLevel,
+  PackageManagerControllerFactory,
+  Printer,
+} from '@aws-amplify/cli-core';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 
 void describe('deploy command', () => {
@@ -23,9 +28,15 @@ void describe('deploy command', () => {
     'generateClientConfigToFile',
     () => Promise.resolve()
   );
-
+  const packageManagerControllerFactory = new PackageManagerControllerFactory(
+    process.cwd(),
+    new Printer(LogLevel.DEBUG)
+  );
   const getCommandRunner = (isCI = false) => {
-    const backendDeployer = BackendDeployerFactory.getInstance();
+    const backendDeployerFactory = new BackendDeployerFactory(
+      packageManagerControllerFactory.getPackageManagerController()
+    );
+    const backendDeployer = backendDeployerFactory.getInstance();
     const deployCommand = new PipelineDeployCommand(
       clientConfigGenerator,
       backendDeployer,
@@ -63,8 +74,11 @@ void describe('deploy command', () => {
   });
 
   void it('executes backend deployer in CI environments', async () => {
+    const backendDeployerFactory = new BackendDeployerFactory(
+      packageManagerControllerFactory.getPackageManagerController()
+    );
     const mockDeploy = mock.method(
-      BackendDeployerFactory.getInstance(),
+      backendDeployerFactory.getInstance(),
       'deploy',
       () => Promise.resolve()
     );
@@ -86,8 +100,11 @@ void describe('deploy command', () => {
   });
 
   void it('allows --config-out-dir argument', async () => {
+    const backendDeployerFactory = new BackendDeployerFactory(
+      packageManagerControllerFactory.getPackageManagerController()
+    );
     const mockDeploy = mock.method(
-      BackendDeployerFactory.getInstance(),
+      backendDeployerFactory.getInstance(),
       'deploy',
       () => Promise.resolve()
     );

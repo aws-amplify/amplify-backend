@@ -1,5 +1,5 @@
-import { PackageManagerController } from './package-manager-controller/package_manager_controller.js';
 import { LogLevel } from '@aws-amplify/cli-core';
+import { PackageManagerController } from '@aws-amplify/plugin-types';
 import { ProjectRootValidator } from './project_root_validator.js';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
@@ -27,6 +27,7 @@ export class AmplifyProjectCreator {
    * Delegates out to other classes that handle parts of the getting started experience
    */
   constructor(
+    private readonly projectRoot: string,
     private readonly packageManagerController: PackageManagerController,
     private readonly projectRootValidator: ProjectRootValidator,
     private readonly gitIgnoreInitializer: GitIgnoreInitializer,
@@ -69,10 +70,10 @@ export class AmplifyProjectCreator {
     printer.log('Successfully created a new project!');
 
     const cdPreamble =
-      process.cwd() === this.packageManagerController.projectRoot
+      process.cwd() === this.projectRoot
         ? ''
         : `Navigate to your project directory using
-'cd .${this.packageManagerController.projectRoot.replace(process.cwd(), '')}'.
+'cd .${this.projectRoot.replace(process.cwd(), '')}'.
 Then get started with the following commands:
 `;
 

@@ -1,20 +1,23 @@
 import { existsSync as _existsSync } from 'fs';
 import _fsp from 'fs/promises';
-import { execa as _execa } from 'execa';
+import { type ExecaChildProcess, type Options, execa as _execa } from 'execa';
 import * as _path from 'path';
-import { logger } from '../logger.js';
-import { executeWithDebugLogger as _executeWithDebugLogger } from '../execute_with_logger.js';
-import { DependencyType } from './package_manager_controller_factory.js';
+import { type PackageManagerController } from '@aws-amplify/plugin-types';
+import { LogLevel } from '../printer/printer.js';
+import { printer } from '../printer.js';
+import { executeWithDebugLogger as _executeWithDebugLogger } from './execute_with_debugger_logger.js';
 
 /**
  * PackageManagerController is an abstraction around package manager commands that are needed to initialize a project and install dependencies
  */
-export abstract class PackageManagerController {
+export abstract class PackageManagerControllerBase
+  implements PackageManagerController
+{
   /**
    * constructor - sets the project root
    */
   constructor(
-    readonly projectRoot: string,
+    protected readonly cwd: string,
     protected readonly executable: string,
     protected readonly binaryRunner: string,
     protected readonly initDefault: string[],
@@ -31,7 +34,7 @@ export abstract class PackageManagerController {
    */
   async installDependencies(
     packageNames: string[],
-    type: DependencyType
+    type: 'dev' | 'prod'
   ): Promise<void> {
     const args = [`${this.installCommand}`].concat(...packageNames);
     if (type === 'dev') {
@@ -39,7 +42,7 @@ export abstract class PackageManagerController {
     }
 
     await this.executeWithDebugLogger(
-      this.projectRoot,
+      this.cwd,
       this.executable,
       args,
       this.execa
@@ -57,18 +60,19 @@ Get started by running \`${this.binaryRunner} amplify sandbox\`.`;
    * initializeProject - initializes a project in the project root by checking the package.json file
    */
   initializeProject = async () => {
-    if (this.packageJsonExists(this.projectRoot)) {
+    if (this.packageJsonExists(this.cwd)) {
       // if package.json already exists, no need to do anything
       return;
     }
 
-    logger.debug(
-      `No package.json file found in the current directory. Running \`${this.executable} init\`...`
+    printer.log(
+      `No package.json file found in the current directory. Running \`${this.executable} init\`...`,
+      LogLevel.DEBUG
     );
 
     try {
       await this.executeWithDebugLogger(
-        this.projectRoot,
+        this.cwd,
         this.executable,
         this.initDefault,
         this.execa
@@ -79,7 +83,7 @@ Get started by running \`${this.binaryRunner} amplify sandbox\`.`;
       );
     }
 
-    if (!this.packageJsonExists(this.projectRoot)) {
+    if (!this.packageJsonExists(this.cwd)) {
       // this should only happen if the customer exits out of npm init before finishing
       throw new Error(
         `package.json does not exist after running \`${this.executable} init\`. Initialize a valid JavaScript package before continuing.'`
@@ -111,6 +115,25 @@ Get started by running \`${this.binaryRunner} amplify sandbox\`.`;
       this.execa
     );
   }
+
+  /**
+   * runWithPackageManager - Factory function that runs a command with the specified package manager's binary runner
+   */
+  runWithPackageManager(
+    args: string[] = [],
+    dir: string,
+    options?: Options<'utf8'>
+  ): ExecaChildProcess {
+    return this.executeWithDebugLogger(
+      dir,
+      this.binaryRunner,
+      args,
+      this.execa,
+      options
+    );
+  }
+
+  getCommand = (args: string[]) => `${this.binaryRunner} ${args.join(' ')}`;
 
   /**
    * Check if a package.json file exists in projectRoot

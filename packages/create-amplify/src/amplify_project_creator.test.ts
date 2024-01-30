@@ -13,12 +13,6 @@ void describe('AmplifyProjectCreator', () => {
   });
 
   void it('create project if passing `--yes` or `-y` to `npm create`', async () => {
-    const logMock = {
-      log: mock.fn(),
-      debug: mock.fn(),
-      startAnimatingEllipsis: mock.fn(),
-      stopAnimatingEllipsis: mock.fn(),
-    };
     const packageManagerControllerMock = {
       installDependencies: mock.fn(),
       initializeProject: mock.fn(),
@@ -32,6 +26,7 @@ void describe('AmplifyProjectCreator', () => {
     };
     const gitIgnoreInitializerMock = { ensureInitialized: mock.fn() };
     const amplifyProjectCreator = new AmplifyProjectCreator(
+      'testProjectRoot',
       packageManagerControllerMock as never,
       projectRootValidatorMock as never,
       gitIgnoreInitializerMock as never,
@@ -58,12 +53,6 @@ void describe('AmplifyProjectCreator', () => {
   });
 
   void it('should instruct users to use the custom project root', async () => {
-    const logMock = {
-      log: mock.fn(),
-      debug: mock.fn(),
-      startAnimatingEllipsis: mock.fn(),
-      stopAnimatingEllipsis: mock.fn(),
-    };
     const packageManagerControllerMock = {
       installDependencies: mock.fn(),
       initializeProject: mock.fn(),
@@ -77,6 +66,7 @@ void describe('AmplifyProjectCreator', () => {
       generateInitialProjectFiles: mock.fn(),
     };
     const amplifyProjectCreator = new AmplifyProjectCreator(
+      'testProjectRoot',
       packageManagerControllerMock as never,
       projectRootValidatorMock as never,
       gitIgnoreInitializerMock as never,

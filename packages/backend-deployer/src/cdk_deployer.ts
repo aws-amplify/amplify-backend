@@ -1,4 +1,3 @@
-import { execa } from 'execa';
 import stream from 'stream';
 import readline from 'readline';
 import {
@@ -8,7 +7,10 @@ import {
   DestroyResult,
 } from './cdk_deployer_singleton_factory.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
-import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import {
+  BackendIdentifier,
+  type PackageManagerController,
+} from '@aws-amplify/plugin-types';
 import {
   AmplifyUserError,
   BackendLocator,
@@ -34,13 +36,8 @@ export class CDKDeployer implements BackendDeployer {
   constructor(
     private readonly cdkErrorMapper: CdkErrorMapper,
     private readonly backendLocator: BackendLocator,
-    private readonly packageManager: string
-  ) {
-    // TODO: use PackageManagerController to get the executable.
-    // But first, we need to move the PackageManagerController to platform-core.
-    this.packageManager =
-      this.packageManager === 'npm' ? 'npx' : this.packageManager;
-  }
+    private readonly packageManagerController: PackageManagerController
+  ) {}
   /**
    * Invokes cdk deploy command
    */
@@ -77,8 +74,7 @@ export class CDKDeployer implements BackendDeployer {
    * Wrapper for the child process executor. Helps in unit testing as node:test framework
    * doesn't have capabilities to mock exported functions like `execa` as of right now.
    */
-  executeChildProcess = async (
-    command: string,
+  executeCommand = async (
     commandArgs: string[],
     options: { printStdout: boolean } = { printStdout: true }
   ) => {
@@ -92,17 +88,20 @@ export class CDKDeployer implements BackendDeployer {
       aggregatedStderr += chunk;
       done();
     };
+    const childProcess = this.packageManagerController.runWithPackageManager(
+      commandArgs,
+      process.cwd(),
+      {
+        stdin: 'inherit',
+        stdout: 'pipe',
+        stderr: 'pipe',
+        // Piping the output by default strips off the color. This is a workaround to
+        // preserve the color being piped to parent process.
+        extendEnv: true,
+        env: { FORCE_COLOR: '1' },
+      }
+    );
 
-    const childProcess = execa(command, commandArgs, {
-      stdin: 'inherit',
-      stdout: 'pipe',
-      stderr: 'pipe',
-
-      // Piping the output by default strips off the color. This is a workaround to
-      // preserve the color being piped to parent process.
-      extendEnv: true,
-      env: { FORCE_COLOR: '1' },
-    });
     childProcess.stderr?.pipe(aggregatorStderrStream);
 
     if (options?.printStdout) {
@@ -131,8 +130,7 @@ export class CDKDeployer implements BackendDeployer {
       return;
     }
     try {
-      await this.executeChildProcess(
-        this.packageManager,
+      await this.executeCommand(
         [
           'tsc',
           '--showConfig',
@@ -146,7 +144,7 @@ export class CDKDeployer implements BackendDeployer {
       return;
     }
     try {
-      await this.executeChildProcess(this.packageManager, [
+      await this.executeCommand([
         'tsc',
         '--noEmit',
         '--skipLibCheck',
@@ -201,7 +199,10 @@ export class CDKDeployer implements BackendDeployer {
       // See https://github.com/aws/aws-cdk/issues/7717 for more details.
       '--ci',
       '--app',
-      `'${this.packageManager} tsx ${this.backendLocator.locate()}'`,
+      this.packageManagerController.getCommand([
+        'tsx',
+        this.backendLocator.locate(),
+      ]),
       '--all',
       '--output',
       '.amplify/artifacts/cdk.out',
@@ -228,7 +229,7 @@ export class CDKDeployer implements BackendDeployer {
       cdkCommandArgs.push(...additionalArguments);
     }
 
-    return await this.executeChildProcess(this.packageManager, cdkCommandArgs);
+    return await this.executeCommand(cdkCommandArgs);
   };
 
   private populateCDKOutputFromStdout = async (

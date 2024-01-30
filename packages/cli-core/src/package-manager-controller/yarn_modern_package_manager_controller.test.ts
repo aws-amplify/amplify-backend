@@ -1,17 +1,21 @@
+import fs from 'fs';
 import fsp from 'fs/promises';
 import path from 'path';
 import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'assert';
 import { execa } from 'execa';
-import { YarnClassicPackageManagerController } from './yarn_classic_package_manager_controller.js';
+import { Printer } from '@aws-amplify/cli-core';
+import { YarnModernPackageManagerController } from './yarn_modern_package_manager_controller.js';
+import { executeWithDebugLogger } from './execute_with_debugger_logger.js';
 
-void describe('YarnClassicPackageManagerController', () => {
+void describe('YarnModernPackageManagerController', () => {
   const fspMock = mock.fn(() => Promise.resolve());
   const pathMock = {
-    resolve: mock.fn(),
+    resolve: mock.fn(() => '/testProjectRoot'),
   };
   const execaMock = mock.fn(() => Promise.resolve());
   const executeWithDebugLoggerMock = mock.fn(() => Promise.resolve());
+  const printerMock = mock.fn(() => Promise.resolve());
 
   beforeEach(() => {
     fspMock.mock.resetCalls();
@@ -22,17 +26,18 @@ void describe('YarnClassicPackageManagerController', () => {
 
   void describe('installDependencies', () => {
     const existsSyncMock = mock.fn(() => true);
-    const yarnClassicPackageManagerController =
-      new YarnClassicPackageManagerController(
+    const yarnModernPackageManagerController =
+      new YarnModernPackageManagerController(
         '/testProjectRoot',
+        printerMock as unknown as Printer,
         fspMock as unknown as typeof fsp,
         pathMock as unknown as typeof path,
         execaMock as unknown as typeof execa,
-        executeWithDebugLoggerMock,
+        executeWithDebugLoggerMock as unknown as typeof executeWithDebugLogger,
         existsSyncMock
       );
     void it('runs yarn add with the correct arguments', async () => {
-      await yarnClassicPackageManagerController.installDependencies(
+      await yarnModernPackageManagerController.installDependencies(
         ['testPackage1', 'testPackage2'],
         'dev'
       );
@@ -46,7 +51,7 @@ void describe('YarnClassicPackageManagerController', () => {
     });
 
     void it('runs yarn add with the correct arguments for prod dependencies', async () => {
-      await yarnClassicPackageManagerController.installDependencies(
+      await yarnModernPackageManagerController.installDependencies(
         ['testPackage1', 'testPackage2'],
         'prod'
       );
@@ -63,18 +68,19 @@ void describe('YarnClassicPackageManagerController', () => {
   void describe('getWelcomeMessage', () => {
     void it('returns the correct welcome message', () => {
       const existsSyncMock = mock.fn(() => true);
-      const yarnClassicPackageManagerController =
-        new YarnClassicPackageManagerController(
+      const yarnModernPackageManagerController =
+        new YarnModernPackageManagerController(
           '/testProjectRoot',
+          printerMock as unknown as Printer,
           fspMock as unknown as typeof fsp,
           pathMock as unknown as typeof path,
           execaMock as unknown as typeof execa,
-          executeWithDebugLoggerMock,
+          executeWithDebugLoggerMock as unknown as typeof executeWithDebugLogger,
           existsSyncMock
         );
 
       assert.equal(
-        yarnClassicPackageManagerController.getWelcomeMessage(),
+        yarnModernPackageManagerController.getWelcomeMessage(),
         'Run `yarn amplify help` for a list of available commands. \nGet started by running `yarn amplify sandbox`.'
       );
     });
@@ -87,17 +93,18 @@ void describe('YarnClassicPackageManagerController', () => {
         existsSyncMockValue = !existsSyncMockValue;
         return existsSyncMockValue;
       });
-      const yarnClassicPackageManagerController =
-        new YarnClassicPackageManagerController(
+      const yarnModernPackageManagerController =
+        new YarnModernPackageManagerController(
           '/testProjectRoot',
+          printerMock as unknown as Printer,
           fspMock as unknown as typeof fsp,
           pathMock as unknown as typeof path,
           execaMock as unknown as typeof execa,
-          executeWithDebugLoggerMock,
+          executeWithDebugLoggerMock as unknown as typeof executeWithDebugLogger,
           existsSyncMock
         );
 
-      await yarnClassicPackageManagerController.initializeProject();
+      await yarnModernPackageManagerController.initializeProject();
       assert.equal(existsSyncMock.mock.callCount(), 1);
       assert.equal(executeWithDebugLoggerMock.mock.callCount(), 0);
     });
@@ -108,17 +115,18 @@ void describe('YarnClassicPackageManagerController', () => {
         existsSyncMockValue = !existsSyncMockValue;
         return existsSyncMockValue;
       });
-      const yarnClassicPackageManagerController =
-        new YarnClassicPackageManagerController(
+      const yarnModernPackageManagerController =
+        new YarnModernPackageManagerController(
           '/testProjectRoot',
+          printerMock as unknown as Printer,
           fspMock as unknown as typeof fsp,
           pathMock as unknown as typeof path,
           execaMock as unknown as typeof execa,
-          executeWithDebugLoggerMock,
+          executeWithDebugLoggerMock as unknown as typeof executeWithDebugLogger,
           existsSyncMock
         );
 
-      await yarnClassicPackageManagerController.initializeProject();
+      await yarnModernPackageManagerController.initializeProject();
       assert.equal(existsSyncMock.mock.callCount(), 2);
       assert.equal(executeWithDebugLoggerMock.mock.callCount(), 1);
     });
@@ -127,17 +135,21 @@ void describe('YarnClassicPackageManagerController', () => {
   void describe('initializeTsConfig', () => {
     void it('initialize tsconfig.json', async () => {
       const existsSyncMock = mock.fn(() => true);
-      const yarnClassicPackageManagerController =
-        new YarnClassicPackageManagerController(
+      const yarnModernPackageManagerController =
+        new YarnModernPackageManagerController(
           '/testProjectRoot',
+          printerMock as unknown as Printer,
           fspMock as unknown as typeof fsp,
           pathMock as unknown as typeof path,
           execaMock as unknown as typeof execa,
-          executeWithDebugLoggerMock,
+          executeWithDebugLoggerMock as unknown as typeof executeWithDebugLogger,
           existsSyncMock
         );
-      await yarnClassicPackageManagerController.initializeTsConfig('./amplify');
+      const writeFileMock = mock.fn(() => Promise.resolve());
+      mock.method(fs, 'writeFile', writeFileMock);
+      await yarnModernPackageManagerController.initializeTsConfig('./amplify');
       assert.equal(executeWithDebugLoggerMock.mock.callCount(), 2);
+      assert.equal(writeFileMock.mock.callCount(), 1);
     });
   });
 });

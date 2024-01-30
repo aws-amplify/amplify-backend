@@ -2,18 +2,18 @@ import { existsSync as _existsSync } from 'fs';
 import _fsp from 'fs/promises';
 import { execa as _execa } from 'execa';
 import * as _path from 'path';
-import { executeWithDebugLogger as _executeWithDebugLogger } from '../execute_with_logger.js';
-import { PackageManagerController } from './package_manager_controller.js';
+import { executeWithDebugLogger as _executeWithDebugLogger } from './execute_with_debugger_logger.js';
+import { PackageManagerControllerBase } from './package_manager_controller_base.js';
 
 /**
  * YarnClassicPackageManagerController is an abstraction around yarn classic commands that are needed to initialize a project and install dependencies
  */
-export class YarnClassicPackageManagerController extends PackageManagerController {
+export class YarnClassicPackageManagerController extends PackageManagerControllerBase {
   /**
    * Abstraction around yarn classic commands that are needed to initialize a project and install dependencies
    */
   constructor(
-    readonly projectRoot: string,
+    protected readonly cwd: string,
     protected readonly fsp = _fsp,
     protected readonly path = _path,
     protected readonly execa = _execa,
@@ -21,7 +21,7 @@ export class YarnClassicPackageManagerController extends PackageManagerControlle
     protected readonly existsSync = _existsSync
   ) {
     super(
-      projectRoot,
+      cwd,
       'yarn',
       'yarn',
       ['init', '--yes'],

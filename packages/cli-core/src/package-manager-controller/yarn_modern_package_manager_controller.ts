@@ -2,20 +2,20 @@ import { existsSync as _existsSync } from 'fs';
 import _fsp from 'fs/promises';
 import { execa as _execa } from 'execa';
 import * as _path from 'path';
-import { logger } from '../logger.js';
-import { executeWithDebugLogger as _executeWithDebugLogger } from '../execute_with_logger.js';
-import { PackageManagerController } from './package_manager_controller.js';
-import { DependencyType } from './package_manager_controller_factory.js';
+import { LogLevel, Printer } from '@aws-amplify/cli-core';
+import { executeWithDebugLogger as _executeWithDebugLogger } from './execute_with_debugger_logger.js';
+import { PackageManagerControllerBase } from './package_manager_controller_base.js';
 
 /**
  * YarnModernPackageManagerController is an abstraction around yarn modern (yarn v2+) commands that are needed to initialize a project and install dependencies
  */
-export class YarnModernPackageManagerController extends PackageManagerController {
+export class YarnModernPackageManagerController extends PackageManagerControllerBase {
   /**
    * constructor
    */
   constructor(
-    readonly projectRoot: string,
+    protected readonly cwd: string,
+    private readonly printer: Printer,
     protected readonly fsp = _fsp,
     protected readonly path = _path,
     protected readonly execa = _execa,
@@ -23,7 +23,7 @@ export class YarnModernPackageManagerController extends PackageManagerController
     protected readonly existsSync = _existsSync
   ) {
     super(
-      projectRoot,
+      cwd,
       'yarn',
       'yarn',
       ['init', '--yes'],
@@ -38,9 +38,9 @@ export class YarnModernPackageManagerController extends PackageManagerController
 
   installDependencies: (
     packageNames: string[],
-    type: DependencyType
+    type: 'dev' | 'prod'
   ) => Promise<void> = async (packageNames, type) => {
-    await this.addDependencies(this.projectRoot);
+    await this.addDependencies(this.cwd);
     await super.installDependencies(packageNames, type);
   };
 
@@ -58,9 +58,15 @@ export class YarnModernPackageManagerController extends PackageManagerController
       await this.fsp.writeFile(this.path.resolve(targetDir, 'yarn.lock'), '');
     } catch (error) {
       if (typeof error === 'string') {
-        logger.error(`Error creating ${targetDir}/yarn.lock ${error}}`);
+        this.printer.log(
+          `Error creating ${targetDir}/yarn.lock ${error}}`,
+          LogLevel.ERROR
+        );
       } else if (error instanceof Error) {
-        logger.error(`Error creating ${targetDir}/yarn.lock ${error.message}}`);
+        this.printer.log(
+          `Error creating ${targetDir}/yarn.lock ${error.message}}`,
+          LogLevel.ERROR
+        );
       }
     }
   };
