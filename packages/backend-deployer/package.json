@@ -26,8 +26,5 @@
   "peerDependencies": {
     "aws-cdk": "^2.110.1",
     "typescript": "^5.0.0"
-  },
-  "devDependencies": {
-    "@aws-amplify/cli-core": "^0.3.0"
   }
 }
