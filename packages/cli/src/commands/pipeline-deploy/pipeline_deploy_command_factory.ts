@@ -8,6 +8,7 @@ import {
 } from './pipeline_deploy_command.js';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
+import { printer } from '../../printer.js';
 
 /**
  * Creates pipeline deploy command
@@ -21,7 +22,8 @@ export const createPipelineDeployCommand = (): CommandModule<
     credentialProvider
   );
   const packageManagerControllerFactory = new PackageManagerControllerFactory(
-    process.cwd()
+    process.cwd(),
+    printer
   );
   const backendDeployerFactory = new BackendDeployerFactory(
     packageManagerControllerFactory.getPackageManagerController()

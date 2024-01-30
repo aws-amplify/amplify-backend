@@ -4,6 +4,7 @@ import path from 'path';
 import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'assert';
 import { execa } from 'execa';
+import { Printer } from '@aws-amplify/cli-core';
 import { YarnModernPackageManagerController } from './yarn_modern_package_manager_controller.js';
 import { executeWithDebugLogger } from './execute_with_debugger_logger.js';
 
@@ -14,6 +15,7 @@ void describe('YarnModernPackageManagerController', () => {
   };
   const execaMock = mock.fn(() => Promise.resolve());
   const executeWithDebugLoggerMock = mock.fn(() => Promise.resolve());
+  const printerMock = mock.fn(() => Promise.resolve());
 
   beforeEach(() => {
     fspMock.mock.resetCalls();
@@ -27,6 +29,7 @@ void describe('YarnModernPackageManagerController', () => {
     const yarnModernPackageManagerController =
       new YarnModernPackageManagerController(
         '/testProjectRoot',
+        printerMock as unknown as Printer,
         fspMock as unknown as typeof fsp,
         pathMock as unknown as typeof path,
         execaMock as unknown as typeof execa,
@@ -68,6 +71,7 @@ void describe('YarnModernPackageManagerController', () => {
       const yarnModernPackageManagerController =
         new YarnModernPackageManagerController(
           '/testProjectRoot',
+          printerMock as unknown as Printer,
           fspMock as unknown as typeof fsp,
           pathMock as unknown as typeof path,
           execaMock as unknown as typeof execa,
@@ -92,6 +96,7 @@ void describe('YarnModernPackageManagerController', () => {
       const yarnModernPackageManagerController =
         new YarnModernPackageManagerController(
           '/testProjectRoot',
+          printerMock as unknown as Printer,
           fspMock as unknown as typeof fsp,
           pathMock as unknown as typeof path,
           execaMock as unknown as typeof execa,
@@ -113,6 +118,7 @@ void describe('YarnModernPackageManagerController', () => {
       const yarnModernPackageManagerController =
         new YarnModernPackageManagerController(
           '/testProjectRoot',
+          printerMock as unknown as Printer,
           fspMock as unknown as typeof fsp,
           pathMock as unknown as typeof path,
           execaMock as unknown as typeof execa,
@@ -132,6 +138,7 @@ void describe('YarnModernPackageManagerController', () => {
       const yarnModernPackageManagerController =
         new YarnModernPackageManagerController(
           '/testProjectRoot',
+          printerMock as unknown as Printer,
           fspMock as unknown as typeof fsp,
           pathMock as unknown as typeof path,
           execaMock as unknown as typeof execa,

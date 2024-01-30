@@ -19,6 +19,7 @@ import { ClientConfigFormat } from '@aws-amplify/client-config';
 import { Sandbox } from './sandbox.js';
 import {
   AmplifyPrompter,
+  LogLevel,
   PackageManagerControllerFactory,
   Printer,
 } from '@aws-amplify/cli-core';
@@ -32,7 +33,8 @@ const subscribeMock = mock.method(watcher, 'subscribe', async () => {
   return { unsubscribe: unsubscribeMockFn };
 });
 const packageManagerControllerFactory = new PackageManagerControllerFactory(
-  process.cwd()
+  process.cwd(),
+  new Printer(LogLevel.DEBUG)
 );
 const backendDeployerFactory = new BackendDeployerFactory(
   packageManagerControllerFactory.getPackageManagerController()

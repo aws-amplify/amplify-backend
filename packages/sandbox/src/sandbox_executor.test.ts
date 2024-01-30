@@ -2,7 +2,11 @@ import { afterEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
 import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
-import { PackageManagerControllerFactory } from '@aws-amplify/cli-core';
+import {
+  LogLevel,
+  PackageManagerControllerFactory,
+  Printer,
+} from '@aws-amplify/cli-core';
 import { SecretListItem, getSecretClient } from '@aws-amplify/backend-secret';
 
 const logMock = mock.fn();
@@ -10,7 +14,8 @@ const mockedPrinter = {
   log: mock.fn(),
 };
 const packageManagerControllerFactory = new PackageManagerControllerFactory(
-  process.cwd()
+  process.cwd(),
+  new Printer(LogLevel.DEBUG)
 );
 const backendDeployerFactory = new BackendDeployerFactory(
   packageManagerControllerFactory.getPackageManagerController()

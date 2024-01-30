@@ -11,7 +11,11 @@ import {
 } from './pipeline_deploy_command.js';
 import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
-import { PackageManagerControllerFactory } from '@aws-amplify/cli-core';
+import {
+  LogLevel,
+  PackageManagerControllerFactory,
+  Printer,
+} from '@aws-amplify/cli-core';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 
 void describe('deploy command', () => {
@@ -25,7 +29,8 @@ void describe('deploy command', () => {
     () => Promise.resolve()
   );
   const packageManagerControllerFactory = new PackageManagerControllerFactory(
-    process.cwd()
+    process.cwd(),
+    new Printer(LogLevel.DEBUG)
   );
   const getCommandRunner = (isCI = false) => {
     const backendDeployerFactory = new BackendDeployerFactory(

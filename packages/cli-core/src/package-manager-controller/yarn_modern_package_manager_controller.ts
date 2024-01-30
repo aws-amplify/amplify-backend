@@ -2,8 +2,7 @@ import { existsSync as _existsSync } from 'fs';
 import _fsp from 'fs/promises';
 import { execa as _execa } from 'execa';
 import * as _path from 'path';
-import { LogLevel } from '@aws-amplify/cli-core';
-import { printer } from '../printer.js';
+import { LogLevel, Printer } from '@aws-amplify/cli-core';
 import { executeWithDebugLogger as _executeWithDebugLogger } from './execute_with_debugger_logger.js';
 import { PackageManagerControllerBase } from './package_manager_controller_base.js';
 
@@ -16,6 +15,7 @@ export class YarnModernPackageManagerController extends PackageManagerController
    */
   constructor(
     readonly projectRoot: string,
+    private readonly printer: Printer,
     protected readonly fsp = _fsp,
     protected readonly path = _path,
     protected readonly execa = _execa,
@@ -58,12 +58,12 @@ export class YarnModernPackageManagerController extends PackageManagerController
       await this.fsp.writeFile(this.path.resolve(targetDir, 'yarn.lock'), '');
     } catch (error) {
       if (typeof error === 'string') {
-        printer.log(
+        this.printer.log(
           `Error creating ${targetDir}/yarn.lock ${error}}`,
           LogLevel.ERROR
         );
       } else if (error instanceof Error) {
-        printer.log(
+        this.printer.log(
           `Error creating ${targetDir}/yarn.lock ${error.message}}`,
           LogLevel.ERROR
         );

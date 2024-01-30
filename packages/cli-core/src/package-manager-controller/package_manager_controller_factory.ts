@@ -1,4 +1,5 @@
 import { type PackageManagerController } from '@aws-amplify/plugin-types';
+import { Printer } from '../printer/printer.js';
 import { NpmPackageManagerController } from './npm_package_manager_controller.js';
 import { PnpmPackageManagerController } from './pnpm_package_manager_controller.js';
 import { YarnClassicPackageManagerController } from './yarn_classic_package_manager_controller.js';
@@ -12,7 +13,10 @@ export class PackageManagerControllerFactory {
    * constructor
    * @param projectRoot - the root directory of the project
    */
-  constructor(private readonly projectRoot: string) {}
+  constructor(
+    private readonly projectRoot: string,
+    private readonly printer: Printer
+  ) {}
 
   /**
    * getPackageManagerController - returns the package manager controller for each package manager
@@ -27,7 +31,10 @@ export class PackageManagerControllerFactory {
       case 'yarn-classic':
         return new YarnClassicPackageManagerController(this.projectRoot);
       case 'yarn-modern':
-        return new YarnModernPackageManagerController(this.projectRoot);
+        return new YarnModernPackageManagerController(
+          this.projectRoot,
+          this.printer
+        );
       default:
         throw new Error(
           `Package Manager ${packageManagerName} is not supported.`

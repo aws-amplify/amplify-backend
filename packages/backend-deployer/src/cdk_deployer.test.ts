@@ -5,7 +5,11 @@ import { AmplifyError, BackendLocator } from '@aws-amplify/platform-core';
 import { DeployProps } from './cdk_deployer_singleton_factory.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
-import { PackageManagerControllerFactory } from '@aws-amplify/cli-core';
+import {
+  LogLevel,
+  PackageManagerControllerFactory,
+  Printer,
+} from '@aws-amplify/cli-core';
 
 void describe('invokeCDKCommand', () => {
   const branchBackendId: BackendIdentifier = {
@@ -29,7 +33,8 @@ void describe('invokeCDKCommand', () => {
   const backendLocator = { locate: locateMock } as unknown as BackendLocator;
 
   const packageManagerControllerFactory = new PackageManagerControllerFactory(
-    process.cwd()
+    process.cwd(),
+    new Printer(LogLevel.DEBUG)
   );
   const invoker = new CDKDeployer(
     new CdkErrorMapper(),

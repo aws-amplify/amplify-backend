@@ -28,7 +28,7 @@ export class SandboxSingletonFactory {
   getInstance = async (): Promise<Sandbox> => {
     if (!this.instance) {
       const packageManagerControllerFactory =
-        new PackageManagerControllerFactory(process.cwd());
+        new PackageManagerControllerFactory(process.cwd(), this.printer);
       const backendDeployerFactory = new BackendDeployerFactory(
         packageManagerControllerFactory.getPackageManagerController()
       );

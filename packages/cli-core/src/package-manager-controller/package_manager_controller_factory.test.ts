@@ -3,6 +3,7 @@ import assert from 'assert';
 import { PackageManagerControllerFactory } from './package_manager_controller_factory.js';
 import { PackageManagerControllerBase } from './package_manager_controller_base.js';
 import { NpmPackageManagerController } from './npm_package_manager_controller.js';
+import { printer } from '../printer.js';
 
 void describe('packageManagerControllerFactory', () => {
   const packageRoot = '/path/to/project';
@@ -34,7 +35,7 @@ void describe('packageManagerControllerFactory', () => {
     for (const testCase of testCases) {
       void it(`should return the correct package manager controller for ${testCase.name}`, () => {
         const packageManagerControllerFactory =
-          new PackageManagerControllerFactory(packageRoot);
+          new PackageManagerControllerFactory(packageRoot, printer);
 
         const packageManagerController =
           packageManagerControllerFactory.getPackageManagerController();
@@ -46,7 +47,7 @@ void describe('packageManagerControllerFactory', () => {
 
     void it('should throw an error for unsupported package managers', () => {
       const packageManagerControllerFactory =
-        new PackageManagerControllerFactory(packageRoot);
+        new PackageManagerControllerFactory(packageRoot, printer);
       assert.throws(
         () => packageManagerControllerFactory.getPackageManagerController(),
         Error,

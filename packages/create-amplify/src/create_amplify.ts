@@ -21,7 +21,8 @@ import { printer } from './printer.js';
 const projectRoot = await getProjectRoot();
 
 const packageManagerControllerFactory = new PackageManagerControllerFactory(
-  projectRoot
+  projectRoot,
+  printer
 );
 
 const packageManagerController =
