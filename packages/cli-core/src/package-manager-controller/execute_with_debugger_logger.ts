@@ -1,5 +1,5 @@
 import { LogLevel } from '@aws-amplify/cli-core';
-import { execa as _execa } from 'execa';
+import { type Options, execa as _execa } from 'execa';
 import { printer } from '../printer.js';
 
 /**
@@ -10,7 +10,7 @@ export const executeWithDebugLogger = (
   executable: string,
   args?: Readonly<string[]>,
   execa = _execa,
-  options?: { env?: Record<string, string> }
+  options?: Options<'utf8'>
 ) => {
   try {
     const childProcess = execa(executable, args, {

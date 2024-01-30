@@ -14,6 +14,7 @@ import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { IRole } from 'aws-cdk-lib/aws-iam';
 import { IUserPool } from 'aws-cdk-lib/aws-cognito';
 import { IUserPoolClient } from 'aws-cdk-lib/aws-cognito';
+import { Options } from 'execa';
 import { SecretValue } from 'aws-cdk-lib';
 import { Stack } from 'aws-cdk-lib';
 
@@ -143,13 +144,7 @@ export type PackageManagerController = {
     initializeProject: () => Promise<void>;
     initializeTsConfig: (targetDir: string) => Promise<void>;
     installDependencies: (packageNames: string[], type: 'dev' | 'prod') => Promise<void>;
-    runWithPackageManager: (args: string[] | undefined, dir: string, options?: {
-        env?: Record<string, string>;
-        stdin?: 'inherit' | 'pipe' | 'ignore';
-        stdout?: 'inherit' | 'pipe' | 'ignore';
-        stderr?: 'inherit' | 'pipe' | 'ignore';
-        extendEnv?: boolean;
-    }) => ExecaChildProcess<string>;
+    runWithPackageManager: (args: string[] | undefined, dir: string, options?: Options<'utf8'>) => ExecaChildProcess;
     getCommand: (args: string[]) => string;
 };
 
