@@ -1,11 +1,22 @@
 import { ConstructFactory, ResourceProvider } from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
-import { ClientConfig } from "@aws-amplify/client-config";
+import {
+  AuthClientConfig,
+  ClientConfig,
+  ClientConfigFormat,
+  CustomClientConfig,
+  GraphqlClientConfig
+} from "@aws-amplify/client-config";
 
 export type BackendBase = {
   createStack: (name: string) => Stack;
   setCustomOutput: (key: string, value: string, options?: CustomOutputOptions) => void;
   setOutput: (clientConfigPart: Partial<ClientConfig>) => void;
+
+  addOutput1: (clientConfigPart: Partial<ClientConfig>) => void;
+  addOutput2: (clientConfigPart: AuthClientConfig | GraphqlClientConfig | CustomClientConfig) => void;
+  addOutput3: (path: string, value: string) => void;
+  addOutput4: (outputId: string, value: string, options?: OutputOptions) => void;
 };
 
 export type ClientConfigDestination = {
@@ -29,6 +40,15 @@ export type ClientConfigDestination = {
 
 export type CustomOutputOptions = {
   clientConfigDestinations?: Array<ClientConfigDestination>
+}
+
+export type ClientConfigDestination2 = {
+  clientConfigFormat: ClientConfigFormat;
+  path: string;
+}
+
+export type OutputOptions = {
+  clientConfigDestinations?: Array<ClientConfigDestination2>
 }
 
 // Type that allows construct factories to be defined using any keys except those used in BackendHelpers

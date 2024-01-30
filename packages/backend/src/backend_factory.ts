@@ -194,5 +194,17 @@ export const defineBackend = <T extends DefineBackendProps>(
 
       backend.setOutput(clientConfigPart);
     },
+    addOutput1: () => {
+      // NO-OP, just to satisfy compiler
+    },
+    addOutput2: () => {
+      // NO-OP, just to satisfy compiler
+    },
+    addOutput3: () => {
+      // NO-OP, just to satisfy compiler
+    },
+    addOutput4: () => {
+      // NO-OP, just to satisfy compiler
+    },
   };
 };

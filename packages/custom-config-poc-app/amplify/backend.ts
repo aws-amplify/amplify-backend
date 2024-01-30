@@ -7,6 +7,7 @@ import * as location from 'aws-cdk-lib/aws-location';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { PlaceIndex } from '@aws-cdk/aws-location-alpha';
 import { CfnOutput } from 'aws-cdk-lib';
+import { ClientConfigFormat } from '@aws-amplify/client-config';
 
 const backend = defineBackend({
   auth,
@@ -217,3 +218,37 @@ new CfnOutput(locationStack, 'howbigcanoutputbe', {
 // });
 
 // ####### How big can this be End ######
+
+// ###### More DX samples Start #######
+
+backend.addOutput1({
+  custom: { someKey: 'someValue' },
+  aws_cognito_region: 'us-west-2',
+  aws_user_pools_id: 'someUserPoolId',
+});
+
+backend.addOutput2({ custom: { someKey: 'someValue' } });
+backend.addOutput2({
+  aws_cognito_region: 'us-west-2',
+  aws_user_pools_id: 'someUserPoolId',
+});
+
+backend.addOutput3(
+  'geo.amazon_location_service.search_indices[0]',
+  'someSearchIndex'
+);
+
+backend.addOutput4('outputId', 'someValue', {
+  clientConfigDestinations: [
+    {
+      clientConfigFormat: ClientConfigFormat.JSON,
+      path: 'geo.amazon_location_service.search_indices[0]',
+    },
+    {
+      clientConfigFormat: ClientConfigFormat.JSON_MOBILE,
+      path: 'geo.amazon_location_service.some_other_path',
+    },
+  ],
+});
+
+// ###### More DX samples End #######
