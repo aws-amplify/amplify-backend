@@ -13,7 +13,6 @@ import * as path from 'path';
 import { getCallerDirectory } from './get_caller_directory.js';
 import { Duration } from 'aws-cdk-lib';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
-
 import fs from 'fs';
 import { createRequire } from 'module';
 import { FunctionEnvironmentTranslator } from './function_env_translator.js';
@@ -246,6 +245,8 @@ class AmplifyFunction
       .replaceAll('\r', '')
       .split('//#')[0]; // remove source map
 
+    const cjsShimRequire = require.resolve('./cjs_shim');
+
     const functionLambda = new NodejsFunction(scope, `${id}-lambda`, {
       entry: props.entry,
       environment: environmentRecord as { [key: string]: string }, // for some reason TS can't figure out that this is the same as Record<string, string>
@@ -255,6 +256,7 @@ class AmplifyFunction
       bundling: {
         banner: bannerCode,
         format: OutputFormat.ESM,
+        inject: [cjsShimRequire], // replace require to fix dynamic require errors with cjs
       },
     });
 
