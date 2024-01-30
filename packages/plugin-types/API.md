@@ -138,7 +138,6 @@ export type MainStackNameResolver = {
 
 // @public (undocumented)
 export type PackageManagerController = {
-    projectRoot: string;
     getWelcomeMessage: () => string;
     initializeProject: () => Promise<void>;
     initializeTsConfig: (targetDir: string) => Promise<void>;

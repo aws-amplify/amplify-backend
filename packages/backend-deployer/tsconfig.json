@@ -2,8 +2,8 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": { "rootDir": "src", "outDir": "lib" },
   "references": [
-    { "path": "../cli-core" },
     { "path": "../platform-core" },
-    { "path": "../plugin-types" }
+    { "path": "../plugin-types" },
+    { "path": "../cli-core" }
   ]
 }
