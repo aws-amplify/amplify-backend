@@ -1,5 +1,22 @@
 # @aws-amplify/backend-cli
 
+## 0.10.0
+
+### Minor Changes
+
+- 4c1485aa4: print out file written for amplify generate commands
+- fb07bafce: Refactor Printer class & deprecate Logger
+
+### Patch Changes
+
+- Updated dependencies [4c1485aa4]
+- Updated dependencies [fb07bafce]
+  - @aws-amplify/model-generator@0.3.0
+  - @aws-amplify/form-generator@0.7.0
+  - @aws-amplify/client-config@0.6.0
+  - @aws-amplify/cli-core@0.3.0
+  - @aws-amplify/sandbox@0.4.0
+
 ## 0.9.7
 
 ### Patch Changes
