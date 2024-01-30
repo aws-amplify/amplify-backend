@@ -138,6 +138,7 @@ export type MainStackNameResolver = {
 
 // @public (undocumented)
 export type PackageManagerController = {
+    projectRoot: string;
     getWelcomeMessage: () => string;
     initializeProject: () => Promise<void>;
     initializeTsConfig: (targetDir: string) => Promise<void>;
@@ -149,6 +150,7 @@ export type PackageManagerController = {
         stderr?: 'inherit' | 'pipe' | 'ignore';
         extendEnv?: boolean;
     }) => ExecaChildProcess<string>;
+    getCommand: (args: string[]) => string;
 };
 
 // @public (undocumented)

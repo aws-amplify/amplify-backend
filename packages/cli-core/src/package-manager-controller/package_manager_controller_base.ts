@@ -139,6 +139,8 @@ Get started by running \`${this.binaryRunner} amplify sandbox\`.`;
     );
   }
 
+  getCommand = (args: string[]) => `${this.binaryRunner} ${args.join(' ')}`;
+
   /**
    * Check if a package.json file exists in projectRoot
    */

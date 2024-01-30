@@ -88,7 +88,6 @@ export class CDKDeployer implements BackendDeployer {
       aggregatedStderr += chunk;
       done();
     };
-
     const childProcess = this.packageManagerController.runWithPackageManager(
       commandArgs,
       './',
@@ -200,8 +199,10 @@ export class CDKDeployer implements BackendDeployer {
       // See https://github.com/aws/aws-cdk/issues/7717 for more details.
       '--ci',
       '--app',
-      // TODO: replace npx to dynamic package manager
-      `'npx tsx ${this.backendLocator.locate()}'`,
+      this.packageManagerController.getCommand([
+        'tsx',
+        this.backendLocator.locate(),
+      ]),
       '--all',
       '--output',
       '.amplify/artifacts/cdk.out',

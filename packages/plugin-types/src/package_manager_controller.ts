@@ -25,4 +25,5 @@ export type PackageManagerController = {
       extendEnv?: boolean;
     }
   ) => ExecaChildProcess<string>;
+  getCommand: (args: string[]) => string;
 };
