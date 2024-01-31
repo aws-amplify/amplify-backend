@@ -125,6 +125,32 @@ jobs:
             echo setting run_e2e to false;
             echo "run_e2e=false" >> "$GITHUB_OUTPUT";
           fi
+  do_include_package_manager_tests:
+    runs-on: ubuntu-latest
+    permissions:
+      # This is required so that the step can read the labels on the pull request
+      pull-requests: read
+    env:
+      # The gh cli expects the token at this environment variable
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    outputs:
+      run_package_manager_tests: ${{ steps.check.outputs.run_package_manager_tests }}
+    steps:
+      # if this workflow is running on a push (ie merge to main), then package_manager_tests always run
+      # if this workflow is triggered manually, then package_manager_tests always run
+      # if the workflow is running on a pull request, we perform an additional check for the run-package-manager-tests label
+      # this is not a security measure (that is already handled by the pull_request event behavior) but rather a way for PR authors to easily check package manager tests results if they wish
+      # the reason it doesn't run all the time is because it will always fail for external contributor PRs (they don't have access to repo secrets) and we don't want to waste resources running package_manager_tests on every PR commit
+      - name: Check event is push to main or pull request has run-package-manager-tests label
+        id: check
+        run: |
+          if [[ ${{ github.event_name }} == 'push' ]] || [[ ${{ github.event_name }} == 'workflow_dispatch' ]] || gh api /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} | jq -r '.labels[].name' | grep run-package-manager-tests --quiet; then
+            echo setting run_package_manager_tests to true;
+            echo "run_package_manager_tests=true" >> "$GITHUB_OUTPUT";
+          else
+            echo setting run_package_manager_tests to false;
+            echo "run_package_manager_tests=false" >> "$GITHUB_OUTPUT";
+          fi
   run_e2e_tests:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     strategy:
@@ -164,6 +190,51 @@ jobs:
           aws-region: us-west-2
       - name: Run E2E tests
         run: npm run e2e
+  run_package_manager_tests_tests:
+    strategy:
+      # will finish running other test matrices even if one fails
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        pkg-manager: [npm, yarn-classic, yarn-modern, pnpm]
+        node-version: [20]
+        exclude:
+          - os: windows-latest
+            pkg-manager: pnpm
+    env:
+      PACKAGE_MANAGER: ${{ matrix.pkg-manager }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    needs:
+      - build
+    permissions:
+      # these permissions are required for the configure-aws-credentials action to get a JWT from GitHub
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout aws-amplify/amplify-cli repo
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - name: Setup Node.js
+        uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # version 3.8.1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Restore Build Cache
+        uses: ./.github/actions/restore_build_cache
+      - name: Configure test tooling credentials
+        uses: ./.github/actions/setup_profile
+        with:
+          role-to-assume: ${{ secrets.E2E_TOOLING_ROLE_ARN }}
+          aws-region: us-west-2
+          profile-name: e2e-tooling
+      - name: Configure test execution credentials
+        uses: aws-actions/configure-aws-credentials@04b98b3f9e85f563fb061be8751a0352327246b0 # version 3.0.1
+        with:
+          role-to-assume: ${{ secrets.E2E_RUNNER_ROLE_ARN }}
+          aws-region: us-west-2
+      - name: Run E2E flow tests with ${{ matrix.pkg-manager }}
+        shell: bash
+        run: |
+          PACKAGE_MANAGER=${{matrix.pkg-manager}} npm run test:dir packages/integration-tests/src/package_manager_sanity_checks.test.ts
   lint:
     runs-on: ubuntu-latest
     needs:

@@ -34,7 +34,7 @@ jobs:
         uses: ./.github/actions/setup_node
       - name: Build or Restore Build Cache
         uses: ./.github/actions/build_with_cache
-  run_e2e_tests:
+  run_package_manager_tests_tests:
     strategy:
       # will finish running other test matrices even if one fails
       fail-fast: false
