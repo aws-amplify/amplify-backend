@@ -2,8 +2,8 @@ import * as os from 'node:os';
 import { describe, it, mock } from 'node:test';
 import { createInfoCommand } from './info_command_factory.js';
 import { InfoCommand } from './info_command.js';
-import { EnvironmentInfoProvider } from '../../info/env_info.js';
-import { CdkInfoProvider } from '../../info/cdk_info.js';
+import { EnvironmentInfoProvider } from '../../info/env_info_provider.js';
+import { CdkInfoProvider } from '../../info/cdk_info_provider.js';
 import { TestCommandRunner } from '../../test-utils/command_runner.js';
 import { printer } from '../../printer.js';
 import assert from 'node:assert';
@@ -61,22 +61,13 @@ void describe('info command run', () => {
     const infoMock = mock.method(
       environmentInfoProviderMock,
       'getEnvInfo',
-      async () => ''
+      async () => environmentInfoMockValue
     );
-    const infoFormatterMock = mock.method(
-      environmentInfoProviderMock,
-      'formatEnvInfo',
-      () => environmentInfoMockValue
-    );
+
     const cdkInfoMock = mock.method(
       cdkInfoProviderMock,
       'getCdkInfo',
-      async () => ''
-    );
-    const cdkFormatterMock = mock.method(
-      cdkInfoProviderMock,
-      'formatCdkInfo',
-      () => cdkMockValue
+      async () => cdkMockValue
     );
 
     const mockPrinter = mock.method(printer, 'print', () => ({}));
@@ -88,10 +79,9 @@ void describe('info command run', () => {
     const parser = yargs().command(command);
     const commandRunner = new TestCommandRunner(parser);
     await commandRunner.runCommand(['info']);
+
     assert.equal(infoMock.mock.callCount(), 1);
-    assert.equal(infoFormatterMock.mock.callCount(), 1);
     assert.equal(cdkInfoMock.mock.callCount(), 1);
-    assert.equal(cdkFormatterMock.mock.callCount(), 1);
     assert.equal(mockPrinter.mock.callCount(), 1);
     assert.strictEqual(
       mockPrinter.mock.calls[0].arguments[0],

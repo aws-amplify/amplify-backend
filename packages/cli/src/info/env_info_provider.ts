@@ -1,7 +1,7 @@
 import * as os from 'node:os';
 import envinfo from 'envinfo';
-import { printer } from '../printer.js';
-import { EnvInfo } from './env_info_types.js';
+import { format } from '@aws-amplify/cli-core';
+import { EnvInfo } from './env_info_provider_types.js';
 
 /**
  * Provides environment information.
@@ -10,7 +10,7 @@ export class EnvironmentInfoProvider {
   /**
    * Get environment information
    */
-  async getEnvInfo(): Promise<EnvInfo> {
+  async getEnvInfo(): Promise<string> {
     const info = await envinfo.run(
       {
         System: ['OS', 'CPU', 'Memory', 'Shell'],
@@ -23,11 +23,10 @@ export class EnvironmentInfoProvider {
           'aws-cdk-lib',
           'aws-amplify',
         ],
-        // npmGlobalPackages: ['@aws-amplify/cli'],
       },
       { json: true, showNotFound: true }
     );
-    return JSON.parse(info);
+    return this.formatEnvInfo(JSON.parse(info));
   }
 
   /**
@@ -35,29 +34,29 @@ export class EnvironmentInfoProvider {
    * @param info - The environment information.
    * @returns The formatted environment information.
    */
-  formatEnvInfo(info: EnvInfo): string {
+  private formatEnvInfo(info: EnvInfo): string {
     const system = [
       'System:',
       ...Object.entries(info.System).map(([part, details]) => {
         if (typeof details !== 'string') {
-          return printer.format(`${part}: ${details.path}`, 2);
+          return format.indent(`${part}: ${details.path}`, 2);
         }
-        return printer.format(`${part}: ${details}`, 2);
+        return format.indent(`${part}: ${details}`, 2);
       }),
     ];
     const binaries = [
       'Binaries:',
       ...Object.entries(info.Binaries).map(([name, binary]) => {
-        return printer.format(`${name}: ${binary.version} - ${binary.path}`, 2);
+        return format.indent(`${name}: ${binary.version} - ${binary.path}`, 2);
       }),
     ];
     const npmPackages = [
       'NPM Packages:',
       ...Object.entries(info.npmPackages).map(([name, details]) => {
         if (typeof details !== 'string') {
-          return printer.format(`${name}: ${details.installed}`, 2);
+          return format.indent(`${name}: ${details.installed}`, 2);
         }
-        return printer.format(`${name}: ${details}`, 2);
+        return format.indent(`${name}: ${details}`, 2);
       }),
     ];
 

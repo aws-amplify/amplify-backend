@@ -1,23 +1,27 @@
 import { execa as _execa } from 'execa';
-import { printer } from '../printer.js';
+import { format } from '@aws-amplify/cli-core';
 
 /**
  * Provides information about CDK.
  */
 export class CdkInfoProvider {
   /**
+   * execa to run the cdk command and testing.
+   */
+  constructor(private readonly execa = _execa) {}
+
+  /**
    * Format CDK information.
-   * @param execa - The execa to run the cdk command.
    * @returns The cdk doctor output.
    */
-  async getCdkInfo(execa = _execa): Promise<string> {
+  async getCdkInfo(): Promise<string> {
     const cdkDoctorArgs: string[] = ['cdk', 'doctor', '--', ' --no-color'];
 
-    const output = await execa('npx', cdkDoctorArgs, {
+    const output = await this.execa('npx', cdkDoctorArgs, {
       all: true,
     });
 
-    return output.all ?? output.stderr;
+    return this.formatCdkInfo(output.all ?? output.stderr);
   }
 
   /**
@@ -25,7 +29,7 @@ export class CdkInfoProvider {
    * @param info - The CDK information to format.
    * @returns The formatted CDK information.
    */
-  formatCdkInfo(info: string): string {
+  private formatCdkInfo(info: string): string {
     const sensitiveKeys = [
       'AWS_ACCESS_KEY_ID',
       'AWS_SECRET_ACCESS_KEY',
@@ -48,9 +52,9 @@ export class CdkInfoProvider {
         formattedLine.startsWith('AWS_') ||
         formattedLine.startsWith('CDK_')
       ) {
-        formattedLine = printer.format(formattedLine, 2);
+        formattedLine = format.indent(formattedLine, 2);
       } else if (formattedLine.startsWith('- ')) {
-        formattedLine = printer.format(formattedLine.substring(2), 2);
+        formattedLine = format.indent(formattedLine.substring(2), 2);
       }
 
       return formattedLine;

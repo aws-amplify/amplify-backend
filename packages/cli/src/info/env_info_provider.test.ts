@@ -1,14 +1,11 @@
 import * as os from 'node:os';
 import * as assert from 'node:assert';
 import * as test from 'node:test';
-import { EnvironmentInfoProvider } from './env_info.js';
+import { EnvironmentInfoProvider } from './env_info_provider.js';
 import envinfo from 'envinfo';
 
 void test.describe('Env Info', () => {
-  const environmentInfoProvider = new EnvironmentInfoProvider();
-  const mockValue: Awaited<
-    ReturnType<typeof environmentInfoProvider.getEnvInfo>
-  > = {
+  const mockValue = {
     System: {
       CPU: 'fake',
       Memory: 'fake',
@@ -51,11 +48,6 @@ void test.describe('Env Info', () => {
   test.mock.method(envinfo, 'run', infoMock);
 
   void test.it('gets info', async () => {
-    const result = await environmentInfoProvider.getEnvInfo();
-    assert.deepStrictEqual(result, mockValue);
-  });
-
-  void test.it('formats info', () => {
     const expectedLines = [
       'System:',
       `  CPU: ${mockValue.System.CPU}`,
@@ -74,8 +66,8 @@ void test.describe('Env Info', () => {
     ];
 
     const expected = expectedLines.join(os.EOL);
-
-    const result = environmentInfoProvider.formatEnvInfo(mockValue);
+    const environmentInfoProvider = new EnvironmentInfoProvider();
+    const result = await environmentInfoProvider.getEnvInfo();
     assert.strictEqual<string>(result, expected);
   });
 });

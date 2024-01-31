@@ -1,3 +1,4 @@
+// Types in this file are for return type from 'envinfo' package. We don't own schema.
 /* eslint-disable @typescript-eslint/naming-convention */
 export type EnvInfoBinary = {
   version: string;

@@ -1,12 +1,10 @@
 import * as assert from 'node:assert';
 import * as test from 'node:test';
-
-import { CdkInfoProvider } from './cdk_info.js';
 import { execa } from 'execa';
+import { CdkInfoProvider } from './cdk_info_provider.js';
 
 void test.describe('CDK Info', () => {
-  const cdkInfoProvider = new CdkInfoProvider();
-  const mockValue: Awaited<ReturnType<typeof cdkInfoProvider.getCdkInfo>> = `
+  const mockValue: string = `
 ℹ️ CDK Version: 2.110.1 (build 0d37f0d)
 ℹ️ AWS environment variables:
   - AWS_SESSION_TOKEN = <redacted>
@@ -26,14 +24,10 @@ void test.describe('CDK Info', () => {
   });
 
   void test.it('gets info', async () => {
-    const result = await cdkInfoProvider.getCdkInfo(
+    const cdkInfoProvider = new CdkInfoProvider(
       execaMock as unknown as typeof execa
     );
-
-    assert.deepStrictEqual(result, mockValue);
-  });
-
-  void test.it('formats info', () => {
+    const result = await cdkInfoProvider.getCdkInfo();
     const expected = `
 AWS environment variables:
   AWS_STS_REGIONAL_ENDPOINTS = regional
@@ -44,7 +38,6 @@ CDK environment variables:
   CDK_DISABLE_VERSION_CHECK = true
 `.trim();
 
-    const result = cdkInfoProvider.formatCdkInfo(mockValue);
     assert.strictEqual<string>(result, expected);
   });
 });

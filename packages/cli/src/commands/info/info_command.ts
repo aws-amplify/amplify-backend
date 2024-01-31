@@ -1,7 +1,7 @@
 import * as os from 'node:os';
 import { Argv, CommandModule } from 'yargs';
-import { CdkInfoProvider } from '../../info/cdk_info.js';
-import { EnvironmentInfoProvider } from '../../info/env_info.js';
+import { CdkInfoProvider } from '../../info/cdk_info_provider.js';
+import { EnvironmentInfoProvider } from '../../info/env_info_provider.js';
 import { printer } from '../../printer.js';
 
 /**
@@ -34,12 +34,9 @@ export class InfoCommand implements CommandModule<object> {
    */
   handler = async (): Promise<void> => {
     const environmentInfo = await this.environmentInfoProvider.getEnvInfo();
-    const formattedEnvironmentInfo: string =
-      this.environmentInfoProvider.formatEnvInfo(environmentInfo);
     const cdkInfo = await this.cdkInfoProvider.getCdkInfo();
-    const formattedCdkInfo: string =
-      this.cdkInfoProvider.formatCdkInfo(cdkInfo);
-    printer.print(`${formattedEnvironmentInfo}${os.EOL}${formattedCdkInfo}`);
+
+    printer.print(`${environmentInfo}${os.EOL}${cdkInfo}`);
   };
 
   /**
