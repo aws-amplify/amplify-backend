@@ -208,6 +208,7 @@ jobs:
     timeout-minutes: 60
     needs:
       - build
+      - do_include_package_manager_tests
     permissions:
       # these permissions are required for the configure-aws-credentials action to get a JWT from GitHub
       id-token: write
