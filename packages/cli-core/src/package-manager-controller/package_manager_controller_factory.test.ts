@@ -1,4 +1,4 @@
-import { describe, it } from 'node:test';
+import { afterEach, beforeEach, describe, it } from 'node:test';
 import assert from 'assert';
 import { PackageManagerControllerFactory } from './package_manager_controller_factory.js';
 import { PackageManagerControllerBase } from './package_manager_controller_base.js';
@@ -7,28 +7,37 @@ import { printer } from '../printer.js';
 
 void describe('packageManagerControllerFactory', () => {
   const packageRoot = '/path/to/project';
+  let originalEnv: NodeJS.ProcessEnv;
+
+  beforeEach(() => {
+    originalEnv = process.env;
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
 
   void describe('getPackageManagerController', () => {
     const testCases = [
       {
         name: 'npm',
         userAgent: 'npm/7.0.0 node/v15.0.0 darwin x64',
-        expectedInstanceof: NpmPackageManagerController,
+        expectedInstanceOf: NpmPackageManagerController,
       },
       {
         name: 'pnpm',
         userAgent: 'pnpm/5.0.0 node/v15.0.0 darwin x64',
-        expectedInstanceof: PackageManagerControllerBase,
+        expectedInstanceOf: PackageManagerControllerBase,
       },
       {
         name: 'yarn classic',
         userAgent: 'yarn/1.22.21 node/v15.0.0 darwin x64',
-        expectedInstanceof: PackageManagerControllerBase,
+        expectedInstanceOf: PackageManagerControllerBase,
       },
       {
         name: 'yarn modern',
         userAgent: 'yarn/4.0.1 node/v15.0.0 darwin x64',
-        expectedInstanceof: PackageManagerControllerBase,
+        expectedInstanceOf: PackageManagerControllerBase,
       },
     ];
 
@@ -40,14 +49,17 @@ void describe('packageManagerControllerFactory', () => {
         const packageManagerController =
           packageManagerControllerFactory.getPackageManagerController();
         assert.ok(
-          packageManagerController instanceof testCase.expectedInstanceof
+          packageManagerController instanceof testCase.expectedInstanceOf
         );
       });
     }
 
     void it('should throw an error for unsupported package managers', () => {
+      const userAgent = 'unsupported/1.0.0 node/v15.0.0 darwin x64';
+      process.env.npm_config_user_agent = userAgent;
       const packageManagerControllerFactory =
         new PackageManagerControllerFactory(packageRoot, printer);
+
       assert.throws(
         () => packageManagerControllerFactory.getPackageManagerController(),
         Error,
