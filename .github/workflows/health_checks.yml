@@ -110,21 +110,12 @@ jobs:
     outputs:
       run_e2e: ${{ steps.check.outputs.run_e2e }}
     steps:
-      # if this workflow is running on a push (ie merge to main), then e2e tests always run
-      # if this workflow is triggered manually, then e2e tests always run
-      # if the workflow is running on a pull request, we perform an additional check for the run-e2e label
-      # this is not a security measure (that is already handled by the pull_request event behavior) but rather a way for PR authors to easily check e2e test results if they wish
-      # the reason it doesn't run all the time is because it will always fail for external contributor PRs (they don't have access to repo secrets) and we don't want to waste resources running e2e on every PR commit
       - name: Check event is push to main or pull request has run-e2e label
         id: check
-        run: |
-          if [[ ${{ github.event_name }} == 'push' ]] || [[ ${{ github.event_name }} == 'workflow_dispatch' ]] || gh api /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} | jq -r '.labels[].name' | grep run-e2e --quiet; then
-            echo setting run_e2e to true;
-            echo "run_e2e=true" >> "$GITHUB_OUTPUT";
-          else
-            echo setting run_e2e to false;
-            echo "run_e2e=false" >> "$GITHUB_OUTPUT";
-          fi
+        uses: ./.github/actions/tag_trigger_action
+        with:
+          tag-name: run-e2e
+          test-name: run_e2e
   do_include_package_manager_tests:
     runs-on: ubuntu-latest
     permissions:
@@ -136,21 +127,12 @@ jobs:
     outputs:
       run_package_manager_tests: ${{ steps.check.outputs.run_package_manager_tests }}
     steps:
-      # if this workflow is running on a push (ie merge to main), then package_manager_tests always run
-      # if this workflow is triggered manually, then package_manager_tests always run
-      # if the workflow is running on a pull request, we perform an additional check for the run-package-manager-tests label
-      # this is not a security measure (that is already handled by the pull_request event behavior) but rather a way for PR authors to easily check package manager tests results if they wish
-      # the reason it doesn't run all the time is because it will always fail for external contributor PRs (they don't have access to repo secrets) and we don't want to waste resources running package_manager_tests on every PR commit
-      - name: Check event is push to main or pull request has run-package-manager-tests label
+      - name: Check event is push to main or pull request has run-e2e label
         id: check
-        run: |
-          if [[ ${{ github.event_name }} == 'push' ]] || [[ ${{ github.event_name }} == 'workflow_dispatch' ]] || gh api /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} | jq -r '.labels[].name' | grep run-package-manager-tests --quiet; then
-            echo setting run_package_manager_tests to true;
-            echo "run_package_manager_tests=true" >> "$GITHUB_OUTPUT";
-          else
-            echo setting run_package_manager_tests to false;
-            echo "run_package_manager_tests=false" >> "$GITHUB_OUTPUT";
-          fi
+        uses: ./.github/actions/tag_trigger_action
+        with:
+          tag-name: run-package-manager-tests
+          test-name: run_package_manager_tests
   run_e2e_tests:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     strategy:
