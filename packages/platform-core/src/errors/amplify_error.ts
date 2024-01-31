@@ -125,6 +125,7 @@ export type AmplifyUserErrorType =
   | 'CFNUpdateNotSupportedError'
   | 'SyntaxError'
   | 'BackendBuildError'
+  | 'BackendConfigurationError'
   | 'BootstrapNotDetectedError'
   | 'AccessDeniedError'
   | 'FileConventionError';

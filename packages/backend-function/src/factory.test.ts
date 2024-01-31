@@ -5,6 +5,7 @@ import assert from 'node:assert';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 import {
   ConstructContainerStub,
+  SsmEnvironmentEntriesGeneratorStub,
   StackResolverStub,
 } from '@aws-amplify/backend-platform-test-stubs';
 import { defaultLambda } from './test-assets/default-lambda/resource.js';
@@ -36,9 +37,13 @@ void describe('AmplifyFunctionFactory', () => {
       stack
     );
 
+    const ssmEnvironmentEntriesGenerator =
+      new SsmEnvironmentEntriesGeneratorStub();
+
     getInstanceProps = {
       constructContainer,
       outputStorageStrategy,
+      ssmEnvironmentEntriesGenerator,
     };
   });
 

@@ -5,7 +5,9 @@ import {
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
   FunctionResources,
+  ResourceAccessAcceptorFactory,
   ResourceProvider,
+  SsmEnvironmentEntry,
 } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
 import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
@@ -16,14 +18,16 @@ import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import fs from 'fs';
 import { createRequire } from 'module';
 import { FunctionEnvironmentTranslator } from './function_env_translator.js';
+import { Policy } from 'aws-cdk-lib/aws-iam';
 
 /**
  * Entry point for defining a function in the Amplify ecosystem
  */
 export const defineFunction = (
   props: FunctionProps = {}
-): ConstructFactory<ResourceProvider<FunctionResources>> =>
-  new FunctionFactory(props, new Error().stack);
+): ConstructFactory<
+  ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory
+> => new FunctionFactory(props, new Error().stack);
 
 export type FunctionProps = {
   /**
@@ -75,6 +79,7 @@ export type FunctionProps = {
  * Create Lambda functions in the context of an Amplify backend definition
  */
 class FunctionFactory implements ConstructFactory<AmplifyFunction> {
+  provides?: string | undefined;
   private generator: ConstructContainerEntryGenerator;
   /**
    * Create a new AmplifyFunctionFactory
@@ -217,9 +222,11 @@ class FunctionGenerator implements ConstructContainerEntryGenerator {
 
 class AmplifyFunction
   extends Construct
-  implements ResourceProvider<FunctionResources>
+  implements ResourceProvider<FunctionResources>, ResourceAccessAcceptorFactory
 {
   readonly resources: FunctionResources;
+  private readonly lambda: NodejsFunction;
+  private readonly functionEnvironmentTranslator: FunctionEnvironmentTranslator;
   constructor(
     scope: Construct,
     id: string,
@@ -227,15 +234,11 @@ class AmplifyFunction
     backendSecretResolver: BackendSecretResolver
   ) {
     super(scope, id);
-    const functionEnvironmentTranslator = new FunctionEnvironmentTranslator(
+    this.functionEnvironmentTranslator = new FunctionEnvironmentTranslator(
       scope,
       props['environment'],
       backendSecretResolver
     );
-    const environmentRecord =
-      functionEnvironmentTranslator.getEnvironmentRecord();
-    const secretPolicyStatement =
-      functionEnvironmentTranslator.getSecretPolicyStatement();
 
     const require = createRequire(import.meta.url);
     const bannerCodeFile = require.resolve('./resolve_secret_banner');
@@ -247,9 +250,9 @@ class AmplifyFunction
 
     const cjsShimRequire = require.resolve('./cjs_shim');
 
+    // note that environment config is late-bound in the validation callback
     const functionLambda = new NodejsFunction(scope, `${id}-lambda`, {
       entry: props.entry,
-      environment: environmentRecord as { [key: string]: string }, // for some reason TS can't figure out that this is the same as Record<string, string>
       timeout: Duration.seconds(props.timeoutSeconds),
       memorySize: props.memoryMB,
       runtime: nodeVersionMap[props.runtime],
@@ -260,14 +263,43 @@ class AmplifyFunction
       },
     });
 
-    if (secretPolicyStatement) {
-      functionLambda.grantPrincipal.addToPrincipalPolicy(secretPolicyStatement);
-    }
-
     this.resources = {
       lambda: functionLambda,
     };
+    this.lambda = functionLambda;
+
+    // this is a bit of a hack in order to late-bind resolution of ssm environment variables to the end of the synth process
+    this.node.addValidation({
+      validate: (): string[] => {
+        Object.entries(
+          this.functionEnvironmentTranslator.getEnvironmentRecord()
+        ).forEach(([envVarName, value]) => {
+          this.lambda.addEnvironment(envVarName, value);
+        });
+        const ssmPolicy =
+          this.functionEnvironmentTranslator.getSsmPolicyStatement();
+        if (ssmPolicy) {
+          functionLambda.grantPrincipal.addToPrincipalPolicy(ssmPolicy);
+        }
+        return [];
+      },
+    });
   }
+
+  getResourceAccessAcceptor =
+    () => (policy: Policy, ssmEnvironmentEntries: SsmEnvironmentEntry[]) => {
+      const role = this.lambda.role;
+      if (!role) {
+        // This should never happen since we are using the Function L2 construct
+        throw new Error(
+          'No execution role found to attach lambda permissions to'
+        );
+      }
+      policy.attachToRole(role);
+      ssmEnvironmentEntries.forEach(({ name, path }) => {
+        this.functionEnvironmentTranslator.addSsmEnvironmentEntry(name, path);
+      });
+    };
 }
 
 const isWholeNumberBetweenInclusive = (

@@ -62,7 +62,7 @@ void describe('functionEnvironmentTranslator', () => {
     );
 
     assert.deepEqual(functionEnvironmentTranslator.getEnvironmentRecord(), {
-      AMPLIFY_SECRET_PATHS: '{}',
+      AMPLIFY_SSM_ENV_CONFIG: '{}',
       TEST_VAR: 'testValue',
     });
   });
@@ -80,7 +80,7 @@ void describe('functionEnvironmentTranslator', () => {
     );
 
     assert.deepEqual(functionEnvironmentTranslator.getEnvironmentRecord(), {
-      AMPLIFY_SECRET_PATHS: JSON.stringify({
+      AMPLIFY_SSM_ENV_CONFIG: JSON.stringify({
         '/amplify/testBackendId/testBranchName-branch-e482a1c36f/secretValue': {
           name: 'TEST_SECRET',
           sharedPath: '/amplify/shared/testBackendId/secretValue',
@@ -93,7 +93,7 @@ void describe('functionEnvironmentTranslator', () => {
 
   void it('throws if function prop contains a reserved env name', () => {
     const functionEnvProp = {
-      AMPLIFY_SECRET_PATHS: 'test',
+      AMPLIFY_SSM_ENV_CONFIG: 'test',
     };
     assert.throws(
       () =>

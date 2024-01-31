@@ -2,6 +2,7 @@ import { AppId, BackendIdentifier } from '@aws-amplify/plugin-types';
 import { BackendIdentifierConversions } from './backend_identifier_conversions.js';
 
 const SHARED_SECRET = 'shared';
+const RESOURCE_REFERENCE = 'resource_reference';
 
 /**
  * Provides static methods for converting BackendIdentifier to parameter path strings
@@ -22,19 +23,35 @@ export class ParameterPathConversions {
    */
   static toParameterFullPath(
     backendId: BackendIdentifier | AppId,
-    secretName: string
+    parameterName: string
   ): string {
     if (typeof backendId === 'object') {
-      return getBackendParameterFullPath(backendId, secretName);
+      return getBackendParameterFullPath(backendId, parameterName);
     }
-    return getSharedParameterFullPath(backendId, secretName);
+    return getSharedParameterFullPath(backendId, parameterName);
+  }
+
+  /**
+   * Generate an SSM path for references to other backend resources
+   */
+  static toResourceReferenceFullPath(
+    backendId: BackendIdentifier,
+    referenceName: string
+  ): string {
+    return `/amplify/${RESOURCE_REFERENCE}/${getBackendIdentifierPathPart(
+      backendId
+    )}/${referenceName}`;
   }
 }
+
+const getBackendParameterPrefix = (parts: BackendIdentifier): string => {
+  return `/amplify/${getBackendIdentifierPathPart(parts)}`;
+};
 
 /**
  * Get a branch-specific parameter prefix.
  */
-const getBackendParameterPrefix = (parts: BackendIdentifier): string => {
+const getBackendIdentifierPathPart = (parts: BackendIdentifier): string => {
   // round trip the backend id through the stack name conversion to ensure we are applying the same sanitization to SSM paths
   const sanitizedBackendId = BackendIdentifierConversions.fromStackName(
     BackendIdentifierConversions.toStackName(parts)
@@ -45,7 +62,7 @@ const getBackendParameterPrefix = (parts: BackendIdentifier): string => {
       `Could not sanitize the backendId to construct the parameter path`
     );
   }
-  return `/amplify/${sanitizedBackendId.namespace}/${sanitizedBackendId.name}-${sanitizedBackendId.type}-${sanitizedBackendId.hash}`;
+  return `${sanitizedBackendId.namespace}/${sanitizedBackendId.name}-${sanitizedBackendId.type}-${sanitizedBackendId.hash}`;
 };
 
 /**
@@ -53,9 +70,9 @@ const getBackendParameterPrefix = (parts: BackendIdentifier): string => {
  */
 const getBackendParameterFullPath = (
   backendIdentifier: BackendIdentifier,
-  secretName: string
+  parameterName: string
 ): string => {
-  return `${getBackendParameterPrefix(backendIdentifier)}/${secretName}`;
+  return `${getBackendParameterPrefix(backendIdentifier)}/${parameterName}`;
 };
 
 /**
@@ -70,7 +87,7 @@ const getSharedParameterPrefix = (appId: AppId): string => {
  */
 const getSharedParameterFullPath = (
   appId: AppId,
-  secretName: string
+  parameterName: string
 ): string => {
-  return `${getSharedParameterPrefix(appId)}/${secretName}`;
+  return `${getSharedParameterPrefix(appId)}/${parameterName}`;
 };

@@ -8,15 +8,18 @@ import {
   BackendOutputStorageStrategy,
   ConstructContainer,
   ConstructFactory,
+  ConstructFactoryGetInstanceProps,
   FunctionResources,
   ImportPathVerifier,
   ResourceProvider,
+  SsmEnvironmentEntriesGenerator,
 } from '@aws-amplify/plugin-types';
 import { AmplifyAuth, triggerEvents } from '@aws-amplify/auth-construct-alpha';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 import {
   ConstructContainerStub,
   ImportPathVerifierStub,
+  SsmEnvironmentEntriesGeneratorStub,
   StackResolverStub,
 } from '@aws-amplify/backend-platform-test-stubs';
 
@@ -34,6 +37,8 @@ void describe('AmplifyAuthFactory', () => {
   let constructContainer: ConstructContainer;
   let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
   let importPathVerifier: ImportPathVerifier;
+  let ssmEnvironmentEntriesGenerator: SsmEnvironmentEntriesGenerator;
+  let getInstanceProps: ConstructFactoryGetInstanceProps;
   let stack: Stack;
   beforeEach(() => {
     authFactory = defineAuth({
@@ -51,29 +56,26 @@ void describe('AmplifyAuthFactory', () => {
     );
 
     importPathVerifier = new ImportPathVerifierStub();
+
+    ssmEnvironmentEntriesGenerator = new SsmEnvironmentEntriesGeneratorStub();
+
+    getInstanceProps = {
+      constructContainer,
+      outputStorageStrategy,
+      importPathVerifier,
+      ssmEnvironmentEntriesGenerator,
+    };
   });
 
   void it('returns singleton instance', () => {
-    const instance1 = authFactory.getInstance({
-      constructContainer,
-      outputStorageStrategy,
-      importPathVerifier,
-    });
-    const instance2 = authFactory.getInstance({
-      constructContainer,
-      outputStorageStrategy,
-      importPathVerifier,
-    });
+    const instance1 = authFactory.getInstance(getInstanceProps);
+    const instance2 = authFactory.getInstance(getInstanceProps);
 
     assert.strictEqual(instance1, instance2);
   });
 
   void it('adds construct to stack', () => {
-    const authConstruct = authFactory.getInstance({
-      constructContainer,
-      outputStorageStrategy,
-      importPathVerifier,
-    });
+    const authConstruct = authFactory.getInstance(getInstanceProps);
 
     const template = Template.fromStack(Stack.of(authConstruct));
 
@@ -84,11 +86,7 @@ void describe('AmplifyAuthFactory', () => {
       verify: mock.fn(),
     };
 
-    authFactory.getInstance({
-      constructContainer,
-      outputStorageStrategy,
-      importPathVerifier,
-    });
+    authFactory.getInstance({ ...getInstanceProps, importPathVerifier });
 
     assert.ok(
       (importPathVerifier.verify.mock.calls[0].arguments[0] as string).includes(
@@ -117,11 +115,8 @@ void describe('AmplifyAuthFactory', () => {
         triggers: { [event]: funcStub },
       });
 
-      const authConstruct = authWithTriggerFactory.getInstance({
-        constructContainer,
-        outputStorageStrategy,
-        importPathVerifier,
-      });
+      const authConstruct =
+        authWithTriggerFactory.getInstance(getInstanceProps);
 
       const template = Template.fromStack(Stack.of(authConstruct));
       template.hasResourceProperties('AWS::Cognito::UserPool', {

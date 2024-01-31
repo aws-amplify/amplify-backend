@@ -8,6 +8,7 @@ import {
   BackendOutputStorageStrategy,
   ConstructContainer,
   ConstructFactory,
+  SsmEnvironmentEntriesGenerator,
 } from '@aws-amplify/plugin-types';
 import {
   FunctionInstanceProvider,
@@ -16,6 +17,7 @@ import {
 } from './convert_functions.js';
 import {
   ConstructContainerStub,
+  SsmEnvironmentEntriesGeneratorStub,
   StackResolverStub,
 } from '@aws-amplify/backend-platform-test-stubs';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
@@ -25,6 +27,7 @@ void describe('buildConstructFactoryFunctionInstanceProvider', () => {
   let constructContainer: ConstructContainer;
   let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
   let functionInstanceProvider: FunctionInstanceProvider;
+  let ssmEnvironmentEntriesGenerator: SsmEnvironmentEntriesGenerator;
 
   beforeEach(() => {
     stack = new Stack();
@@ -33,9 +36,12 @@ void describe('buildConstructFactoryFunctionInstanceProvider', () => {
     outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
       stack
     );
+    ssmEnvironmentEntriesGenerator = new SsmEnvironmentEntriesGeneratorStub();
+
     functionInstanceProvider = buildConstructFactoryFunctionInstanceProvider({
       constructContainer,
       outputStorageStrategy,
+      ssmEnvironmentEntriesGenerator,
     });
   });
 

@@ -13,6 +13,7 @@ import {
   ConstructFactoryGetInstanceProps,
   ImportPathVerifier,
   ResourceProvider,
+  SsmEnvironmentEntriesGenerator,
 } from '@aws-amplify/plugin-types';
 import { Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import {
@@ -28,6 +29,7 @@ import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-
 import {
   ConstructContainerStub,
   ImportPathVerifierStub,
+  SsmEnvironmentEntriesGeneratorStub,
   StackResolverStub,
 } from '@aws-amplify/backend-platform-test-stubs';
 import { AmplifyDataResources } from '@aws-amplify/data-construct';
@@ -56,6 +58,7 @@ void describe('DataFactory', () => {
   let importPathVerifier: ImportPathVerifier;
   let dataFactory: ConstructFactory<ResourceProvider<AmplifyDataResources>>;
   let getInstanceProps: ConstructFactoryGetInstanceProps;
+  let ssmEnvironmentEntriesGenerator: SsmEnvironmentEntriesGenerator;
 
   beforeEach(() => {
     dataFactory = defineData({ schema: testSchema });
@@ -105,10 +108,13 @@ void describe('DataFactory', () => {
     );
     importPathVerifier = new ImportPathVerifierStub();
 
+    ssmEnvironmentEntriesGenerator = new SsmEnvironmentEntriesGeneratorStub();
+
     getInstanceProps = {
       constructContainer,
       outputStorageStrategy,
       importPathVerifier,
+      ssmEnvironmentEntriesGenerator,
     };
   });
 
@@ -191,6 +197,7 @@ void describe('DataFactory', () => {
       new StackResolverStub(stack)
     );
     getInstanceProps = {
+      ssmEnvironmentEntriesGenerator,
       constructContainer,
       outputStorageStrategy,
       importPathVerifier,

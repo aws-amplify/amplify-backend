@@ -16,6 +16,7 @@ import { platformOutputKey } from '@aws-amplify/backend-output-schemas';
 import { fileURLToPath } from 'url';
 import { Backend, DefineBackendProps } from './backend.js';
 import { AmplifyBranchLinkerConstruct } from './engine/branch-linker/branch_linker_construct.js';
+import { BackendIdScopedSsmEnvironmentEntriesGenerator } from './engine/backend_identifier_scoped_ssm_environment_entries_generator.js';
 
 // Be very careful editing this value. It is the value used in the BI metrics to attribute stacks as Amplify root stacks
 const rootStackTypeIdentifier = 'root';
@@ -75,6 +76,9 @@ export class BackendFactory<
 
     const importPathVerifier = new ToggleableImportPathVerifier();
 
+    const ssmEnvironmentEntriesGenerator =
+      new BackendIdScopedSsmEnvironmentEntriesGenerator(backendId);
+
     // register providers but don't actually execute anything yet
     Object.values(constructFactories).forEach((factory) => {
       if (typeof factory.provides === 'string') {
@@ -94,6 +98,7 @@ export class BackendFactory<
             constructContainer,
             outputStorageStrategy,
             importPathVerifier,
+            ssmEnvironmentEntriesGenerator,
           }
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ) as any;

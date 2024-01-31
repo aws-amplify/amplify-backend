@@ -1,6 +1,6 @@
 /* The code in this line replaces placeholder text in environment variables for secrets with values fetched from SSM, this is a noop if there are no secrets */
 import { SSM } from '@aws-sdk/client-ssm';
-import type { AmplifySecretPaths } from './function_env_translator.js';
+import type { SsmEnvVars } from './function_env_translator.js';
 
 /**
  * The body of this function will be used to resolve secrets for Lambda functions
@@ -8,8 +8,8 @@ import type { AmplifySecretPaths } from './function_env_translator.js';
 export const internalAmplifyFunctionBannerResolveSecrets = async (
   client = new SSM()
 ) => {
-  const envPathObject: AmplifySecretPaths = JSON.parse(
-    process.env.AMPLIFY_SECRET_PATHS ?? '{}'
+  const envPathObject: SsmEnvVars = JSON.parse(
+    process.env.AMPLIFY_SSM_ENV_CONFIG ?? '{}'
   );
   const paths = Object.keys(envPathObject);
 
@@ -43,7 +43,9 @@ export const internalAmplifyFunctionBannerResolveSecrets = async (
   const response = await resolveSecrets(paths);
 
   const sharedPaths = (response?.InvalidParameters || [])
-    .map((invalidParam) => envPathObject[invalidParam].sharedPath)
+    // This assertion is safe because we are filtering out undefined / null in the .filter below()
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    .map((invalidParam) => envPathObject[invalidParam].sharedPath!)
     .filter((sharedParam) => !!sharedParam);
 
   if (sharedPaths.length > 0) {
