@@ -16,7 +16,6 @@ import { TestBranch, amplifyAppPool } from './amplify_app_pool.js';
 import { e2eToolingClientConfig } from './e2e_tooling_client_config.js';
 import {
   type PackageManager,
-  type PackageManagerExecutable,
   setupPackageManager,
 } from './setup_package_manager.js';
 import {
@@ -29,7 +28,6 @@ void describe('getting started happy path', async () => {
   let testBranch: TestBranch;
   let cfnClient: CloudFormationClient;
   let tempDir: string;
-  let packageManagerExecutable: PackageManagerExecutable;
   let packageManager: PackageManager;
 
   before(async () => {
@@ -46,7 +44,6 @@ void describe('getting started happy path', async () => {
   beforeEach(async () => {
     tempDir = await fsp.mkdtemp(path.join(os.tmpdir(), 'test-create-amplify'));
     const packageManagerInfo = await setupPackageManager(tempDir);
-    packageManagerExecutable = packageManagerInfo.packageManagerExecutable;
     packageManager = packageManagerInfo.packageManager;
 
     cfnClient = new CloudFormationClient(e2eToolingClientConfig);
