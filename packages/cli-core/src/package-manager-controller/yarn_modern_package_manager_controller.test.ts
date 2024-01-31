@@ -1,4 +1,3 @@
-import fs from 'fs';
 import fsp from 'fs/promises';
 import path from 'path';
 import { beforeEach, describe, it, mock } from 'node:test';
@@ -9,16 +8,16 @@ import { YarnModernPackageManagerController } from './yarn_modern_package_manage
 import { executeWithDebugLogger } from './execute_with_debugger_logger.js';
 
 void describe('YarnModernPackageManagerController', () => {
-  const fspMock = mock.fn(() => Promise.resolve());
+  const fspMock = { writeFile: mock.fn(() => Promise.resolve()) };
   const pathMock = {
     resolve: mock.fn(() => '/testProjectRoot'),
   };
   const execaMock = mock.fn(() => Promise.resolve());
   const executeWithDebugLoggerMock = mock.fn(() => Promise.resolve());
-  const printerMock = mock.fn(() => Promise.resolve());
+  const printerMock = { log: mock.fn() } as unknown as Printer;
 
   beforeEach(() => {
-    fspMock.mock.resetCalls();
+    fspMock.writeFile.mock.resetCalls();
     pathMock.resolve.mock.resetCalls();
     execaMock.mock.resetCalls();
     executeWithDebugLoggerMock.mock.resetCalls();
@@ -41,11 +40,11 @@ void describe('YarnModernPackageManagerController', () => {
         ['testPackage1', 'testPackage2'],
         'dev'
       );
-      assert.equal(executeWithDebugLoggerMock.mock.callCount(), 1);
+      assert.equal(executeWithDebugLoggerMock.mock.callCount(), 2);
       assert.deepEqual(executeWithDebugLoggerMock.mock.calls[0].arguments, [
         '/testProjectRoot',
         'yarn',
-        ['add', 'testPackage1', 'testPackage2', '-D'],
+        ['add', '-D', 'tsx', 'esbuild'],
         execaMock,
       ]);
     });
@@ -55,11 +54,11 @@ void describe('YarnModernPackageManagerController', () => {
         ['testPackage1', 'testPackage2'],
         'prod'
       );
-      assert.equal(executeWithDebugLoggerMock.mock.callCount(), 1);
+      assert.equal(executeWithDebugLoggerMock.mock.callCount(), 2);
       assert.deepEqual(executeWithDebugLoggerMock.mock.calls[0].arguments, [
         '/testProjectRoot',
         'yarn',
-        ['add', 'testPackage1', 'testPackage2'],
+        ['add', '-D', 'tsx', 'esbuild'],
         execaMock,
       ]);
     });
@@ -145,11 +144,11 @@ void describe('YarnModernPackageManagerController', () => {
           executeWithDebugLoggerMock as unknown as typeof executeWithDebugLogger,
           existsSyncMock
         );
-      const writeFileMock = mock.fn(() => Promise.resolve());
-      mock.method(fs, 'writeFile', writeFileMock);
+      // const writeFileMock = mock.fn(() => Promise.resolve());
+      // mock.method(fsp, 'writeFile', writeFileMock);
       await yarnModernPackageManagerController.initializeTsConfig('./amplify');
       assert.equal(executeWithDebugLoggerMock.mock.callCount(), 2);
-      assert.equal(writeFileMock.mock.callCount(), 1);
+      assert.equal(fspMock.writeFile.mock.callCount(), 1);
     });
   });
 });
