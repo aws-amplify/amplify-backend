@@ -24,10 +24,6 @@ import {
   runWithPackageManager,
 } from './process-controller/process_controller.js';
 
-/**
- * TODO: This test will be refactored to use the test from health-checks.test.ts and run with different package managers.
- */
-
 void describe('getting started happy path', async () => {
   let branchBackendIdentifier: BackendIdentifier;
   let testBranch: TestBranch;
