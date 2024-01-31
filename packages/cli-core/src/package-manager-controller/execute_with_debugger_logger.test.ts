@@ -42,7 +42,7 @@ void describe(() => {
       throw new Error('test error');
     });
 
-    await assert.rejects(
+    assert.throws(
       () =>
         executeWithDebugLogger(
           '/testProjectRoot',
