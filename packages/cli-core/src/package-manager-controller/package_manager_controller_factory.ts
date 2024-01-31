@@ -6,7 +6,7 @@ import { YarnClassicPackageManagerController } from './yarn_classic_package_mana
 import { YarnModernPackageManagerController } from './yarn_modern_package_manager_controller.js';
 
 /**
- * packageManagerControllerFactory is an abstraction around package manager commands that are needed to initialize a project and install dependencies
+ * PackageManagerControllerFactory is a factory for an abstraction around package manager commands that are needed to initialize a project and install dependencies
  */
 export class PackageManagerControllerFactory {
   /**
