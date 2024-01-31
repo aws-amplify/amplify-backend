@@ -51,6 +51,7 @@ void describe('AmplifyStorage', () => {
       const storageStrategy: BackendOutputStorageStrategy<BackendOutputEntry> =
         {
           addBackendOutputEntry: storeOutputMock,
+          addAppendableBackendOutputEntry: mock.fn(),
         };
 
       const storageConstruct = new AmplifyStorage(stack, 'test', {

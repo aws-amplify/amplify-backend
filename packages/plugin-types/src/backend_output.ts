@@ -6,3 +6,8 @@ export type BackendOutputEntry<
 };
 
 export type BackendOutput = Record<string, BackendOutputEntry>;
+
+export type AppendableBackendOutputEntry = {
+  readonly version: string;
+  addToPayload: (key: string, value: string) => void;
+}

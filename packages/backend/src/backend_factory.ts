@@ -16,6 +16,7 @@ import { platformOutputKey } from '@aws-amplify/backend-output-schemas';
 import { fileURLToPath } from 'url';
 import { Backend, DefineBackendProps } from './backend.js';
 import { AmplifyBranchLinkerConstruct } from './engine/branch-linker/branch_linker_construct.js';
+import { ClientConfig } from '@aws-amplify/client-config';
 
 // Be very careful editing this value. It is the value used in the BI metrics to attribute stacks as Amplify root stacks
 const rootStackTypeIdentifier = 'root';
@@ -108,6 +109,8 @@ export class BackendFactory<
   createStack = (name: string): Stack => {
     return this.stackResolver.createCustomStack(name);
   };
+
+  addOutput = (clientConfigPart: Partial<ClientConfig>) => {};
 }
 
 /**
@@ -121,5 +124,6 @@ export const defineBackend = <T extends DefineBackendProps>(
   return {
     ...backend.resources,
     createStack: backend.createStack,
+    addOutput: backend.addOutput,
   };
 };
