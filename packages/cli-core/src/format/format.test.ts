@@ -1,3 +1,4 @@
+import * as os from 'node:os';
 import * as assert from 'node:assert';
 import * as test from 'node:test';
 import { format } from './format.js';
@@ -5,7 +6,7 @@ import { format } from './format.js';
 void test.describe('format utilities', () => {
   void test.it('should create a list with each line preceded by a dash', () => {
     const lines = ['Item 1', 'Item 2', 'Item 3'];
-    const expectedOutput = ' - Item 1\n - Item 2\n - Item 3';
+    const expectedOutput = ` - Item 1${os.EOL} - Item 2${os.EOL} - Item 3`;
     const actualOutput = format.list(lines);
     assert.strictEqual(actualOutput, expectedOutput);
   });
