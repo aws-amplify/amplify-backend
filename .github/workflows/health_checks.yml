@@ -191,6 +191,7 @@ jobs:
       - name: Run E2E tests
         run: npm run e2e
   run_package_manager_tests_tests:
+    if: needs.do_include_package_manager_tests.outputs.run_package_manager_tests == 'true'
     strategy:
       # will finish running other test matrices even if one fails
       fail-fast: false
